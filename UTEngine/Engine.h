@@ -113,6 +113,8 @@ private:
 
 	std::map<int, std::unique_ptr<UnrealTexture>> lmtextures;
 
+	std::vector<int> portalsvisited;
+
 	struct
 	{
 		float Yaw = 0.0f;

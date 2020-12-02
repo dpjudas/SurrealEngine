@@ -387,6 +387,13 @@ uint64_t Engine::FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNode& n
 	if ((surface.PolyFlags & PF_Portal) == 0)
 		return 0;
 
+	// Check if the portal has already been used
+	for (int index : portalsvisited)
+	{
+		if (index == node.Surf)
+			return 0;
+	}
+
 	BspVert* v = &level->Model->Vertices[node.VertPool];
 
 	// Check if portal is at all visible
@@ -496,7 +503,10 @@ uint64_t Engine::FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNode& n
 		}
 	}
 
-	return FindRenderZoneMask(frame, level->Model->Nodes.front(), portalclip, portalzone);
+	portalsvisited.push_back(node.Surf);
+	uint64_t zonemask = FindRenderZoneMask(frame, level->Model->Nodes.front(), portalclip, portalzone);
+	portalsvisited.pop_back();
+	return zonemask;
 }
 
 bool Engine::TraceAnyHit(vec3 from, vec3 to)
