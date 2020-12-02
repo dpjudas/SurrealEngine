@@ -9,12 +9,17 @@
 #include "BinaryStream.h"
 #include "Math/quaternion.h"
 #include "FrustumPlanes.h"
+#include "Font.h"
 #include <chrono>
 
 Engine::Engine()
 {
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 	textures = std::make_unique<TextureManager>(packages.get());
+	bigfont = std::make_unique<Font>("BigFont", packages.get(), textures.get());
+	largefont = std::make_unique<Font>("LargeFont", packages.get(), textures.get());
+	medfont = std::make_unique<Font>("MedFont", packages.get(), textures.get());
+	smallfont = std::make_unique<Font>("SmallFont", packages.get(), textures.get());
 }
 
 Engine::~Engine()
@@ -305,6 +310,21 @@ void Engine::DrawScene()
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
 
 	DrawCoronas(&frame);
+
+	framesDrawn++;
+	if (startFPSTime == 0 || lastTime - startFPSTime >= 1'000'000)
+	{
+		fps = framesDrawn;
+		startFPSTime = lastTime;
+		framesDrawn = 0;
+	}
+
+	DrawFontTextWithShadow(&frame, medfont.get(), vec4(1.0f), 1920 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
+	for (const auto& prop : level->LevelInfo)
+	{
+		if (prop.Name == "Title")
+			DrawFontTextWithShadow(&frame, largefont.get(), vec4(1.0f), 1920 / 2, 1080 - 100, prop.Scalar.ValueString, TextAlignment::center);
+	}
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -850,6 +870,60 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
 
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
+}
+
+void Engine::DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
+{
+	DrawFontText(frame, font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 2, y + 2, text, alignment);
+	DrawFontText(frame, font, color, x, y, text, alignment);
+}
+
+void Engine::DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
+{
+	if (alignment != TextAlignment::left)
+	{
+		ivec2 textsize = GetFontTextSize(font, text);
+		if (alignment == TextAlignment::center)
+			x -= textsize.x / 2;
+		else
+			x -= textsize.x;
+	}
+
+	URenderDevice* device = viewport->GetRenderDevice();
+
+	FTextureInfo texinfo;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;
+	texinfo.Texture = font->pages.front().Texture;
+
+	for (char c : text)
+	{
+		FontCharacter glyph = font->GetGlyph(c);
+
+		int width = glyph.USize * 2;
+		int height = glyph.VSize * 2;
+		float StartU = (float)glyph.StartU;
+		float StartV = (float)glyph.StartV;
+		float USize = (float)glyph.USize;
+		float VSize = (float)glyph.VSize;
+
+		device->DrawTile(frame, texinfo, (float)x, (float)y, (float)width, (float)height, StartU, StartV, USize, VSize, 1.5f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
+
+		x += width;
+	}
+}
+
+ivec2 Engine::GetFontTextSize(Font* font, const std::string& text)
+{
+	int x = 0;
+	int y = 0;
+	for (char c : text)
+	{
+		FontCharacter glyph = font->GetGlyph(c);
+
+		x += glyph.USize * 2;
+		y = std::max(y, glyph.VSize * 2);
+	}
+	return { x, y };
 }
 
 FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet)

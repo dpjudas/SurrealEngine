@@ -88,6 +88,7 @@
       <Filter>RenderDevice</Filter>
     </ClCompile>
     <ClCompile Include="FrustumPlanes.cpp" />
+    <ClCompile Include="Font.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -169,5 +170,6 @@
       <Filter>RenderDevice</Filter>
     </ClInclude>
     <ClInclude Include="FrustumPlanes.h" />
+    <ClInclude Include="Font.h" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@ class BspSurface;
 class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
+class Font;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -56,6 +57,13 @@ enum class CubeSide
 	ZNegative
 };
 
+enum class TextAlignment
+{
+	left,
+	center,
+	right
+};
+
 class Engine
 {
 public:
@@ -77,6 +85,9 @@ private:
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
 	void DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass);
+	void DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	void DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	ivec2 GetFontTextSize(Font* font, const std::string& text);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);
@@ -104,6 +115,7 @@ private:
 
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<TextureManager> textures;
+	std::unique_ptr<Font> bigfont, largefont, medfont, smallfont;
 	std::unique_ptr<Level> level;
 
 	std::unique_ptr<UViewport> viewport;
@@ -148,4 +160,8 @@ private:
 	bool quit = false;
 
 	uint64_t lastTime = 0;
+
+	uint64_t startFPSTime = 0;
+	int framesDrawn = 0;
+	int fps = 0;
 };
