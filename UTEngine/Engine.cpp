@@ -154,6 +154,8 @@ void Engine::Run()
 	{
 		Tick(CalcTimeElapsed());
 
+		textures->Update();
+
 		URenderDevice* device = viewport->GetRenderDevice();
 		device->BeginFrame();
 		DrawScene();
@@ -777,12 +779,15 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	if (surface.Texture)
 	{
 		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Texture;
-		texture.bRealtimeChanged = false;
+		texture.bRealtimeChanged = surface.Texture->TextureModified;
 		texture.UScale = surface.Texture->DrawScale;
 		texture.VScale = surface.Texture->DrawScale;
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
 		texture.Texture = surface.Texture;
+
+		if (surface.Texture->TextureModified)
+			surface.Texture->TextureModified = false;
 
 		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUVTime * 100.0f;
@@ -830,7 +835,10 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 		facet.Points.push_back(level->Model->Points[v[j].Vertex]);
 	}
 
-	FTextureInfo lightmap = GetSurfaceLightmap(surface, facet);
+	FTextureInfo lightmap;
+	if ((surface.PolyFlags & PF_Unlit) == 0)
+		lightmap = GetSurfaceLightmap(surface, facet);
+
 	//FTextureInfo fogmap = GetSurfaceFogmap(surface);
 
 	FSurfaceInfo surfaceinfo;

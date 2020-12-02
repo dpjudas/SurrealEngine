@@ -42,12 +42,17 @@ public:
 	UnrealPalette* Palette = nullptr;
 	UnrealTexture* DetailTexture = nullptr;
 	UnrealTexture* MacroTexture = nullptr;
+
+	bool TextureModified = false;
+	bool FireTexture = false;
 };
 
 class TextureManager
 {
 public:
 	TextureManager(PackageManager* packages);
+
+	void Update();
 
 	UnrealTexture* GetTexture(ExportTableEntry* entry);
 	UnrealPalette* GetPalette(ExportTableEntry* entry);
