@@ -18,6 +18,8 @@ public:
 
 	int GetVersion() const { return PackageVersion; }
 
+	std::string GetName(int index) { return NameTable[index]; }
+
 private:
 	void LoadHeader();
 
@@ -26,7 +28,6 @@ private:
 	ExportTableEntry* ExportForIndex(int index);
 	ImportTableEntry* ImportForIndex(int index);
 
-	std::string GetName(int index) { return NameTable[index]; }
 	int FindNameIndex(std::string name);
 
 	PackageManager* Packages;

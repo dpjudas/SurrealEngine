@@ -104,6 +104,7 @@
     <ClInclude Include="Math\mat.h" />
     <ClInclude Include="Math\quaternion.h" />
     <ClInclude Include="Math\vec.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Package.h" />
     <ClInclude Include="PackageManager.h" />
     <ClInclude Include="PackageObject.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Math\halffloat.cpp" />
     <ClCompile Include="Math\mat.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Package.cpp" />
     <ClCompile Include="PackageManager.cpp" />
     <ClCompile Include="PackageObject.cpp" />

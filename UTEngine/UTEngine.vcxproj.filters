@@ -89,6 +89,7 @@
     </ClCompile>
     <ClCompile Include="FrustumPlanes.cpp" />
     <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Mesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -171,5 +172,6 @@
     </ClInclude>
     <ClInclude Include="FrustumPlanes.h" />
     <ClInclude Include="Font.h" />
+    <ClInclude Include="Mesh.h" />
   </ItemGroup>
 </Project>

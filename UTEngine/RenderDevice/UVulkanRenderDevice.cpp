@@ -37,7 +37,7 @@ public:
 	void UpdateLights(const std::vector<std::pair<int, Light*>>& LightUpdates) override;
 	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
-	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, FTransTexture** Pts, int NumPts, uint32_t PolyFlags) override;
+	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
 	void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
 	void ClearZ(FSceneNode* Frame) override;
 	void ReadPixels(FColor* Pixels) override;
@@ -397,7 +397,7 @@ void UVulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Su
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void UVulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, FTransTexture** Pts, int NumPts, uint32_t PolyFlags)
+void UVulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (renderer->SceneVertexPos + NumPts > renderer->MaxSceneVertices)
 	{
@@ -418,14 +418,14 @@ void UVulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& In
 
 	for (int i = 0; i < NumPts; i++)
 	{
-		FTransTexture* P = Pts[i];
+		const GouraudVertex* P = &Pts[i];
 		SceneVertex& v = vertexdata[i];
 		v.flags = 0;
 		v.x = P->Point.x;
 		v.y = P->Point.y;
 		v.z = P->Point.z;
-		v.u = P->U * UMult;
-		v.v = P->V * VMult;
+		v.u = P->UV.x * UMult;
+		v.v = P->UV.y * VMult;
 		v.u2 = 0.0f;
 		v.v2 = 0.0f;
 		v.u3 = 0.0f;

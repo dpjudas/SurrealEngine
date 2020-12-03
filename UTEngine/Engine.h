@@ -14,6 +14,7 @@ class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
 class Font;
+class Mesh;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -88,6 +89,7 @@ private:
 	void DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	void DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	ivec2 GetFontTextSize(Font* font, const std::string& text);
+	void DrawMesh(FSceneNode* frame, Mesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);
@@ -117,6 +119,7 @@ private:
 	std::unique_ptr<TextureManager> textures;
 	std::unique_ptr<Font> bigfont, largefont, medfont, smallfont;
 	std::unique_ptr<Level> level;
+	std::unique_ptr<Mesh> nalicow;
 
 	std::unique_ptr<UViewport> viewport;
 
@@ -127,13 +130,16 @@ private:
 
 	std::vector<int> portalsvisited;
 
-	struct
+	struct ActorPos
 	{
 		float Yaw = 0.0f;
 		float Pitch = 0.0f;
 		float Roll = 0.0f;
 		vec3 Location = { 200.0f, 1200.0f, 1300.0f };
-	} Camera;
+	};
+	
+	ActorPos Camera;
+	std::vector<ActorPos> Cattle;
 
 	bool HasSkyZoneInfo = false;
 	vec3 SkyLocation = { 0.0f };

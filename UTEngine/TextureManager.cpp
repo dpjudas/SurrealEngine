@@ -32,32 +32,21 @@ UnrealTexture* TextureManager::GetTexture(ExportTableEntry* entry)
 			texture = textureslot.get();
 			texture->Properties = obj->Properties;
 
+			ETextureFormat format = TEXF_P8;
 			for (const UnrealProperty& prop : texture->Properties)
-			{
-				if (prop.Name == "CompFormat")
-				{
-					texture->Format = (ETextureFormat)prop.Scalar.ValueByte;
-					break;
-				}
-			}
-
-			for (const UnrealProperty& prop : texture->Properties)
-			{
 				if (prop.Name == "Format")
-				{
-					texture->Format = (ETextureFormat)prop.Scalar.ValueByte;
-					break;
-				}
-			}
+					format = (ETextureFormat)prop.Scalar.ValueByte;
 
-			int mipsCount = stream->ReadIndex();
+			texture->Format = format;
+
+			int mipsCount = stream->ReadUInt8();
 			texture->Mipmaps.resize(mipsCount);
 
 			for (UnrealMipmap& mipmap : texture->Mipmaps)
 			{
-				uint32_t unknown = 0;
+				uint32_t widthoffset = 0;
 				if (obj->Package->GetVersion() >= 68)
-					unknown = stream->ReadInt32();
+					widthoffset = stream->ReadInt32();
 				int bytes = stream->ReadIndex();
 				mipmap.Data.resize(bytes);
 				stream->ReadBytes(mipmap.Data.data(), bytes);
@@ -65,6 +54,37 @@ UnrealTexture* TextureManager::GetTexture(ExportTableEntry* entry)
 				mipmap.Height = stream->ReadUInt32();
 				uint8_t UBits = stream->ReadUInt8();
 				uint8_t VBits = stream->ReadUInt8();
+			}
+
+			bool bHasComp = false;
+			for (const UnrealProperty& prop : texture->Properties)
+				if (prop.Name == "bHasComp")
+					bHasComp = prop.Scalar.ValueBool;
+
+			if (bHasComp)
+			{
+				ETextureFormat compformat = TEXF_P8;
+				for (const UnrealProperty& prop : texture->Properties)
+					if (prop.Name == "CompFormat")
+						compformat = (ETextureFormat)prop.Scalar.ValueByte;
+
+				texture->Format = compformat;
+
+				mipsCount = stream->ReadUInt8();
+				texture->Mipmaps.resize(mipsCount);
+				for (UnrealMipmap& mipmap : texture->Mipmaps)
+				{
+					uint32_t widthoffset = 0;
+					if (obj->Package->GetVersion() >= 68)
+						widthoffset = stream->ReadInt32();
+					int bytes = stream->ReadIndex();
+					mipmap.Data.resize(bytes);
+					stream->ReadBytes(mipmap.Data.data(), bytes);
+					mipmap.Width = stream->ReadUInt32();
+					mipmap.Height = stream->ReadUInt32();
+					uint8_t UBits = stream->ReadUInt8();
+					uint8_t VBits = stream->ReadUInt8();
+				}
 			}
 
 			for (auto& prop : texture->Properties)

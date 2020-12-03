@@ -38,6 +38,11 @@ public:
 		pos += bytes;
 	}
 
+	uint32_t Tell()
+	{
+		return (uint32_t)pos;
+	}
+
 	int32_t ReadIndex()
 	{
 		uint8_t value = ReadInt8();

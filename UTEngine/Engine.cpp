@@ -10,6 +10,7 @@
 #include "Math/quaternion.h"
 #include "FrustumPlanes.h"
 #include "Font.h"
+#include "Mesh.h"
 #include <chrono>
 
 Engine::Engine()
@@ -20,113 +21,12 @@ Engine::Engine()
 	largefont = std::make_unique<Font>("LargeFont", packages.get(), textures.get());
 	medfont = std::make_unique<Font>("MedFont", packages.get(), textures.get());
 	smallfont = std::make_unique<Font>("SmallFont", packages.get(), textures.get());
+
+	nalicow = std::make_unique<Mesh>("NaliCow", packages.get(), textures.get());
 }
 
 Engine::~Engine()
 {
-}
-
-void Engine::LoadMap(const std::string& packageName)
-{
-	Package* package = packages->GetPackage(packageName);
-	level = std::make_unique<Level>(package);
-
-	for (BspSurface& material : level->Model->Surfaces)
-	{
-		if (material.Material != 0)
-			material.Texture = textures->GetTexture(package->FindExportObject(material.Material));
-		else
-			material.Texture = nullptr;
-	}
-
-	for (int lightindex : level->Model->Lights)
-	{
-		auto& light = lightactors[lightindex];
-		if (!light && lightindex != 0)
-		{
-			auto entry = package->FindExportObject(lightindex);
-			if (entry)
-			{
-				light = std::make_unique<Light>();
-
-				auto obj = entry->Open();
-				for (auto& prop : obj->Properties)
-				{
-					if (prop.Name == "Location")
-					{
-						light->Location = prop.Scalar.ValueVector;
-					}
-					else if (prop.Name == "LightBrightness")
-					{
-						light->LightBrightness = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightHue")
-					{
-						light->LightHue = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightSaturation")
-					{
-						light->LightSaturation = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightRadius")
-					{
-						light->LightRadius = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "bCorona")
-					{
-						light->bCorona = prop.Scalar.ValueBool;
-					}
-					else if (prop.Name == "Skin")
-					{
-						light->Skin = textures->GetTexture(package->FindExportObject(prop.Scalar.ValueObject));
-					}
-				}
-			}
-		}
-		lmlights.push_back(light.get());
-	}
-
-	for (int actorindex : level->Actors)
-	{
-		if (actorindex != 0)
-		{
-			auto entry = package->FindExportObject(actorindex);
-			if (entry)
-			{
-				std::string clsname = entry->GetClsName();
-				if (clsname == "PlayerStart")
-				{
-					auto obj = entry->Open();
-					for (auto& prop : obj->Properties)
-					{
-						if (prop.Name == "Location")
-						{
-							Camera.Location = prop.Scalar.ValueVector;
-							Camera.Location.z += 50;
-						}
-						else if (prop.Name == "Rotation")
-						{
-							Camera.Yaw = prop.Scalar.ValueRotator.Yaw / 65536.0f * 360.0f - 90.0f;
-							Camera.Pitch = prop.Scalar.ValueRotator.Pitch / 65536.0f * 360.0f;
-							Camera.Roll = prop.Scalar.ValueRotator.Roll / 65536.0f * 360.0f;
-						}
-					}
-				}
-				else if (clsname == "SkyZoneInfo")
-				{
-					auto obj = entry->Open();
-					for (auto& prop : obj->Properties)
-					{
-						if (prop.Name == "Location")
-						{
-							SkyLocation = prop.Scalar.ValueVector;
-							HasSkyZoneInfo = true;
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 void Engine::Run()
@@ -307,6 +207,13 @@ void Engine::DrawScene()
 	uint64_t zonemask = FindRenderZoneMask(&frame, level->Model->Nodes.front(), clip, zone);
 
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 0);
+
+	for (const auto& cow : Cattle)
+	{
+		if (!TraceAnyHit(Camera.Location, cow.Location))
+			DrawMesh(&frame, nalicow.get(), cow.Location, 0.0f, -90.0f, 0.0f, { 1.0f });
+	}
+
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
 
 	DrawCoronas(&frame);
@@ -872,6 +779,51 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
+void Engine::DrawMesh(FSceneNode* frame, Mesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
+{
+	auto device = viewport->GetRenderDevice();
+
+	vec3 color = { 3 / 255.0f };
+	for (const auto& it : lightactors)
+	{
+		Light* light = it.second.get();
+		if (light && !light->bCorona && !TraceAnyHit(light->Location, location))
+		{
+			vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
+
+			vec3 L = light->Location - location;
+			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius * 20), 0.0f);
+			float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
+			float attenuation = distanceAttenuation * angleAttenuation;
+			color += lightcolor * attenuation;
+		}
+	}
+
+	mat4 rotate = mat4::rotate(radians(roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
+	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(mesh->Scale * scale) * mat4::translate(vec3(0.0f) - mesh->Origin);
+
+	GouraudVertex vertices[3];
+	for (const MeshFace& face : mesh->Faces)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
+
+			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[wedge.Vertex], 1.0f)).xyz();
+			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
+			vertices[i].Light = color;
+		}
+
+		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+
+		FTextureInfo texinfo;
+		texinfo.Texture = mesh->Textures[material.TextureIndex];
+		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+
+		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, material.PolyFlags);
+	}
+}
+
 void Engine::DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
 {
 	DrawFontText(frame, font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 2, y + 2, text, alignment);
@@ -1199,4 +1151,111 @@ void Engine::SetPause(bool value)
 void Engine::WindowClose(UViewport* viewport)
 {
 	quit = true;
+}
+
+void Engine::LoadMap(const std::string& packageName)
+{
+	Package* package = packages->GetPackage(packageName);
+	level = std::make_unique<Level>(package);
+
+	for (BspSurface& material : level->Model->Surfaces)
+	{
+		if (material.Material != 0)
+			material.Texture = textures->GetTexture(package->FindExportObject(material.Material));
+		else
+			material.Texture = nullptr;
+	}
+
+	for (int lightindex : level->Model->Lights)
+	{
+		auto& light = lightactors[lightindex];
+		if (!light && lightindex != 0)
+		{
+			auto entry = package->FindExportObject(lightindex);
+			if (entry)
+			{
+				light = std::make_unique<Light>();
+
+				auto obj = entry->Open();
+				for (auto& prop : obj->Properties)
+				{
+					if (prop.Name == "Location")
+					{
+						light->Location = prop.Scalar.ValueVector;
+					}
+					else if (prop.Name == "LightBrightness")
+					{
+						light->LightBrightness = prop.Scalar.ValueByte;
+					}
+					else if (prop.Name == "LightHue")
+					{
+						light->LightHue = prop.Scalar.ValueByte;
+					}
+					else if (prop.Name == "LightSaturation")
+					{
+						light->LightSaturation = prop.Scalar.ValueByte;
+					}
+					else if (prop.Name == "LightRadius")
+					{
+						light->LightRadius = prop.Scalar.ValueByte;
+					}
+					else if (prop.Name == "bCorona")
+					{
+						light->bCorona = prop.Scalar.ValueBool;
+					}
+					else if (prop.Name == "Skin")
+					{
+						light->Skin = textures->GetTexture(package->FindExportObject(prop.Scalar.ValueObject));
+					}
+				}
+			}
+		}
+		lmlights.push_back(light.get());
+	}
+
+	for (int actorindex : level->Actors)
+	{
+		if (actorindex != 0)
+		{
+			auto entry = package->FindExportObject(actorindex);
+			if (entry)
+			{
+				std::string clsname = entry->GetClsName();
+				if (clsname == "PlayerStart")
+				{
+					auto obj = entry->Open();
+					for (auto& prop : obj->Properties)
+					{
+						if (prop.Name == "Location")
+						{
+							Camera.Location = prop.Scalar.ValueVector;
+							Camera.Location.z += 70;
+
+							ActorPos cow;
+							cow.Location = prop.Scalar.ValueVector;
+							Cattle.push_back(cow);
+						}
+						else if (prop.Name == "Rotation")
+						{
+							Camera.Yaw = prop.Scalar.ValueRotator.Yaw / 65536.0f * 360.0f - 90.0f;
+							Camera.Pitch = prop.Scalar.ValueRotator.Pitch / 65536.0f * 360.0f;
+							Camera.Roll = prop.Scalar.ValueRotator.Roll / 65536.0f * 360.0f;
+						}
+					}
+				}
+				else if (clsname == "SkyZoneInfo")
+				{
+					auto obj = entry->Open();
+					for (auto& prop : obj->Properties)
+					{
+						if (prop.Name == "Location")
+						{
+							SkyLocation = prop.Scalar.ValueVector;
+							HasSkyZoneInfo = true;
+						}
+					}
+				}
+			}
+		}
+	}
 }
