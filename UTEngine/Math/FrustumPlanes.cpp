@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "FrustumPlanes.h"
+#include "bbox.h"
 
 FrustumPlanes::FrustumPlanes(const mat4& world_to_projection)
 {

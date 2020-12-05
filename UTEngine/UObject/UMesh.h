@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UObject.h"
-#include "FrustumPlanes.h"
+#include "Math/bbox.h"
 
 class UTexture;
 

@@ -3,12 +3,12 @@
 #include "Package.h"
 #include "PackageStream.h"
 #include "PackageManager.h"
-#include "UObject.h"
-#include "UFont.h"
-#include "ULevel.h"
-#include "UMesh.h"
-#include "UTexture.h"
-#include "ULight.h"
+#include "UObject/UObject.h"
+#include "UObject/UFont.h"
+#include "UObject/ULevel.h"
+#include "UObject/UMesh.h"
+#include "UObject/UTexture.h"
+#include "UObject/ULight.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)

@@ -10,9 +10,9 @@
 #include "ShadowmapRenderPass.h"
 #include "SceneSamplers.h"
 #include "Viewport/UVulkanViewport.h"
-#include "ULevel.h"
-#include "ULight.h"
-#include "UTexture.h"
+#include "UObject/ULevel.h"
+#include "UObject/ULight.h"
+#include "UObject/UTexture.h"
 #include "Engine.h"
 #include <chrono>
 #include <thread>

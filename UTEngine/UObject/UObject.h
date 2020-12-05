@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ObjectStream.h"
+#include "Package/ObjectStream.h"
 #include "Math/vec.h"
 
 enum UnrealPropertyType

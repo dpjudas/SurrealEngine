@@ -19,6 +19,12 @@
     <Filter Include="Thirdparty\volk">
       <UniqueIdentifier>{37e98406-c4d2-44e5-bb92-4baf05a290a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Package">
+      <UniqueIdentifier>{8bac631b-86bb-4019-9a49-7fcbab4bf987}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UObject">
+      <UniqueIdentifier>{9f46652c-b43c-4003-ab8a-15e8f0d0d7f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -29,7 +35,6 @@
     </ClCompile>
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="PackageManager.cpp" />
     <ClCompile Include="Precomp.cpp" />
     <ClCompile Include="RenderDevice\FileResource.cpp">
       <Filter>RenderDevice</Filter>
@@ -83,15 +88,36 @@
     <ClCompile Include="RenderDevice\SceneLights.cpp">
       <Filter>RenderDevice</Filter>
     </ClCompile>
-    <ClCompile Include="FrustumPlanes.cpp" />
-    <ClCompile Include="PackageStream.cpp" />
-    <ClCompile Include="Package.cpp" />
-    <ClCompile Include="UTexture.cpp" />
-    <ClCompile Include="UObject.cpp" />
-    <ClCompile Include="UFont.cpp" />
-    <ClCompile Include="UMesh.cpp" />
-    <ClCompile Include="ULevel.cpp" />
-    <ClCompile Include="ULight.cpp" />
+    <ClCompile Include="Package\Package.cpp">
+      <Filter>Package</Filter>
+    </ClCompile>
+    <ClCompile Include="Package\PackageManager.cpp">
+      <Filter>Package</Filter>
+    </ClCompile>
+    <ClCompile Include="Package\PackageStream.cpp">
+      <Filter>Package</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UFont.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\ULevel.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\ULight.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UMesh.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UObject.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UTexture.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\FrustumPlanes.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -107,7 +133,6 @@
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="File.h" />
-    <ClInclude Include="PackageManager.h" />
     <ClInclude Include="Precomp.h" />
     <ClInclude Include="RenderDevice\FileResource.h">
       <Filter>RenderDevice</Filter>
@@ -167,17 +192,47 @@
     <ClInclude Include="RenderDevice\SceneLights.h">
       <Filter>RenderDevice</Filter>
     </ClInclude>
-    <ClInclude Include="FrustumPlanes.h" />
-    <ClInclude Include="PackageStream.h" />
-    <ClInclude Include="ObjectStream.h" />
-    <ClInclude Include="Package.h" />
-    <ClInclude Include="UObject.h" />
-    <ClInclude Include="UTexture.h" />
-    <ClInclude Include="UFont.h" />
-    <ClInclude Include="UMesh.h" />
-    <ClInclude Include="ULevel.h" />
-    <ClInclude Include="ULight.h" />
-    <ClInclude Include="PackageFlags.h" />
-    <ClInclude Include="ObjectFlags.h" />
+    <ClInclude Include="Package\ObjectFlags.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\ObjectStream.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\Package.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\PackageFlags.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\PackageManager.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\PackageStream.h">
+      <Filter>Package</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UFont.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\ULevel.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\ULight.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UMesh.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UObject.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UTexture.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\bbox.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\FrustumPlanes.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

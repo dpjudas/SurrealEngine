@@ -6,8 +6,8 @@
 #include "PixelBuffer.h"
 #include "Renderer.h"
 #include "UVulkanRenderDevice.h"
-#include "ULevel.h"
-#include "UTexture.h"
+#include "UObject/ULevel.h"
+#include "UObject/UTexture.h"
 
 VulkanTexture::VulkanTexture(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
 {
