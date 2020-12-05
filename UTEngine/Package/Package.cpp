@@ -8,7 +8,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UMesh.h"
 #include "UObject/UTexture.h"
-#include "UObject/ULight.h"
+#include "UObject/UActor.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
@@ -22,7 +22,7 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UModel>("Model");
 	RegisterNativeClass<ULevelBase>("LevelBase");
 	RegisterNativeClass<ULevel>("Level");
-	RegisterNativeClass<ULight>("Light");
+	RegisterNativeClass<UActor>("Actor");
 	RegisterNativeClass<UPrimitive>("Primitive");
 	RegisterNativeClass<UMesh>("Mesh");
 	RegisterNativeClass<ULodMesh>("LodMesh");

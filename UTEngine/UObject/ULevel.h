@@ -4,7 +4,7 @@
 #include "Math/bbox.h"
 
 class UTexture;
-class ULight;
+class UActor;
 
 enum EBspNodeFlags
 {
@@ -177,7 +177,7 @@ public:
 	std::vector<int32_t> LeafHulls;
 	std::vector<ConvexVolumeLeaf> Leaves;
 
-	std::vector<ULight*> Lights;
+	std::vector<UActor*> Lights;
 
 	int32_t RootOutside;
 	int32_t Linked;
@@ -200,7 +200,7 @@ class ULevelBase : public UObject
 public:
 	ULevelBase(ObjectStream* stream);
 
-	std::vector<UObject*> Actors;
+	std::vector<UActor*> Actors;
 
 	std::string Protocol;
 	std::string Host;

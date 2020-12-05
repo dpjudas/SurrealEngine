@@ -6,7 +6,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UFont.h"
 #include "UObject/UMesh.h"
-#include "UObject/ULight.h"
+#include "UObject/UActor.h"
 #include "UObject/UTexture.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
@@ -36,9 +36,9 @@ void Engine::Run()
 	//viewport->OpenWindow(1800, 950, false);
 	viewport->OpenWindow(1920, 1080, true);
 
-	//LoadMap("DM-Liandri");
+	LoadMap("DM-Liandri");
 	//LoadMap("DM-Codex");
-	LoadMap("DM-Barricade");
+	//LoadMap("DM-Barricade");
 	//LoadMap("DM-Deck16][");
 	//LoadMap("DM-KGalleon");
 	//LoadMap("DM-Turbine");
@@ -131,7 +131,7 @@ void Engine::GenerateShadowmaps()
 	*/
 }
 
-void Engine::DrawShadowmap(int index, ULight* light, CubeSide side)
+void Engine::DrawShadowmap(int index, UActor* light, CubeSide side)
 {
 	URenderDevice* device = viewport->GetRenderDevice();
 
@@ -151,7 +151,7 @@ void Engine::DrawCoronas(FSceneNode* frame)
 {
 	URenderDevice* device = viewport->GetRenderDevice();
 
-	for (ULight* light : Lights)
+	for (UActor* light : Lights)
 	{
 		if (light && light->bCorona && light->Skin && !TraceAnyHit(light->Location, frame->ViewLocation))
 		{
@@ -573,7 +573,7 @@ FSceneNode Engine::CreateSkyFrame()
 	return frame;
 }
 
-FSceneNode Engine::CreateShadowmapFrame(ULight* light, CubeSide side)
+FSceneNode Engine::CreateShadowmapFrame(UActor* light, CubeSide side)
 {
 	float pitch = 0.0f;
 	float yaw = 0.0f;
@@ -786,7 +786,7 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 
 	vec3 color = { 3 / 255.0f };
 
-	for (ULight* light : Lights)
+	for (UActor* light : Lights)
 	{
 		if (light && !light->bCorona && !TraceAnyHit(light->Location, location))
 		{
@@ -956,10 +956,10 @@ std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmi
 		const uint8_t* bits = &level->Model->LightBits[lmindex.DataOffset];
 		int bitpos = 0;
 
-		ULight** lightpos = &level->Model->Lights[lmindex.LightActors];
+		UActor** lightpos = &level->Model->Lights[lmindex.LightActors];
 		while (*lightpos)
 		{
-			ULight* light = *lightpos;
+			UActor* light = *lightpos;
 
 			for (int y = 0; y < height; y++)
 			{
@@ -1012,7 +1012,7 @@ std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmi
 	return lmtexture;
 }
 
-void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, ULight* light, const vec3& N, const uint8_t* bits, int& bitpos)
+void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos)
 {
 	vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
 
@@ -1162,13 +1162,13 @@ void Engine::LoadMap(const std::string& packageName)
 	LevelInfo = package->GetUObject("LevelInfo", "LevelInfo0");
 	level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
 
-	std::set<ULight*> lightset;
-	for (ULight* light : level->Model->Lights)
+	std::set<UActor*> lightset;
+	for (UActor* light : level->Model->Lights)
 	{
 		lightset.insert(light);
 	}
 
-	for (ULight* light : lightset)
+	for (UActor* light : lightset)
 		Lights.push_back(light);
 
 	std::set<UTexture*> textureset;

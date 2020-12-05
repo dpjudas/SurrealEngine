@@ -103,9 +103,6 @@
     <ClCompile Include="UObject\ULevel.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
-    <ClCompile Include="UObject\ULight.cpp">
-      <Filter>UObject</Filter>
-    </ClCompile>
     <ClCompile Include="UObject\UMesh.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
@@ -117,6 +114,9 @@
     </ClCompile>
     <ClCompile Include="Math\FrustumPlanes.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UActor.cpp">
+      <Filter>UObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -216,9 +216,6 @@
     <ClInclude Include="UObject\ULevel.h">
       <Filter>UObject</Filter>
     </ClInclude>
-    <ClInclude Include="UObject\ULight.h">
-      <Filter>UObject</Filter>
-    </ClInclude>
     <ClInclude Include="UObject\UMesh.h">
       <Filter>UObject</Filter>
     </ClInclude>
@@ -233,6 +230,9 @@
     </ClInclude>
     <ClInclude Include="Math\FrustumPlanes.h">
       <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UActor.h">
+      <Filter>UObject</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

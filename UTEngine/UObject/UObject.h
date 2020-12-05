@@ -127,7 +127,7 @@ public:
 	{
 		T* target = dynamic_cast<T*>(obj);
 		if (target == nullptr && obj != nullptr)
-			throw std::runtime_error("Could not cast object to " + (std::string)typeid(T).name());
+			throw std::runtime_error("Could not cast " + obj->ClassName + " to " + (std::string)typeid(T).name());
 		return target;
 	}
 

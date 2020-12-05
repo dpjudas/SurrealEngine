@@ -127,7 +127,7 @@
     <ClInclude Include="RenderDevice\VulkanTexture.h" />
     <ClInclude Include="UObject\UFont.h" />
     <ClInclude Include="UObject\ULevel.h" />
-    <ClInclude Include="UObject\ULight.h" />
+    <ClInclude Include="UObject\UActor.h" />
     <ClInclude Include="UObject\UMesh.h" />
     <ClInclude Include="UObject\UObject.h" />
     <ClInclude Include="UObject\UTexture.h" />
@@ -171,7 +171,7 @@
     <ClCompile Include="RenderDevice\VulkanTexture.cpp" />
     <ClCompile Include="UObject\UFont.cpp" />
     <ClCompile Include="UObject\ULevel.cpp" />
-    <ClCompile Include="UObject\ULight.cpp" />
+    <ClCompile Include="UObject\UActor.cpp" />
     <ClCompile Include="UObject\UMesh.cpp" />
     <ClCompile Include="UObject\UObject.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />

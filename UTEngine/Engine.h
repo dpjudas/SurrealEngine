@@ -8,7 +8,7 @@ class UObject;
 class ULevel;
 class UViewport;
 class UTexture;
-class ULight;
+class UActor;
 class UFont;
 class ULodMesh;
 class BspSurface;
@@ -70,7 +70,7 @@ public:
 private:
 	void Tick(float timeElapsed);
 	void GenerateShadowmaps();
-	void DrawShadowmap(int index, ULight* light, CubeSide side);
+	void DrawShadowmap(int index, UActor* light, CubeSide side);
 	void DrawScene();
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
@@ -96,13 +96,13 @@ private:
 
 	FSceneNode CreateSceneFrame();
 	FSceneNode CreateSkyFrame();
-	FSceneNode CreateShadowmapFrame(ULight* light, CubeSide side);
+	FSceneNode CreateShadowmapFrame(UActor* light, CubeSide side);
 
 	void LoadMap(const std::string& packageName);
 
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet);
 	std::unique_ptr<UTexture> CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
-	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, ULight* light, const vec3& N, const uint8_t* bits, int& bitpos);
+	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos);
 
 	std::unique_ptr<PackageManager> packages;
 
@@ -115,7 +115,7 @@ private:
 	UObject* LevelInfo = nullptr;
 	ULevel* level = nullptr;
 
-	std::vector<ULight*> Lights;
+	std::vector<UActor*> Lights;
 	std::vector<UTexture*> Textures;
 
 	ULodMesh* nalicow = nullptr;

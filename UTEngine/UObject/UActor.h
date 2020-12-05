@@ -4,10 +4,10 @@
 
 class UTexture;
 
-class ULight : public UObject
+class UActor : public UObject
 {
 public:
-	ULight(ObjectStream* stream);
+	UActor(ObjectStream* stream);
 
 	vec3 Location = { 0.0f };
 	int LightBrightness = 64;

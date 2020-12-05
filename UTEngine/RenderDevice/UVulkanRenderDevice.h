@@ -4,7 +4,7 @@
 
 class UViewport;
 class UTexture;
-class ULight;
+class UActor;
 
 struct FCoords
 {
@@ -86,7 +86,7 @@ public:
 	virtual void BeginScenePass() = 0;
 	virtual void EndScenePass() = 0;
 	virtual void EndFrame(bool Blit) = 0;
-	virtual void UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates) = 0;
+	virtual void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) = 0;
 	virtual void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) = 0;
 	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
 	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;

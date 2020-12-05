@@ -1,9 +1,9 @@
 
 #include "Precomp.h"
-#include "ULight.h"
+#include "UActor.h"
 #include "UTexture.h"
 
-ULight::ULight(ObjectStream* stream) : UObject(stream)
+UActor::UActor(ObjectStream* stream) : UObject(stream)
 {
 	if (Properties.HasScalar("Location")) Location = Properties.GetScalar("Location").ValueVector;
 	if (Properties.HasScalar("LightBrightness")) LightBrightness = Properties.GetScalar("LightBrightness").ValueByte;

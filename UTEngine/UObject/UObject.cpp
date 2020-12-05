@@ -219,6 +219,13 @@ UObject::UObject(ObjectStream* stream) : ClassName(stream->GetClsName())
 					int32_t bspLeaf = stream->ReadInt32();
 					uint8_t zoneNumber = stream->ReadInt8();
 				}
+				else if (structName == "ADrop" || structName == "ASpark")
+				{
+					uint16_t unknown1 = stream->ReadUInt16();
+					uint8_t x = stream->ReadUInt8();
+					uint8_t y = stream->ReadUInt8();
+					uint16_t unknown2 = stream->ReadUInt32();
+				}
 				else
 				{
 					throw std::runtime_error("Unimplemented struct '" + structName + "' encountered");

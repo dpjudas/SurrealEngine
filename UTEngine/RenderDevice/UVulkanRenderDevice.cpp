@@ -11,7 +11,7 @@
 #include "SceneSamplers.h"
 #include "Viewport/UVulkanViewport.h"
 #include "UObject/ULevel.h"
-#include "UObject/ULight.h"
+#include "UObject/UActor.h"
 #include "UObject/UTexture.h"
 #include "Engine.h"
 #include <chrono>
@@ -35,7 +35,7 @@ public:
 	void BeginScenePass() override;
 	void EndScenePass() override;
 	void EndFrame(bool Blit) override;
-	void UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates) override;
+	void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) override;
 	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
 	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
@@ -189,7 +189,7 @@ void UVulkanRenderDevice::EndShadowmapUpdate()
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 }
 
-void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates)
+void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates)
 {
 	if (LightUpdates.empty())
 		return;
@@ -210,7 +210,7 @@ void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, ULight*>
 	for (auto& update : LightUpdates)
 	{
 		int index = update.first;
-		ULight* slight = update.second;
+		UActor* slight = update.second;
 		SceneLight& dlight = dest[index - minIndex];
 
 		dlight.Location = slight->Location;

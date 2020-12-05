@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "ULevel.h"
-#include "ULight.h"
+#include "UActor.h"
 #include "UTexture.h"
 
 ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
@@ -10,7 +10,7 @@ ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
 	int32_t dbmax = stream->ReadInt32();
 	for (int32_t i = 0; i < dbnum; i++)
 	{
-		Actors.push_back(stream->ReadUObject());
+		Actors.push_back(Cast<UActor>(stream->ReadUObject()));
 	}
 
 	Protocol = stream->ReadString();
@@ -207,7 +207,7 @@ UModel::UModel(ObjectStream* stream) : UObject(stream)
 	count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
-		Lights.push_back(Cast<ULight>(stream->ReadUObject()));
+		Lights.push_back(Cast<UActor>(stream->ReadUObject()));
 	}
 
 	RootOutside = stream->ReadInt32();
