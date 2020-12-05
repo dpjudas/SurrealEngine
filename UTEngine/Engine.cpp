@@ -10,9 +10,10 @@
 #include "UObject/UTexture.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
-#include "Viewport/UVulkanViewport.h"
-#include "RenderDevice/UVulkanRenderDevice.h"
+#include "Viewport/Viewport.h"
+#include "RenderDevice/RenderDevice.h"
 #include <chrono>
+#include <set>
 
 Engine::Engine()
 {
@@ -32,7 +33,7 @@ Engine::~Engine()
 
 void Engine::Run()
 {
-	viewport = UViewport::Create(this);
+	viewport = Viewport::Create(this);
 	//viewport->OpenWindow(1800, 950, false);
 	viewport->OpenWindow(1920, 1080, true);
 
@@ -63,7 +64,7 @@ void Engine::Run()
 		for (UTexture* tex : Textures)
 			tex->Update();
 
-		URenderDevice* device = viewport->GetRenderDevice();
+		RenderDevice* device = viewport->GetRenderDevice();
 		device->BeginFrame();
 		DrawScene();
 		device->EndFrame(true);
@@ -107,7 +108,7 @@ float Engine::CalcTimeElapsed()
 void Engine::GenerateShadowmaps()
 {
 	/*
-	URenderDevice* device = viewport->GetRenderDevice();
+	RenderDevice* device = viewport->GetRenderDevice();
 
 	device->UpdateSurfaceLights(level->Model->Lights);
 
@@ -133,7 +134,7 @@ void Engine::GenerateShadowmaps()
 
 void Engine::DrawShadowmap(int index, UActor* light, CubeSide side)
 {
-	URenderDevice* device = viewport->GetRenderDevice();
+	RenderDevice* device = viewport->GetRenderDevice();
 
 	device->BeginShadowmapPass();
 
@@ -149,7 +150,7 @@ void Engine::DrawShadowmap(int index, UActor* light, CubeSide side)
 
 void Engine::DrawCoronas(FSceneNode* frame)
 {
-	URenderDevice* device = viewport->GetRenderDevice();
+	RenderDevice* device = viewport->GetRenderDevice();
 
 	for (UActor* light : Lights)
 	{
@@ -181,7 +182,7 @@ void Engine::DrawCoronas(FSceneNode* frame)
 
 void Engine::DrawScene()
 {
-	URenderDevice* device = viewport->GetRenderDevice();
+	RenderDevice* device = viewport->GetRenderDevice();
 
 	device->BeginScenePass();
 
@@ -842,7 +843,7 @@ void Engine::DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int
 			x -= textsize.x;
 	}
 
-	URenderDevice* device = viewport->GetRenderDevice();
+	RenderDevice* device = viewport->GetRenderDevice();
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;
@@ -1098,11 +1099,11 @@ vec3 Engine::hsbtorgb(double hue, double saturation, double brightness)
 }
 
 
-void Engine::Key(UViewport* viewport, std::string key)
+void Engine::Key(Viewport* viewport, std::string key)
 {
 }
 
-void Engine::InputEvent(UViewport* viewport, EInputKey key, EInputType type, int delta)
+void Engine::InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta)
 {
 	switch (key)
 	{
@@ -1149,7 +1150,7 @@ void Engine::SetPause(bool value)
 {
 }
 
-void Engine::WindowClose(UViewport* viewport)
+void Engine::WindowClose(Viewport* viewport)
 {
 	quit = true;
 }

@@ -13,7 +13,7 @@
 #include "ShadowmapRenderPass.h"
 #include "SceneSamplers.h"
 #include "FileResource.h"
-#include "UVulkanRenderDevice.h"
+#include "VulkanRenderDevice.h"
 #include "UObject/ULevel.h"
 
 static bool shaderbuilderinited = false;

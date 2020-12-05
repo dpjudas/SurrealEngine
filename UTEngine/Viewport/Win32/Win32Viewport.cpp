@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
-#include "UVulkanViewport.h"
-#include "RenderDevice/UVulkanRenderDevice.h"
+#include "Win32Viewport.h"
+#include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 
 #ifndef HID_USAGE_PAGE_GENERIC
@@ -24,64 +24,17 @@
 #define RIDEV_INPUTSINK	(0x100)
 #endif
 
-struct ReceivedWindowMessage
-{
-	UINT msg;
-	WPARAM wparam;
-	LPARAM lparam;
-};
-
-class UVulkanViewport : public UViewport
-{
-public:
-	UVulkanViewport(Engine* engine);
-	~UVulkanViewport();
-
-	// UViewport interface.
-	void OpenWindow(int width, int height, bool fullscreen) override;
-	void CloseWindow() override;
-	void* GetWindow() override;
-	URenderDevice* GetRenderDevice() override { return RenderDevice.get(); }
-	void Tick() override;
-
-	void PauseGame();
-	void ResumeGame();
-
-	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
-	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
-
-	Engine* engine = nullptr;
-
-	// Variables.
-	HWND WindowHandle = 0;
-	bool Fullscreen = false;
-	bool Paused = false;
-
-	// Mouse.
-	int MouseMoveX = 0;
-	int MouseMoveY = 0;
-
-	std::vector<ReceivedWindowMessage> ReceivedMessages;
-
-	std::unique_ptr<URenderDevice> RenderDevice;
-};
-
-std::unique_ptr<UViewport> UViewport::Create(Engine* engine)
-{
-	return std::make_unique<UVulkanViewport>(engine);
-}
-
-UVulkanViewport::UVulkanViewport(Engine* engine) : engine(engine)
+Win32Viewport::Win32Viewport(Engine* engine) : engine(engine)
 {
 	WNDCLASSEX classdesc = {};
 	classdesc.cbSize = sizeof(WNDCLASSEX);
 	classdesc.hInstance = GetModuleHandle(0);
 	classdesc.style = CS_VREDRAW | CS_HREDRAW;
-	classdesc.lpszClassName = L"UVulkanViewport";
-	classdesc.lpfnWndProc = &UVulkanViewport::WndProc;
+	classdesc.lpszClassName = L"Win32Viewport";
+	classdesc.lpfnWndProc = &Win32Viewport::WndProc;
 	RegisterClassEx(&classdesc);
 
-	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"UVulkanViewport", L"Unreal Tournament", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"Win32Viewport", L"Unreal Tournament", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	RAWINPUTDEVICE rid;
 	rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -91,7 +44,7 @@ UVulkanViewport::UVulkanViewport(Engine* engine) : engine(engine)
 	BOOL result = RegisterRawInputDevices(&rid, 1, sizeof(RAWINPUTDEVICE));
 }
 
-UVulkanViewport::~UVulkanViewport()
+Win32Viewport::~Win32Viewport()
 {
 	RenderDevice.reset();
 	if (WindowHandle)
@@ -101,7 +54,7 @@ UVulkanViewport::~UVulkanViewport()
 	}
 }
 
-void UVulkanViewport::OpenWindow(int width, int height, bool fullscreen)
+void Win32Viewport::OpenWindow(int width, int height, bool fullscreen)
 {
 	if (!WindowHandle)
 		return;
@@ -126,7 +79,7 @@ void UVulkanViewport::OpenWindow(int width, int height, bool fullscreen)
 
 	// Create rendering device.
 	if (!RenderDevice)
-		RenderDevice = URenderDevice::Create(this);
+		RenderDevice = RenderDevice::Create(this);
 
 	if (!IsWindowVisible(WindowHandle))
 	{
@@ -135,18 +88,18 @@ void UVulkanViewport::OpenWindow(int width, int height, bool fullscreen)
 	}
 }
 
-void UVulkanViewport::CloseWindow()
+void Win32Viewport::CloseWindow()
 {
 	if (WindowHandle && IsWindowVisible(WindowHandle))
 		ShowWindow(WindowHandle, SW_HIDE);
 }
 
-void* UVulkanViewport::GetWindow()
+void* Win32Viewport::GetWindow()
 {
 	return (void*)WindowHandle;
 }
 
-void UVulkanViewport::Tick()
+void Win32Viewport::Tick()
 {
 	if (!WindowHandle)
 		return;
@@ -232,7 +185,7 @@ void UVulkanViewport::Tick()
 	}
 }
 
-void UVulkanViewport::PauseGame()
+void Win32Viewport::PauseGame()
 {
 	if (!Paused)
 	{
@@ -241,7 +194,7 @@ void UVulkanViewport::PauseGame()
 	}
 }
 
-void UVulkanViewport::ResumeGame()
+void Win32Viewport::ResumeGame()
 {
 	if (Paused)
 	{
@@ -250,7 +203,7 @@ void UVulkanViewport::ResumeGame()
 	}
 }
 
-LRESULT UVulkanViewport::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT Win32Viewport::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE ||
 		msg == WM_DESTROY ||
@@ -310,19 +263,19 @@ LRESULT UVulkanViewport::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	return DefWindowProc(WindowHandle, msg, wparam, lparam);
 }
 
-LRESULT UVulkanViewport::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT Win32Viewport::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE)
 	{
 		CREATESTRUCT* createstruct = (CREATESTRUCT*)lparam;
-		UVulkanViewport* viewport = (UVulkanViewport*)createstruct->lpCreateParams;
+		Win32Viewport* viewport = (Win32Viewport*)createstruct->lpCreateParams;
 		viewport->WindowHandle = windowhandle;
 		SetWindowLongPtr(windowhandle, GWLP_USERDATA, (LONG_PTR)viewport);
 		return viewport->OnWindowMessage(msg, wparam, lparam);
 	}
 	else
 	{
-		UVulkanViewport* viewport = (UVulkanViewport*)GetWindowLongPtr(windowhandle, GWLP_USERDATA);
+		Win32Viewport* viewport = (Win32Viewport*)GetWindowLongPtr(windowhandle, GWLP_USERDATA);
 		if (viewport)
 		{
 			LRESULT result = viewport->OnWindowMessage(msg, wparam, lparam);

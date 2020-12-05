@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "UVulkanRenderDevice.h"
+#include "VulkanRenderDevice.h"
 #include "VulkanSwapChain.h"
 #include "VulkanPostprocess.h"
 #include "VulkanTexture.h"
@@ -9,11 +9,12 @@
 #include "SceneRenderPass.h"
 #include "ShadowmapRenderPass.h"
 #include "SceneSamplers.h"
-#include "Viewport/UVulkanViewport.h"
+#include "Viewport/Viewport.h"
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
 #include "Engine.h"
+#include "Renderer.h"
 #include <chrono>
 #include <thread>
 #include <iostream>
@@ -21,56 +22,7 @@
 std::wstring to_utf16(const std::string& str);
 std::string from_utf16(const std::wstring& str);
 
-class UVulkanRenderDevice : public URenderDevice
-{
-public:
-	UVulkanRenderDevice(UViewport* InViewport);
-
-	void Flush(bool AllowPrecache) override;
-	void BeginFrame() override;
-	void BeginShadowmapUpdate() override;
-	void BeginShadowmapPass() override;
-	void EndShadowmapPass(int slot) override;
-	void EndShadowmapUpdate() override;
-	void BeginScenePass() override;
-	void EndScenePass() override;
-	void EndFrame(bool Blit) override;
-	void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) override;
-	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
-	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
-	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
-	void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
-	void ClearZ(FSceneNode* Frame) override;
-	void ReadPixels(FColor* Pixels) override;
-	void EndFlash(float FlashScale, vec4 FlashFog) override;
-	void SetSceneNode(FSceneNode* Frame) override;
-	void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) override;
-
-	std::unique_ptr<Renderer> renderer;
-
-private:
-	void CheckFPSLimit();
-
-	bool UsePrecache = false;
-	FSceneNode* CurrentFrame = nullptr;
-
-	bool IsShadowPass = false;
-
-	// Configuration.
-	bool UseVSync = true;
-	int FPSLimit = 400;
-	uint64_t fpsLimitTime = 0;
-	int VkDeviceIndex = 0;
-	bool VkDebug = false;
-	int Multisample = 0;
-};
-
-std::unique_ptr<URenderDevice> URenderDevice::Create(UViewport* viewport)
-{
-	return std::make_unique<UVulkanRenderDevice>(viewport);
-}
-
-UVulkanRenderDevice::UVulkanRenderDevice(UViewport* viewport)
+VulkanRenderDevice::VulkanRenderDevice(::Viewport* viewport)
 {
 	Viewport = viewport;
 
@@ -119,7 +71,11 @@ UVulkanRenderDevice::UVulkanRenderDevice(UViewport* viewport)
 	Flush(true);
 }
 
-void UVulkanRenderDevice::Flush(bool AllowPrecache)
+VulkanRenderDevice::~VulkanRenderDevice()
+{
+}
+
+void VulkanRenderDevice::Flush(bool AllowPrecache)
 {
 	renderer->ClearTextureCache();
 
@@ -127,7 +83,7 @@ void UVulkanRenderDevice::Flush(bool AllowPrecache)
 		PrecacheOnFlip = true;
 }
 
-void UVulkanRenderDevice::BeginFrame()
+void VulkanRenderDevice::BeginFrame()
 {
 	if (!renderer->SceneBuffers || renderer->SceneBuffers->width != Viewport->SizeX || renderer->SceneBuffers->height != Viewport->SizeY)
 	{
@@ -145,14 +101,14 @@ void UVulkanRenderDevice::BeginFrame()
 	renderer->Postprocess->imageTransitionScene(true);
 }
 
-void UVulkanRenderDevice::BeginShadowmapUpdate()
+void VulkanRenderDevice::BeginShadowmapUpdate()
 {
 	PipelineBarrier barrier;
 	barrier.addImage(renderer->SceneLights->Shadowmap.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 }
 
-void UVulkanRenderDevice::BeginShadowmapPass()
+void VulkanRenderDevice::BeginShadowmapPass()
 {
 	renderer->ShadowmapRenderPass->begin(renderer->GetDrawCommands());
 
@@ -163,7 +119,7 @@ void UVulkanRenderDevice::BeginShadowmapPass()
 	IsShadowPass = true;
 }
 
-void UVulkanRenderDevice::EndShadowmapPass(int slot)
+void VulkanRenderDevice::EndShadowmapPass(int slot)
 {
 	renderer->ShadowmapRenderPass->end(renderer->GetDrawCommands());
 
@@ -182,14 +138,14 @@ void UVulkanRenderDevice::EndShadowmapPass(int slot)
 	IsShadowPass = false;
 }
 
-void UVulkanRenderDevice::EndShadowmapUpdate()
+void VulkanRenderDevice::EndShadowmapUpdate()
 {
 	PipelineBarrier barrier;
 	barrier.addImage(renderer->SceneLights->Shadowmap.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 }
 
-void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates)
+void VulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates)
 {
 	if (LightUpdates.empty())
 		return;
@@ -227,7 +183,7 @@ void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>
 	cmdbuffer->copyBuffer(renderer->SceneLights->StagingLights.get(), renderer->SceneLights->Lights.get(), offset, size);
 }
 
-void UVulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights)
+void VulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights)
 {
 	if (SurfaceLights.empty())
 		return;
@@ -241,7 +197,7 @@ void UVulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& Surfac
 	cmdbuffer->copyBuffer(renderer->SceneLights->StagingSurfaceLights.get(), renderer->SceneLights->SurfaceLights.get(), 0, size);
 }
 
-void UVulkanRenderDevice::BeginScenePass()
+void VulkanRenderDevice::BeginScenePass()
 {
 	renderer->SceneRenderPass->begin(renderer->GetDrawCommands());
 
@@ -250,12 +206,12 @@ void UVulkanRenderDevice::BeginScenePass()
 	renderer->GetDrawCommands()->bindVertexBuffers(0, 1, vertexBuffers, offsets);
 }
 
-void UVulkanRenderDevice::EndScenePass()
+void VulkanRenderDevice::EndScenePass()
 {
 	renderer->SceneRenderPass->end(renderer->GetDrawCommands());
 }
 
-void UVulkanRenderDevice::EndFrame(bool Blit)
+void VulkanRenderDevice::EndFrame(bool Blit)
 {
 	renderer->Postprocess->blitSceneToPostprocess();
 
@@ -271,7 +227,7 @@ void UVulkanRenderDevice::EndFrame(bool Blit)
 	renderer->SceneVertexPos = 0;
 }
 
-void UVulkanRenderDevice::CheckFPSLimit()
+void VulkanRenderDevice::CheckFPSLimit()
 {
 	using namespace std::chrono;
 	using namespace std::this_thread;
@@ -305,7 +261,7 @@ void UVulkanRenderDevice::CheckFPSLimit()
 	}
 }
 
-void UVulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
+void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
 {
 	if (renderer->SceneVertexPos + Facet.Points.size() > renderer->MaxSceneVertices)
 	{
@@ -398,7 +354,7 @@ void UVulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Su
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void UVulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (renderer->SceneVertexPos + NumPts > renderer->MaxSceneVertices)
 	{
@@ -457,7 +413,7 @@ void UVulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& In
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void UVulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	if (renderer->SceneVertexPos + 4 > renderer->MaxSceneVertices)
 	{
@@ -514,7 +470,7 @@ void UVulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float 
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void UVulkanRenderDevice::ClearZ(FSceneNode* Frame)
+void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 {
 	VkClearAttachment attachment = {};
 	VkClearRect rect = {};
@@ -526,12 +482,12 @@ void UVulkanRenderDevice::ClearZ(FSceneNode* Frame)
 	renderer->GetDrawCommands()->clearAttachments(1, &attachment, 1, &rect);
 }
 
-void UVulkanRenderDevice::ReadPixels(FColor* Pixels)
+void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 {
 	renderer->CopyScreenToBuffer(Viewport->SizeX, Viewport->SizeY, Pixels, 2.5f * Viewport->Brightness);
 }
 
-void UVulkanRenderDevice::EndFlash(float FlashScale, vec4 FlashFog)
+void VulkanRenderDevice::EndFlash(float FlashScale, vec4 FlashFog)
 {
 	if (FlashScale == 0.5f || FlashFog == vec4(0.0f, 0.0f, 0.0f, 0.0f))
 		return;
@@ -574,7 +530,7 @@ void UVulkanRenderDevice::EndFlash(float FlashScale, vec4 FlashFog)
 		SetSceneNode(CurrentFrame);
 }
 
-void UVulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
+void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 {
 	CurrentFrame = Frame;
 
@@ -597,7 +553,7 @@ void UVulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	commands->pushConstants(renderer->ScenePipelineLayout.get(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
 }
 
-void UVulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
+void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
 {
 	renderer->GetTexture(&Info, PolyFlags);
 }

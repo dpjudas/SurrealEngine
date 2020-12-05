@@ -109,29 +109,31 @@
     <ClInclude Include="Math\quaternion.h" />
     <ClInclude Include="Math\vec.h" />
     <ClInclude Include="Precomp.h" />
-    <ClInclude Include="RenderDevice\FileResource.h" />
-    <ClInclude Include="RenderDevice\PixelBuffer.h" />
-    <ClInclude Include="RenderDevice\Postprocess.h" />
-    <ClInclude Include="RenderDevice\Renderer.h" />
-    <ClInclude Include="RenderDevice\SceneBuffers.h" />
-    <ClInclude Include="RenderDevice\SceneLights.h" />
-    <ClInclude Include="RenderDevice\SceneRenderPass.h" />
-    <ClInclude Include="RenderDevice\SceneSamplers.h" />
-    <ClInclude Include="RenderDevice\ShadowmapRenderPass.h" />
-    <ClInclude Include="RenderDevice\UVulkanRenderDevice.h" />
-    <ClInclude Include="RenderDevice\VulkanBuilders.h" />
-    <ClInclude Include="RenderDevice\VulkanDevice.h" />
-    <ClInclude Include="RenderDevice\VulkanObjects.h" />
-    <ClInclude Include="RenderDevice\VulkanPostprocess.h" />
-    <ClInclude Include="RenderDevice\VulkanSwapChain.h" />
-    <ClInclude Include="RenderDevice\VulkanTexture.h" />
+    <ClInclude Include="RenderDevice\RenderDevice.h" />
+    <ClInclude Include="RenderDevice\Vulkan\FileResource.h" />
+    <ClInclude Include="RenderDevice\Vulkan\PixelBuffer.h" />
+    <ClInclude Include="RenderDevice\Vulkan\Postprocess.h" />
+    <ClInclude Include="RenderDevice\Vulkan\Renderer.h" />
+    <ClInclude Include="RenderDevice\Vulkan\SceneBuffers.h" />
+    <ClInclude Include="RenderDevice\Vulkan\SceneLights.h" />
+    <ClInclude Include="RenderDevice\Vulkan\SceneRenderPass.h" />
+    <ClInclude Include="RenderDevice\Vulkan\SceneSamplers.h" />
+    <ClInclude Include="RenderDevice\Vulkan\ShadowmapRenderPass.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanBuilders.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanObjects.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanPostprocess.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanRenderDevice.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanSwapChain.h" />
+    <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h" />
     <ClInclude Include="UObject\UFont.h" />
     <ClInclude Include="UObject\ULevel.h" />
     <ClInclude Include="UObject\UActor.h" />
     <ClInclude Include="UObject\UMesh.h" />
     <ClInclude Include="UObject\UObject.h" />
     <ClInclude Include="UObject\UTexture.h" />
-    <ClInclude Include="Viewport\UVulkanViewport.h" />
+    <ClInclude Include="Viewport\Viewport.h" />
+    <ClInclude Include="Viewport\Win32\Win32Viewport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Thirdparty\vk_mem_alloc\vk_mem_alloc.cpp">
@@ -155,27 +157,29 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="RenderDevice\FileResource.cpp" />
-    <ClCompile Include="RenderDevice\Postprocess.cpp" />
-    <ClCompile Include="RenderDevice\Renderer.cpp" />
-    <ClCompile Include="RenderDevice\SceneBuffers.cpp" />
-    <ClCompile Include="RenderDevice\SceneLights.cpp" />
-    <ClCompile Include="RenderDevice\SceneRenderPass.cpp" />
-    <ClCompile Include="RenderDevice\SceneSamplers.cpp" />
-    <ClCompile Include="RenderDevice\ShadowmapRenderPass.cpp" />
-    <ClCompile Include="RenderDevice\UVulkanRenderDevice.cpp" />
-    <ClCompile Include="RenderDevice\VulkanBuilders.cpp" />
-    <ClCompile Include="RenderDevice\VulkanDevice.cpp" />
-    <ClCompile Include="RenderDevice\VulkanPostprocess.cpp" />
-    <ClCompile Include="RenderDevice\VulkanSwapChain.cpp" />
-    <ClCompile Include="RenderDevice\VulkanTexture.cpp" />
+    <ClCompile Include="RenderDevice\RenderDevice.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\FileResource.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\Postprocess.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\Renderer.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\SceneBuffers.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\SceneLights.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\SceneRenderPass.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\SceneSamplers.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\ShadowmapRenderPass.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanBuilders.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanPostprocess.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanRenderDevice.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanSwapChain.cpp" />
+    <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="UObject\UFont.cpp" />
     <ClCompile Include="UObject\ULevel.cpp" />
     <ClCompile Include="UObject\UActor.cpp" />
     <ClCompile Include="UObject\UMesh.cpp" />
     <ClCompile Include="UObject\UObject.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />
-    <ClCompile Include="Viewport\UVulkanViewport.cpp" />
+    <ClCompile Include="Viewport\Viewport.cpp" />
+    <ClCompile Include="Viewport\Win32\Win32Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Thirdparty\ShaderCompiler\ShaderCompiler.vcxproj">

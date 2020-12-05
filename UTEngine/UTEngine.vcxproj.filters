@@ -25,6 +25,12 @@
     <Filter Include="UObject">
       <UniqueIdentifier>{9f46652c-b43c-4003-ab8a-15e8f0d0d7f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderDevice\Vulkan">
+      <UniqueIdentifier>{383447f3-a7c9-4c00-bf21-359c711c1f1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Viewport\Win32">
+      <UniqueIdentifier>{1dd6dc90-88fe-457a-8c41-cb6a9a8a300c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -36,45 +42,6 @@
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Precomp.cpp" />
-    <ClCompile Include="RenderDevice\FileResource.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\Postprocess.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\Renderer.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\SceneBuffers.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\SceneRenderPass.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\SceneSamplers.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\UVulkanRenderDevice.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\VulkanBuilders.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\VulkanDevice.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\VulkanPostprocess.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\VulkanSwapChain.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\VulkanTexture.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="Viewport\UVulkanViewport.cpp">
-      <Filter>Viewport</Filter>
-    </ClCompile>
     <ClCompile Include="..\Thirdparty\vk_mem_alloc\vk_mem_alloc.cpp">
       <Filter>Thirdparty\vk_mem_alloc</Filter>
     </ClCompile>
@@ -82,12 +49,6 @@
       <Filter>Thirdparty\volk</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="RenderDevice\ShadowmapRenderPass.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderDevice\SceneLights.cpp">
-      <Filter>RenderDevice</Filter>
-    </ClCompile>
     <ClCompile Include="Package\Package.cpp">
       <Filter>Package</Filter>
     </ClCompile>
@@ -118,6 +79,57 @@
     <ClCompile Include="UObject\UActor.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="RenderDevice\RenderDevice.cpp">
+      <Filter>RenderDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\FileResource.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\Postprocess.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\Renderer.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\SceneBuffers.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\SceneLights.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\SceneRenderPass.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\SceneSamplers.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\ShadowmapRenderPass.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanBuilders.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanDevice.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanPostprocess.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanRenderDevice.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanSwapChain.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport\Viewport.cpp">
+      <Filter>Viewport</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport\Win32\Win32Viewport.cpp">
+      <Filter>Viewport\Win32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -134,51 +146,6 @@
     </ClInclude>
     <ClInclude Include="File.h" />
     <ClInclude Include="Precomp.h" />
-    <ClInclude Include="RenderDevice\FileResource.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\PixelBuffer.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\Postprocess.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\Renderer.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\SceneBuffers.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\SceneRenderPass.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\SceneSamplers.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\UVulkanRenderDevice.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanBuilders.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanDevice.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanObjects.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanPostprocess.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanSwapChain.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\VulkanTexture.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="Viewport\UVulkanViewport.h">
-      <Filter>Viewport</Filter>
-    </ClInclude>
     <ClInclude Include="..\Thirdparty\vk_mem_alloc\vk_mem_alloc.h">
       <Filter>Thirdparty\vk_mem_alloc</Filter>
     </ClInclude>
@@ -186,12 +153,6 @@
       <Filter>Thirdparty\volk</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="RenderDevice\ShadowmapRenderPass.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderDevice\SceneLights.h">
-      <Filter>RenderDevice</Filter>
-    </ClInclude>
     <ClInclude Include="Package\ObjectFlags.h">
       <Filter>Package</Filter>
     </ClInclude>
@@ -233,6 +194,63 @@
     </ClInclude>
     <ClInclude Include="UObject\UActor.h">
       <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\RenderDevice.h">
+      <Filter>RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\FileResource.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\PixelBuffer.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\Postprocess.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\Renderer.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\SceneBuffers.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\SceneLights.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\SceneRenderPass.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\SceneSamplers.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\ShadowmapRenderPass.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanBuilders.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanDevice.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanObjects.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanPostprocess.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanRenderDevice.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanSwapChain.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h">
+      <Filter>RenderDevice\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport\Viewport.h">
+      <Filter>Viewport</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport\Win32\Win32Viewport.h">
+      <Filter>Viewport\Win32</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

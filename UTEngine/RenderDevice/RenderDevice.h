@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Renderer.h"
+#include "Math/vec.h"
+#include "Math/mat.h"
 
-class UViewport;
+class Viewport;
 class UTexture;
 class UActor;
 
@@ -20,7 +21,7 @@ struct FSceneNode
 	int X, Y; // viewport size
 	float FX, FY;
 	float FX2, FY2;
-	UViewport* Viewport = nullptr;
+	Viewport* Viewport = nullptr;
 	float FovAngle;
 
 	mat4 Modelview;
@@ -70,12 +71,12 @@ struct FSurfaceInfo
 	FTextureInfo* FogMap = nullptr;
 };
 
-class URenderDevice
+class RenderDevice
 {
 public:
-	static std::unique_ptr<URenderDevice> Create(UViewport* viewport);
+	static std::unique_ptr<RenderDevice> Create(::Viewport* viewport);
 
-	virtual ~URenderDevice() = default;
+	virtual ~RenderDevice() = default;
 
 	virtual void Flush(bool AllowPrecache) = 0;
 	virtual void BeginFrame() = 0;
@@ -97,6 +98,6 @@ public:
 	virtual void SetSceneNode(FSceneNode* Frame) = 0;
 	virtual void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) = 0;
 
-	UViewport* Viewport = nullptr;
+	Viewport* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 };

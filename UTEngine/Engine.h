@@ -6,7 +6,7 @@
 class PackageManager;
 class UObject;
 class ULevel;
-class UViewport;
+class Viewport;
 class UTexture;
 class UActor;
 class UFont;
@@ -62,9 +62,9 @@ public:
 
 	void Run();
 
-	void WindowClose(UViewport* viewport);
-	void Key(UViewport* viewport, std::string key);
-	void InputEvent(UViewport* viewport, EInputKey key, EInputType type, int delta = 0);
+	void WindowClose(Viewport* viewport);
+	void Key(Viewport* viewport, std::string key);
+	void InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta = 0);
 	void SetPause(bool value);
 
 private:
@@ -120,7 +120,7 @@ private:
 
 	ULodMesh* nalicow = nullptr;
 
-	std::unique_ptr<UViewport> viewport;
+	std::unique_ptr<Viewport> viewport;
 
 	std::map<int, std::unique_ptr<UTexture>> lmtextures;
 
