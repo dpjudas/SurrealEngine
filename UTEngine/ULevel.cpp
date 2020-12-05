@@ -1,48 +1,40 @@
 
 #include "Precomp.h"
-#include "Level.h"
-#include "Package.h"
-#include "PackageObject.h"
-#include "BinaryStream.h"
+#include "ULevel.h"
+#include "ULight.h"
+#include "UTexture.h"
 
-Level::Level(Package* package)
+ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
 {
-	LevelSummary = package->FindExportObject("LevelSummary", "LevelSummary")->Open()->Properties;
-	LevelInfo = package->FindExportObject("LevelInfo", "LevelInfo0")->Open()->Properties;
-
-	auto levelObject = package->FindExportObject("Level", "MyLevel")->Open();
-	auto stream = levelObject->Stream.get();
-
-	// LevelBase:
-
 	int32_t dbnum = stream->ReadInt32();
 	int32_t dbmax = stream->ReadInt32();
 	for (int32_t i = 0; i < dbnum; i++)
 	{
-		Actors.push_back(stream->ReadIndex());
+		Actors.push_back(stream->ReadUObject());
 	}
 
-	std::string protocol = stream->ReadString();
-	std::string host = stream->ReadString();
-	int port = 0;
-	if (!host.empty())
-		port = stream->ReadInt32();
-	std::string map = stream->ReadString();
+	Protocol = stream->ReadString();
+	Host = stream->ReadString();
+	if (!Host.empty())
+		Port = stream->ReadInt32();
+	Map = stream->ReadString();
 
 	int count = stream->ReadIndex();
-	std::vector<std::string> options;
 	for (int i = 0; i < count; i++)
 	{
-		options.push_back(stream->ReadString());
+		Options.push_back(stream->ReadString());
 	}
 
-	std::string portal = stream->ReadString();
+	Portal = stream->ReadString();
 
 	stream->Skip(7);
+}
 
-	// Level:
+/////////////////////////////////////////////////////////////////////////////
 
-	count = stream->ReadIndex();
+ULevel::ULevel(ObjectStream* stream) : ULevelBase(stream)
+{
+	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
 		LevelReachSpec spec;
@@ -56,17 +48,13 @@ Level::Level(Package* package)
 		ReachSpecs.push_back(spec);
 	}
 
-	int modelIndex = stream->ReadIndex();
-
-	// Load the model object:
-
-	Model = std::make_unique<::Model>(package->FindExportObject(modelIndex)->Open());
+	Model = Cast<UModel>(stream->ReadUObject());
 }
 
-Model::Model(std::unique_ptr<PackageObject> object)
-{
-	auto& stream = object->Stream;
+/////////////////////////////////////////////////////////////////////////////
 
+UModel::UModel(ObjectStream* stream) : UObject(stream)
+{
 	BoundingBox.min.x = stream->ReadFloat();
 	BoundingBox.min.y = stream->ReadFloat();
 	BoundingBox.min.z = stream->ReadFloat();
@@ -129,7 +117,7 @@ Model::Model(std::unique_ptr<PackageObject> object)
 	for (int i = 0; i < count; i++)
 	{
 		BspSurface surface;
-		surface.Material = stream->ReadIndex();
+		surface.Material = Cast<UTexture>(stream->ReadUObject());
 		surface.PolyFlags = stream->ReadUInt32();
 		surface.pBase = stream->ReadIndex();
 		surface.vNormal = stream->ReadIndex();
@@ -219,7 +207,7 @@ Model::Model(std::unique_ptr<PackageObject> object)
 	count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
-		Lights.push_back(stream->ReadIndex());
+		Lights.push_back(Cast<ULight>(stream->ReadUObject()));
 	}
 
 	RootOutside = stream->ReadInt32();

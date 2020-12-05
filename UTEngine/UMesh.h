@@ -1,11 +1,9 @@
 #pragma once
 
+#include "UObject.h"
 #include "FrustumPlanes.h"
-#include "PackageObject.h"
 
-class PackageManager;
-class TextureManager;
-class UnrealTexture;
+class UTexture;
 
 struct MeshTri
 {
@@ -56,16 +54,20 @@ struct MeshMaterial
 	int TextureIndex = 0;
 };
 
-class Mesh
+class UPrimitive : public UObject
 {
 public:
-	Mesh(std::string meshname, PackageManager* packages, TextureManager* textures);
+	UPrimitive(ObjectStream* stream);
 
-	// UPrimitive
 	BBox BoundingBox;
 	vec4 BoundingSphere = { 0.0f };
+};
 
-	// UMesh
+class UMesh : public UPrimitive
+{
+public:
+	UMesh(ObjectStream* stream);
+
 	std::vector<vec3> Verts;
 	std::vector<MeshTri> Tris;
 	std::vector<MeshAnimSeq> AnimSeqs;
@@ -73,7 +75,7 @@ public:
 	std::vector<BBox> BoundingBoxes;
 	std::vector<vec4> BoundingSpheres;
 	std::vector<int> VertLinks;
-	std::vector<UnrealTexture*> Textures;
+	std::vector<UTexture*> Textures;
 	std::vector<float> TextureLOD;
 	int FrameVerts = 0;
 	int AnimFrames = 0;
@@ -84,8 +86,13 @@ public:
 	Rotator RotOrigin;
 	uint32_t CurPoly = 0;
 	uint32_t CurVertex = 0;
+};
 
-	// ULodMesh
+class ULodMesh : public UMesh
+{
+public:
+	ULodMesh(ObjectStream* stream);
+
 	std::vector<uint16_t> CollapsePointThus;
 	std::vector<uint16_t> FaceLevel;
 	std::vector<MeshFace> Faces;

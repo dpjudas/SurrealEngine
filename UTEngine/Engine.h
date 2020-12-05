@@ -4,17 +4,17 @@
 #include "Math/mat.h"
 
 class PackageManager;
-class TextureManager;
-class Level;
+class UObject;
+class ULevel;
 class UViewport;
-class UnrealTexture;
-class UnrealMipmap;
+class UTexture;
+class ULight;
+class UFont;
+class ULodMesh;
 class BspSurface;
 class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
-class Font;
-class Mesh;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -35,17 +35,6 @@ enum EInputType
 	IST_Press,
 	IST_Release,
 	IST_Axis
-};
-
-struct Light
-{
-	vec3 Location = { 0.0f };
-	int LightBrightness = 64;
-	int LightHue = 0;
-	int LightSaturation = 255;
-	int LightRadius = 64;
-	bool bCorona = false;
-	UnrealTexture* Skin = nullptr;
 };
 
 enum class CubeSide
@@ -81,15 +70,15 @@ public:
 private:
 	void Tick(float timeElapsed);
 	void GenerateShadowmaps();
-	void DrawShadowmap(int index, const Light& light, CubeSide side);
+	void DrawShadowmap(int index, ULight* light, CubeSide side);
 	void DrawScene();
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
 	void DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass);
-	void DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
-	void DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
-	ivec2 GetFontTextSize(Font* font, const std::string& text);
-	void DrawMesh(FSceneNode* frame, Mesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale);
+	void DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	ivec2 GetFontTextSize(UFont* font, const std::string& text);
+	void DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);
@@ -107,26 +96,33 @@ private:
 
 	FSceneNode CreateSceneFrame();
 	FSceneNode CreateSkyFrame();
-	FSceneNode CreateShadowmapFrame(const Light& light, CubeSide side);
+	FSceneNode CreateShadowmapFrame(ULight* light, CubeSide side);
 
 	void LoadMap(const std::string& packageName);
 
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet);
-	std::unique_ptr<UnrealTexture> CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
-	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, const Light& light, const vec3& N, const uint8_t* bits, int& bitpos);
+	std::unique_ptr<UTexture> CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
+	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, ULight* light, const vec3& N, const uint8_t* bits, int& bitpos);
 
 	std::unique_ptr<PackageManager> packages;
-	std::unique_ptr<TextureManager> textures;
-	std::unique_ptr<Font> bigfont, largefont, medfont, smallfont;
-	std::unique_ptr<Level> level;
-	std::unique_ptr<Mesh> nalicow;
+
+	UFont* bigfont = nullptr;
+	UFont* largefont = nullptr;
+	UFont* medfont = nullptr;
+	UFont* smallfont = nullptr;
+
+	UObject* LevelSummary = nullptr;
+	UObject* LevelInfo = nullptr;
+	ULevel* level = nullptr;
+
+	std::vector<ULight*> Lights;
+	std::vector<UTexture*> Textures;
+
+	ULodMesh* nalicow = nullptr;
 
 	std::unique_ptr<UViewport> viewport;
 
-	std::map<int, std::unique_ptr<Light>> lightactors;
-	std::vector<Light*> lmlights;
-
-	std::map<int, std::unique_ptr<UnrealTexture>> lmtextures;
+	std::map<int, std::unique_ptr<UTexture>> lmtextures;
 
 	std::vector<int> portalsvisited;
 

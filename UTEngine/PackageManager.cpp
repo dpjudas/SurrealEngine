@@ -26,6 +26,10 @@ Package* PackageManager::GetPackage(const std::string& name)
 	{
 		package = std::make_unique<Package>(this, key, it->second);
 	}
+	else
+	{
+		throw std::runtime_error("Could not find package " + name);
+	}
 
 	return package.get();
 }

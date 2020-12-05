@@ -94,20 +94,23 @@
   <ItemGroup>
     <ClInclude Include="..\Thirdparty\vk_mem_alloc\vk_mem_alloc.h" />
     <ClInclude Include="..\Thirdparty\volk\volk.h" />
-    <ClInclude Include="BinaryStream.h" />
+    <ClInclude Include="ObjectFlags.h" />
+    <ClInclude Include="ObjectStream.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="File.h" />
-    <ClInclude Include="Font.h" />
+    <ClInclude Include="PackageFlags.h" />
+    <ClInclude Include="UFont.h" />
     <ClInclude Include="FrustumPlanes.h" />
-    <ClInclude Include="Level.h" />
+    <ClInclude Include="ULevel.h" />
     <ClInclude Include="Math\halffloat.h" />
     <ClInclude Include="Math\mat.h" />
     <ClInclude Include="Math\quaternion.h" />
     <ClInclude Include="Math\vec.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="ULight.h" />
+    <ClInclude Include="UMesh.h" />
     <ClInclude Include="Package.h" />
     <ClInclude Include="PackageManager.h" />
-    <ClInclude Include="PackageObject.h" />
+    <ClInclude Include="PackageStream.h" />
     <ClInclude Include="Precomp.h" />
     <ClInclude Include="RenderDevice\FileResource.h" />
     <ClInclude Include="RenderDevice\PixelBuffer.h" />
@@ -125,7 +128,8 @@
     <ClInclude Include="RenderDevice\VulkanPostprocess.h" />
     <ClInclude Include="RenderDevice\VulkanSwapChain.h" />
     <ClInclude Include="RenderDevice\VulkanTexture.h" />
-    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="UObject.h" />
+    <ClInclude Include="UTexture.h" />
     <ClInclude Include="Viewport\UVulkanViewport.h" />
   </ItemGroup>
   <ItemGroup>
@@ -139,16 +143,17 @@
     </ClCompile>
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="File.cpp" />
-    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="UFont.cpp" />
     <ClCompile Include="FrustumPlanes.cpp" />
-    <ClCompile Include="Level.cpp" />
+    <ClCompile Include="ULevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Math\halffloat.cpp" />
     <ClCompile Include="Math\mat.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="ULight.cpp" />
+    <ClCompile Include="UMesh.cpp" />
     <ClCompile Include="Package.cpp" />
     <ClCompile Include="PackageManager.cpp" />
-    <ClCompile Include="PackageObject.cpp" />
+    <ClCompile Include="PackageStream.cpp" />
     <ClCompile Include="Precomp.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -167,7 +172,8 @@
     <ClCompile Include="RenderDevice\VulkanPostprocess.cpp" />
     <ClCompile Include="RenderDevice\VulkanSwapChain.cpp" />
     <ClCompile Include="RenderDevice\VulkanTexture.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="UObject.cpp" />
+    <ClCompile Include="UTexture.cpp" />
     <ClCompile Include="Viewport\UVulkanViewport.cpp" />
   </ItemGroup>
   <ItemGroup>

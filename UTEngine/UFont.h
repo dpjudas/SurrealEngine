@@ -1,8 +1,8 @@
 #pragma once
 
-class PackageManager;
-class TextureManager;
-class UnrealTexture;
+#include "UObject.h"
+
+class UTexture;
 
 class FontCharacter
 {
@@ -16,14 +16,14 @@ public:
 class FontPage
 {
 public:
-	UnrealTexture* Texture = nullptr;
+	UTexture* Texture = nullptr;
 	std::vector<FontCharacter> Characters;
 };
 
-class Font
+class UFont : public UObject
 {
 public:
-	Font(std::string fontname, PackageManager* packages, TextureManager* textures);
+	UFont(ObjectStream* stream);
 
 	FontCharacter GetGlyph(char c) const;
 

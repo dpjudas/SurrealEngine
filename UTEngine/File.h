@@ -31,6 +31,7 @@ public:
 	virtual void read(void *data, size_t size) = 0;
 	virtual void write(const void *data, int size) = 0;
 	virtual void seek(int64_t offset, SeekPoint origin = SeekPoint::begin) = 0;
+	virtual uint64_t tell() = 0;
 };
 
 class Directory

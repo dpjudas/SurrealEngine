@@ -1,10 +1,10 @@
 #pragma once
 
-#include "PackageObject.h"
+#include "UObject.h"
+#include "FrustumPlanes.h"
 
-class Package;
-class PackageObject;
-class UnrealTexture;
+class UTexture;
+class ULight;
 
 enum EBspNodeFlags
 {
@@ -39,8 +39,7 @@ public:
 class BspSurface
 {
 public:
-	UnrealTexture* Texture;
-	int Material;
+	UTexture* Material;
 	uint32_t PolyFlags;
 	int pBase;
 	int vNormal;
@@ -147,10 +146,10 @@ enum PolyFlags
 	PF_Transient		= PF_Highlighted,
 };
 
-class Model
+class UModel : public UObject
 {
 public:
-	Model(std::unique_ptr<PackageObject> obj);
+	UModel(ObjectStream* stream);
 
 	BBox BoundingBox;
 
@@ -178,7 +177,7 @@ public:
 	std::vector<int32_t> LeafHulls;
 	std::vector<ConvexVolumeLeaf> Leaves;
 
-	std::vector<int32_t> Lights; // AActor*
+	std::vector<ULight*> Lights;
 
 	int32_t RootOutside;
 	int32_t Linked;
@@ -196,15 +195,26 @@ public:
 	int8_t bPruned;
 };
 
-class Level
+class ULevelBase : public UObject
 {
 public:
-	Level(Package* package);
+	ULevelBase(ObjectStream* stream);
 
-	std::vector<UnrealProperty> LevelSummary;
-	std::vector<UnrealProperty> LevelInfo;
+	std::vector<UObject*> Actors;
 
-	std::vector<int> Actors;
+	std::string Protocol;
+	std::string Host;
+	int Port = 0;
+	std::string Map;
+	std::vector<std::string> Options;
+	std::string Portal;
+};
+
+class ULevel : public ULevelBase
+{
+public:
+	ULevel(ObjectStream* stream);
+
 	std::vector<LevelReachSpec> ReachSpecs;
-	std::unique_ptr<Model> Model;
+	UModel* Model = nullptr;
 };

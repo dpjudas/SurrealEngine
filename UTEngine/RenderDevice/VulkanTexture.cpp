@@ -6,8 +6,8 @@
 #include "PixelBuffer.h"
 #include "Renderer.h"
 #include "UVulkanRenderDevice.h"
-#include "Level.h"
-#include "TextureManager.h"
+#include "ULevel.h"
+#include "UTexture.h"
 
 VulkanTexture::VulkanTexture(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
 {
@@ -39,7 +39,7 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 
 		switch (Info.Texture->Format)
 		{
-		case TEXF_P8:
+		case TextureFormat::P8:
 			{
 				uint32_t NewPal[256];
 				for (int i = 0; i < 256; i++)
@@ -66,7 +66,7 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 					});
 			}
 			break;
-		case TEXF_RGBA7:
+		case TextureFormat::RGBA7:
 			data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_R8G8B8A8_UNORM, [](auto mip) { return mip->Width * mip->Height * 4; },
 				[](auto mip, auto dst)
 				{
@@ -88,20 +88,18 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 					}
 				});
 			break;
-		case TEXF_RGB16: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_R5G6B5_UNORM_PACK16, [](auto mip) { return mip->Width * mip->Height * 2; }); break;
-		case TEXF_DXT1: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, block4x4_to_64bits); break;
-		case TEXF_RGB8: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_R8G8B8_UNORM, [](auto mip) { return mip->Width * mip->Height * 3; }); break;
-		case TEXF_RGBA8: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_B8G8R8A8_UNORM, [](auto mip) { return mip->Width * mip->Height * 4; }); break;
-		case 0x06/*TEXF_BC2*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC2_UNORM_BLOCK, block4x4_to_128bits); break;
-		case 0x07/*TEXF_BC3*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC3_UNORM_BLOCK, block4x4_to_128bits); break;
-		case 0x1a/*TEXF_BC1_PA*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, block4x4_to_64bits); break;
-		case 0x0c/*TEXF_BC7*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC7_UNORM_BLOCK, block4x4_to_128bits); break;
-		case 0x0d/*TEXF_BC6H_S*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC6H_SFLOAT_BLOCK, block4x4_to_128bits); break;
-		case 0x0e/*TEXF_BC6H*/: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC6H_UFLOAT_BLOCK, block4x4_to_128bits); break;
+		case TextureFormat::RGB16: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_R5G6B5_UNORM_PACK16, [](auto mip) { return mip->Width * mip->Height * 2; }); break;
+		case TextureFormat::DXT1: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, block4x4_to_64bits); break;
+		case TextureFormat::RGB8: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_R8G8B8_UNORM, [](auto mip) { return mip->Width * mip->Height * 3; }); break;
+		case TextureFormat::RGBA8: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_B8G8R8A8_UNORM, [](auto mip) { return mip->Width * mip->Height * 4; }); break;
+		case TextureFormat::BC2: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC2_UNORM_BLOCK, block4x4_to_128bits); break;
+		case TextureFormat::BC3: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC3_UNORM_BLOCK, block4x4_to_128bits); break;
+		case TextureFormat::BC1_PA: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, block4x4_to_64bits); break;
+		case TextureFormat::BC7: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC7_UNORM_BLOCK, block4x4_to_128bits); break;
+		case TextureFormat::BC6H_S: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC6H_SFLOAT_BLOCK, block4x4_to_128bits); break;
+		case TextureFormat::BC6H: data = UploadData(renderer, Info, PolyFlags, VK_FORMAT_BC6H_UFLOAT_BLOCK, block4x4_to_128bits); break;
 		default: data = UploadWhite(renderer, Info, PolyFlags); break;
 		}
-
-		// Important: the TEXF_RGBA8 is renamed to TEXF_BGRA8 in that version of the SDK!
 	}
 
 	if (!image)

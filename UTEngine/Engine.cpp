@@ -2,27 +2,28 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "PackageManager.h"
-#include "TextureManager.h"
-#include "Level.h"
+#include "ULevel.h"
 #include "Viewport/UVulkanViewport.h"
 #include "RenderDevice/UVulkanRenderDevice.h"
-#include "BinaryStream.h"
+#include "ObjectStream.h"
 #include "Math/quaternion.h"
 #include "FrustumPlanes.h"
-#include "Font.h"
-#include "Mesh.h"
+#include "UFont.h"
+#include "UMesh.h"
+#include "ULight.h"
+#include "UTexture.h"
 #include <chrono>
 
 Engine::Engine()
 {
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
-	textures = std::make_unique<TextureManager>(packages.get());
-	bigfont = std::make_unique<Font>("BigFont", packages.get(), textures.get());
-	largefont = std::make_unique<Font>("LargeFont", packages.get(), textures.get());
-	medfont = std::make_unique<Font>("MedFont", packages.get(), textures.get());
-	smallfont = std::make_unique<Font>("SmallFont", packages.get(), textures.get());
 
-	nalicow = std::make_unique<Mesh>("NaliCow", packages.get(), textures.get());
+	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
+	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
+	medfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
+	smallfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "SmallFont"));
+
+	nalicow = UObject::Cast<ULodMesh>(packages->GetPackage("UnrealShare")->GetUObject("LodMesh", "NaliCow"));
 }
 
 Engine::~Engine()
@@ -59,7 +60,8 @@ void Engine::Run()
 	{
 		Tick(CalcTimeElapsed());
 
-		textures->Update();
+		for (UTexture* tex : Textures)
+			tex->Update();
 
 		URenderDevice* device = viewport->GetRenderDevice();
 		device->BeginFrame();
@@ -104,6 +106,7 @@ float Engine::CalcTimeElapsed()
 
 void Engine::GenerateShadowmaps()
 {
+	/*
 	URenderDevice* device = viewport->GetRenderDevice();
 
 	device->UpdateSurfaceLights(level->Model->Lights);
@@ -125,9 +128,10 @@ void Engine::GenerateShadowmaps()
 		}
 	}
 	device->UpdateLights(updates);
+	*/
 }
 
-void Engine::DrawShadowmap(int index, const Light& light, CubeSide side)
+void Engine::DrawShadowmap(int index, ULight* light, CubeSide side)
 {
 	URenderDevice* device = viewport->GetRenderDevice();
 
@@ -147,9 +151,8 @@ void Engine::DrawCoronas(FSceneNode* frame)
 {
 	URenderDevice* device = viewport->GetRenderDevice();
 
-	for (const auto& it : lightactors)
+	for (ULight* light : Lights)
 	{
-		Light* light = it.second.get();
 		if (light && light->bCorona && light->Skin && !TraceAnyHit(light->Location, frame->ViewLocation))
 		{
 			vec4 pos = frame->Modelview * vec4(light->Location, 1.0f);
@@ -211,7 +214,7 @@ void Engine::DrawScene()
 	for (const auto& cow : Cattle)
 	{
 		if (!TraceAnyHit(Camera.Location, cow.Location))
-			DrawMesh(&frame, nalicow.get(), cow.Location, 0.0f, -90.0f, 0.0f, { 1.0f });
+			DrawMesh(&frame, nalicow, cow.Location, 0.0f, -90.0f, 0.0f, { 1.0f });
 	}
 
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
@@ -226,12 +229,10 @@ void Engine::DrawScene()
 		framesDrawn = 0;
 	}
 
-	DrawFontTextWithShadow(&frame, medfont.get(), vec4(1.0f), 1920 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
-	for (const auto& prop : level->LevelInfo)
-	{
-		if (prop.Name == "Title")
-			DrawFontTextWithShadow(&frame, largefont.get(), vec4(1.0f), 1920 / 2, 1080 - 100, prop.Scalar.ValueString, TextAlignment::center);
-	}
+	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
+
+	if (LevelInfo->Properties.HasScalar("Title"))
+		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920 / 2, 1080 - 100, LevelInfo->Properties.GetScalar("Title").ValueString, TextAlignment::center);
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -572,7 +573,7 @@ FSceneNode Engine::CreateSkyFrame()
 	return frame;
 }
 
-FSceneNode Engine::CreateShadowmapFrame(const Light& light, CubeSide side)
+FSceneNode Engine::CreateShadowmapFrame(ULight* light, CubeSide side)
 {
 	float pitch = 0.0f;
 	float yaw = 0.0f;
@@ -588,7 +589,7 @@ FSceneNode Engine::CreateShadowmapFrame(const Light& light, CubeSide side)
 	}
 
 	mat4 rotate = mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - light.Location);
+	mat4 translate = mat4::translate(vec3(0.0f) - light->Location);
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -600,7 +601,7 @@ FSceneNode Engine::CreateShadowmapFrame(const Light& light, CubeSide side)
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
-	frame.ViewLocation = light.Location;
+	frame.ViewLocation = light->Location;
 	frame.FovAngle = 90.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
@@ -703,48 +704,48 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	const vec3& Base = level->Model->Points[surface.pBase];
 
 	FTextureInfo texture;
-	if (surface.Texture)
+	if (surface.Material)
 	{
-		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Texture;
-		texture.bRealtimeChanged = surface.Texture->TextureModified;
-		texture.UScale = surface.Texture->DrawScale;
-		texture.VScale = surface.Texture->DrawScale;
+		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Material;
+		texture.bRealtimeChanged = surface.Material->TextureModified;
+		texture.UScale = surface.Material->DrawScale;
+		texture.VScale = surface.Material->DrawScale;
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
-		texture.Texture = surface.Texture;
+		texture.Texture = surface.Material;
 
-		if (surface.Texture->TextureModified)
-			surface.Texture->TextureModified = false;
+		if (surface.Material->TextureModified)
+			surface.Material->TextureModified = false;
 
 		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUVTime * 100.0f;
 	}
 
 	FTextureInfo detailtex;
-	if (surface.Texture && surface.Texture->DetailTexture)
+	if (surface.Material && surface.Material->DetailTexture)
 	{
-		detailtex.CacheID = (uint64_t)(ptrdiff_t)surface.Texture->DetailTexture;
+		detailtex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->DetailTexture;
 		detailtex.bRealtimeChanged = false;
-		detailtex.UScale = surface.Texture->DetailTexture->DrawScale;
-		detailtex.VScale = surface.Texture->DetailTexture->DrawScale;
+		detailtex.UScale = surface.Material->DetailTexture->DrawScale;
+		detailtex.VScale = surface.Material->DetailTexture->DrawScale;
 		detailtex.Pan.x = -(float)surface.PanU;
 		detailtex.Pan.y = -(float)surface.PanV;
-		detailtex.Texture = surface.Texture->DetailTexture;
+		detailtex.Texture = surface.Material->DetailTexture;
 
 		if (surface.PolyFlags & PF_AutoUPan) detailtex.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) detailtex.Pan.y += AutoUVTime * 100.0f;
 	}
 
 	FTextureInfo macrotex;
-	if (surface.Texture && surface.Texture->MacroTexture)
+	if (surface.Material && surface.Material->MacroTexture)
 	{
-		macrotex.CacheID = (uint64_t)(ptrdiff_t)surface.Texture->MacroTexture;
+		macrotex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->MacroTexture;
 		macrotex.bRealtimeChanged = false;
-		macrotex.UScale = surface.Texture->MacroTexture->DrawScale;
-		macrotex.VScale = surface.Texture->MacroTexture->DrawScale;
+		macrotex.UScale = surface.Material->MacroTexture->DrawScale;
+		macrotex.VScale = surface.Material->MacroTexture->DrawScale;
 		macrotex.Pan.x = -(float)surface.PanU;
 		macrotex.Pan.y = -(float)surface.PanV;
-		macrotex.Texture = surface.Texture->MacroTexture;
+		macrotex.Texture = surface.Material->MacroTexture;
 
 		if (surface.PolyFlags & PF_AutoUPan) macrotex.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) macrotex.Pan.y += AutoUVTime * 100.0f;
@@ -770,23 +771,23 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 
 	FSurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = surface.PolyFlags;
-	surfaceinfo.Texture = surface.Texture ? &texture : nullptr;
-	surfaceinfo.MacroTexture = surface.Texture && surface.Texture->MacroTexture ? &macrotex : nullptr;
-	surfaceinfo.DetailTexture = surface.Texture && surface.Texture->DetailTexture ? &detailtex : nullptr;
+	surfaceinfo.Texture = surface.Material ? &texture : nullptr;
+	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture ? &macrotex : nullptr;
+	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture ? &detailtex : nullptr;
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
 	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
 
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
-void Engine::DrawMesh(FSceneNode* frame, Mesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
+void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
 {
 	auto device = viewport->GetRenderDevice();
 
 	vec3 color = { 3 / 255.0f };
-	for (const auto& it : lightactors)
+
+	for (ULight* light : Lights)
 	{
-		Light* light = it.second.get();
 		if (light && !light->bCorona && !TraceAnyHit(light->Location, location))
 		{
 			vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
@@ -824,13 +825,13 @@ void Engine::DrawMesh(FSceneNode* frame, Mesh* mesh, vec3 location, float yaw, f
 	}
 }
 
-void Engine::DrawFontTextWithShadow(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
+void Engine::DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
 {
 	DrawFontText(frame, font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 2, y + 2, text, alignment);
 	DrawFontText(frame, font, color, x, y, text, alignment);
 }
 
-void Engine::DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
+void Engine::DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
 {
 	if (alignment != TextAlignment::left)
 	{
@@ -864,7 +865,7 @@ void Engine::DrawFontText(FSceneNode* frame, Font* font, vec4 color, int x, int 
 	}
 }
 
-ivec2 Engine::GetFontTextSize(Font* font, const std::string& text)
+ivec2 Engine::GetFontTextSize(UFont* font, const std::string& text)
 {
 	int x = 0;
 	int y = 0;
@@ -884,7 +885,7 @@ FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet
 		return {};
 
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
-	std::unique_ptr<UnrealTexture>& lmtexture = lmtextures[surface.LightMap];
+	std::unique_ptr<UTexture>& lmtexture = lmtextures[surface.LightMap];
 	if (!lmtexture)
 	{
 		lmtexture = CreateLightmapTexture(lmindex, surface);
@@ -899,7 +900,7 @@ FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet
 	return lightmap;
 }
 
-std::unique_ptr<UnrealTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface)
+std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface)
 {
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
@@ -955,10 +956,10 @@ std::unique_ptr<UnrealTexture> Engine::CreateLightmapTexture(const LightMapIndex
 		const uint8_t* bits = &level->Model->LightBits[lmindex.DataOffset];
 		int bitpos = 0;
 
-		Light** lightpos = &lmlights[lmindex.LightActors];
+		ULight** lightpos = &level->Model->Lights[lmindex.LightActors];
 		while (*lightpos)
 		{
-			const Light& light = **lightpos;
+			ULight* light = *lightpos;
 
 			for (int y = 0; y < height; y++)
 			{
@@ -1005,15 +1006,15 @@ std::unique_ptr<UnrealTexture> Engine::CreateLightmapTexture(const LightMapIndex
 		}
 	}
 
-	auto lmtexture = std::make_unique<UnrealTexture>();
-	lmtexture->Format = TEXF_RGBA7;
+	auto lmtexture = std::make_unique<UTexture>();
+	lmtexture->Format = TextureFormat::RGBA7;
 	lmtexture->Mipmaps.push_back(std::move(lmmip));
 	return lmtexture;
 }
 
-void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, const Light& light, const vec3& N, const uint8_t* bits, int& bitpos)
+void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, ULight* light, const vec3& N, const uint8_t* bits, int& bitpos)
 {
-	vec3 lightcolor = hsbtorgb(light.LightHue * 360.0f / 255.0f, (255 - light.LightSaturation) / 255.0f, light.LightBrightness / 255.0f);
+	vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
 
 	for (int i = start; i < end; i++)
 	{
@@ -1023,8 +1024,8 @@ void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1
 			float t = (i + 0.5f - x0) / (x1 - x0);
 			vec3 point = mix(p0, p1, t);
 
-			vec3 L = light.Location - point;
-			float distanceAttenuation = std::max(1.0f - length(L) / (light.LightRadius * 20), 0.0f);
+			vec3 L = light->Location - point;
+			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius * 20), 0.0f);
 			float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
 			float attenuation = distanceAttenuation * angleAttenuation;
 			line[i] += lightcolor * attenuation;
@@ -1156,105 +1157,67 @@ void Engine::WindowClose(UViewport* viewport)
 void Engine::LoadMap(const std::string& packageName)
 {
 	Package* package = packages->GetPackage(packageName);
-	level = std::make_unique<Level>(package);
 
-	for (BspSurface& material : level->Model->Surfaces)
+	LevelSummary = package->GetUObject("LevelSummary", "LevelSummary");
+	LevelInfo = package->GetUObject("LevelInfo", "LevelInfo0");
+	level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
+
+	std::set<ULight*> lightset;
+	for (ULight* light : level->Model->Lights)
 	{
-		if (material.Material != 0)
-			material.Texture = textures->GetTexture(package->FindExportObject(material.Material));
-		else
-			material.Texture = nullptr;
+		lightset.insert(light);
 	}
 
-	for (int lightindex : level->Model->Lights)
-	{
-		auto& light = lightactors[lightindex];
-		if (!light && lightindex != 0)
-		{
-			auto entry = package->FindExportObject(lightindex);
-			if (entry)
-			{
-				light = std::make_unique<Light>();
+	for (ULight* light : lightset)
+		Lights.push_back(light);
 
-				auto obj = entry->Open();
-				for (auto& prop : obj->Properties)
+	std::set<UTexture*> textureset;
+	for (BspSurface& surf : level->Model->Surfaces)
+	{
+		if (surf.Material)
+		{
+			textureset.insert(surf.Material);
+			if (surf.Material->DetailTexture)
+				textureset.insert(surf.Material->DetailTexture);
+			if (surf.Material->MacroTexture)
+				textureset.insert(surf.Material->MacroTexture);
+		}
+	}
+
+	for (UTexture* texture : textureset)
+		Textures.push_back(texture);
+
+	for (UObject* actor : level->Actors)
+	{
+		if (actor)
+		{
+			if (actor->ClassName == "PlayerStart")
+			{
+				if (actor->Properties.HasScalar("Location"))
 				{
-					if (prop.Name == "Location")
-					{
-						light->Location = prop.Scalar.ValueVector;
-					}
-					else if (prop.Name == "LightBrightness")
-					{
-						light->LightBrightness = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightHue")
-					{
-						light->LightHue = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightSaturation")
-					{
-						light->LightSaturation = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "LightRadius")
-					{
-						light->LightRadius = prop.Scalar.ValueByte;
-					}
-					else if (prop.Name == "bCorona")
-					{
-						light->bCorona = prop.Scalar.ValueBool;
-					}
-					else if (prop.Name == "Skin")
-					{
-						light->Skin = textures->GetTexture(package->FindExportObject(prop.Scalar.ValueObject));
-					}
+					auto prop = actor->Properties.GetScalar("Location");
+					Camera.Location = prop.ValueVector;
+					Camera.Location.z += 70;
+
+					ActorPos cow;
+					cow.Location = prop.ValueVector;
+					Cattle.push_back(cow);
+				}
+				if (actor->Properties.HasScalar("Rotation"))
+				{
+					auto prop = actor->Properties.GetScalar("Rotation");
+					Camera.Yaw = prop.ValueRotator.Yaw / 65536.0f * 360.0f - 90.0f;
+					Camera.Pitch = prop.ValueRotator.Pitch / 65536.0f * 360.0f;
+					Camera.Roll = prop.ValueRotator.Roll / 65536.0f * 360.0f;
 				}
 			}
-		}
-		lmlights.push_back(light.get());
-	}
-
-	for (int actorindex : level->Actors)
-	{
-		if (actorindex != 0)
-		{
-			auto entry = package->FindExportObject(actorindex);
-			if (entry)
+			else if (actor->ClassName == "SkyZoneInfo")
 			{
-				std::string clsname = entry->GetClsName();
-				if (clsname == "PlayerStart")
+				if (actor->Properties.HasScalar("Location"))
 				{
-					auto obj = entry->Open();
-					for (auto& prop : obj->Properties)
-					{
-						if (prop.Name == "Location")
-						{
-							Camera.Location = prop.Scalar.ValueVector;
-							Camera.Location.z += 70;
-
-							ActorPos cow;
-							cow.Location = prop.Scalar.ValueVector;
-							Cattle.push_back(cow);
-						}
-						else if (prop.Name == "Rotation")
-						{
-							Camera.Yaw = prop.Scalar.ValueRotator.Yaw / 65536.0f * 360.0f - 90.0f;
-							Camera.Pitch = prop.Scalar.ValueRotator.Pitch / 65536.0f * 360.0f;
-							Camera.Roll = prop.Scalar.ValueRotator.Roll / 65536.0f * 360.0f;
-						}
-					}
+					SkyLocation = actor->Properties.GetScalar("Location").ValueVector;
 				}
-				else if (clsname == "SkyZoneInfo")
-				{
-					auto obj = entry->Open();
-					for (auto& prop : obj->Properties)
-					{
-						if (prop.Name == "Location")
-						{
-							SkyLocation = prop.Scalar.ValueVector;
-							HasSkyZoneInfo = true;
-						}
-					}
-				}
+				HasSkyZoneInfo = true;
 			}
 		}
 	}

@@ -10,8 +10,9 @@
 #include "ShadowmapRenderPass.h"
 #include "SceneSamplers.h"
 #include "Viewport/UVulkanViewport.h"
-#include "Level.h"
-#include "TextureManager.h"
+#include "ULevel.h"
+#include "ULight.h"
+#include "UTexture.h"
 #include "Engine.h"
 #include <chrono>
 #include <thread>
@@ -34,7 +35,7 @@ public:
 	void BeginScenePass() override;
 	void EndScenePass() override;
 	void EndFrame(bool Blit) override;
-	void UpdateLights(const std::vector<std::pair<int, Light*>>& LightUpdates) override;
+	void UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates) override;
 	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
 	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
@@ -188,7 +189,7 @@ void UVulkanRenderDevice::EndShadowmapUpdate()
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 }
 
-void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, Light*>>& LightUpdates)
+void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates)
 {
 	if (LightUpdates.empty())
 		return;
@@ -209,15 +210,15 @@ void UVulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, Light*>>
 	for (auto& update : LightUpdates)
 	{
 		int index = update.first;
-		const Light& slight = *update.second;
+		ULight* slight = update.second;
 		SceneLight& dlight = dest[index - minIndex];
 
-		dlight.Location = slight.Location;
+		dlight.Location = slight->Location;
 		dlight.Shadowmap = (float)(index * 6);
-		dlight.LightBrightness = (float)slight.LightBrightness;
-		dlight.LightHue = (float)slight.LightHue;
-		dlight.LightSaturation = (float)slight.LightSaturation;
-		dlight.LightRadius = (float)slight.LightRadius;
+		dlight.LightBrightness = (float)slight->LightBrightness;
+		dlight.LightHue = (float)slight->LightHue;
+		dlight.LightSaturation = (float)slight->LightSaturation;
+		dlight.LightRadius = (float)slight->LightRadius;
 	}
 
 	renderer->SceneLights->StagingLights->Unmap();
@@ -463,7 +464,7 @@ void UVulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float 
 		throw std::runtime_error("Scene vertex buffer is too small!");
 	}
 
-	if ((PolyFlags & (PF_Modulated)) == (PF_Modulated) && Info.Texture->Format == TEXF_P8)
+	if ((PolyFlags & (PF_Modulated)) == (PF_Modulated) && Info.Texture->Format == TextureFormat::P8)
 		PolyFlags = PF_Modulated;
 
 	auto cmdbuffer = renderer->GetDrawCommands();

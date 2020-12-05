@@ -28,13 +28,9 @@
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="File.cpp" />
-    <ClCompile Include="Level.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Package.cpp" />
     <ClCompile Include="PackageManager.cpp" />
-    <ClCompile Include="PackageObject.cpp" />
     <ClCompile Include="Precomp.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="RenderDevice\FileResource.cpp">
       <Filter>RenderDevice</Filter>
     </ClCompile>
@@ -88,8 +84,14 @@
       <Filter>RenderDevice</Filter>
     </ClCompile>
     <ClCompile Include="FrustumPlanes.cpp" />
-    <ClCompile Include="Font.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="PackageStream.cpp" />
+    <ClCompile Include="Package.cpp" />
+    <ClCompile Include="UTexture.cpp" />
+    <ClCompile Include="UObject.cpp" />
+    <ClCompile Include="UFont.cpp" />
+    <ClCompile Include="UMesh.cpp" />
+    <ClCompile Include="ULevel.cpp" />
+    <ClCompile Include="ULight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -104,14 +106,9 @@
     <ClInclude Include="Math\vec.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="BinaryStream.h" />
     <ClInclude Include="File.h" />
-    <ClInclude Include="Level.h" />
-    <ClInclude Include="Package.h" />
     <ClInclude Include="PackageManager.h" />
-    <ClInclude Include="PackageObject.h" />
     <ClInclude Include="Precomp.h" />
-    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="RenderDevice\FileResource.h">
       <Filter>RenderDevice</Filter>
     </ClInclude>
@@ -171,7 +168,16 @@
       <Filter>RenderDevice</Filter>
     </ClInclude>
     <ClInclude Include="FrustumPlanes.h" />
-    <ClInclude Include="Font.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="PackageStream.h" />
+    <ClInclude Include="ObjectStream.h" />
+    <ClInclude Include="Package.h" />
+    <ClInclude Include="UObject.h" />
+    <ClInclude Include="UTexture.h" />
+    <ClInclude Include="UFont.h" />
+    <ClInclude Include="UMesh.h" />
+    <ClInclude Include="ULevel.h" />
+    <ClInclude Include="ULight.h" />
+    <ClInclude Include="PackageFlags.h" />
+    <ClInclude Include="ObjectFlags.h" />
   </ItemGroup>
 </Project>

@@ -3,8 +3,8 @@
 #include "Renderer.h"
 
 class UViewport;
-class UnrealTexture;
-struct Light;
+class UTexture;
+class ULight;
 
 struct FCoords
 {
@@ -54,7 +54,7 @@ struct FTextureInfo
 	uint64_t CacheID = 0;
 	bool bRealtimeChanged = false;
 
-	UnrealTexture* Texture = nullptr;
+	UTexture* Texture = nullptr;
 	float UScale = 1.0f;
 	float VScale = 1.0f;
 	vec2 Pan = { 0.0f };
@@ -86,7 +86,7 @@ public:
 	virtual void BeginScenePass() = 0;
 	virtual void EndScenePass() = 0;
 	virtual void EndFrame(bool Blit) = 0;
-	virtual void UpdateLights(const std::vector<std::pair<int, Light*>>& LightUpdates) = 0;
+	virtual void UpdateLights(const std::vector<std::pair<int, ULight*>>& LightUpdates) = 0;
 	virtual void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) = 0;
 	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
 	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;

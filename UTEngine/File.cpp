@@ -40,7 +40,7 @@ public:
 		return fileSize.QuadPart;
 	}
 
-	void seek(int64_t offset, SeekPoint origin)
+	void seek(int64_t offset, SeekPoint origin) override
 	{
 		LARGE_INTEGER off, newoff;
 		off.QuadPart = offset;
@@ -50,6 +50,16 @@ public:
 		BOOL result = SetFilePointerEx(handle, off, &newoff, moveMethod);
 		if (result == FALSE)
 			throw std::runtime_error("SetFilePointerEx failed");
+	}
+
+	uint64_t tell() override
+	{
+		LARGE_INTEGER offset, delta;
+		delta.QuadPart = 0;
+		BOOL result = SetFilePointerEx(handle, delta, &offset, FILE_CURRENT);
+		if (result == FALSE)
+			throw std::runtime_error("SetFilePointerEx failed");
+		return offset.QuadPart;
 	}
 
 	HANDLE handle = INVALID_HANDLE_VALUE;

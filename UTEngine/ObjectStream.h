@@ -1,9 +1,13 @@
 #pragma once
 
-class BinaryStream
+#include "Package.h"
+
+enum class ObjectFlags : uint32_t;
+
+class ObjectStream
 {
 public:
-	BinaryStream(const void* data, size_t size) : data(static_cast<const uint8_t*>(data)), size(size) { }
+	ObjectStream(Package* package, std::unique_ptr<uint64_t[]> buf, size_t startoffset, size_t size, ObjectFlags flags, std::string className) : package(package), buffer(std::move(buf)), data(reinterpret_cast<const uint8_t*>(buffer.get())), startoffset(startoffset), size(size), flags(flags), className(std::move(className)) { }
 
 	void ReadBytes(void* d, uint32_t s)
 	{
@@ -26,6 +30,9 @@ public:
 
 	void Seek(uint32_t offset)
 	{
+		if (offset < startoffset)
+			throw std::runtime_error("Seeking outside object");
+		offset -= (uint32_t)startoffset;
 		if (offset > size)
 			throw std::runtime_error("Unexpected end of file");
 		pos = offset;
@@ -40,7 +47,7 @@ public:
 
 	uint32_t Tell()
 	{
-		return (uint32_t)pos;
+		return (uint32_t)(startoffset + pos);
 	}
 
 	int32_t ReadIndex()
@@ -66,16 +73,65 @@ public:
 
 	std::string ReadString()
 	{
-		int len = ReadIndex();
-		std::vector<char> s;
-		s.resize(len);
-		ReadBytes(s.data(), (int)s.size());
-		s.push_back(0);
-		return s.data();
+		if (GetVersion() >= 64)
+		{
+			int len = ReadIndex();
+			std::vector<char> s;
+			s.resize(len);
+			ReadBytes(s.data(), (int)s.size());
+			s.push_back(0);
+			return s.data();
+		}
+		else
+		{
+			std::string s;
+			while (true)
+			{
+				char c = ReadInt8();
+				if (c == 0) break;
+				s.push_back(c);
+			}
+			return s;
+		}
+	}
+
+	std::string ReadName()
+	{
+		return package->GetName(ReadIndex());
+	}
+
+	UObject* ReadUObject()
+	{
+		return package->GetUObject(ReadIndex());
+	}
+
+	int GetVersion() const
+	{
+		return package->GetVersion();
+	}
+
+	ObjectFlags GetFlags() const
+	{
+		return flags;
+	}
+
+	UObject* GetUObject(int objref)
+	{
+		return package->GetUObject(objref);
+	}
+
+	const std::string& GetClsName() const
+	{
+		return className;
 	}
 
 private:
+	Package* package = nullptr;
+	std::unique_ptr<uint64_t[]> buffer;
 	const uint8_t* data = nullptr;
+	size_t startoffset = 0;
 	size_t size = 0;
 	size_t pos = 0;
+	ObjectFlags flags = {};
+	std::string className;
 };
