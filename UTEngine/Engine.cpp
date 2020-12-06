@@ -794,20 +794,29 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 
 	for (UActor* light : Lights)
 	{
-		if (light && !light->bCorona && !TraceAnyHit(light->Location, location))
+		if (light && !light->bCorona)
 		{
-			vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
-
 			vec3 L = light->Location - location;
-			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius * 20), 0.0f);
-			float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
-			float attenuation = distanceAttenuation * angleAttenuation;
-			color += lightcolor * attenuation;
+			float dist2 = dot(L, L);
+			float lightRadius = light->LightRadius * 20.0f;
+			float lightRadius2 = lightRadius * lightRadius;
+			if (dist2 < lightRadius2 && !TraceAnyHit(light->Location, location))
+			{
+				vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
+
+				float distanceAttenuation = std::max(1.0f - std::sqrt(dist2) / lightRadius, 0.0f);
+				float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
+				float attenuation = distanceAttenuation * angleAttenuation;
+				color += lightcolor * attenuation;
+			}
 		}
 	}
 
 	mat4 rotate = mat4::rotate(radians(roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(mesh->Scale * scale) * mat4::translate(vec3(0.0f) - mesh->Origin);
+
+	int animFrame = mesh->AnimSeqs.front().StartFrame;
+	int frameVertexOffset = mesh->SpecialVerts + animFrame * mesh->FrameVerts;
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : mesh->Faces)
@@ -815,8 +824,9 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
+			int vertexIndex = wedge.Vertex + frameVertexOffset;
 
-			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[wedge.Vertex], 1.0f)).xyz();
+			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
 			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
 			vertices[i].Light = color;
 		}
