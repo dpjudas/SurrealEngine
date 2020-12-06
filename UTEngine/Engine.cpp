@@ -817,6 +817,7 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 
 	int animFrame = mesh->AnimSeqs.front().StartFrame;
 	int frameVertexOffset = mesh->SpecialVerts + animFrame * mesh->FrameVerts;
+	int frameSpecialFaceVertexOffset = animFrame * mesh->FrameVerts;
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : mesh->Faces)
@@ -825,6 +826,27 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
 			int vertexIndex = wedge.Vertex + frameVertexOffset;
+
+			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
+			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
+			vertices[i].Light = color;
+		}
+
+		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+
+		FTextureInfo texinfo;
+		texinfo.Texture = mesh->Textures[material.TextureIndex];
+		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+
+		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, material.PolyFlags);
+	}
+
+	for (const MeshFace& face : mesh->SpecialFaces)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
+			int vertexIndex = wedge.Vertex + frameSpecialFaceVertexOffset;
 
 			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
 			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
