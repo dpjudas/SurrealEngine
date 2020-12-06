@@ -28,6 +28,8 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UPrimitive>("Primitive");
 	RegisterNativeClass<UMesh>("Mesh");
 	RegisterNativeClass<ULodMesh>("LodMesh");
+	RegisterNativeClass<USkeletalMesh>("SkeletalMesh");
+	RegisterNativeClass<UAnimation>("Animation");
 	RegisterNativeClass<UTexture>("Texture");
 	RegisterNativeClass<UFractalTexture>("FractalTexture");
 	RegisterNativeClass<UFireTexture>("FireTexture");

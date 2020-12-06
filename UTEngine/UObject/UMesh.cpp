@@ -253,3 +253,187 @@ ULodMesh::ULodMesh(ObjectStream* stream) : UMesh(stream)
 
 	OldFrameVerts = stream->ReadUInt32();
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+USkeletalMesh::USkeletalMesh(ObjectStream* stream) : ULodMesh(stream)
+{
+	int NumExtWedges = stream->ReadIndex();
+	for (int i = 0; i < NumExtWedges; i++)
+	{
+		ExtMeshWedge wedge;
+		wedge.Vertex = stream->ReadUInt16();
+		wedge.Flags = stream->ReadUInt16();
+		wedge.U = stream->ReadFloat();
+		wedge.V = stream->ReadFloat();
+		ExtWedges.push_back(wedge);
+	}
+
+	int NumPoints = stream->ReadIndex();
+	for (int i = 0; i < NumPoints; i++)
+	{
+		vec3 p;
+		p.x = stream->ReadFloat();
+		p.y = stream->ReadFloat();
+		p.z = stream->ReadFloat();
+		Points.push_back(p);
+	}
+
+	int NumRefSkeletonBones = stream->ReadIndex();
+	for (int i = 0; i < NumRefSkeletonBones; i++)
+	{
+		RefSkeletonBone bone;
+		bone.Name = stream->ReadName();
+		bone.Flags = stream->ReadUInt32();
+		bone.Orientation.x = stream->ReadFloat();
+		bone.Orientation.y = stream->ReadFloat();
+		bone.Orientation.z = stream->ReadFloat();
+		bone.Orientation.w = stream->ReadFloat();
+		bone.Length = stream->ReadFloat();
+		bone.Size.x = stream->ReadFloat();
+		bone.Size.y = stream->ReadFloat();
+		bone.Size.z = stream->ReadFloat();
+		bone.NumChildren = stream->ReadUInt32();
+		bone.ParentIndex = stream->ReadUInt32();
+		RefSkeleton.push_back(bone);
+	}
+
+	int NumBoneWeightIndices = stream->ReadIndex();
+	for (int i = 0; i < NumBoneWeightIndices; i++)
+	{
+		BoneWeightIndex index;
+		index.WeightIndex = stream->ReadUInt16();
+		index.Number = stream->ReadUInt16();
+		index.DetailA = stream->ReadUInt16();
+		index.DetailB = stream->ReadUInt16();
+		BoneWeightIndices.push_back(index);
+	}
+
+	int NumBoneWeights = stream->ReadIndex();
+	for (int i = 0; i < NumBoneWeights; i++)
+	{
+		BoneWeight weight;
+		weight.PointIndex = stream->ReadUInt16();
+		weight.BoneWeight = stream->ReadUInt16();
+		BoneWeights.push_back(weight);
+	}
+
+	int NumLocalPoints = stream->ReadIndex();
+	for (int i = 0; i < NumLocalPoints; i++)
+	{
+		vec3 p;
+		p.x = stream->ReadFloat();
+		p.y = stream->ReadFloat();
+		p.z = stream->ReadFloat();
+		LocalPoints.push_back(p);
+	}
+
+	SkeletalDepth = stream->ReadUInt32();
+	DefaultAnimation = Cast<UAnimation>(stream->ReadUObject());
+	WeaponBoneIndex = stream->ReadUInt32();
+
+	WeaponAdjust.Origin.x = stream->ReadFloat();
+	WeaponAdjust.Origin.y = stream->ReadFloat();
+	WeaponAdjust.Origin.y = stream->ReadFloat();
+	WeaponAdjust.XAxis.x = stream->ReadFloat();
+	WeaponAdjust.XAxis.y = stream->ReadFloat();
+	WeaponAdjust.XAxis.y = stream->ReadFloat();
+	WeaponAdjust.YAxis.x = stream->ReadFloat();
+	WeaponAdjust.YAxis.y = stream->ReadFloat();
+	WeaponAdjust.YAxis.y = stream->ReadFloat();
+	WeaponAdjust.ZAxis.x = stream->ReadFloat();
+	WeaponAdjust.ZAxis.y = stream->ReadFloat();
+	WeaponAdjust.ZAxis.y = stream->ReadFloat();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+UAnimation::UAnimation(ObjectStream* stream) : UObject(stream)
+{
+	int NumRefBones = stream->ReadIndex();
+	for (int i = 0; i < NumRefBones; i++)
+	{
+		RefBone refbone;
+		refbone.Name = stream->ReadName();
+		refbone.Flags = stream->ReadUInt32();
+		refbone.ParentIndex = stream->ReadUInt32();
+		RefBones.push_back(refbone);
+	}
+
+	int NumMoves = stream->ReadIndex();
+	for (int i = 0; i < NumMoves; i++)
+	{
+		AnimMove move;
+		move.RootSpeed3D.x = stream->ReadFloat();
+		move.RootSpeed3D.y = stream->ReadFloat();
+		move.RootSpeed3D.z = stream->ReadFloat();
+		move.TrackTime = stream->ReadFloat();
+		move.StartBone = stream->ReadUInt32();
+
+		int NumBoneIndices = stream->ReadIndex();
+		for (int j = 0; j < NumBoneIndices; j++)
+			move.BoneIndices.push_back(stream->ReadUInt32());
+
+		int NumAnimTracks = stream->ReadIndex();
+		for (int j = 0; j < NumAnimTracks; j++)
+		{
+			AnimTrack track;
+			track.Flags = stream->ReadUInt32();
+
+			int NumKeyQuat = stream->ReadIndex();
+			for (int k = 0; k < NumKeyQuat; k++)
+			{
+				quaternion q;
+				q.x = stream->ReadFloat();
+				q.y = stream->ReadFloat();
+				q.z = stream->ReadFloat();
+				q.w = stream->ReadFloat();
+				track.KeyQuat.push_back(q);
+			}
+
+			int NumKeyPos = stream->ReadIndex();
+			for (int k = 0; k < NumKeyPos; k++)
+			{
+				vec3 pos;
+				pos.x = stream->ReadFloat();
+				pos.y = stream->ReadFloat();
+				pos.z = stream->ReadFloat();
+				track.KeyPos.push_back(pos);
+			}
+
+			int NumKeyTime = stream->ReadIndex();
+			for (int k = 0; k < NumKeyTime; k++)
+				track.KeyTime.push_back(stream->ReadFloat());
+
+			track.RootTrack.Flags = stream->ReadUInt32();
+
+			NumKeyQuat = stream->ReadIndex();
+			for (int k = 0; k < NumKeyQuat; k++)
+			{
+				quaternion q;
+				q.x = stream->ReadFloat();
+				q.y = stream->ReadFloat();
+				q.z = stream->ReadFloat();
+				q.w = stream->ReadFloat();
+				track.RootTrack.KeyQuat.push_back(q);
+			}
+
+			NumKeyPos = stream->ReadIndex();
+			for (int k = 0; k < NumKeyPos; k++)
+			{
+				vec3 pos;
+				pos.x = stream->ReadFloat();
+				pos.y = stream->ReadFloat();
+				pos.z = stream->ReadFloat();
+				track.RootTrack.KeyPos.push_back(pos);
+			}
+
+			NumKeyTime = stream->ReadIndex();
+			for (int k = 0; k < NumKeyTime; k++)
+				track.RootTrack.KeyTime.push_back(stream->ReadFloat());
+
+			move.AnimTracks.push_back(track);
+		}
+		Moves.push_back(move);
+	}
+}

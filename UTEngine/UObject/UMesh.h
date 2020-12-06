@@ -2,8 +2,11 @@
 
 #include "UObject.h"
 #include "Math/bbox.h"
+#include "Math/vec.h"
+#include "Math/quaternion.h"
 
 class UTexture;
+class UAnimation;
 
 struct MeshTri
 {
@@ -110,4 +113,103 @@ public:
 	float LODZDisplace = 0.0f;
 	std::vector<uint16_t> ReMapAnimVerts;
 	uint32_t OldFrameVerts = 0;
+};
+
+struct ExtMeshWedge
+{
+	uint16_t Vertex;
+	uint16_t Flags;
+	float U;
+	float V;
+};
+
+struct RefSkeletonBone
+{
+	std::string Name;
+	uint32_t Flags;
+	quaternion Orientation;
+	vec3 Position;
+	float Length;
+	vec3 Size;
+	uint32_t NumChildren;
+	uint32_t ParentIndex;
+};
+
+struct BoneWeightIndex
+{
+	uint16_t WeightIndex;
+	uint16_t Number;
+	uint16_t DetailA;
+	uint16_t DetailB;
+};
+
+struct BoneWeight
+{
+	uint16_t PointIndex;
+	uint16_t BoneWeight;
+};
+
+class USkeletalMesh : public ULodMesh
+{
+public:
+	USkeletalMesh(ObjectStream* stream);
+
+	std::vector<ExtMeshWedge> ExtWedges;
+	std::vector<vec3> Points;
+	std::vector<RefSkeletonBone> RefSkeleton;
+	std::vector<BoneWeightIndex> BoneWeightIndices;
+	std::vector<BoneWeight> BoneWeights;
+	std::vector<vec3> LocalPoints;
+
+	uint32_t SkeletalDepth = 0;
+	UAnimation* DefaultAnimation = nullptr;
+	uint32_t WeaponBoneIndex = 0;
+
+	struct
+	{
+		vec3 Origin;
+		vec3 XAxis;
+		vec3 YAxis;
+		vec3 ZAxis;
+	} WeaponAdjust;
+};
+
+struct RefBone
+{
+	std::string Name;
+	uint32_t Flags = 0;
+	uint32_t ParentIndex = 0;
+};
+
+struct AnimTrack
+{
+	uint32_t Flags = 0;
+	std::vector<quaternion> KeyQuat;
+	std::vector<vec3> KeyPos;
+	std::vector<float> KeyTime;
+	struct
+	{
+		uint32_t Flags = 0;
+		std::vector<quaternion> KeyQuat;
+		std::vector<vec3> KeyPos;
+		std::vector<float> KeyTime;
+	} RootTrack;
+};
+
+struct AnimMove
+{
+	vec3 RootSpeed3D;
+	float TrackTime = 0.0f;
+	uint32_t StartBone = 0;
+	std::vector<uint32_t> BoneIndices;
+	std::vector<AnimTrack> AnimTracks;
+};
+
+class UAnimation : public UObject
+{
+public:
+	UAnimation(ObjectStream* stream);
+
+	std::vector<RefBone> RefBones;
+	std::vector<AnimMove> Moves;
 };
