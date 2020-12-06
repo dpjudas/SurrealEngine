@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Engine.h"
+#include "File.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
 #include "UObject/ULevel.h"
@@ -8,10 +9,14 @@
 #include "UObject/UMesh.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
+#include "UObject/UMusic.h"
+#include "UObject/USound.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "Viewport/Viewport.h"
 #include "RenderDevice/RenderDevice.h"
+#include "Audio/AudioPlayer.h"
+#include "Audio/AudioSource.h"
 #include <chrono>
 #include <set>
 
@@ -1221,5 +1226,11 @@ void Engine::LoadMap(const std::string& packageName)
 				HasSkyZoneInfo = true;
 			}
 		}
+	}
+
+	if (LevelInfo->Properties.HasScalar("Song"))
+	{
+		auto music = UObject::Cast<UMusic>(package->GetUObject(LevelInfo->Properties.GetScalar("Song").ValueObject));
+		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
 	}
 }

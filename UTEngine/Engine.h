@@ -15,6 +15,7 @@ class BspSurface;
 class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
+class AudioPlayer;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -121,6 +122,7 @@ private:
 	ULodMesh* nalicow = nullptr;
 
 	std::unique_ptr<Viewport> viewport;
+	std::unique_ptr<AudioPlayer> audioplayer;
 
 	std::map<int, std::unique_ptr<UTexture>> lmtextures;
 

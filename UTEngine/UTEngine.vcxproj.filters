@@ -31,6 +31,30 @@
     <Filter Include="Viewport\Win32">
       <UniqueIdentifier>{1dd6dc90-88fe-457a-8c41-cb6a9a8a300c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Thirdparty\dumb">
+      <UniqueIdentifier>{0c9b9fbc-3a59-49f5-bc2c-7fa5b1d28a2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\dumb\src">
+      <UniqueIdentifier>{3960a188-52e9-47e2-b95c-e2e0aedda9a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\dumb\src\core">
+      <UniqueIdentifier>{beeca174-4e84-4091-85e1-692828679708}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\dumb\src\helpers">
+      <UniqueIdentifier>{e0b6325c-2e58-4d11-8c1d-24dfbdd1a1b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\dumb\src\it">
+      <UniqueIdentifier>{caa381ab-9179-4ebf-81cb-dc74309b0ab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\dumb\include">
+      <UniqueIdentifier>{aa364629-b41a-4eb7-9963-915110df5080}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Thirdparty\resample">
+      <UniqueIdentifier>{3284cfca-9634-4f99-a966-3cd8f18e4452}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{d1c569a7-720b-4db6-b5e5-d1ab92f5da4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -129,6 +153,279 @@
     </ClCompile>
     <ClCompile Include="Viewport\Win32\Win32Viewport.cpp">
       <Filter>Viewport\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\USound.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\UMusic.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\atexit.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\duhlen.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\duhtag.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\dumbfile.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\loadduh.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\makeduh.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\rawsig.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\readduh.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\register.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\rendduh.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\rendsig.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\core\unload.c">
+      <Filter>Thirdparty\dumb\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\barray.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\clickrem.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\lpc.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\memfile.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\resample.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\resampler.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\riff.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\sampbuf.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\silence.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\stdfile.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\helpers\tarray.c">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itload.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itload2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itmisc.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itorder.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itread.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itread2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itrender.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\itunload.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\load669.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\load6692.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadamf.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadamf2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadany.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadany2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadasy.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadasy2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadmod.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadmod2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadmtm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadmtm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadokt.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadokt2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadoldpsm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadoldpsm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadpsm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadpsm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadptm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadptm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadriff.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadriff2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loads3m.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loads3m2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadstm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadstm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadxm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\loadxm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\ptmeffect.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\read669.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\read6692.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readam.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readamf.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readamf2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readany.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readany2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readasy.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readdsmf.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readmod.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readmod2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readmtm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readokt.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readokt2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readoldpsm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readpsm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readptm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readriff.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\reads3m.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\reads3m2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readstm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readstm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readxm.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\readxm2.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\dumb\src\it\xmeffect.c">
+      <Filter>Thirdparty\dumb\src\it</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\resample\pffft.cpp">
+      <Filter>Thirdparty\resample</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Thirdparty\resample\r8bbase.cpp">
+      <Filter>Thirdparty\resample</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\AudioPlayer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\AudioSource.cpp">
+      <Filter>Audio</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -252,5 +549,88 @@
     <ClInclude Include="Viewport\Win32\Win32Viewport.h">
       <Filter>Viewport\Win32</Filter>
     </ClInclude>
+    <ClInclude Include="UObject\USound.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UMusic.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\dumb\include\dumb.h">
+      <Filter>Thirdparty\dumb\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\dr_flac.h">
+      <Filter>Thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\dr_wav.h">
+      <Filter>Thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\minimp3.h">
+      <Filter>Thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\minimp3_ex.h">
+      <Filter>Thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\stb_vorbis.h">
+      <Filter>Thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPBlockConvolver.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPFIRFilter.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPFracInterpolator.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPHBDownsampler.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPHBUpsampler.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPProcessor.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPRealFFT.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPResampler.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\CDSPSincFilterGen.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\fft4g.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\pffft.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\r8bbase.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\r8bconf.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Thirdparty\resample\r8butil.h">
+      <Filter>Thirdparty\resample</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioPlayer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioSource.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Thirdparty\dumb\src\helpers\resamp2.inc">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </None>
+    <None Include="..\Thirdparty\dumb\src\helpers\resamp3.inc">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </None>
+    <None Include="..\Thirdparty\dumb\src\helpers\resample.inc">
+      <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </None>
   </ItemGroup>
 </Project>

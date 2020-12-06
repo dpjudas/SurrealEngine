@@ -1,0 +1,27 @@
+SET(ARGTABLE2_SEARCH_PATHS
+        /usr/local
+        /usr
+        /opt
+)
+
+FIND_PATH(ARGTABLE2_INCLUDE_DIR argtable2.h
+        HINTS
+        PATH_SUFFIXES include
+        PATHS ${ARGTABLE2_SEARCH_PATHS}
+)
+FIND_LIBRARY(ARGTABLE2_LIBRARY argtable2
+        HINTS
+        PATH_SUFFIXES lib64 lib
+        PATHS ${ARGTABLE2_SEARCH_PATHS}
+)
+
+if(ARGTABLE2_INCLUDE_DIR AND ARGTABLE2_LIBRARY)
+    set(ARGTABLE2_FOUND TRUE)
+endif(ARGTABLE2_INCLUDE_DIR AND ARGTABLE2_LIBRARY)
+
+
+if(ARGTABLE2_FOUND)
+    message(STATUS "Found Argtable2: ${ARGTABLE2_LIBRARY}")
+else(ARGTABLE2_FOUND)
+    message(WARNING "Could not find Argtable2")
+endif(ARGTABLE2_FOUND)

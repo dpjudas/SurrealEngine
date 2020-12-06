@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: DUMB
+Description: DUMB is a module audio renderer library. 
+Version: @DUMB_VERSION@
+URL: https://github.com/kode54/dumb/
+Libs: -L${libdir} -ldumb
+Libs.private: -lm
+Cflags: -I${includedir} 
