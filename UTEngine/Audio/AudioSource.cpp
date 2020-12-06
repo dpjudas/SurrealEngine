@@ -481,7 +481,7 @@ public:
 
 	size_t ReadSamples(float* output, size_t samples) override
 	{
-		float volume = 2.0f;
+		float volume = 1.0f;
 		long result = duh_render_float(renderer, &samplebuffers, &samplebuffer_size, 32, volume, 65536.0f / GetFrequency(), samples / GetChannels(), output);
 		if (result < 0) return 0;
 		return result * GetChannels();
