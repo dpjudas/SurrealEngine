@@ -52,17 +52,24 @@ UObject::UObject(ObjectStream* stream) : ClassName(stream->GetClsName())
 			int arrayIndex = 0;
 			if (prop.IsArray && prop.Type != UPT_Bool)
 			{
-				arrayIndex = stream->ReadUInt8();
-				if (arrayIndex & (1 << 7))
+				int byte1 = stream->ReadUInt8();
+				if ((byte1 & 0xc0) == 0xc0)
 				{
-					arrayIndex &= ~(1 << 7);
-					arrayIndex |= ((int)stream->ReadUInt8()) << 8;
-					if (arrayIndex & (1 << 15))
-					{
-						arrayIndex &= ~(1 << 15);
-						arrayIndex |= ((int)stream->ReadUInt8()) << 16;
-						arrayIndex |= ((int)stream->ReadUInt8()) << 24;
-					}
+					byte1 &= 0x3f;
+					int byte2 = stream->ReadUInt8();
+					int byte3 = stream->ReadUInt8();
+					int byte4 = stream->ReadUInt8();
+					arrayIndex = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
+				}
+				else if (byte1 & 0x80)
+				{
+					byte1 &= 0x7f;
+					int byte2 = stream->ReadUInt8();
+					arrayIndex = (byte1 << 8) | byte2;
+				}
+				else
+				{
+					arrayIndex = byte1;
 				}
 			}
 			prop.ArrayIndex = arrayIndex;

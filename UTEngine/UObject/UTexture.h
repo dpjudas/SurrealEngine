@@ -51,7 +51,7 @@ public:
 class UFractalTexture : public UTexture
 {
 public:
-	UFractalTexture(ObjectStream* stream) : UTexture(stream) { }
+	UFractalTexture(ObjectStream* stream);
 };
 
 class UFireTexture : public UFractalTexture

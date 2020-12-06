@@ -12,7 +12,7 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 	for (UnrealMipmap& mipmap : Mipmaps)
 	{
 		uint32_t widthoffset = 0;
-		if (stream->GetVersion() >= 68)
+		if (stream->GetVersion() >= 63)
 			widthoffset = stream->ReadInt32();
 		int bytes = stream->ReadIndex();
 		mipmap.Data.resize(bytes);
@@ -58,7 +58,7 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UFireTexture::UFireTexture(ObjectStream* stream) : UFractalTexture(stream)
+UFractalTexture::UFractalTexture(ObjectStream* stream) : UTexture(stream)
 {
 	Format = TextureFormat::P8;
 	Mipmaps.resize(1);
@@ -74,6 +74,12 @@ UFireTexture::UFireTexture(ObjectStream* stream) : UFractalTexture(stream)
 	mipmap.Data.resize((size_t)mipmap.Width * mipmap.Height);
 	uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 	memset(pixels, 0, (size_t)width * height);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+UFireTexture::UFireTexture(ObjectStream* stream) : UFractalTexture(stream)
+{
 }
 
 void UFireTexture::Update()
