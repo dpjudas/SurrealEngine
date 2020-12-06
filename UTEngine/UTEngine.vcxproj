@@ -155,6 +155,7 @@
     <ClInclude Include="UObject\UMusic.h" />
     <ClInclude Include="UObject\UObject.h" />
     <ClInclude Include="UObject\USound.h" />
+    <ClInclude Include="UObject\UTextBuffer.h" />
     <ClInclude Include="UObject\UTexture.h" />
     <ClInclude Include="Viewport\Viewport.h" />
     <ClInclude Include="Viewport\Win32\Win32Viewport.h" />
@@ -723,6 +724,7 @@
     <ClCompile Include="UObject\UMusic.cpp" />
     <ClCompile Include="UObject\UObject.cpp" />
     <ClCompile Include="UObject\USound.cpp" />
+    <ClCompile Include="UObject\UTextBuffer.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />
     <ClCompile Include="Viewport\Viewport.cpp" />
     <ClCompile Include="Viewport\Win32\Win32Viewport.cpp" />

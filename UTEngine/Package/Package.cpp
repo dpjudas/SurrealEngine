@@ -11,6 +11,7 @@
 #include "UObject/UActor.h"
 #include "UObject/USound.h"
 #include "UObject/UMusic.h"
+#include "UObject/UTextBuffer.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
@@ -40,6 +41,7 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UPalette>("Palette");
 	RegisterNativeClass<USound>("Sound");
 	RegisterNativeClass<UMusic>("Music");
+	RegisterNativeClass<UTextBuffer>("TextBuffer");
 }
 
 Package::~Package()
