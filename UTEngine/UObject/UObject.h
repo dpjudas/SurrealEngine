@@ -3,6 +3,8 @@
 #include "Package/ObjectStream.h"
 #include "Math/vec.h"
 
+class UClass;
+
 enum UnrealPropertyType
 {
 	UPT_Invalid,
@@ -116,10 +118,12 @@ class UObject
 {
 public:
 	UObject() = default;
+	UObject(std::string name, UClass* base);
 	UObject(ObjectStream* stream);
 	virtual ~UObject() = default;
 
-	std::string ClassName;
+	std::string Name;
+	UClass* Base = nullptr;
 	UnrealProperties Properties;
 
 	template<typename T>
@@ -127,7 +131,7 @@ public:
 	{
 		T* target = dynamic_cast<T*>(obj);
 		if (target == nullptr && obj != nullptr)
-			throw std::runtime_error("Could not cast " + obj->ClassName + " to " + (std::string)typeid(T).name());
+			throw std::runtime_error("Could not cast object " + obj->Name + " to " + (std::string)typeid(T).name());
 		return target;
 	}
 
@@ -136,4 +140,6 @@ public:
 	{
 		return dynamic_cast<T*>(obj);
 	}
+
+	void ReadProperties(ObjectStream* stream);
 };

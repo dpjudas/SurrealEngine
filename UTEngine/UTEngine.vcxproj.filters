@@ -430,6 +430,9 @@
     <ClCompile Include="UObject\UTextBuffer.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="UObject\UClass.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -625,6 +628,9 @@
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="UObject\UTextBuffer.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UClass.h">
       <Filter>UObject</Filter>
     </ClInclude>
   </ItemGroup>

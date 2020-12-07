@@ -119,8 +119,6 @@ private:
 	std::vector<UActor*> Lights;
 	std::vector<UTexture*> Textures;
 
-	ULodMesh* nalicow = nullptr;
-
 	std::unique_ptr<Viewport> viewport;
 	std::unique_ptr<AudioPlayer> audioplayer;
 
@@ -137,7 +135,6 @@ private:
 	};
 	
 	ActorPos Camera;
-	std::vector<ActorPos> Cattle;
 
 	bool HasSkyZoneInfo = false;
 	vec3 SkyLocation = { 0.0f };

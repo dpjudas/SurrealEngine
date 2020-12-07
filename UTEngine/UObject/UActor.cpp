@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UActor.h"
 #include "UTexture.h"
+#include "UMesh.h"
 
 UActor::UActor(ObjectStream* stream) : UObject(stream)
 {
@@ -12,4 +13,6 @@ UActor::UActor(ObjectStream* stream) : UObject(stream)
 	if (Properties.HasScalar("LightRadius")) LightRadius = Properties.GetScalar("LightRadius").ValueByte;
 	if (Properties.HasScalar("bCorona")) bCorona = Properties.GetScalar("bCorona").ValueBool;
 	if (Properties.HasScalar("Skin")) Skin = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("Skin").ValueObject));
+	if (Properties.HasScalar("Texture")) Skin = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("Texture").ValueObject));
+	if (Properties.HasScalar("Mesh")) Mesh = Cast<UMesh>(stream->GetUObject(Properties.GetScalar("Mesh").ValueObject));
 }

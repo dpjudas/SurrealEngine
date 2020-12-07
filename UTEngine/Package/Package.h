@@ -11,6 +11,7 @@ class NameTableEntry;
 class ImportTableEntry;
 class ExportTableEntry;
 class UObject;
+class UClass;
 
 class Package
 {
@@ -27,7 +28,7 @@ public:
 private:
 	void ReadTables();
 	std::unique_ptr<PackageStream> OpenStream();
-	std::unique_ptr<ObjectStream> OpenObjectStream(int index, std::string classname);
+	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const std::string& name, UClass* base);
 	void LoadExportObject(int index);
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
@@ -35,14 +36,14 @@ private:
 	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
 	template<typename T>
-	void NewObject(int index, std::string classname)
+	void NewObject(int index, const std::string& name, UClass* base)
 	{
 		// We need the pointer for the object before initializing it in order to support circular references.
 		ObjectAllocations[index].reset(new uint64_t[sizeof(T)]);
 		Objects[index] = (T*)ObjectAllocations[index].get();
 		try
 		{
-			new(ObjectAllocations[index].get()) T(OpenObjectStream(index, std::move(classname)).get());
+			new(ObjectAllocations[index].get()) T(OpenObjectStream(index, name, base).get());
 		}
 		catch (...)
 		{
@@ -55,7 +56,7 @@ private:
 	template<typename T>
 	void RegisterNativeClass(const std::string& name)
 	{
-		NativeClasses[GetNameKey(name)] = [](Package* package, int index, std::string classname) { package->NewObject<T>(index, std::move(classname)); };
+		NativeClasses[GetNameKey(name)] = [](Package* package, int index, const std::string& name, UClass* base) { package->NewObject<T>(index, name, base); };
 	}
 
 	static std::string GetNameKey(std::string name)
@@ -82,7 +83,7 @@ private:
 	std::vector<std::unique_ptr<uint64_t[]>> ObjectAllocations;
 	std::vector<UObject*> Objects;
 
-	std::map<std::string, std::function<void(Package* package, int index, std::string classname)>> NativeClasses;
+	std::map<std::string, std::function<void(Package* package, int index, const std::string& name, UClass* base)>> NativeClasses;
 
 	Package(const Package&) = delete;
 	Package& operator=(const Package&) = delete;

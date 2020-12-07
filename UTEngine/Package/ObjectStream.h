@@ -3,11 +3,12 @@
 #include "Package.h"
 
 enum class ObjectFlags : uint32_t;
+class UClass;
 
 class ObjectStream
 {
 public:
-	ObjectStream(Package* package, std::unique_ptr<uint64_t[]> buf, size_t startoffset, size_t size, ObjectFlags flags, std::string className) : package(package), buffer(std::move(buf)), data(reinterpret_cast<const uint8_t*>(buffer.get())), startoffset(startoffset), size(size), flags(flags), className(std::move(className)) { }
+	ObjectStream(Package* package, std::unique_ptr<uint64_t[]> buf, size_t startoffset, size_t size, ObjectFlags flags, const std::string& name, UClass* base) : package(package), buffer(std::move(buf)), data(reinterpret_cast<const uint8_t*>(buffer.get())), startoffset(startoffset), size(size), flags(flags), name(name), base(base) { }
 
 	void ReadBytes(void* d, uint32_t s)
 	{
@@ -120,9 +121,14 @@ public:
 		return package->GetUObject(objref);
 	}
 
-	const std::string& GetClsName() const
+	const std::string& GetObjectName() const
 	{
-		return className;
+		return name;
+	}
+
+	UClass* GetObjectBase()
+	{
+		return base;
 	}
 
 private:
@@ -133,5 +139,6 @@ private:
 	size_t size = 0;
 	size_t pos = 0;
 	ObjectFlags flags = {};
-	std::string className;
+	std::string name;
+	UClass* base = nullptr;
 };

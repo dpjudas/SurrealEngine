@@ -3,6 +3,7 @@
 #include "UObject.h"
 
 class UTexture;
+class UMesh;
 
 class UActor : public UObject
 {
@@ -15,5 +16,8 @@ public:
 	int LightSaturation = 255;
 	int LightRadius = 64;
 	bool bCorona = false;
+
 	UTexture* Skin = nullptr;
+	UTexture* Texture = nullptr;
+	UMesh* Mesh = nullptr;
 };

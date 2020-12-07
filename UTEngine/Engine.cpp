@@ -11,6 +11,7 @@
 #include "UObject/UTexture.h"
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
+#include "UObject/UClass.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "Viewport/Viewport.h"
@@ -29,7 +30,8 @@ Engine::Engine()
 	medfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
 	smallfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "SmallFont"));
 
-	nalicow = UObject::Cast<ULodMesh>(packages->GetPackage("UnrealShare")->GetUObject("LodMesh", "NaliCow"));
+	// auto shockrifle = packages->GetPackage("Botpack")->GetUObject("Class", "ShockRifle");
+	// auto nalicow = UObject::Cast<ULodMesh>(packages->GetPackage("UnrealShare")->GetUObject("LodMesh", "NaliCow"));
 }
 
 Engine::~Engine()
@@ -217,10 +219,13 @@ void Engine::DrawScene()
 
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 0);
 
-	for (const auto& cow : Cattle)
+	for (UActor* actor : level->Actors)
 	{
-		if (!TraceAnyHit(Camera.Location, cow.Location))
-			DrawMesh(&frame, nalicow, cow.Location, 0.0f, -90.0f, 0.0f, { 1.0f });
+		if (actor && actor->Mesh && dynamic_cast<ULodMesh*>(actor->Mesh))
+		{
+			if (!TraceAnyHit(Camera.Location, actor->Location))
+				DrawMesh(&frame, static_cast<ULodMesh*>(actor->Mesh), actor->Location, 0.0f, 0.0f, 0.0f, { 1.0f });
+		}
 	}
 
 	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
@@ -1227,19 +1232,15 @@ void Engine::LoadMap(const std::string& packageName)
 
 	for (UObject* actor : level->Actors)
 	{
-		if (actor)
+		if (actor && actor->Base)
 		{
-			if (actor->ClassName == "PlayerStart")
+			if (actor->Base->Name == "PlayerStart")
 			{
 				if (actor->Properties.HasScalar("Location"))
 				{
 					auto prop = actor->Properties.GetScalar("Location");
 					Camera.Location = prop.ValueVector;
 					Camera.Location.z += 70;
-
-					ActorPos cow;
-					cow.Location = prop.ValueVector;
-					Cattle.push_back(cow);
 				}
 				if (actor->Properties.HasScalar("Rotation"))
 				{
@@ -1249,7 +1250,7 @@ void Engine::LoadMap(const std::string& packageName)
 					Camera.Roll = prop.ValueRotator.Roll / 65536.0f * 360.0f;
 				}
 			}
-			else if (actor->ClassName == "SkyZoneInfo")
+			else if (actor->Base->Name == "SkyZoneInfo")
 			{
 				if (actor->Properties.HasScalar("Location"))
 				{

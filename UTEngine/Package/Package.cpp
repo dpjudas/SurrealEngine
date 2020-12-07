@@ -4,6 +4,7 @@
 #include "PackageStream.h"
 #include "PackageManager.h"
 #include "UObject/UObject.h"
+#include "UObject/UClass.h"
 #include "UObject/UFont.h"
 #include "UObject/ULevel.h"
 #include "UObject/UMesh.h"
@@ -17,10 +18,29 @@
 Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
 {
 	ReadTables();
-	ObjectAllocations.resize(ExportTable.size());
-	Objects.resize(ExportTable.size());
 
 	RegisterNativeClass<UObject>("Object");
+	RegisterNativeClass<UField>("Field");
+	RegisterNativeClass<UConst>("Const");
+	RegisterNativeClass<UEnum>("Enum");
+	RegisterNativeClass<UProperty>("Property");
+	RegisterNativeClass<UByteProperty>("ByteProperty");
+	RegisterNativeClass<UObjectProperty>("ObjectProperty");
+	RegisterNativeClass<UFixedArrayProperty>("FixedArrayProperty");
+	RegisterNativeClass<UArrayProperty>("ArrayProperty");
+	RegisterNativeClass<UMapProperty>("MapProperty");
+	RegisterNativeClass<UClassProperty>("ClassProperty");
+	RegisterNativeClass<UStructProperty>("StructProperty");
+	RegisterNativeClass<UIntProperty>("IntProperty");
+	RegisterNativeClass<UBoolProperty>("BoolProperty");
+	RegisterNativeClass<UFloatProperty>("FloatProperty");
+	RegisterNativeClass<UNameProperty>("NameProperty");
+	RegisterNativeClass<UStrProperty>("StrProperty");
+	RegisterNativeClass<UStringProperty>("StringProperty");
+	RegisterNativeClass<UStruct>("Struct");
+	RegisterNativeClass<UFunction>("Function");
+	RegisterNativeClass<UState>("State");
+	RegisterNativeClass<UClass>("Class");
 	RegisterNativeClass<UFont>("Font");
 	RegisterNativeClass<UModel>("Model");
 	RegisterNativeClass<ULevelBase>("LevelBase");
@@ -42,6 +62,30 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<USound>("Sound");
 	RegisterNativeClass<UMusic>("Music");
 	RegisterNativeClass<UTextBuffer>("TextBuffer");
+
+	if (GetNameKey(name) == "engine")
+	{
+		for (auto& it : NativeClasses)
+		{
+			std::string name = it.first;
+			int objref = FindObjectReference("Class", name);
+			if (objref == 0)
+			{
+				ExportTableEntry entry;
+				entry.ObjClass = 0;
+				entry.ObjBase = 0;
+				entry.ObjPackage = 0;
+				entry.ObjName = FindNameIndex(name);
+				entry.ObjFlags = ObjectFlags::Native;
+				entry.ObjSize = 0;
+				entry.ObjOffset = 0;
+				ExportTable.push_back(entry);
+			}
+		}
+	}
+
+	ObjectAllocations.resize(ExportTable.size());
+	Objects.resize(ExportTable.size());
 }
 
 Package::~Package()
@@ -56,9 +100,53 @@ Package::~Package()
 	}
 }
 
+#if 1
 void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];
+
+	std::string objname = GetName(entry->ObjName);
+	UClass* objbase = nullptr;
+
+	std::function<void(Package* package, int index, const std::string& name, UClass* base)> createfunc;
+
+	if (entry->ObjClass == 0)
+	{
+		objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
+		createfunc = NativeClasses[GetNameKey("Class")];
+	}
+	else
+	{
+		objbase = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
+
+		UClass* objclass = objbase;
+		while (objclass)
+		{
+			auto it = NativeClasses.find(GetNameKey(objclass->Name));
+			if (it != NativeClasses.end())
+			{
+				createfunc = it->second;
+				break;
+			}
+			objclass = objclass->Base;
+		}
+	}
+
+	if (!createfunc)
+		throw std::runtime_error("Could not find the object class for " + objname);
+
+	createfunc(this, index, objname, objbase);
+}
+#else
+void Package::LoadExportObject(int index)
+{
+	const ExportTableEntry* entry = &ExportTable[index];
+
+	if (entry->ObjClass == 0)
+	{
+		(NativeClasses.find(GetNameKey("Class"))->second)(this, index, "Class");
+		return;
+	}
 
 	int clsobjref = entry->ObjClass;
 	Package* clspackage = this;
@@ -119,6 +207,7 @@ void Package::LoadExportObject(int index)
 		clsobjref = clsentry->ObjBase;
 	}
 }
+#endif
 
 UObject* Package::GetUObject(int objref)
 {
@@ -345,7 +434,7 @@ std::unique_ptr<PackageStream> Package::OpenStream()
 	return std::make_unique<PackageStream>(this, File::open_existing(Filename));
 }
 
-std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, std::string classname)
+std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const std::string& name, UClass* base)
 {
 	const auto& entry = ExportTable[index];
 	if (entry.ObjSize > 0)
@@ -354,10 +443,10 @@ std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, std::string c
 		auto stream = OpenStream();
 		stream->Seek(entry.ObjOffset);
 		stream->ReadBytes(buffer.get(), entry.ObjSize);
-		return std::make_unique<ObjectStream>(this, std::move(buffer), entry.ObjOffset, entry.ObjSize, entry.ObjFlags, classname);
+		return std::make_unique<ObjectStream>(this, std::move(buffer), entry.ObjOffset, entry.ObjSize, entry.ObjFlags, name, base);
 	}
 	else
 	{
-		return std::make_unique<ObjectStream>(this, std::unique_ptr<uint64_t[]>(), 0, 0, entry.ObjFlags, classname);
+		return std::make_unique<ObjectStream>(this, std::unique_ptr<uint64_t[]>(), 0, 0, entry.ObjFlags, name, base);
 	}
 }
