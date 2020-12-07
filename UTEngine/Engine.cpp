@@ -827,44 +827,48 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : mesh->Faces)
 	{
+		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+		float uscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Width : 256) / 256.0f;
+		float vscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Height : 256) / 256.0f;
+
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
 			int vertexIndex = wedge.Vertex + frameVertexOffset;
 
 			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
-			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
+			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
 			vertices[i].Light = color;
 		}
-
-		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
 		FTextureInfo texinfo;
 		texinfo.Texture = mesh->Textures[material.TextureIndex];
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
 
-		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, material.PolyFlags);
+		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, material.PolyFlags);
 	}
 
 	for (const MeshFace& face : mesh->SpecialFaces)
 	{
+		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+		float uscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Width : 256) / 256.0f;
+		float vscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Height : 256) / 256.0f;
+
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
 			int vertexIndex = wedge.Vertex + frameSpecialFaceVertexOffset;
 
 			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
-			vertices[i].UV = { (float)wedge.U, (float)wedge.V };
+			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
 			vertices[i].Light = color;
 		}
-
-		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
 		FTextureInfo texinfo;
 		texinfo.Texture = mesh->Textures[material.TextureIndex];
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
 
-		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, material.PolyFlags);
+		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, material.PolyFlags);
 	}
 }
 
@@ -1263,7 +1267,7 @@ void Engine::LoadMap(const std::string& packageName)
 
 	if (LevelInfo->Properties.HasScalar("Song"))
 	{
-		auto music = UObject::Cast<UMusic>(package->GetUObject(LevelInfo->Properties.GetScalar("Song").ValueObject));
+		auto music = UObject::Cast<UMusic>(LevelInfo->Properties.GetUObject("Song"));
 		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
 	}
 }

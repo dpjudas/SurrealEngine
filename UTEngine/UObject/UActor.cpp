@@ -3,6 +3,7 @@
 #include "UActor.h"
 #include "UTexture.h"
 #include "UMesh.h"
+#include "UClass.h"
 
 UActor::UActor(ObjectStream* stream) : UObject(stream)
 {
@@ -12,7 +13,10 @@ UActor::UActor(ObjectStream* stream) : UObject(stream)
 	if (Properties.HasScalar("LightSaturation")) LightSaturation = Properties.GetScalar("LightSaturation").ValueByte;
 	if (Properties.HasScalar("LightRadius")) LightRadius = Properties.GetScalar("LightRadius").ValueByte;
 	if (Properties.HasScalar("bCorona")) bCorona = Properties.GetScalar("bCorona").ValueBool;
-	if (Properties.HasScalar("Skin")) Skin = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("Skin").ValueObject));
-	if (Properties.HasScalar("Texture")) Skin = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("Texture").ValueObject));
-	if (Properties.HasScalar("Mesh")) Mesh = Cast<UMesh>(stream->GetUObject(Properties.GetScalar("Mesh").ValueObject));
+	if (Properties.HasScalar("Skin")) Skin = Cast<UTexture>(Properties.GetUObject("Skin"));
+	if (Properties.HasScalar("Texture")) Skin = Cast<UTexture>(Properties.GetUObject("Texture"));
+	if (Properties.HasScalar("Mesh"))
+		Mesh = Cast<UMesh>(Properties.GetUObject("Mesh"));
+	else if (Base->Properties.HasScalar("Mesh"))
+		Mesh = Cast<UMesh>(Base->Properties.GetUObject("Mesh"));
 }

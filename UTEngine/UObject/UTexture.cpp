@@ -50,9 +50,9 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 		}
 	}
 
-	if (Properties.HasScalar("Palette")) Palette = Cast<UPalette>(stream->GetUObject(Properties.GetScalar("Palette").ValueObject));
-	if (Properties.HasScalar("DetailTexture")) DetailTexture = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("DetailTexture").ValueObject));
-	if (Properties.HasScalar("MacroTexture")) MacroTexture = Cast<UTexture>(stream->GetUObject(Properties.GetScalar("MacroTexture").ValueObject));
+	if (Properties.HasScalar("Palette")) Palette = Cast<UPalette>(Properties.GetUObject("Palette"));
+	if (Properties.HasScalar("DetailTexture")) DetailTexture = Cast<UTexture>(Properties.GetUObject("DetailTexture"));
+	if (Properties.HasScalar("MacroTexture")) MacroTexture = Cast<UTexture>(Properties.GetUObject("MacroTexture"));
 	if (Properties.HasScalar("DrawScale")) DrawScale = Properties.GetScalar("DrawScale").ValueFloat;
 }
 

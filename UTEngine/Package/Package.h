@@ -22,7 +22,7 @@ public:
 	UObject* GetUObject(int objref);
 	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
-	std::string GetName(int index);
+	const std::string& GetName(int index) const;
 	int GetVersion() const { return Version; }
 
 private:
@@ -32,7 +32,6 @@ private:
 	void LoadExportObject(int index);
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
-	int FindNameIndex(std::string name);
 	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
 	template<typename T>
@@ -59,11 +58,30 @@ private:
 		NativeClasses[GetNameKey(name)] = [](Package* package, int index, const std::string& name, UClass* base) { package->NewObject<T>(index, name, base); };
 	}
 
+	static bool CompareNames(const std::string& name1, const std::string& name2)
+	{
+		if (name1.length() != name2.length())
+			return false;
+
+		size_t size = name1.length();
+		for (size_t i = 0; i < size; i++)
+		{
+			if (ToLower(name1[i]) != ToLower(name2[i]))
+				return false;
+		}
+		return true;
+	}
+
+	static char ToLower(char c)
+	{
+		return (c >= 'A' && c <= 'Z') ? c + 'a' - 'A' : c;
+	}
+
 	static std::string GetNameKey(std::string name)
 	{
 		for (char& c : name)
 		{
-			if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+			c = ToLower(c);
 		}
 		return name;
 	}

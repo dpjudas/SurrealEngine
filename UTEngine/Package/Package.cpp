@@ -71,11 +71,20 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 			int objref = FindObjectReference("Class", name);
 			if (objref == 0)
 			{
+				if (NameHash.find(GetNameKey(name)) == NameHash.end())
+				{
+					NameTableEntry nameentry;
+					nameentry.Flags = 0;
+					nameentry.Name = name;
+					NameTable.push_back(nameentry);
+					NameHash[GetNameKey(name)] = (int)NameTable.size() - 1;
+				}
+
 				ExportTableEntry entry;
 				entry.ObjClass = 0;
 				entry.ObjBase = 0;
 				entry.ObjPackage = 0;
-				entry.ObjName = FindNameIndex(name);
+				entry.ObjName = NameHash[GetNameKey(name)];
 				entry.ObjFlags = ObjectFlags::Native;
 				entry.ObjSize = 0;
 				entry.ObjOffset = 0;
@@ -100,7 +109,6 @@ Package::~Package()
 	}
 }
 
-#if 1
 void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];
@@ -133,81 +141,13 @@ void Package::LoadExportObject(int index)
 	}
 
 	if (!createfunc)
+		LoadExportObject(index);
+
+	if (!createfunc)
 		throw std::runtime_error("Could not find the object class for " + objname);
 
 	createfunc(this, index, objname, objbase);
 }
-#else
-void Package::LoadExportObject(int index)
-{
-	const ExportTableEntry* entry = &ExportTable[index];
-
-	if (entry->ObjClass == 0)
-	{
-		(NativeClasses.find(GetNameKey("Class"))->second)(this, index, "Class");
-		return;
-	}
-
-	int clsobjref = entry->ObjClass;
-	Package* clspackage = this;
-
-	std::string firstclassname;
-
-	while (true)
-	{
-		// If the class is defined in a different package, find the export entry in that package
-		if (clsobjref < 0)
-		{
-			ImportTableEntry* importentry = clspackage->GetImportEntry(clsobjref);
-			std::string clsname = clspackage->GetName(importentry->ObjName);
-			if (firstclassname.empty()) firstclassname = clsname;
-			auto it = NativeClasses.find(GetNameKey(clsname));
-			if (it != NativeClasses.end())
-			{
-				(it->second)(this, index, firstclassname);
-				return;
-			}
-
-			if (importentry->ObjPackage > 0)
-			{
-				ExportTableEntry* pkgentry = clspackage->GetExportEntry(importentry->ObjPackage);
-				clspackage = Packages->GetPackage(clspackage->GetName(pkgentry->ObjName));
-				clsobjref = clspackage->FindObjectReference("Class", clsname);
-			}
-			else if (importentry->ObjPackage < 0)
-			{
-				ImportTableEntry* pkgentry = clspackage->GetImportEntry(importentry->ObjPackage);
-
-				while (pkgentry->ObjPackage != 0) // Groups
-					pkgentry = clspackage->GetImportEntry(pkgentry->ObjPackage);
-
-				clspackage = Packages->GetPackage(clspackage->GetName(pkgentry->ObjName));
-				clsobjref = clspackage->FindObjectReference("Class", clsname);
-			}
-			else
-			{
-				throw std::runtime_error("ObjPackage is null");
-			}
-		}
-
-		ExportTableEntry* clsentry = clspackage->GetExportEntry(clsobjref);
-		std::string clsname = clspackage->GetName(clsentry->ObjName);
-		if (firstclassname.empty()) firstclassname = clsname;
-
-		auto it = NativeClasses.find(GetNameKey(clsname));
-		if (it != NativeClasses.end())
-		{
-			(it->second)(this, index, firstclassname);
-			return;
-		}
-
-		if (clsentry->ObjBase == 0)
-			throw std::runtime_error("Could not find the object base class");
-
-		clsobjref = clsentry->ObjBase;
-	}
-}
-#endif
 
 UObject* Package::GetUObject(int objref)
 {
@@ -250,18 +190,11 @@ UObject* Package::GetUObject(const std::string& className, const std::string& ob
 
 int Package::FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName)
 {
-	int classIndex = FindNameIndex(className);
-	int objectIndex = FindNameIndex(objectName);
-	int groupIndex = FindNameIndex(groupName);
-
-	if ((className != "Class" && classIndex == -1) || objectIndex == -1 || (!groupName.empty() && groupIndex == -1))
-		return 0;
-
 	size_t count = ExportTable.size();
 	for (size_t index = 0; index < count; index++)
 	{
 		ExportTableEntry& entry = ExportTable[index];
-		if (entry.ObjName != objectIndex)
+		if (!CompareNames(GetName(entry.ObjName), objectName))
 			continue;
 
 		if (!groupName.empty())
@@ -269,13 +202,13 @@ int Package::FindObjectReference(const std::string& className, const std::string
 			if (entry.ObjPackage > 0)
 			{
 				auto package = GetExportEntry(entry.ObjPackage);
-				if (package && groupIndex != package->ObjName)
+				if (package && !CompareNames(groupName, GetName(package->ObjName)))
 					continue;
 			}
 			else if (entry.ObjPackage < 0)
 			{
 				auto package = GetImportEntry(entry.ObjPackage);
-				if (package && groupIndex != package->ObjName)
+				if (package && !CompareNames(groupName, GetName(package->ObjName)))
 					continue;
 			}
 			else
@@ -286,19 +219,19 @@ int Package::FindObjectReference(const std::string& className, const std::string
 
 		if (entry.ObjClass == 0)
 		{
-			if (className == "Class")
+			if (CompareNames(className, "Class"))
 				return (int)index + 1;
 		}
 		else if (entry.ObjClass < 0)
 		{
 			auto classImport = GetImportEntry(entry.ObjClass);
-			if (classImport && classIndex == classImport->ObjName)
+			if (classImport && CompareNames(className, GetName(classImport->ObjName)))
 				return (int)index + 1;
 		}
 		else
 		{
 			auto classExport = &ExportTable[entry.ObjClass + 1];
-			if (classExport && classIndex == classExport->ObjName)
+			if (classExport && CompareNames(className, GetName(classExport->ObjName)))
 				return (int)index + 1;
 		}
 	}
@@ -306,16 +239,7 @@ int Package::FindObjectReference(const std::string& className, const std::string
 	return 0;
 }
 
-int Package::FindNameIndex(std::string name)
-{
-	auto it = NameHash.find(GetNameKey(name));
-	if (it != NameHash.end())
-		return it->second;
-	else
-		return -1;
-}
-
-std::string Package::GetName(int index)
+const std::string& Package::GetName(int index) const
 {
 	if (index >= 0 && (size_t)index < NameTable.size())
 		return NameTable[index].Name;

@@ -22,7 +22,7 @@ public:
 	void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) override;
 	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
-	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
+	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
 	void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
 	void ClearZ(FSceneNode* Frame) override;
 	void ReadPixels(FColor* Pixels) override;

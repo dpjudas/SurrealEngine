@@ -354,7 +354,7 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (renderer->SceneVertexPos + NumPts > renderer->MaxSceneVertices)
 	{
@@ -365,7 +365,7 @@ void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 
 	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass->getPipeline(PolyFlags));
 
-	VulkanTexture* tex = renderer->GetTexture(&Info, PolyFlags);
+	VulkanTexture* tex = renderer->GetTexture(Info, PolyFlags);
 	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ScenePipelineLayout.get(), 0, renderer->GetTextureDescriptorSet(PolyFlags, tex));
 
 	float UMult = tex ? tex->UMult : 0.0f;

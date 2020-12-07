@@ -131,6 +131,11 @@ public:
 		return base;
 	}
 
+	Package* GetPackage()
+	{
+		return package;
+	}
+
 private:
 	Package* package = nullptr;
 	std::unique_ptr<uint64_t[]> buffer;

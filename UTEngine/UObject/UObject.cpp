@@ -103,7 +103,8 @@ void UObject::ReadProperties(ObjectStream* stream)
 			prop.Scalar.ValueFloat = stream->ReadFloat();
 			break;
 		case UPT_Object:
-			prop.Scalar.ValueObject = stream->ReadIndex();
+			prop.Scalar.ValueObject.ObjReference = stream->ReadIndex();
+			prop.Scalar.ValueObject.Package = stream->GetPackage();
 			break;
 		case UPT_Name:
 			prop.Scalar.ValueString = stream->ReadName();

@@ -3,6 +3,7 @@
 #include "Package/ObjectStream.h"
 #include "Math/vec.h"
 
+class UObject;
 class UClass;
 
 enum UnrealPropertyType
@@ -69,7 +70,11 @@ public:
 		int32_t ValueInt;
 		bool ValueBool;
 		float ValueFloat;
-		int32_t ValueObject;
+		struct
+		{
+			Package* Package;
+			int ObjReference;
+		} ValueObject;
 		vec3 ValueVector;
 		Rotator ValueRotator;
 	};
@@ -107,6 +112,12 @@ public:
 				return prop.Scalar;
 		}
 		throw std::runtime_error("Property '" + name + "' not found");
+	}
+
+	UObject* GetUObject(const std::string& name)
+	{
+		const auto& scalar = GetScalar(name);
+		return scalar.ValueObject.Package->GetUObject(scalar.ValueObject.ObjReference);
 	}
 
 private:
