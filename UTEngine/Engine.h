@@ -83,11 +83,13 @@ private:
 	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	ivec2 GetFontTextSize(UFont* font, const std::string& text);
 
-	void DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale);
+	void DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, float drawscale);
 	void DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color);
 	void DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, vec3 color);
 	void DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, vec3 color, int vertexOffset);
 	void DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color);
+
+	void DrawSprite(FSceneNode* frame, UTexture* texture, vec3 location, float yaw, float pitch, float roll, float drawscale);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);

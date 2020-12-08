@@ -221,10 +221,18 @@ void Engine::DrawScene()
 
 	for (UActor* actor : level->Actors)
 	{
-		if (actor && actor->Mesh)
+		if (actor)
 		{
-			if (!TraceAnyHit(Camera.Location, actor->Location))
-				DrawMesh(&frame, actor->Mesh, actor->Location, 0.0f, 0.0f, 0.0f, { 1.0f });
+			if (/*actor->DrawType == ActorDrawType::Mesh &&*/ actor->Mesh)
+			{
+				if (!TraceAnyHit(Camera.Location, actor->Location))
+					DrawMesh(&frame, actor->Mesh, actor->Location, 0.0f, 0.0f, 0.0f, 1.0f);
+			}
+			else if (/*actor->DrawType == ActorDrawType::Sprite &&*/ actor->Texture)
+			{
+				if (!TraceAnyHit(Camera.Location, actor->Location))
+					DrawSprite(&frame, actor->Texture, actor->Location, 0.0f, 0.0f, 0.0f, 1.0f);
+			}
 		}
 	}
 
@@ -791,7 +799,43 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
-void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
+void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, vec3 location, float yaw, float pitch, float roll, float drawscale)
+{
+	auto device = viewport->GetRenderDevice();
+
+	FTextureInfo texinfo;
+	texinfo.Texture = texture;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+
+	float texwidth = (float)texture->Mipmaps.front().Width;
+	float texheight = (float)texture->Mipmaps.front().Height;
+
+	drawscale *= 0.5f;
+
+	vec3 xaxis = { texwidth * drawscale, 0.0f, 0.0f };
+	vec3 yaxis = { 0.0f, 0.0f, texheight * drawscale };
+
+	quaternion viewrotation = inverse(normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(-Camera.Yaw), EulerOrder::yxz)));
+	xaxis = viewrotation * xaxis;
+	yaxis = viewrotation * yaxis;
+
+	GouraudVertex vertices[4];
+	vertices[0].Point = location - xaxis - yaxis;
+	vertices[0].UV = { 0.0f, 0.0f };
+	vertices[0].Light = { 1.0f };
+	vertices[1].Point = location + xaxis - yaxis;
+	vertices[1].UV = { texwidth, 0.0f };
+	vertices[1].Light = { 1.0f };
+	vertices[2].Point = location + xaxis + yaxis;
+	vertices[2].UV = { texwidth, texheight };
+	vertices[2].Light = { 1.0f };
+	vertices[3].Point = location - xaxis + yaxis;
+	vertices[3].UV = { 0.0f, texheight };
+	vertices[3].Light = { 1.0f };
+	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, PF_Translucent); // To do: use the Style property for the polyflags
+}
+
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, float drawscale)
 {
 	vec3 color = { 3 / 255.0f };
 
@@ -817,7 +861,7 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, 
 
 	mat4 rotate = mat4::rotate(radians(roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
 	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * scale) * mat4::translate(vec3(0.0f) - mesh->Origin);
+	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * drawscale) * mat4::translate(vec3(0.0f) - mesh->Origin);
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
 		DrawSkeletalMesh(frame, static_cast<USkeletalMesh*>(mesh), ObjectToWorld, color);

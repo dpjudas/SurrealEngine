@@ -14,7 +14,7 @@ UActor::UActor(ObjectStream* stream) : UObject(stream)
 	if (HasScalar("LightRadius")) LightRadius = GetScalar("LightRadius").ValueByte;
 	if (HasScalar("bCorona")) bCorona = GetScalar("bCorona").ValueBool;
 	if (HasScalar("Skin")) Skin = Cast<UTexture>(GetUObject("Skin"));
-	if (HasScalar("Texture")) Skin = Cast<UTexture>(GetUObject("Texture"));
+	if (HasScalar("Texture")) Texture = Cast<UTexture>(GetUObject("Texture"));
 	if (HasScalar("Mesh")) Mesh = Cast<UMesh>(GetUObject("Mesh"));
 	if (HasScalar("DrawType")) DrawType = (ActorDrawType)GetScalar("DrawType").ValueByte;
 }
