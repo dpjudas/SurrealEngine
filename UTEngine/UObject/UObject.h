@@ -133,6 +133,10 @@ public:
 	UObject(ObjectStream* stream);
 	virtual ~UObject() = default;
 
+	bool HasScalar(const std::string& name) const;
+	const UnrealPropertyValue& GetScalar(const std::string& name);
+	UObject* GetUObject(const std::string& name);
+
 	std::string Name;
 	UClass* Base = nullptr;
 	UnrealProperties Properties;

@@ -242,8 +242,8 @@ void Engine::DrawScene()
 
 	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
 
-	if (LevelInfo->Properties.HasScalar("Title"))
-		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920 / 2, 1080 - 100, LevelInfo->Properties.GetScalar("Title").ValueString, TextAlignment::center);
+	if (LevelInfo->HasScalar("Title"))
+		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920 / 2, 1080 - 100, LevelInfo->GetScalar("Title").ValueString, TextAlignment::center);
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -1241,15 +1241,15 @@ void Engine::LoadMap(const std::string& packageName)
 		{
 			if (actor->Base->Name == "PlayerStart")
 			{
-				if (actor->Properties.HasScalar("Location"))
+				if (actor->HasScalar("Location"))
 				{
-					auto prop = actor->Properties.GetScalar("Location");
+					auto prop = actor->GetScalar("Location");
 					Camera.Location = prop.ValueVector;
 					Camera.Location.z += 70;
 				}
-				if (actor->Properties.HasScalar("Rotation"))
+				if (actor->HasScalar("Rotation"))
 				{
-					auto prop = actor->Properties.GetScalar("Rotation");
+					auto prop = actor->GetScalar("Rotation");
 					Camera.Yaw = prop.ValueRotator.Yaw - 90.0f;
 					Camera.Pitch = prop.ValueRotator.Pitch;
 					Camera.Roll = prop.ValueRotator.Roll;
@@ -1257,18 +1257,18 @@ void Engine::LoadMap(const std::string& packageName)
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")
 			{
-				if (actor->Properties.HasScalar("Location"))
+				if (actor->HasScalar("Location"))
 				{
-					SkyLocation = actor->Properties.GetScalar("Location").ValueVector;
+					SkyLocation = actor->GetScalar("Location").ValueVector;
 				}
 				HasSkyZoneInfo = true;
 			}
 		}
 	}
 
-	if (LevelInfo->Properties.HasScalar("Song"))
+	if (LevelInfo->HasScalar("Song"))
 	{
-		auto music = UObject::Cast<UMusic>(LevelInfo->Properties.GetUObject("Song"));
+		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
 		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
 	}
 }

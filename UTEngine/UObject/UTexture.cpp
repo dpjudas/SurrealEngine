@@ -4,7 +4,7 @@
 
 UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 {
-	if (Properties.HasScalar("Format")) Format = (TextureFormat)Properties.GetScalar("Format").ValueByte;
+	if (HasScalar("Format")) Format = (TextureFormat)GetScalar("Format").ValueByte;
 
 	int mipsCount = stream->ReadUInt8();
 	Mipmaps.resize(mipsCount);
@@ -24,12 +24,12 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 	}
 
 	bool bHasComp = false;
-	if (Properties.HasScalar("HasComp")) bHasComp = Properties.GetScalar("HasComp").ValueBool;
+	if (HasScalar("HasComp")) bHasComp = GetScalar("HasComp").ValueBool;
 
 	if (bHasComp)
 	{
 		TextureFormat compformat = TextureFormat::P8;
-		if (Properties.HasScalar("CompFormat")) Format = (TextureFormat)Properties.GetScalar("CompFormat").ValueByte;
+		if (HasScalar("CompFormat")) Format = (TextureFormat)GetScalar("CompFormat").ValueByte;
 
 		Format = compformat;
 
@@ -50,10 +50,10 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 		}
 	}
 
-	if (Properties.HasScalar("Palette")) Palette = Cast<UPalette>(Properties.GetUObject("Palette"));
-	if (Properties.HasScalar("DetailTexture")) DetailTexture = Cast<UTexture>(Properties.GetUObject("DetailTexture"));
-	if (Properties.HasScalar("MacroTexture")) MacroTexture = Cast<UTexture>(Properties.GetUObject("MacroTexture"));
-	if (Properties.HasScalar("DrawScale")) DrawScale = Properties.GetScalar("DrawScale").ValueFloat;
+	if (HasScalar("Palette")) Palette = Cast<UPalette>(GetUObject("Palette"));
+	if (HasScalar("DetailTexture")) DetailTexture = Cast<UTexture>(GetUObject("DetailTexture"));
+	if (HasScalar("MacroTexture")) MacroTexture = Cast<UTexture>(GetUObject("MacroTexture"));
+	if (HasScalar("DrawScale")) DrawScale = GetScalar("DrawScale").ValueFloat;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -65,8 +65,8 @@ UFractalTexture::UFractalTexture(ObjectStream* stream) : UTexture(stream)
 
 	int width = 128;
 	int height = 128;
-	if (Properties.HasScalar("UClamp")) width = Properties.GetScalar("UClamp").ValueInt;
-	if (Properties.HasScalar("VClamp")) height = Properties.GetScalar("VClamp").ValueInt;
+	if (HasScalar("UClamp")) width = GetScalar("UClamp").ValueInt;
+	if (HasScalar("VClamp")) height = GetScalar("VClamp").ValueInt;
 
 	UnrealMipmap& mipmap = Mipmaps.front();
 	mipmap.Width = width;

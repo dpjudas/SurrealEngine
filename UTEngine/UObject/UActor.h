@@ -5,6 +5,18 @@
 class UTexture;
 class UMesh;
 
+enum class ActorDrawType
+{
+	None,
+	Sprite,
+	Mesh,
+	Brush,
+	RopeSprite,
+	VerticalSprite,
+	Terraform,
+	SpriteAnimOnce
+};
+
 class UActor : public UObject
 {
 public:
@@ -17,6 +29,7 @@ public:
 	int LightRadius = 64;
 	bool bCorona = false;
 
+	ActorDrawType DrawType = ActorDrawType::None;
 	UTexture* Skin = nullptr;
 	UTexture* Texture = nullptr;
 	UMesh* Mesh = nullptr;

@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "UObject.h"
+#include "UClass.h"
 
 UObject::UObject(std::string name, UClass* base) : Name(name), Base(base)
 {
@@ -24,6 +25,27 @@ UObject::UObject(ObjectStream* stream) : Name(stream->GetObjectName()), Base(str
 	{
 		ReadProperties(stream);
 	}
+}
+
+bool UObject::HasScalar(const std::string& name) const
+{
+	if (Properties.HasScalar(name)) return true;
+	else if (Base) return Base->HasScalar(name);
+	else return false;
+}
+
+const UnrealPropertyValue& UObject::GetScalar(const std::string& name)
+{
+	if (Properties.HasScalar(name)) return Properties.GetScalar(name);
+	else if (Base) return Base->GetScalar(name);
+	else throw std::runtime_error("Property '" + name + "' not found");
+}
+
+UObject* UObject::GetUObject(const std::string& name)
+{
+	if (Properties.HasScalar(name)) return Properties.GetUObject(name);
+	else if (Base) return Base->GetUObject(name);
+	else throw std::runtime_error("Property '" + name + "' not found");
 }
 
 void UObject::ReadProperties(ObjectStream* stream)
