@@ -221,10 +221,10 @@ void Engine::DrawScene()
 
 	for (UActor* actor : level->Actors)
 	{
-		if (actor && actor->Mesh && dynamic_cast<ULodMesh*>(actor->Mesh))
+		if (actor && actor->Mesh)
 		{
 			if (!TraceAnyHit(Camera.Location, actor->Location))
-				DrawMesh(&frame, static_cast<ULodMesh*>(actor->Mesh), actor->Location, 0.0f, 0.0f, 0.0f, { 1.0f });
+				DrawMesh(&frame, actor->Mesh, actor->Location, 0.0f, 0.0f, 0.0f, { 1.0f });
 		}
 	}
 
@@ -791,10 +791,8 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
-void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, const vec3& scale)
 {
-	auto device = viewport->GetRenderDevice();
-
 	vec3 color = { 3 / 255.0f };
 
 	for (UActor* light : Lights)
@@ -818,58 +816,61 @@ void Engine::DrawMesh(FSceneNode* frame, ULodMesh* mesh, vec3 location, float ya
 	}
 
 	mat4 rotate = mat4::rotate(radians(roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
-	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(mesh->Scale * scale) * mat4::translate(vec3(0.0f) - mesh->Origin);
+	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * scale) * mat4::translate(vec3(0.0f) - mesh->Origin);
 
+	if (dynamic_cast<USkeletalMesh*>(mesh))
+		DrawSkeletalMesh(frame, static_cast<USkeletalMesh*>(mesh), ObjectToWorld, color);
+	else if (dynamic_cast<ULodMesh*>(mesh))
+		DrawLodMesh(frame, static_cast<ULodMesh*>(mesh), ObjectToWorld, color);
+	else
+		DrawMesh(frame, mesh, ObjectToWorld, color);
+}
+
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+{
+}
+
+void Engine::DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+{
 	int animFrame = mesh->AnimSeqs.front().StartFrame;
-	int frameVertexOffset = mesh->SpecialVerts + animFrame * mesh->FrameVerts;
-	int frameSpecialFaceVertexOffset = animFrame * mesh->FrameVerts;
+	DrawLodMeshFace(frame, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
+	DrawLodMeshFace(frame, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
+}
+
+void Engine::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, vec3 color, int vertexOffset)
+{
+	auto device = viewport->GetRenderDevice();
 
 	GouraudVertex vertices[3];
-	for (const MeshFace& face : mesh->Faces)
+	for (const MeshFace& face : faces)
 	{
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
-		float uscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Width : 256) / 256.0f;
-		float vscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Height : 256) / 256.0f;
+
+		FTextureInfo texinfo;
+		texinfo.Texture = mesh->Textures[material.TextureIndex];
+		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+
+		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
+		float vscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
 
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
-			int vertexIndex = wedge.Vertex + frameVertexOffset;
+			int vertexIndex = wedge.Vertex + vertexOffset;
 
 			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
 			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
 			vertices[i].Light = color;
 		}
 
-		FTextureInfo texinfo;
-		texinfo.Texture = mesh->Textures[material.TextureIndex];
-		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
-
 		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, material.PolyFlags);
 	}
+}
 
-	for (const MeshFace& face : mesh->SpecialFaces)
-	{
-		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
-		float uscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Width : 256) / 256.0f;
-		float vscale = (mesh->Textures[material.TextureIndex] ? mesh->Textures[material.TextureIndex]->Mipmaps.front().Height : 256) / 256.0f;
-
-		for (int i = 0; i < 3; i++)
-		{
-			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
-			int vertexIndex = wedge.Vertex + frameSpecialFaceVertexOffset;
-
-			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
-			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
-			vertices[i].Light = color;
-		}
-
-		FTextureInfo texinfo;
-		texinfo.Texture = mesh->Textures[material.TextureIndex];
-		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
-
-		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, material.PolyFlags);
-	}
+void Engine::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+{
+	DrawLodMesh(frame, mesh, ObjectToWorld, color);
 }
 
 void Engine::DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
@@ -1249,9 +1250,9 @@ void Engine::LoadMap(const std::string& packageName)
 				if (actor->Properties.HasScalar("Rotation"))
 				{
 					auto prop = actor->Properties.GetScalar("Rotation");
-					Camera.Yaw = prop.ValueRotator.Yaw / 65536.0f * 360.0f - 90.0f;
-					Camera.Pitch = prop.ValueRotator.Pitch / 65536.0f * 360.0f;
-					Camera.Roll = prop.ValueRotator.Roll / 65536.0f * 360.0f;
+					Camera.Yaw = prop.ValueRotator.Yaw - 90.0f;
+					Camera.Pitch = prop.ValueRotator.Pitch;
+					Camera.Roll = prop.ValueRotator.Roll;
 				}
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")

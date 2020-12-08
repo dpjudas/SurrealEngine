@@ -58,7 +58,7 @@ enum UnrealSheerAxis
 class Rotator
 {
 public:
-	int Pitch, Yaw, Roll;
+	float Pitch, Yaw, Roll;
 };
 
 class UnrealPropertyValue

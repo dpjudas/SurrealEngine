@@ -158,9 +158,9 @@ UMesh::UMesh(ObjectStream* stream) : UPrimitive(stream)
 	Origin.y = stream->ReadFloat();
 	Origin.z = stream->ReadFloat();
 
-	RotOrigin.Pitch = stream->ReadInt32();
-	RotOrigin.Yaw = stream->ReadInt32();
-	RotOrigin.Roll = stream->ReadInt32();
+	RotOrigin.Pitch = stream->ReadInt32() / 65536.0f * 360.0f;
+	RotOrigin.Yaw = stream->ReadInt32() / 65536.0f * 360.0f;
+	RotOrigin.Roll = stream->ReadInt32() / 65536.0f * 360.0f;
 
 	CurPoly = stream->ReadUInt32();
 	CurVertex = stream->ReadUInt32();

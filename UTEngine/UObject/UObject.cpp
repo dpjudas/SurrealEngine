@@ -182,9 +182,9 @@ void UObject::ReadProperties(ObjectStream* stream)
 			}
 			else if (structName == "Rotator")
 			{
-				prop.Scalar.ValueRotator.Pitch = stream->ReadInt32();
-				prop.Scalar.ValueRotator.Yaw = stream->ReadInt32();
-				prop.Scalar.ValueRotator.Roll = stream->ReadInt32();
+				prop.Scalar.ValueRotator.Pitch = stream->ReadInt32() / 65536.0f * 360.0f;
+				prop.Scalar.ValueRotator.Yaw = stream->ReadInt32() / 65536.0f * 360.0f;
+				prop.Scalar.ValueRotator.Roll = stream->ReadInt32() / 65536.0f * 360.0f;
 			}
 			else if (structName == "Box")
 			{
@@ -255,9 +255,9 @@ void UObject::ReadProperties(ObjectStream* stream)
 			prop.Scalar.ValueVector.z = stream->ReadFloat();
 			break;
 		case UPT_Rotator:
-			prop.Scalar.ValueRotator.Pitch = stream->ReadInt32();
-			prop.Scalar.ValueRotator.Yaw = stream->ReadInt32();
-			prop.Scalar.ValueRotator.Roll = stream->ReadInt32();
+			prop.Scalar.ValueRotator.Pitch = stream->ReadInt32() / 65536.0f * 360.0f;
+			prop.Scalar.ValueRotator.Yaw = stream->ReadInt32() / 65536.0f * 360.0f;
+			prop.Scalar.ValueRotator.Roll = stream->ReadInt32() / 65536.0f * 360.0f;
 			break;
 		case UPT_Str:
 			prop.Scalar.ValueString = stream->ReadString();
