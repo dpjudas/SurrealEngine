@@ -85,6 +85,22 @@ void Engine::Tick(float timeElapsed)
 {
 	viewport->Tick();
 
+	for (UActor* actor : level->Actors)
+	{
+		if (actor)
+		{
+			actor->Rotation.Yaw += actor->RotationRate.Yaw * timeElapsed;
+			actor->Rotation.Pitch += actor->RotationRate.Pitch * timeElapsed;
+			actor->Rotation.Roll += actor->RotationRate.Roll * timeElapsed;
+			if (actor->Rotation.Yaw < 0.0f) actor->Rotation.Yaw += 360.0f;
+			if (actor->Rotation.Yaw >= 360.0f) actor->Rotation.Yaw -= 360.0f;
+			if (actor->Rotation.Pitch < 0.0f) actor->Rotation.Pitch += 360.0f;
+			if (actor->Rotation.Pitch >= 360.0f) actor->Rotation.Pitch -= 360.0f;
+			if (actor->Rotation.Roll < 0.0f) actor->Rotation.Roll += 360.0f;
+			if (actor->Rotation.Roll >= 360.0f) actor->Rotation.Roll -= 360.0f;
+		}
+	}
+
 	AutoUVTime += timeElapsed;
 
 	quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(-Camera.Yaw), EulerOrder::yxz));
@@ -193,7 +209,7 @@ void Engine::DrawScene()
 
 	device->BeginScenePass();
 
-	if (HasSkyZoneInfo)
+	if (SkyZoneInfo)
 	{
 		FSceneNode frame = CreateSkyFrame();
 		device->SetSceneNode(&frame);
@@ -225,17 +241,24 @@ void Engine::DrawScene()
 		{
 			if (/*actor->DrawType == ActorDrawType::Mesh &&*/ actor->Mesh)
 			{
-				if (!TraceAnyHit(Camera.Location, actor->Location))
+				BBox bbox = actor->Mesh->BoundingBox;
+				bbox.min += actor->Location;
+				bbox.max += actor->Location;
+				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location)))
 					DrawMesh(&frame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 			else if (/*actor->DrawType == ActorDrawType::Sprite &&*/ actor->Texture)
 			{
-				if (!TraceAnyHit(Camera.Location, actor->Location))
+				if ((uint64_t)1 << FindZoneAt(actor->Location))
 					DrawSprite(&frame, actor->Texture, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 			else if (/*actor->DrawType == ActorDrawType::Brush &&*/ actor->Brush)
 			{
-				DrawBrush(&frame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
+				BBox bbox = actor->Brush->BoundingBox;
+				bbox.min += actor->Location;
+				bbox.max += actor->Location;
+				if (clip.test(bbox) != IntersectionTestResult::outside && (uint64_t)1 << FindZoneAt(actor->Location))
+					DrawBrush(&frame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 		}
 	}
@@ -562,7 +585,7 @@ FSceneNode Engine::CreateSceneFrame()
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
 	frame.ViewLocation = Camera.Location;
-	frame.FovAngle = 90.0f;
+	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
 	float RFX2 = 2.0f * RProjZ / frame.FX;
@@ -574,7 +597,8 @@ FSceneNode Engine::CreateSceneFrame()
 FSceneNode Engine::CreateSkyFrame()
 {
 	mat4 rotate = mat4::rotate(radians(Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - SkyLocation);
+	mat4 skyrotate = mat4::rotate(radians(SkyZoneInfo->Rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - SkyZoneInfo->Location);
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -585,9 +609,9 @@ FSceneNode Engine::CreateSkyFrame()
 	frame.FY = (float)viewport->SizeY;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.Modelview = CoordsMatrix() * rotate * translate;
-	frame.ViewLocation = SkyLocation;
-	frame.FovAngle = 90.0f;
+	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
+	frame.ViewLocation = SkyZoneInfo->Location;
+	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
 	float RFX2 = 2.0f * RProjZ / frame.FX;
@@ -887,7 +911,7 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, cons
 		}
 	}
 
-	mat4 rotate = mat4::rotate(radians(rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(180.0f - rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.Yaw), 0.0f, 0.0f, -1.0f);
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * drawscale) * mat4::translate(vec3(0.0f) - mesh->Origin);
 
@@ -1307,7 +1331,7 @@ void Engine::LoadMap(const std::string& packageName)
 	for (UTexture* texture : textureset)
 		Textures.push_back(texture);
 
-	for (UObject* actor : level->Actors)
+	for (UActor* actor : level->Actors)
 	{
 		if (actor && actor->Base)
 		{
@@ -1329,11 +1353,7 @@ void Engine::LoadMap(const std::string& packageName)
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")
 			{
-				if (actor->HasScalar("Location"))
-				{
-					SkyLocation = actor->GetScalar("Location").ValueVector;
-				}
-				HasSkyZoneInfo = true;
+				SkyZoneInfo = actor;
 			}
 		}
 	}

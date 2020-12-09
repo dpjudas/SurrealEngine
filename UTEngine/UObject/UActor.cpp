@@ -10,6 +10,7 @@ UActor::UActor(ObjectStream* stream) : UObject(stream)
 {
 	if (HasScalar("Location")) Location = GetScalar("Location").ValueVector;
 	if (HasScalar("Rotation")) Rotation = GetScalar("Rotation").ValueRotator;
+	if (HasScalar("RotationRate")) RotationRate = GetScalar("RotationRate").ValueRotator;
 	if (HasScalar("LightBrightness")) LightBrightness = GetScalar("LightBrightness").ValueByte;
 	if (HasScalar("LightHue")) LightHue = GetScalar("LightHue").ValueByte;
 	if (HasScalar("LightSaturation")) LightSaturation = GetScalar("LightSaturation").ValueByte;

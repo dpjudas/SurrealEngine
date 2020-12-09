@@ -149,8 +149,7 @@ private:
 	
 	ActorPos Camera;
 
-	bool HasSkyZoneInfo = false;
-	vec3 SkyLocation = { 0.0f };
+	UActor* SkyZoneInfo = nullptr;
 	float AutoUVTime = 0.0f;
 
 	struct
