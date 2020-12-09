@@ -226,12 +226,16 @@ void Engine::DrawScene()
 			if (/*actor->DrawType == ActorDrawType::Mesh &&*/ actor->Mesh)
 			{
 				if (!TraceAnyHit(Camera.Location, actor->Location))
-					DrawMesh(&frame, actor->Mesh, actor->Location, 0.0f, 0.0f, 0.0f, 1.0f);
+					DrawMesh(&frame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 			else if (/*actor->DrawType == ActorDrawType::Sprite &&*/ actor->Texture)
 			{
 				if (!TraceAnyHit(Camera.Location, actor->Location))
-					DrawSprite(&frame, actor->Texture, actor->Location, 0.0f, 0.0f, 0.0f, 1.0f);
+					DrawSprite(&frame, actor->Texture, actor->Location, actor->Rotation, actor->DrawScale);
+			}
+			else if (/*actor->DrawType == ActorDrawType::Brush &&*/ actor->Brush)
+			{
+				DrawBrush(&frame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 		}
 	}
@@ -691,7 +695,7 @@ void Engine::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlane
 			DrawNodeSurface(frame, *polynode, pass);
 #else
 		if ((((uint64_t)1 << frontzone) & zonemask) || (((uint64_t)1 << backzone) & zonemask))
-			DrawNodeSurface(frame, *polynode, pass);
+			DrawNodeSurface(frame, level->Model, *polynode, pass);
 #endif
 
 		if (polynode->Plane < 0) break;
@@ -704,12 +708,12 @@ void Engine::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlane
 	}
 }
 
-void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
+void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
 
-	BspSurface& surface = level->Model->Surfaces[node.Surf];
+	BspSurface& surface = model->Surfaces[node.Surf];
 
 	if (surface.PolyFlags & (PF_Invisible | PF_FakeBackdrop))
 		return;
@@ -718,9 +722,9 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	if ((pass == 0 && !opaqueSurface) || (pass == 1 && opaqueSurface))
 		return;
 
-	const vec3& UVec = level->Model->Vectors[surface.vTextureU];
-	const vec3& VVec = level->Model->Vectors[surface.vTextureV];
-	const vec3& Base = level->Model->Points[surface.pBase];
+	const vec3& UVec = model->Vectors[surface.vTextureU];
+	const vec3& VVec = model->Vectors[surface.vTextureV];
+	const vec3& Base = model->Points[surface.pBase];
 
 	FTextureInfo texture;
 	if (surface.Material)
@@ -770,7 +774,7 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 		if (surface.PolyFlags & PF_AutoVPan) macrotex.Pan.y += AutoUVTime * 100.0f;
 	}
 
-	BspVert* v = &level->Model->Vertices[node.VertPool];
+	BspVert* v = &model->Vertices[node.VertPool];
 
 	FSurfaceFacet facet;
 	facet.MapCoords.Origin = Base;
@@ -779,11 +783,11 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 
 	for (int j = 0; j < node.NumVertices; j++)
 	{
-		facet.Points.push_back(level->Model->Points[v[j].Vertex]);
+		facet.Points.push_back(model->Points[v[j].Vertex]);
 	}
 
 	FTextureInfo lightmap;
-	if ((surface.PolyFlags & PF_Unlit) == 0)
+	if ((surface.PolyFlags & PF_Unlit) == 0 && model == level->Model)
 		lightmap = GetSurfaceLightmap(surface, facet);
 
 	//FTextureInfo fogmap = GetSurfaceFogmap(surface);
@@ -799,7 +803,7 @@ void Engine::DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass)
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
-void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, vec3 location, float yaw, float pitch, float roll, float drawscale)
+void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale)
 {
 	auto device = viewport->GetRenderDevice();
 
@@ -835,7 +839,31 @@ void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, vec3 location, flo
 	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, PF_Translucent); // To do: use the Style property for the polyflags
 }
 
-void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, float drawscale)
+void Engine::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale)
+{
+	FSceneNode brushframe = *frame;
+
+	mat4 rotate = mat4::rotate(radians(rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
+	brushframe.Modelview = brushframe.Modelview * ObjectToWorld;
+
+	auto device = viewport->GetRenderDevice();
+	device->SetSceneNode(&brushframe);
+
+	for (const BspNode& node : brush->Nodes)
+	{
+		DrawNodeSurface(&brushframe, brush, node, 0);
+	}
+
+	for (const BspNode& node : brush->Nodes)
+	{
+		DrawNodeSurface(&brushframe, brush, node, 1);
+	}
+
+	device->SetSceneNode(frame);
+}
+
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale)
 {
 	vec3 color = { 3 / 255.0f };
 
@@ -859,7 +887,7 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, 
 		}
 	}
 
-	mat4 rotate = mat4::rotate(radians(roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw), 0.0f, 0.0f, -1.0f);
 	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.Yaw), 0.0f, 0.0f, -1.0f);
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * drawscale) * mat4::translate(vec3(0.0f) - mesh->Origin);
 

@@ -6,6 +6,7 @@
 class PackageManager;
 class UObject;
 class ULevel;
+class UModel;
 class Viewport;
 class UTexture;
 class UActor;
@@ -18,6 +19,7 @@ class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
 class AudioPlayer;
+class Rotator;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -78,18 +80,19 @@ private:
 	void DrawScene();
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
-	void DrawNodeSurface(FSceneNode* frame, const BspNode& node, int pass);
+	void DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass);
 	void DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	ivec2 GetFontTextSize(UFont* font, const std::string& text);
 
-	void DrawMesh(FSceneNode* frame, UMesh* mesh, vec3 location, float yaw, float pitch, float roll, float drawscale);
+	void DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale);
 	void DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color);
 	void DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, vec3 color);
 	void DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, vec3 color, int vertexOffset);
 	void DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color);
 
-	void DrawSprite(FSceneNode* frame, UTexture* texture, vec3 location, float yaw, float pitch, float roll, float drawscale);
+	void DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale);
+	void DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);

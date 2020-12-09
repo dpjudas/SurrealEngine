@@ -4,6 +4,7 @@
 
 class UTexture;
 class UMesh;
+class UModel;
 
 enum class ActorDrawType
 {
@@ -23,6 +24,9 @@ public:
 	UActor(ObjectStream* stream);
 
 	vec3 Location = { 0.0f };
+	Rotator Rotation = { 0.0f, 0.0f, 0.0f };
+	float DrawScale = 1.0f;
+
 	int LightBrightness = 64;
 	int LightHue = 0;
 	int LightSaturation = 255;
@@ -35,4 +39,5 @@ public:
 	UTexture* Texture = nullptr;
 	UTexture* Sprite = nullptr;
 	UMesh* Mesh = nullptr;
+	UModel* Brush = nullptr;
 };
