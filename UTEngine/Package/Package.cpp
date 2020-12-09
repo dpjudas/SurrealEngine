@@ -140,8 +140,9 @@ void Package::LoadExportObject(int index)
 		}
 	}
 
-	if (!createfunc)
-		LoadExportObject(index);
+	// for setting a debug breakpoint
+	//if (!createfunc)
+	//	LoadExportObject(index);
 
 	if (!createfunc)
 		throw std::runtime_error("Could not find the object class for " + objname);

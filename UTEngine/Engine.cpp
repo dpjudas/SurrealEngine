@@ -221,7 +221,7 @@ void Engine::DrawScene()
 
 	for (UActor* actor : level->Actors)
 	{
-		if (actor)
+		if (actor && !actor->bHidden)
 		{
 			if (/*actor->DrawType == ActorDrawType::Mesh &&*/ actor->Mesh)
 			{

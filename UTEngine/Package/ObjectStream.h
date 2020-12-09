@@ -85,15 +85,32 @@ public:
 		}
 		else
 		{
-			std::string s;
-			while (true)
-			{
-				char c = ReadInt8();
-				if (c == 0) break;
-				s.push_back(c);
-			}
-			return s;
+			return ReadAsciiZ();
 		}
+	}
+
+	std::string ReadAsciiZ()
+	{
+		std::string s;
+		while (true)
+		{
+			char c = ReadInt8();
+			if (c == 0) break;
+			s.push_back(c);
+		}
+		return s;
+	}
+
+	std::wstring ReadUnicodeZ()
+	{
+		std::wstring s;
+		while (true)
+		{
+			wchar_t c = ReadUInt16();
+			if (c == 0) break;
+			s.push_back(c);
+		}
+		return s;
 	}
 
 	std::string ReadName()

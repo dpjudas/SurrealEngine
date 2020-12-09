@@ -29,8 +29,10 @@ public:
 	int LightRadius = 64;
 	bool bCorona = false;
 
+	bool bHidden = false;
 	ActorDrawType DrawType = ActorDrawType::None;
 	UTexture* Skin = nullptr;
 	UTexture* Texture = nullptr;
+	UTexture* Sprite = nullptr;
 	UMesh* Mesh = nullptr;
 };
