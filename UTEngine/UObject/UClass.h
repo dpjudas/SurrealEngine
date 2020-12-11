@@ -3,6 +3,7 @@
 #include "UObject.h"
 
 class UTextBuffer;
+class UStruct;
 enum EExprToken;
 
 class UField : public UObject
@@ -77,7 +78,7 @@ class UByteProperty : public UProperty
 public:
 	UByteProperty(ObjectStream* stream);
 
-	int EnumType = 0; // 0 if it is a normal byte, other for a reference to the Enum type object
+	UEnum* EnumType = nullptr; // null if it is a normal byte, other for a reference to the Enum type object
 };
 
 class UObjectProperty : public UProperty
@@ -85,7 +86,7 @@ class UObjectProperty : public UProperty
 public:
 	UObjectProperty(ObjectStream* stream);
 
-	int ObjectClass = 0;
+	UClass* ObjectClass = nullptr;
 };
 
 class UFixedArrayProperty : public UProperty
@@ -93,7 +94,7 @@ class UFixedArrayProperty : public UProperty
 public:
 	UFixedArrayProperty(ObjectStream* stream);
 
-	int Inner = 0;
+	UProperty* Inner = nullptr;
 };
 
 class UArrayProperty : public UProperty
@@ -101,7 +102,7 @@ class UArrayProperty : public UProperty
 public:
 	UArrayProperty(ObjectStream* stream);
 
-	int Inner = 0;
+	UProperty* Inner = nullptr;
 };
 
 class UMapProperty : public UProperty
@@ -109,8 +110,8 @@ class UMapProperty : public UProperty
 public:
 	UMapProperty(ObjectStream* stream);
 
-	int Key = 0;
-	int Value = 0;
+	UProperty* Key = nullptr;
+	UProperty* Value = nullptr;
 };
 
 class UClassProperty : public UObjectProperty
@@ -118,7 +119,7 @@ class UClassProperty : public UObjectProperty
 public:
 	UClassProperty(ObjectStream* stream);
 
-	int MetaClass = 0;
+	UClass* MetaClass = nullptr;
 };
 
 class UStructProperty : public UProperty
@@ -126,7 +127,7 @@ class UStructProperty : public UProperty
 public:
 	UStructProperty(ObjectStream* stream);
 
-	int Struct = 0;
+	UStruct* Struct = nullptr;
 };
 
 class UIntProperty : public UProperty

@@ -75,11 +75,7 @@ public:
 		int32_t ValueInt;
 		bool ValueBool;
 		float ValueFloat;
-		struct
-		{
-			Package* Package;
-			int ObjReference;
-		} ValueObject;
+		UObject* ValueObject;
 		vec3 ValueVector;
 		Rotator ValueRotator;
 	};
@@ -121,8 +117,7 @@ public:
 
 	UObject* GetUObject(const std::string& name)
 	{
-		const auto& scalar = GetScalar(name);
-		return scalar.ValueObject.Package->GetUObject(scalar.ValueObject.ObjReference);
+		return GetScalar(name).ValueObject;
 	}
 
 private:

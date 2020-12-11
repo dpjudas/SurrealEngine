@@ -62,7 +62,7 @@ public:
 class ZoneProperties
 {
 public:
-	int ZoneActor;
+	UActor* ZoneActor;
 	uint64_t Connectivity;
 	uint64_t Visibility;
 };

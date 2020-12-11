@@ -59,7 +59,7 @@ UByteProperty::UByteProperty(ObjectStream* stream) : UProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	EnumType = stream->ReadIndex();
+	EnumType = stream->ReadObject<UEnum>();
 	stream->ThrowIfNotEnd();
 }
 
@@ -69,7 +69,7 @@ UObjectProperty::UObjectProperty(ObjectStream* stream) : UProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	ObjectClass = stream->ReadIndex();
+	ObjectClass = stream->ReadObject<UClass>();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ UFixedArrayProperty::UFixedArrayProperty(ObjectStream* stream) : UProperty(strea
 {
 	if (stream->IsEmptyStream()) return;
 
-	Inner = stream->ReadIndex();
+	Inner = stream->ReadObject<UProperty>();
 	stream->ThrowIfNotEnd();
 }
 
@@ -88,7 +88,7 @@ UArrayProperty::UArrayProperty(ObjectStream* stream) : UProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	Inner = stream->ReadIndex();
+	Inner = stream->ReadObject<UProperty>();
 	stream->ThrowIfNotEnd();
 }
 
@@ -98,8 +98,8 @@ UMapProperty::UMapProperty(ObjectStream* stream) : UProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	Key = stream->ReadIndex();
-	Value = stream->ReadIndex();
+	Key = stream->ReadObject<UProperty>();
+	Value = stream->ReadObject<UProperty>();
 	stream->ThrowIfNotEnd();
 }
 
@@ -109,7 +109,7 @@ UClassProperty::UClassProperty(ObjectStream* stream) : UObjectProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	MetaClass = stream->ReadIndex();
+	MetaClass = stream->ReadObject<UClass>();
 	stream->ThrowIfNotEnd();
 }
 
@@ -119,7 +119,7 @@ UStructProperty::UStructProperty(ObjectStream* stream) : UProperty(stream)
 {
 	if (stream->IsEmptyStream()) return;
 
-	Struct = stream->ReadIndex();
+	Struct = stream->ReadObject<UStruct>();
 	stream->ThrowIfNotEnd();
 }
 

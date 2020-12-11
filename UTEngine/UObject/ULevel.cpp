@@ -146,7 +146,7 @@ UModel::UModel(ObjectStream* stream) : UObject(stream)
 	for (int i = 0; i < NumZones; i++)
 	{
 		ZoneProperties zone;
-		zone.ZoneActor = stream->ReadIndex();
+		zone.ZoneActor = stream->ReadObject<UActor>();
 		zone.Connectivity = stream->ReadUInt64();
 		zone.Visibility = stream->ReadUInt64();
 		Zones.push_back(zone);
