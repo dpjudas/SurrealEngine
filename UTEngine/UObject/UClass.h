@@ -125,7 +125,7 @@ struct Guid
 
 struct ClassDependency
 {
-	int Class = 0;
+	UClass* Class = nullptr;
 	uint32_t Deep = 0;
 	uint32_t ScriptTextCRC = 0;
 };

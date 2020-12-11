@@ -257,7 +257,7 @@ UClass::UClass(ObjectStream* stream) : UState(stream, true)
 	for (int i = 0; i < NumDependencies; i++)
 	{
 		ClassDependency dep;
-		dep.Class = stream->ReadIndex();
+		dep.Class = stream->ReadObject<UClass>();
 		dep.Deep = stream->ReadUInt32();
 		dep.ScriptTextCRC = stream->ReadUInt32();
 		Dependencies.push_back(dep);
