@@ -5,6 +5,7 @@
 #include "PackageManager.h"
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
+#include "UObject/UProperty.h"
 #include "UObject/UFont.h"
 #include "UObject/ULevel.h"
 #include "UObject/UMesh.h"

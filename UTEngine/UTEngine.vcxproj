@@ -155,6 +155,7 @@
     <ClInclude Include="UObject\UMesh.h" />
     <ClInclude Include="UObject\UMusic.h" />
     <ClInclude Include="UObject\UObject.h" />
+    <ClInclude Include="UObject\UProperty.h" />
     <ClInclude Include="UObject\USound.h" />
     <ClInclude Include="UObject\UTextBuffer.h" />
     <ClInclude Include="UObject\UTexture.h" />
@@ -725,6 +726,7 @@
     <ClCompile Include="UObject\UMesh.cpp" />
     <ClCompile Include="UObject\UMusic.cpp" />
     <ClCompile Include="UObject\UObject.cpp" />
+    <ClCompile Include="UObject\UProperty.cpp" />
     <ClCompile Include="UObject\USound.cpp" />
     <ClCompile Include="UObject\UTextBuffer.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />

@@ -433,6 +433,9 @@
     <ClCompile Include="UObject\UClass.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="UObject\UProperty.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -631,6 +634,9 @@
       <Filter>UObject</Filter>
     </ClInclude>
     <ClInclude Include="UObject\UClass.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UProperty.h">
       <Filter>UObject</Filter>
     </ClInclude>
   </ItemGroup>
