@@ -12,7 +12,6 @@ UTextBuffer::UTextBuffer(ObjectStream* stream) : UObject(stream)
 	{
 		Text.resize(size);
 		stream->ReadBytes(&Text[0], size);
-		if (stream->ReadUInt8() != 0)
-			throw std::runtime_error("UTextBuffer is not null terminated");
+		if (!Text.empty() && Text.back() == 0) Text.pop_back();
 	}
 }

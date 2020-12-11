@@ -8,7 +8,7 @@ UFont::UFont(ObjectStream* stream) : UObject(stream)
 	pages.resize(stream->ReadIndex());
 	for (FontPage& page : pages)
 	{
-		page.Texture = Cast<UTexture>(stream->ReadUObject());
+		page.Texture = stream->ReadObject<UTexture>();
 		page.Characters.resize(stream->ReadIndex());
 		for (FontCharacter& character : page.Characters)
 		{

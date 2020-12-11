@@ -19,37 +19,47 @@ public:
 	Package(PackageManager* packageManager, const std::string& name, const std::string& filename);
 	~Package();
 
-	UObject* GetUObject(int objref);
-	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {});
+	UObject* GetUObject(int objref, std::function<void(UObject*)> validateTypeCast = {});
+	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {}, std::function<void(UObject*)> validateTypeCast = {});
 
 	const std::string& GetName(int index) const;
 	int GetVersion() const { return Version; }
+
+	ExportTableEntry* GetExportEntry(int objref);
+	ImportTableEntry* GetImportEntry(int objref);
+	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
 private:
 	void ReadTables();
 	std::unique_ptr<PackageStream> OpenStream();
 	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const std::string& name, UClass* base);
 	void LoadExportObject(int index);
-	ExportTableEntry* GetExportEntry(int objref);
-	ImportTableEntry* GetImportEntry(int objref);
-	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
+
+	void DelayLoadNow();
+
+	std::vector<std::function<void()>> delayLoads;
+	std::vector<std::function<void()>> delayLoadTypeValidations;
+	int delayLoadActive = 0;
+
+	struct SetDelayLoadActive
+	{
+		SetDelayLoadActive(Package* p) : p(p) { p->delayLoadActive++; }
+		~SetDelayLoadActive() { p->delayLoadActive--; }
+		Package* p;
+	};
 
 	template<typename T>
-	void NewObject(int index, const std::string& name, UClass* base)
+	void NewObject(int index, std::string name, UClass* base)
 	{
 		// We need the pointer for the object before initializing it in order to support circular references.
 		ObjectAllocations[index].reset(new uint64_t[sizeof(T)]);
-		Objects[index] = (T*)ObjectAllocations[index].get();
-		try
-		{
-			new(ObjectAllocations[index].get()) T(OpenObjectStream(index, name, base).get());
-		}
-		catch (...)
-		{
-			Objects[index] = nullptr;
-			ObjectAllocations[index].reset();
-			throw;
-		}
+		void* ptr = ObjectAllocations[index].get();
+		Objects[index] = (T*)ptr;
+
+		if (typeid(T) != typeid(UClass))
+			delayLoads.push_back([=]() { new(ptr) T(OpenObjectStream(index, name, base).get()); });
+		else
+			new(ptr) T(OpenObjectStream(index, name, base).get());
 	}
 
 	template<typename T>

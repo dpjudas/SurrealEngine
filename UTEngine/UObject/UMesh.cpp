@@ -117,7 +117,7 @@ UMesh::UMesh(ObjectStream* stream) : UPrimitive(stream)
 	int NumTextures = stream->ReadIndex();
 	for (int i = 0; i < NumTextures; i++)
 	{
-		Textures.push_back(Cast<UTexture>(stream->ReadUObject()));
+		Textures.push_back(stream->ReadObject<UTexture>());
 	}
 
 	int NumBoundingBoxes = stream->ReadIndex();
@@ -329,7 +329,7 @@ USkeletalMesh::USkeletalMesh(ObjectStream* stream) : ULodMesh(stream)
 	}
 
 	SkeletalDepth = stream->ReadUInt32();
-	DefaultAnimation = Cast<UAnimation>(stream->ReadUObject());
+	DefaultAnimation = stream->ReadObject<UAnimation>();
 	WeaponBoneIndex = stream->ReadUInt32();
 
 	WeaponAdjust.Origin.x = stream->ReadFloat();

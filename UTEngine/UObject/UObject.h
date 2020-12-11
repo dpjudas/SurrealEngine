@@ -135,7 +135,7 @@ class UObject
 public:
 	UObject() = default;
 	UObject(std::string name, UClass* base);
-	UObject(ObjectStream* stream);
+	UObject(ObjectStream* stream, bool isUClass = false);
 	virtual ~UObject() = default;
 
 	bool HasScalar(const std::string& name) const;
@@ -145,6 +145,7 @@ public:
 	std::string Name;
 	UClass* Base = nullptr;
 	UnrealProperties Properties;
+	ObjectFlags Flags = {};
 
 	template<typename T>
 	static T* Cast(UObject* obj)

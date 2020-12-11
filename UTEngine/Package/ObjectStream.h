@@ -18,6 +18,14 @@ public:
 		pos += s;
 	}
 
+	void ThrowIfNotEnd()
+	{
+		if (pos != size)
+			throw std::runtime_error("Unexpected bytes at end of object stream");
+	}
+
+	bool IsEmptyStream() const { return size == 0; }
+
 	int8_t ReadInt8() { int8_t t; ReadBytes(&t, 1); return t; }
 	int16_t ReadInt16() { int16_t t; ReadBytes(&t, 2); return t; }
 	int32_t ReadInt32() { int32_t t; ReadBytes(&t, 4); return t; }
@@ -118,9 +126,10 @@ public:
 		return package->GetName(ReadIndex());
 	}
 
-	UObject* ReadUObject()
+	template<typename T>
+	T* ReadObject()
 	{
-		return package->GetUObject(ReadIndex());
+		return static_cast<T*>(package->GetUObject(ReadIndex(), [](UObject* obj) { UObject::Cast<T>(obj); }));
 	}
 
 	int GetVersion() const

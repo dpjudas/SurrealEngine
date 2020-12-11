@@ -2,10 +2,13 @@
 
 #include "UObject.h"
 
+class UTextBuffer;
+enum EExprToken;
+
 class UField : public UObject
 {
 public:
-	UField(ObjectStream* stream);
+	UField(ObjectStream* stream, bool isUClass = false);
 
 	UField* BaseField = nullptr;
 	UField* Next = nullptr;
@@ -63,8 +66,7 @@ class UProperty : public UField
 public:
 	UProperty(ObjectStream* stream);
 
-	uint16_t ArrayDimension = 0;
-	uint16_t ElementSize = 0;
+	uint32_t ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
 	std::string Category;
 	uint16_t ReplicationOffset = 0;
@@ -83,7 +85,7 @@ class UObjectProperty : public UProperty
 public:
 	UObjectProperty(ObjectStream* stream);
 
-	int ObjectType = 0;
+	int ObjectClass = 0;
 };
 
 class UFixedArrayProperty : public UProperty
@@ -91,8 +93,7 @@ class UFixedArrayProperty : public UProperty
 public:
 	UFixedArrayProperty(ObjectStream* stream);
 
-	int ElementType = 0;
-	int Count = 0;
+	int Inner = 0;
 };
 
 class UArrayProperty : public UProperty
@@ -100,7 +101,7 @@ class UArrayProperty : public UProperty
 public:
 	UArrayProperty(ObjectStream* stream);
 
-	int ElementType = 0;
+	int Inner = 0;
 };
 
 class UMapProperty : public UProperty
@@ -112,12 +113,12 @@ public:
 	int Value = 0;
 };
 
-class UClassProperty : public UProperty
+class UClassProperty : public UObjectProperty
 {
 public:
 	UClassProperty(ObjectStream* stream);
 
-	int Type = 0;
+	int MetaClass = 0;
 };
 
 class UStructProperty : public UProperty
@@ -125,7 +126,7 @@ class UStructProperty : public UProperty
 public:
 	UStructProperty(ObjectStream* stream);
 
-	int Type = 0;
+	int Struct = 0;
 };
 
 class UIntProperty : public UProperty
@@ -164,15 +165,13 @@ public:
 	UStringProperty(ObjectStream* stream) : UProperty(stream) { }
 };
 
-enum EExprToken;
-
 class UStruct : public UField
 {
 public:
-	UStruct(ObjectStream* stream);
+	UStruct(ObjectStream* stream, bool isUClass = false);
 
-	int ScriptText = 0;
-	int Children = 0;
+	UTextBuffer* ScriptText = nullptr;
+	UField* Children = nullptr;
 	std::string FriendlyName;
 	uint32_t Line = 0;
 	uint32_t TextPos = 0;
@@ -245,7 +244,7 @@ inline bool AnyFlags(ScriptStateFlags value, ScriptStateFlags flags) { return (u
 class UState : public UStruct
 {
 public:
-	UState(ObjectStream* stream);
+	UState(ObjectStream* stream, bool isUClass = false);
 
 	uint64_t ProbeMask = 0;
 	uint64_t IgnoreMask = 0;

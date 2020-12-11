@@ -25,6 +25,12 @@ Engine::Engine()
 {
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 
+	/*
+	auto testobj = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
+	auto scriptext = testobj->ScriptText;
+	auto children = testobj->Children;
+	*/
+
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
 	medfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
@@ -239,7 +245,7 @@ void Engine::DrawScene()
 	{
 		if (actor && !actor->bHidden)
 		{
-			if (/*actor->DrawType == ActorDrawType::Mesh &&*/ actor->Mesh)
+			if (actor->DrawType == ActorDrawType::Mesh && actor->Mesh)
 			{
 				BBox bbox = actor->Mesh->BoundingBox;
 				bbox.min += actor->Location;
@@ -247,12 +253,12 @@ void Engine::DrawScene()
 				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location)))
 					DrawMesh(&frame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
 			}
-			else if (/*actor->DrawType == ActorDrawType::Sprite &&*/ actor->Texture)
+			else if ((actor->DrawType == ActorDrawType::Sprite || actor->DrawType == ActorDrawType::SpriteAnimOnce) && actor->Sprite)
 			{
 				if ((uint64_t)1 << FindZoneAt(actor->Location))
-					DrawSprite(&frame, actor->Texture, actor->Location, actor->Rotation, actor->DrawScale);
+					DrawSprite(&frame, actor->Sprite, actor->Location, actor->Rotation, actor->DrawScale);
 			}
-			else if (/*actor->DrawType == ActorDrawType::Brush &&*/ actor->Brush)
+			else if (actor->DrawType == ActorDrawType::Brush && actor->Brush)
 			{
 				BBox bbox = actor->Brush->BoundingBox;
 				bbox.min += actor->Location;
@@ -1358,9 +1364,11 @@ void Engine::LoadMap(const std::string& packageName)
 		}
 	}
 
+#if 0
 	if (LevelInfo->HasScalar("Song"))
 	{
 		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
 		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
 	}
+#endif
 }

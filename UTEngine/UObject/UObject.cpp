@@ -7,8 +7,12 @@ UObject::UObject(std::string name, UClass* base) : Name(name), Base(base)
 {
 }
 
-UObject::UObject(ObjectStream* stream) : Name(stream->GetObjectName()), Base(stream->GetObjectBase())
+UObject::UObject(ObjectStream* stream, bool isUClass) : Name(stream->GetObjectName()), Base(stream->GetObjectBase())
 {
+	Flags = stream->GetFlags();
+
+	if (stream->IsEmptyStream()) return;
+
 	if (AllFlags(stream->GetFlags(), ObjectFlags::HasStack))
 	{
 		int32_t node = stream->ReadIndex();
@@ -21,7 +25,7 @@ UObject::UObject(ObjectStream* stream) : Name(stream->GetObjectName()), Base(str
 		}
 	}
 
-	if (!AllFlags(stream->GetFlags(), ObjectFlags::Native))
+	if (!isUClass)
 	{
 		ReadProperties(stream);
 	}

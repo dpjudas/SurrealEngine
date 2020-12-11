@@ -10,7 +10,7 @@ ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
 	int32_t dbmax = stream->ReadInt32();
 	for (int32_t i = 0; i < dbnum; i++)
 	{
-		Actors.push_back(Cast<UActor>(stream->ReadUObject()));
+		Actors.push_back(stream->ReadObject<UActor>());
 	}
 
 	Protocol = stream->ReadString();
@@ -48,7 +48,7 @@ ULevel::ULevel(ObjectStream* stream) : ULevelBase(stream)
 		ReachSpecs.push_back(spec);
 	}
 
-	Model = Cast<UModel>(stream->ReadUObject());
+	Model = stream->ReadObject<UModel>();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ UModel::UModel(ObjectStream* stream) : UObject(stream)
 	for (int i = 0; i < count; i++)
 	{
 		BspSurface surface;
-		surface.Material = Cast<UTexture>(stream->ReadUObject());
+		surface.Material = stream->ReadObject<UTexture>();
 		surface.PolyFlags = stream->ReadUInt32();
 		surface.pBase = stream->ReadIndex();
 		surface.vNormal = stream->ReadIndex();
@@ -207,7 +207,7 @@ UModel::UModel(ObjectStream* stream) : UObject(stream)
 	count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
-		Lights.push_back(Cast<UActor>(stream->ReadUObject()));
+		Lights.push_back(stream->ReadObject<UActor>());
 	}
 
 	RootOutside = stream->ReadInt32();

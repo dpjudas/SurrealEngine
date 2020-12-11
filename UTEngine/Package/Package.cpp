@@ -63,7 +63,7 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UMusic>("Music");
 	RegisterNativeClass<UTextBuffer>("TextBuffer");
 
-	if (GetNameKey(name) == "engine")
+	if (GetNameKey(name) == "engine" || GetNameKey(name) == "core")
 	{
 		for (auto& it : NativeClasses)
 		{
@@ -113,51 +113,65 @@ void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];
 
+	SetDelayLoadActive delayload(this);
+
 	std::string objname = GetName(entry->ObjName);
-	UClass* objbase = nullptr;
 
-	std::function<void(Package* package, int index, const std::string& name, UClass* base)> createfunc;
-
-	if (entry->ObjClass == 0)
+	UClass* objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
+	if (objclass)
 	{
-		objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
-		createfunc = NativeClasses[GetNameKey("Class")];
+		for (UClass* cur = objclass; cur != nullptr; cur = cur->Base)
+		{
+			auto it = NativeClasses.find(GetNameKey(cur->Name));
+			if (it != NativeClasses.end())
+			{
+				it->second(this, index, objname, objclass);
+				return;
+			}
+		}
+
+		throw std::runtime_error("Could not find the object class for " + objname);
 	}
 	else
 	{
-		objbase = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
-
-		UClass* objclass = objbase;
-		while (objclass)
-		{
-			auto it = NativeClasses.find(GetNameKey(objclass->Name));
-			if (it != NativeClasses.end())
-			{
-				createfunc = it->second;
-				break;
-			}
-			objclass = objclass->Base;
-		}
+		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
+		NativeClasses[GetNameKey("Class")](this, index, objname, objbase);
 	}
-
-	// for setting a debug breakpoint
-	//if (!createfunc)
-	//	LoadExportObject(index);
-
-	if (!createfunc)
-		throw std::runtime_error("Could not find the object class for " + objname);
-
-	createfunc(this, index, objname, objbase);
 }
 
-UObject* Package::GetUObject(int objref)
+void Package::DelayLoadNow()
+{
+	while (!delayLoads.empty())
+	{
+		SetDelayLoadActive delayload(this);
+
+		auto func = delayLoads.back();
+		delayLoads.pop_back();
+		func();
+	}
+
+	while (!delayLoadTypeValidations.empty())
+	{
+		auto func = delayLoadTypeValidations.back();
+		delayLoadTypeValidations.pop_back();
+		func();
+	}
+}
+
+UObject* Package::GetUObject(int objref, std::function<void(UObject*)> validateTypeCast)
 {
 	if (objref > 0) // Export table object
 	{
 		int index = objref - 1;
 		if (!Objects[index])
 			LoadExportObject(index);
-		return Objects[index];
+
+		UObject* obj = Objects[index];
+		if (validateTypeCast)
+			delayLoadTypeValidations.push_back([=]() { validateTypeCast(obj); });
+		if (delayLoadActive == 0)
+			DelayLoadNow();
+		return obj;
 	}
 	else if (objref < 0) // Import table object
 	{
@@ -176,7 +190,7 @@ UObject* Package::GetUObject(int objref)
 		std::string className = GetName(entry->ClassName);
 		// std::string classPackage = GetName(entry->ClassPackage);
 
-		return Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
+		return Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName, validateTypeCast);
 	}
 	else
 	{
@@ -184,9 +198,9 @@ UObject* Package::GetUObject(int objref)
 	}
 }
 
-UObject* Package::GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName)
+UObject* Package::GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName, std::function<void(UObject*)> validateTypeCast)
 {
-	return GetUObject(FindObjectReference(className, objectName, groupName));
+	return GetUObject(FindObjectReference(className, objectName, groupName), validateTypeCast);
 }
 
 int Package::FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName)
