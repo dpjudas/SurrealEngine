@@ -18,6 +18,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
+#include "VM/Bytecode.h"
 #include <chrono>
 #include <set>
 
@@ -28,7 +29,8 @@ Engine::Engine()
 	/*
 	auto testobj = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
 	auto scriptext = testobj->ScriptText;
-	auto children = testobj->Children;
+	auto child = dynamic_cast<UFunction*>(testobj->Children);
+	Bytecode bytecode(child->Bytecode, packages->GetPackage("TestPackage"));
 	*/
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));

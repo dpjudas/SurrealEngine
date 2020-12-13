@@ -55,6 +55,9 @@
     <Filter Include="Audio">
       <UniqueIdentifier>{d1c569a7-720b-4db6-b5e5-d1ab92f5da4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="VM">
+      <UniqueIdentifier>{f7b8ee71-9673-46e5-a12c-6996785c23c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -436,6 +439,9 @@
     <ClCompile Include="UObject\UProperty.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="VM\Bytecode.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -638,6 +644,12 @@
     </ClInclude>
     <ClInclude Include="UObject\UProperty.h">
       <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\Bytecode.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\Expression.h">
+      <Filter>VM</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

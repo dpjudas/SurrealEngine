@@ -161,6 +161,8 @@
     <ClInclude Include="UObject\UTexture.h" />
     <ClInclude Include="Viewport\Viewport.h" />
     <ClInclude Include="Viewport\Win32\Win32Viewport.h" />
+    <ClInclude Include="VM\Bytecode.h" />
+    <ClInclude Include="VM\Expression.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Thirdparty\dumb\src\core\atexit.c">
@@ -732,6 +734,7 @@
     <ClCompile Include="UObject\UTexture.cpp" />
     <ClCompile Include="Viewport\Viewport.cpp" />
     <ClCompile Include="Viewport\Win32\Win32Viewport.cpp" />
+    <ClCompile Include="VM\Bytecode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Thirdparty\ShaderCompiler\ShaderCompiler.vcxproj">

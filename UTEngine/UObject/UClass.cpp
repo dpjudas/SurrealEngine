@@ -62,104 +62,104 @@ UStruct::UStruct(ObjectStream* stream, bool isUClass) : UField(stream, isUClass)
 		throw std::runtime_error("Bytecode load failed");
 }
 
-EExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
+ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 {
 	if (depth == 16)
 		throw std::runtime_error("Bytecode parsing error");
 	depth++;
 
-	EExprToken token = (EExprToken)stream->ReadUInt8();
-	PushUInt8(token);
+	ExprToken token = (ExprToken)stream->ReadUInt8();
+	PushUInt8((uint8_t)token);
 
-	if (token >= EX_MinConversion && token <= EX_MaxConversion)
+	if (token >= ExprToken::MinConversion && token <= ExprToken::MaxConversion)
 	{
 		ReadToken(stream, depth);
 	}
-	else if (token >= EX_FirstNative)
+	else if (token >= ExprToken::FirstNative)
 	{
-		int nativeindex = (int)token;
-		while (ReadToken(stream, depth) != EX_EndFunctionParms);
+		//int nativeindex = (int)token;
+		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token >= EX_ExtendedNative)
+	else if (token >= ExprToken::ExtendedNative)
 	{
 		int part2 = stream->ReadUInt8();
 		PushUInt8(part2);
-		int nativeindex = (((int)token - EX_ExtendedNative) << 8) + part2;
-		while (ReadToken(stream, depth) != EX_EndFunctionParms);
+		//int nativeindex = (((int)token - (int)ExprToken::ExtendedNative) << 8) + part2;
+		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == EX_VirtualFunction)
+	else if (token == ExprToken::VirtualFunction)
 	{
 		int name = stream->ReadIndex();
 		PushIndex(name);
-		while (ReadToken(stream, depth) != EX_EndFunctionParms);
+		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == EX_FinalFunction)
+	else if (token == ExprToken::FinalFunction)
 	{
 		int object = stream->ReadIndex();
 		PushIndex(object);
-		while (ReadToken(stream, depth) != EX_EndFunctionParms);
+		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == EX_GlobalFunction)
+	else if (token == ExprToken::GlobalFunction)
 	{
 		int name = stream->ReadIndex();
 		PushIndex(name);
-		while (ReadToken(stream, depth) != EX_EndFunctionParms);
+		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
 	else
 	{
 		switch (token)
 		{
-		case EX_LocalVariable: PushIndex(stream->ReadIndex()); break;
-		case EX_InstanceVariable: PushIndex(stream->ReadIndex()); break;
-		case EX_DefaultVariable: PushIndex(stream->ReadIndex()); break;
-		case EX_Return: ReadToken(stream, depth); break;
-		case EX_Switch: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
-		case EX_Jump: PushUInt16(stream->ReadUInt16()); break;
-		case EX_JumpIfNot: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
-		case EX_Stop: break;
-		case EX_Assert: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
-		case EX_Case: { uint16_t nextoffset = stream->ReadUInt16(); PushUInt16(nextoffset); if (nextoffset != 0xffff) ReadToken(stream, depth); break; }
-		case EX_Nothing: break;
-		case EX_LabelTable: while (true) { int name = stream->ReadIndex(); PushIndex(name); PushUInt32(stream->ReadUInt32()); if (stream->GetPackage()->GetName(name) == "None") break; } break;
-		case EX_GotoLabel: ReadToken(stream, depth); break;
-		case EX_EatString: ReadToken(stream, depth); break;
-		case EX_Let: ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_DynArrayElement: ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_New: ReadToken(stream, depth); ReadToken(stream, depth); ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_ClassContext: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
-		case EX_MetaCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
-		case EX_LetBool: ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_Unknown0x15: ReadToken(stream, depth); break;
-		case EX_EndFunctionParms: break;
-		case EX_Self: break;
-		case EX_Skip: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
-		case EX_Context: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
-		case EX_ArrayElement: ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_IntConst: PushUInt32(stream->ReadUInt32()); break;
-		case EX_FloatConst: PushFloat(stream->ReadFloat()); break;
-		case EX_StringConst: PushAsciiZ(stream->ReadAsciiZ()); break;
-		case EX_ObjectConst: PushIndex(stream->ReadIndex()); break;
-		case EX_NameConst: PushIndex(stream->ReadIndex()); break;
-		case EX_RotationConst: PushUInt32(stream->ReadUInt32()); PushUInt32(stream->ReadUInt32()); PushUInt32(stream->ReadUInt32()); break;
-		case EX_VectorConst: PushFloat(stream->ReadFloat()); PushFloat(stream->ReadFloat()); PushFloat(stream->ReadFloat()); break;
-		case EX_ByteConst: PushUInt8(stream->ReadUInt8()); break;
-		case EX_IntZero: break;
-		case EX_IntOne: break;
-		case EX_True: break;
-		case EX_False: break;
-		case EX_NativeParm: PushIndex(stream->ReadIndex()); break;
-		case EX_NoObject: break;
-		case Ex_Unknown0x2b: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
-		case EX_IntConstByte: PushUInt8(stream->ReadUInt8()); break;
-		case EX_BoolVariable: break;
-		case EX_DynamicCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
-		case EX_Iterator: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); break;
-		case EX_IteratorPop: break;
-		case EX_IteratorNext: break;
-		case EX_StructCmpEq: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_StructCmpNe: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case EX_UnicodeStringConst: PushUnicodeZ(stream->ReadUnicodeZ()); break;
-		case EX_StructMember: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
+		case ExprToken::LocalVariable: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::InstanceVariable: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::DefaultVariable: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::Return: ReadToken(stream, depth); break;
+		case ExprToken::Switch: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
+		case ExprToken::Jump: PushUInt16(stream->ReadUInt16()); break;
+		case ExprToken::JumpIfNot: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
+		case ExprToken::Stop: break;
+		case ExprToken::Assert: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
+		case ExprToken::Case: { uint16_t nextoffset = stream->ReadUInt16(); PushUInt16(nextoffset); if (nextoffset != 0xffff) ReadToken(stream, depth); break; }
+		case ExprToken::Nothing: break;
+		case ExprToken::LabelTable: while (true) { int name = stream->ReadIndex(); PushIndex(name); PushUInt32(stream->ReadUInt32()); if (stream->GetPackage()->GetName(name) == "None") break; } break;
+		case ExprToken::GotoLabel: ReadToken(stream, depth); break;
+		case ExprToken::EatString: ReadToken(stream, depth); break;
+		case ExprToken::Let: ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::DynArrayElement: ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::New: ReadToken(stream, depth); ReadToken(stream, depth); ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::ClassContext: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
+		case ExprToken::MetaCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
+		case ExprToken::LetBool: ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::Unknown0x15: ReadToken(stream, depth); break;
+		case ExprToken::EndFunctionParms: break;
+		case ExprToken::Self: break;
+		case ExprToken::Skip: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
+		case ExprToken::Context: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
+		case ExprToken::ArrayElement: ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::IntConst: PushUInt32(stream->ReadUInt32()); break;
+		case ExprToken::FloatConst: PushFloat(stream->ReadFloat()); break;
+		case ExprToken::StringConst: PushAsciiZ(stream->ReadAsciiZ()); break;
+		case ExprToken::ObjectConst: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::NameConst: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::RotationConst: PushUInt32(stream->ReadUInt32()); PushUInt32(stream->ReadUInt32()); PushUInt32(stream->ReadUInt32()); break;
+		case ExprToken::VectorConst: PushFloat(stream->ReadFloat()); PushFloat(stream->ReadFloat()); PushFloat(stream->ReadFloat()); break;
+		case ExprToken::ByteConst: PushUInt8(stream->ReadUInt8()); break;
+		case ExprToken::IntZero: break;
+		case ExprToken::IntOne: break;
+		case ExprToken::True: break;
+		case ExprToken::False: break;
+		case ExprToken::NativeParm: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::NoObject: break;
+		case ExprToken::Unknown0x2b: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
+		case ExprToken::IntConstByte: PushUInt8(stream->ReadUInt8()); break;
+		case ExprToken::BoolVariable: break;
+		case ExprToken::DynamicCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
+		case ExprToken::Iterator: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); break;
+		case ExprToken::IteratorPop: break;
+		case ExprToken::IteratorNext: break;
+		case ExprToken::StructCmpEq: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::StructCmpNe: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
+		case ExprToken::UnicodeStringConst: PushUnicodeZ(stream->ReadUnicodeZ()); break;
+		case ExprToken::StructMember: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
 		default: throw std::runtime_error("Unknown script bytecode token encountered");
 		}
 	}

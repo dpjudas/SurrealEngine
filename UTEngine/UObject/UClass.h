@@ -4,7 +4,7 @@
 
 class UTextBuffer;
 class UStruct;
-enum EExprToken;
+enum class ExprToken : uint8_t;
 
 class UField : public UObject
 {
@@ -44,7 +44,7 @@ public:
 	std::vector<uint8_t> Bytecode;
 
 private:
-	EExprToken ReadToken(ObjectStream* stream, int depth);
+	ExprToken ReadToken(ObjectStream* stream, int depth);
 	void PushBytes(const void* data, size_t size);
 	void PushUInt8(uint8_t value);
 	void PushUInt16(uint16_t value);
@@ -144,105 +144,109 @@ public:
 	std::string ClassConfigName;
 };
 
-enum EExprToken
+enum class ExprToken : uint8_t
 {
 	// Variable references
-	EX_LocalVariable = 0x00,	// A local variable
-	EX_InstanceVariable = 0x01,	// An object variable
-	EX_DefaultVariable = 0x02,	// Default variable for a concrete object
+	LocalVariable = 0x00,	// A local variable
+	InstanceVariable = 0x01,	// An object variable
+	DefaultVariable = 0x02,	// Default variable for a concrete object
 
 	// Tokens
-	EX_Return = 0x04,	// Return from function
-	EX_Switch = 0x05,	// Switch
-	EX_Jump = 0x06,	// Goto a local address in code
-	EX_JumpIfNot = 0x07,	// Goto if not expression
-	EX_Stop = 0x08,	// Stop executing state code
-	EX_Assert = 0x09,	// Assertion
-	EX_Case = 0x0A,	// Case
-	EX_Nothing = 0x0B,	// No operation
-	EX_LabelTable = 0x0C,	// Table of labels
-	EX_GotoLabel = 0x0D,	// Goto a label
-	EX_EatString = 0x0E, // Ignore a dynamic string
-	EX_Let = 0x0F,	// Assign an arbitrary size value to a variable
-	EX_DynArrayElement = 0x10, // Dynamic array element
-	EX_New = 0x11, // New object allocation
-	EX_ClassContext = 0x12, // Class default metaobject context
-	EX_MetaCast = 0x13, // Metaclass cast
-	EX_LetBool = 0x14, // Let boolean variable
-	EX_Unknown0x15 = 0x15,
-	EX_EndFunctionParms = 0x16,	// End of function call parameters
-	EX_Self = 0x17,	// Self object
-	EX_Skip = 0x18,	// Skippable expression
-	EX_Context = 0x19,	// Call a function through an object context
-	EX_ArrayElement = 0x1A,	// Array element
-	EX_VirtualFunction = 0x1B,	// A function call with parameters
-	EX_FinalFunction = 0x1C,	// A prebound function call with parameters
-	EX_IntConst = 0x1D,	// Int constant
-	EX_FloatConst = 0x1E,	// Floating point constant
-	EX_StringConst = 0x1F,	// String constant
-	EX_ObjectConst = 0x20,	// An object constant
-	EX_NameConst = 0x21,	// A name constant
-	EX_RotationConst = 0x22,	// A rotation constant
-	EX_VectorConst = 0x23,	// A vector constant
-	EX_ByteConst = 0x24,	// A byte constant
-	EX_IntZero = 0x25,	// Zero
-	EX_IntOne = 0x26,	// One
-	EX_True = 0x27,	// Bool True
-	EX_False = 0x28,	// Bool False
-	EX_NativeParm = 0x29, // Native function parameter offset
-	EX_NoObject = 0x2A,	// NoObject
-	Ex_Unknown0x2b = 0x2B,
-	EX_IntConstByte = 0x2C,	// Int constant that requires 1 byte
-	EX_BoolVariable = 0x2D,	// A bool variable which requires a bitmask
-	EX_DynamicCast = 0x2E,	// Safe dynamic class casting
-	EX_Iterator = 0x2F, // Begin an iterator operation
-	EX_IteratorPop = 0x30, // Pop an iterator level
-	EX_IteratorNext = 0x31, // Go to next iteration
-	EX_StructCmpEq = 0x32,	// Struct binary compare-for-equal
-	EX_StructCmpNe = 0x33,	// Struct binary compare-for-unequal
-	EX_UnicodeStringConst = 0x34, // Unicode string constant
+	Return = 0x04,	// Return from function
+	Switch = 0x05,	// Switch
+	Jump = 0x06,	// Goto a local address in code
+	JumpIfNot = 0x07,	// Goto if not expression
+	Stop = 0x08,	// Stop executing state code
+	Assert = 0x09,	// Assertion
+	Case = 0x0A,	// Case
+	Nothing = 0x0B,	// No operation
+	LabelTable = 0x0C,	// Table of labels
+	GotoLabel = 0x0D,	// Goto a label
+	EatString = 0x0E, // Ignore a dynamic string
+	Let = 0x0F,	// Assign an arbitrary size value to a variable
+	DynArrayElement = 0x10, // Dynamic array element
+	New = 0x11, // New object allocation
+	ClassContext = 0x12, // Class default metaobject context
+	MetaCast = 0x13, // Metaclass cast
+	LetBool = 0x14, // Let boolean variable
+	Unknown0x15 = 0x15,
+	EndFunctionParms = 0x16,	// End of function call parameters
+	Self = 0x17,	// Self object
+	Skip = 0x18,	// Skippable expression
+	Context = 0x19,	// Call a function through an object context
+	ArrayElement = 0x1A,	// Array element
+	VirtualFunction = 0x1B,	// A function call with parameters
+	FinalFunction = 0x1C,	// A prebound function call with parameters
+	IntConst = 0x1D,	// Int constant
+	FloatConst = 0x1E,	// Floating point constant
+	StringConst = 0x1F,	// String constant
+	ObjectConst = 0x20,	// An object constant
+	NameConst = 0x21,	// A name constant
+	RotationConst = 0x22,	// A rotation constant
+	VectorConst = 0x23,	// A vector constant
+	ByteConst = 0x24,	// A byte constant
+	IntZero = 0x25,	// Zero
+	IntOne = 0x26,	// One
+	True = 0x27,	// Bool True
+	False = 0x28,	// Bool False
+	NativeParm = 0x29, // Native function parameter offset
+	NoObject = 0x2A,	// NoObject
+	Unknown0x2b = 0x2B,
+	IntConstByte = 0x2C,	// Int constant that requires 1 byte
+	BoolVariable = 0x2D,	// A bool variable which requires a bitmask
+	DynamicCast = 0x2E,	// Safe dynamic class casting
+	Iterator = 0x2F, // Begin an iterator operation
+	IteratorPop = 0x30, // Pop an iterator level
+	IteratorNext = 0x31, // Go to next iteration
+	StructCmpEq = 0x32,	// Struct binary compare-for-equal
+	StructCmpNe = 0x33,	// Struct binary compare-for-unequal
+	UnicodeStringConst = 0x34, // Unicode string constant
 	//
-	EX_StructMember = 0x36, // Struct member
+	StructMember = 0x36, // Struct member
 	//
-	EX_GlobalFunction = 0x38, // Call non-state version of a function
+	GlobalFunction = 0x38, // Call non-state version of a function
 
 	// Native conversions.
-	EX_MinConversion = 0x39,	// Minimum conversion token
-	EX_RotatorToVector = 0x39,
-	EX_ByteToInt = 0x3A,
-	EX_ByteToBool = 0x3B,
-	EX_ByteToFloat = 0x3C,
-	EX_IntToByte = 0x3D,
-	EX_IntToBool = 0x3E,
-	EX_IntToFloat = 0x3F,
-	EX_BoolToByte = 0x40,
-	EX_BoolToInt = 0x41,
-	EX_BoolToFloat = 0x42,
-	EX_FloatToByte = 0x43,
-	EX_FloatToInt = 0x44,
-	EX_FloatToBool = 0x45,
-	//
-	EX_ObjectToBool = 0x47,
-	EX_NameToBool = 0x48,
-	EX_StringToByte = 0x49,
-	EX_StringToInt = 0x4A,
-	EX_StringToBool = 0x4B,
-	EX_StringToFloat = 0x4C,
-	EX_StringToVector = 0x4D,
-	EX_StringToRotator = 0x4E,
-	EX_VectorToBool = 0x4F,
-	EX_VectorToRotator = 0x50,
-	EX_RotatorToBool = 0x51,
-	EX_ByteToString = 0x52,
-	EX_IntToString = 0x53,
-	EX_BoolToString = 0x54,
-	EX_FloatToString = 0x55,
-	EX_ObjectToString = 0x56,
-	EX_NameToString = 0x57,
-	EX_VectorToString = 0x58,
-	EX_RotatorToString = 0x59,
-	EX_MaxConversion = 0x60,	// Maximum conversion token
-	EX_ExtendedNative = 0x60,
-	EX_FirstNative = 0x70,
-	EX_Max = 0x1000,
+	MinConversion = 0x39,	// Minimum conversion token
+	RotatorToVector = 0x39,
+	ByteToInt = 0x3A,
+	ByteToBool = 0x3B,
+	ByteToFloat = 0x3C,
+	IntToByte = 0x3D,
+	IntToBool = 0x3E,
+	IntToFloat = 0x3F,
+	BoolToByte = 0x40,
+	BoolToInt = 0x41,
+	BoolToFloat = 0x42,
+	FloatToByte = 0x43,
+	FloatToInt = 0x44,
+	FloatToBool = 0x45,
+	Unknown0x46 = 0x46,
+	ObjectToBool = 0x47,
+	NameToBool = 0x48,
+	StringToByte = 0x49,
+	StringToInt = 0x4A,
+	StringToBool = 0x4B,
+	StringToFloat = 0x4C,
+	StringToVector = 0x4D,
+	StringToRotator = 0x4E,
+	VectorToBool = 0x4F,
+	VectorToRotator = 0x50,
+	RotatorToBool = 0x51,
+	ByteToString = 0x52,
+	IntToString = 0x53,
+	BoolToString = 0x54,
+	FloatToString = 0x55,
+	ObjectToString = 0x56,
+	NameToString = 0x57,
+	VectorToString = 0x58,
+	RotatorToString = 0x59,
+	MaxConversion = 0x60,	// Maximum conversion token
+	ExtendedNative = 0x60,
+	FirstNative = 0x70
 };
+
+inline bool operator<(ExprToken a, ExprToken b) { return (uint8_t)a < (uint8_t)b; }
+inline bool operator<=(ExprToken a, ExprToken b) { return (uint8_t)a <= (uint8_t)b; }
+inline bool operator>(ExprToken a, ExprToken b) { return (uint8_t)a > (uint8_t)b; }
+inline bool operator>=(ExprToken a, ExprToken b) { return (uint8_t)a >= (uint8_t)b; }
