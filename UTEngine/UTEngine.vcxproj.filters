@@ -442,6 +442,12 @@
     <ClCompile Include="VM\Bytecode.cpp">
       <Filter>VM</Filter>
     </ClCompile>
+    <ClCompile Include="VM\Frame.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
+    <ClCompile Include="VM\ExpressionEvaluator.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -649,6 +655,18 @@
       <Filter>VM</Filter>
     </ClInclude>
     <ClInclude Include="VM\Expression.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\ExpressionVisitor.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\ExpressionValue.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\Frame.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\ExpressionEvaluator.h">
       <Filter>VM</Filter>
     </ClInclude>
   </ItemGroup>
