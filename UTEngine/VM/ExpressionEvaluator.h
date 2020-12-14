@@ -3,10 +3,29 @@
 #include "ExpressionVisitor.h"
 #include "ExpressionValue.h"
 
+enum class StatementResult
+{
+	Next,
+	Jump,
+	LatentWait,
+	Return,
+	Stop,
+	GotoLabel
+};
+
+struct ExpressionEvalResult
+{
+	StatementResult Result = StatementResult::Next;
+	uint16_t JumpAddress = 0;
+	int LatentFunction = 0;
+	std::string Label;
+	ExpressionValue Value;
+};
+
 class ExpressionEvaluator : ExpressionVisitor
 {
 public:
-	ExpressionValue Eval(Expression* expr);
+	static ExpressionEvalResult Eval(Expression* expr, UObject* self);
 
 private:
 	void Expr(LocalVariableExpression* expr) override;
@@ -97,5 +116,6 @@ private:
 	void Expr(GlobalFunctionExpression* expr) override;
 	void Expr(NativeFunctionExpression* expr) override;
 
-	ExpressionValue ResultValue;
+	ExpressionEvalResult Result;
+	UObject* Self = nullptr;
 };
