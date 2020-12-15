@@ -54,3 +54,13 @@ std::string PackageManager::GetKey(std::string name)
 	}
 	return name;
 }
+
+std::vector<std::string> PackageManager::GetPackageNames() const
+{
+	std::vector<std::string> names;
+	for (auto& it : packageFilenames)
+	{
+		names.push_back(it.first);
+	}
+	return names;
+}

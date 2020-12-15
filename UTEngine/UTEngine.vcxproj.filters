@@ -58,6 +58,9 @@
     <Filter Include="VM">
       <UniqueIdentifier>{f7b8ee71-9673-46e5-a12c-6996785c23c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Native">
+      <UniqueIdentifier>{4670cb56-6aba-46fd-a2e1-6bbb898e48e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -448,6 +451,57 @@
     <ClCompile Include="VM\ExpressionEvaluator.cpp">
       <Filter>VM</Filter>
     </ClCompile>
+    <ClCompile Include="VM\NativeFuncExtractor.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NActor.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NCanvas.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NCommandlet.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NConsole.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NDecal.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NGameInfo.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NLevelInfo.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NNavigationPoint.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NObject.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NPawn.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NPlayerPawn.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NScriptedTexture.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NStatLog.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NStatLogFile.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NWarpZoneInfo.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Native\NZoneInfo.cpp">
+      <Filter>Native</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -667,6 +721,60 @@
       <Filter>VM</Filter>
     </ClInclude>
     <ClInclude Include="VM\ExpressionEvaluator.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\NativeFuncExtractor.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NActor.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NCanvas.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NCommandlet.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NConsole.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NDecal.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NGameInfo.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NLevelInfo.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NNavigationPoint.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NObject.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NPawn.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NPlayerPawn.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NScriptedTexture.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NStatLog.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NStatLogFile.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NWarpZoneInfo.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\NZoneInfo.h">
+      <Filter>Native</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\NativeFunc.h">
       <Filter>VM</Filter>
     </ClInclude>
   </ItemGroup>

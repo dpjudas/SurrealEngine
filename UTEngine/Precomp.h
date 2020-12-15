@@ -11,3 +11,5 @@
 #include <Windows.h>
 #undef min
 #undef max
+#undef PlaySound
+#undef DrawText

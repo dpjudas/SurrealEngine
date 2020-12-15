@@ -19,6 +19,7 @@
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
 #include "VM/Bytecode.h"
+#include "VM/NativeFuncExtractor.h"
 #include <chrono>
 #include <set>
 
@@ -26,12 +27,12 @@ Engine::Engine()
 {
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 
-	/*
+	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
+
 	auto testobj = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
 	auto scriptext = testobj->ScriptText;
 	auto child = dynamic_cast<UFunction*>(testobj->Children);
 	Bytecode bytecode(child->Bytecode, packages->GetPackage("TestPackage"));
-	*/
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));

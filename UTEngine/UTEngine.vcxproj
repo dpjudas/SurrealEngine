@@ -120,6 +120,22 @@
     <ClInclude Include="File.h" />
     <ClInclude Include="Math\bbox.h" />
     <ClInclude Include="Math\FrustumPlanes.h" />
+    <ClInclude Include="Native\NActor.h" />
+    <ClInclude Include="Native\NCanvas.h" />
+    <ClInclude Include="Native\NCommandlet.h" />
+    <ClInclude Include="Native\NConsole.h" />
+    <ClInclude Include="Native\NDecal.h" />
+    <ClInclude Include="Native\NGameInfo.h" />
+    <ClInclude Include="Native\NLevelInfo.h" />
+    <ClInclude Include="Native\NNavigationPoint.h" />
+    <ClInclude Include="Native\NObject.h" />
+    <ClInclude Include="Native\NPawn.h" />
+    <ClInclude Include="Native\NPlayerPawn.h" />
+    <ClInclude Include="Native\NScriptedTexture.h" />
+    <ClInclude Include="Native\NStatLog.h" />
+    <ClInclude Include="Native\NStatLogFile.h" />
+    <ClInclude Include="Native\NWarpZoneInfo.h" />
+    <ClInclude Include="Native\NZoneInfo.h" />
     <ClInclude Include="Package\ObjectFlags.h" />
     <ClInclude Include="Package\ObjectStream.h" />
     <ClInclude Include="Package\Package.h" />
@@ -167,6 +183,8 @@
     <ClInclude Include="VM\ExpressionValue.h" />
     <ClInclude Include="VM\ExpressionVisitor.h" />
     <ClInclude Include="VM\Frame.h" />
+    <ClInclude Include="VM\NativeFunc.h" />
+    <ClInclude Include="VM\NativeFuncExtractor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Thirdparty\dumb\src\core\atexit.c">
@@ -700,6 +718,22 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Math\FrustumPlanes.cpp" />
+    <ClCompile Include="Native\NActor.cpp" />
+    <ClCompile Include="Native\NCanvas.cpp" />
+    <ClCompile Include="Native\NCommandlet.cpp" />
+    <ClCompile Include="Native\NConsole.cpp" />
+    <ClCompile Include="Native\NDecal.cpp" />
+    <ClCompile Include="Native\NGameInfo.cpp" />
+    <ClCompile Include="Native\NLevelInfo.cpp" />
+    <ClCompile Include="Native\NNavigationPoint.cpp" />
+    <ClCompile Include="Native\NObject.cpp" />
+    <ClCompile Include="Native\NPawn.cpp" />
+    <ClCompile Include="Native\NPlayerPawn.cpp" />
+    <ClCompile Include="Native\NScriptedTexture.cpp" />
+    <ClCompile Include="Native\NStatLog.cpp" />
+    <ClCompile Include="Native\NStatLogFile.cpp" />
+    <ClCompile Include="Native\NWarpZoneInfo.cpp" />
+    <ClCompile Include="Native\NZoneInfo.cpp" />
     <ClCompile Include="Package\Package.cpp" />
     <ClCompile Include="Package\PackageManager.cpp" />
     <ClCompile Include="Package\PackageStream.cpp" />
@@ -741,6 +775,7 @@
     <ClCompile Include="VM\Bytecode.cpp" />
     <ClCompile Include="VM\ExpressionEvaluator.cpp" />
     <ClCompile Include="VM\Frame.cpp" />
+    <ClCompile Include="VM\NativeFuncExtractor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Thirdparty\ShaderCompiler\ShaderCompiler.vcxproj">

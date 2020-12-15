@@ -16,19 +16,31 @@ public:
 		CloseHandle(handle);
 	}
 
-	void write(const void *data, int size) override
+	void write(const void *data, size_t size) override
 	{
-		BOOL result = WriteFile(handle, data, size, nullptr, nullptr);
-		if (result == FALSE)
-			throw std::runtime_error("WriteFile failed");
+		size_t pos = 0;
+		while (pos < size)
+		{
+			size_t writesize = std::min(size, (size_t)0xffffffff);
+			BOOL result = WriteFile(handle, (const uint8_t*)data + pos, (DWORD)writesize, nullptr, nullptr);
+			if (result == FALSE)
+				throw std::runtime_error("WriteFile failed");
+			pos += writesize;
+		}
 	}
 
 	void read(void *data, size_t size) override
 	{
-		DWORD bytesRead = 0;
-		BOOL result = ReadFile(handle, data, (DWORD)size, &bytesRead, nullptr);
-		if (result == FALSE || bytesRead != size)
-			throw std::runtime_error("ReadFile failed");
+		size_t pos = 0;
+		while (pos < size)
+		{
+			size_t readsize = std::min(size, (size_t)0xffffffff);
+			DWORD bytesRead = 0;
+			BOOL result = ReadFile(handle, (uint8_t*)data + pos, (DWORD)readsize, &bytesRead, nullptr);
+			if (result == FALSE || bytesRead != readsize)
+				throw std::runtime_error("ReadFile failed");
+			pos += readsize;
+		}
 	}
 
 	int64_t size() override
@@ -81,6 +93,37 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 		throw std::runtime_error("Could not open " + filename);
 
 	return std::make_shared<FileImpl>(handle);
+}
+
+void File::write_all_bytes(const std::string& filename, const void* data, size_t size)
+{
+	auto file = create_always(filename);
+	file->write(data, size);
+}
+
+void File::write_all_text(const std::string& filename, const std::string& text)
+{
+	auto file = create_always(filename);
+	file->write(text.data(), text.size());
+}
+
+std::vector<uint8_t> File::read_all_bytes(const std::string& filename)
+{
+	auto file = open_existing(filename);
+	std::vector<uint8_t> buffer(file->size());
+	file->read(buffer.data(), buffer.size());
+	return buffer;
+}
+
+std::string File::read_all_text(const std::string& filename)
+{
+	auto file = open_existing(filename);
+	auto size = file->size();
+	if (size == 0) return {};
+	std::string buffer;
+	buffer.resize(size);
+	file->read(&buffer[0], buffer.size());
+	return buffer;
 }
 
 /////////////////////////////////////////////////////////////////////////////

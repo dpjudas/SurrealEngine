@@ -110,6 +110,21 @@ Package::~Package()
 	}
 }
 
+std::vector<UClass*> Package::GetAllClasses()
+{
+	std::vector<UClass*> classes;
+	int objref = 1;
+	for (ExportTableEntry& e : ExportTable)
+	{
+		if (e.ObjClass == 0)
+		{
+			classes.push_back(static_cast<UClass*>(GetUObject(objref, [](UObject* obj) { UObject::Cast<UClass>(obj); })));
+		}
+		objref++;
+	}
+	return classes;
+}
+
 void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];

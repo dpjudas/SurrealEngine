@@ -24,10 +24,13 @@ public:
 
 	const std::string& GetName(int index) const;
 	int GetVersion() const { return Version; }
+	std::string GetPackageName() const { return Name; }
 
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
 	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
+
+	std::vector<UClass*> GetAllClasses();
 
 private:
 	void ReadTables();
