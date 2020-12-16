@@ -137,10 +137,10 @@ private:
 class UObject
 {
 public:
-	UObject() = default;
-	UObject(std::string name, UClass* base);
-	UObject(ObjectStream* stream, bool isUClass = false);
+	UObject(std::string name, UClass* base, ObjectFlags flags);
 	virtual ~UObject() = default;
+
+	virtual void Load(ObjectStream* stream);
 
 	bool HasScalar(const std::string& name) const;
 	const UnrealPropertyValue& GetScalar(const std::string& name);
@@ -148,15 +148,18 @@ public:
 
 	std::string Name;
 	UClass* Base = nullptr;
+	ObjectFlags Flags = ObjectFlags::None;
+
 	UnrealProperties Properties;
-	ObjectFlags Flags = {};
 
 	template<typename T>
 	static T* Cast(UObject* obj)
 	{
 		T* target = dynamic_cast<T*>(obj);
 		if (target == nullptr && obj != nullptr)
-			throw std::runtime_error("Could not cast object " + obj->Name + " to " + (std::string)typeid(T).name());
+		{
+			throw std::runtime_error("Could not cast object " + obj->Name + " (class " + GetUClassName(obj) + ") to " + (std::string)typeid(T).name());
+		}
 		return target;
 	}
 
@@ -165,6 +168,8 @@ public:
 	{
 		return dynamic_cast<T*>(obj);
 	}
+
+	static std::string GetUClassName(UObject* obj);
 
 	void ReadProperties(ObjectStream* stream);
 };

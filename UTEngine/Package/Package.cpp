@@ -94,20 +94,11 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 		}
 	}
 
-	ObjectAllocations.resize(ExportTable.size());
 	Objects.resize(ExportTable.size());
 }
 
 Package::~Package()
 {
-	for (UObject* obj : Objects)
-	{
-		if (obj)
-		{
-			obj->~UObject();
-			obj = nullptr;
-		}
-	}
 }
 
 std::vector<UClass*> Package::GetAllClasses()
@@ -118,7 +109,7 @@ std::vector<UClass*> Package::GetAllClasses()
 	{
 		if (e.ObjClass == 0)
 		{
-			classes.push_back(static_cast<UClass*>(GetUObject(objref, [](UObject* obj) { UObject::Cast<UClass>(obj); })));
+			classes.push_back(UObject::Cast<UClass>(GetUObject(objref)));
 		}
 		objref++;
 	}
@@ -129,7 +120,7 @@ void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];
 
-	SetDelayLoadActive delayload(this);
+	SetDelayLoadActive delayload(Packages);
 
 	std::string objname = GetName(entry->ObjName);
 
@@ -142,6 +133,14 @@ void Package::LoadExportObject(int index)
 			if (it != NativeClasses.end())
 			{
 				it->second(this, index, objname, objclass);
+
+				Packages->delayLoads.push_back([=]()
+				{
+					auto stream = OpenObjectStream(index, objname, objclass);
+					Objects[index]->Load(stream.get());
+					// stream->ThrowIfNotEnd(); // We can't do this since Font seems to have some unused unknown bytes at the end
+				});
+
 				return;
 			}
 		}
@@ -152,42 +151,37 @@ void Package::LoadExportObject(int index)
 	{
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
 		NativeClasses[GetNameKey("Class")](this, index, objname, objbase);
+
+		Packages->delayLoads.push_back([=]()
+		{
+			auto stream = OpenObjectStream(index, objname, objbase);
+			if (!stream->IsEmptyStream())
+			{
+				Objects[index]->Load(stream.get());
+				stream->ThrowIfNotEnd();
+			}
+		});
 	}
 }
 
-void Package::DelayLoadNow()
+void Package::PushDelayLoad(std::function<void()> delayLoad)
 {
-	while (!delayLoads.empty())
-	{
-		SetDelayLoadActive delayload(this);
-
-		auto func = delayLoads.back();
-		delayLoads.pop_back();
-		func();
-	}
-
-	while (!delayLoadTypeValidations.empty())
-	{
-		auto func = delayLoadTypeValidations.back();
-		delayLoadTypeValidations.pop_back();
-		func();
-	}
+	Packages->delayLoads.push_back(std::move(delayLoad));
 }
 
-UObject* Package::GetUObject(int objref, std::function<void(UObject*)> validateTypeCast)
+UObject* Package::GetUObject(int objref)
 {
 	if (objref > 0) // Export table object
 	{
 		int index = objref - 1;
+
 		if (!Objects[index])
 			LoadExportObject(index);
 
-		UObject* obj = Objects[index];
-		if (validateTypeCast)
-			delayLoadTypeValidations.push_back([=]() { validateTypeCast(obj); });
-		if (delayLoadActive == 0)
-			DelayLoadNow();
-		return obj;
+		if (Packages->delayLoadActive == 0)
+			Packages->DelayLoadNow();
+
+		return Objects[index].get();
 	}
 	else if (objref < 0) // Import table object
 	{
@@ -206,7 +200,7 @@ UObject* Package::GetUObject(int objref, std::function<void(UObject*)> validateT
 		std::string className = GetName(entry->ClassName);
 		// std::string classPackage = GetName(entry->ClassPackage);
 
-		return Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName, validateTypeCast);
+		return Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
 	}
 	else
 	{
@@ -214,9 +208,9 @@ UObject* Package::GetUObject(int objref, std::function<void(UObject*)> validateT
 	}
 }
 
-UObject* Package::GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName, std::function<void(UObject*)> validateTypeCast)
+UObject* Package::GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName)
 {
-	return GetUObject(FindObjectReference(className, objectName, groupName), validateTypeCast);
+	return GetUObject(FindObjectReference(className, objectName, groupName));
 }
 
 int Package::FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName)
@@ -308,7 +302,7 @@ ImportTableEntry* Package::GetImportEntry(int objref)
 
 void Package::ReadTables()
 {
-	auto stream = OpenStream();
+	auto stream = Packages->GetStream(this);
 
 	uint32_t signature = stream->ReadInt32();
 	if (signature != 0x9E2A83C1)
@@ -384,18 +378,13 @@ void Package::ReadTables()
 	}
 }
 
-std::unique_ptr<PackageStream> Package::OpenStream()
-{
-	return std::make_unique<PackageStream>(this, File::open_existing(Filename));
-}
-
 std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const std::string& name, UClass* base)
 {
 	const auto& entry = ExportTable[index];
 	if (entry.ObjSize > 0)
 	{
 		std::unique_ptr<uint64_t[]> buffer(new uint64_t[(entry.ObjSize + 7) / 8]);
-		auto stream = OpenStream();
+		auto stream = Packages->GetStream(this);
 		stream->Seek(entry.ObjOffset);
 		stream->ReadBytes(buffer.get(), entry.ObjSize);
 		return std::make_unique<ObjectStream>(this, std::move(buffer), entry.ObjOffset, entry.ObjSize, entry.ObjFlags, name, base);

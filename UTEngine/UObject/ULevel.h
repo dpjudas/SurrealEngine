@@ -149,7 +149,8 @@ enum PolyFlags
 class UModel : public UObject
 {
 public:
-	UModel(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	BBox BoundingBox;
 
@@ -198,7 +199,8 @@ public:
 class ULevelBase : public UObject
 {
 public:
-	ULevelBase(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<UActor*> Actors;
 
@@ -213,7 +215,8 @@ public:
 class ULevel : public ULevelBase
 {
 public:
-	ULevel(ObjectStream* stream);
+	using ULevelBase::ULevelBase;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;

@@ -5,7 +5,8 @@
 class UTextBuffer : public UObject
 {
 public:
-	UTextBuffer(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	uint32_t Pos = 0;
 	uint32_t Top = 0;

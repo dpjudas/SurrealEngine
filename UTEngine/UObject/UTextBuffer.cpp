@@ -2,8 +2,10 @@
 #include "Precomp.h"
 #include "UTextBuffer.h"
 
-UTextBuffer::UTextBuffer(ObjectStream* stream) : UObject(stream)
+void UTextBuffer::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	Pos = stream->ReadUInt32();
 	Top = stream->ReadUInt32();
 

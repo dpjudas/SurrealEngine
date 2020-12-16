@@ -3,16 +3,12 @@
 #include "UObject.h"
 #include "UClass.h"
 
-UObject::UObject(std::string name, UClass* base) : Name(name), Base(base)
+UObject::UObject(std::string name, UClass* base, ObjectFlags flags) : Name(name), Base(base), Flags(flags)
 {
 }
 
-UObject::UObject(ObjectStream* stream, bool isUClass) : Name(stream->GetObjectName()), Base(stream->GetObjectBase())
+void UObject::Load(ObjectStream* stream)
 {
-	Flags = stream->GetFlags();
-
-	if (stream->IsEmptyStream()) return;
-
 	if (AllFlags(stream->GetFlags(), ObjectFlags::HasStack))
 	{
 		int32_t node = stream->ReadIndex();
@@ -25,7 +21,7 @@ UObject::UObject(ObjectStream* stream, bool isUClass) : Name(stream->GetObjectNa
 		}
 	}
 
-	if (!isUClass)
+	if (!dynamic_cast<UClass*>(this))
 	{
 		ReadProperties(stream);
 	}
@@ -297,4 +293,9 @@ void UObject::ReadProperties(ObjectStream* stream)
 
 		Properties.Properties.push_back(prop);
 	}
+}
+
+std::string UObject::GetUClassName(UObject* obj)
+{
+	return obj->Base ? obj->Base->Name : std::string("null");
 }

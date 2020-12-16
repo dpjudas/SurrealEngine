@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "PackageManager.h"
 #include "Package.h"
+#include "PackageStream.h"
 #include "File.h"
 
 PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
@@ -63,4 +64,45 @@ std::vector<std::string> PackageManager::GetPackageNames() const
 		names.push_back(it.first);
 	}
 	return names;
+}
+
+std::shared_ptr<PackageStream> PackageManager::GetStream(Package* package)
+{
+	int numStreams = 0;
+	for (auto it = openStreams.begin(); it != openStreams.end(); ++it)
+	{
+		if ((*it).Pkg == package)
+		{
+			if (it != openStreams.begin())
+			{
+				OpenStream s = *it;
+				openStreams.erase(it);
+				openStreams.push_front(s);
+			}
+			return openStreams.front().Stream;
+		}
+		numStreams++;
+	}
+
+	OpenStream s;
+	s.Pkg = package;
+	s.Stream = std::make_shared<PackageStream>(package, File::open_existing(package->GetPackageFilename()));
+	openStreams.push_front(s);
+
+	if (numStreams == 10)
+		openStreams.pop_back();
+
+	return openStreams.front().Stream;
+}
+
+void PackageManager::DelayLoadNow()
+{
+	while (!delayLoads.empty())
+	{
+		SetDelayLoadActive delayload(this);
+
+		auto func = delayLoads.back();
+		delayLoads.pop_back();
+		func();
+	}
 }

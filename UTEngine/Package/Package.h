@@ -19,12 +19,13 @@ public:
 	Package(PackageManager* packageManager, const std::string& name, const std::string& filename);
 	~Package();
 
-	UObject* GetUObject(int objref, std::function<void(UObject*)> validateTypeCast = {});
-	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {}, std::function<void(UObject*)> validateTypeCast = {});
+	UObject* GetUObject(int objref);
+	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
 	const std::string& GetName(int index) const;
 	int GetVersion() const { return Version; }
 	std::string GetPackageName() const { return Name; }
+	std::string GetPackageFilename() const { return Filename; }
 
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
@@ -34,41 +35,15 @@ public:
 
 private:
 	void ReadTables();
-	std::unique_ptr<PackageStream> OpenStream();
 	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const std::string& name, UClass* base);
 	void LoadExportObject(int index);
 
-	void DelayLoadNow();
-
-	std::vector<std::function<void()>> delayLoads;
-	std::vector<std::function<void()>> delayLoadTypeValidations;
-	int delayLoadActive = 0;
-
-	struct SetDelayLoadActive
-	{
-		SetDelayLoadActive(Package* p) : p(p) { p->delayLoadActive++; }
-		~SetDelayLoadActive() { p->delayLoadActive--; }
-		Package* p;
-	};
-
-	template<typename T>
-	void NewObject(int index, std::string name, UClass* base)
-	{
-		// We need the pointer for the object before initializing it in order to support circular references.
-		ObjectAllocations[index].reset(new uint64_t[sizeof(T)]);
-		void* ptr = ObjectAllocations[index].get();
-		Objects[index] = (T*)ptr;
-
-		if (typeid(T) != typeid(UClass))
-			delayLoads.push_back([=]() { new(ptr) T(OpenObjectStream(index, name, base).get()); });
-		else
-			new(ptr) T(OpenObjectStream(index, name, base).get());
-	}
+	void PushDelayLoad(std::function<void()> delayLoad);
 
 	template<typename T>
 	void RegisterNativeClass(const std::string& name)
 	{
-		NativeClasses[GetNameKey(name)] = [](Package* package, int index, const std::string& name, UClass* base) { package->NewObject<T>(index, name, base); };
+		NativeClasses[GetNameKey(name)] = [](Package* package, int index, const std::string& name, UClass* base) { package->Objects[index] = std::make_unique<T>(name, base, package->ExportTable[index].ObjFlags); };
 	}
 
 	static bool CompareNames(const std::string& name1, const std::string& name2)
@@ -111,13 +86,14 @@ private:
 
 	std::map<std::string, int> NameHash;
 
-	std::vector<std::unique_ptr<uint64_t[]>> ObjectAllocations;
-	std::vector<UObject*> Objects;
+	std::vector<std::unique_ptr<UObject>> Objects;
 
 	std::map<std::string, std::function<void(Package* package, int index, const std::string& name, UClass* base)>> NativeClasses;
 
 	Package(const Package&) = delete;
 	Package& operator=(const Package&) = delete;
+
+	friend class PackageManager;
 };
 
 class NameTableEntry

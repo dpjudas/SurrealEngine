@@ -4,8 +4,10 @@
 #include "UActor.h"
 #include "UTexture.h"
 
-ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
+void ULevelBase::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	int32_t dbnum = stream->ReadInt32();
 	int32_t dbmax = stream->ReadInt32();
 	for (int32_t i = 0; i < dbnum; i++)
@@ -32,8 +34,10 @@ ULevelBase::ULevelBase(ObjectStream* stream) : UObject(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-ULevel::ULevel(ObjectStream* stream) : ULevelBase(stream)
+void ULevel::Load(ObjectStream* stream)
 {
+	ULevelBase::Load(stream);
+
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
@@ -53,8 +57,10 @@ ULevel::ULevel(ObjectStream* stream) : ULevelBase(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UModel::UModel(ObjectStream* stream) : UObject(stream)
+void UModel::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	BoundingBox.min.x = stream->ReadFloat();
 	BoundingBox.min.y = stream->ReadFloat();
 	BoundingBox.min.z = stream->ReadFloat();

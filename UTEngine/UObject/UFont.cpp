@@ -3,8 +3,9 @@
 #include "UFont.h"
 #include "UTexture.h"
 
-UFont::UFont(ObjectStream* stream) : UObject(stream)
+void UFont::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
 	pages.resize(stream->ReadIndex());
 	for (FontPage& page : pages)
 	{
@@ -18,6 +19,8 @@ UFont::UFont(ObjectStream* stream) : UObject(stream)
 			character.VSize = stream->ReadInt32();
 		}
 	}
+
+	charactersPerPage = stream->ReadUInt32();
 }
 
 FontCharacter UFont::GetGlyph(char c) const

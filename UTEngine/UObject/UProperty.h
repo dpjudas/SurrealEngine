@@ -36,7 +36,8 @@ inline bool AnyFlags(PropertyFlags value, PropertyFlags flags) { return (uint32_
 class UProperty : public UField
 {
 public:
-	UProperty(ObjectStream* stream);
+	using UField::UField;
+	void Load(ObjectStream* stream) override;
 
 	uint32_t ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
@@ -47,7 +48,8 @@ public:
 class UByteProperty : public UProperty
 {
 public:
-	UByteProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, other for a reference to the Enum type object
 };
@@ -55,7 +57,8 @@ public:
 class UObjectProperty : public UProperty
 {
 public:
-	UObjectProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UClass* ObjectClass = nullptr;
 };
@@ -63,7 +66,8 @@ public:
 class UFixedArrayProperty : public UProperty
 {
 public:
-	UFixedArrayProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UProperty* Inner = nullptr;
 };
@@ -71,7 +75,8 @@ public:
 class UArrayProperty : public UProperty
 {
 public:
-	UArrayProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UProperty* Inner = nullptr;
 };
@@ -79,7 +84,8 @@ public:
 class UMapProperty : public UProperty
 {
 public:
-	UMapProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UProperty* Key = nullptr;
 	UProperty* Value = nullptr;
@@ -88,7 +94,8 @@ public:
 class UClassProperty : public UObjectProperty
 {
 public:
-	UClassProperty(ObjectStream* stream);
+	using UObjectProperty::UObjectProperty;
+	void Load(ObjectStream* stream) override;
 
 	UClass* MetaClass = nullptr;
 };
@@ -96,7 +103,8 @@ public:
 class UStructProperty : public UProperty
 {
 public:
-	UStructProperty(ObjectStream* stream);
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
 
 	UStruct* Struct = nullptr;
 };
@@ -104,35 +112,35 @@ public:
 class UIntProperty : public UProperty
 {
 public:
-	UIntProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };
 
 class UBoolProperty : public UProperty
 {
 public:
-	UBoolProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };
 
 class UFloatProperty : public UProperty
 {
 public:
-	UFloatProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };
 
 class UNameProperty : public UProperty
 {
 public:
-	UNameProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };
 
 class UStrProperty : public UProperty
 {
 public:
-	UStrProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };
 
 class UStringProperty : public UProperty
 {
 public:
-	UStringProperty(ObjectStream* stream) : UProperty(stream) { }
+	using UProperty::UProperty;
 };

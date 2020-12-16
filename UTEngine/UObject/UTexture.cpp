@@ -2,8 +2,10 @@
 #include "Precomp.h"
 #include "UTexture.h"
 
-UTexture::UTexture(ObjectStream* stream) : UObject(stream)
+void UTexture::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	if (HasScalar("Format")) Format = (TextureFormat)GetScalar("Format").ValueByte;
 
 	int mipsCount = stream->ReadUInt8();
@@ -58,8 +60,10 @@ UTexture::UTexture(ObjectStream* stream) : UObject(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UFractalTexture::UFractalTexture(ObjectStream* stream) : UTexture(stream)
+void UFractalTexture::Load(ObjectStream* stream)
 {
+	UTexture::Load(stream);
+
 	Format = TextureFormat::P8;
 	Mipmaps.resize(1);
 
@@ -77,10 +81,6 @@ UFractalTexture::UFractalTexture(ObjectStream* stream) : UTexture(stream)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-
-UFireTexture::UFireTexture(ObjectStream* stream) : UFractalTexture(stream)
-{
-}
 
 void UFireTexture::Update()
 {
@@ -126,8 +126,9 @@ void UFireTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
-UPalette::UPalette(ObjectStream* stream) : UObject(stream)
+void UPalette::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
 	int count = stream->ReadIndex();
 	Colors.resize(count);
 	stream->ReadBytes(Colors.data(), count * 4);

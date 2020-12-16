@@ -102,7 +102,7 @@ public:
 	template<typename T>
 	T* ReadObject()
 	{
-		return static_cast<T*>(package->GetUObject(ReadIndex(), [](UObject* obj) { UObject::Cast<T>(obj); }));
+		return UObject::Cast<T>(package->GetUObject(ReadIndex()));
 	}
 
 	uint16_t GetOffset() const { return pos; }

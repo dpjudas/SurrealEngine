@@ -60,7 +60,8 @@ struct MeshMaterial
 class UPrimitive : public UObject
 {
 public:
-	UPrimitive(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	BBox BoundingBox;
 	vec4 BoundingSphere = { 0.0f };
@@ -69,7 +70,8 @@ public:
 class UMesh : public UPrimitive
 {
 public:
-	UMesh(ObjectStream* stream);
+	using UPrimitive::UPrimitive;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<vec3> Verts;
 	std::vector<MeshTri> Tris;
@@ -94,7 +96,8 @@ public:
 class ULodMesh : public UMesh
 {
 public:
-	ULodMesh(ObjectStream* stream);
+	using UMesh::UMesh;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<uint16_t> CollapsePointThus;
 	std::vector<uint16_t> FaceLevel;
@@ -152,7 +155,8 @@ struct BoneWeight
 class USkeletalMesh : public ULodMesh
 {
 public:
-	USkeletalMesh(ObjectStream* stream);
+	using ULodMesh::ULodMesh;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<ExtMeshWedge> ExtWedges;
 	std::vector<vec3> Points;
@@ -208,7 +212,8 @@ struct AnimMove
 class UAnimation : public UObject
 {
 public:
-	UAnimation(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<RefBone> RefBones;
 	std::vector<AnimMove> Moves;

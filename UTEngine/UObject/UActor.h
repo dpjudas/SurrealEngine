@@ -21,7 +21,9 @@ enum class ActorDrawType
 class UActor : public UObject
 {
 public:
-	UActor(ObjectStream* stream);
+	using UObject::UObject;
+
+	void CopyProperties();
 
 	vec3 Location = { 0.0f };
 	Rotator Rotation = { 0.0f, 0.0f, 0.0f };

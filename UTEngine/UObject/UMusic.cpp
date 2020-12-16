@@ -2,8 +2,10 @@
 #include "Precomp.h"
 #include "UMusic.h"
 
-UMusic::UMusic(ObjectStream* stream) : UObject(stream)
+void UMusic::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	Format = stream->ReadName();
 	if (stream->GetVersion() > 61)
 		stream->ReadUInt32(); // lazy array skip offset

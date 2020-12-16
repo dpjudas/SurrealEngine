@@ -3,47 +3,36 @@
 #include "UClass.h"
 #include "UTextBuffer.h"
 
-UField::UField(ObjectStream* stream, bool isUClass) : UObject(stream, isUClass)
+void UField::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
-	Name = stream->GetObjectName();
-	Base = stream->GetObjectBase();
-
+	UObject::Load(stream);
 	BaseField = stream->ReadObject<UField>();
 	Next = stream->ReadObject<UField>();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UConst::UConst(ObjectStream* stream) : UField(stream)
+void UConst::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UField::Load(stream);
 	Constant = stream->ReadString();
-
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UEnum::UEnum(ObjectStream* stream) : UField(stream)
+void UEnum::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UField::Load(stream);
 	int size = stream->ReadIndex();
 	for (int i = 0; i < size; i++)
 		ElementNames.push_back(stream->ReadName());
-
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UStruct::UStruct(ObjectStream* stream, bool isUClass) : UField(stream, isUClass)
+void UStruct::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UField::Load(stream);
 	ScriptText = stream->ReadObject<UTextBuffer>();
 	Children = stream->ReadObject<UField>();
 	FriendlyName = stream->ReadName();
@@ -208,10 +197,9 @@ void UStruct::PushUnicodeZ(const std::wstring& value)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UFunction::UFunction(ObjectStream* stream) : UStruct(stream)
+void UFunction::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UStruct::Load(stream);
 	if (stream->GetVersion() <= 63)
 		ParmsSize = stream->ReadIndex();
 	NativeFuncIndex = stream->ReadUInt16();
@@ -223,15 +211,13 @@ UFunction::UFunction(ObjectStream* stream) : UStruct(stream)
 	FuncFlags = (FunctionFlags)stream->ReadUInt32();
 	if (AllFlags(FuncFlags, FunctionFlags::Net))
 		ReplicationOffset = stream->ReadUInt16();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UState::UState(ObjectStream* stream, bool isUClass) : UStruct(stream, isUClass)
+void UState::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UStruct::Load(stream);
 	ProbeMask = stream->ReadUInt64();
 	IgnoreMask = stream->ReadUInt64();
 	LabelTableOffset = stream->ReadUInt16();
@@ -240,9 +226,9 @@ UState::UState(ObjectStream* stream, bool isUClass) : UStruct(stream, isUClass)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UClass::UClass(ObjectStream* stream) : UState(stream, true)
+void UClass::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
+	UState::Load(stream);
 
 	if (stream->GetVersion() <= 61)
 	{
@@ -274,5 +260,4 @@ UClass::UClass(ObjectStream* stream) : UState(stream, true)
 	}
 
 	ReadProperties(stream);
-	stream->ThrowIfNotEnd();
 }

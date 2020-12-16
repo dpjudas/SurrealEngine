@@ -31,8 +31,8 @@ enum class TextureFormat : uint32_t
 class UTexture : public UObject
 {
 public:
-	UTexture() = default;
-	UTexture(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	virtual void Update() { }
 
@@ -51,13 +51,14 @@ public:
 class UFractalTexture : public UTexture
 {
 public:
-	UFractalTexture(ObjectStream* stream);
+	using UTexture::UTexture;
+	void Load(ObjectStream* stream) override;
 };
 
 class UFireTexture : public UFractalTexture
 {
 public:
-	UFireTexture(ObjectStream* stream);
+	using UFractalTexture::UFractalTexture;
 
 	void Update() override;
 };
@@ -65,31 +66,32 @@ public:
 class UIceTexture : public UFractalTexture
 {
 public:
-	UIceTexture(ObjectStream* stream) : UFractalTexture(stream) { }
+	using UFractalTexture::UFractalTexture;
 };
 
 class UWaterTexture : public UFractalTexture
 {
 public:
-	UWaterTexture(ObjectStream* stream) : UFractalTexture(stream) { }
+	using UFractalTexture::UFractalTexture;
 };
 
 class UWaveTexture : public UFractalTexture
 {
 public:
-	UWaveTexture(ObjectStream* stream) : UFractalTexture(stream) { }
+	using UFractalTexture::UFractalTexture;
 };
 
 class UScriptedTexture : public UTexture
 {
 public:
-	UScriptedTexture(ObjectStream* stream) : UTexture(stream) { }
+	using UTexture::UTexture;
 };
 
 class UPalette : public UObject
 {
 public:
-	UPalette(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<uint32_t> Colors;
 };

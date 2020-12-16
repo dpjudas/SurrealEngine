@@ -3,8 +3,10 @@
 #include "UMesh.h"
 #include "UTexture.h"
 
-UPrimitive::UPrimitive(ObjectStream* stream) : UObject(stream)
+void UPrimitive::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	BoundingBox.min.x = stream->ReadFloat();
 	BoundingBox.min.y = stream->ReadFloat();
 	BoundingBox.min.z = stream->ReadFloat();
@@ -21,8 +23,10 @@ UPrimitive::UPrimitive(ObjectStream* stream) : UObject(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UMesh::UMesh(ObjectStream* stream) : UPrimitive(stream)
+void UMesh::Load(ObjectStream* stream)
 {
+	UPrimitive::Load(stream);
+
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
@@ -181,8 +185,10 @@ UMesh::UMesh(ObjectStream* stream) : UPrimitive(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-ULodMesh::ULodMesh(ObjectStream* stream) : UMesh(stream)
+void ULodMesh::Load(ObjectStream* stream)
 {
+	UMesh::Load(stream);
+
 	int NumCollapsePointThus = stream->ReadIndex();
 	for (int i = 0; i < NumCollapsePointThus; i++)
 		CollapsePointThus.push_back(stream->ReadUInt16());
@@ -256,8 +262,10 @@ ULodMesh::ULodMesh(ObjectStream* stream) : UMesh(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-USkeletalMesh::USkeletalMesh(ObjectStream* stream) : ULodMesh(stream)
+void USkeletalMesh::Load(ObjectStream* stream)
 {
+	ULodMesh::Load(stream);
+
 	int NumExtWedges = stream->ReadIndex();
 	for (int i = 0; i < NumExtWedges; i++)
 	{
@@ -348,8 +356,10 @@ USkeletalMesh::USkeletalMesh(ObjectStream* stream) : ULodMesh(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UAnimation::UAnimation(ObjectStream* stream) : UObject(stream)
+void UAnimation::Load(ObjectStream* stream)
 {
+	UObject::Load(stream);
+
 	int NumRefBones = stream->ReadIndex();
 	for (int i = 0; i < NumRefBones; i++)
 	{

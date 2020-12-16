@@ -9,7 +9,8 @@ enum class ExprToken : uint8_t;
 class UField : public UObject
 {
 public:
-	UField(ObjectStream* stream, bool isUClass = false);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	UField* BaseField = nullptr;
 	UField* Next = nullptr;
@@ -18,7 +19,8 @@ public:
 class UConst : public UField
 {
 public:
-	UConst(ObjectStream* stream);
+	using UField::UField;
+	void Load(ObjectStream* stream) override;
 
 	std::string Constant;
 };
@@ -26,7 +28,8 @@ public:
 class UEnum : public UField
 {
 public:
-	UEnum(ObjectStream* stream);
+	using UField::UField;
+	void Load(ObjectStream* stream) override;
 
 	std::vector<std::string> ElementNames;
 };
@@ -34,7 +37,8 @@ public:
 class UStruct : public UField
 {
 public:
-	UStruct(ObjectStream* stream, bool isUClass = false);
+	using UField::UField;
+	void Load(ObjectStream* stream) override;
 
 	UTextBuffer* ScriptText = nullptr;
 	UField* Children = nullptr;
@@ -84,7 +88,8 @@ inline bool AnyFlags(FunctionFlags value, FunctionFlags flags) { return (uint32_
 class UFunction : public UStruct
 {
 public:
-	UFunction(ObjectStream* stream);
+	using UStruct::UStruct;
+	void Load(ObjectStream* stream) override;
 
 	int ParmsSize = 0;
 	int NativeFuncIndex = 0;
@@ -110,7 +115,8 @@ inline bool AnyFlags(ScriptStateFlags value, ScriptStateFlags flags) { return (u
 class UState : public UStruct
 {
 public:
-	UState(ObjectStream* stream, bool isUClass = false);
+	using UStruct::UStruct;
+	void Load(ObjectStream* stream) override;
 
 	uint64_t ProbeMask = 0;
 	uint64_t IgnoreMask = 0;
@@ -133,7 +139,8 @@ struct ClassDependency
 class UClass : public UState
 {
 public:
-	UClass(ObjectStream* stream);
+	using UState::UState;
+	void Load(ObjectStream* stream) override;
 
 	uint32_t OldClassRecordSize = 0;
 	uint32_t ClassFlags = 0;

@@ -5,7 +5,8 @@
 class UMusic : public UObject
 {
 public:
-	UMusic(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	std::string Format;
 	std::vector<uint8_t> Data;

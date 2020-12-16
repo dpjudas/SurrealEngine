@@ -2,9 +2,9 @@
 #include "Precomp.h"
 #include "UProperty.h"
 
-UProperty::UProperty(ObjectStream* stream) : UField(stream)
+void UProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
+	UField::Load(stream);
 
 	ArrayDimension = stream->ReadUInt32();
 	PropFlags = (PropertyFlags)stream->ReadUInt32();
@@ -17,70 +17,57 @@ UProperty::UProperty(ObjectStream* stream) : UField(stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UByteProperty::UByteProperty(ObjectStream* stream) : UProperty(stream)
+void UByteProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	EnumType = stream->ReadObject<UEnum>();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UObjectProperty::UObjectProperty(ObjectStream* stream) : UProperty(stream)
+void UObjectProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	ObjectClass = stream->ReadObject<UClass>();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UFixedArrayProperty::UFixedArrayProperty(ObjectStream* stream) : UProperty(stream)
+void UFixedArrayProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	Inner = stream->ReadObject<UProperty>();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UArrayProperty::UArrayProperty(ObjectStream* stream) : UProperty(stream)
+void UArrayProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	Inner = stream->ReadObject<UProperty>();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UMapProperty::UMapProperty(ObjectStream* stream) : UProperty(stream)
+void UMapProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	Key = stream->ReadObject<UProperty>();
 	Value = stream->ReadObject<UProperty>();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UClassProperty::UClassProperty(ObjectStream* stream) : UObjectProperty(stream)
+void UClassProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UObjectProperty::Load(stream);
 	MetaClass = stream->ReadObject<UClass>();
-	stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-UStructProperty::UStructProperty(ObjectStream* stream) : UProperty(stream)
+void UStructProperty::Load(ObjectStream* stream)
 {
-	if (stream->IsEmptyStream()) return;
-
+	UProperty::Load(stream);
 	Struct = stream->ReadObject<UStruct>();
-	stream->ThrowIfNotEnd();
 }

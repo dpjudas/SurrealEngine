@@ -29,10 +29,12 @@ Engine::Engine()
 
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
 
+	/*
 	auto testobj = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
 	auto scriptext = testobj->ScriptText;
 	auto child = dynamic_cast<UFunction*>(testobj->Children);
 	Bytecode bytecode(child->Bytecode, packages->GetPackage("TestPackage"));
+	*/
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
@@ -1159,7 +1161,7 @@ std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmi
 		}
 	}
 
-	auto lmtexture = std::make_unique<UTexture>();
+	auto lmtexture = std::make_unique<UTexture>("Lightmap", nullptr, ObjectFlags::Transient);
 	lmtexture->Format = TextureFormat::RGBA7;
 	lmtexture->Mipmaps.push_back(std::move(lmmip));
 	return lmtexture;
@@ -1314,6 +1316,12 @@ void Engine::LoadMap(const std::string& packageName)
 	LevelSummary = package->GetUObject("LevelSummary", "LevelSummary");
 	LevelInfo = package->GetUObject("LevelInfo", "LevelInfo0");
 	level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
+
+	for (UActor* actor : level->Actors)
+	{
+		if (actor)
+			actor->CopyProperties();
+	}
 
 	std::set<UActor*> lightset;
 	for (UActor* light : level->Model->Lights)

@@ -23,9 +23,11 @@ public:
 class UFont : public UObject
 {
 public:
-	UFont(ObjectStream* stream);
+	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
 
 	FontCharacter GetGlyph(char c) const;
 
 	std::vector<FontPage> pages;
+	int charactersPerPage;
 };

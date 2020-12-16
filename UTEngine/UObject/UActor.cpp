@@ -6,7 +6,7 @@
 #include "ULevel.h"
 #include "UClass.h"
 
-UActor::UActor(ObjectStream* stream) : UObject(stream)
+void UActor::CopyProperties()
 {
 	if (HasScalar("Location")) Location = GetScalar("Location").ValueVector;
 	if (HasScalar("Rotation")) Rotation = GetScalar("Rotation").ValueRotator;
