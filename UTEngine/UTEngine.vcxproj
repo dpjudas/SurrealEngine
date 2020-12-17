@@ -775,6 +775,7 @@
     <ClCompile Include="VM\Bytecode.cpp" />
     <ClCompile Include="VM\ExpressionEvaluator.cpp" />
     <ClCompile Include="VM\Frame.cpp" />
+    <ClCompile Include="VM\NativeFunc.cpp" />
     <ClCompile Include="VM\NativeFuncExtractor.cpp" />
   </ItemGroup>
   <ItemGroup>

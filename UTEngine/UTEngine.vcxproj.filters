@@ -502,6 +502,9 @@
     <ClCompile Include="Native\NZoneInfo.cpp">
       <Filter>Native</Filter>
     </ClCompile>
+    <ClCompile Include="VM\NativeFunc.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">

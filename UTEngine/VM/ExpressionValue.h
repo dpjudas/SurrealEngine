@@ -16,7 +16,8 @@ enum class ExpressionValueType
 	ValueVector,
 	ValueRotator,
 	ValueString,
-	ValueName
+	ValueName,
+	ValueColor
 };
 
 class ExpressionValue
@@ -32,6 +33,7 @@ public:
 		UObject* Object;
 		vec3 Vector;
 		Rotator Rotator;
+		Color Color;
 	} Value;
 	std::string ValueString;
 
@@ -47,6 +49,41 @@ public:
 	Rotator ToRotator() const;
 	std::string ToString() const;
 	std::string ToName() const;
+
+	template<typename T> T ToType();
+
+	// Pass by value
+	template<> uint8_t ToType() { return Value.Byte; }
+	template<> int32_t ToType() { return Value.Int; }
+	template<> bool ToType() { return Value.Bool; }
+	template<> float ToType() { return Value.Float; }
+	template<> UObject* ToType() { return Value.Object; }
+	template<> const vec3& ToType() { return Value.Vector; }
+	template<> const Rotator& ToType() { return Value.Rotator; }
+	template<> const std::string& ToType() { return ValueString; }
+	template<> const Color& ToType() { return Value.Color; }
+
+	// Pass by reference (To do: this needs to use the variable)
+	template<> uint8_t& ToType() { return Value.Byte; }
+	template<> int32_t& ToType() { return Value.Int; }
+	template<> bool& ToType() { return Value.Bool; }
+	template<> float& ToType() { return Value.Float; }
+	template<> UObject*& ToType() { return Value.Object; }
+	template<> vec3& ToType() { return Value.Vector; }
+	template<> Rotator& ToType() { return Value.Rotator; }
+	template<> std::string& ToType() { return ValueString; }
+	template<> Color& ToType() { return Value.Color; }
+
+	// Optional arguments
+	template<> uint8_t* ToType() { return &Value.Byte; }
+	template<> int32_t* ToType() { return &Value.Int; }
+	template<> bool* ToType() { return &Value.Bool; }
+	template<> float* ToType() { return &Value.Float; }
+	template<> UObject** ToType() { return &Value.Object; }
+	template<> vec3* ToType() { return &Value.Vector; }
+	template<> Rotator* ToType() { return &Value.Rotator; }
+	template<> std::string* ToType() { return &ValueString; }
+	template<> Color* ToType() { return &Value.Color; }
 
 	static ExpressionValue NothingValue() { ExpressionValue v; v.Type = ExpressionValueType::Nothing; return v; }
 	static ExpressionValue ByteValue(uint8_t value) { ExpressionValue v; v.Type = ExpressionValueType::ValueByte; v.Value.Byte = value; return v; }

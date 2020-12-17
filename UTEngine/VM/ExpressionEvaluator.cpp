@@ -4,6 +4,7 @@
 #include "Expression.h"
 #include "Bytecode.h"
 #include "Frame.h"
+#include "NativeFunc.h"
 
 ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self)
 {
@@ -87,6 +88,8 @@ void ExpressionEvaluator::Expr(GotoLabelExpression* expr)
 
 void ExpressionEvaluator::Expr(EatStringExpression* expr)
 {
+	Eval(expr->Value, Self);
+	Result.Value = ExpressionValue::NothingValue();
 }
 
 void ExpressionEvaluator::Expr(LetExpression* expr)
@@ -115,6 +118,7 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x15Expression* expr)
 {
+	throw std::runtime_error("Unknown0x15 expression encountered");
 }
 
 void ExpressionEvaluator::Expr(SelfExpression* expr)
@@ -411,16 +415,60 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
+	for (UClass* cls = Self->Base; cls != nullptr; cls = cls->Base)
+	{
+		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		{
+			UFunction* func = UObject::TryCast<UFunction>(field);
+			if (func && func->Name == expr->Name)
+			{
+				Call(func, expr->Args);
+				return;
+			}
+		}
+	}
+	throw std::runtime_error("Script virtual function " + expr->Name + " not found!");
 }
 
 void ExpressionEvaluator::Expr(FinalFunctionExpression* expr)
 {
+	Call(expr->Func, expr->Args);
 }
 
 void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 {
+	// Non-final static functions are VirtualFunctionExpression and final static functions are FinalFunctionExpression, so what is a global function?
+	throw std::runtime_error("Script global function expression not implemented");
 }
 
 void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 {
+	std::vector<ExpressionValue> args;
+	args.reserve(expr->Args.size());
+	for (Expression* arg : expr->Args) args.push_back(Eval(arg, Self).Value);
+
+	NativeFunctions::NativeByIndex[expr->nativeindex](Self, args.data());
+}
+
+void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& exprArgs)
+{
+	std::vector<ExpressionValue> args;
+	args.reserve(exprArgs.size());
+	for (Expression* arg : exprArgs) args.push_back(Eval(arg, Self).Value);
+
+	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
+	{
+		if (func->NativeFuncIndex != 0)
+		{
+			NativeFunctions::NativeByIndex[func->NativeFuncIndex](Self, args.data());
+		}
+		else
+		{
+			NativeFunctions::NativeByName[{ func->Name, func->BaseField->Name }](Self, args.data());
+		}
+	}
+	else
+	{
+		// Call script function
+	}
 }

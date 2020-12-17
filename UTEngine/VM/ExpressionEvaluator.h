@@ -3,6 +3,8 @@
 #include "ExpressionVisitor.h"
 #include "ExpressionValue.h"
 
+class UFunction;
+
 enum class StatementResult
 {
 	Next,
@@ -115,6 +117,8 @@ private:
 	void Expr(FinalFunctionExpression* expr) override;
 	void Expr(GlobalFunctionExpression* expr) override;
 	void Expr(NativeFunctionExpression* expr) override;
+
+	void Call(UFunction* func, const std::vector<Expression*>& Args);
 
 	ExpressionEvalResult Result;
 	UObject* Self = nullptr;
