@@ -286,10 +286,8 @@ void Engine::DrawScene()
 		framesDrawn = 0;
 	}
 
-	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920*4 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
-
-	if (LevelInfo->HasProperty("Title"))
-		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920*4 / 2, 1080*4 - 100, LevelInfo->GetString("Title"), TextAlignment::center);
+	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920*4 - 16 * 4, 16 * 4, std::to_string(fps) + " FPS", TextAlignment::right);
+	DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920*4 / 2, 1080*4 - 100 * 4, LevelInfo->GetString("Title"), TextAlignment::center);
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -982,7 +980,7 @@ void Engine::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4
 
 void Engine::DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
 {
-	DrawFontText(frame, font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 2, y + 2, text, alignment);
+	DrawFontText(frame, font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 2 * 4, y + 2 * 4, text, alignment);
 	DrawFontText(frame, font, color, x, y, text, alignment);
 }
 
@@ -1007,8 +1005,8 @@ void Engine::DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int
 	{
 		FontCharacter glyph = font->GetGlyph(c);
 
-		int width = glyph.USize * 2;
-		int height = glyph.VSize * 2;
+		int width = glyph.USize * 8;
+		int height = glyph.VSize * 8;
 		float StartU = (float)glyph.StartU;
 		float StartV = (float)glyph.StartV;
 		float USize = (float)glyph.USize;
@@ -1028,8 +1026,8 @@ ivec2 Engine::GetFontTextSize(UFont* font, const std::string& text)
 	{
 		FontCharacter glyph = font->GetGlyph(c);
 
-		x += glyph.USize * 2;
-		y = std::max(y, glyph.VSize * 2);
+		x += glyph.USize * 8;
+		y = std::max(y, glyph.VSize * 8);
 	}
 	return { x, y };
 }
@@ -1354,18 +1352,13 @@ void Engine::LoadMap(const std::string& packageName)
 		{
 			if (actor->Base->Name == "PlayerStart")
 			{
-				if (actor->HasProperty("Location"))
-				{
-					Camera.Location = actor->GetVector("Location");
-					Camera.Location.z += 70;
-				}
-				if (actor->HasProperty("Rotation"))
-				{
-					auto prop = actor->GetRotator("Rotation");
-					Camera.Yaw = prop.Yaw - 90.0f;
-					Camera.Pitch = prop.Pitch;
-					Camera.Roll = prop.Roll;
-				}
+				Camera.Location = actor->GetVector("Location");
+				Camera.Location.z += 70;
+
+				auto prop = actor->GetRotator("Rotation");
+				Camera.Yaw = prop.Yaw - 90.0f;
+				Camera.Pitch = prop.Pitch;
+				Camera.Roll = prop.Roll;
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")
 			{
