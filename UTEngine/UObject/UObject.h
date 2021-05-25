@@ -5,6 +5,8 @@
 
 class UObject;
 class UClass;
+class UProperty;
+class Package;
 
 enum UnrealPropertyType
 {
@@ -91,47 +93,36 @@ public:
 	std::string ValueString;
 };
 
-class UnrealProperty
+class ObjectDelayLoad
 {
 public:
-	std::string Name;
-	bool IsArray;
-	int ArrayIndex;
-	UnrealPropertyType Type;
-	UnrealPropertyValue Scalar;
+	ObjectDelayLoad(Package* package, int index, std::string objName, UClass* cls) : package(package), Index(index), ObjName(objName), Class(cls) { }
+
+	Package* package = nullptr;
+	int Index = 0;
+	std::string ObjName;
+	UClass* Class = nullptr;
 };
 
-class UnrealProperties
+class PropertyDataBlock
 {
 public:
-	bool HasScalar(const std::string& name) const
-	{
-		for (const UnrealProperty& prop : Properties)
-		{
-			if (prop.Name == name)
-				return true;
-		}
-		return false;
-	}
+	PropertyDataBlock() = default;
+	~PropertyDataBlock() { Reset(); }
 
-	const UnrealPropertyValue& GetScalar(const std::string& name)
-	{
-		for (const UnrealProperty& prop : Properties)
-		{
-			if (prop.Name == name)
-				return prop.Scalar;
-		}
-		throw std::runtime_error("Property '" + name + "' not found");
-	}
+	void ReadProperties(ObjectStream* stream, UClass* cls);
 
-	UObject* GetUObject(const std::string& name)
-	{
-		return GetScalar(name).ValueObject;
-	}
+	void* Ptr(const UProperty* prop);
+	const void* Ptr(const UProperty* prop) const;
+
+	void* Data = nullptr;
+	UClass* Class = nullptr;
 
 private:
-	std::vector<UnrealProperty> Properties;
-	friend class UObject;
+	void Reset();
+
+	PropertyDataBlock(const PropertyDataBlock&) = delete;
+	PropertyDataBlock& operator=(const PropertyDataBlock&) = delete;
 };
 
 class UObject
@@ -140,17 +131,29 @@ public:
 	UObject(std::string name, UClass* base, ObjectFlags flags);
 	virtual ~UObject() = default;
 
+	void LoadNow();
 	virtual void Load(ObjectStream* stream);
 
-	bool HasScalar(const std::string& name) const;
-	const UnrealPropertyValue& GetScalar(const std::string& name);
+	bool HasProperty(const std::string& name) const;
+	void* GetProperty(const std::string& name);
+	const void* GetProperty(const std::string& name) const;
+
+	uint8_t GetByte(const std::string& name) const;
+	uint32_t GetInt(const std::string& name) const;
+	bool GetBool(const std::string& name) const;
+	float GetFloat(const std::string& name) const;
+	vec3 GetVector(const std::string& name) const;
+	Rotator GetRotator(const std::string& name) const;
+	const std::string& GetString(const std::string& name) const;
 	UObject* GetUObject(const std::string& name);
+
+	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
 	std::string Name;
 	UClass* Base = nullptr;
 	ObjectFlags Flags = ObjectFlags::None;
 
-	UnrealProperties Properties;
+	PropertyDataBlock PropertyData;
 
 	template<typename T>
 	static T* Cast(UObject* obj)
@@ -170,6 +173,4 @@ public:
 	}
 
 	static std::string GetUClassName(UObject* obj);
-
-	void ReadProperties(ObjectStream* stream);
 };

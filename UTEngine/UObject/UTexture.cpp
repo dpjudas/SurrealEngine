@@ -6,7 +6,7 @@ void UTexture::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
 
-	if (HasScalar("Format")) Format = (TextureFormat)GetScalar("Format").ValueByte;
+	if (HasProperty("Format")) Format = (TextureFormat)GetByte("Format");
 
 	int mipsCount = stream->ReadUInt8();
 	Mipmaps.resize(mipsCount);
@@ -26,12 +26,12 @@ void UTexture::Load(ObjectStream* stream)
 	}
 
 	bool bHasComp = false;
-	if (HasScalar("HasComp")) bHasComp = GetScalar("HasComp").ValueBool;
+	if (HasProperty("HasComp")) bHasComp = GetBool("HasComp");
 
 	if (bHasComp)
 	{
 		TextureFormat compformat = TextureFormat::P8;
-		if (HasScalar("CompFormat")) Format = (TextureFormat)GetScalar("CompFormat").ValueByte;
+		if (HasProperty("CompFormat")) compformat = (TextureFormat)GetByte("CompFormat");
 
 		Format = compformat;
 
@@ -52,10 +52,10 @@ void UTexture::Load(ObjectStream* stream)
 		}
 	}
 
-	if (HasScalar("Palette")) Palette = static_cast<UPalette*>(GetUObject("Palette"));
-	if (HasScalar("DetailTexture")) DetailTexture = static_cast<UTexture*>(GetUObject("DetailTexture"));
-	if (HasScalar("MacroTexture")) MacroTexture = static_cast<UTexture*>(GetUObject("MacroTexture"));
-	if (HasScalar("DrawScale")) DrawScale = GetScalar("DrawScale").ValueFloat;
+	if (HasProperty("Palette")) Palette = static_cast<UPalette*>(GetUObject("Palette"));
+	if (HasProperty("DetailTexture")) DetailTexture = static_cast<UTexture*>(GetUObject("DetailTexture"));
+	if (HasProperty("MacroTexture")) MacroTexture = static_cast<UTexture*>(GetUObject("MacroTexture"));
+	if (HasProperty("DrawScale")) DrawScale = GetFloat("DrawScale");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -69,8 +69,8 @@ void UFractalTexture::Load(ObjectStream* stream)
 
 	int width = 128;
 	int height = 128;
-	if (HasScalar("UClamp")) width = GetScalar("UClamp").ValueInt;
-	if (HasScalar("VClamp")) height = GetScalar("VClamp").ValueInt;
+	if (HasProperty("UClamp")) width = GetInt("UClamp");
+	if (HasProperty("VClamp")) height = GetInt("VClamp");
 
 	UnrealMipmap& mipmap = Mipmaps.front();
 	mipmap.Width = width;

@@ -4,6 +4,7 @@
 #include <list>
 
 class PackageStream;
+class UObject;
 
 class PackageManager
 {
@@ -21,7 +22,7 @@ private:
 
 	void DelayLoadNow();
 
-	std::vector<std::function<void()>> delayLoads;
+	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
 	std::string basepath;

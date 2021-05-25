@@ -37,6 +37,7 @@ void UFixedArrayProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	Inner = stream->ReadObject<UProperty>();
+	Count = stream->ReadInt32();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -70,4 +71,6 @@ void UStructProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	Struct = stream->ReadObject<UStruct>();
+	if (Struct)
+		Struct->LoadNow();
 }

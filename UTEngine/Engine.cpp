@@ -53,7 +53,7 @@ void Engine::Run()
 {
 	viewport = Viewport::Create(this);
 	//viewport->OpenWindow(1800, 950, false);
-	viewport->OpenWindow(1920, 1080, true);
+	viewport->OpenWindow(1920 * 4, 1080 * 4, true);
 
 	LoadMap("DM-Liandri");
 	//LoadMap("DM-Codex");
@@ -286,10 +286,10 @@ void Engine::DrawScene()
 		framesDrawn = 0;
 	}
 
-	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
+	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920*4 - 16, 16, std::to_string(fps) + " FPS", TextAlignment::right);
 
-	if (LevelInfo->HasScalar("Title"))
-		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920 / 2, 1080 - 100, LevelInfo->GetScalar("Title").ValueString, TextAlignment::center);
+	if (LevelInfo->HasProperty("Title"))
+		DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920*4 / 2, 1080*4 - 100, LevelInfo->GetString("Title"), TextAlignment::center);
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -1354,18 +1354,17 @@ void Engine::LoadMap(const std::string& packageName)
 		{
 			if (actor->Base->Name == "PlayerStart")
 			{
-				if (actor->HasScalar("Location"))
+				if (actor->HasProperty("Location"))
 				{
-					auto prop = actor->GetScalar("Location");
-					Camera.Location = prop.ValueVector;
+					Camera.Location = actor->GetVector("Location");
 					Camera.Location.z += 70;
 				}
-				if (actor->HasScalar("Rotation"))
+				if (actor->HasProperty("Rotation"))
 				{
-					auto prop = actor->GetScalar("Rotation");
-					Camera.Yaw = prop.ValueRotator.Yaw - 90.0f;
-					Camera.Pitch = prop.ValueRotator.Pitch;
-					Camera.Roll = prop.ValueRotator.Roll;
+					auto prop = actor->GetRotator("Rotation");
+					Camera.Yaw = prop.Yaw - 90.0f;
+					Camera.Pitch = prop.Pitch;
+					Camera.Roll = prop.Roll;
 				}
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")
@@ -1376,7 +1375,7 @@ void Engine::LoadMap(const std::string& packageName)
 	}
 
 #if 0
-	if (LevelInfo->HasScalar("Song"))
+	if (LevelInfo->HasProperty("Song"))
 	{
 		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
 		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));

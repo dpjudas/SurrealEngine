@@ -4,6 +4,7 @@
 
 class UTextBuffer;
 class UStruct;
+class UProperty;
 enum class ExprToken : uint8_t;
 
 class UField : public UObject
@@ -46,6 +47,9 @@ public:
 	uint32_t Line = 0;
 	uint32_t TextPos = 0;
 	std::vector<uint8_t> Bytecode;
+
+	size_t StructSize = 0;
+	std::map<std::string, UProperty*> Properties;
 
 private:
 	ExprToken ReadToken(ObjectStream* stream, int depth);

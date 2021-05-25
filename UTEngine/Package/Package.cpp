@@ -134,12 +134,8 @@ void Package::LoadExportObject(int index)
 			{
 				it->second(this, index, objname, objclass);
 
-				Packages->delayLoads.push_back([=]()
-				{
-					auto stream = OpenObjectStream(index, objname, objclass);
-					Objects[index]->Load(stream.get());
-					// stream->ThrowIfNotEnd(); // We can't do this since Font seems to have some unused unknown bytes at the end
-				});
+				Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
+				Packages->delayLoads.push_back(Objects[index].get());
 
 				return;
 			}
@@ -152,21 +148,9 @@ void Package::LoadExportObject(int index)
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
 		NativeClasses[GetNameKey("Class")](this, index, objname, objbase);
 
-		Packages->delayLoads.push_back([=]()
-		{
-			auto stream = OpenObjectStream(index, objname, objbase);
-			if (!stream->IsEmptyStream())
-			{
-				Objects[index]->Load(stream.get());
-				stream->ThrowIfNotEnd();
-			}
-		});
+		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
+		Packages->delayLoads.push_back(Objects[index].get());
 	}
-}
-
-void Package::PushDelayLoad(std::function<void()> delayLoad)
-{
-	Packages->delayLoads.push_back(std::move(delayLoad));
 }
 
 UObject* Package::GetUObject(int objref)

@@ -38,8 +38,6 @@ private:
 	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const std::string& name, UClass* base);
 	void LoadExportObject(int index);
 
-	void PushDelayLoad(std::function<void()> delayLoad);
-
 	template<typename T>
 	void RegisterNativeClass(const std::string& name)
 	{
@@ -94,6 +92,7 @@ private:
 	Package& operator=(const Package&) = delete;
 
 	friend class PackageManager;
+	friend class UObject;
 };
 
 class NameTableEntry

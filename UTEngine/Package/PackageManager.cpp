@@ -4,6 +4,7 @@
 #include "Package.h"
 #include "PackageStream.h"
 #include "File.h"
+#include "UObject/UObject.h"
 
 PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
 {
@@ -101,8 +102,8 @@ void PackageManager::DelayLoadNow()
 	{
 		SetDelayLoadActive delayload(this);
 
-		auto func = delayLoads.back();
+		UObject* obj = delayLoads.back();
 		delayLoads.pop_back();
-		func();
+		obj->LoadNow();
 	}
 }

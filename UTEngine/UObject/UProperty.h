@@ -39,10 +39,18 @@ public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
 
+	virtual size_t Alignment() { return 4; }
+	virtual size_t Size() { return 4; }
+	virtual void Construct(void* data) { memset(data, 0, Size()); }
+	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
+	virtual void Destruct(void* data) { }
+
 	uint32_t ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
 	std::string Category;
 	uint16_t ReplicationOffset = 0;
+
+	size_t DataOffset = 0;
 };
 
 class UByteProperty : public UProperty
@@ -59,6 +67,8 @@ class UObjectProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(void*); }
 
 	UClass* ObjectClass = nullptr;
 };
@@ -68,8 +78,46 @@ class UFixedArrayProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	size_t Alignment() override { return Inner->Alignment(); }
+	size_t Size() override { return Inner->Size() * Count; }
+
+	void Construct(void* data) override
+	{
+		uint8_t* p = static_cast<uint8_t*>(data);
+		size_t s = Inner->Size();
+		for (int i = 0; i < Count; i++)
+		{
+			Inner->Construct(p);
+			p += s;
+		}
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		uint8_t* p = static_cast<uint8_t*>(data);
+		uint8_t* sp = static_cast<uint8_t*>(src);
+		size_t s = Inner->Size();
+		for (int i = 0; i < Count; i++)
+		{
+			Inner->CopyConstruct(p, sp);
+			p += s;
+			sp += s;
+		}
+	}
+
+	void Destruct(void* data) override
+	{
+		uint8_t* p = static_cast<uint8_t*>(data);
+		size_t s = Inner->Size();
+		for (int i = 0; i < Count; i++)
+		{
+			Inner->Destruct(p);
+			p += s;
+		}
+	}
 
 	UProperty* Inner = nullptr;
+	int Count = 0;
 };
 
 class UArrayProperty : public UProperty
@@ -77,6 +125,38 @@ class UArrayProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(std::vector<void*>); }
+
+	void Construct(void* data) override
+	{
+		new(data) std::vector<void*>();
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		auto& srcvec = *static_cast<std::vector<void*>*>(src);
+		new(data) std::vector<void*>();
+		auto& vec = *static_cast<std::vector<void*>*>(data);
+		size_t s = (Inner->Size() + 7) / 8;
+		for (auto& sp : srcvec)
+		{
+			int64_t* d = new int64_t(s);
+			Inner->CopyConstruct(d, sp);
+			vec.push_back(d);
+		}
+	}
+
+	void Destruct(void* data) override
+	{
+		auto& vec = *static_cast<std::vector<void*>*>(data);
+		for (void* d : vec)
+		{
+			Inner->Destruct(d);
+			delete[] (int64_t*)d;
+		}
+		vec.~vector();
+	}
 
 	UProperty* Inner = nullptr;
 };
@@ -86,6 +166,43 @@ class UMapProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(std::map<void*,void*>); }
+
+	void Construct(void* data) override
+	{
+		new(data) std::map<void*, void*>();
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		auto& srcmap = *static_cast<std::map<void*, void*>*>(src);
+		new(data) std::vector<void*>();
+		auto& map = *static_cast<std::map<void*, void*>*>(data);
+		size_t sk = (Key->Size() + 7) / 8;
+		size_t sv = (Value->Size() + 7) / 8;
+		for (auto& sp : srcmap)
+		{
+			int64_t* dk = new int64_t(sk);
+			int64_t* dv = new int64_t(sv);
+			Key->CopyConstruct(dk, sp.first);
+			Key->CopyConstruct(dv, sp.second);
+			map[dk] = dv;
+		}
+	}
+
+	void Destruct(void* data) override
+	{
+		auto& map = *static_cast<std::map<void*, void*>*>(data);
+		for (auto& it : map)
+		{
+			Key->Destruct(it.first);
+			Key->Destruct(it.second);
+			delete[](int64_t*)it.first;
+			delete[](int64_t*)it.second;
+		}
+		map.~map();
+	}
 
 	UProperty* Key = nullptr;
 	UProperty* Value = nullptr;
@@ -96,6 +213,8 @@ class UClassProperty : public UObjectProperty
 public:
 	using UObjectProperty::UObjectProperty;
 	void Load(ObjectStream* stream) override;
+	//size_t Alignment() override { return sizeof(void*); }
+	//size_t Size() override { return MetaClass->StructSize; }
 
 	UClass* MetaClass = nullptr;
 };
@@ -105,6 +224,8 @@ class UStructProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return Struct ? Struct->StructSize : 0; }
 
 	UStruct* Struct = nullptr;
 };
@@ -131,16 +252,73 @@ class UNameProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(std::string); }
+
+	void Construct(void* data) override
+	{
+		new(data) std::string();
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		new(data) std::string(*(std::string*)src);
+	}
+
+	void Destruct(void* data) override
+	{
+		auto& str = *static_cast<std::string*>(data);
+		str.~basic_string();
+	}
 };
 
 class UStrProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(std::string); }
+
+	void Construct(void* data) override
+	{
+		new(data) std::string();
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		new(data) std::string(*(std::string*)src);
+	}
+
+	void Destruct(void* data) override
+	{
+		auto& str = *static_cast<std::string*>(data);
+		str.~basic_string();
+	}
 };
 
 class UStringProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	size_t Alignment() override { return sizeof(void*); }
+	size_t Size() override { return sizeof(std::string); }
+
+	void Construct(void* data) override
+	{
+		new(data) std::string();
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		new(data) std::string(*(std::string*)src);
+	}
+
+	void Destruct(void* data) override
+	{
+		auto& str = *static_cast<std::string*>(data);
+		str.~basic_string();
+	}
 };

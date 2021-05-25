@@ -36,6 +36,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
 	try
 	{
+		SetProcessDPIAware();
 		InitCommonControls();
 		appMain();
 		return 0;

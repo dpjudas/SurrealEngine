@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UClass.h"
 #include "UTextBuffer.h"
+#include "UProperty.h"
 
 void UField::Load(ObjectStream* stream)
 {
@@ -49,6 +50,42 @@ void UStruct::Load(ObjectStream* stream)
 	}
 	if (Bytecode.size() != ScriptSize)
 		throw std::runtime_error("Bytecode load failed");
+
+	size_t offset = 0;
+	if (Base)
+	{
+		Properties = Base->Properties;
+		offset = Base->StructSize;
+	}
+	UField* child = Children;
+	while (child)
+	{
+		child->LoadNow();
+
+		UProperty* prop = dynamic_cast<UProperty*>(child);
+		if (prop)
+		{
+			Properties[prop->Name] = prop;
+
+#ifdef _DEBUG
+			offset += 8;
+#endif
+
+			size_t alignment = prop->Alignment();
+			size_t size = prop->Size();
+			prop->DataOffset = (offset + alignment - 1) / alignment * alignment;
+			offset = prop->DataOffset + size;
+
+#ifdef _DEBUG
+			offset += 8;
+#endif
+		}
+
+		child = child->Next;
+	}
+
+	size_t alignment = sizeof(void*);
+	StructSize = (offset + alignment - 1) / alignment * alignment;
 }
 
 ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
@@ -259,5 +296,5 @@ void UClass::Load(ObjectStream* stream)
 		ClassConfigName = stream->ReadName();
 	}
 
-	ReadProperties(stream);
+	PropertyData.ReadProperties(stream, this);
 }
