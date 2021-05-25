@@ -46,6 +46,15 @@ enum UnrealUPropertyStruct
 	UPS_PointRegion
 };
 
+struct PropertyHeader
+{
+	UnrealPropertyType type;
+	int arrayIndex = 0;
+	bool boolValue = false;
+	std::string structName;
+	int size = 0;
+};
+
 enum UnrealSheerAxis
 {
 	SHEER_None = 0,

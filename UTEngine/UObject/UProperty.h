@@ -2,6 +2,8 @@
 
 #include "UClass.h"
 
+struct PropertyHeader;
+
 enum class PropertyFlags : uint32_t
 {
 	Edit = 0x00000001, // Property is user - settable in the editor.
@@ -39,11 +41,15 @@ public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
 
+	virtual void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header);
+
 	virtual size_t Alignment() { return 4; }
 	virtual size_t Size() { return 4; }
 	virtual void Construct(void* data) { memset(data, 0, Size()); }
 	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
 	virtual void Destruct(void* data) { }
+
+	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
 	uint32_t ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
@@ -58,6 +64,7 @@ class UByteProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, other for a reference to the Enum type object
 };
@@ -67,6 +74,7 @@ class UObjectProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(void*); }
 
@@ -78,6 +86,7 @@ class UFixedArrayProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return Inner->Alignment(); }
 	size_t Size() override { return Inner->Size() * Count; }
 
@@ -125,6 +134,7 @@ class UArrayProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(std::vector<void*>); }
 
@@ -166,6 +176,7 @@ class UMapProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(std::map<void*,void*>); }
 
@@ -213,8 +224,6 @@ class UClassProperty : public UObjectProperty
 public:
 	using UObjectProperty::UObjectProperty;
 	void Load(ObjectStream* stream) override;
-	//size_t Alignment() override { return sizeof(void*); }
-	//size_t Size() override { return MetaClass->StructSize; }
 
 	UClass* MetaClass = nullptr;
 };
@@ -224,6 +233,8 @@ class UStructProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return Struct ? Struct->StructSize : 0; }
 
@@ -234,24 +245,29 @@ class UIntProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 };
 
 class UBoolProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 };
 
 class UFloatProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 };
 
 class UNameProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(std::string); }
@@ -278,6 +294,8 @@ class UStrProperty : public UProperty
 public:
 	using UProperty::UProperty;
 
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(std::string); }
 
@@ -302,6 +320,8 @@ class UStringProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t Size() override { return sizeof(std::string); }
