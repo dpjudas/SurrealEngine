@@ -9,7 +9,7 @@ void Frame::Run()
 	if (Code->Statements.size() != StatementIndex)
 	{
 		ExpressionEvaluator evaluator;
-		ExpressionEvalResult result = evaluator.Eval(Code->Statements[StatementIndex], Object);
+		ExpressionEvalResult result = evaluator.Eval(Code->Statements[StatementIndex], Object, nullptr);
 		switch (result.Result)
 		{
 		case StatementResult::Next:

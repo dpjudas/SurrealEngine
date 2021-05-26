@@ -6,10 +6,11 @@
 #include "Frame.h"
 #include "NativeFunc.h"
 
-ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self)
+ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, void* localVariables)
 {
 	ExpressionEvaluator evaluator;
 	evaluator.Self = self;
+	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
 	return evaluator.Result;
 }
@@ -21,7 +22,7 @@ void ExpressionEvaluator::Expr(LocalVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(Self, expr->Variable);
+	Result.Value = ExpressionValue::Variable(Self->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
@@ -31,7 +32,7 @@ void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
 {
-	Result.Value = Eval(expr->Value, Self).Value;
+	Result.Value = Eval(expr->Value).Value;
 	Result.Result = StatementResult::Return;
 }
 
@@ -47,7 +48,7 @@ void ExpressionEvaluator::Expr(JumpExpression* expr)
 
 void ExpressionEvaluator::Expr(JumpIfNotExpression* expr)
 {
-	if (!Eval(expr->Condition, Self).Value.ToBool())
+	if (!Eval(expr->Condition).Value.ToBool())
 	{
 		Result.Result = StatementResult::Jump;
 		Result.JumpAddress = expr->Offset;
@@ -61,7 +62,7 @@ void ExpressionEvaluator::Expr(StopExpression* expr)
 
 void ExpressionEvaluator::Expr(AssertExpression* expr)
 {
-	if (!Eval(expr->Condition, Self).Value.ToBool())
+	if (!Eval(expr->Condition).Value.ToBool())
 	{
 		throw std::runtime_error("Script assert failed for " + Self->Name + " line " + std::to_string(expr->Line));
 	}
@@ -83,12 +84,12 @@ void ExpressionEvaluator::Expr(LabelTableExpression* expr)
 void ExpressionEvaluator::Expr(GotoLabelExpression* expr)
 {
 	Result.Result = StatementResult::GotoLabel;
-	Result.Label = Eval(expr->Value, Self).Value.ToName();
+	Result.Label = Eval(expr->Value).Value.ToName();
 }
 
 void ExpressionEvaluator::Expr(EatStringExpression* expr)
 {
-	Eval(expr->Value, Self);
+	Eval(expr->Value);
 	Result.Value = ExpressionValue::NothingValue();
 }
 
@@ -259,62 +260,62 @@ void ExpressionEvaluator::Expr(RotatorToVectorExpression* expr)
 
 void ExpressionEvaluator::Expr(ByteToIntExpression* expr)
 {
-	Result.Value = ExpressionValue::IntValue(Eval(expr->Value, Self).Value.ToByte());
+	Result.Value = ExpressionValue::IntValue(Eval(expr->Value).Value.ToByte());
 }
 
 void ExpressionEvaluator::Expr(ByteToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToByte() != 0);
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToByte() != 0);
 }
 
 void ExpressionEvaluator::Expr(ByteToFloatExpression* expr)
 {
-	Result.Value = ExpressionValue::FloatValue(Eval(expr->Value, Self).Value.ToByte());
+	Result.Value = ExpressionValue::FloatValue(Eval(expr->Value).Value.ToByte());
 }
 
 void ExpressionEvaluator::Expr(IntToByteExpression* expr)
 {
-	Result.Value = ExpressionValue::ByteValue(Eval(expr->Value, Self).Value.ToInt());
+	Result.Value = ExpressionValue::ByteValue(Eval(expr->Value).Value.ToInt());
 }
 
 void ExpressionEvaluator::Expr(IntToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToInt());
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToInt());
 }
 
 void ExpressionEvaluator::Expr(IntToFloatExpression* expr)
 {
-	Result.Value = ExpressionValue::FloatValue((float)Eval(expr->Value, Self).Value.ToInt());
+	Result.Value = ExpressionValue::FloatValue((float)Eval(expr->Value).Value.ToInt());
 }
 
 void ExpressionEvaluator::Expr(BoolToByteExpression* expr)
 {
-	Result.Value = ExpressionValue::ByteValue(Eval(expr->Value, Self).Value.ToBool());
+	Result.Value = ExpressionValue::ByteValue(Eval(expr->Value).Value.ToBool());
 }
 
 void ExpressionEvaluator::Expr(BoolToIntExpression* expr)
 {
-	Result.Value = ExpressionValue::IntValue(Eval(expr->Value, Self).Value.ToBool());
+	Result.Value = ExpressionValue::IntValue(Eval(expr->Value).Value.ToBool());
 }
 
 void ExpressionEvaluator::Expr(BoolToFloatExpression* expr)
 {
-	Result.Value = ExpressionValue::FloatValue(Eval(expr->Value, Self).Value.ToBool());
+	Result.Value = ExpressionValue::FloatValue(Eval(expr->Value).Value.ToBool());
 }
 
 void ExpressionEvaluator::Expr(FloatToByteExpression* expr)
 {
-	Result.Value = ExpressionValue::ByteValue((int)Eval(expr->Value, Self).Value.ToFloat());
+	Result.Value = ExpressionValue::ByteValue((int)Eval(expr->Value).Value.ToFloat());
 }
 
 void ExpressionEvaluator::Expr(FloatToIntExpression* expr)
 {
-	Result.Value = ExpressionValue::IntValue((int)Eval(expr->Value, Self).Value.ToFloat());
+	Result.Value = ExpressionValue::IntValue((int)Eval(expr->Value).Value.ToFloat());
 }
 
 void ExpressionEvaluator::Expr(FloatToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue((bool)Eval(expr->Value, Self).Value.ToFloat());
+	Result.Value = ExpressionValue::BoolValue((bool)Eval(expr->Value).Value.ToFloat());
 }
 
 void ExpressionEvaluator::Expr(Unknown0x46Expression* expr)
@@ -324,32 +325,32 @@ void ExpressionEvaluator::Expr(Unknown0x46Expression* expr)
 
 void ExpressionEvaluator::Expr(ObjectToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToObject() != nullptr);
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToObject() != nullptr);
 }
 
 void ExpressionEvaluator::Expr(NameToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToName() != "None");
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToName() != "None");
 }
 
 void ExpressionEvaluator::Expr(StringToByteExpression* expr)
 {
-	Result.Value = ExpressionValue::ByteValue(std::atoi(Eval(expr->Value, Self).Value.ToString().c_str()));
+	Result.Value = ExpressionValue::ByteValue(std::atoi(Eval(expr->Value).Value.ToString().c_str()));
 }
 
 void ExpressionEvaluator::Expr(StringToIntExpression* expr)
 {
-	Result.Value = ExpressionValue::IntValue(std::atoi(Eval(expr->Value, Self).Value.ToString().c_str()));
+	Result.Value = ExpressionValue::IntValue(std::atoi(Eval(expr->Value).Value.ToString().c_str()));
 }
 
 void ExpressionEvaluator::Expr(StringToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(std::atoi(Eval(expr->Value, Self).Value.ToString().c_str()));
+	Result.Value = ExpressionValue::BoolValue(std::atoi(Eval(expr->Value).Value.ToString().c_str()));
 }
 
 void ExpressionEvaluator::Expr(StringToFloatExpression* expr)
 {
-	Result.Value = ExpressionValue::FloatValue((float)std::atof(Eval(expr->Value, Self).Value.ToString().c_str()));
+	Result.Value = ExpressionValue::FloatValue((float)std::atof(Eval(expr->Value).Value.ToString().c_str()));
 }
 
 void ExpressionEvaluator::Expr(StringToVectorExpression* expr)
@@ -362,38 +363,38 @@ void ExpressionEvaluator::Expr(StringToRotatorExpression* expr)
 
 void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToVector() != vec3(0.0f));
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToVector() != vec3(0.0f));
 }
 
 void ExpressionEvaluator::Expr(VectorToRotatorExpression* expr)
 {
-	vec3 v = Eval(expr->Value, Self).Value.ToVector();
+	vec3 v = Eval(expr->Value).Value.ToVector();
 	Result.Value = ExpressionValue::RotatorValue({ v.x, v.y, v.z });
 }
 
 void ExpressionEvaluator::Expr(RotatorToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value, Self).Value.ToRotator() != Rotator(0.0f, 0.0f, 0.0f));
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToRotator() != Rotator(0.0f, 0.0f, 0.0f));
 }
 
 void ExpressionEvaluator::Expr(ByteToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value, Self).Value.ToByte()));
+	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value).Value.ToByte()));
 }
 
 void ExpressionEvaluator::Expr(IntToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value, Self).Value.ToInt()));
+	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value).Value.ToInt()));
 }
 
 void ExpressionEvaluator::Expr(BoolToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value, Self).Value.ToBool()));
+	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value).Value.ToBool()));
 }
 
 void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value, Self).Value.ToFloat()));
+	Result.Value = ExpressionValue::StringValue(std::to_string(Eval(expr->Value).Value.ToFloat()));
 }
 
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
@@ -402,7 +403,7 @@ void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(Eval(expr->Value, Self).Value.ToName());
+	Result.Value = ExpressionValue::StringValue(Eval(expr->Value).Value.ToName());
 }
 
 void ExpressionEvaluator::Expr(VectorToStringExpression* expr)
@@ -445,7 +446,7 @@ void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 {
 	std::vector<ExpressionValue> args;
 	args.reserve(expr->Args.size());
-	for (Expression* arg : expr->Args) args.push_back(Eval(arg, Self).Value);
+	for (Expression* arg : expr->Args) args.push_back(Eval(arg).Value);
 
 	NativeFunctions::NativeByIndex[expr->nativeindex](Self, args.data());
 }
@@ -454,7 +455,7 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 {
 	std::vector<ExpressionValue> args;
 	args.reserve(exprArgs.size());
-	for (Expression* arg : exprArgs) args.push_back(Eval(arg, Self).Value);
+	for (Expression* arg : exprArgs) args.push_back(Eval(arg).Value);
 
 	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
 	{
