@@ -39,6 +39,7 @@ public:
 	std::string ValueString;
 
 	void* VariablePtr = nullptr;
+	UProperty* VariableProperty = nullptr;
 
 	uint8_t ToByte() const;
 	int32_t ToInt() const;
@@ -65,15 +66,15 @@ public:
 	template<> const Color& ToType() { return ToColor(); }
 
 	// Pass by reference
-	template<> uint8_t& ToType() { return *static_cast<uint8_t*>(VariablePtr); }
-	template<> int32_t& ToType() { return *static_cast<int32_t*>(VariablePtr); }
-	template<> bool& ToType() { return *static_cast<bool*>(VariablePtr); }
-	template<> float& ToType() { return *static_cast<float*>(VariablePtr); }
-	template<> UObject*& ToType() { return *static_cast<UObject**>(VariablePtr); }
-	template<> vec3& ToType() { return *static_cast<vec3*>(VariablePtr); }
-	template<> Rotator& ToType() { return *static_cast<Rotator*>(VariablePtr); }
-	template<> std::string& ToType() { return *static_cast<std::string*>(VariablePtr); }
-	template<> Color& ToType() { return *static_cast<Color*>(VariablePtr); }
+	template<> uint8_t& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Byte : *static_cast<uint8_t*>(VariablePtr); }
+	template<> int32_t& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Int : *static_cast<int32_t*>(VariablePtr); }
+	template<> bool& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Bool : *static_cast<bool*>(VariablePtr); }
+	template<> float& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Float : *static_cast<float*>(VariablePtr); }
+	template<> UObject*& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Object : *static_cast<UObject**>(VariablePtr); }
+	template<> vec3& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Vector : *static_cast<vec3*>(VariablePtr); }
+	template<> Rotator& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Rotator : *static_cast<Rotator*>(VariablePtr); }
+	template<> std::string& ToType() { return (Type != ExpressionValueType::Variable) ? ValueString : *static_cast<std::string*>(VariablePtr); }
+	template<> Color& ToType() { return (Type != ExpressionValueType::Variable) ? Value.Color : *static_cast<Color*>(VariablePtr); }
 
 	// Optional arguments
 	template<> uint8_t* ToType() { return &Value.Byte; }
@@ -102,6 +103,7 @@ public:
 		ExpressionValue v;
 		v.Type = ExpressionValueType::Variable;
 		v.VariablePtr = static_cast<uint8_t*>(data) + property->DataOffset;
+		v.VariableProperty = property;
 		return v;
 	}
 };

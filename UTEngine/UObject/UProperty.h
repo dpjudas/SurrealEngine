@@ -47,6 +47,14 @@ public:
 	virtual size_t Size() { return 4; }
 	virtual void Construct(void* data) { memset(data, 0, Size()); }
 	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
+	virtual void CopyValue(void* data, void* src)
+	{
+		if (data != src)
+		{
+			Destruct(data);
+			CopyConstruct(data, src);
+		}
+	}
 	virtual void Destruct(void* data) { }
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);

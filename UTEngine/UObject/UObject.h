@@ -103,7 +103,8 @@ public:
 	PropertyDataBlock() = default;
 	~PropertyDataBlock() { Reset(); }
 
-	void ReadProperties(ObjectStream* stream, UClass* cls);
+	void Init(UClass* cls);
+	void ReadProperties(ObjectStream* stream);
 
 	void* Ptr(const UProperty* prop);
 	const void* Ptr(const UProperty* prop) const;

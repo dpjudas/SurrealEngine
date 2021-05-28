@@ -1,13 +1,14 @@
 #pragma once
 
+#include "ExpressionEvaluator.h"
+
 class Bytecode;
-class Expression;
 class UObject;
 
 class Frame
 {
 public:
-	void Run();
+	ExpressionEvalResult Run();
 
 	UObject* Object = nullptr;
 	Bytecode* Code = nullptr;

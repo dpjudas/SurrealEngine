@@ -39,7 +39,8 @@ void UObject::Load(ObjectStream* stream)
 
 	if (!dynamic_cast<UClass*>(this))
 	{
-		PropertyData.ReadProperties(stream, Base);
+		PropertyData.Init(Base);
+		PropertyData.ReadProperties(stream);
 	}
 }
 
@@ -140,7 +141,7 @@ void PropertyDataBlock::Reset()
 	Class = nullptr;
 }
 
-void PropertyDataBlock::ReadProperties(ObjectStream* stream, UClass* cls)
+void PropertyDataBlock::Init(UClass* cls)
 {
 	Reset();
 
@@ -171,14 +172,17 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream, UClass* cls)
 			throw std::runtime_error("Memory corruption detected!");
 #endif
 	}
+}
 
+void PropertyDataBlock::ReadProperties(ObjectStream* stream)
+{
 	while (true)
 	{
 		std::string name = stream->ReadName();
 		if (name == "None")
 			break;
 
-		UProperty* prop = cls->Properties[name];
+		UProperty* prop = Class->Properties[name];
 		if (!prop)
 			throw std::runtime_error("Unknown property " + name);
 		void* data = Ptr(prop);

@@ -3,6 +3,7 @@
 #include "UClass.h"
 #include "UTextBuffer.h"
 #include "UProperty.h"
+#include "VM/Bytecode.h"
 
 void UField::Load(ObjectStream* stream)
 {
@@ -51,6 +52,8 @@ void UStruct::Load(ObjectStream* stream)
 	if (Bytecode.size() != ScriptSize)
 		throw std::runtime_error("Bytecode load failed");
 
+	Code = std::make_shared<::Bytecode>(Bytecode, stream->GetPackage());
+
 	size_t offset = 0;
 	if (Base)
 	{
@@ -81,6 +84,15 @@ void UStruct::Load(ObjectStream* stream)
 #endif
 		}
 
+		child = child->Next;
+	}
+
+	child = Children;
+	while (child)
+	{
+		UFunction* func = dynamic_cast<UFunction*>(child);
+		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
+			func->NativeStruct = this;
 		child = child->Next;
 	}
 
@@ -296,5 +308,6 @@ void UClass::Load(ObjectStream* stream)
 		ClassConfigName = stream->ReadName();
 	}
 
-	PropertyData.ReadProperties(stream, this);
+	PropertyData.Init(this);
+	PropertyData.ReadProperties(stream);
 }

@@ -4,10 +4,13 @@
 #include "Bytecode.h"
 #include "ExpressionEvaluator.h"
 
-void Frame::Run()
+ExpressionEvalResult Frame::Run()
 {
-	if (Code->Statements.size() != StatementIndex)
+	while (true)
 	{
+		if (StatementIndex >= Code->Statements.size())
+			throw std::runtime_error("Unexpected end of code statements");
+
 		ExpressionEvaluator evaluator;
 		ExpressionEvalResult result = evaluator.Eval(Code->Statements[StatementIndex], Object, nullptr);
 		switch (result.Result)
@@ -21,7 +24,7 @@ void Frame::Run()
 		case StatementResult::LatentWait:
 		case StatementResult::Return:
 		case StatementResult::Stop:
-			return;
+			return result;
 		}
 	}
 }

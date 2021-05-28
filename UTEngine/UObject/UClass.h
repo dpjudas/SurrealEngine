@@ -6,6 +6,7 @@ class UTextBuffer;
 class UStruct;
 class UProperty;
 enum class ExprToken : uint8_t;
+class Bytecode;
 
 class UField : public UObject
 {
@@ -47,6 +48,7 @@ public:
 	uint32_t Line = 0;
 	uint32_t TextPos = 0;
 	std::vector<uint8_t> Bytecode;
+	std::shared_ptr<::Bytecode> Code;
 
 	size_t StructSize = 0;
 	std::map<std::string, UProperty*> Properties;
@@ -102,6 +104,8 @@ public:
 	int ReturnValueOffset = 0;
 	FunctionFlags FuncFlags = {};
 	uint16_t ReplicationOffset = 0;
+
+	UStruct* NativeStruct = nullptr;
 };
 
 enum class ScriptStateFlags : uint32_t

@@ -12,13 +12,14 @@
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
 #include "UObject/UClass.h"
+#include "Native/NObject.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "Viewport/Viewport.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
-#include "VM/Bytecode.h"
+#include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
 #include <chrono>
 #include <set>
@@ -30,10 +31,16 @@ Engine::Engine()
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
 
 	/*
-	auto testobj = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
-	auto scriptext = testobj->ScriptText;
-	auto child = dynamic_cast<UFunction*>(testobj->Children);
-	Bytecode bytecode(child->Bytecode, packages->GetPackage("TestPackage"));
+	auto testcls = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
+	auto scriptext = testcls->ScriptText;
+	auto func = dynamic_cast<UFunction*>(testcls->Children);
+	auto testobj = new UObject("test", testcls, ObjectFlags::None);
+	testobj->PropertyData.Init(testcls);
+	NObject::RegisterFunctions();
+	Frame frame;
+	frame.Object = testobj;
+	frame.Code = func->Code.get();
+	frame.Run();
 	*/
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
