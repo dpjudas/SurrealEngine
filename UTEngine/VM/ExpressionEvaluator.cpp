@@ -17,7 +17,7 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 
 void ExpressionEvaluator::Expr(LocalVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(nullptr, expr->Variable);
+	Result.Value = ExpressionValue::Variable(LocalVariables, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
@@ -97,12 +97,11 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-
 	switch (rvalue.Type)
 	{
 	default:
-	case ExpressionValueType::Nothing: throw std::runtime_error("Unexpected rvalue type for let expression"); break;
-	case ExpressionValueType::Variable: lvalue.VariableProperty->CopyConstruct(lvalue.VariablePtr, rvalue.VariablePtr); break;
+	case ExpressionValueType::Nothing: break;
+	case ExpressionValueType::Variable: lvalue.VariableProperty->CopyValue(lvalue.VariablePtr, rvalue.VariablePtr); break;
 	case ExpressionValueType::ValueByte: *static_cast<uint8_t*>(lvalue.VariablePtr) = rvalue.Value.Byte; break;
 	case ExpressionValueType::ValueInt: *static_cast<int32_t*>(lvalue.VariablePtr) = rvalue.Value.Int; break;
 	case ExpressionValueType::ValueBool: *static_cast<bool*>(lvalue.VariablePtr) = rvalue.Value.Bool; break;
@@ -114,6 +113,7 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 	case ExpressionValueType::ValueName: *static_cast<std::string*>(lvalue.VariablePtr) = rvalue.ValueString; break;
 	case ExpressionValueType::ValueColor: *static_cast<Color*>(lvalue.VariablePtr) = rvalue.Value.Color; break;
 	}
+	Result.Value = lvalue;
 }
 
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
@@ -477,70 +477,7 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 {
 	std::vector<ExpressionValue> args;
 	args.reserve(exprArgs.size());
-	for (Expression* arg : exprArgs) args.push_back(Eval(arg).Value);
-
-	int argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* prop = dynamic_cast<UProperty*>(field);
-		if (prop)
-		{
-			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
-				args.push_back(ExpressionValue::NothingValue());
-
-			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-				argindex++;
-		}
-	}
-
-	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
-	{
-		bool returnparmfound = false;
-		int argindex = 0;
-		for (UField* field = func->Children; field != nullptr; field = field->Next)
-		{
-			UProperty* prop = dynamic_cast<UProperty*>(field);
-			if (prop)
-			{
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
-				{
-					ExpressionValue retval = ExpressionValue::NothingValue();
-					if (dynamic_cast<UByteProperty*>(prop)) retval.Type = ExpressionValueType::ValueByte;
-					else if (dynamic_cast<UIntProperty*>(prop)) retval.Type = ExpressionValueType::ValueInt;
-					else if (dynamic_cast<UBoolProperty*>(prop)) retval.Type = ExpressionValueType::ValueBool;
-					else if (dynamic_cast<UFloatProperty*>(prop)) retval.Type = ExpressionValueType::ValueFloat;
-					else if (dynamic_cast<UObjectProperty*>(prop)) retval.Type = ExpressionValueType::ValueObject;
-					else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Vector") retval.Type = ExpressionValueType::ValueVector;
-					else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Rotator") retval.Type = ExpressionValueType::ValueRotator;
-					else if (dynamic_cast<UStringProperty*>(prop)) retval.Type = ExpressionValueType::ValueString;
-					else if (dynamic_cast<UStrProperty*>(prop)) retval.Type = ExpressionValueType::ValueString;
-					else if (dynamic_cast<UNameProperty*>(prop)) retval.Type = ExpressionValueType::ValueName;
-					else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Color") retval.Type = ExpressionValueType::ValueColor;
-					else throw std::runtime_error("Unknown return parm property type");
-					args.push_back(retval);
-					returnparmfound = true;
-				}
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-					argindex++;
-			}
-		}
-
-		if (func->NativeFuncIndex != 0)
-		{
-			NativeFunctions::NativeByIndex[func->NativeFuncIndex](Self, args.data());
-		}
-		else
-		{
-			NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](Self, args.data());
-		}
-
-		Result.Value = returnparmfound ? args.back() : ExpressionValue::NothingValue();
-	}
-	else
-	{
-		Frame frame;
-		frame.Object = Self;
-		frame.Code = func->Code.get();
-		Result = frame.Run();
-	}
+	for (Expression* arg : exprArgs)
+		args.push_back(Eval(arg).Value);
+	Result.Value = Frame::Call(func, Self, args);
 }

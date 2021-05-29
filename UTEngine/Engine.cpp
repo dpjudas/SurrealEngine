@@ -29,7 +29,6 @@ Engine::Engine()
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
-
 	/*
 	auto testcls = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
 	auto scriptext = testcls->ScriptText;
@@ -37,10 +36,7 @@ Engine::Engine()
 	auto testobj = new UObject("test", testcls, ObjectFlags::None);
 	testobj->PropertyData.Init(testcls);
 	NObject::RegisterFunctions();
-	Frame frame;
-	frame.Object = testobj;
-	frame.Code = func->Code.get();
-	frame.Run();
+	Frame::Call(func, testobj, {});
 	*/
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
