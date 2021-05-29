@@ -242,9 +242,9 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	else if (header.structName == "Rotator")
 	{
 		auto& prop = *reinterpret_cast<Rotator*>(data);
-		prop.Pitch = stream->ReadInt32() / 65536.0f * 360.0f;
-		prop.Yaw = stream->ReadInt32() / 65536.0f * 360.0f;
-		prop.Roll = stream->ReadInt32() / 65536.0f * 360.0f;
+		prop.Pitch = stream->ReadInt32();
+		prop.Yaw = stream->ReadInt32();
+		prop.Roll = stream->ReadInt32();
 	}
 	else if (header.structName == "Box")
 	{

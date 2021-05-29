@@ -278,9 +278,9 @@ class RotationConstExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	uint32_t Pitch = 0;
-	uint32_t Yaw = 0;
-	uint32_t Roll = 0;
+	int32_t Pitch = 0;
+	int32_t Yaw = 0;
+	int32_t Roll = 0;
 };
 
 class VectorConstExpression : public Expression

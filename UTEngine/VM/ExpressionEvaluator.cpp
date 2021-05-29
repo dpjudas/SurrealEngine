@@ -202,7 +202,7 @@ void ExpressionEvaluator::Expr(NameConstExpression* expr)
 
 void ExpressionEvaluator::Expr(RotationConstExpression* expr)
 {
-	Result.Value = ExpressionValue::RotatorValue({ expr->Pitch * (360.0f / 65536.0f), expr->Yaw * (360.0f / 65536.0f), expr->Roll * (360.0f / 65536.0f) });
+	Result.Value = ExpressionValue::RotatorValue({ expr->Pitch, expr->Yaw, expr->Roll });
 }
 
 void ExpressionEvaluator::Expr(VectorConstExpression* expr)
@@ -290,19 +290,24 @@ void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 	throw std::runtime_error("Struct cmpne expression is not implemented");
 }
 
-void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
-{
-	throw std::runtime_error("Unicode string expression is not implemented");
-}
-
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 {
 	throw std::runtime_error("Struct member expression is not implemented");
 }
 
+void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
+{
+	std::string s;
+	s.reserve(expr->Value.size());
+	for (wchar_t c : expr->Value)
+		s.push_back(c < 128 ? c : '?');
+	Result.Value = ExpressionValue::StringValue(s);
+}
+
 void ExpressionEvaluator::Expr(RotatorToVectorExpression* expr)
 {
-	throw std::runtime_error("Rotator to vector expression is not implemented");
+	Rotator rot = Eval(expr->Value).Value.ToRotator();
+	Result.Value = ExpressionValue::VectorValue({ rot.Pitch * (360.0f / 0x10000), rot.Yaw * (360.0f / 0x10000), rot.Roll * (360.0f / 0x10000) });
 }
 
 void ExpressionEvaluator::Expr(ByteToIntExpression* expr)
@@ -402,12 +407,32 @@ void ExpressionEvaluator::Expr(StringToFloatExpression* expr)
 
 void ExpressionEvaluator::Expr(StringToVectorExpression* expr)
 {
-	throw std::runtime_error("String to vector expression is not implemented");
+	std::string v = Eval(expr->Value).Value.ToString();
+	auto pos1 = v.find_first_of(',');
+	auto pos2 = v.find_first_of(',', pos1 + 1);
+	if (pos1 != std::string::npos && pos2 != std::string::npos)
+	{
+		Result.Value = ExpressionValue::VectorValue({ (float)std::atof(v.substr(0, pos1).c_str()), (float)std::atof(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()), (float)std::atof(v.substr(pos2 + 1).c_str()) });
+	}
+	else
+	{
+		Result.Value = ExpressionValue::VectorValue({ 0.0f });
+	}
 }
 
 void ExpressionEvaluator::Expr(StringToRotatorExpression* expr)
 {
-	throw std::runtime_error("String to rotator expression is not implemented");
+	std::string v = Eval(expr->Value).Value.ToString();
+	auto pos1 = v.find_first_of(',');
+	auto pos2 = v.find_first_of(',', pos1 + 1);
+	if (pos1 != std::string::npos && pos2 != std::string::npos)
+	{
+		Result.Value = ExpressionValue::RotatorValue({ std::atoi(v.substr(0, pos1).c_str()), std::atoi(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()), std::atoi(v.substr(pos2 + 1).c_str()) });
+	}
+	else
+	{
+		Result.Value = ExpressionValue::RotatorValue({ 0, 0, 0 });
+	}
 }
 
 void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
@@ -418,12 +443,12 @@ void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
 void ExpressionEvaluator::Expr(VectorToRotatorExpression* expr)
 {
 	vec3 v = Eval(expr->Value).Value.ToVector();
-	Result.Value = ExpressionValue::RotatorValue({ v.x, v.y, v.z });
+	Result.Value = ExpressionValue::RotatorValue({ (int)(v.x * (0x10000 / 360.0f)), (int)(v.y * (0x10000 / 360.0f)), (int)(v.z * (0x10000 / 360.0f)) });
 }
 
 void ExpressionEvaluator::Expr(RotatorToBoolExpression* expr)
 {
-	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToRotator() != Rotator(0.0f, 0.0f, 0.0f));
+	Result.Value = ExpressionValue::BoolValue(Eval(expr->Value).Value.ToRotator() != Rotator(0, 0, 0));
 }
 
 void ExpressionEvaluator::Expr(ByteToStringExpression* expr)
@@ -448,7 +473,8 @@ void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 {
-	throw std::runtime_error("Object to string expression is not implemented");
+	UObject* obj = Eval(expr->Value).Value.ToObject();
+	Result.Value = ExpressionValue::StringValue(obj ? obj->Base->Name + "/" + obj->Name : "None");
 }
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
@@ -458,12 +484,14 @@ void ExpressionEvaluator::Expr(NameToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VectorToStringExpression* expr)
 {
-	throw std::runtime_error("Vector to string expression is not implemented");
+	vec3 v = Eval(expr->Value).Value.ToVector();
+	Result.Value = ExpressionValue::StringValue(std::to_string(v.x) + "," + std::to_string(v.y) + "," + std::to_string(v.z));
 }
 
 void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 {
-	throw std::runtime_error("Rotator to string expression is not implemented");
+	Rotator v = Eval(expr->Value).Value.ToRotator();
+	Result.Value = ExpressionValue::StringValue(std::to_string(v.Pitch & 0xffff) + "," + std::to_string(v.Yaw & 0xffff) + "," + std::to_string(v.Roll & 0xffff));
 }
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)

@@ -70,11 +70,15 @@ class Rotator
 {
 public:
 	Rotator() = default;
-	Rotator(float pitch, float yaw, float roll) : Pitch(pitch), Yaw(yaw), Roll(roll) { }
+	Rotator(int pitch, int yaw, int roll) : Pitch(pitch), Yaw(yaw), Roll(roll) { }
 
-	float Pitch;
-	float Yaw;
-	float Roll;
+	int Pitch;
+	int Yaw;
+	int Roll;
+
+	float PitchDegrees() const { return Pitch * (360.0f / 65536.0f); }
+	float YawDegrees() const { return Yaw * (360.0f / 65536.0f); }
+	float RollDegrees() const { return Roll * (360.0f / 65536.0f); }
 };
 
 class Color

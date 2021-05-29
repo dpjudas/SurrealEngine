@@ -103,15 +103,9 @@ void Engine::Tick(float timeElapsed)
 	{
 		if (actor)
 		{
-			actor->Rotation.Yaw += actor->RotationRate.Yaw * timeElapsed;
-			actor->Rotation.Pitch += actor->RotationRate.Pitch * timeElapsed;
-			actor->Rotation.Roll += actor->RotationRate.Roll * timeElapsed;
-			if (actor->Rotation.Yaw < 0.0f) actor->Rotation.Yaw += 360.0f;
-			if (actor->Rotation.Yaw >= 360.0f) actor->Rotation.Yaw -= 360.0f;
-			if (actor->Rotation.Pitch < 0.0f) actor->Rotation.Pitch += 360.0f;
-			if (actor->Rotation.Pitch >= 360.0f) actor->Rotation.Pitch -= 360.0f;
-			if (actor->Rotation.Roll < 0.0f) actor->Rotation.Roll += 360.0f;
-			if (actor->Rotation.Roll >= 360.0f) actor->Rotation.Roll -= 360.0f;
+			actor->Rotation.Yaw = (actor->Rotation.Yaw + (int)(static_cast<int16_t>(actor->RotationRate.Yaw & 0xffff) * timeElapsed)) & 0xffff;
+			actor->Rotation.Pitch = (actor->Rotation.Pitch + (int)(static_cast<int16_t>(actor->RotationRate.Pitch & 0xffff) * timeElapsed)) & 0xffff;
+			actor->Rotation.Roll = (actor->Rotation.Roll + (int)(static_cast<int16_t>(actor->RotationRate.Roll & 0xffff) * timeElapsed)) & 0xffff;
 		}
 	}
 
@@ -609,7 +603,7 @@ FSceneNode Engine::CreateSceneFrame()
 FSceneNode Engine::CreateSkyFrame()
 {
 	mat4 rotate = mat4::rotate(radians(Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 skyrotate = mat4::rotate(radians(SkyZoneInfo->Rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 skyrotate = mat4::rotate(radians(SkyZoneInfo->Rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - SkyZoneInfo->Location);
 
 	FSceneNode frame;
@@ -879,7 +873,7 @@ void Engine::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, c
 {
 	FSceneNode brushframe = *frame;
 
-	mat4 rotate = mat4::rotate(radians(rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
 	brushframe.Modelview = brushframe.Modelview * ObjectToWorld;
 
@@ -923,8 +917,8 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, cons
 		}
 	}
 
-	mat4 rotate = mat4::rotate(radians(180.0f - rotation.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.Yaw - 90.0f), 0.0f, 0.0f, -1.0f);
-	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(180.0f - rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
+	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.YawDegrees()), 0.0f, 0.0f, -1.0f);
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * drawscale) * mat4::translate(vec3(0.0f) - mesh->Origin);
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
@@ -1359,9 +1353,9 @@ void Engine::LoadMap(const std::string& packageName)
 				Camera.Location.z += 70;
 
 				auto prop = actor->GetRotator("Rotation");
-				Camera.Yaw = prop.Yaw - 90.0f;
-				Camera.Pitch = prop.Pitch;
-				Camera.Roll = prop.Roll;
+				Camera.Yaw = prop.YawDegrees() - 90.0f;
+				Camera.Pitch = prop.PitchDegrees();
+				Camera.Roll = prop.RollDegrees();
 			}
 			else if (actor->Base->Name == "SkyZoneInfo")
 			{

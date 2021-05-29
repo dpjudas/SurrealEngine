@@ -26,8 +26,8 @@ public:
 	void CopyProperties();
 
 	vec3 Location = { 0.0f };
-	Rotator Rotation = { 0.0f, 0.0f, 0.0f };
-	Rotator RotationRate = { 0.0f, 0.0f, 0.0f };
+	Rotator Rotation = { 0, 0, 0 };
+	Rotator RotationRate = { 0, 0, 0 };
 	float DrawScale = 1.0f;
 
 	int LightBrightness = 64;
