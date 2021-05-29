@@ -27,7 +27,7 @@ void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 {
-	// Result.Value = ExpressionValue::Variable(Self->DefaultObject, expr->Variable);
+	Result.Value = ExpressionValue::Variable(Self->Base->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -38,6 +38,7 @@ void ExpressionEvaluator::Expr(ReturnExpression* expr)
 
 void ExpressionEvaluator::Expr(SwitchExpression* expr)
 {
+	throw std::runtime_error("Switch expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(JumpExpression* expr)
@@ -70,6 +71,7 @@ void ExpressionEvaluator::Expr(AssertExpression* expr)
 
 void ExpressionEvaluator::Expr(CaseExpression* expr)
 {
+	throw std::runtime_error("Case expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NothingExpression* expr)
@@ -79,6 +81,7 @@ void ExpressionEvaluator::Expr(NothingExpression* expr)
 
 void ExpressionEvaluator::Expr(LabelTableExpression* expr)
 {
+	throw std::runtime_error("Label table expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(GotoLabelExpression* expr)
@@ -116,24 +119,35 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 	Result.Value = lvalue;
 }
 
+void ExpressionEvaluator::Expr(LetBoolExpression* expr)
+{
+	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
+	ExpressionValue rvalue = Eval(expr->RightSide).Value;
+	if (rvalue.Type == ExpressionValueType::Variable)
+		lvalue.VariableProperty->CopyValue(lvalue.VariablePtr, rvalue.VariablePtr);
+	else
+		*static_cast<bool*>(lvalue.VariablePtr) = rvalue.Value.Bool;
+	Result.Value = lvalue;
+}
+
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
 {
+	throw std::runtime_error("Dynamic array element expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NewExpression* expr)
 {
+	throw std::runtime_error("New expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 {
+	throw std::runtime_error("Class context expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(MetaCastExpression* expr)
 {
-}
-
-void ExpressionEvaluator::Expr(LetBoolExpression* expr)
-{
+	throw std::runtime_error("Meta cast expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(Unknown0x15Expression* expr)
@@ -148,14 +162,17 @@ void ExpressionEvaluator::Expr(SelfExpression* expr)
 
 void ExpressionEvaluator::Expr(SkipExpression* expr)
 {
+	throw std::runtime_error("Skip expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(ContextExpression* expr)
 {
+	throw std::runtime_error("Context expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 {
+	throw std::runtime_error("Array element expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IntConstExpression* expr)
@@ -220,6 +237,7 @@ void ExpressionEvaluator::Expr(FalseExpression* expr)
 
 void ExpressionEvaluator::Expr(NativeParmExpression* expr)
 {
+	throw std::runtime_error("Native parm expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NoObjectExpression* expr)
@@ -239,42 +257,52 @@ void ExpressionEvaluator::Expr(IntConstByteExpression* expr)
 
 void ExpressionEvaluator::Expr(BoolVariableExpression* expr)
 {
+	throw std::runtime_error("Bool variable expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(DynamicCastExpression* expr)
 {
+	throw std::runtime_error("Dynamic cast expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IteratorExpression* expr)
 {
+	throw std::runtime_error("Iterator expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IteratorPopExpression* expr)
 {
+	throw std::runtime_error("Iterator pop expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IteratorNextExpression* expr)
 {
+	throw std::runtime_error("Iterator next expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructCmpEqExpression* expr)
 {
+	throw std::runtime_error("Struct cmpeq expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 {
+	throw std::runtime_error("Struct cmpne expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
 {
+	throw std::runtime_error("Unicode string expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 {
+	throw std::runtime_error("Struct member expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(RotatorToVectorExpression* expr)
 {
+	throw std::runtime_error("Rotator to vector expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(ByteToIntExpression* expr)
@@ -374,10 +402,12 @@ void ExpressionEvaluator::Expr(StringToFloatExpression* expr)
 
 void ExpressionEvaluator::Expr(StringToVectorExpression* expr)
 {
+	throw std::runtime_error("String to vector expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StringToRotatorExpression* expr)
 {
+	throw std::runtime_error("String to rotator expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
@@ -418,6 +448,7 @@ void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 {
+	throw std::runtime_error("Object to string expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
@@ -427,10 +458,12 @@ void ExpressionEvaluator::Expr(NameToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VectorToStringExpression* expr)
 {
+	throw std::runtime_error("Vector to string expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 {
+	throw std::runtime_error("Rotator to string expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
