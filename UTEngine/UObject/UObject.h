@@ -87,6 +87,9 @@ public:
 	uint8_t R, G, B, A;
 };
 
+inline bool operator==(const Color& a, const Color& b) { return a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A; }
+inline bool operator!=(const Color& a, const Color& b) { return a.R != b.R || a.G != b.G || a.B != b.B || a.A != b.A; }
+
 inline bool operator==(const Rotator& a, const Rotator& b) { return a.Pitch == b.Pitch && a.Yaw == b.Yaw && a.Roll == b.Roll; }
 inline bool operator!=(const Rotator& a, const Rotator& b) { return a.Pitch != b.Pitch || a.Yaw != b.Yaw || a.Roll != b.Roll; }
 

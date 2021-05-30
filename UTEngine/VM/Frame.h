@@ -14,6 +14,7 @@ public:
 
 private:
 	ExpressionEvalResult Run();
+	void ProcessSwitch(const ExpressionValue& condition);
 
 	std::unique_ptr<uint64_t[]> Variables;
 	UObject* Object = nullptr;

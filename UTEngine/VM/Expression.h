@@ -12,6 +12,8 @@ class Expression
 public:
 	virtual ~Expression() = default;
 	virtual void Visit(ExpressionVisitor* visitor) = 0;
+
+	int StatementIndex = -1;
 };
 
 class LocalVariableExpression : public Expression

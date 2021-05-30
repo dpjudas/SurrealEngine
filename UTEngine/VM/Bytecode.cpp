@@ -8,6 +8,7 @@ Bytecode::Bytecode(const std::vector<uint8_t>& bytecode, Package* package)
 	while (!stream.IsEnd())
 	{
 		Statements.push_back(ReadToken(&stream, 0));
+		Statements.back()->StatementIndex = (int)Statements.size() - 1;
 	}
 }
 

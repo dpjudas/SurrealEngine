@@ -12,7 +12,8 @@ enum class StatementResult
 	LatentWait,
 	Return,
 	Stop,
-	GotoLabel
+	GotoLabel,
+	Switch
 };
 
 struct ExpressionEvalResult

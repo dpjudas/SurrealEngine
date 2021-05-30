@@ -38,7 +38,8 @@ void ExpressionEvaluator::Expr(ReturnExpression* expr)
 
 void ExpressionEvaluator::Expr(SwitchExpression* expr)
 {
-	throw std::runtime_error("Switch expression is not implemented");
+	Result.Value = Eval(expr->Condition).Value;
+	Result.Result = StatementResult::Switch;
 }
 
 void ExpressionEvaluator::Expr(JumpExpression* expr)
@@ -71,7 +72,7 @@ void ExpressionEvaluator::Expr(AssertExpression* expr)
 
 void ExpressionEvaluator::Expr(CaseExpression* expr)
 {
-	throw std::runtime_error("Case expression is not implemented");
+	Result.Value = ExpressionValue::NothingValue();
 }
 
 void ExpressionEvaluator::Expr(NothingExpression* expr)
@@ -524,14 +525,7 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 
 void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 {
-	std::vector<ExpressionValue> args;
-	args.reserve(expr->Args.size());
-	for (Expression* arg : expr->Args) args.push_back(Eval(arg).Value);
-
-	// To do: we need to know the UFunction so that we can handle optional and return parms
-
-	NativeFunctions::NativeByIndex[expr->nativeindex](Self, args.data());
-	Result.Value = ExpressionValue::NothingValue();
+	Call(NativeFunctions::FuncByIndex[expr->nativeindex], expr->Args);
 }
 
 void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& exprArgs)

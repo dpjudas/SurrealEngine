@@ -4,6 +4,7 @@
 #include "UTextBuffer.h"
 #include "UProperty.h"
 #include "VM/Bytecode.h"
+#include "VM/NativeFunc.h"
 
 void UField::Load(ObjectStream* stream)
 {
@@ -92,7 +93,10 @@ void UStruct::Load(ObjectStream* stream)
 	{
 		UFunction* func = dynamic_cast<UFunction*>(child);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
+		{
 			func->NativeStruct = this;
+			NativeFunctions::RegisterNativeFunc(func);
+		}
 		child = child->Next;
 	}
 

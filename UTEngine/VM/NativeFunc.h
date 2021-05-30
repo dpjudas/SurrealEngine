@@ -4,6 +4,7 @@
 #include <functional>
 
 class UObject;
+class UFunction;
 class ExpressionValue;
 
 typedef std::function<void(UObject* self, ExpressionValue* Args)> NativeFuncHandler;
@@ -11,10 +12,12 @@ typedef std::function<void(UObject* self, ExpressionValue* Args)> NativeFuncHand
 class NativeFunctions
 {
 public:
+	static std::vector<UFunction*> FuncByIndex;
 	static std::vector<NativeFuncHandler> NativeByIndex;
 	static std::map<std::pair<std::string, std::string>, NativeFuncHandler> NativeByName;
 
 	static void RegisterHandler(const std::string& className, const std::string& funcName, int nativeIndex, NativeFuncHandler handler);
+	static void RegisterNativeFunc(UFunction* func);
 };
 
 // Static native functions:

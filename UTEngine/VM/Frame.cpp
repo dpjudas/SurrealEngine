@@ -154,20 +154,80 @@ ExpressionEvalResult Frame::Run()
 		if (StatementIndex >= Code->Statements.size())
 			throw std::runtime_error("Unexpected end of code statements");
 
-		ExpressionEvaluator evaluator;
-		ExpressionEvalResult result = evaluator.Eval(Code->Statements[StatementIndex], Object, Variables.get());
+		ExpressionEvalResult result = ExpressionEvaluator::Eval(Code->Statements[StatementIndex], Object, Variables.get());
 		switch (result.Result)
 		{
 		case StatementResult::Next:
 			StatementIndex++;
 			break;
 		case StatementResult::Jump:
-//			StatementIndex = Code->FindStatementIndex(result.JumpAddress);
-//			break;
+			StatementIndex = Code->FindStatementIndex(result.JumpAddress);
+			break;
+		case StatementResult::Switch:
+			ProcessSwitch(result.Value);
+			break;
 		case StatementResult::LatentWait:
 		case StatementResult::Return:
 		case StatementResult::Stop:
+		case StatementResult::GotoLabel:
 			return result;
+		}
+	}
+}
+
+void Frame::ProcessSwitch(const ExpressionValue& condition)
+{
+	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Code->Statements[StatementIndex++]);
+	for (int i = 0; i < switchexpr->Size; i++)
+	{
+		CaseExpression* caseexpr = static_cast<CaseExpression*>(Code->Statements[StatementIndex++]);
+		if (caseexpr->Value)
+		{
+			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Variables.get()).Value;
+
+			bool matched = false;
+			if (condition.Type == ExpressionValueType::Variable)
+			{
+				auto prop = condition.VariableProperty;
+				if (dynamic_cast<UByteProperty*>(prop)) matched = condition.ToByte() == casevalue.ToByte();
+				else if (dynamic_cast<UIntProperty*>(prop)) matched = condition.ToInt() == casevalue.ToInt();
+				else if (dynamic_cast<UBoolProperty*>(prop)) matched = condition.ToBool() == casevalue.ToBool();
+				else if (dynamic_cast<UFloatProperty*>(prop)) matched = condition.ToFloat() == casevalue.ToFloat();
+				else if (dynamic_cast<UObjectProperty*>(prop)) matched = condition.ToObject() == casevalue.ToObject();
+				else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Vector") matched = condition.ToVector() == casevalue.ToVector();
+				else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Rotator") matched = condition.ToRotator() == casevalue.ToRotator();
+				else if (dynamic_cast<UStringProperty*>(prop)) matched = condition.ToString() == casevalue.ToString();
+				else if (dynamic_cast<UStrProperty*>(prop)) matched = condition.ToString() == casevalue.ToString();
+				else if (dynamic_cast<UNameProperty*>(prop)) matched = condition.ToName() == casevalue.ToName();
+				else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Color") matched = condition.ToColor() == casevalue.ToColor();
+			}
+			else
+			{
+				switch (condition.Type)
+				{
+				default:
+				case ExpressionValueType::Nothing: break;
+				case ExpressionValueType::ValueByte: matched = condition.ToByte() == casevalue.ToByte(); break;
+				case ExpressionValueType::ValueInt: matched = condition.ToInt() == casevalue.ToInt(); break;
+				case ExpressionValueType::ValueBool: matched = condition.ToBool() == casevalue.ToBool(); break;
+				case ExpressionValueType::ValueFloat: matched = condition.ToFloat() == casevalue.ToFloat(); break;
+				case ExpressionValueType::ValueObject: matched = condition.ToObject() == casevalue.ToObject(); break;
+				case ExpressionValueType::ValueVector: matched = condition.ToVector() == casevalue.ToVector(); break;
+				case ExpressionValueType::ValueRotator: matched = condition.ToRotator() == casevalue.ToRotator(); break;
+				case ExpressionValueType::ValueString: matched = condition.ToString() == casevalue.ToString(); break;
+				case ExpressionValueType::ValueName: matched = condition.ToName() == casevalue.ToName(); break;
+				case ExpressionValueType::ValueColor: matched = condition.ToColor() == casevalue.ToColor(); break;
+				}
+			}
+
+			if (matched)
+				break;
+			else
+				StatementIndex = Code->FindStatementIndex(caseexpr->NextOffset);
+		}
+		else
+		{
+			break;
 		}
 	}
 }

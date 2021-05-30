@@ -12,6 +12,11 @@ class Bytecode
 public:
 	Bytecode(const std::vector<uint8_t>& bytecode, Package* package);
 
+	int FindStatementIndex(uint16_t offset) const
+	{
+		return OffsetToExpression.find(offset)->second->StatementIndex;
+	}
+
 	std::vector<Expression*> Statements;
 
 private:
