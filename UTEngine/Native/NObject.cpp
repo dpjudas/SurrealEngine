@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NObject.h"
 #include "VM/NativeFunc.h"
+#include <cmath>
 
 void NObject::RegisterFunctions()
 {
@@ -164,7 +165,7 @@ void NObject::RegisterFunctions()
 
 void NObject::Abs(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Abs not implemented");
+	ReturnValue = std::abs(A);
 }
 
 void NObject::AddAdd_Byte(uint8_t& A, uint8_t& ReturnValue)
@@ -189,17 +190,17 @@ void NObject::AddAdd_PreInt(int& A, int& ReturnValue)
 
 void NObject::AddEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.AddEqual_ByteByte not implemented");
+	ReturnValue = A += B;
 }
 
 void NObject::AddEqual_FloatFloat(float& A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.AddEqual_FloatFloat not implemented");
+	ReturnValue = A += B;
 }
 
 void NObject::AddEqual_IntInt(int& A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.AddEqual_IntInt not implemented");
+	ReturnValue = A += B;
 }
 
 void NObject::AddEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue)
@@ -209,17 +210,17 @@ void NObject::AddEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& Ret
 
 void NObject::AddEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.AddEqual_VectorVector not implemented");
+	ReturnValue = A += B;
 }
 
 void NObject::Add_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Add_FloatFloat not implemented");
+	ReturnValue = A + B;
 }
 
 void NObject::Add_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Add_IntInt not implemented");
+	ReturnValue = A + B;
 }
 
 void NObject::Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue)
@@ -229,7 +230,7 @@ void NObject::Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& Re
 
 void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Add_VectorVector not implemented");
+	ReturnValue = A + B;
 }
 
 void NObject::AndAnd_BoolBool(bool A, bool* B, bool& ReturnValue)
@@ -239,7 +240,7 @@ void NObject::AndAnd_BoolBool(bool A, bool* B, bool& ReturnValue)
 
 void NObject::And_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.And_IntInt not implemented");
+	ReturnValue = A & B;
 }
 
 void NObject::Asc(const std::string& S, int& ReturnValue)
@@ -254,12 +255,15 @@ void NObject::At_StrStr(const std::string& A, const std::string& B, std::string&
 
 void NObject::Atan(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Atan not implemented");
+	ReturnValue = std::atan(A);
 }
 
 void NObject::Caps(const std::string& S, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Caps not implemented");
+	ReturnValue.clear();
+	ReturnValue.reserve(S.size());
+	for (char c : S)
+		ReturnValue.push_back(std::toupper(c));
 }
 
 void NObject::Chr(int i, std::string& ReturnValue)
@@ -269,7 +273,7 @@ void NObject::Chr(int i, std::string& ReturnValue)
 
 void NObject::Clamp(int V, int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Clamp not implemented");
+	ReturnValue = clamp(V, A, B);
 }
 
 void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, bool& ReturnValue)
@@ -294,17 +298,17 @@ void NObject::Complement_PreInt(int A, int& ReturnValue)
 
 void NObject::Concat_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Concat_StrStr not implemented");
+	ReturnValue = A + B;
 }
 
 void NObject::Cos(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Cos not implemented");
+	ReturnValue = std::cos(A);
 }
 
 void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Cross_VectorVector not implemented");
+	ReturnValue = cross(A, B);
 }
 
 void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
@@ -314,17 +318,17 @@ void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
 
 void NObject::DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.DivideEqual_ByteByte not implemented");
+	ReturnValue = A /= B;
 }
 
 void NObject::DivideEqual_FloatFloat(float& A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.DivideEqual_FloatFloat not implemented");
+	ReturnValue = A /= B;
 }
 
 void NObject::DivideEqual_IntFloat(int& A, float B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.DivideEqual_IntFloat not implemented");
+	ReturnValue = A /= B;
 }
 
 void NObject::DivideEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue)
@@ -334,17 +338,17 @@ void NObject::DivideEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue
 
 void NObject::DivideEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.DivideEqual_VectorFloat not implemented");
+	ReturnValue = A /= B;
 }
 
 void NObject::Divide_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Divide_FloatFloat not implemented");
+	ReturnValue = A / B;
 }
 
 void NObject::Divide_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Divide_IntInt not implemented");
+	ReturnValue = A / B;
 }
 
 void NObject::Divide_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue)
@@ -354,12 +358,12 @@ void NObject::Divide_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValu
 
 void NObject::Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Divide_VectorFloat not implemented");
+	ReturnValue = A / B;
 }
 
 void NObject::Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Dot_VectorVector not implemented");
+	ReturnValue = dot(A, B);
 }
 
 void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, bool* MayFail, UObject*& ReturnValue)
@@ -374,62 +378,62 @@ void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
 
 void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_BoolBool not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_FloatFloat not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_IntInt not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_NameName not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_ObjectObject not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_RotatorRotator not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_StrStr not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_VectorVector(const vec3& A, const vec3& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.EqualEqual_VectorVector not implemented");
+	ReturnValue = (A == B);
 }
 
 void NObject::Exp(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Exp not implemented");
+	ReturnValue = std::exp(A);
 }
 
 void NObject::FClamp(float V, float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.FClamp not implemented");
+	ReturnValue = clamp(V, A, B);
 }
 
 void NObject::FMax(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.FMax not implemented");
+	ReturnValue = std::max(A, B);
 }
 
 void NObject::FMin(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.FMin not implemented");
+	ReturnValue = std::min(A, B);
 }
 
 void NObject::FRand(float& ReturnValue)
@@ -469,17 +473,17 @@ void NObject::GotoState(UObject* Self, std::string* NewState, std::string* Label
 
 void NObject::GreaterEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterEqual_FloatFloat not implemented");
+	ReturnValue = A >= B;
 }
 
 void NObject::GreaterEqual_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterEqual_IntInt not implemented");
+	ReturnValue = A >= B;
 }
 
 void NObject::GreaterEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterEqual_StrStr not implemented");
+	ReturnValue = A >= B;
 }
 
 void NObject::GreaterGreaterGreater_IntInt(int A, int B, int& ReturnValue)
@@ -499,17 +503,17 @@ void NObject::GreaterGreater_VectorRotator(const vec3& A, const Rotator& B, vec3
 
 void NObject::Greater_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Greater_FloatFloat not implemented");
+	ReturnValue = A > B;
 }
 
 void NObject::Greater_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Greater_IntInt not implemented");
+	ReturnValue = A > B;
 }
 
 void NObject::Greater_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Greater_StrStr not implemented");
+	ReturnValue = A > B;
 }
 
 void NObject::InStr(const std::string& S, const std::string& t, int& ReturnValue)
@@ -534,37 +538,42 @@ void NObject::IsInState(UObject* Self, const std::string& TestState, bool& Retur
 
 void NObject::Left(const std::string& S, int i, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Left not implemented");
+	if (i >= 0 && i <= S.size())
+		ReturnValue = S.substr(0, i);
+	else if (i < 0)
+		ReturnValue = {};
+	else
+		ReturnValue = S;
 }
 
 void NObject::Len(const std::string& S, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Len not implemented");
+	ReturnValue = (int)S.size();
 }
 
 void NObject::Lerp(float Alpha, float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Lerp not implemented");
+	ReturnValue = mix(A, B, Alpha);
 }
 
 void NObject::LessEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.LessEqual_FloatFloat not implemented");
+	ReturnValue = A <= B;
 }
 
 void NObject::LessEqual_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.LessEqual_IntInt not implemented");
+	ReturnValue = A <= B;
 }
 
 void NObject::LessEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.LessEqual_StrStr not implemented");
+	ReturnValue = A <= B;
 }
 
 void NObject::LessLess_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.LessLess_IntInt not implemented");
+	ReturnValue = A <= B;
 }
 
 void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
@@ -574,17 +583,17 @@ void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& Retu
 
 void NObject::Less_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Less_FloatFloat not implemented");
+	ReturnValue = A < B;
 }
 
 void NObject::Less_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Less_IntInt not implemented");
+	ReturnValue = A < B;
 }
 
 void NObject::Less_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Less_StrStr not implemented");
+	ReturnValue = A < B;
 }
 
 void NObject::Localize(const std::string& SectionName, const std::string& KeyName, const std::string& PackageName, std::string& ReturnValue)
@@ -599,12 +608,12 @@ void NObject::Log(const std::string& S, std::string* Tag)
 
 void NObject::Loge(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Loge not implemented");
+	ReturnValue = std::log(A);
 }
 
 void NObject::Max(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Max not implemented");
+	ReturnValue = std::max(A, B);
 }
 
 void NObject::Mid(const std::string& S, int i, int* j, std::string& ReturnValue)
@@ -614,7 +623,7 @@ void NObject::Mid(const std::string& S, int i, int* j, std::string& ReturnValue)
 
 void NObject::Min(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Min not implemented");
+	ReturnValue = std::min(A, B);
 }
 
 void NObject::MirrorVectorByNormal(const vec3& Vect, const vec3& Normal, vec3& ReturnValue)
@@ -624,17 +633,17 @@ void NObject::MirrorVectorByNormal(const vec3& Vect, const vec3& Normal, vec3& R
 
 void NObject::MultiplyEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_ByteByte not implemented");
+	ReturnValue = A *= B;
 }
 
 void NObject::MultiplyEqual_FloatFloat(float& A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_FloatFloat not implemented");
+	ReturnValue = A *= B;
 }
 
 void NObject::MultiplyEqual_IntFloat(int& A, float B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_IntFloat not implemented");
+	ReturnValue = A *= B;
 }
 
 void NObject::MultiplyEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue)
@@ -644,22 +653,22 @@ void NObject::MultiplyEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnVal
 
 void NObject::MultiplyEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_VectorFloat not implemented");
+	ReturnValue = A *= B;
 }
 
 void NObject::MultiplyEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_VectorVector not implemented");
+	ReturnValue = A *= B;
 }
 
 void NObject::MultiplyMultiply_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyMultiply_FloatFloat not implemented");
+	ReturnValue = std::pow(A, B);
 }
 
 void NObject::Multiply_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_FloatFloat not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_FloatRotator(float A, const Rotator& B, Rotator& ReturnValue)
@@ -669,12 +678,12 @@ void NObject::Multiply_FloatRotator(float A, const Rotator& B, Rotator& ReturnVa
 
 void NObject::Multiply_FloatVector(float A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_FloatVector not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_IntInt not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue)
@@ -684,17 +693,17 @@ void NObject::Multiply_RotatorFloat(const Rotator& A, float B, Rotator& ReturnVa
 
 void NObject::Multiply_VectorFloat(const vec3& A, float B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_VectorFloat not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_VectorVector not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Normal(const vec3& A, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Normal not implemented");
+	ReturnValue = normalize(A);
 }
 
 void NObject::Normalize(const Rotator& Rot, Rotator& ReturnValue)
@@ -704,27 +713,27 @@ void NObject::Normalize(const Rotator& Rot, Rotator& ReturnValue)
 
 void NObject::NotEqual_BoolBool(bool A, bool B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_BoolBool not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_FloatFloat not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_IntInt(int A, int B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_IntInt not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_NameName not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_ObjectObject not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue)
@@ -734,27 +743,27 @@ void NObject::NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& 
 
 void NObject::NotEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_StrStr not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_VectorVector(const vec3& A, const vec3& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_VectorVector not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::Not_PreBool(bool A, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.Not_PreBool not implemented");
+	ReturnValue = !A;
 }
 
 void NObject::OrOr_BoolBool(bool A, bool* B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.OrOr_BoolBool not implemented");
+	ReturnValue = A || *B;
 }
 
 void NObject::Or_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Or_IntInt not implemented");
+	ReturnValue = A | B;
 }
 
 void NObject::OrthoRotation(const vec3& X, const vec3& Y, const vec3& Z, Rotator& ReturnValue)
@@ -784,7 +793,12 @@ void NObject::ResetConfig()
 
 void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Right not implemented");
+	if (i >= 0 && i <= S.size())
+		ReturnValue = S.substr(S.size() - i);
+	else if (i < 0)
+		ReturnValue = {};
+	else
+		ReturnValue = S;
 }
 
 void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
@@ -804,7 +818,7 @@ void NObject::SetPropertyText(UObject* Self, const std::string& PropName, const 
 
 void NObject::Sin(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Sin not implemented");
+	ReturnValue = std::sin(A);
 }
 
 void NObject::Smerp(float Alpha, float A, float B, float& ReturnValue)
@@ -814,12 +828,12 @@ void NObject::Smerp(float Alpha, float A, float B, float& ReturnValue)
 
 void NObject::Sqrt(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Sqrt not implemented");
+	ReturnValue = std::sqrt(A);
 }
 
 void NObject::Square(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Square not implemented");
+	ReturnValue = A * A;
 }
 
 void NObject::StaticSaveConfig()
@@ -829,17 +843,17 @@ void NObject::StaticSaveConfig()
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractEqual_ByteByte not implemented");
+	ReturnValue = A -= B;
 }
 
 void NObject::SubtractEqual_FloatFloat(float& A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractEqual_FloatFloat not implemented");
+	ReturnValue = A -= B;
 }
 
 void NObject::SubtractEqual_IntInt(int& A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractEqual_IntInt not implemented");
+	ReturnValue = A -= B;
 }
 
 void NObject::SubtractEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue)
@@ -849,7 +863,7 @@ void NObject::SubtractEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator
 
 void NObject::SubtractEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractEqual_VectorVector not implemented");
+	ReturnValue = A -= B;
 }
 
 void NObject::SubtractSubtract_Byte(uint8_t& A, uint8_t& ReturnValue)
@@ -874,12 +888,12 @@ void NObject::SubtractSubtract_PreInt(int& A, int& ReturnValue)
 
 void NObject::Subtract_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_FloatFloat not implemented");
+	ReturnValue = A - B;
 }
 
 void NObject::Subtract_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_IntInt not implemented");
+	ReturnValue = A - B;
 }
 
 void NObject::Subtract_PreFloat(float A, float& ReturnValue)
@@ -904,12 +918,12 @@ void NObject::Subtract_RotatorRotator(const Rotator& A, const Rotator& B, Rotato
 
 void NObject::Subtract_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_VectorVector not implemented");
+	ReturnValue = A - B;
 }
 
 void NObject::Tan(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Tan not implemented");
+	ReturnValue = std::tan(A);
 }
 
 void NObject::VRand(vec3& ReturnValue)
@@ -919,7 +933,7 @@ void NObject::VRand(vec3& ReturnValue)
 
 void NObject::VSize(const vec3& A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.VSize not implemented");
+	ReturnValue = length(A);
 }
 
 void NObject::Warn(const std::string& S)
@@ -929,10 +943,10 @@ void NObject::Warn(const std::string& S)
 
 void NObject::XorXor_BoolBool(bool A, bool B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.XorXor_BoolBool not implemented");
+	ReturnValue = A ^ B;
 }
 
 void NObject::Xor_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Xor_IntInt not implemented");
+	ReturnValue = A ^ B;
 }
