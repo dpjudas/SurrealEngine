@@ -101,22 +101,7 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-	switch (rvalue.Type)
-	{
-	default:
-	case ExpressionValueType::Nothing: break;
-	case ExpressionValueType::Variable: lvalue.VariableProperty->CopyValue(lvalue.VariablePtr, rvalue.VariablePtr); break;
-	case ExpressionValueType::ValueByte: *static_cast<uint8_t*>(lvalue.VariablePtr) = rvalue.Value.Byte; break;
-	case ExpressionValueType::ValueInt: *static_cast<int32_t*>(lvalue.VariablePtr) = rvalue.Value.Int; break;
-	case ExpressionValueType::ValueBool: *static_cast<bool*>(lvalue.VariablePtr) = rvalue.Value.Bool; break;
-	case ExpressionValueType::ValueFloat: *static_cast<float*>(lvalue.VariablePtr) = rvalue.Value.Float; break;
-	case ExpressionValueType::ValueObject: *static_cast<UObject**>(lvalue.VariablePtr) = rvalue.Value.Object; break;
-	case ExpressionValueType::ValueVector: *static_cast<vec3*>(lvalue.VariablePtr) = rvalue.Value.Vector; break;
-	case ExpressionValueType::ValueRotator: *static_cast<Rotator*>(lvalue.VariablePtr) = rvalue.Value.Rotator; break;
-	case ExpressionValueType::ValueString: *static_cast<std::string*>(lvalue.VariablePtr) = rvalue.ValueString; break;
-	case ExpressionValueType::ValueName: *static_cast<std::string*>(lvalue.VariablePtr) = rvalue.ValueString; break;
-	case ExpressionValueType::ValueColor: *static_cast<Color*>(lvalue.VariablePtr) = rvalue.Value.Color; break;
-	}
+	lvalue.Store(rvalue);
 	Result.Value = lvalue;
 }
 
@@ -124,10 +109,7 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-	if (rvalue.Type == ExpressionValueType::Variable)
-		lvalue.VariableProperty->CopyValue(lvalue.VariablePtr, rvalue.VariablePtr);
-	else
-		*static_cast<bool*>(lvalue.VariablePtr) = rvalue.Value.Bool;
+	*static_cast<bool*>(lvalue.VariablePtr) = rvalue.ToBool();
 	Result.Value = lvalue;
 }
 
