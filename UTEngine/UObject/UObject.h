@@ -81,6 +81,17 @@ public:
 	float RollDegrees() const { return Roll * (360.0f / 65536.0f); }
 };
 
+inline Rotator normalize(Rotator rot)
+{
+	int pitch = rot.Pitch & 0xffff;
+	int roll = rot.Roll & 0xffff;
+	int yaw = rot.Yaw & 0xffff;
+	if (pitch > 32767) pitch -= 0x10000;
+	if (roll > 32767) roll -= 0x10000;
+	if (yaw > 32767) yaw -= 0x10000;
+	return { pitch, yaw, roll };
+}
+
 class Color
 {
 public:
@@ -155,6 +166,7 @@ public:
 	ObjectFlags Flags = ObjectFlags::None;
 
 	PropertyDataBlock PropertyData;
+	std::string StateName;
 
 	template<typename T>
 	static T* Cast(UObject* obj)

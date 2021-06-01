@@ -150,6 +150,8 @@ public:
 	using UState::UState;
 	void Load(ObjectStream* stream) override;
 
+	UObject* GetDefaultObject() { return this; }
+
 	uint32_t OldClassRecordSize = 0;
 	uint32_t ClassFlags = 0;
 	Guid ClassGuid;

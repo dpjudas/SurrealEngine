@@ -44,7 +44,8 @@ public:
 	virtual void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header);
 
 	virtual size_t Alignment() { return 4; }
-	virtual size_t Size() { return 4; }
+	size_t Size() { return ElementSize() * ArrayDimension; }
+	virtual size_t ElementSize() { return 4; }
 	virtual void Construct(void* data) { memset(data, 0, Size()); }
 	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
 	virtual void CopyValue(void* data, void* src)
@@ -73,8 +74,10 @@ public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	size_t Alignment() override { return 1; }
+	size_t ElementSize() override { return 1; }
 
-	UEnum* EnumType = nullptr; // null if it is a normal byte, other for a reference to the Enum type object
+	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
 
 class UObjectProperty : public UProperty
@@ -84,7 +87,7 @@ public:
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(void*); }
+	size_t ElementSize() override { return sizeof(void*); }
 
 	UClass* ObjectClass = nullptr;
 };
@@ -96,13 +99,14 @@ public:
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return Inner->Alignment(); }
-	size_t Size() override { return Inner->Size() * Count; }
+	size_t ElementSize() override { return Inner->Size() * Count; }
 
 	void Construct(void* data) override
 	{
 		uint8_t* p = static_cast<uint8_t*>(data);
 		size_t s = Inner->Size();
-		for (int i = 0; i < Count; i++)
+		int totalcount = Count * ArrayDimension;
+		for (int i = 0; i < totalcount; i++)
 		{
 			Inner->Construct(p);
 			p += s;
@@ -114,7 +118,8 @@ public:
 		uint8_t* p = static_cast<uint8_t*>(data);
 		uint8_t* sp = static_cast<uint8_t*>(src);
 		size_t s = Inner->Size();
-		for (int i = 0; i < Count; i++)
+		int totalcount = Count * ArrayDimension;
+		for (int i = 0; i < totalcount; i++)
 		{
 			Inner->CopyConstruct(p, sp);
 			p += s;
@@ -126,7 +131,8 @@ public:
 	{
 		uint8_t* p = static_cast<uint8_t*>(data);
 		size_t s = Inner->Size();
-		for (int i = 0; i < Count; i++)
+		int totalcount = Count * ArrayDimension;
+		for (int i = 0; i < totalcount; i++)
 		{
 			Inner->Destruct(p);
 			p += s;
@@ -144,36 +150,46 @@ public:
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(std::vector<void*>); }
+	size_t ElementSize() override { return sizeof(std::vector<void*>); }
 
 	void Construct(void* data) override
 	{
-		new(data) std::vector<void*>();
+		auto vec = static_cast<std::vector<void*>*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(vec + i) std::vector<void*>();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		auto& srcvec = *static_cast<std::vector<void*>*>(src);
-		new(data) std::vector<void*>();
-		auto& vec = *static_cast<std::vector<void*>*>(data);
-		size_t s = (Inner->Size() + 7) / 8;
-		for (auto& sp : srcvec)
+		auto vec = static_cast<std::vector<void*>*>(data);
+		auto srcvec = static_cast<std::vector<void*>*>(src);
+
+		for (uint32_t i = 0; i < ArrayDimension; i++)
 		{
-			int64_t* d = new int64_t(s);
-			Inner->CopyConstruct(d, sp);
-			vec.push_back(d);
+			new(vec + i) std::vector<void*>();
+
+			size_t s = (Inner->Size() + 7) / 8;
+			for (auto& sp : srcvec[i])
+			{
+				int64_t* d = new int64_t(s);
+				Inner->CopyConstruct(d, sp);
+				vec[i].push_back(d);
+			}
 		}
 	}
 
 	void Destruct(void* data) override
 	{
-		auto& vec = *static_cast<std::vector<void*>*>(data);
-		for (void* d : vec)
+		auto vec = static_cast<std::vector<void*>*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
 		{
-			Inner->Destruct(d);
-			delete[] (int64_t*)d;
+			for (void* d : vec[i])
+			{
+				Inner->Destruct(d);
+				delete[](int64_t*)d;
+			}
+			vec[i].~vector();
 		}
-		vec.~vector();
 	}
 
 	UProperty* Inner = nullptr;
@@ -186,41 +202,50 @@ public:
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(std::map<void*,void*>); }
+	size_t ElementSize() override { return sizeof(std::map<void*,void*>); }
 
 	void Construct(void* data) override
 	{
-		new(data) std::map<void*, void*>();
+		auto map = static_cast<std::map<void*, void*>*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(map + i) std::map<void*, void*>();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		auto& srcmap = *static_cast<std::map<void*, void*>*>(src);
-		new(data) std::vector<void*>();
-		auto& map = *static_cast<std::map<void*, void*>*>(data);
-		size_t sk = (Key->Size() + 7) / 8;
-		size_t sv = (Value->Size() + 7) / 8;
-		for (auto& sp : srcmap)
+		auto map = static_cast<std::map<void*, void*>*>(data);
+		auto srcmap = static_cast<std::map<void*, void*>*>(src);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
 		{
-			int64_t* dk = new int64_t(sk);
-			int64_t* dv = new int64_t(sv);
-			Key->CopyConstruct(dk, sp.first);
-			Key->CopyConstruct(dv, sp.second);
-			map[dk] = dv;
+			new(map + i) std::map<void*, void*>();
+
+			size_t sk = (Key->Size() + 7) / 8;
+			size_t sv = (Value->Size() + 7) / 8;
+			for (auto& sp : srcmap[i])
+			{
+				int64_t* dk = new int64_t(sk);
+				int64_t* dv = new int64_t(sv);
+				Key->CopyConstruct(dk, sp.first);
+				Key->CopyConstruct(dv, sp.second);
+				map[i][dk] = dv;
+			}
 		}
 	}
 
 	void Destruct(void* data) override
 	{
-		auto& map = *static_cast<std::map<void*, void*>*>(data);
-		for (auto& it : map)
+		auto map = static_cast<std::map<void*, void*>*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
 		{
-			Key->Destruct(it.first);
-			Key->Destruct(it.second);
-			delete[](int64_t*)it.first;
-			delete[](int64_t*)it.second;
+			for (auto& it : map[i])
+			{
+				Key->Destruct(it.first);
+				Key->Destruct(it.second);
+				delete[](int64_t*)it.first;
+				delete[](int64_t*)it.second;
+			}
+			map[i].~map();
 		}
-		map.~map();
 	}
 
 	UProperty* Key = nullptr;
@@ -244,7 +269,7 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return Struct ? Struct->StructSize : 0; }
+	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
 	UStruct* Struct = nullptr;
 };
@@ -278,22 +303,28 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(std::string); }
+	size_t ElementSize() override { return sizeof(std::string); }
 
 	void Construct(void* data) override
 	{
-		new(data) std::string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		new(data) std::string(*(std::string*)src);
+		auto str = static_cast<std::string*>(data);
+		auto srcstr = static_cast<std::string*>(src);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
-		auto& str = *static_cast<std::string*>(data);
-		str.~basic_string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			str[i].~basic_string();
 	}
 };
 
@@ -305,22 +336,28 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(std::string); }
+	size_t ElementSize() override { return sizeof(std::string); }
 
 	void Construct(void* data) override
 	{
-		new(data) std::string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		new(data) std::string(*(std::string*)src);
+		auto str = static_cast<std::string*>(data);
+		auto srcstr = static_cast<std::string*>(src);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
-		auto& str = *static_cast<std::string*>(data);
-		str.~basic_string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			str[i].~basic_string();
 	}
 };
 
@@ -332,21 +369,27 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	size_t Alignment() override { return sizeof(void*); }
-	size_t Size() override { return sizeof(std::string); }
+	size_t ElementSize() override { return sizeof(std::string); }
 
 	void Construct(void* data) override
 	{
-		new(data) std::string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		new(data) std::string(*(std::string*)src);
+		auto str = static_cast<std::string*>(data);
+		auto srcstr = static_cast<std::string*>(src);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			new(str + i) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
-		auto& str = *static_cast<std::string*>(data);
-		str.~basic_string();
+		auto str = static_cast<std::string*>(data);
+		for (uint32_t i = 0; i < ArrayDimension; i++)
+			str[i].~basic_string();
 	}
 };

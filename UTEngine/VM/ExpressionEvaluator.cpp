@@ -27,7 +27,7 @@ void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(Self->Base->PropertyData.Data, expr->Variable);
+	Result.Value = ExpressionValue::Variable(Self->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -125,7 +125,15 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 
 void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 {
-	throw std::runtime_error("Class context expression is not implemented");
+	UClass* cls = dynamic_cast<UClass*>(Eval(expr->ObjectExpr).Value.ToObject());
+	if (cls)
+	{
+		Result = Eval(expr->ContextExpr, cls->GetDefaultObject(), LocalVariables);
+	}
+	else
+	{
+		throw std::runtime_error("Null class context");
+	}
 }
 
 void ExpressionEvaluator::Expr(MetaCastExpression* expr)
@@ -150,12 +158,22 @@ void ExpressionEvaluator::Expr(SkipExpression* expr)
 
 void ExpressionEvaluator::Expr(ContextExpression* expr)
 {
-	throw std::runtime_error("Context expression is not implemented");
+	UObject* context = Eval(expr->ObjectExpr).Value.ToObject();
+	if (context)
+	{
+		Result = Eval(expr->ContextExpr, context, LocalVariables);
+	}
+	else
+	{
+		throw std::runtime_error("Null context");
+	}
 }
 
 void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 {
-	throw std::runtime_error("Array element expression is not implemented");
+	int index = Eval(expr->Index).Value.ToInt();
+	Result.Value = Eval(expr->Array).Value;
+	Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
 }
 
 void ExpressionEvaluator::Expr(IntConstExpression* expr)
