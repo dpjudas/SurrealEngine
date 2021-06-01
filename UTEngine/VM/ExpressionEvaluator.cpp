@@ -109,7 +109,7 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-	*static_cast<bool*>(lvalue.VariablePtr) = rvalue.ToBool();
+	lvalue.Store(rvalue);
 	Result.Value = lvalue;
 }
 
@@ -240,7 +240,7 @@ void ExpressionEvaluator::Expr(IntConstByteExpression* expr)
 
 void ExpressionEvaluator::Expr(BoolVariableExpression* expr)
 {
-	throw std::runtime_error("Bool variable expression is not implemented");
+	Result.Value = Eval(expr->Variable).Value;
 }
 
 void ExpressionEvaluator::Expr(DynamicCastExpression* expr)

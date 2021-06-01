@@ -363,7 +363,7 @@ class BoolVariableExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	Expression* Value = nullptr;
+	Expression* Variable = nullptr;
 };
 
 class DynamicCastExpression : public Expression

@@ -362,7 +362,12 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::True: { return Create<TrueExpression>(exproffset); }
 		case ExprToken::False: { return Create<FalseExpression>(exproffset); }
 		case ExprToken::NoObject: { return Create<NoObjectExpression>(exproffset); }
-		case ExprToken::BoolVariable: { return Create<BoolVariableExpression>(exproffset); }
+		case ExprToken::BoolVariable:
+		{
+			BoolVariableExpression* expr = Create<BoolVariableExpression>(exproffset);
+			expr->Variable = ReadToken(stream, depth);
+			return expr;
+		}
 		case ExprToken::IteratorPop: { return Create<IteratorPopExpression>(exproffset); }
 		case ExprToken::IteratorNext: { return Create<IteratorNextExpression>(exproffset); }
 		case ExprToken::RotatorToVector: { auto expr = Create<RotatorToVectorExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
