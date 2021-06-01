@@ -12,7 +12,22 @@
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
 #include "UObject/UClass.h"
+#include "Native/NActor.h"
+#include "Native/NCanvas.h"
+#include "Native/NCommandlet.h"
+#include "Native/NConsole.h"
+#include "Native/NDecal.h"
+#include "Native/NGameInfo.h"
+#include "Native/NLevelInfo.h"
+#include "Native/NNavigationPoint.h"
 #include "Native/NObject.h"
+#include "Native/NPawn.h"
+#include "Native/NPlayerPawn.h"
+#include "Native/NScriptedTexture.h"
+#include "Native/NStatLog.h"
+#include "Native/NStatLogFile.h"
+#include "Native/NWarpZoneInfo.h"
+#include "Native/NZoneInfo.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "Viewport/Viewport.h"
@@ -26,19 +41,42 @@
 
 Engine::Engine()
 {
+	NActor::RegisterFunctions();
+	NCanvas::RegisterFunctions();
+	NCommandlet::RegisterFunctions();
+	NConsole::RegisterFunctions();
+	NDecal::RegisterFunctions();
+	NGameInfo::RegisterFunctions();
+	NLevelInfo::RegisterFunctions();
+	NNavigationPoint::RegisterFunctions();
+	NObject::RegisterFunctions();
+	NPawn::RegisterFunctions();
+	NPlayerPawn::RegisterFunctions();
+	NScriptedTexture::RegisterFunctions();
+	NStatLog::RegisterFunctions();
+	NStatLogFile::RegisterFunctions();
+	NWarpZoneInfo::RegisterFunctions();
+	NZoneInfo::RegisterFunctions();
+
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
 
-	/*
-	auto testcls = UObject::Cast<UClass>(packages->GetPackage("TestPackage")->GetUObject("Class", "TestObject"));
-	auto scriptext = testcls->ScriptText;
-	auto func = dynamic_cast<UFunction*>(testcls->Children);
-	auto testobj = new UObject("test", testcls, ObjectFlags::None);
-	testobj->PropertyData.Init(testcls);
-	NObject::RegisterFunctions();
-	std::string result = Frame::Call(func, testobj, { ExpressionValue::IntValue(443)  }).ToString();
-	*/
+#if 0
+	UObject* canvas = NewObject("canvas", "Engine", "Canvas");
+	UObject* console = NewObject("console", "Engine", "Console");
+	//UObject* console = NewObject("console", "UWindow", "WindowConsole");
+	//UObject* console = NewObject("console", "UTMenu", "UTConsole");
+
+	InvokeEvent(console, "VideoChange", { });
+	InvokeEvent(console, "NotifyLevelChange", { });
+	InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
+	ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(0xc0) });
+	ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(0xc0), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+	InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(0.0f) });
+	InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
+	InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+#endif
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
@@ -51,6 +89,32 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+}
+
+UObject* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
+{
+	UClass* cls = UObject::Cast<UClass>(packages->GetPackage(package)->GetUObject("Class", className));
+	UObject* obj = new UObject(name, cls, ObjectFlags::None);
+	obj->PropertyData.Init(cls);
+	return obj;
+}
+
+ExpressionValue Engine::InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args)
+{
+	UClass* cls = obj->Base;
+	while (cls)
+	{
+		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		{
+			auto func = dynamic_cast<UFunction*>(field);
+			if (func && func->Name == name)
+			{
+				return Frame::Call(func, obj, args);
+			}
+		}
+		cls = cls->Base;
+	}
+	throw std::runtime_error("Event " + name + " not found on object");
 }
 
 void Engine::Run()
