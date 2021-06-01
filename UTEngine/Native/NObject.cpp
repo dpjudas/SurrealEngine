@@ -170,22 +170,22 @@ void NObject::Abs(float A, float& ReturnValue)
 
 void NObject::AddAdd_Byte(uint8_t& A, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.AddAdd_Byte not implemented");
+	ReturnValue = A++;
 }
 
 void NObject::AddAdd_Int(int& A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.AddAdd_Int not implemented");
+	ReturnValue = A++;
 }
 
 void NObject::AddAdd_PreByte(uint8_t& A, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.AddAdd_PreByte not implemented");
+	ReturnValue = ++A;
 }
 
 void NObject::AddAdd_PreInt(int& A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.AddAdd_PreInt not implemented");
+	ReturnValue = ++A;
 }
 
 void NObject::AddEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -233,8 +233,17 @@ void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 	ReturnValue = A + B;
 }
 
+void NObject::OrOr_BoolBool(bool A, bool* B, bool& ReturnValue)
+{
+	// To do: needs skip keyword support
+	// ReturnValue = A || *B;
+	throw std::runtime_error("Object.OrOr_BoolBool not implemented");
+}
+
 void NObject::AndAnd_BoolBool(bool A, bool* B, bool& ReturnValue)
 {
+	// To do: needs skip keyword support
+	// ReturnValue = A && *B;
 	throw std::runtime_error("Object.AndAnd_BoolBool not implemented");
 }
 
@@ -245,12 +254,12 @@ void NObject::And_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::Asc(const std::string& S, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Asc not implemented");
+	ReturnValue = !S.empty() ? S.front() : '\0';
 }
 
 void NObject::At_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.At_StrStr not implemented");
+	ReturnValue = A + " " + B;
 }
 
 void NObject::Atan(float A, float& ReturnValue)
@@ -268,7 +277,7 @@ void NObject::Caps(const std::string& S, std::string& ReturnValue)
 
 void NObject::Chr(int i, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Chr not implemented");
+	ReturnValue = std::string(1, i);
 }
 
 void NObject::Clamp(int V, int A, int B, int& ReturnValue)
@@ -288,7 +297,7 @@ void NObject::ComplementEqual_FloatFloat(float A, float B, bool& ReturnValue)
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.ComplementEqual_StrStr not implemented");
+	ReturnValue = _stricmp(A.c_str(), B.c_str()) == 0;
 }
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)
@@ -458,7 +467,7 @@ void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::s
 
 void NObject::GetStateName(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.GetStateName not implemented");
+	ReturnValue = Self->StateName;
 }
 
 void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
@@ -488,12 +497,12 @@ void NObject::GreaterEqual_StrStr(const std::string& A, const std::string& B, bo
 
 void NObject::GreaterGreaterGreater_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterGreaterGreater_IntInt not implemented");
+	ReturnValue = static_cast<unsigned int>(A) >> B;
 }
 
 void NObject::GreaterGreater_IntInt(int A, int B, int& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterGreater_IntInt not implemented");
+	ReturnValue = A >> B;
 }
 
 void NObject::GreaterGreater_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
@@ -533,7 +542,7 @@ void NObject::IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue
 
 void NObject::IsInState(UObject* Self, const std::string& TestState, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.IsInState not implemented");
+	ReturnValue = Self->StateName == TestState;
 }
 
 void NObject::Left(const std::string& S, int i, std::string& ReturnValue)
@@ -573,7 +582,7 @@ void NObject::LessEqual_StrStr(const std::string& A, const std::string& B, bool&
 
 void NObject::LessLess_IntInt(int A, int B, int& ReturnValue)
 {
-	ReturnValue = A <= B;
+	ReturnValue = A << B;
 }
 
 void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
@@ -618,7 +627,11 @@ void NObject::Max(int A, int B, int& ReturnValue)
 
 void NObject::Mid(const std::string& S, int i, int* j, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Mid not implemented");
+	size_t start = std::max(i, 0);
+	size_t len = j ? (size_t)(*j) : S.size();
+	if (!S.empty() && start >= S.size()) start = S.size() - 1;
+	len = std::min(len, S.size() - start);
+	ReturnValue = S.substr(start, len);
 }
 
 void NObject::Min(int A, int B, int& ReturnValue)
@@ -708,7 +721,7 @@ void NObject::Normal(const vec3& A, vec3& ReturnValue)
 
 void NObject::Normalize(const Rotator& Rot, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Normalize not implemented");
+	ReturnValue = normalize(Rot);
 }
 
 void NObject::NotEqual_BoolBool(bool A, bool B, bool& ReturnValue)
@@ -756,11 +769,6 @@ void NObject::Not_PreBool(bool A, bool& ReturnValue)
 	ReturnValue = !A;
 }
 
-void NObject::OrOr_BoolBool(bool A, bool* B, bool& ReturnValue)
-{
-	ReturnValue = A || *B;
-}
-
 void NObject::Or_IntInt(int A, int B, int& ReturnValue)
 {
 	ReturnValue = A | B;
@@ -773,7 +781,7 @@ void NObject::OrthoRotation(const vec3& X, const vec3& Y, const vec3& Z, Rotator
 
 void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Percent_FloatFloat not implemented");
+	ReturnValue = std::fmod(A, B);
 }
 
 void NObject::Rand(int Max, int& ReturnValue)
@@ -823,7 +831,7 @@ void NObject::Sin(float A, float& ReturnValue)
 
 void NObject::Smerp(float Alpha, float A, float B, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Smerp not implemented");
+	ReturnValue = (float)(A + (3.0 * Alpha * Alpha - 2.0 * Alpha * Alpha * Alpha) * (B - A));
 }
 
 void NObject::Sqrt(float A, float& ReturnValue)
@@ -868,22 +876,22 @@ void NObject::SubtractEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnVal
 
 void NObject::SubtractSubtract_Byte(uint8_t& A, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractSubtract_Byte not implemented");
+	ReturnValue = A--;
 }
 
 void NObject::SubtractSubtract_Int(int& A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractSubtract_Int not implemented");
+	ReturnValue = A--;
 }
 
 void NObject::SubtractSubtract_PreByte(uint8_t& A, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractSubtract_PreByte not implemented");
+	ReturnValue = --A;
 }
 
 void NObject::SubtractSubtract_PreInt(int& A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractSubtract_PreInt not implemented");
+	ReturnValue = --A;
 }
 
 void NObject::Subtract_FloatFloat(float A, float B, float& ReturnValue)
@@ -898,17 +906,17 @@ void NObject::Subtract_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::Subtract_PreFloat(float A, float& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_PreFloat not implemented");
+	ReturnValue = -A;
 }
 
 void NObject::Subtract_PreInt(int A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_PreInt not implemented");
+	ReturnValue = -A;
 }
 
 void NObject::Subtract_PreVector(const vec3& A, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_PreVector not implemented");
+	ReturnValue = vec3(0.0f) - A;
 }
 
 void NObject::Subtract_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue)
@@ -943,7 +951,7 @@ void NObject::Warn(const std::string& S)
 
 void NObject::XorXor_BoolBool(bool A, bool B, bool& ReturnValue)
 {
-	ReturnValue = A ^ B;
+	ReturnValue = !A ^ !B;
 }
 
 void NObject::Xor_IntInt(int A, int B, int& ReturnValue)
