@@ -165,6 +165,7 @@
     <ClInclude Include="RenderDevice\Vulkan\VulkanSwapChain.h" />
     <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h" />
     <ClInclude Include="UObject\UClass.h" />
+    <ClInclude Include="UObject\UClient.h" />
     <ClInclude Include="UObject\UFont.h" />
     <ClInclude Include="UObject\ULevel.h" />
     <ClInclude Include="UObject\UActor.h" />
@@ -760,6 +761,7 @@
     <ClCompile Include="RenderDevice\Vulkan\VulkanSwapChain.cpp" />
     <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="UObject\UClass.cpp" />
+    <ClCompile Include="UObject\UClient.cpp" />
     <ClCompile Include="UObject\UFont.cpp" />
     <ClCompile Include="UObject\ULevel.cpp" />
     <ClCompile Include="UObject\UActor.cpp" />

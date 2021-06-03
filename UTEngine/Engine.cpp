@@ -62,22 +62,6 @@ Engine::Engine()
 
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
 
-#if 0
-	UObject* canvas = NewObject("canvas", "Engine", "Canvas");
-	UObject* console = NewObject("console", "Engine", "Console");
-	//UObject* console = NewObject("console", "UWindow", "WindowConsole");
-	//UObject* console = NewObject("console", "UTMenu", "UTConsole");
-
-	InvokeEvent(console, "VideoChange", { });
-	InvokeEvent(console, "NotifyLevelChange", { });
-	InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
-	ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(0xc0) });
-	ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(0xc0), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
-	InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(0.0f) });
-	InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
-	InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
-#endif
-
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
 	medfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
@@ -94,6 +78,9 @@ Engine::~Engine()
 UObject* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
 {
 	UClass* cls = UObject::Cast<UClass>(packages->GetPackage(package)->GetUObject("Class", className));
+	if (!cls)
+		throw std::runtime_error("Could not find class " + className);
+
 	UObject* obj = new UObject(name, cls, ObjectFlags::None);
 	obj->PropertyData.Init(cls);
 	return obj;
@@ -141,7 +128,32 @@ void Engine::Run()
 	//LoadMap("CTF-Niven");
 	//LoadMap("CTF-Face");
 
-	// GenerateShadowmaps();
+#if 0
+	{
+		UObject* client = NewObject("client", "Engine", "Client");
+		UObject* viewport = NewObject("viewport", "Engine", "Player");
+		UObject* canvas = NewObject("canvas", "Engine", "Canvas");
+		UObject* console = NewObject("console", "Engine", "Console");
+		UObject* pawn = NewObject("pawn", "Engine", "PlayerPawn");
+
+		*static_cast<UObject**>(console->GetProperty("Viewport")) = viewport;
+		*static_cast<UObject**>(viewport->GetProperty("Console")) = console;
+		*static_cast<UObject**>(viewport->GetProperty("Actor")) = pawn;
+		*static_cast<UObject**>(pawn->GetProperty("Level")) = level;
+
+		//UObject* console = NewObject("console", "UWindow", "WindowConsole");
+		//UObject* console = NewObject("console", "UTMenu", "UTConsole");
+
+		InvokeEvent(console, "VideoChange", { });
+		InvokeEvent(console, "NotifyLevelChange", { });
+		InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
+		ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(0xc0) });
+		ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(0xc0), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+		InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(0.0f) });
+		InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
+		InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+	}
+#endif
 
 	while (!quit)
 	{

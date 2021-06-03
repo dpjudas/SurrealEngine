@@ -39,9 +39,40 @@ private:
 	void LoadExportObject(int index);
 
 	template<typename T>
-	void RegisterNativeClass(const std::string& name)
+	void RegisterNativeClass(bool registerInPackage, const std::string& className, const std::string& baseClass = {})
 	{
-		NativeClasses[GetNameKey(name)] = [](Package* package, int index, const std::string& name, UClass* base) { package->Objects[index] = std::make_unique<T>(name, base, package->ExportTable[index].ObjFlags); };
+		std::string classNameKey = GetNameKey(className);
+
+		NativeClasses[classNameKey] = [](Package* package, int index, const std::string& name, UClass* base)
+		{
+			package->Objects[index] = std::make_unique<T>(name, base, package->ExportTable[index].ObjFlags);
+		};
+
+		if (registerInPackage)
+		{
+			int objref = FindObjectReference("Class", className);
+			if (objref == 0)
+			{
+				if (NameHash.find(classNameKey) == NameHash.end())
+				{
+					NameTableEntry nameentry;
+					nameentry.Flags = 0;
+					nameentry.Name = className;
+					NameTable.push_back(nameentry);
+					NameHash[classNameKey] = (int)NameTable.size() - 1;
+				}
+
+				ExportTableEntry entry;
+				entry.ObjClass = 0;
+				entry.ObjBase = baseClass.empty() ? 0 : FindObjectReference("Class", baseClass);
+				entry.ObjPackage = 0;
+				entry.ObjName = NameHash[classNameKey];
+				entry.ObjFlags = ObjectFlags::Native;
+				entry.ObjSize = 0;
+				entry.ObjOffset = 0;
+				ExportTable.push_back(entry);
+			}
+		}
 	}
 
 	static bool CompareNames(const std::string& name1, const std::string& name2)

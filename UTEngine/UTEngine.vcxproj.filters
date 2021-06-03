@@ -505,6 +505,9 @@
     <ClCompile Include="VM\NativeFunc.cpp">
       <Filter>VM</Filter>
     </ClCompile>
+    <ClCompile Include="UObject\UClient.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -779,6 +782,9 @@
     </ClInclude>
     <ClInclude Include="VM\NativeFunc.h">
       <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\UClient.h">
+      <Filter>UObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

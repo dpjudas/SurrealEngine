@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject.h"
+#include "UMesh.h"
 #include "Math/bbox.h"
 
 class UTexture;
@@ -146,18 +146,11 @@ enum PolyFlags
 	PF_Transient		= PF_Highlighted,
 };
 
-class UModel : public UObject
+class UModel : public UPrimitive
 {
 public:
-	using UObject::UObject;
+	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
-
-	BBox BoundingBox;
-
-	float BoundingSphereX;
-	float BoundingSphereY;
-	float BoundingSphereZ;
-	float BoundingSphereW;
 
 	std::vector<vec3> Vectors;
 	std::vector<vec3> Points;
@@ -220,4 +213,40 @@ public:
 
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
+};
+
+class ULevelSummary : public UObject
+{
+public:
+	using UObject::UObject;
+};
+
+class UPolys : public UObject
+{
+public:
+	using UObject::UObject;
+};
+
+class UBspNodes : public UObject
+{
+public:
+	using UObject::UObject;
+};
+
+class UBspSurfs : public UObject
+{
+public:
+	using UObject::UObject;
+};
+
+class UVectors : public UObject
+{
+public:
+	using UObject::UObject;
+};
+
+class UVerts : public UObject
+{
+public:
+	using UObject::UObject;
 };

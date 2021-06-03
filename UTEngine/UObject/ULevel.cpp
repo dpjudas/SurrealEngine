@@ -59,20 +59,7 @@ void ULevel::Load(ObjectStream* stream)
 
 void UModel::Load(ObjectStream* stream)
 {
-	UObject::Load(stream);
-
-	BoundingBox.min.x = stream->ReadFloat();
-	BoundingBox.min.y = stream->ReadFloat();
-	BoundingBox.min.z = stream->ReadFloat();
-	BoundingBox.max.x = stream->ReadFloat();
-	BoundingBox.max.y = stream->ReadFloat();
-	BoundingBox.max.z = stream->ReadFloat();
-	BoundingBox.IsValid = stream->ReadInt8() != 0;
-
-	BoundingSphereX = stream->ReadFloat();
-	BoundingSphereY = stream->ReadFloat();
-	BoundingSphereZ = stream->ReadFloat();
-	BoundingSphereW = stream->ReadFloat();
+	UPrimitive::Load(stream);
 
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)

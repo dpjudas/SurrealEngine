@@ -4,7 +4,7 @@
 
 void UTexture::Load(ObjectStream* stream)
 {
-	UObject::Load(stream);
+	UBitmap::Load(stream);
 
 	if (HasProperty("Format")) Format = (TextureFormat)GetByte("Format");
 

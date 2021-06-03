@@ -65,15 +65,15 @@ public:
 	template<> Color& ToType() { return !VariablePtr ? Value.Color : *static_cast<Color*>(VariablePtr); }
 
 	// Optional arguments
-	template<> uint8_t* ToType() { return &Value.Byte; }
-	template<> int32_t* ToType() { return &Value.Int; }
-	template<> bool* ToType() { return &Value.Bool; }
-	template<> float* ToType() { return &Value.Float; }
-	template<> UObject** ToType() { return &Value.Object; }
-	template<> vec3* ToType() { return &Value.Vector; }
-	template<> Rotator* ToType() { return &Value.Rotator; }
-	template<> std::string* ToType() { return &ValueString; }
-	template<> Color* ToType() { return &Value.Color; }
+	template<> uint8_t* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<uint8_t&>() : nullptr; }
+	template<> int32_t* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<int32_t&>() : nullptr; }
+	template<> bool* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<bool&>() : nullptr; }
+	template<> float* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<float&>() : nullptr; }
+	template<> UObject** ToType() { return Type != ExpressionValueType::Nothing ? &ToType<UObject*&>() : nullptr; }
+	template<> vec3* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<vec3&>() : nullptr; }
+	template<> Rotator* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
+	template<> std::string* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
+	template<> Color* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
 
 	void Store(const ExpressionValue& rvalue);
 	void Load();

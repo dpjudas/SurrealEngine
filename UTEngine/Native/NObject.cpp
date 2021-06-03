@@ -235,16 +235,12 @@ void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 
 void NObject::OrOr_BoolBool(bool A, bool* B, bool& ReturnValue)
 {
-	// To do: needs skip keyword support
-	// ReturnValue = A || *B;
-	throw std::runtime_error("Object.OrOr_BoolBool not implemented");
+	ReturnValue = A || *B;
 }
 
 void NObject::AndAnd_BoolBool(bool A, bool* B, bool& ReturnValue)
 {
-	// To do: needs skip keyword support
-	// ReturnValue = A && *B;
-	throw std::runtime_error("Object.AndAnd_BoolBool not implemented");
+	ReturnValue = A && *B;
 }
 
 void NObject::And_IntInt(int A, int B, int& ReturnValue)
@@ -477,7 +473,10 @@ void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 
 void NObject::GotoState(UObject* Self, std::string* NewState, std::string* Label)
 {
-	throw std::runtime_error("Object.GotoState not implemented");
+	if (NewState)
+		Self->StateName = *NewState;
+	else
+		Self->StateName.clear();
 }
 
 void NObject::GreaterEqual_FloatFloat(float A, float B, bool& ReturnValue)

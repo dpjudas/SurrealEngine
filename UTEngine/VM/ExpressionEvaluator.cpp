@@ -153,7 +153,7 @@ void ExpressionEvaluator::Expr(SelfExpression* expr)
 
 void ExpressionEvaluator::Expr(SkipExpression* expr)
 {
-	throw std::runtime_error("Skip expression is not implemented");
+	Result = Eval(expr->Value);
 }
 
 void ExpressionEvaluator::Expr(ContextExpression* expr)
@@ -530,9 +530,20 @@ void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 
 void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& exprArgs)
 {
-	std::vector<ExpressionValue> args;
-	args.reserve(exprArgs.size());
-	for (Expression* arg : exprArgs)
-		args.push_back(Eval(arg).Value);
-	Result.Value = Frame::Call(func, Self, args);
+	if (func->NativeFuncIndex == 130)
+	{
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0]).Value.ToBool() && Eval(exprArgs[0]).Value.ToBool());
+	}
+	else if (func->NativeFuncIndex == 132)
+	{
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0]).Value.ToBool() || Eval(exprArgs[0]).Value.ToBool());
+	}
+	else
+	{
+		std::vector<ExpressionValue> args;
+		args.reserve(exprArgs.size());
+		for (Expression* arg : exprArgs)
+			args.push_back(Eval(arg).Value);
+		Result.Value = Frame::Call(func, Self, args);
+	}
 }

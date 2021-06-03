@@ -28,10 +28,16 @@ enum class TextureFormat : uint32_t
 	BC6H = 0x0e
 };
 
-class UTexture : public UObject
+class UBitmap : public UObject
 {
 public:
 	using UObject::UObject;
+};
+
+class UTexture : public UBitmap
+{
+public:
+	using UBitmap::UBitmap;
 	void Load(ObjectStream* stream) override;
 
 	virtual void Update() { }

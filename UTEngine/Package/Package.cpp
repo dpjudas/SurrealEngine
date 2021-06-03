@@ -14,85 +14,132 @@
 #include "UObject/USound.h"
 #include "UObject/UMusic.h"
 #include "UObject/UTextBuffer.h"
+#include "UObject/UClient.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
 {
 	ReadTables();
 
-	RegisterNativeClass<UObject>("Object");
-	RegisterNativeClass<UField>("Field");
-	RegisterNativeClass<UConst>("Const");
-	RegisterNativeClass<UEnum>("Enum");
-	RegisterNativeClass<UProperty>("Property");
-	RegisterNativeClass<UByteProperty>("ByteProperty");
-	RegisterNativeClass<UObjectProperty>("ObjectProperty");
-	RegisterNativeClass<UFixedArrayProperty>("FixedArrayProperty");
-	RegisterNativeClass<UArrayProperty>("ArrayProperty");
-	RegisterNativeClass<UMapProperty>("MapProperty");
-	RegisterNativeClass<UClassProperty>("ClassProperty");
-	RegisterNativeClass<UStructProperty>("StructProperty");
-	RegisterNativeClass<UIntProperty>("IntProperty");
-	RegisterNativeClass<UBoolProperty>("BoolProperty");
-	RegisterNativeClass<UFloatProperty>("FloatProperty");
-	RegisterNativeClass<UNameProperty>("NameProperty");
-	RegisterNativeClass<UStrProperty>("StrProperty");
-	RegisterNativeClass<UStringProperty>("StringProperty");
-	RegisterNativeClass<UStruct>("Struct");
-	RegisterNativeClass<UFunction>("Function");
-	RegisterNativeClass<UState>("State");
-	RegisterNativeClass<UClass>("Class");
-	RegisterNativeClass<UFont>("Font");
-	RegisterNativeClass<UModel>("Model");
-	RegisterNativeClass<ULevelBase>("LevelBase");
-	RegisterNativeClass<ULevel>("Level");
-	RegisterNativeClass<UActor>("Actor");
-	RegisterNativeClass<UPrimitive>("Primitive");
-	RegisterNativeClass<UMesh>("Mesh");
-	RegisterNativeClass<ULodMesh>("LodMesh");
-	RegisterNativeClass<USkeletalMesh>("SkeletalMesh");
-	RegisterNativeClass<UAnimation>("Animation");
-	RegisterNativeClass<UTexture>("Texture");
-	RegisterNativeClass<UFractalTexture>("FractalTexture");
-	RegisterNativeClass<UFireTexture>("FireTexture");
-	RegisterNativeClass<UIceTexture>("IceTexture");
-	RegisterNativeClass<UWaterTexture>("WaterTexture");
-	RegisterNativeClass<UWaveTexture>("WaveTexture");
-	RegisterNativeClass<UScriptedTexture>("ScriptedTexture");
-	RegisterNativeClass<UPalette>("Palette");
-	RegisterNativeClass<USound>("Sound");
-	RegisterNativeClass<UMusic>("Music");
-	RegisterNativeClass<UTextBuffer>("TextBuffer");
+	std::string nameKey = GetNameKey(name);
+	bool corePackage = nameKey == "core";
+	bool enginePackage = nameKey == "engine";
 
-	if (GetNameKey(name) == "engine" || GetNameKey(name) == "core")
-	{
-		for (auto& it : NativeClasses)
-		{
-			std::string name = it.first;
-			int objref = FindObjectReference("Class", name);
-			if (objref == 0)
-			{
-				if (NameHash.find(GetNameKey(name)) == NameHash.end())
-				{
-					NameTableEntry nameentry;
-					nameentry.Flags = 0;
-					nameentry.Name = name;
-					NameTable.push_back(nameentry);
-					NameHash[GetNameKey(name)] = (int)NameTable.size() - 1;
-				}
+	RegisterNativeClass<UObject>(corePackage, "Object");
+	RegisterNativeClass<UField>(corePackage, "Field", "Object");
+	RegisterNativeClass<UConst>(corePackage, "Const", "Field");
+	RegisterNativeClass<UEnum>(corePackage, "Enum", "Field");
+	RegisterNativeClass<UStruct>(corePackage, "Struct", "Field");
+	RegisterNativeClass<UFunction>(corePackage, "Function", "Struct");
+	RegisterNativeClass<UState>(corePackage, "State", "Struct");
+	RegisterNativeClass<UClass>(corePackage, "Class", "State");
+	RegisterNativeClass<UProperty>(corePackage, "Property", "Field");
+	RegisterNativeClass<UByteProperty>(corePackage, "ByteProperty", "Property");
+	RegisterNativeClass<UObjectProperty>(corePackage, "ObjectProperty", "Property");
+	RegisterNativeClass<UClassProperty>(corePackage, "ClassProperty", "ObjectProperty");
+	RegisterNativeClass<UFixedArrayProperty>(corePackage, "FixedArrayProperty", "Property");
+	RegisterNativeClass<UArrayProperty>(corePackage, "ArrayProperty", "Property");
+	RegisterNativeClass<UMapProperty>(corePackage, "MapProperty", "Property");
+	RegisterNativeClass<UStructProperty>(corePackage, "StructProperty", "Property");
+	RegisterNativeClass<UIntProperty>(corePackage, "IntProperty", "Property");
+	RegisterNativeClass<UBoolProperty>(corePackage, "BoolProperty", "Property");
+	RegisterNativeClass<UFloatProperty>(corePackage, "FloatProperty", "Property");
+	RegisterNativeClass<UNameProperty>(corePackage, "NameProperty", "Property");
+	RegisterNativeClass<UStrProperty>(corePackage, "StrProperty", "Property");
+	RegisterNativeClass<UStringProperty>(corePackage, "StringProperty", "Property");
+	RegisterNativeClass<UTextBuffer>(corePackage, "TextBuffer", "Object");
 
-				ExportTableEntry entry;
-				entry.ObjClass = 0;
-				entry.ObjBase = 0;
-				entry.ObjPackage = 0;
-				entry.ObjName = NameHash[GetNameKey(name)];
-				entry.ObjFlags = ObjectFlags::Native;
-				entry.ObjSize = 0;
-				entry.ObjOffset = 0;
-				ExportTable.push_back(entry);
-			}
-		}
-	}
+	RegisterNativeClass<UFont>(enginePackage, "Font", "Object");
+	RegisterNativeClass<UPalette>(enginePackage, "Palette", "Object");
+	RegisterNativeClass<USound>(enginePackage, "Sound", "Object");
+	RegisterNativeClass<UMusic>(enginePackage, "Music", "Object");
+
+	RegisterNativeClass<UPrimitive>(enginePackage, "Primitive", "Object");
+	RegisterNativeClass<UMesh>(enginePackage, "Mesh", "Primitive");
+	RegisterNativeClass<ULodMesh>(enginePackage, "LodMesh", "Mesh");
+	RegisterNativeClass<USkeletalMesh>(enginePackage, "SkeletalMesh", "LodMesh");
+	RegisterNativeClass<UAnimation>(enginePackage, "Animation", "Object");
+
+	RegisterNativeClass<UModel>(enginePackage, "Model", "Primitive");
+	RegisterNativeClass<ULevelBase>(enginePackage, "LevelBase", "Object");
+	RegisterNativeClass<ULevel>(enginePackage, "Level", "LevelBase");
+	RegisterNativeClass<ULevelSummary>(enginePackage, "LevelSummary", "Object");
+	RegisterNativeClass<UPolys>(enginePackage, "Polys", "Object");
+	RegisterNativeClass<UBspNodes>(enginePackage, "BspNodes", "Object");
+	RegisterNativeClass<UBspSurfs>(enginePackage, "BspSurfs", "Object");
+	RegisterNativeClass<UVectors>(enginePackage, "Vectors", "Object");
+	RegisterNativeClass<UVerts>(enginePackage, "Verts", "Object");
+
+	RegisterNativeClass<UBitmap>(enginePackage, "Texture", "Object");
+	RegisterNativeClass<UTexture>(enginePackage, "Texture", "Bitmap");
+	RegisterNativeClass<UFractalTexture>(enginePackage, "FractalTexture", "Texture");
+	RegisterNativeClass<UFireTexture>(enginePackage, "FireTexture", "FractalTexture");
+	RegisterNativeClass<UIceTexture>(enginePackage, "IceTexture", "FractalTexture");
+	RegisterNativeClass<UWaterTexture>(enginePackage, "WaterTexture", "FractalTexture");
+	RegisterNativeClass<UWaveTexture>(enginePackage, "WaveTexture", "FractalTexture");
+	RegisterNativeClass<UScriptedTexture>(enginePackage, "ScriptedTexture", "Texture");
+
+	RegisterNativeClass<UClient>(enginePackage, "Client", "Object");
+	RegisterNativeClass<UViewport>(enginePackage, "Viewport", "Player");
+	RegisterNativeClass<UCanvas>(enginePackage, "Canvas", "Object");
+	RegisterNativeClass<UConsole>(enginePackage, "Console", "Object");
+	RegisterNativeClass<UPlayer>(enginePackage, "Player", "Object");
+	RegisterNativeClass<UNetConnection>(enginePackage, "NetConnection", "Player");
+	RegisterNativeClass<UDemoRecConnection>(enginePackage, "DemoRecConnection", "NetConnection");
+	RegisterNativeClass<UPendingLevel>(enginePackage, "PendingLevel", "Object");
+	RegisterNativeClass<UNetPendingLevel>(enginePackage, "NetPendingLevel", "PendingLevel");
+	RegisterNativeClass<UDemoPlayPendingLevel>(enginePackage, "DemoPlayPendingLevel", "PendingLevel");
+	RegisterNativeClass<UChannel>(enginePackage, "Channel", "Object");
+	RegisterNativeClass<UControlChannel>(enginePackage, "ControlChannel", "Channel");
+	RegisterNativeClass<UActorChannel>(enginePackage, "ActorChannel", "Channel");
+	RegisterNativeClass<UFileChannel>(enginePackage, "FileChannel", "Channel");
+
+	RegisterNativeClass<UActor>(enginePackage, "Actor", "Object");
+	RegisterNativeClass<ULight>(enginePackage, "Light", "Actor");
+	RegisterNativeClass<UInventory>(enginePackage, "Inventory", "Actor");
+	RegisterNativeClass<UWeapon>(enginePackage, "Weapon", "Inventory");
+	RegisterNativeClass<UNavigationPoint>(enginePackage, "NavigationPoint", "Actor");
+	RegisterNativeClass<ULiftExit>(enginePackage, "LiftExit", "NavigationPoint");
+	RegisterNativeClass<ULiftCenter>(enginePackage, "LiftCenter", "NavigationPoint");
+	RegisterNativeClass<UWarpZoneMarker>(enginePackage, "WarpZoneMarker", "NavigationPoint");
+	RegisterNativeClass<UInventorySpot>(enginePackage, "InventorySpot", "NavigationPoint");
+	RegisterNativeClass<UTriggerMarker>(enginePackage, "TriggerMarker", "NavigationPoint");
+	RegisterNativeClass<UButtonMarker>(enginePackage, "ButtonMarker", "NavigationPoint");
+	RegisterNativeClass<UPlayerStart>(enginePackage, "PlayerStart", "NavigationPoint");
+	RegisterNativeClass<UTeleporter>(enginePackage, "Teleporter", "NavigationPoint");
+	RegisterNativeClass<UPathNode>(enginePackage, "PathNode", "NavigationPoint");
+	RegisterNativeClass<UDecoration>(enginePackage, "Decoration", "Actor");
+	RegisterNativeClass<UCarcass>(enginePackage, "Carcass", "Decoration");
+	RegisterNativeClass<UProjectile>(enginePackage, "Projectile", "Actor");
+	RegisterNativeClass<UKeypoint>(enginePackage, "Keypoint", "Actor");
+	RegisterNativeClass<Ulocationid>(enginePackage, "locationid", "Keypoint");
+	RegisterNativeClass<UInterpolationPoint>(enginePackage, "InterpolationPoint", "Keypoint");
+	RegisterNativeClass<UTriggers>(enginePackage, "Triggers", "Actor");
+	RegisterNativeClass<UTrigger>(enginePackage, "Trigger", "Triggers");
+	RegisterNativeClass<UHUD>(enginePackage, "HUD", "Actor");
+	RegisterNativeClass<UMenu>(enginePackage, "Menu", "Actor");
+	RegisterNativeClass<UInfo>(enginePackage, "Info", "Actor");
+	RegisterNativeClass<UMutator>(enginePackage, "Mutator", "Info");
+	RegisterNativeClass<UGameInfo>(enginePackage, "GameInfo", "Info");
+	RegisterNativeClass<UZoneInfo>(enginePackage, "ZoneInfo", "Info");
+	RegisterNativeClass<ULevelInfo>(enginePackage, "LevelInfo", "ZoneInfo");
+	RegisterNativeClass<UWarpZoneInfo>(enginePackage, "WarpZoneInfo", "ZoneInfo");
+	RegisterNativeClass<USkyZoneInfo>(enginePackage, "SkyZoneInfo", "ZoneInfo");
+	RegisterNativeClass<USavedMove>(enginePackage, "SavedMove", "Info");
+	RegisterNativeClass<UReplicationInfo>(enginePackage, "ReplicationInfo", "Info");
+	RegisterNativeClass<UPlayerReplicationInfo>(enginePackage, "PlayerReplicationInfo", "ReplicationInfo");
+	RegisterNativeClass<UGameReplicationInfo>(enginePackage, "GameReplicationInfo", "ReplicationInfo");
+	RegisterNativeClass<UInternetInfo>(enginePackage, "InternetInfo", "Info");
+	RegisterNativeClass<UStatLog>(enginePackage, "StatLog", "Info");
+	RegisterNativeClass<UStatLogFile>(enginePackage, "StatLogFile", "StatLog");
+	RegisterNativeClass<UDecal>(enginePackage, "Decal", "Actor");
+	RegisterNativeClass<USpawnNotify>(enginePackage, "SpawnNotify", "Actor");
+	RegisterNativeClass<UBrush>(enginePackage, "Brush", "Actor");
+	RegisterNativeClass<UMover>(enginePackage, "Mover", "Brush");
+	RegisterNativeClass<UPawn>(enginePackage, "Pawn", "Actor");
+	RegisterNativeClass<UScout>(enginePackage, "Scout", "Pawn");
+	RegisterNativeClass<UPlayerPawn>(enginePackage, "PlayerPawn", "Pawn");
+	RegisterNativeClass<UCamera>(enginePackage, "Camera", "PlayerPawn");
 
 	Objects.resize(ExportTable.size());
 }
@@ -124,9 +171,12 @@ void Package::LoadExportObject(int index)
 
 	std::string objname = GetName(entry->ObjName);
 
-	UClass* objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
-	if (objclass)
+	if (entry->ObjClass != 0)
 	{
+		UClass* objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
+		if (!objclass)
+			throw std::runtime_error("Could not find the object class for " + objname);
+
 		for (UClass* cur = objclass; cur != nullptr; cur = cur->Base)
 		{
 			auto it = NativeClasses.find(GetNameKey(cur->Name));
@@ -141,12 +191,12 @@ void Package::LoadExportObject(int index)
 			}
 		}
 
-		throw std::runtime_error("Could not find the object class for " + objname);
+		throw std::runtime_error("Could not find the native class for " + objname);
 	}
 	else
 	{
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
-		NativeClasses[GetNameKey("Class")](this, index, objname, objbase);
+		Objects[index] = std::make_unique<UClass>(objname, objbase, ExportTable[index].ObjFlags);
 
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
 		Packages->delayLoads.push_back(Objects[index].get());
