@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 #include "Math/mat.h"
+#include "RenderDevice/RenderDevice.h"
 
 class PackageManager;
 class UObject;
@@ -67,12 +68,25 @@ public:
 	Engine();
 	~Engine();
 
+	static Engine* Instance;
+
 	void Run();
 
 	void WindowClose(Viewport* viewport);
 	void Key(Viewport* viewport, std::string key);
 	void InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta = 0);
 	void SetPause(bool value);
+
+	FSceneNode SceneFrame;
+
+	void DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
+	ivec2 GetFontTextSize(UFont* font, const std::string& text);
+	void DrawTile(FSceneNode* frame, UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags);
+
+	UObject* LevelSummary = nullptr;
+	UObject* LevelInfo = nullptr;
+	ULevel* level = nullptr;
 
 private:
 	void Tick(float timeElapsed);
@@ -82,9 +96,6 @@ private:
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
 	void DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass);
-	void DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
-	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
-	ivec2 GetFontTextSize(UFont* font, const std::string& text);
 
 	void DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale);
 	void DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color);
@@ -128,10 +139,6 @@ private:
 	UFont* largefont = nullptr;
 	UFont* medfont = nullptr;
 	UFont* smallfont = nullptr;
-
-	UObject* LevelSummary = nullptr;
-	UObject* LevelInfo = nullptr;
-	ULevel* level = nullptr;
 
 	std::vector<UActor*> Lights;
 	std::vector<UTexture*> Textures;

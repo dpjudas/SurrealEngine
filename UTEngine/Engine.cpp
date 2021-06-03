@@ -39,8 +39,12 @@
 #include <chrono>
 #include <set>
 
+Engine* Engine::Instance = nullptr;
+
 Engine::Engine()
 {
+	Instance = this;
+
 	NActor::RegisterFunctions();
 	NCanvas::RegisterFunctions();
 	NCommandlet::RegisterFunctions();
@@ -73,6 +77,7 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+	Instance = nullptr;
 }
 
 UObject* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
@@ -128,43 +133,50 @@ void Engine::Run()
 	//LoadMap("CTF-Niven");
 	//LoadMap("CTF-Face");
 
-#if 0
-	{
-		UObject* client = NewObject("client", "Engine", "Client");
-		UObject* viewport = NewObject("viewport", "Engine", "Player");
-		UObject* canvas = NewObject("canvas", "Engine", "Canvas");
-		UObject* console = NewObject("console", "Engine", "Console");
-		UObject* pawn = NewObject("pawn", "Engine", "PlayerPawn");
+	UObject* client = NewObject("client", "Engine", "Client");
+	UObject* playerviewport = NewObject("viewport", "Engine", "Viewport");
+	UObject* canvas = NewObject("canvas", "Engine", "Canvas");
+	UObject* console = NewObject("console", "Engine", "Console");
+	//UObject* console = NewObject("console", "UWindow", "WindowConsole");
+	//UObject* console = NewObject("console", "UTMenu", "UTConsole");
+	UObject* pawn = NewObject("pawn", "Engine", "PlayerPawn");
 
-		*static_cast<UObject**>(console->GetProperty("Viewport")) = viewport;
-		*static_cast<UObject**>(viewport->GetProperty("Console")) = console;
-		*static_cast<UObject**>(viewport->GetProperty("Actor")) = pawn;
-		*static_cast<UObject**>(pawn->GetProperty("Level")) = level;
+	console->SetObject("Viewport", playerviewport);
+	console->SetFloat("FrameX", viewport->SizeX);
+	console->SetFloat("FrameY", viewport->SizeY);
+	//console->SetBool("bNoDrawWorld", true);
 
-		//UObject* console = NewObject("console", "UWindow", "WindowConsole");
-		//UObject* console = NewObject("console", "UTMenu", "UTConsole");
+	canvas->SetObject("Viewport", playerviewport);
+	canvas->SetInt("SizeX", viewport->SizeX);
+	canvas->SetInt("SizeY", viewport->SizeY);
 
-		InvokeEvent(console, "VideoChange", { });
-		InvokeEvent(console, "NotifyLevelChange", { });
-		InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
-		ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(0xc0) });
-		ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(0xc0), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
-		InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(0.0f) });
-		InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
-		InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
-	}
-#endif
+	playerviewport->SetObject("Console", console);
+	playerviewport->SetObject("Actor", pawn);
+	pawn->SetObject("Level", level);
+
+	InvokeEvent(console, "VideoChange", { });
+	InvokeEvent(console, "NotifyLevelChange", { });
+	//InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
+	//ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
+	//ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)
 	{
-		Tick(CalcTimeElapsed());
+		float elapsed = CalcTimeElapsed();
+		Tick(elapsed);
+
+		InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
 
 		for (UTexture* tex : Textures)
 			tex->Update();
 
 		RenderDevice* device = viewport->GetRenderDevice();
 		device->BeginFrame();
+
+		InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		DrawScene();
+		InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+
 		device->EndFrame(true);
 	}
 
@@ -310,15 +322,15 @@ void Engine::DrawScene()
 		device->ClearZ(&frame);
 	}
 
-	FSceneNode frame = CreateSceneFrame();
-	device->SetSceneNode(&frame);
+	SceneFrame = CreateSceneFrame();
+	device->SetSceneNode(&SceneFrame);
 
-	FrustumPlanes clip(frame.Projection * frame.Modelview);
+	FrustumPlanes clip(SceneFrame.Projection * SceneFrame.Modelview);
 
-	int zone = FindZoneAt(frame.ViewLocation);
-	uint64_t zonemask = FindRenderZoneMask(&frame, level->Model->Nodes.front(), clip, zone);
+	int zone = FindZoneAt(SceneFrame.ViewLocation);
+	uint64_t zonemask = FindRenderZoneMask(&SceneFrame, level->Model->Nodes.front(), clip, zone);
 
-	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 0);
+	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
 
 	for (UActor* actor : level->Actors)
 	{
@@ -330,12 +342,12 @@ void Engine::DrawScene()
 				bbox.min += actor->Location;
 				bbox.max += actor->Location;
 				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location)))
-					DrawMesh(&frame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
+					DrawMesh(&SceneFrame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 			else if ((actor->DrawType == ActorDrawType::Sprite || actor->DrawType == ActorDrawType::SpriteAnimOnce) && actor->Sprite)
 			{
 				if ((uint64_t)1 << FindZoneAt(actor->Location))
-					DrawSprite(&frame, actor->Sprite, actor->Location, actor->Rotation, actor->DrawScale);
+					DrawSprite(&SceneFrame, actor->Sprite, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 			else if (actor->DrawType == ActorDrawType::Brush && actor->Brush)
 			{
@@ -343,14 +355,14 @@ void Engine::DrawScene()
 				bbox.min += actor->Location;
 				bbox.max += actor->Location;
 				if (clip.test(bbox) != IntersectionTestResult::outside && (uint64_t)1 << FindZoneAt(actor->Location))
-					DrawBrush(&frame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
+					DrawBrush(&SceneFrame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
 			}
 		}
 	}
 
-	DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
+	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
 
-	DrawCoronas(&frame);
+	DrawCoronas(&SceneFrame);
 
 	framesDrawn++;
 	if (startFPSTime == 0 || lastTime - startFPSTime >= 1'000'000)
@@ -360,8 +372,8 @@ void Engine::DrawScene()
 		framesDrawn = 0;
 	}
 
-	DrawFontTextWithShadow(&frame, medfont, vec4(1.0f), 1920*4 - 16 * 4, 16 * 4, std::to_string(fps) + " FPS", TextAlignment::right);
-	DrawFontTextWithShadow(&frame, largefont, vec4(1.0f), 1920*4 / 2, 1080*4 - 100 * 4, LevelInfo->GetString("Title"), TextAlignment::center);
+	DrawFontTextWithShadow(&SceneFrame, medfont, vec4(1.0f), 1920*4 - 16 * 4, 16 * 4, std::to_string(fps) + " FPS", TextAlignment::right);
+	DrawFontTextWithShadow(&SceneFrame, largefont, vec4(1.0f), 1920*4 / 2, 1080*4 - 100 * 4, LevelInfo->GetString("Title"), TextAlignment::center);
 
 	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	device->EndScenePass();
@@ -1050,6 +1062,17 @@ void Engine::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vecto
 void Engine::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color)
 {
 	DrawLodMesh(frame, mesh, ObjectToWorld, color);
+}
+
+void Engine::DrawTile(FSceneNode* frame, UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags)
+{
+	RenderDevice* device = viewport->GetRenderDevice();
+
+	FTextureInfo texinfo;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
+	texinfo.Texture = Tex;
+
+	device->DrawTile(frame, texinfo, x, y, XL, YL, U, V, UL, VL, Z, color, fog, flags);
 }
 
 void Engine::DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)

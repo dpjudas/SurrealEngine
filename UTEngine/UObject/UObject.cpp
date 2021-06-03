@@ -16,7 +16,22 @@ void UObject::LoadNow()
 		auto info = std::move(DelayLoad);
 		auto stream = info->package->OpenObjectStream(info->Index, info->ObjName, info->Class);
 		if (!stream->IsEmptyStream())
+		{
 			Load(stream.get());
+		}
+		else if (dynamic_cast<UStruct*>(this))
+		{
+			auto s = static_cast<UStruct*>(this);
+			if (s->Base)
+			{
+				s->Base->LoadNow();
+				s->Properties = s->Base->Properties;
+				s->StructSize = s->Base->StructSize;
+			}
+
+			if (dynamic_cast<UClass*>(this))
+				PropertyData.Init(static_cast<UClass*>(this));
+		}
 	}
 }
 
@@ -108,9 +123,54 @@ UObject* UObject::GetUObject(const std::string& name)
 	return *static_cast<UObject**>(GetProperty(name));
 }
 
+Color UObject::GetColor(const std::string& name)
+{
+	return *static_cast<Color*>(GetProperty(name));
+}
+
 std::string UObject::GetUClassName(UObject* obj)
 {
 	return obj->Base ? obj->Base->Name : std::string("null");
+}
+
+void UObject::SetByte(const std::string& name, uint8_t value)
+{
+	*static_cast<uint8_t*>(GetProperty(name)) = value;
+}
+
+void UObject::SetInt(const std::string& name, uint32_t value)
+{
+	*static_cast<int32_t*>(GetProperty(name)) = value;
+}
+
+void UObject::SetBool(const std::string& name, bool value)
+{
+	*static_cast<bool*>(GetProperty(name)) = value;
+}
+
+void UObject::SetFloat(const std::string& name, float value)
+{
+	*static_cast<float*>(GetProperty(name)) = value;
+}
+
+void UObject::SetVector(const std::string& name, const vec3& value)
+{
+	*static_cast<vec3*>(GetProperty(name)) = value;
+}
+
+void UObject::SetRotator(const std::string& name, const Rotator& value)
+{
+	*static_cast<Rotator*>(GetProperty(name)) = value;
+}
+
+void UObject::SetString(const std::string& name, const std::string& value)
+{
+	*static_cast<std::string*>(GetProperty(name)) = value;
+}
+
+void UObject::SetObject(const std::string& name, const UObject* value)
+{
+	*static_cast<const UObject**>(GetProperty(name)) = value;
 }
 
 /////////////////////////////////////////////////////////////////////////////

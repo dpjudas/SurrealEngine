@@ -104,7 +104,7 @@ ExpressionEvalResult Frame::Run()
 		if (StatementIndex >= Code->Statements.size())
 			throw std::runtime_error("Unexpected end of code statements");
 
-		ExpressionEvalResult result = ExpressionEvaluator::Eval(Code->Statements[StatementIndex], Object, Variables.get());
+		ExpressionEvalResult result = ExpressionEvaluator::Eval(Code->Statements[StatementIndex], Object, Object, Variables.get());
 		switch (result.Result)
 		{
 		case StatementResult::Next:
@@ -133,7 +133,7 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
 		{
-			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Variables.get()).Value;
+			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables.get()).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else

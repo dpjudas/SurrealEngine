@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "NPlayerPawn.h"
 #include "VM/NativeFunc.h"
+#include "UObject/ULevel.h"
+#include "Engine.h"
 
 void NPlayerPawn::RegisterFunctions()
 {
@@ -38,7 +40,7 @@ void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::s
 
 void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("PlayerPawn.GetEntryLevel not implemented");
+	ReturnValue = Engine::Instance->level;
 }
 
 void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue)

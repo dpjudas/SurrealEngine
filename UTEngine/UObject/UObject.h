@@ -158,6 +158,16 @@ public:
 	Rotator GetRotator(const std::string& name) const;
 	const std::string& GetString(const std::string& name) const;
 	UObject* GetUObject(const std::string& name);
+	Color GetColor(const std::string& name);
+
+	void SetByte(const std::string& name, uint8_t value);
+	void SetInt(const std::string& name, uint32_t value);
+	void SetBool(const std::string& name, bool value);
+	void SetFloat(const std::string& name, float value);
+	void SetVector(const std::string& name, const vec3& value);
+	void SetRotator(const std::string& name, const Rotator& value);
+	void SetString(const std::string& name, const std::string& value);
+	void SetObject(const std::string& name, const UObject* value);
 
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 

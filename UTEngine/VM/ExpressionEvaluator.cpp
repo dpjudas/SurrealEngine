@@ -6,10 +6,11 @@
 #include "Frame.h"
 #include "NativeFunc.h"
 
-ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, void* localVariables)
+ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, UObject* context, void* localVariables)
 {
 	ExpressionEvaluator evaluator;
 	evaluator.Self = self;
+	evaluator.Context = context;
 	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
 	return evaluator.Result;
@@ -22,12 +23,12 @@ void ExpressionEvaluator::Expr(LocalVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(Self->PropertyData.Data, expr->Variable);
+	Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(Self->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
+	Result.Value = ExpressionValue::Variable(Context->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -128,7 +129,7 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 	UClass* cls = dynamic_cast<UClass*>(Eval(expr->ObjectExpr).Value.ToObject());
 	if (cls)
 	{
-		Result = Eval(expr->ContextExpr, cls->GetDefaultObject(), LocalVariables);
+		Result = Eval(expr->ContextExpr, Self, cls->GetDefaultObject(), LocalVariables);
 	}
 	else
 	{
@@ -161,7 +162,7 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 	UObject* context = Eval(expr->ObjectExpr).Value.ToObject();
 	if (context)
 	{
-		Result = Eval(expr->ContextExpr, context, LocalVariables);
+		Result = Eval(expr->ContextExpr, Self, context, LocalVariables);
 	}
 	else
 	{
@@ -497,7 +498,7 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
-	for (UClass* cls = Self->Base; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
@@ -532,18 +533,18 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 {
 	if (func->NativeFuncIndex == 130)
 	{
-		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0]).Value.ToBool() && Eval(exprArgs[0]).Value.ToBool());
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() && Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool());
 	}
 	else if (func->NativeFuncIndex == 132)
 	{
-		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0]).Value.ToBool() || Eval(exprArgs[0]).Value.ToBool());
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() || Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool());
 	}
 	else
 	{
 		std::vector<ExpressionValue> args;
 		args.reserve(exprArgs.size());
 		for (Expression* arg : exprArgs)
-			args.push_back(Eval(arg).Value);
-		Result.Value = Frame::Call(func, Self, args);
+			args.push_back(Eval(arg, Self, Self, LocalVariables).Value);
+		Result.Value = Frame::Call(func, Context, args);
 	}
 }

@@ -28,10 +28,10 @@ struct ExpressionEvalResult
 class ExpressionEvaluator : ExpressionVisitor
 {
 public:
-	static ExpressionEvalResult Eval(Expression* expr, UObject* self, void* localVariables);
+	static ExpressionEvalResult Eval(Expression* expr, UObject* self, UObject* context, void* localVariables);
 
 private:
-	ExpressionEvalResult Eval(Expression* expr) { return Eval(expr, Self, LocalVariables); }
+	ExpressionEvalResult Eval(Expression* expr) { return Eval(expr, Self, Context, LocalVariables); }
 
 	void Expr(LocalVariableExpression* expr) override;
 	void Expr(InstanceVariableExpression* expr) override;
@@ -125,5 +125,6 @@ private:
 
 	ExpressionEvalResult Result;
 	UObject* Self = nullptr;
+	UObject* Context = nullptr;
 	void* LocalVariables = nullptr;
 };

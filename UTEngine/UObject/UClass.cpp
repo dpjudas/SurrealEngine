@@ -58,6 +58,7 @@ void UStruct::Load(ObjectStream* stream)
 	size_t offset = 0;
 	if (Base)
 	{
+		Base->LoadNow();
 		Properties = Base->Properties;
 		offset = Base->StructSize;
 	}

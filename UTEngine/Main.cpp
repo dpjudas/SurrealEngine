@@ -34,18 +34,22 @@ namespace
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
+#ifndef _DEBUG
 	try
+#endif
 	{
 		SetProcessDPIAware();
 		InitCommonControls();
 		appMain();
 		return 0;
 	}
+#ifndef _DEBUG
 	catch (const std::exception& e)
 	{
 		MessageBox(0, to_utf16(e.what()).c_str(), to_utf16("Unhandled Exception").c_str(), MB_OK | MB_ICONEXCLAMATION);
 		return 1;
 	}
+#endif
 }
 
 #else
