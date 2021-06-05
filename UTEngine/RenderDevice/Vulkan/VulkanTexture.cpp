@@ -37,7 +37,7 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 		auto block4x4_to_64bits = [](auto mip) { return ((mip->Width + 3) / 4) * ((mip->Height + 3) / 4) * 8; };
 		auto block4x4_to_128bits = [](auto mip) { return ((mip->Width + 3) / 4) * ((mip->Height + 3) / 4) * 16; };
 
-		switch (Info.Texture->Format)
+		switch (Info.Texture->ActualFormat)
 		{
 		case TextureFormat::P8:
 			{

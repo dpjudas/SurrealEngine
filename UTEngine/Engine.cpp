@@ -1143,7 +1143,7 @@ FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet
 		return {};
 
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
-	std::unique_ptr<UTexture>& lmtexture = lmtextures[surface.LightMap];
+	UTexture*& lmtexture = lmtextures[surface.LightMap];
 	if (!lmtexture)
 	{
 		lmtexture = CreateLightmapTexture(lmindex, surface);
@@ -1151,14 +1151,14 @@ FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet
 
 	FTextureInfo lightmap;
 	lightmap.CacheID = (uint64_t)(ptrdiff_t)&surface;
-	lightmap.Texture = lmtexture.get();
+	lightmap.Texture = lmtexture;
 	lightmap.Pan = { lmindex.PanX, lmindex.PanY };
 	lightmap.UScale = lmindex.UScale;
 	lightmap.VScale = lmindex.VScale;
 	return lightmap;
 }
 
-std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface)
+UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface)
 {
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
@@ -1264,9 +1264,10 @@ std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmi
 		}
 	}
 
-	auto lmtexture = std::make_unique<UTexture>("Lightmap", nullptr, ObjectFlags::Transient);
-	lmtexture->Format = TextureFormat::RGBA7;
+	auto lmtexture = NewObject<UTexture>("Lightmap", "Engine", "Texture"/*, ObjectFlags::Transient*/);// std::make_unique<UTexture>("Lightmap", nullptr, ObjectFlags::Transient);
+	lmtexture->ActualFormat = TextureFormat::RGBA7;
 	lmtexture->Mipmaps.push_back(std::move(lmmip));
+	lmtexture->Format() = (uint8_t)lmtexture->ActualFormat;
 	return lmtexture;
 }
 

@@ -6,7 +6,7 @@ void UTexture::Load(ObjectStream* stream)
 {
 	UBitmap::Load(stream);
 
-	if (HasProperty("Format")) Format = (TextureFormat)GetByte("Format");
+	ActualFormat = (TextureFormat)GetByte("Format");
 
 	int mipsCount = stream->ReadUInt8();
 	Mipmaps.resize(mipsCount);
@@ -25,16 +25,9 @@ void UTexture::Load(ObjectStream* stream)
 		uint8_t VBits = stream->ReadUInt8();
 	}
 
-	//bool bHasComp = false;
-	//if (HasProperty("HasComp")) bHasComp = GetBool("HasComp");
-
-	if (bHasComp())
+	if (GetBool("bHasComp"))
 	{
-		TextureFormat compformat = (TextureFormat)CompFormat();
-		// TextureFormat compformat = TextureFormat::P8;
-		// if (HasProperty("CompFormat")) compformat = (TextureFormat)GetByte("CompFormat");
-
-		Format = compformat;
+		ActualFormat = (TextureFormat)GetByte("CompFormat");
 
 		mipsCount = stream->ReadUInt8();
 		Mipmaps.resize(mipsCount);
@@ -60,13 +53,11 @@ void UFractalTexture::Load(ObjectStream* stream)
 {
 	UTexture::Load(stream);
 
-	Format = TextureFormat::P8;
+	ActualFormat = TextureFormat::P8;
 	Mipmaps.resize(1);
 
-	int width = 128;
-	int height = 128;
-	if (HasProperty("UClamp")) width = GetInt("UClamp");
-	if (HasProperty("VClamp")) height = GetInt("VClamp");
+	int width = GetInt("UClamp");
+	int height = GetInt("VClamp");
 
 	UnrealMipmap& mipmap = Mipmaps.front();
 	mipmap.Width = width;

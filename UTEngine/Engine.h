@@ -129,7 +129,7 @@ private:
 	void LoadMap(const std::string& packageName);
 
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet);
-	std::unique_ptr<UTexture> CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
+	UTexture* CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
 	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos);
 
 	template<typename T>
@@ -149,7 +149,7 @@ private:
 	std::unique_ptr<Viewport> viewport;
 	std::unique_ptr<AudioPlayer> audioplayer;
 
-	std::map<int, std::unique_ptr<UTexture>> lmtextures;
+	std::map<int, UTexture*> lmtextures;
 
 	std::vector<int> portalsvisited;
 

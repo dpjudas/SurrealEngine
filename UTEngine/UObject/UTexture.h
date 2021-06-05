@@ -56,9 +56,8 @@ public:
 
 	virtual void Update() { }
 
-	TextureFormat Format = TextureFormat::P8;
+	TextureFormat ActualFormat = TextureFormat::P8;
 	std::vector<UnrealMipmap> Mipmaps;
-
 	bool TextureModified = false;
 
 	float& Accumulator() { return Value<float>(PropOffsets_Texture.Accumulator); }

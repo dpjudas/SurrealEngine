@@ -221,6 +221,8 @@ void PropertyDataBlock::Init(UClass* cls)
 
 		if (&cls->PropertyData != this)
 			prop->CopyConstruct(Ptr(prop), cls->PropertyData.Ptr(prop));
+		else if (cls->Base && prop->DataOffset < cls->Base->StructSize) // inherit from base default object
+			prop->CopyConstruct(Ptr(prop), cls->Base->PropertyData.Ptr(prop));
 		else
 			prop->Construct(Ptr(prop));
 

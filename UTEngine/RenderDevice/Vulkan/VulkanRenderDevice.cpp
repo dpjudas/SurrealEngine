@@ -420,7 +420,7 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 		throw std::runtime_error("Scene vertex buffer is too small!");
 	}
 
-	if ((PolyFlags & (PF_Modulated)) == (PF_Modulated) && Info.Texture->Format == TextureFormat::P8)
+	if ((PolyFlags & (PF_Modulated)) == (PF_Modulated) && Info.Texture->ActualFormat == TextureFormat::P8)
 		PolyFlags = PF_Modulated;
 
 	auto cmdbuffer = renderer->GetDrawCommands();
