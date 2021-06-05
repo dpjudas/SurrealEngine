@@ -1826,3 +1826,111 @@ struct PropertyOffsets_RenderIterator
 };
 
 extern PropertyOffsets_RenderIterator PropOffsets_RenderIterator;
+
+struct PropertyOffsets_FractalTexture
+{
+	size_t AuxPhase;
+	size_t DrawPhase;
+	size_t GlobalPhase;
+	size_t LightOutput;
+	size_t SoundOutput;
+	size_t UMask;
+	size_t VMask;
+};
+
+extern PropertyOffsets_FractalTexture PropOffsets_FractalTexture;
+
+struct PropertyOffsets_WaterTexture
+{
+	size_t DropType;
+	size_t Drops;
+	size_t FX_Amplitude;
+	size_t FX_Depth;
+	size_t FX_Frequency;
+	size_t FX_Phase;
+	size_t FX_Radius;
+	size_t FX_Size;
+	size_t FX_Speed;
+	size_t FX_Time;
+	size_t NumDrops;
+	size_t OldWaveAmp;
+	size_t RenderTable;
+	size_t SourceFields;
+	size_t WaterParity;
+	size_t WaterTable;
+	size_t WaveAmp;
+};
+
+extern PropertyOffsets_WaterTexture PropOffsets_WaterTexture;
+
+struct PropertyOffsets_WaveTexture
+{
+	size_t BumpMapAngle;
+	size_t BumpMapLight;
+	size_t PhongRange;
+	size_t PhongSize;
+};
+
+extern PropertyOffsets_WaveTexture PropOffsets_WaveTexture;
+
+struct PropertyOffsets_FireTexture
+{
+	size_t DrawMode;
+	size_t FX_Area;
+	size_t FX_AuxSize;
+	size_t FX_Frequency;
+	size_t FX_Heat;
+	size_t FX_HorizSpeed;
+	size_t FX_Phase;
+	size_t FX_Size;
+	size_t FX_VertSpeed;
+	size_t NumSparks;
+	size_t OldRenderHeat;
+	size_t PenDownX;
+	size_t PenDownY;
+	size_t RenderHeat;
+	size_t RenderTable;
+	size_t SparkType;
+	size_t Sparks;
+	size_t SparksLimit;
+	size_t StarStatus;
+	size_t bRising;
+};
+
+extern PropertyOffsets_FireTexture PropOffsets_FireTexture;
+
+struct PropertyOffsets_WetTexture
+{
+	size_t LocalSourceBitmap;
+	size_t OldSourceTex;
+	size_t SourceTexture;
+};
+
+extern PropertyOffsets_WetTexture PropOffsets_WetTexture;
+
+struct PropertyOffsets_IceTexture
+{
+	size_t Amplitude;
+	size_t ForceRefresh;
+	size_t Frequency;
+	size_t GlassTexture;
+	size_t HorizPanSpeed;
+	size_t LocalSource;
+	size_t MasterCount;
+	size_t MoveIce;
+	size_t OldGlassTex;
+	size_t OldSourceTex;
+	size_t OldUDisplace;
+	size_t OldVDisplace;
+	size_t PanningStyle;
+	size_t SourceTexture;
+	size_t TickAccu;
+	size_t TimeMethod;
+	size_t UDisplace;
+	size_t UPosition;
+	size_t VDisplace;
+	size_t VPosition;
+	size_t VertPanSpeed;
+};
+
+extern PropertyOffsets_IceTexture PropOffsets_IceTexture;

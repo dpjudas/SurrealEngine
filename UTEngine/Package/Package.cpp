@@ -76,7 +76,8 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UFireTexture>(enginePackage, "FireTexture", "FractalTexture");
 	RegisterNativeClass<UIceTexture>(enginePackage, "IceTexture", "FractalTexture");
 	RegisterNativeClass<UWaterTexture>(enginePackage, "WaterTexture", "FractalTexture");
-	RegisterNativeClass<UWaveTexture>(enginePackage, "WaveTexture", "FractalTexture");
+	RegisterNativeClass<UWaveTexture>(enginePackage, "WaveTexture", "WaterTexture");
+	RegisterNativeClass<UWetTexture>(enginePackage, "WetTexture", "WaterTexture");
 	RegisterNativeClass<UScriptedTexture>(enginePackage, "ScriptedTexture", "Texture");
 
 	RegisterNativeClass<UClient>(enginePackage, "Client", "Object");

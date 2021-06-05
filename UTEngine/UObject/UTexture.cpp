@@ -113,6 +113,112 @@ void UFireTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UIceTexture::Update()
+{
+	if (!TextureModified)
+	{
+		UnrealMipmap& mipmap = Mipmaps.front();
+
+		int width = mipmap.Width;
+		int height = mipmap.Height;
+		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
+		int count = width * height;
+
+		UTexture* tex = SourceTexture();
+		if (tex && !tex->Mipmaps.empty() && tex->Mipmaps.front().Width == mipmap.Width && tex->Mipmaps.front().Height == mipmap.Height)
+		{
+			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
+			for (int i = 0; i < count; i++)
+			{
+				pixels[i] = srcpixels[i];
+			}
+		}
+		else
+		{
+			for (int i = 0; i < count; i++)
+			{
+				pixels[i] = 200;
+			}
+		}
+
+		TextureModified = true;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UWaterTexture::Update()
+{
+	if (!TextureModified)
+	{
+		UnrealMipmap& mipmap = Mipmaps.front();
+
+		int width = mipmap.Width;
+		int height = mipmap.Height;
+		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
+		int count = width * height;
+		for (int i = 0; i < count; i++)
+		{
+			pixels[i] = 200;
+		}
+
+		TextureModified = true;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UWaveTexture::Update()
+{
+	if (!TextureModified)
+	{
+		UnrealMipmap& mipmap = Mipmaps.front();
+
+		int width = mipmap.Width;
+		int height = mipmap.Height;
+		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
+		int count = width * height;
+		for (int i = 0; i < count; i++)
+		{
+			pixels[i] = 200;
+		}
+
+		TextureModified = true;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UWetTexture::Update()
+{
+	if (!TextureModified)
+	{
+		UnrealMipmap& mipmap = Mipmaps.front();
+
+		UTexture* tex = SourceTexture();
+		if (tex && !tex->Mipmaps.empty() && tex->Mipmaps.front().Width == mipmap.Width && tex->Mipmaps.front().Height == mipmap.Height)
+		{
+			int width = mipmap.Width;
+			int height = mipmap.Height;
+			uint8_t* pixels = (uint8_t*)mipmap.Data.data();
+			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
+			int count = width * height;
+			for (int i = 0; i < count; i++)
+			{
+				pixels[i] = srcpixels[i];
+			}
+		}
+		else
+		{
+			UWaterTexture::Update();
+		}
+
+		TextureModified = true;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 void UPalette::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);

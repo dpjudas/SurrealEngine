@@ -127,6 +127,14 @@ class UFractalTexture : public UTexture
 public:
 	using UTexture::UTexture;
 	void Load(ObjectStream* stream) override;
+
+	uint8_t& AuxPhase() { return Value<uint8_t>(PropOffsets_FractalTexture.AuxPhase); }
+	uint8_t& DrawPhase() { return Value<uint8_t>(PropOffsets_FractalTexture.DrawPhase); }
+	int& GlobalPhase() { return Value<int>(PropOffsets_FractalTexture.GlobalPhase); }
+	int& LightOutput() { return Value<int>(PropOffsets_FractalTexture.LightOutput); }
+	int& SoundOutput() { return Value<int>(PropOffsets_FractalTexture.SoundOutput); }
+	int& UMask() { return Value<int>(PropOffsets_FractalTexture.UMask); }
+	int& VMask() { return Value<int>(PropOffsets_FractalTexture.VMask); }
 };
 
 class UFireTexture : public UFractalTexture
@@ -135,24 +143,108 @@ public:
 	using UFractalTexture::UFractalTexture;
 
 	void Update() override;
+
+	uint8_t& DrawMode() { return Value<uint8_t>(PropOffsets_FireTexture.DrawMode); }
+	uint8_t& FX_Area() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Area); }
+	uint8_t& FX_AuxSize() { return Value<uint8_t>(PropOffsets_FireTexture.FX_AuxSize); }
+	uint8_t& FX_Frequency() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Frequency); }
+	uint8_t& FX_Heat() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Heat); }
+	uint8_t& FX_HorizSpeed() { return Value<uint8_t>(PropOffsets_FireTexture.FX_HorizSpeed); }
+	uint8_t& FX_Phase() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Phase); }
+	uint8_t& FX_Size() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Size); }
+	uint8_t& FX_VertSpeed() { return Value<uint8_t>(PropOffsets_FireTexture.FX_VertSpeed); }
+	int& NumSparks() { return Value<int>(PropOffsets_FireTexture.NumSparks); }
+	int& OldRenderHeat() { return Value<int>(PropOffsets_FireTexture.OldRenderHeat); }
+	uint8_t& PenDownX() { return Value<uint8_t>(PropOffsets_FireTexture.PenDownX); }
+	uint8_t& PenDownY() { return Value<uint8_t>(PropOffsets_FireTexture.PenDownY); }
+	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
+	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
+	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
+	std::vector<void*>& Sparks() { return Value<std::vector<void*>>(PropOffsets_FireTexture.Sparks); }
+	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
+	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
+	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
 };
 
 class UIceTexture : public UFractalTexture
 {
 public:
 	using UFractalTexture::UFractalTexture;
+
+	void Update() override;
+
+	uint8_t& Amplitude() { return Value<uint8_t>(PropOffsets_IceTexture.Amplitude); }
+	int& ForceRefresh() { return Value<int>(PropOffsets_IceTexture.ForceRefresh); }
+	uint8_t& Frequency() { return Value<uint8_t>(PropOffsets_IceTexture.Frequency); }
+	UTexture*& GlassTexture() { return Value<UTexture*>(PropOffsets_IceTexture.GlassTexture); }
+	uint8_t& HorizPanSpeed() { return Value<uint8_t>(PropOffsets_IceTexture.HorizPanSpeed); }
+	int& LocalSource() { return Value<int>(PropOffsets_IceTexture.LocalSource); }
+	float& MasterCount() { return Value<float>(PropOffsets_IceTexture.MasterCount); }
+	bool& MoveIce() { return Value<bool>(PropOffsets_IceTexture.MoveIce); }
+	UTexture*& OldGlassTex() { return Value<UTexture*>(PropOffsets_IceTexture.OldGlassTex); }
+	UTexture*& OldSourceTex() { return Value<UTexture*>(PropOffsets_IceTexture.OldSourceTex); }
+	int& OldUDisplace() { return Value<int>(PropOffsets_IceTexture.OldUDisplace); }
+	int& OldVDisplace() { return Value<int>(PropOffsets_IceTexture.OldVDisplace); }
+	uint8_t& PanningStyle() { return Value<uint8_t>(PropOffsets_IceTexture.PanningStyle); }
+	UTexture*& SourceTexture() { return Value<UTexture*>(PropOffsets_IceTexture.SourceTexture); }
+	float& TickAccu() { return Value<float>(PropOffsets_IceTexture.TickAccu); }
+	uint8_t& TimeMethod() { return Value<uint8_t>(PropOffsets_IceTexture.TimeMethod); }
+	float& UDisplace() { return Value<float>(PropOffsets_IceTexture.UDisplace); }
+	float& UPosition() { return Value<float>(PropOffsets_IceTexture.UPosition); }
+	float& VDisplace() { return Value<float>(PropOffsets_IceTexture.VDisplace); }
+	float& VPosition() { return Value<float>(PropOffsets_IceTexture.VPosition); }
+	uint8_t& VertPanSpeed() { return Value<uint8_t>(PropOffsets_IceTexture.VertPanSpeed); }
 };
 
 class UWaterTexture : public UFractalTexture
 {
 public:
 	using UFractalTexture::UFractalTexture;
+
+	void Update() override;
+
+	uint8_t& DropType() { return Value<uint8_t>(PropOffsets_WaterTexture.DropType); }
+	// ADrop& Drops() { return Value<ADrop>(PropOffsets_WaterTexture.Drops); }
+	uint8_t& FX_Amplitude() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Amplitude); }
+	uint8_t& FX_Depth() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Depth); }
+	uint8_t& FX_Frequency() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Frequency); }
+	uint8_t& FX_Phase() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Phase); }
+	uint8_t& FX_Radius() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Radius); }
+	uint8_t& FX_Size() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Size); }
+	uint8_t& FX_Speed() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Speed); }
+	uint8_t& FX_Time() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Time); }
+	int& NumDrops() { return Value<int>(PropOffsets_WaterTexture.NumDrops); }
+	int& OldWaveAmp() { return Value<int>(PropOffsets_WaterTexture.OldWaveAmp); }
+	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_WaterTexture.RenderTable); }
+	int& SourceFields() { return Value<int>(PropOffsets_WaterTexture.SourceFields); }
+	uint8_t& WaterParity() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterParity); }
+	uint8_t& WaterTable() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterTable); }
+	uint8_t& WaveAmp() { return Value<uint8_t>(PropOffsets_WaterTexture.WaveAmp); }
 };
 
-class UWaveTexture : public UFractalTexture
+class UWaveTexture : public UWaterTexture
 {
 public:
-	using UFractalTexture::UFractalTexture;
+	using UWaterTexture::UWaterTexture;
+
+	void Update() override;
+
+	uint8_t& BumpMapAngle() { return Value<uint8_t>(PropOffsets_WaveTexture.BumpMapAngle); }
+	uint8_t& BumpMapLight() { return Value<uint8_t>(PropOffsets_WaveTexture.BumpMapLight); }
+	uint8_t& PhongRange() { return Value<uint8_t>(PropOffsets_WaveTexture.PhongRange); }
+	uint8_t& PhongSize() { return Value<uint8_t>(PropOffsets_WaveTexture.PhongSize); }
+};
+
+class UWetTexture : public UWaterTexture
+{
+public:
+	using UWaterTexture::UWaterTexture;
+
+	void Update() override;
+
+	int& LocalSourceBitmap() { return Value<int>(PropOffsets_WetTexture.LocalSourceBitmap); }
+	UTexture*& OldSourceTex() { return Value<UTexture*>(PropOffsets_WetTexture.OldSourceTex); }
+	UTexture*& SourceTexture() { return Value<UTexture*>(PropOffsets_WetTexture.SourceTexture); }
 };
 
 class UScriptedTexture : public UTexture

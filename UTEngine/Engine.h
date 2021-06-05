@@ -3,6 +3,7 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "RenderDevice/RenderDevice.h"
+#include <set>
 
 class PackageManager;
 class UObject;
@@ -144,7 +145,7 @@ private:
 	UFont* smallfont = nullptr;
 
 	std::vector<UActor*> Lights;
-	std::vector<UTexture*> Textures;
+	std::set<UTexture*> Textures;
 
 	std::unique_ptr<Viewport> viewport;
 	std::unique_ptr<AudioPlayer> audioplayer;

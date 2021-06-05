@@ -2035,6 +2035,132 @@ static void InitPropertyOffsets_RenderIterator(PackageManager* packages)
 	PropOffsets_RenderIterator.Observer = cls->GetProperty("Observer")->DataOffset;
 }
 
+PropertyOffsets_FractalTexture PropOffsets_FractalTexture;
+
+static void InitPropertyOffsets_FractalTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FractalTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for FractalTexture");
+	PropOffsets_FractalTexture.AuxPhase = cls->GetProperty("AuxPhase")->DataOffset;
+	PropOffsets_FractalTexture.DrawPhase = cls->GetProperty("DrawPhase")->DataOffset;
+	PropOffsets_FractalTexture.GlobalPhase = cls->GetProperty("GlobalPhase")->DataOffset;
+	PropOffsets_FractalTexture.LightOutput = cls->GetProperty("LightOutput")->DataOffset;
+	PropOffsets_FractalTexture.SoundOutput = cls->GetProperty("SoundOutput")->DataOffset;
+	PropOffsets_FractalTexture.UMask = cls->GetProperty("UMask")->DataOffset;
+	PropOffsets_FractalTexture.VMask = cls->GetProperty("VMask")->DataOffset;
+}
+
+PropertyOffsets_WaterTexture PropOffsets_WaterTexture;
+
+static void InitPropertyOffsets_WaterTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaterTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for WaterTexture");
+	PropOffsets_WaterTexture.DropType = cls->GetProperty("DropType")->DataOffset;
+	PropOffsets_WaterTexture.Drops = cls->GetProperty("Drops")->DataOffset;
+	PropOffsets_WaterTexture.FX_Amplitude = cls->GetProperty("FX_Amplitude")->DataOffset;
+	PropOffsets_WaterTexture.FX_Depth = cls->GetProperty("FX_Depth")->DataOffset;
+	PropOffsets_WaterTexture.FX_Frequency = cls->GetProperty("FX_Frequency")->DataOffset;
+	PropOffsets_WaterTexture.FX_Phase = cls->GetProperty("FX_Phase")->DataOffset;
+	PropOffsets_WaterTexture.FX_Radius = cls->GetProperty("FX_Radius")->DataOffset;
+	PropOffsets_WaterTexture.FX_Size = cls->GetProperty("FX_Size")->DataOffset;
+	PropOffsets_WaterTexture.FX_Speed = cls->GetProperty("FX_Speed")->DataOffset;
+	PropOffsets_WaterTexture.FX_Time = cls->GetProperty("FX_Time")->DataOffset;
+	PropOffsets_WaterTexture.NumDrops = cls->GetProperty("NumDrops")->DataOffset;
+	PropOffsets_WaterTexture.OldWaveAmp = cls->GetProperty("OldWaveAmp")->DataOffset;
+	PropOffsets_WaterTexture.RenderTable = cls->GetProperty("RenderTable")->DataOffset;
+	PropOffsets_WaterTexture.SourceFields = cls->GetProperty("SourceFields")->DataOffset;
+	PropOffsets_WaterTexture.WaterParity = cls->GetProperty("WaterParity")->DataOffset;
+	PropOffsets_WaterTexture.WaterTable = cls->GetProperty("WaterTable")->DataOffset;
+	PropOffsets_WaterTexture.WaveAmp = cls->GetProperty("WaveAmp")->DataOffset;
+}
+
+PropertyOffsets_WaveTexture PropOffsets_WaveTexture;
+
+static void InitPropertyOffsets_WaveTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaveTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for WaveTexture");
+	PropOffsets_WaveTexture.BumpMapAngle = cls->GetProperty("BumpMapAngle")->DataOffset;
+	PropOffsets_WaveTexture.BumpMapLight = cls->GetProperty("BumpMapLight")->DataOffset;
+	PropOffsets_WaveTexture.PhongRange = cls->GetProperty("PhongRange")->DataOffset;
+	PropOffsets_WaveTexture.PhongSize = cls->GetProperty("PhongSize")->DataOffset;
+}
+
+PropertyOffsets_FireTexture PropOffsets_FireTexture;
+
+static void InitPropertyOffsets_FireTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FireTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for FireTexture");
+	PropOffsets_FireTexture.DrawMode = cls->GetProperty("DrawMode")->DataOffset;
+	PropOffsets_FireTexture.FX_Area = cls->GetProperty("FX_Area")->DataOffset;
+	PropOffsets_FireTexture.FX_AuxSize = cls->GetProperty("FX_AuxSize")->DataOffset;
+	PropOffsets_FireTexture.FX_Frequency = cls->GetProperty("FX_Frequency")->DataOffset;
+	PropOffsets_FireTexture.FX_Heat = cls->GetProperty("FX_Heat")->DataOffset;
+	PropOffsets_FireTexture.FX_HorizSpeed = cls->GetProperty("FX_HorizSpeed")->DataOffset;
+	PropOffsets_FireTexture.FX_Phase = cls->GetProperty("FX_Phase")->DataOffset;
+	PropOffsets_FireTexture.FX_Size = cls->GetProperty("FX_Size")->DataOffset;
+	PropOffsets_FireTexture.FX_VertSpeed = cls->GetProperty("FX_VertSpeed")->DataOffset;
+	PropOffsets_FireTexture.NumSparks = cls->GetProperty("NumSparks")->DataOffset;
+	PropOffsets_FireTexture.OldRenderHeat = cls->GetProperty("OldRenderHeat")->DataOffset;
+	PropOffsets_FireTexture.PenDownX = cls->GetProperty("PenDownX")->DataOffset;
+	PropOffsets_FireTexture.PenDownY = cls->GetProperty("PenDownY")->DataOffset;
+	PropOffsets_FireTexture.RenderHeat = cls->GetProperty("RenderHeat")->DataOffset;
+	PropOffsets_FireTexture.RenderTable = cls->GetProperty("RenderTable")->DataOffset;
+	PropOffsets_FireTexture.SparkType = cls->GetProperty("SparkType")->DataOffset;
+	PropOffsets_FireTexture.Sparks = cls->GetProperty("Sparks")->DataOffset;
+	PropOffsets_FireTexture.SparksLimit = cls->GetProperty("SparksLimit")->DataOffset;
+	PropOffsets_FireTexture.StarStatus = cls->GetProperty("StarStatus")->DataOffset;
+	PropOffsets_FireTexture.bRising = cls->GetProperty("bRising")->DataOffset;
+}
+
+PropertyOffsets_WetTexture PropOffsets_WetTexture;
+
+static void InitPropertyOffsets_WetTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WetTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for WetTexture");
+	PropOffsets_WetTexture.LocalSourceBitmap = cls->GetProperty("LocalSourceBitmap")->DataOffset;
+	PropOffsets_WetTexture.OldSourceTex = cls->GetProperty("OldSourceTex")->DataOffset;
+	PropOffsets_WetTexture.SourceTexture = cls->GetProperty("SourceTexture")->DataOffset;
+}
+
+PropertyOffsets_IceTexture PropOffsets_IceTexture;
+
+static void InitPropertyOffsets_IceTexture(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "IceTexture"));
+	if (!cls)
+		throw std::runtime_error("Could not find class object for IceTexture");
+	PropOffsets_IceTexture.Amplitude = cls->GetProperty("Amplitude")->DataOffset;
+	PropOffsets_IceTexture.ForceRefresh = cls->GetProperty("ForceRefresh")->DataOffset;
+	PropOffsets_IceTexture.Frequency = cls->GetProperty("Frequency")->DataOffset;
+	PropOffsets_IceTexture.GlassTexture = cls->GetProperty("GlassTexture")->DataOffset;
+	PropOffsets_IceTexture.HorizPanSpeed = cls->GetProperty("HorizPanSpeed")->DataOffset;
+	PropOffsets_IceTexture.LocalSource = cls->GetProperty("LocalSource")->DataOffset;
+	PropOffsets_IceTexture.MasterCount = cls->GetProperty("MasterCount")->DataOffset;
+	PropOffsets_IceTexture.MoveIce = cls->GetProperty("MoveIce")->DataOffset;
+	PropOffsets_IceTexture.OldGlassTex = cls->GetProperty("OldGlassTex")->DataOffset;
+	PropOffsets_IceTexture.OldSourceTex = cls->GetProperty("OldSourceTex")->DataOffset;
+	PropOffsets_IceTexture.OldUDisplace = cls->GetProperty("OldUDisplace")->DataOffset;
+	PropOffsets_IceTexture.OldVDisplace = cls->GetProperty("OldVDisplace")->DataOffset;
+	PropOffsets_IceTexture.PanningStyle = cls->GetProperty("PanningStyle")->DataOffset;
+	PropOffsets_IceTexture.SourceTexture = cls->GetProperty("SourceTexture")->DataOffset;
+	PropOffsets_IceTexture.TickAccu = cls->GetProperty("TickAccu")->DataOffset;
+	PropOffsets_IceTexture.TimeMethod = cls->GetProperty("TimeMethod")->DataOffset;
+	PropOffsets_IceTexture.UDisplace = cls->GetProperty("UDisplace")->DataOffset;
+	PropOffsets_IceTexture.UPosition = cls->GetProperty("UPosition")->DataOffset;
+	PropOffsets_IceTexture.VDisplace = cls->GetProperty("VDisplace")->DataOffset;
+	PropOffsets_IceTexture.VPosition = cls->GetProperty("VPosition")->DataOffset;
+	PropOffsets_IceTexture.VertPanSpeed = cls->GetProperty("VertPanSpeed")->DataOffset;
+}
+
 void InitPropertyOffsets(PackageManager* packages)
 {
 	InitPropertyOffsets_Object(packages);
@@ -2106,4 +2232,10 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_WarpZoneMarker(packages);
 	InitPropertyOffsets_LiftCenter(packages);
 	InitPropertyOffsets_RenderIterator(packages);
+	InitPropertyOffsets_FractalTexture(packages);
+	InitPropertyOffsets_WaterTexture(packages);
+	InitPropertyOffsets_WaveTexture(packages);
+	InitPropertyOffsets_FireTexture(packages);
+	InitPropertyOffsets_WetTexture(packages);
+	InitPropertyOffsets_IceTexture(packages);
 }

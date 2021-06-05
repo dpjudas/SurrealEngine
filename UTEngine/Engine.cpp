@@ -295,7 +295,7 @@ void Engine::DrawCoronas(FSceneNode* frame)
 
 				float width = (float)light->Skin()->Mipmaps.front().Width;
 				float height = (float)light->Skin()->Mipmaps.front().Height;
-				float scale = frame->FY / 300.0f;
+				float scale = frame->FY / 400.0f;
 
 				vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, 1.0f);
 
@@ -344,7 +344,8 @@ void Engine::DrawScene()
 	{
 		if (actor && !actor->bHidden())
 		{
-			if (actor->DrawType() == (int)ActorDrawType::Mesh && actor->Mesh())
+			ActorDrawType dt = (ActorDrawType)actor->DrawType();
+			if (dt == ActorDrawType::Mesh && actor->Mesh())
 			{
 				BBox bbox = actor->Mesh()->BoundingBox;
 				bbox.min += actor->Location();
@@ -352,12 +353,12 @@ void Engine::DrawScene()
 				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location())))
 					DrawMesh(&SceneFrame, actor->Mesh(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
-			else if ((actor->DrawType() == (int)ActorDrawType::Sprite || actor->DrawType() == (int)ActorDrawType::SpriteAnimOnce) && actor->Sprite())
+			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && actor->Texture())
 			{
 				if ((uint64_t)1 << FindZoneAt(actor->Location()))
-					DrawSprite(&SceneFrame, actor->Sprite(), actor->Location(), actor->Rotation(), actor->DrawScale());
+					DrawSprite(&SceneFrame, actor->Texture(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
-			else if (actor->DrawType() == (int)ActorDrawType::Brush && actor->Brush())
+			else if (dt == ActorDrawType::Brush && actor->Brush())
 			{
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();
@@ -934,9 +935,14 @@ void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& locati
 {
 	auto device = viewport->GetRenderDevice();
 
+	Textures.insert(texture);
+
 	FTextureInfo texinfo;
 	texinfo.Texture = texture;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+	texinfo.bRealtimeChanged = texture->TextureModified;
+	if (texture->TextureModified)
+		texture->TextureModified = false;
 
 	float texwidth = (float)texture->Mipmaps.front().Width;
 	float texheight = (float)texture->Mipmaps.front().Height;
@@ -1430,21 +1436,17 @@ void Engine::LoadMap(const std::string& packageName)
 	for (UActor* light : lightset)
 		Lights.push_back(light);
 
-	std::set<UTexture*> textureset;
 	for (BspSurface& surf : level->Model->Surfaces)
 	{
 		if (surf.Material)
 		{
-			textureset.insert(surf.Material);
+			Textures.insert(surf.Material);
 			if (surf.Material->DetailTexture())
-				textureset.insert(surf.Material->DetailTexture());
+				Textures.insert(surf.Material->DetailTexture());
 			if (surf.Material->MacroTexture())
-				textureset.insert(surf.Material->MacroTexture());
+				Textures.insert(surf.Material->MacroTexture());
 		}
 	}
-
-	for (UTexture* texture : textureset)
-		Textures.push_back(texture);
 
 	for (UActor* actor : level->Actors)
 	{
