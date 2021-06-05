@@ -350,12 +350,17 @@ void Engine::DrawScene()
 				BBox bbox = actor->Mesh()->BoundingBox;
 				bbox.min += actor->Location();
 				bbox.max += actor->Location();
-				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location())))
-					DrawMesh(&SceneFrame, actor->Mesh(), actor->Location(), actor->Rotation(), actor->DrawScale());
+				if (clip.test(bbox) != IntersectionTestResult::outside)
+				{
+					int actorZone = FindZoneAt(actor->Location());
+					if (((uint64_t)1 << actorZone) & zonemask)
+						DrawMesh(&SceneFrame, actor->Mesh(), actor->Location(), actor->Rotation(), actor->DrawScale(), actorZone);
+				}
 			}
 			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && actor->Texture())
 			{
-				if ((uint64_t)1 << FindZoneAt(actor->Location()))
+				int actorZone = FindZoneAt(actor->Location());
+				if (((uint64_t)1 << actorZone) & zonemask)
 					DrawSprite(&SceneFrame, actor->Texture(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
 			else if (dt == ActorDrawType::Brush && actor->Brush())
@@ -363,8 +368,12 @@ void Engine::DrawScene()
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();
 				bbox.max += actor->Location();
-				if (clip.test(bbox) != IntersectionTestResult::outside && (uint64_t)1 << FindZoneAt(actor->Location()))
-					DrawBrush(&SceneFrame, actor->Brush(), actor->Location(), actor->Rotation(), actor->DrawScale());
+				if (clip.test(bbox) != IntersectionTestResult::outside)
+				{
+					int actorZone = FindZoneAt(actor->Location());
+					if (((uint64_t)1 << actorZone) & zonemask)
+						DrawBrush(&SceneFrame, actor->Brush(), actor->Location(), actor->Rotation(), actor->DrawScale(), actorZone);
+				}
 			}
 		}
 	}
@@ -915,8 +924,13 @@ void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& no
 	}
 
 	FTextureInfo lightmap;
-	if ((surface.PolyFlags & PF_Unlit) == 0 && model == level->Model)
-		lightmap = GetSurfaceLightmap(surface, facet);
+	if ((surface.PolyFlags & PF_Unlit) == 0)
+	{
+		UZoneInfo* zoneActor = !model->Zones.empty() ? dynamic_cast<UZoneInfo*>(model->Zones[node.Zone0].ZoneActor) : nullptr;
+		if (!zoneActor)
+			zoneActor = LevelInfo;
+		lightmap = GetSurfaceLightmap(surface, facet, zoneActor, model);
+	}
 
 	//FTextureInfo fogmap = GetSurfaceFogmap(surface);
 
@@ -929,6 +943,62 @@ void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& no
 	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
 
 	viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
+}
+
+void Engine::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
+{
+	if (node.NumVertices <= 0 || node.Surf < 0)
+		return;
+
+	BspSurface& surface = model->Surfaces[node.Surf];
+
+	if (surface.PolyFlags & (PF_Invisible | PF_FakeBackdrop))
+		return;
+
+	bool opaqueSurface = (surface.PolyFlags & PF_NoOcclude) == 0;
+	if ((pass == 0 && !opaqueSurface) || (pass == 1 && opaqueSurface))
+		return;
+
+	const vec3& UVec = model->Vectors[surface.vTextureU];
+	const vec3& VVec = model->Vectors[surface.vTextureV];
+	const vec3& Base = model->Points[surface.pBase];
+
+	FTextureInfo texture;
+	if (surface.Material)
+	{
+		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Material;
+		texture.bRealtimeChanged = surface.Material->TextureModified;
+		texture.UScale = surface.Material->DrawScale();
+		texture.VScale = surface.Material->DrawScale();
+		texture.Pan.x = -(float)surface.PanU;
+		texture.Pan.y = -(float)surface.PanV;
+		texture.Texture = surface.Material;
+
+		if (surface.Material->TextureModified)
+			surface.Material->TextureModified = false;
+
+		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUVTime * 100.0f;
+		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUVTime * 100.0f;
+	}
+
+	BspVert* v = &model->Vertices[node.VertPool];
+
+	float UDot = dot(UVec, Base);
+	float VDot = dot(VVec, Base);
+	float UPan = UDot + texture.Pan.x;
+	float VPan = VDot + texture.Pan.y;
+
+	std::vector<GouraudVertex> vertices;
+	for (int j = 0; j < node.NumVertices; j++)
+	{
+		GouraudVertex gv;
+		gv.Point = model->Points[v[j].Vertex];
+		gv.Light = color;
+		gv.UV = { dot(UVec, gv.Point) - UPan, dot(VVec, gv.Point) - VPan };
+		vertices.push_back(gv);
+	}
+
+	viewport->GetRenderDevice()->DrawGouraudPolygon(frame, &texture, vertices.data(), (int)vertices.size(), surface.PolyFlags);
 }
 
 void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale)
@@ -972,7 +1042,7 @@ void Engine::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& locati
 	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, PF_Translucent); // To do: use the Style property for the polyflags
 }
 
-void Engine::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale)
+void Engine::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
 {
 	FSceneNode brushframe = *frame;
 
@@ -983,42 +1053,24 @@ void Engine::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, c
 	auto device = viewport->GetRenderDevice();
 	device->SetSceneNode(&brushframe);
 
+	vec3 color = FindLightAt(location, zoneIndex);
+
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurface(&brushframe, brush, node, 0);
+		DrawNodeSurfaceGouraud(&brushframe, brush, node, 0, color);
 	}
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurface(&brushframe, brush, node, 1);
+		DrawNodeSurfaceGouraud(&brushframe, brush, node, 1, color);
 	}
 
 	device->SetSceneNode(frame);
 }
 
-void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale)
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
 {
-	vec3 color = { 3 / 255.0f };
-
-	for (UActor* light : Lights)
-	{
-		if (light && !light->bCorona())
-		{
-			vec3 L = light->Location() - location;
-			float dist2 = dot(L, L);
-			float lightRadius = light->LightRadius() * 20.0f;
-			float lightRadius2 = lightRadius * lightRadius;
-			if (dist2 < lightRadius2 && !TraceAnyHit(light->Location(), location))
-			{
-				vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, light->LightBrightness() / 255.0f);
-
-				float distanceAttenuation = std::max(1.0f - std::sqrt(dist2) / lightRadius, 0.0f);
-				float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
-				float attenuation = distanceAttenuation * angleAttenuation;
-				color += lightcolor * attenuation;
-			}
-		}
-	}
+	vec3 color = FindLightAt(location, zoneIndex);
 
 	mat4 rotate = mat4::rotate(radians(180.0f - rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.YawDegrees()), 0.0f, 0.0f, -1.0f);
@@ -1032,18 +1084,18 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, cons
 		DrawMesh(frame, mesh, ObjectToWorld, color);
 }
 
-void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 }
 
-void Engine::DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+void Engine::DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	int animFrame = mesh->AnimSeqs.front().StartFrame;
 	DrawLodMeshFace(frame, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
 	DrawLodMeshFace(frame, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
 }
 
-void Engine::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, vec3 color, int vertexOffset)
+void Engine::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset)
 {
 	auto device = viewport->GetRenderDevice();
 
@@ -1073,7 +1125,7 @@ void Engine::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vecto
 	}
 }
 
-void Engine::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color)
+void Engine::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	DrawLodMesh(frame, mesh, ObjectToWorld, color);
 }
@@ -1143,16 +1195,16 @@ ivec2 Engine::GetFontTextSize(UFont* font, const std::string& text)
 	return { x, y };
 }
 
-FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet)
+FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
 	if (surface.LightMap < 0)
 		return {};
 
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
-	UTexture*& lmtexture = lmtextures[surface.LightMap];
+	UTexture*& lmtexture = level->Model->lmtextures[surface.LightMap];
 	if (!lmtexture)
 	{
-		lmtexture = CreateLightmapTexture(lmindex, surface);
+		lmtexture = CreateLightmapTexture(lmindex, surface, zoneActor, model);
 	}
 
 	FTextureInfo lightmap;
@@ -1164,7 +1216,7 @@ FTextureInfo Engine::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet
 	return lightmap;
 }
 
-UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface)
+UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
@@ -1176,12 +1228,12 @@ UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspS
 
 	if (lmindex.LightActors >= 0)
 	{
-		const vec3& N = level->Model->Vectors[surface.vNormal];
+		const vec3& N = model->Vectors[surface.vNormal];
 
 		FSurfaceFacet facet;
-		facet.MapCoords.Origin = level->Model->Points[surface.pBase];
-		facet.MapCoords.XAxis = level->Model->Vectors[surface.vTextureU];
-		facet.MapCoords.YAxis = level->Model->Vectors[surface.vTextureV];
+		facet.MapCoords.Origin = model->Points[surface.pBase];
+		facet.MapCoords.XAxis = model->Vectors[surface.vTextureU];
+		facet.MapCoords.YAxis = model->Vectors[surface.vTextureV];
 
 		float UDot = dot(facet.MapCoords.XAxis, facet.MapCoords.Origin);
 		float VDot = dot(facet.MapCoords.YAxis, facet.MapCoords.Origin);
@@ -1215,12 +1267,12 @@ UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspS
 		float rightStep = rightDX / rightDY;
 
 		std::vector<vec3> lightcolors;
-		lightcolors.resize((size_t)width * height, vec3(3/255.0f));
+		lightcolors.resize((size_t)width * height, hsbtorgb(zoneActor->AmbientHue() * 360.0f / 255.0f, (255 - zoneActor->AmbientSaturation()) / 255.0f, zoneActor->AmbientBrightness() / 255.0f));
 
-		const uint8_t* bits = &level->Model->LightBits[lmindex.DataOffset];
+		const uint8_t* bits = &model->LightBits[lmindex.DataOffset];
 		int bitpos = 0;
 
-		UActor** lightpos = &level->Model->Lights[lmindex.LightActors];
+		UActor** lightpos = &model->Lights[lmindex.LightActors];
 		while (*lightpos)
 		{
 			UActor* light = *lightpos;
@@ -1243,6 +1295,7 @@ UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspS
 		float weights[9] = { 0.125f, 0.25f, 0.125f, 0.25f, 0.50f, 0.25f, 0.125f, 0.25f, 0.125f };
 
 		uint32_t* texels = (uint32_t*)lmmip.Data.data();
+		bool isTranslucent = (surface.PolyFlags & PF_Translucent) == PF_Translucent;
 		for (int y = 0; y < height; y++)
 		{
 			vec3* src = &lightcolors[(size_t)y * width];
@@ -1264,9 +1317,32 @@ UTexture* Engine::CreateLightmapTexture(const LightMapIndex& lmindex, const BspS
 				uint32_t green = (uint32_t)clamp(color.g * 255.0f + 0.5f, 0.0f, 255.0f);
 				uint32_t blue = (uint32_t)clamp(color.b * 255.0f + 0.5f, 0.0f, 255.0f);
 				uint32_t alpha = 127;
+
+				if (isTranslucent)
+				{
+					red = 64 + (red >> 2);
+					green = 64 + (green >> 2);
+					blue = 64 + (blue >> 2);
+				}
+
 				texels[x] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
 			texels += width;
+		}
+	}
+	else
+	{
+		uint32_t* texels = (uint32_t*)lmmip.Data.data();
+		int c = width * height;
+		vec3 color = hsbtorgb(zoneActor->AmbientHue() * 360.0f / 255.0f, (255 - zoneActor->AmbientSaturation()) / 255.0f, zoneActor->AmbientBrightness() / 255.0f);
+		uint32_t red = (uint32_t)clamp(color.r * 255.0f + 0.5f, 0.0f, 255.0f);
+		uint32_t green = (uint32_t)clamp(color.g * 255.0f + 0.5f, 0.0f, 255.0f);
+		uint32_t blue = (uint32_t)clamp(color.b * 255.0f + 0.5f, 0.0f, 255.0f);
+		uint32_t alpha = 127;
+		uint32_t ambientcolor = (alpha << 24) | (red << 16) | (green << 8) | blue;
+		for (int i = 0; i < c; i++)
+		{
+			texels[i] = ambientcolor;
 		}
 	}
 
@@ -1290,7 +1366,7 @@ void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1
 			vec3 point = mix(p0, p1, t);
 
 			vec3 L = light->Location() - point;
-			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius() * 20), 0.0f);
+			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius() * 32.0f), 0.0f);
 			float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
 			float attenuation = distanceAttenuation * angleAttenuation;
 			line[i] += lightcolor * attenuation;
@@ -1300,6 +1376,37 @@ void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1
 	}
 
 	bitpos = (bitpos + 7) / 8 * 8;
+}
+
+vec3 Engine::FindLightAt(const vec3& location, int zoneIndex)
+{
+	UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(level->Model->Zones[zoneIndex].ZoneActor);
+	if (!zoneActor)
+		zoneActor = LevelInfo;
+
+	vec3 color = hsbtorgb(zoneActor->AmbientHue() * 360.0f / 255.0f, (255 - zoneActor->AmbientSaturation()) / 255.0f, zoneActor->AmbientBrightness() / 255.0f);
+
+	for (UActor* light : Lights)
+	{
+		if (light && !light->bCorona())
+		{
+			vec3 L = light->Location() - location;
+			float dist2 = dot(L, L);
+			float lightRadius = light->LightRadius() * 32.0f;
+			float lightRadius2 = lightRadius * lightRadius;
+			if (dist2 < lightRadius2 && !TraceAnyHit(light->Location(), location))
+			{
+				vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, light->LightBrightness() / 255.0f);
+
+				float distanceAttenuation = std::max(1.0f - std::sqrt(dist2) / lightRadius, 0.0f);
+				float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
+				float attenuation = distanceAttenuation * angleAttenuation;
+				color += lightcolor * attenuation;
+			}
+		}
+	}
+
+	return color;
 }
 
 vec3 Engine::hsbtorgb(double hue, double saturation, double brightness)

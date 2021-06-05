@@ -68,6 +68,16 @@ public:
 	size_t DataOffset = 0;
 };
 
+class UPointerProperty : public UProperty // 469 extension?
+{
+public:
+	using UProperty::UProperty;
+	void Load(ObjectStream* stream) override;
+	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	size_t Alignment() override { return sizeof(void*); }
+	size_t ElementSize() override { return sizeof(void*); }
+};
+
 class UByteProperty : public UProperty
 {
 public:

@@ -28,6 +28,19 @@ void UProperty::ThrowIfTypeMismatch(const PropertyHeader& header, UnrealProperty
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UPointerProperty::Load(ObjectStream* stream)
+{
+	UProperty::Load(stream);
+}
+
+void UPointerProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
+{
+	ThrowIfTypeMismatch(header, UPT_Int);
+	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 void UByteProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);

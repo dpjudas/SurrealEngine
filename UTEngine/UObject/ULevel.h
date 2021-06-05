@@ -175,6 +175,8 @@ public:
 
 	int32_t RootOutside;
 	int32_t Linked;
+
+	std::map<int, UTexture*> lmtextures;
 };
 
 class LevelReachSpec

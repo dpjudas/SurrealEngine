@@ -34,6 +34,7 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UState>(corePackage, "State", "Struct");
 	RegisterNativeClass<UClass>(corePackage, "Class", "State");
 	RegisterNativeClass<UProperty>(corePackage, "Property", "Field");
+	RegisterNativeClass<UPointerProperty>(corePackage, "PointerProperty", "Property");
 	RegisterNativeClass<UByteProperty>(corePackage, "ByteProperty", "Property");
 	RegisterNativeClass<UObjectProperty>(corePackage, "ObjectProperty", "Property");
 	RegisterNativeClass<UClassProperty>(corePackage, "ClassProperty", "ObjectProperty");

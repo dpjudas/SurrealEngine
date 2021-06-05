@@ -18,6 +18,7 @@ class ULodMesh;
 class USkeletalMesh;
 class ULevelSummary;
 class ULevelInfo;
+class UZoneInfo;
 class BspSurface;
 class BspNode;
 class LightMapIndex;
@@ -99,15 +100,16 @@ private:
 	void DrawCoronas(FSceneNode *frame);
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
 	void DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass);
+	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color = { 0.0f });
 
-	void DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale);
-	void DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, vec3 color);
-	void DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, vec3 color);
-	void DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, vec3 color, int vertexOffset);
-	void DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, vec3 color);
+	void DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex);
+	void DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
+	void DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
+	void DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset);
+	void DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
 
 	void DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale);
-	void DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale);
+	void DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex);
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);
@@ -129,8 +131,9 @@ private:
 
 	void LoadMap(const std::string& packageName);
 
-	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet);
-	UTexture* CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
+	vec3 FindLightAt(const vec3& location, int zoneIndex);
+	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
+	UTexture* CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos);
 
 	template<typename T>
@@ -149,8 +152,6 @@ private:
 
 	std::unique_ptr<Viewport> viewport;
 	std::unique_ptr<AudioPlayer> audioplayer;
-
-	std::map<int, UTexture*> lmtextures;
 
 	std::vector<int> portalsvisited;
 
