@@ -169,12 +169,12 @@ void VulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>
 		UActor* slight = update.second;
 		SceneLight& dlight = dest[index - minIndex];
 
-		dlight.Location = slight->Location;
+		dlight.Location = slight->Location();
 		dlight.Shadowmap = (float)(index * 6);
-		dlight.LightBrightness = (float)slight->LightBrightness;
-		dlight.LightHue = (float)slight->LightHue;
-		dlight.LightSaturation = (float)slight->LightSaturation;
-		dlight.LightRadius = (float)slight->LightRadius;
+		dlight.LightBrightness = (float)slight->LightBrightness();
+		dlight.LightHue = (float)slight->LightHue();
+		dlight.LightSaturation = (float)slight->LightSaturation();
+		dlight.LightRadius = (float)slight->LightRadius();
 	}
 
 	renderer->SceneLights->StagingLights->Unmap();

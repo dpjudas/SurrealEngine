@@ -12,6 +12,8 @@
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
 #include "UObject/UClass.h"
+#include "UObject/UClient.h"
+#include "UObject/NativeObjExtractor.h"
 #include "Native/NActor.h"
 #include "Native/NCanvas.h"
 #include "Native/NCommandlet.h"
@@ -64,7 +66,10 @@ Engine::Engine()
 
 	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
 
+	// File::write_all_text("C:\\Development\\UTNativeProps.txt", NativeObjExtractor::Run(packages.get()));
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(packages.get()));
+
+	InitPropertyOffsets(packages.get());
 
 	bigfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "BigFont"));
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
@@ -80,13 +85,14 @@ Engine::~Engine()
 	Instance = nullptr;
 }
 
-UObject* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
+template<typename T>
+T* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
 {
 	UClass* cls = UObject::Cast<UClass>(packages->GetPackage(package)->GetUObject("Class", className));
 	if (!cls)
 		throw std::runtime_error("Could not find class " + className);
 
-	UObject* obj = new UObject(name, cls, ObjectFlags::None);
+	T* obj = new T(name, cls, ObjectFlags::None);
 	obj->PropertyData.Init(cls);
 	return obj;
 }
@@ -133,26 +139,26 @@ void Engine::Run()
 	//LoadMap("CTF-Niven");
 	//LoadMap("CTF-Face");
 
-	UObject* client = NewObject("client", "Engine", "Client");
-	UObject* playerviewport = NewObject("viewport", "Engine", "Viewport");
-	UObject* canvas = NewObject("canvas", "Engine", "Canvas");
-	UObject* console = NewObject("console", "Engine", "Console");
-	//UObject* console = NewObject("console", "UWindow", "WindowConsole");
-	//UObject* console = NewObject("console", "UTMenu", "UTConsole");
-	UObject* pawn = NewObject("pawn", "Engine", "PlayerPawn");
+	UClient* client = NewObject<UClient>("client", "Engine", "Client");
+	UViewport* playerviewport = NewObject<UViewport>("viewport", "Engine", "Viewport");
+	UCanvas* canvas = NewObject<UCanvas>("canvas", "Engine", "Canvas");
+	UConsole* console = NewObject<UConsole>("console", "Engine", "Console");
+	//UConsole* console = NewObject<UConsole>("console", "UWindow", "WindowConsole");
+	//UConsole* console = NewObject<UConsole>("console", "UTMenu", "UTConsole");
+	UPlayerPawn* pawn = NewObject<UPlayerPawn>("pawn", "Engine", "PlayerPawn");
 
-	console->SetObject("Viewport", playerviewport);
-	console->SetFloat("FrameX", viewport->SizeX);
-	console->SetFloat("FrameY", viewport->SizeY);
-	//console->SetBool("bNoDrawWorld", true);
+	console->Viewport() = playerviewport;
+	console->FrameX() = (float)viewport->SizeX;
+	console->FrameY() = (float)viewport->SizeY;
+	// console->bNoDrawWorld() = true;
 
-	canvas->SetObject("Viewport", playerviewport);
-	canvas->SetInt("SizeX", viewport->SizeX);
-	canvas->SetInt("SizeY", viewport->SizeY);
+	canvas->Viewport() = playerviewport;
+	canvas->SizeX() = viewport->SizeX;
+	canvas->SizeY() = viewport->SizeY;
 
-	playerviewport->SetObject("Console", console);
-	playerviewport->SetObject("Actor", pawn);
-	pawn->SetObject("Level", level);
+	playerviewport->Console() = console;
+	playerviewport->Actor() = pawn;
+	pawn->Level() = LevelInfo;
 
 	InvokeEvent(console, "VideoChange", { });
 	InvokeEvent(console, "NotifyLevelChange", { });
@@ -192,9 +198,11 @@ void Engine::Tick(float timeElapsed)
 	{
 		if (actor)
 		{
-			actor->Rotation.Yaw = (actor->Rotation.Yaw + (int)(static_cast<int16_t>(actor->RotationRate.Yaw & 0xffff) * timeElapsed)) & 0xffff;
-			actor->Rotation.Pitch = (actor->Rotation.Pitch + (int)(static_cast<int16_t>(actor->RotationRate.Pitch & 0xffff) * timeElapsed)) & 0xffff;
-			actor->Rotation.Roll = (actor->Rotation.Roll + (int)(static_cast<int16_t>(actor->RotationRate.Roll & 0xffff) * timeElapsed)) & 0xffff;
+			auto& rot = actor->Rotation();
+			auto& rate = actor->RotationRate();
+			rot.Yaw = (rot.Yaw + (int)(static_cast<int16_t>(rate.Yaw & 0xffff) * timeElapsed)) & 0xffff;
+			rot.Pitch = (rot.Pitch + (int)(static_cast<int16_t>(rate.Pitch & 0xffff) * timeElapsed)) & 0xffff;
+			rot.Roll = (rot.Roll + (int)(static_cast<int16_t>(rate.Roll & 0xffff) * timeElapsed)) & 0xffff;
 		}
 	}
 
@@ -274,9 +282,9 @@ void Engine::DrawCoronas(FSceneNode* frame)
 
 	for (UActor* light : Lights)
 	{
-		if (light && light->bCorona && light->Skin && !TraceAnyHit(light->Location, frame->ViewLocation))
+		if (light && light->bCorona() && light->Skin() && !TraceAnyHit(light->Location(), frame->ViewLocation))
 		{
-			vec4 pos = frame->Modelview * vec4(light->Location, 1.0f);
+			vec4 pos = frame->Modelview * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)
 			{
 				vec4 clip = frame->Projection * pos;
@@ -285,15 +293,15 @@ void Engine::DrawCoronas(FSceneNode* frame)
 				float y = frame->FY2 + clip.y / clip.w * frame->FY2;
 				float z = 2.0f;
 
-				float width = (float)light->Skin->Mipmaps.front().Width;
-				float height = (float)light->Skin->Mipmaps.front().Height;
+				float width = (float)light->Skin()->Mipmaps.front().Width;
+				float height = (float)light->Skin()->Mipmaps.front().Height;
 				float scale = frame->FY / 300.0f;
 
-				vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, 1.0f);
+				vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, 1.0f);
 
 				FTextureInfo texinfo;
-				texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin;
-				texinfo.Texture = light->Skin;
+				texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();
+				texinfo.Texture = light->Skin();
 				device->DrawTile(frame, texinfo, x - width * scale * 0.5f, y - height * scale * 0.5f, width * scale, height * scale, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
 			}
 		}
@@ -334,28 +342,28 @@ void Engine::DrawScene()
 
 	for (UActor* actor : level->Actors)
 	{
-		if (actor && !actor->bHidden)
+		if (actor && !actor->bHidden())
 		{
-			if (actor->DrawType == ActorDrawType::Mesh && actor->Mesh)
+			if (actor->DrawType() == (int)ActorDrawType::Mesh && actor->Mesh())
 			{
-				BBox bbox = actor->Mesh->BoundingBox;
-				bbox.min += actor->Location;
-				bbox.max += actor->Location;
-				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location)))
-					DrawMesh(&SceneFrame, actor->Mesh, actor->Location, actor->Rotation, actor->DrawScale);
+				BBox bbox = actor->Mesh()->BoundingBox;
+				bbox.min += actor->Location();
+				bbox.max += actor->Location();
+				if (clip.test(bbox) != IntersectionTestResult::outside && ((uint64_t)1 << FindZoneAt(actor->Location())))
+					DrawMesh(&SceneFrame, actor->Mesh(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
-			else if ((actor->DrawType == ActorDrawType::Sprite || actor->DrawType == ActorDrawType::SpriteAnimOnce) && actor->Sprite)
+			else if ((actor->DrawType() == (int)ActorDrawType::Sprite || actor->DrawType() == (int)ActorDrawType::SpriteAnimOnce) && actor->Sprite())
 			{
-				if ((uint64_t)1 << FindZoneAt(actor->Location))
-					DrawSprite(&SceneFrame, actor->Sprite, actor->Location, actor->Rotation, actor->DrawScale);
+				if ((uint64_t)1 << FindZoneAt(actor->Location()))
+					DrawSprite(&SceneFrame, actor->Sprite(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
-			else if (actor->DrawType == ActorDrawType::Brush && actor->Brush)
+			else if (actor->DrawType() == (int)ActorDrawType::Brush && actor->Brush())
 			{
-				BBox bbox = actor->Brush->BoundingBox;
-				bbox.min += actor->Location;
-				bbox.max += actor->Location;
-				if (clip.test(bbox) != IntersectionTestResult::outside && (uint64_t)1 << FindZoneAt(actor->Location))
-					DrawBrush(&SceneFrame, actor->Brush, actor->Location, actor->Rotation, actor->DrawScale);
+				BBox bbox = actor->Brush()->BoundingBox;
+				bbox.min += actor->Location();
+				bbox.max += actor->Location();
+				if (clip.test(bbox) != IntersectionTestResult::outside && (uint64_t)1 << FindZoneAt(actor->Location()))
+					DrawBrush(&SceneFrame, actor->Brush(), actor->Location(), actor->Rotation(), actor->DrawScale());
 			}
 		}
 	}
@@ -692,8 +700,8 @@ FSceneNode Engine::CreateSceneFrame()
 FSceneNode Engine::CreateSkyFrame()
 {
 	mat4 rotate = mat4::rotate(radians(Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 skyrotate = mat4::rotate(radians(SkyZoneInfo->Rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - SkyZoneInfo->Location);
+	mat4 skyrotate = mat4::rotate(radians(SkyZoneInfo->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(SkyZoneInfo->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - SkyZoneInfo->Location());
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -705,7 +713,7 @@ FSceneNode Engine::CreateSkyFrame()
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
-	frame.ViewLocation = SkyZoneInfo->Location;
+	frame.ViewLocation = SkyZoneInfo->Location();
 	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
@@ -731,7 +739,7 @@ FSceneNode Engine::CreateShadowmapFrame(UActor* light, CubeSide side)
 	}
 
 	mat4 rotate = mat4::rotate(radians(pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(yaw), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - light->Location);
+	mat4 translate = mat4::translate(vec3(0.0f) - light->Location());
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -743,7 +751,7 @@ FSceneNode Engine::CreateShadowmapFrame(UActor* light, CubeSide side)
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
-	frame.ViewLocation = light->Location;
+	frame.ViewLocation = light->Location();
 	frame.FovAngle = 90.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
@@ -850,8 +858,8 @@ void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& no
 	{
 		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Material;
 		texture.bRealtimeChanged = surface.Material->TextureModified;
-		texture.UScale = surface.Material->DrawScale;
-		texture.VScale = surface.Material->DrawScale;
+		texture.UScale = surface.Material->DrawScale();
+		texture.VScale = surface.Material->DrawScale();
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
 		texture.Texture = surface.Material;
@@ -864,30 +872,30 @@ void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& no
 	}
 
 	FTextureInfo detailtex;
-	if (surface.Material && surface.Material->DetailTexture)
+	if (surface.Material && surface.Material->DetailTexture())
 	{
-		detailtex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->DetailTexture;
+		detailtex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->DetailTexture();
 		detailtex.bRealtimeChanged = false;
-		detailtex.UScale = surface.Material->DetailTexture->DrawScale;
-		detailtex.VScale = surface.Material->DetailTexture->DrawScale;
+		detailtex.UScale = surface.Material->DetailTexture()->DrawScale();
+		detailtex.VScale = surface.Material->DetailTexture()->DrawScale();
 		detailtex.Pan.x = -(float)surface.PanU;
 		detailtex.Pan.y = -(float)surface.PanV;
-		detailtex.Texture = surface.Material->DetailTexture;
+		detailtex.Texture = surface.Material->DetailTexture();
 
 		if (surface.PolyFlags & PF_AutoUPan) detailtex.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) detailtex.Pan.y += AutoUVTime * 100.0f;
 	}
 
 	FTextureInfo macrotex;
-	if (surface.Material && surface.Material->MacroTexture)
+	if (surface.Material && surface.Material->MacroTexture())
 	{
-		macrotex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->MacroTexture;
+		macrotex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->MacroTexture();
 		macrotex.bRealtimeChanged = false;
-		macrotex.UScale = surface.Material->MacroTexture->DrawScale;
-		macrotex.VScale = surface.Material->MacroTexture->DrawScale;
+		macrotex.UScale = surface.Material->MacroTexture()->DrawScale();
+		macrotex.VScale = surface.Material->MacroTexture()->DrawScale();
 		macrotex.Pan.x = -(float)surface.PanU;
 		macrotex.Pan.y = -(float)surface.PanV;
-		macrotex.Texture = surface.Material->MacroTexture;
+		macrotex.Texture = surface.Material->MacroTexture();
 
 		if (surface.PolyFlags & PF_AutoUPan) macrotex.Pan.x += AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) macrotex.Pan.y += AutoUVTime * 100.0f;
@@ -914,8 +922,8 @@ void Engine::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& no
 	FSurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = surface.PolyFlags;
 	surfaceinfo.Texture = surface.Material ? &texture : nullptr;
-	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture ? &macrotex : nullptr;
-	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture ? &detailtex : nullptr;
+	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture() ? &macrotex : nullptr;
+	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture() ? &detailtex : nullptr;
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
 	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
 
@@ -988,15 +996,15 @@ void Engine::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, cons
 
 	for (UActor* light : Lights)
 	{
-		if (light && !light->bCorona)
+		if (light && !light->bCorona())
 		{
-			vec3 L = light->Location - location;
+			vec3 L = light->Location() - location;
 			float dist2 = dot(L, L);
-			float lightRadius = light->LightRadius * 20.0f;
+			float lightRadius = light->LightRadius() * 20.0f;
 			float lightRadius2 = lightRadius * lightRadius;
-			if (dist2 < lightRadius2 && !TraceAnyHit(light->Location, location))
+			if (dist2 < lightRadius2 && !TraceAnyHit(light->Location(), location))
 			{
-				vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
+				vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, light->LightBrightness() / 255.0f);
 
 				float distanceAttenuation = std::max(1.0f - std::sqrt(dist2) / lightRadius, 0.0f);
 				float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
@@ -1264,7 +1272,7 @@ std::unique_ptr<UTexture> Engine::CreateLightmapTexture(const LightMapIndex& lmi
 
 void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos)
 {
-	vec3 lightcolor = hsbtorgb(light->LightHue * 360.0f / 255.0f, (255 - light->LightSaturation) / 255.0f, light->LightBrightness / 255.0f);
+	vec3 lightcolor = hsbtorgb(light->LightHue() * 360.0f / 255.0f, (255 - light->LightSaturation()) / 255.0f, light->LightBrightness() / 255.0f);
 
 	for (int i = start; i < end; i++)
 	{
@@ -1274,8 +1282,8 @@ void Engine::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1
 			float t = (i + 0.5f - x0) / (x1 - x0);
 			vec3 point = mix(p0, p1, t);
 
-			vec3 L = light->Location - point;
-			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius * 20), 0.0f);
+			vec3 L = light->Location() - point;
+			float distanceAttenuation = std::max(1.0f - length(L) / (light->LightRadius() * 20), 0.0f);
 			float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
 			float attenuation = distanceAttenuation * angleAttenuation;
 			line[i] += lightcolor * attenuation;
@@ -1408,15 +1416,9 @@ void Engine::LoadMap(const std::string& packageName)
 {
 	Package* package = packages->GetPackage(packageName);
 
-	LevelSummary = package->GetUObject("LevelSummary", "LevelSummary");
-	LevelInfo = package->GetUObject("LevelInfo", "LevelInfo0");
+	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
+	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
 	level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
-
-	for (UActor* actor : level->Actors)
-	{
-		if (actor)
-			actor->CopyProperties();
-	}
 
 	std::set<UActor*> lightset;
 	for (UActor* light : level->Model->Lights)
@@ -1433,10 +1435,10 @@ void Engine::LoadMap(const std::string& packageName)
 		if (surf.Material)
 		{
 			textureset.insert(surf.Material);
-			if (surf.Material->DetailTexture)
-				textureset.insert(surf.Material->DetailTexture);
-			if (surf.Material->MacroTexture)
-				textureset.insert(surf.Material->MacroTexture);
+			if (surf.Material->DetailTexture())
+				textureset.insert(surf.Material->DetailTexture());
+			if (surf.Material->MacroTexture())
+				textureset.insert(surf.Material->MacroTexture());
 		}
 	}
 

@@ -4,6 +4,10 @@
 #include "VM/NativeFunc.h"
 #include <cmath>
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4244) // warning C4244: '/=': conversion from 'float' to 'int', possible loss of data
+#endif
+
 void NObject::RegisterFunctions()
 {
 	RegisterVMNativeFunc_2("Object", "Abs", &NObject::Abs, 186);

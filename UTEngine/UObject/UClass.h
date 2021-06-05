@@ -150,6 +150,7 @@ public:
 	using UState::UState;
 	void Load(ObjectStream* stream) override;
 
+	UProperty* GetProperty(const std::string& name);
 	UObject* GetDefaultObject() { return this; }
 
 	uint32_t OldClassRecordSize = 0;

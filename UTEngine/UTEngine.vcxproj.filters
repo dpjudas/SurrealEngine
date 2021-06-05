@@ -508,6 +508,12 @@
     <ClCompile Include="UObject\UClient.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="UObject\NativeObjExtractor.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
+    <ClCompile Include="UObject\PropertyOffsets.cpp">
+      <Filter>UObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -784,6 +790,12 @@
       <Filter>VM</Filter>
     </ClInclude>
     <ClInclude Include="UObject\UClient.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\NativeObjExtractor.h">
+      <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="UObject\PropertyOffsets.h">
       <Filter>UObject</Filter>
     </ClInclude>
   </ItemGroup>

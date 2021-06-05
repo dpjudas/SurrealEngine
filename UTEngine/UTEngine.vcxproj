@@ -164,6 +164,8 @@
     <ClInclude Include="RenderDevice\Vulkan\VulkanRenderDevice.h" />
     <ClInclude Include="RenderDevice\Vulkan\VulkanSwapChain.h" />
     <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="UObject\NativeObjExtractor.h" />
+    <ClInclude Include="UObject\PropertyOffsets.h" />
     <ClInclude Include="UObject\UClass.h" />
     <ClInclude Include="UObject\UClient.h" />
     <ClInclude Include="UObject\UFont.h" />
@@ -760,6 +762,8 @@
     <ClCompile Include="RenderDevice\Vulkan\VulkanRenderDevice.cpp" />
     <ClCompile Include="RenderDevice\Vulkan\VulkanSwapChain.cpp" />
     <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="UObject\NativeObjExtractor.cpp" />
+    <ClCompile Include="UObject\PropertyOffsets.cpp" />
     <ClCompile Include="UObject\UClass.cpp" />
     <ClCompile Include="UObject\UClient.cpp" />
     <ClCompile Include="UObject\UFont.cpp" />

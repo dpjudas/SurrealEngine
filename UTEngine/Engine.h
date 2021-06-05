@@ -15,6 +15,8 @@ class UFont;
 class UMesh;
 class ULodMesh;
 class USkeletalMesh;
+class ULevelSummary;
+class ULevelInfo;
 class BspSurface;
 class BspNode;
 class LightMapIndex;
@@ -84,8 +86,8 @@ public:
 	ivec2 GetFontTextSize(UFont* font, const std::string& text);
 	void DrawTile(FSceneNode* frame, UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags);
 
-	UObject* LevelSummary = nullptr;
-	UObject* LevelInfo = nullptr;
+	ULevelSummary* LevelSummary = nullptr;
+	ULevelInfo* LevelInfo = nullptr;
 	ULevel* level = nullptr;
 
 private:
@@ -130,7 +132,8 @@ private:
 	std::unique_ptr<UTexture> CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface);
 	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos);
 
-	UObject* NewObject(const std::string& name, const std::string& package, const std::string& className);
+	template<typename T>
+	T* NewObject(const std::string& name, const std::string& package, const std::string& className);
 	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args);
 
 	std::unique_ptr<PackageManager> packages;

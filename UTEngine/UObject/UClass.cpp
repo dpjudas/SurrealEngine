@@ -316,3 +316,12 @@ void UClass::Load(ObjectStream* stream)
 	PropertyData.Init(this);
 	PropertyData.ReadProperties(stream);
 }
+
+UProperty* UClass::GetProperty(const std::string& name)
+{
+	auto it = PropertyData.Class->Properties.find(name);
+	if (it != PropertyData.Class->Properties.end())
+		return it->second;
+	else
+		throw std::runtime_error("Property '" + name + "' not found");
+}

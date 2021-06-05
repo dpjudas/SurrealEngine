@@ -44,7 +44,7 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 				uint32_t NewPal[256];
 				for (int i = 0; i < 256; i++)
 				{
-					NewPal[i] = Info.Texture->Palette->Colors[i];
+					NewPal[i] = Info.Texture->Palette()->Colors[i];
 				}
 				if (PolyFlags & PF_Masked)
 					NewPal[0] = 0;

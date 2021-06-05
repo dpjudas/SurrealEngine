@@ -25,13 +25,14 @@ void UTexture::Load(ObjectStream* stream)
 		uint8_t VBits = stream->ReadUInt8();
 	}
 
-	bool bHasComp = false;
-	if (HasProperty("HasComp")) bHasComp = GetBool("HasComp");
+	//bool bHasComp = false;
+	//if (HasProperty("HasComp")) bHasComp = GetBool("HasComp");
 
-	if (bHasComp)
+	if (bHasComp())
 	{
-		TextureFormat compformat = TextureFormat::P8;
-		if (HasProperty("CompFormat")) compformat = (TextureFormat)GetByte("CompFormat");
+		TextureFormat compformat = (TextureFormat)CompFormat();
+		// TextureFormat compformat = TextureFormat::P8;
+		// if (HasProperty("CompFormat")) compformat = (TextureFormat)GetByte("CompFormat");
 
 		Format = compformat;
 
@@ -51,11 +52,6 @@ void UTexture::Load(ObjectStream* stream)
 			uint8_t VBits = stream->ReadUInt8();
 		}
 	}
-
-	if (HasProperty("Palette")) Palette = static_cast<UPalette*>(GetUObject("Palette"));
-	if (HasProperty("DetailTexture")) DetailTexture = static_cast<UTexture*>(GetUObject("DetailTexture"));
-	if (HasProperty("MacroTexture")) MacroTexture = static_cast<UTexture*>(GetUObject("MacroTexture"));
-	if (HasProperty("DrawScale")) DrawScale = GetFloat("DrawScale");
 }
 
 /////////////////////////////////////////////////////////////////////////////

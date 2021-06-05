@@ -2,6 +2,7 @@
 
 #include "Package/ObjectStream.h"
 #include "Math/vec.h"
+#include "PropertyOffsets.h"
 
 class UObject;
 class UClass;
@@ -125,7 +126,12 @@ public:
 	void ReadProperties(ObjectStream* stream);
 
 	void* Ptr(const UProperty* prop);
+	void* Ptr(size_t offset) { return static_cast<uint8_t*>(Data) + offset; }
 	const void* Ptr(const UProperty* prop) const;
+	const void* Ptr(size_t offset) const { return static_cast<const uint8_t*>(Data) + offset; }
+
+	template<typename T>
+	T& Value(size_t offset) { return *reinterpret_cast<T*>(static_cast<uint8_t*>(Data) + offset); }
 
 	void* Data = nullptr;
 	UClass* Class = nullptr;
@@ -179,6 +185,9 @@ public:
 	std::string StateName;
 
 	template<typename T>
+	T& Value(size_t offset) { return *static_cast<T*>(PropertyData.Ptr(offset)); }
+
+	template<typename T>
 	static T* Cast(UObject* obj)
 	{
 		T* target = dynamic_cast<T*>(obj);
@@ -196,4 +205,23 @@ public:
 	}
 
 	static std::string GetUClassName(UObject* obj);
+
+	static void InitPropertyOffsets(PackageManager* packages);
+
+	UClass*& Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
+	// std::string& Name() { return Value<std::string>(PropOffsets_Object.Name); } // native
+	// int& ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
+	int& ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
+	UObject*& Outer() { return Value<UObject*>(PropOffsets_Object.Outer); } // native
+
+private:
+	struct PropertyOffsets
+	{
+		size_t Class;
+		size_t Name;
+		size_t ObjectFlags;
+		size_t ObjectInternal;
+		size_t Outer;
+	};
+	static PropertyOffsets propoffsets;
 };
