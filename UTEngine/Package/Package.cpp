@@ -165,6 +165,39 @@ std::vector<UClass*> Package::GetAllClasses()
 	return classes;
 }
 
+UObject* Package::NewObject(const std::string& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
+{
+	for (UClass* cur = objclass; cur != nullptr; cur = cur->Base)
+	{
+		auto it = NativeClasses.find(GetNameKey(cur->Name));
+		if (it != NativeClasses.end())
+		{
+			UObject* obj = it->second(objname, objclass, flags);
+			if (initProperties)
+			{
+				obj->PropertyData.Init(objclass);
+
+				// To do: read UnrealTournament.ini and map all config properties
+				if (obj->IsA("UMenuRootWindow"))
+				{
+					obj->SetFloat("GUIScale", 2.0f);
+					obj->SetString("LookAndFeelClass", "UMenu.UMenuMetalLookAndFeel");
+				}
+				else if (obj->IsA("UTConsole"))
+				{
+					obj->SetBool("ShowDesktop", false);
+					obj->SetBool("bShowConsole", false);
+					obj->SetString("RootWindow", "UMenu.UMenuRootWindow");
+					obj->SetFloat("MouseScale", 0.75);
+				}
+			}
+			return obj;
+		}
+	}
+
+	throw std::runtime_error("Could not find the native class for " + objname);
+}
+
 void Package::LoadExportObject(int index)
 {
 	const ExportTableEntry* entry = &ExportTable[index];
@@ -179,27 +212,15 @@ void Package::LoadExportObject(int index)
 		if (!objclass)
 			throw std::runtime_error("Could not find the object class for " + objname);
 
-		for (UClass* cur = objclass; cur != nullptr; cur = cur->Base)
-		{
-			auto it = NativeClasses.find(GetNameKey(cur->Name));
-			if (it != NativeClasses.end())
-			{
-				it->second(this, index, objname, objclass);
-
-				Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
-				Packages->delayLoads.push_back(Objects[index].get());
-
-				return;
-			}
-		}
-
-		throw std::runtime_error("Could not find the native class for " + objname);
+		Objects[index].reset(NewObject(objname, objclass, ExportTable[index].ObjFlags, false));
+		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
+		Packages->delayLoads.push_back(Objects[index].get());
 	}
 	else
 	{
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
-		Objects[index] = std::make_unique<UClass>(objname, objbase, ExportTable[index].ObjFlags);
-
+		auto obj = std::make_unique<UClass>(objname, objbase, ExportTable[index].ObjFlags);
+		Objects[index] = std::move(obj);
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
 		Packages->delayLoads.push_back(Objects[index].get());
 	}

@@ -81,8 +81,6 @@ public:
 	void InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta = 0);
 	void SetPause(bool value);
 
-	FSceneNode SceneFrame;
-
 	void DrawFontTextWithShadow(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	void DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment = TextAlignment::left);
 	ivec2 GetFontTextSize(UFont* font, const std::string& text);
@@ -91,6 +89,13 @@ public:
 	ULevelSummary* LevelSummary = nullptr;
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* level = nullptr;
+
+	FSceneNode SceneFrame;
+	std::unique_ptr<PackageManager> packages;
+
+	template<typename T>
+	T* NewObject(const std::string& name, const std::string& package, const std::string& className);
+	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args);
 
 private:
 	void Tick(float timeElapsed);
@@ -135,12 +140,6 @@ private:
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	UTexture* CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 	void DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos);
-
-	template<typename T>
-	T* NewObject(const std::string& name, const std::string& package, const std::string& className);
-	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args);
-
-	std::unique_ptr<PackageManager> packages;
 
 	UFont* bigfont = nullptr;
 	UFont* largefont = nullptr;

@@ -175,6 +175,8 @@ public:
 	void SetString(const std::string& name, const std::string& value);
 	void SetObject(const std::string& name, const UObject* value);
 
+	bool IsA(const std::string& className) const;
+
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
 	std::string Name;

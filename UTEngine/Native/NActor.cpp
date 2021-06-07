@@ -141,7 +141,9 @@ void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, st
 
 void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description)
 {
-	throw std::runtime_error("Actor.GetNextIntDesc not implemented");
+	Entry = {};
+	Description = {};
+	//throw std::runtime_error("Actor.GetNextIntDesc not implemented");
 }
 
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)

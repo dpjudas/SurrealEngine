@@ -47,6 +47,9 @@ public:
 	std::string FriendlyName;
 	uint32_t Line = 0;
 	uint32_t TextPos = 0;
+#ifdef _DEBUG
+	std::string BytecodePlainText;
+#endif
 	std::vector<uint8_t> Bytecode;
 	std::shared_ptr<::Bytecode> Code;
 

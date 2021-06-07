@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "NObject.h"
 #include "VM/NativeFunc.h"
+#include "Package/PackageManager.h"
+#include "Engine.h"
 #include <cmath>
 
 #ifdef _MSC_VER
@@ -377,7 +379,21 @@ void NObject::Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue)
 
 void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, bool* MayFail, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Object.DynamicLoadObject not implemented");
+	auto dotpos = ObjectName.find('.');
+	if (dotpos == std::string::npos)
+		throw std::runtime_error("Object.DynamicLoadObject: invalid object name " + ObjectName);
+
+	std::string packageName = ObjectName.substr(0, dotpos);
+	std::string objectName = ObjectName.substr(dotpos + 1);
+
+	ReturnValue = Engine::Instance->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
+
+	/*
+	if (!MayFail || *MayFail == false)
+	{
+		// To do: log a warning if return value is null
+	}
+	*/
 }
 
 void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
@@ -530,7 +546,8 @@ void NObject::Greater_StrStr(const std::string& A, const std::string& B, bool& R
 
 void NObject::InStr(const std::string& S, const std::string& t, int& ReturnValue)
 {
-	throw std::runtime_error("Object.InStr not implemented");
+	auto pos = S.find(t);
+	ReturnValue = (pos != std::string::npos) ? (int)pos : -1;
 }
 
 void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
@@ -540,7 +557,7 @@ void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
 
 void NObject::IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.IsA not implemented");
+	ReturnValue = Self->IsA(ClassName);
 }
 
 void NObject::IsInState(UObject* Self, const std::string& TestState, bool& ReturnValue)
@@ -615,7 +632,7 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 
 void NObject::Log(const std::string& S, std::string* Tag)
 {
-	throw std::runtime_error("Object.Log not implemented");
+	// throw std::runtime_error("Object.Log not implemented");
 }
 
 void NObject::Loge(float A, float& ReturnValue)

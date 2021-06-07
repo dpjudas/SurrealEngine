@@ -317,6 +317,15 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 		uint8_t y = stream->ReadUInt8();
 		uint16_t unknown2 = stream->ReadUInt32();
 	}
+	else if (header.structName == "Region")
+	{
+		struct Region { int X, Y, W, H; };
+		Region reg;
+		reg.X = stream->ReadInt32();
+		reg.Y = stream->ReadInt32();
+		reg.W = stream->ReadInt32();
+		reg.H = stream->ReadInt32();
+	}
 	else
 	{
 		throw std::runtime_error("Unimplemented struct '" + header.structName + "' encountered");

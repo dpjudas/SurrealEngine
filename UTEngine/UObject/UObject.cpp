@@ -174,6 +174,18 @@ void UObject::SetObject(const std::string& name, const UObject* value)
 	*static_cast<const UObject**>(GetProperty(name)) = value;
 }
 
+bool UObject::IsA(const std::string& className) const
+{
+	UClass* cls = UObject::TryCast<UClass>(Base);
+	while (cls)
+	{
+		if (cls->Name == className)
+			return true;
+		cls = UObject::TryCast<UClass>(cls->Base);
+	}
+	return false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void* PropertyDataBlock::Ptr(const UProperty* prop)

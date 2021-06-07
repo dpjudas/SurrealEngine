@@ -5,6 +5,8 @@
 #include "Bytecode.h"
 #include "Frame.h"
 #include "NativeFunc.h"
+#include "Engine.h"
+#include "Package/PackageManager.h"
 
 ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, UObject* context, void* localVariables)
 {
@@ -121,7 +123,24 @@ void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
 
 void ExpressionEvaluator::Expr(NewExpression* expr)
 {
-	throw std::runtime_error("New expression is not implemented");
+	ExpressionValue outer = Eval(expr->ParentExpr).Value;
+	ExpressionValue name = Eval(expr->NameExpr).Value;
+	ExpressionValue flags = Eval(expr->FlagsExpr).Value;
+	UClass* cls = UObject::Cast<UClass>(Eval(expr->ClassExpr).Value.ToObject());
+
+	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+	Package* package = Engine::Instance->packages->GetPackage("Engine");
+
+	UObject* newObj = package->NewObject(
+		name.Type == ExpressionValueType::Nothing ? "" : name.ToString(),
+		cls,
+		flags.Type == ExpressionValueType::Nothing ? ObjectFlags::None : (ObjectFlags)flags.ToInt(),
+		true);
+
+	if (outer.Type != ExpressionValueType::Nothing)
+		newObj->Outer() = outer.ToObject();
+
+	Result.Value = ExpressionValue::ObjectValue(newObj);
 }
 
 void ExpressionEvaluator::Expr(ClassContextExpression* expr)
@@ -139,7 +158,20 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 
 void ExpressionEvaluator::Expr(MetaCastExpression* expr)
 {
-	throw std::runtime_error("Meta cast expression is not implemented");
+	UObject* value = Eval(expr->Value).Value.ToObject();
+	if (value && value->Name != expr->Class->Name)
+	{
+		UClass* cls = UObject::TryCast<UClass>(value);
+		while (cls)
+		{
+			if (cls->Name == expr->Class->Name)
+				break;
+			cls = UObject::TryCast<UClass>(cls->Base);
+		}
+		if (!cls)
+			value = nullptr;
+	}
+	Result.Value = ExpressionValue::ObjectValue(value);
 }
 
 void ExpressionEvaluator::Expr(Unknown0x15Expression* expr)
@@ -264,7 +296,10 @@ void ExpressionEvaluator::Expr(BoolVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(DynamicCastExpression* expr)
 {
-	throw std::runtime_error("Dynamic cast expression is not implemented");
+	UObject* value = Eval(expr->Value).Value.ToObject();
+	if (value && !value->IsA(expr->Class->Name))
+		value = nullptr;
+	Result.Value = ExpressionValue::ObjectValue(value);
 }
 
 void ExpressionEvaluator::Expr(IteratorExpression* expr)
@@ -294,7 +329,10 @@ void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 {
-	throw std::runtime_error("Struct member expression is not implemented");
+	if (expr->Object)
+		Result.Value = ExpressionValue::Variable(Eval(expr->Value).Value.VariablePtr, UObject::Cast<UProperty>(expr->Object));
+	else
+		Result = Eval(expr->Value);
 }
 
 void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
@@ -498,6 +536,30 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
+	// Search states first
+
+	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	{
+		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		{
+			UState* state = UObject::TryCast<UState>(field);
+			if (state && state->Name == Context->StateName)
+			{
+				for (UField* field2 = state->Children; field2 != nullptr; field2 = field2->Next)
+				{
+					UFunction* func = UObject::TryCast<UFunction>(field2);
+					if (func && func->Name == expr->Name)
+					{
+						Call(func, expr->Args);
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	// Search normal member functions next
+
 	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
@@ -510,6 +572,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 			}
 		}
 	}
+
 	throw std::runtime_error("Script virtual function " + expr->Name + " not found!");
 }
 
@@ -520,8 +583,22 @@ void ExpressionEvaluator::Expr(FinalFunctionExpression* expr)
 
 void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 {
-	// Non-final static functions are VirtualFunctionExpression and final static functions are FinalFunctionExpression, so what is a global function?
-	throw std::runtime_error("Script global function expression not implemented");
+	// Global function calls skip the states and only searches normal member functions
+
+	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	{
+		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		{
+			UFunction* func = UObject::TryCast<UFunction>(field);
+			if (func && func->Name == expr->Name)
+			{
+				Call(func, expr->Args);
+				return;
+			}
+		}
+	}
+
+	throw std::runtime_error("Script global function " + expr->Name + " not found!");
 }
 
 void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
@@ -533,11 +610,11 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 {
 	if (func->NativeFuncIndex == 130)
 	{
-		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() && Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool());
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() && Eval(exprArgs[1], Self, Self, LocalVariables).Value.ToBool());
 	}
 	else if (func->NativeFuncIndex == 132)
 	{
-		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() || Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool());
+		Result.Value = ExpressionValue::BoolValue(Eval(exprArgs[0], Self, Self, LocalVariables).Value.ToBool() || Eval(exprArgs[1], Self, Self, LocalVariables).Value.ToBool());
 	}
 	else
 	{

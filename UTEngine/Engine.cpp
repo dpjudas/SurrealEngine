@@ -75,9 +75,6 @@ Engine::Engine()
 	largefont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
 	medfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
 	smallfont = UObject::Cast<UFont>(packages->GetPackage("Engine")->GetUObject("Font", "SmallFont"));
-
-	// auto shockrifle = packages->GetPackage("Botpack")->GetUObject("Class", "ShockRifle");
-	// auto nalicow = UObject::Cast<ULodMesh>(packages->GetPackage("UnrealShare")->GetUObject("LodMesh", "NaliCow"));
 }
 
 Engine::~Engine()
@@ -88,30 +85,50 @@ Engine::~Engine()
 template<typename T>
 T* Engine::NewObject(const std::string& name, const std::string& package, const std::string& className)
 {
-	UClass* cls = UObject::Cast<UClass>(packages->GetPackage(package)->GetUObject("Class", className));
+	Package* pkg = packages->GetPackage(package);
+	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
 	if (!cls)
 		throw std::runtime_error("Could not find class " + className);
-
-	T* obj = new T(name, cls, ObjectFlags::None);
-	obj->PropertyData.Init(cls);
-	return obj;
+	return UObject::Cast<T>(pkg->NewObject(name, cls, ObjectFlags::None, true));
 }
 
-ExpressionValue Engine::InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args)
+ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, const std::vector<ExpressionValue>& args)
 {
-	UClass* cls = obj->Base;
-	while (cls)
+	// Search states first
+
+	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
-			auto func = dynamic_cast<UFunction*>(field);
-			if (func && func->Name == name)
+			UState* state = UObject::TryCast<UState>(field);
+			if (state && state->Name == Context->StateName)
 			{
-				return Frame::Call(func, obj, args);
+				for (UField* field2 = state->Children; field2 != nullptr; field2 = field2->Next)
+				{
+					UFunction* func = UObject::TryCast<UFunction>(field2);
+					if (func && func->Name == name)
+					{
+						return Frame::Call(func, Context, args);
+					}
+				}
 			}
 		}
-		cls = cls->Base;
 	}
+
+	// Search normal member functions next
+
+	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	{
+		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		{
+			UFunction* func = UObject::TryCast<UFunction>(field);
+			if (func && func->Name == name)
+			{
+				return Frame::Call(func, Context, args);
+			}
+		}
+	}
+
 	throw std::runtime_error("Event " + name + " not found on object");
 }
 
@@ -142,15 +159,19 @@ void Engine::Run()
 	UClient* client = NewObject<UClient>("client", "Engine", "Client");
 	UViewport* playerviewport = NewObject<UViewport>("viewport", "Engine", "Viewport");
 	UCanvas* canvas = NewObject<UCanvas>("canvas", "Engine", "Canvas");
-	UConsole* console = NewObject<UConsole>("console", "Engine", "Console");
+	//UConsole* console = NewObject<UConsole>("console", "Engine", "Console");
 	//UConsole* console = NewObject<UConsole>("console", "UWindow", "WindowConsole");
-	//UConsole* console = NewObject<UConsole>("console", "UTMenu", "UTConsole");
+	UConsole* console = NewObject<UConsole>("console", "UTMenu", "UTConsole");
 	UPlayerPawn* pawn = NewObject<UPlayerPawn>("pawn", "Engine", "PlayerPawn");
+	UGameInfo* gameinfo = NewObject<UGameInfo>("gameinfo", "Engine", "GameInfo");
+	UPlayerReplicationInfo* repinfo = NewObject<UPlayerReplicationInfo>("repinfo", "Engine", "PlayerReplicationInfo");
+
+	gameinfo->Level() = LevelInfo;
+	LevelInfo->Game() = gameinfo;
 
 	console->Viewport() = playerviewport;
 	console->FrameX() = (float)viewport->SizeX;
 	console->FrameY() = (float)viewport->SizeY;
-	// console->bNoDrawWorld() = true;
 
 	canvas->Viewport() = playerviewport;
 	canvas->SizeX() = viewport->SizeX;
@@ -158,12 +179,14 @@ void Engine::Run()
 
 	playerviewport->Console() = console;
 	playerviewport->Actor() = pawn;
+
 	pawn->Level() = LevelInfo;
+	pawn->PlayerReplicationInfo() = repinfo;
 
 	InvokeEvent(console, "VideoChange", { });
 	InvokeEvent(console, "NotifyLevelChange", { });
 	//InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
-	//ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
+	ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
 	//ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)

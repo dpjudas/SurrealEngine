@@ -45,6 +45,14 @@ void UStruct::Load(ObjectStream* stream)
 	Line = stream->ReadUInt32();
 	TextPos = stream->ReadUInt32();
 
+	/*
+	// for debug breakpoints
+	if (FriendlyName == "UBrowserServerListWindow")
+		FriendlyName = "UBrowserServerListWindow";
+	if (FriendlyName == "BeforePaint")
+		FriendlyName = "BeforePaint";
+	*/
+
 	int ScriptSize = stream->ReadUInt32();
 	while (Bytecode.size() < ScriptSize)
 	{
@@ -105,14 +113,60 @@ void UStruct::Load(ObjectStream* stream)
 	StructSize = (offset + alignment - 1) / alignment * alignment;
 }
 
+#ifdef _DEBUG
+static const char* tokennames[256] =
+{
+	"LocalVariable", "InstanceVariable", "DefaultVariable", "0x03", "Return", "Switch", "Jump", "JumpIfNot",
+	"Stop", "Assert", "Case", "Nothing", "LabelTable", "GotoLabel", "EatString", "Let",
+	"DynArrayElement", "New", "ClassContext", "MetaCast", "LetBool", "Unknown0x15", "EndFunctionParms", "Self",
+	"Skip", "Context", "ArrayElement", "VirtualFunction", "FinalFunction", "IntConst", "FloatConst", "StringConst",
+	"ObjectConst", "NameConst", "RotationConst", "VectorConst", "ByteConst", "IntZero", "IntOne", "True",
+	"False", "NativeParm", "NoObject", "Unknown0x2b", "IntConstByte", "BoolVariable", "DynamicCast", "Iterator",
+	"IteratorPop", "IteratorNext", "StructCmpEq", "StructCmpNe", "UnicodeStringConst", "0x35", "StructMember", "0x37",
+	"GlobalFunction", "RotatorToVector", "ByteToInt", "ByteToBool", "ByteToFloat", "IntToByte", "IntToBool", "IntToFloat",
+	"BoolToByte", "BoolToInt", "BoolToFloat", "FloatToByte", "FloatToInt", "FloatToBool", "Unknown0x46", "ObjectToBool",
+	"NameToBool", "StringToByte", "StringToInt", "StringToBool", "StringToFloat", "StringToVector", "StringToRotator", "VectorToBool",
+	"VectorToRotator", "RotatorToBool", "ByteToString", "IntToString", "BoolToString", "FloatToString", "ObjectToString", "NameToString",
+	"VectorToString", "RotatorToString", "0x5a", "0x5b", "0x5c", "0x5d", "0x5e", "0x5f",
+	"ExtendedNative60", "ExtendedNative61", "ExtendedNative62", "ExtendedNative63", "ExtendedNative64", "ExtendedNative65", "ExtendedNative66", "ExtendedNative67",
+	"ExtendedNative68", "ExtendedNative69", "ExtendedNative6A", "ExtendedNative6B", "ExtendedNative6C", "ExtendedNative6D", "ExtendedNative6E", "ExtendedNative6F",
+	"Native70", "Native71", "Native72", "Native73", "Native74", "Native75", "Native76", "Native77",
+	"Native78", "Native79", "Native7A", "Native7B", "Native7C", "Native7D", "Native7E", "Native7F",
+	"Native80", "Native81", "Native82", "Native83", "Native84", "Native85", "Native86", "Native87",
+	"Native88", "Native89", "Native8A", "Native8B", "Native8C", "Native8D", "Native8E", "Native8F",
+	"Native90", "Native91", "Native92", "Native93", "Native94", "Native95", "Native96", "Native97",
+	"Native98", "Native99", "Native9A", "Native9B", "Native9C", "Native9D", "Native9E", "Native9F",
+	"NativeA0", "NativeA1", "NativeA2", "NativeA3", "NativeA4", "NativeA5", "NativeA6", "NativeA7",
+	"NativeA8", "NativeA9", "NativeAA", "NativeAB", "NativeAC", "NativeAD", "NativeAE", "NativeAF",
+	"NativeB0", "NativeB1", "NativeB2", "NativeB3", "NativeB4", "NativeB5", "NativeB6", "NativeB7",
+	"NativeB8", "NativeB9", "NativeBA", "NativeBB", "NativeBC", "NativeBD", "NativeBE", "NativeBF",
+	"NativeC0", "NativeC1", "NativeC2", "NativeC3", "NativeC4", "NativeC5", "NativeC6", "NativeC7",
+	"NativeC8", "NativeC9", "NativeCA", "NativeCB", "NativeCC", "NativeCD", "NativeCE", "NativeCF",
+	"NativeD0", "NativeD1", "NativeD2", "NativeD3", "NativeD4", "NativeD5", "NativeD6", "NativeD7",
+	"NativeD8", "NativeD9", "NativeDA", "NativeDB", "NativeDC", "NativeDD", "NativeDE", "NativeDF",
+	"NativeE0", "NativeE1", "NativeE2", "NativeE3", "NativeE4", "NativeE5", "NativeE6", "NativeE7",
+	"NativeE8", "NativeE9", "NativeEA", "NativeEB", "NativeEC", "NativeED", "NativeEE", "NativeEF",
+	"NativeF0", "NativeF1", "NativeF2", "NativeF3", "NativeF4", "NativeF5", "NativeF6", "NativeF7",
+	"NativeF8", "NativeF9", "NativeFA", "NativeFB", "NativeFC", "NativeFD", "NativeFE", "NativeFF"
+};
+#endif
+
 ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 {
-	if (depth == 16)
+	if (depth == 64)
 		throw std::runtime_error("Bytecode parsing error");
 	depth++;
 
 	ExprToken token = (ExprToken)stream->ReadUInt8();
 	PushUInt8((uint8_t)token);
+
+#ifdef _DEBUG
+	std::string tokendebug;
+	tokendebug.resize(depth - 1, '\t');
+	tokendebug += tokennames[(uint8_t)token];
+	tokendebug += "\r\n";
+	BytecodePlainText += tokendebug;
+#endif
 
 	if (token >= ExprToken::MinConversion && token <= ExprToken::MaxConversion)
 	{

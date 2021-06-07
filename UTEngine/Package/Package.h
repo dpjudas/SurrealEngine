@@ -19,6 +19,8 @@ public:
 	Package(PackageManager* packageManager, const std::string& name, const std::string& filename);
 	~Package();
 
+	UObject* NewObject(const std::string& objname, UClass* objclass, ObjectFlags flags, bool initProperties);
+
 	UObject* GetUObject(int objref);
 	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {});
 
@@ -43,9 +45,9 @@ private:
 	{
 		std::string classNameKey = GetNameKey(className);
 
-		NativeClasses[classNameKey] = [](Package* package, int index, const std::string& name, UClass* base)
+		NativeClasses[classNameKey] = [](const std::string& name, UClass* cls, ObjectFlags flags) -> UObject*
 		{
-			package->Objects[index] = std::make_unique<T>(name, base, package->ExportTable[index].ObjFlags);
+			return new T(name, cls, flags);
 		};
 
 		if (registerInPackage)
@@ -117,7 +119,7 @@ private:
 
 	std::vector<std::unique_ptr<UObject>> Objects;
 
-	std::map<std::string, std::function<void(Package* package, int index, const std::string& name, UClass* base)>> NativeClasses;
+	std::map<std::string, std::function<UObject*(const std::string& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 
 	Package(const Package&) = delete;
 	Package& operator=(const Package&) = delete;

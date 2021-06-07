@@ -16,5 +16,5 @@ void NLevelInfo::GetAddressURL(UObject* Self, std::string& ReturnValue)
 
 void NLevelInfo::GetLocalURL(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("LevelInfo.GetLocalURL not implemented");
+	ReturnValue = "GetLocalURL url";
 }

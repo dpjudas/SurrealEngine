@@ -270,7 +270,7 @@ inline const Rotator& ExpressionValue::ToRotator() const
 
 inline const std::string& ExpressionValue::ToString() const
 {
-	if (Type == ExpressionValueType::ValueString)
+	if (Type == ExpressionValueType::ValueString || Type == ExpressionValueType::ValueName)
 		return VariablePtr ? *static_cast<std::string*>(VariablePtr) : ValueString;
 	else
 		throw std::runtime_error("Not a string value");
@@ -278,7 +278,7 @@ inline const std::string& ExpressionValue::ToString() const
 
 inline const std::string& ExpressionValue::ToName() const
 {
-	if (Type == ExpressionValueType::ValueName)
+	if (Type == ExpressionValueType::ValueString || Type == ExpressionValueType::ValueName)
 		return VariablePtr ? *static_cast<std::string*>(VariablePtr) : ValueString;
 	else
 		throw std::runtime_error("Not a name value");
@@ -289,5 +289,5 @@ inline const Color& ExpressionValue::ToColor() const
 	if (Type == ExpressionValueType::ValueColor)
 		return VariablePtr ? *static_cast<Color*>(VariablePtr) : Value.Color;
 	else
-		throw std::runtime_error("Not a name value");
+		throw std::runtime_error("Not a color value");
 }
