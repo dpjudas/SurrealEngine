@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="UObject">
+    <DisplayString>{Name} Class={Base->Name}</DisplayString>
+    <Expand>
+      <Item Name="Class">Base</Item>
+    </Expand>
+  </Type>
+  <Type Name="UField">
+    <DisplayString>{Name} Type={Base->Name} </DisplayString>
+  </Type>
+  <Type Name="UStruct">
+    <DisplayString>{Name} Type={Base->Name}</DisplayString>
+    <Expand>
+      <Synthetic Name="Children">
+        <Expand>
+          <LinkedListItems>
+            <HeadPointer>Children</HeadPointer>
+            <NextPointer>Next</NextPointer>
+            <ValueNode>this</ValueNode>
+          </LinkedListItems>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+  <Type Name="UClass">
+    <DisplayString>{Name} Base={Base->Name}</DisplayString>
+    <Expand>
+      <Item Name="Base">Base</Item>
+      <Synthetic Name="Children">
+        <Expand>
+          <LinkedListItems>
+            <HeadPointer>Children</HeadPointer>
+            <NextPointer>Next</NextPointer>
+            <ValueNode>this</ValueNode>
+          </LinkedListItems>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+  <Type Name="vec2T&lt;*&gt;">
+    <DisplayString>{x}, {y}</DisplayString>
+  </Type>
+  <Type Name="vec3T&lt;*&gt;">
+    <DisplayString>{x}, {y}, {z}</DisplayString>
+  </Type>
+  <Type Name="vec4T&lt;*&gt;">
+    <DisplayString>{x}, {y}, {z}, {w}</DisplayString>
+  </Type>
+  <Type Name="Color">
+    <DisplayString>{R}, {G}, {B}, {A}</DisplayString>
+  </Type>
+  <Type Name="Rotator">
+    <DisplayString>{Pitch}, {Yaw}, {Roll}</DisplayString>
+  </Type>
+</AutoVisualizer>

@@ -810,4 +810,7 @@
       <Filter>Thirdparty\dumb\src\helpers</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="UTEngine.natvis" />
+  </ItemGroup>
 </Project>
