@@ -95,7 +95,7 @@ public:
 
 	template<typename T>
 	T* NewObject(const std::string& name, const std::string& package, const std::string& className);
-	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, const std::vector<ExpressionValue>& args);
+	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, std::vector<ExpressionValue> args);
 
 private:
 	void Tick(float timeElapsed);

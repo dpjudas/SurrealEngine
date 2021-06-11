@@ -15,7 +15,7 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 	evaluator.Context = context;
 	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
-	return evaluator.Result;
+	return std::move(evaluator.Result);
 }
 
 void ExpressionEvaluator::Expr(LocalVariableExpression* expr)
@@ -105,7 +105,7 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
 	lvalue.Store(rvalue);
-	Result.Value = lvalue;
+	Result.Value = std::move(lvalue);
 }
 
 void ExpressionEvaluator::Expr(LetBoolExpression* expr)
@@ -113,7 +113,7 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
 	lvalue.Store(rvalue);
-	Result.Value = lvalue;
+	Result.Value = std::move(lvalue);
 }
 
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
@@ -622,6 +622,6 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 		args.reserve(exprArgs.size());
 		for (Expression* arg : exprArgs)
 			args.push_back(Eval(arg, Self, Self, LocalVariables).Value);
-		Result.Value = Frame::Call(func, Context, args);
+		Result.Value = Frame::Call(func, Context, std::move(args));
 	}
 }

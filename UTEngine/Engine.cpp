@@ -92,7 +92,7 @@ T* Engine::NewObject(const std::string& name, const std::string& package, const 
 	return UObject::Cast<T>(pkg->NewObject(name, cls, ObjectFlags::None, true));
 }
 
-ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, const std::vector<ExpressionValue>& args)
+ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, std::vector<ExpressionValue> args)
 {
 	// Search states first
 
@@ -108,7 +108,7 @@ ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, c
 					UFunction* func = UObject::TryCast<UFunction>(field2);
 					if (func && func->Name == name)
 					{
-						return Frame::Call(func, Context, args);
+						return Frame::Call(func, Context, std::move(args));
 					}
 				}
 			}
@@ -124,7 +124,7 @@ ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, c
 			UFunction* func = UObject::TryCast<UFunction>(field);
 			if (func && func->Name == name)
 			{
-				return Frame::Call(func, Context, args);
+				return Frame::Call(func, Context, std::move(args));
 			}
 		}
 	}
@@ -186,7 +186,7 @@ void Engine::Run()
 	InvokeEvent(console, "VideoChange", { });
 	InvokeEvent(console, "NotifyLevelChange", { });
 	//InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
-	ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
+	//ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
 	//ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)
@@ -194,7 +194,7 @@ void Engine::Run()
 		float elapsed = CalcTimeElapsed();
 		Tick(elapsed);
 
-		InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
+		//InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
 
 		for (UTexture* tex : Textures)
 			tex->Update();
@@ -202,9 +202,9 @@ void Engine::Run()
 		RenderDevice* device = viewport->GetRenderDevice();
 		device->BeginFrame();
 
-		InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
+		//InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		DrawScene();
-		InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+		//InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 
 		device->EndFrame(true);
 	}

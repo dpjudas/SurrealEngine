@@ -33,7 +33,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 				{
 					ExpressionValue retval = ExpressionValue::PropertyValue(prop);
-					args.push_back(retval);
+					args.push_back(std::move(retval));
 					returnparmfound = true;
 				}
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
@@ -50,7 +50,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
 		}
 
-		return returnparmfound ? args.back() : ExpressionValue::NothingValue();
+		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
 	}
 	else
 	{

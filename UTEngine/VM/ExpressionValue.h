@@ -21,6 +21,87 @@ enum class ExpressionValueType
 	ValueStruct
 };
 
+class StructValue
+{
+public:
+	StructValue() = default;
+
+	StructValue(const StructValue& other)
+	{
+		Load(other.Struct, other.Ptr);
+	}
+
+	StructValue(StructValue&& other)
+	{
+		*this = std::move(other);
+	}
+
+	~StructValue()
+	{
+		Reset();
+	}
+
+	void Store(void* dest) const
+	{
+		if (Struct)
+		{
+			for (auto& it : Struct->Properties)
+				it.second->CopyValue(
+					static_cast<uint8_t*>(dest) + it.second->DataOffset,
+					static_cast<uint8_t*>(Ptr) + it.second->DataOffset);
+		}
+	}
+
+	void Load(UStruct* type, void* src)
+	{
+		Reset();
+		Struct = type;
+		if (Struct)
+		{
+			Ptr = new uint64_t[(Struct->StructSize + 7) / 8];
+			for (auto& it : Struct->Properties)
+				it.second->CopyConstruct(
+					static_cast<uint8_t*>(Ptr) + it.second->DataOffset,
+					static_cast<uint8_t*>(src) + it.second->DataOffset);
+		}
+	}
+
+	void Reset()
+	{
+		if (Struct)
+		{
+			for (auto& it : Struct->Properties)
+				it.second->Destruct(static_cast<uint8_t*>(Ptr) + it.second->DataOffset);
+			delete[](uint64_t*)Ptr;
+			Struct = nullptr;
+		}
+	}
+
+	StructValue& operator=(const StructValue& other)
+	{
+		if (this != &other)
+		{
+			Load(other.Struct, other.Ptr);
+		}
+		return *this;
+	}
+
+	StructValue& operator=(StructValue&& other)
+	{
+		if (this != &other)
+		{
+			Struct = other.Struct;
+			Ptr = other.Ptr;
+			other.Struct = nullptr;
+			other.Ptr = nullptr;
+		}
+		return *this;
+	}
+
+	UStruct* Struct = nullptr;
+	void* Ptr = nullptr;
+};
+
 class ExpressionValue
 {
 public:
@@ -108,6 +189,7 @@ private:
 		Color Color;
 	} Value;
 	std::string ValueString;
+	StructValue ValueStruct;
 };
 
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
@@ -153,6 +235,7 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 	case ExpressionValueType::ValueString: *static_cast<std::string*>(VariablePtr) = rvalue.ToString(); break;
 	case ExpressionValueType::ValueName: *static_cast<std::string*>(VariablePtr) = rvalue.ToName(); break;
 	case ExpressionValueType::ValueColor: *static_cast<Color*>(VariablePtr) = rvalue.ToColor(); break;
+	case ExpressionValueType::ValueStruct: rvalue.ValueStruct.Store(VariablePtr); break;
 	}
 }
 
@@ -174,6 +257,7 @@ inline void ExpressionValue::Load()
 		case ExpressionValueType::ValueString: ValueString = *static_cast<std::string*>(VariablePtr); break;
 		case ExpressionValueType::ValueName: ValueString = *static_cast<std::string*>(VariablePtr); break;
 		case ExpressionValueType::ValueColor: Value.Color = *static_cast<Color*>(VariablePtr); break;
+		case ExpressionValueType::ValueStruct: ValueStruct.Load(dynamic_cast<UStructProperty*>(VariableProperty)->Struct, VariablePtr); break;
 		}
 
 		VariablePtr = nullptr;
