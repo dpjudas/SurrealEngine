@@ -18,12 +18,13 @@
 #include "UObject/NativeObjExtractor.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
 #include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
+#include "VM/ScriptCall.h"
 #include <chrono>
 #include <set>
 
@@ -40,55 +41,16 @@ Engine::~Engine()
 	engine = nullptr;
 }
 
-ExpressionValue Engine::InvokeEvent(UObject* Context, const std::string& name, std::vector<ExpressionValue> args)
-{
-	// Search states first
-
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
-	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
-		{
-			UState* state = UObject::TryCast<UState>(field);
-			if (state && state->Name == Context->StateName)
-			{
-				for (UField* field2 = state->Children; field2 != nullptr; field2 = field2->Next)
-				{
-					UFunction* func = UObject::TryCast<UFunction>(field2);
-					if (func && func->Name == name)
-					{
-						return Frame::Call(func, Context, std::move(args));
-					}
-				}
-			}
-		}
-	}
-
-	// Search normal member functions next
-
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
-	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
-		{
-			UFunction* func = UObject::TryCast<UFunction>(field);
-			if (func && func->Name == name)
-			{
-				return Frame::Call(func, Context, std::move(args));
-			}
-		}
-	}
-
-	throw std::runtime_error("Event " + name + " not found on object");
-}
-
 void Engine::Run()
 {
-	viewport = Viewport::Create(this);
-	//viewport->OpenWindow(1800, 950, false);
-	viewport->OpenWindow(1920 * 4, 1080 * 4, true);
+	window = Window::Create(this);
+	//window->OpenWindow(1800, 950, false);
+	window->OpenWindow(1920 * 4, 1080 * 4, true);
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
 
+	//LoadMap("CityIntro");
 	LoadMap("DM-Liandri");
 	//LoadMap("DM-Codex");
 	//LoadMap("DM-Barricade");
@@ -116,7 +78,7 @@ void Engine::Run()
 #endif
 
 	UClient* client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
-	UViewport* playerviewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
+	UViewport* viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	UCanvas* canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
 	UConsole* console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
 	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
@@ -126,53 +88,53 @@ void Engine::Run()
 	gameinfo->Level() = LevelInfo;
 	LevelInfo->Game() = gameinfo;
 
-	console->Viewport() = playerviewport;
-	console->FrameX() = (float)viewport->SizeX;
-	console->FrameY() = (float)viewport->SizeY;
+	console->Viewport() = viewport;
+	console->FrameX() = (float)window->SizeX;
+	console->FrameY() = (float)window->SizeY;
 
-	canvas->Viewport() = playerviewport;
-	canvas->SizeX() = viewport->SizeX;
-	canvas->SizeY() = viewport->SizeY;
+	canvas->Viewport() = viewport;
+	canvas->SizeX() = window->SizeX;
+	canvas->SizeY() = window->SizeY;
 
-	playerviewport->Console() = console;
-	playerviewport->Actor() = pawn;
+	viewport->Console() = console;
+	viewport->Actor() = pawn;
 
 	pawn->Level() = LevelInfo;
 	pawn->PlayerReplicationInfo() = repinfo;
 
-	InvokeEvent(console, "VideoChange", { });
-	InvokeEvent(console, "NotifyLevelChange", { });
-	//InvokeEvent(console, "ConnectFailure", { ExpressionValue::StringValue("404"), ExpressionValue::StringValue("unreal://foobar") });
-	//ExpressionValue result = InvokeEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
-	//ExpressionValue result2 = InvokeEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+	CallEvent(console, "VideoChange");
+	CallEvent(console, "NotifyLevelChange");
+
+	//ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
+	//ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed();
 		Tick(elapsed);
 
-		//InvokeEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
+		//CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
 
 		for (UTexture* tex : engine->renderer->Textures)
 			tex->Update();
 
-		RenderDevice* device = viewport->GetRenderDevice();
+		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();
 
-		//InvokeEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
+		//CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		renderer->scene.DrawScene();
-		//InvokeEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+		//CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 
 		device->EndFrame(true);
 	}
 
-	viewport->CloseWindow();
-	viewport.reset();
+	window->CloseWindow();
+	window.reset();
 }
 
 void Engine::Tick(float timeElapsed)
 {
-	viewport->Tick();
+	window->Tick();
 
 	for (UActor* actor : level->Actors)
 	{
@@ -213,11 +175,11 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
-void Engine::Key(Viewport* viewport, std::string key)
+void Engine::Key(Window* viewport, std::string key)
 {
 }
 
-void Engine::InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta)
+void Engine::InputEvent(Window* viewport, EInputKey key, EInputType type, int delta)
 {
 	switch (key)
 	{
@@ -264,7 +226,7 @@ void Engine::SetPause(bool value)
 {
 }
 
-void Engine::WindowClose(Viewport* viewport)
+void Engine::WindowClose(Window* viewport)
 {
 	quit = true;
 }

@@ -5,12 +5,12 @@
 class Engine;
 class RenderDevice;
 
-class Viewport
+class Window
 {
 public:
-	static std::unique_ptr<Viewport> Create(Engine* engine);
+	static std::unique_ptr<Window> Create(Engine* engine);
 
-	virtual ~Viewport() = default;
+	virtual ~Window() = default;
 	virtual void OpenWindow(int width, int height, bool fullscreen) = 0;
 	virtual void CloseWindow() = 0;
 	virtual void* GetWindow() = 0;

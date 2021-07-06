@@ -6,12 +6,12 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Math/quaternion.h"
 #include "Engine.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "UTRenderer.h"
 
 void SpriteRender::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale)
 {
-	auto device = engine->viewport->GetRenderDevice();
+	auto device = engine->window->GetRenderDevice();
 
 	engine->renderer->Textures.insert(texture);
 

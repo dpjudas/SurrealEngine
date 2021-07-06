@@ -429,7 +429,7 @@ class StructMemberExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	UObject* Object = nullptr;
+	UProperty* Field = nullptr;
 	Expression* Value = nullptr;
 };
 

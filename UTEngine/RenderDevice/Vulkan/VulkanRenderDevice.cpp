@@ -9,7 +9,7 @@
 #include "SceneRenderPass.h"
 #include "ShadowmapRenderPass.h"
 #include "SceneSamplers.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
@@ -22,7 +22,7 @@
 std::wstring to_utf16(const std::string& str);
 std::string from_utf16(const std::wstring& str);
 
-VulkanRenderDevice::VulkanRenderDevice(::Viewport* viewport)
+VulkanRenderDevice::VulkanRenderDevice(::Window* viewport)
 {
 	Viewport = viewport;
 

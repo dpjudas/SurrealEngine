@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 
 struct ReceivedWindowMessage
 {
@@ -9,11 +9,11 @@ struct ReceivedWindowMessage
 	LPARAM lparam;
 };
 
-class Win32Viewport : public Viewport
+class Win32Window : public Window
 {
 public:
-	Win32Viewport(Engine* engine);
-	~Win32Viewport();
+	Win32Window(Engine* engine);
+	~Win32Window();
 
 	void OpenWindow(int width, int height, bool fullscreen) override;
 	void CloseWindow() override;

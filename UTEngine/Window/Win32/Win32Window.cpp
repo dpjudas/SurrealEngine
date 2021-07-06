@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "Win32Viewport.h"
+#include "Win32Window.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 
@@ -24,17 +24,17 @@
 #define RIDEV_INPUTSINK	(0x100)
 #endif
 
-Win32Viewport::Win32Viewport(Engine* engine) : engine(engine)
+Win32Window::Win32Window(Engine* engine) : engine(engine)
 {
 	WNDCLASSEX classdesc = {};
 	classdesc.cbSize = sizeof(WNDCLASSEX);
 	classdesc.hInstance = GetModuleHandle(0);
 	classdesc.style = CS_VREDRAW | CS_HREDRAW;
-	classdesc.lpszClassName = L"Win32Viewport";
-	classdesc.lpfnWndProc = &Win32Viewport::WndProc;
+	classdesc.lpszClassName = L"Win32Window";
+	classdesc.lpfnWndProc = &Win32Window::WndProc;
 	RegisterClassEx(&classdesc);
 
-	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"Win32Viewport", L"Unreal Tournament", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"Win32Window", L"Unreal Tournament", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	RAWINPUTDEVICE rid;
 	rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -44,7 +44,7 @@ Win32Viewport::Win32Viewport(Engine* engine) : engine(engine)
 	BOOL result = RegisterRawInputDevices(&rid, 1, sizeof(RAWINPUTDEVICE));
 }
 
-Win32Viewport::~Win32Viewport()
+Win32Window::~Win32Window()
 {
 	RenderDevice.reset();
 	if (WindowHandle)
@@ -54,7 +54,7 @@ Win32Viewport::~Win32Viewport()
 	}
 }
 
-void Win32Viewport::OpenWindow(int width, int height, bool fullscreen)
+void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 {
 	if (!WindowHandle)
 		return;
@@ -88,18 +88,18 @@ void Win32Viewport::OpenWindow(int width, int height, bool fullscreen)
 	}
 }
 
-void Win32Viewport::CloseWindow()
+void Win32Window::CloseWindow()
 {
 	if (WindowHandle && IsWindowVisible(WindowHandle))
 		ShowWindow(WindowHandle, SW_HIDE);
 }
 
-void* Win32Viewport::GetWindow()
+void* Win32Window::GetWindow()
 {
 	return (void*)WindowHandle;
 }
 
-void Win32Viewport::Tick()
+void Win32Window::Tick()
 {
 	if (!WindowHandle)
 		return;
@@ -185,7 +185,7 @@ void Win32Viewport::Tick()
 	}
 }
 
-void Win32Viewport::PauseGame()
+void Win32Window::PauseGame()
 {
 	if (!Paused)
 	{
@@ -194,7 +194,7 @@ void Win32Viewport::PauseGame()
 	}
 }
 
-void Win32Viewport::ResumeGame()
+void Win32Window::ResumeGame()
 {
 	if (Paused)
 	{
@@ -203,7 +203,7 @@ void Win32Viewport::ResumeGame()
 	}
 }
 
-LRESULT Win32Viewport::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE ||
 		msg == WM_DESTROY ||
@@ -263,19 +263,19 @@ LRESULT Win32Viewport::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	return DefWindowProc(WindowHandle, msg, wparam, lparam);
 }
 
-LRESULT Win32Viewport::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam)
+LRESULT Win32Window::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_CREATE)
 	{
 		CREATESTRUCT* createstruct = (CREATESTRUCT*)lparam;
-		Win32Viewport* viewport = (Win32Viewport*)createstruct->lpCreateParams;
+		Win32Window* viewport = (Win32Window*)createstruct->lpCreateParams;
 		viewport->WindowHandle = windowhandle;
 		SetWindowLongPtr(windowhandle, GWLP_USERDATA, (LONG_PTR)viewport);
 		return viewport->OnWindowMessage(msg, wparam, lparam);
 	}
 	else
 	{
-		Win32Viewport* viewport = (Win32Viewport*)GetWindowLongPtr(windowhandle, GWLP_USERDATA);
+		Win32Window* viewport = (Win32Window*)GetWindowLongPtr(windowhandle, GWLP_USERDATA);
 		if (viewport)
 		{
 			LRESULT result = viewport->OnWindowMessage(msg, wparam, lparam);

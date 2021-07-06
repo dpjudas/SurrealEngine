@@ -246,11 +246,11 @@ UObject* Package::GetUObject(int objref)
 		ImportTableEntry* entrypackage = GetImportEntry(entry->ObjPackage);
 
 		std::string groupName;
-		while (entrypackage->ObjPackage != 0)
-		{
+		if (entrypackage->ObjPackage != 0)
 			groupName = GetName(entrypackage->ObjName);
+
+		while (entrypackage->ObjPackage != 0)
 			entrypackage = GetImportEntry(entrypackage->ObjPackage);
-		}
 
 		std::string packageName = GetName(entrypackage->ObjName);
 		std::string objectName = GetName(entry->ObjName);

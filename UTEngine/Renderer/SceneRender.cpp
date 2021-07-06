@@ -6,13 +6,13 @@
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
 #include "Engine.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "Math/FrustumPlanes.h"
 #include "Renderer/UTRenderer.h"
 
 void SceneRender::DrawScene()
 {
-	RenderDevice* device = engine->viewport->GetRenderDevice();
+	RenderDevice* device = engine->window->GetRenderDevice();
 	auto level = engine->level;
 
 	device->BeginScenePass();
@@ -251,7 +251,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
 	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
 
-	engine->viewport->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
+	engine->window->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
 int SceneRender::FindZoneAt(vec3 location)
@@ -464,10 +464,10 @@ FSceneNode SceneRender::CreateSceneFrame()
 	FSceneNode frame;
 	frame.XB = 0;
 	frame.YB = 0;
-	frame.X = engine->viewport->SizeX;
-	frame.Y = engine->viewport->SizeY;
-	frame.FX = (float)engine->viewport->SizeX;
-	frame.FY = (float)engine->viewport->SizeY;
+	frame.X = engine->window->SizeX;
+	frame.Y = engine->window->SizeY;
+	frame.FX = (float)engine->window->SizeX;
+	frame.FY = (float)engine->window->SizeY;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
@@ -490,10 +490,10 @@ FSceneNode SceneRender::CreateSkyFrame()
 	FSceneNode frame;
 	frame.XB = 0;
 	frame.YB = 0;
-	frame.X = engine->viewport->SizeX;
-	frame.Y = engine->viewport->SizeY;
-	frame.FX = (float)engine->viewport->SizeX;
-	frame.FY = (float)engine->viewport->SizeY;
+	frame.X = engine->window->SizeX;
+	frame.Y = engine->window->SizeY;
+	frame.FX = (float)engine->window->SizeX;
+	frame.FY = (float)engine->window->SizeY;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;

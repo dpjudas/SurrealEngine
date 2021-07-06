@@ -7,13 +7,13 @@
 #include "UObject/ULevel.h"
 #include "Math/hsb.h"
 #include "Engine.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "UTRenderer.h"
 #include "Collision.h"
 
 void CoronaRender::DrawCoronas(FSceneNode* frame)
 {
-	RenderDevice* device = engine->viewport->GetRenderDevice();
+	RenderDevice* device = engine->window->GetRenderDevice();
 
 	for (UActor* light : engine->renderer->Lights)
 	{
@@ -32,7 +32,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 				float height = (float)light->Skin()->Mipmaps.front().Height;
 				float scale = frame->FY / 400.0f;
 
-				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255/*light->LightBrightness()*/);
 
 				FTextureInfo texinfo;
 				texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();

@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Viewport">
-      <UniqueIdentifier>{4b6b2776-c924-41c7-a79a-026d6e58db57}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RenderDevice">
       <UniqueIdentifier>{6b028708-7ad5-46d3-a351-1e27b946a7a1}</UniqueIdentifier>
     </Filter>
@@ -27,9 +24,6 @@
     </Filter>
     <Filter Include="RenderDevice\Vulkan">
       <UniqueIdentifier>{383447f3-a7c9-4c00-bf21-359c711c1f1f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Viewport\Win32">
-      <UniqueIdentifier>{1dd6dc90-88fe-457a-8c41-cb6a9a8a300c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Thirdparty\dumb">
       <UniqueIdentifier>{0c9b9fbc-3a59-49f5-bc2c-7fa5b1d28a2c}</UniqueIdentifier>
@@ -63,6 +57,12 @@
     </Filter>
     <Filter Include="Renderer">
       <UniqueIdentifier>{5a49917e-af25-4b27-b932-f67d58c2bb4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{8afd8ce4-92b8-45b6-ae43-24e99eea3776}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window\Win32">
+      <UniqueIdentifier>{004eeafa-bbb3-458e-bfa7-5d84b2b9cfe7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,12 +156,6 @@
     </ClCompile>
     <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp">
       <Filter>RenderDevice\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Viewport\Viewport.cpp">
-      <Filter>Viewport</Filter>
-    </ClCompile>
-    <ClCompile Include="Viewport\Win32\Win32Viewport.cpp">
-      <Filter>Viewport\Win32</Filter>
     </ClCompile>
     <ClCompile Include="UObject\USound.cpp">
       <Filter>UObject</Filter>
@@ -545,6 +539,15 @@
     <ClCompile Include="Renderer\SpriteRender.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="VM\ScriptCall.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
+    <ClCompile Include="Window\Win32\Win32Window.cpp">
+      <Filter>Window\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Window\Window.cpp">
+      <Filter>Window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -660,12 +663,6 @@
     </ClInclude>
     <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h">
       <Filter>RenderDevice\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Viewport\Viewport.h">
-      <Filter>Viewport</Filter>
-    </ClInclude>
-    <ClInclude Include="Viewport\Win32\Win32Viewport.h">
-      <Filter>Viewport\Win32</Filter>
     </ClInclude>
     <ClInclude Include="UObject\USound.h">
       <Filter>UObject</Filter>
@@ -856,6 +853,15 @@
     </ClInclude>
     <ClInclude Include="Renderer\SpriteRender.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\ScriptCall.h">
+      <Filter>VM</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\Win32\Win32Window.h">
+      <Filter>Window\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\Window.h">
+      <Filter>Window</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

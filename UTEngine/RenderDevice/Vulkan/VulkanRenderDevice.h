@@ -7,7 +7,7 @@ class Renderer;
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(::Viewport* InViewport);
+	VulkanRenderDevice(::Window* InViewport);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;

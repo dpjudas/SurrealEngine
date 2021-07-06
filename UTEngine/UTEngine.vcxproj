@@ -188,8 +188,6 @@
     <ClInclude Include="UObject\USound.h" />
     <ClInclude Include="UObject\UTextBuffer.h" />
     <ClInclude Include="UObject\UTexture.h" />
-    <ClInclude Include="Viewport\Viewport.h" />
-    <ClInclude Include="Viewport\Win32\Win32Viewport.h" />
     <ClInclude Include="VM\Bytecode.h" />
     <ClInclude Include="VM\Expression.h" />
     <ClInclude Include="VM\ExpressionEvaluator.h" />
@@ -198,6 +196,9 @@
     <ClInclude Include="VM\Frame.h" />
     <ClInclude Include="VM\NativeFunc.h" />
     <ClInclude Include="VM\NativeFuncExtractor.h" />
+    <ClInclude Include="VM\ScriptCall.h" />
+    <ClInclude Include="Window\Win32\Win32Window.h" />
+    <ClInclude Include="Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Thirdparty\dumb\src\core\atexit.c">
@@ -796,13 +797,14 @@
     <ClCompile Include="UObject\USound.cpp" />
     <ClCompile Include="UObject\UTextBuffer.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />
-    <ClCompile Include="Viewport\Viewport.cpp" />
-    <ClCompile Include="Viewport\Win32\Win32Viewport.cpp" />
     <ClCompile Include="VM\Bytecode.cpp" />
     <ClCompile Include="VM\ExpressionEvaluator.cpp" />
     <ClCompile Include="VM\Frame.cpp" />
     <ClCompile Include="VM\NativeFunc.cpp" />
     <ClCompile Include="VM\NativeFuncExtractor.cpp" />
+    <ClCompile Include="VM\ScriptCall.cpp" />
+    <ClCompile Include="Window\Win32\Win32Window.cpp" />
+    <ClCompile Include="Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Thirdparty\ShaderCompiler\ShaderCompiler.vcxproj">

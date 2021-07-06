@@ -5,7 +5,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UTexture.h"
 #include "Engine.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "UTRenderer.h"
 
 void BrushRender::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
@@ -16,7 +16,7 @@ void BrushRender::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& locati
 	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
 	brushframe.Modelview = brushframe.Modelview * ObjectToWorld;
 
-	auto device = engine->viewport->GetRenderDevice();
+	auto device = engine->window->GetRenderDevice();
 	device->SetSceneNode(&brushframe);
 
 	vec3 color = engine->renderer->light.FindLightAt(location, zoneIndex);
@@ -87,5 +87,5 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 		vertices.push_back(gv);
 	}
 
-	engine->viewport->GetRenderDevice()->DrawGouraudPolygon(frame, &texture, vertices.data(), (int)vertices.size(), surface.PolyFlags);
+	engine->window->GetRenderDevice()->DrawGouraudPolygon(frame, texture.Texture ? &texture : nullptr, vertices.data(), (int)vertices.size(), surface.PolyFlags);
 }

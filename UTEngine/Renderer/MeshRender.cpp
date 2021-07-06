@@ -6,7 +6,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 #include "UTRenderer.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 
 void MeshRender::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
 {
@@ -37,7 +37,7 @@ void MeshRender::DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& Obje
 
 void MeshRender::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset)
 {
-	auto device = engine->viewport->GetRenderDevice();
+	auto device = engine->window->GetRenderDevice();
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)

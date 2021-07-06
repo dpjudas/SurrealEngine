@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "CanvasRender.h"
 #include "Engine.h"
-#include "Viewport/Viewport.h"
+#include "Window/Window.h"
 #include "Package/PackageManager.h"
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/UFont.h"
@@ -18,7 +18,7 @@ CanvasRender::CanvasRender()
 
 void CanvasRender::DrawTile(FSceneNode* frame, UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags)
 {
-	RenderDevice* device = engine->viewport->GetRenderDevice();
+	RenderDevice* device = engine->window->GetRenderDevice();
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
@@ -44,7 +44,7 @@ void CanvasRender::DrawFontText(FSceneNode* frame, UFont* font, vec4 color, int 
 			x -= textsize.x;
 	}
 
-	RenderDevice* device = engine->viewport->GetRenderDevice();
+	RenderDevice* device = engine->window->GetRenderDevice();
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;

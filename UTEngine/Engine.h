@@ -11,7 +11,7 @@ class PackageManager;
 class UObject;
 class ULevel;
 class UModel;
-class Viewport;
+class Window;
 class UTexture;
 class UActor;
 class UFont;
@@ -59,9 +59,9 @@ public:
 
 	void Run();
 
-	void WindowClose(Viewport* viewport);
-	void Key(Viewport* viewport, std::string key);
-	void InputEvent(Viewport* viewport, EInputKey key, EInputType type, int delta = 0);
+	void WindowClose(Window* window);
+	void Key(Window* window, std::string key);
+	void InputEvent(Window* window, EInputKey key, EInputType type, int delta = 0);
 	void SetPause(bool value);
 
 	ULevelSummary* LevelSummary = nullptr;
@@ -70,12 +70,10 @@ public:
 	UActor* SkyZoneInfo = nullptr;
 
 	std::unique_ptr<PackageManager> packages;
-	std::unique_ptr<Viewport> viewport;
+	std::unique_ptr<Window> window;
 	std::unique_ptr<UTRenderer> renderer;
 	std::unique_ptr<Collision> collision;
 	std::unique_ptr<AudioPlayer> audioplayer;
-
-	ExpressionValue InvokeEvent(UObject* obj, const std::string& name, std::vector<ExpressionValue> args);
 
 	void Tick(float timeElapsed);
 

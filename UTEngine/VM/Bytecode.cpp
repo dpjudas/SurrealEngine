@@ -350,7 +350,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::StructMember:
 		{
 			StructMemberExpression* expr = Create<StructMemberExpression>(exproffset);
-			expr->Object = stream->ReadObject<UObject>();
+			expr->Field = stream->ReadObject<UProperty>();
 			expr->Value = ReadToken(stream, depth);
 			return expr;
 		}

@@ -329,10 +329,10 @@ void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 {
-	if (expr->Object)
-		Result.Value = ExpressionValue::Variable(Eval(expr->Value).Value.VariablePtr, UObject::Cast<UProperty>(expr->Object));
+	if (expr->Field)
+		Result.Value = ExpressionValue::Variable(Eval(expr->Value).Value.VariablePtr, expr->Field);
 	else
-		Result = Eval(expr->Value);
+		throw std::runtime_error("Null field encountered in struct member expression");
 }
 
 void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
@@ -536,9 +536,13 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
+	UClass* contextClass = dynamic_cast<UClass*>(Context);
+	if (!contextClass)
+		contextClass = dynamic_cast<UClass*>(Context->Base);
+
 	// Search states first
 
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
@@ -560,7 +564,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 
 	// Search normal member functions next
 
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
@@ -585,7 +589,11 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 {
 	// Global function calls skip the states and only searches normal member functions
 
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	UClass* contextClass = dynamic_cast<UClass*>(Context);
+	if (!contextClass)
+		contextClass = dynamic_cast<UClass*>(Context->Base);
+
+	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
