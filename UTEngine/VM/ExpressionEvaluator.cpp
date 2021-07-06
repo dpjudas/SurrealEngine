@@ -129,7 +129,7 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 	UClass* cls = UObject::Cast<UClass>(Eval(expr->ClassExpr).Value.ToObject());
 
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
-	Package* package = Engine::Instance->packages->GetPackage("Engine");
+	Package* package = engine->packages->GetPackage("Engine");
 
 	UObject* newObj = package->NewObject(
 		name.Type == ExpressionValueType::Nothing ? "" : name.ToString(),

@@ -40,7 +40,7 @@ void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::s
 
 void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
 {
-	ReturnValue = Engine::Instance->level;
+	ReturnValue = engine->level;
 }
 
 void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue)

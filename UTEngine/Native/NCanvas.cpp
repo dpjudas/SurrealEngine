@@ -4,6 +4,8 @@
 #include "VM/NativeFunc.h"
 #include "Engine.h"
 #include "UObject/ULevel.h"
+#include "Renderer/UTRenderer.h"
+#include "Renderer/CanvasRender.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244) // warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
@@ -48,8 +50,8 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 
 	color = { 255, 255, 255, 255 };
 
-	ivec2 size = Engine::Instance->GetFontTextSize(font, Text);
-	Engine::Instance->DrawFontText(&Engine::Instance->SceneFrame, font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, 1.0f/*color.A / 255.0f*/}, x, y, Text);
+	ivec2 size = engine->renderer->canvas.GetFontTextSize(font, Text);
+	engine->renderer->canvas.DrawFontText(&engine->renderer->canvas.SceneFrame, font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, 1.0f/*color.A / 255.0f*/}, x, y, Text);
 
 	x = x + size.x;
 	curYL = std::max(curYL, (float)size.y);
@@ -76,8 +78,8 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 
 	// To do: process style
 
-	ivec2 size = Engine::Instance->GetFontTextSize(font, Text);
-	Engine::Instance->DrawFontText(&Engine::Instance->SceneFrame, font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, (int)x, (int)y, Text);
+	ivec2 size = engine->renderer->canvas.GetFontTextSize(font, Text);
+	engine->renderer->canvas.DrawFontText(&engine->renderer->canvas.SceneFrame, font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, (int)x, (int)y, Text);
 
 	Self->SetFloat("CurX", x + size.x);
 	Self->SetFloat("CurY", y + size.y);
@@ -98,7 +100,7 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 
 	style = PF_NoSmooth | PF_Masked; // To do: process style properly
 
-	Engine::Instance->DrawTile(&Engine::Instance->SceneFrame, (UTexture*)Tex, orgX + x, orgY + y, XL, YL, U, V, UL, VL, z, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, style);
+	engine->renderer->canvas.DrawTile(&engine->renderer->canvas.SceneFrame, (UTexture*)Tex, orgX + x, orgY + y, XL, YL, U, V, UL, VL, z, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, style);
 
 	x += XL + spaceX;
 	y += YL + spaceY;
@@ -122,7 +124,7 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	float spaceY = Self->GetFloat("SpaceY");
 	float curYL = Self->GetFloat("CurYL");
 
-	Engine::Instance->DrawTile(&Engine::Instance->SceneFrame, (UTexture*)Tex, orgX + x, orgY + y, XL, YL, U, V, UL, VL, z, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, style);
+	engine->renderer->canvas.DrawTile(&engine->renderer->canvas.SceneFrame, (UTexture*)Tex, orgX + x, orgY + y, XL, YL, U, V, UL, VL, z, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, style);
 
 	x += XL + spaceX;
 	y += YL + spaceY;
@@ -137,7 +139,7 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 	// To do: this needs to word wrap based on the ClipX and ClipY properties
 
 	UFont* font = (UFont*)Self->GetUObject("Font");
-	ivec2 size = Engine::Instance->GetFontTextSize(font, String);
+	ivec2 size = engine->renderer->canvas.GetFontTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
 }
@@ -145,7 +147,7 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, float& YL)
 {
 	UFont* font = (UFont*)Self->GetUObject("Font");
-	ivec2 size = Engine::Instance->GetFontTextSize(font, String);
+	ivec2 size = engine->renderer->canvas.GetFontTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
 }

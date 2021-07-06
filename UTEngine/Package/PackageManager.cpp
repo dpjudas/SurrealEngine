@@ -5,14 +5,53 @@
 #include "PackageStream.h"
 #include "File.h"
 #include "UObject/UObject.h"
+#include "UObject/UClass.h"
+#include "Native/NActor.h"
+#include "Native/NCanvas.h"
+#include "Native/NCommandlet.h"
+#include "Native/NConsole.h"
+#include "Native/NDecal.h"
+#include "Native/NGameInfo.h"
+#include "Native/NLevelInfo.h"
+#include "Native/NNavigationPoint.h"
+#include "Native/NObject.h"
+#include "Native/NPawn.h"
+#include "Native/NPlayerPawn.h"
+#include "Native/NScriptedTexture.h"
+#include "Native/NStatLog.h"
+#include "Native/NStatLogFile.h"
+#include "Native/NWarpZoneInfo.h"
+#include "Native/NZoneInfo.h"
 
 PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
 {
+	NActor::RegisterFunctions();
+	NCanvas::RegisterFunctions();
+	NCommandlet::RegisterFunctions();
+	NConsole::RegisterFunctions();
+	NDecal::RegisterFunctions();
+	NGameInfo::RegisterFunctions();
+	NLevelInfo::RegisterFunctions();
+	NNavigationPoint::RegisterFunctions();
+	NObject::RegisterFunctions();
+	NPawn::RegisterFunctions();
+	NPlayerPawn::RegisterFunctions();
+	NScriptedTexture::RegisterFunctions();
+	NStatLog::RegisterFunctions();
+	NStatLogFile::RegisterFunctions();
+	NWarpZoneInfo::RegisterFunctions();
+	NZoneInfo::RegisterFunctions();
+
 	ScanFolder("Maps", "*.unr");
 	ScanFolder("Music", "*.umx");
 	ScanFolder("Sounds", "*.uax");
 	ScanFolder("System", "*.u");
 	ScanFolder("Textures", "*.utx");
+
+	InitPropertyOffsets(this);
+
+	// File::write_all_text("C:\\Development\\UTNativeProps.txt", NativeObjExtractor::Run(this));
+	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(this));
 }
 
 Package* PackageManager::GetPackage(const std::string& name)
@@ -106,4 +145,13 @@ void PackageManager::DelayLoadNow()
 		delayLoads.pop_back();
 		obj->LoadNow();
 	}
+}
+
+UObject* PackageManager::NewObject(const std::string& name, const std::string& package, const std::string& className)
+{
+	Package* pkg = GetPackage(package);
+	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
+	if (!cls)
+		throw std::runtime_error("Could not find class " + className);
+	return pkg->NewObject(name, cls, ObjectFlags::None, true);
 }

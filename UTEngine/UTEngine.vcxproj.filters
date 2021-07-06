@@ -61,6 +61,9 @@
     <Filter Include="Native">
       <UniqueIdentifier>{4670cb56-6aba-46fd-a2e1-6bbb898e48e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{5a49917e-af25-4b27-b932-f67d58c2bb4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -514,6 +517,34 @@
     <ClCompile Include="UObject\PropertyOffsets.cpp">
       <Filter>UObject</Filter>
     </ClCompile>
+    <ClCompile Include="Math\hsb.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="Renderer\BrushRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CanvasRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CoronaRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\LightRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\MeshRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\UTRenderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SceneRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -797,6 +828,34 @@
     </ClInclude>
     <ClInclude Include="UObject\PropertyOffsets.h">
       <Filter>UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\hsb.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="Renderer\BrushRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CanvasRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CoronaRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\LightRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\MeshRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\UTRenderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SceneRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteRender.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

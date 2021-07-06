@@ -116,10 +116,12 @@
     <ClInclude Include="..\Thirdparty\volk\volk.h" />
     <ClInclude Include="Audio\AudioPlayer.h" />
     <ClInclude Include="Audio\AudioSource.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Math\bbox.h" />
     <ClInclude Include="Math\FrustumPlanes.h" />
+    <ClInclude Include="Math\hsb.h" />
     <ClInclude Include="Native\NActor.h" />
     <ClInclude Include="Native\NCanvas.h" />
     <ClInclude Include="Native\NCommandlet.h" />
@@ -164,6 +166,14 @@
     <ClInclude Include="RenderDevice\Vulkan\VulkanRenderDevice.h" />
     <ClInclude Include="RenderDevice\Vulkan\VulkanSwapChain.h" />
     <ClInclude Include="RenderDevice\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="Renderer\BrushRender.h" />
+    <ClInclude Include="Renderer\CanvasRender.h" />
+    <ClInclude Include="Renderer\CoronaRender.h" />
+    <ClInclude Include="Renderer\LightRender.h" />
+    <ClInclude Include="Renderer\MeshRender.h" />
+    <ClInclude Include="Renderer\UTRenderer.h" />
+    <ClInclude Include="Renderer\SceneRender.h" />
+    <ClInclude Include="Renderer\SpriteRender.h" />
     <ClInclude Include="UObject\NativeObjExtractor.h" />
     <ClInclude Include="UObject\PropertyOffsets.h" />
     <ClInclude Include="UObject\UClass.h" />
@@ -718,9 +728,11 @@
     </ClCompile>
     <ClCompile Include="Audio\AudioPlayer.cpp" />
     <ClCompile Include="Audio\AudioSource.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Math\FrustumPlanes.cpp" />
+    <ClCompile Include="Math\hsb.cpp" />
     <ClCompile Include="Native\NActor.cpp" />
     <ClCompile Include="Native\NCanvas.cpp" />
     <ClCompile Include="Native\NCommandlet.cpp" />
@@ -762,6 +774,14 @@
     <ClCompile Include="RenderDevice\Vulkan\VulkanRenderDevice.cpp" />
     <ClCompile Include="RenderDevice\Vulkan\VulkanSwapChain.cpp" />
     <ClCompile Include="RenderDevice\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="Renderer\BrushRender.cpp" />
+    <ClCompile Include="Renderer\CanvasRender.cpp" />
+    <ClCompile Include="Renderer\CoronaRender.cpp" />
+    <ClCompile Include="Renderer\LightRender.cpp" />
+    <ClCompile Include="Renderer\MeshRender.cpp" />
+    <ClCompile Include="Renderer\UTRenderer.cpp" />
+    <ClCompile Include="Renderer\SceneRender.cpp" />
+    <ClCompile Include="Renderer\SpriteRender.cpp" />
     <ClCompile Include="UObject\NativeObjExtractor.cpp" />
     <ClCompile Include="UObject\PropertyOffsets.cpp" />
     <ClCompile Include="UObject\UClass.cpp" />

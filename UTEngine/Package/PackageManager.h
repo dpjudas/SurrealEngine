@@ -16,6 +16,8 @@ public:
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
+	UObject* NewObject(const std::string& name, const std::string& package, const std::string& className);
+
 private:
 	void ScanFolder(const std::string& name, const std::string& search);
 	std::string GetKey(std::string name);

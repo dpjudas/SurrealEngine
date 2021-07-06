@@ -386,7 +386,7 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 	std::string packageName = ObjectName.substr(0, dotpos);
 	std::string objectName = ObjectName.substr(dotpos + 1);
 
-	ReturnValue = Engine::Instance->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
+	ReturnValue = engine->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
 
 	/*
 	if (!MayFail || *MayFail == false)

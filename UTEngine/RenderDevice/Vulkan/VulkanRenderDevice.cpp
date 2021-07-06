@@ -457,7 +457,6 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 		{ X - Frame->FX2,      Y + YL - Frame->FY2, U,      V + VL }
 	};
 
-	vec3 viewpos = CurrentFrame->ViewLocation;
 	for (int i = 0; i < 4; i++)
 	{
 		vec3 p = { quad[i].x / Frame->FX2, quad[i].y / Frame->FY2, 0.0f };
