@@ -223,7 +223,7 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	throw std::runtime_error("Actor.PlaySound not implemented");
+	// throw std::runtime_error("Actor.PlaySound not implemented");
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)

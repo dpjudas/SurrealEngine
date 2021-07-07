@@ -30,7 +30,10 @@ void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 {
-	Result.Value = ExpressionValue::Variable(Context->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
+	if (dynamic_cast<UClass*>(Context))
+		Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
+	else
+		Result.Value = ExpressionValue::Variable(Context->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -145,7 +148,8 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 
 void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 {
-	UClass* cls = dynamic_cast<UClass*>(Eval(expr->ObjectExpr).Value.ToObject());
+	ExpressionValue object = Eval(expr->ObjectExpr).Value;
+	UClass* cls = dynamic_cast<UClass*>(object.ToObject());
 	if (cls)
 	{
 		Result = Eval(expr->ContextExpr, Self, cls->GetDefaultObject(), LocalVariables);

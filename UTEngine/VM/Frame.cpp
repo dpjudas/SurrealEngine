@@ -5,8 +5,19 @@
 #include "ExpressionEvaluator.h"
 #include "NativeFunc.h"
 
+#ifdef _DEBUG
+std::vector<std::string> callstack;
+#endif
+
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
 {
+#ifdef _DEBUG
+	if (dynamic_cast<UClass*>(instance))
+		callstack.push_back(instance->Name + "." + func->FriendlyName);
+	else
+		callstack.push_back(UObject::GetUClassName(instance) + "." + func->FriendlyName);
+#endif
+
 	int argindex = 0;
 	for (UField* field = func->Children; field != nullptr; field = field->Next)
 	{
@@ -50,6 +61,9 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
 		}
 
+#ifdef _DEBUG
+		callstack.pop_back();
+#endif
 		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
 	}
 	else
@@ -93,6 +107,9 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 		}
 
+#ifdef _DEBUG
+		callstack.pop_back();
+#endif
 		return result;
 	}
 }

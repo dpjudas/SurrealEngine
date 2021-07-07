@@ -105,15 +105,16 @@ void Engine::Run()
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
 
-	//ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27/*0xc0*/) });
-	//ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27/*0xc0*/), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+	// Simulate pressing escape so that we hopefully will see the UT menu
+	ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27) });
+	ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed();
 		Tick(elapsed);
 
-		//CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
+		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
 
 		for (UTexture* tex : engine->renderer->Textures)
 			tex->Update();
@@ -121,9 +122,9 @@ void Engine::Run()
 		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();
 
-		//CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
+		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		renderer->scene.DrawScene();
-		//CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 
 		device->EndFrame(true);
 	}

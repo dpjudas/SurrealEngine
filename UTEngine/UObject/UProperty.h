@@ -181,7 +181,7 @@ public:
 			size_t s = (Inner->Size() + 7) / 8;
 			for (auto& sp : srcvec[i])
 			{
-				int64_t* d = new int64_t(s);
+				int64_t* d = new int64_t[s];
 				Inner->CopyConstruct(d, sp);
 				vec[i].push_back(d);
 			}
@@ -233,8 +233,8 @@ public:
 			size_t sv = (Value->Size() + 7) / 8;
 			for (auto& sp : srcmap[i])
 			{
-				int64_t* dk = new int64_t(sk);
-				int64_t* dv = new int64_t(sv);
+				int64_t* dk = new int64_t[sk];
+				int64_t* dv = new int64_t[sv];
 				Key->CopyConstruct(dk, sp.first);
 				Key->CopyConstruct(dv, sp.second);
 				map[i][dk] = dv;

@@ -53,7 +53,7 @@ class SwitchExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	uint8_t Size = 0;
+	int Size = 0;
 	Expression* Condition = nullptr;
 };
 

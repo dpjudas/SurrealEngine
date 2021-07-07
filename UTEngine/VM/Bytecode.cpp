@@ -108,7 +108,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::Switch:
 		{
 			SwitchExpression* expr = Create<SwitchExpression>(exproffset);
-			expr->Size = stream->ReadUInt8();
+			expr->Size = static_cast<int>(stream->ReadUInt8()) + 1;
 			expr->Condition = ReadToken(stream, depth);
 			return expr;
 		}
