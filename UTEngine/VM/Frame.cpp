@@ -18,6 +18,14 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		callstack.push_back(UObject::GetUClassName(instance) + "." + func->FriendlyName);
 #endif
 
+#if 0
+	if (func->Name == "PaintClients")
+	{
+		std::string properties = instance->GetUObject("FirstChildWindow")->PrintProperties();
+		properties.push_back(' ');
+	}
+#endif
+
 	int argindex = 0;
 	for (UField* field = func->Children; field != nullptr; field = field->Next)
 	{

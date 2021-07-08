@@ -89,12 +89,6 @@ void Engine::Run()
 	LevelInfo->Game() = gameinfo;
 
 	console->Viewport() = viewport;
-	console->FrameX() = (float)window->SizeX;
-	console->FrameY() = (float)window->SizeY;
-
-	canvas->Viewport() = viewport;
-	canvas->SizeX() = window->SizeX;
-	canvas->SizeY() = window->SizeY;
 
 	viewport->Console() = console;
 	viewport->Actor() = pawn;
@@ -121,11 +115,27 @@ void Engine::Run()
 
 		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();
+		device->BeginScenePass();
+
+		int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
+		int sizeY = (int)(window->SizeY / (float)renderer->uiscale);
+		canvas->Viewport() = viewport;
+		canvas->CurX() = 0.0f;
+		canvas->CurY() = 0.0f;
+		console->FrameX() = (float)sizeX;
+		console->FrameY() = (float)sizeY;
+		canvas->ClipX() = (float)sizeX;
+		canvas->ClipY() = (float)sizeY;
+		canvas->SizeX() = sizeX;
+		canvas->SizeY() = sizeY;
+		CallEvent(canvas, "Reset");
 
 		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		renderer->scene.DrawScene();
 		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+		device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
+		device->EndScenePass();
 		device->EndFrame(true);
 	}
 

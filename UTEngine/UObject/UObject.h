@@ -177,6 +177,8 @@ public:
 
 	bool IsA(const std::string& className) const;
 
+	std::string PrintProperties();
+
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
 	std::string Name;

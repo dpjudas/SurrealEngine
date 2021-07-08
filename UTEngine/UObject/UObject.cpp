@@ -186,6 +186,26 @@ bool UObject::IsA(const std::string& className) const
 	return false;
 }
 
+std::string UObject::PrintProperties()
+{
+	std::string result;
+
+	for (auto& it : PropertyData.Class->Properties)
+	{
+		const std::string& name = it.first;
+		UProperty* prop = it.second;
+
+		result += it.first;
+		result += " = ";
+		void* ptr = PropertyData.Ptr(prop);
+		result += prop->PrintValue(ptr);
+
+		result += "\n";
+	}
+
+	return result;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void* PropertyDataBlock::Ptr(const UProperty* prop)

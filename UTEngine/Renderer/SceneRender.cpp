@@ -15,8 +15,6 @@ void SceneRender::DrawScene()
 	RenderDevice* device = engine->window->GetRenderDevice();
 	auto level = engine->level;
 
-	device->BeginScenePass();
-
 	if (engine->SkyZoneInfo)
 	{
 		FSceneNode frame = CreateSkyFrame();
@@ -94,11 +92,8 @@ void SceneRender::DrawScene()
 		engine->renderer->framesDrawn = 0;
 	}
 
-	engine->renderer->canvas.DrawFontTextWithShadow(&SceneFrame, engine->renderer->canvas.medfont, vec4(1.0f), 1920 * 4 - 16 * 4, 16 * 4, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
-	engine->renderer->canvas.DrawFontTextWithShadow(&SceneFrame, engine->renderer->canvas.largefont, vec4(1.0f), 1920 * 4 / 2, 1080 * 4 - 100 * 4, engine->LevelInfo->GetString("Title"), TextAlignment::center);
-
-	device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	device->EndScenePass();
+	engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.medfont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale - 16, 64, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
+	engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.largefont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale / 2, engine->window->SizeY / engine->renderer->uiscale - 100, engine->LevelInfo->GetString("Title"), TextAlignment::center);
 }
 
 void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass)

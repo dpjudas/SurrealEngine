@@ -58,6 +58,8 @@ public:
 	}
 	virtual void Destruct(void* data) { }
 
+	virtual std::string PrintValue(void* data) { return "?"; }
+
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
 	uint32_t ArrayDimension = 0;
@@ -76,6 +78,7 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
+	std::string PrintValue(void* data) override { return "pointer"; }
 };
 
 class UByteProperty : public UProperty
@@ -86,6 +89,7 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
+	std::string PrintValue(void* data) override { return std::to_string(*(uint8_t*)data); }
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
@@ -98,6 +102,7 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
+	std::string PrintValue(void* data) override { return "uobject"; }
 
 	UClass* ObjectClass = nullptr;
 };
@@ -148,6 +153,8 @@ public:
 			p += s;
 		}
 	}
+
+	std::string PrintValue(void* data) override { return "fixed array"; }
 
 	UProperty* Inner = nullptr;
 	int Count = 0;
@@ -201,6 +208,8 @@ public:
 			vec[i].~vector();
 		}
 	}
+
+	std::string PrintValue(void* data) override { return "array"; }
 
 	UProperty* Inner = nullptr;
 };
@@ -258,6 +267,8 @@ public:
 		}
 	}
 
+	std::string PrintValue(void* data) override { return "map"; }
+
 	UProperty* Key = nullptr;
 	UProperty* Value = nullptr;
 };
@@ -267,6 +278,8 @@ class UClassProperty : public UObjectProperty
 public:
 	using UObjectProperty::UObjectProperty;
 	void Load(ObjectStream* stream) override;
+
+	std::string PrintValue(void* data) override { return "class"; }
 
 	UClass* MetaClass = nullptr;
 };
@@ -281,6 +294,8 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
+	std::string PrintValue(void* data) override { return "struct"; }
+
 	UStruct* Struct = nullptr;
 };
 
@@ -289,6 +304,7 @@ class UIntProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	std::string PrintValue(void* data) override { return std::to_string(*(int32_t*)data); }
 };
 
 class UBoolProperty : public UProperty
@@ -296,6 +312,7 @@ class UBoolProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	std::string PrintValue(void* data) override { return std::to_string(*(bool*)data); }
 };
 
 class UFloatProperty : public UProperty
@@ -303,6 +320,7 @@ class UFloatProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	std::string PrintValue(void* data) override { return std::to_string(*(float*)data); }
 };
 
 class UNameProperty : public UProperty
@@ -336,6 +354,8 @@ public:
 		for (uint32_t i = 0; i < ArrayDimension; i++)
 			str[i].~basic_string();
 	}
+
+	std::string PrintValue(void* data) override { return *(std::string*)data; }
 };
 
 class UStrProperty : public UProperty
@@ -369,6 +389,8 @@ public:
 		for (uint32_t i = 0; i < ArrayDimension; i++)
 			str[i].~basic_string();
 	}
+
+	std::string PrintValue(void* data) override { return *(std::string*)data; }
 };
 
 class UStringProperty : public UProperty
@@ -402,4 +424,6 @@ public:
 		for (uint32_t i = 0; i < ArrayDimension; i++)
 			str[i].~basic_string();
 	}
+
+	std::string PrintValue(void* data) override { return *(std::string*)data; }
 };

@@ -27,6 +27,8 @@ public:
 
 	float AutoUVTime = 0.0f;
 
+	int uiscale = 3;
+
 	BrushRender brush;
 	CanvasRender canvas;
 	CoronaRender corona;
