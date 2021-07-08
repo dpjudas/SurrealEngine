@@ -235,7 +235,23 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 	case ExpressionValueType::ValueString: *static_cast<std::string*>(VariablePtr) = rvalue.ToString(); break;
 	case ExpressionValueType::ValueName: *static_cast<std::string*>(VariablePtr) = rvalue.ToName(); break;
 	case ExpressionValueType::ValueColor: *static_cast<Color*>(VariablePtr) = rvalue.ToColor(); break;
-	case ExpressionValueType::ValueStruct: rvalue.ValueStruct.Store(VariablePtr); break;
+	case ExpressionValueType::ValueStruct:
+		if (rvalue.VariablePtr)
+		{
+			UStruct* Struct = static_cast<UStructProperty*>(VariableProperty)->Struct;
+			if (Struct)
+			{
+				for (auto& it : Struct->Properties)
+					it.second->CopyValue(
+						static_cast<uint8_t*>(VariablePtr) + it.second->DataOffset,
+						static_cast<uint8_t*>(rvalue.VariablePtr) + it.second->DataOffset);
+			}
+		}
+		else
+		{
+			rvalue.ValueStruct.Store(VariablePtr);
+		}
+		break;
 	}
 }
 

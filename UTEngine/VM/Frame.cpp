@@ -19,9 +19,10 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 #endif
 
 #if 0
-	if (func->Name == "PaintClients")
+	if (func->Name == "Created")
 	{
-		std::string properties = instance->GetUObject("FirstChildWindow")->PrintProperties();
+		//std::string properties = instance->GetUObject("MouseWindow")->PrintProperties();
+		std::string properties = instance->PrintProperties();
 		properties.push_back(' ');
 	}
 #endif

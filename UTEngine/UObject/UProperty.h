@@ -102,7 +102,14 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
-	std::string PrintValue(void* data) override { return "uobject"; }
+	std::string PrintValue(void* data) override
+	{
+		UObject* obj = *(UObject**)data;
+		if (obj)
+			return "{ name=\"" + obj->Name + "\", class=" + UObject::GetUClassName(obj) + " }";
+		else
+			return "null";
+	}
 
 	UClass* ObjectClass = nullptr;
 };
@@ -294,7 +301,30 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
-	std::string PrintValue(void* data) override { return "struct"; }
+	std::string PrintValue(void* data) override
+	{
+		if (Struct)
+		{
+			std::string print;
+			uint8_t* d = (uint8_t*)data;
+			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
+			{
+				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				if (fieldprop)
+				{
+					print += print.empty() ? " " : ", ";
+					print += fieldprop->Name;
+					print += " = ";
+					print += fieldprop->PrintValue(d + fieldprop->DataOffset);
+				}
+			}
+			return "{" + print + " }";
+		}
+		else
+		{
+			return "null struct";
+		}
+	}
 
 	UStruct* Struct = nullptr;
 };
