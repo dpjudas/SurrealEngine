@@ -84,7 +84,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->renderer->canvas.DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, (int)(orgX + curX), (int)(orgY + curY), Text, renderflags, checkHotKey, clipX);
+		engine->renderer->canvas.DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, Text, renderflags, checkHotKey, clipX);
 	}
 }
 
