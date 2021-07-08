@@ -93,8 +93,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				{
 					if (argindex < args.size())
 					{
-						const ExpressionValue& rvalue = args[argindex];
-						lvalue.Store(rvalue);
+						lvalue.Store(args[argindex]);
 					}
 
 					argindex++;
@@ -105,12 +104,22 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		ExpressionValue result = frame.Run().Value;
 		result.Load();
 
+		argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
 		{
 			UProperty* prop = dynamic_cast<UProperty*>(field);
 			if (prop)
 			{
 				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
+
+				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OutParm) && argindex < args.size())
+				{
+					args[argindex].Store(lvalue);
+				}
+
+				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+					argindex++;
+
 				lvalue.VariableProperty->Destruct(lvalue.VariablePtr);
 			}
 		}
