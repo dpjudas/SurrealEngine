@@ -193,8 +193,8 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, int x, int y, const 
 			foundAmpersand = false;
 
 			FontCharacter glyph = font->GetGlyph(c);
-			if (x + glyph.USize > (int)clipX)
-				break;
+			//if (x + glyph.USize > (int)clipX)
+			//	break;
 			int width = glyph.USize;
 			int height = glyph.VSize;
 			float StartU = (float)glyph.StartU;
@@ -204,7 +204,7 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, int x, int y, const 
 			device->DrawTile(&SceneFrame, texinfo, (float)x * uiscale, (float)y * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
 			device->DrawTile(&SceneFrame, texinfo, (float)(x + (width - uwidth) / 2) * uiscale, (float)y * uiscale, (float)uwidth * uiscale, (float)uheight * uiscale, uStartU, uStartV, uUSize, uVSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
 
-			x += std::max(width, uwidth);
+			x += width;
 			maxY = std::max(maxY, glyph.VSize);
 		}
 		else
@@ -212,8 +212,8 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, int x, int y, const 
 			foundAmpersand = false;
 
 			FontCharacter glyph = font->GetGlyph(c);
-			if (x + glyph.USize > (int)clipX)
-				break;
+			//if (x + glyph.USize > (int)clipX)
+			//	break;
 
 			int width = glyph.USize;
 			int height = glyph.VSize;

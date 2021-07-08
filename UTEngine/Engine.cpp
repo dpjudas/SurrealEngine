@@ -77,18 +77,20 @@ void Engine::Run()
 	}
 #endif
 
-	UClient* client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
-	UViewport* viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
-	UCanvas* canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
-	UConsole* console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
-	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
-	UGameInfo* gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", "Engine", "GameInfo"));
-	UPlayerReplicationInfo* repinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("repinfo", "Engine", "PlayerReplicationInfo"));
+	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
+	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
+	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
+	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
+	pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
+	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", "Engine", "GameInfo"));
+	repinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("repinfo", "Engine", "PlayerReplicationInfo"));
 
 	gameinfo->Level() = LevelInfo;
 	LevelInfo->Game() = gameinfo;
 
+	console->SetByte("ConsoleKey", IK_Tilde); // To do: deal with var config and var globalconfig properly
 	console->Viewport() = viewport;
+	canvas->Viewport() = viewport;
 
 	viewport->Console() = console;
 	viewport->Actor() = pawn;
@@ -100,8 +102,8 @@ void Engine::Run()
 	CallEvent(console, "NotifyLevelChange");
 
 	// Simulate pressing escape so that we hopefully will see the UT menu
-	ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27) });
-	ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+	//ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27) });
+	//ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
 
 	while (!quit)
 	{
@@ -119,7 +121,6 @@ void Engine::Run()
 
 		int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
 		int sizeY = (int)(window->SizeY / (float)renderer->uiscale);
-		canvas->Viewport() = viewport;
 		canvas->CurX() = 0.0f;
 		canvas->CurY() = 0.0f;
 		console->FrameX() = (float)sizeX;
@@ -128,6 +129,10 @@ void Engine::Run()
 		canvas->ClipY() = (float)sizeY;
 		canvas->SizeX() = sizeX;
 		canvas->SizeY() = sizeY;
+		//viewport->bShowWindowsMouse() = true; // bShowWindowsMouse is set to true by WindowConsole if mouse cursor should be visible
+		//viewport->bWindowsMouseAvailable() = true; // if true then RenderUWindow updates mouse pos from (WindowsMouseX,WindowsMouseY), otherwise it uses KeyEvent(IK_MouseX, delta) + KeyEvent(IK_MouseY, delta). Maybe used for windowed mode?
+		//viewport->WindowsMouseX() = 10.0f;
+		//viewport->WindowsMouseY() = 200.0f;
 		CallEvent(canvas, "Reset");
 
 		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
@@ -188,48 +193,57 @@ float Engine::CalcTimeElapsed()
 
 void Engine::Key(Window* viewport, std::string key)
 {
+	for (char c : key)
+	{
+		CallEvent(console, "KeyType", { ExpressionValue::ByteValue(c) });
+	}
 }
 
-void Engine::InputEvent(Window* viewport, EInputKey key, EInputType type, int delta)
+void Engine::InputEvent(Window* window, EInputKey key, EInputType type, int delta)
 {
-	switch (key)
+	CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) });
+
+	if (!viewport->bShowWindowsMouse())
 	{
-	case 'W':
-		Buttons.Forward = (type == IST_Press);
-		break;
-	case 'S':
-		Buttons.Backward = (type == IST_Press);
-		break;
-	case 'A':
-		Buttons.StrafeLeft = (type == IST_Press);
-		break;
-	case 'D':
-		Buttons.StrafeRight = (type == IST_Press);
-		break;
-	case VK_SPACE:
-		Buttons.Jump = (type == IST_Press);
-		break;
-	case VK_SHIFT:
-		Buttons.Crouch = (type == IST_Press);
-		break;
-	case IK_LeftMouse:
-		break;
-	case IK_MiddleMouse:
-		break;
-	case IK_RightMouse:
-		break;
-	case IK_MouseWheelDown:
-		break;
-	case IK_MouseWheelUp:
-		break;
-	case IK_MouseX:
-		Camera.Yaw += delta * Mouse.SpeedX;
-		while (Camera.Yaw < 0.0f) Camera.Yaw += 360.0f;
-		while (Camera.Yaw >= 360.0f) Camera.Yaw -= 360.0f;
-		break;
-	case IK_MouseY:
-		Camera.Pitch = clamp(Camera.Pitch + delta * Mouse.SpeedY, -90.0f, 90.0f);
-		break;
+		switch (key)
+		{
+		case 'W':
+			Buttons.Forward = (type == IST_Press);
+			break;
+		case 'S':
+			Buttons.Backward = (type == IST_Press);
+			break;
+		case 'A':
+			Buttons.StrafeLeft = (type == IST_Press);
+			break;
+		case 'D':
+			Buttons.StrafeRight = (type == IST_Press);
+			break;
+		case VK_SPACE:
+			Buttons.Jump = (type == IST_Press);
+			break;
+		case VK_SHIFT:
+			Buttons.Crouch = (type == IST_Press);
+			break;
+		case IK_LeftMouse:
+			break;
+		case IK_MiddleMouse:
+			break;
+		case IK_RightMouse:
+			break;
+		case IK_MouseWheelDown:
+			break;
+		case IK_MouseWheelUp:
+			break;
+		case IK_MouseX:
+			Camera.Yaw += delta * Mouse.SpeedX;
+			while (Camera.Yaw < 0.0f) Camera.Yaw += 360.0f;
+			while (Camera.Yaw >= 360.0f) Camera.Yaw -= 360.0f;
+			break;
+		case IK_MouseY:
+			Camera.Pitch = clamp(Camera.Pitch + delta * Mouse.SpeedY, -90.0f, 90.0f);
+			break;
+		}
 	}
 }
 
