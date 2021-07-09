@@ -45,10 +45,10 @@ public:
 	{
 		if (Struct)
 		{
-			for (auto& it : Struct->Properties)
-				it.second->CopyValue(
-					static_cast<uint8_t*>(dest) + it.second->DataOffset,
-					static_cast<uint8_t*>(Ptr) + it.second->DataOffset);
+			for (UProperty* prop : Struct->Properties)
+				prop->CopyValue(
+					static_cast<uint8_t*>(dest) + prop->DataOffset,
+					static_cast<uint8_t*>(Ptr) + prop->DataOffset);
 		}
 	}
 
@@ -59,10 +59,10 @@ public:
 		if (Struct)
 		{
 			Ptr = new uint64_t[(Struct->StructSize + 7) / 8];
-			for (auto& it : Struct->Properties)
-				it.second->CopyConstruct(
-					static_cast<uint8_t*>(Ptr) + it.second->DataOffset,
-					static_cast<uint8_t*>(src) + it.second->DataOffset);
+			for (UProperty* prop : Struct->Properties)
+				prop->CopyConstruct(
+					static_cast<uint8_t*>(Ptr) + prop->DataOffset,
+					static_cast<uint8_t*>(src) + prop->DataOffset);
 		}
 	}
 
@@ -70,8 +70,8 @@ public:
 	{
 		if (Struct)
 		{
-			for (auto& it : Struct->Properties)
-				it.second->Destruct(static_cast<uint8_t*>(Ptr) + it.second->DataOffset);
+			for (UProperty* prop : Struct->Properties)
+				prop->Destruct(static_cast<uint8_t*>(Ptr) + prop->DataOffset);
 			delete[](uint64_t*)Ptr;
 			Struct = nullptr;
 		}
@@ -241,10 +241,10 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 			UStruct* Struct = static_cast<UStructProperty*>(VariableProperty)->Struct;
 			if (Struct)
 			{
-				for (auto& it : Struct->Properties)
-					it.second->CopyValue(
-						static_cast<uint8_t*>(VariablePtr) + it.second->DataOffset,
-						static_cast<uint8_t*>(rvalue.VariablePtr) + it.second->DataOffset);
+				for (UProperty* prop : Struct->Properties)
+					prop->CopyValue(
+						static_cast<uint8_t*>(VariablePtr) + prop->DataOffset,
+						static_cast<uint8_t*>(rvalue.VariablePtr) + prop->DataOffset);
 			}
 		}
 		else

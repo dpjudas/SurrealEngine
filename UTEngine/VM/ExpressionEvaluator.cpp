@@ -210,7 +210,10 @@ void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 {
 	int index = Eval(expr->Index).Value.ToInt();
 	Result.Value = Eval(expr->Array).Value;
-	Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
+	if (Result.Value.VariablePtr)
+		Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
+	else
+		throw std::runtime_error("VariablePtr is null in ArrayElementExpression");
 }
 
 void ExpressionEvaluator::Expr(IntConstExpression* expr)

@@ -19,7 +19,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 #endif
 
 #if 0
-	if (func->Name == "Created")
+	if (func->Name == "BeforePaint" && UObject::GetUClassName(instance) == "UWindowConsoleTextAreaControl")
 	{
 		//std::string properties = instance->GetUObject("MouseWindow")->PrintProperties();
 		std::string properties = instance->PrintProperties();

@@ -54,7 +54,7 @@ public:
 	std::shared_ptr<::Bytecode> Code;
 
 	size_t StructSize = 0;
-	std::map<std::string, UProperty*> Properties;
+	std::vector<UProperty*> Properties;
 
 private:
 	ExprToken ReadToken(ObjectStream* stream, int depth);

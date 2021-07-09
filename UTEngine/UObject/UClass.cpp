@@ -78,7 +78,7 @@ void UStruct::Load(ObjectStream* stream)
 		UProperty* prop = dynamic_cast<UProperty*>(child);
 		if (prop)
 		{
-			Properties[prop->Name] = prop;
+			Properties.push_back(prop);
 
 			size_t alignment = prop->Alignment();
 			size_t size = prop->Size();
@@ -365,9 +365,10 @@ void UClass::Load(ObjectStream* stream)
 
 UProperty* UClass::GetProperty(const std::string& name)
 {
-	auto it = PropertyData.Class->Properties.find(name);
-	if (it != PropertyData.Class->Properties.end())
-		return it->second;
-	else
-		throw std::runtime_error("Property '" + name + "' not found");
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return prop;
+	}
+	throw std::runtime_error("Property '" + name + "' not found");
 }

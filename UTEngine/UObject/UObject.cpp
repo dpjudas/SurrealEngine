@@ -62,26 +62,32 @@ void UObject::Load(ObjectStream* stream)
 
 const void* UObject::GetProperty(const std::string& name) const
 {
-	auto it = PropertyData.Class->Properties.find(name);
-	if (it != PropertyData.Class->Properties.end())
-		return PropertyData.Ptr(it->second);
-	else
-		throw std::runtime_error("Property '" + name + "' not found");
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return PropertyData.Ptr(prop);
+	}
+	throw std::runtime_error("Property '" + name + "' not found");
 }
 
 void* UObject::GetProperty(const std::string& name)
 {
-	auto it = PropertyData.Class->Properties.find(name);
-	if (it != PropertyData.Class->Properties.end())
-		return PropertyData.Ptr(it->second);
-	else
-		throw std::runtime_error("Property '" + name + "' not found");
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return PropertyData.Ptr(prop);
+	}
+	throw std::runtime_error("Property '" + name + "' not found");
 }
 
 bool UObject::HasProperty(const std::string& name) const
 {
-	auto it = PropertyData.Class->Properties.find(name);
-	return it != PropertyData.Class->Properties.end();
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return true;
+	}
+	return false;
 }
 
 uint8_t UObject::GetByte(const std::string& name) const
@@ -190,16 +196,12 @@ std::string UObject::PrintProperties()
 {
 	std::string result;
 
-	for (auto& it : PropertyData.Class->Properties)
+	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		const std::string& name = it.first;
-		UProperty* prop = it.second;
-
-		result += it.first;
+		result += prop->Name;
 		result += " = ";
 		void* ptr = PropertyData.Ptr(prop);
 		result += prop->PrintValue(ptr);
-
 		result += "\n";
 	}
 
@@ -240,10 +242,8 @@ void PropertyDataBlock::Init(UClass* cls)
 
 	Class = cls;
 	Data = new int64_t[(cls->StructSize + 7) / 8];
-	for (auto& it : cls->Properties)
+	for (UProperty* prop : cls->Properties)
 	{
-		UProperty* prop = it.second;
-
 #ifdef _DEBUG
 		if (prop->DataOffset + prop->Size() > cls->StructSize)
 			throw std::runtime_error("Memory corruption detected!");
@@ -266,7 +266,15 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		if (name == "None")
 			break;
 
-		UProperty* prop = Class->Properties[name];
+		UProperty* prop = nullptr;
+		for (auto it = Class->Properties.rbegin(); it != Class->Properties.rend(); ++it)
+		{
+			if ((*it)->Name == name)
+			{
+				prop = *it;
+				break;
+			}
+		}
 		if (!prop)
 			throw std::runtime_error("Unknown property " + name);
 		void* data = Ptr(prop);
