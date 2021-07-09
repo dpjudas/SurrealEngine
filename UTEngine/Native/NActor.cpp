@@ -2,6 +2,10 @@
 #include "Precomp.h"
 #include "NActor.h"
 #include "VM/NativeFunc.h"
+#include "UObject/USound.h"
+#include "Engine.h"
+#include "Audio/AudioPlayer.h"
+#include "Audio/AudioSource.h"
 
 void NActor::RegisterFunctions()
 {
@@ -223,7 +227,8 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	// throw std::runtime_error("Actor.PlaySound not implemented");
+	USound* s = UObject::Cast<USound>(Sound);
+	engine->soundslot = AudioPlayer::Create(AudioSource::CreateWav(s->Data));
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)

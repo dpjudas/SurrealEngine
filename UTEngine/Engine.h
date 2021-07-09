@@ -148,6 +148,7 @@ public:
 	std::unique_ptr<UTRenderer> renderer;
 	std::unique_ptr<Collision> collision;
 	std::unique_ptr<AudioPlayer> audioplayer;
+	std::unique_ptr<AudioPlayer> soundslot;
 
 	void Tick(float timeElapsed);
 
