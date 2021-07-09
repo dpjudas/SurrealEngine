@@ -80,18 +80,10 @@ void UStruct::Load(ObjectStream* stream)
 		{
 			Properties[prop->Name] = prop;
 
-#ifdef _DEBUG
-			offset += 8;
-#endif
-
 			size_t alignment = prop->Alignment();
 			size_t size = prop->Size();
 			prop->DataOffset = (offset + alignment - 1) / alignment * alignment;
 			offset = prop->DataOffset + size;
-
-#ifdef _DEBUG
-			offset += 8;
-#endif
 		}
 
 		child = child->Next;

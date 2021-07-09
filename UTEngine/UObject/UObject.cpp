@@ -247,8 +247,6 @@ void PropertyDataBlock::Init(UClass* cls)
 #ifdef _DEBUG
 		if (prop->DataOffset + prop->Size() > cls->StructSize)
 			throw std::runtime_error("Memory corruption detected!");
-		memset((uint8_t*)Ptr(prop) - 8, 0xab, 8);
-		memset((uint8_t*)Ptr(prop) + prop->Size(), 0xba, 8);
 #endif
 
 		if (&cls->PropertyData != this)
@@ -257,15 +255,6 @@ void PropertyDataBlock::Init(UClass* cls)
 			prop->CopyConstruct(Ptr(prop), cls->Base->PropertyData.Ptr(prop));
 		else
 			prop->Construct(Ptr(prop));
-
-#ifdef _DEBUG
-		static uint8_t start[8] = { 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab };
-		static uint8_t end[8] = { 0xba, 0xba, 0xba, 0xba, 0xba, 0xba, 0xba, 0xba };
-		if (memcmp((uint8_t*)Ptr(prop) - 8, start, 8) != 0)
-			throw std::runtime_error("Memory corruption detected!");
-		if (memcmp((uint8_t*)Ptr(prop) + prop->Size(), end, 8) != 0)
-			throw std::runtime_error("Memory corruption detected!");
-#endif
 	}
 }
 
@@ -333,15 +322,6 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		}
 
 		prop->LoadValue(data, stream, header);
-
-#ifdef _DEBUG
-		static uint8_t start[8] = { 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab };
-		static uint8_t end[8] = { 0xba, 0xba, 0xba, 0xba, 0xba, 0xba, 0xba, 0xba };
-		if (memcmp((uint8_t*)Ptr(prop) - 8, start, 8) != 0)
-			throw std::runtime_error("Memory corruption detected!");
-		if (memcmp((uint8_t*)Ptr(prop) + prop->Size(), end, 8) != 0)
-			throw std::runtime_error("Memory corruption detected!");
-#endif
 	}
 }
 
