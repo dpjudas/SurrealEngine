@@ -548,6 +548,9 @@
     <ClCompile Include="Window\Window.cpp">
       <Filter>Window</Filter>
     </ClCompile>
+    <ClCompile Include="Package\IniFile.cpp">
+      <Filter>Package</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -862,6 +865,9 @@
     </ClInclude>
     <ClInclude Include="Window\Window.h">
       <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Package\IniFile.h">
+      <Filter>Package</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

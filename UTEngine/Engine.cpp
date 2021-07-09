@@ -88,7 +88,6 @@ void Engine::Run()
 	gameinfo->Level() = LevelInfo;
 	LevelInfo->Game() = gameinfo;
 
-	console->SetByte("ConsoleKey", IK_Tilde); // To do: deal with var config and var globalconfig properly
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;
 

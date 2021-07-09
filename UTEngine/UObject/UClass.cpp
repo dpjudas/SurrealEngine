@@ -5,6 +5,7 @@
 #include "UProperty.h"
 #include "VM/Bytecode.h"
 #include "VM/NativeFunc.h"
+#include "Package/PackageManager.h"
 
 void UField::Load(ObjectStream* stream)
 {
@@ -361,6 +362,39 @@ void UClass::Load(ObjectStream* stream)
 
 	PropertyData.Init(this);
 	PropertyData.ReadProperties(stream);
+
+	auto packages = stream->GetPackage()->GetPackageManager();
+	std::string sectionName = stream->GetPackage()->GetPackageName() + "." + Name;
+	std::string configName = ClassConfigName;
+	if (configName.empty()) configName = "system";
+	for (UProperty* prop : Properties)
+	{
+		if (AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this))
+		{
+			std::string value = packages->GetIniValue(configName, sectionName, prop->Name);
+			if (!value.empty())
+			{
+				void* ptr = PropertyData.Ptr(prop);
+				if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+				else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
+				else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
+				else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+				else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+				else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+				else if (dynamic_cast<UBoolProperty*>(prop))
+				{
+					for (char& c : value)
+						if (c >= 'A' && c <= 'Z')
+							c += 'a' - 'A';
+					*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
+				}
+			}
+		}
+		else if (AllFlags(prop->PropFlags, PropertyFlags::Localized))
+		{
+			// To do: read this from <packagename>.int
+		}
+	}
 }
 
 UProperty* UClass::GetProperty(const std::string& name)

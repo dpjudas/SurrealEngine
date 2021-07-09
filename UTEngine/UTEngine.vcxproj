@@ -138,6 +138,7 @@
     <ClInclude Include="Native\NStatLogFile.h" />
     <ClInclude Include="Native\NWarpZoneInfo.h" />
     <ClInclude Include="Native\NZoneInfo.h" />
+    <ClInclude Include="Package\IniFile.h" />
     <ClInclude Include="Package\ObjectFlags.h" />
     <ClInclude Include="Package\ObjectStream.h" />
     <ClInclude Include="Package\Package.h" />
@@ -750,6 +751,7 @@
     <ClCompile Include="Native\NStatLogFile.cpp" />
     <ClCompile Include="Native\NWarpZoneInfo.cpp" />
     <ClCompile Include="Native\NZoneInfo.cpp" />
+    <ClCompile Include="Package\IniFile.cpp" />
     <ClCompile Include="Package\Package.cpp" />
     <ClCompile Include="Package\PackageManager.cpp" />
     <ClCompile Include="Package\PackageStream.cpp" />

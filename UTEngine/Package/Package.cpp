@@ -176,21 +176,6 @@ UObject* Package::NewObject(const std::string& objname, UClass* objclass, Object
 			if (initProperties)
 			{
 				obj->PropertyData.Init(objclass);
-
-				// To do: read UnrealTournament.ini and map all config properties
-				if (obj->IsA("UWindowRootWindow"))
-				{
-					obj->SetFloat("GUIScale", 2.0f);
-					obj->SetString("LookAndFeelClass", "UMenu.UMenuMetalLookAndFeel");
-				}
-				else if (obj->IsA("WindowConsole"))
-				{
-					obj->SetBool("ShowDesktop", false);
-					obj->SetBool("bShowConsole", false);
-					obj->SetString("RootWindow", "UMenu.UMenuRootWindow");
-					obj->SetFloat("MouseScale", 0.75);
-					//obj->SetByte("UWindowKey", 123);
-				}
 			}
 			return obj;
 		}

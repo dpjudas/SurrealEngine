@@ -29,6 +29,8 @@ public:
 	std::string GetPackageName() const { return Name; }
 	std::string GetPackageFilename() const { return Filename; }
 
+	PackageManager* GetPackageManager() { return Packages; }
+
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
 	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});

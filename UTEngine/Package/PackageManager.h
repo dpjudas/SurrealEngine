@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Package.h"
+#include "IniFile.h"
 #include <list>
 
 class PackageStream;
@@ -18,6 +19,8 @@ public:
 
 	UObject* NewObject(const std::string& name, const std::string& package, const std::string& className);
 
+	std::string GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName);
+
 private:
 	void ScanFolder(const std::string& name, const std::string& search);
 	std::string GetKey(std::string name);
@@ -30,6 +33,7 @@ private:
 	std::string basepath;
 	std::map<std::string, std::string> packageFilenames;
 	std::map<std::string, std::unique_ptr<Package>> packages;
+	std::map<std::string, std::unique_ptr<IniFile>> iniFiles;
 
 	struct OpenStream
 	{

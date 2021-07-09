@@ -3,6 +3,7 @@
 #include "PackageManager.h"
 #include "Package.h"
 #include "PackageStream.h"
+#include "IniFile.h"
 #include "File.h"
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
@@ -154,4 +155,24 @@ UObject* PackageManager::NewObject(const std::string& name, const std::string& p
 	if (!cls)
 		throw std::runtime_error("Could not find class " + className);
 	return pkg->NewObject(name, cls, ObjectFlags::None, true);
+}
+
+std::string PackageManager::GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName)
+{
+	for (char& c : iniName)
+	{
+		if (c >= 'A' && c <= 'Z')
+			c += 'a' - 'A';
+	}
+
+	if (iniName == "system")
+		iniName = "unrealtournament";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + iniName + ".ini"));
+	}
+
+	return ini->GetValue(sectionName, keyName);
 }
