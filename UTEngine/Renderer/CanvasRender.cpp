@@ -7,6 +7,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/UFont.h"
 #include "UObject/ULevel.h"
+#include "UObject/UTexture.h"
 #include "UTRenderer.h"
 
 CanvasRender::CanvasRender()
@@ -60,6 +61,9 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 		VL += (frameSizeY - y - YL) * VL / YL;
 		YL = frameSizeY - y;
 	}
+
+	if (Tex->bMasked())
+		flags |= PF_Masked;
 
 	int uiscale = engine->renderer->uiscale;
 	device->DrawTile(&SceneFrame, texinfo, x * uiscale, y * uiscale, XL * uiscale, YL * uiscale, U, V, UL, VL, Z, color, fog, flags);
