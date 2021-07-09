@@ -177,6 +177,7 @@ public:
 	int32_t Linked;
 
 	std::map<int, UTexture*> lmtextures;
+	std::map<int, std::pair<int, UTexture*>> fogtextures;
 };
 
 class LevelReachSpec

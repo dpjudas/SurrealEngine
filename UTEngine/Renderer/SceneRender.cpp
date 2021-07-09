@@ -17,6 +17,7 @@ void SceneRender::DrawScene()
 
 	if (engine->SkyZoneInfo)
 	{
+		engine->renderer->sceneDrawNumber++;
 		FSceneNode frame = CreateSkyFrame();
 		device->SetSceneNode(&frame);
 
@@ -31,6 +32,7 @@ void SceneRender::DrawScene()
 		device->ClearZ(&frame);
 	}
 
+	engine->renderer->sceneDrawNumber++;
 	engine->renderer->canvas.SceneFrame = CreateSceneFrame();
 	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 	auto& SceneFrame = engine->renderer->canvas.SceneFrame;
@@ -228,15 +230,15 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	}
 
 	FTextureInfo lightmap;
+	FTextureInfo fogmap;
 	if ((surface.PolyFlags & PF_Unlit) == 0)
 	{
 		UZoneInfo* zoneActor = !model->Zones.empty() ? dynamic_cast<UZoneInfo*>(model->Zones[node.Zone0].ZoneActor) : nullptr;
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 		lightmap = engine->renderer->light.GetSurfaceLightmap(surface, facet, zoneActor, model);
+		fogmap = engine->renderer->light.GetSurfaceFogmap(surface, facet, zoneActor, model);
 	}
-
-	//FTextureInfo fogmap = GetSurfaceFogmap(surface);
 
 	FSurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = surface.PolyFlags;
@@ -244,7 +246,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture() ? &macrotex : nullptr;
 	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture() ? &detailtex : nullptr;
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
-	surfaceinfo.FogMap = nullptr;// fogmap.Texture ? &fogmap : nullptr;
+	surfaceinfo.FogMap = fogmap.Texture ? &fogmap : nullptr;
 
 	engine->window->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }

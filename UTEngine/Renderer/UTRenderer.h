@@ -24,6 +24,7 @@ public:
 	uint64_t startFPSTime = 0;
 	int framesDrawn = 0;
 	int fps = 0;
+	int sceneDrawNumber = 1;
 
 	float AutoUVTime = 0.0f;
 
