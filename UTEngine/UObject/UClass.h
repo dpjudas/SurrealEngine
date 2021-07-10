@@ -50,6 +50,7 @@ public:
 #ifdef _DEBUG
 	std::string BytecodePlainText;
 #endif
+	UStruct* StructParent = nullptr;
 	std::vector<uint8_t> Bytecode;
 	std::shared_ptr<::Bytecode> Code;
 

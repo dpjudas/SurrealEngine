@@ -86,6 +86,10 @@ void UStruct::Load(ObjectStream* stream)
 			prop->DataOffset = (offset + alignment - 1) / alignment * alignment;
 			offset = prop->DataOffset + size;
 		}
+		else if (dynamic_cast<UStruct*>(child))
+		{
+			static_cast<UStruct*>(child)->StructParent = this;
+		}
 
 		child = child->Next;
 	}

@@ -12,14 +12,19 @@ std::vector<std::string> callstack;
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
 {
 #ifdef _DEBUG
-	if (dynamic_cast<UClass*>(instance))
-		callstack.push_back(instance->Name + "." + func->FriendlyName);
-	else
-		callstack.push_back(UObject::GetUClassName(instance) + "." + func->FriendlyName);
+	std::string callstackName;
+	for (UStruct* s = func; s != nullptr; s = s->StructParent)
+	{
+		if (callstackName.empty())
+			callstackName = s->Name;
+		else
+			callstackName = s->Name + "." + callstackName;
+	}
+	callstack.push_back(callstackName);
 #endif
 
 #if 0
-	if (func->Name == "BeforePaint" && UObject::GetUClassName(instance) == "UWindowConsoleTextAreaControl")
+	if (callstackName == "WindowConsole.UWindow.KeyEvent")
 	{
 		//std::string properties = instance->GetUObject("MouseWindow")->PrintProperties();
 		std::string properties = instance->PrintProperties();
@@ -163,7 +168,7 @@ ExpressionEvalResult Frame::Run()
 void Frame::ProcessSwitch(const ExpressionValue& condition)
 {
 	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Code->Statements[StatementIndex++]);
-	for (int i = 0; i < switchexpr->Size; i++)
+	while (true)
 	{
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
