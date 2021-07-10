@@ -42,6 +42,7 @@ public:
 	void Load(ObjectStream* stream) override;
 
 	virtual void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header);
+	virtual void LoadStructMemberValue(void* data, ObjectStream* stream);
 
 	virtual size_t Alignment() { return 4; }
 	size_t Size() { return ElementSize() * ArrayDimension; }
@@ -76,6 +77,7 @@ public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
 	std::string PrintValue(void* data) override { return "pointer"; }
@@ -87,6 +89,7 @@ public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
 	std::string PrintValue(void* data) override { return std::to_string(*(uint8_t*)data); }
@@ -100,6 +103,7 @@ public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
 	std::string PrintValue(void* data) override
@@ -297,6 +301,7 @@ public:
 	using UProperty::UProperty;
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
@@ -334,6 +339,7 @@ class UIntProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(int32_t*)data); }
 };
 
@@ -350,6 +356,7 @@ class UFloatProperty : public UProperty
 public:
 	using UProperty::UProperty;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(float*)data); }
 };
 
@@ -359,6 +366,7 @@ public:
 	using UProperty::UProperty;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::string); }
@@ -394,6 +402,7 @@ public:
 	using UProperty::UProperty;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::string); }
