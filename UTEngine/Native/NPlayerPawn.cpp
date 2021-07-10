@@ -20,7 +20,7 @@ void NPlayerPawn::RegisterFunctions()
 
 void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t TravelType, bool bItems)
 {
-	throw std::runtime_error("PlayerPawn.ClientTravel not implemented");
+	//throw std::runtime_error("PlayerPawn.ClientTravel not implemented");
 }
 
 void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)

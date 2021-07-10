@@ -19,12 +19,14 @@ void NStatLog::RegisterFunctions()
 
 void NStatLog::BatchLocal()
 {
-	throw std::runtime_error("StatLog.BatchLocal not implemented");
+	// Called by Stats->View Local ngStats menu item
+	// throw std::runtime_error("StatLog.BatchLocal not implemented");
 }
 
 void NStatLog::BrowseRelativeLocalURL(const std::string& URL)
 {
-	throw std::runtime_error("StatLog.BrowseRelativeLocalURL not implemented");
+	// Called by Stats->Help with ngStats
+	//throw std::runtime_error("StatLog.BrowseRelativeLocalURL not implemented");
 }
 
 void NStatLog::ExecuteLocalLogBatcher(UObject* Self)

@@ -279,7 +279,7 @@ void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& Return
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 {
-	throw std::runtime_error("Actor.SetTimer not implemented");
+	// throw std::runtime_error("Actor.SetTimer not implemented");
 }
 
 void NActor::Sleep(UObject* Self, float Seconds)

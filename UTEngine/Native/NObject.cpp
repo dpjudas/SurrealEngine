@@ -289,7 +289,15 @@ void NObject::Clamp(int V, int A, int B, int& ReturnValue)
 
 void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.ClassIsChildOf not implemented");
+	for (UObject* cls = TestClass; cls != nullptr; cls = cls->Base)
+	{
+		if (cls == ParentClass)
+		{
+			ReturnValue = true;
+			return;
+		}
+	}
+	ReturnValue = false;
 }
 
 void NObject::ComplementEqual_FloatFloat(float A, float B, bool& ReturnValue)
