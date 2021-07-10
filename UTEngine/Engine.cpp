@@ -60,6 +60,7 @@ void Engine::Run()
 	//LoadMap("DM-Tempest");
 	//LoadMap("DM-Grinder");
 	//LoadMap("DM-HyperBlast");
+	//LoadMap("DM-Peak");
 	//LoadMap("CTF-Coret");
 	//LoadMap("CTF-Dreary");
 	//LoadMap("CTF-Command");

@@ -11,6 +11,10 @@
 #include "UTRenderer.h"
 #include "Collision.h"
 
+#ifndef NOSSE
+#include <immintrin.h>
+#endif
+
 FTextureInfo LightRender::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
 	if (surface.LightMap < 0)
@@ -273,7 +277,7 @@ void LightRender::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* te
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
 
-	if (true/*zoneActor->bFogZone()*/)
+	if (true/*zoneActor->bFogZone()*/) // To do: this needs to be the zone actor for the zone the camera is in
 	{
 		FSurfaceFacet facet;
 		facet.MapCoords.Origin = model->Points[surface.pBase];
@@ -332,24 +336,12 @@ void LightRender::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* te
 			}
 		}
 
-		float weights[9] = { 0.125f, 0.25f, 0.125f, 0.25f, 0.50f, 0.25f, 0.125f, 0.25f, 0.125f };
-
 		for (int y = 0; y < height; y++)
 		{
 			vec4* src = &fogcolors[(size_t)y * width];
 			for (int x = 0; x < width; x++)
 			{
-				vec4 color = { 0.0f };
-				for (int yy = -1; yy <= 1; yy++)
-				{
-					int yyy = clamp(y + yy, 0, height - 1) - y;
-					for (int xx = -1; xx <= 1; xx++)
-					{
-						int xxx = clamp(x + xx, 0, width - 1);
-						color += src[yyy * width + xxx] * weights[4 + xx + yy * 3];
-					}
-				}
-				color *= 0.5f;
+				vec4& color = src[x];
 
 				uint32_t red = (uint32_t)clamp(color.r * 255.0f + 0.5f, 0.0f, 255.0f);
 				uint32_t green = (uint32_t)clamp(color.g * 255.0f + 0.5f, 0.0f, 255.0f);
@@ -381,16 +373,50 @@ void LightRender::DrawFogmapSpan(vec4* line, int start, int end, float x0, float
 	vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 
 	float brightness = light->VolumeBrightness() * (1.0f / 255.0f);
-	float fog = light->VolumeFog() * (1.0f / 255.0f);
+	float fog = 1.0f / ((300.0f - light->VolumeFog()) * 32.0f);
 	float radius = light->VolumeRadius() * 32.0f;
+
+	vec3 view = engine->Camera.Location;
+	vec3 lightpos = light->Location();
+	float r2 = radius * radius;
 
 	for (int i = start; i < end; i++)
 	{
 		float t = (i + 0.5f - x0) / (x1 - x0);
 		vec3 point = mix(p0, p1, t);
 
-		vec3 L = light->Location() - point;
-		float attenuation = std::max(1.0f - length(L) / radius, 0.0f);
-		line[i] += vec4(lightcolor * attenuation, attenuation);
+		// Find the one or two points where the light intersects with our ray from the texel to the view
+		vec3 ijk = point - view;
+		vec3 tmp = view - lightpos;
+		float a = dot(ijk, ijk);
+		float b = 2.0f * dot(ijk, tmp);
+		float c = dot(tmp, tmp) - r2;
+		float det = b * b - 4.0f * a * c;
+		if (det < 0.0f)
+			continue; // no hit, we are outside the fog
+#ifndef NOSSE
+		float sqrdet = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(det)));
+#else
+		float sqrdet = std::sqrt(det);
+#endif
+		float t0 = (-b - sqrdet) / (2.0f * a);
+		float t1 = (-b + sqrdet) / (2.0f * a);
+		t0 = clamp(t0, 0.0f, 1.0f);
+		t1 = clamp(t1, 0.0f, 1.0f);
+		vec3 fogp0 = view + ijk * t0;
+		vec3 fogp1 = view + ijk * t1;
+		tmp = fogp1 - fogp0;
+		float fogdistance2 = dot(tmp, tmp);
+#ifndef NOSSE
+		float fogdistance = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(fogdistance2)));
+#else
+		float fogdistance = std::sqrt(fogdistance2);
+#endif
+
+		float alpha = std::min(fogdistance * fog, 1.0f);
+		line[i].r = lightcolor.r * alpha + line[i].r * (1.0f - alpha);
+		line[i].g = lightcolor.g * alpha + line[i].g * (1.0f - alpha);
+		line[i].b = lightcolor.b * alpha + line[i].b * (1.0f - alpha);
+		line[i].a = std::min(line[i].a + alpha, 1.0f);
 	}
 }
