@@ -46,7 +46,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 	Color color = Self->GetColor("DrawColor");
 	float curYL = Self->GetFloat("CurYL");
 	bool newline = !CR || *CR;
-	uint32_t style = Self->GetInt("Style");
+	uint32_t style = Self->GetByte("Style");
 
 	if (style != 0)
 	{
@@ -73,7 +73,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 	float clipX = Self->GetFloat("ClipX");
 	UFont* font = (UFont*)Self->GetUObject("Font");
 	Color color = Self->GetColor("DrawColor");
-	uint32_t style = Self->GetInt("Style");
+	uint32_t style = Self->GetByte("Style");
 	bool checkHotKey = bCheckHotKey && *bCheckHotKey;
 	
 	if (style != 0)
@@ -95,7 +95,7 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 	float curX = Self->GetFloat("CurX");
 	float curY = Self->GetFloat("CurY");
 	float z = Self->GetFloat("Z");
-	uint32_t style = Self->GetInt("Style");
+	uint32_t style = Self->GetByte("Style");
 	Color color = Self->GetColor("DrawColor");
 	float spaceX = Self->GetFloat("SpaceX");
 	float curYL = Self->GetFloat("CurYL");
@@ -127,7 +127,7 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	float curX = Self->GetFloat("CurX");
 	float curY = Self->GetFloat("CurY");
 	float curZ = Self->GetFloat("Z");
-	uint32_t style = Self->GetInt("Style");
+	uint32_t style = Self->GetByte("Style");
 	Color color = Self->GetColor("DrawColor");
 	float spaceX = Self->GetFloat("SpaceX");
 	float spaceY = Self->GetFloat("SpaceY");
