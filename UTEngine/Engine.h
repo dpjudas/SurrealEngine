@@ -27,6 +27,7 @@ class UCanvas;
 class UConsole;
 class UPlayerPawn;
 class UGameInfo;
+class UGameReplicationInfo;
 class UPlayerReplicationInfo;
 class BspSurface;
 class BspNode;
@@ -124,6 +125,7 @@ public:
 	~Engine();
 
 	void Run();
+	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(Window* window);
 	void Key(Window* window, std::string key);
@@ -136,7 +138,8 @@ public:
 	UConsole* console = nullptr;
 	UPlayerPawn* pawn = nullptr;
 	UGameInfo* gameinfo = nullptr;
-	UPlayerReplicationInfo* repinfo = nullptr;
+	UGameReplicationInfo* gamerepinfo = nullptr;
+	UPlayerReplicationInfo* playerrepinfo = nullptr;
 
 	ULevelSummary* LevelSummary = nullptr;
 	ULevelInfo* LevelInfo = nullptr;

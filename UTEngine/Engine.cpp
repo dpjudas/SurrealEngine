@@ -82,17 +82,21 @@ void Engine::Run()
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
 	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
-	pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
-	repinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("repinfo", "Engine", "PlayerReplicationInfo"));
 
 	std::string gameName = packages->GetIniValue("system", "Engine.Engine", "DefaultGame");
 	if (gameName.empty() || gameName.find('.') == std::string::npos)
 		gameName = "Botpack.DeathMatchPlus";
 	std::string gamePackageName = gameName.substr(0, gameName.find('.'));
 	std::string gameClassName = gameName.substr(gameName.find('.') + 1);
-	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
 
+	gamerepinfo = UObject::Cast<UGameReplicationInfo>(packages->NewObject("gamerepinfo", "Engine", "GameReplicationInfo"));
+	pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
+	playerrepinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("playerrepinfo", "Engine", "PlayerReplicationInfo"));
+
+	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
 	gameinfo->Level() = LevelInfo;
+	gameinfo->GameReplicationInfo() = gamerepinfo;
+
 	LevelInfo->Game() = gameinfo;
 	LevelInfo->EngineVersion() = "500";
 	LevelInfo->MinNetVersion() = "500";
@@ -104,7 +108,7 @@ void Engine::Run()
 	viewport->Actor() = pawn;
 
 	pawn->Level() = LevelInfo;
-	pawn->PlayerReplicationInfo() = repinfo;
+	pawn->PlayerReplicationInfo() = playerrepinfo;
 
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
@@ -154,6 +158,18 @@ void Engine::Run()
 
 	window->CloseWindow();
 	window.reset();
+}
+
+std::string Engine::ConsoleCommand(UObject* context, const std::string& command, bool& found)
+{
+	found = true;
+	if (command == "exit")
+	{
+		quit = true;
+		return {};
+	}
+	found = false;
+	return {};
 }
 
 void Engine::Tick(float timeElapsed)

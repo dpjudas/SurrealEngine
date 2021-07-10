@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NConsole.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NConsole::RegisterFunctions()
 {
@@ -11,8 +12,7 @@ void NConsole::RegisterFunctions()
 
 void NConsole::ConsoleCommand(UObject* Self, const std::string& S, bool& ReturnValue)
 {
-	ReturnValue = false;
-	// throw std::runtime_error("Console.ConsoleCommand not implemented");
+	engine->ConsoleCommand(Self, S, ReturnValue);
 }
 
 void NConsole::SaveTimeDemo(UObject* Self, const std::string& S)
