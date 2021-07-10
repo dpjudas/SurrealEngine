@@ -575,12 +575,7 @@ void NObject::IsInState(UObject* Self, const std::string& TestState, bool& Retur
 
 void NObject::Left(const std::string& S, int i, std::string& ReturnValue)
 {
-	if (i >= 0 && i <= S.size())
-		ReturnValue = S.substr(0, i);
-	else if (i < 0)
-		ReturnValue = {};
-	else
-		ReturnValue = S;
+	ReturnValue = S.substr(0, clamp(i, 0, (int)S.size()));
 }
 
 void NObject::Len(const std::string& S, int& ReturnValue)
@@ -655,11 +650,12 @@ void NObject::Max(int A, int B, int& ReturnValue)
 
 void NObject::Mid(const std::string& S, int i, int* j, std::string& ReturnValue)
 {
-	size_t start = std::max(i, 0);
-	size_t len = j ? (size_t)(*j) : S.size();
-	if (!S.empty() && start >= S.size()) start = S.size() - 1;
-	len = std::min(len, S.size() - start);
-	ReturnValue = S.substr(start, len);
+	int size = (int)S.size();
+	int start = i;
+	int end = start + (j ? *j : size);
+	start = clamp(start, 0, size);
+	end = clamp(end, start, size);
+	ReturnValue = S.substr(start, end - start);
 }
 
 void NObject::Min(int A, int B, int& ReturnValue)
@@ -829,12 +825,8 @@ void NObject::ResetConfig()
 
 void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
 {
-	if (i >= 0 && i <= S.size())
-		ReturnValue = S.substr(S.size() - i);
-	else if (i < 0)
-		ReturnValue = {};
-	else
-		ReturnValue = S;
+	int count = clamp(i, 0, (int)S.size());
+	ReturnValue = S.substr(S.size() - count);
 }
 
 void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
