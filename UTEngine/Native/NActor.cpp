@@ -90,7 +90,8 @@ void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
 {
-	throw std::runtime_error("Actor.ConsoleCommand not implemented");
+	ReturnValue = "how dare you run a console command!?: " + Command;
+	//throw std::runtime_error("Actor.ConsoleCommand not implemented");
 }
 
 void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)

@@ -11,7 +11,8 @@ void NConsole::RegisterFunctions()
 
 void NConsole::ConsoleCommand(UObject* Self, const std::string& S, bool& ReturnValue)
 {
-	throw std::runtime_error("Console.ConsoleCommand not implemented");
+	ReturnValue = false;
+	// throw std::runtime_error("Console.ConsoleCommand not implemented");
 }
 
 void NConsole::SaveTimeDemo(UObject* Self, const std::string& S)

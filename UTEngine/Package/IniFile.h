@@ -3,6 +3,7 @@
 class IniFile
 {
 public:
+	IniFile() = default;
 	IniFile(const std::string& filename);
 
 	std::string GetValue(std::string sectionName, std::string keyName) const;

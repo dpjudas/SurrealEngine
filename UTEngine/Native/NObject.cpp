@@ -627,7 +627,7 @@ void NObject::Less_StrStr(const std::string& A, const std::string& B, bool& Retu
 
 void NObject::Localize(const std::string& SectionName, const std::string& KeyName, const std::string& PackageName, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.Localize not implemented");
+	ReturnValue = engine->packages->Localize(PackageName, SectionName, KeyName);
 }
 
 void NObject::Log(const std::string& S, std::string* Tag)
@@ -836,7 +836,7 @@ void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
 
 void NObject::SaveConfig(UObject* Self)
 {
-	throw std::runtime_error("Object.SaveConfig not implemented");
+	// throw std::runtime_error("Object.SaveConfig not implemented");
 }
 
 void NObject::SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue)
@@ -866,7 +866,7 @@ void NObject::Square(float A, float& ReturnValue)
 
 void NObject::StaticSaveConfig()
 {
-	throw std::runtime_error("Object.StaticSaveConfig not implemented");
+	// throw std::runtime_error("Object.StaticSaveConfig not implemented");
 }
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)

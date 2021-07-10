@@ -368,35 +368,38 @@ void UClass::Load(ObjectStream* stream)
 	PropertyData.ReadProperties(stream);
 
 	auto packages = stream->GetPackage()->GetPackageManager();
-	std::string sectionName = stream->GetPackage()->GetPackageName() + "." + Name;
+	std::string packageName = stream->GetPackage()->GetPackageName();
+	std::string sectionName = packageName + "." + Name;
 	std::string configName = ClassConfigName;
 	if (configName.empty()) configName = "system";
 	for (UProperty* prop : Properties)
 	{
+		std::string value;
 		if (AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this))
 		{
-			std::string value = packages->GetIniValue(configName, sectionName, prop->Name);
-			if (!value.empty())
-			{
-				void* ptr = PropertyData.Ptr(prop);
-				if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
-				else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
-				else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
-				else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-				else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-				else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-				else if (dynamic_cast<UBoolProperty*>(prop))
-				{
-					for (char& c : value)
-						if (c >= 'A' && c <= 'Z')
-							c += 'a' - 'A';
-					*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
-				}
-			}
+			value = packages->GetIniValue(configName, sectionName, prop->Name);
 		}
 		else if (AllFlags(prop->PropFlags, PropertyFlags::Localized))
 		{
-			// To do: read this from <packagename>.int
+			value = packages->Localize(packageName, Name, prop->Name);
+		}
+
+		if (!value.empty())
+		{
+			void* ptr = PropertyData.Ptr(prop);
+			if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+			else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
+			else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
+			else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+			else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+			else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+			else if (dynamic_cast<UBoolProperty*>(prop))
+			{
+				for (char& c : value)
+					if (c >= 'A' && c <= 'Z')
+						c += 'a' - 'A';
+				*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
+			}
 		}
 	}
 }

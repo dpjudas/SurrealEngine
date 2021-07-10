@@ -25,7 +25,8 @@ void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t Tr
 
 void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
 {
-	throw std::runtime_error("PlayerPawn.ConsoleCommand not implemented");
+	ReturnValue = "how dare you run a console command!?: " + Command;
+	//throw std::runtime_error("PlayerPawn.ConsoleCommand not implemented");
 }
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)

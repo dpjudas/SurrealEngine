@@ -83,11 +83,19 @@ void Engine::Run()
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
 	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
 	pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
-	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", "Engine", "GameInfo"));
 	repinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("repinfo", "Engine", "PlayerReplicationInfo"));
+
+	std::string gameName = packages->GetIniValue("system", "Engine.Engine", "DefaultGame");
+	if (gameName.empty() || gameName.find('.') == std::string::npos)
+		gameName = "Botpack.DeathMatchPlus";
+	std::string gamePackageName = gameName.substr(0, gameName.find('.'));
+	std::string gameClassName = gameName.substr(gameName.find('.') + 1);
+	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
 
 	gameinfo->Level() = LevelInfo;
 	LevelInfo->Game() = gameinfo;
+	LevelInfo->EngineVersion() = "500";
+	LevelInfo->MinNetVersion() = "500";
 
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;

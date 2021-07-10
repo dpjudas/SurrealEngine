@@ -176,3 +176,27 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 
 	return ini->GetValue(sectionName, keyName);
 }
+
+std::string PackageManager::Localize(std::string packageName, const std::string& sectionName, const std::string& keyName)
+{
+	for (char& c : packageName)
+	{
+		if (c >= 'A' && c <= 'Z')
+			c += 'a' - 'A';
+	}
+
+	auto& intFile = intFiles[packageName];
+	if (!intFile)
+	{
+		try
+		{
+			intFile = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + packageName + ".int"));
+		}
+		catch (...)
+		{
+			intFile = std::make_unique<IniFile>();
+		}
+	}
+
+	return intFile->GetValue(sectionName, keyName);
+}
