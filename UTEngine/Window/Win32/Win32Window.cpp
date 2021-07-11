@@ -61,6 +61,10 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 
 	if (fullscreen)
 	{
+		HDC screenDC = GetDC(0);
+		width = GetDeviceCaps(screenDC, HORZRES);
+		height = GetDeviceCaps(screenDC, VERTRES);
+		ReleaseDC(0, screenDC);
 		bool visible = IsWindowVisible(WindowHandle);
 		SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 		SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED | (GetWindowLongPtr(WindowHandle, GWL_STYLE) & WS_VISIBLE));

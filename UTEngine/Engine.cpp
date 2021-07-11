@@ -44,11 +44,11 @@ Engine::~Engine()
 void Engine::Run()
 {
 	window = Window::Create(this);
-	//window->OpenWindow(1800, 950, false);
-	window->OpenWindow(1920 * 4, 1080 * 4, true);
+	window->OpenWindow(1800, 950, true);
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
+	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
 
 	//LoadMap("CityIntro");
 	LoadMap("DM-Liandri");
