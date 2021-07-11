@@ -1,0 +1,11 @@
+
+.statusbaritem {
+    margin: 0 5px;
+}
+
+.statusbaritem-icon {
+    width: 16px;
+    height: 16px;
+    align-self: center;
+    margin-right: 4px;
+}

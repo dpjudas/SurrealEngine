@@ -1,0 +1,34 @@
+
+.websiteheader {
+    background: var(--headercolor);
+    color: var(--headertextcolor);
+    line-height: 48px;
+    height: 48px;
+}
+
+.websiteheader-caption.textlabel {
+    font-weight: 600;
+    padding-left: 5px;
+    font-size: 16px;
+}
+
+.websiteheader-menubutton {
+    width: 24px;
+    height: 24px;
+    padding: 12px;
+    cursor: pointer;
+}
+
+    .websiteheader-menubutton:hover {
+        background: var(--headermenubuttonhighlight);
+    }
+
+.websiteheader-accountmenu {
+    cursor: pointer;
+    padding: 0 15px;
+    line-height: 48px;
+}
+
+    .websiteheader-accountmenu:hover {
+        background: var(--headermenubuttonhighlight);
+    }

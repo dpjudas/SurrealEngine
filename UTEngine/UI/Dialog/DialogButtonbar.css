@@ -1,0 +1,48 @@
+
+.dialogbuttonbar {
+    padding: 10px;
+}
+
+.dialogbuttonbar-button.dialogbutton {
+    margin-left: 5px;
+}
+
+.dialogbuttonbar-sep {
+    width: 5px;
+}
+
+.dialogbuttonbar-spacer {
+    flex: 1 1 0;
+}
+
+.dialogbutton {
+    color: black;
+    border: 1px solid rgb(171,171,171);
+    padding: 3px 10px;
+    background: rgb(233,233,233);
+    text-align: center;
+    font: inherit;
+}
+
+    .dialogbutton:hover {
+        background: var(--panelcolor);
+    }
+
+    .dialogbutton[disabled] {
+        opacity: 0.5;
+        filter: grayscale();
+        cursor: default;
+    }
+
+        .dialogbutton[disabled]:hover {
+            background: rgb(233,233,233);
+        }
+
+.dialogbuttonbar.flat .dialogbutton {
+    border-color: transparent;
+    background: none;
+}
+
+    .dialogbuttonbar.flat .dialogbutton:hover {
+        background: rgb(221,233,249);
+    }

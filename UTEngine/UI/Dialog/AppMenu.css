@@ -1,0 +1,55 @@
+
+.appmenu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--appmenubackground);
+    box-shadow: rgba(0, 0, 0, 0.22) 0px 25.6px 57.6px 0px, rgba(0, 0, 0, 0.18) 0px 4.8px 14.4px 0px;
+}
+
+.appmenu-menubutton {
+    width: 24px;
+    height: 24px;
+    padding: 12px;
+    cursor: pointer;
+}
+
+    .appmenu-menubutton:hover {
+        background: var(--appmenubuttonhighlight);
+    }
+
+.appmenu-title {
+    font-weight: 600;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.appmenu-itemlist {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 5px 10px;
+}
+
+.appmenuitem {
+    cursor: pointer;
+    width: 131px;
+    padding: 5px;
+    margin-right: 5px;
+}
+
+.appmenuitem-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.appmenuitem-text {
+    padding-left: 4px;
+    line-height: 32px;
+}
+
+.appmenuitem:hover {
+    background: var(--appmenuitemhighlight);
+}

@@ -64,6 +64,48 @@
     <Filter Include="Window\Win32">
       <UniqueIdentifier>{004eeafa-bbb3-458e-bfa7-5d84b2b9cfe7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{a913109c-5d9c-4b8c-8cfd-b186c35023c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls">
+      <UniqueIdentifier>{a97576d7-d95e-48cb-abba-1798b2c573ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Core">
+      <UniqueIdentifier>{786d3d38-f6c9-4e64-855b-903bce4a7c85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\BorderLayoutView">
+      <UniqueIdentifier>{9e493d9e-e876-43d0-9985-23f1323cc240}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\Button">
+      <UniqueIdentifier>{3b30a3e6-492b-4711-bf30-56840ded5a40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\ImageBox">
+      <UniqueIdentifier>{f50605ba-3434-4d93-bf80-b5e2b425ff7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\LineEdit">
+      <UniqueIdentifier>{f4fdd36b-8688-4780-bf35-d4210519d704}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\ListView">
+      <UniqueIdentifier>{483d4d51-5d23-4a64-87ef-947779b5c299}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\TabControl">
+      <UniqueIdentifier>{ca96ca88-ecaa-4013-b16d-2c729f193688}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\TextLabel">
+      <UniqueIdentifier>{40d0204d-bf28-4fe0-adb3-85763e924b01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Dialog">
+      <UniqueIdentifier>{4e7c65bc-4dfd-457e-a561-0765a2154b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\MainWindow">
+      <UniqueIdentifier>{241b9175-ddfc-45d6-9428-eaa3bf5a5438}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Controls\SvgBox">
+      <UniqueIdentifier>{7937b5f0-1628-4003-b6c6-9ea1ef135ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Core\Element">
+      <UniqueIdentifier>{e6cbd4a0-29a0-41bb-bde7-5cfdaafee949}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -551,6 +593,114 @@
     <ClCompile Include="Package\IniFile.cpp">
       <Filter>Package</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Core\JsonValue.cpp">
+      <Filter>UI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\UTF8Reader.cpp">
+      <Filter>UI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\View.cpp">
+      <Filter>UI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\BorderLayoutView\BorderLayoutView.cpp">
+      <Filter>UI\Controls\BorderLayoutView</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\Button\Button.cpp">
+      <Filter>UI\Controls\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\ImageBox\ImageBox.cpp">
+      <Filter>UI\Controls\ImageBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\LineEdit\LineEdit.cpp">
+      <Filter>UI\Controls\LineEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\ListView\ListView.cpp">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\ListView\ListViewItem.cpp">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\ListView\ListViewItemView.cpp">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\TextLabel\TextLabel.cpp">
+      <Filter>UI\Controls\TextLabel</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\TabControl\TabControl.cpp">
+      <Filter>UI\Controls\TabControl</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\AppMenu.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\Dialog.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DialogButton.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DialogButtonbar.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DialogHeader.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DialogHeaderButton.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DockHeader.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\DockHeaderButton.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\MessageBox.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\WebsiteHeader.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Dialog\WindowHeader.cpp">
+      <Filter>UI\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\Menu.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\Menubar.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\MenubarModal.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\Statusbar.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\Toolbar.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MainWindow\VToolbar.cpp">
+      <Filter>UI\MainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Controls\SvgBox\SvgBox.cpp">
+      <Filter>UI\Controls\SvgBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\Canvas.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\Element.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\ElementGeometry.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\Event.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\WindowFrame.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core\Element\BoxElement.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -869,6 +1019,120 @@
     <ClInclude Include="Package\IniFile.h">
       <Filter>Package</Filter>
     </ClInclude>
+    <ClInclude Include="UI\Core\JsonValue.h">
+      <Filter>UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\UTF8Reader.h">
+      <Filter>UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\View.h">
+      <Filter>UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\BorderLayoutView\BorderLayoutView.h">
+      <Filter>UI\Controls\BorderLayoutView</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\Button\Button.h">
+      <Filter>UI\Controls\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\ImageBox\ImageBox.h">
+      <Filter>UI\Controls\ImageBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\LineEdit\LineEdit.h">
+      <Filter>UI\Controls\LineEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\ListView\ListView.h">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\ListView\ListViewItem.h">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\ListView\ListViewItemView.h">
+      <Filter>UI\Controls\ListView</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\TextLabel\TextLabel.h">
+      <Filter>UI\Controls\TextLabel</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\TabControl\TabControl.h">
+      <Filter>UI\Controls\TabControl</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\AppMenu.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\Dialog.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DialogButton.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DialogButtonbar.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DialogHeader.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DialogHeaderButton.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DockHeader.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\DockHeaderButton.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\MessageBox.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\WebsiteHeader.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Dialog\WindowHeader.h">
+      <Filter>UI\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\Menu.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\Menubar.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\MenubarModal.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\Statusbar.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\Toolbar.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MainWindow\VToolbar.h">
+      <Filter>UI\MainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Controls\SvgBox\SvgBox.h">
+      <Filter>UI\Controls\SvgBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\Canvas.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\Element.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\ElementGeometry.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\Event.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\Rect.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\WindowFrame.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\BoxElement.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\ComputedBorder.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Thirdparty\dumb\src\helpers\resamp2.inc">
@@ -879,6 +1143,69 @@
     </None>
     <None Include="..\Thirdparty\dumb\src\helpers\resample.inc">
       <Filter>Thirdparty\dumb\src\helpers</Filter>
+    </None>
+    <None Include="UI\Controls\BorderLayoutView\BorderLayoutView.css">
+      <Filter>UI\Controls\BorderLayoutView</Filter>
+    </None>
+    <None Include="UI\Controls\Button\Button.css">
+      <Filter>UI\Controls\Button</Filter>
+    </None>
+    <None Include="UI\Controls\ImageBox\ImageBox.css">
+      <Filter>UI\Controls\ImageBox</Filter>
+    </None>
+    <None Include="UI\Controls\LineEdit\LineEdit.css">
+      <Filter>UI\Controls\LineEdit</Filter>
+    </None>
+    <None Include="UI\Controls\ListView\ListView.css">
+      <Filter>UI\Controls\ListView</Filter>
+    </None>
+    <None Include="UI\Controls\TextLabel\TextLabel.css">
+      <Filter>UI\Controls\TextLabel</Filter>
+    </None>
+    <None Include="UI\Controls\TabControl\TabControl.css">
+      <Filter>UI\Controls\TabControl</Filter>
+    </None>
+    <None Include="UI\Dialog\AppMenu.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\Dialog.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\DialogButtonbar.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\Dock.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\MessageBox.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\WebsiteHeader.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\Dialog\WindowHeader.css">
+      <Filter>UI\Dialog</Filter>
+    </None>
+    <None Include="UI\MainWindow\Menu.css">
+      <Filter>UI\MainWindow</Filter>
+    </None>
+    <None Include="UI\MainWindow\Menubar.css">
+      <Filter>UI\MainWindow</Filter>
+    </None>
+    <None Include="UI\MainWindow\Statusbar.css">
+      <Filter>UI\MainWindow</Filter>
+    </None>
+    <None Include="UI\MainWindow\Toolbar.css">
+      <Filter>UI\MainWindow</Filter>
+    </None>
+    <None Include="UI\MainWindow\VToolbar.css">
+      <Filter>UI\MainWindow</Filter>
+    </None>
+    <None Include="UI\Controls\SvgBox\SvgBox.css">
+      <Filter>UI\Controls\SvgBox</Filter>
+    </None>
+    <None Include="UI\Core\View.css">
+      <Filter>UI\Core</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

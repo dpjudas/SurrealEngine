@@ -1,0 +1,26 @@
+
+.view {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.vbox {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.hbox {
+    display: flex;
+    flex-direction: row;
+}
+
+.expanding {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+.hidden {
+    display: none !important;
+}

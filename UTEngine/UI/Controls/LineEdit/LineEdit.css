@@ -1,0 +1,9 @@
+
+.lineedit {
+    display: block;
+    border: 1px solid var(--controlbordercolor);
+    padding: 2px 4px;
+    background: white;
+    font: 12px/16px "Segoe UI", "Tahoma", sans-serif;
+    color: black;
+}

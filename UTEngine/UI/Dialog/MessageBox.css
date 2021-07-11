@@ -1,0 +1,6 @@
+
+.messagebox > .dialog-centerview {
+    padding: 15px 15px 45px 15px;
+    border-bottom: 1px solid var(--paneledgecolor);
+    background: white;
+}

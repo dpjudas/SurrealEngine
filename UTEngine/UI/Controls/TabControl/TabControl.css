@@ -1,0 +1,33 @@
+
+.tabbartab {
+    padding: 6px 15px;
+    cursor: default;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+    z-index: 1;
+}
+
+.tabbartab-icon {
+    width: 20px;
+    height: 20px;
+    padding-right: 4px;
+}
+
+.tabbartab-label {
+    line-height: 20px;
+}
+
+.tabbartab.selected {
+    background: white;
+    border-color: var(--tabbarselected);
+}
+
+.tabcontrol {
+    flex: 1 1 auto;
+}
+
+.tabcontrol-widgetstack {
+    background: white;
+    border: 1px solid var(--tabcontrolbordercolor);
+}

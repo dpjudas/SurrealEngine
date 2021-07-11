@@ -1,0 +1,22 @@
+
+.dockheader {
+    background: var(--panelcolor);
+    color: black;
+    line-height: 24px;
+    height: 24px;
+}
+
+.dockheader-caption.textlabel {
+    padding-left: 7px;
+}
+
+.dockheaderbutton {
+    width: 12px;
+    height: 12px;
+    margin: 2px 3px;
+    padding: 4px;
+}
+
+.dockheader-closebutton.dockheaderbutton:hover {
+    background: rgb(200, 200, 200);
+}

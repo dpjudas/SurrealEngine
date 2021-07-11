@@ -1,0 +1,14 @@
+
+.button {
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+    .button > .imagebox {
+        width: 24px;
+        height: 24px;
+        padding-right: 4px;
+    }
