@@ -1,13 +1,29 @@
 
 #include "Precomp.h"
 #include "Engine.h"
+#include "VM/Frame.h"
 #include <iostream>
 #include <CommCtrl.h>
 
 void appMain()
 {
 	Engine engine;
-	engine.Run();
+	try
+	{
+		engine.Run();
+	}
+	catch (const std::exception& e)
+	{
+		std::string callstack = Frame::GetCallstack();
+		if (!callstack.empty())
+		{
+			std::string message = "Script execution error:\r\n\r\n";
+			message += e.what();
+			message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
+			throw std::runtime_error(message);
+		}
+		throw;
+	}
 }
 
 #ifdef WIN32

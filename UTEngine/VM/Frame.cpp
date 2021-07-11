@@ -4,9 +4,55 @@
 #include "Bytecode.h"
 #include "ExpressionEvaluator.h"
 #include "NativeFunc.h"
+#include "UObject/UTextBuffer.h"
 
 #ifdef _DEBUG
 std::vector<std::string> callstack;
+std::string Frame::GetCallstack()
+{
+	std::string result;
+	for (auto it = callstack.rbegin(); it != callstack.rend(); ++it)
+	{
+		const std::string& callstackName = *it;
+#ifdef WIN32
+		if (!result.empty()) result += "\r\n";
+#else
+		if (!result.empty()) result += "\n";
+#endif
+		result += callstackName;
+	}
+	return result;
+}
+#else
+std::vector<UFunction*> callstack;
+std::string Frame::GetCallstack()
+{
+	std::string result;
+
+#ifdef WIN32
+	std::string newline = "\r\n";
+#else
+	std::string newline = "\n";
+#endif
+
+	for (auto it = callstack.rbegin(); it != callstack.rend(); ++it)
+	{
+		UFunction* func = *it;
+		std::string callstackName;
+		for (UStruct* s = func; s != nullptr; s = s->StructParent)
+		{
+			if (callstackName.empty())
+				callstackName = s->Name;
+			else
+				callstackName = s->Name + "." + callstackName;
+		}
+		if (func)
+			callstackName += " line " + std::to_string(func->Line);
+		if (!result.empty()) result += newline;
+		result += callstackName;
+	}
+	return result;
+}
 #endif
 
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
@@ -21,6 +67,8 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			callstackName = s->Name + "." + callstackName;
 	}
 	callstack.push_back(callstackName);
+#else
+	callstack.push_back(func);
 #endif
 
 #if 0
@@ -75,9 +123,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
 		}
 
-#ifdef _DEBUG
 		callstack.pop_back();
-#endif
 		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
 	}
 	else
@@ -130,9 +176,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 		}
 
-#ifdef _DEBUG
 		callstack.pop_back();
-#endif
 		return result;
 	}
 }

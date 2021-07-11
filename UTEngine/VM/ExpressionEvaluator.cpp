@@ -156,7 +156,7 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 	}
 	else
 	{
-		throw std::runtime_error("Null class context");
+		throw std::runtime_error("Class reference not set to an instance of an object");
 	}
 }
 
@@ -202,7 +202,7 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 	}
 	else
 	{
-		throw std::runtime_error("Null context");
+		throw std::runtime_error("Object reference not set to an instance of an object");
 	}
 }
 

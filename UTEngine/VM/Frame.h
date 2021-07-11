@@ -11,6 +11,7 @@ class Frame
 {
 public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args);
+	static std::string GetCallstack();
 
 private:
 	ExpressionEvalResult Run();
