@@ -106,6 +106,9 @@
     <Filter Include="UI\Core\Element">
       <UniqueIdentifier>{e6cbd4a0-29a0-41bb-bde7-5cfdaafee949}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\Debugger">
+      <UniqueIdentifier>{f5a6d48c-96f7-49a3-a3c7-c2287727a2d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\halffloat.cpp">
@@ -698,6 +701,15 @@
     <ClCompile Include="UI\Core\Element\WindowFrame.cpp">
       <Filter>UI\Core\Element</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Debugger\DebuggerWindow.cpp">
+      <Filter>UI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Debugger\DisassemblyPage.cpp">
+      <Filter>UI\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Debugger\ObjectViewerPage.cpp">
+      <Filter>UI\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1126,6 +1138,15 @@
     </ClInclude>
     <ClInclude Include="UI\Core\Element\ComputedBorder.h">
       <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debugger\DebuggerWindow.h">
+      <Filter>UI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debugger\DisassemblyPage.h">
+      <Filter>UI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debugger\ObjectViewerPage.h">
+      <Filter>UI\Debugger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

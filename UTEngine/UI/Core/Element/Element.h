@@ -111,8 +111,8 @@ public:
 
 	void renderStyle(Canvas* canvas);
 	ComputedBorder computedBorder();
-	Colorf color() { return { 0.0f, 0.0f, 0.0f }; }
-	double lineHeight() { return 20.0f; }
+	Colorf color();
+	double lineHeight();
 
 	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
 

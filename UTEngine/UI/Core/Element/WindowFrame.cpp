@@ -240,9 +240,10 @@ public:
 				height = (box.bottom - box.top) / dpiscale;
 				if (root)
 				{
+					GetClientRect(windowHandle, &box);
 					ElementGeometry g;
-					g.contentWidth = width;
-					g.contentHeight = height;
+					g.contentWidth = box.right;
+					g.contentHeight = box.bottom;
 					root->element->setGeometry(g);
 				}
 			}

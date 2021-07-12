@@ -324,19 +324,82 @@ void Element::render(Canvas* canvas)
 	canvas->setOrigin(origin);
 }
 
+Colorf Element::color()
+{
+	if (parent())
+		return parent()->color();
+	else
+		return { 0.0f, 0.0f, 0.0f };
+}
+
+double Element::lineHeight()
+{
+	if (isClass("tabbartab-label"))
+		return 20;
+	else if (isClass("toolbar"))
+		return 30;
+	else if (isClass("menubar") || isClass("menubarmodal"))
+		return 30;
+	else if (isClass("menubaritem") || isClass("menubarmodalitem"))
+		return 24;
+
+	if (parent())
+		return parent()->lineHeight();
+	else
+		return 20;
+}
+
 ComputedBorder Element::computedBorder()
 {
 	ComputedBorder border;
-	border.left = 5;
-	border.top = 5;
-	border.right = 5;
-	border.bottom = 5;
+	if (isClass("tabbartab"))
+	{
+		border.top = 6;
+		border.bottom = 6;
+		border.left = 15;
+		border.right = 15;
+	}
+	else if (isClass("toolbarbutton"))
+	{
+		border.right = 10;
+	}
+	else if (isClass("toolbar"))
+	{
+		border.top = 5;
+		border.right = 5;
+		border.bottom = 5;
+		border.left = 10;
+	}
+	else if (isClass("menubar") || isClass("menubarmodal"))
+	{
+		border.left = 8;
+		border.right = 8;
+	}
+	else if (isClass("menubaritem") || isClass("menubarmodalitem"))
+	{
+		border.top = 3;
+		border.bottom = 3;
+		border.left = 9;
+		border.right = 9;
+	}
 	return border;
 }
 
 void Element::renderStyle(Canvas* canvas)
 {
-	canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
+	if (isClass("debuggerwindow"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
+	}
+	else if (isClass("tabbartab") && isClass("selected"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
+		canvas->fillRect(geometry().contentBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
+	}
+	else if (isClass("tabcontrol-widgetstack"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
+	}
 }
 
 void Element::setParent(Element* newParent)
@@ -425,7 +488,8 @@ double Element::preferredWidth(Canvas* canvas)
 		double w = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			w += element->preferredWidth(canvas);
+			ComputedBorder border = element->computedBorder();
+			w += element->preferredWidth(canvas) + border.left + border.right;
 		}
 		return w;
 	}
@@ -452,7 +516,8 @@ double Element::preferredHeight(Canvas* canvas, double width)
 		double h = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			h = std::max(element->preferredHeight(canvas, width), h);
+			ComputedBorder border = element->computedBorder();
+			h = std::max(element->preferredHeight(canvas, width) + border.top + border.bottom, h);
 		}
 		return h;
 	}
@@ -529,45 +594,73 @@ void Element::renderContent(Canvas* canvas)
 		if (isClass("vbox"))
 		{
 			double width = geometry().contentWidth;
+
+			double totalheight = 0;
+			int expandingcount = 0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				ComputedBorder border = element->computedBorder();
+				totalheight += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
+				if (element->isClass("expanding"))
+					expandingcount++;
+			}
+			double stretchheight = expandingcount > 0 ? (totalheight - geometry().contentHeight) / expandingcount : 0.0;
+
 			double y = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 			{
 				ComputedBorder border = element->computedBorder();
 
 				ElementGeometry childpos;
-				childpos.borderLeft = border.left;
-				childpos.borderTop = border.top;
-				childpos.borderRight = border.right;
-				childpos.borderBottom = border.bottom;
+				childpos.paddingLeft = border.left;
+				childpos.paddingTop = border.top;
+				childpos.paddingRight = border.right;
+				childpos.paddingBottom = border.bottom;
 				childpos.contentX = border.left;
-				childpos.contentY = y + childpos.borderTop;
-				childpos.contentWidth = std::min(element->preferredWidth(canvas), width - border.left - border.right);
+				childpos.contentY = y + childpos.paddingTop;
+				childpos.contentWidth = width - border.left - border.right;
 				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
+				if (element->isClass("expanding"))
+					childpos.contentHeight += stretchheight;
 				element->setGeometry(childpos);
 
-				y += childpos.contentHeight + childpos.borderTop + childpos.borderBottom;
+				y += childpos.contentHeight + childpos.paddingTop + childpos.paddingBottom;
 			}
 		}
 		else
 		{
 			double height = geometry().contentHeight;
+
+			double totalwidth = 0;
+			int expandingcount = 0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				ComputedBorder border = element->computedBorder();
+				totalwidth += element->preferredWidth(canvas) + border.left + border.right;
+				if (element->isClass("expanding"))
+					expandingcount++;
+			}
+			double stretchwidth = expandingcount > 0 ? (totalwidth - geometry().contentWidth) / expandingcount : 0.0;
+
 			double x = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 			{
 				ComputedBorder border = element->computedBorder();
 
 				ElementGeometry childpos;
-				childpos.borderLeft = border.left;
-				childpos.borderTop = border.top;
-				childpos.borderRight = border.right;
-				childpos.borderBottom = border.bottom;
+				childpos.paddingLeft = border.left;
+				childpos.paddingTop = border.top;
+				childpos.paddingRight = border.right;
+				childpos.paddingBottom = border.bottom;
 				childpos.contentX = x + border.left;
 				childpos.contentY = border.top;
 				childpos.contentWidth = element->preferredWidth(canvas);
-				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
+				childpos.contentHeight = height - border.top - border.bottom;
+				if (element->isClass("expanding"))
+					childpos.contentWidth += stretchwidth;
 				element->setGeometry(childpos);
 
-				x += childpos.contentWidth + childpos.borderLeft + childpos.borderRight;
+				x += childpos.contentWidth + childpos.paddingLeft + childpos.paddingRight;
 			}
 		}
 		clearNeedsLayout();

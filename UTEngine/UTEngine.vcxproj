@@ -195,6 +195,9 @@
     <ClInclude Include="UI\Core\JsonValue.h" />
     <ClInclude Include="UI\Core\UTF8Reader.h" />
     <ClInclude Include="UI\Core\View.h" />
+    <ClInclude Include="UI\Debugger\DebuggerWindow.h" />
+    <ClInclude Include="UI\Debugger\DisassemblyPage.h" />
+    <ClInclude Include="UI\Debugger\ObjectViewerPage.h" />
     <ClInclude Include="UI\Dialog\AppMenu.h" />
     <ClInclude Include="UI\Dialog\Dialog.h" />
     <ClInclude Include="UI\Dialog\DialogButton.h" />
@@ -840,6 +843,9 @@
     <ClCompile Include="UI\Core\JsonValue.cpp" />
     <ClCompile Include="UI\Core\UTF8Reader.cpp" />
     <ClCompile Include="UI\Core\View.cpp" />
+    <ClCompile Include="UI\Debugger\DebuggerWindow.cpp" />
+    <ClCompile Include="UI\Debugger\DisassemblyPage.cpp" />
+    <ClCompile Include="UI\Debugger\ObjectViewerPage.cpp" />
     <ClCompile Include="UI\Dialog\AppMenu.cpp" />
     <ClCompile Include="UI\Dialog\Dialog.cpp" />
     <ClCompile Include="UI\Dialog\DialogButton.cpp" />
