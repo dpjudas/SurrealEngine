@@ -25,6 +25,8 @@
 #include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
 #include "VM/ScriptCall.h"
+#include "UI/Core/Element/WindowFrame.h"
+#include "UI/Core/View.h"
 #include <chrono>
 #include <set>
 
@@ -45,6 +47,12 @@ void Engine::Run()
 {
 	window = Window::Create(this);
 	window->OpenWindow(1800, 950, true);
+
+	auto debugger = new WindowFrame();
+	debugger->setContentView(std::make_unique<View>(nullptr));
+	debugger->setSize(800, 600);
+	debugger->setTitle("Debugger");
+	debugger->show();
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();

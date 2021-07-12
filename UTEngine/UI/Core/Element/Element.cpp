@@ -290,4 +290,5 @@ ComputedBorder Element::computedBorder()
 
 void Element::renderStyle(Canvas* canvas)
 {
+	canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
 }

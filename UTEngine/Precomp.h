@@ -9,6 +9,7 @@
 
 #define WIN32_MEAN_AND_LEAN
 #include <Windows.h>
+#include <gdiplus.h>
 #undef min
 #undef max
 #undef PlaySound

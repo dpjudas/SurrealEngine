@@ -109,7 +109,7 @@ void Win32Window::Tick()
 		return;
 
 	MSG msg;
-	while (WindowHandle && PeekMessage(&msg, WindowHandle, 0, 0, PM_REMOVE))
+	while (WindowHandle && PeekMessage(&msg, 0/*WindowHandle*/, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
