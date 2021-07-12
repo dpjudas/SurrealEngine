@@ -27,6 +27,9 @@
 #include "VM/ScriptCall.h"
 #include "UI/Core/Element/WindowFrame.h"
 #include "UI/Core/View.h"
+#include "UI/MainWindow/Menubar.h"
+#include "UI/MainWindow/Toolbar.h"
+#include "UI/Controls/ListView/ListView.h"
 #include <chrono>
 #include <set>
 
@@ -48,11 +51,32 @@ void Engine::Run()
 	window = Window::Create(this);
 	window->OpenWindow(1800, 950, true);
 
+#if 0
 	auto debugger = new WindowFrame();
-	debugger->setContentView(std::make_unique<View>(nullptr));
+	debugger->setContentView(std::make_unique<VBoxView>(nullptr));
 	debugger->setSize(800, 600);
 	debugger->setTitle("Debugger");
+	auto menubar = new Menubar(debugger->contentView());
+	menubar->addItem("File", [](Menu* menu) {});
+	menubar->addItem("Edit", [](Menu* menu) {});
+	menubar->addItem("View", [](Menu* menu) {});
+	menubar->addItem("Help", [](Menu* menu) {});
+	auto toolbar = new Toolbar(debugger->contentView());
+	toolbar->addButton("", "Add", []() {});
+	toolbar->addButton("", "Edit", []() {});
+	toolbar->addButton("", "Remove", []() {});
+	auto hbox = new HBoxView(debugger->contentView());
+	auto listview = new ListView(hbox);
+	listview->addColumn("Name", 300);
+	listview->addColumn("Value", 300);
+	for (int i = 0; i < 5; i++)
+	{
+		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
+		item->setText(0, "Foobar");
+		item->setText(1, "Moo");
+	}
 	debugger->show();
+#endif
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();

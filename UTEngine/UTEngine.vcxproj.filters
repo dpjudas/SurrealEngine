@@ -698,9 +698,6 @@
     <ClCompile Include="UI\Core\Element\WindowFrame.cpp">
       <Filter>UI\Core\Element</Filter>
     </ClCompile>
-    <ClCompile Include="UI\Core\Element\BoxElement.cpp">
-      <Filter>UI\Core\Element</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1125,9 +1122,6 @@
       <Filter>UI\Core\Element</Filter>
     </ClInclude>
     <ClInclude Include="UI\Core\Element\WindowFrame.h">
-      <Filter>UI\Core\Element</Filter>
-    </ClInclude>
-    <ClInclude Include="UI\Core\Element\BoxElement.h">
       <Filter>UI\Core\Element</Filter>
     </ClInclude>
     <ClInclude Include="UI\Core\Element\ComputedBorder.h">

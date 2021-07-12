@@ -186,7 +186,6 @@
     <ClInclude Include="UI\Controls\TabControl\TabControl.h" />
     <ClInclude Include="UI\Controls\TextLabel\TextLabel.h" />
     <ClInclude Include="UI\Core\Element\Canvas.h" />
-    <ClInclude Include="UI\Core\Element\BoxElement.h" />
     <ClInclude Include="UI\Core\Element\Element.h" />
     <ClInclude Include="UI\Core\Element\ElementGeometry.h" />
     <ClInclude Include="UI\Core\Element\ComputedBorder.h" />
@@ -834,7 +833,6 @@
     <ClCompile Include="UI\Controls\TabControl\TabControl.cpp" />
     <ClCompile Include="UI\Controls\TextLabel\TextLabel.cpp" />
     <ClCompile Include="UI\Core\Element\Canvas.cpp" />
-    <ClCompile Include="UI\Core\Element\BoxElement.cpp" />
     <ClCompile Include="UI\Core\Element\Element.cpp" />
     <ClCompile Include="UI\Core\Element\ElementGeometry.cpp" />
     <ClCompile Include="UI\Core\Element\Event.cpp" />

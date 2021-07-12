@@ -4,12 +4,11 @@
 #include "Event.h"
 #include "WindowFrame.h"
 #include "Canvas.h"
-#include "BoxElement.h"
 #include "ComputedBorder.h"
 
 std::unique_ptr<Element> Element::createElement(std::string elementType)
 {
-	return std::make_unique<BoxElement>();
+	return std::make_unique<Element>();
 }
 
 std::unique_ptr<Element> Element::createElementNS(std::string ns, std::string elementType)
@@ -27,26 +26,65 @@ Element::~Element()
 
 void Element::appendChild(Element* element)
 {
+	element->setParent(this);
+	setNeedsLayout();
 }
 
 void Element::insertBefore(Element* newNode, Element* referenceNode)
 {
+	newNode->setParent(this);
+	newNode->moveBefore(referenceNode);
+	setNeedsLayout();
 }
 
 void Element::removeChild(Element* element)
 {
+	element->detachFromParent();
+	setNeedsLayout();
 }
 
 void Element::setAttribute(std::string name, std::string value)
 {
-	attributes[name] = value;
+	if (name == "class")
+	{
+		classes.clear();
+		size_t pos = 0;
+		while (pos < value.size())
+		{
+			pos = value.find_first_not_of(" \t", pos);
+			if (pos == std::string::npos)
+				break;
+
+			size_t pos2 = value.find_first_of(" \t", pos);
+			if (pos2 == std::string::npos)
+				pos2 = value.size();
+
+			if (pos < pos2)
+				classes.insert(value.substr(pos, pos2 - pos));
+
+			pos = pos2;
+		}
+	}
+	else
+	{
+		attributes[name] = value;
+	}
+	setNeedsLayout();
 }
 
 void Element::removeAttribute(std::string name)
 {
-	auto it = attributes.find(name);
-	if (it != attributes.end())
-		attributes.erase(it);
+	if (name == "class")
+	{
+		classes.clear();
+	}
+	else
+	{
+		auto it = attributes.find(name);
+		if (it != attributes.end())
+			attributes.erase(it);
+	}
+	setNeedsLayout();
 }
 
 void Element::setStyle(std::string name, std::string value)
@@ -173,6 +211,8 @@ std::string Element::getValue()
 
 void Element::setInnerText(const std::string& text)
 {
+	innerText = text;
+	setNeedsLayout();
 }
 
 void Element::setInnerHTML(const std::string& text)
@@ -189,7 +229,7 @@ std::string Element::getInnerHTML()
 	return std::string();
 }
 
-Element* Element::findElementAt(const Point& pos) const
+Element* Element::findElementAt(const Point& pos)
 {
 	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 	{
@@ -198,6 +238,7 @@ Element* Element::findElementAt(const Point& pos) const
 			return element->findElementAt(pos - element->geometry().contentPos());
 		}
 	}
+	return this;
 }
 
 bool Element::needsLayout() const
@@ -285,10 +326,260 @@ void Element::render(Canvas* canvas)
 
 ComputedBorder Element::computedBorder()
 {
-	return {};
+	ComputedBorder border;
+	border.left = 5;
+	border.top = 5;
+	border.right = 5;
+	border.bottom = 5;
+	return border;
 }
 
 void Element::renderStyle(Canvas* canvas)
 {
 	canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
+}
+
+void Element::setParent(Element* newParent)
+{
+	if (parentObj != newParent)
+	{
+		if (parentObj)
+			detachFromParent();
+
+		if (newParent)
+		{
+			prevSiblingObj = newParent->lastChildObj;
+			if (prevSiblingObj) prevSiblingObj->nextSiblingObj = this;
+			newParent->lastChildObj = this;
+			if (!newParent->firstChildObj) newParent->firstChildObj = this;
+			parentObj = newParent;
+		}
+	}
+}
+
+void Element::moveBefore(Element* sibling)
+{
+	if (sibling && sibling->parentObj != parentObj) throw std::runtime_error("Invalid sibling passed to Element.moveBefore");
+	if (!parentObj) throw std::runtime_error("View must have a parent before it can be moved");
+
+	if (nextSiblingObj != sibling)
+	{
+		Element* p = parentObj;
+		detachFromParent();
+
+		parentObj = p;
+		if (sibling)
+		{
+			nextSiblingObj = sibling;
+			prevSiblingObj = sibling->prevSiblingObj;
+			sibling->prevSiblingObj = this;
+			if (prevSiblingObj) prevSiblingObj->nextSiblingObj = this;
+			if (parentObj->firstChildObj == sibling) parentObj->firstChildObj = this;
+		}
+		else
+		{
+			prevSiblingObj = parentObj->lastChildObj;
+			if (prevSiblingObj) prevSiblingObj->nextSiblingObj = this;
+			parentObj->lastChildObj = this;
+			if (!parentObj->firstChildObj) parentObj->firstChildObj = this;
+		}
+	}
+}
+
+void Element::detachFromParent()
+{
+	if (prevSiblingObj)
+		prevSiblingObj->nextSiblingObj = nextSiblingObj;
+	if (nextSiblingObj)
+		nextSiblingObj->prevSiblingObj = prevSiblingObj;
+	if (parentObj)
+	{
+		if (parentObj->firstChildObj == this)
+			parentObj->firstChildObj = nextSiblingObj;
+		if (parentObj->lastChildObj == this)
+			parentObj->lastChildObj = prevSiblingObj;
+	}
+	prevSiblingObj = nullptr;
+	nextSiblingObj = nullptr;
+	parentObj = nullptr;
+}
+
+double Element::preferredWidth(Canvas* canvas)
+{
+	if (!innerText.empty())
+	{
+		return canvas->measureText(innerText).width;
+	}
+	else if (isClass("vbox"))
+	{
+		double w = 0.0;
+		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+		{
+			ComputedBorder border = element->computedBorder();
+			w = std::max(element->preferredWidth(canvas) + border.left + border.right, w);
+		}
+		return w;
+	}
+	else
+	{
+		double w = 0.0;
+		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+		{
+			w += element->preferredWidth(canvas);
+		}
+		return w;
+	}
+}
+
+double Element::preferredHeight(Canvas* canvas, double width)
+{
+	if (!innerText.empty())
+	{
+		return lineHeight();
+	}
+	else if (isClass("vbox"))
+	{
+		double h = 0.0;
+		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+		{
+			ComputedBorder border = element->computedBorder();
+			h += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
+		}
+		return h;
+	}
+	else
+	{
+		double h = 0.0;
+		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+		{
+			h = std::max(element->preferredHeight(canvas, width), h);
+		}
+		return h;
+	}
+}
+
+double Element::firstBaselineOffset(Canvas* canvas, double width)
+{
+	if (isClass("vbox"))
+	{
+		if (firstChild())
+		{
+			ComputedBorder border = firstChild()->computedBorder();
+			return firstChild()->firstBaselineOffset(canvas, width) + border.top;
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
+	else
+	{
+		if (firstChild())
+			return firstChild()->firstBaselineOffset(canvas, width);
+		else
+			return 0.0f;
+	}
+}
+
+double Element::lastBaselineOffset(Canvas* canvas, double width)
+{
+	if (isClass("vbox"))
+	{
+		if (firstChild())
+		{
+			double h = 0.0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				if (element != lastChild())
+				{
+					ComputedBorder border = element->computedBorder();
+					h += element->preferredHeight(canvas, width) + border.top + border.bottom;
+				}
+			}
+			return h + lastChild()->lastBaselineOffset(canvas, width);
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
+	else
+	{
+		if (firstChild())
+		{
+			double h = 0.0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				if (element != lastChild())
+					h += element->preferredHeight(canvas, width);
+			}
+			return h + lastChild()->lastBaselineOffset(canvas, width);
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
+}
+
+void Element::renderContent(Canvas* canvas)
+{
+	if (needsLayout())
+	{
+		if (isClass("vbox"))
+		{
+			double width = geometry().contentWidth;
+			double y = 0.0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				ComputedBorder border = element->computedBorder();
+
+				ElementGeometry childpos;
+				childpos.borderLeft = border.left;
+				childpos.borderTop = border.top;
+				childpos.borderRight = border.right;
+				childpos.borderBottom = border.bottom;
+				childpos.contentX = border.left;
+				childpos.contentY = y + childpos.borderTop;
+				childpos.contentWidth = std::min(element->preferredWidth(canvas), width - border.left - border.right);
+				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
+				element->setGeometry(childpos);
+
+				y += childpos.contentHeight + childpos.borderTop + childpos.borderBottom;
+			}
+		}
+		else
+		{
+			double height = geometry().contentHeight;
+			double x = 0.0;
+			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			{
+				ComputedBorder border = element->computedBorder();
+
+				ElementGeometry childpos;
+				childpos.borderLeft = border.left;
+				childpos.borderTop = border.top;
+				childpos.borderRight = border.right;
+				childpos.borderBottom = border.bottom;
+				childpos.contentX = x + border.left;
+				childpos.contentY = border.top;
+				childpos.contentWidth = element->preferredWidth(canvas);
+				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
+				element->setGeometry(childpos);
+
+				x += childpos.contentWidth + childpos.borderLeft + childpos.borderRight;
+			}
+		}
+		clearNeedsLayout();
+	}
+
+	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+	{
+		element->render(canvas);
+	}
+
+	if (!innerText.empty())
+	{
+		canvas->drawText({ 0.0f, 0.0f }, color(), innerText);
+	}
 }

@@ -70,9 +70,8 @@ void View::moveBefore(View* sibling)
 			nextSiblingObj = sibling;
 			prevSiblingObj = sibling->prevSiblingObj;
 			sibling->prevSiblingObj = this;
-			prevSiblingObj->nextSiblingObj = this;
-			if (parentObj->firstChildObj == sibling)
-				parentObj->firstChildObj = this;
+			if (prevSiblingObj) prevSiblingObj->nextSiblingObj = this;
+			if (parentObj->firstChildObj == sibling) parentObj->firstChildObj = this;
 		}
 		else
 		{

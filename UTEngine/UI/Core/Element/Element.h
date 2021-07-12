@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <set>
+#include <map>
 #include "Event.h"
 #include "Rect.h"
 #include "ElementGeometry.h"
@@ -11,7 +13,6 @@
 class Canvas;
 class WindowFrame;
 class ComputedBorder;
-class Font;
 
 class Colorf
 {
@@ -83,11 +84,11 @@ public:
 	//
 
 	virtual void defaultAction(Event* event) { }
-	virtual double preferredWidth(Canvas* canvas) { return 0.0; }
-	virtual double preferredHeight(Canvas* canvas, double width) { return 0.0; }
-	virtual double firstBaselineOffset(Canvas* canvas, double width) { return 0.0; }
-	virtual double lastBaselineOffset(Canvas* canvas, double width) { return 0.0; }
-	virtual void renderContent(Canvas* canvas) { }
+	virtual double preferredWidth(Canvas* canvas);
+	virtual double preferredHeight(Canvas* canvas, double width);
+	virtual double firstBaselineOffset(Canvas* canvas, double width);
+	virtual double lastBaselineOffset(Canvas* canvas, double width);
+	virtual void renderContent(Canvas* canvas);
 
 	Element* parent() const { return parentObj; }
 	Element* prevSibling() const { return prevSiblingObj; }
@@ -95,7 +96,7 @@ public:
 	Element* firstChild() const { return firstChildObj; }
 	Element* lastChild() const { return lastChildObj; }
 
-	Element* findElementAt(const Point& pos) const;
+	Element* findElementAt(const Point& pos);
 	bool needsLayout() const;
 	void clearNeedsLayout();
 	void setNeedsLayout();
@@ -110,16 +111,24 @@ public:
 
 	void renderStyle(Canvas* canvas);
 	ComputedBorder computedBorder();
-	Font* font() { return nullptr; }
-	Colorf color() { return { 1.0f, 1.0f, 1.0f }; }
+	Colorf color() { return { 0.0f, 0.0f, 0.0f }; }
+	double lineHeight() { return 20.0f; }
+
+	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
 
 private:
+	void setParent(Element* newParent);
+	void moveBefore(Element* sibling);
+	void detachFromParent();
+
 	WindowFrame* viewwindow = nullptr;
-	bool needs_layout = false;
-	bool needs_render = false;
+	bool needs_layout = true;
+	bool needs_render = true;
 	ElementGeometry elementgeometry;
 	std::map<std::string, std::vector<std::function<void(Event* event)>>> eventListeners;
 	std::map<std::string, std::string> attributes;
+	std::set<std::string> classes;
+	std::string innerText;
 
 	Element* parentObj = nullptr;
 	Element* prevSiblingObj = nullptr;

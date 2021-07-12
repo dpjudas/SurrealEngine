@@ -13,4 +13,6 @@ public:
 	virtual void setOrigin(const Point& origin) = 0;
 
 	virtual void fillRect(const Rect& box, const Colorf& color) = 0;
+	virtual void drawText(const Point& pos, const Colorf& color, const std::string& text) = 0;
+	virtual Rect measureText(const std::string& text) = 0;
 };

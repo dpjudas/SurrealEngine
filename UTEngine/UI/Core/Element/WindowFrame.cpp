@@ -4,6 +4,7 @@
 #include "Canvas.h"
 #include "../View.h"
 #include <cmath>
+#include <windowsx.h>
 
 #ifdef _MSC_VER
 #pragma comment(lib, "Gdiplus.lib")
@@ -43,7 +44,22 @@ struct InitGdiPlus
 class GdiplusCanvas : public Canvas
 {
 public:
-	GdiplusCanvas(HDC dc) : graphics(dc) { dpiscale = GetDeviceCaps(dc, LOGPIXELSX) / 96.0; }
+	GdiplusCanvas(HDC dc) : graphics(dc)
+	{
+		dpiscale = GetDeviceCaps(dc, LOGPIXELSX) / 96.0;
+
+		double fontSize = 12.0;
+		LOGFONT desc = {};
+		desc.lfHeight = -(int)std::round(dpiscale * fontSize);
+		desc.lfWeight = FW_NORMAL;
+		desc.lfCharSet = DEFAULT_CHARSET;
+		desc.lfOutPrecision = OUT_DEFAULT_PRECIS;
+		desc.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+		desc.lfQuality = DEFAULT_QUALITY;
+		desc.lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+		wcscpy_s(desc.lfFaceName, L"Segoe UI");
+		font.reset(new Gdiplus::Font(dc, &desc));
+	}
 
 	Point getOrigin() override { return origin; }
 	void setOrigin(const Point& newOrigin) override { origin = newOrigin; }
@@ -51,7 +67,22 @@ public:
 	void fillRect(const Rect& box, const Colorf& color) override
 	{
 		Gdiplus::SolidBrush brush(toGdiColor(color));
-		graphics.FillRectangle(&brush, Gdiplus::Rect(toScreen(box.x), toScreen(box.y), toScreen(box.width), toScreen(box.height)));
+		graphics.FillRectangle(&brush, Gdiplus::Rect(toScreen(origin.x + box.x), toScreen(origin.y + box.y), toScreen(box.width), toScreen(box.height)));
+	}
+
+	void drawText(const Point& pos, const Colorf& color, const std::string& text) override
+	{
+		Gdiplus::SolidBrush brush(toGdiColor(color));
+		std::wstring text16 = to_utf16(text);
+		graphics.DrawString(text16.data(), (int)text16.size(), font.get(), Gdiplus::PointF((float)toScreen(origin.x + pos.x), (float)toScreen(origin.y + pos.y)), &brush);
+	}
+
+	Rect measureText(const std::string& text) override
+	{
+		std::wstring text16 = to_utf16(text);
+		Gdiplus::RectF box;
+		graphics.MeasureString(text16.data(), (int)text16.size(), font.get(), Gdiplus::PointF(0.0f, 0.0f), &box);
+		return Rect(box.X / dpiscale, box.Y / dpiscale, box.Width / dpiscale, box.Height / dpiscale);
 	}
 
 	int toScreen(double v) const
@@ -77,6 +108,8 @@ public:
 	double dpiscale = 1.0f;
 	Gdiplus::Graphics graphics;
 	Point origin;
+
+	std::unique_ptr<Gdiplus::Font> font;
 };
 
 class WindowFrameImpl
@@ -153,7 +186,24 @@ public:
 
 	LRESULT onWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	{
-		if (msg == WM_PAINT)
+		if (msg == WM_MOUSEMOVE)
+		{
+			if (root)
+			{
+				double dpiscale = getDpiScale();
+				int x = GET_X_LPARAM(lparam);
+				int y = GET_Y_LPARAM(lparam);
+				Element* element = root->element->findElementAt({ x / dpiscale, y / dpiscale });
+				if (element)
+				{
+					// To do: element->computedCursor()
+					// To do: apply hover pseudo class
+					SetCursor(LoadCursor(0, IDC_ARROW));
+				}
+			}
+			return 0;
+		}
+		else if (msg == WM_PAINT)
 		{
 			PAINTSTRUCT paintStruct = {};
 			HDC dc = BeginPaint(windowHandle, &paintStruct);
