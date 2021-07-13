@@ -9,7 +9,7 @@ DisassemblyPage::DisassemblyPage(View* parent) : VBoxView(parent)
 	listview->setExpanding();
 
 	listview->addColumn("Name", 500);
-	listview->addColumn("Value", 200);
+	listview->addColumn("Value", 200, true);
 	for (int i = 0; i < 5; i++)
 	{
 		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());

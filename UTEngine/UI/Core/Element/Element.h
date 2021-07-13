@@ -46,6 +46,7 @@ public:
 
 	void addEventListener(std::string name, std::function<void(Event* event)> handler);
 	void dispatchEvent(std::string name, bool bubbles = true);
+	void dispatchEvent(std::string name, Event* event, bool bubbles = true);
 
 	void click();
 	void focus();
@@ -115,6 +116,8 @@ public:
 	double lineHeight();
 
 	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
+	double fixedWidth = -1;
+	double fixedHeight = -1;
 
 private:
 	void setParent(Element* newParent);

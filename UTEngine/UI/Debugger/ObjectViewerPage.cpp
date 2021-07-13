@@ -8,13 +8,13 @@ ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 	listview = new ListView(this);
 	listview->setExpanding();
 
-	listview->addColumn("Name", 500);
-	listview->addColumn("Value", 200);
+	listview->addColumn("Name", 200);
+	listview->addColumn("Value", 200, true);
 	for (int i = 0; i < 5; i++)
 	{
 		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-		item->setText(0, "Foobar");
-		item->setText(1, "Moo");
+		item->setText(0, "propname");
+		item->setText(1, "propvalue");
 	}
 
 	addClass("objectviewerpage");

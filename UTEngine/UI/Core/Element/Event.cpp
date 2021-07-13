@@ -23,20 +23,25 @@ void Event::preventDefault()
 
 int Event::getKeyCode()
 {
-	return 0;
+	return keyCode;
 }
 
 int Event::getDetail()
 {
-	return 0;
+	return detail;
+}
+
+int Event::getButton()
+{
+	return button;
 }
 
 double Event::getClientX()
 {
-	return 0;
+	return clientX;
 }
 
 double Event::getClientY()
 {
-	return 0;
+	return clientY;
 }

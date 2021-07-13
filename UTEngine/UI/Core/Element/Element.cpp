@@ -64,6 +64,7 @@ void Element::setAttribute(std::string name, std::string value)
 
 			pos = pos2;
 		}
+		setNeedsLayout();
 	}
 	else
 	{
@@ -77,6 +78,7 @@ void Element::removeAttribute(std::string name)
 	if (name == "class")
 	{
 		classes.clear();
+		setNeedsLayout();
 	}
 	else
 	{
@@ -89,6 +91,14 @@ void Element::removeAttribute(std::string name)
 
 void Element::setStyle(std::string name, std::string value)
 {
+	if (name == "width" && value.size() > 2 && value.substr(value.size() - 2) == "px")
+	{
+		fixedWidth = std::atof(value.substr(0, value.size() - 2).c_str());
+	}
+	else if (name == "height" && value.size() > 2 && value.substr(value.size() - 2) == "px")
+	{
+		fixedHeight = std::atof(value.substr(0, value.size() - 2).c_str());
+	}
 }
 
 void Element::click()
@@ -100,19 +110,33 @@ void Element::focus()
 {
 }
 
+void Element::dispatchEvent(std::string name, Event* e, bool bubbles)
+{
+	Element* currentTarget = this;
+	while (true)
+	{
+		for (auto& handler : currentTarget->eventListeners[name])
+		{
+			handler(e);
+			if (e->stopImmediatePropagationFlag)
+				break;
+		}
+
+		currentTarget = currentTarget->parent();
+		if (!bubbles || !currentTarget || e->stopPropagationFlag || e->stopImmediatePropagationFlag)
+			break;
+	}
+
+	if (!e->preventDefaultFlag)
+	{
+		defaultAction(e);
+	}
+}
+
 void Element::dispatchEvent(std::string name, bool bubbles)
 {
 	Event e;
-	for (auto& handler : eventListeners[name])
-	{
-		handler(&e);
-		if (e.stopPropagationFlag)
-			break;
-	}
-	if (!e.preventDefaultFlag)
-	{
-		defaultAction(&e);
-	}
+	dispatchEvent(name, &e, bubbles);
 }
 
 void Element::addEventListener(std::string name, std::function<void(Event* event)> handler)
@@ -342,6 +366,10 @@ double Element::lineHeight()
 		return 30;
 	else if (isClass("menubaritem") || isClass("menubarmodalitem"))
 		return 24;
+	else if (isClass("listviewheader"))
+		return 24;
+	else if (isClass("listviewitem"))
+		return 24;
 
 	if (parent())
 		return parent()->lineHeight();
@@ -382,6 +410,20 @@ ComputedBorder Element::computedBorder()
 		border.left = 9;
 		border.right = 9;
 	}
+	else if (isClass("listviewheader"))
+	{
+		border.left = 5;
+		border.right = 5;
+	}
+	else if (isClass("listviewitem"))
+	{
+		border.left = 5;
+		border.right = 5;
+	}
+	else if (parent() && parent()->isClass("listview-headersplitter"))
+	{
+		border.left = 1;
+	}
 	return border;
 }
 
@@ -399,6 +441,22 @@ void Element::renderStyle(Canvas* canvas)
 	else if (isClass("tabcontrol-widgetstack"))
 	{
 		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
+	}
+	else if (isClass("listviewheader"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
+	}
+	else if (isClass("listviewbody"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
+	}
+	else if (isClass("listviewitem") && isClass("selected"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(204 / 255.0f, 232 / 255.0f, 255 / 255.0f));
+	}
+	else if (parent() && parent()->isClass("listview-headersplitter"))
+	{
+		canvas->fillRect(geometry().paddingBox(), Colorf(200 / 255.0f, 200 / 255.0f, 200 / 255.0f));
 	}
 }
 
@@ -469,7 +527,11 @@ void Element::detachFromParent()
 
 double Element::preferredWidth(Canvas* canvas)
 {
-	if (!innerText.empty())
+	if (fixedWidth >= 0)
+	{
+		return fixedWidth;
+	}
+	else if (!innerText.empty())
 	{
 		return canvas->measureText(innerText).width;
 	}
@@ -497,7 +559,11 @@ double Element::preferredWidth(Canvas* canvas)
 
 double Element::preferredHeight(Canvas* canvas, double width)
 {
-	if (!innerText.empty())
+	if (fixedHeight >= 0)
+	{
+		return fixedHeight;
+	}
+	else if (!innerText.empty())
 	{
 		return lineHeight();
 	}
@@ -604,7 +670,7 @@ void Element::renderContent(Canvas* canvas)
 				if (element->isClass("expanding"))
 					expandingcount++;
 			}
-			double stretchheight = expandingcount > 0 ? (totalheight - geometry().contentHeight) / expandingcount : 0.0;
+			double stretchheight = expandingcount > 0 ? (geometry().contentHeight - totalheight) / expandingcount : 0.0;
 
 			double y = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
@@ -621,7 +687,7 @@ void Element::renderContent(Canvas* canvas)
 				childpos.contentWidth = width - border.left - border.right;
 				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
 				if (element->isClass("expanding"))
-					childpos.contentHeight += stretchheight;
+					childpos.contentHeight = std::max(childpos.contentHeight + stretchheight, 0.0);
 				element->setGeometry(childpos);
 
 				y += childpos.contentHeight + childpos.paddingTop + childpos.paddingBottom;
@@ -640,7 +706,7 @@ void Element::renderContent(Canvas* canvas)
 				if (element->isClass("expanding"))
 					expandingcount++;
 			}
-			double stretchwidth = expandingcount > 0 ? (totalwidth - geometry().contentWidth) / expandingcount : 0.0;
+			double stretchwidth = expandingcount > 0 ? (geometry().contentWidth - totalwidth) / expandingcount : 0.0;
 
 			double x = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
@@ -657,7 +723,7 @@ void Element::renderContent(Canvas* canvas)
 				childpos.contentWidth = element->preferredWidth(canvas);
 				childpos.contentHeight = height - border.top - border.bottom;
 				if (element->isClass("expanding"))
-					childpos.contentWidth += stretchwidth;
+					childpos.contentWidth = std::max(childpos.contentWidth + stretchwidth, 0.0);
 				element->setGeometry(childpos);
 
 				x += childpos.contentWidth + childpos.paddingLeft + childpos.paddingRight;

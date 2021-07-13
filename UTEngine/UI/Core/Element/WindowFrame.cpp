@@ -184,6 +184,22 @@ public:
 			DestroyWindow(windowHandle);
 	}
 
+	void dispatchMouseButtonEvent(std::string name, int button, WPARAM wparam, LPARAM lparam)
+	{
+		double dpiscale = getDpiScale();
+		double x = GET_X_LPARAM(lparam) / dpiscale;
+		double y = GET_Y_LPARAM(lparam) / dpiscale;
+		Element* element = root->element->findElementAt({ x, y });
+		if (element)
+		{
+			Event e;
+			e.clientX = x;
+			e.clientY = y;
+			e.button = button;
+			element->dispatchEvent(name, &e);
+		}
+	}
+
 	LRESULT onWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		if (msg == WM_MOUSEMOVE)
@@ -227,7 +243,80 @@ public:
 				DeleteObject(backbuffer);
 				EndPaint(windowHandle, &paintStruct);
 			}
-
+			return 0;
+		}
+		else if (msg == WM_SETFOCUS)
+		{
+			return 0;
+		}
+		else if (msg == WM_KILLFOCUS)
+		{
+			return 0;
+		}
+		else if (msg == WM_CHAR)
+		{
+			return 0;
+		}
+		else if (msg == WM_KEYDOWN)
+		{
+			return 0;
+		}
+		else if (msg == WM_KEYUP)
+		{
+			return 0;
+		}
+		else if (msg == WM_LBUTTONDOWN)
+		{
+			dispatchMouseButtonEvent("mousedown", 0, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_MBUTTONDOWN)
+		{
+			dispatchMouseButtonEvent("mousedown", 1, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_RBUTTONDOWN)
+		{
+			dispatchMouseButtonEvent("mousedown", 2, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_LBUTTONUP)
+		{
+			dispatchMouseButtonEvent("mouseup", 0, wparam, lparam);
+			dispatchMouseButtonEvent("click", 0, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_MBUTTONUP)
+		{
+			dispatchMouseButtonEvent("mouseup", 1, wparam, lparam);
+			dispatchMouseButtonEvent("click", 1, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_RBUTTONUP)
+		{
+			dispatchMouseButtonEvent("mouseup", 2, wparam, lparam);
+			dispatchMouseButtonEvent("click", 2, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_LBUTTONDBLCLK)
+		{
+			dispatchMouseButtonEvent("dblclick", 0, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_MBUTTONDBLCLK)
+		{
+			dispatchMouseButtonEvent("dblclick", 1, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_RBUTTONDBLCLK)
+		{
+			dispatchMouseButtonEvent("dblclick", 2, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_MOUSEWHEEL)
+		{
+			//int delta = GET_WHEEL_DELTA_WPARAM(wparam);
+			// dispatchMouseWheelEvent("wheel", delta, wparam, lparam);
 			return 0;
 		}
 		else if (msg == WM_SIZE)
@@ -337,7 +426,10 @@ void WindowFrame::hide()
 
 void WindowFrame::setContentView(std::unique_ptr<View> view)
 {
+	if (impl->root)
+		impl->root->element->viewwindow = nullptr;
 	impl->root = std::move(view);
+	impl->root->element->viewwindow = this;
 	if (impl->root)
 	{
 		ElementGeometry g;
