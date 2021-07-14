@@ -11,8 +11,8 @@ LocalsPage::LocalsPage(View* parent) : VBoxView(parent)
 	listview = new ListView(this);
 	listview->setExpanding();
 
-	listview->addColumn("Name", 200);
-	listview->addColumn("Value", 200, true);
+	listview->addColumn("Name", 300);
+	listview->addColumn("Value", 100, true);
 
 	addClass("localspage");
 	listview->addClass("localspage-listview");

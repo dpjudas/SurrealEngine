@@ -39,8 +39,20 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	tabcontrol->setExpanding();
 	tabcontrol->addPage({}, "Disassembly", disassembly);
 	tabcontrol->addPage({}, "Object Viewer", objectviewer);
-	tabcontrol->addPage({}, "Call Stack", callstack);
-	tabcontrol->addPage({}, "Locals", locals);
+
+	spacer1 = new View(contentView());
+	spacer1->element->setStyle("height", "5px");
+
+	panel = new HBoxView(contentView());
+	panel->element->setStyle("height", "300px");
+	tabLeft = new TabControl(panel);
+	tabLeft->setExpanding();
+	tabLeft->addPage({}, "Locals", locals);
+	spacer2 = new View(panel);
+	spacer2->element->setStyle("width", "5px");
+	tabRight = new TabControl(panel);
+	tabRight->setExpanding();
+	tabRight->addPage({}, "Call Stack", callstack);
 
 	statusbar = new Statusbar(contentView());
 	statustext = statusbar->addItem("Ready");

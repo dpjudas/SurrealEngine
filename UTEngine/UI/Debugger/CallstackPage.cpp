@@ -11,8 +11,8 @@ CallstackPage::CallstackPage(View* parent) : VBoxView(parent)
 	listview = new ListView(this);
 	listview->setExpanding();
 
-	listview->addColumn("Name", 400);
-	listview->addColumn("Line", 200, true);
+	listview->addColumn("Name", 300, true);
+	listview->addColumn("Line", 100);
 
 	addClass("callstackpage");
 	listview->addClass("callstackpage-listview");
