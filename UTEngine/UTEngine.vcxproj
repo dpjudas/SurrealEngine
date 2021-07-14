@@ -195,9 +195,11 @@
     <ClInclude Include="UI\Core\JsonValue.h" />
     <ClInclude Include="UI\Core\UTF8Reader.h" />
     <ClInclude Include="UI\Core\View.h" />
+    <ClInclude Include="UI\Debugger\CallstackPage.h" />
     <ClInclude Include="UI\Debugger\DebuggerWindow.h" />
     <ClInclude Include="UI\Debugger\DisassemblyPage.h" />
     <ClInclude Include="UI\Debugger\ExpressionItemBuilder.h" />
+    <ClInclude Include="UI\Debugger\LocalsPage.h" />
     <ClInclude Include="UI\Debugger\ObjectViewerPage.h" />
     <ClInclude Include="UI\Dialog\AppMenu.h" />
     <ClInclude Include="UI\Dialog\Dialog.h" />
@@ -844,9 +846,11 @@
     <ClCompile Include="UI\Core\JsonValue.cpp" />
     <ClCompile Include="UI\Core\UTF8Reader.cpp" />
     <ClCompile Include="UI\Core\View.cpp" />
+    <ClCompile Include="UI\Debugger\CallstackPage.cpp" />
     <ClCompile Include="UI\Debugger\DebuggerWindow.cpp" />
     <ClCompile Include="UI\Debugger\DisassemblyPage.cpp" />
     <ClCompile Include="UI\Debugger\ExpressionItemBuilder.cpp" />
+    <ClCompile Include="UI\Debugger\LocalsPage.cpp" />
     <ClCompile Include="UI\Debugger\ObjectViewerPage.cpp" />
     <ClCompile Include="UI\Dialog\AppMenu.cpp" />
     <ClCompile Include="UI\Dialog\Dialog.cpp" />

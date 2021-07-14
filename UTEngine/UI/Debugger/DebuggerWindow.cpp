@@ -3,6 +3,8 @@
 #include "DebuggerWindow.h"
 #include "DisassemblyPage.h"
 #include "ObjectViewerPage.h"
+#include "CallstackPage.h"
+#include "LocalsPage.h"
 #include "UI/Core/View.h"
 #include "UI/MainWindow/Menubar.h"
 #include "UI/MainWindow/Toolbar.h"
@@ -30,11 +32,15 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 
 	disassembly = new DisassemblyPage(nullptr);
 	objectviewer = new ObjectViewerPage(nullptr);
+	callstack = new CallstackPage(nullptr);
+	locals = new LocalsPage(nullptr);
 
 	tabcontrol = new TabControl(contentView());
 	tabcontrol->setExpanding();
 	tabcontrol->addPage({}, "Disassembly", disassembly);
 	tabcontrol->addPage({}, "Object Viewer", objectviewer);
+	tabcontrol->addPage({}, "Call Stack", callstack);
+	tabcontrol->addPage({}, "Locals", locals);
 
 	statusbar = new Statusbar(contentView());
 	statustext = statusbar->addItem("Ready");
@@ -49,12 +55,15 @@ void DebuggerWindow::onBreakpointTriggered()
 	{
 		disassembly->setFunction(Frame::Callstack.back()->Func);
 		objectviewer->setObject(Frame::Callstack.back()->Object);
+		locals->setFrame(Frame::Callstack.back());
 	}
 	else
 	{
 		disassembly->setFunction(nullptr);
 		objectviewer->setObject(nullptr);
+		locals->setFrame(nullptr);
 	}
+	callstack->updateList();
 }
 
 void DebuggerWindow::onClose()

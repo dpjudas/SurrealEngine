@@ -11,6 +11,8 @@ class StatusbarItem;
 class TabControl;
 class DisassemblyPage;
 class ObjectViewerPage;
+class CallstackPage;
+class LocalsPage;
 
 class DebuggerWindow : public WindowFrame
 {
@@ -38,4 +40,6 @@ public:
 	StatusbarItem* statustext = nullptr;
 	DisassemblyPage* disassembly = nullptr;
 	ObjectViewerPage* objectviewer = nullptr;
+	CallstackPage* callstack = nullptr;
+	LocalsPage* locals = nullptr;
 };

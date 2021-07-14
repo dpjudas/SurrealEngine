@@ -4,7 +4,6 @@
 #include "UI/Controls/ListView/ListView.h"
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
-#include "UObject/ULevel.h"
 
 ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 {
@@ -27,7 +26,6 @@ void ObjectViewerPage::setObject(UObject* obj)
 		void* ptr = obj->PropertyData.Ptr(prop);
 
 		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-
 		item->setText(0, prop->Name);
 		item->setText(1, prop->PrintValue(ptr));
 	}
