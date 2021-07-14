@@ -769,6 +769,7 @@ void Element::renderContent(Canvas* canvas)
 
 	if (!innerText.empty())
 	{
-		canvas->drawText({ 0.0f, 0.0f }, color(), innerText);
+		Rect box = canvas->measureText(innerText);
+		canvas->drawText({ 0.0f, (lineHeight() - box.height) * 0.5 }, color(), innerText);
 	}
 }
