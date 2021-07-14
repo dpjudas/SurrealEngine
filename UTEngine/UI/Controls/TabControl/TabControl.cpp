@@ -18,6 +18,15 @@ void TabControl::setupUi()
 	addClass("tabcontrol");
 }
 
+void TabControl::setBarPosition(TabBarPosition pos)
+{
+	if (pos != barpos)
+	{
+		barpos = pos;
+		tabs->moveBefore(barpos == TabBarPosition::top ? widgetStack : nullptr);
+	}
+}
+
 void TabControl::addPage(std::string icon, std::string label, View* page)
 {
 	auto tab = new TabBarTab(tabs);

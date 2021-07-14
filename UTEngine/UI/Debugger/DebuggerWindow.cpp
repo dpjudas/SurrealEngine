@@ -46,11 +46,13 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	panel = new HBoxView(contentView());
 	panel->element->setStyle("height", "300px");
 	tabLeft = new TabControl(panel);
+	tabLeft->setBarPosition(TabBarPosition::bottom);
 	tabLeft->setExpanding();
 	tabLeft->addPage({}, "Locals", locals);
 	spacer2 = new View(panel);
 	spacer2->element->setStyle("width", "5px");
 	tabRight = new TabControl(panel);
+	tabRight->setBarPosition(TabBarPosition::bottom);
 	tabRight->setExpanding();
 	tabRight->addPage({}, "Call Stack", callstack);
 

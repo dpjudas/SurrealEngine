@@ -7,11 +7,18 @@
 class TabBar;
 class TabBarTab;
 
+enum class TabBarPosition
+{
+	top,
+	bottom
+};
+
 class TabControl : public VBoxView
 {
 public:
 	TabControl(View* parent);
 
+	void setBarPosition(TabBarPosition pos);
 	void addPage(std::string icon, std::string label, View* page);
 	void showPage(View* page);
 
@@ -22,6 +29,7 @@ private:
 	void onPageTabClicked(View* page);
 	void setupUi();
 
+	TabBarPosition barpos = TabBarPosition::top;
 	TabBar* tabs = nullptr;
 	std::map<TabBarTab*, std::unique_ptr<View>> pages;
 	View* currentPage = nullptr;
