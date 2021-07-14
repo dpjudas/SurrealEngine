@@ -118,6 +118,7 @@ public:
 	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
 	double fixedWidth = -1;
 	double fixedHeight = -1;
+	double paddingLeft = -1;
 
 private:
 	void setParent(Element* newParent);

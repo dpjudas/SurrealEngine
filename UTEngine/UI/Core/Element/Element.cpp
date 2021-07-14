@@ -99,6 +99,10 @@ void Element::setStyle(std::string name, std::string value)
 	{
 		fixedHeight = std::atof(value.substr(0, value.size() - 2).c_str());
 	}
+	else if ((name == "padding-left" || name =="paddingLeft") && value.size() > 2 && value.substr(value.size() - 2) == "px")
+	{
+		paddingLeft = std::atof(value.substr(0, value.size() - 2).c_str());
+	}
 }
 
 void Element::click()
@@ -424,6 +428,8 @@ ComputedBorder Element::computedBorder()
 	{
 		border.left = 1;
 	}
+	if (paddingLeft >= 0)
+		border.left = paddingLeft;
 	return border;
 }
 

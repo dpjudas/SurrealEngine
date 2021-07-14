@@ -710,6 +710,9 @@
     <ClCompile Include="UI\Debugger\ObjectViewerPage.cpp">
       <Filter>UI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Debugger\ExpressionItemBuilder.cpp">
+      <Filter>UI\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1146,6 +1149,9 @@
       <Filter>UI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="UI\Debugger\ObjectViewerPage.h">
+      <Filter>UI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debugger\ExpressionItemBuilder.h">
       <Filter>UI\Debugger</Filter>
     </ClInclude>
   </ItemGroup>

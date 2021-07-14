@@ -1,22 +1,40 @@
 
 #include "Precomp.h"
 #include "DisassemblyPage.h"
+#include "UObject/UClass.h"
+#include "UObject/UClient.h"
 #include "UI/Controls/ListView/ListView.h"
+#include "ExpressionItemBuilder.h"
+#include "VM/Bytecode.h"
+#include "VM/ScriptCall.h"
+#include "Engine.h"
 
 DisassemblyPage::DisassemblyPage(View* parent) : VBoxView(parent)
 {
 	listview = new ListView(this);
 	listview->setExpanding();
 
-	listview->addColumn("Name", 500);
+	listview->addColumn("Expression", 500);
+	listview->addColumn("Name", 150);
 	listview->addColumn("Value", 200, true);
-	for (int i = 0; i < 5; i++)
-	{
-		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-		item->setText(0, "Foobar");
-		item->setText(1, "Moo");
-	}
 
 	addClass("disassemblypage");
 	listview->addClass("disassemblypage-listview");
+
+	setFunction(FindEventFunction(engine->console, "Tick"));
+}
+
+void DisassemblyPage::setFunction(UFunction* func)
+{
+	listview->clearList();
+
+	if (func)
+	{
+		int index = 0;
+		for (Expression* expr : func->Code->Statements)
+		{
+			listview->rootItem()->add(ExpressionItemBuilder::createItem("Statement[" + std::to_string(index) + "]", expr));
+			index++;
+		}
+	}
 }

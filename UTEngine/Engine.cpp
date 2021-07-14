@@ -47,9 +47,6 @@ void Engine::Run()
 	window = Window::Create(this);
 	window->OpenWindow(1800, 950, true);
 
-	auto debugger = new DebuggerWindow();
-	debugger->show();
-
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
 	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
@@ -117,9 +114,8 @@ void Engine::Run()
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
 
-	// Simulate pressing escape so that we hopefully will see the UT menu
-	//ExpressionValue result = CallEvent(console, "KeyType", { ExpressionValue::ByteValue(27) });
-	//ExpressionValue result2 = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(27), ExpressionValue::ByteValue(1), ExpressionValue::FloatValue(0.0f) });
+	auto debugger = new DebuggerWindow();
+	debugger->show();
 
 	while (!quit)
 	{

@@ -2,6 +2,10 @@
 #include "Precomp.h"
 #include "ObjectViewerPage.h"
 #include "UI/Controls/ListView/ListView.h"
+#include "UObject/UClass.h"
+#include "UObject/UProperty.h"
+#include "UObject/ULevel.h"
+#include "Engine.h"
 
 ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 {
@@ -10,13 +14,24 @@ ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 
 	listview->addColumn("Name", 200);
 	listview->addColumn("Value", 200, true);
-	for (int i = 0; i < 5; i++)
-	{
-		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-		item->setText(0, "propname");
-		item->setText(1, "propvalue");
-	}
 
 	addClass("objectviewerpage");
 	listview->addClass("objectviewerpage-listview");
+
+	setObject(engine->LevelSummary);
+}
+
+void ObjectViewerPage::setObject(UObject* obj)
+{
+	listview->clearList();
+
+	for (UProperty* prop : obj->PropertyData.Class->Properties)
+	{
+		void* ptr = obj->PropertyData.Ptr(prop);
+
+		auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
+
+		item->setText(0, prop->Name);
+		item->setText(1, prop->PrintValue(ptr));
+	}
 }

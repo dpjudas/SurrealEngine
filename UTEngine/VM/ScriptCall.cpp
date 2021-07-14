@@ -5,6 +5,15 @@
 
 ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector<ExpressionValue> args)
 {
+	UFunction* func = FindEventFunction(Context, name);
+	if (func)
+		return Frame::Call(func, Context, std::move(args));
+	else
+		throw std::runtime_error("Event " + name + " not found on object");
+}
+
+UFunction* FindEventFunction(UObject* Context, const std::string& name)
+{
 	// Search states first
 
 	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
@@ -19,7 +28,7 @@ ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector
 					UFunction* func = UObject::TryCast<UFunction>(field2);
 					if (func && func->Name == name)
 					{
-						return Frame::Call(func, Context, std::move(args));
+						return func;
 					}
 				}
 			}
@@ -35,10 +44,10 @@ ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector
 			UFunction* func = UObject::TryCast<UFunction>(field);
 			if (func && func->Name == name)
 			{
-				return Frame::Call(func, Context, std::move(args));
+				return func;
 			}
 		}
 	}
 
-	throw std::runtime_error("Event " + name + " not found on object");
+	return nullptr;
 }
