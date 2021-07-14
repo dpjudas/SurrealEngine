@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "ExpressionItemBuilder.h"
 #include "VM/Expression.h"
+#include "VM/NativeFunc.h"
 #include "UI/Controls/ListView/ListViewItem.h"
 #include "UObject/UProperty.h"
 
@@ -525,6 +526,7 @@ void ExpressionItemBuilder::Expr(RotatorToStringExpression* expr)
 void ExpressionItemBuilder::Expr(VirtualFunctionExpression* expr)
 {
 	item->setText(0, "Virtual function");
+	item->setText(2, expr->Name);
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -536,6 +538,7 @@ void ExpressionItemBuilder::Expr(VirtualFunctionExpression* expr)
 void ExpressionItemBuilder::Expr(FinalFunctionExpression* expr)
 {
 	item->setText(0, "Final function");
+	item->setText(2, GetFullFuncName(expr->Func));
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -547,6 +550,7 @@ void ExpressionItemBuilder::Expr(FinalFunctionExpression* expr)
 void ExpressionItemBuilder::Expr(GlobalFunctionExpression* expr)
 {
 	item->setText(0, "Global function");
+	item->setText(2, expr->Name);
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -558,10 +562,24 @@ void ExpressionItemBuilder::Expr(GlobalFunctionExpression* expr)
 void ExpressionItemBuilder::Expr(NativeFunctionExpression* expr)
 {
 	item->setText(0, "Native function");
+	item->setText(2, GetFullFuncName(NativeFunctions::FuncByIndex[expr->nativeindex]));
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		item->add(createItem("Arg[" + std::to_string(index) + "]", arg));
 		index++;
 	}
+}
+
+std::string ExpressionItemBuilder::GetFullFuncName(UFunction* func)
+{
+	std::string name;
+	for (UStruct* s = func; s != nullptr; s = s->StructParent)
+	{
+		if (name.empty())
+			name = s->Name;
+		else
+			name = s->Name + "." + name;
+	}
+	return name;
 }

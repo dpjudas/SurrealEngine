@@ -3,6 +3,7 @@
 #include "VM/ExpressionVisitor.h"
 
 class TextListViewItem;
+class UFunction;
 
 class ExpressionItemBuilder : public ExpressionVisitor
 {
@@ -97,6 +98,8 @@ private:
 	void Expr(FinalFunctionExpression* expr) override;
 	void Expr(GlobalFunctionExpression* expr) override;
 	void Expr(NativeFunctionExpression* expr) override;
+
+	static std::string GetFullFuncName(UFunction* func);
 
 	std::unique_ptr<TextListViewItem> item;
 };
