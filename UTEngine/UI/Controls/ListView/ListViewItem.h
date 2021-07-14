@@ -69,6 +69,7 @@ class RootListViewItem : public ListViewItem
 {
 public:
 	RootListViewItem(ListView* listview) : listviewObj(listview) { }
+	~RootListViewItem() { removeAllChildren(); }
 
 	ListView* listview() const override { return listviewObj; }
 

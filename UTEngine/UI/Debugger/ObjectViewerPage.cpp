@@ -5,7 +5,6 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "UObject/ULevel.h"
-#include "Engine.h"
 
 ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 {
@@ -17,8 +16,6 @@ ObjectViewerPage::ObjectViewerPage(View* parent) : VBoxView(parent)
 
 	addClass("objectviewerpage");
 	listview->addClass("objectviewerpage-listview");
-
-	setObject(engine->LevelSummary);
 }
 
 void ObjectViewerPage::setObject(UObject* obj)

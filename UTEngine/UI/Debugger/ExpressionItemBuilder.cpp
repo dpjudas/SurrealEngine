@@ -253,11 +253,16 @@ void ExpressionItemBuilder::Expr(FalseExpression* expr)
 void ExpressionItemBuilder::Expr(NativeParmExpression* expr)
 {
 	item->setText(0, "Native parm");
+	if (expr->Object)
+		item->setText(2, expr->Object->Name);
+	else
+		item->setText(2, "(null)");
 }
 
 void ExpressionItemBuilder::Expr(NoObjectExpression* expr)
 {
 	item->setText(0, "No object");
+	item->setText(2, "null");
 }
 
 void ExpressionItemBuilder::Expr(Unknown0x2bExpression* expr)

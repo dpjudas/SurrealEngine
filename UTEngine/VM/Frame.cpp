@@ -5,26 +5,79 @@
 #include "ExpressionEvaluator.h"
 #include "NativeFunc.h"
 #include "UObject/UTextBuffer.h"
+#include "UI/Debugger/DebuggerWindow.h"
 
-#ifdef _DEBUG
-std::vector<std::string> callstack;
-std::string Frame::GetCallstack()
+DebuggerWindow* Frame::Debugger = nullptr;
+std::vector<Expression*> Frame::Breakpoints;
+std::vector<Frame*> Frame::Callstack;
+FrameRunState Frame::RunState = FrameRunState::Running;
+Frame* Frame::StepFrame = nullptr;
+std::string Frame::ExceptionText;
+
+void Frame::Break()
 {
-	std::string result;
-	for (auto it = callstack.rbegin(); it != callstack.rend(); ++it)
-	{
-		const std::string& callstackName = *it;
+	RunState = FrameRunState::DebugBreak;
+
 #ifdef WIN32
-		if (!result.empty()) result += "\r\n";
-#else
-		if (!result.empty()) result += "\n";
-#endif
-		result += callstackName;
+	if (!Debugger)
+	{
+		Debugger = new DebuggerWindow([]() {
+			delete Debugger;
+			Debugger = nullptr;
+		});
+		Debugger->show();
 	}
-	return result;
+
+	Debugger->onBreakpointTriggered();
+
+	while (Debugger && RunState == FrameRunState::DebugBreak)
+	{
+		MSG msg = {};
+		int result = GetMessage(&msg, 0, 0, 0);
+		if (result <= 0 || msg.message == WM_QUIT)
+			break;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+#endif
+
+	if (!ExceptionText.empty())
+	{
+		std::string callstack = Frame::GetCallstack();
+		std::string message = "Script execution error:\r\n\r\n";
+		message += ExceptionText;
+		message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
+		throw std::runtime_error(message);
+	}
 }
-#else
-std::vector<UFunction*> callstack;
+
+void Frame::Resume()
+{
+	RunState = FrameRunState::Running;
+}
+
+void Frame::StepInto()
+{
+	StepFrame = Callstack.back();
+	RunState = FrameRunState::StepInto;
+}
+
+void Frame::StepOver()
+{
+	StepFrame = Callstack.back();
+	RunState = FrameRunState::StepOver;
+}
+
+void Frame::ThrowException(const std::string& text)
+{
+#if defined(_DEBUG) && defined(WIN32)
+	DebugBreak();
+#endif
+
+	ExceptionText = text;
+	Break();
+}
+
 std::string Frame::GetCallstack()
 {
 	std::string result;
@@ -35,51 +88,27 @@ std::string Frame::GetCallstack()
 	std::string newline = "\n";
 #endif
 
-	for (auto it = callstack.rbegin(); it != callstack.rend(); ++it)
+	for (auto it = Callstack.rbegin(); it != Callstack.rend(); ++it)
 	{
-		UFunction* func = *it;
-		std::string callstackName;
+		UFunction* func = (*it)->Func;
+		std::string name;
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{
-			if (callstackName.empty())
-				callstackName = s->Name;
+			if (name.empty())
+				name = s->Name;
 			else
-				callstackName = s->Name + "." + callstackName;
+				name = s->Name + "." + name;
 		}
 		if (func)
-			callstackName += " line " + std::to_string(func->Line);
+			name += " line " + std::to_string(func->Line);
 		if (!result.empty()) result += newline;
-		result += callstackName;
+		result += name;
 	}
 	return result;
 }
-#endif
 
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
 {
-#ifdef _DEBUG
-	std::string callstackName;
-	for (UStruct* s = func; s != nullptr; s = s->StructParent)
-	{
-		if (callstackName.empty())
-			callstackName = s->Name;
-		else
-			callstackName = s->Name + "." + callstackName;
-	}
-	callstack.push_back(callstackName);
-#else
-	callstack.push_back(func);
-#endif
-
-#if 0
-	if (callstackName == "WindowConsole.UWindow.KeyEvent")
-	{
-		//std::string properties = instance->GetUObject("MouseWindow")->PrintProperties();
-		std::string properties = instance->PrintProperties();
-		properties.push_back(' ');
-	}
-#endif
-
 	int argindex = 0;
 	for (UField* field = func->Children; field != nullptr; field = field->Next)
 	{
@@ -114,16 +143,22 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 		}
 
-		if (func->NativeFuncIndex != 0)
+		try
 		{
-			NativeFunctions::NativeByIndex[func->NativeFuncIndex](instance, args.data());
+			if (func->NativeFuncIndex != 0)
+			{
+				NativeFunctions::NativeByIndex[func->NativeFuncIndex](instance, args.data());
+			}
+			else
+			{
+				NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
+			}
 		}
-		else
+		catch (const std::exception& e)
 		{
-			NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
+			Frame::ThrowException(e.what());
 		}
 
-		callstack.pop_back();
 		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
 	}
 	else
@@ -131,7 +166,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		Frame frame;
 		frame.Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
 		frame.Object = instance;
-		frame.Code = func->Code.get();
+		frame.Func = func;
 
 		int argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
@@ -176,26 +211,38 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 		}
 
-		callstack.pop_back();
 		return result;
 	}
 }
 
 ExpressionEvalResult Frame::Run()
 {
+	Callstack.push_back(this);
+
+	if (RunState == FrameRunState::StepInto)
+	{
+		Break();
+	}
+
 	while (true)
 	{
-		if (StatementIndex >= Code->Statements.size())
+		if (StatementIndex >= Func->Code->Statements.size())
 			throw std::runtime_error("Unexpected end of code statements");
 
-		ExpressionEvalResult result = ExpressionEvaluator::Eval(Code->Statements[StatementIndex], Object, Object, Variables.get());
+		if (RunState == FrameRunState::StepOver && StepFrame == this)
+		{
+			Break();
+		}
+
+		Expression* statement = Func->Code->Statements[StatementIndex];
+		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables.get());
 		switch (result.Result)
 		{
 		case StatementResult::Next:
 			StatementIndex++;
 			break;
 		case StatementResult::Jump:
-			StatementIndex = Code->FindStatementIndex(result.JumpAddress);
+			StatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
 			break;
 		case StatementResult::Switch:
 			ProcessSwitch(result.Value);
@@ -204,24 +251,27 @@ ExpressionEvalResult Frame::Run()
 		case StatementResult::Return:
 		case StatementResult::Stop:
 		case StatementResult::GotoLabel:
+			Callstack.pop_back();
 			return result;
 		}
 	}
+
+	Callstack.pop_back();
 }
 
 void Frame::ProcessSwitch(const ExpressionValue& condition)
 {
-	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Code->Statements[StatementIndex++]);
+	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Func->Code->Statements[StatementIndex++]);
 	while (true)
 	{
-		CaseExpression* caseexpr = static_cast<CaseExpression*>(Code->Statements[StatementIndex++]);
+		CaseExpression* caseexpr = static_cast<CaseExpression*>(Func->Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
 		{
 			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables.get()).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
-				StatementIndex = Code->FindStatementIndex(caseexpr->NextOffset);
+				StatementIndex = Func->Code->FindStatementIndex(caseexpr->NextOffset);
 		}
 		else
 		{

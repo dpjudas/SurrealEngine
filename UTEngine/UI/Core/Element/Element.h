@@ -112,6 +112,7 @@ public:
 
 	void renderStyle(Canvas* canvas);
 	ComputedBorder computedBorder();
+	bool overflow();
 	Colorf color();
 	double lineHeight();
 
@@ -121,6 +122,7 @@ public:
 	double paddingLeft = -1;
 
 private:
+	void layoutContent(Canvas* canvas);
 	void setParent(Element* newParent);
 	void moveBefore(Element* sibling);
 	void detachFromParent();

@@ -6,8 +6,6 @@
 #include "UI/Controls/ListView/ListView.h"
 #include "ExpressionItemBuilder.h"
 #include "VM/Bytecode.h"
-#include "VM/ScriptCall.h"
-#include "Engine.h"
 
 DisassemblyPage::DisassemblyPage(View* parent) : VBoxView(parent)
 {
@@ -20,8 +18,6 @@ DisassemblyPage::DisassemblyPage(View* parent) : VBoxView(parent)
 
 	addClass("disassemblypage");
 	listview->addClass("disassemblypage-listview");
-
-	setFunction(FindEventFunction(engine->console, "Tick"));
 }
 
 void DisassemblyPage::setFunction(UFunction* func)

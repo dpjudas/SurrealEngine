@@ -114,9 +114,6 @@ void Engine::Run()
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
 
-	auto debugger = new DebuggerWindow();
-	debugger->show();
-
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed();
@@ -217,6 +214,9 @@ float Engine::CalcTimeElapsed()
 
 void Engine::Key(Window* viewport, std::string key)
 {
+	if (Frame::RunState != FrameRunState::Running)
+		return;
+
 	for (char c : key)
 	{
 		CallEvent(console, "KeyType", { ExpressionValue::ByteValue(c) });
@@ -225,6 +225,9 @@ void Engine::Key(Window* viewport, std::string key)
 
 void Engine::InputEvent(Window* window, EInputKey key, EInputType type, int delta)
 {
+	if (Frame::RunState != FrameRunState::Running)
+		return;
+
 	CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) });
 
 	if (!viewport->bShowWindowsMouse())

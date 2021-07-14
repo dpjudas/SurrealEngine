@@ -12,6 +12,8 @@ public:
 	WindowFrame();
 	~WindowFrame();
 
+	virtual void onClose() = 0;
+
 	void setIcon(const std::string& src);
 	void setTitle(const std::string& title);
 	void setSize(double width, double height);

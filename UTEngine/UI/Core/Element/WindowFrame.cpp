@@ -64,6 +64,18 @@ public:
 	Point getOrigin() override { return origin; }
 	void setOrigin(const Point& newOrigin) override { origin = newOrigin; }
 
+	void pushClip(const Rect& box)
+	{
+		graphics.SetClip(Gdiplus::Rect(toScreen(origin.x + box.x), toScreen(origin.y + box.y), toScreen(box.width), toScreen(box.height)));
+		//graphics.IntersectClip(Gdiplus::Rect(toScreen(origin.x + box.x), toScreen(origin.y + box.y), toScreen(box.width), toScreen(box.height)));
+	}
+
+	void popClip()
+	{
+		// This isn't really correct. Cba to code this properly. Too boring! Plus gdiplus shouldn't be used anyway!
+		graphics.ResetClip();
+	}
+
 	void fillRect(const Rect& box, const Colorf& color) override
 	{
 		Gdiplus::SolidBrush brush(toGdiColor(color));
@@ -331,12 +343,18 @@ public:
 				{
 					GetClientRect(windowHandle, &box);
 					ElementGeometry g;
-					g.contentWidth = box.right;
-					g.contentHeight = box.bottom;
+					g.contentWidth = box.right / dpiscale;
+					g.contentHeight = box.bottom / dpiscale;
 					root->element->setGeometry(g);
 				}
 			}
 		}
+		else if (msg == WM_CLOSE)
+		{
+			viewwindow->onClose();
+			return 0;
+		}
+
 		return DefWindowProc(windowHandle, msg, wparam, lparam);
 	}
 

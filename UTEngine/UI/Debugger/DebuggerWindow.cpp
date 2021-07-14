@@ -6,9 +6,11 @@
 #include "UI/Core/View.h"
 #include "UI/MainWindow/Menubar.h"
 #include "UI/MainWindow/Toolbar.h"
+#include "UI/MainWindow/Statusbar.h"
 #include "UI/Controls/TabControl/TabControl.h"
+#include "VM/Frame.h"
 
-DebuggerWindow::DebuggerWindow()
+DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseCallback(std::move(onCloseCallback))
 {
 	setTitle("UTEngine Debugger");
 	setContentView(std::make_unique<VBoxView>(nullptr));
@@ -34,7 +36,30 @@ DebuggerWindow::DebuggerWindow()
 	tabcontrol->addPage({}, "Disassembly", disassembly);
 	tabcontrol->addPage({}, "Object Viewer", objectviewer);
 
+	statusbar = new Statusbar(contentView());
+	statustext = statusbar->addItem("Ready");
+
 	setSize(1700, 950);
+}
+
+void DebuggerWindow::onBreakpointTriggered()
+{
+	statustext->text->setText(Frame::ExceptionText);
+	if (!Frame::Callstack.empty())
+	{
+		disassembly->setFunction(Frame::Callstack.back()->Func);
+		objectviewer->setObject(Frame::Callstack.back()->Object);
+	}
+	else
+	{
+		disassembly->setFunction(nullptr);
+		objectviewer->setObject(nullptr);
+	}
+}
+
+void DebuggerWindow::onClose()
+{
+	onCloseCallback();
 }
 
 void DebuggerWindow::onFileMenu(Menu* menu)

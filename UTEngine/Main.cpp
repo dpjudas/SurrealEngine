@@ -8,22 +8,7 @@
 void appMain()
 {
 	Engine engine;
-	try
-	{
-		engine.Run();
-	}
-	catch (const std::exception& e)
-	{
-		std::string callstack = Frame::GetCallstack();
-		if (!callstack.empty())
-		{
-			std::string message = "Script execution error:\r\n\r\n";
-			message += e.what();
-			message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
-			throw std::runtime_error(message);
-		}
-		throw;
-	}
+	engine.Run();
 }
 
 #ifdef WIN32

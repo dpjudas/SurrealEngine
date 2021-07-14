@@ -281,6 +281,7 @@ void Element::clearNeedsLayout()
 
 void Element::setNeedsLayout()
 {
+	needs_layout = true;
 	Element* super = parent();
 	if (super)
 		super->setNeedsLayout();
@@ -346,10 +347,18 @@ WindowFrame* Element::window()
 void Element::render(Canvas* canvas)
 {
 	renderStyle(canvas);
+
+	bool needsClipping = overflow();
+	if (needsClipping)
+		canvas->pushClip(geometry().contentBox());
+
 	Point origin = canvas->getOrigin();
 	canvas->setOrigin(origin + geometry().contentBox().pos());
 	renderContent(canvas);
 	canvas->setOrigin(origin);
+
+	if (needsClipping)
+		canvas->popClip();
 }
 
 Colorf Element::color()
@@ -379,6 +388,11 @@ double Element::lineHeight()
 		return parent()->lineHeight();
 	else
 		return 20;
+}
+
+bool Element::overflow()
+{
+	return isClass("listviewbody");
 }
 
 ComputedBorder Element::computedBorder()
@@ -427,6 +441,11 @@ ComputedBorder Element::computedBorder()
 	else if (parent() && parent()->isClass("listview-headersplitter"))
 	{
 		border.left = 1;
+	}
+	else if (isClass("statusbaritem"))
+	{
+		border.left = 5;
+		border.right = 5;
 	}
 	if (paddingLeft >= 0)
 		border.left = paddingLeft;
@@ -659,7 +678,7 @@ double Element::lastBaselineOffset(Canvas* canvas, double width)
 	}
 }
 
-void Element::renderContent(Canvas* canvas)
+void Element::layoutContent(Canvas* canvas)
 {
 	if (needsLayout())
 	{
@@ -737,6 +756,11 @@ void Element::renderContent(Canvas* canvas)
 		}
 		clearNeedsLayout();
 	}
+}
+
+void Element::renderContent(Canvas* canvas)
+{
+	layoutContent(canvas);
 
 	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 	{

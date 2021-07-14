@@ -10,6 +10,14 @@
 
 ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, UObject* context, void* localVariables)
 {
+	for (Expression* breakpoint : Frame::Breakpoints)
+	{
+		if (breakpoint == expr)
+		{
+			Frame::Break();
+		}
+	}
+
 	ExpressionEvaluator evaluator;
 	evaluator.Self = self;
 	evaluator.Context = context;
@@ -72,7 +80,7 @@ void ExpressionEvaluator::Expr(AssertExpression* expr)
 {
 	if (!Eval(expr->Condition).Value.ToBool())
 	{
-		throw std::runtime_error("Script assert failed for " + Self->Name + " line " + std::to_string(expr->Line));
+		Frame::ThrowException("Script assert failed for " + Self->Name + " line " + std::to_string(expr->Line));
 	}
 }
 
@@ -88,7 +96,7 @@ void ExpressionEvaluator::Expr(NothingExpression* expr)
 
 void ExpressionEvaluator::Expr(LabelTableExpression* expr)
 {
-	throw std::runtime_error("Label table expression is not implemented");
+	Frame::ThrowException("Label table expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(GotoLabelExpression* expr)
@@ -121,7 +129,7 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
 {
-	throw std::runtime_error("Dynamic array element expression is not implemented");
+	Frame::ThrowException("Dynamic array element expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NewExpression* expr)
@@ -156,7 +164,7 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 	}
 	else
 	{
-		throw std::runtime_error("Class reference not set to an instance of an object");
+		Frame::ThrowException("Class reference not set to an instance of an object");
 	}
 }
 
@@ -180,7 +188,7 @@ void ExpressionEvaluator::Expr(MetaCastExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x15Expression* expr)
 {
-	throw std::runtime_error("Unknown0x15 expression encountered");
+	Frame::ThrowException("Unknown0x15 expression encountered");
 }
 
 void ExpressionEvaluator::Expr(SelfExpression* expr)
@@ -202,7 +210,7 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 	}
 	else
 	{
-		throw std::runtime_error("Object reference not set to an instance of an object");
+		Frame::ThrowException("Object reference not set to an instance of an object");
 	}
 }
 
@@ -213,7 +221,7 @@ void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 	if (Result.Value.VariablePtr)
 		Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
 	else
-		throw std::runtime_error("VariablePtr is null in ArrayElementExpression");
+		Frame::ThrowException("VariablePtr is null in ArrayElementExpression");
 }
 
 void ExpressionEvaluator::Expr(IntConstExpression* expr)
@@ -278,7 +286,7 @@ void ExpressionEvaluator::Expr(FalseExpression* expr)
 
 void ExpressionEvaluator::Expr(NativeParmExpression* expr)
 {
-	throw std::runtime_error("Native parm expression is not implemented");
+	Frame::ThrowException("Native parm expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(NoObjectExpression* expr)
@@ -288,7 +296,7 @@ void ExpressionEvaluator::Expr(NoObjectExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x2bExpression* expr)
 {
-	throw std::runtime_error("Unknown0x2b expression encountered");
+	Frame::ThrowException("Unknown0x2b expression encountered");
 }
 
 void ExpressionEvaluator::Expr(IntConstByteExpression* expr)
@@ -311,27 +319,27 @@ void ExpressionEvaluator::Expr(DynamicCastExpression* expr)
 
 void ExpressionEvaluator::Expr(IteratorExpression* expr)
 {
-	throw std::runtime_error("Iterator expression is not implemented");
+	Frame::ThrowException("Iterator expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IteratorPopExpression* expr)
 {
-	throw std::runtime_error("Iterator pop expression is not implemented");
+	Frame::ThrowException("Iterator pop expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(IteratorNextExpression* expr)
 {
-	throw std::runtime_error("Iterator next expression is not implemented");
+	Frame::ThrowException("Iterator next expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructCmpEqExpression* expr)
 {
-	throw std::runtime_error("Struct cmpeq expression is not implemented");
+	Frame::ThrowException("Struct cmpeq expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 {
-	throw std::runtime_error("Struct cmpne expression is not implemented");
+	Frame::ThrowException("Struct cmpne expression is not implemented");
 }
 
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
@@ -339,7 +347,7 @@ void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 	if (expr->Field)
 		Result.Value = ExpressionValue::Variable(Eval(expr->Value).Value.VariablePtr, expr->Field);
 	else
-		throw std::runtime_error("Null field encountered in struct member expression");
+		Frame::ThrowException("Null field encountered in struct member expression");
 }
 
 void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
@@ -419,7 +427,7 @@ void ExpressionEvaluator::Expr(FloatToBoolExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x46Expression* expr)
 {
-	throw std::runtime_error("Unknown0x46 expression encountered");
+	Frame::ThrowException("Unknown0x46 expression encountered");
 }
 
 void ExpressionEvaluator::Expr(ObjectToBoolExpression* expr)
@@ -584,7 +592,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 		}
 	}
 
-	throw std::runtime_error("Script virtual function " + expr->Name + " not found!");
+	Frame::ThrowException("Script virtual function " + expr->Name + " not found!");
 }
 
 void ExpressionEvaluator::Expr(FinalFunctionExpression* expr)
@@ -613,7 +621,7 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 		}
 	}
 
-	throw std::runtime_error("Script global function " + expr->Name + " not found!");
+	Frame::ThrowException("Script global function " + expr->Name + " not found!");
 }
 
 void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
