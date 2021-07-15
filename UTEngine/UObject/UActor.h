@@ -44,6 +44,15 @@ class UActor : public UObject
 public:
 	using UObject::UObject;
 
+	// Cached calculations needed by the renderer
+	int actorZone = -1;
+	vec3 light = { 0.0f };
+	vec3 fogcolor = { 0.0f };
+	float brightness = -1.0f;
+	float fog = -1.0f;
+	float radius = -1.0f;
+	float r2 = -1.0f;
+
 	vec3& Acceleration() { return Value<vec3>(PropOffsets_Actor.Acceleration); }
 	uint8_t& AmbientGlow() { return Value<uint8_t>(PropOffsets_Actor.AmbientGlow); }
 	USound*& AmbientSound() { return Value<USound*>(PropOffsets_Actor.AmbientSound); }

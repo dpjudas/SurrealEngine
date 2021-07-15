@@ -3,14 +3,21 @@
 #include "MeshRender.h"
 #include "UObject/UMesh.h"
 #include "UObject/UTexture.h"
+#include "UObject/UActor.h"
+#include "UObject/ULevel.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 #include "UTRenderer.h"
 #include "Window/Window.h"
 
-void MeshRender::DrawMesh(FSceneNode* frame, UMesh* mesh, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
+void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 {
-	vec3 color = engine->renderer->light.FindLightAt(location, zoneIndex);
+	UMesh* mesh = actor->Mesh();
+	const vec3& location = actor->Location();
+	const Rotator& rotation = actor->Rotation();
+	float drawscale = actor->DrawScale();
+	int zoneIndex = actor->actorZone;
+	const vec3& color = actor->light;
 
 	mat4 rotate = mat4::rotate(radians(180.0f - rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.YawDegrees()), 0.0f, 0.0f, -1.0f);

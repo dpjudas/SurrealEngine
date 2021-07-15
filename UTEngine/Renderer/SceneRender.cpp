@@ -26,6 +26,10 @@ void SceneRender::DrawScene()
 		int zone = FindZoneAt(frame.ViewLocation);
 		uint64_t zonemask = FindRenderZoneMask(&frame, level->Model->Nodes.front(), clip, zone);
 
+		cameraZoneActor = !level->Model->Zones.empty() ? dynamic_cast<UZoneInfo*>(level->Model->Zones[zone].ZoneActor) : nullptr;
+		if (!cameraZoneActor)
+			cameraZoneActor = engine->LevelInfo;
+
 		DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 0);
 		DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
 
@@ -42,41 +46,50 @@ void SceneRender::DrawScene()
 	int zone = FindZoneAt(SceneFrame.ViewLocation);
 	uint64_t zonemask = FindRenderZoneMask(&SceneFrame, level->Model->Nodes.front(), clip, zone);
 
+	cameraZoneActor = !level->Model->Zones.empty() ? dynamic_cast<UZoneInfo*>(level->Model->Zones[zone].ZoneActor) : nullptr;
+	if (!cameraZoneActor)
+		cameraZoneActor = engine->LevelInfo;
+
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
 
 	for (UActor* actor : level->Actors)
 	{
 		if (actor && !actor->bHidden())
 		{
-			ActorDrawType dt = (ActorDrawType)actor->DrawType();
-			if (dt == ActorDrawType::Mesh && actor->Mesh())
+			int actorZone = actor->actorZone;
+			if (actorZone == -1)
 			{
-				BBox bbox = actor->Mesh()->BoundingBox;
-				bbox.min += actor->Location();
-				bbox.max += actor->Location();
-				if (clip.test(bbox) != IntersectionTestResult::outside)
+				actorZone = FindZoneAt(actor->Location());
+				actor->actorZone = actorZone;
+				actor->light = engine->renderer->light.FindLightAt(actor->Location(), actorZone);
+
+			}
+			if (((uint64_t)1 << actorZone) & zonemask)
+			{
+				ActorDrawType dt = (ActorDrawType)actor->DrawType();
+				if (dt == ActorDrawType::Mesh && actor->Mesh())
 				{
-					int actorZone = FindZoneAt(actor->Location());
-					if (((uint64_t)1 << actorZone) & zonemask)
-						engine->renderer->mesh.DrawMesh(&SceneFrame, actor->Mesh(), actor->Location(), actor->Rotation(), actor->DrawScale(), actorZone);
+					BBox bbox = actor->Mesh()->BoundingBox;
+					bbox.min += actor->Location();
+					bbox.max += actor->Location();
+					if (clip.test(bbox) != IntersectionTestResult::outside)
+					{
+						engine->renderer->mesh.DrawMesh(&SceneFrame, actor);
+					}
 				}
-			}
-			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && actor->Texture())
-			{
-				int actorZone = FindZoneAt(actor->Location());
-				if (((uint64_t)1 << actorZone) & zonemask)
-					engine->renderer->sprite.DrawSprite(&SceneFrame, actor);
-			}
-			else if (dt == ActorDrawType::Brush && actor->Brush())
-			{
-				BBox bbox = actor->Brush()->BoundingBox;
-				bbox.min += actor->Location();
-				bbox.max += actor->Location();
-				if (clip.test(bbox) != IntersectionTestResult::outside)
+				else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && actor->Texture())
 				{
-					int actorZone = FindZoneAt(actor->Location());
-					if (((uint64_t)1 << actorZone) & zonemask)
-						engine->renderer->brush.DrawBrush(&SceneFrame, actor->Brush(), actor->Location(), actor->Rotation(), actor->DrawScale(), actorZone);
+					engine->renderer->sprite.DrawSprite(&SceneFrame, actor);
+				}
+				else if (dt == ActorDrawType::Brush && actor->Brush())
+				{
+					BBox bbox = actor->Brush()->BoundingBox;
+					bbox.min += actor->Location();
+					bbox.max += actor->Location();
+					if (clip.test(bbox) != IntersectionTestResult::outside)
+					{
+						engine->renderer->brush.DrawBrush(&SceneFrame, actor);
+					}
 				}
 			}
 		}
@@ -277,7 +290,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 		lightmap = engine->renderer->light.GetSurfaceLightmap(surface, facet, zoneActor, model);
-		fogmap = engine->renderer->light.GetSurfaceFogmap(surface, facet, zoneActor, model);
+		fogmap = engine->renderer->light.GetSurfaceFogmap(surface, facet, cameraZoneActor, model);
 	}
 
 	FSurfaceInfo surfaceinfo;

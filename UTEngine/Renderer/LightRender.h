@@ -17,6 +17,7 @@ class LightRender
 {
 public:
 	vec3 FindLightAt(const vec3& location, int zoneIndex);
+	vec4 FindFogAt(const vec3& location);
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 

@@ -4,12 +4,18 @@
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/ULevel.h"
 #include "UObject/UTexture.h"
+#include "UObject/UActor.h"
 #include "Engine.h"
 #include "Window/Window.h"
 #include "UTRenderer.h"
 
-void BrushRender::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& location, const Rotator& rotation, float drawscale, int zoneIndex)
+void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
 {
+	UModel* brush = actor->Brush();
+	const vec3& location = actor->Location();
+	const Rotator& rotation = actor->Rotation();
+	float drawscale = actor->DrawScale();
+	const vec3& color = actor->light;
 	FSceneNode brushframe = *frame;
 
 	mat4 rotate = mat4::rotate(radians(rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
@@ -18,8 +24,6 @@ void BrushRender::DrawBrush(FSceneNode* frame, UModel* brush, const vec3& locati
 
 	auto device = engine->window->GetRenderDevice();
 	device->SetSceneNode(&brushframe);
-
-	vec3 color = engine->renderer->light.FindLightAt(location, zoneIndex);
 
 	for (const BspNode& node : brush->Nodes)
 	{

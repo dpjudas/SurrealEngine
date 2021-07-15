@@ -8,6 +8,7 @@ class BspSurface;
 class BspNode;
 class FrustumPlanes;
 class UModel;
+class UZoneInfo;
 
 class SceneRender
 {
@@ -29,4 +30,5 @@ private:
 	FSceneNode CreateSkyFrame();
 
 	std::vector<int> portalsvisited;
+	UZoneInfo* cameraZoneActor = nullptr;
 };
