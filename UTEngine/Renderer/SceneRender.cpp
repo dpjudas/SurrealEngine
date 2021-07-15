@@ -65,7 +65,7 @@ void SceneRender::DrawScene()
 			{
 				int actorZone = FindZoneAt(actor->Location());
 				if (((uint64_t)1 << actorZone) & zonemask)
-					engine->renderer->sprite.DrawSprite(&SceneFrame, actor->Texture(), actor->Location(), actor->Rotation(), actor->DrawScale());
+					engine->renderer->sprite.DrawSprite(&SceneFrame, actor);
 			}
 			else if (dt == ActorDrawType::Brush && actor->Brush())
 			{
@@ -158,10 +158,50 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 
 	BspSurface& surface = model->Surfaces[node.Surf];
 
-	if (surface.PolyFlags & (PF_Invisible | PF_FakeBackdrop))
+	uint32_t PolyFlags = surface.PolyFlags;
+
+	if (surface.Material)
+	{
+		// To do: implement packed booleans in the VM so that this can be done as a single uint32_t
+		UTexture* t = surface.Material;
+		PolyFlags |= ((uint32_t)t->bInvisible()) << 0;
+		PolyFlags |= ((uint32_t)t->bMasked()) << 1;
+		PolyFlags |= ((uint32_t)t->bTransparent()) << 2;
+		PolyFlags |= ((uint32_t)t->bNotSolid()) << 3;
+		PolyFlags |= ((uint32_t)t->bEnvironment()) << 4;
+		PolyFlags |= ((uint32_t)t->bSemisolid()) << 5;
+		PolyFlags |= ((uint32_t)t->bModulate()) << 6;
+		PolyFlags |= ((uint32_t)t->bFakeBackdrop()) << 7;
+		PolyFlags |= ((uint32_t)t->bTwoSided()) << 8;
+		PolyFlags |= ((uint32_t)t->bAutoUPan()) << 9;
+		PolyFlags |= ((uint32_t)t->bAutoVPan()) << 10;
+		PolyFlags |= ((uint32_t)t->bNoSmooth()) << 11;
+		PolyFlags |= ((uint32_t)t->bBigWavy()) << 12;
+		PolyFlags |= ((uint32_t)t->bSmallWavy()) << 13;
+		PolyFlags |= ((uint32_t)t->bWaterWavy()) << 14;
+		PolyFlags |= ((uint32_t)t->bLowShadowDetail()) << 15;
+		PolyFlags |= ((uint32_t)t->bNoMerge()) << 16;
+		PolyFlags |= ((uint32_t)t->bCloudWavy()) << 17;
+		PolyFlags |= ((uint32_t)t->bDirtyShadows()) << 18;
+		PolyFlags |= ((uint32_t)t->bHighLedge()) << 19;
+		PolyFlags |= ((uint32_t)t->bSpecialLit()) << 20;
+		PolyFlags |= ((uint32_t)t->bGouraud()) << 21;
+		PolyFlags |= ((uint32_t)t->bUnlit()) << 22;
+		PolyFlags |= ((uint32_t)t->bHighShadowDetail()) << 23;
+		PolyFlags |= ((uint32_t)t->bPortal()) << 24;
+		PolyFlags |= ((uint32_t)t->bMirrored()) << 25;
+		PolyFlags |= ((uint32_t)t->bX2()) << 26;
+		PolyFlags |= ((uint32_t)t->bX3()) << 27;
+		PolyFlags |= ((uint32_t)t->bX4()) << 28;
+		PolyFlags |= ((uint32_t)t->bX5()) << 29;
+		PolyFlags |= ((uint32_t)t->bX6()) << 30;
+		PolyFlags |= ((uint32_t)t->bX7()) << 31;
+	}
+
+	if (PolyFlags & (PF_Invisible | PF_FakeBackdrop))
 		return;
 
-	bool opaqueSurface = (surface.PolyFlags & PF_NoOcclude) == 0;
+	bool opaqueSurface = (PolyFlags & PF_NoOcclude) == 0;
 	if ((pass == 0 && !opaqueSurface) || (pass == 1 && opaqueSurface))
 		return;
 
@@ -183,8 +223,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUVTime * 100.0f;
 	}
 
 	FTextureInfo detailtex;
@@ -198,8 +238,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		detailtex.Pan.y = -(float)surface.PanV;
 		detailtex.Texture = surface.Material->DetailTexture();
 
-		if (surface.PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (surface.PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
 	}
 
 	FTextureInfo macrotex;
@@ -213,8 +253,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		macrotex.Pan.y = -(float)surface.PanV;
 		macrotex.Texture = surface.Material->MacroTexture();
 
-		if (surface.PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (surface.PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
 	}
 
 	BspVert* v = &model->Vertices[node.VertPool];
@@ -231,7 +271,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 
 	FTextureInfo lightmap;
 	FTextureInfo fogmap;
-	if ((surface.PolyFlags & PF_Unlit) == 0)
+	if ((PolyFlags & PF_Unlit) == 0)
 	{
 		UZoneInfo* zoneActor = !model->Zones.empty() ? dynamic_cast<UZoneInfo*>(model->Zones[node.Zone0].ZoneActor) : nullptr;
 		if (!zoneActor)
@@ -241,7 +281,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	}
 
 	FSurfaceInfo surfaceinfo;
-	surfaceinfo.PolyFlags = surface.PolyFlags;
+	surfaceinfo.PolyFlags = PolyFlags;
 	surfaceinfo.Texture = surface.Material ? &texture : nullptr;
 	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture() ? &macrotex : nullptr;
 	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture() ? &detailtex : nullptr;

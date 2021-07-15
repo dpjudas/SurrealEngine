@@ -3,14 +3,22 @@
 #include "SpriteRender.h"
 #include "UObject/UTexture.h"
 #include "UObject/ULevel.h"
+#include "UObject/UActor.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Math/quaternion.h"
 #include "Engine.h"
 #include "Window/Window.h"
 #include "UTRenderer.h"
 
-void SpriteRender::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& location, const Rotator& rotation, float drawscale)
+void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 {
+	UTexture* texture = actor->Texture();
+	const vec3& location = actor->Location();
+	const Rotator& rotation = actor->Rotation();
+	float drawscale = actor->DrawScale();
+	int style = actor->Style();
+	bool noSmooth = actor->bNoSmooth();
+
 	auto device = engine->window->GetRenderDevice();
 
 	engine->renderer->Textures.insert(texture);
@@ -24,6 +32,16 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& 
 
 	float texwidth = (float)texture->Mipmaps.front().Width;
 	float texheight = (float)texture->Mipmaps.front().Height;
+
+	uint32_t renderflags = PF_TwoSided;
+	if (style == 3)
+		renderflags |= PF_Translucent;
+	else if (style == 4)
+		renderflags |= PF_Modulated;
+	if (noSmooth)
+		renderflags |= PF_NoSmooth;
+	if (texture->bMasked())
+		renderflags |= PF_Masked;
 
 	drawscale *= 0.5f;
 
@@ -47,5 +65,5 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UTexture* texture, const vec3& 
 	vertices[3].Point = location - xaxis + yaxis;
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = { 1.0f };
-	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, PF_Translucent); // To do: use the Style property for the polyflags
+	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, renderflags);
 }
