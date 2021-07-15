@@ -1,8 +1,13 @@
 
 #include "Precomp.h"
 #include "File.h"
+#ifdef WIN32
 #include <Windows.h>
+#endif
 #include <stdexcept>
+#include <string.h>
+
+#ifdef WIN32
 
 class FileImpl : public File
 {
@@ -95,6 +100,12 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 	return std::make_shared<FileImpl>(handle);
 }
 
+#else
+
+// To do: add unix version
+
+#endif
+
 void File::write_all_bytes(const std::string& filename, const void* data, size_t size)
 {
 	auto file = create_always(filename);
@@ -128,6 +139,8 @@ std::string File::read_all_text(const std::string& filename)
 
 /////////////////////////////////////////////////////////////////////////////
 
+#ifdef WIN32
+
 std::vector<std::string> Directory::files(const std::string &filename)
 {
 	std::vector<std::string> files;
@@ -156,12 +169,22 @@ std::vector<std::string> Directory::files(const std::string &filename)
 	return files;
 }
 
+#else
+
+// To do: add unix version
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 
 bool FilePath::has_extension(const std::string &filename, const char *checkext)
 {
 	auto fileext = extension(filename);
+#ifdef WIN32
 	return _stricmp(fileext.c_str(), checkext) == 0;
+#else
+	return strcasecmp(fileext.c_str(), checkext) == 0;
+#endif
 }
 
 std::string FilePath::extension(const std::string &filename)
@@ -174,7 +197,7 @@ std::string FilePath::extension(const std::string &filename)
 #ifndef WIN32
 	// Files beginning with a dot is not a filename extension in Unix.
 	// This is different from Windows where it is considered the extension.
-	if (path_type == FilePathType::file_system && pos == 0)
+	if (pos == 0)
 		return std::string();
 #endif
 

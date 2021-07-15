@@ -7,11 +7,36 @@
 class PackageManager;
 class PackageStream;
 class ObjectStream;
-class NameTableEntry;
-class ImportTableEntry;
-class ExportTableEntry;
 class UObject;
 class UClass;
+
+class NameTableEntry
+{
+public:
+	std::string Name;
+	uint32_t Flags;
+};
+
+class ImportTableEntry
+{
+public:
+	int32_t ClassPackage;
+	int32_t ClassName;
+	int32_t ObjPackage;
+	int32_t ObjName;
+};
+
+class ExportTableEntry
+{
+public:
+	int32_t ObjClass;
+	int32_t ObjBase;
+	int32_t ObjPackage;
+	int32_t ObjName;
+	ObjectFlags ObjFlags;
+	int32_t ObjSize;
+	int32_t ObjOffset;
+};
 
 class Package
 {
@@ -130,33 +155,6 @@ private:
 	friend class UObject;
 };
 
-class NameTableEntry
-{
-public:
-	std::string Name;
-	uint32_t Flags;
-};
-
-class ImportTableEntry
-{
-public:
-	int32_t ClassPackage;
-	int32_t ClassName;
-	int32_t ObjPackage;
-	int32_t ObjName;
-};
-
-class ExportTableEntry
-{
-public:
-	int32_t ObjClass;
-	int32_t ObjBase;
-	int32_t ObjPackage;
-	int32_t ObjName;
-	ObjectFlags ObjFlags;
-	int32_t ObjSize;
-	int32_t ObjOffset;
-};
 
 inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
 inline ObjectFlags operator&(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a & (uint32_t)b); }

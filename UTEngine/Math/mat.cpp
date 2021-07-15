@@ -5,6 +5,7 @@
 #ifndef NO_SSE
 #include <emmintrin.h>
 #endif
+#include <string.h>
 
 mat4 mat4::null()
 {

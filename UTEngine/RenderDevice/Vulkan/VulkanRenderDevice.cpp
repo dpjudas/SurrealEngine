@@ -22,6 +22,7 @@
 std::wstring to_utf16(const std::string& str);
 std::string from_utf16(const std::wstring& str);
 
+#ifdef WIN32
 VulkanRenderDevice::VulkanRenderDevice(::Window* viewport)
 {
 	Viewport = viewport;
@@ -74,6 +75,7 @@ VulkanRenderDevice::VulkanRenderDevice(::Window* viewport)
 VulkanRenderDevice::~VulkanRenderDevice()
 {
 }
+#endif
 
 void VulkanRenderDevice::Flush(bool AllowPrecache)
 {
@@ -85,32 +87,32 @@ void VulkanRenderDevice::Flush(bool AllowPrecache)
 
 void VulkanRenderDevice::BeginFrame()
 {
-	if (!renderer->SceneBuffers || renderer->SceneBuffers->width != Viewport->SizeX || renderer->SceneBuffers->height != Viewport->SizeY)
+	if (!renderer->SceneBuffers_ || renderer->SceneBuffers_->width != Viewport->SizeX || renderer->SceneBuffers_->height != Viewport->SizeY)
 	{
-		renderer->ShadowmapRenderPass.reset();
-		renderer->SceneRenderPass.reset();
-		renderer->SceneBuffers.reset();
-		renderer->SceneBuffers = std::make_unique<SceneBuffers>(renderer.get(), Viewport->SizeX, Viewport->SizeY, Multisample);
-		renderer->SceneRenderPass = std::make_unique<SceneRenderPass>(renderer.get());
-		renderer->ShadowmapRenderPass = std::make_unique<ShadowmapRenderPass>(renderer.get());
+		renderer->ShadowmapRenderPass_.reset();
+		renderer->SceneRenderPass_.reset();
+		renderer->SceneBuffers_.reset();
+		renderer->SceneBuffers_ = std::make_unique<SceneBuffers>(renderer.get(), Viewport->SizeX, Viewport->SizeY, Multisample);
+		renderer->SceneRenderPass_ = std::make_unique<SceneRenderPass>(renderer.get());
+		renderer->ShadowmapRenderPass_ = std::make_unique<ShadowmapRenderPass>(renderer.get());
 	}
 
 	auto cmdbuffer = renderer->GetDrawCommands();
 
-	renderer->Postprocess->beginFrame();
-	renderer->Postprocess->imageTransitionScene(true);
+	renderer->Postprocess_->beginFrame();
+	renderer->Postprocess_->imageTransitionScene(true);
 }
 
 void VulkanRenderDevice::BeginShadowmapUpdate()
 {
 	PipelineBarrier barrier;
-	barrier.addImage(renderer->SceneLights->Shadowmap.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	barrier.addImage(renderer->SceneLights_->Shadowmap.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 }
 
 void VulkanRenderDevice::BeginShadowmapPass()
 {
-	renderer->ShadowmapRenderPass->begin(renderer->GetDrawCommands());
+	renderer->ShadowmapRenderPass_->begin(renderer->GetDrawCommands());
 
 	VkBuffer vertexBuffers[] = { renderer->SceneVertexBuffer->buffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -121,19 +123,19 @@ void VulkanRenderDevice::BeginShadowmapPass()
 
 void VulkanRenderDevice::EndShadowmapPass(int slot)
 {
-	renderer->ShadowmapRenderPass->end(renderer->GetDrawCommands());
+	renderer->ShadowmapRenderPass_->end(renderer->GetDrawCommands());
 
 	VkImageCopy region = {};
-	region.extent.width = renderer->SceneLights->ShadowmapSize;
-	region.extent.height = renderer->SceneLights->ShadowmapSize;
+	region.extent.width = renderer->SceneLights_->ShadowmapSize;
+	region.extent.height = renderer->SceneLights_->ShadowmapSize;
 	region.extent.depth = 1;
 	region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.srcSubresource.layerCount = 1;
 	region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.dstSubresource.layerCount = 1;
-	region.dstOffset.x = slot * renderer->SceneLights->ShadowmapSize % 4096;
-	region.dstOffset.y = slot * renderer->SceneLights->ShadowmapSize / 4096;
-	renderer->GetDrawCommands()->copyImage(renderer->SceneLights->ShadowColorBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, renderer->SceneLights->Shadowmap->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	region.dstOffset.x = slot * renderer->SceneLights_->ShadowmapSize % 4096;
+	region.dstOffset.y = slot * renderer->SceneLights_->ShadowmapSize / 4096;
+	renderer->GetDrawCommands()->copyImage(renderer->SceneLights_->ShadowColorBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, renderer->SceneLights_->Shadowmap->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	IsShadowPass = false;
 }
@@ -141,7 +143,7 @@ void VulkanRenderDevice::EndShadowmapPass(int slot)
 void VulkanRenderDevice::EndShadowmapUpdate()
 {
 	PipelineBarrier barrier;
-	barrier.addImage(renderer->SceneLights->Shadowmap.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	barrier.addImage(renderer->SceneLights_->Shadowmap.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 }
 
@@ -161,7 +163,7 @@ void VulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>
 
 	size_t offset = minIndex * sizeof(SceneLight);
 	size_t size = count * sizeof(SceneLight);
-	SceneLight* dest = (SceneLight*)renderer->SceneLights->StagingLights->Map(offset, size);
+	SceneLight* dest = (SceneLight*)renderer->SceneLights_->StagingLights->Map(offset, size);
 
 	for (auto& update : LightUpdates)
 	{
@@ -177,10 +179,10 @@ void VulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>
 		dlight.LightRadius = (float)slight->LightRadius();
 	}
 
-	renderer->SceneLights->StagingLights->Unmap();
+	renderer->SceneLights_->StagingLights->Unmap();
 
 	auto cmdbuffer = renderer->GetTransferCommands();
-	cmdbuffer->copyBuffer(renderer->SceneLights->StagingLights.get(), renderer->SceneLights->Lights.get(), offset, size);
+	cmdbuffer->copyBuffer(renderer->SceneLights_->StagingLights.get(), renderer->SceneLights_->Lights.get(), offset, size);
 }
 
 void VulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights)
@@ -189,17 +191,17 @@ void VulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& Surface
 		return;
 
 	size_t size = SurfaceLights.size() * sizeof(int32_t);
-	int32_t* dest = (int32_t*)renderer->SceneLights->StagingSurfaceLights->Map(0, size);
+	int32_t* dest = (int32_t*)renderer->SceneLights_->StagingSurfaceLights->Map(0, size);
 	memcpy(dest, SurfaceLights.data(), size);
-	renderer->SceneLights->StagingSurfaceLights->Unmap();
+	renderer->SceneLights_->StagingSurfaceLights->Unmap();
 
 	auto cmdbuffer = renderer->GetTransferCommands();
-	cmdbuffer->copyBuffer(renderer->SceneLights->StagingSurfaceLights.get(), renderer->SceneLights->SurfaceLights.get(), 0, size);
+	cmdbuffer->copyBuffer(renderer->SceneLights_->StagingSurfaceLights.get(), renderer->SceneLights_->SurfaceLights.get(), 0, size);
 }
 
 void VulkanRenderDevice::BeginScenePass()
 {
-	renderer->SceneRenderPass->begin(renderer->GetDrawCommands());
+	renderer->SceneRenderPass_->begin(renderer->GetDrawCommands());
 
 	VkBuffer vertexBuffers[] = { renderer->SceneVertexBuffer->buffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -208,15 +210,15 @@ void VulkanRenderDevice::BeginScenePass()
 
 void VulkanRenderDevice::EndScenePass()
 {
-	renderer->SceneRenderPass->end(renderer->GetDrawCommands());
+	renderer->SceneRenderPass_->end(renderer->GetDrawCommands());
 }
 
 void VulkanRenderDevice::EndFrame(bool Blit)
 {
-	renderer->Postprocess->blitSceneToPostprocess();
+	renderer->Postprocess_->blitSceneToPostprocess();
 
-	int sceneWidth = renderer->SceneBuffers->colorBuffer->width;
-	int sceneHeight = renderer->SceneBuffers->colorBuffer->height;
+	int sceneWidth = renderer->SceneBuffers_->colorBuffer->width;
+	int sceneHeight = renderer->SceneBuffers_->colorBuffer->height;
 
 	if (Blit)
 		CheckFPSLimit();
@@ -314,9 +316,9 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	}
 
 	if (!IsShadowPass)
-		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass->getPipeline(Surface.PolyFlags));
+		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass_->getPipeline(Surface.PolyFlags));
 	else
-		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ShadowmapRenderPass->getPipeline());
+		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ShadowmapRenderPass_->getPipeline());
 
 	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ScenePipelineLayout.get(), 0, renderer->GetTextureDescriptorSet(Surface.PolyFlags, tex, lightmap, macrotex, detailtex));
 
@@ -363,7 +365,7 @@ void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Inf
 
 	auto cmdbuffer = renderer->GetDrawCommands();
 
-	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass->getPipeline(PolyFlags));
+	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass_->getPipeline(PolyFlags));
 
 	VulkanTexture* tex = renderer->GetTexture(Info, PolyFlags);
 	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ScenePipelineLayout.get(), 0, renderer->GetTextureDescriptorSet(PolyFlags, tex));
@@ -427,7 +429,7 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 
 	VulkanTexture* tex = renderer->GetTexture(&Info, PolyFlags);
 
-	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass->getPipeline(PolyFlags));
+	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass_->getPipeline(PolyFlags));
 	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ScenePipelineLayout.get(), 0, renderer->GetTextureDescriptorSet(PolyFlags, tex, nullptr, nullptr, nullptr, true));
 
 	float UMult = tex ? tex->UMult : 0.0f;
@@ -476,8 +478,8 @@ void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 	attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 	attachment.clearValue.depthStencil.depth = 1.0f;
 	rect.layerCount = 1;
-	rect.rect.extent.width = renderer->SceneBuffers->width;
-	rect.rect.extent.height = renderer->SceneBuffers->height;
+	rect.rect.extent.width = renderer->SceneBuffers_->width;
+	rect.rect.extent.height = renderer->SceneBuffers_->height;
 	renderer->GetDrawCommands()->clearAttachments(1, &attachment, 1, &rect);
 }
 
@@ -510,7 +512,7 @@ void VulkanRenderDevice::EndFlash(float FlashScale, vec4 FlashFog)
 	pushconstants.objectToProjection = mat4::identity();
 	cmdbuffer->pushConstants(renderer->ScenePipelineLayout.get(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
 
-	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass->getEndFlashPipeline());
+	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->SceneRenderPass_->getEndFlashPipeline());
 	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->ScenePipelineLayout.get(), 0, renderer->GetTextureDescriptorSet(0, nullptr));
 
 	SceneVertex* v = &renderer->SceneVertices[renderer->SceneVertexPos];
@@ -557,6 +559,7 @@ void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
 	renderer->GetTexture(&Info, PolyFlags);
 }
 
+#ifdef WIN32
 std::wstring to_utf16(const std::string& str)
 {
 	if (str.empty()) return {};
@@ -584,3 +587,4 @@ std::string from_utf16(const std::wstring& str)
 		throw std::runtime_error("WideCharToMultiByte failed");
 	return result;
 }
+#endif

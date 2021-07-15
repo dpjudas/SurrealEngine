@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Postprocess.h"
+#include <string.h>
 
 PPResource *PPResource::first = nullptr;
 

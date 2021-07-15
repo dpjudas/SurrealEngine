@@ -7,6 +7,7 @@
 #include <string>
 #include <mutex>
 
+#ifdef WIN32
 VulkanDevice::VulkanDevice(HWND window, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback) : window(window), vk_device(vk_device), vk_debug(vk_debug), printLogCallback(printLogCallback)
 {
 	try
@@ -31,6 +32,11 @@ VulkanDevice::~VulkanDevice()
 {
 	releaseResources();
 }
+#else
+
+// To do: port to unix
+
+#endif
 
 void VulkanDevice::selectFeatures()
 {
@@ -73,6 +79,9 @@ void VulkanDevice::selectPhysicalDevice()
 		dev.device = &availableDevices[idx];
 
 		// Figure out what can present
+		#ifndef WIN32
+		bool window = true;
+		#endif
 		if (window)
 		{
 			for (int i = 0; i < (int)info.queueFamilies.size(); i++)
@@ -204,6 +213,7 @@ void VulkanDevice::createDevice()
 		vkGetDeviceQueue(device, presentFamily, 0, &presentQueue);
 }
 
+#ifdef WIN32
 void VulkanDevice::createSurface()
 {
 	VkWin32SurfaceCreateInfoKHR windowCreateInfo = {};
@@ -215,6 +225,7 @@ void VulkanDevice::createSurface()
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("Could not create vulkan surface");
 }
+#endif
 
 void VulkanDevice::createInstance()
 {
@@ -410,6 +421,7 @@ std::vector<VulkanPhysicalDevice> VulkanDevice::getPhysicalDevices(VkInstance in
 	return devinfo;
 }
 
+#ifdef WIN32
 std::vector<const char *> VulkanDevice::getPlatformExtensions()
 {
 	return
@@ -418,6 +430,7 @@ std::vector<const char *> VulkanDevice::getPlatformExtensions()
 		VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 	};
 }
+#endif
 
 void VulkanDevice::initVolk()
 {

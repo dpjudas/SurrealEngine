@@ -123,39 +123,6 @@ public:
 
 	template<typename T> T ToType();
 
-	// Pass by value
-	template<> uint8_t ToType() { return ToByte(); }
-	template<> int32_t ToType() { return ToInt(); }
-	template<> bool ToType() { return ToBool(); }
-	template<> float ToType() { return ToFloat(); }
-	template<> UObject* ToType() { return ToObject(); }
-	template<> const vec3& ToType() { return ToVector(); }
-	template<> const Rotator& ToType() { return ToRotator(); }
-	template<> const std::string& ToType() { return ToString(); }
-	template<> const Color& ToType() { return ToColor(); }
-
-	// Pass by reference
-	template<> uint8_t& ToType() { return !VariablePtr ? Value.Byte : *static_cast<uint8_t*>(VariablePtr); }
-	template<> int32_t& ToType() { return !VariablePtr ? Value.Int : *static_cast<int32_t*>(VariablePtr); }
-	template<> bool& ToType() { return !VariablePtr ? Value.Bool : *static_cast<bool*>(VariablePtr); }
-	template<> float& ToType() { return !VariablePtr ? Value.Float : *static_cast<float*>(VariablePtr); }
-	template<> UObject*& ToType() { return !VariablePtr ? Value.Object : *static_cast<UObject**>(VariablePtr); }
-	template<> vec3& ToType() { return !VariablePtr ? Value.Vector : *static_cast<vec3*>(VariablePtr); }
-	template<> Rotator& ToType() { return !VariablePtr ? Value.Rotator : *static_cast<Rotator*>(VariablePtr); }
-	template<> std::string& ToType() { return !VariablePtr ? ValueString : *static_cast<std::string*>(VariablePtr); }
-	template<> Color& ToType() { return !VariablePtr ? Value.Color : *static_cast<Color*>(VariablePtr); }
-
-	// Optional arguments
-	template<> uint8_t* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<uint8_t&>() : nullptr; }
-	template<> int32_t* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<int32_t&>() : nullptr; }
-	template<> bool* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<bool&>() : nullptr; }
-	template<> float* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<float&>() : nullptr; }
-	template<> UObject** ToType() { return Type != ExpressionValueType::Nothing ? &ToType<UObject*&>() : nullptr; }
-	template<> vec3* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<vec3&>() : nullptr; }
-	template<> Rotator* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
-	template<> std::string* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
-	template<> Color* ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
-
 	void Store(const ExpressionValue& rvalue);
 	void Load();
 
@@ -168,10 +135,10 @@ public:
 	static ExpressionValue FloatValue(float value) { ExpressionValue v; v.Type = ExpressionValueType::ValueFloat; v.Value.Float = value; return v; }
 	static ExpressionValue ObjectValue(UObject* value) { ExpressionValue v; v.Type = ExpressionValueType::ValueObject; v.Value.Object = value; return v; }
 	static ExpressionValue VectorValue(vec3 value) { ExpressionValue v; v.Type = ExpressionValueType::ValueVector; v.Value.Vector = value; return v; }
-	static ExpressionValue RotatorValue(Rotator value) { ExpressionValue v; v.Type = ExpressionValueType::ValueRotator; v.Value.Rotator = value; return v; }
+	static ExpressionValue RotatorValue(Rotator value) { ExpressionValue v; v.Type = ExpressionValueType::ValueRotator; v.Value.Rotator_ = value; return v; }
 	static ExpressionValue StringValue(std::string value) { ExpressionValue v; v.Type = ExpressionValueType::ValueString; v.ValueString = value; return v; }
 	static ExpressionValue NameValue(std::string value) { ExpressionValue v; v.Type = ExpressionValueType::ValueName; v.ValueString = value; return v; }
-	static ExpressionValue ColorValue(Color value) { ExpressionValue v; v.Type = ExpressionValueType::ValueColor; v.Value.Color = value; return v; }
+	static ExpressionValue ColorValue(Color value) { ExpressionValue v; v.Type = ExpressionValueType::ValueColor; v.Value.Color_ = value; return v; }
 
 	static ExpressionValue PropertyValue(UProperty* prop);
 	static ExpressionValue Variable(void* data, UProperty* prop);
@@ -185,12 +152,45 @@ private:
 		float Float;
 		UObject* Object;
 		vec3 Vector;
-		Rotator Rotator;
-		Color Color;
+		Rotator Rotator_;
+		Color Color_;
 	} Value;
 	std::string ValueString;
 	StructValue ValueStruct;
 };
+
+// Pass by value
+template<> inline uint8_t ExpressionValue::ToType() { return ToByte(); }
+template<> inline int32_t ExpressionValue::ToType() { return ToInt(); }
+template<> inline bool ExpressionValue::ToType() { return ToBool(); }
+template<> inline float ExpressionValue::ToType() { return ToFloat(); }
+template<> inline UObject* ExpressionValue::ToType() { return ToObject(); }
+template<> inline const vec3& ExpressionValue::ToType() { return ToVector(); }
+template<> inline const Rotator& ExpressionValue::ToType() { return ToRotator(); }
+template<> inline const std::string& ExpressionValue::ToType() { return ToString(); }
+template<> inline const Color& ExpressionValue::ToType() { return ToColor(); }
+
+// Pass by reference
+template<> inline uint8_t& ExpressionValue::ToType() { return !VariablePtr ? Value.Byte : *static_cast<uint8_t*>(VariablePtr); }
+template<> inline int32_t& ExpressionValue::ToType() { return !VariablePtr ? Value.Int : *static_cast<int32_t*>(VariablePtr); }
+template<> inline bool& ExpressionValue::ToType() { return !VariablePtr ? Value.Bool : *static_cast<bool*>(VariablePtr); }
+template<> inline float& ExpressionValue::ToType() { return !VariablePtr ? Value.Float : *static_cast<float*>(VariablePtr); }
+template<> inline UObject*& ExpressionValue::ToType() { return !VariablePtr ? Value.Object : *static_cast<UObject**>(VariablePtr); }
+template<> inline vec3& ExpressionValue::ToType() { return !VariablePtr ? Value.Vector : *static_cast<vec3*>(VariablePtr); }
+template<> inline Rotator& ExpressionValue::ToType() { return !VariablePtr ? Value.Rotator_ : *static_cast<Rotator*>(VariablePtr); }
+template<> inline std::string& ExpressionValue::ToType() { return !VariablePtr ? ValueString : *static_cast<std::string*>(VariablePtr); }
+template<> inline Color& ExpressionValue::ToType() { return !VariablePtr ? Value.Color_ : *static_cast<Color*>(VariablePtr); }
+
+// Optional arguments
+template<> inline uint8_t* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<uint8_t&>() : nullptr; }
+template<> inline int32_t* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<int32_t&>() : nullptr; }
+template<> inline bool* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<bool&>() : nullptr; }
+template<> inline float* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<float&>() : nullptr; }
+template<> inline UObject** ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<UObject*&>() : nullptr; }
+template<> inline vec3* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<vec3&>() : nullptr; }
+template<> inline Rotator* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
+template<> inline std::string* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
+template<> inline Color* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
 
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {
@@ -269,10 +269,10 @@ inline void ExpressionValue::Load()
 		case ExpressionValueType::ValueFloat: Value.Float = *static_cast<float*>(VariablePtr); break;
 		case ExpressionValueType::ValueObject: Value.Object = *static_cast<UObject**>(VariablePtr); break;
 		case ExpressionValueType::ValueVector: Value.Vector = *static_cast<vec3*>(VariablePtr); break;
-		case ExpressionValueType::ValueRotator: Value.Rotator = *static_cast<Rotator*>(VariablePtr); break;
+		case ExpressionValueType::ValueRotator: Value.Rotator_ = *static_cast<Rotator*>(VariablePtr); break;
 		case ExpressionValueType::ValueString: ValueString = *static_cast<std::string*>(VariablePtr); break;
 		case ExpressionValueType::ValueName: ValueString = *static_cast<std::string*>(VariablePtr); break;
-		case ExpressionValueType::ValueColor: Value.Color = *static_cast<Color*>(VariablePtr); break;
+		case ExpressionValueType::ValueColor: Value.Color_ = *static_cast<Color*>(VariablePtr); break;
 		case ExpressionValueType::ValueStruct: ValueStruct.Load(dynamic_cast<UStructProperty*>(VariableProperty)->Struct, VariablePtr); break;
 		}
 
@@ -363,7 +363,7 @@ inline const vec3& ExpressionValue::ToVector() const
 inline const Rotator& ExpressionValue::ToRotator() const
 {
 	if (Type == ExpressionValueType::ValueRotator)
-		return VariablePtr ? *static_cast<Rotator*>(VariablePtr) : Value.Rotator;
+		return VariablePtr ? *static_cast<Rotator*>(VariablePtr) : Value.Rotator_;
 	else
 		throw std::runtime_error("Not a rotator value");
 }
@@ -387,7 +387,7 @@ inline const std::string& ExpressionValue::ToName() const
 inline const Color& ExpressionValue::ToColor() const
 {
 	if (Type == ExpressionValueType::ValueColor)
-		return VariablePtr ? *static_cast<Color*>(VariablePtr) : Value.Color;
+		return VariablePtr ? *static_cast<Color*>(VariablePtr) : Value.Color_;
 	else
 		throw std::runtime_error("Not a color value");
 }

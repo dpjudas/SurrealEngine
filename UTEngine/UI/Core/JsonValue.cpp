@@ -3,6 +3,7 @@
 #include "JsonValue.h"
 #include "UTF8Reader.h"
 #include <stdexcept>
+#include <cstring>
 
 class JsonValueImpl
 {

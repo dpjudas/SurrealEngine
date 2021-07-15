@@ -1,11 +1,13 @@
 
 #include "Precomp.h"
-#include "audioplayer.h"
-#include "audiosource.h"
+#include "AudioPlayer.h"
+#include "AudioSource.h"
 #include <stdexcept>
 #include <thread>
 #include <mutex>
 #include <algorithm>
+
+#ifdef WIN32
 
 #define WIN32_MEAN_AND_LEAN
 #include <Windows.h>
@@ -286,3 +288,9 @@ std::unique_ptr<AudioPlayer> AudioPlayer::Create(std::unique_ptr<AudioSource> so
 {
 	return std::make_unique<AudioPlayerImpl>(std::move(source));
 }
+
+#else
+
+// To do: write unix version
+
+#endif

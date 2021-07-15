@@ -39,8 +39,10 @@ public:
 class VulkanDevice
 {
 public:
+#ifdef WIN32
 	VulkanDevice(HWND window, int vk_device = 0, bool vk_debug = false, std::function<void(const char* typestr, const std::string& msg)> printLogCallback = {});
 	~VulkanDevice();
+#endif
 
 	void setDebugObjectName(const char *name, uint64_t handle, VkObjectType type)
 	{
@@ -56,7 +58,9 @@ public:
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+#ifdef WIN32
 	HWND window;
+#endif
 
 	// Instance setup
 	std::vector<VkLayerProperties> availableLayers;

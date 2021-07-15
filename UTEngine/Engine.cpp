@@ -246,10 +246,10 @@ void Engine::InputEvent(Window* window, EInputKey key, EInputType type, int delt
 		case 'D':
 			Buttons.StrafeRight = (type == IST_Press);
 			break;
-		case VK_SPACE:
+		case IK_Space:
 			Buttons.Jump = (type == IST_Press);
 			break;
-		case VK_SHIFT:
+		case IK_Shift:
 			Buttons.Crouch = (type == IST_Press);
 			break;
 		case IK_LeftMouse:

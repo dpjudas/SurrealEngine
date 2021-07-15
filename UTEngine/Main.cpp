@@ -3,7 +3,9 @@
 #include "Engine.h"
 #include "VM/Frame.h"
 #include <iostream>
+#ifdef WIN32
 #include <CommCtrl.h>
+#endif
 
 void appMain()
 {

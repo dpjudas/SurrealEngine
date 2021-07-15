@@ -18,6 +18,7 @@
 
 static bool shaderbuilderinited = false;
 
+#ifdef WIN32
 Renderer::Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback) : WindowHandle(windowHandle)
 {
 	if (!shaderbuilderinited)
@@ -35,13 +36,13 @@ Renderer::Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, 
 	CommandPool = std::make_unique<VulkanCommandPool>(Device.get(), Device->graphicsFamily);
 	FrameDeleteList = std::make_unique<DeleteList>();
 	SceneSamplers = std::make_unique<::SceneSamplers>(Device.get());
-	SceneLights = std::make_unique<::SceneLights>(this);
+	SceneLights_ = std::make_unique<::SceneLights>(this);
 	CreateSceneVertexBuffer();
 	CreateSceneDescriptorSetLayout();
 	CreateScenePipelineLayout();
 	CreateNullTexture();
 	PostprocessModel = std::make_unique<::Postprocess>();
-	Postprocess = std::make_unique<VulkanPostprocess>(this);
+	Postprocess_ = std::make_unique<VulkanPostprocess>(this);
 }
 
 Renderer::~Renderer()
@@ -56,6 +57,9 @@ Renderer::~Renderer()
 	}
 	ClearTextureCache();
 }
+#else
+// To do: port to unix
+#endif
 
 void Renderer::SubmitCommands(bool present, int presentWidth, int presentHeight)
 {
@@ -74,7 +78,7 @@ void Renderer::SubmitCommands(bool present, int presentWidth, int presentHeight)
 			box.y = 0;
 			box.width = presentWidth;
 			box.height = presentHeight;
-			Postprocess->drawPresentTexture(box);
+			Postprocess_->drawPresentTexture(box);
 		}
 	}
 
@@ -253,7 +257,7 @@ void Renderer::CreateNullTexture()
 	FrameDeleteList->buffers.push_back(std::move(stagingbuffer));
 }
 
-VulkanTexture* Renderer::GetTexture(FTextureInfo* texture, DWORD polyFlags)
+VulkanTexture* Renderer::GetTexture(FTextureInfo* texture, uint32_t polyFlags)
 {
 	if (!texture)
 		return nullptr;
@@ -271,7 +275,7 @@ VulkanTexture* Renderer::GetTexture(FTextureInfo* texture, DWORD polyFlags)
 	return tex.get();
 }
 
-VulkanDescriptorSet* Renderer::GetTextureDescriptorSet(DWORD PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap, VulkanTexture* macrotex, VulkanTexture* detailtex, bool clamp)
+VulkanDescriptorSet* Renderer::GetTextureDescriptorSet(uint32_t PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap, VulkanTexture* macrotex, VulkanTexture* detailtex, bool clamp)
 {
 	uint32_t samplermode = 0;
 	if (PolyFlags & PF_NoSmooth) samplermode |= 1;
@@ -296,7 +300,7 @@ VulkanDescriptorSet* Renderer::GetTextureDescriptorSet(DWORD PolyFlags, VulkanTe
 		int i = 0;
 		for (VulkanTexture* texture : { tex, lightmap, macrotex, detailtex })
 		{
-			VulkanSampler* sampler = (i == 0) ? SceneSamplers->samplers[samplermode].get() : SceneSamplers->samplers[0].get();
+			VulkanSampler* sampler = (i == 0) ? SceneSamplers_->samplers[samplermode].get() : SceneSamplers_->samplers[0].get();
 
 			if (texture)
 				writes.addCombinedImageSampler(descriptorSet, i++, texture->imageView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -331,7 +335,7 @@ void Renderer::CopyScreenToBuffer(int w, int h, void* data, float gamma)
 	imgbuilder.setSize(w, h);
 	auto image = imgbuilder.create(Device.get());
 	VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	Postprocess->blitCurrentToImage(image.get(), &imageLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	Postprocess_->blitCurrentToImage(image.get(), &imageLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 	// Staging buffer for download
 	BufferBuilder bufbuilder;

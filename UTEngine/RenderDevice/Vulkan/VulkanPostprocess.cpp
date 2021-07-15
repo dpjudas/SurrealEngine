@@ -28,7 +28,7 @@ VulkanPostprocess::~VulkanPostprocess()
 
 void VulkanPostprocess::blitSceneToPostprocess()
 {
-	auto buffers = renderer->SceneBuffers.get();
+	auto buffers = renderer->SceneBuffers_.get();
 	auto cmdbuffer = renderer->GetDrawCommands();
 
 	mCurrentPipelineImage = 0;
@@ -83,7 +83,7 @@ void VulkanPostprocess::blitSceneToPostprocess()
 
 void VulkanPostprocess::imageTransitionScene(bool undefinedSrcLayout)
 {
-	auto buffers = renderer->SceneBuffers.get();
+	auto buffers = renderer->SceneBuffers_.get();
 
 	VulkanPPImageTransition imageTransition;
 	imageTransition.addImage(buffers->colorBuffer.get(), &buffers->colorBufferLayout, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, undefinedSrcLayout);
@@ -156,8 +156,8 @@ void VulkanPostprocess::beginFrame()
 		mDescriptorPool->SetDebugName("VulkanPostprocess.mDescriptorPool");
 	}
 
-	int width = renderer->SceneBuffers->colorBuffer->width;
-	int height = renderer->SceneBuffers->colorBuffer->height;
+	int width = renderer->SceneBuffers_->colorBuffer->width;
+	int height = renderer->SceneBuffers_->colorBuffer->height;
 
 	if (!pipelineImage[0] || pipelineImage[0]->width != width || pipelineImage[0]->height != height)
 	{
@@ -326,7 +326,7 @@ VulkanPPRenderState::VulkanPPRenderState(Renderer* renderer) : renderer(renderer
 
 void VulkanPPRenderState::draw()
 {
-	auto pp = renderer->Postprocess.get();
+	auto pp = renderer->Postprocess_.get();
 
 	VulkanPPRenderPassKey key;
 	key.blendMode = blendMode;
@@ -397,7 +397,7 @@ void VulkanPPRenderState::renderScreenQuad(VulkanPPRenderPassSetup *passSetup, V
 
 VulkanDescriptorSet *VulkanPPRenderState::getInput(VulkanPPRenderPassSetup *passSetup, const std::vector<PPTextureInput> &textures)
 {
-	auto pp = renderer->Postprocess.get();
+	auto pp = renderer->Postprocess_.get();
 	auto descriptors = pp->mDescriptorPool->allocate(passSetup->descriptorLayout.get());
 	descriptors->SetDebugName("VulkanPostprocess.descriptors");
 
@@ -467,13 +467,13 @@ VulkanPPRenderState::TextureImage VulkanPPRenderState::getTexture(const PPTextur
 
 	if (type == PPTextureType::CurrentPipelineTexture || type == PPTextureType::NextPipelineTexture)
 	{
-		int idx = renderer->Postprocess->mCurrentPipelineImage;
+		int idx = renderer->Postprocess_->mCurrentPipelineImage;
 		if (type == PPTextureType::NextPipelineTexture)
 			idx = (idx + 1) % VulkanPostprocess::numPipelineImages;
 
-		tex.image = renderer->Postprocess->pipelineImage[idx].get();
-		tex.view = renderer->Postprocess->pipelineView[idx].get();
-		tex.layout = &renderer->Postprocess->pipelineLayout[idx];
+		tex.image = renderer->Postprocess_->pipelineImage[idx].get();
+		tex.view = renderer->Postprocess_->pipelineView[idx].get();
+		tex.layout = &renderer->Postprocess_->pipelineLayout[idx];
 		tex.debugname = "PipelineTexture";
 	}
 	else if (type == PPTextureType::PPTexture)

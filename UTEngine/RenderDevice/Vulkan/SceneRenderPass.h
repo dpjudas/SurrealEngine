@@ -22,7 +22,7 @@ public:
 	void begin(VulkanCommandBuffer *cmdbuffer);
 	void end(VulkanCommandBuffer *cmdbuffer);
 
-	VulkanPipeline* getPipeline(DWORD polyflags);
+	VulkanPipeline* getPipeline(uint32_t polyflags);
 	VulkanPipeline* getEndFlashPipeline();
 
 private:

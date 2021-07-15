@@ -2,6 +2,7 @@
 
 #include "vec.h"
 #include "mat.h"
+#include <cfloat>
 
 enum class EulerOrder
 {

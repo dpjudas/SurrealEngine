@@ -18,8 +18,10 @@ struct FTextureInfo;
 class Renderer
 {
 public:
+#ifdef WIN32
 	Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback);
 	~Renderer();
+#endif
 
 	void SubmitCommands(bool present, int presentWidth, int presentHeight);
 	VulkanCommandBuffer* GetTransferCommands();
@@ -38,11 +40,13 @@ public:
 	void CreateSceneVertexBuffer();
 	void CreateNullTexture();
 
-	VulkanTexture* GetTexture(FTextureInfo* texture, DWORD polyFlags);
-	VulkanDescriptorSet* GetTextureDescriptorSet(DWORD PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap = nullptr, VulkanTexture* macrotex = nullptr, VulkanTexture* detailtex = nullptr, bool clamp = false);
+	VulkanTexture* GetTexture(FTextureInfo* texture, uint32_t polyFlags);
+	VulkanDescriptorSet* GetTextureDescriptorSet(uint32_t PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap = nullptr, VulkanTexture* macrotex = nullptr, VulkanTexture* detailtex = nullptr, bool clamp = false);
 	void ClearTextureCache();
 
+#ifdef WIN32
 	HWND WindowHandle = 0;
+#endif
 
 	std::unique_ptr<VulkanDevice> Device;
 	std::unique_ptr<VulkanSwapChain> SwapChain;
@@ -69,16 +73,16 @@ public:
 	std::vector<VulkanDescriptorPool*> SceneDescriptorPool;
 	int SceneDescriptorPoolSetsLeft = 0;
 
-	std::unique_ptr<SceneSamplers> SceneSamplers;
+	std::unique_ptr<SceneSamplers> SceneSamplers_;
 	std::unique_ptr<VulkanImage> NullTexture;
 	std::unique_ptr<VulkanImageView> NullTextureView;
 
 	std::unique_ptr<Postprocess> PostprocessModel;
-	std::unique_ptr<VulkanPostprocess> Postprocess;
-	std::unique_ptr<SceneBuffers> SceneBuffers;
-	std::unique_ptr<SceneLights> SceneLights;
-	std::unique_ptr<SceneRenderPass> SceneRenderPass;
-	std::unique_ptr<ShadowmapRenderPass> ShadowmapRenderPass;
+	std::unique_ptr<VulkanPostprocess> Postprocess_;
+	std::unique_ptr<SceneBuffers> SceneBuffers_;
+	std::unique_ptr<SceneLights> SceneLights_;
+	std::unique_ptr<SceneRenderPass> SceneRenderPass_;
+	std::unique_ptr<ShadowmapRenderPass> ShadowmapRenderPass_;
 
 	std::unique_ptr<VulkanBuffer> SceneVertexBuffer;
 	SceneVertex* SceneVertices = nullptr;

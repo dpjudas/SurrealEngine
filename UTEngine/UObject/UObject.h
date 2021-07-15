@@ -229,3 +229,9 @@ private:
 	};
 	static PropertyOffsets propoffsets;
 };
+
+template<typename T>
+T* ObjectStream::ReadObject()
+{
+	return UObject::Cast<T>(package->GetUObject(ReadIndex()));
+}

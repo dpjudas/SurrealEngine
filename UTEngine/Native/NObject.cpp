@@ -307,7 +307,11 @@ void NObject::ComplementEqual_FloatFloat(float A, float B, bool& ReturnValue)
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
 {
+#ifdef WIN32
 	ReturnValue = _stricmp(A.c_str(), B.c_str()) == 0;
+#else
+	ReturnValue = strcasecmp(A.c_str(), B.c_str()) == 0;
+#endif
 }
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)

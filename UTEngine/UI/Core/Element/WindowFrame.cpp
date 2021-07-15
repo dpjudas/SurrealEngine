@@ -4,6 +4,8 @@
 #include "Canvas.h"
 #include "../View.h"
 #include <cmath>
+
+#ifdef WIN32
 #include <windowsx.h>
 
 #ifdef _MSC_VER
@@ -467,3 +469,5 @@ void WindowFrame::setNeedsRender()
 	if (impl->windowHandle)
 		InvalidateRect(impl->windowHandle, nullptr, FALSE);
 }
+
+#endif

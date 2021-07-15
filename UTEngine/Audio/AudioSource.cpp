@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "audiosource.h"
+#include "AudioSource.h"
 #include "resample/CDSPResampler.h"
 #include <stdexcept>
 

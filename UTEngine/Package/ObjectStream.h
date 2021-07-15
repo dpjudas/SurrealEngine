@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Package.h"
+#include <string.h>
 
 enum class ObjectFlags : uint32_t;
 class UClass;
+class UObject;
 
 class ObjectStream
 {
@@ -127,10 +129,7 @@ public:
 	}
 
 	template<typename T>
-	T* ReadObject()
-	{
-		return UObject::Cast<T>(package->GetUObject(ReadIndex()));
-	}
+	T* ReadObject();
 
 	int GetVersion() const
 	{
