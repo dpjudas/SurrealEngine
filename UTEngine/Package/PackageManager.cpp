@@ -154,11 +154,12 @@ UObject* PackageManager::NewObject(const std::string& name, const std::string& p
 	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
 	if (!cls)
 		throw std::runtime_error("Could not find class " + className);
-	return pkg->NewObject(name, cls, ObjectFlags::None, true);
+	return pkg->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
 std::string PackageManager::GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName)
 {
+	/*
 	for (char& c : iniName)
 	{
 		if (c >= 'A' && c <= 'Z')
@@ -167,6 +168,11 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 
 	if (iniName == "system")
 		iniName = "unrealtournament";
+	*/
+	if (iniName == "system" || iniName == "System")
+		iniName = "UnrealTournament";
+	else if (iniName == "user")
+		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
@@ -179,11 +185,13 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 
 std::string PackageManager::Localize(std::string packageName, const std::string& sectionName, const std::string& keyName)
 {
+	/*
 	for (char& c : packageName)
 	{
 		if (c >= 'A' && c <= 'Z')
 			c += 'a' - 'A';
 	}
+	*/
 
 	auto& intFile = intFiles[packageName];
 	if (!intFile)

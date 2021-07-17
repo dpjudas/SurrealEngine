@@ -2,7 +2,7 @@
 
 enum class PackageFlags : uint32_t
 {
-	None = 0,
+	NoFlags = 0,
 	AllowDownload = 0x0001, // Allow downloading package
 	ClientOptional = 0x0002, // Purely optional for clients
 	ServerSideOnly = 0x0004, // Only needed on the server side

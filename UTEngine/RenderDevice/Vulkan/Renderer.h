@@ -4,6 +4,7 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 
+class DisplayWindow;
 class SceneBuffers;
 class SceneLights;
 class SceneRenderPass;
@@ -18,10 +19,8 @@ struct FTextureInfo;
 class Renderer
 {
 public:
-#ifdef WIN32
-	Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback);
+	Renderer(DisplayWindow* window, bool vsync);
 	~Renderer();
-#endif
 
 	void SubmitCommands(bool present, int presentWidth, int presentHeight);
 	VulkanCommandBuffer* GetTransferCommands();
@@ -44,11 +43,9 @@ public:
 	VulkanDescriptorSet* GetTextureDescriptorSet(uint32_t PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap = nullptr, VulkanTexture* macrotex = nullptr, VulkanTexture* detailtex = nullptr, bool clamp = false);
 	void ClearTextureCache();
 
-#ifdef WIN32
-	HWND WindowHandle = 0;
-#endif
+	DisplayWindow* window = nullptr;
+	VulkanDevice* Device = nullptr;
 
-	std::unique_ptr<VulkanDevice> Device;
 	std::unique_ptr<VulkanSwapChain> SwapChain;
 	std::unique_ptr<VulkanSemaphore> ImageAvailableSemaphore;
 	std::unique_ptr<VulkanSemaphore> RenderFinishedSemaphore;

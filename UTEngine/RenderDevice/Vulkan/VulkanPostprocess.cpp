@@ -152,7 +152,7 @@ void VulkanPostprocess::beginFrame()
 		builder.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 200);
 		builder.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4);
 		builder.setMaxSets(100);
-		mDescriptorPool = builder.create(renderer->Device.get());
+		mDescriptorPool = builder.create(renderer->Device);
 		mDescriptorPool->SetDebugName("VulkanPostprocess.mDescriptorPool");
 	}
 
@@ -170,11 +170,11 @@ void VulkanPostprocess::beginFrame()
 			imgbuilder.setSize(width, height);
 			imgbuilder.setFormat(VK_FORMAT_R16G16B16A16_SFLOAT);
 			imgbuilder.setUsage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
-			pipelineImage[i] = imgbuilder.create(renderer->Device.get());
+			pipelineImage[i] = imgbuilder.create(renderer->Device);
 
 			ImageViewBuilder viewbuilder;
 			viewbuilder.setImage(pipelineImage[i].get(), VK_FORMAT_R16G16B16A16_SFLOAT);
-			pipelineView[i] = viewbuilder.create(renderer->Device.get());
+			pipelineView[i] = viewbuilder.create(renderer->Device);
 		}
 	}
 }
@@ -196,7 +196,7 @@ VulkanSampler *VulkanPostprocess::getSampler(PPFilterMode filter, PPWrapMode wra
 	builder.setMinFilter(filter == PPFilterMode::Nearest ? VK_FILTER_NEAREST : VK_FILTER_LINEAR);
 	builder.setMagFilter(filter == PPFilterMode::Nearest ? VK_FILTER_NEAREST : VK_FILTER_LINEAR);
 	builder.setAddressMode(wrap == PPWrapMode::Clamp ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE : VK_SAMPLER_ADDRESS_MODE_REPEAT);
-	sampler = builder.create(renderer->Device.get());
+	sampler = builder.create(renderer->Device);
 	sampler->SetDebugName("VulkanPostprocess.mSamplers");
 	return sampler.get();
 }
@@ -223,14 +223,14 @@ VulkanPPTexture::VulkanPPTexture(Renderer* renderer, PPTexture *texture)
 		imgbuilder.setUsage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 	else
 		imgbuilder.setUsage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-	if (!imgbuilder.isFormatSupported(renderer->Device.get()))
+	if (!imgbuilder.isFormatSupported(renderer->Device))
 		throw std::runtime_error("Vulkan device does not support the image format required by a postprocess texture");
-	image = imgbuilder.create(renderer->Device.get());
+	image = imgbuilder.create(renderer->Device);
 	image->SetDebugName("VulkanPPTexture");
 
 	ImageViewBuilder viewbuilder;
 	viewbuilder.setImage(image.get(), format);
-	view = viewbuilder.create(renderer->Device.get());
+	view = viewbuilder.create(renderer->Device);
 	view->SetDebugName("VulkanPPTextureView");
 
 	if (texture->data)
@@ -239,7 +239,7 @@ VulkanPPTexture::VulkanPPTexture(Renderer* renderer, PPTexture *texture)
 		BufferBuilder stagingbuilder;
 		stagingbuilder.setSize(totalsize);
 		stagingbuilder.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-		staging = stagingbuilder.create(renderer->Device.get());
+		staging = stagingbuilder.create(renderer->Device);
 		staging->SetDebugName("VulkanPPTextureStaging");
 
 		PipelineBarrier barrier0;
@@ -292,8 +292,8 @@ VulkanPPShader::VulkanPPShader(Renderer* renderer, const PPShader *shaderdesc)
 		decl += "};\n";
 	}
 
-	vertexShader = Renderer::CreateVertexShader(renderer->Device.get(), "shaders/PPStep.vert");
-	fragmentShader = Renderer::CreateFragmentShader(renderer->Device.get(), shaderdesc->fragmentShader, decl + shaderdesc->defines);
+	vertexShader = Renderer::CreateVertexShader(renderer->Device, "shaders/PPStep.vert");
+	fragmentShader = Renderer::CreateFragmentShader(renderer->Device, shaderdesc->fragmentShader, decl + shaderdesc->defines);
 }
 
 const char *VulkanPPShader::getTypeStr(UniformType type)
@@ -414,7 +414,7 @@ VulkanDescriptorSet *VulkanPPRenderState::getInput(VulkanPPRenderPassSetup *pass
 		imageTransition.addImage(tex.image, tex.layout, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, false);
 	}
 
-	write.updateSets(renderer->Device.get());
+	write.updateSets(renderer->Device);
 	imageTransition.execute(renderer->GetDrawCommands());
 
 	VulkanDescriptorSet *set = descriptors.get();
@@ -452,7 +452,7 @@ VulkanFramebuffer *VulkanPPRenderState::getOutput(VulkanPPRenderPassSetup *passS
 		builder.setRenderPass(passSetup->renderPass.get());
 		builder.setSize(w, h);
 		builder.addAttachment(view);
-		framebuffer = builder.create(renderer->Device.get());
+		framebuffer = builder.create(renderer->Device);
 		framebuffer->SetDebugName(tex.debugname);
 	}
 
@@ -528,7 +528,7 @@ void VulkanPPRenderPassSetup::createDescriptorLayout(const VulkanPPRenderPassKey
 	DescriptorSetLayoutBuilder builder;
 	for (int i = 0; i < key.inputTextures; i++)
 		builder.addBinding(i, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
-	descriptorLayout = builder.create(renderer->Device.get());
+	descriptorLayout = builder.create(renderer->Device);
 	descriptorLayout->SetDebugName("VulkanPPRenderPassSetup.DescriptorLayout");
 }
 
@@ -538,7 +538,7 @@ void VulkanPPRenderPassSetup::createPipelineLayout(const VulkanPPRenderPassKey &
 	builder.addSetLayout(descriptorLayout.get());
 	if (key.uniforms > 0)
 		builder.addPushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, 0, key.uniforms);
-	pipelineLayout = builder.create(renderer->Device.get());
+	pipelineLayout = builder.create(renderer->Device);
 	pipelineLayout->SetDebugName("VulkanPPRenderPassSetup.PipelineLayout");
 }
 
@@ -569,7 +569,7 @@ void VulkanPPRenderPassSetup::createPipeline(const VulkanPPRenderPassKey &key)
 	builder.setRasterizationSamples(key.samples);
 	builder.setLayout(pipelineLayout.get());
 	builder.setRenderPass(renderPass.get());
-	pipeline = builder.create(renderer->Device.get());
+	pipeline = builder.create(renderer->Device);
 	pipeline->SetDebugName("VulkanPPRenderPassSetup.Pipeline");
 }
 
@@ -587,7 +587,7 @@ void VulkanPPRenderPassSetup::createRenderPass(const VulkanPPRenderPassKey &key)
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT);
-	renderPass = builder.create(renderer->Device.get());
+	renderPass = builder.create(renderer->Device);
 	renderPass->SetDebugName("VulkanPPRenderPassSetup.RenderPass");
 }
 

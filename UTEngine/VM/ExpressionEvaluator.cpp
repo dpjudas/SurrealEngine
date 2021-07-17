@@ -145,7 +145,7 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 	UObject* newObj = package->NewObject(
 		name.Type == ExpressionValueType::Nothing ? "" : name.ToString(),
 		cls,
-		flags.Type == ExpressionValueType::Nothing ? ObjectFlags::None : (ObjectFlags)flags.ToInt(),
+		flags.Type == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
 		true);
 
 	if (outer.Type != ExpressionValueType::Nothing)

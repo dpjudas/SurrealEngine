@@ -183,7 +183,7 @@ public:
 
 	std::string Name;
 	UClass* Base = nullptr;
-	ObjectFlags Flags = ObjectFlags::None;
+	ObjectFlags Flags = ObjectFlags::NoFlags;
 
 	PropertyDataBlock PropertyData;
 	std::string StateName;

@@ -15,11 +15,11 @@
 #include "FileResource.h"
 #include "VulkanRenderDevice.h"
 #include "UObject/ULevel.h"
+#include "Window/Window.h"
 
 static bool shaderbuilderinited = false;
 
-#ifdef WIN32
-Renderer::Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback) : WindowHandle(windowHandle)
+Renderer::Renderer(DisplayWindow* window, bool vsync) : window(window)
 {
 	if (!shaderbuilderinited)
 	{
@@ -27,16 +27,16 @@ Renderer::Renderer(HWND windowHandle, bool vsync, int vk_device, bool vk_debug, 
 		shaderbuilderinited = true;
 	}
 
-	Device = std::make_unique<VulkanDevice>(WindowHandle, vk_device, vk_debug, printLogCallback);
-	SwapChain = std::make_unique<VulkanSwapChain>(Device.get(), vsync);
-	ImageAvailableSemaphore = std::make_unique<VulkanSemaphore>(Device.get());
-	RenderFinishedSemaphore = std::make_unique<VulkanSemaphore>(Device.get());
-	RenderFinishedFence = std::make_unique<VulkanFence>(Device.get());
-	TransferSemaphore = std::make_unique<VulkanSemaphore>(Device.get());
-	CommandPool = std::make_unique<VulkanCommandPool>(Device.get(), Device->graphicsFamily);
+	Device = window->GetVulkanDevice();
+	SwapChain = std::make_unique<VulkanSwapChain>(Device, vsync);
+	ImageAvailableSemaphore = std::make_unique<VulkanSemaphore>(Device);
+	RenderFinishedSemaphore = std::make_unique<VulkanSemaphore>(Device);
+	RenderFinishedFence = std::make_unique<VulkanFence>(Device);
+	TransferSemaphore = std::make_unique<VulkanSemaphore>(Device);
+	CommandPool = std::make_unique<VulkanCommandPool>(Device, Device->graphicsFamily);
 	FrameDeleteList = std::make_unique<DeleteList>();
-	SceneSamplers = std::make_unique<::SceneSamplers>(Device.get());
-	SceneLights_ = std::make_unique<::SceneLights>(this);
+	SceneSamplers_ = std::make_unique<SceneSamplers>(Device);
+	SceneLights_ = std::make_unique<SceneLights>(this);
 	CreateSceneVertexBuffer();
 	CreateSceneDescriptorSetLayout();
 	CreateScenePipelineLayout();
@@ -57,9 +57,6 @@ Renderer::~Renderer()
 	}
 	ClearTextureCache();
 }
-#else
-// To do: port to unix
-#endif
 
 void Renderer::SubmitCommands(bool present, int presentWidth, int presentHeight)
 {
@@ -89,7 +86,7 @@ void Renderer::SubmitCommands(bool present, int presentWidth, int presentHeight)
 		QueueSubmit submit;
 		submit.addCommandBuffer(TransferCommands);
 		submit.addSignal(TransferSemaphore.get());
-		submit.execute(Device.get(), Device->graphicsQueue);
+		submit.execute(Device, Device->graphicsQueue);
 	}
 
 	if (DrawCommands)
@@ -109,7 +106,7 @@ void Renderer::SubmitCommands(bool present, int presentWidth, int presentHeight)
 		submit.addWait(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, ImageAvailableSemaphore.get());
 		submit.addSignal(RenderFinishedSemaphore.get());
 	}
-	submit.execute(Device.get(), Device->graphicsQueue, RenderFinishedFence.get());
+	submit.execute(Device, Device->graphicsQueue, RenderFinishedFence.get());
 
 	if (present && PresentImageIndex != 0xffffffff)
 	{
@@ -184,7 +181,7 @@ void Renderer::CreateScenePipelineLayout()
 	PipelineLayoutBuilder builder;
 	builder.addSetLayout(SceneDescriptorSetLayout.get());
 	builder.addPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants));
-	ScenePipelineLayout = builder.create(Device.get());
+	ScenePipelineLayout = builder.create(Device);
 }
 
 void Renderer::CreateSceneDescriptorSetLayout()
@@ -195,7 +192,7 @@ void Renderer::CreateSceneDescriptorSetLayout()
 	builder.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	builder.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	builder.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
-	SceneDescriptorSetLayout = builder.create(Device.get());
+	SceneDescriptorSetLayout = builder.create(Device);
 }
 
 void Renderer::CreateSceneVertexBuffer()
@@ -207,7 +204,7 @@ void Renderer::CreateSceneVertexBuffer()
 	builder.setMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	builder.setSize(size);
 
-	SceneVertexBuffer = builder.create(Device.get());
+	SceneVertexBuffer = builder.create(Device);
 	SceneVertices = (SceneVertex*)SceneVertexBuffer->Map(0, size);
 	SceneVertexPos = 0;
 }
@@ -220,16 +217,16 @@ void Renderer::CreateNullTexture()
 	imgbuilder.setFormat(VK_FORMAT_R8G8B8A8_UNORM);
 	imgbuilder.setSize(1, 1);
 	imgbuilder.setUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-	NullTexture = imgbuilder.create(Device.get());
+	NullTexture = imgbuilder.create(Device);
 
 	ImageViewBuilder viewbuilder;
 	viewbuilder.setImage(NullTexture.get(), VK_FORMAT_R8G8B8A8_UNORM);
-	NullTextureView = viewbuilder.create(Device.get());
+	NullTextureView = viewbuilder.create(Device);
 
 	BufferBuilder builder;
 	builder.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 	builder.setSize(4);
-	auto stagingbuffer = builder.create(Device.get());
+	auto stagingbuffer = builder.create(Device);
 	auto data = (uint32_t*)stagingbuffer->Map(0, 4);
 	data[0] = 0xffffffff;
 	stagingbuffer->Unmap();
@@ -289,7 +286,7 @@ VulkanDescriptorSet* Renderer::GetTextureDescriptorSet(uint32_t PolyFlags, Vulka
 			DescriptorPoolBuilder builder;
 			builder.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 * 4);
 			builder.setMaxSets(1000);
-			SceneDescriptorPool.push_back(builder.create(Device.get()).release());
+			SceneDescriptorPool.push_back(builder.create(Device).release());
 			SceneDescriptorPoolSetsLeft = 1000;
 		}
 
@@ -307,7 +304,7 @@ VulkanDescriptorSet* Renderer::GetTextureDescriptorSet(uint32_t PolyFlags, Vulka
 			else
 				writes.addCombinedImageSampler(descriptorSet, i++, NullTextureView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
-		writes.updateSets(Device.get());
+		writes.updateSets(Device);
 	}
 	return descriptorSet;
 }
@@ -333,7 +330,7 @@ void Renderer::CopyScreenToBuffer(int w, int h, void* data, float gamma)
 	imgbuilder.setFormat(VK_FORMAT_B8G8R8A8_UNORM);
 	imgbuilder.setUsage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 	imgbuilder.setSize(w, h);
-	auto image = imgbuilder.create(Device.get());
+	auto image = imgbuilder.create(Device);
 	VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	Postprocess_->blitCurrentToImage(image.get(), &imageLayout, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
@@ -341,7 +338,7 @@ void Renderer::CopyScreenToBuffer(int w, int h, void* data, float gamma)
 	BufferBuilder bufbuilder;
 	bufbuilder.setSize((size_t)w * h * 4);
 	bufbuilder.setUsage(VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_TO_CPU);
-	auto staging = bufbuilder.create(Device.get());
+	auto staging = bufbuilder.create(Device);
 
 	// Copy from image to buffer
 	VkBufferImageCopy region = {};

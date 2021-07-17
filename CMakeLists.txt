@@ -210,6 +210,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/ShaderCompiler/spirv/Logger.cpp
 	Thirdparty/ShaderCompiler/spirv/SpvTools.h
 	Thirdparty/ShaderCompiler/spirv/GLSL.std.450.h
+	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.cpp
+	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.h
 	Thirdparty/vulkan/vk_sdk_platform.h
 	Thirdparty/vulkan/vulkan_fuchsia.h
 	Thirdparty/vulkan/vulkan_win32.h
@@ -473,16 +475,22 @@ set(UTENGINE_SOURCES
 	UTEngine/UI/MainWindow/Toolbar.h
 	UTEngine/UI/MainWindow/VToolbar.h
 	UTEngine/UI/MainWindow/MenubarModal.cpp
+	UTEngine/Window/Window.cpp
+	UTEngine/Window/Window.h
+	UTEngine/Window/X11/X11Window.cpp
+	UTEngine/Window/X11/X11Window.h
+	UTEngine/Window/X11/X11Atoms.cpp
+	UTEngine/Window/X11/X11Atoms.h
 	UTEngine/File.h
 	UTEngine/Precomp.h
 )
 
-add_definitions(-DUNIX -D_UNIX)
+add_definitions(-DUNIX -D_UNIX -DVK_USE_PLATFORM_XLIB_KHR)
 add_link_options(-pthread)
 
 include_directories(UTEngine Thirdparty Thirdparty/dumb/include)
 
 add_executable(UTEngine ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
-target_link_libraries(UTEngine ${CMAKE_DL_LIBS})
+target_link_libraries(UTEngine ${CMAKE_DL_LIBS} -lX11 -ldl)
 
 set_target_properties(UTEngine PROPERTIES CXX_STANDARD 17)

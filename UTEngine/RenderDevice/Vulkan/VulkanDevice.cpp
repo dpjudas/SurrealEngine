@@ -9,13 +9,14 @@
 
 #ifdef WIN32
 VulkanDevice::VulkanDevice(HWND window, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback) : window(window), vk_device(vk_device), vk_debug(vk_debug), printLogCallback(printLogCallback)
+#else
+VulkanDevice::VulkanDevice(std::function<std::pair<Display*,Window>(VkPhysicalDevice physDevice, uint32_t queueFamilyIndex)> createSurfaceWindow, int vk_device, bool vk_debug, std::function<void(const char* typestr, const std::string& msg)> printLogCallback) : createSurfaceWindow(std::move(createSurfaceWindow)), vk_device(vk_device), vk_debug(vk_debug), printLogCallback(printLogCallback)
+#endif
 {
 	try
 	{
 		initVolk();
 		createInstance();
-		if (window)
-			createSurface();
 		selectPhysicalDevice();
 		selectFeatures();
 		createDevice();
@@ -32,11 +33,6 @@ VulkanDevice::~VulkanDevice()
 {
 	releaseResources();
 }
-#else
-
-// To do: port to unix
-
-#endif
 
 void VulkanDevice::selectFeatures()
 {
@@ -60,6 +56,8 @@ void VulkanDevice::selectPhysicalDevice()
 	if (availableDevices.empty())
 		throw std::runtime_error("No Vulkan devices found. Either the graphics card has no vulkan support or the driver is too old.");
 
+	createSurface();
+
 	supportedDevices.clear();
 
 	for (size_t idx = 0; idx < availableDevices.size(); idx++)
@@ -78,10 +76,11 @@ void VulkanDevice::selectPhysicalDevice()
 		VulkanCompatibleDevice dev;
 		dev.device = &availableDevices[idx];
 
-		// Figure out what can present
 		#ifndef WIN32
-		bool window = true;
+		bool window = static_cast<bool>(createSurfaceWindow);
 		#endif
+
+		// Figure out what can present
 		if (window)
 		{
 			for (int i = 0; i < (int)info.queueFamilies.size(); i++)
@@ -224,6 +223,34 @@ void VulkanDevice::createSurface()
 	VkResult result = vkCreateWin32SurfaceKHR(instance, &windowCreateInfo, nullptr, &surface);
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("Could not create vulkan surface");
+}
+#else
+void VulkanDevice::createSurface()
+{
+	for (const auto &info : availableDevices)
+	{
+		for (uint32_t i = 0; i < (uint32_t)info.queueFamilies.size(); i++)
+		{
+			const auto &queueFamily = info.queueFamilies[i];
+			if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+			{
+				uint32_t graphicsFamily = i;
+				auto handles = createSurfaceWindow(info.device, graphicsFamily);
+
+				VkXlibSurfaceCreateInfoKHR windowCreateInfo = {};
+				windowCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+				windowCreateInfo.dpy = handles.first;
+				windowCreateInfo.window = handles.second;
+
+				VkResult result = vkCreateXlibSurfaceKHR(instance, &windowCreateInfo, nullptr, &surface);
+				if (result != VK_SUCCESS)
+					throw std::runtime_error("Could not create vulkan surface");
+
+				return;
+			}
+		}
+	}
+	throw std::runtime_error("No vulkan device supports graphics!");
 }
 #endif
 
@@ -430,14 +457,25 @@ std::vector<const char *> VulkanDevice::getPlatformExtensions()
 		VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 	};
 }
+#else
+std::vector<const char *> VulkanDevice::getPlatformExtensions()
+{
+	return
+	{
+		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+	};
+}
 #endif
 
 void VulkanDevice::initVolk()
 {
-	if (volkInitialize() != VK_SUCCESS)
+	static bool volkInited = false;
+	if (!volkInited && volkInitialize() != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to find Vulkan");
 	}
+	volkInited = true;
 	auto iver = volkGetInstanceVersion();
 	if (iver == 0)
 	{

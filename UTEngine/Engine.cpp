@@ -34,7 +34,13 @@ Engine* engine = nullptr;
 Engine::Engine()
 {
 	engine = this;
-	packages = std::make_unique<PackageManager>("C:\\Games\\UnrealTournament436");
+
+#ifdef WIN32
+	std::string utfolder = "C:\\Games\\UnrealTournament436";
+#else
+	std::string utfolder = "/home/mbn/UnrealTournament";
+#endif
+	packages = std::make_unique<PackageManager>("/home/mbn/UnrealTournament");
 }
 
 Engine::~Engine()
@@ -44,8 +50,8 @@ Engine::~Engine()
 
 void Engine::Run()
 {
-	window = Window::Create(this);
-	window->OpenWindow(1800, 950, true);
+	window = DisplayWindow::Create(this);
+	window->OpenWindow(1800*3, 950*3, true);
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
@@ -212,7 +218,7 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
-void Engine::Key(Window* viewport, std::string key)
+void Engine::Key(DisplayWindow* viewport, std::string key)
 {
 	if (Frame::RunState != FrameRunState::Running)
 		return;
@@ -223,7 +229,7 @@ void Engine::Key(Window* viewport, std::string key)
 	}
 }
 
-void Engine::InputEvent(Window* window, EInputKey key, EInputType type, int delta)
+void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta)
 {
 	if (Frame::RunState != FrameRunState::Running)
 		return;
@@ -278,7 +284,7 @@ void Engine::SetPause(bool value)
 {
 }
 
-void Engine::WindowClose(Window* viewport)
+void Engine::WindowClose(DisplayWindow* viewport)
 {
 	quit = true;
 }

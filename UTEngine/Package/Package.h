@@ -137,7 +137,7 @@ private:
 	std::string Filename;
 
 	int Version = 0;
-	PackageFlags Flags = PackageFlags::None;
+	PackageFlags Flags = PackageFlags::NoFlags;
 	std::vector<NameTableEntry> NameTable;
 	std::vector<ExportTableEntry> ExportTable;
 	std::vector<ImportTableEntry> ImportTable;

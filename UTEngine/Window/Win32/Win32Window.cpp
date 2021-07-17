@@ -81,6 +81,8 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	SizeX = width;
 	SizeY = height;
 
+	Device = std::make_unique<VulkanDevice>(WindowHandle);
+
 	// Create rendering device.
 	if (!RenderDevice)
 		RenderDevice = RenderDevice::Create(this);

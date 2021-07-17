@@ -9,9 +9,9 @@
 
 SceneRenderPass::SceneRenderPass(Renderer* renderer) : renderer(renderer)
 {
-	vertexShader = Renderer::CreateVertexShader(renderer->Device.get(), "shaders/Scene.vert");
-	fragmentShader = Renderer::CreateFragmentShader(renderer->Device.get(), "shaders/Scene.frag");
-	fragmentShaderAlphaTest = Renderer::CreateFragmentShader(renderer->Device.get(), "shaders/Scene.frag", "#define ALPHATEST");
+	vertexShader = Renderer::CreateVertexShader(renderer->Device, "shaders/Scene.vert");
+	fragmentShader = Renderer::CreateFragmentShader(renderer->Device, "shaders/Scene.frag");
+	fragmentShaderAlphaTest = Renderer::CreateFragmentShader(renderer->Device, "shaders/Scene.frag", "#define ALPHATEST");
 
 	createRenderPass();
 	createPipeline();
@@ -145,7 +145,7 @@ void SceneRenderPass::createPipeline()
 		builder.setSubpassColorAttachmentCount(1);
 		builder.setRasterizationSamples(renderer->SceneBuffers_->sceneSamples);
 
-		pipeline[i] = builder.create(renderer->Device.get());
+		pipeline[i] = builder.create(renderer->Device);
 	}
 }
 
@@ -170,7 +170,7 @@ void SceneRenderPass::createRenderPass()
 		builder.addSubpassColorAttachmentRef(i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	builder.addSubpassDepthStencilAttachmentRef(numColorAttachments, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-	renderPass = builder.create(renderer->Device.get());
+	renderPass = builder.create(renderer->Device);
 }
 
 void SceneRenderPass::createFramebuffer()
@@ -180,5 +180,5 @@ void SceneRenderPass::createFramebuffer()
 	builder.setSize(renderer->SceneBuffers_->width, renderer->SceneBuffers_->height);
 	builder.addAttachment(renderer->SceneBuffers_->colorBufferView.get());
 	builder.addAttachment(renderer->SceneBuffers_->depthBufferView.get());
-	sceneFramebuffer = builder.create(renderer->Device.get());
+	sceneFramebuffer = builder.create(renderer->Device);
 }

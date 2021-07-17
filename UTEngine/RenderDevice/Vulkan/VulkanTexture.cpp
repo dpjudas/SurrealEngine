@@ -108,11 +108,11 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 		imgbuilder.setFormat(data.imageFormat);
 		imgbuilder.setSize(data.width, data.height, (int)data.miplevels.size());
 		imgbuilder.setUsage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-		image = imgbuilder.create(renderer->Device.get());
+		image = imgbuilder.create(renderer->Device);
 
 		ImageViewBuilder viewbuilder;
 		viewbuilder.setImage(image.get(), data.imageFormat);
-		imageView = viewbuilder.create(renderer->Device.get());
+		imageView = viewbuilder.create(renderer->Device);
 	}
 
 	auto cmdbuffer = renderer->GetTransferCommands();
@@ -154,7 +154,7 @@ UploadedData VulkanTexture::UploadData(Renderer* renderer, const FTextureInfo& I
 	BufferBuilder builder;
 	builder.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 	builder.setSize(pixelsSize);
-	result.stagingbuffer = builder.create(renderer->Device.get());
+	result.stagingbuffer = builder.create(renderer->Device);
 
 	auto data = (uint8_t*)result.stagingbuffer->Map(0, pixelsSize);
 	auto Ptr = data;
@@ -203,7 +203,7 @@ UploadedData VulkanTexture::UploadWhite(Renderer* renderer, const FTextureInfo& 
 	BufferBuilder builder;
 	builder.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
 	builder.setSize(4);
-	result.stagingbuffer = builder.create(renderer->Device.get());
+	result.stagingbuffer = builder.create(renderer->Device);
 	auto data = (uint32_t*)result.stagingbuffer->Map(0, 4);
 
 	data[0] = 0xffffffff;

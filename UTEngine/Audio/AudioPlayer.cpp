@@ -284,13 +284,21 @@ public:
 	bool mixer_stop_flag = false;
 };
 
+#else
+
+class AudioPlayerImpl : public AudioPlayer
+{
+public:
+	AudioPlayerImpl(std::unique_ptr<AudioSource> audiosource) : source(std::move(audiosource))
+	{
+	}
+
+	std::unique_ptr<AudioSource> source;
+};
+
+#endif
+
 std::unique_ptr<AudioPlayer> AudioPlayer::Create(std::unique_ptr<AudioSource> source)
 {
 	return std::make_unique<AudioPlayerImpl>(std::move(source));
 }
-
-#else
-
-// To do: write unix version
-
-#endif

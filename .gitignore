@@ -1,3 +1,5 @@
 /.vs
 /Build
+/build
 *.user
+.vscode

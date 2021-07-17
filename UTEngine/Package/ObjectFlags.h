@@ -2,7 +2,7 @@
 
 enum class ObjectFlags : uint32_t
 {
-	None = 0,
+	NoFlags = 0,
 	Transactional = 0x00000001, // Object is transactional
 	Unreachable = 0x00000002, // Object is not reachable on the object graph
 	Public = 0x00000004, // Object is visible outside its package

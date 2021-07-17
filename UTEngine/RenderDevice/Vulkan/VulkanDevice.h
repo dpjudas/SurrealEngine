@@ -41,8 +41,10 @@ class VulkanDevice
 public:
 #ifdef WIN32
 	VulkanDevice(HWND window, int vk_device = 0, bool vk_debug = false, std::function<void(const char* typestr, const std::string& msg)> printLogCallback = {});
-	~VulkanDevice();
+#else
+	VulkanDevice(std::function<std::pair<Display*,Window>(VkPhysicalDevice physDevice, uint32_t queueFamilyIndex)> createSurfaceWindow, int vk_device = 0, bool vk_debug = false, std::function<void(const char* typestr, const std::string& msg)> printLogCallback = {});
 #endif
+	~VulkanDevice();
 
 	void setDebugObjectName(const char *name, uint64_t handle, VkObjectType type)
 	{
@@ -60,6 +62,8 @@ public:
 
 #ifdef WIN32
 	HWND window;
+#else
+	std::function<std::pair<Display*,Window>(VkPhysicalDevice physDevice, uint32_t queueFamilyIndex)> createSurfaceWindow;
 #endif
 
 	// Instance setup
@@ -96,6 +100,8 @@ public:
 	std::vector<VulkanPhysicalDevice> availableDevices;
 	std::vector<VulkanCompatibleDevice> supportedDevices;
 
+	static void initVolk();
+
 private:
 	int vk_device;
 	bool vk_debug;
@@ -117,7 +123,6 @@ private:
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 
-	static void initVolk();
 	static std::vector<VkLayerProperties> getAvailableLayers();
 	static std::vector<VkExtensionProperties> getExtensions();
 	static std::vector<const char *> getPlatformExtensions();

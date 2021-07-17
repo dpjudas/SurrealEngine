@@ -29,7 +29,7 @@ class PackageManager;
 
 enum class ActorDrawType
 {
-	None,
+	NoDraw,
 	Sprite,
 	Mesh,
 	Brush,

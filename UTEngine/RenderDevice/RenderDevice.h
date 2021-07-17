@@ -3,7 +3,7 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 
-class Window;
+class DisplayWindow;
 class UTexture;
 class UActor;
 
@@ -21,7 +21,7 @@ struct FSceneNode
 	int X, Y; // viewport size
 	float FX, FY;
 	float FX2, FY2;
-	Window* Viewport = nullptr;
+	DisplayWindow* Viewport = nullptr;
 	float FovAngle;
 
 	mat4 Modelview;
@@ -74,7 +74,7 @@ struct FSurfaceInfo
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(::Window* viewport);
+	static std::unique_ptr<RenderDevice> Create(DisplayWindow* viewport);
 
 	virtual ~RenderDevice() = default;
 
@@ -98,6 +98,6 @@ public:
 	virtual void SetSceneNode(FSceneNode* Frame) = 0;
 	virtual void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) = 0;
 
-	Window* Viewport = nullptr;
+	DisplayWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 };

@@ -10,19 +10,19 @@ SceneLights::SceneLights(Renderer* renderer) : renderer(renderer)
 
 	bufbuild.setSize(sizeof(SceneLight) * MaxLights);
 	bufbuild.setUsage(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-	Lights = bufbuild.create(renderer->Device.get());
+	Lights = bufbuild.create(renderer->Device);
 	bufbuild.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-	StagingLights = bufbuild.create(renderer->Device.get());
+	StagingLights = bufbuild.create(renderer->Device);
 
 	bufbuild.setSize(1'000'000 * sizeof(int32_t));
 	bufbuild.setUsage(VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-	SurfaceLights = bufbuild.create(renderer->Device.get());
+	SurfaceLights = bufbuild.create(renderer->Device);
 	bufbuild.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-	StagingSurfaceLights = bufbuild.create(renderer->Device.get());
+	StagingSurfaceLights = bufbuild.create(renderer->Device);
 
-	createImage(Shadowmap, ShadowmapView, renderer->Device.get(), 4096, 4096, VK_FORMAT_R32_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	createImage(ShadowColorBuffer, ShadowColorBufferView, renderer->Device.get(), ShadowmapSize, ShadowmapSize, VK_FORMAT_R32_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-	createImage(ShadowDepthBuffer, ShadowDepthBufferView, renderer->Device.get(), ShadowmapSize, ShadowmapSize, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
+	createImage(Shadowmap, ShadowmapView, renderer->Device, 4096, 4096, VK_FORMAT_R32_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	createImage(ShadowColorBuffer, ShadowColorBufferView, renderer->Device, ShadowmapSize, ShadowmapSize, VK_FORMAT_R32_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+	createImage(ShadowDepthBuffer, ShadowDepthBufferView, renderer->Device, ShadowmapSize, ShadowmapSize, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	Shadowmap->SetDebugName("SceneBuffers.shadowmap");
 	ShadowmapView->SetDebugName("SceneBuffers.shadowmapView");

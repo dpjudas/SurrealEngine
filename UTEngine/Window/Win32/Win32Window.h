@@ -9,7 +9,7 @@ struct ReceivedWindowMessage
 	LPARAM lparam;
 };
 
-class Win32Window : public Window
+class Win32Window : public DisplayWindow
 {
 public:
 	Win32Window(Engine* engine);
@@ -17,7 +17,9 @@ public:
 
 	void OpenWindow(int width, int height, bool fullscreen) override;
 	void CloseWindow() override;
+	void* GetDisplay() override { return nullptr; }
 	void* GetWindow() override;
+	VulkanDevice* GetVulkanDevice() override { return Device.get(); }
 	RenderDevice* GetRenderDevice() override { return RenderDevice.get(); }
 	void Tick() override;
 
@@ -38,5 +40,6 @@ public:
 
 	std::vector<ReceivedWindowMessage> ReceivedMessages;
 
+	std::unique_ptr<VulkanDevice> Device;
 	std::unique_ptr<RenderDevice> RenderDevice;
 };

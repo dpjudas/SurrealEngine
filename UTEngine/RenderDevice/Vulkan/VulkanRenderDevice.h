@@ -7,7 +7,7 @@ class Renderer;
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(::Window* InViewport);
+	VulkanRenderDevice(DisplayWindow* InViewport);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;
@@ -44,7 +44,5 @@ private:
 	bool UseVSync = true;
 	int FPSLimit = 400;
 	uint64_t fpsLimitTime = 0;
-	int VkDeviceIndex = 0;
-	bool VkDebug = false;
 	int Multisample = 0;
 };

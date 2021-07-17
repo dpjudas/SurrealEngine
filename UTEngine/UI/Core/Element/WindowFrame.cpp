@@ -470,4 +470,78 @@ void WindowFrame::setNeedsRender()
 		InvalidateRect(impl->windowHandle, nullptr, FALSE);
 }
 
+#else
+
+class WindowFrameImpl
+{
+public:
+	WindowFrameImpl(WindowFrame *viewwindow) : viewwindow(viewwindow)
+	{
+	}
+
+	WindowFrame* viewwindow = nullptr;
+	std::unique_ptr<View> root;
+
+	std::string icon;
+	std::string title;
+	double width = 640;
+	double height = 480;
+};
+
+WindowFrame::WindowFrame() : impl(std::make_unique<WindowFrameImpl>(this))
+{
+}
+
+WindowFrame::~WindowFrame()
+{
+}
+
+void WindowFrame::setIcon(const std::string& src)
+{
+	impl->icon = src;
+}
+
+void WindowFrame::setTitle(const std::string& title)
+{
+	impl->title = title;
+}
+
+void WindowFrame::setSize(double width, double height)
+{
+	impl->width = width;
+	impl->height = height;
+}
+
+void WindowFrame::show()
+{
+}
+
+void WindowFrame::hide()
+{
+}
+
+void WindowFrame::setContentView(std::unique_ptr<View> view)
+{
+	if (impl->root)
+		impl->root->element->viewwindow = nullptr;
+	impl->root = std::move(view);
+	impl->root->element->viewwindow = this;
+	if (impl->root)
+	{
+		ElementGeometry g;
+		g.contentWidth = impl->width;
+		g.contentHeight = impl->height;
+		impl->root->element->setGeometry(g);
+	}
+}
+
+View* WindowFrame::contentView()
+{
+	return impl->root.get();
+}
+
+void WindowFrame::setNeedsRender()
+{
+}
+
 #endif

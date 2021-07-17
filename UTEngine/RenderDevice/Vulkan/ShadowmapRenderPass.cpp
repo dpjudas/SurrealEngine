@@ -10,8 +10,8 @@
 
 ShadowmapRenderPass::ShadowmapRenderPass(Renderer* renderer) : renderer(renderer)
 {
-	vertexShader = Renderer::CreateVertexShader(renderer->Device.get(), "shaders/Shadowmap.vert");
-	fragmentShader = Renderer::CreateFragmentShader(renderer->Device.get(), "shaders/Shadowmap.frag");
+	vertexShader = Renderer::CreateVertexShader(renderer->Device, "shaders/Shadowmap.vert");
+	fragmentShader = Renderer::CreateFragmentShader(renderer->Device, "shaders/Shadowmap.frag");
 
 	createRenderPass();
 	createPipeline();
@@ -57,7 +57,7 @@ void ShadowmapRenderPass::createPipeline()
 	builder.setSubpassColorAttachmentCount(1);
 	builder.setRasterizationSamples(VK_SAMPLE_COUNT_1_BIT);
 
-	pipeline = builder.create(renderer->Device.get());
+	pipeline = builder.create(renderer->Device);
 }
 
 void ShadowmapRenderPass::createRenderPass()
@@ -81,7 +81,7 @@ void ShadowmapRenderPass::createRenderPass()
 		builder.addSubpassColorAttachmentRef(i, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	builder.addSubpassDepthStencilAttachmentRef(numColorAttachments, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-	renderPass = builder.create(renderer->Device.get());
+	renderPass = builder.create(renderer->Device);
 }
 
 void ShadowmapRenderPass::createFramebuffer()
@@ -91,5 +91,5 @@ void ShadowmapRenderPass::createFramebuffer()
 	builder.setSize(renderer->SceneLights_->ShadowmapSize, renderer->SceneLights_->ShadowmapSize);
 	builder.addAttachment(renderer->SceneLights_->ShadowColorBufferView.get());
 	builder.addAttachment(renderer->SceneLights_->ShadowDepthBufferView.get());
-	shadowFramebuffer = builder.create(renderer->Device.get());
+	shadowFramebuffer = builder.create(renderer->Device);
 }
