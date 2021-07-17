@@ -491,6 +491,6 @@ add_link_options(-pthread)
 include_directories(UTEngine Thirdparty Thirdparty/dumb/include)
 
 add_executable(UTEngine ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
-target_link_libraries(UTEngine ${CMAKE_DL_LIBS} -lX11 -ldl)
+target_link_libraries(UTEngine ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
 
 set_target_properties(UTEngine PROPERTIES CXX_STANDARD 17)
