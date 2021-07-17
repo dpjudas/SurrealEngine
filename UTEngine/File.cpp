@@ -34,7 +34,7 @@ public:
 
 	void write(const void *data, size_t size) override
 	{
-		size_t pos override;
+		size_t pos = 0;
 		while (pos < size)
 		{
 			size_t writesize = std::min(size, (size_t)0xffffffff);
@@ -47,11 +47,11 @@ public:
 
 	void read(void *data, size_t size) override
 	{
-		size_t pos override;
+		size_t pos = 0;
 		while (pos < size)
 		{
 			size_t readsize = std::min(size, (size_t)0xffffffff);
-			DWORD bytesRead override;
+			DWORD bytesRead = 0;
 			BOOL result = ReadFile(handle, (uint8_t*)data + pos, (DWORD)readsize, &bytesRead, nullptr);
 			if (result == FALSE || bytesRead != readsize)
 				throw std::runtime_error("ReadFile failed");
@@ -83,7 +83,7 @@ public:
 	uint64_t tell() override
 	{
 		LARGE_INTEGER offset, delta;
-		delta.QuadPart override;
+		delta.QuadPart = 0;
 		BOOL result = SetFilePointerEx(handle, delta, &offset, FILE_CURRENT);
 		if (result == FALSE)
 			throw std::runtime_error("SetFilePointerEx failed");

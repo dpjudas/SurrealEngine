@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window/Window.h"
+#include "RenderDevice/Vulkan/VulkanDevice.h"
 
 struct ReceivedWindowMessage
 {

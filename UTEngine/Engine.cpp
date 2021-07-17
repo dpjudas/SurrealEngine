@@ -40,7 +40,7 @@ Engine::Engine()
 #else
 	std::string utfolder = "/home/mbn/UnrealTournament";
 #endif
-	packages = std::make_unique<PackageManager>("/home/mbn/UnrealTournament");
+	packages = std::make_unique<PackageManager>(utfolder);
 }
 
 Engine::~Engine()
@@ -57,7 +57,9 @@ void Engine::Run()
 	renderer = std::make_unique<UTRenderer>();
 	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
 
+	//LoadMap("Entry");
 	//LoadMap("CityIntro");
+	//LoadMap("UT-Logo-Map");
 	LoadMap("DM-Liandri");
 	//LoadMap("DM-Codex");
 	//LoadMap("DM-Barricade");
@@ -76,12 +78,16 @@ void Engine::Run()
 	//LoadMap("CTF-EternalCave");
 	//LoadMap("CTF-Niven");
 	//LoadMap("CTF-Face");
+	//LoadMap("DOM-Sesmar");
+	//LoadMap("EOL_Deathmatch");
+	//LoadMap("UTCredits");
 
 #if 0
 	if (LevelInfo->HasProperty("Song"))
 	{
 		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
-		audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
+		if (music)
+			audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
 	}
 #endif
 
