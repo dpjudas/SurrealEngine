@@ -158,22 +158,22 @@ Rect Element::getBoundingClientRect()
 
 double Element::clientTop() const
 {
-	return 0;
+	return toRootPos(geometry().contentBox().topLeft()).y;
 }
 
 double Element::clientLeft() const
 {
-	return 0;
+	return toRootPos(geometry().contentBox().topLeft()).x;
 }
 
 double Element::clientWidth() const
 {
-	return 0;
+	return geometry().contentWidth;
 }
 
 double Element::clientHeight() const
 {
-	return 0;
+	return geometry().contentHeight;
 }
 
 double Element::offsetLeft() const
@@ -198,22 +198,22 @@ double Element::offsetHeight() const
 
 double Element::scrollLeft() const
 {
-	return 0;
+	return geometry().scrollX;
 }
 
 double Element::scrollTop() const
 {
-	return 0;
+	return geometry().scrollY;
 }
 
 double Element::scrollWidth() const
 {
-	return 0;
+	return std::max(geometry().scrollWidth - geometry().contentWidth, 0.0);
 }
 
 double Element::scrollHeight() const
 {
-	return 0;
+	return std::max(geometry().scrollHeight - geometry().contentHeight, 0.0);
 }
 
 void Element::scrollTo(double x, double y)
@@ -226,10 +226,12 @@ void Element::scrollBy(double x, double y)
 
 void Element::setScrollLeft(double x)
 {
+	elementgeometry.scrollX = std::max(std::min(x, elementgeometry.scrollWidth - elementgeometry.contentWidth), 0.0);
 }
 
 void Element::setScrollTop(double y)
 {
+	elementgeometry.scrollY = std::max(std::min(y, elementgeometry.scrollHeight - elementgeometry.contentHeight), 0.0);
 }
 
 std::string Element::getValue()
@@ -257,8 +259,10 @@ std::string Element::getInnerHTML()
 	return std::string();
 }
 
-Element* Element::findElementAt(const Point& pos)
+Element* Element::findElementAt(Point pos)
 {
+	pos.x -= geometry().scrollX;
+	pos.y -= geometry().scrollY;
 	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 	{
 		if (element->geometry().borderBox().contains(pos))
@@ -310,7 +314,7 @@ void Element::setNeedsRender()
 		w->setNeedsRender();
 }
 
-Point Element::toRootPos(const Point& pos)
+Point Element::toRootPos(const Point& pos) const
 {
 	if (parent())
 		return parent()->toRootPos(geometry().contentBox().pos() + pos);
@@ -318,7 +322,7 @@ Point Element::toRootPos(const Point& pos)
 		return pos;
 }
 
-Point Element::fromRootPos(const Point& pos)
+Point Element::fromRootPos(const Point& pos) const
 {
 	if (parent())
 		return parent()->fromRootPos(pos) - geometry().contentBox().pos();
@@ -346,6 +350,7 @@ WindowFrame* Element::window()
 
 void Element::render(Canvas* canvas)
 {
+	layoutContent(canvas);
 	renderStyle(canvas);
 
 	bool needsClipping = overflow();
@@ -353,7 +358,7 @@ void Element::render(Canvas* canvas)
 		canvas->pushClip(geometry().contentBox());
 
 	Point origin = canvas->getOrigin();
-	canvas->setOrigin(origin + geometry().contentBox().pos());
+	canvas->setOrigin(origin + geometry().contentBox().pos() - geometry().scrollPos());
 	renderContent(canvas);
 	canvas->setOrigin(origin);
 
@@ -482,6 +487,50 @@ void Element::renderStyle(Canvas* canvas)
 	else if (parent() && parent()->isClass("listview-headersplitter"))
 	{
 		canvas->fillRect(geometry().paddingBox(), Colorf(200 / 255.0f, 200 / 255.0f, 200 / 255.0f));
+	}
+
+	if (overflow())
+	{
+		Colorf trackBackground = Colorf(250 / 255.0f, 250 / 255.0f, 250 / 255.0f);
+		Colorf thumbBackground = Colorf(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
+		if (isClass("vbox"))
+		{
+			Rect scrollbarBox = { geometry().contentX + geometry().contentWidth - scrollbarWidth(), geometry().contentY, scrollbarWidth(), geometry().contentHeight };
+			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
+			Rect thumbBox = trackBox;
+
+			double scHeight = geometry().scrollHeight;
+			if (scHeight > 0)
+			{
+				double scY = geometry().scrollY;
+				double thumbTop = std::max(scY / scHeight, 0.0);
+				double thumbBottom = std::max(std::min((scY + geometry().contentHeight) / scHeight, 1.0), thumbTop);
+				thumbBox.y = trackBox.y + thumbTop * trackBox.height;
+				thumbBox.height = (thumbBottom - thumbTop) * trackBox.height;
+			}
+
+			canvas->fillRect(scrollbarBox, trackBackground);
+			canvas->fillRect(thumbBox, thumbBackground);
+		}
+		else if (isClass("hbox"))
+		{
+			Rect scrollbarBox = { geometry().contentX, geometry().contentY + geometry().contentHeight - scrollbarWidth(), geometry().contentWidth, scrollbarWidth() };
+			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
+			Rect thumbBox = trackBox;
+
+			double scWidth = geometry().scrollWidth;
+			if (scWidth > 0)
+			{
+				double scX = geometry().scrollX;
+				double thumbLeft = std::max(scX / scWidth, 0.0);
+				double thumbRight = std::max(std::min((scX + geometry().contentWidth) / scWidth, 1.0), thumbLeft);
+				thumbBox.x = trackBox.x + thumbLeft * trackBox.width;
+				thumbBox.width = (thumbRight - thumbLeft) * trackBox.width;
+			}
+
+			canvas->fillRect(scrollbarBox, trackBackground);
+			canvas->fillRect(thumbBox, thumbBackground);
+		}
 	}
 }
 
@@ -686,16 +735,24 @@ void Element::layoutContent(Canvas* canvas)
 		{
 			double width = geometry().contentWidth;
 
-			double totalheight = 0;
-			int expandingcount = 0;
-			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			double stretchheight = 0.0;
+			if (!overflow())
 			{
-				ComputedBorder border = element->computedBorder();
-				totalheight += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
-				if (element->isClass("expanding"))
-					expandingcount++;
+				double totalheight = 0;
+				int expandingcount = 0;
+				for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+				{
+					ComputedBorder border = element->computedBorder();
+					totalheight += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
+					if (element->isClass("expanding"))
+						expandingcount++;
+				}
+				stretchheight = expandingcount > 0 ? (geometry().contentHeight - totalheight) / expandingcount : 0.0;
 			}
-			double stretchheight = expandingcount > 0 ? (geometry().contentHeight - totalheight) / expandingcount : 0.0;
+			else
+			{
+				width -= scrollbarWidth();
+			}
 
 			double y = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
@@ -717,21 +774,32 @@ void Element::layoutContent(Canvas* canvas)
 
 				y += childpos.contentHeight + childpos.paddingTop + childpos.paddingBottom;
 			}
+
+			elementgeometry.scrollWidth = width;
+			elementgeometry.scrollHeight = y;
 		}
 		else
 		{
 			double height = geometry().contentHeight;
 
-			double totalwidth = 0;
-			int expandingcount = 0;
-			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+			double stretchwidth = 0.0;
+			if (!overflow())
 			{
-				ComputedBorder border = element->computedBorder();
-				totalwidth += element->preferredWidth(canvas) + border.left + border.right;
-				if (element->isClass("expanding"))
-					expandingcount++;
+				double totalwidth = 0;
+				int expandingcount = 0;
+				for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
+				{
+					ComputedBorder border = element->computedBorder();
+					totalwidth += element->preferredWidth(canvas) + border.left + border.right;
+					if (element->isClass("expanding"))
+						expandingcount++;
+				}
+				stretchwidth = expandingcount > 0 ? (geometry().contentWidth - totalwidth) / expandingcount : 0.0;
 			}
-			double stretchwidth = expandingcount > 0 ? (geometry().contentWidth - totalwidth) / expandingcount : 0.0;
+			else
+			{
+				height -= scrollbarWidth();
+			}
 
 			double x = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
@@ -753,6 +821,9 @@ void Element::layoutContent(Canvas* canvas)
 
 				x += childpos.contentWidth + childpos.paddingLeft + childpos.paddingRight;
 			}
+
+			elementgeometry.scrollWidth = x;
+			elementgeometry.scrollHeight = height;
 		}
 		clearNeedsLayout();
 	}
@@ -760,8 +831,6 @@ void Element::layoutContent(Canvas* canvas)
 
 void Element::renderContent(Canvas* canvas)
 {
-	layoutContent(canvas);
-
 	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 	{
 		element->render(canvas);

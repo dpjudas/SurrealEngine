@@ -24,6 +24,9 @@ public:
 	// Content box size
 	Size contentSize() const;
 
+	// Scrollbar position
+	Point scrollPos() const { return { scrollX, scrollY }; }
+
 	// Left margin width
 	double marginLeft = 0.0;
 
@@ -71,4 +74,16 @@ public:
 
 	// Content area height
 	double contentHeight = 0.0;
+
+	// Scrollbar x position
+	double scrollX = 0.0;
+
+	// Scrollbar y position
+	double scrollY = 0.0;
+
+	// Inner scroll area width
+	double scrollWidth = 0.0;
+
+	// Inner scroll area height
+	double scrollHeight = 0.0;
 };

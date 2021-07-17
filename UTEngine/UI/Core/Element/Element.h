@@ -97,15 +97,15 @@ public:
 	Element* firstChild() const { return firstChildObj; }
 	Element* lastChild() const { return lastChildObj; }
 
-	Element* findElementAt(const Point& pos);
+	Element* findElementAt(Point pos);
 	bool needsLayout() const;
 	void clearNeedsLayout();
 	void setNeedsLayout();
 	const ElementGeometry& geometry() const;
 	void setGeometry(const ElementGeometry& geometry);
 	void setNeedsRender();
-	Point toRootPos(const Point& pos);
-	Point fromRootPos(const Point& pos);
+	Point toRootPos(const Point& pos) const;
+	Point fromRootPos(const Point& pos) const;
 	const WindowFrame* window() const;
 	WindowFrame* window();
 	void render(Canvas* canvas);
@@ -115,6 +115,8 @@ public:
 	bool overflow();
 	Colorf color();
 	double lineHeight();
+	double scrollbarWidth() { return 16; }
+	double thumbMargin() { return 4; }
 
 	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
 	double fixedWidth = -1;
