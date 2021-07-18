@@ -202,6 +202,7 @@
     <ClInclude Include="UI\Debugger\DisassemblyPage.h" />
     <ClInclude Include="UI\Debugger\ExpressionItemBuilder.h" />
     <ClInclude Include="UI\Debugger\LocalsPage.h" />
+    <ClInclude Include="UI\Debugger\LogPage.h" />
     <ClInclude Include="UI\Debugger\ObjectViewerPage.h" />
     <ClInclude Include="UI\Dialog\AppMenu.h" />
     <ClInclude Include="UI\Dialog\Dialog.h" />
@@ -854,6 +855,7 @@
     <ClCompile Include="UI\Debugger\DisassemblyPage.cpp" />
     <ClCompile Include="UI\Debugger\ExpressionItemBuilder.cpp" />
     <ClCompile Include="UI\Debugger\LocalsPage.cpp" />
+    <ClCompile Include="UI\Debugger\LogPage.cpp" />
     <ClCompile Include="UI\Debugger\ObjectViewerPage.cpp" />
     <ClCompile Include="UI\Dialog\AppMenu.cpp" />
     <ClCompile Include="UI\Dialog\Dialog.cpp" />

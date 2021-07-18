@@ -5,6 +5,7 @@
 #include "ObjectViewerPage.h"
 #include "CallstackPage.h"
 #include "LocalsPage.h"
+#include "LogPage.h"
 #include "UI/Core/View.h"
 #include "UI/MainWindow/Menubar.h"
 #include "UI/MainWindow/Toolbar.h"
@@ -34,11 +35,13 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	objectviewer = new ObjectViewerPage(nullptr);
 	callstack = new CallstackPage(nullptr);
 	locals = new LocalsPage(nullptr);
+	log = new LogPage(nullptr);
 
 	tabcontrol = new TabControl(contentView());
 	tabcontrol->setExpanding();
 	tabcontrol->addPage({}, "Disassembly", disassembly);
 	tabcontrol->addPage({}, "Object Viewer", objectviewer);
+	tabcontrol->addPage({}, "Log", log);
 
 	spacer1 = new View(contentView());
 	spacer1->element->setStyle("height", "5px");
@@ -78,6 +81,7 @@ void DebuggerWindow::onBreakpointTriggered()
 		locals->setFrame(nullptr);
 	}
 	callstack->updateList();
+	log->update();
 }
 
 void DebuggerWindow::onClose()

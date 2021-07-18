@@ -3,6 +3,8 @@
 #include "ExpressionItemBuilder.h"
 #include "VM/Expression.h"
 #include "VM/NativeFunc.h"
+#include "VM/Frame.h"
+#include "VM/Bytecode.h"
 #include "UI/Controls/ListView/ListViewItem.h"
 #include "UObject/UProperty.h"
 
@@ -15,6 +17,12 @@ std::unique_ptr<TextListViewItem> ExpressionItemBuilder::createItem(const std::s
 		expr->Visit(&builder);
 	else
 		builder.item->setText(0, "Null");
+
+	Frame* frame = Frame::Callstack.back();
+	Expression* activeExpr = frame->Func->Code->Statements[frame->StatementIndex];
+	if (expr == activeExpr)
+		builder.item->setText(0, "-->" + builder.item->getText(0)); // To do: use an arrow icon for this
+
 	return std::move(builder.item);
 }
 

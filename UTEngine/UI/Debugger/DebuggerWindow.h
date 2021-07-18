@@ -15,6 +15,7 @@ class DisassemblyPage;
 class ObjectViewerPage;
 class CallstackPage;
 class LocalsPage;
+class LogPage;
 
 class DebuggerWindow : public WindowFrame
 {
@@ -49,4 +50,5 @@ public:
 	ObjectViewerPage* objectviewer = nullptr;
 	CallstackPage* callstack = nullptr;
 	LocalsPage* locals = nullptr;
+	LogPage* log = nullptr;
 };

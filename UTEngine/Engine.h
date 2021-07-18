@@ -5,6 +5,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
 #include <set>
+#include <list>
 
 class Collision;
 class UTRenderer;
@@ -70,6 +71,8 @@ public:
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* level = nullptr;
 	UActor* SkyZoneInfo = nullptr;
+
+	std::list<std::string> Log;
 
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;

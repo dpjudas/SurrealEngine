@@ -466,6 +466,8 @@ set(UTENGINE_SOURCES
 	UTEngine/UI/Debugger/DisassemblyPage.h
 	UTEngine/UI/Debugger/ExpressionItemBuilder.h
 	UTEngine/UI/Debugger/LocalsPage.h
+	UTEngine/UI/Debugger/LogPage.cpp
+	UTEngine/UI/Debugger/LogPage.h
 	UTEngine/UI/MainWindow/Menubar.h
 	UTEngine/UI/MainWindow/Statusbar.h
 	UTEngine/UI/MainWindow/VToolbar.cpp

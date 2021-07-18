@@ -639,7 +639,10 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 
 void NObject::Log(const std::string& S, std::string* Tag)
 {
-	// throw std::runtime_error("Object.Log not implemented");
+	if (Tag)
+		engine->Log.push_back("[" + *Tag + "] " + S);
+	else
+		engine->Log.push_back(S);
 }
 
 void NObject::Loge(float A, float& ReturnValue)

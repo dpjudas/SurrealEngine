@@ -722,6 +722,9 @@
     <ClCompile Include="UI\Core\Element\ElementStyle.cpp">
       <Filter>UI\Core\Element</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Debugger\LogPage.cpp">
+      <Filter>UI\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1174,6 +1177,9 @@
     </ClInclude>
     <ClInclude Include="UI\Core\Element\Colorf.h">
       <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Debugger\LogPage.h">
+      <Filter>UI\Debugger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
