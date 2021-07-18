@@ -218,10 +218,21 @@ double Element::scrollHeight() const
 
 void Element::scrollTo(double x, double y)
 {
+	double maxX = std::max(geometry().scrollWidth - geometry().contentWidth, 0.0);
+	double maxY = std::max(geometry().scrollHeight - geometry().contentHeight, 0.0);
+	double posX = std::max(std::min(x, maxX), 0.0);
+	double posY = std::max(std::min(y, maxY), 0.0);
+	if (posX != geometry().scrollX || posY != geometry().scrollY)
+	{
+		elementgeometry.scrollX = posX;
+		elementgeometry.scrollY = posY;
+		setNeedsRender();
+	}
 }
 
 void Element::scrollBy(double x, double y)
 {
+	scrollTo(geometry().scrollX + x, geometry().scrollY + y);
 }
 
 void Element::setScrollLeft(double x)
@@ -261,8 +272,7 @@ std::string Element::getInnerHTML()
 
 Element* Element::findElementAt(Point pos)
 {
-	pos.x -= geometry().scrollX;
-	pos.y -= geometry().scrollY;
+	pos = pos + geometry().scrollPos();
 	for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 	{
 		if (element->geometry().borderBox().contains(pos))

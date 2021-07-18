@@ -37,7 +37,7 @@ public:
 	static Rect xywh(double x, double y, double width, double height) { return Rect(x, y, width, height); }
 	static Rect ltrb(double left, double top, double right, double bottom) { return Rect(left, top, right - left, bottom - top); }
 
-	bool contains(const Point& p) const { return (p.x >= x && p.x < x + width) && (p.y >= y && p.y < x + height); }
+	bool contains(const Point& p) const { return (p.x >= x && p.x < x + width) && (p.y >= y && p.y < y + height); }
 
 	double x = 0;
 	double y = 0;

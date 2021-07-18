@@ -19,6 +19,9 @@ private:
 	int keyCode = 0;
 	int detail = 0;
 	int button = 0;
+	double deltaX = 0;
+	double deltaY = 0;
+	double deltaZ = 0;
 	double clientX = 0;
 	double clientY = 0;
 	bool stopPropagationFlag = false;

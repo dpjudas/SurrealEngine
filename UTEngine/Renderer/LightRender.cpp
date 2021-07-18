@@ -90,7 +90,7 @@ UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const
 		std::vector<vec3> lightcolors;
 		lightcolors.resize((size_t)width * height, hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness()));
 
-		const uint8_t* bits = &model->LightBits[lmindex.DataOffset];
+		const uint8_t* bits = model->LightBits.data() + lmindex.DataOffset;
 		int bitpos = 0;
 
 		UActor** lightpos = &model->Lights[lmindex.LightActors];

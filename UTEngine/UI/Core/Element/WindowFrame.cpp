@@ -214,6 +214,39 @@ public:
 		}
 	}
 
+	void dispatchMouseWheelEvent(std::string name, int dx, int dy, WPARAM wparam, LPARAM lparam)
+	{
+		POINT pt;
+		pt.x = GET_X_LPARAM(lparam);
+		pt.y = GET_Y_LPARAM(lparam);
+		ScreenToClient(windowHandle, &pt);
+		double dpiscale = getDpiScale();
+		double x = pt.x / dpiscale;
+		double y = pt.y / dpiscale;
+		Element* element = root->element->findElementAt({ x, y });
+		if (element)
+		{
+			Event e;
+			e.clientX = x;
+			e.clientY = y;
+			e.deltaX = -dx;
+			e.deltaY = -dy;
+			element->dispatchEvent(name, &e);
+			if (!e.preventDefaultFlag)
+			{
+				while (element)
+				{
+					if (element->overflow())
+					{
+						element->scrollBy(-dx, -dy);
+						break;
+					}
+					element = element->parent();
+				}
+			}
+		}
+	}
+
 	LRESULT onWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		if (msg == WM_MOUSEMOVE)
@@ -329,8 +362,14 @@ public:
 		}
 		else if (msg == WM_MOUSEWHEEL)
 		{
-			//int delta = GET_WHEEL_DELTA_WPARAM(wparam);
-			// dispatchMouseWheelEvent("wheel", delta, wparam, lparam);
+			int delta = GET_WHEEL_DELTA_WPARAM(wparam);
+			dispatchMouseWheelEvent("wheel", 0, delta, wparam, lparam);
+			return 0;
+		}
+		else if (msg == WM_MOUSEHWHEEL)
+		{
+			int delta = GET_WHEEL_DELTA_WPARAM(wparam);
+			dispatchMouseWheelEvent("wheel", delta, 0, wparam, lparam);
 			return 0;
 		}
 		else if (msg == WM_SIZE)
