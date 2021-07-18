@@ -5,6 +5,7 @@
 #include "WindowFrame.h"
 #include "Canvas.h"
 #include "ComputedBorder.h"
+#include "ElementStyle.h"
 
 std::unique_ptr<Element> Element::createElement(std::string elementType)
 {
@@ -64,6 +65,7 @@ void Element::setAttribute(std::string name, std::string value)
 
 			pos = pos2;
 		}
+		style = nullptr;
 		setNeedsLayout();
 	}
 	else
@@ -78,6 +80,7 @@ void Element::removeAttribute(std::string name)
 	if (name == "class")
 	{
 		classes.clear();
+		style = nullptr;
 		setNeedsLayout();
 	}
 	else
@@ -362,6 +365,7 @@ void Element::render(Canvas* canvas)
 {
 	layoutContent(canvas);
 	renderStyle(canvas);
+	renderScrollbar(canvas);
 
 	bool needsClipping = overflow();
 	if (needsClipping)
@@ -374,174 +378,6 @@ void Element::render(Canvas* canvas)
 
 	if (needsClipping)
 		canvas->popClip();
-}
-
-Colorf Element::color()
-{
-	if (parent())
-		return parent()->color();
-	else
-		return { 0.0f, 0.0f, 0.0f };
-}
-
-double Element::lineHeight()
-{
-	if (isClass("tabbartab-label"))
-		return 20;
-	else if (isClass("toolbar"))
-		return 30;
-	else if (isClass("menubar") || isClass("menubarmodal"))
-		return 30;
-	else if (isClass("menubaritem") || isClass("menubarmodalitem"))
-		return 24;
-	else if (isClass("listviewheader"))
-		return 24;
-	else if (isClass("listviewitem"))
-		return 24;
-
-	if (parent())
-		return parent()->lineHeight();
-	else
-		return 20;
-}
-
-bool Element::overflow()
-{
-	return isClass("listviewbody");
-}
-
-ComputedBorder Element::computedBorder()
-{
-	ComputedBorder border;
-	if (isClass("tabbartab"))
-	{
-		border.top = 6;
-		border.bottom = 6;
-		border.left = 15;
-		border.right = 15;
-	}
-	else if (isClass("toolbarbutton"))
-	{
-		border.right = 10;
-	}
-	else if (isClass("toolbar"))
-	{
-		border.top = 5;
-		border.right = 5;
-		border.bottom = 5;
-		border.left = 10;
-	}
-	else if (isClass("menubar") || isClass("menubarmodal"))
-	{
-		border.left = 8;
-		border.right = 8;
-	}
-	else if (isClass("menubaritem") || isClass("menubarmodalitem"))
-	{
-		border.top = 3;
-		border.bottom = 3;
-		border.left = 9;
-		border.right = 9;
-	}
-	else if (isClass("listviewheader"))
-	{
-		border.left = 5;
-		border.right = 5;
-	}
-	else if (isClass("listviewitem"))
-	{
-		border.left = 5;
-		border.right = 5;
-	}
-	else if (parent() && parent()->isClass("listview-headersplitter"))
-	{
-		border.left = 1;
-	}
-	else if (isClass("statusbaritem"))
-	{
-		border.left = 5;
-		border.right = 5;
-	}
-	if (paddingLeft >= 0)
-		border.left = paddingLeft;
-	return border;
-}
-
-void Element::renderStyle(Canvas* canvas)
-{
-	if (isClass("debuggerwindow"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
-	}
-	else if (isClass("tabbartab") && isClass("selected"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
-		canvas->fillRect(geometry().contentBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
-	}
-	else if (isClass("tabcontrol-widgetstack"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
-	}
-	else if (isClass("listviewheader"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f));
-	}
-	else if (isClass("listviewbody"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(255 / 255.0f, 255 / 255.0f, 255 / 255.0f));
-	}
-	else if (isClass("listviewitem") && isClass("selected"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(204 / 255.0f, 232 / 255.0f, 255 / 255.0f));
-	}
-	else if (parent() && parent()->isClass("listview-headersplitter"))
-	{
-		canvas->fillRect(geometry().paddingBox(), Colorf(200 / 255.0f, 200 / 255.0f, 200 / 255.0f));
-	}
-
-	if (overflow())
-	{
-		Colorf trackBackground = Colorf(250 / 255.0f, 250 / 255.0f, 250 / 255.0f);
-		Colorf thumbBackground = Colorf(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
-		if (isClass("vbox"))
-		{
-			Rect scrollbarBox = { geometry().contentX + geometry().contentWidth - scrollbarWidth(), geometry().contentY, scrollbarWidth(), geometry().contentHeight };
-			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
-			Rect thumbBox = trackBox;
-
-			double scHeight = geometry().scrollHeight;
-			if (scHeight > 0)
-			{
-				double scY = geometry().scrollY;
-				double thumbTop = std::max(scY / scHeight, 0.0);
-				double thumbBottom = std::max(std::min((scY + geometry().contentHeight) / scHeight, 1.0), thumbTop);
-				thumbBox.y = trackBox.y + thumbTop * trackBox.height;
-				thumbBox.height = (thumbBottom - thumbTop) * trackBox.height;
-			}
-
-			canvas->fillRect(scrollbarBox, trackBackground);
-			canvas->fillRect(thumbBox, thumbBackground);
-		}
-		else if (isClass("hbox"))
-		{
-			Rect scrollbarBox = { geometry().contentX, geometry().contentY + geometry().contentHeight - scrollbarWidth(), geometry().contentWidth, scrollbarWidth() };
-			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
-			Rect thumbBox = trackBox;
-
-			double scWidth = geometry().scrollWidth;
-			if (scWidth > 0)
-			{
-				double scX = geometry().scrollX;
-				double thumbLeft = std::max(scX / scWidth, 0.0);
-				double thumbRight = std::max(std::min((scX + geometry().contentWidth) / scWidth, 1.0), thumbLeft);
-				thumbBox.x = trackBox.x + thumbLeft * trackBox.width;
-				thumbBox.width = (thumbRight - thumbLeft) * trackBox.width;
-			}
-
-			canvas->fillRect(scrollbarBox, trackBackground);
-			canvas->fillRect(thumbBox, thumbBackground);
-		}
-	}
 }
 
 void Element::setParent(Element* newParent)
@@ -851,4 +687,70 @@ void Element::renderContent(Canvas* canvas)
 		Rect box = canvas->measureText(innerText);
 		canvas->drawText({ 0.0f, (lineHeight() - box.height) * 0.5 }, color(), innerText);
 	}
+}
+
+void Element::renderStyle(Canvas* canvas)
+{
+	Colorf bg = backgroundColor();
+	if (bg.a != 0.0f)
+	{
+		canvas->fillRect(geometry().paddingBox(), bg);
+	}
+}
+
+void Element::renderScrollbar(Canvas* canvas)
+{
+	if (overflow())
+	{
+		const ElementGeometry& g = geometry();
+		Colorf trackBackground = Colorf::fromRgba8(250, 250, 250);
+		Colorf thumbBackground = Colorf::fromRgba8(200, 200, 200);
+		if (isClass("vbox"))
+		{
+			Rect scrollbarBox = { g.contentX + g.contentWidth - scrollbarWidth(), g.contentY, scrollbarWidth(), g.contentHeight };
+			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
+			Rect thumbBox = trackBox;
+
+			double scHeight = g.scrollHeight;
+			if (scHeight > 0)
+			{
+				double scY = g.scrollY;
+				double thumbTop = std::max(scY / scHeight, 0.0);
+				double thumbBottom = std::max(std::min((scY + g.contentHeight) / scHeight, 1.0), thumbTop);
+				thumbBox.y = trackBox.y + thumbTop * trackBox.height;
+				thumbBox.height = (thumbBottom - thumbTop) * trackBox.height;
+			}
+
+			canvas->fillRect(scrollbarBox, trackBackground);
+			canvas->fillRect(thumbBox, thumbBackground);
+		}
+		else if (isClass("hbox"))
+		{
+			Rect scrollbarBox = { g.contentX, g.contentY + g.contentHeight - scrollbarWidth(), g.contentWidth, scrollbarWidth() };
+			Rect trackBox = { scrollbarBox.x + thumbMargin(), scrollbarBox.y + thumbMargin(), scrollbarBox.width - (thumbMargin() * 2), scrollbarBox.height - (thumbMargin() * 2) };
+			Rect thumbBox = trackBox;
+
+			double scWidth = g.scrollWidth;
+			if (scWidth > 0)
+			{
+				double scX = g.scrollX;
+				double thumbLeft = std::max(scX / scWidth, 0.0);
+				double thumbRight = std::max(std::min((scX + g.contentWidth) / scWidth, 1.0), thumbLeft);
+				thumbBox.x = trackBox.x + thumbLeft * trackBox.width;
+				thumbBox.width = (thumbRight - thumbLeft) * trackBox.width;
+			}
+
+			canvas->fillRect(scrollbarBox, trackBackground);
+			canvas->fillRect(thumbBox, thumbBackground);
+		}
+	}
+}
+
+ElementStyle* Element::activeStyle()
+{
+	if (style)
+		return style;
+
+	style = window()->getStyle(this);
+	return style;
 }

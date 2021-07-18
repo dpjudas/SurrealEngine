@@ -4,6 +4,8 @@
 #include <memory>
 
 class View;
+class Element;
+class ElementStyle;
 class WindowFrameImpl;
 
 class WindowFrame
@@ -24,6 +26,8 @@ public:
 	View* contentView();
 
 	void setNeedsRender();
+
+	ElementStyle* getStyle(Element* element);
 
 private:
 	std::unique_ptr<WindowFrameImpl> impl;

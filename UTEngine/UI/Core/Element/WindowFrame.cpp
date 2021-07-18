@@ -163,6 +163,7 @@ public:
 
 	WindowFrame* viewwindow = nullptr;
 	std::unique_ptr<View> root;
+	std::map<std::set<std::string>, std::unique_ptr<ElementStyle>> styleCache;
 
 	DWORD exstyle = WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW;
 	DWORD style = WS_OVERLAPPEDWINDOW;
@@ -509,6 +510,14 @@ void WindowFrame::setNeedsRender()
 		InvalidateRect(impl->windowHandle, nullptr, FALSE);
 }
 
+ElementStyle* WindowFrame::getStyle(Element* element)
+{
+	auto& style = impl->styleCache[element->classes];
+	if (!style)
+		style = std::make_unique<ElementStyle>(element->classes);
+	return style.get();
+}
+
 #else
 
 class WindowFrameImpl
@@ -581,6 +590,11 @@ View* WindowFrame::contentView()
 
 void WindowFrame::setNeedsRender()
 {
+}
+
+ElementStyle* WindowFrame::getStyle(Element* element)
+{
+	return nullptr;
 }
 
 #endif

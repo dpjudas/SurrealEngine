@@ -304,7 +304,8 @@ void ListView::addColumn(std::string name, double width, bool expanding)
 		col.splitter = new HBoxView(header);
 		col.splitter->addClass("listview-headersplitter");
 		col.splitter->element->setStyle("width", "10px");
-		new View(col.splitter);
+		auto v = new View(col.splitter);
+		v->addClass("listview-headersplitterline");
 	}
 	col.label = new TextLabel(header);
 	col.label->addClass("listview-headerlabel");

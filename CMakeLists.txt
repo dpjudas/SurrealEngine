@@ -427,6 +427,9 @@ set(UTENGINE_SOURCES
 	UTEngine/UI/Core/Element/ComputedBorder.h
 	UTEngine/UI/Core/Element/ElementGeometry.h
 	UTEngine/UI/Core/Element/Event.h
+	UTEngine/UI/Core/Element/ElementStyle.cpp
+	UTEngine/UI/Core/Element/ElementStyle.h
+	UTEngine/UI/Core/Element/Colorf.h
 	UTEngine/UI/Core/View.h
 	UTEngine/UI/Core/UTF8Reader.h
 	UTEngine/UI/Dialog/MessageBox.h

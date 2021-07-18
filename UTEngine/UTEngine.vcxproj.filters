@@ -719,6 +719,9 @@
     <ClCompile Include="UI\Debugger\LocalsPage.cpp">
       <Filter>UI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="UI\Core\Element\ElementStyle.cpp">
+      <Filter>UI\Core\Element</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1165,6 +1168,12 @@
     </ClInclude>
     <ClInclude Include="UI\Debugger\LocalsPage.h">
       <Filter>UI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\ElementStyle.h">
+      <Filter>UI\Core\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Core\Element\Colorf.h">
+      <Filter>UI\Core\Element</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

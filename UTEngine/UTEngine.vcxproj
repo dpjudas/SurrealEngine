@@ -186,11 +186,13 @@
     <ClInclude Include="UI\Controls\TabControl\TabControl.h" />
     <ClInclude Include="UI\Controls\TextLabel\TextLabel.h" />
     <ClInclude Include="UI\Core\Element\Canvas.h" />
+    <ClInclude Include="UI\Core\Element\Colorf.h" />
     <ClInclude Include="UI\Core\Element\Element.h" />
     <ClInclude Include="UI\Core\Element\ElementGeometry.h" />
     <ClInclude Include="UI\Core\Element\ComputedBorder.h" />
     <ClInclude Include="UI\Core\Element\Event.h" />
     <ClInclude Include="UI\Core\Element\Rect.h" />
+    <ClInclude Include="UI\Core\Element\ElementStyle.h" />
     <ClInclude Include="UI\Core\Element\WindowFrame.h" />
     <ClInclude Include="UI\Core\JsonValue.h" />
     <ClInclude Include="UI\Core\UTF8Reader.h" />
@@ -842,6 +844,7 @@
     <ClCompile Include="UI\Core\Element\Element.cpp" />
     <ClCompile Include="UI\Core\Element\ElementGeometry.cpp" />
     <ClCompile Include="UI\Core\Element\Event.cpp" />
+    <ClCompile Include="UI\Core\Element\ElementStyle.cpp" />
     <ClCompile Include="UI\Core\Element\WindowFrame.cpp" />
     <ClCompile Include="UI\Core\JsonValue.cpp" />
     <ClCompile Include="UI\Core\UTF8Reader.cpp" />

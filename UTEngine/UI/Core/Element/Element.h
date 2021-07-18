@@ -9,22 +9,13 @@
 #include "Event.h"
 #include "Rect.h"
 #include "ElementGeometry.h"
+#include "ElementStyle.h"
+#include "ComputedBorder.h"
+#include "Colorf.h"
 
 class Canvas;
 class WindowFrame;
-class ComputedBorder;
-
-class Colorf
-{
-public:
-	Colorf() = default;
-	Colorf(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) { }
-
-	float r = 0.0f;
-	float g = 0.0f;
-	float b = 0.0f;
-	float a = 1.0f;
-};
+class ElementStyle;
 
 class Element
 {
@@ -110,20 +101,23 @@ public:
 	WindowFrame* window();
 	void render(Canvas* canvas);
 
-	void renderStyle(Canvas* canvas);
-	ComputedBorder computedBorder();
-	bool overflow();
-	Colorf color();
-	double lineHeight();
-	double scrollbarWidth() { return 16; }
-	double thumbMargin() { return 4; }
-
 	bool isClass(const char* cls) { return classes.find(cls) != classes.end(); }
 	double fixedWidth = -1;
 	double fixedHeight = -1;
 	double paddingLeft = -1;
 
+	ElementStyle* activeStyle();
+	ComputedBorder computedBorder() { return activeStyle()->computedBorder(this); }
+	bool overflow() { return activeStyle()->overflow(this); }
+	Colorf color() { return activeStyle()->color(this); }
+	double lineHeight() { return activeStyle()->lineHeight(this); }
+	Colorf backgroundColor() { return activeStyle()->backgroundColor(this); }
+	double scrollbarWidth() { return activeStyle()->scrollbarWidth(this); }
+	double thumbMargin() { return activeStyle()->thumbMargin(this); }
+
 private:
+	void renderStyle(Canvas* canvas);
+	void renderScrollbar(Canvas* canvas);
 	void layoutContent(Canvas* canvas);
 	void setParent(Element* newParent);
 	void moveBefore(Element* sibling);
@@ -133,6 +127,8 @@ private:
 	bool needs_layout = true;
 	bool needs_render = true;
 	ElementGeometry elementgeometry;
+	ElementStyle* style = nullptr;
+
 	std::map<std::string, std::vector<std::function<void(Event* event)>>> eventListeners;
 	std::map<std::string, std::string> attributes;
 	std::set<std::string> classes;
