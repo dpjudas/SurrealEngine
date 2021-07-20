@@ -262,9 +262,9 @@ ExpressionEvalResult Frame::Run()
 			return result;
 
 		case StatementResult::Iterator:
-			if (!result.Iterator)
+			if (!result.Iter)
 				throw std::runtime_error("Iterator statement without an iterator!");
-			Iterators.push_back(std::move(result.Iterator));
+			Iterators.push_back(std::move(result.Iter));
 			Iterators.back()->StartStatementIndex = StatementIndex + 1;
 			Iterators.back()->EndStatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
 			if (Iterators.back()->Next())

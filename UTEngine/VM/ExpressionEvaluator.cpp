@@ -325,7 +325,7 @@ void ExpressionEvaluator::Expr(IteratorExpression* expr)
 {
 	Eval(expr->Value);
 	Result.Result = StatementResult::Iterator;
-	Result.Iterator = std::move(Frame::CreatedIterator);
+	Result.Iter = std::move(Frame::CreatedIterator);
 	Result.JumpAddress = expr->Offset;
 }
 
