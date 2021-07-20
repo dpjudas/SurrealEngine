@@ -100,7 +100,7 @@ void Engine::Run()
 
 	LoadMap(mapName);
 
-#if 0
+#if 1
 	if (LevelInfo->HasProperty("Song"))
 	{
 		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
@@ -136,7 +136,7 @@ void Engine::Run()
 		}
 		else
 		{
-			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(-Camera.Yaw), EulerOrder::yxz));
+			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(90.0f - Camera.Yaw), EulerOrder::yxz));
 			vec3 vel = { 0.0f };
 			if (Buttons.StrafeLeft) vel.x = 1.0f;
 			if (Buttons.StrafeRight) vel.x = -1.0f;

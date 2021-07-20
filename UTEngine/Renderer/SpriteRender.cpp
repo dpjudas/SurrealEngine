@@ -48,7 +48,7 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	vec3 xaxis = { texwidth * drawscale, 0.0f, 0.0f };
 	vec3 yaxis = { 0.0f, 0.0f, texheight * drawscale };
 
-	quaternion viewrotation = inverse(normalize(quaternion::euler(radians(-engine->Camera.Pitch), radians(-engine->Camera.Roll), radians(-engine->Camera.Yaw), EulerOrder::yxz)));
+	quaternion viewrotation = inverse(normalize(quaternion::euler(radians(-engine->Camera.Pitch), radians(-engine->Camera.Roll), radians(90.0f - engine->Camera.Yaw), EulerOrder::yxz)));
 	xaxis = viewrotation * xaxis;
 	yaxis = viewrotation * yaxis;
 

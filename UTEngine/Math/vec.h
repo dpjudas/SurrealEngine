@@ -86,6 +86,8 @@ struct vec2T
 
 	vec2T<T> swizzle(int a, int b) const { return vec2T<T>(v[a], v[b]); }
 
+	inline vec2T operator-() const { return vec2T(-x, -y); }
+
 	inline vec2T &operator+=(vec2T b) { x += b.x; y += b.y; return *this; }
 	inline vec2T &operator-=(vec2T b) { x -= b.x; y -= b.y; return *this; }
 	inline vec2T &operator*=(vec2T b) { x *= b.x; y *= b.y; return *this; }
@@ -133,6 +135,8 @@ struct vec3T
 
 	T &operator[](int i) { return v[i]; }
 	const T &operator[](int i) const { return v[i]; }
+
+	inline vec3T operator-() const { return vec3T(-x, -y, -z); }
 
 	inline vec3T &operator+=(vec3T b) { x += b.x; y += b.y; z += b.z; return *this; }
 	inline vec3T &operator-=(vec3T b) { x -= b.x; y -= b.y; z -= b.z; return *this; }
@@ -190,6 +194,8 @@ struct vec4T
 	vec2T<T> swizzle(int a, int b) const { return vec2T<T>(v[a], v[b]); }
 	vec3T<T> swizzle(int a, int b, int c) const { return vec3T<T>(v[a], v[b], v[c]); }
 	vec4T<T> swizzle(int a, int b, int c, int d) const { return vec4T<T>(v[a], v[b], v[c], v[d]); }
+
+	inline vec4T operator-() const { return vec4T(-x, -y, -z, -w); }
 
 	inline vec4T &operator+=(vec4T b) { x += b.x; y += b.y; z += b.z; w += b.w; return *this; }
 	inline vec4T &operator-=(vec4T b) { x -= b.x; y -= b.y; z -= b.z; w -= b.w; return *this; }

@@ -508,7 +508,7 @@ uint64_t SceneRender::FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNo
 
 FSceneNode SceneRender::CreateSceneFrame()
 {
-	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - engine->Camera.Location);
 
 	FSceneNode frame;

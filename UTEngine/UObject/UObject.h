@@ -2,6 +2,7 @@
 
 #include "Package/ObjectStream.h"
 #include "Math/vec.h"
+#include "Math/mat.h"
 #include "PropertyOffsets.h"
 
 class UObject;
@@ -83,6 +84,14 @@ public:
 
 	Rotator& operator+=(const Rotator& b) { Pitch += b.Pitch; Yaw += b.Yaw; Roll += b.Roll; return *this; }
 	Rotator& operator-=(const Rotator& b) { Pitch -= b.Pitch; Yaw -= b.Yaw; Roll -= b.Roll; return *this; }
+
+	mat4 ToMatrix() const
+	{
+		return
+			mat4::rotate(radians(YawDegrees()), 0.0f, 0.0f, 1.0f) *
+			mat4::rotate(radians(PitchDegrees()), 0.0f, -1.0f, 0.0f) *
+			mat4::rotate(radians(RollDegrees()), -1.0f, 0.0f, 0.0f);
+	}
 };
 
 inline Rotator operator+(const Rotator& a, const Rotator& b) { return Rotator(a.Pitch + b.Pitch, a.Yaw + b.Yaw, a.Roll + b.Roll); }

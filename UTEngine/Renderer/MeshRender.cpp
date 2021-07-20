@@ -15,20 +15,20 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 	UMesh* mesh = actor->Mesh();
 	const vec3& location = actor->Location();
 	const Rotator& rotation = actor->Rotation();
-	float drawscale = actor->DrawScale();
 	int zoneIndex = actor->actorZone;
 	const vec3& color = actor->light;
 
-	mat4 rotate = mat4::rotate(radians(180.0f - rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(180.0f - rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
-	mat4 RotOrigin = mat4::rotate(radians(mesh->RotOrigin.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(mesh->RotOrigin.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(90.0f - mesh->RotOrigin.YawDegrees()), 0.0f, 0.0f, -1.0f);
-	mat4 ObjectToWorld = mat4::translate(location) * rotate * RotOrigin * mat4::scale(mesh->Scale * drawscale) * mat4::translate(vec3(0.0f) - mesh->Origin);
+	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * actor->Rotation().ToMatrix() * mat4::scale(actor->DrawScale());
+
+	mat4 meshToObject = mesh->RotOrigin.ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);
+	mat4 meshToWorld = objectToWorld * meshToObject;
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
-		DrawSkeletalMesh(frame, static_cast<USkeletalMesh*>(mesh), ObjectToWorld, color);
+		DrawSkeletalMesh(frame, static_cast<USkeletalMesh*>(mesh), meshToWorld, color);
 	else if (dynamic_cast<ULodMesh*>(mesh))
-		DrawLodMesh(frame, static_cast<ULodMesh*>(mesh), ObjectToWorld, color);
+		DrawLodMesh(frame, static_cast<ULodMesh*>(mesh), meshToWorld, color);
 	else
-		DrawMesh(frame, mesh, ObjectToWorld, color);
+		DrawMesh(frame, mesh, meshToWorld, color);
 }
 
 void MeshRender::DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
