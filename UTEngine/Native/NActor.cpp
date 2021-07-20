@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
+#include "Collision.h"
 
 void NActor::RegisterFunctions()
 {
@@ -120,7 +121,10 @@ void NActor::Error(UObject* Self, const std::string& S)
 
 void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.FastTrace not implemented");
+	// Note: only test against world geometry
+
+	vec3 start = TraceStart ? *TraceStart : UObject::Cast<UActor>(Self)->Location();
+	ReturnValue = engine->collision->TraceAnyHit(start, TraceEnd);
 }
 
 void NActor::FinishAnim(UObject* Self)
@@ -150,19 +154,22 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
-	throw std::runtime_error("Actor.GetNextInt not implemented");
+	engine->Log.push_back("Warning: GetNextInt(" + ClassName + ", " + std::to_string(Num) + ") not implemented");
+	ReturnValue = {};
 }
 
 void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description)
 {
 	Entry = {};
 	Description = {};
-	//throw std::runtime_error("Actor.GetNextIntDesc not implemented");
+	engine->Log.push_back("Warning: GetNextIntDesc(" + ClassName + ", " + std::to_string(Num) + ") not implemented");
 }
 
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)
 {
-	throw std::runtime_error("Actor.GetNextSkin not implemented");
+	SkinName = {};
+	SkinDesc = {};
+	engine->Log.push_back("Warning: GetNextSkin('" + Prefix + "', '" + CurrentSkin + "', " + std::to_string(Dir) + ") not implemented");
 }
 
 void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
@@ -192,7 +199,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 
 void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
-	// throw std::runtime_error("Actor.LoopAnim not implemented");
+	engine->Log.push_back("Warning: Actor.LoopAnim not implemented");
 }
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
@@ -221,17 +228,27 @@ void NActor::MoveSmooth(UObject* Self, const vec3& Delta, bool& ReturnValue)
 
 void NActor::Multiply_ColorFloat(const Color& A, float B, Color& ReturnValue)
 {
-	throw std::runtime_error("Actor.Multiply_ColorFloat not implemented");
+	Color c;
+	c.R = (int)std::round(clamp(A.R * B, 0.0f, 255.0f));
+	c.G = (int)std::round(clamp(A.G * B, 0.0f, 255.0f));
+	c.B = (int)std::round(clamp(A.B * B, 0.0f, 255.0f));
+	c.A = A.A;
+	ReturnValue = c;
 }
 
 void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 {
-	throw std::runtime_error("Actor.Multiply_FloatColor not implemented");
+	Color c;
+	c.R = (int)std::round(clamp(A * B.R, 0.0f, 255.0f));
+	c.G = (int)std::round(clamp(A * B.G, 0.0f, 255.0f));
+	c.B = (int)std::round(clamp(A * B.B, 0.0f, 255.0f));
+	c.A = B.A;
+	ReturnValue = c;
 }
 
 void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
 {
-	// throw std::runtime_error("Actor.PlayAnim not implemented");
+	engine->Log.push_back("Warning: Actor.PlayAnim not implemented");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -257,13 +274,12 @@ void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, fl
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
 {
-	// throw std::runtime_error("Actor.SetBase not implemented");
 	engine->Log.push_back("Warning: Actor.SetBase is not implemented");
 }
 
 void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
 {
-	// throw std::runtime_error("Actor.SetCollision not implemented");
+	engine->Log.push_back("Warning: Actor.SetCollision not implemented");
 }
 
 void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
@@ -286,7 +302,7 @@ void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
-	throw std::runtime_error("Actor.SetPhysics not implemented");
+	engine->Log.push_back("Warning: Actor.SetPhysics(" + std::to_string(newPhysics) + ") not implemented");
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
@@ -300,7 +316,7 @@ void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& Return
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 {
-	// throw std::runtime_error("Actor.SetTimer not implemented");
+	engine->Log.push_back("Warning: Actor.SetTimer not implemented");
 }
 
 void NActor::Sleep(UObject* Self, float Seconds)
@@ -338,6 +354,21 @@ void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std
 	actor->Location() = location;
 	actor->OldLocation() = location;
 	actor->Rotation() = rotation;
+
+	// To do: find the correct zone and BSP leaf for the actor
+	PointRegion region = {};
+	for (size_t i = 0; i < engine->Level->Model->Zones.size(); i++)
+	{
+		auto& zone = engine->Level->Model->Zones[i];
+		if (zone.ZoneActor)
+		{
+			region.Zone = UObject::Cast<UZoneInfo>(zone.ZoneActor);
+			region.ZoneNumber = (uint8_t)i;
+			region.BspLeaf = 0;
+			break;
+		}
+	}
+	actor->Region() = region;
 
 	if (engine->LevelInfo->bBegunPlay())
 	{
@@ -395,12 +426,18 @@ void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 
 void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, bool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Actor.Trace not implemented");
+	// To do:
+	// Trace a line and see what it collides with first.
+	// Takes this actor's collision properties into account.
+	// Returns first hit actor, Level if hit level, or None if hit nothing.
+
+	ReturnValue = nullptr;
 }
 
 void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
-	throw std::runtime_error("Actor.TraceActors not implemented");
+	// To do: trace against actors, filter by class and extent, return actor + hit location + normal
+	Actor = nullptr;
 }
 
 void NActor::TweenAnim(UObject* Self, const std::string& Sequence, float Time)

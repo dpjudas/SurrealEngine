@@ -25,6 +25,7 @@ class UInventorySpot;
 class UMover;
 class UTrigger;
 class UWarpZoneInfo;
+class UZoneInfo;
 class PackageManager;
 
 enum class ActorDrawType
@@ -37,6 +38,13 @@ enum class ActorDrawType
 	VerticalSprite,
 	Terraform,
 	SpriteAnimOnce
+};
+
+struct PointRegion
+{
+	UZoneInfo* Zone;
+	int BspLeaf;
+	uint8_t ZoneNumber;
 };
 
 class UActor : public UObject
@@ -117,7 +125,7 @@ public:
 	float& PhysRate() { return Value<float>(PropOffsets_Actor.PhysRate); }
 	uint8_t& Physics() { return Value<uint8_t>(PropOffsets_Actor.Physics); }
 	vec3& PrePivot() { return Value<vec3>(PropOffsets_Actor.PrePivot); }
-	// PointRegion& Region() { return Value<PointRegion>(PropOffsets_Actor.Region); }
+	PointRegion& Region() { return Value<PointRegion>(PropOffsets_Actor.Region); }
 	uint8_t& RemoteRole() { return Value<uint8_t>(PropOffsets_Actor.RemoteRole); }
 	// URenderIterator*& RenderInterface() { return Value<URenderIterator*>(PropOffsets_Actor.RenderInterface); }
 	UClass*& RenderIteratorClass() { return Value<UClass*>(PropOffsets_Actor.RenderIteratorClass); }
@@ -1162,10 +1170,10 @@ public:
 	UActor*& FaceTarget() { return Value<UActor*>(PropOffsets_Pawn.FaceTarget); }
 	vec3& Floor() { return Value<vec3>(PropOffsets_Pawn.Floor); }
 	vec3& Focus() { return Value<vec3>(PropOffsets_Pawn.Focus); }
-	// PointRegion& FootRegion() { return Value<PointRegion>(PropOffsets_Pawn.FootRegion); }
+	PointRegion& FootRegion() { return Value<PointRegion>(PropOffsets_Pawn.FootRegion); }
 	float& FovAngle() { return Value<float>(PropOffsets_Pawn.FovAngle); }
 	float& GroundSpeed() { return Value<float>(PropOffsets_Pawn.GroundSpeed); }
-	// PointRegion& HeadRegion() { return Value<PointRegion>(PropOffsets_Pawn.HeadRegion); }
+	PointRegion& HeadRegion() { return Value<PointRegion>(PropOffsets_Pawn.HeadRegion); }
 	int& Health() { return Value<int>(PropOffsets_Pawn.Health); }
 	float& HearingThreshold() { return Value<float>(PropOffsets_Pawn.HearingThreshold); }
 	USound*& HitSound1() { return Value<USound*>(PropOffsets_Pawn.HitSound1); }

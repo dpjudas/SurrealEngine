@@ -108,7 +108,6 @@ void SceneRender::DrawScene()
 	}
 
 	engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.medfont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale - 16, 64, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
-	engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.largefont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale / 2, engine->window->SizeY / engine->renderer->uiscale - 100, engine->LevelInfo->GetString("Title"), TextAlignment::center);
 }
 
 void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass)

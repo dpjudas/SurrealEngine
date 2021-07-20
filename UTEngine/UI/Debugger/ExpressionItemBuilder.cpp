@@ -338,7 +338,13 @@ void ExpressionItemBuilder::Expr(UnicodeStringConstExpression* expr)
 void ExpressionItemBuilder::Expr(StructMemberExpression* expr)
 {
 	item->setText(0, "Struct member");
-	item->add(createItem("Value", expr->Value));
+	item->add(createItem("Struct", expr->Value));
+
+	auto fieldItem = std::make_unique<TextListViewItem>();
+	fieldItem->setText(0, "Property");
+	fieldItem->setText(1, "Field");
+	fieldItem->setText(2, expr->Field->Name);
+	item->add(std::move(fieldItem));
 }
 
 void ExpressionItemBuilder::Expr(RotatorToVectorExpression* expr)

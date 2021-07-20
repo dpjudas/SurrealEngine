@@ -21,7 +21,10 @@ void ObjectViewerPage::setObject(UObject* obj)
 {
 	listview->clearList();
 
-	for (UProperty* prop : obj->PropertyData.Class->Properties)
+	auto props = obj->PropertyData.Class->Properties;
+	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name < b->Name; });
+
+	for (UProperty* prop : props)
 	{
 		void* ptr = obj->PropertyData.Ptr(prop);
 

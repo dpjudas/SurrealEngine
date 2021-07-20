@@ -76,7 +76,7 @@ void Engine::Run()
 
 	//std::string mapName = "CityIntro";
 	//std::string mapName = "UT-Logo-Map";
-	std::string mapName ="DM-Liandri";
+	//std::string mapName ="DM-Liandri";
 	//std::string mapName = "DM-Codex";
 	//std::string mapName = "DM-Barricade";
 	//std::string mapName = "DM-Deck16][";
@@ -91,7 +91,7 @@ void Engine::Run()
 	//std::string mapName = "CTF-Command";
 	//std::string mapName = "CTF-November";
 	//std::string mapName = "CTF-Gauntlet";
-	//std::string mapName = "CTF-EternalCave";
+	std::string mapName = "CTF-EternalCave";
 	//std::string mapName = "CTF-Niven";
 	//std::string mapName = "CTF-Face";
 	//std::string mapName = "DOM-Sesmar";
@@ -100,7 +100,7 @@ void Engine::Run()
 
 	LoadMap(mapName);
 
-#if 1
+#if 0
 	if (LevelInfo->HasProperty("Song"))
 	{
 		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
@@ -259,21 +259,26 @@ void Engine::LoadMap(std::string mapName)
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
 	LevelInfo->bStartup() = false;
 
-	// Create viewport actor
+	// Create viewport pawn
 	std::string playerPawnClass = packages->GetIniValue("system", "URL", "Class");
 	std::string pawnPackageName = playerPawnClass.substr(0, playerPawnClass.find('.'));
 	std::string pawnClassName = playerPawnClass.substr(playerPawnClass.find('.') + 1);
 	UClass* pawnClass = UObject::Cast<UClass>(packages->GetPackage(pawnPackageName)->GetUObject("Class", pawnClassName));
 	std::string portal, options, error;
 	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
-	viewport->Actor() = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
+	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
 		ExpressionValue::StringValue(portal),
 		ExpressionValue::StringValue(options),
 		ExpressionValue::Variable(&error, &stringProp),
 		ExpressionValue::ObjectValue(pawnClass)
 		}).ToObject());
-	if (!viewport->Actor())
+	if (!pawn)
 		throw std::runtime_error("GameInfo login failed: " + error);
+
+	// Assign the pawn to the viewport
+	viewport->Actor() = pawn;
+	viewport->Actor()->Player() = viewport;
+	CallEvent(viewport->Actor(), "Possess");
 
 	// Cache some light and texture info
 	std::set<UActor*> lightset;
