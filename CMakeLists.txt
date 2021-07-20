@@ -270,6 +270,8 @@ set(UTENGINE_SOURCES
 	UTEngine/VM/Expression.h
 	UTEngine/VM/ExpressionEvaluator.cpp
 	UTEngine/VM/ExpressionVisitor.h
+	UTEngine/VM/Iterator.cpp
+	UTEngine/VM/Iterator.h
 	UTEngine/Engine.h
 	UTEngine/Audio/AudioPlayer.cpp
 	UTEngine/Audio/AudioPlayer.h

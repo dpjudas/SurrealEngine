@@ -51,6 +51,7 @@ public:
 	~Engine();
 
 	void Run();
+	void LoadMap(std::string mapName);
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(DisplayWindow* window);
@@ -62,15 +63,16 @@ public:
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
 	UConsole* console = nullptr;
-	UPlayerPawn* pawn = nullptr;
-	UGameInfo* gameinfo = nullptr;
-	UGameReplicationInfo* gamerepinfo = nullptr;
-	UPlayerReplicationInfo* playerrepinfo = nullptr;
+
+	ULevelSummary* EntryLevelSummary = nullptr;
+	ULevelInfo* EntryLevelInfo = nullptr;
+	ULevel* EntryLevel = nullptr;
+	UGameInfo* EntryGameInfo = nullptr;
 
 	ULevelSummary* LevelSummary = nullptr;
 	ULevelInfo* LevelInfo = nullptr;
-	ULevel* level = nullptr;
-	UActor* SkyZoneInfo = nullptr;
+	ULevel* Level = nullptr;
+	UGameInfo* GameInfo = nullptr;
 
 	std::list<std::string> Log;
 
@@ -81,11 +83,7 @@ public:
 	std::unique_ptr<AudioPlayer> audioplayer;
 	std::unique_ptr<AudioPlayer> soundslot;
 
-	void Tick(float timeElapsed);
-
 	float CalcTimeElapsed();
-
-	void LoadMap(const std::string& packageName);
 
 	struct ActorPos
 	{

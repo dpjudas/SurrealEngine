@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExpressionValue.h"
+#include "Iterator.h"
 
 class DebuggerWindow;
 class Bytecode;
@@ -29,6 +30,7 @@ public:
 	static std::vector<Frame*> Callstack;
 	static FrameRunState RunState;
 	static Frame* StepFrame;
+	static Expression* StepExpression;
 	static std::string ExceptionText;
 
 	static void Break();
@@ -37,10 +39,13 @@ public:
 	static void StepOver();
 	static void ThrowException(const std::string& text);
 
+	static std::unique_ptr<Iterator> CreatedIterator;
+
 	std::unique_ptr<uint64_t[]> Variables;
 	UObject* Object = nullptr;
 	UFunction* Func = nullptr;
 	size_t StatementIndex = 0;
+	std::vector<std::unique_ptr<Iterator>> Iterators;
 
 private:
 	ExpressionEvalResult Run();

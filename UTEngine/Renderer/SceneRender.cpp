@@ -13,9 +13,9 @@
 void SceneRender::DrawScene()
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
-	auto level = engine->level;
+	auto level = engine->Level;
 
-	if (engine->SkyZoneInfo)
+	if (engine->LevelInfo->SkyZone())
 	{
 		engine->renderer->sceneDrawNumber++;
 		FSceneNode frame = CreateSkyFrame();
@@ -118,7 +118,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 
 	if (node.RenderBound != -1)
 	{
-		const BBox& bbox = engine->level->Model->Bounds[node.RenderBound];
+		const BBox& bbox = engine->Level->Model->Bounds[node.RenderBound];
 		if (clip.test(bbox) == IntersectionTestResult::outside)
 			return;
 	}
@@ -135,7 +135,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 
 	if (front >= 0)
 	{
-		DrawNode(frame, engine->level->Model->Nodes[front], clip, zonemask, pass);
+		DrawNode(frame, engine->Level->Model->Nodes[front], clip, zonemask, pass);
 	}
 
 	const BspNode* polynode = &node;
@@ -151,16 +151,16 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 			DrawNodeSurface(frame, *polynode, pass);
 #else
 		if ((((uint64_t)1 << frontzone) & zonemask) || (((uint64_t)1 << backzone) & zonemask))
-			DrawNodeSurface(frame, engine->level->Model, *polynode, pass);
+			DrawNodeSurface(frame, engine->Level->Model, *polynode, pass);
 #endif
 
 		if (polynode->Plane < 0) break;
-		polynode = &engine->level->Model->Nodes[polynode->Plane];
+		polynode = &engine->Level->Model->Nodes[polynode->Plane];
 	}
 
 	if (back >= 0)
 	{
-		DrawNode(frame, engine->level->Model->Nodes[back], clip, zonemask, pass);
+		DrawNode(frame, engine->Level->Model->Nodes[back], clip, zonemask, pass);
 	}
 }
 
@@ -306,7 +306,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 
 int SceneRender::FindZoneAt(vec3 location)
 {
-	return FindZoneAt(vec4(location, 1.0f), &engine->level->Model->Nodes.front(), engine->level->Model->Nodes.data());
+	return FindZoneAt(vec4(location, 1.0f), &engine->Level->Model->Nodes.front(), engine->Level->Model->Nodes.data());
 }
 
 int SceneRender::FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes)
@@ -331,7 +331,7 @@ uint64_t SceneRender::FindRenderZoneMask(FSceneNode* frame, const BspNode& node,
 
 	if (node.RenderBound != -1)
 	{
-		const BBox& bbox = engine->level->Model->Bounds[node.RenderBound];
+		const BBox& bbox = engine->Level->Model->Bounds[node.RenderBound];
 		if (clip.test(bbox) == IntersectionTestResult::outside)
 			return zonemask;
 	}
@@ -347,7 +347,7 @@ uint64_t SceneRender::FindRenderZoneMask(FSceneNode* frame, const BspNode& node,
 
 	if (front >= 0)
 	{
-		zonemask |= FindRenderZoneMask(frame, engine->level->Model->Nodes[front], clip, zone);
+		zonemask |= FindRenderZoneMask(frame, engine->Level->Model->Nodes[front], clip, zone);
 	}
 
 	const BspNode* polynode = &node;
@@ -362,12 +362,12 @@ uint64_t SceneRender::FindRenderZoneMask(FSceneNode* frame, const BspNode& node,
 			zonemask |= FindRenderZoneMaskForPortal(frame, *polynode, clip, backzone);
 
 		if (polynode->Plane < 0) break;
-		polynode = &engine->level->Model->Nodes[polynode->Plane];
+		polynode = &engine->Level->Model->Nodes[polynode->Plane];
 	}
 
 	if (back >= 0)
 	{
-		zonemask |= FindRenderZoneMask(frame, engine->level->Model->Nodes[back], clip, zone);
+		zonemask |= FindRenderZoneMask(frame, engine->Level->Model->Nodes[back], clip, zone);
 	}
 
 	return zonemask;
@@ -378,7 +378,7 @@ uint64_t SceneRender::FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNo
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return 0;
 
-	auto level = engine->level;
+	auto level = engine->Level;
 	BspSurface& surface = level->Model->Surfaces[node.Surf];
 
 	if ((surface.PolyFlags & PF_Portal) == 0)
@@ -534,8 +534,8 @@ FSceneNode SceneRender::CreateSceneFrame()
 FSceneNode SceneRender::CreateSkyFrame()
 {
 	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 skyrotate = mat4::rotate(radians(engine->SkyZoneInfo->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->SkyZoneInfo->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->SkyZoneInfo->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - engine->SkyZoneInfo->Location());
+	mat4 skyrotate = mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - engine->LevelInfo->SkyZone()->Location());
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -547,7 +547,7 @@ FSceneNode SceneRender::CreateSkyFrame()
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
-	frame.ViewLocation = engine->SkyZoneInfo->Location();
+	frame.ViewLocation = engine->LevelInfo->SkyZone()->Location();
 	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);

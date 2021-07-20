@@ -205,6 +205,8 @@ void Package::LoadExportObject(int index)
 	else
 	{
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
+		if (!objbase && objname != "Object")
+			objbase = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Object"));
 		auto obj = std::make_unique<UClass>(objname, objbase, ExportTable[index].ObjFlags);
 		Objects[index] = std::move(obj);
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));

@@ -18,9 +18,7 @@ std::unique_ptr<TextListViewItem> ExpressionItemBuilder::createItem(const std::s
 	else
 		builder.item->setText(0, "Null");
 
-	Frame* frame = Frame::Callstack.back();
-	Expression* activeExpr = frame->Func->Code->Statements[frame->StatementIndex];
-	if (expr == activeExpr)
+	if (expr == Frame::StepExpression)
 		builder.item->setText(0, "-->" + builder.item->getText(0)); // To do: use an arrow icon for this
 
 	return std::move(builder.item);
@@ -209,6 +207,10 @@ void ExpressionItemBuilder::Expr(StringConstExpression* expr)
 void ExpressionItemBuilder::Expr(ObjectConstExpression* expr)
 {
 	item->setText(0, "Object const");
+	if (expr->Object)
+		item->setText(2, "{ name=\"" + expr->Object->Name + "\", class=" + UObject::GetUClassName(expr->Object) + " }");
+	else
+		item->setText(2, "null");
 }
 
 void ExpressionItemBuilder::Expr(NameConstExpression* expr)
@@ -220,6 +222,7 @@ void ExpressionItemBuilder::Expr(NameConstExpression* expr)
 void ExpressionItemBuilder::Expr(RotationConstExpression* expr)
 {
 	item->setText(0, "Rotation const");
+	item->setText(2, "{ " + std::to_string(expr->Pitch) + ", " + std::to_string(expr->Yaw) + ", " + std::to_string(expr->Roll) + " }");
 }
 
 void ExpressionItemBuilder::Expr(VectorConstExpression* expr)

@@ -211,7 +211,7 @@ void NObject::AddEqual_IntInt(int& A, int B, int& ReturnValue)
 
 void NObject::AddEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.AddEqual_RotatorRotator not implemented");
+	ReturnValue = A += B;
 }
 
 void NObject::AddEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue)
@@ -231,7 +231,7 @@ void NObject::Add_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Add_RotatorRotator not implemented");
+	ReturnValue = A + B;
 }
 
 void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
@@ -336,7 +336,7 @@ void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue
 
 void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
 {
-	throw std::runtime_error("Object.Disable not implemented");
+	engine->Log.push_back("To do: script tried to disable the probe function " + ProbeFunc + ". This is not implemented yet.");
 }
 
 void NObject::DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -400,17 +400,15 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 
 	ReturnValue = engine->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
 
-	/*
-	if (!MayFail || *MayFail == false)
+	if (!ReturnValue && (!MayFail || *MayFail == false))
 	{
-		// To do: log a warning if return value is null
+		engine->Log.push_back("Object.DynamicLoadObject: could not load " + ObjectName);
 	}
-	*/
 }
 
 void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
 {
-	throw std::runtime_error("Object.Enable not implemented");
+	engine->Log.push_back("To do: script tried to enable the probe function " + ProbeFunc + ". This is not implemented yet.");
 }
 
 void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
@@ -475,7 +473,7 @@ void NObject::FMin(float A, float B, float& ReturnValue)
 
 void NObject::FRand(float& ReturnValue)
 {
-	throw std::runtime_error("Object.FRand not implemented");
+	ReturnValue = std::rand() / (float)RAND_MAX;
 }
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
@@ -782,7 +780,7 @@ void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
 
 void NObject::NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue)
 {
-	throw std::runtime_error("Object.NotEqual_RotatorRotator not implemented");
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
@@ -817,12 +815,14 @@ void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Rand not implemented");
+	float t = std::rand() / RAND_MAX;
+	ReturnValue = (int)std::round(Max * t);
 }
 
 void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 {
-	throw std::runtime_error("Object.RandRange not implemented");
+	float t = std::rand() / RAND_MAX;
+	ReturnValue = mix(Min, Max, t);
 }
 
 void NObject::ResetConfig()
@@ -948,7 +948,7 @@ void NObject::Subtract_PreVector(const vec3& A, vec3& ReturnValue)
 
 void NObject::Subtract_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Subtract_RotatorRotator not implemented");
+	ReturnValue = A - B;
 }
 
 void NObject::Subtract_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
@@ -963,7 +963,7 @@ void NObject::Tan(float A, float& ReturnValue)
 
 void NObject::VRand(vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.VRand not implemented");
+	ReturnValue = vec3(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
 }
 
 void NObject::VSize(const vec3& A, float& ReturnValue)
@@ -973,7 +973,7 @@ void NObject::VSize(const vec3& A, float& ReturnValue)
 
 void NObject::Warn(const std::string& S)
 {
-	throw std::runtime_error("Object.Warn not implemented");
+	engine->Log.push_back("Warning: " + S);
 }
 
 void NObject::XorXor_BoolBool(bool A, bool B, bool& ReturnValue)

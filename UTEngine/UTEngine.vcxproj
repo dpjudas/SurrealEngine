@@ -241,6 +241,7 @@
     <ClInclude Include="VM\ExpressionValue.h" />
     <ClInclude Include="VM\ExpressionVisitor.h" />
     <ClInclude Include="VM\Frame.h" />
+    <ClInclude Include="VM\Iterator.h" />
     <ClInclude Include="VM\NativeFunc.h" />
     <ClInclude Include="VM\NativeFuncExtractor.h" />
     <ClInclude Include="VM\ScriptCall.h" />
@@ -891,6 +892,7 @@
     <ClCompile Include="VM\Bytecode.cpp" />
     <ClCompile Include="VM\ExpressionEvaluator.cpp" />
     <ClCompile Include="VM\Frame.cpp" />
+    <ClCompile Include="VM\Iterator.cpp" />
     <ClCompile Include="VM\NativeFunc.cpp" />
     <ClCompile Include="VM\NativeFuncExtractor.cpp" />
     <ClCompile Include="VM\ScriptCall.cpp" />

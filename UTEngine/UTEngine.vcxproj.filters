@@ -725,6 +725,9 @@
     <ClCompile Include="UI\Debugger\LogPage.cpp">
       <Filter>UI\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="VM\Iterator.cpp">
+      <Filter>VM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1180,6 +1183,9 @@
     </ClInclude>
     <ClInclude Include="UI\Debugger\LogPage.h">
       <Filter>UI\Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="VM\Iterator.h">
+      <Filter>VM</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

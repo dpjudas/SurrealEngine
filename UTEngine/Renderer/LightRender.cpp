@@ -20,7 +20,7 @@ FTextureInfo LightRender::GetSurfaceLightmap(BspSurface& surface, const FSurface
 	if (surface.LightMap < 0)
 		return {};
 
-	auto level = engine->level;
+	auto level = engine->Level;
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
 	UTexture*& lmtexture = level->Model->lmtextures[surface.LightMap];
 	if (!lmtexture)
@@ -201,7 +201,7 @@ void LightRender::DrawLightmapSpan(vec3* line, int start, int end, float x0, flo
 
 vec3 LightRender::FindLightAt(const vec3& location, int zoneIndex)
 {
-	UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(engine->level->Model->Zones[zoneIndex].ZoneActor);
+	UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(engine->Level->Model->Zones[zoneIndex].ZoneActor);
 	if (!zoneActor)
 		zoneActor = engine->LevelInfo;
 
@@ -235,7 +235,7 @@ FTextureInfo LightRender::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFa
 	if (!zoneActor->bFogZone() || surface.LightMap < 0)
 		return {};
 
-	auto level = engine->level;
+	auto level = engine->Level;
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
 	auto& fogtex = level->Model->fogtextures[surface.LightMap];
 	UTexture*& fogtexture = fogtex.second;

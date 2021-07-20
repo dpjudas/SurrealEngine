@@ -2,6 +2,7 @@
 
 #include "ExpressionVisitor.h"
 #include "ExpressionValue.h"
+#include "Iterator.h"
 
 class UFunction;
 
@@ -13,7 +14,10 @@ enum class StatementResult
 	Return,
 	Stop,
 	GotoLabel,
-	Switch
+	Switch,
+	Iterator,
+	IteratorNext,
+	IteratorPop
 };
 
 struct ExpressionEvalResult
@@ -23,6 +27,7 @@ struct ExpressionEvalResult
 	int LatentFunction = 0;
 	std::string Label;
 	ExpressionValue Value;
+	std::unique_ptr<Iterator> Iterator;
 };
 
 class ExpressionEvaluator : ExpressionVisitor

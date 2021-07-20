@@ -12,7 +12,9 @@ std::vector<Expression*> Frame::Breakpoints;
 std::vector<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
+Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
+std::unique_ptr<Iterator> Frame::CreatedIterator;
 
 void Frame::Break()
 {
@@ -219,6 +221,9 @@ ExpressionEvalResult Frame::Run()
 {
 	Callstack.push_back(this);
 
+	if (!Func->Code->Statements.empty())
+		StepExpression = Func->Code->Statements[StatementIndex];
+
 	if (RunState == FrameRunState::StepInto)
 	{
 		Break();
@@ -228,6 +233,8 @@ ExpressionEvalResult Frame::Run()
 	{
 		if (StatementIndex >= Func->Code->Statements.size())
 			throw std::runtime_error("Unexpected end of code statements");
+
+		StepExpression = Func->Code->Statements[StatementIndex];
 
 		if (RunState == FrameRunState::StepOver && StepFrame == this)
 		{
@@ -253,6 +260,32 @@ ExpressionEvalResult Frame::Run()
 		case StatementResult::GotoLabel:
 			Callstack.pop_back();
 			return result;
+
+		case StatementResult::Iterator:
+			if (!result.Iterator)
+				throw std::runtime_error("Iterator statement without an iterator!");
+			Iterators.push_back(std::move(result.Iterator));
+			Iterators.back()->StartStatementIndex = StatementIndex + 1;
+			Iterators.back()->EndStatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
+			if (Iterators.back()->Next())
+				StatementIndex = Iterators.back()->StartStatementIndex;
+			else
+				StatementIndex = Iterators.back()->EndStatementIndex;
+			break;
+		case StatementResult::IteratorNext:
+			if (Iterators.empty())
+				throw std::runtime_error("Iterator next statement without an iterator!");
+			if (Iterators.back()->Next())
+				StatementIndex = Iterators.back()->StartStatementIndex;
+			else
+				StatementIndex = Iterators.back()->EndStatementIndex;
+			break;
+		case StatementResult::IteratorPop:
+			if (Iterators.empty())
+				throw std::runtime_error("Iterator pop statement without an iterator!");
+			Iterators.pop_back();
+			StatementIndex++;
+			break;
 		}
 	}
 

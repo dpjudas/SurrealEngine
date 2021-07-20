@@ -2,7 +2,12 @@
 #include "Precomp.h"
 #include "NActor.h"
 #include "VM/NativeFunc.h"
+#include "VM/ScriptCall.h"
+#include "VM/Frame.h"
 #include "UObject/USound.h"
+#include "UObject/UActor.h"
+#include "UObject/ULevel.h"
+#include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
@@ -70,7 +75,7 @@ void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 
 void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::string* MatchTag)
 {
-	throw std::runtime_error("Actor.AllActors not implemented");
+	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string());
 }
 
 void NActor::AutonomousPhysics(UObject* Self, float DeltaSeconds)
@@ -101,7 +106,11 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 
 void NActor::Destroy(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.Destroy not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ULevel* level = SelfActor->XLevel();
+	auto it = std::find(level->Actors.begin(), level->Actors.end(), SelfActor);
+	if (it != level->Actors.end())
+		level->Actors.erase(it);
 }
 
 void NActor::Error(UObject* Self, const std::string& S)
@@ -183,7 +192,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 
 void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
-	throw std::runtime_error("Actor.LoopAnim not implemented");
+	// throw std::runtime_error("Actor.LoopAnim not implemented");
 }
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
@@ -193,7 +202,11 @@ void NActor::MakeNoise(UObject* Self, float Loudness)
 
 void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.Move not implemented");
+	// To do: do collision detection
+
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->Location() += Delta;
+	ReturnValue = true;
 }
 
 void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, bool& ReturnValue)
@@ -218,7 +231,7 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 
 void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
 {
-	throw std::runtime_error("Actor.PlayAnim not implemented");
+	// throw std::runtime_error("Actor.PlayAnim not implemented");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -244,12 +257,13 @@ void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, fl
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
 {
-	throw std::runtime_error("Actor.SetBase not implemented");
+	// throw std::runtime_error("Actor.SetBase not implemented");
+	engine->Log.push_back("Warning: Actor.SetBase is not implemented");
 }
 
 void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
 {
-	throw std::runtime_error("Actor.SetCollision not implemented");
+	// throw std::runtime_error("Actor.SetCollision not implemented");
 }
 
 void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
@@ -259,7 +273,10 @@ void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, b
 
 void NActor::SetLocation(UObject* Self, const vec3& NewLocation, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.SetLocation not implemented");
+	// To do: do collision test
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->Location() = NewLocation;
+	ReturnValue = true;
 }
 
 void NActor::SetOwner(UObject* Self, UObject* NewOwner)
@@ -274,7 +291,11 @@ void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.SetRotation not implemented");
+	// To do: do collision check to see if rotation is valid. Return false if it is not.
+
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->Rotation() = NewRotation;
+	ReturnValue = true;
 }
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
@@ -289,7 +310,77 @@ void NActor::Sleep(UObject* Self, float Seconds)
 
 void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std::string* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Actor.Spawn not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+
+	// To do: return null if spawn location isn't valid
+
+	if (!SpawnClass) // To do: return null if spawn class is abstract
+	{
+		ReturnValue = nullptr;
+		return;
+	}
+
+	vec3 location = SpawnLocation ? *SpawnLocation : SelfActor->Location();
+	Rotator rotation = SpawnRotation ? *SpawnRotation : SelfActor->Rotation();
+
+	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+	UActor* actor = UObject::Cast<UActor>(engine->packages->GetPackage("Engine")->NewObject("", UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
+	actor->Outer() = engine->Level->Outer();
+	engine->Level->Actors.push_back(actor);
+
+	actor->Owner() = SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : SelfActor;
+	actor->XLevel() = engine->Level;
+	actor->Level() = engine->LevelInfo;
+	actor->Tag() = SpawnTag ? *SpawnTag : SpawnClass->Name;
+	actor->bTicked() = false; // To do: maybe bTicked should only be false if the game world hasn't ticked at least once already?
+	actor->Instigator() = SelfActor->Instigator();
+
+	actor->Location() = location;
+	actor->OldLocation() = location;
+	actor->Rotation() = rotation;
+
+	if (engine->LevelInfo->bBegunPlay())
+	{
+		CallEvent(actor, "Spawned");
+		CallEvent(actor, "PreBeginPlay");
+		CallEvent(actor, "BeginPlay");
+
+		// To do: we need to call touch events here
+
+		CallEvent(actor, "PostBeginPlay");
+		CallEvent(actor, "SetInitialState");
+
+		std::string attachTag = actor->AttachTag();
+		if (!attachTag.empty())
+		{
+			for (UActor* levelActor : engine->Level->Actors)
+			{
+				if (levelActor && levelActor->Tag() == attachTag)
+				{
+					CallEvent(levelActor, "Attach", { ExpressionValue::ObjectValue(actor) });
+				}
+			}
+		}
+
+		static bool spawnNotificationLocked = false;
+		if (!spawnNotificationLocked)
+		{
+			struct NotificationLockGuard
+			{
+				NotificationLockGuard() { spawnNotificationLocked = true; }
+				~NotificationLockGuard() { spawnNotificationLocked = false; }
+			} lockGuard;
+
+			for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+			{
+				UClass* cls = notifyObj->ActorClass();
+				if (cls && actor->IsA(cls->Name))
+					actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
+			}
+		}
+	}
+
+	ReturnValue = actor;
 }
 
 void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue)

@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "NPawn.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UActor.h"
+#include "UObject/ULevel.h"
 
 void NPawn::RegisterFunctions()
 {
@@ -35,7 +37,10 @@ void NPawn::RegisterFunctions()
 
 void NPawn::AddPawn(UObject* Self)
 {
-	throw std::runtime_error("Pawn.AddPawn not implemented");
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ULevel* level = SelfPawn->XLevel();
+	if (level)
+		level->Pawns.push_back(SelfPawn);
 }
 
 void NPawn::CanSee(UObject* Self, UObject* Other, bool& ReturnValue)
@@ -120,7 +125,14 @@ void NPawn::PickWallAdjust(UObject* Self, bool& ReturnValue)
 
 void NPawn::RemovePawn(UObject* Self)
 {
-	throw std::runtime_error("Pawn.RemovePawn not implemented");
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ULevel* level = SelfPawn->XLevel();
+	if (level)
+	{
+		auto it = std::find(level->Pawns.begin(), level->Pawns.end(), SelfPawn);
+		if (it != level->Pawns.end())
+			level->Pawns.erase(it);
+	}
 }
 
 void NPawn::StopWaiting(UObject* Self)

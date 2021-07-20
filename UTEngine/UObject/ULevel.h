@@ -5,6 +5,7 @@
 
 class UTexture;
 class UActor;
+class UPawn;
 
 enum EBspNodeFlags
 {
@@ -216,6 +217,8 @@ public:
 
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
+
+	std::vector<UPawn*> Pawns;
 };
 
 class ULevelSummary : public UObject

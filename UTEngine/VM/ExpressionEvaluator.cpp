@@ -10,6 +10,9 @@
 
 ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, UObject* context, void* localVariables)
 {
+	auto oldExpr = Frame::StepExpression;
+	Frame::StepExpression = expr;
+
 	for (Expression* breakpoint : Frame::Breakpoints)
 	{
 		if (breakpoint == expr)
@@ -23,6 +26,7 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 	evaluator.Context = context;
 	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
+	Frame::StepExpression = oldExpr;
 	return std::move(evaluator.Result);
 }
 
@@ -319,17 +323,20 @@ void ExpressionEvaluator::Expr(DynamicCastExpression* expr)
 
 void ExpressionEvaluator::Expr(IteratorExpression* expr)
 {
-	Frame::ThrowException("Iterator expression is not implemented");
+	Eval(expr->Value);
+	Result.Result = StatementResult::Iterator;
+	Result.Iterator = std::move(Frame::CreatedIterator);
+	Result.JumpAddress = expr->Offset;
 }
 
 void ExpressionEvaluator::Expr(IteratorPopExpression* expr)
 {
-	Frame::ThrowException("Iterator pop expression is not implemented");
+	Result.Result = StatementResult::IteratorPop;
 }
 
 void ExpressionEvaluator::Expr(IteratorNextExpression* expr)
 {
-	Frame::ThrowException("Iterator next expression is not implemented");
+	Result.Result = StatementResult::IteratorNext;
 }
 
 void ExpressionEvaluator::Expr(StructCmpEqExpression* expr)

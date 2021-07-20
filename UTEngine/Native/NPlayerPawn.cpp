@@ -3,6 +3,7 @@
 #include "NPlayerPawn.h"
 #include "VM/NativeFunc.h"
 #include "UObject/ULevel.h"
+#include "UObject/UActor.h"
 #include "Engine.h"
 
 void NPlayerPawn::RegisterFunctions()
@@ -41,7 +42,7 @@ void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::s
 
 void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
 {
-	ReturnValue = engine->level;
+	ReturnValue = engine->EntryLevelInfo;
 }
 
 void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue)

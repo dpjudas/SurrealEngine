@@ -50,37 +50,55 @@ Engine::~Engine()
 
 void Engine::Run()
 {
+	std::srand((unsigned int)std::time(nullptr));
+
 	window = DisplayWindow::Create(this);
-	window->OpenWindow(1800*3, 950*3, true);
+	window->OpenWindow(1800 * 3, 950 * 3, true);
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
 	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
 
-	//LoadMap("Entry");
-	//LoadMap("CityIntro");
-	//LoadMap("UT-Logo-Map");
-	LoadMap("DM-Liandri");
-	//LoadMap("DM-Codex");
-	//LoadMap("DM-Barricade");
-	//LoadMap("DM-Deck16][");
-	//LoadMap("DM-KGalleon");
-	//LoadMap("DM-Turbine");
-	//LoadMap("DM-Tempest");
-	//LoadMap("DM-Grinder");
-	//LoadMap("DM-HyperBlast");
-	//LoadMap("DM-Peak");
-	//LoadMap("CTF-Coret");
-	//LoadMap("CTF-Dreary");
-	//LoadMap("CTF-Command");
-	//LoadMap("CTF-November");
-	//LoadMap("CTF-Gauntlet");
-	//LoadMap("CTF-EternalCave");
-	//LoadMap("CTF-Niven");
-	//LoadMap("CTF-Face");
-	//LoadMap("DOM-Sesmar");
-	//LoadMap("EOL_Deathmatch");
-	//LoadMap("UTCredits");
+	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
+	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
+	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
+	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
+
+	console->Viewport() = viewport;
+	canvas->Viewport() = viewport;
+	viewport->Console() = console;
+
+	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
+	LoadMap("Entry");
+	EntryLevelSummary = LevelSummary;
+	EntryLevelInfo = LevelInfo;
+	EntryLevel = Level;
+
+	//std::string mapName = "CityIntro";
+	//std::string mapName = "UT-Logo-Map";
+	std::string mapName ="DM-Liandri";
+	//std::string mapName = "DM-Codex";
+	//std::string mapName = "DM-Barricade";
+	//std::string mapName = "DM-Deck16][";
+	//std::string mapName = "DM-KGalleon";
+	//std::string mapName = "DM-Turbine";
+	//std::string mapName = "DM-Tempest";
+	//std::string mapName = "DM-Grinder";
+	//std::string mapName = "DM-HyperBlast";
+	//std::string mapName = "DM-Peak";
+	//std::string mapName = "CTF-Coret";
+	//std::string mapName = "CTF-Dreary";
+	//std::string mapName = "CTF-Command";
+	//std::string mapName = "CTF-November";
+	//std::string mapName = "CTF-Gauntlet";
+	//std::string mapName = "CTF-EternalCave";
+	//std::string mapName = "CTF-Niven";
+	//std::string mapName = "CTF-Face";
+	//std::string mapName = "DOM-Sesmar";
+	//std::string mapName = "EOL_Deathmatch";
+	//std::string mapName = "UTCredits";
+
+	LoadMap(mapName);
 
 #if 0
 	if (LevelInfo->HasProperty("Song"))
@@ -91,47 +109,44 @@ void Engine::Run()
 	}
 #endif
 
-	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
-	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
-	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
-	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
-
-	std::string gameName = packages->GetIniValue("system", "Engine.Engine", "DefaultGame");
-	if (gameName.empty() || gameName.find('.') == std::string::npos)
-		gameName = "Botpack.DeathMatchPlus";
-	std::string gamePackageName = gameName.substr(0, gameName.find('.'));
-	std::string gameClassName = gameName.substr(gameName.find('.') + 1);
-
-	gamerepinfo = UObject::Cast<UGameReplicationInfo>(packages->NewObject("gamerepinfo", "Engine", "GameReplicationInfo"));
-	pawn = UObject::Cast<UPlayerPawn>(packages->NewObject("pawn", "Engine", "PlayerPawn"));
-	playerrepinfo = UObject::Cast<UPlayerReplicationInfo>(packages->NewObject("playerrepinfo", "Engine", "PlayerReplicationInfo"));
-
-	gameinfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
-	gameinfo->Level() = LevelInfo;
-	gameinfo->GameReplicationInfo() = gamerepinfo;
-
-	LevelInfo->Game() = gameinfo;
-	LevelInfo->EngineVersion() = "500";
-	LevelInfo->MinNetVersion() = "500";
-
-	console->Viewport() = viewport;
-	canvas->Viewport() = viewport;
-
-	viewport->Console() = console;
-	viewport->Actor() = pawn;
-
-	pawn->Level() = LevelInfo;
-	pawn->PlayerReplicationInfo() = playerrepinfo;
-
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
 
+	bool firstCall = true;
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed();
-		Tick(elapsed);
+
+		window->Tick();
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
+		for (UActor* actor : Level->Actors)
+		{
+			if (actor)
+				CallEvent(actor, "Tick", { ExpressionValue::FloatValue(elapsed) });
+		}
+
+		if (firstCall) // Unscript execution doesn't work well enough for us to use the viewport actor as our camera yet
+		{
+			firstCall = false;
+			Camera.Location = viewport->Actor()->Location();
+			Camera.Yaw = viewport->Actor()->Rotation().YawDegrees();
+			Camera.Roll = viewport->Actor()->Rotation().RollDegrees();
+			Camera.Pitch = viewport->Actor()->Rotation().PitchDegrees();
+		}
+		else
+		{
+			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(-Camera.Yaw), EulerOrder::yxz));
+			vec3 vel = { 0.0f };
+			if (Buttons.StrafeLeft) vel.x = 1.0f;
+			if (Buttons.StrafeRight) vel.x = -1.0f;
+			if (Buttons.Forward) vel.y = 1.0f;
+			if (Buttons.Backward) vel.y = -1.0f;
+			if (vel != vec3(0.0f))
+				vel = normalize(vel);
+			vel = inverse(viewrotation) * vel;
+			Camera.Location += vel * (elapsed * 650.0f);
+		}
 
 		for (UTexture* tex : engine->renderer->Textures)
 			tex->Update();
@@ -157,58 +172,128 @@ void Engine::Run()
 		CallEvent(canvas, "Reset");
 
 		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
-		renderer->scene.DrawScene();
+		CallEvent(viewport->Actor(), "PreRender", { ExpressionValue::ObjectValue(canvas) });
+		if (console->bNoDrawWorld() == false)
+			renderer->scene.DrawScene();
+		CallEvent(viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 		device->EndScenePass();
 		device->EndFrame(true);
 	}
-
-	window->CloseWindow();
-	window.reset();
 }
 
-std::string Engine::ConsoleCommand(UObject* context, const std::string& command, bool& found)
+void Engine::LoadMap(std::string mapName)
 {
-	found = true;
-	if (command == "exit")
-	{
-		quit = true;
-		return {};
-	}
-	found = false;
-	return {};
-}
+	// Load map objects
+	Package* package = packages->GetPackage(mapName);
 
-void Engine::Tick(float timeElapsed)
-{
-	window->Tick();
+	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
+	LevelInfo->ComputerName() = "MyComputer";
+	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
+	LevelInfo->EngineVersion() = "500";
+	LevelInfo->MinNetVersion() = "500";
+	LevelInfo->bHighDetailMode() = true;
 
-	for (UActor* actor : level->Actors)
+	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
+	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
+
+	// Link actors to the level
+	for (UActor* actor : Level->Actors)
 	{
 		if (actor)
-		{
-			auto& rot = actor->Rotation();
-			auto& rate = actor->RotationRate();
-			rot.Yaw = (rot.Yaw + (int)(static_cast<int16_t>(rate.Yaw & 0xffff) * timeElapsed)) & 0xffff;
-			rot.Pitch = (rot.Pitch + (int)(static_cast<int16_t>(rate.Pitch & 0xffff) * timeElapsed)) & 0xffff;
-			rot.Roll = (rot.Roll + (int)(static_cast<int16_t>(rate.Roll & 0xffff) * timeElapsed)) & 0xffff;
-		}
+			actor->XLevel() = Level;
 	}
 
-	renderer->AutoUVTime += timeElapsed;
+	// Spawn GameInfo actor
+	std::string gameName = packages->GetIniValue("system", "Engine.Engine", "DefaultGame");
+	if (gameName.empty() || gameName.find('.') == std::string::npos) gameName = "Botpack.DeathMatchPlus";
+	std::string gamePackageName = gameName.substr(0, gameName.find('.'));
+	std::string gameClassName = gameName.substr(gameName.find('.') + 1);
+	UClass* gameInfoClass = UObject::Cast<UClass>(packages->GetPackage(gamePackageName)->GetUObject("Class", gameClassName));
+	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
+	Level->Actors.push_back(GameInfo);
+	GameInfo->XLevel() = Level;
+	GameInfo->Level() = LevelInfo;
+	GameInfo->Tag() = gameInfoClass->Name;
+	GameInfo->bTicked() = false;
+	if (LevelInfo->bBegunPlay())
+	{
+		CallEvent(GameInfo, "Spawned");
+		CallEvent(GameInfo, "PreBeginPlay");
+		CallEvent(GameInfo, "BeginPlay");
+		CallEvent(GameInfo, "PostBeginPlay");
+		CallEvent(GameInfo, "SetInitialState");
+		std::string attachTag = GameInfo->AttachTag();
+		if (!attachTag.empty())
+		{
+			for (UActor* actor : Level->Actors)
+			{
+				if (actor && actor->Tag() == attachTag)
+				{
+					CallEvent(actor, "Attach", { ExpressionValue::ObjectValue(GameInfo) });
+				}
+			}
+		}
+		for (USpawnNotify* notifyObj = LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+		{
+			UClass* cls = notifyObj->ActorClass();
+			if (cls && GameInfo->IsA(cls->Name))
+				GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
+		}
+	}
+	LevelInfo->Game() = GameInfo;
 
-	quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(-Camera.Yaw), EulerOrder::yxz));
-	vec3 vel = { 0.0f };
-	if (Buttons.StrafeLeft) vel.x = 1.0f;
-	if (Buttons.StrafeRight) vel.x = -1.0f;
-	if (Buttons.Forward) vel.y = 1.0f;
-	if (Buttons.Backward) vel.y = -1.0f;
-	if (vel != vec3(0.0f))
-		vel = normalize(vel);
-	vel = inverse(viewrotation) * vel;
-	Camera.Location += vel * (timeElapsed * 650.0f);
+	if (!LevelInfo->bBegunPlay())
+	{
+		LevelInfo->TimeSeconds() = 0.0f;
+		LevelInfo->bBegunPlay() = true;
+	}
+
+	LevelInfo->bStartup() = true;
+	CallEvent(GameInfo, "InitGame");
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PreBeginPlay"); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "BeginPlay"); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PostBeginPlay"); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
+	LevelInfo->bStartup() = false;
+
+	// Create viewport actor
+	std::string playerPawnClass = packages->GetIniValue("system", "URL", "Class");
+	std::string pawnPackageName = playerPawnClass.substr(0, playerPawnClass.find('.'));
+	std::string pawnClassName = playerPawnClass.substr(playerPawnClass.find('.') + 1);
+	UClass* pawnClass = UObject::Cast<UClass>(packages->GetPackage(pawnPackageName)->GetUObject("Class", pawnClassName));
+	std::string portal, options, error;
+	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	viewport->Actor() = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
+		ExpressionValue::StringValue(portal),
+		ExpressionValue::StringValue(options),
+		ExpressionValue::Variable(&error, &stringProp),
+		ExpressionValue::ObjectValue(pawnClass)
+		}).ToObject());
+	if (!viewport->Actor())
+		throw std::runtime_error("GameInfo login failed: " + error);
+
+	// Cache some light and texture info
+	std::set<UActor*> lightset;
+	for (UActor* light : Level->Model->Lights)
+		lightset.insert(light);
+	engine->renderer->Lights.clear();
+	for (UActor* light : lightset)
+		engine->renderer->Lights.push_back(light);
+	engine->renderer->Textures.clear();
+	for (BspSurface& surf : Level->Model->Surfaces)
+	{
+		if (surf.Material)
+		{
+			engine->renderer->Textures.insert(surf.Material);
+			if (surf.Material->DetailTexture())
+				engine->renderer->Textures.insert(surf.Material->DetailTexture());
+			if (surf.Material->MacroTexture())
+				engine->renderer->Textures.insert(surf.Material->MacroTexture());
+		}
+	}
 }
 
 float Engine::CalcTimeElapsed()
@@ -222,6 +307,18 @@ float Engine::CalcTimeElapsed()
 	uint64_t deltaTime = currentTime - lastTime;
 	lastTime = currentTime;
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
+}
+
+std::string Engine::ConsoleCommand(UObject* context, const std::string& command, bool& found)
+{
+	found = true;
+	if (command == "exit")
+	{
+		quit = true;
+		return {};
+	}
+	found = false;
+	return {};
 }
 
 void Engine::Key(DisplayWindow* viewport, std::string key)
@@ -293,55 +390,4 @@ void Engine::SetPause(bool value)
 void Engine::WindowClose(DisplayWindow* viewport)
 {
 	quit = true;
-}
-
-void Engine::LoadMap(const std::string& packageName)
-{
-	Package* package = packages->GetPackage(packageName);
-
-	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
-	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
-	level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
-
-	std::set<UActor*> lightset;
-	for (UActor* light : level->Model->Lights)
-	{
-		lightset.insert(light);
-	}
-
-	for (UActor* light : lightset)
-		engine->renderer->Lights.push_back(light);
-
-	for (BspSurface& surf : level->Model->Surfaces)
-	{
-		if (surf.Material)
-		{
-			engine->renderer->Textures.insert(surf.Material);
-			if (surf.Material->DetailTexture())
-				engine->renderer->Textures.insert(surf.Material->DetailTexture());
-			if (surf.Material->MacroTexture())
-				engine->renderer->Textures.insert(surf.Material->MacroTexture());
-		}
-	}
-
-	for (UActor* actor : level->Actors)
-	{
-		if (actor && actor->Base)
-		{
-			if (actor->Base->Name == "PlayerStart")
-			{
-				Camera.Location = actor->Location();
-				Camera.Location.z += 70;
-
-				auto prop = actor->Rotation();
-				Camera.Yaw = prop.YawDegrees() - 90.0f;
-				Camera.Pitch = prop.PitchDegrees();
-				Camera.Roll = prop.RollDegrees();
-			}
-			else if (actor->Base->Name == "SkyZoneInfo")
-			{
-				SkyZoneInfo = actor;
-			}
-		}
-	}
 }

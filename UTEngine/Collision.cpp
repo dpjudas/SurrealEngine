@@ -6,7 +6,7 @@
 
 bool Collision::TraceAnyHit(vec3 from, vec3 to)
 {
-	return TraceAnyHit(vec4(from, 1.0f), vec4(to, 1.0f), &engine->level->Model->Nodes.front(), engine->level->Model->Nodes.data());
+	return TraceAnyHit(vec4(from, 1.0f), vec4(to, 1.0f), &engine->Level->Model->Nodes.front(), engine->Level->Model->Nodes.data());
 }
 
 bool Collision::TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes)
@@ -35,7 +35,7 @@ bool Collision::TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, Bsp
 
 bool Collision::HitTestNodePolygon(const vec4& from, const vec4& to, BspNode* node)
 {
-	if (node->NumVertices == 0 || (node->NodeFlags & NF_NotVisBlocking) || (node->Surf >= 0 && engine->level->Model->Surfaces[node->Surf].PolyFlags & PF_NotSolid))
+	if (node->NumVertices == 0 || (node->NodeFlags & NF_NotVisBlocking) || (node->Surf >= 0 && engine->Level->Model->Surfaces[node->Surf].PolyFlags & PF_NotSolid))
 		return false;
 
 	vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
@@ -66,8 +66,8 @@ bool Collision::HitTestNodePolygon(const vec4& from, const vec4& to, BspNode* no
 	vec2 planehit2d = { dot(xaxis, planehit), dot(yaxis, planehit) };
 
 	// Edge test all lines in the convex polygon to determine if the point is inside
-	BspVert* v = &engine->level->Model->Vertices[node->VertPool];
-	vec3* points = engine->level->Model->Points.data();
+	BspVert* v = &engine->Level->Model->Vertices[node->VertPool];
+	vec3* points = engine->Level->Model->Points.data();
 	int count = node->NumVertices;
 	int insidecount = 0;
 	for (int i = 0; i < count; i++)
