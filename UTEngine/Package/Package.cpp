@@ -176,6 +176,9 @@ UObject* Package::NewObject(const std::string& objname, UClass* objclass, Object
 			if (initProperties)
 			{
 				obj->PropertyData.Init(objclass);
+				obj->SetObject("Class", obj->Base);
+				obj->SetString("Name", obj->Name);
+				obj->SetInt("ObjectFlags", (int)obj->Flags);
 			}
 			return obj;
 		}

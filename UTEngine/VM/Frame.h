@@ -25,6 +25,8 @@ public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args);
 	static std::string GetCallstack();
 
+	static void AddBreakpoint(const std::string& package, const std::string& cls, const std::string& func, const std::string& state = {});
+
 	static DebuggerWindow* Debugger;
 	static std::vector<Expression*> Breakpoints;
 	static std::vector<Frame*> Callstack;

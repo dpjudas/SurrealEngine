@@ -31,7 +31,15 @@ void UObject::LoadNow()
 			}
 
 			if (dynamic_cast<UClass*>(this))
+			{
 				PropertyData.Init(static_cast<UClass*>(this));
+				if (!static_cast<UClass*>(this)->Properties.empty())
+				{
+					SetObject("Class", Base);
+					SetString("Name", Name);
+					SetInt("ObjectFlags", (int)Flags);
+				}
+			}
 		}
 	}
 }
@@ -57,6 +65,12 @@ void UObject::Load(ObjectStream* stream)
 	{
 		PropertyData.Init(Base);
 		PropertyData.ReadProperties(stream);
+		if (Base && !Base->Properties.empty())
+		{
+			SetObject("Class", Base);
+			SetString("Name", Name);
+			SetInt("ObjectFlags", (int)Flags);
+		}
 	}
 }
 
@@ -331,18 +345,4 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 
 		prop->LoadValue(data, stream, header);
 	}
-}
-
-UObject::PropertyOffsets UObject::propoffsets;
-
-void UObject::InitPropertyOffsets(PackageManager* packages)
-{
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Object"));
-	if (!cls)
-		throw std::runtime_error("Could not find class object for Object");
-	propoffsets.Class = cls->GetProperty("Class")->DataOffset;
-	propoffsets.Name = cls->GetProperty("Name")->DataOffset;
-	propoffsets.ObjectFlags = cls->GetProperty("ObjectFlags")->DataOffset;
-	propoffsets.ObjectInternal = cls->GetProperty("ObjectInternal")->DataOffset;
-	propoffsets.Outer = cls->GetProperty("Outer")->DataOffset;
 }

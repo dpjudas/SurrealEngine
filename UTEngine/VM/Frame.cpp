@@ -6,6 +6,8 @@
 #include "NativeFunc.h"
 #include "UObject/UTextBuffer.h"
 #include "UI/Debugger/DebuggerWindow.h"
+#include "Engine.h"
+#include "Package/PackageManager.h"
 
 DebuggerWindow* Frame::Debugger = nullptr;
 std::vector<Expression*> Frame::Breakpoints;
@@ -15,6 +17,43 @@ Frame* Frame::StepFrame = nullptr;
 Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
+
+void Frame::AddBreakpoint(const std::string& packageName, const std::string& clsName, const std::string& funcName, const std::string& stateName)
+{
+	Package* pkg = engine->packages->GetPackage(packageName);
+	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", clsName));
+	if (stateName.empty())
+	{
+		for (UField* child = cls->Children; child; child = child->Next)
+		{
+			if (child->Name == funcName && dynamic_cast<UFunction*>(child))
+			{
+				UFunction* func = static_cast<UFunction*>(child);
+				Breakpoints.push_back(func->Code->Statements.front());
+				return;
+			}
+		}
+	}
+	else
+	{
+		for (UField* child = cls->Children; child; child = child->Next)
+		{
+			if (child->Name == stateName && dynamic_cast<UState*>(child))
+			{
+				UState* state = static_cast<UState*>(child);
+				for (UField* stateChild = state->Children; stateChild; stateChild = stateChild->Next)
+				{
+					if (child->Name == funcName && dynamic_cast<UFunction*>(child))
+					{
+						UFunction* func = static_cast<UFunction*>(child);
+						Breakpoints.push_back(func->Code->Statements.front());
+						return;
+					}
+				}
+			}
+		}
+	}
+}
 
 void Frame::Break()
 {
@@ -153,7 +192,11 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 			else
 			{
-				NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }](instance, args.data());
+				auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
+				if (callback)
+					callback(instance, args.data());
+				else
+					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name + "." + func->Name);
 			}
 		}
 		catch (const std::exception& e)

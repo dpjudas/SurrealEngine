@@ -111,12 +111,15 @@ void DebuggerWindow::onToggleBreakpoint()
 
 void DebuggerWindow::onContinue()
 {
+	Frame::Resume();
 }
 
 void DebuggerWindow::onStepIn()
 {
+	Frame::StepInto();
 }
 
 void DebuggerWindow::onStepOver()
 {
+	Frame::StepOver();
 }

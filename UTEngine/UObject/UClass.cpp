@@ -367,6 +367,11 @@ void UClass::Load(ObjectStream* stream)
 	PropertyData.Init(this);
 	PropertyData.ReadProperties(stream);
 
+	// Copy native UObject properties into the VM
+	SetObject("Class", nullptr);
+	SetString("Name", Name);
+	SetInt("ObjectFlags", (int)Flags);
+
 	auto packages = stream->GetPackage()->GetPackageManager();
 	std::string packageName = stream->GetPackage()->GetPackageName();
 	std::string sectionName = packageName + "." + Name;

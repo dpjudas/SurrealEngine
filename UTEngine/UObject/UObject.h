@@ -226,24 +226,11 @@ public:
 
 	static std::string GetUClassName(UObject* obj);
 
-	static void InitPropertyOffsets(PackageManager* packages);
-
-	UClass*& Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
-	// std::string& Name() { return Value<std::string>(PropOffsets_Object.Name); } // native
-	// int& ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
-	int& ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
+	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
+	std::string& uc_Name() { return Value<std::string>(PropOffsets_Object.Name); } // native
+	int& uc_ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
+	int& uc_ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
 	UObject*& Outer() { return Value<UObject*>(PropOffsets_Object.Outer); } // native
-
-private:
-	struct PropertyOffsets
-	{
-		size_t Class;
-		size_t Name;
-		size_t ObjectFlags;
-		size_t ObjectInternal;
-		size_t Outer;
-	};
-	static PropertyOffsets propoffsets;
 };
 
 template<typename T>
