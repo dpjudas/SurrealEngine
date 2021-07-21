@@ -881,6 +881,9 @@ class ULevelInfo : public UZoneInfo
 public:
 	using UZoneInfo::UZoneInfo;
 
+	std::string AddressURL = "unreal://localhost:7777";
+	std::string LocalURL = "unreal://localhost:7777";
+
 	int& AIProfile() { return Value<int>(PropOffsets_LevelInfo.AIProfile); }
 	std::string& Author() { return Value<std::string>(PropOffsets_LevelInfo.Author); }
 	float& AvgAITime() { return Value<float>(PropOffsets_LevelInfo.AvgAITime); }

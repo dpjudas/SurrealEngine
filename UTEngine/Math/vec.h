@@ -322,6 +322,12 @@ inline dvec4 normalize(dvec4 v) { return v / length(v); }
 inline vec3 cross(vec3 a, vec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
 inline dvec3 cross(dvec3 a, dvec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
 
+inline vec3 reflect(vec3 I, vec3 N) { return I - 2.0f * dot(N, I) * N; }
+inline dvec3 reflect(dvec3 I, dvec3 N) { return I - 2.0 * dot(N, I) * N; }
+
+inline vec3 refract(vec3 I, vec3 N, float eta) { float NdotI = dot(N, I); float k = 1.0f - eta * eta * (1.0f - NdotI * NdotI); return k < 0.0f ? vec3(0.0f) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
+inline dvec3 refract(dvec3 I, dvec3 N, double eta) { double NdotI = dot(N, I); double k = 1.0 - eta * eta * (1.0 - NdotI * NdotI); return k < 0.0 ? dvec3(0.0) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
+
 template<typename T>
 T mix(T a, T b, float t) { return a * (1.0f - t) + b * t; }
 

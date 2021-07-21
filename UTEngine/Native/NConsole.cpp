@@ -17,5 +17,5 @@ void NConsole::ConsoleCommand(UObject* Self, const std::string& S, bool& ReturnV
 
 void NConsole::SaveTimeDemo(UObject* Self, const std::string& S)
 {
-	throw std::runtime_error("Console.SaveTimeDemo not implemented");
+	engine->Log.push_back("Warning: Console.SaveTimeDemo not implemented: " + S);
 }

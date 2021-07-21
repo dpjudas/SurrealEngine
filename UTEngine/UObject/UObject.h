@@ -85,6 +85,9 @@ public:
 	Rotator& operator+=(const Rotator& b) { Pitch += b.Pitch; Yaw += b.Yaw; Roll += b.Roll; return *this; }
 	Rotator& operator-=(const Rotator& b) { Pitch -= b.Pitch; Yaw -= b.Yaw; Roll -= b.Roll; return *this; }
 
+	Rotator& operator*=(float scale) { Pitch = (int)(Pitch * scale); Yaw = (int)(Yaw * scale), Roll = (int)(Roll * scale); return *this; }
+	Rotator& operator/=(float scale) { Pitch = (int)(Pitch / scale); Yaw = (int)(Yaw / scale), Roll = (int)(Roll / scale); return *this; }
+
 	mat4 ToMatrix() const
 	{
 		return
@@ -98,6 +101,8 @@ inline Rotator operator+(const Rotator& a, const Rotator& b) { return Rotator(a.
 inline Rotator operator-(const Rotator& a, const Rotator& b) { return Rotator(a.Pitch - b.Pitch, a.Yaw - b.Yaw, a.Roll - b.Roll); }
 inline Rotator operator*(const Rotator& a, float scale) { return Rotator((int)(a.Pitch * scale), (int)(a.Yaw * scale), (int)(a.Roll * scale)); }
 inline Rotator operator*(float scale, const Rotator& b) { return Rotator((int)(b.Pitch * scale), (int)(b.Yaw * scale), (int)(b.Roll * scale)); }
+inline Rotator operator/(const Rotator& a, float scale) { return Rotator((int)(a.Pitch / scale), (int)(a.Yaw / scale), (int)(a.Roll / scale)); }
+inline Rotator operator/(float scale, const Rotator& b) { return Rotator((int)(b.Pitch / scale), (int)(b.Yaw / scale), (int)(b.Roll / scale)); }
 inline bool operator==(const Rotator& a, const Rotator& b) { return a.Pitch == b.Pitch && a.Yaw == b.Yaw && a.Roll == b.Roll; }
 inline bool operator!=(const Rotator& a, const Rotator& b) { return a.Pitch != b.Pitch || a.Yaw != b.Yaw || a.Roll != b.Roll; }
 

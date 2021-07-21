@@ -356,7 +356,7 @@ void NObject::DivideEqual_IntFloat(int& A, float B, int& ReturnValue)
 
 void NObject::DivideEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.DivideEqual_RotatorFloat not implemented");
+	ReturnValue = A /= B;
 }
 
 void NObject::DivideEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue)
@@ -376,7 +376,7 @@ void NObject::Divide_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::Divide_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Divide_RotatorFloat not implemented");
+	ReturnValue = A / B;
 }
 
 void NObject::Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue)
@@ -680,7 +680,7 @@ void NObject::Min(int A, int B, int& ReturnValue)
 
 void NObject::MirrorVectorByNormal(const vec3& Vect, const vec3& Normal, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.MirrorVectorByNormal not implemented");
+	ReturnValue = reflect(Vect, Normal);
 }
 
 void NObject::MultiplyEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -725,7 +725,7 @@ void NObject::Multiply_FloatFloat(float A, float B, float& ReturnValue)
 
 void NObject::Multiply_FloatRotator(float A, const Rotator& B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_FloatRotator not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_FloatVector(float A, const vec3& B, vec3& ReturnValue)
@@ -740,7 +740,7 @@ void NObject::Multiply_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::Multiply_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.Multiply_RotatorFloat not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::Multiply_VectorFloat(const vec3& A, float B, vec3& ReturnValue)
@@ -837,7 +837,7 @@ void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 
 void NObject::ResetConfig()
 {
-	throw std::runtime_error("Object.ResetConfig not implemented");
+	engine->Log.push_back("Warning: Object.ResetConfig not implemented");
 }
 
 void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
@@ -853,7 +853,7 @@ void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
 
 void NObject::SaveConfig(UObject* Self)
 {
-	// throw std::runtime_error("Object.SaveConfig not implemented");
+	engine->Log.push_back("Warning: Object.SaveConfig not implemented");
 }
 
 void NObject::SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue)
@@ -883,7 +883,7 @@ void NObject::Square(float A, float& ReturnValue)
 
 void NObject::StaticSaveConfig()
 {
-	// throw std::runtime_error("Object.StaticSaveConfig not implemented");
+	engine->Log.push_back("Warning: Object.StaticSaveConfig not implemented");
 }
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -903,7 +903,7 @@ void NObject::SubtractEqual_IntInt(int& A, int B, int& ReturnValue)
 
 void NObject::SubtractEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.SubtractEqual_RotatorRotator not implemented");
+	ReturnValue = A -= B;
 }
 
 void NObject::SubtractEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue)

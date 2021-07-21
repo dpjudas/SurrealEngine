@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NStatLog.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NStatLog::RegisterFunctions()
 {
@@ -20,51 +21,54 @@ void NStatLog::RegisterFunctions()
 void NStatLog::BatchLocal()
 {
 	// Called by Stats->View Local ngStats menu item
-	// throw std::runtime_error("StatLog.BatchLocal not implemented");
+	engine->Log.push_back("Warning: StatLog.BatchLocal not implemented");
 }
 
 void NStatLog::BrowseRelativeLocalURL(const std::string& URL)
 {
 	// Called by Stats->Help with ngStats
-	//throw std::runtime_error("StatLog.BrowseRelativeLocalURL not implemented");
+	engine->Log.push_back("Warning: StatLog.BrowseRelativeLocalURL not implemented. URL was " + URL);
 }
 
 void NStatLog::ExecuteLocalLogBatcher(UObject* Self)
 {
-	throw std::runtime_error("StatLog.ExecuteLocalLogBatcher not implemented");
+	engine->Log.push_back("Warning: StatLog.ExecuteLocalLogBatcher not implemented");
 }
 
 void NStatLog::ExecuteSilentLogBatcher(UObject* Self)
 {
-	throw std::runtime_error("StatLog.ExecuteSilentLogBatcher not implemented");
+	engine->Log.push_back("Warning: StatLog.ExecuteSilentLogBatcher not implemented");
 }
 
 void NStatLog::ExecuteWorldLogBatcher(UObject* Self)
 {
-	throw std::runtime_error("StatLog.ExecuteWorldLogBatcher not implemented");
+	engine->Log.push_back("Warning: StatLog.ExecuteWorldLogBatcher not implemented");
 }
 
 void NStatLog::GetGMTRef(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("StatLog.GetGMTRef not implemented");
+	ReturnValue = "GMTRef dummy value";
+	engine->Log.push_back("Warning: StatLog.GetGMTRef not implemented");
 }
 
 void NStatLog::GetMapFileName(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("StatLog.GetMapFileName not implemented");
+	ReturnValue = "StatLog.GetMapFileName dummy value";
+	engine->Log.push_back("Warning: StatLog.GetMapFileName not implemented");
 }
 
 void NStatLog::GetPlayerChecksum(UObject* P, std::string& Checksum)
 {
-	throw std::runtime_error("StatLog.GetPlayerChecksum not implemented");
+	Checksum = "GetPlayerChecksum dummy value";
+	engine->Log.push_back("Warning: StatLog.GetPlayerChecksum not implemented");
 }
 
 void NStatLog::InitialCheck(UObject* Self, UObject* Game)
 {
-	throw std::runtime_error("StatLog.InitialCheck not implemented");
+	engine->Log.push_back("Warning: StatLog.InitialCheck not implemented");
 }
 
 void NStatLog::LogMutator(UObject* Self, UObject* M)
 {
-	throw std::runtime_error("StatLog.LogMutator not implemented");
+	engine->Log.push_back("Warning: StatLog.LogMutator not implemented");
 }

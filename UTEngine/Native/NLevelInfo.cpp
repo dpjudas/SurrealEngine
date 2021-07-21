@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NLevelInfo.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UActor.h"
 
 void NLevelInfo::RegisterFunctions()
 {
@@ -11,10 +12,10 @@ void NLevelInfo::RegisterFunctions()
 
 void NLevelInfo::GetAddressURL(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("LevelInfo.GetAddressURL not implemented");
+	ReturnValue = UObject::Cast<ULevelInfo>(Self)->AddressURL;
 }
 
 void NLevelInfo::GetLocalURL(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = "GetLocalURL url";
+	ReturnValue = UObject::Cast<ULevelInfo>(Self)->LocalURL;
 }

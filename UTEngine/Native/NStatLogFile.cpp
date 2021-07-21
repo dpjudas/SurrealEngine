@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NStatLogFile.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NStatLogFile::RegisterFunctions()
 {
@@ -15,30 +16,31 @@ void NStatLogFile::RegisterFunctions()
 
 void NStatLogFile::CloseLog(UObject* Self)
 {
-	throw std::runtime_error("StatLogFile.CloseLog not implemented");
+	engine->Log.push_back("Warning: StatLogFile.CloseLog not implemented");
 }
 
 void NStatLogFile::FileFlush(UObject* Self)
 {
-	throw std::runtime_error("StatLogFile.FileFlush not implemented");
+	engine->Log.push_back("Warning: StatLogFile.FileFlush not implemented");
 }
 
 void NStatLogFile::FileLog(UObject* Self, const std::string& EventString)
 {
-	throw std::runtime_error("StatLogFile.FileLog not implemented");
+	engine->Log.push_back("Warning: StatLogFile.FileLog tried to log: " + EventString);
 }
 
 void NStatLogFile::GetChecksum(UObject* Self, std::string& Checksum)
 {
-	throw std::runtime_error("StatLogFile.GetChecksum not implemented");
+	Checksum = "GetChecksum dummy value";
+	engine->Log.push_back("Warning: StatLogFile.GetChecksum not implemented");
 }
 
 void NStatLogFile::OpenLog(UObject* Self)
 {
-	throw std::runtime_error("StatLogFile.OpenLog not implemented");
+	engine->Log.push_back("Warning: StatLogFile.OpenLog not implemented");
 }
 
 void NStatLogFile::Watermark(UObject* Self, const std::string& EventString)
 {
-	throw std::runtime_error("StatLogFile.Watermark not implemented");
+	engine->Log.push_back("Warning: StatLogFile.Watermark not implemented");
 }
