@@ -10,7 +10,7 @@ The engine can load and render the maps. The Unrealscript VM is almost feature c
 
 It will attempt to load all level actors and initialize the map. However, while the menus and the HUD will appear, there are still many native functions not implemented yet. It is also quite possible some events aren't firing as they should. You will therefore see exceptions shown if you interact with them and that is where the project is at.
 
-You will have to edit UTEngine/Engine.cpp and correct the path at the top of the file to where you have Unreal Tournament installed. It also has to be patch 436. 469 will not work currently. All of this will of course not stay hardcoded if/when the project will actually run a full deathmatch game.
+To try it out you will have to edit UTEngine/Engine.cpp and correct the path at the top of the file to where you have Unreal Tournament installed. It also has to be patch 436. 469 will not work currently. All of this will of course not stay hardcoded if/when the project will actually run a full deathmatch game.
 
 Also maybe worth mentioning: the Linux mouse handling is pretty bad. On my Linux Mint it gave me quite a lot of mouse lag. If someone knows how to fix that easily I'm very open to pull requests. Otherwise I'll probably fix it myself once the project reaches a playable state.
 
