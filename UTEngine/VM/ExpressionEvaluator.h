@@ -27,7 +27,7 @@ struct ExpressionEvalResult
 	int LatentFunction = 0;
 	std::string Label;
 	ExpressionValue Value;
-	std::unique_ptr<Iterator> Iterator;
+	std::unique_ptr<Iterator> Iter;
 };
 
 class ExpressionEvaluator : ExpressionVisitor
