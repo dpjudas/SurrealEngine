@@ -327,6 +327,14 @@ void UState::Load(ObjectStream* stream)
 	IgnoreMask = stream->ReadUInt64();
 	LabelTableOffset = stream->ReadUInt16();
 	StateFlags = (ScriptStateFlags)stream->ReadUInt32();
+
+	for (UField* child = Children; child; child = child->Next)
+	{
+		if (UObject::TryCast<UFunction>(child))
+		{
+			Functions[child->Name] = static_cast<UFunction*>(child);
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -405,6 +413,14 @@ void UClass::Load(ObjectStream* stream)
 						c += 'a' - 'A';
 				*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
 			}
+		}
+	}
+
+	for (UField* child = Children; child; child = child->Next)
+	{
+		if (UObject::TryCast<UState>(child))
+		{
+			States[child->Name] = static_cast<UState*>(child);
 		}
 	}
 }

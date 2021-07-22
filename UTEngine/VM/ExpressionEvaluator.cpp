@@ -566,20 +566,14 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 
 	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		UState* state = cls->GetState(Context->StateName);
+		if (state)
 		{
-			UState* state = UObject::TryCast<UState>(field);
-			if (state && state->Name == Context->StateName)
+			UFunction* func = state->GetFunction(expr->Name);
+			if (func)
 			{
-				for (UField* field2 = state->Children; field2 != nullptr; field2 = field2->Next)
-				{
-					UFunction* func = UObject::TryCast<UFunction>(field2);
-					if (func && func->Name == expr->Name)
-					{
-						Call(func, expr->Args);
-						return;
-					}
-				}
+				Call(func, expr->Args);
+				return;
 			}
 		}
 	}
@@ -617,14 +611,11 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 
 	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		UFunction* func = cls->GetFunction(expr->Name);
+		if (func)
 		{
-			UFunction* func = UObject::TryCast<UFunction>(field);
-			if (func && func->Name == expr->Name)
-			{
-				Call(func, expr->Args);
-				return;
-			}
+			Call(func, expr->Args);
+			return;
 		}
 	}
 

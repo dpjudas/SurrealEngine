@@ -134,6 +134,9 @@ public:
 	uint64_t IgnoreMask = 0;
 	uint16_t LabelTableOffset = 0;
 	ScriptStateFlags StateFlags = {};
+
+	UFunction* GetFunction(const std::string& name) { auto it = Functions.find(name); if (it != Functions.end()) return it->second; else return nullptr; }
+	std::map<std::string, UFunction*> Functions;
 };
 
 struct Guid
@@ -164,6 +167,9 @@ public:
 	std::vector<int> PackageImports;
 	int ClassWithin = 0;
 	std::string ClassConfigName;
+
+	UState* GetState(const std::string& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
+	std::map<std::string, UState*> States;
 };
 
 enum class ExprToken : uint8_t

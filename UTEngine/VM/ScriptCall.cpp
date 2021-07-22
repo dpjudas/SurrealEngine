@@ -18,19 +18,13 @@ UFunction* FindEventFunction(UObject* Context, const std::string& name)
 
 	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		UState* state = cls->GetState(Context->StateName);
+		if (state)
 		{
-			UState* state = UObject::TryCast<UState>(field);
-			if (state && state->Name == Context->StateName)
+			UFunction* func = state->GetFunction(name);
+			if (func)
 			{
-				for (UField* field2 = state->Children; field2 != nullptr; field2 = field2->Next)
-				{
-					UFunction* func = UObject::TryCast<UFunction>(field2);
-					if (func && func->Name == name)
-					{
-						return func;
-					}
-				}
+				return func;
 			}
 		}
 	}
@@ -39,13 +33,10 @@ UFunction* FindEventFunction(UObject* Context, const std::string& name)
 
 	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 	{
-		for (UField* field = cls->Children; field != nullptr; field = field->Next)
+		UFunction* func = cls->GetFunction(name);
+		if (func)
 		{
-			UFunction* func = UObject::TryCast<UFunction>(field);
-			if (func && func->Name == name)
-			{
-				return func;
-			}
+			return func;
 		}
 	}
 
