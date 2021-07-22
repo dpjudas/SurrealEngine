@@ -220,6 +220,13 @@ void UStructProperty::Load(ObjectStream* stream)
 	Struct = stream->ReadObject<UStruct>();
 	if (Struct)
 		Struct->LoadNow();
+
+	if (Struct->Name == "Vector")
+		ValueType = ExpressionValueType::ValueVector;
+	else if (Struct->Name == "Rotator")
+		ValueType = ExpressionValueType::ValueRotator;
+	else if (Struct->Name == "Color")
+		ValueType = ExpressionValueType::ValueColor;
 }
 
 void UStructProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)

@@ -5,22 +5,6 @@
 
 class UProperty;
 
-enum class ExpressionValueType
-{
-	Nothing,
-	ValueByte,
-	ValueInt,
-	ValueBool,
-	ValueFloat,
-	ValueObject,
-	ValueVector,
-	ValueRotator,
-	ValueString,
-	ValueName,
-	ValueColor,
-	ValueStruct
-};
-
 class StructValue
 {
 public:
@@ -195,20 +179,10 @@ template<> inline Color* ExpressionValue::ToType() { return Type != ExpressionVa
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {
 	ExpressionValue v;
-	if (dynamic_cast<UByteProperty*>(prop)) v.Type = ExpressionValueType::ValueByte;
-	else if (dynamic_cast<UIntProperty*>(prop)) v.Type = ExpressionValueType::ValueInt;
-	else if (dynamic_cast<UBoolProperty*>(prop)) v.Type = ExpressionValueType::ValueBool;
-	else if (dynamic_cast<UFloatProperty*>(prop)) v.Type = ExpressionValueType::ValueFloat;
-	else if (dynamic_cast<UObjectProperty*>(prop)) v.Type = ExpressionValueType::ValueObject;
-	else if (dynamic_cast<UStringProperty*>(prop)) v.Type = ExpressionValueType::ValueString;
-	else if (dynamic_cast<UStrProperty*>(prop)) v.Type = ExpressionValueType::ValueString;
-	else if (dynamic_cast<UNameProperty*>(prop)) v.Type = ExpressionValueType::ValueName;
-	else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Vector") v.Type = ExpressionValueType::ValueVector;
-	else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Rotator") v.Type = ExpressionValueType::ValueRotator;
-	else if (dynamic_cast<UStructProperty*>(prop) && static_cast<UStructProperty*>(prop)->Struct->Name == "Color") v.Type = ExpressionValueType::ValueColor;
-	else if (dynamic_cast<UStructProperty*>(prop)) v.Type = ExpressionValueType::ValueStruct;
-	else throw std::runtime_error("Unsupported expression value property type");
-	return v;
+	v.Type = prop->ValueType;
+	if (v.Type != ExpressionValueType::Nothing)
+		return v;
+	throw std::runtime_error("Unsupported expression value property type");
 }
 
 inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
