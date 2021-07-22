@@ -177,6 +177,7 @@ void Engine::Run()
 			renderer->scene.DrawScene();
 		CallEvent(viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
+		renderer->scene.DrawTimedemoStats();
 		device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 		device->EndScenePass();
@@ -314,13 +315,45 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
-std::string Engine::ConsoleCommand(UObject* context, const std::string& command, bool& found)
+std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, bool& found)
 {
+	std::vector<std::string> args;
+	size_t i = 0;
+	while (i < commandline.size())
+	{
+		size_t j = commandline.find_first_not_of(" \t", i);
+		if (j == std::string::npos)
+			break;
+		i = j;
+		j = commandline.find_first_of(" \t", i);
+		if (j == std::string::npos)
+			j = commandline.size();
+		if (j > i)
+			args.push_back(commandline.substr(i, j - i));
+		i = j;
+	}
+	if (args.empty())
+	{
+		found = false;
+		return {};
+	}
+
+	std::string command = args[0];
+	for (char& c : command) c = std::tolower(c);
+
 	found = true;
 	if (command == "exit")
 	{
 		quit = true;
 		return {};
+	}
+	else if (command == "timedemo" && args.size() == 2)
+	{
+		renderer->showTimedemoStats = args[1] == "1";
+	}
+	else if (command == "showlog")
+	{
+		Frame::ShowDebuggerWindow();
 	}
 	found = false;
 	return {};

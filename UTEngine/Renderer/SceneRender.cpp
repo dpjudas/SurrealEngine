@@ -98,7 +98,10 @@ void SceneRender::DrawScene()
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
 
 	engine->renderer->corona.DrawCoronas(&SceneFrame);
+}
 
+void SceneRender::DrawTimedemoStats()
+{
 	engine->renderer->framesDrawn++;
 	if (engine->renderer->startFPSTime == 0 || engine->lastTime - engine->renderer->startFPSTime >= 1'000'000)
 	{
@@ -107,7 +110,14 @@ void SceneRender::DrawScene()
 		engine->renderer->framesDrawn = 0;
 	}
 
-	// engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.medfont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale - 16, 64, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
+	if (engine->renderer->showTimedemoStats)
+	{
+		std::string text = std::to_string(engine->renderer->fps) + " FPS";
+		float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(engine->renderer->canvas.medfont, text).x - 64;
+		float curY = 180;
+		float curYL = 0.0f;
+		engine->renderer->canvas.DrawText(engine->renderer->canvas.largefont, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked);
+	}
 }
 
 void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass)

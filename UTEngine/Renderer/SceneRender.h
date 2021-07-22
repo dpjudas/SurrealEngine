@@ -16,6 +16,7 @@ public:
 	void DrawScene();
 	void DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass);
 	void DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass);
+	void DrawTimedemoStats();
 
 	int FindZoneAt(vec3 location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);

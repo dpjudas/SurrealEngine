@@ -35,6 +35,7 @@ public:
 	static Expression* StepExpression;
 	static std::string ExceptionText;
 
+	static void ShowDebuggerWindow();
 	static void Break();
 	static void Resume();
 	static void StepInto();

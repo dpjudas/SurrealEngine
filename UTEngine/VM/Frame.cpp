@@ -55,10 +55,8 @@ void Frame::AddBreakpoint(const std::string& packageName, const std::string& cls
 	}
 }
 
-void Frame::Break()
+void Frame::ShowDebuggerWindow()
 {
-	RunState = FrameRunState::DebugBreak;
-
 #ifdef WIN32
 	if (!Debugger)
 	{
@@ -69,6 +67,16 @@ void Frame::Break()
 		Debugger->show();
 	}
 
+	Debugger->onBreakpointTriggered(); // To do: logger page should update automatically instead of this hack
+#endif
+}
+
+void Frame::Break()
+{
+	RunState = FrameRunState::DebugBreak;
+	ShowDebuggerWindow();
+
+#ifdef WIN32
 	Debugger->onBreakpointTriggered();
 
 	while (Debugger && RunState == FrameRunState::DebugBreak)
