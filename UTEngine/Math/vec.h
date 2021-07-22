@@ -37,6 +37,8 @@ public:
 	Rectf(float left, float top, float right, float bottom) : left(left), top(top), right(right), bottom(bottom) { }
 	Rectf(Pointf pos, Sizef size) : left(pos.x), top(pos.y), right(pos.x + size.width), bottom(pos.y + size.height) { }
 
+	static Rectf xywh(float x, float y, float width, float height) { return Rectf(x, y, x + width, y + height); }
+
 	Pointf position() const { return { left, top }; }
 	Sizef size() const { return { right - left, bottom - top }; }
 

@@ -107,7 +107,7 @@ void SceneRender::DrawScene()
 		engine->renderer->framesDrawn = 0;
 	}
 
-	engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.medfont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale - 16, 64, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
+	// engine->renderer->canvas.DrawFontTextWithShadow(engine->renderer->canvas.medfont, vec4(1.0f), engine->window->SizeX / engine->renderer->uiscale - 16, 64, std::to_string(engine->renderer->fps) + " FPS", TextAlignment::right);
 }
 
 void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, uint64_t zonemask, int pass)

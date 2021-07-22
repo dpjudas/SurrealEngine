@@ -71,6 +71,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 	float curX = Self->GetFloat("CurX");
 	float curY = Self->GetFloat("CurY");
 	float clipX = Self->GetFloat("ClipX");
+	float clipY = Self->GetFloat("ClipY");
 	UFont* font = (UFont*)Self->GetUObject("Font");
 	Color color = Self->GetColor("DrawColor");
 	uint32_t style = Self->GetByte("Style");
@@ -84,7 +85,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->renderer->canvas.DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, Text, renderflags, checkHotKey, clipX);
+		engine->renderer->canvas.DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, Text, renderflags, checkHotKey, clipX, clipY);
 	}
 }
 
@@ -101,6 +102,9 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 	float curYL = Self->GetFloat("CurYL");
 	bool noSmooth = Self->GetBool("bNoSmooth");
 
+	if (XL <= 0.0f || YL <= 0.0f)
+		return;
+
 	if (style != 0)
 	{
 		uint32_t renderflags = PF_TwoSided;
@@ -110,7 +114,7 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 			renderflags |= PF_Modulated;
 		if (noSmooth)
 			renderflags |= PF_NoSmooth;
-		engine->renderer->canvas.DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, z, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
+		engine->renderer->canvas.DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
 	}
 
 	curX += XL + spaceX;
@@ -136,52 +140,32 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	float clipX = Self->GetFloat("ClipX");
 	float clipY = Self->GetFloat("ClipY");
 
-	if (XL > 0.0f && YL > 0.0f)
+	if (XL <= 0.0f || YL <= 0.0f)
+		return;
+
+	if (style != 0)
 	{
-		if (curX < 0.0f)
-		{
-			float t = curX * UL / XL;
-			U -= t;
-			UL += t;
-			XL += curX;
-			curX = 0.0f;
-		}
-		if (curY < 0.0f)
-		{
-			float t = curY * VL / YL;
-			V -= t;
-			VL += t;
-			YL += curY;
-			curY = 0.0f;
-		}
-		if (XL > clipX - curX)
-		{
-			UL += (clipX - curX - XL) * UL / XL;
-			XL = clipX - curX;
-		}
-		if (YL > clipY - curY)
-		{
-			VL += (clipY - curY - YL) * VL / YL;
-			YL = clipY - curY;
-		}
-		if (style != 0)
-		{
-			uint32_t renderflags = PF_TwoSided;
-			if (style == 3)
-				renderflags |= PF_Translucent;
-			else if (style == 4)
-				renderflags |= PF_Modulated;
-			if (noSmooth)
-				renderflags |= PF_NoSmooth;
-			engine->renderer->canvas.DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, curZ, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
-		}
-
-		curX += XL + spaceX;
-		curYL = std::max(curYL, YL);
-
-		Self->SetFloat("CurX", curX);
-		Self->SetFloat("CurYL", curYL);
+		uint32_t renderflags = PF_TwoSided;
+		if (style == 3)
+			renderflags |= PF_Translucent;
+		else if (style == 4)
+			renderflags |= PF_Modulated;
+		if (noSmooth)
+			renderflags |= PF_NoSmooth;
+		engine->renderer->canvas.DrawTileClipped((UTexture*)Tex, orgX, orgY, curX, curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags, clipX, clipY);
 	}
+
+	float nextX = clamp(curX + XL, 0.0f, clipX);
+	float nextY = clamp(curY + YL, 0.0f, clipY);
+
+	XL = nextX - curX;
+	YL = nextY - curY;
+
+	curX += XL + spaceX;
+	curYL = std::max(curYL, YL);
+
+	Self->SetFloat("CurX", curX);
+	Self->SetFloat("CurYL", curYL);
 }
 
 void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float& YL)
@@ -189,7 +173,7 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 	UFont* font = (UFont*)Self->GetUObject("Font");
 	float clipX = Self->GetFloat("ClipX");
 	ivec2 size = engine->renderer->canvas.GetTextClippedSize(font, String, clipX);
-	XL = size.x + 100;
+	XL = size.x;
 	YL = size.y;
 }
 

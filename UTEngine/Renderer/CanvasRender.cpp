@@ -26,42 +26,6 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
 
-	int frameSizeX = (int)(engine->window->SizeX / (float)engine->renderer->uiscale);
-	int frameSizeY = (int)(engine->window->SizeY / (float)engine->renderer->uiscale);
-
-	if (XL <= 0.0f || YL <= 0.0f || x + XL <= 0.0f || y + YL <= 0.0f || x >= frameSizeX || y >= frameSizeY)
-		return;
-
-	if (x < 0.f)
-	{
-		float t = x * UL / XL;
-		U -= t;
-		UL += t;
-		XL += x;
-		x = 0.0f;
-	}
-
-	if (y < 0.0f)
-	{
-		float t = y * VL / YL;
-		V -= t;
-		VL += t;
-		YL += y;
-		y = 0.0f;
-	}
-
-	if (XL > frameSizeX - x)
-	{
-		UL += (frameSizeX - x - XL) * UL / XL;
-		XL = frameSizeX - x;
-	}
-
-	if (YL > frameSizeY - y)
-	{
-		VL += (frameSizeY - y - YL) * VL / YL;
-		YL = frameSizeY - y;
-	}
-
 	if (Tex->bMasked())
 		flags |= PF_Masked;
 
@@ -69,46 +33,22 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 	device->DrawTile(&SceneFrame, texinfo, x * uiscale, y * uiscale, XL * uiscale, YL * uiscale, U, V, UL, VL, Z, color, fog, flags);
 }
 
-void CanvasRender::DrawFontTextWithShadow(UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
+void CanvasRender::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float curX, float curY, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags, float clipX, float clipY)
 {
-	DrawFontText(font, vec4(0.0f, 0.0f, 0.0f, color.a), x + 1, y + 1, text, alignment);
-	DrawFontText(font, color, x, y, text, alignment);
-}
-
-void CanvasRender::DrawFontText(UFont* font, vec4 color, int x, int y, const std::string& text, TextAlignment alignment)
-{
-	if (alignment != TextAlignment::left)
-	{
-		ivec2 textsize = GetTextSize(font, text);
-		if (alignment == TextAlignment::center)
-			x -= textsize.x / 2;
-		else
-			x -= textsize.x;
-	}
-
 	RenderDevice* device = engine->window->GetRenderDevice();
 
 	FTextureInfo texinfo;
-	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;
-	texinfo.Texture = font->pages.front().Texture;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
+	texinfo.Texture = Tex;
+
+	if (Tex->bMasked())
+		flags |= PF_Masked;
 
 	int uiscale = engine->renderer->uiscale;
-
-	for (char c : text)
-	{
-		FontCharacter glyph = font->GetGlyph(c);
-
-		int width = glyph.USize;
-		int height = glyph.VSize;
-		float StartU = (float)glyph.StartU;
-		float StartV = (float)glyph.StartV;
-		float USize = (float)glyph.USize;
-		float VSize = (float)glyph.VSize;
-
-		device->DrawTile(&SceneFrame, texinfo, (float)x * uiscale, (float)y * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
-
-		x += width;
-	}
+	Rectf clipBox = Rectf::xywh(orgX, orgY, clipX, clipY);
+	Rectf dest = Rectf::xywh(orgX + curX, orgY + curY, XL, YL);
+	Rectf src = Rectf::xywh(U, V, UL, VL);
+	DrawTile(device, texinfo, dest, src, clipBox, Z, color, fog, flags, uiscale);
 }
 
 void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags)
@@ -166,7 +106,7 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 	}
 }
 
-void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t flags, bool checkHotKey, float clipX)
+void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t flags, bool checkHotKey, float clipX, float clipY)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -184,6 +124,8 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 	float uUSize = (float)uglyph.USize;
 	float uVSize = (float)uglyph.VSize;
 
+	Rectf clipBox = Rectf::xywh(orgX, orgY, clipX, clipY);
+
 	bool foundAmpersand = false;
 	int maxY = 0;
 	for (char c : text)
@@ -199,16 +141,16 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			FontCharacter glyph = font->GetGlyph(c);
 			if (curX + glyph.USize > (int)clipX)
 				break;
-			int width = glyph.USize;
-			int height = glyph.VSize;
-			float StartU = (float)glyph.StartU;
-			float StartV = (float)glyph.StartV;
-			float USize = (float)glyph.USize;
-			float VSize = (float)glyph.VSize;
-			device->DrawTile(&SceneFrame, texinfo, (orgX + curX) * uiscale, (orgY + curY) * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
-			device->DrawTile(&SceneFrame, texinfo, (orgX + curX + (width - uwidth) / 2) * uiscale, (orgY + curY) * uiscale, (float)uwidth * uiscale, (float)uheight * uiscale, uStartU, uStartV, uUSize, uVSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
 
-			curX += width;
+			Rectf dest = Rectf::xywh(orgX + curX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
+			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
+			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
+
+			dest = Rectf::xywh(orgX + curX + (glyph.USize - uwidth) / 2, orgY + curY, (float)uwidth, (float)uheight);
+			src = Rectf::xywh(uStartU, uStartV, uUSize, uVSize);
+			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
+
+			curX += glyph.USize;
 			maxY = std::max(maxY, glyph.VSize);
 		}
 		else
@@ -219,18 +161,56 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			if (curX + glyph.USize > (int)clipX)
 				break;
 
-			int width = glyph.USize;
-			int height = glyph.VSize;
-			float StartU = (float)glyph.StartU;
-			float StartV = (float)glyph.StartV;
-			float USize = (float)glyph.USize;
-			float VSize = (float)glyph.VSize;
+			Rectf dest = Rectf::xywh(orgX + curX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
+			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
+			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
 
-			device->DrawTile(&SceneFrame, texinfo, (orgX + curX) * uiscale, (orgY + curY) * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
-
-			curX += width;
+			curX += glyph.USize;
 			maxY = std::max(maxY, glyph.VSize);
 		}
+	}
+}
+
+void CanvasRender::DrawTile(RenderDevice* device, FTextureInfo &texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags, int uiscale)
+{
+	if (dest.left > dest.right || dest.top > dest.bottom)
+		return;
+
+	if (dest.left >= clipBox.left && dest.top >= clipBox.top && dest.right <= clipBox.right && dest.bottom <= clipBox.bottom)
+	{
+		device->DrawTile(&SceneFrame, texinfo, dest.left * uiscale, dest.top * uiscale, (dest.right - dest.left) * uiscale, (dest.bottom - dest.top) * uiscale, src.left, src.top, src.right - src.left, src.bottom - src.top, Z, color, fog, flags);
+	}
+	else
+	{
+		Rectf d = dest;
+		Rectf s = src;
+
+		float scaleX = (s.right - s.left) / (d.right - d.left);
+		float scaleY = (s.bottom - s.top) / (d.bottom - d.top);
+
+		if (d.left < clipBox.left)
+		{
+			s.left += scaleX * (clipBox.left - d.left);
+			d.left = clipBox.left;
+		}
+		if (d.right > clipBox.right)
+		{
+			s.right += scaleX * (clipBox.right - d.right);
+			d.right = clipBox.right;
+		}
+		if (d.top < clipBox.top)
+		{
+			s.top += scaleY * (clipBox.top - d.top);
+			d.top = clipBox.top;
+		}
+		if (d.bottom > clipBox.bottom)
+		{
+			s.bottom += scaleY * (clipBox.bottom - d.bottom);
+			d.bottom = clipBox.bottom;
+		}
+
+		if (d.left < d.right && d.top < d.bottom)
+			device->DrawTile(&SceneFrame, texinfo, d.left * uiscale, d.top * uiscale, (d.right - d.left) * uiscale, (d.bottom - d.top) * uiscale, s.left, s.top, s.right - s.left, s.bottom - s.top, Z, color, fog, flags);
 	}
 }
 
