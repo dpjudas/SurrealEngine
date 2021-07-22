@@ -4,6 +4,7 @@
 #include "VM/NativeFunc.h"
 #include "Engine.h"
 #include "UObject/ULevel.h"
+#include "UObject/UClient.h"
 #include "Renderer/UTRenderer.h"
 #include "Renderer/CanvasRender.h"
 
@@ -38,15 +39,17 @@ void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UOb
 
 void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 {
-	float orgX = Self->GetFloat("OrgX");
-	float orgY = Self->GetFloat("OrgY");
-	float curX = Self->GetFloat("CurX");
-	float curY = Self->GetFloat("CurY");
-	UFont* font = (UFont*)Self->GetUObject("Font");
-	Color color = Self->GetColor("DrawColor");
-	float curYL = Self->GetFloat("CurYL");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	float& orgX = SelfCanvas->OrgX();
+	float& orgY = SelfCanvas->OrgY();
+	float& curX = SelfCanvas->CurX();
+	float& curY = SelfCanvas->CurY();
+	UFont*& font = SelfCanvas->Font();
+	Color& color = SelfCanvas->DrawColor();
+	float& curYL = SelfCanvas->CurYL();
+	uint8_t& style = SelfCanvas->Style();
+
 	bool newline = !CR || *CR;
-	uint32_t style = Self->GetByte("Style");
 
 	if (style != 0)
 	{
@@ -58,23 +61,21 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 
 		engine->renderer->canvas.DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags);
 	}
-
-	Self->SetFloat("CurX", curX);
-	Self->SetFloat("CurY", curY);
-	Self->SetFloat("CurYL", curYL);
 }
 
 void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bCheckHotKey)
 {
-	float orgX = Self->GetFloat("OrgX");
-	float orgY = Self->GetFloat("OrgY");
-	float curX = Self->GetFloat("CurX");
-	float curY = Self->GetFloat("CurY");
-	float clipX = Self->GetFloat("ClipX");
-	float clipY = Self->GetFloat("ClipY");
-	UFont* font = (UFont*)Self->GetUObject("Font");
-	Color color = Self->GetColor("DrawColor");
-	uint32_t style = Self->GetByte("Style");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	float& orgX = SelfCanvas->OrgX();
+	float& orgY = SelfCanvas->OrgY();
+	float& curX = SelfCanvas->CurX();
+	float& curY = SelfCanvas->CurY();
+	float& clipX = SelfCanvas->ClipX();
+	float& clipY = SelfCanvas->ClipY();
+	UFont*& font = SelfCanvas->Font();
+	Color& color = SelfCanvas->DrawColor();
+	uint8_t& style = SelfCanvas->Style();
+
 	bool checkHotKey = bCheckHotKey && *bCheckHotKey;
 	
 	if (style != 0)
@@ -91,16 +92,18 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 
 void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U, float V, float UL, float VL)
 {
-	float orgX = Self->GetFloat("OrgX");
-	float orgY = Self->GetFloat("OrgY");
-	float curX = Self->GetFloat("CurX");
-	float curY = Self->GetFloat("CurY");
-	float z = Self->GetFloat("Z");
-	uint32_t style = Self->GetByte("Style");
-	Color color = Self->GetColor("DrawColor");
-	float spaceX = Self->GetFloat("SpaceX");
-	float curYL = Self->GetFloat("CurYL");
-	bool noSmooth = Self->GetBool("bNoSmooth");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	float& orgX = SelfCanvas->OrgX();
+	float& orgY = SelfCanvas->OrgY();
+	float& curX = SelfCanvas->CurX();
+	float& curY = SelfCanvas->CurY();
+	float& z = SelfCanvas->Z();
+	uint8_t& style = SelfCanvas->Style();
+	Color& color = SelfCanvas->DrawColor();
+	float& spaceX = SelfCanvas->SpaceX();
+	float& spaceY = SelfCanvas->SpaceY();
+	float& curYL = SelfCanvas->CurYL();
+	bool& noSmooth = SelfCanvas->bNoSmooth();
 
 	if (XL <= 0.0f || YL <= 0.0f)
 		return;
@@ -118,27 +121,25 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 	}
 
 	curX += XL + spaceX;
-	curYL = std::max(curYL, YL);
-
-	Self->SetFloat("CurX", curX);
-	Self->SetFloat("CurYL", curYL);
+	curYL = std::max(curYL, YL + spaceY);
 }
 
 void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, float U, float V, float UL, float VL)
 {
-	float orgX = Self->GetFloat("OrgX");
-	float orgY = Self->GetFloat("OrgY");
-	float curX = Self->GetFloat("CurX");
-	float curY = Self->GetFloat("CurY");
-	float curZ = Self->GetFloat("Z");
-	uint32_t style = Self->GetByte("Style");
-	Color color = Self->GetColor("DrawColor");
-	float spaceX = Self->GetFloat("SpaceX");
-	float spaceY = Self->GetFloat("SpaceY");
-	float curYL = Self->GetFloat("CurYL");
-	bool noSmooth = Self->GetBool("bNoSmooth");
-	float clipX = Self->GetFloat("ClipX");
-	float clipY = Self->GetFloat("ClipY");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	float& orgX = SelfCanvas->OrgX();
+	float& orgY = SelfCanvas->OrgY();
+	float& curX = SelfCanvas->CurX();
+	float& curY = SelfCanvas->CurY();
+	float& z = SelfCanvas->Z();
+	uint8_t& style = SelfCanvas->Style();
+	Color& color = SelfCanvas->DrawColor();
+	float& spaceX = SelfCanvas->SpaceX();
+	float& spaceY = SelfCanvas->SpaceY();
+	float& curYL = SelfCanvas->CurYL();
+	bool& noSmooth = SelfCanvas->bNoSmooth();
+	float& clipX = SelfCanvas->ClipX();
+	float& clipY = SelfCanvas->ClipY();
 
 	if (XL <= 0.0f || YL <= 0.0f)
 		return;
@@ -162,16 +163,15 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	YL = nextY - curY;
 
 	curX += XL + spaceX;
-	curYL = std::max(curYL, YL);
-
-	Self->SetFloat("CurX", curX);
-	Self->SetFloat("CurYL", curYL);
+	curYL = std::max(curYL, YL + spaceY);
 }
 
 void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float& YL)
 {
-	UFont* font = (UFont*)Self->GetUObject("Font");
-	float clipX = Self->GetFloat("ClipX");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	UFont*& font = SelfCanvas->Font();
+	float& clipX = SelfCanvas->ClipX();
+
 	ivec2 size = engine->renderer->canvas.GetTextClippedSize(font, String, clipX);
 	XL = size.x;
 	YL = size.y;
@@ -179,7 +179,9 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 
 void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, float& YL)
 {
-	UFont* font = (UFont*)Self->GetUObject("Font");
+	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
+	UFont*& font = SelfCanvas->Font();
+
 	ivec2 size = engine->renderer->canvas.GetTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
