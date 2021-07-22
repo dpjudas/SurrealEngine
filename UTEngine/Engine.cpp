@@ -317,6 +317,8 @@ float Engine::CalcTimeElapsed()
 
 std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, bool& found)
 {
+	found = false;
+
 	std::vector<std::string> args;
 	size_t i = 0;
 	while (i < commandline.size())
@@ -334,7 +336,6 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	if (args.empty())
 	{
-		found = false;
 		return {};
 	}
 
@@ -342,10 +343,9 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	for (char& c : command) c = std::tolower(c);
 
 	found = true;
-	if (command == "exit")
+	if (command == "exit" || command == "quit")
 	{
 		quit = true;
-		return {};
 	}
 	else if (command == "timedemo" && args.size() == 2)
 	{
@@ -355,7 +355,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		Frame::ShowDebuggerWindow();
 	}
-	found = false;
+	else
+	{
+		found = false;
+	}
 	return {};
 }
 
