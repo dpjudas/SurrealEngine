@@ -9,6 +9,7 @@ LogPage::LogPage(View* parent) : VBoxView(parent)
 	listview = new ListView(this);
 	listview->setExpanding();
 
+	listview->addColumn("Source", 350, false);
 	listview->addColumn("Message", 200, true);
 
 	addClass("Logpage");
@@ -25,7 +26,8 @@ void LogPage::update()
 			while (true)
 			{
 				auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-				item->setText(0, *it);
+				item->setText(0, it->Source);
+				item->setText(1, it->Text);
 				auto next = it;
 				++next;
 				if (next == engine->Log.end())
@@ -42,7 +44,8 @@ void LogPage::update()
 		{
 			it = next;
 			auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-			item->setText(0, *it);
+			item->setText(0, it->Source);
+			item->setText(1, it->Text);
 			++next;
 		}
 	}

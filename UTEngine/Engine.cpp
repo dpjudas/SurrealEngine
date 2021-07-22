@@ -84,14 +84,14 @@ void Engine::Run()
 	//std::string mapName = "DM-Turbine";
 	//std::string mapName = "DM-Tempest";
 	//std::string mapName = "DM-Grinder";
-	//std::string mapName = "DM-HyperBlast";
+	std::string mapName = "DM-HyperBlast";
 	//std::string mapName = "DM-Peak";
 	//std::string mapName = "CTF-Coret";
 	//std::string mapName = "CTF-Dreary";
 	//std::string mapName = "CTF-Command";
 	//std::string mapName = "CTF-November";
 	//std::string mapName = "CTF-Gauntlet";
-	std::string mapName = "CTF-EternalCave";
+	//std::string mapName = "CTF-EternalCave";
 	//std::string mapName = "CTF-Niven";
 	//std::string mapName = "CTF-Face";
 	//std::string mapName = "DOM-Sesmar";
@@ -99,15 +99,6 @@ void Engine::Run()
 	//std::string mapName = "UTCredits";
 
 	LoadMap(mapName);
-
-#if 0
-	if (LevelInfo->HasProperty("Song"))
-	{
-		auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
-		if (music)
-			audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
-	}
-#endif
 
 	CallEvent(console, "VideoChange");
 	CallEvent(console, "NotifyLevelChange");
@@ -355,6 +346,19 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		Frame::ShowDebuggerWindow();
 	}
+	else if (command == "playsong")
+	{
+		if (LevelInfo->HasProperty("Song"))
+		{
+			auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
+			if (music)
+				audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
+		}
+	}
+	else if (command == "stopsong")
+	{
+		audioplayer.reset();
+	}
 	else
 	{
 		found = false;
@@ -431,4 +435,30 @@ void Engine::SetPause(bool value)
 void Engine::WindowClose(DisplayWindow* viewport)
 {
 	quit = true;
+}
+
+void Engine::LogMessage(const std::string& message)
+{
+	if (!Frame::Callstack.empty() && Frame::Callstack.back()->Func)
+	{
+		UFunction* func = Frame::Callstack.back()->Func;
+		std::string name;
+		for (UStruct* s = func; s != nullptr; s = s->StructParent)
+		{
+			if (name.empty())
+				name = s->Name;
+			else
+				name = s->Name + "." + name;
+		}
+
+		LogMessageLine line;
+		line.Source = name;
+		line.Text = message;
+		Log.push_back(std::move(line));
+	}
+}
+
+void Engine::LogUnimplemented(const std::string& message)
+{
+	LogMessage("Unimplemented: " + message);
 }

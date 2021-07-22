@@ -2,6 +2,7 @@
 
 #include "UI/Core/View.h"
 #include "UObject/UObject.h"
+#include "Engine.h"
 #include <list>
 
 class ListView;
@@ -14,5 +15,5 @@ public:
 	void update();
 
 	ListView* listview = nullptr;
-	std::list<std::string>::iterator it;
+	std::list<LogMessageLine>::iterator it;
 };

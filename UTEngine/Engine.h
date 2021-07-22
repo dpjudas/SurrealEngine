@@ -43,6 +43,11 @@ struct FSceneNode;
 struct FSurfaceFacet;
 struct MeshFace;
 
+struct LogMessageLine
+{
+	std::string Source;
+	std::string Text;
+};
 
 class Engine
 {
@@ -74,7 +79,10 @@ public:
 	ULevel* Level = nullptr;
 	UGameInfo* GameInfo = nullptr;
 
-	std::list<std::string> Log;
+	void LogMessage(const std::string& message);
+	void LogUnimplemented(const std::string& message);
+
+	std::list<LogMessageLine> Log;
 
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;

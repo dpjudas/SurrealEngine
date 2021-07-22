@@ -16,31 +16,31 @@ void NStatLogFile::RegisterFunctions()
 
 void NStatLogFile::CloseLog(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLogFile.CloseLog not implemented");
+	engine->LogUnimplemented("StatLogFile.CloseLog");
 }
 
 void NStatLogFile::FileFlush(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLogFile.FileFlush not implemented");
+	engine->LogUnimplemented("StatLogFile.FileFlush");
 }
 
 void NStatLogFile::FileLog(UObject* Self, const std::string& EventString)
 {
-	engine->Log.push_back("Warning: StatLogFile.FileLog tried to log: " + EventString);
+	engine->LogUnimplemented("StatLogFile.FileLog(" + EventString + ")");
 }
 
 void NStatLogFile::GetChecksum(UObject* Self, std::string& Checksum)
 {
 	Checksum = "GetChecksum dummy value";
-	engine->Log.push_back("Warning: StatLogFile.GetChecksum not implemented");
+	engine->LogUnimplemented("StatLogFile.GetChecksum");
 }
 
 void NStatLogFile::OpenLog(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLogFile.OpenLog not implemented");
+	engine->LogUnimplemented("StatLogFile.OpenLog");
 }
 
 void NStatLogFile::Watermark(UObject* Self, const std::string& EventString)
 {
-	engine->Log.push_back("Warning: StatLogFile.Watermark not implemented");
+	engine->LogUnimplemented("StatLogFile.Watermark");
 }

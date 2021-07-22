@@ -21,54 +21,54 @@ void NStatLog::RegisterFunctions()
 void NStatLog::BatchLocal()
 {
 	// Called by Stats->View Local ngStats menu item
-	engine->Log.push_back("Warning: StatLog.BatchLocal not implemented");
+	engine->LogUnimplemented("StatLog.BatchLocal");
 }
 
 void NStatLog::BrowseRelativeLocalURL(const std::string& URL)
 {
 	// Called by Stats->Help with ngStats
-	engine->Log.push_back("Warning: StatLog.BrowseRelativeLocalURL not implemented. URL was " + URL);
+	engine->LogUnimplemented("StatLog.BrowseRelativeLocalURL(" + URL + ")");
 }
 
 void NStatLog::ExecuteLocalLogBatcher(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLog.ExecuteLocalLogBatcher not implemented");
+	engine->LogUnimplemented("StatLog.ExecuteLocalLogBatcher");
 }
 
 void NStatLog::ExecuteSilentLogBatcher(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLog.ExecuteSilentLogBatcher not implemented");
+	engine->LogUnimplemented("StatLog.ExecuteSilentLogBatcher");
 }
 
 void NStatLog::ExecuteWorldLogBatcher(UObject* Self)
 {
-	engine->Log.push_back("Warning: StatLog.ExecuteWorldLogBatcher not implemented");
+	engine->LogUnimplemented("StatLog.ExecuteWorldLogBatcher");
 }
 
 void NStatLog::GetGMTRef(UObject* Self, std::string& ReturnValue)
 {
 	ReturnValue = "GMTRef dummy value";
-	engine->Log.push_back("Warning: StatLog.GetGMTRef not implemented");
+	engine->LogUnimplemented("StatLog.GetGMTRef");
 }
 
 void NStatLog::GetMapFileName(UObject* Self, std::string& ReturnValue)
 {
 	ReturnValue = "StatLog.GetMapFileName dummy value";
-	engine->Log.push_back("Warning: StatLog.GetMapFileName not implemented");
+	engine->LogUnimplemented("StatLog.GetMapFileName");
 }
 
 void NStatLog::GetPlayerChecksum(UObject* P, std::string& Checksum)
 {
 	Checksum = "GetPlayerChecksum dummy value";
-	engine->Log.push_back("Warning: StatLog.GetPlayerChecksum not implemented");
+	engine->LogUnimplemented("StatLog.GetPlayerChecksum");
 }
 
 void NStatLog::InitialCheck(UObject* Self, UObject* Game)
 {
-	engine->Log.push_back("Warning: StatLog.InitialCheck not implemented");
+	engine->LogUnimplemented("StatLog.InitialCheck");
 }
 
 void NStatLog::LogMutator(UObject* Self, UObject* M)
 {
-	engine->Log.push_back("Warning: StatLog.LogMutator not implemented");
+	engine->LogUnimplemented("StatLog.LogMutator");
 }

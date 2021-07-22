@@ -159,7 +159,7 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
-	engine->Log.push_back("Warning: GetNextInt(" + ClassName + ", " + std::to_string(Num) + ") not implemented");
+	engine->LogUnimplemented("GetNextInt(" + ClassName + ", " + std::to_string(Num) + ")");
 	ReturnValue = {};
 }
 
@@ -167,14 +167,14 @@ void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num
 {
 	Entry = {};
 	Description = {};
-	engine->Log.push_back("Warning: GetNextIntDesc(" + ClassName + ", " + std::to_string(Num) + ") not implemented");
+	engine->LogUnimplemented("GetNextIntDesc(" + ClassName + ", " + std::to_string(Num) + ")");
 }
 
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)
 {
 	SkinName = {};
 	SkinDesc = {};
-	engine->Log.push_back("Warning: GetNextSkin('" + Prefix + "', '" + CurrentSkin + "', " + std::to_string(Dir) + ") not implemented");
+	engine->LogUnimplemented("GetNextSkin('" + Prefix + "', '" + CurrentSkin + "', " + std::to_string(Dir) + ")");
 }
 
 void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
@@ -204,12 +204,12 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 
 void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
-	engine->Log.push_back("Warning: Actor.LoopAnim not implemented");
+	engine->LogUnimplemented("Actor.LoopAnim(" + Sequence + ")");
 }
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
 {
-	throw std::runtime_error("Actor.MakeNoise not implemented");
+	engine->LogUnimplemented("Actor.MakeNoise(" + std::to_string(Loudness) + ")");
 }
 
 void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
@@ -253,12 +253,12 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 
 void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
 {
-	engine->Log.push_back("Warning: Actor.PlayAnim not implemented");
+	engine->LogUnimplemented("Actor.PlayAnim(" + Sequence + ")");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	throw std::runtime_error("Actor.PlayOwnedSound not implemented");
+	engine->LogUnimplemented("Actor.PlayOwnedSound(" + Sound->Name + ")");
 }
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -279,12 +279,12 @@ void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, fl
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
 {
-	engine->Log.push_back("Warning: Actor.SetBase is not implemented");
+	engine->LogUnimplemented("Actor.SetBase");
 }
 
 void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
 {
-	engine->Log.push_back("Warning: Actor.SetCollision not implemented");
+	engine->LogUnimplemented("Actor.SetCollision");
 }
 
 void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
@@ -307,7 +307,7 @@ void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
-	engine->Log.push_back("Warning: Actor.SetPhysics(" + std::to_string(newPhysics) + ") not implemented");
+	engine->LogUnimplemented("Actor.SetPhysics(" + std::to_string(newPhysics) + ")");
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
@@ -321,7 +321,7 @@ void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& Return
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 {
-	engine->Log.push_back("Warning: Actor.SetTimer not implemented");
+	engine->LogUnimplemented("Actor.SetTimer(" + std::to_string(NewTimerRate) + ")");
 }
 
 void NActor::Sleep(UObject* Self, float Seconds)

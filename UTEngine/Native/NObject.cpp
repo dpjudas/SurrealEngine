@@ -336,7 +336,7 @@ void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue
 
 void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
 {
-	engine->Log.push_back("To do: script tried to disable the probe function " + ProbeFunc + ". This is not implemented yet.");
+	engine->LogUnimplemented("Disable(" + ProbeFunc + ")");
 }
 
 void NObject::DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -410,15 +410,15 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 	if (!ReturnValue && (!MayFail || *MayFail == false))
 	{
 		if (ObjectName.empty())
-			engine->Log.push_back("Object.DynamicLoadObject: object name was empty");
+			engine->LogMessage("Object.DynamicLoadObject: specified object name was empty");
 		else
-			engine->Log.push_back("Object.DynamicLoadObject: could not load " + ObjectName);
+			engine->LogMessage("Object.DynamicLoadObject: could not load " + ObjectName);
 	}
 }
 
 void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
 {
-	engine->Log.push_back("To do: script tried to enable the probe function " + ProbeFunc + ". This is not implemented yet.");
+	engine->LogUnimplemented("Enable(" + ProbeFunc + ")");
 }
 
 void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
@@ -648,9 +648,9 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 void NObject::Log(const std::string& S, std::string* Tag)
 {
 	if (Tag)
-		engine->Log.push_back("[" + *Tag + "] " + S);
+		engine->LogMessage("[" + *Tag + "] " + S);
 	else
-		engine->Log.push_back(S);
+		engine->LogMessage(S);
 }
 
 void NObject::Loge(float A, float& ReturnValue)
@@ -837,7 +837,7 @@ void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 
 void NObject::ResetConfig()
 {
-	engine->Log.push_back("Warning: Object.ResetConfig not implemented");
+	engine->LogUnimplemented("Object.ResetConfig");
 }
 
 void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
@@ -853,7 +853,7 @@ void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
 
 void NObject::SaveConfig(UObject* Self)
 {
-	engine->Log.push_back("Warning: Object.SaveConfig not implemented");
+	engine->LogUnimplemented("Object.SaveConfig");
 }
 
 void NObject::SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue)
@@ -883,7 +883,7 @@ void NObject::Square(float A, float& ReturnValue)
 
 void NObject::StaticSaveConfig()
 {
-	engine->Log.push_back("Warning: Object.StaticSaveConfig not implemented");
+	engine->LogUnimplemented("Object.StaticSaveConfig");
 }
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -983,7 +983,7 @@ void NObject::VSize(const vec3& A, float& ReturnValue)
 
 void NObject::Warn(const std::string& S)
 {
-	engine->Log.push_back("Warning: " + S);
+	engine->LogMessage("Warning: " + S);
 }
 
 void NObject::XorXor_BoolBool(bool A, bool B, bool& ReturnValue)
