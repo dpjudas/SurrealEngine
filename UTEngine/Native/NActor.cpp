@@ -71,7 +71,12 @@ void NActor::RegisterFunctions()
 
 void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 {
-	throw std::runtime_error("Actor.Add_ColorColor not implemented");
+	Color c;
+	c.R = std::min(A.R + (int)B.R, 255);
+	c.G = std::min(A.G + (int)B.G, 255);
+	c.B = std::min(A.B + (int)B.B, 255);
+	c.A = std::min(A.A + (int)B.A, 255);
+	ReturnValue = c;
 }
 
 void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::string* MatchTag)
@@ -416,7 +421,12 @@ void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std
 
 void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 {
-	throw std::runtime_error("Actor.Subtract_ColorColor not implemented");
+	Color c;
+	c.R = std::max(A.R - (int)B.R, 0);
+	c.G = std::max(A.G - (int)B.G, 0);
+	c.B = std::max(A.B - (int)B.B, 0);
+	c.A = std::max(A.A - (int)B.A, 0);
+	ReturnValue = c;
 }
 
 void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
