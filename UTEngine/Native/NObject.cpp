@@ -4,6 +4,7 @@
 #include "VM/NativeFunc.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
+#include "Math/quaternion.h"
 #include <cmath>
 
 #ifdef _MSC_VER
@@ -316,7 +317,7 @@ void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B,
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)
 {
-	throw std::runtime_error("Object.Complement_PreInt not implemented");
+	ReturnValue = ~A;
 }
 
 void NObject::Concat_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue)
@@ -488,7 +489,10 @@ void NObject::FRand(float& ReturnValue)
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	throw std::runtime_error("Object.GetAxes not implemented");
+	mat4 m = A.ToMatrix();
+	X.x = m[0]; X.y = m[1]; X.z = m[2];
+	Y.x = m[4]; Y.y = m[5]; Y.z = m[6];
+	Z.x = m[8]; Z.y = m[9]; Z.z = m[10];
 }
 
 void NObject::GetEnum(UObject* E, int i, std::string& ReturnValue)
@@ -508,7 +512,10 @@ void NObject::GetStateName(UObject* Self, std::string& ReturnValue)
 
 void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	throw std::runtime_error("Object.GetUnAxes not implemented");
+	mat3 m = mat3::inverse(mat3(A.ToMatrix()));
+	X.x = m[0]; X.y = m[1]; X.z = m[2];
+	Y.x = m[3]; Y.y = m[4]; Y.z = m[5];
+	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
 }
 
 void NObject::GotoState(UObject* Self, std::string* NewState, std::string* Label)
@@ -546,7 +553,7 @@ void NObject::GreaterGreater_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::GreaterGreater_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.GreaterGreater_VectorRotator not implemented");
+	ReturnValue = (B.ToMatrix() * vec4(A, 1.0f)).xyz();
 }
 
 void NObject::Greater_FloatFloat(float A, float B, bool& ReturnValue)
@@ -572,7 +579,14 @@ void NObject::InStr(const std::string& S, const std::string& t, int& ReturnValue
 
 void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
 {
-	throw std::runtime_error("Object.Invert not implemented");
+	mat3 m;
+	m[0] = X.x; m[1] = X.y; m[2] = X.z;
+	m[3] = Y.x; m[4] = Y.y; m[5] = Y.z;
+	m[6] = Z.x; m[7] = Z.y; m[8] = Z.z;
+	m = mat3::inverse(m);
+	X.x = m[0]; X.y = m[1]; X.z = m[2];
+	Y.x = m[3]; Y.y = m[4]; Y.z = m[5];
+	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
 }
 
 void NObject::IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue)
@@ -622,7 +636,7 @@ void NObject::LessLess_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
 {
-	throw std::runtime_error("Object.LessLess_VectorRotator not implemented");
+	ReturnValue = inverse(quaternion::rotation_matrix(B.ToMatrix())) * A;
 }
 
 void NObject::Less_FloatFloat(float A, float B, bool& ReturnValue)
@@ -700,7 +714,7 @@ void NObject::MultiplyEqual_IntFloat(int& A, float B, int& ReturnValue)
 
 void NObject::MultiplyEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.MultiplyEqual_RotatorFloat not implemented");
+	ReturnValue = A * B;
 }
 
 void NObject::MultiplyEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue)
