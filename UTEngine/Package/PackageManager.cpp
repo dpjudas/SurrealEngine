@@ -44,6 +44,7 @@ PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
 	NZoneInfo::RegisterFunctions();
 
 	LoadIntFiles();
+	ScanForMaps();
 
 	ScanFolder("Maps", "*.unr");
 	ScanFolder("Music", "*.umx");
@@ -76,6 +77,15 @@ Package* PackageManager::GetPackage(const std::string& name)
 	}
 
 	return package.get();
+}
+
+void PackageManager::ScanForMaps()
+{
+	std::string packagedir = FilePath::combine(basepath, "Maps");
+	for (std::string filename : Directory::files(FilePath::combine(packagedir, "*.unr")))
+	{
+		maps.push_back(filename);
+	}
 }
 
 void PackageManager::ScanFolder(const std::string& name, const std::string& search)
@@ -197,7 +207,7 @@ void PackageManager::LoadIntFiles()
 			for (const std::string& value : intFile->GetValues("Public", "Object"))
 			{
 				auto desc = ParseIntPublicValue(value);
-				if (!desc["Name"].empty() && !desc["Class"].empty() && !desc["MetaClass"].empty())
+				if (!desc["Name"].empty() && !desc["Class"].empty() && !desc["MetaClass"].empty()) // Used by Actor.GetInt
 				{
 					IntObject obj;
 					obj.Name = desc["Name"];
@@ -212,6 +222,21 @@ void PackageManager::LoadIntFiles()
 						metaClass = metaClass.substr(pos + 1);
 
 					IntObjects[metaClass].push_back(std::move(obj));
+				}
+				else if (!desc["Name"].empty() && !desc["Class"].empty()) // Used by Actor.GetNextSkin
+				{
+					IntObject obj;
+					obj.Name = desc["Name"];
+					obj.Class = desc["Class"];
+					obj.Description = desc["Description"];
+
+					std::string cls = obj.Class;
+
+					size_t pos = cls.find_last_of('.');
+					if (pos != std::string::npos)
+						cls = cls.substr(pos + 1);
+
+					IntObjects[cls].push_back(std::move(obj));
 				}
 			}
 

@@ -18,6 +18,9 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 	int zoneIndex = actor->actorZone;
 	const vec3& color = actor->light;
 
+	if (!mesh)
+		return;
+
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * actor->Rotation().ToMatrix() * mat4::scale(actor->DrawScale());
 
 	mat4 meshToObject = mesh->RotOrigin.ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);

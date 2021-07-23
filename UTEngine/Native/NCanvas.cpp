@@ -5,6 +5,7 @@
 #include "Engine.h"
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
+#include "UObject/UActor.h"
 #include "Renderer/UTRenderer.h"
 #include "Renderer/CanvasRender.h"
 
@@ -27,10 +28,12 @@ void NCanvas::RegisterFunctions()
 
 void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, bool* ClearZ)
 {
+	engine->renderer->canvas.DrawActor(UObject::Cast<UActor>(A), WireFrame, ClearZ ? *ClearZ : false);
 }
 
 void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, bool* ClearZ)
 {
+	engine->renderer->canvas.DrawClippedActor(UObject::Cast<UActor>(A), WireFrame, X, Y, XB, YB, ClearZ ? *ClearZ : false);
 }
 
 void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, int* FOV, bool* ClearZ)

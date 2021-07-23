@@ -76,9 +76,9 @@ void Engine::Run()
 
 	//std::string mapName = "CityIntro";
 	//std::string mapName = "UT-Logo-Map";
-	std::string mapName = "DM-Liandri";
+	//std::string mapName = "DM-Liandri";
 	//std::string mapName = "DM-Codex";
-	//std::string mapName = "DM-Barricade";
+	std::string mapName = "DM-Barricade";
 	//std::string mapName = "DM-Deck16][";
 	//std::string mapName = "DM-KGalleon";
 	//std::string mapName = "DM-Turbine";
@@ -165,7 +165,10 @@ void Engine::Run()
 		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		CallEvent(viewport->Actor(), "PreRender", { ExpressionValue::ObjectValue(canvas) });
 		if (console->bNoDrawWorld() == false)
+		{
 			renderer->scene.DrawScene();
+			CallEvent(viewport->Actor(), "RenderOverlays", { ExpressionValue::ObjectValue(canvas) });
+		}
 		CallEvent(viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		renderer->scene.DrawTimedemoStats();

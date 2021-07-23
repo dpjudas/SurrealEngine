@@ -24,8 +24,9 @@ public:
 	uint64_t FindRenderZoneMask(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, int zone);
 	uint64_t FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNode& node, const FrustumPlanes& clip, int portalzone);
 
+	static mat4 CoordsMatrix();
+
 private:
-	mat4 CoordsMatrix();
 
 	FSceneNode CreateSceneFrame();
 	FSceneNode CreateSkyFrame();

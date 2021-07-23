@@ -31,10 +31,13 @@ public:
 	std::string Localize(std::string packageName, const std::string& sectionName, const std::string& keyName);
 
 	std::vector<IntObject>& GetIntObjects(const std::string& metaclass);
+	const std::vector<std::string>& GetMaps() const { return maps; }
 
 private:
 	void LoadIntFiles();
 	std::map<std::string, std::string> ParseIntPublicValue(const std::string& value);
+
+	void ScanForMaps();
 
 	void ScanFolder(const std::string& name, const std::string& search);
 	std::string GetKey(std::string name);
@@ -51,6 +54,8 @@ private:
 	std::map<std::string, std::unique_ptr<IniFile>> intFiles;
 
 	std::map<std::string, std::vector<IntObject>> IntObjects;
+
+	std::vector<std::string> maps;
 
 	struct OpenStream
 	{

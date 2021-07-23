@@ -8,6 +8,7 @@
 #include "UObject/UFont.h"
 #include "UObject/ULevel.h"
 #include "UObject/UTexture.h"
+#include "UObject/UActor.h"
 #include "UTRenderer.h"
 
 CanvasRender::CanvasRender()
@@ -16,6 +17,58 @@ CanvasRender::CanvasRender()
 	largefont = UObject::Cast<UFont>(engine->packages->GetPackage("Engine")->GetUObject("Font", "LargeFont"));
 	medfont = UObject::Cast<UFont>(engine->packages->GetPackage("Engine")->GetUObject("Font", "MedFont"));
 	smallfont = UObject::Cast<UFont>(engine->packages->GetPackage("Engine")->GetUObject("Font", "SmallFont"));
+}
+
+void CanvasRender::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
+{
+	actor->light = engine->renderer->light.FindLightAt(actor->Location(), engine->renderer->scene.FindZoneAt(actor->Location()));
+	actor->bHidden() = false;
+
+	RenderDevice* device = engine->window->GetRenderDevice();
+	device->SetSceneNode(&SceneFrame);
+	if (ClearZ)
+		device->ClearZ(&SceneFrame);
+	engine->renderer->mesh.DrawMesh(&SceneFrame, actor/*, WireFrame*/);
+
+	actor->bHidden() = true;
+}
+
+void CanvasRender::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y, int XB, int YB, bool ClearZ)
+{
+	RenderDevice* device = engine->window->GetRenderDevice();
+
+	int uiscale = engine->renderer->uiscale;
+
+	mat4 rotate = mat4::rotate(radians(-90.0f), 0.0f, 0.0f, -1.0f); // To do: maybe CoordsMatrix is actually wrong?
+
+	FSceneNode frame;
+	frame.XB = XB * uiscale;
+	frame.YB = YB * uiscale;
+	frame.X = X * uiscale;
+	frame.Y = Y * uiscale;
+	frame.FX = (float)X * uiscale;
+	frame.FY = (float)Y * uiscale;
+	frame.FX2 = frame.FX * 0.5f;
+	frame.FY2 = frame.FY * 0.5f;
+	frame.Modelview = SceneRender::CoordsMatrix() * rotate;
+	frame.ViewLocation = vec3(0.0f);
+	frame.FovAngle = 95.0f;
+	float Aspect = frame.FY / frame.FX;
+	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
+	float RFX2 = 2.0f * RProjZ / frame.FX;
+	float RFY2 = 2.0f * RProjZ * Aspect / frame.FY;
+	frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	device->SetSceneNode(&frame);
+
+	if (ClearZ)
+		device->ClearZ(&frame);
+
+	actor->light = vec3(1.0);
+	actor->bHidden() = false;
+	engine->renderer->mesh.DrawMesh(&frame, actor/*, WireFrame*/);
+	actor->bHidden() = true;
+
+	device->SetSceneNode(&SceneFrame);
 }
 
 void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags)

@@ -152,11 +152,6 @@ void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::strin
 	throw std::runtime_error("Actor.GetCacheEntry not implemented");
 }
 
-void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std::string& MapName, int Dir, std::string& ReturnValue)
-{
-	throw std::runtime_error("Actor.GetMapName not implemented");
-}
-
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
 	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
@@ -181,11 +176,85 @@ void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num
 	}
 }
 
+void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std::string& MapName, int Dir, std::string& ReturnValue)
+{
+	std::vector<std::string> maps;
+
+	// Filter list to only those with the matching map type
+	for (const std::string& name : engine->packages->GetMaps())
+	{
+		if (name.size() >= NameEnding.size() && name.substr(0, NameEnding.size()) == NameEnding)
+			maps.push_back(name);
+	}
+
+	// Find the previous or next map relative to the MapName specified
+	if (!MapName.empty() && MapName != "None")
+	{
+		auto it = std::find(maps.begin(), maps.end(), MapName);
+		if (it != maps.end())
+		{
+			int index = (int)std::distance(maps.begin(), it) + Dir;
+			if (index < 0)
+				index = (int)maps.size() - 1;
+			else if (index >= (int)maps.size())
+				index = 0;
+			ReturnValue = maps[index];
+			return;
+		}
+	}
+
+	// Grab first map if map wasn't found or none was specified
+	ReturnValue = !maps.empty() ? maps.front() : std::string();
+}
+
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)
 {
-	SkinName = {};
-	SkinDesc = {};
-	engine->LogUnimplemented("GetNextSkin('" + Prefix + "', '" + CurrentSkin + "', " + std::to_string(Dir) + ")");
+	// To do: is this even right? Why does the skin name have Mesh/ in front of it? Are we doing a workaround for a bug somewhere else?
+	std::string prefix;
+	size_t slashpos = Prefix.find_last_of('/');
+	if (slashpos != std::string::npos)
+		prefix = Prefix.substr(slashpos + 1);
+	else
+		prefix = Prefix;
+
+	std::vector<const IntObject*> skins;
+
+	// Filter list to only those with the matching skin prefix
+	for (const IntObject& skin : engine->packages->GetIntObjects("Texture"))
+	{
+		if (skin.Name.size() >= prefix.size() && skin.Name.substr(0, prefix.size()) == prefix)
+			skins.push_back(&skin);
+	}
+
+	// Find the previous or next skin relative to the CurrentSkin specified
+	if (!CurrentSkin.empty() && CurrentSkin != "None")
+	{
+		auto it = std::find_if(skins.begin(), skins.end(), [&](auto skin) { return skin->Name == CurrentSkin; });
+		if (it != skins.end())
+		{
+			int index = (int)std::distance(skins.begin(), it) + Dir;
+			if (index < 0)
+				index = (int)skins.size() - 1;
+			else if (index >= (int)skins.size())
+				index = 0;
+
+			SkinName = skins[index]->Name;
+			SkinDesc = skins[index]->Description;
+			return;
+		}
+	}
+
+	// Grab first skin if skin wasn't found or none was specified
+	if (!skins.empty())
+	{
+		SkinName = skins.front()->Name;
+		SkinDesc = skins.front()->Description;
+	}
+	else
+	{
+		SkinName = {};
+		SkinDesc = {};
+	}
 }
 
 void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
