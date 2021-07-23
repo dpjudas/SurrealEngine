@@ -27,25 +27,25 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 	mat4 meshToWorld = objectToWorld * meshToObject;
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
-		DrawSkeletalMesh(frame, static_cast<USkeletalMesh*>(mesh), meshToWorld, color);
+		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld, color);
 	else if (dynamic_cast<ULodMesh*>(mesh))
-		DrawLodMesh(frame, static_cast<ULodMesh*>(mesh), meshToWorld, color);
+		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld, color);
 	else
-		DrawMesh(frame, mesh, meshToWorld, color);
+		DrawMesh(frame, actor, mesh, meshToWorld, color);
 }
 
-void MeshRender::DrawMesh(FSceneNode* frame, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 }
 
-void MeshRender::DrawLodMesh(FSceneNode* frame, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	int animFrame = mesh->AnimSeqs.front().StartFrame;
-	DrawLodMeshFace(frame, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
-	DrawLodMeshFace(frame, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
+	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
+	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
 }
 
-void MeshRender::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset)
+void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset)
 {
 	auto device = engine->window->GetRenderDevice();
 
@@ -54,8 +54,18 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::v
 	{
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
+		UTexture* tex = nullptr;
+		if (actor)
+		{
+			tex = actor->GetMultiskin(material.TextureIndex);
+			if (!tex && material.TextureIndex == 0)
+				tex = actor->Skin();
+		}
+		if (!tex)
+			tex = mesh->Textures[material.TextureIndex];
+
 		FTextureInfo texinfo;
-		texinfo.Texture = mesh->Textures[material.TextureIndex];
+		texinfo.Texture = tex;
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
 
 		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
@@ -75,7 +85,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, ULodMesh* mesh, const std::v
 	}
 }
 
-void MeshRender::DrawSkeletalMesh(FSceneNode* frame, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void MeshRender::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
-	DrawLodMesh(frame, mesh, ObjectToWorld, color);
+	DrawLodMesh(frame, actor, mesh, ObjectToWorld, color);
 }

@@ -61,6 +61,14 @@ public:
 	float radius = -1.0f;
 	float r2 = -1.0f;
 
+	UTexture* GetMultiskin(int index)
+	{
+		if (index >= 0 && index < 8)
+			return (&MultiSkins())[index];
+		else
+			return nullptr;
+	}
+
 	vec3& Acceleration() { return Value<vec3>(PropOffsets_Actor.Acceleration); }
 	uint8_t& AmbientGlow() { return Value<uint8_t>(PropOffsets_Actor.AmbientGlow); }
 	USound*& AmbientSound() { return Value<USound*>(PropOffsets_Actor.AmbientSound); }
