@@ -5,6 +5,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 void NPlayerPawn::RegisterFunctions()
 {
@@ -21,7 +22,7 @@ void NPlayerPawn::RegisterFunctions()
 
 void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t TravelType, bool bItems)
 {
-	//throw std::runtime_error("PlayerPawn.ClientTravel not implemented");
+	engine->LogUnimplemented("ClientTravel(" + URL + ", " + std::to_string(TravelType) + ", " + std::to_string(bItems) + ")");
 }
 
 void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
@@ -32,12 +33,12 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)
 {
-	throw std::runtime_error("PlayerPawn.CopyToClipboard not implemented");
+	engine->LogUnimplemented("PlayerPawn.CopyToClipboard(" + Text + ")");
 }
 
 void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::string& ReturnValue)
 {
-	throw std::runtime_error("PlayerPawn.GetDefaultURL not implemented");
+	ReturnValue = engine->packages->GetIniValue("user", "DefaultPlayer", Option);
 }
 
 void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
@@ -47,12 +48,14 @@ void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
 
 void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("PlayerPawn.GetPlayerNetworkAddress not implemented");
+	engine->LogUnimplemented("PlayerPawn.GetPlayerNetworkAddress");
+	ReturnValue = "";
 }
 
 void NPlayerPawn::PasteFromClipboard(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("PlayerPawn.PasteFromClipboard not implemented");
+	engine->LogUnimplemented("PlayerPawn.PasteFromClipboard");
+	ReturnValue = "";
 }
 
 void NPlayerPawn::ResetKeyboard(UObject* Self)
@@ -62,5 +65,5 @@ void NPlayerPawn::ResetKeyboard(UObject* Self)
 
 void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const std::string& NewValue, bool bSaveDefault)
 {
-	throw std::runtime_error("PlayerPawn.UpdateURL not implemented");
+	engine->LogUnimplemented("PlayerPawn.UpdateURL(" + NewOption + ", " + NewValue + ", " + std::to_string(bSaveDefault) + ")");
 }

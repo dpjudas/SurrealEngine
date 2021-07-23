@@ -43,6 +43,8 @@ PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
 	NWarpZoneInfo::RegisterFunctions();
 	NZoneInfo::RegisterFunctions();
 
+	LoadIntFiles();
+
 	ScanFolder("Maps", "*.unr");
 	ScanFolder("Music", "*.umx");
 	ScanFolder("Sounds", "*.uax");
@@ -183,6 +185,53 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 	return ini->GetValue(sectionName, keyName);
 }
 
+void PackageManager::LoadIntFiles()
+{
+	std::string systemdir = FilePath::combine(basepath, "System");
+	for (std::string filename : Directory::files(FilePath::combine(systemdir, "*.int")))
+	{
+		try
+		{
+			auto intFile = std::make_unique<IniFile>(FilePath::combine(systemdir, filename));
+
+			for (const std::string& value : intFile->GetValues("Public", "Object"))
+			{
+				auto desc = ParseIntPublicValue(value);
+				if (!desc["Name"].empty() && !desc["Class"].empty() && !desc["MetaClass"].empty())
+				{
+					IntObject obj;
+					obj.Name = desc["Name"];
+					obj.Class = desc["Class"];
+					obj.MetaClass = desc["MetaClass"];
+					obj.Description = desc["Description"];
+
+					std::string metaClass = obj.MetaClass;
+
+					size_t pos = metaClass.find_last_of('.');
+					if (pos != std::string::npos)
+						metaClass = metaClass.substr(pos + 1);
+
+					IntObjects[metaClass].push_back(std::move(obj));
+				}
+			}
+
+			intFiles[FilePath::remove_extension(filename)] = std::move(intFile);
+		}
+		catch (...)
+		{
+		}
+	}
+}
+
+std::vector<IntObject>& PackageManager::GetIntObjects(const std::string& metaclass)
+{
+	size_t pos = metaclass.find_last_of('.');
+	if (pos == std::string::npos)
+		return IntObjects[metaclass];
+	else
+		return IntObjects[metaclass.substr(pos + 1)];
+}
+
 std::string PackageManager::Localize(std::string packageName, const std::string& sectionName, const std::string& keyName)
 {
 	/*
@@ -207,4 +256,56 @@ std::string PackageManager::Localize(std::string packageName, const std::string&
 	}
 
 	return intFile->GetValue(sectionName, keyName);
+}
+
+std::map<std::string, std::string> PackageManager::ParseIntPublicValue(const std::string& text)
+{
+	// Parse one of the following:
+	//
+	// Object=(Name=Package.ObjectName,Class=ObjectClass,MetaClass=Package.MetaClassName,Description="descriptive string")
+	// Preferences=(Caption="display name",Parent="display name of parent",Class=Package.ClassName,Category=variable group name,Immediate=True)
+
+	if (text.size() < 2 || text.front() != '(' || text.back() != ')')
+		return {};
+
+	std::map<std::string, std::string> desc;
+
+	// This would have been so much easier with a regular expression, but we can't use that as we have no idea what character set those .int files might be using
+	size_t pos = 1;
+	while (pos < text.size() - 1)
+	{
+		size_t endpos = text.find('=', pos);
+		if (endpos == std::string::npos)
+			break;
+		std::string keyname = text.substr(pos, endpos - pos);
+		pos = endpos + 1;
+
+		if (text[pos] == '"')
+		{
+			pos++;
+			endpos = text.find('"', pos);
+			if (endpos == std::string::npos)
+				break;
+
+			std::string value = text.substr(pos, endpos - pos);
+			desc[keyname] = value;
+			pos++;
+
+			pos = text.find(',', pos);
+			if (pos == std::string::npos)
+				break;
+			pos++;
+		}
+		else
+		{
+			endpos = text.find_first_of(",)", pos);
+			if (endpos == std::string::npos)
+				break;
+			std::string value = text.substr(pos, endpos - pos);
+			desc[keyname] = value;
+			pos = endpos + 1;
+		}
+	}
+
+	return desc;
 }

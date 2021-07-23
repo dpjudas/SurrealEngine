@@ -39,7 +39,7 @@ IniFile::IniFile(const std::string& filename)
 				if (valuepos != std::string::npos)
 					value = line.substr(valuepos);
 				if (!name.empty())
-					sections[sectionName][name] = value;
+					sections[sectionName][name].push_back(value);
 			}
 		}
 	}
@@ -88,9 +88,34 @@ std::string IniFile::GetValue(std::string sectionName, std::string keyName) cons
 		return {};
 
 	const auto& values = itSection->second;
-	auto itValue = values.find(keyName);
-	if (itValue == values.end())
+	auto itValues = values.find(keyName);
+	if (itValues == values.end())
 		return {};
 
-	return itValue->second;
+	if (itValues->second.empty())
+		return {};
+
+	return itValues->second.front();
+}
+
+std::vector<std::string> IniFile::GetValues(std::string sectionName, std::string keyName) const
+{
+	for (char& c : sectionName)
+		if (c >= 'A' && c <= 'Z')
+			c += 'a' - 'A';
+
+	for (char& c : keyName)
+		if (c >= 'A' && c <= 'Z')
+			c += 'a' - 'A';
+
+	auto itSection = sections.find(sectionName);
+	if (itSection == sections.end())
+		return {};
+
+	const auto& values = itSection->second;
+	auto itValues = values.find(keyName);
+	if (itValues == values.end())
+		return {};
+
+	return itValues->second;
 }

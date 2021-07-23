@@ -159,15 +159,26 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
-	engine->LogUnimplemented("GetNextInt(" + ClassName + ", " + std::to_string(Num) + ")");
-	ReturnValue = {};
+	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	if (Num >= 0 && (size_t)Num < objects.size())
+		ReturnValue = objects[Num].Name;
+	else
+		ReturnValue = {};
 }
 
 void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description)
 {
-	Entry = {};
-	Description = {};
-	engine->LogUnimplemented("GetNextIntDesc(" + ClassName + ", " + std::to_string(Num) + ")");
+	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	if (Num >= 0 && (size_t)Num < objects.size())
+	{
+		Entry = objects[Num].Name;
+		Description = objects[Num].Description;
+	}
+	else
+	{
+		Entry = {};
+		Description = {};
+	}
 }
 
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)

@@ -53,7 +53,7 @@ void Engine::Run()
 	std::srand((unsigned int)std::time(nullptr));
 
 	window = DisplayWindow::Create(this);
-	window->OpenWindow(1800 * 3, 950 * 3, true);
+	window->OpenWindow(1800, 950, true);
 
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
@@ -76,7 +76,7 @@ void Engine::Run()
 
 	//std::string mapName = "CityIntro";
 	//std::string mapName = "UT-Logo-Map";
-	//std::string mapName ="DM-Liandri";
+	std::string mapName = "DM-Liandri";
 	//std::string mapName = "DM-Codex";
 	//std::string mapName = "DM-Barricade";
 	//std::string mapName = "DM-Deck16][";
@@ -84,7 +84,7 @@ void Engine::Run()
 	//std::string mapName = "DM-Turbine";
 	//std::string mapName = "DM-Tempest";
 	//std::string mapName = "DM-Grinder";
-	std::string mapName = "DM-HyperBlast";
+	//std::string mapName = "DM-HyperBlast";
 	//std::string mapName = "DM-Peak";
 	//std::string mapName = "CTF-Coret";
 	//std::string mapName = "CTF-Dreary";

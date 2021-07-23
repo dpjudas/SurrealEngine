@@ -7,6 +7,14 @@
 class PackageStream;
 class UObject;
 
+struct IntObject
+{
+	std::string Name;
+	std::string Class;
+	std::string MetaClass;
+	std::string Description;
+};
+
 class PackageManager
 {
 public:
@@ -22,7 +30,12 @@ public:
 	std::string GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName);
 	std::string Localize(std::string packageName, const std::string& sectionName, const std::string& keyName);
 
+	std::vector<IntObject>& GetIntObjects(const std::string& metaclass);
+
 private:
+	void LoadIntFiles();
+	std::map<std::string, std::string> ParseIntPublicValue(const std::string& value);
+
 	void ScanFolder(const std::string& name, const std::string& search);
 	std::string GetKey(std::string name);
 
@@ -36,6 +49,8 @@ private:
 	std::map<std::string, std::unique_ptr<Package>> packages;
 	std::map<std::string, std::unique_ptr<IniFile>> iniFiles;
 	std::map<std::string, std::unique_ptr<IniFile>> intFiles;
+
+	std::map<std::string, std::vector<IntObject>> IntObjects;
 
 	struct OpenStream
 	{
