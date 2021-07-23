@@ -170,6 +170,9 @@ public:
 
 	UState* GetState(const std::string& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
 	std::map<std::string, UState*> States;
+
+private:
+	std::map<std::string, std::string> ParseStructValue(const std::string& text);
 };
 
 enum class ExprToken : uint8_t

@@ -387,31 +387,112 @@ void UClass::Load(ObjectStream* stream)
 	if (configName.empty()) configName = "system";
 	for (UProperty* prop : Properties)
 	{
-		std::string value;
-		if (AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this))
-		{
-			value = packages->GetIniValue(configName, sectionName, prop->Name);
-		}
-		else if (AllFlags(prop->PropFlags, PropertyFlags::Localized))
-		{
-			value = packages->Localize(packageName, Name, prop->Name);
-		}
-
-		if (!value.empty())
+		bool isConfig = AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this);
+		bool isLocalized = AllFlags(prop->PropFlags, PropertyFlags::Localized);
+		if (isConfig || isLocalized)
 		{
 			void* ptr = PropertyData.Ptr(prop);
-			if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
-			else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
-			else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
-			else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-			else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-			else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-			else if (dynamic_cast<UBoolProperty*>(prop))
+			for (uint32_t arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 			{
-				for (char& c : value)
-					if (c >= 'A' && c <= 'Z')
-						c += 'a' - 'A';
-				*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
+				std::string name = prop->Name;
+				if (prop->ArrayDimension > 1)
+					name += "[" + std::to_string(arrayIndex) + "]";
+
+				std::string value;
+				if (isConfig)
+				{
+					value = packages->GetIniValue(configName, sectionName, name);
+				}
+				else if (isLocalized)
+				{
+					value = packages->Localize(packageName, Name, name);
+				}
+
+				if (!value.empty())
+				{
+					if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+					else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
+					else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
+					else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (dynamic_cast<UBoolProperty*>(prop))
+					{
+						for (char& c : value)
+							if (c >= 'A' && c <= 'Z')
+								c += 'a' - 'A';
+						*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
+					}
+					else if (dynamic_cast<UClassProperty*>(prop))
+					{
+						try
+						{
+							size_t pos = value.find_first_of('.');
+							if (pos != std::string::npos)
+							{
+								std::string packageName = value.substr(0, pos);
+								std::string className = value.substr(pos + 1);
+								Package* pkg = packages->GetPackage(packageName);
+								*static_cast<UObject**>(ptr) = pkg->GetUObject("Class", className);
+							}
+						}
+						catch (...)
+						{
+							// To do: is this actually a fatal error?
+						}
+					}
+					else if (dynamic_cast<UStructProperty*>(prop))
+					{
+						// Yes, this is total spaghetti code at this point. No, I don't care anymore. ;)
+						auto values = ParseStructValue(value);
+						for (UProperty* member : static_cast<UStructProperty*>(prop)->Struct->Properties)
+						{
+							std::string membervalue = values[member->Name];
+							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset;
+							if (dynamic_cast<UByteProperty*>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
+							else if (dynamic_cast<UIntProperty*>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
+							else if (dynamic_cast<UFloatProperty*>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
+							else if (dynamic_cast<UNameProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (dynamic_cast<UStrProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (dynamic_cast<UStringProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (dynamic_cast<UBoolProperty*>(member))
+							{
+								for (char& c : membervalue)
+									if (c >= 'A' && c <= 'Z')
+										c += 'a' - 'A';
+								*static_cast<bool*>(memberptr) = (membervalue == "1" || membervalue == "true" || membervalue == "yes");
+							}
+							else if (dynamic_cast<UClassProperty*>(member))
+							{
+								try
+								{
+									size_t pos = membervalue.find_first_of('.');
+									if (pos != std::string::npos)
+									{
+										std::string packageName = membervalue.substr(0, pos);
+										std::string className = membervalue.substr(pos + 1);
+										Package* pkg = packages->GetPackage(packageName);
+										*static_cast<UObject**>(memberptr) = pkg->GetUObject("Class", className);
+									}
+								}
+								catch (...)
+								{
+									// To do: is this actually a fatal error?
+								}
+							}
+							else
+							{
+								throw std::runtime_error("localize keyword used on unsupported struct member property type");
+							}
+						}
+					}
+					else
+					{
+						throw std::runtime_error("localize keyword used on unsupported property type");
+					}
+				}
+
+				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
 			}
 		}
 	}
@@ -423,6 +504,58 @@ void UClass::Load(ObjectStream* stream)
 			States[child->Name] = static_cast<UState*>(child);
 		}
 	}
+}
+
+std::map<std::string, std::string> UClass::ParseStructValue(const std::string& text)
+{
+	// Parse one of the following:
+	//
+	// Object=(Name=Package.ObjectName,Class=ObjectClass,MetaClass=Package.MetaClassName,Description="descriptive string")
+	// Preferences=(Caption="display name",Parent="display name of parent",Class=Package.ClassName,Category=variable group name,Immediate=True)
+
+	if (text.size() < 2 || text.front() != '(' || text.back() != ')')
+		return {};
+
+	std::map<std::string, std::string> desc;
+
+	// This would have been so much easier with a regular expression, but we can't use that as we have no idea what character set those .int files might be using
+	size_t pos = 1;
+	while (pos < text.size() - 1)
+	{
+		size_t endpos = text.find('=', pos);
+		if (endpos == std::string::npos)
+			break;
+		std::string keyname = text.substr(pos, endpos - pos);
+		pos = endpos + 1;
+
+		if (text[pos] == '"')
+		{
+			pos++;
+			endpos = text.find('"', pos);
+			if (endpos == std::string::npos)
+				break;
+
+			std::string value = text.substr(pos, endpos - pos);
+			desc[keyname] = value;
+			pos++;
+
+			pos = text.find(',', pos);
+			if (pos == std::string::npos)
+				break;
+			pos++;
+		}
+		else
+		{
+			endpos = text.find_first_of(",)", pos);
+			if (endpos == std::string::npos)
+				break;
+			std::string value = text.substr(pos, endpos - pos);
+			desc[keyname] = value;
+			pos = endpos + 1;
+		}
+	}
+
+	return desc;
 }
 
 UProperty* UClass::GetProperty(const std::string& name)

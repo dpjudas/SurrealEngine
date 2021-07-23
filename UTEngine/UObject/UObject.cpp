@@ -343,6 +343,9 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 			header.boolValue = infoBit;
 		}
 
-		prop->LoadValue(data, stream, header);
+		if (header.arrayIndex < 0 || (uint32_t)header.arrayIndex >= prop->ArrayDimension)
+			throw std::runtime_error("Array property is out of bounds!");
+
+		prop->LoadValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream, header);
 	}
 }
