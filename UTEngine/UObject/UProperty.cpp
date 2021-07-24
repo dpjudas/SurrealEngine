@@ -151,8 +151,23 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 
 void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
-	ThrowIfTypeMismatch(header, UPT_Str);
-	*reinterpret_cast<std::string*>(data) = stream->ReadString();
+	if (header.type == UPT_Str)
+	{
+		*reinterpret_cast<std::string*>(data) = stream->ReadString();
+	}
+	else if (header.type == UPT_String)
+	{
+		int len = header.size;
+		std::vector<char> s;
+		s.resize(len);
+		stream->ReadBytes(s.data(), (int)s.size());
+		s.push_back(0);
+		*reinterpret_cast<std::string*>(data) = s.data();
+	}
+	else
+	{
+		throw std::runtime_error("Property value does not match property type!");
+	}
 }
 
 void UStrProperty::LoadStructMemberValue(void* data, ObjectStream* stream)

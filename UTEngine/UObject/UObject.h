@@ -176,6 +176,7 @@ public:
 	bool HasProperty(const std::string& name) const;
 	void* GetProperty(const std::string& name);
 	const void* GetProperty(const std::string& name) const;
+	size_t GetPropertyDataOffset(const std::string& name) const;
 
 	uint8_t GetByte(const std::string& name) const;
 	uint32_t GetInt(const std::string& name) const;

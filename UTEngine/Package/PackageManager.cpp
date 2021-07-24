@@ -43,10 +43,29 @@ PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
 	NWarpZoneInfo::RegisterFunctions();
 	NZoneInfo::RegisterFunctions();
 
+	try
+	{
+		File::open_existing(FilePath::combine(basepath, "System/Unreal.ini"));
+		unreal1 = true;
+	}
+	catch (...)
+	{
+		try
+		{
+			File::open_existing(FilePath::combine(basepath, "System/UnrealTournament.ini"));
+		}
+		catch (...)
+		{
+			throw std::runtime_error("Could not find Unreal Tournament or Unreal at " + basepath);
+		}
+	}
+
 	LoadIntFiles();
 	ScanForMaps();
 
 	ScanFolder("Maps", "*.unr");
+	if (IsUnreal1())
+		ScanFolder("Maps/UPak", "*.unr");
 	ScanFolder("Music", "*.umx");
 	ScanFolder("Sounds", "*.uax");
 	ScanFolder("System", "*.u");
@@ -177,12 +196,10 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 		if (c >= 'A' && c <= 'Z')
 			c += 'a' - 'A';
 	}
-
-	if (iniName == "system")
-		iniName = "unrealtournament";
 	*/
+
 	if (iniName == "system" || iniName == "System")
-		iniName = "UnrealTournament";
+		iniName = unreal1 ? "Unreal" : "UnrealTournament";
 	else if (iniName == "user")
 		iniName = "User";
 

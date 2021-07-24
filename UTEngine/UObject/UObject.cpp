@@ -74,6 +74,16 @@ void UObject::Load(ObjectStream* stream)
 	}
 }
 
+size_t UObject::GetPropertyDataOffset(const std::string& name) const
+{
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return prop->DataOffset;
+	}
+	return (size_t)~(size_t)0;
+}
+
 const void* UObject::GetProperty(const std::string& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
@@ -310,9 +320,9 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		case 2: header.size = 4; break;
 		case 3: header.size = 12; break;
 		case 4: header.size = 16; break;
-		case 5: header.size = stream->ReadInt8(); break;
-		case 6: header.size = stream->ReadInt16(); break;
-		case 7: header.size = stream->ReadInt32(); break;
+		case 5: header.size = stream->ReadUInt8(); break;
+		case 6: header.size = stream->ReadUInt16(); break;
+		case 7: header.size = stream->ReadUInt32(); break;
 		}
 
 		header.arrayIndex = 0;

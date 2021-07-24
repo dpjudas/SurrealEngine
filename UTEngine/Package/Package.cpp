@@ -50,6 +50,12 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UStringProperty>(corePackage, "StringProperty", "Property");
 	RegisterNativeClass<UTextBuffer>(corePackage, "TextBuffer", "Object");
 
+	if (packageManager->IsUnreal1())
+	{
+		RegisterNativeClass<UObject>(corePackage, "Commandlet", "Object");
+		RegisterNativeClass<UObject>(corePackage, "SimpleCommandlet", "Commandlet");
+	}
+
 	RegisterNativeClass<UFont>(enginePackage, "Font", "Object");
 	RegisterNativeClass<UPalette>(enginePackage, "Palette", "Object");
 	RegisterNativeClass<USound>(enginePackage, "Sound", "Object");
@@ -199,7 +205,10 @@ void Package::LoadExportObject(int index)
 	{
 		UClass* objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
 		if (!objclass)
+		{
+			objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
 			throw std::runtime_error("Could not find the object class for " + objname);
+		}
 
 		Objects[index].reset(NewObject(objname, objclass, ExportTable[index].ObjFlags, false));
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
@@ -248,7 +257,15 @@ UObject* Package::GetUObject(int objref)
 		std::string className = GetName(entry->ClassName);
 		// std::string classPackage = GetName(entry->ClassPackage);
 
-		return Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
+		UObject* obj = Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
+
+		// What a garbage engine!
+		if (!obj && packageName == "UnrealI")
+			obj = Packages->GetPackage("UnrealShare")->GetUObject(className, objectName, groupName);
+		else if (!obj && packageName == "UnrealShare")
+			obj = Packages->GetPackage("UnrealI")->GetUObject(className, objectName, groupName);
+
+		return obj;
 	}
 	else
 	{

@@ -25,7 +25,7 @@ void UTexture::Load(ObjectStream* stream)
 		uint8_t VBits = stream->ReadUInt8();
 	}
 
-	if (GetBool("bHasComp"))
+	if (HasProperty("bHasComp") && GetBool("bHasComp"))
 	{
 		ActualFormat = (TextureFormat)GetByte("CompFormat");
 

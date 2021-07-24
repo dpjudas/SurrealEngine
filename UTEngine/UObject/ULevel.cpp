@@ -3,6 +3,7 @@
 #include "ULevel.h"
 #include "UActor.h"
 #include "UTexture.h"
+#include "UClass.h"
 
 void ULevelBase::Load(ObjectStream* stream)
 {
@@ -61,93 +62,118 @@ void UModel::Load(ObjectStream* stream)
 {
 	UPrimitive::Load(stream);
 
-	int count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
+	if (stream->GetVersion() <= 61)
 	{
-		vec3 v;
-		v.x = stream->ReadFloat();
-		v.y = stream->ReadFloat();
-		v.z = stream->ReadFloat();
-		Vectors.push_back(v);
+		UVectors* vectors = stream->ReadObject<UVectors>();
+		UVectors* points = stream->ReadObject<UVectors>();
+		UBspNodes* nodes = stream->ReadObject<UBspNodes>();
+		UBspSurfs* surfaces = stream->ReadObject<UBspSurfs>();
+		UVerts* verts = stream->ReadObject<UVerts>();
+
+		vectors->LoadNow();
+		points->LoadNow();
+		nodes->LoadNow();
+		surfaces->LoadNow();
+		verts->LoadNow();
+
+		Vectors = vectors->Vectors;
+		Points = points->Vectors;
+		Nodes = nodes->Nodes;
+		Zones = nodes->Zones;
+		Surfaces = surfaces->Surfaces;
+		Vertices = verts->Vertices;
+		NumSharedSides = verts->NumSharedSides;
 	}
-
-	count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
+	else
 	{
-		vec3 v;
-		v.x = stream->ReadFloat();
-		v.y = stream->ReadFloat();
-		v.z = stream->ReadFloat();
-		Points.push_back(v);
-	}
+		int count = stream->ReadIndex();
+		for (int i = 0; i < count; i++)
+		{
+			vec3 v;
+			v.x = stream->ReadFloat();
+			v.y = stream->ReadFloat();
+			v.z = stream->ReadFloat();
+			Vectors.push_back(v);
+		}
 
-	count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
-	{
-		BspNode node;
-		node.PlaneX = stream->ReadFloat();
-		node.PlaneY = stream->ReadFloat();
-		node.PlaneZ = stream->ReadFloat();
-		node.PlaneW = stream->ReadFloat();
-		node.ZoneMask = stream->ReadUInt64();
-		node.NodeFlags = stream->ReadUInt8();
-		node.VertPool = stream->ReadIndex();
-		node.Surf = stream->ReadIndex();
-		node.Back = stream->ReadIndex();
-		node.Front = stream->ReadIndex();
-		node.Plane = stream->ReadIndex();
-		node.CollisionBound = stream->ReadIndex();
-		node.RenderBound = stream->ReadIndex();
-		node.Zone0 = stream->ReadIndex();
-		node.Zone1 = stream->ReadIndex();
-		node.NumVertices = stream->ReadUInt8();
-		node.Leaf0 = stream->ReadInt32();
-		node.Leaf1 = stream->ReadInt32();
-		Nodes.push_back(node);
-	}
+		count = stream->ReadIndex();
+		for (int i = 0; i < count; i++)
+		{
+			vec3 v;
+			v.x = stream->ReadFloat();
+			v.y = stream->ReadFloat();
+			v.z = stream->ReadFloat();
+			Points.push_back(v);
+		}
 
-	count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
-	{
-		BspSurface surface;
-		surface.Material = stream->ReadObject<UTexture>();
-		surface.PolyFlags = stream->ReadUInt32();
-		surface.pBase = stream->ReadIndex();
-		surface.vNormal = stream->ReadIndex();
-		surface.vTextureU = stream->ReadIndex();
-		surface.vTextureV = stream->ReadIndex();
-		surface.LightMap = stream->ReadIndex();
-		surface.BrushPoly = stream->ReadIndex();
-		surface.PanU = stream->ReadInt16();
-		surface.PanV = stream->ReadInt16();
-		surface.BrushActor = stream->ReadIndex();
-		Surfaces.push_back(surface);
-	}
+		count = stream->ReadIndex();
+		for (int i = 0; i < count; i++)
+		{
+			BspNode node;
+			node.PlaneX = stream->ReadFloat();
+			node.PlaneY = stream->ReadFloat();
+			node.PlaneZ = stream->ReadFloat();
+			node.PlaneW = stream->ReadFloat();
+			node.ZoneMask = stream->ReadUInt64();
+			node.NodeFlags = stream->ReadUInt8();
+			node.VertPool = stream->ReadIndex();
+			node.Surf = stream->ReadIndex();
+			node.Back = stream->ReadIndex();
+			node.Front = stream->ReadIndex();
+			node.Plane = stream->ReadIndex();
+			node.CollisionBound = stream->ReadIndex();
+			node.RenderBound = stream->ReadIndex();
+			node.Zone0 = stream->ReadIndex();
+			node.Zone1 = stream->ReadIndex();
+			node.NumVertices = stream->ReadUInt8();
+			node.Leaf0 = stream->ReadInt32();
+			node.Leaf1 = stream->ReadInt32();
+			Nodes.push_back(node);
+		}
 
-	count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
-	{
-		BspVert vert;
-		vert.Vertex = stream->ReadIndex();
-		vert.Side = stream->ReadIndex();
-		Vertices.push_back(vert);
-	}
+		count = stream->ReadIndex();
+		for (int i = 0; i < count; i++)
+		{
+			BspSurface surface;
+			surface.Material = stream->ReadObject<UTexture>();
+			surface.PolyFlags = stream->ReadUInt32();
+			surface.pBase = stream->ReadIndex();
+			surface.vNormal = stream->ReadIndex();
+			surface.vTextureU = stream->ReadIndex();
+			surface.vTextureV = stream->ReadIndex();
+			surface.LightMap = stream->ReadIndex();
+			surface.BrushPoly = stream->ReadIndex();
+			surface.PanU = stream->ReadInt16();
+			surface.PanV = stream->ReadInt16();
+			surface.BrushActor = stream->ReadIndex();
+			Surfaces.push_back(surface);
+		}
 
-	NumSharedSides = stream->ReadInt32();
+		count = stream->ReadIndex();
+		for (int i = 0; i < count; i++)
+		{
+			BspVert vert;
+			vert.Vertex = stream->ReadIndex();
+			vert.Side = stream->ReadIndex();
+			Vertices.push_back(vert);
+		}
 
-	int32_t NumZones = stream->ReadInt32();
-	for (int i = 0; i < NumZones; i++)
-	{
-		ZoneProperties zone;
-		zone.ZoneActor = stream->ReadObject<UActor>();
-		zone.Connectivity = stream->ReadUInt64();
-		zone.Visibility = stream->ReadUInt64();
-		Zones.push_back(zone);
+		NumSharedSides = stream->ReadInt32();
+
+		int32_t NumZones = stream->ReadInt32();
+		for (int i = 0; i < NumZones; i++)
+		{
+			ZoneProperties zone;
+			zone.ZoneActor = stream->ReadObject<UActor>();
+			zone.Connectivity = stream->ReadUInt64();
+			zone.Visibility = stream->ReadUInt64();
+			Zones.push_back(zone);
+		}
 	}
 
 	Polys = stream->ReadIndex();
 
-	count = stream->ReadIndex();
+	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
 		LightMapIndex entry;
@@ -203,6 +229,157 @@ void UModel::Load(ObjectStream* stream)
 		Lights.push_back(stream->ReadObject<UActor>());
 	}
 
+	if (stream->GetVersion() <= 61)
+	{
+		UObject* unknown1 = stream->ReadObject<UObject>();
+		UObject* unknown2 = stream->ReadObject<UObject>();
+	}
+
 	RootOutside = stream->ReadInt32();
 	Linked = stream->ReadInt32();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UPolys::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+	int count = stream->ReadInt32();
+	int maxcount = stream->ReadInt32();
+	for (int i = 0; i < count; i++)
+	{
+		int numVertices = stream->ReadIndex();
+		Poly poly;
+		poly.Base.x = stream->ReadFloat();
+		poly.Base.y = stream->ReadFloat();
+		poly.Base.z = stream->ReadFloat();
+		poly.Normal.x = stream->ReadFloat();
+		poly.Normal.y = stream->ReadFloat();
+		poly.Normal.z = stream->ReadFloat();
+		poly.TextureU.x = stream->ReadFloat();
+		poly.TextureU.y = stream->ReadFloat();
+		poly.TextureU.z = stream->ReadFloat();
+		poly.TextureV.x = stream->ReadFloat();
+		poly.TextureV.y = stream->ReadFloat();
+		poly.TextureV.z = stream->ReadFloat();
+		for (int i = 0; i < numVertices; i++)
+		{
+			vec3 v;
+			v.x = stream->ReadFloat();
+			v.y = stream->ReadFloat();
+			v.z = stream->ReadFloat();
+			poly.Vertices.push_back(v);
+		}
+		poly.PolyFlags = stream->ReadUInt32();
+		poly.Actor = stream->ReadObject<UBrush>();
+		poly.Texture = stream->ReadObject<UTexture>();
+		poly.ItemName = stream->ReadName();
+		poly.LinkIndex = stream->ReadIndex();
+		poly.BrushPolyIndex = stream->ReadIndex();
+		poly.PanU = stream->ReadInt16();
+		poly.PanV = stream->ReadInt16();
+		Polys.push_back(poly);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UBspNodes::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+	int count = stream->ReadInt32();
+	int maxcount = stream->ReadInt32();
+	for (int i = 0; i < count; i++)
+	{
+		BspNode node;
+		node.PlaneX = stream->ReadFloat();
+		node.PlaneY = stream->ReadFloat();
+		node.PlaneZ = stream->ReadFloat();
+		node.PlaneW = stream->ReadFloat();
+		node.ZoneMask = stream->ReadUInt64();
+		node.NodeFlags = stream->ReadUInt8();
+		node.VertPool = stream->ReadIndex();
+		node.Surf = stream->ReadIndex();
+		node.Back = stream->ReadIndex();
+		node.Front = stream->ReadIndex();
+		node.Plane = stream->ReadIndex();
+		node.CollisionBound = stream->ReadIndex();
+		node.RenderBound = stream->ReadIndex();
+		node.Zone0 = stream->ReadIndex();
+		node.Zone1 = stream->ReadIndex();
+		node.NumVertices = stream->ReadUInt8();
+		node.Leaf0 = stream->ReadInt32();
+		node.Leaf1 = stream->ReadInt32();
+		Nodes.push_back(node);
+	}
+
+	int32_t NumZones = stream->ReadIndex();
+	for (int i = 0; i < NumZones; i++)
+	{
+		ZoneProperties zone;
+		zone.ZoneActor = stream->ReadObject<UActor>();
+		zone.Connectivity = stream->ReadUInt64();
+		zone.Visibility = stream->ReadUInt64();
+		Zones.push_back(zone);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UBspSurfs::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+	int count = stream->ReadInt32();
+	int maxcount = stream->ReadInt32();
+	for (int i = 0; i < count; i++)
+	{
+		BspSurface surface;
+		surface.Material = stream->ReadObject<UTexture>();
+		surface.PolyFlags = stream->ReadUInt32();
+		surface.pBase = stream->ReadIndex();
+		surface.vNormal = stream->ReadIndex();
+		surface.vTextureU = stream->ReadIndex();
+		surface.vTextureV = stream->ReadIndex();
+		surface.LightMap = stream->ReadIndex();
+		surface.BrushPoly = stream->ReadIndex();
+		surface.PanU = stream->ReadInt16();
+		surface.PanV = stream->ReadInt16();
+		surface.BrushActor = stream->ReadIndex();
+		Surfaces.push_back(surface);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UVectors::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+	int count = stream->ReadInt32();
+	int maxcount = stream->ReadInt32();
+	for (int i = 0; i < count; i++)
+	{
+		vec3 v;
+		v.x = stream->ReadFloat();
+		v.y = stream->ReadFloat();
+		v.z = stream->ReadFloat();
+		Vectors.push_back(v);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UVerts::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+	int count = stream->ReadInt32();
+	int maxcount = stream->ReadInt32();
+	for (int i = 0; i < count; i++)
+	{
+		BspVert vert;
+		vert.Vertex = stream->ReadIndex();
+		vert.Side = stream->ReadIndex();
+		Vertices.push_back(vert);
+	}
+
+	NumSharedSides = stream->ReadIndex();
 }

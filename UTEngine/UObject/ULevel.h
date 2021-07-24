@@ -6,6 +6,7 @@
 class UTexture;
 class UActor;
 class UPawn;
+class UBrush;
 
 enum EBspNodeFlags
 {
@@ -234,32 +235,66 @@ public:
 	std::string& Title() { return Value<std::string>(PropOffsets_LevelSummary.Title); }
 };
 
+struct Poly
+{
+	vec3 Base;
+	vec3 Normal;
+	vec3 TextureU;
+	vec3 TextureV;
+	std::vector<vec3> Vertices;
+	uint32_t PolyFlags;
+	UBrush* Actor;
+	UTexture* Texture;
+	std::string ItemName;
+	int LinkIndex;
+	int BrushPolyIndex;
+	int16_t PanU;
+	int16_t PanV;
+};
+
 class UPolys : public UObject
 {
 public:
 	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
+
+	std::vector<Poly> Polys;
 };
 
 class UBspNodes : public UObject
 {
 public:
 	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
+
+	std::vector<BspNode> Nodes;
+	std::vector<ZoneProperties> Zones;
 };
 
 class UBspSurfs : public UObject
 {
 public:
 	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
+
+	std::vector<BspSurface> Surfaces;
 };
 
 class UVectors : public UObject
 {
 public:
 	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
+
+	std::vector<vec3> Vectors;
 };
 
 class UVerts : public UObject
 {
 public:
 	using UObject::UObject;
+	void Load(ObjectStream* stream) override;
+
+	std::vector<BspVert> Vertices;
+	int32_t NumSharedSides;
 };

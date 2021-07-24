@@ -29,6 +29,25 @@
 #include <chrono>
 #include <set>
 
+#ifdef WIN32
+namespace
+{
+	std::string from_utf16(const std::wstring& str)
+	{
+		if (str.empty()) return {};
+		int needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0, nullptr, nullptr);
+		if (needed == 0)
+			throw std::runtime_error("WideCharToMultiByte failed");
+		std::string result;
+		result.resize(needed);
+		needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size(), nullptr, nullptr);
+		if (needed == 0)
+			throw std::runtime_error("WideCharToMultiByte failed");
+		return result;
+	}
+}
+#endif
+
 Engine* engine = nullptr;
 
 Engine::Engine()
@@ -36,7 +55,37 @@ Engine::Engine()
 	engine = this;
 
 #ifdef WIN32
-	std::string utfolder = "C:\\Games\\UnrealTournament436";
+	std::string utfolder;
+	std::vector<wchar_t> buffer(1024);
+
+	// Try use registry location
+	HKEY regkey = 0;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\Unreal Technology\\Installed Apps\\UnrealTournament", 0, KEY_READ, &regkey) == ERROR_SUCCESS)
+	{
+		DWORD type = 0;
+		DWORD size = (DWORD)(buffer.size() * sizeof(wchar_t));
+		LSTATUS result = RegQueryValueEx(regkey, L"Folder", 0, &type, (LPBYTE)buffer.data(), &size);
+		if (result == ERROR_SUCCESS && type == REG_SZ)
+		{
+			buffer.back() = 0;
+			utfolder = from_utf16(buffer.data());
+		}
+		RegCloseKey(regkey);
+	}
+
+	if (utfolder.empty()) // Try use subfolder next to exe
+	{
+		if (GetModuleFileName(0, buffer.data(), 1024))
+		{
+			buffer.back() = 0;
+			std::string exepath = FilePath::remove_last_component(from_utf16(buffer.data()));
+			utfolder = FilePath::combine(exepath, "Unreal Tournament");
+		}
+	}
+
+	// utfolder = R"(C:\Games\UnrealTournament436)";
+	utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
+
 #else
 	std::string utfolder = "/home/mbn/UnrealTournament";
 #endif
@@ -62,7 +111,12 @@ void Engine::Run()
 	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
-	console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
+
+	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
+	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
+	std::string consolecls = consolestr.substr(consolestr.find('.') + 1);
+	console = UObject::Cast<UConsole>(packages->NewObject("console", consolepkg, consolecls));
+	//console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
 
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;
@@ -97,6 +151,50 @@ void Engine::Run()
 	//std::string mapName = "DOM-Sesmar";
 	//std::string mapName = "EOL_Deathmatch";
 	//std::string mapName = "UTCredits";
+
+	if (packages->IsUnreal1())
+	{
+		LoadMap("Dark");
+		while (!quit)
+		{
+			float elapsed = CalcTimeElapsed();
+			window->Tick();
+
+			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(90.0f - Camera.Yaw), EulerOrder::yxz));
+			vec3 vel = { 0.0f };
+			if (Buttons.StrafeLeft) vel.x = 1.0f;
+			if (Buttons.StrafeRight) vel.x = -1.0f;
+			if (Buttons.Forward) vel.y = 1.0f;
+			if (Buttons.Backward) vel.y = -1.0f;
+			if (vel != vec3(0.0f))
+				vel = normalize(vel);
+			vel = inverse(viewrotation) * vel;
+			Camera.Location += vel * (elapsed * 650.0f);
+
+			for (UTexture* tex : engine->renderer->Textures)
+				tex->Update();
+
+			RenderDevice* device = window->GetRenderDevice();
+			device->BeginFrame();
+			device->BeginScenePass();
+			int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
+			int sizeY = (int)(window->SizeY / (float)renderer->uiscale);
+			canvas->CurX() = 0.0f;
+			canvas->CurY() = 0.0f;
+			console->FrameX() = (float)sizeX;
+			console->FrameY() = (float)sizeY;
+			canvas->ClipX() = (float)sizeX;
+			canvas->ClipY() = (float)sizeY;
+			canvas->SizeX() = sizeX;
+			canvas->SizeY() = sizeY;
+			renderer->scene.DrawScene();
+			renderer->scene.DrawTimedemoStats();
+			device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+			device->EndScenePass();
+			device->EndFrame(true);
+		}
+		return;
+	}
 
 	LoadMap(mapName);
 
@@ -185,6 +283,13 @@ void Engine::LoadMap(std::string mapName)
 	Package* package = packages->GetPackage(mapName);
 
 	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
+	if (packages->IsUnreal1())
+	{
+		for (int grr = 1; !LevelInfo && grr < 20; grr++)
+			LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
+	}
+	if (!LevelInfo)
+		throw std::runtime_error("Could not find the LevelInfo object for this map!");
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	LevelInfo->EngineVersion() = "500";
@@ -192,7 +297,13 @@ void Engine::LoadMap(std::string mapName)
 	LevelInfo->bHighDetailMode() = true;
 
 	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
+
 	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
+	if (!Level)
+		throw std::runtime_error("Could not find the Level object for this map!");
+
+	if (packages->IsUnreal1())
+		return;
 
 	// Link actors to the level
 	for (UActor* actor : Level->Actors)
@@ -273,7 +384,8 @@ void Engine::LoadMap(std::string mapName)
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;
 	viewport->Actor()->Player() = viewport;
-	CallEvent(viewport->Actor(), "Possess");
+	if (!packages->IsUnreal1()) // To do: this crashes for unreal 1 atm
+		CallEvent(viewport->Actor(), "Possess");
 
 	// Cache some light and texture info
 	std::set<UActor*> lightset;

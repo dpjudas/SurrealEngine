@@ -488,11 +488,14 @@ void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std
 				~NotificationLockGuard() { spawnNotificationLocked = false; }
 			} lockGuard;
 
-			for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+			if (!engine->packages->IsUnreal1())
 			{
-				UClass* cls = notifyObj->ActorClass();
-				if (cls && actor->IsA(cls->Name))
-					actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
+				for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+				{
+					UClass* cls = notifyObj->ActorClass();
+					if (cls && actor->IsA(cls->Name))
+						actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
+				}
 			}
 		}
 	}

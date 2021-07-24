@@ -20,6 +20,8 @@ class PackageManager
 public:
 	PackageManager(const std::string& basepath);
 
+	bool IsUnreal1() const { return unreal1; }
+
 	Package *GetPackage(const std::string& name);
 	std::vector<std::string> GetPackageNames() const;
 
@@ -44,6 +46,7 @@ private:
 
 	void DelayLoadNow();
 
+	bool unreal1 = false;
 	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
