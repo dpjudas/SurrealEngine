@@ -20,6 +20,37 @@
 
 #ifdef WIN32
 
+namespace
+{
+	std::wstring to_utf16(const std::string& str)
+	{
+		if (str.empty()) return {};
+		int needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
+		if (needed == 0)
+			throw std::runtime_error("MultiByteToWideChar failed");
+		std::wstring result;
+		result.resize(needed);
+		needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size());
+		if (needed == 0)
+			throw std::runtime_error("MultiByteToWideChar failed");
+		return result;
+	}
+
+	std::string from_utf16(const std::wstring& str)
+	{
+		if (str.empty()) return {};
+		int needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0, nullptr, nullptr);
+		if (needed == 0)
+			throw std::runtime_error("WideCharToMultiByte failed");
+		std::string result;
+		result.resize(needed);
+		needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size(), nullptr, nullptr);
+		if (needed == 0)
+			throw std::runtime_error("WideCharToMultiByte failed");
+		return result;
+	}
+}
+
 class FileImpl : public File
 {
 public:
@@ -95,7 +126,7 @@ public:
 
 std::shared_ptr<File> File::create_always(const std::string &filename)
 {
-	HANDLE handle = CreateFileA(filename.c_str(), FILE_WRITE_ACCESS, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_WRITE_ACCESS, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
 		throw std::runtime_error("Could not create " + filename);
 
@@ -104,7 +135,7 @@ std::shared_ptr<File> File::create_always(const std::string &filename)
 
 std::shared_ptr<File> File::open_existing(const std::string &filename)
 {
-	HANDLE handle = CreateFileA(filename.c_str(), FILE_READ_ACCESS, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_READ_ACCESS, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
 		throw std::runtime_error("Could not open " + filename);
 
@@ -223,8 +254,8 @@ std::vector<std::string> Directory::files(const std::string &filename)
 {
 	std::vector<std::string> files;
 
-	WIN32_FIND_DATAA fileinfo;
-	HANDLE handle = FindFirstFileA(filename.c_str(), &fileinfo);
+	WIN32_FIND_DATA fileinfo;
+	HANDLE handle = FindFirstFile(to_utf16(filename).c_str(), &fileinfo);
 	if (handle == INVALID_HANDLE_VALUE)
 		return {};
 
@@ -234,8 +265,8 @@ std::vector<std::string> Directory::files(const std::string &filename)
 		{
 			bool is_directory = !!(fileinfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 			if (!is_directory)
-				files.push_back(fileinfo.cFileName);
-		} while (FindNextFileA(handle, &fileinfo) == TRUE);
+				files.push_back(from_utf16(fileinfo.cFileName));
+		} while (FindNextFile(handle, &fileinfo) == TRUE);
 		FindClose(handle);
 	}
 	catch (...)
