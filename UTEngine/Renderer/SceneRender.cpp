@@ -15,10 +15,26 @@ void SceneRender::DrawScene()
 	RenderDevice* device = engine->window->GetRenderDevice();
 	auto level = engine->Level;
 
-	if (engine->LevelInfo->SkyZone())
+	engine->renderer->canvas.SceneFrame = CreateSceneFrame();
+
+	// Find the skyzone the wrong way: (to do: do a proper visibility analysis on the BSP and then render what we can see)
+	UZoneInfo* skyZone = nullptr;
+	for (const auto& zone : level->Model->Zones)
 	{
+		UZoneInfo* zoneInfo = UObject::TryCast<UZoneInfo>(zone.ZoneActor);
+		if (zoneInfo && zoneInfo->SkyZone())
+		{
+			skyZone = zoneInfo->SkyZone();
+			break;
+		}
+	}
+
+	if (skyZone)
+	{
+		cameraZoneActor = skyZone;
+
 		engine->renderer->sceneDrawNumber++;
-		FSceneNode frame = CreateSkyFrame();
+		FSceneNode frame = CreateSkyFrame(skyZone);
 		device->SetSceneNode(&frame);
 
 		FrustumPlanes clip(frame.Projection * frame.Modelview);
@@ -26,21 +42,13 @@ void SceneRender::DrawScene()
 		int zone = FindZoneAt(frame.ViewLocation);
 		uint64_t zonemask = FindRenderZoneMask(&frame, level->Model->Nodes.front(), clip, zone);
 
-		cameraZoneActor = !level->Model->Zones.empty() ? dynamic_cast<UZoneInfo*>(level->Model->Zones[zone].ZoneActor) : nullptr;
-		if (!cameraZoneActor)
-			cameraZoneActor = engine->LevelInfo;
-
 		DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 0);
 		DrawNode(&frame, level->Model->Nodes[0], clip, zonemask, 1);
 
 		device->ClearZ(&frame);
 	}
 
-	engine->renderer->sceneDrawNumber++;
-	engine->renderer->canvas.SceneFrame = CreateSceneFrame();
-	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 	auto& SceneFrame = engine->renderer->canvas.SceneFrame;
-
 	FrustumPlanes clip(SceneFrame.Projection * SceneFrame.Modelview);
 
 	int zone = FindZoneAt(SceneFrame.ViewLocation);
@@ -49,6 +57,9 @@ void SceneRender::DrawScene()
 	cameraZoneActor = !level->Model->Zones.empty() ? dynamic_cast<UZoneInfo*>(level->Model->Zones[zone].ZoneActor) : nullptr;
 	if (!cameraZoneActor)
 		cameraZoneActor = engine->LevelInfo;
+
+	engine->renderer->sceneDrawNumber++;
+	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
 
@@ -540,11 +551,11 @@ FSceneNode SceneRender::CreateSceneFrame()
 	return frame;
 }
 
-FSceneNode SceneRender::CreateSkyFrame()
+FSceneNode SceneRender::CreateSkyFrame(UZoneInfo* skyZone)
 {
 	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 skyrotate = mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->LevelInfo->SkyZone()->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - engine->LevelInfo->SkyZone()->Location());
+	mat4 skyrotate = mat4::rotate(radians(skyZone->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - skyZone->Location());
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -556,7 +567,7 @@ FSceneNode SceneRender::CreateSkyFrame()
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
-	frame.ViewLocation = engine->LevelInfo->SkyZone()->Location();
+	frame.ViewLocation = skyZone->Location();
 	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);

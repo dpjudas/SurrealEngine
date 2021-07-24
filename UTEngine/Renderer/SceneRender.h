@@ -29,7 +29,7 @@ public:
 private:
 
 	FSceneNode CreateSceneFrame();
-	FSceneNode CreateSkyFrame();
+	FSceneNode CreateSkyFrame(UZoneInfo* skyZone);
 
 	std::vector<int> portalsvisited;
 	UZoneInfo* cameraZoneActor = nullptr;

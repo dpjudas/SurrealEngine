@@ -13,11 +13,12 @@ AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue
 
 bool AllObjectsIterator::Next()
 {
+	bool matchTag = !MatchTag.empty() && MatchTag != "None";
 	size_t size = engine->Level->Actors.size();
 	while (index < size)
 	{
 		UActor* actor = engine->Level->Actors[index++];
-		if (actor && actor->IsA(BaseClass->Name) && (MatchTag.empty() || actor->Tag() == MatchTag))
+		if (actor && actor->IsA(BaseClass->Name) && (!matchTag || actor->Tag() == MatchTag))
 		{
 			*ReturnValue = actor;
 			return true;

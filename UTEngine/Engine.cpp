@@ -83,8 +83,8 @@ Engine::Engine()
 		}
 	}
 
-	// utfolder = R"(C:\Games\UnrealTournament436)";
-	utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
+	utfolder = R"(C:\Games\UnrealTournament436)";
+	// utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
 
 #else
 	std::string utfolder = "/home/mbn/UnrealTournament";
