@@ -131,27 +131,88 @@ void UFireTexture::UpdateFrame()
 		for (size_t i = 0; i < Sparks.size(); i++)
 		{
 			Spark& spark = Sparks[i];
-			if (spark.Type == ESpark::Burn)
+			bool canEmit = Sparks.size() + Particles.size() < (size_t)SparksLimit();
+			switch (spark.Type)
+			{
+			case ESpark::Burn:
 			{
 				int x = spark.X;
 				int y = spark.Y;
-				pixels[x + y * width] = rand() * 255 / RAND_MAX;
+				pixels[x + y * width] = RandomByteValue();
+				break;
 			}
-			else if (spark.Type == ESpark::Wheel)
+			case ESpark::Wheel:
 			{
-				// Used by torches
+				if (canEmit)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::Twirl;
+					particle.Twirl.X = spark.X + 0.5f;
+					particle.Twirl.Y = spark.Y + 0.5f;
+					particle.Twirl.Heat = spark.Heat;
+					particle.Twirl.Angle = radians(spark.Wheel.Angle * (360.0f / 256));
+					particle.Twirl.RotSpeed = radians(spark.Wheel.TwirlRotSpeed * (16.0f / 256) * (360.0f / 256));
+					particle.Twirl.Age = spark.Wheel.TwirlAge;
+					Particles.push_back(particle);
+				}
+				spark.Wheel.Angle += spark.Wheel.RotSpeed;
+				break;
 			}
-			else if (spark.Type == ESpark::Emit)
+			case ESpark::Emit:
 			{
-				// Used by torches
+				if (canEmit && RandomByteValue() < 64)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::Drift;
+					particle.Drift.X = spark.X + 0.5f;
+					particle.Drift.Y = spark.Y + 0.5f;
+					particle.Drift.Heat = spark.Heat;
+					particle.Drift.HeatDecay = spark.Emit.HeatDecay;
+					particle.Drift.SpeedX = ((int8_t)spark.Emit.SpeedX) * (1.0f / 128.0f);
+					particle.Drift.SpeedY = ((int8_t)spark.Emit.SpeedY) * (1.0f / 128.0f);
+					Particles.push_back(particle);
+				}
+				break;
 			}
-			else if (spark.Type == ESpark::SphereLightning)
+			case ESpark::OzHasSpoken:
 			{
-				if (rand() * 128 / RAND_MAX >= spark.ByteD)
+				if (canEmit && RandomByteValue() < 128)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::Drift;
+					particle.Drift.X = spark.X + 0.5f;
+					particle.Drift.Y = spark.Y + 0.5f;
+					particle.Drift.Heat = spark.Heat;
+					particle.Drift.HeatDecay = 5;
+					particle.Drift.SpeedX = ((int)RandomByteValue() - 128) * (0.5f / 128.0f);
+					particle.Drift.SpeedY = -0.5f;
+					Particles.push_back(particle);
+				}
+				break;
+			}
+			case ESpark::Blaze:
+			{
+				if (canEmit && RandomByteValue() < 128)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::Drift;
+					particle.Drift.X = spark.X + 0.5f;
+					particle.Drift.Y = spark.Y + 0.5f;
+					particle.Drift.Heat = spark.Heat;
+					particle.Drift.HeatDecay = spark.Blaze.HeatDecay;
+					particle.Drift.SpeedX = ((int)RandomByteValue() - 128) * (1.0f / 128.0f);
+					particle.Drift.SpeedY = ((int)RandomByteValue() - 128) * (1.0f / 128.0f);
+					Particles.push_back(particle);
+				}
+				break;
+			}
+			case ESpark::SphereLightning:
+			{
+				if (RandomByteValue() >= spark.SphereLightning.Frequency)
 				{
 					// Worst lightning line implementation ever, but it will do, maybe!
-					float angle = radians(rand() * 360 / (float)RAND_MAX);
-					float radius = spark.ByteC * 0.50f;
+					float angle = radians(RandomByteValue() * (360.0f / 256));
+					float radius = spark.SphereLightning.Radius * 0.50f;
 					float x0 = spark.X + 0.5f;
 					float y0 = spark.Y + 0.5f;
 					float dx = std::cos(angle);
@@ -174,6 +235,63 @@ void UFireTexture::UpdateFrame()
 						y0 += rand() * 2 / (float)RAND_MAX - 1.0f;
 					}
 				}
+				break;
+			}
+			}
+		}
+
+		for (size_t i = 0; i < Particles.size(); i++)
+		{
+			SparkParticle& particle = Particles[i];
+			switch (particle.Type)
+			{
+			case SparkParticleType::Twirl:
+			{
+				if (particle.Twirl.Age > 0)
+				{
+					int x = (int)particle.Twirl.X;
+					int y = (int)particle.Twirl.Y;
+					if (x < 0) x += width; else if (x >= width) x -= width;
+					if (y < 0) y += height; else if (y >= height) y -= height;
+					pixels[x + y * width] = particle.Twirl.Heat;
+
+					float angle = particle.Twirl.Angle;
+					float dx = std::sin(angle);
+					float dy = std::cos(angle);
+
+					particle.Twirl.X += dx * 0.5f;
+					particle.Twirl.Y += dy * 0.5f;
+					particle.Twirl.Angle += particle.Twirl.RotSpeed;
+					particle.Twirl.Age--;
+				}
+				else
+				{
+					particle = Particles.back();
+					Particles.pop_back();
+				}
+				break;
+			}
+			case SparkParticleType::Drift:
+			{
+				particle.Drift.Heat -= particle.Drift.HeatDecay;
+				if (particle.Drift.Heat > 0)
+				{
+					int x = (int)particle.Drift.X;
+					int y = (int)particle.Drift.Y;
+					if (x < 0) x += width; else if (x >= width) x -= width;
+					if (y < 0) y += height; else if (y >= height) y -= height;
+					pixels[x + y * width] = particle.Drift.Heat;
+
+					particle.Drift.X += particle.Drift.SpeedX;
+					particle.Drift.Y += particle.Drift.SpeedY;
+				}
+				else
+				{
+					particle = Particles.back();
+					Particles.pop_back();
+				}
+				break;
+			}
 			}
 		}
 

@@ -184,14 +184,35 @@ enum class FireDrawMode : uint8_t
 
 struct Spark
 {
-	ESpark Type;   // Spark type
-	uint8_t Heat;  // Spark heat
-	uint8_t X;     // Spark X location (0 - Xdimension-1)
-	uint8_t Y;     // Spark Y location (0 - Ydimension-1)
-	uint8_t ByteA; // X-speed
-	uint8_t ByteB; // Y-speed
-	uint8_t ByteC; // Age, Emitter freq
-	uint8_t ByteD; // Exp.Time
+	ESpark Type;
+	uint8_t Heat;
+	uint8_t X;
+	uint8_t Y;
+	union
+	{
+		struct { uint8_t ByteA, ByteB, ByteC, ByteD; };
+		struct { uint8_t A, B, C, D; } Burn, OzHasSpoken;
+		struct { uint8_t Angle, TwirlAge, RotSpeed, TwirlRotSpeed; } Wheel;
+		struct { uint8_t SpeedX, SpeedY, C, HeatDecay; } Emit;
+		struct { uint8_t A, B, C, HeatDecay; } Blaze;
+		struct { uint8_t A, B, Radius, Frequency; } SphereLightning;
+	};
+};
+
+enum class SparkParticleType
+{
+	Twirl,
+	Drift
+};
+
+struct SparkParticle
+{
+	SparkParticleType Type;
+	union
+	{
+		struct { float X, Y, Angle, RotSpeed; uint8_t Heat, Age; } Twirl;
+		struct { float X, Y, SpeedX, SpeedY; int Heat, HeatDecay; } Drift;
+	};
 };
 
 class UFireTexture : public UFractalTexture
@@ -224,10 +245,13 @@ public:
 	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
 
 private:
+	int RandomByteValue() { return rand() * 256 / (RAND_MAX + 1); }
+
 	std::vector<uint8_t> WorkBuffer;
 	uint8_t FadeTable[4 * 256];
 	int CurrentRenderHeat = -1;
 	std::vector<Spark> Sparks;
+	std::vector<SparkParticle> Particles;
 };
 
 class UIceTexture : public UFractalTexture
