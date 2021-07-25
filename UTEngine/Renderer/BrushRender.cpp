@@ -72,8 +72,8 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 		if (tex->TextureModified)
 			tex->TextureModified = false;
 
-		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUV;
+		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node.VertPool];

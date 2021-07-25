@@ -257,8 +257,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUV;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUV;
 	}
 
 	FTextureInfo detailtex;
@@ -273,8 +273,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		detailtex.Pan.y = -(float)surface.PanV;
 		detailtex.Texture = tex;
 
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUV;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUV;
 	}
 
 	FTextureInfo macrotex;
@@ -289,8 +289,8 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 		macrotex.Pan.y = -(float)surface.PanV;
 		macrotex.Texture = tex;
 
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUV;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node.VertPool];

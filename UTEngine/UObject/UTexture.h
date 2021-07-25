@@ -199,6 +199,7 @@ class UFireTexture : public UFractalTexture
 public:
 	using UFractalTexture::UFractalTexture;
 
+	void Load(ObjectStream* stream) override;
 	void UpdateFrame() override;
 
 	FireDrawMode& DrawMode() { return Value<FireDrawMode>(PropOffsets_FireTexture.DrawMode); }
@@ -217,10 +218,16 @@ public:
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
 	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
-	std::vector<Spark*>& Sparks() { return Value<std::vector<Spark*>>(PropOffsets_FireTexture.Sparks); }
+	//std::vector<Spark*>& Sparks() { return Value<std::vector<Spark*>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
 	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
+
+private:
+	std::vector<uint8_t> WorkBuffer;
+	uint8_t FadeTable[4 * 256];
+	int CurrentRenderHeat = -1;
+	std::vector<Spark> Sparks;
 };
 
 class UIceTexture : public UFractalTexture

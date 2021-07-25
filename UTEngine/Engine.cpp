@@ -236,7 +236,7 @@ void Engine::Run()
 			Camera.Location += vel * (elapsed * 650.0f);
 		}
 
-		engine->renderer->AutoUVTime += elapsed;
+		engine->renderer->AutoUV += elapsed * 64.0f;
 		for (UTexture* tex : engine->renderer->Textures)
 			tex->Update(elapsed);
 

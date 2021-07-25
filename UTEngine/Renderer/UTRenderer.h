@@ -27,7 +27,7 @@ public:
 	int sceneDrawNumber = 1;
 	bool showTimedemoStats = false;
 
-	float AutoUVTime = 0.0f;
+	float AutoUV = 0.0f;
 
 	int uiscale = 3;
 

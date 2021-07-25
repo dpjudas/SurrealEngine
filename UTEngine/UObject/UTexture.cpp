@@ -98,6 +98,26 @@ void UFractalTexture::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UFireTexture::Load(ObjectStream* stream)
+{
+	UFractalTexture::Load(stream);
+
+	int size = stream->ReadIndex();
+	for (int i = 0; i < size; i++)
+	{
+		Spark spark;
+		spark.Type = (ESpark)stream->ReadUInt8();
+		spark.Heat = stream->ReadUInt8();
+		spark.X = stream->ReadUInt8();
+		spark.Y = stream->ReadUInt8();
+		spark.ByteA = stream->ReadUInt8();
+		spark.ByteB = stream->ReadUInt8();
+		spark.ByteC = stream->ReadUInt8();
+		spark.ByteD = stream->ReadUInt8();
+		Sparks.push_back(spark);
+	}
+}
+
 void UFireTexture::UpdateFrame()
 {
 	if (!TextureModified)
@@ -108,33 +128,83 @@ void UFireTexture::UpdateFrame()
 		int height = mipmap.Height;
 		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 
-		uint8_t* line = pixels + (size_t)width * (height - 1);
-		for (int x = 0; x < width; x++)
+		for (size_t i = 0; i < Sparks.size(); i++)
 		{
-			line[x] = (uint8_t)clamp(std::max(std::cos(radians(90.0f + (x - width / 2) * 200.0f / width)), 0.0f) * 100 + rand() * 155 / RAND_MAX, 0.0f, 255.0f);
-		}
-
-		uint8_t* src = pixels;
-		for (int y = 0; y < height - 1; y++)
-		{
-			uint8_t* dest = src;
-			src += width;
-
-			for (int x = 0; x < width; x++)
+			Spark& spark = Sparks[i];
+			if (spark.Type == ESpark::Burn)
 			{
-				int value = src[x];
-				for (int i = -3; i < 3; i++)
+				int x = spark.X;
+				int y = spark.Y;
+				pixels[x + y * width] = rand() * 255 / RAND_MAX;
+			}
+			else if (spark.Type == ESpark::Wheel)
+			{
+				// Used by torches
+			}
+			else if (spark.Type == ESpark::Emit)
+			{
+				// Used by torches
+			}
+			else if (spark.Type == ESpark::SphereLightning)
+			{
+				if (rand() * 128 / RAND_MAX >= spark.ByteD)
 				{
-					int xx = (x + i) % width;
-					if (xx < 0) xx += width;
-					value += src[xx];
+					// Worst lightning line implementation ever, but it will do, maybe!
+					float angle = radians(rand() * 360 / (float)RAND_MAX);
+					float radius = spark.ByteC * 0.50f;
+					float x0 = spark.X + 0.5f;
+					float y0 = spark.Y + 0.5f;
+					float dx = std::cos(angle);
+					float dy = std::sin(angle);
+					int color0 = spark.Heat;
+					int color1 = spark.Heat / 4;
+					for (float i = 0; i < radius; i += 0.5f)
+					{
+						float t = i / radius;
+						int c = (int)(color0 + (color1 - color0) * t + 0.5f);
+						int x = (int)(x0 + dx * i);
+						int y = (int)(y0 + dy * i);
+						if (x < 0) x += width;
+						else if (x >= width) x -= width;
+						if (y < 0) y += height;
+						else if (y >= height) y -= height;
+						pixels[x + y * width] = c;
+
+						x0 += rand() * 2 / (float)RAND_MAX - 1.0f;
+						y0 += rand() * 2 / (float)RAND_MAX - 1.0f;
+					}
 				}
-				value -= 8;
-				value = value / 7;
-				if (value < 0) value = 0;
-				dest[x] = value;
 			}
 		}
+
+		if (CurrentRenderHeat != RenderHeat())
+		{
+			CurrentRenderHeat = RenderHeat();
+			float heatLoss = 1.0f - (255 - CurrentRenderHeat) / 16.0f;
+			for (int i = 0; i < 4 * 256; i++)
+			{
+				FadeTable[i] = (uint8_t)std::round(clamp((i + 0.5f) * 0.25f + heatLoss, 0.0f, 255.0f));
+			}
+		}
+
+		WorkBuffer.resize(width * height);
+		uint8_t* buffer = WorkBuffer.data();
+		int riseAmount = bRising() ? 1 : 0;
+		for (int y = 0; y < height; y++)
+		{
+			uint8_t* destLine = buffer + y * width;
+			uint8_t* srcLine = pixels + ((y + riseAmount) % height) * width;
+			uint8_t* nextLine = pixels + ((y + riseAmount + 1) % height) * width;
+			for (int x = 0; x < width; x++)
+			{
+				int left = srcLine[x != 0 ? x - 1 : width - 1];
+				int center = srcLine[x];
+				int right = srcLine[x != width - 1 ? x + 1 : 0];
+				int bottom = nextLine[x];
+				destLine[x] = FadeTable[left + center + right + bottom];
+			}
+		}
+		memcpy(pixels, buffer, width * height);
 
 		TextureModified = true;
 	}
