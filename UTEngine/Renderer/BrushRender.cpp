@@ -59,16 +59,18 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 	FTextureInfo texture;
 	if (surface.Material)
 	{
-		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Material;
-		texture.bRealtimeChanged = surface.Material->TextureModified;
-		texture.UScale = surface.Material->DrawScale();
-		texture.VScale = surface.Material->DrawScale();
+		UTexture* tex = surface.Material->GetAnimTexture();
+
+		texture.CacheID = (uint64_t)(ptrdiff_t)tex;
+		texture.bRealtimeChanged = tex->TextureModified;
+		texture.UScale = tex->DrawScale();
+		texture.VScale = tex->DrawScale();
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
-		texture.Texture = surface.Material;
+		texture.Texture = tex;
 
-		if (surface.Material->TextureModified)
-			surface.Material->TextureModified = false;
+		if (tex->TextureModified)
+			tex->TextureModified = false;
 
 		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUVTime * 100.0f;
 		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUVTime * 100.0f;

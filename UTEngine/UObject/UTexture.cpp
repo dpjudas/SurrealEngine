@@ -47,6 +47,35 @@ void UTexture::Load(ObjectStream* stream)
 	}
 }
 
+void UTexture::Update(float elapsed)
+{
+	float animationSpeed = 0.0f;
+	if (MaxFrameRate() != 0.0f)
+		animationSpeed = 1.0f / MaxFrameRate();
+
+	if (animationSpeed > 0.0f)
+		Accumulator() += elapsed;
+
+	while (animationSpeed <= 0.0f || Accumulator() > animationSpeed)
+	{
+		UpdateFrame();
+		if (animationSpeed <= 0.0f)
+			break;
+		Accumulator() -= animationSpeed;
+	}
+}
+
+void UTexture::UpdateFrame()
+{
+	// Loop textures
+	UTexture* cur = AnimCurrent();
+	if (!cur) cur = this;
+	cur = cur->AnimNext();
+	if (!cur) cur = this;
+	AnimCurrent() = cur;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UFractalTexture::Load(ObjectStream* stream)
@@ -69,7 +98,7 @@ void UFractalTexture::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UFireTexture::Update()
+void UFireTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
@@ -113,7 +142,7 @@ void UFireTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UIceTexture::Update()
+void UIceTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
@@ -147,7 +176,7 @@ void UIceTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UWaterTexture::Update()
+void UWaterTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
@@ -168,7 +197,7 @@ void UWaterTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UWaveTexture::Update()
+void UWaveTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
@@ -189,7 +218,7 @@ void UWaveTexture::Update()
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UWetTexture::Update()
+void UWetTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
@@ -210,7 +239,7 @@ void UWetTexture::Update()
 		}
 		else
 		{
-			UWaterTexture::Update();
+			UWaterTexture::UpdateFrame();
 		}
 
 		TextureModified = true;

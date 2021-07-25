@@ -36,7 +36,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 
 				FTextureInfo texinfo;
 				texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();
-				texinfo.Texture = light->Skin();
+				texinfo.Texture = light->Skin()->GetAnimTexture();
 				device->DrawTile(frame, texinfo, x - width * scale * 0.5f, y - height * scale * 0.5f, width * scale, height * scale, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
 			}
 		}

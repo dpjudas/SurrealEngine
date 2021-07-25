@@ -245,13 +245,14 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	FTextureInfo texture;
 	if (surface.Material)
 	{
-		texture.CacheID = (uint64_t)(ptrdiff_t)surface.Material;
-		texture.bRealtimeChanged = surface.Material->TextureModified;
-		texture.UScale = surface.Material->DrawScale();
-		texture.VScale = surface.Material->DrawScale();
+		UTexture* tex = surface.Material->GetAnimTexture();
+		texture.CacheID = (uint64_t)(ptrdiff_t)tex;
+		texture.bRealtimeChanged = tex->TextureModified;
+		texture.UScale = tex->DrawScale();
+		texture.VScale = tex->DrawScale();
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
-		texture.Texture = surface.Material;
+		texture.Texture = tex;
 
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
@@ -263,13 +264,14 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	FTextureInfo detailtex;
 	if (surface.Material && surface.Material->DetailTexture())
 	{
-		detailtex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->DetailTexture();
+		UTexture* tex = surface.Material->DetailTexture()->GetAnimTexture();
+		detailtex.CacheID = (uint64_t)(ptrdiff_t)tex;
 		detailtex.bRealtimeChanged = false;
-		detailtex.UScale = surface.Material->DetailTexture()->DrawScale();
-		detailtex.VScale = surface.Material->DetailTexture()->DrawScale();
+		detailtex.UScale = tex->DrawScale();
+		detailtex.VScale = tex->DrawScale();
 		detailtex.Pan.x = -(float)surface.PanU;
 		detailtex.Pan.y = -(float)surface.PanV;
-		detailtex.Texture = surface.Material->DetailTexture();
+		detailtex.Texture = tex;
 
 		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
 		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUVTime * 100.0f;
@@ -278,13 +280,14 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	FTextureInfo macrotex;
 	if (surface.Material && surface.Material->MacroTexture())
 	{
-		macrotex.CacheID = (uint64_t)(ptrdiff_t)surface.Material->MacroTexture();
+		UTexture* tex = surface.Material->MacroTexture()->GetAnimTexture();
+		macrotex.CacheID = (uint64_t)(ptrdiff_t)tex;
 		macrotex.bRealtimeChanged = false;
-		macrotex.UScale = surface.Material->MacroTexture()->DrawScale();
-		macrotex.VScale = surface.Material->MacroTexture()->DrawScale();
+		macrotex.UScale = tex->DrawScale();
+		macrotex.VScale = tex->DrawScale();
 		macrotex.Pan.x = -(float)surface.PanU;
 		macrotex.Pan.y = -(float)surface.PanV;
-		macrotex.Texture = surface.Material->MacroTexture();
+		macrotex.Texture = tex;
 
 		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUVTime * 100.0f;
 		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUVTime * 100.0f;

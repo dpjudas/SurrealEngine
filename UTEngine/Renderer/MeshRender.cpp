@@ -64,6 +64,9 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		if (!tex)
 			tex = mesh->Textures[material.TextureIndex];
 
+		if (tex)
+			tex = tex->GetAnimTexture();
+
 		FTextureInfo texinfo;
 		texinfo.Texture = tex;
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;

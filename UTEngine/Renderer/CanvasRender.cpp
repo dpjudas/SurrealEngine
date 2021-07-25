@@ -75,6 +75,8 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
+	Tex = Tex->GetAnimTexture();
+
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
@@ -89,6 +91,8 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 void CanvasRender::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float curX, float curY, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags, float clipX, float clipY)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
+
+	Tex = Tex->GetAnimTexture();
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;

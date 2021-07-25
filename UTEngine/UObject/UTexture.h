@@ -54,7 +54,10 @@ public:
 	using UBitmap::UBitmap;
 	void Load(ObjectStream* stream) override;
 
-	virtual void Update() { }
+	UTexture* GetAnimTexture() { return AnimCurrent() ? AnimCurrent() : this; }
+
+	virtual void Update(float elapsed);
+	virtual void UpdateFrame();
 
 	TextureFormat ActualFormat = TextureFormat::P8;
 	std::vector<UnrealMipmap> Mipmaps;
@@ -137,14 +140,68 @@ public:
 	int& VMask() { return Value<int>(PropOffsets_FractalTexture.VMask); }
 };
 
+enum class ESpark : uint8_t
+{
+	Burn,
+	Sparkle,
+	Pulse,
+	Signal,
+	Blaze,
+	OzHasSpoken,
+	Cone,
+	BlazeRight,
+	BlazeLeft,
+	Cylinder,
+	Cylinder3D,
+	Lissajous,
+	Jugglers,
+	Emit,
+	Fountain,
+	Flocks,
+	Eels,
+	Organic,
+	WanderOrganic,
+	RandmCloud,
+	CustomCloud,
+	LocalCloud,
+	Stars,
+	LineLightning,
+	RampLightning,
+	SphereLightning,
+	Wheel,
+	Gametes,
+	Sprinkler
+};
+
+enum class FireDrawMode : uint8_t
+{
+	Normal,
+	Lathe,
+	Lathe_2,
+	Lathe_3,
+	Lathe_4,
+};
+
+struct Spark
+{
+	ESpark Type;   // Spark type
+	uint8_t Heat;  // Spark heat
+	uint8_t X;     // Spark X location (0 - Xdimension-1)
+	uint8_t Y;     // Spark Y location (0 - Ydimension-1)
+	uint8_t ByteA; // X-speed
+	uint8_t ByteB; // Y-speed
+	uint8_t ByteC; // Age, Emitter freq
+	uint8_t ByteD; // Exp.Time
+};
+
 class UFireTexture : public UFractalTexture
 {
 public:
 	using UFractalTexture::UFractalTexture;
 
-	void Update() override;
+	void UpdateFrame() override;
 
-	uint8_t& DrawMode() { return Value<uint8_t>(PropOffsets_FireTexture.DrawMode); }
+	FireDrawMode& DrawMode() { return Value<FireDrawMode>(PropOffsets_FireTexture.DrawMode); }
 	uint8_t& FX_Area() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Area); }
 	uint8_t& FX_AuxSize() { return Value<uint8_t>(PropOffsets_FireTexture.FX_AuxSize); }
 	uint8_t& FX_Frequency() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Frequency); }
@@ -160,7 +217,7 @@ public:
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
 	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
-	std::vector<void*>& Sparks() { return Value<std::vector<void*>>(PropOffsets_FireTexture.Sparks); }
+	std::vector<Spark*>& Sparks() { return Value<std::vector<Spark*>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
 	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
@@ -171,7 +228,7 @@ class UIceTexture : public UFractalTexture
 public:
 	using UFractalTexture::UFractalTexture;
 
-	void Update() override;
+	void UpdateFrame() override;
 
 	uint8_t& Amplitude() { return Value<uint8_t>(PropOffsets_IceTexture.Amplitude); }
 	int& ForceRefresh() { return Value<int>(PropOffsets_IceTexture.ForceRefresh); }
@@ -201,7 +258,7 @@ class UWaterTexture : public UFractalTexture
 public:
 	using UFractalTexture::UFractalTexture;
 
-	void Update() override;
+	void UpdateFrame() override;
 
 	uint8_t& DropType() { return Value<uint8_t>(PropOffsets_WaterTexture.DropType); }
 	// ADrop& Drops() { return Value<ADrop>(PropOffsets_WaterTexture.Drops); }
@@ -227,7 +284,7 @@ class UWaveTexture : public UWaterTexture
 public:
 	using UWaterTexture::UWaterTexture;
 
-	void Update() override;
+	void UpdateFrame() override;
 
 	uint8_t& BumpMapAngle() { return Value<uint8_t>(PropOffsets_WaveTexture.BumpMapAngle); }
 	uint8_t& BumpMapLight() { return Value<uint8_t>(PropOffsets_WaveTexture.BumpMapLight); }
@@ -240,7 +297,7 @@ class UWetTexture : public UWaterTexture
 public:
 	using UWaterTexture::UWaterTexture;
 
-	void Update() override;
+	void UpdateFrame() override;
 
 	int& LocalSourceBitmap() { return Value<int>(PropOffsets_WetTexture.LocalSourceBitmap); }
 	UTexture*& OldSourceTex() { return Value<UTexture*>(PropOffsets_WetTexture.OldSourceTex); }

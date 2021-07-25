@@ -116,7 +116,6 @@ void Engine::Run()
 	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
 	std::string consolecls = consolestr.substr(consolestr.find('.') + 1);
 	console = UObject::Cast<UConsole>(packages->NewObject("console", consolepkg, consolecls));
-	//console = UObject::Cast<UConsole>(packages->NewObject("console", "UTMenu", "UTConsole"));
 
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;
@@ -172,7 +171,7 @@ void Engine::Run()
 			Camera.Location += vel * (elapsed * 650.0f);
 
 			for (UTexture* tex : engine->renderer->Textures)
-				tex->Update();
+				tex->Update(elapsed);
 
 			RenderDevice* device = window->GetRenderDevice();
 			device->BeginFrame();
@@ -237,8 +236,9 @@ void Engine::Run()
 			Camera.Location += vel * (elapsed * 650.0f);
 		}
 
+		engine->renderer->AutoUVTime += elapsed;
 		for (UTexture* tex : engine->renderer->Textures)
-			tex->Update();
+			tex->Update(elapsed);
 
 		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();

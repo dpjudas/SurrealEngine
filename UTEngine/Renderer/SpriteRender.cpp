@@ -23,6 +23,8 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 
 	engine->renderer->Textures.insert(texture);
 
+	texture = texture->GetAnimTexture();
+
 	FTextureInfo texinfo;
 	texinfo.Texture = texture;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
