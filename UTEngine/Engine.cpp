@@ -201,6 +201,7 @@ void Engine::Run()
 	CallEvent(console, "NotifyLevelChange");
 
 	bool firstCall = true;
+	bool ticked = false;
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed();
@@ -208,11 +209,27 @@ void Engine::Run()
 		window->Tick();
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
-		for (UActor* actor : Level->Actors)
+
+		// To do: owned actors must tick before their children:
+		for (size_t i = 0; i < Level->Actors.size(); i++)
 		{
+			UActor* actor = Level->Actors[i];
 			if (actor)
-				CallEvent(actor, "Tick", { ExpressionValue::FloatValue(elapsed) });
+			{
+				actor->Tick(elapsed, ticked);
+
+				if (actor->Role() >= ROLE_SimulatedProxy && actor->LifeSpan() != 0.0f)
+				{
+					actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
+					if (actor->LifeSpan() == 0.0f)
+					{
+						CallEvent(actor, "Expired");
+						// To do: destroy actor
+					}
+				}
+			}
 		}
+		ticked = !ticked;
 
 		if (firstCall) // Unscript execution doesn't work well enough for us to use the viewport actor as our camera yet
 		{

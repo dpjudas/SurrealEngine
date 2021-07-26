@@ -5,6 +5,9 @@
 
 ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector<ExpressionValue> args)
 {
+	if (!Context->IsEventEnabled(name))
+		return ExpressionValue::NothingValue();
+
 	UFunction* func = FindEventFunction(Context, name);
 	if (func)
 		return Frame::Call(func, Context, std::move(args));

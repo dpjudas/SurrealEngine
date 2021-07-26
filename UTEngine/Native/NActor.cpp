@@ -308,7 +308,11 @@ void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string*
 
 void NActor::MoveSmooth(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.MoveSmooth not implemented");
+	// To do: do collision detection
+
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->Location() += Delta;
+	ReturnValue = true;
 }
 
 void NActor::Multiply_ColorFloat(const Color& A, float B, Color& ReturnValue)
@@ -455,6 +459,12 @@ void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std
 		}
 	}
 	actor->Region() = region;
+	UPawn* pawn = UObject::TryCast<UPawn>(actor);
+	if (pawn)
+	{
+		pawn->HeadRegion() = region;
+		pawn->FootRegion() = region;
+	}
 
 	if (engine->LevelInfo->bBegunPlay())
 	{

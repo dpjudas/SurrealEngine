@@ -337,7 +337,7 @@ void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue
 
 void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
 {
-	engine->LogUnimplemented("Disable(" + ProbeFunc + ")");
+	Self->DisabledEvents.insert(ProbeFunc);
 }
 
 void NObject::DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -419,7 +419,7 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 
 void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
 {
-	engine->LogUnimplemented("Enable(" + ProbeFunc + ")");
+	Self->DisabledEvents.erase(ProbeFunc);
 }
 
 void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)

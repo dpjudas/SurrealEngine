@@ -47,10 +47,38 @@ struct PointRegion
 	uint8_t ZoneNumber;
 };
 
+enum EPhysics
+{
+	PHYS_None,
+	PHYS_Walking,
+	PHYS_Falling,
+	PHYS_Swimming,
+	PHYS_Flying,
+	PHYS_Rotating,
+	PHYS_Projectile,
+	PHYS_Rolling,
+	PHYS_Interpolating,
+	PHYS_MovingBrush,
+	PHYS_Spider,
+	PHYS_Trailer
+};
+
+enum ENetRole
+{
+	ROLE_None,
+	ROLE_DumbProxy,
+	ROLE_SimulatedProxy,
+	ROLE_AutonomousProxy,
+	ROLE_Authority,
+};
+
 class UActor : public UObject
 {
 public:
 	using UObject::UObject;
+
+	virtual void Tick(float elapsed, bool tickedFlag);
+	void TickAnimation(float elapsed);
 
 	// Cached calculations needed by the renderer
 	int actorZone = -1;
@@ -1161,6 +1189,8 @@ class UPawn : public UActor
 public:
 	using UActor::UActor;
 
+	void Tick(float elapsed, bool tickedFlag) override;
+
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }
 	float& AirSpeed() { return Value<float>(PropOffsets_Pawn.AirSpeed); }
@@ -1313,6 +1343,8 @@ class UPlayerPawn : public UPawn
 {
 public:
 	using UPawn::UPawn;
+
+	void Tick(float elapsed, bool tickedFlag) override;
 
 	float& AppliedBob() { return Value<float>(PropOffsets_PlayerPawn.AppliedBob); }
 	float& Bob() { return Value<float>(PropOffsets_PlayerPawn.Bob); }

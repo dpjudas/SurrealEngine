@@ -4,6 +4,7 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "PropertyOffsets.h"
+#include <set>
 
 class UObject;
 class UClass;
@@ -200,6 +201,9 @@ public:
 	bool IsA(const std::string& className) const;
 
 	std::string PrintProperties();
+
+	bool IsEventEnabled(const std::string& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
+	std::set<std::string> DisabledEvents;
 
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
