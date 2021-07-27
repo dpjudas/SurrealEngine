@@ -78,7 +78,21 @@ public:
 	using UObject::UObject;
 
 	virtual void Tick(float elapsed, bool tickedFlag);
+
 	void TickAnimation(float elapsed);
+
+	void TickPhysics(float elapsed);
+	void TickWalking(float elapsed);
+	void TickFalling(float elapsed);
+	void TickSwimming(float elapsed);
+	void TickFlying(float elapsed);
+	void TickRotating(float elapsed);
+	void TickProjectile(float elapsed);
+	void TickRolling(float elapsed);
+	void TickInterpolating(float elapsed);
+	void TickMovingBrush(float elapsed);
+	void TickSpider(float elapsed);
+	void TickTrailer(float elapsed);
 
 	bool HasAnim(const std::string& sequence);
 	bool IsAnimating();

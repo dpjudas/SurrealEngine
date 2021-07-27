@@ -17,6 +17,8 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 		CallEvent(this, tickEventName, { ExpressionValue::FloatValue(elapsed) });
 	}
 
+	TickPhysics(elapsed);
+
 	if (Role() == ROLE_Authority && RemoteRole() == ROLE_AutonomousProxy)
 	{
 		TimerCounter() += elapsed;
@@ -28,6 +30,82 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 			CallEvent(this, "Timer");
 		}
 	}
+}
+
+void UActor::TickPhysics(float elapsed)
+{
+	int mode = Physics();
+	if (mode != PHYS_None)
+	{
+		// To do: do all that cylinder based physics here!
+
+		switch (mode)
+		{
+		case PHYS_Walking: TickWalking(elapsed); break;
+		case PHYS_Falling: TickFalling(elapsed); break;
+		case PHYS_Swimming: TickSwimming(elapsed); break;
+		case PHYS_Flying: TickFlying(elapsed); break;
+		case PHYS_Rotating: TickRotating(elapsed); break;
+		case PHYS_Projectile: TickProjectile(elapsed); break;
+		case PHYS_Rolling: TickRolling(elapsed); break;
+		case PHYS_Interpolating: TickInterpolating(elapsed); break;
+		case PHYS_MovingBrush: TickMovingBrush(elapsed); break;
+		case PHYS_Spider: TickSpider(elapsed); break;
+		case PHYS_Trailer: TickTrailer(elapsed); break;
+		}
+	}
+}
+
+void UActor::TickWalking(float elapsed)
+{
+}
+
+void UActor::TickFalling(float elapsed)
+{
+}
+
+void UActor::TickSwimming(float elapsed)
+{
+}
+
+void UActor::TickFlying(float elapsed)
+{
+}
+
+void UActor::TickRotating(float elapsed)
+{
+	if (bRotateToDesired() && Rotation() != DesiredRotation())
+	{
+		// To do: rotate by RotationRate until we reach the rotation. Then fire "EndedRotation" event.
+	}
+	else if (bFixedRotationDir())
+	{
+		Rotation() += RotationRate() * elapsed;
+	}
+}
+
+void UActor::TickProjectile(float elapsed)
+{
+}
+
+void UActor::TickRolling(float elapsed)
+{
+}
+
+void UActor::TickInterpolating(float elapsed)
+{
+}
+
+void UActor::TickMovingBrush(float elapsed)
+{
+}
+
+void UActor::TickSpider(float elapsed)
+{
+}
+
+void UActor::TickTrailer(float elapsed)
+{
 }
 
 bool UActor::HasAnim(const std::string& sequence)

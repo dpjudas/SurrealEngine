@@ -392,7 +392,6 @@ void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
 	UObject::Cast<UActor>(Self)->Physics() = newPhysics;
-	engine->LogUnimplemented("Actor.SetPhysics(" + std::to_string(newPhysics) + ")");
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
