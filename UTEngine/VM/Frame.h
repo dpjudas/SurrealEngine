@@ -19,6 +19,22 @@ enum class FrameRunState
 	StepOut
 };
 
+enum class LatentRunState
+{
+	Continue,
+	Stop,
+	Sleep,
+	FinishAnim,
+	FinishInterpolation,
+	MoveTo,
+	MoveToward,
+	StrafeTo,
+	StrafeFacing,
+	TurnTo,
+	TurnToward,
+	WaitForLanding
+};
+
 class Frame
 {
 public:
@@ -44,9 +60,16 @@ public:
 
 	static std::unique_ptr<Iterator> CreatedIterator;
 
+	Frame(UObject* instance, UStruct* func);
+
+	void GotoLabel(const std::string& label);
+	void Tick();
+
+	LatentRunState LatentState = LatentRunState::Continue;
+
 	std::unique_ptr<uint64_t[]> Variables;
 	UObject* Object = nullptr;
-	UFunction* Func = nullptr;
+	UStruct* Func = nullptr;
 	size_t StatementIndex = 0;
 	std::vector<std::unique_ptr<Iterator>> Iterators;
 

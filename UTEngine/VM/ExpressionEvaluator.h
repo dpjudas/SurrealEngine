@@ -10,7 +10,6 @@ enum class StatementResult
 {
 	Next,
 	Jump,
-	LatentWait,
 	Return,
 	Stop,
 	GotoLabel,

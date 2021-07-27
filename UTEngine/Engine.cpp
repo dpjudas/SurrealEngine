@@ -368,6 +368,8 @@ void Engine::LoadMap(std::string mapName)
 	}
 	LevelInfo->Game() = GameInfo;
 
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->CreateDefaultState(); }
+
 	if (!LevelInfo->bBegunPlay())
 	{
 		LevelInfo->TimeSeconds() = 0.0f;
@@ -573,7 +575,7 @@ void Engine::LogMessage(const std::string& message)
 {
 	if (!Frame::Callstack.empty() && Frame::Callstack.back()->Func)
 	{
-		UFunction* func = Frame::Callstack.back()->Func;
+		UStruct* func = Frame::Callstack.back()->Func;
 		std::string name;
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{

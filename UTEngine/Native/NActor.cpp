@@ -134,12 +134,16 @@ void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bo
 
 void NActor::FinishAnim(UObject* Self)
 {
-	throw std::runtime_error("Actor.FinishAnim not implemented");
+	engine->LogUnimplemented("FinishAnim");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::FinishAnim;
 }
 
 void NActor::FinishInterpolation(UObject* Self)
 {
-	throw std::runtime_error("Actor.FinishInterpolation not implemented");
+	engine->LogUnimplemented("FinishInterpolation");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::FinishInterpolation;
 }
 
 void NActor::GetAnimGroup(UObject* Self, const std::string& Sequence, std::string& ReturnValue)
@@ -413,7 +417,9 @@ void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 
 void NActor::Sleep(UObject* Self, float Seconds)
 {
-	throw std::runtime_error("Actor.Sleep not implemented");
+	engine->LogUnimplemented("Sleep(" + std::to_string(Seconds) + ")");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::Sleep;
 }
 
 void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std::string* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
@@ -446,6 +452,8 @@ void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std
 	actor->Location() = location;
 	actor->OldLocation() = location;
 	actor->Rotation() = rotation;
+
+	actor->CreateDefaultState();
 
 	// To do: find the correct zone and BSP leaf for the actor
 	PointRegion region = {};

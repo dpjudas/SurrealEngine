@@ -10,6 +10,7 @@ class UObject;
 class UClass;
 class UProperty;
 class Package;
+class Frame;
 
 enum UnrealPropertyType
 {
@@ -199,10 +200,14 @@ public:
 	void SetObject(const std::string& name, const UObject* value);
 
 	bool IsA(const std::string& className) const;
+	bool IsEventEnabled(const std::string& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
+
+	std::string GetStateName();
+	void CreateDefaultState();
+	void GotoState(const std::string& stateName, const std::string& labelName);
 
 	std::string PrintProperties();
 
-	bool IsEventEnabled(const std::string& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
 	std::set<std::string> DisabledEvents;
 
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
@@ -212,7 +217,7 @@ public:
 	ObjectFlags Flags = ObjectFlags::NoFlags;
 
 	PropertyDataBlock PropertyData;
-	std::string StateName;
+	std::shared_ptr<Frame> StateFrame;
 
 	template<typename T>
 	T& Value(size_t offset) { return *static_cast<T*>(PropertyData.Ptr(offset)); }

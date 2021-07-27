@@ -2,8 +2,10 @@
 #include "Precomp.h"
 #include "NPawn.h"
 #include "VM/NativeFunc.h"
+#include "VM/Frame.h"
 #include "UObject/UActor.h"
 #include "UObject/ULevel.h"
+#include "Engine.h"
 
 void NPawn::RegisterFunctions()
 {
@@ -100,12 +102,16 @@ void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)
 {
-	throw std::runtime_error("Pawn.MoveTo not implemented");
+	engine->LogUnimplemented("MoveTo");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::MoveTo;
 }
 
 void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
 {
-	throw std::runtime_error("Pawn.MoveToward not implemented");
+	engine->LogUnimplemented("MoveToward");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::MoveToward;
 }
 
 void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
@@ -142,27 +148,37 @@ void NPawn::StopWaiting(UObject* Self)
 
 void NPawn::StrafeFacing(UObject* Self, const vec3& NewDestination, UObject* NewTarget)
 {
-	throw std::runtime_error("Pawn.StrafeFacing not implemented");
+	engine->LogUnimplemented("StrafeFacing");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::StrafeFacing;
 }
 
 void NPawn::StrafeTo(UObject* Self, const vec3& NewDestination, const vec3& NewFocus)
 {
-	throw std::runtime_error("Pawn.StrafeTo not implemented");
+	engine->LogUnimplemented("StrafeTo");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::StrafeTo;
 }
 
 void NPawn::TurnTo(UObject* Self, const vec3& NewFocus)
 {
-	throw std::runtime_error("Pawn.TurnTo not implemented");
+	engine->LogUnimplemented("TurnTo");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::TurnTo;
 }
 
 void NPawn::TurnToward(UObject* Self, UObject* NewTarget)
 {
-	throw std::runtime_error("Pawn.TurnToward not implemented");
+	engine->LogUnimplemented("TurnToward");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::TurnToward;
 }
 
 void NPawn::WaitForLanding(UObject* Self)
 {
-	throw std::runtime_error("Pawn.WaitForLanding not implemented");
+	engine->LogUnimplemented("WaitForLanding");
+	if (Self->StateFrame)
+		Self->StateFrame->LatentState = LatentRunState::WaitForLanding;
 }
 
 void NPawn::actorReachable(UObject* Self, UObject* anActor, bool& ReturnValue)

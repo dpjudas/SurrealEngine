@@ -25,7 +25,7 @@ void CallstackPage::updateList()
 	for (auto it = Frame::Callstack.rbegin(); it != Frame::Callstack.rend(); ++it)
 	{
 		Frame* frame = *it;
-		UFunction* func = frame->Func;
+		UStruct* func = frame->Func;
 		if (func)
 		{
 			std::string name;

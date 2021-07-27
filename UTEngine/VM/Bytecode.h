@@ -17,6 +17,20 @@ public:
 		return OffsetToExpression.find(offset)->second->StatementIndex;
 	}
 
+	int FindLabelIndex(const std::string& label)
+	{
+		LabelTableExpression* labels = dynamic_cast<LabelTableExpression*>(Statements.back());
+		if (labels)
+		{
+			for (LabelEntry& entry : labels->Labels)
+			{
+				if (entry.Name == label)
+					return FindStatementIndex(entry.Offset);
+			}
+		}
+		return -1;
+	}
+
 	std::vector<Expression*> Statements;
 
 private:

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NObject.h"
 #include "VM/NativeFunc.h"
+#include "VM/Frame.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Math/quaternion.h"
@@ -507,7 +508,7 @@ void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::s
 
 void NObject::GetStateName(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = Self->StateName;
+	ReturnValue = Self->GetStateName();
 }
 
 void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
@@ -520,10 +521,7 @@ void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 
 void NObject::GotoState(UObject* Self, std::string* NewState, std::string* Label)
 {
-	if (NewState)
-		Self->StateName = *NewState;
-	else
-		Self->StateName.clear();
+	Self->GotoState(NewState ? *NewState : std::string(), Label ? *Label : std::string());
 }
 
 void NObject::GreaterEqual_FloatFloat(float A, float B, bool& ReturnValue)
@@ -596,7 +594,7 @@ void NObject::IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue
 
 void NObject::IsInState(UObject* Self, const std::string& TestState, bool& ReturnValue)
 {
-	ReturnValue = Self->StateName == TestState;
+	ReturnValue = Self->GetStateName() == TestState;
 }
 
 void NObject::Left(const std::string& S, int i, std::string& ReturnValue)

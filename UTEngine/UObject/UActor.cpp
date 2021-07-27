@@ -3,6 +3,7 @@
 #include "UActor.h"
 #include "UMesh.h"
 #include "VM/ScriptCall.h"
+#include "VM/Frame.h"
 
 static std::string tickEventName = "Tick";
 
@@ -15,6 +16,12 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 	if (Role() >= ROLE_SimulatedProxy && IsEventEnabled(tickEventName))
 	{
 		CallEvent(this, tickEventName, { ExpressionValue::FloatValue(elapsed) });
+	}
+
+	if (Role() >= ROLE_SimulatedProxy && StateFrame && StateFrame->LatentState == LatentRunState::Continue)
+	{
+		auto curStateFrame = StateFrame; // pin frame as GotoFrame may otherwise destroy it
+		curStateFrame->Tick();
 	}
 
 	TickPhysics(elapsed);
@@ -191,7 +198,10 @@ void UActor::TickAnimation(float elapsed)
 
 			if (toFrame == 1.0f)
 			{
-				// To do: bAnimFinished() and release any latent FinishAnim function
+				bAnimFinished() = true;
+
+				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+					StateFrame->LatentState = LatentRunState::Continue;
 
 				AnimFrame() = 0.0f;
 				if (!bAnimLoop())

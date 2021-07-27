@@ -20,7 +20,7 @@ DisassemblyPage::DisassemblyPage(View* parent) : VBoxView(parent)
 	listview->addClass("disassemblypage-listview");
 }
 
-void DisassemblyPage::setFunction(UFunction* func)
+void DisassemblyPage::setFunction(UStruct* func)
 {
 	listview->clearList();
 

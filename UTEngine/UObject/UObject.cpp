@@ -5,6 +5,8 @@
 #include "UProperty.h"
 #include "Package/Package.h"
 #include "Package/PackageManager.h"
+#include "VM/ScriptCall.h"
+#include "VM/Frame.h"
 
 UObject::UObject(std::string name, UClass* base, ObjectFlags flags) : Name(name), Base(base), Flags(flags)
 {
@@ -230,6 +232,58 @@ std::string UObject::PrintProperties()
 	}
 
 	return result;
+}
+
+std::string UObject::GetStateName()
+{
+	return StateFrame ? StateFrame->Func->Name : std::string();
+}
+
+void UObject::CreateDefaultState()
+{
+	for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
+	{
+		for (auto& it : cls->States)
+		{
+			UState* state = it.second;
+			if ((state->StateFlags & ScriptStateFlags::Auto) == ScriptStateFlags::Auto)
+			{
+				StateFrame = std::make_shared<Frame>(this, state);
+				StateFrame->GotoLabel("Begin");
+				return;
+			}
+		}
+	}
+}
+
+void UObject::GotoState(const std::string& stateName, const std::string& labelName)
+{
+	if (StateFrame && StateFrame->Func->Name != stateName)
+	{
+		CallEvent(this, "EndState");
+		StateFrame.reset();
+	}
+
+	if (!StateFrame && !stateName.empty())
+	{
+		for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
+		{
+			UState* state = cls->GetState(stateName);
+			if (state)
+			{
+				StateFrame = std::make_shared<Frame>(this, state);
+				break;
+			}
+		}
+
+		if (StateFrame)
+		{
+			CallEvent(this, "BeginState");
+		}
+	}
+
+	if (StateFrame)
+		StateFrame->GotoLabel(labelName);
 }
 
 /////////////////////////////////////////////////////////////////////////////

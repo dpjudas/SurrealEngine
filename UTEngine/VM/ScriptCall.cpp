@@ -19,15 +19,19 @@ UFunction* FindEventFunction(UObject* Context, const std::string& name)
 {
 	// Search states first
 
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	std::string stateName = Context->GetStateName();
+	if (!stateName.empty())
 	{
-		UState* state = cls->GetState(Context->StateName);
-		if (state)
+		for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
 		{
-			UFunction* func = state->GetFunction(name);
-			if (func)
+			UState* state = cls->GetState(stateName);
+			if (state)
 			{
-				return func;
+				UFunction* func = state->GetFunction(name);
+				if (func)
+				{
+					return func;
+				}
 			}
 		}
 	}

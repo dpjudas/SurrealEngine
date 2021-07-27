@@ -139,7 +139,7 @@ std::string Frame::GetCallstack()
 
 	for (auto it = Callstack.rbegin(); it != Callstack.rend(); ++it)
 	{
-		UFunction* func = (*it)->Func;
+		UStruct* func = (*it)->Func;
 		std::string name;
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{
@@ -216,10 +216,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 	}
 	else
 	{
-		Frame frame;
-		frame.Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
-		frame.Object = instance;
-		frame.Func = func;
+		Frame frame(instance, func);
 
 		int argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
@@ -268,6 +265,26 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 	}
 }
 
+Frame::Frame(UObject* instance, UStruct* func)
+{
+	Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
+	Object = instance;
+	Func = func;
+}
+
+void Frame::GotoLabel(const std::string& label)
+{
+	int labelIndex = Func->Code->FindLabelIndex(label.empty() ? "Begin" : label);
+	if (labelIndex != -1)
+		StatementIndex = labelIndex;
+}
+
+void Frame::Tick()
+{
+	if (LatentState == LatentRunState::Continue)
+		Run();
+}
+
 ExpressionEvalResult Frame::Run()
 {
 	Callstack.push_back(this);
@@ -305,13 +322,16 @@ ExpressionEvalResult Frame::Run()
 		case StatementResult::Switch:
 			ProcessSwitch(result.Value);
 			break;
-		case StatementResult::LatentWait:
-		case StatementResult::Return:
-		case StatementResult::Stop:
 		case StatementResult::GotoLabel:
+			StatementIndex = Func->Code->FindLabelIndex(result.Label);
+			break;
+		case StatementResult::Stop:
+			LatentState = LatentRunState::Stop;
 			Callstack.pop_back();
 			return result;
-
+		case StatementResult::Return:
+			Callstack.pop_back();
+			return result;
 		case StatementResult::Iterator:
 			if (!result.Iter)
 				throw std::runtime_error("Iterator statement without an iterator!");
@@ -337,6 +357,12 @@ ExpressionEvalResult Frame::Run()
 			Iterators.pop_back();
 			StatementIndex++;
 			break;
+		}
+
+		if (Object->StateFrame.get() == this && LatentState != LatentRunState::Continue)
+		{
+			Callstack.pop_back();
+			return result;
 		}
 	}
 

@@ -3,14 +3,14 @@
 #include "UI/Core/View.h"
 
 class ListView;
-class UFunction;
+class UStruct;
 
 class DisassemblyPage : public VBoxView
 {
 public:
 	DisassemblyPage(View* parent);
 
-	void setFunction(UFunction* func);
+	void setFunction(UStruct* func);
 
 	ListView* listview = nullptr;
 };

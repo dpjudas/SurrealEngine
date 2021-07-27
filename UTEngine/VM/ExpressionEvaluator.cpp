@@ -564,9 +564,10 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 
 	// Search states first
 
+	std::string stateName = Context->GetStateName();
 	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
 	{
-		UState* state = cls->GetState(Context->StateName);
+		UState* state = cls->GetState(stateName);
 		if (state)
 		{
 			UFunction* func = state->GetFunction(expr->Name);
