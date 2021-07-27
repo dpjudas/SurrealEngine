@@ -93,10 +93,15 @@ UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const
 		const uint8_t* bits = model->LightBits.data() + lmindex.DataOffset;
 		int bitpos = 0;
 
+		bool isSpecialLit = (surface.PolyFlags & PF_SpecialLit) == PF_SpecialLit;
+
 		UActor** lightpos = &model->Lights[lmindex.LightActors];
 		while (*lightpos)
 		{
 			UActor* light = *lightpos;
+
+			if (light->bSpecialLit() != isSpecialLit)
+				continue;
 
 			for (int y = 0; y < height; y++)
 			{
@@ -209,7 +214,7 @@ vec3 LightRender::FindLightAt(const vec3& location, int zoneIndex)
 
 	for (UActor* light : engine->renderer->Lights)
 	{
-		if (light && !light->bCorona())
+		if (light && !light->bCorona() && !light->bSpecialLit())
 		{
 			vec3 L = light->Location() - location;
 			float dist2 = dot(L, L);
