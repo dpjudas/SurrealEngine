@@ -144,7 +144,7 @@ void NActor::FinishInterpolation(UObject* Self)
 
 void NActor::GetAnimGroup(UObject* Self, const std::string& Sequence, std::string& ReturnValue)
 {
-	throw std::runtime_error("Actor.GetAnimGroup not implemented");
+	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
 }
 
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, bool& ReturnValue)
@@ -269,12 +269,12 @@ void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 
 void NActor::HasAnim(UObject* Self, const std::string& Sequence, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.HasAnim not implemented");
+	ReturnValue = UObject::Cast<UActor>(Self)->HasAnim(Sequence);
 }
 
 void NActor::IsAnimating(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.IsAnimating not implemented");
+	ReturnValue = UObject::Cast<UActor>(Self)->IsAnimating();
 }
 
 void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
@@ -284,7 +284,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 
 void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
-	engine->LogUnimplemented("Actor.LoopAnim(" + Sequence + ")");
+	UObject::Cast<UActor>(Self)->LoopAnim(Sequence, Rate, TweenTime, MinRate);
 }
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
@@ -337,7 +337,7 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 
 void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
 {
-	engine->LogUnimplemented("Actor.PlayAnim(" + Sequence + ")");
+	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate, TweenTime);
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -406,7 +406,10 @@ void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& Return
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 {
-	engine->LogUnimplemented("Actor.SetTimer(" + std::to_string(NewTimerRate) + ")");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->TimerCounter() = 0.0f;
+	SelfActor->TimerRate() = NewTimerRate;
+	SelfActor->bTimerLoop() = bLoop;
 }
 
 void NActor::Sleep(UObject* Self, float Seconds)

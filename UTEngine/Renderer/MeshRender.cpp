@@ -40,7 +40,8 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const m
 
 void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
-	int animFrame = mesh->AnimSeqs.front().StartFrame;
+	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
+	int animFrame = seq->StartFrame + (int)(actor->AnimFrame() * seq->NumFrames) % seq->NumFrames;
 	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
 	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
 }

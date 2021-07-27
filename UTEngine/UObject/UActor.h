@@ -80,6 +80,12 @@ public:
 	virtual void Tick(float elapsed, bool tickedFlag);
 	void TickAnimation(float elapsed);
 
+	bool HasAnim(const std::string& sequence);
+	bool IsAnimating();
+	std::string GetAnimGroup(const std::string& sequence);
+	void PlayAnim(const std::string& Sequence, float* rate, float* tweenTime);
+	void LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate);
+
 	// Cached calculations needed by the renderer
 	int actorZone = -1;
 	vec3 light = { 0.0f };

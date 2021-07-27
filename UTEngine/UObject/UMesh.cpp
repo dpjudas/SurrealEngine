@@ -78,6 +78,7 @@ void UMesh::Load(ObjectStream* stream)
 			seq.Notifys.push_back(notify);
 		}
 		seq.Rate = stream->ReadFloat();
+		std::stable_sort(seq.Notifys.begin(), seq.Notifys.end(), [](auto& a, auto& b) { return a.Time < b.Time; });
 		AnimSeqs.push_back(seq);
 	}
 
