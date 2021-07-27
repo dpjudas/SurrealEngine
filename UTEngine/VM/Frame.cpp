@@ -274,9 +274,21 @@ Frame::Frame(UObject* instance, UStruct* func)
 
 void Frame::GotoLabel(const std::string& label)
 {
-	int labelIndex = Func->Code->FindLabelIndex(label.empty() ? "Begin" : label);
-	if (labelIndex != -1)
-		StatementIndex = labelIndex;
+	for (UClass* cls = Object->Base; cls != nullptr; cls = cls->Base)
+	{
+		UState* state = cls->GetState(Func->Name);
+		if (state)
+		{
+			int labelIndex = state->Code->FindLabelIndex(label.empty() ? "Begin" : label);
+			if (labelIndex != -1)
+			{
+				Func = state;
+				StatementIndex = labelIndex;
+				return;
+			}
+		}
+	}
+	LatentState = LatentRunState::Stop;
 }
 
 void Frame::Tick()
