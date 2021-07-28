@@ -101,6 +101,8 @@ void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
 {
+	// "Execute a console command in the context of the current level and game engine"
+
 	bool found;
 	ReturnValue = engine->ConsoleCommand(Self, Command, found);
 }

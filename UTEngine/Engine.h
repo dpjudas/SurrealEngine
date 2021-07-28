@@ -122,6 +122,10 @@ public:
 	bool quit = false;
 
 	uint64_t lastTime = 0;
+
+	void LoadKeybindings();
+	std::map<std::string, std::string> keybindings;
+	static const char* keynames[256];
 };
 
 extern Engine* engine;

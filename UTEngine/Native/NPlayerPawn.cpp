@@ -27,6 +27,8 @@ void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t Tr
 
 void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
 {
+	// "Execute a console command in the context of this player, then forward to Actor.ConsoleCommand"
+
 	bool found;
 	ReturnValue = engine->ConsoleCommand(Self, Command, found);
 }

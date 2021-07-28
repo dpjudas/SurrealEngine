@@ -101,6 +101,8 @@ void Engine::Run()
 {
 	std::srand((unsigned int)std::time(nullptr));
 
+	LoadKeybindings();
+
 	window = DisplayWindow::Create(this);
 	window->OpenWindow(1800, 950, true);
 
@@ -533,12 +535,12 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	else if (command == "keyname" && args.size() == 2)
 	{
 		int index = std::atoi(args[1].c_str());
-		return "key" + std::to_string(index);
+		return keynames[(uint8_t)index];
 	}
 	else if (command == "keybinding" && args.size() == 2)
 	{
 		std::string name = args[1];
-		return "0";
+		return keybindings[name];
 	}
 	else if (command == "get" && args.size() == 3)
 	{
@@ -593,6 +595,15 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	return {};
 }
 
+void Engine::LoadKeybindings()
+{
+	for (int i = 0; i < 256; i++)
+	{
+		std::string keyname = keynames[i];
+		keybindings[keyname] = packages->GetIniValue("user", "Engine.Input", keyname);
+	}
+}
+
 void Engine::Key(DisplayWindow* viewport, std::string key)
 {
 	if (Frame::RunState != FrameRunState::Running)
@@ -609,9 +620,9 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 	if (Frame::RunState != FrameRunState::Running)
 		return;
 
-	CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) });
+	bool handled = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) }).ToBool();
 
-	if (!viewport->bShowWindowsMouse())
+	if (!handled)
 	{
 		switch (key)
 		{
@@ -689,3 +700,71 @@ void Engine::LogUnimplemented(const std::string& message)
 {
 	LogMessage("Unimplemented: " + message);
 }
+
+const char* Engine::keynames[256] =
+{
+	/*00*/ "None", "LeftMouse", "RightMouse", "Cancel",
+	/*04*/ "MiddleMouse", "Unknown05", "Unknown06", "Unknown07",
+	/*08*/ "Backspace", "Tab", "Unknown0A", "Unknown0B",
+	/*0C*/ "Unknown0C", "Enter", "Unknown0E", "Unknown0F",
+	/*10*/ "Shift", "Ctrl", "Alt", "Pause",
+	/*14*/ "CapsLock", "Unknown15", "Unknown16", "Unknown17",
+	/*18*/ "Unknown18", "Unknown19", "Unknown1A", "Escape",
+	/*1C*/ "Unknown1C", "Unknown1D", "Unknown1E", "Unknown1F",
+	/*20*/ "Space", "PageUp", "PageDown", "End",
+	/*24*/ "Home", "Left", "Up", "Right",
+	/*28*/ "Down", "Select", "Print", "Execute",
+	/*2C*/ "PrintScrn", "Insert", "Delete", "Help",
+	/*30*/ "0", "1", "2", "3",
+	/*34*/ "4", "5", "6", "7",
+	/*38*/ "8", "9", "Unknown3A", "Unknown3B",
+	/*3C*/ "Unknown3C", "Unknown3D", "Unknown3E", "Unknown3F",
+	/*40*/ "Unknown40", "A", "B", "C",
+	/*44*/ "D", "E", "F", "G",
+	/*48*/ "H", "I", "J", "K",
+	/*4C*/ "L", "M", "N", "O",
+	/*50*/ "P", "Q", "R", "S",
+	/*54*/ "T", "U", "V", "W",
+	/*58*/ "X", "Y", "Z", "Unknown5B",
+	/*5C*/ "Unknown5C", "Unknown5D", "Unknown5E", "Unknown5F",
+	/*60*/ "NumPad0", "NumPad1", "NumPad2", "NumPad3",
+	/*64*/ "NumPad4", "NumPad5", "NumPad6", "NumPad7",
+	/*68*/ "NumPad8", "NumPad9", "GreyStar", "GreyPlus",
+	/*6C*/ "Separator", "GreyMinus", "NumPadPeriod", "GreySlash",
+	/*70*/ "F1", "F2", "F3", "F4",
+	/*74*/ "F5", "F6", "F7", "F8",
+	/*78*/ "F9", "F10", "F11", "F12",
+	/*7C*/ "F13", "F14", "F15", "F16",
+	/*80*/ "F17", "F18", "F19", "F20",
+	/*84*/ "F21", "F22", "F23", "F24",
+	/*88*/ "Unknown88", "Unknown89", "Unknown8A", "Unknown8B",
+	/*8C*/ "Unknown8C", "Unknown8D", "Unknown8E", "Unknown8F",
+	/*90*/ "NumLock", "ScrollLock", "Unknown92", "Unknown93",
+	/*94*/ "Unknown94", "Unknown95", "Unknown96", "Unknown97",
+	/*98*/ "Unknown98", "Unknown99", "Unknown9A", "Unknown9B",
+	/*9C*/ "Unknown9C", "Unknown9D", "Unknown9E", "Unknown9F",
+	/*A0*/ "LShift", "RShift", "LControl", "RControl",
+	/*A4*/ "UnknownA4", "UnknownA5", "UnknownA6", "UnknownA7",
+	/*A8*/ "UnknownA8", "UnknownA9", "UnknownAA", "UnknownAB",
+	/*AC*/ "UnknownAC", "UnknownAD", "UnknownAE", "UnknownAF",
+	/*B0*/ "UnknownB0", "UnknownB1", "UnknownB2", "UnknownB3",
+	/*B4*/ "UnknownB4", "UnknownB5", "UnknownB6", "UnknownB7",
+	/*B8*/ "UnknownB8", "UnknownB9", "Semicolon", "Equals",
+	/*BC*/ "Comma", "Minus", "Period", "Slash",
+	/*C0*/ "Tilde", "UnknownC1", "UnknownC2", "UnknownC3",
+	/*C4*/ "UnknownC4", "UnknownC5", "UnknownC6", "UnknownC7",
+	/*C8*/ "Joy1", "Joy2", "Joy3", "Joy4",
+	/*CC*/ "Joy5", "Joy6", "Joy7", "Joy8",
+	/*D0*/ "Joy9", "Joy10", "Joy11", "Joy12",
+	/*D4*/ "Joy13", "Joy14", "Joy15", "Joy16",
+	/*D8*/ "UnknownD8", "UnknownD9", "UnknownDA", "LeftBracket",
+	/*DC*/ "Backslash", "RightBracket", "SingleQuote", "UnknownDF",
+	/*E0*/ "JoyX", "JoyY", "JoyZ", "JoyR",
+	/*E4*/ "MouseX", "MouseY", "MouseZ", "MouseW",
+	/*E8*/ "JoyU", "JoyV", "UnknownEA", "UnknownEB",
+	/*EC*/ "MouseWheelUp", "MouseWheelDown", "Unknown10E", "Unknown10F",
+	/*F0*/ "JoyPovUp", "JoyPovDown", "JoyPovLeft", "JoyPovRight",
+	/*F4*/ "UnknownF4", "UnknownF5", "Attn", "CrSel",
+	/*F8*/ "ExSel", "ErEof", "Play", "Zoom",
+	/*FC*/ "NoName", "PA1", "OEMClear", ""
+};

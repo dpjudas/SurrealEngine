@@ -84,7 +84,7 @@ enum EInputKey
 	/*E0*/  IK_JoyX, IK_JoyY, IK_JoyZ, IK_JoyR,
 	/*E4*/	IK_MouseX, IK_MouseY, IK_MouseZ, IK_MouseW,
 	/*E8*/	IK_JoyU, IK_JoyV, IK_UnknownEA, IK_UnknownEB,
-	/*EC*/	IK_MouseWheelUp, IK_MouseWheelDown, IK_Unknown10E, UK_Unknown10F,
+	/*EC*/	IK_MouseWheelUp, IK_MouseWheelDown, IK_Unknown10E, IK_Unknown10F,
 	/*F0*/	IK_JoyPovUp, IK_JoyPovDown, IK_JoyPovLeft, IK_JoyPovRight,
 	/*F4*/	IK_UnknownF4, IK_UnknownF5, IK_Attn, IK_CrSel,
 	/*F8*/	IK_ExSel, IK_ErEof, IK_Play, IK_Zoom,
