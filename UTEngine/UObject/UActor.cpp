@@ -26,7 +26,7 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 
 	TickPhysics(elapsed);
 
-	if (Role() == ROLE_Authority && RemoteRole() == ROLE_AutonomousProxy)
+	if (TimerRate() > 0.0f) // Role() == ROLE_Authority && RemoteRole() == ROLE_AutonomousProxy
 	{
 		TimerCounter() += elapsed;
 		while (TimerRate() > 0.0f && TimerCounter() > TimerRate())

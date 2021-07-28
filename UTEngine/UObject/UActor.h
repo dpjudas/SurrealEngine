@@ -936,6 +936,34 @@ public:
 class UnrealURL
 {
 public:
+	UnrealURL() = default;
+	UnrealURL(const UnrealURL& base, const std::string& url)
+	{
+		// To do: this also needs to be able to handle fully qualified URLs for network support
+
+		*this = base;
+
+		size_t pos = url.find('?');
+		if (pos == std::string::npos)
+		{
+			Map = url;
+		}
+		else
+		{
+			Map = url.substr(0, pos);
+
+			pos++;
+			while (pos < url.size())
+			{
+				size_t endpos = url.find('?', pos);
+				if (endpos == std::string::npos)
+					endpos = url.size();
+				AddOrReplaceOption(url.substr(pos, endpos - pos));
+				pos = endpos + 1;
+			}
+		}
+	}
+
 	std::string Protocol = "unreal";
 	std::string ProtocolDescription = "Unreal Protocol";
 	std::string Name = "Player";
@@ -946,6 +974,49 @@ public:
 	std::string SaveExt = "usa";
 	int Port = 7777;
 	std::vector<std::string> Options;
+
+	void AddOrReplaceOption(const std::string& newvalue)
+	{
+		size_t pos = newvalue.find('=');
+		if (pos != std::string::npos)
+		{
+			std::string name = newvalue.substr(0, pos);
+			for (char& c : name) c = std::tolower(c);
+			for (std::string& option : Options)
+			{
+				if (option.size() >= name.size() + 1 && option[name.size()] == '=')
+				{
+					std::string key = option.substr(0, name.size());
+					for (char& c : key) c = std::tolower(c);
+					if (key == name)
+					{
+						option = newvalue;
+						return;
+					}
+				}
+			}
+			Options.push_back(newvalue);
+		}
+		else
+		{
+			std::string name = newvalue;
+			for (char& c : name) c = std::tolower(c);
+			for (std::string& option : Options)
+			{
+				if (option.size() == name.size())
+				{
+					std::string key = option;
+					for (char& c : key) c = std::tolower(c);
+					if (key == name)
+					{
+						option = newvalue;
+						return;
+					}
+				}
+			}
+			Options.push_back(newvalue);
+		}
+	}
 
 	std::string GetOption(const std::string& name)
 	{

@@ -123,84 +123,44 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
+	UnrealURL url;
+	url.Map = "Entry.unr";
+	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
+	{
+		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
+	}
+
 	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
-	LoadMap("Entry");
+	LoadMap(url);
 	EntryLevelSummary = LevelSummary;
 	EntryLevelInfo = LevelInfo;
 	EntryLevel = Level;
 
-	//std::string mapName = "CityIntro";
-	//std::string mapName = "UT-Logo-Map";
-	//std::string mapName = "DM-Liandri";
-	//std::string mapName = "DM-Codex";
-	std::string mapName = "DM-Barricade";
-	//std::string mapName = "DM-Deck16][";
-	//std::string mapName = "DM-KGalleon";
-	//std::string mapName = "DM-Turbine";
-	//std::string mapName = "DM-Tempest";
-	//std::string mapName = "DM-Grinder";
-	//std::string mapName = "DM-HyperBlast";
-	//std::string mapName = "DM-Peak";
-	//std::string mapName = "CTF-Coret";
-	//std::string mapName = "CTF-Dreary";
-	//std::string mapName = "CTF-Command";
-	//std::string mapName = "CTF-November";
-	//std::string mapName = "CTF-Gauntlet";
-	//std::string mapName = "CTF-EternalCave";
-	//std::string mapName = "CTF-Niven";
-	//std::string mapName = "CTF-Face";
-	//std::string mapName = "DOM-Sesmar";
-	//std::string mapName = "EOL_Deathmatch";
-	//std::string mapName = "UTCredits";
+	//url.Map = "CityIntro.unr";
+	//url.Map = "UT-Logo-Map.unr";
+	//url.Map = "DM-Liandri.unr";
+	//url.Map = "DM-Codex.unr";
+	url.Map = "DM-Barricade.unr";
+	//url.Map = "DM-Deck16][.unr";
+	//url.Map = "DM-KGalleon.unr";
+	//url.Map = "DM-Turbine.unr";
+	//url.Map = "DM-Tempest.unr";
+	//url.Map = "DM-Grinder.unr";
+	//url.Map = "DM-HyperBlast.unr";
+	//url.Map = "DM-Peak.unr";
+	//url.Map = "CTF-Coret.unr";
+	//url.Map = "CTF-Dreary.unr";
+	//url.Map = "CTF-Command.unr";
+	//url.Map = "CTF-November.unr";
+	//url.Map = "CTF-Gauntlet.unr";
+	//url.Map = "CTF-EternalCave.unr";
+	//url.Map = "CTF-Niven.unr";
+	//url.Map = "CTF-Face.unr";
+	//url.Map = "DOM-Sesmar.unr";
+	//url.Map = "EOL_Deathmatch.unr";
+	//url.Map = "UTCredits.unr";
 
-	if (packages->IsUnreal1())
-	{
-		LoadMap("Dark");
-		while (!quit)
-		{
-			float elapsed = CalcTimeElapsed();
-			window->Tick();
-
-			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(90.0f - Camera.Yaw), EulerOrder::yxz));
-			vec3 vel = { 0.0f };
-			if (Buttons.StrafeLeft) vel.x = 1.0f;
-			if (Buttons.StrafeRight) vel.x = -1.0f;
-			if (Buttons.Forward) vel.y = 1.0f;
-			if (Buttons.Backward) vel.y = -1.0f;
-			if (vel != vec3(0.0f))
-				vel = normalize(vel);
-			vel = inverse(viewrotation) * vel;
-			Camera.Location += vel * (elapsed * 650.0f);
-
-			for (UTexture* tex : engine->renderer->Textures)
-				tex->Update(elapsed);
-
-			RenderDevice* device = window->GetRenderDevice();
-			device->BeginFrame();
-			device->BeginScenePass();
-			int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
-			int sizeY = (int)(window->SizeY / (float)renderer->uiscale);
-			canvas->CurX() = 0.0f;
-			canvas->CurY() = 0.0f;
-			console->FrameX() = (float)sizeX;
-			console->FrameY() = (float)sizeY;
-			canvas->ClipX() = (float)sizeX;
-			canvas->ClipY() = (float)sizeY;
-			canvas->SizeX() = sizeX;
-			canvas->SizeY() = sizeY;
-			renderer->scene.DrawScene();
-			renderer->scene.DrawTimedemoStats();
-			device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
-			device->EndScenePass();
-			device->EndFrame(true);
-		}
-		return;
-	}
-
-	LoadMap(mapName);
-
-	CallEvent(console, "VideoChange");
-	CallEvent(console, "NotifyLevelChange");
+	LoadMap(url);
 
 	bool firstCall = true;
 	bool ticked = false;
@@ -233,10 +193,11 @@ void Engine::Run()
 		}
 		ticked = !ticked;
 
+		Camera.Location = viewport->Actor()->Location();
+
 		if (firstCall) // Unscript execution doesn't work well enough for us to use the viewport actor as our camera yet
 		{
 			firstCall = false;
-			Camera.Location = viewport->Actor()->Location();
 			Camera.Yaw = viewport->Actor()->Rotation().YawDegrees();
 			Camera.Roll = viewport->Actor()->Rotation().RollDegrees();
 			Camera.Pitch = viewport->Actor()->Rotation().PitchDegrees();
@@ -253,6 +214,7 @@ void Engine::Run()
 				vel = normalize(vel);
 			vel = inverse(viewrotation) * vel;
 			Camera.Location += vel * (elapsed * 650.0f);
+			viewport->Actor()->Location() = Camera.Location;
 		}
 
 		engine->renderer->AutoUV += elapsed * 64.0f;
@@ -296,10 +258,22 @@ void Engine::Run()
 	}
 }
 
-void Engine::LoadMap(std::string mapName)
+void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
+	// To do: need to do something about that travel type and transfering of items
+
+	UnrealURL url(LevelInfo->URL, newURL);
+	engine->LogMessage("Client travel to " + url.ToString());
+	LoadMap(url);
+}
+
+void Engine::LoadMap(const UnrealURL& url)
+{
+	if (Level)
+		CallEvent(console, "NotifyLevelChange");
+
 	// Load map objects
-	Package* package = packages->GetPackage(mapName);
+	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
 
 	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
 	if (packages->IsUnreal1())
@@ -315,12 +289,7 @@ void Engine::LoadMap(std::string mapName)
 	LevelInfo->MinNetVersion() = "500";
 	LevelInfo->bHighDetailMode() = true;
 
-	LevelInfo->URL = UnrealURL();
-	LevelInfo->URL.Map = mapName + ".unr";
-	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
-	{
-		LevelInfo->URL.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
-	}
+	LevelInfo->URL = url;
 
 	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
 

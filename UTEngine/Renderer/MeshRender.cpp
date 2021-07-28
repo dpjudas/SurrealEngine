@@ -53,6 +53,9 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
 	{
+		if (face.MaterialIndex >= mesh->Materials.size())
+			continue;
+
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
 		UTexture* tex = nullptr;
@@ -62,7 +65,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			if (!tex && material.TextureIndex == 0)
 				tex = actor->Skin();
 		}
-		if (!tex)
+		if (!tex && material.TextureIndex < mesh->Textures.size())
 			tex = mesh->Textures[material.TextureIndex];
 
 		if (tex)

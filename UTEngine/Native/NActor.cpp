@@ -392,7 +392,10 @@ void NActor::SetLocation(UObject* Self, const vec3& NewLocation, bool& ReturnVal
 
 void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 {
-	throw std::runtime_error("Actor.SetOwner not implemented");
+	engine->LogUnimplemented("Actor.SetOwner"); // What else needs to happen here? some events firing perhaps?
+
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->Owner() = UObject::Cast<UActor>(NewOwner);
 }
 
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)

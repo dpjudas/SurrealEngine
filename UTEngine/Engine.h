@@ -38,6 +38,7 @@ class FrustumPlanes;
 class AudioPlayer;
 class Rotator;
 class ExpressionValue;
+class UnrealURL;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -56,7 +57,8 @@ public:
 	~Engine();
 
 	void Run();
-	void LoadMap(std::string mapName);
+	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
+	void LoadMap(const UnrealURL& url);
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(DisplayWindow* window);
