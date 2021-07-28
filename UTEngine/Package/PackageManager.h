@@ -6,6 +6,7 @@
 
 class PackageStream;
 class UObject;
+class UClass;
 
 struct IntObject
 {
@@ -28,6 +29,9 @@ public:
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
 	UObject* NewObject(const std::string& name, const std::string& package, const std::string& className);
+	UObject* NewObject(const std::string& name, UClass* cls);
+
+	UClass* FindClass(const std::string& name);
 
 	std::string GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName);
 	std::string Localize(std::string packageName, const std::string& sectionName, const std::string& keyName);

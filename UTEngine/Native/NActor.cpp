@@ -558,7 +558,7 @@ void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec
 
 void NActor::TweenAnim(UObject* Self, const std::string& Sequence, float Time)
 {
-	throw std::runtime_error("Actor.TweenAnim not implemented");
+	UObject::Cast<UActor>(Self)->TweenAnim(Sequence, Time);
 }
 
 void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc)

@@ -338,13 +338,19 @@ void Engine::LoadMap(std::string mapName)
 			actor->XLevel() = Level;
 	}
 
+	// Find the game info class
+	UClass* gameInfoClass = packages->FindClass(LevelInfo->URL.GetOption("game"));
+	if (!gameInfoClass)
+		gameInfoClass = LevelInfo->DefaultGameType();
+	if (!gameInfoClass)
+		gameInfoClass = packages->FindClass(packages->GetIniValue("system", "Engine.Engine", "DefaultGame"));
+	if (!gameInfoClass)
+		gameInfoClass = packages->FindClass("Botpack.DeathMatchPlus");
+	if (!gameInfoClass)
+		throw std::runtime_error("Could not find any gameinfo class!");
+
 	// Spawn GameInfo actor
-	std::string gameName = packages->GetIniValue("system", "Engine.Engine", "DefaultGame");
-	if (gameName.empty() || gameName.find('.') == std::string::npos) gameName = "Botpack.DeathMatchPlus";
-	std::string gamePackageName = gameName.substr(0, gameName.find('.'));
-	std::string gameClassName = gameName.substr(gameName.find('.') + 1);
-	UClass* gameInfoClass = UObject::Cast<UClass>(packages->GetPackage(gamePackageName)->GetUObject("Class", gameClassName));
-	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gamePackageName, gameClassName));
+	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
 	Level->Actors.push_back(GameInfo);
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
@@ -497,12 +503,9 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "playsong")
 	{
-		if (LevelInfo->HasProperty("Song"))
-		{
-			auto music = UObject::Cast<UMusic>(LevelInfo->GetUObject("Song"));
-			if (music)
-				audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data));
-		}
+		auto music = LevelInfo->Song();
+		if (music)
+			audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data, true, 0, LevelInfo->SongSection()));
 	}
 	else if (command == "stopsong")
 	{

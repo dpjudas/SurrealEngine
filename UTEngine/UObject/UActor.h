@@ -97,8 +97,9 @@ public:
 	bool HasAnim(const std::string& sequence);
 	bool IsAnimating();
 	std::string GetAnimGroup(const std::string& sequence);
-	void PlayAnim(const std::string& Sequence, float* rate, float* tweenTime);
+	void PlayAnim(const std::string& sequence, float* rate, float* tweenTime);
 	void LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate);
+	void TweenAnim(const std::string& sequence, float tweenTime);
 
 	// Cached calculations needed by the renderer
 	int actorZone = -1;
@@ -945,6 +946,21 @@ public:
 	std::string SaveExt = "usa";
 	int Port = 7777;
 	std::vector<std::string> Options;
+
+	std::string GetOption(const std::string& name)
+	{
+		for (const std::string& option : Options)
+		{
+			if (option.size() >= name.size() + 1 && option[name.size()] == '=')
+			{
+				std::string key = option.substr(0, name.size());
+				for (char& c : key) c = std::tolower(c);
+				if (key == name)
+					return option.substr(name.size() + 1);
+			}
+		}
+		return {};
+	}
 
 	std::string GetAddressURL()
 	{

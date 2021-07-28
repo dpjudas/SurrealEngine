@@ -188,6 +188,31 @@ UObject* PackageManager::NewObject(const std::string& name, const std::string& p
 	return pkg->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
+UObject* PackageManager::NewObject(const std::string& name, UClass* cls)
+{
+	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+	return GetPackage("Engine")->NewObject(name, cls, ObjectFlags::NoFlags, true);
+}
+
+UClass* PackageManager::FindClass(const std::string& name)
+{
+	size_t pos = name.find('.');
+	if (pos == 0 || pos == std::string::npos || pos + 1 == name.size())
+		return nullptr;
+
+	std::string packageName = name.substr(0, pos);
+	std::string className = name.substr(pos + 1);
+
+	try
+	{
+		return UObject::Cast<UClass>(GetPackage(packageName)->GetUObject("Class", className));
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
+}
+
 std::string PackageManager::GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName)
 {
 	/*

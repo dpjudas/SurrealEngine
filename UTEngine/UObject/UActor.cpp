@@ -138,11 +138,14 @@ std::string UActor::GetAnimGroup(const std::string& sequence)
 
 void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime)
 {
+	// To do: TweenTime = Amount of Time to "tween" into the first frame of this animation sequence if in a different sequence
+
 	if (Mesh())
 	{
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			AnimSequence() = sequence;
 			AnimFrame() = 0.0f;
 			AnimRate() = 1.0f / seq->NumFrames * (seq->Rate * (rate ? *rate : 1.0f));
 			bAnimLoop() = false;
@@ -152,16 +155,27 @@ void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime
 
 void UActor::LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate)
 {
+	// To do: TweenTime = Amount of Time to "tween" into the first frame of this animation sequence if in a different sequence
+	// To do: what does minRate do?
+
 	if (Mesh())
 	{
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			AnimSequence() = sequence;
 			AnimFrame() = 0.0f;
 			AnimRate() = 1.0f / seq->NumFrames * (seq->Rate * (rate ? *rate : 1.0f));
 			bAnimLoop() = true;
 		}
 	}
+}
+
+void UActor::TweenAnim(const std::string& sequence, float tweenTime)
+{
+	// "Tween into a new animation" this means what? it keeps the current rate multiplier that was passed into an early Play/LoopAnim call?
+
+	PlayAnim(sequence, nullptr, &tweenTime);
 }
 
 void UActor::TickAnimation(float elapsed)
