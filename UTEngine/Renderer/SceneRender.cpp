@@ -127,7 +127,7 @@ void SceneRender::DrawTimedemoStats()
 		float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(engine->renderer->canvas.medfont, text).x - 64;
 		float curY = 180;
 		float curYL = 0.0f;
-		engine->renderer->canvas.DrawText(engine->renderer->canvas.largefont, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked);
+		engine->renderer->canvas.DrawText(engine->renderer->canvas.largefont, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 	}
 }
 

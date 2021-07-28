@@ -9,6 +9,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UTexture.h"
 #include "UObject/UActor.h"
+#include "UObject/UClient.h"
 #include "UTRenderer.h"
 
 CanvasRender::CanvasRender()
@@ -108,7 +109,7 @@ void CanvasRender::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float 
 	DrawTile(device, texinfo, dest, src, clipBox, Z, color, fog, flags, uiscale);
 }
 
-void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags)
+void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags, bool center)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -125,6 +126,10 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 	float uStartV = (float)uglyph.StartV;
 	float uUSize = (float)uglyph.USize;
 	float uVSize = (float)uglyph.VSize;
+
+	float centerX = 0;
+	if (center)
+		centerX = std::round((engine->canvas->SizeX() - GetTextSize(font, text).x) * 0.5f);
 
 	for (char c : text)
 	{
@@ -148,7 +153,7 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 			float USize = (float)glyph.USize;
 			float VSize = (float)glyph.VSize;
 
-			device->DrawTile(&SceneFrame, texinfo, (orgX + curX) * uiscale, (float)(orgY + curY) * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
+			device->DrawTile(&SceneFrame, texinfo, (orgX + curX + centerX) * uiscale, (float)(orgY + curY) * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
 
 			curX += width;
 			curYL = std::max(curYL, (float)glyph.VSize);
@@ -163,7 +168,7 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 	}
 }
 
-void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t flags, bool checkHotKey, float clipX, float clipY)
+void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t flags, bool checkHotKey, float clipX, float clipY, bool center)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -183,6 +188,10 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 
 	Rectf clipBox = Rectf::xywh(orgX, orgY, clipX, clipY);
 
+	float centerX = 0;
+	if (center)
+		centerX = std::round((clipX - GetTextSize(font, text).x) * 0.5f);
+
 	bool foundAmpersand = false;
 	int maxY = 0;
 	for (char c : text)
@@ -199,7 +208,7 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			if (curX + glyph.USize > (int)clipX)
 				break;
 
-			Rectf dest = Rectf::xywh(orgX + curX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
+			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
 			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
 
@@ -218,7 +227,7 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			if (curX + glyph.USize > (int)clipX)
 				break;
 
-			Rectf dest = Rectf::xywh(orgX + curX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
+			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
 			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
 

@@ -393,28 +393,29 @@ void NObject::Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue)
 
 void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, bool* MayFail, UObject*& ReturnValue)
 {
+	ReturnValue = nullptr;
+
 	if (!ObjectName.empty())
 	{
 		auto dotpos = ObjectName.find('.');
-		if (dotpos == std::string::npos)
-			throw std::runtime_error("Object.DynamicLoadObject: invalid object name " + ObjectName);
+		if (dotpos != 0 && dotpos != std::string::npos)
+		{
+			std::string packageName = ObjectName.substr(0, dotpos);
+			std::string objectName = ObjectName.substr(dotpos + 1);
 
-		std::string packageName = ObjectName.substr(0, dotpos);
-		std::string objectName = ObjectName.substr(dotpos + 1);
-
-		ReturnValue = engine->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
-	}
-	else
-	{
-		ReturnValue = nullptr;
+			try
+			{
+				ReturnValue = engine->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
+			}
+			catch (...)
+			{
+			}
+		}
 	}
 
 	if (!ReturnValue && (!MayFail || *MayFail == false))
 	{
-		if (ObjectName.empty())
-			engine->LogMessage("Object.DynamicLoadObject: specified object name was empty");
-		else
-			engine->LogMessage("Object.DynamicLoadObject: could not load " + ObjectName);
+		engine->LogMessage("Object.DynamicLoadObject: could not load '" + ObjectName + "'");
 	}
 }
 

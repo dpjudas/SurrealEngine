@@ -12,10 +12,10 @@ void NLevelInfo::RegisterFunctions()
 
 void NLevelInfo::GetAddressURL(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = UObject::Cast<ULevelInfo>(Self)->AddressURL;
+	ReturnValue = UObject::Cast<ULevelInfo>(Self)->URL.GetAddressURL();
 }
 
 void NLevelInfo::GetLocalURL(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = UObject::Cast<ULevelInfo>(Self)->LocalURL;
+	ReturnValue = UObject::Cast<ULevelInfo>(Self)->URL.ToString();
 }

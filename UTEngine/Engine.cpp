@@ -313,6 +313,13 @@ void Engine::LoadMap(std::string mapName)
 	LevelInfo->MinNetVersion() = "500";
 	LevelInfo->bHighDetailMode() = true;
 
+	LevelInfo->URL = UnrealURL();
+	LevelInfo->URL.Map = mapName + ".unr";
+	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
+	{
+		LevelInfo->URL.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
+	}
+
 	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
 
 	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
@@ -406,6 +413,12 @@ void Engine::LoadMap(std::string mapName)
 	if (!packages->IsUnreal1()) // To do: this crashes for unreal 1 atm
 		CallEvent(viewport->Actor(), "Possess");
 
+	CallEvent(pawn, "TravelPreAccept");
+	// To do: handle level inventory transfer here
+	CallEvent(pawn, "TravelPostAccept");
+
+	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
+
 	// Cache some light and texture info
 	std::set<UActor*> lightset;
 	for (UActor* light : Level->Model->Lights)
@@ -493,8 +506,88 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		audioplayer.reset();
 	}
+	else if (command == "getres")
+	{
+		return "1920x1080 1024x768 800x600";
+	}
+	else if (command == "getcolordepths")
+	{
+		return "32 16";
+	}
+	else if (command == "getcurrentres")
+	{
+		return "1920x1080";
+	}
+	else if (command == "getcurrentcolordepth")
+	{
+		return "32";
+	}
+	else if (command == "getping")
+	{
+		return "0";
+	}
+	else if (command == "getloss")
+	{
+		return "0";
+	}
+	else if (command == "keyname" && args.size() == 2)
+	{
+		int index = std::atoi(args[1].c_str());
+		return "key" + std::to_string(index);
+	}
+	else if (command == "keybinding" && args.size() == 2)
+	{
+		std::string name = args[1];
+		return "0";
+	}
+	else if (command == "get" && args.size() == 3)
+	{
+		std::string section = args[1];
+		std::string key = args[2];
+		if (section.size() > 4 && section.substr(0, 4) == "ini:")
+		{
+			size_t pos = section.find_first_of('.', 4);
+			if (pos != std::string::npos)
+			{
+				std::string packageName = section.substr(4, pos - 4);
+				std::string sectionName = section.substr(pos + 1);
+				if (packageName == "Engine" || packageName == "Core")
+					packageName = "system";
+				try
+				{
+					return packages->GetIniValue(packageName, sectionName, key);
+				}
+				catch (const std::exception& e)
+				{
+					LogMessage("Could not get ini value from " + section + ": " + e.what());
+				}
+			}
+		}
+		else if (section == "windrv.windowsclient")
+		{
+			if (key == "usejoystick")
+			{
+				return "0";
+			}
+			else if (key == "UseDirectInput")
+			{
+				return "1";
+			}
+		}
+
+		LogMessage("Unknown get: " + commandline);
+	}
+	else if (command == "set" && args.size() == 4)
+	{
+		LogUnimplemented("Set command is not implemented: " + commandline);
+	}
+	else if (command == "setres" && args.size() == 2)
+	{
+		LogUnimplemented("SetRes command is not implemented: " + commandline);
+	}
 	else
 	{
+		LogMessage("Unknown command: " + commandline);
 		found = false;
 	}
 	return {};

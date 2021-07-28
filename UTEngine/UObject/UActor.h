@@ -932,13 +932,69 @@ public:
 	Ulocationid*& locationid() { return Value<Ulocationid*>(PropOffsets_ZoneInfo.locationid); }
 };
 
+class UnrealURL
+{
+public:
+	std::string Protocol = "unreal";
+	std::string ProtocolDescription = "Unreal Protocol";
+	std::string Name = "Player";
+	std::string Map = "Index.unr";
+	std::string Host;
+	std::string Portal;
+	std::string MapExt = "unr";
+	std::string SaveExt = "usa";
+	int Port = 7777;
+	std::vector<std::string> Options;
+
+	std::string GetAddressURL()
+	{
+		return Host + ":" + std::to_string(Port);
+	}
+
+	std::string ToString()
+	{
+		std::string result;
+
+		if (Protocol != "unreal")
+		{
+			result += Protocol;
+			result += ":";
+			if (!Host.empty())
+				result += "//";
+		}
+
+		if (!Host.empty() || Port != 7777)
+		{
+			result += Host;
+			result += ":";
+			result += std::to_string(Port);
+			result += "/";
+		}
+
+		result += Map;
+
+		for (const std::string& option : Options)
+		{
+			result += "?";
+			result += option;
+		}
+
+		if (!Portal.empty())
+		{
+			result += "#";
+			result += Portal;
+		}
+
+		return result;
+	}
+};
+
 class ULevelInfo : public UZoneInfo
 {
 public:
 	using UZoneInfo::UZoneInfo;
 
-	std::string AddressURL = "unreal://localhost:7777";
-	std::string LocalURL = "unreal://localhost:7777";
+	UnrealURL URL;
 
 	int& AIProfile() { return Value<int>(PropOffsets_LevelInfo.AIProfile); }
 	std::string& Author() { return Value<std::string>(PropOffsets_LevelInfo.Author); }

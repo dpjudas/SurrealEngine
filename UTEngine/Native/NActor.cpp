@@ -268,7 +268,7 @@ void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("Actor.GetURLMap not implemented");
+	ReturnValue = engine->LevelInfo->URL.Map;
 }
 
 void NActor::HasAnim(UObject* Self, const std::string& Sequence, bool& ReturnValue)
