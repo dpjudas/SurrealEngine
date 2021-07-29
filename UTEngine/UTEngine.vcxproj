@@ -235,6 +235,7 @@
     <ClInclude Include="UObject\USound.h" />
     <ClInclude Include="UObject\UTextBuffer.h" />
     <ClInclude Include="UObject\UTexture.h" />
+    <ClInclude Include="UTF16.h" />
     <ClInclude Include="VM\Bytecode.h" />
     <ClInclude Include="VM\Expression.h" />
     <ClInclude Include="VM\ExpressionEvaluator.h" />
@@ -889,6 +890,7 @@
     <ClCompile Include="UObject\USound.cpp" />
     <ClCompile Include="UObject\UTextBuffer.cpp" />
     <ClCompile Include="UObject\UTexture.cpp" />
+    <ClCompile Include="UTF16.cpp" />
     <ClCompile Include="VM\Bytecode.cpp" />
     <ClCompile Include="VM\ExpressionEvaluator.cpp" />
     <ClCompile Include="VM\Frame.cpp" />

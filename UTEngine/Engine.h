@@ -56,8 +56,11 @@ public:
 	Engine();
 	~Engine();
 
+	std::string FindGameFolder();
 	void Run();
 	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
+	UnrealURL GetDefaultURL(const std::string& map);
+	void LoadEntryMap();
 	void LoadMap(const UnrealURL& url);
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
@@ -71,12 +74,10 @@ public:
 	UCanvas* canvas = nullptr;
 	UConsole* console = nullptr;
 
-	ULevelSummary* EntryLevelSummary = nullptr;
 	ULevelInfo* EntryLevelInfo = nullptr;
 	ULevel* EntryLevel = nullptr;
 	UGameInfo* EntryGameInfo = nullptr;
 
-	ULevelSummary* LevelSummary = nullptr;
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
 	UGameInfo* GameInfo = nullptr;

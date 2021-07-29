@@ -1018,7 +1018,22 @@ public:
 		}
 	}
 
-	std::string GetOption(const std::string& name)
+	bool HasOption(const std::string& name) const
+	{
+		for (const std::string& option : Options)
+		{
+			if ((option.size() >= name.size() + 1 && option[name.size()] == '=') || option.size() == name.size())
+			{
+				std::string key = option.substr(0, name.size());
+				for (char& c : key) c = std::tolower(c);
+				if (key == name)
+					return true;
+			}
+		}
+		return false;
+	}
+
+	std::string GetOption(const std::string& name) const
 	{
 		for (const std::string& option : Options)
 		{
@@ -1033,12 +1048,12 @@ public:
 		return {};
 	}
 
-	std::string GetAddressURL()
+	std::string GetAddressURL() const
 	{
 		return Host + ":" + std::to_string(Port);
 	}
 
-	std::string ToString()
+	std::string ToString() const
 	{
 		std::string result;
 

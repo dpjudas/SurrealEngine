@@ -255,6 +255,7 @@ set(UTENGINE_SOURCES
 	UTEngine/Engine.cpp
 	UTEngine/Main.cpp
 	UTEngine/File.cpp
+	UTEngine/UTF16.cpp
 	UTEngine/VM/NativeFuncExtractor.h
 	UTEngine/VM/NativeFunc.cpp
 	UTEngine/VM/NativeFuncExtractor.cpp

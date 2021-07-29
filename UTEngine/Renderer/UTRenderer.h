@@ -18,6 +18,8 @@ public:
 	UTRenderer();
 	~UTRenderer();
 
+	void OnMapLoaded();
+
 	std::vector<UActor*> Lights;
 	std::set<UTexture*> Textures;
 

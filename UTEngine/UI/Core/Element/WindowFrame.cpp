@@ -3,6 +3,7 @@
 #include "WindowFrame.h"
 #include "Canvas.h"
 #include "../View.h"
+#include "../../../UTF16.h"
 #include <cmath>
 
 #ifdef WIN32
@@ -11,23 +12,6 @@
 #ifdef _MSC_VER
 #pragma comment(lib, "Gdiplus.lib")
 #endif
-
-namespace
-{
-	std::wstring to_utf16(const std::string& str)
-	{
-		if (str.empty()) return {};
-		int needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
-		if (needed == 0)
-			throw std::runtime_error("MultiByteToWideChar failed");
-		std::wstring result;
-		result.resize(needed);
-		needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size());
-		if (needed == 0)
-			throw std::runtime_error("MultiByteToWideChar failed");
-		return result;
-	}
-}
 
 struct InitGdiPlus
 {

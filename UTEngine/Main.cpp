@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Engine.h"
+#include "UTF16.h"
 #include "VM/Frame.h"
 #include <iostream>
 #ifdef WIN32
@@ -17,23 +18,6 @@ void appMain()
 
 #pragma comment(linker, "\"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #pragma comment(lib, "comctl32.lib")
-
-namespace
-{
-	std::wstring to_utf16(const std::string& str)
-	{
-		if (str.empty()) return {};
-		int needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
-		if (needed == 0)
-			throw std::runtime_error("MultiByteToWideChar failed");
-		std::wstring result;
-		result.resize(needed);
-		needed = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size());
-		if (needed == 0)
-			throw std::runtime_error("MultiByteToWideChar failed");
-		return result;
-	}
-}
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "File.h"
+#include "UTF16.h"
 #include "Collision.h"
 #include "Renderer/UTRenderer.h"
 #include "Package/PackageManager.h"
@@ -29,67 +30,12 @@
 #include <chrono>
 #include <set>
 
-#ifdef WIN32
-namespace
-{
-	std::string from_utf16(const std::wstring& str)
-	{
-		if (str.empty()) return {};
-		int needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0, nullptr, nullptr);
-		if (needed == 0)
-			throw std::runtime_error("WideCharToMultiByte failed");
-		std::string result;
-		result.resize(needed);
-		needed = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(), &result[0], (int)result.size(), nullptr, nullptr);
-		if (needed == 0)
-			throw std::runtime_error("WideCharToMultiByte failed");
-		return result;
-	}
-}
-#endif
-
 Engine* engine = nullptr;
 
 Engine::Engine()
 {
 	engine = this;
-
-#ifdef WIN32
-	std::string utfolder;
-	std::vector<wchar_t> buffer(1024);
-
-	// Try use registry location
-	HKEY regkey = 0;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\Unreal Technology\\Installed Apps\\UnrealTournament", 0, KEY_READ, &regkey) == ERROR_SUCCESS)
-	{
-		DWORD type = 0;
-		DWORD size = (DWORD)(buffer.size() * sizeof(wchar_t));
-		LSTATUS result = RegQueryValueEx(regkey, L"Folder", 0, &type, (LPBYTE)buffer.data(), &size);
-		if (result == ERROR_SUCCESS && type == REG_SZ)
-		{
-			buffer.back() = 0;
-			utfolder = from_utf16(buffer.data());
-		}
-		RegCloseKey(regkey);
-	}
-
-	if (utfolder.empty()) // Try use subfolder next to exe
-	{
-		if (GetModuleFileName(0, buffer.data(), 1024))
-		{
-			buffer.back() = 0;
-			std::string exepath = FilePath::remove_last_component(from_utf16(buffer.data()));
-			utfolder = FilePath::combine(exepath, "Unreal Tournament");
-		}
-	}
-
-	utfolder = R"(C:\Games\UnrealTournament436)";
-	// utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
-
-#else
-	std::string utfolder = "/home/mbn/UnrealTournament";
-#endif
-	packages = std::make_unique<PackageManager>(utfolder);
+	packages = std::make_unique<PackageManager>(FindGameFolder());
 }
 
 Engine::~Engine()
@@ -123,44 +69,11 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
-	UnrealURL url;
-	url.Map = "Entry.unr";
-	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
-	{
-		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
-	}
+	LoadEntryMap();
 
-	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
-	LoadMap(url);
-	EntryLevelSummary = LevelSummary;
-	EntryLevelInfo = LevelInfo;
-	EntryLevel = Level;
-
-	//url.Map = "CityIntro.unr";
-	//url.Map = "UT-Logo-Map.unr";
-	//url.Map = "DM-Liandri.unr";
-	//url.Map = "DM-Codex.unr";
-	url.Map = "DM-Barricade.unr";
-	//url.Map = "DM-Deck16][.unr";
-	//url.Map = "DM-KGalleon.unr";
-	//url.Map = "DM-Turbine.unr";
-	//url.Map = "DM-Tempest.unr";
-	//url.Map = "DM-Grinder.unr";
-	//url.Map = "DM-HyperBlast.unr";
-	//url.Map = "DM-Peak.unr";
-	//url.Map = "CTF-Coret.unr";
-	//url.Map = "CTF-Dreary.unr";
-	//url.Map = "CTF-Command.unr";
-	//url.Map = "CTF-November.unr";
-	//url.Map = "CTF-Gauntlet.unr";
-	//url.Map = "CTF-EternalCave.unr";
-	//url.Map = "CTF-Niven.unr";
-	//url.Map = "CTF-Face.unr";
-	//url.Map = "DOM-Sesmar.unr";
-	//url.Map = "EOL_Deathmatch.unr";
-	//url.Map = "UTCredits.unr";
-
-	LoadMap(url);
+	LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
+	// LoadMap(GetDefaultURL("CityIntro.unr"));
+	// LoadMap(GetDefaultURL("DM-Barricade.unr"));
 
 	bool firstCall = true;
 	bool ticked = false;
@@ -267,10 +180,34 @@ void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool tr
 	LoadMap(url);
 }
 
+UnrealURL Engine::GetDefaultURL(const std::string& map)
+{
+	UnrealURL url;
+	url.Map = map;
+	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
+	{
+		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
+	}
+	return url;
+}
+
+void Engine::LoadEntryMap()
+{
+	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
+	LoadMap(GetDefaultURL("Entry.unr"));
+	EntryLevelInfo = LevelInfo;
+	EntryLevel = Level;
+	LevelInfo = nullptr;
+	Level = nullptr;
+}
+
 void Engine::LoadMap(const UnrealURL& url)
 {
 	if (Level)
 		CallEvent(console, "NotifyLevelChange");
+
+	if (url.HasOption("entry")) // Not sure what the purpose of this kind of travel is - do nothing for now.
+		return;
 
 	// Load map objects
 	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
@@ -283,6 +220,7 @@ void Engine::LoadMap(const UnrealURL& url)
 	}
 	if (!LevelInfo)
 		throw std::runtime_error("Could not find the LevelInfo object for this map!");
+
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	LevelInfo->EngineVersion() = "500";
@@ -291,14 +229,9 @@ void Engine::LoadMap(const UnrealURL& url)
 
 	LevelInfo->URL = url;
 
-	LevelSummary = UObject::Cast<ULevelSummary>(package->GetUObject("LevelSummary", "LevelSummary"));
-
 	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
 	if (!Level)
 		throw std::runtime_error("Could not find the Level object for this map!");
-
-	if (packages->IsUnreal1())
-		return;
 
 	// Link actors to the level
 	for (UActor* actor : Level->Actors)
@@ -387,8 +320,7 @@ void Engine::LoadMap(const UnrealURL& url)
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;
 	viewport->Actor()->Player() = viewport;
-	if (!packages->IsUnreal1()) // To do: this crashes for unreal 1 atm
-		CallEvent(viewport->Actor(), "Possess");
+	CallEvent(viewport->Actor(), "Possess");
 
 	CallEvent(pawn, "TravelPreAccept");
 	// To do: handle level inventory transfer here
@@ -396,25 +328,7 @@ void Engine::LoadMap(const UnrealURL& url)
 
 	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
 
-	// Cache some light and texture info
-	std::set<UActor*> lightset;
-	for (UActor* light : Level->Model->Lights)
-		lightset.insert(light);
-	engine->renderer->Lights.clear();
-	for (UActor* light : lightset)
-		engine->renderer->Lights.push_back(light);
-	engine->renderer->Textures.clear();
-	for (BspSurface& surf : Level->Model->Surfaces)
-	{
-		if (surf.Material)
-		{
-			engine->renderer->Textures.insert(surf.Material);
-			if (surf.Material->DetailTexture())
-				engine->renderer->Textures.insert(surf.Material->DetailTexture());
-			if (surf.Material->MacroTexture())
-				engine->renderer->Textures.insert(surf.Material->MacroTexture());
-		}
-	}
+	renderer->OnMapLoaded();
 }
 
 float Engine::CalcTimeElapsed()
@@ -671,6 +585,46 @@ void Engine::LogMessage(const std::string& message)
 void Engine::LogUnimplemented(const std::string& message)
 {
 	LogMessage("Unimplemented: " + message);
+}
+
+std::string Engine::FindGameFolder()
+{
+#ifdef WIN32
+	std::string utfolder;
+	std::vector<wchar_t> buffer(1024);
+
+	// Try use registry location
+	HKEY regkey = 0;
+	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\Unreal Technology\\Installed Apps\\UnrealTournament", 0, KEY_READ, &regkey) == ERROR_SUCCESS)
+	{
+		DWORD type = 0;
+		DWORD size = (DWORD)(buffer.size() * sizeof(wchar_t));
+		LSTATUS result = RegQueryValueEx(regkey, L"Folder", 0, &type, (LPBYTE)buffer.data(), &size);
+		if (result == ERROR_SUCCESS && type == REG_SZ)
+		{
+			buffer.back() = 0;
+			utfolder = from_utf16(buffer.data());
+		}
+		RegCloseKey(regkey);
+	}
+
+	if (utfolder.empty()) // Try use subfolder next to exe
+	{
+		if (GetModuleFileName(0, buffer.data(), 1024))
+		{
+			buffer.back() = 0;
+			std::string exepath = FilePath::remove_last_component(from_utf16(buffer.data()));
+			utfolder = FilePath::combine(exepath, "Unreal Tournament");
+		}
+	}
+
+	utfolder = R"(C:\Games\UnrealTournament436)";
+	// utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
+
+	return utfolder;
+#else
+	return "/home/mbn/UnrealTournament";
+#endif
 }
 
 const char* Engine::keynames[256] =

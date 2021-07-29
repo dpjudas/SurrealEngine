@@ -50,6 +50,30 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 {
 	auto device = engine->window->GetRenderDevice();
 
+	if (textures.size() < mesh->Textures.size())
+		textures.resize(mesh->Textures.size());
+
+	for (int i = 0; i < (int)mesh->Textures.size(); i++)
+	{
+		UTexture* tex = actor->GetMultiskin(i);
+
+		if (i == 0)
+		{
+			if (!tex) tex = actor->Skin();
+			if (!tex) tex = mesh->Textures[i];
+		}
+		else
+		{
+			if (!tex) tex = mesh->Textures[i];
+			if (!tex) tex = actor->Skin();
+		}
+
+		if (tex)
+			tex = tex->GetAnimTexture();
+
+		textures[i] = tex;
+	}
+
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
 	{
@@ -58,18 +82,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
-		UTexture* tex = nullptr;
-		if (actor)
-		{
-			tex = actor->GetMultiskin(material.TextureIndex);
-			if (!tex && material.TextureIndex == 0)
-				tex = actor->Skin();
-		}
-		if (!tex && material.TextureIndex < mesh->Textures.size())
-			tex = mesh->Textures[material.TextureIndex];
-
-		if (tex)
-			tex = tex->GetAnimTexture();
+		UTexture* tex = textures[material.TextureIndex];
 
 		FTextureInfo texinfo;
 		texinfo.Texture = tex;

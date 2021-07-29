@@ -728,6 +728,7 @@
     <ClCompile Include="VM\Iterator.cpp">
       <Filter>VM</Filter>
     </ClCompile>
+    <ClCompile Include="UTF16.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1187,6 +1188,7 @@
     <ClInclude Include="VM\Iterator.h">
       <Filter>VM</Filter>
     </ClInclude>
+    <ClInclude Include="UTF16.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Thirdparty\dumb\src\helpers\resamp2.inc">
