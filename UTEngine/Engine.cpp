@@ -71,9 +71,8 @@ void Engine::Run()
 
 	LoadEntryMap();
 
-	LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
-	// LoadMap(GetDefaultURL("CityIntro.unr"));
-	// LoadMap(GetDefaultURL("DM-Barricade.unr"));
+	//LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
+	LoadMap(GetDefaultURL("DM-Barricade.unr"));
 
 	bool firstCall = true;
 	bool ticked = false;
