@@ -54,7 +54,7 @@ void ExpressionItemBuilder::Expr(DefaultVariableExpression* expr)
 void ExpressionItemBuilder::Expr(ReturnExpression* expr)
 {
 	item->setText(0, "Return");
-	item->add(createItem("Condition", expr->Value));
+	item->add(createItem("Value", expr->Value));
 }
 
 void ExpressionItemBuilder::Expr(SwitchExpression* expr)
