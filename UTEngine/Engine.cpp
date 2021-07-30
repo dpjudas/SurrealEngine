@@ -252,11 +252,13 @@ void Engine::LoadMap(const UnrealURL& url)
 
 	// Spawn GameInfo actor
 	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
-	Level->Actors.push_back(GameInfo);
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
+
+	Level->Actors.push_back(GameInfo);
+
 	if (LevelInfo->bBegunPlay())
 	{
 		CallEvent(GameInfo, "Spawned");
@@ -271,7 +273,7 @@ void Engine::LoadMap(const UnrealURL& url)
 			{
 				if (actor && actor->Tag() == attachTag)
 				{
-					CallEvent(actor, "Attach", { ExpressionValue::ObjectValue(GameInfo) });
+					actor->SetBase(GameInfo, false);
 				}
 			}
 		}

@@ -77,6 +77,11 @@ class UActor : public UObject
 public:
 	using UObject::UObject;
 
+	UActor* Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation);
+
+	void SetBase(UActor* newBase, bool sendBaseChangeEvent);
+	void SetOwner(UActor* newOwner);
+
 	virtual void Tick(float elapsed, bool tickedFlag);
 
 	void TickAnimation(float elapsed);
@@ -127,7 +132,7 @@ public:
 	float& AnimRate() { return Value<float>(PropOffsets_Actor.AnimRate); }
 	std::string& AnimSequence() { return Value<std::string>(PropOffsets_Actor.AnimSequence); }
 	std::string& AttachTag() { return Value<std::string>(PropOffsets_Actor.AttachTag); }
-	// UActor*& Base() { return Value<UActor*>(PropOffsets_Actor.Base); }
+	UActor*& ActorBase() { return Value<UActor*>(PropOffsets_Actor.Base); }
 	UModel*& Brush() { return Value<UModel*>(PropOffsets_Actor.Brush); }
 	float& Buoyancy() { return Value<float>(PropOffsets_Actor.Buoyancy); }
 	vec3& ColLocation() { return Value<vec3>(PropOffsets_Actor.ColLocation); }

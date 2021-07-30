@@ -1,11 +1,182 @@
 
 #include "Precomp.h"
 #include "UActor.h"
+#include "ULevel.h"
 #include "UMesh.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
+#include "Package/PackageManager.h"
+#include "Engine.h"
+#include "Collision.h"
 
 static std::string tickEventName = "Tick";
+
+UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
+{
+	// To do: return null if spawn location isn't valid
+
+	if (!SpawnClass) // To do: return null if spawn class is abstract
+	{
+		return nullptr;
+	}
+
+	vec3 location = SpawnLocation ? *SpawnLocation : Location();
+	Rotator rotation = SpawnRotation ? *SpawnRotation : Rotation();
+
+	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+	UActor* actor = UObject::Cast<UActor>(engine->packages->GetPackage("Engine")->NewObject("", UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
+
+	actor->Outer() = engine->Level->Outer();
+	actor->XLevel() = engine->Level;
+	actor->Level() = engine->LevelInfo;
+	actor->Tag() = (!SpawnTag.empty() && SpawnTag != "None") ? SpawnTag : SpawnClass->Name;
+	actor->bTicked() = bTicked(); // To do: should it tick in the same world tick it was spawned in or wait until the next one?
+	actor->Instigator() = Instigator();
+	actor->Brush() = nullptr;
+	actor->Location() = location;
+	actor->OldLocation() = location;
+	actor->Rotation() = rotation;
+
+	engine->Level->Actors.push_back(actor);
+
+	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
+
+	actor->CreateDefaultState();
+
+	// To do: find the correct zone and BSP leaf for the actor
+	PointRegion region = {};
+	for (size_t i = 0; i < engine->Level->Model->Zones.size(); i++)
+	{
+		auto& zone = engine->Level->Model->Zones[i];
+		if (zone.ZoneActor)
+		{
+			region.Zone = UObject::Cast<UZoneInfo>(zone.ZoneActor);
+			region.ZoneNumber = (uint8_t)i;
+			region.BspLeaf = 0;
+			break;
+		}
+	}
+	actor->Region() = region;
+	UPawn* pawn = UObject::TryCast<UPawn>(actor);
+	if (pawn)
+	{
+		pawn->HeadRegion() = region;
+		pawn->FootRegion() = region;
+	}
+
+	if (engine->LevelInfo->bBegunPlay())
+	{
+		CallEvent(actor, "Spawned");
+		CallEvent(actor, "PreBeginPlay");
+		CallEvent(actor, "BeginPlay");
+
+		if (actor->bDeleteMe())
+			return nullptr;
+
+		// To do: we need to call touch events here
+
+		CallEvent(actor, "PostBeginPlay");
+		CallEvent(actor, "SetInitialState");
+
+		// Find base for certain types
+		bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(actor) || UObject::TryCast<UInventory>(actor) || UObject::TryCast<UPawn>(actor);
+		if (isDecorationInventoryOrPawn && !actor->ActorBase() && actor->bCollideWorld() && (actor->Physics() == PHYS_None || actor->Physics() == PHYS_Rotating))
+		{
+#if 0
+			UActor* hitActor = nullptr;
+			auto onHit = [&](UActor* testActor) -> bool
+			{
+				for (UActor* cur = testActor; cur; cur = cur->Owner())
+				{
+					if (cur == hitActor)
+						return true;
+				}
+				hitActor = testActor;
+				return false;
+			};
+			engine->collision->TraceHit(actor->Location(), actor->Location() + vec3(0.0f, 0.0f, -10.0f), onHit);
+			actor->SetBase(hitActor);
+#else
+			UActor* hitActor = engine->LevelInfo;
+			actor->SetBase(hitActor, true);
+#endif
+		}
+
+		std::string attachTag = actor->AttachTag();
+		if (!attachTag.empty() && attachTag != "None")
+		{
+			for (UActor* levelActor : engine->Level->Actors)
+			{
+				if (levelActor && levelActor->Tag() == attachTag)
+				{
+					levelActor->SetBase(actor, false);
+				}
+			}
+		}
+
+		static bool spawnNotificationLocked = false;
+		if (!spawnNotificationLocked)
+		{
+			struct NotificationLockGuard
+			{
+				NotificationLockGuard() { spawnNotificationLocked = true; }
+				~NotificationLockGuard() { spawnNotificationLocked = false; }
+			} lockGuard;
+
+			if (!engine->packages->IsUnreal1())
+			{
+				for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+				{
+					UClass* cls = notifyObj->ActorClass();
+					if (cls && actor->IsA(cls->Name))
+						actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
+				}
+			}
+		}
+	}
+
+	return actor;
+}
+
+void UActor::SetOwner(UActor* newOwner)
+{
+	if (Owner())
+		CallEvent(Owner(), "LostChild", { ExpressionValue::ObjectValue(this) });
+
+	Owner() = newOwner;
+
+	if (Owner())
+		CallEvent(Owner(), "GainedChild", { ExpressionValue::ObjectValue(this) });
+}
+
+void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
+{
+	if (ActorBase() != newBase)
+	{
+		for (UActor* cur = newBase; cur; cur = cur->ActorBase())
+		{
+			if (cur == this)
+				return;
+		}
+
+		if (ActorBase() && ActorBase() != engine->LevelInfo)
+		{
+			ActorBase()->StandingCount()--;
+			CallEvent(ActorBase(), "Detach", { ExpressionValue::ObjectValue(this) });
+		}
+
+		ActorBase() = newBase;
+
+		if (ActorBase() && ActorBase() != engine->LevelInfo)
+		{
+			ActorBase()->StandingCount()++;
+			CallEvent(ActorBase(), "Attach", { ExpressionValue::ObjectValue(this) });
+		}
+
+		if (sendBaseChangeEvent)
+			CallEvent(this, "BaseChange");
+	}
+}
 
 void UActor::Tick(float elapsed, bool tickedFlag)
 {

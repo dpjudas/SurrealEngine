@@ -369,7 +369,7 @@ void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, fl
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
 {
-	engine->LogUnimplemented("Actor.SetBase");
+	UObject::Cast<UActor>(Self)->SetBase(UObject::Cast<UActor>(NewBase), true);
 }
 
 void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
@@ -392,10 +392,7 @@ void NActor::SetLocation(UObject* Self, const vec3& NewLocation, bool& ReturnVal
 
 void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 {
-	engine->LogUnimplemented("Actor.SetOwner"); // What else needs to happen here? some events firing perhaps?
-
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	SelfActor->Owner() = UObject::Cast<UActor>(NewOwner);
+	UObject::Cast<UActor>(Self)->SetOwner(UObject::Cast<UActor>(NewOwner));
 }
 
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
@@ -429,103 +426,7 @@ void NActor::Sleep(UObject* Self, float Seconds)
 
 void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std::string* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
 {
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-
-	// To do: return null if spawn location isn't valid
-
-	if (!SpawnClass) // To do: return null if spawn class is abstract
-	{
-		ReturnValue = nullptr;
-		return;
-	}
-
-	vec3 location = SpawnLocation ? *SpawnLocation : SelfActor->Location();
-	Rotator rotation = SpawnRotation ? *SpawnRotation : SelfActor->Rotation();
-
-	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
-	UActor* actor = UObject::Cast<UActor>(engine->packages->GetPackage("Engine")->NewObject("", UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
-	actor->Outer() = engine->Level->Outer();
-	engine->Level->Actors.push_back(actor);
-
-	actor->Owner() = SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : SelfActor;
-	actor->XLevel() = engine->Level;
-	actor->Level() = engine->LevelInfo;
-	actor->Tag() = SpawnTag ? *SpawnTag : SpawnClass->Name;
-	actor->bTicked() = false; // To do: maybe bTicked should only be false if the game world hasn't ticked at least once already?
-	actor->Instigator() = SelfActor->Instigator();
-
-	actor->Location() = location;
-	actor->OldLocation() = location;
-	actor->Rotation() = rotation;
-
-	actor->CreateDefaultState();
-
-	// To do: find the correct zone and BSP leaf for the actor
-	PointRegion region = {};
-	for (size_t i = 0; i < engine->Level->Model->Zones.size(); i++)
-	{
-		auto& zone = engine->Level->Model->Zones[i];
-		if (zone.ZoneActor)
-		{
-			region.Zone = UObject::Cast<UZoneInfo>(zone.ZoneActor);
-			region.ZoneNumber = (uint8_t)i;
-			region.BspLeaf = 0;
-			break;
-		}
-	}
-	actor->Region() = region;
-	UPawn* pawn = UObject::TryCast<UPawn>(actor);
-	if (pawn)
-	{
-		pawn->HeadRegion() = region;
-		pawn->FootRegion() = region;
-	}
-
-	if (engine->LevelInfo->bBegunPlay())
-	{
-		CallEvent(actor, "Spawned");
-		CallEvent(actor, "PreBeginPlay");
-		CallEvent(actor, "BeginPlay");
-
-		// To do: we need to call touch events here
-
-		CallEvent(actor, "PostBeginPlay");
-		CallEvent(actor, "SetInitialState");
-
-		std::string attachTag = actor->AttachTag();
-		if (!attachTag.empty())
-		{
-			for (UActor* levelActor : engine->Level->Actors)
-			{
-				if (levelActor && levelActor->Tag() == attachTag)
-				{
-					CallEvent(levelActor, "Attach", { ExpressionValue::ObjectValue(actor) });
-				}
-			}
-		}
-
-		static bool spawnNotificationLocked = false;
-		if (!spawnNotificationLocked)
-		{
-			struct NotificationLockGuard
-			{
-				NotificationLockGuard() { spawnNotificationLocked = true; }
-				~NotificationLockGuard() { spawnNotificationLocked = false; }
-			} lockGuard;
-
-			if (!engine->packages->IsUnreal1())
-			{
-				for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
-				{
-					UClass* cls = notifyObj->ActorClass();
-					if (cls && actor->IsA(cls->Name))
-						actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
-				}
-			}
-		}
-	}
-
-	ReturnValue = actor;
+	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(UObject::Cast<UClass>(SpawnClass), SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : nullptr, SpawnTag ? *SpawnTag : std::string(), SpawnLocation, SpawnRotation);
 }
 
 void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
