@@ -107,13 +107,20 @@ public:
 	double paddingLeft = -1;
 
 	ElementStyle* activeStyle();
+	ComputedBorder computedNoncontent() { return activeStyle()->computedNoncontent(this); }
+	ComputedBorder computedPadding() { return activeStyle()->computedPadding(this); }
 	ComputedBorder computedBorder() { return activeStyle()->computedBorder(this); }
+	ComputedBorder computedMargin() { return activeStyle()->computedMargin(this); }
 	bool overflow() { return activeStyle()->overflow(this); }
 	Colorf color() { return activeStyle()->color(this); }
 	double lineHeight() { return activeStyle()->lineHeight(this); }
 	Colorf backgroundColor() { return activeStyle()->backgroundColor(this); }
 	double scrollbarWidth() { return activeStyle()->scrollbarWidth(this); }
 	double thumbMargin() { return activeStyle()->thumbMargin(this); }
+	Colorf borderColorLeft() { return activeStyle()->borderColorLeft(this); }
+	Colorf borderColorTop() { return activeStyle()->borderColorTop(this); }
+	Colorf borderColorRight() { return activeStyle()->borderColorRight(this); }
+	Colorf borderColorBottom() { return activeStyle()->borderColorBottom(this); }
 
 private:
 	void renderStyle(Canvas* canvas);

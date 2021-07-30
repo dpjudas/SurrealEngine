@@ -460,8 +460,8 @@ double Element::preferredWidth(Canvas* canvas)
 		double w = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			ComputedBorder border = element->computedBorder();
-			w = std::max(element->preferredWidth(canvas) + border.left + border.right, w);
+			ComputedBorder noncontent = element->computedNoncontent();
+			w = std::max(element->preferredWidth(canvas) + noncontent.left + noncontent.right, w);
 		}
 		return w;
 	}
@@ -470,8 +470,8 @@ double Element::preferredWidth(Canvas* canvas)
 		double w = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			ComputedBorder border = element->computedBorder();
-			w += element->preferredWidth(canvas) + border.left + border.right;
+			ComputedBorder noncontent = element->computedNoncontent();
+			w += element->preferredWidth(canvas) + noncontent.left + noncontent.right;
 		}
 		return w;
 	}
@@ -492,8 +492,8 @@ double Element::preferredHeight(Canvas* canvas, double width)
 		double h = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			ComputedBorder border = element->computedBorder();
-			h += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
+			ComputedBorder noncontent = element->computedNoncontent();
+			h += element->preferredHeight(canvas, width - noncontent.left - noncontent.right) + noncontent.top + noncontent.bottom;
 		}
 		return h;
 	}
@@ -502,8 +502,8 @@ double Element::preferredHeight(Canvas* canvas, double width)
 		double h = 0.0;
 		for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 		{
-			ComputedBorder border = element->computedBorder();
-			h = std::max(element->preferredHeight(canvas, width) + border.top + border.bottom, h);
+			ComputedBorder noncontent = element->computedNoncontent();
+			h = std::max(element->preferredHeight(canvas, width) + noncontent.top + noncontent.bottom, h);
 		}
 		return h;
 	}
@@ -515,8 +515,8 @@ double Element::firstBaselineOffset(Canvas* canvas, double width)
 	{
 		if (firstChild())
 		{
-			ComputedBorder border = firstChild()->computedBorder();
-			return firstChild()->firstBaselineOffset(canvas, width) + border.top;
+			ComputedBorder noncontent = firstChild()->computedNoncontent();
+			return firstChild()->firstBaselineOffset(canvas, width) + noncontent.top;
 		}
 		else
 		{
@@ -543,8 +543,8 @@ double Element::lastBaselineOffset(Canvas* canvas, double width)
 			{
 				if (element != lastChild())
 				{
-					ComputedBorder border = element->computedBorder();
-					h += element->preferredHeight(canvas, width) + border.top + border.bottom;
+					ComputedBorder noncontent = element->computedNoncontent();
+					h += element->preferredHeight(canvas, width) + noncontent.top + noncontent.bottom;
 				}
 			}
 			return h + lastChild()->lastBaselineOffset(canvas, width);
@@ -588,8 +588,8 @@ void Element::layoutContent(Canvas* canvas)
 				int expandingcount = 0;
 				for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 				{
-					ComputedBorder border = element->computedBorder();
-					totalheight += element->preferredHeight(canvas, width - border.left - border.right) + border.top + border.bottom;
+					ComputedBorder noncontent = element->computedNoncontent();
+					totalheight += element->preferredHeight(canvas, width - noncontent.left - noncontent.right) + noncontent.top + noncontent.bottom;
 					if (element->isClass("expanding"))
 						expandingcount++;
 				}
@@ -603,22 +603,33 @@ void Element::layoutContent(Canvas* canvas)
 			double y = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 			{
+				ComputedBorder noncontent = element->computedNoncontent();
+				ComputedBorder margin = element->computedMargin();
 				ComputedBorder border = element->computedBorder();
+				ComputedBorder padding = element->computedPadding();
 
 				ElementGeometry childpos;
-				childpos.paddingLeft = border.left;
-				childpos.paddingTop = border.top;
-				childpos.paddingRight = border.right;
-				childpos.paddingBottom = border.bottom;
-				childpos.contentX = border.left;
-				childpos.contentY = y + childpos.paddingTop;
-				childpos.contentWidth = width - border.left - border.right;
+				childpos.marginLeft = margin.left;
+				childpos.marginTop = margin.top;
+				childpos.marginRight = margin.right;
+				childpos.marginBottom = margin.bottom;
+				childpos.borderLeft = border.left;
+				childpos.borderTop = border.top;
+				childpos.borderRight = border.right;
+				childpos.borderBottom = border.bottom;
+				childpos.paddingLeft = padding.left;
+				childpos.paddingTop = padding.top;
+				childpos.paddingRight = padding.right;
+				childpos.paddingBottom = padding.bottom;
+				childpos.contentX = noncontent.left;
+				childpos.contentY = y + noncontent.top;
+				childpos.contentWidth = width - noncontent.left - noncontent.right;
 				childpos.contentHeight = element->preferredHeight(canvas, childpos.contentWidth);
 				if (element->isClass("expanding"))
 					childpos.contentHeight = std::max(childpos.contentHeight + stretchheight, 0.0);
 				element->setGeometry(childpos);
 
-				y += childpos.contentHeight + childpos.paddingTop + childpos.paddingBottom;
+				y += childpos.contentHeight + noncontent.top + noncontent.bottom;
 			}
 
 			elementgeometry.scrollWidth = width;
@@ -635,8 +646,8 @@ void Element::layoutContent(Canvas* canvas)
 				int expandingcount = 0;
 				for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 				{
-					ComputedBorder border = element->computedBorder();
-					totalwidth += element->preferredWidth(canvas) + border.left + border.right;
+					ComputedBorder noncontent = element->computedNoncontent();
+					totalwidth += element->preferredWidth(canvas) + noncontent.left + noncontent.right;
 					if (element->isClass("expanding"))
 						expandingcount++;
 				}
@@ -650,22 +661,33 @@ void Element::layoutContent(Canvas* canvas)
 			double x = 0.0;
 			for (Element* element = firstChild(); element != nullptr; element = element->nextSibling())
 			{
+				ComputedBorder noncontent = element->computedNoncontent();
+				ComputedBorder margin = element->computedMargin();
 				ComputedBorder border = element->computedBorder();
+				ComputedBorder padding = element->computedPadding();
 
 				ElementGeometry childpos;
-				childpos.paddingLeft = border.left;
-				childpos.paddingTop = border.top;
-				childpos.paddingRight = border.right;
-				childpos.paddingBottom = border.bottom;
-				childpos.contentX = x + border.left;
-				childpos.contentY = border.top;
+				childpos.marginLeft = margin.left;
+				childpos.marginTop = margin.top;
+				childpos.marginRight = margin.right;
+				childpos.marginBottom = margin.bottom;
+				childpos.borderLeft = border.left;
+				childpos.borderTop = border.top;
+				childpos.borderRight = border.right;
+				childpos.borderBottom = border.bottom;
+				childpos.paddingLeft = padding.left;
+				childpos.paddingTop = padding.top;
+				childpos.paddingRight = padding.right;
+				childpos.paddingBottom = padding.bottom;
+				childpos.contentX = x + noncontent.left;
+				childpos.contentY = noncontent.top;
 				childpos.contentWidth = element->preferredWidth(canvas);
-				childpos.contentHeight = height - border.top - border.bottom;
+				childpos.contentHeight = height - noncontent.top - noncontent.bottom;
 				if (element->isClass("expanding"))
 					childpos.contentWidth = std::max(childpos.contentWidth + stretchwidth, 0.0);
 				element->setGeometry(childpos);
 
-				x += childpos.contentWidth + childpos.paddingLeft + childpos.paddingRight;
+				x += childpos.contentWidth + noncontent.left + noncontent.right;
 			}
 
 			elementgeometry.scrollWidth = x;
@@ -695,6 +717,56 @@ void Element::renderStyle(Canvas* canvas)
 	if (bg.a != 0.0f)
 	{
 		canvas->fillRect(geometry().paddingBox(), bg);
+	}
+
+	if (geometry().borderTop > 0.0f)
+	{
+		Colorf c = borderColorTop();
+		if (c.a != 0.0f)
+		{
+			Rect box = geometry().borderBox();
+			box.height = geometry().borderTop;
+			canvas->fillRect(box, c);
+		}
+	}
+
+	if (geometry().borderBottom > 0.0f)
+	{
+		Colorf c = borderColorBottom();
+		if (c.a != 0.0f)
+		{
+			Rect box = geometry().borderBox();
+			box.y = box.y + box.height - geometry().borderBottom;
+			box.height = geometry().borderBottom;
+			canvas->fillRect(box, c);
+		}
+	}
+
+	if (geometry().borderLeft > 0.0f)
+	{
+		Colorf c = borderColorLeft();
+		if (c.a != 0.0f)
+		{
+			Rect box = geometry().borderBox();
+			box.y += geometry().borderTop;
+			box.height -= geometry().borderTop + geometry().borderBottom;
+			box.width = geometry().borderLeft;
+			canvas->fillRect(box, c);
+		}
+	}
+
+	if (geometry().borderRight > 0.0f)
+	{
+		Colorf c = borderColorRight();
+		if (c.a != 0.0f)
+		{
+			Rect box = geometry().borderBox();
+			box.y += geometry().borderTop;
+			box.height -= geometry().borderTop + geometry().borderBottom;
+			box.x = box.x + box.width - geometry().borderRight;
+			box.width = geometry().borderRight;
+			canvas->fillRect(box, c);
+		}
 	}
 }
 

@@ -18,10 +18,32 @@ void TabControl::setupUi()
 	addClass("tabcontrol");
 }
 
+void TabControl::setBorderStyle(TabControlBorderStyle style)
+{
+	borderstyle = style;
+	widgetStack->removeClass("tabcontrolleft");
+	widgetStack->removeClass("tabcontrolright");
+	if (style == TabControlBorderStyle::left)
+		widgetStack->addClass("tabcontrolleft");
+	if (style == TabControlBorderStyle::right)
+		widgetStack->addClass("tabcontrolright");
+}
+
 void TabControl::setBarPosition(TabBarPosition pos)
 {
 	if (pos != barpos)
 	{
+		if (pos == TabBarPosition::bottom)
+		{
+			addClass("tabsbottom");
+			tabs->addClass("tabsbottom");
+		}
+		else
+		{
+			removeClass("tabsbottom");
+			tabs->removeClass("tabsbottom");
+		}
+
 		barpos = pos;
 		tabs->moveBefore(barpos == TabBarPosition::top ? widgetStack : nullptr);
 	}
@@ -33,6 +55,17 @@ void TabControl::addPage(std::string icon, std::string label, View* page)
 	tab->setText(label);
 	tab->setIcon(icon);
 	tab->element->addEventListener("click", [=](Event* event) { event->stopPropagation(); onPageTabClicked(page); });
+
+	if (pages.empty())
+	{
+		tab->addClass("firsttab");
+	}
+
+	if (barpos == TabBarPosition::bottom)
+	{
+		tab->addClass("tabsbottom");
+		tab->addClass("tabsbottom");
+	}
 
 	page->setExpanding();
 

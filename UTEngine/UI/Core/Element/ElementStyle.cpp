@@ -12,16 +12,81 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 		values.backgroundColor = Colorf::fromRgba8(240, 240, 240);
 	}
 
+	if (isClass("tabbar"))
+	{
+		if (isClass("tabsbottom"))
+		{
+			values.border.top = 1;
+			values.borderColorTop = Colorf::fromRgba8(200, 200, 200);
+		}
+		else
+		{
+			values.border.bottom = 1;
+			values.borderColorBottom = Colorf::fromRgba8(200, 200, 200);
+		}
+	}
+
+	if (isClass("tabcontrol"))
+	{
+		if (isClass("tabsbottom"))
+		{
+			values.border.top = 1;
+			values.borderColorTop = Colorf::fromRgba8(200, 200, 200);
+		}
+		else
+		{
+			values.border.bottom = 1;
+			values.borderColorBottom = Colorf::fromRgba8(200, 200, 200);
+		}
+	}
+
+	if (isClass("tabcontrolleft"))
+	{
+		values.border.right = 1;
+		values.borderColorRight = Colorf::fromRgba8(200, 200, 200);
+	}
+
+	if (isClass("tabcontrolright"))
+	{
+		values.border.left = 1;
+		values.borderColorLeft = Colorf::fromRgba8(200, 200, 200);
+	}
+
 	if (isClass("tabbartab"))
 	{
-		values.border.top = 6;
-		values.border.bottom = 6;
-		values.border.left = 15;
-		values.border.right = 15;
+		if (isClass("tabsbottom"))
+		{
+			values.margin.top = -1;
+			values.border.bottom = 1;
+		}
+		else
+		{
+			values.margin.bottom = -1;
+			values.border.top = 1;
+		}
+
+		values.border.left = 1;
+		values.border.right = 1;
+		values.padding.top = 6;
+		values.padding.bottom = 6;
+		values.padding.left = 15;
+		values.padding.right = 15;
 
 		if (isClass("selected"))
 		{
-			// values.borderColor = Colorf::fromRgba8(255, 255, 255);
+			if (isClass("tabsbottom"))
+			{
+				values.borderColorTop = Colorf::fromRgba8(255, 255, 255);
+				values.borderColorBottom = Colorf::fromRgba8(200, 200, 200);
+			}
+			else
+			{
+				values.borderColorTop = Colorf::fromRgba8(200, 200, 200);
+				values.borderColorBottom = Colorf::fromRgba8(255, 255, 255);
+			}
+
+			values.borderColorLeft = Colorf::fromRgba8(200, 200, 200);
+			values.borderColorRight = Colorf::fromRgba8(200, 200, 200);
 			values.backgroundColor = Colorf::fromRgba8(255, 255, 255);
 		}
 	}
@@ -37,46 +102,46 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 
 	if (isClass("toolbar"))
 	{
-		values.border.top = 5;
-		values.border.right = 5;
-		values.border.bottom = 5;
-		values.border.left = 10;
+		values.padding.top = 5;
+		values.padding.right = 5;
+		values.padding.bottom = 5;
+		values.padding.left = 10;
 		values.lineHeight = 30;
 		inherit.lineHeight = false;
 	}
 	if (isClass("toolbarbutton"))
 	{
-		values.border.right = 10;
+		values.padding.right = 10;
 	}
 
 	if (isClass("menubar") || isClass("menubarmodal"))
 	{
-		values.border.left = 8;
-		values.border.right = 8;
+		values.padding.left = 8;
+		values.padding.right = 8;
 		values.lineHeight = 30;
 		inherit.lineHeight = false;
 	}
 	if (isClass("menubaritem") || isClass("menubarmodalitem"))
 	{
-		values.border.top = 3;
-		values.border.bottom = 3;
-		values.border.left = 9;
-		values.border.right = 9;
+		values.padding.top = 3;
+		values.padding.bottom = 3;
+		values.padding.left = 9;
+		values.padding.right = 9;
 		values.lineHeight = 24;
 		inherit.lineHeight = false;
 	}
 
 	if (isClass("listviewheader"))
 	{
-		values.border.left = 5;
-		values.border.right = 5;
+		values.padding.left = 5;
+		values.padding.right = 5;
 		values.lineHeight = 24;
 		inherit.lineHeight = false;
 		values.backgroundColor = Colorf::fromRgba8(240, 240, 240);
 	}
 	if (isClass("listview-headersplitterline"))
 	{
-		values.border.left = 1;
+		values.padding.left = 1;
 		values.backgroundColor = Colorf::fromRgba8(200, 200, 200);
 	}
 	if (isClass("listviewbody"))
@@ -86,8 +151,8 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 	}
 	if (isClass("listviewitem"))
 	{
-		values.border.left = 5;
-		values.border.right = 5;
+		values.padding.left = 5;
+		values.padding.right = 5;
 		values.lineHeight = 24;
 		inherit.lineHeight = false;
 
@@ -99,8 +164,8 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 
 	if (isClass("statusbaritem"))
 	{
-		values.border.left = 5;
-		values.border.right = 5;
+		values.padding.left = 5;
+		values.padding.right = 5;
 	}
 }
 
@@ -114,10 +179,33 @@ double ElementStyle::lineHeight(Element* element)
 	return (inherit.lineHeight && element->parent()) ? element->parent()->lineHeight() : values.lineHeight;
 }
 
+ComputedBorder ElementStyle::computedNoncontent(Element* element)
+{
+	ComputedBorder margin = computedMargin(element);
+	ComputedBorder border = computedBorder(element);
+	ComputedBorder padding = computedPadding(element);
+	ComputedBorder nc;
+	nc.left = margin.left + border.left + padding.left;
+	nc.top = margin.top + border.top + padding.top;
+	nc.right = margin.right + border.right + padding.right;
+	nc.bottom = margin.bottom + border.bottom + padding.bottom;
+	return nc;
+}
+
+ComputedBorder ElementStyle::computedMargin(Element* element)
+{
+	return values.margin;
+}
+
 ComputedBorder ElementStyle::computedBorder(Element* element)
 {
-	ComputedBorder border = values.border;
+	return values.border;
+}
+
+ComputedBorder ElementStyle::computedPadding(Element* element)
+{
+	ComputedBorder padding = values.padding;
 	if (element->paddingLeft >= 0)
-		border.left = element->paddingLeft;
-	return border;
+		padding.left = element->paddingLeft;
+	return padding;
 }

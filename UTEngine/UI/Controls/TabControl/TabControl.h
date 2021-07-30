@@ -7,6 +7,13 @@
 class TabBar;
 class TabBarTab;
 
+enum class TabControlBorderStyle
+{
+	none,
+	left,
+	right
+};
+
 enum class TabBarPosition
 {
 	top,
@@ -18,6 +25,7 @@ class TabControl : public VBoxView
 public:
 	TabControl(View* parent);
 
+	void setBorderStyle(TabControlBorderStyle style);
 	void setBarPosition(TabBarPosition pos);
 	void addPage(std::string icon, std::string label, View* page);
 	void showPage(View* page);
@@ -29,6 +37,7 @@ private:
 	void onPageTabClicked(View* page);
 	void setupUi();
 
+	TabControlBorderStyle borderstyle = TabControlBorderStyle::none;
 	TabBarPosition barpos = TabBarPosition::top;
 	TabBar* tabs = nullptr;
 	std::map<TabBarTab*, std::unique_ptr<View>> pages;

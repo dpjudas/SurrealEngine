@@ -49,12 +49,14 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	panel = new HBoxView(contentView());
 	panel->element->setStyle("height", "300px");
 	tabLeft = new TabControl(panel);
+	tabLeft->setBorderStyle(TabControlBorderStyle::left);
 	tabLeft->setBarPosition(TabBarPosition::bottom);
 	tabLeft->setExpanding();
 	tabLeft->addPage({}, "Locals", locals);
 	spacer2 = new View(panel);
 	spacer2->element->setStyle("width", "5px");
 	tabRight = new TabControl(panel);
+	tabRight->setBorderStyle(TabControlBorderStyle::right);
 	tabRight->setBarPosition(TabBarPosition::bottom);
 	tabRight->setExpanding();
 	tabRight->addPage({}, "Call Stack", callstack);
@@ -67,7 +69,11 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 
 void DebuggerWindow::onBreakpointTriggered()
 {
-	statustext->text->setText(Frame::ExceptionText);
+	if (!Frame::ExceptionText.empty())
+		statustext->text->setText(Frame::ExceptionText);
+	else
+		statustext->text->setText(" ");
+
 	if (!Frame::Callstack.empty())
 	{
 		disassembly->setFunction(Frame::Callstack.back()->Func);
