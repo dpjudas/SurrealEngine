@@ -299,20 +299,34 @@ void Engine::LoadMap(const UnrealURL& url)
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
 	LevelInfo->bStartup() = false;
 
-	// Create viewport pawn
-	std::string playerPawnClass = packages->GetIniValue("system", "URL", "Class");
-	std::string pawnPackageName = playerPawnClass.substr(0, playerPawnClass.find('.'));
-	std::string pawnClassName = playerPawnClass.substr(playerPawnClass.find('.') + 1);
-	UClass* pawnClass = UObject::Cast<UClass>(packages->GetPackage(pawnPackageName)->GetUObject("Class", pawnClassName));
-	std::string portal, options, error;
+	std::string playerPawnClass = url.GetOption("Class");
+	if (playerPawnClass.empty())
+		playerPawnClass = packages->GetIniValue("system", "URL", "Class");
+	UClass* pawnClass = packages->FindClass(playerPawnClass);
+
+	std::string portal = url.GetPortal();
+	std::string options = url.GetOptions();
+
 	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	std::string error, failcode;
+
+	// Perform PreLogin check (supposedly, good for early rejection in network games)
+	CallEvent(LevelInfo->Game(), "PreLogin", {
+		ExpressionValue::StringValue(options),
+		ExpressionValue::Variable(&error, &stringProp),
+		ExpressionValue::Variable(&failcode, &stringProp),
+		});
+	if (!error.empty() || !failcode.empty())
+		throw std::runtime_error("GameInfo prelogin failed: " + error + " (" + failcode + ")");
+
+	// Create viewport pawn
 	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
 		ExpressionValue::StringValue(portal),
 		ExpressionValue::StringValue(options),
 		ExpressionValue::Variable(&error, &stringProp),
 		ExpressionValue::ObjectValue(pawnClass)
 		}).ToObject());
-	if (!pawn)
+	if (!pawn || !error.empty())
 		throw std::runtime_error("GameInfo login failed: " + error);
 
 	// Assign the pawn to the viewport

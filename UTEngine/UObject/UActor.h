@@ -1058,6 +1058,25 @@ public:
 		return Host + ":" + std::to_string(Port);
 	}
 
+	std::string GetOptions() const
+	{
+		std::string result;
+		for (const std::string& option : Options)
+		{
+			result += "?";
+			result += option;
+		}
+		return result;
+	}
+
+	std::string GetPortal() const
+	{
+		if (!Portal.empty())
+			return "#" + Portal;
+		else
+			return std::string();
+	}
+
 	std::string ToString() const
 	{
 		std::string result;
@@ -1079,18 +1098,8 @@ public:
 		}
 
 		result += Map;
-
-		for (const std::string& option : Options)
-		{
-			result += "?";
-			result += option;
-		}
-
-		if (!Portal.empty())
-		{
-			result += "#";
-			result += Portal;
-		}
+		result += GetOptions();
+		result += GetPortal();
 
 		return result;
 	}
