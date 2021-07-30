@@ -23,19 +23,33 @@ void UFont::Load(ObjectStream* stream)
 	charactersPerPage = stream->ReadUInt32();
 }
 
-FontCharacter UFont::GetGlyph(char c) const
+FontGlyph UFont::GetGlyph(char c) const
 {
-	FontCharacter glyph = pages.front().Characters[(uint8_t)c];
+	FontGlyph glyph = FindGlyph(c);
 	if (glyph.USize == 0)
 	{
 		if (c >= 'a' && c <= 'z')
 		{
 			c += 'A' - 'a';
-			glyph = pages.front().Characters[(uint8_t)c];
+			glyph = FindGlyph(c);
 		}
 
 		if (glyph.USize == 0)
-			glyph = pages.front().Characters[32];
+			glyph = FindGlyph(32);
 	}
 	return glyph;
+}
+
+FontGlyph UFont::FindGlyph(char c) const
+{
+	size_t index = c;
+	for (auto& page : pages)
+	{
+		if (index < page.Characters.size())
+		{
+			return { page.Texture, page.Characters[index] };
+		}
+		index -= page.Characters.size();
+	}
+	return {};
 }

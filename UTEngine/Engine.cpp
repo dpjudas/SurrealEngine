@@ -619,32 +619,35 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 	}
 }
 
-void Engine::InputCommand(const std::string& commandline, EInputKey key, int delta)
+void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 {
-	std::vector<std::string> args = GetArgs(commandline);
-	if (!args.empty())
+	for (const std::string& commandline : GetSubcommands(commands))
 	{
-		std::string command = args[0];
-		for (char& c : command) c = std::tolower(c);
+		std::vector<std::string> args = GetArgs(commandline);
+		if (!args.empty())
+		{
+			std::string command = args[0];
+			for (char& c : command) c = std::tolower(c);
 
-		if (command == "button" && args.size() == 2)
-		{
-			activeInputButtons[args[1]] = key;
-		}
-		else if (command == "axis" && args.size() == 3)
-		{
-			float speed = 1.0f;
-			if (args[2].size() > 6 && args[2].substr(0, 6) == "Speed=")
-				speed = (float)std::atof(args[2].substr(6).c_str());
-			activeInputAxes[args[1]] = { speed * delta, key };
-		}
-		else
-		{
-			UFunction* func = FindEventFunction(viewport->Actor(), args[0]);
-			if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
+			if (command == "button" && args.size() == 2)
 			{
-				// To do: pass along args
-				CallEvent(viewport->Actor(), func->Name);
+				activeInputButtons[args[1]] = key;
+			}
+			else if (command == "axis" && args.size() == 3)
+			{
+				float speed = 1.0f;
+				if (args[2].size() > 6 && args[2].substr(0, 6) == "Speed=")
+					speed = (float)std::atof(args[2].substr(6).c_str());
+				activeInputAxes[args[1]] = { speed * delta, key };
+			}
+			else
+			{
+				UFunction* func = FindEventFunction(viewport->Actor(), args[0]);
+				if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
+				{
+					// To do: pass along args
+					CallEvent(viewport->Actor(), func->Name);
+				}
 			}
 		}
 	}

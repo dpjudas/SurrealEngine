@@ -113,19 +113,7 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
-	FTextureInfo texinfo;
-	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;
-	texinfo.Texture = font->pages.front().Texture;
-
 	int uiscale = engine->renderer->uiscale;
-
-	FontCharacter uglyph = font->GetGlyph('_');
-	int uwidth = uglyph.USize;
-	int uheight = uglyph.VSize;
-	float uStartU = (float)uglyph.StartU;
-	float uStartV = (float)uglyph.StartV;
-	float uUSize = (float)uglyph.USize;
-	float uVSize = (float)uglyph.VSize;
 
 	float centerX = 0;
 	if (center)
@@ -144,7 +132,11 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 		}
 		else
 		{
-			FontCharacter glyph = font->GetGlyph(c);
+			FontGlyph glyph = font->GetGlyph(c);
+
+			FTextureInfo texinfo;
+			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
+			texinfo.Texture = glyph.Texture;
 
 			int width = glyph.USize;
 			int height = glyph.VSize;
@@ -172,13 +164,9 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
-	FTextureInfo texinfo;
-	texinfo.CacheID = (uint64_t)(ptrdiff_t)font->pages.front().Texture;
-	texinfo.Texture = font->pages.front().Texture;
-
 	int uiscale = engine->renderer->uiscale;
 
-	FontCharacter uglyph = font->GetGlyph('_');
+	FontGlyph uglyph = font->GetGlyph('_');
 	int uwidth = uglyph.USize;
 	int uheight = uglyph.VSize;
 	float uStartU = (float)uglyph.StartU;
@@ -204,13 +192,20 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 		{
 			foundAmpersand = false;
 
-			FontCharacter glyph = font->GetGlyph(c);
+			FontGlyph glyph = font->GetGlyph(c);
 			if (curX + glyph.USize > (int)clipX)
 				break;
+
+			FTextureInfo texinfo;
+			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
+			texinfo.Texture = glyph.Texture;
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
 			DrawTile(device, texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked, uiscale);
+
+			texinfo.CacheID = (uint64_t)(ptrdiff_t)uglyph.Texture;
+			texinfo.Texture = uglyph.Texture;
 
 			dest = Rectf::xywh(orgX + curX + (glyph.USize - uwidth) / 2, orgY + curY, (float)uwidth, (float)uheight);
 			src = Rectf::xywh(uStartU, uStartV, uUSize, uVSize);
@@ -223,9 +218,13 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 		{
 			foundAmpersand = false;
 
-			FontCharacter glyph = font->GetGlyph(c);
+			FontGlyph glyph = font->GetGlyph(c);
 			if (curX + glyph.USize > (int)clipX)
 				break;
+
+			FTextureInfo texinfo;
+			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
+			texinfo.Texture = glyph.Texture;
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
@@ -286,7 +285,7 @@ ivec2 CanvasRender::GetTextClippedSize(UFont* font, const std::string& text, flo
 	int y = 0;
 	for (char c : text)
 	{
-		FontCharacter glyph = font->GetGlyph(c);
+		FontGlyph glyph = font->GetGlyph(c);
 		if (x + glyph.USize > (int)clipX)
 			break;
 		x += glyph.USize;
@@ -301,7 +300,7 @@ ivec2 CanvasRender::GetTextSize(UFont* font, const std::string& text)
 	int y = 0;
 	for (char c : text)
 	{
-		FontCharacter glyph = font->GetGlyph(c);
+		FontGlyph glyph = font->GetGlyph(c);
 		x += glyph.USize;
 		y = std::max(y, glyph.VSize);
 	}
