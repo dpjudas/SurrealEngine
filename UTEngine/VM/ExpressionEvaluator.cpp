@@ -223,9 +223,14 @@ void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 	int index = Eval(expr->Index).Value.ToInt();
 	Result.Value = Eval(expr->Array).Value;
 	if (Result.Value.VariablePtr)
+	{
+		index = clamp(index, 0, (int)Result.Value.VariableProperty->ArrayDimension - 1);
 		Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
+	}
 	else
+	{
 		Frame::ThrowException("VariablePtr is null in ArrayElementExpression");
+	}
 }
 
 void ExpressionEvaluator::Expr(IntConstExpression* expr)

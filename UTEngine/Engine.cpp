@@ -36,6 +36,8 @@ Engine::Engine()
 {
 	engine = this;
 	packages = std::make_unique<PackageManager>(FindGameFolder());
+
+	// Frame::AddBreakpoint("Botpack", "ChallengeVoicePack", "GetCallSign");
 }
 
 Engine::~Engine()
