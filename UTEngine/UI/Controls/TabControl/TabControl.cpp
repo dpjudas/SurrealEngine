@@ -59,6 +59,8 @@ void TabControl::addPage(std::string icon, std::string label, View* page)
 	if (pages.empty())
 	{
 		tab->addClass("firsttab");
+		if (borderstyle == TabControlBorderStyle::left)
+			tab->addClass("firstlefttab");
 	}
 
 	if (barpos == TabBarPosition::bottom)

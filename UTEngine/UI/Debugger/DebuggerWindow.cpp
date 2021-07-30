@@ -39,9 +39,8 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 
 	tabcontrol = new TabControl(contentView());
 	tabcontrol->setExpanding();
-	tabcontrol->addPage({}, "Disassembly", disassembly);
-	tabcontrol->addPage({}, "Object Viewer", objectviewer);
 	tabcontrol->addPage({}, "Log", log);
+	tabcontrol->addPage({}, "Disassembly", disassembly);
 
 	spacer1 = new View(contentView());
 	spacer1->element->setStyle("height", "5px");
@@ -53,6 +52,7 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	tabLeft->setBarPosition(TabBarPosition::bottom);
 	tabLeft->setExpanding();
 	tabLeft->addPage({}, "Locals", locals);
+	tabLeft->addPage({}, "Context", objectviewer);
 	spacer2 = new View(panel);
 	spacer2->element->setStyle("width", "5px");
 	tabRight = new TabControl(panel);

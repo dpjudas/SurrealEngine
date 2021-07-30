@@ -65,6 +65,11 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 			values.border.top = 1;
 		}
 
+		if (isClass("firstlefttab"))
+		{
+			values.margin.left = -1;
+		}
+
 		values.border.left = 1;
 		values.border.right = 1;
 		values.padding.top = 6;
@@ -160,6 +165,14 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 		{
 			values.backgroundColor = Colorf::fromRgba8(240, 232, 255);
 		}
+	}
+
+	if (isClass("statusbar"))
+	{
+		values.padding.left = 5;
+		values.padding.right = 5;
+		values.padding.top = 5;
+		values.padding.bottom = 5;
 	}
 
 	if (isClass("statusbaritem"))
