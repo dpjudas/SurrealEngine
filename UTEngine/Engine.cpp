@@ -82,7 +82,7 @@ void Engine::Run()
 	{
 		float elapsed = CalcTimeElapsed();
 
-		window->Tick();
+		UpdateInput();
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
 
@@ -107,28 +107,23 @@ void Engine::Run()
 		}
 		ticked = !ticked;
 
-		Camera.Location = viewport->Actor()->Location();
-
-		if (firstCall) // Unscript execution doesn't work well enough for us to use the viewport actor as our camera yet
+		// To do: improve CallEvent so parameter passing isn't this painful
+		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");
+		if (funcPlayerCalcView)
 		{
-			firstCall = false;
-			Camera.Yaw = viewport->Actor()->Rotation().YawDegrees();
-			Camera.Roll = viewport->Actor()->Rotation().RollDegrees();
-			Camera.Pitch = viewport->Actor()->Rotation().PitchDegrees();
-		}
-		else
-		{
-			quaternion viewrotation = normalize(quaternion::euler(radians(-Camera.Pitch), radians(-Camera.Roll), radians(90.0f - Camera.Yaw), EulerOrder::yxz));
-			vec3 vel = { 0.0f };
-			if (Buttons.StrafeLeft) vel.x = 1.0f;
-			if (Buttons.StrafeRight) vel.x = -1.0f;
-			if (Buttons.Forward) vel.y = 1.0f;
-			if (Buttons.Backward) vel.y = -1.0f;
-			if (vel != vec3(0.0f))
-				vel = normalize(vel);
-			vel = inverse(viewrotation) * vel;
-			Camera.Location += vel * (elapsed * 650.0f);
-			viewport->Actor()->Location() = Camera.Location;
+			UObjectProperty objprop({}, nullptr, ObjectFlags::NoFlags);
+			UStructProperty vecprop({}, nullptr, ObjectFlags::NoFlags);
+			UStructProperty rotprop({}, nullptr, ObjectFlags::NoFlags);
+			vecprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
+			rotprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
+			CameraActor = viewport->Actor();
+			CameraLocation = viewport->Actor()->Location();
+			CameraRotation = viewport->Actor()->Rotation();
+			CallEvent(viewport->Actor(), "PlayerCalcView", {
+				ExpressionValue::Variable(&CameraActor, &objprop),
+				ExpressionValue::Variable(&CameraLocation, &vecprop),
+				ExpressionValue::Variable(&CameraRotation, &rotprop)
+				});
 		}
 
 		engine->renderer->AutoUV += elapsed * 64.0f;
@@ -351,21 +346,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 {
 	found = false;
 
-	std::vector<std::string> args;
-	size_t i = 0;
-	while (i < commandline.size())
-	{
-		size_t j = commandline.find_first_not_of(" \t", i);
-		if (j == std::string::npos)
-			break;
-		i = j;
-		j = commandline.find_first_of(" \t", i);
-		if (j == std::string::npos)
-			j = commandline.size();
-		if (j > i)
-			args.push_back(commandline.substr(i, j - i));
-		i = j;
-	}
+	std::vector<std::string> args = GetArgs(commandline);
 	if (args.empty())
 	{
 		return {};
@@ -484,6 +465,44 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	return {};
 }
 
+std::vector<std::string> Engine::GetArgs(const std::string& commandline)
+{
+	std::vector<std::string> args;
+	size_t i = 0;
+	while (i < commandline.size())
+	{
+		size_t j = commandline.find_first_not_of(" \t", i);
+		if (j == std::string::npos)
+			break;
+		i = j;
+		j = commandline.find_first_of(" \t", i);
+		if (j == std::string::npos)
+			j = commandline.size();
+		if (j > i)
+			args.push_back(commandline.substr(i, j - i));
+		i = j;
+	}
+	return args;
+}
+
+std::vector<std::string> Engine::GetSubcommands(const std::string& command)
+{
+	std::vector<std::string> subcommands;
+	size_t pos = 0;
+	while (pos < command.size())
+	{
+		size_t endpos = command.find('|', pos);
+		if (endpos == std::string::npos)
+			endpos = command.size();
+
+		std::string subcommand = command.substr(pos, endpos - pos);
+		if (!subcommand.empty())
+			subcommands.push_back(subcommand);
+		pos = endpos + 1;
+	}
+	return subcommands;
+}
+
 void Engine::LoadKeybindings()
 {
 	for (int i = 0; i < 256; i++)
@@ -491,6 +510,42 @@ void Engine::LoadKeybindings()
 		std::string keyname = keynames[i];
 		keybindings[keyname] = packages->GetIniValue("user", "Engine.Input", keyname);
 	}
+
+	for (int i = 0; i < 40; i++)
+	{
+		std::string alias = packages->GetIniValue("user", "Engine.Input", "Aliases[" + std::to_string(i) + "]");
+
+		// Total trash parsing, but it will do for the aliases I have! Feel free to improve it!
+		std::string commandStart = "(Command=\"";
+		std::string commandSplit = "\",Alias=";
+		std::string commandEnd = ")";
+		if (alias.size() > commandStart.size() + commandSplit.size() + commandEnd.size())
+		{
+			size_t pos = alias.find(commandSplit, commandStart.size());
+			if (pos != std::string::npos)
+			{
+				size_t pos2 = alias.find(commandEnd, pos);
+				if (pos2 != std::string::npos)
+				{
+					std::string aliasCommand = alias.substr(commandStart.size(), pos - commandStart.size());
+					std::string aliasName = alias.substr(pos + commandSplit.size(), pos2 - pos - commandSplit.size());
+					if (!aliasName.empty() && aliasName != "None")
+						inputAliases[aliasName] = aliasCommand;
+				}
+			}
+		}
+	}
+}
+
+void Engine::UpdateInput()
+{
+	InputEvent(window.get(), IK_MouseX, IST_Axis, 0);
+	InputEvent(window.get(), IK_MouseY, IST_Axis, 0);
+	window->Tick();
+	for (auto& it : activeInputButtons)
+		viewport->Actor()->SetBool(it.first, true);
+	for (auto& it : activeInputAxes)
+		viewport->Actor()->SetFloat(it.first, it.second.Value);
 }
 
 void Engine::Key(DisplayWindow* viewport, std::string key)
@@ -510,47 +565,87 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 		return;
 
 	bool handled = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) }).ToBool();
-
+	
 	if (!handled)
 	{
-		switch (key)
+		if ((type == EInputType::IST_Press || type == EInputType::IST_Axis) && key >= 0 && key < 256)
 		{
-		case 'W':
-			Buttons.Forward = (type == IST_Press);
-			break;
-		case 'S':
-			Buttons.Backward = (type == IST_Press);
-			break;
-		case 'A':
-			Buttons.StrafeLeft = (type == IST_Press);
-			break;
-		case 'D':
-			Buttons.StrafeRight = (type == IST_Press);
-			break;
-		case IK_Space:
-			Buttons.Jump = (type == IST_Press);
-			break;
-		case IK_Shift:
-			Buttons.Crouch = (type == IST_Press);
-			break;
-		case IK_LeftMouse:
-			break;
-		case IK_MiddleMouse:
-			break;
-		case IK_RightMouse:
-			break;
-		case IK_MouseWheelDown:
-			break;
-		case IK_MouseWheelUp:
-			break;
-		case IK_MouseX:
-			Camera.Yaw += delta * Mouse.SpeedX;
-			while (Camera.Yaw < 0.0f) Camera.Yaw += 360.0f;
-			while (Camera.Yaw >= 360.0f) Camera.Yaw -= 360.0f;
-			break;
-		case IK_MouseY:
-			Camera.Pitch = clamp(Camera.Pitch + delta * Mouse.SpeedY, -90.0f, 90.0f);
-			break;
+			if (type == EInputType::IST_Press)
+				delta = 16;
+			else
+				delta *= 8;
+
+			for (const std::string& command : GetSubcommands(keybindings[keynames[key]]))
+			{
+				auto it = inputAliases.find(command);
+				if (it != inputAliases.end())
+				{
+					InputCommand(it->second, key, delta);
+				}
+				else
+				{
+					InputCommand(command, key, delta);
+				}
+			}
+		}
+		else if (type == EInputType::IST_Release)
+		{
+			for (auto it = activeInputButtons.begin(); it != activeInputButtons.end();)
+			{
+				if (it->second == key)
+				{
+					viewport->Actor()->SetBool(it->first, false);
+					it = activeInputButtons.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
+
+			for (auto it = activeInputAxes.begin(); it != activeInputAxes.end();)
+			{
+				if (it->second.Key == key)
+				{
+					viewport->Actor()->SetFloat(it->first, 0.0f);
+					it = activeInputAxes.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
+		}
+	}
+}
+
+void Engine::InputCommand(const std::string& commandline, EInputKey key, int delta)
+{
+	std::vector<std::string> args = GetArgs(commandline);
+	if (!args.empty())
+	{
+		std::string command = args[0];
+		for (char& c : command) c = std::tolower(c);
+
+		if (command == "button" && args.size() == 2)
+		{
+			activeInputButtons[args[1]] = key;
+		}
+		else if (command == "axis" && args.size() == 3)
+		{
+			float speed = 1.0f;
+			if (args[2].size() > 6 && args[2].substr(0, 6) == "Speed=")
+				speed = (float)std::atof(args[2].substr(6).c_str());
+			activeInputAxes[args[1]] = { speed * delta, key };
+		}
+		else
+		{
+			UFunction* func = FindEventFunction(viewport->Actor(), args[0]);
+			if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
+			{
+				// To do: pass along args
+				CallEvent(viewport->Actor(), func->Name);
+			}
 		}
 	}
 }

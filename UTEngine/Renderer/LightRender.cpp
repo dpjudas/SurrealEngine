@@ -376,7 +376,7 @@ void LightRender::DrawFogmapSpan(vec4* line, int start, int end, float x0, float
 	float radius = light->radius;
 	float r2 = light->r2;
 
-	vec3 view = engine->Camera.Location;
+	vec3 view = engine->CameraLocation;
 	vec3 lightpos = light->Location();
 
 	for (int i = start; i < end; i++)
@@ -449,7 +449,7 @@ vec4 LightRender::FindFogAt(const vec3& location)
 			float radius = light->radius;
 			float r2 = light->r2;
 
-			vec3 view = engine->Camera.Location;
+			vec3 view = engine->CameraLocation;
 			vec3 lightpos = light->Location();
 
 			// Find the one or two points where the light intersects with our ray from the texel to the view

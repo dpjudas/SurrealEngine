@@ -4,6 +4,7 @@
 #include "Math/mat.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
+#include "UObject/UObject.h"
 #include <set>
 #include <list>
 
@@ -65,9 +66,14 @@ public:
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(DisplayWindow* window);
+	void UpdateInput();
 	void Key(DisplayWindow* window, std::string key);
 	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0);
+	void InputCommand(const std::string& command, EInputKey key, int delta);
 	void SetPause(bool value);
+
+	std::vector<std::string> GetArgs(const std::string& commandline);
+	std::vector<std::string> GetSubcommands(const std::string& commandline);
 
 	UClient* client = nullptr;
 	UViewport* viewport = nullptr;
@@ -104,23 +110,9 @@ public:
 		vec3 Location = { 200.0f, 1200.0f, 1300.0f };
 	};
 	
-	ActorPos Camera;
-
-	struct
-	{
-		float SpeedX = 0.08f;
-		float SpeedY = 0.08f;
-	} Mouse;
-
-	struct
-	{
-		bool Forward = false;
-		bool Backward = false;
-		bool StrafeLeft = false;
-		bool StrafeRight = false;
-		bool Jump = false;
-		bool Crouch = false;
-	} Buttons;
+	UActor* CameraActor = nullptr;
+	vec3 CameraLocation;
+	Rotator CameraRotation;
 
 	bool quit = false;
 
@@ -128,7 +120,17 @@ public:
 
 	void LoadKeybindings();
 	std::map<std::string, std::string> keybindings;
+	std::map<std::string, std::string> inputAliases;
 	static const char* keynames[256];
+
+	struct ActiveInputAxis
+	{
+		float Value;
+		EInputKey Key;
+	};
+
+	std::map<std::string, EInputKey> activeInputButtons;
+	std::map<std::string, ActiveInputAxis> activeInputAxes;
 };
 
 extern Engine* engine;

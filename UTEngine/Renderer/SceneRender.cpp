@@ -531,8 +531,8 @@ uint64_t SceneRender::FindRenderZoneMaskForPortal(FSceneNode* frame, const BspNo
 
 FSceneNode SceneRender::CreateSceneFrame()
 {
-	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw - 90.0f), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - engine->Camera.Location);
+	mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - engine->CameraLocation);
 
 	FSceneNode frame;
 	frame.XB = 0;
@@ -544,7 +544,7 @@ FSceneNode SceneRender::CreateSceneFrame()
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
-	frame.ViewLocation = engine->Camera.Location;
+	frame.ViewLocation = engine->CameraLocation;
 	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
@@ -556,8 +556,8 @@ FSceneNode SceneRender::CreateSceneFrame()
 
 FSceneNode SceneRender::CreateSkyFrame(UZoneInfo* skyZone)
 {
-	mat4 rotate = mat4::rotate(radians(engine->Camera.Roll), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Pitch), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->Camera.Yaw), 0.0f, 0.0f, -1.0f);
-	mat4 skyrotate = mat4::rotate(radians(skyZone->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
+	mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
+	mat4 skyrotate = skyZone->Rotation().ToMatrix(); //mat4::rotate(radians(skyZone->Rotation().RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(skyZone->Rotation().YawDegrees()), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - skyZone->Location());
 
 	FSceneNode frame;
