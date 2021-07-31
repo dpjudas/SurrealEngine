@@ -67,5 +67,8 @@ void NPlayerPawn::ResetKeyboard(UObject* Self)
 
 void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const std::string& NewValue, bool bSaveDefault)
 {
-	engine->LogUnimplemented("PlayerPawn.UpdateURL(" + NewOption + ", " + NewValue + ", " + std::to_string(bSaveDefault) + ")");
+	UPlayerPawn* SelfPlayerPawn = UObject::Cast<UPlayerPawn>(Self);
+	SelfPlayerPawn->Level()->URL.AddOrReplaceOption(NewOption + "=" + NewValue);
+	if (bSaveDefault)
+		engine->LogUnimplemented("PlayerPawn.UpdateURL save default");
 }

@@ -65,7 +65,7 @@ void SceneRender::DrawScene()
 
 	for (UActor* actor : level->Actors)
 	{
-		if (actor && !actor->bHidden())
+		if (actor && !actor->bHidden() && actor != engine->CameraActor)
 		{
 			int actorZone = actor->actorZone;
 			if (actorZone == -1)

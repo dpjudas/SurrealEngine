@@ -109,7 +109,7 @@ void CanvasRender::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float 
 	DrawTile(device, texinfo, dest, src, clipBox, Z, color, fog, flags, uiscale);
 }
 
-void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags, bool center)
+void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags, bool center, float spaceX, float spaceY)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -147,8 +147,8 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 
 			device->DrawTile(&SceneFrame, texinfo, (orgX + curX + centerX) * uiscale, (float)(orgY + curY) * uiscale, (float)width * uiscale, (float)height * uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
 
-			curX += width;
-			curYL = std::max(curYL, (float)glyph.VSize);
+			curX += width + spaceX;
+			curYL = std::max(curYL, (float)glyph.VSize + spaceY);
 		}
 	}
 

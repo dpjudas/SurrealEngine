@@ -26,9 +26,9 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
 	UActor* actor = UObject::Cast<UActor>(engine->packages->GetPackage("Engine")->NewObject("", UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
 
-	actor->Outer() = engine->Level->Outer();
-	actor->XLevel() = engine->Level;
-	actor->Level() = engine->LevelInfo;
+	actor->Outer() = XLevel()->Outer();
+	actor->XLevel() = XLevel();
+	actor->Level() = Level();
 	actor->Tag() = (!SpawnTag.empty() && SpawnTag != "None") ? SpawnTag : SpawnClass->Name;
 	actor->bTicked() = bTicked(); // To do: should it tick in the same world tick it was spawned in or wait until the next one?
 	actor->Instigator() = Instigator();
@@ -37,7 +37,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	actor->OldLocation() = location;
 	actor->Rotation() = rotation;
 
-	engine->Level->Actors.push_back(actor);
+	XLevel()->Actors.push_back(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
 
@@ -45,9 +45,9 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 
 	// To do: find the correct zone and BSP leaf for the actor
 	PointRegion region = {};
-	for (size_t i = 0; i < engine->Level->Model->Zones.size(); i++)
+	for (size_t i = 0; i < XLevel()->Model->Zones.size(); i++)
 	{
-		auto& zone = engine->Level->Model->Zones[i];
+		auto& zone = XLevel()->Model->Zones[i];
 		if (zone.ZoneActor)
 		{
 			region.Zone = UObject::Cast<UZoneInfo>(zone.ZoneActor);
@@ -64,7 +64,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 		pawn->FootRegion() = region;
 	}
 
-	if (engine->LevelInfo->bBegunPlay())
+	if (Level()->bBegunPlay())
 	{
 		CallEvent(actor, "Spawned");
 		CallEvent(actor, "PreBeginPlay");
@@ -97,7 +97,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 			engine->collision->TraceHit(actor->Location(), actor->Location() + vec3(0.0f, 0.0f, -10.0f), onHit);
 			actor->SetBase(hitActor);
 #else
-			UActor* hitActor = engine->LevelInfo;
+			UActor* hitActor = Level();
 			actor->SetBase(hitActor, true);
 #endif
 		}
@@ -105,7 +105,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 		std::string attachTag = actor->AttachTag();
 		if (!attachTag.empty() && attachTag != "None")
 		{
-			for (UActor* levelActor : engine->Level->Actors)
+			for (UActor* levelActor : XLevel()->Actors)
 			{
 				if (levelActor && levelActor->Tag() == attachTag)
 				{
@@ -125,7 +125,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 
 			if (!engine->packages->IsUnreal1())
 			{
-				for (USpawnNotify* notifyObj = engine->LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+				for (USpawnNotify* notifyObj = Level()->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
 				{
 					UClass* cls = notifyObj->ActorClass();
 					if (cls && actor->IsA(cls->Name))
@@ -159,7 +159,7 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 				return;
 		}
 
-		if (ActorBase() && ActorBase() != engine->LevelInfo)
+		if (ActorBase() && ActorBase() != Level())
 		{
 			ActorBase()->StandingCount()--;
 			CallEvent(ActorBase(), "Detach", { ExpressionValue::ObjectValue(this) });
@@ -167,7 +167,7 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 
 		ActorBase() = newBase;
 
-		if (ActorBase() && ActorBase() != engine->LevelInfo)
+		if (ActorBase() && ActorBase() != Level())
 		{
 			ActorBase()->StandingCount()++;
 			CallEvent(ActorBase(), "Attach", { ExpressionValue::ObjectValue(this) });

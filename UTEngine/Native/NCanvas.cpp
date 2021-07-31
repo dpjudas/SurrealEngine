@@ -52,8 +52,10 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 	float& curYL = SelfCanvas->CurYL();
 	uint8_t& style = SelfCanvas->Style();
 	bool& center = SelfCanvas->bCenter();
+	float& spaceX = SelfCanvas->SpaceX();
+	float& spaceY = SelfCanvas->SpaceY();
 
-	bool newline = !CR || *CR;
+	bool newline = CR ? *CR : false;
 
 	if (style != 0)
 	{
@@ -63,7 +65,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->renderer->canvas.DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags, center);
+		engine->renderer->canvas.DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags, center, spaceX, spaceY);
 	}
 }
 

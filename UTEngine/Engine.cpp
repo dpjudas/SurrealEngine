@@ -230,6 +230,16 @@ void Engine::LoadMap(const UnrealURL& url)
 	if (!Level)
 		throw std::runtime_error("Could not find the Level object for this map!");
 
+	// Remove the actors meant for the editor (to do: should we do this at the package manager level?)
+	for (auto it = Level->Actors.begin(); it != Level->Actors.end();)
+	{
+		UActor* actor = *it;
+		if (actor && AllFlags(actor->Flags, ObjectFlags::NotForServer))
+			it = Level->Actors.erase(it);
+		else
+			++it;
+	}
+
 	// Link actors to the level
 	for (UActor* actor : Level->Actors)
 	{

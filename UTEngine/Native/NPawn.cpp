@@ -40,9 +40,8 @@ void NPawn::RegisterFunctions()
 void NPawn::AddPawn(UObject* Self)
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
-	ULevel* level = SelfPawn->XLevel();
-	if (level)
-		level->Pawns.push_back(SelfPawn);
+	SelfPawn->nextPawn() = SelfPawn->Level()->PawnList();
+	SelfPawn->Level()->PawnList() = SelfPawn;
 }
 
 void NPawn::CanSee(UObject* Self, UObject* Other, bool& ReturnValue)
@@ -132,12 +131,24 @@ void NPawn::PickWallAdjust(UObject* Self, bool& ReturnValue)
 void NPawn::RemovePawn(UObject* Self)
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
-	ULevel* level = SelfPawn->XLevel();
-	if (level)
+
+	if (SelfPawn->Level()->PawnList() == SelfPawn)
 	{
-		auto it = std::find(level->Pawns.begin(), level->Pawns.end(), SelfPawn);
-		if (it != level->Pawns.end())
-			level->Pawns.erase(it);
+		SelfPawn->Level()->PawnList() = SelfPawn->nextPawn();
+		SelfPawn->nextPawn() = nullptr;
+	}
+	else
+	{
+		UPawn* prevPawn = nullptr;
+		for (UPawn* cur = SelfPawn->Level()->PawnList(); cur != nullptr; cur = cur->nextPawn())
+		{
+			if (cur->nextPawn() == SelfPawn)
+			{
+				cur->nextPawn() = SelfPawn->nextPawn();
+				SelfPawn->nextPawn() = nullptr;
+				break;
+			}
+		}
 	}
 }
 

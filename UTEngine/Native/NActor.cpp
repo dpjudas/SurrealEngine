@@ -270,7 +270,7 @@ void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = engine->LevelInfo->URL.Map;
+	ReturnValue = UObject::Cast<UActor>(Self)->Level()->URL.Map;
 }
 
 void NActor::HasAnim(UObject* Self, const std::string& Sequence, bool& ReturnValue)
@@ -353,8 +353,8 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	USound* s = UObject::Cast<USound>(Sound);
-	engine->soundslot = AudioPlayer::Create(AudioSource::CreateWav(s->Data));
+	//USound* s = UObject::Cast<USound>(Sound);
+	//engine->soundslot = AudioPlayer::Create(AudioSource::CreateWav(s->Data));
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
