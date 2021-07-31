@@ -203,7 +203,7 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 		while (TimerRate() > 0.0f && TimerCounter() > TimerRate())
 		{
 			TimerCounter() -= TimerRate();
-			if (bTimerLoop())
+			if (!bTimerLoop())
 				TimerRate() = 0.0f;
 			CallEvent(this, "Timer");
 		}

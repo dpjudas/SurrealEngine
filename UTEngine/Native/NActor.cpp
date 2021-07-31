@@ -413,7 +413,7 @@ void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	SelfActor->TimerCounter() = 0.0f;
-	SelfActor->TimerRate() = NewTimerRate;
+	SelfActor->TimerRate() = NewTimerRate > 0.0f ? NewTimerRate : 0.0f;
 	SelfActor->bTimerLoop() = bLoop;
 }
 

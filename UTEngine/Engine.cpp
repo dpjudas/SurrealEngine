@@ -37,7 +37,7 @@ Engine::Engine()
 	engine = this;
 	packages = std::make_unique<PackageManager>(FindGameFolder());
 
-	// Frame::AddBreakpoint("Botpack", "ChallengeVoicePack", "GetCallSign");
+	// Frame::AddBreakpoint("Botpack", "DeathMatchPlus", "Timer");
 }
 
 Engine::~Engine()
@@ -222,6 +222,7 @@ void Engine::LoadMap(const UnrealURL& url)
 	LevelInfo->EngineVersion() = "500";
 	LevelInfo->MinNetVersion() = "500";
 	LevelInfo->bHighDetailMode() = true;
+	LevelInfo->NetMode() = 0; // NM_StandAlone
 
 	LevelInfo->URL = url;
 
