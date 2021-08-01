@@ -223,16 +223,8 @@ void AudioMixerSource::MixSounds(float* output, size_t samples)
 {
 	samples /= 2;
 
-	// Avoid playing too much right now as the sound is kind
-	int maxsounds = 2;
-	int soundindex = 0;
-
 	for (auto it = sounds.begin(); it != sounds.end();)
 	{
-		soundindex++;
-		if (soundindex == maxsounds)
-			break;
-
 		ActiveSound& sound = it->second;
 		const float* src = sound.sound->samples.data();
 		double srcpos = sound.pos;

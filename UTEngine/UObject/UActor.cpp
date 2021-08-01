@@ -318,7 +318,8 @@ void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime
 		{
 			AnimSequence() = sequence;
 			AnimFrame() = 0.0f;
-			AnimRate() = 1.0f / seq->NumFrames * (seq->Rate * (rate ? *rate : 1.0f));
+			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
+			AnimMinRate() = 0.0f;
 			bAnimLoop() = false;
 		}
 	}
@@ -327,7 +328,6 @@ void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime
 void UActor::LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate)
 {
 	// To do: TweenTime = Amount of Time to "tween" into the first frame of this animation sequence if in a different sequence
-	// To do: what does minRate do?
 
 	if (Mesh())
 	{
@@ -336,7 +336,8 @@ void UActor::LoopAnim(const std::string& sequence, float* rate, float* tweenTime
 		{
 			AnimSequence() = sequence;
 			AnimFrame() = 0.0f;
-			AnimRate() = 1.0f / seq->NumFrames * (seq->Rate * (rate ? *rate : 1.0f));
+			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
+			AnimMinRate() = (minRate ? *minRate : 0.0f) * seq->Rate / seq->NumFrames;
 			bAnimLoop() = true;
 		}
 	}
@@ -355,14 +356,18 @@ void UActor::TickAnimation(float elapsed)
 	{
 		for (int i = 0; AnimRate() != 0.0f && elapsed > 0.0f && i < 10; i++)
 		{
-			float fromFrame = AnimFrame();
+			float fromAnimTime = AnimFrame();
 			float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
-			float toFrame = fromFrame + animRate * elapsed;
+			float toAnimTime = fromAnimTime + animRate * elapsed;
 
-			if (toFrame > 1.0f)
+			if (toAnimTime >= 1.0f)
 			{
-				elapsed -= (toFrame - fromFrame) / animRate;
-				toFrame = 1.0f;
+				elapsed -= (toAnimTime - fromAnimTime) / animRate;
+				toAnimTime = 1.0f;
+			}
+			else
+			{
+				elapsed = 0.0f;
 			}
 
 			MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
@@ -370,7 +375,7 @@ void UActor::TickAnimation(float elapsed)
 			{
 				for (const MeshAnimNotify& n : seq->Notifys)
 				{
-					if (n.Time > fromFrame && n.Time <= toFrame)
+					if (n.Time > fromAnimTime && n.Time <= toAnimTime)
 					{
 						if (FindEventFunction(this, n.Function))
 						{
@@ -381,7 +386,7 @@ void UActor::TickAnimation(float elapsed)
 				}
 			}
 
-			if (toFrame == 1.0f)
+			if (toAnimTime == 1.0f)
 			{
 				bAnimFinished() = true;
 
@@ -395,7 +400,7 @@ void UActor::TickAnimation(float elapsed)
 			}
 			else
 			{
-				AnimFrame() = toFrame;
+				AnimFrame() = toAnimTime;
 			}
 		}
 	}
