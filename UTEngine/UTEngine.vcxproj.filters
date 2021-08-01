@@ -729,6 +729,9 @@
       <Filter>VM</Filter>
     </ClCompile>
     <ClCompile Include="UTF16.cpp" />
+    <ClCompile Include="Audio\AudioMixer.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\halffloat.h">
@@ -1189,6 +1192,9 @@
       <Filter>VM</Filter>
     </ClInclude>
     <ClInclude Include="UTF16.h" />
+    <ClInclude Include="Audio\AudioMixer.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Thirdparty\dumb\src\helpers\resamp2.inc">

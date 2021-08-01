@@ -36,7 +36,7 @@ class BspSurface;
 class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
-class AudioPlayer;
+class AudioMixer;
 class Rotator;
 class ExpressionValue;
 class UnrealURL;
@@ -75,6 +75,8 @@ public:
 	std::vector<std::string> GetArgs(const std::string& commandline);
 	std::vector<std::string> GetSubcommands(const std::string& commandline);
 
+	void UpdateAudio();
+
 	UClient* client = nullptr;
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
@@ -97,8 +99,7 @@ public:
 	std::unique_ptr<DisplayWindow> window;
 	std::unique_ptr<UTRenderer> renderer;
 	std::unique_ptr<Collision> collision;
-	std::unique_ptr<AudioPlayer> audioplayer;
-	std::unique_ptr<AudioPlayer> soundslot;
+	std::unique_ptr<AudioMixer> audio;
 
 	float CalcTimeElapsed();
 

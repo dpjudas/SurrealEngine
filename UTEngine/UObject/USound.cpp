@@ -1,6 +1,9 @@
 
 #include "Precomp.h"
 #include "USound.h"
+#include "Engine.h"
+#include "Audio/AudioSource.h"
+#include "Audio/AudioMixer.h"
 
 void USound::Load(ObjectStream* stream)
 {
@@ -12,4 +15,13 @@ void USound::Load(ObjectStream* stream)
 	uint32_t size = stream->ReadIndex();
 	Data.resize(size);
 	stream->ReadBytes(Data.data(), size);
+}
+
+AudioSound* USound::GetSound()
+{
+	if (Sound)
+		return Sound;
+
+	Sound = engine->audio->AddSound(AudioSource::CreateWav(Data));
+	return Sound;
 }

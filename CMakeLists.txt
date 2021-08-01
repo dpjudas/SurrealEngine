@@ -278,6 +278,8 @@ set(UTENGINE_SOURCES
 	UTEngine/Audio/AudioPlayer.h
 	UTEngine/Audio/AudioSource.h
 	UTEngine/Audio/AudioSource.cpp
+	UTEngine/Audio/AudioMixer.cpp
+	UTEngine/Audio/AudioMixer.h
 	UTEngine/Native/NStatLog.h
 	UTEngine/Native/NZoneInfo.cpp
 	UTEngine/Native/NNavigationPoint.cpp

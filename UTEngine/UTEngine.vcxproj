@@ -114,6 +114,7 @@
     <ClInclude Include="..\Thirdparty\stb_vorbis.h" />
     <ClInclude Include="..\Thirdparty\vk_mem_alloc\vk_mem_alloc.h" />
     <ClInclude Include="..\Thirdparty\volk\volk.h" />
+    <ClInclude Include="Audio\AudioMixer.h" />
     <ClInclude Include="Audio\AudioPlayer.h" />
     <ClInclude Include="Audio\AudioSource.h" />
     <ClInclude Include="Collision.h" />
@@ -776,6 +777,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Audio\AudioMixer.cpp" />
     <ClCompile Include="Audio\AudioPlayer.cpp" />
     <ClCompile Include="Audio\AudioSource.cpp" />
     <ClCompile Include="Collision.cpp" />

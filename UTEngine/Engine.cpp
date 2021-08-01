@@ -21,8 +21,8 @@
 #include "Math/FrustumPlanes.h"
 #include "Window/Window.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Audio/AudioPlayer.h"
 #include "Audio/AudioSource.h"
+#include "Audio/AudioMixer.h"
 #include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
 #include "VM/ScriptCall.h"
@@ -54,6 +54,7 @@ void Engine::Run()
 	window = DisplayWindow::Create(this);
 	window->OpenWindow(1800, 950, true);
 
+	audio = AudioMixer::Create();
 	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
 	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
@@ -126,6 +127,8 @@ void Engine::Run()
 				});
 		}
 
+		UpdateAudio();
+
 		engine->renderer->AutoUV += elapsed * 64.0f;
 		for (UTexture* tex : engine->renderer->Textures)
 			tex->Update(elapsed);
@@ -165,6 +168,32 @@ void Engine::Run()
 		device->EndScenePass();
 		device->EndFrame(true);
 	}
+}
+
+void Engine::UpdateAudio()
+{
+	FCoords coords;
+	coords.XAxis = vec3(-1.0f, 0.0f, 0.0f);
+	coords.YAxis = vec3(0.0f, 0.0f, 1.0f);
+	coords.ZAxis = vec3(0.0f, -1.0f, 0.0f);
+
+	mat4 coordsmatrix = mat4::null();
+	coordsmatrix[0] = coords.XAxis[0];
+	coordsmatrix[1] = coords.XAxis[1];
+	coordsmatrix[2] = coords.XAxis[2];
+	coordsmatrix[4] = coords.YAxis[0];
+	coordsmatrix[5] = coords.YAxis[1];
+	coordsmatrix[6] = coords.YAxis[2];
+	coordsmatrix[8] = coords.ZAxis[0];
+	coordsmatrix[9] = coords.ZAxis[1];
+	coordsmatrix[10] = coords.ZAxis[2];
+	coordsmatrix[15] = 1.0f;
+
+	mat4 rotate = mat4::rotate(radians(CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
+	mat4 translate = mat4::translate(vec3(0.0f) - CameraLocation);
+
+	audio->SetViewport(coordsmatrix * rotate * translate);
+	audio->Update();
 }
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
@@ -397,11 +426,11 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		auto music = LevelInfo->Song();
 		if (music)
-			audioplayer = AudioPlayer::Create(AudioSource::CreateMod(music->Data, true, 0, LevelInfo->SongSection()));
+			audio->PlayMusic(AudioSource::CreateMod(music->Data, true, 0, LevelInfo->SongSection()));
 	}
 	else if (command == "stopsong")
 	{
-		audioplayer.reset();
+		audio->PlayMusic(nullptr);
 	}
 	else if (command == "getres")
 	{

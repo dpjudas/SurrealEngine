@@ -9,8 +9,7 @@
 #include "UObject/ULevel.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
-#include "Audio/AudioPlayer.h"
-#include "Audio/AudioSource.h"
+#include "Audio/AudioMixer.h"
 #include "Collision.h"
 
 void NActor::RegisterFunctions()
@@ -265,7 +264,9 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 
 void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 {
-	throw std::runtime_error("Actor.GetSoundDuration not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	USound* s = UObject::Cast<USound>(Sound);
+	ReturnValue = engine->audio->GetSoundDuration(s->GetSound());
 }
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
@@ -353,8 +354,9 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	//USound* s = UObject::Cast<USound>(Sound);
-	//engine->soundslot = AudioPlayer::Create(AudioSource::CreateWav(s->Data));
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	USound* s = UObject::Cast<USound>(Sound);
+	engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : 1.0f, Radius ? (*Radius) * 25.0f : 0.0f, Pitch ? *Pitch : 1.0f);
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)

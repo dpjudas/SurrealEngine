@@ -72,6 +72,27 @@ enum ENetRole
 	ROLE_Authority,
 };
 
+enum ESoundSlot
+{
+	SLOT_None,
+	SLOT_Misc,
+	SLOT_Pain,
+	SLOT_Interact,
+	SLOT_Ambient,
+	SLOT_Talk,
+	SLOT_Interface
+};
+
+enum EMusicTransition
+{
+	MTRAN_None,
+	MTRAN_Instant,
+	MTRAN_Segue,
+	MTRAN_Fade,
+	MTRAN_FastFade,
+	MTRAN_SlowFade
+};
+
 class UActor : public UObject
 {
 public:
