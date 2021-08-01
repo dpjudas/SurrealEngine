@@ -41,12 +41,24 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const m
 void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
-	int animFrame = seq->StartFrame + ((int)(actor->AnimFrame() * seq->NumFrames)) % seq->NumFrames;
-	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + animFrame * mesh->FrameVerts);
-	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, animFrame * mesh->FrameVerts);
+
+	float animFrame = std::max(actor->AnimFrame(), 0.0f) * seq->NumFrames;
+
+	int frame0 = (int)animFrame;
+	int frame1 = frame0 + 1;
+	float t = animFrame - (float)frame0;
+
+	frame0 = frame0 % seq->NumFrames;
+	frame1 = frame1 % seq->NumFrames;
+
+	int vertexOffset0 = (seq->StartFrame + frame0) * mesh->FrameVerts;
+	int vertexOffset1 = (seq->StartFrame + frame1) * mesh->FrameVerts;
+
+	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + vertexOffset0, mesh->SpecialVerts + vertexOffset1, t);
+	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, vertexOffset0, vertexOffset1, t);
 }
 
-void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset)
+void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset0, int vertexOffset1, float t)
 {
 	auto device = engine->window->GetRenderDevice();
 
@@ -94,9 +106,11 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
-			int vertexIndex = wedge.Vertex + vertexOffset;
+			const vec3& v0 = mesh->Verts[wedge.Vertex + vertexOffset0];
+			const vec3& v1 = mesh->Verts[wedge.Vertex + vertexOffset1];
+			vec3 vertex = mix(v0, v1, t);
 
-			vertices[i].Point = (ObjectToWorld * vec4(mesh->Verts[vertexIndex], 1.0f)).xyz();
+			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
 			vertices[i].Light = color;
 		}
