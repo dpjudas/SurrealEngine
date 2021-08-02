@@ -67,13 +67,11 @@ void SceneRender::DrawScene()
 	{
 		if (actor && !actor->bHidden() && actor != engine->CameraActor)
 		{
-			int actorZone = actor->actorZone;
-			if (actorZone == -1)
+			int actorZone = actor->Region().ZoneNumber;
+			if (!actor->lightsCalculated)
 			{
-				actorZone = FindZoneAt(actor->Location());
-				actor->actorZone = actorZone;
+				actor->lightsCalculated = true;
 				actor->light = engine->renderer->light.FindLightAt(actor->Location(), actorZone);
-
 			}
 			if (((uint64_t)1 << actorZone) & zonemask)
 			{

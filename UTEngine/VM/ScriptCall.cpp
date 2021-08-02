@@ -12,7 +12,7 @@ ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector
 	if (func)
 		return Frame::Call(func, Context, std::move(args));
 	else
-		throw std::runtime_error("Event " + name + " not found on object");
+		return ExpressionValue::NothingValue(); // throw std::runtime_error("Event " + name + " not found on object");
 }
 
 UFunction* FindEventFunction(UObject* Context, const std::string& name)

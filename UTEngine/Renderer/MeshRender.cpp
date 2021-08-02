@@ -15,7 +15,6 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 	UMesh* mesh = actor->Mesh();
 	const vec3& location = actor->Location();
 	const Rotator& rotation = actor->Rotation();
-	int zoneIndex = actor->actorZone;
 	const vec3& color = actor->light;
 
 	if (!mesh)

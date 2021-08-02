@@ -22,7 +22,7 @@ CanvasRender::CanvasRender()
 
 void CanvasRender::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 {
-	actor->light = engine->renderer->light.FindLightAt(actor->Location(), engine->renderer->scene.FindZoneAt(actor->Location()));
+	actor->light = engine->renderer->light.FindLightAt(actor->Location(), actor->Region().ZoneNumber);
 	actor->bHidden() = false;
 
 	RenderDevice* device = engine->window->GetRenderDevice();

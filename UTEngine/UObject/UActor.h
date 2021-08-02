@@ -27,6 +27,7 @@ class UTrigger;
 class UWarpZoneInfo;
 class UZoneInfo;
 class PackageManager;
+class SweepHit;
 
 enum class ActorDrawType
 {
@@ -102,6 +103,9 @@ public:
 
 	void SetBase(UActor* newBase, bool sendBaseChangeEvent);
 	void SetOwner(UActor* newOwner);
+	virtual void InitActorZone();
+	virtual void UpdateActorZone();
+	PointRegion FindRegion(const vec3& offset = vec3(0.0f));
 
 	virtual void Tick(float elapsed, bool tickedFlag);
 
@@ -120,6 +124,11 @@ public:
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
 
+	SweepHit TryMove(const vec3& delta);
+	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
+	bool Move(const vec3& delta);
+	bool MoveSmooth(const vec3& delta);
+
 	bool HasAnim(const std::string& sequence);
 	bool IsAnimating();
 	std::string GetAnimGroup(const std::string& sequence);
@@ -128,7 +137,7 @@ public:
 	void TweenAnim(const std::string& sequence, float tweenTime);
 
 	// Cached calculations needed by the renderer
-	int actorZone = -1;
+	bool lightsCalculated = false;
 	vec3 light = { 0.0f };
 	vec3 fogcolor = { 0.0f };
 	float brightness = -1.0f;
@@ -1131,6 +1140,8 @@ class ULevelInfo : public UZoneInfo
 public:
 	using UZoneInfo::UZoneInfo;
 
+	void UpdateActorZone() override;
+
 	UnrealURL URL;
 
 	int& AIProfile() { return Value<int>(PropOffsets_LevelInfo.AIProfile); }
@@ -1403,6 +1414,9 @@ public:
 	using UActor::UActor;
 
 	void Tick(float elapsed, bool tickedFlag) override;
+
+	void InitActorZone() override;
+	void UpdateActorZone() override;
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }

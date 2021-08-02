@@ -293,6 +293,7 @@ void Engine::LoadMap(const UnrealURL& url)
 	GameInfo->Level() = LevelInfo;
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
+	GameInfo->InitActorZone();
 
 	Level->Actors.push_back(GameInfo);
 

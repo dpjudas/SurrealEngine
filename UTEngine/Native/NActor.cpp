@@ -127,10 +127,9 @@ void NActor::Error(UObject* Self, const std::string& S)
 
 void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bool& ReturnValue)
 {
-	// Note: only test against world geometry
-
-	vec3 start = TraceStart ? *TraceStart : UObject::Cast<UActor>(Self)->Location();
-	ReturnValue = engine->collision->TraceAnyHit(start, TraceEnd);
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	vec3 start = TraceStart ? *TraceStart : SelfActor->Location();
+	ReturnValue = SelfActor->FastTrace(start, TraceEnd);
 }
 
 void NActor::FinishAnim(UObject* Self)
@@ -301,19 +300,7 @@ void NActor::MakeNoise(UObject* Self, float Loudness)
 
 void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-
-	CylinderShape shape(SelfActor->Location(), SelfActor->CollisionHeight(), SelfActor->CollisionRadius());
-	SweepHit hit = engine->collision->Sweep(&shape, SelfActor->Location() + Delta);
-	if (hit.Fraction == 1.0f)
-	{
-		SelfActor->Location() += Delta;
-		ReturnValue = true;
-	}
-	else
-	{
-		ReturnValue = false;
-	}
+	ReturnValue = UObject::Cast<UActor>(Self)->Move(Delta);
 }
 
 void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, bool& ReturnValue)
@@ -323,19 +310,7 @@ void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string*
 
 void NActor::MoveSmooth(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-
-	CylinderShape shape(SelfActor->Location(), SelfActor->CollisionHeight(), SelfActor->CollisionRadius());
-	SweepHit hit = engine->collision->Sweep(&shape, SelfActor->Location() + Delta);
-	if (hit.Fraction == 1.0f)
-	{
-		SelfActor->Location() += Delta;
-		ReturnValue = true;
-	}
-	else
-	{
-		ReturnValue = false;
-	}
+	ReturnValue = UObject::Cast<UActor>(Self)->MoveSmooth(Delta);
 }
 
 void NActor::Multiply_ColorFloat(const Color& A, float B, Color& ReturnValue)

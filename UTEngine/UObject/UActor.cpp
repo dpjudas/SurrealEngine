@@ -40,29 +40,8 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	XLevel()->Actors.push_back(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
-
 	actor->CreateDefaultState();
-
-	// To do: find the correct zone and BSP leaf for the actor
-	PointRegion region = {};
-	for (size_t i = 0; i < XLevel()->Model->Zones.size(); i++)
-	{
-		auto& zone = XLevel()->Model->Zones[i];
-		if (zone.ZoneActor)
-		{
-			region.Zone = UObject::Cast<UZoneInfo>(zone.ZoneActor);
-			region.ZoneNumber = (uint8_t)i;
-			region.BspLeaf = 0;
-			break;
-		}
-	}
-	actor->Region() = region;
-	UPawn* pawn = UObject::TryCast<UPawn>(actor);
-	if (pawn)
-	{
-		pawn->HeadRegion() = region;
-		pawn->FootRegion() = region;
-	}
+	actor->InitActorZone();
 
 	if (Level()->bBegunPlay())
 	{
@@ -136,6 +115,63 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	}
 
 	return actor;
+}
+
+PointRegion UActor::FindRegion(const vec3& offset)
+{
+	PointRegion region;
+	region.BspLeaf = 0;
+	region.ZoneNumber = 0;
+
+	vec4 location = vec4(Location() + offset, 1.0f);
+
+	// Search the BSP
+	BspNode* nodes = XLevel()->Model->Nodes.data();
+	BspNode* node = nodes;
+	while (true)
+	{
+		vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
+		float side = dot(location, plane);
+		if (node->Front >= 0 && side >= 0.0f)
+		{
+			node = nodes + node->Front;
+		}
+		else if (node->Back >= 0 && side <= 0.0f)
+		{
+			node = nodes + node->Back;
+		}
+		else
+		{
+			region.ZoneNumber = node->Zone1;
+			region.BspLeaf = side >= 0.0f ? node->Leaf0 : node->Leaf1;
+			break;
+		}
+	}
+
+	region.Zone = UObject::Cast<UZoneInfo>(XLevel()->Model->Zones[region.ZoneNumber].ZoneActor);
+	if (!region.Zone)
+		region.Zone = Level();
+
+	return region;
+}
+
+void UActor::InitActorZone()
+{
+	Region() = FindRegion();
+}
+
+void UActor::UpdateActorZone()
+{
+	PointRegion oldregion = Region();
+	PointRegion newregion = FindRegion();
+
+	if (Region().Zone && oldregion.Zone != newregion.Zone)
+		CallEvent(Region().Zone, "ActorLeaving", { ExpressionValue::ObjectValue(this) });
+
+	Region() = newregion;
+
+	if (Region().Zone && oldregion.Zone != newregion.Zone)
+		CallEvent(Region().Zone, "ActorEntered", { ExpressionValue::ObjectValue(this) });
 }
 
 void UActor::SetOwner(UActor* newOwner)
@@ -286,6 +322,101 @@ void UActor::TickTrailer(float elapsed)
 {
 }
 
+bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
+{
+	// Note: only test against world geometry
+	return engine->collision->TraceAnyHit(traceStart, traceEnd);
+}
+
+SweepHit UActor::TryMove(const vec3& delta)
+{
+	// Static and non-movable objects can't move
+	if (bStatic() || !bMovable())
+	{
+		SweepHit hit;
+		hit.Fraction = 0.0f;
+		return hit;
+	}
+
+	// Avoid moving if movement is too small as the physics code doesn't like very small numbers
+	if (dot(delta, delta) < 0.0001f)
+		return {};
+
+	// bCollideActors()
+	// bCollideWorld()
+	// bBlockActors()
+	// bBlockPlayers()
+
+	CylinderShape shape(Location(), CollisionHeight(), CollisionRadius());
+	SweepHit hit = engine->collision->Sweep(&shape, Location() + delta);
+	vec3 actuallyMoved = delta * hit.Fraction;
+
+	Location() += actuallyMoved;
+
+	// Based actors needs to move with us
+	if (StandingCount() > 0)
+	{
+		ULevel* level = XLevel();
+		for (size_t i = 0; i < level->Actors.size(); i++)
+		{
+			UActor* actor = level->Actors[i];
+			if (actor && actor->ActorBase() == this)
+			{
+				actor->TryMove(actuallyMoved);
+			}
+		}
+	}
+
+#if 0
+	if (hit.Actor)
+	{
+		bool isChildOfBase = false;
+		for (UActor* cur = ActorBase(); cur; cur = cur->ActorBase())
+		{
+			if (cur == this)
+			{
+				isChildOfBase = true;
+				break;
+			}
+		}
+
+		if (!isChildOfBase)
+		{
+			CallEvent(hit.Actor, "Bump", { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, "Bump", { ExpressionValue::ObjectValue(hit.Actor) });
+		}
+	}
+
+	// To do: send Touch notifications
+	// To do: send UnTouch notifications
+#endif
+
+	UpdateActorZone();
+
+	return hit;
+}
+
+bool UActor::Move(const vec3& delta)
+{
+	return TryMove(delta).Fraction == 1.0f;
+}
+
+bool UActor::MoveSmooth(const vec3& delta)
+{
+	SweepHit hit = TryMove(delta);
+	if (hit.Fraction != 1.0f)
+	{
+		// We hit a slope. Try to follow it.
+		vec3 alignedDelta = (delta - hit.Normal * dot(delta, hit.Normal)) * (1.0f - hit.Fraction);
+		if (dot(delta, alignedDelta) >= 0.0f) // Don't end up going backwards
+		{
+			SweepHit hit2 = TryMove(alignedDelta);
+		}
+	}
+
+	return hit.Fraction != 1.0f;
+}
+
 bool UActor::HasAnim(const std::string& sequence)
 {
 	return Mesh() && Mesh()->GetSequence(sequence);
@@ -408,6 +539,37 @@ void UActor::TickAnimation(float elapsed)
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UPawn::InitActorZone()
+{
+	UActor::InitActorZone();
+
+	FootRegion() = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
+	HeadRegion() = FindRegion({ 0.0f, 0.0f, EyeHeight() });
+
+	if (PlayerReplicationInfo())
+		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
+}
+
+void UPawn::UpdateActorZone()
+{
+	UActor::UpdateActorZone();
+
+	PointRegion oldfootregion = FootRegion();
+	PointRegion newfootregion = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
+	if (FootRegion().Zone && oldfootregion.Zone != newfootregion.Zone)
+		CallEvent(FootRegion().Zone, "FootZoneChange", { ExpressionValue::ObjectValue(this) });
+	FootRegion() = newfootregion;
+
+	PointRegion oldheadregion = HeadRegion();
+	PointRegion newheadregion = FindRegion({ 0.0f, 0.0f, EyeHeight() });
+	if (HeadRegion().Zone && oldheadregion.Zone != newheadregion.Zone)
+		CallEvent(HeadRegion().Zone, "HeadZoneChange", { ExpressionValue::ObjectValue(this) });
+	HeadRegion() = newheadregion;
+
+	if (PlayerReplicationInfo())
+		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
+}
+
 void UPawn::Tick(float elapsed, bool tickedFlag)
 {
 	UActor::Tick(elapsed, tickedFlag);
@@ -421,7 +583,10 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 	}
 
 	if (Weapon())
+	{
 		Weapon()->Location() = Location();
+		Weapon()->UpdateActorZone();
+	}
 
 	if (Role() == ROLE_Authority)
 	{
@@ -442,6 +607,8 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
 void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 {
 	UPawn::Tick(elapsed, tickedFlag);
@@ -454,4 +621,12 @@ void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 			CallEvent(this, "PlayerTick", { ExpressionValue::FloatValue(elapsed) });
 		}
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void ULevelInfo::UpdateActorZone()
+{
+	// No zone events are sent by LevelInfo actors
+	Region() = FindRegion();
 }

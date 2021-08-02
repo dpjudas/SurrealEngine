@@ -96,7 +96,8 @@ void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 
 void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
 {
-	throw std::runtime_error("Pawn.LineOfSightTo not implemented");
+	engine->LogUnimplemented("Pawn.LineOfSightTo(" + UObject::GetUClassName(Other) + ")");
+	ReturnValue = false;
 }
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)

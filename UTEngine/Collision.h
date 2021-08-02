@@ -8,18 +8,18 @@ class CylinderShape
 {
 public:
 	CylinderShape() = default;
-	CylinderShape(const vec3& center, float height, float radius) : Center(center), Height(height), Radius(radius) { }
+	CylinderShape(const vec3& center, float height, float radius) : Center(center.x, center.y, center.z), Height(height), Radius(radius) { }
 
-	vec3 Center = vec3(0.0f);
-	float Height = 0.0f;
-	float Radius = 0.0f;
+	dvec3 Center = dvec3(0.0);
+	double Height = 0.0;
+	double Radius = 0.0;
 };
 
 class SweepHit
 {
 public:
-	float Fraction = 1.0f;
-	vec3 Normal = vec3(0.0f);
+	float Fraction = 1.0;
+	vec3 Normal = vec3(0.0);
 };
 
 class Collision
@@ -29,12 +29,12 @@ public:
 	SweepHit Sweep(CylinderShape* shape, const vec3& to);
 	
 private:
-	bool TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, BspNode* nodes);
-	SweepHit Sweep(const vec4& from, const vec4& to, float radius, BspNode* node, BspNode* nodes);
+	bool TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node, BspNode* nodes);
+	SweepHit Sweep(const dvec4& from, const dvec4& to, double radius, BspNode* node, BspNode* nodes);
 
-	float NodeRayIntersect(const vec4& from, const vec4& to, BspNode* node);
-	float NodeSphereIntersect(const vec4& from, const vec4& to, float radius, BspNode* node);
+	double NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node);
+	double NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node);
 
-	float TriangleRayIntersect(const vec4& from, const vec4& to, const vec3* points);
-	float TriangleSphereIntersect(const vec4& from, const vec4& to, float radius, const vec3* points);
+	double TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* points);
+	double TriangleSphereIntersect(const dvec4& from, const dvec4& to, double radius, const dvec3* points);
 };
