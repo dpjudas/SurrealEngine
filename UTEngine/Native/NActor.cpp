@@ -301,11 +301,19 @@ void NActor::MakeNoise(UObject* Self, float Loudness)
 
 void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	// To do: do collision detection
-
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	SelfActor->Location() += Delta;
-	ReturnValue = true;
+
+	CylinderShape shape(SelfActor->Location(), SelfActor->CollisionHeight(), SelfActor->CollisionRadius());
+	SweepHit hit = engine->collision->Sweep(&shape, SelfActor->Location() + Delta);
+	if (hit.Fraction == 1.0f)
+	{
+		SelfActor->Location() += Delta;
+		ReturnValue = true;
+	}
+	else
+	{
+		ReturnValue = false;
+	}
 }
 
 void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, bool& ReturnValue)
@@ -315,11 +323,19 @@ void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string*
 
 void NActor::MoveSmooth(UObject* Self, const vec3& Delta, bool& ReturnValue)
 {
-	// To do: do collision detection
-
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	SelfActor->Location() += Delta;
-	ReturnValue = true;
+
+	CylinderShape shape(SelfActor->Location(), SelfActor->CollisionHeight(), SelfActor->CollisionRadius());
+	SweepHit hit = engine->collision->Sweep(&shape, SelfActor->Location() + Delta);
+	if (hit.Fraction == 1.0f)
+	{
+		SelfActor->Location() += Delta;
+		ReturnValue = true;
+	}
+	else
+	{
+		ReturnValue = false;
+	}
 }
 
 void NActor::Multiply_ColorFloat(const Color& A, float B, Color& ReturnValue)
