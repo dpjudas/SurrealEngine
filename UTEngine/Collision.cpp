@@ -9,6 +9,9 @@
 
 bool Collision::TraceAnyHit(vec3 from, vec3 to)
 {
+	if (from == to)
+		return false;
+
 #ifdef TEST_SWEEP
 	CylinderShape shape(from, 1.0f, 1.0f);
 	return Sweep(&shape, to).Fraction != 1.0f;
@@ -43,6 +46,9 @@ bool Collision::TraceAnyHit(const vec4& from, const vec4& to, BspNode* node, Bsp
 
 SweepHit Collision::Sweep(CylinderShape* shape, const vec3& to)
 {
+	if (shape->Center == to)
+		return {};
+
 	vec3 offset = vec3(0.0f, 0.0f, shape->Height - shape->Radius);
 	SweepHit top = Sweep(vec4(shape->Center + offset, 1.0f), vec4(to + offset, 1.0f), shape->Radius, &engine->Level->Model->Nodes.front(), engine->Level->Model->Nodes.data());
 	SweepHit bottom = Sweep(vec4(shape->Center - offset, 1.0f), vec4(to - offset, 1.0f), shape->Radius, &engine->Level->Model->Nodes.front(), engine->Level->Model->Nodes.data());
@@ -220,31 +226,43 @@ float Collision::TriangleSphereIntersect(const vec4& from, const vec4& to, float
 
 	// Step 1: Plane intersect test
 
-	float sc = dot(plane, vec4(c, 1.0f));
-	float se = dot(plane, vec4(e, 1.0f));
+	float sc = dot(plane, from);
+	float se = dot(plane, to);
 	bool same_side = sc * se > 0.0f;
 
 	if (same_side && std::abs(sc) > r && std::abs(se) > r)
 		return 1.0f;
 
-	float hitFraction = 1.0f;
-
 	// Step 1a: Check if point is in polygon (using crossing ray test in 2d)
+	float t = (sc - r) / (sc - se);
+	if (t >= 0.0f && t <= 1.0f)
 	{
-		float t = (sc - r) / (sc - se);
-
-		vec3 vt = c + (e - c) * t;
-
-		vec3 u0 = p[1] - p[0];
-		vec3 u1 = p[2] - p[0];
-
+		// To do: this can be precalculated for the mesh
+		vec3 u0, u1;
+		if (std::abs(n.x) > std::abs(n.y))
+		{
+			u0 = { 0.0f, 1.0f, 0.0f };
+			if (std::abs(n.z) > std::abs(n.x))
+				u1 = { 1.0f, 0.0f, 0.0f };
+			else
+				u1 = { 0.0f, 0.0f, 1.0f };
+		}
+		else
+		{
+			u0 = { 1.0f, 0.0f, 0.0f };
+			if (std::abs(n.z) > std::abs(n.y))
+				u1 = { 0.0f, 1.0f, 0.0f };
+			else
+				u1 = { 0.0f, 0.0f, 1.0f };
+		}
 		vec2 v_2d[3] =
 		{
-			vec2(0.0f, 0.0f),
-			vec2(dot(u0, u0), 0.0f),
-			vec2(0.0f, dot(u1, u1))
+			vec2(dot(u0, p[0]), dot(u1, p[0])),
+			vec2(dot(u0, p[1]), dot(u1, p[1])),
+			vec2(dot(u0, p[2]), dot(u1, p[2])),
 		};
 
+		vec3 vt = c + (e - c) * t;
 		vec2 point(dot(u0, vt), dot(u1, vt));
 
 		bool inside = false;
@@ -262,8 +280,8 @@ float Collision::TriangleSphereIntersect(const vec4& from, const vec4& to, float
 			e0 = e1;
 		}
 
-		if (inside && t >= 0.0f && t <= 1.0f)
-			hitFraction = t;
+		if (inside)
+			return t;
 	}
 
 	// Step 2: Edge intersect test
@@ -289,6 +307,8 @@ float Collision::TriangleSphereIntersect(const vec4& from, const vec4& to, float
 
 	float kss = dot(ks, ks);
 	float rr = r * r;
+
+	float hitFraction = 1.0f;
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -328,6 +348,9 @@ float Collision::TriangleSphereIntersect(const vec4& from, const vec4& to, float
 		}
 	}
 
+	if (hitFraction < 1.0f)
+		return hitFraction;
+
 	// Step 3: Point intersect test
 
 	for (int i = 0; i < 3; i++)
@@ -353,7 +376,7 @@ float Collision::TriangleSphereIntersect(const vec4& from, const vec4& to, float
 				t = std::min(t0, t1);
 
 			if (t >= 0.0f && t <= 1.0f)
-				hitFraction = std::min(hitFraction, t);
+				hitFraction = std::min(t, hitFraction);
 		}
 	}
 
