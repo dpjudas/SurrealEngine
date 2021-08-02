@@ -322,9 +322,65 @@ void UActor::TickTrailer(float elapsed)
 {
 }
 
+void UActor::SetPhysics(uint8_t newPhysics)
+{
+	Physics() = newPhysics;
+}
+
+void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers)
+{
+	bCollideActors() = newColActors;
+	bBlockActors() = newBlockActors;
+	bBlockPlayers() = newBlockPlayers;
+}
+
+bool UActor::SetLocation(const vec3& newLocation)
+{
+	// To do: do overlap test and return false if the object cannot be moved to this location
+
+	Location() = newLocation;
+	return true;
+}
+
+bool UActor::SetRotation(const Rotator& newRotation)
+{
+	// To do: do overlap test and return false if the object cannot be changed to this rotation
+	
+	Rotation() = newRotation;
+	return true;
+}
+
+bool UActor::SetCollisionSize(float newRadius, float newHeight)
+{
+	// To do: do overlap test and return false if the object cannot be changed to this new size
+
+	CollisionRadius() = newRadius;
+	CollisionHeight() = newHeight;
+	return true;
+}
+
+UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent)
+{
+	// To do: this needs to do an AABB sweep (hmm, does UE1 treat all actor cylinders as AABB?)
+
+	if (!bTraceActors)
+	{
+		engine->LogUnimplemented("Actor.Trace called with bTraceActors set to true");
+	}
+
+	CylinderShape shape(traceStart, extent.x, extent.z);
+	SweepHit hit = engine->collision->Sweep(&shape, traceEnd);
+	if (hit.Fraction == 1.0f)
+		return nullptr;
+
+	hitNormal = hit.Normal;
+	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+	return Level();
+}
+
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	// Note: only test against world geometry
+	// Note: this function must only test against world geometry
 	return engine->collision->TraceAnyHit(traceStart, traceEnd);
 }
 

@@ -124,8 +124,17 @@ public:
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
 
-	SweepHit TryMove(const vec3& delta);
+	void SetPhysics(uint8_t newPhysics);
+	void SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers);
+
+	bool SetLocation(const vec3& newLocation);
+	bool SetRotation(const Rotator& newRotation);
+	bool SetCollisionSize(float newRadius, float newHeight);
+
+	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
+
+	SweepHit TryMove(const vec3& delta);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 

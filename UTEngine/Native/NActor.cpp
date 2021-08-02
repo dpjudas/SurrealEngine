@@ -367,7 +367,11 @@ void NActor::SetBase(UObject* Self, UObject* NewBase)
 
 void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
 {
-	engine->LogUnimplemented("Actor.SetCollision");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->SetCollision(
+		NewColActors ? *NewColActors : SelfActor->bCollideActors(),
+		NewBlockActors ? *NewBlockActors : SelfActor->bBlockActors(),
+		NewBlockPlayers ? *NewBlockPlayers : SelfActor->bBlockPlayers());
 }
 
 void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
@@ -390,16 +394,12 @@ void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
-	UObject::Cast<UActor>(Self)->Physics() = newPhysics;
+	UObject::Cast<UActor>(Self)->SetPhysics(newPhysics);
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
 {
-	// To do: do collision check to see if rotation is valid. Return false if it is not.
-
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	SelfActor->Rotation() = NewRotation;
-	ReturnValue = true;
+	ReturnValue = UObject::Cast<UActor>(Self)->SetRotation(NewRotation);
 }
 
 void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
@@ -439,12 +439,12 @@ void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 
 void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, bool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
 {
-	// To do:
-	// Trace a line and see what it collides with first.
-	// Takes this actor's collision properties into account.
-	// Returns first hit actor, Level if hit level, or None if hit nothing.
-
-	ReturnValue = nullptr;
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->Trace(
+		HitLocation, HitNormal, TraceEnd,
+		TraceStart ? *TraceStart : SelfActor->Location(),
+		bTraceActors ? *bTraceActors : false,
+		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
 }
 
 void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
