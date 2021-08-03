@@ -100,6 +100,7 @@ public:
 	using UObject::UObject;
 
 	UActor* Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation);
+	bool Destroy();
 
 	void SetBase(UActor* newBase, bool sendBaseChangeEvent);
 	void SetOwner(UActor* newOwner);

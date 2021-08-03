@@ -90,12 +90,12 @@ void NActor::AutonomousPhysics(UObject* Self, float DeltaSeconds)
 
 void NActor::BasedActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	throw std::runtime_error("Actor.BasedActors not implemented");
+	Frame::CreatedIterator = std::make_unique<BasedActorsIterator>(BaseClass, &Actor);
 }
 
 void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	throw std::runtime_error("Actor.ChildActors not implemented");
+	Frame::CreatedIterator = std::make_unique<ChildActorsIterator>(BaseClass, &Actor);
 }
 
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
@@ -113,16 +113,13 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 
 void NActor::Destroy(UObject* Self, bool& ReturnValue)
 {
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	ULevel* level = SelfActor->XLevel();
-	auto it = std::find(level->Actors.begin(), level->Actors.end(), SelfActor);
-	if (it != level->Actors.end())
-		level->Actors.erase(it);
+	ReturnValue = UObject::Cast<UActor>(Self)->Destroy();
 }
 
 void NActor::Error(UObject* Self, const std::string& S)
 {
-	throw std::runtime_error("Actor.Error not implemented");
+	engine->LogMessage("Error: " + S);
+	UObject::Cast<UActor>(Self)->Destroy();
 }
 
 void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bool& ReturnValue)
@@ -357,7 +354,7 @@ void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
 
 void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, vec3* Loc)
 {
-	throw std::runtime_error("Actor.RadiusActors not implemented");
+	Frame::CreatedIterator = std::make_unique<RadiusActorsIterator>(BaseClass, &Actor, Radius, Loc ? *Loc : UObject::Cast<UActor>(Self)->Location());
 }
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
@@ -376,15 +373,12 @@ void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActor
 
 void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.SetCollisionSize not implemented");
+	ReturnValue = UObject::Cast<UActor>(Self)->SetCollisionSize(NewRadius, NewHeight);
 }
 
 void NActor::SetLocation(UObject* Self, const vec3& NewLocation, bool& ReturnValue)
 {
-	// To do: do collision test
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	SelfActor->Location() = NewLocation;
-	ReturnValue = true;
+	ReturnValue = UObject::Cast<UActor>(Self)->SetLocation(NewLocation);
 }
 
 void NActor::SetOwner(UObject* Self, UObject* NewOwner)
@@ -434,7 +428,7 @@ void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnVa
 
 void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	throw std::runtime_error("Actor.TouchingActors not implemented");
+	Frame::CreatedIterator = std::make_unique<TouchingActorsIterator>(BaseClass, &Actor);
 }
 
 void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, bool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
@@ -449,8 +443,11 @@ void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3
 
 void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
-	// To do: trace against actors, filter by class and extent, return actor + hit location + normal
-	Actor = nullptr;
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
+		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		Start ? *Start : SelfActor->Location(),
+		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
 }
 
 void NActor::TweenAnim(UObject* Self, const std::string& Sequence, float Time)
@@ -460,10 +457,19 @@ void NActor::TweenAnim(UObject* Self, const std::string& Sequence, float Time)
 
 void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc)
 {
-	throw std::runtime_error("Actor.VisibleActors not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<VisibleActorsIterator>(
+		BaseClass, &Actor,
+		Radius ? *Radius : SelfActor->CollisionRadius(),
+		Loc ? *Loc : SelfActor->Location());
 }
 
 void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, bool* bIgnoreHidden)
 {
-	throw std::runtime_error("Actor.VisibleCollidingActors not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<VisibleCollidingActorsIterator>(
+		BaseClass, &Actor,
+		Radius ? *Radius : SelfActor->CollisionRadius(),
+		Loc ? *Loc : SelfActor->Location(),
+		bIgnoreHidden ? *bIgnoreHidden : false);
 }

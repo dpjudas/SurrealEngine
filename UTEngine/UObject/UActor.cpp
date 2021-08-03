@@ -117,6 +117,18 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	return actor;
 }
 
+bool UActor::Destroy()
+{
+	ULevel* level = XLevel();
+	auto it = std::find(level->Actors.begin(), level->Actors.end(), this);
+	if (it != level->Actors.end())
+	{
+		level->Actors.erase(it);
+		return true;
+	}
+	return false;
+}
+
 PointRegion UActor::FindRegion(const vec3& offset)
 {
 	PointRegion region;

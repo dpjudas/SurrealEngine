@@ -1,7 +1,9 @@
 
 #include "Precomp.h"
 #include "NZoneInfo.h"
+#include "UObject/UActor.h"
 #include "VM/NativeFunc.h"
+#include "VM/Frame.h"
 
 void NZoneInfo::RegisterFunctions()
 {
@@ -10,5 +12,5 @@ void NZoneInfo::RegisterFunctions()
 
 void NZoneInfo::ZoneActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	throw std::runtime_error("ZoneInfo.ZoneActors not implemented");
+	Frame::CreatedIterator = std::make_unique<ZoneActorsIterator>(UObject::Cast<UZoneInfo>(Self), BaseClass, &Actor);
 }
