@@ -50,10 +50,11 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UStringProperty>(corePackage, "StringProperty", "Property");
 	RegisterNativeClass<UTextBuffer>(corePackage, "TextBuffer", "Object");
 
-	if (packageManager->IsUnreal1())
+	if (packageManager->GetEngineVersion() < 400)
 	{
 		RegisterNativeClass<UObject>(corePackage, "Commandlet", "Object");
 		RegisterNativeClass<UObject>(corePackage, "SimpleCommandlet", "Commandlet");
+		RegisterNativeClass<UObject>(enginePackage, "RenderIterator", "Object");
 	}
 
 	RegisterNativeClass<UFont>(enginePackage, "Font", "Object");

@@ -51,13 +51,19 @@ struct LogMessageLine
 	std::string Text;
 };
 
+struct GameFolderInfo
+{
+	std::string folder;
+	int engineVersion = 0;
+};
+
 class Engine
 {
 public:
 	Engine();
 	~Engine();
 
-	std::string FindGameFolder();
+	GameFolderInfo FindGameFolder();
 	void Run();
 	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
 	UnrealURL GetDefaultURL(const std::string& map);

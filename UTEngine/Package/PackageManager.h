@@ -19,9 +19,10 @@ struct IntObject
 class PackageManager
 {
 public:
-	PackageManager(const std::string& basepath);
+	PackageManager(const std::string& basepath, int engineVersion);
 
 	bool IsUnreal1() const { return unreal1; }
+	int GetEngineVersion() const { return engineVersion; }
 
 	Package *GetPackage(const std::string& name);
 	std::vector<std::string> GetPackageNames() const;
@@ -50,7 +51,6 @@ private:
 
 	void DelayLoadNow();
 
-	bool unreal1 = false;
 	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
@@ -71,6 +71,9 @@ private:
 	};
 
 	std::list<OpenStream> openStreams;
+
+	bool unreal1 = false;
+	int engineVersion = 436;
 
 	friend class Package;
 	friend struct SetDelayLoadActive;

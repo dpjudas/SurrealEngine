@@ -102,7 +102,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 				~NotificationLockGuard() { spawnNotificationLocked = false; }
 			} lockGuard;
 
-			if (!engine->packages->IsUnreal1())
+			if (engine->packages->GetEngineVersion() >= 400)
 			{
 				for (USpawnNotify* notifyObj = Level()->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
 				{

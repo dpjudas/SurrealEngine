@@ -35,7 +35,9 @@ Engine* engine = nullptr;
 Engine::Engine()
 {
 	engine = this;
-	packages = std::make_unique<PackageManager>(FindGameFolder());
+
+	GameFolderInfo folderinfo = FindGameFolder();
+	packages = std::make_unique<PackageManager>(folderinfo.folder, folderinfo.engineVersion);
 
 	// Frame::AddBreakpoint("Botpack", "DeathMatchPlus", "Timer");
 }
@@ -75,7 +77,10 @@ void Engine::Run()
 	LoadEntryMap();
 
 	//LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
-	LoadMap(GetDefaultURL("DM-Liandri.unr"));
+	if (packages->GetEngineVersion() < 400)
+		LoadMap(GetDefaultURL("DM-TurbineDEMO.unr"));
+	else
+		LoadMap(GetDefaultURL("DM-Liandri.unr"));
 
 	bool firstCall = true;
 	bool ticked = false;
@@ -315,11 +320,14 @@ void Engine::LoadMap(const UnrealURL& url)
 				}
 			}
 		}
-		for (USpawnNotify* notifyObj = LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+		if (engine->packages->GetEngineVersion() >= 400)
 		{
-			UClass* cls = notifyObj->ActorClass();
-			if (cls && GameInfo->IsA(cls->Name))
-				GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
+			for (USpawnNotify* notifyObj = LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
+			{
+				UClass* cls = notifyObj->ActorClass();
+				if (cls && GameInfo->IsA(cls->Name))
+					GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
+			}
 		}
 	}
 	LevelInfo->Game() = GameInfo;
@@ -743,10 +751,11 @@ void Engine::LogUnimplemented(const std::string& message)
 	LogMessage("Unimplemented: " + message);
 }
 
-std::string Engine::FindGameFolder()
+GameFolderInfo Engine::FindGameFolder()
 {
+	GameFolderInfo info;
+
 #ifdef WIN32
-	std::string utfolder;
 	std::vector<wchar_t> buffer(1024);
 
 	// Try use registry location
@@ -759,28 +768,34 @@ std::string Engine::FindGameFolder()
 		if (result == ERROR_SUCCESS && type == REG_SZ)
 		{
 			buffer.back() = 0;
-			utfolder = from_utf16(buffer.data());
+			info.folder = from_utf16(buffer.data());
 		}
 		RegCloseKey(regkey);
 	}
 
-	if (utfolder.empty()) // Try use subfolder next to exe
+	if (info.folder.empty()) // Try use subfolder next to exe
 	{
 		if (GetModuleFileName(0, buffer.data(), 1024))
 		{
 			buffer.back() = 0;
 			std::string exepath = FilePath::remove_last_component(from_utf16(buffer.data()));
-			utfolder = FilePath::combine(exepath, "Unreal Tournament");
+			info.folder = FilePath::combine(exepath, "Unreal Tournament");
 		}
 	}
 
-	utfolder = R"(C:\Games\UnrealTournament436)";
-	// utfolder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
+	info.folder = R"(C:\Games\UnrealTournament436)";
+	info.engineVersion = 436;
+	// info.folder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
+	// info.engineVersion = 226;
+	// info.folder = R"(C:\Games\UTDemo338)";
+	// info.engineVersion = 338;
 
-	return utfolder;
 #else
-	return "/home/mbn/UnrealTournament";
+	info.engineVersion = 436;
+	info.folder = "/home/mbn/UnrealTournament";
 #endif
+
+	return info;
 }
 
 const char* Engine::keynames[256] =

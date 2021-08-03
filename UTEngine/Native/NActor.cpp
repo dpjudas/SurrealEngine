@@ -344,7 +344,8 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
-	engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : 1.0f, Radius ? (*Radius) * 25.0f : 0.0f, Pitch ? *Pitch : 1.0f);
+	if (s)
+		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : 1.0f, Radius ? (*Radius) * 25.0f : 0.0f, Pitch ? *Pitch : 1.0f);
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)

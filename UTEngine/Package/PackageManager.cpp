@@ -24,7 +24,7 @@
 #include "Native/NWarpZoneInfo.h"
 #include "Native/NZoneInfo.h"
 
-PackageManager::PackageManager(const std::string& basepath) : basepath(basepath)
+PackageManager::PackageManager(const std::string& basepath, int engineVersion) : basepath(basepath), engineVersion(engineVersion)
 {
 	NActor::RegisterFunctions();
 	NCanvas::RegisterFunctions();
@@ -92,6 +92,8 @@ Package* PackageManager::GetPackage(const std::string& name)
 	}
 	else
 	{
+		if (name == "UnrealI")
+			return GetPackage("UnrealShare");
 		throw std::runtime_error("Could not find package " + name);
 	}
 
