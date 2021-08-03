@@ -35,7 +35,7 @@ std::wstring to_utf16(const std::string& str)
 
 #else
 
-std::string from_utf16(const std::wstirng& str)
+std::string from_utf16(const std::wstring& str)
 {
 	throw std::runtime_error("from_utf16 not implemented on unix");
 }
