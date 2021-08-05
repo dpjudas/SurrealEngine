@@ -281,6 +281,8 @@ UObject* Package::GetUObject(const std::string& className, const std::string& ob
 
 int Package::FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName)
 {
+	bool isClass = CompareNames(className, "Class");
+
 	size_t count = ExportTable.size();
 	for (size_t index = 0; index < count; index++)
 	{
@@ -308,22 +310,34 @@ int Package::FindObjectReference(const std::string& className, const std::string
 			}
 		}
 
-		if (entry.ObjClass == 0)
+		if (isClass)
 		{
-			if (CompareNames(className, "Class"))
+			if (entry.ObjClass == 0)
+			{
 				return (int)index + 1;
+			}
+			else if (entry.ObjClass < 0)
+			{
+				auto classImport = GetImportEntry(entry.ObjClass);
+				if (classImport && CompareNames(className, GetName(classImport->ObjName)))
+					return (int)index + 1;
+			}
+			else
+			{
+				auto classExport = &ExportTable[entry.ObjClass + 1];
+				if (classExport && CompareNames(className, GetName(classExport->ObjName)))
+					return (int)index + 1;
+			}
 		}
-		else if (entry.ObjClass < 0)
+		else if (entry.ObjClass != 0)
 		{
-			auto classImport = GetImportEntry(entry.ObjClass);
-			if (classImport && CompareNames(className, GetName(classImport->ObjName)))
-				return (int)index + 1;
-		}
-		else
-		{
-			auto classExport = &ExportTable[entry.ObjClass + 1];
-			if (classExport && CompareNames(className, GetName(classExport->ObjName)))
-				return (int)index + 1;
+			UClass* cls = UObject::Cast<UClass>(GetUObject(entry.ObjClass));
+			while (cls)
+			{
+				if (CompareNames(className, cls->Name))
+					return (int)index + 1;
+				cls = cls->Base;
+			}
 		}
 	}
 
