@@ -332,8 +332,6 @@ void Engine::LoadMap(const UnrealURL& url)
 	}
 	LevelInfo->Game() = GameInfo;
 
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->CreateDefaultState(); }
-
 	if (!LevelInfo->bBegunPlay())
 	{
 		LevelInfo->TimeSeconds() = 0.0f;

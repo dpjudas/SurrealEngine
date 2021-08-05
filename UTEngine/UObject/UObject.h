@@ -203,8 +203,7 @@ public:
 	bool IsEventEnabled(const std::string& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
 
 	std::string GetStateName();
-	void CreateDefaultState();
-	void GotoState(const std::string& stateName, const std::string& labelName);
+	void GotoState(std::string stateName, const std::string& labelName);
 
 	std::string PrintProperties();
 

@@ -40,7 +40,6 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	XLevel()->Actors.push_back(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
-	actor->CreateDefaultState();
 	actor->InitActorZone();
 
 	if (Level()->bBegunPlay())

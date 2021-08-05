@@ -239,25 +239,24 @@ std::string UObject::GetStateName()
 	return StateFrame ? StateFrame->Func->Name : std::string();
 }
 
-void UObject::CreateDefaultState()
+void UObject::GotoState(std::string stateName, const std::string& labelName)
 {
-	for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
+	if (stateName == "Auto")
 	{
-		for (auto& it : cls->States)
+		for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
 		{
-			UState* state = it.second;
-			if ((state->StateFlags & ScriptStateFlags::Auto) == ScriptStateFlags::Auto)
+			for (auto& it : cls->States)
 			{
-				StateFrame = std::make_shared<Frame>(this, state);
-				StateFrame->GotoLabel("Begin");
-				return;
+				UState* state = it.second;
+				if ((state->StateFlags & ScriptStateFlags::Auto) == ScriptStateFlags::Auto)
+				{
+					stateName = state->Name;
+					break;
+				}
 			}
 		}
 	}
-}
 
-void UObject::GotoState(const std::string& stateName, const std::string& labelName)
-{
 	if (StateFrame && StateFrame->Func->Name != stateName)
 	{
 		CallEvent(this, "EndState");
