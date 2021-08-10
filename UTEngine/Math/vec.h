@@ -345,3 +345,37 @@ T smoothstep(const T edge0, const T edge1, const T x)
 	auto t = clamp<T>((x - edge0) / (edge1 - edge0), T(0.0), T(1.0));
 	return t * t * (T(3.0) - T(2.0) * t);
 }
+
+inline float slerp(float t)
+{
+	float s = t * t;
+	return s * s * (1.0f / 16.0f) - s * 0.5f + 1.0f;
+}
+
+inline double slerp(double t)
+{
+	double s = t * t;
+	return s * s * (1.0 / 16.0) - s * 0.5 + 1.0;
+}
+
+template<typename T>
+T spline(T a, T b, T c, T d, float t)
+{
+	float w0 = slerp(t + 1.0f);
+	float w1 = slerp(t);
+	float w2 = slerp(t - 1.0f);
+	float w3 = slerp(t - 2.0f);
+	float invweight = 1.0f / (w0 + w1 + w2 + w3);
+	return (a * w0 + b * w1 + c * w2 + d * w3) * invweight;
+}
+
+template<typename T>
+T spline(T a, T b, T c, T d, double t)
+{
+	double w0 = slerp(t + 1.0);
+	double w1 = slerp(t);
+	double w2 = slerp(t - 1.0);
+	double w3 = slerp(t - 2.0);
+	double invweight = 1.0 / (w0 + w1 + w2 + w3);
+	return (a * w0 + b * w1 + c * w2 + d * w3) * invweight;
+}

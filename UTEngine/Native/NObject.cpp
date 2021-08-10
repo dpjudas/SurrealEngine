@@ -441,7 +441,10 @@ void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)
 
 void NObject::EqualEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	ReturnValue = (A == B);
+	std::string empty;
+	const std::string* AA = (A != "None") ? &A : &empty;
+	const std::string* BB = (B != "None") ? &B : &empty;
+	ReturnValue = ((*AA) == (*BB));
 }
 
 void NObject::EqualEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
@@ -793,7 +796,10 @@ void NObject::NotEqual_IntInt(int A, int B, bool& ReturnValue)
 
 void NObject::NotEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
 {
-	ReturnValue = A != B;
+	std::string empty;
+	const std::string* AA = (A != "None") ? &A : &empty;
+	const std::string* BB = (B != "None") ? &B : &empty;
+	ReturnValue = (*AA) != (*BB);
 }
 
 void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)

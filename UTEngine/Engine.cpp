@@ -76,17 +76,17 @@ void Engine::Run()
 
 	LoadEntryMap();
 
-	//LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
-	if (packages->GetEngineVersion() < 400)
+	LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
+	/*if (packages->GetEngineVersion() < 400)
 		LoadMap(GetDefaultURL("DM-TurbineDEMO.unr"));
 	else
-		LoadMap(GetDefaultURL("DM-Liandri.unr"));
+		LoadMap(GetDefaultURL("DM-Liandri.unr"));*/
 
 	bool firstCall = true;
 	bool ticked = false;
 	while (!quit)
 	{
-		float elapsed = CalcTimeElapsed();
+		float elapsed = CalcTimeElapsed() * LevelInfo->TimeDilation();
 
 		UpdateInput();
 
@@ -310,7 +310,7 @@ void Engine::LoadMap(const UnrealURL& url)
 		CallEvent(GameInfo, "PostBeginPlay");
 		CallEvent(GameInfo, "SetInitialState");
 		std::string attachTag = GameInfo->AttachTag();
-		if (!attachTag.empty())
+		if (!attachTag.empty() && attachTag != "None")
 		{
 			for (UActor* actor : Level->Actors)
 			{
@@ -388,6 +388,15 @@ void Engine::LoadMap(const UnrealURL& url)
 	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
 
 	renderer->OnMapLoaded();
+
+	// To do: remove this when touch events are implemented
+	UObject* specialEvent0 = package->GetUObject("SpecialEvent", "SpecialEvent0");
+	//UObject* specialEvent1 = package->GetUObject("SpecialEvent", "SpecialEvent1");
+	if (specialEvent0)
+	{
+		CallEvent(specialEvent0, "Trigger", { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
+		//CallEvent(specialEvent1, "Trigger", { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
+	}
 }
 
 float Engine::CalcTimeElapsed()

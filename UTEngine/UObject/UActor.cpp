@@ -319,6 +319,102 @@ void UActor::TickRolling(float elapsed)
 
 void UActor::TickInterpolating(float elapsed)
 {
+	OldLocation() = Location();
+
+	float timeLeft = elapsed;
+	while (timeLeft > 0.0f)
+	{
+		if (PhysRate() == 0.0f || !bInterpolating())
+			break;
+
+		UInterpolationPoint* target = UObject::Cast<UInterpolationPoint>(Target());
+		UInterpolationPoint* next = target ? target->Next() : nullptr;
+		if (!target || !next)
+			break;
+
+		float physAlpha = PhysAlpha();
+
+		if (dynamic_cast<UPlayerPawn*>(this))
+		{
+			UPlayerPawn* pawn = static_cast<UPlayerPawn*>(this);
+			pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
+			pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
+			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Base->GetDefaultObject()->GetFloat("FovAngle");
+			pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
+			pawn->FlashFog() = pawn->DesiredFlashFog();
+		}
+
+		Level()->TimeDilation() = mix(target->GameSpeedModifier(), next->GameSpeedModifier(), physAlpha);
+
+		float rateModifier = mix(target->RateModifier(), next->RateModifier(), physAlpha);
+		float physRate = PhysRate() * rateModifier;
+		if (physRate == 0.0f)
+			break;
+
+		bool interpolateStart = false, interpolateEnd = false;
+		physAlpha += physRate * timeLeft;
+		if (physRate < 0.0f && physAlpha < 0.0f)
+		{
+			timeLeft = physAlpha / physRate;
+			physAlpha = 0.0f;
+			interpolateStart = true;
+		}
+		else if (physRate > 0.0f && physAlpha > 1.0f)
+		{
+			timeLeft = (physAlpha - 1.0f) / physRate;
+			physAlpha = 1.0f;
+			interpolateEnd = true;
+		}
+		else
+		{
+			timeLeft = 0.0f;
+		}
+
+		UInterpolationPoint* prev = target->Position() > 0 ? target->Prev() : target;
+		UInterpolationPoint* nextnext = next->Next();
+		if (!nextnext) nextnext = next;
+		if (next->bEndOfPath()) nextnext = next;
+		if (target->bEndOfPath()) { next = target; nextnext = target; }
+		vec3 location = spline(prev->Location(), target->Location(), next->Location(), nextnext->Location(), physAlpha);
+		Rotator rotation = spline(prev->Rotation(), target->Rotation(), next->Rotation(), nextnext->Rotation(), physAlpha);
+
+		PhysAlpha() = physAlpha;
+		TryMove(location - Location());
+		Rotation() = rotation;
+
+		if (dynamic_cast<UPawn*>(this))
+		{
+			static_cast<UPawn*>(this)->ViewRotation() = Rotation();
+		}
+
+		if (interpolateStart)
+		{
+			CallEvent(target, "InterpolateEnd", { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, "InterpolateEnd", { ExpressionValue::ObjectValue(target) });
+
+			target = target->Prev();
+			while (target && target->bSkipNextPath())
+				target = target->Prev();
+
+			Target() = target;
+			PhysAlpha() = 1.0f;
+		}
+		else if (interpolateEnd)
+		{
+			CallEvent(target, "InterpolateEnd", { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, "InterpolateEnd", { ExpressionValue::ObjectValue(target) });
+
+			target = target->Next();
+			while (target && target->bSkipNextPath())
+				target = target->Next();
+
+			Target() = target;
+			PhysAlpha() = 0.0f;
+		}
+	}
+
+	if (elapsed > 0.0f)
+		Velocity() = (Location() - OldLocation()) / elapsed;
 }
 
 void UActor::TickMovingBrush(float elapsed)
@@ -415,7 +511,9 @@ SweepHit UActor::TryMove(const vec3& delta)
 	// bBlockPlayers()
 
 	CylinderShape shape(Location(), CollisionHeight(), CollisionRadius());
-	SweepHit hit = engine->collision->Sweep(&shape, Location() + delta);
+	SweepHit hit;
+	if (bCollideWorld())
+		hit = engine->collision->Sweep(&shape, Location() + delta);
 	vec3 actuallyMoved = delta * hit.Fraction;
 
 	Location() += actuallyMoved;

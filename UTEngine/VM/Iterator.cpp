@@ -7,8 +7,6 @@
 
 AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, std::string MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
 {
-	if (MatchTag == "None")
-		MatchTag.clear();
 }
 
 bool AllObjectsIterator::Next()
