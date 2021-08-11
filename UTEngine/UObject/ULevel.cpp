@@ -4,6 +4,7 @@
 #include "UActor.h"
 #include "UTexture.h"
 #include "UClass.h"
+#include "VM/ScriptCall.h"
 
 // #define TEST_SWEEP
 // #define TEST_SWEEP_WITH_RAY
@@ -57,6 +58,30 @@ void ULevel::Load(ObjectStream* stream)
 	}
 
 	Model = stream->ReadObject<UModel>();
+}
+
+void ULevel::Tick(float elapsed)
+{
+	// To do: owned actors must tick before their children:
+	for (size_t i = 0; i < Actors.size(); i++)
+	{
+		UActor* actor = Actors[i];
+		if (actor)
+		{
+			actor->Tick(elapsed, ticked);
+
+			if (actor->Role() >= ROLE_SimulatedProxy && actor->LifeSpan() != 0.0f)
+			{
+				actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
+				if (actor->LifeSpan() == 0.0f)
+				{
+					CallEvent(actor, "Expired");
+					actor->Destroy();
+				}
+			}
+		}
+	}
+	ticked = !ticked;
 }
 
 bool ULevel::TraceAnyHit(vec3 from, vec3 to)

@@ -81,7 +81,6 @@ void Engine::Run()
 		LoadMap(GetDefaultURL("DM-Liandri.unr"));*/
 
 	bool firstCall = true;
-	bool ticked = false;
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed() * LevelInfo->TimeDilation();
@@ -89,27 +88,7 @@ void Engine::Run()
 		UpdateInput();
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
-
-		// To do: owned actors must tick before their children:
-		for (size_t i = 0; i < Level->Actors.size(); i++)
-		{
-			UActor* actor = Level->Actors[i];
-			if (actor)
-			{
-				actor->Tick(elapsed, ticked);
-
-				if (actor->Role() >= ROLE_SimulatedProxy && actor->LifeSpan() != 0.0f)
-				{
-					actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
-					if (actor->LifeSpan() == 0.0f)
-					{
-						CallEvent(actor, "Expired");
-						// To do: destroy actor
-					}
-				}
-			}
-		}
-		ticked = !ticked;
+		Level->Tick(elapsed);
 
 		// To do: improve CallEvent so parameter passing isn't this painful
 		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");

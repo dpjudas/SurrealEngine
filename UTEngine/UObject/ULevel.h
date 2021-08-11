@@ -234,8 +234,12 @@ public:
 	using ULevelBase::ULevelBase;
 	void Load(ObjectStream* stream) override;
 
+	void Tick(float elapsed);
+
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
+
+	bool ticked = false;
 
 	bool TraceAnyHit(vec3 from, vec3 to);
 	SweepHit Sweep(CylinderShape* shape, const vec3& to);
