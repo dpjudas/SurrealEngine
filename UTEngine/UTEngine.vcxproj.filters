@@ -1193,6 +1193,9 @@
     <ClInclude Include="Audio\AudioMixer.h">
       <Filter>Audio</Filter>
     </ClInclude>
+    <ClInclude Include="Math\rotator.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Thirdparty\dumb\src\helpers\resamp2.inc">

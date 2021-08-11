@@ -363,6 +363,7 @@ set(UTENGINE_SOURCES
 	UTEngine/Math/halffloat.h
 	UTEngine/Math/mat.h
 	UTEngine/Math/vec.h
+	UTEngine/Math/rotator.h
 	UTEngine/Math/mat.cpp
 	UTEngine/Math/bbox.h
 	UTEngine/Math/hsb.h

@@ -122,6 +122,7 @@
     <ClInclude Include="Math\bbox.h" />
     <ClInclude Include="Math\FrustumPlanes.h" />
     <ClInclude Include="Math\hsb.h" />
+    <ClInclude Include="Math\rotator.h" />
     <ClInclude Include="Native\NActor.h" />
     <ClInclude Include="Native\NCanvas.h" />
     <ClInclude Include="Native\NCommandlet.h" />
