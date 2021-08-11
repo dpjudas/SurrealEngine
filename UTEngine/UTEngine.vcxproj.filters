@@ -559,7 +559,6 @@
     <ClCompile Include="Math\hsb.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Renderer\BrushRender.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -1013,7 +1012,6 @@
     <ClInclude Include="Math\hsb.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Collision.h" />
     <ClInclude Include="Renderer\BrushRender.h">
       <Filter>Renderer</Filter>
     </ClInclude>

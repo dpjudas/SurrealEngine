@@ -3,7 +3,6 @@
 #include "Engine.h"
 #include "File.h"
 #include "UTF16.h"
-#include "Collision.h"
 #include "Renderer/UTRenderer.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
@@ -57,7 +56,6 @@ void Engine::Run()
 	window->OpenWindow(1800, 950, true);
 
 	audio = AudioMixer::Create();
-	collision = std::make_unique<Collision>();
 	renderer = std::make_unique<UTRenderer>();
 	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
 

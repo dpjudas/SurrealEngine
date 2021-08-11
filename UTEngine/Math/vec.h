@@ -379,3 +379,11 @@ T spline(T a, T b, T c, T d, double t)
 	double invweight = 1.0 / (w0 + w1 + w2 + w3);
 	return (a * w0 + b * w1 + c * w2 + d * w3) * invweight;
 }
+
+inline dvec2 to_dvec2(vec2 v) { return dvec2(v.x, v.y); }
+inline dvec3 to_dvec3(vec3 v) { return dvec3(v.x, v.y, v.z); }
+inline dvec4 to_dvec4(vec4 v) { return dvec4(v.x, v.y, v.z, v.w); }
+
+inline vec2 to_vec2(dvec2 v) { return vec2((float)v.x, (float)v.y); }
+inline vec3 to_vec3(dvec3 v) { return vec3((float)v.x, (float)v.y, (float)v.z); }
+inline vec4 to_vec4(dvec4 v) { return vec4((float)v.x, (float)v.y, (float)v.z, (float)v.w); }

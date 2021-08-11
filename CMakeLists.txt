@@ -344,7 +344,6 @@ set(UTENGINE_SOURCES
 	UTEngine/RenderDevice/Vulkan/FileResource.cpp
 	UTEngine/RenderDevice/Vulkan/Renderer.h
 	UTEngine/RenderDevice/RenderDevice.cpp
-	UTEngine/Collision.h
 	UTEngine/Package/ObjectFlags.h
 	UTEngine/Package/Package.h
 	UTEngine/Package/ObjectStream.h
@@ -395,7 +394,6 @@ set(UTENGINE_SOURCES
 	UTEngine/UObject/UObject.cpp
 	UTEngine/UObject/UTextBuffer.h
 	UTEngine/UObject/PropertyOffsets.h
-	UTEngine/Collision.cpp
 	UTEngine/UI/Controls/LineEdit/LineEdit.cpp
 	UTEngine/UI/Controls/LineEdit/LineEdit.h
 	UTEngine/UI/Controls/TextLabel/TextLabel.cpp

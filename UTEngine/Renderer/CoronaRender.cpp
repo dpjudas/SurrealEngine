@@ -9,7 +9,6 @@
 #include "Engine.h"
 #include "Window/Window.h"
 #include "UTRenderer.h"
-#include "Collision.h"
 
 void CoronaRender::DrawCoronas(FSceneNode* frame)
 {
@@ -17,7 +16,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 
 	for (UActor* light : engine->renderer->Lights)
 	{
-		if (light && light->bCorona() && light->Skin() && !engine->collision->TraceAnyHit(light->Location(), frame->ViewLocation))
+		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceAnyHit(light->Location(), frame->ViewLocation))
 		{
 			vec4 pos = frame->Modelview * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)

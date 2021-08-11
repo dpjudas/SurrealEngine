@@ -7,7 +7,6 @@
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
-#include "Collision.h"
 
 static std::string tickEventName = "Tick";
 
@@ -476,7 +475,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 	}
 
 	CylinderShape shape(traceStart, extent.x, extent.z);
-	SweepHit hit = engine->collision->Sweep(&shape, traceEnd);
+	SweepHit hit = XLevel()->Sweep(&shape, traceEnd);
 	if (hit.Fraction == 1.0f)
 		return nullptr;
 
@@ -488,7 +487,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
 	// Note: this function must only test against world geometry
-	return engine->collision->TraceAnyHit(traceStart, traceEnd);
+	return XLevel()->TraceAnyHit(traceStart, traceEnd);
 }
 
 SweepHit UActor::TryMove(const vec3& delta)
@@ -513,7 +512,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	CylinderShape shape(Location(), CollisionHeight(), CollisionRadius());
 	SweepHit hit;
 	if (bCollideWorld())
-		hit = engine->collision->Sweep(&shape, Location() + delta);
+		hit = XLevel()->Sweep(&shape, Location() + delta);
 	vec3 actuallyMoved = delta * hit.Fraction;
 
 	Location() += actuallyMoved;

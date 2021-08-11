@@ -8,7 +8,6 @@
 #include <set>
 #include <list>
 
-class Collision;
 class UTRenderer;
 class PackageManager;
 class UObject;
@@ -104,19 +103,10 @@ public:
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;
 	std::unique_ptr<UTRenderer> renderer;
-	std::unique_ptr<Collision> collision;
 	std::unique_ptr<AudioMixer> audio;
 
 	float CalcTimeElapsed();
 
-	struct ActorPos
-	{
-		float Yaw = 0.0f;
-		float Pitch = 0.0f;
-		float Roll = 0.0f;
-		vec3 Location = { 200.0f, 1200.0f, 1300.0f };
-	};
-	
 	UActor* CameraActor = nullptr;
 	vec3 CameraLocation;
 	Rotator CameraRotation;

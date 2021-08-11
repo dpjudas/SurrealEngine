@@ -10,7 +10,6 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Audio/AudioMixer.h"
-#include "Collision.h"
 
 void NActor::RegisterFunctions()
 {

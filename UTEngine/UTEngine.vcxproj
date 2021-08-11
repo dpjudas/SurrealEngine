@@ -117,7 +117,6 @@
     <ClInclude Include="Audio\AudioMixer.h" />
     <ClInclude Include="Audio\AudioPlayer.h" />
     <ClInclude Include="Audio\AudioSource.h" />
-    <ClInclude Include="Collision.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Math\bbox.h" />
@@ -780,7 +779,6 @@
     <ClCompile Include="Audio\AudioMixer.cpp" />
     <ClCompile Include="Audio\AudioPlayer.cpp" />
     <ClCompile Include="Audio\AudioSource.cpp" />
-    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="Math\FrustumPlanes.cpp" />
