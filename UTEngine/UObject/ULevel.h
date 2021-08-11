@@ -239,20 +239,20 @@ public:
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
-	bool ticked = false;
-
 	bool TraceAnyHit(vec3 from, vec3 to);
 	SweepHit Sweep(CylinderShape* shape, const vec3& to);
 
 private:
-	bool TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node, BspNode* nodes);
-	SweepHit Sweep(const dvec4& from, const dvec4& to, double radius, BspNode* node, BspNode* nodes);
+	bool TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node);
+	SweepHit Sweep(const dvec4& from, const dvec4& to, double radius, BspNode* node);
 
 	double NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node);
 	double NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node);
 
 	double TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* points);
 	double TriangleSphereIntersect(const dvec4& from, const dvec4& to, double radius, const dvec3* points);
+
+	bool ticked = false;
 };
 
 class ULevelSummary : public UObject
