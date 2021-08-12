@@ -1,0 +1,108 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  linux:
+    runs-on: ubuntu-20.04
+    name: 🐧 Ubuntu 20.04
+    steps:
+      - name: 🧰 Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: ⬇️ Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential       \
+            gcc-10                \
+            g++-10                \
+            libglew-dev           \
+            libsdl2-dev           \
+            libsdl2-mixer-dev     \
+            libglm-dev
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        env:
+          CC: gcc-10
+          CXX: g++-10
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        env:
+          CC: gcc-10
+          CXX: g++-10
+        run: cmake --build . --config $BUILD_TYPE --target package
+
+      - name: 📦 Upload Ubuntu package to release
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{runner.workspace}}/build/*.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
+      - name: 📦 Upload Ubuntu package
+        uses: actions/upload-artifact@v2
+        with:
+          name: engge-linux
+          path: ${{runner.workspace}}/build/*.zip
+
+  macos-build:
+    runs-on: macos-11.0
+    name: 🍎 macOS 11.0
+    steps:
+
+      - name: 🧰 Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: ⬇️ Install dependencies
+        run: brew install glew sdl2 sdl2_mixer glm
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: |
+          cmake --build . --config $BUILD_TYPE --target package
+      - name: 📦 Upload macOS package to release
+        uses: svenstaro/upload-release-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{runner.workspace}}/build/*.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
+      - name: 📦 Upload Portable ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: engge-macOS
+          path: ${{runner.workspace}}/build/*.zip
