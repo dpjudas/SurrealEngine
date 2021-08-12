@@ -25,7 +25,6 @@ jobs:
             build-essential       \
             gcc-10                \
             g++-10                \
-            libglew-dev           \
             libsdl2-dev           \
             libsdl2-mixer-dev     \
             libglm-dev
@@ -65,8 +64,8 @@ jobs:
           path: ${{runner.workspace}}/build/*.zip
 
   macos-build:
-    runs-on: macos-11.0
-    name: 🍎 macOS 11.0
+    runs-on: macos-10.0
+    name: 🍎 macOS 10.0
     steps:
 
       - name: 🧰 Checkout
