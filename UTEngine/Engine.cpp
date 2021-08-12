@@ -74,7 +74,7 @@ void Engine::Run()
 
 	LoadEntryMap();
 
-	LoadMap(GetDefaultURL(packages->GetIniValue("UnrealTournament", "URL", "LocalMap")));
+	LoadMap(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")));
 	/*if (packages->GetEngineVersion() < 400)
 		LoadMap(GetDefaultURL("DM-TurbineDEMO.unr"));
 	else
@@ -767,12 +767,12 @@ GameFolderInfo Engine::FindGameFolder()
 		}
 	}
 
-	info.folder = R"(C:\Games\UnrealTournament436)";
-	info.engineVersion = 436;
-	// info.folder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)";
-	// info.engineVersion = 226;
-	// info.folder = R"(C:\Games\UTDemo338)";
-	// info.engineVersion = 338;
+	info.folder = R"(C:\Games\UnrealTournament436)"; info.engineVersion = 436;
+	// info.folder = R"(C:\Games\utdemo348)"; info.engineVersion = 348;
+	// info.folder = R"(C:\Games\UTDemo338)"; info.engineVersion = 338;
+	// info.folder = R"(C:\Games\utdemo3dfx)"; info.engineVersion = 322;
+	// info.folder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)"; info.engineVersion = 226;
+	// info.folder = R"(C:\Games\klingon)"; info.engineVersion = 219;
 
 #else
 	info.engineVersion = 436;

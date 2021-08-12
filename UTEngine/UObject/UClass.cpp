@@ -38,6 +38,8 @@ void UStruct::Load(ObjectStream* stream)
 {
 	UField::Load(stream);
 	ScriptText = stream->ReadObject<UTextBuffer>();
+	if (ScriptText)
+		ScriptText->LoadNow();
 	Children = stream->ReadObject<UField>();
 	FriendlyName = stream->ReadName();
 	if (FriendlyName == "None")
@@ -46,15 +48,38 @@ void UStruct::Load(ObjectStream* stream)
 	Line = stream->ReadUInt32();
 	TextPos = stream->ReadUInt32();
 
-	/*
-	// for debug breakpoints
-	if (FriendlyName == "UBrowserServerListWindow")
-		FriendlyName = "UBrowserServerListWindow";
-	if (FriendlyName == "BeforePaint")
-		FriendlyName = "BeforePaint";
-	*/
-
 	int ScriptSize = stream->ReadUInt32();
+
+	struct ParameterInfo
+	{
+		int size;
+		int flags; // 1 = out parameter
+	};
+	std::vector<ParameterInfo> parameterSizes;
+	if (stream->GetVersion() <= 61 && ScriptSize > 0)
+	{
+		uint32_t pos = stream->Tell();
+		ExprToken token = (ExprToken)stream->ReadUInt8();
+		if (token == ExprToken::LetBool)
+		{
+			while (true)
+			{
+				ParameterInfo info;
+				info.size = stream->ReadUInt8();
+				if (info.size == 0)
+					break;
+				info.flags = stream->ReadUInt8();
+				parameterSizes.push_back(info);
+			}
+
+			ScriptSize -= stream->Tell() - pos;
+		}
+		else
+		{
+			stream->Seek(pos);
+		}
+	}
+
 	while (Bytecode.size() < ScriptSize)
 	{
 		ReadToken(stream, 0);
@@ -206,7 +231,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::LocalVariable: PushIndex(stream->ReadIndex()); break;
 		case ExprToken::InstanceVariable: PushIndex(stream->ReadIndex()); break;
 		case ExprToken::DefaultVariable: PushIndex(stream->ReadIndex()); break;
-		case ExprToken::Return: ReadToken(stream, depth); break;
+		case ExprToken::Return: if (stream->GetVersion() > 61) ReadToken(stream, depth); break;
 		case ExprToken::Switch: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
 		case ExprToken::Jump: PushUInt16(stream->ReadUInt16()); break;
 		case ExprToken::JumpIfNot: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
@@ -223,7 +248,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::ClassContext: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
 		case ExprToken::MetaCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
 		case ExprToken::LetBool: ReadToken(stream, depth); ReadToken(stream, depth); break;
-		case ExprToken::Unknown0x15: ReadToken(stream, depth); break;
+		case ExprToken::Unknown0x15: /*ReadToken(stream, depth);*/ break;
 		case ExprToken::EndFunctionParms: break;
 		case ExprToken::Self: break;
 		case ExprToken::Skip: PushUInt16(stream->ReadUInt16()); ReadToken(stream, depth); break;
@@ -245,7 +270,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::NoObject: break;
 		case ExprToken::Unknown0x2b: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
 		case ExprToken::IntConstByte: PushUInt8(stream->ReadUInt8()); break;
-		case ExprToken::BoolVariable: break;
+		case ExprToken::BoolVariable: ReadToken(stream, depth); break;
 		case ExprToken::DynamicCast: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
 		case ExprToken::Iterator: ReadToken(stream, depth); PushUInt16(stream->ReadUInt16()); break;
 		case ExprToken::IteratorPop: break;
@@ -306,13 +331,13 @@ void UFunction::Load(ObjectStream* stream)
 {
 	UStruct::Load(stream);
 	if (stream->GetVersion() <= 63)
-		ParmsSize = stream->ReadIndex();
+		ParmsSize = stream->ReadUInt16();
 	NativeFuncIndex = stream->ReadUInt16();
 	if (stream->GetVersion() <= 63)
-		NumParms = stream->ReadIndex();
+		NumParms = stream->ReadUInt8();
 	OperatorPrecedence = stream->ReadUInt8();
 	if (stream->GetVersion() <= 63)
-		ReturnValueOffset = stream->ReadIndex();
+		ReturnValueOffset = stream->ReadUInt16();
 	FuncFlags = (FunctionFlags)stream->ReadUInt32();
 	if (AllFlags(FuncFlags, FunctionFlags::Net))
 		ReplicationOffset = stream->ReadUInt16();

@@ -127,6 +127,11 @@ public:
 	uint16_t GetOffset() const { return pos; }
 	bool IsEnd() const { return pos == size; }
 
+	int GetVersion() const
+	{
+		return package->GetVersion();
+	}
+
 private:
 	uint8_t* data = nullptr;
 	uint32_t size = 0;

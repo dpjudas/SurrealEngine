@@ -233,6 +233,9 @@ UObject* Package::GetUObject(int objref)
 	{
 		int index = objref - 1;
 
+		if ((size_t)index > Objects.size())
+			throw std::runtime_error("Invalid object reference");
+
 		if (!Objects[index])
 			LoadExportObject(index);
 

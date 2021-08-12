@@ -442,4 +442,10 @@ void UPalette::Load(ObjectStream* stream)
 	int count = stream->ReadIndex();
 	Colors.resize(count);
 	stream->ReadBytes(Colors.data(), count * 4);
+
+	if (stream->GetVersion() < 66)
+	{
+		for (uint32_t& c : Colors)
+			c |= 0xff000000;
+	}
 }

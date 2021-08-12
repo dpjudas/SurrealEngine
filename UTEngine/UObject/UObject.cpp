@@ -7,6 +7,7 @@
 #include "Package/PackageManager.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
+#include "Engine.h"
 
 UObject::UObject(std::string name, UClass* base, ObjectFlags flags) : Name(name), Base(base), Flags(flags)
 {
@@ -352,9 +353,6 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 				break;
 			}
 		}
-		if (!prop)
-			throw std::runtime_error("Unknown property " + name);
-		void* data = Ptr(prop);
 
 		uint8_t info = stream->ReadInt8();
 		bool infoBit = info & 0x80;
@@ -405,6 +403,20 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		{
 			header.boolValue = infoBit;
 		}
+
+		if (!prop)
+		{
+#if 1
+			throw std::runtime_error("Unknown property " + name);
+#else
+			engine->LogMessage("Skipping unknown property " + name);
+			if (header.type != UPT_Bool)
+				stream->Skip(header.size);
+			continue;
+#endif
+		}
+
+		void* data = Ptr(prop);
 
 		if (header.arrayIndex < 0 || (uint32_t)header.arrayIndex >= prop->ArrayDimension)
 			throw std::runtime_error("Array property is out of bounds!");

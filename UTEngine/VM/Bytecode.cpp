@@ -102,7 +102,8 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::Return:
 		{
 			ReturnExpression* expr = Create<ReturnExpression>(exproffset);
-			expr->Value = ReadToken(stream, depth);
+			if (stream->GetVersion() > 61)
+				expr->Value = ReadToken(stream, depth);
 			return expr;
 		}
 		case ExprToken::Switch:
@@ -214,7 +215,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::Unknown0x15:
 		{
 			Unknown0x15Expression* expr = Create<Unknown0x15Expression>(exproffset);
-			expr->Value = ReadToken(stream, depth);
+			//expr->Value = ReadToken(stream, depth);
 			return expr;
 		}
 		case ExprToken::Skip:

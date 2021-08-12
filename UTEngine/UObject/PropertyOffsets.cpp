@@ -11,7 +11,10 @@ static void InitPropertyOffsets_Object(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Object"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Object");
+	{
+		memset(&PropOffsets_Object, 0xff, sizeof(PropOffsets_Object));
+		return;
+	}
 	PropOffsets_Object.Class = cls->GetPropertyDataOffset("Class");
 	PropOffsets_Object.Name = cls->GetPropertyDataOffset("Name");
 	PropOffsets_Object.ObjectFlags = cls->GetPropertyDataOffset("ObjectFlags");
@@ -25,7 +28,10 @@ static void InitPropertyOffsets_Commandlet(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Commandlet"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Commandlet");
+	{
+		memset(&PropOffsets_Commandlet, 0xff, sizeof(PropOffsets_Commandlet));
+		return;
+	}
 	PropOffsets_Commandlet.HelpCmd = cls->GetPropertyDataOffset("HelpCmd");
 	PropOffsets_Commandlet.HelpDesc = cls->GetPropertyDataOffset("HelpDesc");
 	PropOffsets_Commandlet.HelpOneLiner = cls->GetPropertyDataOffset("HelpOneLiner");
@@ -47,7 +53,10 @@ static void InitPropertyOffsets_Subsystem(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Subsystem"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Subsystem");
+	{
+		memset(&PropOffsets_Subsystem, 0xff, sizeof(PropOffsets_Subsystem));
+		return;
+	}
 	PropOffsets_Subsystem.ExecVtbl = cls->GetPropertyDataOffset("ExecVtbl");
 }
 
@@ -57,7 +66,10 @@ static void InitPropertyOffsets_HelloWorldCommandlet(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "HelloWorldCommandlet"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for HelloWorldCommandlet");
+	{
+		memset(&PropOffsets_HelloWorldCommandlet, 0xff, sizeof(PropOffsets_HelloWorldCommandlet));
+		return;
+	}
 	PropOffsets_HelloWorldCommandlet.intparm = cls->GetPropertyDataOffset("intparm");
 	PropOffsets_HelloWorldCommandlet.strparm = cls->GetPropertyDataOffset("strparm");
 }
@@ -68,7 +80,10 @@ static void InitPropertyOffsets_SimpleCommandlet(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "SimpleCommandlet"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for SimpleCommandlet");
+	{
+		memset(&PropOffsets_SimpleCommandlet, 0xff, sizeof(PropOffsets_SimpleCommandlet));
+		return;
+	}
 	PropOffsets_SimpleCommandlet.intparm = cls->GetPropertyDataOffset("intparm");
 }
 
@@ -78,7 +93,10 @@ static void InitPropertyOffsets_Pawn(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Pawn"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Pawn");
+	{
+		memset(&PropOffsets_Pawn, 0xff, sizeof(PropOffsets_Pawn));
+		return;
+	}
 	PropOffsets_Pawn.AccelRate = cls->GetPropertyDataOffset("AccelRate");
 	PropOffsets_Pawn.AirControl = cls->GetPropertyDataOffset("AirControl");
 	PropOffsets_Pawn.AirSpeed = cls->GetPropertyDataOffset("AirSpeed");
@@ -227,7 +245,10 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Actor"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Actor");
+	{
+		memset(&PropOffsets_Actor, 0xff, sizeof(PropOffsets_Actor));
+		return;
+	}
 	PropOffsets_Actor.Acceleration = cls->GetPropertyDataOffset("Acceleration");
 	PropOffsets_Actor.AmbientGlow = cls->GetPropertyDataOffset("AmbientGlow");
 	PropOffsets_Actor.AmbientSound = cls->GetPropertyDataOffset("AmbientSound");
@@ -424,7 +445,10 @@ static void InitPropertyOffsets_LevelInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LevelInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for LevelInfo");
+	{
+		memset(&PropOffsets_LevelInfo, 0xff, sizeof(PropOffsets_LevelInfo));
+		return;
+	}
 	PropOffsets_LevelInfo.AIProfile = cls->GetPropertyDataOffset("AIProfile");
 	PropOffsets_LevelInfo.Author = cls->GetPropertyDataOffset("Author");
 	PropOffsets_LevelInfo.AvgAITime = cls->GetPropertyDataOffset("AvgAITime");
@@ -489,7 +513,10 @@ static void InitPropertyOffsets_Inventory(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Inventory"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Inventory");
+	{
+		memset(&PropOffsets_Inventory, 0xff, sizeof(PropOffsets_Inventory));
+		return;
+	}
 	PropOffsets_Inventory.AbsorptionPriority = cls->GetPropertyDataOffset("AbsorptionPriority");
 	PropOffsets_Inventory.ActivateSound = cls->GetPropertyDataOffset("ActivateSound");
 	PropOffsets_Inventory.ArmorAbsorption = cls->GetPropertyDataOffset("ArmorAbsorption");
@@ -553,7 +580,10 @@ static void InitPropertyOffsets_PlayerPawn(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerPawn"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for PlayerPawn");
+	{
+		memset(&PropOffsets_PlayerPawn, 0xff, sizeof(PropOffsets_PlayerPawn));
+		return;
+	}
 	PropOffsets_PlayerPawn.AppliedBob = cls->GetPropertyDataOffset("AppliedBob");
 	PropOffsets_PlayerPawn.Bob = cls->GetPropertyDataOffset("Bob");
 	PropOffsets_PlayerPawn.BorrowedMouseX = cls->GetPropertyDataOffset("BorrowedMouseX");
@@ -702,7 +732,10 @@ static void InitPropertyOffsets_PlayerReplicationInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerReplicationInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for PlayerReplicationInfo");
+	{
+		memset(&PropOffsets_PlayerReplicationInfo, 0xff, sizeof(PropOffsets_PlayerReplicationInfo));
+		return;
+	}
 	PropOffsets_PlayerReplicationInfo.Deaths = cls->GetPropertyDataOffset("Deaths");
 	PropOffsets_PlayerReplicationInfo.HasFlag = cls->GetPropertyDataOffset("HasFlag");
 	PropOffsets_PlayerReplicationInfo.OldName = cls->GetPropertyDataOffset("OldName");
@@ -734,7 +767,10 @@ static void InitPropertyOffsets_Weapon(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Weapon"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Weapon");
+	{
+		memset(&PropOffsets_Weapon, 0xff, sizeof(PropOffsets_Weapon));
+		return;
+	}
 	PropOffsets_Weapon.AIRating = cls->GetPropertyDataOffset("AIRating");
 	PropOffsets_Weapon.AdjustedAim = cls->GetPropertyDataOffset("AdjustedAim");
 	PropOffsets_Weapon.AltDamageType = cls->GetPropertyDataOffset("AltDamageType");
@@ -805,7 +841,10 @@ static void InitPropertyOffsets_GameInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "GameInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for GameInfo");
+	{
+		memset(&PropOffsets_GameInfo, 0xff, sizeof(PropOffsets_GameInfo));
+		return;
+	}
 	PropOffsets_GameInfo.AdminPassword = cls->GetPropertyDataOffset("AdminPassword");
 	PropOffsets_GameInfo.AutoAim = cls->GetPropertyDataOffset("AutoAim");
 	PropOffsets_GameInfo.BaseMutator = cls->GetPropertyDataOffset("BaseMutator");
@@ -900,7 +939,10 @@ static void InitPropertyOffsets_ZoneInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ZoneInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for ZoneInfo");
+	{
+		memset(&PropOffsets_ZoneInfo, 0xff, sizeof(PropOffsets_ZoneInfo));
+		return;
+	}
 	PropOffsets_ZoneInfo.AmbientBrightness = cls->GetPropertyDataOffset("AmbientBrightness");
 	PropOffsets_ZoneInfo.AmbientHue = cls->GetPropertyDataOffset("AmbientHue");
 	PropOffsets_ZoneInfo.AmbientSaturation = cls->GetPropertyDataOffset("AmbientSaturation");
@@ -963,7 +1005,10 @@ static void InitPropertyOffsets_Canvas(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Canvas"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Canvas");
+	{
+		memset(&PropOffsets_Canvas, 0xff, sizeof(PropOffsets_Canvas));
+		return;
+	}
 	PropOffsets_Canvas.BigFont = cls->GetPropertyDataOffset("BigFont");
 	PropOffsets_Canvas.ClipX = cls->GetPropertyDataOffset("ClipX");
 	PropOffsets_Canvas.ClipY = cls->GetPropertyDataOffset("ClipY");
@@ -996,7 +1041,10 @@ static void InitPropertyOffsets_SavedMove(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SavedMove"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for SavedMove");
+	{
+		memset(&PropOffsets_SavedMove, 0xff, sizeof(PropOffsets_SavedMove));
+		return;
+	}
 	PropOffsets_SavedMove.Delta = cls->GetPropertyDataOffset("Delta");
 	PropOffsets_SavedMove.DodgeMove = cls->GetPropertyDataOffset("DodgeMove");
 	PropOffsets_SavedMove.NextMove = cls->GetPropertyDataOffset("NextMove");
@@ -1016,7 +1064,10 @@ static void InitPropertyOffsets_StatLog(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "StatLog"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for StatLog");
+	{
+		memset(&PropOffsets_StatLog, 0xff, sizeof(PropOffsets_StatLog));
+		return;
+	}
 	PropOffsets_StatLog.Context = cls->GetPropertyDataOffset("Context");
 	PropOffsets_StatLog.DecoderRingURL = cls->GetPropertyDataOffset("DecoderRingURL");
 	PropOffsets_StatLog.GameCreator = cls->GetPropertyDataOffset("GameCreator");
@@ -1045,7 +1096,10 @@ static void InitPropertyOffsets_Texture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Texture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Texture");
+	{
+		memset(&PropOffsets_Texture, 0xff, sizeof(PropOffsets_Texture));
+		return;
+	}
 	PropOffsets_Texture.Accumulator = cls->GetPropertyDataOffset("Accumulator");
 	PropOffsets_Texture.Alpha = cls->GetPropertyDataOffset("Alpha");
 	PropOffsets_Texture.AnimCurrent = cls->GetPropertyDataOffset("AnimCurrent");
@@ -1114,7 +1168,10 @@ static void InitPropertyOffsets_Ammo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Ammo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Ammo");
+	{
+		memset(&PropOffsets_Ammo, 0xff, sizeof(PropOffsets_Ammo));
+		return;
+	}
 	PropOffsets_Ammo.AmmoAmount = cls->GetPropertyDataOffset("AmmoAmount");
 	PropOffsets_Ammo.MaxAmmo = cls->GetPropertyDataOffset("MaxAmmo");
 	PropOffsets_Ammo.PAmmo = cls->GetPropertyDataOffset("PAmmo");
@@ -1128,7 +1185,10 @@ static void InitPropertyOffsets_NavigationPoint(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "NavigationPoint"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for NavigationPoint");
+	{
+		memset(&PropOffsets_NavigationPoint, 0xff, sizeof(PropOffsets_NavigationPoint));
+		return;
+	}
 	PropOffsets_NavigationPoint.ExtraCost = cls->GetPropertyDataOffset("ExtraCost");
 	PropOffsets_NavigationPoint.Paths = cls->GetPropertyDataOffset("Paths");
 	PropOffsets_NavigationPoint.PrunedPaths = cls->GetPropertyDataOffset("PrunedPaths");
@@ -1161,7 +1221,10 @@ static void InitPropertyOffsets_Mutator(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Mutator"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Mutator");
+	{
+		memset(&PropOffsets_Mutator, 0xff, sizeof(PropOffsets_Mutator));
+		return;
+	}
 	PropOffsets_Mutator.DefaultWeapon = cls->GetPropertyDataOffset("DefaultWeapon");
 	PropOffsets_Mutator.NextDamageMutator = cls->GetPropertyDataOffset("NextDamageMutator");
 	PropOffsets_Mutator.NextHUDMutator = cls->GetPropertyDataOffset("NextHUDMutator");
@@ -1176,7 +1239,10 @@ static void InitPropertyOffsets_Mover(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Mover"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Mover");
+	{
+		memset(&PropOffsets_Mover, 0xff, sizeof(PropOffsets_Mover));
+		return;
+	}
 	PropOffsets_Mover.BasePos = cls->GetPropertyDataOffset("BasePos");
 	PropOffsets_Mover.BaseRot = cls->GetPropertyDataOffset("BaseRot");
 	PropOffsets_Mover.BrushRaytraceKey = cls->GetPropertyDataOffset("BrushRaytraceKey");
@@ -1242,7 +1308,10 @@ static void InitPropertyOffsets_HUD(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "HUD"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for HUD");
+	{
+		memset(&PropOffsets_HUD, 0xff, sizeof(PropOffsets_HUD));
+		return;
+	}
 	PropOffsets_HUD.Crosshair = cls->GetPropertyDataOffset("Crosshair");
 	PropOffsets_HUD.HUDConfigWindowType = cls->GetPropertyDataOffset("HUDConfigWindowType");
 	PropOffsets_HUD.HUDMutator = cls->GetPropertyDataOffset("HUDMutator");
@@ -1259,7 +1328,10 @@ static void InitPropertyOffsets_Decoration(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Decoration"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Decoration");
+	{
+		memset(&PropOffsets_Decoration, 0xff, sizeof(PropOffsets_Decoration));
+		return;
+	}
 	PropOffsets_Decoration.EffectWhenDestroyed = cls->GetPropertyDataOffset("EffectWhenDestroyed");
 	PropOffsets_Decoration.EndPushSound = cls->GetPropertyDataOffset("EndPushSound");
 	PropOffsets_Decoration.PushSound = cls->GetPropertyDataOffset("PushSound");
@@ -1281,7 +1353,10 @@ static void InitPropertyOffsets_TestInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "TestInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for TestInfo");
+	{
+		memset(&PropOffsets_TestInfo, 0xff, sizeof(PropOffsets_TestInfo));
+		return;
+	}
 	PropOffsets_TestInfo.MyArray = cls->GetPropertyDataOffset("MyArray");
 	PropOffsets_TestInfo.ST = cls->GetPropertyDataOffset("ST");
 	PropOffsets_TestInfo.TestRepStr = cls->GetPropertyDataOffset("TestRepStr");
@@ -1304,7 +1379,10 @@ static void InitPropertyOffsets_GameReplicationInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "GameReplicationInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for GameReplicationInfo");
+	{
+		memset(&PropOffsets_GameReplicationInfo, 0xff, sizeof(PropOffsets_GameReplicationInfo));
+		return;
+	}
 	PropOffsets_GameReplicationInfo.AdminEmail = cls->GetPropertyDataOffset("AdminEmail");
 	PropOffsets_GameReplicationInfo.AdminName = cls->GetPropertyDataOffset("AdminName");
 	PropOffsets_GameReplicationInfo.ElapsedTime = cls->GetPropertyDataOffset("ElapsedTime");
@@ -1336,7 +1414,10 @@ static void InitPropertyOffsets_Menu(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Menu"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Menu");
+	{
+		memset(&PropOffsets_Menu, 0xff, sizeof(PropOffsets_Menu));
+		return;
+	}
 	PropOffsets_Menu.CenterString = cls->GetPropertyDataOffset("CenterString");
 	PropOffsets_Menu.DisabledString = cls->GetPropertyDataOffset("DisabledString");
 	PropOffsets_Menu.EnabledString = cls->GetPropertyDataOffset("EnabledString");
@@ -1361,7 +1442,10 @@ static void InitPropertyOffsets_LiftExit(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LiftExit"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for LiftExit");
+	{
+		memset(&PropOffsets_LiftExit, 0xff, sizeof(PropOffsets_LiftExit));
+		return;
+	}
 	PropOffsets_LiftExit.LastTriggerTime = cls->GetPropertyDataOffset("LastTriggerTime");
 	PropOffsets_LiftExit.LiftTag = cls->GetPropertyDataOffset("LiftTag");
 	PropOffsets_LiftExit.LiftTrigger = cls->GetPropertyDataOffset("LiftTrigger");
@@ -1375,7 +1459,10 @@ static void InitPropertyOffsets_Trigger(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Trigger"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Trigger");
+	{
+		memset(&PropOffsets_Trigger, 0xff, sizeof(PropOffsets_Trigger));
+		return;
+	}
 	PropOffsets_Trigger.ClassProximityType = cls->GetPropertyDataOffset("ClassProximityType");
 	PropOffsets_Trigger.DamageThreshold = cls->GetPropertyDataOffset("DamageThreshold");
 	PropOffsets_Trigger.Message = cls->GetPropertyDataOffset("Message");
@@ -1395,7 +1482,10 @@ static void InitPropertyOffsets_Player(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Player"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Player");
+	{
+		memset(&PropOffsets_Player, 0xff, sizeof(PropOffsets_Player));
+		return;
+	}
 	PropOffsets_Player.Actor = cls->GetPropertyDataOffset("Actor");
 	PropOffsets_Player.ConfiguredInternetSpeed = cls->GetPropertyDataOffset("ConfiguredInternetSpeed");
 	PropOffsets_Player.ConfiguredLanSpeed = cls->GetPropertyDataOffset("ConfiguredLanSpeed");
@@ -1415,11 +1505,12 @@ PropertyOffsets_LocalMessage PropOffsets_LocalMessage;
 
 static void InitPropertyOffsets_LocalMessage(PackageManager* packages)
 {
-	if (packages->IsUnreal1())
-		return;
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LocalMessage"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for LocalMessage");
+	{
+		memset(&PropOffsets_LocalMessage, 0xff, sizeof(PropOffsets_LocalMessage));
+		return;
+	}
 	PropOffsets_LocalMessage.ChildMessage = cls->GetPropertyDataOffset("ChildMessage");
 	PropOffsets_LocalMessage.DrawColor = cls->GetPropertyDataOffset("DrawColor");
 	PropOffsets_LocalMessage.Lifetime = cls->GetPropertyDataOffset("Lifetime");
@@ -1442,7 +1533,10 @@ static void InitPropertyOffsets_locationid(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "locationid"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for locationid");
+	{
+		memset(&PropOffsets_locationid, 0xff, sizeof(PropOffsets_locationid));
+		return;
+	}
 	PropOffsets_locationid.LocationName = cls->GetPropertyDataOffset("LocationName");
 	PropOffsets_locationid.NextLocation = cls->GetPropertyDataOffset("NextLocation");
 	PropOffsets_locationid.Radius = cls->GetPropertyDataOffset("Radius");
@@ -1454,7 +1548,10 @@ static void InitPropertyOffsets_Carcass(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Carcass"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Carcass");
+	{
+		memset(&PropOffsets_Carcass, 0xff, sizeof(PropOffsets_Carcass));
+		return;
+	}
 	PropOffsets_Carcass.Bugs = cls->GetPropertyDataOffset("Bugs");
 	PropOffsets_Carcass.CumulativeDamage = cls->GetPropertyDataOffset("CumulativeDamage");
 	PropOffsets_Carcass.PlayerOwner = cls->GetPropertyDataOffset("PlayerOwner");
@@ -1472,7 +1569,10 @@ static void InitPropertyOffsets_InterpolationPoint(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "InterpolationPoint"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for InterpolationPoint");
+	{
+		memset(&PropOffsets_InterpolationPoint, 0xff, sizeof(PropOffsets_InterpolationPoint));
+		return;
+	}
 	PropOffsets_InterpolationPoint.FovModifier = cls->GetPropertyDataOffset("FovModifier");
 	PropOffsets_InterpolationPoint.GameSpeedModifier = cls->GetPropertyDataOffset("GameSpeedModifier");
 	PropOffsets_InterpolationPoint.Next = cls->GetPropertyDataOffset("Next");
@@ -1491,7 +1591,10 @@ static void InitPropertyOffsets_Projectile(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Projectile"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Projectile");
+	{
+		memset(&PropOffsets_Projectile, 0xff, sizeof(PropOffsets_Projectile));
+		return;
+	}
 	PropOffsets_Projectile.Damage = cls->GetPropertyDataOffset("Damage");
 	PropOffsets_Projectile.ExploWallOut = cls->GetPropertyDataOffset("ExploWallOut");
 	PropOffsets_Projectile.ExplosionDecal = cls->GetPropertyDataOffset("ExplosionDecal");
@@ -1510,7 +1613,10 @@ static void InitPropertyOffsets_Teleporter(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Teleporter"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Teleporter");
+	{
+		memset(&PropOffsets_Teleporter, 0xff, sizeof(PropOffsets_Teleporter));
+		return;
+	}
 	PropOffsets_Teleporter.LastFired = cls->GetPropertyDataOffset("LastFired");
 	PropOffsets_Teleporter.ProductRequired = cls->GetPropertyDataOffset("ProductRequired");
 	PropOffsets_Teleporter.TargetVelocity = cls->GetPropertyDataOffset("TargetVelocity");
@@ -1531,7 +1637,10 @@ static void InitPropertyOffsets_Palette(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Palette"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Palette");
+	{
+		memset(&PropOffsets_Palette, 0xff, sizeof(PropOffsets_Palette));
+		return;
+	}
 	PropOffsets_Palette.Colors = cls->GetPropertyDataOffset("Colors");
 }
 
@@ -1541,7 +1650,10 @@ static void InitPropertyOffsets_SpawnNotify(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SpawnNotify"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for SpawnNotify");
+	{
+		memset(&PropOffsets_SpawnNotify, 0xff, sizeof(PropOffsets_SpawnNotify));
+		return;
+	}
 	PropOffsets_SpawnNotify.ActorClass = cls->GetPropertyDataOffset("ActorClass");
 	PropOffsets_SpawnNotify.Next = cls->GetPropertyDataOffset("Next");
 }
@@ -1552,7 +1664,10 @@ static void InitPropertyOffsets_Fragment(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Fragment"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Fragment");
+	{
+		memset(&PropOffsets_Fragment, 0xff, sizeof(PropOffsets_Fragment));
+		return;
+	}
 	PropOffsets_Fragment.Fragments = cls->GetPropertyDataOffset("Fragments");
 	PropOffsets_Fragment.bFirstHit = cls->GetPropertyDataOffset("bFirstHit");
 	PropOffsets_Fragment.numFragmentTypes = cls->GetPropertyDataOffset("numFragmentTypes");
@@ -1564,7 +1679,10 @@ static void InitPropertyOffsets_WarpZoneInfo(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "WarpZoneInfo"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for WarpZoneInfo");
+	{
+		memset(&PropOffsets_WarpZoneInfo, 0xff, sizeof(PropOffsets_WarpZoneInfo));
+		return;
+	}
 	PropOffsets_WarpZoneInfo.Destinations = cls->GetPropertyDataOffset("Destinations");
 	PropOffsets_WarpZoneInfo.OtherSideActor = cls->GetPropertyDataOffset("OtherSideActor");
 	PropOffsets_WarpZoneInfo.OtherSideLevel = cls->GetPropertyDataOffset("OtherSideLevel");
@@ -1582,7 +1700,10 @@ static void InitPropertyOffsets_Console(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Console"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Console");
+	{
+		memset(&PropOffsets_Console, 0xff, sizeof(PropOffsets_Console));
+		return;
+	}
 	PropOffsets_Console.AvgText = cls->GetPropertyDataOffset("AvgText");
 	PropOffsets_Console.Border = cls->GetPropertyDataOffset("Border");
 	PropOffsets_Console.BorderLines = cls->GetPropertyDataOffset("BorderLines");
@@ -1648,7 +1769,10 @@ static void InitPropertyOffsets_PlayerStart(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerStart"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for PlayerStart");
+	{
+		memset(&PropOffsets_PlayerStart, 0xff, sizeof(PropOffsets_PlayerStart));
+		return;
+	}
 	PropOffsets_PlayerStart.TeamNumber = cls->GetPropertyDataOffset("TeamNumber");
 	PropOffsets_PlayerStart.bCoopStart = cls->GetPropertyDataOffset("bCoopStart");
 	PropOffsets_PlayerStart.bEnabled = cls->GetPropertyDataOffset("bEnabled");
@@ -1661,7 +1785,10 @@ static void InitPropertyOffsets_Pickup(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Pickup"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Pickup");
+	{
+		memset(&PropOffsets_Pickup, 0xff, sizeof(PropOffsets_Pickup));
+		return;
+	}
 	PropOffsets_Pickup.ExpireMessage = cls->GetPropertyDataOffset("ExpireMessage");
 	PropOffsets_Pickup.Inv = cls->GetPropertyDataOffset("Inv");
 	PropOffsets_Pickup.NumCopies = cls->GetPropertyDataOffset("NumCopies");
@@ -1676,7 +1803,10 @@ static void InitPropertyOffsets_Brush(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Brush"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Brush");
+	{
+		memset(&PropOffsets_Brush, 0xff, sizeof(PropOffsets_Brush));
+		return;
+	}
 	PropOffsets_Brush.BrushColor = cls->GetPropertyDataOffset("BrushColor");
 	PropOffsets_Brush.CsgOper = cls->GetPropertyDataOffset("CsgOper");
 	PropOffsets_Brush.MainScale = cls->GetPropertyDataOffset("MainScale");
@@ -1694,7 +1824,10 @@ static void InitPropertyOffsets_ScoreBoard(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ScoreBoard"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for ScoreBoard");
+	{
+		memset(&PropOffsets_ScoreBoard, 0xff, sizeof(PropOffsets_ScoreBoard));
+		return;
+	}
 	PropOffsets_ScoreBoard.OwnerHUD = cls->GetPropertyDataOffset("OwnerHUD");
 	PropOffsets_ScoreBoard.RegFont = cls->GetPropertyDataOffset("RegFont");
 }
@@ -1705,7 +1838,10 @@ static void InitPropertyOffsets_Spectator(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Spectator"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Spectator");
+	{
+		memset(&PropOffsets_Spectator, 0xff, sizeof(PropOffsets_Spectator));
+		return;
+	}
 	PropOffsets_Spectator.bChaseCam = cls->GetPropertyDataOffset("bChaseCam");
 }
 
@@ -1715,7 +1851,10 @@ static void InitPropertyOffsets_InventorySpot(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "InventorySpot"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for InventorySpot");
+	{
+		memset(&PropOffsets_InventorySpot, 0xff, sizeof(PropOffsets_InventorySpot));
+		return;
+	}
 	PropOffsets_InventorySpot.markedItem = cls->GetPropertyDataOffset("markedItem");
 }
 
@@ -1725,7 +1864,10 @@ static void InitPropertyOffsets_Decal(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Decal"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Decal");
+	{
+		memset(&PropOffsets_Decal, 0xff, sizeof(PropOffsets_Decal));
+		return;
+	}
 	PropOffsets_Decal.LastRenderedTime = cls->GetPropertyDataOffset("LastRenderedTime");
 	PropOffsets_Decal.MultiDecalLevel = cls->GetPropertyDataOffset("MultiDecalLevel");
 	PropOffsets_Decal.SurfList = cls->GetPropertyDataOffset("SurfList");
@@ -1737,7 +1879,10 @@ static void InitPropertyOffsets_PatrolPoint(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PatrolPoint"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for PatrolPoint");
+	{
+		memset(&PropOffsets_PatrolPoint, 0xff, sizeof(PropOffsets_PatrolPoint));
+		return;
+	}
 	PropOffsets_PatrolPoint.AnimCount = cls->GetPropertyDataOffset("AnimCount");
 	PropOffsets_PatrolPoint.NextPatrolPoint = cls->GetPropertyDataOffset("NextPatrolPoint");
 	PropOffsets_PatrolPoint.Nextpatrol = cls->GetPropertyDataOffset("Nextpatrol");
@@ -1754,7 +1899,10 @@ static void InitPropertyOffsets_Counter(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Counter"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Counter");
+	{
+		memset(&PropOffsets_Counter, 0xff, sizeof(PropOffsets_Counter));
+		return;
+	}
 	PropOffsets_Counter.CompleteMessage = cls->GetPropertyDataOffset("CompleteMessage");
 	PropOffsets_Counter.CountMessage = cls->GetPropertyDataOffset("CountMessage");
 	PropOffsets_Counter.NumToCount = cls->GetPropertyDataOffset("NumToCount");
@@ -1768,7 +1916,10 @@ static void InitPropertyOffsets_Bitmap(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Bitmap"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Bitmap");
+	{
+		memset(&PropOffsets_Bitmap, 0xff, sizeof(PropOffsets_Bitmap));
+		return;
+	}
 	PropOffsets_Bitmap.Format = cls->GetPropertyDataOffset("Format");
 	PropOffsets_Bitmap.InternalTime = cls->GetPropertyDataOffset("InternalTime");
 	PropOffsets_Bitmap.MaxColor = cls->GetPropertyDataOffset("MaxColor");
@@ -1788,7 +1939,10 @@ static void InitPropertyOffsets_MapList(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "MapList"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for MapList");
+	{
+		memset(&PropOffsets_MapList, 0xff, sizeof(PropOffsets_MapList));
+		return;
+	}
 	PropOffsets_MapList.MapNum = cls->GetPropertyDataOffset("MapNum");
 	PropOffsets_MapList.Maps = cls->GetPropertyDataOffset("Maps");
 }
@@ -1799,7 +1953,10 @@ static void InitPropertyOffsets_Effects(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Effects"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Effects");
+	{
+		memset(&PropOffsets_Effects, 0xff, sizeof(PropOffsets_Effects));
+		return;
+	}
 	PropOffsets_Effects.EffectSound1 = cls->GetPropertyDataOffset("EffectSound1");
 	PropOffsets_Effects.EffectSound2 = cls->GetPropertyDataOffset("EffectSound2");
 	PropOffsets_Effects.bOnlyTriggerable = cls->GetPropertyDataOffset("bOnlyTriggerable");
@@ -1811,7 +1968,10 @@ static void InitPropertyOffsets_StatLogFile(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "StatLogFile"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for StatLogFile");
+	{
+		memset(&PropOffsets_StatLogFile, 0xff, sizeof(PropOffsets_StatLogFile));
+		return;
+	}
 	PropOffsets_StatLogFile.LogAr = cls->GetPropertyDataOffset("LogAr");
 	PropOffsets_StatLogFile.StatLogFile = cls->GetPropertyDataOffset("StatLogFile");
 	PropOffsets_StatLogFile.StatLogFinal = cls->GetPropertyDataOffset("StatLogFinal");
@@ -1824,7 +1984,10 @@ static void InitPropertyOffsets_LevelSummary(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LevelSummary"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for LevelSummary");
+	{
+		memset(&PropOffsets_LevelSummary, 0xff, sizeof(PropOffsets_LevelSummary));
+		return;
+	}
 	PropOffsets_LevelSummary.Author = cls->GetPropertyDataOffset("Author");
 	PropOffsets_LevelSummary.IdealPlayerCount = cls->GetPropertyDataOffset("IdealPlayerCount");
 	PropOffsets_LevelSummary.LevelEnterText = cls->GetPropertyDataOffset("LevelEnterText");
@@ -1839,7 +2002,10 @@ static void InitPropertyOffsets_ScriptedTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ScriptedTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for ScriptedTexture");
+	{
+		memset(&PropOffsets_ScriptedTexture, 0xff, sizeof(PropOffsets_ScriptedTexture));
+		return;
+	}
 	PropOffsets_ScriptedTexture.Junk1 = cls->GetPropertyDataOffset("Junk1");
 	PropOffsets_ScriptedTexture.Junk2 = cls->GetPropertyDataOffset("Junk2");
 	PropOffsets_ScriptedTexture.Junk3 = cls->GetPropertyDataOffset("Junk3");
@@ -1854,7 +2020,10 @@ static void InitPropertyOffsets_Engine(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Engine"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Engine");
+	{
+		memset(&PropOffsets_Engine, 0xff, sizeof(PropOffsets_Engine));
+		return;
+	}
 	PropOffsets_Engine.Audio = cls->GetPropertyDataOffset("Audio");
 	PropOffsets_Engine.AudioDevice = cls->GetPropertyDataOffset("AudioDevice");
 	PropOffsets_Engine.CacheSizeMegs = cls->GetPropertyDataOffset("CacheSizeMegs");
@@ -1878,7 +2047,10 @@ static void InitPropertyOffsets_TriggerLight(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "TriggerLight"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for TriggerLight");
+	{
+		memset(&PropOffsets_TriggerLight, 0xff, sizeof(PropOffsets_TriggerLight));
+		return;
+	}
 	PropOffsets_TriggerLight.Alpha = cls->GetPropertyDataOffset("Alpha");
 	PropOffsets_TriggerLight.ChangeTime = cls->GetPropertyDataOffset("ChangeTime");
 	PropOffsets_TriggerLight.Direction = cls->GetPropertyDataOffset("Direction");
@@ -1896,7 +2068,10 @@ static void InitPropertyOffsets_SpecialEvent(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SpecialEvent"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for SpecialEvent");
+	{
+		memset(&PropOffsets_SpecialEvent, 0xff, sizeof(PropOffsets_SpecialEvent));
+		return;
+	}
 	PropOffsets_SpecialEvent.Damage = cls->GetPropertyDataOffset("Damage");
 	PropOffsets_SpecialEvent.DamageString = cls->GetPropertyDataOffset("DamageString");
 	PropOffsets_SpecialEvent.DamageType = cls->GetPropertyDataOffset("DamageType");
@@ -1912,7 +2087,10 @@ static void InitPropertyOffsets_RoundRobin(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "RoundRobin"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for RoundRobin");
+	{
+		memset(&PropOffsets_RoundRobin, 0xff, sizeof(PropOffsets_RoundRobin));
+		return;
+	}
 	PropOffsets_RoundRobin.OutEvents = cls->GetPropertyDataOffset("OutEvents");
 	PropOffsets_RoundRobin.bLoop = cls->GetPropertyDataOffset("bLoop");
 	PropOffsets_RoundRobin.i = cls->GetPropertyDataOffset("i");
@@ -1924,7 +2102,10 @@ static void InitPropertyOffsets_MusicEvent(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "MusicEvent"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for MusicEvent");
+	{
+		memset(&PropOffsets_MusicEvent, 0xff, sizeof(PropOffsets_MusicEvent));
+		return;
+	}
 	PropOffsets_MusicEvent.CdTrack = cls->GetPropertyDataOffset("CdTrack");
 	PropOffsets_MusicEvent.Song = cls->GetPropertyDataOffset("Song");
 	PropOffsets_MusicEvent.SongSection = cls->GetPropertyDataOffset("SongSection");
@@ -1940,7 +2121,10 @@ static void InitPropertyOffsets_HomeBase(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "HomeBase"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for HomeBase");
+	{
+		memset(&PropOffsets_HomeBase, 0xff, sizeof(PropOffsets_HomeBase));
+		return;
+	}
 	PropOffsets_HomeBase.Extent = cls->GetPropertyDataOffset("Extent");
 	PropOffsets_HomeBase.lookDir = cls->GetPropertyDataOffset("lookDir");
 }
@@ -1951,7 +2135,10 @@ static void InitPropertyOffsets_Dispatcher(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Dispatcher"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Dispatcher");
+	{
+		memset(&PropOffsets_Dispatcher, 0xff, sizeof(PropOffsets_Dispatcher));
+		return;
+	}
 	PropOffsets_Dispatcher.OutDelays = cls->GetPropertyDataOffset("OutDelays");
 	PropOffsets_Dispatcher.OutEvents = cls->GetPropertyDataOffset("OutEvents");
 	PropOffsets_Dispatcher.i = cls->GetPropertyDataOffset("i");
@@ -1963,7 +2150,10 @@ static void InitPropertyOffsets_DemoRecSpectator(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "DemoRecSpectator"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for DemoRecSpectator");
+	{
+		memset(&PropOffsets_DemoRecSpectator, 0xff, sizeof(PropOffsets_DemoRecSpectator));
+		return;
+	}
 	PropOffsets_DemoRecSpectator.PlaybackActor = cls->GetPropertyDataOffset("PlaybackActor");
 	PropOffsets_DemoRecSpectator.PlaybackGRI = cls->GetPropertyDataOffset("PlaybackGRI");
 }
@@ -1974,7 +2164,10 @@ static void InitPropertyOffsets_DamageType(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "DamageType"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for DamageType");
+	{
+		memset(&PropOffsets_DamageType, 0xff, sizeof(PropOffsets_DamageType));
+		return;
+	}
 	PropOffsets_DamageType.AltName = cls->GetPropertyDataOffset("AltName");
 	PropOffsets_DamageType.DamageEffect = cls->GetPropertyDataOffset("DamageEffect");
 	PropOffsets_DamageType.Name = cls->GetPropertyDataOffset("Name");
@@ -1988,7 +2181,10 @@ static void InitPropertyOffsets_Ambushpoint(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Ambushpoint"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for Ambushpoint");
+	{
+		memset(&PropOffsets_Ambushpoint, 0xff, sizeof(PropOffsets_Ambushpoint));
+		return;
+	}
 	PropOffsets_Ambushpoint.SightRadius = cls->GetPropertyDataOffset("SightRadius");
 	PropOffsets_Ambushpoint.bSniping = cls->GetPropertyDataOffset("bSniping");
 	PropOffsets_Ambushpoint.lookDir = cls->GetPropertyDataOffset("lookDir");
@@ -2001,7 +2197,10 @@ static void InitPropertyOffsets_WarpZoneMarker(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "WarpZoneMarker"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for WarpZoneMarker");
+	{
+		memset(&PropOffsets_WarpZoneMarker, 0xff, sizeof(PropOffsets_WarpZoneMarker));
+		return;
+	}
 	PropOffsets_WarpZoneMarker.TriggerActor = cls->GetPropertyDataOffset("TriggerActor");
 	PropOffsets_WarpZoneMarker.TriggerActor2 = cls->GetPropertyDataOffset("TriggerActor2");
 	PropOffsets_WarpZoneMarker.markedWarpZone = cls->GetPropertyDataOffset("markedWarpZone");
@@ -2013,7 +2212,10 @@ static void InitPropertyOffsets_LiftCenter(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LiftCenter"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for LiftCenter");
+	{
+		memset(&PropOffsets_LiftCenter, 0xff, sizeof(PropOffsets_LiftCenter));
+		return;
+	}
 	PropOffsets_LiftCenter.LastTriggerTime = cls->GetPropertyDataOffset("LastTriggerTime");
 	PropOffsets_LiftCenter.LiftOffset = cls->GetPropertyDataOffset("LiftOffset");
 	PropOffsets_LiftCenter.LiftTag = cls->GetPropertyDataOffset("LiftTag");
@@ -2028,11 +2230,12 @@ PropertyOffsets_RenderIterator PropOffsets_RenderIterator;
 
 static void InitPropertyOffsets_RenderIterator(PackageManager* packages)
 {
-	if (packages->IsUnreal1())
-		return;
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "RenderIterator"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for RenderIterator");
+	{
+		memset(&PropOffsets_RenderIterator, 0xff, sizeof(PropOffsets_RenderIterator));
+		return;
+	}
 	PropOffsets_RenderIterator.Frame = cls->GetPropertyDataOffset("Frame");
 	PropOffsets_RenderIterator.Index = cls->GetPropertyDataOffset("Index");
 	PropOffsets_RenderIterator.MaxItems = cls->GetPropertyDataOffset("MaxItems");
@@ -2045,7 +2248,10 @@ static void InitPropertyOffsets_FractalTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FractalTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for FractalTexture");
+	{
+		memset(&PropOffsets_FractalTexture, 0xff, sizeof(PropOffsets_FractalTexture));
+		return;
+	}
 	PropOffsets_FractalTexture.AuxPhase = cls->GetPropertyDataOffset("AuxPhase");
 	PropOffsets_FractalTexture.DrawPhase = cls->GetPropertyDataOffset("DrawPhase");
 	PropOffsets_FractalTexture.GlobalPhase = cls->GetPropertyDataOffset("GlobalPhase");
@@ -2061,7 +2267,10 @@ static void InitPropertyOffsets_WaterTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaterTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for WaterTexture");
+	{
+		memset(&PropOffsets_WaterTexture, 0xff, sizeof(PropOffsets_WaterTexture));
+		return;
+	}
 	PropOffsets_WaterTexture.DropType = cls->GetPropertyDataOffset("DropType");
 	PropOffsets_WaterTexture.Drops = cls->GetPropertyDataOffset("Drops");
 	PropOffsets_WaterTexture.FX_Amplitude = cls->GetPropertyDataOffset("FX_Amplitude");
@@ -2087,7 +2296,10 @@ static void InitPropertyOffsets_WaveTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaveTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for WaveTexture");
+	{
+		memset(&PropOffsets_WaveTexture, 0xff, sizeof(PropOffsets_WaveTexture));
+		return;
+	}
 	PropOffsets_WaveTexture.BumpMapAngle = cls->GetPropertyDataOffset("BumpMapAngle");
 	PropOffsets_WaveTexture.BumpMapLight = cls->GetPropertyDataOffset("BumpMapLight");
 	PropOffsets_WaveTexture.PhongRange = cls->GetPropertyDataOffset("PhongRange");
@@ -2100,7 +2312,10 @@ static void InitPropertyOffsets_FireTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FireTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for FireTexture");
+	{
+		memset(&PropOffsets_FireTexture, 0xff, sizeof(PropOffsets_FireTexture));
+		return;
+	}
 	PropOffsets_FireTexture.DrawMode = cls->GetPropertyDataOffset("DrawMode");
 	PropOffsets_FireTexture.FX_Area = cls->GetPropertyDataOffset("FX_Area");
 	PropOffsets_FireTexture.FX_AuxSize = cls->GetPropertyDataOffset("FX_AuxSize");
@@ -2129,7 +2344,10 @@ static void InitPropertyOffsets_WetTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WetTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for WetTexture");
+	{
+		memset(&PropOffsets_WetTexture, 0xff, sizeof(PropOffsets_WetTexture));
+		return;
+	}
 	PropOffsets_WetTexture.LocalSourceBitmap = cls->GetPropertyDataOffset("LocalSourceBitmap");
 	PropOffsets_WetTexture.OldSourceTex = cls->GetPropertyDataOffset("OldSourceTex");
 	PropOffsets_WetTexture.SourceTexture = cls->GetPropertyDataOffset("SourceTexture");
@@ -2141,7 +2359,10 @@ static void InitPropertyOffsets_IceTexture(PackageManager* packages)
 {
 	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "IceTexture"));
 	if (!cls)
-		throw std::runtime_error("Could not find class object for IceTexture");
+	{
+		memset(&PropOffsets_IceTexture, 0xff, sizeof(PropOffsets_IceTexture));
+		return;
+	}
 	PropOffsets_IceTexture.Amplitude = cls->GetPropertyDataOffset("Amplitude");
 	PropOffsets_IceTexture.ForceRefresh = cls->GetPropertyDataOffset("ForceRefresh");
 	PropOffsets_IceTexture.Frequency = cls->GetPropertyDataOffset("Frequency");
