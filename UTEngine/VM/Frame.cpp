@@ -196,7 +196,11 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		{
 			if (func->NativeFuncIndex != 0)
 			{
-				NativeFunctions::NativeByIndex[func->NativeFuncIndex](instance, args.data());
+				auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
+				if (callback)
+					callback(instance, args.data());
+				else
+					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name + "." + func->Name);
 			}
 			else
 			{
@@ -342,6 +346,20 @@ ExpressionEvalResult Frame::Run()
 			Callstack.pop_back();
 			return result;
 		case StatementResult::Return:
+			// Package 61 and earlier transfered the return value in an out parameter
+			if (!static_cast<ReturnExpression*>(statement)->Value)
+			{
+				for (UField* field = Func->Children; field != nullptr; field = field->Next)
+				{
+					UProperty* prop = dynamic_cast<UProperty*>(field);
+					if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+					{
+						result.Value = ExpressionValue::PropertyValue(prop);
+						result.Value.Load();
+						break;
+					}
+				}
+			}
 			Callstack.pop_back();
 			return result;
 		case StatementResult::Iterator:

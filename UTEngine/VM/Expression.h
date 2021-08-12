@@ -729,6 +729,20 @@ class NativeFunctionExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	int nativeindex;
+	int nativeindex = 0;
 	std::vector<Expression*> Args;
+};
+
+struct FunctionArgInfo
+{
+	int size = 0;
+	int flags = 0; // 1 = out parameter
+};
+
+class FunctionArgumentsExpression : public Expression
+{
+public:
+	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
+
+	std::vector<FunctionArgInfo> args;
 };

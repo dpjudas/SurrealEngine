@@ -50,7 +50,10 @@ void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
 {
-	Result.Value = Eval(expr->Value).Value;
+	if (expr->Value)
+		Result.Value = Eval(expr->Value).Value;
+	else
+		Result.Value = ExpressionValue::NothingValue();
 	Result.Result = StatementResult::Return;
 }
 
@@ -305,7 +308,7 @@ void ExpressionEvaluator::Expr(NoObjectExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x2bExpression* expr)
 {
-	Frame::ThrowException("Unknown0x2b expression encountered");
+	Result = Eval(expr->Value); // This may have been a truncating instruction from back when strings had a fixed size (package version 61 and earlier)
 }
 
 void ExpressionEvaluator::Expr(IntConstByteExpression* expr)
@@ -651,4 +654,9 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 			args.push_back(Eval(arg, Self, Self, LocalVariables).Value);
 		Result.Value = Frame::Call(func, Context, std::move(args));
 	}
+}
+
+void ExpressionEvaluator::Expr(FunctionArgumentsExpression* expr)
+{
+	Result.Value = ExpressionValue::NothingValue();
 }

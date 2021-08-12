@@ -77,6 +77,20 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		stream->ReadToken();
 		return expr;
 	}
+	else if (token == ExprToken::LetBool && stream->GetVersion() <= 61)
+	{
+		FunctionArgumentsExpression* expr = Create<FunctionArgumentsExpression>(exproffset);
+		while (true)
+		{
+			FunctionArgInfo info;
+			info.size = stream->ReadUInt8();
+			if (info.size == 0)
+				break;
+			info.flags = stream->ReadUInt8();
+			expr->args.push_back(info);
+		}
+		return expr;
+	}
 	else
 	{
 		switch (token)

@@ -50,36 +50,6 @@ void UStruct::Load(ObjectStream* stream)
 
 	int ScriptSize = stream->ReadUInt32();
 
-	struct ParameterInfo
-	{
-		int size;
-		int flags; // 1 = out parameter
-	};
-	std::vector<ParameterInfo> parameterSizes;
-	if (stream->GetVersion() <= 61 && ScriptSize > 0)
-	{
-		uint32_t pos = stream->Tell();
-		ExprToken token = (ExprToken)stream->ReadUInt8();
-		if (token == ExprToken::LetBool)
-		{
-			while (true)
-			{
-				ParameterInfo info;
-				info.size = stream->ReadUInt8();
-				if (info.size == 0)
-					break;
-				info.flags = stream->ReadUInt8();
-				parameterSizes.push_back(info);
-			}
-
-			ScriptSize -= stream->Tell() - pos;
-		}
-		else
-		{
-			stream->Seek(pos);
-		}
-	}
-
 	while (Bytecode.size() < ScriptSize)
 	{
 		ReadToken(stream, 0);
@@ -223,6 +193,17 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		int name = stream->ReadIndex();
 		PushIndex(name);
 		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
+	}
+	else if (token == ExprToken::LetBool && stream->GetVersion() <= 61)
+	{
+		while (true)
+		{
+			uint8_t size = stream->ReadUInt8();
+			PushUInt8(size);
+			if (size == 0)
+				break;
+			PushUInt8(stream->ReadUInt8());
+		}
 	}
 	else
 	{

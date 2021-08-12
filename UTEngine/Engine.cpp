@@ -231,7 +231,8 @@ void Engine::LoadMap(const UnrealURL& url)
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	LevelInfo->EngineVersion() = "500";
-	LevelInfo->MinNetVersion() = "500";
+	if (packages->GetEngineVersion() > 219)
+		LevelInfo->MinNetVersion() = "500";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
 
@@ -286,14 +287,18 @@ void Engine::LoadMap(const UnrealURL& url)
 		CallEvent(GameInfo, "BeginPlay");
 		CallEvent(GameInfo, "PostBeginPlay");
 		CallEvent(GameInfo, "SetInitialState");
-		std::string attachTag = GameInfo->AttachTag();
-		if (!attachTag.empty() && attachTag != "None")
+
+		if (engine->packages->GetEngineVersion() > 219)
 		{
-			for (UActor* actor : Level->Actors)
+			std::string attachTag = GameInfo->AttachTag();
+			if (!attachTag.empty() && attachTag != "None")
 			{
-				if (actor && actor->Tag() == attachTag)
+				for (UActor* actor : Level->Actors)
 				{
-					actor->SetBase(GameInfo, false);
+					if (actor && actor->Tag() == attachTag)
+					{
+						actor->SetBase(GameInfo, false);
+					}
 				}
 			}
 		}

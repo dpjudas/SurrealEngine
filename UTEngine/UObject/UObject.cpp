@@ -406,7 +406,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 
 		if (!prop)
 		{
-#if 1
+#if 0
 			throw std::runtime_error("Unknown property " + name);
 #else
 			engine->LogMessage("Skipping unknown property " + name);

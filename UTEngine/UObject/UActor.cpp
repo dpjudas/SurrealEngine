@@ -79,29 +79,32 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 #endif
 		}
 
-		std::string attachTag = actor->AttachTag();
-		if (!attachTag.empty() && attachTag != "None")
+		if (engine->packages->GetEngineVersion() > 219)
 		{
-			for (UActor* levelActor : XLevel()->Actors)
+			std::string attachTag = actor->AttachTag();
+			if (!attachTag.empty() && attachTag != "None")
 			{
-				if (levelActor && levelActor->Tag() == attachTag)
+				for (UActor* levelActor : XLevel()->Actors)
 				{
-					levelActor->SetBase(actor, false);
+					if (levelActor && levelActor->Tag() == attachTag)
+					{
+						levelActor->SetBase(actor, false);
+					}
 				}
 			}
 		}
 
-		static bool spawnNotificationLocked = false;
-		if (!spawnNotificationLocked)
+		if (engine->packages->GetEngineVersion() >= 400)
 		{
-			struct NotificationLockGuard
+			static bool spawnNotificationLocked = false;
+			if (!spawnNotificationLocked)
 			{
-				NotificationLockGuard() { spawnNotificationLocked = true; }
-				~NotificationLockGuard() { spawnNotificationLocked = false; }
-			} lockGuard;
+				struct NotificationLockGuard
+				{
+					NotificationLockGuard() { spawnNotificationLocked = true; }
+					~NotificationLockGuard() { spawnNotificationLocked = false; }
+				} lockGuard;
 
-			if (engine->packages->GetEngineVersion() >= 400)
-			{
 				for (USpawnNotify* notifyObj = Level()->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
 				{
 					UClass* cls = notifyObj->ActorClass();

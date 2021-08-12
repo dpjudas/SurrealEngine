@@ -54,7 +54,8 @@ void ExpressionItemBuilder::Expr(DefaultVariableExpression* expr)
 void ExpressionItemBuilder::Expr(ReturnExpression* expr)
 {
 	item->setText(0, "Return");
-	item->add(createItem("Value", expr->Value));
+	if (expr->Value)
+		item->add(createItem("Value", expr->Value));
 }
 
 void ExpressionItemBuilder::Expr(SwitchExpression* expr)
@@ -592,6 +593,11 @@ void ExpressionItemBuilder::Expr(NativeFunctionExpression* expr)
 		item->add(createItem("Arg[" + std::to_string(index) + "]", arg));
 		index++;
 	}
+}
+
+void ExpressionItemBuilder::Expr(FunctionArgumentsExpression* expr)
+{
+	item->setText(0, "Function arguments");
 }
 
 std::string ExpressionItemBuilder::GetFullFuncName(UFunction* func)
