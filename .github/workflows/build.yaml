@@ -46,7 +46,7 @@ jobs:
         env:
           CC: gcc-10
           CXX: g++-10
-        run: cmake --build . --config $BUILD_TYPE --target package
+        run: cmake --build . --config $BUILD_TYPE
 
       - name: 📦 Upload Ubuntu package to release
         uses: svenstaro/upload-release-action@v2
@@ -90,7 +90,7 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         run: |
-          cmake --build . --config $BUILD_TYPE --target package
+          cmake --build . --config $BUILD_TYPE
       - name: 📦 Upload macOS package to release
         uses: svenstaro/upload-release-action@v2
         if: startsWith(github.ref, 'refs/tags/v')
