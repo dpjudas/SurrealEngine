@@ -17,6 +17,18 @@ public:
 	static std::shared_ptr<File> create_always(const std::string &filename);
 	static std::shared_ptr<File> open_existing(const std::string &filename);
 
+	static std::shared_ptr<File> try_open_existing(const std::string& filename)
+	{
+		try
+		{
+			return open_existing(filename);
+		}
+		catch (...)
+		{
+			return {};
+		}
+	}
+
 	static void write_all_bytes(const std::string& filename, const void* data, size_t size);
 	static void write_all_text(const std::string& filename, const std::string& text);
 	static std::vector<uint8_t> read_all_bytes(const std::string& filename);

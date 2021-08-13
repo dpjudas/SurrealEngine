@@ -5,6 +5,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
 #include "UObject/UObject.h"
+#include "GameFolder.h"
 #include <set>
 #include <list>
 
@@ -50,19 +51,12 @@ struct LogMessageLine
 	std::string Text;
 };
 
-struct GameFolderInfo
-{
-	std::string folder;
-	int engineVersion = 0;
-};
-
 class Engine
 {
 public:
-	Engine();
+	Engine(GameLaunchInfo launchinfo);
 	~Engine();
 
-	GameFolderInfo FindGameFolder();
 	void Run();
 	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
 	UnrealURL GetDefaultURL(const std::string& map);
@@ -100,6 +94,7 @@ public:
 
 	std::list<LogMessageLine> Log;
 
+	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;
 	std::unique_ptr<UTRenderer> renderer;

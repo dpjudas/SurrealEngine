@@ -255,6 +255,10 @@ set(UTENGINE_SOURCES
 	UTEngine/Window/Window.h
 	UTEngine/File.h
 	UTEngine/Precomp.h
+	UTEngine/GameFolder.cpp
+	UTEngine/GameFolder.h
+	UTEngine/CommandLine.cpp
+	UTEngine/CommandLine.h
 )
 
 set(UTENGINE_WIN32_SOURCES

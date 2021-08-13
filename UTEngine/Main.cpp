@@ -1,17 +1,22 @@
 
 #include "Precomp.h"
 #include "Engine.h"
+#include "GameFolder.h"
 #include "UTF16.h"
-#include "VM/Frame.h"
 #include <iostream>
+#include <vector>
 #ifdef WIN32
 #include <CommCtrl.h>
 #endif
 
-void appMain()
+void appMain(std::vector<std::string> args)
 {
-	Engine engine;
-	engine.Run();
+	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(std::move(args));
+	if (!info.folder.empty())
+	{
+		Engine engine(info);
+		engine.Run();
+	}
 }
 
 #ifdef WIN32
@@ -25,9 +30,19 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 	try
 #endif
 	{
+		std::vector<std::string> args;
+		int argc = 0;
+		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+		if (argv)
+		{
+			for (int i = 1; i < args.size(); i++)
+				args.push_back(from_utf16(argv[i]));
+			LocalFree(argv);
+		}
+
 		SetProcessDPIAware();
 		InitCommonControls();
-		appMain();
+		appMain(std::move(args));
 		return 0;
 	}
 #ifndef _DEBUG
@@ -41,16 +56,19 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 
 #else
 
-int main()
+int main(int argc, char** argv)
 {
 	try
 	{
-		appMain();
+		std::vector<std::string> args;
+		for (int i = 1; i < argc; i++)
+			args.push_back(args);
+		appMain(std::move(args));
 		return 0;
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "Unhandled exception: " << e.what() << std::endl;
+		std::cout << e.what() << std::endl;
 		return 1;
 	}
 }

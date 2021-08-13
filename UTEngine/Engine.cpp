@@ -2,7 +2,6 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "File.h"
-#include "UTF16.h"
 #include "Renderer/UTRenderer.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
@@ -31,12 +30,11 @@
 
 Engine* engine = nullptr;
 
-Engine::Engine()
+Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 {
 	engine = this;
 
-	GameFolderInfo folderinfo = FindGameFolder();
-	packages = std::make_unique<PackageManager>(folderinfo.folder, folderinfo.engineVersion);
+	packages = std::make_unique<PackageManager>(LaunchInfo.folder, LaunchInfo.engineVersion);
 
 	// Frame::AddBreakpoint("Botpack", "DeathMatchPlus", "Timer");
 }
@@ -738,53 +736,6 @@ void Engine::LogMessage(const std::string& message)
 void Engine::LogUnimplemented(const std::string& message)
 {
 	LogMessage("Unimplemented: " + message);
-}
-
-GameFolderInfo Engine::FindGameFolder()
-{
-	GameFolderInfo info;
-
-#ifdef WIN32
-	std::vector<wchar_t> buffer(1024);
-
-	// Try use registry location
-	HKEY regkey = 0;
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\Unreal Technology\\Installed Apps\\UnrealTournament", 0, KEY_READ, &regkey) == ERROR_SUCCESS)
-	{
-		DWORD type = 0;
-		DWORD size = (DWORD)(buffer.size() * sizeof(wchar_t));
-		LSTATUS result = RegQueryValueEx(regkey, L"Folder", 0, &type, (LPBYTE)buffer.data(), &size);
-		if (result == ERROR_SUCCESS && type == REG_SZ)
-		{
-			buffer.back() = 0;
-			info.folder = from_utf16(buffer.data());
-		}
-		RegCloseKey(regkey);
-	}
-
-	if (info.folder.empty()) // Try use subfolder next to exe
-	{
-		if (GetModuleFileName(0, buffer.data(), 1024))
-		{
-			buffer.back() = 0;
-			std::string exepath = FilePath::remove_last_component(from_utf16(buffer.data()));
-			info.folder = FilePath::combine(exepath, "Unreal Tournament");
-		}
-	}
-
-	info.folder = R"(C:\Games\UnrealTournament436)"; info.engineVersion = 436;
-	// info.folder = R"(C:\Games\utdemo348)"; info.engineVersion = 348;
-	// info.folder = R"(C:\Games\UTDemo338)"; info.engineVersion = 338;
-	// info.folder = R"(C:\Games\utdemo3dfx)"; info.engineVersion = 322;
-	// info.folder = R"(C:\Games\Steam\steamapps\common\Unreal Gold)"; info.engineVersion = 226;
-	// info.folder = R"(C:\Games\klingon)"; info.engineVersion = 219;
-
-#else
-	info.engineVersion = 436;
-	info.folder = "/home/mbn/UnrealTournament";
-#endif
-
-	return info;
 }
 
 const char* Engine::keynames[256] =
