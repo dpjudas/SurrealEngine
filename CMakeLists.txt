@@ -1,239 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 project(UTEngine)
 
-set(THIRDPARTY_SOURCES
-	Thirdparty/vk_mem_alloc/vk_mem_alloc.h
-	Thirdparty/vk_mem_alloc/vk_mem_alloc.cpp
-	Thirdparty/dr_wav.h
-	Thirdparty/minimp3_ex.h
-	Thirdparty/minimp3.h
-	Thirdparty/dumb/src/core/duhtag.c
-	Thirdparty/dumb/src/core/rawsig.c
-	Thirdparty/dumb/src/core/atexit.c
-	Thirdparty/dumb/src/core/dumbfile.c
-	Thirdparty/dumb/src/core/loadduh.c
-	Thirdparty/dumb/src/core/unload.c
-	Thirdparty/dumb/src/core/makeduh.c
-	Thirdparty/dumb/src/core/readduh.c
-	Thirdparty/dumb/src/core/rendsig.c
-	Thirdparty/dumb/src/core/rendduh.c
-	Thirdparty/dumb/src/core/register.c
-	Thirdparty/dumb/src/core/duhlen.c
-	Thirdparty/dumb/src/helpers/lpc.c
-	Thirdparty/dumb/src/helpers/clickrem.c
-	Thirdparty/dumb/src/helpers/memfile.c
-	Thirdparty/dumb/src/helpers/silence.c
-	Thirdparty/dumb/src/helpers/tarray.c
-	Thirdparty/dumb/src/helpers/sampbuf.c
-	Thirdparty/dumb/src/helpers/riff.c
-	Thirdparty/dumb/src/helpers/barray.c
-	Thirdparty/dumb/src/helpers/resample.c
-	Thirdparty/dumb/src/helpers/resampler.c
-	Thirdparty/dumb/src/helpers/stdfile.c
-	Thirdparty/dumb/src/it/readoldpsm.c
-	Thirdparty/dumb/src/it/readdsmf.c
-	Thirdparty/dumb/src/it/loadokt.c
-	Thirdparty/dumb/src/it/loadamf.c
-	Thirdparty/dumb/src/it/itorder.c
-	Thirdparty/dumb/src/it/loadxm2.c
-	Thirdparty/dumb/src/it/xmeffect.c
-	Thirdparty/dumb/src/it/loadxm.c
-	Thirdparty/dumb/src/it/readmod.c
-	Thirdparty/dumb/src/it/readxm2.c
-	Thirdparty/dumb/src/it/reads3m2.c
-	Thirdparty/dumb/src/it/loadokt2.c
-	Thirdparty/dumb/src/it/read669.c
-	Thirdparty/dumb/src/it/readokt2.c
-	Thirdparty/dumb/src/it/loadany.c
-	Thirdparty/dumb/src/it/ptmeffect.c
-	Thirdparty/dumb/src/it/readstm2.c
-	Thirdparty/dumb/src/it/loadoldpsm2.c
-	Thirdparty/dumb/src/it/read6692.c
-	Thirdparty/dumb/src/it/loads3m.c
-	Thirdparty/dumb/src/it/loadmod.c
-	Thirdparty/dumb/src/it/readriff.c
-	Thirdparty/dumb/src/it/readam.c
-	Thirdparty/dumb/src/it/loadmtm.c
-	Thirdparty/dumb/src/it/itunload.c
-	Thirdparty/dumb/src/it/loadpsm.c
-	Thirdparty/dumb/src/it/itrender.c
-	Thirdparty/dumb/src/it/readxm.c
-	Thirdparty/dumb/src/it/readstm.c
-	Thirdparty/dumb/src/it/itmisc.c
-	Thirdparty/dumb/src/it/itload.c
-	Thirdparty/dumb/src/it/loadasy2.c
-	Thirdparty/dumb/src/it/loadriff.c
-	Thirdparty/dumb/src/it/load669.c
-	Thirdparty/dumb/src/it/loads3m2.c
-	Thirdparty/dumb/src/it/loadpsm2.c
-	Thirdparty/dumb/src/it/readany2.c
-	Thirdparty/dumb/src/it/readamf.c
-	Thirdparty/dumb/src/it/itload2.c
-	Thirdparty/dumb/src/it/itread2.c
-	Thirdparty/dumb/src/it/loadriff2.c
-	Thirdparty/dumb/src/it/loadasy.c
-	Thirdparty/dumb/src/it/loadany2.c
-	Thirdparty/dumb/src/it/readany.c
-	Thirdparty/dumb/src/it/readpsm.c
-	Thirdparty/dumb/src/it/readamf2.c
-	Thirdparty/dumb/src/it/loadamf2.c
-	Thirdparty/dumb/src/it/loadptm.c
-	Thirdparty/dumb/src/it/load6692.c
-	Thirdparty/dumb/src/it/readptm.c
-	Thirdparty/dumb/src/it/loadoldpsm.c
-	Thirdparty/dumb/src/it/readmtm.c
-	Thirdparty/dumb/src/it/loadmtm2.c
-	Thirdparty/dumb/src/it/loadstm.c
-	Thirdparty/dumb/src/it/readasy.c
-	Thirdparty/dumb/src/it/loadptm2.c
-	Thirdparty/dumb/src/it/reads3m.c
-	Thirdparty/dumb/src/it/itread.c
-	Thirdparty/dumb/src/it/readmod2.c
-	Thirdparty/dumb/src/it/readokt.c
-	Thirdparty/dumb/src/it/loadmod2.c
-	Thirdparty/dumb/src/it/loadstm2.c
-	Thirdparty/dumb/include/aldumb.h
-	Thirdparty/dumb/include/internal/stack_alloc.h
-	Thirdparty/dumb/include/internal/dumbfile.h
-	Thirdparty/dumb/include/internal/resampler.h
-	Thirdparty/dumb/include/internal/aldumb.h
-	Thirdparty/dumb/include/internal/dumb.h
-	Thirdparty/dumb/include/internal/barray.h
-	Thirdparty/dumb/include/internal/tarray.h
-	Thirdparty/dumb/include/internal/lpc.h
-	Thirdparty/dumb/include/internal/it.h
-	Thirdparty/dumb/include/internal/riff.h
-	Thirdparty/dumb/include/dumb.h
-	Thirdparty/resample/CDSPSincFilterGen.h
-	Thirdparty/resample/CDSPHBDownsampler.h
-	Thirdparty/resample/CDSPResampler.h
-	Thirdparty/resample/CDSPRealFFT.h
-	Thirdparty/resample/CDSPFIRFilter.h
-	Thirdparty/resample/pffft.cpp
-	Thirdparty/resample/r8butil.h
-	Thirdparty/resample/CDSPHBUpsampler.h
-	Thirdparty/resample/CDSPProcessor.h
-	Thirdparty/resample/r8bbase.cpp
-	Thirdparty/resample/pffft.h
-	Thirdparty/resample/CDSPFracInterpolator.h
-	Thirdparty/resample/CDSPBlockConvolver.h
-	Thirdparty/resample/fft4g.h
-	Thirdparty/resample/r8bconf.h
-	Thirdparty/resample/r8bbase.h
-	Thirdparty/dr_flac.h
-	Thirdparty/stb_vorbis.h
-	Thirdparty/volk/volk.c
-	Thirdparty/volk/volk.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/PoolAlloc.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Intermediate.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/gl_types.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseVersions.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/LiveTraverser.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/intermOut.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/linkValidate.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/InfoSink.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Constant.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/IntermTraverse.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ShaderLang.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/Pp.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpAtom.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpScanner.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/localintermediate.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseConst.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/limits.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseContextBase.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ScanContext.h
-	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
-	Thirdparty/ShaderCompiler/glslang/OSDependent/Unix/ossource.cpp
-	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/Link.cpp
-	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/CodeGen.cpp
-	Thirdparty/ShaderCompiler/glslang/Public/ShaderLang.h
-	Thirdparty/ShaderCompiler/glslang/Include/ConstantUnion.h
-	Thirdparty/ShaderCompiler/glslang/Include/InitializeGlobals.h
-	Thirdparty/ShaderCompiler/glslang/Include/Common.h
-	Thirdparty/ShaderCompiler/glslang/Include/PoolAlloc.h
-	Thirdparty/ShaderCompiler/glslang/Include/arrays.h
-	Thirdparty/ShaderCompiler/glslang/Include/ShHandle.h
-	Thirdparty/ShaderCompiler/glslang/Include/InfoSink.h
-	Thirdparty/ShaderCompiler/glslang/Include/ResourceLimits.h
-	Thirdparty/ShaderCompiler/glslang/Include/Types.h
-	Thirdparty/ShaderCompiler/glslang/Include/revision.h
-	Thirdparty/ShaderCompiler/glslang/Include/BaseTypes.h
-	Thirdparty/ShaderCompiler/glslang/Include/intermediate.h
-	Thirdparty/ShaderCompiler/spirv/Logger.h
-	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.cpp
-	Thirdparty/ShaderCompiler/spirv/SPVRemapper.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.EXT.h
-	Thirdparty/ShaderCompiler/spirv/hex_float.h
-	Thirdparty/ShaderCompiler/spirv/doc.cpp
-	Thirdparty/ShaderCompiler/spirv/disassemble.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvPostProcess.cpp
-	Thirdparty/ShaderCompiler/spirv/bitutils.h
-	Thirdparty/ShaderCompiler/spirv/InReadableOrder.cpp
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.AMD.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.NV.h
-	Thirdparty/ShaderCompiler/spirv/SPVRemapper.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvBuilder.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.KHR.h
-	Thirdparty/ShaderCompiler/spirv/disassemble.h
-	Thirdparty/ShaderCompiler/spirv/SpvBuilder.cpp
-	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.h
-	Thirdparty/ShaderCompiler/spirv/doc.h
-	Thirdparty/ShaderCompiler/spirv/SpvTools.cpp
-	Thirdparty/ShaderCompiler/spirv/spvIR.h
-	Thirdparty/ShaderCompiler/spirv/Logger.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvTools.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.std.450.h
-	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.cpp
-	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.h
-	Thirdparty/vulkan/vk_sdk_platform.h
-	Thirdparty/vulkan/vulkan_fuchsia.h
-	Thirdparty/vulkan/vulkan_win32.h
-	Thirdparty/vulkan/vulkan_ios.h
-	Thirdparty/vulkan/vk_icd.h
-	Thirdparty/vulkan/vk_layer.h
-	Thirdparty/vulkan/vulkan_xcb.h
-	Thirdparty/vulkan/vulkan_macos.h
-	Thirdparty/vulkan/vk_layer_dispatch_table.h
-	Thirdparty/vulkan/vulkan_ggp.h
-	Thirdparty/vulkan/vulkan_core.h
-	Thirdparty/vulkan/vulkan_wayland.h
-	Thirdparty/vulkan/vulkan_metal.h
-	Thirdparty/vulkan/vulkan_android.h
-	Thirdparty/vulkan/vulkan_vi.h
-	Thirdparty/vulkan/vulkan.h
-	Thirdparty/vulkan/vk_platform.h
-	Thirdparty/vulkan/vulkan_mir.h
-	Thirdparty/vulkan/vulkan_xlib_xrandr.h
-	Thirdparty/vulkan/vulkan_xlib.h
-)
-
 set(UTENGINE_SOURCES
 	UTEngine/Precomp.cpp
 	UTEngine/Renderer/SceneRender.cpp
@@ -486,20 +253,325 @@ set(UTENGINE_SOURCES
 	UTEngine/UI/MainWindow/MenubarModal.cpp
 	UTEngine/Window/Window.cpp
 	UTEngine/Window/Window.h
-	UTEngine/Window/X11/X11Window.cpp
-	UTEngine/Window/X11/X11Window.h
-	UTEngine/Window/X11/X11Atoms.cpp
-	UTEngine/Window/X11/X11Atoms.h
 	UTEngine/File.h
 	UTEngine/Precomp.h
 )
 
-add_definitions(-DUNIX -D_UNIX -DVK_USE_PLATFORM_XLIB_KHR)
-add_link_options(-pthread)
+set(UTENGINE_WIN32_SOURCES
+	UTEngine/Window/Win32/Win32Window.cpp
+	UTEngine/Window/Win32/Win32Window.h
+	UTEngine/UTEngine.natvis
+)
+
+set(UTENGINE_UNIX_SOURCES
+	UTEngine/Window/X11/X11Window.cpp
+	UTEngine/Window/X11/X11Window.h
+	UTEngine/Window/X11/X11Atoms.cpp
+	UTEngine/Window/X11/X11Atoms.h
+)
+
+set(THIRDPARTY_SOURCES
+	Thirdparty/vk_mem_alloc/vk_mem_alloc.h
+	Thirdparty/vk_mem_alloc/vk_mem_alloc.cpp
+	Thirdparty/dr_wav.h
+	Thirdparty/minimp3_ex.h
+	Thirdparty/minimp3.h
+	Thirdparty/dumb/src/core/duhtag.c
+	Thirdparty/dumb/src/core/rawsig.c
+	Thirdparty/dumb/src/core/atexit.c
+	Thirdparty/dumb/src/core/dumbfile.c
+	Thirdparty/dumb/src/core/loadduh.c
+	Thirdparty/dumb/src/core/unload.c
+	Thirdparty/dumb/src/core/makeduh.c
+	Thirdparty/dumb/src/core/readduh.c
+	Thirdparty/dumb/src/core/rendsig.c
+	Thirdparty/dumb/src/core/rendduh.c
+	Thirdparty/dumb/src/core/register.c
+	Thirdparty/dumb/src/core/duhlen.c
+	Thirdparty/dumb/src/helpers/lpc.c
+	Thirdparty/dumb/src/helpers/clickrem.c
+	Thirdparty/dumb/src/helpers/memfile.c
+	Thirdparty/dumb/src/helpers/silence.c
+	Thirdparty/dumb/src/helpers/tarray.c
+	Thirdparty/dumb/src/helpers/sampbuf.c
+	Thirdparty/dumb/src/helpers/riff.c
+	Thirdparty/dumb/src/helpers/barray.c
+	Thirdparty/dumb/src/helpers/resample.c
+	Thirdparty/dumb/src/helpers/resampler.c
+	Thirdparty/dumb/src/helpers/stdfile.c
+	Thirdparty/dumb/src/it/readoldpsm.c
+	Thirdparty/dumb/src/it/readdsmf.c
+	Thirdparty/dumb/src/it/loadokt.c
+	Thirdparty/dumb/src/it/loadamf.c
+	Thirdparty/dumb/src/it/itorder.c
+	Thirdparty/dumb/src/it/loadxm2.c
+	Thirdparty/dumb/src/it/xmeffect.c
+	Thirdparty/dumb/src/it/loadxm.c
+	Thirdparty/dumb/src/it/readmod.c
+	Thirdparty/dumb/src/it/readxm2.c
+	Thirdparty/dumb/src/it/reads3m2.c
+	Thirdparty/dumb/src/it/loadokt2.c
+	Thirdparty/dumb/src/it/read669.c
+	Thirdparty/dumb/src/it/readokt2.c
+	Thirdparty/dumb/src/it/loadany.c
+	Thirdparty/dumb/src/it/ptmeffect.c
+	Thirdparty/dumb/src/it/readstm2.c
+	Thirdparty/dumb/src/it/loadoldpsm2.c
+	Thirdparty/dumb/src/it/read6692.c
+	Thirdparty/dumb/src/it/loads3m.c
+	Thirdparty/dumb/src/it/loadmod.c
+	Thirdparty/dumb/src/it/readriff.c
+	Thirdparty/dumb/src/it/readam.c
+	Thirdparty/dumb/src/it/loadmtm.c
+	Thirdparty/dumb/src/it/itunload.c
+	Thirdparty/dumb/src/it/loadpsm.c
+	Thirdparty/dumb/src/it/itrender.c
+	Thirdparty/dumb/src/it/readxm.c
+	Thirdparty/dumb/src/it/readstm.c
+	Thirdparty/dumb/src/it/itmisc.c
+	Thirdparty/dumb/src/it/itload.c
+	Thirdparty/dumb/src/it/loadasy2.c
+	Thirdparty/dumb/src/it/loadriff.c
+	Thirdparty/dumb/src/it/load669.c
+	Thirdparty/dumb/src/it/loads3m2.c
+	Thirdparty/dumb/src/it/loadpsm2.c
+	Thirdparty/dumb/src/it/readany2.c
+	Thirdparty/dumb/src/it/readamf.c
+	Thirdparty/dumb/src/it/itload2.c
+	Thirdparty/dumb/src/it/itread2.c
+	Thirdparty/dumb/src/it/loadriff2.c
+	Thirdparty/dumb/src/it/loadasy.c
+	Thirdparty/dumb/src/it/loadany2.c
+	Thirdparty/dumb/src/it/readany.c
+	Thirdparty/dumb/src/it/readpsm.c
+	Thirdparty/dumb/src/it/readamf2.c
+	Thirdparty/dumb/src/it/loadamf2.c
+	Thirdparty/dumb/src/it/loadptm.c
+	Thirdparty/dumb/src/it/load6692.c
+	Thirdparty/dumb/src/it/readptm.c
+	Thirdparty/dumb/src/it/loadoldpsm.c
+	Thirdparty/dumb/src/it/readmtm.c
+	Thirdparty/dumb/src/it/loadmtm2.c
+	Thirdparty/dumb/src/it/loadstm.c
+	Thirdparty/dumb/src/it/readasy.c
+	Thirdparty/dumb/src/it/loadptm2.c
+	Thirdparty/dumb/src/it/reads3m.c
+	Thirdparty/dumb/src/it/itread.c
+	Thirdparty/dumb/src/it/readmod2.c
+	Thirdparty/dumb/src/it/readokt.c
+	Thirdparty/dumb/src/it/loadmod2.c
+	Thirdparty/dumb/src/it/loadstm2.c
+	Thirdparty/dumb/include/aldumb.h
+	Thirdparty/dumb/include/internal/stack_alloc.h
+	Thirdparty/dumb/include/internal/dumbfile.h
+	Thirdparty/dumb/include/internal/resampler.h
+	Thirdparty/dumb/include/internal/aldumb.h
+	Thirdparty/dumb/include/internal/dumb.h
+	Thirdparty/dumb/include/internal/barray.h
+	Thirdparty/dumb/include/internal/tarray.h
+	Thirdparty/dumb/include/internal/lpc.h
+	Thirdparty/dumb/include/internal/it.h
+	Thirdparty/dumb/include/internal/riff.h
+	Thirdparty/dumb/include/dumb.h
+	Thirdparty/resample/CDSPSincFilterGen.h
+	Thirdparty/resample/CDSPHBDownsampler.h
+	Thirdparty/resample/CDSPResampler.h
+	Thirdparty/resample/CDSPRealFFT.h
+	Thirdparty/resample/CDSPFIRFilter.h
+	Thirdparty/resample/pffft.cpp
+	Thirdparty/resample/r8butil.h
+	Thirdparty/resample/CDSPHBUpsampler.h
+	Thirdparty/resample/CDSPProcessor.h
+	Thirdparty/resample/r8bbase.cpp
+	Thirdparty/resample/pffft.h
+	Thirdparty/resample/CDSPFracInterpolator.h
+	Thirdparty/resample/CDSPBlockConvolver.h
+	Thirdparty/resample/fft4g.h
+	Thirdparty/resample/r8bconf.h
+	Thirdparty/resample/r8bbase.h
+	Thirdparty/dr_flac.h
+	Thirdparty/stb_vorbis.h
+	Thirdparty/volk/volk.c
+	Thirdparty/volk/volk.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/PoolAlloc.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Intermediate.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/gl_types.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseVersions.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/LiveTraverser.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/intermOut.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/linkValidate.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/InfoSink.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Constant.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/IntermTraverse.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ShaderLang.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/Pp.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpAtom.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpScanner.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/localintermediate.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseConst.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/limits.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseContextBase.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.cpp
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ScanContext.h
+	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
+	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/Link.cpp
+	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/CodeGen.cpp
+	Thirdparty/ShaderCompiler/glslang/Public/ShaderLang.h
+	Thirdparty/ShaderCompiler/glslang/Include/ConstantUnion.h
+	Thirdparty/ShaderCompiler/glslang/Include/InitializeGlobals.h
+	Thirdparty/ShaderCompiler/glslang/Include/Common.h
+	Thirdparty/ShaderCompiler/glslang/Include/PoolAlloc.h
+	Thirdparty/ShaderCompiler/glslang/Include/arrays.h
+	Thirdparty/ShaderCompiler/glslang/Include/ShHandle.h
+	Thirdparty/ShaderCompiler/glslang/Include/InfoSink.h
+	Thirdparty/ShaderCompiler/glslang/Include/ResourceLimits.h
+	Thirdparty/ShaderCompiler/glslang/Include/Types.h
+	Thirdparty/ShaderCompiler/glslang/Include/revision.h
+	Thirdparty/ShaderCompiler/glslang/Include/BaseTypes.h
+	Thirdparty/ShaderCompiler/glslang/Include/intermediate.h
+	Thirdparty/ShaderCompiler/spirv/Logger.h
+	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.cpp
+	Thirdparty/ShaderCompiler/spirv/SPVRemapper.h
+	Thirdparty/ShaderCompiler/spirv/GLSL.ext.EXT.h
+	Thirdparty/ShaderCompiler/spirv/hex_float.h
+	Thirdparty/ShaderCompiler/spirv/doc.cpp
+	Thirdparty/ShaderCompiler/spirv/disassemble.cpp
+	Thirdparty/ShaderCompiler/spirv/SpvPostProcess.cpp
+	Thirdparty/ShaderCompiler/spirv/bitutils.h
+	Thirdparty/ShaderCompiler/spirv/InReadableOrder.cpp
+	Thirdparty/ShaderCompiler/spirv/GLSL.ext.AMD.h
+	Thirdparty/ShaderCompiler/spirv/GLSL.ext.NV.h
+	Thirdparty/ShaderCompiler/spirv/SPVRemapper.cpp
+	Thirdparty/ShaderCompiler/spirv/SpvBuilder.h
+	Thirdparty/ShaderCompiler/spirv/GLSL.ext.KHR.h
+	Thirdparty/ShaderCompiler/spirv/disassemble.h
+	Thirdparty/ShaderCompiler/spirv/SpvBuilder.cpp
+	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.h
+	Thirdparty/ShaderCompiler/spirv/doc.h
+	Thirdparty/ShaderCompiler/spirv/SpvTools.cpp
+	Thirdparty/ShaderCompiler/spirv/spvIR.h
+	Thirdparty/ShaderCompiler/spirv/Logger.cpp
+	Thirdparty/ShaderCompiler/spirv/SpvTools.h
+	Thirdparty/ShaderCompiler/spirv/GLSL.std.450.h
+	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.cpp
+	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.h
+	Thirdparty/vulkan/vk_sdk_platform.h
+	Thirdparty/vulkan/vulkan_fuchsia.h
+	Thirdparty/vulkan/vulkan_win32.h
+	Thirdparty/vulkan/vulkan_ios.h
+	Thirdparty/vulkan/vk_icd.h
+	Thirdparty/vulkan/vk_layer.h
+	Thirdparty/vulkan/vulkan_xcb.h
+	Thirdparty/vulkan/vulkan_macos.h
+	Thirdparty/vulkan/vk_layer_dispatch_table.h
+	Thirdparty/vulkan/vulkan_ggp.h
+	Thirdparty/vulkan/vulkan_core.h
+	Thirdparty/vulkan/vulkan_wayland.h
+	Thirdparty/vulkan/vulkan_metal.h
+	Thirdparty/vulkan/vulkan_android.h
+	Thirdparty/vulkan/vulkan_vi.h
+	Thirdparty/vulkan/vulkan.h
+	Thirdparty/vulkan/vk_platform.h
+	Thirdparty/vulkan/vulkan_mir.h
+	Thirdparty/vulkan/vulkan_xlib_xrandr.h
+	Thirdparty/vulkan/vulkan_xlib.h
+)
+
+set(THIRDPARTY_WIN32_SOURCES
+	Thirdparty/ShaderCompiler/glslang/OSDependent/Windows/ossource.cpp
+)
+
+set(THIRDPARTY_UNIX_SOURCES
+	Thirdparty/ShaderCompiler/glslang/OSDependent/Unix/ossource.cpp
+)
+
+source_group("UTEngine" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/.+")
+source_group("UTEngine\\Audio" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Audio/.+")
+source_group("UTEngine\\Math" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Math/.+")
+source_group("UTEngine\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Native/.+")
+source_group("UTEngine\\Package" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Package/.+")
+source_group("UTEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/.+")
+source_group("UTEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/Vulkan/.+")
+source_group("UTEngine\\Renderer" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Renderer/.+")
+source_group("UTEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/.+")
+source_group("UTEngine\\UI\\Controls" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/.+")
+source_group("UTEngine\\UI\\Controls\\BorderLayoutView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/BorderLayoutView/.+")
+source_group("UTEngine\\UI\\Controls\\Button" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/Button/.+")
+source_group("UTEngine\\UI\\Controls\\ImageBox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/ImageBox/.+")
+source_group("UTEngine\\UI\\Controls\\LineEdit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/LineEdit/.+")
+source_group("UTEngine\\UI\\Controls\\ListView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/ListView/.+")
+source_group("UTEngine\\UI\\Controls\\SvgBox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/SvgBox/.+")
+source_group("UTEngine\\UI\\Controls\\TabControl" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/TabControl/.+")
+source_group("UTEngine\\UI\\Controls\\TextLabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/TextLabel/.+")
+source_group("UTEngine\\UI\\Core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Core/.+")
+source_group("UTEngine\\UI\\Core\\Element" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Core/Element/.+")
+source_group("UTEngine\\UI\\Debugger" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Debugger/.+")
+source_group("UTEngine\\UI\\Dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Dialog/.+")
+source_group("UTEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/MainWindow/.+")
+source_group("UTEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UObject/.+")
+source_group("UTEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/VM/.+")
+source_group("UTEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/.+")
+source_group("UTEngine\\Window\\Win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/Win32/.+")
+source_group("UTEngine\\Window\\X11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/X11/.+")
+source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
+source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
+source_group("Thirdparty\\ShaderCompiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/ShaderCompiler/.+")
+source_group("Thirdparty\\vk_mem_alloc" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vk_mem_alloc/.+")
+source_group("Thirdparty\\volk" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/volk/.+")
+source_group("Thirdparty\\vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vulkan/.+")
 
 include_directories(UTEngine Thirdparty Thirdparty/dumb/include)
 
-add_executable(UTEngine ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
-target_link_libraries(UTEngine ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+if(WIN32)
+	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_WIN32_SOURCES})
+	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_WIN32_SOURCES})
+	add_definitions(-DUNICODE -D_UNICODE)
+else()
+	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_UNIX_SOURCES})
+	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
+	set(UTENGINE_LIBS ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+	add_definitions(-DUNIX -D_UNIX -DVK_USE_PLATFORM_XLIB_KHR)
+	add_link_options(-pthread)
+endif()
 
+if(MSVC)
+	# Use all cores for compilation
+	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
+
+	# Add precompiled headers
+	set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")
+	set_source_files_properties(${UTENGINE_SOURCES} PROPERTIES COMPILE_FLAGS "/Yu\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_DEPENDS "${PCH_OUTPUT}")
+	set_source_files_properties("UTEngine/Precomp.cpp" PROPERTIES COMPILE_FLAGS "/Yc\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_OUTPUTS "${PCH_OUTPUT}")
+
+	# Ignore warnings in third party code
+	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
+endif()
+
+add_executable(UTEngine WIN32 MACOSX_BUNDLE ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
+target_link_libraries(UTEngine ${UTENGINE_LIBS})
 set_target_properties(UTEngine PROPERTIES CXX_STANDARD 17)

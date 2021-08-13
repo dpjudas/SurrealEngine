@@ -184,26 +184,14 @@ void JsonValueImpl::write_string(const std::string &str, std::string &json)
 
 void JsonValueImpl::write_number(const JsonValue &value, std::string &json)
 {
-	char buf[64];
-	buf[0] = 0;
 	if (static_cast<double>(static_cast<int>(value.to_number())) == value.to_number())
 	{
-#ifdef WIN32
-		_snprintf(buf, 63, "%d", (int)value.to_number());
-#else
-		snprintf(buf, 63, "%d", (int)value.to_number());
-#endif
+		json += std::to_string((int)value.to_number());
 	}
 	else
 	{
-#ifdef WIN32
-		_snprintf(buf, 63, "%f", value.to_number());
-#else
-		snprintf(buf, 63, "%f", value.to_number());
-#endif
+		json += std::to_string(value.to_number());
 	}
-	buf[63] = 0;
-	json += buf;
 }
 
 JsonValue JsonValueImpl::read(const std::string &json, size_t &pos)
@@ -456,8 +444,7 @@ JsonValue JsonValueImpl::read_number(const std::string &json, size_t &pos)
 	if (number_string.empty())
 		throw std::runtime_error("Unexpected character in JSON data");
 
-	double result = 0.0;
-	sscanf(number_string.c_str(), "%lf", &result);
+	double result = std::atof(number_string.c_str());
 	return JsonValue::number(result);
 }
 
