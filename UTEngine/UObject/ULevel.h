@@ -239,10 +239,21 @@ public:
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
+	std::vector<std::list<UActor*>> CollisionActors;
+
+	void AddToCollision(UActor* actor);
+	void RemoveFromCollision(UActor* actor);
+
 	bool TraceAnyHit(vec3 from, vec3 to);
 	SweepHit Sweep(CylinderShape* shape, const vec3& to);
 
 private:
+	void AddToCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
+	void RemoveFromCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
+	int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
+	double ActorRayIntersect(const dvec4& from, const dvec4& to, UActor* actor);
+	double RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius);
+
 	bool TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node);
 	SweepHit Sweep(const dvec4& from, const dvec4& to, double radius, BspNode* node);
 

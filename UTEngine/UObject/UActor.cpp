@@ -37,6 +37,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	actor->Rotation() = rotation;
 
 	XLevel()->Actors.push_back(actor);
+	XLevel()->AddToCollision(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
 	actor->InitActorZone();
@@ -124,6 +125,7 @@ bool UActor::Destroy()
 	auto it = std::find(level->Actors.begin(), level->Actors.end(), this);
 	if (it != level->Actors.end())
 	{
+		level->RemoveFromCollision(this);
 		level->Actors.erase(it);
 		return true;
 	}
@@ -438,16 +440,20 @@ void UActor::SetPhysics(uint8_t newPhysics)
 
 void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers)
 {
+	XLevel()->RemoveFromCollision(this);
 	bCollideActors() = newColActors;
 	bBlockActors() = newBlockActors;
 	bBlockPlayers() = newBlockPlayers;
+	XLevel()->AddToCollision(this);
 }
 
 bool UActor::SetLocation(const vec3& newLocation)
 {
 	// To do: do overlap test and return false if the object cannot be moved to this location
 
+	XLevel()->RemoveFromCollision(this);
 	Location() = newLocation;
+	XLevel()->AddToCollision(this);
 	return true;
 }
 
@@ -463,8 +469,10 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 {
 	// To do: do overlap test and return false if the object cannot be changed to this new size
 
+	XLevel()->RemoveFromCollision(this);
 	CollisionRadius() = newRadius;
 	CollisionHeight() = newHeight;
+	XLevel()->AddToCollision(this);
 	return true;
 }
 
@@ -518,7 +526,9 @@ SweepHit UActor::TryMove(const vec3& delta)
 		hit = XLevel()->Sweep(&shape, Location() + delta);
 	vec3 actuallyMoved = delta * hit.Fraction;
 
+	XLevel()->RemoveFromCollision(this);
 	Location() += actuallyMoved;
+	XLevel()->AddToCollision(this);
 
 	// Based actors needs to move with us
 	if (StandingCount() > 0)

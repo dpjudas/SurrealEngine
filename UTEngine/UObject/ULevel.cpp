@@ -6,9 +6,6 @@
 #include "UClass.h"
 #include "VM/ScriptCall.h"
 
-// #define TEST_SWEEP
-// #define TEST_SWEEP_WITH_RAY
-
 void ULevelBase::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
@@ -58,6 +55,12 @@ void ULevel::Load(ObjectStream* stream)
 	}
 
 	Model = stream->ReadObject<UModel>();
+
+	if (Model)
+	{
+		Model->LoadNow();
+		CollisionActors.resize(Model->Nodes.size());
+	}
 }
 
 void ULevel::Tick(float elapsed)
@@ -84,21 +87,129 @@ void ULevel::Tick(float elapsed)
 	ticked = !ticked;
 }
 
+void ULevel::AddToCollision(UActor* actor)
+{
+	if (actor->bBlockActors() || actor->bBlockPlayers())
+	{
+		vec3 location = actor->Location();
+		float height = actor->CollisionHeight();
+		float radius = actor->CollisionRadius();
+		AddToCollision(actor, location, vec3(radius, radius, height), &Model->Nodes.front());
+	}
+}
+
+void ULevel::RemoveFromCollision(UActor* actor)
+{
+	if (actor->bBlockActors() || actor->bBlockPlayers())
+	{
+		vec3 location = actor->Location();
+		float height = actor->CollisionHeight();
+		float radius = actor->CollisionRadius();
+		RemoveFromCollision(actor, location, vec3(radius, radius, height), &Model->Nodes.front());
+	}
+}
+
+void ULevel::AddToCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node)
+{
+	ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
+	int side = NodeAABBOverlap(location, extents, node);
+	if ((side <= 0 && node->Front < 0) || (side >= 0 && node->Back < 0))
+	{
+		CollisionActors[index].push_back(actor);
+	}
+	else
+	{
+		if (side <= 0)
+		{
+			AddToCollision(actor, location, extents, &Model->Nodes[node->Front]);
+		}
+		if (side >= 0)
+		{
+			AddToCollision(actor, location, extents, &Model->Nodes[node->Back]);
+		}
+	}
+}
+
+void ULevel::RemoveFromCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node)
+{
+	ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
+	int side = NodeAABBOverlap(location, extents, node);
+	if ((side <= 0 && node->Front < 0) || (side >= 0 && node->Back < 0))
+	{
+		CollisionActors[index].remove(actor);
+	}
+	else
+	{
+		if (side <= 0)
+		{
+			AddToCollision(actor, location, extents, &Model->Nodes[node->Front]);
+		}
+		if (side >= 0)
+		{
+			AddToCollision(actor, location, extents, &Model->Nodes[node->Back]);
+		}
+	}
+}
+
+// -1 = inside, 0 = intersects, 1 = outside
+int ULevel::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node)
+{
+	float e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
+	float s = center.x * node->PlaneX + center.y * node->PlaneY + center.z * node->PlaneZ - node->PlaneW;
+	if (s - e > 0)
+		return -1;
+	else if (s + e < 0)
+		return 1;
+	else
+		return 0;
+}
+
+double ULevel::RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius)
+{
+	dvec3 l = sphereCenter - rayOrigin;
+	double s = dot(l, rayDir);
+	double l2 = dot(l, l);
+	double r2 = sphereRadius * sphereRadius;
+	if (s < 0 && l2 > r2)
+		return 1.0;
+	double s2 = s * s;
+	double m2 = l2 - s2;
+	if (m2 > r2)
+		return 1.0;
+	double q = std::sqrt(r2 - m2);
+	double t = (l2 > r2) ? s - q : s + q;
+	return t;
+}
+
+double ULevel::ActorRayIntersect(const dvec4& from, const dvec4& to, UActor* actor)
+{
+	float height = actor->CollisionHeight();
+	float radius = actor->CollisionRadius();
+	vec3 offset = vec3(0.0, 0.0, height - radius);
+	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
+	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
+	dvec3 origin = from.xyz();
+	dvec3 dir = to.xyz() - origin;
+	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
+}
+
 bool ULevel::TraceAnyHit(vec3 from, vec3 to)
 {
 	if (from == to)
 		return false;
 
-#ifdef TEST_SWEEP
-	CylinderShape shape(from, 1.0, 1.0);
-	return Sweep(&shape, to).Fraction != 1.0;
-#else
 	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), &Model->Nodes.front());
-#endif
 }
 
 bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node)
 {
+	ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
+	for (auto& actor : CollisionActors[index])
+	{
+		if (ActorRayIntersect(from, to, actor) < 1.0)
+			return true;
+	}
+
 	BspNode* polynode = node;
 	while (true)
 	{
@@ -244,11 +355,7 @@ double ULevel::NodeSphereIntersect(const dvec4& from, const dvec4& to, double ra
 	for (int i = 2; i < count; i++)
 	{
 		p[2] = to_dvec3(points[v[i].Vertex]);
-#ifdef TEST_SWEEP_WITH_RAY
-		t = std::min(TriangleRayIntersect(from, to, p), t);
-#else
 		t = std::min(TriangleSphereIntersect(from, to, radius, p), t);
-#endif
 		p[1] = p[2];
 	}
 	return t;
