@@ -35,6 +35,8 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo(std::vector<std::string> args)
 	GameLaunchInfo info = foundGames.front().launchInfo;
 
 	info.engineVersion = commandline.GetArgInt("-e", "--engineversion", info.engineVersion);
+	info.noEntryMap = commandline.HasArg("-n", "--noentrymap");
+	info.url = commandline.GetArg("-u", "--url", info.url);
 
 	return info;
 }

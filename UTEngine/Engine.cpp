@@ -70,13 +70,13 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
-	LoadEntryMap();
+	if (!LaunchInfo.noEntryMap)
+		LoadEntryMap();
 
-	LoadMap(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")));
-	/*if (packages->GetEngineVersion() < 400)
-		LoadMap(GetDefaultURL("DM-TurbineDEMO.unr"));
+	if (LaunchInfo.url.empty())
+		LoadMap(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")));
 	else
-		LoadMap(GetDefaultURL("DM-Liandri.unr"));*/
+		LoadMap(UnrealURL(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")), LaunchInfo.url));
 
 	bool firstCall = true;
 	while (!quit)

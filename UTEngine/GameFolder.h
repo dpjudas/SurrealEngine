@@ -4,6 +4,8 @@ struct GameLaunchInfo
 {
 	std::string folder;
 	int engineVersion = 0;
+	bool noEntryMap = false;
+	std::string url;
 };
 
 struct GameFolder
