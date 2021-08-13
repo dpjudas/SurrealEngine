@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 	{
 		std::vector<std::string> args;
 		for (int i = 1; i < argc; i++)
-			args.push_back(args);
+			args.push_back(argv[i]);
 		appMain(std::move(args));
 		return 0;
 	}
