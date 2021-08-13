@@ -35,7 +35,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 		if (argv)
 		{
-			for (int i = 1; i < args.size(); i++)
+			for (int i = 1; i < argc; i++)
 				args.push_back(from_utf16(argv[i]));
 			LocalFree(argv);
 		}
