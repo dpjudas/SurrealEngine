@@ -10,9 +10,13 @@ The engine can load and render the maps. The Unrealscript VM is almost feature c
 
 It will attempt to load all level actors and initialize the map. However, while the menus and the HUD will appear, there are still many native functions not implemented yet. It is also quite possible some events aren't firing as they should. You will therefore see exceptions shown if you interact with them and that is where the project is at.
 
-To try it out you will have to edit UTEngine/Engine.cpp and correct the path at the top of the file to where you have Unreal Tournament installed. It also has to be patch 436. 469 will not work currently. All of this will of course not stay hardcoded if/when the project will actually run a full deathmatch game.
+## Command line parameters
 
-Also maybe worth mentioning: the Linux mouse handling is pretty bad. On my Linux Mint it gave me quite a lot of mouse lag. If someone knows how to fix that easily I'm very open to pull requests. Otherwise I'll probably fix it myself once the project reaches a playable state.
+`UTEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]`
+
+If no game folder is specified the engine will try search the registry (Windows only) for the registry keys Epic originally set. If no URL is specified it will use the default URL in the ini file (per default the intro map). The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
+
+At the time of this writing the game itself can either be Unreal Tournament (436 version only) or Unreal Gold. Unreal Gold is significantly more buggy at the moment though (only the intro map really works).
 
 ## Windows build instructions
 
