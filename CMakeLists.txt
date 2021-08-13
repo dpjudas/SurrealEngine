@@ -564,9 +564,9 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
 
 	# Add precompiled headers
-	set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")
-	set_source_files_properties(${UTENGINE_SOURCES} PROPERTIES COMPILE_FLAGS "/Yu\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_DEPENDS "${PCH_OUTPUT}")
-	set_source_files_properties("UTEngine/Precomp.cpp" PROPERTIES COMPILE_FLAGS "/Yc\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_OUTPUTS "${PCH_OUTPUT}")
+	# set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")
+	# set_source_files_properties(${UTENGINE_SOURCES} PROPERTIES COMPILE_FLAGS "/Yu\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_DEPENDS "${PCH_OUTPUT}")
+	# set_source_files_properties("UTEngine/Precomp.cpp" PROPERTIES COMPILE_FLAGS "/Yc\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_OUTPUTS "${PCH_OUTPUT}")
 
 	# Ignore warnings in third party code
 	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
