@@ -2,6 +2,7 @@
 
 #include "UMesh.h"
 #include "Math/bbox.h"
+#include <list>
 
 class UTexture;
 class UActor;
