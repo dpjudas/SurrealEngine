@@ -171,20 +171,23 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Xor_IntInt", &NObject::Xor_IntInt, 157);
 
 	// Package 61 stuff
-	RegisterVMNativeFunc_3("Object", "Concat_StrStr", &NObject::Concat_StrStr, 228);
-	RegisterVMNativeFunc_3("Object", "Less_StrStr", &NObject::Less_StrStr, 197);
-	RegisterVMNativeFunc_3("Object", "Greater_StrStr", &NObject::Greater_StrStr, 198);
-	RegisterVMNativeFunc_3("Object", "LessEqual_StrStr", &NObject::LessEqual_StrStr, 199);
-	RegisterVMNativeFunc_3("Object", "GreaterEqual_StrStr", &NObject::GreaterEqual_StrStr, 200);
-	RegisterVMNativeFunc_3("Object", "EqualEqual_StrStr", &NObject::EqualEqual_StrStr, 201);
-	RegisterVMNativeFunc_3("Object", "NotEqual_StrStr", &NObject::NotEqual_StrStr, 202);
-	RegisterVMNativeFunc_3("Object", "ComplementEqual_StrStr", &NObject::ComplementEqual_StrStr, 168);
-	RegisterVMNativeFunc_2("Object", "Len", &NObject::Len, 204);
-	RegisterVMNativeFunc_3("Object", "InStr", &NObject::InStr, 205);
-	RegisterVMNativeFunc_4("Object", "Mid", &NObject::Mid, 206);
-	RegisterVMNativeFunc_3("Object", "Left", &NObject::Left, 207);
-	RegisterVMNativeFunc_3("Object", "Right", &NObject::Right, 208);
-	RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 209);
+	if (engine->LaunchInfo.engineVersion <= 219)
+	{
+		RegisterVMNativeFunc_3("Object", "Concat_StrStr", &NObject::Concat_StrStr, 228);
+		RegisterVMNativeFunc_3("Object", "Less_StrStr", &NObject::Less_StrStr, 197);
+		RegisterVMNativeFunc_3("Object", "Greater_StrStr", &NObject::Greater_StrStr, 198);
+		RegisterVMNativeFunc_3("Object", "LessEqual_StrStr", &NObject::LessEqual_StrStr, 199);
+		RegisterVMNativeFunc_3("Object", "GreaterEqual_StrStr", &NObject::GreaterEqual_StrStr, 200);
+		RegisterVMNativeFunc_3("Object", "EqualEqual_StrStr", &NObject::EqualEqual_StrStr, 201);
+		RegisterVMNativeFunc_3("Object", "NotEqual_StrStr", &NObject::NotEqual_StrStr, 202);
+		RegisterVMNativeFunc_3("Object", "ComplementEqual_StrStr", &NObject::ComplementEqual_StrStr, 168);
+		RegisterVMNativeFunc_2("Object", "Len", &NObject::Len, 204);
+		RegisterVMNativeFunc_3("Object", "InStr", &NObject::InStr, 205);
+		RegisterVMNativeFunc_4("Object", "Mid", &NObject::Mid, 206);
+		RegisterVMNativeFunc_3("Object", "Left", &NObject::Left, 207);
+		RegisterVMNativeFunc_3("Object", "Right", &NObject::Right, 208);
+		RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 209);
+	}
 }
 
 void NObject::Abs(float A, float& ReturnValue)
