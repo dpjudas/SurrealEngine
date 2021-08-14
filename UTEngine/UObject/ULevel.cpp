@@ -193,46 +193,64 @@ double ULevel::ActorRayIntersect(const dvec4& from, const dvec4& to, UActor* act
 	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
 }
 
-bool ULevel::TraceAnyHit(vec3 from, vec3 to)
+double ULevel::ActorSphereIntersect(const dvec4& from, const dvec4& to, double sphereRadius, UActor* actor)
+{
+	float height = actor->CollisionHeight();
+	float radius = actor->CollisionRadius() + (float)sphereRadius;
+	vec3 offset = vec3(0.0, 0.0, height - radius);
+	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
+	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
+	dvec3 origin = from.xyz();
+	dvec3 dir = to.xyz() - origin;
+	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
+}
+
+bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* self, bool traceActors, bool traceWorld)
 {
 	if (from == to)
 		return false;
 
-	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), &Model->Nodes.front());
+	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), self, traceActors, traceWorld, &Model->Nodes.front());
 }
 
-bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, BspNode* node)
+bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* self, bool traceActors, bool traceWorld, BspNode* node)
 {
-	ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
-	for (auto& actor : CollisionActors[index])
+	if (traceActors)
 	{
-		if (ActorRayIntersect(from, to, actor) < 1.0)
-			return true;
+		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
+		for (UActor* actor : CollisionActors[index])
+		{
+			if (actor != self && ActorRayIntersect(from, to, actor) < 1.0)
+				return true;
+		}
 	}
 
-	BspNode* polynode = node;
-	while (true)
+	if (traceWorld)
 	{
-		if (NodeRayIntersect(from, to, polynode) < 1.0)
-			return true;
+		BspNode* polynode = node;
+		while (true)
+		{
+			if (NodeRayIntersect(from, to, polynode) < 1.0)
+				return true;
 
-		if (polynode->Plane < 0) break;
-		polynode = &Model->Nodes[polynode->Plane];
+			if (polynode->Plane < 0) break;
+			polynode = &Model->Nodes[polynode->Plane];
+		}
 	}
 
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
 	double fromSide = dot(from, plane);
 	double toSide = dot(to, plane);
 
-	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(from, to, &Model->Nodes[node->Front]))
+	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(from, to, self, traceActors, traceWorld, &Model->Nodes[node->Front]))
 		return true;
-	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(from, to, &Model->Nodes[node->Back]))
+	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(from, to, self, traceActors, traceWorld, &Model->Nodes[node->Back]))
 		return true;
 	else
 		return false;
 }
 
-SweepHit ULevel::Sweep(CylinderShape* shape, const vec3& toF)
+SweepHit ULevel::Sweep(CylinderShape* shape, const vec3& toF, UActor* self, bool traceActors, bool traceWorld)
 {
 	dvec3 to(toF.x, toF.y, toF.z);
 
@@ -248,8 +266,8 @@ SweepHit ULevel::Sweep(CylinderShape* shape, const vec3& toF)
 
 	// Do the collision sweep:
 	dvec3 offset = dvec3(0.0, 0.0, shape->Height - shape->Radius);
-	SweepHit top = Sweep(dvec4(shape->Center + offset, 1.0), dvec4(finalTo + offset, 1.0), shape->Radius, &Model->Nodes.front());
-	SweepHit bottom = Sweep(dvec4(shape->Center - offset, 1.0), dvec4(finalTo - offset, 1.0), shape->Radius, &Model->Nodes.front());
+	SweepHit top = Sweep(dvec4(shape->Center + offset, 1.0), dvec4(finalTo + offset, 1.0), shape->Radius, self, traceActors, traceWorld, &Model->Nodes.front());
+	SweepHit bottom = Sweep(dvec4(shape->Center - offset, 1.0), dvec4(finalTo - offset, 1.0), shape->Radius, self, traceActors, traceWorld, &Model->Nodes.front());
 	SweepHit hit = top.Fraction < bottom.Fraction ? top : bottom;
 
 	// Apply margin to result:
@@ -262,22 +280,45 @@ SweepHit ULevel::Sweep(CylinderShape* shape, const vec3& toF)
 	return hit;
 }
 
-SweepHit ULevel::Sweep(const dvec4& from, const dvec4& to, double radius, BspNode* node)
+SweepHit ULevel::Sweep(const dvec4& from, const dvec4& to, double radius, UActor* self, bool traceActors, bool traceWorld, BspNode* node)
 {
 	SweepHit hit;
 
-	BspNode* polynode = node;
-	while (true)
+	if (traceActors)
 	{
-		double t = NodeSphereIntersect(from, to, radius, polynode);
-		if (t < hit.Fraction)
+		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
+		for (UActor* actor : CollisionActors[index])
 		{
-			hit.Fraction = (float)t;
-			hit.Normal = { node->PlaneX, node->PlaneY, node->PlaneZ };
+			if (actor != self)
+			{
+				double t = ActorSphereIntersect(from, to, radius, actor);
+				if (t < hit.Fraction)
+				{
+					dvec4 hitpos = mix(from, to, t);
+					hit.Fraction = (float)t;
+					hit.Normal = normalize(to_vec3(hitpos.xyz()) - actor->Location());
+					hit.Actor = actor;
+				}
+			}
 		}
+	}
 
-		if (polynode->Plane < 0) break;
-		polynode = &Model->Nodes[polynode->Plane];
+	if (traceWorld)
+	{
+		BspNode* polynode = node;
+		while (true)
+		{
+			double t = NodeSphereIntersect(from, to, radius, polynode);
+			if (t < hit.Fraction)
+			{
+				hit.Fraction = (float)t;
+				hit.Normal = { node->PlaneX, node->PlaneY, node->PlaneZ };
+				hit.Actor = nullptr;
+			}
+
+			if (polynode->Plane < 0) break;
+			polynode = &Model->Nodes[polynode->Plane];
+		}
 	}
 
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
@@ -286,14 +327,14 @@ SweepHit ULevel::Sweep(const dvec4& from, const dvec4& to, double radius, BspNod
 
 	if (node->Front >= 0 && (fromSide >= -radius || toSide >= -radius))
 	{
-		SweepHit childhit = Sweep(from, to, radius, &Model->Nodes[node->Front]);
+		SweepHit childhit = Sweep(from, to, radius, self, traceActors, traceWorld, &Model->Nodes[node->Front]);
 		if (childhit.Fraction < hit.Fraction)
 			hit = childhit;
 	}
 
 	if (node->Back >= 0 && (fromSide <= radius || toSide <= radius))
 	{
-		SweepHit childhit = Sweep(from, to, radius, &Model->Nodes[node->Back]);
+		SweepHit childhit = Sweep(from, to, radius, self, traceActors, traceWorld, &Model->Nodes[node->Back]);
 		if (childhit.Fraction < hit.Fraction)
 			hit = childhit;
 	}
