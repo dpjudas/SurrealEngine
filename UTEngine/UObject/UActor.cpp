@@ -480,19 +480,13 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 {
 	// To do: this needs to do an AABB sweep (hmm, does UE1 treat all actor cylinders as AABB?)
 
-	if (!bTraceActors)
-	{
-		engine->LogUnimplemented("Actor.Trace called with bTraceActors set to true");
-	}
-
-	CylinderShape shape(traceStart, extent.x, extent.z);
-	SweepHit hit = XLevel()->Sweep(&shape, traceEnd, this, bTraceActors, true);
+	SweepHit hit = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, this, bTraceActors, true);
 	if (hit.Fraction == 1.0f)
 		return nullptr;
 
 	hitNormal = hit.Normal;
 	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
-	return Level();
+	return hit.Actor ? hit.Actor : Level();
 }
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
@@ -519,10 +513,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	// bBlockActors()
 	// bBlockPlayers()
 
-	CylinderShape shape(Location(), CollisionHeight(), CollisionRadius());
-	SweepHit hit;
-	if (bCollideWorld())
-		hit = XLevel()->Sweep(&shape, Location() + delta, this, bCollideActors(), bCollideWorld());
+	SweepHit hit = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), this, bCollideActors(), bCollideWorld());
 	vec3 actuallyMoved = delta * hit.Fraction;
 
 	XLevel()->RemoveFromCollision(this);
@@ -543,7 +534,6 @@ SweepHit UActor::TryMove(const vec3& delta)
 		}
 	}
 
-#if 0
 	if (hit.Actor)
 	{
 		bool isChildOfBase = false;
@@ -565,7 +555,6 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	// To do: send Touch notifications
 	// To do: send UnTouch notifications
-#endif
 
 	UpdateActorZone();
 

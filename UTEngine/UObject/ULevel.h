@@ -211,15 +211,15 @@ public:
 	std::string Portal;
 };
 
-class CylinderShape
+class TraceFilter
 {
 public:
-	CylinderShape() = default;
-	CylinderShape(const vec3& center, float height, float radius) : Center(center.x, center.y, center.z), Height(height), Radius(radius) { }
+	TraceFilter() = default;
+	TraceFilter(UActor* tracingActor, bool traceActors, bool traceWorld) : TracingActor(tracingActor), TraceActors(traceActors), TraceWorld(traceWorld) { }
 
-	dvec3 Center = dvec3(0.0);
-	double Height = 0.0;
-	double Radius = 0.0;
+	UActor* TracingActor = nullptr;
+	bool TraceActors = false;
+	bool TraceWorld = false;
 };
 
 class SweepHit
@@ -228,6 +228,51 @@ public:
 	float Fraction = 1.0;
 	vec3 Normal = vec3(0.0);
 	UActor* Actor = nullptr;
+};
+
+class SphereSweep
+{
+public:
+	SphereSweep() = default;
+	SphereSweep(const dvec3& from, const dvec3& to, double radius, TraceFilter filter)
+	{
+		From = from;
+		To = to;
+		Radius = radius;
+		Filter = filter;
+		From4 = dvec4(From, 1.0);
+		To4 = dvec4(To, 1.0);
+	}
+
+	dvec3 From = dvec3(0.0);
+	dvec3 To = dvec3(0.0);
+	double Radius = 0.0;
+	TraceFilter Filter;
+	SweepHit Hit;
+
+	dvec4 From4 = dvec4(0.0, 0.0, 0.0, 1.0);
+	dvec4 To4 = dvec4(0.0, 0.0, 0.0, 1.0);
+};
+
+class CylinderSweep
+{
+public:
+	CylinderSweep() = default;
+	CylinderSweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld)
+	{
+		From = dvec3(from.x, from.y, from.z);
+		To = dvec3(to.x, to.y, to.z);
+		Height = height;
+		Radius = radius;
+		Filter = TraceFilter(tracingActor, traceActors, traceWorld);
+	}
+
+	dvec3 From = dvec3(0.0);
+	dvec3 To = dvec3(0.0);
+	double Height = 0.0;
+	double Radius = 0.0;
+	TraceFilter Filter;
+	SweepHit Hit;
 };
 
 class ULevel : public ULevelBase
@@ -246,19 +291,19 @@ public:
 	void AddToCollision(UActor* actor);
 	void RemoveFromCollision(UActor* actor);
 
-	bool TraceAnyHit(vec3 from, vec3 to, UActor* self, bool traceActors, bool traceWorld);
-	SweepHit Sweep(CylinderShape* shape, const vec3& to, UActor* self, bool traceActors, bool traceWorld);
+	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld);
+	SweepHit Sweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld);
 
 private:
 	void AddToCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
 	void RemoveFromCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
 	int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
-	double ActorRayIntersect(const dvec4& from, const dvec4& to, UActor* actor);
-	double ActorSphereIntersect(const dvec4& from, const dvec4& to, double radius, UActor* actor);
+	double ActorRayIntersect(const dvec3& from, const dvec3& to, UActor* actor);
+	double ActorSphereIntersect(const dvec3& from, const dvec3& to, double radius, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius);
 
-	bool TraceAnyHit(const dvec4& from, const dvec4& to, UActor* self, bool traceActors, bool traceWorld, BspNode* node);
-	SweepHit Sweep(const dvec4& from, const dvec4& to, double radius, UActor* self, bool traceActors, bool traceWorld, BspNode* node);
+	bool TraceAnyHit(const dvec4& from, const dvec4& to, UActor* tracingActor, bool traceActors, bool traceWorld, BspNode* node);
+	void Sweep(SphereSweep* sphere, BspNode* node);
 
 	double NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node);
 	double NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node);

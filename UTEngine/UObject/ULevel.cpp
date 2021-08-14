@@ -181,46 +181,46 @@ double ULevel::RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, c
 	return t;
 }
 
-double ULevel::ActorRayIntersect(const dvec4& from, const dvec4& to, UActor* actor)
+double ULevel::ActorRayIntersect(const dvec3& from, const dvec3& to, UActor* actor)
 {
 	float height = actor->CollisionHeight();
 	float radius = actor->CollisionRadius();
 	vec3 offset = vec3(0.0, 0.0, height - radius);
 	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
 	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
-	dvec3 origin = from.xyz();
-	dvec3 dir = to.xyz() - origin;
+	dvec3 origin = from;
+	dvec3 dir = to - origin;
 	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
 }
 
-double ULevel::ActorSphereIntersect(const dvec4& from, const dvec4& to, double sphereRadius, UActor* actor)
+double ULevel::ActorSphereIntersect(const dvec3& from, const dvec3& to, double sphereRadius, UActor* actor)
 {
 	float height = actor->CollisionHeight();
 	float radius = actor->CollisionRadius() + (float)sphereRadius;
 	vec3 offset = vec3(0.0, 0.0, height - radius);
 	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
 	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
-	dvec3 origin = from.xyz();
-	dvec3 dir = to.xyz() - origin;
+	dvec3 origin = from;
+	dvec3 dir = to - origin;
 	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
 }
 
-bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* self, bool traceActors, bool traceWorld)
+bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld)
 {
 	if (from == to)
 		return false;
 
-	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), self, traceActors, traceWorld, &Model->Nodes.front());
+	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), tracingActor, traceActors, traceWorld, &Model->Nodes.front());
 }
 
-bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* self, bool traceActors, bool traceWorld, BspNode* node)
+bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* tracingActor, bool traceActors, bool traceWorld, BspNode* node)
 {
 	if (traceActors)
 	{
 		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
 		for (UActor* actor : CollisionActors[index])
 		{
-			if (actor != self && ActorRayIntersect(from, to, actor) < 1.0)
+			if (actor != tracingActor && ActorRayIntersect(from.xyz(), to.xyz(), actor) < 1.0)
 				return true;
 		}
 	}
@@ -242,78 +242,78 @@ bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* self, bool 
 	double fromSide = dot(from, plane);
 	double toSide = dot(to, plane);
 
-	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(from, to, self, traceActors, traceWorld, &Model->Nodes[node->Front]))
+	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(from, to, tracingActor, traceActors, traceWorld, &Model->Nodes[node->Front]))
 		return true;
-	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(from, to, self, traceActors, traceWorld, &Model->Nodes[node->Back]))
+	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(from, to, tracingActor, traceActors, traceWorld, &Model->Nodes[node->Back]))
 		return true;
 	else
 		return false;
 }
 
-SweepHit ULevel::Sweep(CylinderShape* shape, const vec3& toF, UActor* self, bool traceActors, bool traceWorld)
+SweepHit ULevel::Sweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld)
 {
-	dvec3 to(toF.x, toF.y, toF.z);
-
-	if (shape->Center == to)
+	if (from == to || (!traceActors && !traceWorld))
 		return {};
+
+	CylinderSweep cylinder(from, to, height, radius, tracingActor, traceActors, traceWorld);
 
 	// Add margin:
 	double margin = 3.0;
-	dvec3 direction = to - shape->Center;
+	dvec3 direction = cylinder.To - cylinder.From;
 	double moveDistance = length(direction);
 	direction /= moveDistance;
-	dvec3 finalTo = to + direction * margin;
+	dvec3 finalTo = cylinder.To + direction * margin;
 
 	// Do the collision sweep:
-	dvec3 offset = dvec3(0.0, 0.0, shape->Height - shape->Radius);
-	SweepHit top = Sweep(dvec4(shape->Center + offset, 1.0), dvec4(finalTo + offset, 1.0), shape->Radius, self, traceActors, traceWorld, &Model->Nodes.front());
-	SweepHit bottom = Sweep(dvec4(shape->Center - offset, 1.0), dvec4(finalTo - offset, 1.0), shape->Radius, self, traceActors, traceWorld, &Model->Nodes.front());
-	SweepHit hit = top.Fraction < bottom.Fraction ? top : bottom;
+	dvec3 offset = dvec3(0.0, 0.0, cylinder.Height - cylinder.Radius);
+	SphereSweep top(cylinder.From + offset, finalTo + offset, cylinder.Radius, cylinder.Filter);
+	SphereSweep bottom(cylinder.From - offset, finalTo - offset, cylinder.Radius, cylinder.Filter);
+	Sweep(&top, &Model->Nodes.front());
+	Sweep(&bottom, &Model->Nodes.front());
+	cylinder.Hit = top.Hit.Fraction < bottom.Hit.Fraction ? top.Hit : bottom.Hit;
 
 	// Apply margin to result:
-	if (hit.Fraction < 1.0)
+	if (cylinder.Hit.Fraction < 1.0)
 	{
-		hit.Fraction = (float)clamp(((moveDistance + margin) * hit.Fraction - margin) / moveDistance, 0.0, 1.0);
-		if (dot(dvec3(hit.Normal.x, hit.Normal.y, hit.Normal.z), direction) < 0.0)
-			hit.Normal = -hit.Normal;
+		cylinder.Hit.Fraction = (float)clamp(((moveDistance + margin) * cylinder.Hit.Fraction - margin) / moveDistance, 0.0, 1.0);
+		if (dot(to_dvec3(cylinder.Hit.Normal), direction) < 0.0)
+			cylinder.Hit.Normal = -cylinder.Hit.Normal;
 	}
-	return hit;
+	return cylinder.Hit;
 }
 
-SweepHit ULevel::Sweep(const dvec4& from, const dvec4& to, double radius, UActor* self, bool traceActors, bool traceWorld, BspNode* node)
+void ULevel::Sweep(SphereSweep* sphere, BspNode* node)
 {
-	SweepHit hit;
-
-	if (traceActors)
+	if (sphere->Filter.TraceActors)
 	{
 		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
 		for (UActor* actor : CollisionActors[index])
 		{
-			if (actor != self)
+			if (actor != sphere->Filter.TracingActor)
 			{
-				double t = ActorSphereIntersect(from, to, radius, actor);
-				if (t < hit.Fraction)
+				double t = ActorSphereIntersect(sphere->From, sphere->To, sphere->Radius, actor);
+				if (t < sphere->Hit.Fraction)
 				{
-					dvec4 hitpos = mix(from, to, t);
-					hit.Fraction = (float)t;
-					hit.Normal = normalize(to_vec3(hitpos.xyz()) - actor->Location());
-					hit.Actor = actor;
+					dvec3 hitpos = mix(sphere->From, sphere->To, t);
+					sphere->Hit.Fraction = (float)t;
+					sphere->Hit.Normal = normalize(to_vec3(hitpos) - actor->Location());
+					sphere->Hit.Actor = actor;
 				}
 			}
 		}
 	}
 
-	if (traceWorld)
+	if (sphere->Filter.TraceWorld)
 	{
 		BspNode* polynode = node;
 		while (true)
 		{
-			double t = NodeSphereIntersect(from, to, radius, polynode);
-			if (t < hit.Fraction)
+			double t = NodeSphereIntersect(sphere->From4, sphere->To4, sphere->Radius, polynode);
+			if (t < sphere->Hit.Fraction)
 			{
-				hit.Fraction = (float)t;
-				hit.Normal = { node->PlaneX, node->PlaneY, node->PlaneZ };
-				hit.Actor = nullptr;
+				sphere->Hit.Fraction = (float)t;
+				sphere->Hit.Normal = { node->PlaneX, node->PlaneY, node->PlaneZ };
+				sphere->Hit.Actor = nullptr;
 			}
 
 			if (polynode->Plane < 0) break;
@@ -322,24 +322,18 @@ SweepHit ULevel::Sweep(const dvec4& from, const dvec4& to, double radius, UActor
 	}
 
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-	double fromSide = dot(from, plane);
-	double toSide = dot(to, plane);
+	double fromSide = dot(sphere->From4, plane);
+	double toSide = dot(sphere->To4, plane);
 
-	if (node->Front >= 0 && (fromSide >= -radius || toSide >= -radius))
+	if (node->Front >= 0 && (fromSide >= -sphere->Radius || toSide >= -sphere->Radius))
 	{
-		SweepHit childhit = Sweep(from, to, radius, self, traceActors, traceWorld, &Model->Nodes[node->Front]);
-		if (childhit.Fraction < hit.Fraction)
-			hit = childhit;
+		Sweep(sphere, &Model->Nodes[node->Front]);
 	}
 
-	if (node->Back >= 0 && (fromSide <= radius || toSide <= radius))
+	if (node->Back >= 0 && (fromSide <= sphere->Radius || toSide <= sphere->Radius))
 	{
-		SweepHit childhit = Sweep(from, to, radius, self, traceActors, traceWorld, &Model->Nodes[node->Back]);
-		if (childhit.Fraction < hit.Fraction)
-			hit = childhit;
+		Sweep(sphere, &Model->Nodes[node->Back]);
 	}
-
-	return hit;
 }
 
 double ULevel::NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node)
