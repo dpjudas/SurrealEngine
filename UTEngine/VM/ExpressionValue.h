@@ -124,6 +124,7 @@ public:
 	static ExpressionValue NameValue(std::string value) { ExpressionValue v; v.Type = ExpressionValueType::ValueName; v.ValueString = value; return v; }
 	static ExpressionValue ColorValue(Color value) { ExpressionValue v; v.Type = ExpressionValueType::ValueColor; v.Value.Color_ = value; return v; }
 
+	static ExpressionValue DefaultValue(UProperty* prop);
 	static ExpressionValue PropertyValue(UProperty* prop);
 	static ExpressionValue Variable(void* data, UProperty* prop);
 
@@ -175,6 +176,16 @@ template<> inline vec3* ExpressionValue::ToType() { return Type != ExpressionVal
 template<> inline Rotator* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
 template<> inline std::string* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
 template<> inline Color* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
+
+inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
+{
+	ExpressionValue v;
+	v.Type = prop->ValueType;
+	v.Value.Int = 0;
+	if (v.Type != ExpressionValueType::Nothing)
+		return v;
+	throw std::runtime_error("Unsupported expression value property type");
+}
 
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {

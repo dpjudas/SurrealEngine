@@ -215,9 +215,8 @@ class TraceFilter
 {
 public:
 	TraceFilter() = default;
-	TraceFilter(UActor* tracingActor, bool traceActors, bool traceWorld) : TracingActor(tracingActor), TraceActors(traceActors), TraceWorld(traceWorld) { }
+	TraceFilter(bool traceActors, bool traceWorld) : TraceActors(traceActors), TraceWorld(traceWorld) { }
 
-	UActor* TracingActor = nullptr;
 	bool TraceActors = false;
 	bool TraceWorld = false;
 };
@@ -225,6 +224,9 @@ public:
 class SweepHit
 {
 public:
+	SweepHit() = default;
+	SweepHit(float fraction, vec3 normal, UActor* actor) : Fraction(fraction), Normal(normal), Actor(actor) { }
+
 	float Fraction = 1.0;
 	vec3 Normal = vec3(0.0);
 	UActor* Actor = nullptr;
@@ -248,7 +250,7 @@ public:
 	dvec3 To = dvec3(0.0);
 	double Radius = 0.0;
 	TraceFilter Filter;
-	SweepHit Hit;
+	std::vector<SweepHit> Hits;
 
 	dvec4 From4 = dvec4(0.0, 0.0, 0.0, 1.0);
 	dvec4 To4 = dvec4(0.0, 0.0, 0.0, 1.0);
@@ -258,13 +260,13 @@ class CylinderSweep
 {
 public:
 	CylinderSweep() = default;
-	CylinderSweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld)
+	CylinderSweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld)
 	{
 		From = dvec3(from.x, from.y, from.z);
 		To = dvec3(to.x, to.y, to.z);
 		Height = height;
 		Radius = radius;
-		Filter = TraceFilter(tracingActor, traceActors, traceWorld);
+		Filter = TraceFilter(traceActors, traceWorld);
 	}
 
 	dvec3 From = dvec3(0.0);
@@ -272,7 +274,7 @@ public:
 	double Height = 0.0;
 	double Radius = 0.0;
 	TraceFilter Filter;
-	SweepHit Hit;
+	std::vector<SweepHit> Hits;
 };
 
 class ULevel : public ULevelBase
@@ -292,7 +294,7 @@ public:
 	void RemoveFromCollision(UActor* actor);
 
 	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld);
-	SweepHit Sweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld);
+	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld);
 
 private:
 	void AddToCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);

@@ -480,18 +480,49 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 {
 	// To do: this needs to do an AABB sweep (hmm, does UE1 treat all actor cylinders as AABB?)
 
-	SweepHit hit = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, this, bTraceActors, true);
-	if (hit.Fraction == 1.0f)
-		return nullptr;
+	std::vector<SweepHit> hits = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, bTraceActors, true);
+	for (SweepHit& hit : hits)
+	{
+		if (hit.Actor && hit.Actor != this)
+		{
+			hitNormal = hit.Normal;
+			hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+			return hit.Actor;
+		}
+		else
+		{
+			hitNormal = hit.Normal;
+			hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+			return Level();
+		}
+	}
 
-	hitNormal = hit.Normal;
-	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
-	return hit.Actor ? hit.Actor : Level();
+	return nullptr;
 }
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
 	return XLevel()->TraceAnyHit(traceStart, traceEnd, this, false, true);
+}
+
+bool UActor::IsBasedOn(UActor* other)
+{
+	for (UActor* cur = other; cur; cur = cur->ActorBase())
+	{
+		if (cur == this)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UActor::IsOverlapping(UActor* other)
+{
+	vec3 dist = Location() - other->Location();
+	float h = CollisionHeight() + other->CollisionHeight();
+	float r = CollisionRadius() + other->CollisionRadius();
+	return dist.z < h && dot(dist.xy(), dist.xy()) < r * r;
 }
 
 SweepHit UActor::TryMove(const vec3& delta)
@@ -508,13 +539,35 @@ SweepHit UActor::TryMove(const vec3& delta)
 	if (dot(delta, delta) < 0.0001f)
 		return {};
 
-	// bCollideActors()
-	// bCollideWorld()
-	// bBlockActors()
-	// bBlockPlayers()
+	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
+	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
+	SweepHit blockingHit;
+	std::vector<SweepHit> hits = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld());
+	for (auto& hit : hits)
+	{
+		if (hit.Actor)
+		{
+			bool isBlocking;
+			if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
+				isBlocking = hit.Actor->bBlockPlayers();
+			else
+				isBlocking = hit.Actor->bBlockActors();
 
-	SweepHit hit = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), this, bCollideActors(), bCollideWorld());
-	vec3 actuallyMoved = delta * hit.Fraction;
+			// We never hit ourselves or anything moving along with us
+			if (isBlocking && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+			{
+				blockingHit = hit;
+				break;
+			}
+		}
+		else
+		{
+			blockingHit = hit;
+			break;
+		}
+	}
+
+	vec3 actuallyMoved = delta * blockingHit.Fraction;
 
 	XLevel()->RemoveFromCollision(this);
 	Location() += actuallyMoved;
@@ -534,31 +587,101 @@ SweepHit UActor::TryMove(const vec3& delta)
 		}
 	}
 
-	if (hit.Actor)
+	// Send bump notification if we hit an actor
+	if (blockingHit.Actor)
 	{
-		bool isChildOfBase = false;
-		for (UActor* cur = ActorBase(); cur; cur = cur->ActorBase())
+		if (!blockingHit.Actor->IsBasedOn(this))
 		{
-			if (cur == this)
-			{
-				isChildOfBase = true;
-				break;
-			}
-		}
-
-		if (!isChildOfBase)
-		{
-			CallEvent(hit.Actor, "Bump", { ExpressionValue::ObjectValue(this) });
-			CallEvent(this, "Bump", { ExpressionValue::ObjectValue(hit.Actor) });
+			CallEvent(blockingHit.Actor, "Bump", { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, "Bump", { ExpressionValue::ObjectValue(blockingHit.Actor) });
 		}
 	}
 
-	// To do: send Touch notifications
-	// To do: send UnTouch notifications
+	// Send touch notifications for anything we crossed while moving
+	for (auto& hit : hits)
+	{
+		if (hit.Fraction >= blockingHit.Fraction)
+			break;
+
+		if (hit.Actor && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+		{
+			Touch(hit.Actor);
+		}
+	}
+
+	// Untouch everything we aren't overlapping anymore
+	UActor** TouchingArray = &Touching();
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
+		{
+			UnTouch(TouchingArray[i]);
+		}
+	}
 
 	UpdateActorZone();
 
-	return hit;
+	return blockingHit;
+}
+
+void UActor::Touch(UActor* actor)
+{
+	UActor** TouchingArray = &Touching();
+	UActor** TouchingArray2 = &actor->Touching();
+
+	// Do nothing if actors are already touching
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray[i] == actor)
+			return;
+	}
+
+	// Only attempt to touch actors if there's a free slot in both
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (!TouchingArray[i])
+		{
+			for (int j = 0; j < TouchingArraySize; j++)
+			{
+				if (!TouchingArray2[j])
+				{
+					TouchingArray[i] = actor;
+					CallEvent(this, "Touch", { ExpressionValue::ObjectValue(actor) });
+
+					if (!TouchingArray2[j])
+					{
+						TouchingArray2[j] = this;
+						CallEvent(actor, "Touch", { ExpressionValue::ObjectValue(this) });
+					}
+					return;
+				}
+			}
+		}
+	}
+}
+
+void UActor::UnTouch(UActor* actor)
+{
+	UActor** TouchingArray = &Touching();
+	UActor** TouchingArray2 = &actor->Touching();
+
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray[i] == actor)
+		{
+			TouchingArray[i] = nullptr;
+			CallEvent(this, "UnTouch", { ExpressionValue::ObjectValue(actor) });
+		}
+	}
+
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray2[i] == this)
+		{
+			TouchingArray2[i] = nullptr;
+			CallEvent(actor, "UnTouch", { ExpressionValue::ObjectValue(this) });
+		}
+	}
 }
 
 bool UActor::Move(const vec3& delta)

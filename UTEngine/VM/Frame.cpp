@@ -258,6 +258,11 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 					args[argindex].Store(lvalue);
 				}
 
+				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm) && result.Type == ExpressionValueType::Nothing)
+				{
+					result = ExpressionValue::DefaultValue(prop);
+				}
+
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 					argindex++;
 

@@ -89,7 +89,7 @@ void ULevel::Tick(float elapsed)
 
 void ULevel::AddToCollision(UActor* actor)
 {
-	if (actor->bBlockActors() || actor->bBlockPlayers())
+	if (actor->bCollideActors())
 	{
 		vec3 location = actor->Location();
 		float height = actor->CollisionHeight();
@@ -100,7 +100,7 @@ void ULevel::AddToCollision(UActor* actor)
 
 void ULevel::RemoveFromCollision(UActor* actor)
 {
-	if (actor->bBlockActors() || actor->bBlockPlayers())
+	if (actor->bCollideActors())
 	{
 		vec3 location = actor->Location();
 		float height = actor->CollisionHeight();
@@ -220,7 +220,7 @@ bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* tracingActo
 		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
 		for (UActor* actor : CollisionActors[index])
 		{
-			if (actor != tracingActor && ActorRayIntersect(from.xyz(), to.xyz(), actor) < 1.0)
+			if (actor != tracingActor && actor->bBlockActors() && ActorRayIntersect(from.xyz(), to.xyz(), actor) < 1.0)
 				return true;
 		}
 	}
@@ -250,12 +250,12 @@ bool ULevel::TraceAnyHit(const dvec4& from, const dvec4& to, UActor* tracingActo
 		return false;
 }
 
-SweepHit ULevel::Sweep(const vec3& from, const vec3& to, float height, float radius, UActor* tracingActor, bool traceActors, bool traceWorld)
+std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld)
 {
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
 
-	CylinderSweep cylinder(from, to, height, radius, tracingActor, traceActors, traceWorld);
+	CylinderSweep cylinder(from, to, height, radius, traceActors, traceWorld);
 
 	// Add margin:
 	double margin = 3.0;
@@ -270,16 +270,39 @@ SweepHit ULevel::Sweep(const vec3& from, const vec3& to, float height, float rad
 	SphereSweep bottom(cylinder.From - offset, finalTo - offset, cylinder.Radius, cylinder.Filter);
 	Sweep(&top, &Model->Nodes.front());
 	Sweep(&bottom, &Model->Nodes.front());
-	cylinder.Hit = top.Hit.Fraction < bottom.Hit.Fraction ? top.Hit : bottom.Hit;
+	cylinder.Hits = top.Hits;
+	cylinder.Hits.insert(cylinder.Hits.end(), bottom.Hits.begin(), bottom.Hits.end());
+
+	// Sort by closest hit and only include the first hit for each actor
+	std::stable_sort(cylinder.Hits.begin(), cylinder.Hits.end(), [](auto& a, auto& b) { return a.Fraction < b.Fraction; });
+	std::set<UActor*> seenActors;
+	std::vector<SweepHit> uniqueHits;
+	uniqueHits.reserve(cylinder.Hits.size());
+	for (auto& hit : cylinder.Hits)
+	{
+		if (hit.Actor)
+		{
+			if (seenActors.find(hit.Actor) == seenActors.end())
+			{
+				seenActors.insert(hit.Actor);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+	cylinder.Hits.swap(uniqueHits);
 
 	// Apply margin to result:
-	if (cylinder.Hit.Fraction < 1.0)
+	for (auto& hit : cylinder.Hits)
 	{
-		cylinder.Hit.Fraction = (float)clamp(((moveDistance + margin) * cylinder.Hit.Fraction - margin) / moveDistance, 0.0, 1.0);
-		if (dot(to_dvec3(cylinder.Hit.Normal), direction) < 0.0)
-			cylinder.Hit.Normal = -cylinder.Hit.Normal;
+		hit.Fraction = (float)clamp(((moveDistance + margin) * hit.Fraction - margin) / moveDistance, 0.0, 1.0);
+		if (dot(to_dvec3(hit.Normal), direction) < 0.0)
+			hit.Normal = -hit.Normal;
 	}
-	return cylinder.Hit;
+	return cylinder.Hits;
 }
 
 void ULevel::Sweep(SphereSweep* sphere, BspNode* node)
@@ -289,16 +312,11 @@ void ULevel::Sweep(SphereSweep* sphere, BspNode* node)
 		ptrdiff_t index = (ptrdiff_t)(node - Model->Nodes.data());
 		for (UActor* actor : CollisionActors[index])
 		{
-			if (actor != sphere->Filter.TracingActor)
+			double t = ActorSphereIntersect(sphere->From, sphere->To, sphere->Radius, actor);
+			if (t < 1.0)
 			{
-				double t = ActorSphereIntersect(sphere->From, sphere->To, sphere->Radius, actor);
-				if (t < sphere->Hit.Fraction)
-				{
-					dvec3 hitpos = mix(sphere->From, sphere->To, t);
-					sphere->Hit.Fraction = (float)t;
-					sphere->Hit.Normal = normalize(to_vec3(hitpos) - actor->Location());
-					sphere->Hit.Actor = actor;
-				}
+				dvec3 hitpos = mix(sphere->From, sphere->To, t);
+				sphere->Hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor });
 			}
 		}
 	}
@@ -309,11 +327,9 @@ void ULevel::Sweep(SphereSweep* sphere, BspNode* node)
 		while (true)
 		{
 			double t = NodeSphereIntersect(sphere->From4, sphere->To4, sphere->Radius, polynode);
-			if (t < sphere->Hit.Fraction)
+			if (t < 1.0)
 			{
-				sphere->Hit.Fraction = (float)t;
-				sphere->Hit.Normal = { node->PlaneX, node->PlaneY, node->PlaneZ };
-				sphere->Hit.Actor = nullptr;
+				sphere->Hits.push_back({ (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr });
 			}
 
 			if (polynode->Plane < 0) break;

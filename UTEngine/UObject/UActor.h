@@ -139,6 +139,13 @@ public:
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 
+	bool IsBasedOn(UActor* other);
+	bool IsOverlapping(UActor* other);
+
+	void Touch(UActor* actor);
+	void UnTouch(UActor* actor);
+	static const int TouchingArraySize = 4;
+
 	bool HasAnim(const std::string& sequence);
 	bool IsAnimating();
 	std::string GetAnimGroup(const std::string& sequence);
