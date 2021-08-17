@@ -56,44 +56,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 		CallEvent(actor, "PostBeginPlay");
 		CallEvent(actor, "SetInitialState");
 
-		// Find base for certain types
-		bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(actor) || UObject::TryCast<UInventory>(actor) || UObject::TryCast<UPawn>(actor);
-		if (isDecorationInventoryOrPawn && !actor->ActorBase() && actor->bCollideWorld() && (actor->Physics() == PHYS_None || actor->Physics() == PHYS_Rotating))
-		{
-#if 0
-			UActor* hitActor = nullptr;
-			auto onHit = [&](UActor* testActor) -> bool
-			{
-				for (UActor* cur = testActor; cur; cur = cur->Owner())
-				{
-					if (cur == hitActor)
-						return true;
-				}
-				hitActor = testActor;
-				return false;
-			};
-			engine->collision->TraceHit(actor->Location(), actor->Location() + vec3(0.0f, 0.0f, -10.0f), onHit);
-			actor->SetBase(hitActor);
-#else
-			UActor* hitActor = Level();
-			actor->SetBase(hitActor, true);
-#endif
-		}
-
-		if (engine->packages->GetEngineVersion() > 219)
-		{
-			std::string attachTag = actor->AttachTag();
-			if (!attachTag.empty() && attachTag != "None")
-			{
-				for (UActor* levelActor : XLevel()->Actors)
-				{
-					if (levelActor && levelActor->Tag() == attachTag)
-					{
-						levelActor->SetBase(actor, false);
-					}
-				}
-			}
-		}
+		actor->InitBase();
 
 		if (engine->packages->GetEngineVersion() >= 400)
 		{
@@ -119,17 +82,91 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	return actor;
 }
 
+void UActor::InitBase()
+{
+	if (engine->packages->GetEngineVersion() > 219)
+	{
+		std::string attachTag = AttachTag();
+		if (!attachTag.empty() && attachTag != "None")
+		{
+			for (UActor* levelActor : XLevel()->Actors)
+			{
+				if (levelActor && levelActor->Tag() == attachTag)
+				{
+					levelActor->SetBase(this, false);
+				}
+			}
+			return;
+		}
+	}
+
+	// Find base for certain types
+	bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(this) || UObject::TryCast<UInventory>(this) || UObject::TryCast<UPawn>(this);
+	if (isDecorationInventoryOrPawn && !ActorBase() && bCollideWorld() && (Physics() == PHYS_None || Physics() == PHYS_Rotating))
+	{
+#if 0
+		UActor* hitActor = nullptr;
+		auto onHit = [&](UActor* testActor) -> bool
+		{
+			for (UActor* cur = testActor; cur; cur = cur->Owner())
+			{
+				if (cur == hitActor)
+					return true;
+			}
+			hitActor = testActor;
+			return false;
+		};
+		engine->collision->TraceHit(actor->Location(), actor->Location() + vec3(0.0f, 0.0f, -10.0f), onHit);
+		actor->SetBase(hitActor);
+#else
+		UActor* hitActor = Level();
+		SetBase(hitActor, true);
+#endif
+	}
+}
+
 bool UActor::Destroy()
 {
-	ULevel* level = XLevel();
-	auto it = std::find(level->Actors.begin(), level->Actors.end(), this);
-	if (it != level->Actors.end())
-	{
-		level->RemoveFromCollision(this);
-		level->Actors.erase(it);
+	if (bStatic() || bNoDelete())
+		return false;
+	if (bDeleteMe())
 		return true;
+
+	bDeleteMe() = true;
+
+	GotoState({}, {});
+	SetBase(nullptr, true);
+
+	ULevel* level = XLevel();
+
+	level->RemoveFromCollision(this);
+
+	CallEvent(this, "Destroyed");
+
+	UActor** TouchingArray = &Touching();
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray[i])
+			UnTouch(TouchingArray[i]);
 	}
-	return false;
+
+	if (Owner())
+		CallEvent(Owner(), "LostChild", { ExpressionValue::ObjectValue(this) });
+
+	for (size_t i = 0; i < level->Actors.size(); i++)
+	{
+		UActor* actor = level->Actors[i];
+		if (actor && actor->Owner() == this)
+		{
+			actor->SetOwner(nullptr);
+		}
+		if (actor == this)
+		{
+			level->Actors[i] = nullptr;
+		}
+	}
+
+	return true;
 }
 
 PointRegion UActor::FindRegion(const vec3& offset)

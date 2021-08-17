@@ -886,7 +886,9 @@ void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
 
 void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
 {
-	throw std::runtime_error("Object.RotRand not implemented");
+	ReturnValue.Yaw = (int)(std::rand() * 0xffffLL / RAND_MAX);
+	ReturnValue.Pitch = (int)(std::rand() * 0xffffLL / RAND_MAX);
+	ReturnValue.Roll = (bRoll && *bRoll) ? (int)(rand() * 65535LL / RAND_MAX) : 0;
 }
 
 void NObject::SaveConfig(UObject* Self)

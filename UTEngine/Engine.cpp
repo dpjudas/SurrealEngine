@@ -241,20 +241,23 @@ void Engine::LoadMap(const UnrealURL& url)
 		throw std::runtime_error("Could not find the Level object for this map!");
 
 	// Remove the actors meant for the editor (to do: should we do this at the package manager level?)
-	for (auto it = Level->Actors.begin(); it != Level->Actors.end();)
+	for (UActor*& actor : Level->Actors)
 	{
-		UActor* actor = *it;
 		if (actor && AllFlags(actor->Flags, ObjectFlags::NotForServer))
-			it = Level->Actors.erase(it);
-		else
-			++it;
+		{
+			actor->bDeleteMe() = true;
+			actor = nullptr;
+		}
 	}
 
 	// Link actors to the level
 	for (UActor* actor : Level->Actors)
 	{
 		if (actor)
+		{
 			actor->XLevel() = Level;
+			Level->AddToCollision(actor);
+		}
 	}
 
 	// Find the game info class
@@ -272,12 +275,14 @@ void Engine::LoadMap(const UnrealURL& url)
 	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
+	Level->AddToCollision(GameInfo);
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
 	GameInfo->InitActorZone();
 
 	Level->Actors.push_back(GameInfo);
 
+	// Note: this is never true. But maybe it will be once map loading or level hubs are implemented? If not, delete it!
 	if (LevelInfo->bBegunPlay())
 	{
 		CallEvent(GameInfo, "Spawned");
@@ -318,24 +323,27 @@ void Engine::LoadMap(const UnrealURL& url)
 		LevelInfo->bBegunPlay() = true;
 	}
 
+	std::string portal = url.GetPortal();
+	std::string options = url.GetOptions();
+
+	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	std::string error, failcode;
+
 	LevelInfo->bStartup() = true;
-	CallEvent(GameInfo, "InitGame");
+	CallEvent(GameInfo, "InitGame", { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
+	if (!error.empty())
+		throw std::runtime_error("InitGame failed: " + error);
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PreBeginPlay"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "BeginPlay"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PostBeginPlay"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
 
 	std::string playerPawnClass = url.GetOption("Class");
 	if (playerPawnClass.empty())
 		playerPawnClass = packages->GetIniValue("system", "URL", "Class");
 	UClass* pawnClass = packages->FindClass(playerPawnClass);
-
-	std::string portal = url.GetPortal();
-	std::string options = url.GetOptions();
-
-	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
-	std::string error, failcode;
 
 	// Perform PreLogin check (supposedly, good for early rejection in network games)
 	CallEvent(LevelInfo->Game(), "PreLogin", {
