@@ -300,39 +300,174 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 
 void UActor::TickPhysics(float elapsed)
 {
-	int mode = Physics();
-	if (mode != PHYS_None)
+	for (float timeLeft = elapsed; timeLeft > 0.0f; timeLeft -= 0.02f)
 	{
-		switch (mode)
+		float physTimeElapsed = std::min(timeLeft, 0.02f);
+		int mode = Physics();
+		if (mode != PHYS_None)
 		{
-		case PHYS_Walking: TickWalking(elapsed); break;
-		case PHYS_Falling: TickFalling(elapsed); break;
-		case PHYS_Swimming: TickSwimming(elapsed); break;
-		case PHYS_Flying: TickFlying(elapsed); break;
-		case PHYS_Rotating: TickRotating(elapsed); break;
-		case PHYS_Projectile: TickProjectile(elapsed); break;
-		case PHYS_Rolling: TickRolling(elapsed); break;
-		case PHYS_Interpolating: TickInterpolating(elapsed); break;
-		case PHYS_MovingBrush: TickMovingBrush(elapsed); break;
-		case PHYS_Spider: TickSpider(elapsed); break;
-		case PHYS_Trailer: TickTrailer(elapsed); break;
+			switch (mode)
+			{
+			case PHYS_Walking: TickWalking(physTimeElapsed); break;
+			case PHYS_Falling: TickFalling(physTimeElapsed); break;
+			case PHYS_Swimming: TickSwimming(physTimeElapsed); break;
+			case PHYS_Flying: TickFlying(physTimeElapsed); break;
+			case PHYS_Rotating: TickRotating(physTimeElapsed); break;
+			case PHYS_Projectile: TickProjectile(physTimeElapsed); break;
+			case PHYS_Rolling: TickRolling(physTimeElapsed); break;
+			case PHYS_Interpolating: TickInterpolating(physTimeElapsed); break;
+			case PHYS_MovingBrush: TickMovingBrush(physTimeElapsed); break;
+			case PHYS_Spider: TickSpider(physTimeElapsed); break;
+			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
+			}
 		}
 	}
 }
 
 void UActor::TickWalking(float elapsed)
 {
-}
+	// Only pawns can walk!
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+	if (!pawn)
+		return;
 
-void UActor::TickFalling(float elapsed)
-{
-	UZoneInfo* zone = Region().Zone;
-	if (!zone)
+	if (Region().ZoneNumber == 0)
 	{
 		CallEvent(this, "FellOutOfWorld");
 		return;
 	}
 
+	// Save our starting point and state
+
+	OldLocation() = Location();
+	bJustTeleported() = false;
+
+	// Update the actor velocity based on the acceleration and zone
+
+	UZoneInfo* zone = Region().Zone;
+	// UDecoration* decor = UObject::TryCast<UDecoration>(this);
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+
+	Velocity().z = 0.0f;
+
+	if (dot(Acceleration(), Acceleration()) > 0.0001f)
+	{
+		float accelRate = pawn->AccelRate();
+		if (player && player->bIsWalking())
+			accelRate *= 0.3f;
+
+		// Acceleration must never exceed the acceleration rate
+		float accelSpeed = length(Acceleration());
+		vec3 accelDir = Acceleration() * (1.0f / accelSpeed);
+		if (accelSpeed > accelRate)
+			Acceleration() = accelDir * accelRate;
+
+		float speed = length(Velocity());
+		Velocity() = Velocity() - (Velocity() - accelDir * speed) * (zone->ZoneGroundFriction() * elapsed);
+	}
+	else
+	{
+		float speed = length(Velocity());
+		if (speed > 0.0f)
+		{
+			float newSpeed = std::max(speed - speed * zone->ZoneGroundFriction() * 2.0f * elapsed, 0.0f);
+			Velocity() = Velocity() * (newSpeed / speed);
+		}
+	}
+
+	Velocity() = Velocity() + Acceleration() * elapsed;
+
+	float maxSpeed = player ? player->GroundSpeed() : pawn->GroundSpeed() * pawn->DesiredSpeed();
+	if (player && player->bIsWalking())
+		maxSpeed *= 0.3f;
+
+	float speed = length(Velocity());
+	if (speed > 0.0f && speed > maxSpeed)
+		Velocity() = Velocity() * (maxSpeed / speed);
+
+	Velocity().z = 0.0f;
+
+	if (Velocity() == vec3(0.0f))
+		return;
+
+	// The classic step up, move and step down algorithm:
+
+	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
+	vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * pawn->MaxStepHeight());
+	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * pawn->MaxStepHeight() * 2.0f);
+
+	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
+	float timeLeft = elapsed;
+	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
+	{
+		vec3 moveDelta = Velocity() * timeLeft;
+
+		TryMove(stepUpDelta);
+		SweepHit hit = TryMove(moveDelta);
+		timeLeft -= timeLeft * hit.Fraction;
+
+		if (hit.Fraction < 1.0f)
+		{
+			if (player && UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+			{
+				// We hit a pushable decoration that is facing our movement direction
+
+				bJustTeleported() = true;
+				Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+				timeLeft = 0.0f;
+			}
+			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
+			{
+				// Found a slope with 78 degrees angle to our movement direction. This is walkable, so continue stepping up
+			}
+			else
+			{
+				// We hit a wall
+
+				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+
+				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				{
+					hit = TryMove(alignedDelta);
+					timeLeft -= timeLeft * hit.Fraction;
+					if (hit.Fraction < 1.0f)
+					{
+						CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+					}
+				}
+
+				timeLeft = 0.0f;
+			}
+		}
+
+		// Check if unrealscript got us out of walking mode
+		if (Physics() != PHYS_Walking)
+			return;
+	}
+
+	// Step down after movement to see if we are still walking or if we are now falling
+	SweepHit hit = TryMove(stepDownDelta);
+	if (hit.Fraction == 1.0f)
+	{
+		SetPhysics(PHYS_Falling);
+	}
+
+	if (!bJustTeleported())
+		Velocity() = (Location() - OldLocation()) / elapsed;
+	Velocity().z = 0.0f;
+}
+
+void UActor::TickFalling(float elapsed)
+{
+	if (Region().ZoneNumber == 0)
+	{
+		CallEvent(this, "FellOutOfWorld");
+		return;
+	}
+
+	UZoneInfo* zone = Region().Zone;
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 
