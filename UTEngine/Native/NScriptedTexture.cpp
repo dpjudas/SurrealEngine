@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NScriptedTexture.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NScriptedTexture::RegisterFunctions()
 {
@@ -14,25 +15,27 @@ void NScriptedTexture::RegisterFunctions()
 
 void NScriptedTexture::DrawColoredText(UObject* Self, float X, float Y, const std::string& Text, UObject* Font, const Color& FontColor)
 {
-	throw std::runtime_error("ScriptedTexture.DrawColoredText not implemented");
+	engine->LogUnimplemented("ScriptedTexture.DrawColoredText");
 }
 
 void NScriptedTexture::DrawText(UObject* Self, float X, float Y, const std::string& Text, UObject* Font)
 {
-	throw std::runtime_error("ScriptedTexture.DrawText not implemented");
+	engine->LogUnimplemented("ScriptedTexture.DrawText");
 }
 
 void NScriptedTexture::DrawTile(UObject* Self, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, UObject* Tex, bool bMasked)
 {
-	throw std::runtime_error("ScriptedTexture.DrawTile not implemented");
+	engine->LogUnimplemented("ScriptedTexture.DrawTile");
 }
 
 void NScriptedTexture::ReplaceTexture(UObject* Self, UObject* Tex)
 {
-	throw std::runtime_error("ScriptedTexture.ReplaceTexture not implemented");
+	engine->LogUnimplemented("ScriptedTexture.ReplaceTexture");
 }
 
 void NScriptedTexture::TextSize(UObject* Self, const std::string& Text, float& XL, float& YL, UObject* Font)
 {
-	throw std::runtime_error("ScriptedTexture.TextSize not implemented");
+	engine->LogUnimplemented("ScriptedTexture.TextSize");
+	XL = 0.0f;
+	YL = 0.0f;
 }

@@ -46,7 +46,8 @@ void NPawn::AddPawn(UObject* Self)
 
 void NPawn::CanSee(UObject* Self, UObject* Other, bool& ReturnValue)
 {
-	throw std::runtime_error("Pawn.CanSee not implemented");
+	engine->LogUnimplemented("Pawn.CanSee");
+	ReturnValue = false;
 }
 
 void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, bool& ReturnValue)
@@ -56,42 +57,47 @@ void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string
 
 void NPawn::ClearPaths(UObject* Self)
 {
-	throw std::runtime_error("Pawn.ClearPaths not implemented");
+	engine->LogUnimplemented("Pawn.ClearPaths");
 }
 
 void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, const vec3& SoundLocation, const vec3& Parameters)
 {
-	throw std::runtime_error("Pawn.ClientHearSound not implemented");
+	engine->LogUnimplemented("Pawn.ClientHearSound");
 }
 
 void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
 {
-	throw std::runtime_error("Pawn.EAdjustJump not implemented");
+	engine->LogUnimplemented("Pawn.EAdjustJump");
 }
 
 void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredictRespawns, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.FindBestInventoryPath not implemented");
+	engine->LogUnimplemented("Pawn.FindBestInventoryPath");
+	ReturnValue = nullptr;
 }
 
 void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, bool* bSinglePath, bool* bClearPaths, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.FindPathTo not implemented");
+	engine->LogUnimplemented("Pawn.FindPathTo");
+	ReturnValue = nullptr;
 }
 
 void NPawn::FindPathToward(UObject* Self, UObject* anActor, bool* bSinglePath, bool* bClearPaths, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.FindPathToward not implemented");
+	engine->LogUnimplemented("Pawn.FindPathToward");
+	ReturnValue = nullptr;
 }
 
 void NPawn::FindRandomDest(UObject* Self, bool* bClearPaths, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.FindRandomDest not implemented");
+	engine->LogUnimplemented("Pawn.FindRandomDest");
+	ReturnValue = nullptr;
 }
 
 void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 {
-	throw std::runtime_error("Pawn.FindStairRotation not implemented");
+	engine->LogUnimplemented("Pawn.FindStairRotation");
+	ReturnValue = 0;
 }
 
 void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
@@ -102,31 +108,34 @@ void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)
 {
-	engine->LogUnimplemented("MoveTo");
+	engine->LogUnimplemented("Pawn.MoveTo");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::MoveTo;
 }
 
 void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
 {
-	engine->LogUnimplemented("MoveToward");
+	engine->LogUnimplemented("Pawn.MoveToward");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::MoveToward;
 }
 
 void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.PickAnyTarget not implemented");
+	engine->LogUnimplemented("Pawn.PickAnyTarget not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Pawn.PickTarget not implemented");
+	engine->LogUnimplemented("Pawn.PickTarget not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPawn::PickWallAdjust(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("Pawn.PickWallAdjust not implemented");
+	engine->LogUnimplemented("Pawn.PickWallAdjust not implemented");
+	ReturnValue = false;
 }
 
 void NPawn::RemovePawn(UObject* Self)
@@ -155,50 +164,52 @@ void NPawn::RemovePawn(UObject* Self)
 
 void NPawn::StopWaiting(UObject* Self)
 {
-	throw std::runtime_error("Pawn.StopWaiting not implemented");
+	engine->LogUnimplemented("Pawn.StopWaiting not implemented");
 }
 
 void NPawn::StrafeFacing(UObject* Self, const vec3& NewDestination, UObject* NewTarget)
 {
-	engine->LogUnimplemented("StrafeFacing");
+	engine->LogUnimplemented("Pawn.StrafeFacing");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::StrafeFacing;
 }
 
 void NPawn::StrafeTo(UObject* Self, const vec3& NewDestination, const vec3& NewFocus)
 {
-	engine->LogUnimplemented("StrafeTo");
+	engine->LogUnimplemented("Pawn.StrafeTo");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::StrafeTo;
 }
 
 void NPawn::TurnTo(UObject* Self, const vec3& NewFocus)
 {
-	engine->LogUnimplemented("TurnTo");
+	engine->LogUnimplemented("Pawn.TurnTo");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::TurnTo;
 }
 
 void NPawn::TurnToward(UObject* Self, UObject* NewTarget)
 {
-	engine->LogUnimplemented("TurnToward");
+	engine->LogUnimplemented("Pawn.TurnToward");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::TurnToward;
 }
 
 void NPawn::WaitForLanding(UObject* Self)
 {
-	engine->LogUnimplemented("WaitForLanding");
+	engine->LogUnimplemented("Pawn.WaitForLanding");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::WaitForLanding;
 }
 
 void NPawn::actorReachable(UObject* Self, UObject* anActor, bool& ReturnValue)
 {
-	throw std::runtime_error("Pawn.actorReachable not implemented");
+	engine->LogUnimplemented("Pawn.actorReachable");
+	ReturnValue = false;
 }
 
 void NPawn::pointReachable(UObject* Self, const vec3& aPoint, bool& ReturnValue)
 {
-	throw std::runtime_error("Pawn.pointReachable not implemented");
+	engine->LogUnimplemented("Pawn.pointReachable");
+	ReturnValue = false;
 }

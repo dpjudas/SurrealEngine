@@ -303,8 +303,6 @@ void UActor::TickPhysics(float elapsed)
 	int mode = Physics();
 	if (mode != PHYS_None)
 	{
-		// To do: do all that cylinder based physics here!
-
 		switch (mode)
 		{
 		case PHYS_Walking: TickWalking(elapsed); break;
@@ -328,6 +326,69 @@ void UActor::TickWalking(float elapsed)
 
 void UActor::TickFalling(float elapsed)
 {
+	UZoneInfo* zone = Region().Zone;
+	if (!zone)
+	{
+		CallEvent(this, "FellOutOfWorld");
+		return;
+	}
+
+	UDecoration* decor = UObject::TryCast<UDecoration>(this);
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+
+	float gravityScale = 1.0f;
+	float fluidFriction = 0.0f;
+
+	vec3 oldVel = Velocity();
+
+	if (decor && decor->bBobbing())
+	{
+		gravityScale = 0.5f;
+	}
+	else if (player && player->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
+	{
+		fluidFriction = player->FootRegion().Zone->ZoneFluidFriction();
+	}
+
+	OldLocation() = Location();
+	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+
+	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
+	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
+	{
+		Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
+	}
+
+	vec3 zoneVelocity = zone->ZoneVelocity();
+
+	SweepHit hit = TryMove(Velocity() + zoneVelocity);
+	if (hit.Fraction < 1.0f)
+	{
+		if (bBounce())
+		{
+			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+		}
+		else
+		{
+			// To do: slide along surfaces not pointing straight up
+			// To do: if we do slide along a surface we need to fire HitWall before continueing movement
+
+			CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
+
+			if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+			{
+				if (UObject::TryCast<UPawn>(this))
+				{
+					SetPhysics(PHYS_Walking);
+				}
+				else
+				{
+					SetPhysics(PHYS_None);
+					Velocity() = vec3(0.0f);
+				}
+			}
+		}
+	}
 }
 
 void UActor::TickSwimming(float elapsed)

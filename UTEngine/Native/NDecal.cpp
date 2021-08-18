@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NDecal.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NDecal::RegisterFunctions()
 {
@@ -11,10 +12,11 @@ void NDecal::RegisterFunctions()
 
 void NDecal::AttachDecal(UObject* Self, float TraceDistance, vec3* DecalDir, UObject*& ReturnValue)
 {
-	throw std::runtime_error("Decal.AttachDecal not implemented");
+	engine->LogUnimplemented("Decal.AttachDecal");
+	ReturnValue = nullptr;
 }
 
 void NDecal::DetachDecal(UObject* Self)
 {
-	throw std::runtime_error("Decal.DetachDecal not implemented");
+	engine->LogUnimplemented("Decal.DetachDecal");
 }
