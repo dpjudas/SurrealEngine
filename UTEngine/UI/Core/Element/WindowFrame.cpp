@@ -149,6 +149,8 @@ public:
 	std::unique_ptr<View> root;
 	std::map<std::set<std::string>, std::unique_ptr<ElementStyle>> styleCache;
 
+	Element* focusElement = nullptr;
+
 	DWORD exstyle = WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW;
 	DWORD style = WS_OVERLAPPEDWINDOW;
 	std::string icon;
@@ -291,10 +293,22 @@ public:
 		}
 		else if (msg == WM_KEYDOWN)
 		{
+			if (focusElement)
+			{
+				Event e;
+				e.keyCode = (int)wparam;
+				focusElement->dispatchEvent("keydown", &e);
+			}
 			return 0;
 		}
 		else if (msg == WM_KEYUP)
 		{
+			if (focusElement)
+			{
+				Event e;
+				e.keyCode = (int)wparam;
+				focusElement->dispatchEvent("keyup", &e);
+			}
 			return 0;
 		}
 		else if (msg == WM_LBUTTONDOWN)
@@ -502,6 +516,17 @@ ElementStyle* WindowFrame::getStyle(Element* element)
 	return style.get();
 }
 
+void WindowFrame::setFocus(Element* element)
+{
+	impl->focusElement = element;
+}
+
+void WindowFrame::killFocus(Element* element)
+{
+	if (impl->focusElement == element)
+		impl->focusElement = nullptr;
+}
+
 #else
 
 class WindowFrameImpl
@@ -579,6 +604,14 @@ void WindowFrame::setNeedsRender()
 ElementStyle* WindowFrame::getStyle(Element* element)
 {
 	return nullptr;
+}
+
+void WindowFrame::setFocus(Element* element)
+{
+}
+
+void WindowFrame::killFocus(Element* element)
+{
 }
 
 #endif

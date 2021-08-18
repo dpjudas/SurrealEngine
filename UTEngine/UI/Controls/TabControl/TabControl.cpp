@@ -37,11 +37,13 @@ void TabControl::setBarPosition(TabBarPosition pos)
 		{
 			addClass("tabsbottom");
 			tabs->addClass("tabsbottom");
+			widgetStack->addClass("tabsbottom");
 		}
 		else
 		{
 			removeClass("tabsbottom");
 			tabs->removeClass("tabsbottom");
+			tabs->addClass("tabsbottom");
 		}
 
 		barpos = pos;

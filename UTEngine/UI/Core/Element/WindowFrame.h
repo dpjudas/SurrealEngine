@@ -27,6 +27,8 @@ public:
 
 	void setNeedsRender();
 
+	void setFocus(Element* element);
+	void killFocus(Element* element);
 	ElementStyle* getStyle(Element* element);
 
 private:

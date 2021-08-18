@@ -115,6 +115,7 @@ void Element::click()
 
 void Element::focus()
 {
+	window()->setFocus(this);
 }
 
 void Element::dispatchEvent(std::string name, Event* e, bool bubbles)
@@ -181,22 +182,22 @@ double Element::clientHeight() const
 
 double Element::offsetLeft() const
 {
-	return 0;
+	return geometry().borderBox().x;
 }
 
 double Element::offsetTop() const
 {
-	return 0;
+	return geometry().borderBox().y;
 }
 
 double Element::offsetWidth() const
 {
-	return 0;
+	return geometry().borderBox().width;
 }
 
 double Element::offsetHeight() const
 {
-	return 0;
+	return geometry().borderBox().height;
 }
 
 double Element::scrollLeft() const
@@ -429,6 +430,10 @@ void Element::moveBefore(Element* sibling)
 
 void Element::detachFromParent()
 {
+	WindowFrame* w = window();
+	if (w)
+		w->killFocus(this);
+
 	if (prevSiblingObj)
 		prevSiblingObj->nextSiblingObj = nextSiblingObj;
 	if (nextSiblingObj)

@@ -26,30 +26,26 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 		}
 	}
 
-	if (isClass("tabcontrol"))
+	if (isClass("tabcontrol-marginleft"))
 	{
-		if (isClass("tabsbottom"))
-		{
-			values.border.top = 1;
-			values.borderColorTop = Colorf::fromRgba8(200, 200, 200);
-		}
-		else
-		{
-			values.border.bottom = 1;
-			values.borderColorBottom = Colorf::fromRgba8(200, 200, 200);
-		}
+		values.margin.left = 7;
+	}
+
+	if (isClass("tabcontrol-marginright"))
+	{
+		values.margin.right = 7;
 	}
 
 	if (isClass("tabcontrolleft"))
 	{
-		values.border.right = 1;
-		values.borderColorRight = Colorf::fromRgba8(200, 200, 200);
+		values.margin.top = 0;
+		values.margin.right = 0;
 	}
 
 	if (isClass("tabcontrolright"))
 	{
-		values.border.left = 1;
-		values.borderColorLeft = Colorf::fromRgba8(200, 200, 200);
+		values.margin.top = 0;
+		values.margin.left = 0;
 	}
 
 	if (isClass("tabbartab"))
@@ -65,10 +61,10 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 			values.border.top = 1;
 		}
 
-		if (isClass("firstlefttab"))
+		/*if (isClass("firstlefttab"))
 		{
 			values.margin.left = -1;
-		}
+		}*/
 
 		values.border.left = 1;
 		values.border.right = 1;
@@ -102,6 +98,21 @@ ElementStyle::ElementStyle(std::set<std::string> initclasses) : classes(std::mov
 	}
 	if (isClass("tabcontrol-widgetstack"))
 	{
+		if (isClass("tabsbottom"))
+		{
+			values.border.top = 1;
+			values.borderColorTop = Colorf::fromRgba8(200, 200, 200);
+		}
+		else
+		{
+			values.border.bottom = 1;
+			values.borderColorBottom = Colorf::fromRgba8(200, 200, 200);
+		}
+
+		values.border.left = 1;
+		values.border.right = 1;
+		values.borderColorLeft = Colorf::fromRgba8(200, 200, 200);
+		values.borderColorRight = Colorf::fromRgba8(200, 200, 200);
 		values.backgroundColor = Colorf::fromRgba8(255, 255, 255);
 	}
 
