@@ -300,7 +300,7 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 
 void UActor::TickPhysics(float elapsed)
 {
-	for (float timeLeft = elapsed; timeLeft > 0.0f; timeLeft -= 0.02f)
+	for (float timeLeft = elapsed; timeLeft > 0.0f && !bDeleteMe(); timeLeft -= 0.02f)
 	{
 		float physTimeElapsed = std::min(timeLeft, 0.02f);
 		int mode = Physics();
@@ -552,6 +552,41 @@ void UActor::TickRotating(float elapsed)
 
 void UActor::TickProjectile(float elapsed)
 {
+	if (Region().ZoneNumber == 0)
+	{
+		Destroy();
+		return;
+	}
+
+	UZoneInfo* zone = Region().Zone;
+	UProjectile* projectile = UObject::TryCast<UProjectile>(this);
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+
+	if (zone->bWaterZone())
+		Velocity() = Velocity() * std::max(1.0f - zone->ZoneFluidFriction() * 0.2f * elapsed, 0.0f);
+
+	Velocity() = Velocity() + Acceleration() * elapsed;
+
+	if (projectile)
+	{
+		float maxSpeed = projectile->MaxSpeed();
+		if (dot(Velocity(), Velocity()) > maxSpeed * maxSpeed)
+		{
+			Velocity() = normalize(Velocity()) * maxSpeed;
+		}
+	}
+
+	OldLocation() = Location();
+	bJustTeleported() = false;
+
+	SweepHit hit = TryMove(Velocity() * elapsed);
+	if (hit.Fraction < 1.0f && !bDeleteMe() && !bJustTeleported())
+	{
+		CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+	}
+
+	if (!bBounce() && !bJustTeleported())
+		Velocity() = (Location() - OldLocation()) / elapsed;
 }
 
 void UActor::TickRolling(float elapsed)
