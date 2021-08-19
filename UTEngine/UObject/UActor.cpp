@@ -465,7 +465,15 @@ void UActor::TickFalling(float elapsed)
 
 	UZoneInfo* zone = Region().Zone;
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
-	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+
+	if (pawn)
+	{
+		float maxAccel = pawn->AirControl() * pawn->AccelRate();
+		float accel = length(Acceleration());
+		if (accel > maxAccel)
+			Acceleration() = normalize(Acceleration()) * maxAccel;
+	}
 
 	float gravityScale = 1.0f;
 	float fluidFriction = 0.0f;
@@ -476,12 +484,14 @@ void UActor::TickFalling(float elapsed)
 	{
 		gravityScale = 0.5f;
 	}
-	else if (player && player->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
+	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
 	{
-		fluidFriction = player->FootRegion().Zone->ZoneFluidFriction();
+		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
 
 	OldLocation() = Location();
+	bJustTeleported() = false;
+
 	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
 
 	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
@@ -490,9 +500,7 @@ void UActor::TickFalling(float elapsed)
 		Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
 	}
 
-	vec3 zoneVelocity = zone->ZoneVelocity();
-
-	SweepHit hit = TryMove(Velocity() + zoneVelocity);
+	SweepHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		if (bBounce())
