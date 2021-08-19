@@ -237,7 +237,7 @@ void AudioMixerSource::MixSounds(float* output, size_t samples)
 		float leftVolume, rightVolume;
 		GetVolume(sound, leftVolume, rightVolume);
 
-		if (leftVolume > 0.0f && rightVolume > 0.0f)
+		if (leftVolume > 0.0f || rightVolume > 0.0f)
 		{
 			for (size_t i = 0; i < samples; i++)
 			{
@@ -288,8 +288,9 @@ void AudioMixerSource::GetVolume(const ActiveSound& sound, float& leftVolume, fl
 		if (dist2 < despatializedRadius * despatializedRadius)
 			angle *= std::sqrt(dist2) / despatializedRadius;
 
-		float pan = clamp(angle / 3.14f, -1.0f, 1.0f);
+		float pan = clamp(angle * 2.0f / 3.14f, -1.0f, 1.0f);
 		float attenuation = std::max(1.0f - length(location) / sound.radius, 0.0f);
+		attenuation *= attenuation;
 
 		leftVolume = clamp(sound.volume * attenuation * std::min(1.0f - pan, 1.0f), 0.0f, 1.0f);
 		rightVolume = clamp(sound.volume * attenuation * std::min(1.0f + pan, 1.0f), 0.0f, 1.0f);
