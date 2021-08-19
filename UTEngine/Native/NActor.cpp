@@ -107,7 +107,10 @@ void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::stri
 
 void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	throw std::runtime_error("Actor.DemoPlaySound not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	USound* s = UObject::Cast<USound>(Sound);
+	if (s)
+		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::Destroy(UObject* Self, bool& ReturnValue)
@@ -336,7 +339,10 @@ void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, f
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
 {
-	engine->LogUnimplemented("Actor.PlayOwnedSound(" + Sound->Name + ")");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	USound* s = UObject::Cast<USound>(Sound);
+	if (s)
+		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -344,7 +350,7 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : 1.0f, Radius ? (*Radius) * 25.0f : 0.0f, Pitch ? *Pitch : 1.0f);
+		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
