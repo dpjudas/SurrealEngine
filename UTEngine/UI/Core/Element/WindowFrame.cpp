@@ -122,7 +122,7 @@ public:
 				WNDCLASSEX classdesc = {};
 				classdesc.cbSize = sizeof(WNDCLASSEX);
 				classdesc.hInstance = GetModuleHandle(0);
-				classdesc.style = CS_VREDRAW | CS_HREDRAW;
+				classdesc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
 				classdesc.lpszClassName = L"WindowFrame";
 				classdesc.lpfnWndProc = &WindowFrameImpl::wndProc;
 				RegisterClassEx(&classdesc);
@@ -185,7 +185,7 @@ public:
 			DestroyWindow(windowHandle);
 	}
 
-	void dispatchMouseButtonEvent(std::string name, int button, WPARAM wparam, LPARAM lparam)
+	void dispatchMouseButtonEvent(std::string name, int button, WPARAM wparam, LPARAM lparam, int detail)
 	{
 		double dpiscale = getDpiScale();
 		double x = GET_X_LPARAM(lparam) / dpiscale;
@@ -197,6 +197,7 @@ public:
 			e.clientX = x;
 			e.clientY = y;
 			e.button = button;
+			e.detail = detail;
 			element->dispatchEvent(name, &e);
 		}
 	}
@@ -313,50 +314,53 @@ public:
 		}
 		else if (msg == WM_LBUTTONDOWN)
 		{
-			dispatchMouseButtonEvent("mousedown", 0, wparam, lparam);
+			dispatchMouseButtonEvent("mousedown", 0, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_MBUTTONDOWN)
 		{
-			dispatchMouseButtonEvent("mousedown", 1, wparam, lparam);
+			dispatchMouseButtonEvent("mousedown", 1, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_RBUTTONDOWN)
 		{
-			dispatchMouseButtonEvent("mousedown", 2, wparam, lparam);
+			dispatchMouseButtonEvent("mousedown", 2, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_LBUTTONUP)
 		{
-			dispatchMouseButtonEvent("mouseup", 0, wparam, lparam);
-			dispatchMouseButtonEvent("click", 0, wparam, lparam);
+			dispatchMouseButtonEvent("mouseup", 0, wparam, lparam, 2);
+			dispatchMouseButtonEvent("click", 0, wparam, lparam, 1);
 			return 0;
 		}
 		else if (msg == WM_MBUTTONUP)
 		{
-			dispatchMouseButtonEvent("mouseup", 1, wparam, lparam);
-			dispatchMouseButtonEvent("click", 1, wparam, lparam);
+			dispatchMouseButtonEvent("mouseup", 1, wparam, lparam, 2);
+			dispatchMouseButtonEvent("click", 1, wparam, lparam, 1);
 			return 0;
 		}
 		else if (msg == WM_RBUTTONUP)
 		{
-			dispatchMouseButtonEvent("mouseup", 2, wparam, lparam);
-			dispatchMouseButtonEvent("click", 2, wparam, lparam);
+			dispatchMouseButtonEvent("mouseup", 2, wparam, lparam, 2);
+			dispatchMouseButtonEvent("click", 2, wparam, lparam, 1);
 			return 0;
 		}
 		else if (msg == WM_LBUTTONDBLCLK)
 		{
-			dispatchMouseButtonEvent("dblclick", 0, wparam, lparam);
+			dispatchMouseButtonEvent("click", 0, wparam, lparam, 2);
+			dispatchMouseButtonEvent("dblclick", 0, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_MBUTTONDBLCLK)
 		{
-			dispatchMouseButtonEvent("dblclick", 1, wparam, lparam);
+			dispatchMouseButtonEvent("click", 1, wparam, lparam, 2);
+			dispatchMouseButtonEvent("dblclick", 1, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_RBUTTONDBLCLK)
 		{
-			dispatchMouseButtonEvent("dblclick", 2, wparam, lparam);
+			dispatchMouseButtonEvent("click", 2, wparam, lparam, 2);
+			dispatchMouseButtonEvent("dblclick", 2, wparam, lparam, 2);
 			return 0;
 		}
 		else if (msg == WM_MOUSEWHEEL)

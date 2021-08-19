@@ -16,12 +16,36 @@ CallstackPage::CallstackPage(View* parent) : VBoxView(parent)
 
 	addClass("callstackpage");
 	listview->addClass("callstackpage-listview");
+
+	listview->activated = [=](ListViewItem* item) { onActivated(item); };
+}
+
+void CallstackPage::onActivated(ListViewItem* item)
+{
+	if (activated)
+	{
+		int index = std::atoi(item->id().c_str());
+
+		int i = 0;
+		for (auto it = Frame::Callstack.rbegin(); it != Frame::Callstack.rend(); ++it)
+		{
+			Frame* frame = *it;
+			if (i == index)
+			{
+				activated(frame);
+				break;
+			}
+
+			i++;
+		}
+	}
 }
 
 void CallstackPage::updateList()
 {
 	listview->clearList();
 
+	int index = 0;
 	for (auto it = Frame::Callstack.rbegin(); it != Frame::Callstack.rend(); ++it)
 	{
 		Frame* frame = *it;
@@ -38,8 +62,10 @@ void CallstackPage::updateList()
 			}
 
 			auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
+			item->setId(std::to_string(index));
 			item->setText(0, name);
 			item->setText(1, std::to_string(func->Line));
 		}
+		index++;
 	}
 }

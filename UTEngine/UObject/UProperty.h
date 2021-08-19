@@ -307,7 +307,14 @@ public:
 	using UObjectProperty::UObjectProperty;
 	void Load(ObjectStream* stream) override;
 
-	std::string PrintValue(void* data) override { return "class"; }
+	std::string PrintValue(void* data) override
+	{
+		UObject* obj = *(UObject**)data;
+		if (obj)
+			return "{ class=\"" + obj->Name + " }";
+		else
+			return "null";
+	}
 
 	UClass* MetaClass = nullptr;
 };

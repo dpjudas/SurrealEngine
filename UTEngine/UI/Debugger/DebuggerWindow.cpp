@@ -68,7 +68,16 @@ DebuggerWindow::DebuggerWindow(std::function<void()> onCloseCallback) : onCloseC
 	statusbar = new Statusbar(contentView());
 	statustext = statusbar->addItem("Ready");
 
+	callstack->activated = [=](Frame* frame) { onCallstackActivated(frame); };
+
 	setSize(1700, 950);
+}
+
+void DebuggerWindow::onCallstackActivated(Frame* frame)
+{
+	disassembly->setFunction(frame->Func);
+	objectviewer->setObject(frame->Object);
+	locals->setFrame(frame);
 }
 
 void DebuggerWindow::onBreakpointTriggered()

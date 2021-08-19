@@ -16,6 +16,7 @@ class ObjectViewerPage;
 class CallstackPage;
 class LocalsPage;
 class LogPage;
+class Frame;
 
 class DebuggerWindow : public WindowFrame
 {
@@ -33,6 +34,7 @@ public:
 	void onContinue();
 	void onStepIn();
 	void onStepOver();
+	void onCallstackActivated(Frame* frame);
 
 	std::function<void()> onCloseCallback;
 
