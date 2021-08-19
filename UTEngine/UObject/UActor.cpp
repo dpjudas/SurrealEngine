@@ -417,11 +417,7 @@ void UActor::TickWalking(float elapsed)
 				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
 				timeLeft = 0.0f;
 			}
-			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
-			{
-				// Found a slope with 78 degrees angle to our movement direction. This is walkable, so continue stepping up
-			}
-			else
+			else if (hit.Normal.z > 0.2f || hit.Normal.z < -0.2f)
 			{
 				// We hit a wall
 
