@@ -14,6 +14,8 @@ public:
 
 	void update();
 
+	static std::string toFixed(float time);
+
 	ListView* listview = nullptr;
 	std::list<LogMessageLine>::iterator it;
 };

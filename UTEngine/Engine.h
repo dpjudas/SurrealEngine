@@ -47,6 +47,7 @@ struct MeshFace;
 
 struct LogMessageLine
 {
+	float Time;
 	std::string Source;
 	std::string Text;
 };
