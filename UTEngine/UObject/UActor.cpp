@@ -277,6 +277,13 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 		CallEvent(this, tickEventName, { ExpressionValue::FloatValue(elapsed) });
 	}
 
+	if (StateFrame && StateFrame->LatentState == LatentRunState::Sleep)
+	{
+		SleepTimeLeft = std::max(SleepTimeLeft - elapsed, 0.0f);
+		if (SleepTimeLeft == 0.0f)
+			StateFrame->LatentState = LatentRunState::Continue;
+	}
+
 	if (Role() >= ROLE_SimulatedProxy && StateFrame && StateFrame->LatentState == LatentRunState::Continue)
 	{
 		auto curStateFrame = StateFrame; // pin frame as GotoFrame may otherwise destroy it
@@ -987,6 +994,18 @@ bool UActor::IsAnimating()
 	return AnimRate() != 0.0f;
 }
 
+void UActor::FinishAnim()
+{
+	if (bAnimLoop())
+	{
+		bAnimLoop() = false;
+		bAnimFinished() = false;
+	}
+
+	if (IsAnimating() && AnimFrame() < AnimLast() && StateFrame)
+		StateFrame->LatentState = LatentRunState::FinishAnim;
+}
+
 std::string UActor::GetAnimGroup(const std::string& sequence)
 {
 	if (Mesh())
@@ -1011,6 +1030,7 @@ void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime
 			AnimFrame() = 0.0f;
 			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
 			AnimMinRate() = 0.0f;
+			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
 			bAnimLoop() = false;
 		}
 	}
@@ -1029,6 +1049,7 @@ void UActor::LoopAnim(const std::string& sequence, float* rate, float* tweenTime
 			AnimFrame() = 0.0f;
 			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
 			AnimMinRate() = (minRate ? *minRate : 0.0f) * seq->Rate / seq->NumFrames;
+			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
 			bAnimLoop() = true;
 		}
 	}

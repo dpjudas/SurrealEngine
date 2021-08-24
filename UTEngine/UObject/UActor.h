@@ -149,10 +149,13 @@ public:
 
 	bool HasAnim(const std::string& sequence);
 	bool IsAnimating();
+	void FinishAnim();
 	std::string GetAnimGroup(const std::string& sequence);
 	void PlayAnim(const std::string& sequence, float* rate, float* tweenTime);
 	void LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate);
 	void TweenAnim(const std::string& sequence, float tweenTime);
+
+	float SleepTimeLeft = 0.0f;
 
 	// Cached calculations needed by the renderer
 	bool lightsCalculated = false;

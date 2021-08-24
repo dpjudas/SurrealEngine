@@ -133,9 +133,7 @@ void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bo
 
 void NActor::FinishAnim(UObject* Self)
 {
-	engine->LogUnimplemented("FinishAnim");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::FinishAnim;
+	UObject::Cast<UActor>(Self)->FinishAnim();
 }
 
 void NActor::FinishInterpolation(UObject* Self)
@@ -412,7 +410,8 @@ void NActor::SetTimer(UObject* Self, float NewTimerRate, bool bLoop)
 
 void NActor::Sleep(UObject* Self, float Seconds)
 {
-	engine->LogUnimplemented("Sleep(" + std::to_string(Seconds) + ")");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->SleepTimeLeft = Seconds;
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::Sleep;
 }
