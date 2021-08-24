@@ -504,6 +504,16 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/vulkan/vulkan_mir.h
 	Thirdparty/vulkan/vulkan_xlib_xrandr.h
 	Thirdparty/vulkan/vulkan_xlib.h
+	Thirdparty/kissfft/kfc.c
+	Thirdparty/kissfft/kiss_fft.c
+	Thirdparty/kissfft/kiss_fftnd.c
+	Thirdparty/kissfft/kiss_fftndr.c
+	Thirdparty/kissfft/kiss_fftr.c
+	Thirdparty/kissfft/kiss_fft.h
+	Thirdparty/kissfft/kissfft.hh
+	Thirdparty/kissfft/kiss_fftnd.h
+	Thirdparty/kissfft/kiss_fftndr.h
+	Thirdparty/kissfft/kiss_fftr.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
@@ -555,6 +565,7 @@ source_group("Thirdparty\\ShaderCompiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SO
 source_group("Thirdparty\\vk_mem_alloc" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vk_mem_alloc/.+")
 source_group("Thirdparty\\volk" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/volk/.+")
 source_group("Thirdparty\\vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vulkan/.+")
+source_group("Thirdparty\\kissfft" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/kissfft/.+")
 
 include_directories(UTEngine Thirdparty Thirdparty/dumb/include)
 
