@@ -822,27 +822,30 @@ SweepHit UActor::TryMove(const vec3& delta)
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
 	SweepHit blockingHit;
 	std::vector<SweepHit> hits = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld());
-	for (auto& hit : hits)
+	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
-		if (hit.Actor)
+		for (auto& hit : hits)
 		{
-			bool isBlocking;
-			if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
-				isBlocking = hit.Actor->bBlockPlayers();
-			else
-				isBlocking = hit.Actor->bBlockActors();
+			if (hit.Actor)
+			{
+				bool isBlocking;
+				if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
+					isBlocking = hit.Actor->bBlockPlayers();
+				else
+					isBlocking = hit.Actor->bBlockActors();
 
-			// We never hit ourselves or anything moving along with us
-			if (isBlocking && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+				// We never hit ourselves or anything moving along with us
+				if (isBlocking && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+				{
+					blockingHit = hit;
+					break;
+				}
+			}
+			else
 			{
 				blockingHit = hit;
 				break;
 			}
-		}
-		else
-		{
-			blockingHit = hit;
-			break;
 		}
 	}
 
