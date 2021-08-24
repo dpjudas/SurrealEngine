@@ -82,6 +82,8 @@ void Engine::Run()
 	while (!quit)
 	{
 		float elapsed = CalcTimeElapsed() * LevelInfo->TimeDilation();
+		elapsed = clamp(elapsed, 1.0f / 400.0f, 1.0f / 2.5f);
+		LevelInfo->TimeSeconds() += elapsed;
 
 		UpdateInput();
 
