@@ -1163,7 +1163,7 @@ void UActor::TickAnimation(float elapsed)
 				}
 				else if (toAnimTime >= animEndTime)
 				{
-					elapsed -= (toAnimTime - fromAnimTime) / animRate;
+					elapsed -= (animEndTime - fromAnimTime) / animRate;
 					toAnimTime = animEndTime;
 				}
 				else
@@ -1180,22 +1180,20 @@ void UActor::TickAnimation(float elapsed)
 					else
 					{
 						AnimRate() = 0.0f;
-					}
-
-					if (fromAnimTime < AnimLast() && toAnimTime >= AnimLast())
-					{
-						if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-						{
-							StateFrame->LatentState = LatentRunState::Continue;
-							bAnimFinished() = true;
-						}
-
-						CallEvent(this, "AnimEnd");
+						bAnimFinished() = true;
 					}
 				}
 				else
 				{
 					AnimFrame() = toAnimTime;
+				}
+
+				if (fromAnimTime < AnimLast() && toAnimTime >= AnimLast())
+				{
+					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+						StateFrame->LatentState = LatentRunState::Continue;
+
+					CallEvent(this, "AnimEnd");
 				}
 			}
 			else
@@ -1205,10 +1203,12 @@ void UActor::TickAnimation(float elapsed)
 					break;
 
 				float toAnimTime = fromAnimTime + tweenRate * elapsed;
-				if (toAnimTime >= 0.0f)
+
+				float animEndTime = 0.0f;
+				if (toAnimTime >= animEndTime)
 				{
-					elapsed -= (toAnimTime - fromAnimTime) / tweenRate;
-					toAnimTime = 0.0f;
+					elapsed -= (animEndTime - fromAnimTime) / tweenRate;
+					toAnimTime = animEndTime;
 				}
 				else
 				{
@@ -1216,6 +1216,15 @@ void UActor::TickAnimation(float elapsed)
 				}
 
 				AnimFrame() = toAnimTime;
+
+				if (toAnimTime == animEndTime && AnimRate() == 0.0f)
+				{
+					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+						StateFrame->LatentState = LatentRunState::Continue;
+
+					bAnimFinished() = true;
+					CallEvent(this, "AnimEnd");
+				}
 			}
 		}
 		else
