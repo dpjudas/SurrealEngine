@@ -151,8 +151,8 @@ public:
 	bool IsAnimating();
 	void FinishAnim();
 	std::string GetAnimGroup(const std::string& sequence);
-	void PlayAnim(const std::string& sequence, float* rate, float* tweenTime);
-	void LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate);
+	void PlayAnim(const std::string& sequence, float rate, float tweenTime);
+	void LoopAnim(const std::string& sequence, float rate, float tweenTime, float minRate);
 	void TweenAnim(const std::string& sequence, float tweenTime);
 
 	float SleepTimeLeft = 0.0f;
@@ -165,6 +165,13 @@ public:
 	float fog = -1.0f;
 	float radius = -1.0f;
 	float r2 = -1.0f;
+
+	struct
+	{
+		int V0 = 0;
+		int V1 = 0;
+		float T = -1.0f;
+	} LastAnimFrame;
 
 	UTexture* GetMultiskin(int index)
 	{
@@ -262,7 +269,7 @@ public:
 	UTexture*& Texture() { return Value<UTexture*>(PropOffsets_Actor.Texture); }
 	float& TimerCounter() { return Value<float>(PropOffsets_Actor.TimerCounter); }
 	float& TimerRate() { return Value<float>(PropOffsets_Actor.TimerRate); }
-	UActor*& Touching() { return Value<UActor*>(PropOffsets_Actor.Touching); }
+	UActor** Touching() { return FixedArray<UActor*>(PropOffsets_Actor.Touching); }
 	float& TransientSoundRadius() { return Value<float>(PropOffsets_Actor.TransientSoundRadius); }
 	float& TransientSoundVolume() { return Value<float>(PropOffsets_Actor.TransientSoundVolume); }
 	float& TweenRate() { return Value<float>(PropOffsets_Actor.TweenRate); }

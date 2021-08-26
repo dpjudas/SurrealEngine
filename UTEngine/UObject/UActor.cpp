@@ -143,15 +143,14 @@ bool UActor::Destroy()
 
 	CallEvent(this, "Destroyed");
 
-	UActor** TouchingArray = &Touching();
+	UActor** TouchingArray = Touching();
 	for (int i = 0; i < TouchingArraySize; i++)
 	{
 		if (TouchingArray[i])
 			UnTouch(TouchingArray[i]);
 	}
 
-	if (Owner())
-		CallEvent(Owner(), "LostChild", { ExpressionValue::ObjectValue(this) });
+	SetOwner(nullptr);
 
 	for (size_t i = 0; i < level->Actors.size(); i++)
 	{
@@ -586,7 +585,13 @@ void UActor::TickProjectile(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
+	bool oldColAct = bCollideActors();
+	bool oldBlockAct = bBlockActors();
+	bool oldBlockPlay = bBlockPlayers();
+	SetCollision(false, false, false); // To do: this shouldn't be needed! what is wrong here? :(
 	SweepHit hit = TryMove(Velocity() * elapsed);
+	SetCollision(oldColAct, oldBlockAct, oldBlockPlay);
+
 	if (hit.Fraction < 1.0f && !bDeleteMe() && !bJustTeleported())
 	{
 		CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
@@ -892,7 +897,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	}
 
 	// Untouch everything we aren't overlapping anymore
-	UActor** TouchingArray = &Touching();
+	UActor** TouchingArray = Touching();
 	for (int i = 0; i < TouchingArraySize; i++)
 	{
 		if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
@@ -908,8 +913,8 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 void UActor::Touch(UActor* actor)
 {
-	UActor** TouchingArray = &Touching();
-	UActor** TouchingArray2 = &actor->Touching();
+	UActor** TouchingArray = Touching();
+	UActor** TouchingArray2 = actor->Touching();
 
 	// Do nothing if actors are already touching
 	for (int i = 0; i < TouchingArraySize; i++)
@@ -944,8 +949,8 @@ void UActor::Touch(UActor* actor)
 
 void UActor::UnTouch(UActor* actor)
 {
-	UActor** TouchingArray = &Touching();
-	UActor** TouchingArray2 = &actor->Touching();
+	UActor** TouchingArray = Touching();
+	UActor** TouchingArray2 = actor->Touching();
 
 	for (int i = 0; i < TouchingArraySize; i++)
 	{
@@ -1020,103 +1025,202 @@ std::string UActor::GetAnimGroup(const std::string& sequence)
 	return {};
 }
 
-void UActor::PlayAnim(const std::string& sequence, float* rate, float* tweenTime)
-{
-	// To do: TweenTime = Amount of Time to "tween" into the first frame of this animation sequence if in a different sequence
+// UnrealScript variables controlling animation:
+// 
+// Tweening means animating (using vertex interpolation) from the last animation's frame to the current animation's first frame
+//
+// Mesh          - the mesh the animation belongs to
+// AnimSequence  - current active animation sequence
+// AnimFrame     - how far we've gotten in an animation 0.0 to 1.0 for current animation, negative for interpolation from old animation when tweening
+// AnimLast      - end point for AnimFrame (when to stop/loop). It is zero when only tweening (don't play the animation). It is the start of the last frame (1-1/numframes) when playing an animation
+// AnimRate      - how far AnimFrame moves in 1 second (AnimFrame += AnimRate * timeElapsed). If negative it is a scale factor used to convert Velocity length to animation speed
+// AnimMinRate   - the minimum animation speed when AnimRate is negative (negative AnimRate means it should use length(Velocity) * abs(AnimRate) as the anim speed)
+// TweenRate     - how fast to move when AnimFrame is negative (AnimFrame += TweenRate * timeElapsed)
+// OldAnimRate   - AnimRate from previous call to PlayAnim/LoopAnim/TweenAnim
+// bAnimLoop     - true if the animation should loop when AnimLast is reached
+// bAnimNotify   - true if animation notify events should be fired when animating
+// bAnimFinished - true if AnimLast was reached and there's no looping
 
+void UActor::PlayAnim(const std::string& sequence, float rate, float tweenTime)
+{
 	if (Mesh())
 	{
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
 			AnimSequence() = sequence;
-			AnimFrame() = 0.0f;
-			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
-			AnimMinRate() = 0.0f;
+			AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
 			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+			AnimRate() = rate * seq->Rate / seq->NumFrames;
+			AnimMinRate() = 0.0f;
+			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+			OldAnimRate() = AnimRate();
+			bAnimNotify() = !seq->Notifys.empty();
 			bAnimLoop() = false;
+			bAnimFinished() = false;
 		}
 	}
 }
 
-void UActor::LoopAnim(const std::string& sequence, float* rate, float* tweenTime, float* minRate)
+void UActor::LoopAnim(const std::string& sequence, float rate, float tweenTime, float minRate)
 {
-	// To do: TweenTime = Amount of Time to "tween" into the first frame of this animation sequence if in a different sequence
-
 	if (Mesh())
 	{
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
-			AnimSequence() = sequence;
-			AnimFrame() = 0.0f;
-			AnimRate() = (rate ? *rate : 1.0f) * seq->Rate / seq->NumFrames;
-			AnimMinRate() = (minRate ? *minRate : 0.0f) * seq->Rate / seq->NumFrames;
-			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
-			bAnimLoop() = true;
+			if (AnimSequence() != sequence || !IsAnimating())
+			{
+				AnimSequence() = sequence;
+				AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+				AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+				bAnimNotify() = !seq->Notifys.empty();
+				bAnimFinished() = false;
+				bAnimLoop() = true;
+			}
+			AnimRate() = rate * seq->Rate / seq->NumFrames;
+			AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+			OldAnimRate() = AnimRate();
 		}
 	}
 }
 
 void UActor::TweenAnim(const std::string& sequence, float tweenTime)
 {
-	// "Tween into a new animation" this means what? it keeps the current rate multiplier that was passed into an early Play/LoopAnim call?
-
-	PlayAnim(sequence, nullptr, &tweenTime);
+	if (Mesh())
+	{
+		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
+		if (seq)
+		{
+			AnimSequence() = sequence;
+			AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+			AnimLast() = 0.0f;
+			AnimRate() = 0.0f;
+			AnimMinRate() = 0.0f;
+			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+			OldAnimRate() = AnimRate();
+			bAnimNotify() = false;
+			bAnimFinished() = false;
+			bAnimLoop() = false;
+		}
+	}
 }
 
 void UActor::TickAnimation(float elapsed)
 {
-	if (Mesh())
+	for (int i = 0; elapsed > 0.0f && i < 10; i++)
 	{
-		for (int i = 0; AnimRate() != 0.0f && elapsed > 0.0f && i < 10; i++)
+		if (Mesh())
 		{
+			// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
 			float fromAnimTime = AnimFrame();
-			float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
-			float toAnimTime = fromAnimTime + animRate * elapsed;
+			if (fromAnimTime >= 0.0f)
+			{
+				// If AnimRate is positive we are animating at a fixed rate. If it is negative we animate based on velocity (using AnimRate as a speed scale factor)
+				float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
+				if (animRate == 0.0f)
+					break;
 
-			if (toAnimTime >= 1.0f)
-			{
-				elapsed -= (toAnimTime - fromAnimTime) / animRate;
-				toAnimTime = 1.0f;
-			}
-			else
-			{
-				elapsed = 0.0f;
-			}
+				// Find what time will we be at the end of the animation
+				float toAnimTime = fromAnimTime + animRate * elapsed;
 
-			MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
-			if (seq)
-			{
-				for (const MeshAnimNotify& n : seq->Notifys)
+				// Stop at the next notify event, if any
+				if (bAnimNotify())
 				{
-					if (n.Time > fromAnimTime && n.Time <= toAnimTime)
+					MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
+					if (seq)
 					{
-						if (FindEventFunction(this, n.Function))
+						bool foundEvent = false;
+						for (const MeshAnimNotify& n : seq->Notifys)
 						{
-							AnimFrame() = n.Time;
-							CallEvent(this, n.Function);
+							if (n.Time > fromAnimTime && n.Time <= toAnimTime)
+							{
+								if (FindEventFunction(this, n.Function))
+								{
+									toAnimTime = n.Time;
+									elapsed -= (toAnimTime - fromAnimTime) / animRate;
+									AnimFrame() = toAnimTime;
+									foundEvent = true;
+									CallEvent(this, n.Function);
+									break;
+								}
+							}
 						}
+						if (foundEvent)
+							continue;
 					}
 				}
-			}
 
-			if (toAnimTime == 1.0f)
-			{
-				bAnimFinished() = true;
+				// Clamp elapsed time to the animation end. This differs for looping animations as they also have to take the last frame into account before looping.
+				float animEndTime = bAnimLoop() ? 1.0f : AnimLast();
+				if (toAnimTime < fromAnimTime)
+				{
+					// This can happen if FinishAnimation is called after a looping animation made it past the AnimLast point
+					toAnimTime = fromAnimTime;
+					animEndTime = fromAnimTime;
+					elapsed = 0.0f;
+				}
+				else if (toAnimTime >= animEndTime)
+				{
+					elapsed -= (toAnimTime - fromAnimTime) / animRate;
+					toAnimTime = animEndTime;
+				}
+				else
+				{
+					elapsed = 0.0f;
+				}
 
-				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-					StateFrame->LatentState = LatentRunState::Continue;
+				if (toAnimTime == animEndTime)
+				{
+					if (bAnimLoop())
+					{
+						AnimFrame() = 0.0f;
+					}
+					else
+					{
+						AnimRate() = 0.0f;
+					}
 
-				AnimFrame() = 0.0f;
-				if (!bAnimLoop())
-					AnimRate() = 0.0f;
-				CallEvent(this, "AnimEnd");
+					if (fromAnimTime < AnimLast() && toAnimTime >= AnimLast())
+					{
+						if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+						{
+							StateFrame->LatentState = LatentRunState::Continue;
+							bAnimFinished() = true;
+						}
+
+						CallEvent(this, "AnimEnd");
+					}
+				}
+				else
+				{
+					AnimFrame() = toAnimTime;
+				}
 			}
 			else
 			{
+				float tweenRate = TweenRate();
+				if (tweenRate == 0.0f)
+					break;
+
+				float toAnimTime = fromAnimTime + tweenRate * elapsed;
+				if (toAnimTime >= 0.0f)
+				{
+					elapsed -= (toAnimTime - fromAnimTime) / tweenRate;
+					toAnimTime = 0.0f;
+				}
+				else
+				{
+					elapsed = 0.0f;
+				}
+
 				AnimFrame() = toAnimTime;
 			}
+		}
+		else
+		{
+			elapsed = 0.0f;
 		}
 	}
 }

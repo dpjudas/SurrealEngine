@@ -287,7 +287,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 
 void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
-	UObject::Cast<UActor>(Self)->LoopAnim(Sequence, Rate, TweenTime, MinRate);
+	UObject::Cast<UActor>(Self)->LoopAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, MinRate ? *MinRate : 0.0f);
 }
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
@@ -332,7 +332,7 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 
 void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
 {
-	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate, TweenTime);
+	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)

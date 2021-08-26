@@ -174,6 +174,9 @@ public:
 	T& Value(size_t offset) { return *static_cast<T*>(PropertyData.Ptr(offset)); }
 
 	template<typename T>
+	T* FixedArray(size_t offset) { return static_cast<T*>(PropertyData.Ptr(offset)); }
+
+	template<typename T>
 	static T* Cast(UObject* obj)
 	{
 		T* target = dynamic_cast<T*>(obj);

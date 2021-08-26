@@ -40,27 +40,53 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const m
 void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
+	float animFrame = actor->AnimFrame() * seq->NumFrames;
 
-	float animFrame = std::max(actor->AnimFrame(), 0.0f) * seq->NumFrames;
+	int vertexOffsets[3];
+	float t0, t1;
 
-	int frame0 = (int)animFrame;
-	int frame1 = frame0 + 1;
-	float t = animFrame - (float)frame0;
+	if (animFrame >= 0.0f)
+	{
+		int frame0 = (int)animFrame;
+		int frame1 = frame0 + 1;
+		t0 = animFrame - (float)frame0;
+		t1 = 0.0f;
+		frame0 = frame0 % seq->NumFrames;
+		frame1 = frame1 % seq->NumFrames;
+		vertexOffsets[0] = (seq->StartFrame + frame0) * mesh->FrameVerts;
+		vertexOffsets[1] = (seq->StartFrame + frame1) * mesh->FrameVerts;
+		vertexOffsets[2] = 0;
 
-	frame0 = frame0 % seq->NumFrames;
-	frame1 = frame1 % seq->NumFrames;
+		// Save old animation location to be able to tween from it:
+		actor->LastAnimFrame.V0 = vertexOffsets[0];
+		actor->LastAnimFrame.V1 = vertexOffsets[1];
+		actor->LastAnimFrame.T = t0;
+	}
+	else // Tween from old animation
+	{
+		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
 
-	int vertexOffset0 = (seq->StartFrame + frame0) * mesh->FrameVerts;
-	int vertexOffset1 = (seq->StartFrame + frame1) * mesh->FrameVerts;
+		if (actor->LastAnimFrame.T < 0.0f)
+		{
+			actor->LastAnimFrame.V0 = vertexOffsets[2];
+			actor->LastAnimFrame.V1 = vertexOffsets[2];
+			actor->LastAnimFrame.T = 0.0f;
+		}
 
-	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts + vertexOffset0, mesh->SpecialVerts + vertexOffset1, t);
-	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, vertexOffset0, vertexOffset1, t);
+		vertexOffsets[0] = actor->LastAnimFrame.V0;
+		vertexOffsets[1] = actor->LastAnimFrame.V1;
+
+		t0 = actor->LastAnimFrame.T;
+		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
+	}
+
+	SetupTextures(actor, mesh);
+	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts, vertexOffsets, t0, t1);
+	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, 0, vertexOffsets, t0, t1);
 }
 
-void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int vertexOffset0, int vertexOffset1, float t)
+void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
 {
-	auto device = engine->window->GetRenderDevice();
-
 	if (textures.size() < mesh->Textures.size())
 		textures.resize(mesh->Textures.size());
 
@@ -84,6 +110,11 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 
 		textures[i] = tex;
 	}
+}
+
+void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
+{
+	auto device = engine->window->GetRenderDevice();
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
@@ -105,9 +136,14 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
-			const vec3& v0 = mesh->Verts[wedge.Vertex + vertexOffset0];
-			const vec3& v1 = mesh->Verts[wedge.Vertex + vertexOffset1];
-			vec3 vertex = mix(v0, v1, t);
+			const vec3& v0 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];
+			const vec3& v1 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1]];
+			vec3 vertex = mix(v0, v1, t0);
+			if (t1 != 0.0f)
+			{
+				const vec3& v2 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[2]];
+				vertex = mix(vertex, v2, t1);
+			}
 
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };

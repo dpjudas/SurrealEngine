@@ -84,6 +84,16 @@ void ULevel::Tick(float elapsed)
 			}
 		}
 	}
+
+	std::vector<UActor*> newActorList;
+	newActorList.reserve(Actors.size());
+	for (UActor* actor : Actors)
+	{
+		if (actor)
+			newActorList.push_back(actor);
+	}
+	Actors.swap(newActorList);
+
 	ticked = !ticked;
 }
 
