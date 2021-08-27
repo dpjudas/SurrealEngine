@@ -102,6 +102,7 @@ void Engine::Run()
 			CameraActor = viewport->Actor();
 			CameraLocation = viewport->Actor()->Location();
 			CameraRotation = viewport->Actor()->Rotation();
+			CameraFovAngle = viewport->Actor()->FovAngle();
 			CallEvent(viewport->Actor(), "PlayerCalcView", {
 				ExpressionValue::Variable(&CameraActor, &objprop),
 				ExpressionValue::Variable(&CameraLocation, &vecprop),

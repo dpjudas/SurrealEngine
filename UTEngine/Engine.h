@@ -107,6 +107,7 @@ public:
 	UActor* CameraActor = nullptr;
 	vec3 CameraLocation;
 	Rotator CameraRotation;
+	float CameraFovAngle = 95.0f;
 
 	bool quit = false;
 

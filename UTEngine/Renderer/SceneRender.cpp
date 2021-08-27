@@ -543,7 +543,7 @@ FSceneNode SceneRender::CreateSceneFrame()
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * translate;
 	frame.ViewLocation = engine->CameraLocation;
-	frame.FovAngle = 95.0f;
+	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
 	float RFX2 = 2.0f * RProjZ / frame.FX;
@@ -569,7 +569,7 @@ FSceneNode SceneRender::CreateSkyFrame(UZoneInfo* skyZone)
 	frame.FY2 = frame.FY * 0.5f;
 	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
 	frame.ViewLocation = skyZone->Location();
-	frame.FovAngle = 95.0f;
+	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
 	float RFX2 = 2.0f * RProjZ / frame.FX;
