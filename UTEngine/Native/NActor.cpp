@@ -84,7 +84,8 @@ void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::
 
 void NActor::AutonomousPhysics(UObject* Self, float DeltaSeconds)
 {
-	throw std::runtime_error("Actor.AutonomousPhysics not implemented");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->TickPhysics(DeltaSeconds);
 }
 
 void NActor::BasedActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
