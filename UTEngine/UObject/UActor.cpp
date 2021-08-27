@@ -481,14 +481,14 @@ void UActor::TickFalling(float elapsed)
 			Acceleration() = normalize(Acceleration()) * maxAccel;
 	}
 
-	float gravityScale = 1.0f;
+	float gravityScale = 2.0f;
 	float fluidFriction = 0.0f;
 
 	vec3 oldVel = Velocity();
 
 	if (decor && decor->bBobbing())
 	{
-		gravityScale = 0.5f;
+		gravityScale = 1.0f;
 	}
 	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
 	{
