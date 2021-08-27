@@ -349,12 +349,16 @@ void ExpressionEvaluator::Expr(IteratorNextExpression* expr)
 
 void ExpressionEvaluator::Expr(StructCmpEqExpression* expr)
 {
-	Frame::ThrowException("Struct cmpeq expression is not implemented");
+	ExpressionValue val1 = Eval(expr->Value1).Value;
+	ExpressionValue val2 = Eval(expr->Value2).Value;
+	Result.Value = ExpressionValue::BoolValue(val1.IsEqual(val2));
 }
 
 void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 {
-	Frame::ThrowException("Struct cmpne expression is not implemented");
+	ExpressionValue val1 = Eval(expr->Value1).Value;
+	ExpressionValue val2 = Eval(expr->Value2).Value;
+	Result.Value = ExpressionValue::BoolValue(!val1.IsEqual(val2));
 }
 
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)

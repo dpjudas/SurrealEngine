@@ -282,6 +282,7 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	case ExpressionValueType::ValueString: return ToString() == value.ToString();
 	case ExpressionValueType::ValueName: return ToName() == value.ToName();
 	case ExpressionValueType::ValueColor: return ToColor() == value.ToColor();
+	case ExpressionValueType::ValueStruct: throw std::runtime_error("IsEqual not implemented for complex structs");
 	}
 }
 
