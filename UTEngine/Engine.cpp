@@ -519,8 +519,11 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else
 	{
-		LogMessage("Unknown command: " + commandline);
-		found = false;
+		if (!ExecCommand(args))
+		{
+			LogMessage("Unknown command: " + commandline);
+			found = false;
+		}
 	}
 	return {};
 }
@@ -679,6 +682,46 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 	}
 }
 
+bool Engine::ExecCommand(const std::vector<std::string>& args)
+{
+	UFunction* func = FindEventFunction(viewport->Actor(), args[0]);
+	if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
+	{
+		std::vector<ExpressionValue> vmArgs;
+		int argindex = 0;
+		for (UField* field = func->Children; field != nullptr; field = field->Next)
+		{
+			UProperty* prop = dynamic_cast<UProperty*>(field);
+			if (prop)
+			{
+				if (AllFlags(prop->PropFlags, PropertyFlags::Parm) && !AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+				{
+					std::string arg = (1 + argindex < args.size()) ? args[1 + argindex] : std::string("0");
+					switch (prop->ValueType)
+					{
+					case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
+					case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(arg == "1" || arg == "true")); break;
+					case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue((float)std::atof(arg.c_str()))); break;
+					case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue(arg)); break;
+					case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue(arg)); break;
+					default: break;
+					}
+					argindex++;
+				}
+			}
+		}
+
+		CallEvent(viewport->Actor(), func->Name, vmArgs);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 {
 	for (const std::string& commandline : GetSubcommands(commands))
@@ -702,12 +745,7 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 			}
 			else
 			{
-				UFunction* func = FindEventFunction(viewport->Actor(), args[0]);
-				if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
-				{
-					// To do: pass along args
-					CallEvent(viewport->Actor(), func->Name);
-				}
+				ExecCommand(args);
 			}
 		}
 	}

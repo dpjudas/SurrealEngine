@@ -72,6 +72,7 @@ public:
 	void InputCommand(const std::string& command, EInputKey key, int delta);
 	void SetPause(bool value);
 
+	bool ExecCommand(const std::vector<std::string>& args);
 	std::vector<std::string> GetArgs(const std::string& commandline);
 	std::vector<std::string> GetSubcommands(const std::string& commandline);
 
