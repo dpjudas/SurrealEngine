@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
   <Type Name="UObject">
-    <DisplayString>{Name} Class={Base->Name}</DisplayString>
+    <DisplayString>{Name} Class={Class->Name}</DisplayString>
     <Expand>
-      <Item Name="Class">Base</Item>
+      <Item Name="Class">Class</Item>
     </Expand>
   </Type>
   <Type Name="UField">
-    <DisplayString>{Name} Type={Base->Name} </DisplayString>
+    <DisplayString>{Name} Type={Class->Name} </DisplayString>
   </Type>
   <Type Name="UStruct">
-    <DisplayString>{Name} Type={Base->Name}</DisplayString>
+    <DisplayString>{Name} Type={Class->Name}</DisplayString>
     <Expand>
       <Synthetic Name="Children">
         <Expand>
@@ -24,9 +24,9 @@
     </Expand>
   </Type>
   <Type Name="UClass">
-    <DisplayString>{Name} Base={Base->Name}</DisplayString>
+    <DisplayString>{Name} Base={BaseStruct->Name}</DisplayString>
     <Expand>
-      <Item Name="Base">Base</Item>
+      <Item Name="Base">BaseStruct</Item>
       <Synthetic Name="Children">
         <Expand>
           <LinkedListItems>

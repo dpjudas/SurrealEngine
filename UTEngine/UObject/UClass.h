@@ -39,8 +39,11 @@ public:
 class UStruct : public UField
 {
 public:
-	using UField::UField;
+	UStruct(std::string name, UClass* cls, ObjectFlags flags);
+	UStruct(std::string name, UClass* cls, ObjectFlags flags, UStruct* base);
 	void Load(ObjectStream* stream) override;
+
+	UStruct* BaseStruct = nullptr;
 
 	UTextBuffer* ScriptText = nullptr;
 	UField* Children = nullptr;
@@ -154,7 +157,7 @@ struct ClassDependency
 class UClass : public UState
 {
 public:
-	using UState::UState;
+	UClass(std::string name, UClass* base, ObjectFlags flags);
 	void Load(ObjectStream* stream) override;
 
 	UProperty* GetProperty(const std::string& name);

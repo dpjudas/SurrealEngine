@@ -164,7 +164,7 @@ public:
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
 	std::string Name;
-	UClass* Base = nullptr;
+	UClass* Class = nullptr;
 	ObjectFlags Flags = ObjectFlags::NoFlags;
 
 	PropertyDataBlock PropertyData;

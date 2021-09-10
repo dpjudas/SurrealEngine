@@ -22,7 +22,7 @@ UFunction* FindEventFunction(UObject* Context, const std::string& name)
 	std::string stateName = Context->GetStateName();
 	if (!stateName.empty())
 	{
-		for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+		for (UClass* cls = Context->Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
 			UState* state = cls->GetState(stateName);
 			if (state)
@@ -38,7 +38,7 @@ UFunction* FindEventFunction(UObject* Context, const std::string& name)
 
 	// Search normal member functions next
 
-	for (UClass* cls = Context->Base; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = Context->Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		UFunction* func = cls->GetFunction(name);
 		if (func)

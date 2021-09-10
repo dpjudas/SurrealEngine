@@ -45,7 +45,7 @@ void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 	if (dynamic_cast<UClass*>(Context))
 		Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
 	else
-		Result.Value = ExpressionValue::Variable(Context->Base->GetDefaultObject()->PropertyData.Data, expr->Variable);
+		Result.Value = ExpressionValue::Variable(Context->Class->GetDefaultObject()->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -178,14 +178,14 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 void ExpressionEvaluator::Expr(MetaCastExpression* expr)
 {
 	UObject* value = Eval(expr->Value).Value.ToObject();
-	if (value && value->Name != expr->Class->Name)
+	if (value && value != expr->Class)
 	{
 		UClass* cls = UObject::TryCast<UClass>(value);
 		while (cls)
 		{
-			if (cls->Name == expr->Class->Name)
+			if (cls == expr->Class)
 				break;
-			cls = UObject::TryCast<UClass>(cls->Base);
+			cls = static_cast<UClass*>(cls->BaseStruct);
 		}
 		if (!cls)
 			value = nullptr;
@@ -548,7 +548,7 @@ void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 {
 	UObject* obj = Eval(expr->Value).Value.ToObject();
-	Result.Value = ExpressionValue::StringValue(obj ? obj->Base->Name + "/" + obj->Name : "None");
+	Result.Value = ExpressionValue::StringValue(obj ? obj->Class->Name + "/" + obj->Name : "None");
 }
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
@@ -572,12 +572,12 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
 	UClass* contextClass = dynamic_cast<UClass*>(Context);
 	if (!contextClass)
-		contextClass = dynamic_cast<UClass*>(Context->Base);
+		contextClass = Context->Class;
 
 	// Search states first
 
 	std::string stateName = Context->GetStateName();
-	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		UState* state = cls->GetState(stateName);
 		if (state)
@@ -593,7 +593,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 
 	// Search normal member functions next
 
-	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		for (UField* field = cls->Children; field != nullptr; field = field->Next)
 		{
@@ -620,9 +620,9 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 
 	UClass* contextClass = dynamic_cast<UClass*>(Context);
 	if (!contextClass)
-		contextClass = dynamic_cast<UClass*>(Context->Base);
+		contextClass = Context->Class;
 
-	for (UClass* cls = contextClass; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		UFunction* func = cls->GetFunction(expr->Name);
 		if (func)

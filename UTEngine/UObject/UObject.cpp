@@ -9,7 +9,7 @@
 #include "VM/Frame.h"
 #include "Engine.h"
 
-UObject::UObject(std::string name, UClass* base, ObjectFlags flags) : Name(name), Base(base), Flags(flags)
+UObject::UObject(std::string name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {
 }
 
@@ -26,11 +26,11 @@ void UObject::LoadNow()
 		else if (dynamic_cast<UStruct*>(this))
 		{
 			auto s = static_cast<UStruct*>(this);
-			if (s->Base)
+			if (s->BaseStruct)
 			{
-				s->Base->LoadNow();
-				s->Properties = s->Base->Properties;
-				s->StructSize = s->Base->StructSize;
+				s->BaseStruct->LoadNow();
+				s->Properties = s->BaseStruct->Properties;
+				s->StructSize = s->BaseStruct->StructSize;
 			}
 
 			if (dynamic_cast<UClass*>(this))
@@ -38,7 +38,7 @@ void UObject::LoadNow()
 				PropertyData.Init(static_cast<UClass*>(this));
 				if (!static_cast<UClass*>(this)->Properties.empty())
 				{
-					SetObject("Class", Base);
+					SetObject("Class", Class);
 					SetString("Name", Name);
 					SetInt("ObjectFlags", (int)Flags);
 				}
@@ -49,8 +49,8 @@ void UObject::LoadNow()
 
 void UObject::Load(ObjectStream* stream)
 {
-	if (Base)
-		Base->LoadNow();
+	if (Class)
+		Class->LoadNow();
 
 	if (AllFlags(stream->GetFlags(), ObjectFlags::HasStack))
 	{
@@ -66,11 +66,11 @@ void UObject::Load(ObjectStream* stream)
 
 	if (!dynamic_cast<UClass*>(this))
 	{
-		PropertyData.Init(Base);
+		PropertyData.Init(Class);
 		PropertyData.ReadProperties(stream);
-		if (Base && !Base->Properties.empty())
+		if (Class && !Class->Properties.empty())
 		{
-			SetObject("Class", Base);
+			SetObject("Class", Class);
 			SetString("Name", Name);
 			SetInt("ObjectFlags", (int)Flags);
 		}
@@ -164,7 +164,7 @@ Color UObject::GetColor(const std::string& name)
 
 std::string UObject::GetUClassName(UObject* obj)
 {
-	return obj->Base ? obj->Base->Name : std::string("null");
+	return obj->Class ? obj->Class->Name : std::string("null");
 }
 
 void UObject::SetByte(const std::string& name, uint8_t value)
@@ -209,12 +209,12 @@ void UObject::SetObject(const std::string& name, const UObject* value)
 
 bool UObject::IsA(const std::string& className) const
 {
-	UClass* cls = UObject::TryCast<UClass>(Base);
+	UStruct* cls = Class;
 	while (cls)
 	{
 		if (cls->Name == className)
 			return true;
-		cls = UObject::TryCast<UClass>(cls->Base);
+		cls = cls->BaseStruct;
 	}
 	return false;
 }
@@ -244,7 +244,7 @@ void UObject::GotoState(std::string stateName, const std::string& labelName)
 {
 	if (stateName == "Auto")
 	{
-		for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
+		for (UClass* cls = Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
 			for (auto& it : cls->States)
 			{
@@ -266,7 +266,7 @@ void UObject::GotoState(std::string stateName, const std::string& labelName)
 
 	if (!StateFrame && !stateName.empty())
 	{
-		for (UClass* cls = Base; cls != nullptr; cls = cls->Base)
+		for (UClass* cls = Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
 			UState* state = cls->GetState(stateName);
 			if (state)
@@ -329,8 +329,8 @@ void PropertyDataBlock::Init(UClass* cls)
 
 		if (&cls->PropertyData != this)
 			prop->CopyConstruct(Ptr(prop), cls->PropertyData.Ptr(prop));
-		else if (cls->Base && prop->DataOffset < cls->Base->StructSize) // inherit from base default object
-			prop->CopyConstruct(Ptr(prop), cls->Base->PropertyData.Ptr(prop));
+		else if (cls->BaseStruct && prop->DataOffset < cls->BaseStruct->StructSize) // inherit from base default object
+			prop->CopyConstruct(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
 		else
 			prop->Construct(Ptr(prop));
 	}

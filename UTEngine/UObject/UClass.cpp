@@ -34,6 +34,15 @@ void UEnum::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
+UStruct::UStruct(std::string name, UClass* cls, ObjectFlags flags) : UField(std::move(name), cls, flags)
+{
+}
+
+UStruct::UStruct(std::string name, UClass* cls, ObjectFlags flags, UStruct* base) : UField(std::move(name), cls, flags)
+{
+	BaseStruct = base;
+}
+
 void UStruct::Load(ObjectStream* stream)
 {
 	UField::Load(stream);
@@ -60,11 +69,11 @@ void UStruct::Load(ObjectStream* stream)
 	Code = std::make_shared<::Bytecode>(Bytecode, stream->GetPackage());
 
 	size_t offset = 0;
-	if (Base)
+	if (BaseStruct)
 	{
-		Base->LoadNow();
-		Properties = Base->Properties;
-		offset = Base->StructSize;
+		BaseStruct->LoadNow();
+		Properties = BaseStruct->Properties;
+		offset = BaseStruct->StructSize;
 	}
 	UField* child = Children;
 	while (child)
@@ -344,6 +353,10 @@ void UState::Load(ObjectStream* stream)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+UClass::UClass(std::string name, UClass* base, ObjectFlags flags) : UState(std::move(name), this, flags, base)
+{
+}
 
 void UClass::Load(ObjectStream* stream)
 {

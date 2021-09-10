@@ -174,7 +174,7 @@ std::vector<UClass*> Package::GetAllClasses()
 
 UObject* Package::NewObject(const std::string& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
 {
-	for (UClass* cur = objclass; cur != nullptr; cur = cur->Base)
+	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
 	{
 		auto it = NativeClasses.find(GetNameKey(cur->Name));
 		if (it != NativeClasses.end())
@@ -183,7 +183,7 @@ UObject* Package::NewObject(const std::string& objname, UClass* objclass, Object
 			if (initProperties)
 			{
 				obj->PropertyData.Init(objclass);
-				obj->SetObject("Class", obj->Base);
+				obj->SetObject("Class", obj->Class);
 				obj->SetString("Name", obj->Name);
 				obj->SetInt("ObjectFlags", (int)obj->Flags);
 			}
@@ -339,7 +339,7 @@ int Package::FindObjectReference(const std::string& className, const std::string
 			{
 				if (CompareNames(className, cls->Name))
 					return (int)index + 1;
-				cls = cls->Base;
+				cls = static_cast<UClass*>(cls->BaseStruct);
 			}
 		}
 	}

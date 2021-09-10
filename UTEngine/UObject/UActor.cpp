@@ -627,7 +627,7 @@ void UActor::TickInterpolating(float elapsed)
 			UPlayerPawn* pawn = static_cast<UPlayerPawn*>(this);
 			pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
 			pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
-			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Base->GetDefaultObject()->GetFloat("FovAngle");
+			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject()->GetFloat("FovAngle");
 			pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
 			pawn->FlashFog() = pawn->DesiredFlashFog();
 		}

@@ -310,7 +310,7 @@ void NObject::Clamp(int V, int A, int B, int& ReturnValue)
 
 void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, bool& ReturnValue)
 {
-	for (UObject* cls = TestClass; cls != nullptr; cls = cls->Base)
+	for (UClass* cls = UObject::Cast<UClass>(TestClass); cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		if (cls == ParentClass)
 		{
