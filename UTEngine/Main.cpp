@@ -1,8 +1,13 @@
 
 #include "Precomp.h"
 #include "Engine.h"
+#include "CommandLine.h"
 #include "GameFolder.h"
+#include "Package/PackageManager.h"
+#include "UObject/NativeObjExtractor.h"
+#include "VM/NativeFuncExtractor.h"
 #include "UTF16.h"
+#include "File.h"
 #include <iostream>
 #include <vector>
 #ifdef WIN32
@@ -11,11 +16,25 @@
 
 void appMain(std::vector<std::string> args)
 {
-	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(std::move(args));
+	CommandLine cmd(args);
+	commandline = &cmd;
+
+	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
 	if (!info.folder.empty())
 	{
 		Engine engine(info);
-		engine.Run();
+		if (commandline->HasArg("-ef", "--extract-nativefunc"))
+		{
+			File::write_all_text("nativefuncs.txt", NativeFuncExtractor::Run(engine.packages.get()));
+		}
+		else if (commandline->HasArg("-eo", "--extract-nativeobj"))
+		{
+			File::write_all_text("nativeobjs.txt", NativeObjExtractor::Run(engine.packages.get()));
+		}
+		else
+		{
+			engine.Run();
+		}
 	}
 }
 

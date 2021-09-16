@@ -10,6 +10,8 @@ class ObjectStream;
 class UObject;
 class UClass;
 
+typedef std::string NameString;
+
 class NameTableEntry
 {
 public:

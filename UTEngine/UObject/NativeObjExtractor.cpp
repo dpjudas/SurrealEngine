@@ -17,7 +17,7 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 
 	pkginits += "void InitPropertyOffsets(PackageManager* packages)\r\n{\r\n";
 
-	for (std::string pkgname : { "Core", "Engine", "Fire" })
+	for (std::string pkgname : { "Core", "Engine", "Fire", "IpDrv", "IpServer" })
 	{
 		Package* package = packages->GetPackage(pkgname);
 		std::vector<UClass*> classes = package->GetAllClasses();
@@ -153,7 +153,7 @@ std::string NativeObjExtractor::WritePropertyGetter(const std::string& clsname, 
 	else if (UClass::TryCast<UMapProperty>(prop)) type = "std::map<void*, void*>*";
 	else if (UClass::TryCast<UClassProperty>(prop)) type = "UClass*";
 	else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name;
-	else if (UClass::TryCast<UNameProperty>(prop)) type = "std::string";
+	else if (UClass::TryCast<UNameProperty>(prop)) type = "NameString";
 	else if (UClass::TryCast<UStrProperty>(prop)) type = "std::string";
 	else if (UClass::TryCast<UStringProperty>(prop)) type = "std::string";
 

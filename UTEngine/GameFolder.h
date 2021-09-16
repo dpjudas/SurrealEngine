@@ -17,7 +17,7 @@ struct GameFolder
 class GameFolderSelection
 {
 public:
-	static GameLaunchInfo GetLaunchInfo(std::vector<std::string> args);
+	static GameLaunchInfo GetLaunchInfo();
 
 private:
 	static GameFolder ExamineFolder(const std::string& path);

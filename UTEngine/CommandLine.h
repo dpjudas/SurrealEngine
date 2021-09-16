@@ -38,3 +38,5 @@ private:
 	std::map<std::string, std::string> Args;
 	std::vector<std::string> Items;
 };
+
+extern CommandLine* commandline;

@@ -77,7 +77,7 @@ void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 	ReturnValue = c;
 }
 
-void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::string* MatchTag)
+void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString* MatchTag)
 {
 	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string());
 }
@@ -144,7 +144,7 @@ void NActor::FinishInterpolation(UObject* Self)
 		Self->StateFrame->LatentState = LatentRunState::FinishInterpolation;
 }
 
-void NActor::GetAnimGroup(UObject* Self, const std::string& Sequence, std::string& ReturnValue)
+void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
 }
@@ -271,7 +271,7 @@ void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 	ReturnValue = UObject::Cast<UActor>(Self)->Level()->URL.Map;
 }
 
-void NActor::HasAnim(UObject* Self, const std::string& Sequence, bool& ReturnValue)
+void NActor::HasAnim(UObject* Self, const NameString& Sequence, bool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->HasAnim(Sequence);
 }
@@ -286,7 +286,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 	throw std::runtime_error("Actor.LinkSkelAnim not implemented");
 }
 
-void NActor::LoopAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime, float* MinRate)
+void NActor::LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, float* MinRate)
 {
 	UObject::Cast<UActor>(Self)->LoopAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, MinRate ? *MinRate : 0.0f);
 }
@@ -331,7 +331,7 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 	ReturnValue = c;
 }
 
-void NActor::PlayAnim(UObject* Self, const std::string& Sequence, float* Rate, float* TweenTime)
+void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime)
 {
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
 }
@@ -417,7 +417,7 @@ void NActor::Sleep(UObject* Self, float Seconds)
 		Self->StateFrame->LatentState = LatentRunState::Sleep;
 }
 
-void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, std::string* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
+void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, NameString* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(UObject::Cast<UClass>(SpawnClass), SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : nullptr, SpawnTag ? *SpawnTag : std::string(), SpawnLocation, SpawnRotation);
 }
@@ -456,7 +456,7 @@ void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec
 		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
 }
 
-void NActor::TweenAnim(UObject* Self, const std::string& Sequence, float Time)
+void NActor::TweenAnim(UObject* Self, const NameString& Sequence, float Time)
 {
 	UObject::Cast<UActor>(Self)->TweenAnim(Sequence, Time);
 }

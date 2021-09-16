@@ -13,7 +13,7 @@ std::string NativeFuncExtractor::Run(PackageManager* packages)
 	std::string headers;
 	std::string bodies;
 
-	for (std::string pkgname : { "Core", "Engine" } /* packages->GetPackageNames() */)
+	for (std::string pkgname : { "Core", "Engine", "IpDrv", "IpServer" } /* packages->GetPackageNames() */)
 	{
 		Package* package = packages->GetPackage(pkgname);
 		std::vector<UClass*> classes = package->GetAllClasses();
@@ -121,7 +121,7 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 			else if (UClass::TryCast<UMapProperty>(prop)) { type = "UMap*"; pointer = true; }
 			else if (UClass::TryCast<UClassProperty>(prop)) { type = "UClass*"; pointer = true; }
 			else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name;
-			else if (UClass::TryCast<UNameProperty>(prop)) type = "std::string";
+			else if (UClass::TryCast<UNameProperty>(prop)) type = "NameString";
 			else if (UClass::TryCast<UStrProperty>(prop)) type = "std::string";
 			else if (UClass::TryCast<UStringProperty>(prop)) type = "std::string";
 

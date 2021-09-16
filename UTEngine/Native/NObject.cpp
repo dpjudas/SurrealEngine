@@ -355,7 +355,7 @@ void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue
 	ReturnValue = cross(A, B);
 }
 
-void NObject::Disable(UObject* Self, const std::string& ProbeFunc)
+void NObject::Disable(UObject* Self, const NameString& ProbeFunc)
 {
 	Self->DisabledEvents.insert(ProbeFunc);
 }
@@ -438,7 +438,7 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 	}
 }
 
-void NObject::Enable(UObject* Self, const std::string& ProbeFunc)
+void NObject::Enable(UObject* Self, const NameString& ProbeFunc)
 {
 	Self->DisabledEvents.erase(ProbeFunc);
 }
@@ -458,7 +458,7 @@ void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::EqualEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
 {
 	std::string empty;
 	const std::string* AA = (A != "None") ? &A : &empty;
@@ -519,7 +519,7 @@ void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 	Z.x = m[8]; Z.y = m[9]; Z.z = m[10];
 }
 
-void NObject::GetEnum(UObject* E, int i, std::string& ReturnValue)
+void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
 {
 	throw std::runtime_error("Object.GetEnum not implemented");
 }
@@ -529,7 +529,7 @@ void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::s
 	throw std::runtime_error("Object.GetPropertyText not implemented");
 }
 
-void NObject::GetStateName(UObject* Self, std::string& ReturnValue)
+void NObject::GetStateName(UObject* Self, NameString& ReturnValue)
 {
 	ReturnValue = Self->GetStateName();
 }
@@ -542,7 +542,7 @@ void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
 }
 
-void NObject::GotoState(UObject* Self, std::string* NewState, std::string* Label)
+void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)
 {
 	Self->GotoState(NewState ? *NewState : std::string(), Label ? *Label : std::string());
 }
@@ -610,12 +610,12 @@ void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
 	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
 }
 
-void NObject::IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue)
+void NObject::IsA(UObject* Self, const NameString& ClassName, bool& ReturnValue)
 {
 	ReturnValue = Self->IsA(ClassName);
 }
 
-void NObject::IsInState(UObject* Self, const std::string& TestState, bool& ReturnValue)
+void NObject::IsInState(UObject* Self, const NameString& TestState, bool& ReturnValue)
 {
 	ReturnValue = Self->GetStateName() == TestState;
 }
@@ -680,7 +680,7 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 	ReturnValue = engine->packages->Localize(PackageName, SectionName, KeyName);
 }
 
-void NObject::Log(const std::string& S, std::string* Tag)
+void NObject::Log(const std::string& S, NameString* Tag)
 {
 	if (Tag)
 		engine->LogMessage("[" + *Tag + "] " + S);
@@ -813,7 +813,7 @@ void NObject::NotEqual_IntInt(int A, int B, bool& ReturnValue)
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::NotEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
 {
 	std::string empty;
 	const std::string* AA = (A != "None") ? &A : &empty;

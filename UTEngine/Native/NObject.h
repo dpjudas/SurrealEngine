@@ -36,7 +36,7 @@ public:
 	static void Concat_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
 	static void Cos(float A, float& ReturnValue);
 	static void Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
-	static void Disable(UObject* Self, const std::string& ProbeFunc);
+	static void Disable(UObject* Self, const NameString& ProbeFunc);
 	static void DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
 	static void DivideEqual_FloatFloat(float& A, float B, float& ReturnValue);
 	static void DivideEqual_IntFloat(int& A, float B, int& ReturnValue);
@@ -48,11 +48,11 @@ public:
 	static void Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue);
 	static void Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue);
 	static void DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, bool* MayFail, UObject*& ReturnValue);
-	static void Enable(UObject* Self, const std::string& ProbeFunc);
+	static void Enable(UObject* Self, const NameString& ProbeFunc);
 	static void EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue);
 	static void EqualEqual_FloatFloat(float A, float B, bool& ReturnValue);
 	static void EqualEqual_IntInt(int A, int B, bool& ReturnValue);
-	static void EqualEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue);
+	static void EqualEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue);
 	static void EqualEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue);
 	static void EqualEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue);
 	static void EqualEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue);
@@ -63,11 +63,11 @@ public:
 	static void FMin(float A, float B, float& ReturnValue);
 	static void FRand(float& ReturnValue);
 	static void GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
-	static void GetEnum(UObject* E, int i, std::string& ReturnValue);
+	static void GetEnum(UObject* E, int i, NameString& ReturnValue);
 	static void GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue);
-	static void GetStateName(UObject* Self, std::string& ReturnValue);
+	static void GetStateName(UObject* Self, NameString& ReturnValue);
 	static void GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
-	static void GotoState(UObject* Self, std::string* NewState, std::string* Label);
+	static void GotoState(UObject* Self, NameString* NewState, NameString* Label);
 	static void GreaterEqual_FloatFloat(float A, float B, bool& ReturnValue);
 	static void GreaterEqual_IntInt(int A, int B, bool& ReturnValue);
 	static void GreaterEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue);
@@ -79,8 +79,8 @@ public:
 	static void Greater_StrStr(const std::string& A, const std::string& B, bool& ReturnValue);
 	static void InStr(const std::string& S, const std::string& t, int& ReturnValue);
 	static void Invert(vec3& X, vec3& Y, vec3& Z);
-	static void IsA(UObject* Self, const std::string& ClassName, bool& ReturnValue);
-	static void IsInState(UObject* Self, const std::string& TestState, bool& ReturnValue);
+	static void IsA(UObject* Self, const NameString& ClassName, bool& ReturnValue);
+	static void IsInState(UObject* Self, const NameString& TestState, bool& ReturnValue);
 	static void Left(const std::string& S, int i, std::string& ReturnValue);
 	static void Len(const std::string& S, int& ReturnValue);
 	static void Lerp(float Alpha, float A, float B, float& ReturnValue);
@@ -93,7 +93,7 @@ public:
 	static void Less_IntInt(int A, int B, bool& ReturnValue);
 	static void Less_StrStr(const std::string& A, const std::string& B, bool& ReturnValue);
 	static void Localize(const std::string& SectionName, const std::string& KeyName, const std::string& PackageName, std::string& ReturnValue);
-	static void Log(const std::string& S, std::string* Tag);
+	static void Log(const std::string& S, NameString* Tag);
 	static void Loge(float A, float& ReturnValue);
 	static void Max(int A, int B, int& ReturnValue);
 	static void Mid(const std::string& S, int i, int* j, std::string& ReturnValue);
@@ -118,7 +118,7 @@ public:
 	static void NotEqual_BoolBool(bool A, bool B, bool& ReturnValue);
 	static void NotEqual_FloatFloat(float A, float B, bool& ReturnValue);
 	static void NotEqual_IntInt(int A, int B, bool& ReturnValue);
-	static void NotEqual_NameName(const std::string& A, const std::string& B, bool& ReturnValue);
+	static void NotEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue);
 	static void NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue);
 	static void NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue);
 	static void NotEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue);

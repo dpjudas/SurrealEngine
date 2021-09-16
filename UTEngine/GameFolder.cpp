@@ -5,13 +5,11 @@
 #include "UTF16.h"
 #include "CommandLine.h"
 
-GameLaunchInfo GameFolderSelection::GetLaunchInfo(std::vector<std::string> args)
+GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
-	CommandLine commandline(args);
-
 	std::vector<GameFolder> foundGames;
 
-	for (const std::string& folder : commandline.GetItems())
+	for (const std::string& folder : commandline->GetItems())
 	{
 		GameFolder game = ExamineFolder(folder);
 		if (!game.name.empty())
@@ -34,9 +32,9 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo(std::vector<std::string> args)
 
 	GameLaunchInfo info = foundGames.front().launchInfo;
 
-	info.engineVersion = commandline.GetArgInt("-e", "--engineversion", info.engineVersion);
-	info.noEntryMap = commandline.HasArg("-n", "--noentrymap");
-	info.url = commandline.GetArg("-u", "--url", info.url);
+	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
+	info.noEntryMap = commandline->HasArg("-n", "--noentrymap");
+	info.url = commandline->GetArg("-u", "--url", info.url);
 
 	return info;
 }
