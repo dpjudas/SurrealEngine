@@ -14,6 +14,8 @@
 #include <immintrin.h>
 #endif
 
+#define NOFOG // The current fog implementation is just too slow!
+
 FTextureInfo LightRender::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
 	if (surface.LightMap < 0)
@@ -236,6 +238,9 @@ vec3 LightRender::FindLightAt(const vec3& location, int zoneIndex)
 
 FTextureInfo LightRender::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
+#ifdef NOFOG
+	return {};
+#else
 	if (!zoneActor->bFogZone() || surface.LightMap < 0)
 		return {};
 
@@ -274,6 +279,7 @@ FTextureInfo LightRender::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFa
 	fogmap.VScale = lmindex.VScale;
 	fogmap.bRealtimeChanged = firstDrawThisScene;
 	return fogmap;
+#endif
 }
 
 void LightRender::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
