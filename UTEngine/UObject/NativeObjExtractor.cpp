@@ -17,7 +17,7 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 
 	pkginits += "void InitPropertyOffsets(PackageManager* packages)\r\n{\r\n";
 
-	for (std::string pkgname : { "Core", "Engine", "Fire", "IpDrv", "IpServer" })
+	for (std::string pkgname : { "Core", "Engine", "Fire", "IpDrv" })
 	{
 		Package* package = packages->GetPackage(pkgname);
 		std::vector<UClass*> classes = package->GetAllClasses();
@@ -124,13 +124,11 @@ std::string NativeObjExtractor::WriteStructBody(Package* package, UClass* cls)
 	body += "static void InitPropertyOffsets_" + cls->Name + "(PackageManager* packages)\r\n{\r\n";
 	body += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + package->GetPackageName() + "\")->GetUObject(\"Class\", \"" + cls->Name + "\"));\r\n";
 	body += "\tif (!cls)\r\n";
-	body += "\tif (!cls)\r\n";
 	body += "\t{\r\n";
 	body += "\t\tmemset(&PropOffsets_" + cls->Name + ", 0xff, sizeof(PropOffsets_" + cls->Name + ")); \r\n";
 	body += "\t\treturn;\r\n";
 	body += "\t}\r\n";
 
-	body += "\t\tthrow std::runtime_error(\"Could not find class object for " + cls->Name + "\");\r\n";
 	for (auto& it : props)
 		body += it.second;
 	body += "}\r\n\r\n";

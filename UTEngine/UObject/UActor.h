@@ -935,6 +935,39 @@ public:
 	using UInfo::UInfo;
 };
 
+class UInternetLink : public UInternetInfo
+{
+public:
+	using UInternetInfo::UInternetInfo;
+
+	int& DataPending() { return Value<int>(PropOffsets_InternetLink.DataPending); }
+	uint8_t& LinkMode() { return Value<uint8_t>(PropOffsets_InternetLink.LinkMode); }
+	int& Port() { return Value<int>(PropOffsets_InternetLink.Port); }
+	int& PrivateResolveInfo() { return Value<int>(PropOffsets_InternetLink.PrivateResolveInfo); } // native
+	uint8_t& ReceiveMode() { return Value<uint8_t>(PropOffsets_InternetLink.ReceiveMode); }
+	int& RemoteSocket() { return Value<int>(PropOffsets_InternetLink.RemoteSocket); }
+	int& Socket() { return Value<int>(PropOffsets_InternetLink.Socket); }
+};
+
+class UTcpLink : public UInternetLink
+{
+public:
+	using UInternetLink::UInternetLink;
+
+	UClass*& AcceptClass() { return Value<UClass*>(PropOffsets_TcpLink.AcceptClass); }
+	uint8_t& LinkState() { return Value<uint8_t>(PropOffsets_TcpLink.LinkState); }
+	IpAddr& RemoteAddr() { return Value<IpAddr>(PropOffsets_TcpLink.RemoteAddr); }
+	std::vector<void*>& SendFIFO() { return Value<std::vector<void*>>(PropOffsets_TcpLink.SendFIFO); }
+};
+
+class UUdpLink : public UInternetLink
+{
+public:
+	using UInternetLink::UInternetLink;
+
+	int& BroadcastAddr() { return Value<int>(PropOffsets_UdpLink.BroadcastAddr); }
+};
+
 class UZoneInfo : public UInfo
 {
 public:

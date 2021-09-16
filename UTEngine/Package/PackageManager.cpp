@@ -23,6 +23,9 @@
 #include "Native/NStatLogFile.h"
 #include "Native/NWarpZoneInfo.h"
 #include "Native/NZoneInfo.h"
+#include "Native/NInternetLink.h"
+#include "Native/NTcpLink.h"
+#include "Native/NUdpLink.h"
 
 PackageManager::PackageManager(const std::string& basepath, int engineVersion) : basepath(basepath), engineVersion(engineVersion)
 {
@@ -42,6 +45,9 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion) :
 	NStatLogFile::RegisterFunctions();
 	NWarpZoneInfo::RegisterFunctions();
 	NZoneInfo::RegisterFunctions();
+	NInternetLink::RegisterFunctions();
+	NTcpLink::RegisterFunctions();
+	NUdpLink::RegisterFunctions();
 
 	try
 	{

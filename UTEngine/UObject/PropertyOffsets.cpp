@@ -2386,6 +2386,54 @@ static void InitPropertyOffsets_IceTexture(PackageManager* packages)
 	PropOffsets_IceTexture.VertPanSpeed = cls->GetPropertyDataOffset("VertPanSpeed");
 }
 
+PropertyOffsets_InternetLink PropOffsets_InternetLink;
+
+static void InitPropertyOffsets_InternetLink(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "InternetLink"));
+	if (!cls)
+	{
+		memset(&PropOffsets_InternetLink, 0xff, sizeof(PropOffsets_InternetLink));
+		return;
+	}
+	PropOffsets_InternetLink.DataPending = cls->GetProperty("DataPending")->DataOffset;
+	PropOffsets_InternetLink.LinkMode = cls->GetProperty("LinkMode")->DataOffset;
+	PropOffsets_InternetLink.Port = cls->GetProperty("Port")->DataOffset;
+	PropOffsets_InternetLink.PrivateResolveInfo = cls->GetProperty("PrivateResolveInfo")->DataOffset;
+	PropOffsets_InternetLink.ReceiveMode = cls->GetProperty("ReceiveMode")->DataOffset;
+	PropOffsets_InternetLink.RemoteSocket = cls->GetProperty("RemoteSocket")->DataOffset;
+	PropOffsets_InternetLink.Socket = cls->GetProperty("Socket")->DataOffset;
+}
+
+PropertyOffsets_UdpLink PropOffsets_UdpLink;
+
+static void InitPropertyOffsets_UdpLink(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "UdpLink"));
+	if (!cls)
+	{
+		memset(&PropOffsets_UdpLink, 0xff, sizeof(PropOffsets_UdpLink));
+		return;
+	}
+	PropOffsets_UdpLink.BroadcastAddr = cls->GetProperty("BroadcastAddr")->DataOffset;
+}
+
+PropertyOffsets_TcpLink PropOffsets_TcpLink;
+
+static void InitPropertyOffsets_TcpLink(PackageManager* packages)
+{
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "TcpLink"));
+	if (!cls)
+	{
+		memset(&PropOffsets_TcpLink, 0xff, sizeof(PropOffsets_TcpLink));
+		return;
+	}
+	PropOffsets_TcpLink.AcceptClass = cls->GetProperty("AcceptClass")->DataOffset;
+	PropOffsets_TcpLink.LinkState = cls->GetProperty("LinkState")->DataOffset;
+	PropOffsets_TcpLink.RemoteAddr = cls->GetProperty("RemoteAddr")->DataOffset;
+	PropOffsets_TcpLink.SendFIFO = cls->GetProperty("SendFIFO")->DataOffset;
+}
+
 void InitPropertyOffsets(PackageManager* packages)
 {
 	InitPropertyOffsets_Object(packages);
@@ -2463,4 +2511,7 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_FireTexture(packages);
 	InitPropertyOffsets_WetTexture(packages);
 	InitPropertyOffsets_IceTexture(packages);
+	InitPropertyOffsets_InternetLink(packages);
+	InitPropertyOffsets_UdpLink(packages);
+	InitPropertyOffsets_TcpLink(packages);
 }

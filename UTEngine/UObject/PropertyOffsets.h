@@ -1934,3 +1934,33 @@ struct PropertyOffsets_IceTexture
 };
 
 extern PropertyOffsets_IceTexture PropOffsets_IceTexture;
+
+struct PropertyOffsets_InternetLink
+{
+	size_t DataPending;
+	size_t LinkMode;
+	size_t Port;
+	size_t PrivateResolveInfo;
+	size_t ReceiveMode;
+	size_t RemoteSocket;
+	size_t Socket;
+};
+
+extern PropertyOffsets_InternetLink PropOffsets_InternetLink;
+
+struct PropertyOffsets_UdpLink
+{
+	size_t BroadcastAddr;
+};
+
+extern PropertyOffsets_UdpLink PropOffsets_UdpLink;
+
+struct PropertyOffsets_TcpLink
+{
+	size_t AcceptClass;
+	size_t LinkState;
+	size_t RemoteAddr;
+	size_t SendFIFO;
+};
+
+extern PropertyOffsets_TcpLink PropOffsets_TcpLink;

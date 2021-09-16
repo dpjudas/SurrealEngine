@@ -13,7 +13,7 @@ std::string NativeFuncExtractor::Run(PackageManager* packages)
 	std::string headers;
 	std::string bodies;
 
-	for (std::string pkgname : { "Core", "Engine", "IpDrv", "IpServer" } /* packages->GetPackageNames() */)
+	for (std::string pkgname : { "Core", "Engine", "IpDrv" } /* packages->GetPackageNames() */)
 	{
 		Package* package = packages->GetPackage(pkgname);
 		std::vector<UClass*> classes = package->GetAllClasses();

@@ -104,6 +104,7 @@ public:
 	const std::string& ToString() const;
 	const std::string& ToName() const;
 	const Color& ToColor() const;
+	const IpAddr& ToIpAddr() const;
 
 	template<typename T> T ToType();
 
@@ -154,6 +155,7 @@ template<> inline const vec3& ExpressionValue::ToType() { return ToVector(); }
 template<> inline const Rotator& ExpressionValue::ToType() { return ToRotator(); }
 template<> inline const std::string& ExpressionValue::ToType() { return ToString(); }
 template<> inline const Color& ExpressionValue::ToType() { return ToColor(); }
+template<> inline const IpAddr& ExpressionValue::ToType() { return ToIpAddr(); }
 
 // Pass by reference
 template<> inline uint8_t& ExpressionValue::ToType() { return !VariablePtr ? Value.Byte : *static_cast<uint8_t*>(VariablePtr); }
@@ -165,6 +167,7 @@ template<> inline vec3& ExpressionValue::ToType() { return !VariablePtr ? Value.
 template<> inline Rotator& ExpressionValue::ToType() { return !VariablePtr ? Value.Rotator_ : *static_cast<Rotator*>(VariablePtr); }
 template<> inline std::string& ExpressionValue::ToType() { return !VariablePtr ? ValueString : *static_cast<std::string*>(VariablePtr); }
 template<> inline Color& ExpressionValue::ToType() { return !VariablePtr ? Value.Color_ : *static_cast<Color*>(VariablePtr); }
+template<> inline IpAddr& ExpressionValue::ToType() { return *static_cast<IpAddr*>(!VariablePtr ? ValueStruct.Ptr : VariablePtr); }
 
 // Optional arguments
 template<> inline uint8_t* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<uint8_t&>() : nullptr; }
@@ -176,6 +179,7 @@ template<> inline vec3* ExpressionValue::ToType() { return Type != ExpressionVal
 template<> inline Rotator* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
 template<> inline std::string* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
 template<> inline Color* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
+template<> inline IpAddr* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<IpAddr&>() : nullptr; }
 
 inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 {
@@ -376,4 +380,12 @@ inline const Color& ExpressionValue::ToColor() const
 		return VariablePtr ? *static_cast<Color*>(VariablePtr) : Value.Color_;
 	else
 		throw std::runtime_error("Not a color value");
+}
+
+inline const IpAddr& ExpressionValue::ToIpAddr() const
+{
+	if (Type == ExpressionValueType::ValueStruct)
+		return *static_cast<IpAddr*>(VariablePtr ? VariablePtr : ValueStruct.Ptr);
+	else
+		throw std::runtime_error("Not a ipaddr/struct value");
 }

@@ -24,6 +24,7 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	std::string nameKey = GetNameKey(name);
 	bool corePackage = nameKey == "core";
 	bool enginePackage = nameKey == "engine";
+	bool ipdrvPackage = nameKey == "ipdrv";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
@@ -149,6 +150,10 @@ Package::Package(PackageManager* packageManager, const std::string& name, const 
 	RegisterNativeClass<UScout>(enginePackage, "Scout", "Pawn");
 	RegisterNativeClass<UPlayerPawn>(enginePackage, "PlayerPawn", "Pawn");
 	RegisterNativeClass<UCamera>(enginePackage, "Camera", "PlayerPawn");
+
+	RegisterNativeClass<UInternetLink>(ipdrvPackage, "InternetLink", "InternetInfo");
+	RegisterNativeClass<UTcpLink>(ipdrvPackage, "TcpLink", "InternetLink");
+	RegisterNativeClass<UUdpLink>(ipdrvPackage, "UdpLink", "InternetLink");
 
 	Objects.resize(ExportTable.size());
 }

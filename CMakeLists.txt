@@ -79,6 +79,12 @@ set(UTENGINE_SOURCES
 	UTEngine/Native/NObject.cpp
 	UTEngine/Native/NDecal.h
 	UTEngine/Native/NZoneInfo.h
+	UTEngine/Native/NInternetLink.cpp
+	UTEngine/Native/NInternetLink.h
+	UTEngine/Native/NTcpLink.cpp
+	UTEngine/Native/NTcpLink.h
+	UTEngine/Native/NUdpLink.cpp
+	UTEngine/Native/NUdpLink.h
 	UTEngine/RenderDevice/RenderDevice.h
 	UTEngine/RenderDevice/Vulkan/ShadowmapRenderPass.h
 	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.cpp

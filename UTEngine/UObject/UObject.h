@@ -80,6 +80,12 @@ public:
 inline bool operator==(const Color& a, const Color& b) { return a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A; }
 inline bool operator!=(const Color& a, const Color& b) { return a.R != b.R || a.G != b.G || a.B != b.B || a.A != b.A; }
 
+struct IpAddr
+{
+	int32_t Addr;
+	int32_t Port;
+};
+
 class ObjectDelayLoad
 {
 public:
