@@ -81,7 +81,7 @@ public:
 	float& MsgTick() { return Value<float>(PropOffsets_Console.MsgTick); }
 	float& MsgTickTime() { return Value<float>(PropOffsets_Console.MsgTickTime); }
 	float& MsgTime() { return Value<float>(PropOffsets_Console.MsgTime); }
-	std::string& MsgType() { return Value<std::string>(PropOffsets_Console.MsgType); }
+	NameString& MsgType() { return Value<NameString>(PropOffsets_Console.MsgType); }
 	std::string& PausedMessage() { return Value<std::string>(PropOffsets_Console.PausedMessage); }
 	std::string& PrecachingMessage() { return Value<std::string>(PropOffsets_Console.PrecachingMessage); }
 	std::string& SavingMessage() { return Value<std::string>(PropOffsets_Console.SavingMessage); }

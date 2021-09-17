@@ -202,7 +202,7 @@ public:
 	static std::string GetUClassName(UObject* obj);
 
 	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
-	std::string& uc_Name() { return Value<std::string>(PropOffsets_Object.Name); } // native
+	NameString& uc_Name() { return Value<NameString>(PropOffsets_Object.Name); } // native
 	int& uc_ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
 	int& uc_ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
 	UObject*& Outer() { return Value<UObject*>(PropOffsets_Object.Outer); } // native
