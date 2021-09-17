@@ -73,7 +73,7 @@ public:
 	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
 
-	MeshAnimSeq* GetSequence(const std::string& name)
+	MeshAnimSeq* GetSequence(const NameString& name)
 	{
 		for (MeshAnimSeq& seq : AnimSeqs)
 			if (seq.Name == name)

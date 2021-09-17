@@ -99,7 +99,7 @@ class UActor : public UObject
 public:
 	using UObject::UObject;
 
-	UActor* Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation);
+	UActor* Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation);
 	bool Destroy();
 	void InitBase();
 
@@ -147,13 +147,13 @@ public:
 	void UnTouch(UActor* actor);
 	static const int TouchingArraySize = 4;
 
-	bool HasAnim(const std::string& sequence);
+	bool HasAnim(const NameString& sequence);
 	bool IsAnimating();
 	void FinishAnim();
-	std::string GetAnimGroup(const std::string& sequence);
-	void PlayAnim(const std::string& sequence, float rate, float tweenTime);
-	void LoopAnim(const std::string& sequence, float rate, float tweenTime, float minRate);
-	void TweenAnim(const std::string& sequence, float tweenTime);
+	NameString GetAnimGroup(const NameString& sequence);
+	void PlayAnim(const NameString& sequence, float rate, float tweenTime);
+	void LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate);
+	void TweenAnim(const NameString& sequence, float tweenTime);
 
 	float SleepTimeLeft = 0.0f;
 

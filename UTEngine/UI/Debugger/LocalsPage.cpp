@@ -29,7 +29,7 @@ void LocalsPage::setFrame(Frame* frame)
 			void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
 
 			auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());
-			item->setText(0, prop->Name);
+			item->setText(0, prop->Name.ToString());
 			item->setText(1, prop->PrintValue(ptr));
 		}
 	}

@@ -17,13 +17,13 @@ public:
 class AllObjectsIterator : public Iterator
 {
 public:
-	AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, std::string MatchTag);
+	AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag);
 	bool Next() override;
 
 private:
 	UObject* BaseClass = nullptr;
 	UObject** ReturnValue = nullptr;
-	std::string MatchTag;
+	NameString MatchTag;
 	size_t index = 0;
 };
 

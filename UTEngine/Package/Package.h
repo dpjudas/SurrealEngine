@@ -71,9 +71,7 @@ private:
 	template<typename T>
 	void RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass = {})
 	{
-		std::string classNameKey = GetNameKey(className);
-
-		NativeClasses[classNameKey] = [](const std::string& name, UClass* cls, ObjectFlags flags) -> UObject*
+		NativeClasses[className] = [](const NameString& name, UClass* cls, ObjectFlags flags) -> UObject*
 		{
 			return new T(name, cls, flags);
 		};
@@ -83,54 +81,26 @@ private:
 			int objref = FindObjectReference("Class", className);
 			if (objref == 0)
 			{
-				if (NameHash.find(classNameKey) == NameHash.end())
+				if (NameHash.find(className) == NameHash.end())
 				{
 					NameTableEntry nameentry;
 					nameentry.Flags = 0;
 					nameentry.Name = className;
 					NameTable.push_back(nameentry);
-					NameHash[classNameKey] = (int)NameTable.size() - 1;
+					NameHash[className] = (int)NameTable.size() - 1;
 				}
 
 				ExportTableEntry entry;
 				entry.ObjClass = 0;
-				entry.ObjBase = baseClass.empty() ? 0 : FindObjectReference("Class", baseClass);
+				entry.ObjBase = baseClass.IsNone() ? 0 : FindObjectReference("Class", baseClass);
 				entry.ObjPackage = 0;
-				entry.ObjName = NameHash[classNameKey];
+				entry.ObjName = NameHash[className];
 				entry.ObjFlags = ObjectFlags::Native;
 				entry.ObjSize = 0;
 				entry.ObjOffset = 0;
 				ExportTable.push_back(entry);
 			}
 		}
-	}
-
-	static bool CompareNames(const std::string& name1, const std::string& name2)
-	{
-		if (name1.length() != name2.length())
-			return false;
-
-		size_t size = name1.length();
-		for (size_t i = 0; i < size; i++)
-		{
-			if (ToLower(name1[i]) != ToLower(name2[i]))
-				return false;
-		}
-		return true;
-	}
-
-	static char ToLower(char c)
-	{
-		return (c >= 'A' && c <= 'Z') ? c + 'a' - 'A' : c;
-	}
-
-	static std::string GetNameKey(NameString name)
-	{
-		for (char& c : name)
-		{
-			c = ToLower(c);
-		}
-		return name;
 	}
 
 	PackageManager* Packages = nullptr;
@@ -143,11 +113,11 @@ private:
 	std::vector<ExportTableEntry> ExportTable;
 	std::vector<ImportTableEntry> ImportTable;
 
-	std::map<std::string, int> NameHash;
+	std::map<NameString, int> NameHash;
 
 	std::vector<std::unique_ptr<UObject>> Objects;
 
-	std::map<std::string, std::function<UObject*(const std::string& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
+	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 
 	Package(const Package&) = delete;
 	Package& operator=(const Package&) = delete;

@@ -296,8 +296,8 @@ void Engine::LoadMap(const UnrealURL& url)
 
 		if (engine->packages->GetEngineVersion() > 219)
 		{
-			std::string attachTag = GameInfo->AttachTag();
-			if (!attachTag.empty() && attachTag != "None")
+			NameString attachTag = GameInfo->AttachTag();
+			if (!attachTag.IsNone())
 			{
 				for (UActor* actor : Level->Actors)
 				{
@@ -770,9 +770,9 @@ void Engine::LogMessage(const std::string& message)
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{
 			if (name.empty())
-				name = s->Name;
+				name = s->Name.ToString();
 			else
-				name = s->Name + "." + name;
+				name = s->Name.ToString() + "." + name;
 		}
 
 		LogMessageLine line;

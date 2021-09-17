@@ -4,5 +4,5 @@
 
 class UObject;
 
-ExpressionValue CallEvent(UObject* Context, const std::string& name, std::vector<ExpressionValue> args = {});
-UFunction* FindEventFunction(UObject* Context, const std::string& name);
+ExpressionValue CallEvent(UObject* Context, const NameString& name, std::vector<ExpressionValue> args = {});
+UFunction* FindEventFunction(UObject* Context, const NameString& name);

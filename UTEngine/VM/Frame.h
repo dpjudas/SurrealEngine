@@ -41,7 +41,7 @@ public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args);
 	static std::string GetCallstack();
 
-	static void AddBreakpoint(const std::string& package, const std::string& cls, const std::string& func, const std::string& state = {});
+	static void AddBreakpoint(const NameString& package, const NameString& cls, const NameString& func, const NameString& state = {});
 
 	static DebuggerWindow* Debugger;
 	static std::vector<Expression*> Breakpoints;
@@ -62,7 +62,7 @@ public:
 
 	Frame(UObject* instance, UStruct* func);
 
-	void GotoLabel(const std::string& label);
+	void GotoLabel(const NameString& label);
 	void Tick();
 
 	LatentRunState LatentState = LatentRunState::Continue;

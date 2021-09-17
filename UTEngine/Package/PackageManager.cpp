@@ -85,22 +85,20 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion) :
 
 Package* PackageManager::GetPackage(const NameString& name)
 {
-	std::string key = GetKey(name);
-
-	auto& package = packages[key];
+	auto& package = packages[name];
 	if (package)
 		return package.get();
 	
-	auto it = packageFilenames.find(key);
+	auto it = packageFilenames.find(name);
 	if (it != packageFilenames.end())
 	{
-		package = std::make_unique<Package>(this, key, it->second);
+		package = std::make_unique<Package>(this, name, it->second);
 	}
 	else
 	{
 		if (name == "UnrealI")
 			return GetPackage("UnrealShare");
-		throw std::runtime_error("Could not find package " + name);
+		throw std::runtime_error("Could not find package " + name.ToString());
 	}
 
 	return package.get();
@@ -120,23 +118,11 @@ void PackageManager::ScanFolder(const std::string& name, const std::string& sear
 	std::string packagedir = FilePath::combine(basepath, name);
 	for (std::string filename : Directory::files(FilePath::combine(packagedir, search)))
 	{
-		packageFilenames[GetKey(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
+		packageFilenames[NameString(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
 	}
 }
 
-std::string PackageManager::GetKey(NameString name)
-{
-	for (char& c : name)
-	{
-		if (c >= 'A' && c <= 'Z')
-		{
-			c = c - 'A' + 'a';
-		}
-	}
-	return name;
-}
-
-std::vector<std::string> PackageManager::GetPackageNames() const
+std::vector<NameString> PackageManager::GetPackageNames() const
 {
 	std::vector<NameString> names;
 	for (auto& it : packageFilenames)
@@ -187,29 +173,29 @@ void PackageManager::DelayLoadNow()
 	}
 }
 
-UObject* PackageManager::NewObject(const std::string& name, const std::string& package, const std::string& className)
+UObject* PackageManager::NewObject(const NameString& name, const NameString& package, const NameString& className)
 {
 	Package* pkg = GetPackage(package);
 	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
 	if (!cls)
-		throw std::runtime_error("Could not find class " + className);
+		throw std::runtime_error("Could not find class " + className.ToString());
 	return pkg->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
-UObject* PackageManager::NewObject(const std::string& name, UClass* cls)
+UObject* PackageManager::NewObject(const NameString& name, UClass* cls)
 {
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
 	return GetPackage("Engine")->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
-UClass* PackageManager::FindClass(const std::string& name)
+UClass* PackageManager::FindClass(const NameString& name)
 {
-	size_t pos = name.find('.');
-	if (pos == 0 || pos == std::string::npos || pos + 1 == name.size())
+	size_t pos = name.Value.find('.');
+	if (pos == 0 || pos == std::string::npos || pos + 1 == name.Value.size())
 		return nullptr;
 
-	std::string packageName = name.substr(0, pos);
-	std::string className = name.substr(pos + 1);
+	NameString packageName = name.Value.substr(0, pos);
+	NameString className = name.Value.substr(pos + 1);
 
 	try
 	{
@@ -221,16 +207,8 @@ UClass* PackageManager::FindClass(const std::string& name)
 	}
 }
 
-std::string PackageManager::GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName)
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
 {
-	/*
-	for (char& c : iniName)
-	{
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-	}
-	*/
-
 	if (iniName == "system" || iniName == "System")
 		iniName = unreal1 ? "Unreal" : "UnrealTournament";
 	else if (iniName == "user")
@@ -239,7 +217,7 @@ std::string PackageManager::GetIniValue(std::string iniName, const std::string& 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + iniName + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetValue(sectionName, keyName);
@@ -265,11 +243,11 @@ void PackageManager::LoadIntFiles()
 					obj.MetaClass = desc["MetaClass"];
 					obj.Description = desc["Description"];
 
-					std::string metaClass = obj.MetaClass;
+					NameString metaClass = obj.MetaClass;
 
-					size_t pos = metaClass.find_last_of('.');
+					size_t pos = metaClass.Value.find_last_of('.');
 					if (pos != std::string::npos)
-						metaClass = metaClass.substr(pos + 1);
+						metaClass = metaClass.Value.substr(pos + 1);
 
 					IntObjects[metaClass].push_back(std::move(obj));
 				}
@@ -280,11 +258,11 @@ void PackageManager::LoadIntFiles()
 					obj.Class = desc["Class"];
 					obj.Description = desc["Description"];
 
-					std::string cls = obj.Class;
+					NameString cls = obj.Class;
 
-					size_t pos = cls.find_last_of('.');
+					size_t pos = cls.Value.find_last_of('.');
 					if (pos != std::string::npos)
-						cls = cls.substr(pos + 1);
+						cls = cls.Value.substr(pos + 1);
 
 					IntObjects[cls].push_back(std::move(obj));
 				}
@@ -298,31 +276,23 @@ void PackageManager::LoadIntFiles()
 	}
 }
 
-std::vector<IntObject>& PackageManager::GetIntObjects(const std::string& metaclass)
+std::vector<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 {
-	size_t pos = metaclass.find_last_of('.');
+	size_t pos = metaclass.Value.find_last_of('.');
 	if (pos == std::string::npos)
 		return IntObjects[metaclass];
 	else
-		return IntObjects[metaclass.substr(pos + 1)];
+		return IntObjects[metaclass.Value.substr(pos + 1)];
 }
 
-std::string PackageManager::Localize(std::string packageName, const std::string& sectionName, const std::string& keyName)
+std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName)
 {
-	/*
-	for (char& c : packageName)
-	{
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-	}
-	*/
-
 	auto& intFile = intFiles[packageName];
 	if (!intFile)
 	{
 		try
 		{
-			intFile = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + packageName + ".int"));
+			intFile = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + packageName.ToString() + ".int"));
 		}
 		catch (...)
 		{
@@ -333,7 +303,7 @@ std::string PackageManager::Localize(std::string packageName, const std::string&
 	return intFile->GetValue(sectionName, keyName);
 }
 
-std::map<std::string, std::string> PackageManager::ParseIntPublicValue(const std::string& text)
+std::map<NameString, std::string> PackageManager::ParseIntPublicValue(const std::string& text)
 {
 	// Parse one of the following:
 	//
@@ -343,7 +313,7 @@ std::map<std::string, std::string> PackageManager::ParseIntPublicValue(const std
 	if (text.size() < 2 || text.front() != '(' || text.back() != ')')
 		return {};
 
-	std::map<std::string, std::string> desc;
+	std::map<NameString, std::string> desc;
 
 	// This would have been so much easier with a regular expression, but we can't use that as we have no idea what character set those .int files might be using
 	size_t pos = 1;

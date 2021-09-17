@@ -14,9 +14,9 @@ class NativeFunctions
 public:
 	static std::vector<UFunction*> FuncByIndex;
 	static std::vector<NativeFuncHandler> NativeByIndex;
-	static std::map<std::pair<std::string, std::string>, NativeFuncHandler> NativeByName;
+	static std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeByName;
 
-	static void RegisterHandler(const std::string& className, const std::string& funcName, int nativeIndex, NativeFuncHandler handler);
+	static void RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler);
 	static void RegisterNativeFunc(UFunction* func);
 };
 

@@ -30,7 +30,7 @@ std::string NativeFuncExtractor::Run(PackageManager* packages)
 
 std::string NativeFuncExtractor::WriteClassHeader(UClass* cls)
 {
-	std::map<std::string, std::string> funcs;
+	std::map<NameString, std::string> funcs;
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
@@ -44,7 +44,7 @@ std::string NativeFuncExtractor::WriteClassHeader(UClass* cls)
 		return {};
 
 	std::string header;
-	header += "\r\nclass N" + cls->Name + "\r\n";
+	header += "\r\nclass N" + cls->Name.ToString() + "\r\n";
 	header += "{\r\npublic:\r\n\tstatic void RegisterFunctions();\r\n\r\n";
 	for (auto& it : funcs) header += it.second;
 	header += "};\r\n";
@@ -53,14 +53,14 @@ std::string NativeFuncExtractor::WriteClassHeader(UClass* cls)
 
 std::string NativeFuncExtractor::WriteClassBody(UClass* cls)
 {
-	std::map<std::string, std::string> funcs;
+	std::map<NameString, std::string> funcs;
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
 		UFunction* func = UClass::TryCast<UFunction>(child);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
 		{
-			funcs[func->Name] = "void N" + cls->Name + "::" + WriteFunctionSignature(func) + "\r\n{\r\n\tthrow std::runtime_error(\"" + cls->Name + "." + func->Name + " not implemented\");\r\n}\r\n\r\n";
+			funcs[func->Name] = "void N" + cls->Name.ToString() + "::" + WriteFunctionSignature(func) + "\r\n{\r\n\tthrow std::runtime_error(\"" + cls->Name.ToString() + "." + func->Name.ToString() + " not implemented\");\r\n}\r\n\r\n";
 		}
 	}
 
@@ -81,13 +81,13 @@ std::string NativeFuncExtractor::WriteClassBody(UClass* cls)
 					numargs++;
 			}
 
-			registrations[func->Name] = "\tRegisterVMNativeFunc_" + std::to_string(numargs) + "(\"" + cls->Name + "\", \"" + func->Name + "\", &N" + cls->Name + "::" + func->Name + ", " + std::to_string(func->NativeFuncIndex) + ");\r\n";
+			registrations[func->Name.ToString()] = "\tRegisterVMNativeFunc_" + std::to_string(numargs) + "(\"" + cls->Name.ToString() + "\", \"" + func->Name.ToString() + "\", &N" + cls->Name.ToString() + "::" + func->Name.ToString() + ", " + std::to_string(func->NativeFuncIndex) + ");\r\n";
 		}
 	}
 
 	std::string body;
 
-	body += "void N" + cls->Name + "::RegisterFunctions()\r\n{\r\n";
+	body += "void N" + cls->Name.ToString() + "::RegisterFunctions()\r\n{\r\n";
 	for (auto& it : registrations) body += it.second;
 	body += "}\r\n\r\n";
 	for (auto& it : funcs) body += it.second;
@@ -120,12 +120,12 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 			else if (UClass::TryCast<UArrayProperty>(prop)) { type = "UArray*"; pointer = true; }
 			else if (UClass::TryCast<UMapProperty>(prop)) { type = "UMap*"; pointer = true; }
 			else if (UClass::TryCast<UClassProperty>(prop)) { type = "UClass*"; pointer = true; }
-			else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name;
+			else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name.ToString();
 			else if (UClass::TryCast<UNameProperty>(prop)) type = "NameString";
 			else if (UClass::TryCast<UStrProperty>(prop)) type = "std::string";
 			else if (UClass::TryCast<UStringProperty>(prop)) type = "std::string";
 
-			if (type == "Vector") type = "vec3";
+			if (NameString(type) == "Vector") type = "vec3";
 
 			if (!args.empty()) args += ", ";
 
@@ -133,10 +133,10 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 			else if (AnyFlags(prop->PropFlags, PropertyFlags::OutParm | PropertyFlags::ReturnParm)) type += "&";
 			else if (!pointer && !primitive) type = "const " + type + "&";
 
-			args += type + " " + prop->Name;
+			args += type + " " + prop->Name.ToString();
 		}
 	}
 
-	return func->Name + "(" + args + ")";
+	return func->Name.ToString() + "(" + args + ")";
 }
 

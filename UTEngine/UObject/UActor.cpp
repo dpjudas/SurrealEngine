@@ -10,7 +10,7 @@
 
 static std::string tickEventName = "Tick";
 
-UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
+UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
 	// To do: return null if spawn location isn't valid
 
@@ -28,7 +28,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, std::string SpawnT
 	actor->Outer() = XLevel()->Outer();
 	actor->XLevel() = XLevel();
 	actor->Level() = Level();
-	actor->Tag() = (!SpawnTag.empty() && SpawnTag != "None") ? SpawnTag : SpawnClass->Name;
+	actor->Tag() = (!SpawnTag.IsNone()) ? SpawnTag : SpawnClass->Name;
 	actor->bTicked() = bTicked(); // To do: should it tick in the same world tick it was spawned in or wait until the next one?
 	actor->Instigator() = Instigator();
 	actor->Brush() = nullptr;
@@ -86,8 +86,8 @@ void UActor::InitBase()
 {
 	if (engine->packages->GetEngineVersion() > 219)
 	{
-		std::string attachTag = AttachTag();
-		if (!attachTag.empty() && attachTag != "None")
+		NameString attachTag = AttachTag();
+		if (!attachTag.IsNone())
 		{
 			for (UActor* levelActor : XLevel()->Actors)
 			{
@@ -992,7 +992,7 @@ bool UActor::MoveSmooth(const vec3& delta)
 	return hit.Fraction != 1.0f;
 }
 
-bool UActor::HasAnim(const std::string& sequence)
+bool UActor::HasAnim(const NameString& sequence)
 {
 	return Mesh() && Mesh()->GetSequence(sequence);
 }
@@ -1014,7 +1014,7 @@ void UActor::FinishAnim()
 		StateFrame->LatentState = LatentRunState::FinishAnim;
 }
 
-std::string UActor::GetAnimGroup(const std::string& sequence)
+NameString UActor::GetAnimGroup(const NameString& sequence)
 {
 	if (Mesh())
 	{
@@ -1041,7 +1041,7 @@ std::string UActor::GetAnimGroup(const std::string& sequence)
 // bAnimNotify   - true if animation notify events should be fired when animating
 // bAnimFinished - true if AnimLast was reached and there's no looping
 
-void UActor::PlayAnim(const std::string& sequence, float rate, float tweenTime)
+void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 {
 	if (Mesh())
 	{
@@ -1062,7 +1062,7 @@ void UActor::PlayAnim(const std::string& sequence, float rate, float tweenTime)
 	}
 }
 
-void UActor::LoopAnim(const std::string& sequence, float rate, float tweenTime, float minRate)
+void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate)
 {
 	if (Mesh())
 	{
@@ -1086,7 +1086,7 @@ void UActor::LoopAnim(const std::string& sequence, float rate, float tweenTime, 
 	}
 }
 
-void UActor::TweenAnim(const std::string& sequence, float tweenTime)
+void UActor::TweenAnim(const NameString& sequence, float tweenTime)
 {
 	if (Mesh())
 	{

@@ -102,7 +102,7 @@ void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 
 void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.LineOfSightTo(" + UObject::GetUClassName(Other) + ")");
+	engine->LogUnimplemented("Pawn.LineOfSightTo(" + UObject::GetUClassName(Other).ToString() + ")");
 	ReturnValue = false;
 }
 

@@ -145,6 +145,7 @@ public:
 	vec3 GetVector(const NameString& name) const;
 	Rotator GetRotator(const NameString& name) const;
 	const std::string& GetString(const NameString& name) const;
+	const NameString& GetName(const NameString& name) const;
 	UObject* GetUObject(const NameString& name);
 	Color GetColor(const NameString& name);
 
@@ -155,6 +156,7 @@ public:
 	void SetVector(const NameString& name, const vec3& value);
 	void SetRotator(const NameString& name, const Rotator& value);
 	void SetString(const NameString& name, const std::string& value);
+	void SetName(const NameString& name, const NameString& value);
 	void SetObject(const NameString& name, const UObject* value);
 
 	bool IsA(const NameString& className) const;
@@ -188,7 +190,7 @@ public:
 		T* target = dynamic_cast<T*>(obj);
 		if (target == nullptr && obj != nullptr)
 		{
-			throw std::runtime_error("Could not cast object " + obj->Name + " (class " + GetUClassName(obj) + ") to " + (std::string)typeid(T).name());
+			throw std::runtime_error("Could not cast object " + obj->Name.ToString() + " (class " + GetUClassName(obj).ToString() + ") to " + (std::string)typeid(T).name());
 		}
 		return target;
 	}

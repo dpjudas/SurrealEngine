@@ -18,11 +18,11 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
-void Frame::AddBreakpoint(const std::string& packageName, const std::string& clsName, const std::string& funcName, const std::string& stateName)
+void Frame::AddBreakpoint(const NameString& packageName, const NameString& clsName, const NameString& funcName, const NameString& stateName)
 {
 	Package* pkg = engine->packages->GetPackage(packageName);
 	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", clsName));
-	if (stateName.empty())
+	if (stateName.IsNone())
 	{
 		for (UField* child = cls->Children; child; child = child->Next)
 		{
@@ -144,9 +144,9 @@ std::string Frame::GetCallstack()
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{
 			if (name.empty())
-				name = s->Name;
+				name = s->Name.ToString();
 			else
-				name = s->Name + "." + name;
+				name = s->Name.ToString() + "." + name;
 		}
 		if (func)
 			name += " line " + std::to_string(func->Line);
@@ -200,7 +200,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				if (callback)
 					callback(instance, args.data());
 				else
-					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name + "." + func->Name);
+					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
 			}
 			else
 			{
@@ -208,7 +208,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				if (callback)
 					callback(instance, args.data());
 				else
-					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name + "." + func->Name);
+					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
 			}
 		}
 		catch (const std::exception& e)
@@ -281,14 +281,14 @@ Frame::Frame(UObject* instance, UStruct* func)
 	Func = func;
 }
 
-void Frame::GotoLabel(const std::string& label)
+void Frame::GotoLabel(const NameString& label)
 {
 	for (UClass* cls = Object->Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		UState* state = cls->GetState(Func->Name);
 		if (state)
 		{
-			int labelIndex = state->Code->FindLabelIndex(label.empty() ? "Begin" : label);
+			int labelIndex = state->Code->FindLabelIndex(label.IsNone() ? NameString("Begin") : label);
 			if (labelIndex != -1)
 			{
 				Func = state;

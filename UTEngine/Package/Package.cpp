@@ -21,10 +21,9 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 {
 	ReadTables();
 
-	std::string nameKey = GetNameKey(name);
-	bool corePackage = nameKey == "core";
-	bool enginePackage = nameKey == "engine";
-	bool ipdrvPackage = nameKey == "ipdrv";
+	bool corePackage = name == "core";
+	bool enginePackage = name == "engine";
+	bool ipdrvPackage = name == "ipdrv";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
@@ -181,7 +180,7 @@ UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectF
 {
 	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
 	{
-		auto it = NativeClasses.find(GetNameKey(cur->Name));
+		auto it = NativeClasses.find(cur->Name);
 		if (it != NativeClasses.end())
 		{
 			UObject* obj = it->second(objname, objclass, flags);
@@ -189,14 +188,14 @@ UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectF
 			{
 				obj->PropertyData.Init(objclass);
 				obj->SetObject("Class", obj->Class);
-				obj->SetString("Name", obj->Name);
+				obj->SetName("Name", obj->Name);
 				obj->SetInt("ObjectFlags", (int)obj->Flags);
 			}
 			return obj;
 		}
 	}
 
-	throw std::runtime_error("Could not find the native class for " + objname);
+	throw std::runtime_error("Could not find the native class for " + objname.ToString());
 }
 
 void Package::LoadExportObject(int index)
@@ -213,7 +212,7 @@ void Package::LoadExportObject(int index)
 		if (!objclass)
 		{
 			objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
-			throw std::runtime_error("Could not find the object class for " + objname);
+			throw std::runtime_error("Could not find the object class for " + objname.ToString());
 		}
 
 		Objects[index].reset(NewObject(objname, objclass, ExportTable[index].ObjFlags, false));
@@ -289,27 +288,27 @@ UObject* Package::GetUObject(const NameString& className, const NameString& obje
 
 int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName)
 {
-	bool isClass = CompareNames(className, "Class");
+	bool isClass = className == "Class";
 
 	size_t count = ExportTable.size();
 	for (size_t index = 0; index < count; index++)
 	{
 		ExportTableEntry& entry = ExportTable[index];
-		if (!CompareNames(GetName(entry.ObjName), objectName))
+		if (GetName(entry.ObjName) != objectName)
 			continue;
 
-		if (!groupName.empty())
+		if (!groupName.IsNone())
 		{
 			if (entry.ObjPackage > 0)
 			{
 				auto package = GetExportEntry(entry.ObjPackage);
-				if (package && !CompareNames(groupName, GetName(package->ObjName)))
+				if (package && groupName != GetName(package->ObjName))
 					continue;
 			}
 			else if (entry.ObjPackage < 0)
 			{
 				auto package = GetImportEntry(entry.ObjPackage);
-				if (package && !CompareNames(groupName, GetName(package->ObjName)))
+				if (package && groupName != GetName(package->ObjName))
 					continue;
 			}
 			else
@@ -327,13 +326,13 @@ int Package::FindObjectReference(const NameString& className, const NameString& 
 			else if (entry.ObjClass < 0)
 			{
 				auto classImport = GetImportEntry(entry.ObjClass);
-				if (classImport && CompareNames(className, GetName(classImport->ObjName)))
+				if (classImport && className == GetName(classImport->ObjName))
 					return (int)index + 1;
 			}
 			else
 			{
 				auto classExport = &ExportTable[entry.ObjClass + 1];
-				if (classExport && CompareNames(className, GetName(classExport->ObjName)))
+				if (classExport && className == GetName(classExport->ObjName))
 					return (int)index + 1;
 			}
 		}
@@ -342,7 +341,7 @@ int Package::FindObjectReference(const NameString& className, const NameString& 
 			UClass* cls = UObject::Cast<UClass>(GetUObject(entry.ObjClass));
 			while (cls)
 			{
-				if (CompareNames(className, cls->Name))
+				if (className == cls->Name)
 					return (int)index + 1;
 				cls = static_cast<UClass*>(cls->BaseStruct);
 			}
@@ -437,7 +436,7 @@ void Package::ReadTables()
 		entry.Name = stream->ReadString();
 		entry.Flags = stream->ReadInt32();
 		NameTable.push_back(entry);
-		NameHash[GetNameKey(entry.Name)] = i;
+		NameHash[entry.Name] = i;
 	}
 
 	stream->Seek(exportOffset);

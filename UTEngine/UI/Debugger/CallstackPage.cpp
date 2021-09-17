@@ -56,9 +56,9 @@ void CallstackPage::updateList()
 			for (UStruct* s = func; s != nullptr; s = s->StructParent)
 			{
 				if (name.empty())
-					name = s->Name;
+					name = s->Name.ToString();
 				else
-					name = s->Name + "." + name;
+					name = s->Name.ToString() + "." + name;
 			}
 
 			auto item = (TextListViewItem*)listview->rootItem()->add(std::make_unique<TextListViewItem>());

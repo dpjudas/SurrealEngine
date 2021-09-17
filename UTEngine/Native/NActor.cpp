@@ -158,7 +158,7 @@ void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, st
 {
 	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
-		ReturnValue = objects[Num].Name;
+		ReturnValue = objects[Num].Name.ToString();
 	else
 		ReturnValue = {};
 }
@@ -168,7 +168,7 @@ void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num
 	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
 	{
-		Entry = objects[Num].Name;
+		Entry = objects[Num].Name.ToString();
 		Description = objects[Num].Description;
 	}
 	else
@@ -224,7 +224,7 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 	// Filter list to only those with the matching skin prefix
 	for (const IntObject& skin : engine->packages->GetIntObjects("Texture"))
 	{
-		if (skin.Name.size() >= prefix.size() && skin.Name.substr(0, prefix.size()) == prefix)
+		if (skin.Name.Value.size() >= prefix.size() && skin.Name.Value.substr(0, prefix.size()) == prefix)
 			skins.push_back(&skin);
 	}
 
@@ -240,7 +240,7 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 			else if (index >= (int)skins.size())
 				index = 0;
 
-			SkinName = skins[index]->Name;
+			SkinName = skins[index]->Name.ToString();
 			SkinDesc = skins[index]->Description;
 			return;
 		}
@@ -249,7 +249,7 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 	// Grab first skin if skin wasn't found or none was specified
 	if (!skins.empty())
 	{
-		SkinName = skins.front()->Name;
+		SkinName = skins.front()->Name.ToString();
 		SkinDesc = skins.front()->Description;
 	}
 	else
@@ -419,7 +419,7 @@ void NActor::Sleep(UObject* Self, float Seconds)
 
 void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, NameString* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
 {
-	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(UObject::Cast<UClass>(SpawnClass), SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : nullptr, SpawnTag ? *SpawnTag : std::string(), SpawnLocation, SpawnRotation);
+	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(UObject::Cast<UClass>(SpawnClass), SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : nullptr, SpawnTag ? *SpawnTag : NameString(), SpawnLocation, SpawnRotation);
 }
 
 void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue)

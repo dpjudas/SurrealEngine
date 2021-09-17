@@ -127,7 +127,7 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ name=\"" + obj->Name + "\", class=" + UObject::GetUClassName(obj) + " }";
+			return "{ name=\"" + obj->Name.ToString() + "\", class=" + UObject::GetUClassName(obj).ToString() + " }";
 		else
 			return "null";
 	}
@@ -311,7 +311,7 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ class=\"" + obj->Name + " }";
+			return "{ class=\"" + obj->Name.ToString() + " }";
 		else
 			return "null";
 	}
@@ -343,7 +343,7 @@ public:
 				if (fieldprop)
 				{
 					print += print.empty() ? " " : ", ";
-					print += fieldprop->Name;
+					print += fieldprop->Name.ToString();
 					print += " = ";
 					print += fieldprop->PrintValue(d + fieldprop->DataOffset);
 				}
@@ -418,7 +418,7 @@ public:
 			str[i].~NameString();
 	}
 
-	std::string PrintValue(void* data) override { return *(NameString*)data; }
+	std::string PrintValue(void* data) override { return ((NameString*)data)->ToString(); }
 };
 
 class UStrProperty : public UProperty

@@ -10,7 +10,7 @@ class UObject;
 class ObjectStream
 {
 public:
-	ObjectStream(Package* package, std::unique_ptr<uint64_t[]> buf, size_t startoffset, size_t size, ObjectFlags flags, const std::string& name, UClass* base) : package(package), buffer(std::move(buf)), data(reinterpret_cast<const uint8_t*>(buffer.get())), startoffset(startoffset), size(size), flags(flags), name(name), base(base) { }
+	ObjectStream(Package* package, std::unique_ptr<uint64_t[]> buf, size_t startoffset, size_t size, ObjectFlags flags, const NameString& name, UClass* base) : package(package), buffer(std::move(buf)), data(reinterpret_cast<const uint8_t*>(buffer.get())), startoffset(startoffset), size(size), flags(flags), name(name), base(base) { }
 
 	void ReadBytes(void* d, uint32_t s)
 	{
@@ -146,7 +146,7 @@ public:
 		return package->GetUObject(objref);
 	}
 
-	const std::string& GetObjectName() const
+	const NameString& GetObjectName() const
 	{
 		return name;
 	}
@@ -169,6 +169,6 @@ private:
 	size_t size = 0;
 	size_t pos = 0;
 	ObjectFlags flags = {};
-	std::string name;
+	NameString name;
 	UClass* base = nullptr;
 };

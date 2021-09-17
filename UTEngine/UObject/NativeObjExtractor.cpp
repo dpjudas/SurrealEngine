@@ -43,7 +43,7 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 			}
 
 			if (propFound)
-				pkginits += "\tInitPropertyOffsets_" + cls->Name + "(packages);\r\n";
+				pkginits += "\tInitPropertyOffsets_" + cls->Name.ToString() + "(packages);\r\n";
 		}
 
 	}
@@ -55,33 +55,32 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 
 std::string NativeObjExtractor::WriteStructHeader(UClass* cls)
 {
-	std::map<std::string, std::string> locations;
+	std::map<NameString, std::string> locations;
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(child);
 		if (prop)
 		{
-			locations[prop->Name] = "\tsize_t " + prop->Name + ";\r\n";
+			locations[prop->Name] = "\tsize_t " + prop->Name.ToString() + ";\r\n";
 		}
 	}
 	if (locations.empty())
 		return {};
 
 	std::string header;
-	header += "struct PropertyOffsets_" + cls->Name + "\r\n";
+	header += "struct PropertyOffsets_" + cls->Name.ToString() + "\r\n";
 	header += "{\r\n";
 	for (auto& it : locations)
 		header += it.second;
 	header += "};\r\n\r\n";
-	header += "extern PropertyOffsets_" + cls->Name + " PropOffsets_" + cls->Name + ";\r\n\r\n";
+	header += "extern PropertyOffsets_" + cls->Name.ToString() + " PropOffsets_" + cls->Name.ToString() + ";\r\n\r\n";
 	return header;
 }
 
 std::string NativeObjExtractor::WriteClassHeader(UClass* cls)
 {
-	std::map<std::string, std::string> props;
-	std::map<std::string, std::string> locations;
+	std::map<NameString, std::string> props;
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
@@ -95,7 +94,7 @@ std::string NativeObjExtractor::WriteClassHeader(UClass* cls)
 		return {};
 
 	std::string header;
-	header += "\r\nclass U" + cls->Name + "\r\n";
+	header += "\r\nclass U" + cls->Name.ToString() + "\r\n";
 	header += "{\r\npublic:\r\n";
 	for (auto& it : props)
 		header += it.second;
@@ -105,14 +104,14 @@ std::string NativeObjExtractor::WriteClassHeader(UClass* cls)
 
 std::string NativeObjExtractor::WriteStructBody(Package* package, UClass* cls)
 {
-	std::map<std::string, std::string> props;
+	std::map<NameString, std::string> props;
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(child);
 		if (prop)
 		{
-			props[prop->Name] = "\tPropOffsets_" + cls->Name + "." + prop->Name + " = cls->GetProperty(\"" + prop->Name + "\")->DataOffset;\r\n";
+			props[prop->Name] = "\tPropOffsets_" + cls->Name.ToString() + "." + prop->Name.ToString() + " = cls->GetProperty(\"" + prop->Name.ToString() + "\")->DataOffset;\r\n";
 		}
 	}
 	if (props.empty())
@@ -120,12 +119,12 @@ std::string NativeObjExtractor::WriteStructBody(Package* package, UClass* cls)
 
 	std::string body;
 
-	body += "PropertyOffsets_" + cls->Name + " PropOffsets_" + cls->Name + ";\r\n\r\n";
-	body += "static void InitPropertyOffsets_" + cls->Name + "(PackageManager* packages)\r\n{\r\n";
-	body += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + package->GetPackageName() + "\")->GetUObject(\"Class\", \"" + cls->Name + "\"));\r\n";
+	body += "PropertyOffsets_" + cls->Name.ToString() + " PropOffsets_" + cls->Name.ToString() + ";\r\n\r\n";
+	body += "static void InitPropertyOffsets_" + cls->Name.ToString() + "(PackageManager* packages)\r\n{\r\n";
+	body += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + package->GetPackageName().ToString() + "\")->GetUObject(\"Class\", \"" + cls->Name.ToString() + "\"));\r\n";
 	body += "\tif (!cls)\r\n";
 	body += "\t{\r\n";
-	body += "\t\tmemset(&PropOffsets_" + cls->Name + ", 0xff, sizeof(PropOffsets_" + cls->Name + ")); \r\n";
+	body += "\t\tmemset(&PropOffsets_" + cls->Name.ToString() + ", 0xff, sizeof(PropOffsets_" + cls->Name.ToString() + ")); \r\n";
 	body += "\t\treturn;\r\n";
 	body += "\t}\r\n";
 
@@ -136,7 +135,7 @@ std::string NativeObjExtractor::WriteStructBody(Package* package, UClass* cls)
 	return body;
 }
 
-std::string NativeObjExtractor::WritePropertyGetter(const std::string& clsname, UProperty* prop)
+std::string NativeObjExtractor::WritePropertyGetter(const NameString& clsname, UProperty* prop)
 {
 	std::string type;
 	std::string comment;
@@ -144,18 +143,18 @@ std::string NativeObjExtractor::WritePropertyGetter(const std::string& clsname, 
 	if (UClass::TryCast<UIntProperty>(prop)) type = "int";
 	else if (UClass::TryCast<UByteProperty>(prop)) type = "uint8_t";
 	else if (UClass::TryCast<UBoolProperty>(prop)) type = "bool";
-	else if (UClass::TryCast<UObjectProperty>(prop)) { type = "UObject*"; auto objprop = UClass::Cast<UObjectProperty>(prop); if (objprop->ObjectClass && objprop->ObjectClass->Name != "Object") type = "U" + objprop->ObjectClass->Name + "*"; }
+	else if (UClass::TryCast<UObjectProperty>(prop)) { type = "UObject*"; auto objprop = UClass::Cast<UObjectProperty>(prop); if (objprop->ObjectClass && objprop->ObjectClass->Name != "Object") type = "U" + objprop->ObjectClass->Name.ToString() + "*"; }
 	else if (UClass::TryCast<UFloatProperty>(prop)) type = "float";
 	else if (UClass::TryCast<UFixedArrayProperty>(prop)) type = "std::vector<void*>";
 	else if (UClass::TryCast<UArrayProperty>(prop)) type = "std::vector<void*>";
 	else if (UClass::TryCast<UMapProperty>(prop)) type = "std::map<void*, void*>*";
 	else if (UClass::TryCast<UClassProperty>(prop)) type = "UClass*";
-	else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name;
+	else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name.ToString();
 	else if (UClass::TryCast<UNameProperty>(prop)) type = "NameString";
 	else if (UClass::TryCast<UStrProperty>(prop)) type = "std::string";
 	else if (UClass::TryCast<UStringProperty>(prop)) type = "std::string";
 
-	if (type == "Vector") type = "vec3";
+	if (NameString(type) == "Vector") type = "vec3";
 
 	if (AllFlags(prop->PropFlags, PropertyFlags::Native))
 	{
@@ -167,5 +166,5 @@ std::string NativeObjExtractor::WritePropertyGetter(const std::string& clsname, 
 	if (!comment.empty())
 		comment = " // " + comment;
 
-	return type + "& " + prop->Name + "() { return Value<" + type + ">(PropOffsets_" + clsname + "." + prop->Name + "); }" + comment;
+	return type + "& " + prop->Name.ToString() + "() { return Value<" + type + ">(PropOffsets_" + clsname.ToString() + "." + prop->Name.ToString() + "); }" + comment;
 }

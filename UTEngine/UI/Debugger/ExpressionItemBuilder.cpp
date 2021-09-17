@@ -28,7 +28,7 @@ void ExpressionItemBuilder::Expr(LocalVariableExpression* expr)
 {
 	item->setText(0, "Local variable");
 	if (expr->Variable)
-		item->setText(2, expr->Variable->Name);
+		item->setText(2, expr->Variable->Name.ToString());
 	else
 		item->setText(2, "(null)");
 }
@@ -37,7 +37,7 @@ void ExpressionItemBuilder::Expr(InstanceVariableExpression* expr)
 {
 	item->setText(0, "Instance variable");
 	if (expr->Variable)
-		item->setText(2, expr->Variable->Name);
+		item->setText(2, expr->Variable->Name.ToString());
 	else
 		item->setText(2, "(null)");
 }
@@ -46,7 +46,7 @@ void ExpressionItemBuilder::Expr(DefaultVariableExpression* expr)
 {
 	item->setText(0, "Default variable");
 	if (expr->Variable)
-		item->setText(2, expr->Variable->Name);
+		item->setText(2, expr->Variable->Name.ToString());
 	else
 		item->setText(2, "(null)");
 }
@@ -210,7 +210,7 @@ void ExpressionItemBuilder::Expr(ObjectConstExpression* expr)
 {
 	item->setText(0, "Object const");
 	if (expr->Object)
-		item->setText(2, "{ name=\"" + expr->Object->Name + "\", class=" + UObject::GetUClassName(expr->Object) + " }");
+		item->setText(2, "{ name=\"" + expr->Object->Name.ToString() + "\", class=" + UObject::GetUClassName(expr->Object).ToString() + " }");
 	else
 		item->setText(2, "null");
 }
@@ -218,7 +218,7 @@ void ExpressionItemBuilder::Expr(ObjectConstExpression* expr)
 void ExpressionItemBuilder::Expr(NameConstExpression* expr)
 {
 	item->setText(0, "Name const");
-	item->setText(2, expr->Value);
+	item->setText(2, expr->Value.ToString());
 }
 
 void ExpressionItemBuilder::Expr(RotationConstExpression* expr)
@@ -267,7 +267,7 @@ void ExpressionItemBuilder::Expr(NativeParmExpression* expr)
 {
 	item->setText(0, "Native parm");
 	if (expr->Object)
-		item->setText(2, expr->Object->Name);
+		item->setText(2, expr->Object->Name.ToString());
 	else
 		item->setText(2, "(null)");
 }
@@ -345,7 +345,7 @@ void ExpressionItemBuilder::Expr(StructMemberExpression* expr)
 	auto fieldItem = std::make_unique<TextListViewItem>();
 	fieldItem->setText(0, "Property");
 	fieldItem->setText(1, "Field");
-	fieldItem->setText(2, expr->Field->Name);
+	fieldItem->setText(2, expr->Field->Name.ToString());
 	item->add(std::move(fieldItem));
 }
 
@@ -550,7 +550,7 @@ void ExpressionItemBuilder::Expr(RotatorToStringExpression* expr)
 void ExpressionItemBuilder::Expr(VirtualFunctionExpression* expr)
 {
 	item->setText(0, "Virtual function");
-	item->setText(2, expr->Name);
+	item->setText(2, expr->Name.ToString());
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -574,7 +574,7 @@ void ExpressionItemBuilder::Expr(FinalFunctionExpression* expr)
 void ExpressionItemBuilder::Expr(GlobalFunctionExpression* expr)
 {
 	item->setText(0, "Global function");
-	item->setText(2, expr->Name);
+	item->setText(2, expr->Name.ToString());
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -606,9 +606,9 @@ std::string ExpressionItemBuilder::GetFullFuncName(UFunction* func)
 	for (UStruct* s = func; s != nullptr; s = s->StructParent)
 	{
 		if (name.empty())
-			name = s->Name;
+			name = s->Name.ToString();
 		else
-			name = s->Name + "." + name;
+			name = s->Name.ToString() + "." + name;
 	}
 	return name;
 }

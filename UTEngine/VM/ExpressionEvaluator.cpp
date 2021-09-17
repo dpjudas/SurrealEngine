@@ -87,7 +87,7 @@ void ExpressionEvaluator::Expr(AssertExpression* expr)
 {
 	if (!Eval(expr->Condition).Value.ToBool())
 	{
-		Frame::ThrowException("Script assert failed for " + Self->Name + " line " + std::to_string(expr->Line));
+		Frame::ThrowException("Script assert failed for " + Self->Name.ToString() + " line " + std::to_string(expr->Line));
 	}
 }
 
@@ -548,12 +548,12 @@ void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 {
 	UObject* obj = Eval(expr->Value).Value.ToObject();
-	Result.Value = ExpressionValue::StringValue(obj ? obj->Class->Name + "/" + obj->Name : "None");
+	Result.Value = ExpressionValue::StringValue(obj ? obj->Class->Name.ToString() + "/" + obj->Name.ToString() : "None");
 }
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
 {
-	Result.Value = ExpressionValue::StringValue(Eval(expr->Value).Value.ToName());
+	Result.Value = ExpressionValue::StringValue(Eval(expr->Value).Value.ToName().ToString());
 }
 
 void ExpressionEvaluator::Expr(VectorToStringExpression* expr)
@@ -576,7 +576,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 
 	// Search states first
 
-	std::string stateName = Context->GetStateName();
+	NameString stateName = Context->GetStateName();
 	for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
 		UState* state = cls->GetState(stateName);
@@ -606,7 +606,7 @@ void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 		}
 	}
 
-	Frame::ThrowException("Script virtual function " + expr->Name + " not found!");
+	Frame::ThrowException("Script virtual function " + expr->Name.ToString() + " not found!");
 }
 
 void ExpressionEvaluator::Expr(FinalFunctionExpression* expr)
@@ -632,7 +632,7 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 		}
 	}
 
-	Frame::ThrowException("Script global function " + expr->Name + " not found!");
+	Frame::ThrowException("Script global function " + expr->Name.ToString() + " not found!");
 }
 
 void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)

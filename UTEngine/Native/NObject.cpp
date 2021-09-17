@@ -460,10 +460,7 @@ void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)
 
 void NObject::EqualEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
 {
-	std::string empty;
-	const std::string* AA = (A != "None") ? &A : &empty;
-	const std::string* BB = (B != "None") ? &B : &empty;
-	ReturnValue = ((*AA) == (*BB));
+	ReturnValue = (A == B);
 }
 
 void NObject::EqualEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
@@ -683,7 +680,7 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 void NObject::Log(const std::string& S, NameString* Tag)
 {
 	if (Tag)
-		engine->LogMessage("[" + *Tag + "] " + S);
+		engine->LogMessage("[" + Tag->ToString() + "] " + S);
 	else
 		engine->LogMessage(S);
 }
@@ -815,10 +812,7 @@ void NObject::NotEqual_IntInt(int A, int B, bool& ReturnValue)
 
 void NObject::NotEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
 {
-	std::string empty;
-	const std::string* AA = (A != "None") ? &A : &empty;
-	const std::string* BB = (B != "None") ? &B : &empty;
-	ReturnValue = (*AA) != (*BB);
+	ReturnValue = A != B;
 }
 
 void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)

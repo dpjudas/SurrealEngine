@@ -73,16 +73,8 @@ bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
 	return true;
 }
 
-std::string IniFile::GetValue(std::string sectionName, std::string keyName) const
+std::string IniFile::GetValue(NameString sectionName, NameString keyName) const
 {
-	for (char& c : sectionName)
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-
-	for (char& c : keyName)
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
 		return {};
@@ -98,16 +90,8 @@ std::string IniFile::GetValue(std::string sectionName, std::string keyName) cons
 	return itValues->second.front();
 }
 
-std::vector<std::string> IniFile::GetValues(std::string sectionName, std::string keyName) const
+std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName) const
 {
-	for (char& c : sectionName)
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-
-	for (char& c : keyName)
-		if (c >= 'A' && c <= 'Z')
-			c += 'a' - 'A';
-
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
 		return {};

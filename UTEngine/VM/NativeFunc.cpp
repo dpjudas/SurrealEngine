@@ -4,9 +4,9 @@
 
 std::vector<UFunction*> NativeFunctions::FuncByIndex;
 std::vector<NativeFuncHandler> NativeFunctions::NativeByIndex;
-std::map<std::pair<std::string, std::string>, NativeFuncHandler> NativeFunctions::NativeByName;
+std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeFunctions::NativeByName;
 
-void NativeFunctions::RegisterHandler(const std::string& className, const std::string& funcName, int nativeIndex, NativeFuncHandler handler)
+void NativeFunctions::RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler)
 {
 	if (nativeIndex != 0)
 	{

@@ -5,13 +5,13 @@
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 
-AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, std::string MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
+AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
 {
 }
 
 bool AllObjectsIterator::Next()
 {
-	bool matchTag = !MatchTag.empty() && MatchTag != "None";
+	bool matchTag = !MatchTag.IsNone();
 	size_t size = engine->Level->Actors.size();
 	while (index < size)
 	{

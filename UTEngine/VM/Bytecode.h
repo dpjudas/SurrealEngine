@@ -17,7 +17,7 @@ public:
 		return OffsetToExpression.find(offset)->second->StatementIndex;
 	}
 
-	int FindLabelIndex(const std::string& label)
+	int FindLabelIndex(const NameString& label)
 	{
 		LabelTableExpression* labels = dynamic_cast<LabelTableExpression*>(Statements.back());
 		if (labels)

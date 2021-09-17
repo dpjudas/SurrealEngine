@@ -249,7 +249,7 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	ThrowIfTypeMismatch(header, UPT_Struct);
 
 	if (Struct->Name != header.structName)
-		throw std::runtime_error("Encountered struct '" + header.structName + "' does not match expected struct property '" + Struct->Name + "'");
+		throw std::runtime_error("Encountered struct '" + header.structName.ToString() + "' does not match expected struct property '" + Struct->Name.ToString() + "'");
 
 	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 	{

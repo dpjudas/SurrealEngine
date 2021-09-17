@@ -39,7 +39,7 @@ void UObject::LoadNow()
 				if (!static_cast<UClass*>(this)->Properties.empty())
 				{
 					SetObject("Class", Class);
-					SetString("Name", Name);
+					SetName("Name", Name);
 					SetInt("ObjectFlags", (int)Flags);
 				}
 			}
@@ -71,7 +71,7 @@ void UObject::Load(ObjectStream* stream)
 		if (Class && !Class->Properties.empty())
 		{
 			SetObject("Class", Class);
-			SetString("Name", Name);
+			SetName("Name", Name);
 			SetInt("ObjectFlags", (int)Flags);
 		}
 	}
@@ -94,7 +94,7 @@ const void* UObject::GetProperty(const NameString& name) const
 		if (prop->Name == name)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Property '" + name + "' not found");
+	throw std::runtime_error("Property '" + name.ToString() + "' not found");
 }
 
 void* UObject::GetProperty(const NameString& name)
@@ -104,7 +104,7 @@ void* UObject::GetProperty(const NameString& name)
 		if (prop->Name == name)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Property '" + name + "' not found");
+	throw std::runtime_error("Property '" + name.ToString() + "' not found");
 }
 
 bool UObject::HasProperty(const NameString& name) const
@@ -150,6 +150,11 @@ Rotator UObject::GetRotator(const NameString& name) const
 const std::string& UObject::GetString(const NameString& name) const
 {
 	return *static_cast<const std::string*>(GetProperty(name));
+}
+
+const NameString& UObject::GetName(const NameString& name) const
+{
+	return *static_cast<const NameString*>(GetProperty(name));
 }
 
 UObject* UObject::GetUObject(const NameString& name)
@@ -202,6 +207,11 @@ void UObject::SetString(const NameString& name, const std::string& value)
 	*static_cast<std::string*>(GetProperty(name)) = value;
 }
 
+void UObject::SetName(const NameString& name, const NameString& value)
+{
+	*static_cast<NameString*>(GetProperty(name)) = value;
+}
+
 void UObject::SetObject(const NameString& name, const UObject* value)
 {
 	*static_cast<const UObject**>(GetProperty(name)) = value;
@@ -225,7 +235,7 @@ std::string UObject::PrintProperties()
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		result += prop->Name;
+		result += prop->Name.ToString();
 		result += " = ";
 		void* ptr = PropertyData.Ptr(prop);
 		result += prop->PrintValue(ptr);
@@ -264,7 +274,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		StateFrame.reset();
 	}
 
-	if (!StateFrame && !stateName.empty())
+	if (!StateFrame && !stateName.IsNone())
 	{
 		for (UClass* cls = Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
@@ -409,7 +419,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 #if 0
 			throw std::runtime_error("Unknown property " + name);
 #else
-			engine->LogMessage("Skipping unknown property " + name);
+			engine->LogMessage("Skipping unknown property " + name.ToString());
 			if (header.type != UPT_Bool)
 				stream->Skip(header.size);
 			continue;

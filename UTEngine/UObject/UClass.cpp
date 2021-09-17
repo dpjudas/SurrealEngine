@@ -396,14 +396,14 @@ void UClass::Load(ObjectStream* stream)
 
 	// Copy native UObject properties into the VM
 	SetObject("Class", this);
-	SetString("Name", Name);
+	SetName("Name", Name);
 	SetInt("ObjectFlags", (int)Flags);
 
 	auto packages = stream->GetPackage()->GetPackageManager();
 	NameString packageName = stream->GetPackage()->GetPackageName();
-	NameString sectionName = packageName + "." + Name;
+	NameString sectionName = packageName.ToString() + "." + Name.ToString();
 	NameString configName = ClassConfigName;
-	if (configName.empty()) configName = "system";
+	if (configName.IsNone()) configName = "system";
 	for (UProperty* prop : Properties)
 	{
 		bool isConfig = AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this);
@@ -415,7 +415,7 @@ void UClass::Load(ObjectStream* stream)
 			{
 				NameString name = prop->Name;
 				if (prop->ArrayDimension > 1)
-					name += "[" + std::to_string(arrayIndex) + "]";
+					name.Value += "[" + std::to_string(arrayIndex) + "]";
 
 				std::string value;
 				if (isConfig)
@@ -577,12 +577,12 @@ std::map<NameString, std::string> UClass::ParseStructValue(const std::string& te
 	return desc;
 }
 
-UProperty* UClass::GetProperty(const std::string& name)
+UProperty* UClass::GetProperty(const NameString& name)
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == name)
 			return prop;
 	}
-	throw std::runtime_error("Property '" + name + "' not found");
+	throw std::runtime_error("Property '" + name.ToString() + "' not found");
 }

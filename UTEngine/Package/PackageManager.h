@@ -47,7 +47,6 @@ private:
 	void ScanForMaps();
 
 	void ScanFolder(const std::string& name, const std::string& search);
-	std::string GetKey(NameString name);
 
 	void DelayLoadNow();
 
