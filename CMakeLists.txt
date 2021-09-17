@@ -128,6 +128,7 @@ set(UTENGINE_SOURCES
 	UTEngine/Package/IniFile.h
 	UTEngine/Package/PackageStream.h
 	UTEngine/Package/IniFile.cpp
+	UTEngine/Package/NameString.h
 	UTEngine/Math/FrustumPlanes.h
 	UTEngine/Math/quaternion.h
 	UTEngine/Math/FrustumPlanes.cpp
