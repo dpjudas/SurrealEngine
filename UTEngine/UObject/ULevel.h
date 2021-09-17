@@ -339,7 +339,7 @@ struct Poly
 	uint32_t PolyFlags;
 	UBrush* Actor;
 	UTexture* Texture;
-	std::string ItemName;
+	NameString ItemName;
 	int LinkIndex;
 	int BrushPolyIndex;
 	int16_t PanU;

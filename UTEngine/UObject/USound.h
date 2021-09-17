@@ -12,7 +12,7 @@ public:
 
 	AudioSound* GetSound();
 
-	std::string Format;
+	NameString Format;
 	std::vector<uint8_t> Data;
 	AudioSound* Sound = nullptr;
 };

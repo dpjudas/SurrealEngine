@@ -34,11 +34,11 @@ void UEnum::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UStruct::UStruct(std::string name, UClass* cls, ObjectFlags flags) : UField(std::move(name), cls, flags)
+UStruct::UStruct(NameString name, UClass* cls, ObjectFlags flags) : UField(std::move(name), cls, flags)
 {
 }
 
-UStruct::UStruct(std::string name, UClass* cls, ObjectFlags flags, UStruct* base) : UField(std::move(name), cls, flags)
+UStruct::UStruct(NameString name, UClass* cls, ObjectFlags flags, UStruct* base) : UField(std::move(name), cls, flags)
 {
 	BaseStruct = base;
 }
@@ -354,7 +354,7 @@ void UState::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UClass::UClass(std::string name, UClass* base, ObjectFlags flags) : UState(std::move(name), this, flags, base)
+UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::move(name), this, flags, base)
 {
 }
 
@@ -400,9 +400,9 @@ void UClass::Load(ObjectStream* stream)
 	SetInt("ObjectFlags", (int)Flags);
 
 	auto packages = stream->GetPackage()->GetPackageManager();
-	std::string packageName = stream->GetPackage()->GetPackageName();
-	std::string sectionName = packageName + "." + Name;
-	std::string configName = ClassConfigName;
+	NameString packageName = stream->GetPackage()->GetPackageName();
+	NameString sectionName = packageName + "." + Name;
+	NameString configName = ClassConfigName;
 	if (configName.empty()) configName = "system";
 	for (UProperty* prop : Properties)
 	{
@@ -413,7 +413,7 @@ void UClass::Load(ObjectStream* stream)
 			void* ptr = PropertyData.Ptr(prop);
 			for (uint32_t arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 			{
-				std::string name = prop->Name;
+				NameString name = prop->Name;
 				if (prop->ArrayDimension > 1)
 					name += "[" + std::to_string(arrayIndex) + "]";
 
@@ -432,7 +432,7 @@ void UClass::Load(ObjectStream* stream)
 					if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
 					else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
 					else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
-					else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<NameString*>(ptr) = value;
 					else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
 					else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
 					else if (dynamic_cast<UBoolProperty*>(prop))
@@ -449,8 +449,8 @@ void UClass::Load(ObjectStream* stream)
 							size_t pos = value.find_first_of('.');
 							if (pos != std::string::npos)
 							{
-								std::string packageName = value.substr(0, pos);
-								std::string className = value.substr(pos + 1);
+								NameString packageName = value.substr(0, pos);
+								NameString className = value.substr(pos + 1);
 								Package* pkg = packages->GetPackage(packageName);
 								*static_cast<UObject**>(ptr) = pkg->GetUObject("Class", className);
 							}
@@ -471,7 +471,7 @@ void UClass::Load(ObjectStream* stream)
 							if (dynamic_cast<UByteProperty*>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
 							else if (dynamic_cast<UIntProperty*>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
 							else if (dynamic_cast<UFloatProperty*>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
-							else if (dynamic_cast<UNameProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (dynamic_cast<UNameProperty*>(member)) *static_cast<NameString*>(memberptr) = membervalue;
 							else if (dynamic_cast<UStrProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
 							else if (dynamic_cast<UStringProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
 							else if (dynamic_cast<UBoolProperty*>(member))
@@ -488,8 +488,8 @@ void UClass::Load(ObjectStream* stream)
 									size_t pos = membervalue.find_first_of('.');
 									if (pos != std::string::npos)
 									{
-										std::string packageName = membervalue.substr(0, pos);
-										std::string className = membervalue.substr(pos + 1);
+										NameString packageName = membervalue.substr(0, pos);
+										NameString className = membervalue.substr(pos + 1);
 										Package* pkg = packages->GetPackage(packageName);
 										*static_cast<UObject**>(memberptr) = pkg->GetUObject("Class", className);
 									}
@@ -525,7 +525,7 @@ void UClass::Load(ObjectStream* stream)
 	}
 }
 
-std::map<std::string, std::string> UClass::ParseStructValue(const std::string& text)
+std::map<NameString, std::string> UClass::ParseStructValue(const std::string& text)
 {
 	// Parse one of the following:
 	//
@@ -535,7 +535,7 @@ std::map<std::string, std::string> UClass::ParseStructValue(const std::string& t
 	if (text.size() < 2 || text.front() != '(' || text.back() != ')')
 		return {};
 
-	std::map<std::string, std::string> desc;
+	std::map<NameString, std::string> desc;
 
 	// This would have been so much easier with a regular expression, but we can't use that as we have no idea what character set those .int files might be using
 	size_t pos = 1;
@@ -544,7 +544,7 @@ std::map<std::string, std::string> UClass::ParseStructValue(const std::string& t
 		size_t endpos = text.find('=', pos);
 		if (endpos == std::string::npos)
 			break;
-		std::string keyname = text.substr(pos, endpos - pos);
+		NameString keyname = text.substr(pos, endpos - pos);
 		pos = endpos + 1;
 
 		if (text[pos] == '"')

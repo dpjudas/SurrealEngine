@@ -2,6 +2,7 @@
 
 #include "PackageFlags.h"
 #include "ObjectFlags.h"
+#include "NameString.h"
 #include <functional>
 
 class PackageManager;
@@ -10,12 +11,10 @@ class ObjectStream;
 class UObject;
 class UClass;
 
-typedef std::string NameString;
-
 class NameTableEntry
 {
 public:
-	std::string Name;
+	NameString Name;
 	uint32_t Flags;
 };
 
@@ -43,34 +42,34 @@ public:
 class Package
 {
 public:
-	Package(PackageManager* packageManager, const std::string& name, const std::string& filename);
+	Package(PackageManager* packageManager, const NameString& name, const std::string& filename);
 	~Package();
 
-	UObject* NewObject(const std::string& objname, UClass* objclass, ObjectFlags flags, bool initProperties);
+	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties);
 
 	UObject* GetUObject(int objref);
-	UObject* GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName = {});
+	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& groupName = {});
 
-	const std::string& GetName(int index) const;
+	const NameString& GetName(int index) const;
 	int GetVersion() const { return Version; }
-	std::string GetPackageName() const { return Name; }
+	NameString GetPackageName() const { return Name; }
 	std::string GetPackageFilename() const { return Filename; }
 
 	PackageManager* GetPackageManager() { return Packages; }
 
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
-	int FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName = {});
+	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName = {});
 
 	std::vector<UClass*> GetAllClasses();
 
 private:
 	void ReadTables();
-	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const std::string& name, UClass* base);
+	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const NameString& name, UClass* base);
 	void LoadExportObject(int index);
 
 	template<typename T>
-	void RegisterNativeClass(bool registerInPackage, const std::string& className, const std::string& baseClass = {})
+	void RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass = {})
 	{
 		std::string classNameKey = GetNameKey(className);
 
@@ -125,7 +124,7 @@ private:
 		return (c >= 'A' && c <= 'Z') ? c + 'a' - 'A' : c;
 	}
 
-	static std::string GetNameKey(std::string name)
+	static std::string GetNameKey(NameString name)
 	{
 		for (char& c : name)
 		{
@@ -135,7 +134,7 @@ private:
 	}
 
 	PackageManager* Packages = nullptr;
-	std::string Name;
+	NameString Name;
 	std::string Filename;
 
 	int Version = 0;

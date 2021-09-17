@@ -150,7 +150,7 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 	Package* package = engine->packages->GetPackage("Engine");
 
 	UObject* newObj = package->NewObject(
-		name.Type == ExpressionValueType::Nothing ? "" : name.ToString(),
+		name.Type == ExpressionValueType::Nothing ? NameString() : name.ToName(),
 		cls,
 		flags.Type == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
 		true);

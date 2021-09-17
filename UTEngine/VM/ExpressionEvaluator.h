@@ -24,7 +24,7 @@ struct ExpressionEvalResult
 	StatementResult Result = StatementResult::Next;
 	uint16_t JumpAddress = 0;
 	int LatentFunction = 0;
-	std::string Label;
+	NameString Label;
 	ExpressionValue Value;
 	std::unique_ptr<Iterator> Iter;
 };

@@ -81,7 +81,7 @@ public:
 
 	uint32_t ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
-	std::string Category;
+	NameString Category;
 	uint16_t ReplicationOffset = 0;
 
 	size_t DataOffset = 0;
@@ -103,7 +103,7 @@ public:
 class UByteProperty : public UProperty
 {
 public:
-	UByteProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueByte; }
+	UByteProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueByte; }
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -117,7 +117,7 @@ public:
 class UObjectProperty : public UProperty
 {
 public:
-	UObjectProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueObject; }
+	UObjectProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueObject; }
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -322,7 +322,7 @@ public:
 class UStructProperty : public UProperty
 {
 public:
-	UStructProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueStruct; }
+	UStructProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueStruct; }
 
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
@@ -362,7 +362,7 @@ public:
 class UIntProperty : public UProperty
 {
 public:
-	UIntProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueInt; }
+	UIntProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueInt; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(int32_t*)data); }
@@ -371,7 +371,7 @@ public:
 class UBoolProperty : public UProperty
 {
 public:
-	UBoolProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
+	UBoolProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(bool*)data); }
 };
@@ -379,7 +379,7 @@ public:
 class UFloatProperty : public UProperty
 {
 public:
-	UFloatProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueFloat; }
+	UFloatProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueFloat; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(float*)data); }
@@ -388,43 +388,43 @@ public:
 class UNameProperty : public UProperty
 {
 public:
-	UNameProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueName; }
+	UNameProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueName; }
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
-	size_t ElementSize() override { return sizeof(std::string); }
+	size_t ElementSize() override { return sizeof(NameString); }
 
 	void Construct(void* data) override
 	{
-		auto str = static_cast<std::string*>(data);
+		auto str = static_cast<NameString*>(data);
 		for (uint32_t i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string();
+			new(str + i) NameString();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		auto str = static_cast<std::string*>(data);
-		auto srcstr = static_cast<std::string*>(src);
+		auto str = static_cast<NameString*>(data);
+		auto srcstr = static_cast<NameString*>(src);
 		for (uint32_t i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string(srcstr[i]);
+			new(str + i) NameString(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
-		auto str = static_cast<std::string*>(data);
+		auto str = static_cast<NameString*>(data);
 		for (uint32_t i = 0; i < ArrayDimension; i++)
-			str[i].~basic_string();
+			str[i].~NameString();
 	}
 
-	std::string PrintValue(void* data) override { return *(std::string*)data; }
+	std::string PrintValue(void* data) override { return *(NameString*)data; }
 };
 
 class UStrProperty : public UProperty
 {
 public:
-	UStrProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
+	UStrProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -460,7 +460,7 @@ public:
 class UStringProperty : public UProperty
 {
 public:
-	UStringProperty(std::string name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
+	UStringProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 

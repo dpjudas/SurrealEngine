@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExpressionVisitor.h"
+#include "Package/NameString.h"
 
 class UObject;
 class UClass;
@@ -106,7 +107,7 @@ public:
 
 struct LabelEntry
 {
-	std::string Name;
+	NameString Name;
 	uint32_t Offset = 0;
 };
 
@@ -272,7 +273,7 @@ class NameConstExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	std::string Value;
+	NameString Value;
 };
 
 class RotationConstExpression : public Expression
@@ -702,7 +703,7 @@ class VirtualFunctionExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	std::string Name;
+	NameString Name;
 	std::vector<Expression*> Args;
 };
 
@@ -720,7 +721,7 @@ class GlobalFunctionExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	std::string Name;
+	NameString Name;
 	std::vector<Expression*> Args;
 };
 

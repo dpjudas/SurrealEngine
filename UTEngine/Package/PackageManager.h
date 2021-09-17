@@ -10,9 +10,9 @@ class UClass;
 
 struct IntObject
 {
-	std::string Name;
-	std::string Class;
-	std::string MetaClass;
+	NameString Name;
+	NameString Class;
+	NameString MetaClass;
 	std::string Description;
 };
 
@@ -24,30 +24,30 @@ public:
 	bool IsUnreal1() const { return unreal1; }
 	int GetEngineVersion() const { return engineVersion; }
 
-	Package *GetPackage(const std::string& name);
-	std::vector<std::string> GetPackageNames() const;
+	Package *GetPackage(const NameString& name);
+	std::vector<NameString> GetPackageNames() const;
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
-	UObject* NewObject(const std::string& name, const std::string& package, const std::string& className);
-	UObject* NewObject(const std::string& name, UClass* cls);
+	UObject* NewObject(const NameString& name, const NameString& package, const NameString& className);
+	UObject* NewObject(const NameString& name, UClass* cls);
 
-	UClass* FindClass(const std::string& name);
+	UClass* FindClass(const NameString& name);
 
-	std::string GetIniValue(std::string iniName, const std::string& sectionName, const std::string& keyName);
-	std::string Localize(std::string packageName, const std::string& sectionName, const std::string& keyName);
+	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName);
+	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
 
-	std::vector<IntObject>& GetIntObjects(const std::string& metaclass);
+	std::vector<IntObject>& GetIntObjects(const NameString& metaclass);
 	const std::vector<std::string>& GetMaps() const { return maps; }
 
 private:
 	void LoadIntFiles();
-	std::map<std::string, std::string> ParseIntPublicValue(const std::string& value);
+	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
 
 	void ScanForMaps();
 
 	void ScanFolder(const std::string& name, const std::string& search);
-	std::string GetKey(std::string name);
+	std::string GetKey(NameString name);
 
 	void DelayLoadNow();
 
@@ -55,12 +55,12 @@ private:
 	int delayLoadActive = 0;
 
 	std::string basepath;
-	std::map<std::string, std::string> packageFilenames;
-	std::map<std::string, std::unique_ptr<Package>> packages;
-	std::map<std::string, std::unique_ptr<IniFile>> iniFiles;
-	std::map<std::string, std::unique_ptr<IniFile>> intFiles;
+	std::map<NameString, std::string> packageFilenames;
+	std::map<NameString, std::unique_ptr<Package>> packages;
+	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
+	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
 
-	std::map<std::string, std::vector<IntObject>> IntObjects;
+	std::map<NameString, std::vector<IntObject>> IntObjects;
 
 	std::vector<std::string> maps;
 

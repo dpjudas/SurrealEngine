@@ -8,6 +8,6 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::string Format;
+	NameString Format;
 	std::vector<uint8_t> Data;
 };

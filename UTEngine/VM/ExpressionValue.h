@@ -102,7 +102,7 @@ public:
 	const vec3& ToVector() const;
 	const Rotator& ToRotator() const;
 	const std::string& ToString() const;
-	const std::string& ToName() const;
+	NameString ToName() const;
 	const Color& ToColor() const;
 	const IpAddr& ToIpAddr() const;
 
@@ -142,6 +142,7 @@ private:
 		Color Color_;
 	} Value;
 	std::string ValueString;
+	NameString ValueName;
 	StructValue ValueStruct;
 };
 
@@ -222,7 +223,7 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 	case ExpressionValueType::ValueVector: *static_cast<vec3*>(VariablePtr) = rvalue.ToVector(); break;
 	case ExpressionValueType::ValueRotator: *static_cast<Rotator*>(VariablePtr) = rvalue.ToRotator(); break;
 	case ExpressionValueType::ValueString: *static_cast<std::string*>(VariablePtr) = rvalue.ToString(); break;
-	case ExpressionValueType::ValueName: *static_cast<std::string*>(VariablePtr) = rvalue.ToName(); break;
+	case ExpressionValueType::ValueName: *static_cast<NameString*>(VariablePtr) = rvalue.ToName(); break;
 	case ExpressionValueType::ValueColor: *static_cast<Color*>(VariablePtr) = rvalue.ToColor(); break;
 	case ExpressionValueType::ValueStruct:
 		if (rvalue.VariablePtr)
@@ -366,10 +367,12 @@ inline const std::string& ExpressionValue::ToString() const
 		throw std::runtime_error("Not a string value");
 }
 
-inline const std::string& ExpressionValue::ToName() const
+inline NameString ExpressionValue::ToName() const
 {
-	if (Type == ExpressionValueType::ValueString || Type == ExpressionValueType::ValueName)
-		return VariablePtr ? *static_cast<std::string*>(VariablePtr) : ValueString;
+	if (Type == ExpressionValueType::ValueName)
+		return VariablePtr ? *static_cast<NameString*>(VariablePtr) : ValueString;
+	else if (Type == ExpressionValueType::ValueString)
+		return NameString(VariablePtr ? *static_cast<std::string*>(VariablePtr) : ValueString);
 	else
 		throw std::runtime_error("Not a name value");
 }

@@ -19,13 +19,13 @@ struct MeshTri
 struct MeshAnimNotify
 {
 	float Time;
-	std::string Function;
+	NameString Function;
 };
 
 struct MeshAnimSeq
 {
-	std::string Name;
-	std::string Group;
+	NameString Name;
+	NameString Group;
 	int StartFrame;
 	int NumFrames;
 	float Rate;
@@ -136,7 +136,7 @@ struct ExtMeshWedge
 
 struct RefSkeletonBone
 {
-	std::string Name;
+	NameString Name;
 	uint32_t Flags;
 	quaternion Orientation;
 	vec3 Position;
@@ -188,7 +188,7 @@ public:
 
 struct RefBone
 {
-	std::string Name;
+	NameString Name;
 	uint32_t Flags = 0;
 	uint32_t ParentIndex = 0;
 };

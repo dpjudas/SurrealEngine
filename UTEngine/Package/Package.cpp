@@ -17,7 +17,7 @@
 #include "UObject/UClient.h"
 #include "File.h"
 
-Package::Package(PackageManager* packageManager, const std::string& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
+Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
 {
 	ReadTables();
 
@@ -177,7 +177,7 @@ std::vector<UClass*> Package::GetAllClasses()
 	return classes;
 }
 
-UObject* Package::NewObject(const std::string& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
+UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
 {
 	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
 	{
@@ -205,7 +205,7 @@ void Package::LoadExportObject(int index)
 
 	SetDelayLoadActive delayload(Packages);
 
-	std::string objname = GetName(entry->ObjName);
+	NameString objname = GetName(entry->ObjName);
 
 	if (entry->ObjClass != 0)
 	{
@@ -254,17 +254,17 @@ UObject* Package::GetUObject(int objref)
 		ImportTableEntry* entry = GetImportEntry(objref);
 		ImportTableEntry* entrypackage = GetImportEntry(entry->ObjPackage);
 
-		std::string groupName;
+		NameString groupName;
 		if (entrypackage->ObjPackage != 0)
 			groupName = GetName(entrypackage->ObjName);
 
 		while (entrypackage->ObjPackage != 0)
 			entrypackage = GetImportEntry(entrypackage->ObjPackage);
 
-		std::string packageName = GetName(entrypackage->ObjName);
-		std::string objectName = GetName(entry->ObjName);
-		std::string className = GetName(entry->ClassName);
-		// std::string classPackage = GetName(entry->ClassPackage);
+		NameString packageName = GetName(entrypackage->ObjName);
+		NameString objectName = GetName(entry->ObjName);
+		NameString className = GetName(entry->ClassName);
+		// NameString classPackage = GetName(entry->ClassPackage);
 
 		UObject* obj = Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
 
@@ -282,12 +282,12 @@ UObject* Package::GetUObject(int objref)
 	}
 }
 
-UObject* Package::GetUObject(const std::string& className, const std::string& objectName, const std::string& groupName)
+UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& groupName)
 {
 	return GetUObject(FindObjectReference(className, objectName, groupName));
 }
 
-int Package::FindObjectReference(const std::string& className, const std::string& objectName, const std::string& groupName)
+int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName)
 {
 	bool isClass = CompareNames(className, "Class");
 
@@ -352,7 +352,7 @@ int Package::FindObjectReference(const std::string& className, const std::string
 	return 0;
 }
 
-const std::string& Package::GetName(int index) const
+const NameString& Package::GetName(int index) const
 {
 	if (index >= 0 && (size_t)index < NameTable.size())
 		return NameTable[index].Name;
@@ -466,7 +466,7 @@ void Package::ReadTables()
 	}
 }
 
-std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const std::string& name, UClass* base)
+std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const NameString& name, UClass* base)
 {
 	const auto& entry = ExportTable[index];
 	if (entry.ObjSize > 0)

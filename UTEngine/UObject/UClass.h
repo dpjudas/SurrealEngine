@@ -33,21 +33,21 @@ public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<std::string> ElementNames;
+	std::vector<NameString> ElementNames;
 };
 
 class UStruct : public UField
 {
 public:
-	UStruct(std::string name, UClass* cls, ObjectFlags flags);
-	UStruct(std::string name, UClass* cls, ObjectFlags flags, UStruct* base);
+	UStruct(NameString name, UClass* cls, ObjectFlags flags);
+	UStruct(NameString name, UClass* cls, ObjectFlags flags, UStruct* base);
 	void Load(ObjectStream* stream) override;
 
 	UStruct* BaseStruct = nullptr;
 
 	UTextBuffer* ScriptText = nullptr;
 	UField* Children = nullptr;
-	std::string FriendlyName;
+	NameString FriendlyName;
 	uint32_t Line = 0;
 	uint32_t TextPos = 0;
 #ifdef _DEBUG
@@ -138,8 +138,8 @@ public:
 	uint16_t LabelTableOffset = 0;
 	ScriptStateFlags StateFlags = {};
 
-	UFunction* GetFunction(const std::string& name) { auto it = Functions.find(name); if (it != Functions.end()) return it->second; else return nullptr; }
-	std::map<std::string, UFunction*> Functions;
+	UFunction* GetFunction(const NameString& name) { auto it = Functions.find(name); if (it != Functions.end()) return it->second; else return nullptr; }
+	std::map<NameString, UFunction*> Functions;
 };
 
 struct Guid
@@ -157,10 +157,10 @@ struct ClassDependency
 class UClass : public UState
 {
 public:
-	UClass(std::string name, UClass* base, ObjectFlags flags);
+	UClass(NameString name, UClass* base, ObjectFlags flags);
 	void Load(ObjectStream* stream) override;
 
-	UProperty* GetProperty(const std::string& name);
+	UProperty* GetProperty(const NameString& name);
 	UObject* GetDefaultObject() { return this; }
 
 	uint32_t OldClassRecordSize = 0;
@@ -169,13 +169,13 @@ public:
 	std::vector<ClassDependency> Dependencies;
 	std::vector<int> PackageImports;
 	int ClassWithin = 0;
-	std::string ClassConfigName;
+	NameString ClassConfigName;
 
-	UState* GetState(const std::string& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
-	std::map<std::string, UState*> States;
+	UState* GetState(const NameString& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
+	std::map<NameString, UState*> States;
 
 private:
-	std::map<std::string, std::string> ParseStructValue(const std::string& text);
+	std::map<NameString, std::string> ParseStructValue(const std::string& text);
 };
 
 enum class ExprToken : uint8_t

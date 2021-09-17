@@ -126,12 +126,12 @@ void UObjectProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 void UNameProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Name);
-	*reinterpret_cast<std::string*>(data) = stream->ReadName();
+	*reinterpret_cast<NameString*>(data) = stream->ReadName();
 }
 
 void UNameProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<std::string*>(data) = stream->ReadName();
+	*reinterpret_cast<NameString*>(data) = stream->ReadName();
 }
 
 /////////////////////////////////////////////////////////////////////////////

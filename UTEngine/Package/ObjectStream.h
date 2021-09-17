@@ -123,7 +123,7 @@ public:
 		return s;
 	}
 
-	std::string ReadName()
+	NameString ReadName()
 	{
 		return package->GetName(ReadIndex());
 	}

@@ -9,7 +9,7 @@
 #include "VM/Frame.h"
 #include "Engine.h"
 
-UObject::UObject(std::string name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
+UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {
 }
 
@@ -77,7 +77,7 @@ void UObject::Load(ObjectStream* stream)
 	}
 }
 
-size_t UObject::GetPropertyDataOffset(const std::string& name) const
+size_t UObject::GetPropertyDataOffset(const NameString& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -87,7 +87,7 @@ size_t UObject::GetPropertyDataOffset(const std::string& name) const
 	return (size_t)~(size_t)0;
 }
 
-const void* UObject::GetProperty(const std::string& name) const
+const void* UObject::GetProperty(const NameString& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -97,7 +97,7 @@ const void* UObject::GetProperty(const std::string& name) const
 	throw std::runtime_error("Property '" + name + "' not found");
 }
 
-void* UObject::GetProperty(const std::string& name)
+void* UObject::GetProperty(const NameString& name)
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -107,7 +107,7 @@ void* UObject::GetProperty(const std::string& name)
 	throw std::runtime_error("Property '" + name + "' not found");
 }
 
-bool UObject::HasProperty(const std::string& name) const
+bool UObject::HasProperty(const NameString& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -117,97 +117,97 @@ bool UObject::HasProperty(const std::string& name) const
 	return false;
 }
 
-uint8_t UObject::GetByte(const std::string& name) const
+uint8_t UObject::GetByte(const NameString& name) const
 {
 	return *static_cast<const uint8_t*>(GetProperty(name));
 }
 
-uint32_t UObject::GetInt(const std::string& name) const
+uint32_t UObject::GetInt(const NameString& name) const
 {
 	return *static_cast<const uint32_t*>(GetProperty(name));
 }
 
-bool UObject::GetBool(const std::string& name) const
+bool UObject::GetBool(const NameString& name) const
 {
 	return *static_cast<const bool*>(GetProperty(name));
 }
 
-float UObject::GetFloat(const std::string& name) const
+float UObject::GetFloat(const NameString& name) const
 {
 	return *static_cast<const float*>(GetProperty(name));
 }
 
-vec3 UObject::GetVector(const std::string& name) const
+vec3 UObject::GetVector(const NameString& name) const
 {
 	return *static_cast<const vec3*>(GetProperty(name));
 }
 
-Rotator UObject::GetRotator(const std::string& name) const
+Rotator UObject::GetRotator(const NameString& name) const
 {
 	return *static_cast<const Rotator*>(GetProperty(name));
 }
 
-const std::string& UObject::GetString(const std::string& name) const
+const std::string& UObject::GetString(const NameString& name) const
 {
 	return *static_cast<const std::string*>(GetProperty(name));
 }
 
-UObject* UObject::GetUObject(const std::string& name)
+UObject* UObject::GetUObject(const NameString& name)
 {
 	return *static_cast<UObject**>(GetProperty(name));
 }
 
-Color UObject::GetColor(const std::string& name)
+Color UObject::GetColor(const NameString& name)
 {
 	return *static_cast<Color*>(GetProperty(name));
 }
 
-std::string UObject::GetUClassName(UObject* obj)
+NameString UObject::GetUClassName(UObject* obj)
 {
-	return obj->Class ? obj->Class->Name : std::string("null");
+	return obj->Class ? obj->Class->Name : NameString();
 }
 
-void UObject::SetByte(const std::string& name, uint8_t value)
+void UObject::SetByte(const NameString& name, uint8_t value)
 {
 	*static_cast<uint8_t*>(GetProperty(name)) = value;
 }
 
-void UObject::SetInt(const std::string& name, uint32_t value)
+void UObject::SetInt(const NameString& name, uint32_t value)
 {
 	*static_cast<int32_t*>(GetProperty(name)) = value;
 }
 
-void UObject::SetBool(const std::string& name, bool value)
+void UObject::SetBool(const NameString& name, bool value)
 {
 	*static_cast<bool*>(GetProperty(name)) = value;
 }
 
-void UObject::SetFloat(const std::string& name, float value)
+void UObject::SetFloat(const NameString& name, float value)
 {
 	*static_cast<float*>(GetProperty(name)) = value;
 }
 
-void UObject::SetVector(const std::string& name, const vec3& value)
+void UObject::SetVector(const NameString& name, const vec3& value)
 {
 	*static_cast<vec3*>(GetProperty(name)) = value;
 }
 
-void UObject::SetRotator(const std::string& name, const Rotator& value)
+void UObject::SetRotator(const NameString& name, const Rotator& value)
 {
 	*static_cast<Rotator*>(GetProperty(name)) = value;
 }
 
-void UObject::SetString(const std::string& name, const std::string& value)
+void UObject::SetString(const NameString& name, const std::string& value)
 {
 	*static_cast<std::string*>(GetProperty(name)) = value;
 }
 
-void UObject::SetObject(const std::string& name, const UObject* value)
+void UObject::SetObject(const NameString& name, const UObject* value)
 {
 	*static_cast<const UObject**>(GetProperty(name)) = value;
 }
 
-bool UObject::IsA(const std::string& className) const
+bool UObject::IsA(const NameString& className) const
 {
 	UStruct* cls = Class;
 	while (cls)
@@ -235,12 +235,12 @@ std::string UObject::PrintProperties()
 	return result;
 }
 
-std::string UObject::GetStateName()
+NameString UObject::GetStateName()
 {
-	return StateFrame ? StateFrame->Func->Name : std::string();
+	return StateFrame ? StateFrame->Func->Name : NameString();
 }
 
-void UObject::GotoState(std::string stateName, const std::string& labelName)
+void UObject::GotoState(NameString stateName, const NameString& labelName)
 {
 	if (stateName == "Auto")
 	{
@@ -340,7 +340,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 {
 	while (true)
 	{
-		std::string name = stream->ReadName();
+		NameString name = stream->ReadName();
 		if (name == "None")
 			break;
 

@@ -56,7 +56,7 @@ struct PropertyHeader
 	UnrealPropertyType type;
 	int arrayIndex = 0;
 	bool boolValue = false;
-	std::string structName;
+	NameString structName;
 	int size = 0;
 };
 
@@ -89,11 +89,11 @@ struct IpAddr
 class ObjectDelayLoad
 {
 public:
-	ObjectDelayLoad(Package* package, int index, std::string objName, UClass* cls) : package(package), Index(index), ObjName(objName), Class(cls) { }
+	ObjectDelayLoad(Package* package, int index, NameString objName, UClass* cls) : package(package), Index(index), ObjName(objName), Class(cls) { }
 
 	Package* package = nullptr;
 	int Index = 0;
-	std::string ObjName;
+	NameString ObjName;
 	UClass* Class = nullptr;
 };
 
@@ -127,49 +127,49 @@ private:
 class UObject
 {
 public:
-	UObject(std::string name, UClass* base, ObjectFlags flags);
+	UObject(NameString name, UClass* base, ObjectFlags flags);
 	virtual ~UObject() = default;
 
 	void LoadNow();
 	virtual void Load(ObjectStream* stream);
 
-	bool HasProperty(const std::string& name) const;
-	void* GetProperty(const std::string& name);
-	const void* GetProperty(const std::string& name) const;
-	size_t GetPropertyDataOffset(const std::string& name) const;
+	bool HasProperty(const NameString& name) const;
+	void* GetProperty(const NameString& name);
+	const void* GetProperty(const NameString& name) const;
+	size_t GetPropertyDataOffset(const NameString& name) const;
 
-	uint8_t GetByte(const std::string& name) const;
-	uint32_t GetInt(const std::string& name) const;
-	bool GetBool(const std::string& name) const;
-	float GetFloat(const std::string& name) const;
-	vec3 GetVector(const std::string& name) const;
-	Rotator GetRotator(const std::string& name) const;
-	const std::string& GetString(const std::string& name) const;
-	UObject* GetUObject(const std::string& name);
-	Color GetColor(const std::string& name);
+	uint8_t GetByte(const NameString& name) const;
+	uint32_t GetInt(const NameString& name) const;
+	bool GetBool(const NameString& name) const;
+	float GetFloat(const NameString& name) const;
+	vec3 GetVector(const NameString& name) const;
+	Rotator GetRotator(const NameString& name) const;
+	const std::string& GetString(const NameString& name) const;
+	UObject* GetUObject(const NameString& name);
+	Color GetColor(const NameString& name);
 
-	void SetByte(const std::string& name, uint8_t value);
-	void SetInt(const std::string& name, uint32_t value);
-	void SetBool(const std::string& name, bool value);
-	void SetFloat(const std::string& name, float value);
-	void SetVector(const std::string& name, const vec3& value);
-	void SetRotator(const std::string& name, const Rotator& value);
-	void SetString(const std::string& name, const std::string& value);
-	void SetObject(const std::string& name, const UObject* value);
+	void SetByte(const NameString& name, uint8_t value);
+	void SetInt(const NameString& name, uint32_t value);
+	void SetBool(const NameString& name, bool value);
+	void SetFloat(const NameString& name, float value);
+	void SetVector(const NameString& name, const vec3& value);
+	void SetRotator(const NameString& name, const Rotator& value);
+	void SetString(const NameString& name, const std::string& value);
+	void SetObject(const NameString& name, const UObject* value);
 
-	bool IsA(const std::string& className) const;
-	bool IsEventEnabled(const std::string& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
+	bool IsA(const NameString& className) const;
+	bool IsEventEnabled(const NameString& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
 
-	std::string GetStateName();
-	void GotoState(std::string stateName, const std::string& labelName);
+	NameString GetStateName();
+	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
 
-	std::set<std::string> DisabledEvents;
+	std::set<NameString> DisabledEvents;
 
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 
-	std::string Name;
+	NameString Name;
 	UClass* Class = nullptr;
 	ObjectFlags Flags = ObjectFlags::NoFlags;
 
@@ -199,7 +199,7 @@ public:
 		return dynamic_cast<T*>(obj);
 	}
 
-	static std::string GetUClassName(UObject* obj);
+	static NameString GetUClassName(UObject* obj);
 
 	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
 	NameString& uc_Name() { return Value<NameString>(PropOffsets_Object.Name); } // native

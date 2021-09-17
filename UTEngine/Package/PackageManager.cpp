@@ -83,7 +83,7 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion) :
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(this));
 }
 
-Package* PackageManager::GetPackage(const std::string& name)
+Package* PackageManager::GetPackage(const NameString& name)
 {
 	std::string key = GetKey(name);
 
@@ -124,7 +124,7 @@ void PackageManager::ScanFolder(const std::string& name, const std::string& sear
 	}
 }
 
-std::string PackageManager::GetKey(std::string name)
+std::string PackageManager::GetKey(NameString name)
 {
 	for (char& c : name)
 	{
@@ -138,7 +138,7 @@ std::string PackageManager::GetKey(std::string name)
 
 std::vector<std::string> PackageManager::GetPackageNames() const
 {
-	std::vector<std::string> names;
+	std::vector<NameString> names;
 	for (auto& it : packageFilenames)
 	{
 		names.push_back(it.first);
