@@ -14,25 +14,25 @@ void NUdpLink::RegisterFunctions()
 
 void NUdpLink::BindPort(UObject* Self, int* Port, bool* bUseNextAvailable, int& ReturnValue)
 {
-	throw std::runtime_error("UdpLink.BindPort not implemented");
+	ReturnValue = UObject::Cast<UUdpLink>(Self)->BindPort(Port ? *Port : 7777, bUseNextAvailable ? *bUseNextAvailable : false);
 }
 
 void NUdpLink::ReadBinary(UObject* Self, IpAddr& Addr, int Count, uint8_t& B, int& ReturnValue)
 {
-	throw std::runtime_error("UdpLink.ReadBinary not implemented");
+	ReturnValue = UObject::Cast<UUdpLink>(Self)->ReadBinary(Addr, Count, B);
 }
 
 void NUdpLink::ReadText(UObject* Self, IpAddr& Addr, std::string& Str, int& ReturnValue)
 {
-	throw std::runtime_error("UdpLink.ReadText not implemented");
+	ReturnValue = UObject::Cast<UUdpLink>(Self)->ReadText(Addr, Str);
 }
 
 void NUdpLink::SendBinary(UObject* Self, const IpAddr& Addr, int Count, uint8_t B, bool& ReturnValue)
 {
-	throw std::runtime_error("UdpLink.SendBinary not implemented");
+	ReturnValue = UObject::Cast<UUdpLink>(Self)->SendBinary(Addr, Count, B);
 }
 
 void NUdpLink::SendText(UObject* Self, const IpAddr& Addr, const std::string& Str, bool& ReturnValue)
 {
-	throw std::runtime_error("UdpLink.SendText not implemented");
+	ReturnValue = UObject::Cast<UUdpLink>(Self)->SendText(Addr, Str);
 }

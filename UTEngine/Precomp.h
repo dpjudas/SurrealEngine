@@ -9,6 +9,8 @@
 
 #ifdef WIN32
 #define WIN32_MEAN_AND_LEAN
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <WinSock2.h>
 #include <Windows.h>
 #include <gdiplus.h>
 #undef min

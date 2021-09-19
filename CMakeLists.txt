@@ -168,6 +168,8 @@ set(UTENGINE_SOURCES
 	UTEngine/UObject/UClass.h
 	UTEngine/UObject/UObject.cpp
 	UTEngine/UObject/UTextBuffer.h
+	UTEngine/UObject/UInternetLink.cpp
+	UTEngine/UObject/UInternetLink.h
 	UTEngine/UObject/PropertyOffsets.h
 	UTEngine/UI/Controls/LineEdit/LineEdit.cpp
 	UTEngine/UI/Controls/LineEdit/LineEdit.h

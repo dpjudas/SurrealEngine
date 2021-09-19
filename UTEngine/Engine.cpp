@@ -81,14 +81,21 @@ void Engine::Run()
 	bool firstCall = true;
 	while (!quit)
 	{
-		float elapsed = CalcTimeElapsed() * LevelInfo->TimeDilation();
-		elapsed = clamp(elapsed, 1.0f / 400.0f, 1.0f / 2.5f);
-		LevelInfo->TimeSeconds() += elapsed;
+		float realTimeElapsed = CalcTimeElapsed();
+		float entryLevelElapsed = EntryLevel ? clamp(realTimeElapsed * EntryLevelInfo->TimeDilation(), 1.0f / 400.0f, 1.0f / 2.5f) : 0.0f;
+		float levelElapsed = clamp(realTimeElapsed * LevelInfo->TimeDilation(), 1.0f / 400.0f, 1.0f / 2.5f);
+
+		if (EntryLevel)
+			EntryLevelInfo->TimeSeconds() += entryLevelElapsed;
+		LevelInfo->TimeSeconds() += levelElapsed;
 
 		UpdateInput();
 
-		CallEvent(console, "Tick", { ExpressionValue::FloatValue(elapsed) });
-		Level->Tick(elapsed);
+		CallEvent(console, "Tick", { ExpressionValue::FloatValue(levelElapsed) });
+
+		if (EntryLevel)
+			EntryLevel->Tick(entryLevelElapsed);
+		Level->Tick(levelElapsed);
 
 		// To do: improve CallEvent so parameter passing isn't this painful
 		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");
@@ -112,9 +119,9 @@ void Engine::Run()
 
 		UpdateAudio();
 
-		engine->renderer->AutoUV += elapsed * 64.0f;
+		engine->renderer->AutoUV += levelElapsed * 64.0f;
 		for (UTexture* tex : engine->renderer->Textures)
-			tex->Update(elapsed);
+			tex->Update(levelElapsed);
 
 		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();

@@ -424,7 +424,7 @@ double ULevel::NodeSphereIntersect(const dvec4& from, const dvec4& to, double ra
 
 double ULevel::TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* p)
 {
-	// Moeller–Trumbore ray-triangle intersection algorithm:
+	// Moeller-Trumbore ray-triangle intersection algorithm:
 
 	dvec3 D = to.xyz() - from.xyz();
 
