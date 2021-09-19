@@ -12,9 +12,11 @@ typedef unsigned long in_addr_t;
 #pragma comment(lib, "ws2_32.lib")
 #else
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
 static int closesocket(int fd) { return close(fd); }
 #endif
 
