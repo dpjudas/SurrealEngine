@@ -857,13 +857,13 @@ void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
-	float t = std::rand() / RAND_MAX;
+	float t = std::rand() / (float)RAND_MAX;
 	ReturnValue = (int)std::round(Max * t);
 }
 
 void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 {
-	float t = std::rand() / RAND_MAX;
+	float t = std::rand() / (float)RAND_MAX;
 	ReturnValue = mix(Min, Max, t);
 }
 

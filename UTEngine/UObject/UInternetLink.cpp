@@ -254,7 +254,11 @@ int UUdpLink::BindPort(int Port, bool bUseNextAvailable)
 	if (result == -1)
 		return 0;
 
+#ifdef WIN32
 	int size = sizeof(sockaddr_in);
+#else
+	socklen_t size = sizeof(sockaddr_in);
+#endif
 	result = getsockname(handle, (sockaddr*)&addr, &size);
 	if (result == -1)
 		return 0;
