@@ -517,7 +517,7 @@ public:
 	{
 		DumbAudioSource* self = (DumbAudioSource*)f;
 		size_t bytes = std::min(self->filedata.size() - self->filepointer, n);
-		if (bytes == 0 || self->seekerror)
+		if ((n > 0 && bytes == 0) || self->seekerror)
 			return -1;
 		memcpy(ptr, self->filedata.data() + self->filepointer, bytes);
 		self->filepointer += n;
