@@ -61,6 +61,13 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 
 		SetProcessDPIAware();
 		InitCommonControls();
+
+		WORD winsock_version = MAKEWORD(2, 2);
+		WSADATA wsaData;
+		int err = WSAStartup(winsock_version, &wsaData);
+		if (err != 0)
+			throw std::runtime_error("Failed to initialize winsockets");
+
 		appMain(std::move(args));
 		return 0;
 	}

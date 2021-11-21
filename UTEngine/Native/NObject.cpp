@@ -505,7 +505,7 @@ void NObject::FMin(float A, float B, float& ReturnValue)
 
 void NObject::FRand(float& ReturnValue)
 {
-	ReturnValue = std::rand() / (float)RAND_MAX;
+	ReturnValue = (float)(std::rand() / (double)RAND_MAX);
 }
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
@@ -857,13 +857,13 @@ void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
-	float t = std::rand() / RAND_MAX;
+	float t = (float)(std::rand() / (double)RAND_MAX);
 	ReturnValue = (int)std::round(Max * t);
 }
 
 void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 {
-	float t = std::rand() / RAND_MAX;
+	float t = (float)(std::rand() / (double)RAND_MAX);
 	ReturnValue = mix(Min, Max, t);
 }
 
@@ -1007,7 +1007,10 @@ void NObject::Tan(float A, float& ReturnValue)
 
 void NObject::VRand(vec3& ReturnValue)
 {
-	ReturnValue = vec3(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
+	ReturnValue = vec3(
+		(float)(std::rand() / (double)RAND_MAX),
+		(float)(std::rand() / (double)RAND_MAX),
+		(float)(std::rand() / (double)RAND_MAX));
 }
 
 void NObject::VSize(const vec3& A, float& ReturnValue)

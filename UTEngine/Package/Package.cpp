@@ -15,6 +15,7 @@
 #include "UObject/UMusic.h"
 #include "UObject/UTextBuffer.h"
 #include "UObject/UClient.h"
+#include "UObject/UInternetLink.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)

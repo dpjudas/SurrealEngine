@@ -18,37 +18,37 @@ void NInternetLink::RegisterFunctions()
 
 void NInternetLink::GetLastError(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("InternetLink.GetLastError not implemented");
+	ReturnValue = Self->Cast<UInternetLink>(Self)->GetLastError();
 }
 
 void NInternetLink::GetLocalIP(UObject* Self, IpAddr& Arg)
 {
-	throw std::runtime_error("InternetLink.GetLocalIP not implemented");
-}
-
-void NInternetLink::IpAddrToString(UObject* Self, const IpAddr& Arg, std::string& ReturnValue)
-{
-	throw std::runtime_error("InternetLink.IpAddrToString not implemented");
+	Arg = Self->Cast<UInternetLink>(Self)->GetLocalIP();
 }
 
 void NInternetLink::IsDataPending(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("InternetLink.IsDataPending not implemented");
+	ReturnValue = Self->Cast<UInternetLink>(Self)->IsDataPending();
+}
+
+void NInternetLink::Resolve(UObject* Self, const std::string& Domain)
+{
+	Self->Cast<UInternetLink>(Self)->Resolve(Domain);
+}
+
+void NInternetLink::IpAddrToString(UObject* Self, const IpAddr& Arg, std::string& ReturnValue)
+{
+	ReturnValue = Self->Cast<UInternetLink>(Self)->IpAddrToString(Arg);
+}
+
+void NInternetLink::StringToIpAddr(UObject* Self, const std::string& Str, IpAddr& Addr, bool& ReturnValue)
+{
+	ReturnValue = Self->Cast<UInternetLink>(Self)->StringToIpAddr(Str, Addr);
 }
 
 void NInternetLink::ParseURL(UObject* Self, const std::string& URL, std::string& Addr, int& Port, std::string& LevelName, std::string& EntryName, bool& ReturnValue)
 {
 	throw std::runtime_error("InternetLink.ParseURL not implemented");
-}
-
-void NInternetLink::Resolve(UObject* Self, const std::string& Domain)
-{
-	engine->LogUnimplemented("InternetLink.Resolve('" + Domain + "')");
-}
-
-void NInternetLink::StringToIpAddr(UObject* Self, const std::string& Str, IpAddr& Addr, bool& ReturnValue)
-{
-	throw std::runtime_error("InternetLink.StringToIpAddr not implemented");
 }
 
 void NInternetLink::Validate(UObject* Self, const std::string& ValidationString, const std::string& GameName, std::string& ReturnValue)

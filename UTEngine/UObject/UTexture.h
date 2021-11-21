@@ -245,7 +245,7 @@ public:
 	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
 
 private:
-	int RandomByteValue() { return rand() * 256 / (RAND_MAX + 1); }
+	int RandomByteValue() { return (int)(rand() * 256LL / (RAND_MAX + 1LL)); }
 
 	std::vector<uint8_t> WorkBuffer;
 	uint8_t FadeTable[4 * 256];

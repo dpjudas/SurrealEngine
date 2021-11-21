@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UActor.h"
+#include "UObject/UInternetLink.h"
 
 class NInternetLink
 {

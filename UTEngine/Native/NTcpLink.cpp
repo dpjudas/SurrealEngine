@@ -18,45 +18,45 @@ void NTcpLink::RegisterFunctions()
 
 void NTcpLink::BindPort(UObject* Self, int* Port, bool* bUseNextAvailable, int& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.BindPort not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->BindPort(Port ? *Port : 7777, bUseNextAvailable ? *bUseNextAvailable : false);
 }
 
 void NTcpLink::Close(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.Close not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->Close();
 }
 
 void NTcpLink::IsConnected(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.IsConnected not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->IsConnected();
 }
 
 void NTcpLink::Listen(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.Listen not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->Listen();
 }
 
 void NTcpLink::Open(UObject* Self, const IpAddr& Addr, bool& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.Open not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->Open(Addr);
 }
 
 void NTcpLink::ReadBinary(UObject* Self, int Count, uint8_t& B, int& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.ReadBinary not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->ReadBinary(Count, B);
 }
 
 void NTcpLink::ReadText(UObject* Self, std::string& Str, int& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.ReadText not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->ReadText(Str);
 }
 
 void NTcpLink::SendBinary(UObject* Self, int Count, uint8_t B, int& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.SendBinary not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->SendBinary(Count, B);
 }
 
 void NTcpLink::SendText(UObject* Self, const std::string& Str, int& ReturnValue)
 {
-	throw std::runtime_error("TcpLink.SendText not implemented");
+	ReturnValue = UObject::Cast<UTcpLink>(Self)->SendText(Str);
 }
