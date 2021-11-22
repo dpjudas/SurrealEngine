@@ -10,6 +10,7 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Audio/AudioMixer.h"
+#include "Audio/AudioSubsystem.h"
 
 void NActor::RegisterFunctions()
 {
@@ -111,7 +112,7 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::Destroy(UObject* Self, bool& ReturnValue)
@@ -263,7 +264,7 @@ void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
-	ReturnValue = engine->audio->GetSoundDuration(s->GetSound());
+	ReturnValue = engine->audio->GetMixer()->GetSoundDuration(s->GetSound());
 }
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
@@ -341,7 +342,7 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -349,7 +350,7 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(Self, Slot ? *Slot : SLOT_Misc, s->GetSound(), SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->SoundRadius() * 25.0f, Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)

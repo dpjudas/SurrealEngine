@@ -36,7 +36,7 @@ class BspSurface;
 class BspNode;
 class LightMapIndex;
 class FrustumPlanes;
-class AudioMixer;
+class AudioSubsystem;
 class Rotator;
 class ExpressionValue;
 class UnrealURL;
@@ -100,7 +100,7 @@ public:
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;
 	std::unique_ptr<UTRenderer> renderer;
-	std::unique_ptr<AudioMixer> audio;
+	std::unique_ptr<AudioSubsystem> audio;
 
 	float CalcTimeElapsed();
 

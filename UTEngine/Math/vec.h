@@ -313,13 +313,13 @@ inline double length(dvec2 v) { return std::sqrt(dot(v, v)); }
 inline double length(dvec3 v) { return std::sqrt(dot(v, v)); }
 inline double length(dvec4 v) { return std::sqrt(dot(v, v)); }
 
-inline vec2 normalize(vec2 v) { return v / length(v); }
-inline vec3 normalize(vec3 v) { return v / length(v); }
-inline vec4 normalize(vec4 v) { return v / length(v); }
+inline vec2 normalize(vec2 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec2(0.0f); }
+inline vec3 normalize(vec3 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec3(0.0f); }
+inline vec4 normalize(vec4 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec4(0.0f); }
 
-inline dvec2 normalize(dvec2 v) { return v / length(v); }
-inline dvec3 normalize(dvec3 v) { return v / length(v); }
-inline dvec4 normalize(dvec4 v) { return v / length(v); }
+inline dvec2 normalize(dvec2 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec2(0.0); }
+inline dvec3 normalize(dvec3 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec3(0.0); }
+inline dvec4 normalize(dvec4 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec4(0.0); }
 
 inline vec3 cross(vec3 a, vec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
 inline dvec3 cross(dvec3 a, dvec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }

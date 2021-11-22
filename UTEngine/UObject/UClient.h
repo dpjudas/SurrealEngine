@@ -129,6 +129,8 @@ class UViewport : public UPlayer
 {
 public:
 	using UPlayer::UPlayer;
+
+	bool IsRealtime() { return true; } // To do: when is this false?
 };
 
 class UNetConnection : public UPlayer

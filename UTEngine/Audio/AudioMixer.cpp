@@ -5,18 +5,21 @@
 #include "AudioPlayer.h"
 #include <mutex>
 #include <stdexcept>
+#include <map>
+#include <cmath>
 
 class AudioMixerImpl;
 
 class AudioSound
 {
 public:
-	AudioSound(int mixing_frequency, std::unique_ptr<AudioSource> source)
+	AudioSound(int mixing_frequency, std::unique_ptr<AudioSource> source, const AudioLoopInfo& inloopinfo) : loopinfo(inloopinfo)
 	{
 		duration = samples.size() / 48000.0f;
 
 		if (source->GetChannels() == 1)
 		{
+			uint64_t oldSampleCount = source->GetSamples();
 			if (source->GetFrequency() != mixing_frequency)
 			{
 				source = AudioSource::CreateResampler(mixing_frequency, std::move(source));
@@ -35,6 +38,17 @@ public:
 					samples[pos] = samples[pos] * t;
 				}
 			}
+
+			if (oldSampleCount > 0)
+			{
+				uint64_t newSampleCount = samples.size();
+				loopinfo.LoopStart = std::max(std::min(loopinfo.LoopStart * newSampleCount / oldSampleCount, newSampleCount - 1), (uint64_t)0);
+				loopinfo.LoopEnd = std::max(std::min(loopinfo.LoopEnd * newSampleCount / oldSampleCount, newSampleCount), (uint64_t)0);
+			}
+			else
+			{
+				loopinfo = {};
+			}
 		}
 		else
 		{
@@ -44,17 +58,18 @@ public:
 
 	std::vector<float> samples;
 	float duration = 0.0f;
+	AudioLoopInfo loopinfo;
 };
 
 class ActiveSound
 {
 public:
-	void* owner = nullptr;
-	int slot = 0;
+	int channel = 0;
+	bool play = false;
+	bool update = false;
 	AudioSound* sound = nullptr;
-	vec3 location = vec3(0.0f);
 	float volume = 0.0f;
-	float radius = 0.0f;
+	float pan = 0.0f;
 	float pitch = 0.0f;
 
 	double pos = 0;
@@ -78,9 +93,11 @@ public:
 	void GetVolume(const ActiveSound& sound, float& leftVolume, float& rightVolume);
 
 	AudioMixerImpl* mixer = nullptr;
-	std::map<std::pair<void*, int>, ActiveSound> sounds;
-	mat4 viewport = mat4::identity();
+	std::map<int, ActiveSound> sounds;
+	std::vector<int> stoppedsounds;
 	std::unique_ptr<AudioSource> music;
+	float soundvolume = 1.0f;
+	float musicvolume = 1.0f;
 };
 
 class AudioMixerImpl : public AudioMixer
@@ -96,10 +113,14 @@ public:
 		player.reset();
 	}
 
-	AudioSound* AddSound(std::unique_ptr<AudioSource> source) override
+	AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo) override
 	{
-		sounds.push_back(std::make_unique<AudioSound>(mixing_frequency, std::move(source)));
+		sounds.push_back(std::make_unique<AudioSound>(mixing_frequency, std::move(source), loopinfo));
 		return sounds.back().get();
+	}
+
+	void RemoveSound(AudioSound* sound) override
+	{
 	}
 
 	float GetSoundDuration(AudioSound* sound) override
@@ -107,17 +128,53 @@ public:
 		return sound->duration;
 	}
 
-	void PlaySound(void* owner, int slot, AudioSound* sound, const vec3& location, float volume, float radius, float pitch) override
+	int PlaySound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
 	{
+		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch))
+			throw std::runtime_error("Invalid PlaySound arguments");
+
 		ActiveSound s;
-		s.owner = owner;
-		s.slot = slot;
+		s.channel = channel;
+		s.play = true;
+		s.update = false;
 		s.sound = sound;
-		s.location = location;
 		s.volume = volume;
-		s.radius = radius;
+		s.pan = pan;
 		s.pitch = pitch;
 		client.sounds.push_back(std::move(s));
+		channelplaying[channel]++;
+		return channel;
+	}
+
+	void UpdateSound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
+	{
+		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch))
+			throw std::runtime_error("Invalid UpdateSound arguments");
+
+		ActiveSound s;
+		s.channel = channel;
+		s.play = false;
+		s.update = true;
+		s.sound = sound;
+		s.volume = volume;
+		s.pan = pan;
+		s.pitch = pitch;
+		client.sounds.push_back(std::move(s));
+	}
+
+	void StopSound(int channel) override
+	{
+		ActiveSound s;
+		s.channel = channel;
+		s.play = false;
+		s.update = false;
+		client.sounds.push_back(std::move(s));
+	}
+
+	bool SoundFinished(int channel) override
+	{
+		auto it = channelplaying.find(channel);
+		return it == channelplaying.end() || it->second == 0;
 	}
 
 	void PlayMusic(std::unique_ptr<AudioSource> source) override
@@ -133,9 +190,14 @@ public:
 		client.musicupdate = true;
 	}
 
-	void SetViewport(const mat4& worldToView) override
+	void SetMusicVolume(float volume) override
 	{
-		client.viewport = worldToView;
+		client.musicvolume = volume;
+	}
+
+	void SetSoundVolume(float volume) override
+	{
+		client.soundvolume = volume;
 	}
 
 	void Update() override
@@ -144,7 +206,6 @@ public:
 		for (ActiveSound& s : client.sounds)
 			transfer.sounds.push_back(s);
 		client.sounds.clear();
-		transfer.viewport = client.viewport;
 		if (client.musicupdate)
 		{
 			transfer.music = std::move(client.music);
@@ -152,22 +213,38 @@ public:
 		}
 		client.music = {};
 		client.musicupdate = false;
+
+		transfer.musicvolume = client.musicvolume;
+		transfer.soundvolume = client.soundvolume;
+
+		for (int c : channelstopped)
+		{
+			auto it = channelplaying.find(c);
+			it->second--;
+			if (it->second == 0)
+				channelplaying.erase(it);
+		}
+		channelstopped.clear();
 	}
 
 	int mixing_frequency = 48000;
 
 	std::vector<std::unique_ptr<AudioSound>> sounds;
 	std::unique_ptr<AudioPlayer> player;
+	std::map<int, int> channelplaying;
 
 	struct
 	{
 		std::vector<ActiveSound> sounds;
-		mat4 viewport;
 		std::unique_ptr<AudioSource> music;
 		bool musicupdate = false;
+		float soundvolume = 1.0f;
+		float musicvolume = 1.0f;
 	} client, transfer;
+	std::vector<int> channelstopped;
 
 	std::mutex mutex;
+	int nextid = 1;
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -196,12 +273,43 @@ void AudioMixerSource::TransferFromClient()
 {
 	std::unique_lock<std::mutex> lock(mixer->mutex);
 	for (ActiveSound& s : mixer->transfer.sounds)
-		sounds[{ s.owner, s.slot }] = s;
+	{
+		if (!s.update) // if play or stop
+		{
+			auto it = sounds.find(s.channel);
+			if (it != sounds.end())
+			{
+				stoppedsounds.push_back(s.channel);
+				sounds.erase(it);
+			}
+		}
+
+		if (s.play)
+		{
+			sounds[s.channel] = s;
+		}
+		else if (s.update)
+		{
+			auto it = sounds.find(s.channel);
+			if (it != sounds.end())
+			{
+				it->second.volume = s.volume;
+				it->second.pan = s.pan;
+				it->second.pitch = s.pitch;
+			}
+		}
+	}
 	mixer->transfer.sounds.clear();
-	viewport = mixer->transfer.viewport;
+
 	if (mixer->transfer.musicupdate)
 		music = std::move(mixer->transfer.music);
 	mixer->transfer.musicupdate = false;
+
+	mixer->channelstopped.insert(mixer->channelstopped.end(), stoppedsounds.begin(), stoppedsounds.end());
+	stoppedsounds.clear();
+
+	soundvolume = mixer->transfer.soundvolume;
+	musicvolume = mixer->transfer.musicvolume;
 }
 
 void AudioMixerSource::CopyMusic(float* output, size_t samples)
@@ -217,13 +325,19 @@ void AudioMixerSource::CopyMusic(float* output, size_t samples)
 	{
 		output[i] = 0.0f;
 	}
+
+	for (size_t i = 0; i < samples; i++)
+	{
+		output[i] *= musicvolume;
+	}
 }
 
 void AudioMixerSource::MixSounds(float* output, size_t samples)
 {
 	samples /= 2;
 
-	for (auto it = sounds.begin(); it != sounds.end();)
+	auto it = sounds.begin();
+	while (it != sounds.end())
 	{
 		ActiveSound& sound = it->second;
 		const float* src = sound.sound->samples.data();
@@ -232,18 +346,31 @@ void AudioMixerSource::MixSounds(float* output, size_t samples)
 		int srcsize = (int)sound.sound->samples.size();
 		int srcmax = srcsize - 1;
 		if (srcmax < 0)
+		{
+			stoppedsounds.push_back(sound.channel);
+			it = sounds.erase(it);
 			continue;
+		}
 
 		float leftVolume, rightVolume;
 		GetVolume(sound, leftVolume, rightVolume);
 
-		if (leftVolume > 0.0f || rightVolume > 0.0f)
+		if (sound.sound->loopinfo.Looped)
 		{
+			double loopStart = (double)sound.sound->loopinfo.LoopStart;
+			double loopEnd = (double)sound.sound->loopinfo.LoopEnd;
+			double loopLen = loopEnd - loopStart;
+
 			for (size_t i = 0; i < samples; i++)
 			{
-				int pos = (int)srcpos;
-				int pos2 = pos + 1;
-				float t = (float)(srcpos - pos);
+				double p0 = srcpos;
+				double p1 = srcpos + 1;
+				if (p0 >= loopEnd) p0 -= loopLen;
+				if (p1 >= loopEnd) p1 -= loopLen;
+
+				int pos = (int)p0;
+				int pos2 = (int)p1;
+				float t = (float)(p0 - pos);
 
 				pos = std::min(pos, srcmax);
 				pos2 = std::min(pos2, srcmax);
@@ -253,51 +380,55 @@ void AudioMixerSource::MixSounds(float* output, size_t samples)
 				output[(i << 1) + 1] += value * rightVolume;
 
 				srcpos += srcpitch;
+				while (srcpos >= loopEnd)
+					srcpos -= loopLen;
 			}
-		}
-		else
-		{
-			srcpos += srcpitch * samples;
-		}
 
-		if (srcpos < sound.sound->samples.size())
-		{
 			sound.pos = srcpos;
 			++it;
 		}
 		else
 		{
-			it = sounds.erase(it);
+			if (leftVolume > 0.0f || rightVolume > 0.0f)
+			{
+				for (size_t i = 0; i < samples; i++)
+				{
+					int pos = (int)srcpos;
+					int pos2 = pos + 1;
+					float t = (float)(srcpos - pos);
+
+					pos = std::min(pos, srcmax);
+					pos2 = std::min(pos2, srcmax);
+
+					float value = (src[pos] * t + src[pos2] * (1.0f - t));
+					output[i << 1] += value * leftVolume;
+					output[(i << 1) + 1] += value * rightVolume;
+
+					srcpos += srcpitch;
+				}
+			}
+			else
+			{
+				srcpos += srcpitch * samples;
+			}
+
+			if (srcpos < sound.sound->samples.size())
+			{
+				sound.pos = srcpos;
+				++it;
+			}
+			else
+			{
+				stoppedsounds.push_back(sound.channel);
+				it = sounds.erase(it);
+			}
 		}
 	}
 }
 
 void AudioMixerSource::GetVolume(const ActiveSound& sound, float& leftVolume, float& rightVolume)
 {
-	if (sound.radius > 0.0f)
-	{
-		vec3 location = (viewport * vec4(sound.location, 1.0f)).xyz();
-
-		// To do: use a less shitty HRTF equation than this 1990's version!!
-
-		float angle = std::atan2(location.x, std::abs(location.z));
-
-		// Reduce spatialization effect when getting close to the center
-		float despatializedRadius = sound.radius * 0.1f;
-		float dist2 = dot(location, location);
-		if (dist2 < despatializedRadius * despatializedRadius)
-			angle *= std::sqrt(dist2) / despatializedRadius;
-
-		float pan = clamp(angle * 2.0f / 3.14f, -1.0f, 1.0f);
-		float attenuation = std::max(1.0f - length(location) / sound.radius, 0.0f);
-		attenuation *= attenuation;
-
-		leftVolume = clamp(sound.volume * attenuation * std::min(1.0f - pan, 1.0f), 0.0f, 1.0f);
-		rightVolume = clamp(sound.volume * attenuation * std::min(1.0f + pan, 1.0f), 0.0f, 1.0f);
-	}
-	else
-	{
-		leftVolume = clamp(sound.volume, 0.0f, 1.0f);
-		rightVolume = clamp(sound.volume, 0.0f, 1.0f);
-	}
+	auto clamp = [](float x, float minval, float maxval) { return std::max(std::min(x, maxval), minval); };
+	leftVolume = clamp(sound.volume * std::min(1.0f - sound.pan, 1.0f) * soundvolume, 0.0f, 1.0f);
+	rightVolume = clamp(sound.volume * std::min(1.0f + sound.pan, 1.0f) * soundvolume, 0.0f, 1.0f);
 }

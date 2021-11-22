@@ -3,6 +3,7 @@
 #include "AudioSource.h"
 #include "resample/CDSPResampler.h"
 #include <stdexcept>
+#include <functional>
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4267)
@@ -414,7 +415,7 @@ public:
 class DumbAudioSource : public AudioSource
 {
 public:
-	DumbAudioSource(std::vector<uint8_t> initfiledata, bool loop, int restrict_, int subsong) : filedata(std::move(initfiledata))
+	DumbAudioSource(std::vector<uint8_t> initfiledata, bool loop, std::function<DUH*(DUMBFILE*)> readCallback) : filedata(std::move(initfiledata))
 	{
 		dfs.open = &DumbAudioSource::DfsOpen;
 		dfs.skip = &DumbAudioSource::DfsSkip;
@@ -428,7 +429,7 @@ public:
 		if (!handle)
 			throw std::runtime_error("Could not open tracker file");
 
-		duh = dumb_read_any(handle, restrict_, subsong);
+		duh = readCallback(handle);
 		if (duh == nullptr)
 		{
 			dumbfile_close(handle);
@@ -577,7 +578,7 @@ std::unique_ptr<AudioSource> AudioSource::CreateOgg(std::vector<uint8_t> filedat
 
 std::unique_ptr<AudioSource> AudioSource::CreateMod(std::vector<uint8_t> filedata, bool loop, int restrict_, int subsong)
 {
-	return std::make_unique<DumbAudioSource>(std::move(filedata), loop, restrict_, subsong);
+	return std::make_unique<DumbAudioSource>(std::move(filedata), loop, [=](auto handle) { return dumb_read_any(handle, restrict_, subsong); });
 }
 
 class ResampleAudioSource : public AudioSource

@@ -181,6 +181,10 @@ public:
 			return nullptr;
 	}
 
+	float WorldSoundRadius() { return ((int)SoundRadius() + 1) * 25.0f; }
+	float WorldVolumetricRadius() { return ((int)VolumeRadius() + 1) * 25.0f; }
+	float WorldLightRadius() { return ((int)LightRadius() + 1) * 25.0f; }
+
 	vec3& Acceleration() { return Value<vec3>(PropOffsets_Actor.Acceleration); }
 	uint8_t& AmbientGlow() { return Value<uint8_t>(PropOffsets_Actor.AmbientGlow); }
 	USound*& AmbientSound() { return Value<USound*>(PropOffsets_Actor.AmbientSound); }

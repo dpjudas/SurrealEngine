@@ -47,6 +47,8 @@ set(UTENGINE_SOURCES
 	UTEngine/Audio/AudioSource.cpp
 	UTEngine/Audio/AudioMixer.cpp
 	UTEngine/Audio/AudioMixer.h
+	UTEngine/Audio/AudioSubsystem.cpp
+	UTEngine/Audio/AudioSubsystem.h
 	UTEngine/Native/NStatLog.h
 	UTEngine/Native/NZoneInfo.cpp
 	UTEngine/Native/NNavigationPoint.cpp
