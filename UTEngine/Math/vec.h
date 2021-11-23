@@ -35,7 +35,7 @@ class Rectf
 public:
 	Rectf() = default;
 	Rectf(float left, float top, float right, float bottom) : left(left), top(top), right(right), bottom(bottom) { }
-	Rectf(Pointf pos, Sizef size) : left(pos.x), top(pos.y), right(pos.x + size.width), bottom(pos.y + size.height) { }
+	Rectf(const Pointf& pos, Sizef size) : left(pos.x), top(pos.y), right(pos.x + size.width), bottom(pos.y + size.height) { }
 
 	static Rectf xywh(float x, float y, float width, float height) { return Rectf(x, y, x + width, y + height); }
 
@@ -140,10 +140,10 @@ struct vec3T
 
 	inline vec3T operator-() const { return vec3T(-x, -y, -z); }
 
-	inline vec3T &operator+=(vec3T b) { x += b.x; y += b.y; z += b.z; return *this; }
-	inline vec3T &operator-=(vec3T b) { x -= b.x; y -= b.y; z -= b.z; return *this; }
-	inline vec3T &operator*=(vec3T b) { x *= b.x; y *= b.y; z *= b.z; return *this; }
-	inline vec3T &operator/=(vec3T b) { x /= b.x; y /= b.y; z /= b.z; return *this; }
+	inline vec3T &operator+=(const vec3T& b) { x += b.x; y += b.y; z += b.z; return *this; }
+	inline vec3T &operator-=(const vec3T& b) { x -= b.x; y -= b.y; z -= b.z; return *this; }
+	inline vec3T &operator*=(const vec3T& b) { x *= b.x; y *= b.y; z *= b.z; return *this; }
+	inline vec3T &operator/=(const vec3T& b) { x /= b.x; y /= b.y; z /= b.z; return *this; }
 
 	inline vec3T &operator+=(T b) { x += b; y += b; z += b; return *this; }
 	inline vec3T &operator-=(T b) { x -= b; y -= b; z -= b; return *this; }
@@ -199,10 +199,10 @@ struct vec4T
 
 	inline vec4T operator-() const { return vec4T(-x, -y, -z, -w); }
 
-	inline vec4T &operator+=(vec4T b) { x += b.x; y += b.y; z += b.z; w += b.w; return *this; }
-	inline vec4T &operator-=(vec4T b) { x -= b.x; y -= b.y; z -= b.z; w -= b.w; return *this; }
-	inline vec4T &operator*=(vec4T b) { x *= b.x; y *= b.y; z *= b.z; w *= b.w; return *this; }
-	inline vec4T &operator/=(vec4T b) { x /= b.x; y /= b.y; z /= b.z; w /= b.w; return *this; }
+	inline vec4T &operator+=(const vec4T& b) { x += b.x; y += b.y; z += b.z; w += b.w; return *this; }
+	inline vec4T &operator-=(const vec4T& b) { x -= b.x; y -= b.y; z -= b.z; w -= b.w; return *this; }
+	inline vec4T &operator*=(const vec4T& b) { x *= b.x; y *= b.y; z *= b.z; w *= b.w; return *this; }
+	inline vec4T &operator/=(const vec4T& b) { x /= b.x; y /= b.y; z /= b.z; w /= b.w; return *this; }
 
 	inline vec4T &operator+=(T b) { x += b; y += b; z += b;  w += b; return *this; }
 	inline vec4T &operator-=(T b) { x -= b; y -= b; z -= b;  w -= b; return *this; }
@@ -210,50 +210,50 @@ struct vec4T
 	inline vec4T &operator/=(T b) { x /= b; y /= b; z /= b;  w /= b; return *this; }
 };
 
-template<typename T> vec2T<T> operator+(vec2T<T> a, vec2T<T> b) { return vec2T<T>(a.x + b.x, a.y + b.y); }
-template<typename T> vec2T<T> operator-(vec2T<T> a, vec2T<T> b) { return vec2T<T>(a.x - b.x, a.y - b.y); }
-template<typename T> vec2T<T> operator*(vec2T<T> a, vec2T<T> b) { return vec2T<T>(a.x * b.x, a.y * b.y); }
-template<typename T> vec2T<T> operator/(vec2T<T> a, vec2T<T> b) { return vec2T<T>(a.x / b.x, a.y / b.y); }
+template<typename T> vec2T<T> operator+(const vec2T<T>& a, const vec2T<T>& b) { return vec2T<T>(a.x + b.x, a.y + b.y); }
+template<typename T> vec2T<T> operator-(const vec2T<T>& a, const vec2T<T>& b) { return vec2T<T>(a.x - b.x, a.y - b.y); }
+template<typename T> vec2T<T> operator*(const vec2T<T>& a, const vec2T<T>& b) { return vec2T<T>(a.x * b.x, a.y * b.y); }
+template<typename T> vec2T<T> operator/(const vec2T<T>& a, const vec2T<T>& b) { return vec2T<T>(a.x / b.x, a.y / b.y); }
 
 template<typename T> vec2T<T> operator+(T a, vec2T<T> b) { return vec2T<T>(a + b.x, a + b.y); }
 template<typename T> vec2T<T> operator-(T a, vec2T<T> b) { return vec2T<T>(a - b.x, a - b.y); }
 template<typename T> vec2T<T> operator*(T a, vec2T<T> b) { return vec2T<T>(a * b.x, a * b.y); }
 template<typename T> vec2T<T> operator/(T a, vec2T<T> b) { return vec2T<T>(a / b.x, a / b.y); }
 
-template<typename T> vec2T<T> operator+(vec2T<T> a, T b) { return vec2T<T>(a.x + b, a.y + b); }
-template<typename T> vec2T<T> operator-(vec2T<T> a, T b) { return vec2T<T>(a.x - b, a.y - b); }
-template<typename T> vec2T<T> operator*(vec2T<T> a, T b) { return vec2T<T>(a.x * b, a.y * b); }
-template<typename T> vec2T<T> operator/(vec2T<T> a, T b) { return vec2T<T>(a.x / b, a.y / b); }
+template<typename T> vec2T<T> operator+(const vec2T<T>& a, T b) { return vec2T<T>(a.x + b, a.y + b); }
+template<typename T> vec2T<T> operator-(const vec2T<T>& a, T b) { return vec2T<T>(a.x - b, a.y - b); }
+template<typename T> vec2T<T> operator*(const vec2T<T>& a, T b) { return vec2T<T>(a.x * b, a.y * b); }
+template<typename T> vec2T<T> operator/(const vec2T<T>& a, T b) { return vec2T<T>(a.x / b, a.y / b); }
 
-template<typename T> vec3T<T> operator+(vec3T<T> a, vec3T<T> b) { return vec3T<T>(a.x + b.x, a.y + b.y, a.z + b.z); }
-template<typename T> vec3T<T> operator-(vec3T<T> a, vec3T<T> b) { return vec3T<T>(a.x - b.x, a.y - b.y, a.z - b.z); }
-template<typename T> vec3T<T> operator*(vec3T<T> a, vec3T<T> b) { return vec3T<T>(a.x * b.x, a.y * b.y, a.z * b.z); }
-template<typename T> vec3T<T> operator/(vec3T<T> a, vec3T<T> b) { return vec3T<T>(a.x / b.x, a.y / b.y, a.z / b.z); }
+template<typename T> vec3T<T> operator+(const vec3T<T>& a, const vec3T<T>& b) { return vec3T<T>(a.x + b.x, a.y + b.y, a.z + b.z); }
+template<typename T> vec3T<T> operator-(const vec3T<T>& a, const vec3T<T>& b) { return vec3T<T>(a.x - b.x, a.y - b.y, a.z - b.z); }
+template<typename T> vec3T<T> operator*(const vec3T<T>& a, const vec3T<T>& b) { return vec3T<T>(a.x * b.x, a.y * b.y, a.z * b.z); }
+template<typename T> vec3T<T> operator/(const vec3T<T>& a, const vec3T<T>& b) { return vec3T<T>(a.x / b.x, a.y / b.y, a.z / b.z); }
 
-template<typename T> vec3T<T> operator+(T a, vec3T<T> b) { return vec3T<T>(a + b.x, a + b.y, a + b.z); }
-template<typename T> vec3T<T> operator-(T a, vec3T<T> b) { return vec3T<T>(a - b.x, a - b.y, a - b.z); }
-template<typename T> vec3T<T> operator*(T a, vec3T<T> b) { return vec3T<T>(a * b.x, a * b.y, a * b.z); }
-template<typename T> vec3T<T> operator/(T a, vec3T<T> b) { return vec3T<T>(a / b.x, a / b.y, a / b.z); }
+template<typename T> vec3T<T> operator+(T a, const vec3T<T>& b) { return vec3T<T>(a + b.x, a + b.y, a + b.z); }
+template<typename T> vec3T<T> operator-(T a, const vec3T<T>& b) { return vec3T<T>(a - b.x, a - b.y, a - b.z); }
+template<typename T> vec3T<T> operator*(T a, const vec3T<T>& b) { return vec3T<T>(a * b.x, a * b.y, a * b.z); }
+template<typename T> vec3T<T> operator/(T a, const vec3T<T>& b) { return vec3T<T>(a / b.x, a / b.y, a / b.z); }
 
-template<typename T> vec3T<T> operator+(vec3T<T> a, T b) { return vec3T<T>(a.x + b, a.y + b, a.z + b); }
-template<typename T> vec3T<T> operator-(vec3T<T> a, T b) { return vec3T<T>(a.x - b, a.y - b, a.z - b); }
-template<typename T> vec3T<T> operator*(vec3T<T> a, T b) { return vec3T<T>(a.x * b, a.y * b, a.z * b); }
-template<typename T> vec3T<T> operator/(vec3T<T> a, T b) { return vec3T<T>(a.x / b, a.y / b, a.z / b); }
+template<typename T> vec3T<T> operator+(const vec3T<T>& a, T b) { return vec3T<T>(a.x + b, a.y + b, a.z + b); }
+template<typename T> vec3T<T> operator-(const vec3T<T>& a, T b) { return vec3T<T>(a.x - b, a.y - b, a.z - b); }
+template<typename T> vec3T<T> operator*(const vec3T<T>& a, T b) { return vec3T<T>(a.x * b, a.y * b, a.z * b); }
+template<typename T> vec3T<T> operator/(const vec3T<T>& a, T b) { return vec3T<T>(a.x / b, a.y / b, a.z / b); }
 
-template<typename T> vec4T<T> operator+(vec4T<T> a, vec4T<T> b) { return vec4T<T>(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
-template<typename T> vec4T<T> operator-(vec4T<T> a, vec4T<T> b) { return vec4T<T>(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
-template<typename T> vec4T<T> operator*(vec4T<T> a, vec4T<T> b) { return vec4T<T>(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w); }
-template<typename T> vec4T<T> operator/(vec4T<T> a, vec4T<T> b) { return vec4T<T>(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+template<typename T> vec4T<T> operator+(const vec4T<T>& a, const vec4T<T>& b) { return vec4T<T>(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+template<typename T> vec4T<T> operator-(const vec4T<T>& a, const vec4T<T>& b) { return vec4T<T>(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+template<typename T> vec4T<T> operator*(const vec4T<T>& a, const vec4T<T>& b) { return vec4T<T>(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w); }
+template<typename T> vec4T<T> operator/(const vec4T<T>& a, const vec4T<T>& b) { return vec4T<T>(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
 
-template<typename T> vec4T<T> operator+(T a, vec4T<T> b) { return vec4T<T>(a + b.x, a + b.y, a + b.z, a + b.w); }
-template<typename T> vec4T<T> operator-(T a, vec4T<T> b) { return vec4T<T>(a - b.x, a - b.y, a - b.z, a - b.w); }
-template<typename T> vec4T<T> operator*(T a, vec4T<T> b) { return vec4T<T>(a * b.x, a * b.y, a * b.z, a * b.w); }
-template<typename T> vec4T<T> operator/(T a, vec4T<T> b) { return vec4T<T>(a / b.x, a / b.y, a / b.z, a / b.w); }
+template<typename T> vec4T<T> operator+(T a, const vec4T<T>& b) { return vec4T<T>(a + b.x, a + b.y, a + b.z, a + b.w); }
+template<typename T> vec4T<T> operator-(T a, const vec4T<T>& b) { return vec4T<T>(a - b.x, a - b.y, a - b.z, a - b.w); }
+template<typename T> vec4T<T> operator*(T a, const vec4T<T>& b) { return vec4T<T>(a * b.x, a * b.y, a * b.z, a * b.w); }
+template<typename T> vec4T<T> operator/(T a, const vec4T<T>& b) { return vec4T<T>(a / b.x, a / b.y, a / b.z, a / b.w); }
 
-template<typename T> vec4T<T> operator+(vec4T<T> a, T b) { return vec4T<T>(a.x + b, a.y + b, a.z + b, a.w + b); }
-template<typename T> vec4T<T> operator-(vec4T<T> a, T b) { return vec4T<T>(a.x - b, a.y - b, a.z - b, a.w - b); }
-template<typename T> vec4T<T> operator*(vec4T<T> a, T b) { return vec4T<T>(a.x * b, a.y * b, a.z * b, a.w * b); }
-template<typename T> vec4T<T> operator/(vec4T<T> a, T b) { return vec4T<T>(a.x / b, a.y / b, a.z / b, a.w / b); }
+template<typename T> vec4T<T> operator+(const vec4T<T>& a, T b) { return vec4T<T>(a.x + b, a.y + b, a.z + b, a.w + b); }
+template<typename T> vec4T<T> operator-(const vec4T<T>& a, T b) { return vec4T<T>(a.x - b, a.y - b, a.z - b, a.w - b); }
+template<typename T> vec4T<T> operator*(const vec4T<T>& a, T b) { return vec4T<T>(a.x * b, a.y * b, a.z * b, a.w * b); }
+template<typename T> vec4T<T> operator/(const vec4T<T>& a, T b) { return vec4T<T>(a.x / b, a.y / b, a.z / b, a.w / b); }
 
 template<typename T> bool operator==(const vec2T<T> &a, const vec2T<T> &b) { return a.x == b.x && a.y == b.y; }
 template<typename T> bool operator==(const vec3T<T> &a, const vec3T<T> &b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
@@ -291,13 +291,13 @@ typedef vec2T<uint8_t> uvec2b;
 typedef vec3T<uint8_t> uvec3b;
 typedef vec4T<uint8_t> uvec4b;
 
-inline float dot(vec2 a, vec2 b) { return a.x * b.x + a.y * b.y; }
-inline float dot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-inline float dot(vec4 a, vec4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+inline float dot(const vec2& a, const vec2& b) { return a.x * b.x + a.y * b.y; }
+inline float dot(const vec3& a, const vec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline float dot(const vec4& a, const vec4& b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
-inline double dot(dvec2 a, dvec2 b) { return a.x * b.x + a.y * b.y; }
-inline double dot(dvec3 a, dvec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-inline double dot(dvec4 a, dvec4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+inline double dot(const dvec2& a, const dvec2& b) { return a.x * b.x + a.y * b.y; }
+inline double dot(const dvec3& a, const dvec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline double dot(const dvec4& a, const dvec4& b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
 inline float radians(float deg) { return deg * (3.14159265359f / 180.0f); }
 inline float degrees(float rad) { return rad * (180.0f / 3.14159265359f); }
@@ -305,42 +305,42 @@ inline float degrees(float rad) { return rad * (180.0f / 3.14159265359f); }
 inline double radians(double deg) { return deg * (3.14159265359 / 180.0); }
 inline double degrees(double rad) { return rad * (180.0 / 3.14159265359); }
 
-inline float length(vec2 v) { return std::sqrt(dot(v, v)); }
-inline float length(vec3 v) { return std::sqrt(dot(v, v)); }
-inline float length(vec4 v) { return std::sqrt(dot(v, v)); }
+inline float length(const vec2& v) { return std::sqrt(dot(v, v)); }
+inline float length(const vec3& v) { return std::sqrt(dot(v, v)); }
+inline float length(const vec4& v) { return std::sqrt(dot(v, v)); }
 
-inline double length(dvec2 v) { return std::sqrt(dot(v, v)); }
-inline double length(dvec3 v) { return std::sqrt(dot(v, v)); }
-inline double length(dvec4 v) { return std::sqrt(dot(v, v)); }
+inline double length(const dvec2& v) { return std::sqrt(dot(v, v)); }
+inline double length(const dvec3& v) { return std::sqrt(dot(v, v)); }
+inline double length(const dvec4& v) { return std::sqrt(dot(v, v)); }
 
-inline vec2 normalize(vec2 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec2(0.0f); }
-inline vec3 normalize(vec3 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec3(0.0f); }
-inline vec4 normalize(vec4 v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec4(0.0f); }
+inline vec2 normalize(const vec2& v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec2(0.0f); }
+inline vec3 normalize(const vec3& v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec3(0.0f); }
+inline vec4 normalize(const vec4& v) { float len = length(v); return len > FLT_EPSILON ? v / len : vec4(0.0f); }
 
-inline dvec2 normalize(dvec2 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec2(0.0); }
-inline dvec3 normalize(dvec3 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec3(0.0); }
-inline dvec4 normalize(dvec4 v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec4(0.0); }
+inline dvec2 normalize(const dvec2& v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec2(0.0); }
+inline dvec3 normalize(const dvec3& v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec3(0.0); }
+inline dvec4 normalize(const dvec4& v) { double len = length(v); return len > FLT_EPSILON ? v / len : dvec4(0.0); }
 
-inline vec3 cross(vec3 a, vec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
-inline dvec3 cross(dvec3 a, dvec3 b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
+inline vec3 cross(const vec3& a, const vec3& b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
+inline dvec3 cross(const dvec3& a, const dvec3& b) { return { a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y }; }
 
-inline vec3 reflect(vec3 I, vec3 N) { return I - 2.0f * dot(N, I) * N; }
-inline dvec3 reflect(dvec3 I, dvec3 N) { return I - 2.0 * dot(N, I) * N; }
+inline vec3 reflect(const vec3& I, const vec3& N) { return I - 2.0f * dot(N, I) * N; }
+inline dvec3 reflect(const dvec3& I, const dvec3& N) { return I - 2.0 * dot(N, I) * N; }
 
-inline vec3 refract(vec3 I, vec3 N, float eta) { float NdotI = dot(N, I); float k = 1.0f - eta * eta * (1.0f - NdotI * NdotI); return k < 0.0f ? vec3(0.0f) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
-inline dvec3 refract(dvec3 I, dvec3 N, double eta) { double NdotI = dot(N, I); double k = 1.0 - eta * eta * (1.0 - NdotI * NdotI); return k < 0.0 ? dvec3(0.0) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
-
-template<typename T>
-T mix(T a, T b, float t) { return a * (1.0f - t) + b * t; }
+inline vec3 refract(const vec3& I, const vec3& N, float eta) { float NdotI = dot(N, I); float k = 1.0f - eta * eta * (1.0f - NdotI * NdotI); return k < 0.0f ? vec3(0.0f) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
+inline dvec3 refract(const dvec3& I, const dvec3& N, double eta) { double NdotI = dot(N, I); double k = 1.0 - eta * eta * (1.0 - NdotI * NdotI); return k < 0.0 ? dvec3(0.0) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
 
 template<typename T>
-T mix(T a, T b, double t) { return a * (1.0 - t) + b * t; }
+T mix(const T& a, const T& b, float t) { return a * (1.0f - t) + b * t; }
 
 template<typename T>
-T clamp(T val, T minval, T maxval) { return std::max<T>(std::min<T>(val, maxval), minval); }
+T mix(const T& a, const T& b, double t) { return a * (1.0 - t) + b * t; }
+
+template<typename T>
+T clamp(const T& val, const T& minval, const T& maxval) { return std::max<T>(std::min<T>(val, maxval), minval); }
 
 template<class T>
-T smoothstep(const T edge0, const T edge1, const T x)
+T smoothstep(const T& edge0, const T& edge1, const T& x)
 {
 	auto t = clamp<T>((x - edge0) / (edge1 - edge0), T(0.0), T(1.0));
 	return t * t * (T(3.0) - T(2.0) * t);
@@ -359,7 +359,7 @@ inline double slerp(double t)
 }
 
 template<typename T>
-T spline(T a, T b, T c, T d, float t)
+T spline(const T& a, const T& b, const T& c, const T& d, float t)
 {
 	float w0 = slerp(t + 1.0f);
 	float w1 = slerp(t);
@@ -370,7 +370,7 @@ T spline(T a, T b, T c, T d, float t)
 }
 
 template<typename T>
-T spline(T a, T b, T c, T d, double t)
+T spline(const T& a, const T& b, const T& c, const T& d, double t)
 {
 	double w0 = slerp(t + 1.0);
 	double w1 = slerp(t);
@@ -380,10 +380,10 @@ T spline(T a, T b, T c, T d, double t)
 	return (a * w0 + b * w1 + c * w2 + d * w3) * invweight;
 }
 
-inline dvec2 to_dvec2(vec2 v) { return dvec2(v.x, v.y); }
-inline dvec3 to_dvec3(vec3 v) { return dvec3(v.x, v.y, v.z); }
-inline dvec4 to_dvec4(vec4 v) { return dvec4(v.x, v.y, v.z, v.w); }
+inline dvec2 to_dvec2(const vec2& v) { return dvec2(v.x, v.y); }
+inline dvec3 to_dvec3(const vec3& v) { return dvec3(v.x, v.y, v.z); }
+inline dvec4 to_dvec4(const vec4& v) { return dvec4(v.x, v.y, v.z, v.w); }
 
-inline vec2 to_vec2(dvec2 v) { return vec2((float)v.x, (float)v.y); }
-inline vec3 to_vec3(dvec3 v) { return vec3((float)v.x, (float)v.y, (float)v.z); }
-inline vec4 to_vec4(dvec4 v) { return vec4((float)v.x, (float)v.y, (float)v.z, (float)v.w); }
+inline vec2 to_vec2(const dvec2& v) { return vec2((float)v.x, (float)v.y); }
+inline vec3 to_vec3(const dvec3& v) { return vec3((float)v.x, (float)v.y, (float)v.z); }
+inline vec4 to_vec4(const dvec4& v) { return vec4((float)v.x, (float)v.y, (float)v.z, (float)v.w); }
