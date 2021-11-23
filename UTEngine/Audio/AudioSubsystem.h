@@ -39,6 +39,8 @@ public:
 	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch);
 	void NoteDestroy(UActor* Actor);
 
+	void BreakpointTriggered();
+
 	AudioMixer* GetMixer() { return Mixer.get(); }
 
 private:

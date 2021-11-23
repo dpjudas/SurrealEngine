@@ -6,6 +6,7 @@
 #include "NativeFunc.h"
 #include "UObject/UTextBuffer.h"
 #include "UI/Debugger/DebuggerWindow.h"
+#include "Audio/AudioSubsystem.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
@@ -68,6 +69,7 @@ void Frame::ShowDebuggerWindow()
 	}
 
 	Debugger->onBreakpointTriggered(); // To do: logger page should update automatically instead of this hack
+	engine->audio->BreakpointTriggered();
 #endif
 }
 
@@ -318,12 +320,12 @@ ExpressionEvalResult Frame::Run()
 		Break();
 	}
 
-	const int maxInstructions = 100000;
+	const int maxInstructions = 1'000'000;
 	int instructionsRetired = 0;
 	while (instructionsRetired < maxInstructions)
 	{
 		if (StatementIndex >= Func->Code->Statements.size())
-			throw std::runtime_error("Unexpected end of code statements");
+			ThrowException("Unexpected end of code statements");
 
 		StepExpression = Func->Code->Statements[StatementIndex];
 
@@ -371,7 +373,7 @@ ExpressionEvalResult Frame::Run()
 			return result;
 		case StatementResult::Iterator:
 			if (!result.Iter)
-				throw std::runtime_error("Iterator statement without an iterator!");
+				ThrowException("Iterator statement without an iterator!");
 			Iterators.push_back(std::move(result.Iter));
 			Iterators.back()->StartStatementIndex = StatementIndex + 1;
 			Iterators.back()->EndStatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
@@ -382,7 +384,7 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::IteratorNext:
 			if (Iterators.empty())
-				throw std::runtime_error("Iterator next statement without an iterator!");
+				ThrowException("Iterator next statement without an iterator!");
 			if (Iterators.back()->Next())
 				StatementIndex = Iterators.back()->StartStatementIndex;
 			else
@@ -390,7 +392,7 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::IteratorPop:
 			if (Iterators.empty())
-				throw std::runtime_error("Iterator pop statement without an iterator!");
+				ThrowException("Iterator pop statement without an iterator!");
 			Iterators.pop_back();
 			StatementIndex++;
 			break;
@@ -405,7 +407,8 @@ ExpressionEvalResult Frame::Run()
 		instructionsRetired++;
 	}
 
-	throw std::runtime_error("Unreal script code ran for too long!");
+	ThrowException("Unreal script code ran for too long!");
+	return {};
 }
 
 void Frame::ProcessSwitch(const ExpressionValue& condition)

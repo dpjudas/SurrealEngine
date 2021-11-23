@@ -291,3 +291,8 @@ float AudioSubsystem::SoundPriority(UViewport* Viewport, vec3 Location, float Vo
 	UActor* target = Viewport->Actor()->ViewTarget() ? Viewport->Actor()->ViewTarget() : Viewport->Actor();
 	return std::max(Volume * (1.0f - length(Location - target->Location()) / Radius), 0.0f);
 }
+
+void AudioSubsystem::BreakpointTriggered()
+{
+	Mixer.reset();
+}
