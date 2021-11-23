@@ -132,7 +132,7 @@ void SceneRender::DrawTimedemoStats()
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
 
 		UFont* font = engine->renderer->canvas.smallfont;
-		float curY = 140;
+		float curY = 180;
 		for (const std::string& text : lines)
 		{
 			float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(font, text).x - 16;
