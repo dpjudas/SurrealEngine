@@ -318,7 +318,9 @@ ExpressionEvalResult Frame::Run()
 		Break();
 	}
 
-	while (true)
+	const int maxInstructions = 100000;
+	int instructionsRetired = 0;
+	while (instructionsRetired < maxInstructions)
 	{
 		if (StatementIndex >= Func->Code->Statements.size())
 			throw std::runtime_error("Unexpected end of code statements");
@@ -399,9 +401,11 @@ ExpressionEvalResult Frame::Run()
 			Callstack.pop_back();
 			return result;
 		}
+
+		instructionsRetired++;
 	}
 
-	Callstack.pop_back();
+	throw std::runtime_error("Unreal script code ran for too long!");
 }
 
 void Frame::ProcessSwitch(const ExpressionValue& condition)
