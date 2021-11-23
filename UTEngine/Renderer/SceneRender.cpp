@@ -9,6 +9,7 @@
 #include "Window/Window.h"
 #include "Math/FrustumPlanes.h"
 #include "Renderer/UTRenderer.h"
+#include "Audio/AudioSubsystem.h"
 
 void SceneRender::DrawScene()
 {
@@ -131,10 +132,21 @@ void SceneRender::DrawTimedemoStats()
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
 
 		UFont* font = engine->renderer->canvas.smallfont;
-		float curY = 180;
+		float curY = 140;
 		for (const std::string& text : lines)
 		{
-			float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(font, text).x - 64;
+			float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(font, text).x - 16;
+			float curYL = 0.0f;
+			engine->renderer->canvas.DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+			curY += curYL + 4.0f;
+		}
+
+		std::vector<std::string> leftlines;
+		engine->audio->AddStats(leftlines);
+		curY = 64;
+		for (const std::string& text : leftlines)
+		{
+			float curX = 16.0f;
 			float curYL = 0.0f;
 			engine->renderer->canvas.DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 			curY += curYL + 4.0f;

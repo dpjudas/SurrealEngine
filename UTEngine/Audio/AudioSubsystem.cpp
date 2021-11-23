@@ -296,3 +296,27 @@ void AudioSubsystem::BreakpointTriggered()
 {
 	Mixer.reset();
 }
+
+void AudioSubsystem::AddStats(std::vector<std::string>& lines)
+{
+	const int bufsize = 1024;
+	char buffer[bufsize];
+	int index = 0;
+	for (const PlayingSound& sound : PlayingSounds)
+	{
+		if (sound.Channel)
+		{
+			std::snprintf(buffer, bufsize - 1, "Channel %2i: Vol: %05.2f %s", index, sound.CurrentVolume, sound.Sound->Name.ToString().c_str());
+		}
+		else
+		{
+			if (index >= 10)
+				std::snprintf(buffer, bufsize - 1, "Channel %i:  None", index);
+			else
+				std::snprintf(buffer, bufsize - 1, "Channel %i: None", index);
+		}
+		buffer[bufsize - 1] = 0;
+		lines.push_back(buffer);
+		index++;
+	}
+}

@@ -40,6 +40,7 @@ public:
 	void NoteDestroy(UActor* Actor);
 
 	void BreakpointTriggered();
+	void AddStats(std::vector<std::string>& lines);
 
 	AudioMixer* GetMixer() { return Mixer.get(); }
 
