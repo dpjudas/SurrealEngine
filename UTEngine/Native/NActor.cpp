@@ -355,7 +355,8 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
 {
-	throw std::runtime_error("Actor.PlayerCanSeeMe not implemented");
+	engine->LogUnimplemented("Actor.PlayerCanSeeMe");
+	ReturnValue = false;
 }
 
 void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, vec3* Loc)
