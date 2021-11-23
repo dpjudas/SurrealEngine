@@ -121,11 +121,24 @@ void SceneRender::DrawTimedemoStats()
 
 	if (engine->renderer->showTimedemoStats)
 	{
-		std::string text = std::to_string(engine->renderer->fps) + " FPS";
-		float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(engine->renderer->canvas.medfont, text).x - 64;
+		std::vector<std::string> lines;
+		lines.push_back(std::to_string(engine->renderer->fps) + " FPS");
+		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
+
+		size_t numCollisionActors = 0;
+		for (auto& list : engine->Level->CollisionActors)
+			numCollisionActors += list.size();
+		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
+
+		UFont* font = engine->renderer->canvas.smallfont;
 		float curY = 180;
-		float curYL = 0.0f;
-		engine->renderer->canvas.DrawText(engine->renderer->canvas.largefont, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+		for (const std::string& text : lines)
+		{
+			float curX = engine->window->SizeX / (float)engine->renderer->uiscale - engine->renderer->canvas.GetTextSize(font, text).x - 64;
+			float curYL = 0.0f;
+			engine->renderer->canvas.DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+			curY += curYL + 4.0f;
+		}
 	}
 }
 

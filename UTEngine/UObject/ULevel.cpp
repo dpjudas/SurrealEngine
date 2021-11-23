@@ -104,17 +104,21 @@ void ULevel::AddToCollision(UActor* actor)
 		vec3 location = actor->Location();
 		float height = actor->CollisionHeight();
 		float radius = actor->CollisionRadius();
+		actor->CollisionHashInfo.Inserted = true;
+		actor->CollisionHashInfo.Location = location;
+		actor->CollisionHashInfo.Height = height;
+		actor->CollisionHashInfo.Radius = radius;
 		AddToCollision(actor, location, vec3(radius, radius, height), &Model->Nodes.front());
 	}
 }
 
 void ULevel::RemoveFromCollision(UActor* actor)
 {
-	if (actor->bCollideActors())
+	if (actor->CollisionHashInfo.Inserted)
 	{
-		vec3 location = actor->Location();
-		float height = actor->CollisionHeight();
-		float radius = actor->CollisionRadius();
+		vec3 location = actor->CollisionHashInfo.Location;
+		float height = actor->CollisionHashInfo.Height;
+		float radius = actor->CollisionHashInfo.Radius;
 		RemoveFromCollision(actor, location, vec3(radius, radius, height), &Model->Nodes.front());
 	}
 }
@@ -152,11 +156,11 @@ void ULevel::RemoveFromCollision(UActor* actor, const vec3& location, const vec3
 	{
 		if (side <= 0)
 		{
-			AddToCollision(actor, location, extents, &Model->Nodes[node->Front]);
+			RemoveFromCollision(actor, location, extents, &Model->Nodes[node->Front]);
 		}
 		if (side >= 0)
 		{
-			AddToCollision(actor, location, extents, &Model->Nodes[node->Back]);
+			RemoveFromCollision(actor, location, extents, &Model->Nodes[node->Back]);
 		}
 	}
 }

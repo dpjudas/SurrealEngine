@@ -155,6 +155,14 @@ public:
 	void LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate);
 	void TweenAnim(const NameString& sequence, float tweenTime);
 
+	struct
+	{
+		bool Inserted = false;
+		vec3 Location = { 0.0f };
+		float Height = 0.0f;
+		float Radius = 0.0f;
+	} CollisionHashInfo;
+
 	float SleepTimeLeft = 0.0f;
 
 	// Cached calculations needed by the renderer
