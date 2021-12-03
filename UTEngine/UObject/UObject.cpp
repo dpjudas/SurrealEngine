@@ -229,6 +229,20 @@ bool UObject::IsA(const NameString& className) const
 	return false;
 }
 
+bool UObject::IsEventEnabled(const NameString& name) const
+{
+	NameString stateName = GetStateName();
+	if (UState::IsMaskedProbeName(stateName))
+	{
+		const auto& probes = static_cast<UState*>(StateFrame->Func)->Probes;
+		if (probes.find(name) == probes.end())
+			return false;
+	}
+
+	auto it = DisabledEvents.find(stateName);
+	return it == DisabledEvents.end() || it->second.find(name) == it->second.end();
+}
+
 std::string UObject::PrintProperties()
 {
 	std::string result;
@@ -245,7 +259,7 @@ std::string UObject::PrintProperties()
 	return result;
 }
 
-NameString UObject::GetStateName()
+NameString UObject::GetStateName() const
 {
 	return StateFrame ? StateFrame->Func->Name : NameString();
 }

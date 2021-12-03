@@ -160,14 +160,27 @@ public:
 	void SetObject(const NameString& name, const UObject* value);
 
 	bool IsA(const NameString& className) const;
-	bool IsEventEnabled(const NameString& name) const { return DisabledEvents.find(name) == DisabledEvents.end(); }
 
-	NameString GetStateName();
+	bool IsEventEnabled(const NameString& name) const;
+
+	void EnableEvent(const NameString& name)
+	{
+		NameString stateName = GetStateName();
+		DisabledEvents[stateName].erase(name);
+	}
+
+	void DisableEvent(const NameString& name)
+	{
+		NameString stateName = GetStateName();
+		DisabledEvents[stateName].insert(name);
+	}
+
+	NameString GetStateName() const;
 	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
 
-	std::set<NameString> DisabledEvents;
+	std::map<NameString, std::set<NameString>> DisabledEvents;
 
 	std::unique_ptr<ObjectDelayLoad> DelayLoad;
 

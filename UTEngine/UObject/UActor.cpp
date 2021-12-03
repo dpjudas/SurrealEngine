@@ -1188,7 +1188,7 @@ void UActor::TickAnimation(float elapsed)
 					AnimFrame() = toAnimTime;
 				}
 
-				if (fromAnimTime < AnimLast() && toAnimTime >= AnimLast())
+				if (fromAnimTime < animEndTime && toAnimTime >= animEndTime)
 				{
 					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
 						StateFrame->LatentState = LatentRunState::Continue;

@@ -335,6 +335,38 @@ void UFunction::Load(ObjectStream* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
+static const char* probeNames[64] =
+{
+	"Spawned",      "Destroyed",       "GainedChild",     "LostChild",
+	"Probe4",       "Probe5",          "Trigger",         "UnTrigger",
+	"Timer",        "HitWall",         "Falling",         "Landed",
+	"ZoneChange",   "Touch",           "UnTouch",         "Bump",
+	"BeginState",   "EndState",        "BaseChange",      "Attach",
+	"Detach",       "ActorEntered",    "ActorLeaving",    "KillCredit",
+	"AnimEnd",      "EndedRotation",   "InterpolateEnd",  "EncroachingOn",
+	"EncroachedBy", "FootZoneChange",  "HeadZoneChange",  "PainTimer",
+	"SpeechTimer",  "MayFall",         "Probe34",         "Die",
+	"Tick",         "PlayerTick",      "Expired",         "Probe39",
+	"SeePlayer",    "EnemyNotVisible", "HearNoise",       "UpdateEyeHeight",
+	"SeeMonster",   "SeeFriend",       "SpecialHandling", "BotDesireability",
+	"Probe48",      "Probe49",         "Probe50",         "Probe51",
+	"Probe52",      "Probe53",         "Probe54",         "Probe55",
+	"Probe56",      "Probe57",         "Probe58",         "Probe59",
+	"Probe60",      "Probe61",         "Probe62",         "All"
+};
+
+bool UState::IsMaskedProbeName(const NameString& probeName)
+{
+	static std::set<NameString> maskedProbeNames;
+
+	if (!maskedProbeNames.empty())
+		return maskedProbeNames.find(probeName) != maskedProbeNames.end();
+	
+	for (int i = 0; i < 64; i++)
+		maskedProbeNames.insert(probeNames[i]);
+	return maskedProbeNames.find(probeName) != maskedProbeNames.end();
+}
+
 void UState::Load(ObjectStream* stream)
 {
 	UStruct::Load(stream);
@@ -342,6 +374,14 @@ void UState::Load(ObjectStream* stream)
 	IgnoreMask = stream->ReadUInt64();
 	LabelTableOffset = stream->ReadUInt16();
 	StateFlags = (ScriptStateFlags)stream->ReadUInt32();
+
+	for (int i = 0; i < 64; i++)
+	{
+		if (ProbeMask & (1LL << i))
+		{
+			Probes.insert(probeNames[i]);
+		}
+	}
 
 	for (UField* child = Children; child; child = child->Next)
 	{

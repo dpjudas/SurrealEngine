@@ -294,7 +294,11 @@ float AudioSubsystem::SoundPriority(UViewport* Viewport, vec3 Location, float Vo
 
 void AudioSubsystem::BreakpointTriggered()
 {
-	Mixer.reset();
+	if (Mixer)
+	{
+		Mixer->SetSoundVolume(0.0f);
+		Mixer->Update();
+	}
 }
 
 void AudioSubsystem::AddStats(std::vector<std::string>& lines)
