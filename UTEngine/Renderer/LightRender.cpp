@@ -221,7 +221,7 @@ vec3 LightRender::FindLightAt(const vec3& location, int zoneIndex)
 			float dist2 = dot(L, L);
 			float lightRadius = light->LightRadius() * 32.0f;
 			float lightRadius2 = lightRadius * lightRadius;
-			if (dist2 < lightRadius2 && !engine->Level->TraceAnyHit(light->Location(), location, nullptr, false, true))
+			if (dist2 < lightRadius2 && !engine->Level->TraceAnyHit(light->Location(), location, nullptr, false, true, true))
 			{
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 

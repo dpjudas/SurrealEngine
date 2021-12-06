@@ -127,8 +127,8 @@ void SceneRender::DrawTimedemoStats()
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 
 		size_t numCollisionActors = 0;
-		for (auto& list : engine->Level->CollisionActors)
-			numCollisionActors += list.size();
+		for (auto& it : engine->Level->CollisionActors)
+			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
 
 		UFont* font = engine->renderer->canvas.smallfont;

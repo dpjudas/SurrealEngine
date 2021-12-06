@@ -764,7 +764,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 {
 	// To do: this needs to do an AABB sweep (hmm, does UE1 treat all actor cylinders as AABB?)
 
-	std::vector<SweepHit> hits = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, bTraceActors, true);
+	std::vector<SweepHit> hits = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, bTraceActors, true, false);
 	for (SweepHit& hit : hits)
 	{
 		if (hit.Actor && hit.Actor != this)
@@ -786,7 +786,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	return XLevel()->TraceAnyHit(traceStart, traceEnd, this, false, true);
+	return XLevel()->TraceAnyHit(traceStart, traceEnd, this, false, true, false);
 }
 
 bool UActor::IsBasedOn(UActor* other)
@@ -826,7 +826,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
 	SweepHit blockingHit;
-	std::vector<SweepHit> hits = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld());
+	std::vector<SweepHit> hits = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
 		for (auto& hit : hits)

@@ -16,7 +16,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 
 	for (UActor* light : engine->renderer->Lights)
 	{
-		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceAnyHit(light->Location(), frame->ViewLocation, nullptr, false, true))
+		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceAnyHit(light->Location(), frame->ViewLocation, nullptr, false, true, true))
 		{
 			vec4 pos = frame->Modelview * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)

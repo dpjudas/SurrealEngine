@@ -9,6 +9,73 @@ class UActor;
 class UPawn;
 class UBrush;
 
+class TraceFilter
+{
+public:
+	TraceFilter() = default;
+	TraceFilter(bool traceActors, bool traceWorld, bool visibilityOnly) : TraceActors(traceActors), TraceWorld(traceWorld), VisibilityOnly(visibilityOnly) { }
+
+	bool TraceActors = false;
+	bool TraceWorld = false;
+	bool VisibilityOnly = false;
+};
+
+class SweepHit
+{
+public:
+	SweepHit() = default;
+	SweepHit(float fraction, vec3 normal, UActor* actor) : Fraction(fraction), Normal(normal), Actor(actor) { }
+
+	float Fraction = 1.0;
+	vec3 Normal = vec3(0.0);
+	UActor* Actor = nullptr;
+};
+
+class SphereSweep
+{
+public:
+	SphereSweep() = default;
+	SphereSweep(const dvec3& from, const dvec3& to, double radius, TraceFilter filter)
+	{
+		From = from;
+		To = to;
+		Radius = radius;
+		Filter = filter;
+		From4 = dvec4(From, 1.0);
+		To4 = dvec4(To, 1.0);
+	}
+
+	dvec3 From = dvec3(0.0);
+	dvec3 To = dvec3(0.0);
+	double Radius = 0.0;
+	TraceFilter Filter;
+	std::vector<SweepHit> Hits;
+
+	dvec4 From4 = dvec4(0.0, 0.0, 0.0, 1.0);
+	dvec4 To4 = dvec4(0.0, 0.0, 0.0, 1.0);
+};
+
+class CylinderSweep
+{
+public:
+	CylinderSweep() = default;
+	CylinderSweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+	{
+		From = dvec3(from.x, from.y, from.z);
+		To = dvec3(to.x, to.y, to.z);
+		Height = height;
+		Radius = radius;
+		Filter = TraceFilter(traceActors, traceWorld, visibilityOnly);
+	}
+
+	dvec3 From = dvec3(0.0);
+	dvec3 To = dvec3(0.0);
+	double Height = 0.0;
+	double Radius = 0.0;
+	TraceFilter Filter;
+	std::vector<SweepHit> Hits;
+};
+
 enum EBspNodeFlags
 {
 	NF_NotCsg = 1,
@@ -181,6 +248,19 @@ public:
 
 	std::map<int, UTexture*> lmtextures;
 	std::map<int, std::pair<int, UTexture*>> fogtextures;
+
+	bool TraceAnyHit(vec3 from, vec3 to, bool visibilityOnly = false);
+	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool visibilityOnly = false);
+
+private:
+	bool TraceAnyHit(const dvec4& from, const dvec4& to, bool visibilityOnly, BspNode* node);
+	void Sweep(SphereSweep* sphere, BspNode* node);
+
+	double NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node);
+	double NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node);
+
+	double TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* points);
+	double TriangleSphereIntersect(const dvec4& from, const dvec4& to, double radius, const dvec3* points);
 };
 
 class LevelReachSpec
@@ -211,72 +291,6 @@ public:
 	std::string Portal;
 };
 
-class TraceFilter
-{
-public:
-	TraceFilter() = default;
-	TraceFilter(bool traceActors, bool traceWorld) : TraceActors(traceActors), TraceWorld(traceWorld) { }
-
-	bool TraceActors = false;
-	bool TraceWorld = false;
-};
-
-class SweepHit
-{
-public:
-	SweepHit() = default;
-	SweepHit(float fraction, vec3 normal, UActor* actor) : Fraction(fraction), Normal(normal), Actor(actor) { }
-
-	float Fraction = 1.0;
-	vec3 Normal = vec3(0.0);
-	UActor* Actor = nullptr;
-};
-
-class SphereSweep
-{
-public:
-	SphereSweep() = default;
-	SphereSweep(const dvec3& from, const dvec3& to, double radius, TraceFilter filter)
-	{
-		From = from;
-		To = to;
-		Radius = radius;
-		Filter = filter;
-		From4 = dvec4(From, 1.0);
-		To4 = dvec4(To, 1.0);
-	}
-
-	dvec3 From = dvec3(0.0);
-	dvec3 To = dvec3(0.0);
-	double Radius = 0.0;
-	TraceFilter Filter;
-	std::vector<SweepHit> Hits;
-
-	dvec4 From4 = dvec4(0.0, 0.0, 0.0, 1.0);
-	dvec4 To4 = dvec4(0.0, 0.0, 0.0, 1.0);
-};
-
-class CylinderSweep
-{
-public:
-	CylinderSweep() = default;
-	CylinderSweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld)
-	{
-		From = dvec3(from.x, from.y, from.z);
-		To = dvec3(to.x, to.y, to.z);
-		Height = height;
-		Radius = radius;
-		Filter = TraceFilter(traceActors, traceWorld);
-	}
-
-	dvec3 From = dvec3(0.0);
-	dvec3 To = dvec3(0.0);
-	double Height = 0.0;
-	double Radius = 0.0;
-	TraceFilter Filter;
-	std::vector<SweepHit> Hits;
-};
-
 class ULevel : public ULevelBase
 {
 public:
@@ -288,30 +302,85 @@ public:
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
-	std::vector<std::list<UActor*>> CollisionActors;
+	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
 
 	void AddToCollision(UActor* actor);
 	void RemoveFromCollision(UActor* actor);
 
-	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld);
-	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld);
+	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
+	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
 
 private:
-	void AddToCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
-	void RemoveFromCollision(UActor* actor, const vec3& location, const vec3& extents, BspNode* node);
 	int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
+
+	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
+	{
+		int xx = (int)std::floor((location.x - extents.x) * (1.0f / 256.0f));
+		int yy = (int)std::floor((location.y - extents.y) * (1.0f / 256.0f));
+		int zz = (int)std::floor((location.z - extents.z) * (1.0f / 256.0f));
+		return { xx, yy, zz };
+	}
+
+	static ivec3 GetRayStartExtents(const vec3& from, const vec3& to)
+	{
+		float x = std::min(from.x, to.x);
+		float y = std::min(from.y, to.y);
+		float z = std::min(from.z, to.z);
+		int xx = (int)std::floor(x * (1.0f / 256.0f));
+		int yy = (int)std::floor(y * (1.0f / 256.0f));
+		int zz = (int)std::floor(z * (1.0f / 256.0f));
+		return { xx, yy, zz };
+	}
+
+	static ivec3 GetSweepStartExtents(const vec3& from, const vec3& to, const vec3& extents)
+	{
+		float x = std::min(from.x, to.x) - extents.x;
+		float y = std::min(from.y, to.y) - extents.y;
+		float z = std::min(from.z, to.z) - extents.z;
+		int xx = (int)std::floor(x * (1.0f / 256.0f));
+		int yy = (int)std::floor(y * (1.0f / 256.0f));
+		int zz = (int)std::floor(z * (1.0f / 256.0f));
+		return { xx, yy, zz };
+	}
+
+	static ivec3 GetEndExtents(const vec3& location, const vec3& extents)
+	{
+		int xx = (int)std::floor((location.x + extents.x) * (1.0f / 256.0f)) + 1;
+		int yy = (int)std::floor((location.y + extents.y) * (1.0f / 256.0f)) + 1;
+		int zz = (int)std::floor((location.z + extents.z) * (1.0f / 256.0f)) + 1;
+		return { xx, yy, zz };
+	}
+
+	static ivec3 GetRayEndExtents(const vec3& from, const vec3& to)
+	{
+		float x = std::max(from.x, to.x);
+		float y = std::max(from.y, to.y);
+		float z = std::max(from.z, to.z);
+		int xx = (int)std::floor(x * (1.0f / 256.0f)) + 1;
+		int yy = (int)std::floor(y * (1.0f / 256.0f)) + 1;
+		int zz = (int)std::floor(z * (1.0f / 256.0f)) + 1;
+		return { xx, yy, zz };
+	}
+
+	static ivec3 GetSweepEndExtents(const vec3& from, const vec3& to, const vec3& extents)
+	{
+		float x = std::max(from.x, to.x) + extents.x;
+		float y = std::max(from.y, to.y) + extents.y;
+		float z = std::max(from.z, to.z) + extents.z;
+		int xx = (int)std::floor(x * (1.0f / 256.0f)) + 1;
+		int yy = (int)std::floor(y * (1.0f / 256.0f)) + 1;
+		int zz = (int)std::floor(z * (1.0f / 256.0f)) + 1;
+		return { xx, yy, zz };
+	}
+
+	static uint32_t GetBucketId(int x, int y, int z)
+	{
+		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
+	}
+
 	double ActorRayIntersect(const dvec3& from, const dvec3& to, UActor* actor);
 	double ActorSphereIntersect(const dvec3& from, const dvec3& to, double radius, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius);
-
-	bool TraceAnyHit(const dvec4& from, const dvec4& to, UActor* tracingActor, bool traceActors, bool traceWorld, BspNode* node);
-	void Sweep(SphereSweep* sphere, BspNode* node);
-
-	double NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node);
-	double NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node);
-
-	double TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* points);
-	double TriangleSphereIntersect(const dvec4& from, const dvec4& to, double radius, const dvec3* points);
 
 	bool ticked = false;
 };
