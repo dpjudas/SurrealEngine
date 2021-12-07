@@ -1234,7 +1234,91 @@ void UActor::TickAnimation(float elapsed)
 	}
 }
 
+void UActor::MakeNoise(float loudness)
+{
+	UPawn* noisePawn = UObject::Cast<UPawn>(Instigator());
+
+	if (!noisePawn || Level()->NetMode() == NM_Client)
+		return;
+
+	float currentTime = Level()->TimeSeconds();
+	vec3 delta1 = noisePawn->noise1spot() - Location();
+	vec3 delta2 = noisePawn->noise2spot() - Location();
+	if ((noisePawn->noise1time() > currentTime - 0.2f && dot(delta1, delta1) < 2500.0f && noisePawn->noise1loudness() >= 0.9f * loudness) ||
+		(noisePawn->noise2time() > currentTime - 0.2f && dot(delta2, delta2) < 2500.0f && noisePawn->noise2loudness() >= 0.9f * loudness))
+	{
+		return;
+	}
+
+	if (noisePawn->noise1time() < currentTime - 0.18f)
+	{
+		noisePawn->noise1time() = currentTime;
+		noisePawn->noise1spot() = Location();
+		noisePawn->noise1loudness() = loudness;
+	}
+	else if (noisePawn->noise2time() < currentTime - 0.18f)
+	{
+		noisePawn->noise2time() = currentTime;
+		noisePawn->noise2spot() = Location();
+		noisePawn->noise2loudness() = loudness;
+	}
+	else if (dot(delta1, delta1) < 2500.0f)
+	{
+		noisePawn->noise1time() = currentTime;
+		noisePawn->noise1spot() = Location();
+		noisePawn->noise1loudness() = loudness;
+	}
+	else if (noisePawn->noise2loudness() <= loudness)
+	{
+		noisePawn->noise2time() = currentTime;
+		noisePawn->noise2spot() = Location();
+		noisePawn->noise2loudness() = loudness;
+	}
+
+	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
+	{
+		if (pawn != noisePawn && pawn->CanHearNoise(this, loudness))
+		{
+			CallEvent(pawn, "HearNoise", { ExpressionValue::FloatValue(loudness), ExpressionValue::ObjectValue(this) });
+		}
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////
+
+bool UPawn::CanHearNoise(UActor* source, float loudness)
+{
+	UPawn* noisePawn = UObject::Cast<UPawn>(source->Instigator());
+	if (!noisePawn->bIsPlayer() && (!noisePawn->Enemy() || !noisePawn->Enemy()->bIsPlayer()))
+	{
+		if (!IsA(source->Class->Name) && !source->IsA(Class->Name))
+			return false;
+	}
+	else if (UObject::TryCast<UPlayerPawn>(this))
+	{
+		return false;
+	}
+
+	vec3 delta = Location() - source->Location();
+	float dist2 = dot(delta, delta);
+
+	if (!bIsPlayer() || !Level()->Game()->bTeamGame() || !noisePawn->bIsPlayer() || !PlayerReplicationInfo() || !noisePawn->PlayerReplicationInfo() || (PlayerReplicationInfo()->Team() != noisePawn->PlayerReplicationInfo()->Team()))
+	{
+		if (dist2 > (4000.0f * 4000.0f) * (loudness * loudness))
+			return false;
+
+		float perceived = std::min(1200000.f / dist2, 2.0f);
+		Stimulus() = loudness * perceived + Alertness() * std::min(0.5f, perceived);
+		if (Stimulus() < HearingThreshold())
+			return false;
+	}
+	else if (dist2 > (4000.0f * 4000.0f) * (loudness * loudness))
+	{
+		return false;
+	}
+
+	return !XLevel()->TraceAnyHit(source->Location(), Location(), source, false, true, false);
+}
 
 void UPawn::InitActorZone()
 {

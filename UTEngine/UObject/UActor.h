@@ -94,6 +94,14 @@ enum EMusicTransition
 	MTRAN_SlowFade
 };
 
+enum ENetMode
+{
+	NM_Standalone,
+	NM_DedicatedServer,
+	NM_ListenServer,
+	NM_Client
+};
+
 class UActor : public UObject
 {
 public:
@@ -154,6 +162,8 @@ public:
 	void PlayAnim(const NameString& sequence, float rate, float tweenTime);
 	void LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate);
 	void TweenAnim(const NameString& sequence, float tweenTime);
+
+	void MakeNoise(float loudness);
 
 	struct
 	{
@@ -1457,6 +1467,8 @@ public:
 
 	void InitActorZone() override;
 	void UpdateActorZone() override;
+
+	bool CanHearNoise(UActor* source, float loudness);
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }

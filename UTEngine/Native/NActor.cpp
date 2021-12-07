@@ -294,7 +294,7 @@ void NActor::LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, fl
 
 void NActor::MakeNoise(UObject* Self, float Loudness)
 {
-	engine->LogUnimplemented("Actor.MakeNoise(" + std::to_string(Loudness) + ")");
+	UObject::Cast<UActor>(Self)->MakeNoise(Loudness);
 }
 
 void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
