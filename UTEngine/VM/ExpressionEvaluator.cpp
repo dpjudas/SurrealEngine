@@ -381,7 +381,7 @@ void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
 void ExpressionEvaluator::Expr(RotatorToVectorExpression* expr)
 {
 	Rotator rot = Eval(expr->Value).Value.ToRotator();
-	Result.Value = ExpressionValue::VectorValue({ rot.Pitch * (360.0f / 0x10000), rot.Yaw * (360.0f / 0x10000), rot.Roll * (360.0f / 0x10000) });
+	Result.Value = ExpressionValue::VectorValue((rot.ToMatrix() * vec4(1.0f, 0.0f, 0.0f, 1.0f)).xyz());
 }
 
 void ExpressionEvaluator::Expr(ByteToIntExpression* expr)
@@ -517,7 +517,8 @@ void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
 void ExpressionEvaluator::Expr(VectorToRotatorExpression* expr)
 {
 	vec3 v = Eval(expr->Value).Value.ToVector();
-	Result.Value = ExpressionValue::RotatorValue({ (int)(v.x * (0x10000 / 360.0f)), (int)(v.y * (0x10000 / 360.0f)), (int)(v.z * (0x10000 / 360.0f)) });
+	float scale = 0x10000 / (2.0f * 3.14159265359f);
+	Result.Value = ExpressionValue::RotatorValue({ (int)(std::atan2(v.z, std::sqrt(v.x * v.x + v.y * v.y)) * scale), (int)(std::atan2(v.y, v.x) * scale), 0 });
 }
 
 void ExpressionEvaluator::Expr(RotatorToBoolExpression* expr)
