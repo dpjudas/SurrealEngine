@@ -261,7 +261,7 @@ std::string UObject::PrintProperties()
 
 NameString UObject::GetStateName() const
 {
-	return StateFrame ? StateFrame->Func->Name : NameString();
+	return StateFrame && StateFrame->Func ? StateFrame->Func->Name : NameString();
 }
 
 void UObject::GotoState(NameString stateName, const NameString& labelName)
@@ -282,32 +282,37 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		}
 	}
 
-	if (StateFrame && StateFrame->Func->Name != stateName)
-	{
-		CallEvent(this, "EndState");
-		StateFrame.reset();
-	}
+	UState* newState = nullptr;
 
-	if (!StateFrame && !stateName.IsNone())
+	if (!stateName.IsNone())
 	{
 		for (UClass* cls = Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
 			UState* state = cls->GetState(stateName);
 			if (state)
 			{
-				StateFrame = std::make_shared<Frame>(this, state);
+				newState = state;
 				break;
 			}
 		}
-
-		if (StateFrame)
-		{
-			CallEvent(this, "BeginState");
-		}
 	}
 
-	if (StateFrame)
+	if (!StateFrame)
+		StateFrame = std::make_shared<Frame>(this, nullptr);
+
+	UState* oldState = (UState*)StateFrame->Func;
+
+	if (oldState && oldState != newState)
+		CallEvent(this, "EndState");
+
+	if (oldState != newState)
+		StateFrame->SetState(newState);
+
+	if (newState)
 		StateFrame->GotoLabel(labelName);
+
+	if (newState && oldState != newState)
+		CallEvent(this, "BeginState");
 }
 
 /////////////////////////////////////////////////////////////////////////////

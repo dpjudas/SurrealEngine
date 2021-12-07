@@ -285,8 +285,7 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 
 	if (Role() >= ROLE_SimulatedProxy && StateFrame && StateFrame->LatentState == LatentRunState::Continue)
 	{
-		auto curStateFrame = StateFrame; // pin frame as GotoFrame may otherwise destroy it
-		curStateFrame->Tick();
+		StateFrame->Tick();
 	}
 
 	TickPhysics(elapsed);

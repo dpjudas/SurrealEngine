@@ -62,6 +62,8 @@ public:
 
 	Frame(UObject* instance, UStruct* func);
 
+	void SetState(UStruct* func);
+
 	void GotoLabel(const NameString& label);
 	void Tick();
 

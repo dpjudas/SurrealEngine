@@ -278,9 +278,17 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 
 Frame::Frame(UObject* instance, UStruct* func)
 {
-	Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
 	Object = instance;
+	SetState(func);
+}
+
+void Frame::SetState(UStruct* func)
+{
 	Func = func;
+	if (func)
+		Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
+	else
+		Variables.reset();
 }
 
 void Frame::GotoLabel(const NameString& label)
@@ -295,6 +303,7 @@ void Frame::GotoLabel(const NameString& label)
 			{
 				Func = state;
 				StatementIndex = labelIndex;
+				LatentState = LatentRunState::Continue;
 				return;
 			}
 		}
@@ -310,6 +319,9 @@ void Frame::Tick()
 
 ExpressionEvalResult Frame::Run()
 {
+	if (!Func)
+		return {};
+
 	Callstack.push_back(this);
 
 	if (!Func->Code->Statements.empty())
@@ -327,19 +339,24 @@ ExpressionEvalResult Frame::Run()
 		if (StatementIndex >= Func->Code->Statements.size())
 			ThrowException("Unexpected end of code statements");
 
-		StepExpression = Func->Code->Statements[StatementIndex];
+		// Note: GotoState may change StatementIndex (jump to a different location) so we have to increment the index before executing the statement
+		size_t curStatementIndex = StatementIndex;
+		StatementIndex++;
+
+		StepExpression = Func->Code->Statements[curStatementIndex];
 
 		if (RunState == FrameRunState::StepOver && StepFrame == this)
 		{
 			Break();
 		}
 
-		Expression* statement = Func->Code->Statements[StatementIndex];
+		Expression* statement = Func->Code->Statements[curStatementIndex];
 		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables.get());
+		if (!Func)
+			return result;
 		switch (result.Result)
 		{
 		case StatementResult::Next:
-			StatementIndex++;
 			break;
 		case StatementResult::Jump:
 			StatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
@@ -375,7 +392,7 @@ ExpressionEvalResult Frame::Run()
 			if (!result.Iter)
 				ThrowException("Iterator statement without an iterator!");
 			Iterators.push_back(std::move(result.Iter));
-			Iterators.back()->StartStatementIndex = StatementIndex + 1;
+			Iterators.back()->StartStatementIndex = curStatementIndex + 1;
 			Iterators.back()->EndStatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
 			if (Iterators.back()->Next())
 				StatementIndex = Iterators.back()->StartStatementIndex;
@@ -394,7 +411,6 @@ ExpressionEvalResult Frame::Run()
 			if (Iterators.empty())
 				ThrowException("Iterator pop statement without an iterator!");
 			Iterators.pop_back();
-			StatementIndex++;
 			break;
 		}
 
@@ -413,7 +429,7 @@ ExpressionEvalResult Frame::Run()
 
 void Frame::ProcessSwitch(const ExpressionValue& condition)
 {
-	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Func->Code->Statements[StatementIndex++]);
+	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Func->Code->Statements[StatementIndex - 1]);
 	while (true)
 	{
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Func->Code->Statements[StatementIndex++]);
