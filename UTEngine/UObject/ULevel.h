@@ -378,9 +378,9 @@ private:
 		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
 	}
 
-	double ActorRayIntersect(const dvec3& from, const dvec3& to, UActor* actor);
-	double ActorSphereIntersect(const dvec3& from, const dvec3& to, double radius, UActor* actor);
-	double RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius);
+	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
+	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
+	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
 
 	bool ticked = false;
 };

@@ -766,11 +766,14 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 	std::vector<SweepHit> hits = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, bTraceActors, true, false);
 	for (SweepHit& hit : hits)
 	{
-		if (hit.Actor && hit.Actor != this)
+		if (hit.Actor)
 		{
-			hitNormal = hit.Normal;
-			hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
-			return hit.Actor;
+			if (hit.Actor != this)
+			{
+				hitNormal = hit.Normal;
+				hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+				return hit.Actor;
+			}
 		}
 		else
 		{

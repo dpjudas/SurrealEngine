@@ -170,45 +170,45 @@ int ULevel::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* no
 		return 0;
 }
 
-double ULevel::RaySphereIntersect(const dvec3& rayOrigin, const dvec3& rayDir, const dvec3& sphereCenter, double sphereRadius)
+double ULevel::RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius)
 {
 	dvec3 l = sphereCenter - rayOrigin;
-	double s = dot(l, rayDir);
+	double s = dot(l, rayDirNormalized);
 	double l2 = dot(l, l);
 	double r2 = sphereRadius * sphereRadius;
 	if (s < 0 && l2 > r2)
-		return 1.0;
+		return tmax;
 	double s2 = s * s;
 	double m2 = l2 - s2;
 	if (m2 > r2)
-		return 1.0;
+		return tmax;
 	double q = std::sqrt(r2 - m2);
 	double t = (l2 > r2) ? s - q : s + q;
-	return t;
+	return (t >= tmin) ? t : tmax;
 }
 
-double ULevel::ActorRayIntersect(const dvec3& from, const dvec3& to, UActor* actor)
+double ULevel::ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
 {
 	float height = actor->CollisionHeight();
 	float radius = actor->CollisionRadius();
 	vec3 offset = vec3(0.0, 0.0, height - radius);
 	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
 	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
-	dvec3 origin = from;
-	dvec3 dir = to - origin;
-	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
+	double t0 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere0, radius);
+	double t1 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere1, radius);
+	return std::min(t0, t1);
 }
 
-double ULevel::ActorSphereIntersect(const dvec3& from, const dvec3& to, double sphereRadius, UActor* actor)
+double ULevel::ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor)
 {
 	float height = actor->CollisionHeight();
-	float radius = actor->CollisionRadius() + (float)sphereRadius;
+	float radius = actor->CollisionRadius();
 	vec3 offset = vec3(0.0, 0.0, height - radius);
 	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
 	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
-	dvec3 origin = from;
-	dvec3 dir = to - origin;
-	return std::min(RaySphereIntersect(origin, dir, sphere0, radius), RaySphereIntersect(origin, dir, sphere1, radius));
+	double t0 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere0, radius + sphereRadius);
+	double t1 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere1, radius + sphereRadius);
+	return std::min(t0, t1);
 }
 
 bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)
@@ -219,24 +219,30 @@ bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceAct
 	if (traceActors)
 	{
 		dvec3 dfrom = to_dvec3(from);
-		dvec3 dto = to_dvec3(to);
-		ivec3 start = GetRayStartExtents(from, to);
-		ivec3 end = GetRayEndExtents(from, to);
-		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+		dvec3 ddirection = to_dvec3(to) - dfrom;
+		double tmin = 0.01f;
+		double tmax = length(ddirection);
+		if (tmax >= tmin)
 		{
-			for (int z = start.z; z < end.z; z++)
+			ddirection *= 1.0f / tmax;
+			ivec3 start = GetRayStartExtents(from, to);
+			ivec3 end = GetRayEndExtents(from, to);
+			if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 			{
-				for (int y = start.y; y < end.y; y++)
+				for (int z = start.z; z < end.z; z++)
 				{
-					for (int x = start.x; x < end.x; x++)
+					for (int y = start.y; y < end.y; y++)
 					{
-						auto it = CollisionActors.find(GetBucketId(x, y, z));
-						if (it != CollisionActors.end())
+						for (int x = start.x; x < end.x; x++)
 						{
-							for (UActor* actor : it->second)
+							auto it = CollisionActors.find(GetBucketId(x, y, z));
+							if (it != CollisionActors.end())
 							{
-								if (actor != tracingActor && actor->bBlockActors() && ActorRayIntersect(dfrom, dto, actor) < 1.0)
-									return true;
+								for (UActor* actor : it->second)
+								{
+									if (actor != tracingActor && actor->bBlockActors() && ActorRayIntersect(dfrom, tmin, ddirection, tmax, actor) < 1.0)
+										return true;
+								}
 							}
 						}
 					}
@@ -260,37 +266,40 @@ std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float heig
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
 
-	dvec3 dfrom = to_dvec3(from);
-	dvec3 dto = to_dvec3(to);
-	double dradius = radius;
-
 	std::vector<SweepHit> hits;
 
 	if (traceActors)
 	{
+		double dradius = radius;
 		vec3 extents = { radius, radius, height };
 		dvec3 dfrom = to_dvec3(from);
-		dvec3 dto = to_dvec3(to);
-		ivec3 start = GetSweepStartExtents(from, to, extents);
-		ivec3 end = GetSweepEndExtents(from, to, extents);
-		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+		dvec3 ddirection = to_dvec3(to) - dfrom;
+		double tmin = 0.01f;
+		double tmax = length(ddirection);
+		if (tmax >= tmin)
 		{
-			for (int z = start.z; z < end.z; z++)
+			ddirection *= 1.0f / tmax;
+			ivec3 start = GetSweepStartExtents(from, to, extents);
+			ivec3 end = GetSweepEndExtents(from, to, extents);
+			if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 			{
-				for (int y = start.y; y < end.y; y++)
+				for (int z = start.z; z < end.z; z++)
 				{
-					for (int x = start.x; x < end.x; x++)
+					for (int y = start.y; y < end.y; y++)
 					{
-						auto it = CollisionActors.find(GetBucketId(x, y, z));
-						if (it != CollisionActors.end())
+						for (int x = start.x; x < end.x; x++)
 						{
-							for (UActor* actor : it->second)
+							auto it = CollisionActors.find(GetBucketId(x, y, z));
+							if (it != CollisionActors.end())
 							{
-								double t = ActorSphereIntersect(dfrom, dto, dradius, actor);
-								if (t < 1.0)
+								for (UActor* actor : it->second)
 								{
-									dvec3 hitpos = mix(dfrom, dto, t);
-									hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor });
+									double t = ActorSphereIntersect(dfrom, tmin, ddirection, tmax, dradius, actor);
+									if (t < tmax)
+									{
+										dvec3 hitpos = dfrom + ddirection * t;
+										hits.push_back({ (float)(t / tmax), normalize(to_vec3(hitpos) - actor->Location()), actor });
+									}
 								}
 							}
 						}
