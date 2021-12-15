@@ -422,7 +422,7 @@ void UActor::TickWalking(float elapsed)
 				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
 				timeLeft = 0.0f;
 			}
-			else if (hit.Normal.z > 0.2f || hit.Normal.z < -0.2f)
+			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 			{
 				// We hit a wall
 
@@ -584,12 +584,7 @@ void UActor::TickProjectile(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	bool oldColAct = bCollideActors();
-	bool oldBlockAct = bBlockActors();
-	bool oldBlockPlay = bBlockPlayers();
-	SetCollision(false, false, false); // To do: this shouldn't be needed! what is wrong here? :(
 	SweepHit hit = TryMove(Velocity() * elapsed);
-	SetCollision(oldColAct, oldBlockAct, oldBlockPlay);
 
 	if (hit.Fraction < 1.0f && !bDeleteMe() && !bJustTeleported())
 	{

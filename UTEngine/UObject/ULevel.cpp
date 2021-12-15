@@ -157,19 +157,6 @@ void ULevel::RemoveFromCollision(UActor* actor)
 	}
 }
 
-// -1 = inside, 0 = intersects, 1 = outside
-int ULevel::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node)
-{
-	float e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
-	float s = center.x * node->PlaneX + center.y * node->PlaneY + center.z * node->PlaneZ - node->PlaneW;
-	if (s - e > 0)
-		return -1;
-	else if (s + e < 0)
-		return 1;
-	else
-		return 0;
-}
-
 double ULevel::RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius)
 {
 	dvec3 l = sphereCenter - rayOrigin;
@@ -213,36 +200,39 @@ double ULevel::ActorSphereIntersect(const dvec3& origin, double tmin, const dvec
 
 bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
-	if (from == to)
+	if (from == to || (!traceActors && !traceWorld))
 		return false;
+
+	dvec3 origin = to_dvec3(from);
+	dvec3 direction = to_dvec3(to) - origin;
+	double tmin = 0.01f;
+	double tmax = length(direction);
+	if (tmax < tmin)
+		return false;
+	direction *= 1.0f / tmax;
+
+	float margin = 1.0f;
+	tmax += margin;
 
 	if (traceActors)
 	{
-		dvec3 dfrom = to_dvec3(from);
-		dvec3 ddirection = to_dvec3(to) - dfrom;
-		double tmin = 0.01f;
-		double tmax = length(ddirection);
-		if (tmax >= tmin)
+		ivec3 start = GetRayStartExtents(from, to);
+		ivec3 end = GetRayEndExtents(from, to);
+		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 		{
-			ddirection *= 1.0f / tmax;
-			ivec3 start = GetRayStartExtents(from, to);
-			ivec3 end = GetRayEndExtents(from, to);
-			if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+			for (int z = start.z; z < end.z; z++)
 			{
-				for (int z = start.z; z < end.z; z++)
+				for (int y = start.y; y < end.y; y++)
 				{
-					for (int y = start.y; y < end.y; y++)
+					for (int x = start.x; x < end.x; x++)
 					{
-						for (int x = start.x; x < end.x; x++)
+						auto it = CollisionActors.find(GetBucketId(x, y, z));
+						if (it != CollisionActors.end())
 						{
-							auto it = CollisionActors.find(GetBucketId(x, y, z));
-							if (it != CollisionActors.end())
+							for (UActor* actor : it->second)
 							{
-								for (UActor* actor : it->second)
-								{
-									if (actor != tracingActor && actor->bBlockActors() && ActorRayIntersect(dfrom, tmin, ddirection, tmax, actor) < 1.0)
-										return true;
-								}
+								if (actor != tracingActor && actor->bBlockActors() && ActorRayIntersect(origin, tmin, direction, tmax, actor) < tmax)
+									return true;
 							}
 						}
 					}
@@ -253,12 +243,10 @@ bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceAct
 
 	if (traceWorld)
 	{
-		return Model->TraceAnyHit(from, to, visibilityOnly);
+		return Model->TraceAnyHit(origin, tmin, direction, tmax, visibilityOnly);
 	}
-	else
-	{
-		return false;
-	}
+
+	return false;
 }
 
 std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
@@ -266,40 +254,44 @@ std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float heig
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
 
+	dvec3 origin = to_dvec3(from);
+	dvec3 direction = to_dvec3(to) - origin;
+	double tmin = 0.01f;
+	double tmax = length(direction);
+	if (tmax < tmin)
+		return {};
+	direction *= 1.0f / tmax;
+
+	float margin = 1.0f;
+	tmax += margin;
+
 	std::vector<SweepHit> hits;
 
 	if (traceActors)
 	{
 		double dradius = radius;
 		vec3 extents = { radius, radius, height };
-		dvec3 dfrom = to_dvec3(from);
-		dvec3 ddirection = to_dvec3(to) - dfrom;
-		double tmin = 0.01f;
-		double tmax = length(ddirection);
-		if (tmax >= tmin)
+
+		ivec3 start = GetSweepStartExtents(from, to, extents);
+		ivec3 end = GetSweepEndExtents(from, to, extents);
+		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 		{
-			ddirection *= 1.0f / tmax;
-			ivec3 start = GetSweepStartExtents(from, to, extents);
-			ivec3 end = GetSweepEndExtents(from, to, extents);
-			if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+			for (int z = start.z; z < end.z; z++)
 			{
-				for (int z = start.z; z < end.z; z++)
+				for (int y = start.y; y < end.y; y++)
 				{
-					for (int y = start.y; y < end.y; y++)
+					for (int x = start.x; x < end.x; x++)
 					{
-						for (int x = start.x; x < end.x; x++)
+						auto it = CollisionActors.find(GetBucketId(x, y, z));
+						if (it != CollisionActors.end())
 						{
-							auto it = CollisionActors.find(GetBucketId(x, y, z));
-							if (it != CollisionActors.end())
+							for (UActor* actor : it->second)
 							{
-								for (UActor* actor : it->second)
+								double t = ActorSphereIntersect(origin, tmin, direction, tmax, dradius, actor);
+								if (t < tmax)
 								{
-									double t = ActorSphereIntersect(dfrom, tmin, ddirection, tmax, dradius, actor);
-									if (t < tmax)
-									{
-										dvec3 hitpos = dfrom + ddirection * t;
-										hits.push_back({ (float)(t / tmax), normalize(to_vec3(hitpos) - actor->Location()), actor });
-									}
+									dvec3 hitpos = origin + direction * t;
+									hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor });
 								}
 							}
 						}
@@ -311,13 +303,18 @@ std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float heig
 
 	if (traceWorld)
 	{
-		std::vector<SweepHit> worldHits = Model->Sweep(from, to, height, radius, visibilityOnly);
-		hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		vec3 offset = vec3(0.0, 0.0, height - radius);
+		dvec3 origin0 = to_dvec3(from - offset);
+		dvec3 origin1 = to_dvec3(from + offset);
+		std::vector<SweepHit> worldHits0 = Model->Sweep(origin0, tmin, direction, tmax, radius, visibilityOnly);
+		std::vector<SweepHit> worldHits1 = Model->Sweep(origin1, tmin, direction, tmax, radius, visibilityOnly);
+		hits.insert(hits.end(), worldHits0.begin(), worldHits0.end());
+		hits.insert(hits.end(), worldHits1.begin(), worldHits1.end());
 	}
 
 	// Sort by closest hit and only include the first hit for each actor
 
-	std::stable_sort(hits.begin(), hits.end(), [](auto& a, auto& b) { return a.Fraction < b.Fraction; });
+	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	std::set<UActor*> seenActors;
 	std::vector<SweepHit> uniqueHits;
 	uniqueHits.reserve(hits.size());
@@ -336,92 +333,75 @@ std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float heig
 			uniqueHits.push_back(hit);
 		}
 	}
+
+	tmax -= margin;
+	for (auto& hit : uniqueHits)
+	{
+		hit.Fraction = (float)(std::max(hit.Fraction - margin, 0.0f) / tmax);
+	}
+
 	return uniqueHits;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-bool UModel::TraceAnyHit(vec3 from, vec3 to, bool visibilityOnly)
+bool UModel::TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
-	if (from == to)
-		return false;
-
-	return TraceAnyHit(dvec4(from.x, from.y, from.z, 1.0), dvec4(to.x, to.y, to.z, 1.0), visibilityOnly, &Nodes.front());
+	return TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes.front());
 }
 
-bool UModel::TraceAnyHit(const dvec4& from, const dvec4& to, bool visibilityOnly, BspNode* node)
+bool UModel::TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node)
 {
 	BspNode* polynode = node;
 	while (true)
 	{
-		bool blocking = !visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0;
-		if (blocking && NodeRayIntersect(from, to, polynode) < 1.0)
-			return true;
+		if (!visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0)
+		{
+			double t = NodeRayIntersect(origin, tmin, dirNormalized, tmax, polynode);
+			if (t >= tmin && t < tmax)
+				return true;
+		}
 
 		if (polynode->Plane < 0) break;
 		polynode = &Nodes[polynode->Plane];
 	}
 
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-	double fromSide = dot(from, plane);
-	double toSide = dot(to, plane);
+	double fromSide = dot(dvec4(origin, 1.0), plane);
+	double toSide = dot(dvec4(origin + dirNormalized * tmax, 1.0), plane);
 
-	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(from, to, visibilityOnly, &Nodes[node->Front]))
+	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0) && TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes[node->Front]))
 		return true;
-	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(from, to, visibilityOnly, &Nodes[node->Back]))
+	else if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0) && TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes[node->Back]))
 		return true;
 	else
 		return false;
 }
 
-std::vector<SweepHit> UModel::Sweep(const vec3& from, const vec3& to, float height, float radius, bool visibilityOnly)
+std::vector<SweepHit> UModel::Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly)
 {
-	if (from == to)
-		return {};
-
-	CylinderSweep cylinder(from, to, height, radius, false, true, visibilityOnly);
-
-	// Add margin:
-	double margin = 3.0;
-	dvec3 direction = cylinder.To - cylinder.From;
-	double moveDistance = length(direction);
-	direction /= moveDistance;
-	dvec3 finalTo = cylinder.To + direction * margin;
-
-	// Do the collision sweep:
-	dvec3 offset = dvec3(0.0, 0.0, cylinder.Height - cylinder.Radius);
-	SphereSweep top(cylinder.From + offset, finalTo + offset, cylinder.Radius, cylinder.Filter);
-	SphereSweep bottom(cylinder.From - offset, finalTo - offset, cylinder.Radius, cylinder.Filter);
-	Sweep(&top, &Nodes.front());
-	Sweep(&bottom, &Nodes.front());
-	cylinder.Hits = top.Hits;
-	cylinder.Hits.insert(cylinder.Hits.end(), bottom.Hits.begin(), bottom.Hits.end());
-
 	// Sort by closest hit
-	std::stable_sort(cylinder.Hits.begin(), cylinder.Hits.end(), [](auto& a, auto& b) { return a.Fraction < b.Fraction; });
-
-	// Apply margin to result:
-	for (auto& hit : cylinder.Hits)
-	{
-		hit.Fraction = (float)clamp(((moveDistance + margin) * hit.Fraction - margin) / moveDistance, 0.0, 1.0);
-		if (dot(to_dvec3(hit.Normal), direction) < 0.0)
-			hit.Normal = -hit.Normal;
-	}
-	return cylinder.Hits;
+	std::vector<SweepHit> hits;
+	Sweep(origin, tmin, dirNormalized, tmax, radius, visibilityOnly, &Nodes.front(), hits);
+	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
+	return hits;
 }
 
-void UModel::Sweep(SphereSweep* sphere, BspNode* node)
+void UModel::Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits)
 {
 	BspNode* polynode = node;
 	while (true)
 	{
-		bool blocking = !sphere->Filter.VisibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0;
+		bool blocking = !visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0;
 		if (blocking)
 		{
-			double t = NodeSphereIntersect(sphere->From4, sphere->To4, sphere->Radius, polynode);
-			if (t < 1.0)
+			double t = NodeSphereIntersect(origin, tmin, dirNormalized, tmax, radius, polynode);
+			if (t < tmax && t >= tmin)
 			{
-				sphere->Hits.push_back({ (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr });
+				SweepHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr };
+				if (dot(to_dvec3(hit.Normal), dirNormalized) < 0.0)
+					hit.Normal = -hit.Normal;
+				hits.push_back(hit);
 			}
 		}
 
@@ -430,31 +410,31 @@ void UModel::Sweep(SphereSweep* sphere, BspNode* node)
 	}
 
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-	double fromSide = dot(sphere->From4, plane);
-	double toSide = dot(sphere->To4, plane);
+	double fromSide = dot(dvec4(origin, 1.0), plane);
+	double toSide = dot(dvec4(origin + dirNormalized * tmax, 1.0), plane);
 
-	if (node->Front >= 0 && (fromSide >= -sphere->Radius || toSide >= -sphere->Radius))
+	if (node->Front >= 0 && (fromSide >= -radius || toSide >= -radius))
 	{
-		Sweep(sphere, &Nodes[node->Front]);
+		Sweep(origin, tmin, dirNormalized, tmax, radius, visibilityOnly, &Nodes[node->Front], hits);
 	}
 
-	if (node->Back >= 0 && (fromSide <= sphere->Radius || toSide <= sphere->Radius))
+	if (node->Back >= 0 && (fromSide <= radius || toSide <= radius))
 	{
-		Sweep(sphere, &Nodes[node->Back]);
+		Sweep(origin, tmin, dirNormalized, tmax, radius, visibilityOnly, &Nodes[node->Back], hits);
 	}
 }
 
-double UModel::NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* node)
+double UModel::NodeRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, BspNode* node)
 {
 	if (node->NumVertices < 3 || (node->Surf >= 0 && Surfaces[node->Surf].PolyFlags & PF_NotSolid))
-		return 1.0;
+		return tmax;
 
 	// Test if plane is actually crossed.
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-	double fromSide = dot(from, plane);
-	double toSide = dot(to, plane);
+	double fromSide = dot(dvec4(origin, 1.0), plane);
+	double toSide = dot(dvec4(origin + dirNormalized * tmax, 1.0), plane);
 	if ((fromSide > 0.0 && toSide > 0.0) || (fromSide < 0.0 && toSide < 0.0))
-		return 1.0;
+		return tmax;
 
 	BspVert* v = &Vertices[node->VertPool];
 	vec3* points = Points.data();
@@ -463,28 +443,32 @@ double UModel::NodeRayIntersect(const dvec4& from, const dvec4& to, BspNode* nod
 	p[0] = to_dvec3(points[v[0].Vertex]);
 	p[1] = to_dvec3(points[v[1].Vertex]);
 
-	double t = 1.0;
+	double t = tmax;
 	int count = node->NumVertices;
 	for (int i = 2; i < count; i++)
 	{
 		p[2] = to_dvec3(points[v[i].Vertex]);
-		t = std::min(TriangleRayIntersect(from, to, p), t);
+		double tval = TriangleRayIntersect(origin, dirNormalized, tmax, p);
+		if (tval >= tmin)
+			t = std::min(tval, t);
 		p[1] = p[2];
 	}
 	return t;
 }
 
-double UModel::NodeSphereIntersect(const dvec4& from, const dvec4& to, double radius, BspNode* node)
+double UModel::NodeSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, BspNode* node)
 {
 	if (node->NumVertices < 3 || (node->Surf >= 0 && Surfaces[node->Surf].PolyFlags & PF_NotSolid))
-		return 1.0;
+		return tmax;
+
+	dvec3 target = origin + dirNormalized * tmax;
 
 	// Test if plane is actually crossed.
 	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-	double fromSide = dot(from, plane);
-	double toSide = dot(to, plane);
+	double fromSide = dot(dvec4(origin, 1.0), plane);
+	double toSide = dot(dvec4(target, 1.0), plane);
 	if ((fromSide > radius && toSide > radius) || (fromSide < -radius && toSide < -radius))
-		return 1.0;
+		return tmax;
 
 	BspVert* v = &Vertices[node->VertPool];
 	vec3* points = Points.data();
@@ -493,76 +477,76 @@ double UModel::NodeSphereIntersect(const dvec4& from, const dvec4& to, double ra
 	p[0] = to_dvec3(points[v[0].Vertex]);
 	p[1] = to_dvec3(points[v[1].Vertex]);
 
-	double t = 1.0;
+	double t = tmax;
 	int count = node->NumVertices;
 	for (int i = 2; i < count; i++)
 	{
 		p[2] = to_dvec3(points[v[i].Vertex]);
-		t = std::min(TriangleSphereIntersect(from, to, radius, p), t);
+		double tval = TriangleSphereIntersect(origin, target, radius, p) * tmax;
+		if (tval >= tmin)
+			t = std::min(tval, t);
 		p[1] = p[2];
 	}
 	return t;
 }
 
-double UModel::TriangleRayIntersect(const dvec4& from, const dvec4& to, const dvec3* p)
+double UModel::TriangleRayIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmax, const dvec3* p)
 {
 	// Moeller-Trumbore ray-triangle intersection algorithm:
-
-	dvec3 D = to.xyz() - from.xyz();
 
 	// Find vectors for two edges sharing p[0]
 	dvec3 e1 = p[1] - p[0];
 	dvec3 e2 = p[2] - p[0];
 
 	// Begin calculating determinant - also used to calculate u parameter
-	dvec3 P = cross(D, e2);
+	dvec3 P = cross(dirNormalized, e2);
 	double det = dot(e1, P);
 
 	// Backface check
 	//if (det < 0.0)
-	//	return 1.0;
+	//	return tmax;
 
 	// If determinant is near zero, ray lies in plane of triangle
 	if (det > -FLT_EPSILON && det < FLT_EPSILON)
-		return 1.0;
+		return tmax;
 
 	double inv_det = 1.0 / det;
 
 	// Calculate distance from p[0] to ray origin
-	dvec3 T = from.xyz() - p[0];
+	dvec3 T = origin - p[0];
 
 	// Calculate u parameter and test bound
 	double u = dot(T, P) * inv_det;
 
 	// Check if the intersection lies outside of the triangle
 	if (u < 0.f || u > 1.f)
-		return 1.0;
+		return tmax;
 
 	// Prepare to test v parameter
 	dvec3 Q = cross(T, e1);
 
 	// Calculate V parameter and test bound
-	double v = dot(D, Q) * inv_det;
+	double v = dot(dirNormalized, Q) * inv_det;
 
 	// The intersection lies outside of the triangle
 	if (v < 0.f || u + v  > 1.f)
-		return 1.0;
+		return tmax;
 
 	double t = dot(e2, Q) * inv_det;
 	if (t <= FLT_EPSILON)
-		return 1.0;
+		return tmax;
 
 	// Return hit location on triangle in barycentric coordinates
 	// barycentricB = u;
 	// barycentricC = v;
 
-	return t;
+	return std::min(t, tmax);
 }
 
-double UModel::TriangleSphereIntersect(const dvec4& from, const dvec4& to, double radius, const dvec3* p)
+double UModel::TriangleSphereIntersect(const dvec3& from, const dvec3& to, double radius, const dvec3* p)
 {
-	dvec3 c = from.xyz();
-	dvec3 e = to.xyz();
+	dvec3 c = from;
+	dvec3 e = to;
 	double r = radius;
 
 	// Dynamic intersection test between a ray and the minkowski sum of the sphere and polygon:
@@ -572,8 +556,8 @@ double UModel::TriangleSphereIntersect(const dvec4& from, const dvec4& to, doubl
 
 	// Step 1: Plane intersect test
 
-	double sc = dot(plane, from);
-	double se = dot(plane, to);
+	double sc = dot(plane, dvec4(from, 1.0));
+	double se = dot(plane, dvec4(to, 1.0));
 	bool same_side = sc * se > 0.0;
 
 	if (same_side && std::abs(sc) > r && std::abs(se) > r)
@@ -727,6 +711,19 @@ double UModel::TriangleSphereIntersect(const dvec4& from, const dvec4& to, doubl
 	}
 
 	return hitFraction;
+}
+
+// -1 = inside, 0 = intersects, 1 = outside
+int UModel::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node)
+{
+	float e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
+	float s = center.x * node->PlaneX + center.y * node->PlaneY + center.z * node->PlaneZ - node->PlaneW;
+	if (s - e > 0)
+		return -1;
+	else if (s + e < 0)
+		return 1;
+	else
+		return 0;
 }
 
 void UModel::Load(ObjectStream* stream)
