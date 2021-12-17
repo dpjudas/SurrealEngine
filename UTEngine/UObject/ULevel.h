@@ -255,6 +255,7 @@ public:
 
 	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
 	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
+	std::vector<UActor*> CollidingActors(const vec3& origin, float radius);
 
 private:
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
@@ -322,6 +323,7 @@ private:
 		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
 	}
 
+	bool ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor);
 	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
 	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);

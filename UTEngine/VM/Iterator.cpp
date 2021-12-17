@@ -99,13 +99,23 @@ bool VisibleActorsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-VisibleCollidingActorsIterator::VisibleCollidingActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location, bool IgnoreHidden) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location), IgnoreHidden(IgnoreHidden)
+VisibleCollidingActorsIterator::VisibleCollidingActorsIterator(UObject* BaseClass, UObject** ReturnValue, float Radius, const vec3& Location, bool IgnoreHidden) : BaseClass(BaseClass), ReturnValue(ReturnValue), Radius(Radius), Location(Location), IgnoreHidden(IgnoreHidden)
 {
-	engine->LogUnimplemented("Actor.VisibleCollidingActors not implemented");
+	HitActors = engine->Level->CollidingActors(Location, Radius);
 }
 
 bool VisibleCollidingActorsIterator::Next()
 {
+	size_t size = HitActors.size();
+	while (index < size)
+	{
+		UActor* actor = HitActors[index++];
+		if (actor && (IgnoreHidden || !actor->bHidden()) && actor->IsA(BaseClass->Name))
+		{
+			*ReturnValue = actor;
+			return true;
+		}
+	}
 	return false;
 }
 

@@ -174,6 +174,23 @@ double ULevel::RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dve
 	return (t >= tmin) ? t : tmax;
 }
 
+bool ULevel::ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor)
+{
+	double sphereRadius2 = sphereRadius * sphereRadius;
+
+	float height = actor->CollisionHeight();
+	float radius = actor->CollisionRadius();
+	vec3 offset = vec3(0.0, 0.0, height - radius);
+	dvec3 sphere0 = to_dvec3(actor->Location() - offset);
+	dvec3 sphere1 = to_dvec3(actor->Location() + offset);
+
+	dvec3 delta0 = sphere0 - origin;
+	if (dot(delta0, delta0) < sphereRadius2)
+		return true;
+	dvec3 delta1 = sphere1 - origin;
+	return dot(delta1, delta1) < sphereRadius2;
+}
+
 double ULevel::ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
 {
 	float height = actor->CollisionHeight();
@@ -338,6 +355,60 @@ std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float heig
 	for (auto& hit : uniqueHits)
 	{
 		hit.Fraction = (float)(std::max(hit.Fraction - margin, 0.0f) / tmax);
+	}
+
+	return uniqueHits;
+}
+
+std::vector<UActor*> ULevel::CollidingActors(const vec3& origin, float radius)
+{
+	dvec3 dorigin = to_dvec3(origin);
+	double dradius = radius;
+	vec3 extents = { radius, radius, radius };
+
+	std::vector<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* actor : it->second)
+						{
+							if (ActorSphereCollision(dorigin, dradius, actor))
+								hits.push_back(actor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	std::vector<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
 	}
 
 	return uniqueHits;

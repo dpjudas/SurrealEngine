@@ -3,6 +3,7 @@
 #include "ExpressionValue.h"
 
 class UZoneInfo;
+class UActor;
 
 class Iterator
 {
@@ -105,15 +106,16 @@ public:
 class VisibleCollidingActorsIterator : public Iterator
 {
 public:
-	VisibleCollidingActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location, bool IgnoreHidden);
+	VisibleCollidingActorsIterator(UObject* BaseClass, UObject** ReturnValue, float Radius, const vec3& Location, bool IgnoreHidden);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
-	UObject** Actor = nullptr;
+	UObject** ReturnValue = nullptr;
 	float Radius = 0.0f;
 	vec3 Location = vec3(0.0f);
 	bool IgnoreHidden = false;
 	size_t index = 0;
+	std::vector<UActor*> HitActors;
 };
 
 class ZoneActorsIterator : public Iterator
