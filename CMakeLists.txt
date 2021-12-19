@@ -143,6 +143,8 @@ set(UTENGINE_SOURCES
 	UTEngine/Math/mat.cpp
 	UTEngine/Math/bbox.h
 	UTEngine/Math/hsb.h
+	UTEngine/GC/GC.cpp
+	UTEngine/GC/GC.h
 	UTEngine/UObject/ULevel.cpp
 	UTEngine/UObject/PropertyOffsets.cpp
 	UTEngine/UObject/UMusic.cpp
@@ -549,6 +551,7 @@ source_group("UTEngine\\UI\\Debugger" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE
 source_group("UTEngine\\UI\\Dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Dialog/.+")
 source_group("UTEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/MainWindow/.+")
 source_group("UTEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UObject/.+")
+source_group("UTEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/GC/.+")
 source_group("UTEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/VM/.+")
 source_group("UTEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/.+")
 source_group("UTEngine\\Window\\Win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/Win32/.+")
