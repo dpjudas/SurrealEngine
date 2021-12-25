@@ -64,6 +64,8 @@ void SceneRender::DrawScene()
 
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
 
+	engine->renderer->decal.DrawDecals(&SceneFrame);
+
 	for (UActor* actor : level->Actors)
 	{
 		if (actor && !actor->bHidden() && actor != engine->CameraActor)

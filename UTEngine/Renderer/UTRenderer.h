@@ -7,6 +7,7 @@
 #include "MeshRender.h"
 #include "SceneRender.h"
 #include "SpriteRender.h"
+#include "DecalRender.h"
 #include <set>
 
 class UActor;
@@ -36,6 +37,7 @@ public:
 	BrushRender brush;
 	CanvasRender canvas;
 	CoronaRender corona;
+	DecalRender decal;
 	LightRender light;
 	MeshRender mesh;
 	SceneRender scene;

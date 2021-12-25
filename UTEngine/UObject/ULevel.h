@@ -8,6 +8,17 @@ class UTexture;
 class UActor;
 class UPawn;
 class UBrush;
+class UDecal;
+
+class TraceHit
+{
+public:
+	TraceHit() = default;
+	TraceHit(float fraction, vec3 normal) : Fraction(fraction), Normal(normal) { }
+
+	float Fraction = 1.0;
+	vec3 Normal = vec3(0.0);
+};
 
 class SweepHit
 {
@@ -193,10 +204,12 @@ public:
 	std::map<int, UTexture*> lmtextures;
 	std::map<int, std::pair<int, UTexture*>> fogtextures;
 
+	std::vector<TraceHit> Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 	std::vector<SweepHit> Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly);
 
 private:
+	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, std::vector<TraceHit>& hits);
 	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node);
 	void Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
 
@@ -250,6 +263,13 @@ struct TraceFlags
 	bool traceWorld() const { return world; }
 };
 
+struct LevelDecal
+{
+	UDecal* Decal = nullptr;
+	vec3 Positions[4];
+	vec2 UVs[4];
+};
+
 class ULevel : public ULevelBase
 {
 public:
@@ -262,6 +282,7 @@ public:
 	UModel* Model = nullptr;
 
 	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
+	std::vector<std::unique_ptr<LevelDecal>> Decals;
 
 	void AddToCollision(UActor* actor);
 	void RemoveFromCollision(UActor* actor);

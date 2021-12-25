@@ -3,6 +3,7 @@
 #include "UActor.h"
 #include "ULevel.h"
 #include "UMesh.h"
+#include "UTexture.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
@@ -1425,4 +1426,68 @@ void ULevelInfo::UpdateActorZone()
 {
 	// No zone events are sent by LevelInfo actors
 	Region() = FindRegion();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
+{
+	if (!Texture())
+		return nullptr;
+
+	vec3 dirNormalized;
+	if (dot(decalDir, decalDir) < 0.01f)
+	{
+		dirNormalized = normalize(vec3(
+			(float)(std::rand() / (double)RAND_MAX),
+			(float)(std::rand() / (double)RAND_MAX),
+			(float)(std::rand() / (double)RAND_MAX)));
+	}
+	else
+	{
+		dirNormalized = normalize(decalDir);
+	}
+
+	std::vector<TraceHit> hits = XLevel()->Model->Trace(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	if (hits.empty()) return nullptr;
+
+	vec3 N = hits.front().Normal;
+	vec3 xdir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
+	vec3 ydir = cross(N, xdir);
+	vec3 pos = Location() + dirNormalized * hits.front().Fraction + N;
+
+	float usize = (float)Texture()->USize();
+	float vsize = (float)Texture()->VSize();
+	xdir *= DrawScale() * usize * 0.5f;
+	ydir *= DrawScale() * vsize * 0.5f;
+
+	// To do: clip this to model surfaces
+
+	auto leveldecal = std::make_unique<LevelDecal>();
+	leveldecal->Decal = this;
+	leveldecal->Positions[0] = pos - xdir - ydir;
+	leveldecal->Positions[1] = pos + xdir - ydir;
+	leveldecal->Positions[2] = pos + xdir + ydir;
+	leveldecal->Positions[3] = pos - xdir + ydir;
+	leveldecal->UVs[0] = vec2(0.0f, 0.0f);
+	leveldecal->UVs[1] = vec2(usize, 0.0f);
+	leveldecal->UVs[2] = vec2(usize, vsize);
+	leveldecal->UVs[3] = vec2(0.0f, vsize);
+	XLevel()->Decals.push_back(std::move(leveldecal));
+
+	return Level();
+}
+
+void UDecal::DetachDecal()
+{
+	auto& decals = XLevel()->Decals;
+	auto it = decals.begin();
+	while (it != decals.end())
+	{
+		auto& leveldecal = *it;
+		if (leveldecal->Decal == this)
+			it = decals.erase(it);
+		else
+			++it;
+	}
 }

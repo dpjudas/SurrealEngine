@@ -405,6 +405,9 @@ class UDecal : public UActor
 public:
 	using UActor::UActor;
 
+	UObject* AttachDecal(float traceDistance, const vec3& decalDir);
+	void DetachDecal();
+
 	float& LastRenderedTime() { return Value<float>(PropOffsets_Decal.LastRenderedTime); }
 	int& MultiDecalLevel() { return Value<int>(PropOffsets_Decal.MultiDecalLevel); }
 	std::vector<void*>& SurfList() { return Value<std::vector<void*>>(PropOffsets_Decal.SurfList); }

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NDecal.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UActor.h"
 #include "Engine.h"
 
 void NDecal::RegisterFunctions()
@@ -12,11 +13,10 @@ void NDecal::RegisterFunctions()
 
 void NDecal::AttachDecal(UObject* Self, float TraceDistance, vec3* DecalDir, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Decal.AttachDecal");
-	ReturnValue = nullptr;
+	ReturnValue = UObject::TryCast<UDecal>(Self)->AttachDecal(TraceDistance, DecalDir ? *DecalDir : vec3(0.0f));
 }
 
 void NDecal::DetachDecal(UObject* Self)
 {
-	engine->LogUnimplemented("Decal.DetachDecal");
+	UObject::TryCast<UDecal>(Self)->DetachDecal();
 }

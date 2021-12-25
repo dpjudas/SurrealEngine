@@ -6,11 +6,13 @@ set(UTENGINE_SOURCES
 	UTEngine/Renderer/SceneRender.cpp
 	UTEngine/Renderer/UTRenderer.cpp
 	UTEngine/Renderer/CoronaRender.h
+	UTEngine/Renderer/DecalRender.h
 	UTEngine/Renderer/MeshRender.cpp
 	UTEngine/Renderer/SceneRender.h
 	UTEngine/Renderer/BrushRender.cpp
 	UTEngine/Renderer/SpriteRender.h
 	UTEngine/Renderer/CoronaRender.cpp
+	UTEngine/Renderer/DecalRender.cpp
 	UTEngine/Renderer/CanvasRender.cpp
 	UTEngine/Renderer/SpriteRender.cpp
 	UTEngine/Renderer/CanvasRender.h

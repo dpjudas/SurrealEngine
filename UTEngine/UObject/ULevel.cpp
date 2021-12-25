@@ -454,6 +454,45 @@ std::vector<UActor*> ULevel::CollidingActors(const vec3& origin, float radius)
 
 /////////////////////////////////////////////////////////////////////////////
 
+std::vector<TraceHit> UModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+{
+	std::vector<TraceHit> hits;
+	Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes.front(), hits);
+	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
+	return hits;
+}
+
+void UModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, std::vector<TraceHit>& hits)
+{
+	BspNode* polynode = node;
+	while (true)
+	{
+		if (!visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0)
+		{
+			double t = NodeRayIntersect(origin, tmin, dirNormalized, tmax, polynode);
+			if (t >= tmin && t < tmax)
+			{
+				TraceHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ) };
+				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
+					hit.Normal = -hit.Normal;
+				hits.push_back(hit);
+			}
+		}
+
+		if (polynode->Plane < 0) break;
+		polynode = &Nodes[polynode->Plane];
+	}
+
+	dvec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
+	double fromSide = dot(dvec4(origin, 1.0), plane);
+	double toSide = dot(dvec4(origin + dirNormalized * tmax, 1.0), plane);
+
+	if (node->Front >= 0 && (fromSide >= 0.0 || toSide >= 0.0))
+		Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes[node->Front], hits);
+	if (node->Back >= 0 && (fromSide <= 0.0 || toSide <= 0.0))
+		Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes[node->Back], hits);
+}
+
 bool UModel::TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	return TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Nodes.front());
@@ -508,7 +547,7 @@ void UModel::Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized,
 			if (t < tmax && t >= tmin)
 			{
 				SweepHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr };
-				if (dot(to_dvec3(hit.Normal), dirNormalized) < 0.0)
+				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
 					hit.Normal = -hit.Normal;
 				hits.push_back(hit);
 			}
