@@ -149,6 +149,7 @@ public:
 	bool MoveSmooth(const vec3& delta);
 
 	bool IsBasedOn(UActor* other);
+	bool IsOwnedBy(UActor* owner);
 	bool IsOverlapping(UActor* other);
 
 	void Touch(UActor* actor);

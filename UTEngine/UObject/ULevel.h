@@ -237,6 +237,19 @@ public:
 	std::string Portal;
 };
 
+struct TraceFlags
+{
+	bool pawns = false;
+	bool movers = false;
+	bool others = false;
+	bool world = false;
+	bool zoneChanges = false;
+	bool onlyProjectiles = false;
+
+	bool traceActors() const { return pawns || movers || others || zoneChanges || onlyProjectiles; }
+	bool traceWorld() const { return world; }
+};
+
 class ULevel : public ULevelBase
 {
 public:
@@ -254,6 +267,8 @@ public:
 	void RemoveFromCollision(UActor* actor);
 
 	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
+	SweepHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
+
 	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
 	std::vector<UActor*> CollidingActors(const vec3& origin, float radius);
 

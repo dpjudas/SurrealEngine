@@ -122,19 +122,19 @@ void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
 
 void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickAnyTarget not implemented");
+	engine->LogUnimplemented("Pawn.PickAnyTarget");
 	ReturnValue = nullptr;
 }
 
 void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickTarget not implemented");
+	engine->LogUnimplemented("Pawn.PickTarget");
 	ReturnValue = nullptr;
 }
 
 void NPawn::PickWallAdjust(UObject* Self, bool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickWallAdjust not implemented");
+	engine->LogUnimplemented("Pawn.PickWallAdjust");
 	ReturnValue = false;
 }
 
@@ -164,7 +164,7 @@ void NPawn::RemovePawn(UObject* Self)
 
 void NPawn::StopWaiting(UObject* Self)
 {
-	engine->LogUnimplemented("Pawn.StopWaiting not implemented");
+	engine->LogUnimplemented("Pawn.StopWaiting");
 }
 
 void NPawn::StrafeFacing(UObject* Self, const vec3& NewDestination, UObject* NewTarget)

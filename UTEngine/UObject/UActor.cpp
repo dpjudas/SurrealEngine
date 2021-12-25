@@ -22,6 +22,25 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	vec3 location = SpawnLocation ? *SpawnLocation : Location();
 	Rotator rotation = SpawnRotation ? *SpawnRotation : Rotation();
 
+	float radius = SpawnClass->GetDefaultObject()->GetFloat("CollisionRadius");
+	float height = SpawnClass->GetDefaultObject()->GetFloat("CollisionHeight");
+	bool bCollideWorld = SpawnClass->GetDefaultObject()->GetBool("bCollideWorld");
+	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject()->GetBool("bCollideWhenPlacing");
+	if (bCollideWorld || bCollideWhenPlacing)
+	{
+		// To do: improve searching for a valid spot
+		TraceFlags flags;
+		flags.world = true;
+		flags.movers = true;
+		vec3 from = location + vec3(0.0f, 0.0f, 10.0f);
+		vec3 to = location;
+		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
+		if (hit.Fraction == 0.0f)
+			return nullptr;
+		else if (hit.Fraction < 1.0f)
+			location = from + (to - from) * hit.Fraction;
+	}
+
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
 	UActor* actor = UObject::Cast<UActor>(engine->packages->GetPackage("Engine")->NewObject("", UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
 
@@ -104,24 +123,15 @@ void UActor::InitBase()
 	bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(this) || UObject::TryCast<UInventory>(this) || UObject::TryCast<UPawn>(this);
 	if (isDecorationInventoryOrPawn && !ActorBase() && bCollideWorld() && (Physics() == PHYS_None || Physics() == PHYS_Rotating))
 	{
-#if 0
-		UActor* hitActor = nullptr;
-		auto onHit = [&](UActor* testActor) -> bool
-		{
-			for (UActor* cur = testActor; cur; cur = cur->Owner())
-			{
-				if (cur == hitActor)
-					return true;
-			}
-			hitActor = testActor;
-			return false;
-		};
-		engine->collision->TraceHit(actor->Location(), actor->Location() + vec3(0.0f, 0.0f, -10.0f), onHit);
-		actor->SetBase(hitActor);
-#else
-		UActor* hitActor = Level();
-		SetBase(hitActor, true);
-#endif
+		TraceFlags flags;
+		flags.world = true;
+		flags.movers = true;
+		flags.pawns = true;
+		flags.others = true;
+		vec3 from = Location();
+		vec3 to = Location() - vec3(0.0f, 0.0f, 10.0f);
+		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
+		SetBase(hit.Actor, true);
 	}
 }
 
@@ -756,29 +766,25 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 
 UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent)
 {
-	// To do: this needs to do an AABB sweep (hmm, does UE1 treat all actor cylinders as AABB?)
-
-	std::vector<SweepHit> hits = XLevel()->Sweep(traceStart, traceEnd, extent.z, extent.x, bTraceActors, true, false);
-	for (SweepHit& hit : hits)
+	TraceFlags flags;
+	flags.movers = true;
+	flags.world = true;
+	if (bTraceActors)
 	{
-		if (hit.Actor)
-		{
-			if (hit.Actor != this)
-			{
-				hitNormal = hit.Normal;
-				hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
-				return hit.Actor;
-			}
-		}
-		else
-		{
-			hitNormal = hit.Normal;
-			hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
-			return Level();
-		}
+		flags.pawns = true;
+		flags.others = true;
+		flags.onlyProjectiles = true;
 	}
 
-	return nullptr;
+	if (IsA("ChallengeHUD"))
+	{
+		flags.zoneChanges = true;
+	}
+
+	SweepHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
+	hitNormal = hit.Normal;
+	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+	return hit.Actor;
 }
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
@@ -791,6 +797,18 @@ bool UActor::IsBasedOn(UActor* other)
 	for (UActor* cur = other; cur; cur = cur->ActorBase())
 	{
 		if (cur == this)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UActor::IsOwnedBy(UActor* owner)
+{
+	for (UActor* cur = this; cur; cur = cur->Owner())
+	{
+		if (cur == owner)
 		{
 			return true;
 		}

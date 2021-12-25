@@ -266,6 +266,44 @@ bool ULevel::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceAct
 	return false;
 }
 
+SweepHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
+{
+	for (const SweepHit& hit : Sweep(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
+	{
+		if (hit.Actor && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
+		{
+			if (hit.Actor->IsA("Pawn"))
+			{
+				if (flags.pawns)
+					return hit;
+			}
+			else if (hit.Actor->IsA("Mover"))
+			{
+				if (flags.movers)
+					return hit;
+			}
+			else if (hit.Actor->IsA("ZoneInfo"))
+			{
+				if (flags.zoneChanges)
+					return hit;
+			}
+			else if (flags.others)
+			{
+				if (!flags.onlyProjectiles || hit.Actor->bProjTarget() || (hit.Actor->bBlockActors() && hit.Actor->bBlockPlayers()))
+					return hit;
+			}
+		}
+		else if (flags.world && !hit.Actor)
+		{
+			SweepHit worldHit = hit;
+			if (tracingActor)
+				worldHit.Actor = tracingActor->Level();
+			return worldHit;
+		}
+	}
+	return {};
+}
+
 std::vector<SweepHit> ULevel::Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	if (from == to || (!traceActors && !traceWorld))

@@ -29,7 +29,7 @@ bool AllObjectsIterator::Next()
 
 BasedActorsIterator::BasedActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.BasedActors not implemented");
+	engine->LogUnimplemented("Actor.BasedActors");
 }
 
 bool BasedActorsIterator::Next()
@@ -41,7 +41,7 @@ bool BasedActorsIterator::Next()
 
 ChildActorsIterator::ChildActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.ChildActors not implemented");
+	engine->LogUnimplemented("Actor.ChildActors");
 }
 
 bool ChildActorsIterator::Next()
@@ -53,7 +53,7 @@ bool ChildActorsIterator::Next()
 
 RadiusActorsIterator::RadiusActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, vec3 Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
-	engine->LogUnimplemented("Actor.RadiusActors not implemented");
+	engine->LogUnimplemented("Actor.RadiusActors");
 }
 
 bool RadiusActorsIterator::Next()
@@ -65,7 +65,7 @@ bool RadiusActorsIterator::Next()
 
 TouchingActorsIterator::TouchingActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.TouchingActors not implemented");
+	engine->LogUnimplemented("Actor.TouchingActors");
 }
 
 bool TouchingActorsIterator::Next()
@@ -77,7 +77,7 @@ bool TouchingActorsIterator::Next()
 
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
-	engine->LogUnimplemented("Actor.TraceActors not implemented");
+	engine->LogUnimplemented("Actor.TraceActors");
 }
 
 bool TraceActorsIterator::Next()
@@ -89,7 +89,7 @@ bool TraceActorsIterator::Next()
 
 VisibleActorsIterator::VisibleActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
-	engine->LogUnimplemented("Actor.VisibleActor not implemented");
+	engine->LogUnimplemented("Actor.VisibleActor");
 }
 
 bool VisibleActorsIterator::Next()
@@ -123,7 +123,7 @@ bool VisibleCollidingActorsIterator::Next()
 
 ZoneActorsIterator::ZoneActorsIterator(UZoneInfo* zone, UObject* BaseClass, UObject** Actor) : Zone(zone), BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("ZoneInfo.ZoneActors not implemented");
+	engine->LogUnimplemented("ZoneInfo.ZoneActors");
 }
 
 bool ZoneActorsIterator::Next()
