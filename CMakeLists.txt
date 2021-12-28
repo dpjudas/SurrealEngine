@@ -177,6 +177,19 @@ set(UTENGINE_SOURCES
 	UTEngine/UObject/UInternetLink.cpp
 	UTEngine/UObject/UInternetLink.h
 	UTEngine/UObject/PropertyOffsets.h
+	UTEngine/Collision/CollisionHash.cpp
+	UTEngine/Collision/CollisionHash.h
+	UTEngine/Collision/TraceHit.h
+	UTEngine/Collision/TraceRayLevel.cpp
+	UTEngine/Collision/TraceRayLevel.h
+	UTEngine/Collision/TraceRayModel.cpp
+	UTEngine/Collision/TraceRayModel.h
+	UTEngine/Collision/TraceCylinderLevel.cpp
+	UTEngine/Collision/TraceCylinderLevel.h
+	UTEngine/Collision/TraceSphereModel.cpp
+	UTEngine/Collision/TraceSphereModel.h
+	UTEngine/Collision/TraceAABBModel.cpp
+	UTEngine/Collision/TraceAABBModel.h
 	UTEngine/UI/Controls/LineEdit/LineEdit.cpp
 	UTEngine/UI/Controls/LineEdit/LineEdit.h
 	UTEngine/UI/Controls/TextLabel/TextLabel.cpp
@@ -553,6 +566,7 @@ source_group("UTEngine\\UI\\Debugger" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE
 source_group("UTEngine\\UI\\Dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Dialog/.+")
 source_group("UTEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/MainWindow/.+")
 source_group("UTEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UObject/.+")
+source_group("UTEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Collision/.+")
 source_group("UTEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/GC/.+")
 source_group("UTEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/VM/.+")
 source_group("UTEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Window/.+")

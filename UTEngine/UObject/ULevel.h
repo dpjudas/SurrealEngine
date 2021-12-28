@@ -2,34 +2,14 @@
 
 #include "UMesh.h"
 #include "Math/bbox.h"
-#include <list>
+#include "Collision/CollisionHash.h"
+#include "Collision/TraceHit.h"
 
 class UTexture;
 class UActor;
 class UPawn;
 class UBrush;
 class UDecal;
-
-class TraceHit
-{
-public:
-	TraceHit() = default;
-	TraceHit(float fraction, vec3 normal) : Fraction(fraction), Normal(normal) { }
-
-	float Fraction = 1.0;
-	vec3 Normal = vec3(0.0);
-};
-
-class SweepHit
-{
-public:
-	SweepHit() = default;
-	SweepHit(float fraction, vec3 normal, UActor* actor) : Fraction(fraction), Normal(normal), Actor(actor) { }
-
-	float Fraction = 1.0;
-	vec3 Normal = vec3(0.0);
-	UActor* Actor = nullptr;
-};
 
 enum EBspNodeFlags
 {
@@ -177,6 +157,8 @@ public:
 	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
 
+	std::vector<TraceHit> TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
+
 	std::vector<vec3> Vectors;
 	std::vector<vec3> Points;
 	std::vector<BspNode> Nodes;
@@ -203,26 +185,6 @@ public:
 
 	std::map<int, UTexture*> lmtextures;
 	std::map<int, std::pair<int, UTexture*>> fogtextures;
-
-	std::vector<TraceHit> Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
-	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
-	std::vector<SweepHit> Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly);
-	std::vector<SweepHit> Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly);
-
-private:
-	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, std::vector<TraceHit>& hits);
-	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node);
-	void Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
-	void Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
-
-	double NodeRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, BspNode* node);
-	double NodeSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, BspNode* node);
-
-	double TriangleRayIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmax, const dvec3* points);
-	double TriangleSphereIntersect(const dvec3& from, const dvec3& to, double radius, const dvec3* points);
-
-	static double HullNodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, BspNode* node, bool flipPlane);
-	static int NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node);
 };
 
 class LevelReachSpec
@@ -281,92 +243,18 @@ public:
 
 	void Tick(float elapsed);
 
+	SweepHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
+	std::vector<SweepHit> Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
+
+	bool TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
+
 	std::vector<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
-	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
+	CollisionHash Hash;
 	std::vector<std::unique_ptr<LevelDecal>> Decals;
 
-	void AddToCollision(UActor* actor);
-	void RemoveFromCollision(UActor* actor);
-
-	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
-	SweepHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
-
-	std::vector<SweepHit> Sweep(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
-	std::vector<UActor*> CollidingActors(const vec3& origin, float radius);
-
 private:
-	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
-	{
-		int xx = (int)std::floor((location.x - extents.x) * (1.0f / 256.0f));
-		int yy = (int)std::floor((location.y - extents.y) * (1.0f / 256.0f));
-		int zz = (int)std::floor((location.z - extents.z) * (1.0f / 256.0f));
-		return { xx, yy, zz };
-	}
-
-	static ivec3 GetRayStartExtents(const vec3& from, const vec3& to)
-	{
-		float x = std::min(from.x, to.x);
-		float y = std::min(from.y, to.y);
-		float z = std::min(from.z, to.z);
-		int xx = (int)std::floor(x * (1.0f / 256.0f));
-		int yy = (int)std::floor(y * (1.0f / 256.0f));
-		int zz = (int)std::floor(z * (1.0f / 256.0f));
-		return { xx, yy, zz };
-	}
-
-	static ivec3 GetSweepStartExtents(const vec3& from, const vec3& to, const vec3& extents)
-	{
-		float x = std::min(from.x, to.x) - extents.x;
-		float y = std::min(from.y, to.y) - extents.y;
-		float z = std::min(from.z, to.z) - extents.z;
-		int xx = (int)std::floor(x * (1.0f / 256.0f));
-		int yy = (int)std::floor(y * (1.0f / 256.0f));
-		int zz = (int)std::floor(z * (1.0f / 256.0f));
-		return { xx, yy, zz };
-	}
-
-	static ivec3 GetEndExtents(const vec3& location, const vec3& extents)
-	{
-		int xx = (int)std::floor((location.x + extents.x) * (1.0f / 256.0f)) + 1;
-		int yy = (int)std::floor((location.y + extents.y) * (1.0f / 256.0f)) + 1;
-		int zz = (int)std::floor((location.z + extents.z) * (1.0f / 256.0f)) + 1;
-		return { xx, yy, zz };
-	}
-
-	static ivec3 GetRayEndExtents(const vec3& from, const vec3& to)
-	{
-		float x = std::max(from.x, to.x);
-		float y = std::max(from.y, to.y);
-		float z = std::max(from.z, to.z);
-		int xx = (int)std::floor(x * (1.0f / 256.0f)) + 1;
-		int yy = (int)std::floor(y * (1.0f / 256.0f)) + 1;
-		int zz = (int)std::floor(z * (1.0f / 256.0f)) + 1;
-		return { xx, yy, zz };
-	}
-
-	static ivec3 GetSweepEndExtents(const vec3& from, const vec3& to, const vec3& extents)
-	{
-		float x = std::max(from.x, to.x) + extents.x;
-		float y = std::max(from.y, to.y) + extents.y;
-		float z = std::max(from.z, to.z) + extents.z;
-		int xx = (int)std::floor(x * (1.0f / 256.0f)) + 1;
-		int yy = (int)std::floor(y * (1.0f / 256.0f)) + 1;
-		int zz = (int)std::floor(z * (1.0f / 256.0f)) + 1;
-		return { xx, yy, zz };
-	}
-
-	static uint32_t GetBucketId(int x, int y, int z)
-	{
-		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
-	}
-
-	bool ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor);
-	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
-	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
-	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
-
 	bool ticked = false;
 };
 

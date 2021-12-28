@@ -266,7 +266,7 @@ void Engine::LoadMap(const UnrealURL& url)
 		if (actor)
 		{
 			actor->XLevel() = Level;
-			Level->AddToCollision(actor);
+			Level->Hash.AddToCollision(actor);
 		}
 	}
 
@@ -285,7 +285,7 @@ void Engine::LoadMap(const UnrealURL& url)
 	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
-	Level->AddToCollision(GameInfo);
+	Level->Hash.AddToCollision(GameInfo);
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
 	GameInfo->InitActorZone();

@@ -129,7 +129,7 @@ void SceneRender::DrawTimedemoStats()
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 
 		size_t numCollisionActors = 0;
-		for (auto& it : engine->Level->CollisionActors)
+		for (auto& it : engine->Level->Hash.CollisionActors)
 			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
 

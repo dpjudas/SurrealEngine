@@ -57,7 +57,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	actor->Rotation() = rotation;
 
 	XLevel()->Actors.push_back(actor);
-	XLevel()->AddToCollision(actor);
+	XLevel()->Hash.AddToCollision(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
 	actor->InitActorZone();
@@ -150,7 +150,7 @@ bool UActor::Destroy()
 
 	ULevel* level = XLevel();
 
-	level->RemoveFromCollision(this);
+	level->Hash.RemoveFromCollision(this);
 
 	CallEvent(this, "Destroyed");
 
@@ -729,20 +729,20 @@ void UActor::SetPhysics(uint8_t newPhysics)
 
 void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers)
 {
-	XLevel()->RemoveFromCollision(this);
+	XLevel()->Hash.RemoveFromCollision(this);
 	bCollideActors() = newColActors;
 	bBlockActors() = newBlockActors;
 	bBlockPlayers() = newBlockPlayers;
-	XLevel()->AddToCollision(this);
+	XLevel()->Hash.AddToCollision(this);
 }
 
 bool UActor::SetLocation(const vec3& newLocation)
 {
 	// To do: do overlap test and return false if the object cannot be moved to this location
 
-	XLevel()->RemoveFromCollision(this);
+	XLevel()->Hash.RemoveFromCollision(this);
 	Location() = newLocation;
-	XLevel()->AddToCollision(this);
+	XLevel()->Hash.AddToCollision(this);
 	return true;
 }
 
@@ -758,10 +758,10 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 {
 	// To do: do overlap test and return false if the object cannot be changed to this new size
 
-	XLevel()->RemoveFromCollision(this);
+	XLevel()->Hash.RemoveFromCollision(this);
 	CollisionRadius() = newRadius;
 	CollisionHeight() = newHeight;
-	XLevel()->AddToCollision(this);
+	XLevel()->Hash.AddToCollision(this);
 	return true;
 }
 
@@ -790,7 +790,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	return XLevel()->TraceAnyHit(traceStart, traceEnd, this, false, true, false);
+	return XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
 }
 
 bool UActor::IsBasedOn(UActor* other)
@@ -842,7 +842,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
 	SweepHit blockingHit;
-	std::vector<SweepHit> hits = XLevel()->Sweep(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+	std::vector<SweepHit> hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
 		for (auto& hit : hits)
@@ -872,9 +872,9 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
 
-	XLevel()->RemoveFromCollision(this);
+	XLevel()->Hash.RemoveFromCollision(this);
 	Location() += actuallyMoved;
-	XLevel()->AddToCollision(this);
+	XLevel()->Hash.AddToCollision(this);
 
 	// Based actors needs to move with us
 	if (StandingCount() > 0)
@@ -1333,7 +1333,7 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 		return false;
 	}
 
-	return !XLevel()->TraceAnyHit(source->Location(), Location(), source, false, true, false);
+	return !XLevel()->TraceRayAnyHit(source->Location(), Location(), source, false, true, false);
 }
 
 void UPawn::InitActorZone()
@@ -1448,7 +1448,7 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 		dirNormalized = normalize(decalDir);
 	}
 
-	std::vector<TraceHit> hits = XLevel()->Model->Trace(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	std::vector<TraceHit> hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	vec3 N = hits.front().Normal;

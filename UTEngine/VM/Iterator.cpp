@@ -101,7 +101,7 @@ bool VisibleActorsIterator::Next()
 
 VisibleCollidingActorsIterator::VisibleCollidingActorsIterator(UObject* BaseClass, UObject** ReturnValue, float Radius, const vec3& Location, bool IgnoreHidden) : BaseClass(BaseClass), ReturnValue(ReturnValue), Radius(Radius), Location(Location), IgnoreHidden(IgnoreHidden)
 {
-	HitActors = engine->Level->CollidingActors(Location, Radius);
+	HitActors = engine->Level->Hash.CollidingActors(Location, Radius);
 }
 
 bool VisibleCollidingActorsIterator::Next()
