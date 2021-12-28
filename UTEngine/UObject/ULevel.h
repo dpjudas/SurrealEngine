@@ -207,10 +207,12 @@ public:
 	std::vector<TraceHit> Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 	std::vector<SweepHit> Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly);
+	std::vector<SweepHit> Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly);
 
 private:
 	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, std::vector<TraceHit>& hits);
 	bool TraceAnyHit(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node);
+	void Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
 	void Sweep(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
 
 	double NodeRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, BspNode* node);
@@ -219,7 +221,8 @@ private:
 	double TriangleRayIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmax, const dvec3* points);
 	double TriangleSphereIntersect(const dvec3& from, const dvec3& to, double radius, const dvec3* points);
 
-	static int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
+	static double HullNodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, BspNode* node, bool flipPlane);
+	static int NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node);
 };
 
 class LevelReachSpec
