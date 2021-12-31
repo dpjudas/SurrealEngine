@@ -92,9 +92,58 @@ void Engine::Run()
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(levelElapsed) });
 
+		// To do: set these to true if the frame rate is too low
+		LevelInfo->bDropDetail() = false;
+		LevelInfo->bAggressiveLOD() = false;
+
 		if (EntryLevel)
 			EntryLevel->Tick(entryLevelElapsed);
 		Level->Tick(levelElapsed);
+
+		if (!LevelInfo->NextURL().empty())
+		{
+			LevelInfo->NextSwitchCountdown() -= levelElapsed;
+			if (LevelInfo->NextSwitchCountdown() <= 0.0f)
+			{
+				if (LevelInfo->NextURL() == "?RESTART")
+				{
+					LoadMap(LevelInfo->URL, Level->TravelInfo);
+				}
+				else if (LevelInfo->bNextItems())
+				{
+					auto travelInfo = Level->TravelInfo;
+					for (UActor* actor : Level->Actors)
+					{
+						UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
+						if (pawn && pawn->Player())
+						{
+							std::vector<ObjectTravelInfo> actorTravelInfo;
+							for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
+							{
+								ObjectTravelInfo objInfo(item);
+								actorTravelInfo.push_back(std::move(objInfo));
+							}
+							std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+							travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
+						}
+					}
+					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), travelInfo);
+				}
+				else
+				{
+					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), {});
+				}
+			}
+		}
+
+		if (!ClientTravelInfo.URL.empty())
+		{
+			// To do: need to do something about that travel type and transfering of items
+
+			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
+			engine->LogMessage("Client travel to " + url.ToString());
+			LoadMap(url);
+		}
 
 		// To do: improve CallEvent so parameter passing isn't this painful
 		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");
@@ -188,11 +237,9 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
-	// To do: need to do something about that travel type and transfering of items
-
-	UnrealURL url(LevelInfo->URL, newURL);
-	engine->LogMessage("Client travel to " + url.ToString());
-	LoadMap(url);
+	ClientTravelInfo.URL = newURL;
+	ClientTravelInfo.TravelType = travelType;
+	ClientTravelInfo.TransferItems = transferItems;
 }
 
 UnrealURL Engine::GetDefaultURL(const std::string& map)
@@ -216,8 +263,10 @@ void Engine::LoadEntryMap()
 	Level = nullptr;
 }
 
-void Engine::LoadMap(const UnrealURL& url)
+void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
 {
+	ClientTravelInfo.URL.clear();
+
 	if (Level)
 		CallEvent(console, "NotifyLevelChange");
 
@@ -249,6 +298,8 @@ void Engine::LoadMap(const UnrealURL& url)
 	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
 	if (!Level)
 		throw std::runtime_error("Could not find the Level object for this map!");
+
+	Level->TravelInfo = travelInfo; // Initially used travel info for level restart
 
 	// Remove the actors meant for the editor (to do: should we do this at the package manager level?)
 	for (UActor*& actor : Level->Actors)
@@ -365,6 +416,7 @@ void Engine::LoadMap(const UnrealURL& url)
 		throw std::runtime_error("GameInfo prelogin failed: " + error + " (" + failcode + ")");
 
 	// Create viewport pawn
+	size_t numActors = Level->Actors.size();
 	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
 		ExpressionValue::StringValue(portal),
 		ExpressionValue::StringValue(options),
@@ -373,16 +425,63 @@ void Engine::LoadMap(const UnrealURL& url)
 		}).ToObject());
 	if (!pawn || !error.empty())
 		throw std::runtime_error("GameInfo login failed: " + error);
+	bool actorActuallySpawned = Level->Actors.size() != numActors;
 
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;
 	viewport->Actor()->Player() = viewport;
 	CallEvent(viewport->Actor(), "Possess");
 
-	CallEvent(pawn, "TravelPreAccept");
-	// To do: handle level inventory transfer here
-	CallEvent(pawn, "TravelPostAccept");
+	// Transfer travel actors to the new map
 
+	CallEvent(pawn, "TravelPreAccept");
+
+	std::vector<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
+	if (actorActuallySpawned)
+	{
+		std::string playerName = url.GetOption("Name");
+		if (playerName.empty())
+			playerName = packages->GetIniValue("system", "URL", "Name");
+
+		auto it = travelInfo.find(playerName);
+		if (!playerName.empty() && it != travelInfo.end())
+		{
+			for (const ObjectTravelInfo& objInfo : ObjectTravelInfo::Parse(it->second))
+			{
+				UClass* cls = packages->FindClass(objInfo.ClassName);
+				UActor* acceptedActor = nullptr;
+				if (cls)
+					acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
+
+				if (acceptedActor)
+				{
+					acceptedActors.push_back({ acceptedActor, objInfo });
+				}
+				else
+				{
+					LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
+				}
+			}
+
+			for (auto& it : acceptedActors)
+			{
+				UActor* acceptedActor = it.first;
+				const ObjectTravelInfo& objInfo = it.second;
+
+				// To do: load properties
+			}
+		}
+	}
+
+	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
+		CallEvent((*it).first, "TravelPreAccept");
+
+	CallEvent(LevelInfo->Game(), "AcceptInventory", { ExpressionValue::ObjectValue(pawn) });
+
+	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
+		CallEvent((*it).first, "TravelPostAccept");
+
+	CallEvent(pawn, "TravelPostAccept");
 	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
 
 	renderer->OnMapLoaded();

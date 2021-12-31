@@ -254,6 +254,8 @@ public:
 	CollisionHash Hash;
 	std::vector<std::unique_ptr<LevelDecal>> Decals;
 
+	std::map<std::string, std::string> TravelInfo;
+
 private:
 	bool ticked = false;
 };

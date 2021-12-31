@@ -62,7 +62,7 @@ public:
 	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
 	UnrealURL GetDefaultURL(const std::string& map);
 	void LoadEntryMap();
-	void LoadMap(const UnrealURL& url);
+	void LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo = {});
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(DisplayWindow* window);
@@ -90,6 +90,12 @@ public:
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
 	UGameInfo* GameInfo = nullptr;
+	struct
+	{
+		std::string URL;
+		uint8_t TravelType = 0;
+		bool TransferItems = false;
+	} ClientTravelInfo;
 
 	void LogMessage(const std::string& message);
 	void LogUnimplemented(const std::string& message);

@@ -1189,6 +1189,28 @@ public:
 	}
 };
 
+struct ObjectTravelInfo
+{
+	ObjectTravelInfo(UInventory* inventory)
+	{
+		// To do: read properties
+		// Note: only include properties with PropertyFlags::Travel
+	}
+
+	static std::vector<ObjectTravelInfo> Parse(const std::string& text)
+	{
+		return {};
+	}
+
+	static std::string ToString(const std::vector<ObjectTravelInfo>& objects)
+	{
+		return {};
+	}
+
+	std::string ClassName;
+	std::map<std::string, std::string> Properties;
+};
+
 class ULevelInfo : public UZoneInfo
 {
 public:
