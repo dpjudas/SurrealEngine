@@ -110,8 +110,16 @@ void UStruct::Load(ObjectStream* stream)
 		child = child->Next;
 	}
 
-	size_t alignment = sizeof(void*);
-	StructSize = (offset + alignment - 1) / alignment * alignment;
+	if (FriendlyName == "Vector" || FriendlyName == "Rotator")
+	{
+		size_t alignment = sizeof(uint32_t);
+		StructSize = (offset + alignment - 1) / alignment * alignment;
+	}
+	else
+	{
+		size_t alignment = sizeof(void*);
+		StructSize = (offset + alignment - 1) / alignment * alignment;
+	}
 }
 
 #ifdef _DEBUG
