@@ -112,9 +112,24 @@ void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
 	}
 }
 
-void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
+void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& lightcolor, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
 {
 	auto device = engine->window->GetRenderDevice();
+
+	uint32_t polyFlags = 0;
+	switch (actor->Style())
+	{
+	case 2: polyFlags |= PF_Masked; break; // STY_Masked
+	case 3: polyFlags |= PF_Translucent; break; // STY_Translucent
+	case 4: polyFlags |= PF_Modulated; break; // STY_Modulated
+	}
+	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
+	if (actor->bSelected()) polyFlags |= PF_Selected;
+	if (actor->bMeshEnviroMap()) polyFlags |= PF_Environment;
+	if (actor->bMeshCurvy()) polyFlags |= PF_Flat;
+	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
+	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
+	vec3 color = (polyFlags & PF_Unlit) ? vec3(1.0f) : lightcolor;
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
@@ -150,7 +165,11 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			vertices[i].Light = color;
 		}
 
-		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, material.PolyFlags);
+		uint32_t renderflags = material.PolyFlags | polyFlags;
+		if (tex && tex->bMasked())
+			renderflags |= PF_Masked;
+
+		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, renderflags);
 	}
 }
 

@@ -74,7 +74,10 @@ void SceneRender::DrawScene()
 			if (!actor->lightsCalculated)
 			{
 				actor->lightsCalculated = true;
-				actor->light = engine->renderer->light.FindLightAt(actor->Location(), actorZone);
+				if (!actor->bUnlit())
+					actor->light = engine->renderer->light.FindLightAt(actor->Location(), actorZone);
+				else
+					actor->light = vec3(1.0f);
 			}
 			if (((uint64_t)1 << actorZone) & zonemask)
 			{
