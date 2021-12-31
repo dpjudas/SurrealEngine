@@ -337,6 +337,18 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
 			}
 		}
+
+		if (PendingTouch())
+		{
+			CallEvent(PendingTouch(), "PostTouch", { ExpressionValue::ObjectValue(this) });
+			if (PendingTouch())
+			{
+				UActor* cur = PendingTouch();
+				UActor* next = cur->PendingTouch();
+				PendingTouch() = next;
+				cur->PendingTouch() = nullptr;
+			}
+		}
 	}
 }
 
