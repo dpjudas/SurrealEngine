@@ -63,9 +63,17 @@ void SceneRender::DrawScene()
 	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
-
 	engine->renderer->decal.DrawDecals(&SceneFrame);
+	DrawActors(&SceneFrame, clip, zonemask);
+	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
 
+	engine->renderer->corona.DrawCoronas(&SceneFrame);
+}
+
+void SceneRender::DrawActors(FSceneNode* frame, const FrustumPlanes& clip, uint64_t zonemask)
+{
+	auto& SceneFrame = engine->renderer->canvas.SceneFrame;
+	auto level = engine->Level;
 	for (UActor* actor : level->Actors)
 	{
 		if (actor && !actor->bHidden() && actor != engine->CameraActor)
@@ -109,10 +117,6 @@ void SceneRender::DrawScene()
 			}
 		}
 	}
-
-	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
-
-	engine->renderer->corona.DrawCoronas(&SceneFrame);
 }
 
 void SceneRender::DrawTimedemoStats()

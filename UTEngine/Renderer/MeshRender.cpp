@@ -90,6 +90,8 @@ void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
 	if (textures.size() < mesh->Textures.size())
 		textures.resize(mesh->Textures.size());
 
+	envmap = nullptr;
+
 	for (int i = 0; i < (int)mesh->Textures.size(); i++)
 	{
 		UTexture* tex = actor->GetMultiskin(i);
@@ -108,7 +110,23 @@ void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
 		if (tex)
 			tex = tex->GetAnimTexture();
 
+		if (tex)
+			envmap = tex;
+
 		textures[i] = tex;
+	}
+
+	if (actor->Texture())
+	{
+		envmap = actor->Texture();
+	}
+	else if (actor->Region().Zone && actor->Region().Zone->EnvironmentMap())
+	{
+		envmap = actor->Region().Zone->EnvironmentMap();
+	}
+	else if (actor->Level()->EnvironmentMap())
+	{
+		envmap = actor->Level()->EnvironmentMap();
 	}
 }
 
@@ -129,7 +147,16 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 	if (actor->bMeshCurvy()) polyFlags |= PF_Flat;
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
-	vec3 color = (polyFlags & PF_Unlit) ? vec3(1.0f) : lightcolor;
+	
+	vec3 color;
+	if (polyFlags & PF_Unlit)
+	{
+		color = vec3(clamp(actor->ScaleGlow() * 0.5f + actor->AmbientGlow() * (1.0f / 256.0f), 0.0f, 1.0f));
+	}
+	else
+	{
+		color = lightcolor;
+	}
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
@@ -139,7 +166,11 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
-		UTexture* tex = textures[material.TextureIndex];
+		uint32_t renderflags = material.PolyFlags | polyFlags;
+		UTexture* tex = (renderflags & PF_Environment) ? envmap : textures[material.TextureIndex];
+
+		if (tex && tex->bMasked())
+			renderflags |= PF_Masked;
 
 		FTextureInfo texinfo;
 		texinfo.Texture = tex;
@@ -165,9 +196,18 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			vertices[i].Light = color;
 		}
 
-		uint32_t renderflags = material.PolyFlags | polyFlags;
-		if (tex && tex->bMasked())
-			renderflags |= PF_Masked;
+		if (renderflags & PF_Environment)
+		{
+			// To do: this needs to be the smoothed normal
+			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
+			mat3 rotmat = mat3(frame->Modelview);
+			for (int i = 0; i < 3; i++)
+			{
+				vec3 v = normalize(vertices[i].Point);
+				vec3 p = rotmat * reflect(v, n);
+				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
+			}
+		}
 
 		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, renderflags);
 	}

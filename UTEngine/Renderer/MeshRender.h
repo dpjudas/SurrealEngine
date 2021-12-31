@@ -25,4 +25,5 @@ private:
 	void SetupTextures(UActor* actor, ULodMesh* mesh);
 
 	std::vector<UTexture*> textures;
+	UTexture* envmap = nullptr;
 };
