@@ -100,6 +100,9 @@ bool CollisionHash::ActorSphereCollision(const dvec3& origin, double sphereRadiu
 
 double CollisionHash::ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
 {
+	if (actor->Brush()) // Ignore brushes for now
+		return tmax;
+
 	float height = actor->CollisionHeight();
 	float radius = actor->CollisionRadius();
 	vec3 offset = vec3(0.0, 0.0, height - radius);
@@ -112,6 +115,9 @@ double CollisionHash::ActorRayIntersect(const dvec3& origin, double tmin, const 
 
 double CollisionHash::ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor)
 {
+	if (actor->Brush()) // Ignore brushes for now
+		return tmax;
+
 	float height = actor->CollisionHeight();
 	float radius = actor->CollisionRadius();
 	vec3 offset = vec3(0.0, 0.0, height - radius);

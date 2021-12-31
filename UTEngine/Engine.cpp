@@ -887,6 +887,13 @@ void Engine::LogMessage(const std::string& message)
 		line.Text = message;
 		Log.push_back(std::move(line));
 	}
+	else
+	{
+		LogMessageLine line;
+		line.Time = LevelInfo->TimeSeconds();
+		line.Text = message;
+		Log.push_back(std::move(line));
+	}
 }
 
 void Engine::LogUnimplemented(const std::string& message)

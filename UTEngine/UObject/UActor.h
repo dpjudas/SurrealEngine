@@ -1438,8 +1438,8 @@ public:
 	int& EncroachDamage() { return Value<int>(PropOffsets_Mover.EncroachDamage); }
 	UMover*& Follower() { return Value<UMover*>(PropOffsets_Mover.Follower); }
 	uint8_t& KeyNum() { return Value<uint8_t>(PropOffsets_Mover.KeyNum); }
-	vec3& KeyPos() { return Value<vec3>(PropOffsets_Mover.KeyPos); }
-	Rotator& KeyRot() { return Value<Rotator>(PropOffsets_Mover.KeyRot); }
+	vec3* KeyPos() { return FixedArray<vec3>(PropOffsets_Mover.KeyPos); }
+	Rotator* KeyRot() { return FixedArray<Rotator>(PropOffsets_Mover.KeyRot); }
 	UMover*& Leader() { return Value<UMover*>(PropOffsets_Mover.Leader); }
 	USound*& MoveAmbientSound() { return Value<USound*>(PropOffsets_Mover.MoveAmbientSound); }
 	float& MoveTime() { return Value<float>(PropOffsets_Mover.MoveTime); }
