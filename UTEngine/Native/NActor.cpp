@@ -112,7 +112,12 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
+	{
+		int slot = Slot ? *Slot : SLOT_Misc;
+		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
+		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
 		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	}
 }
 
 void NActor::Destroy(UObject* Self, bool& ReturnValue)
@@ -342,7 +347,12 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	{
+		int slot = Slot ? *Slot : SLOT_Misc;
+		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
+		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
+		engine->audio->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	}
 }
 
 void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
@@ -350,7 +360,12 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
-		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	{
+		int slot = Slot ? *Slot : SLOT_Misc;
+		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
+		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
+		engine->audio->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	}
 }
 
 void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
