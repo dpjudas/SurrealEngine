@@ -139,6 +139,9 @@ void VulkanTexture::Update(VulkanRenderDevice* renderer, const FTextureInfo& Inf
 		}
 	}
 
+	if (data.miplevels.empty())
+		data = UploadWhite(renderer, Info, PolyFlags);
+
 	if (!image)
 	{
 		ImageBuilder imgbuilder;
@@ -187,6 +190,8 @@ UploadedData VulkanTexture::UploadData(VulkanRenderDevice* renderer, const FText
 			pixelsSize += mipsize;
 		}
 	}
+	if (pixelsSize == 0)
+		return result;
 
 	BufferBuilder builder;
 	builder.setUsage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);

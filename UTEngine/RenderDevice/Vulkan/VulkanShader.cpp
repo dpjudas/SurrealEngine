@@ -36,8 +36,9 @@ std::unique_ptr<VulkanShader> VulkanShaderManager::CreateFragmentShader(const st
 std::string VulkanShaderManager::LoadShaderCode(const std::string& filename, const std::string& defines)
 {
 	const char* shaderversion = R"(
-		#version 450
+		#version 460
 		#extension GL_ARB_separate_shader_objects : enable
+		#extension GL_EXT_ray_query : enable
 	)";
 	return shaderversion + defines + "\r\n#line 1\r\n" + FileResource::readAllText(filename);
 }

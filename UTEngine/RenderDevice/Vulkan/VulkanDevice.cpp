@@ -163,10 +163,14 @@ bool VulkanDevice::supportsDeviceExtension(const char *ext) const
 void VulkanDevice::createAllocator()
 {
 	VmaAllocatorCreateInfo allocinfo = {};
+	allocinfo.vulkanApiVersion = apiVersion;
 	if (supportsDeviceExtension(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME) && supportsDeviceExtension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME))
-		allocinfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+		allocinfo.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+	if (supportsDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME))
+		allocinfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 	allocinfo.physicalDevice = physicalDevice.device;
 	allocinfo.device = device;
+	allocinfo.instance = instance;
 	allocinfo.preferredLargeHeapBlockSize = 64 * 1024 * 1024;
 	if (vmaCreateAllocator(&allocinfo, &allocator) != VK_SUCCESS)
 		throw std::runtime_error("Unable to create allocator");
@@ -192,14 +196,47 @@ void VulkanDevice::createDevice()
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
-	VkDeviceCreateInfo deviceCreateInfo = {};
-	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+	VkPhysicalDeviceFeatures2 deviceFeatures2 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
+	VkPhysicalDeviceBufferDeviceAddressFeatures deviceAddressFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES };
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR deviceAccelFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+	VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR };
+
 	deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-	deviceCreateInfo.pEnabledFeatures = &enabledDeviceFeatures;
 	deviceCreateInfo.enabledExtensionCount = (uint32_t)enabledDeviceExtensions.size();
 	deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensions.data();
 	deviceCreateInfo.enabledLayerCount = 0;
+	deviceFeatures2.features = enabledDeviceFeatures;
+	deviceAddressFeatures.bufferDeviceAddress = true;
+	deviceAccelFeatures.accelerationStructure = true;
+	rayQueryFeatures.rayQuery = true;
+
+	void** next = const_cast<void**>(&deviceCreateInfo.pNext);
+	if (supportsDeviceExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME))
+	{
+		*next = &deviceFeatures2;
+		void** next = &deviceFeatures2.pNext;
+	}
+	else // vulkan 1.0 specified features in a different way
+	{
+		deviceCreateInfo.pEnabledFeatures = &deviceFeatures2.features;
+	}
+	if (supportsDeviceExtension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME))
+	{
+		*next = &deviceAddressFeatures;
+		next = &deviceAddressFeatures.pNext;
+	}
+	if (supportsDeviceExtension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME))
+	{
+		*next = &deviceAccelFeatures;
+		next = &deviceAccelFeatures.pNext;
+	}
+	if (supportsDeviceExtension(VK_KHR_RAY_QUERY_EXTENSION_NAME))
+	{
+		*next = &rayQueryFeatures;
+		next = &rayQueryFeatures.pNext;
+	}
 
 	VkResult result = vkCreateDevice(physicalDevice.device, &deviceCreateInfo, nullptr, &device);
 	if (result != VK_SUCCESS)
@@ -260,16 +297,20 @@ void VulkanDevice::createInstance()
 	extensions = getExtensions();
 	enabledExtensions = getPlatformExtensions();
 
-	std::string debugLayer = "VK_LAYER_LUNARG_standard_validation";
+	std::string debugLayer = "VK_LAYER_KHRONOS_validation";
 	bool wantDebugLayer = vk_debug;
 	bool debugLayerFound = false;
-	for (const VkLayerProperties &layer : availableLayers)
+	if (wantDebugLayer)
 	{
-		if (layer.layerName == debugLayer && wantDebugLayer)
+		for (const VkLayerProperties& layer : availableLayers)
 		{
-			enabledValidationLayers.push_back(debugLayer.c_str());
-			enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-			debugLayerFound = true;
+			if (layer.layerName == debugLayer)
+			{
+				enabledValidationLayers.push_back(layer.layerName);
+				enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+				debugLayerFound = true;
+				break;
+			}
 		}
 	}
 
@@ -285,23 +326,33 @@ void VulkanDevice::createInstance()
 		}
 	}
 
-	VkApplicationInfo appInfo = {};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "UT99";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName = "UT99";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_1;
+	// Try get the highest vulkan version we can get
+	VkResult result = VK_ERROR_INITIALIZATION_FAILED;
+	for (uint32_t apiVersion : { VK_API_VERSION_1_2, VK_API_VERSION_1_1, VK_API_VERSION_1_0 })
+	{
+		VkApplicationInfo appInfo = {};
+		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		appInfo.pApplicationName = "UT99";
+		appInfo.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+		appInfo.pEngineName = "UT99";
+		appInfo.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+		appInfo.apiVersion = apiVersion;
 
-	VkInstanceCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
-	createInfo.enabledExtensionCount = (uint32_t)enabledExtensions.size();
-	createInfo.enabledLayerCount = (uint32_t)enabledValidationLayers.size();
-	createInfo.ppEnabledLayerNames = enabledValidationLayers.data();
-	createInfo.ppEnabledExtensionNames = enabledExtensions.data();
+		VkInstanceCreateInfo createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		createInfo.pApplicationInfo = &appInfo;
+		createInfo.enabledExtensionCount = (uint32_t)enabledExtensions.size();
+		createInfo.enabledLayerCount = (uint32_t)enabledValidationLayers.size();
+		createInfo.ppEnabledLayerNames = enabledValidationLayers.data();
+		createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+		result = vkCreateInstance(&createInfo, nullptr, &instance);
+		if (result >= VK_SUCCESS)
+		{
+			this->apiVersion = apiVersion;
+			break;
+		}
+	}
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("Could not create vulkan instance");
 
@@ -422,15 +473,10 @@ std::vector<VulkanPhysicalDevice> VulkanDevice::getPhysicalDevices(VkInstance in
 		auto &dev = devinfo[i];
 		dev.device = devices[i];
 
-		VkPhysicalDeviceProperties2 props = {};
-		VkPhysicalDeviceRayTracingPropertiesNV rayprops = {};
-		props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		props.pNext = &rayprops;
-		rayprops.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV;
+		VkPhysicalDeviceProperties2 props = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
 		vkGetPhysicalDeviceProperties2(dev.device, &props);
+
 		dev.properties = props.properties;
-		dev.rayTracingProperties = rayprops;
-		dev.rayTracingProperties.pNext = nullptr;
 
 		vkGetPhysicalDeviceMemoryProperties(dev.device, &dev.memoryProperties);
 		vkGetPhysicalDeviceFeatures(dev.device, &dev.features);
@@ -506,15 +552,4 @@ void VulkanDevice::releaseResources()
 	if (instance)
 		vkDestroyInstance(instance, nullptr);
 	instance = VK_NULL_HANDLE;
-}
-
-uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-	for (uint32_t i = 0; i < physicalDevice.memoryProperties.memoryTypeCount; i++)
-	{
-		if ((typeFilter & (1 << i)) && (physicalDevice.memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-			return i;
-	}
-
-	throw std::runtime_error("failed to find suitable memory type!");
 }

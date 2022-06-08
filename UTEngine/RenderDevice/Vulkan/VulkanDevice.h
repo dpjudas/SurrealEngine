@@ -2,8 +2,19 @@
 
 #include <functional>
 
-#ifdef WIN32
+#ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#endif
+
+#ifdef __APPLE__
+#define VK_USE_PLATFORM_MACOS_MVK
+#define VK_USE_PLATFORM_METAL_EXT
+#endif
+
+#ifdef WIN32
+#include <Windows.h>
+#undef min
+#undef max
 #endif
 
 #include "volk/volk.h"
@@ -23,7 +34,6 @@ public:
 	std::vector<VkExtensionProperties> extensions;
 	std::vector<VkQueueFamilyProperties> queueFamilies;
 	VkPhysicalDeviceProperties properties = {};
-	VkPhysicalDeviceRayTracingPropertiesNV rayTracingProperties = {};
 	VkPhysicalDeviceFeatures features = {};
 	VkPhysicalDeviceMemoryProperties memoryProperties = {};
 };
@@ -58,8 +68,6 @@ public:
 		vkSetDebugUtilsObjectNameEXT(device, &info);
 	}
 
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
 #ifdef WIN32
 	HWND window;
 #else
@@ -72,15 +80,21 @@ public:
 	std::vector<const char *> enabledExtensions;
 	std::vector<const char *> optionalExtensions = { VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME };
 	std::vector<const char*> enabledValidationLayers;
+	uint32_t apiVersion = {};
 
 	// Device setup
 	VkPhysicalDeviceFeatures enabledDeviceFeatures = {};
 	std::vector<const char *> enabledDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-	std::vector<const char *> optionalDeviceExtensions = {
+	std::vector<const char*> optionalDeviceExtensions =
+	{
 		VK_EXT_HDR_METADATA_EXTENSION_NAME,
 		VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
 		VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-		VK_NV_RAY_TRACING_EXTENSION_NAME
+		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+		VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+		VK_KHR_RAY_QUERY_EXTENSION_NAME
 	};
 	VulkanPhysicalDevice physicalDevice;
 	bool debugLayerActive = false;
