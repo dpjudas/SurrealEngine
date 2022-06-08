@@ -17,7 +17,6 @@ VulkanTextureManager::VulkanTextureManager(VulkanRenderDevice* renderer) : rende
 
 VulkanTextureManager::~VulkanTextureManager()
 {
-	ClearTextureCache();
 }
 
 VulkanTexture* VulkanTextureManager::GetTexture(FTextureInfo* texture, uint32_t polyFlags)

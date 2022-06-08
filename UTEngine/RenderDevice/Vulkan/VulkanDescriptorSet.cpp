@@ -27,17 +27,19 @@ VulkanDescriptorSet* VulkanDescriptorSetManager::GetTextureSet(uint32_t PolyFlag
 	auto& descriptorSet = TextureDescriptorSets[{ tex, lightmap, detailtex, macrotex, samplermode }];
 	if (!descriptorSet)
 	{
-		if (SceneDescriptorPoolSetsLeft == 0)
+		if (TextureSetPoolSetsLeft == 0)
 		{
 			DescriptorPoolBuilder builder;
 			builder.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 * 4);
 			builder.setMaxSets(1000);
-			SceneDescriptorPool.push_back(builder.create(renderer->Device).release());
-			SceneDescriptorPoolSetsLeft = 1000;
+			TextureSetPool.push_back(builder.create(renderer->Device));
+			TextureSetPool.back()->SetDebugName("TextureSetPool");
+			TextureSetPoolSetsLeft = 1000;
 		}
 
-		descriptorSet = SceneDescriptorPool.back()->allocate(TextureSetLayout.get()).release();
-		SceneDescriptorPoolSetsLeft--;
+		descriptorSet = TextureSetPool.back()->allocate(TextureSetLayout.get());
+		descriptorSet->SetDebugName("MaterialDescriptorSet");
+		TextureSetPoolSetsLeft--;
 
 		WriteDescriptors writes;
 		int i = 0;
@@ -46,25 +48,20 @@ VulkanDescriptorSet* VulkanDescriptorSetManager::GetTextureSet(uint32_t PolyFlag
 			VulkanSampler* sampler = (i == 0) ? renderer->Samplers->samplers[samplermode].get() : renderer->Samplers->samplers[0].get();
 
 			if (texture)
-				writes.addCombinedImageSampler(descriptorSet, i++, texture->imageView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				writes.addCombinedImageSampler(descriptorSet.get(), i++, texture->imageView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			else
-				writes.addCombinedImageSampler(descriptorSet, i++, NullTextureView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				writes.addCombinedImageSampler(descriptorSet.get(), i++, NullTextureView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 		writes.updateSets(renderer->Device);
 	}
-	return descriptorSet;
+	return descriptorSet.get();
 }
 
 void VulkanDescriptorSetManager::ClearTextureDescriptors()
 {
-	for (auto it : TextureDescriptorSets)
-		delete it.second;
 	TextureDescriptorSets.clear();
-
-	for (auto pool : SceneDescriptorPool)
-		delete pool;
-	SceneDescriptorPool.clear();
-	SceneDescriptorPoolSetsLeft = 0;
+	TextureSetPool.clear();
+	TextureSetPoolSetsLeft = 0;
 }
 
 void VulkanDescriptorSetManager::CreateTextureSetLayout()

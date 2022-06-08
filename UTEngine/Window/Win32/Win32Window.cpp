@@ -47,6 +47,7 @@ Win32Window::Win32Window(Engine* engine) : engine(engine)
 Win32Window::~Win32Window()
 {
 	RenderDevice.reset();
+	Device.reset();
 	if (WindowHandle)
 	{
 		DestroyWindow(WindowHandle);

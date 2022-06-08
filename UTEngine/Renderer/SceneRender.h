@@ -27,9 +27,10 @@ public:
 
 	static mat4 CoordsMatrix();
 
+	FSceneNode CreateSceneFrame();
+
 private:
 
-	FSceneNode CreateSceneFrame();
 	FSceneNode CreateSkyFrame(UZoneInfo* skyZone);
 
 	std::vector<int> portalsvisited;

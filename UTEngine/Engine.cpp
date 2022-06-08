@@ -174,6 +174,8 @@ void Engine::Run()
 		RenderDevice* device = window->GetRenderDevice();
 		device->BeginFrame();
 		device->BeginScenePass();
+		engine->renderer->canvas.SceneFrame = renderer->scene.CreateSceneFrame();
+		device->SetSceneNode(&renderer->canvas.SceneFrame);
 
 		int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
 		int sizeY = (int)(window->SizeY / (float)renderer->uiscale);

@@ -27,8 +27,8 @@ private:
 	std::unique_ptr<VulkanImage> NullTexture;
 	std::unique_ptr<VulkanImageView> NullTextureView;
 
-	std::vector<VulkanDescriptorPool*> SceneDescriptorPool;
-	int SceneDescriptorPoolSetsLeft = 0;
+	std::vector<std::unique_ptr<VulkanDescriptorPool>> TextureSetPool;
+	int TextureSetPoolSetsLeft = 0;
 
 	struct TexDescriptorKey
 	{
@@ -55,5 +55,5 @@ private:
 		uint32_t sampler;
 	};
 
-	std::map<TexDescriptorKey, VulkanDescriptorSet*> TextureDescriptorSets;
+	std::map<TexDescriptorKey, std::unique_ptr<VulkanDescriptorSet>> TextureDescriptorSets;
 };
