@@ -307,6 +307,7 @@ set(UTENGINE_UNIX_SOURCES
 set(THIRDPARTY_SOURCES
 	Thirdparty/vk_mem_alloc/vk_mem_alloc.h
 	Thirdparty/vk_mem_alloc/vk_mem_alloc.cpp
+	Thirdparty/vk_mem_alloc/vk_mem_alloc.natvis
 	Thirdparty/dr_wav.h
 	Thirdparty/minimp3_ex.h
 	Thirdparty/minimp3.h
@@ -472,6 +473,7 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.h
 	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.h
 	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ScanContext.h
+	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SpirvIntrinsics.cpp
 	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
 	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/Link.cpp
 	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/CodeGen.cpp
@@ -488,6 +490,9 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/ShaderCompiler/glslang/Include/revision.h
 	Thirdparty/ShaderCompiler/glslang/Include/BaseTypes.h
 	Thirdparty/ShaderCompiler/glslang/Include/intermediate.h
+	Thirdparty/ShaderCompiler/glslang/Include/SpirvIntrinsics.h
+	Thirdparty/ShaderCompiler/glslang/Include/build_info.h
+	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
 	Thirdparty/ShaderCompiler/spirv/Logger.h
 	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.cpp
 	Thirdparty/ShaderCompiler/spirv/SPVRemapper.h
@@ -512,6 +517,7 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/ShaderCompiler/spirv/Logger.cpp
 	Thirdparty/ShaderCompiler/spirv/SpvTools.h
 	Thirdparty/ShaderCompiler/spirv/GLSL.std.450.h
+	Thirdparty/ShaderCompiler/spirv/NonSemanticDebugPrintf.h
 	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.cpp
 	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.h
 	Thirdparty/vulkan/vk_sdk_platform.h
@@ -523,6 +529,7 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/vulkan/vulkan_xcb.h
 	Thirdparty/vulkan/vulkan_macos.h
 	Thirdparty/vulkan/vk_layer_dispatch_table.h
+	Thirdparty/vulkan/vk_enum_string_helper.h
 	Thirdparty/vulkan/vulkan_ggp.h
 	Thirdparty/vulkan/vulkan_core.h
 	Thirdparty/vulkan/vulkan_wayland.h
@@ -534,6 +541,9 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/vulkan/vulkan_mir.h
 	Thirdparty/vulkan/vulkan_xlib_xrandr.h
 	Thirdparty/vulkan/vulkan_xlib.h
+	Thirdparty/vulkan/vulkan_beta.h
+	Thirdparty/vulkan/vulkan_directfb.h
+	Thirdparty/vulkan/vulkan_screen.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES

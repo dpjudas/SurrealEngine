@@ -50,7 +50,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			struct Light
 			{
 				vec3 location;
-				float shadowmap;
+				float unused;
 				float brightness;
 				float hue;
 				float saturation;
@@ -62,7 +62,6 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(binding = 2) uniform sampler2D texMacro;
 			layout(binding = 3) uniform sampler2D texDetail;
 
-			/*
 			layout(set = 1, binding = 0, std140) buffer LightBuffer
 			{
 				Light lights[];
@@ -71,8 +70,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			{
 				int surfaceLights[];
 			};
-			layout (set = 1, binding = 2) uniform sampler2D shadowmap;
-			*/
+			layout(set = 1, binding = 2) uniform accelerationStructureEXT TopLevelAS;
 
 			layout(location = 0) flat in uint flags;
 			layout(location = 1) in vec2 texCoord;
