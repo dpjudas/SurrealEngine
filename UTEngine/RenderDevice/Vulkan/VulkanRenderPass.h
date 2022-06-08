@@ -11,13 +11,13 @@ class VulkanRenderPass;
 class VulkanFramebuffer;
 class VulkanDescriptorSetLayout;
 class VulkanDescriptorPool;
-class Renderer;
+class VulkanRenderDevice;
 
-class SceneRenderPass
+class VulkanRenderPassManager
 {
 public:
-	SceneRenderPass(Renderer* renderer);
-	~SceneRenderPass();
+	VulkanRenderPassManager(VulkanRenderDevice* renderer);
+	~VulkanRenderPassManager();
 
 	void begin(VulkanCommandBuffer *cmdbuffer);
 	void end(VulkanCommandBuffer *cmdbuffer);
@@ -25,21 +25,20 @@ public:
 	VulkanPipeline* getPipeline(uint32_t polyflags);
 	VulkanPipeline* getEndFlashPipeline();
 
+	std::unique_ptr<VulkanPipelineLayout> PipelineLayout;
+
 private:
+	void CreateScenePipelineLayout();
 	void createRenderPass();
 	void createPipeline();
 	void createFramebuffer();
 
-	Renderer* renderer = nullptr;
-
-	std::unique_ptr<VulkanShader> vertexShader;
-	std::unique_ptr<VulkanShader> fragmentShader;
-	std::unique_ptr<VulkanShader> fragmentShaderAlphaTest;
+	VulkanRenderDevice* renderer = nullptr;
 
 	std::unique_ptr<VulkanRenderPass> renderPass;
 	std::unique_ptr<VulkanFramebuffer> sceneFramebuffer;
 	std::unique_ptr<VulkanPipeline> pipeline[32];
 
-	SceneRenderPass(const SceneRenderPass &) = delete;
-	SceneRenderPass &operator=(const SceneRenderPass &) = delete;
+	VulkanRenderPassManager(const VulkanRenderPassManager &) = delete;
+	VulkanRenderPassManager &operator=(const VulkanRenderPassManager &) = delete;
 };

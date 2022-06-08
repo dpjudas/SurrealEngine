@@ -89,38 +89,40 @@ set(UTENGINE_SOURCES
 	UTEngine/Native/NTcpLink.h
 	UTEngine/Native/NUdpLink.cpp
 	UTEngine/Native/NUdpLink.h
-	UTEngine/RenderDevice/RenderDevice.h
-	UTEngine/RenderDevice/Vulkan/ShadowmapRenderPass.h
-	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanDevice.h
-	UTEngine/RenderDevice/Vulkan/VulkanDevice.cpp
-	UTEngine/RenderDevice/Vulkan/Postprocess.cpp
-	UTEngine/RenderDevice/Vulkan/FileResource.h
-	UTEngine/RenderDevice/Vulkan/VulkanTexture.h
-	UTEngine/RenderDevice/Vulkan/VulkanObjects.h
-	UTEngine/RenderDevice/Vulkan/SceneLights.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.cpp
-	UTEngine/RenderDevice/Vulkan/SceneRenderPass.h
-	UTEngine/RenderDevice/Vulkan/SceneBuffers.h
-	UTEngine/RenderDevice/Vulkan/SceneSamplers.h
-	UTEngine/RenderDevice/Vulkan/VulkanBuilders.h
-	UTEngine/RenderDevice/Vulkan/PixelBuffer.h
-	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.h
-	UTEngine/RenderDevice/Vulkan/SceneLights.h
-	UTEngine/RenderDevice/Vulkan/SceneRenderPass.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp
-	UTEngine/RenderDevice/Vulkan/ShadowmapRenderPass.cpp
-	UTEngine/RenderDevice/Vulkan/SceneBuffers.cpp
-	UTEngine/RenderDevice/Vulkan/Renderer.cpp
-	UTEngine/RenderDevice/Vulkan/Postprocess.h
-	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.h
-	UTEngine/RenderDevice/Vulkan/SceneSamplers.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanBuilders.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanTexture.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.h
-	UTEngine/RenderDevice/Vulkan/FileResource.cpp
-	UTEngine/RenderDevice/Vulkan/Renderer.h
 	UTEngine/RenderDevice/RenderDevice.cpp
+	UTEngine/RenderDevice/RenderDevice.h
+	UTEngine/RenderDevice/Vulkan/VulkanDevice.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanDevice.h
+	UTEngine/RenderDevice/Vulkan/VulkanObjects.h
+	UTEngine/RenderDevice/Vulkan/VulkanBuilders.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanBuilders.h
+	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.h
+	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.h
+	UTEngine/RenderDevice/Vulkan/VulkanCommandBuffer.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanCommandBuffer.h
+	UTEngine/RenderDevice/Vulkan/VulkanDescriptorSet.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanDescriptorSet.h
+	UTEngine/RenderDevice/Vulkan/VulkanRenderPass.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanRenderPass.h
+	UTEngine/RenderDevice/Vulkan/VulkanSampler.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanSampler.h
+	UTEngine/RenderDevice/Vulkan/VulkanFrameBuffer.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanFrameBuffer.h
+	UTEngine/RenderDevice/Vulkan/VulkanLight.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanLight.h
+	UTEngine/RenderDevice/Vulkan/VulkanShader.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanShader.h
+	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.h
+	UTEngine/RenderDevice/Vulkan/VulkanTexture.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanTexture.h
+	UTEngine/RenderDevice/Vulkan/PixelBuffer.h
+	UTEngine/RenderDevice/Vulkan/Postprocess.cpp
+	UTEngine/RenderDevice/Vulkan/Postprocess.h
+	UTEngine/RenderDevice/Vulkan/FileResource.cpp
+	UTEngine/RenderDevice/Vulkan/FileResource.h
 	UTEngine/Package/ObjectFlags.h
 	UTEngine/Package/Package.h
 	UTEngine/Package/ObjectStream.h

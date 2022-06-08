@@ -1,9 +1,9 @@
 
 #include "Precomp.h"
-#include "SceneSamplers.h"
+#include "VulkanSampler.h"
 #include "VulkanBuilders.h"
 
-SceneSamplers::SceneSamplers(VulkanDevice *device)
+VulkanSamplerManager::VulkanSamplerManager(VulkanDevice *device)
 {
 	for (int i = 0; i < 4; i++)
 	{

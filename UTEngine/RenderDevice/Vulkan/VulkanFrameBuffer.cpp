@@ -1,32 +1,33 @@
 
 #include "Precomp.h"
-#include "SceneBuffers.h"
+#include "VulkanFrameBuffer.h"
 #include "VulkanBuilders.h"
-#include "Renderer.h"
+#include "VulkanCommandBuffer.h"
+#include "VulkanRenderDevice.h"
 
-SceneBuffers::SceneBuffers(Renderer* renderer, int width, int height, int multisample) : width(width), height(height)
+VulkanFrameBufferManager::VulkanFrameBufferManager(VulkanRenderDevice* renderer, int width, int height, int multisample) : width(width), height(height)
 {
 	sceneSamples = getBestSampleCount(renderer->Device, multisample);
 
 	createImage(colorBuffer, colorBufferView, renderer->Device, width, height, sceneSamples, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	createImage(depthBuffer, depthBufferView, renderer->Device, width, height, sceneSamples, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-	colorBuffer->SetDebugName("SceneBuffers.colorBuffer");
-	colorBufferView->SetDebugName("SceneBuffers.colorBufferView");
-	depthBuffer->SetDebugName("SceneBuffers.depthBuffer");
-	depthBufferView->SetDebugName("SceneBuffers.depthBufferView");
+	colorBuffer->SetDebugName("VulkanFrameBufferManager.colorBuffer");
+	colorBufferView->SetDebugName("VulkanFrameBufferManager.colorBufferView");
+	depthBuffer->SetDebugName("VulkanFrameBufferManager.depthBuffer");
+	depthBufferView->SetDebugName("VulkanFrameBufferManager.depthBufferView");
 
 	PipelineBarrier barrier;
 	barrier.addImage(colorBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT| VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
 	barrier.addImage(depthBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
-	barrier.execute(renderer->GetDrawCommands(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+	barrier.execute(renderer->Commands->GetDrawCommands(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
 }
 
-SceneBuffers::~SceneBuffers()
+VulkanFrameBufferManager::~VulkanFrameBufferManager()
 {
 }
 
-void SceneBuffers::createImage(std::unique_ptr<VulkanImage> &image, std::unique_ptr<VulkanImageView> &view, VulkanDevice *device, int width, int height, VkSampleCountFlagBits samples, VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags aspect)
+void VulkanFrameBufferManager::createImage(std::unique_ptr<VulkanImage> &image, std::unique_ptr<VulkanImageView> &view, VulkanDevice *device, int width, int height, VkSampleCountFlagBits samples, VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags aspect)
 {
 	ImageBuilder imgbuild;
 	imgbuild.setFormat(format);
@@ -40,7 +41,7 @@ void SceneBuffers::createImage(std::unique_ptr<VulkanImage> &image, std::unique_
 	view = viewbuild.create(device);
 }
 
-VkSampleCountFlagBits SceneBuffers::getBestSampleCount(VulkanDevice* device, int multisample)
+VkSampleCountFlagBits VulkanFrameBufferManager::getBestSampleCount(VulkanDevice* device, int multisample)
 {
 	const auto& limits = device->physicalDevice.properties.limits;
 	int requestedSamples = clamp(multisample, 0, 64);

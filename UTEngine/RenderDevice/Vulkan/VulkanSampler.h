@@ -2,10 +2,10 @@
 
 #include "VulkanObjects.h"
 
-class SceneSamplers
+class VulkanSamplerManager
 {
 public:
-	SceneSamplers(VulkanDevice *device);
+	VulkanSamplerManager(VulkanDevice *device);
 
 	std::unique_ptr<VulkanSampler> samplers[4];
 };

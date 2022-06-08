@@ -29,7 +29,6 @@ private:
 	void selectPresentMode();
 	bool createSwapChain(int width, int height, VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE);
 	void createViews();
-	void setHdrMetadata();
 	void getImages();
 	void releaseResources();
 	void releaseViews();

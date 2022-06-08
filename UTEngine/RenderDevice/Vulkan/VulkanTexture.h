@@ -3,7 +3,7 @@
 #include "VulkanObjects.h"
 #include <functional>
 
-class Renderer;
+class VulkanRenderDevice;
 
 struct FColor;
 struct FTextureInfo;
@@ -21,10 +21,10 @@ struct UploadedData
 class VulkanTexture
 {
 public:
-	VulkanTexture(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
+	VulkanTexture(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
 	~VulkanTexture();
 
-	void Update(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
+	void Update(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
 
 	float UMult = 1.0f;
 	float VMult = 1.0f;
@@ -33,6 +33,21 @@ public:
 	std::unique_ptr<VulkanImageView> imageView;
 
 private:
-	UploadedData UploadData(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags, VkFormat imageFormat, std::function<int(UnrealMipmap* mip)> calcMipSize, std::function<void(UnrealMipmap* mip, void* dst)> copyMip = {});
-	UploadedData UploadWhite(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
+	UploadedData UploadData(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags, VkFormat imageFormat, std::function<int(UnrealMipmap* mip)> calcMipSize, std::function<void(UnrealMipmap* mip, void* dst)> copyMip = {});
+	UploadedData UploadWhite(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags);
+};
+
+class VulkanTextureManager
+{
+public:
+	VulkanTextureManager(VulkanRenderDevice* renderer);
+	~VulkanTextureManager();
+
+	VulkanTexture* GetTexture(FTextureInfo* texture, uint32_t polyFlags);
+	void ClearTextureCache();
+
+private:
+	VulkanRenderDevice* renderer = nullptr;
+
+	std::map<uint64_t, std::unique_ptr<VulkanTexture>> TextureCache;
 };

@@ -3,13 +3,50 @@
 #include "VulkanTexture.h"
 #include "VulkanObjects.h"
 #include "VulkanBuilders.h"
+#include "VulkanDescriptorSet.h"
+#include "VulkanRenderDevice.h"
+#include "VulkanCommandBuffer.h"
 #include "PixelBuffer.h"
-#include "Renderer.h"
 #include "VulkanRenderDevice.h"
 #include "UObject/ULevel.h"
 #include "UObject/UTexture.h"
 
-VulkanTexture::VulkanTexture(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
+VulkanTextureManager::VulkanTextureManager(VulkanRenderDevice* renderer) : renderer(renderer)
+{
+}
+
+VulkanTextureManager::~VulkanTextureManager()
+{
+	ClearTextureCache();
+}
+
+VulkanTexture* VulkanTextureManager::GetTexture(FTextureInfo* texture, uint32_t polyFlags)
+{
+	if (!texture)
+		return nullptr;
+
+	std::unique_ptr<VulkanTexture>& tex = TextureCache[texture->CacheID];
+	if (!tex)
+	{
+		tex = std::make_unique<VulkanTexture>(renderer, *texture, polyFlags);
+	}
+	else if (texture->bRealtimeChanged)
+	{
+		texture->bRealtimeChanged = false;
+		tex->Update(renderer, *texture, polyFlags);
+	}
+	return tex.get();
+}
+
+void VulkanTextureManager::ClearTextureCache()
+{
+	renderer->DescriptorSets->ClearTextureDescriptors();
+	TextureCache.clear();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+VulkanTexture::VulkanTexture(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
 {
 	Update(renderer, Info, PolyFlags);
 }
@@ -18,7 +55,7 @@ VulkanTexture::~VulkanTexture()
 {
 }
 
-void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
+void VulkanTexture::Update(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
 {
 	int USize = Info.Texture->Mipmaps.front().Width;
 	int VSize = Info.Texture->Mipmaps.front().Height;
@@ -115,7 +152,7 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 		imageView = viewbuilder.create(renderer->Device);
 	}
 
-	auto cmdbuffer = renderer->GetTransferCommands();
+	auto cmdbuffer = renderer->Commands->GetTransferCommands();
 
 	PipelineBarrier imageTransition0;
 	imageTransition0.addImage(image.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0, (int)data.miplevels.size());
@@ -127,10 +164,10 @@ void VulkanTexture::Update(Renderer* renderer, const FTextureInfo& Info, uint32_
 	imageTransition1.addImage(image.get(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 0, (uint32_t)data.miplevels.size());
 	imageTransition1.execute(cmdbuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-	renderer->FrameDeleteList->buffers.push_back(std::move(data.stagingbuffer));
+	renderer->Commands->FrameDeleteList->buffers.push_back(std::move(data.stagingbuffer));
 }
 
-UploadedData VulkanTexture::UploadData(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags, VkFormat imageFormat, std::function<int(UnrealMipmap* mip)> calcMipSize, std::function<void(UnrealMipmap* mip, void* dst)> copyMip)
+UploadedData VulkanTexture::UploadData(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags, VkFormat imageFormat, std::function<int(UnrealMipmap* mip)> calcMipSize, std::function<void(UnrealMipmap* mip, void* dst)> copyMip)
 {
 	int USize = Info.Texture->Mipmaps.front().Width;
 	int VSize = Info.Texture->Mipmaps.front().Height;
@@ -193,7 +230,7 @@ UploadedData VulkanTexture::UploadData(Renderer* renderer, const FTextureInfo& I
 	return result;
 }
 
-UploadedData VulkanTexture::UploadWhite(Renderer* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
+UploadedData VulkanTexture::UploadWhite(VulkanRenderDevice* renderer, const FTextureInfo& Info, uint32_t PolyFlags)
 {
 	UploadedData result;
 	result.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;

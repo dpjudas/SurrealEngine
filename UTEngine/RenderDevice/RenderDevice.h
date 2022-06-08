@@ -80,10 +80,6 @@ public:
 
 	virtual void Flush(bool AllowPrecache) = 0;
 	virtual void BeginFrame() = 0;
-	virtual void BeginShadowmapUpdate() = 0;
-	virtual void BeginShadowmapPass() = 0;
-	virtual void EndShadowmapPass(int slot) = 0;
-	virtual void EndShadowmapUpdate() = 0;
 	virtual void BeginScenePass() = 0;
 	virtual void EndScenePass() = 0;
 	virtual void EndFrame(bool Blit) = 0;

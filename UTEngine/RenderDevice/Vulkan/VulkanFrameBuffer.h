@@ -4,7 +4,7 @@
 #include "Math/mat.h"
 #include "Math/vec.h"
 
-class Renderer;
+class VulkanRenderDevice;
 
 struct SceneVertex
 {
@@ -22,11 +22,11 @@ struct ScenePushConstants
 	mat4 objectToProjection;
 };
 
-class SceneBuffers
+class VulkanFrameBufferManager
 {
 public:
-	SceneBuffers(Renderer* renderer, int width, int height, int multisample);
-	~SceneBuffers();
+	VulkanFrameBufferManager(VulkanRenderDevice* renderer, int width, int height, int multisample);
+	~VulkanFrameBufferManager();
 
 	VkSampleCountFlagBits sceneSamples = VK_SAMPLE_COUNT_1_BIT;
 
@@ -41,8 +41,8 @@ public:
 	int height = 0;
 
 private:
-	SceneBuffers(const SceneBuffers &) = delete;
-	SceneBuffers &operator=(const SceneBuffers &) = delete;
+	VulkanFrameBufferManager(const VulkanFrameBufferManager &) = delete;
+	VulkanFrameBufferManager &operator=(const VulkanFrameBufferManager &) = delete;
 
 	static void createImage(std::unique_ptr<VulkanImage> &image, std::unique_ptr<VulkanImageView> &view, VulkanDevice *device, int width, int height, VkSampleCountFlagBits samples, VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags aspect);
 	static VkSampleCountFlagBits getBestSampleCount(VulkanDevice* device, int multisample);

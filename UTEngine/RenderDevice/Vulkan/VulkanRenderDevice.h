@@ -1,8 +1,22 @@
 #pragma once
 
 #include "RenderDevice/RenderDevice.h"
+#include "VulkanObjects.h"
 
-class Renderer;
+class DisplayWindow;
+class VulkanDevice;
+class VulkanCommandBufferManager;
+class VulkanFrameBufferManager;
+class VulkanLightManager;
+class VulkanRenderPassManager;
+class VulkanSamplerManager;
+class VulkanDescriptorSetManager;
+class VulkanTextureManager;
+class VulkanShaderManager;
+class VulkanPostprocess;
+class Postprocess;
+struct SceneVertex;
+struct FTextureInfo;
 
 class VulkanRenderDevice : public RenderDevice
 {
@@ -12,10 +26,6 @@ public:
 
 	void Flush(bool AllowPrecache) override;
 	void BeginFrame() override;
-	void BeginShadowmapUpdate() override;
-	void BeginShadowmapPass() override;
-	void EndShadowmapPass(int slot) override;
-	void EndShadowmapUpdate() override;
 	void BeginScenePass() override;
 	void EndScenePass() override;
 	void EndFrame(bool Blit) override;
@@ -30,19 +40,36 @@ public:
 	void SetSceneNode(FSceneNode* Frame) override;
 	void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) override;
 
-	std::unique_ptr<Renderer> renderer;
+	std::unique_ptr<Postprocess> PostprocessModel;
+
+	VulkanDevice* Device = nullptr;
+
+	std::unique_ptr<VulkanCommandBufferManager> Commands;
+	std::unique_ptr<VulkanShaderManager> Shaders;
+	std::unique_ptr<VulkanPostprocess> Postprocessing;
+	std::unique_ptr<VulkanFrameBufferManager> FrameBuffers;
+	std::unique_ptr<VulkanSamplerManager> Samplers;
+	std::unique_ptr<VulkanTextureManager> Textures;
+	std::unique_ptr<VulkanLightManager> Lights;
+	std::unique_ptr<VulkanDescriptorSetManager> DescriptorSets;
+	std::unique_ptr<VulkanRenderPassManager> RenderPasses;
 
 private:
 	void CheckFPSLimit();
+	void CopyScreenToBuffer(int w, int h, void* data, float gamma);
+	void CreateSceneVertexBuffer();
 
 	bool UsePrecache = false;
 	FSceneNode* CurrentFrame = nullptr;
-
-	bool IsShadowPass = false;
 
 	// Configuration.
 	bool UseVSync = true;
 	int FPSLimit = 400;
 	uint64_t fpsLimitTime = 0;
 	int Multisample = 0;
+
+	std::unique_ptr<VulkanBuffer> SceneVertexBuffer;
+	SceneVertex* SceneVertices = nullptr;
+	size_t SceneVertexPos = 0;
+	static const int MaxSceneVertices = 1'000'000;
 };

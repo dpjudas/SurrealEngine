@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.h"
+#include "VulkanRenderDevice.h"
 #include "VulkanObjects.h"
 #include "VulkanBuilders.h"
 #include "Postprocess.h"
@@ -10,7 +10,7 @@ class VulkanPPShader;
 class VulkanPPTexture;
 class VulkanPPRenderPassSetup;
 class PipelineBarrier;
-class Renderer;
+class VulkanRenderDevice;
 
 class VulkanPPRenderPassKey
 {
@@ -44,7 +44,7 @@ private:
 class VulkanPostprocess
 {
 public:
-	VulkanPostprocess(Renderer *renderer);
+	VulkanPostprocess(VulkanRenderDevice* renderer);
 	~VulkanPostprocess();
 
 	void beginFrame();
@@ -61,7 +61,7 @@ public:
 private:
 	VulkanSampler *getSampler(PPFilterMode filter, PPWrapMode wrap);
 
-	Renderer* renderer;
+	VulkanRenderDevice* renderer;
 	std::array<std::unique_ptr<VulkanSampler>, 16> mSamplers;
 	std::map<VulkanPPRenderPassKey, std::unique_ptr<VulkanPPRenderPassSetup>> mRenderPassSetup;
 	std::unique_ptr<VulkanDescriptorPool> mDescriptorPool;
@@ -77,7 +77,7 @@ private:
 class VulkanPPShader : public PPShaderBackend
 {
 public:
-	VulkanPPShader(Renderer* renderer, const PPShader *shader);
+	VulkanPPShader(VulkanRenderDevice* renderer, const PPShader *shader);
 
 	std::unique_ptr<VulkanShader> vertexShader;
 	std::unique_ptr<VulkanShader> fragmentShader;
@@ -89,7 +89,7 @@ private:
 class VulkanPPTexture : public PPTextureBackend
 {
 public:
-	VulkanPPTexture(Renderer* renderer, PPTexture *texture);
+	VulkanPPTexture(VulkanRenderDevice* renderer, PPTexture *texture);
 
 	std::unique_ptr<VulkanImage> image;
 	std::unique_ptr<VulkanImageView> view;
@@ -101,9 +101,9 @@ public:
 class VulkanPPRenderPassSetup
 {
 public:
-	VulkanPPRenderPassSetup(Renderer* renderer, const VulkanPPRenderPassKey &key);
+	VulkanPPRenderPassSetup(VulkanRenderDevice* renderer, const VulkanPPRenderPassKey &key);
 
-	Renderer* renderer;
+	VulkanRenderDevice* renderer;
 	std::unique_ptr<VulkanDescriptorSetLayout> descriptorLayout;
 	std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
 	std::unique_ptr<VulkanRenderPass> renderPass;
@@ -120,7 +120,7 @@ private:
 class VulkanPPRenderState : public PPRenderState
 {
 public:
-	VulkanPPRenderState(Renderer* renderer);
+	VulkanPPRenderState(VulkanRenderDevice* renderer);
 
 	void draw() override;
 
@@ -142,5 +142,5 @@ private:
 	};
 	TextureImage getTexture(const PPTextureType &type, PPTexture *tex);
 
-	Renderer* renderer;
+	VulkanRenderDevice* renderer;
 };
