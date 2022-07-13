@@ -67,5 +67,5 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	vertices[3].Point = location - xaxis + yaxis;
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = { 1.0f };
-	device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 4, renderflags);
+	device->DrawGouraudPolygon(texinfo.Texture ? &texinfo : nullptr, vertices, 4, renderflags);
 }

@@ -22,6 +22,7 @@ public:
 		std::vector<std::unique_ptr<VulkanImageView>> imageViews;
 		std::vector<std::unique_ptr<VulkanBuffer>> buffers;
 		std::vector<std::unique_ptr<VulkanDescriptorSet>> descriptors;
+		std::vector<std::unique_ptr<VulkanAccelerationStructure>> accelStructs;
 	};
 	std::unique_ptr<DeleteList> FrameDeleteList;
 

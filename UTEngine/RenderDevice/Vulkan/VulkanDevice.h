@@ -116,6 +116,8 @@ public:
 
 	static void initVolk();
 
+	bool supportsDeviceExtension(const char* ext) const;
+
 private:
 	int vk_device;
 	bool vk_debug;
@@ -128,8 +130,6 @@ private:
 	void createDevice();
 	void createAllocator();
 	void releaseResources();
-
-	bool supportsDeviceExtension(const char *ext) const;
 
 	static bool checkRequiredFeatures(const VkPhysicalDeviceFeatures &f);
 

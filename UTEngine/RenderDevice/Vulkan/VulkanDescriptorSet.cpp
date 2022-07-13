@@ -6,11 +6,14 @@
 #include "VulkanBuilders.h"
 #include "VulkanTexture.h"
 #include "VulkanCommandBuffer.h"
+#include "VulkanRaytrace.h"
+#include "VulkanLight.h"
 #include "UObject/ULevel.h"
 
 VulkanDescriptorSetManager::VulkanDescriptorSetManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
 	CreateTextureSetLayout();
+	CreateLightSet();
 	CreateNullTexture();
 }
 
@@ -64,10 +67,36 @@ void VulkanDescriptorSetManager::ClearTextureDescriptors()
 	TextureSetPoolSetsLeft = 0;
 }
 
+void VulkanDescriptorSetManager::UpdateLightSet()
+{
+	WriteDescriptors writes;
+	writes.addAccelerationStructure(LightSet.get(), 0, renderer->Raytrace->GetAccelStruct());
+	writes.addBuffer(LightSet.get(), 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, renderer->Lights->Lights.get());
+	writes.addBuffer(LightSet.get(), 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, renderer->Lights->SurfaceLights.get());
+	writes.updateSets(renderer->Device);
+}
+
+void VulkanDescriptorSetManager::CreateLightSet()
+{
+	DescriptorSetLayoutBuilder builder;
+	builder.addBinding(0, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	builder.addBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	builder.addBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
+	LightSetLayout = builder.create(renderer->Device);
+
+	DescriptorPoolBuilder poolbuilder;
+	poolbuilder.addPoolSize(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1);
+	poolbuilder.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2);
+	poolbuilder.setMaxSets(1);
+	LightSetPool = poolbuilder.create(renderer->Device);
+	LightSetPool->SetDebugName("LightSetPool");
+
+	LightSet = LightSetPool->allocate(LightSetLayout.get());
+}
+
 void VulkanDescriptorSetManager::CreateTextureSetLayout()
 {
 	DescriptorSetLayoutBuilder builder;
-	//builder.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 	builder.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	builder.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);
 	builder.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT);

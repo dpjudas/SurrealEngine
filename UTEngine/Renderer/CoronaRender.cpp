@@ -18,7 +18,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 	{
 		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceRayAnyHit(light->Location(), frame->ViewLocation, nullptr, false, true, true))
 		{
-			vec4 pos = frame->Modelview * vec4(light->Location(), 1.0f);
+			vec4 pos = frame->WorldToView * frame->ObjectToWorld * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)
 			{
 				vec4 clip = frame->Projection * pos;

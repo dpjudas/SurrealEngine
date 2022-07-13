@@ -19,7 +19,8 @@ struct SceneVertex
 
 struct ScenePushConstants
 {
-	mat4 objectToProjection;
+	mat4 objectToWorld;
+	mat4 worldToProjection;
 };
 
 class VulkanFrameBufferManager

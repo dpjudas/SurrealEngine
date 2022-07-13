@@ -24,7 +24,8 @@ struct FSceneNode
 	DisplayWindow* Viewport = nullptr;
 	float FovAngle;
 
-	mat4 Modelview;
+	mat4 ObjectToWorld;
+	mat4 WorldToView;
 	mat4 Projection;
 	vec3 ViewLocation;
 };
@@ -85,8 +86,8 @@ public:
 	virtual void EndFrame(bool Blit) = 0;
 	virtual void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) = 0;
 	virtual void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) = 0;
-	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
-	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
+	virtual void DrawComplexSurface(FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
+	virtual void DrawGouraudPolygon(FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
 	virtual void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
 	virtual void ClearZ(FSceneNode* Frame) = 0;
 	virtual void ReadPixels(FColor* Pixels) = 0;

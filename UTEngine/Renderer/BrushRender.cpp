@@ -19,26 +19,25 @@ void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
 	FSceneNode brushframe = *frame;
 
 	mat4 rotate = mat4::rotate(radians(rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
-	mat4 ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
-	brushframe.Modelview = brushframe.Modelview * ObjectToWorld;
+	brushframe.ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
 
 	auto device = engine->window->GetRenderDevice();
 	device->SetSceneNode(&brushframe);
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(&brushframe, brush, node, 0, color);
+		DrawNodeSurfaceGouraud(brush, node, 0, color);
 	}
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(&brushframe, brush, node, 1, color);
+		DrawNodeSurfaceGouraud(brush, node, 1, color);
 	}
 
 	device->SetSceneNode(frame);
 }
 
-void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
+void BrushRender::DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int pass, const vec3& color)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -93,5 +92,5 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 		vertices.push_back(gv);
 	}
 
-	engine->window->GetRenderDevice()->DrawGouraudPolygon(frame, texture.Texture ? &texture : nullptr, vertices.data(), (int)vertices.size(), surface.PolyFlags);
+	engine->window->GetRenderDevice()->DrawGouraudPolygon(texture.Texture ? &texture : nullptr, vertices.data(), (int)vertices.size(), surface.PolyFlags);
 }

@@ -118,6 +118,8 @@ set(UTENGINE_SOURCES
 	UTEngine/RenderDevice/Vulkan/VulkanPostprocess.h
 	UTEngine/RenderDevice/Vulkan/VulkanTexture.cpp
 	UTEngine/RenderDevice/Vulkan/VulkanTexture.h
+	UTEngine/RenderDevice/Vulkan/VulkanRaytrace.cpp
+	UTEngine/RenderDevice/Vulkan/VulkanRaytrace.h
 	UTEngine/RenderDevice/Vulkan/PixelBuffer.h
 	UTEngine/RenderDevice/Vulkan/Postprocess.cpp
 	UTEngine/RenderDevice/Vulkan/Postprocess.h

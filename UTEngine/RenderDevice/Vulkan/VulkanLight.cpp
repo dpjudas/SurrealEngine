@@ -3,6 +3,8 @@
 #include "VulkanLight.h"
 #include "VulkanBuilders.h"
 #include "VulkanRenderDevice.h"
+#include "VulkanCommandBuffer.h"
+#include "UObject/UActor.h"
 
 VulkanLightManager::VulkanLightManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -23,4 +25,56 @@ VulkanLightManager::VulkanLightManager(VulkanRenderDevice* renderer) : renderer(
 
 VulkanLightManager::~VulkanLightManager()
 {
+}
+
+void VulkanLightManager::UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates)
+{
+	if (LightUpdates.empty())
+		return;
+
+	int minIndex = LightUpdates.front().first;
+	int maxIndex = LightUpdates.front().first;
+	for (auto& update : LightUpdates)
+	{
+		minIndex = std::min(update.first, minIndex);
+		maxIndex = std::max(update.first, maxIndex);
+	}
+	int count = maxIndex - minIndex + 1;
+
+	size_t offset = minIndex * sizeof(SceneLight);
+	size_t size = count * sizeof(SceneLight);
+	SceneLight* dest = (SceneLight*)StagingLights->Map(offset, size);
+
+	for (auto& update : LightUpdates)
+	{
+		int index = update.first;
+		UActor* slight = update.second;
+		SceneLight& dlight = dest[index - minIndex];
+
+		dlight.Location = slight->Location();
+		dlight.Unused = 0.0f;
+		dlight.LightBrightness = (float)slight->LightBrightness();
+		dlight.LightHue = (float)slight->LightHue();
+		dlight.LightSaturation = (float)slight->LightSaturation();
+		dlight.LightRadius = (float)slight->LightRadius();
+	}
+
+	StagingLights->Unmap();
+
+	auto cmdbuffer = renderer->Commands->GetTransferCommands();
+	cmdbuffer->copyBuffer(StagingLights.get(), Lights.get(), offset, size);
+}
+
+void VulkanLightManager::UpdateSurfaceLights(const std::vector<int32_t>& surfaceLights)
+{
+	if (surfaceLights.empty())
+		return;
+
+	size_t size = surfaceLights.size() * sizeof(int32_t);
+	int32_t* dest = (int32_t*)StagingSurfaceLights->Map(0, size);
+	memcpy(dest, surfaceLights.data(), size);
+	StagingSurfaceLights->Unmap();
+
+	auto cmdbuffer = renderer->Commands->GetTransferCommands();
+	cmdbuffer->copyBuffer(StagingSurfaceLights.get(), SurfaceLights.get(), 0, size);
 }

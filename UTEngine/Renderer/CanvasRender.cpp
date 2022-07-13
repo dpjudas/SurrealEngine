@@ -51,7 +51,8 @@ void CanvasRender::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y,
 	frame.FY = (float)Y * uiscale;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.Modelview = SceneRender::CoordsMatrix() * rotate;
+	frame.ObjectToWorld = SceneRender::CoordsMatrix() * rotate;
+	frame.WorldToView = mat4::identity();
 	frame.ViewLocation = vec3(0.0f);
 	frame.FovAngle = 95.0f;
 	float Aspect = frame.FY / frame.FX;

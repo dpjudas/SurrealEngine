@@ -87,6 +87,7 @@ VulkanPipeline* VulkanRenderPassManager::getEndFlashPipeline()
 void VulkanRenderPassManager::CreateScenePipelineLayout()
 {
 	PipelineLayoutBuilder builder;
+	builder.addSetLayout(renderer->DescriptorSets->LightSetLayout.get());
 	builder.addSetLayout(renderer->DescriptorSets->TextureSetLayout.get());
 	builder.addPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants));
 	PipelineLayout = builder.create(renderer->Device);

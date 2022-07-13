@@ -10,7 +10,7 @@
 #include "Window/Window.h"
 #include "UTRenderer.h"
 
-void DecalRender::DrawDecals(FSceneNode* frame)
+void DecalRender::DrawDecals()
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -43,7 +43,7 @@ void DecalRender::DrawDecals(FSceneNode* frame)
 			if (texture->bMasked())
 				renderflags |= PF_Masked;*/
 
-			device->DrawGouraudPolygon(frame, &texinfo, points, 4, PF_Modulated);
+			device->DrawGouraudPolygon(&texinfo, points, 4, PF_Modulated);
 		}
 	}
 }

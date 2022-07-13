@@ -13,6 +13,7 @@ class VulkanSamplerManager;
 class VulkanDescriptorSetManager;
 class VulkanTextureManager;
 class VulkanShaderManager;
+class VulkanRaytraceManager;
 class VulkanPostprocess;
 class Postprocess;
 struct SceneVertex;
@@ -31,8 +32,8 @@ public:
 	void EndFrame(bool Blit) override;
 	void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) override;
 	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) override;
-	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
-	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
+	void DrawComplexSurface(FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
+	void DrawGouraudPolygon(FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
 	void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
 	void ClearZ(FSceneNode* Frame) override;
 	void ReadPixels(FColor* Pixels) override;
@@ -51,6 +52,7 @@ public:
 	std::unique_ptr<VulkanSamplerManager> Samplers;
 	std::unique_ptr<VulkanTextureManager> Textures;
 	std::unique_ptr<VulkanLightManager> Lights;
+	std::unique_ptr<VulkanRaytraceManager> Raytrace;
 	std::unique_ptr<VulkanDescriptorSetManager> DescriptorSets;
 	std::unique_ptr<VulkanRenderPassManager> RenderPasses;
 

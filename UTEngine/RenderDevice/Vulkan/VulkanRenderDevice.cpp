@@ -6,6 +6,7 @@
 #include "VulkanTexture.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanLight.h"
+#include "VulkanRaytrace.h"
 #include "VulkanRenderPass.h"
 #include "VulkanSampler.h"
 #include "VulkanDescriptorSet.h"
@@ -31,6 +32,7 @@ VulkanRenderDevice::VulkanRenderDevice(DisplayWindow* viewport)
 	Samplers = std::make_unique<VulkanSamplerManager>(Device);
 	Textures = std::make_unique<VulkanTextureManager>(this);
 	Lights = std::make_unique<VulkanLightManager>(this);
+	Raytrace = std::make_unique<VulkanRaytraceManager>(this);
 	DescriptorSets = std::make_unique<VulkanDescriptorSetManager>(this);
 	PostprocessModel = std::make_unique<Postprocess>();
 	Postprocessing = std::make_unique<VulkanPostprocess>(this);
@@ -69,6 +71,8 @@ void VulkanRenderDevice::BeginFrame()
 		RenderPasses = std::make_unique<VulkanRenderPassManager>(this);
 	}
 
+	DescriptorSets->UpdateLightSet();
+
 	auto cmdbuffer = Commands->GetDrawCommands();
 
 	Postprocessing->beginFrame();
@@ -77,54 +81,12 @@ void VulkanRenderDevice::BeginFrame()
 
 void VulkanRenderDevice::UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates)
 {
-	if (LightUpdates.empty())
-		return;
-
-	int minIndex = LightUpdates.front().first;
-	int maxIndex = LightUpdates.front().first;
-	for (auto& update : LightUpdates)
-	{
-		minIndex = std::min(update.first, minIndex);
-		maxIndex = std::max(update.first, maxIndex);
-	}
-	int count = maxIndex - minIndex + 1;
-
-	size_t offset = minIndex * sizeof(SceneLight);
-	size_t size = count * sizeof(SceneLight);
-	SceneLight* dest = (SceneLight*)Lights->StagingLights->Map(offset, size);
-
-	for (auto& update : LightUpdates)
-	{
-		int index = update.first;
-		UActor* slight = update.second;
-		SceneLight& dlight = dest[index - minIndex];
-
-		dlight.Location = slight->Location();
-		dlight.Unused = 0.0f;
-		dlight.LightBrightness = (float)slight->LightBrightness();
-		dlight.LightHue = (float)slight->LightHue();
-		dlight.LightSaturation = (float)slight->LightSaturation();
-		dlight.LightRadius = (float)slight->LightRadius();
-	}
-
-	Lights->StagingLights->Unmap();
-
-	auto cmdbuffer = Commands->GetTransferCommands();
-	cmdbuffer->copyBuffer(Lights->StagingLights.get(), Lights->Lights.get(), offset, size);
+	Lights->UpdateLights(LightUpdates);
 }
 
 void VulkanRenderDevice::UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights)
 {
-	if (SurfaceLights.empty())
-		return;
-
-	size_t size = SurfaceLights.size() * sizeof(int32_t);
-	int32_t* dest = (int32_t*)Lights->StagingSurfaceLights->Map(0, size);
-	memcpy(dest, SurfaceLights.data(), size);
-	Lights->StagingSurfaceLights->Unmap();
-
-	auto cmdbuffer = Commands->GetTransferCommands();
-	cmdbuffer->copyBuffer(Lights->StagingSurfaceLights.get(), Lights->SurfaceLights.get(), 0, size);
+	Lights->UpdateSurfaceLights(SurfaceLights);
 }
 
 void VulkanRenderDevice::BeginScenePass()
@@ -191,7 +153,7 @@ void VulkanRenderDevice::CheckFPSLimit()
 	}
 }
 
-void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
+void VulkanRenderDevice::DrawComplexSurface(FSurfaceInfo& Surface, FSurfaceFacet& Facet)
 {
 	if (SceneVertexPos + Facet.Points.size() > MaxSceneVertices)
 	{
@@ -244,8 +206,8 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	}
 
 	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->getPipeline(Surface.PolyFlags));
-
-	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetTextureSet(Surface.PolyFlags, tex, lightmap, macrotex, detailtex));
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetLightSet());
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 1, DescriptorSets->GetTextureSet(Surface.PolyFlags, tex, lightmap, macrotex, detailtex));
 
 	SceneVertex* vertexdata = &SceneVertices[SceneVertexPos];
 
@@ -281,19 +243,20 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	cmdbuffer->draw(count, 1, start, 0);
 }
 
-void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawGouraudPolygon(FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (SceneVertexPos + NumPts > MaxSceneVertices)
 	{
 		throw std::runtime_error("Scene vertex buffer is too small!");
 	}
 
+	VulkanTexture* tex = Textures->GetTexture(Info, PolyFlags);
+
 	auto cmdbuffer = Commands->GetDrawCommands();
 
 	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->getPipeline(PolyFlags));
-
-	VulkanTexture* tex = Textures->GetTexture(Info, PolyFlags);
-	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetTextureSet(PolyFlags, tex));
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetLightSet());
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 1, DescriptorSets->GetTextureSet(PolyFlags, tex));
 
 	float UMult = tex ? tex->UMult : 0.0f;
 	float VMult = tex ? tex->VMult : 0.0f;
@@ -355,7 +318,8 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 	VulkanTexture* tex = Textures->GetTexture(&Info, PolyFlags);
 
 	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->getPipeline(PolyFlags));
-	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetTextureSet(PolyFlags, tex, nullptr, nullptr, nullptr, true));
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetLightSet());
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 1, DescriptorSets->GetTextureSet(PolyFlags, tex, nullptr, nullptr, nullptr, true));
 
 	float UMult = tex ? tex->UMult : 0.0f;
 	float VMult = tex ? tex->VMult : 0.0f;
@@ -434,11 +398,13 @@ void VulkanRenderDevice::EndFlash(float FlashScale, vec4 FlashFog)
 	auto cmdbuffer = Commands->GetDrawCommands();
 
 	ScenePushConstants pushconstants;
-	pushconstants.objectToProjection = mat4::identity();
+	pushconstants.objectToWorld = mat4::identity();
+	pushconstants.worldToProjection = mat4::identity();
 	cmdbuffer->pushConstants(RenderPasses->PipelineLayout.get(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
 
 	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->getEndFlashPipeline());
-	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetTextureSet(0, nullptr));
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 0, DescriptorSets->GetLightSet());
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PipelineLayout.get(), 1, DescriptorSets->GetTextureSet(0, nullptr));
 
 	SceneVertex* v = &SceneVertices[SceneVertexPos];
 
@@ -472,7 +438,8 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	commands->setViewport(0, 1, &viewportdesc);
 
 	ScenePushConstants pushconstants;
-	pushconstants.objectToProjection = Frame->Projection * Frame->Modelview;
+	pushconstants.objectToWorld = Frame->ObjectToWorld;
+	pushconstants.worldToProjection = Frame->Projection * Frame->WorldToView;
 	commands->pushConstants(RenderPasses->PipelineLayout.get(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
 }
 

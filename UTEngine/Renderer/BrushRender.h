@@ -14,5 +14,5 @@ public:
 	void DrawBrush(FSceneNode* frame, UActor* actor);
 
 private:
-	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color = { 0.0f });
+	void DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int pass, const vec3& color = { 0.0f });
 };

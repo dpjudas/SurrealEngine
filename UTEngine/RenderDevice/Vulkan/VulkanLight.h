@@ -5,6 +5,7 @@
 #include "Math/vec.h"
 
 class VulkanRenderDevice;
+class UActor;
 
 struct SceneLight
 {
@@ -22,12 +23,15 @@ public:
 	VulkanLightManager(VulkanRenderDevice* renderer);
 	~VulkanLightManager();
 
+	void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates);
+	void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights);
+
 	static const int MaxLights = 682;
 
 	std::unique_ptr<VulkanBuffer> Lights;
-	std::unique_ptr<VulkanBuffer> StagingLights;
-
 	std::unique_ptr<VulkanBuffer> SurfaceLights;
+
+	std::unique_ptr<VulkanBuffer> StagingLights;
 	std::unique_ptr<VulkanBuffer> StagingSurfaceLights;
 
 private:

@@ -38,7 +38,7 @@ void SceneRender::DrawScene()
 		FSceneNode frame = CreateSkyFrame(skyZone);
 		device->SetSceneNode(&frame);
 
-		FrustumPlanes clip(frame.Projection * frame.Modelview);
+		FrustumPlanes clip(frame.Projection * frame.WorldToView * frame.ObjectToWorld);
 
 		int zone = FindZoneAt(frame.ViewLocation);
 		uint64_t zonemask = FindRenderZoneMask(&frame, level->Model->Nodes.front(), clip, zone);
@@ -50,7 +50,7 @@ void SceneRender::DrawScene()
 	}
 
 	auto& SceneFrame = engine->renderer->canvas.SceneFrame;
-	FrustumPlanes clip(SceneFrame.Projection * SceneFrame.Modelview);
+	FrustumPlanes clip(SceneFrame.Projection * SceneFrame.WorldToView * SceneFrame.ObjectToWorld);
 
 	int zone = FindZoneAt(SceneFrame.ViewLocation);
 	uint64_t zonemask = FindRenderZoneMask(&SceneFrame, level->Model->Nodes.front(), clip, zone);
@@ -63,7 +63,7 @@ void SceneRender::DrawScene()
 	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
-	engine->renderer->decal.DrawDecals(&SceneFrame);
+	engine->renderer->decal.DrawDecals();
 	DrawActors(&SceneFrame, clip, zonemask);
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
 
@@ -140,6 +140,8 @@ void SceneRender::DrawTimedemoStats()
 			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
 
+		lines.push_back("x = " + std::to_string(engine->CameraLocation.x) + ", y = " + std::to_string(engine->CameraLocation.y) + ", z = " + std::to_string(engine->CameraLocation.z));
+
 		UFont* font = engine->renderer->canvas.smallfont;
 		float curY = 180;
 		for (const std::string& text : lines)
@@ -203,7 +205,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 			DrawNodeSurface(frame, *polynode, pass);
 #else
 		if ((((uint64_t)1 << frontzone) & zonemask) || (((uint64_t)1 << backzone) & zonemask))
-			DrawNodeSurface(frame, engine->Level->Model, *polynode, pass);
+			DrawNodeSurface(engine->Level->Model, *polynode, pass);
 #endif
 
 		if (polynode->Plane < 0) break;
@@ -216,7 +218,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 	}
 }
 
-void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass)
+void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -356,7 +358,7 @@ void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNod
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.Texture ? &fogmap : nullptr;
 
-	engine->window->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
+	engine->window->GetRenderDevice()->DrawComplexSurface(surfaceinfo, facet);
 }
 
 int SceneRender::FindZoneAt(vec3 location)
@@ -575,7 +577,8 @@ FSceneNode SceneRender::CreateSceneFrame()
 	frame.FY = (float)engine->window->SizeY;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.Modelview = CoordsMatrix() * rotate * translate;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = CoordsMatrix() * rotate * translate;
 	frame.ViewLocation = engine->CameraLocation;
 	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;
@@ -601,7 +604,8 @@ FSceneNode SceneRender::CreateSkyFrame(UZoneInfo* skyZone)
 	frame.FY = (float)engine->window->SizeY;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.Modelview = CoordsMatrix() * rotate * skyrotate * translate;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = CoordsMatrix() * rotate * skyrotate * translate;
 	frame.ViewLocation = skyZone->Location();
 	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;

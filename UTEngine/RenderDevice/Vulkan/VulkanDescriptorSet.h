@@ -13,13 +13,18 @@ public:
 	VulkanDescriptorSetManager(VulkanRenderDevice* renderer);
 	~VulkanDescriptorSetManager();
 
+	void UpdateLightSet();
+	VulkanDescriptorSet* GetLightSet() { return LightSet.get(); }
+
 	VulkanDescriptorSet* GetTextureSet(uint32_t PolyFlags, VulkanTexture* tex, VulkanTexture* lightmap = nullptr, VulkanTexture* macrotex = nullptr, VulkanTexture* detailtex = nullptr, bool clamp = false);
 	void ClearTextureDescriptors();
 
 	std::unique_ptr<VulkanDescriptorSetLayout> TextureSetLayout;
+	std::unique_ptr<VulkanDescriptorSetLayout> LightSetLayout;
 
 private:
 	void CreateTextureSetLayout();
+	void CreateLightSet();
 	void CreateNullTexture();
 
 	VulkanRenderDevice* renderer = nullptr;
@@ -56,4 +61,7 @@ private:
 	};
 
 	std::map<TexDescriptorKey, std::unique_ptr<VulkanDescriptorSet>> TextureDescriptorSets;
+
+	std::unique_ptr<VulkanDescriptorPool> LightSetPool;
+	std::unique_ptr<VulkanDescriptorSet> LightSet;
 };

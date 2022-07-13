@@ -11,7 +11,8 @@ std::string FileResource::readAllText(const std::string& filename)
 		return R"(
 			layout(push_constant) uniform ScenePushConstants
 			{
-				mat4 objectToProjection;
+				mat4 objectToWorld;
+				mat4 worldToProjection;
 			};
 
 			layout(location = 0) in uint aFlags;
@@ -28,13 +29,17 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(location = 3) out vec2 texCoord3;
 			layout(location = 4) out vec2 texCoord4;
 			layout(location = 5) out vec4 color;
+			layout(location = 6) out vec3 worldPos;
 
 			void main()
 			{
+				worldPos = (objectToWorld * vec4(aPosition, 1.0)).xyz;
+
 				if ((aFlags & 16) == 0)
-					gl_Position = objectToProjection * vec4(aPosition, 1.0);
+					gl_Position = worldToProjection * objectToWorld * vec4(aPosition, 1.0);
 				else
 					gl_Position = vec4(aPosition, 1.0);
+
 				flags = aFlags;
 				texCoord = aTexCoord;
 				texCoord2 = aTexCoord2;
@@ -57,20 +62,20 @@ std::string FileResource::readAllText(const std::string& filename)
 				float radius;
 			};
 
-			layout(binding = 0) uniform sampler2D tex;
-			layout(binding = 1) uniform sampler2D texLightmap;
-			layout(binding = 2) uniform sampler2D texMacro;
-			layout(binding = 3) uniform sampler2D texDetail;
-
-			layout(set = 1, binding = 0, std140) buffer LightBuffer
+			layout(set = 0, binding = 0) uniform accelerationStructureEXT TopLevelAS;
+			layout(set = 0, binding = 1, std140) buffer LightBuffer
 			{
 				Light lights[];
 			};
-			layout(set = 1, binding = 1, std140) buffer SurfaceLights
+			layout(set = 0, binding = 2, std140) buffer SurfaceLights
 			{
 				int surfaceLights[];
 			};
-			layout(set = 1, binding = 2) uniform accelerationStructureEXT TopLevelAS;
+
+			layout(set = 1, binding = 0) uniform sampler2D tex;
+			layout(set = 1, binding = 1) uniform sampler2D texLightmap;
+			layout(set = 1, binding = 2) uniform sampler2D texMacro;
+			layout(set = 1, binding = 3) uniform sampler2D texDetail;
 
 			layout(location = 0) flat in uint flags;
 			layout(location = 1) in vec2 texCoord;
@@ -78,12 +83,42 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(location = 3) in vec2 texCoord3;
 			layout(location = 4) in vec2 texCoord4;
 			layout(location = 5) in vec4 color;
+			layout(location = 6) in vec3 worldPos;
 
 			layout(location = 0) out vec4 outColor;
 
 			vec3 linear(vec3 c)
 			{
 				return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(c, vec3(0.04045)));
+			}
+
+			float shadowAttenuation(vec3 fragpos, vec3 lightpos)
+			{
+				vec3 origin = fragpos.xyz;
+				vec3 direction = normalize(lightpos - fragpos.xyz);
+				float lightDistance = distance(fragpos.xyz, lightpos);
+
+				rayQueryEXT rayQuery;
+				rayQueryInitializeEXT(rayQuery, TopLevelAS, gl_RayFlagsTerminateOnFirstHitEXT, 0xFF, origin, 0.01f, direction, lightDistance);
+
+				while(rayQueryProceedEXT(rayQuery))
+				{
+				}
+
+				if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT)
+				{
+					return 0.0;
+				}
+
+				return 1.0;
+			}
+
+			float lightContribution(vec3 lightPos, float radius)
+			{
+				float att = max(1.0f - distance(worldPos, lightPos) / radius, 0.0f);
+				if (att > 0.0f)
+					att *= shadowAttenuation(worldPos, lightPos);
+				return att;
 			}
 
 			void main()
@@ -98,7 +133,10 @@ std::string FileResource::readAllText(const std::string& filename)
 
 				if ((flags & 1) != 0) // Lightmap
 				{
-					outColor *= texture(texLightmap, texCoord2);
+					vec3 matColor = outColor.rgb;
+					outColor *= texture(texLightmap, texCoord2) * 0.25;
+
+					outColor.rgb += matColor * lightContribution(vec3(629,-657,-161), 800);
 				}
 
 				if ((flags & 4) != 0) // Detail texture

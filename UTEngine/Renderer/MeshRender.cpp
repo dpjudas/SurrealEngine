@@ -200,7 +200,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		{
 			// To do: this needs to be the smoothed normal
 			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
-			mat3 rotmat = mat3(frame->Modelview);
+			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
@@ -209,7 +209,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			}
 		}
 
-		device->DrawGouraudPolygon(frame, texinfo.Texture ? &texinfo : nullptr, vertices, 3, renderflags);
+		device->DrawGouraudPolygon(texinfo.Texture ? &texinfo : nullptr, vertices, 3, renderflags);
 	}
 }
 
