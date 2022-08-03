@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "Win32Window.h"
 #include "RenderDevice/RenderDevice.h"
+#include "RenderDevice/Vulkan/VulkanSurface.h"
+#include "RenderDevice/Vulkan/VulkanCompatibleDevice.h"
 #include "Engine.h"
 
 #ifndef HID_USAGE_PAGE_GENERIC
@@ -82,7 +84,9 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	SizeX = width;
 	SizeY = height;
 
-	Device = std::make_unique<VulkanDevice>(WindowHandle);
+	auto instance = std::make_shared<VulkanInstance>(false);
+	auto surface = std::make_shared<VulkanSurface>(instance, WindowHandle);
+	Device = std::make_unique<VulkanDevice>(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, 0));
 
 	// Create rendering device.
 	if (!RenderDevice)

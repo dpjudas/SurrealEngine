@@ -63,7 +63,7 @@ void SceneRender::DrawScene()
 	device->SetSceneNode(&engine->renderer->canvas.SceneFrame);
 
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 0);
-	engine->renderer->decal.DrawDecals();
+	engine->renderer->decal.DrawDecals(&SceneFrame);
 	DrawActors(&SceneFrame, clip, zonemask);
 	DrawNode(&SceneFrame, level->Model->Nodes[0], clip, zonemask, 1);
 
@@ -205,7 +205,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 			DrawNodeSurface(frame, *polynode, pass);
 #else
 		if ((((uint64_t)1 << frontzone) & zonemask) || (((uint64_t)1 << backzone) & zonemask))
-			DrawNodeSurface(engine->Level->Model, *polynode, pass);
+			DrawNodeSurface(frame, engine->Level->Model, *polynode, pass);
 #endif
 
 		if (polynode->Plane < 0) break;
@@ -218,7 +218,7 @@ void SceneRender::DrawNode(FSceneNode* frame, const BspNode& node, const Frustum
 	}
 }
 
-void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
+void SceneRender::DrawNodeSurface(FSceneNode* frame, UModel* model, const BspNode& node, int pass)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -287,6 +287,13 @@ void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
 		texture.Texture = tex;
+		texture.Format = texture.Texture->ActualFormat;
+		texture.Mips = texture.Texture->Mipmaps.data();
+		texture.NumMips = (int)texture.Texture->Mipmaps.size();
+		texture.USize = texture.Texture->USize();
+		texture.VSize = texture.Texture->VSize();
+		if (texture.Texture->Palette())
+			texture.Palette = (FColor*)texture.Texture->Palette()->Colors.data();
 
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
@@ -306,6 +313,13 @@ void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 		detailtex.Pan.x = -(float)surface.PanU;
 		detailtex.Pan.y = -(float)surface.PanV;
 		detailtex.Texture = tex;
+		detailtex.Format = detailtex.Texture->ActualFormat;
+		detailtex.Mips = detailtex.Texture->Mipmaps.data();
+		detailtex.NumMips = (int)detailtex.Texture->Mipmaps.size();
+		detailtex.USize = detailtex.Texture->USize();
+		detailtex.VSize = detailtex.Texture->VSize();
+		if (detailtex.Texture->Palette())
+			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
 		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += engine->renderer->AutoUV;
 		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += engine->renderer->AutoUV;
@@ -321,7 +335,14 @@ void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 		macrotex.VScale = tex->DrawScale();
 		macrotex.Pan.x = -(float)surface.PanU;
 		macrotex.Pan.y = -(float)surface.PanV;
+		macrotex.Format = macrotex.Texture->ActualFormat;
 		macrotex.Texture = tex;
+		macrotex.Mips = macrotex.Texture->Mipmaps.data();
+		macrotex.NumMips = (int)macrotex.Texture->Mipmaps.size();
+		macrotex.USize = macrotex.Texture->USize();
+		macrotex.VSize = macrotex.Texture->VSize();
+		if (macrotex.Texture->Palette())
+			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
 		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += engine->renderer->AutoUV;
 		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += engine->renderer->AutoUV;
@@ -334,10 +355,12 @@ void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 	facet.MapCoords.XAxis = UVec;
 	facet.MapCoords.YAxis = VVec;
 
+	std::vector<vec3> points;
 	for (int j = 0; j < node.NumVertices; j++)
 	{
-		facet.Points.push_back(model->Points[v[j].Vertex]);
+		points.push_back(model->Points[v[j].Vertex]);
 	}
+	facet.Polys.push_back(std::move(points));
 
 	FTextureInfo lightmap;
 	FTextureInfo fogmap;
@@ -358,7 +381,7 @@ void SceneRender::DrawNodeSurface(UModel* model, const BspNode& node, int pass)
 	surfaceinfo.LightMap = lightmap.Texture ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.Texture ? &fogmap : nullptr;
 
-	engine->window->GetRenderDevice()->DrawComplexSurface(surfaceinfo, facet);
+	engine->window->GetRenderDevice()->DrawComplexSurface(frame, surfaceinfo, facet);
 }
 
 int SceneRender::FindZoneAt(vec3 location)

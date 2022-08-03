@@ -1,7 +1,9 @@
 #pragma once
 
+struct FSceneNode;
+
 class DecalRender
 {
 public:
-	void DrawDecals();
+	void DrawDecals(FSceneNode* frame);
 };

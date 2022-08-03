@@ -172,9 +172,11 @@ void Engine::Run()
 			tex->Update(levelElapsed);
 
 		RenderDevice* device = window->GetRenderDevice();
-		device->BeginFrame();
-		device->BeginScenePass();
+		device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
+
 		engine->renderer->canvas.SceneFrame = renderer->scene.CreateSceneFrame();
+		engine->renderer->canvas.SceneFrame.ObjectToWorld = mat4::identity();
+		engine->renderer->canvas.SceneFrame.WorldToView = mat4::identity();
 		device->SetSceneNode(&renderer->canvas.SceneFrame);
 
 		int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
@@ -198,15 +200,17 @@ void Engine::Run()
 		if (console->bNoDrawWorld() == false)
 		{
 			renderer->scene.DrawScene();
+			engine->renderer->canvas.SceneFrame = renderer->scene.CreateSceneFrame();
+			engine->renderer->canvas.SceneFrame.ObjectToWorld = mat4::identity();
+			engine->renderer->canvas.SceneFrame.WorldToView = mat4::identity();
+			device->SetSceneNode(&renderer->canvas.SceneFrame);
 			CallEvent(viewport->Actor(), "RenderOverlays", { ExpressionValue::ObjectValue(canvas) });
 		}
 		CallEvent(viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
 		renderer->scene.DrawTimedemoStats();
-		device->EndFlash(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-		device->EndScenePass();
-		device->EndFrame(true);
+		device->Unlock(true);
 	}
 }
 

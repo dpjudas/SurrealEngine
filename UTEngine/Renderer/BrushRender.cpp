@@ -26,18 +26,18 @@ void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(brush, node, 0, color);
+		DrawNodeSurfaceGouraud(frame, brush, node, 0, color);
 	}
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(brush, node, 1, color);
+		DrawNodeSurfaceGouraud(frame, brush, node, 1, color);
 	}
 
 	device->SetSceneNode(frame);
 }
 
-void BrushRender::DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int pass, const vec3& color)
+void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -55,6 +55,9 @@ void BrushRender::DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int
 	const vec3& VVec = model->Vectors[surface.vTextureV];
 	const vec3& Base = model->Points[surface.pBase];
 
+	if (!surface.Material)
+		return;
+
 	FTextureInfo texture;
 	if (surface.Material)
 	{
@@ -67,6 +70,13 @@ void BrushRender::DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int
 		texture.Pan.x = -(float)surface.PanU;
 		texture.Pan.y = -(float)surface.PanV;
 		texture.Texture = tex;
+		texture.Format = texture.Texture->ActualFormat;
+		texture.Mips = tex->Mipmaps.data();
+		texture.NumMips = (int)tex->Mipmaps.size();
+		texture.USize = tex->USize();
+		texture.VSize = tex->VSize();
+		if (tex->Palette())
+			texture.Palette = (FColor*)tex->Palette()->Colors.data();
 
 		if (tex->TextureModified)
 			tex->TextureModified = false;
@@ -92,5 +102,5 @@ void BrushRender::DrawNodeSurfaceGouraud(UModel* model, const BspNode& node, int
 		vertices.push_back(gv);
 	}
 
-	engine->window->GetRenderDevice()->DrawGouraudPolygon(texture.Texture ? &texture : nullptr, vertices.data(), (int)vertices.size(), surface.PolyFlags);
+	engine->window->GetRenderDevice()->DrawGouraudPolygon(frame, texture, vertices.data(), (int)vertices.size(), surface.PolyFlags);
 }

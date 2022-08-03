@@ -31,6 +31,13 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	texinfo.bRealtimeChanged = texture->TextureModified;
 	if (texture->TextureModified)
 		texture->TextureModified = false;
+	texinfo.Format = texinfo.Texture->ActualFormat;
+	texinfo.Mips = texinfo.Texture->Mipmaps.data();
+	texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+	texinfo.USize = texinfo.Texture->USize();
+	texinfo.VSize = texinfo.Texture->VSize();
+	if (texinfo.Texture->Palette())
+		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
 
 	float texwidth = (float)texture->Mipmaps.front().Width;
 	float texheight = (float)texture->Mipmaps.front().Height;
@@ -58,14 +65,18 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	vertices[0].Point = location - xaxis - yaxis;
 	vertices[0].UV = { 0.0f, 0.0f };
 	vertices[0].Light = { 1.0f };
+	vertices[0].Fog = { 0.0f };
 	vertices[1].Point = location + xaxis - yaxis;
 	vertices[1].UV = { texwidth, 0.0f };
 	vertices[1].Light = { 1.0f };
+	vertices[1].Fog = { 0.0f };
 	vertices[2].Point = location + xaxis + yaxis;
 	vertices[2].UV = { texwidth, texheight };
 	vertices[2].Light = { 1.0f };
+	vertices[2].Fog = { 0.0f };
 	vertices[3].Point = location - xaxis + yaxis;
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = { 1.0f };
-	device->DrawGouraudPolygon(texinfo.Texture ? &texinfo : nullptr, vertices, 4, renderflags);
+	vertices[3].Fog = { 0.0f };
+	device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
 }

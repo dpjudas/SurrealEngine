@@ -3,6 +3,8 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 
+#include "UObject/UTexture.h"
+
 class DisplayWindow;
 class UTexture;
 class UActor;
@@ -35,12 +37,13 @@ struct GouraudVertex
 	vec3 Point;
 	vec3 Light;
 	vec2 UV;
+	vec4 Fog;
 };
 
 struct FSurfaceFacet
 {
 	FCoords MapCoords;
-	std::vector<vec3> Points;
+	std::vector<std::vector<vec3>> Polys;
 };
 
 struct FColor
@@ -51,6 +54,8 @@ struct FColor
 	uint8_t R, G, B, A;
 };
 
+enum class TextureFormat : uint32_t;
+
 struct FTextureInfo
 {
 	uint64_t CacheID = 0;
@@ -60,6 +65,14 @@ struct FTextureInfo
 	float UScale = 1.0f;
 	float VScale = 1.0f;
 	vec2 Pan = { 0.0f };
+
+	// to do: give these correct values
+	TextureFormat Format = {};
+	int USize = 1;
+	int VSize = 1;
+	int NumMips = 0;
+	UnrealMipmap* Mips = nullptr;
+	FColor* Palette = nullptr;
 };
 
 struct FSurfaceInfo
@@ -72,6 +85,12 @@ struct FSurfaceInfo
 	FTextureInfo* FogMap = nullptr;
 };
 
+class OutputDevice
+{
+public:
+	void Log(const std::string& text) { }
+};
+
 class RenderDevice
 {
 public:
@@ -80,20 +99,21 @@ public:
 	virtual ~RenderDevice() = default;
 
 	virtual void Flush(bool AllowPrecache) = 0;
-	virtual void BeginFrame() = 0;
-	virtual void BeginScenePass() = 0;
-	virtual void EndScenePass() = 0;
-	virtual void EndFrame(bool Blit) = 0;
-	virtual void UpdateLights(const std::vector<std::pair<int, UActor*>>& LightUpdates) = 0;
-	virtual void UpdateSurfaceLights(const std::vector<int32_t>& SurfaceLights) = 0;
-	virtual void DrawComplexSurface(FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
-	virtual void DrawGouraudPolygon(FTextureInfo* Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
+	virtual bool Exec(std::string Cmd, OutputDevice& Ar) { return false; }
+	virtual void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear) = 0;
+	virtual void Unlock(bool Blit) = 0;
+	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
+	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
 	virtual void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
 	virtual void ClearZ(FSceneNode* Frame) = 0;
 	virtual void ReadPixels(FColor* Pixels) = 0;
-	virtual void EndFlash(float FlashScale, vec4 FlashFog) = 0;
+	virtual void EndFlash() = 0;
 	virtual void SetSceneNode(FSceneNode* Frame) = 0;
 	virtual void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) = 0;
+	virtual bool SupportsTextureFormat(TextureFormat Format) = 0;
+	virtual void UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL) = 0;
+
+	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 
 	DisplayWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "VulkanSwapChain.h"
 #include "VulkanObjects.h"
+#include "VulkanSurface.h"
 
 VulkanSwapChain::VulkanSwapChain(VulkanDevice *device, bool vsync) : vsync(vsync), device(device)
 {
@@ -14,6 +15,9 @@ VulkanSwapChain::~VulkanSwapChain()
 
 uint32_t VulkanSwapChain::acquireImage(int width, int height, VulkanSemaphore *semaphore, VulkanFence *fence)
 {
+	if (width <= 0 || height <= 0)
+		return 0xffffffff;
+
 	if (lastSwapWidth != width || lastSwapHeight != height || !swapChain)
 	{
 		recreate(width, height);
@@ -68,7 +72,7 @@ void VulkanSwapChain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semapho
 	presentInfo.pSwapchains = &swapChain;
 	presentInfo.pImageIndices = &imageIndex;
 	presentInfo.pResults = nullptr;
-	VkResult result = vkQueuePresentKHR(device->presentQueue, &presentInfo);
+	VkResult result = vkQueuePresentKHR(device->PresentQueue, &presentInfo);
 	if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
 		lastSwapWidth = 0;
@@ -97,6 +101,8 @@ void VulkanSwapChain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semapho
 
 void VulkanSwapChain::recreate(int width, int height)
 {
+	newSwapChain = true;
+
 	releaseViews();
 	swapChainImages.clear();
 
@@ -136,7 +142,7 @@ bool VulkanSwapChain::createSwapChain(int width, int height, VkSwapchainKHR oldS
 
 	VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
 	swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	swapChainCreateInfo.surface = device->surface;
+	swapChainCreateInfo.surface = device->Surface->Surface;
 	swapChainCreateInfo.minImageCount = imageCount;
 	swapChainCreateInfo.imageFormat = swapChainFormat.format;
 	swapChainCreateInfo.imageColorSpace = swapChainFormat.colorSpace;
@@ -144,8 +150,8 @@ bool VulkanSwapChain::createSwapChain(int width, int height, VkSwapchainKHR oldS
 	swapChainCreateInfo.imageArrayLayers = 1;
 	swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	uint32_t queueFamilyIndices[] = { (uint32_t)device->graphicsFamily, (uint32_t)device->presentFamily };
-	if (device->graphicsFamily != device->presentFamily)
+	uint32_t queueFamilyIndices[] = { (uint32_t)device->GraphicsFamily, (uint32_t)device->PresentFamily };
+	if (device->GraphicsFamily != device->PresentFamily)
 	{
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		swapChainCreateInfo.queueFamilyIndexCount = 2;
@@ -179,7 +185,7 @@ void VulkanSwapChain::createViews()
 	swapChainImageViews.reserve(swapChainImages.size());
 	for (size_t i = 0; i < swapChainImages.size(); i++)
 	{
-		device->setDebugObjectName("SwapChainImage", (uint64_t)swapChainImages[i], VK_OBJECT_TYPE_IMAGE);
+		device->SetObjectName("SwapChainImage", (uint64_t)swapChainImages[i], VK_OBJECT_TYPE_IMAGE);
 
 		VkImageViewCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -197,7 +203,7 @@ void VulkanSwapChain::createViews()
 		if (result != VK_SUCCESS)
 			throw std::runtime_error("Could not create image view for swapchain image");
 
-		device->setDebugObjectName("SwapChainImageView", (uint64_t)view, VK_OBJECT_TYPE_IMAGE_VIEW);
+		device->SetObjectName("SwapChainImageView", (uint64_t)view, VK_OBJECT_TYPE_IMAGE_VIEW);
 
 		swapChainImageViews.push_back(view);
 	}
@@ -285,7 +291,7 @@ void VulkanSwapChain::releaseResources()
 VkSurfaceCapabilitiesKHR VulkanSwapChain::getSurfaceCapabilities()
 {
 	VkSurfaceCapabilitiesKHR surfaceCapabilities;
-	VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->physicalDevice.device, device->surface, &surfaceCapabilities);
+	VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->PhysicalDevice.Device, device->Surface->Surface, &surfaceCapabilities);
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("vkGetPhysicalDeviceSurfaceCapabilitiesKHR failed");
 	return surfaceCapabilities;
@@ -294,14 +300,14 @@ VkSurfaceCapabilitiesKHR VulkanSwapChain::getSurfaceCapabilities()
 std::vector<VkSurfaceFormatKHR> VulkanSwapChain::getSurfaceFormats()
 {
 	uint32_t surfaceFormatCount = 0;
-	VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(device->physicalDevice.device, device->surface, &surfaceFormatCount, nullptr);
+	VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(device->PhysicalDevice.Device, device->Surface->Surface, &surfaceFormatCount, nullptr);
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("vkGetPhysicalDeviceSurfaceFormatsKHR failed");
 	else if (surfaceFormatCount == 0)
 		return {};
 
 	std::vector<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatCount);
-	result = vkGetPhysicalDeviceSurfaceFormatsKHR(device->physicalDevice.device, device->surface, &surfaceFormatCount, surfaceFormats.data());
+	result = vkGetPhysicalDeviceSurfaceFormatsKHR(device->PhysicalDevice.Device, device->Surface->Surface, &surfaceFormatCount, surfaceFormats.data());
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("vkGetPhysicalDeviceSurfaceFormatsKHR failed");
 	return surfaceFormats;
@@ -310,14 +316,14 @@ std::vector<VkSurfaceFormatKHR> VulkanSwapChain::getSurfaceFormats()
 std::vector<VkPresentModeKHR> VulkanSwapChain::getPresentModes()
 {
 	uint32_t presentModeCount = 0;
-	VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(device->physicalDevice.device, device->surface, &presentModeCount, nullptr);
+	VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(device->PhysicalDevice.Device, device->Surface->Surface, &presentModeCount, nullptr);
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("vkGetPhysicalDeviceSurfacePresentModesKHR failed");
 	else if (presentModeCount == 0)
 		return {};
 
 	std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device->physicalDevice.device, device->surface, &presentModeCount, presentModes.data());
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device->PhysicalDevice.Device, device->Surface->Surface, &presentModeCount, presentModes.data());
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("vkGetPhysicalDeviceSurfacePresentModesKHR failed");
 	return presentModes;

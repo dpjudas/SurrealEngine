@@ -2,9 +2,6 @@
 
 #include "VulkanDevice.h"
 
-#include <memory>
-#include <stdexcept>
-
 class VulkanCommandPool;
 class VulkanDescriptorPool;
 
@@ -14,7 +11,7 @@ public:
 	VulkanSemaphore(VulkanDevice *device);
 	~VulkanSemaphore();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)semaphore, VK_OBJECT_TYPE_SEMAPHORE); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)semaphore, VK_OBJECT_TYPE_SEMAPHORE); }
 
 	VulkanDevice *device = nullptr;
 	VkSemaphore semaphore = VK_NULL_HANDLE;
@@ -30,7 +27,7 @@ public:
 	VulkanFence(VulkanDevice *device);
 	~VulkanFence();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)fence, VK_OBJECT_TYPE_FENCE); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)fence, VK_OBJECT_TYPE_FENCE); }
 
 	VulkanDevice *device = nullptr;
 	VkFence fence = VK_NULL_HANDLE;
@@ -46,7 +43,19 @@ public:
 	VulkanBuffer(VulkanDevice *device, VkBuffer buffer, VmaAllocation allocation, size_t size);
 	~VulkanBuffer();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_BUFFER); }
+	VkDeviceAddress GetDeviceAddress()
+	{
+		VkBufferDeviceAddressInfo info = { VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
+		info.buffer = buffer;
+		return vkGetBufferDeviceAddress(device->device, &info);
+	}
+
+#ifdef _DEBUG
+	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_BUFFER); }
+	std::string debugName;
+#else
+	void SetDebugName(const char* name) { device->SetObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_BUFFER); }
+#endif
 
 	VulkanDevice *device = nullptr;
 
@@ -68,7 +77,7 @@ public:
 	VulkanFramebuffer(VulkanDevice *device, VkFramebuffer framebuffer);
 	~VulkanFramebuffer();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)framebuffer, VK_OBJECT_TYPE_FRAMEBUFFER); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)framebuffer, VK_OBJECT_TYPE_FRAMEBUFFER); }
 
 	VulkanDevice *device;
 	VkFramebuffer framebuffer;
@@ -81,15 +90,16 @@ private:
 class VulkanImage
 {
 public:
-	VulkanImage(VulkanDevice *device, VkImage image, VmaAllocation allocation, int width, int height, int mipLevels);
+	VulkanImage(VulkanDevice *device, VkImage image, VmaAllocation allocation, int width, int height, int mipLevels, int layerCount);
 	~VulkanImage();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)image, VK_OBJECT_TYPE_IMAGE); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)image, VK_OBJECT_TYPE_IMAGE); }
 
 	VkImage image = VK_NULL_HANDLE;
 	int width = 0;
 	int height = 0;
 	int mipLevels = 1;
+	int layerCount = 1;
 
 	void *Map(size_t offset, size_t size);
 	void Unmap();
@@ -108,7 +118,7 @@ public:
 	VulkanImageView(VulkanDevice *device, VkImageView view);
 	~VulkanImageView();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)view, VK_OBJECT_TYPE_IMAGE_VIEW); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)view, VK_OBJECT_TYPE_IMAGE_VIEW); }
 
 	VkImageView view = VK_NULL_HANDLE;
 
@@ -125,7 +135,7 @@ public:
 	VulkanSampler(VulkanDevice *device, VkSampler sampler);
 	~VulkanSampler();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)sampler, VK_OBJECT_TYPE_SAMPLER); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)sampler, VK_OBJECT_TYPE_SAMPLER); }
 
 	VkSampler sampler = VK_NULL_HANDLE;
 
@@ -142,7 +152,7 @@ public:
 	VulkanShader(VulkanDevice *device, VkShaderModule module);
 	~VulkanShader();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)module, VK_OBJECT_TYPE_SHADER_MODULE); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)module, VK_OBJECT_TYPE_SHADER_MODULE); }
 
 	VkShaderModule module = VK_NULL_HANDLE;
 
@@ -159,7 +169,7 @@ public:
 	VulkanDescriptorSetLayout(VulkanDevice *device, VkDescriptorSetLayout layout);
 	~VulkanDescriptorSetLayout();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)layout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)layout, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT); }
 
 	VulkanDevice *device;
 	VkDescriptorSetLayout layout;
@@ -175,7 +185,12 @@ public:
 	VulkanDescriptorSet(VulkanDevice *device, VulkanDescriptorPool *pool, VkDescriptorSet set);
 	~VulkanDescriptorSet();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)set, VK_OBJECT_TYPE_DESCRIPTOR_SET); }
+#ifdef _DEBUG
+	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)set, VK_OBJECT_TYPE_DESCRIPTOR_SET); }
+	std::string debugName;
+#else
+	void SetDebugName(const char* name) { device->SetObjectName(name, (uint64_t)set, VK_OBJECT_TYPE_DESCRIPTOR_SET); }
+#endif
 
 	VulkanDevice *device;
 	VulkanDescriptorPool *pool;
@@ -192,14 +207,26 @@ public:
 	VulkanDescriptorPool(VulkanDevice *device, VkDescriptorPool pool);
 	~VulkanDescriptorPool();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_DESCRIPTOR_POOL); }
+#ifdef _DEBUG
+	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_DESCRIPTOR_POOL); }
+	std::string debugName;
+#else
+	void SetDebugName(const char* name) { device->SetObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_DESCRIPTOR_POOL); }
+#endif
 
+	std::unique_ptr<VulkanDescriptorSet> tryAllocate(VulkanDescriptorSetLayout *layout);
+	std::unique_ptr<VulkanDescriptorSet> tryAllocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount);
 	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout *layout);
+	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount);
 
 	VulkanDevice *device;
 	VkDescriptorPool pool;
 
 private:
+	enum class AllocType { Try, Always };
+	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout* layout, AllocType allocType);
+	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount, AllocType allocType);
+
 	VulkanDescriptorPool(const VulkanDescriptorPool &) = delete;
 	VulkanDescriptorPool &operator=(const VulkanDescriptorPool &) = delete;
 };
@@ -210,7 +237,7 @@ public:
 	VulkanQueryPool(VulkanDevice *device, VkQueryPool pool);
 	~VulkanQueryPool();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_QUERY_POOL); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_QUERY_POOL); }
 
 	bool getResults(uint32_t firstQuery, uint32_t queryCount, size_t dataSize, void *data, VkDeviceSize stride, VkQueryResultFlags flags);
 
@@ -228,7 +255,14 @@ public:
 	VulkanAccelerationStructure(VulkanDevice* device, VkAccelerationStructureKHR accelstruct);
 	~VulkanAccelerationStructure();
 
-	void SetDebugName(const char* name) { device->setDebugObjectName(name, (uint64_t)accelstruct, VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR); }
+	VkDeviceAddress GetDeviceAddress()
+	{
+		VkAccelerationStructureDeviceAddressInfoKHR addressInfo = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR };
+		addressInfo.accelerationStructure = accelstruct;
+		return vkGetAccelerationStructureDeviceAddressKHR(device->device, &addressInfo);
+	}
+
+	void SetDebugName(const char* name) { device->SetObjectName(name, (uint64_t)accelstruct, VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR); }
 
 	VulkanDevice* device;
 	VkAccelerationStructureKHR accelstruct;
@@ -241,14 +275,13 @@ private:
 class VulkanPipeline
 {
 public:
-	VulkanPipeline(VulkanDevice *device, VkPipeline pipeline, std::vector<uint8_t> shaderGroupHandles = {});
+	VulkanPipeline(VulkanDevice *device, VkPipeline pipeline);
 	~VulkanPipeline();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)pipeline, VK_OBJECT_TYPE_PIPELINE); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)pipeline, VK_OBJECT_TYPE_PIPELINE); }
 
 	VulkanDevice *device;
 	VkPipeline pipeline;
-	std::vector<uint8_t> shaderGroupHandles;
 
 private:
 	VulkanPipeline(const VulkanPipeline &) = delete;
@@ -261,7 +294,7 @@ public:
 	VulkanPipelineLayout(VulkanDevice *device, VkPipelineLayout layout);
 	~VulkanPipelineLayout();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT); }
 
 	VulkanDevice *device;
 	VkPipelineLayout layout;
@@ -277,7 +310,7 @@ public:
 	VulkanRenderPass(VulkanDevice *device, VkRenderPass renderPass);
 	~VulkanRenderPass();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)renderPass, VK_OBJECT_TYPE_RENDER_PASS); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)renderPass, VK_OBJECT_TYPE_RENDER_PASS); }
 
 	VulkanDevice *device;
 	VkRenderPass renderPass;
@@ -393,7 +426,7 @@ public:
 	VulkanCommandPool(VulkanDevice *device, int queueFamilyIndex);
 	~VulkanCommandPool();
 
-	void SetDebugName(const char *name) { device->setDebugObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_COMMAND_POOL); }
+	void SetDebugName(const char *name) { device->SetObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_COMMAND_POOL); }
 
 	std::unique_ptr<VulkanCommandBuffer> createBuffer();
 
@@ -415,8 +448,7 @@ inline VulkanSemaphore::VulkanSemaphore(VulkanDevice *device) : device(device)
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 	VkResult result = vkCreateSemaphore(device->device, &semaphoreInfo, nullptr, &semaphore);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Failed to create semaphore!");
+	CheckVulkanError(result, "Could not create semaphore");
 }
 
 inline VulkanSemaphore::~VulkanSemaphore()
@@ -431,8 +463,7 @@ inline VulkanFence::VulkanFence(VulkanDevice *device) : device(device)
 	VkFenceCreateInfo fenceInfo = {};
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	VkResult result = vkCreateFence(device->device, &fenceInfo, nullptr, &fence);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Failed to create fence!");
+	CheckVulkanError(result, "Could not create fence!");
 }
 
 inline VulkanFence::~VulkanFence()
@@ -473,8 +504,7 @@ inline VulkanCommandPool::VulkanCommandPool(VulkanDevice *device, int queueFamil
 	poolInfo.flags = 0;
 
 	VkResult result = vkCreateCommandPool(device->device, &poolInfo, nullptr, &pool);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create command pool");
+	CheckVulkanError(result, "Could not create command pool");
 }
 
 inline VulkanCommandPool::~VulkanCommandPool()
@@ -515,7 +545,7 @@ inline void RenderPassBegin::setFramebuffer(VulkanFramebuffer *framebuffer)
 inline void RenderPassBegin::addClearColor(float r, float g, float b, float a)
 {
 	VkClearValue clearValue = { };
-	clearValue.color = { r, g, b, a };
+	clearValue.color = { {r, g, b, a} };
 	clearValues.push_back(clearValue);
 
 	renderPassInfo.clearValueCount = (uint32_t)clearValues.size();
@@ -564,8 +594,7 @@ inline VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandPool *pool) : pool(
 	allocInfo.commandBufferCount = 1;
 
 	VkResult result = vkAllocateCommandBuffers(pool->device->device, &allocInfo, &buffer);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create command buffer");
+	CheckVulkanError(result, "Could not create command buffer");
 }
 
 inline VulkanCommandBuffer::~VulkanCommandBuffer()
@@ -577,19 +606,17 @@ inline void VulkanCommandBuffer::begin()
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	beginInfo.pInheritanceInfo = nullptr;
 
 	VkResult result = vkBeginCommandBuffer(buffer, &beginInfo);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Failed to begin recording command buffer!");
+	CheckVulkanError(result, "Could not begin recording command buffer");
 }
 
 inline void VulkanCommandBuffer::end()
 {
 	VkResult result = vkEndCommandBuffer(buffer);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Failed to record command buffer!");
+	CheckVulkanError(result, "Could not end command buffer recording");
 }
 
 inline void VulkanCommandBuffer::debugFullPipelineBarrier()
@@ -923,7 +950,7 @@ inline void VulkanCommandBuffer::writeAccelerationStructuresProperties(uint32_t 
 
 inline void VulkanCommandBuffer::SetDebugName(const char *name)
 {
-	pool->device->setDebugObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_COMMAND_BUFFER);
+	pool->device->SetObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_COMMAND_BUFFER);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -970,20 +997,60 @@ inline VulkanDescriptorPool::~VulkanDescriptorPool()
 	vkDestroyDescriptorPool(device->device, pool, nullptr);
 }
 
-inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout *layout)
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout* layout, AllocType allocType)
 {
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	VkDescriptorSetAllocateInfo allocInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 	allocInfo.descriptorPool = pool;
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &layout->layout;
 
 	VkDescriptorSet descriptorSet;
 	VkResult result = vkAllocateDescriptorSets(device->device, &allocInfo, &descriptorSet);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not allocate descriptor sets");
-
+	if (allocType == AllocType::Try && result != VK_SUCCESS)
+		return nullptr;
+	else
+		CheckVulkanError(result, "Could not allocate descriptor sets");
 	return std::make_unique<VulkanDescriptorSet>(device, this, descriptorSet);
+}
+
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount, AllocType allocType)
+{
+	VkDescriptorSetAllocateInfo allocInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+	VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+	allocInfo.descriptorPool = pool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = &layout->layout;
+	allocInfo.pNext = &countInfo;
+	countInfo.descriptorSetCount = 1;
+	countInfo.pDescriptorCounts = &bindlessCount;
+
+	VkDescriptorSet descriptorSet;
+	VkResult result = vkAllocateDescriptorSets(device->device, &allocInfo, &descriptorSet);
+	if (allocType == AllocType::Try && result != VK_SUCCESS)
+		return nullptr;
+	else
+		CheckVulkanError(result, "Could not allocate descriptor sets");
+	return std::make_unique<VulkanDescriptorSet>(device, this, descriptorSet);
+}
+
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::tryAllocate(VulkanDescriptorSetLayout *layout)
+{
+	return allocate(layout, AllocType::Try);
+}
+
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout *layout)
+{
+	return allocate(layout, AllocType::Always);
+}
+
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::tryAllocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount)
+{
+	return allocate(layout, bindlessCount, AllocType::Try);
+}
+
+inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount)
+{
+	return allocate(layout, bindlessCount, AllocType::Always);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1000,8 +1067,7 @@ inline VulkanQueryPool::~VulkanQueryPool()
 inline bool VulkanQueryPool::getResults(uint32_t firstQuery, uint32_t queryCount, size_t dataSize, void *data, VkDeviceSize stride, VkQueryResultFlags flags)
 {
 	VkResult result = vkGetQueryPoolResults(device->device, pool, firstQuery, queryCount, dataSize, data, stride, flags);
-	if (result != VK_SUCCESS && result != VK_NOT_READY)
-		throw std::runtime_error("vkGetQueryPoolResults failed");
+	CheckVulkanError(result, "vkGetQueryPoolResults failed");
 	return result == VK_SUCCESS;
 }
 
@@ -1018,7 +1084,7 @@ inline VulkanFramebuffer::~VulkanFramebuffer()
 
 /////////////////////////////////////////////////////////////////////////////
 
-inline VulkanImage::VulkanImage(VulkanDevice *device, VkImage image, VmaAllocation allocation, int width, int height, int mipLevels) : image(image), width(width), height(height), mipLevels(mipLevels), device(device), allocation(allocation)
+inline VulkanImage::VulkanImage(VulkanDevice *device, VkImage image, VmaAllocation allocation, int width, int height, int mipLevels, int layerCount) : image(image), width(width), height(height), mipLevels(mipLevels), layerCount(layerCount), device(device), allocation(allocation)
 {
 }
 
@@ -1075,7 +1141,7 @@ inline VulkanAccelerationStructure::~VulkanAccelerationStructure()
 
 /////////////////////////////////////////////////////////////////////////////
 
-inline VulkanPipeline::VulkanPipeline(VulkanDevice *device, VkPipeline pipeline, std::vector<uint8_t> shaderGroupHandles) : device(device), pipeline(pipeline), shaderGroupHandles(shaderGroupHandles)
+inline VulkanPipeline::VulkanPipeline(VulkanDevice *device, VkPipeline pipeline) : device(device), pipeline(pipeline)
 {
 }
 

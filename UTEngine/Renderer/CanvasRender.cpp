@@ -82,6 +82,13 @@ void CanvasRender::DrawTile(UTexture* Tex, float x, float y, float XL, float YL,
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
+	texinfo.Format = texinfo.Texture->ActualFormat;
+	texinfo.Mips = Tex->Mipmaps.data();
+	texinfo.NumMips = (int)Tex->Mipmaps.size();
+	texinfo.USize = Tex->USize();
+	texinfo.VSize = Tex->VSize();
+	if (Tex->Palette())
+		texinfo.Palette = (FColor*)Tex->Palette()->Colors.data();
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
@@ -99,6 +106,13 @@ void CanvasRender::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
+	texinfo.Format = texinfo.Texture->ActualFormat;
+	texinfo.Mips = Tex->Mipmaps.data();
+	texinfo.NumMips = (int)Tex->Mipmaps.size();
+	texinfo.USize = Tex->USize();
+	texinfo.VSize = Tex->VSize();
+	if (Tex->Palette())
+		texinfo.Palette = (FColor*)Tex->Palette()->Colors.data();
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
@@ -138,6 +152,13 @@ void CanvasRender::DrawText(UFont* font, vec4 color, float orgX, float orgY, flo
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
+			texinfo.Format = texinfo.Texture->ActualFormat;
+			texinfo.Mips = glyph.Texture->Mipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.USize = glyph.Texture->USize();
+			texinfo.VSize = glyph.Texture->VSize();
+			if (glyph.Texture->Palette())
+				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
 
 			int width = glyph.USize;
 			int height = glyph.VSize;
@@ -200,6 +221,13 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
+			texinfo.Format = texinfo.Texture->ActualFormat;
+			texinfo.Mips = glyph.Texture->Mipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.USize = glyph.Texture->USize();
+			texinfo.VSize = glyph.Texture->VSize();
+			if (glyph.Texture->Palette())
+				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
@@ -226,6 +254,13 @@ void CanvasRender::DrawTextClipped(UFont* font, vec4 color, float orgX, float or
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
+			texinfo.Format = texinfo.Texture->ActualFormat;
+			texinfo.Mips = glyph.Texture->Mipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.USize = glyph.Texture->USize();
+			texinfo.VSize = glyph.Texture->VSize();
+			if (glyph.Texture->Palette())
+				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);

@@ -117,5 +117,5 @@ public:
 	int SizeX = 0;
 	int SizeY = 0;
 
-	float Brightness = 0.808333f;
+	float Brightness = 0.6f;
 };

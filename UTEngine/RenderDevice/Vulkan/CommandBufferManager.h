@@ -4,16 +4,16 @@
 
 class VulkanRenderDevice;
 
-class VulkanCommandBufferManager
+class CommandBufferManager
 {
 public:
-	VulkanCommandBufferManager(VulkanRenderDevice* renderer, bool vsync);
-	~VulkanCommandBufferManager();
+	CommandBufferManager(VulkanRenderDevice* renderer);
+	~CommandBufferManager();
 
+	void WaitForTransfer();
+	void SubmitCommands(bool present, int presentWidth, int presentHeight);
 	VulkanCommandBuffer* GetTransferCommands();
 	VulkanCommandBuffer* GetDrawCommands();
-
-	void SubmitCommands(bool present, int presentWidth, int presentHeight);
 	void DeleteFrameObjects();
 
 	struct DeleteList
@@ -22,7 +22,6 @@ public:
 		std::vector<std::unique_ptr<VulkanImageView>> imageViews;
 		std::vector<std::unique_ptr<VulkanBuffer>> buffers;
 		std::vector<std::unique_ptr<VulkanDescriptorSet>> descriptors;
-		std::vector<std::unique_ptr<VulkanAccelerationStructure>> accelStructs;
 	};
 	std::unique_ptr<DeleteList> FrameDeleteList;
 
@@ -37,6 +36,6 @@ private:
 	std::unique_ptr<VulkanSemaphore> TransferSemaphore;
 	std::unique_ptr<VulkanFence> RenderFinishedFence;
 	std::unique_ptr<VulkanCommandPool> CommandPool;
-	VulkanCommandBuffer* DrawCommands = nullptr;
-	VulkanCommandBuffer* TransferCommands = nullptr;
+	std::unique_ptr<VulkanCommandBuffer> DrawCommands;
+	std::unique_ptr<VulkanCommandBuffer> TransferCommands;
 };

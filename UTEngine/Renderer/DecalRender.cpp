@@ -10,7 +10,7 @@
 #include "Window/Window.h"
 #include "UTRenderer.h"
 
-void DecalRender::DrawDecals()
+void DecalRender::DrawDecals(FSceneNode* frame)
 {
 	RenderDevice* device = engine->window->GetRenderDevice();
 
@@ -23,6 +23,13 @@ void DecalRender::DrawDecals()
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)texture;
 			texinfo.Texture = texture;
+			texinfo.Format = texinfo.Texture->ActualFormat;
+			texinfo.Mips = texinfo.Texture->Mipmaps.data();
+			texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+			texinfo.USize = texinfo.Texture->USize();
+			texinfo.VSize = texinfo.Texture->VSize();
+			if (texinfo.Texture->Palette())
+				texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
 
 			GouraudVertex points[4];
 			for (int i = 0; i < 4; i++)
@@ -43,7 +50,7 @@ void DecalRender::DrawDecals()
 			if (texture->bMasked())
 				renderflags |= PF_Masked;*/
 
-			device->DrawGouraudPolygon(&texinfo, points, 4, PF_Modulated);
+			device->DrawGouraudPolygon(frame, texinfo, points, 4, PF_Modulated);
 		}
 	}
 }

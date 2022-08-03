@@ -169,12 +169,22 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? envmap : textures[material.TextureIndex];
 
+		if (!tex)
+			continue;
+
 		if (tex && tex->bMasked())
 			renderflags |= PF_Masked;
 
 		FTextureInfo texinfo;
 		texinfo.Texture = tex;
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+		texinfo.Format = texinfo.Texture->ActualFormat;
+		texinfo.Mips = texinfo.Texture->Mipmaps.data();
+		texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+		texinfo.USize = texinfo.Texture->USize();
+		texinfo.VSize = texinfo.Texture->VSize();
+		if (texinfo.Texture->Palette())
+			texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
 
 		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
@@ -209,7 +219,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			}
 		}
 
-		device->DrawGouraudPolygon(texinfo.Texture ? &texinfo : nullptr, vertices, 3, renderflags);
+		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
 }
 

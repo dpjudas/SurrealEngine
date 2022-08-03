@@ -24,6 +24,8 @@ public:
 
 	VkExtent2D actualExtent;
 
+	bool newSwapChain = true;
+
 private:
 	void selectFormat();
 	void selectPresentMode();

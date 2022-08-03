@@ -29,13 +29,20 @@ FTextureInfo LightRender::GetSurfaceLightmap(BspSurface& surface, const FSurface
 		lmtexture = CreateLightmapTexture(lmindex, surface, zoneActor, model);
 	}
 
-	FTextureInfo lightmap;
-	lightmap.CacheID = (uint64_t)(ptrdiff_t)&surface;
-	lightmap.Texture = lmtexture;
-	lightmap.Pan = { lmindex.PanX, lmindex.PanY };
-	lightmap.UScale = lmindex.UScale;
-	lightmap.VScale = lmindex.VScale;
-	return lightmap;
+	FTextureInfo texinfo;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)&surface;
+	texinfo.Texture = lmtexture;
+	texinfo.Pan = { lmindex.PanX, lmindex.PanY };
+	texinfo.UScale = lmindex.UScale;
+	texinfo.VScale = lmindex.VScale;
+	texinfo.Format = texinfo.Texture->ActualFormat;
+	texinfo.Mips = texinfo.Texture->Mipmaps.data();
+	texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+	texinfo.USize = texinfo.Texture->Mipmaps[0].Width;
+	texinfo.VSize = texinfo.Texture->Mipmaps[0].Height;
+	if (texinfo.Texture->Palette())
+		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+	return texinfo;
 }
 
 UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
@@ -140,9 +147,9 @@ UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const
 				}
 				color *= 0.5f;
 
-				uint32_t red = (uint32_t)clamp(color.r * 255.0f + 0.5f, 0.0f, 255.0f);
-				uint32_t green = (uint32_t)clamp(color.g * 255.0f + 0.5f, 0.0f, 255.0f);
-				uint32_t blue = (uint32_t)clamp(color.b * 255.0f + 0.5f, 0.0f, 255.0f);
+				uint32_t red = (uint32_t)clamp(color.r * 127.0f + 0.5f, 0.0f, 127.0f);
+				uint32_t green = (uint32_t)clamp(color.g * 127.0f + 0.5f, 0.0f, 127.0f);
+				uint32_t blue = (uint32_t)clamp(color.b * 127.0f + 0.5f, 0.0f, 127.0f);
 				uint32_t alpha = 127;
 
 				if (isTranslucent)
@@ -162,9 +169,9 @@ UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const
 		uint32_t* texels = (uint32_t*)lmmip.Data.data();
 		int c = width * height;
 		vec3 color = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
-		uint32_t red = (uint32_t)clamp(color.r * 255.0f + 0.5f, 0.0f, 255.0f);
-		uint32_t green = (uint32_t)clamp(color.g * 255.0f + 0.5f, 0.0f, 255.0f);
-		uint32_t blue = (uint32_t)clamp(color.b * 255.0f + 0.5f, 0.0f, 255.0f);
+		uint32_t red = (uint32_t)clamp(color.r * 127.0f + 0.5f, 0.0f, 127.0f);
+		uint32_t green = (uint32_t)clamp(color.g * 127 + 0.5f, 0.0f, 127.0f);
+		uint32_t blue = (uint32_t)clamp(color.b * 127 + 0.5f, 0.0f, 127.0f);
 		uint32_t alpha = 127;
 		uint32_t ambientcolor = (alpha << 24) | (red << 16) | (green << 8) | blue;
 		for (int i = 0; i < c; i++)
@@ -174,7 +181,7 @@ UTexture* LightRender::CreateLightmapTexture(const LightMapIndex& lmindex, const
 	}
 
 	auto lmtexture = UObject::Cast<UTexture>(engine->packages->NewObject("Lightmap", "Engine", "Texture"));
-	lmtexture->ActualFormat = TextureFormat::RGBA7;
+	lmtexture->ActualFormat = TextureFormat::BGRA8_LM;
 	lmtexture->Mipmaps.push_back(std::move(lmmip));
 	lmtexture->Format() = (uint8_t)lmtexture->ActualFormat;
 	return lmtexture;
@@ -271,14 +278,21 @@ FTextureInfo LightRender::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFa
 	if (firstDrawThisScene)
 		UpdateFogmapTexture(lmindex, (uint32_t*)fogtexture->Mipmaps.front().Data.data(), surface, zoneActor, model);
 
-	FTextureInfo fogmap;
-	fogmap.CacheID = ((uint64_t)(ptrdiff_t)&surface) | 1;
-	fogmap.Texture = fogtexture;
-	fogmap.Pan = { lmindex.PanX, lmindex.PanY };
-	fogmap.UScale = lmindex.UScale;
-	fogmap.VScale = lmindex.VScale;
-	fogmap.bRealtimeChanged = firstDrawThisScene;
-	return fogmap;
+	FTextureInfo texinfo;
+	texinfo.CacheID = ((uint64_t)(ptrdiff_t)&surface) | 1;
+	texinfo.Texture = fogtexture;
+	texinfo.Pan = { lmindex.PanX, lmindex.PanY };
+	texinfo.UScale = lmindex.UScale;
+	texinfo.VScale = lmindex.VScale;
+	texinfo.bRealtimeChanged = firstDrawThisScene;
+	texinfo.Format = texinfo.Texture->ActualFormat;
+	texinfo.Mips = texinfo.Texture->Mipmaps.data();
+	texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+	texinfo.USize = texinfo.Texture->Mipmaps[0].width;
+	texinfo.VSize = texinfo.Texture->Mipmaps[0].height;
+	if (texinfo.Texture->Palette())
+		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+	return texinfo;
 #endif
 }
 

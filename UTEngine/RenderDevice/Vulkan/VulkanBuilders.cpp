@@ -1,150 +1,144 @@
 
-#include "vulkanbuilders.h"
+#include "Precomp.h"
+#include "VulkanBuilders.h"
 
 static const TBuiltInResource DefaultTBuiltInResource = {
-    /* .MaxLights = */ 32,
-    /* .MaxClipPlanes = */ 6,
-    /* .MaxTextureUnits = */ 32,
-    /* .MaxTextureCoords = */ 32,
-    /* .MaxVertexAttribs = */ 64,
-    /* .MaxVertexUniformComponents = */ 4096,
-    /* .MaxVaryingFloats = */ 64,
-    /* .MaxVertexTextureImageUnits = */ 32,
-    /* .MaxCombinedTextureImageUnits = */ 80,
-    /* .MaxTextureImageUnits = */ 32,
-    /* .MaxFragmentUniformComponents = */ 4096,
-    /* .MaxDrawBuffers = */ 32,
-    /* .MaxVertexUniformVectors = */ 128,
-    /* .MaxVaryingVectors = */ 8,
-    /* .MaxFragmentUniformVectors = */ 16,
-    /* .MaxVertexOutputVectors = */ 16,
-    /* .MaxFragmentInputVectors = */ 15,
-    /* .MinProgramTexelOffset = */ -8,
-    /* .MaxProgramTexelOffset = */ 7,
-    /* .MaxClipDistances = */ 8,
-    /* .MaxComputeWorkGroupCountX = */ 65535,
-    /* .MaxComputeWorkGroupCountY = */ 65535,
-    /* .MaxComputeWorkGroupCountZ = */ 65535,
-    /* .MaxComputeWorkGroupSizeX = */ 1024,
-    /* .MaxComputeWorkGroupSizeY = */ 1024,
-    /* .MaxComputeWorkGroupSizeZ = */ 64,
-    /* .MaxComputeUniformComponents = */ 1024,
-    /* .MaxComputeTextureImageUnits = */ 16,
-    /* .MaxComputeImageUniforms = */ 8,
-    /* .MaxComputeAtomicCounters = */ 8,
-    /* .MaxComputeAtomicCounterBuffers = */ 1,
-    /* .MaxVaryingComponents = */ 60,
-    /* .MaxVertexOutputComponents = */ 64,
-    /* .MaxGeometryInputComponents = */ 64,
-    /* .MaxGeometryOutputComponents = */ 128,
-    /* .MaxFragmentInputComponents = */ 128,
-    /* .MaxImageUnits = */ 8,
-    /* .MaxCombinedImageUnitsAndFragmentOutputs = */ 8,
-    /* .MaxCombinedShaderOutputResources = */ 8,
-    /* .MaxImageSamples = */ 0,
-    /* .MaxVertexImageUniforms = */ 0,
-    /* .MaxTessControlImageUniforms = */ 0,
-    /* .MaxTessEvaluationImageUniforms = */ 0,
-    /* .MaxGeometryImageUniforms = */ 0,
-    /* .MaxFragmentImageUniforms = */ 8,
-    /* .MaxCombinedImageUniforms = */ 8,
-    /* .MaxGeometryTextureImageUnits = */ 16,
-    /* .MaxGeometryOutputVertices = */ 256,
-    /* .MaxGeometryTotalOutputComponents = */ 1024,
-    /* .MaxGeometryUniformComponents = */ 1024,
-    /* .MaxGeometryVaryingComponents = */ 64,
-    /* .MaxTessControlInputComponents = */ 128,
-    /* .MaxTessControlOutputComponents = */ 128,
-    /* .MaxTessControlTextureImageUnits = */ 16,
-    /* .MaxTessControlUniformComponents = */ 1024,
-    /* .MaxTessControlTotalOutputComponents = */ 4096,
-    /* .MaxTessEvaluationInputComponents = */ 128,
-    /* .MaxTessEvaluationOutputComponents = */ 128,
-    /* .MaxTessEvaluationTextureImageUnits = */ 16,
-    /* .MaxTessEvaluationUniformComponents = */ 1024,
-    /* .MaxTessPatchComponents = */ 120,
-    /* .MaxPatchVertices = */ 32,
-    /* .MaxTessGenLevel = */ 64,
-    /* .MaxViewports = */ 16,
-    /* .MaxVertexAtomicCounters = */ 0,
-    /* .MaxTessControlAtomicCounters = */ 0,
-    /* .MaxTessEvaluationAtomicCounters = */ 0,
-    /* .MaxGeometryAtomicCounters = */ 0,
-    /* .MaxFragmentAtomicCounters = */ 8,
-    /* .MaxCombinedAtomicCounters = */ 8,
-    /* .MaxAtomicCounterBindings = */ 1,
-    /* .MaxVertexAtomicCounterBuffers = */ 0,
-    /* .MaxTessControlAtomicCounterBuffers = */ 0,
-    /* .MaxTessEvaluationAtomicCounterBuffers = */ 0,
-    /* .MaxGeometryAtomicCounterBuffers = */ 0,
-    /* .MaxFragmentAtomicCounterBuffers = */ 1,
-    /* .MaxCombinedAtomicCounterBuffers = */ 1,
-    /* .MaxAtomicCounterBufferSize = */ 16384,
-    /* .MaxTransformFeedbackBuffers = */ 4,
-    /* .MaxTransformFeedbackInterleavedComponents = */ 64,
-    /* .MaxCullDistances = */ 8,
-    /* .MaxCombinedClipAndCullDistances = */ 8,
-    /* .MaxSamples = */ 4,
-    /* .maxMeshOutputVerticesNV = */ 256,
-    /* .maxMeshOutputPrimitivesNV = */ 512,
-    /* .maxMeshWorkGroupSizeX_NV = */ 32,
-    /* .maxMeshWorkGroupSizeY_NV = */ 1,
-    /* .maxMeshWorkGroupSizeZ_NV = */ 1,
-    /* .maxTaskWorkGroupSizeX_NV = */ 32,
-    /* .maxTaskWorkGroupSizeY_NV = */ 1,
-    /* .maxTaskWorkGroupSizeZ_NV = */ 1,
-    /* .maxMeshViewCountNV = */ 4,
-    /* .maxDualSourceDrawBuffersEXT = */ 1,
+	/* .MaxLights = */ 32,
+	/* .MaxClipPlanes = */ 6,
+	/* .MaxTextureUnits = */ 32,
+	/* .MaxTextureCoords = */ 32,
+	/* .MaxVertexAttribs = */ 64,
+	/* .MaxVertexUniformComponents = */ 4096,
+	/* .MaxVaryingFloats = */ 64,
+	/* .MaxVertexTextureImageUnits = */ 32,
+	/* .MaxCombinedTextureImageUnits = */ 80,
+	/* .MaxTextureImageUnits = */ 32,
+	/* .MaxFragmentUniformComponents = */ 4096,
+	/* .MaxDrawBuffers = */ 32,
+	/* .MaxVertexUniformVectors = */ 128,
+	/* .MaxVaryingVectors = */ 8,
+	/* .MaxFragmentUniformVectors = */ 16,
+	/* .MaxVertexOutputVectors = */ 16,
+	/* .MaxFragmentInputVectors = */ 15,
+	/* .MinProgramTexelOffset = */ -8,
+	/* .MaxProgramTexelOffset = */ 7,
+	/* .MaxClipDistances = */ 8,
+	/* .MaxComputeWorkGroupCountX = */ 65535,
+	/* .MaxComputeWorkGroupCountY = */ 65535,
+	/* .MaxComputeWorkGroupCountZ = */ 65535,
+	/* .MaxComputeWorkGroupSizeX = */ 1024,
+	/* .MaxComputeWorkGroupSizeY = */ 1024,
+	/* .MaxComputeWorkGroupSizeZ = */ 64,
+	/* .MaxComputeUniformComponents = */ 1024,
+	/* .MaxComputeTextureImageUnits = */ 16,
+	/* .MaxComputeImageUniforms = */ 8,
+	/* .MaxComputeAtomicCounters = */ 8,
+	/* .MaxComputeAtomicCounterBuffers = */ 1,
+	/* .MaxVaryingComponents = */ 60,
+	/* .MaxVertexOutputComponents = */ 64,
+	/* .MaxGeometryInputComponents = */ 64,
+	/* .MaxGeometryOutputComponents = */ 128,
+	/* .MaxFragmentInputComponents = */ 128,
+	/* .MaxImageUnits = */ 8,
+	/* .MaxCombinedImageUnitsAndFragmentOutputs = */ 8,
+	/* .MaxCombinedShaderOutputResources = */ 8,
+	/* .MaxImageSamples = */ 0,
+	/* .MaxVertexImageUniforms = */ 0,
+	/* .MaxTessControlImageUniforms = */ 0,
+	/* .MaxTessEvaluationImageUniforms = */ 0,
+	/* .MaxGeometryImageUniforms = */ 0,
+	/* .MaxFragmentImageUniforms = */ 8,
+	/* .MaxCombinedImageUniforms = */ 8,
+	/* .MaxGeometryTextureImageUnits = */ 16,
+	/* .MaxGeometryOutputVertices = */ 256,
+	/* .MaxGeometryTotalOutputComponents = */ 1024,
+	/* .MaxGeometryUniformComponents = */ 1024,
+	/* .MaxGeometryVaryingComponents = */ 64,
+	/* .MaxTessControlInputComponents = */ 128,
+	/* .MaxTessControlOutputComponents = */ 128,
+	/* .MaxTessControlTextureImageUnits = */ 16,
+	/* .MaxTessControlUniformComponents = */ 1024,
+	/* .MaxTessControlTotalOutputComponents = */ 4096,
+	/* .MaxTessEvaluationInputComponents = */ 128,
+	/* .MaxTessEvaluationOutputComponents = */ 128,
+	/* .MaxTessEvaluationTextureImageUnits = */ 16,
+	/* .MaxTessEvaluationUniformComponents = */ 1024,
+	/* .MaxTessPatchComponents = */ 120,
+	/* .MaxPatchVertices = */ 32,
+	/* .MaxTessGenLevel = */ 64,
+	/* .MaxViewports = */ 16,
+	/* .MaxVertexAtomicCounters = */ 0,
+	/* .MaxTessControlAtomicCounters = */ 0,
+	/* .MaxTessEvaluationAtomicCounters = */ 0,
+	/* .MaxGeometryAtomicCounters = */ 0,
+	/* .MaxFragmentAtomicCounters = */ 8,
+	/* .MaxCombinedAtomicCounters = */ 8,
+	/* .MaxAtomicCounterBindings = */ 1,
+	/* .MaxVertexAtomicCounterBuffers = */ 0,
+	/* .MaxTessControlAtomicCounterBuffers = */ 0,
+	/* .MaxTessEvaluationAtomicCounterBuffers = */ 0,
+	/* .MaxGeometryAtomicCounterBuffers = */ 0,
+	/* .MaxFragmentAtomicCounterBuffers = */ 1,
+	/* .MaxCombinedAtomicCounterBuffers = */ 1,
+	/* .MaxAtomicCounterBufferSize = */ 16384,
+	/* .MaxTransformFeedbackBuffers = */ 4,
+	/* .MaxTransformFeedbackInterleavedComponents = */ 64,
+	/* .MaxCullDistances = */ 8,
+	/* .MaxCombinedClipAndCullDistances = */ 8,
+	/* .MaxSamples = */ 4,
+	/* .maxMeshOutputVerticesNV = */ 256,
+	/* .maxMeshOutputPrimitivesNV = */ 512,
+	/* .maxMeshWorkGroupSizeX_NV = */ 32,
+	/* .maxMeshWorkGroupSizeY_NV = */ 1,
+	/* .maxMeshWorkGroupSizeZ_NV = */ 1,
+	/* .maxTaskWorkGroupSizeX_NV = */ 32,
+	/* .maxTaskWorkGroupSizeY_NV = */ 1,
+	/* .maxTaskWorkGroupSizeZ_NV = */ 1,
+	/* .maxMeshViewCountNV = */ 4,
+	/* .maxDualSourceDrawBuffersEXT = */ 1,
 
-    /* .limits = */ {
-        /* .nonInductiveForLoops = */ 1,
-        /* .whileLoops = */ 1,
-        /* .doWhileLoops = */ 1,
-        /* .generalUniformIndexing = */ 1,
-        /* .generalAttributeMatrixVectorIndexing = */ 1,
-        /* .generalVaryingIndexing = */ 1,
-        /* .generalSamplerIndexing = */ 1,
-        /* .generalVariableIndexing = */ 1,
-        /* .generalConstantMatrixVectorIndexing = */ 1,
-    }
+	/* .limits = */ {
+		/* .nonInductiveForLoops = */ 1,
+		/* .whileLoops = */ 1,
+		/* .doWhileLoops = */ 1,
+		/* .generalUniformIndexing = */ 1,
+		/* .generalAttributeMatrixVectorIndexing = */ 1,
+		/* .generalVaryingIndexing = */ 1,
+		/* .generalSamplerIndexing = */ 1,
+		/* .generalVariableIndexing = */ 1,
+		/* .generalConstantMatrixVectorIndexing = */ 1,
+	}
 };
 
-void ShaderBuilder::init()
+void ShaderBuilder::Init()
 {
 	ShInitialize();
 }
 
-void ShaderBuilder::deinit()
+void ShaderBuilder::Deinit()
 {
 	ShFinalize();
 }
 
 ShaderBuilder::ShaderBuilder()
 {
-    class InitShaderLib
-    {
-    public:
-        InitShaderLib() { ShaderBuilder::init(); }
-        ~InitShaderLib() { ShaderBuilder::deinit(); }
-    };
-
-    static InitShaderLib init;
 }
 
-void ShaderBuilder::setVertexShader(const std::string &c) { code = c; stage = EShLanguage::EShLangVertex; }
-void ShaderBuilder::setTessControlShader(const std::string &c) { code = c; stage = EShLanguage::EShLangTessControl; }
-void ShaderBuilder::setTessEvaluationShader(const std::string &c) { code = c; stage = EShLanguage::EShLangTessEvaluation; }
-void ShaderBuilder::setGeometryShader(const std::string &c) { code = c; stage = EShLanguage::EShLangGeometry; }
-void ShaderBuilder::setFragmentShader(const std::string &c) { code = c; stage = EShLanguage::EShLangFragment; }
-void ShaderBuilder::setComputeShader(const std::string &c) { code = c; stage = EShLanguage::EShLangCompute; }
-void ShaderBuilder::setRayGenShader(const std::string &c) { code = c; stage = EShLanguage::EShLangRayGen; }
-void ShaderBuilder::setIntersectShader(const std::string &c) { code = c; stage = EShLanguage::EShLangIntersect; }
-void ShaderBuilder::setAnyHitShader(const std::string &c) { code = c; stage = EShLanguage::EShLangAnyHit; }
-void ShaderBuilder::setClosestHitShader(const std::string &c) { code = c; stage = EShLanguage::EShLangClosestHit; }
-void ShaderBuilder::setMissShader(const std::string &c) { code = c; stage = EShLanguage::EShLangMiss; }
-void ShaderBuilder::setCallableShader(const std::string &c) { code = c; stage = EShLanguage::EShLangCallable; }
+ShaderBuilder& ShaderBuilder::VertexShader(const std::string& c)
+{
+	code = c;
+	stage = EShLanguage::EShLangVertex;
+	return *this;
+}
 
-std::unique_ptr<VulkanShader> ShaderBuilder::create(VulkanDevice *device)
+ShaderBuilder& ShaderBuilder::FragmentShader(const std::string& c)
+{
+	code = c;
+	stage = EShLanguage::EShLangFragment;
+	return *this;
+}
+
+std::unique_ptr<VulkanShader> ShaderBuilder::Create(const char *shadername, VulkanDevice *device)
 {
 	EShLanguage stage = (EShLanguage)this->stage;
 	const char *sources[] = { code.c_str() };
@@ -154,8 +148,16 @@ std::unique_ptr<VulkanShader> ShaderBuilder::create(VulkanDevice *device)
 	glslang::TShader shader(stage);
 	shader.setStrings(sources, 1);
 	shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, 100);
-	shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_2);
-	shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);
+    if (device->Instance->ApiVersion >= VK_API_VERSION_1_2)
+    {
+        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_2);
+        shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
+    }
+    else
+    {
+        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
+        shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
+    }
 	bool compileSuccess = shader.parse(&resources, 110, false, EShMsgVulkanRules);
 	if (!compileSuccess)
 	{
@@ -195,7 +197,10 @@ std::unique_ptr<VulkanShader> ShaderBuilder::create(VulkanDevice *device)
 	if (result != VK_SUCCESS)
 		throw std::runtime_error("Could not create vulkan shader module");
 
-	return std::make_unique<VulkanShader>(device, shaderModule);
+	auto obj = std::make_unique<VulkanShader>(device, shaderModule);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -213,42 +218,53 @@ ImageBuilder::ImageBuilder()
 	imageInfo.flags = 0;
 }
 
-void ImageBuilder::setSize(int width, int height, int mipLevels)
+ImageBuilder& ImageBuilder::Size(int width, int height, int mipLevels, int arrayLayers)
 {
-	if (width <= 0 || height <= 0 || mipLevels <= 0)
-		throw std::runtime_error("Invalid vulkan image size");
-
 	imageInfo.extent.width = width;
 	imageInfo.extent.height = height;
 	imageInfo.mipLevels = mipLevels;
+	imageInfo.arrayLayers = arrayLayers;
+	return *this;
 }
 
-void ImageBuilder::setSamples(VkSampleCountFlagBits samples)
+ImageBuilder& ImageBuilder::Samples(VkSampleCountFlagBits samples)
 {
 	imageInfo.samples = samples;
+	return *this;
 }
 
-void ImageBuilder::setFormat(VkFormat format)
+ImageBuilder& ImageBuilder::Format(VkFormat format)
 {
 	imageInfo.format = format;
+	return *this;
 }
 
-void ImageBuilder::setLinearTiling()
+ImageBuilder& ImageBuilder::LinearTiling()
 {
 	imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+	return *this;
 }
 
-void ImageBuilder::setUsage(VkImageUsageFlags usage, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags)
+ImageBuilder& ImageBuilder::Usage(VkImageUsageFlags usage, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags)
 {
 	imageInfo.usage = usage;
 	allocInfo.usage = memoryUsage;
 	allocInfo.flags = allocFlags;
+	return *this;
 }
 
-bool ImageBuilder::isFormatSupported(VulkanDevice* device)
+ImageBuilder& ImageBuilder::MemoryType(VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, uint32_t memoryTypeBits)
+{
+	allocInfo.requiredFlags = requiredFlags;
+	allocInfo.preferredFlags = preferredFlags;
+	allocInfo.memoryTypeBits = memoryTypeBits;
+	return *this;
+}
+
+bool ImageBuilder::IsFormatSupported(VulkanDevice* device, VkFormatFeatureFlags bufferFeatures)
 {
 	VkImageFormatProperties properties = { };
-	VkResult result = vkGetPhysicalDeviceImageFormatProperties(device->physicalDevice.device, imageInfo.format, imageInfo.imageType, imageInfo.tiling, imageInfo.usage, imageInfo.flags, &properties);
+	VkResult result = vkGetPhysicalDeviceImageFormatProperties(device->PhysicalDevice.Device, imageInfo.format, imageInfo.imageType, imageInfo.tiling, imageInfo.usage, imageInfo.flags, &properties);
 	if (result != VK_SUCCESS) return false;
 	if (imageInfo.extent.width > properties.maxExtent.width) return false;
 	if (imageInfo.extent.height > properties.maxExtent.height) return false;
@@ -256,19 +272,51 @@ bool ImageBuilder::isFormatSupported(VulkanDevice* device)
 	if (imageInfo.mipLevels > properties.maxMipLevels) return false;
 	if (imageInfo.arrayLayers > properties.maxArrayLayers) return false;
 	if ((imageInfo.samples & properties.sampleCounts) != imageInfo.samples) return false;
+	if (bufferFeatures != 0)
+	{
+		VkFormatProperties formatProperties = { };
+		vkGetPhysicalDeviceFormatProperties(device->PhysicalDevice.Device, imageInfo.format, &formatProperties);
+		if ((formatProperties.bufferFeatures & bufferFeatures) != bufferFeatures)
+			return false;
+	}
 	return true;
 }
 
-std::unique_ptr<VulkanImage> ImageBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanImage> ImageBuilder::Create(VulkanDevice* device, VkDeviceSize* allocatedBytes)
+{
+	VkImage image;
+	VmaAllocation allocation;
+
+	VkResult result = vmaCreateImage(device->allocator, &imageInfo, &allocInfo, &image, &allocation, nullptr);
+	CheckVulkanError(result, "Could not create vulkan image");
+
+	if (allocatedBytes != nullptr)
+	{
+		VmaAllocationInfo allocatedInfo;
+		vmaGetAllocationInfo(device->allocator, allocation, &allocatedInfo);
+
+		*allocatedBytes = allocatedInfo.size;
+	}
+
+	auto obj = std::make_unique<VulkanImage>(device, image, allocation, imageInfo.extent.width, imageInfo.extent.height, imageInfo.mipLevels, imageInfo.arrayLayers);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
+}
+
+std::unique_ptr<VulkanImage> ImageBuilder::TryCreate(VulkanDevice* device)
 {
 	VkImage image;
 	VmaAllocation allocation;
 
 	VkResult result = vmaCreateImage(device->allocator, &imageInfo, &allocInfo, &image, &allocation, nullptr);
 	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create vulkan image");
+		return nullptr;
 
-	return std::make_unique<VulkanImage>(device, image, allocation, imageInfo.extent.width, imageInfo.extent.height, imageInfo.mipLevels);
+	auto obj = std::make_unique<VulkanImage>(device, image, allocation, imageInfo.extent.width, imageInfo.extent.height, imageInfo.mipLevels, imageInfo.arrayLayers);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -283,29 +331,32 @@ ImageViewBuilder::ImageViewBuilder()
 	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 }
 
-void ImageViewBuilder::setImage(VulkanImage* image, VkFormat format, VkImageAspectFlags aspectMask)
+ImageViewBuilder& ImageViewBuilder::Type(VkImageViewType type)
+{
+	viewInfo.viewType = type;
+	return *this;
+}
+
+ImageViewBuilder& ImageViewBuilder::Image(VulkanImage* image, VkFormat format, VkImageAspectFlags aspectMask)
 {
 	viewInfo.image = image->image;
 	viewInfo.format = format;
 	viewInfo.subresourceRange.levelCount = image->mipLevels;
 	viewInfo.subresourceRange.aspectMask = aspectMask;
+	viewInfo.subresourceRange.layerCount = image->layerCount;
+	return *this;
 }
 
-void ImageBuilder::setMemoryType(VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, uint32_t memoryTypeBits)
-{
-	allocInfo.requiredFlags = requiredFlags;
-	allocInfo.preferredFlags = preferredFlags;
-	allocInfo.memoryTypeBits = memoryTypeBits;
-}
-
-std::unique_ptr<VulkanImageView> ImageViewBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanImageView> ImageViewBuilder::Create(VulkanDevice* device)
 {
 	VkImageView view;
 	VkResult result = vkCreateImageView(device->device, &viewInfo, nullptr, &view);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create texture image view");
+	CheckVulkanError(result, "Could not create texture image view");
 
-	return std::make_unique<VulkanImageView>(device, view);
+	auto obj = std::make_unique<VulkanImageView>(device, view);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -330,96 +381,153 @@ SamplerBuilder::SamplerBuilder()
 	samplerInfo.maxLod = 100.0f;
 }
 
-void SamplerBuilder::setAddressMode(VkSamplerAddressMode addressMode)
+SamplerBuilder& SamplerBuilder::AddressMode(VkSamplerAddressMode addressMode)
 {
 	samplerInfo.addressModeU = addressMode;
 	samplerInfo.addressModeV = addressMode;
 	samplerInfo.addressModeW = addressMode;
+	return *this;
 }
 
-void SamplerBuilder::setAddressMode(VkSamplerAddressMode u, VkSamplerAddressMode v, VkSamplerAddressMode w)
+SamplerBuilder& SamplerBuilder::AddressMode(VkSamplerAddressMode u, VkSamplerAddressMode v, VkSamplerAddressMode w)
 {
 	samplerInfo.addressModeU = u;
 	samplerInfo.addressModeV = v;
 	samplerInfo.addressModeW = w;
+	return *this;
 }
 
-void SamplerBuilder::setMinFilter(VkFilter minFilter)
+SamplerBuilder& SamplerBuilder::MinFilter(VkFilter minFilter)
 {
 	samplerInfo.minFilter = minFilter;
+	return *this;
 }
 
-void SamplerBuilder::setMagFilter(VkFilter magFilter)
+SamplerBuilder& SamplerBuilder::MagFilter(VkFilter magFilter)
 {
 	samplerInfo.magFilter = magFilter;
+	return *this;
 }
 
-void SamplerBuilder::setMipmapMode(VkSamplerMipmapMode mode)
+SamplerBuilder& SamplerBuilder::MipmapMode(VkSamplerMipmapMode mode)
 {
 	samplerInfo.mipmapMode = mode;
+	return *this;
 }
 
-void SamplerBuilder::setAnisotropy(float maxAnisotropy)
+SamplerBuilder& SamplerBuilder::Anisotropy(float maxAnisotropy)
 {
 	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = maxAnisotropy;
+	return *this;
 }
 
-void SamplerBuilder::setMaxLod(float value)
+SamplerBuilder& SamplerBuilder::MipLodBias(float bias)
+{
+	samplerInfo.mipLodBias = bias;
+	return *this;
+}
+
+SamplerBuilder& SamplerBuilder::MaxLod(float value)
 {
 	samplerInfo.maxLod = value;
+	return *this;
 }
 
-std::unique_ptr<VulkanSampler> SamplerBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanSampler> SamplerBuilder::Create(VulkanDevice* device)
 {
 	VkSampler sampler;
 	VkResult result = vkCreateSampler(device->device, &samplerInfo, nullptr, &sampler);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create texture sampler");
-	return std::make_unique<VulkanSampler>(device, sampler);
+	CheckVulkanError(result, "Could not create texture sampler");
+	auto obj = std::make_unique<VulkanSampler>(device, sampler);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 BufferBuilder::BufferBuilder()
 {
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 }
 
-void BufferBuilder::setSize(size_t size)
+BufferBuilder& BufferBuilder::Size(size_t size)
 {
-    if (size == 0)
-        throw std::runtime_error("Invalid vulkan buffer size");
-    bufferInfo.size = size;
+	bufferInfo.size = std::max(size, (size_t)16);
+	return *this;
 }
 
-void BufferBuilder::setUsage(VkBufferUsageFlags bufferUsage, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags)
+BufferBuilder& BufferBuilder::Usage(VkBufferUsageFlags bufferUsage, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags)
 {
-    bufferInfo.usage = bufferUsage;
-    allocInfo.usage = memoryUsage;
-    allocInfo.flags = allocFlags;
+	bufferInfo.usage = bufferUsage;
+	allocInfo.usage = memoryUsage;
+	allocInfo.flags = allocFlags;
+	return *this;
 }
 
-void BufferBuilder::setMemoryType(VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, uint32_t memoryTypeBits)
+BufferBuilder& BufferBuilder::MemoryType(VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, uint32_t memoryTypeBits)
 {
-    allocInfo.requiredFlags = requiredFlags;
-    allocInfo.preferredFlags = preferredFlags;
-    allocInfo.memoryTypeBits = memoryTypeBits;
+	allocInfo.requiredFlags = requiredFlags;
+	allocInfo.preferredFlags = preferredFlags;
+	allocInfo.memoryTypeBits = memoryTypeBits;
+	return *this;
 }
 
-std::unique_ptr<VulkanBuffer> BufferBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanBuffer> BufferBuilder::Create(VulkanDevice* device)
 {
-    VkBuffer buffer;
-    VmaAllocation allocation;
+	VkBuffer buffer;
+	VmaAllocation allocation;
 
-    VkResult result = vmaCreateBuffer(device->allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("could not allocate memory for vulkan buffer");
+	VkResult result = vmaCreateBuffer(device->allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
+	CheckVulkanError(result, "Could not allocate memory for vulkan buffer");
 
-    return std::make_unique<VulkanBuffer>(device, buffer, allocation, (size_t)bufferInfo.size);
+	auto obj = std::make_unique<VulkanBuffer>(device, buffer, allocation, bufferInfo.size);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+AccelerationStructureBuilder::AccelerationStructureBuilder()
+{
+}
+
+AccelerationStructureBuilder& AccelerationStructureBuilder::Type(VkAccelerationStructureTypeKHR type)
+{
+	createInfo.type = type;
+	return *this;
+}
+
+AccelerationStructureBuilder& AccelerationStructureBuilder::Buffer(VulkanBuffer* buffer, VkDeviceSize size)
+{
+	createInfo.buffer = buffer->buffer;
+	createInfo.offset = 0;
+	createInfo.size = size;
+	return *this;
+}
+
+AccelerationStructureBuilder& AccelerationStructureBuilder::Buffer(VulkanBuffer* buffer, VkDeviceSize offset, VkDeviceSize size)
+{
+	createInfo.buffer = buffer->buffer;
+	createInfo.offset = offset;
+	createInfo.size = size;
+	return *this;
+}
+
+std::unique_ptr<VulkanAccelerationStructure> AccelerationStructureBuilder::Create(VulkanDevice* device)
+{
+	VkAccelerationStructureKHR hande = {};
+	VkResult result = vkCreateAccelerationStructureKHR(device->device, &createInfo, nullptr, &hande);
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("vkCreateAccelerationStructureKHR failed");
+	auto obj = std::make_unique<VulkanAccelerationStructure>(device, hande);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -429,35 +537,45 @@ ComputePipelineBuilder::ComputePipelineBuilder()
 	stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 }
 
-void ComputePipelineBuilder::setLayout(VulkanPipelineLayout* layout)
+ComputePipelineBuilder& ComputePipelineBuilder::Layout(VulkanPipelineLayout* layout)
 {
 	pipelineInfo.layout = layout->layout;
+	return *this;
 }
 
-void ComputePipelineBuilder::setComputeShader(VulkanShader* shader)
+ComputePipelineBuilder& ComputePipelineBuilder::ComputeShader(VulkanShader* shader)
 {
 	stageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 	stageInfo.module = shader->module;
 	stageInfo.pName = "main";
 
 	pipelineInfo.stage = stageInfo;
+	return *this;
 }
 
-std::unique_ptr<VulkanPipeline> ComputePipelineBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanPipeline> ComputePipelineBuilder::Create(VulkanDevice* device)
 {
 	VkPipeline pipeline;
 	vkCreateComputePipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-	return std::make_unique<VulkanPipeline>(device, pipeline);
+	auto obj = std::make_unique<VulkanPipeline>(device, pipeline);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 DescriptorSetLayoutBuilder::DescriptorSetLayoutBuilder()
 {
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 }
 
-void DescriptorSetLayoutBuilder::addBinding(int index, VkDescriptorType type, int arrayCount, VkShaderStageFlags stageFlags)
+DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::Flags(VkDescriptorSetLayoutCreateFlags flags)
+{
+	layoutInfo.flags = flags;
+	return *this;
+}
+
+DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::AddBinding(int index, VkDescriptorType type, int arrayCount, VkShaderStageFlags stageFlags, VkDescriptorBindingFlags flags)
 {
 	VkDescriptorSetLayoutBinding binding = { };
 	binding.binding = index;
@@ -466,18 +584,29 @@ void DescriptorSetLayoutBuilder::addBinding(int index, VkDescriptorType type, in
 	binding.stageFlags = stageFlags;
 	binding.pImmutableSamplers = nullptr;
 	bindings.push_back(binding);
+	bindingFlags.push_back(flags);
 
 	layoutInfo.bindingCount = (uint32_t)bindings.size();
 	layoutInfo.pBindings = bindings.data();
+
+	bindingFlagsInfo.bindingCount = (uint32_t)bindings.size();
+	bindingFlagsInfo.pBindingFlags = bindingFlags.data();
+
+	if (flags != 0)
+		layoutInfo.pNext = &bindingFlagsInfo;
+
+	return *this;
 }
 
-std::unique_ptr<VulkanDescriptorSetLayout> DescriptorSetLayoutBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanDescriptorSetLayout> DescriptorSetLayoutBuilder::Create(VulkanDevice* device)
 {
 	VkDescriptorSetLayout layout;
 	VkResult result = vkCreateDescriptorSetLayout(device->device, &layoutInfo, nullptr, &layout);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create descriptor set layout");
-	return std::make_unique<VulkanDescriptorSetLayout>(device, layout);
+	CheckVulkanError(result, "Could not create descriptor set layout");
+	auto obj = std::make_unique<VulkanDescriptorSetLayout>(device, layout);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -489,12 +618,19 @@ DescriptorPoolBuilder::DescriptorPoolBuilder()
 	poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 }
 
-void DescriptorPoolBuilder::setMaxSets(int value)
+DescriptorPoolBuilder& DescriptorPoolBuilder::Flags(VkDescriptorPoolCreateFlags flags)
 {
-	poolInfo.maxSets = value;
+	poolInfo.flags = flags | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	return *this;
 }
 
-void DescriptorPoolBuilder::addPoolSize(VkDescriptorType type, int count)
+DescriptorPoolBuilder& DescriptorPoolBuilder::MaxSets(int value)
+{
+	poolInfo.maxSets = value;
+	return *this;
+}
+
+DescriptorPoolBuilder& DescriptorPoolBuilder::AddPoolSize(VkDescriptorType type, int count)
 {
 	VkDescriptorPoolSize size;
 	size.type = type;
@@ -503,15 +639,18 @@ void DescriptorPoolBuilder::addPoolSize(VkDescriptorType type, int count)
 
 	poolInfo.poolSizeCount = (uint32_t)poolSizes.size();
 	poolInfo.pPoolSizes = poolSizes.data();
+	return *this;
 }
 
-std::unique_ptr<VulkanDescriptorPool> DescriptorPoolBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanDescriptorPool> DescriptorPoolBuilder::Create(VulkanDevice* device)
 {
 	VkDescriptorPool descriptorPool;
 	VkResult result = vkCreateDescriptorPool(device->device, &poolInfo, nullptr, &descriptorPool);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create descriptor pool");
-	return std::make_unique<VulkanDescriptorPool>(device, descriptorPool);
+	CheckVulkanError(result, "Could not create descriptor pool");
+	auto obj = std::make_unique<VulkanDescriptorPool>(device, descriptorPool);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -521,20 +660,23 @@ QueryPoolBuilder::QueryPoolBuilder()
 	poolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 }
 
-void QueryPoolBuilder::setQueryType(VkQueryType type, int count, VkQueryPipelineStatisticFlags pipelineStatistics)
+QueryPoolBuilder& QueryPoolBuilder::QueryType(VkQueryType type, int count, VkQueryPipelineStatisticFlags pipelineStatistics)
 {
 	poolInfo.queryType = type;
 	poolInfo.queryCount = count;
 	poolInfo.pipelineStatistics = pipelineStatistics;
+	return *this;
 }
 
-std::unique_ptr<VulkanQueryPool> QueryPoolBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanQueryPool> QueryPoolBuilder::Create(VulkanDevice* device)
 {
 	VkQueryPool queryPool;
 	VkResult result = vkCreateQueryPool(device->device, &poolInfo, nullptr, &queryPool);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create query pool");
-	return std::make_unique<VulkanQueryPool>(device, queryPool);
+	CheckVulkanError(result, "Could not create query pool");
+	auto obj = std::make_unique<VulkanQueryPool>(device, queryPool);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -544,43 +686,47 @@ FramebufferBuilder::FramebufferBuilder()
 	framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 }
 
-void FramebufferBuilder::setRenderPass(VulkanRenderPass* renderPass)
+FramebufferBuilder& FramebufferBuilder::RenderPass(VulkanRenderPass* renderPass)
 {
 	framebufferInfo.renderPass = renderPass->renderPass;
+	return *this;
 }
 
-void FramebufferBuilder::addAttachment(VulkanImageView* view)
+FramebufferBuilder& FramebufferBuilder::AddAttachment(VulkanImageView* view)
 {
 	attachments.push_back(view->view);
 
 	framebufferInfo.attachmentCount = (uint32_t)attachments.size();
 	framebufferInfo.pAttachments = attachments.data();
+	return *this;
 }
 
-void FramebufferBuilder::addAttachment(VkImageView view)
+FramebufferBuilder& FramebufferBuilder::AddAttachment(VkImageView view)
 {
 	attachments.push_back(view);
 
 	framebufferInfo.attachmentCount = (uint32_t)attachments.size();
 	framebufferInfo.pAttachments = attachments.data();
+	return *this;
 }
 
-void FramebufferBuilder::setSize(int width, int height, int layers)
+FramebufferBuilder& FramebufferBuilder::Size(int width, int height, int layers)
 {
-	if (width <= 0 || height <= 0 || layers <= 0)
-		throw std::runtime_error("Invalid vulkan frame buffer size");
 	framebufferInfo.width = width;
 	framebufferInfo.height = height;
-	framebufferInfo.layers = layers;
+	framebufferInfo.layers = 1;
+	return *this;
 }
 
-std::unique_ptr<VulkanFramebuffer> FramebufferBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanFramebuffer> FramebufferBuilder::Create(VulkanDevice* device)
 {
 	VkFramebuffer framebuffer = 0;
 	VkResult result = vkCreateFramebuffer(device->device, &framebufferInfo, nullptr, &framebuffer);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Failed to create framebuffer");
-	return std::make_unique<VulkanFramebuffer>(device, framebuffer);
+	CheckVulkanError(result, "Could not create framebuffer");
+	auto obj = std::make_unique<VulkanFramebuffer>(device, framebuffer);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -593,7 +739,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 	pipelineInfo.pViewportState = &viewportState;
 	pipelineInfo.pRasterizationState = &rasterizer;
 	pipelineInfo.pMultisampleState = &multisampling;
-	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &dynamicState;
 	pipelineInfo.subpass = 0;
@@ -663,32 +809,37 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 }
 
-void GraphicsPipelineBuilder::setRasterizationSamples(VkSampleCountFlagBits samples)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::RasterizationSamples(VkSampleCountFlagBits samples)
 {
 	multisampling.rasterizationSamples = samples;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setSubpass(int subpass)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Subpass(int subpass)
 {
 	pipelineInfo.subpass = subpass;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setLayout(VulkanPipelineLayout* layout)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Layout(VulkanPipelineLayout* layout)
 {
 	pipelineInfo.layout = layout->layout;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setRenderPass(VulkanRenderPass* renderPass)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::RenderPass(VulkanRenderPass* renderPass)
 {
 	pipelineInfo.renderPass = renderPass->renderPass;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setTopology(VkPrimitiveTopology topology)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Topology(VkPrimitiveTopology topology)
 {
 	inputAssembly.topology = topology;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setViewport(float x, float y, float width, float height, float minDepth, float maxDepth)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Viewport(float x, float y, float width, float height, float minDepth, float maxDepth)
 {
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
@@ -699,9 +850,10 @@ void GraphicsPipelineBuilder::setViewport(float x, float y, float width, float h
 
 	viewportState.viewportCount = 1;
 	viewportState.pViewports = &viewport;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setScissor(int x, int y, int width, int height)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Scissor(int x, int y, int width, int height)
 {
 	scissor.offset.x = x;
 	scissor.offset.y = y;
@@ -710,24 +862,25 @@ void GraphicsPipelineBuilder::setScissor(int x, int y, int width, int height)
 
 	viewportState.scissorCount = 1;
 	viewportState.pScissors = &scissor;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setCull(VkCullModeFlags cullMode, VkFrontFace frontFace)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Cull(VkCullModeFlags cullMode, VkFrontFace frontFace)
 {
 	rasterizer.cullMode = cullMode;
 	rasterizer.frontFace = frontFace;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setDepthStencilEnable(bool test, bool write, bool stencil)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::DepthStencilEnable(bool test, bool write, bool stencil)
 {
 	depthStencil.depthTestEnable = test ? VK_TRUE : VK_FALSE;
 	depthStencil.depthWriteEnable = write ? VK_TRUE : VK_FALSE;
 	depthStencil.stencilTestEnable = stencil ? VK_TRUE : VK_FALSE;
-
-	pipelineInfo.pDepthStencilState = (test || write || stencil) ? &depthStencil : nullptr;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setStencil(VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp, uint32_t compareMask, uint32_t writeMask, uint32_t reference)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Stencil(VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp, uint32_t compareMask, uint32_t writeMask, uint32_t reference)
 {
 	depthStencil.front.failOp = failOp;
 	depthStencil.front.passOp = passOp;
@@ -744,32 +897,37 @@ void GraphicsPipelineBuilder::setStencil(VkStencilOp failOp, VkStencilOp passOp,
 	depthStencil.back.compareMask = compareMask;
 	depthStencil.back.writeMask = writeMask;
 	depthStencil.back.reference = reference;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setDepthFunc(VkCompareOp func)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::DepthFunc(VkCompareOp func)
 {
 	depthStencil.depthCompareOp = func;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setDepthClampEnable(bool value)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::DepthClampEnable(bool value)
 {
 	rasterizer.depthClampEnable = value ? VK_TRUE : VK_FALSE;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setDepthBias(bool enable, float biasConstantFactor, float biasClamp, float biasSlopeFactor)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::DepthBias(bool enable, float biasConstantFactor, float biasClamp, float biasSlopeFactor)
 {
 	rasterizer.depthBiasEnable = enable ? VK_TRUE : VK_FALSE;
 	rasterizer.depthBiasConstantFactor = biasConstantFactor;
 	rasterizer.depthBiasClamp = biasClamp;
 	rasterizer.depthBiasSlopeFactor = biasSlopeFactor;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setColorWriteMask(VkColorComponentFlags mask)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::ColorWriteMask(VkColorComponentFlags mask)
 {
 	colorBlendAttachment.colorWriteMask = mask;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setAdditiveBlendMode()
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AdditiveBlendMode()
 {
 	colorBlendAttachment.blendEnable = VK_TRUE;
 	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -778,9 +936,10 @@ void GraphicsPipelineBuilder::setAdditiveBlendMode()
 	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setAlphaBlendMode()
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AlphaBlendMode()
 {
 	colorBlendAttachment.blendEnable = VK_TRUE;
 	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
@@ -789,9 +948,10 @@ void GraphicsPipelineBuilder::setAlphaBlendMode()
 	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setBlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::BlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst)
 {
 	colorBlendAttachment.blendEnable = VK_TRUE;
 	colorBlendAttachment.srcColorBlendFactor = src;
@@ -800,16 +960,18 @@ void GraphicsPipelineBuilder::setBlendMode(VkBlendOp op, VkBlendFactor src, VkBl
 	colorBlendAttachment.srcAlphaBlendFactor = src;
 	colorBlendAttachment.dstAlphaBlendFactor = dst;
 	colorBlendAttachment.alphaBlendOp = op;
+	return *this;
 }
 
-void GraphicsPipelineBuilder::setSubpassColorAttachmentCount(int count)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SubpassColorAttachmentCount(int count)
 {
 	colorBlendAttachments.resize(count, colorBlendAttachment);
 	colorBlending.pAttachments = colorBlendAttachments.data();
 	colorBlending.attachmentCount = (uint32_t)colorBlendAttachments.size();
+	return *this;
 }
 
-void GraphicsPipelineBuilder::addVertexShader(VulkanShader* shader)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddVertexShader(VulkanShader* shader)
 {
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
 	vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -820,9 +982,10 @@ void GraphicsPipelineBuilder::addVertexShader(VulkanShader* shader)
 
 	pipelineInfo.stageCount = (uint32_t)shaderStages.size();
 	pipelineInfo.pStages = shaderStages.data();
+	return *this;
 }
 
-void GraphicsPipelineBuilder::addFragmentShader(VulkanShader* shader)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddFragmentShader(VulkanShader* shader)
 {
 	VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
 	fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -833,9 +996,10 @@ void GraphicsPipelineBuilder::addFragmentShader(VulkanShader* shader)
 
 	pipelineInfo.stageCount = (uint32_t)shaderStages.size();
 	pipelineInfo.pStages = shaderStages.data();
+	return *this;
 }
 
-void GraphicsPipelineBuilder::addVertexBufferBinding(int index, size_t stride)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddVertexBufferBinding(int index, size_t stride)
 {
 	VkVertexInputBindingDescription desc = {};
 	desc.binding = index;
@@ -845,9 +1009,10 @@ void GraphicsPipelineBuilder::addVertexBufferBinding(int index, size_t stride)
 
 	vertexInputInfo.vertexBindingDescriptionCount = (uint32_t)vertexInputBindings.size();
 	vertexInputInfo.pVertexBindingDescriptions = vertexInputBindings.data();
+	return *this;
 }
 
-void GraphicsPipelineBuilder::addVertexAttribute(int location, int binding, VkFormat format, size_t offset)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddVertexAttribute(int location, int binding, VkFormat format, size_t offset)
 {
 	VkVertexInputAttributeDescription desc = { };
 	desc.location = location;
@@ -858,22 +1023,26 @@ void GraphicsPipelineBuilder::addVertexAttribute(int location, int binding, VkFo
 
 	vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributes.size();
 	vertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributes.data();
+	return *this;
 }
 
-void GraphicsPipelineBuilder::addDynamicState(VkDynamicState state)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddDynamicState(VkDynamicState state)
 {
 	dynamicStates.push_back(state);
 	dynamicState.dynamicStateCount = (uint32_t)dynamicStates.size();
 	dynamicState.pDynamicStates = dynamicStates.data();
+	return *this;
 }
 
-std::unique_ptr<VulkanPipeline> GraphicsPipelineBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanPipeline> GraphicsPipelineBuilder::Create(VulkanDevice* device)
 {
 	VkPipeline pipeline = 0;
 	VkResult result = vkCreateGraphicsPipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create graphics pipeline");
-	return std::make_unique<VulkanPipeline>(device, pipeline);
+	CheckVulkanError(result, "Could not create graphics pipeline");
+	auto obj = std::make_unique<VulkanPipeline>(device, pipeline);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -883,14 +1052,15 @@ PipelineLayoutBuilder::PipelineLayoutBuilder()
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 }
 
-void PipelineLayoutBuilder::addSetLayout(VulkanDescriptorSetLayout* setLayout)
+PipelineLayoutBuilder& PipelineLayoutBuilder::AddSetLayout(VulkanDescriptorSetLayout* setLayout)
 {
 	setLayouts.push_back(setLayout->layout);
 	pipelineLayoutInfo.setLayoutCount = (uint32_t)setLayouts.size();
 	pipelineLayoutInfo.pSetLayouts = setLayouts.data();
+	return *this;
 }
 
-void PipelineLayoutBuilder::addPushConstantRange(VkShaderStageFlags stageFlags, size_t offset, size_t size)
+PipelineLayoutBuilder& PipelineLayoutBuilder::AddPushConstantRange(VkShaderStageFlags stageFlags, size_t offset, size_t size)
 {
 	VkPushConstantRange range = { };
 	range.stageFlags = stageFlags;
@@ -899,15 +1069,18 @@ void PipelineLayoutBuilder::addPushConstantRange(VkShaderStageFlags stageFlags, 
 	pushConstantRanges.push_back(range);
 	pipelineLayoutInfo.pushConstantRangeCount = (uint32_t)pushConstantRanges.size();
 	pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+	return *this;
 }
 
-std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::Create(VulkanDevice* device)
 {
 	VkPipelineLayout pipelineLayout;
 	VkResult result = vkCreatePipelineLayout(device->device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create pipeline layout");
-	return std::make_unique<VulkanPipelineLayout>(device, pipelineLayout);
+	CheckVulkanError(result, "Could not create pipeline layout");
+	auto obj = std::make_unique<VulkanPipelineLayout>(device, pipelineLayout);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -917,7 +1090,7 @@ RenderPassBuilder::RenderPassBuilder()
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 }
 
-void RenderPassBuilder::addAttachment(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp load, VkAttachmentStoreOp store, VkImageLayout initialLayout, VkImageLayout finalLayout)
+RenderPassBuilder& RenderPassBuilder::AddAttachment(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp load, VkAttachmentStoreOp store, VkImageLayout initialLayout, VkImageLayout finalLayout)
 {
 	VkAttachmentDescription attachment = {};
 	attachment.format = format;
@@ -931,9 +1104,10 @@ void RenderPassBuilder::addAttachment(VkFormat format, VkSampleCountFlagBits sam
 	attachments.push_back(attachment);
 	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.attachmentCount = (uint32_t)attachments.size();
+	return *this;
 }
 
-void RenderPassBuilder::addDepthStencilAttachment(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp load, VkAttachmentStoreOp store, VkAttachmentLoadOp stencilLoad, VkAttachmentStoreOp stencilStore, VkImageLayout initialLayout, VkImageLayout finalLayout)
+RenderPassBuilder& RenderPassBuilder::AddDepthStencilAttachment(VkFormat format, VkSampleCountFlagBits samples, VkAttachmentLoadOp load, VkAttachmentStoreOp store, VkAttachmentLoadOp stencilLoad, VkAttachmentStoreOp stencilStore, VkImageLayout initialLayout, VkImageLayout finalLayout)
 {
 	VkAttachmentDescription attachment = {};
 	attachment.format = format;
@@ -947,9 +1121,10 @@ void RenderPassBuilder::addDepthStencilAttachment(VkFormat format, VkSampleCount
 	attachments.push_back(attachment);
 	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.attachmentCount = (uint32_t)attachments.size();
+	return *this;
 }
 
-void RenderPassBuilder::addExternalSubpassDependency(VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+RenderPassBuilder& RenderPassBuilder::AddExternalSubpassDependency(VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
 {
 	VkSubpassDependency dependency = {};
 	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -962,9 +1137,10 @@ void RenderPassBuilder::addExternalSubpassDependency(VkPipelineStageFlags srcSta
 	dependencies.push_back(dependency);
 	renderPassInfo.pDependencies = dependencies.data();
 	renderPassInfo.dependencyCount = (uint32_t)dependencies.size();
+	return *this;
 }
 
-void RenderPassBuilder::addSubpass()
+RenderPassBuilder& RenderPassBuilder::AddSubpass()
 {
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -974,9 +1150,10 @@ void RenderPassBuilder::addSubpass()
 	renderPassInfo.subpassCount = (uint32_t)subpasses.size();
 
 	subpassData.push_back(std::make_unique<SubpassData>());
+	return *this;
 }
 
-void RenderPassBuilder::addSubpassColorAttachmentRef(uint32_t index, VkImageLayout layout)
+RenderPassBuilder& RenderPassBuilder::AddSubpassColorAttachmentRef(uint32_t index, VkImageLayout layout)
 {
 	VkAttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = index;
@@ -985,9 +1162,10 @@ void RenderPassBuilder::addSubpassColorAttachmentRef(uint32_t index, VkImageLayo
 	subpassData.back()->colorRefs.push_back(colorAttachmentRef);
 	subpasses.back().pColorAttachments = subpassData.back()->colorRefs.data();
 	subpasses.back().colorAttachmentCount = (uint32_t)subpassData.back()->colorRefs.size();
+	return *this;
 }
 
-void RenderPassBuilder::addSubpassDepthStencilAttachmentRef(uint32_t index, VkImageLayout layout)
+RenderPassBuilder& RenderPassBuilder::AddSubpassDepthStencilAttachmentRef(uint32_t index, VkImageLayout layout)
 {
 	VkAttachmentReference& depthAttachmentRef = subpassData.back()->depthRef;
 	depthAttachmentRef.attachment = index;
@@ -995,13 +1173,262 @@ void RenderPassBuilder::addSubpassDepthStencilAttachmentRef(uint32_t index, VkIm
 
 	VkSubpassDescription& subpass = subpasses.back();
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+	return *this;
 }
 
-std::unique_ptr<VulkanRenderPass> RenderPassBuilder::create(VulkanDevice* device)
+std::unique_ptr<VulkanRenderPass> RenderPassBuilder::Create(VulkanDevice* device)
 {
 	VkRenderPass renderPass = 0;
 	VkResult result = vkCreateRenderPass(device->device, &renderPassInfo, nullptr, &renderPass);
-	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create render pass");
-	return std::make_unique<VulkanRenderPass>(device, renderPass);
+	CheckVulkanError(result, "Could not create render pass");
+	auto obj = std::make_unique<VulkanRenderPass>(device, renderPass);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PipelineBarrier& PipelineBarrier::AddMemory(VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	VkMemoryBarrier barrier = { };
+	barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	barrier.srcAccessMask = srcAccessMask;
+	barrier.dstAccessMask = dstAccessMask;
+	memoryBarriers.push_back(barrier);
+	return *this;
+}
+
+PipelineBarrier& PipelineBarrier::AddBuffer(VulkanBuffer* buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	return AddBuffer(buffer, 0, buffer->size, srcAccessMask, dstAccessMask);
+}
+
+PipelineBarrier& PipelineBarrier::AddBuffer(VulkanBuffer* buffer, VkDeviceSize offset, VkDeviceSize size, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	VkBufferMemoryBarrier barrier = { };
+	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	barrier.srcAccessMask = srcAccessMask;
+	barrier.dstAccessMask = dstAccessMask;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.buffer = buffer->buffer;
+	barrier.offset = offset;
+	barrier.size = size;
+	bufferMemoryBarriers.push_back(barrier);
+	return *this;
+}
+
+PipelineBarrier& PipelineBarrier::AddImage(VulkanImage* image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount)
+{
+	return AddImage(image->image, oldLayout, newLayout, srcAccessMask, dstAccessMask, aspectMask, baseMipLevel, levelCount);
+}
+
+PipelineBarrier& PipelineBarrier::AddImage(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount)
+{
+	VkImageMemoryBarrier barrier = { };
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.srcAccessMask = srcAccessMask;
+	barrier.dstAccessMask = dstAccessMask;
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = aspectMask;
+	barrier.subresourceRange.baseMipLevel = baseMipLevel;
+	barrier.subresourceRange.levelCount = levelCount;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	imageMemoryBarriers.push_back(barrier);
+	return *this;
+}
+
+PipelineBarrier& PipelineBarrier::AddQueueTransfer(int srcFamily, int dstFamily, VulkanBuffer* buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask)
+{
+	VkBufferMemoryBarrier barrier = { };
+	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+	barrier.srcAccessMask = srcAccessMask;
+	barrier.dstAccessMask = dstAccessMask;
+	barrier.srcQueueFamilyIndex = srcFamily;
+	barrier.dstQueueFamilyIndex = dstFamily;
+	barrier.buffer = buffer->buffer;
+	barrier.offset = 0;
+	barrier.size = buffer->size;
+	bufferMemoryBarriers.push_back(barrier);
+	return *this;
+}
+
+PipelineBarrier& PipelineBarrier::AddQueueTransfer(int srcFamily, int dstFamily, VulkanImage* image, VkImageLayout layout, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount)
+{
+	VkImageMemoryBarrier barrier = { };
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = layout;
+	barrier.newLayout = layout;
+	barrier.srcQueueFamilyIndex = srcFamily;
+	barrier.dstQueueFamilyIndex = dstFamily;
+	barrier.image = image->image;
+	barrier.subresourceRange.aspectMask = aspectMask;
+	barrier.subresourceRange.baseMipLevel = baseMipLevel;
+	barrier.subresourceRange.levelCount = levelCount;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	imageMemoryBarriers.push_back(barrier);
+	return *this;
+}
+
+void PipelineBarrier::Execute(VulkanCommandBuffer* commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags)
+{
+	commandBuffer->pipelineBarrier(
+		srcStageMask, dstStageMask, dependencyFlags,
+		(uint32_t)memoryBarriers.size(), memoryBarriers.data(),
+		(uint32_t)bufferMemoryBarriers.size(), bufferMemoryBarriers.data(),
+		(uint32_t)imageMemoryBarriers.size(), imageMemoryBarriers.data());
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+QueueSubmit::QueueSubmit()
+{
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+}
+
+QueueSubmit& QueueSubmit::AddCommandBuffer(VulkanCommandBuffer* buffer)
+{
+	commandBuffers.push_back(buffer->buffer);
+	submitInfo.pCommandBuffers = commandBuffers.data();
+	submitInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+	return *this;
+}
+
+QueueSubmit& QueueSubmit::AddWait(VkPipelineStageFlags waitStageMask, VulkanSemaphore* semaphore)
+{
+	waitStages.push_back(waitStageMask);
+	waitSemaphores.push_back(semaphore->semaphore);
+
+	submitInfo.pWaitDstStageMask = waitStages.data();
+	submitInfo.pWaitSemaphores = waitSemaphores.data();
+	submitInfo.waitSemaphoreCount = (uint32_t)waitSemaphores.size();
+	return *this;
+}
+
+QueueSubmit& QueueSubmit::AddSignal(VulkanSemaphore* semaphore)
+{
+	signalSemaphores.push_back(semaphore->semaphore);
+	submitInfo.pSignalSemaphores = signalSemaphores.data();
+	submitInfo.signalSemaphoreCount = (uint32_t)signalSemaphores.size();
+	return *this;
+}
+
+void QueueSubmit::Execute(VulkanDevice* device, VkQueue queue, VulkanFence* fence)
+{
+	VkResult result = vkQueueSubmit(device->GraphicsQueue, 1, &submitInfo, fence ? fence->fence : VK_NULL_HANDLE);
+	CheckVulkanError(result, "Could not submit command buffer");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+WriteDescriptors& WriteDescriptors::AddBuffer(VulkanDescriptorSet* descriptorSet, int binding, VkDescriptorType type, VulkanBuffer* buffer)
+{
+	return AddBuffer(descriptorSet, binding, type, buffer, 0, buffer->size);
+}
+
+WriteDescriptors& WriteDescriptors::AddBuffer(VulkanDescriptorSet* descriptorSet, int binding, VkDescriptorType type, VulkanBuffer* buffer, size_t offset, size_t range)
+{
+	VkDescriptorBufferInfo bufferInfo = {};
+	bufferInfo.buffer = buffer->buffer;
+	bufferInfo.offset = offset;
+	bufferInfo.range = range;
+
+	auto extra = std::make_unique<WriteExtra>();
+	extra->bufferInfo = bufferInfo;
+
+	VkWriteDescriptorSet descriptorWrite = {};
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = descriptorSet->set;
+	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstArrayElement = 0;
+	descriptorWrite.descriptorType = type;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pBufferInfo = &extra->bufferInfo;
+	writes.push_back(descriptorWrite);
+	writeExtras.push_back(std::move(extra));
+	return *this;
+}
+
+WriteDescriptors& WriteDescriptors::AddStorageImage(VulkanDescriptorSet* descriptorSet, int binding, VulkanImageView* view, VkImageLayout imageLayout)
+{
+	VkDescriptorImageInfo imageInfo = {};
+	imageInfo.imageView = view->view;
+	imageInfo.imageLayout = imageLayout;
+
+	auto extra = std::make_unique<WriteExtra>();
+	extra->imageInfo = imageInfo;
+
+	VkWriteDescriptorSet descriptorWrite = {};
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = descriptorSet->set;
+	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstArrayElement = 0;
+	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pImageInfo = &extra->imageInfo;
+	writes.push_back(descriptorWrite);
+	writeExtras.push_back(std::move(extra));
+	return *this;
+}
+
+WriteDescriptors& WriteDescriptors::AddCombinedImageSampler(VulkanDescriptorSet* descriptorSet, int binding, VulkanImageView* view, VulkanSampler* sampler, VkImageLayout imageLayout)
+{
+	return AddCombinedImageSampler(descriptorSet, binding, 0, view, sampler, imageLayout);
+}
+
+WriteDescriptors& WriteDescriptors::AddCombinedImageSampler(VulkanDescriptorSet* descriptorSet, int binding, int arrayIndex, VulkanImageView* view, VulkanSampler* sampler, VkImageLayout imageLayout)
+{
+	VkDescriptorImageInfo imageInfo = {};
+	imageInfo.imageView = view->view;
+	imageInfo.sampler = sampler->sampler;
+	imageInfo.imageLayout = imageLayout;
+
+	auto extra = std::make_unique<WriteExtra>();
+	extra->imageInfo = imageInfo;
+
+	VkWriteDescriptorSet descriptorWrite = {};
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = descriptorSet->set;
+	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstArrayElement = arrayIndex;
+	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pImageInfo = &extra->imageInfo;
+	writes.push_back(descriptorWrite);
+	writeExtras.push_back(std::move(extra));
+	return *this;
+}
+
+WriteDescriptors& WriteDescriptors::AddAccelerationStructure(VulkanDescriptorSet* descriptorSet, int binding, VulkanAccelerationStructure* accelStruct)
+{
+	auto extra = std::make_unique<WriteExtra>();
+	extra->accelStruct = {};
+	extra->accelStruct.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+	extra->accelStruct.accelerationStructureCount = 1;
+	extra->accelStruct.pAccelerationStructures = &accelStruct->accelstruct;
+
+	VkWriteDescriptorSet descriptorWrite = {};
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = descriptorSet->set;
+	descriptorWrite.dstBinding = binding;
+	descriptorWrite.dstArrayElement = 0;
+	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pNext = &extra->accelStruct;
+	writes.push_back(descriptorWrite);
+	writeExtras.push_back(std::move(extra));
+	return *this;
+}
+
+void WriteDescriptors::Execute(VulkanDevice* device)
+{
+	if (!writes.empty())
+		vkUpdateDescriptorSets(device->device, (uint32_t)writes.size(), writes.data(), 0, nullptr);
 }

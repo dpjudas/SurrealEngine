@@ -11,8 +11,7 @@ std::string FileResource::readAllText(const std::string& filename)
 		return R"(
 			layout(push_constant) uniform ScenePushConstants
 			{
-				mat4 objectToWorld;
-				mat4 worldToProjection;
+				mat4 objectToProjection;
 			};
 
 			layout(location = 0) in uint aFlags;
@@ -22,6 +21,9 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(location = 4) in vec2 aTexCoord3;
 			layout(location = 5) in vec2 aTexCoord4;
 			layout(location = 6) in vec4 aColor;
+			#if defined(BINDLESS_TEXTURES)
+			layout(location = 7) in ivec4 aTextureBinds;
+			#endif
 
 			layout(location = 0) flat out uint flags;
 			layout(location = 1) out vec2 texCoord;
@@ -29,61 +31,46 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(location = 3) out vec2 texCoord3;
 			layout(location = 4) out vec2 texCoord4;
 			layout(location = 5) out vec4 color;
-			layout(location = 6) out vec3 worldPos;
+			#if defined(BINDLESS_TEXTURES)
+			layout(location = 6) flat out ivec4 textureBinds;
+			#endif
 
 			void main()
 			{
-				worldPos = (objectToWorld * vec4(aPosition, 1.0)).xyz;
-
-				if ((aFlags & 16) == 0)
-					gl_Position = worldToProjection * objectToWorld * vec4(aPosition, 1.0);
-				else
-					gl_Position = vec4(aPosition, 1.0);
-
+				gl_Position = objectToProjection * vec4(aPosition, 1.0);
 				flags = aFlags;
 				texCoord = aTexCoord;
 				texCoord2 = aTexCoord2;
 				texCoord3 = aTexCoord3;
 				texCoord4 = aTexCoord4;
 				color = aColor;
+				#if defined(BINDLESS_TEXTURES)
+				textureBinds = aTextureBinds;
+				#endif
 			}
 		)";
 	}
 	else if (filename == "shaders/Scene.frag")
 	{
 		return R"(
-			struct Light
-			{
-				vec3 location;
-				float unused;
-				float brightness;
-				float hue;
-				float saturation;
-				float radius;
-			};
-
-			layout(set = 0, binding = 0) uniform accelerationStructureEXT TopLevelAS;
-			layout(set = 0, binding = 1, std140) buffer LightBuffer
-			{
-				Light lights[];
-			};
-			layout(set = 0, binding = 2, std140) buffer SurfaceLights
-			{
-				int surfaceLights[];
-			};
-
-			layout(set = 1, binding = 0) uniform sampler2D tex;
-			layout(set = 1, binding = 1) uniform sampler2D texLightmap;
-			layout(set = 1, binding = 2) uniform sampler2D texMacro;
-			layout(set = 1, binding = 3) uniform sampler2D texDetail;
+			#if defined(BINDLESS_TEXTURES)
+			layout(binding = 0) uniform sampler2D textures[];
+			#else
+			layout(binding = 0) uniform sampler2D tex;
+			layout(binding = 1) uniform sampler2D texLightmap;
+			layout(binding = 2) uniform sampler2D texMacro;
+			layout(binding = 3) uniform sampler2D texDetail;
+			#endif
 
 			layout(location = 0) flat in uint flags;
-			layout(location = 1) in vec2 texCoord;
+			layout(location = 1) centroid in vec2 texCoord;
 			layout(location = 2) in vec2 texCoord2;
 			layout(location = 3) in vec2 texCoord3;
 			layout(location = 4) in vec2 texCoord4;
 			layout(location = 5) in vec4 color;
-			layout(location = 6) in vec3 worldPos;
+			#if defined(BINDLESS_TEXTURES)
+			layout(location = 6) flat in ivec4 textureBinds;
+			#endif
 
 			layout(location = 0) out vec4 outColor;
 
@@ -92,105 +79,62 @@ std::string FileResource::readAllText(const std::string& filename)
 				return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(c, vec3(0.04045)));
 			}
 
-			float shadowAttenuation(vec3 fragpos, vec3 lightpos)
+			vec4 darkClamp(vec4 c)
 			{
-				vec3 origin = fragpos.xyz;
-				vec3 direction = normalize(lightpos - fragpos.xyz);
-				float lightDistance = distance(fragpos.xyz, lightpos);
-
-				rayQueryEXT rayQuery;
-				rayQueryInitializeEXT(rayQuery, TopLevelAS, gl_RayFlagsTerminateOnFirstHitEXT, 0xFF, origin, 0.01f, direction, lightDistance);
-
-				while(rayQueryProceedEXT(rayQuery))
-				{
-				}
-
-				if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT)
-				{
-					return 0.0;
-				}
-
-				return 1.0;
+				// Make all textures a little darker as some of the textures (i.e coronas) never become completely black as they should have
+				float cutoff = 3.1/255.0;
+				return vec4(clamp((c.rgb - cutoff) / (1.0 - cutoff), 0.0, 1.0), c.a);
 			}
 
-			float lightContribution(vec3 lightPos, float radius)
-			{
-				float att = max(1.0f - distance(worldPos, lightPos) / radius, 0.0f);
-				if (att > 0.0f)
-					att *= shadowAttenuation(worldPos, lightPos);
-				return att;
-			}
+			#if defined(BINDLESS_TEXTURES)
+			vec4 textureTex(vec2 uv) { return texture(textures[textureBinds.x], uv); }
+			vec4 textureMacro(vec2 uv) { return texture(textures[textureBinds.y], uv); }
+			vec4 textureDetail(vec2 uv) { return texture(textures[textureBinds.z], uv); }
+			vec4 textureLightmap(vec2 uv) { return texture(textures[textureBinds.w], uv); }
+			#else
+			vec4 textureTex(vec2 uv) { return texture(tex, uv); }
+			vec4 textureMacro(vec2 uv) { return texture(texMacro, uv); }
+			vec4 textureLightmap(vec2 uv) { return texture(texLightmap, uv); }
+			vec4 textureDetail(vec2 uv) { return texture(texDetail, uv); }
+			#endif
 
 			void main()
 			{
-				outColor = texture(tex, texCoord);
-				//outColor.rgb = linear(outColor.rgb);
+				outColor = darkClamp(textureTex(texCoord)) * darkClamp(color);
 
 				if ((flags & 2) != 0) // Macro texture
 				{
-					outColor *= texture(texMacro, texCoord3);
+					outColor *= darkClamp(textureMacro(texCoord3));
 				}
 
 				if ((flags & 1) != 0) // Lightmap
 				{
-					vec3 matColor = outColor.rgb;
-					outColor *= texture(texLightmap, texCoord2) * 0.25;
-
-					outColor.rgb += matColor * lightContribution(vec3(629,-657,-161), 800);
+					outColor.rgb *= clamp(textureLightmap(texCoord2).rgb - 0.03, 0.0, 1.0) * 2.0;
 				}
 
 				if ((flags & 4) != 0) // Detail texture
 				{
-					/* To do: apply fade out: Min( appRound(100.f * (NearZ / Poly->Pts[i]->Point.Z - 1.f)), 255) */
-
-					float detailScale = 1.0;
-					for (int i = 0; i < 3; i++)
-					{
-						outColor *= texture(texDetail, texCoord4 * detailScale) + 0.5;
-						detailScale *= 4.223f;
-					}
+					float fadedistance = 300.0f;
+					float a = clamp(2.0f - (1.0f / gl_FragCoord.w) / fadedistance, 0.0f, 1.0f);
+					vec4 detailColor = (textureDetail(texCoord4) - 0.5) * 0.5 + 1.0;
+					outColor.rgb = mix(outColor.rgb, outColor.rgb * detailColor.rgb, a);
 				}
 				else if ((flags & 8) != 0) // Fog map
 				{
-					vec4 fogcolor = texture(texDetail, texCoord4);
-					outColor = fogcolor + outColor * (1.0 - fogcolor.a);
+					vec4 fogcolor = darkClamp(textureDetail(texCoord4));
+					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
 				}
-
-				outColor *= color;
+				else if ((flags & 16) != 0) // Fog color
+				{
+					vec4 fogcolor = darkClamp(vec4(texCoord2, texCoord3));
+					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
+				}
 
 				#if defined(ALPHATEST)
 				if (outColor.a < 0.5) discard;
 				#endif
-			}
-		)";
-	}
-	else if (filename == "shaders/Shadowmap.vert")
-	{
-		return R"(
-			layout(push_constant) uniform ScenePushConstants
-			{
-				mat4 objectToProjection;
-			};
 
-			layout(location = 1) in vec3 aPosition;
-			layout(location = 0) out float depth;
-
-			void main()
-			{
-				gl_Position = objectToProjection * vec4(aPosition, 1.0);
-				depth = gl_Position.w;
-			}
-		)";
-	}
-	else if (filename == "shaders/Shadowmap.frag")
-	{
-		return R"(
-			layout(location = 0) in float depth;
-			layout(location = 0) out vec4 outColor;
-
-			void main()
-			{
-				outColor = vec4(depth, 0.0, 0.0, 1.0);
+				outColor = clamp(outColor, 0.0, 1.0);
 			}
 		)";
 	}
@@ -219,6 +163,14 @@ std::string FileResource::readAllText(const std::string& filename)
 	else if (filename == "shaders/Present.frag")
 	{
 		return R"(
+			layout(push_constant) uniform PresentPushConstants
+			{
+				float InvGamma;
+				float padding1;
+				float padding2;
+				float padding3;
+			};
+
 			layout(binding = 0) uniform sampler2D texSampler;
 			layout(binding = 1) uniform sampler2D texDither;
 			layout(location = 0) in vec2 texCoord;
@@ -229,6 +181,11 @@ std::string FileResource::readAllText(const std::string& filename)
 				vec2 texSize = vec2(textureSize(texDither, 0));
 				float threshold = texture(texDither, gl_FragCoord.xy / texSize).r;
 				return floor(c.rgb * 255.0 + threshold) / 255.0;
+			}
+
+			vec3 srgb(vec3 c)
+			{
+				return mix(c * 12.92, 1.055 * pow(c, vec3(1.0/2.4)) - 0.055, step(c, vec3(0.0031308)));
 			}
 
 			void main()
