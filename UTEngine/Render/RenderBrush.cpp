@@ -1,15 +1,12 @@
 
 #include "Precomp.h"
-#include "BrushRender.h"
+#include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/ULevel.h"
-#include "UObject/UTexture.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
 #include "Window/Window.h"
-#include "UTRenderer.h"
+#include "VM/ScriptCall.h"
+#include "Engine.h"
 
-void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
+void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 {
 	UModel* brush = actor->Brush();
 	const vec3& location = actor->Location();
@@ -21,8 +18,7 @@ void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
 	mat4 rotate = mat4::rotate(radians(rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
 	brushframe.ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
 
-	auto device = engine->window->GetRenderDevice();
-	device->SetSceneNode(&brushframe);
+	Device->SetSceneNode(&brushframe);
 
 	for (const BspNode& node : brush->Nodes)
 	{
@@ -34,10 +30,10 @@ void BrushRender::DrawBrush(FSceneNode* frame, UActor* actor)
 		DrawNodeSurfaceGouraud(frame, brush, node, 1, color);
 	}
 
-	device->SetSceneNode(frame);
+	Device->SetSceneNode(frame);
 }
 
-void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
+void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -81,8 +77,8 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 		if (tex->TextureModified)
 			tex->TextureModified = false;
 
-		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += engine->renderer->AutoUV;
-		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += engine->renderer->AutoUV;
+		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
+		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node.VertPool];
@@ -102,5 +98,5 @@ void BrushRender::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const
 		vertices.push_back(gv);
 	}
 
-	engine->window->GetRenderDevice()->DrawGouraudPolygon(frame, texture, vertices.data(), (int)vertices.size(), surface.PolyFlags);
+	Device->DrawGouraudPolygon(frame, texture, vertices.data(), (int)vertices.size(), surface.PolyFlags);
 }

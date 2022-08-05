@@ -1,16 +1,10 @@
 
 #include "Precomp.h"
-#include "SpriteRender.h"
-#include "UObject/UTexture.h"
-#include "UObject/ULevel.h"
-#include "UObject/UActor.h"
+#include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Math/quaternion.h"
 #include "Engine.h"
-#include "Window/Window.h"
-#include "UTRenderer.h"
 
-void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
+void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 {
 	UTexture* texture = actor->Texture();
 	const vec3& location = actor->Location();
@@ -18,10 +12,6 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	float drawscale = actor->DrawScale();
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
-
-	auto device = engine->window->GetRenderDevice();
-
-	engine->renderer->Textures.insert(texture);
 
 	texture = texture->GetAnimTexture();
 
@@ -78,5 +68,5 @@ void SpriteRender::DrawSprite(FSceneNode* frame, UActor* actor)
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = { 1.0f };
 	vertices[3].Fog = { 0.0f };
-	device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
+	Device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
 }

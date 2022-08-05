@@ -3,24 +3,17 @@ project(UTEngine)
 
 set(UTENGINE_SOURCES
 	UTEngine/Precomp.cpp
-	UTEngine/Renderer/SceneRender.cpp
-	UTEngine/Renderer/UTRenderer.cpp
-	UTEngine/Renderer/CoronaRender.h
-	UTEngine/Renderer/DecalRender.h
-	UTEngine/Renderer/MeshRender.cpp
-	UTEngine/Renderer/SceneRender.h
-	UTEngine/Renderer/BrushRender.cpp
-	UTEngine/Renderer/SpriteRender.h
-	UTEngine/Renderer/CoronaRender.cpp
-	UTEngine/Renderer/DecalRender.cpp
-	UTEngine/Renderer/CanvasRender.cpp
-	UTEngine/Renderer/SpriteRender.cpp
-	UTEngine/Renderer/CanvasRender.h
-	UTEngine/Renderer/UTRenderer.h
-	UTEngine/Renderer/LightRender.h
-	UTEngine/Renderer/BrushRender.h
-	UTEngine/Renderer/MeshRender.h
-	UTEngine/Renderer/LightRender.cpp
+	UTEngine/Render/RenderSubsystem.cpp
+	UTEngine/Render/RenderSubsystem.h
+	UTEngine/Render/RenderCanvas.cpp
+	UTEngine/Render/RenderMesh.cpp
+	UTEngine/Render/RenderBrush.cpp
+	UTEngine/Render/RenderSprite.cpp
+	UTEngine/Render/RenderCorona.cpp
+	UTEngine/Render/RenderDecal.cpp
+	UTEngine/Render/RenderScene.cpp
+	UTEngine/Render/RenderLight.cpp
+	UTEngine/Render/RenderFog.cpp
 	UTEngine/Engine.cpp
 	UTEngine/Main.cpp
 	UTEngine/File.cpp
@@ -569,7 +562,7 @@ source_group("UTEngine\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/
 source_group("UTEngine\\Package" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Package/.+")
 source_group("UTEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/.+")
 source_group("UTEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/Vulkan/.+")
-source_group("UTEngine\\Renderer" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Renderer/.+")
+source_group("UTEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Render/.+")
 source_group("UTEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/.+")
 source_group("UTEngine\\UI\\Controls" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/.+")
 source_group("UTEngine\\UI\\Controls\\BorderLayoutView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/BorderLayoutView/.+")

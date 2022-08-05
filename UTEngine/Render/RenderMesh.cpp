@@ -1,16 +1,10 @@
 
 #include "Precomp.h"
-#include "MeshRender.h"
-#include "UObject/UMesh.h"
-#include "UObject/UTexture.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
+#include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
-#include "UTRenderer.h"
-#include "Window/Window.h"
 
-void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
+void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 {
 	UMesh* mesh = actor->Mesh();
 	const vec3& location = actor->Location();
@@ -33,11 +27,11 @@ void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor)
 		DrawMesh(frame, actor, mesh, meshToWorld, color);
 }
 
-void MeshRender::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 }
 
-void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
 	float animFrame = actor->AnimFrame() * seq->NumFrames;
@@ -80,17 +74,17 @@ void MeshRender::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, c
 		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
 	}
 
-	SetupTextures(actor, mesh);
+	SetupMeshTextures(actor, mesh);
 	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts, vertexOffsets, t0, t1);
 	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, 0, vertexOffsets, t0, t1);
 }
 
-void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
+void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 {
-	if (textures.size() < mesh->Textures.size())
-		textures.resize(mesh->Textures.size());
+	if (Mesh.textures.size() < mesh->Textures.size())
+		Mesh.textures.resize(mesh->Textures.size());
 
-	envmap = nullptr;
+	Mesh.envmap = nullptr;
 
 	for (int i = 0; i < (int)mesh->Textures.size(); i++)
 	{
@@ -111,29 +105,27 @@ void MeshRender::SetupTextures(UActor* actor, ULodMesh* mesh)
 			tex = tex->GetAnimTexture();
 
 		if (tex)
-			envmap = tex;
+			Mesh.envmap = tex;
 
-		textures[i] = tex;
+		Mesh.textures[i] = tex;
 	}
 
 	if (actor->Texture())
 	{
-		envmap = actor->Texture();
+		Mesh.envmap = actor->Texture();
 	}
 	else if (actor->Region().Zone && actor->Region().Zone->EnvironmentMap())
 	{
-		envmap = actor->Region().Zone->EnvironmentMap();
+		Mesh.envmap = actor->Region().Zone->EnvironmentMap();
 	}
 	else if (actor->Level()->EnvironmentMap())
 	{
-		envmap = actor->Level()->EnvironmentMap();
+		Mesh.envmap = actor->Level()->EnvironmentMap();
 	}
 }
 
-void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& lightcolor, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
+void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& lightcolor, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
 {
-	auto device = engine->window->GetRenderDevice();
-
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
 	{
@@ -147,7 +139,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 	if (actor->bMeshCurvy()) polyFlags |= PF_Flat;
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
-	
+
 	vec3 color;
 	if (polyFlags & PF_Unlit)
 	{
@@ -167,7 +159,7 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
 		uint32_t renderflags = material.PolyFlags | polyFlags;
-		UTexture* tex = (renderflags & PF_Environment) ? envmap : textures[material.TextureIndex];
+		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
 
 		if (!tex)
 			continue;
@@ -219,11 +211,11 @@ void MeshRender::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mes
 			}
 		}
 
-		device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
+		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
 }
 
-void MeshRender::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
 {
 	DrawLodMesh(frame, actor, mesh, ObjectToWorld, color);
 }

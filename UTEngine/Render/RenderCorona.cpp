@@ -1,22 +1,20 @@
 
 #include "Precomp.h"
-#include "CoronaRender.h"
+#include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/UActor.h"
-#include "UObject/UTexture.h"
-#include "UObject/ULevel.h"
-#include "Math/hsb.h"
 #include "Engine.h"
-#include "Window/Window.h"
-#include "UTRenderer.h"
+#include "Math/hsb.h"
 
-void CoronaRender::DrawCoronas(FSceneNode* frame)
+void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 {
-	RenderDevice* device = engine->window->GetRenderDevice();
+	FSceneNode frame2d = *frame;
+	frame2d.ObjectToWorld = mat4::identity();
+	frame2d.WorldToView = mat4::identity();
+	Device->SetSceneNode(&frame2d);
 
-	for (UActor* light : engine->renderer->Lights)
+	for (UActor* light : Corona.Lights)
 	{
-		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceRayAnyHit(light->Location(), frame->ViewLocation, nullptr, false, true, true))
+		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceRayAnyHit(light->Location(), engine->CameraLocation, nullptr, false, true, true))
 		{
 			vec4 pos = frame->WorldToView * frame->ObjectToWorld * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)
@@ -43,7 +41,7 @@ void CoronaRender::DrawCoronas(FSceneNode* frame)
 				texinfo.VSize = texinfo.Texture->VSize();
 				if (texinfo.Texture->Palette())
 					texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
-				device->DrawTile(frame, texinfo, x - width * scale * 0.5f, y - height * scale * 0.5f, width * scale, height * scale, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
+				Device->DrawTile(frame, texinfo, x - width * scale * 0.5f, y - height * scale * 0.5f, width * scale, height * scale, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
 			}
 		}
 	}

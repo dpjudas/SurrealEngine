@@ -6,8 +6,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
 #include "UObject/UActor.h"
-#include "Renderer/UTRenderer.h"
-#include "Renderer/CanvasRender.h"
+#include "Render/RenderSubsystem.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244) // warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
@@ -28,12 +27,12 @@ void NCanvas::RegisterFunctions()
 
 void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, bool* ClearZ)
 {
-	engine->renderer->canvas.DrawActor(UObject::Cast<UActor>(A), WireFrame, ClearZ ? *ClearZ : false);
+	engine->render->DrawActor(UObject::Cast<UActor>(A), WireFrame, ClearZ ? *ClearZ : false);
 }
 
 void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, bool* ClearZ)
 {
-	engine->renderer->canvas.DrawClippedActor(UObject::Cast<UActor>(A), WireFrame, X, Y, XB, YB, ClearZ ? *ClearZ : false);
+	engine->render->DrawClippedActor(UObject::Cast<UActor>(A), WireFrame, X, Y, XB, YB, ClearZ ? *ClearZ : false);
 }
 
 void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, int* FOV, bool* ClearZ)
@@ -65,7 +64,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->renderer->canvas.DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags, center, spaceX, spaceY);
+		engine->render->DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags, center, spaceX, spaceY);
 	}
 }
 
@@ -93,7 +92,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->renderer->canvas.DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, Text, renderflags, checkHotKey, clipX, clipY, center);
+		engine->render->DrawTextClipped(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, Text, renderflags, checkHotKey, clipX, clipY, center);
 	}
 }
 
@@ -124,7 +123,7 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 			renderflags |= PF_Modulated;
 		if (noSmooth)
 			renderflags |= PF_NoSmooth;
-		engine->renderer->canvas.DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
+		engine->render->DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
 	}
 
 	curX += XL + spaceX;
@@ -160,7 +159,7 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 			renderflags |= PF_Modulated;
 		if (noSmooth)
 			renderflags |= PF_NoSmooth;
-		engine->renderer->canvas.DrawTileClipped((UTexture*)Tex, orgX, orgY, curX, curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags, clipX, clipY);
+		engine->render->DrawTileClipped((UTexture*)Tex, orgX, orgY, curX, curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags, clipX, clipY);
 	}
 
 	float nextX = clamp(curX + XL, 0.0f, clipX);
@@ -179,7 +178,7 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 	UFont*& font = SelfCanvas->Font();
 	float& clipX = SelfCanvas->ClipX();
 
-	ivec2 size = engine->renderer->canvas.GetTextClippedSize(font, String, clipX);
+	ivec2 size = engine->render->GetTextClippedSize(font, String, clipX);
 	XL = size.x;
 	YL = size.y;
 }
@@ -189,7 +188,7 @@ void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, floa
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	UFont*& font = SelfCanvas->Font();
 
-	ivec2 size = engine->renderer->canvas.GetTextSize(font, String);
+	ivec2 size = engine->render->GetTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
 }

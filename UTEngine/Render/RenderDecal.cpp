@@ -1,19 +1,11 @@
 
 #include "Precomp.h"
-#include "DecalRender.h"
+#include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/UActor.h"
-#include "UObject/UTexture.h"
-#include "UObject/ULevel.h"
-#include "Math/hsb.h"
 #include "Engine.h"
-#include "Window/Window.h"
-#include "UTRenderer.h"
 
-void DecalRender::DrawDecals(FSceneNode* frame)
+void RenderSubsystem::DrawDecals(FSceneNode* frame)
 {
-	RenderDevice* device = engine->window->GetRenderDevice();
-
 	for (auto& leveldecal : engine->Level->Decals)
 	{
 		if (leveldecal->Decal->Texture())
@@ -50,7 +42,7 @@ void DecalRender::DrawDecals(FSceneNode* frame)
 			if (texture->bMasked())
 				renderflags |= PF_Masked;*/
 
-			device->DrawGouraudPolygon(frame, texinfo, points, 4, PF_Modulated);
+			Device->DrawGouraudPolygon(frame, texinfo, points, 4, PF_Modulated);
 		}
 	}
 }

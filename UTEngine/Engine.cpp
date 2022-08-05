@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "File.h"
-#include "Renderer/UTRenderer.h"
+#include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
 #include "UObject/ULevel.h"
@@ -53,8 +53,7 @@ void Engine::Run()
 	window->OpenWindow(1800, 950, true);
 
 	audio = std::make_unique<AudioSubsystem>();
-	renderer = std::make_unique<UTRenderer>();
-	renderer->uiscale = std::max((window->SizeY + 540) / 1080, 1);
+	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
 
 	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
@@ -141,7 +140,7 @@ void Engine::Run()
 			// To do: need to do something about that travel type and transfering of items
 
 			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
-			engine->LogMessage("Client travel to " + url.ToString());
+			LogMessage("Client travel to " + url.ToString());
 			LoadMap(url);
 		}
 
@@ -167,50 +166,7 @@ void Engine::Run()
 
 		UpdateAudio();
 
-		engine->renderer->AutoUV += levelElapsed * 64.0f;
-		for (UTexture* tex : engine->renderer->Textures)
-			tex->Update(levelElapsed);
-
-		RenderDevice* device = window->GetRenderDevice();
-		device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
-
-		engine->renderer->canvas.SceneFrame = renderer->scene.CreateSceneFrame();
-		engine->renderer->canvas.SceneFrame.ObjectToWorld = mat4::identity();
-		engine->renderer->canvas.SceneFrame.WorldToView = mat4::identity();
-		device->SetSceneNode(&renderer->canvas.SceneFrame);
-
-		int sizeX = (int)(window->SizeX / (float)renderer->uiscale);
-		int sizeY = (int)(window->SizeY / (float)renderer->uiscale);
-		canvas->CurX() = 0.0f;
-		canvas->CurY() = 0.0f;
-		console->FrameX() = (float)sizeX;
-		console->FrameY() = (float)sizeY;
-		canvas->ClipX() = (float)sizeX;
-		canvas->ClipY() = (float)sizeY;
-		canvas->SizeX() = sizeX;
-		canvas->SizeY() = sizeY;
-		//viewport->bShowWindowsMouse() = true; // bShowWindowsMouse is set to true by WindowConsole if mouse cursor should be visible
-		//viewport->bWindowsMouseAvailable() = true; // if true then RenderUWindow updates mouse pos from (WindowsMouseX,WindowsMouseY), otherwise it uses KeyEvent(IK_MouseX, delta) + KeyEvent(IK_MouseY, delta). Maybe used for windowed mode?
-		//viewport->WindowsMouseX() = 10.0f;
-		//viewport->WindowsMouseY() = 200.0f;
-		CallEvent(canvas, "Reset");
-
-		CallEvent(console, "PreRender", { ExpressionValue::ObjectValue(canvas) });
-		CallEvent(viewport->Actor(), "PreRender", { ExpressionValue::ObjectValue(canvas) });
-		if (console->bNoDrawWorld() == false)
-		{
-			renderer->scene.DrawScene();
-			engine->renderer->canvas.SceneFrame = renderer->scene.CreateSceneFrame();
-			engine->renderer->canvas.SceneFrame.ObjectToWorld = mat4::identity();
-			engine->renderer->canvas.SceneFrame.WorldToView = mat4::identity();
-			device->SetSceneNode(&renderer->canvas.SceneFrame);
-			CallEvent(viewport->Actor(), "RenderOverlays", { ExpressionValue::ObjectValue(canvas) });
-		}
-		CallEvent(viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(canvas) });
-		CallEvent(console, "PostRender", { ExpressionValue::ObjectValue(canvas) });
-		renderer->scene.DrawTimedemoStats();
-
-		device->Unlock(true);
+		render->DrawGame(levelElapsed);
 	}
 }
 
@@ -358,7 +314,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		CallEvent(GameInfo, "PostBeginPlay");
 		CallEvent(GameInfo, "SetInitialState");
 
-		if (engine->packages->GetEngineVersion() > 219)
+		if (packages->GetEngineVersion() > 219)
 		{
 			NameString attachTag = GameInfo->AttachTag();
 			if (!attachTag.IsNone())
@@ -372,7 +328,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 				}
 			}
 		}
-		if (engine->packages->GetEngineVersion() >= 400)
+		if (packages->GetEngineVersion() >= 400)
 		{
 			for (USpawnNotify* notifyObj = LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
 			{
@@ -490,7 +446,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	CallEvent(pawn, "TravelPostAccept");
 	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
 
-	renderer->OnMapLoaded();
+	render->OnMapLoaded();
 
 	// To do: remove this when touch events are implemented
 	UObject* specialEvent0 = package->GetUObject("SpecialEvent", "SpecialEvent0");
@@ -535,7 +491,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "timedemo" && args.size() == 2)
 	{
-		renderer->showTimedemoStats = args[1] == "1";
+		render->ShowTimedemoStats = args[1] == "1";
 	}
 	else if (command == "showlog")
 	{

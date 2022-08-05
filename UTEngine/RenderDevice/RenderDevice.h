@@ -29,7 +29,6 @@ struct FSceneNode
 	mat4 ObjectToWorld;
 	mat4 WorldToView;
 	mat4 Projection;
-	vec3 ViewLocation;
 };
 
 struct GouraudVertex

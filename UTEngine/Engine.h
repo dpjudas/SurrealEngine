@@ -9,7 +9,7 @@
 #include <set>
 #include <list>
 
-class UTRenderer;
+class RenderSubsystem;
 class PackageManager;
 class UObject;
 class ULevel;
@@ -105,7 +105,7 @@ public:
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<DisplayWindow> window;
-	std::unique_ptr<UTRenderer> renderer;
+	std::unique_ptr<RenderSubsystem> render;
 	std::unique_ptr<AudioSubsystem> audio;
 
 	float CalcTimeElapsed();
