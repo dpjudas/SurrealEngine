@@ -10,4 +10,5 @@ public:
 
 	std::shared_ptr<VulkanInstance> Instance;
 	VkSurfaceKHR Surface = VK_NULL_HANDLE;
+	HWND Window = 0;
 };

@@ -5,22 +5,22 @@
 
 std::vector<VulkanCompatibleDevice> VulkanCompatibleDevice::FindDevices(const std::shared_ptr<VulkanInstance>& instance, const std::shared_ptr<VulkanSurface>& surface)
 {
-	std::vector<const char*> RequiredDeviceExtensions =
+	std::vector<std::string> RequiredDeviceExtensions =
 	{
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	std::vector<const char*> OptionalDeviceExtensions =
+	std::vector<std::string> OptionalDeviceExtensions =
 	{
 		VK_EXT_HDR_METADATA_EXTENSION_NAME,
 		VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME,
 		VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 		VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
 		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
 		VK_KHR_RAY_QUERY_EXTENSION_NAME,
-		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
+		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+		VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
 	};
 
 	std::vector<VulkanCompatibleDevice> supportedDevices;
@@ -50,7 +50,7 @@ std::vector<VulkanCompatibleDevice> VulkanCompatibleDevice::FindDevices(const st
 		{
 			for (const auto& opt : OptionalDeviceExtensions)
 			{
-				if (strcmp(ext.extensionName, opt) == 0)
+				if (ext.extensionName == opt)
 				{
 					dev.EnabledDeviceExtensions.push_back(opt);
 				}

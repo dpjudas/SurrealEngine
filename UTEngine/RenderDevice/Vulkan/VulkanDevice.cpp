@@ -74,11 +74,16 @@ void VulkanDevice::CreateDevice()
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
+	std::vector<const char*> extensionNames;
+	extensionNames.reserve(EnabledDeviceExtensions.size());
+	for (const auto& name : EnabledDeviceExtensions)
+		extensionNames.push_back(name.c_str());
+
 	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 	deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-	deviceCreateInfo.enabledExtensionCount = (uint32_t)EnabledDeviceExtensions.size();
-	deviceCreateInfo.ppEnabledExtensionNames = EnabledDeviceExtensions.data();
+	deviceCreateInfo.enabledExtensionCount = (uint32_t)extensionNames.size();
+	deviceCreateInfo.ppEnabledExtensionNames = extensionNames.data();
 	deviceCreateInfo.enabledLayerCount = 0;
 
 	VkPhysicalDeviceFeatures2 deviceFeatures2 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };

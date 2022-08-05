@@ -11,7 +11,7 @@ public:
 	VulkanSwapChain(VulkanDevice *device, bool vsync);
 	~VulkanSwapChain();
 
-	uint32_t acquireImage(int width, int height, VulkanSemaphore *semaphore = nullptr, VulkanFence *fence = nullptr);
+	uint32_t acquireImage(int width, int height, bool exclusivefullscreen, VulkanSemaphore *semaphore = nullptr, VulkanFence *fence = nullptr);
 	void queuePresent(uint32_t imageIndex, VulkanSemaphore *semaphore = nullptr);
 
 	bool vsync;
@@ -28,22 +28,22 @@ public:
 
 private:
 	void selectFormat();
-	void selectPresentMode();
-	bool createSwapChain(int width, int height, VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE);
+	void selectPresentMode(bool fullscreen);
+	bool createSwapChain(int width, int height, bool fullscreen, VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE);
 	void createViews();
 	void getImages();
 	void releaseResources();
 	void releaseViews();
-	void recreate(int width, int height);
+	void recreate(int width, int height, bool fullscreen);
 
-	VkSurfaceCapabilitiesKHR getSurfaceCapabilities();
 	std::vector<VkSurfaceFormatKHR> getSurfaceFormats();
-	std::vector<VkPresentModeKHR> getPresentModes();
+	std::vector<VkPresentModeKHR> getPresentModes(bool fullscreen);
 
 	VulkanDevice *device = nullptr;
 
 	int lastSwapWidth = 0;
 	int lastSwapHeight = 0;
+	bool lastFullscreen = false;
 
 	VulkanSwapChain(const VulkanSwapChain &) = delete;
 	VulkanSwapChain &operator=(const VulkanSwapChain &) = delete;

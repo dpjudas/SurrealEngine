@@ -3,7 +3,7 @@
 #include "VulkanSurface.h"
 #include "VulkanInstance.h"
 
-VulkanSurface::VulkanSurface(std::shared_ptr<VulkanInstance> instance, HWND window) : Instance(std::move(instance))
+VulkanSurface::VulkanSurface(std::shared_ptr<VulkanInstance> instance, HWND window) : Instance(std::move(instance)), Window(window)
 {
 	VkWin32SurfaceCreateInfoKHR windowCreateInfo = {};
 	windowCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;

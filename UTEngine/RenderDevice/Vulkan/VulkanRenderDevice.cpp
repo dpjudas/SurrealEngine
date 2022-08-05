@@ -29,9 +29,7 @@ VulkanRenderDevice::VulkanRenderDevice(DisplayWindow* InViewport)
 
 	try
 	{
-		auto instance = std::make_shared<VulkanInstance>(VkDebug);
-		auto surface = std::make_shared<VulkanSurface>(instance, (HWND)Viewport->GetWindow());
-		Device = new VulkanDevice(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, VkDeviceIndex));
+		Device = Viewport->GetVulkanDevice();
 		SupportsBindless =
 			Device->EnabledFeatures.DescriptorIndexing.descriptorBindingPartiallyBound &&
 			Device->EnabledFeatures.DescriptorIndexing.runtimeDescriptorArray &&
@@ -97,9 +95,6 @@ void VulkanRenderDevice::Dispose()
 	Textures.reset();
 	Samplers.reset();
 	Commands.reset();
-
-	delete Device;
-	Device = nullptr;
 }
 
 void VulkanRenderDevice::SubmitAndWait(bool present, int presentWidth, int presentHeight)
