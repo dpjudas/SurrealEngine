@@ -85,9 +85,10 @@ void RenderSubsystem::DrawActors()
 			ActorDrawType dt = (ActorDrawType)actor->DrawType();
 			if (dt == ActorDrawType::Mesh && actor->Mesh())
 			{
+				// Note: this doesn't take the rotation into account!
 				BBox bbox = actor->Mesh()->BoundingBox;
-				bbox.min += actor->Location();
-				bbox.max += actor->Location();
+				bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
+				bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
 				if (Scene.FrustumClip.test(bbox) != IntersectionTestResult::outside)
 				{
 					DrawMesh(&Scene.Frame, actor);
