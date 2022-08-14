@@ -84,7 +84,12 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	SizeX = width;
 	SizeY = height;
 
-	auto instance = std::make_shared<VulkanInstance>(false);
+	RECT box = {};
+	GetClientRect(WindowHandle, &box);
+	SizeX = box.right;
+	SizeY = box.bottom;
+
+	auto instance = std::make_shared<VulkanInstance>(true);
 	auto surface = std::make_shared<VulkanSurface>(instance, WindowHandle);
 	Device = std::make_unique<VulkanDevice>(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, 0));
 
@@ -269,6 +274,13 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	{
 		engine->WindowClose(this);
 		return 0;
+	}
+	else if (msg == WM_SIZE)
+	{
+		RECT box = {};
+		GetClientRect(WindowHandle, &box);
+		SizeX = box.right;
+		SizeY = box.bottom;
 	}
 
 	return DefWindowProc(WindowHandle, msg, wparam, lparam);

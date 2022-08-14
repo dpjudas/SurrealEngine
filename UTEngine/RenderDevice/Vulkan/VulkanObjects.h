@@ -223,7 +223,7 @@ public:
 	VkDescriptorPool pool;
 
 private:
-	enum class AllocType { Try, Always };
+	enum class AllocType { TryAllocate, AlwaysAllocate };
 	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout* layout, AllocType allocType);
 	std::unique_ptr<VulkanDescriptorSet> allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount, AllocType allocType);
 
@@ -1006,7 +1006,7 @@ inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(Vulka
 
 	VkDescriptorSet descriptorSet;
 	VkResult result = vkAllocateDescriptorSets(device->device, &allocInfo, &descriptorSet);
-	if (allocType == AllocType::Try && result != VK_SUCCESS)
+	if (allocType == AllocType::TryAllocate && result != VK_SUCCESS)
 		return nullptr;
 	else
 		CheckVulkanError(result, "Could not allocate descriptor sets");
@@ -1026,7 +1026,7 @@ inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(Vulka
 
 	VkDescriptorSet descriptorSet;
 	VkResult result = vkAllocateDescriptorSets(device->device, &allocInfo, &descriptorSet);
-	if (allocType == AllocType::Try && result != VK_SUCCESS)
+	if (allocType == AllocType::TryAllocate && result != VK_SUCCESS)
 		return nullptr;
 	else
 		CheckVulkanError(result, "Could not allocate descriptor sets");
@@ -1035,22 +1035,22 @@ inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(Vulka
 
 inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::tryAllocate(VulkanDescriptorSetLayout *layout)
 {
-	return allocate(layout, AllocType::Try);
+	return allocate(layout, AllocType::TryAllocate);
 }
 
 inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout *layout)
 {
-	return allocate(layout, AllocType::Always);
+	return allocate(layout, AllocType::AlwaysAllocate);
 }
 
 inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::tryAllocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount)
 {
-	return allocate(layout, bindlessCount, AllocType::Try);
+	return allocate(layout, bindlessCount, AllocType::TryAllocate);
 }
 
 inline std::unique_ptr<VulkanDescriptorSet> VulkanDescriptorPool::allocate(VulkanDescriptorSetLayout* layout, uint32_t bindlessCount)
 {
-	return allocate(layout, bindlessCount, AllocType::Always);
+	return allocate(layout, bindlessCount, AllocType::AlwaysAllocate);
 }
 
 /////////////////////////////////////////////////////////////////////////////

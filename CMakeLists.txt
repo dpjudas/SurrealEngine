@@ -609,7 +609,7 @@ else()
 	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_UNIX_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
 	set(UTENGINE_LIBS ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
-	add_definitions(-DUNIX -D_UNIX -DVK_USE_PLATFORM_XLIB_KHR)
+	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 endif()
 
