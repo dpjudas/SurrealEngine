@@ -182,7 +182,7 @@ int TextureUploader_P8::GetUploadSize(int x, int y, int w, int h)
 void TextureUploader_P8::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
 {
 	int pitch = mip->Width;
-	BYTE* src = mip->Data.data() + x + y * pitch;
+	uint8_t* src = mip->Data.data() + x + y * pitch;
 	FColor* Ptr = (FColor*)d;
 	if (masked)
 	{
@@ -352,8 +352,8 @@ void TextureUploader_Simple::UploadRect(void* d, UnrealMipmap* mip, int x, int y
 {
 	int pitch = mip->Width * BytesPerPixel;
 	int size = w * BytesPerPixel;
-	BYTE* src = mip->Data.data() + x * BytesPerPixel + y * pitch;
-	BYTE* dst = (BYTE*)d;
+	uint8_t* src = mip->Data.data() + x * BytesPerPixel + y * pitch;
+	uint8_t* dst = (uint8_t*)d;
 	for (int i = 0; i < h; i++)
 	{
 		memcpy(dst, src, size);
@@ -382,8 +382,8 @@ void TextureUploader_4x4Block::UploadRect(void* d, UnrealMipmap* mip, int x, int
 
 	int pitch = (mip->Width + 3) / 4 * BytesPerBlock;
 	int size = (x1 - x0) * BytesPerBlock;
-	BYTE* src = mip->Data.data() + x0 * BytesPerBlock + y0 * pitch;
-	BYTE* dst = (BYTE*)d;
+	uint8_t* src = mip->Data.data() + x0 * BytesPerBlock + y0 * pitch;
+	uint8_t* dst = (uint8_t*)d;
 	for (int i = y0; i < y1; i++)
 	{
 		memcpy(dst, src, size);
@@ -413,8 +413,8 @@ void TextureUploader_2DBlock::UploadRect(void* d, UnrealMipmap* mip, int x, int 
 
 	int pitch = (mip->Width + BlockX - 1) / BlockX * BytesPerBlock;
 	int size = (x1 - x0) * BytesPerBlock;
-	BYTE* src = mip->Data.data() + x0 * BytesPerBlock + y0 * pitch;
-	BYTE* dst = (BYTE*)d;
+	uint8_t* src = mip->Data.data() + x0 * BytesPerBlock + y0 * pitch;
+	uint8_t* dst = (uint8_t*)d;
 	for (int i = y0; i < y1; i++)
 	{
 		memcpy(dst, src, size);

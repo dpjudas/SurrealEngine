@@ -89,7 +89,7 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	SizeX = box.right;
 	SizeY = box.bottom;
 
-	auto instance = std::make_shared<VulkanInstance>(true);
+	auto instance = std::make_shared<VulkanInstance>(false);
 	auto surface = std::make_shared<VulkanSurface>(instance, WindowHandle);
 	Device = std::make_unique<VulkanDevice>(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, 0));
 

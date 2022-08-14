@@ -51,7 +51,6 @@ void Engine::Run()
 
 	window = DisplayWindow::Create(this);
 	window->OpenWindow(1800, 950, true);
-	//window->OpenWindow(1920*3, 1080*3, false);
 
 	audio = std::make_unique<AudioSubsystem>();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());

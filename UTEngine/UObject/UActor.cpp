@@ -29,17 +29,35 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject()->GetBool("bCollideWhenPlacing");
 	if (bCollideWorld || bCollideWhenPlacing)
 	{
-		// To do: improve searching for a valid spot
+		// Search for a valid spot near the spawn location
+
 		TraceFlags flags;
 		flags.world = true;
 		flags.movers = true;
-		vec3 from = location + vec3(0.0f, 0.0f, 10.0f);
-		vec3 to = location;
-		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
-		if (hit.Fraction == 0.0f)
+
+		// What is a reasonable size for this grid? what did UE1 do?
+		int offset[] = { 0, 1, -1 };
+		bool found = false;
+		float scale = std::max(radius, height);
+		for (int z = 0; z < 3 && !found; z++)
+		{
+			for (int y = 0; y < 3 && !found; y++)
+			{
+				for (int x = 0; x < 3 && !found; x++)
+				{
+					vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
+					vec3 to = from + vec3(0.0f, 0.0f, -1.0f);
+					SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
+					if (hit.Fraction == 1.0f)
+					{
+						location = from;
+						found = true;
+					}
+				}
+			}
+		}
+		if (!found)
 			return nullptr;
-		else if (hit.Fraction < 1.0f)
-			location = from + (to - from) * hit.Fraction;
 	}
 
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
