@@ -1,7 +1,11 @@
 #pragma once
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
+#elif defined(__APPLE__)
+#define VK_USE_PLATFORM_MACOS_MVK
+#else
+#define VK_USE_PLATFORM_XLIB_KHR
 #endif
 
 #include "volk/volk.h"
@@ -38,7 +42,17 @@ public:
 	VulkanInstance(bool wantDebugLayer);
 	~VulkanInstance();
 
-	std::vector<const char*> RequiredExtensions = { VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME };
+	std::vector<const char*> RequiredExtensions =
+	{
+		VK_KHR_SURFACE_EXTENSION_NAME,
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+		VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+		VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+		VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+#endif
+	};
 	std::vector<const char*> OptionalExtensions =
 	{
 		VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,

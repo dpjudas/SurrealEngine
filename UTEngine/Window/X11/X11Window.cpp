@@ -83,158 +83,176 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 {
 	CloseWindow();
 
-	auto createSurfaceWindow = [&](VkPhysicalDevice physDevice, uint32_t queueFamilyIndex) -> std::pair<Display*,Window>
+	auto instance = std::make_shared<VulkanInstance>(false);
+
+	if (instance->PhysicalDevices.empty())
+		VulkanError("No Vulkan devices found. The graphics card may have no vulkan support or the driver may be too old.");
+
+	std::vector<VulkanCompatibleDevice> supportedDevices = VulkanCompatibleDevice::FindDevices(instance, surface);
+	if (supportedDevices.empty())
+		VulkanError("No Vulkan device found supports the minimum requirements of this application");
+
+	VkPhysicalDevice physDevice = supportedDevices[0].Device->Device;
+	int queueFamilyIndex = -1;
+	for (const auto& dev : supportedDevices)
 	{
-		XVisualInfo visualTemplate = { 0 };
-		visualTemplate.screen = screen;
-		visualTemplate.c_class = TrueColor;
-		int numVisuals = 0;
-		XVisualInfo* visuals = XGetVisualInfo(display, VisualScreenMask | VisualClassMask, &visualTemplate, &numVisuals);
-		XVisualInfo* foundVisual = nullptr;
-		for (int i = 0; i < numVisuals; i++)
+		const auto& info = *dev.Device;
+		for (int i = 0; i < (int)info.QueueFamilies.size(); i++)
 		{
-			if (vkGetPhysicalDeviceXlibPresentationSupportKHR(physDevice, queueFamilyIndex, display, visuals[i].visualid))
+			const auto& queueFamily = info.QueueFamilies[i];
+			if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
 			{
-				foundVisual = &visuals[i];
+				queueFamilyIndex = i;
+				physDevice = dev.Device->Device;
 				break;
 			}
 		}
-		XVisualInfo visualInfo;
-		if (foundVisual)
-			visualInfo = *foundVisual;
-		XFree(visuals);
-		if (!foundVisual)
-			throw std::runtime_error("Could not find a visual compatible with the selected vulkan device");
+		if (queueFamilyIndex != -1)
+			break;
+	}
+	if (queueFamilyIndex == -1)
+		VulkanError("No Vulkan device found supports the minimum requirements of this application");
 
-		Status result;
-
-		int disp_width_px = XDisplayWidth(display, screen);
-		int disp_height_px = XDisplayHeight(display, screen);
-		int disp_width_mm = XDisplayWidthMM(display, screen);
-
-		// Get DPI of screen or use 96 if Xlib doesn't have a value
-		double dpi = (disp_width_mm < 24) ? 96.0 : (25.4 * static_cast<double>(disp_width_px) / static_cast<double>(disp_width_mm));
-		dpiscale = dpi / 96.0;
-
-		int w = (int)std::round(width * dpiscale);
-		int h = (int)std::round(height * dpiscale);
-
-		if (fullscreen)
-		{
-			w = disp_width_px;
-			h = disp_height_px;
-		}
-
-		int x = (disp_width_px - w) / 2;
-		int y = (disp_height_px - h) / 2;
-
-		SizeX = w;
-		SizeY = h;
-
-		size_hints = XAllocSizeHints();
-		if (!size_hints)
-			throw std::runtime_error("Failed to allocate X11 XSizeHints structure");
-
-		size_hints->flags = PMinSize | PResizeInc | PBaseSize | PWinGravity | USSize | USPosition;
-		size_hints->min_width   = 8;
-		size_hints->min_height  = 8;
-		size_hints->max_width   = 0;
-		size_hints->max_height  = 0;
-		size_hints->width_inc   = 1;
-		size_hints->height_inc  = 1;
-		size_hints->base_width  = w;
-		size_hints->base_height = h;
-		size_hints->win_gravity = NorthWestGravity;
-
-		Window root_window = RootWindow(display, screen);
-		colormap = XCreateColormap(display, root_window, visualInfo.visual, AllocNone);
-
-		XSetWindowAttributes attr = {};
-		attr.background_pixmap = None;
-		attr.background_pixel = 0ul;
-		attr.border_pixmap = CopyFromParent;
-		attr.border_pixel = 0ul;
-		attr.bit_gravity = ForgetGravity;
-		attr.win_gravity = NorthWestGravity;
-		attr.backing_store = NotUseful;
-		attr.backing_planes = -1ul;
-		attr.backing_pixel = 0ul;
-		attr.save_under = False;
-		attr.event_mask =
-			KeyPressMask | KeyReleaseMask |
-			ButtonPressMask | ButtonReleaseMask |
-			EnterWindowMask | LeaveWindowMask | PointerMotionMask |
-			KeymapStateMask | ExposureMask | StructureNotifyMask | FocusChangeMask | PropertyChangeMask;
-		attr.do_not_propagate_mask = NoEventMask;
-		attr.override_redirect = False;
-		attr.colormap = colormap;
-		attr.cursor = None;
-
-		window = XCreateWindow(display, root_window, x, y, w, h, 0, visualInfo.depth, InputOutput, visualInfo.visual,
-			CWBorderPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask | CWColormap, &attr);
-		if (!window)
-			throw std::runtime_error("Could not create window");
-
-		char data[8 * 8];
-		memset(data, 0, 8 * 8);
-		XColor black_color = { 0 };
-		cursor_bitmap = XCreateBitmapFromData(display, window, data, 8, 8);
-		hidden_cursor = XCreatePixmapCursor(display, cursor_bitmap, cursor_bitmap, &black_color, &black_color, 0,0);
-
-		system_cursor = XCreateFontCursor(display, XC_left_ptr); // This is allowed to fail
-
-		std::string title = "UTEngine";
-		XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, nullptr, 0, nullptr);
-
-		{   // Inform the window manager who we are, so it can kill us if we're not good for its universe.
-			Atom atom;
-			int32_t pid = getpid();
-			if (pid > 0)
-			{
-				atom = atoms.get_atom(display, "_NET_WM_PID", False);
-				XChangeProperty(display, window, atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &pid, 1);
-			}
-
-			char hostname[256];
-			if (gethostname(hostname, sizeof(hostname)) > -1)
-			{
-				hostname[255] = 0;
-				atom = atoms.get_atom(display, "WM_CLIENT_MACHINE", False);
-				XChangeProperty(display, window, atom, XA_STRING, 8, PropModeReplace, (unsigned char *) hostname, strlen(hostname));
-			}
-		}
-
-		XSetWMNormalHints(display, window, size_hints);
-
-		Atom protocol = atoms["WM_DELETE_WINDOW"];
-		result = XSetWMProtocols(display, window, &protocol, 1);
-
-		Bool supports_detectable_autorepeat = {};
-		XkbSetDetectableAutoRepeat(display, True, &supports_detectable_autorepeat);
-
-		if (atoms["_NET_WM_STATE"] == None && atoms["_NET_WM_STATE_FULLSCREEN"])
-		{
-			fullscreen = false; // Fullscreen not supported by WM
-		}
-
-		if (fullscreen)
-		{
-			Atom state = atoms["_NET_WM_STATE_FULLSCREEN"];
-			XChangeProperty(display, window, atoms["_NET_WM_STATE"], XA_ATOM, 32, PropModeReplace, (unsigned char *)&state, 1);
-			is_fullscreen = true;
-		}
-
-		return { display, window };
-	};
-	
-	auto printLog = [](const char* type, const std::string& msg)
+	XVisualInfo visualTemplate = { 0 };
+	visualTemplate.screen = screen;
+	visualTemplate.c_class = TrueColor;
+	int numVisuals = 0;
+	XVisualInfo* visuals = XGetVisualInfo(display, VisualScreenMask | VisualClassMask, &visualTemplate, &numVisuals);
+	XVisualInfo* foundVisual = nullptr;
+	for (int i = 0; i < numVisuals; i++)
 	{
-		std::cout << "[" << type << "] " << msg.c_str() << std::endl;
-	};
+		if (vkGetPhysicalDeviceXlibPresentationSupportKHR(physDevice, queueFamilyIndex, display, visuals[i].visualid))
+		{
+			foundVisual = &visuals[i];
+			break;
+		}
+	}
+	XVisualInfo visualInfo;
+	if (foundVisual)
+		visualInfo = *foundVisual;
+	XFree(visuals);
+	if (!foundVisual)
+		throw std::runtime_error("Could not find a visual compatible with the selected vulkan device");
 
-	int vk_device = 0;
-	bool vk_debug = true;
-	Device = std::make_unique<VulkanDevice>(createSurfaceWindow, vk_device, vk_debug, printLog);
+	Status result;
+
+	int disp_width_px = XDisplayWidth(display, screen);
+	int disp_height_px = XDisplayHeight(display, screen);
+	int disp_width_mm = XDisplayWidthMM(display, screen);
+
+	// Get DPI of screen or use 96 if Xlib doesn't have a value
+	double dpi = (disp_width_mm < 24) ? 96.0 : (25.4 * static_cast<double>(disp_width_px) / static_cast<double>(disp_width_mm));
+	dpiscale = dpi / 96.0;
+
+	int w = (int)std::round(width * dpiscale);
+	int h = (int)std::round(height * dpiscale);
+
+	if (fullscreen)
+	{
+		w = disp_width_px;
+		h = disp_height_px;
+	}
+
+	int x = (disp_width_px - w) / 2;
+	int y = (disp_height_px - h) / 2;
+
+	SizeX = w;
+	SizeY = h;
+
+	size_hints = XAllocSizeHints();
+	if (!size_hints)
+		throw std::runtime_error("Failed to allocate X11 XSizeHints structure");
+
+	size_hints->flags = PMinSize | PResizeInc | PBaseSize | PWinGravity | USSize | USPosition;
+	size_hints->min_width   = 8;
+	size_hints->min_height  = 8;
+	size_hints->max_width   = 0;
+	size_hints->max_height  = 0;
+	size_hints->width_inc   = 1;
+	size_hints->height_inc  = 1;
+	size_hints->base_width  = w;
+	size_hints->base_height = h;
+	size_hints->win_gravity = NorthWestGravity;
+
+	Window root_window = RootWindow(display, screen);
+	colormap = XCreateColormap(display, root_window, visualInfo.visual, AllocNone);
+
+	XSetWindowAttributes attr = {};
+	attr.background_pixmap = None;
+	attr.background_pixel = 0ul;
+	attr.border_pixmap = CopyFromParent;
+	attr.border_pixel = 0ul;
+	attr.bit_gravity = ForgetGravity;
+	attr.win_gravity = NorthWestGravity;
+	attr.backing_store = NotUseful;
+	attr.backing_planes = -1ul;
+	attr.backing_pixel = 0ul;
+	attr.save_under = False;
+	attr.event_mask =
+		KeyPressMask | KeyReleaseMask |
+		ButtonPressMask | ButtonReleaseMask |
+		EnterWindowMask | LeaveWindowMask | PointerMotionMask |
+		KeymapStateMask | ExposureMask | StructureNotifyMask | FocusChangeMask | PropertyChangeMask;
+	attr.do_not_propagate_mask = NoEventMask;
+	attr.override_redirect = False;
+	attr.colormap = colormap;
+	attr.cursor = None;
+
+	window = XCreateWindow(display, root_window, x, y, w, h, 0, visualInfo.depth, InputOutput, visualInfo.visual, CWBorderPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask | CWColormap, &attr);
+	if (!window)
+		throw std::runtime_error("Could not create window");
+
+	char data[8 * 8];
+	memset(data, 0, 8 * 8);
+	XColor black_color = { 0 };
+	cursor_bitmap = XCreateBitmapFromData(display, window, data, 8, 8);
+	hidden_cursor = XCreatePixmapCursor(display, cursor_bitmap, cursor_bitmap, &black_color, &black_color, 0,0);
+
+	system_cursor = XCreateFontCursor(display, XC_left_ptr); // This is allowed to fail
+
+	std::string title = "UTEngine";
+	XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, nullptr, 0, nullptr);
+
+	{   // Inform the window manager who we are, so it can kill us if we're not good for its universe.
+		Atom atom;
+		int32_t pid = getpid();
+		if (pid > 0)
+		{
+			atom = atoms.get_atom(display, "_NET_WM_PID", False);
+			XChangeProperty(display, window, atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &pid, 1);
+		}
+
+		char hostname[256];
+		if (gethostname(hostname, sizeof(hostname)) > -1)
+		{
+			hostname[255] = 0;
+			atom = atoms.get_atom(display, "WM_CLIENT_MACHINE", False);
+			XChangeProperty(display, window, atom, XA_STRING, 8, PropModeReplace, (unsigned char *) hostname, strlen(hostname));
+		}
+	}
+
+	XSetWMNormalHints(display, window, size_hints);
+
+	Atom protocol = atoms["WM_DELETE_WINDOW"];
+	result = XSetWMProtocols(display, window, &protocol, 1);
+
+	Bool supports_detectable_autorepeat = {};
+	XkbSetDetectableAutoRepeat(display, True, &supports_detectable_autorepeat);
+
+	if (atoms["_NET_WM_STATE"] == None && atoms["_NET_WM_STATE_FULLSCREEN"])
+	{
+		fullscreen = false; // Fullscreen not supported by WM
+	}
+
+	if (fullscreen)
+	{
+		Atom state = atoms["_NET_WM_STATE_FULLSCREEN"];
+		XChangeProperty(display, window, atoms["_NET_WM_STATE"], XA_ATOM, 32, PropModeReplace, (unsigned char *)&state, 1);
+		is_fullscreen = true;
+	}
+
+	auto surface = std::make_shared<VulkanSurface>(instance, display, window);
+	Device = std::make_unique<VulkanDevice>(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, 0));
 
 	RendDevice = RenderDevice::Create(this);
 
