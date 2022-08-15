@@ -275,50 +275,41 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
-	try
+	if (!Textures->Scene || Textures->Scene->width != Viewport->SizeX || Textures->Scene->height != Viewport->SizeY)
 	{
-		if (!Textures->Scene || Textures->Scene->width != Viewport->SizeX || Textures->Scene->height != Viewport->SizeY)
-		{
-			Framebuffers->DestroySceneFramebuffer();
-			Textures->Scene.reset();
-			Textures->Scene.reset(new SceneTextures(this, Viewport->SizeX, Viewport->SizeY, Multisample));
-			RenderPasses->CreateRenderPass();
-			RenderPasses->CreatePipelines();
-			Framebuffers->CreateSceneFramebuffer();
+		Framebuffers->DestroySceneFramebuffer();
+		Textures->Scene.reset();
+		Textures->Scene.reset(new SceneTextures(this, Viewport->SizeX, Viewport->SizeY, Multisample));
+		RenderPasses->CreateRenderPass();
+		RenderPasses->CreatePipelines();
+		Framebuffers->CreateSceneFramebuffer();
 
-			auto descriptors = DescriptorSets->GetPresentDescriptorSet();
-			WriteDescriptors()
-				.AddCombinedImageSampler(descriptors, 0, Textures->Scene->PPImageView.get(), Samplers->PPLinearClamp.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-				.AddCombinedImageSampler(descriptors, 1, Textures->DitherImageView.get(), Samplers->PPNearestRepeat.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-				.Execute(Device);
-		}
-
-		PipelineBarrier()
-			.AddImage(
-				Textures->Scene->ColorBuffer.get(),
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-				VK_ACCESS_SHADER_READ_BIT,
-				VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-				VK_IMAGE_ASPECT_COLOR_BIT)
-			.Execute(Commands->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
-		auto cmdbuffer = Commands->GetDrawCommands();
-		RenderPasses->BeginScene(cmdbuffer);
-
-		VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
-		VkDeviceSize offsets[] = { 0 };
-		cmdbuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
-		cmdbuffer->bindIndexBuffer(Buffers->SceneIndexBuffer->buffer, 0, VK_INDEX_TYPE_UINT32);
-
-		IsLocked = true;
+		auto descriptors = DescriptorSets->GetPresentDescriptorSet();
+		WriteDescriptors()
+			.AddCombinedImageSampler(descriptors, 0, Textures->Scene->PPImageView.get(), Samplers->PPLinearClamp.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.AddCombinedImageSampler(descriptors, 1, Textures->DitherImageView.get(), Samplers->PPNearestRepeat.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			.Execute(Device);
 	}
-	catch (const std::exception& e)
-	{
-		// To do: can we report this back to unreal in a better way?
-		MessageBoxA(0, e.what(), "Vulkan Error", MB_OK);
-		exit(0);
-	}
+
+	PipelineBarrier()
+		.AddImage(
+			Textures->Scene->ColorBuffer.get(),
+			VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			VK_ACCESS_SHADER_READ_BIT,
+			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			VK_IMAGE_ASPECT_COLOR_BIT)
+		.Execute(Commands->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+	auto cmdbuffer = Commands->GetDrawCommands();
+	RenderPasses->BeginScene(cmdbuffer);
+
+	VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
+	VkDeviceSize offsets[] = { 0 };
+	cmdbuffer->bindVertexBuffers(0, 1, vertexBuffers, offsets);
+	cmdbuffer->bindIndexBuffer(Buffers->SceneIndexBuffer->buffer, 0, VK_INDEX_TYPE_UINT32);
+
+	IsLocked = true;
 }
 
 void VulkanRenderDevice::Unlock(bool Blit)
