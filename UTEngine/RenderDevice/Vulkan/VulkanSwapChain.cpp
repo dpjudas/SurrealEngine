@@ -51,6 +51,7 @@ uint32_t VulkanSwapChain::acquireImage(int width, int height, bool fullscreen, V
 		{
 			recreate(width, height, fullscreen);
 		}
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 		else if (result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
 		{
 			if (GetForegroundWindow() == device->Surface->Window)
@@ -58,6 +59,7 @@ uint32_t VulkanSwapChain::acquireImage(int width, int height, bool fullscreen, V
 			imageIndex = 0xffffffff;
 			break;
 		}
+#endif
 		else if (result == VK_NOT_READY || result == VK_TIMEOUT)
 		{
 			imageIndex = 0xffffffff;
@@ -88,11 +90,13 @@ void VulkanSwapChain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semapho
 		lastSwapHeight = 0;
 		lastFullscreen = false;
 	}
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	else if (result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
 	{
 		if (GetForegroundWindow() == device->Surface->Window)
 			vkAcquireFullScreenExclusiveModeEXT(device->device, swapChain);
 	}
+#endif
 	else if (result == VK_ERROR_OUT_OF_HOST_MEMORY || result == VK_ERROR_OUT_OF_DEVICE_MEMORY)
 	{
 		// The spec says we can recover from this.
