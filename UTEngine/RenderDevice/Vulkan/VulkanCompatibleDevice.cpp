@@ -20,7 +20,9 @@ std::vector<VulkanCompatibleDevice> VulkanCompatibleDevice::FindDevices(const st
 		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
 		VK_KHR_RAY_QUERY_EXTENSION_NAME,
 		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 		VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+#endif
 	};
 
 	std::vector<VulkanCompatibleDevice> supportedDevices;

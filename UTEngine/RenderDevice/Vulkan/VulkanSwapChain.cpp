@@ -139,6 +139,7 @@ void VulkanSwapChain::recreate(int width, int height, bool fullscreen)
 bool VulkanSwapChain::createSwapChain(int width, int height, bool fullscreen, VkSwapchainKHR oldSwapChain)
 {
 	VkSurfaceCapabilitiesKHR surfaceCapabilities;
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	if (fullscreen && device->SupportsDeviceExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME))
 	{
 		VkSurfaceCapabilitiesFullScreenExclusiveEXT exclusiveInfo = { VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT };
@@ -159,6 +160,7 @@ bool VulkanSwapChain::createSwapChain(int width, int height, bool fullscreen, Vk
 		fullscreen = exclusiveInfo.fullScreenExclusiveSupported == VK_TRUE;
 	}
 	else
+#endif
 	{
 		VkResult result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->PhysicalDevice.Device, device->Surface->Surface, &surfaceCapabilities);
 		if (result != VK_SUCCESS)
@@ -210,6 +212,7 @@ bool VulkanSwapChain::createSwapChain(int width, int height, bool fullscreen, Vk
 	swapChainCreateInfo.clipped = VK_FALSE;// VK_TRUE;
 	swapChainCreateInfo.oldSwapchain = oldSwapChain;
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	VkSurfaceFullScreenExclusiveInfoEXT exclusiveInfo = { VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT };
 	VkSurfaceFullScreenExclusiveWin32InfoEXT exclusiveWin32Info = { VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT };
 	exclusiveInfo.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT;
@@ -219,6 +222,7 @@ bool VulkanSwapChain::createSwapChain(int width, int height, bool fullscreen, Vk
 		exclusiveWin32Info.hmonitor = MonitorFromWindow(device->Surface->Window, MONITOR_DEFAULTTONEAREST);
 		exclusiveInfo.pNext = &exclusiveWin32Info;
 	}
+#endif
 
 	VkResult result = vkCreateSwapchainKHR(device->device, &swapChainCreateInfo, nullptr, &swapChain);
 	if (result != VK_SUCCESS)
@@ -227,10 +231,12 @@ bool VulkanSwapChain::createSwapChain(int width, int height, bool fullscreen, Vk
 		return false;
 	}
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	if (fullscreen && device->SupportsDeviceExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME))
 	{
 		result = vkAcquireFullScreenExclusiveModeEXT(device->device, swapChain);
 	}
+#endif
 
 	return true;
 }
@@ -361,6 +367,7 @@ std::vector<VkSurfaceFormatKHR> VulkanSwapChain::getSurfaceFormats()
 
 std::vector<VkPresentModeKHR> VulkanSwapChain::getPresentModes(bool fullscreen)
 {
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	if (fullscreen && device->SupportsDeviceExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME))
 	{
 		VkSurfaceFullScreenExclusiveInfoEXT exclusiveInfo = { VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT };
@@ -384,6 +391,7 @@ std::vector<VkPresentModeKHR> VulkanSwapChain::getPresentModes(bool fullscreen)
 		return presentModes;
 	}
 	else
+#endif
 	{
 		uint32_t presentModeCount = 0;
 		VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(device->PhysicalDevice.Device, device->Surface->Surface, &presentModeCount, nullptr);
