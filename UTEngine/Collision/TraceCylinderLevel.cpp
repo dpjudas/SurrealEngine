@@ -61,13 +61,12 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 	if (traceWorld)
 	{
 		vec3 offset = vec3(0.0, 0.0, height - radius);
-		dvec3 origin0 = to_dvec3(from - offset);
-		dvec3 origin1 = to_dvec3(from + offset);
 		TraceSphereModel tracespheremodel;
-		std::vector<SweepHit> worldHits0 = tracespheremodel.Trace(Level->Model, origin0, tmin, direction, tmax, radius, visibilityOnly);
-		std::vector<SweepHit> worldHits1 = tracespheremodel.Trace(Level->Model, origin1, tmin, direction, tmax, radius, visibilityOnly);
-		hits.insert(hits.end(), worldHits0.begin(), worldHits0.end());
-		hits.insert(hits.end(), worldHits1.begin(), worldHits1.end());
+		for (const dvec3& origin : { to_dvec3(from - offset), to_dvec3(from), to_dvec3(from + offset) })
+		{
+			std::vector<SweepHit> worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		}
 	}
 
 	// Sort by closest hit and only include the first hit for each actor

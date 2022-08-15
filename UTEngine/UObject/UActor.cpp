@@ -29,35 +29,10 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject()->GetBool("bCollideWhenPlacing");
 	if (bCollideWorld || bCollideWhenPlacing)
 	{
-		// Search for a valid spot near the spawn location
-
-		TraceFlags flags;
-		flags.world = true;
-		flags.movers = true;
-
-		// What is a reasonable size for this grid? what did UE1 do?
-		int offset[] = { 0, 1, -1 };
-		bool found = false;
-		float scale = std::max(radius, height);
-		for (int z = 0; z < 3 && !found; z++)
-		{
-			for (int y = 0; y < 3 && !found; y++)
-			{
-				for (int x = 0; x < 3 && !found; x++)
-				{
-					vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
-					vec3 to = from + vec3(0.0f, 0.0f, -1.0f);
-					SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
-					if (hit.Fraction == 1.0f)
-					{
-						location = from;
-						found = true;
-					}
-				}
-			}
-		}
-		if (!found)
+		auto result = CheckLocation(location, radius, height, bCollideWorld || bCollideWhenPlacing);
+		if (!result.first)
 			return nullptr;
+		location = result.second;
 	}
 
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
@@ -152,6 +127,41 @@ void UActor::InitBase()
 		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
 		SetBase(hit.Actor, true);
 	}
+}
+
+std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float height, bool check)
+{
+	// Search for a valid spot near the location
+
+	if (!check)
+		return { true, location };
+
+	TraceFlags flags;
+	flags.world = true;
+	flags.movers = true;
+
+	// What is a reasonable size for this grid? what did UE1 do?
+	int offset[] = { 0, 1, -1 };
+	bool found = false;
+	float scale = std::max(radius * 0.5f, height * 0.5f);
+	for (int z = 0; z < 3 && !found; z++)
+	{
+		for (int y = 0; y < 3 && !found; y++)
+		{
+			for (int x = 0; x < 3 && !found; x++)
+			{
+				vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
+				vec3 to = from + vec3(0.0f, 0.0f, height * 0.5f);
+				SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
+				if (hit.Fraction == 1.0f)
+				{
+					location = from;
+					found = true;
+				}
+			}
+		}
+	}
+	return { found, location };
 }
 
 bool UActor::Destroy()
@@ -828,25 +838,27 @@ void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockP
 
 bool UActor::SetLocation(const vec3& newLocation)
 {
-	// To do: do overlap test and return false if the object cannot be moved to this location
+	auto result = CheckLocation(newLocation, CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing());
+	if (!result.first)
+		return false;
 
 	XLevel()->Hash.RemoveFromCollision(this);
-	Location() = newLocation;
+	Location() = result.second;
 	XLevel()->Hash.AddToCollision(this);
 	return true;
 }
 
 bool UActor::SetRotation(const Rotator& newRotation)
 {
-	// To do: do overlap test and return false if the object cannot be changed to this rotation
-	
+	// To do: return false if there isn't room
+
 	Rotation() = newRotation;
 	return true;
 }
 
 bool UActor::SetCollisionSize(float newRadius, float newHeight)
 {
-	// To do: do overlap test and return false if the object cannot be changed to this new size
+	// To do: return false if there isn't room
 
 	XLevel()->Hash.RemoveFromCollision(this);
 	CollisionRadius() = newRadius;

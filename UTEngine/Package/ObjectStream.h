@@ -2,6 +2,7 @@
 
 #include "Package.h"
 #include <string.h>
+#include <stdexcept>
 
 enum class ObjectFlags : uint32_t;
 class UClass;

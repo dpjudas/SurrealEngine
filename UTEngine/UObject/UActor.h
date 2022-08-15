@@ -137,6 +137,8 @@ public:
 	void SetPhysics(uint8_t newPhysics);
 	void SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers);
 
+	std::pair<bool, vec3> CheckLocation(vec3 location, float radius, float height, bool check);
+
 	bool SetLocation(const vec3& newLocation);
 	bool SetRotation(const Rotator& newRotation);
 	bool SetCollisionSize(float newRadius, float newHeight);
