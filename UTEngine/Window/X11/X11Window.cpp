@@ -23,6 +23,7 @@
 #include "X11Window.h"
 #include "RenderDevice/RenderDevice.h"
 #include "RenderDevice/Vulkan/VulkanDevice.h"
+#include "RenderDevice/Vulkan/VulkanSurface.h"
 #include "RenderDevice/Vulkan/VulkanCompatibleDevice.h"
 #include "Engine.h"
 #include <dlfcn.h>
