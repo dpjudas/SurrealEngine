@@ -23,6 +23,8 @@
 #include "X11Window.h"
 #include "RenderDevice/RenderDevice.h"
 #include "RenderDevice/Vulkan/VulkanDevice.h"
+#include "RenderDevice/Vulkan/VulkanSurface.h"
+#include "RenderDevice/Vulkan/VulkanCompatibleDevice.h"
 #include "Engine.h"
 #include <dlfcn.h>
 #include <string.h>
@@ -88,7 +90,7 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	if (instance->PhysicalDevices.empty())
 		VulkanError("No Vulkan devices found. The graphics card may have no vulkan support or the driver may be too old.");
 
-	std::vector<VulkanCompatibleDevice> supportedDevices = VulkanCompatibleDevice::FindDevices(instance, surface);
+	std::vector<VulkanCompatibleDevice> supportedDevices = VulkanCompatibleDevice::FindDevices(instance, {});
 	if (supportedDevices.empty())
 		VulkanError("No Vulkan device found supports the minimum requirements of this application");
 
