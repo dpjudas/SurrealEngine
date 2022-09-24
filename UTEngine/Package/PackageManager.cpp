@@ -27,7 +27,7 @@
 #include "Native/NTcpLink.h"
 #include "Native/NUdpLink.h"
 
-PackageManager::PackageManager(const std::string& basepath, int engineVersion) : basepath(basepath), engineVersion(engineVersion)
+PackageManager::PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName) : basepath(basepath), engineVersion(engineVersion), gameName(gameName)
 {
 	NActor::RegisterFunctions();
 	NCanvas::RegisterFunctions();
@@ -49,27 +49,11 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion) :
 	NTcpLink::RegisterFunctions();
 	NUdpLink::RegisterFunctions();
 
-	try
-	{
-		File::open_existing(FilePath::combine(basepath, "System/Unreal.ini"));
-		unreal1 = true;
-	}
-	catch (...)
-	{
-		try
-		{
-			File::open_existing(FilePath::combine(basepath, "System/UnrealTournament.ini"));
-		}
-		catch (...)
-		{
-			throw std::runtime_error("Could not find Unreal Tournament or Unreal at " + basepath);
-		}
-	}
-
 	LoadIntFiles();
 	ScanForMaps();
 
 	ScanFolder("Maps", "*.unr");
+	ScanFolder("Maps", "*.dx"); // Deus Ex
 	if (IsUnreal1())
 		ScanFolder("Maps/UPak", "*.unr");
 	ScanFolder("Music", "*.umx");
@@ -210,7 +194,7 @@ UClass* PackageManager::FindClass(const NameString& name)
 std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = unreal1 ? "Unreal" : "UnrealTournament";
+		iniName = gameName;
 	else if (iniName == "user")
 		iniName = "User";
 

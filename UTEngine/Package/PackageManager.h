@@ -19,9 +19,9 @@ struct IntObject
 class PackageManager
 {
 public:
-	PackageManager(const std::string& basepath, int engineVersion);
+	PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName);
 
-	bool IsUnreal1() const { return unreal1; }
+	bool IsUnreal1() const { return engineVersion < 300; }
 	int GetEngineVersion() const { return engineVersion; }
 
 	Package *GetPackage(const NameString& name);
@@ -71,7 +71,7 @@ private:
 
 	std::list<OpenStream> openStreams;
 
-	bool unreal1 = false;
+	std::string gameName;
 	int engineVersion = 436;
 
 	friend class Package;

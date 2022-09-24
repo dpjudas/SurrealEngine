@@ -30,11 +30,23 @@ void UMesh::Load(ObjectStream* stream)
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
-	for (int i = 0; i < NumVerts; i++)
+	if (true/*stream->GetVersion() == 1112*/) // Deus Ex
 	{
-		int32_t packedvertex = stream->ReadInt32();
-		vec3 vertex = { (float)((packedvertex << 21) >> 21), (float)((packedvertex << 10) >> 21), (float)(packedvertex >> 22) };
-		Verts.push_back(vertex);
+		for (int i = 0; i < NumVerts; i++)
+		{
+			int64_t packedvertex = stream->ReadInt64();
+			vec3 vertex = { (float)((packedvertex << 42) >> 42), (float)((packedvertex << 20) >> 42), (float)(packedvertex >> 44) };
+			Verts.push_back(vertex);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < NumVerts; i++)
+		{
+			int32_t packedvertex = stream->ReadInt32();
+			vec3 vertex = { (float)((packedvertex << 21) >> 21), (float)((packedvertex << 10) >> 21), (float)(packedvertex >> 22) };
+			Verts.push_back(vertex);
+		}
 	}
 	if (stream->GetVersion() > 61 && stream->Tell() != VertsSkipOffset)
 		throw std::runtime_error("Unexpected lazy array size");

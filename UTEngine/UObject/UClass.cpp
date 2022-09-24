@@ -547,6 +547,10 @@ void UClass::Load(ObjectStream* stream)
 									// To do: is this actually a fatal error?
 								}
 							}
+							else if (dynamic_cast<UObjectProperty*>(member))
+							{
+								// This happens for Deus Ex
+							}
 							else
 							{
 								throw std::runtime_error("localize keyword used on unsupported struct member property type");
