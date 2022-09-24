@@ -59,4 +59,13 @@ public:
 	static void TweenAnim(UObject* Self, const NameString& Sequence, float Time);
 	static void VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc);
 	static void VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, bool* bIgnoreHidden);
+	static void GetPlayerPawn(UObject* Self, UObject*& ReturnValue);
+	static void AIClearEvent(UObject* Self, const NameString& eventName);
+	static void AIClearEventCallback(UObject* Self, const NameString& eventName);
+	static void AIEndEvent(UObject* Self, const NameString& eventName, uint8_t eventType);
+	static void AIGetLightLevel(UObject* Self, const vec3& Location, float& ReturnValue);
+	static void AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius);
+	static void AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, bool* bCheckVisibility, bool* bCheckDir, bool* bCheckCylinder, bool* bCheckLOS);
+	static void AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius);
+	static void AIVisibility(UObject* Self, bool* bIncludeVelocity, float& ReturnValue);
 };

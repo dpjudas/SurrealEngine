@@ -98,6 +98,8 @@ set(UTENGINE_SOURCES
 	UTEngine/Native/NGameDirectory.h
 	UTEngine/Native/NParticleIterator.cpp
 	UTEngine/Native/NParticleIterator.h
+	UTEngine/Native/NPlayerPawnExt.cpp
+	UTEngine/Native/NPlayerPawnExt.h
 	UTEngine/RenderDevice/RenderDevice.cpp
 	UTEngine/RenderDevice/RenderDevice.h
 	UTEngine/RenderDevice/Vulkan/BufferManager.cpp

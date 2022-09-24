@@ -33,7 +33,8 @@ void NDeusExPlayer::CreateDataVaultImageNoteObject(UObject* Self, UObject*& Retu
 
 void NDeusExPlayer::CreateDumpLocationObject(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateDumpLocationObject not implemented");
+	engine->LogUnimplemented("DeusExPlayer.CreateDumpLocationObject not implemented");
+	ReturnValue = nullptr;
 }
 
 void NDeusExPlayer::CreateGameDirectoryObject(UObject* Self, UObject*& ReturnValue)

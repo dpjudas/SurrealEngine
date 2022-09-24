@@ -34,6 +34,7 @@
 #include "Native/NGameDirectory.h"
 #include "Native/NParticleIterator.h"
 #include "Native/NScriptedPawn.h"
+#include "Native/NPlayerPawnExt.h"
 
 PackageManager::PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName) : basepath(basepath), engineVersion(engineVersion), gameName(gameName)
 {
@@ -66,6 +67,7 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 		NGameDirectory::RegisterFunctions();
 		NParticleIterator::RegisterFunctions();
 		NScriptedPawn::RegisterFunctions();
+		NPlayerPawnExt::RegisterFunctions();
 	}
 
 	LoadIntFiles();

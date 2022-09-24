@@ -62,7 +62,7 @@ void NPlayerPawn::PasteFromClipboard(UObject* Self, std::string& ReturnValue)
 
 void NPlayerPawn::ResetKeyboard(UObject* Self)
 {
-	throw std::runtime_error("PlayerPawn.ResetKeyboard not implemented");
+	engine->LogUnimplemented("PlayerPawn.ResetKeyboard");
 }
 
 void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const std::string& NewValue, bool bSaveDefault)

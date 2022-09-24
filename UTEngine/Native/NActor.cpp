@@ -66,6 +66,15 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "TweenAnim", &NActor::TweenAnim, 294);
 	RegisterVMNativeFunc_4("Actor", "VisibleActors", &NActor::VisibleActors, 311);
 	RegisterVMNativeFunc_5("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors, 312);
+	RegisterVMNativeFunc_1("Actor", "GetPlayerPawn", &NActor::GetPlayerPawn, 720);
+	RegisterVMNativeFunc_1("Actor", "AIClearEvent", &NActor::AIClearEvent, 716);
+	RegisterVMNativeFunc_1("Actor", "AIClearEventCallback", &NActor::AIClearEventCallback, 711);
+	RegisterVMNativeFunc_2("Actor", "AIEndEvent", &NActor::AIEndEvent, 715);
+	RegisterVMNativeFunc_2("Actor", "AIGetLightLevel", &NActor::AIGetLightLevel, 700);
+	RegisterVMNativeFunc_4("Actor", "AISendEvent", &NActor::AISendEvent, 713);
+	RegisterVMNativeFunc_7("Actor", "AISetEventCallback", &NActor::AISetEventCallback, 710);
+	RegisterVMNativeFunc_4("Actor", "AIStartEvent", &NActor::AIStartEvent, 714);
+	RegisterVMNativeFunc_2("Actor", "AIVisibility", &NActor::AIVisibility, 701);
 }
 
 void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
@@ -495,4 +504,50 @@ void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*&
 		Radius ? *Radius : SelfActor->CollisionRadius(),
 		Loc ? *Loc : SelfActor->Location(),
 		bIgnoreHidden ? *bIgnoreHidden : false);
+}
+
+void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
+{
+	engine->LogUnimplemented("Actor.GetPlayerPawn");
+	ReturnValue = nullptr;
+}
+
+void NActor::AIClearEvent(UObject* Self, const NameString& eventName)
+{
+	throw std::runtime_error("Actor.AIClearEvent not implemented");
+}
+
+void NActor::AIClearEventCallback(UObject* Self, const NameString& eventName)
+{
+	throw std::runtime_error("Actor.AIClearEventCallback not implemented");
+}
+
+void NActor::AIEndEvent(UObject* Self, const NameString& eventName, uint8_t eventType)
+{
+	engine->LogUnimplemented("Actor.AIEndEvent");
+}
+
+void NActor::AIGetLightLevel(UObject* Self, const vec3& Location, float& ReturnValue)
+{
+	throw std::runtime_error("Actor.AIGetLightLevel not implemented");
+}
+
+void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
+{
+	throw std::runtime_error("Actor.AISendEvent not implemented");
+}
+
+void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, bool* bCheckVisibility, bool* bCheckDir, bool* bCheckCylinder, bool* bCheckLOS)
+{
+	throw std::runtime_error("Actor.AISetEventCallback not implemented");
+}
+
+void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
+{
+	throw std::runtime_error("Actor.AIStartEvent not implemented");
+}
+
+void NActor::AIVisibility(UObject* Self, bool* bIncludeVelocity, float& ReturnValue)
+{
+	throw std::runtime_error("Actor.AIVisibility not implemented");
 }

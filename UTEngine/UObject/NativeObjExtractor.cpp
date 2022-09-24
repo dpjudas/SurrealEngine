@@ -17,7 +17,7 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 
 	pkginits += "void InitPropertyOffsets(PackageManager* packages)\r\n{\r\n";
 
-	for (std::string pkgname : { "Core", "Engine", "Fire", "IpDrv" })
+	for (std::string pkgname : { "Core", "Engine", "Fire", "IpDrv", "DeusEx" })
 	{
 		Package* package = packages->GetPackage(pkgname);
 		std::vector<UClass*> classes = package->GetAllClasses();
