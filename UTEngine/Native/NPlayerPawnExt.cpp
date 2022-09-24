@@ -14,15 +14,15 @@ void NPlayerPawnExt::RegisterFunctions()
 
 void NPlayerPawnExt::InitRootWindow(UObject* Self)
 {
-	engine->LogUnimplemented("PlayerPawnExt.InitRootWindow not implemented");
+	engine->LogUnimplemented("PlayerPawnExt.InitRootWindow");
 }
 
 void NPlayerPawnExt::PostRenderWindows(UObject* Self, UObject* Canvas)
 {
-	engine->LogUnimplemented("PlayerPawnExt.PostRenderWindows not implemented");
+	engine->LogUnimplemented("PlayerPawnExt.PostRenderWindows");
 }
 
 void NPlayerPawnExt::PreRenderWindows(UObject* Self, UObject* Canvas)
 {
-	engine->LogUnimplemented("PlayerPawnExt.PreRenderWindows not implemented");
+	engine->LogUnimplemented("PlayerPawnExt.PreRenderWindows");
 }
