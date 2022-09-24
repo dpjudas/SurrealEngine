@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "UMesh.h"
 #include "UTexture.h"
+#include "Engine.h"
+#include "Package/PackageManager.h"
 
 void UPrimitive::Load(ObjectStream* stream)
 {
@@ -30,7 +32,7 @@ void UMesh::Load(ObjectStream* stream)
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
-	if (true/*stream->GetVersion() == 1112*/) // Deus Ex
+	if (engine->packages->GetEngineVersion() == 1112) // Deus Ex
 	{
 		for (int i = 0; i < NumVerts; i++)
 		{
