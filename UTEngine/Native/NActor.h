@@ -68,4 +68,6 @@ public:
 	static void AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, bool* bCheckVisibility, bool* bCheckDir, bool* bCheckCylinder, bool* bCheckLOS);
 	static void AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius);
 	static void AIVisibility(UObject* Self, bool* bIncludeVelocity, float& ReturnValue);
+	static void TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent);
+	static void TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent);
 };

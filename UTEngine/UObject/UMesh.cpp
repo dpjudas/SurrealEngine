@@ -36,8 +36,12 @@ void UMesh::Load(ObjectStream* stream)
 	{
 		for (int i = 0; i < NumVerts; i++)
 		{
-			int64_t packedvertex = stream->ReadInt64();
-			vec3 vertex = { (float)((packedvertex << 42) >> 42), (float)((packedvertex << 20) >> 42), (float)(packedvertex >> 44) };
+			struct DeusExVertex
+			{
+				int16_t x, y, z, padding;
+			} packedvertex;
+			stream->ReadBytes(&packedvertex, sizeof(DeusExVertex));
+			vec3 vertex = { (float)packedvertex.x, (float)packedvertex.y, (float)packedvertex.z };
 			Verts.push_back(vertex);
 		}
 	}

@@ -75,6 +75,8 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_7("Actor", "AISetEventCallback", &NActor::AISetEventCallback, 710);
 	RegisterVMNativeFunc_4("Actor", "AIStartEvent", &NActor::AIStartEvent, 714);
 	RegisterVMNativeFunc_2("Actor", "AIVisibility", &NActor::AIVisibility, 701);
+	RegisterVMNativeFunc_10("Actor", "TraceTexture", &NActor::TraceTexture, 1000);
+	RegisterVMNativeFunc_7("Actor", "TraceVisibleActors", &NActor::TraceVisibleActors, 1003);
 }
 
 void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
@@ -514,12 +516,12 @@ void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
 
 void NActor::AIClearEvent(UObject* Self, const NameString& eventName)
 {
-	throw std::runtime_error("Actor.AIClearEvent not implemented");
+	engine->LogUnimplemented("Actor.AIClearEvent");
 }
 
 void NActor::AIClearEventCallback(UObject* Self, const NameString& eventName)
 {
-	throw std::runtime_error("Actor.AIClearEventCallback not implemented");
+	engine->LogUnimplemented("Actor.AIClearEventCallback");
 }
 
 void NActor::AIEndEvent(UObject* Self, const NameString& eventName, uint8_t eventType)
@@ -529,25 +531,51 @@ void NActor::AIEndEvent(UObject* Self, const NameString& eventName, uint8_t even
 
 void NActor::AIGetLightLevel(UObject* Self, const vec3& Location, float& ReturnValue)
 {
-	throw std::runtime_error("Actor.AIGetLightLevel not implemented");
+	engine->LogUnimplemented("Actor.AIGetLightLevel");
+	ReturnValue = 1.0f;
 }
 
 void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
 {
-	throw std::runtime_error("Actor.AISendEvent not implemented");
+	engine->LogUnimplemented("Actor.AISendEvent");
 }
 
 void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, bool* bCheckVisibility, bool* bCheckDir, bool* bCheckCylinder, bool* bCheckLOS)
 {
-	throw std::runtime_error("Actor.AISetEventCallback not implemented");
+	engine->LogUnimplemented("Actor.AISetEventCallback");
 }
 
 void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
 {
-	throw std::runtime_error("Actor.AIStartEvent not implemented");
+	engine->LogUnimplemented("Actor.AIStartEvent");
 }
 
 void NActor::AIVisibility(UObject* Self, bool* bIncludeVelocity, float& ReturnValue)
 {
-	throw std::runtime_error("Actor.AIVisibility not implemented");
+	engine->LogUnimplemented("Actor.AIVisibility");
+	ReturnValue = 0.0f;
+}
+
+void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
+{
+	engine->LogUnimplemented("Actor.TraceTexture");
+	// Deus Ex
+	// Note: this is not correct, but it will give unrealscript an iterator
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
+		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		Start ? *Start : SelfActor->Location(),
+		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
+}
+
+void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
+{
+	engine->LogUnimplemented("Actor.TraceVisibleActors");
+	// Deus Ex
+	// Note: this is not correct, but it will give unrealscript an iterator
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
+		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		Start ? *Start : SelfActor->Location(),
+		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
 }
