@@ -102,6 +102,11 @@ void UBoolProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHe
 	*reinterpret_cast<bool*>(data) = header.boolValue;
 }
 
+void UBoolProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
+{
+	*reinterpret_cast<bool*>(data) = stream->ReadUInt8() == 1; // Is this always a byte? Is it aligned? Bitfield stuff?
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UObjectProperty::Load(ObjectStream* stream)

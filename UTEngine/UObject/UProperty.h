@@ -373,6 +373,7 @@ class UBoolProperty : public UProperty
 public:
 	UBoolProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(void* data) override { return std::to_string(*(bool*)data); }
 };
 
