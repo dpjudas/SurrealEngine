@@ -82,6 +82,22 @@ set(UTENGINE_SOURCES
 	UTEngine/Native/NTcpLink.h
 	UTEngine/Native/NUdpLink.cpp
 	UTEngine/Native/NUdpLink.h
+	UTEngine/Native/NDebugInfo.cpp
+	UTEngine/Native/NDebugInfo.h
+	UTEngine/Native/NDeusExPlayer.cpp
+	UTEngine/Native/NDeusExPlayer.h
+	UTEngine/Native/NScriptedPawn.cpp
+	UTEngine/Native/NScriptedPawn.h
+	UTEngine/Native/NDeusExDecoration.cpp
+	UTEngine/Native/NDeusExDecoration.h
+	UTEngine/Native/NDumpLocation.cpp
+	UTEngine/Native/NDumpLocation.h
+	UTEngine/Native/NDeusExSaveInfo.cpp
+	UTEngine/Native/NDeusExSaveInfo.h
+	UTEngine/Native/NGameDirectory.cpp
+	UTEngine/Native/NGameDirectory.h
+	UTEngine/Native/NParticleIterator.cpp
+	UTEngine/Native/NParticleIterator.h
 	UTEngine/RenderDevice/RenderDevice.cpp
 	UTEngine/RenderDevice/RenderDevice.h
 	UTEngine/RenderDevice/Vulkan/BufferManager.cpp

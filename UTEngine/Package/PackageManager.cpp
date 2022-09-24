@@ -26,6 +26,14 @@
 #include "Native/NInternetLink.h"
 #include "Native/NTcpLink.h"
 #include "Native/NUdpLink.h"
+#include "Native/NDebugInfo.h"
+#include "Native/NDeusExDecoration.h"
+#include "Native/NDeusExPlayer.h"
+#include "Native/NDeusExSaveInfo.h"
+#include "Native/NDumpLocation.h"
+#include "Native/NGameDirectory.h"
+#include "Native/NParticleIterator.h"
+#include "Native/NScriptedPawn.h"
 
 PackageManager::PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName) : basepath(basepath), engineVersion(engineVersion), gameName(gameName)
 {
@@ -48,6 +56,17 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 	NInternetLink::RegisterFunctions();
 	NTcpLink::RegisterFunctions();
 	NUdpLink::RegisterFunctions();
+	if (gameName == "DeusEx")
+	{
+		NDebugInfo::RegisterFunctions();
+		NDeusExDecoration::RegisterFunctions();
+		NDeusExPlayer::RegisterFunctions();
+		NDeusExSaveInfo::RegisterFunctions();
+		NDumpLocation::RegisterFunctions();
+		NGameDirectory::RegisterFunctions();
+		NParticleIterator::RegisterFunctions();
+		NScriptedPawn::RegisterFunctions();
+	}
 
 	LoadIntFiles();
 	ScanForMaps();
