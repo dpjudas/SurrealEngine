@@ -4,7 +4,6 @@
 
 class Engine;
 class RenderDevice;
-class VulkanDevice;
 
 enum class StandardCursor
 {
@@ -112,7 +111,6 @@ public:
 	virtual void* GetWindow() = 0;
 	virtual void Tick() = 0;
 	virtual RenderDevice* GetRenderDevice() = 0;
-	virtual VulkanDevice* GetVulkanDevice() = 0;
 
 	int SizeX = 0;
 	int SizeY = 0;

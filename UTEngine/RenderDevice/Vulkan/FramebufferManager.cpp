@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "FramebufferManager.h"
 #include "VulkanRenderDevice.h"
-#include "VulkanBuilders.h"
-#include "VulkanSwapChain.h"
+#include <zvulkan/vulkanbuilders.h>
+#include <zvulkan/vulkanswapchain.h>
 
 FramebufferManager::FramebufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -17,7 +17,7 @@ void FramebufferManager::CreateSceneFramebuffer()
 		.AddAttachment(renderer->Textures->Scene->ColorBufferView.get())
 		.AddAttachment(renderer->Textures->Scene->DepthBufferView.get())
 		.DebugName("SceneFramebuffer")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 }
 
 void FramebufferManager::DestroySceneFramebuffer()
@@ -32,8 +32,8 @@ VulkanFramebuffer* FramebufferManager::GetSwapChainFramebuffer()
 	swapChainFramebuffer = FramebufferBuilder()
 		.RenderPass(renderer->RenderPasses->PresentRenderPass.get())
 		.Size(renderer->Textures->Scene->width, renderer->Textures->Scene->height)
-		.AddAttachment(renderer->Commands->SwapChain->swapChainImageViews[renderer->Commands->PresentImageIndex])
+		.AddAttachment(renderer->Commands->SwapChain->GetImageView(renderer->Commands->PresentImageIndex))
 		.DebugName("SwapChainFramebuffer")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 	return swapChainFramebuffer.get();
 }

@@ -2,10 +2,10 @@
 #include "Precomp.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
-#include "VulkanBuilders.h"
-#include "VulkanSurface.h"
-#include "VulkanSwapChain.h"
-#include "VulkanCompatibleDevice.h"
+#include <zvulkan/vulkanbuilders.h>
+#include <zvulkan/vulkansurface.h>
+#include <zvulkan/vulkanswapchain.h>
+#include <zvulkan/vulkancompatibledevice.h>
 #include "UTF16.h"
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
@@ -23,17 +23,24 @@ void VulkanError(const char* text)
 	throw std::runtime_error(text);
 }
 
-VulkanRenderDevice::VulkanRenderDevice(DisplayWindow* InViewport)
+VulkanRenderDevice::VulkanRenderDevice(DisplayWindow* InViewport, std::shared_ptr<VulkanSurface> surface)
 {
 	Viewport = InViewport;
 
 	try
 	{
-		Device = Viewport->GetVulkanDevice();
+		Device = VulkanDeviceBuilder()
+			.OptionalDescriptorIndexing()
+			.OptionalRayQuery()
+			.Surface(surface)
+			.SelectDevice(0)
+			.Create(surface->Instance);
+
 		SupportsBindless =
 			Device->EnabledFeatures.DescriptorIndexing.descriptorBindingPartiallyBound &&
 			Device->EnabledFeatures.DescriptorIndexing.runtimeDescriptorArray &&
 			Device->EnabledFeatures.DescriptorIndexing.shaderSampledImageArrayNonUniformIndexing;
+
 		Commands.reset(new CommandBufferManager(this));
 		Samplers.reset(new SamplerManager(this));
 		Textures.reset(new TextureManager(this));
@@ -249,7 +256,11 @@ bool VulkanRenderDevice::Exec(std::string Cmd, OutputDevice& Ar)
 	}
 	else if (ParseCommand(&Cmd, "GetVkDevices"))
 	{
-		std::vector<VulkanCompatibleDevice> supportedDevices = VulkanCompatibleDevice::FindDevices(Device->Instance, Device->Surface);
+		std::vector<VulkanCompatibleDevice> supportedDevices = VulkanDeviceBuilder()
+			.OptionalDescriptorIndexing()
+			.OptionalRayQuery()
+			.Surface(Device->Surface)
+			.FindDevices(Device->Instance);
 		for (size_t i = 0; i < supportedDevices.size(); i++)
 		{
 			Ar.Log("#" + std::to_string(i) + " - " + supportedDevices[i].Device->Properties.deviceName + "\r\n");
@@ -288,7 +299,7 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 		WriteDescriptors()
 			.AddCombinedImageSampler(descriptors, 0, Textures->Scene->PPImageView.get(), Samplers->PPLinearClamp.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			.AddCombinedImageSampler(descriptors, 1, Textures->DitherImageView.get(), Samplers->PPNearestRepeat.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.Execute(Device);
+			.Execute(Device.get());
 	}
 
 	PipelineBarrier()
@@ -725,7 +736,7 @@ void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 		.Usage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)
 		.Size(w, h)
 		.DebugName("ReadPixelsDstImage")
-		.Create(Device);
+		.Create(Device.get());
 
 	// Convert from rgba16f to bgra8 using the GPU:
 	auto srcimage = Textures->Scene->PPImage.get();
@@ -766,7 +777,7 @@ void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 		.Size(w * h * 4)
 		.Usage(VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_TO_CPU)
 		.DebugName("ReadPixelsStaging")
-		.Create(Device);
+		.Create(Device.get());
 
 	// Copy from image to buffer
 	VkBufferImageCopy region = {};
@@ -953,13 +964,6 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 
 void VulkanRenderDevice::DrawPresentTexture(int x, int y, int width, int height)
 {
-	if (Commands->SwapChain->newSwapChain)
-	{
-		Commands->SwapChain->newSwapChain = false;
-		RenderPasses->CreatePresentRenderPass();
-		RenderPasses->CreatePresentPipeline();
-	}
-
 	float gamma = (1.5f * Viewport->Brightness * 2.0f);
 
 	PresentPushConstants pushconstants;

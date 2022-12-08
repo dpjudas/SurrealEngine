@@ -1,9 +1,8 @@
 #pragma once
 
-#include "VulkanDevice.h"
-#include "VulkanObjects.h"
+#include <zvulkan/vulkandevice.h>
+#include <zvulkan/vulkanobjects.h>
 #include "RenderDevice/RenderDevice.h"
-#include "VulkanObjects.h"
 #include "CommandBufferManager.h"
 #include "BufferManager.h"
 #include "DescriptorSetManager.h"
@@ -21,7 +20,7 @@ class CachedTexture;
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(DisplayWindow* InViewport);
+	VulkanRenderDevice(DisplayWindow* InViewport, std::shared_ptr<VulkanSurface> surface);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;
@@ -39,7 +38,7 @@ public:
 	bool SupportsTextureFormat(TextureFormat Format) override;
 	void UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL) override;
 
-	VulkanDevice* Device = nullptr;
+	std::shared_ptr<VulkanDevice> Device;
 
 	std::unique_ptr<CommandBufferManager> Commands;
 

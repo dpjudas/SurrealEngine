@@ -39,7 +39,6 @@ public:
 	void* GetDisplay() override;
 	void* GetWindow() override;
 	void Tick() override;
-	VulkanDevice* GetVulkanDevice() override { return Device.get(); }
 	RenderDevice* GetRenderDevice() override { return RendDevice.get(); }
 
 	bool HasFocus() const;
@@ -60,7 +59,6 @@ public:
 	EInputKey KeySymToInputKey(KeySym keysym);
 
 	Engine* engine = nullptr;
-	std::unique_ptr<VulkanDevice> Device;
 	std::unique_ptr<RenderDevice> RendDevice;
 
 	Display* display = nullptr;

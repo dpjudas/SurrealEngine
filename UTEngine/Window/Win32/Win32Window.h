@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window/Window.h"
-#include "RenderDevice/Vulkan/VulkanDevice.h"
+#include <zvulkan/vulkandevice.h>
 
 struct ReceivedWindowMessage
 {
@@ -20,7 +20,6 @@ public:
 	void CloseWindow() override;
 	void* GetDisplay() override { return nullptr; }
 	void* GetWindow() override;
-	VulkanDevice* GetVulkanDevice() override { return Device.get(); }
 	RenderDevice* GetRenderDevice() override { return RenderDevice.get(); }
 	void Tick() override;
 
@@ -41,6 +40,5 @@ public:
 
 	std::vector<ReceivedWindowMessage> ReceivedMessages;
 
-	std::unique_ptr<VulkanDevice> Device;
 	std::unique_ptr<RenderDevice> RenderDevice;
 };

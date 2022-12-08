@@ -3,7 +3,7 @@
 #include "TextureManager.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
-#include "VulkanBuilders.h"
+#include <zvulkan/vulkanbuilders.h>
 #include "UObject/UTexture.h"
 
 TextureManager::TextureManager(VulkanRenderDevice* renderer) : renderer(renderer)
@@ -64,18 +64,18 @@ void TextureManager::CreateNullTexture()
 		.Size(1, 1)
 		.Usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
 		.DebugName("NullTexture")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	NullTextureView = ImageViewBuilder()
 		.Image(NullTexture.get(), VK_FORMAT_R8G8B8A8_UNORM)
 		.DebugName("NullTextureView")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	auto stagingbuffer = BufferBuilder()
 		.Usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY)
 		.Size(4)
 		.DebugName("NullTextureStaging")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	auto data = (uint32_t*)stagingbuffer->Map(0, 4);
 	data[0] = 0xffffffff;
@@ -119,18 +119,18 @@ void TextureManager::CreateDitherTexture()
 		.Size(8, 8)
 		.Usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT)
 		.DebugName("DitherImage")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	DitherImageView = ImageViewBuilder()
 		.Image(DitherImage.get(), VK_FORMAT_R32_SFLOAT)
 		.DebugName("DitherImageView")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	auto stagingbuffer = BufferBuilder()
 		.Usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY)
 		.Size(sizeof(ditherdata))
 		.DebugName("DitherImageStaging")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	auto data = (uint32_t*)stagingbuffer->Map(0, sizeof(ditherdata));
 	memcpy(data, ditherdata, sizeof(ditherdata));

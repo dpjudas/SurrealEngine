@@ -1,7 +1,7 @@
 #pragma once
 
-#include "VulkanObjects.h"
-#include "VulkanBuilders.h"
+#include <zvulkan/vulkanobjects.h>
+#include <zvulkan/vulkanbuilders.h>
 
 class VulkanRenderDevice;
 class CachedTexture;

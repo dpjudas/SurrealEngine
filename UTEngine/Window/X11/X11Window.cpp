@@ -19,12 +19,14 @@
 **
 */
 
+#define VK_USE_PLATFORM_XLIB_KHR
+
 #include "Precomp.h"
 #include "X11Window.h"
 #include "RenderDevice/RenderDevice.h"
-#include "RenderDevice/Vulkan/VulkanDevice.h"
-#include "RenderDevice/Vulkan/VulkanSurface.h"
-#include "RenderDevice/Vulkan/VulkanCompatibleDevice.h"
+#include <zvulkan/vulkansurface.h>
+#include <zvulkan/vulkancompatibledevice.h>
+#include <zvulkan/vulkanbuilders.h>
 #include "Engine.h"
 #include <dlfcn.h>
 #include <string.h>
@@ -85,27 +87,22 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 {
 	CloseWindow();
 
-	auto instance = std::make_shared<VulkanInstance>(false);
+	auto instance = VulkanInstanceBuilder()
+		.RequireSurfaceExtensions()
+		.DebugLayer(false)
+		.Create();
 
-	if (instance->PhysicalDevices.empty())
-		VulkanError("No Vulkan devices found. The graphics card may have no vulkan support or the driver may be too old.");
-
-	std::vector<VulkanCompatibleDevice> supportedDevices = VulkanCompatibleDevice::FindDevices(instance, {});
-	if (supportedDevices.empty())
-		VulkanError("No Vulkan device found supports the minimum requirements of this application");
-
-	VkPhysicalDevice physDevice = supportedDevices[0].Device->Device;
+	VkPhysicalDevice physDevice = nullptr;
 	int queueFamilyIndex = -1;
-	for (const auto& dev : supportedDevices)
+	for (const auto& info : instance->PhysicalDevices)
 	{
-		const auto& info = *dev.Device;
 		for (int i = 0; i < (int)info.QueueFamilies.size(); i++)
 		{
 			const auto& queueFamily = info.QueueFamilies[i];
 			if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT))
 			{
 				queueFamilyIndex = i;
-				physDevice = dev.Device->Device;
+				physDevice = info.Device;
 				break;
 			}
 		}
@@ -253,10 +250,17 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 		is_fullscreen = true;
 	}
 
-	auto surface = std::make_shared<VulkanSurface>(instance, display, window);
-	Device = std::make_unique<VulkanDevice>(instance, surface, VulkanCompatibleDevice::SelectDevice(instance, surface, 0));
+	VkXlibSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
+	createInfo.dpy = disp;
+	createInfo.window = wind;
+	VkSurfaceKHR surfacehandle = VK_NULL_HANDLE;
+	VkResult result = vkCreateXlibSurfaceKHR(Instance->Instance, &createInfo, nullptr, &surfacehandle);
+	if (result != VK_SUCCESS)
+		VulkanError("Could not create vulkan surface");
 
-	RendDevice = RenderDevice::Create(this);
+	auto surface = std::make_shared<VulkanSurface>(instance, surfacehandle);
+
+	RendDevice = RenderDevice::Create(this, surface);
 
 	MapWindow();
 	HideSystemCursor();
@@ -265,7 +269,6 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 void X11Window::CloseWindow()
 {
 	RendDevice.reset();
-	Device.reset();
 
 	if (window)
 	{

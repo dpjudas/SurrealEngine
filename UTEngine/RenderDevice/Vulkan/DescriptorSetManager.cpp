@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "DescriptorSetManager.h"
 #include "VulkanRenderDevice.h"
-#include "VulkanBuilders.h"
+#include <zvulkan/vulkanbuilders.h>
 #include "CachedTexture.h"
 #include "UObject/ULevel.h"
 
@@ -33,7 +33,7 @@ VulkanDescriptorSet* DescriptorSetManager::GetTextureDescriptorSet(uint32_t Poly
 				.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 * 4)
 				.MaxSets(1000)
 				.DebugName("SceneDescriptorPool")
-				.Create(renderer->Device));
+				.Create(renderer->Device.get()));
 			SceneDescriptorPoolSetsLeft = 1000;
 		}
 
@@ -51,7 +51,7 @@ VulkanDescriptorSet* DescriptorSetManager::GetTextureDescriptorSet(uint32_t Poly
 			else
 				writes.AddCombinedImageSampler(descriptorSet.get(), i++, renderer->Textures->NullTextureView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
-		writes.Execute(renderer->Device);
+		writes.Execute(renderer->Device.get());
 	}
 	return descriptorSet.get();
 }
@@ -91,7 +91,7 @@ int DescriptorSetManager::GetTextureArrayIndex(uint32_t PolyFlags, CachedTexture
 
 void DescriptorSetManager::UpdateBindlessDescriptorSet()
 {
-	WriteBindless.Execute(renderer->Device);
+	WriteBindless.Execute(renderer->Device.get());
 	WriteBindless = WriteDescriptors();
 }
 
@@ -105,7 +105,7 @@ void DescriptorSetManager::CreateBindlessSceneDescriptorSet()
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MaxBindlessTextures)
 		.MaxSets(MaxBindlessTextures)
 		.DebugName("SceneBindlessDescriptorPool")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	SceneBindlessDescriptorSetLayout = DescriptorSetLayoutBuilder()
 		.Flags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT)
@@ -115,7 +115,7 @@ void DescriptorSetManager::CreateBindlessSceneDescriptorSet()
 			VK_SHADER_STAGE_FRAGMENT_BIT,
 			VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT)
 		.DebugName("SceneBindlessDescriptorSetLayout")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	SceneBindlessDescriptorSet = SceneBindlessDescriptorPool->allocate(SceneBindlessDescriptorSetLayout.get(), MaxBindlessTextures);
 }
@@ -128,7 +128,7 @@ void DescriptorSetManager::CreateSceneDescriptorSetLayout()
 		.AddBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.DebugName("SceneDescriptorSetLayout")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 }
 
 void DescriptorSetManager::CreatePresentDescriptorSetLayout()
@@ -137,7 +137,7 @@ void DescriptorSetManager::CreatePresentDescriptorSetLayout()
 		.AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.DebugName("PresentDescriptorSetLayout")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 }
 
 void DescriptorSetManager::CreatePresentDescriptorSet()
@@ -146,6 +146,6 @@ void DescriptorSetManager::CreatePresentDescriptorSet()
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2)
 		.MaxSets(1)
 		.DebugName("PresentDescriptorPool")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 	PresentDescriptorSet = PresentDescriptorPool->allocate(PresentDescriptorSetLayout.get());
 }

@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
+
+add_subdirectory( thirdparty/ZVulkan )
+
 project(UTEngine)
 
 set(UTENGINE_SOURCES
@@ -127,21 +130,8 @@ set(UTENGINE_SOURCES
 	UTEngine/RenderDevice/Vulkan/TextureUploader.h
 	UTEngine/RenderDevice/Vulkan/UploadManager.cpp
 	UTEngine/RenderDevice/Vulkan/UploadManager.h
-	UTEngine/RenderDevice/Vulkan/VulkanBuilders.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanBuilders.h
-	UTEngine/RenderDevice/Vulkan/VulkanCompatibleDevice.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanCompatibleDevice.h
-	UTEngine/RenderDevice/Vulkan/VulkanDevice.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanDevice.h
-	UTEngine/RenderDevice/Vulkan/VulkanInstance.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanInstance.h
-	UTEngine/RenderDevice/Vulkan/VulkanObjects.h
 	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp
 	UTEngine/RenderDevice/Vulkan/VulkanRenderDevice.h
-	UTEngine/RenderDevice/Vulkan/VulkanSurface.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanSurface.h
-	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.cpp
-	UTEngine/RenderDevice/Vulkan/VulkanSwapChain.h
 	UTEngine/Package/ObjectFlags.h
 	UTEngine/Package/Package.h
 	UTEngine/Package/ObjectStream.h
@@ -324,9 +314,6 @@ set(UTENGINE_UNIX_SOURCES
 )
 
 set(THIRDPARTY_SOURCES
-	Thirdparty/vk_mem_alloc/vk_mem_alloc.h
-	Thirdparty/vk_mem_alloc/vk_mem_alloc.cpp
-	Thirdparty/vk_mem_alloc/vk_mem_alloc.natvis
 	Thirdparty/dr_wav.h
 	Thirdparty/minimp3_ex.h
 	Thirdparty/minimp3.h
@@ -445,132 +432,16 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/resample/r8bbase.h
 	Thirdparty/dr_flac.h
 	Thirdparty/stb_vorbis.h
-	Thirdparty/volk/volk.c
-	Thirdparty/volk/volk.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/PoolAlloc.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Intermediate.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/gl_types.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseVersions.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SymbolTable.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/LiveTraverser.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/iomapper.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/intermOut.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Versions.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/linkValidate.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/InfoSink.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Constant.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/IntermTraverse.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/propagateNoContraction.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/glslang_tab.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ShaderLang.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/Pp.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpAtom.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpTokens.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpScanner.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/preprocessor/PpContext.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/attribute.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/localintermediate.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/parseConst.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Initialize.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/limits.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseContextBase.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/RemoveTree.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ParseHelper.cpp
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/Scan.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/reflection.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/ScanContext.h
-	Thirdparty/ShaderCompiler/glslang/MachineIndependent/SpirvIntrinsics.cpp
-	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
-	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/Link.cpp
-	Thirdparty/ShaderCompiler/glslang/GenericCodeGen/CodeGen.cpp
-	Thirdparty/ShaderCompiler/glslang/Public/ShaderLang.h
-	Thirdparty/ShaderCompiler/glslang/Include/ConstantUnion.h
-	Thirdparty/ShaderCompiler/glslang/Include/InitializeGlobals.h
-	Thirdparty/ShaderCompiler/glslang/Include/Common.h
-	Thirdparty/ShaderCompiler/glslang/Include/PoolAlloc.h
-	Thirdparty/ShaderCompiler/glslang/Include/arrays.h
-	Thirdparty/ShaderCompiler/glslang/Include/ShHandle.h
-	Thirdparty/ShaderCompiler/glslang/Include/InfoSink.h
-	Thirdparty/ShaderCompiler/glslang/Include/ResourceLimits.h
-	Thirdparty/ShaderCompiler/glslang/Include/Types.h
-	Thirdparty/ShaderCompiler/glslang/Include/revision.h
-	Thirdparty/ShaderCompiler/glslang/Include/BaseTypes.h
-	Thirdparty/ShaderCompiler/glslang/Include/intermediate.h
-	Thirdparty/ShaderCompiler/glslang/Include/SpirvIntrinsics.h
-	Thirdparty/ShaderCompiler/glslang/Include/build_info.h
-	Thirdparty/ShaderCompiler/glslang/OSDependent/osinclude.h
-	Thirdparty/ShaderCompiler/spirv/Logger.h
-	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.cpp
-	Thirdparty/ShaderCompiler/spirv/SPVRemapper.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.EXT.h
-	Thirdparty/ShaderCompiler/spirv/hex_float.h
-	Thirdparty/ShaderCompiler/spirv/doc.cpp
-	Thirdparty/ShaderCompiler/spirv/disassemble.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvPostProcess.cpp
-	Thirdparty/ShaderCompiler/spirv/bitutils.h
-	Thirdparty/ShaderCompiler/spirv/InReadableOrder.cpp
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.AMD.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.NV.h
-	Thirdparty/ShaderCompiler/spirv/SPVRemapper.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvBuilder.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.ext.KHR.h
-	Thirdparty/ShaderCompiler/spirv/disassemble.h
-	Thirdparty/ShaderCompiler/spirv/SpvBuilder.cpp
-	Thirdparty/ShaderCompiler/spirv/GlslangToSpv.h
-	Thirdparty/ShaderCompiler/spirv/doc.h
-	Thirdparty/ShaderCompiler/spirv/SpvTools.cpp
-	Thirdparty/ShaderCompiler/spirv/spvIR.h
-	Thirdparty/ShaderCompiler/spirv/Logger.cpp
-	Thirdparty/ShaderCompiler/spirv/SpvTools.h
-	Thirdparty/ShaderCompiler/spirv/GLSL.std.450.h
-	Thirdparty/ShaderCompiler/spirv/NonSemanticDebugPrintf.h
-	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.cpp
-	Thirdparty/ShaderCompiler/OGLCompilersDLL/InitializeDll.h
-	Thirdparty/vulkan/vk_sdk_platform.h
-	Thirdparty/vulkan/vulkan_fuchsia.h
-	Thirdparty/vulkan/vulkan_win32.h
-	Thirdparty/vulkan/vulkan_ios.h
-	Thirdparty/vulkan/vk_icd.h
-	Thirdparty/vulkan/vk_layer.h
-	Thirdparty/vulkan/vulkan_xcb.h
-	Thirdparty/vulkan/vulkan_macos.h
-	Thirdparty/vulkan/vk_layer_dispatch_table.h
-	Thirdparty/vulkan/vk_enum_string_helper.h
-	Thirdparty/vulkan/vulkan_ggp.h
-	Thirdparty/vulkan/vulkan_core.h
-	Thirdparty/vulkan/vulkan_wayland.h
-	Thirdparty/vulkan/vulkan_metal.h
-	Thirdparty/vulkan/vulkan_android.h
-	Thirdparty/vulkan/vulkan_vi.h
-	Thirdparty/vulkan/vulkan.h
-	Thirdparty/vulkan/vk_platform.h
-	Thirdparty/vulkan/vulkan_mir.h
-	Thirdparty/vulkan/vulkan_xlib_xrandr.h
-	Thirdparty/vulkan/vulkan_xlib.h
-	Thirdparty/vulkan/vulkan_beta.h
-	Thirdparty/vulkan/vulkan_directfb.h
-	Thirdparty/vulkan/vulkan_screen.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
-	Thirdparty/ShaderCompiler/glslang/OSDependent/Windows/ossource.cpp
 )
 
 set(THIRDPARTY_UNIX_SOURCES
-	Thirdparty/ShaderCompiler/glslang/OSDependent/Unix/ossource.cpp
+)
+
+set(UTENGINE_LIBS
+	zvulkan
 )
 
 source_group("UTEngine" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/.+")
@@ -612,12 +483,8 @@ source_group("Thirdparty\\dumb\\src\\helpers" REGULAR_EXPRESSION "${CMAKE_CURREN
 source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/src/it/.+")
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
-source_group("Thirdparty\\ShaderCompiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/ShaderCompiler/.+")
-source_group("Thirdparty\\vk_mem_alloc" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vk_mem_alloc/.+")
-source_group("Thirdparty\\volk" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/volk/.+")
-source_group("Thirdparty\\vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/vulkan/.+")
 
-include_directories(UTEngine Thirdparty Thirdparty/dumb/include)
+include_directories(UTEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include)
 
 if(WIN32)
 	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_WIN32_SOURCES})
@@ -626,7 +493,7 @@ if(WIN32)
 else()
 	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_UNIX_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
-	set(UTENGINE_LIBS ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+	set(UTENGINE_LIBS ${UTENGINE_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 endif()

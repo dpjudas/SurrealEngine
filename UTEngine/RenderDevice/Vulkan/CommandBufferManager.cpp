@@ -2,18 +2,36 @@
 #include "Precomp.h"
 #include "CommandBufferManager.h"
 #include "VulkanRenderDevice.h"
-#include "VulkanBuilders.h"
-#include "VulkanSwapChain.h"
+#include <zvulkan/vulkanbuilders.h>
+#include <zvulkan/vulkanswapchain.h>
 
 CommandBufferManager::CommandBufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
-	SwapChain.reset(new VulkanSwapChain(renderer->Device, renderer->UseVSync));
-	ImageAvailableSemaphore.reset(new VulkanSemaphore(renderer->Device));
-	RenderFinishedSemaphore.reset(new VulkanSemaphore(renderer->Device));
-	RenderFinishedFence.reset(new VulkanFence(renderer->Device));
-	TransferSemaphore.reset(new VulkanSemaphore(renderer->Device));
-	CommandPool.reset(new VulkanCommandPool(renderer->Device, renderer->Device->GraphicsFamily));
-	FrameDeleteList.reset(new DeleteList());
+	SwapChain = VulkanSwapChainBuilder()
+		.Create(renderer->Device.get());
+
+	ImageAvailableSemaphore = SemaphoreBuilder()
+		.DebugName("ImageAvailableSemaphore")
+		.Create(renderer->Device.get());
+
+	RenderFinishedSemaphore = SemaphoreBuilder()
+		.DebugName("RenderFinishedSemaphore")
+		.Create(renderer->Device.get());
+
+	RenderFinishedFence = FenceBuilder()
+		.DebugName("RenderFinishedFence")
+		.Create(renderer->Device.get());
+
+	TransferSemaphore = SemaphoreBuilder()
+		.DebugName("TransferSemaphore")
+		.Create(renderer->Device.get());
+
+	CommandPool = CommandPoolBuilder()
+		.QueueFamily(renderer->Device.get()->GraphicsFamily)
+		.DebugName("CommandPool")
+		.Create(renderer->Device.get());
+
+	FrameDeleteList = std::make_unique<DeleteList>();
 }
 
 CommandBufferManager::~CommandBufferManager()
@@ -31,10 +49,10 @@ void CommandBufferManager::WaitForTransfer()
 
 		QueueSubmit()
 			.AddCommandBuffer(TransferCommands.get())
-			.Execute(renderer->Device, renderer->Device->GraphicsQueue, RenderFinishedFence.get());
+			.Execute(renderer->Device.get(), renderer->Device.get()->GraphicsQueue, RenderFinishedFence.get());
 
-		vkWaitForFences(renderer->Device->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-		vkResetFences(renderer->Device->device, 1, &RenderFinishedFence->fence);
+		vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+		vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
 
 		TransferCommands.reset();
 	}
@@ -46,8 +64,19 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 
 	if (present)
 	{
-		PresentImageIndex = SwapChain->acquireImage(presentWidth, presentHeight, false, ImageAvailableSemaphore.get());
-		if (PresentImageIndex != 0xffffffff)
+		if (SwapChain->Lost() || SwapChain->Width() != presentWidth || SwapChain->Height() != presentHeight)
+		{
+			renderer->RenderPasses->DestroyPresentRenderPass();
+			renderer->RenderPasses->DestroyPresentPipeline();
+
+			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, false, false);
+
+			renderer->RenderPasses->CreatePresentRenderPass();
+			renderer->RenderPasses->CreatePresentPipeline();
+		}
+
+		PresentImageIndex = SwapChain->AcquireImage(ImageAvailableSemaphore.get());
+		if (PresentImageIndex != -1)
 		{
 			renderer->DrawPresentTexture(0, 0, presentWidth, presentHeight);
 		}
@@ -60,7 +89,7 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 		QueueSubmit()
 			.AddCommandBuffer(TransferCommands.get())
 			.AddSignal(TransferSemaphore.get())
-			.Execute(renderer->Device, renderer->Device->GraphicsQueue);
+			.Execute(renderer->Device.get(), renderer->Device.get()->GraphicsQueue);
 	}
 
 	if (DrawCommands)
@@ -75,20 +104,20 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 	{
 		submit.AddWait(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, TransferSemaphore.get());
 	}
-	if (present && PresentImageIndex != 0xffffffff)
+	if (present && PresentImageIndex != -1)
 	{
 		submit.AddWait(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, ImageAvailableSemaphore.get());
 		submit.AddSignal(RenderFinishedSemaphore.get());
 	}
-	submit.Execute(renderer->Device, renderer->Device->GraphicsQueue, RenderFinishedFence.get());
+	submit.Execute(renderer->Device.get(), renderer->Device.get()->GraphicsQueue, RenderFinishedFence.get());
 
-	if (present && PresentImageIndex != 0xffffffff)
+	if (present && PresentImageIndex != -1)
 	{
-		SwapChain->queuePresent(PresentImageIndex, RenderFinishedSemaphore.get());
+		SwapChain->QueuePresent(PresentImageIndex, RenderFinishedSemaphore.get());
 	}
 
-	vkWaitForFences(renderer->Device->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-	vkResetFences(renderer->Device->device, 1, &RenderFinishedFence->fence);
+	vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+	vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
 
 	DrawCommands.reset();
 	TransferCommands.reset();

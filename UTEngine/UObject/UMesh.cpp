@@ -32,7 +32,7 @@ void UMesh::Load(ObjectStream* stream)
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
-	if (engine->packages->GetEngineVersion() == 1112) // Deus Ex
+	if (stream->GetPackage()->GetPackageManager()->GetEngineVersion() == 1112) // Deus Ex
 	{
 		for (int i = 0; i < NumVerts; i++)
 		{

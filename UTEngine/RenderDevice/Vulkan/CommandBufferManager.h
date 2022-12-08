@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VulkanObjects.h"
+#include <zvulkan/vulkanobjects.h>
 
 class VulkanRenderDevice;
 
@@ -25,7 +25,7 @@ public:
 	};
 	std::unique_ptr<DeleteList> FrameDeleteList;
 
-	std::unique_ptr<VulkanSwapChain> SwapChain;
+	std::shared_ptr<VulkanSwapChain> SwapChain;
 	uint32_t PresentImageIndex = 0xffffffff;
 
 private:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VulkanObjects.h"
+#include <zvulkan/vulkanobjects.h>
 
 class VulkanRenderDevice;
 
@@ -19,6 +19,8 @@ public:
 
 	void CreatePresentRenderPass();
 	void CreatePresentPipeline();
+	void DestroyPresentRenderPass();
+	void DestroyPresentPipeline();
 
 	void BeginScene(VulkanCommandBuffer* cmdbuffer);
 	void EndScene(VulkanCommandBuffer* cmdbuffer);

@@ -8,6 +8,7 @@
 class DisplayWindow;
 class UTexture;
 class UActor;
+class VulkanSurface;
 
 struct FCoords
 {
@@ -93,7 +94,7 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(DisplayWindow* viewport);
+	static std::unique_ptr<RenderDevice> Create(DisplayWindow* viewport, std::shared_ptr<VulkanSurface> surface);
 
 	virtual ~RenderDevice() = default;
 

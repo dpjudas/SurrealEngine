@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "BufferManager.h"
 #include "VulkanRenderDevice.h"
-#include "VulkanBuilders.h"
+#include <zvulkan/vulkanbuilders.h>
 
 BufferManager::BufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -31,7 +31,7 @@ void BufferManager::CreateSceneVertexBuffer()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 		.Size(size)
 		.DebugName("SceneVertexBuffer")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	SceneVertices = (SceneVertex*)SceneVertexBuffer->Map(0, size);
 }
@@ -49,7 +49,7 @@ void BufferManager::CreateSceneIndexBuffer()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 		.Size(size)
 		.DebugName("SceneIndexBuffer")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	SceneIndexes = (uint32_t*)SceneIndexBuffer->Map(0, size);
 }
@@ -65,7 +65,7 @@ void BufferManager::CreateUploadBuffer()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
 		.Size(UploadBufferSize)
 		.DebugName("UploadBuffer")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	UploadData = (uint8_t*)UploadBuffer->Map(0, UploadBufferSize);
 }

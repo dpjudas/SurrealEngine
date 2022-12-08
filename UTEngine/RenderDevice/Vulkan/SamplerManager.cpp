@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "SamplerManager.h"
 #include "VulkanRenderDevice.h"
-#include "VulkanBuilders.h"
+#include <zvulkan/vulkanbuilders.h>
 
 SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -36,7 +36,7 @@ SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer
 
 		builder.DebugName("SceneSampler");
 
-		Samplers[i] = builder.Create(renderer->Device);
+		Samplers[i] = builder.Create(renderer->Device.get());
 	}
 
 	// To do: detail texture needs a zbias of 15
@@ -47,7 +47,7 @@ SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer
 		.MipmapMode(VK_SAMPLER_MIPMAP_MODE_NEAREST)
 		.AddressMode(VK_SAMPLER_ADDRESS_MODE_REPEAT)
 		.DebugName("ppNearestRepeat")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 
 	PPLinearClamp = SamplerBuilder()
 		.MinFilter(VK_FILTER_LINEAR)
@@ -55,5 +55,5 @@ SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer
 		.MipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR)
 		.AddressMode(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
 		.DebugName("ppLinearClamp")
-		.Create(renderer->Device);
+		.Create(renderer->Device.get());
 }
