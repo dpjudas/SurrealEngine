@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-add_subdirectory( thirdparty/ZVulkan )
+add_subdirectory( Thirdparty/ZVulkan )
 
 project(UTEngine)
 
