@@ -251,11 +251,11 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	}
 
 	VkXlibSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
-	createInfo.dpy = disp;
-	createInfo.window = wind;
+	createInfo.dpy = display;
+	createInfo.window = window;
 	VkSurfaceKHR surfacehandle = VK_NULL_HANDLE;
-	VkResult result = vkCreateXlibSurfaceKHR(Instance->Instance, &createInfo, nullptr, &surfacehandle);
-	if (result != VK_SUCCESS)
+	VkResult vkresult = vkCreateXlibSurfaceKHR(instance->Instance, &createInfo, nullptr, &surfacehandle);
+	if (vkresult != VK_SUCCESS)
 		VulkanError("Could not create vulkan surface");
 
 	auto surface = std::make_shared<VulkanSurface>(instance, surfacehandle);
