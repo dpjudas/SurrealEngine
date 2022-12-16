@@ -472,7 +472,7 @@ void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3
 		HitLocation, HitNormal, TraceEnd,
 		TraceStart ? *TraceStart : SelfActor->Location(),
 		bTraceActors ? *bTraceActors : false,
-		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
+		Extent ? *Extent : vec3(0, 0, 0));
 }
 
 void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
@@ -481,7 +481,7 @@ void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
 		BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
-		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
+		Extent ? *Extent : vec3(0, 0, 0)); // CHECK ME: is this correct?
 }
 
 void NActor::TweenAnim(UObject* Self, const NameString& Sequence, float Time)
@@ -565,7 +565,7 @@ void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, Na
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
 		BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
-		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
+		Extent ? *Extent : vec3(0, 0, 0));
 }
 
 void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
@@ -577,5 +577,5 @@ void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Act
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
 		BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
-		Extent ? *Extent : vec3(SelfActor->CollisionRadius(), SelfActor->CollisionRadius(), SelfActor->CollisionHeight()));
+		Extent ? *Extent : vec3(0, 0, 0));
 }
