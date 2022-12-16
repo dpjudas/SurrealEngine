@@ -47,10 +47,15 @@ void Engine::Run()
 {
 	std::srand((unsigned int)std::time(nullptr));
 
+	LoadEngineSettings();
 	LoadKeybindings();
 
 	window = DisplayWindow::Create(this);
-	window->OpenWindow(1800, 950, true);
+
+	int width = StartupFullscreen ? FullscreenViewportX : WindowedViewportX;
+	int height = StartupFullscreen ? FullscreenViewportY : WindowedViewportY;
+
+	window->OpenWindow(width, height, StartupFullscreen);
 
 	audio = std::make_unique<AudioSubsystem>();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
@@ -635,6 +640,15 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 	return subcommands;
 }
 
+void Engine::LoadEngineSettings()
+{
+	WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
+	WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
+	FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
+	FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
+	StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
+}
+
 void Engine::LoadKeybindings()
 {
 	for (int i = 0; i < 256; i++)
@@ -822,6 +836,18 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
+}
+
+void Engine::LockCursor()
+{
+	if (window)
+		window->bLockCursor = true;
+}
+
+void Engine::UnlockCursor()
+{
+	if (window)
+		window->bLockCursor = false;
 }
 
 void Engine::WindowClose(DisplayWindow* viewport)

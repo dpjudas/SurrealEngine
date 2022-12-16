@@ -52,6 +52,7 @@ public:
 		}
 		else
 		{
+			// TODO: should support stereo sounds too
 			throw std::runtime_error("Only mono sounds are supported");
 		}
 	}
