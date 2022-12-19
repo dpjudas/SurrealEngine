@@ -161,7 +161,12 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
 
-		if (!tex)
+		// default to Actor.Texture if nothing is here
+		if ( !tex )
+			tex = actor->Texture();
+
+		// skip if Actor.Texture is none
+		if ( !tex )
 			continue;
 
 		if (tex && tex->bMasked())
