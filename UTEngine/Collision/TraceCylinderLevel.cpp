@@ -13,7 +13,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	dvec3 origin = to_dvec3(from);
 	dvec3 direction = to_dvec3(to) - origin;
-	double tmin = 0.01f;
+	double tmin = 0.01;
 	double tmax = length(direction);
 	if (tmax < tmin)
 		return {};
@@ -26,7 +26,6 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	if (traceActors)
 	{
-		double dradius = radius;
 		vec3 extents = { radius, radius, height };
 
 		ivec3 start = Level->Hash.GetSweepStartExtents(from, to, extents);
@@ -44,11 +43,12 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 						{
 							for (UActor* actor : it->second)
 							{
-								double t = Level->Hash.ActorSphereIntersect(origin, tmin, direction, tmax, dradius, actor);
+								double t = Level->Hash.ActorCylinderIntersect(from, to, direction, tmin, tmax, actor);
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;
-									hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor });
+									vec3 normal = normalize(to_vec3(hitpos) - actor->Location());
+									hits.push_back({ (float)t, normal, actor });
 								}
 							}
 						}
