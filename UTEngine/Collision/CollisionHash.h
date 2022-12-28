@@ -84,7 +84,5 @@ public:
 	bool ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor);
 	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
 	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
-	double ActorCylinderIntersect(const vec3& from, const vec3& to, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
-	double RayCylinderIntersect(const dvec3& start, const dvec3& end, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
 };

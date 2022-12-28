@@ -81,66 +81,6 @@ double CollisionHash::RaySphereIntersect(const dvec3& rayOrigin, double tmin, co
 	return (t >= tmin) ? t : tmax;
 }
 
-double CollisionHash::RayCylinderIntersect(const dvec3& start, const dvec3& end, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
-{
-	dvec3 dir2d(rayDirNormalized.x, rayDirNormalized.y, 0);
-	dir2d = normalize(dir2d);
-
-	dvec3 c(0, 0, start.z);
-	dvec3 cp = c - start;
-
-	double cplen = length(cp);
-	double tp = dot(cp, dir2d);
-
-	double cp2 = cplen * cplen;
-	double tp2 = tp * tp;
-
-	double tc2 = cp2 - tp2;
-	double tc = sqrt(tc2);
-
-	if (tc > cylinderRadius)
-		return tmax;
-
-	double r2 = cylinderRadius * cylinderRadius;
-	double ti = sqrt(std::max(r2 - tc2, 0.0));
-
-	double ip = tp - ti;
-
-	dvec3 cpnorm = normalize(cp);
-	double cosb = dot(rayDirNormalized, cpnorm);
-	double ppp = ip / cosb;
-
-	dvec3 dirscaled = rayDirNormalized * ppp;
-	dvec3 intersect = start + dirscaled;
-
-	intersect.z = abs(intersect.z);
-	double hHalf = cylinderHeight * 0.5;
-	double t = tmax;
-	if (intersect.z > hHalf)
-	{
-		dvec3 zdir(0.0, 0.0, -1.0);
-		if (rayDirNormalized.z > 0.0)
-			zdir.z = 1.0;
-
-		double h = abs(start.z) - hHalf;
-		double cosw = dot(rayDirNormalized, zdir);
-		t = h / cosw;
-
-		dirscaled = rayDirNormalized * t;
-		dvec3 pcap = start + dirscaled;
-		double rad = sqrt(pcap.x * pcap.x + pcap.y * pcap.y);
-
-		if (rad > cylinderRadius)
-			return tmax;
-	}
-	else
-	{
-		t = ppp;
-	}
-
-	return (t >= tmin) ? t : tmax;
-}
-
 bool CollisionHash::ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor)
 {
 	double sphereRadius2 = sphereRadius * sphereRadius;
@@ -186,19 +126,6 @@ double CollisionHash::ActorSphereIntersect(const dvec3& origin, double tmin, con
 	double t0 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere0, radius + sphereRadius);
 	double t1 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere1, radius + sphereRadius);
 	return std::min(t0, t1);
-}
-
-double CollisionHash::ActorCylinderIntersect(const vec3& start, const vec3& end, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor)
-{
-	if ( actor->Brush() ) // Ignore brushes for now
-		return tmax;
-
-	double height = actor->CollisionHeight();
-	double radius = actor->CollisionRadius();
-	dvec3 location = to_dvec3(actor->Location());
-	const dvec3& dstart = to_dvec3(start);
-	const dvec3& dend = to_dvec3(end);
-	return RayCylinderIntersect(dstart, dend, dirNormalized, tmin, tmax, location, height, radius);
 }
 
 std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
