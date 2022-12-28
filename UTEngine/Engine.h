@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 #include "Math/mat.h"
+#include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
 #include "UObject/UObject.h"

@@ -451,7 +451,7 @@ void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
 
 void NObject::EqualEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	ReturnValue = (A == B);
+	ReturnValue = (Float::Equals(A, B));
 }
 
 void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)

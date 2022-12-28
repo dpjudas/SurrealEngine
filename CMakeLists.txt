@@ -156,6 +156,7 @@ set(UTENGINE_SOURCES
 	UTEngine/Math/mat.cpp
 	UTEngine/Math/bbox.h
 	UTEngine/Math/hsb.h
+	UTEngine/Math/floating.h
 	UTEngine/GC/GC.cpp
 	UTEngine/GC/GC.h
 	UTEngine/UObject/ULevel.cpp

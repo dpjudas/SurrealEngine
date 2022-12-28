@@ -586,14 +586,17 @@ void UActor::TickFalling(float elapsed)
 
 void UActor::TickSwimming(float elapsed)
 {
+	// TODO:
 }
 
 void UActor::TickFlying(float elapsed)
 {
+	// TODO:
 }
 
 void UActor::TickRotating(float elapsed)
 {
+	// TODO: implement rotation for other cases (gibs flying around, etc)
 	if (bRotateToDesired() && Rotation() != DesiredRotation())
 	{
 		// To do: rotate by RotationRate until we reach the rotation. Then fire "EndedRotation" event.
@@ -877,6 +880,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 		flags.onlyProjectiles = true;
 	}
 
+	// hack?
 	if (IsA("ChallengeHUD"))
 	{
 		flags.zoneChanges = true;
@@ -1235,7 +1239,7 @@ void UActor::TickAnimation(float elapsed)
 			{
 				// If AnimRate is positive we are animating at a fixed rate. If it is negative we animate based on velocity (using AnimRate as a speed scale factor)
 				float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
-				if (animRate == 0.0f)
+				if (Float::Equals(animRate, 0.0f))
 					break;
 
 				// Find what time will we be at the end of the animation
@@ -1287,7 +1291,7 @@ void UActor::TickAnimation(float elapsed)
 					elapsed = 0.0f;
 				}
 
-				if (toAnimTime == animEndTime)
+				if (Float::Equals(toAnimTime, animEndTime))
 				{
 					if (bAnimLoop())
 					{
@@ -1315,7 +1319,7 @@ void UActor::TickAnimation(float elapsed)
 			else
 			{
 				float tweenRate = TweenRate();
-				if (tweenRate == 0.0f)
+				if (Float::Equals(tweenRate, 0.0f))
 					break;
 
 				float toAnimTime = fromAnimTime + tweenRate * elapsed;
@@ -1333,7 +1337,7 @@ void UActor::TickAnimation(float elapsed)
 
 				AnimFrame() = toAnimTime;
 
-				if (toAnimTime == animEndTime && AnimRate() == 0.0f)
+				if (Float::Equals(toAnimTime, animEndTime) && Float::Equals(AnimRate(), 0.0f))
 				{
 					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
 						StateFrame->LatentState = LatentRunState::Continue;
