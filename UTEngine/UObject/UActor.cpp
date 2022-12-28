@@ -172,8 +172,6 @@ bool UActor::Destroy()
 		return true;
 
 	bDeleteMe() = true;
-
-	GotoState({}, {});
 	SetBase(nullptr, true);
 
 	ULevel* level = XLevel();
