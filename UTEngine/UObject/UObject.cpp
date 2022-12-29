@@ -232,10 +232,29 @@ bool UObject::IsA(const NameString& className) const
 bool UObject::IsEventEnabled(const NameString& name) const
 {
 	NameString stateName = GetStateName();
-	if (UState::IsMaskedProbeName(stateName))
+	if (UState::IsMaskedProbeName(name))
 	{
-		const auto& probes = static_cast<UState*>(StateFrame->Func)->Probes;
-		if (probes.find(name) == probes.end())
+		bool foundProbe = false;
+		if (StateFrame && StateFrame->Func)
+		{
+			UState* state = static_cast<UState*>(StateFrame->Func);
+
+			// Probe is in the ignore list ('ignores' keyword in unrealscript)
+			if (state->IgnoreProbes.find(name) != state->IgnoreProbes.end())
+			{
+				return false;
+			}
+
+			// We have a function for the probe
+			if (state->Probes.find(name) != state->Probes.end())
+				foundProbe = true;
+		}
+
+		// Maybe the class has a function for our probe?
+		if (Class->Probes.find(name) != Class->Probes.end())
+			foundProbe = true;
+
+		if (!foundProbe)
 			return false;
 	}
 

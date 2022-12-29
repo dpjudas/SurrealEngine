@@ -389,6 +389,10 @@ void UState::Load(ObjectStream* stream)
 		{
 			Probes.insert(probeNames[i]);
 		}
+		if ((IgnoreMask & (1LL << i)) == 0)
+		{
+			IgnoreProbes.insert(probeNames[i]);
+		}
 	}
 
 	for (UField* child = Children; child; child = child->Next)
