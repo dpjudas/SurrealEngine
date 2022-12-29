@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "TraceCylinderLevel.h"
 #include "TraceSphereModel.h"
+#include "TraceAABBModel.h"
 #include "UObject/UActor.h"
 
 std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
@@ -60,6 +61,12 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	if (traceWorld)
 	{
+#if 0
+		dvec3 extents = { (double)radius, (double)radius, (double)height };
+		TraceAABBModel tracemodel;
+		std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+		hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+#else
 		vec3 offset = vec3(0.0, 0.0, height - radius);
 		TraceSphereModel tracespheremodel;
 		for (const dvec3& origin : { to_dvec3(from - offset), to_dvec3(from), to_dvec3(from + offset) })
@@ -67,6 +74,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 			std::vector<SweepHit> worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
 			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
 		}
+#endif
 	}
 
 	// Sort by closest hit and only include the first hit for each actor

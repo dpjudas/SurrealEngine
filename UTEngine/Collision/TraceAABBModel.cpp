@@ -18,36 +18,83 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 		int32_t* hullIndexList = &Model->LeafHulls[node->CollisionBound];
 		int hullPlanesCount = 0;
 		while (hullIndexList[hullPlanesCount] >= 0)
-			hullIndexList[hullPlanesCount++];
+			hullPlanesCount++;
+
 		vec3* bboxStart = (vec3*)(&hullIndexList[hullPlanesCount + 1]);
 
 		BBox bbox;
 		bbox.min = bboxStart[0];
 		bbox.max = bboxStart[1];
+		// To do: first do an AABB test for the bounds of the hull and early out if we don't hit it
 
-		double t = tmax;
+		// Grab the hull planes and flip the plane direction if the plane points in the wrong direction.
+		std::vector<dvec4> planes;
 		for (int i = 0; i < hullPlanesCount; i++)
 		{
 			int32_t hullIndex = hullIndexList[i];
 			bool hullFlip = !!(hullIndex & 0x4000'0000);
 			hullIndex = hullIndex & ~0x4000'0000;
 			BspNode* hullnode = &Model->Nodes[hullIndex];
-
-			// To do: perform correct hull planes intersection test
-			t = HullNodeAABBIntersect(origin, tmin, dirNormalized, tmax, extents, hullnode, hullFlip);
+			dvec4 hullplane((double)hullnode->PlaneX, (double)hullnode->PlaneY, (double)hullnode->PlaneZ, (double)hullnode->PlaneW);
+			planes.push_back(hullFlip ? -hullplane : hullplane);
 		}
 
-		if (t < tmax && t >= tmin)
+		// AABB/hull sweep test.
+		//
+		// This is the same as a ray/hull sweep test, except with extended and bevel planes so that it works for AABB.
+		//
+		// The basic idea here is that you can find the solid line segment of a ray passing through the planes of a convex hull.
+		// While we are not interested in the line segment itself, the start of the line segment will give us the the hit point.
+		//
+		// We can sweep with an AABB instead of a ray by moving the planes outwards by the extents of the AABB. This will produce
+		// inaccuracies in the result, which we can reduce by adding bevel planes when the angle between the planes passes a threshold.
+
+		SweepCursor cursor(origin, dirNormalized, tmax, extents);
+
+		// Check for collision for each hull plane
+		for (int i = 0; i < hullPlanesCount; i++)
 		{
-			SweepHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr };
-			if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
-				hit.Normal = -hit.Normal;
+			if (!cursor.ClipPlane(planes[i]))
+			{
+				break;
+			}
+		}
+
+		// Check for collision for any bevel plane we need to insert at the hull edges
+		for (int i = 0; i < hullPlanesCount; i++)
+		{
+			dvec4 plane0 = planes[i];
+			for (int j = 0; j < i; j++)
+			{
+				dvec4 plane1 = planes[j];
+
+				if ((plane0.x < 0.0 && plane1.x > 0.0) || (plane0.x > 0.0 && plane1.x < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(1.0, 0.0, 0.0));
+				}
+				if ((plane0.y < 0.0 && plane1.y > 0.0) || (plane0.y > 0.0 && plane1.y < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(0.0, 1.0, 0.0));
+				}
+				if ((plane0.z < 0.0 && plane1.z > 0.0) || (plane0.z > 0.0 && plane1.z < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(0.0, 0.0, 1.0));
+				}
+			}
+		}
+
+		// Did we hit anything?
+		double t = cursor.HitFraction();
+		if (t >= tmin && t < tmax)
+		{
+			SweepHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr };
 			hits.push_back(hit);
 		}
 	}
 
-	int startSide = NodeAABBOverlap(origin, extents, node);
-	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extents, node);
+	dvec3 extentspadded = extents * 1.1; // For numerical stability
+	int startSide = NodeAABBOverlap(origin, extentspadded, node);
+	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
 
 	if (node->Front >= 0 && (startSide <= 0 || endSide <= 0))
 	{
@@ -58,26 +105,6 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 	{
 		Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes[node->Back], hits);
 	}
-}
-
-double TraceAABBModel::HullNodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, BspNode* node, bool flipPlane)
-{
-	// Find plane intersection points
-	double e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
-	double s;
-	if (!flipPlane)
-		s = origin.x * node->PlaneX + origin.y * node->PlaneY + origin.z * node->PlaneZ - node->PlaneW;
-	else
-		s = node->PlaneW - origin.x * node->PlaneX - origin.y * node->PlaneY - origin.z * node->PlaneZ;
-	double d = 1.0 / (dirNormalized.x + dirNormalized.y + dirNormalized.z);
-	double t0 = (e - s) * d;
-	double t1 = (e + s) * d;
-	double t = tmax;
-	if (t0 >= tmin)
-		t = std::min(t, t0);
-	if (t1 >= tmin)
-		t = std::min(t, t1);
-	return t;
 }
 
 // -1 = inside, 0 = intersects, 1 = outside
