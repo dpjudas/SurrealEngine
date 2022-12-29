@@ -642,7 +642,7 @@ void UActor::TickProjectile(float elapsed)
 
 	SweepHit hit = TryMove(Velocity() * elapsed);
 
-	if (hit.Fraction < 1.0f && !bDeleteMe() && !bJustTeleported())
+	if (hit.Fraction < 1.0f && !hit.Actor && !bDeleteMe() && !bJustTeleported())
 	{
 		CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 	}
@@ -959,9 +959,9 @@ SweepHit UActor::TryMove(const vec3& delta)
 			{
 				bool isBlocking;
 				if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
-					isBlocking = hit.Actor->bBlockPlayers();
+					isBlocking = hit.Actor->bBlockPlayers() && bBlockPlayers();
 				else
-					isBlocking = hit.Actor->bBlockActors();
+					isBlocking = hit.Actor->bBlockActors() && bBlockActors();
 
 				// We never hit ourselves or anything moving along with us
 				if (isBlocking && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
@@ -1046,6 +1046,19 @@ void UActor::Touch(UActor* actor)
 		if (TouchingArray[i] == actor)
 			return;
 	}
+
+#if 0
+	{
+		UPawn* instigator0 = actor->Instigator();
+		UPawn* instigator1 = Instigator();
+		std::string name0 = actor->Class->FriendlyName.ToString();
+		std::string name1 = Class->FriendlyName.ToString();
+		std::string instname0 = instigator0 ? instigator0->Class->FriendlyName.ToString() : std::string("null");
+		std::string instname1 = instigator1 ? instigator1->Class->FriendlyName.ToString() : std::string("null");
+		std::string state0 = actor->GetStateName().ToString();
+		engine->LogMessage("Touch detected between " + name0 + " (instigator " + instname0 + ", state " + state0 + ") and " + name1 + " (instigator " + instname1 + ")");
+	}
+#endif
 
 	// Only attempt to touch actors if there's a free slot in both
 	for (int i = 0; i < TouchingArraySize; i++)
