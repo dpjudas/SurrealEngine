@@ -1168,14 +1168,35 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			if (AnimSequence() == "Hit")
+			{
+				engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
+			}
+
 			AnimSequence() = sequence;
-			AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
-			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
-			AnimRate() = rate * seq->Rate / seq->NumFrames;
-			AnimMinRate() = 0.0f;
-			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
-			OldAnimRate() = AnimRate();
-			bAnimNotify() = !seq->Notifys.empty();
+
+			if (seq->NumFrames > 1)
+			{
+				AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+				AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+				AnimRate() = rate * seq->Rate / seq->NumFrames;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+				bAnimNotify() = !seq->Notifys.empty();
+				OldAnimRate() = AnimRate();
+			}
+			else
+			{
+				// Special case for 1 frame animations. Simply keep drawing the animation for 0.1 second (or tween duration, if tweening).
+
+				AnimFrame() = -1.0f;
+				AnimLast() = 0.0f;
+				AnimRate() = 0.0f;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / tweenTime : 10.0f;
+				bAnimNotify() = false;
+				OldAnimRate() = 0.0f;
+				AnimMinRate() = 0.0f;
+			}
+
 			bAnimLoop() = false;
 			bAnimFinished() = false;
 		}
@@ -1231,6 +1252,11 @@ void UActor::TickAnimation(float elapsed)
 {
 	for (int i = 0; elapsed > 0.0f && i < 10; i++)
 	{
+		if (AnimSequence() == "Hit")
+		{
+			engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
+		}
+
 		// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
 		float fromAnimTime = AnimFrame();
 		if (fromAnimTime >= 0.0f)
