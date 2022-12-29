@@ -166,12 +166,16 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 
 bool UActor::Destroy()
 {
+	//engine->LogMessage("UActor.Destroy(" + Class->FriendlyName.ToString() + ")");
+
 	if (bStatic() || bNoDelete())
 		return false;
 	if (bDeleteMe())
 		return true;
 
 	bDeleteMe() = true;
+
+	//GotoState({}, {}); // What should happen to function calls after Destroy() has been called? Razor2 calls SetRoll afterwards!
 	SetBase(nullptr, true);
 
 	ULevel* level = XLevel();
@@ -1168,14 +1172,35 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			if (AnimSequence() == "Hit")
+			{
+				engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
+			}
+
 			AnimSequence() = sequence;
-			AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
-			AnimLast() = 1.0f - 1.0f / seq->NumFrames;
-			AnimRate() = rate * seq->Rate / seq->NumFrames;
-			AnimMinRate() = 0.0f;
-			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
-			OldAnimRate() = AnimRate();
-			bAnimNotify() = !seq->Notifys.empty();
+
+			if (seq->NumFrames > 1)
+			{
+				AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+				AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+				AnimRate() = rate * seq->Rate / seq->NumFrames;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+				bAnimNotify() = !seq->Notifys.empty();
+				OldAnimRate() = AnimRate();
+			}
+			else
+			{
+				// Special case for 1 frame animations. Simply keep drawing the animation for 0.1 second (or tween duration, if tweening).
+
+				AnimFrame() = -1.0f;
+				AnimLast() = 0.0f;
+				AnimRate() = 0.0f;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / tweenTime : 10.0f;
+				bAnimNotify() = false;
+				OldAnimRate() = 0.0f;
+				AnimMinRate() = 0.0f;
+			}
+
 			bAnimLoop() = false;
 			bAnimFinished() = false;
 		}
@@ -1189,19 +1214,41 @@ void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, f
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
-			if (AnimSequence() != sequence || !IsAnimating())
+			if (AnimSequence() == sequence && IsAnimating() && bAnimLoop())
+			{
+				AnimRate() = rate * seq->Rate / seq->NumFrames;
+				AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+				OldAnimRate() = AnimRate();
+			}
+			else
 			{
 				AnimSequence() = sequence;
-				AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
-				AnimLast() = 1.0f - 1.0f / seq->NumFrames;
-				bAnimNotify() = !seq->Notifys.empty();
+				if (seq->NumFrames > 1)
+				{
+					AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+					AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+					bAnimNotify() = !seq->Notifys.empty();
+					AnimRate() = rate * seq->Rate / seq->NumFrames;
+					AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+					TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+					OldAnimRate() = AnimRate();
+				}
+				else
+				{
+					// Special case for 1 frame animations. Simply keep drawing the animation for 0.1 second (or tween duration, if tweening).
+
+					AnimFrame() = -1.0f;
+					AnimLast() = 0.0f;
+					AnimRate() = 0.0f;
+					TweenRate() = tweenTime > 0.0f ? 1.0f / tweenTime : 10.0f;
+					bAnimNotify() = false;
+					OldAnimRate() = 0.0f;
+					AnimMinRate() = 0.0f;
+				}
 				bAnimFinished() = false;
 				bAnimLoop() = true;
 			}
-			AnimRate() = rate * seq->Rate / seq->NumFrames;
-			AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
-			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
-			OldAnimRate() = AnimRate();
 		}
 	}
 }
@@ -1231,125 +1278,125 @@ void UActor::TickAnimation(float elapsed)
 {
 	for (int i = 0; elapsed > 0.0f && i < 10; i++)
 	{
-		if (Mesh())
+		if (AnimSequence() == "Hit")
 		{
-			// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
-			float fromAnimTime = AnimFrame();
-			if (fromAnimTime >= 0.0f)
+			engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
+		}
+
+		// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
+		float fromAnimTime = AnimFrame();
+		if (fromAnimTime >= 0.0f)
+		{
+			// If AnimRate is positive we are animating at a fixed rate. If it is negative we animate based on velocity (using AnimRate as a speed scale factor)
+			float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
+			if (animRate == 0.0f)
+				break;
+
+			// Find what time will we be at the end of the animation
+			float toAnimTime = fromAnimTime + animRate * elapsed;
+
+			// Stop at the next notify event, if any
+			if (Mesh() && bAnimNotify())
 			{
-				// If AnimRate is positive we are animating at a fixed rate. If it is negative we animate based on velocity (using AnimRate as a speed scale factor)
-				float animRate = (AnimRate() >= 0) ? AnimRate() : std::max(AnimMinRate(), -AnimRate() * length(Velocity()));
-				if (Float::Equals(animRate, 0.0f))
-					break;
-
-				// Find what time will we be at the end of the animation
-				float toAnimTime = fromAnimTime + animRate * elapsed;
-
-				// Stop at the next notify event, if any
-				if (bAnimNotify())
+				MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
+				if (seq)
 				{
-					MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
-					if (seq)
+					bool foundEvent = false;
+					for (const MeshAnimNotify& n : seq->Notifys)
 					{
-						bool foundEvent = false;
-						for (const MeshAnimNotify& n : seq->Notifys)
+						if (n.Time > fromAnimTime && n.Time <= toAnimTime)
 						{
-							if (n.Time > fromAnimTime && n.Time <= toAnimTime)
+							if (FindEventFunction(this, n.Function))
 							{
-								if (FindEventFunction(this, n.Function))
-								{
-									toAnimTime = n.Time;
-									elapsed -= (toAnimTime - fromAnimTime) / animRate;
-									AnimFrame() = toAnimTime;
-									foundEvent = true;
-									CallEvent(this, n.Function);
-									break;
-								}
+								toAnimTime = n.Time;
+								elapsed -= (toAnimTime - fromAnimTime) / animRate;
+								AnimFrame() = toAnimTime;
+								foundEvent = true;
+								CallEvent(this, n.Function);
+								break;
 							}
 						}
-						if (foundEvent)
-							continue;
 					}
+					if (foundEvent)
+						continue;
 				}
+			}
 
-				// Clamp elapsed time to the animation end. This differs for looping animations as they also have to take the last frame into account before looping.
-				float animEndTime = bAnimLoop() ? 1.0f : AnimLast();
-				if (toAnimTime < fromAnimTime)
+			// Clamp elapsed time to the animation end. This differs for looping animations as they also have to take the last frame into account before looping.
+			float animEndTime = bAnimLoop() ? 1.0f : AnimLast();
+			if (toAnimTime < fromAnimTime)
+			{
+				// This can happen if FinishAnimation is called after a looping animation made it past the AnimLast point
+				toAnimTime = fromAnimTime;
+				animEndTime = fromAnimTime;
+				elapsed = 0.0f;
+			}
+			else if (toAnimTime >= animEndTime)
+			{
+				elapsed -= (animEndTime - fromAnimTime) / animRate;
+				toAnimTime = animEndTime;
+			}
+			else
+			{
+				elapsed = 0.0f;
+			}
+
+			if (toAnimTime == animEndTime)
+			{
+				if (bAnimLoop())
 				{
-					// This can happen if FinishAnimation is called after a looping animation made it past the AnimLast point
-					toAnimTime = fromAnimTime;
-					animEndTime = fromAnimTime;
-					elapsed = 0.0f;
-				}
-				else if (toAnimTime >= animEndTime)
-				{
-					elapsed -= (animEndTime - fromAnimTime) / animRate;
-					toAnimTime = animEndTime;
+					AnimFrame() = 0.0f;
 				}
 				else
 				{
-					elapsed = 0.0f;
-				}
-
-				if (Float::Equals(toAnimTime, animEndTime))
-				{
-					if (bAnimLoop())
-					{
-						AnimFrame() = 0.0f;
-					}
-					else
-					{
-						AnimRate() = 0.0f;
-						bAnimFinished() = true;
-					}
-				}
-				else
-				{
-					AnimFrame() = toAnimTime;
-				}
-
-				if (fromAnimTime < animEndTime && toAnimTime >= animEndTime)
-				{
-					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-						StateFrame->LatentState = LatentRunState::Continue;
-
-					CallEvent(this, "AnimEnd");
+					AnimRate() = 0.0f;
+					bAnimFinished() = true;
 				}
 			}
 			else
 			{
-				float tweenRate = TweenRate();
-				if (Float::Equals(tweenRate, 0.0f))
-					break;
-
-				float toAnimTime = fromAnimTime + tweenRate * elapsed;
-
-				float animEndTime = 0.0f;
-				if (toAnimTime >= animEndTime)
-				{
-					elapsed -= (animEndTime - fromAnimTime) / tweenRate;
-					toAnimTime = animEndTime;
-				}
-				else
-				{
-					elapsed = 0.0f;
-				}
-
 				AnimFrame() = toAnimTime;
+			}
 
-				if (Float::Equals(toAnimTime, animEndTime) && Float::Equals(AnimRate(), 0.0f))
-				{
-					if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-						StateFrame->LatentState = LatentRunState::Continue;
+			if (fromAnimTime < animEndTime && toAnimTime >= animEndTime)
+			{
+				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+					StateFrame->LatentState = LatentRunState::Continue;
 
-					bAnimFinished() = true;
-					CallEvent(this, "AnimEnd");
-				}
+				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");
+				CallEvent(this, "AnimEnd");
 			}
 		}
 		else
 		{
-			elapsed = 0.0f;
+			float tweenRate = TweenRate();
+			if (tweenRate == 0.0f)
+				break;
+
+			float toAnimTime = fromAnimTime + tweenRate * elapsed;
+
+			float animEndTime = 0.0f;
+			if (toAnimTime >= animEndTime)
+			{
+				elapsed -= (animEndTime - fromAnimTime) / tweenRate;
+				toAnimTime = animEndTime;
+			}
+			else
+			{
+				elapsed = 0.0f;
+			}
+
+			AnimFrame() = toAnimTime;
+
+			if (toAnimTime == animEndTime && AnimRate() == 0.0f)
+			{
+				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+					StateFrame->LatentState = LatentRunState::Continue;
+
+				bAnimFinished() = true;
+				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");
+				CallEvent(this, "AnimEnd");
+			}
 		}
 	}
 }
