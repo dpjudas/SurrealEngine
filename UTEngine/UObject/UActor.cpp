@@ -1210,19 +1210,41 @@ void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, f
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
-			if (AnimSequence() != sequence || !IsAnimating())
+			if (AnimSequence() == sequence && IsAnimating() && bAnimLoop())
+			{
+				AnimRate() = rate * seq->Rate / seq->NumFrames;
+				AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+				TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+				OldAnimRate() = AnimRate();
+			}
+			else
 			{
 				AnimSequence() = sequence;
-				AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
-				AnimLast() = 1.0f - 1.0f / seq->NumFrames;
-				bAnimNotify() = !seq->Notifys.empty();
+				if (seq->NumFrames > 1)
+				{
+					AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
+					AnimLast() = 1.0f - 1.0f / seq->NumFrames;
+					bAnimNotify() = !seq->Notifys.empty();
+					AnimRate() = rate * seq->Rate / seq->NumFrames;
+					AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+					TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+					OldAnimRate() = AnimRate();
+				}
+				else
+				{
+					// Special case for 1 frame animations. Simply keep drawing the animation for 0.1 second (or tween duration, if tweening).
+
+					AnimFrame() = -1.0f;
+					AnimLast() = 0.0f;
+					AnimRate() = 0.0f;
+					TweenRate() = tweenTime > 0.0f ? 1.0f / tweenTime : 10.0f;
+					bAnimNotify() = false;
+					OldAnimRate() = 0.0f;
+					AnimMinRate() = 0.0f;
+				}
 				bAnimFinished() = false;
 				bAnimLoop() = true;
 			}
-			AnimRate() = rate * seq->Rate / seq->NumFrames;
-			AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
-			TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
-			OldAnimRate() = AnimRate();
 		}
 	}
 }
