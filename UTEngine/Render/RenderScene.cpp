@@ -94,7 +94,7 @@ void RenderSubsystem::DrawActors()
 					DrawMesh(&Scene.Frame, actor);
 				}
 			}
-			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && (actor->Texture() || actor->Sprite()))
+			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && (actor->Texture()))
 			{
 				DrawSprite(&Scene.Frame, actor);
 			}

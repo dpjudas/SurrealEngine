@@ -79,14 +79,12 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 		if (i == 0)
 		{
 			if (!tex) tex = actor->Skin();
-			if (!tex) tex = actor->Texture();
 			if (!tex) tex = mesh->Textures[i];
 		}
 		else
 		{
 			if (!tex) tex = mesh->Textures[i];
 			if (!tex) tex = actor->Skin();
-			if (!tex) tex = actor->Texture();
 		}
 
 		if (tex)
@@ -148,6 +146,9 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
+
+		if (!tex)
+			tex = actor->Texture();
 
 		if (!tex)
 			continue;

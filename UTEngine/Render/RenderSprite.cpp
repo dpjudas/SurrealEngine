@@ -13,9 +13,6 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
 
-	if (!texture)
-		texture = actor->Sprite();
-
 	texture = texture->GetAnimTexture();
 
 	FTextureInfo texinfo;
