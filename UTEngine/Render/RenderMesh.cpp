@@ -78,8 +78,8 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 		UTexture* tex = actor->GetMultiskin(i);
 		if (!tex)
 		{
-			// Skin acts as MultiSkin[0], except for meshes where no texture is set, then it applies to all
-			if (mesh->bNoTextures || i == 0)
+			// Skin acts as MultiSkin[0], unless the mesh group has no texture
+			if (!mesh->Textures[i] || i == 0)
 				tex = actor->Skin();
 
 			// Check mesh skin next
@@ -162,11 +162,7 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
 
-		// default to Actor.Texture if nothing is here
-		if ( !tex )
-			tex = actor->Texture();
-
-		// skip if Actor.Texture is none
+		// skip if no texture
 		if ( !tex )
 			continue;
 
