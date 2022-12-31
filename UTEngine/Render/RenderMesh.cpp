@@ -74,26 +74,39 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 
 	for (int i = 0; i < (int)mesh->Textures.size(); i++)
 	{
+		// Multiskins always take precedent
 		UTexture* tex = actor->GetMultiskin(i);
-
-		if (i == 0)
+		if (!tex)
 		{
-			if (!tex) tex = actor->Skin();
-			if (!tex) tex = actor->Texture();
-			if (!tex) tex = mesh->Textures[i];
-		}
-		else
-		{
-			if (!tex) tex = mesh->Textures[i];
-			if (!tex) tex = actor->Skin();
-			if (!tex) tex = actor->Texture();
+			// Skin acts as MultiSkin[0], except for meshes where no texture is set, then it applies to all
+			if (mesh->bNoTextures || i == 0)
+				tex = actor->Skin();
+
+			// Check mesh skin next
+			if (!tex)
+				tex = mesh->Textures[i];
+
+			// Check texture
+			if (!tex)
+				tex = actor->Texture();
+
+			// Get the last multiskin
+			if (!tex)
+			{
+				for (int j = 0; j < mesh->Materials.size(); j++)
+				{
+					UTexture* multiskin = actor->GetMultiskin(j);
+					if (multiskin)
+						tex = multiskin;
+				}
+			}
 		}
 
-		if (tex)
-			tex = tex->GetAnimTexture();
-
-		if (tex)
-			Mesh.envmap = tex;
+		//if (tex)
+		//{
+		//	tex = tex->GetAnimTexture();
+		//	Mesh.envmap = tex;
+		//}
 
 		Mesh.textures[i] = tex;
 	}

@@ -140,7 +140,11 @@ void UMesh::Load(ObjectStream* stream)
 	int NumTextures = stream->ReadIndex();
 	for (int i = 0; i < NumTextures; i++)
 	{
-		Textures.push_back(stream->ReadObject<UTexture>());
+		UTexture* tex = stream->ReadObject<UTexture>();
+		if (tex)
+			bNoTextures = false;
+
+		Textures.push_back(tex);
 	}
 
 	int NumBoundingBoxes = stream->ReadIndex();

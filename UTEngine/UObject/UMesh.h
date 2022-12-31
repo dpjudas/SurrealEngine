@@ -99,6 +99,7 @@ public:
 	Rotator RotOrigin;
 	uint32_t CurPoly = 0;
 	uint32_t CurVertex = 0;
+	bool bNoTextures = true;
 };
 
 class ULodMesh : public UMesh
