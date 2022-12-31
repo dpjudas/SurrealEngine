@@ -523,7 +523,16 @@ void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
 
 void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue)
 {
-	throw std::runtime_error("Object.GetPropertyText not implemented");
+	for (UProperty* prop : Self->PropertyData.Class->Properties)
+	{
+		if (prop->Name == PropName)
+		{
+			void* data = Self->PropertyData.Ptr(prop);
+			ReturnValue = prop->PrintValue(data);
+			return;
+		}
+	}
+	ReturnValue = "";
 }
 
 void NObject::GetStateName(UObject* Self, NameString& ReturnValue)
