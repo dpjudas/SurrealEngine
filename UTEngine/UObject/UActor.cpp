@@ -1362,6 +1362,8 @@ void UActor::TickAnimation(float elapsed)
 				elapsed = 0.0f;
 			}
 
+			AnimFrame() = toAnimTime;
+
 			if (toAnimTime == animEndTime)
 			{
 				if (bAnimLoop())
@@ -1373,10 +1375,6 @@ void UActor::TickAnimation(float elapsed)
 					AnimRate() = 0.0f;
 					bAnimFinished() = true;
 				}
-			}
-			else
-			{
-				AnimFrame() = toAnimTime;
 			}
 
 			if (!bAnimLoop() && fromAnimTime < animEndTime && toAnimTime >= animEndTime)
