@@ -28,6 +28,7 @@ class UWarpZoneInfo;
 class UZoneInfo;
 class PackageManager;
 class SweepHit;
+struct MeshAnimSeq;
 
 enum class ActorDrawType
 {
@@ -192,7 +193,9 @@ public:
 		int V0 = 0;
 		int V1 = 0;
 		float T = -1.0f;
-	} LastAnimFrame;
+	} TweenFromAnimFrame;
+
+	void SetTweenFromAnimFrame();
 
 	UTexture* GetMultiskin(int index)
 	{

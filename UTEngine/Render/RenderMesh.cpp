@@ -43,35 +43,21 @@ void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 	{
 		int frame0 = (int)animFrame;
 		int frame1 = frame0 + 1;
-		t0 = animFrame - (float)frame0;
-		t1 = 0.0f;
 		frame0 = frame0 % seq->NumFrames;
 		frame1 = frame1 % seq->NumFrames;
+		t0 = animFrame - (float)frame0;
+		t1 = 0.0f;
 		vertexOffsets[0] = (seq->StartFrame + frame0) * mesh->FrameVerts;
 		vertexOffsets[1] = (seq->StartFrame + frame1) * mesh->FrameVerts;
 		vertexOffsets[2] = 0;
-
-		// Save old animation location to be able to tween from it:
-		actor->LastAnimFrame.V0 = vertexOffsets[0];
-		actor->LastAnimFrame.V1 = vertexOffsets[1];
-		actor->LastAnimFrame.T = t0;
 	}
 	else // Tween from old animation
 	{
-		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
-
-		if (actor->LastAnimFrame.T < 0.0f)
-		{
-			actor->LastAnimFrame.V0 = vertexOffsets[2];
-			actor->LastAnimFrame.V1 = vertexOffsets[2];
-			actor->LastAnimFrame.T = 0.0f;
-		}
-
-		vertexOffsets[0] = actor->LastAnimFrame.V0;
-		vertexOffsets[1] = actor->LastAnimFrame.V1;
-
-		t0 = actor->LastAnimFrame.T;
+		t0 = actor->TweenFromAnimFrame.T;
 		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
+		vertexOffsets[0] = actor->TweenFromAnimFrame.V0;
+		vertexOffsets[1] = actor->TweenFromAnimFrame.V1;
+		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
 	}
 
 	SetupMeshTextures(actor, mesh);
