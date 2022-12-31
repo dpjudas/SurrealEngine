@@ -88,7 +88,9 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	CloseWindow();
 
 	auto instance = VulkanInstanceBuilder()
-		.RequireSurfaceExtensions()
+		.RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME)
+		.RequireExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME)
+		.OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME)
 		.DebugLayer(false)
 		.Create();
 
