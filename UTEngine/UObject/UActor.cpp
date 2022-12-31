@@ -1181,10 +1181,7 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
-			if (AnimSequence() == "Hit")
-			{
-				engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
-			}
+			SetTweenFromAnimFrame();
 
 			AnimSequence() = sequence;
 
@@ -1223,6 +1220,8 @@ void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, f
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			SetTweenFromAnimFrame();
+
 			if (AnimSequence() == sequence && IsAnimating() && bAnimLoop())
 			{
 				AnimRate() = rate * seq->Rate / seq->NumFrames;
@@ -1269,6 +1268,8 @@ void UActor::TweenAnim(const NameString& sequence, float tweenTime)
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
+			SetTweenFromAnimFrame();
+
 			AnimSequence() = sequence;
 			AnimFrame() = tweenTime > 0.0f ? -1.0f / seq->NumFrames : 0.0f;
 			AnimLast() = 0.0f;
@@ -1287,11 +1288,6 @@ void UActor::TickAnimation(float elapsed)
 {
 	for (int i = 0; elapsed > 0.0f && i < 10; i++)
 	{
-		if (AnimSequence() == "Hit")
-		{
-			engine->LogMessage("Ticking Hit animation for " + Class->FriendlyName.ToString());
-		}
-
 		// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
 		float fromAnimTime = AnimFrame();
 		if (fromAnimTime >= 0.0f)
@@ -1406,6 +1402,31 @@ void UActor::TickAnimation(float elapsed)
 				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");
 				CallEvent(this, "AnimEnd");
 			}
+		}
+	}
+}
+
+void UActor::SetTweenFromAnimFrame()
+{
+	if (Mesh())
+	{
+		MeshAnimSeq* seq = Mesh()->GetSequence(AnimSequence());
+		if (seq)
+		{
+			float animFrame = std::max(AnimFrame(), 0.0f) * seq->NumFrames;
+			int frame0 = (int)animFrame;
+			int frame1 = frame0 + 1;
+			frame0 = frame0 % seq->NumFrames;
+			frame1 = frame1 % seq->NumFrames;
+			TweenFromAnimFrame.V0 = (seq->StartFrame + frame0) * Mesh()->FrameVerts;
+			TweenFromAnimFrame.V1 = (seq->StartFrame + frame1) * Mesh()->FrameVerts;
+			TweenFromAnimFrame.T = animFrame - (float)frame0;
+		}
+		else // For safety. Should never happen.
+		{
+			TweenFromAnimFrame.V0 = 0;
+			TweenFromAnimFrame.V1 = 0;
+			TweenFromAnimFrame.T = -1.0f;
 		}
 	}
 }
