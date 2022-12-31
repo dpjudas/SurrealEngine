@@ -1224,17 +1224,20 @@ void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, f
 		MeshAnimSeq* seq = Mesh()->GetSequence(sequence);
 		if (seq)
 		{
-			SetTweenFromAnimFrame();
-
 			if (AnimSequence() == sequence && IsAnimating() && bAnimLoop())
 			{
-				AnimRate() = rate * seq->Rate / seq->NumFrames;
-				AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
-				TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
-				OldAnimRate() = AnimRate();
+				if (seq->NumFrames > 1)
+				{
+					AnimRate() = rate * seq->Rate / seq->NumFrames;
+					AnimMinRate() = minRate * seq->Rate / seq->NumFrames;
+					TweenRate() = tweenTime > 0.0f ? 1.0f / (tweenTime * seq->NumFrames) : 0.0f;
+					OldAnimRate() = AnimRate();
+				}
 			}
 			else
 			{
+				SetTweenFromAnimFrame();
+
 				AnimSequence() = sequence;
 				if (seq->NumFrames > 1)
 				{
@@ -1331,11 +1334,24 @@ void UActor::TickAnimation(float elapsed)
 				}
 			}
 
+			// Looped animations got their AnimEnd notify event at the AnimLast point, NOT when the loop finishes!
+			if (bAnimLoop() && AnimLast() > fromAnimTime && AnimLast() <= toAnimTime)
+			{
+				toAnimTime = AnimLast();
+				elapsed -= (toAnimTime - fromAnimTime) / animRate;
+				AnimFrame() = toAnimTime;
+
+				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+					StateFrame->LatentState = LatentRunState::Continue;
+
+				CallEvent(this, "AnimEnd");
+				continue;
+			}
+
 			// Clamp elapsed time to the animation end. This differs for looping animations as they also have to take the last frame into account before looping.
 			float animEndTime = bAnimLoop() ? 1.0f : AnimLast();
-			if (toAnimTime < fromAnimTime)
+			if (toAnimTime < fromAnimTime) // This can happen if FinishAnim is called after a looping animation made it past the AnimLast point
 			{
-				// This can happen if FinishAnimation is called after a looping animation made it past the AnimLast point
 				toAnimTime = fromAnimTime;
 				animEndTime = fromAnimTime;
 				elapsed = 0.0f;
@@ -1350,6 +1366,8 @@ void UActor::TickAnimation(float elapsed)
 				elapsed = 0.0f;
 			}
 
+			AnimFrame() = toAnimTime;
+
 			if (toAnimTime == animEndTime)
 			{
 				if (bAnimLoop())
@@ -1362,17 +1380,12 @@ void UActor::TickAnimation(float elapsed)
 					bAnimFinished() = true;
 				}
 			}
-			else
-			{
-				AnimFrame() = toAnimTime;
-			}
 
-			if (fromAnimTime < animEndTime && toAnimTime >= animEndTime)
+			if (!bAnimLoop() && fromAnimTime < animEndTime && toAnimTime >= animEndTime)
 			{
 				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
 					StateFrame->LatentState = LatentRunState::Continue;
 
-				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");
 				CallEvent(this, "AnimEnd");
 			}
 		}
