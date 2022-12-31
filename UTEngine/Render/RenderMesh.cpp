@@ -79,12 +79,14 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 		if (i == 0)
 		{
 			if (!tex) tex = actor->Skin();
+			if (!tex) tex = actor->Texture();
 			if (!tex) tex = mesh->Textures[i];
 		}
 		else
 		{
 			if (!tex) tex = mesh->Textures[i];
 			if (!tex) tex = actor->Skin();
+			if (!tex) tex = actor->Texture();
 		}
 
 		if (tex)
