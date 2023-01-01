@@ -894,7 +894,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	return XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
+	return !XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
 }
 
 bool UActor::IsBasedOn(UActor* other)
