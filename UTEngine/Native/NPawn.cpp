@@ -108,16 +108,14 @@ void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)
 {
-	engine->LogUnimplemented("Pawn.MoveTo");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::MoveTo;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->MoveTo(NewDestination, speed ? *speed : 1.0f);
 }
 
 void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
 {
-	engine->LogUnimplemented("Pawn.MoveToward");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::MoveToward;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->MoveToward(UObject::Cast<UActor>(NewTarget), speed ? *speed : 1.0f);
 }
 
 void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
@@ -164,42 +162,38 @@ void NPawn::RemovePawn(UObject* Self)
 
 void NPawn::StopWaiting(UObject* Self)
 {
-	engine->LogUnimplemented("Pawn.StopWaiting");
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->SleepTimeLeft = 0.0f;
 }
 
 void NPawn::StrafeFacing(UObject* Self, const vec3& NewDestination, UObject* NewTarget)
 {
-	engine->LogUnimplemented("Pawn.StrafeFacing");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::StrafeFacing;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->StrafeFacing(NewDestination, UObject::Cast<UActor>(NewTarget));
 }
 
 void NPawn::StrafeTo(UObject* Self, const vec3& NewDestination, const vec3& NewFocus)
 {
-	engine->LogUnimplemented("Pawn.StrafeTo");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::StrafeTo;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->StrafeTo(NewDestination, NewFocus);
 }
 
 void NPawn::TurnTo(UObject* Self, const vec3& NewFocus)
 {
-	engine->LogUnimplemented("Pawn.TurnTo");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::TurnTo;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->TurnTo(NewFocus);
 }
 
 void NPawn::TurnToward(UObject* Self, UObject* NewTarget)
 {
-	engine->LogUnimplemented("Pawn.TurnToward");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::TurnToward;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->TurnToward(UObject::Cast<UActor>(NewTarget));
 }
 
 void NPawn::WaitForLanding(UObject* Self)
 {
-	engine->LogUnimplemented("Pawn.WaitForLanding");
-	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::WaitForLanding;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->WaitForLanding();
 }
 
 void NPawn::actorReachable(UObject* Self, UObject* anActor, bool& ReturnValue)

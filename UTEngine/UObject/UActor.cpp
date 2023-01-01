@@ -898,7 +898,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	return XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
+	return !XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
 }
 
 bool UActor::IsBasedOn(UActor* other)
@@ -1569,6 +1569,81 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 {
 	UActor::Tick(elapsed, tickedFlag);
 
+	if (StateFrame)
+	{
+		if (StateFrame->LatentState == LatentRunState::MoveTo)
+		{
+			/*
+			TickRotateTo(Focus());
+			if (TickMoveTo(Destination()))
+				StateFrame->LatentState = LatentRunState::Continue;
+			*/
+		}
+		else if (StateFrame->LatentState == LatentRunState::MoveToward)
+		{
+			/*
+			if (MoveTarget())
+			{
+				TickRotateTo(Focus());
+				if (TickMoveTo(MoveTarget()->Location()))
+					StateFrame->LatentState = LatentRunState::Continue;
+			}
+			else
+			{
+				StateFrame->LatentState = LatentRunState::Continue;
+			}
+			*/
+		}
+		else if (StateFrame->LatentState == LatentRunState::StrafeTo)
+		{
+			// StateFrame->LatentState = LatentRunState::Continue;
+		}
+		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
+		{
+			/*
+			if (FaceTarget())
+			{
+			}
+			else
+			{
+				StateFrame->LatentState = LatentRunState::Continue;
+			}
+			*/
+		}
+		else if (StateFrame->LatentState == LatentRunState::TurnTo)
+		{
+			/*
+			if (TickRotateTo(Focus()))
+				StateFrame->LatentState = LatentRunState::Continue;
+			*/
+		}
+		else if (StateFrame->LatentState == LatentRunState::TurnToward)
+		{
+			/*
+			if (FaceTarget())
+			{
+				if (TickRotateTo(FaceTarget()->Location()))
+					StateFrame->LatentState = LatentRunState::Continue;
+			}
+			else
+			{
+				StateFrame->LatentState = LatentRunState::Continue;
+			}
+			*/
+		}
+		else if (StateFrame->LatentState == LatentRunState::WaitForLanding)
+		{
+			if (Physics() != PHYS_Falling)
+			{
+				StateFrame->LatentState = LatentRunState::Continue;
+			}
+			else
+			{
+				// To do: need to send a LongFall event if the fall state lasts long enough
+			}
+		}
+	}
+
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
 		if (bViewTarget())
@@ -1600,6 +1675,67 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 		if (bAdvancedTactics())
 			CallEvent(this, "UpdateTactics", { ExpressionValue::FloatValue(elapsed) });
 	}
+}
+
+void UPawn::MoveTo(const vec3& newDestination, float speed)
+{
+	MoveTarget() = nullptr;
+	bReducedSpeed() = false;
+	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
+	Destination() = newDestination;
+	Focus() = newDestination;
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::MoveTo;
+}
+
+void UPawn::MoveToward(UActor* newTarget, float speed)
+{
+	MoveTarget() = newTarget;
+	bReducedSpeed() = false;
+	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::MoveToward;
+}
+
+void UPawn::StrafeFacing(const vec3& newDestination, UActor* newTarget)
+{
+	Destination() = newDestination;
+	FaceTarget() = newTarget;
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::StrafeFacing;
+}
+
+void UPawn::StrafeTo(const vec3& newDestination, const vec3& newFocus)
+{
+	MoveTarget() = nullptr;
+	bReducedSpeed() = false;
+	DesiredSpeed() = bIsPlayer() ? MaxDesiredSpeed() : 0.8f * MaxDesiredSpeed();
+	Destination() = newDestination;
+	Focus() = newFocus;
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::StrafeTo;
+}
+
+void UPawn::TurnTo(const vec3& newFocus)
+{
+	MoveTarget() = nullptr;
+	Focus() = newFocus;
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::TurnTo;
+}
+
+void UPawn::TurnToward(UActor* newTarget)
+{
+	FaceTarget() = newTarget;
+	Focus() = newTarget->Location();
+	if (StateFrame)
+		StateFrame->LatentState = LatentRunState::TurnToward;
+}
+
+void UPawn::WaitForLanding()
+{
+	if (Physics() == PHYS_Falling && StateFrame)
+		StateFrame->LatentState = LatentRunState::WaitForLanding;
 }
 
 /////////////////////////////////////////////////////////////////////////////

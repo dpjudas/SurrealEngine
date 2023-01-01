@@ -21,54 +21,54 @@ void NStatLog::RegisterFunctions()
 void NStatLog::BatchLocal()
 {
 	// Called by Stats->View Local ngStats menu item
-	engine->LogUnimplemented("StatLog.BatchLocal");
+	//engine->LogUnimplemented("StatLog.BatchLocal");
 }
 
 void NStatLog::BrowseRelativeLocalURL(const std::string& URL)
 {
 	// Called by Stats->Help with ngStats
-	engine->LogUnimplemented("StatLog.BrowseRelativeLocalURL(" + URL + ")");
+	//engine->LogUnimplemented("StatLog.BrowseRelativeLocalURL(" + URL + ")");
 }
 
 void NStatLog::ExecuteLocalLogBatcher(UObject* Self)
 {
-	engine->LogUnimplemented("StatLog.ExecuteLocalLogBatcher");
+	//engine->LogUnimplemented("StatLog.ExecuteLocalLogBatcher");
 }
 
 void NStatLog::ExecuteSilentLogBatcher(UObject* Self)
 {
-	engine->LogUnimplemented("StatLog.ExecuteSilentLogBatcher");
+	//engine->LogUnimplemented("StatLog.ExecuteSilentLogBatcher");
 }
 
 void NStatLog::ExecuteWorldLogBatcher(UObject* Self)
 {
-	engine->LogUnimplemented("StatLog.ExecuteWorldLogBatcher");
+	//engine->LogUnimplemented("StatLog.ExecuteWorldLogBatcher");
 }
 
 void NStatLog::GetGMTRef(UObject* Self, std::string& ReturnValue)
 {
 	ReturnValue = "GMTRef dummy value";
-	engine->LogUnimplemented("StatLog.GetGMTRef");
+	//engine->LogUnimplemented("StatLog.GetGMTRef");
 }
 
 void NStatLog::GetMapFileName(UObject* Self, std::string& ReturnValue)
 {
 	ReturnValue = "StatLog.GetMapFileName dummy value";
-	engine->LogUnimplemented("StatLog.GetMapFileName");
+	//engine->LogUnimplemented("StatLog.GetMapFileName");
 }
 
 void NStatLog::GetPlayerChecksum(UObject* P, std::string& Checksum)
 {
 	Checksum = "GetPlayerChecksum dummy value";
-	engine->LogUnimplemented("StatLog.GetPlayerChecksum");
+	//engine->LogUnimplemented("StatLog.GetPlayerChecksum");
 }
 
 void NStatLog::InitialCheck(UObject* Self, UObject* Game)
 {
-	engine->LogUnimplemented("StatLog.InitialCheck");
+	//engine->LogUnimplemented("StatLog.InitialCheck");
 }
 
 void NStatLog::LogMutator(UObject* Self, UObject* M)
 {
-	engine->LogUnimplemented("StatLog.LogMutator");
+	//engine->LogUnimplemented("StatLog.LogMutator");
 }

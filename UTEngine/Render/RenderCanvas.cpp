@@ -206,6 +206,8 @@ void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, 
 		}
 	}
 
+	curY += curYL;
+
 	if (newlineAtEnd)
 	{
 		curX = 0;
