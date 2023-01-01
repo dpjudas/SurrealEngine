@@ -1499,6 +1499,14 @@ public:
 	void InitActorZone() override;
 	void UpdateActorZone() override;
 
+	void MoveTo(const vec3& newDestination, float speed);
+	void MoveToward(UActor* newTarget, float speed);
+	void StrafeFacing(const vec3& newDestination, UActor* newTarget);
+	void StrafeTo(const vec3& newDestination, const vec3& newFocus);
+	void TurnTo(const vec3& newFocus);
+	void TurnToward(UActor* newTarget);
+	void WaitForLanding();
+
 	bool CanHearNoise(UActor* source, float loudness);
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
