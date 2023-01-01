@@ -54,7 +54,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 	float& spaceX = SelfCanvas->SpaceX();
 	float& spaceY = SelfCanvas->SpaceY();
 
-	bool newline = CR ? *CR : false;
+	bool newline = CR ? *CR : true;
 
 	if (style != 0)
 	{
