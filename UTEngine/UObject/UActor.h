@@ -127,13 +127,14 @@ public:
 	void TickFalling(float elapsed);
 	void TickSwimming(float elapsed);
 	void TickFlying(float elapsed);
-	void TickRotating(float elapsed);
 	void TickProjectile(float elapsed);
 	void TickRolling(float elapsed);
 	void TickInterpolating(float elapsed);
 	void TickMovingBrush(float elapsed);
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
+
+	virtual void TickRotating(float elapsed);
 
 	void SetPhysics(uint8_t newPhysics);
 	void SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers);
@@ -1495,6 +1496,7 @@ public:
 	using UActor::UActor;
 
 	void Tick(float elapsed, bool tickedFlag) override;
+	void TickRotating(float elapsed) override;
 
 	void InitActorZone() override;
 	void UpdateActorZone() override;
@@ -1506,6 +1508,11 @@ public:
 	void TurnTo(const vec3& newFocus);
 	void TurnToward(UActor* newTarget);
 	void WaitForLanding();
+	void SetMoveDuration(const vec3& deltaMove);
+	float GetSpeed();
+
+	bool TickRotateTo(const vec3& target);
+	bool TickMoveTo(const vec3& target);
 
 	bool CanHearNoise(UActor* source, float loudness);
 
@@ -1663,6 +1670,7 @@ public:
 	using UPawn::UPawn;
 
 	void Tick(float elapsed, bool tickedFlag) override;
+	void TickRotating(float elapsed) override;
 
 	float& AppliedBob() { return Value<float>(PropOffsets_PlayerPawn.AppliedBob); }
 	float& Bob() { return Value<float>(PropOffsets_PlayerPawn.Bob); }
