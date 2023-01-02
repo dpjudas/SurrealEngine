@@ -527,24 +527,20 @@ void UActor::TickFalling(float elapsed)
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
 
-	if (pawn)
-	{
-		float maxAccel = pawn->AirControl() * pawn->AccelRate();
-		float accel = length(Acceleration());
-		if (accel > maxAccel)
-			Acceleration() = normalize(Acceleration()) * maxAccel;
-	}
+	//if (pawn)
+	//{
+	//	float maxAccel = pawn->AirControl() * pawn->AccelRate();
+	//	float accel = length(Acceleration());
+	//	if (accel > maxAccel)
+	//		Acceleration() = normalize(Acceleration()) * maxAccel;
+	//}
 
 	float gravityScale = 2.0f;
 	float fluidFriction = 0.0f;
 
 	vec3 oldVel = Velocity();
 
-	if (decor && decor->bBobbing())
-	{
-		gravityScale = 1.0f;
-	}
-	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
+	if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
 	{
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
@@ -552,7 +548,18 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+	vec3 realAccel = Acceleration();
+	if (pawn)
+	{
+		vec2 velocity2d(Velocity().x, Velocity().y);
+		if (dot(velocity2d, velocity2d) > pawn->GroundSpeed() * pawn->GroundSpeed())
+		{
+			realAccel.x = 0;
+			realAccel.y = 0;
+		}
+	}
+
+	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (realAccel + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
 
 	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
@@ -592,12 +599,30 @@ void UActor::TickFalling(float elapsed)
 
 void UActor::TickSwimming(float elapsed)
 {
-	// TODO:
+	// TODO: need to implement swimming physics
+
+	SweepHit hit = TryMove(Velocity() * elapsed);
+	if (hit.Fraction < 1.0f)
+	{
+		// is this correct?
+		if (bBounce())
+		{
+			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+		}
+	}
 }
 
 void UActor::TickFlying(float elapsed)
 {
-	// TODO:
+	SweepHit hit = TryMove(Velocity() * elapsed);
+	if (hit.Fraction < 1.0f)
+	{
+		// is this correct?
+		if (bBounce())
+		{
+			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+		}
+	}
 }
 
 void UActor::TickRotating(float elapsed)
@@ -1854,6 +1879,9 @@ void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 			CallEvent(this, "PlayerTick", { ExpressionValue::FloatValue(elapsed) });
 		}
 	}
+
+	// TODO: is this the correct place to set this?
+	aForward() = 0.0f;
 }
 
 void UPlayerPawn::TickRotating(float elapsed)
