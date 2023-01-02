@@ -73,6 +73,7 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 	LoadIntFiles();
 	ScanForMaps();
 
+	// TODO: parse game ini for this info
 	ScanFolder("Maps", "*.unr");
 	ScanFolder("Maps", "*.dx"); // Deus Ex
 	if (IsUnreal1())
