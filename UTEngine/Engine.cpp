@@ -717,9 +717,9 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 		if ((type == EInputType::IST_Press || type == EInputType::IST_Axis) && key >= 0 && key < 256)
 		{
 			if (type == EInputType::IST_Press)
-				delta = 16;
+				delta = 20;
 			else
-				delta *= 8;
+				delta *= 16;
 
 			for (const std::string& command : GetSubcommands(keybindings[keynames[key]]))
 			{
