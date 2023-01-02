@@ -358,7 +358,7 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Falling: TickFalling(physTimeElapsed); break;
 			case PHYS_Swimming: TickSwimming(physTimeElapsed); break;
 			case PHYS_Flying: TickFlying(physTimeElapsed); break;
-			case PHYS_Rotating: TickRotating(physTimeElapsed); break;
+			case PHYS_Rotating: break;
 			case PHYS_Projectile: TickProjectile(physTimeElapsed); break;
 			case PHYS_Rolling: TickRolling(physTimeElapsed); break;
 			case PHYS_Interpolating: TickInterpolating(physTimeElapsed); break;
@@ -367,6 +367,8 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
 			}
 		}
+
+		TickRotating(physTimeElapsed);
 
 		if (PendingTouch())
 		{
@@ -600,14 +602,37 @@ void UActor::TickFlying(float elapsed)
 
 void UActor::TickRotating(float elapsed)
 {
-	// TODO: implement rotation for other cases (gibs flying around, etc)
-	if (bRotateToDesired() && Rotation() != DesiredRotation())
+	if (Physics() == PHYS_Rotating)
 	{
-		// To do: rotate by RotationRate until we reach the rotation. Then fire "EndedRotation" event.
-	}
-	else if (bFixedRotationDir())
-	{
-		Rotation() += RotationRate() * elapsed;
+		if (bRotateToDesired())
+		{
+			if (Rotation() != DesiredRotation())
+			{
+				Rotator rot = Rotation();
+				if (bFixedRotationDir())
+				{
+					rot.Yaw = Rotator::TurnToFixed(rot.Yaw, DesiredRotation().Yaw, (int)(RotationRate().Yaw * elapsed));
+					rot.Pitch = Rotator::TurnToFixed(rot.Pitch, DesiredRotation().Pitch, (int)(RotationRate().Pitch * elapsed));
+					rot.Roll = Rotator::TurnToFixed(rot.Roll, DesiredRotation().Roll, (int)(RotationRate().Roll * elapsed));
+				}
+				else
+				{
+					rot.Yaw = Rotator::TurnToShortest(rot.Yaw, DesiredRotation().Yaw, (int)std::abs(RotationRate().Yaw * elapsed));
+					rot.Pitch = Rotator::TurnToShortest(rot.Pitch, DesiredRotation().Pitch, (int)std::abs(RotationRate().Pitch * elapsed));
+					rot.Roll = Rotator::TurnToShortest(rot.Roll, DesiredRotation().Roll, (int)std::abs(RotationRate().Roll * elapsed));
+				}
+				Rotation() = rot;
+
+				if (Rotation() == DesiredRotation())
+				{
+					CallEvent(this, "EndedRotation");
+				}
+			}
+		}
+		else if (bFixedRotationDir())
+		{
+			Rotation() += RotationRate() * elapsed;
+		}
 	}
 }
 
@@ -1567,21 +1592,18 @@ void UPawn::UpdateActorZone()
 
 void UPawn::Tick(float elapsed, bool tickedFlag)
 {
-	UActor::Tick(elapsed, tickedFlag);
+	MoveTimer() -= elapsed;
 
 	if (StateFrame)
 	{
 		if (StateFrame->LatentState == LatentRunState::MoveTo)
 		{
-			/*
 			TickRotateTo(Focus());
 			if (TickMoveTo(Destination()))
 				StateFrame->LatentState = LatentRunState::Continue;
-			*/
 		}
 		else if (StateFrame->LatentState == LatentRunState::MoveToward)
 		{
-			/*
 			if (MoveTarget())
 			{
 				TickRotateTo(Focus());
@@ -1592,11 +1614,10 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 			{
 				StateFrame->LatentState = LatentRunState::Continue;
 			}
-			*/
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeTo)
 		{
-			// StateFrame->LatentState = LatentRunState::Continue;
+			StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
 		{
@@ -1609,17 +1630,15 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 				StateFrame->LatentState = LatentRunState::Continue;
 			}
 			*/
+			StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnTo)
 		{
-			/*
 			if (TickRotateTo(Focus()))
 				StateFrame->LatentState = LatentRunState::Continue;
-			*/
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnToward)
 		{
-			/*
 			if (FaceTarget())
 			{
 				if (TickRotateTo(FaceTarget()->Location()))
@@ -1629,7 +1648,6 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 			{
 				StateFrame->LatentState = LatentRunState::Continue;
 			}
-			*/
 		}
 		else if (StateFrame->LatentState == LatentRunState::WaitForLanding)
 		{
@@ -1643,6 +1661,8 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 			}
 		}
 	}
+
+	UActor::Tick(elapsed, tickedFlag);
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
@@ -1677,6 +1697,51 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 	}
 }
 
+void UPawn::TickRotating(float elapsed)
+{
+	if (Physics() == PHYS_Spider)
+		return;
+
+	bRotateToDesired() = true;
+	bFixedRotationDir() = false;
+
+	Rotator rot = Rotation();
+
+	if ((DesiredRotation().Yaw & 0xffff) != (rot.Yaw & 0xffff))
+	{
+		rot.Yaw = Rotator::TurnToShortest(rot.Yaw, DesiredRotation().Yaw, (int)std::abs(RotationRate().Yaw * elapsed));
+	}
+
+	if ((DesiredRotation().Pitch & 0xffff) != (rot.Pitch & 0xffff))
+	{
+		rot.Pitch = DesiredRotation().Pitch & 0xffff;
+		if (rot.Pitch < 0x8000)
+		{
+			rot.Pitch = std::max(rot.Pitch, RotationRate().Pitch);
+		}
+		else if (rot.Pitch < 0x10000 - RotationRate().Pitch)
+		{
+			rot.Pitch = 0x10000 - RotationRate().Pitch;
+		}
+	}
+
+	// To do: apply RotationRate().Roll
+
+	Rotation() = rot;
+}
+
+bool UPawn::TickRotateTo(const vec3& target)
+{
+	// To do: use DesiredRotation to control where physics rotates us. Return true if we point in the right direction now.
+	return false;
+}
+
+bool UPawn::TickMoveTo(const vec3& target)
+{
+	// To do: use Acceleration to control where physics ticking moves us. Return true if we got to the destination.
+	return false;
+}
+
 void UPawn::MoveTo(const vec3& newDestination, float speed)
 {
 	MoveTarget() = nullptr;
@@ -1684,23 +1749,32 @@ void UPawn::MoveTo(const vec3& newDestination, float speed)
 	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
 	Destination() = newDestination;
 	Focus() = newDestination;
+	SetMoveDuration(newDestination - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::MoveTo;
 }
 
 void UPawn::MoveToward(UActor* newTarget, float speed)
 {
+	if (!newTarget)
+		return;
+
 	MoveTarget() = newTarget;
 	bReducedSpeed() = false;
 	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
+	SetMoveDuration(newTarget->Location() - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::MoveToward;
 }
 
 void UPawn::StrafeFacing(const vec3& newDestination, UActor* newTarget)
 {
+	if (!newTarget)
+		return;
+
 	Destination() = newDestination;
 	FaceTarget() = newTarget;
+	SetMoveDuration(newDestination - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::StrafeFacing;
 }
@@ -1712,6 +1786,7 @@ void UPawn::StrafeTo(const vec3& newDestination, const vec3& newFocus)
 	DesiredSpeed() = bIsPlayer() ? MaxDesiredSpeed() : 0.8f * MaxDesiredSpeed();
 	Destination() = newDestination;
 	Focus() = newFocus;
+	SetMoveDuration(newDestination - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::StrafeTo;
 }
@@ -1726,6 +1801,9 @@ void UPawn::TurnTo(const vec3& newFocus)
 
 void UPawn::TurnToward(UActor* newTarget)
 {
+	if (!newTarget)
+		return;
+
 	FaceTarget() = newTarget;
 	Focus() = newTarget->Location();
 	if (StateFrame)
@@ -1737,6 +1815,30 @@ void UPawn::WaitForLanding()
 	if (Physics() == PHYS_Falling && StateFrame)
 		StateFrame->LatentState = LatentRunState::WaitForLanding;
 }
+
+void UPawn::SetMoveDuration(const vec3& deltaMove)
+{
+	float scale = DesiredSpeed() * GetSpeed();
+	MoveTimer() = scale != 0.0f ? 1.0f + 1.3f * length(deltaMove) / scale : 0.5f;
+}
+
+float UPawn::GetSpeed()
+{
+	switch (Physics())
+	{
+	case PHYS_Walking:
+	case PHYS_Falling:
+	case PHYS_Spider:
+		return GroundSpeed();
+	case PHYS_Flying:
+		return AirSpeed();
+	case PHYS_Swimming:
+		return WaterSpeed();
+	default:
+		return 0.0f;
+	}
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1752,6 +1854,18 @@ void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 			CallEvent(this, "PlayerTick", { ExpressionValue::FloatValue(elapsed) });
 		}
 	}
+}
+
+void UPlayerPawn::TickRotating(float elapsed)
+{
+	if (Physics() == PHYS_Spider)
+		return;
+
+	Rotator rot = Rotation();
+
+	// To do: apply RotationRate().Roll
+
+	Rotation() = rot;
 }
 
 /////////////////////////////////////////////////////////////////////////////

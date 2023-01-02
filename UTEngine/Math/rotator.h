@@ -29,6 +29,48 @@ public:
 			mat4::rotate(radians(PitchDegrees()), 0.0f, -1.0f, 0.0f) *
 			mat4::rotate(radians(RollDegrees()), -1.0f, 0.0f, 0.0f);
 	}
+
+	static int TurnToShortest(int from, int to, int speed)
+	{
+		from = from & 0xffff;
+		to = to & 0xffff;
+
+		if (from > to)
+		{
+			if (from - to < 0x8000)
+				return (from - std::min((from - to), speed)) & 0xffff;
+			else
+				return (from + std::min((to + 0x10000 - from), speed)) & 0xffff;
+		}
+		else
+		{
+			if (to - from < 0x8000)
+				return (from + std::min((to - from), speed)) & 0xffff;
+			else
+				return (from - std::min((from + 0x10000 - to), speed)) & 0xffff;
+		}
+	}
+
+	static int TurnToFixed(int from, int to, int direction)
+	{
+		from = from & 0xffff;
+		to = to & 0xffff;
+
+		if (direction > 0)
+		{
+			if (from > to)
+				return (from + std::min(direction, to - from + 0x10000)) & 0xffff;
+			else
+				return (from + std::min(direction, to - from)) & 0xffff;
+		}
+		else
+		{
+			if (from < to)
+				return (from + std::max(direction, to - from - 0x10000)) & 0xffff;
+			else
+				return (from + std::max(direction, to - from)) & 0xffff;
+		}
+	}
 };
 
 inline Rotator operator+(const Rotator& a, const Rotator& b) { return Rotator(a.Pitch + b.Pitch, a.Yaw + b.Yaw, a.Roll + b.Roll); }
@@ -37,8 +79,8 @@ inline Rotator operator*(const Rotator& a, float scale) { return Rotator((int)(a
 inline Rotator operator*(float scale, const Rotator& b) { return Rotator((int)(b.Pitch * scale), (int)(b.Yaw * scale), (int)(b.Roll * scale)); }
 inline Rotator operator/(const Rotator& a, float scale) { return Rotator((int)(a.Pitch / scale), (int)(a.Yaw / scale), (int)(a.Roll / scale)); }
 inline Rotator operator/(float scale, const Rotator& b) { return Rotator((int)(b.Pitch / scale), (int)(b.Yaw / scale), (int)(b.Roll / scale)); }
-inline bool operator==(const Rotator& a, const Rotator& b) { return a.Pitch == b.Pitch && a.Yaw == b.Yaw && a.Roll == b.Roll; }
-inline bool operator!=(const Rotator& a, const Rotator& b) { return a.Pitch != b.Pitch || a.Yaw != b.Yaw || a.Roll != b.Roll; }
+inline bool operator==(const Rotator& a, const Rotator& b) { return (uint16_t)a.Pitch == (uint16_t)b.Pitch && (uint16_t)a.Yaw == (uint16_t)b.Yaw && (uint16_t)a.Roll == (uint16_t)b.Roll; }
+inline bool operator!=(const Rotator& a, const Rotator& b) { return (uint16_t)a.Pitch != (uint16_t)b.Pitch || (uint16_t)a.Yaw != (uint16_t)b.Yaw || (uint16_t)a.Roll != (uint16_t)b.Roll; }
 
 inline Rotator normalize(Rotator rot)
 {
