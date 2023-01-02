@@ -81,6 +81,8 @@ void Engine::Run()
 	else
 		LoadMap(UnrealURL(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")), LaunchInfo.url));
 
+	LoginPlayer();
+
 	bool firstCall = true;
 	while (!quit)
 	{
@@ -112,6 +114,7 @@ void Engine::Run()
 				if (LevelInfo->NextURL() == "?RESTART")
 				{
 					LoadMap(LevelInfo->URL, Level->TravelInfo);
+					LoginPlayer();
 				}
 				else if (LevelInfo->bNextItems())
 				{
@@ -132,10 +135,12 @@ void Engine::Run()
 						}
 					}
 					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), travelInfo);
+					LoginPlayer();
 				}
 				else
 				{
 					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), {});
+					LoginPlayer();
 				}
 			}
 		}
@@ -147,6 +152,7 @@ void Engine::Run()
 			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
 			LogMessage("Client travel to " + url.ToString());
 			LoadMap(url);
+			LoginPlayer();
 		}
 
 		// To do: improve CallEvent so parameter passing isn't this painful
@@ -351,11 +357,10 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		LevelInfo->bBegunPlay() = true;
 	}
 
-	std::string portal = url.GetPortal();
 	std::string options = url.GetOptions();
 
 	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
-	std::string error, failcode;
+	std::string error;
 
 	LevelInfo->bStartup() = true;
 	CallEvent(GameInfo, "InitGame", { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
@@ -367,6 +372,18 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
+}
+
+void Engine::LoginPlayer()
+{
+	UnrealURL url = LevelInfo->URL;
+	std::map<std::string, std::string> travelInfo = Level->TravelInfo;
+
+	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	std::string error, failcode;
+
+	std::string portal = url.GetPortal();
+	std::string options = url.GetOptions();
 
 	std::string playerPawnClass = url.GetOption("Class");
 	if (playerPawnClass.empty())
@@ -454,6 +471,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	render->OnMapLoaded();
 
 	// To do: remove this when touch events are implemented
+	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
 	UObject* specialEvent0 = package->GetUObject("SpecialEvent", "SpecialEvent0");
 	//UObject* specialEvent1 = package->GetUObject("SpecialEvent", "SpecialEvent1");
 	if (specialEvent0)
