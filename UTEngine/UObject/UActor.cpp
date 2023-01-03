@@ -552,8 +552,9 @@ void UActor::TickFalling(float elapsed)
 
 	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
 
-	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed
-	if (dot(newVelocity.xy(), newVelocity.xy()) > dot(Velocity().xy(), Velocity().xy()))
+	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
+	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
+	if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
 	{
 		float xySpeed = length(Velocity().xy());
 		Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
