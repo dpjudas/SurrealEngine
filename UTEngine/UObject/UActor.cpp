@@ -1624,20 +1624,24 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeTo)
 		{
-			StateFrame->LatentState = LatentRunState::Continue;
+			TickRotateTo(Focus());
+			if (TickMoveTo(Destination()))
+				StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
 		{
-			/*
 			if (FaceTarget())
 			{
+				TickRotateTo(Focus());
+				vec3 oldDest = Destination();
+				if (TickMoveTo(Destination()))
+					StateFrame->LatentState = LatentRunState::Continue;
+				Destination() = oldDest;
 			}
 			else
 			{
 				StateFrame->LatentState = LatentRunState::Continue;
 			}
-			*/
-			StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnTo)
 		{
