@@ -71,6 +71,12 @@ public:
 				return (from + std::max(direction, to - from)) & 0xffff;
 		}
 	}
+
+	static Rotator FromVector(const vec3& v)
+	{
+		float scale = 0x10000 / (2.0f * 3.14159265359f);
+		return Rotator((int)(std::atan2(v.z, std::sqrt(v.x * v.x + v.y * v.y)) * scale), (int)(std::atan2(v.y, v.x) * scale), 0);
+	}
 };
 
 inline Rotator operator+(const Rotator& a, const Rotator& b) { return Rotator(a.Pitch + b.Pitch, a.Yaw + b.Yaw, a.Roll + b.Roll); }

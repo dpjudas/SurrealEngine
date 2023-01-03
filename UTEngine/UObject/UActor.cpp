@@ -1739,8 +1739,18 @@ void UPawn::TickRotating(float elapsed)
 
 bool UPawn::TickRotateTo(const vec3& target)
 {
-	// To do: use DesiredRotation to control where physics rotates us. Return true if we point in the right direction now.
-	return false;
+	if (Physics() == PHYS_Spider)
+		return true;
+
+	DesiredRotation() = Rotator::FromVector(target - Location());
+
+	if (Physics() == PHYS_Walking && (!MoveTarget() || !MoveTarget()->IsA("Pawn")))
+	{
+		DesiredRotation().Pitch = 0;
+	}
+
+	int doneAngle = 2000;
+	return (std::abs(DesiredRotation().Yaw - (Rotation().Yaw & 0xffff)) < doneAngle) || (std::abs(DesiredRotation().Yaw - (Rotation().Yaw & 0xffff)) > 0xffff - doneAngle);
 }
 
 bool UPawn::TickMoveTo(const vec3& target)
