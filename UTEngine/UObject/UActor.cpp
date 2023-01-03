@@ -474,14 +474,14 @@ void UActor::TickWalking(float elapsed)
 
 				bJustTeleported() = true;
 				Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 				timeLeft = 0.0f;
 			}
 			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 			{
 				// We hit a wall
 
-				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
 				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
@@ -490,7 +490,7 @@ void UActor::TickWalking(float elapsed)
 					timeLeft -= timeLeft * hit.Fraction;
 					if (hit.Fraction < 1.0f)
 					{
-						CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor) });
+						CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 					}
 				}
 
