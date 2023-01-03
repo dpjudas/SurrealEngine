@@ -538,13 +538,11 @@ void UActor::TickFalling(float elapsed)
 	float gravityScale = 2.0f;
 	float fluidFriction = 0.0f;
 
-	vec3 oldVel = Velocity();
-
 	if (decor && decor->bBobbing())
 	{
 		gravityScale = 1.0f;
 	}
-	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
+	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && Velocity().z < 0.0f)
 	{
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
@@ -552,7 +550,18 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+
+	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed
+	if (dot(newVelocity.xy(), newVelocity.xy()) > dot(Velocity().xy(), Velocity().xy()))
+	{
+		float xySpeed = length(Velocity().xy());
+		Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+	}
+	else
+	{
+		Velocity() = newVelocity;
+	}
 
 	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
