@@ -1755,8 +1755,14 @@ bool UPawn::TickRotateTo(const vec3& target)
 
 bool UPawn::TickMoveTo(const vec3& target)
 {
-	// To do: use Acceleration to control where physics ticking moves us. Return true if we got to the destination.
-	return false;
+	// To do: there is probably more to it than this!
+
+	Acceleration() = normalize(target - Location()) * AccelRate();
+
+	if (Physics() == PHYS_Walking)
+		Acceleration().z = 0.0f;
+
+	return MoveTimer() < 0.0f || length(target - Location()) < length(Velocity()) * 0.02f;
 }
 
 void UPawn::MoveTo(const vec3& newDestination, float speed)
