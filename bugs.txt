@@ -11,7 +11,7 @@
 - Teleporters are fuckin weird sometimes
 - Respawning in the ground?
 - UMenu background is not scaled correctly?
-- flying and swimming physics not implemented
+- swimming physics not implemented
 - PHYS_Swimming persists after dying in WaterZone
 	- might be because water physics isn't implemented
 - Starting match in Tournament crashes with null object dereference
@@ -21,6 +21,7 @@
 - decals don't clip to bsp correctly
 - decals don't appear at all sometimes
 - rendering seeds crashes the game
+- viewclass crashes with null deref
 
 - movement stuff
 	- zonegroundvelocity = 0 -> velocity never slows (except for slopes)

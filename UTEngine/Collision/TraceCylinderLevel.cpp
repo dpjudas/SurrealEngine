@@ -13,6 +13,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 	Level = level;
 
 	dvec3 origin = to_dvec3(from);
+	dvec3 rayEnd = to_dvec3(to);
 	dvec3 direction = to_dvec3(to) - origin;
 	double tmin = 0.01f;
 	double tmax = length(direction);
@@ -45,7 +46,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 						{
 							for (UActor* actor : it->second)
 							{
-								double t = Level->Hash.ActorSphereIntersect(origin, tmin, direction, tmax, dradius, actor);
+								double t = Level->Hash.ActorCylinderIntersect(origin, rayEnd, tmin, tmax, actor);
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;

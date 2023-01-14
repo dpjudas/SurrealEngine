@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "CollisionHash.h"
 #include "UObject/UActor.h"
+#include "Math/floating.h"
 
 void CollisionHash::AddToCollision(UActor* actor)
 {
@@ -81,6 +82,92 @@ double CollisionHash::RaySphereIntersect(const dvec3& rayOrigin, double tmin, co
 	return (t >= tmin) ? t : tmax;
 }
 
+double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayEnd, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+{
+	dvec3 p = cylinderCenter;
+	dvec3 q = cylinderCenter;
+
+	p.z += cylinderHeight;
+	q.z -= cylinderHeight;
+
+	dvec3 d = q - p;
+	dvec3 m = rayOrigin - p;
+	dvec3 n = rayEnd - rayOrigin;
+
+	double md = dot(m, d);
+	double nd = dot(n, d);
+	double dd = dot(d, d);
+
+	// Test if the segment outside the bottom of cylinder
+	if (md < 0.0 && (md + nd) < 0.0)
+		return tmax;
+
+	// Test if the segment outside the top of cylinder 
+	if (md > dd && (md + nd) > dd)
+		return tmax;
+
+	double nn = dot(n, n);
+	double mn = dot(m, n);
+
+	double r2 = cylinderRadius * cylinderRadius;
+	double a = dd * nn - nd * nd;
+	double k = dot(m, m) - r2;
+	double c = dd * k - md * md;
+	double t = 0.0;
+
+	// check if segment runs parallel to cylinder axis
+	if (abs(a) < DBL_EPSILON)
+	{
+		if (c > 0.0)
+			return tmax; // segment outside
+
+		if (md < 0.0)
+			t = -mn / nn; // intersect against bottom
+		else if (md > dd)
+			t = (nd - mn) / nn; // intersect against top
+		else
+			t = tmin; // ray inside cylinder (make sure intersection doesn't occur if ray pointing away from cylinder center)
+
+		return t;
+	}
+
+	double b = (dd * mn) - (nd * md);
+	double discr = (b * b) - (a * c);
+
+	if (discr < 0.0)
+		return tmax; // no intersection
+
+	t = (-b - sqrt(discr)) / a;
+	if (t < 0.0 || t > 1.0)
+		return tmax;
+
+	double pinter = md + t * nd;
+	if (pinter < 0.0)
+	{
+		if (nd <= 0.0)
+			return tmax; // segment pointing away from endcap
+
+		t = -md / nd;
+		double hit = k + 2 * t * (mn + t * nn);
+		if (hit > 0.0)
+			return tmax;
+	}
+	else if (pinter > dd)
+	{
+		if (nd >= 0.0)
+			return tmax;
+
+		t = (dd - md) / nd;
+
+		double hit = k + dd - 2 * md + t * (2 * (mn - nd) + t * nn);
+		if (hit > 0.0)
+			return tmax;
+	}
+
+	// intersection
+	return t;
+}
+
 bool CollisionHash::ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor)
 {
 	double sphereRadius2 = sphereRadius * sphereRadius;
@@ -126,6 +213,22 @@ double CollisionHash::ActorSphereIntersect(const dvec3& origin, double tmin, con
 	double t0 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere0, radius + sphereRadius);
 	double t1 = RaySphereIntersect(origin, tmin, dirNormalized, tmax, sphere1, radius + sphereRadius);
 	return std::min(t0, t1);
+}
+
+double CollisionHash::ActorCylinderIntersect(const dvec3& origin, const dvec3& end, double tmin, double tmax, UActor* actor)
+{
+	if (actor->Brush()) // Ignore brushes for now
+		return tmax;
+
+	dvec3 center = to_dvec3(actor->Location());
+	double height = actor->CollisionHeight();
+	double radius = actor->CollisionRadius();
+	double t = RayCylinderIntersect(origin, end, tmin, tmax, center, height, radius);
+	
+	if (!Double::Equals(t, tmax))
+		t *= tmax;
+
+	return t;
 }
 
 std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
