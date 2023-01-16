@@ -87,4 +87,5 @@ public:
 	double ActorCylinderIntersect(const dvec3& origin, const dvec3& end, double tmin, double tmax, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
 	double RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayEnd, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
+	double RayCircleIntersect(const dvec3& a, const dvec3& b, double tmin, double tmax, const dvec3& circleCenter, double circleRadius, const dvec3& circleNorm);
 };

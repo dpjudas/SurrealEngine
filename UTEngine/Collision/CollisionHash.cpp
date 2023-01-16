@@ -87,8 +87,8 @@ double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& 
 	dvec3 p = cylinderCenter;
 	dvec3 q = cylinderCenter;
 
-	p.z += cylinderHeight;
-	q.z -= cylinderHeight;
+	p.z -= cylinderHeight;
+	q.z += cylinderHeight;
 
 	dvec3 d = q - p;
 	dvec3 m = rayOrigin - p;
@@ -148,7 +148,7 @@ double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& 
 			return tmax; // segment pointing away from endcap
 
 		t = -md / nd;
-		double hit = k + 2 * t * (mn + t * nn);
+		double hit = k + t * (2.0 * mn + t * nn);
 		if (hit > 0.0)
 			return tmax;
 	}
@@ -159,13 +159,36 @@ double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& 
 
 		t = (dd - md) / nd;
 
-		double hit = k + dd - 2 * md + t * (2 * (mn - nd) + t * nn);
+		double hit = k + dd - 2.0 * md + t * (2.0 * (mn - nd) + t * nn);
 		if (hit > 0.0)
 			return tmax;
 	}
 
 	// intersection
 	return t;
+}
+
+double CollisionHash::RayCircleIntersect(const dvec3& a, const dvec3& b, double tmin, double tmax, const dvec3& circleCenter, double circleRadius, const dvec3& circleNorm)
+{
+	dvec3 ab = b - a;
+	double d = dot(circleNorm, circleCenter);
+
+	// Plane intersection
+	double t = (d - dot(circleNorm, a)) / dot(circleNorm, ab);
+
+	if (t >= 0.0 && t <= 1.0)
+	{
+		// Check that hit location is within radius
+		double r2 = circleRadius * circleRadius;
+		dvec3 q = a + t * ab;
+		dvec3 dist = q - circleCenter;
+
+		if (dot(dist, dist) <= r2)
+			return t;
+	}
+
+	// No intersection
+	return tmax;
 }
 
 bool CollisionHash::ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor)
@@ -225,6 +248,25 @@ double CollisionHash::ActorCylinderIntersect(const dvec3& origin, const dvec3& e
 	double radius = actor->CollisionRadius();
 	double t = RayCylinderIntersect(origin, end, tmin, tmax, center, height, radius);
 	
+	if (Double::Equals(t, tmax))
+	{
+		// check bottom endcap
+		dvec3 capCenter = center;
+		dvec3 capNorm(0.0, 0.0, -1.0);
+		if (origin.z <= (center.z - height))
+		{
+			capCenter.z -= height;
+			t = RayCircleIntersect(origin, end, tmin, tmax, capCenter, radius, capNorm);
+		}
+		else if (origin.z >= (center.z + height))
+		{
+			// check top endcap
+			capNorm.z = 1.0;
+			capCenter.z += height;
+			t = RayCircleIntersect(origin, end, tmin, tmax, capCenter, radius, capNorm);
+		}
+	}
+
 	if (!Double::Equals(t, tmax))
 		t *= tmax;
 
