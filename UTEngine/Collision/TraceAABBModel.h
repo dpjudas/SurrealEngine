@@ -9,8 +9,10 @@ public:
 
 private:
 	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits);
+	double TriangleAABBIntersect(const dvec3& origin, double tmax, const BBox& aabb, const dvec3& extents, const dvec3* points);
+	double NodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const BBox& aabb, const dvec3& extents, BspNode* node);
 
-	static int NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node);
+	int NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node);
 
 	struct SweepCursor
 	{

@@ -62,7 +62,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	if (traceWorld)
 	{
-#if 0
+#if 1
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
 		TraceAABBModel tracemodel;
 		std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
