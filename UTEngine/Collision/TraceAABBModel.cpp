@@ -14,14 +14,13 @@ std::vector<SweepHit> TraceAABBModel::Trace(UModel* model, const dvec3& origin, 
 void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits)
 {
 	// Simplify trace by re-orienting to the origin
-	BBox aabb(to_vec3(-extents), to_vec3(extents));
 	BspNode* polynode = node;
 	while (true)
 	{
 		bool blocking = !visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0;
 		if (blocking)
 		{
-			double t = NodeAABBIntersect(origin, tmin, dirNormalized, tmax, aabb, extents, polynode);
+			double t = NodeAABBIntersect(origin, tmin, dirNormalized, tmax, extents, polynode);
 			if (t < tmax && t >= tmin)
 			{
 				SweepHit hit = {(float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr};
@@ -50,14 +49,14 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 	}
 }
 
-double TraceAABBModel::TriangleAABBIntersect(const dvec3& origin, double tmax, const BBox& aabb, const dvec3& extents, const dvec3* points)
+double TraceAABBModel::TriangleAABBIntersect(const dvec3& from, const dvec3& to, const dvec3& extents, const dvec3* points)
 {
 	// Simplify check by re-orienting to center
 	dvec3 v[3] =
 	{
-		points[0] - origin,
-		points[1] - origin,
-		points[2] - origin
+		points[0] - to,
+		points[1] - to,
+		points[2] - to
 	};
 
 	dvec3 f[3] =
@@ -68,166 +67,46 @@ double TraceAABBModel::TriangleAABBIntersect(const dvec3& origin, double tmax, c
 	};
 
 	// TODO: Optimize
-	//dvec3 a[9] =
-	//{
-	//	{0, -f[0].z, f[0].y}, // a00
-	//	{0, -f[1].z, f[1].y}, // a01
-	//	{0, -f[2].z, f[2].y}, // a02
-	//	{f[0].z, 0, -f[0].x}, // a10
-	//	{f[1].z, 0, -f[1].x}, // a11
-	//	{f[2].z, 0, -f[2].x}, // a12
-	//	{-f[0].y, f[0].x, 0}, // a20
-	//	{-f[1].y, f[1].x, 0}, // a21
-	//	{-f[2].y, f[2].x, 0}  // a22
-	//};
+	dvec3 a[9] =
+	{
+		{0, -f[0].z, f[0].y}, // a00
+		{0, -f[1].z, f[1].y}, // a01
+		{0, -f[2].z, f[2].y}, // a02
+		{f[0].z, 0, -f[0].x}, // a10
+		{f[1].z, 0, -f[1].x}, // a11
+		{f[2].z, 0, -f[2].x}, // a12
+		{-f[0].y, f[0].x, 0}, // a20
+		{-f[1].y, f[1].x, 0}, // a21
+		{-f[2].y, f[2].x, 0}  // a22
+	};
 
 	dvec3 p;
 	double r;
-	double m[2];
 
-
-	//for (int i = 0; i < 9; i++)
-	//{
-	//	p[0] = dot(v[0], a[i]);
-	//	p[1] = dot(v[1], a[i]);
-	//	p[2] = dot(v[2], a[i]);
-	//	r = extents.x * abs(a[i].x) + extents.y * abs(a[i].y) + extents.z * abs(a[i].z);
-	//
-	//	double m[2];
-	//	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	//	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-	//
-	//	if (std::max(-m[0], m[1]) > r)
-	//		return tmax;
-	//}
-
-	// Test axes a00 - a22 (category 3)
-	// a00
-	dvec3 a00(0, -f[0].z, f[0].y);
-	p[0] = dot(v[0], a00);
-	p[1] = dot(v[1], a00);
-	p[2] = dot(v[2], a00);
-	r = extents.y * abs(f[0].z) + extents.z * abs(f[0].y);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a01
-	dvec3 a01(0, -f[1].z, f[1].y);
-	p[0] = dot(v[0], a01);
-	p[1] = dot(v[1], a01);
-	p[2] = dot(v[2], a01);
-	r = extents.y * abs(f[1].z) + extents.z * abs(f[1].y);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a02
-	dvec3 a02(0, -f[2].z, f[2].y);
-	p[0] = dot(v[0], a02);
-	p[1] = dot(v[1], a02);
-	p[2] = dot(v[2], a02);
-	r = extents.y * abs(f[2].z) + extents.z * abs(f[2].y);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a10
-	dvec3 a10(f[0].z, 0, -f[0].x);
-	p[0] = dot(v[0], a10);
-	p[1] = dot(v[1], a10);
-	p[2] = dot(v[2], a10);
-	r = extents.x * abs(f[0].z) + extents.z * abs(f[0].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a11
-	dvec3 a11(f[1].z, 0, -f[1].x);
-	p[0] = dot(v[0], a11);
-	p[1] = dot(v[1], a11);
-	p[2] = dot(v[2], a11);
-	r = extents.x * abs(f[1].z) + extents.z * abs(f[1].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a12
-	dvec3 a12(f[2].z, 0, -f[2].x);
-	p[0] = dot(v[0], a12);
-	p[1] = dot(v[1], a12);
-	p[2] = dot(v[2], a12);
-	r = extents.x * abs(f[2].z) + extents.z * abs(f[2].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a20
-	dvec3 a20(-f[0].y, f[0].x, 0);
-	p[0] = dot(v[0], a20);
-	p[1] = dot(v[1], a20);
-	p[2] = dot(v[2], a20);
-	r = extents.x * abs(f[0].y) + extents.y * abs(f[0].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a21
-	dvec3 a21(-f[1].y, f[1].x, 0);
-	p[0] = dot(v[0], a21);
-	p[1] = dot(v[1], a21);
-	p[2] = dot(v[2], a21);
-	r = extents.x * abs(f[1].y) + extents.y * abs(f[1].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
-
-	// a22
-	dvec3 a22(-f[2].y, f[2].x, 0);
-	p[0] = dot(v[0], a22);
-	p[1] = dot(v[1], a22);
-	p[2] = dot(v[2], a22);
-	r = extents.x * abs(f[2].y) + extents.y * abs(f[2].x);
-
-	m[0] = std::max(std::max(p[0], p[1]), p[2]);
-	m[1] = std::min(std::min(p[0], p[1]), p[2]);
-
-	if (std::max(-m[0], m[1]) > r)
-		return tmax;
+	for (int i = 0; i < 9; i++)
+	{
+		p[0] = dot(v[0], a[i]);
+		p[1] = dot(v[1], a[i]);
+		p[2] = dot(v[2], a[i]);
+		r = extents.x * abs(a[i].x) + extents.y * abs(a[i].y) + extents.z * abs(a[i].z);
+	
+		double m[2];
+		m[0] = std::max(std::max(p[0], p[1]), p[2]);
+		m[1] = std::min(std::min(p[0], p[1]), p[2]);
+	
+		if (std::max(-m[0], m[1]) > r)
+			return 1.0;
+	}
 
 	// Test the three axes corresponding to the face normals of the AABB (category 1)
 	if (std::max(std::max(v[0].x, v[1].x), v[2].x) < -extents[0] || std::min(std::min(v[0].x, v[1].x), v[2].x) > extents[0])
-		return tmax;
+		return 1.0;
 
 	if (std::max(std::max(v[0].y, v[1].y), v[2].y) < -extents[1] || std::min(std::min(v[0].y, v[1].y), v[2].y) > extents[1])
-		return tmax;
+		return 1.0;
 
 	if (std::max(std::max(v[0].z, v[1].z), v[2].z) < -extents[2] || std::min(std::min(v[0].z, v[1].z), v[2].z) > extents[2])
-		return tmax;
+		return 1.0;
 
 	// Test separating axis corresponding to triangle face normal (category 2)
 	dvec3 pn = cross(f[0], f[1]);
@@ -235,15 +114,25 @@ double TraceAABBModel::TriangleAABBIntersect(const dvec3& origin, double tmax, c
 
 	r = extents.x * abs(pn.x) + extents.y * abs(pn.y) + extents.z * abs(pn.z);
 	if (pd > r)
-		return tmax;
+		return 1.0;
 
-	double t = (pd / r) * tmax;
+	// Get intersection time
+	double t = (pd / r);
 	return t;
 }
 
-double TraceAABBModel::NodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const BBox& aabb, const dvec3& extents, BspNode* node)
+double TraceAABBModel::NodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, BspNode* node)
 {
 	if (node->NumVertices < 3 || (node->Surf >= 0 && Model->Surfaces[node->Surf].PolyFlags & PF_NotSolid))
+		return tmax;
+
+	dvec3 target = origin + dirNormalized * tmax;
+
+	// Test if plane is actually crossed
+	dvec3 extentspadded = extents * 1.1; // For numerical stability
+	int startSide = NodeAABBOverlap(origin, extentspadded, node);
+	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
+	if (startSide == 1 && endSide == 1)
 		return tmax;
 
 	BspVert* v = &Model->Vertices[node->VertPool];
@@ -258,7 +147,7 @@ double TraceAABBModel::NodeAABBIntersect(const dvec3& origin, double tmin, const
 	for (int i = 2; i < count; i++)
 	{
 		p[2] = to_dvec3(points[v[i].Vertex]);
-		double tval = TriangleAABBIntersect(origin, tmax, aabb, extents, p) * tmax;
+		double tval = TriangleAABBIntersect(origin, target, extents, p) * tmax;
 		if (tval >= tmin)
 			t = std::min(tval, t);
 		p[1] = p[2];
