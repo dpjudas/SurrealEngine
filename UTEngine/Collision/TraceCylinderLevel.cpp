@@ -3,6 +3,7 @@
 #include "TraceCylinderLevel.h"
 #include "TraceSphereModel.h"
 #include "TraceAABBModel.h"
+#include "TraceRayModel.h"
 #include "UObject/UActor.h"
 
 std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
@@ -64,9 +65,20 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 	{
 #if 1
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		TraceAABBModel tracemodel;
-		std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
-		hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		if (extents == dvec3(0.0, 0.0, 0.0))
+		{
+			// Line/triangle intersect
+			TraceRayModel tracemodel;
+			std::vector<TraceHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		}
+		else
+		{
+			// AABB/Triangle intersect
+			TraceAABBModel tracemodel;
+			std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		}
 #else
 		vec3 offset = vec3(0.0, 0.0, height - radius);
 		TraceSphereModel tracespheremodel;
