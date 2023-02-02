@@ -13,25 +13,83 @@ std::vector<SweepHit> TraceAABBModel::Trace(UModel* model, const dvec3& origin, 
 
 void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits)
 {
-	// Simplify trace by re-orienting to the origin
-	BspNode* polynode = node;
-	while (true)
+	if (node->CollisionBound >= 0)
 	{
-		bool blocking = !visibilityOnly || (polynode->NodeFlags & NF_NotVisBlocking) == 0;
-		if (blocking)
+		int32_t* hullIndexList = &Model->LeafHulls[node->CollisionBound];
+		int hullPlanesCount = 0;
+		while (hullIndexList[hullPlanesCount] >= 0)
+			hullPlanesCount++;
+
+		vec3* bboxStart = (vec3*)(&hullIndexList[hullPlanesCount + 1]);
+
+		BBox bbox;
+		bbox.min = bboxStart[0];
+		bbox.max = bboxStart[1];
+		// To do: first do an AABB test for the bounds of the hull and early out if we don't hit it
+
+		// Grab the hull planes and flip the plane direction if the plane points in the wrong direction.
+		std::vector<dvec4> planes;
+		for (int i = 0; i < hullPlanesCount; i++)
 		{
-			double t = NodeAABBIntersect(origin, tmin, dirNormalized, tmax, extents, polynode);
-			if (t < tmax && t >= tmin)
+			int32_t hullIndex = hullIndexList[i];
+			bool hullFlip = !!(hullIndex & 0x4000'0000);
+			hullIndex = hullIndex & ~0x4000'0000;
+			BspNode* hullnode = &Model->Nodes[hullIndex];
+			dvec4 hullplane((double)hullnode->PlaneX, (double)hullnode->PlaneY, (double)hullnode->PlaneZ, (double)hullnode->PlaneW);
+			planes.push_back(hullFlip ? -hullplane : hullplane);
+		}
+
+		// AABB/hull sweep test.
+		//
+		// This is the same as a ray/hull sweep test, except with extended and bevel planes so that it works for AABB.
+		//
+		// The basic idea here is that you can find the solid line segment of a ray passing through the planes of a convex hull.
+		// While we are not interested in the line segment itself, the start of the line segment will give us the the hit point.
+		//
+		// We can sweep with an AABB instead of a ray by moving the planes outwards by the extents of the AABB. This will produce
+		// inaccuracies in the result, which we can reduce by adding bevel planes when the angle between the planes passes a threshold.
+
+		SweepCursor cursor(origin, dirNormalized, tmax, extents);
+
+		// Check for collision for each hull plane
+		for (int i = 0; i < hullPlanesCount; i++)
+		{
+			if (!cursor.ClipPlane(planes[i]))
 			{
-				SweepHit hit = {(float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr};
-				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
-					hit.Normal = -hit.Normal;
-				hits.push_back(hit);
+				break;
 			}
 		}
 
-		if (polynode->Plane < 0) break;
-		polynode = &Model->Nodes[polynode->Plane];
+		// Check for collision for any bevel plane we need to insert at the hull edges
+		for (int i = 0; i < hullPlanesCount; i++)
+		{
+			dvec4 plane0 = planes[i];
+			for (int j = 0; j < i; j++)
+			{
+				dvec4 plane1 = planes[j];
+
+				if ((plane0.x < 0.0 && plane1.x > 0.0) || (plane0.x > 0.0 && plane1.x < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(1.0, 0.0, 0.0));
+				}
+				if ((plane0.y < 0.0 && plane1.y > 0.0) || (plane0.y > 0.0 && plane1.y < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(0.0, 1.0, 0.0));
+				}
+				if ((plane0.z < 0.0 && plane1.z > 0.0) || (plane0.z > 0.0 && plane1.z < 0.0))
+				{
+					cursor.ClipBevel(plane0, plane1, dvec3(0.0, 0.0, 1.0));
+				}
+			}
+		}
+
+		// Did we hit anything?
+		double t = cursor.HitFraction();
+		if (t >= tmin && t < tmax)
+		{
+			SweepHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr };
+			hits.push_back(hit);
+		}
 	}
 
 	dvec3 extentspadded = extents * 1.1; // For numerical stability

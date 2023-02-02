@@ -1,9 +1,6 @@
 - Guns don't drop (check physics type, probably unimplemented)
 - Gibs bounce offset upwards from the ground (bad collision?)
-	- all actors, if allowed to fall, land elevated from the ground
-- Collision cylinders aren't being respected
-	- is ActorSphereIntersect in TraceCylinderLevel::Trace actually correct? really need to visualize this math to see what's happening
-	- might be the cause of getting snagged on level geometry, projectiles blowing up immediately, gibs bouncing offset from the ground
+	- all actors, if allowed to fall, land elevated from the ground         
 - Gibbing on certain maps in Debug mode causes out of bounds vertex access
 - "Step adjust" seems too aggressive, walking off an edge causes a significant drop downward (at lethal heights, falling eventually occurs)
 	- pawn/bsp collision needs to be sorted out first
