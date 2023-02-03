@@ -527,20 +527,22 @@ void UActor::TickFalling(float elapsed)
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
 
-	//if (pawn)
-	//{
-	//	float maxAccel = pawn->AirControl() * pawn->AccelRate();
-	//	float accel = length(Acceleration());
-	//	if (accel > maxAccel)
-	//		Acceleration() = normalize(Acceleration()) * maxAccel;
-	//}
+	if (pawn)
+	{
+		float maxAccel = pawn->AirControl() * pawn->AccelRate();
+		float accel = length(Acceleration());
+		if (accel > maxAccel)
+			Acceleration() = normalize(Acceleration()) * maxAccel;
+	}
 
 	float gravityScale = 2.0f;
 	float fluidFriction = 0.0f;
 
-	vec3 oldVel = Velocity();
-
-	if (pawn && pawn->FootRegion().Zone->bWaterZone() && oldVel.z < 0.0f)
+	if (decor && decor->bBobbing())
+	{
+		gravityScale = 1.0f;
+	}
+	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && Velocity().z < 0.0f)
 	{
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
@@ -548,18 +550,19 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	vec3 realAccel = Acceleration();
-	if (pawn)
-	{
-		vec2 velocity2d(Velocity().x, Velocity().y);
-		if (dot(velocity2d, velocity2d) > pawn->GroundSpeed() * pawn->GroundSpeed())
-		{
-			realAccel.x = 0;
-			realAccel.y = 0;
-		}
-	}
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
 
-	Velocity() = oldVel * (1.0f - fluidFriction * elapsed) + (realAccel + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
+	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
+	if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
+	{
+		float xySpeed = length(Velocity().xy());
+		Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+	}
+	else
+	{
+		Velocity() = newVelocity;
+	}
 
 	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
@@ -1642,20 +1645,24 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeTo)
 		{
-			StateFrame->LatentState = LatentRunState::Continue;
+			TickRotateTo(Focus());
+			if (TickMoveTo(Destination()))
+				StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
 		{
-			/*
 			if (FaceTarget())
 			{
+				TickRotateTo(Focus());
+				vec3 oldDest = Destination();
+				if (TickMoveTo(Destination()))
+					StateFrame->LatentState = LatentRunState::Continue;
+				Destination() = oldDest;
 			}
 			else
 			{
 				StateFrame->LatentState = LatentRunState::Continue;
 			}
-			*/
-			StateFrame->LatentState = LatentRunState::Continue;
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnTo)
 		{
@@ -1757,14 +1764,30 @@ void UPawn::TickRotating(float elapsed)
 
 bool UPawn::TickRotateTo(const vec3& target)
 {
-	// To do: use DesiredRotation to control where physics rotates us. Return true if we point in the right direction now.
-	return false;
+	if (Physics() == PHYS_Spider)
+		return true;
+
+	DesiredRotation() = Rotator::FromVector(target - Location());
+
+	if (Physics() == PHYS_Walking && (!MoveTarget() || !MoveTarget()->IsA("Pawn")))
+	{
+		DesiredRotation().Pitch = 0;
+	}
+
+	int doneAngle = 2000;
+	return (std::abs(DesiredRotation().Yaw - (Rotation().Yaw & 0xffff)) < doneAngle) || (std::abs(DesiredRotation().Yaw - (Rotation().Yaw & 0xffff)) > 0xffff - doneAngle);
 }
 
 bool UPawn::TickMoveTo(const vec3& target)
 {
-	// To do: use Acceleration to control where physics ticking moves us. Return true if we got to the destination.
-	return false;
+	// To do: there is probably more to it than this!
+
+	Acceleration() = normalize(target - Location()) * AccelRate();
+
+	if (Physics() == PHYS_Walking)
+		Acceleration().z = 0.0f;
+
+	return MoveTimer() < 0.0f || length(target - Location()) < length(Velocity()) * 0.02f;
 }
 
 void UPawn::MoveTo(const vec3& newDestination, float speed)

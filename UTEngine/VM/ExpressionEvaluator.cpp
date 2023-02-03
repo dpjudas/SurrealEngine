@@ -516,9 +516,7 @@ void ExpressionEvaluator::Expr(VectorToBoolExpression* expr)
 
 void ExpressionEvaluator::Expr(VectorToRotatorExpression* expr)
 {
-	vec3 v = Eval(expr->Value).Value.ToVector();
-	float scale = 0x10000 / (2.0f * 3.14159265359f);
-	Result.Value = ExpressionValue::RotatorValue({ (int)(std::atan2(v.z, std::sqrt(v.x * v.x + v.y * v.y)) * scale), (int)(std::atan2(v.y, v.x) * scale), 0 });
+	Result.Value = ExpressionValue::RotatorValue(Rotator::FromVector(Eval(expr->Value).Value.ToVector()));
 }
 
 void ExpressionEvaluator::Expr(RotatorToBoolExpression* expr)
