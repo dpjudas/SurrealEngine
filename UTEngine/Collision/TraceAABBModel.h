@@ -25,8 +25,8 @@ private:
 			// Push out plane by the extents of the AABB
 			double aabbpushout = std::abs(plane.x * extents.x) + std::abs(plane.y * extents.y) + std::abs(plane.z * extents.z);
 
-			double dist0 = plane.x * start.x + plane.y * start.y * plane.z * start.z - plane.w;
-			double dist1 = plane.x * end.x + plane.y * end.y * plane.z * end.z - plane.w;
+			double dist0 = plane.x * start.x + plane.y * start.y + plane.z * start.z - plane.w;
+			double dist1 = plane.x * end.x + plane.y * end.y + plane.z * end.z - plane.w;
 			double planeFrontFace = dist0 - dist1;
 
 			// Is the AABB intersecting with the plane?
