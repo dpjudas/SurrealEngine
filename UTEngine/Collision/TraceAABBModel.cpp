@@ -225,3 +225,44 @@ int TraceAABBModel::NodeAABBOverlap(const dvec3& center, const dvec3& extents, B
 	else
 		return 0;
 }
+
+bool TraceAABBModel::IntersectMovingAABBAABB(const BBox& a, const BBox& b, const dvec3& start, const dvec3& end)
+{
+	if (!a.intersects(b))
+		return false;
+
+	dvec3 v = end - start;
+	double t0 = 0.0;
+	double t1 = 1.0;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (v[i] < 0.0)
+		{
+			if (b.max[i] < a.min[i])
+				return false;
+
+			if (a.max[i] < b.min[i])
+				t0 = std::max((a.max[i] - b.min[i]) / v[i], t0);
+
+			if (b.max[i] > a.min[i])
+				t1 = std::min((a.min[i] - b.max[i]) / v[i], t1);
+		}
+		if (v[i] > 0.0)
+		{
+			if (b.min[i] > a.max[i])
+				return false;
+
+			if (b.max[i] < a.min[i])
+				t0 = std::max((a.min[i] - b.max[i]) / v[i], t0);
+
+			if (a.max[i] > b.min[i]) 
+				t1 = std::min((a.max[i] - b.min[i]) / v[i], t1);
+		}
+
+		if (t0 > t1)
+			return false;
+	}
+
+	return true;
+}

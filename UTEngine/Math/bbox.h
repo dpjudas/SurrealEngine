@@ -22,6 +22,15 @@ public:
 		return halfmax - halfmin;
 	}
 
+	bool intersects(const BBox& box) const
+	{
+		if (max.x < box.min.x || min.x > box.max.x) return false;
+		if (max.y < box.min.y || min.y > box.max.y) return false;
+		if (max.z < box.min.z || min.z > box.max.z) return false;
+
+		return true;
+	}
+
 	vec3 min;
 	vec3 max;
 
