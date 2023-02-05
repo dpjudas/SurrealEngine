@@ -93,6 +93,30 @@ private:
 			return true;
 		}
 
+		bool ClipBoxPlanes(const BBox& box)
+		{
+			// TODO: is this actually correct?
+			// AABB does not encompass the bsp surface really at all, but treating
+			// the sides of the AABB like planes seems to work??
+			dvec4 boxPlanes[] =
+			{
+				{ 1.0,  0.0,  0.0,  box.max.x},
+				{-1.0,  0.0,  0.0, -box.min.x},
+				{ 0.0,  1.0,  0.0,  box.max.y},
+				{ 0.0, -1.0,  0.0, -box.min.y},
+				{ 0.0,  0.0,  1.0,  box.max.z},
+				{ 0.0,  0.0, -1.0, -box.min.z}
+			};
+
+			for (int i = 0; i < 6; i++)
+			{
+				if (!ClipPlane(boxPlanes[i]))
+					return false;
+			}
+
+			return true;
+		}
+
 		double HitFraction()
 		{
 			if (!nohit && tstart > -1.0 && tstart < tend && tend > 0.0)
