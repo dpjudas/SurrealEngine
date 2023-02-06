@@ -26,6 +26,11 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 		bbox.min = bboxStart[0];
 		bbox.max = bboxStart[1];
 
+		// Shave off part of the box, or ammo pickups can fall through the floor
+		double boxEpsilon = 0.1;
+		bbox.min += boxEpsilon;
+		bbox.max -= boxEpsilon;
+
 		SweepCursor cursor(origin, dirNormalized, tmax, extents);
 		if (cursor.ClipBoxPlanes(bbox))
 		{
