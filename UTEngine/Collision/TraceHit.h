@@ -13,6 +13,8 @@ public:
 	vec3 Normal = vec3(0.0);
 };
 
+class BspNode;
+
 class SweepHit
 {
 public:
@@ -23,4 +25,5 @@ public:
 	float Fraction = 1.0;
 	vec3 Normal = vec3(0.0);
 	UActor* Actor = nullptr;
+	BspNode* node = nullptr;
 };

@@ -65,6 +65,9 @@ void RenderSubsystem::PostRender()
 	CallEvent(engine->viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(engine->canvas) });
 	CallEvent(engine->console, "PostRender", { ExpressionValue::ObjectValue(engine->canvas) });
 	DrawTimedemoStats();
+	
+	if (ShowCollisionDebug)
+		DrawCollisionDebug();
 }
 
 void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
@@ -418,6 +421,55 @@ void RenderSubsystem::DrawTimedemoStats()
 				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 				curY += curYL + 4.0f;
 			}
+		}
+	}
+}
+
+void RenderSubsystem::DrawCollisionDebug()
+{
+	std::vector<std::string> lines;
+	if (engine->PlayerBspNode)
+	{
+		BspNode* node = engine->PlayerBspNode;
+		BspSurface* surf = (node->Surf >= 0) ? &engine->Level->Model->Surfaces[node->Surf] : nullptr;
+
+		lines.push_back("BspNode CollisionBound: " + std::to_string(node->CollisionBound));
+		lines.push_back("BspNode Surface: " + std::to_string(node->Surf));
+
+		if (surf)
+			lines.push_back("BspNode Texture: " + surf->Material->Name.Value);
+
+		lines.push_back("BspNode Plane: (" +
+			std::to_string(node->PlaneX) + ", " +
+			std::to_string(node->PlaneY) + ", " +
+			std::to_string(node->PlaneZ) + ", " +
+			std::to_string(node->PlaneW) + ")"
+		);
+
+		BBox box = node->GetCollisionBox(engine->Level->Model);
+		lines.push_back("BspNode Bound Min: (" +
+			std::to_string(box.min.x) + ", " +
+			std::to_string(box.min.y) + ", " +
+			std::to_string(box.min.z) + ")"
+		);
+
+		lines.push_back("BspNode Bound Max: (" +
+			std::to_string(box.max.x) + ", " +
+			std::to_string(box.max.y) + ", " +
+			std::to_string(box.max.z) + ")"
+		);
+	}
+
+	UFont* font = engine->canvas->MedFont();
+	if (font)
+	{
+		float curY = 180;
+		for (const std::string& text : lines)
+		{
+			float curX = engine->window->SizeX / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+			float curYL = 0.0f;
+			DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+			curY += curYL;
 		}
 	}
 }

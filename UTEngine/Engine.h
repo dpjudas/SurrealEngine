@@ -119,6 +119,7 @@ public:
 	vec3 CameraLocation;
 	Rotator CameraRotation;
 	float CameraFovAngle = 95.0f;
+	BspNode* PlayerBspNode = nullptr;
 
 	bool quit = false;
 

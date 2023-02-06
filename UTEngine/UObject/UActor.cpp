@@ -1085,6 +1085,10 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	UpdateActorZone();
 
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+	if (player)
+		engine->PlayerBspNode = blockingHit.node;
+
 	return blockingHit;
 }
 

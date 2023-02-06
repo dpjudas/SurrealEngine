@@ -516,6 +516,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		render->ShowTimedemoStats = args[1] == "1";
 	}
+	else if (command == "collisiondebug" && args.size() == 2)
+	{
+		render->ShowCollisionDebug = args[1] == "1";
+	}
 	else if (command == "showlog")
 	{
 		Frame::ShowDebuggerWindow();
@@ -532,6 +536,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}*/
 	else if (command == "getres")
 	{
+		// TODO: actually query this
 		return "1920x1080 1024x768 800x600";
 	}
 	else if (command == "getcolordepths")
