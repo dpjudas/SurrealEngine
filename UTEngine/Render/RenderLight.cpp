@@ -82,34 +82,61 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const Li
 		float rightStep = rightDX / rightDY;
 
 		std::vector<vec3> lightcolors;
-		lightcolors.resize((size_t)width * height, hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness()));
+		lightcolors.resize((size_t)width * height, hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness()) * 0.25f);
 
 		const uint8_t* bits = model->LightBits.data() + lmindex.DataOffset;
-		int bitpos = 0;
+		int lmpitch = (width + 7) / 8;
 
 		bool isSpecialLit = (surface.PolyFlags & PF_SpecialLit) == PF_SpecialLit;
 
-		UActor** lightpos = &model->Lights[lmindex.LightActors];
-		while (*lightpos)
+		for (UActor** lightpos = &model->Lights[lmindex.LightActors]; *lightpos; lightpos++, bits += lmpitch * height)
 		{
 			UActor* light = *lightpos;
 
-			if (light->bSpecialLit() != isSpecialLit)
+			if (light->LightType() == LT_None || light->LightBrightness() == 0)
 				continue;
 
-			for (int y = 0; y < height; y++)
-			{
-				float x0 = uv[0].x + leftStep * (y + 0.5f - uv[0].y) + 0.5f;
-				float x1 = uv[1].x + rightStep * (y + 0.5f - uv[1].y) + 0.5f;
-				float t0 = (y + 0.5f - uv[0].y) / leftDY;
-				float t1 = (y + 0.5f - uv[1].y) / rightDY;
-				vec3 p0 = mix(p[0], p[2], t0);
-				vec3 p1 = mix(p[1], p[2], t1);
-				if (x1 < x0) { std::swap(x0, x1); std::swap(p0, p1); }
-				DrawLightmapSpan(&lightcolors[(size_t)y * width], 0, width, x0, x1, p0, p1, light, N, bits, bitpos);
-			}
+			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
 
-			lightpos++;
+			switch (light->LightEffect())
+			{
+			case LE_TorchWaver:
+			case LE_FireWaver:
+			case LE_WateryShimmer:
+			case LE_SlowWave:
+			case LE_FastWave:
+			case LE_CloudCast:
+			case LE_Shock:
+			case LE_Disco:
+			case LE_Warp:
+			case LE_NonIncidence:
+			case LE_Shell:
+			case LE_OmniBumpMap:
+			case LE_Interference:
+			case LE_Cylinder:
+			case LE_Rotor:
+			case LE_Unused:
+			case LE_None:
+				{
+					for (int y = 0; y < height; y++)
+					{
+						float x0 = uv[0].x + leftStep * (y + 0.5f - uv[0].y) + 0.5f;
+						float x1 = uv[1].x + rightStep * (y + 0.5f - uv[1].y) + 0.5f;
+						float t0 = (y + 0.5f - uv[0].y) / leftDY;
+						float t1 = (y + 0.5f - uv[1].y) / rightDY;
+						vec3 p0 = mix(p[0], p[2], t0);
+						vec3 p1 = mix(p[1], p[2], t1);
+						if (x1 < x0) { std::swap(x0, x1); std::swap(p0, p1); }
+						DrawLightmapSpan(&lightcolors[(size_t)y * width], width, x0, x1, p0, p1, light, N, bits + y * lmpitch, lightcolor);
+					}
+				}
+				break;
+			case LE_Searchlight:
+			case LE_StaticSpot:
+			case LE_Spotlight:
+				// Let us not draw the spot lights for now (drawing them as point lights just looks horrible)
+				break;
+			}
 		}
 
 		float weights[9] = { 0.125f, 0.25f, 0.125f, 0.25f, 0.50f, 0.25f, 0.125f, 0.25f, 0.125f };
@@ -172,11 +199,10 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const Li
 	return lmtexture;
 }
 
-void RenderSubsystem::DrawLightmapSpan(vec3* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, int& bitpos)
+void RenderSubsystem::DrawLightmapSpan(vec3* line, int width, float x0, float x1, vec3 p0, vec3 p1, UActor* light, const vec3& N, const uint8_t* bits, vec3 lightcolor)
 {
-	vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-
-	for (int i = start; i < end; i++)
+	int bitpos = 0;
+	for (int i = 0; i < width; i++)
 	{
 		bool shadowtest = (bits[bitpos >> 3] & (1 << (bitpos & 7))) != 0;
 		if (shadowtest)
@@ -193,8 +219,6 @@ void RenderSubsystem::DrawLightmapSpan(vec3* line, int start, int end, float x0,
 
 		bitpos++;
 	}
-
-	bitpos = (bitpos + 7) / 8 * 8;
 }
 
 vec3 RenderSubsystem::FindLightAt(const vec3& location, int zoneIndex)
