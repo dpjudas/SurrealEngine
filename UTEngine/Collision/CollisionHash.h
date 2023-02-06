@@ -84,8 +84,9 @@ public:
 	bool ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor);
 	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
 	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
-	double ActorCylinderIntersect(const dvec3& origin, const dvec3& end, double tmin, double tmax, UActor* actor);
+	double ActorCylinderIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor);
 	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
-	double RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayEnd, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
-	double RayCircleIntersect(const dvec3& a, const dvec3& b, double tmin, double tmax, const dvec3& circleCenter, double circleRadius, const dvec3& circleNorm);
+	double RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
+	bool RayCircleIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t);
+	bool RayPlaneIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t);
 };

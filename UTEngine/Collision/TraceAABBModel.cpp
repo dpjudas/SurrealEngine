@@ -88,7 +88,6 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 			if (t >= tmin && t < tmax)
 			{
 				SweepHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr };
-				hit.node = node;
 				hits.push_back(hit);
 			}
 		}

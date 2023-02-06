@@ -82,114 +82,215 @@ double CollisionHash::RaySphereIntersect(const dvec3& rayOrigin, double tmin, co
 	return (t >= tmin) ? t : tmax;
 }
 
-double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayEnd, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+int GetQuadraticRoots(double a, double b, double c, double& root_lower, double& root_upper)
 {
-	dvec3 p = cylinderCenter;
-	dvec3 q = cylinderCenter;
+  double discriminant = (b * b) - (4.0 * a * c);
+  if (discriminant > DBL_EPSILON)
+  {
+    double b_term = b < DBL_EPSILON ? -b + sqrt(discriminant) : -b - sqrt(discriminant);
 
-	p.z -= cylinderHeight;
-	q.z += cylinderHeight;
+    root_lower = b_term / (2.0 * a); // quadratic formula
+    root_upper = (2.0 * c) / b_term; // citardauq formula
 
-	dvec3 d = q - p;
-	dvec3 m = rayOrigin - p;
-	dvec3 n = rayEnd - rayOrigin;
+    if (root_lower > root_upper)
+      std::swap(root_lower, root_upper); // use of both formulae, plus this, avoids catastrophic cancellation due to floating-point limits
 
-	double md = dot(m, d);
-	double nd = dot(n, d);
-	double dd = dot(d, d);
-
-	// Test if the segment outside the bottom of cylinder
-	if (md < 0.0 && (md + nd) < 0.0)
-		return tmax;
-
-	// Test if the segment outside the top of cylinder 
-	if (md > dd && (md + nd) > dd)
-		return tmax;
-
-	double nn = dot(n, n);
-	double mn = dot(m, n);
-
-	double r2 = cylinderRadius * cylinderRadius;
-	double a = dd * nn - nd * nd;
-	double k = dot(m, m) - r2;
-	double c = dd * k - md * md;
-	double t = 0.0;
-
-	// check if segment runs parallel to cylinder axis
-	if (abs(a) < DBL_EPSILON)
-	{
-		if (c > 0.0)
-			return tmax; // segment outside
-
-		if (md < 0.0)
-			t = -mn / nn; // intersect against bottom
-		else if (md > dd)
-			t = (nd - mn) / nn; // intersect against top
-		else
-			t = tmin; // ray inside cylinder (make sure intersection doesn't occur if ray pointing away from cylinder center)
-
-		return t;
-	}
-
-	double b = (dd * mn) - (nd * md);
-	double discr = (b * b) - (a * c);
-
-	if (discr < 0.0)
-		return tmax; // no intersection
-
-	t = (-b - sqrt(discr)) / a;
-	if (t < 0.0 || t > 1.0)
-		return tmax;
-
-	double pinter = md + t * nd;
-	if (pinter < 0.0)
-	{
-		if (nd <= 0.0)
-			return tmax; // segment pointing away from endcap
-
-		t = -md / nd;
-		double hit = k + t * (2.0 * mn + t * nn);
-		if (hit > 0.0)
-			return tmax;
-	}
-	else if (pinter > dd)
-	{
-		if (nd >= 0.0)
-			return tmax;
-
-		t = (dd - md) / nd;
-
-		double hit = k + dd - 2.0 * md + t * (2.0 * (mn - nd) + t * nn);
-		if (hit > 0.0)
-			return tmax;
-	}
-
-	// intersection
-	return t;
+    return 2;
+  }
+  else if (discriminant > -DBL_EPSILON && discriminant <= DBL_EPSILON)
+  {
+    root_lower = -(b / 2.0 * a);
+    root_upper = root_lower;
+    return 1;
+  }
+  root_lower = NAN;
+  root_upper = NAN;
+  return 0;
 }
 
-double CollisionHash::RayCircleIntersect(const dvec3& a, const dvec3& b, double tmin, double tmax, const dvec3& circleCenter, double circleRadius, const dvec3& circleNorm)
+
+// Compute the intersection of a ray and a plane with infinite bounds. The ray direction 
+// must be normalized. Returns the hit distance, from the ray's origin; to get the hit 
+// position, multiply that by the ray's direction and then add the ray's origin.
+bool CollisionHash::RayPlaneIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t)
 {
-	dvec3 ab = b - a;
-	double d = dot(circleNorm, circleCenter);
-
-	// Plane intersection
-	double t = (d - dot(circleNorm, a)) / dot(circleNorm, ab);
-
-	if (t >= 0.0 && t <= 1.0)
-	{
-		// Check that hit location is within radius
-		double r2 = circleRadius * circleRadius;
-		dvec3 q = a + t * ab;
-		dvec3 dist = q - circleCenter;
-
-		if (dot(dist, dist) <= r2)
-			return t;
-	}
-
-	// No intersection
-	return tmax;
+  double denom = dot(planeNormal, rayDirNormalized);
+  //
+  // Non-zero check (accounting for floating-point imprecision):
+  //
+  if (denom > DBL_EPSILON || denom < -DBL_EPSILON)
+  {
+    double hd = dot(planeOrigin - rayOrigin, planeNormal) / denom;
+    if (hd >= 0)
+    {
+      t = hd;
+      return true;
+    }
+  }
+  return false;
 }
+
+// Compute the intersection of a ray and a disc. The ray direction must be normalized. 
+// Returns the hit distance, from the ray's origin.
+bool CollisionHash::RayCircleIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t)
+{
+  double hd;
+  bool plane = RayPlaneIntersect(rayOrigin, rayDirNormalized, circleCenter, circleNormal, hd);
+  if (!plane)
+    return false;
+  dvec3 hp = rayOrigin + rayDirNormalized * hd;
+  dvec3 dd = hp - circleCenter;
+  if (dot(dd, dd) > radius * radius)
+    return false;
+  //if (Hd < 0) // redundant with checks done in ray/plane
+  //   return false;
+  t = hd;
+  return true;
+}
+
+double CollisionHash::RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+{
+  //
+  // First, identify intersections between a line and an infinite cylinder. An infinite 
+  // cylinder has no base and extends in both directions.
+  //
+  dvec3 ct = cylinderCenter;
+  dvec3 cb = cylinderCenter;
+
+  ct.z += cylinderHeight;
+  cb.z -= cylinderHeight;
+
+  dvec3 rl = rayOrigin - cb;  // Ray origin local to centerpoint
+  dvec3 cs = ct - cb;         // Cylinder spine
+  double ch = length(cs);     // Cylinder height
+  dvec3 ca = cs / ch;         // Cylinder axis
+
+  auto caDotRd = dot(ca, rayDirNormalized);
+  auto caDotRl = dot(ca, rl);
+  auto rlDotRl = dot(rl, rl);
+
+  double a = 1 - (caDotRd * caDotRd);
+  double b = 2 * (dot(rayDirNormalized, rl) - caDotRd * caDotRl);
+  double c = rlDotRl - caDotRl * caDotRl - (cylinderRadius * cylinderRadius);
+
+  double t0;
+  double t1;
+  int numRoots = GetQuadraticRoots(a, b, c, t0, t1);
+  if (numRoots == 0)
+  {
+    //
+    // There is no intersection between a line (i.e. a "double-sided" ray) and the 
+    // infinite cylinder that matches our finite cylinder. This means that we cannot 
+    // be hitting any part of the cylinder: if we were hitting the base from the 
+    // inside, for example, then the "back of our ray" would be hitting the upper 
+    // part of the infinite cylinder.
+    //
+    return tmax;
+  }
+
+  bool valid1 = true;
+  bool valid2 = true;
+  //
+  dvec3 hp1 = rayOrigin + rayDirNormalized * t0;
+  dvec3 hp2 = rayOrigin + rayDirNormalized * t1;
+  double ho1 = dot(ct - hp1, ca); // height offset
+  double ho2 = dot(ct - hp2, ca);
+  //
+  int validRoots = numRoots;
+  if (t0 < 0.0 || ho1 < DBL_EPSILON || ho1 > ch)
+  {
+    valid1 = false;
+    --validRoots;
+  }
+  if (t1 < 0.0 || ho2 < DBL_EPSILON || ho2 > ch)
+  {
+    valid2 = false;
+    if (numRoots > 1)
+      --validRoots;
+  }
+  double t = tmax;
+  if (validRoots == 0)
+  {
+    //
+    // The ray never hits the bounded cylinder's curved surface. If we're looking 
+    // along the cylinder's axis -- whether from inside or outside -- then the ray 
+    // could still hit an endcap.
+    // 
+    // Let's project the ray origin onto the cylinder's axis, and figure out which 
+    // endcap we're nearer to. (Well, actually, we already have that value: it's 
+    // Ca_dot_Rl.)
+    //
+    if (caDotRl <= 0.0)
+    {
+      // above
+      valid1 = RayCircleIntersect(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, t0);
+    }
+    else if (caDotRl >= ch)
+    {
+      // below
+      valid1 = RayCircleIntersect(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, t1);
+    }
+    else
+    {
+      return tmax;
+    }
+    if (valid1)
+    {
+      t = t0;
+      return t;
+    }
+    return tmax;
+  }
+  if (validRoots == 1)
+  {
+    //
+    // The ray hits the cylinder's curved surface only once. This can only happen under 
+    // two cases: the ray originates from inside the cylinder, and points outward; or 
+    // the ray passes through the bounded cylinder once and then through an endcap.
+    //
+    if (valid2)
+    {
+      hp1 = hp2;
+      ho1 = ho2;
+      valid1 = true;
+      t0 = t1;
+    }
+
+    double d0;
+    double d1;
+    bool disc1 = RayCircleIntersect(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, d0);
+    bool disc2 = RayCircleIntersect(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, d1);
+    if (disc1)
+    {
+      if (disc2)
+      {
+        if (d1 < d0)
+          d0 = d1;
+      }
+    }
+    else if (disc2)
+    {
+      d0 = t1;
+      disc1 = disc2;
+    }
+
+    if (disc1)
+    {
+      if (d0 < t0)
+      {
+        t = d0;
+        return t;
+      }
+    }
+    else
+    {
+      return tmax;
+    }
+  }
+  t = std::min(t0, t1);
+  return t;
+}
+
 
 bool CollisionHash::ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor)
 {
@@ -238,7 +339,7 @@ double CollisionHash::ActorSphereIntersect(const dvec3& origin, double tmin, con
 	return std::min(t0, t1);
 }
 
-double CollisionHash::ActorCylinderIntersect(const dvec3& origin, const dvec3& end, double tmin, double tmax, UActor* actor)
+double CollisionHash::ActorCylinderIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return tmax;
@@ -246,29 +347,7 @@ double CollisionHash::ActorCylinderIntersect(const dvec3& origin, const dvec3& e
 	dvec3 center = to_dvec3(actor->Location());
 	double height = actor->CollisionHeight();
 	double radius = actor->CollisionRadius();
-	double t = RayCylinderIntersect(origin, end, tmin, tmax, center, height, radius);
-	
-	if (Double::Equals(t, tmax))
-	{
-		// check bottom endcap
-		dvec3 capCenter = center;
-		dvec3 capNorm(0.0, 0.0, -1.0);
-		if (origin.z <= (center.z - height))
-		{
-			capCenter.z -= height;
-			t = RayCircleIntersect(origin, end, tmin, tmax, capCenter, radius, capNorm);
-		}
-		else if (origin.z >= (center.z + height))
-		{
-			// check top endcap
-			capNorm.z = 1.0;
-			capCenter.z += height;
-			t = RayCircleIntersect(origin, end, tmin, tmax, capCenter, radius, capNorm);
-		}
-	}
-
-	if (!Double::Equals(t, tmax))
-		t *= tmax;
+	double t = RayCylinderIntersect(origin, dirNormalized, tmin, tmax, center, height, radius);
 
 	return t;
 }
