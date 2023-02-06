@@ -505,7 +505,7 @@ void UActor::TickWalking(float elapsed)
 
 	// Step down after movement to see if we are still walking or if we are now falling
 	SweepHit hit = TryMove(stepDownDelta);
-	if (hit.Fraction == 1.0f)
+	if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f)
 	{
 		SetPhysics(PHYS_Falling);
 	}
@@ -576,24 +576,34 @@ void UActor::TickFalling(float elapsed)
 		if (bBounce())
 		{
 			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			// TODO: perform bounce
 		}
 		else
 		{
-			// To do: slide along surfaces not pointing straight up
-			// To do: if we do slide along a surface we need to fire HitWall before continueing movement
+			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-			CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
-
-			if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+			// slide along surfaces sloped steeper than 45 degrees
+			vec3 up(0.0, 0.0, 1.0);
+			if (dot(up, hit.Normal) < 0.7071068f)
 			{
-				if (UObject::TryCast<UPawn>(this))
+				// FIXME: gravity needs to have less of an effect on Z velocity
+				MoveSmooth((Velocity() + zone->Velocity()) * elapsed);
+			}
+			else
+			{
+				CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
+
+				if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
 				{
-					SetPhysics(PHYS_Walking);
-				}
-				else
-				{
-					SetPhysics(PHYS_None);
-					Velocity() = vec3(0.0f);
+					if (UObject::TryCast<UPawn>(this))
+					{
+						SetPhysics(PHYS_Walking);
+					}
+					else
+					{
+						SetPhysics(PHYS_None);
+						Velocity() = vec3(0.0f);
+					}
 				}
 			}
 		}
@@ -1087,7 +1097,10 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 	if (player)
+	{
 		engine->PlayerBspNode = blockingHit.node;
+		engine->PlayerHitNormal = blockingHit.Normal;
+	}
 
 	return blockingHit;
 }
