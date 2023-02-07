@@ -103,6 +103,44 @@ enum ENetMode
 	NM_Client
 };
 
+enum ELightType
+{
+	LT_None,
+	LT_Steady,
+	LT_Pulse,
+	LT_Blink,
+	LT_Flicker,
+	LT_Strobe,
+	LT_BackdropLight,
+	LT_SubtlePulse,
+	LT_TexturePaletteOnce,
+	LT_TexturePaletteLoop
+};
+
+enum ELightEffect
+{
+	LE_None,
+	LE_TorchWaver,
+	LE_FireWaver,
+	LE_WateryShimmer,
+	LE_Searchlight,
+	LE_SlowWave,
+	LE_FastWave,
+	LE_CloudCast,
+	LE_StaticSpot,
+	LE_Shock,
+	LE_Disco,
+	LE_Warp,
+	LE_Spotlight,
+	LE_NonIncidence,
+	LE_Shell,
+	LE_OmniBumpMap,
+	LE_Interference,
+	LE_Cylinder,
+	LE_Rotor,
+	LE_Unused
+};
+
 class UActor : public UObject
 {
 public:
