@@ -17,6 +17,12 @@ set(UTENGINE_SOURCES
 	UTEngine/Render/RenderScene.cpp
 	UTEngine/Render/RenderLight.cpp
 	UTEngine/Render/RenderFog.cpp
+	UTEngine/Render/Lightmap/LightEffect.cpp
+	UTEngine/Render/Lightmap/LightEffect.h
+	UTEngine/Render/Lightmap/LightmapBuilder.cpp
+	UTEngine/Render/Lightmap/LightmapBuilder.h
+	UTEngine/Render/Lightmap/Shadowmap.cpp
+	UTEngine/Render/Lightmap/Shadowmap.h
 	UTEngine/Engine.cpp
 	UTEngine/Main.cpp
 	UTEngine/File.cpp
@@ -453,6 +459,7 @@ source_group("UTEngine\\Package" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}
 source_group("UTEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/.+")
 source_group("UTEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/RenderDevice/Vulkan/.+")
 source_group("UTEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Render/.+")
+source_group("UTEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/Render/Lightmap/.+")
 source_group("UTEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/.+")
 source_group("UTEngine\\UI\\Controls" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/.+")
 source_group("UTEngine\\UI\\Controls\\BorderLayoutView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/UI/Controls/BorderLayoutView/.+")
