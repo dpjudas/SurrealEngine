@@ -23,6 +23,8 @@ set(UTENGINE_SOURCES
 	UTEngine/Render/Lightmap/LightmapBuilder.h
 	UTEngine/Render/Lightmap/Shadowmap.cpp
 	UTEngine/Render/Lightmap/Shadowmap.h
+	UTEngine/Render/Lightmap/FogmapBuilder.cpp
+	UTEngine/Render/Lightmap/FogmapBuilder.h
 	UTEngine/Engine.cpp
 	UTEngine/Main.cpp
 	UTEngine/File.cpp

@@ -17,6 +17,8 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	for (UTexture* tex : Textures)
 		tex->Update(levelTimeElapsed);
 
+	Light.FogFrameCounter++;
+
 	Device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
 
 	ResetCanvas();
