@@ -119,7 +119,11 @@ public:
 	vec3 CameraLocation;
 	Rotator CameraRotation;
 	float CameraFovAngle = 95.0f;
+
+	// Collision debug
 	BspNode* PlayerBspNode = nullptr;
+	vec3 PlayerHitNormal;
+	vec3 PlayerHitLocation;
 
 	bool quit = false;
 

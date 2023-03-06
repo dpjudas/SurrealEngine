@@ -1,4 +1,3 @@
-- Guns don't drop (check physics type, probably unimplemented)    
 - Gibbing on certain maps in Debug mode causes out of bounds vertex access
 - "Step adjust" seems too aggressive, walking off an edge causes a significant drop downward (at lethal heights, falling eventually occurs)
 - There's a memory leak (might have to do with some actors not disappearing? unsure, need a longer test run)
@@ -16,3 +15,6 @@
 - rendering seeds crashes the game
 - viewclass crashes with null deref
 - lightmap rendering is kind of off
+- In DM-Deck16][, it is possible to pick up the shield belt by walking on the bridge above the actual pickup
+- Bots literally rotate their entire body (feet off the ground) to look up/downin ways they shouldn't be able to
+	- i think its reproducible by jumping on top of a bot?

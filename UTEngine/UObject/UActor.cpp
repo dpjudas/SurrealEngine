@@ -550,7 +550,10 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+	gravityVector = zone->ZoneGravity();
+	double gravityMag = length(gravityVector);
+	vec3 oldVelocity = Velocity();
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -584,10 +587,39 @@ void UActor::TickFalling(float elapsed)
 
 			// slide along surfaces sloped steeper than 45 degrees
 			vec3 up(0.0, 0.0, 1.0);
-			if (dot(up, hit.Normal) < 0.7071068f)
+			if (dot(up, hit.Normal) < 0.7071f)
 			{
-				// FIXME: gravity needs to have less of an effect on Z velocity
-				MoveSmooth((Velocity() + zone->Velocity()) * elapsed);
+				Rotator rot = Rotator::FromVector(hit.Normal);
+
+				vec3 rads(radians(rot.PitchDegrees()), radians(rot.YawDegrees()), radians(rot.RollDegrees()));
+				float cp, sp, cy, sy, cr, sr;
+				cp = cosf(rads.x);
+				cy = cosf(rads.y);
+				cr = cosf(rads.z);
+				sp = sinf(rads.x);
+				sy = sinf(rads.y);
+				sr = sinf(rads.z);
+
+				gravityVector.x = -((cr * sp * cy) - (sr * -sy));	
+				gravityVector.y = ((cr * sp * sy) - (sr * cy));
+				gravityVector.z = -(cr * cp);
+				gravityVector *= gravityMag/2;
+
+				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
+
+				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
+				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
+				if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
+				{
+					float xySpeed = length(Velocity().xy());
+					Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+				}
+				else
+				{
+					Velocity() = newVelocity;
+				}
+
+				MoveSmooth(Velocity() * elapsed);
 			}
 			else
 			{
@@ -1042,6 +1074,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	}
 
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
+	engine->PlayerHitLocation = Location() + actuallyMoved;
 
 	XLevel()->Hash.RemoveFromCollision(this);
 	Location() += actuallyMoved;
@@ -1095,6 +1128,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	UpdateActorZone();
 
+	// TODO: remove this when we're no longer debugging collision
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 	if (player)
 	{

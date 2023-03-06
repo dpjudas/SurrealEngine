@@ -431,12 +431,14 @@ void RenderSubsystem::DrawCollisionDebug()
 	if (engine->PlayerBspNode)
 	{
 		BspNode* node = engine->PlayerBspNode;
+		vec3& normal = engine->PlayerHitNormal;
+		vec3& location = engine->PlayerHitLocation;
 		BspSurface* surf = (node->Surf >= 0) ? &engine->Level->Model->Surfaces[node->Surf] : nullptr;
 
 		lines.push_back("BspNode CollisionBound: " + std::to_string(node->CollisionBound));
 		lines.push_back("BspNode Surface: " + std::to_string(node->Surf));
 
-		if (surf)
+		if (surf && surf->Material)
 			lines.push_back("BspNode Texture: " + surf->Material->Name.Value);
 
 		lines.push_back("BspNode Plane: (" +
@@ -457,6 +459,18 @@ void RenderSubsystem::DrawCollisionDebug()
 			std::to_string(box.max.x) + ", " +
 			std::to_string(box.max.y) + ", " +
 			std::to_string(box.max.z) + ")"
+		);
+
+		lines.push_back("HitNormal: (" +
+			std::to_string(normal.x) + ", " +
+			std::to_string(normal.y) + ", " +
+			std::to_string(normal.z) + ")"
+		);
+
+		lines.push_back("HitLocation: (" +
+			std::to_string(location.x) + ", " +
+			std::to_string(location.y) + ", " +
+			std::to_string(location.z) + ")"
 		);
 	}
 
