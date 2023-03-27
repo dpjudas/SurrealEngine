@@ -553,7 +553,7 @@ void UActor::TickFalling(float elapsed)
 	gravityVector = zone->ZoneGravity();
 	double gravityMag = length(gravityVector);
 	vec3 oldVelocity = Velocity();
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + (gravityScale * gravityVector)) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -603,7 +603,7 @@ void UActor::TickFalling(float elapsed)
 				gravityVector.x = -((cr * sp * cy) - (sr * -sy));	
 				gravityVector.y = ((cr * sp * sy) - (sr * cy));
 				gravityVector.z = -(cr * cp);
-				gravityVector *= gravityMag/2;
+				gravityVector *= gravityMag * 0.5;
 
 				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
 
