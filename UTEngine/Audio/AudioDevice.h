@@ -14,12 +14,12 @@ public:
 	uint64_t LoopEnd = 0;
 };
 
-class AudioMixer
+class AudioDevice
 {
 public:
-	static std::unique_ptr<AudioMixer> Create();
+	static std::unique_ptr<AudioDevice> Create();
 
-	virtual ~AudioMixer() = default;
+	virtual ~AudioDevice() = default;
 	virtual AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo = {}) = 0;
 	virtual void RemoveSound(AudioSound* sound) = 0;
 	virtual float GetSoundDuration(AudioSound* sound) = 0;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AudioMixer.h"
+#include "AudioDevice.h"
 #include "Math/vec.h"
 #include "Math/mat.h"
 
@@ -42,7 +42,7 @@ public:
 	void BreakpointTriggered();
 	void AddStats(std::vector<std::string>& lines);
 
-	AudioMixer* GetMixer() { return Mixer.get(); }
+	AudioDevice* GetDevice() { return Device.get(); }
 
 private:
 	void StartAmbience();
@@ -63,7 +63,7 @@ private:
 	float AmbientFactor = 0.7f;
 	float DopplerSpeed = 9000.0f;
 
-	std::unique_ptr<AudioMixer> Mixer;
+	std::unique_ptr<AudioDevice> Device;
 	std::vector<PlayingSound> PlayingSounds;
 	UMusic* CurrentSong = nullptr;
 	int CurrentSection = 255;

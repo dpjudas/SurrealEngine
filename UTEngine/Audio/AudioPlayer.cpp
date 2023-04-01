@@ -71,8 +71,10 @@ public:
 		if (result == S_FALSE)
 		{
 			mixing_frequency = closest_match->nSamplesPerSec;
-			wave_format.Format.nSamplesPerSec = mixing_frequency;
-			wave_format.Format.nAvgBytesPerSec = wave_format.Format.nSamplesPerSec * wave_format.Format.nBlockAlign;
+			wave_format.Format = *closest_match;
+			//wave_format.Format.nSamplesPerSec = mixing_frequency;
+			//wave_format.Format.nAvgBytesPerSec = wave_format.Format.nSamplesPerSec * wave_format.Format.nBlockAlign;
+			//wave_format.Samples.wValidBitsPerSample = wave_format.Format.wBitsPerSample;
 
 			CoTaskMemFree(closest_match);
 			closest_match = 0;
@@ -139,7 +141,8 @@ public:
 			source = AudioSource::CreateResampler(mixing_frequency, std::move(source));
 		}
 
-		next_fragment = new float[2 * fragment_size];
+		channels = wave_format.Format.nChannels;
+		next_fragment = new float[channels * fragment_size];
 		start_mixer_thread();
 	}
 
@@ -167,28 +170,31 @@ public:
 	{
 		if (source)
 		{
-			size_t count = (size_t)fragment_size * 2;
-			float* output = next_fragment;
+			//size_t count = (size_t)fragment_size * 2;
+			//float* output = next_fragment;
+			//
+			//int channels = source->GetChannels();
+			//if (channels == 2)
+			//{
+			//	size_t samplesread = source->ReadSamples(output, count);
+			//	output += samplesread;
+			//	count -= samplesread;
+			//}
+			//else if (channels == 1)
+			//{
+			//	size_t samplesread = source->ReadSamples(output, count / 2);
+			//	for (size_t i = 0; i < samplesread; i++)
+			//	{
+			//		size_t src = samplesread - 1 - i;
+			//		size_t dst = src * 2;
+			//		output[dst] = output[dst + 1] = output[src];
+			//	}
+			//	output += samplesread * 2;
+			//	count -= samplesread * 2;
+			//}
 
-			int channels = source->GetChannels();
-			if (channels == 2)
-			{
-				size_t samplesread = source->ReadSamples(output, count);
-				output += samplesread;
-				count -= samplesread;
-			}
-			else if (channels == 1)
-			{
-				size_t samplesread = source->ReadSamples(output, count / 2);
-				for (size_t i = 0; i < samplesread; i++)
-				{
-					size_t src = samplesread - 1 - i;
-					size_t dst = src * 2;
-					output[dst] = output[dst + 1] = output[src];
-				}
-				output += samplesread * 2;
-				count -= samplesread * 2;
-			}
+			int sourceChannels = source->GetChannels();
+			if (sourceChannels == 2)
 
 			while (count > 0)
 			{
@@ -221,7 +227,7 @@ public:
 				HRESULT result = audio_render_client->GetBuffer(buffer_size, &buffer);
 				if (SUCCEEDED(result))
 				{
-					memcpy(buffer, next_fragment + write_pos * 2, sizeof(float) * 2 * buffer_size);
+					memcpy(buffer, next_fragment + write_pos * channels, sizeof(float) * channels * buffer_size);
 					result = audio_render_client->ReleaseBuffer(buffer_size, 0);
 
 					if (!is_playing)
@@ -275,8 +281,8 @@ public:
 	UINT32 fragment_size = 0;
 	int wait_timeout = 0;
 	float* next_fragment = nullptr;
+	int channels = 0;
 
-	int mixing_frequency = 48000;
 	int mixing_latency = 50;
 
 	std::thread mixer_thread;

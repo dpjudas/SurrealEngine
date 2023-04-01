@@ -45,12 +45,10 @@ set(UTENGINE_SOURCES
 	UTEngine/VM/Iterator.cpp
 	UTEngine/VM/Iterator.h
 	UTEngine/Engine.h
-	UTEngine/Audio/AudioPlayer.cpp
-	UTEngine/Audio/AudioPlayer.h
 	UTEngine/Audio/AudioSource.h
 	UTEngine/Audio/AudioSource.cpp
-	UTEngine/Audio/AudioMixer.cpp
-	UTEngine/Audio/AudioMixer.h
+	UTEngine/Audio/AudioDevice.cpp
+	UTEngine/Audio/AudioDevice.h
 	UTEngine/Audio/AudioSubsystem.cpp
 	UTEngine/Audio/AudioSubsystem.h
 	UTEngine/Native/NStatLog.h
