@@ -10,7 +10,9 @@
 
 AudioSubsystem::AudioSubsystem()
 {
-	Mixer = AudioMixer::Create();
+	// TODO: Add configurable option for audio device
+	// TODO: Add configurable option for audio output frequency
+	Device = AudioDevice::Create(48000);
 }
 
 void AudioSubsystem::SetViewport(UViewport* InViewport)
@@ -22,7 +24,7 @@ void AudioSubsystem::SetViewport(UViewport* InViewport)
 
 		if (Viewport)
 		{
-			Mixer->PlayMusic({});
+			Device->PlayMusic({});
 		}
 
 		Viewport = InViewport;
@@ -49,9 +51,9 @@ void AudioSubsystem::Update(const mat4& listener)
 	UpdateSounds(listener);
 	UpdateMusic();
 
-	Mixer->SetMusicVolume(MusicVolume / 255.0f);
-	Mixer->SetSoundVolume(SoundVolume / 255.0f);
-	Mixer->Update();
+	Device->SetMusicVolume(MusicVolume / 255.0f);
+	Device->SetSoundVolume(SoundVolume / 255.0f);
+	Device->Update();
 }
 
 static float distSquared(const vec3& a, const vec3& b)
@@ -130,7 +132,7 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 		{
 			continue;
 		}
-		else if (Playing.Channel && Mixer->SoundFinished(Playing.Channel))
+		else if (Playing.Channel && Device->SoundFinished(Playing.Channel))
 		{
 			StopSound(i);
 		}
@@ -174,11 +176,11 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
-				Mixer->UpdateSound(Playing.Channel, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Device->UpdateSound(Playing.Channel, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
 			}
 			else
 			{
-				Playing.Channel = Mixer->PlaySound((int)i + 1, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Playing.Channel = Device->PlaySound((int)i + 1, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
 			}
 		}
 	}
@@ -192,7 +194,7 @@ void AudioSubsystem::UpdateMusic()
 
 		if (CurrentSong)
 		{
-			Mixer->PlayMusic({});
+			Device->PlayMusic({});
 			CurrentSong = nullptr;
 		}
 
@@ -202,7 +204,7 @@ void AudioSubsystem::UpdateMusic()
 		if (CurrentSong && UseDigitalMusic)
 		{
 			int subsong = CurrentSection != 255 ? CurrentSection : 0;
-			Mixer->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
+			Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
 		}
 
 		Viewport->Actor()->Transition() = MTRAN_None;
@@ -260,7 +262,7 @@ void AudioSubsystem::StopSound(size_t index)
 
 	if (Playing.Channel)
 	{
-		Mixer->StopSound(Playing.Channel);
+		Device->StopSound(Playing.Channel);
 	}
 
 	PlayingSounds[index] = {};
@@ -294,10 +296,10 @@ float AudioSubsystem::SoundPriority(UViewport* Viewport, vec3 Location, float Vo
 
 void AudioSubsystem::BreakpointTriggered()
 {
-	if (Mixer)
+	if (Device)
 	{
-		Mixer->SetSoundVolume(0.0f);
-		Mixer->Update();
+		Device->SetSoundVolume(0.0f);
+		Device->Update();
 	}
 }
 

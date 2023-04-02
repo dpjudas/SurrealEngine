@@ -3,7 +3,7 @@
 #include "USound.h"
 #include "Engine.h"
 #include "Audio/AudioSource.h"
-#include "Audio/AudioMixer.h"
+#include "Audio/AudioDevice.h"
 #include "Audio/AudioSubsystem.h"
 
 void USound::Load(ObjectStream* stream)
@@ -62,6 +62,14 @@ AudioSound* USound::GetSound()
 		}
 	}
 
-	Sound = engine->audio->GetMixer()->AddSound(AudioSource::CreateWav(Data), loopinfo);
+	Sound = engine->audio->GetDevice()->AddSound(AudioSource::CreateWav(Data), loopinfo);
 	return Sound;
+}
+
+float USound::GetDuration()
+{
+	if (!Sound)
+		GetSound();
+
+	return Sound->duration;
 }

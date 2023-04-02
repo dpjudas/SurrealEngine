@@ -11,6 +11,7 @@ public:
 	void Load(ObjectStream* stream) override;
 
 	AudioSound* GetSound();
+	float GetDuration();
 
 	NameString Format;
 	std::vector<uint8_t> Data;

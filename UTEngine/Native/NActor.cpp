@@ -280,7 +280,7 @@ void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
-	ReturnValue = engine->audio->GetMixer()->GetSoundDuration(s->GetSound());
+	ReturnValue = engine->audio->GetDevice()->GetSoundDuration(s->GetSound());
 }
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
