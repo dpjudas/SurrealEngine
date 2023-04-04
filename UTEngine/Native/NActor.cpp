@@ -9,7 +9,7 @@
 #include "UObject/ULevel.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
-#include "Audio/AudioMixer.h"
+#include "Audio/AudioDevice.h"
 #include "Audio/AudioSubsystem.h"
 
 void NActor::RegisterFunctions()
@@ -280,7 +280,7 @@ void NActor::GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
-	ReturnValue = engine->audio->GetDevice()->GetSoundDuration(s->GetSound());
+	ReturnValue = s->GetDuration();
 }
 
 void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)

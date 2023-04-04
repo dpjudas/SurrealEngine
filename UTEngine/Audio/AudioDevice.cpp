@@ -57,6 +57,7 @@ AudioSound::AudioSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo&
 #define WIN32_MEAN_AND_LEAN
 #include <Windows.h>
 #include <xaudio2.h>
+#include <x3daudio.h>
 
 class XAudio2AudioDevice : public AudioDevice
 {
@@ -119,6 +120,7 @@ public:
 	{
 		musicVoice->DestroyVoice();
 		masterVoice->DestroyVoice();
+		xaudio2->StopEngine();
 		xaudio2->Release();
 	}
 
@@ -194,19 +196,156 @@ public:
 
 	void SetSoundVolume(float volume) override
 	{
-		// TODO:
+		soundSubmixVoice->SetVolume(volume);
+	}
+
+	void SetupPanning(IXAudio2SourceVoice* voice, ActiveSound& s)
+	{
+		float outputMatrix[8] = { 0 };
+
+		// TODO: Proper surround sound implementation
+		float left = 0.5 - s.pan / 2;
+		float right = 0.5 + s.pan / 2;
+
+		DWORD channelMask = 0;
+		masterVoice->GetChannelMask(&channelMask);
+
+		switch (channelMask)
+		{
+		case SPEAKER_MONO:
+			outputMatrix[0] = 1.0;
+			break;
+		case SPEAKER_STEREO:
+		case SPEAKER_2POINT1:
+		case SPEAKER_SURROUND:
+			outputMatrix[0] = left;
+			outputMatrix[1] = right;
+			break;
+		case SPEAKER_QUAD:
+			outputMatrix[0] = outputMatrix[2] = left;
+			outputMatrix[1] = outputMatrix[3] = right;
+			break;
+		case SPEAKER_4POINT1:
+			outputMatrix[0] = outputMatrix[3] = left;
+			outputMatrix[1] = outputMatrix[4] = right;
+			break;
+		case SPEAKER_5POINT1:
+		case SPEAKER_7POINT1:
+		case SPEAKER_5POINT1_SURROUND:
+			outputMatrix[0] = outputMatrix[4] = left;
+			outputMatrix[1] = outputMatrix[5] = right;
+			break;
+		case SPEAKER_7POINT1_SURROUND:
+			outputMatrix[0] = outputMatrix[4] = outputMatrix[6] = left;
+			outputMatrix[1] = outputMatrix[5] = outputMatrix[7] = right;
+			break;
+		}
+
+		XAUDIO2_VOICE_DETAILS masterDetails;
+		masterVoice->GetVoiceDetails(&masterDetails);
+		voice->SetOutputMatrix(NULL, 2, masterDetails.InputChannels, outputMatrix);
+	}
+
+	void StartSound(IXAudio2SourceVoice* voice, ActiveSound& s)
+	{
+		XAUDIO2_BUFFER buf;
+		buf.PlayBegin = 0;
+		buf.PlayLength = s.sound->samples.size();
+		buf.AudioBytes = buf.PlayLength * s.sound->frequency;
+		buf.Flags = XAUDIO2_END_OF_STREAM;
+		buf.pAudioData = reinterpret_cast<BYTE*>(s.sound->samples.data());
+		buf.pContext = nullptr;
+
+		AudioLoopInfo& loopinfo = s.sound->loopinfo;
+		if (loopinfo.Looped)
+		{
+			buf.LoopBegin = loopinfo.LoopStart;
+			buf.LoopLength = loopinfo.LoopEnd;
+			buf.LoopCount = XAUDIO2_LOOP_INFINITE;
+		}
+		else
+		{
+			buf.LoopBegin = buf.LoopLength = buf.LoopCount = 0;
+		}
+
+		voice->SubmitSourceBuffer(&buf);
+		voice->Start();
+	}
+
+	void UpdateMusic()
+	{
+		music->ReadSamples(musicbuffer, 512);
+
+		XAUDIO2_BUFFER buf;
+		buf.Flags = 0;
+		buf.AudioBytes = 512 * music->GetFrequency();
+		buf.pAudioData = reinterpret_cast<BYTE*>(musicbuffer);
+		buf.PlayBegin = 0;
+		buf.PlayLength = 0;
+		buf.LoopBegin = 0;
+		buf.LoopLength = 0;
+		buf.LoopCount = 0;
+		buf.pContext = nullptr;
+
+		musicVoice->SubmitSourceBuffer(&buf);
 	}
 
 	void Update() override
 	{
-		for (ActiveSound s : activeSounds)
+		for (auto it = activeSounds.begin(); it != activeSounds.end(); )
 		{
+			ActiveSound& s = *it;
+			IXAudio2SourceVoice* voice = voices[s.channel];
+
 			if (!s.update)
 			{
-				IXAudio2SourceVoice* voice = voices[s.channel];
 				voice->Stop();
+
+				// decrement channel playing count and remove if empty
+				auto c = channelplaying.find(s.channel);
+				c->second--;
+				if (c->second == 0)
+					channelplaying.erase(c);
+
+				// remove from active sounds
+				activeSounds.erase(it);
+				continue;
+			}
+
+			SetupPanning(voice, s);
+			voice->SetFrequencyRatio(s.pitch);
+			voice->SetVolume(s.volume);
+
+			if (s.play)
+			{
+				XAUDIO2_VOICE_DETAILS voiceDetails;
+				voice->GetVoiceDetails(&voiceDetails);
+
+				if (s.sound->frequency != voiceDetails.InputSampleRate)
+					voice->SetSourceSampleRate(s.sound->frequency);
+
+				StartSound(voice, s);
 			}
 		}
+
+		if (musicupdate)
+		{
+			musicVoice->Stop();
+			if (music)
+			{
+				XAUDIO2_VOICE_DETAILS musicDetails;
+				musicVoice->GetVoiceDetails(&musicDetails);
+
+				uint32_t frequency = music->GetFrequency();
+				if (frequency != musicDetails.InputSampleRate)
+					musicVoice->SetSourceSampleRate(frequency);
+
+				musicVoice->Start();
+			}
+		}
+
+		if (music)
+			UpdateMusic();
 	}
 
 	std::vector<std::unique_ptr<AudioSound>> sounds;
@@ -215,6 +354,7 @@ public:
 	std::map<int, int> channelplaying;
 	std::unique_ptr<AudioSource> music;
 	bool musicupdate = false;
+	float musicbuffer[512] = { 0 };
 
 	IXAudio2* xaudio2 = nullptr;
 	IXAudio2MasteringVoice* masterVoice = nullptr;
@@ -325,3 +465,8 @@ class OpenALAudioDevice : public AudioDevice
 
 	}
 };*/
+
+std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices)
+{
+	return std::make_unique<XAudio2AudioDevice>(frequency, numVoices);
+}

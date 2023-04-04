@@ -12,7 +12,8 @@ AudioSubsystem::AudioSubsystem()
 {
 	// TODO: Add configurable option for audio device
 	// TODO: Add configurable option for audio output frequency
-	Device = AudioDevice::Create(48000);
+	// TODO: Add option for number of sound channels
+	Device = AudioDevice::Create(48000, 32);
 }
 
 void AudioSubsystem::SetViewport(UViewport* InViewport)

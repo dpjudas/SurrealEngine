@@ -27,7 +27,7 @@ public:
 class AudioDevice
 {
 public:
-	static std::unique_ptr<AudioDevice> Create(int frequency);
+	static std::unique_ptr<AudioDevice> Create(int frequency, int numVoices);
 
 	virtual ~AudioDevice() = default;
 	virtual AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo = {}) = 0;
