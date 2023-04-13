@@ -129,15 +129,7 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 	{
 		PlayingSound& Playing = PlayingSounds[i];
 
-		if (Playing.Id == 0)
-		{
-			continue;
-		}
-		else if (Playing.Channel && Device->SoundFinished(Playing.Channel))
-		{
-			StopSound(i);
-		}
-		else
+		if (Playing.Id != 0)
 		{
 			// Update positioning from actor, if available
 			if (Playing.Actor)
@@ -172,16 +164,14 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 			}
 
 			// Update the sound.
-			AudioSound* Sound = Playing.Sound->GetSound();
-
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
-				Device->UpdateSound(Playing.Channel, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Device->UpdateSound(Playing.Channel, Playing.Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
 			}
 			else
 			{
-				Playing.Channel = Device->PlaySound((int)i + 1, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Playing.Channel = Device->PlaySound((int)i, Playing.Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
 			}
 		}
 	}

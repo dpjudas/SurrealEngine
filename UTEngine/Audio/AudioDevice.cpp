@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "AudioDevice.h"
 #include "AudioSource.h"
+#include "UObject/USound.h"
 #include <mutex>
 #include <stdexcept>
 #include <map>
@@ -15,42 +16,13 @@ public:
 	int channel = 0;
 	bool play = false;
 	bool update = false;
-	AudioSound* sound = nullptr;
+	USound* sound = nullptr;
 	float volume = 0.0f;
 	float pan = 0.0f;
 	float pitch = 0.0f;
 
 	double pos = 0;
 };
-
-AudioSound::AudioSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& inloopinfo) : loopinfo(inloopinfo)
-{
-	frequency = source->GetFrequency();
-	duration = samples.size() / (float)frequency;
-
-	if (source->GetChannels() == 1)
-	{
-		// XXX: resize twice??
-		samples.resize(source->GetSamples());
-		samples.resize(source->ReadSamples(samples.data(), samples.size()));
-
-		int sampleCount = source->GetSamples();
-		if (sampleCount > 0)
-		{
-			loopinfo.LoopStart = std::max(std::min(loopinfo.LoopStart, (uint64_t)sampleCount - 1), (uint64_t)0);
-			loopinfo.LoopEnd = std::max(std::min(loopinfo.LoopEnd, (uint64_t)sampleCount), (uint64_t)0);
-		}
-		else
-		{
-			loopinfo = {};
-		}
-	}
-	else
-	{
-		// TODO: should support stereo sounds too
-		throw std::runtime_error("Only mono sounds are supported");
-	}
-}
 
 #ifdef WIN32
 
@@ -80,11 +52,29 @@ public:
 		if (FAILED(hr = xaudio2->CreateSubmixVoice(&soundSubmixVoice, 1, frequency)))
 			throw std::runtime_error("Failed to create XAudio2 submix voice");
 
+		// Setup music wave format, floating point PCM, 2-channel
+		WAVEFORMATEX musicFormat;
+		musicFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+		musicFormat.nChannels = 2;
+		musicFormat.nSamplesPerSec = frequency;
+		musicFormat.nAvgBytesPerSec = frequency * 4 * 2; // frequency * (wBitsPerSample / 8) * nChannels 
+		musicFormat.nBlockAlign = 8; // (nChannels * wBitsPerSample) / 8
+		musicFormat.wBitsPerSample = 32;
+		musicFormat.cbSize = 0;
+
+		if (FAILED(hr = xaudio2->CreateSourceVoice(&musicVoice, &musicFormat)))
+			throw std::runtime_error("Failed to create source voice for music");
+
+		musicbuffer = new float[512];
+
 		// Setup wave format, floating point PCM, mono channel for now
 		WAVEFORMATEX voiceFormat;
 		voiceFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
 		voiceFormat.nChannels = 1; // TODO: Support stereo sounds as well
 		voiceFormat.nSamplesPerSec = frequency;
+		voiceFormat.nAvgBytesPerSec = frequency * 4; // frequency * (wBitsPerSample / 8) * nChannels 
+		voiceFormat.nBlockAlign = 4; // (nChannels * wBitsPerSample) / 8
+		voiceFormat.wBitsPerSample = 32;
 		voiceFormat.cbSize = 0;
 
 		// Point source voices to submix for volume control, global effects, etc
@@ -96,7 +86,7 @@ public:
 		voiceSends.SendCount = 1;
 		voiceSends.pSends = &sendDesc;
 
-		voices.resize(numVoices);
+		voices.reserve(numVoices);
 		for (int i = 0; i < numVoices; i++)
 		{
 			// TODO: probably need to make use of the effect chain to implement different audio effects
@@ -104,7 +94,7 @@ public:
 			hr = xaudio2->CreateSourceVoice
 			(
 				&voice,
-				&voiceFormat, 
+				&voiceFormat,
 				0, 2.0f, 0,
 				&voiceSends
 			);
@@ -122,19 +112,19 @@ public:
 		masterVoice->DestroyVoice();
 		xaudio2->StopEngine();
 		xaudio2->Release();
+		delete musicbuffer;
 	}
 
-	AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo) override
+	void AddSound(USound* sound) override
 	{
-		sounds.push_back(std::make_unique<AudioSound>(std::move(source), loopinfo));
-		return sounds.back().get();
+		sounds.push_back(sound);
 	}
 
-	void RemoveSound(AudioSound* sound) override
+	void RemoveSound(USound* sound) override
 	{
 	}
 
-	int PlaySound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
+	int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) override
 	{
 		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= voices.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
@@ -147,14 +137,49 @@ public:
 		s.volume = volume;
 		s.pan = pan;
 		s.pitch = pitch;
-		activeSounds.push_back(std::move(s));
-		channelplaying[channel]++;
+		//activeSounds.push_back(std::move(s));
+
+		IXAudio2SourceVoice* voice = voices[channel];
+		SetupPanning(voice, s);
+		voice->SetFrequencyRatio(s.pitch);
+		voice->SetVolume(s.volume);
+
+		XAUDIO2_VOICE_DETAILS voiceDetails;
+		voice->GetVoiceDetails(&voiceDetails);
+
+		if (s.sound->frequency != voiceDetails.InputSampleRate)
+			voice->SetSourceSampleRate(s.sound->frequency);
+
+		XAUDIO2_BUFFER buf;
+		buf.PlayBegin = 0;
+		buf.PlayLength = s.sound->samples.size();
+		buf.AudioBytes = buf.PlayLength * s.sound->frequency * 4;
+		buf.Flags = XAUDIO2_END_OF_STREAM;
+		buf.pAudioData = reinterpret_cast<BYTE*>(s.sound->samples.data());
+		buf.pContext = nullptr;
+
+		AudioLoopInfo& loopinfo = s.sound->loopinfo;
+		if (loopinfo.Looped)
+		{
+			buf.LoopBegin = loopinfo.LoopStart;
+			buf.LoopLength = loopinfo.LoopEnd;
+			buf.LoopCount = XAUDIO2_LOOP_INFINITE;
+		}
+		else
+		{
+			buf.LoopBegin = buf.LoopLength = buf.LoopCount = 0;
+		}
+
+		// TODO: this is getting called too much, causing sound to not play correctly
+		voice->SubmitSourceBuffer(&buf);
+		voice->Start();
+
 		return channel;
 	}
 
-	void UpdateSound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
+	void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) override
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch))
+		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= voices.size())
 			throw std::runtime_error("Invalid UpdateSound arguments");
 
 		ActiveSound s;
@@ -165,22 +190,19 @@ public:
 		s.volume = volume;
 		s.pan = pan;
 		s.pitch = pitch;
-		activeSounds.push_back(std::move(s));
+
+		IXAudio2SourceVoice* voice = voices[channel];
+		SetupPanning(voice, s);
+		voice->SetFrequencyRatio(s.pitch);
+		voice->SetVolume(s.volume);
 	}
 
 	void StopSound(int channel) override
 	{
-		ActiveSound s;
-		s.channel = channel;
-		s.play = false;
-		s.update = false;
-		activeSounds.push_back(std::move(s));
-	}
+		if (channel >= voices.size())
+			throw std::runtime_error("Invalid StopSound arguments");
 
-	bool SoundFinished(int channel) override
-	{
-		auto it = channelplaying.find(channel);
-		return it == channelplaying.end() || it->second == 0;
+		voices[channel]->Stop();
 	}
 
 	void PlayMusic(std::unique_ptr<AudioSource> source) override
@@ -246,88 +268,30 @@ public:
 		voice->SetOutputMatrix(NULL, 2, masterDetails.InputChannels, outputMatrix);
 	}
 
-	void StartSound(IXAudio2SourceVoice* voice, ActiveSound& s)
-	{
-		XAUDIO2_BUFFER buf;
-		buf.PlayBegin = 0;
-		buf.PlayLength = s.sound->samples.size();
-		buf.AudioBytes = buf.PlayLength * s.sound->frequency;
-		buf.Flags = XAUDIO2_END_OF_STREAM;
-		buf.pAudioData = reinterpret_cast<BYTE*>(s.sound->samples.data());
-		buf.pContext = nullptr;
-
-		AudioLoopInfo& loopinfo = s.sound->loopinfo;
-		if (loopinfo.Looped)
-		{
-			buf.LoopBegin = loopinfo.LoopStart;
-			buf.LoopLength = loopinfo.LoopEnd;
-			buf.LoopCount = XAUDIO2_LOOP_INFINITE;
-		}
-		else
-		{
-			buf.LoopBegin = buf.LoopLength = buf.LoopCount = 0;
-		}
-
-		voice->SubmitSourceBuffer(&buf);
-		voice->Start();
-	}
-
 	void UpdateMusic()
 	{
-		music->ReadSamples(musicbuffer, 512);
+		// TODO: this whole thing needs to be re-done, we need to use multiple
+		// buffers to read music in and use OnBufferEnd callbacks to signify when
+		// a buffer is free
 
-		XAUDIO2_BUFFER buf;
-		buf.Flags = 0;
-		buf.AudioBytes = 512 * music->GetFrequency();
-		buf.pAudioData = reinterpret_cast<BYTE*>(musicbuffer);
-		buf.PlayBegin = 0;
-		buf.PlayLength = 0;
-		buf.LoopBegin = 0;
-		buf.LoopLength = 0;
-		buf.LoopCount = 0;
-		buf.pContext = nullptr;
-
-		musicVoice->SubmitSourceBuffer(&buf);
+		//music->ReadSamples(musicbuffer, 512);
+		//
+		//XAUDIO2_BUFFER buf;
+		//buf.Flags = 0;
+		//buf.AudioBytes = 4 * 512 * music->GetFrequency();
+		//buf.pAudioData = reinterpret_cast<BYTE*>(musicbuffer);
+		//buf.PlayBegin = 0;
+		//buf.PlayLength = 0;
+		//buf.LoopBegin = 0;
+		//buf.LoopLength = 0;
+		//buf.LoopCount = 0;
+		//buf.pContext = nullptr;
+		//
+		//musicVoice->SubmitSourceBuffer(&buf);
 	}
 
 	void Update() override
 	{
-		for (auto it = activeSounds.begin(); it != activeSounds.end(); )
-		{
-			ActiveSound& s = *it;
-			IXAudio2SourceVoice* voice = voices[s.channel];
-
-			if (!s.update)
-			{
-				voice->Stop();
-
-				// decrement channel playing count and remove if empty
-				auto c = channelplaying.find(s.channel);
-				c->second--;
-				if (c->second == 0)
-					channelplaying.erase(c);
-
-				// remove from active sounds
-				activeSounds.erase(it);
-				continue;
-			}
-
-			SetupPanning(voice, s);
-			voice->SetFrequencyRatio(s.pitch);
-			voice->SetVolume(s.volume);
-
-			if (s.play)
-			{
-				XAUDIO2_VOICE_DETAILS voiceDetails;
-				voice->GetVoiceDetails(&voiceDetails);
-
-				if (s.sound->frequency != voiceDetails.InputSampleRate)
-					voice->SetSourceSampleRate(s.sound->frequency);
-
-				StartSound(voice, s);
-			}
-		}
-
 		if (musicupdate)
 		{
 			musicVoice->Stop();
@@ -348,13 +312,12 @@ public:
 			UpdateMusic();
 	}
 
-	std::vector<std::unique_ptr<AudioSound>> sounds;
+	std::vector<USound*> sounds;
 	std::vector<IXAudio2SourceVoice*> voices;
 	std::vector<ActiveSound> activeSounds;
-	std::map<int, int> channelplaying;
 	std::unique_ptr<AudioSource> music;
 	bool musicupdate = false;
-	float musicbuffer[512] = { 0 };
+	float* musicbuffer = nullptr;
 
 	IXAudio2* xaudio2 = nullptr;
 	IXAudio2MasteringVoice* masterVoice = nullptr;

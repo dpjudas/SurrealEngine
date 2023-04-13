@@ -18,58 +18,72 @@ void USound::Load(ObjectStream* stream)
 	stream->ReadBytes(Data.data(), size);
 }
 
-AudioSound* USound::GetSound()
+void USound::GetSound()
 {
-	if (Sound)
-		return Sound;
+	if (samples.size() > 0)
+		return;
 
 	// Search for smpl chunk in wav file to find its loop flags, if any:
 	// (yes, this code is very ugly but obviously I don't care anymore)
 	AudioLoopInfo loopinfo;
-	if (Data.size() > 44 && memcmp(Data.data(), "RIFF", 4) == 0 && memcmp(Data.data() + 8, "WAVE", 4) == 0)
+	std::unique_ptr<AudioSource> source;
+	if (Format == "wav")
 	{
-		size_t pos = 12;
-		while (pos + 8 < Data.size())
+		uint32_t chunkSize;
+		uint8_t* pcmData;
+		if (Data.size() > 44 && memcmp(Data.data(), "RIFF", 4) == 0 && memcmp(Data.data() + 8, "WAVE", 4) == 0)
 		{
-			if (memcmp(Data.data() + pos, "smpl", 4) == 0 && pos + 0x2c <= Data.size())
+			size_t pos = 12;
+			while (pos + 8 < Data.size())
 			{
-				uint32_t chunksize = *(uint32_t*)(Data.data() + pos + 4);
-				size_t endpos = pos + 8 + (size_t)chunksize;
-
-				uint32_t sampleLoops = *(uint32_t*)(Data.data() + pos + 0x24);
-				pos += 0x2c;
-
-				if (sampleLoops != 0 && pos + 0x18 <= Data.size())
+				if (memcmp(Data.data() + pos, "smpl", 4) == 0 && pos + 0x2c <= Data.size())
 				{
-					uint32_t type = *(uint32_t*)(Data.data() + pos + 0x04);
-					uint32_t start = *(uint32_t*)(Data.data() + pos + 0x08);
-					uint32_t end = *(uint32_t*)(Data.data() + pos + 0x0c);
+					chunkSize = *(uint32_t*)(Data.data() + pos + 4);
+					size_t endpos = pos + 8 + (size_t)chunkSize;
 
-					loopinfo.Looped = true;
-					// if (type & 1)
-					//	loopinfo.BidiLoop = true;
-					loopinfo.LoopStart = start;
-					loopinfo.LoopEnd = end;
+					uint32_t sampleLoops = *(uint32_t*)(Data.data() + pos + 0x24);
+					pos += 0x2c;
+
+					if (sampleLoops != 0 && pos + 0x18 <= Data.size())
+					{
+						uint32_t type = *(uint32_t*)(Data.data() + pos + 0x04);
+						uint32_t start = *(uint32_t*)(Data.data() + pos + 0x08);
+						uint32_t end = *(uint32_t*)(Data.data() + pos + 0x0c);
+
+						loopinfo.Looped = true;
+						// if (type & 1)
+						//	loopinfo.BidiLoop = true;
+						loopinfo.LoopStart = start;
+						loopinfo.LoopEnd = end;
+					}
+
+					pos = endpos;
 				}
-
-				pos = endpos;
-			}
-			else
-			{
-				uint32_t chunksize = *(uint32_t*)(Data.data() + pos + 4);
-				pos += 8 + (size_t)chunksize;
+				else
+				{
+					chunkSize = *(uint32_t*)(Data.data() + pos + 4);
+					pcmData += pos + 8 + (size_t)chunkSize;
+				}
 			}
 		}
+
+		source = AudioSource::CreateWav(Data);
+
 	}
 
-	Sound = engine->audio->GetDevice()->AddSound(AudioSource::CreateWav(Data), loopinfo);
-	return Sound;
+	samples.resize(source->GetSamples());
+	samples.resize(source->ReadSamples(samples.data(), samples.size()));
+
+	frequency = source->GetFrequency();
+	duration = samples.size() / (float)frequency;
+
+	engine->audio->GetDevice()->AddSound(this);
 }
 
 float USound::GetDuration()
 {
-	if (!Sound)
+	if (duration == 0.0f)
 		GetSound();
 
-	return Sound->duration;
+	return duration;
 }
