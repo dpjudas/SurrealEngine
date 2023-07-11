@@ -738,7 +738,8 @@ EInputKey X11Window::KeySymToInputKey(KeySym keysym)
 	case XK_Control_R: return IK_RControl;
 	//case XK_Meta_L: return IK_LMenu;
 	//case XK_Meta_R: return IK_RMenu;
-	default: return (EInputKey)(0x10000ul + keysym);
+	case XK_grave: return IK_Tilde;
+	default: return IK_None;
 	}
 }
 
