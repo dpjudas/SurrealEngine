@@ -605,15 +605,18 @@ void X11Window::OnKeyboardInput(XKeyEvent &event)
 		break;
 	}
 
-	const int buff_size = 16;
-	char buff[buff_size];
-	int result = XLookupString(&event, buff, buff_size - 1, nullptr, nullptr);
-	if (result < 0) result = 0;
-	if (result > (buff_size - 1)) result = buff_size - 1;
-	buff[result] = 0;
-	std::string keystr(buff, result);
-	if (!keystr.empty())
-		engine->Key(this, keystr);
+	if (keydown)
+	{
+		const int buff_size = 16;
+		char buff[buff_size];
+		int result = XLookupString(&event, buff, buff_size - 1, nullptr, nullptr);
+		if (result < 0) result = 0;
+		if (result > (buff_size - 1)) result = buff_size - 1;
+		buff[result] = 0;
+		std::string keystr(buff, result);
+		if (!keystr.empty())
+			engine->Key(this, keystr);
+	}
 
 	engine->InputEvent(this, KeySymToInputKey(key_symbol), keytype);
 }
