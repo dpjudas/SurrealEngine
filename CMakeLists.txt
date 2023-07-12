@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
+add_subdirectory( Thirdparty/openal-soft )
 
 project(UTEngine)
 
@@ -447,6 +448,7 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(UTENGINE_LIBS
 	zvulkan
+	OpenAL
 )
 
 source_group("UTEngine" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/UTEngine/.+")
@@ -490,7 +492,7 @@ source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
 
-include_directories(UTEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include)
+include_directories(UTEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include Thirdparty/openal-soft/include)
 
 if(WIN32)
 	set(UTENGINE_SOURCES ${UTENGINE_SOURCES} ${UTENGINE_WIN32_SOURCES})

@@ -7,126 +7,151 @@
 #include <stdexcept>
 #include <map>
 #include <cmath>
+#include <queue>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
 
 class AudioDeviceImpl;
 
-class ActiveSound
+AudioDevice::AudioDevice(int inFrequency, int numVoices, int inMusicBufferCount, int inMusicBufferSize)
 {
-public:
-	int channel = 0;
-	bool play = false;
-	bool update = false;
-	USound* sound = nullptr;
-	float volume = 0.0f;
-	float pan = 0.0f;
-	float pitch = 0.0f;
+	frequency = inFrequency;
+	bMusicPlaying = false;
+	musicBufferCount = inMusicBufferCount;
+	musicBufferSize = inMusicBufferSize;
 
-	double pos = 0;
-};
+	musicBuffer = new float[musicBufferSize * musicBufferCount];
+	musicQueue.Resize(musicBufferCount);
 
-#ifdef WIN32
-
-#define WIN32_MEAN_AND_LEAN
-#include <Windows.h>
-#include <xaudio2.h>
-#include <x3daudio.h>
-
-class XAudio2AudioDevice : public AudioDevice
-{
-public:
-	XAudio2AudioDevice(int inFrequency, int numVoices)
+	for (int i = 0; i < musicBufferCount; i++)
 	{
-		frequency = inFrequency;
+		musicQueue.Push(&musicBuffer[musicBufferSize * i]);
+		musicQueue.Pop();
+	}
+}
 
-		// init XAudio2
-		HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-		if (FAILED(hr))
-			throw std::runtime_error("CoInitializeEx failed");
+void AudioDevice::AddSound(USound* sound)
+{
+	sounds.push_back(sound);
+}
 
-		if (FAILED(hr = XAudio2Create(&xaudio2, 0, XAUDIO2_DEFAULT_PROCESSOR)))
-			throw std::runtime_error("Failed to create XAudio2 instance");
+void AudioDevice::RemoveSound(USound* sound)
+{
+}
 
-		if (FAILED(hr = xaudio2->CreateMasteringVoice(&masterVoice)))
-			throw std::runtime_error("Failed to create XAudio2 mastering voice");
+void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
+{
+	music = std::move(source);
+	musicUpdate = true;
+}
 
-		if (FAILED(hr = xaudio2->CreateSubmixVoice(&soundSubmixVoice, 1, frequency)))
-			throw std::runtime_error("Failed to create XAudio2 submix voice");
-
-		// Setup music wave format, floating point PCM, 2-channel
-		WAVEFORMATEX musicFormat;
-		musicFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-		musicFormat.nChannels = 2;
-		musicFormat.nSamplesPerSec = frequency;
-		musicFormat.nAvgBytesPerSec = frequency * 4 * 2; // frequency * (wBitsPerSample / 8) * nChannels 
-		musicFormat.nBlockAlign = 8; // (nChannels * wBitsPerSample) / 8
-		musicFormat.wBitsPerSample = 32;
-		musicFormat.cbSize = 0;
-
-		if (FAILED(hr = xaudio2->CreateSourceVoice(&musicVoice, &musicFormat)))
-			throw std::runtime_error("Failed to create source voice for music");
-
-		musicbuffer = new float[512];
-
-		// Setup wave format, floating point PCM, mono channel for now
-		WAVEFORMATEX voiceFormat;
-		voiceFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-		voiceFormat.nChannels = 1; // TODO: Support stereo sounds as well
-		voiceFormat.nSamplesPerSec = frequency;
-		voiceFormat.nAvgBytesPerSec = frequency * 4; // frequency * (wBitsPerSample / 8) * nChannels 
-		voiceFormat.nBlockAlign = 4; // (nChannels * wBitsPerSample) / 8
-		voiceFormat.wBitsPerSample = 32;
-		voiceFormat.cbSize = 0;
-
-		// Point source voices to submix for volume control, global effects, etc
-		XAUDIO2_SEND_DESCRIPTOR sendDesc;
-		sendDesc.Flags = 0;
-		sendDesc.pOutputVoice = soundSubmixVoice;
-
-		XAUDIO2_VOICE_SENDS voiceSends;
-		voiceSends.SendCount = 1;
-		voiceSends.pSends = &sendDesc;
-
-		voices.reserve(numVoices);
-		for (int i = 0; i < numVoices; i++)
+void AudioDevice::UpdateMusic()
+{
+	if (music)
+	{
+		while (musicQueue.Size() < musicBufferCount)
 		{
-			// TODO: probably need to make use of the effect chain to implement different audio effects
-			IXAudio2SourceVoice* voice;
-			hr = xaudio2->CreateSourceVoice
-			(
-				&voice,
-				&voiceFormat,
-				0, 2.0f, 0,
-				&voiceSends
-			);
-
-			if (FAILED(hr))
-				throw std::runtime_error("Failed to create source voices");
-
-			voices.push_back(voice);
+			// render a chunk of music
+			music->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
+			musicQueue.Push(musicQueue.GetNextFree());
 		}
+
+		if (!bMusicPlaying)
+		{
+			PlayMusicBuffer();
+			bMusicPlaying = true;
+		}
+		else if (musicQueue.Size() > 0)
+		{
+			UpdateMusicBuffer();
+		}
+
+		// TODO: music fade in/out
+	}
+	else
+	{
+		bMusicPlaying = false;
+	}
+}
+
+class OpenALAudioDevice : public AudioDevice
+{
+public:
+	OpenALAudioDevice(int inFrequency, int numVoices, int musicBufferCount, int musicBufferSize)
+		: AudioDevice(inFrequency, numVoices, musicBufferCount, musicBufferSize)
+	{
+		// Init OpenAL
+		// TODO: Add device enumeration
+		alDevice = alcOpenDevice(NULL);
+		if (alDevice == nullptr)
+			throw std::runtime_error("Failed to initialize OpenAL device");
+
+		// Create dummy context to determine supported maximum source count
+		alContext = alcCreateContext(alDevice, NULL);
+		if (alContext == nullptr)
+			throw std::runtime_error("Failed to initialize dummy OpenAL context");
+
+		ALCint numAttribs = 0;
+		alcGetIntegerv(alDevice, ALC_ATTRIBUTES_SIZE, 1, &numAttribs);
+
+		std::vector<ALCint> attribs(numAttribs);
+		alcGetIntegerv(alDevice, ALC_ALL_ATTRIBUTES, numAttribs, &attribs[0]);
+
+		// Get maximum source counts
+		ALCint maxMonoSources = 0, maxStereoSources = 0;
+		for (int i = 0; i < numAttribs; i++)
+		{
+			if (attribs[i] == ALC_MONO_SOURCES)
+				maxMonoSources = attribs[i + 1];
+			else if (attribs[i] == ALC_STEREO_SOURCES)
+				maxStereoSources = attribs[i + 1];
+		}
+
+		alcDestroyContext(alContext);
+
+		const ALCint ctxAttribs[] =
+		{
+			ALC_FREQUENCY, inFrequency,
+			ALC_MONO_SOURCES, maxMonoSources,
+			ALC_STEREO_SOURCES, maxStereoSources,
+			ALC_REFRESH, 30,
+			ALC_SYNC, ALC_FALSE
+		};
+
+		alContext = alcCreateContext(alDevice, NULL);
+		if (alContext == nullptr)
+			throw std::runtime_error("Failed to initialize OpenAL context");
+
+		if (alcMakeContextCurrent(alContext) == ALC_FALSE)
+			throw std::runtime_error("Failed to make OpenAL context current");
+
+		ALfloat listenerOri[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		alListener3f(AL_POSITION, 0, 0, 0.0f);
+		alListener3f(AL_VELOCITY, 0, 0, 0);
+		alListenerfv(AL_ORIENTATION, listenerOri);
+
+		// init sound sources/buffers
+		alSources.resize(maxMonoSources);
+		alBuffers.resize(maxMonoSources);
+		alGenSources(maxMonoSources, &alSources[0]);
+		alGenBuffers(maxMonoSources, &alBuffers[0]);
+
+		// init music source/buffer
+		alGenSources(1, &alMusicSource);
+
+		alMusicBuffers.resize(musicBufferCount);
+		alGenBuffers(musicBufferCount, &alMusicBuffers[0]);
 	}
 
-	~XAudio2AudioDevice()
+	~OpenALAudioDevice()
 	{
-		musicVoice->DestroyVoice();
-		masterVoice->DestroyVoice();
-		xaudio2->StopEngine();
-		xaudio2->Release();
-		delete musicbuffer;
-	}
-
-	void AddSound(USound* sound) override
-	{
-		sounds.push_back(sound);
-	}
-
-	void RemoveSound(USound* sound) override
-	{
+		delete musicBuffer;
 	}
 
 	int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) override
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= voices.size())
+		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= alSources.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
 
 		ActiveSound s;
@@ -137,49 +162,14 @@ public:
 		s.volume = volume;
 		s.pan = pan;
 		s.pitch = pitch;
-		//activeSounds.push_back(std::move(s));
-
-		IXAudio2SourceVoice* voice = voices[channel];
-		SetupPanning(voice, s);
-		voice->SetFrequencyRatio(s.pitch);
-		voice->SetVolume(s.volume);
-
-		XAUDIO2_VOICE_DETAILS voiceDetails;
-		voice->GetVoiceDetails(&voiceDetails);
-
-		if (s.sound->frequency != voiceDetails.InputSampleRate)
-			voice->SetSourceSampleRate(s.sound->frequency);
-
-		XAUDIO2_BUFFER buf;
-		buf.PlayBegin = 0;
-		buf.PlayLength = s.sound->samples.size();
-		buf.AudioBytes = buf.PlayLength * s.sound->frequency * 4;
-		buf.Flags = XAUDIO2_END_OF_STREAM;
-		buf.pAudioData = reinterpret_cast<BYTE*>(s.sound->samples.data());
-		buf.pContext = nullptr;
-
-		AudioLoopInfo& loopinfo = s.sound->loopinfo;
-		if (loopinfo.Looped)
-		{
-			buf.LoopBegin = loopinfo.LoopStart;
-			buf.LoopLength = loopinfo.LoopEnd;
-			buf.LoopCount = XAUDIO2_LOOP_INFINITE;
-		}
-		else
-		{
-			buf.LoopBegin = buf.LoopLength = buf.LoopCount = 0;
-		}
-
-		// TODO: this is getting called too much, causing sound to not play correctly
-		voice->SubmitSourceBuffer(&buf);
-		voice->Start();
+		activeSounds.push_back(std::move(s));
 
 		return channel;
 	}
 
 	void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) override
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= voices.size())
+		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= alSources.size())
 			throw std::runtime_error("Invalid UpdateSound arguments");
 
 		ActiveSound s;
@@ -191,245 +181,122 @@ public:
 		s.pan = pan;
 		s.pitch = pitch;
 
-		IXAudio2SourceVoice* voice = voices[channel];
-		SetupPanning(voice, s);
-		voice->SetFrequencyRatio(s.pitch);
-		voice->SetVolume(s.volume);
+		//SetupPanning(voice, s);
+		//voice->SetFrequencyRatio(s.pitch);
+		//voice->SetVolume(s.volume);
+	}
+
+	std::string getALErrorString()
+	{
+		switch (alGetError())
+		{
+		case AL_NO_ERROR:
+			return "AL_NO_ERROR";
+		case AL_INVALID_NAME:
+			return "AL_INVALID_NAME";
+		case AL_INVALID_ENUM:
+			return "AL_INVALID_ENUM";
+		case AL_INVALID_VALUE:
+			return "AL_INVALID_VALUE";
+		case AL_INVALID_OPERATION:
+			return "AL_INVALID_OPERATION";
+		case AL_OUT_OF_MEMORY:
+			return "AL_OUT_OF_MEMORY";
+		default:
+			return "AL_UNKNOWN_ERROR";
+		}
+	}
+
+	void PlayMusicBuffer() override
+	{
+		int format = AL_FORMAT_STEREO_FLOAT32;
+		if (music->GetChannels() == 1)
+			format = AL_FORMAT_MONO_FLOAT32;
+
+		for (int i = 0; i < musicBufferCount; i++)
+		{
+			alBufferData(alMusicBuffers[i], format, musicQueue.Pop(), musicBufferSize*4, music->GetFrequency());
+			if (alGetError() != AL_NO_ERROR)
+				throw std::runtime_error("alBufferData failed in PlayMusicBuffer: " + getALErrorString());
+
+			alSourceQueueBuffers(alMusicSource, 1, &alMusicBuffers[i]);
+			if (alGetError() != AL_NO_ERROR)
+				throw std::runtime_error("alSourceQueueBuffers failed in PlayMusicBuffer: " + getALErrorString());
+		}
+
+		alSourcef(alMusicSource, AL_GAIN, 1.0f);
+		alSourcePlay(alMusicSource);
+		if (alGetError() != AL_NO_ERROR)
+			throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
+	}
+
+	void UpdateMusicBuffer() override
+	{
+		int format = AL_FORMAT_STEREO_FLOAT32;
+		if (music->GetChannels() == 1)
+			format = AL_FORMAT_MONO_FLOAT32;
+
+		ALint status;
+		alGetSourcei(alMusicSource, AL_BUFFERS_PROCESSED, &status);
+
+		while (status)
+		{
+			ALuint buffer;
+			alSourceUnqueueBuffers(alMusicSource, 1, &buffer);
+			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, music->GetFrequency());
+			if (alGetError() != AL_NO_ERROR)
+				throw std::runtime_error("alBufferData failed in UpdateMusicBuffer: " + getALErrorString());
+
+			alSourceQueueBuffers(alMusicSource, 1, &buffer);
+			if (alGetError() != AL_NO_ERROR)
+				throw std::runtime_error("alSourceQueueBuffers failed in UpdateMusicBuffer: " + getALErrorString());
+
+			status--;
+		}
+
+		alSourcef(alMusicSource, AL_GAIN, 1.0f);
+		alGetSourcei(alMusicSource, AL_SOURCE_STATE, &status);
+		if (status == AL_STOPPED)
+		{
+			alSourcePlay(alMusicSource);
+			if (alGetError() != AL_NO_ERROR)
+				throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
+		}
 	}
 
 	void StopSound(int channel) override
 	{
-		if (channel >= voices.size())
+		if (channel >= alSources.size())
 			throw std::runtime_error("Invalid StopSound arguments");
 
-		voices[channel]->Stop();
-	}
-
-	void PlayMusic(std::unique_ptr<AudioSource> source) override
-	{
-		music = std::move(source);
-		musicupdate = true;
+		//voices[channel]->Stop();
 	}
 
 	void SetMusicVolume(float volume) override
 	{
-		musicVoice->SetVolume(volume);
+		//musicVoice->SetVolume(volume);
 	}
 
 	void SetSoundVolume(float volume) override
 	{
-		soundSubmixVoice->SetVolume(volume);
-	}
-
-	void SetupPanning(IXAudio2SourceVoice* voice, ActiveSound& s)
-	{
-		float outputMatrix[8] = { 0 };
-
-		// TODO: Proper surround sound implementation
-		float left = 0.5 - s.pan / 2;
-		float right = 0.5 + s.pan / 2;
-
-		DWORD channelMask = 0;
-		masterVoice->GetChannelMask(&channelMask);
-
-		switch (channelMask)
-		{
-		case SPEAKER_MONO:
-			outputMatrix[0] = 1.0;
-			break;
-		case SPEAKER_STEREO:
-		case SPEAKER_2POINT1:
-		case SPEAKER_SURROUND:
-			outputMatrix[0] = left;
-			outputMatrix[1] = right;
-			break;
-		case SPEAKER_QUAD:
-			outputMatrix[0] = outputMatrix[2] = left;
-			outputMatrix[1] = outputMatrix[3] = right;
-			break;
-		case SPEAKER_4POINT1:
-			outputMatrix[0] = outputMatrix[3] = left;
-			outputMatrix[1] = outputMatrix[4] = right;
-			break;
-		case SPEAKER_5POINT1:
-		case SPEAKER_7POINT1:
-		case SPEAKER_5POINT1_SURROUND:
-			outputMatrix[0] = outputMatrix[4] = left;
-			outputMatrix[1] = outputMatrix[5] = right;
-			break;
-		case SPEAKER_7POINT1_SURROUND:
-			outputMatrix[0] = outputMatrix[4] = outputMatrix[6] = left;
-			outputMatrix[1] = outputMatrix[5] = outputMatrix[7] = right;
-			break;
-		}
-
-		XAUDIO2_VOICE_DETAILS masterDetails;
-		masterVoice->GetVoiceDetails(&masterDetails);
-		voice->SetOutputMatrix(NULL, 2, masterDetails.InputChannels, outputMatrix);
-	}
-
-	void UpdateMusic()
-	{
-		// TODO: this whole thing needs to be re-done, we need to use multiple
-		// buffers to read music in and use OnBufferEnd callbacks to signify when
-		// a buffer is free
-
-		//music->ReadSamples(musicbuffer, 512);
-		//
-		//XAUDIO2_BUFFER buf;
-		//buf.Flags = 0;
-		//buf.AudioBytes = 4 * 512 * music->GetFrequency();
-		//buf.pAudioData = reinterpret_cast<BYTE*>(musicbuffer);
-		//buf.PlayBegin = 0;
-		//buf.PlayLength = 0;
-		//buf.LoopBegin = 0;
-		//buf.LoopLength = 0;
-		//buf.LoopCount = 0;
-		//buf.pContext = nullptr;
-		//
-		//musicVoice->SubmitSourceBuffer(&buf);
+		//soundSubmixVoice->SetVolume(volume);
 	}
 
 	void Update() override
 	{
-		if (musicupdate)
-		{
-			musicVoice->Stop();
-			if (music)
-			{
-				XAUDIO2_VOICE_DETAILS musicDetails;
-				musicVoice->GetVoiceDetails(&musicDetails);
-
-				uint32_t frequency = music->GetFrequency();
-				if (frequency != musicDetails.InputSampleRate)
-					musicVoice->SetSourceSampleRate(frequency);
-
-				musicVoice->Start();
-			}
-		}
-
-		if (music)
-			UpdateMusic();
+		UpdateMusic();
 	}
 
-	std::vector<USound*> sounds;
-	std::vector<IXAudio2SourceVoice*> voices;
-	std::vector<ActiveSound> activeSounds;
-	std::unique_ptr<AudioSource> music;
-	bool musicupdate = false;
-	float* musicbuffer = nullptr;
-
-	IXAudio2* xaudio2 = nullptr;
-	IXAudio2MasteringVoice* masterVoice = nullptr;
-	IXAudio2SubmixVoice* soundSubmixVoice = nullptr;
-	IXAudio2SourceVoice* musicVoice = nullptr;
-
-	//int frequency = 48000;
-
-	//struct
-	//{
-	//	std::vector<ActiveSound> sounds;
-	//	std::unique_ptr<AudioSource> music;
-	//	bool musicupdate = false;
-	//	float soundvolume = 1.0f;
-	//	float musicvolume = 1.0f;
-	//} client, transfer;
-	//std::vector<int> channelstopped;
-	//
-	//std::mutex mutex;
-	//int nextid = 1;
+	ALCdevice* alDevice;
+	ALCcontext* alContext;
+	ALuint alMusicSource;
+	ALenum alError;
+	std::vector<ALuint> alSources;
+	std::vector<ALuint> alBuffers;
+	std::vector<ALuint> alMusicBuffers;
 };
 
-#endif
-/*
-class OpenALAudioDevice : public AudioDevice
+std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize)
 {
-	OpenALAudioDevice()
-	{
-
-	}
-
-	~OpenALAudioDevice()
-	{
-
-	}
-
-	AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo) override
-	{
-		sounds.push_back(std::make_unique<AudioSound>(frequency, std::move(source), loopinfo));
-		return sounds.back().get();
-	}
-
-	void RemoveSound(AudioSound* sound) override
-	{
-	}
-
-	int PlaySound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
-	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch))
-			throw std::runtime_error("Invalid PlaySound arguments");
-
-		ActiveSound s;
-		s.channel = channel;
-		s.play = true;
-		s.update = false;
-		s.sound = sound;
-		s.volume = volume;
-		s.pan = pan;
-		s.pitch = pitch;
-		client.sounds.push_back(std::move(s));
-		channelplaying[channel]++;
-		return channel;
-	}
-
-	void UpdateSound(int channel, AudioSound* sound, float volume, float pan, float pitch) override
-	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch))
-			throw std::runtime_error("Invalid UpdateSound arguments");
-
-		ActiveSound s;
-		s.channel = channel;
-		s.play = false;
-		s.update = true;
-		s.sound = sound;
-		s.volume = volume;
-		s.pan = pan;
-		s.pitch = pitch;
-		client.sounds.push_back(std::move(s));
-	}
-
-	void StopSound(int channel) override
-	{
-		ActiveSound s;
-		s.channel = channel;
-		s.play = false;
-		s.update = false;
-		client.sounds.push_back(std::move(s));
-	}
-
-	bool SoundFinished(int channel) override
-	{
-	}
-
-	void PlayMusic(std::unique_ptr<AudioSource> source) override
-	{
-	}
-
-	void SetMusicVolume(float volume) override
-	{
-	}
-
-	void SetSoundVolume(float volume) override
-	{
-	}
-
-	void Update() override
-	{
-
-	}
-};*/
-
-std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices)
-{
-	return std::make_unique<XAudio2AudioDevice>(frequency, numVoices);
+	return std::make_unique<OpenALAudioDevice>(frequency, numVoices, musicBufferCount, musicBufferSize);
 }
