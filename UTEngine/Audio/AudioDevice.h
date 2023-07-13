@@ -1,7 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <vector>
+#include <thread>
 
 class AudioSource;
 class USound;
@@ -25,16 +27,13 @@ class AudioDevice
 public:
 	static std::unique_ptr<AudioDevice> Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize);
 
-  AudioDevice(int inFrequency, int numVoices, int musicBufferCount, int musicBufferSize);
-  void AddSound(USound* sound);
-  void RemoveSound(USound* sound);
-  void PlayMusic(std::unique_ptr<AudioSource> source);
-  void UpdateMusic();
-
 	virtual ~AudioDevice() = default;
+  virtual void AddSound(USound* sound) = 0;
+  virtual void RemoveSound(USound* sound) = 0;
 	virtual int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) = 0;
-	virtual void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) = 0;
+  virtual void PlayMusic(std::unique_ptr<AudioSource> source) = 0;
   virtual void PlayMusicBuffer() = 0;
+  virtual void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) = 0;
   virtual void UpdateMusicBuffer() = 0;
 	virtual void StopSound(int channel) = 0;
 	virtual void SetMusicVolume(float volume) = 0;
@@ -165,6 +164,10 @@ protected:
   std::vector<USound*> sounds;
   std::vector<ActiveSound> activeSounds;
   std::unique_ptr<AudioSource> music;
+
+  std::mutex playbackMutex;
+  std::unique_ptr<std::thread> playbackThread;
+  bool bExit;
 
   RingQueue<float*> musicQueue;
   int musicBufferCount;

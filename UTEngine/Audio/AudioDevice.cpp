@@ -8,79 +8,37 @@
 #include <map>
 #include <cmath>
 #include <queue>
+#include <thread>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 
 class AudioDeviceImpl;
 
-AudioDevice::AudioDevice(int inFrequency, int numVoices, int inMusicBufferCount, int inMusicBufferSize)
-{
-	frequency = inFrequency;
-	bMusicPlaying = false;
-	musicBufferCount = inMusicBufferCount;
-	musicBufferSize = inMusicBufferSize;
-
-	musicBuffer = new float[musicBufferSize * musicBufferCount];
-	musicQueue.Resize(musicBufferCount);
-
-	for (int i = 0; i < musicBufferCount; i++)
-	{
-		musicQueue.Push(&musicBuffer[musicBufferSize * i]);
-		musicQueue.Pop();
-	}
-}
-
-void AudioDevice::AddSound(USound* sound)
-{
-	sounds.push_back(sound);
-}
-
-void AudioDevice::RemoveSound(USound* sound)
-{
-}
-
-void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
-{
-	music = std::move(source);
-	musicUpdate = true;
-}
-
-void AudioDevice::UpdateMusic()
-{
-	if (music)
-	{
-		while (musicQueue.Size() < musicBufferCount)
-		{
-			// render a chunk of music
-			music->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
-			musicQueue.Push(musicQueue.GetNextFree());
-		}
-
-		if (!bMusicPlaying)
-		{
-			PlayMusicBuffer();
-			bMusicPlaying = true;
-		}
-		else if (musicQueue.Size() > 0)
-		{
-			UpdateMusicBuffer();
-		}
-
-		// TODO: music fade in/out
-	}
-	else
-	{
-		bMusicPlaying = false;
-	}
-}
-
 class OpenALAudioDevice : public AudioDevice
 {
 public:
-	OpenALAudioDevice(int inFrequency, int numVoices, int musicBufferCount, int musicBufferSize)
-		: AudioDevice(inFrequency, numVoices, musicBufferCount, musicBufferSize)
+	static void startPlaybackThread(OpenALAudioDevice* device)
 	{
+		device->UpdateMusicLoop();
+	}
+
+	OpenALAudioDevice(int inFrequency, int numVoices, int inMusicBufferCount, int inMusicBufferSize)
+	{
+		frequency = inFrequency;
+		bMusicPlaying = false;
+		musicBufferCount = inMusicBufferCount;
+		musicBufferSize = inMusicBufferSize;
+
+		musicBuffer = new float[musicBufferSize * musicBufferCount];
+		musicQueue.Resize(musicBufferCount);
+
+		for (int i = 0; i < musicBufferCount; i++)
+		{
+			musicQueue.Push(&musicBuffer[musicBufferSize * i]);
+			musicQueue.Pop();
+		}
+
 		// Init OpenAL
 		// TODO: Add device enumeration
 		alDevice = alcOpenDevice(NULL);
@@ -142,11 +100,42 @@ public:
 
 		alMusicBuffers.resize(musicBufferCount);
 		alGenBuffers(musicBufferCount, &alMusicBuffers[0]);
+
+		// init playback thread
+		bExit = false;
+		playbackThread = std::make_unique<std::thread>(startPlaybackThread, this);
 	}
 
 	~OpenALAudioDevice()
 	{
+		bExit = true;
+		playbackThread->join();
+
+		alDeleteBuffers(alMusicBuffers.size(), &alMusicBuffers[0]);
+		alDeleteBuffers(alBuffers.size(), &alBuffers[0]);
+
+		alDeleteSources(1, &alMusicSource);
+		alDeleteSources(alSources.size(), &alSources[0]);
+
+		alcDestroyContext(alContext);
+		alcCloseDevice(alDevice);
+
 		delete musicBuffer;
+	}
+
+	void AudioDevice::AddSound(USound* sound)
+	{
+		sounds.push_back(sound);
+	}
+
+	void AudioDevice::RemoveSound(USound* sound)
+	{
+	}
+
+	void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
+	{
+		music = std::move(source);
+		musicUpdate = true;
 	}
 
 	int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) override
@@ -162,6 +151,7 @@ public:
 		s.volume = volume;
 		s.pan = pan;
 		s.pitch = pitch;
+
 		activeSounds.push_back(std::move(s));
 
 		return channel;
@@ -284,7 +274,44 @@ public:
 
 	void Update() override
 	{
-		UpdateMusic();
+		//UpdateMusic();
+	}
+
+	void UpdateMusicLoop()
+	{
+		while (!bExit)
+		{
+			playbackMutex.lock();
+			if (music)
+			{
+				while (musicQueue.Size() < musicBufferCount)
+				{
+					// render a chunk of music
+					music->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
+					musicQueue.Push(musicQueue.GetNextFree());
+				}
+				playbackMutex.unlock();
+
+				if (!bMusicPlaying)
+				{
+					PlayMusicBuffer();
+					bMusicPlaying = true;
+				}
+				else if (musicQueue.Size() > 0)
+				{
+					UpdateMusicBuffer();
+				}
+
+				// TODO: music fade in/out
+			}
+			else
+			{
+				playbackMutex.unlock();
+				bMusicPlaying = false;
+			}
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(5ms);
+		}
 	}
 
 	ALCdevice* alDevice;
