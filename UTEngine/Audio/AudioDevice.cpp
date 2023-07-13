@@ -134,8 +134,10 @@ public:
 
 	void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
 	{
+		playbackMutex.lock();
 		music = std::move(source);
 		musicUpdate = true;
+		playbackMutex.unlock();
 	}
 
 	int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) override
@@ -203,10 +205,11 @@ public:
 		if (music->GetChannels() == 1)
 			format = AL_FORMAT_MONO_FLOAT32;
 
+		ALenum error;
 		for (int i = 0; i < musicBufferCount; i++)
 		{
 			alBufferData(alMusicBuffers[i], format, musicQueue.Pop(), musicBufferSize*4, music->GetFrequency());
-			if (alGetError() != AL_NO_ERROR)
+			if ((error = alGetError()) != AL_NO_ERROR)
 				throw std::runtime_error("alBufferData failed in PlayMusicBuffer: " + getALErrorString());
 
 			alSourceQueueBuffers(alMusicSource, 1, &alMusicBuffers[i]);
@@ -282,6 +285,17 @@ public:
 		while (!bExit)
 		{
 			playbackMutex.lock();
+			if (musicUpdate)
+			{
+				musicUpdate = false;
+				if (bMusicPlaying)
+				{
+					alSourceStop(alMusicSource);
+					alSourceUnqueueBuffers(alMusicSource, alMusicBuffers.size(), &alMusicBuffers[0]);
+					bMusicPlaying = false;
+				}
+			}
+
 			if (music)
 			{
 				while (musicQueue.Size() < musicBufferCount)
