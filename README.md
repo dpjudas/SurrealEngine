@@ -1,4 +1,4 @@
-# Unreal Tournament Engine Reimplementation
+# Surreal Engine
 
 The goal of this project is to reimplement enough of the original Unreal Engine to make the Unreal Tournament (UT99) maps playable.
 
@@ -12,7 +12,7 @@ It will attempt to load all level actors and initialize the map. However, while 
 
 ## Command line parameters
 
-`UTEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]`
+`SurrealEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]`
 
 If no game folder is specified the engine will try search the registry (Windows only) for the registry keys Epic originally set. If no URL is specified it will use the default URL in the ini file (per default the intro map). The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
 
