@@ -982,7 +982,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
 	SweepHit blockingHit;
-	std::vector<SweepHit> hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+	SweepHitList hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
 		for (auto& hit : hits)
@@ -1923,7 +1923,7 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 		dirNormalized = normalize(decalDir);
 	}
 
-	std::vector<TraceHit> hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	TraceHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	vec3 N = hits.front().Normal;

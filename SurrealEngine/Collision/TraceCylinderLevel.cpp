@@ -5,7 +5,7 @@
 #include "TraceAABBModel.h"
 #include "UObject/UActor.h"
 
-std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
@@ -23,7 +23,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 	float margin = 1.0f;
 	tmax += margin;
 
-	std::vector<SweepHit> hits;
+	SweepHitList hits;
 
 	if (traceActors)
 	{
@@ -64,15 +64,15 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 #if 1
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
 		TraceAABBModel tracemodel;
-		std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
-		hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		SweepHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+		hits.push_back(worldHits);
 #else
 		vec3 offset = vec3(0.0, 0.0, height - radius);
 		TraceSphereModel tracespheremodel;
 		for (const dvec3& origin : { to_dvec3(from - offset), to_dvec3(from), to_dvec3(from + offset) })
 		{
-			std::vector<SweepHit> worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
-			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+			SweepHitList worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
+			hits.push_back(worldHits);
 		}
 #endif
 	}
@@ -81,8 +81,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	std::set<UActor*> seenActors;
-	std::vector<SweepHit> uniqueHits;
-	uniqueHits.reserve(hits.size());
+	SweepHitList uniqueHits;
 	for (auto& hit : hits)
 	{
 		if (hit.Actor)

@@ -157,7 +157,7 @@ public:
 	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<TraceHit> TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
+	TraceHitList TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 
 	std::vector<vec3> Vectors;
 	std::vector<vec3> Points;
@@ -241,7 +241,7 @@ public:
 	void Tick(float elapsed);
 
 	SweepHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
-	std::vector<SweepHit> Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
+	SweepHitList Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
 
 	bool TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
 

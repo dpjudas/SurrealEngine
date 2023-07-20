@@ -137,7 +137,7 @@ SweepHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracing
 	return {};
 }
 
-std::vector<SweepHit> ULevel::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+SweepHitList ULevel::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	TraceCylinderLevel trace;
 	return trace.Trace(this, from, to, height, radius, traceActors, traceWorld, visibilityOnly);
@@ -332,7 +332,7 @@ void UModel::Load(ObjectStream* stream)
 	Linked = stream->ReadInt32();
 }
 
-std::vector<TraceHit> UModel::TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+TraceHitList UModel::TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	TraceRayModel trace;
 	return trace.Trace(this, origin, tmin, dirNormalized, tmax, visibilityOnly);
