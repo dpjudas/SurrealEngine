@@ -89,10 +89,88 @@ public:
 class ExpressionValue
 {
 public:
-	ExpressionValueType Type = ExpressionValueType::Nothing;
+	ExpressionValue() : Type(ExpressionValueType::Nothing) { Ptr = nullptr; }
 
-	void* VariablePtr = nullptr;
-	UProperty* VariableProperty = nullptr;
+	ExpressionValue(const ExpressionValue& v) : Type(v.Type)
+	{
+		if (!v.VariableProperty)
+		{
+			Ptr = (Type != ExpressionValueType::Nothing) ? &Buffer : nullptr;
+			switch (Type)
+			{
+			default: Buffer = v.Buffer; break;
+			case ExpressionValueType::ValueVector: new(PtrByte) vec3(*v.PtrVector); break;
+			case ExpressionValueType::ValueRotator: new(PtrByte) Rotator(*v.PtrRotator); break;
+			case ExpressionValueType::ValueString: new(PtrByte) std::string(*v.PtrString); break;
+			case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
+			case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
+			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+			}
+		}
+		else
+		{
+			VariableProperty = v.VariableProperty;
+			Ptr = v.Ptr;
+		}
+	}
+
+	ExpressionValue(ExpressionValue&& v) : Type(v.Type)
+	{
+		if (!v.VariableProperty)
+		{
+			Ptr = (Type != ExpressionValueType::Nothing) ? &Buffer : nullptr;
+			switch (Type)
+			{
+			default: Buffer = v.Buffer; break;
+			case ExpressionValueType::ValueVector: new(PtrByte) vec3(std::move(*v.PtrVector)); break;
+			case ExpressionValueType::ValueRotator: new(PtrByte) Rotator(std::move(*v.PtrRotator)); break;
+			case ExpressionValueType::ValueString: new(PtrByte) std::string(std::move(*v.PtrString)); break;
+			case ExpressionValueType::ValueName: new(PtrByte) NameString(std::move(*v.PtrName)); break;
+			case ExpressionValueType::ValueColor: new(PtrByte) Color(std::move(*v.PtrColor)); break;
+			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(std::move(*v.GetStructValue())); Ptr = GetStructValue()->Ptr; break;
+			}
+		}
+		else
+		{
+			VariableProperty = v.VariableProperty;
+			Ptr = v.Ptr;
+		}
+	}
+
+	ExpressionValue& operator=(const ExpressionValue& v)
+	{
+		if (this != &v)
+		{
+			Deinit();
+
+			Type = v.Type;
+			if (!v.VariableProperty)
+			{
+				Ptr = (Type != ExpressionValueType::Nothing) ? &Buffer : nullptr;
+				switch (Type)
+				{
+				default: Buffer = v.Buffer; break;
+				case ExpressionValueType::ValueVector: new(PtrByte) vec3(*v.PtrVector); break;
+				case ExpressionValueType::ValueRotator: new(PtrByte) Rotator(*v.PtrRotator); break;
+				case ExpressionValueType::ValueString: new(PtrByte) std::string(*v.PtrString); break;
+				case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
+				case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
+				case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+				}
+			}
+			else
+			{
+				VariableProperty = v.VariableProperty;
+				Ptr = v.Ptr;
+			}
+		}
+		return *this;
+	}
+
+	~ExpressionValue()
+	{
+		Deinit();
+	}
 
 	uint8_t ToByte() const;
 	int32_t ToInt() const;
@@ -113,23 +191,93 @@ public:
 
 	bool IsEqual(const ExpressionValue& value) const;
 
-	static ExpressionValue NothingValue() { ExpressionValue v; v.Type = ExpressionValueType::Nothing; return v; }
-	static ExpressionValue ByteValue(uint8_t value) { ExpressionValue v; v.Type = ExpressionValueType::ValueByte; v.Value.Byte = value; return v; }
-	static ExpressionValue IntValue(int32_t value) { ExpressionValue v; v.Type = ExpressionValueType::ValueInt; v.Value.Int = value; return v; }
-	static ExpressionValue BoolValue(bool value) { ExpressionValue v; v.Type = ExpressionValueType::ValueBool; v.Value.Bool = value; return v; }
-	static ExpressionValue FloatValue(float value) { ExpressionValue v; v.Type = ExpressionValueType::ValueFloat; v.Value.Float = value; return v; }
-	static ExpressionValue ObjectValue(UObject* value) { ExpressionValue v; v.Type = ExpressionValueType::ValueObject; v.Value.Object = value; return v; }
-	static ExpressionValue VectorValue(vec3 value) { ExpressionValue v; v.Type = ExpressionValueType::ValueVector; v.Value.Vector = value; return v; }
-	static ExpressionValue RotatorValue(Rotator value) { ExpressionValue v; v.Type = ExpressionValueType::ValueRotator; v.Value.Rotator_ = value; return v; }
-	static ExpressionValue StringValue(std::string value) { ExpressionValue v; v.Type = ExpressionValueType::ValueString; v.ValueString = value; return v; }
-	static ExpressionValue NameValue(NameString value) { ExpressionValue v; v.Type = ExpressionValueType::ValueName; v.ValueName = value; return v; }
-	static ExpressionValue ColorValue(Color value) { ExpressionValue v; v.Type = ExpressionValueType::ValueColor; v.Value.Color_ = value; return v; }
+	static ExpressionValue NothingValue() { return ExpressionValue(); }
+	static ExpressionValue ByteValue(uint8_t value) { ExpressionValue v(ExpressionValueType::ValueByte); *v.PtrByte = value; return v; }
+	static ExpressionValue IntValue(int32_t value) { ExpressionValue v(ExpressionValueType::ValueInt); *v.PtrInt = value; return v; }
+	static ExpressionValue BoolValue(bool value) { ExpressionValue v(ExpressionValueType::ValueBool); *v.PtrBool = value; return v; }
+	static ExpressionValue FloatValue(float value) { ExpressionValue v(ExpressionValueType::ValueFloat); *v.PtrFloat = value; return v; }
+	static ExpressionValue ObjectValue(UObject* value) { ExpressionValue v(ExpressionValueType::ValueObject); *v.PtrObject = value; return v; }
+	static ExpressionValue VectorValue(vec3 value) { ExpressionValue v(ExpressionValueType::ValueVector); *v.PtrVector = value; return v; }
+	static ExpressionValue RotatorValue(Rotator value) { ExpressionValue v(ExpressionValueType::ValueRotator); *v.PtrRotator = value; return v; }
+	static ExpressionValue StringValue(std::string value) { ExpressionValue v(ExpressionValueType::ValueString); *v.PtrString = value; return v; }
+	static ExpressionValue NameValue(NameString value) { ExpressionValue v(ExpressionValueType::ValueName); *v.PtrName = value; return v; }
+	static ExpressionValue ColorValue(Color value) { ExpressionValue v(ExpressionValueType::ValueColor); *v.PtrColor = value; return v; }
 
 	static ExpressionValue DefaultValue(UProperty* prop);
 	static ExpressionValue PropertyValue(UProperty* prop);
 	static ExpressionValue Variable(void* data, UProperty* prop);
 
+	ExpressionValueType GetType() const { return Type; }
+	bool IsVariable() const { return VariableProperty; }
+
+	ExpressionValue ItemAt(int index)
+	{
+		index = clamp(index, 0, (int)VariableProperty->ArrayDimension - 1);
+		return ExpressionValue(PtrByte + VariableProperty->ElementSize() * index, VariableProperty);
+	}
+
+	ExpressionValue Member(UProperty* field)
+	{
+		return ExpressionValue::Variable(Ptr, field);
+	}
+
+	void ConstructVariable()
+	{
+		VariableProperty->Construct(Ptr);
+	}
+
+	void DestructVariable()
+	{
+		VariableProperty->Destruct(Ptr);
+	}
+
 private:
+	ExpressionValue(ExpressionValueType type) : Type(type)
+	{
+		Ptr = (Type != ExpressionValueType::Nothing) ? &Buffer : nullptr;
+		switch (Type)
+		{
+		default: break;
+		case ExpressionValueType::ValueVector: new(PtrByte) vec3(); break;
+		case ExpressionValueType::ValueRotator: new(PtrByte) Rotator(); break;
+		case ExpressionValueType::ValueString: new(PtrByte) std::string(); break;
+		case ExpressionValueType::ValueName: new(PtrByte) NameString(); break;
+		case ExpressionValueType::ValueColor: new(PtrByte) Color(); break;
+		case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(); Ptr = GetStructValue()->Ptr; break;
+		}
+	}
+
+	ExpressionValue(void* ptr, UProperty* prop) : Type(prop->ValueType)
+	{
+		Ptr = ptr;
+		VariableProperty = prop;
+	}
+
+	void Deinit()
+	{
+		if (!VariableProperty)
+		{
+			switch (Type)
+			{
+			default: break;
+			case ExpressionValueType::ValueVector: PtrVector->~vec3(); break;
+			case ExpressionValueType::ValueRotator: PtrRotator->~Rotator(); break;
+			case ExpressionValueType::ValueString: PtrString->~basic_string(); break;
+			case ExpressionValueType::ValueName: PtrName->~NameString(); break;
+			case ExpressionValueType::ValueColor: PtrColor->~Color(); break;
+			case ExpressionValueType::ValueStruct: GetStructValue()->~StructValue(); break;
+			}
+			Type = ExpressionValueType::Nothing;
+		}
+		else
+		{
+			VariableProperty = nullptr;
+		}
+	}
+
+	const StructValue* GetStructValue() const { return reinterpret_cast<const StructValue*>(Buffer.Struct); }
+	StructValue* GetStructValue() { return reinterpret_cast<StructValue*>(Buffer.Struct); }
+
 	union
 	{
 		uint8_t Byte;
@@ -137,13 +285,33 @@ private:
 		bool Bool;
 		float Float;
 		UObject* Object;
-		vec3 Vector;
-		Rotator Rotator_;
-		Color Color_;
-	} Value;
-	std::string ValueString;
-	NameString ValueName;
-	StructValue ValueStruct;
+		uint8_t Vector[sizeof(vec3)];
+		uint8_t Rotator_[sizeof(Rotator)];
+		uint8_t String[sizeof(std::string)];
+		uint8_t Name[sizeof(NameString)];
+		uint8_t Color_[sizeof(Color)];
+		uint8_t Struct[sizeof(StructValue)];
+	} Buffer;
+
+	ExpressionValueType Type = ExpressionValueType::Nothing;
+
+	union
+	{
+		void* Ptr;
+		uint8_t* PtrByte;
+		int32_t* PtrInt;
+		bool* PtrBool;
+		float* PtrFloat;
+		UObject** PtrObject;
+		vec3* PtrVector;
+		Rotator* PtrRotator;
+		std::string* PtrString;
+		NameString* PtrName;
+		Color* PtrColor;
+		IpAddr* PtrIpAddr;
+	};
+
+	UProperty* VariableProperty = nullptr;
 };
 
 // Pass by value
@@ -160,45 +328,55 @@ template<> inline const Color& ExpressionValue::ToType() { return ToColor(); }
 template<> inline const IpAddr& ExpressionValue::ToType() { return ToIpAddr(); }
 
 // Pass by reference
-template<> inline uint8_t& ExpressionValue::ToType() { return !VariablePtr ? Value.Byte : *static_cast<uint8_t*>(VariablePtr); }
-template<> inline int32_t& ExpressionValue::ToType() { return !VariablePtr ? Value.Int : *static_cast<int32_t*>(VariablePtr); }
-template<> inline bool& ExpressionValue::ToType() { return !VariablePtr ? Value.Bool : *static_cast<bool*>(VariablePtr); }
-template<> inline float& ExpressionValue::ToType() { return !VariablePtr ? Value.Float : *static_cast<float*>(VariablePtr); }
-template<> inline UObject*& ExpressionValue::ToType() { return !VariablePtr ? Value.Object : *static_cast<UObject**>(VariablePtr); }
-template<> inline vec3& ExpressionValue::ToType() { return !VariablePtr ? Value.Vector : *static_cast<vec3*>(VariablePtr); }
-template<> inline Rotator& ExpressionValue::ToType() { return !VariablePtr ? Value.Rotator_ : *static_cast<Rotator*>(VariablePtr); }
-template<> inline std::string& ExpressionValue::ToType() { return !VariablePtr ? ValueString : *static_cast<std::string*>(VariablePtr); }
-template<> inline NameString& ExpressionValue::ToType() { return !VariablePtr ? ValueName : *static_cast<NameString*>(VariablePtr); }
-template<> inline Color& ExpressionValue::ToType() { return !VariablePtr ? Value.Color_ : *static_cast<Color*>(VariablePtr); }
-template<> inline IpAddr& ExpressionValue::ToType() { return *static_cast<IpAddr*>(!VariablePtr ? ValueStruct.Ptr : VariablePtr); }
+template<> inline uint8_t& ExpressionValue::ToType() { return *PtrByte; }
+template<> inline int32_t& ExpressionValue::ToType() { return *PtrInt; }
+template<> inline bool& ExpressionValue::ToType() { return *PtrBool; }
+template<> inline float& ExpressionValue::ToType() { return *PtrFloat; }
+template<> inline UObject*& ExpressionValue::ToType() { return *PtrObject; }
+template<> inline vec3& ExpressionValue::ToType() { return *PtrVector; }
+template<> inline Rotator& ExpressionValue::ToType() { return *PtrRotator; }
+template<> inline std::string& ExpressionValue::ToType() { return *PtrString; }
+template<> inline NameString& ExpressionValue::ToType() { return *PtrName; }
+template<> inline Color& ExpressionValue::ToType() { return *PtrColor; }
+template<> inline IpAddr& ExpressionValue::ToType() { return *PtrIpAddr; }
 
 // Optional arguments
-template<> inline uint8_t* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<uint8_t&>() : nullptr; }
-template<> inline int32_t* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<int32_t&>() : nullptr; }
-template<> inline bool* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<bool&>() : nullptr; }
-template<> inline float* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<float&>() : nullptr; }
-template<> inline UObject** ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<UObject*&>() : nullptr; }
-template<> inline vec3* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<vec3&>() : nullptr; }
-template<> inline Rotator* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Rotator&>() : nullptr; }
-template<> inline std::string* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<std::string&>() : nullptr; }
-template<> inline NameString* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<NameString&>() : nullptr; }
-template<> inline Color* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<Color&>() : nullptr; }
-template<> inline IpAddr* ExpressionValue::ToType() { return Type != ExpressionValueType::Nothing ? &ToType<IpAddr&>() : nullptr; }
+template<> inline uint8_t* ExpressionValue::ToType() { return PtrByte; }
+template<> inline int32_t* ExpressionValue::ToType() { return PtrInt; }
+template<> inline bool* ExpressionValue::ToType() { return PtrBool; }
+template<> inline float* ExpressionValue::ToType() { return PtrFloat; }
+template<> inline UObject** ExpressionValue::ToType() { return PtrObject; }
+template<> inline vec3* ExpressionValue::ToType() { return PtrVector; }
+template<> inline Rotator* ExpressionValue::ToType() { return PtrRotator; }
+template<> inline std::string* ExpressionValue::ToType() { return PtrString; }
+template<> inline NameString* ExpressionValue::ToType() { return PtrName; }
+template<> inline Color* ExpressionValue::ToType() { return PtrColor; }
+template<> inline IpAddr* ExpressionValue::ToType() { return PtrIpAddr; }
 
 inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 {
-	ExpressionValue v;
-	v.Type = prop->ValueType;
-	v.Value.Int = 0;
-	if (v.Type != ExpressionValueType::Nothing)
-		return v;
-	throw std::runtime_error("Unsupported expression value property type");
+	switch (prop->ValueType)
+	{
+	default:
+	{
+		ExpressionValue v(prop->ValueType);
+		memset(v.Ptr, 0, sizeof(Buffer));
+		if (v.Type != ExpressionValueType::Nothing)
+			return v;
+		throw std::runtime_error("Unsupported expression value property type");
+	}
+	case ExpressionValueType::ValueVector: return VectorValue(vec3(0.0f));
+	case ExpressionValueType::ValueRotator: return RotatorValue(Rotator(0, 0, 0));
+	case ExpressionValueType::ValueString: return StringValue({});
+	case ExpressionValueType::ValueName: return NameValue({});
+	case ExpressionValueType::ValueColor: { Color c; c.R = c.G = c.B = c.A = 0; return ColorValue(c); }
+	case ExpressionValueType::ValueStruct: throw std::runtime_error("Default value for a struct type is not implemented");
+	}
 }
 
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {
-	ExpressionValue v;
-	v.Type = prop->ValueType;
+	ExpressionValue v(prop->ValueType);
 	if (v.Type != ExpressionValueType::Nothing)
 		return v;
 	throw std::runtime_error("Unsupported expression value property type");
@@ -206,43 +384,39 @@ inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 
 inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
 {
-	ExpressionValue v = PropertyValue(prop);
-	v.VariablePtr = static_cast<uint8_t*>(data) + prop->DataOffset;
-	v.VariableProperty = prop;
-	return v;
+	return ExpressionValue(static_cast<uint8_t*>(data) + prop->DataOffset, prop);
 }
 
 inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 {
 	switch (rvalue.Type)
 	{
-	default:
 	case ExpressionValueType::Nothing: break;
-	case ExpressionValueType::ValueByte: *static_cast<uint8_t*>(VariablePtr) = rvalue.ToByte(); break;
-	case ExpressionValueType::ValueInt: *static_cast<int32_t*>(VariablePtr) = rvalue.ToInt(); break;
-	case ExpressionValueType::ValueBool: *static_cast<bool*>(VariablePtr) = rvalue.ToBool(); break;
-	case ExpressionValueType::ValueFloat: *static_cast<float*>(VariablePtr) = rvalue.ToFloat(); break;
-	case ExpressionValueType::ValueObject: *static_cast<UObject**>(VariablePtr) = rvalue.ToObject(); break;
-	case ExpressionValueType::ValueVector: *static_cast<vec3*>(VariablePtr) = rvalue.ToVector(); break;
-	case ExpressionValueType::ValueRotator: *static_cast<Rotator*>(VariablePtr) = rvalue.ToRotator(); break;
-	case ExpressionValueType::ValueString: *static_cast<std::string*>(VariablePtr) = rvalue.ToString(); break;
-	case ExpressionValueType::ValueName: *static_cast<NameString*>(VariablePtr) = rvalue.ToName(); break;
-	case ExpressionValueType::ValueColor: *static_cast<Color*>(VariablePtr) = rvalue.ToColor(); break;
+	case ExpressionValueType::ValueByte: *PtrByte = rvalue.ToByte(); break;
+	case ExpressionValueType::ValueInt: *PtrInt = rvalue.ToInt(); break;
+	case ExpressionValueType::ValueBool: *PtrBool = rvalue.ToBool(); break;
+	case ExpressionValueType::ValueFloat: *PtrFloat = rvalue.ToFloat(); break;
+	case ExpressionValueType::ValueObject: *PtrObject = rvalue.ToObject(); break;
+	case ExpressionValueType::ValueVector: *PtrVector = rvalue.ToVector(); break;
+	case ExpressionValueType::ValueRotator: *PtrRotator = rvalue.ToRotator(); break;
+	case ExpressionValueType::ValueString: *PtrString = rvalue.ToString(); break;
+	case ExpressionValueType::ValueName: *PtrName = rvalue.ToName(); break;
+	case ExpressionValueType::ValueColor: *PtrColor = rvalue.ToColor(); break;
 	case ExpressionValueType::ValueStruct:
-		if (rvalue.VariablePtr)
+		if (rvalue.VariableProperty)
 		{
-			UStruct* Struct = static_cast<UStructProperty*>(VariableProperty)->Struct;
+			UStruct* Struct = static_cast<UStructProperty*>(rvalue.VariableProperty)->Struct;
 			if (Struct)
 			{
 				for (UProperty* prop : Struct->Properties)
 					prop->CopyValue(
-						static_cast<uint8_t*>(VariablePtr) + prop->DataOffset,
-						static_cast<uint8_t*>(rvalue.VariablePtr) + prop->DataOffset);
+						static_cast<uint8_t*>(Ptr) + prop->DataOffset,
+						static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset);
 			}
 		}
 		else
 		{
-			rvalue.ValueStruct.Store(VariablePtr);
+			rvalue.GetStructValue()->Store(Ptr);
 		}
 		break;
 	}
@@ -250,27 +424,29 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 
 inline void ExpressionValue::Load()
 {
-	if (VariablePtr)
+	if (VariableProperty)
 	{
+		ExpressionValue value(Type);
 		switch (Type)
 		{
 		default:
 		case ExpressionValueType::Nothing: break;
-		case ExpressionValueType::ValueByte: Value.Byte = *static_cast<uint8_t*>(VariablePtr); break;
-		case ExpressionValueType::ValueInt: Value.Int = *static_cast<int32_t*>(VariablePtr); break;
-		case ExpressionValueType::ValueBool: Value.Bool = *static_cast<bool*>(VariablePtr); break;
-		case ExpressionValueType::ValueFloat: Value.Float = *static_cast<float*>(VariablePtr); break;
-		case ExpressionValueType::ValueObject: Value.Object = *static_cast<UObject**>(VariablePtr); break;
-		case ExpressionValueType::ValueVector: Value.Vector = *static_cast<vec3*>(VariablePtr); break;
-		case ExpressionValueType::ValueRotator: Value.Rotator_ = *static_cast<Rotator*>(VariablePtr); break;
-		case ExpressionValueType::ValueString: ValueString = *static_cast<std::string*>(VariablePtr); break;
-		case ExpressionValueType::ValueName: ValueName = *static_cast<NameString*>(VariablePtr); break;
-		case ExpressionValueType::ValueColor: Value.Color_ = *static_cast<Color*>(VariablePtr); break;
-		case ExpressionValueType::ValueStruct: ValueStruct.Load(dynamic_cast<UStructProperty*>(VariableProperty)->Struct, VariablePtr); break;
+		case ExpressionValueType::ValueByte: *value.PtrByte = *PtrByte; break;
+		case ExpressionValueType::ValueInt: *value.PtrInt = *PtrInt; break;
+		case ExpressionValueType::ValueBool: *value.PtrBool = *PtrBool; break;
+		case ExpressionValueType::ValueFloat: *value.PtrFloat = *PtrFloat; break;
+		case ExpressionValueType::ValueObject: *value.PtrObject = *PtrObject; break;
+		case ExpressionValueType::ValueVector: *value.PtrVector = *PtrVector; break;
+		case ExpressionValueType::ValueRotator: *value.PtrRotator = *PtrRotator; break;
+		case ExpressionValueType::ValueString: *value.PtrString = *PtrString; break;
+		case ExpressionValueType::ValueName: *value.PtrName = *PtrName; break;
+		case ExpressionValueType::ValueColor: *value.PtrColor = *PtrColor; break;
+		case ExpressionValueType::ValueStruct:
+			value.GetStructValue()->Load(dynamic_cast<UStructProperty*>(VariableProperty)->Struct, Ptr);
+			value.Ptr = value.GetStructValue()->Ptr;
+			break;
 		}
-
-		VariablePtr = nullptr;
-		VariableProperty = nullptr;
+		*this = std::move(value);
 	}
 }
 
@@ -297,31 +473,31 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 inline uint8_t ExpressionValue::ToByte() const
 {
 	if (Type == ExpressionValueType::ValueByte)
-		return VariablePtr ? *static_cast<uint8_t*>(VariablePtr) : Value.Byte;
+		return *PtrByte;
 	else if (Type == ExpressionValueType::ValueInt)
-		return (uint8_t)(VariablePtr ? *static_cast<int32_t*>(VariablePtr) : Value.Int);
+		return (uint8_t)*PtrInt;
 	else if (Type == ExpressionValueType::ValueFloat)
-		return (uint8_t)(VariablePtr ? *static_cast<float*>(VariablePtr) : Value.Float);
+		return (uint8_t)*PtrFloat;
 	else
-		throw std::runtime_error("Not a byte value");
+		throw std::runtime_error("Not a byte compatible value");
 }
 
 inline int32_t ExpressionValue::ToInt() const
 {
 	if (Type == ExpressionValueType::ValueInt)
-		return VariablePtr ? *static_cast<int32_t*>(VariablePtr) : Value.Int;
+		return *PtrInt;
 	else if (Type == ExpressionValueType::ValueByte)
-		return VariablePtr ? *static_cast<uint8_t*>(VariablePtr) : Value.Byte;
+		return *PtrByte;
 	else if (Type == ExpressionValueType::ValueFloat)
-		return (int)(VariablePtr ? *static_cast<float*>(VariablePtr) : Value.Float);
+		return (int)*PtrFloat;
 	else
-		throw std::runtime_error("Not a int value");
+		throw std::runtime_error("Not an int compatible value");
 }
 
 inline bool ExpressionValue::ToBool() const
 {
 	if (Type == ExpressionValueType::ValueBool)
-		return VariablePtr ? *static_cast<bool*>(VariablePtr) : Value.Bool;
+		return *PtrBool;
 	else
 		throw std::runtime_error("Not a bool value");
 }
@@ -329,19 +505,19 @@ inline bool ExpressionValue::ToBool() const
 inline float ExpressionValue::ToFloat() const
 {
 	if (Type == ExpressionValueType::ValueFloat)
-		return VariablePtr ? *static_cast<float*>(VariablePtr) : Value.Float;
+		return *PtrFloat;
 	else if (Type == ExpressionValueType::ValueInt)
-		return (float)(VariablePtr ? *static_cast<int32_t*>(VariablePtr) : Value.Int);
+		return (float)*PtrInt;
 	else if (Type == ExpressionValueType::ValueByte)
-		return VariablePtr ? *static_cast<uint8_t*>(VariablePtr) : Value.Byte;
+		return *PtrByte;
 	else
-		throw std::runtime_error("Not a float value");
+		throw std::runtime_error("Not a float compatible value");
 }
 
 inline UObject* ExpressionValue::ToObject() const
 {
 	if (Type == ExpressionValueType::ValueObject)
-		return VariablePtr ? *static_cast<UObject**>(VariablePtr) : Value.Object;
+		return *PtrObject;
 	else
 		throw std::runtime_error("Not an object value");
 }
@@ -349,7 +525,7 @@ inline UObject* ExpressionValue::ToObject() const
 inline const vec3& ExpressionValue::ToVector() const
 {
 	if (Type == ExpressionValueType::ValueVector)
-		return VariablePtr ? *static_cast<vec3*>(VariablePtr) : Value.Vector;
+		return *PtrVector;
 	else
 		throw std::runtime_error("Not a vector value");
 }
@@ -357,7 +533,7 @@ inline const vec3& ExpressionValue::ToVector() const
 inline const Rotator& ExpressionValue::ToRotator() const
 {
 	if (Type == ExpressionValueType::ValueRotator)
-		return VariablePtr ? *static_cast<Rotator*>(VariablePtr) : Value.Rotator_;
+		return *PtrRotator;
 	else
 		throw std::runtime_error("Not a rotator value");
 }
@@ -365,9 +541,9 @@ inline const Rotator& ExpressionValue::ToRotator() const
 inline const std::string& ExpressionValue::ToString() const
 {
 	if (Type == ExpressionValueType::ValueString)
-		return VariablePtr ? *static_cast<std::string*>(VariablePtr) : ValueString;
+		return *PtrString;
 	else if (Type == ExpressionValueType::ValueName)
-		return (VariablePtr ? *static_cast<NameString*>(VariablePtr) : ValueName).Value;
+		return PtrName->ToString();
 	else
 		throw std::runtime_error("Not a string value");
 }
@@ -375,7 +551,7 @@ inline const std::string& ExpressionValue::ToString() const
 inline const NameString& ExpressionValue::ToName() const
 {
 	if (Type == ExpressionValueType::ValueName)
-		return VariablePtr ? *static_cast<NameString*>(VariablePtr) : ValueName;
+		return *PtrName;
 	else
 		throw std::runtime_error("Not a name value");
 }
@@ -383,7 +559,7 @@ inline const NameString& ExpressionValue::ToName() const
 inline const Color& ExpressionValue::ToColor() const
 {
 	if (Type == ExpressionValueType::ValueColor)
-		return VariablePtr ? *static_cast<Color*>(VariablePtr) : Value.Color_;
+		return *PtrColor;
 	else
 		throw std::runtime_error("Not a color value");
 }
@@ -391,7 +567,7 @@ inline const Color& ExpressionValue::ToColor() const
 inline const IpAddr& ExpressionValue::ToIpAddr() const
 {
 	if (Type == ExpressionValueType::ValueStruct)
-		return *static_cast<IpAddr*>(VariablePtr ? VariablePtr : ValueStruct.Ptr);
+		return *PtrIpAddr;
 	else
 		throw std::runtime_error("Not a ipaddr/struct value");
 }

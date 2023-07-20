@@ -23,6 +23,7 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 
 	ExpressionEvaluator evaluator;
 	evaluator.Self = self;
+	if (context == (UObject*)0xccccccccccccccccULL) DebugBreak();
 	evaluator.Context = context;
 	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
@@ -150,12 +151,12 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 	Package* package = engine->packages->GetPackage("Engine");
 
 	UObject* newObj = package->NewObject(
-		name.Type == ExpressionValueType::Nothing ? NameString() : name.ToName(),
+		name.GetType() == ExpressionValueType::Nothing ? NameString() : name.ToName(),
 		cls,
-		flags.Type == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
+		flags.GetType() == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
 		true);
 
-	if (outer.Type != ExpressionValueType::Nothing)
+	if (outer.GetType() != ExpressionValueType::Nothing)
 		newObj->Outer() = outer.ToObject();
 
 	Result.Value = ExpressionValue::ObjectValue(newObj);
@@ -210,7 +211,8 @@ void ExpressionEvaluator::Expr(SkipExpression* expr)
 
 void ExpressionEvaluator::Expr(ContextExpression* expr)
 {
-	UObject* context = Eval(expr->ObjectExpr).Value.ToObject();
+	auto value = Eval(expr->ObjectExpr).Value;
+	UObject* context = value.ToObject();
 	if (context)
 	{
 		Result = Eval(expr->ContextExpr, Self, context, LocalVariables);
@@ -224,15 +226,14 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 void ExpressionEvaluator::Expr(ArrayElementExpression* expr)
 {
 	int index = Eval(expr->Index).Value.ToInt();
-	Result.Value = Eval(expr->Array).Value;
-	if (Result.Value.VariablePtr)
+	auto arrayval = Eval(expr->Array).Value;
+	if (arrayval.IsVariable())
 	{
-		index = clamp(index, 0, (int)Result.Value.VariableProperty->ArrayDimension - 1);
-		Result.Value.VariablePtr = static_cast<uint8_t*>(Result.Value.VariablePtr) + Result.Value.VariableProperty->ElementSize() * index;
+		Result.Value = arrayval.ItemAt(index);
 	}
 	else
 	{
-		Frame::ThrowException("VariablePtr is null in ArrayElementExpression");
+		Frame::ThrowException("Array is not a variable in ArrayElementExpression");
 	}
 }
 
@@ -364,7 +365,7 @@ void ExpressionEvaluator::Expr(StructCmpNeExpression* expr)
 void ExpressionEvaluator::Expr(StructMemberExpression* expr)
 {
 	if (expr->Field)
-		Result.Value = ExpressionValue::Variable(Eval(expr->Value).Value.VariablePtr, expr->Field);
+		Result.Value = Eval(expr->Value).Value.Member(expr->Field);
 	else
 		Frame::ThrowException("Null field encountered in struct member expression");
 }
