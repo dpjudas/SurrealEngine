@@ -10,8 +10,10 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSur
 	if (surface.LightMap < 0)
 		return {};
 
+	uint64_t cacheID = (((uint64_t)surface.LightMap) << 16) | (((uint64_t)(zoneActor ? zoneActor->Region().ZoneNumber : 255)) << 8) | 1;
+
 	auto level = engine->Level;
-	auto& lmtexture = Light.lmtextures[surface.LightMap];
+	auto& lmtexture = Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
 		lmtexture = CreateLightmapTexture(surface, zoneActor, model);
@@ -20,7 +22,7 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSur
 	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
 
 	FTextureInfo texinfo;
-	texinfo.CacheID = (uint64_t)(ptrdiff_t)&surface;
+	texinfo.CacheID = cacheID;
 	texinfo.Format = lmtexture->Format;
 	texinfo.Mips = &lmtexture->Mip;
 	texinfo.NumMips = 1;

@@ -62,8 +62,6 @@ private:
 
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	void UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	void DrawFogmapSpan(vec4* line, int start, int end, float x0, float x1, vec3 p0, vec3 p1, UActor* light);
-	vec4 FindFogAt(const vec3& location);
 
 	void ResetCanvas();
 	void PreRender();
@@ -124,10 +122,11 @@ private:
 
 	struct
 	{
-		std::map<int, std::unique_ptr<LightmapTexture>> lmtextures;
-		std::map<int, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
+		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
+		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
 		std::vector<UActor*> Lights;
 		LightmapBuilder Builder;
+		int FogFrameCounter = 0;
 	} Light;
 
 	std::set<UTexture*> Textures;

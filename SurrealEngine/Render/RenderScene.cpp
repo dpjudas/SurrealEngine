@@ -218,7 +218,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 		lightmap = GetSurfaceLightmap(surface, facet, zoneActor, model);
-		//fogmap = GetSurfaceFogmap(surface, facet, cameraZoneActor, model);
+		fogmap = GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
 	}
 
 	FSurfaceInfo surfaceinfo;

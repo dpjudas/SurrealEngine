@@ -605,15 +605,18 @@ void X11Window::OnKeyboardInput(XKeyEvent &event)
 		break;
 	}
 
-	const int buff_size = 16;
-	char buff[buff_size];
-	int result = XLookupString(&event, buff, buff_size - 1, nullptr, nullptr);
-	if (result < 0) result = 0;
-	if (result > (buff_size - 1)) result = buff_size - 1;
-	buff[result] = 0;
-	std::string keystr(buff, result);
-	if (!keystr.empty())
-		engine->Key(this, keystr);
+	if (keydown)
+	{
+		const int buff_size = 16;
+		char buff[buff_size];
+		int result = XLookupString(&event, buff, buff_size - 1, nullptr, nullptr);
+		if (result < 0) result = 0;
+		if (result > (buff_size - 1)) result = buff_size - 1;
+		buff[result] = 0;
+		std::string keystr(buff, result);
+		if (!keystr.empty())
+			engine->Key(this, keystr);
+	}
 
 	engine->InputEvent(this, KeySymToInputKey(key_symbol), keytype);
 }
@@ -735,7 +738,8 @@ EInputKey X11Window::KeySymToInputKey(KeySym keysym)
 	case XK_Control_R: return IK_RControl;
 	//case XK_Meta_L: return IK_LMenu;
 	//case XK_Meta_R: return IK_RMenu;
-	default: return (EInputKey)(0x10000ul + keysym);
+	case XK_grave: return IK_Tilde;
+	default: return IK_None;
 	}
 }
 
