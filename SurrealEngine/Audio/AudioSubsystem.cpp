@@ -140,40 +140,15 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 			// Update the priority
 			Playing.Priority = SoundPriority(Viewport, Playing.Location, Playing.Volume, Playing.Radius);
 
-			// Compute the spatialization
-			vec3 Location = (listener * vec4(Playing.Location, 1.0f)).xyz();
-			float PanAngle = std::atan2(Location.x, std::abs(Location.z));
-
-			// Despatialize sounds when you get real close to them
-			float CenterDist = 0.1f * Playing.Radius;
-			float Size = length(Location);
-			if (Size < CenterDist)
-				PanAngle *= Size / CenterDist;
-
-			// Compute panning and volume
-			float SoundPan = clamp(PanAngle * 7 / 8 / 3.14159265359f, -1.0f, 1.0f);
-			float Attenuation = clamp(1.0f - Size / Playing.Radius, 0.0f, 1.0f);
-			float SoundVolume = clamp(Playing.Volume * Attenuation, 0.0f, 1.0f);
-			if (ReverseStereo)
-				SoundPan = -SoundPan;
-
-			// Compute doppler shifting
-			float Doppler = 1.0f;
-			if (Playing.Actor)
-			{
-				float V = dot(Playing.Actor->Velocity(), normalize(Playing.Actor->Location() - ViewActor->Location()));
-				Doppler = clamp(1.0f - V / DopplerSpeed, 0.5f, 2.0f);
-			}
-
 			// Update the sound.
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
-				Device->UpdateSound(Playing.Channel, Playing.Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
 			}
 			else
 			{
-				Playing.Channel = Device->PlaySound((int)i, Playing.Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Playing.Channel = Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
 			}
 		}
 	}

@@ -4,23 +4,10 @@
 #include <mutex>
 #include <vector>
 #include <thread>
+#include "Math/vec.h"
 
 class AudioSource;
 class USound;
-
-class ActiveSound
-{
-public:
-  int channel = 0;
-  bool play = false;
-  bool update = false;
-  USound* sound = nullptr;
-  float volume = 0.0f;
-  float pan = 0.0f;
-  float pitch = 0.0f;
-
-  double pos = 0;
-};
 
 class AudioDevice
 {
@@ -30,10 +17,10 @@ public:
 	virtual ~AudioDevice() = default;
   virtual void AddSound(USound* sound) = 0;
   virtual void RemoveSound(USound* sound) = 0;
-	virtual int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) = 0;
+	virtual int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) = 0;
   virtual void PlayMusic(std::unique_ptr<AudioSource> source) = 0;
   virtual void PlayMusicBuffer() = 0;
-  virtual void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) = 0;
+  virtual void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) = 0;
   virtual void UpdateMusicBuffer() = 0;
 	virtual void StopSound(int channel) = 0;
 	virtual void SetMusicVolume(float volume) = 0;
@@ -162,7 +149,6 @@ protected:
 
 	int frequency = 48000;
   std::vector<USound*> sounds;
-  std::vector<ActiveSound> activeSounds;
   std::unique_ptr<AudioSource> music;
 
   std::mutex playbackMutex;

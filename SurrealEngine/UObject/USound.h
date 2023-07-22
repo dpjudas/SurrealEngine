@@ -18,6 +18,7 @@ public:
 
 	void GetSound();
 	float GetDuration();
+	int GetChannels();
 
 	NameString Format;
 	std::vector<uint8_t> Data;
@@ -25,5 +26,5 @@ public:
 	std::vector<float> samples;
 	float duration = 0.0f;
 	int frequency = 0;
-	AudioLoopInfo loopinfo;
+	int channels = 0;
 };

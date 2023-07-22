@@ -2,6 +2,9 @@
 #include "Precomp.h"
 #include "AudioDevice.h"
 #include "AudioSource.h"
+#include "Engine.h"
+#include "Native/NObject.h"
+#include "UObject/UActor.h"
 #include "UObject/USound.h"
 #include <mutex>
 #include <stdexcept>
@@ -130,6 +133,7 @@ public:
 
 	void AudioDevice::RemoveSound(USound* sound)
 	{
+		// TODO:
 	}
 
 	void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
@@ -140,42 +144,59 @@ public:
 		playbackMutex.unlock();
 	}
 
-	int PlaySound(int channel, USound* sound, float volume, float pan, float pitch) override
+	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= alSources.size())
+		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= alSources.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
 
-		ActiveSound s;
-		s.channel = channel;
-		s.play = true;
-		s.update = false;
-		s.sound = sound;
-		s.volume = volume;
-		s.pan = pan;
-		s.pitch = pitch;
+		ALuint source = alSources[channel];
+		ALint state;
+		alGetSourcei(source, AL_SOURCE_STATE, &state);
+		if (state == AL_PLAYING)
+			throw std::runtime_error("Attempt to play sound on an active channel");
 
-		activeSounds.push_back(std::move(s));
+		int format = AL_FORMAT_MONO_FLOAT32;
+		if (sound->GetChannels() == 2)
+			format = AL_FORMAT_STEREO_FLOAT32;
+
+		alBufferData(alBuffers[channel], format, sound->samples.data(), sound->samples.size(), sound->frequency);
+
+		//alSource3f(source, AL_POSITION, location.x, location.y, location.z);
+		//alSourcef(source, AL_GAIN, volume);
+		//alSourcef(source, AL_MAX_DISTANCE, radius);
+		//alSourcef(source, AL_PITCH, pitch);
+		
+		alSourceQueueBuffers(source, 1, &alBuffers[channel]);
+		alSourcePlay(source);
 
 		return channel;
 	}
 
-	void UpdateSound(int channel, USound* sound, float volume, float pan, float pitch) override
+	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pan) || !std::isfinite(pitch) || channel >= alSources.size())
+		if (!std::isfinite(volume) || !std::isfinite(pitch) || channel >= alSources.size())
 			throw std::runtime_error("Invalid UpdateSound arguments");
 
-		ActiveSound s;
-		s.channel = channel;
-		s.play = false;
-		s.update = true;
-		s.sound = sound;
-		s.volume = volume;
-		s.pan = pan;
-		s.pitch = pitch;
+		ALuint source = alSources[channel];
+		//ALint state;
+		//alGetSourcei(source, AL_SOURCE_STATE, &state);
+		//if (state == AL_PLAYING)
+		//{
+			//alSource3f(source, AL_POSITION, location.x, location.y, location.z);
+			//alSourcef(source, AL_GAIN, volume);
+			//alSourcef(source, AL_MAX_DISTANCE, radius);
+			//alSourcef(source, AL_PITCH, pitch);
+		//}
+	}
 
-		//SetupPanning(voice, s);
-		//voice->SetFrequencyRatio(s.pitch);
-		//voice->SetVolume(s.volume);
+	void StopSound(int channel) override
+	{
+		if (channel >= alSources.size())
+			throw std::runtime_error("Invalid StopSound arguments");
+
+		ALuint source = alSources[channel];
+		alSourceUnqueueBuffers(source, 1, &alBuffers[channel]);
+		alSourceStop(source);
 	}
 
 	std::string getALErrorString()
@@ -257,27 +278,37 @@ public:
 		}
 	}
 
-	void StopSound(int channel) override
-	{
-		if (channel >= alSources.size())
-			throw std::runtime_error("Invalid StopSound arguments");
-
-		//voices[channel]->Stop();
-	}
-
 	void SetMusicVolume(float volume) override
 	{
-		//musicVoice->SetVolume(volume);
+		alSourcef(alMusicSource, AL_GAIN, volume);
 	}
 
 	void SetSoundVolume(float volume) override
 	{
-		//soundSubmixVoice->SetVolume(volume);
+		alListenerf(AL_GAIN, volume);
 	}
 
 	void Update() override
 	{
-		//UpdateMusic();
+		UActor* listener = engine->CameraActor;
+
+		// Update listener properties
+		vec3& location = listener->Location();
+		vec3& velocity = listener->Velocity();
+
+		// XXX: should we be using native functions here like this?
+		vec3 at, left, up;
+		NObject::GetAxes(listener->Rotation(), at, left, up);
+
+		ALfloat orientation[6] =
+		{
+			at.x, at.y, at.z,
+			up.x, up.y, up.z
+		};
+
+		//alListener3f(AL_POSITION, location.x, location.y, location.z);
+		//alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
+		//alListenerfv(AL_ORIENTATION, orientation);
 	}
 
 	void UpdateMusicLoop()
