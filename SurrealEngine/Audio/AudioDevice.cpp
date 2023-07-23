@@ -239,7 +239,7 @@ public:
 
 		ALuint id;
 		alGenBuffers(1, &id);
-		alBufferData(id, format, sound->samples.data(), sound->samples.size(), sound->frequency);
+		alBufferData(id, format, sound->samples.data(), sound->samples.size()*sizeof(sound->samples[0]), sound->frequency);
 		alError = alGetError();
 		if (alError != AL_NO_ERROR)
 			throw std::runtime_error("Failed to buffer sound data for " + sound->Name.ToString());
@@ -262,7 +262,13 @@ public:
 		}
 	}
 
-	void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
+	bool IsPlaying(int channel)
+	{
+		ALSoundSource& source = sources[channel];
+		return source.IsPlaying();
+	}
+
+	void PlayMusic(std::unique_ptr<AudioSource> source)
 	{
 		playbackMutex.lock();
 		music = std::move(source);
@@ -300,22 +306,12 @@ public:
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
 
-		//ALSoundSource& source = sources[channel];
-		//if (source.GetSound() != sound)
-		//{
-		//	source.Stop();
-		//	source.SetSound(sound);
-		//}
-		//
-		////source.SetPosition(location);
-		//source.SetVolume(1.0f);
-		////source.SetRadius(radius);
-		////source.SetPitch(pitch);
-		//
-		//if (!source.IsPlaying())
-		//{
-		//	source.Play();
-		//}
+		ALSoundSource& source = sources[channel];
+
+		//source.SetPosition(location);
+		source.SetVolume(1.0f);
+		//source.SetRadius(radius);
+		//source.SetPitch(pitch);
 	}
 
 	void StopSound(int channel) override

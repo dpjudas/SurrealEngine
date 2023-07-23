@@ -144,7 +144,14 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
-				Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+				if (Device->IsPlaying(Playing.Channel))
+				{
+					Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+				}
+				else
+				{
+					PlayingSounds[i] = {};
+				}
 			}
 			else
 			{
