@@ -215,6 +215,8 @@ public:
 		drwav_bool32 result = drwav_init_ex(&decoder, &WavAudioSource::StaticInputRead, &WavAudioSource::StaticInputSeek, nullptr, this, nullptr, 0, nullptr);
 		if (!result)
 			throw std::runtime_error("Could not open wav file");
+
+		
 	}
 
 	~WavAudioSource()

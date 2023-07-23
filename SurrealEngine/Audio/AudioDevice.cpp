@@ -140,7 +140,8 @@ private:
 };
 
 // TODO list:
-//  Sound playback
+//  Sound looping
+//  Positional audio
 //  Music fade in/out
 //  Music crossfade
 //  EFX effects
