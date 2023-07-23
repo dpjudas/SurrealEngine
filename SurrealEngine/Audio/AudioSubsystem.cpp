@@ -15,7 +15,7 @@ AudioSubsystem::AudioSubsystem()
 	// TODO: Add option for number of sound channels
 	// TODO: Add option for music buffer count
 	// TODO: Add option for music buffer size
-	Device = AudioDevice::Create(48000, 32, 16, 256);
+	Device = AudioDevice::Create(48000, 256, 16, 256);
 }
 
 void AudioSubsystem::SetViewport(UViewport* InViewport)
@@ -216,6 +216,8 @@ bool AudioSubsystem::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Locati
 	// If no sound, or its priority is overruled, stop it
 	if (Index == PlayingSounds.size())
 		return 0;
+
+	Sound->GetSound();
 
 	// Put the sound on the play-list
 	StopSound(Index);

@@ -27,4 +27,5 @@ public:
 	float duration = 0.0f;
 	int frequency = 0;
 	int channels = 0;
+	void* handle = nullptr;
 };

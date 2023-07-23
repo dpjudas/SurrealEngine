@@ -18,6 +18,135 @@
 
 class AudioDeviceImpl;
 
+class ALSoundSource
+{
+public:
+	ALSoundSource()
+	{
+		alGenSources(1, &id);
+		if (alGetError() != AL_NO_ERROR)
+			throw std::runtime_error("Failed to generate AL source");
+	}
+
+	~ALSoundSource()
+	{
+		alDeleteSources(1, &id);
+	}
+
+	void Play()
+	{
+		alSourcePlay(id);
+		if (alGetError() != AL_NO_ERROR)
+			throw std::runtime_error("Failed to play AL source");
+	}
+
+	void Stop()
+	{
+		alSourceStop(id);
+	}
+
+	bool IsPlaying()
+	{
+		if (!alIsSource(id))
+			return false;
+
+		ALint state;
+		alGetSourcei(id, AL_SOURCE_STATE, &state);
+		return state == AL_PLAYING;
+	}
+
+	USound* GetSound()
+	{
+		return sound;
+	}
+
+	void SetDopplerFactor(float newDopplerFactor)
+	{
+		if (dopplerFactor != newDopplerFactor)
+		{
+			dopplerFactor = newDopplerFactor;
+			alSourcef(id, AL_DOPPLER_FACTOR, dopplerFactor);
+		}
+	}
+
+	void SetPosition(vec3& newPosition)
+	{
+		position.x = newPosition.x;
+		position.y = newPosition.y;
+		position.z = -newPosition.z;
+		alSourcefv(id, AL_POSITION, &position[0]);
+	}
+
+	void SetRadius(float newRadius)
+	{
+		if (radius != newRadius)
+		{
+			radius = newRadius;
+			alSourcef(id, AL_MAX_DISTANCE, radius);
+			alSourcef(id, AL_REFERENCE_DISTANCE, 0.1 * radius);
+		}
+	}
+
+	void SetSound(USound* newSound)
+	{
+		if (sound != newSound)
+		{
+			sound = newSound;
+			alSourcei(id, AL_BUFFER, 0);
+			alGetError();
+			alSourcei(id, AL_BUFFER, reinterpret_cast<ALint>(sound->handle));
+		}
+	}
+
+	void SetSpatial(bool bSpatial)
+	{
+		if (bIs3d != bSpatial)
+		{
+			bIs3d = bSpatial;
+			alSourcei(id, AL_SOURCE_SPATIALIZE_SOFT, bIs3d);
+		}
+	}
+
+	void SetVolume(float newVolume)
+	{
+		if (volume != newVolume)
+		{
+			volume = newVolume;
+			alSourcef(id, AL_GAIN, volume);
+			alSourcef(id, AL_MAX_GAIN, volume);
+		}
+	}
+
+	void SetPitch(float newPitch)
+	{
+		if (pitch != newPitch)
+		{
+			pitch = newPitch;
+			alSourcef(id, AL_PITCH, pitch);
+		}
+	}
+
+	ALuint id = -1;
+
+private:
+	UActor* actor = nullptr;
+	USound* sound = nullptr;
+	vec3 position;
+	float radius = 0.0f;
+	float volume = 0.0f;
+	float pitch = 0.0f;
+	float dopplerFactor = 0.0f;
+	bool bIs3d = false;
+};
+
+// TODO list:
+//  Sound playback
+//  Music fade in/out
+//  Music crossfade
+//  EFX effects
+//  Support for real EAX hardware
+//  (maybe) A3D style sound tracing
+
 class OpenALAudioDevice : public AudioDevice
 {
 public:
@@ -48,35 +177,10 @@ public:
 		if (alDevice == nullptr)
 			throw std::runtime_error("Failed to initialize OpenAL device");
 
-		// Create dummy context to determine supported maximum source count
-		alContext = alcCreateContext(alDevice, NULL);
-		if (alContext == nullptr)
-			throw std::runtime_error("Failed to initialize dummy OpenAL context");
-
-		ALCint numAttribs = 0;
-		alcGetIntegerv(alDevice, ALC_ATTRIBUTES_SIZE, 1, &numAttribs);
-
-		std::vector<ALCint> attribs(numAttribs);
-		alcGetIntegerv(alDevice, ALC_ALL_ATTRIBUTES, numAttribs, &attribs[0]);
-
-		// Get maximum source counts
-		ALCint maxMonoSources = 0, maxStereoSources = 0;
-		for (int i = 0; i < numAttribs; i++)
-		{
-			if (attribs[i] == ALC_MONO_SOURCES)
-				maxMonoSources = attribs[i + 1];
-			else if (attribs[i] == ALC_STEREO_SOURCES)
-				maxStereoSources = attribs[i + 1];
-		}
-
-		alcDestroyContext(alContext);
-
 		const ALCint ctxAttribs[] =
 		{
 			ALC_FREQUENCY, inFrequency,
-			ALC_MONO_SOURCES, maxMonoSources,
-			ALC_STEREO_SOURCES, maxStereoSources,
-			ALC_REFRESH, 30,
+			ALC_REFRESH, 60,
 			ALC_SYNC, ALC_FALSE
 		};
 
@@ -92,14 +196,16 @@ public:
 		alListener3f(AL_VELOCITY, 0, 0, 0);
 		alListenerfv(AL_ORIENTATION, listenerOri);
 
-		// init sound sources/buffers
-		alSources.resize(maxMonoSources);
-		alBuffers.resize(maxMonoSources);
-		alGenSources(maxMonoSources, &alSources[0]);
-		alGenBuffers(maxMonoSources, &alBuffers[0]);
+		// Init sound sources
+		alcGetIntegerv(alDevice, ALC_MONO_SOURCES, 1, &monoSources);
+		alcGetIntegerv(alDevice, ALC_STEREO_SOURCES, 1, &stereoSources);
+
+		// TODO: how do we prioritize mono vs stereo source count?
+		sources.resize(monoSources);
 
 		// init music source/buffer
 		alGenSources(1, &alMusicSource);
+		alSourcei(alMusicSource, AL_SOURCE_SPATIALIZE_SOFT, AL_FALSE);
 
 		alMusicBuffers.resize(musicBufferCount);
 		alGenBuffers(musicBufferCount, &alMusicBuffers[0]);
@@ -115,10 +221,7 @@ public:
 		playbackThread->join();
 
 		alDeleteBuffers(alMusicBuffers.size(), &alMusicBuffers[0]);
-		alDeleteBuffers(alBuffers.size(), &alBuffers[0]);
-
 		alDeleteSources(1, &alMusicSource);
-		alDeleteSources(alSources.size(), &alSources[0]);
 
 		alcDestroyContext(alContext);
 		alcCloseDevice(alDevice);
@@ -129,11 +232,34 @@ public:
 	void AudioDevice::AddSound(USound* sound)
 	{
 		sounds.push_back(sound);
+
+		ALenum format = AL_FORMAT_MONO_FLOAT32;
+		if (sound->channels == 2)
+			format = AL_FORMAT_STEREO_FLOAT32;
+
+		ALuint id;
+		alGenBuffers(1, &id);
+		alBufferData(id, format, sound->samples.data(), sound->samples.size(), sound->frequency);
+		alError = alGetError();
+		if (alError != AL_NO_ERROR)
+			throw std::runtime_error("Failed to buffer sound data for " + sound->Name.ToString());
+
+		sound->handle = reinterpret_cast<void*>(id);
 	}
 
 	void AudioDevice::RemoveSound(USound* sound)
 	{
-		// TODO:
+		auto it = sounds.begin();
+		while (it != sounds.end())
+		{
+			if (*it == sound)
+			{
+				// TOOD: find sources playing this sound and stop them?
+				sounds.erase(it);
+				alDeleteBuffers(1, reinterpret_cast<const ALuint*>(&sound->handle));
+				return;
+			}
+		}
 	}
 
 	void AudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
@@ -146,57 +272,58 @@ public:
 
 	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
-		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= alSources.size())
+		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
 
-		ALuint source = alSources[channel];
-		ALint state;
-		alGetSourcei(source, AL_SOURCE_STATE, &state);
-		if (state == AL_PLAYING)
-			throw std::runtime_error("Attempt to play sound on an active channel");
+		ALSoundSource& source = sources[channel];
+		if (source.IsPlaying())
+		{
+			engine->LogMessage("Attempted to play sound on active channel " + channel);
+			return 0;
+		}
 
-		int format = AL_FORMAT_MONO_FLOAT32;
-		if (sound->GetChannels() == 2)
-			format = AL_FORMAT_STEREO_FLOAT32;
+		vec3 dummy = { 0.0f,0.0f,0.0f };
 
-		alBufferData(alBuffers[channel], format, sound->samples.data(), sound->samples.size(), sound->frequency);
-
-		//alSource3f(source, AL_POSITION, location.x, location.y, location.z);
-		//alSourcef(source, AL_GAIN, volume);
-		//alSourcef(source, AL_MAX_DISTANCE, radius);
-		//alSourcef(source, AL_PITCH, pitch);
-		
-		alSourceQueueBuffers(source, 1, &alBuffers[channel]);
-		alSourcePlay(source);
+		source.SetSound(sound);
+		//source.SetPosition(dummy);
+		source.SetVolume(1.0f);
+		//source.SetRadius(radius);
+		//source.SetPitch(pitch);
+		//source.SetSpatial(false);
+		source.Play();
 
 		return channel;
 	}
 
 	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
-		if (!std::isfinite(volume) || !std::isfinite(pitch) || channel >= alSources.size())
-			throw std::runtime_error("Invalid UpdateSound arguments");
+		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
+			throw std::runtime_error("Invalid PlaySound arguments");
 
-		ALuint source = alSources[channel];
-		//ALint state;
-		//alGetSourcei(source, AL_SOURCE_STATE, &state);
-		//if (state == AL_PLAYING)
+		//ALSoundSource& source = sources[channel];
+		//if (source.GetSound() != sound)
 		//{
-			//alSource3f(source, AL_POSITION, location.x, location.y, location.z);
-			//alSourcef(source, AL_GAIN, volume);
-			//alSourcef(source, AL_MAX_DISTANCE, radius);
-			//alSourcef(source, AL_PITCH, pitch);
+		//	source.Stop();
+		//	source.SetSound(sound);
+		//}
+		//
+		////source.SetPosition(location);
+		//source.SetVolume(1.0f);
+		////source.SetRadius(radius);
+		////source.SetPitch(pitch);
+		//
+		//if (!source.IsPlaying())
+		//{
+		//	source.Play();
 		//}
 	}
 
 	void StopSound(int channel) override
 	{
-		if (channel >= alSources.size())
+		if (channel >= sources.size())
 			throw std::runtime_error("Invalid StopSound arguments");
 
-		ALuint source = alSources[channel];
-		alSourceUnqueueBuffers(source, 1, &alBuffers[channel]);
-		alSourceStop(source);
+		sources[channel].Stop();
 	}
 
 	std::string getALErrorString()
@@ -306,7 +433,7 @@ public:
 			up.x, up.y, up.z
 		};
 
-		//alListener3f(AL_POSITION, location.x, location.y, location.z);
+		//alListener3f(AL_POSITION, location.x, location.y, -location.z);
 		//alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
 		//alListenerfv(AL_ORIENTATION, orientation);
 	}
@@ -361,11 +488,12 @@ public:
 
 	ALCdevice* alDevice;
 	ALCcontext* alContext;
-	ALuint alMusicSource;
 	ALenum alError;
-	std::vector<ALuint> alSources;
-	std::vector<ALuint> alBuffers;
+	ALuint alMusicSource;
 	std::vector<ALuint> alMusicBuffers;
+	std::vector<ALSoundSource> sources;
+	ALint monoSources;
+	ALint stereoSources;
 };
 
 std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize)
