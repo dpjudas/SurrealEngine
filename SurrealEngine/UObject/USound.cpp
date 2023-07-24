@@ -33,6 +33,10 @@ void USound::GetSound()
 	duration = samples.size() / (float)frequency;
 	channels = source->GetChannels();
 
+	loopInfo.Looped = source->bIsLooped;
+	loopInfo.LoopStart = source->loopStart;
+	loopInfo.LoopEnd = source->loopEnd;
+
 	engine->audio->GetDevice()->AddSound(this);
 }
 

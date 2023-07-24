@@ -4,14 +4,6 @@
 #include <memory>
 #include <vector>
 
-class AudioLoopInfo
-{
-public:
-	bool Looped = false;
-	uint64_t LoopStart = 0;
-	uint64_t LoopEnd = 0;
-};
-
 class AudioSource
 {
 public:
@@ -30,5 +22,7 @@ public:
 	virtual void SeekToSample(uint64_t position) = 0;
 	virtual size_t ReadSamples(float* output, size_t samples) = 0;
 
-	AudioLoopInfo loopInfo;
+	bool bIsLooped = false;
+	uint32_t loopStart;
+	uint32_t loopEnd;
 };

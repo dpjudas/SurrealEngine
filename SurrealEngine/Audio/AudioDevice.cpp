@@ -95,6 +95,9 @@ public:
 			alSourcei(id, AL_BUFFER, 0);
 			alGetError();
 			alSourcei(id, AL_BUFFER, reinterpret_cast<ALint>(sound->handle));
+
+			if (sound->loopInfo.Looped)
+				alSourcei(id, AL_LOOPING, AL_TRUE);
 		}
 	}
 
@@ -124,6 +127,14 @@ public:
 			pitch = newPitch;
 			alSourcef(id, AL_PITCH, pitch);
 		}
+	}
+
+	void DoLoop()
+	{
+		ALint offset;
+		alGetSourcei(id, AL_SAMPLE_OFFSET, &offset);
+		if (offset >= sound->loopInfo.LoopEnd)
+			alSourcei(id, AL_SAMPLE_OFFSET, sound->loopInfo.LoopStart);
 	}
 
 	ALuint id = -1;
@@ -293,7 +304,7 @@ public:
 
 		source.SetSound(sound);
 		//source.SetPosition(dummy);
-		source.SetVolume(1.0f);
+		source.SetVolume(volume / 255.0f);
 		//source.SetRadius(radius);
 		//source.SetPitch(pitch);
 		//source.SetSpatial(false);
@@ -310,7 +321,7 @@ public:
 		ALSoundSource& source = sources[channel];
 
 		//source.SetPosition(location);
-		source.SetVolume(1.0f);
+		source.SetVolume(volume / 255.0f);
 		//source.SetRadius(radius);
 		//source.SetPitch(pitch);
 	}
