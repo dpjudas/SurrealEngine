@@ -98,6 +98,8 @@ public:
 
 			if (sound->loopInfo.Looped)
 				alSourcei(id, AL_LOOPING, AL_TRUE);
+			else
+				alSourcei(id, AL_LOOPING, AL_FALSE);
 		}
 	}
 
@@ -131,10 +133,13 @@ public:
 
 	void DoLoop()
 	{
-		ALint offset;
-		alGetSourcei(id, AL_SAMPLE_OFFSET, &offset);
-		if (offset >= sound->loopInfo.LoopEnd)
-			alSourcei(id, AL_SAMPLE_OFFSET, sound->loopInfo.LoopStart);
+		if (sound->loopInfo.Looped)
+		{
+			ALint offset;
+			alGetSourcei(id, AL_SAMPLE_OFFSET, &offset);
+			if (offset >= sound->loopInfo.LoopEnd)
+				alSourcei(id, AL_SAMPLE_OFFSET, sound->loopInfo.LoopStart);
+		}
 	}
 
 	ALuint id = -1;
@@ -324,6 +329,8 @@ public:
 		source.SetVolume(volume / 255.0f);
 		//source.SetRadius(radius);
 		//source.SetPitch(pitch);
+
+		source.DoLoop();
 	}
 
 	void StopSound(int channel) override

@@ -23,6 +23,6 @@ public:
 	virtual size_t ReadSamples(float* output, size_t samples) = 0;
 
 	bool bIsLooped = false;
-	uint32_t loopStart;
-	uint32_t loopEnd;
+	uint32_t loopStart = 0;
+	uint32_t loopEnd = 0;
 };
