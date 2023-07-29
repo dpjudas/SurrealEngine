@@ -89,7 +89,7 @@ void Engine::Run()
 			EntryLevelInfo->TimeSeconds() += entryLevelElapsed;
 		LevelInfo->TimeSeconds() += levelElapsed;
 
-		UpdateInput();
+		UpdateInput(realTimeElapsed);
 
 		CallEvent(console, "Tick", { ExpressionValue::FloatValue(levelElapsed) });
 
@@ -687,15 +687,18 @@ void Engine::LoadKeybindings()
 	}
 }
 
-void Engine::UpdateInput()
+void Engine::UpdateInput(float timeElapsed)
 {
+	if (timeElapsed <= 0.0f)
+		return;
+
 	InputEvent(window.get(), IK_MouseX, IST_Axis, 0);
 	InputEvent(window.get(), IK_MouseY, IST_Axis, 0);
 	window->Tick();
 	for (auto& it : activeInputButtons)
 		viewport->Actor()->SetBool(it.first, true);
 	for (auto& it : activeInputAxes)
-		viewport->Actor()->SetFloat(it.first, it.second.Value);
+		viewport->Actor()->SetFloat(it.first, it.second.Value / (timeElapsed * 150.0f));
 }
 
 void Engine::Key(DisplayWindow* viewport, std::string key)

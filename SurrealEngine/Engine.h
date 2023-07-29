@@ -67,7 +67,7 @@ public:
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
 	void WindowClose(DisplayWindow* window);
-	void UpdateInput();
+	void UpdateInput(float timeElapsed);
 	void Key(DisplayWindow* window, std::string key);
 	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0);
 	void InputCommand(const std::string& command, EInputKey key, int delta);
