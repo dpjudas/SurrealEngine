@@ -129,7 +129,7 @@ void VulkanRenderDevice::Flush(bool AllowPrecache)
 		ClearTextureCache();
 
 		auto cmdbuffer = Commands->GetDrawCommands();
-		RenderPasses->BeginScene(cmdbuffer);
+		RenderPasses->BeginScene(cmdbuffer, vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 		VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
 		VkDeviceSize offsets[] = { 0 };
@@ -313,7 +313,7 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 		.Execute(Commands->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
 	auto cmdbuffer = Commands->GetDrawCommands();
-	RenderPasses->BeginScene(cmdbuffer);
+	RenderPasses->BeginScene(cmdbuffer, ScreenClear);
 
 	VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -792,27 +792,7 @@ void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 	SubmitAndWait(false, 0, 0);
 
 	uint8_t* pixels = (uint8_t*)staging->Map(0, w * h * 4);
-	if (gamma != 1.0f)
-	{
-		float invGamma = 1.0f / gamma;
-
-		uint8_t gammatable[256];
-		for (int i = 0; i < 256; i++)
-			gammatable[i] = (int)clamp(std::round(std::pow(i / 255.0f, invGamma) * 255.0f), 0.0f, 255.0f);
-
-		uint8_t* dest = (uint8_t*)data;
-		for (int i = 0; i < w * h * 4; i += 4)
-		{
-			dest[i] = gammatable[pixels[i]];
-			dest[i + 1] = gammatable[pixels[i + 1]];
-			dest[i + 2] = gammatable[pixels[i + 2]];
-			dest[i + 3] = pixels[i + 3];
-		}
-	}
-	else
-	{
-		memcpy(data, pixels, w * h * 4);
-	}
+	memcpy(data, pixels, w * h * 4);
 	staging->Unmap();
 }
 
@@ -964,7 +944,7 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 
 void VulkanRenderDevice::DrawPresentTexture(int x, int y, int width, int height)
 {
-	float gamma = (1.5f * Viewport->Brightness * 2.0f);
+	float gamma = Viewport->Brightness * 2.0f;
 
 	PresentPushConstants pushconstants;
 	pushconstants.InvGamma = 1.0f / gamma;

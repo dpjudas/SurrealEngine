@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zvulkan/vulkanobjects.h>
+#include "Math/vec.h"
 
 class VulkanRenderDevice;
 
@@ -22,7 +23,7 @@ public:
 	void DestroyPresentRenderPass();
 	void DestroyPresentPipeline();
 
-	void BeginScene(VulkanCommandBuffer* cmdbuffer);
+	void BeginScene(VulkanCommandBuffer* cmdbuffer, vec4 screenClear);
 	void EndScene(VulkanCommandBuffer* cmdbuffer);
 
 	void BeginPresent(VulkanCommandBuffer* cmdbuffer);

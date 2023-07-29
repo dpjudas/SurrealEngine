@@ -100,7 +100,10 @@ std::string FileResource::readAllText(const std::string& filename)
 
 			void main()
 			{
-				outColor = darkClamp(textureTex(texCoord)) * darkClamp(color);
+				float actorXBlending = (flags & 32) != 0 ? 1.5 : 1.0;
+				float oneXBlending = (flags & 64) != 0 ? 1.0 : 2.0;
+
+				outColor = darkClamp(textureTex(texCoord)) * darkClamp(color) * actorXBlending;
 
 				if ((flags & 2) != 0) // Macro texture
 				{
@@ -109,24 +112,24 @@ std::string FileResource::readAllText(const std::string& filename)
 
 				if ((flags & 1) != 0) // Lightmap
 				{
-					outColor.rgb *= clamp(textureLightmap(texCoord2).rgb - 0.03, 0.0, 1.0) * 2.0;
+					outColor.rgb *= clamp(textureLightmap(texCoord2).rgb, 0.0, 1.0) * oneXBlending;
 				}
 
 				if ((flags & 4) != 0) // Detail texture
 				{
-					float fadedistance = 300.0f;
+					float fadedistance = 380.0f;
 					float a = clamp(2.0f - (1.0f / gl_FragCoord.w) / fadedistance, 0.0f, 1.0f);
-					vec4 detailColor = (textureDetail(texCoord4) - 0.5) * 0.5 + 1.0;
+					vec4 detailColor = (textureDetail(texCoord4) - 0.5) * 0.8 + 1.0;
 					outColor.rgb = mix(outColor.rgb, outColor.rgb * detailColor.rgb, a);
 				}
 				else if ((flags & 8) != 0) // Fog map
 				{
-					vec4 fogcolor = darkClamp(textureDetail(texCoord4));
+					vec4 fogcolor = textureDetail(texCoord4);
 					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
 				}
 				else if ((flags & 16) != 0) // Fog color
 				{
-					vec4 fogcolor = darkClamp(vec4(texCoord2, texCoord3));
+					vec4 fogcolor = vec4(texCoord2, texCoord3);
 					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
 				}
 
