@@ -845,7 +845,7 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 
 	CurrentFrame = Frame;
 	Aspect = Frame->FY / Frame->FX;
-	RProjZ = (float)std::tan(radians(Frame->FovAngle/*Viewport->Actor->FovAngle*/) * 0.5);
+	RProjZ = (float)std::tan(radians(Frame->FovAngle) * 0.5);
 	RFX2 = 2.0f * RProjZ / Frame->FX;
 	RFY2 = 2.0f * RProjZ * Aspect / Frame->FY;
 

@@ -161,8 +161,8 @@ void RenderPassManager::CreatePipelines()
 			builder.RenderPass(SceneRenderPass.get());
 
 			// Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
-			//if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
-			//	builder.DepthClampEnable(true);
+			if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
+				builder.DepthClampEnable(true);
 
 			switch (i & 3)
 			{

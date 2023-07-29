@@ -96,7 +96,7 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 	frame.FY2 = frame.FY * 0.5f;
 	frame.ObjectToWorld = CoordsMatrix() * rotate;
 	frame.WorldToView = mat4::identity();
-	frame.FovAngle = 95.0f;
+	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;
 	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
 	float RFX2 = 2.0f * RProjZ / frame.FX;
