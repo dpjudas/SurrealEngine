@@ -231,7 +231,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			if (prop)
 			{
 				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
-				lvalue.VariableProperty->Construct(lvalue.VariablePtr);
+				lvalue.ConstructVariable();
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 				{
 					if (argindex < args.size())
@@ -260,7 +260,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 					args[argindex].Store(lvalue);
 				}
 
-				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm) && result.Type == ExpressionValueType::Nothing)
+				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm) && result.GetType() == ExpressionValueType::Nothing)
 				{
 					result = ExpressionValue::DefaultValue(prop);
 				}
@@ -268,7 +268,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 					argindex++;
 
-				lvalue.VariableProperty->Destruct(lvalue.VariablePtr);
+				lvalue.DestructVariable();
 			}
 		}
 

@@ -2,16 +2,16 @@
 #include "Precomp.h"
 #include "TraceSphereModel.h"
 
-std::vector<SweepHit> TraceSphereModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly)
+SweepHitList TraceSphereModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly)
 {
 	Model = model;
-	std::vector<SweepHit> hits;
+	SweepHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, radius, visibilityOnly, &Model->Nodes.front(), hits);
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	return hits;
 }
 
-void TraceSphereModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, std::vector<SweepHit>& hits)
+void TraceSphereModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double radius, bool visibilityOnly, BspNode* node, SweepHitList& hits)
 {
 	BspNode* polynode = node;
 	while (true)

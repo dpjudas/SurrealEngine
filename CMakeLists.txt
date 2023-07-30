@@ -509,7 +509,7 @@ endif()
 
 if(MSVC)
 	# Use all cores for compilation
-	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
+	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
 
 	# Add precompiled headers
 	# set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")

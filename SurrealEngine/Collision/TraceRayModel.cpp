@@ -2,10 +2,10 @@
 #include "Precomp.h"
 #include "TraceRayModel.h"
 
-std::vector<TraceHit> TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+TraceHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	Model = model;
-	std::vector<TraceHit> hits;
+	TraceHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front(), hits);
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	return hits;
@@ -17,7 +17,7 @@ bool TraceRayModel::TraceAnyHit(UModel* model, const dvec3& origin, double tmin,
 	return TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front());
 }
 
-void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, std::vector<TraceHit>& hits)
+void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, TraceHitList& hits)
 {
 	BspNode* polynode = node;
 	while (true)

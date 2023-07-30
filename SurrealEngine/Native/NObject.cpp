@@ -511,10 +511,7 @@ void NObject::FRand(float& ReturnValue)
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	mat4 m = A.ToMatrix();
-	X.x = m[0]; X.y = m[1]; X.z = m[2];
-	Y.x = m[4]; Y.y = m[5]; Y.z = m[6];
-	Z.x = m[8]; Z.y = m[9]; Z.z = m[10];
+	A.GetAxes(X, Y, Z);
 }
 
 void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
@@ -543,10 +540,7 @@ void NObject::GetStateName(UObject* Self, NameString& ReturnValue)
 
 void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	mat3 m = mat3::inverse(mat3(A.ToMatrix()));
-	X.x = m[0]; X.y = m[1]; X.z = m[2];
-	Y.x = m[3]; Y.y = m[4]; Y.z = m[5];
-	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
+	A.GetUnAxes(X, Y, Z);
 }
 
 void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)

@@ -27,7 +27,7 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 
 				float width = (float)light->Skin()->Mipmaps.front().Width;
 				float height = (float)light->Skin()->Mipmaps.front().Height;
-				float scale = frame->FY / 400.0f;
+				float size = light->DrawScale() * frame->FX * 0.8f;
 
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255/*light->LightBrightness()*/);
 
@@ -41,7 +41,7 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 				texinfo.VSize = texinfo.Texture->VSize();
 				if (texinfo.Texture->Palette())
 					texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
-				Device->DrawTile(frame, texinfo, x - width * scale * 0.5f, y - height * scale * 0.5f, width * scale, height * scale, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
+				Device->DrawTile(frame, texinfo, x - size * 0.5f, y - size * 0.5f, size, size, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
 			}
 		}
 	}
