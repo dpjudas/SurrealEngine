@@ -76,11 +76,43 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		}
 		break;
 
-	case LE_Searchlight:
-	case LE_StaticSpot:
 	case LE_Spotlight:
+	case LE_StaticSpot:
+	{
+		vec3 tmp0, tmp1, tmp2;
+		light->Rotation().GetAxes(tmp0, tmp1, tmp2);
+		vec3 spotDir = -tmp0;
+		float lightCosOuterAngle = 1.0f - light->LightCone() * (1.0f / 255.0f);
+		float lightCosInnerAngle = 1.0f;
+		for (int i = 0; i < size; i++)
+		{
+			vec3 L = light->Location() - locations[i];
+
+			//float dist = dot(L, L) * invRadiusSquared;
+			float dist = std::sqrt(dot(L, L)) * invRadius;
+			if (dist < 1.0f && lightCosOuterAngle < 1.0f)
+			{
+				float distanceAttenuation = LightDistanceFalloff(dist);
+				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
+				float cosDir = dot(normalize(L), spotDir);
+#if 0
+				float spotAttenuation = smoothstep(lightCosOuterAngle, lightCosInnerAngle, cosDir);
+#else
+				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
+				spotAttenuation = spotAttenuation * spotAttenuation;
+#endif
+				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
+			}
+			else
+			{
+				result[i] = 0.0f;
+			}
+		}
+		break;
+	}
+
+	case LE_Searchlight:
 	default:
-		// There are some maps where it looks horrible if they are drawn as point lights. Turn off for now.
 		for (int i = 0; i < size; i++)
 		{
 			result[i] = 0.0f;
