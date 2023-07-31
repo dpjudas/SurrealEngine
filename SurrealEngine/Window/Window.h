@@ -116,4 +116,6 @@ public:
 	int SizeY = 0;
 
 	float Brightness = 0.6f;
+
+	bool bLockCursor = false;
 };

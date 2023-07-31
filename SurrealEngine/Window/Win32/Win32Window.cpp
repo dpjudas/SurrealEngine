@@ -6,6 +6,7 @@
 #include <zvulkan/vulkancompatibledevice.h>
 #include <zvulkan/vulkanbuilders.h>
 #include "Engine.h"
+#include "UObject/UClient.h"
 
 #ifndef HID_USAGE_PAGE_GENERIC
 #define HID_USAGE_PAGE_GENERIC		((USHORT) 0x01)
@@ -77,7 +78,9 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	{
 		SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW);
 		SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPEDWINDOW | (GetWindowLongPtr(WindowHandle, GWL_STYLE) & WS_VISIBLE));
-		SetWindowPos(WindowHandle, 0, 0, 0, width, height, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
+
+		// TODO: don't hardcode size adjust for window borders?
+		SetWindowPos(WindowHandle, 0, 0, 0, width+20, height+43, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 	}
 
 	Fullscreen = fullscreen;
@@ -104,6 +107,7 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 	{
 		ShowWindow(WindowHandle, SW_SHOW);
 		SetActiveWindow(WindowHandle);
+		ResetMouse();
 	}
 }
 
@@ -201,6 +205,18 @@ void Win32Window::Tick()
 			engine->InputEvent(this, IK_MouseX, IST_Axis, +DX);
 		if (DY)
 			engine->InputEvent(this, IK_MouseY, IST_Axis, -DY);
+
+		// TODO: feels like this shouldn't go here...
+		if (engine->viewport->bShowWindowsMouse())
+		{
+			GetCursorPos(&MouseCoords);
+			engine->viewport->WindowsMouseX() = MouseCoords.x;
+			engine->viewport->WindowsMouseY() = MouseCoords.y;
+		}
+		else
+		{
+			ResetMouse();
+		}
 	}
 }
 
@@ -220,6 +236,19 @@ void Win32Window::ResumeGame()
 		Paused = false;
 		engine->SetPause(false);
 	}
+}
+
+void Win32Window::ResetMouse()
+{
+	// TODO: Remember last mouse position
+	// Center the mouse
+	POINT Center;
+	Center.x = SizeX / 2;
+	Center.y = SizeY / 2;
+	ClientToScreen(WindowHandle, &Center);
+	SetCursorPos(Center.x, Center.y);
+
+	MouseCoords = Center;
 }
 
 LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)

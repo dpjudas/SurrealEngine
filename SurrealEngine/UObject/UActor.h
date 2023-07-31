@@ -217,6 +217,7 @@ public:
 	} CollisionHashInfo;
 
 	float SleepTimeLeft = 0.0f;
+	vec3 gravityVector;
 
 	// Cached calculations needed by the renderer
 	bool lightsCalculated = false;

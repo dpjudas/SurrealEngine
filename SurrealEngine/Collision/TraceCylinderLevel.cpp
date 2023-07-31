@@ -3,6 +3,7 @@
 #include "TraceCylinderLevel.h"
 #include "TraceSphereModel.h"
 #include "TraceAABBModel.h"
+#include "TraceRayModel.h"
 #include "UObject/UActor.h"
 
 SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
@@ -13,6 +14,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 	Level = level;
 
 	dvec3 origin = to_dvec3(from);
+	dvec3 rayEnd = to_dvec3(to);
 	dvec3 direction = to_dvec3(to) - origin;
 	double tmin = 0.01f;
 	double tmax = length(direction);
@@ -23,7 +25,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 	float margin = 1.0f;
 	tmax += margin;
 
-	SweepHitList hits;
+	std::vector<SweepHit> hits;
 
 	if (traceActors)
 	{
@@ -45,7 +47,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 						{
 							for (UActor* actor : it->second)
 							{
-								double t = Level->Hash.ActorSphereIntersect(origin, tmin, direction, tmax, dradius, actor);
+								double t = Level->Hash.ActorCylinderIntersect(origin, direction, tmin, tmax, actor);
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;
@@ -63,16 +65,27 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 	{
 #if 1
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		TraceAABBModel tracemodel;
-		SweepHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
-		hits.push_back(worldHits);
+		if (extents == dvec3(0.0, 0.0, 0.0))
+		{
+			// Line/triangle intersect
+			TraceRayModel tracemodel;
+			TraceHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		}
+		else
+		{
+			// AABB/Triangle intersect
+			TraceAABBModel tracemodel;
+			SweepHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+		}
 #else
 		vec3 offset = vec3(0.0, 0.0, height - radius);
 		TraceSphereModel tracespheremodel;
 		for (const dvec3& origin : { to_dvec3(from - offset), to_dvec3(from), to_dvec3(from + offset) })
 		{
-			SweepHitList worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
-			hits.push_back(worldHits);
+			std::vector<SweepHit> worldHits = tracespheremodel.Trace(Level->Model, origin, tmin, direction, tmax, radius, visibilityOnly);
+			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
 		}
 #endif
 	}

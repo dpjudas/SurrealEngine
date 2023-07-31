@@ -26,6 +26,8 @@ public:
 	void PauseGame();
 	void ResumeGame();
 
+	void ResetMouse();
+
 	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
 	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
 
@@ -37,6 +39,8 @@ public:
 
 	int MouseMoveX = 0;
 	int MouseMoveY = 0;
+
+	POINT MouseCoords = {0, 0};
 
 	std::vector<ReceivedWindowMessage> ReceivedMessages;
 

@@ -10,19 +10,23 @@
 
 AudioSubsystem::AudioSubsystem()
 {
-	Mixer = AudioMixer::Create();
+	// TODO: Add configurable option for audio device
+	// TODO: Add configurable option for audio output frequency
+	// TODO: Add option for number of sound channels
+	// TODO: Add option for music buffer count
+	// TODO: Add option for music buffer size
+	Device = AudioDevice::Create(48000, 256, 16, 256);
 }
 
 void AudioSubsystem::SetViewport(UViewport* InViewport)
 {
 	if (Viewport != InViewport)
 	{
-		for (size_t i = 0; i < PlayingSounds.size(); i++)
-			StopSound(i);
+		StopSounds();
 
 		if (Viewport)
 		{
-			Mixer->PlayMusic({});
+			Device->PlayMusic({});
 		}
 
 		Viewport = InViewport;
@@ -49,9 +53,9 @@ void AudioSubsystem::Update(const mat4& listener)
 	UpdateSounds(listener);
 	UpdateMusic();
 
-	Mixer->SetMusicVolume(MusicVolume / 255.0f);
-	Mixer->SetSoundVolume(SoundVolume / 255.0f);
-	Mixer->Update();
+	Device->SetMusicVolume(MusicVolume / 255.0f);
+	Device->SetSoundVolume(SoundVolume / 255.0f);
+	Device->Update();
 }
 
 static float distSquared(const vec3& a, const vec3& b)
@@ -103,7 +107,7 @@ void AudioSubsystem::UpdateAmbience()
 		PlayingSound& Playing = PlayingSounds[i];
 		if ((Playing.Id & 14) == SLOT_Ambient * 2)
 		{
-			if (distSquared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
+			if (Playing.Actor->bDeleteMe() || distSquared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
 			{
 				// Ambient sound went out of range
 				StopSound(i);
@@ -126,15 +130,7 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 	{
 		PlayingSound& Playing = PlayingSounds[i];
 
-		if (Playing.Id == 0)
-		{
-			continue;
-		}
-		else if (Playing.Channel && Mixer->SoundFinished(Playing.Channel))
-		{
-			StopSound(i);
-		}
-		else
+		if (Playing.Id != 0)
 		{
 			// Update positioning from actor, if available
 			if (Playing.Actor)
@@ -143,42 +139,22 @@ void AudioSubsystem::UpdateSounds(const mat4& listener)
 			// Update the priority
 			Playing.Priority = SoundPriority(Viewport, Playing.Location, Playing.Volume, Playing.Radius);
 
-			// Compute the spatialization
-			vec3 Location = (listener * vec4(Playing.Location, 1.0f)).xyz();
-			float PanAngle = std::atan2(Location.x, std::abs(Location.z));
-
-			// Despatialize sounds when you get real close to them
-			float CenterDist = 0.1f * Playing.Radius;
-			float Size = length(Location);
-			if (Size < CenterDist)
-				PanAngle *= Size / CenterDist;
-
-			// Compute panning and volume
-			float SoundPan = clamp(PanAngle * 7 / 8 / 3.14159265359f, -1.0f, 1.0f);
-			float Attenuation = clamp(1.0f - Size / Playing.Radius, 0.0f, 1.0f);
-			float SoundVolume = clamp(Playing.Volume * Attenuation, 0.0f, 1.0f);
-			if (ReverseStereo)
-				SoundPan = -SoundPan;
-
-			// Compute doppler shifting
-			float Doppler = 1.0f;
-			if (Playing.Actor)
-			{
-				float V = dot(Playing.Actor->Velocity(), normalize(Playing.Actor->Location() - ViewActor->Location()));
-				Doppler = clamp(1.0f - V / DopplerSpeed, 0.5f, 2.0f);
-			}
-
 			// Update the sound.
-			AudioSound* Sound = Playing.Sound->GetSound();
-
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
-				Mixer->UpdateSound(Playing.Channel, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				if (Device->IsPlaying(Playing.Channel))
+				{
+					Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+				}
+				else
+				{
+					PlayingSounds[i] = {};
+				}
 			}
 			else
 			{
-				Playing.Channel = Mixer->PlaySound((int)i + 1, Sound, SoundVolume * 0.25f, SoundPan, Playing.Pitch * Doppler);
+				Playing.Channel = Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
 			}
 		}
 	}
@@ -192,7 +168,7 @@ void AudioSubsystem::UpdateMusic()
 
 		if (CurrentSong)
 		{
-			Mixer->PlayMusic({});
+			Device->PlayMusic({});
 			CurrentSong = nullptr;
 		}
 
@@ -202,7 +178,7 @@ void AudioSubsystem::UpdateMusic()
 		if (CurrentSong && UseDigitalMusic)
 		{
 			int subsong = CurrentSection != 255 ? CurrentSection : 0;
-			Mixer->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
+			Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
 		}
 
 		Viewport->Actor()->Transition() = MTRAN_None;
@@ -247,6 +223,8 @@ bool AudioSubsystem::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Locati
 	if (Index == PlayingSounds.size())
 		return 0;
 
+	Sound->GetSound();
+
 	// Put the sound on the play-list
 	StopSound(Index);
 	PlayingSounds[Index] = PlayingSound(Actor, Id, Sound, Location, Volume, Radius, Pitch, Priority);
@@ -260,10 +238,16 @@ void AudioSubsystem::StopSound(size_t index)
 
 	if (Playing.Channel)
 	{
-		Mixer->StopSound(Playing.Channel);
+		Device->StopSound(Playing.Channel);
 	}
 
 	PlayingSounds[index] = {};
+}
+
+void AudioSubsystem::StopSounds()
+{
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+		StopSound(i);
 }
 
 void AudioSubsystem::NoteDestroy(UActor* Actor)
@@ -294,10 +278,10 @@ float AudioSubsystem::SoundPriority(UViewport* Viewport, vec3 Location, float Vo
 
 void AudioSubsystem::BreakpointTriggered()
 {
-	if (Mixer)
+	if (Device)
 	{
-		Mixer->SetSoundVolume(0.0f);
-		Mixer->Update();
+		Device->SetSoundVolume(0.0f);
+		Device->Update();
 	}
 }
 

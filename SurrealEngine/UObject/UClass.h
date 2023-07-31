@@ -158,6 +158,22 @@ struct ClassDependency
 	uint32_t ScriptTextCRC = 0;
 };
 
+enum class ClassFlags : uint32_t
+{
+	Abstract = 0x00001, // Class is abstract and can't be instantiated directly
+	Compiled = 0x00002, // Script has been compiled successfully
+	Config = 0x00004, // Load object configuration at construction time
+	Transient = 0x00008, // This object type can't be saved; null it out at save time
+	Parsed = 0x00010, // Successfully parsed
+	Localized = 0x00020, // Class contains localized text
+	SafeReplace = 0x00040, // Objects of this class can be safely replaced with default or NULL
+	RuntimeStatic = 0x00080, // Objects of this class are static during gameplay
+	NoExport = 0x00100, // Does not have an export in script package
+	NoUserCreate = 0x00200, // Don't allow users to create in the editor
+	PerObjectConfig = 0x00400, // Handle object configuration on a per-object basis, rather than per-class
+	NativeReplication = 0x00800, // Replication handled in C++
+};
+
 class UClass : public UState
 {
 public:
@@ -168,7 +184,7 @@ public:
 	UObject* GetDefaultObject() { return this; }
 
 	uint32_t OldClassRecordSize = 0;
-	uint32_t ClassFlags = 0;
+	ClassFlags ClsFlags = {};
 	Guid ClassGuid;
 	std::vector<ClassDependency> Dependencies;
 	std::vector<int> PackageImports;

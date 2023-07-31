@@ -1,0 +1,18 @@
+- Gibbing on certain maps in Debug mode causes out of bounds vertex access
+- There's a memory leak (might have to do with some actors not disappearing? unsure, need a longer test run)
+- Teleporters are fuckin weird sometimes
+- Respawning in the ground?
+- swimming physics not implemented
+- PHYS_Swimming persists after dying in WaterZone
+	- might be because water physics isn't implemented
+- font rendering is a bit broken
+- where are the scripted textures?
+- ughhh......water textures ;-;
+- decals don't clip to bsp correctly
+- decals don't appear at all sometimes
+- rendering seeds crashes the game
+- viewclass crashes with null deref
+- lightmap rendering is kind of off
+- In DM-Deck16][, it is possible to pick up the shield belt by walking on the bridge above the actual pickup
+- Bots literally rotate their entire body (feet off the ground) to look up/downin ways they shouldn't be able to
+	- i think its reproducible by jumping on top of a bot?

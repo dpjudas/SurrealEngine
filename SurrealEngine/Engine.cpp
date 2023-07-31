@@ -47,10 +47,15 @@ void Engine::Run()
 {
 	std::srand((unsigned int)std::time(nullptr));
 
+	LoadEngineSettings();
 	LoadKeybindings();
 
 	window = DisplayWindow::Create(this);
-	window->OpenWindow(1800, 950, true);
+
+	int width = StartupFullscreen ? FullscreenViewportX : WindowedViewportX;
+	int height = StartupFullscreen ? FullscreenViewportY : WindowedViewportY;
+
+	window->OpenWindow(width, height, StartupFullscreen);
 
 	audio = std::make_unique<AudioSubsystem>();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
@@ -367,6 +372,8 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
+
+	audio->StopSounds();
 }
 
 void Engine::LoginPlayer()
@@ -511,6 +518,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		render->ShowTimedemoStats = args[1] == "1";
 	}
+	else if (command == "collisiondebug" && args.size() == 2)
+	{
+		render->ShowCollisionDebug = args[1] == "1";
+	}
 	else if (command == "showlog")
 	{
 		Frame::ShowDebuggerWindow();
@@ -527,6 +538,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}*/
 	else if (command == "getres")
 	{
+		// TODO: actually query this
 		return "1920x1080 1024x768 800x600";
 	}
 	else if (command == "getcolordepths")
@@ -653,6 +665,15 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 	return subcommands;
 }
 
+void Engine::LoadEngineSettings()
+{
+	WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
+	WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
+	FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
+	FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
+	StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
+}
+
 void Engine::LoadKeybindings()
 {
 	for (int i = 0; i < 256; i++)
@@ -724,9 +745,9 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 		if ((type == EInputType::IST_Press || type == EInputType::IST_Axis) && key >= 0 && key < 256)
 		{
 			if (type == EInputType::IST_Press)
-				delta = 16;
+				delta = 20;
 			else
-				delta *= 8;
+				delta *= 16;
 
 			for (const std::string& command : GetSubcommands(keybindings[keynames[key]]))
 			{
@@ -847,6 +868,18 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
+}
+
+void Engine::LockCursor()
+{
+	if (window)
+		window->bLockCursor = true;
+}
+
+void Engine::UnlockCursor()
+{
+	if (window)
+		window->bLockCursor = false;
 }
 
 void Engine::WindowClose(DisplayWindow* viewport)

@@ -9,6 +9,22 @@
 #include "Collision/TraceRayModel.h"
 #include "Collision/TraceCylinderLevel.h"
 
+BBox BspNode::GetCollisionBox(UModel* model) const
+{
+	int32_t* hullIndexList = &model->LeafHulls[CollisionBound];
+	int hullPlanesCount = 0;
+	while (hullIndexList[hullPlanesCount] >= 0)
+		hullPlanesCount++;
+
+	vec3* bboxStart = (vec3*)(&hullIndexList[hullPlanesCount + 1]);
+
+	BBox bbox;
+	bbox.min = bboxStart[0];
+	bbox.max = bboxStart[1];
+
+	return bbox;
+}
+
 void ULevelBase::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
+add_subdirectory( Thirdparty/openal-soft )
 
 project(SurrealEngine)
 
@@ -47,12 +48,10 @@ set(UTENGINE_SOURCES
 	SurrealEngine/VM/Iterator.cpp
 	SurrealEngine/VM/Iterator.h
 	SurrealEngine/Engine.h
-	SurrealEngine/Audio/AudioPlayer.cpp
-	SurrealEngine/Audio/AudioPlayer.h
 	SurrealEngine/Audio/AudioSource.h
 	SurrealEngine/Audio/AudioSource.cpp
-	SurrealEngine/Audio/AudioMixer.cpp
-	SurrealEngine/Audio/AudioMixer.h
+	SurrealEngine/Audio/AudioDevice.cpp
+	SurrealEngine/Audio/AudioDevice.h
 	SurrealEngine/Audio/AudioSubsystem.cpp
 	SurrealEngine/Audio/AudioSubsystem.h
 	SurrealEngine/Native/NStatLog.h
@@ -450,6 +449,7 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(UTENGINE_LIBS
 	zvulkan
+	OpenAL
 )
 
 source_group("SurrealEngine" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/.+")
@@ -523,3 +523,5 @@ endif()
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
 target_link_libraries(SurrealEngine ${UTENGINE_LIBS})
 set_target_properties(SurrealEngine PROPERTIES CXX_STANDARD 17)
+
+add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/Thirdparty/openal-soft/$<CONFIGURATION>/OpenAL32.dll" $<TARGET_FILE_DIR:SurrealEngine>)

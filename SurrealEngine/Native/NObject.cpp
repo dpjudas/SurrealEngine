@@ -12,6 +12,7 @@
 #pragma warning(disable: 4244) // warning C4244: '/=': conversion from 'float' to 'int', possible loss of data
 #endif
 
+// TODO: assign native indices based on game, not hardcoded
 void NObject::RegisterFunctions()
 {
 	RegisterVMNativeFunc_2("Object", "Abs", &NObject::Abs, 186);
@@ -450,7 +451,7 @@ void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
 
 void NObject::EqualEqual_FloatFloat(float A, float B, bool& ReturnValue)
 {
-	ReturnValue = (A == B);
+	ReturnValue = (Float::Equals(A, B));
 }
 
 void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)

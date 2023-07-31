@@ -215,6 +215,14 @@ public:
 		drwav_bool32 result = drwav_init_ex(&decoder, &WavAudioSource::StaticInputRead, &WavAudioSource::StaticInputSeek, nullptr, this, nullptr, 0, nullptr);
 		if (!result)
 			throw std::runtime_error("Could not open wav file");
+
+		// drwav only supports 1 loop
+		if (decoder.smpl.numSampleLoops == 1)
+		{
+			bIsLooped = true;
+			loopStart = decoder.smpl.loops[0].start;
+			loopEnd = decoder.smpl.loops[0].end;
+		}
 	}
 
 	~WavAudioSource()

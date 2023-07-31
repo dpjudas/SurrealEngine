@@ -3,7 +3,7 @@
 #include "USound.h"
 #include "Engine.h"
 #include "Audio/AudioSource.h"
-#include "Audio/AudioMixer.h"
+#include "Audio/AudioDevice.h"
 #include "Audio/AudioSubsystem.h"
 
 void USound::Load(ObjectStream* stream)
@@ -18,50 +18,40 @@ void USound::Load(ObjectStream* stream)
 	stream->ReadBytes(Data.data(), size);
 }
 
-AudioSound* USound::GetSound()
+void USound::GetSound()
 {
-	if (Sound)
-		return Sound;
+	if (samples.size() > 0)
+		return;
 
-	// Search for smpl chunk in wav file to find its loop flags, if any:
-	// (yes, this code is very ugly but obviously I don't care anymore)
-	AudioLoopInfo loopinfo;
-	if (Data.size() > 44 && memcmp(Data.data(), "RIFF", 4) == 0 && memcmp(Data.data() + 8, "WAVE", 4) == 0)
-	{
-		size_t pos = 12;
-		while (pos + 8 < Data.size())
-		{
-			if (memcmp(Data.data() + pos, "smpl", 4) == 0 && pos + 0x2c <= Data.size())
-			{
-				uint32_t chunksize = *(uint32_t*)(Data.data() + pos + 4);
-				size_t endpos = pos + 8 + (size_t)chunksize;
+	std::unique_ptr<AudioSource> source = AudioSource::CreateWav(Data);
 
-				uint32_t sampleLoops = *(uint32_t*)(Data.data() + pos + 0x24);
-				pos += 0x2c;
+	#define ALIGN(x, a) ((x & ~(a-1)) + a)
+	samples.resize(ALIGN(source->GetSamples(), 4));
+	samples.resize(ALIGN(source->ReadSamples(samples.data(), samples.size()), 4));
 
-				if (sampleLoops != 0 && pos + 0x18 <= Data.size())
-				{
-					uint32_t type = *(uint32_t*)(Data.data() + pos + 0x04);
-					uint32_t start = *(uint32_t*)(Data.data() + pos + 0x08);
-					uint32_t end = *(uint32_t*)(Data.data() + pos + 0x0c);
+	frequency = source->GetFrequency();
+	duration = samples.size() / (float)frequency;
+	channels = source->GetChannels();
 
-					loopinfo.Looped = true;
-					// if (type & 1)
-					//	loopinfo.BidiLoop = true;
-					loopinfo.LoopStart = start;
-					loopinfo.LoopEnd = end;
-				}
+	loopInfo.Looped = source->bIsLooped;
+	loopInfo.LoopStart = source->loopStart;
+	loopInfo.LoopEnd = source->loopEnd;
 
-				pos = endpos;
-			}
-			else
-			{
-				uint32_t chunksize = *(uint32_t*)(Data.data() + pos + 4);
-				pos += 8 + (size_t)chunksize;
-			}
-		}
-	}
+	engine->audio->GetDevice()->AddSound(this);
+}
 
-	Sound = engine->audio->GetMixer()->AddSound(AudioSource::CreateWav(Data), loopinfo);
-	return Sound;
+float USound::GetDuration()
+{
+	if (duration == 0.0f)
+		GetSound();
+
+	return duration;
+}
+
+int USound::GetChannels()
+{
+	if (channels == 0)
+		GetSound();
+
+	return channels;
 }

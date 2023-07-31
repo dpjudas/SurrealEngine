@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 #include "Math/mat.h"
+#include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
 #include "UObject/UObject.h"
@@ -73,6 +74,9 @@ public:
 	void InputCommand(const std::string& command, EInputKey key, int delta);
 	void SetPause(bool value);
 
+	void LockCursor();
+	void UnlockCursor();
+
 	bool ExecCommand(const std::vector<std::string>& args);
 	std::vector<std::string> GetArgs(const std::string& commandline);
 	std::vector<std::string> GetSubcommands(const std::string& commandline);
@@ -105,7 +109,7 @@ public:
 
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
-	std::unique_ptr<DisplayWindow> window;
+	std::unique_ptr<DisplayWindow> window; // TODO: Move into UViewport
 	std::unique_ptr<RenderSubsystem> render;
 	std::unique_ptr<AudioSubsystem> audio;
 
@@ -116,9 +120,21 @@ public:
 	Rotator CameraRotation;
 	float CameraFovAngle = 95.0f;
 
+	// Collision debug
+	BspNode* PlayerBspNode = nullptr;
+	vec3 PlayerHitNormal;
+	vec3 PlayerHitLocation;
+
 	bool quit = false;
 
 	uint64_t lastTime = 0;
+
+	void LoadEngineSettings();
+	int WindowedViewportX;
+	int WindowedViewportY;
+	int FullscreenViewportX;
+	int FullscreenViewportY;
+	bool StartupFullscreen;
 
 	void LoadKeybindings();
 	std::map<std::string, std::string> keybindings;

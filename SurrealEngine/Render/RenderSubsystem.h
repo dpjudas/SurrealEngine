@@ -41,6 +41,7 @@ public:
 	ivec2 GetTextClippedSize(UFont* font, const std::string& text, float clipX);
 
 	bool ShowTimedemoStats = false;
+	bool ShowCollisionDebug = false;
 
 private:
 	void DrawScene();
@@ -67,6 +68,7 @@ private:
 	void RenderOverlays();
 	void PostRender();
 	void DrawTimedemoStats();
+	void DrawCollisionDebug();
 	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
 
 	void DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe = false);

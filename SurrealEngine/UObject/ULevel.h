@@ -18,6 +18,8 @@ enum EBspNodeFlags
 	NF_NotVisBlocking = 4
 };
 
+class UModel;
+class BspVert;
 class BspNode
 {
 public:
@@ -39,6 +41,8 @@ public:
 	uint8_t NumVertices;
 	int32_t Leaf0;
 	int32_t Leaf1;
+
+	BBox GetCollisionBox(UModel* model) const;
 };
 
 class BspSurface

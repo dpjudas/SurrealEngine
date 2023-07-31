@@ -505,7 +505,7 @@ void UActor::TickWalking(float elapsed)
 
 	// Step down after movement to see if we are still walking or if we are now falling
 	SweepHit hit = TryMove(stepDownDelta);
-	if (hit.Fraction == 1.0f)
+	if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f)
 	{
 		SetPhysics(PHYS_Falling);
 	}
@@ -550,7 +550,10 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * zone->ZoneGravity()) * 0.5f * elapsed;
+	gravityVector = zone->ZoneGravity();
+	double gravityMag = length(gravityVector);
+	vec3 oldVelocity = Velocity();
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + (gravityScale * gravityVector)) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -576,24 +579,63 @@ void UActor::TickFalling(float elapsed)
 		if (bBounce())
 		{
 			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			// TODO: perform bounce
 		}
 		else
 		{
-			// To do: slide along surfaces not pointing straight up
-			// To do: if we do slide along a surface we need to fire HitWall before continueing movement
+			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-			CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
-
-			if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+			// slide along surfaces sloped steeper than 45 degrees
+			vec3 up(0.0, 0.0, 1.0);
+			if (dot(up, hit.Normal) < 0.7071f)
 			{
-				if (UObject::TryCast<UPawn>(this))
+				Rotator rot = Rotator::FromVector(hit.Normal);
+
+				vec3 rads(radians(rot.PitchDegrees()), radians(rot.YawDegrees()), radians(rot.RollDegrees()));
+				float cp, sp, cy, sy, cr, sr;
+				cp = cosf(rads.x);
+				cy = cosf(rads.y);
+				cr = cosf(rads.z);
+				sp = sinf(rads.x);
+				sy = sinf(rads.y);
+				sr = sinf(rads.z);
+
+				gravityVector.x = -((cr * sp * cy) - (sr * -sy));	
+				gravityVector.y = ((cr * sp * sy) - (sr * cy));
+				gravityVector.z = -(cr * cp);
+				gravityVector *= gravityMag * 0.5;
+
+				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
+
+				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
+				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
+				if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
 				{
-					SetPhysics(PHYS_Walking);
+					float xySpeed = length(Velocity().xy());
+					Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
 				}
 				else
 				{
-					SetPhysics(PHYS_None);
-					Velocity() = vec3(0.0f);
+					Velocity() = newVelocity;
+				}
+
+				MoveSmooth(Velocity() * elapsed);
+			}
+			else
+			{
+				CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
+
+				if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+				{
+					if (UObject::TryCast<UPawn>(this))
+					{
+						SetPhysics(PHYS_Walking);
+					}
+					else
+					{
+						SetPhysics(PHYS_None);
+						Velocity() = vec3(0.0f);
+					}
 				}
 			}
 		}
@@ -602,10 +644,30 @@ void UActor::TickFalling(float elapsed)
 
 void UActor::TickSwimming(float elapsed)
 {
+	// TODO: need to implement swimming physics
+
+	SweepHit hit = TryMove(Velocity() * elapsed);
+	if (hit.Fraction < 1.0f)
+	{
+		// is this correct?
+		if (bBounce())
+		{
+			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+		}
+	}
 }
 
 void UActor::TickFlying(float elapsed)
 {
+	SweepHit hit = TryMove(Velocity() * elapsed);
+	if (hit.Fraction < 1.0f)
+	{
+		// is this correct?
+		if (bBounce())
+		{
+			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+		}
+	}
 }
 
 void UActor::TickRotating(float elapsed)
@@ -917,6 +979,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 		flags.onlyProjectiles = true;
 	}
 
+	// hack?
 	if (IsA("ChallengeHUD"))
 	{
 		flags.zoneChanges = true;
@@ -1011,6 +1074,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	}
 
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
+	engine->PlayerHitLocation = Location() + actuallyMoved;
 
 	XLevel()->Hash.RemoveFromCollision(this);
 	Location() += actuallyMoved;
@@ -1063,6 +1127,14 @@ SweepHit UActor::TryMove(const vec3& delta)
 	}
 
 	UpdateActorZone();
+
+	// TODO: remove this when we're no longer debugging collision
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+	if (player)
+	{
+		engine->PlayerBspNode = blockingHit.node;
+		engine->PlayerHitNormal = blockingHit.Normal;
+	}
 
 	return blockingHit;
 }
@@ -1881,6 +1953,9 @@ void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 			CallEvent(this, "PlayerTick", { ExpressionValue::FloatValue(elapsed) });
 		}
 	}
+
+	// TODO: is this the correct place to set this?
+	aForward() = 0.0f;
 }
 
 void UPlayerPawn::TickRotating(float elapsed)

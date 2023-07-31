@@ -7,6 +7,8 @@
 #include "X11/X11Window.h"
 #endif
 
+// TODO: base this off of ini setting, not dependent on OS macro
+
 #ifdef WIN32
 
 std::unique_ptr<DisplayWindow> DisplayWindow::Create(Engine* engine)

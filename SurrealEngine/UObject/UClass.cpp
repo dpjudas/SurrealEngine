@@ -408,6 +408,8 @@ void UState::Load(ObjectStream* stream)
 
 UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::move(name), this, flags, base)
 {
+	if (base)
+		ClsFlags = base->ClsFlags;
 }
 
 void UClass::Load(ObjectStream* stream)
@@ -420,7 +422,7 @@ void UClass::Load(ObjectStream* stream)
 		Flags = Flags | ObjectFlags::Public | ObjectFlags::Standalone;
 	}
 
-	ClassFlags = stream->ReadUInt32();
+	ClsFlags = (ClassFlags)stream->ReadUInt32();
 	stream->ReadBytes(ClassGuid.Data, 16);
 
 	int NumDependencies = stream->ReadIndex();
