@@ -326,11 +326,11 @@ public:
 		vec3 dummy = { 0.0f,0.0f,0.0f };
 
 		source.SetSound(sound);
-		//source.SetPosition(dummy);
+		source.SetPosition(dummy);
 		source.SetVolume(volume / 255.0f);
-		//source.SetRadius(radius);
-		//source.SetPitch(pitch);
-		//source.SetSpatial(false);
+		source.SetRadius(radius);
+		source.SetPitch(pitch);
+		source.SetSpatial(true);
 		source.Play();
 
 		return channel;
@@ -343,10 +343,10 @@ public:
 
 		ALSoundSource& source = sources[channel];
 
-		//source.SetPosition(location);
+		source.SetPosition(location);
 		source.SetVolume(volume / 255.0f);
-		//source.SetRadius(radius);
-		//source.SetPitch(pitch);
+		source.SetRadius(radius);
+		source.SetPitch(pitch);
 
 		source.DoLoop();
 	}
