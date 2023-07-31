@@ -41,6 +41,7 @@ public:
 
 	void BreakpointTriggered();
 	void AddStats(std::vector<std::string>& lines);
+	void StopSounds();
 
 	AudioDevice* GetDevice() { return Device.get(); }
 

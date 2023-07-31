@@ -372,6 +372,8 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
+
+	audio->StopSounds();
 }
 
 void Engine::LoginPlayer()

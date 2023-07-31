@@ -22,8 +22,7 @@ void AudioSubsystem::SetViewport(UViewport* InViewport)
 {
 	if (Viewport != InViewport)
 	{
-		for (size_t i = 0; i < PlayingSounds.size(); i++)
-			StopSound(i);
+		StopSounds();
 
 		if (Viewport)
 		{
@@ -243,6 +242,12 @@ void AudioSubsystem::StopSound(size_t index)
 	}
 
 	PlayingSounds[index] = {};
+}
+
+void AudioSubsystem::StopSounds()
+{
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+		StopSound(i);
 }
 
 void AudioSubsystem::NoteDestroy(UActor* Actor)
