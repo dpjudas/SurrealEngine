@@ -380,7 +380,6 @@ public:
 				throw std::runtime_error("alSourceQueueBuffers failed in PlayMusicBuffer: " + getALErrorString());
 		}
 
-		alSourcef(alMusicSource, AL_GAIN, 1.0f);
 		alSourcePlay(alMusicSource);
 		if (alGetError() != AL_NO_ERROR)
 			throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
@@ -410,7 +409,6 @@ public:
 			status--;
 		}
 
-		alSourcef(alMusicSource, AL_GAIN, 1.0f);
 		alGetSourcei(alMusicSource, AL_SOURCE_STATE, &status);
 		if (status == AL_STOPPED)
 		{
