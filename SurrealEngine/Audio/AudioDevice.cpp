@@ -18,6 +18,8 @@
 
 class AudioDeviceImpl;
 
+#define UU_PER_METER 43
+
 class ALSoundSource
 {
 public:
@@ -26,6 +28,8 @@ public:
 		alGenSources(1, &id);
 		if (alGetError() != AL_NO_ERROR)
 			throw std::runtime_error("Failed to generate AL source");
+
+		alSourcef(id, AL_ROLLOFF_FACTOR, 1.1f);
 	}
 
 	~ALSoundSource()
@@ -85,6 +89,14 @@ public:
 			alSourcef(id, AL_MAX_DISTANCE, radius);
 			alSourcef(id, AL_REFERENCE_DISTANCE, 0.1 * radius);
 		}
+	}
+
+	void SetVelocity(vec3& newVelocity)
+	{
+		velocity.x = newVelocity.x;
+		velocity.y = newVelocity.y;
+		velocity.z = -newVelocity.z;
+		alSourcefv(id, AL_VELOCITY, &velocity[0]);
 	}
 
 	void SetSound(USound* newSound)
@@ -148,6 +160,7 @@ private:
 	UActor* actor = nullptr;
 	USound* sound = nullptr;
 	vec3 position;
+	vec3 velocity;
 	float radius = 0.0f;
 	float volume = 0.0f;
 	float pitch = 0.0f;
@@ -208,10 +221,15 @@ public:
 		if (alcMakeContextCurrent(alContext) == ALC_FALSE)
 			throw std::runtime_error("Failed to make OpenAL context current");
 
-		ALfloat listenerOri[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		// init listener state
+		ALfloat listenerOri[] = { 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, -1.0f };
 		alListener3f(AL_POSITION, 0, 0, 0.0f);
 		alListener3f(AL_VELOCITY, 0, 0, 0);
 		alListenerfv(AL_ORIENTATION, listenerOri);
+		alListenerf(AL_METERS_PER_UNIT, 1.f / UU_PER_METER);
+
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		alSpeedOfSound(343.3f / (1.0f / UU_PER_METER));
 
 		// Init sound sources
 		alcGetIntegerv(alDevice, ALC_MONO_SOURCES, 1, &monoSources);
@@ -436,19 +454,13 @@ public:
 		vec3& location = listener->Location();
 		vec3& velocity = listener->Velocity();
 
-		// XXX: should we be using native functions here like this?
 		vec3 at, left, up;
-		NObject::GetAxes(listener->Rotation(), at, left, up);
+		listener->Rotation().GetAxes(at, left, up);
 
-		ALfloat orientation[6] =
-		{
-			at.x, at.y, at.z,
-			up.x, up.y, up.z
-		};
-
-		//alListener3f(AL_POSITION, location.x, location.y, -location.z);
-		//alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-		//alListenerfv(AL_ORIENTATION, orientation);
+		ALfloat listenerOri[6] = {up.x, up.y, -up.z, -at.x, -at.y, at.z};
+		alListener3f(AL_POSITION, location.x, location.y, -location.z);
+		alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
+		alListenerfv(AL_ORIENTATION, listenerOri);
 	}
 
 	void UpdateMusicLoop()
