@@ -108,7 +108,7 @@ void AudioSubsystem::UpdateAmbience()
 		PlayingSound& Playing = PlayingSounds[i];
 		if ((Playing.Id & 14) == SLOT_Ambient * 2)
 		{
-			if (distSquared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
+			if (Playing.Actor->bDeleteMe() || distSquared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
 			{
 				// Ambient sound went out of range
 				StopSound(i);
