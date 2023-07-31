@@ -523,3 +523,5 @@ endif()
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${UTENGINE_SOURCES} ${THIRDPARTY_SOURCES})
 target_link_libraries(SurrealEngine ${UTENGINE_LIBS})
 set_target_properties(SurrealEngine PROPERTIES CXX_STANDARD 17)
+
+add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/Thirdparty/openal-soft/$<CONFIGURATION>/OpenAL32.dll" $<TARGET_FILE_DIR:SurrealEngine>)
