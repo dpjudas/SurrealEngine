@@ -23,7 +23,6 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 
 	ExpressionEvaluator evaluator;
 	evaluator.Self = self;
-	if (context == (UObject*)0xccccccccccccccccULL) DebugBreak();
 	evaluator.Context = context;
 	evaluator.LocalVariables = localVariables;
 	expr->Visit(&evaluator);
