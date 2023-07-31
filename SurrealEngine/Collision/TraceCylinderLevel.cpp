@@ -6,7 +6,7 @@
 #include "TraceRayModel.h"
 #include "UObject/UActor.h"
 
-std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
@@ -69,14 +69,14 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 		{
 			// Line/triangle intersect
 			TraceRayModel tracemodel;
-			std::vector<TraceHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
+			TraceHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
 			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
 		}
 		else
 		{
 			// AABB/Triangle intersect
 			TraceAABBModel tracemodel;
-			std::vector<SweepHit> worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+			SweepHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
 			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
 		}
 #else
@@ -94,8 +94,7 @@ std::vector<SweepHit> TraceCylinderLevel::Trace(ULevel* level, const vec3& from,
 
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	std::set<UActor*> seenActors;
-	std::vector<SweepHit> uniqueHits;
-	uniqueHits.reserve(hits.size());
+	SweepHitList uniqueHits;
 	for (auto& hit : hits)
 	{
 		if (hit.Actor)
