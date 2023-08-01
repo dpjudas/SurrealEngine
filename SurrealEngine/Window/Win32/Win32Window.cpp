@@ -79,8 +79,9 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 		SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW);
 		SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPEDWINDOW | (GetWindowLongPtr(WindowHandle, GWL_STYLE) & WS_VISIBLE));
 
-		// TODO: don't hardcode size adjust for window borders?
-		SetWindowPos(WindowHandle, 0, 0, 0, width+20, height+43, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
+		RECT rect = { 0, 0, width, height };
+		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+		SetWindowPos(WindowHandle, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 	}
 
 	Fullscreen = fullscreen;
