@@ -719,7 +719,16 @@ void Engine::UpdateInput(float timeElapsed)
 	for (auto& it : activeInputButtons)
 		viewport->Actor()->SetBool(it.first, true);
 	for (auto& it : activeInputAxes)
-		viewport->Actor()->SetFloat(it.first, it.second.Value / (timeElapsed * 150.0f));
+	{
+		if (it.first == "aMouseX" || it.first == "aMouseY")
+		{
+			viewport->Actor()->SetFloat(it.first, it.second.Value / (timeElapsed * 150.0f));
+		}
+		else
+		{
+			viewport->Actor()->SetFloat(it.first, it.second.Value);
+		}
+	}
 }
 
 void Engine::Key(DisplayWindow* viewport, std::string key)
