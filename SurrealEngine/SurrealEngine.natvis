@@ -54,6 +54,6 @@
     <DisplayString>{Pitch}, {Yaw}, {Roll}</DisplayString>
   </Type>
   <Type Name="NameString">
-    <DisplayString>{NameString::Names[Index]} ({Index})</DisplayString>
+    <DisplayString>{NameString::Names[SpelledIndex]} ({NameString::Names[CompareIndex]})</DisplayString>
   </Type>
 </AutoVisualizer>

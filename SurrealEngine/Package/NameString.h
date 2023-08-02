@@ -47,7 +47,7 @@ private:
 		if (Names.empty())
 		{
 			Names.push_back("None");
-			CompareStringToIndex["none"] = 0;
+			CompareStringToIndex["NONE"] = 0;
 			SpellStringToIndex["None"] = { 0, 0 };
 		}
 
