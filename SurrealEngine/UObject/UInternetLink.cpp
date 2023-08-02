@@ -44,12 +44,12 @@ void UInternetLink::Tick(float elapsed, bool tickedFlag)
 		{
 			UStructProperty prop({}, nullptr, ObjectFlags::NoFlags);
 			prop.Struct = UObject::Cast<UStructProperty>(func->Properties[0])->Struct;
-			CallEvent(this, "Resolved", { ExpressionValue::Variable(&resolvedAddr, &prop) });
+			CallEvent(this, EventName::Resolved, { ExpressionValue::Variable(&resolvedAddr, &prop) });
 		}
 	}
 	else if (ResolveStatus == 3)
 	{
-		CallEvent(this, "ResolveFailed");
+		CallEvent(this, EventName::ResolveFailed);
 	}
 }
 

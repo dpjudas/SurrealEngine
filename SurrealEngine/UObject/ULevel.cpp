@@ -96,7 +96,7 @@ void ULevel::Tick(float elapsed)
 				actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
 				if (actor->LifeSpan() == 0.0f)
 				{
-					CallEvent(actor, "Expired");
+					CallEvent(actor, EventName::Expired);
 					actor->Destroy();
 				}
 			}

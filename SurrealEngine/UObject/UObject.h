@@ -12,6 +12,7 @@ class UClass;
 class UProperty;
 class Package;
 class Frame;
+enum class EventName;
 
 enum UnrealPropertyType
 {
@@ -162,6 +163,7 @@ public:
 	bool IsA(const NameString& className) const;
 
 	bool IsEventEnabled(const NameString& name) const;
+	bool IsEventEnabled(EventName name) const;
 
 	void EnableEvent(const NameString& name)
 	{

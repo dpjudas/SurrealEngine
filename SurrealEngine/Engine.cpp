@@ -96,7 +96,7 @@ void Engine::Run()
 
 		UpdateInput(realTimeElapsed);
 
-		CallEvent(console, "Tick", { ExpressionValue::FloatValue(levelElapsed) });
+		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
 		// To do: set these to true if the frame rate is too low
 		LevelInfo->bDropDetail() = false;
@@ -168,7 +168,7 @@ void Engine::Run()
 			CameraLocation = viewport->Actor()->Location();
 			CameraRotation = viewport->Actor()->Rotation();
 			CameraFovAngle = viewport->Actor()->FovAngle();
-			CallEvent(viewport->Actor(), "PlayerCalcView", {
+			CallEvent(viewport->Actor(), EventName::PlayerCalcView, {
 				ExpressionValue::Variable(&CameraActor, &objprop),
 				ExpressionValue::Variable(&CameraLocation, &vecprop),
 				ExpressionValue::Variable(&CameraRotation, &rotprop)
@@ -241,7 +241,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	ClientTravelInfo.URL.clear();
 
 	if (Level)
-		CallEvent(console, "NotifyLevelChange");
+		CallEvent(console, EventName::NotifyLevelChange);
 
 	if (url.HasOption("entry")) // Not sure what the purpose of this kind of travel is - do nothing for now.
 		return;
@@ -319,11 +319,11 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	// Note: this is never true. But maybe it will be once map loading or level hubs are implemented? If not, delete it!
 	if (LevelInfo->bBegunPlay())
 	{
-		CallEvent(GameInfo, "Spawned");
-		CallEvent(GameInfo, "PreBeginPlay");
-		CallEvent(GameInfo, "BeginPlay");
-		CallEvent(GameInfo, "PostBeginPlay");
-		CallEvent(GameInfo, "SetInitialState");
+		CallEvent(GameInfo, EventName::Spawned);
+		CallEvent(GameInfo, EventName::PreBeginPlay);
+		CallEvent(GameInfo, EventName::BeginPlay);
+		CallEvent(GameInfo, EventName::PostBeginPlay);
+		CallEvent(GameInfo, EventName::SetInitialState);
 
 		if (packages->GetEngineVersion() > 219)
 		{
@@ -345,7 +345,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 			{
 				UClass* cls = notifyObj->ActorClass();
 				if (cls && GameInfo->IsA(cls->Name))
-					GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
+					GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, EventName::SpawnNotification, { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
 			}
 		}
 	}
@@ -363,13 +363,13 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	std::string error;
 
 	LevelInfo->bStartup() = true;
-	CallEvent(GameInfo, "InitGame", { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
+	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
 	if (!error.empty())
 		throw std::runtime_error("InitGame failed: " + error);
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PreBeginPlay"); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "BeginPlay"); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "PostBeginPlay"); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, "SetInitialState"); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PreBeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::BeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PostBeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::SetInitialState); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
 
@@ -393,7 +393,7 @@ void Engine::LoginPlayer()
 	UClass* pawnClass = packages->FindClass(playerPawnClass);
 
 	// Perform PreLogin check (supposedly, good for early rejection in network games)
-	CallEvent(LevelInfo->Game(), "PreLogin", {
+	CallEvent(LevelInfo->Game(), EventName::PreLogin, {
 		ExpressionValue::StringValue(options),
 		ExpressionValue::Variable(&error, &stringProp),
 		ExpressionValue::Variable(&failcode, &stringProp),
@@ -403,7 +403,7 @@ void Engine::LoginPlayer()
 
 	// Create viewport pawn
 	size_t numActors = Level->Actors.size();
-	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), "Login", {
+	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), EventName::Login, {
 		ExpressionValue::StringValue(portal),
 		ExpressionValue::StringValue(options),
 		ExpressionValue::Variable(&error, &stringProp),
@@ -416,11 +416,11 @@ void Engine::LoginPlayer()
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;
 	viewport->Actor()->Player() = viewport;
-	CallEvent(viewport->Actor(), "Possess");
+	CallEvent(viewport->Actor(), EventName::Possess);
 
 	// Transfer travel actors to the new map
 
-	CallEvent(pawn, "TravelPreAccept");
+	CallEvent(pawn, EventName::TravelPreAccept);
 
 	std::vector<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
 	if (actorActuallySpawned)
@@ -460,15 +460,15 @@ void Engine::LoginPlayer()
 	}
 
 	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
-		CallEvent((*it).first, "TravelPreAccept");
+		CallEvent((*it).first, EventName::TravelPreAccept);
 
-	CallEvent(LevelInfo->Game(), "AcceptInventory", { ExpressionValue::ObjectValue(pawn) });
+	CallEvent(LevelInfo->Game(), EventName::AcceptInventory, { ExpressionValue::ObjectValue(pawn) });
 
 	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
-		CallEvent((*it).first, "TravelPostAccept");
+		CallEvent((*it).first, EventName::TravelPostAccept);
 
-	CallEvent(pawn, "TravelPostAccept");
-	CallEvent(LevelInfo->Game(), "PostLogin", { ExpressionValue::ObjectValue(pawn) });
+	CallEvent(pawn, EventName::TravelPostAccept);
+	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
 
@@ -478,8 +478,8 @@ void Engine::LoginPlayer()
 	//UObject* specialEvent1 = package->GetUObject("SpecialEvent", "SpecialEvent1");
 	if (specialEvent0)
 	{
-		CallEvent(specialEvent0, "Trigger", { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
-		//CallEvent(specialEvent1, "Trigger", { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
+		CallEvent(specialEvent0, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
+		//CallEvent(specialEvent1, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
 	}
 }
 
@@ -738,7 +738,7 @@ void Engine::Key(DisplayWindow* viewport, std::string key)
 
 	for (char c : key)
 	{
-		CallEvent(console, "KeyType", { ExpressionValue::ByteValue(c) });
+		CallEvent(console, EventName::KeyType, { ExpressionValue::ByteValue(c) });
 	}
 }
 
@@ -747,7 +747,7 @@ void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, i
 	if (Frame::RunState != FrameRunState::Running)
 		return;
 
-	bool handled = CallEvent(console, "KeyEvent", { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) }).ToBool();
+	bool handled = CallEvent(console, EventName::KeyEvent, { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) }).ToBool();
 	
 	if (!handled)
 	{
