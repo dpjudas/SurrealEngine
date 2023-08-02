@@ -43,7 +43,8 @@ struct GouraudVertex
 struct FSurfaceFacet
 {
 	FCoords MapCoords;
-	std::vector<std::vector<vec3>> Polys;
+	vec3* Vertices;
+	uint32_t VertexCount;
 };
 
 struct FColor

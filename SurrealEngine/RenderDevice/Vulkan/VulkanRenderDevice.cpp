@@ -487,48 +487,44 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	uint32_t istart = ipos;
 	uint32_t icount = 0;
 
-	for (const std::vector<vec3>& Poly : Facet.Polys)
+	auto pts = Facet.Vertices;
+	uint32_t vcount = Facet.VertexCount;
+
+	for (uint32_t i = 0; i < vcount; i++)
 	{
-		auto pts = Poly.data();
-		uint32_t vcount = (uint32_t)Poly.size();
-		if (vcount < 3) continue;
+		vec3 point = pts[i];
+		float u = dot(Facet.MapCoords.XAxis, point);
+		float v = dot(Facet.MapCoords.YAxis, point);
 
-		for (uint32_t i = 0; i < vcount; i++)
-		{
-			vec3 point = pts[i];
-			float u = dot(Facet.MapCoords.XAxis, point);
-			float v = dot(Facet.MapCoords.YAxis, point);
-
-			vptr->Flags = flags;
-			vptr->Position.x = point.x;
-			vptr->Position.y = point.y;
-			vptr->Position.z = point.z;
-			vptr->TexCoord.s = (u - UPan) * UMult;
-			vptr->TexCoord.t = (v - VPan) * VMult;
-			vptr->TexCoord2.s = (u - LMUPan) * LMUMult;
-			vptr->TexCoord2.t = (v - LMVPan) * LMVMult;
-			vptr->TexCoord3.s = (u - MacroUPan) * MacroUMult;
-			vptr->TexCoord3.t = (v - MacroVPan) * MacroVMult;
-			vptr->TexCoord4.s = (u - DetailUPan) * DetailUMult;
-			vptr->TexCoord4.t = (v - DetailVPan) * DetailVMult;
-			vptr->Color.r = 1.0f;
-			vptr->Color.g = 1.0f;
-			vptr->Color.b = 1.0f;
-			vptr->Color.a = 1.0f;
-			vptr->TextureBinds = textureBinds;
-			vptr++;
-		}
-
-		for (uint32_t i = vpos + 2; i < vpos + vcount; i++)
-		{
-			*(iptr++) = vpos;
-			*(iptr++) = i - 1;
-			*(iptr++) = i;
-		}
-
-		vpos += vcount;
-		icount += (vcount - 2) * 3;
+		vptr->Flags = flags;
+		vptr->Position.x = point.x;
+		vptr->Position.y = point.y;
+		vptr->Position.z = point.z;
+		vptr->TexCoord.s = (u - UPan) * UMult;
+		vptr->TexCoord.t = (v - VPan) * VMult;
+		vptr->TexCoord2.s = (u - LMUPan) * LMUMult;
+		vptr->TexCoord2.t = (v - LMVPan) * LMVMult;
+		vptr->TexCoord3.s = (u - MacroUPan) * MacroUMult;
+		vptr->TexCoord3.t = (v - MacroVPan) * MacroVMult;
+		vptr->TexCoord4.s = (u - DetailUPan) * DetailUMult;
+		vptr->TexCoord4.t = (v - DetailVPan) * DetailVMult;
+		vptr->Color.r = 1.0f;
+		vptr->Color.g = 1.0f;
+		vptr->Color.b = 1.0f;
+		vptr->Color.a = 1.0f;
+		vptr->TextureBinds = textureBinds;
+		vptr++;
 	}
+
+	for (uint32_t i = vpos + 2; i < vpos + vcount; i++)
+	{
+		*(iptr++) = vpos;
+		*(iptr++) = i - 1;
+		*(iptr++) = i;
+	}
+
+	vpos += vcount;
+	icount += (vcount - 2) * 3;
 
 	Stats.ComplexSurfaces++;
 

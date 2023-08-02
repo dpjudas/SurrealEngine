@@ -130,4 +130,6 @@ private:
 	} Light;
 
 	std::set<UTexture*> Textures;
+
+	std::vector<vec3> VertexBuffer;
 };

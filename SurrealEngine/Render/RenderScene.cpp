@@ -197,18 +197,22 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 
 	BspVert* v = &model->Vertices[node->VertPool];
 
+	if (VertexBuffer.size() < node->NumVertices)
+		VertexBuffer.resize(node->NumVertices);
+
+	vec3* points = VertexBuffer.data();
+	int numverts = node->NumVertices;
+	for (int j = 0; j < numverts; j++)
+	{
+		points[j] = model->Points[v[j].Vertex];
+	}
+
 	FSurfaceFacet facet;
 	facet.MapCoords.Origin = Base;
 	facet.MapCoords.XAxis = UVec;
 	facet.MapCoords.YAxis = VVec;
-
-	std::vector<vec3> points;
-	int numverts = node->NumVertices;
-	for (int j = 0; j < numverts; j++)
-	{
-		points.push_back(model->Points[v[j].Vertex]);
-	}
-	facet.Polys.push_back(std::move(points));
+	facet.Vertices = points;
+	facet.VertexCount = numverts;
 
 	FTextureInfo lightmap;
 	FTextureInfo fogmap;
