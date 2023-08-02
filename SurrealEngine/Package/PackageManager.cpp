@@ -196,12 +196,13 @@ UObject* PackageManager::NewObject(const NameString& name, UClass* cls)
 
 UClass* PackageManager::FindClass(const NameString& name)
 {
-	size_t pos = name.Value.find('.');
-	if (pos == 0 || pos == std::string::npos || pos + 1 == name.Value.size())
+	std::string value = name.ToString();
+	size_t pos = value.find('.');
+	if (pos == 0 || pos == std::string::npos || pos + 1 == value.size())
 		return nullptr;
 
-	NameString packageName = name.Value.substr(0, pos);
-	NameString className = name.Value.substr(pos + 1);
+	NameString packageName = value.substr(0, pos);
+	NameString className = value.substr(pos + 1);
 
 	try
 	{
@@ -251,9 +252,9 @@ void PackageManager::LoadIntFiles()
 
 					NameString metaClass = obj.MetaClass;
 
-					size_t pos = metaClass.Value.find_last_of('.');
+					size_t pos = metaClass.ToString().find_last_of('.');
 					if (pos != std::string::npos)
-						metaClass = metaClass.Value.substr(pos + 1);
+						metaClass = NameString(metaClass.ToString().substr(pos + 1));
 
 					IntObjects[metaClass].push_back(std::move(obj));
 				}
@@ -266,9 +267,9 @@ void PackageManager::LoadIntFiles()
 
 					NameString cls = obj.Class;
 
-					size_t pos = cls.Value.find_last_of('.');
+					size_t pos = cls.ToString().find_last_of('.');
 					if (pos != std::string::npos)
-						cls = cls.Value.substr(pos + 1);
+						cls = NameString(cls.ToString().substr(pos + 1));
 
 					IntObjects[cls].push_back(std::move(obj));
 				}
@@ -284,11 +285,11 @@ void PackageManager::LoadIntFiles()
 
 std::vector<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 {
-	size_t pos = metaclass.Value.find_last_of('.');
+	size_t pos = metaclass.ToString().find_last_of('.');
 	if (pos == std::string::npos)
 		return IntObjects[metaclass];
 	else
-		return IntObjects[metaclass.Value.substr(pos + 1)];
+		return IntObjects[NameString(metaclass.ToString().substr(pos + 1))];
 }
 
 std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName)

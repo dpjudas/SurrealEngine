@@ -469,7 +469,7 @@ void UClass::Load(ObjectStream* stream)
 			{
 				NameString name = prop->Name;
 				if (prop->ArrayDimension > 1)
-					name.Value += "[" + std::to_string(arrayIndex) + "]";
+					name = NameString(name.ToString() + "[" + std::to_string(arrayIndex) + "]");
 
 				std::string value;
 				if (isConfig)

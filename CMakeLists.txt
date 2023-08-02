@@ -150,6 +150,7 @@ set(UTENGINE_SOURCES
 	SurrealEngine/Package/IniFile.h
 	SurrealEngine/Package/PackageStream.h
 	SurrealEngine/Package/IniFile.cpp
+	SurrealEngine/Package/NameString.cpp
 	SurrealEngine/Package/NameString.h
 	SurrealEngine/Math/FrustumPlanes.h
 	SurrealEngine/Math/quaternion.h

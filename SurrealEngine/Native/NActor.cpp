@@ -241,7 +241,8 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 	// Filter list to only those with the matching skin prefix
 	for (const IntObject& skin : engine->packages->GetIntObjects("Texture"))
 	{
-		if (skin.Name.Value.size() >= prefix.size() && skin.Name.Value.substr(0, prefix.size()) == prefix)
+		std::string skinName = skin.Name.ToString();
+		if (skinName.size() >= prefix.size() && skinName.substr(0, prefix.size()) == prefix)
 			skins.push_back(&skin);
 	}
 

@@ -439,7 +439,7 @@ void RenderSubsystem::DrawCollisionDebug()
 		lines.push_back("BspNode Surface: " + std::to_string(node->Surf));
 
 		if (surf && surf->Material)
-			lines.push_back("BspNode Texture: " + surf->Material->Name.Value);
+			lines.push_back("BspNode Texture: " + surf->Material->Name.ToString());
 
 		lines.push_back("BspNode Plane: (" +
 			std::to_string(node->PlaneX) + ", " +

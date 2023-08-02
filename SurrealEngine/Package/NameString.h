@@ -1,18 +1,65 @@
 #pragma once
 
-//typedef std::string NameString;
+#include <vector>
+#include <unordered_map>
 
 class NameString
 {
 public:
-	NameString() { Value = "None"; }
-	NameString(const char* str) : NameString(std::string(str)) { }
-	NameString(const std::string& value) : Value(!value.empty() ? value : std::string("None")) { }
+	NameString() { }
+	NameString(const char* str) { GetIndex(str); }
+	NameString(const std::string& str) { GetIndex(str); }
 	NameString(const NameString& other) = default;
 	NameString& operator=(const NameString&) = default;
 
-	int Compare(const NameString& other) const
+	bool IsNone() const { return CompareIndex == 0; }
+
+	const std::string& ToString() const { return Names[SpelledIndex]; }
+
+	bool operator==(const char* other) const { return *this == NameString(other); }
+	bool operator==(const std::string& other) const { return *this == NameString(other); }
+	bool operator!=(const char* other) const { return *this != NameString(other); }
+	bool operator!=(const std::string& other) const { return *this != NameString(other); }
+
+	bool operator==(const NameString& other) const { return CompareIndex == other.CompareIndex; }
+	bool operator!=(const NameString& other) const { return CompareIndex != other.CompareIndex; }
+	bool operator<(const NameString& other) const { return CompareIndex < other.CompareIndex; }
+	bool operator>(const NameString& other) const { return CompareIndex > other.CompareIndex; }
+	bool operator<=(const NameString& other) const { return CompareIndex <= other.CompareIndex; }
+	bool operator>=(const NameString& other) const { return CompareIndex >= other.CompareIndex; }
+
+private:
+	int CompareIndex = 0;
+	int SpelledIndex = 0;
+
+	void GetIndex(const std::string& value)
 	{
+		// Have we seen this spelling before?
+		auto it = SpellStringToIndex.find(value);
+		if (it != SpellStringToIndex.end())
+		{
+			CompareIndex = it->second.first;
+			SpelledIndex = it->second.second;
+			return;
+		}
+
+		// Initialize list with None as index 0
+		if (Names.empty())
+		{
+			Names.push_back("None");
+			CompareStringToIndex["none"] = 0;
+			SpellStringToIndex["None"] = { 0, 0 };
+		}
+
+		// Any empty name string means None
+		if (value.empty())
+		{
+			CompareIndex = 0;
+			SpelledIndex = 0;
+			return;
+		}
+
+		// Create case insensitive spelling string
 		static const int stricmptable[] =
 		{
 			0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -30,41 +77,35 @@ public:
 			0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf,
 			0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf,
 			0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
-			0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
+			0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 		};
 
-		size_t len = std::min(Value.size(), other.Value.size());
-		if (Value.size() < other.Value.size())
-			return -1;
-		else if (Value.size() > other.Value.size())
-			return 1;
-
-		for (size_t i = 0; i < len; i++)
+		std::string compareValue = value;
+		for (size_t i = 0, count = compareValue.size(); i < count; i++)
 		{
-			int a = stricmptable[(uint8_t)Value[i]];
-			int b = stricmptable[(uint8_t)other.Value[i]];
-
-			if (a != b)
-				return a - b;
+			compareValue[i] = (char)stricmptable[(uint8_t)compareValue[i]];
 		}
 
-		return 0;
+		// Do we have a compare index?
+		auto it2 = CompareStringToIndex.find(compareValue);
+		if (it2 != CompareStringToIndex.end())
+		{
+			CompareIndex = it2->second;
+		}
+		else
+		{
+			CompareIndex = (int)Names.size();
+			Names.push_back(compareValue);
+			CompareStringToIndex[compareValue] = CompareIndex;
+		}
+
+		// Create spellstring index
+		SpelledIndex = (int)Names.size();
+		Names.push_back(value);
+		SpellStringToIndex[value] = { CompareIndex, SpelledIndex };
 	}
 
-	bool IsNone() const { return *this == NameString(); }
-	const std::string& ToString() const { return Value; }
-
-	bool operator==(const char* other) const { return *this == NameString(other); }
-	bool operator==(const std::string& other) const { return *this == NameString(other); }
-	bool operator!=(const char* other) const { return *this != NameString(other); }
-	bool operator!=(const std::string& other) const { return *this != NameString(other); }
-
-	bool operator==(const NameString& other) const { return Value.size() != other.Value.size() ? false : Compare(other) == 0; }
-	bool operator!=(const NameString& other) const { return Value.size() != other.Value.size() ? true : Compare(other) != 0; }
-	bool operator<(const NameString& other) const { return Compare(other) < 0; }
-	bool operator>(const NameString& other) const { return Compare(other) > 0; }
-	bool operator<=(const NameString& other) const { return Compare(other) <= 0; }
-	bool operator>=(const NameString& other) const { return Compare(other) >= 0; }
-
-	std::string Value;
+	static std::vector<std::string> Names;
+	static std::unordered_map<std::string, int> CompareStringToIndex;
+	static std::unordered_map<std::string, std::pair<int, int>> SpellStringToIndex;
 };
