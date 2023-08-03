@@ -25,14 +25,14 @@ void RenderSubsystem::DrawScene()
 		mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
 		mat4 skyrotate = skyZone->Rotation().ToMatrix();
 		mat4 translate = mat4::translate(vec3(0.0f) - skyZone->Location());
-		mat4 worldToView = CoordsMatrix() * rotate * skyrotate * translate;
+		mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotate * skyrotate * translate;
 		DrawFrame(skyZone->Location(), worldToView);
 		Device->ClearZ(&Scene.Frame);
 	}
 
 	mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - engine->CameraLocation);
-	mat4 worldToView = CoordsMatrix() * rotate * translate;
+	mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotate * translate;
 	DrawFrame(engine->CameraLocation, worldToView);
 	DrawCoronas(&Scene.Frame);
 }
@@ -405,25 +405,4 @@ void RenderSubsystem::SetupSceneFrame(const mat4& worldToView)
 	float RFX2 = 2.0f * RProjZ / Scene.Frame.FX;
 	float RFY2 = 2.0f * RProjZ * Aspect / Scene.Frame.FY;
 	Scene.Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
-}
-
-mat4 RenderSubsystem::CoordsMatrix()
-{
-	FCoords coords;
-	coords.XAxis = vec3(-1.0f, 0.0f, 0.0f);
-	coords.YAxis = vec3(0.0f, 0.0f, 1.0f);
-	coords.ZAxis = vec3(0.0f, -1.0f, 0.0f);
-
-	mat4 coordsmatrix = mat4::null();
-	coordsmatrix[0] = coords.XAxis[0];
-	coordsmatrix[1] = coords.XAxis[1];
-	coordsmatrix[2] = coords.XAxis[2];
-	coordsmatrix[4] = coords.YAxis[0];
-	coordsmatrix[5] = coords.YAxis[1];
-	coordsmatrix[6] = coords.YAxis[2];
-	coordsmatrix[8] = coords.ZAxis[0];
-	coordsmatrix[9] = coords.ZAxis[1];
-	coordsmatrix[10] = coords.ZAxis[2];
-	coordsmatrix[15] = 1.0f;
-	return coordsmatrix;
 }

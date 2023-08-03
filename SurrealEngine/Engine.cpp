@@ -183,26 +183,9 @@ void Engine::Run()
 
 void Engine::UpdateAudio()
 {
-	FCoords coords;
-	coords.XAxis = vec3(-1.0f, 0.0f, 0.0f);
-	coords.YAxis = vec3(0.0f, 0.0f, 1.0f);
-	coords.ZAxis = vec3(0.0f, -1.0f, 0.0f);
-
-	mat4 coordsmatrix = mat4::null();
-	coordsmatrix[0] = coords.XAxis[0];
-	coordsmatrix[1] = coords.XAxis[1];
-	coordsmatrix[2] = coords.XAxis[2];
-	coordsmatrix[4] = coords.YAxis[0];
-	coordsmatrix[5] = coords.YAxis[1];
-	coordsmatrix[6] = coords.YAxis[2];
-	coordsmatrix[8] = coords.ZAxis[0];
-	coordsmatrix[9] = coords.ZAxis[1];
-	coordsmatrix[10] = coords.ZAxis[2];
-	coordsmatrix[15] = 1.0f;
-
 	mat4 rotate = mat4::rotate(radians(CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - CameraLocation);
-	mat4 listener = coordsmatrix * rotate * translate;
+	mat4 listener = Coords::ViewToAudioDev().ToMatrix() * rotate * translate;
 
 	audio->SetViewport(viewport);
 	audio->Update(listener);

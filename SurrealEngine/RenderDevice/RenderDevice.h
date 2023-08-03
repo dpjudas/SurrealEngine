@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 #include "Math/mat.h"
+#include "Math/coords.h"
 
 #include "UObject/UTexture.h"
 
@@ -9,14 +10,6 @@ class DisplayWindow;
 class UTexture;
 class UActor;
 class VulkanSurface;
-
-struct FCoords
-{
-	vec3 Origin;
-	vec3 XAxis;
-	vec3 YAxis;
-	vec3 ZAxis;
-};
 
 struct FSceneNode
 {
@@ -42,7 +35,7 @@ struct GouraudVertex
 
 struct FSurfaceFacet
 {
-	FCoords MapCoords;
+	Coords MapCoords;
 	vec3* Vertices;
 	uint32_t VertexCount;
 };

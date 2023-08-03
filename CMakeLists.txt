@@ -164,6 +164,7 @@ set(UTENGINE_SOURCES
 	SurrealEngine/Math/mat.cpp
 	SurrealEngine/Math/bbox.h
 	SurrealEngine/Math/hsb.h
+	SurrealEngine/Math/coords.h
 	SurrealEngine/GC/GC.cpp
 	SurrealEngine/GC/GC.h
 	SurrealEngine/UObject/ULevel.cpp

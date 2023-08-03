@@ -53,7 +53,6 @@ private:
 	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);
-	static mat4 CoordsMatrix();
 	static uint32_t GetTexturePolyFlags(UTexture* tex);
 
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
