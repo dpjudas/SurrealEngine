@@ -381,7 +381,7 @@ void ExpressionEvaluator::Expr(UnicodeStringConstExpression* expr)
 void ExpressionEvaluator::Expr(RotatorToVectorExpression* expr)
 {
 	Rotator rot = Eval(expr->Value).Value.ToRotator();
-	Result.Value = ExpressionValue::VectorValue((rot.ToMatrix() * vec4(1.0f, 0.0f, 0.0f, 1.0f)).xyz());
+	Result.Value = ExpressionValue::VectorValue(Coords::Rotation(rot).XAxis);
 }
 
 void ExpressionEvaluator::Expr(ByteToIntExpression* expr)

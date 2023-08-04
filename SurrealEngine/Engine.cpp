@@ -183,9 +183,8 @@ void Engine::Run()
 
 void Engine::UpdateAudio()
 {
-	mat4 rotate = mat4::rotate(radians(CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
 	mat4 translate = mat4::translate(vec3(0.0f) - CameraLocation);
-	mat4 listener = Coords::ViewToAudioDev().ToMatrix() * rotate * translate;
+	mat4 listener = Coords::ViewToAudioDev().ToMatrix() * Coords::Rotation(CameraRotation).ToMatrix() * translate;
 
 	audio->SetViewport(viewport);
 	audio->Update(listener);

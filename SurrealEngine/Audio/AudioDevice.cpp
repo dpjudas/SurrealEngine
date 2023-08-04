@@ -455,7 +455,7 @@ public:
 		vec3& velocity = listener->Velocity();
 
 		vec3 at, left, up;
-		listener->Rotation().GetAxes(at, left, up);
+		Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
 
 		ALfloat listenerOri[6] = {up.x, up.y, -up.z, -at.x, -at.y, at.z};
 		alListener3f(AL_POSITION, location.x, location.y, -location.z);

@@ -86,8 +86,6 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 
 void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y, int XB, int YB, bool ClearZ)
 {
-	mat4 rotate = mat4::rotate(radians(-90.0f), 0.0f, 0.0f, -1.0f); // To do: maybe CoordsMatrix is actually wrong?
-
 	FSceneNode frame;
 	frame.XB = XB * Canvas.uiscale;
 	frame.YB = YB * Canvas.uiscale;
@@ -97,7 +95,7 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 	frame.FY = (float)Y * Canvas.uiscale;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.ObjectToWorld = Coords::ViewToRenderDev().ToMatrix() * rotate;
+	frame.ObjectToWorld = Coords::ViewToRenderDev().ToMatrix() * mat4::scale(1.0f, 1.0f, -1.0f);
 	frame.WorldToView = mat4::identity();
 	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;

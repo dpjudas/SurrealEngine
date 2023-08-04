@@ -26,30 +26,6 @@ public:
 	Rotator& operator*=(float scale) { Pitch = (int)(Pitch * scale); Yaw = (int)(Yaw * scale), Roll = (int)(Roll * scale); return *this; }
 	Rotator& operator/=(float scale) { Pitch = (int)(Pitch / scale); Yaw = (int)(Yaw / scale), Roll = (int)(Roll / scale); return *this; }
 
-	mat4 ToMatrix() const
-	{
-		return
-			mat4::rotate(radians(YawDegrees()), 0.0f, 0.0f, 1.0f) *
-			mat4::rotate(radians(PitchDegrees()), 0.0f, -1.0f, 0.0f) *
-			mat4::rotate(radians(RollDegrees()), -1.0f, 0.0f, 0.0f);
-	}
-
-	void GetAxes(vec3& X, vec3& Y, vec3& Z) const
-	{
-		mat4 m = ToMatrix();
-		X.x = m[0]; X.y = m[1]; X.z = m[2];
-		Y.x = m[4]; Y.y = m[5]; Y.z = m[6];
-		Z.x = m[8]; Z.y = m[9]; Z.z = m[10];
-	}
-
-	void GetUnAxes(vec3& X, vec3& Y, vec3& Z) const
-	{
-		mat3 m = mat3::inverse(mat3(ToMatrix()));
-		X.x = m[0]; X.y = m[1]; X.z = m[2];
-		Y.x = m[3]; Y.y = m[4]; Y.z = m[5];
-		Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
-	}
-
 	static int TurnToShortest(int from, int to, int speed)
 	{
 		from = from & 0xffff;

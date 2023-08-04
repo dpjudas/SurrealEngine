@@ -3,6 +3,7 @@
 #include "LightEffect.h"
 #include "Shadowmap.h"
 #include "UObject/UActor.h"
+#include "Math/coords.h"
 
 void LightEffect::Run(UActor* light, int width, int height, const vec3* locations, vec3 N, const float* shadowmap, float* result)
 {
@@ -80,7 +81,7 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	case LE_StaticSpot:
 	{
 		vec3 tmp0, tmp1, tmp2;
-		light->Rotation().GetAxes(tmp0, tmp1, tmp2);
+		Coords::Rotation(light->Rotation()).GetAxes(tmp0, tmp1, tmp2);
 		vec3 spotDir = -tmp0;
 		float lightCosOuterAngle = 1.0f - light->LightCone() * (1.0f / 255.0f);
 		float lightCosInnerAngle = 1.0f;

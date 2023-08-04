@@ -22,17 +22,12 @@ void RenderSubsystem::DrawScene()
 
 	if (skyZone)
 	{
-		mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
-		mat4 skyrotate = skyZone->Rotation().ToMatrix();
-		mat4 translate = mat4::translate(vec3(0.0f) - skyZone->Location());
-		mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotate * skyrotate * translate;
-		DrawFrame(skyZone->Location(), worldToView);
+		mat4 skyToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Rotation(skyZone->Rotation()).ToMatrix() * Coords::Location(skyZone->Location()).ToMatrix();
+		DrawFrame(skyZone->Location(), skyToView);
 		Device->ClearZ(&Scene.Frame);
 	}
 
-	mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - engine->CameraLocation);
-	mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotate * translate;
+	mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Location(engine->CameraLocation).ToMatrix();
 	DrawFrame(engine->CameraLocation, worldToView);
 	DrawCoronas(&Scene.Frame);
 }
@@ -146,7 +141,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 			surface.Material->TextureModified = false;
 
 		if (PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
 	}
 
 	FTextureInfo detailtex;
@@ -169,7 +164,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
 		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV;
 	}
 
 	FTextureInfo macrotex;
@@ -192,7 +187,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
 		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node->VertPool];
