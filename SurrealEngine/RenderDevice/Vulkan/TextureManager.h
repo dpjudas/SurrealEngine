@@ -33,5 +33,5 @@ private:
 	void CreateDitherTexture();
 
 	VulkanRenderDevice* renderer = nullptr;
-	std::map<uint64_t, std::unique_ptr<CachedTexture>> TextureCache[2];
+	std::unordered_map<uint64_t, std::unique_ptr<CachedTexture>> TextureCache[2];
 };

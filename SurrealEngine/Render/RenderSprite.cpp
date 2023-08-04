@@ -8,7 +8,6 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 {
 	UTexture* texture = actor->Texture();
 	const vec3& location = actor->Location();
-	const Rotator& rotation = actor->Rotation();
 	float drawscale = actor->DrawScale();
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
@@ -44,27 +43,24 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 
 	drawscale *= 0.5f;
 
-	vec3 xaxis = { texwidth * drawscale, 0.0f, 0.0f };
-	vec3 yaxis = { 0.0f, 0.0f, texheight * drawscale };
-
-	quaternion viewrotation = inverse(normalize(quaternion::euler(radians(-engine->CameraRotation.PitchDegrees()), radians(-engine->CameraRotation.RollDegrees()), radians(90.0f - engine->CameraRotation.YawDegrees()), EulerOrder::yxz)));
-	xaxis = viewrotation * xaxis;
-	yaxis = viewrotation * yaxis;
+	Coords viewrotation = Coords::Rotation(engine->CameraRotation);
+	vec3 sideAxis = viewrotation.YAxis * (texwidth * drawscale);
+	vec3 upAxis = viewrotation.ZAxis * (texheight * drawscale);
 
 	GouraudVertex vertices[4];
-	vertices[0].Point = location - xaxis - yaxis;
+	vertices[0].Point = location - sideAxis - upAxis;
 	vertices[0].UV = { 0.0f, 0.0f };
 	vertices[0].Light = { 1.0f };
 	vertices[0].Fog = { 0.0f };
-	vertices[1].Point = location + xaxis - yaxis;
+	vertices[1].Point = location + sideAxis - upAxis;
 	vertices[1].UV = { texwidth, 0.0f };
 	vertices[1].Light = { 1.0f };
 	vertices[1].Fog = { 0.0f };
-	vertices[2].Point = location + xaxis + yaxis;
+	vertices[2].Point = location + sideAxis + upAxis;
 	vertices[2].UV = { texwidth, texheight };
 	vertices[2].Light = { 1.0f };
 	vertices[2].Fog = { 0.0f };
-	vertices[3].Point = location - xaxis + yaxis;
+	vertices[3].Point = location - sideAxis + upAxis;
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = { 1.0f };
 	vertices[3].Fog = { 0.0f };
