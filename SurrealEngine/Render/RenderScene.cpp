@@ -140,7 +140,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
 		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
 	}
 
@@ -163,7 +163,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (detailtex.Texture->Palette())
 			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += AutoUV;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV;
 		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV;
 	}
 
@@ -186,7 +186,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (macrotex.Texture->Palette())
 			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += AutoUV;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV;
 		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
 	}
 

@@ -75,7 +75,7 @@ void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, c
 		if (tex->TextureModified)
 			tex->TextureModified = false;
 
-		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
+		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
 		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
 	}
 
