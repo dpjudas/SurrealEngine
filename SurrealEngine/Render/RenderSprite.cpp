@@ -53,6 +53,10 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	if (texture->bMasked())
 		renderflags |= PF_Masked;
 
+	renderflags |= texture->PolyFlags();
+	if (renderflags & PF_Invisible)
+		return;
+
 	drawscale *= 0.5f;
 	Coords viewrotation = Coords::Rotation(engine->CameraRotation);
 	vec3 sideAxis = viewrotation.YAxis * (texwidth * drawscale);

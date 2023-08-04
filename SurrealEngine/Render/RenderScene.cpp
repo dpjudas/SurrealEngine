@@ -312,7 +312,7 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 	uint32_t PolyFlags = surface.PolyFlags;
 	if (surface.Material)
-		PolyFlags |= GetTexturePolyFlags(surface.Material);
+		PolyFlags |= surface.Material->PolyFlags();
 
 	if (PolyFlags & PF_Portal)
 	{
@@ -342,44 +342,6 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 	{
 		Scene.TranslucentNodes.push_back(info);
 	}
-}
-
-uint32_t RenderSubsystem::GetTexturePolyFlags(UTexture* t)
-{
-	// To do: implement packed booleans in the VM so that this can be done as a single uint32_t
-	uint32_t PolyFlags = ((uint32_t)t->bInvisible()) << 0;
-	PolyFlags |= ((uint32_t)t->bMasked()) << 1;
-	PolyFlags |= ((uint32_t)t->bTransparent()) << 2;
-	PolyFlags |= ((uint32_t)t->bNotSolid()) << 3;
-	PolyFlags |= ((uint32_t)t->bEnvironment()) << 4;
-	PolyFlags |= ((uint32_t)t->bSemisolid()) << 5;
-	PolyFlags |= ((uint32_t)t->bModulate()) << 6;
-	PolyFlags |= ((uint32_t)t->bFakeBackdrop()) << 7;
-	PolyFlags |= ((uint32_t)t->bTwoSided()) << 8;
-	PolyFlags |= ((uint32_t)t->bAutoUPan()) << 9;
-	PolyFlags |= ((uint32_t)t->bAutoVPan()) << 10;
-	PolyFlags |= ((uint32_t)t->bNoSmooth()) << 11;
-	PolyFlags |= ((uint32_t)t->bBigWavy()) << 12;
-	PolyFlags |= ((uint32_t)t->bSmallWavy()) << 13;
-	PolyFlags |= ((uint32_t)t->bWaterWavy()) << 14;
-	PolyFlags |= ((uint32_t)t->bLowShadowDetail()) << 15;
-	PolyFlags |= ((uint32_t)t->bNoMerge()) << 16;
-	PolyFlags |= ((uint32_t)t->bCloudWavy()) << 17;
-	PolyFlags |= ((uint32_t)t->bDirtyShadows()) << 18;
-	PolyFlags |= ((uint32_t)t->bHighLedge()) << 19;
-	PolyFlags |= ((uint32_t)t->bSpecialLit()) << 20;
-	PolyFlags |= ((uint32_t)t->bGouraud()) << 21;
-	PolyFlags |= ((uint32_t)t->bUnlit()) << 22;
-	PolyFlags |= ((uint32_t)t->bHighShadowDetail()) << 23;
-	PolyFlags |= ((uint32_t)t->bPortal()) << 24;
-	PolyFlags |= ((uint32_t)t->bMirrored()) << 25;
-	PolyFlags |= ((uint32_t)t->bX2()) << 26;
-	PolyFlags |= ((uint32_t)t->bX3()) << 27;
-	PolyFlags |= ((uint32_t)t->bX4()) << 28;
-	PolyFlags |= ((uint32_t)t->bX5()) << 29;
-	PolyFlags |= ((uint32_t)t->bX6()) << 30;
-	PolyFlags |= ((uint32_t)t->bX7()) << 31;
-	return PolyFlags;
 }
 
 void RenderSubsystem::SetupSceneFrame(const mat4& worldToView)
