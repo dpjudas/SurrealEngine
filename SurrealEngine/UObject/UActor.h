@@ -30,18 +30,6 @@ class PackageManager;
 class SweepHit;
 struct MeshAnimSeq;
 
-enum class ActorDrawType
-{
-	NoDraw,
-	Sprite,
-	Mesh,
-	Brush,
-	RopeSprite,
-	VerticalSprite,
-	Terraform,
-	SpriteAnimOnce
-};
-
 struct PointRegion
 {
 	UZoneInfo* Zone;
@@ -139,6 +127,18 @@ enum ELightEffect
 	LE_Cylinder,
 	LE_Rotor,
 	LE_Unused
+};
+
+enum EDrawType
+{
+	DT_None,
+	DT_Sprite,
+	DT_Mesh,
+	DT_Brush,
+	DT_RopeSprite,
+	DT_VerticalSprite,
+	DT_Terraform,
+	DT_SpriteAnimOnce
 };
 
 class UActor : public UObject

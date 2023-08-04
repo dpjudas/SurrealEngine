@@ -77,8 +77,8 @@ void RenderSubsystem::DrawActors()
 					actor->light = vec3(1.0f);
 			}
 
-			ActorDrawType dt = (ActorDrawType)actor->DrawType();
-			if (dt == ActorDrawType::Mesh && actor->Mesh())
+			EDrawType dt = (EDrawType)actor->DrawType();
+			if (dt == DT_Mesh && actor->Mesh())
 			{
 				// Note: this doesn't take the rotation into account!
 				BBox bbox = actor->Mesh()->BoundingBox;
@@ -89,11 +89,11 @@ void RenderSubsystem::DrawActors()
 					DrawMesh(&Scene.Frame, actor);
 				}
 			}
-			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && (actor->Texture()))
+			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
 			{
 				DrawSprite(&Scene.Frame, actor);
 			}
-			else if (dt == ActorDrawType::Brush && actor->Brush())
+			else if (dt == DT_Brush && actor->Brush())
 			{
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();

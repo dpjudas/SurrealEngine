@@ -3,6 +3,7 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
+#include "UObject/UClass.h"
 
 void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 {
@@ -12,7 +13,18 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
 
-	texture = texture->GetAnimTexture();
+	if (actor->DrawType() == DT_SpriteAnimOnce)
+	{
+		float t = (1.0f - actor->LifeSpan() / static_cast<UActor*>(actor->Class->GetDefaultObject())->LifeSpan());
+		int count = texture->GetAnimTextureCount();
+		int index = (int)std::floor(clamp(t, 0.0f, 1.0f) * count);
+		for (int i = 0; i < index; i++)
+			texture = texture->AnimNext();
+	}
+	else
+	{
+		texture = texture->GetAnimTexture();
+	}
 
 	FTextureInfo texinfo;
 	texinfo.Texture = texture;
@@ -42,27 +54,28 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 		renderflags |= PF_Masked;
 
 	drawscale *= 0.5f;
-
 	Coords viewrotation = Coords::Rotation(engine->CameraRotation);
 	vec3 sideAxis = viewrotation.YAxis * (texwidth * drawscale);
 	vec3 upAxis = viewrotation.ZAxis * (texheight * drawscale);
 
+	vec3 color = clamp(actor->ScaleGlow(), 0.0f, 1.0f);
+
 	GouraudVertex vertices[4];
 	vertices[0].Point = location - sideAxis - upAxis;
 	vertices[0].UV = { 0.0f, 0.0f };
-	vertices[0].Light = { 1.0f };
+	vertices[0].Light = color;
 	vertices[0].Fog = { 0.0f };
 	vertices[1].Point = location + sideAxis - upAxis;
 	vertices[1].UV = { texwidth, 0.0f };
-	vertices[1].Light = { 1.0f };
+	vertices[1].Light = color;
 	vertices[1].Fog = { 0.0f };
 	vertices[2].Point = location + sideAxis + upAxis;
 	vertices[2].UV = { texwidth, texheight };
-	vertices[2].Light = { 1.0f };
+	vertices[2].Light = color;
 	vertices[2].Fog = { 0.0f };
 	vertices[3].Point = location - sideAxis + upAxis;
 	vertices[3].UV = { 0.0f, texheight };
-	vertices[3].Light = { 1.0f };
+	vertices[3].Light = color;
 	vertices[3].Fog = { 0.0f };
 	Device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
 }

@@ -175,6 +175,18 @@ public:
 
 	UTexture* GetAnimTexture() { return AnimCurrent() ? AnimCurrent() : this; }
 
+	int GetAnimTextureCount()
+	{
+		int count = 1;
+		UTexture* cur = AnimNext();
+		while (cur && cur != this)
+		{
+			cur = cur->AnimNext();
+			count++;
+		}
+		return count;
+	}
+
 	virtual void Update(float elapsed);
 	virtual void UpdateFrame();
 
