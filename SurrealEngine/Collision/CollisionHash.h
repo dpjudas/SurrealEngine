@@ -81,12 +81,27 @@ public:
 		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
 	}
 
-	bool ActorSphereCollision(const dvec3& origin, double sphereRadius, UActor* actor);
-	double ActorRayIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
-	double ActorSphereIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double sphereRadius, UActor* actor);
-	double ActorCylinderIntersect(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor);
-	double RaySphereIntersect(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
-	double RayCylinderIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
-	bool RayCircleIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t);
-	bool RayPlaneIntersect(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t);
+	// Actor/ray hit trace
+	double RayActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor);
+
+	// Actor/sphere overlap test
+	bool SphereActorOverlap(const dvec3& origin, double sphereRadius, UActor* actor);
+
+	// Actor/capsule overlap test
+	bool SphereCapsuleOverlap(const dvec3& sphereCenter, double sphereRadius, const dvec3& capsuleCenter, double capsuleHeight, double capsuleRadius);
+
+	// Actor/cylinder hit trace
+	double RayActorTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor);
+
+	// Ray/sphere hit trace
+	double RaySphereTrace(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
+
+	// Ray/cylinder hit trace
+	double RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius);
+
+	// Ray circle hit trace
+	bool RayCircleTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t);
+
+	// Ray plane hit trace
+	bool RayPlaneTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t);
 };
