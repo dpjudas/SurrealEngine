@@ -920,6 +920,22 @@ void UActor::TickSpider(float elapsed)
 
 void UActor::TickTrailer(float elapsed)
 {
+	if (!Owner())
+		return;
+
+	vec3 newLocation = Owner()->Location();
+
+	if (bTrailerPrePivot())
+	{
+		newLocation += PrePivot();
+	}
+
+	SetLocation(newLocation);
+
+	if (bTrailerSameRotation() && DrawType() != DT_Sprite)
+	{
+		SetRotation(Owner()->Rotation());
+	}
 }
 
 void UActor::SetPhysics(uint8_t newPhysics)
