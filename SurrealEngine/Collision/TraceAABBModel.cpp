@@ -27,7 +27,7 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 		bbox.max = bboxStart[1];
 
 		// Shave off part of the box, or ammo pickups can fall through the floor
-		double boxEpsilon = 0.1;
+		float boxEpsilon = 0.1f;
 		bbox.min += boxEpsilon;
 		bbox.max -= boxEpsilon;
 

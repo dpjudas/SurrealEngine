@@ -87,7 +87,7 @@ public:
 		{
 			radius = newRadius;
 			alSourcef(id, AL_MAX_DISTANCE, radius);
-			alSourcef(id, AL_REFERENCE_DISTANCE, 0.1 * radius);
+			alSourcef(id, AL_REFERENCE_DISTANCE, 0.1f * radius);
 		}
 	}
 
@@ -106,7 +106,7 @@ public:
 			sound = newSound;
 			alSourcei(id, AL_BUFFER, 0);
 			alGetError();
-			alSourcei(id, AL_BUFFER, reinterpret_cast<ALint>(sound->handle));
+			alSourcei(id, AL_BUFFER, (ALint)(ptrdiff_t)sound->handle);
 
 			if (sound->loopInfo.Looped)
 				alSourcei(id, AL_LOOPING, AL_TRUE);
@@ -150,7 +150,7 @@ public:
 			ALint offset;
 			alGetSourcei(id, AL_SAMPLE_OFFSET, &offset);
 			if (offset >= sound->loopInfo.LoopEnd)
-				alSourcei(id, AL_SAMPLE_OFFSET, sound->loopInfo.LoopStart);
+				alSourcei(id, AL_SAMPLE_OFFSET, (ALint)sound->loopInfo.LoopStart);
 		}
 	}
 
@@ -255,7 +255,7 @@ public:
 		bExit = true;
 		playbackThread->join();
 
-		alDeleteBuffers(alMusicBuffers.size(), &alMusicBuffers[0]);
+		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
 		alDeleteSources(1, &alMusicSource);
 
 		alcDestroyContext(alContext);
@@ -274,12 +274,12 @@ public:
 
 		ALuint id;
 		alGenBuffers(1, &id);
-		alBufferData(id, format, sound->samples.data(), sound->samples.size()*sizeof(sound->samples[0]), sound->frequency);
+		alBufferData(id, format, sound->samples.data(), (ALsizei)(sound->samples.size()*sizeof(sound->samples[0])), sound->frequency);
 		alError = alGetError();
 		if (alError != AL_NO_ERROR)
 			throw std::runtime_error("Failed to buffer sound data for " + sound->Name.ToString());
 
-		sound->handle = reinterpret_cast<void*>(id);
+		sound->handle = (void*)(ptrdiff_t)id;
 	}
 
 	void AudioDevice::RemoveSound(USound* sound)
@@ -474,7 +474,7 @@ public:
 				if (bMusicPlaying)
 				{
 					alSourceStop(alMusicSource);
-					alSourceUnqueueBuffers(alMusicSource, alMusicBuffers.size(), &alMusicBuffers[0]);
+					alSourceUnqueueBuffers(alMusicSource, (ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
 					bMusicPlaying = false;
 				}
 			}
