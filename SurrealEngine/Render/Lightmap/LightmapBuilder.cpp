@@ -53,8 +53,8 @@ void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
 			UActor* light = lightlist[lightindex];
 			if (light->LightType() != LT_None && light->LightBrightness() > 0)
 			{
-				Shadowmap.Load(model, surface, lightindex);
-				Effect.Run(light, width, height, WorldLocations(), WorldNormal(), Shadowmap.Pixels(), illuminationmap.data());
+				Shadow.Load(model, surface, lightindex);
+				Effect.Run(light, width, height, WorldLocations(), WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
 
