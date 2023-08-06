@@ -453,16 +453,6 @@ void Engine::LoginPlayer()
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
-
-	// To do: remove this when touch events are implemented
-	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
-	UObject* specialEvent0 = package->GetUObject("SpecialEvent", "SpecialEvent0");
-	//UObject* specialEvent1 = package->GetUObject("SpecialEvent", "SpecialEvent1");
-	if (specialEvent0)
-	{
-		CallEvent(specialEvent0, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
-		//CallEvent(specialEvent1, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
-	}
 }
 
 float Engine::CalcTimeElapsed()
