@@ -8,6 +8,7 @@
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
+#include "Collision/OverlapCylinderLevel.h"
 
 static std::string tickEventName = "Tick";
 
@@ -126,15 +127,12 @@ void UActor::InitBase()
 	bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(this) || UObject::TryCast<UInventory>(this) || UObject::TryCast<UPawn>(this);
 	if (isDecorationInventoryOrPawn && !ActorBase() && bCollideWorld() && (Physics() == PHYS_None || Physics() == PHYS_Rotating))
 	{
-		TraceFlags flags;
-		flags.world = true;
-		flags.movers = true;
-		flags.pawns = true;
-		flags.others = true;
-		vec3 from = Location();
-		vec3 to = Location() - vec3(0.0f, 0.0f, 10.0f);
-		CollisionHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
-		SetBase(hit.Actor, true);
+		OverlapCylinderLevel overlap;
+		CollisionHitList hits = overlap.TestOverlap(XLevel(), Location(), CollisionHeight(), CollisionRadius(), true, false, false);
+		if (!hits.empty())
+		{
+			SetBase(hits.front().Actor, true);
+		}
 	}
 }
 
@@ -145,26 +143,22 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 	if (!check)
 		return { true, location };
 
-	TraceFlags flags;
-	flags.world = true;
-	flags.movers = true;
-
 	// What is a reasonable size for this grid? what did UE1 do?
 	int offset[] = { 0, 1, -1 };
 	bool found = false;
-	float scale = std::max(radius * 0.5f, height * 0.5f);
+	float scale = std::max(radius * 0.2f, height * 0.2f);
 	for (int z = 0; z < 3 && !found; z++)
 	{
 		for (int y = 0; y < 3 && !found; y++)
 		{
 			for (int x = 0; x < 3 && !found; x++)
 			{
-				vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
-				vec3 to = from + vec3(0.0f, 0.0f, height * 0.5f);
-				CollisionHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
-				if (hit.Fraction == 1.0f)
+				vec3 testlocation = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
+				OverlapCylinderLevel overlap;
+				CollisionHitList hits = overlap.TestOverlap(XLevel(), testlocation, height, radius, false, true, false);
+				if (hits.empty())
 				{
-					location = from;
+					location = testlocation;
 					found = true;
 				}
 			}

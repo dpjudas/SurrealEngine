@@ -3,9 +3,9 @@
 #include "OverlapCylinderLevel.h"
 #include "OverlapAABBModel.h"
 
-CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& location, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly)
 {
-	if (!traceActors && !traceWorld)
+	if (!testActors && !testWorld)
 		return {};
 
 	Level = level;
@@ -14,7 +14,7 @@ CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& lo
 
 	CollisionHitList hits;
 
-	if (traceActors)
+	if (testActors)
 	{
 		double dradius = radius;
 		double dheight = height;
@@ -48,7 +48,7 @@ CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& lo
 		}
 	}
 
-	if (traceWorld)
+	if (testWorld)
 	{
 		if (extents != vec3(0.0f))
 		{
