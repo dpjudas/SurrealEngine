@@ -28,7 +28,7 @@
 #define RIDEV_INPUTSINK	(0x100)
 #endif
 
-Win32Window::Win32Window(Engine* engine) : engine(engine)
+Win32Window::Win32Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
 {
 	WNDCLASSEX classdesc = {};
 	classdesc.cbSize = sizeof(WNDCLASSEX);
@@ -142,38 +142,38 @@ void Win32Window::Tick()
 		switch (e.msg)
 		{
 		case WM_CHAR:
-			engine->Key(this, std::string(1, (char)e.wparam));
+			windowHost->Key(this, std::string(1, (char)e.wparam));
 			break;
 		case WM_KEYDOWN:
-			engine->InputEvent(this, (EInputKey)e.wparam, IST_Press);
+			windowHost->InputEvent(this, (EInputKey)e.wparam, IST_Press);
 			break;
 		case WM_KEYUP:
-			engine->InputEvent(this, (EInputKey)e.wparam, IST_Release);
+			windowHost->InputEvent(this, (EInputKey)e.wparam, IST_Release);
 			break;
 		case WM_LBUTTONDOWN:
-			engine->InputEvent(this, IK_LeftMouse, IST_Press);
+			windowHost->InputEvent(this, IK_LeftMouse, IST_Press);
 			break;
 		case WM_MBUTTONDOWN:
-			engine->InputEvent(this, IK_MiddleMouse, IST_Press);
+			windowHost->InputEvent(this, IK_MiddleMouse, IST_Press);
 			break;
 		case WM_RBUTTONDOWN:
-			engine->InputEvent(this, IK_RightMouse, IST_Press);
+			windowHost->InputEvent(this, IK_RightMouse, IST_Press);
 			break;
 		case WM_LBUTTONUP:
-			engine->InputEvent(this, IK_LeftMouse, IST_Release);
+			windowHost->InputEvent(this, IK_LeftMouse, IST_Release);
 			break;
 		case WM_MBUTTONUP:
-			engine->InputEvent(this, IK_MiddleMouse, IST_Release);
+			windowHost->InputEvent(this, IK_MiddleMouse, IST_Release);
 			break;
 		case WM_RBUTTONUP:
-			engine->InputEvent(this, IK_RightMouse, IST_Release);
+			windowHost->InputEvent(this, IK_RightMouse, IST_Release);
 			break;
 		case WM_MOUSEWHEEL:
 			if (GET_WHEEL_DELTA_WPARAM(msg.wParam) != 0)
 			{
 				EInputKey key = GET_WHEEL_DELTA_WPARAM(msg.wParam) > 0 ? IK_MouseWheelUp : IK_MouseWheelDown;
-				engine->InputEvent(this, key, IST_Press);
-				engine->InputEvent(this, key, IST_Release);
+				windowHost->InputEvent(this, key, IST_Press);
+				windowHost->InputEvent(this, key, IST_Release);
 			}
 			break;
 		case WM_SETFOCUS:
@@ -192,7 +192,7 @@ void Win32Window::Tick()
 		return;
 	}
 
-	// Deliver mouse behavior to the engine.
+	// Deliver mouse behavior to the windowHost.
 	if (MouseMoveX != 0 || MouseMoveY != 0)
 	{
 		int DX = MouseMoveX;
@@ -202,16 +202,15 @@ void Win32Window::Tick()
 
 		// Send to input subsystem.
 		if (DX)
-			engine->InputEvent(this, IK_MouseX, IST_Axis, +DX);
+			windowHost->InputEvent(this, IK_MouseX, IST_Axis, +DX);
 		if (DY)
-			engine->InputEvent(this, IK_MouseY, IST_Axis, -DY);
+			windowHost->InputEvent(this, IK_MouseY, IST_Axis, -DY);
 
 		// TODO: feels like this shouldn't go here...
-		if (engine->viewport->bShowWindowsMouse())
+		if (windowHost->MouseCursorVisible())
 		{
 			GetCursorPos(&MouseCoords);
-			engine->viewport->WindowsMouseX() = (float)MouseCoords.x;
-			engine->viewport->WindowsMouseY() = (float)MouseCoords.y;
+			windowHost->MouseMove((float)MouseCoords.x, (float)MouseCoords.y);
 		}
 		else
 		{
@@ -225,7 +224,7 @@ void Win32Window::PauseGame()
 	if (!Paused)
 	{
 		Paused = true;
-		engine->SetPause(true);
+		windowHost->FocusChange(true);
 	}
 }
 
@@ -234,7 +233,7 @@ void Win32Window::ResumeGame()
 	if (Paused)
 	{
 		Paused = false;
-		engine->SetPause(false);
+		windowHost->FocusChange(false);
 	}
 }
 
@@ -304,7 +303,7 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_CLOSE)
 	{
-		engine->WindowClose(this);
+		windowHost->WindowClose(this);
 		return 0;
 	}
 	else if (msg == WM_SIZE)

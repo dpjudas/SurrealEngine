@@ -11,16 +11,16 @@
 
 #ifdef WIN32
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(Engine* engine)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
 {
-	return std::make_unique<Win32Window>(engine);
+	return std::make_unique<Win32Window>(windowHost);
 }
 
 #else
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(Engine* engine)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
 {
-	return std::make_unique<X11Window>(engine);
+	return std::make_unique<X11Window>(windowHost);
 }
 
 #endif

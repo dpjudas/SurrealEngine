@@ -703,6 +703,17 @@ void Engine::UpdateInput(float timeElapsed)
 	}
 }
 
+void Engine::MouseMove(float x, float y)
+{
+	viewport->WindowsMouseX() = x;
+	viewport->WindowsMouseY() = y;
+}
+
+bool Engine::MouseCursorVisible()
+{
+	return viewport->bShowWindowsMouse();
+}
+
 void Engine::Key(DisplayWindow* viewport, std::string key)
 {
 	if (Frame::RunState != FrameRunState::Running)

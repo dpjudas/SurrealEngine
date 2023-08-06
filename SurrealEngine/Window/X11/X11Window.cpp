@@ -71,7 +71,7 @@ public:
 	}
 };
 
-X11Window::X11Window(Engine* engine) : engine(engine)
+X11Window::X11Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
 {
 	display = X11Display::GetDisplay();
 	screen = DefaultScreen(display);
@@ -336,7 +336,7 @@ void X11Window::Tick()
 			// WindowSizeY = event.xconfigure.y + event.xconfigure.border_width * 2;
 			SizeX = event.xconfigure.width;
 			SizeY = event.xconfigure.height;
-			// engine->OnGeometryChanged(this);
+			// windowHost->OnGeometryChanged(this);
 			break;
 		}
 		case ClientMessage:
@@ -359,7 +359,7 @@ void X11Window::Tick()
 
 				if (protocol == WM_DELETE_WINDOW)
 				{
-					engine->WindowClose(this);
+					windowHost->WindowClose(this);
 				}
 				else if (protocol == _NET_WM_PING)
 				{
@@ -370,15 +370,15 @@ void X11Window::Tick()
 		}
 		case Expose:
 		{	// Window exposure
-			// engine->OnPaint();
+			// windowHost->OnPaint();
 			break;
 		}
 		case FocusIn:
-			//engine->WindowGotFocus(this);
+			//windowHost->WindowGotFocus(this);
 			break;
 		case FocusOut:
 			//if (!HasFocus())	// For an unknown reason, FocusOut is called when clicking on title bar of window
-			//  engine->WindowLostFocus(this);
+			//  windowHost->WindowLostFocus(this);
 			break;
 		case PropertyNotify:
 		{	// Iconify, Maximized, ...
@@ -494,9 +494,9 @@ void X11Window::Tick()
 		MouseMoveY = 0;
 
 		if (DX)
-			engine->InputEvent(this, IK_MouseX, IST_Axis, +DX);
+			windowHost->InputEvent(this, IK_MouseX, IST_Axis, +DX);
 		if (DY)
-			engine->InputEvent(this, IK_MouseY, IST_Axis, -DY);
+			windowHost->InputEvent(this, IK_MouseY, IST_Axis, -DY);
 	}
 }
 
@@ -520,11 +520,11 @@ void X11Window::OnMouseInput(XButtonEvent &event)
 
 	if (event.type == ButtonPress)
 	{
-		engine->InputEvent(this, id, IST_Press);
+		windowHost->InputEvent(this, id, IST_Press);
 	}
 	else if (event.type == ButtonRelease)
 	{
-		engine->InputEvent(this, id, IST_Release);
+		windowHost->InputEvent(this, id, IST_Release);
 
 		/*
 		Time time_change = event.time - time_at_last_press;
@@ -544,9 +544,9 @@ void X11Window::OnMouseInput(XButtonEvent &event)
 			last_press_id = id;
 		}
 
-		engine->InputEvent(this, id, IST_Click);
+		windowHost->InputEvent(this, id, IST_Click);
 		if (is_a_double_click_event)
-			engine->InputEvent(this, id, IST_DoubleClick);
+			windowHost->InputEvent(this, id, IST_DoubleClick);
 		*/
 	}
 }
@@ -568,7 +568,7 @@ void X11Window::OnMouseMove(XMotionEvent &event)
 	MouseX = event.x;
 	MouseY = event.y;
 
-	//engine->OnMouseMove(MouseX, MouseY);
+	//windowHost->OnMouseMove(MouseX, MouseY);
 }
 
 void X11Window::OnKeyboardInput(XKeyEvent &event)
@@ -615,10 +615,10 @@ void X11Window::OnKeyboardInput(XKeyEvent &event)
 		buff[result] = 0;
 		std::string keystr(buff, result);
 		if (!keystr.empty())
-			engine->Key(this, keystr);
+			windowHost->Key(this, keystr);
 	}
 
-	engine->InputEvent(this, KeySymToInputKey(key_symbol), keytype);
+	windowHost->InputEvent(this, KeySymToInputKey(key_symbol), keytype);
 }
 
 EInputKey X11Window::KeySymToInputKey(KeySym keysym)

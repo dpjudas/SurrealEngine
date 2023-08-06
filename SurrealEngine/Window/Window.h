@@ -99,10 +99,23 @@ enum EInputType
 	IST_Axis
 };
 
+class DisplayWindow;
+
+class DisplayWindowHost
+{
+public:
+	virtual void Key(DisplayWindow* window, std::string key) = 0;
+	virtual void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0) = 0;
+	virtual void FocusChange(bool lost) = 0;
+	virtual void MouseMove(float x, float y) = 0;
+	virtual bool MouseCursorVisible() = 0;
+	virtual void WindowClose(DisplayWindow* window) = 0;
+};
+
 class DisplayWindow
 {
 public:
-	static std::unique_ptr<DisplayWindow> Create(Engine* engine);
+	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost);
 
 	virtual ~DisplayWindow() = default;
 	virtual void OpenWindow(int width, int height, bool fullscreen) = 0;
