@@ -64,7 +64,16 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 		if (actor->bDeleteMe())
 			return nullptr;
 
-		// To do: we need to call touch events here
+		// To do: we need to call EventName::EncroachingOn events here?
+
+		// Send touch notifications for anything at the spawn location
+		for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
+		{
+			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+			{
+				Touch(actor);
+			}
+		}
 
 		CallEvent(actor, EventName::PostBeginPlay);
 		CallEvent(actor, EventName::SetInitialState);
