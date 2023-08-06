@@ -340,13 +340,24 @@ double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& di
 	double r = cylinderRadiusA + cylinderRadiusB;
 
 	// Find the trace range where the cylinders can hit each other (ray/planes test):
-	double t0 = (cylinderCenterA.z - origin.z - h) / dirNormalized.z;
-	double t1 = (cylinderCenterA.z - origin.z + h) / dirNormalized.z;
-	if (t1 < t0) std::swap(t0, t1);
+	double t0, t1;
+	if (dirNormalized.z > FLT_EPSILON || dirNormalized.z < -FLT_EPSILON)
+	{
+		t0 = (cylinderCenterA.z - origin.z - h) / dirNormalized.z;
+		t1 = (cylinderCenterA.z - origin.z + h) / dirNormalized.z;
+		if (t1 < t0) std::swap(t0, t1);
 
-	// If the trace range is outside the planes then there is no hit
-	if (t1 < tmin || t0 >= tmax)
-		return tmax;
+		// If the trace range is outside the planes then there is no hit
+		if (t1 < tmin || t0 >= tmax)
+			return tmax;
+	}
+	else // trace is parallel to the plane - either we are always inside or we are always outside
+	{
+		if (std::abs(cylinderCenterA.z - origin.z) >= h)
+			return tmax;
+		t0 = 0.0;
+		t1 = 1.0;
+	}
 
 	// Test if the first possible hit point is already overlapping. If it is, we hit the top or bottom of the cylinder.
 	if (t0 >= tmin)
