@@ -336,9 +336,40 @@ bool CollisionHash::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double
 
 double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, double cylinderHeightB, double cylinderRadiusB)
 {
-	// To do: implement this instead of using a ray test
+	double h = cylinderHeightA + cylinderHeightB;
+	double r = cylinderRadiusA + cylinderRadiusB;
 
-	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA, cylinderRadiusA);
+	// Find the trace range where the cylinders can hit each other (ray/planes test):
+	double t0 = (cylinderCenterA.z - origin.z - h) / dirNormalized.z;
+	double t1 = (cylinderCenterA.z - origin.z + h) / dirNormalized.z;
+	if (t1 < t0) std::swap(t0, t1);
+
+	// If the trace range is outside the planes then there is no hit
+	if (t1 < tmin || t0 >= tmax)
+		return tmax;
+
+	// Test if the first possible hit point is already overlapping. If it is, we hit the top or bottom of the cylinder.
+	if (t0 >= tmin)
+	{
+		dvec2 dist2d = cylinderCenterA.xy() + origin.xy() + dirNormalized.xy() * t0;
+		if (dot(dist2d, dist2d) < r * r)
+			return t0;
+	}
+
+	// Find the when sides might hit each other in the XY plane (ray/circle test):
+	dvec2 l = cylinderCenterA.xy() - origin.xy();
+	double s = dot(l, dirNormalized.xy());
+	double l2 = dot(l, l);
+	double r2 = r * r;
+	if (s < 0 && l2 > r2)
+		return tmax;
+	double s2 = s * s;
+	double m2 = l2 - s2;
+	if (m2 > r2)
+		return tmax;
+	double q = std::sqrt(r2 - m2);
+	double t = (l2 > r2) ? s - q : s + q;
+	return (t >= tmin && t >= t0 && t <= t1) ? t : tmax;
 }
 
 bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereRadius, UActor* actor)
