@@ -330,7 +330,7 @@ bool CollisionHash::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double
 {
 	dvec3 dist = cylinderCenterA - cylinderCenterB;
 	double h = cylinderHeightA + cylinderHeightB;
-	double r = cylinderRadiusB + cylinderRadiusB;
+	double r = cylinderRadiusA + cylinderRadiusB;
 	return std::abs(dist.z) < h && dot(dist.xy(), dist.xy()) < r * r;
 }
 
@@ -338,7 +338,7 @@ double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& di
 {
 	// To do: implement this instead of using a ray test
 
-	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA, cylinderHeightB);
+	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA, cylinderRadiusA);
 }
 
 bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereRadius, UActor* actor)
@@ -350,9 +350,8 @@ bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereR
 	double height = actor->CollisionHeight();
 	double radius = actor->CollisionRadius();
 
-	// Capsule/sphere test. Is this what UE1 does? Or does it do a true cylinder test?
-	// To do: should the capsule height be std::max(height - radius, 0.0f) instead of just height?
-	return SphereCapsuleOverlap(sphereCenter, sphereRadius, center, height, radius);
+	// Note: this isn't entirely accurate - what does UE1 do?
+	return SphereCapsuleOverlap(sphereCenter, sphereRadius, center, std::max(height - radius, 0.0), radius);
 }
 
 bool CollisionHash::CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor)
@@ -374,8 +373,6 @@ double CollisionHash::RayActorTrace(const dvec3& origin, double tmin, const dvec
 	dvec3 center = to_dvec3(actor->Location());
 	double height = actor->CollisionHeight();
 	double radius = actor->CollisionRadius();
-
-	// Cylinder/ray test. Is this what UE1 does? Or does it do a capsule test instead?
 	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
 }
 
@@ -388,7 +385,7 @@ double CollisionHash::CylinderActorTrace(const dvec3& origin, double tmin, const
 	double height = actor->CollisionHeight();
 	double radius = actor->CollisionRadius();
 
-	if (cylinderHeight > 0.0f && cylinderRadius >= 0.0f)
+	if (cylinderHeight > 0.0f && cylinderRadius > 0.0f)
 	{
 		return CylinderCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius, cylinderHeight, cylinderRadius);
 	}

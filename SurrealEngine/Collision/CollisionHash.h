@@ -113,6 +113,6 @@ private:
 	// Sphere/capsule overlap test
 	static bool SphereCapsuleOverlap(const dvec3& sphereCenter, double sphereRadius, const dvec3& capsuleCenter, double capsuleHeight, double capsuleRadius);
 
-	// Cylinder/actor overlap test
+	// Cylinder/cylinder overlap test
 	static bool CylinderCylinderOverlap(const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, const dvec3& cylinderCenterB, double cylinderHeightB, double cylinderRadiusB);
 };
