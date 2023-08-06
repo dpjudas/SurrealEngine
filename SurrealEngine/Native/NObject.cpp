@@ -511,7 +511,7 @@ void NObject::FRand(float& ReturnValue)
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	A.GetAxes(X, Y, Z);
+	Coords::Rotation(A).GetAxes(X, Y, Z);
 }
 
 void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
@@ -540,7 +540,7 @@ void NObject::GetStateName(UObject* Self, NameString& ReturnValue)
 
 void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 {
-	A.GetUnAxes(X, Y, Z);
+	Coords::Rotation(A).GetUnAxes(X, Y, Z);
 }
 
 void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)
@@ -575,7 +575,7 @@ void NObject::GreaterGreater_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::GreaterGreater_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
 {
-	ReturnValue = (B.ToMatrix() * vec4(A, 1.0f)).xyz();
+	ReturnValue = Coords::Rotation(B).Inverse() * A;
 }
 
 void NObject::Greater_FloatFloat(float A, float B, bool& ReturnValue)
@@ -658,7 +658,7 @@ void NObject::LessLess_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& ReturnValue)
 {
-	ReturnValue = inverse(quaternion::rotation_matrix(B.ToMatrix())) * A;
+	ReturnValue = Coords::Rotation(B) * A;
 }
 
 void NObject::Less_FloatFloat(float A, float B, bool& ReturnValue)

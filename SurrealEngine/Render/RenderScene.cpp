@@ -22,17 +22,12 @@ void RenderSubsystem::DrawScene()
 
 	if (skyZone)
 	{
-		mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
-		mat4 skyrotate = skyZone->Rotation().ToMatrix();
-		mat4 translate = mat4::translate(vec3(0.0f) - skyZone->Location());
-		mat4 worldToView = CoordsMatrix() * rotate * skyrotate * translate;
-		DrawFrame(skyZone->Location(), worldToView);
+		mat4 skyToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Rotation(skyZone->Rotation()).ToMatrix() * Coords::Location(skyZone->Location()).ToMatrix();
+		DrawFrame(skyZone->Location(), skyToView);
 		Device->ClearZ(&Scene.Frame);
 	}
 
-	mat4 rotate = mat4::rotate(radians(engine->CameraRotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(engine->CameraRotation.YawDegrees() - 90.0f), 0.0f, 0.0f, -1.0f);
-	mat4 translate = mat4::translate(vec3(0.0f) - engine->CameraLocation);
-	mat4 worldToView = CoordsMatrix() * rotate * translate;
+	mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Location(engine->CameraLocation).ToMatrix();
 	DrawFrame(engine->CameraLocation, worldToView);
 	DrawCoronas(&Scene.Frame);
 }
@@ -82,8 +77,8 @@ void RenderSubsystem::DrawActors()
 					actor->light = vec3(1.0f);
 			}
 
-			ActorDrawType dt = (ActorDrawType)actor->DrawType();
-			if (dt == ActorDrawType::Mesh && actor->Mesh())
+			EDrawType dt = (EDrawType)actor->DrawType();
+			if (dt == DT_Mesh && actor->Mesh())
 			{
 				// Note: this doesn't take the rotation into account!
 				BBox bbox = actor->Mesh()->BoundingBox;
@@ -94,11 +89,11 @@ void RenderSubsystem::DrawActors()
 					DrawMesh(&Scene.Frame, actor);
 				}
 			}
-			else if ((dt == ActorDrawType::Sprite || dt == ActorDrawType::SpriteAnimOnce) && (actor->Texture()))
+			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
 			{
 				DrawSprite(&Scene.Frame, actor);
 			}
-			else if (dt == ActorDrawType::Brush && actor->Brush())
+			else if (dt == DT_Brush && actor->Brush())
 			{
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();
@@ -145,8 +140,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
 	}
 
 	FTextureInfo detailtex;
@@ -168,8 +163,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (detailtex.Texture->Palette())
 			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV;
 	}
 
 	FTextureInfo macrotex;
@@ -191,24 +186,28 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (macrotex.Texture->Palette())
 			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x += AutoUV;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y += AutoUV;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node->VertPool];
+
+	if (VertexBuffer.size() < node->NumVertices)
+		VertexBuffer.resize(node->NumVertices);
+
+	vec3* points = VertexBuffer.data();
+	int numverts = node->NumVertices;
+	for (int j = 0; j < numverts; j++)
+	{
+		points[j] = model->Points[v[j].Vertex];
+	}
 
 	FSurfaceFacet facet;
 	facet.MapCoords.Origin = Base;
 	facet.MapCoords.XAxis = UVec;
 	facet.MapCoords.YAxis = VVec;
-
-	std::vector<vec3> points;
-	int numverts = node->NumVertices;
-	for (int j = 0; j < numverts; j++)
-	{
-		points.push_back(model->Points[v[j].Vertex]);
-	}
-	facet.Polys.push_back(std::move(points));
+	facet.Vertices = points;
+	facet.VertexCount = numverts;
 
 	FTextureInfo lightmap;
 	FTextureInfo fogmap;
@@ -313,7 +312,7 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 	uint32_t PolyFlags = surface.PolyFlags;
 	if (surface.Material)
-		PolyFlags |= GetTexturePolyFlags(surface.Material);
+		PolyFlags |= surface.Material->PolyFlags();
 
 	if (PolyFlags & PF_Portal)
 	{
@@ -345,44 +344,6 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 	}
 }
 
-uint32_t RenderSubsystem::GetTexturePolyFlags(UTexture* t)
-{
-	// To do: implement packed booleans in the VM so that this can be done as a single uint32_t
-	uint32_t PolyFlags = ((uint32_t)t->bInvisible()) << 0;
-	PolyFlags |= ((uint32_t)t->bMasked()) << 1;
-	PolyFlags |= ((uint32_t)t->bTransparent()) << 2;
-	PolyFlags |= ((uint32_t)t->bNotSolid()) << 3;
-	PolyFlags |= ((uint32_t)t->bEnvironment()) << 4;
-	PolyFlags |= ((uint32_t)t->bSemisolid()) << 5;
-	PolyFlags |= ((uint32_t)t->bModulate()) << 6;
-	PolyFlags |= ((uint32_t)t->bFakeBackdrop()) << 7;
-	PolyFlags |= ((uint32_t)t->bTwoSided()) << 8;
-	PolyFlags |= ((uint32_t)t->bAutoUPan()) << 9;
-	PolyFlags |= ((uint32_t)t->bAutoVPan()) << 10;
-	PolyFlags |= ((uint32_t)t->bNoSmooth()) << 11;
-	PolyFlags |= ((uint32_t)t->bBigWavy()) << 12;
-	PolyFlags |= ((uint32_t)t->bSmallWavy()) << 13;
-	PolyFlags |= ((uint32_t)t->bWaterWavy()) << 14;
-	PolyFlags |= ((uint32_t)t->bLowShadowDetail()) << 15;
-	PolyFlags |= ((uint32_t)t->bNoMerge()) << 16;
-	PolyFlags |= ((uint32_t)t->bCloudWavy()) << 17;
-	PolyFlags |= ((uint32_t)t->bDirtyShadows()) << 18;
-	PolyFlags |= ((uint32_t)t->bHighLedge()) << 19;
-	PolyFlags |= ((uint32_t)t->bSpecialLit()) << 20;
-	PolyFlags |= ((uint32_t)t->bGouraud()) << 21;
-	PolyFlags |= ((uint32_t)t->bUnlit()) << 22;
-	PolyFlags |= ((uint32_t)t->bHighShadowDetail()) << 23;
-	PolyFlags |= ((uint32_t)t->bPortal()) << 24;
-	PolyFlags |= ((uint32_t)t->bMirrored()) << 25;
-	PolyFlags |= ((uint32_t)t->bX2()) << 26;
-	PolyFlags |= ((uint32_t)t->bX3()) << 27;
-	PolyFlags |= ((uint32_t)t->bX4()) << 28;
-	PolyFlags |= ((uint32_t)t->bX5()) << 29;
-	PolyFlags |= ((uint32_t)t->bX6()) << 30;
-	PolyFlags |= ((uint32_t)t->bX7()) << 31;
-	return PolyFlags;
-}
-
 void RenderSubsystem::SetupSceneFrame(const mat4& worldToView)
 {
 	Scene.Frame.XB = 0;
@@ -401,25 +362,4 @@ void RenderSubsystem::SetupSceneFrame(const mat4& worldToView)
 	float RFX2 = 2.0f * RProjZ / Scene.Frame.FX;
 	float RFY2 = 2.0f * RProjZ * Aspect / Scene.Frame.FY;
 	Scene.Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
-}
-
-mat4 RenderSubsystem::CoordsMatrix()
-{
-	FCoords coords;
-	coords.XAxis = vec3(-1.0f, 0.0f, 0.0f);
-	coords.YAxis = vec3(0.0f, 0.0f, 1.0f);
-	coords.ZAxis = vec3(0.0f, -1.0f, 0.0f);
-
-	mat4 coordsmatrix = mat4::null();
-	coordsmatrix[0] = coords.XAxis[0];
-	coordsmatrix[1] = coords.XAxis[1];
-	coordsmatrix[2] = coords.XAxis[2];
-	coordsmatrix[4] = coords.YAxis[0];
-	coordsmatrix[5] = coords.YAxis[1];
-	coordsmatrix[6] = coords.YAxis[2];
-	coordsmatrix[8] = coords.ZAxis[0];
-	coordsmatrix[9] = coords.ZAxis[1];
-	coordsmatrix[10] = coords.ZAxis[2];
-	coordsmatrix[15] = 1.0f;
-	return coordsmatrix;
 }

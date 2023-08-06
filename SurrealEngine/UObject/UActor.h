@@ -27,20 +27,8 @@ class UTrigger;
 class UWarpZoneInfo;
 class UZoneInfo;
 class PackageManager;
-class SweepHit;
+class CollisionHit;
 struct MeshAnimSeq;
-
-enum class ActorDrawType
-{
-	NoDraw,
-	Sprite,
-	Mesh,
-	Brush,
-	RopeSprite,
-	VerticalSprite,
-	Terraform,
-	SpriteAnimOnce
-};
 
 struct PointRegion
 {
@@ -141,6 +129,18 @@ enum ELightEffect
 	LE_Unused
 };
 
+enum EDrawType
+{
+	DT_None,
+	DT_Sprite,
+	DT_Mesh,
+	DT_Brush,
+	DT_RopeSprite,
+	DT_VerticalSprite,
+	DT_Terraform,
+	DT_SpriteAnimOnce
+};
+
 class UActor : public UObject
 {
 public:
@@ -186,7 +186,7 @@ public:
 	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 
-	SweepHit TryMove(const vec3& delta);
+	CollisionHit TryMove(const vec3& delta);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 

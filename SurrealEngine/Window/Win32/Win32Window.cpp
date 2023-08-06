@@ -211,8 +211,8 @@ void Win32Window::Tick()
 		if (engine->viewport->bShowWindowsMouse())
 		{
 			GetCursorPos(&MouseCoords);
-			engine->viewport->WindowsMouseX() = MouseCoords.x;
-			engine->viewport->WindowsMouseY() = MouseCoords.y;
+			engine->viewport->WindowsMouseX() = (float)MouseCoords.x;
+			engine->viewport->WindowsMouseY() = (float)MouseCoords.y;
 		}
 		else
 		{

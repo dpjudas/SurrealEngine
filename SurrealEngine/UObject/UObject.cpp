@@ -232,7 +232,14 @@ bool UObject::IsA(const NameString& className) const
 bool UObject::IsEventEnabled(const NameString& name) const
 {
 	NameString stateName = GetStateName();
-	if (UState::IsMaskedProbeName(name))
+	auto it = DisabledEvents.find(stateName);
+	return it == DisabledEvents.end() || it->second.find(name) == it->second.end();
+}
+
+bool UObject::IsEventEnabled(EventName name) const
+{
+	int nameIndex = (int)name;
+	if (nameIndex < 64) // Probe event
 	{
 		bool foundProbe = false;
 		if (StateFrame && StateFrame->Func)
@@ -240,26 +247,28 @@ bool UObject::IsEventEnabled(const NameString& name) const
 			UState* state = static_cast<UState*>(StateFrame->Func);
 
 			// Probe is in the ignore list ('ignores' keyword in unrealscript)
-			if (state->IgnoreProbes.find(name) != state->IgnoreProbes.end())
+			if ((state->IgnoreMask & (1ULL << nameIndex)) == 0)
 			{
 				return false;
 			}
 
 			// We have a function for the probe
-			if (state->Probes.find(name) != state->Probes.end())
+			if ((state->ProbeMask & (1ULL << nameIndex)) != 0)
+			{
 				foundProbe = true;
+			}
 		}
 
 		// Maybe the class has a function for our probe?
-		if (Class->Probes.find(name) != Class->Probes.end())
+		if ((Class->ProbeMask & (1ULL << nameIndex)) != 0)
+		{
 			foundProbe = true;
+		}
 
 		if (!foundProbe)
 			return false;
 	}
-
-	auto it = DisabledEvents.find(stateName);
-	return it == DisabledEvents.end() || it->second.find(name) == it->second.end();
+	return IsEventEnabled(ToNameString(name));
 }
 
 std::string UObject::PrintProperties()
@@ -322,7 +331,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 	UState* oldState = (UState*)StateFrame->Func;
 
 	if (oldState && oldState != newState)
-		CallEvent(this, "EndState");
+		CallEvent(this, EventName::EndState);
 
 	if (oldState != newState)
 		StateFrame->SetState(newState);
@@ -331,7 +340,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		StateFrame->GotoLabel(labelName);
 
 	if (newState && oldState != newState)
-		CallEvent(this, "BeginState");
+		CallEvent(this, EventName::BeginState);
 }
 
 /////////////////////////////////////////////////////////////////////////////

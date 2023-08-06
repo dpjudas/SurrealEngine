@@ -2,10 +2,10 @@
 #include "Precomp.h"
 #include "TraceRayModel.h"
 
-TraceHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+CollisionHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	Model = model;
-	TraceHitList hits;
+	CollisionHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front(), hits);
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	return hits;
@@ -17,7 +17,7 @@ bool TraceRayModel::TraceAnyHit(UModel* model, const dvec3& origin, double tmin,
 	return TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front());
 }
 
-void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, TraceHitList& hits)
+void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly, BspNode* node, CollisionHitList& hits)
 {
 	BspNode* polynode = node;
 	while (true)
@@ -27,7 +27,7 @@ void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNorm
 			double t = NodeRayIntersect(origin, tmin, dirNormalized, tmax, polynode);
 			if (t >= tmin && t < tmax)
 			{
-				TraceHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ) };
+				CollisionHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr, polynode };
 				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
 					hit.Normal = -hit.Normal;
 				hits.push_back(hit);

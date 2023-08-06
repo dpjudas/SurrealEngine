@@ -96,7 +96,7 @@ void ULevel::Tick(float elapsed)
 				actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
 				if (actor->LifeSpan() == 0.0f)
 				{
-					CallEvent(actor, "Expired");
+					CallEvent(actor, EventName::Expired);
 					actor->Destroy();
 				}
 			}
@@ -115,9 +115,9 @@ void ULevel::Tick(float elapsed)
 	ticked = !ticked;
 }
 
-SweepHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
+CollisionHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
 {
-	for (const SweepHit& hit : Trace(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
+	for (const CollisionHit& hit : Trace(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
 	{
 		if (hit.Actor && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
 		{
@@ -144,7 +144,7 @@ SweepHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracing
 		}
 		else if (flags.world && !hit.Actor)
 		{
-			SweepHit worldHit = hit;
+			CollisionHit worldHit = hit;
 			if (tracingActor)
 				worldHit.Actor = tracingActor->Level();
 			return worldHit;
@@ -153,7 +153,7 @@ SweepHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracing
 	return {};
 }
 
-SweepHitList ULevel::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+CollisionHitList ULevel::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	TraceCylinderLevel trace;
 	return trace.Trace(this, from, to, height, radius, traceActors, traceWorld, visibilityOnly);
@@ -348,7 +348,7 @@ void UModel::Load(ObjectStream* stream)
 	Linked = stream->ReadInt32();
 }
 
-TraceHitList UModel::TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+CollisionHitList UModel::TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	TraceRayModel trace;
 	return trace.Trace(this, origin, tmin, dirNormalized, tmax, visibilityOnly);

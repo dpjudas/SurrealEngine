@@ -7,24 +7,19 @@
 void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 {
 	UMesh* mesh = actor->Mesh();
-	const vec3& location = actor->Location();
-	const Rotator& rotation = actor->Rotation();
-	const vec3& color = actor->light;
-
 	if (!mesh)
 		return;
 
-	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * actor->Rotation().ToMatrix() * mat4::scale(actor->DrawScale());
-
-	mat4 meshToObject = mesh->RotOrigin.ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);
+	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
+	mat4 meshToObject = Coords::Rotation(mesh->RotOrigin).ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);
 	mat4 meshToWorld = objectToWorld * meshToObject;
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
-		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld, color);
+		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld, actor->light);
 	else if (dynamic_cast<ULodMesh*>(mesh))
-		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld, color);
+		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld, actor->light);
 	else
-		DrawMesh(frame, actor, mesh, meshToWorld, color);
+		DrawMesh(frame, actor, mesh, meshToWorld, actor->light);
 }
 
 void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)

@@ -8,6 +8,7 @@
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
+#include "Collision/OverlapCylinderLevel.h"
 
 static std::string tickEventName = "Tick";
 
@@ -57,17 +58,26 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 
 	if (Level()->bBegunPlay())
 	{
-		CallEvent(actor, "Spawned");
-		CallEvent(actor, "PreBeginPlay");
-		CallEvent(actor, "BeginPlay");
+		CallEvent(actor, EventName::Spawned);
+		CallEvent(actor, EventName::PreBeginPlay);
+		CallEvent(actor, EventName::BeginPlay);
 
 		if (actor->bDeleteMe())
 			return nullptr;
 
-		// To do: we need to call touch events here
+		// To do: we need to call EventName::EncroachingOn events here?
 
-		CallEvent(actor, "PostBeginPlay");
-		CallEvent(actor, "SetInitialState");
+		// Send touch notifications for anything at the spawn location
+		for (UActor* actor : XLevel()->Hash.CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius()))
+		{
+			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+			{
+				Touch(actor);
+			}
+		}
+
+		CallEvent(actor, EventName::PostBeginPlay);
+		CallEvent(actor, EventName::SetInitialState);
 
 		actor->InitBase();
 
@@ -86,7 +96,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 				{
 					UClass* cls = notifyObj->ActorClass();
 					if (cls && actor->IsA(cls->Name))
-						actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, "SpawnNotification", { ExpressionValue::ObjectValue(actor) }).ToObject());
+						actor = UObject::Cast<UGameInfo>(CallEvent(notifyObj, EventName::SpawnNotification, { ExpressionValue::ObjectValue(actor) }).ToObject());
 				}
 			}
 		}
@@ -117,15 +127,12 @@ void UActor::InitBase()
 	bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(this) || UObject::TryCast<UInventory>(this) || UObject::TryCast<UPawn>(this);
 	if (isDecorationInventoryOrPawn && !ActorBase() && bCollideWorld() && (Physics() == PHYS_None || Physics() == PHYS_Rotating))
 	{
-		TraceFlags flags;
-		flags.world = true;
-		flags.movers = true;
-		flags.pawns = true;
-		flags.others = true;
-		vec3 from = Location();
-		vec3 to = Location() - vec3(0.0f, 0.0f, 10.0f);
-		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
-		SetBase(hit.Actor, true);
+		OverlapCylinderLevel overlap;
+		CollisionHitList hits = overlap.TestOverlap(XLevel(), Location(), CollisionHeight(), CollisionRadius(), true, false, false);
+		if (!hits.empty())
+		{
+			SetBase(hits.front().Actor, true);
+		}
 	}
 }
 
@@ -136,26 +143,22 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 	if (!check)
 		return { true, location };
 
-	TraceFlags flags;
-	flags.world = true;
-	flags.movers = true;
-
 	// What is a reasonable size for this grid? what did UE1 do?
 	int offset[] = { 0, 1, -1 };
 	bool found = false;
-	float scale = std::max(radius * 0.5f, height * 0.5f);
+	float scale = std::max(radius * 0.2f, height * 0.2f);
 	for (int z = 0; z < 3 && !found; z++)
 	{
 		for (int y = 0; y < 3 && !found; y++)
 		{
 			for (int x = 0; x < 3 && !found; x++)
 			{
-				vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
-				vec3 to = from + vec3(0.0f, 0.0f, height * 0.5f);
-				SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
-				if (hit.Fraction == 1.0f)
+				vec3 testlocation = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
+				OverlapCylinderLevel overlap;
+				CollisionHitList hits = overlap.TestOverlap(XLevel(), testlocation, height, radius, false, true, false);
+				if (hits.empty())
 				{
-					location = from;
+					location = testlocation;
 					found = true;
 				}
 			}
@@ -182,7 +185,7 @@ bool UActor::Destroy()
 
 	level->Hash.RemoveFromCollision(this);
 
-	CallEvent(this, "Destroyed");
+	CallEvent(this, EventName::Destroyed);
 
 	UActor** TouchingArray = Touching();
 	for (int i = 0; i < TouchingArraySize; i++)
@@ -258,23 +261,23 @@ void UActor::UpdateActorZone()
 	PointRegion newregion = FindRegion();
 
 	if (Region().Zone && oldregion.Zone != newregion.Zone)
-		CallEvent(Region().Zone, "ActorLeaving", { ExpressionValue::ObjectValue(this) });
+		CallEvent(Region().Zone, EventName::ActorLeaving, { ExpressionValue::ObjectValue(this) });
 
 	Region() = newregion;
 
 	if (Region().Zone && oldregion.Zone != newregion.Zone)
-		CallEvent(Region().Zone, "ActorEntered", { ExpressionValue::ObjectValue(this) });
+		CallEvent(Region().Zone, EventName::ActorEntered, { ExpressionValue::ObjectValue(this) });
 }
 
 void UActor::SetOwner(UActor* newOwner)
 {
 	if (Owner())
-		CallEvent(Owner(), "LostChild", { ExpressionValue::ObjectValue(this) });
+		CallEvent(Owner(), EventName::LostChild, { ExpressionValue::ObjectValue(this) });
 
 	Owner() = newOwner;
 
 	if (Owner())
-		CallEvent(Owner(), "GainedChild", { ExpressionValue::ObjectValue(this) });
+		CallEvent(Owner(), EventName::GainedChild, { ExpressionValue::ObjectValue(this) });
 }
 
 void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
@@ -290,7 +293,7 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 		if (ActorBase() && ActorBase() != Level())
 		{
 			ActorBase()->StandingCount()--;
-			CallEvent(ActorBase(), "Detach", { ExpressionValue::ObjectValue(this) });
+			CallEvent(ActorBase(), EventName::Detach, { ExpressionValue::ObjectValue(this) });
 		}
 
 		ActorBase() = newBase;
@@ -298,11 +301,11 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 		if (ActorBase() && ActorBase() != Level())
 		{
 			ActorBase()->StandingCount()++;
-			CallEvent(ActorBase(), "Attach", { ExpressionValue::ObjectValue(this) });
+			CallEvent(ActorBase(), EventName::Attach, { ExpressionValue::ObjectValue(this) });
 		}
 
 		if (sendBaseChangeEvent)
-			CallEvent(this, "BaseChange");
+			CallEvent(this, EventName::BaseChange);
 	}
 }
 
@@ -312,9 +315,9 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 
 	TickAnimation(elapsed);
 
-	if (Role() >= ROLE_SimulatedProxy && IsEventEnabled(tickEventName))
+	if (Role() >= ROLE_SimulatedProxy && IsEventEnabled(EventName::Tick))
 	{
-		CallEvent(this, tickEventName, { ExpressionValue::FloatValue(elapsed) });
+		CallEvent(this, EventName::Tick, { ExpressionValue::FloatValue(elapsed) });
 	}
 
 	if (StateFrame && StateFrame->LatentState == LatentRunState::Sleep)
@@ -339,7 +342,7 @@ void UActor::Tick(float elapsed, bool tickedFlag)
 			TimerCounter() -= TimerRate();
 			if (!bTimerLoop())
 				TimerRate() = 0.0f;
-			CallEvent(this, "Timer");
+			CallEvent(this, EventName::Timer);
 		}
 	}
 }
@@ -372,7 +375,7 @@ void UActor::TickPhysics(float elapsed)
 
 		if (PendingTouch())
 		{
-			CallEvent(PendingTouch(), "PostTouch", { ExpressionValue::ObjectValue(this) });
+			CallEvent(PendingTouch(), EventName::PostTouch, { ExpressionValue::ObjectValue(this) });
 			if (PendingTouch())
 			{
 				UActor* cur = PendingTouch();
@@ -393,7 +396,7 @@ void UActor::TickWalking(float elapsed)
 
 	if (Region().ZoneNumber == 0)
 	{
-		CallEvent(this, "FellOutOfWorld");
+		CallEvent(this, EventName::FellOutOfWorld);
 		return;
 	}
 
@@ -463,7 +466,7 @@ void UActor::TickWalking(float elapsed)
 		vec3 moveDelta = Velocity() * timeLeft;
 
 		TryMove(stepUpDelta);
-		SweepHit hit = TryMove(moveDelta);
+		CollisionHit hit = TryMove(moveDelta);
 		timeLeft -= timeLeft * hit.Fraction;
 
 		if (hit.Fraction < 1.0f)
@@ -474,14 +477,14 @@ void UActor::TickWalking(float elapsed)
 
 				bJustTeleported() = true;
 				Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 				timeLeft = 0.0f;
 			}
 			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 			{
 				// We hit a wall
 
-				CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
 				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
@@ -490,7 +493,7 @@ void UActor::TickWalking(float elapsed)
 					timeLeft -= timeLeft * hit.Fraction;
 					if (hit.Fraction < 1.0f)
 					{
-						CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 					}
 				}
 
@@ -504,7 +507,7 @@ void UActor::TickWalking(float elapsed)
 	}
 
 	// Step down after movement to see if we are still walking or if we are now falling
-	SweepHit hit = TryMove(stepDownDelta);
+	CollisionHit hit = TryMove(stepDownDelta);
 	if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f)
 	{
 		SetPhysics(PHYS_Falling);
@@ -519,7 +522,7 @@ void UActor::TickFalling(float elapsed)
 {
 	if (Region().ZoneNumber == 0)
 	{
-		CallEvent(this, "FellOutOfWorld");
+		CallEvent(this, EventName::FellOutOfWorld);
 		return;
 	}
 
@@ -573,17 +576,17 @@ void UActor::TickFalling(float elapsed)
 		Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
 	}
 
-	SweepHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
+	CollisionHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		if (bBounce())
 		{
-			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 			// TODO: perform bounce
 		}
 		else
 		{
-			CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 			// slide along surfaces sloped steeper than 45 degrees
 			vec3 up(0.0, 0.0, 1.0);
@@ -603,7 +606,7 @@ void UActor::TickFalling(float elapsed)
 				gravityVector.x = -((cr * sp * cy) - (sr * -sy));	
 				gravityVector.y = ((cr * sp * sy) - (sr * cy));
 				gravityVector.z = -(cr * cp);
-				gravityVector *= gravityMag * 0.5;
+				gravityVector *= (float)(gravityMag * 0.5);
 
 				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
 
@@ -623,7 +626,7 @@ void UActor::TickFalling(float elapsed)
 			}
 			else
 			{
-				CallEvent(this, "Landed", { ExpressionValue::VectorValue(hit.Normal) });
+				CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hit.Normal) });
 
 				if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
 				{
@@ -646,26 +649,26 @@ void UActor::TickSwimming(float elapsed)
 {
 	// TODO: need to implement swimming physics
 
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		// is this correct?
 		if (bBounce())
 		{
-			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+			CallEvent(this, EventName::HitWall, {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
 		}
 	}
 }
 
 void UActor::TickFlying(float elapsed)
 {
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		// is this correct?
 		if (bBounce())
 		{
-			CallEvent(this, "HitWall", {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+			CallEvent(this, EventName::HitWall, {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
 		}
 	}
 }
@@ -695,7 +698,7 @@ void UActor::TickRotating(float elapsed)
 
 				if (Rotation() == DesiredRotation())
 				{
-					CallEvent(this, "EndedRotation");
+					CallEvent(this, EventName::EndedRotation);
 				}
 			}
 		}
@@ -735,11 +738,11 @@ void UActor::TickProjectile(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 
 	if (hit.Fraction < 1.0f && !hit.Actor && !bDeleteMe() && !bJustTeleported())
 	{
-		CallEvent(this, "HitWall", { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+		CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 	}
 
 	if (!bBounce() && !bJustTeleported())
@@ -822,8 +825,8 @@ void UActor::TickInterpolating(float elapsed)
 
 		if (interpolateStart)
 		{
-			CallEvent(target, "InterpolateEnd", { ExpressionValue::ObjectValue(this) });
-			CallEvent(this, "InterpolateEnd", { ExpressionValue::ObjectValue(target) });
+			CallEvent(target, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Prev();
 			while (target && target->bSkipNextPath())
@@ -834,8 +837,8 @@ void UActor::TickInterpolating(float elapsed)
 		}
 		else if (interpolateEnd)
 		{
-			CallEvent(target, "InterpolateEnd", { ExpressionValue::ObjectValue(this) });
-			CallEvent(this, "InterpolateEnd", { ExpressionValue::ObjectValue(target) });
+			CallEvent(target, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Next();
 			while (target && target->bSkipNextPath())
@@ -904,7 +907,7 @@ void UActor::TickMovingBrush(float elapsed)
 				if (physAlpha == 1.0f)
 				{
 					bInterpolating() = false;
-					CallEvent(this, "InterpolateEnd", { ExpressionValue::ObjectValue(nullptr) });
+					CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(nullptr) });
 				}
 			}
 		}
@@ -920,6 +923,22 @@ void UActor::TickSpider(float elapsed)
 
 void UActor::TickTrailer(float elapsed)
 {
+	if (!Owner())
+		return;
+
+	vec3 newLocation = Owner()->Location();
+
+	if (bTrailerPrePivot())
+	{
+		newLocation += PrePivot();
+	}
+
+	SetLocation(newLocation);
+
+	if (bTrailerSameRotation() && DrawType() != DT_Sprite)
+	{
+		SetRotation(Owner()->Rotation());
+	}
 }
 
 void UActor::SetPhysics(uint8_t newPhysics)
@@ -945,6 +964,26 @@ bool UActor::SetLocation(const vec3& newLocation)
 	XLevel()->Hash.RemoveFromCollision(this);
 	Location() = result.second;
 	XLevel()->Hash.AddToCollision(this);
+
+	// Send touch notifications for anything at the new location
+	for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
+	{
+		if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+		{
+			Touch(actor);
+		}
+	}
+
+	// Untouch everything we aren't overlapping anymore
+	UActor** TouchingArray = Touching();
+	for (int i = 0; i < TouchingArraySize; i++)
+	{
+		if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
+		{
+			UnTouch(TouchingArray[i]);
+		}
+	}
+
 	return true;
 }
 
@@ -985,7 +1024,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 		flags.zoneChanges = true;
 	}
 
-	SweepHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
+	CollisionHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
 	hitNormal = hit.Normal;
 	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
 	return hit.Actor;
@@ -1022,18 +1061,15 @@ bool UActor::IsOwnedBy(UActor* owner)
 
 bool UActor::IsOverlapping(UActor* other)
 {
-	vec3 dist = Location() - other->Location();
-	float h = CollisionHeight() + other->CollisionHeight();
-	float r = CollisionRadius() + other->CollisionRadius();
-	return dist.z < h && dot(dist.xy(), dist.xy()) < r * r;
+	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
-SweepHit UActor::TryMove(const vec3& delta)
+CollisionHit UActor::TryMove(const vec3& delta)
 {
 	// Static and non-movable objects can't move
 	if (bStatic() || !bMovable())
 	{
-		SweepHit hit;
+		CollisionHit hit;
 		hit.Fraction = 0.0f;
 		return hit;
 	}
@@ -1044,8 +1080,8 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
-	SweepHit blockingHit;
-	SweepHitList hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+	CollisionHit blockingHit;
+	CollisionHitList hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
 		for (auto& hit : hits)
@@ -1099,8 +1135,8 @@ SweepHit UActor::TryMove(const vec3& delta)
 	{
 		if (!blockingHit.Actor->IsBasedOn(this))
 		{
-			CallEvent(blockingHit.Actor, "Bump", { ExpressionValue::ObjectValue(this) });
-			CallEvent(this, "Bump", { ExpressionValue::ObjectValue(blockingHit.Actor) });
+			CallEvent(blockingHit.Actor, EventName::Bump, { ExpressionValue::ObjectValue(this) });
+			CallEvent(this, EventName::Bump, { ExpressionValue::ObjectValue(blockingHit.Actor) });
 		}
 	}
 
@@ -1132,7 +1168,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 	if (player)
 	{
-		engine->PlayerBspNode = blockingHit.node;
+		engine->PlayerBspNode = blockingHit.Node;
 		engine->PlayerHitNormal = blockingHit.Normal;
 	}
 
@@ -1174,12 +1210,12 @@ void UActor::Touch(UActor* actor)
 				if (!TouchingArray2[j])
 				{
 					TouchingArray[i] = actor;
-					CallEvent(this, "Touch", { ExpressionValue::ObjectValue(actor) });
+					CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
 
 					if (!TouchingArray2[j])
 					{
 						TouchingArray2[j] = this;
-						CallEvent(actor, "Touch", { ExpressionValue::ObjectValue(this) });
+						CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
 					}
 					return;
 				}
@@ -1198,7 +1234,7 @@ void UActor::UnTouch(UActor* actor)
 		if (TouchingArray[i] == actor)
 		{
 			TouchingArray[i] = nullptr;
-			CallEvent(this, "UnTouch", { ExpressionValue::ObjectValue(actor) });
+			CallEvent(this, EventName::UnTouch, { ExpressionValue::ObjectValue(actor) });
 		}
 	}
 
@@ -1207,7 +1243,7 @@ void UActor::UnTouch(UActor* actor)
 		if (TouchingArray2[i] == this)
 		{
 			TouchingArray2[i] = nullptr;
-			CallEvent(actor, "UnTouch", { ExpressionValue::ObjectValue(this) });
+			CallEvent(actor, EventName::UnTouch, { ExpressionValue::ObjectValue(this) });
 		}
 	}
 }
@@ -1219,14 +1255,14 @@ bool UActor::Move(const vec3& delta)
 
 bool UActor::MoveSmooth(const vec3& delta)
 {
-	SweepHit hit = TryMove(delta);
+	CollisionHit hit = TryMove(delta);
 	if (hit.Fraction != 1.0f)
 	{
 		// We hit a slope. Try to follow it.
 		vec3 alignedDelta = (delta - hit.Normal * dot(delta, hit.Normal)) * (1.0f - hit.Fraction);
 		if (dot(delta, alignedDelta) >= 0.0f) // Don't end up going backwards
 		{
-			SweepHit hit2 = TryMove(alignedDelta);
+			CollisionHit hit2 = TryMove(alignedDelta);
 		}
 	}
 
@@ -1448,7 +1484,7 @@ void UActor::TickAnimation(float elapsed)
 				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
 					StateFrame->LatentState = LatentRunState::Continue;
 
-				CallEvent(this, "AnimEnd");
+				CallEvent(this, EventName::AnimEnd);
 				continue;
 			}
 
@@ -1490,7 +1526,7 @@ void UActor::TickAnimation(float elapsed)
 				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
 					StateFrame->LatentState = LatentRunState::Continue;
 
-				CallEvent(this, "AnimEnd");
+				CallEvent(this, EventName::AnimEnd);
 			}
 		}
 		else
@@ -1521,7 +1557,7 @@ void UActor::TickAnimation(float elapsed)
 
 				bAnimFinished() = true;
 				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");
-				CallEvent(this, "AnimEnd");
+				CallEvent(this, EventName::AnimEnd);
 			}
 		}
 	}
@@ -1597,7 +1633,7 @@ void UActor::MakeNoise(float loudness)
 	{
 		if (pawn != noisePawn && pawn->CanHearNoise(this, loudness))
 		{
-			CallEvent(pawn, "HearNoise", { ExpressionValue::FloatValue(loudness), ExpressionValue::ObjectValue(this) });
+			CallEvent(pawn, EventName::HearNoise, { ExpressionValue::FloatValue(loudness), ExpressionValue::ObjectValue(this) });
 		}
 	}
 }
@@ -1656,13 +1692,13 @@ void UPawn::UpdateActorZone()
 	PointRegion oldfootregion = FootRegion();
 	PointRegion newfootregion = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
 	if (FootRegion().Zone && oldfootregion.Zone != newfootregion.Zone)
-		CallEvent(FootRegion().Zone, "FootZoneChange", { ExpressionValue::ObjectValue(this) });
+		CallEvent(FootRegion().Zone, EventName::FootZoneChange, { ExpressionValue::ObjectValue(this) });
 	FootRegion() = newfootregion;
 
 	PointRegion oldheadregion = HeadRegion();
 	PointRegion newheadregion = FindRegion({ 0.0f, 0.0f, EyeHeight() });
 	if (HeadRegion().Zone && oldheadregion.Zone != newheadregion.Zone)
-		CallEvent(HeadRegion().Zone, "HeadZoneChange", { ExpressionValue::ObjectValue(this) });
+		CallEvent(HeadRegion().Zone, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(this) });
 	HeadRegion() = newheadregion;
 
 	if (PlayerReplicationInfo())
@@ -1750,7 +1786,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
 		if (bViewTarget())
-			CallEvent(this, "UpdateEyeHeight", { ExpressionValue::FloatValue(elapsed) });
+			CallEvent(this, EventName::UpdateEyeHeight, { ExpressionValue::FloatValue(elapsed) });
 		else
 			ViewRotation() = Rotation();
 	}
@@ -1767,16 +1803,16 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 		{
 			PainTime() = std::max(PainTime() - elapsed, 0.0f);
 			if (PainTime() == 0.0f)
-				CallEvent(this, "PainTimer");
+				CallEvent(this, EventName::PainTimer);
 		}
 		if (SpeechTime() > 0.0f)
 		{
 			SpeechTime() = std::max(SpeechTime() - elapsed, 0.0f);
 			if (SpeechTime() == 0.0f)
-				CallEvent(this, "SpeechTimer");
+				CallEvent(this, EventName::SpeechTimer);
 		}
 		if (bAdvancedTactics())
-			CallEvent(this, "UpdateTactics", { ExpressionValue::FloatValue(elapsed) });
+			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
 	}
 }
 
@@ -1949,8 +1985,8 @@ void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
 	{
 		if (Player() && !UObject::TryCast<UCamera>(this))
 		{
-			CallEvent(this, "PlayerInput", { ExpressionValue::FloatValue(elapsed) });
-			CallEvent(this, "PlayerTick", { ExpressionValue::FloatValue(elapsed) });
+			CallEvent(this, EventName::PlayerInput, { ExpressionValue::FloatValue(elapsed) });
+			CallEvent(this, EventName::PlayerTick, { ExpressionValue::FloatValue(elapsed) });
 		}
 	}
 
@@ -1998,7 +2034,7 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 		dirNormalized = normalize(decalDir);
 	}
 
-	TraceHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	CollisionHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	vec3 N = hits.front().Normal;

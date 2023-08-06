@@ -32,7 +32,7 @@ private:
 	std::vector<vec3> points;
 	vec3 normal;
 
-	Shadowmap Shadowmap;
+	Shadowmap Shadow;
 	LightEffect Effect;
 	std::vector<float> illuminationmap;
 };

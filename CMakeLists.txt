@@ -164,6 +164,7 @@ set(UTENGINE_SOURCES
 	SurrealEngine/Math/mat.cpp
 	SurrealEngine/Math/bbox.h
 	SurrealEngine/Math/hsb.h
+	SurrealEngine/Math/coords.h
 	SurrealEngine/GC/GC.cpp
 	SurrealEngine/GC/GC.h
 	SurrealEngine/UObject/ULevel.cpp
@@ -198,17 +199,19 @@ set(UTENGINE_SOURCES
 	SurrealEngine/UObject/PropertyOffsets.h
 	SurrealEngine/Collision/CollisionHash.cpp
 	SurrealEngine/Collision/CollisionHash.h
-	SurrealEngine/Collision/TraceHit.h
+	SurrealEngine/Collision/CollisionHit.h
 	SurrealEngine/Collision/TraceRayLevel.cpp
 	SurrealEngine/Collision/TraceRayLevel.h
 	SurrealEngine/Collision/TraceRayModel.cpp
 	SurrealEngine/Collision/TraceRayModel.h
 	SurrealEngine/Collision/TraceCylinderLevel.cpp
 	SurrealEngine/Collision/TraceCylinderLevel.h
-	SurrealEngine/Collision/TraceSphereModel.cpp
-	SurrealEngine/Collision/TraceSphereModel.h
 	SurrealEngine/Collision/TraceAABBModel.cpp
 	SurrealEngine/Collision/TraceAABBModel.h
+	SurrealEngine/Collision/OverlapCylinderLevel.cpp
+	SurrealEngine/Collision/OverlapCylinderLevel.h
+	SurrealEngine/Collision/OverlapAABBModel.cpp
+	SurrealEngine/Collision/OverlapAABBModel.h
 	SurrealEngine/UI/Controls/LineEdit/LineEdit.cpp
 	SurrealEngine/UI/Controls/LineEdit/LineEdit.h
 	SurrealEngine/UI/Controls/TextLabel/TextLabel.cpp

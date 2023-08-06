@@ -39,7 +39,7 @@ bool TraceRayLevel::TraceAnyHit(ULevel* level, vec3 from, vec3 to, UActor* traci
 						{
 							for (UActor* actor : it->second)
 							{
-								if (actor != tracingActor && actor->bBlockActors() && Level->Hash.ActorRayIntersect(origin, tmin, direction, tmax, actor) < tmax)
+								if (actor != tracingActor && actor->bBlockActors() && Level->Hash.RayActorTrace(origin, tmin, direction, tmax, actor) < tmax)
 									return true;
 							}
 						}

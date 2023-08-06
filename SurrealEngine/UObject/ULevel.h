@@ -3,7 +3,7 @@
 #include "UMesh.h"
 #include "Math/bbox.h"
 #include "Collision/CollisionHash.h"
-#include "Collision/TraceHit.h"
+#include "Collision/CollisionHit.h"
 
 class UTexture;
 class UActor;
@@ -161,7 +161,7 @@ public:
 	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
 
-	TraceHitList TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
+	CollisionHitList TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 
 	std::vector<vec3> Vectors;
 	std::vector<vec3> Points;
@@ -244,8 +244,8 @@ public:
 
 	void Tick(float elapsed);
 
-	SweepHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
-	SweepHitList Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
+	CollisionHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
+	CollisionHitList Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
 
 	bool TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
 

@@ -43,27 +43,27 @@ void RenderSubsystem::ResetCanvas()
 	//engine->viewport->bWindowsMouseAvailable() = true; // if true then RenderUWindow updates mouse pos from (WindowsMouseX,WindowsMouseY), otherwise it uses KeyEvent(IK_MouseX, delta) + KeyEvent(IK_MouseY, delta). Maybe used for windowed mode?
 	//engine->viewport->WindowsMouseX() = 10.0f;
 	//engine->viewport->WindowsMouseY() = 200.0f;
-	CallEvent(engine->canvas, "Reset");
+	CallEvent(engine->canvas, EventName::Reset);
 }
 
 void RenderSubsystem::PreRender()
 {
 	Device->SetSceneNode(&Canvas.Frame);
-	CallEvent(engine->console, "PreRender", { ExpressionValue::ObjectValue(engine->canvas) });
-	CallEvent(engine->viewport->Actor(), "PreRender", { ExpressionValue::ObjectValue(engine->canvas) });
+	CallEvent(engine->console, EventName::PreRender, { ExpressionValue::ObjectValue(engine->canvas) });
+	CallEvent(engine->viewport->Actor(), EventName::PreRender, { ExpressionValue::ObjectValue(engine->canvas) });
 }
 
 void RenderSubsystem::RenderOverlays()
 {
 	Device->SetSceneNode(&Canvas.Frame);
-	CallEvent(engine->viewport->Actor(), "RenderOverlays", { ExpressionValue::ObjectValue(engine->canvas) });
+	CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
 }
 
 void RenderSubsystem::PostRender()
 {
 	Device->SetSceneNode(&Canvas.Frame);
-	CallEvent(engine->viewport->Actor(), "PostRender", { ExpressionValue::ObjectValue(engine->canvas) });
-	CallEvent(engine->console, "PostRender", { ExpressionValue::ObjectValue(engine->canvas) });
+	CallEvent(engine->viewport->Actor(), EventName::PostRender, { ExpressionValue::ObjectValue(engine->canvas) });
+	CallEvent(engine->console, EventName::PostRender, { ExpressionValue::ObjectValue(engine->canvas) });
 	DrawTimedemoStats();
 	
 	if (ShowCollisionDebug)
@@ -86,8 +86,6 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 
 void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y, int XB, int YB, bool ClearZ)
 {
-	mat4 rotate = mat4::rotate(radians(-90.0f), 0.0f, 0.0f, -1.0f); // To do: maybe CoordsMatrix is actually wrong?
-
 	FSceneNode frame;
 	frame.XB = XB * Canvas.uiscale;
 	frame.YB = YB * Canvas.uiscale;
@@ -97,7 +95,7 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 	frame.FY = (float)Y * Canvas.uiscale;
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
-	frame.ObjectToWorld = CoordsMatrix() * rotate;
+	frame.ObjectToWorld = Coords::ViewToRenderDev().ToMatrix() * mat4::scale(1.0f, 1.0f, -1.0f);
 	frame.WorldToView = mat4::identity();
 	frame.FovAngle = engine->CameraFovAngle;
 	float Aspect = frame.FY / frame.FX;

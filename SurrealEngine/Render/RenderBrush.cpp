@@ -10,13 +10,11 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 {
 	UModel* brush = actor->Brush();
 	const vec3& location = actor->Location();
-	const Rotator& rotation = actor->Rotation();
 	float drawscale = actor->DrawScale();
 	const vec3& color = actor->light;
 	FSceneNode brushframe = *frame;
 
-	mat4 rotate = mat4::rotate(radians(rotation.RollDegrees()), 0.0f, 1.0f, 0.0f) * mat4::rotate(radians(rotation.PitchDegrees()), -1.0f, 0.0f, 0.0f) * mat4::rotate(radians(rotation.YawDegrees()), 0.0f, 0.0f, -1.0f);
-	brushframe.ObjectToWorld = mat4::translate(location) * rotate * mat4::scale(drawscale);
+	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(drawscale);
 
 	Device->SetSceneNode(&brushframe);
 
@@ -77,8 +75,8 @@ void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, c
 		if (tex->TextureModified)
 			tex->TextureModified = false;
 
-		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x += AutoUV;
-		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y += AutoUV;
+		if (surface.PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
+		if (surface.PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
 	}
 
 	BspVert* v = &model->Vertices[node.VertPool];

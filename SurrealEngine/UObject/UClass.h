@@ -133,10 +133,6 @@ public:
 	using UStruct::UStruct;
 	void Load(ObjectStream* stream) override;
 
-	static bool IsMaskedProbeName(const NameString& probeName);
-
-	std::set<NameString> Probes;
-	std::set<NameString> IgnoreProbes;
 	uint64_t ProbeMask = 0;
 	uint64_t IgnoreMask = 0;
 	uint16_t LabelTableOffset = 0;

@@ -10,7 +10,9 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSur
 	if (surface.LightMap < 0)
 		return {};
 
-	uint64_t cacheID = (((uint64_t)surface.LightMap) << 16) | (((uint64_t)(zoneActor ? zoneActor->Region().ZoneNumber : 255)) << 8) | 1;
+	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
+
+	uint64_t cacheID = (((uint64_t)surface.LightMap) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
 	auto level = engine->Level;
 	auto& lmtexture = Light.lmtextures[cacheID];
