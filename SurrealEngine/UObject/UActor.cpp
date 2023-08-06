@@ -133,7 +133,7 @@ void UActor::InitBase()
 		flags.others = true;
 		vec3 from = Location();
 		vec3 to = Location() - vec3(0.0f, 0.0f, 10.0f);
-		SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
+		CollisionHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(CollisionRadius(), CollisionRadius(), CollisionHeight()), flags);
 		SetBase(hit.Actor, true);
 	}
 }
@@ -161,7 +161,7 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 			{
 				vec3 from = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
 				vec3 to = from + vec3(0.0f, 0.0f, height * 0.5f);
-				SweepHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
+				CollisionHit hit = XLevel()->TraceFirstHit(from, to, this, vec3(radius, radius, height), flags);
 				if (hit.Fraction == 1.0f)
 				{
 					location = from;
@@ -472,7 +472,7 @@ void UActor::TickWalking(float elapsed)
 		vec3 moveDelta = Velocity() * timeLeft;
 
 		TryMove(stepUpDelta);
-		SweepHit hit = TryMove(moveDelta);
+		CollisionHit hit = TryMove(moveDelta);
 		timeLeft -= timeLeft * hit.Fraction;
 
 		if (hit.Fraction < 1.0f)
@@ -513,7 +513,7 @@ void UActor::TickWalking(float elapsed)
 	}
 
 	// Step down after movement to see if we are still walking or if we are now falling
-	SweepHit hit = TryMove(stepDownDelta);
+	CollisionHit hit = TryMove(stepDownDelta);
 	if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f)
 	{
 		SetPhysics(PHYS_Falling);
@@ -582,7 +582,7 @@ void UActor::TickFalling(float elapsed)
 		Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
 	}
 
-	SweepHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
+	CollisionHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		if (bBounce())
@@ -655,7 +655,7 @@ void UActor::TickSwimming(float elapsed)
 {
 	// TODO: need to implement swimming physics
 
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		// is this correct?
@@ -668,7 +668,7 @@ void UActor::TickSwimming(float elapsed)
 
 void UActor::TickFlying(float elapsed)
 {
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 	if (hit.Fraction < 1.0f)
 	{
 		// is this correct?
@@ -744,7 +744,7 @@ void UActor::TickProjectile(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	SweepHit hit = TryMove(Velocity() * elapsed);
+	CollisionHit hit = TryMove(Velocity() * elapsed);
 
 	if (hit.Fraction < 1.0f && !hit.Actor && !bDeleteMe() && !bJustTeleported())
 	{
@@ -1030,7 +1030,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 		flags.zoneChanges = true;
 	}
 
-	SweepHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
+	CollisionHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
 	hitNormal = hit.Normal;
 	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
 	return hit.Actor;
@@ -1070,12 +1070,12 @@ bool UActor::IsOverlapping(UActor* other)
 	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
-SweepHit UActor::TryMove(const vec3& delta)
+CollisionHit UActor::TryMove(const vec3& delta)
 {
 	// Static and non-movable objects can't move
 	if (bStatic() || !bMovable())
 	{
-		SweepHit hit;
+		CollisionHit hit;
 		hit.Fraction = 0.0f;
 		return hit;
 	}
@@ -1086,8 +1086,8 @@ SweepHit UActor::TryMove(const vec3& delta)
 
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
 	bool useBlockPlayers = UObject::TryCast<UPlayerPawn>(this) || UObject::TryCast<UProjectile>(this);
-	SweepHit blockingHit;
-	SweepHitList hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+	CollisionHit blockingHit;
+	CollisionHitList hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 	if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 	{
 		for (auto& hit : hits)
@@ -1174,7 +1174,7 @@ SweepHit UActor::TryMove(const vec3& delta)
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 	if (player)
 	{
-		engine->PlayerBspNode = blockingHit.node;
+		engine->PlayerBspNode = blockingHit.Node;
 		engine->PlayerHitNormal = blockingHit.Normal;
 	}
 
@@ -1261,14 +1261,14 @@ bool UActor::Move(const vec3& delta)
 
 bool UActor::MoveSmooth(const vec3& delta)
 {
-	SweepHit hit = TryMove(delta);
+	CollisionHit hit = TryMove(delta);
 	if (hit.Fraction != 1.0f)
 	{
 		// We hit a slope. Try to follow it.
 		vec3 alignedDelta = (delta - hit.Normal * dot(delta, hit.Normal)) * (1.0f - hit.Fraction);
 		if (dot(delta, alignedDelta) >= 0.0f) // Don't end up going backwards
 		{
-			SweepHit hit2 = TryMove(alignedDelta);
+			CollisionHit hit2 = TryMove(alignedDelta);
 		}
 	}
 
@@ -2040,7 +2040,7 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 		dirNormalized = normalize(decalDir);
 	}
 
-	TraceHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	CollisionHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	vec3 N = hits.front().Normal;

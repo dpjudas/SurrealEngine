@@ -5,7 +5,7 @@
 #include "TraceRayModel.h"
 #include "UObject/UActor.h"
 
-SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {
 	if (from == to || (!traceActors && !traceWorld))
 		return {};
@@ -24,7 +24,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 	float margin = 1.0f;
 	tmax += margin;
 
-	std::vector<SweepHit> hits;
+	CollisionHitList hits;
 
 	if (traceActors)
 	{
@@ -51,7 +51,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;
-									hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor });
+									hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor, nullptr });
 								}
 							}
 						}
@@ -68,15 +68,15 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 		{
 			// Line/triangle intersect
 			TraceRayModel tracemodel;
-			TraceHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
-			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+			CollisionHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, visibilityOnly);
+			hits.push_back(worldHits);
 		}
 		else
 		{
 			// AABB/Triangle intersect
 			TraceAABBModel tracemodel;
-			SweepHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
-			hits.insert(hits.end(), worldHits.begin(), worldHits.end());
+			CollisionHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
+			hits.push_back(worldHits);
 		}
 	}
 
@@ -84,7 +84,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	std::set<UActor*> seenActors;
-	SweepHitList uniqueHits;
+	CollisionHitList uniqueHits;
 	for (auto& hit : hits)
 	{
 		if (hit.Actor)

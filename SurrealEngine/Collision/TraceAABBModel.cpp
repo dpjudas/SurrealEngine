@@ -2,16 +2,16 @@
 #include "Precomp.h"
 #include "TraceAABBModel.h"
 
-SweepHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
+CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
 {
 	Model = model;
-	SweepHitList hits;
+	CollisionHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes.front(), hits);
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	return hits;
 }
 
-void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, SweepHitList& hits)
+void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, CollisionHitList& hits)
 {
 	if (node->CollisionBound >= 0)
 	{
@@ -92,8 +92,7 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 			double t = cursor.HitFraction();
 			if (t >= tmin && t < tmax)
 			{
-				SweepHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr };
-				hit.node = node;
+				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr, node };
 				hits.push_back(hit);
 			}
 		}

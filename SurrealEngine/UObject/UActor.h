@@ -27,7 +27,7 @@ class UTrigger;
 class UWarpZoneInfo;
 class UZoneInfo;
 class PackageManager;
-class SweepHit;
+class CollisionHit;
 struct MeshAnimSeq;
 
 struct PointRegion
@@ -186,7 +186,7 @@ public:
 	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 
-	SweepHit TryMove(const vec3& delta);
+	CollisionHit TryMove(const vec3& delta);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 
