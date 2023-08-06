@@ -963,7 +963,7 @@ bool UActor::SetLocation(const vec3& newLocation)
 	XLevel()->Hash.AddToCollision(this);
 
 	// Send touch notifications for anything at the new location
-	for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), std::max(CollisionRadius(), CollisionHeight())))
+	for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
 	{
 		if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
 		{
@@ -1058,10 +1058,7 @@ bool UActor::IsOwnedBy(UActor* owner)
 
 bool UActor::IsOverlapping(UActor* other)
 {
-	vec3 dist = Location() - other->Location();
-	float h = CollisionHeight() + other->CollisionHeight();
-	float r = CollisionRadius() + other->CollisionRadius();
-	return dist.z < h && dot(dist.xy(), dist.xy()) < r * r;
+	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
 SweepHit UActor::TryMove(const vec3& delta)

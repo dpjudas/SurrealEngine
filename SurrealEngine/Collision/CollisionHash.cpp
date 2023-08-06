@@ -290,8 +290,6 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 	return t;
 }
 
-#if 1
-
 // Returns the squared distance between point c and segment ab
 static double SqDistPointSegment(const dvec3& a, const dvec3& b, const dvec3& c)
 {
@@ -328,26 +326,20 @@ bool CollisionHash::SphereCapsuleOverlap(const dvec3& sphereCenter, double spher
 	return dist2 <= totalradius * totalradius;
 }
 
-#else
-
-bool CollisionHash::SphereCapsuleOverlap(const dvec3& sphereCenter, double sphereRadius, const dvec3& capsuleCenter, double capsuleHeight, double capsuleRadius)
+bool CollisionHash::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, const dvec3& cylinderCenterB, double cylinderHeightB, double cylinderRadiusB)
 {
-	dvec3 endPoint1 = capsuleCenter + capsuleHeight;
-
-	double distanceFactorFromEP1 = clamp(dot(sphereCenter - endPoint1, capsuleCenter) / dot(capsuleCenter, capsuleCenter), 0.0, 1.0);
-
-	dvec3 closestPoint = endPoint1 + capsuleCenter * distanceFactorFromEP1;
-	dvec3 collisionDirection = sphereCenter - closestPoint;
-
-	// double distance = length(collisionDirection);
-	// dvec3 collisionNormal = collisionDirection / distance;
-	// return distance < sphereRadius + radius;
-
-	double radius = sphereRadius + capsuleRadius;
-	return dot(collisionDirection, collisionDirection) < radius * radius;
+	dvec3 dist = cylinderCenterA - cylinderCenterB;
+	double h = cylinderHeightA + cylinderHeightB;
+	double r = cylinderRadiusB + cylinderRadiusB;
+	return std::abs(dist.z) < h && dot(dist.xy(), dist.xy()) < r * r;
 }
 
-#endif
+double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, double cylinderHeightB, double cylinderRadiusB)
+{
+	// To do: implement this instead of using a ray test
+
+	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA, cylinderHeightB);
+}
 
 bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereRadius, UActor* actor)
 {
@@ -359,8 +351,19 @@ bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereR
 	double radius = actor->CollisionRadius();
 
 	// Capsule/sphere test. Is this what UE1 does? Or does it do a true cylinder test?
-	// To do: should the capsule height be std::max(height - radius - radius, 0.0f) instead of just height?
+	// To do: should the capsule height be std::max(height - radius, 0.0f) instead of just height?
 	return SphereCapsuleOverlap(sphereCenter, sphereRadius, center, height, radius);
+}
+
+bool CollisionHash::CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor)
+{
+	if (actor->Brush()) // Ignore brushes for now
+		return false;
+
+	dvec3 center = to_dvec3(actor->Location());
+	double height = actor->CollisionHeight();
+	double radius = actor->CollisionRadius();
+	return CylinderCylinderOverlap(origin, cylinderHeight, cylinderRadius, center, height, radius);
 }
 
 double CollisionHash::RayActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
@@ -376,7 +379,7 @@ double CollisionHash::RayActorTrace(const dvec3& origin, double tmin, const dvec
 	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
 }
 
-double CollisionHash::RayActorTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, UActor* actor)
+double CollisionHash::CylinderActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double cylinderHeight, double cylinderRadius, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return tmax;
@@ -384,9 +387,16 @@ double CollisionHash::RayActorTrace(const dvec3& origin, const dvec3& dirNormali
 	dvec3 center = to_dvec3(actor->Location());
 	double height = actor->CollisionHeight();
 	double radius = actor->CollisionRadius();
-	double t = RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
 
-	return t;
+	if (cylinderHeight > 0.0f && cylinderRadius >= 0.0f)
+	{
+		return CylinderCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius, cylinderHeight, cylinderRadius);
+	}
+	else
+	{
+		// Downgrade to a ray test if the cylinder is a point
+		return RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
+	}
 }
 
 std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
@@ -413,6 +423,61 @@ std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float ra
 						for (UActor* actor : it->second)
 						{
 							if (SphereActorOverlap(dorigin, dradius, actor))
+								hits.push_back(actor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	std::vector<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+
+	return uniqueHits;
+}
+
+std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float height, float radius)
+{
+	dvec3 dorigin = to_dvec3(origin);
+	double dheight = height;
+	double dradius = radius;
+	vec3 extents = { radius, radius, height };
+
+	std::vector<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* actor : it->second)
+						{
+							if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
 								hits.push_back(actor);
 						}
 					}

@@ -30,6 +30,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 	if (traceActors)
 	{
 		double dradius = radius;
+		double dheight = height;
 		vec3 extents = { radius, radius, height };
 
 		ivec3 start = Level->Hash.GetSweepStartExtents(from, to, extents);
@@ -47,7 +48,7 @@ SweepHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const ve
 						{
 							for (UActor* actor : it->second)
 							{
-								double t = Level->Hash.RayActorTrace(origin, direction, tmin, tmax, actor);
+								double t = Level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, dheight, dradius, actor);
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;
