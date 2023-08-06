@@ -68,7 +68,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 		// To do: we need to call EventName::EncroachingOn events here?
 
 		// Send touch notifications for anything at the spawn location
-		for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
+		for (UActor* actor : XLevel()->Hash.CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius()))
 		{
 			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
 			{
