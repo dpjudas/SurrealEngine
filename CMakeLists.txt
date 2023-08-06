@@ -206,8 +206,6 @@ set(UTENGINE_SOURCES
 	SurrealEngine/Collision/TraceRayModel.h
 	SurrealEngine/Collision/TraceCylinderLevel.cpp
 	SurrealEngine/Collision/TraceCylinderLevel.h
-	SurrealEngine/Collision/TraceSphereModel.cpp
-	SurrealEngine/Collision/TraceSphereModel.h
 	SurrealEngine/Collision/TraceAABBModel.cpp
 	SurrealEngine/Collision/TraceAABBModel.h
 	SurrealEngine/UI/Controls/LineEdit/LineEdit.cpp
