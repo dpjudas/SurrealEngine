@@ -1,42 +1,12 @@
 
 #include "Precomp.h"
-#include "Engine.h"
-#include "CommandLine.h"
-#include "GameFolder.h"
-#include "Package/PackageManager.h"
-#include "UObject/NativeObjExtractor.h"
-#include "VM/NativeFuncExtractor.h"
+#include "DebuggerApp.h"
 #include "UTF16.h"
-#include "File.h"
 #include <iostream>
 #include <vector>
 #ifdef WIN32
 #include <CommCtrl.h>
 #endif
-
-void debuggerMain(std::vector<std::string> args)
-{
-	CommandLine cmd(args);
-	commandline = &cmd;
-
-	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-	if (!info.folder.empty())
-	{
-		Engine engine(info);
-		if (commandline->HasArg("-ef", "--extract-nativefunc"))
-		{
-			File::write_all_text("nativefuncs.txt", NativeFuncExtractor::Run(engine.packages.get()));
-		}
-		else if (commandline->HasArg("-eo", "--extract-nativeobj"))
-		{
-			File::write_all_text("nativeobjs.txt", NativeObjExtractor::Run(engine.packages.get()));
-		}
-		else
-		{
-			engine.Run();
-		}
-	}
-}
 
 #ifdef WIN32
 
@@ -61,8 +31,8 @@ int wmain(int argc, wchar_t* argv[])
 		if (err != 0)
 			throw std::runtime_error("Failed to initialize winsockets");
 
-		debuggerMain(std::move(args));
-		return 0;
+		DebuggerApp app;
+		return app.main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{
@@ -80,8 +50,9 @@ int main(int argc, char** argv)
 		std::vector<std::string> args;
 		for (int i = 1; i < argc; i++)
 			args.push_back(argv[i]);
-		debuggerMain(std::move(args));
-		return 0;
+
+		DebuggerApp app;
+		return app.main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{

@@ -1,22 +1,12 @@
 
 #include "Precomp.h"
-#include "Engine.h"
-#include "CommandLine.h"
-#include "GameFolder.h"
-#include "Package/PackageManager.h"
-#include "UObject/NativeObjExtractor.h"
-#include "VM/NativeFuncExtractor.h"
+#include "EditorApp.h"
 #include "UTF16.h"
-#include "File.h"
 #include <iostream>
 #include <vector>
 #ifdef WIN32
 #include <CommCtrl.h>
 #endif
-
-void editorMain(std::vector<std::string> args)
-{
-}
 
 #ifdef WIN32
 
@@ -47,8 +37,8 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		if (err != 0)
 			throw std::runtime_error("Failed to initialize winsockets");
 
-		editorMain(std::move(args));
-		return 0;
+		EditorApp app;
+		return app.main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{
@@ -66,8 +56,9 @@ int main(int argc, char** argv)
 		std::vector<std::string> args;
 		for (int i = 1; i < argc; i++)
 			args.push_back(argv[i]);
-		editorMain(std::move(args));
-		return 0;
+
+		EditorApp app;
+		return app.main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{

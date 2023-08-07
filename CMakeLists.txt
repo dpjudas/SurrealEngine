@@ -7,6 +7,12 @@ project(SurrealEngine)
 
 set(SURREALCOMMON_SOURCES
 	SurrealEngine/Precomp.cpp
+	SurrealEngine/GameApp.cpp
+	SurrealEngine/GameApp.h
+	SurrealEngine/EditorApp.cpp
+	SurrealEngine/EditorApp.h
+	SurrealEngine/DebuggerApp.cpp
+	SurrealEngine/DebuggerApp.h
 	SurrealEngine/Render/RenderSubsystem.cpp
 	SurrealEngine/Render/RenderSubsystem.h
 	SurrealEngine/Render/RenderCanvas.cpp
