@@ -3,11 +3,17 @@
 class Point;
 class Rect;
 class Colorf;
+class RenderDevice;
 
 class Canvas
 {
 public:
+	static std::unique_ptr<Canvas> create(RenderDevice* renderDevice);
+
 	virtual ~Canvas() = default;
+
+	virtual void begin() = 0;
+	virtual void end() = 0;
 
 	virtual Point getOrigin() = 0;
 	virtual void setOrigin(const Point& origin) = 0;
