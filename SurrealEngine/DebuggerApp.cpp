@@ -7,9 +7,17 @@
 #include "UObject/NativeObjExtractor.h"
 #include "VM/NativeFuncExtractor.h"
 #include "File.h"
+#include <iostream>
 
 int DebuggerApp::main(std::vector<std::string> args)
 {
+	std::cout << "\x1b[96mWelcome to the Surreal Engine debugger!\x1b[0m" << std::endl;
+	std::cout << std::endl;
+	std::cout << "Type \x1b[92mhelp\x1b[0m for a list of commands" << std::endl;
+	std::cout << std::endl;
+	std::cout << "> ";
+	std::cout.flush();
+
 	CommandLine cmd(args);
 	commandline = &cmd;
 
