@@ -496,7 +496,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "showlog")
 	{
-		Frame::ShowDebuggerWindow();
+		//Frame::ShowDebuggerWindow();
 	}
 	/*else if (command == "playsong")
 	{

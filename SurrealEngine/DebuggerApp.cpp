@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "UObject/NativeObjExtractor.h"
 #include "VM/NativeFuncExtractor.h"
+#include "VM/Frame.h"
 #include "File.h"
 #include "UTF16.h"
 #include <iostream>
@@ -25,6 +26,8 @@ int DebuggerApp::Main(std::vector<std::string> args)
 	CommandLine cmd(args);
 	commandline = &cmd;
 	launchinfo = GameFolderSelection::GetLaunchInfo();
+
+	Frame::RunDebugger = [=]() { FrameDebugBreak(); };
 
 	WritePrompt();
 	while (!ExitRequested)
@@ -72,6 +75,7 @@ void DebuggerApp::Tick()
 		if (endpos != text.size())
 		{
 			EndPrompt();
+			WriteOutput(NewLine());
 			std::string cmdline = promptline;
 			promptline.clear();
 			OnCommandEntered(cmdline);
@@ -96,7 +100,7 @@ void DebuggerApp::EndPrompt()
 	{
 		if (promptline.empty())
 		{
-			WriteOutput(CursorBackward(2) + DeleteCharacterEscape(2));
+			WriteOutput(ResetEscape() + CursorBackward(2) + DeleteCharacterEscape(2));
 		}
 		else
 		{
@@ -110,15 +114,29 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 {
 	try
 	{
-		if (line == "quit" || line == "exit")
+		std::string command;
+		std::string args;
+		size_t pos = std::min(line.find(' '), line.size());
+		if (pos == line.size())
+		{
+			command = line;
+		}
+		else
+		{
+			command = line.substr(0, pos);
+			pos = std::min(line.find_first_not_of(' ', pos + 1), line.size());
+			args = line.substr(pos);
+		}
+
+		if (command == "quit" || command == "exit")
 		{
 			ExitRequested = true;
 		}
-		else if (line == "run")
+		else if (command == "run")
 		{
 			RunGame();
 		}
-		else if (line == "extract nativefunc")
+		else if (command == "extract nativefunc")
 		{
 			if (!launchinfo.folder.empty())
 			{
@@ -126,7 +144,7 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 				File::write_all_text("nativefuncs.txt", NativeFuncExtractor::Run(engine.packages.get()));
 			}
 		}
-		else if (line == "extract-nativeobj")
+		else if (command == "extract-nativeobj")
 		{
 			if (!launchinfo.folder.empty())
 			{
@@ -134,7 +152,23 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 				File::write_all_text("nativeobjs.txt", NativeObjExtractor::Run(engine.packages.get()));
 			}
 		}
-		else if (line == "help")
+		else if (command == "bt")
+		{
+			PrintCallStack();
+		}
+		else if (command == "locals")
+		{
+			PrintLocals();
+		}
+		else if (command == "print")
+		{
+			PrintObject(args);
+		}
+		else if (command == "disasm")
+		{
+			PrintDisassembly();
+		}
+		else if (command == "help")
 		{
 			WriteOutput("Haha, there is no help!" + NewLine());
 		}
@@ -146,7 +180,8 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 	catch (const std::exception& e)
 	{
 		EndPrompt();
-		WriteOutput(ColorEscape(91) + e.what() + ResetEscape() + NewLine());
+		if (!ExitRequested)
+			WriteOutput(ColorEscape(91) + e.what() + ResetEscape() + NewLine());
 	}
 }
 
@@ -170,6 +205,135 @@ void DebuggerApp::RunGame()
 			WriteOutput("Game ended." + NewLine());
 		}
 	}
+}
+
+void DebuggerApp::FrameDebugBreak()
+{
+	EndPrompt();
+
+	CallstackIndex = 0;
+
+	if (!Frame::ExceptionText.empty())
+	{
+		WriteOutput(NewLine() + ColorEscape(91) + Frame::ExceptionText + ResetEscape() + NewLine() + NewLine());
+	}
+	else
+	{
+		WriteOutput(NewLine() + "Debugger breakpoint encountered" + NewLine() + NewLine());
+	}
+
+	PrintCallStack();
+
+	WritePrompt();
+	while (!ExitRequested)
+	{
+		WaitForInput();
+		Tick();
+	}
+	throw std::runtime_error("Debugger exit");
+}
+
+void DebuggerApp::PrintCallStack()
+{
+	int index = 0;
+	for (auto it = Frame::Callstack.rbegin(); it != Frame::Callstack.rend(); ++it)
+	{
+		Frame* frame = *it;
+		UStruct* func = frame->Func;
+		if (func)
+		{
+			std::string name;
+			for (UStruct* s = func; s != nullptr; s = s->StructParent)
+			{
+				if (name.empty())
+					name = s->Name.ToString();
+				else
+					name = s->Name.ToString() + "." + name;
+			}
+
+			if (name.size() < 40)
+				name.resize(40, ' ');
+
+			WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(func->Line) + ResetEscape() + NewLine());
+		}
+		index++;
+	}
+	WriteOutput(NewLine());
+}
+
+Frame* DebuggerApp::GetCurrentFrame()
+{
+	return Frame::Callstack[Frame::Callstack.size() - 1 - CallstackIndex];
+}
+
+void DebuggerApp::PrintLocals()
+{
+	Frame* frame = GetCurrentFrame();
+	if (frame)
+	{
+		for (UProperty* prop : frame->Func->Properties)
+		{
+			void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
+
+			std::string name = prop->Name.ToString();
+			std::string value = prop->PrintValue(ptr);
+
+			if (name.size() < 40)
+				name.resize(40, ' ');
+
+			WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+		}
+	}
+	WriteOutput(NewLine());
+}
+
+void DebuggerApp::PrintObject(const std::string& args)
+{
+	Frame* frame = GetCurrentFrame();
+
+	UObject* obj = nullptr;
+	if (NameString("self") == args)
+	{
+		obj = frame->Object;
+	}
+	else
+	{
+		for (UProperty* prop : frame->Func->Properties)
+		{
+			if (prop->Name == args && (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop)))
+			{
+				void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
+				obj = *(UObject**)ptr;
+				break;
+			}
+		}
+	}
+
+	if (!obj)
+	{
+		WriteOutput(ColorEscape(96) + "None" + ResetEscape() + NewLine());
+		return;
+	}
+
+	auto props = obj->PropertyData.Class->Properties;
+	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name < b->Name; });
+
+	for (UProperty* prop : props)
+	{
+		void* ptr = obj->PropertyData.Ptr(prop);
+
+		std::string name = prop->Name.ToString();
+		std::string value = prop->PrintValue(ptr);
+
+		if (name.size() < 40)
+			name.resize(40, ' ');
+
+		WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+	}
+}
+
+void DebuggerApp::PrintDisassembly()
+{
 }
 
 std::string DebuggerApp::ResetEscape()

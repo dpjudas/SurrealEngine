@@ -2,6 +2,9 @@
 
 #include "GameFolder.h"
 
+class Frame;
+class UObject;
+
 class DebuggerApp
 {
 public:
@@ -19,6 +22,14 @@ private:
 	std::string ReadInput();
 	void WriteOutput(const std::string& text);
 
+	void FrameDebugBreak();
+	void PrintCallStack();
+	void PrintLocals();
+	void PrintObject(const std::string& args);
+	void PrintDisassembly();
+
+	Frame* GetCurrentFrame();
+
 	GameLaunchInfo launchinfo;
 
 	std::string promptline;
@@ -26,6 +37,8 @@ private:
 
 	bool PromptLineActive = false;
 	bool GameRunning = false;
+
+	int CallstackIndex = 0;
 
 	static std::string ResetEscape();
 	static std::string ColorEscape(int color);
