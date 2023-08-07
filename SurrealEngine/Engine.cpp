@@ -688,6 +688,8 @@ void Engine::UpdateInput(float timeElapsed)
 	InputEvent(window.get(), IK_MouseX, IST_Axis, 0);
 	InputEvent(window.get(), IK_MouseY, IST_Axis, 0);
 	window->Tick();
+	if (tickDebugger)
+		tickDebugger();
 	for (auto& it : activeInputButtons)
 		viewport->Actor()->SetBool(it.first, true);
 	for (auto& it : activeInputAxes)

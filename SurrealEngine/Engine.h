@@ -154,6 +154,8 @@ public:
 
 	std::map<std::string, EInputKey> activeInputButtons;
 	std::map<std::string, ActiveInputAxis> activeInputAxes;
+
+	std::function<void()> tickDebugger;
 };
 
 extern Engine* engine;

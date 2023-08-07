@@ -31,30 +31,23 @@ int wmain(int argc, wchar_t* argv[])
 		if (err != 0)
 			throw std::runtime_error("Failed to initialize winsockets");
 
+		SetConsoleCP(CP_UTF8);
+		SetConsoleOutputCP(CP_UTF8);
+
 		HANDLE stdoutput = GetStdHandle(STD_OUTPUT_HANDLE);
 		if (stdoutput != INVALID_HANDLE_VALUE)
 		{
-			DWORD dwMode = 0;
-			if (GetConsoleMode(stdoutput, &dwMode))
-			{
-				dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING/* | DISABLE_NEWLINE_AUTO_RETURN*/;
-				SetConsoleMode(stdoutput, dwMode);
-			}
+			SetConsoleMode(stdoutput, ENABLE_VIRTUAL_TERMINAL_PROCESSING | ENABLE_PROCESSED_OUTPUT);
 		}
 
 		HANDLE stdinput = GetStdHandle(STD_INPUT_HANDLE);
 		if (stdinput != INVALID_HANDLE_VALUE)
 		{
-			DWORD dwMode = 0;
-			if (GetConsoleMode(stdinput, &dwMode))
-			{
-				dwMode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
-				SetConsoleMode(stdinput, dwMode);
-			}
+			SetConsoleMode(stdinput, ENABLE_VIRTUAL_TERMINAL_INPUT | ENABLE_PROCESSED_INPUT);
 		}
 
 		DebuggerApp app;
-		return app.main(std::move(args));
+		return app.Main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{
@@ -74,7 +67,7 @@ int main(int argc, char** argv)
 			args.push_back(argv[i]);
 
 		DebuggerApp app;
-		return app.main(std::move(args));
+		return app.Main(std::move(args));
 	}
 	catch (const std::exception& e)
 	{
