@@ -4,6 +4,7 @@
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
 #include "UObject/UTextBuffer.h"
+#include <regex>
 
 ListSourceCommandlet::ListSourceCommandlet()
 {
@@ -63,7 +64,7 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 					linepos++;
 				}
 			
-				console->WriteOutput("    " + line + NewLine());
+				console->WriteOutput("    " + SyntaxHighlight(line) + NewLine());
 			}
 
 			console->ListSourceLineOffset += linesToDisplay;
@@ -75,4 +76,130 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 
 void ListSourceCommandlet::OnPrintHelp(DebuggerApp* console)
 {
+}
+
+std::string ListSourceCommandlet::SyntaxHighlight(const std::string& text)
+{
+	std::vector<ListSourceCommandlet::TextSpan> spans = CreateTextSpans(text);
+
+	std::string output;
+	output.reserve(text.size() + (spans.size() + 1) * 5);
+
+	int color = 0;
+	for (const TextSpan& span : spans)
+	{
+		if (span.color != color)
+		{
+			color = span.color;
+			if (color != 0)
+				output += ColorEscape(color);
+			else
+				output += ResetEscape();
+		}
+		output.insert(output.end(), text.begin() + span.start, text.begin() + span.end);
+	}
+
+	if (color != 0)
+		output += ResetEscape();
+
+	return output;
+}
+
+std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpans(const std::string& text)
+{
+	struct Pattern
+	{
+		std::regex regex;
+		int color;
+		size_t group;
+	};
+
+	static std::vector<Pattern> patterns =
+	{
+		{ std::regex("(^|[^a-z_0-9])(local|function|for(each)?|if|then|else(\\s+(if|do|while))?|do|while|return|break|goto|optional|coerce|class|enum|none|out|event|simulated(\\s+(function|event))?|state|true|false|super|ignores|static(\\s+function)?|exec)($|[^a-z_0-9])", std::regex::icase), 96, 2 }, // keywords
+		{ std::regex("[+\\-=/\\\\$[\\]\\!&~\\^,;()*]+"), 90, 0 }, // symbols
+		{ std::regex("(^|[^a-z_0-9])(bool|byte|int|float|name|string|vector|rotator)($|[^a-z_0-9])", std::regex::icase), 93, 2 }, // type keywords
+		{ std::regex("['\"].*?['\"]"), 97, 0 }, // quoted text
+	};
+
+	std::vector<TextSpan> spans;
+	spans.push_back({ 0, text.length(), 0 });
+
+	for (const Pattern& pattern : patterns)
+	{
+		try
+		{
+			std::regex regex(pattern.regex);
+			for (std::sregex_iterator it(text.begin(), text.end(), regex); it != std::sregex_iterator(); ++it)
+			{
+				std::smatch match = *it;
+				InsertHighlight(spans, match.position(pattern.group), match.length(pattern.group), pattern.color);
+			}
+		}
+		catch (...)
+		{
+			// std::regex throws if it encounters invalid characters. Skip highlighting if this should happen.
+		}
+	}
+
+	return spans;
+}
+
+void ListSourceCommandlet::InsertHighlight(std::vector<TextSpan>& spans, size_t pos, size_t length, int color)
+{
+	size_t start = pos;
+	size_t end = pos + length;
+
+	size_t index = 0;
+	while (index < spans.size())
+	{
+		TextSpan& span = spans[index];
+		if (span.start >= end)
+		{
+			//         [span]
+			// [hlht]
+			break;
+		}
+		else if (span.end <= start)
+		{
+			// [span]
+			//         [hlht]
+			index++;
+		}
+		else if (span.start >= start && span.end <= end)
+		{
+			//    [span]
+			// [---hlht---]
+			span.color = color;
+			index++;
+		}
+		else if (span.start < start && span.end > end)
+		{
+			// [---span---]
+			//    [hlht]
+			TextSpan newspans[2] = { { start, end, color }, span };
+			span.end = start;
+			newspans[1].start = end;
+			spans.insert(spans.begin() + index + 1, newspans, newspans + 2);
+			index += 3;
+		}
+		else if (span.end > end)
+		{
+			//    [span]
+			// [hlht]
+			TextSpan newspan = { span.start, end, color };
+			span.start = end;
+			spans.insert(spans.begin() + index, newspan);
+			index += 2;
+		}
+		else
+		{
+			// [span]
+			//    [hlht]
+			TextSpan newspan = { start, span.end, color };
+			span.end = start;
+			spans.insert(spans.begin() + index + 1, newspan);
+			index += 2;
+		}
+	}
 }

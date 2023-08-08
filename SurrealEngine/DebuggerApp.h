@@ -22,6 +22,14 @@ public:
 	int CallstackIndex = 0;
 	int ListSourceLineOffset = 0;
 
+	static std::string ResetEscape();
+	static std::string ColorEscape(int color);
+	static std::string DeleteCharacterEscape(int count);
+	static std::string EraseCharacterEscape(int count);
+	static std::string CursorBackward(int count);
+	static std::string NewLine();
+	static std::string InputNewLine();
+
 private:
 	void CreateCommandlets();
 	void Tick();
@@ -42,14 +50,6 @@ private:
 
 	bool PromptLineActive = false;
 	bool GameRunning = false;
-
-	static std::string ResetEscape();
-	static std::string ColorEscape(int color);
-	static std::string DeleteCharacterEscape(int count);
-	static std::string EraseCharacterEscape(int count);
-	static std::string CursorBackward(int count);
-	static std::string NewLine();
-	static std::string InputNewLine();
 
 	friend class Commandlet;
 };
