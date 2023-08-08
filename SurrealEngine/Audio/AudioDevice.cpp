@@ -258,6 +258,8 @@ public:
 		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
 		alDeleteSources(1, &alMusicSource);
 
+		sources.clear();
+
 		alcDestroyContext(alContext);
 		alcCloseDevice(alDevice);
 
@@ -449,18 +451,20 @@ public:
 	void Update() override
 	{
 		UActor* listener = engine->CameraActor;
+		if (listener)
+		{
+			// Update listener properties
+			vec3& location = listener->Location();
+			vec3& velocity = listener->Velocity();
 
-		// Update listener properties
-		vec3& location = listener->Location();
-		vec3& velocity = listener->Velocity();
+			vec3 at, left, up;
+			Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
 
-		vec3 at, left, up;
-		Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
-
-		ALfloat listenerOri[6] = {up.x, up.y, -up.z, -at.x, -at.y, at.z};
-		alListener3f(AL_POSITION, location.x, location.y, -location.z);
-		alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
-		alListenerfv(AL_ORIENTATION, listenerOri);
+			ALfloat listenerOri[6] = { up.x, up.y, -up.z, -at.x, -at.y, at.z };
+			alListener3f(AL_POSITION, location.x, location.y, -location.z);
+			alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
+			alListenerfv(AL_ORIENTATION, listenerOri);
+		}
 	}
 
 	void UpdateMusicLoop()
