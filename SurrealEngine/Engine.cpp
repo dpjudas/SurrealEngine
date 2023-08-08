@@ -906,6 +906,9 @@ void Engine::LogMessage(const std::string& message)
 		line.Text = message;
 		Log.push_back(std::move(line));
 	}
+
+	if (printLogDebugger)
+		printLogDebugger(Log.back());
 }
 
 void Engine::LogUnimplemented(const std::string& message)

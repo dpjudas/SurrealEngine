@@ -5,6 +5,7 @@
 
 class Frame;
 class UObject;
+struct LogMessageLine;
 
 class DebuggerApp
 {
@@ -33,6 +34,9 @@ public:
 private:
 	void CreateCommandlets();
 	void Tick();
+
+	void PrintLog(const LogMessageLine& line);
+	static std::string ToFixed(float time);
 
 	void OnCommandEntered(const std::string& line);
 	void WritePrompt();

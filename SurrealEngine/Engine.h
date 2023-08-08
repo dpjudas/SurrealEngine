@@ -156,6 +156,7 @@ public:
 	std::map<std::string, ActiveInputAxis> activeInputAxes;
 
 	std::function<void()> tickDebugger;
+	std::function<void(const LogMessageLine& line)> printLogDebugger;
 };
 
 extern Engine* engine;

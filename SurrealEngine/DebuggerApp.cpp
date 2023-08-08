@@ -226,11 +226,44 @@ void DebuggerApp::RunGame()
 			GameRunning = true;
 			Engine engine(launchinfo);
 			engine.tickDebugger = [&]() { Tick(); };
+			engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
 			engine.Run();
 			GameRunning = false;
 			EndPrompt();
 			WriteOutput("Game ended." + NewLine());
 		}
+	}
+}
+
+std::string DebuggerApp::ToFixed(float time)
+{
+	std::string fixedTime = std::to_string((int64_t)(time * 1000.0));
+	if (fixedTime.size() < 4)
+		fixedTime.resize(4, '0');
+	return fixedTime.substr(0, fixedTime.size() - 3) + "." + fixedTime.substr(fixedTime.size() - 3);
+}
+
+void DebuggerApp::PrintLog(const LogMessageLine& line)
+{
+	if (PromptLineActive)
+	{
+		WriteOutput(ResetEscape() + CursorBackward(2 + (int)promptline.size()) + DeleteCharacterEscape(2 + (int)promptline.size()));
+	}
+
+	std::string timeText = ToFixed(line.Time);
+	if (timeText.size() < 10)
+		timeText.resize(10, ' ');
+
+	std::string sourceText = line.Source;
+	if (sourceText.size() < 50)
+		sourceText.resize(50, ' ');
+
+	WriteOutput(ColorEscape(96) + timeText + ResetEscape() + " " + sourceText + " " + line.Text + NewLine());
+
+	if (PromptLineActive)
+	{
+		WriteOutput("> " + ColorEscape(92));
+		WriteOutput(promptline);
 	}
 }
 
