@@ -53,7 +53,7 @@ struct LogMessageLine
 	std::string Text;
 };
 
-class Engine
+class Engine : public DisplayWindowHost
 {
 public:
 	Engine(GameLaunchInfo launchinfo);
@@ -67,12 +67,8 @@ public:
 	void LoginPlayer();
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
-	void WindowClose(DisplayWindow* window);
 	void UpdateInput(float timeElapsed);
-	void Key(DisplayWindow* window, std::string key);
-	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0);
 	void InputCommand(const std::string& command, EInputKey key, int delta);
-	void SetPause(bool value);
 
 	void LockCursor();
 	void UnlockCursor();
@@ -82,6 +78,15 @@ public:
 	std::vector<std::string> GetSubcommands(const std::string& commandline);
 
 	void UpdateAudio();
+
+	void Key(DisplayWindow* window, std::string key) override;
+	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0) override;
+	void FocusChange(bool lost) override { SetPause(lost); }
+	void MouseMove(float x, float y) override;
+	bool MouseCursorVisible() override;
+	void WindowClose(DisplayWindow* window) override;
+
+	void SetPause(bool value);
 
 	UClient* client = nullptr;
 	UViewport* viewport = nullptr;
@@ -149,6 +154,8 @@ public:
 
 	std::map<std::string, EInputKey> activeInputButtons;
 	std::map<std::string, ActiveInputAxis> activeInputAxes;
+
+	std::function<void()> tickDebugger;
 };
 
 extern Engine* engine;

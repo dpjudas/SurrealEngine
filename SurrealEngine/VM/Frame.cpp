@@ -10,7 +10,7 @@
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
-DebuggerWindow* Frame::Debugger = nullptr;
+std::function<void()> Frame::RunDebugger;
 std::vector<Expression*> Frame::Breakpoints;
 std::vector<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
@@ -56,49 +56,25 @@ void Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 	}
 }
 
-void Frame::ShowDebuggerWindow()
-{
-#ifdef WIN32
-	if (!Debugger)
-	{
-		Debugger = new DebuggerWindow([]() {
-			delete Debugger;
-			Debugger = nullptr;
-		});
-		Debugger->show();
-	}
-
-	Debugger->onBreakpointTriggered(); // To do: logger page should update automatically instead of this hack
-	engine->audio->BreakpointTriggered();
-#endif
-}
-
 void Frame::Break()
 {
 	RunState = FrameRunState::DebugBreak;
-	ShowDebuggerWindow();
 
-#ifdef WIN32
-	Debugger->onBreakpointTriggered();
-
-	while (Debugger && RunState == FrameRunState::DebugBreak)
+	if (RunDebugger)
 	{
-		MSG msg = {};
-		int result = GetMessage(&msg, 0, 0, 0);
-		if (result <= 0 || msg.message == WM_QUIT)
-			break;
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		engine->audio->BreakpointTriggered();
+		RunDebugger();
 	}
-#endif
-
-	if (!ExceptionText.empty())
+	else
 	{
-		std::string callstack = Frame::GetCallstack();
-		std::string message = "Script execution error:\r\n\r\n";
-		message += ExceptionText;
-		message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
-		throw std::runtime_error(message);
+		if (!ExceptionText.empty())
+		{
+			std::string callstack = Frame::GetCallstack();
+			std::string message = "Script execution error:\r\n\r\n";
+			message += ExceptionText;
+			message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
+			throw std::runtime_error(message);
+		}
 	}
 }
 

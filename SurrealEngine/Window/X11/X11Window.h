@@ -32,7 +32,7 @@ class VulkanDevice;
 class X11Window : public DisplayWindow
 {
 public:
-	X11Window(Engine* engine);
+	X11Window(DisplayWindowHost* windowHost);
 	~X11Window();
 	void OpenWindow(int width, int height, bool fullscreen) override;
 	void CloseWindow() override;
@@ -58,7 +58,7 @@ public:
 
 	EInputKey KeySymToInputKey(KeySym keysym);
 
-	Engine* engine = nullptr;
+	DisplayWindowHost* windowHost = nullptr;
 	std::unique_ptr<RenderDevice> RendDevice;
 
 	Display* display = nullptr;

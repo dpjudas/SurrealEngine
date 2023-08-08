@@ -34,8 +34,6 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 	engine = this;
 
 	packages = std::make_unique<PackageManager>(LaunchInfo.folder, LaunchInfo.engineVersion, LaunchInfo.gameName);
-
-	// Frame::AddBreakpoint("Botpack", "DeathMatchPlus", "Timer");
 }
 
 Engine::~Engine()
@@ -453,16 +451,6 @@ void Engine::LoginPlayer()
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
-
-	// To do: remove this when touch events are implemented
-	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
-	UObject* specialEvent0 = package->GetUObject("SpecialEvent", "SpecialEvent0");
-	//UObject* specialEvent1 = package->GetUObject("SpecialEvent", "SpecialEvent1");
-	if (specialEvent0)
-	{
-		CallEvent(specialEvent0, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
-		//CallEvent(specialEvent1, EventName::Trigger, { ExpressionValue::ObjectValue(pawn), ExpressionValue::ObjectValue(pawn->Instigator()) });
-	}
 }
 
 float Engine::CalcTimeElapsed()
@@ -506,7 +494,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "showlog")
 	{
-		Frame::ShowDebuggerWindow();
+		//Frame::ShowDebuggerWindow();
 	}
 	/*else if (command == "playsong")
 	{
@@ -698,6 +686,8 @@ void Engine::UpdateInput(float timeElapsed)
 	InputEvent(window.get(), IK_MouseX, IST_Axis, 0);
 	InputEvent(window.get(), IK_MouseY, IST_Axis, 0);
 	window->Tick();
+	if (tickDebugger)
+		tickDebugger();
 	for (auto& it : activeInputButtons)
 		viewport->Actor()->SetBool(it.first, true);
 	for (auto& it : activeInputAxes)
@@ -711,6 +701,17 @@ void Engine::UpdateInput(float timeElapsed)
 			viewport->Actor()->SetFloat(it.first, it.second.Value);
 		}
 	}
+}
+
+void Engine::MouseMove(float x, float y)
+{
+	viewport->WindowsMouseX() = x;
+	viewport->WindowsMouseY() = y;
+}
+
+bool Engine::MouseCursorVisible()
+{
+	return viewport->bShowWindowsMouse();
 }
 
 void Engine::Key(DisplayWindow* viewport, std::string key)

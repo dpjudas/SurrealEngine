@@ -146,7 +146,7 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 	// What is a reasonable size for this grid? what did UE1 do?
 	int offset[] = { 0, 1, -1 };
 	bool found = false;
-	float scale = std::max(radius * 0.2f, height * 0.2f);
+	float scale = std::max(radius * 0.5f, height * 0.5f);
 	for (int z = 0; z < 3 && !found; z++)
 	{
 		for (int y = 0; y < 3 && !found; y++)
@@ -450,9 +450,6 @@ void UActor::TickWalking(float elapsed)
 
 	Velocity().z = 0.0f;
 
-	if (Velocity() == vec3(0.0f))
-		return;
-
 	// The classic step up, move and step down algorithm:
 
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
@@ -508,7 +505,7 @@ void UActor::TickWalking(float elapsed)
 
 	// Step down after movement to see if we are still walking or if we are now falling
 	CollisionHit hit = TryMove(stepDownDelta);
-	if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f)
+	if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f))
 	{
 		SetPhysics(PHYS_Falling);
 	}

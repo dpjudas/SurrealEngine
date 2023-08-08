@@ -13,7 +13,7 @@ struct ReceivedWindowMessage
 class Win32Window : public DisplayWindow
 {
 public:
-	Win32Window(Engine* engine);
+	Win32Window(DisplayWindowHost* windowHost);
 	~Win32Window();
 
 	void OpenWindow(int width, int height, bool fullscreen) override;
@@ -31,7 +31,7 @@ public:
 	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
 	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
 
-	Engine* engine = nullptr;
+	DisplayWindowHost* windowHost = nullptr;
 
 	HWND WindowHandle = 0;
 	bool Fullscreen = false;

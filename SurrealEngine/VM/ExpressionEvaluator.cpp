@@ -171,7 +171,7 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 	}
 	else
 	{
-		Frame::ThrowException("Class reference not set to an instance of an object");
+		Frame::ThrowException("Class reference is None");
 	}
 }
 
@@ -218,7 +218,7 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 	}
 	else
 	{
-		Frame::ThrowException("Object reference not set to an instance of an object");
+		Frame::ThrowException("Object reference is None");
 	}
 }
 
