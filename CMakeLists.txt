@@ -13,6 +13,28 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/EditorApp.h
 	SurrealEngine/DebuggerApp.cpp
 	SurrealEngine/DebuggerApp.h
+	SurrealEngine/Commandlet/Commandlet.cpp
+	SurrealEngine/Commandlet/Commandlet.h
+	SurrealEngine/Commandlet/ExtractCommandlet.cpp
+	SurrealEngine/Commandlet/ExtractCommandlet.h
+	SurrealEngine/Commandlet/QuitCommandlet.cpp
+	SurrealEngine/Commandlet/QuitCommandlet.h
+	SurrealEngine/Commandlet/RunCommandlet.cpp
+	SurrealEngine/Commandlet/RunCommandlet.h
+	SurrealEngine/Commandlet/VM/BreakpointCommandlet.cpp
+	SurrealEngine/Commandlet/VM/BreakpointCommandlet.h
+	SurrealEngine/Commandlet/VM/CallstackCommandlet.cpp
+	SurrealEngine/Commandlet/VM/CallstackCommandlet.h
+	SurrealEngine/Commandlet/VM/DisassemblyCommandlet.cpp
+	SurrealEngine/Commandlet/VM/DisassemblyCommandlet.h
+	SurrealEngine/Commandlet/VM/ListSourceCommandlet.cpp
+	SurrealEngine/Commandlet/VM/ListSourceCommandlet.h
+	SurrealEngine/Commandlet/VM/LocalsCommandlet.cpp
+	SurrealEngine/Commandlet/VM/LocalsCommandlet.h
+	SurrealEngine/Commandlet/VM/PrintCommandlet.cpp
+	SurrealEngine/Commandlet/VM/PrintCommandlet.h
+	SurrealEngine/Commandlet/VM/StepCommandlet.cpp
+	SurrealEngine/Commandlet/VM/StepCommandlet.h
 	SurrealEngine/Render/RenderSubsystem.cpp
 	SurrealEngine/Render/RenderSubsystem.h
 	SurrealEngine/Render/RenderCanvas.cpp
@@ -499,6 +521,8 @@ source_group("SurrealEngine\\UI\\Dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("SurrealEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/MainWindow/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
+source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
+source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")

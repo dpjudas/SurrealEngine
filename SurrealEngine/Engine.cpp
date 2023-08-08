@@ -34,8 +34,6 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 	engine = this;
 
 	packages = std::make_unique<PackageManager>(LaunchInfo.folder, LaunchInfo.engineVersion, LaunchInfo.gameName);
-
-	// Frame::AddBreakpoint("Botpack", "DeathMatchPlus", "Timer");
 }
 
 Engine::~Engine()
