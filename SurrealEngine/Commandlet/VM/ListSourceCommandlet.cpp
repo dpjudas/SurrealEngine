@@ -116,9 +116,9 @@ std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpan
 
 	static std::vector<Pattern> patterns =
 	{
-		{ std::regex("local|function|for(each)?|if|then|else|return|break|goto|optional|coerce|class|enum|none", std::regex::icase), 96, 0 }, // keywords
+		{ std::regex("(^|[^a-z_0-9])(local|function|for(each)?|if|then|else(\\s+(if|do|while))?|do|while|return|break|goto|optional|coerce|class|enum|none|out|event|simulated(\\s+(function|event))?|state|true|false|super|ignores|static(\\s+function)?|exec)($|[^a-z_0-9])", std::regex::icase), 96, 2 }, // keywords
 		{ std::regex("[+\\-=/\\\\$[\\]\\!&~\\^,;()*]+"), 90, 0 }, // symbols
-		{ std::regex("(^|[^a-z])(byte|int|float|string)", std::regex::icase), 93, 2 }, // type keywords
+		{ std::regex("(^|[^a-z_0-9])(bool|byte|int|float|name|string|vector|rotator)($|[^a-z_0-9])", std::regex::icase), 93, 2 }, // type keywords
 		{ std::regex("['\"].*?['\"]"), 97, 0 }, // quoted text
 	};
 
