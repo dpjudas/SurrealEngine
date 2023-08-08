@@ -57,6 +57,7 @@ void SelectFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 	if (!args.empty())
 	{
 		console->CallstackIndex = std::atoi(args.c_str());
+		console->ListSourceLineOffset = 0;
 	}
 }
 

@@ -20,6 +20,7 @@ public:
 
 	GameLaunchInfo launchinfo;
 	int CallstackIndex = 0;
+	int ListSourceLineOffset = 0;
 
 private:
 	void CreateCommandlets();
