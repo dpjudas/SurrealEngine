@@ -34,6 +34,8 @@ public:
 
 	~ALSoundSource()
 	{
+		Stop();
+		alSourcei(id, AL_BUFFER, 0);
 		alDeleteSources(1, &id);
 	}
 
@@ -255,8 +257,17 @@ public:
 		bExit = true;
 		playbackThread->join();
 
-		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
+		alSourceStop(alMusicSource);
 		alDeleteSources(1, &alMusicSource);
+
+		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
+
+		sources.clear();
+
+		for (USound* sound : sounds)
+		{
+			alDeleteBuffers(1, (ALuint*)&sound->handle);
+		}
 
 		alcDestroyContext(alContext);
 		alcCloseDevice(alDevice);
@@ -449,18 +460,20 @@ public:
 	void Update() override
 	{
 		UActor* listener = engine->CameraActor;
+		if (listener)
+		{
+			// Update listener properties
+			vec3& location = listener->Location();
+			vec3& velocity = listener->Velocity();
 
-		// Update listener properties
-		vec3& location = listener->Location();
-		vec3& velocity = listener->Velocity();
+			vec3 at, left, up;
+			Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
 
-		vec3 at, left, up;
-		Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
-
-		ALfloat listenerOri[6] = {up.x, up.y, -up.z, -at.x, -at.y, at.z};
-		alListener3f(AL_POSITION, location.x, location.y, -location.z);
-		alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
-		alListenerfv(AL_ORIENTATION, listenerOri);
+			ALfloat listenerOri[6] = { up.x, up.y, -up.z, -at.x, -at.y, at.z };
+			alListener3f(AL_POSITION, location.x, location.y, -location.z);
+			alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
+			alListenerfv(AL_ORIENTATION, listenerOri);
+		}
 	}
 
 	void UpdateMusicLoop()

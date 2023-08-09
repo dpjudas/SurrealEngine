@@ -49,12 +49,12 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	actor->Location() = location;
 	actor->OldLocation() = location;
 	actor->Rotation() = rotation;
+	actor->Region().Zone = actor->Level();
 
 	XLevel()->Actors.push_back(actor);
 	XLevel()->Hash.AddToCollision(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
-	actor->InitActorZone();
 
 	if (Level()->bBegunPlay())
 	{
@@ -66,6 +66,8 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 			return nullptr;
 
 		// To do: we need to call EventName::EncroachingOn events here?
+
+		actor->InitActorZone();
 
 		CallEvent(actor, EventName::PostBeginPlay);
 		CallEvent(actor, EventName::SetInitialState);
