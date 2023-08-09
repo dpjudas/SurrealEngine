@@ -283,12 +283,15 @@ void DebuggerApp::FrameDebugBreak()
 	}
 
 	WritePrompt();
-	while (!ExitRequested)
+	while (!ExitRequested && !ResumeProgram)
 	{
 		WaitForInput();
 		Tick();
 	}
-	throw std::runtime_error("Debugger exit");
+	ResumeProgram = false;
+
+	if (ExitRequested)
+		throw std::runtime_error("Debugger exit");
 }
 
 Frame* DebuggerApp::GetCurrentFrame()

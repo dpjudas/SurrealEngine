@@ -31,6 +31,8 @@ public:
 	static std::string NewLine();
 	static std::string InputNewLine();
 
+	bool ResumeProgram = false;
+
 private:
 	void CreateCommandlets();
 	void Tick();

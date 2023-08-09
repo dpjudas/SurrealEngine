@@ -35,16 +35,27 @@ enum class LatentRunState
 	WaitForLanding
 };
 
+struct Breakpoint
+{
+	NameString Package;
+	NameString Class;
+	NameString Function;
+	NameString State;
+	Expression* Expression = nullptr;
+	UProperty* Property = nullptr; // For watchpoints. Not implemented yet.
+	bool Enabled = true;
+};
+
 class Frame
 {
 public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args);
 	static std::string GetCallstack();
 
-	static void AddBreakpoint(const NameString& package, const NameString& cls, const NameString& func, const NameString& state = {});
+	static bool AddBreakpoint(const NameString& package, const NameString& cls, const NameString& func, const NameString& state = {});
 
 	static std::function<void()> RunDebugger;
-	static std::vector<Expression*> Breakpoints;
+	static std::vector<Breakpoint> Breakpoints;
 	static std::vector<Frame*> Callstack;
 	static FrameRunState RunState;
 	static Frame* StepFrame;

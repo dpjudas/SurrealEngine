@@ -11,7 +11,7 @@
 #include "Package/PackageManager.h"
 
 std::function<void()> Frame::RunDebugger;
-std::vector<Expression*> Frame::Breakpoints;
+std::vector<Breakpoint> Frame::Breakpoints;
 std::vector<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
@@ -19,8 +19,14 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
-void Frame::AddBreakpoint(const NameString& packageName, const NameString& clsName, const NameString& funcName, const NameString& stateName)
+bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsName, const NameString& funcName, const NameString& stateName)
 {
+	Breakpoint bp;
+	bp.Package = packageName;
+	bp.Class = clsName;
+	bp.Function = funcName;
+	bp.State = stateName;
+
 	Package* pkg = engine->packages->GetPackage(packageName);
 	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", clsName));
 	if (stateName.IsNone())
@@ -30,8 +36,9 @@ void Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 			if (child->Name == funcName && dynamic_cast<UFunction*>(child))
 			{
 				UFunction* func = static_cast<UFunction*>(child);
-				Breakpoints.push_back(func->Code->Statements.front());
-				return;
+				bp.Expression = func->Code->Statements.front();
+				Breakpoints.push_back(bp);
+				return true;
 			}
 		}
 	}
@@ -47,13 +54,15 @@ void Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 					if (child->Name == funcName && dynamic_cast<UFunction*>(child))
 					{
 						UFunction* func = static_cast<UFunction*>(child);
-						Breakpoints.push_back(func->Code->Statements.front());
-						return;
+						bp.Expression = func->Code->Statements.front();
+						Breakpoints.push_back(bp);
+						return true;
 					}
 				}
 			}
 		}
 	}
+	return false;
 }
 
 void Frame::Break()

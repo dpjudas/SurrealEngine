@@ -14,6 +14,8 @@ public:
 	const std::string& GetLongFormName() const { return LongFormName; }
 	const std::string& GetShortDescription() const { return ShortDescription; }
 
+	static std::vector<std::string> SplitString(const std::string& text);
+
 protected:
 	void SetShortFormName(std::string name) { ShortFormName = std::move(name); }
 	void SetLongFormName(std::string name) { LongFormName = std::move(name); }

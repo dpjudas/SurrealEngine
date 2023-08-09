@@ -32,3 +32,25 @@ std::string Commandlet::NewLine()
 {
 	return DebuggerApp::NewLine();
 }
+
+std::vector<std::string> Commandlet::SplitString(const std::string& text)
+{
+	std::vector<std::string> result;
+
+	size_t pos = 0;
+	while (pos < text.size())
+	{
+		// Eat whitespace
+		pos = std::min(text.find_first_not_of(' ', pos), text.size());
+
+		// Find next whitespace and grab the text in between
+		size_t endpos = std::min(text.find_first_of(' ', pos), text.size());
+		if (pos < endpos)
+		{
+			result.push_back(text.substr(pos, endpos - pos));
+		}
+		pos = endpos;
+	}
+
+	return result;
+}
