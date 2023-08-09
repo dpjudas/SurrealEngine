@@ -34,6 +34,8 @@ public:
 
 	~ALSoundSource()
 	{
+		Stop();
+		alSourcei(id, AL_BUFFER, 0);
 		alDeleteSources(1, &id);
 	}
 
@@ -255,10 +257,17 @@ public:
 		bExit = true;
 		playbackThread->join();
 
-		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
+		alSourceStop(alMusicSource);
 		alDeleteSources(1, &alMusicSource);
 
+		alDeleteBuffers((ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
+
 		sources.clear();
+
+		for (USound* sound : sounds)
+		{
+			alDeleteBuffers(1, (ALuint*)&sound->handle);
+		}
 
 		alcDestroyContext(alContext);
 		alcCloseDevice(alDevice);
