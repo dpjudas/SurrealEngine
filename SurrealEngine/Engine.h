@@ -64,6 +64,7 @@ public:
 	UnrealURL GetDefaultURL(const std::string& map);
 	void LoadEntryMap();
 	void LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo = {});
+	void UnloadMap();
 	void LoginPlayer();
 	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
 
@@ -99,6 +100,7 @@ public:
 
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
+	Package* LevelPackage = nullptr;
 	UGameInfo* GameInfo = nullptr;
 	struct
 	{

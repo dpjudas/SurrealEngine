@@ -27,6 +27,8 @@ public:
 	Package *GetPackage(const NameString& name);
 	std::vector<NameString> GetPackageNames() const;
 
+	void UnloadPackage(const NameString& name);
+
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
 	UObject* NewObject(const NameString& name, const NameString& package, const NameString& className);

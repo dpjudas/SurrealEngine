@@ -110,6 +110,15 @@ Package* PackageManager::GetPackage(const NameString& name)
 	return package.get();
 }
 
+void PackageManager::UnloadPackage(const NameString& name)
+{
+	auto it = packages.find(name);
+	if (it != packages.end())
+	{
+		packages.erase(it);
+	}
+}
+
 void PackageManager::ScanForMaps()
 {
 	std::string packagedir = FilePath::combine(basepath, "Maps");

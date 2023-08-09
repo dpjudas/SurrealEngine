@@ -214,6 +214,21 @@ void Engine::LoadEntryMap()
 	EntryLevel = Level;
 	LevelInfo = nullptr;
 	Level = nullptr;
+	LevelPackage = nullptr;
+}
+
+void Engine::UnloadMap()
+{
+	if (!LevelPackage)
+		return;
+
+	NameString packageName = LevelPackage->GetPackageName();
+
+	LevelInfo = nullptr;
+	Level = nullptr;
+	LevelPackage = nullptr;
+
+	packages->UnloadPackage(packageName);
 }
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
@@ -226,14 +241,16 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	if (url.HasOption("entry")) // Not sure what the purpose of this kind of travel is - do nothing for now.
 		return;
 
-	// Load map objects
-	Package* package = packages->GetPackage(FilePath::remove_extension(url.Map));
+	UnloadMap();
 
-	LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo0"));
+	// Load map objects
+	LevelPackage = packages->GetPackage(FilePath::remove_extension(url.Map));
+
+	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
 	if (packages->IsUnreal1())
 	{
 		for (int grr = 1; !LevelInfo && grr < 20; grr++)
-			LevelInfo = UObject::Cast<ULevelInfo>(package->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
+			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
 	}
 	if (!LevelInfo)
 		throw std::runtime_error("Could not find the LevelInfo object for this map!");
@@ -248,7 +265,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LevelInfo->URL = url;
 
-	Level = UObject::Cast<ULevel>(package->GetUObject("Level", "MyLevel"));
+	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
 	if (!Level)
 		throw std::runtime_error("Could not find the Level object for this map!");
 
