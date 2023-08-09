@@ -67,15 +67,6 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 
 		// To do: we need to call EventName::EncroachingOn events here?
 
-		// Send touch notifications for anything at the spawn location
-		for (UActor* actor : XLevel()->Hash.CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius()))
-		{
-			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
-			{
-				Touch(actor);
-			}
-		}
-
 		CallEvent(actor, EventName::PostBeginPlay);
 		CallEvent(actor, EventName::SetInitialState);
 
@@ -962,22 +953,25 @@ bool UActor::SetLocation(const vec3& newLocation)
 	Location() = result.second;
 	XLevel()->Hash.AddToCollision(this);
 
-	// Send touch notifications for anything at the new location
-	for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
+	if (Level()->bBegunPlay())
 	{
-		if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+		// Send touch notifications for anything at the new location
+		for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
 		{
-			Touch(actor);
+			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+			{
+				Touch(actor);
+			}
 		}
-	}
 
-	// Untouch everything we aren't overlapping anymore
-	UActor** TouchingArray = Touching();
-	for (int i = 0; i < TouchingArraySize; i++)
-	{
-		if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
+		// Untouch everything we aren't overlapping anymore
+		UActor** TouchingArray = Touching();
+		for (int i = 0; i < TouchingArraySize; i++)
 		{
-			UnTouch(TouchingArray[i]);
+			if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
+			{
+				UnTouch(TouchingArray[i]);
+			}
 		}
 	}
 

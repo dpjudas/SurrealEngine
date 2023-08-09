@@ -13,9 +13,9 @@ ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, 
 	auto oldExpr = Frame::StepExpression;
 	Frame::StepExpression = expr;
 
-	for (Expression* breakpoint : Frame::Breakpoints)
+	for (const Breakpoint& bp : Frame::Breakpoints)
 	{
-		if (breakpoint == expr)
+		if (bp.Expression == expr && bp.Enabled)
 		{
 			Frame::Break();
 		}
