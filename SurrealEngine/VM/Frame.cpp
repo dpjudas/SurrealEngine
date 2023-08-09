@@ -185,17 +185,31 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			{
 				auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
 				if (callback)
+				{
+					Frame frame(instance, func);
+					Callstack.push_back(&frame);
 					callback(instance, args.data());
+					Callstack.pop_back();
+				}
 				else
+				{
 					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+				}
 			}
 			else
 			{
 				auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
 				if (callback)
+				{
+					Frame frame(instance, func);
+					Callstack.push_back(&frame);
 					callback(instance, args.data());
+					Callstack.pop_back();
+				}
 				else
+				{
 					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+				}
 			}
 		}
 		catch (const std::exception& e)
