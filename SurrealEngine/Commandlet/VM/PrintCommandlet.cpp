@@ -16,7 +16,21 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	Frame* frame = console->GetCurrentFrame();
 
 	UObject* obj = nullptr;
-	if (NameString("self") == args)
+	bool bFoundObj = false;
+
+	// Split out args into chunks, separated by '.'
+	std::string toPrint = args;
+	std::vector<std::string> chunks;
+	size_t pos = toPrint.find('.');
+	while ((pos != std::string::npos))
+	{
+		chunks.push_back(toPrint.substr(0, pos));
+		toPrint.erase(0, pos+1);
+		pos = toPrint.find('.');
+	}
+	chunks.push_back(toPrint);
+
+	if (NameString("self") == chunks[0])
 	{
 		obj = frame->Object;
 	}
@@ -24,10 +38,11 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		for (UProperty* prop : frame->Func->Properties)
 		{
-			if (prop->Name == args && (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop)))
+			if (prop->Name == chunks[0] && (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop)))
 			{
 				void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
 				obj = *(UObject**)ptr;
+				bFoundObj = true;
 				break;
 			}
 		}
@@ -35,13 +50,70 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 	if (!obj)
 	{
-		console->WriteOutput(ColorEscape(96) + "None" + ResetEscape() + NewLine());
+		if (!bFoundObj)
+			console->WriteOutput("Unknown variable " + chunks[0] + ResetEscape() + NewLine());
+		else
+			console->WriteOutput("None" + ResetEscape() + NewLine());
+		return;
+	}
+
+	std::string name;
+	std::string value;
+	for (auto chunk = chunks.begin() + 1; chunk != chunks.end(); chunk++)
+	{
+		if (!obj)
+		{
+			console->WriteOutput(*chunk + ResetEscape() + " " + ColorEscape(96) + "None" + ResetEscape() + NewLine());
+			return;
+		}
+
+		bFoundObj = false;
+		for (UProperty* prop : obj->PropertyData.Class->Properties)
+		{
+			if (prop->Name == (*chunk))
+			{
+				void* ptr = ((uint8_t*)obj) + prop->DataOffset;
+				void* val = obj->PropertyData.Ptr(prop);
+
+				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+				{
+					obj = *(UObject**)val;
+					bFoundObj = true;
+					break;
+				}
+				else if (chunk+1 == chunks.end())
+				{
+					name = prop->Name.ToString();
+					value = prop->PrintValue(val);
+
+					if (name.size() < 40)
+						name.resize(40, ' ');
+
+					console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+					return;
+				}
+			}
+		}
+
+		if (!bFoundObj)
+		{
+			console->WriteOutput("Unknown variable " + *chunk + ResetEscape() + NewLine());
+			return;
+		}
+	}
+
+	if (!obj)
+	{
+		std::string name = *(chunks.end() - 1);
+		if (name.size() < 40)
+			name.resize(40, ' ');
+
+		console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + "None" + ResetEscape() + NewLine());
 		return;
 	}
 
 	auto props = obj->PropertyData.Class->Properties;
 	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name < b->Name; });
-
 	for (UProperty* prop : props)
 	{
 		void* ptr = obj->PropertyData.Ptr(prop);
@@ -52,7 +124,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		if (name.size() < 40)
 			name.resize(40, ' ');
 
-		console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+		console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
 	}
 }
 
