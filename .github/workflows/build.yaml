@@ -1,99 +1,305 @@
 name: build
 
-on:
-  push:
-  pull_request:
+on: [push, pullrequest]
 
 env:
+  CMAKE_VERSION: 3.24.3
+  NINJA_VERSION: 1.11.1
+  CCACHE_VERSION: 4.7.3
   BUILD_TYPE: Release
 
 jobs:
-  linux:
-    runs-on: ubuntu-20.04
-    name: 🐧 Ubuntu 20.04
+  build:
+    name: ${ { matrix.config.name } }
+    runs-on: ${ { matrix.config.os } }
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
+            os: windows-latest,
+            build_type: "Release", cc: "cl", cxx: "cl",
+            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          }
+        - {
+            name: "Ubuntu Latest GCC", artifact: "Linux.tar.xz",
+            os: ubuntu-latest,
+            build_type: "Release", cc: "gcc", cxx: "g++"
+          }
+        - {
+            name: "macOS Latest Clang", artifact: "macOS.tar.xz",
+            os: macos-latest,
+            build_type: "Release", cc: "clang", cxx: "clang++"
+          }
+
     steps:
-      - name: 🧰 Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
+    - uses: actions/checkout@v3
 
-      - name: ⬇️ Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential       \
-            gcc-10                \
-            g++-10                \
-            libsdl2-dev           \
-            libsdl2-mixer-dev
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
+    - name: Download Ninja and CMake
+      shell: cmake -P {0}
+      run: |
+        set(cmake_version $ENV{CMAKE_VERSION})
+        set(ninja_version $ENV{NINJA_VERSION})
 
-      - name: Configure CMake
-        shell: bash
-        env:
-          CC: gcc-10
-          CXX: g++-10
-        working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-      - name: Build
-        working-directory: ${{runner.workspace}}/build
-        shell: bash
-        env:
-          CC: gcc-10
-          CXX: g++-10
-        run: cmake --build . --config $BUILD_TYPE
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          set(ninja_suffix "win.zip")
+          set(cmake_suffix "windows-x86_64.zip")
+          set(cmake_dir "cmake-${cmake_version}-windows-x86_64/bin")
+        elseif ("${{ runner.os }}" STREQUAL "Linux")
+          set(ninja_suffix "linux.zip")
+          set(cmake_suffix "linux-x86_64.tar.gz")
+          set(cmake_dir "cmake-${cmake_version}-linux-x86_64/bin")
+        elseif ("${{ runner.os }}" STREQUAL "macOS")
+          set(ninja_suffix "mac.zip")
+          set(cmake_suffix "macos-universal.tar.gz")
+          set(cmake_dir "cmake-${cmake_version}-macos-universal/CMake.app/Contents/bin")
+        endif()
 
-  win:
-    runs-on: windows-latest
-    name: 🟦 Windows x64
+        set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
+        file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
+
+        set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
+        file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./cmake.zip)
+
+        # Add to PATH environment variable
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/${cmake_dir}" cmake_dir)
+        set(path_separator ":")
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          set(path_separator ";")
+        endif()
+        file(APPEND "$ENV{GITHUB_PATH}" "$ENV{GITHUB_WORKSPACE}${path_separator}${cmake_dir}")
+
+        if (NOT "${{ runner.os }}" STREQUAL "Windows")
+          execute_process(
+            COMMAND chmod +x ninja
+            COMMAND chmod +x ${cmake_dir}/cmake
+          )
+        endif()
+
+    - name: Download ccache
+      id: ccache
+      shell: cmake -P {0}
+      run: |
+        set(ccache_url "https://github.com/cristianadam/ccache/releases/download/v$ENV{CCACHE_VERSION}/${{ runner.os }}.tar.xz")
+        file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
+
+    - name: Prepare ccache timestamp
+      id: ccache_cache_timestamp
+      shell: cmake -P {0}
+      run: |
+        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+        file(APPEND "$ENV{GITHUB_OUTPUT}" "timestamp=${current_date}")
+
+    - name: ccache cache files
+      uses: actions/cache@v3
+      with:
+        path: .ccache
+        key: ${{ matrix.config.name }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
+
+    - name: Install dependencies
+      shell: cmake -P {0}
+      run: |
+        if ("${{ runner.os }}" STREQUAL "Windows")
+        elseif ("${{ runner.os }}" STREQUAL "Linux")
+          execute_process(
+            COMMAND sudo apt-get install libsdl2-dev
+          )
+        elseif ("${{ runner.os }}" STREQUAL "macOS")
+          execute_process(
+            COMMAND brew install SDL2
+          )
+        endif()
+
+    - name: Configure
+      shell: cmake -P {0}
+      run: |
+        set(ENV{CC} ${{ matrix.config.cc }})
+        set(ENV{CXX} ${{ matrix.config.cxx }})
+
+        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          execute_process(
+            COMMAND "${{ matrix.config.environment_script }}" && set
+            OUTPUT_FILE environment_script_output.txt
+          )
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+
+        set(path_separator ":")
+        if ("${{ runner.os }}" STREQUAL "Windows")
+          set(path_separator ";")
+        endif()
+        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
+
+        execute_process(
+          COMMAND cmake
+            -S .
+            -B build
+            -D CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
+            -G Ninja
+            -D CMAKE_MAKE_PROGRAM=ninja
+            -D CMAKE_C_COMPILER_LAUNCHER=ccache
+            -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+          RESULT_VARIABLE result
+        )
+        if (NOT result EQUAL 0)
+          message(FATAL_ERROR "Bad exit status")
+        endif()
+
+
+    - name: Build
+      shell: cmake -P {0}
+      run: |
+        set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
+
+        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+          file(STRINGS environment_script_output.txt output_lines)
+          foreach(line IN LISTS output_lines)
+            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+            endif()
+          endforeach()
+        endif()
+
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" ccache_basedir)
+        set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
+        set(ENV{CCACHE_DIR} "${ccache_basedir}/.ccache")
+        set(ENV{CCACHE_COMPRESS} "true")
+        set(ENV{CCACHE_COMPRESSLEVEL} "6")
+        set(ENV{CCACHE_MAXSIZE} "400M")
+        if ("${{ matrix.config.cxx }}" STREQUAL "cl")
+          set(ENV{CCACHE_MAXSIZE} "600M")
+        endif()
+
+        execute_process(COMMAND ccache -p)
+        execute_process(COMMAND ccache -z)
+
+        execute_process(
+          COMMAND cmake --build build
+          RESULT_VARIABLE result
+          OUTPUT_VARIABLE output
+          ERROR_VARIABLE output
+          ECHO_OUTPUT_VARIABLE ECHO_ERROR_VARIABLE
+        )
+        if (NOT result EQUAL 0)
+          string(REGEX MATCH "FAILED:.*$" error_message "${output}")
+          string(REPLACE "\n" "%0A" error_message "${error_message}")
+          message("::error::${error_message}")
+          message(FATAL_ERROR "Build failed")
+        endif()
+
+    - name: ccache statistics
+      shell: cmake -P {0}
+      run: |
+        file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}" ccache_basedir)
+        set(ENV{CCACHE_BASEDIR} "${ccache_basedir}")
+        set(ENV{CCACHE_DIR} "${ccache_basedir}/.ccache")
+
+        execute_process(COMMAND ccache -s)
+
+    - name: Install Strip
+      run: cmake --install build --prefix instdir --strip
+
+
+    - name: Pack
+      working-directory: instdir
+      run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip .
+
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        path: ./${{ matrix.config.artifact }}
+        name: ${{ matrix.config.artifact }}
+
+  release:
+    if: contains(github.ref, 'tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+
     steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
 
-      - name: 🧰 Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          submodules: true
+    - name: Store Release url
+      run: |
+        echo "${{ steps.create_release.outputs.upload_url }}" > ./upload_url
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{runner.workspace}}/build
+    - uses: actions/upload-artifact@v3
+      with:
+        path: ./upload_url
+        name: upload_url
 
-      - name: Configure CMake Windows
-        shell: bash
-        working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_BIN_DIR="c:/vcpkg/installed/x64-windows/bin"
+  publish:
+    if: contains(github.ref, 'tags/v')
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
+            os: ubuntu-latest
+          }
+        - {
+            name: "Windows Latest MinGW", artifact: "Windows-MinGW.7z",
+            os: ubuntu-latest
+          }
+        - {
+            name: "Ubuntu Latest GCC", artifact: "Linux.7z",
+            os: ubuntu-latest
+          }
+        - {
+            name: "macOS Latest Clang", artifact: "macOS.7z",
+            os: ubuntu-latest
+          }
+    needs: release
 
-      - name: Build
-        working-directory: ${{runner.workspace}}/build
-        shell: bash
-        run: cmake --build . --config $BUILD_TYPE
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ matrix.config.artifact }}
+        path: ./
 
-#  macos-build:
-#     runs-on: macos-10.15
-#     name: 🍎 macOS 10.15
-#     steps:
+    - name: Download URL
+      uses: actions/download-artifact@v3
+      with:
+        name: upload_url
+        path: ./
+    - id: set_upload_url
+      run: |
+        upload_url=`cat ./upload_url`
+        echo upload_url=$upload_url >> $GITHUB_OUTPUT
 
-#       - name: 🧰 Checkout
-#         uses: actions/checkout@v2
-#         with:
-#           fetch-depth: 0
-#           submodules: true
-
-#       - name: ⬇️ Install dependencies
-#         run: brew install sdl2 sdl2_mixer
-
-#       - name: Create Build Environment
-#         run: cmake -E make_directory ${{runner.workspace}}/build
-
-#       - name: Configure CMake
-#         shell: bash
-#         working-directory: ${{runner.workspace}}/build
-#         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-#       - name: Build
-#         working-directory: ${{runner.workspace}}/build
-#         shell: bash
-#         run: |
-#           cmake --build . --config $BUILD_TYPE
+    - name: Upload to Release
+      id: upload_to_release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.set_upload_url.outputs.upload_url }}
+        asset_path: ./${{ matrix.config.artifact }}
+        asset_name: ${{ matrix.config.artifact }}
+        asset_content_type: application/x-gtar
