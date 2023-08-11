@@ -224,7 +224,7 @@ jobs:
 
 
     - name: Pack
-      working-directory: ../instdir
+      working-directory: instdir
       run: cmake -E tar cfv ../${{ matrix.config.artifact }} --format=7zip .
 
 

@@ -582,3 +582,5 @@ set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 17)
 if(MSVC)
 add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/Thirdparty/openal-soft/$<CONFIGURATION>/OpenAL32.dll" $<TARGET_FILE_DIR:SurrealEngine>)
 endif()
+
+install(TARGETS SurrealEngine SurrealEditor SurrealDebugger)
