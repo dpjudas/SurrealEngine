@@ -24,7 +24,7 @@ public:
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;
-	bool Exec(std::string Cmd, OutputDevice& Ar);
+	bool Exec(std::string Cmd, OutputDevice& Ar) override;
 	void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear) override;
 	void Unlock(bool Blit) override;
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
