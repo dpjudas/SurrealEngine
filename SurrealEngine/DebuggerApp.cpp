@@ -429,7 +429,7 @@ void DebuggerApp::WriteOutput(const std::string& text)
 	while (pos < text.size())
 	{
 		auto byteswritten = write(1, text.data() + pos, text.size() - pos);
-		if (byteswrittes <= 0)
+		if (byteswritten <= 0)
 			break;
 		pos += byteswritten;
 	}

@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
+
+if (MSVC)
 add_subdirectory( Thirdparty/openal-soft )
+endif()
 
 project(SurrealEngine)
 
@@ -480,7 +483,7 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(SURREALCOMMON_LIBS
 	zvulkan
-	OpenAL
+	openal
 )
 
 set(SURREALENGINE_SOURCES
@@ -576,4 +579,6 @@ add_executable(SurrealDebugger MACOSX_BUNDLE ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 17)
 
+if(MSVC)
 add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/Thirdparty/openal-soft/$<CONFIGURATION>/OpenAL32.dll" $<TARGET_FILE_DIR:SurrealEngine>)
+endif()

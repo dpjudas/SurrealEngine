@@ -110,11 +110,11 @@ jobs:
         if ("${{ runner.os }}" STREQUAL "Windows")
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           execute_process(
-            COMMAND sudo apt-get install libsdl2-dev
+            COMMAND sudo apt-get install libsdl2-dev libopenal-dev
           )
         elseif ("${{ runner.os }}" STREQUAL "macOS")
           execute_process(
-            COMMAND brew install SDL2
+            COMMAND brew install SDL2 openal-soft
           )
         endif()
 
@@ -260,11 +260,7 @@ jobs:
         config:
         - {
             name: "Windows Latest MSVC", artifact: "Windows-MSVC.7z",
-            os: ubuntu-latest
-          }
-        - {
-            name: "Windows Latest MinGW", artifact: "Windows-MinGW.7z",
-            os: ubuntu-latest
+            os: windows-latest
           }
         - {
             name: "Ubuntu Latest GCC", artifact: "Linux.7z",

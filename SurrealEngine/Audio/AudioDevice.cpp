@@ -275,7 +275,7 @@ public:
 		delete musicBuffer;
 	}
 
-	void AudioDevice::AddSound(USound* sound)
+	void AddSound(USound* sound) override
 	{
 		sounds.push_back(sound);
 
@@ -293,7 +293,7 @@ public:
 		sound->handle = (void*)(ptrdiff_t)id;
 	}
 
-	void AudioDevice::RemoveSound(USound* sound)
+	void RemoveSound(USound* sound) override
 	{
 		auto it = sounds.begin();
 		while (it != sounds.end())

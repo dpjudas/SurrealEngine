@@ -36,7 +36,7 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 			if (child->Name == funcName && dynamic_cast<UFunction*>(child))
 			{
 				UFunction* func = static_cast<UFunction*>(child);
-				bp.Expression = func->Code->Statements.front();
+				bp.Expr = func->Code->Statements.front();
 				Breakpoints.push_back(bp);
 				return true;
 			}
@@ -54,7 +54,7 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 					if (child->Name == funcName && dynamic_cast<UFunction*>(child))
 					{
 						UFunction* func = static_cast<UFunction*>(child);
-						bp.Expression = func->Code->Statements.front();
+						bp.Expr = func->Code->Statements.front();
 						Breakpoints.push_back(bp);
 						return true;
 					}
