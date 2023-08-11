@@ -556,17 +556,13 @@ if(MSVC)
 	# Use all cores for compilation
 	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
 
-	# Add precompiled headers
-	# set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")
-	# set_source_files_properties(${SURREALCOMMON_SOURCES} PROPERTIES COMPILE_FLAGS "/Yu\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_DEPENDS "${PCH_OUTPUT}")
-	# set_source_files_properties("SurrealEngine/Precomp.cpp" PROPERTIES COMPILE_FLAGS "/Yc\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_OUTPUTS "${PCH_OUTPUT}")
-
 	# Ignore warnings in third party code
 	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
 endif()
 
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
 set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 17)
+target_precompile_headers(SurrealCommon PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Precomp.h>)
 
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${SURREALENGINE_SOURCES})
 target_link_libraries(SurrealEngine SurrealCommon ${SURREALCOMMON_LIBS})
