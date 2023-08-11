@@ -34,14 +34,14 @@ jobs:
             cc: "gcc",
             cxx: "g++"
           }
-        - {
-            name: "macOS Latest Clang",
-            artifact: "macOS.tar.xz",
-            os: macos-latest,
-            build_type: "Release",
-            cc: "clang",
-            cxx: "clang++"
-          }
+#        - {
+#            name: "macOS Latest Clang",
+#            artifact: "macOS.tar.xz",
+#            os: macos-latest,
+#            build_type: "Release",
+#            cc: "clang",
+#            cxx: "clang++"
+#          }
 
     steps:
     - uses: actions/checkout@v3
