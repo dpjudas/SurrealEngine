@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
-
-if (MSVC)
+if(WIN32)
 add_subdirectory( Thirdparty/openal-soft )
 endif()
 
@@ -483,6 +482,15 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(SURREALCOMMON_LIBS
 	zvulkan
+)
+
+set(SURREALCOMMON_WIN32_LIBS
+	zvulkan
+	OpenAL
+)
+
+set(SURREALCOMMON_UNIX_LIBS
+	zvulkan
 	openal
 )
 
@@ -546,11 +554,12 @@ include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdpar
 if(WIN32)
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_WIN32_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_WIN32_SOURCES})
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_WIN32_LIBS})
 	add_definitions(-DUNICODE -D_UNICODE)
 else()
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
-	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS})
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 endif()
