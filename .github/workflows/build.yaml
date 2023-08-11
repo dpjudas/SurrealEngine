@@ -10,8 +10,8 @@ env:
 
 jobs:
   build:
-    name: ${ { matrix.config.name } }
-    runs-on: ${ { matrix.config.os } }
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
