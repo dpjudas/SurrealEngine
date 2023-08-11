@@ -1,6 +1,6 @@
 name: build
 
-on: [push, pullrequest]
+on: [push, pull_request]
 
 env:
   CMAKE_VERSION: 3.24.3
