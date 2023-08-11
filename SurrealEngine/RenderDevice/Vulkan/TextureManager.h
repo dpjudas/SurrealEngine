@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zvulkan/vulkanobjects.h>
+#include <unordered_map>
 #include "SceneTextures.h"
 
 struct FTextureInfo;
