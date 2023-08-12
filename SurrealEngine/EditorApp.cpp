@@ -77,7 +77,9 @@ int EditorApp::main(std::vector<std::string> args)
 		frame.canvas->end();
 
 		frame.window->Tick();
+#ifdef WIN32
 		Sleep(10); // To do: improve DisplayWindow to support waiting for messages
+#endif
 	}
 
 	return 0;
