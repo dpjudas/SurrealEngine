@@ -352,6 +352,8 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 	return t;
 }
 
+#endif
+
 // Returns the squared distance between point c and segment ab
 static double SqDistPointSegment(const dvec3& a, const dvec3& b, const dvec3& c)
 {
