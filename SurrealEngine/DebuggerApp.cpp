@@ -7,6 +7,7 @@
 #include "Commandlet/ExtractCommandlet.h"
 #include "Commandlet/QuitCommandlet.h"
 #include "Commandlet/RunCommandlet.h"
+#include "Commandlet/Debug/CollisionCommandlet.h"
 #include "Commandlet/VM/BreakpointCommandlet.h"
 #include "Commandlet/VM/CallstackCommandlet.h"
 #include "Commandlet/VM/DisassemblyCommandlet.h"
@@ -71,6 +72,7 @@ void DebuggerApp::CreateCommandlets()
 	Commandlets.push_back(std::make_unique<StepOutCommandlet>());
 	Commandlets.push_back(std::make_unique<ContinueCommandlet>());
 	Commandlets.push_back(std::make_unique<QuitCommandlet>());
+	Commandlets.push_back(std::make_unique<CollisionCommandlet>());
 }
 
 void DebuggerApp::Tick()
