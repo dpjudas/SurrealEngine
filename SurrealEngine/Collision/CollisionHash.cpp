@@ -238,23 +238,19 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 		{
 			// above
 			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, t0);
-			if (valid1)
-			{
-				t = t0;
-				return t;
-			}
 		}
 		else if (caDotRl >= ch)
 		{
 			// below
-			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t1);
-			if (valid1)
-			{
-				t = t1;
-				return t;
-			}
+			valid2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t1);
 		}
-		return tmax;
+
+		if (valid1)
+			return t0;
+		else if (valid2)
+			return t1;
+		else
+			return tmax;
 	}
 	if (validRoots == 1)
 	{
