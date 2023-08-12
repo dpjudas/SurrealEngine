@@ -85,9 +85,9 @@ double CollisionHash::RaySphereTrace(const dvec3& rayOrigin, double tmin, const 
 static int GetQuadraticRoots(double a, double b, double c, double& root_lower, double& root_upper)
 {
 	double discriminant = (b * b) - (4.0 * a * c);
-	if (discriminant > DBL_EPSILON)
+	if (discriminant > FLT_EPSILON)
 	{
-		double b_term = b < DBL_EPSILON ? -b + sqrt(discriminant) : -b - sqrt(discriminant);
+		double b_term = b < FLT_EPSILON ? -b + sqrt(discriminant) : -b - sqrt(discriminant);
 
 		root_lower = b_term / (2.0 * a); // quadratic formula
 		root_upper = (2.0 * c) / b_term; // citardauq formula
@@ -97,7 +97,7 @@ static int GetQuadraticRoots(double a, double b, double c, double& root_lower, d
 
 		return 2;
 	}
-	else if (discriminant > -DBL_EPSILON && discriminant <= DBL_EPSILON)
+	else if (discriminant > -FLT_EPSILON && discriminant <= FLT_EPSILON)
 	{
 		root_lower = -(b / 2.0 * a);
 		root_upper = root_lower;
@@ -292,18 +292,15 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 		else if (caDotRl >= ch)
 		{
 			// below
-			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, t1);
+			valid2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t1);
 		}
-		else
-		{
-			return tmax;
-		}
+
 		if (valid1)
-		{
-			t = t0;
-			return t;
-		}
-		return tmax;
+			return t0;
+		else if (valid2)
+			return t1;
+		else
+			return tmax;
 	}
 	if (validRoots == 1)
 	{
@@ -323,7 +320,7 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 		double d0;
 		double d1;
 		bool disc1 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, d0);
-		bool disc2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, d1);
+		bool disc2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, d1);
 		if (disc1)
 		{
 			if (disc2)
@@ -354,6 +351,7 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 	t = std::min(t0, t1);
 	return t;
 }
+
 #endif
 
 // Returns the squared distance between point c and segment ab

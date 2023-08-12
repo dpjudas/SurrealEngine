@@ -18,17 +18,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	UObject* obj = nullptr;
 	bool bFoundObj = false;
 
-	// Split out args into chunks, separated by '.'
-	std::string toPrint = args;
-	std::vector<std::string> chunks;
-	size_t pos = toPrint.find('.');
-	while ((pos != std::string::npos))
-	{
-		chunks.push_back(toPrint.substr(0, pos));
-		toPrint.erase(0, pos+1);
-		pos = toPrint.find('.');
-	}
-	chunks.push_back(toPrint);
+	std::vector<std::string> chunks = SplitString(args, '.');
 
 	if (NameString("self") == chunks[0])
 	{
