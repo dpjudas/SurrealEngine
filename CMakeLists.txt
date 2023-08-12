@@ -21,6 +21,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/QuitCommandlet.h
 	SurrealEngine/Commandlet/RunCommandlet.cpp
 	SurrealEngine/Commandlet/RunCommandlet.h
+	SurrealEngine/Commandlet/Debug/CollisionCommandlet.cpp
+	SurrealEngine/Commandlet/Debug/CollisionCommandlet.h
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.cpp
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.h
 	SurrealEngine/Commandlet/VM/CallstackCommandlet.cpp
@@ -522,6 +524,7 @@ source_group("SurrealEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
+source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Debug/.+")
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
