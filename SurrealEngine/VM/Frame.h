@@ -41,7 +41,7 @@ struct Breakpoint
 	NameString Class;
 	NameString Function;
 	NameString State;
-	Expression* Expression = nullptr;
+	Expression* Expr = nullptr;
 	UProperty* Property = nullptr; // For watchpoints. Not implemented yet.
 	bool Enabled = true;
 };

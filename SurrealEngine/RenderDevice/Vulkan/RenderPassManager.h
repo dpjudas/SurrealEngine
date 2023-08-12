@@ -43,5 +43,5 @@ private:
 	void CreatePresentPipelineLayout();
 
 	VulkanRenderDevice* renderer = nullptr;
-	std::unique_ptr<VulkanPipeline> pipeline[2][32];
+	std::unique_ptr<VulkanPipeline> pipeline[2][33];
 };

@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
+if(WIN32)
 add_subdirectory( Thirdparty/openal-soft )
+endif()
 
 project(SurrealEngine)
 
@@ -59,6 +61,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Engine.cpp
 	SurrealEngine/File.cpp
 	SurrealEngine/UTF16.cpp
+	SurrealEngine/UTF8Reader.cpp
+	SurrealEngine/UTF8Reader.h
 	SurrealEngine/VM/NativeFuncExtractor.h
 	SurrealEngine/VM/NativeFunc.cpp
 	SurrealEngine/VM/NativeFuncExtractor.cpp
@@ -472,6 +476,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/resample/r8bbase.h
 	Thirdparty/dr_flac.h
 	Thirdparty/stb_vorbis.h
+	Thirdparty/schrift/schrift.cpp
+	Thirdparty/schrift/schrift.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
@@ -482,7 +488,16 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(SURREALCOMMON_LIBS
 	zvulkan
+)
+
+set(SURREALCOMMON_WIN32_LIBS
+	zvulkan
 	OpenAL
+)
+
+set(SURREALCOMMON_UNIX_LIBS
+	zvulkan
+	openal
 )
 
 set(SURREALENGINE_SOURCES
@@ -540,17 +555,25 @@ source_group("Thirdparty\\dumb\\src\\helpers" REGULAR_EXPRESSION "${CMAKE_CURREN
 source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/src/it/.+")
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
+source_group("Thirdparty\\schrift" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/schrift/.+")
 
 include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include Thirdparty/openal-soft/include)
 
 if(WIN32)
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_WIN32_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_WIN32_SOURCES})
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_WIN32_LIBS})
 	add_definitions(-DUNICODE -D_UNICODE)
+elseif(APPLE)
+	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
+	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS})
+	add_definitions(-DUNIX -D_UNIX)
+	add_link_options(-pthread)
 else()
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
-	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 endif()
@@ -559,17 +582,13 @@ if(MSVC)
 	# Use all cores for compilation
 	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
 
-	# Add precompiled headers
-	# set(PCH_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/Precomp.pch")
-	# set_source_files_properties(${SURREALCOMMON_SOURCES} PROPERTIES COMPILE_FLAGS "/Yu\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_DEPENDS "${PCH_OUTPUT}")
-	# set_source_files_properties("SurrealEngine/Precomp.cpp" PROPERTIES COMPILE_FLAGS "/Yc\"Precomp.h\" /Fp\"${PCH_OUTPUT}\"" OBJECT_OUTPUTS "${PCH_OUTPUT}")
-
 	# Ignore warnings in third party code
 	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
 endif()
 
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
 set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 17)
+target_precompile_headers(SurrealCommon PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Precomp.h>)
 
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${SURREALENGINE_SOURCES})
 target_link_libraries(SurrealEngine SurrealCommon ${SURREALCOMMON_LIBS})
@@ -579,8 +598,14 @@ add_executable(SurrealEditor WIN32 MACOSX_BUNDLE ${SURREALEDITOR_SOURCES})
 target_link_libraries(SurrealEditor SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealEditor PROPERTIES CXX_STANDARD 17)
 
-add_executable(SurrealDebugger MACOSX_BUNDLE ${SURREALDEBUGGER_SOURCES})
+add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 17)
 
-add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/Thirdparty/openal-soft/$<CONFIGURATION>/OpenAL32.dll" $<TARGET_FILE_DIR:SurrealEngine>)
+if(WIN32)
+add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
+endif()
+
+install(TARGETS SurrealEngine RUNTIME DESTINATION bin BUNDLE DESTINATION app)
+install(TARGETS SurrealEditor RUNTIME DESTINATION bin BUNDLE DESTINATION app)
+install(TARGETS SurrealDebugger RUNTIME DESTINATION bin)

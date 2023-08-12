@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AudioSource.h"
+
 #include <memory>
 #include <mutex>
 #include <vector>

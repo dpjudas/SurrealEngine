@@ -2,6 +2,7 @@
 
 #include <zvulkan/vulkanobjects.h>
 #include <zvulkan/vulkanbuilders.h>
+#include <unordered_map>
 
 class VulkanRenderDevice;
 class CachedTexture;
