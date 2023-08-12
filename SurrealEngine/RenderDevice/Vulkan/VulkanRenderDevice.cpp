@@ -405,6 +405,7 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, Batch.Pipeline);
 		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, Batch.DescriptorSet);
 		cmdbuffer->pushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
+		cmdbuffer->setBlendConstants(Batch.BlendConstants);
 		cmdbuffer->drawIndexed(icount, 1, Batch.SceneIndexStart, 0, 0);
 		Batch.SceneIndexStart = SceneIndexPos;
 		Stats.DrawCalls++;
@@ -637,6 +638,16 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 {
 	if ((PolyFlags & (PF_Modulated)) == PF_Modulated && Info.Format == TextureFormat::P8)
 		PolyFlags = PF_Modulated;
+
+	if (PolyFlags & PF_SubpixelFont)
+	{
+		DrawBatch(Commands->GetDrawCommands());
+		Batch.BlendConstants[0] = Color.x;
+		Batch.BlendConstants[1] = Color.y;
+		Batch.BlendConstants[2] = Color.z;
+		Batch.BlendConstants[3] = Color.w;
+		Color = vec4(1.0f);
+	}
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 

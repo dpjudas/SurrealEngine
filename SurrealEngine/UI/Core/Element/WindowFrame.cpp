@@ -47,7 +47,7 @@ public:
 		font.reset(new Gdiplus::Font(dc, &desc));
 	}
 
-	void begin() override { }
+	void begin(const Colorf& color) override { }
 	void end() override { }
 
 	Point getOrigin() override { return origin; }

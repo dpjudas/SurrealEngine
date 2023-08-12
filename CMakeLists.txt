@@ -59,6 +59,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Engine.cpp
 	SurrealEngine/File.cpp
 	SurrealEngine/UTF16.cpp
+	SurrealEngine/UTF8Reader.cpp
+	SurrealEngine/UTF8Reader.h
 	SurrealEngine/VM/NativeFuncExtractor.h
 	SurrealEngine/VM/NativeFunc.cpp
 	SurrealEngine/VM/NativeFuncExtractor.cpp
@@ -472,6 +474,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/resample/r8bbase.h
 	Thirdparty/dr_flac.h
 	Thirdparty/stb_vorbis.h
+	Thirdparty/schrift/schrift.cpp
+	Thirdparty/schrift/schrift.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
@@ -548,6 +552,7 @@ source_group("Thirdparty\\dumb\\src\\helpers" REGULAR_EXPRESSION "${CMAKE_CURREN
 source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/src/it/.+")
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
+source_group("Thirdparty\\schrift" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/schrift/.+")
 
 include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include Thirdparty/openal-soft/include)
 

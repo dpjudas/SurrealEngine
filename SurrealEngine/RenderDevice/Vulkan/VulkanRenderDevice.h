@@ -102,6 +102,7 @@ private:
 		VulkanPipeline* Pipeline = nullptr;
 		VulkanDescriptorSet* DescriptorSet = nullptr;
 		bool Bindless = false;
+		float BlendConstants[4] = {};
 	} Batch;
 
 	ScenePushConstants pushconstants;

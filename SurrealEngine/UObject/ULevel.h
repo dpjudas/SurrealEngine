@@ -153,6 +153,8 @@ enum PolyFlags
 	PF_NoAddToBSP		= PF_EdCut | PF_EdProcessed | PF_Selected | PF_Memorized,
 	PF_NoShadows		= PF_Unlit | PF_Invisible | PF_Environment | PF_FakeBackdrop,
 	PF_Transient		= PF_Highlighted,
+
+	PF_SubpixelFont = 0x20000000 // For drawing fonts with subpixels
 };
 
 class UModel : public UPrimitive

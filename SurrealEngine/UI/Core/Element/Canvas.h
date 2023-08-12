@@ -12,7 +12,7 @@ public:
 
 	virtual ~Canvas() = default;
 
-	virtual void begin() = 0;
+	virtual void begin(const Colorf& color) = 0;
 	virtual void end() = 0;
 
 	virtual Point getOrigin() = 0;
