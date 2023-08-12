@@ -85,9 +85,9 @@ double CollisionHash::RaySphereTrace(const dvec3& rayOrigin, double tmin, const 
 static int GetQuadraticRoots(double a, double b, double c, double& root_lower, double& root_upper)
 {
 	double discriminant = (b * b) - (4.0 * a * c);
-	if (discriminant > DBL_EPSILON)
+	if (discriminant > FLT_EPSILON)
 	{
-		double b_term = b < DBL_EPSILON ? -b + sqrt(discriminant) : -b - sqrt(discriminant);
+		double b_term = b < FLT_EPSILON ? -b + sqrt(discriminant) : -b - sqrt(discriminant);
 
 		root_lower = b_term / (2.0 * a); // quadratic formula
 		root_upper = (2.0 * c) / b_term; // citardauq formula
@@ -97,7 +97,7 @@ static int GetQuadraticRoots(double a, double b, double c, double& root_lower, d
 
 		return 2;
 	}
-	else if (discriminant > -DBL_EPSILON && discriminant <= DBL_EPSILON)
+	else if (discriminant > -FLT_EPSILON && discriminant <= FLT_EPSILON)
 	{
 		root_lower = -(b / 2.0 * a);
 		root_upper = root_lower;
@@ -161,56 +161,6 @@ double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& di
 
 	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA + cylinderHeightB, cylinderRadiusA + cylinderRadiusB);
 }
-
-#if 0 // Shock rifle combo blasts does not work with this version. Why? Does this mean that CylinderCylinderOverlap is broken as it is built upon the same idea?
-
-double CollisionHash::RayCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
-{
-	// Find the trace range where the ray can hit the cylinders (ray/planes test):
-	double t0, t1;
-	if (dirNormalized.z > FLT_EPSILON || dirNormalized.z < -FLT_EPSILON)
-	{
-		t0 = (cylinderCenter.z - origin.z - cylinderHeight) / dirNormalized.z;
-		t1 = (cylinderCenter.z - origin.z + cylinderHeight) / dirNormalized.z;
-		if (t1 < t0) std::swap(t0, t1);
-
-		// If the trace range is outside the planes then there is no hit
-		if (t1 < tmin || t0 >= tmax)
-			return tmax;
-	}
-	else // trace is parallel to the plane - either we are always inside or we are always outside
-	{
-		if (std::abs(cylinderCenter.z - origin.z) >= cylinderHeight)
-			return tmax;
-		t0 = 0.0;
-		t1 = tmax;
-	}
-
-	// Test if the first possible hit point is already overlapping. If it is, we hit the top or bottom of the cylinder.
-	if (t0 >= tmin)
-	{
-		dvec2 dist2d = cylinderCenter.xy() + origin.xy() + dirNormalized.xy() * t0;
-		if (dot(dist2d, dist2d) < cylinderRadius * cylinderRadius)
-			return t0;
-	}
-
-	// Find the when the ray might hit the side in the XY plane (ray/circle test):
-	dvec2 l = cylinderCenter.xy() - origin.xy();
-	double s = dot(l, dirNormalized.xy());
-	double l2 = dot(l, l);
-	double r2 = cylinderRadius * cylinderRadius;
-	if (s < 0 && l2 > r2)
-		return tmax;
-	double s2 = s * s;
-	double m2 = l2 - s2;
-	if (m2 > r2)
-		return tmax;
-	double q = std::sqrt(r2 - m2);
-	double t = (l2 > r2) ? s - q : s + q;
-	return (t >= tmin && t >= t0 && t <= t1) ? t : tmax;
-}
-
-#else
 
 double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
 {
@@ -288,20 +238,21 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 		{
 			// above
 			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, t0);
+			if (valid1)
+			{
+				t = t0;
+				return t;
+			}
 		}
 		else if (caDotRl >= ch)
 		{
 			// below
-			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, t1);
-		}
-		else
-		{
-			return tmax;
-		}
-		if (valid1)
-		{
-			t = t0;
-			return t;
+			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t1);
+			if (valid1)
+			{
+				t = t1;
+				return t;
+			}
 		}
 		return tmax;
 	}
@@ -323,7 +274,7 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 		double d0;
 		double d1;
 		bool disc1 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, d0);
-		bool disc2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, ca, cylinderRadius, d1);
+		bool disc2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, d1);
 		if (disc1)
 		{
 			if (disc2)
@@ -354,7 +305,6 @@ double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayD
 	t = std::min(t0, t1);
 	return t;
 }
-#endif
 
 // Returns the squared distance between point c and segment ab
 static double SqDistPointSegment(const dvec3& a, const dvec3& b, const dvec3& c)

@@ -94,7 +94,7 @@ public:
 	// Cylinder/actor overlap test
 	static bool CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor);
 
-private:
+//private:
 	// Ray/sphere hit trace
 	static double RaySphereTrace(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
 
