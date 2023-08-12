@@ -162,6 +162,56 @@ double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& di
 	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, cylinderCenterA, cylinderHeightA + cylinderHeightB, cylinderRadiusA + cylinderRadiusB);
 }
 
+#if 0 // Shock rifle combo blasts does not work with this version. Why? Does this mean that CylinderCylinderOverlap is broken as it is built upon the same idea?
+
+double CollisionHash::RayCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+{
+	// Find the trace range where the ray can hit the cylinders (ray/planes test):
+	double t0, t1;
+	if (dirNormalized.z > FLT_EPSILON || dirNormalized.z < -FLT_EPSILON)
+	{
+		t0 = (cylinderCenter.z - origin.z - cylinderHeight) / dirNormalized.z;
+		t1 = (cylinderCenter.z - origin.z + cylinderHeight) / dirNormalized.z;
+		if (t1 < t0) std::swap(t0, t1);
+
+		// If the trace range is outside the planes then there is no hit
+		if (t1 < tmin || t0 >= tmax)
+			return tmax;
+	}
+	else // trace is parallel to the plane - either we are always inside or we are always outside
+	{
+		if (std::abs(cylinderCenter.z - origin.z) >= cylinderHeight)
+			return tmax;
+		t0 = 0.0;
+		t1 = tmax;
+	}
+
+	// Test if the first possible hit point is already overlapping. If it is, we hit the top or bottom of the cylinder.
+	if (t0 >= tmin)
+	{
+		dvec2 dist2d = cylinderCenter.xy() + origin.xy() + dirNormalized.xy() * t0;
+		if (dot(dist2d, dist2d) < cylinderRadius * cylinderRadius)
+			return t0;
+	}
+
+	// Find the when the ray might hit the side in the XY plane (ray/circle test):
+	dvec2 l = cylinderCenter.xy() - origin.xy();
+	double s = dot(l, dirNormalized.xy());
+	double l2 = dot(l, l);
+	double r2 = cylinderRadius * cylinderRadius;
+	if (s < 0 && l2 > r2)
+		return tmax;
+	double s2 = s * s;
+	double m2 = l2 - s2;
+	if (m2 > r2)
+		return tmax;
+	double q = std::sqrt(r2 - m2);
+	double t = (l2 > r2) ? s - q : s + q;
+	return (t >= tmin && t >= t0 && t <= t1) ? t : tmax;
+}
+
+#else
+
 double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
 {
 	//
