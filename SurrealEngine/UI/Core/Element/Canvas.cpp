@@ -213,7 +213,7 @@ RenderDeviceCanvas::RenderDeviceCanvas(RenderDevice* renderDevice) : renderDevic
 {
 	uint32_t white = 0xffffffff;
 	whiteTexture = createTexture(1, 1, &white);
-	font = std::make_unique<CanvasFont>("Segoe UI", 13.0);
+	font = std::make_unique<CanvasFont>("Segoe UI", 13.0*uiscale);
 }
 
 RenderDeviceCanvas::~RenderDeviceCanvas()
@@ -276,8 +276,8 @@ void RenderDeviceCanvas::fillRect(const Rect& box, const Colorf& color)
 
 void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)
 {
-	double x = std::round(pos.x);
-	double y = std::round(pos.y);
+	double x = std::round(pos.x * uiscale);
+	double y = std::round(pos.y * uiscale);
 
 	vec4 color4(color.r, color.g, color.b, 1.0f);
 
@@ -294,7 +294,7 @@ void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const s
 		{
 			double gx = std::round(x + glyph->metrics.leftSideBearing);
 			double gy = std::round(y + glyph->metrics.yOffset);
-			drawTile(glyph->texture.get(), std::round(gx), std::round(gy), glyph->uvwidth, glyph->uvheight, glyph->u, glyph->v, glyph->uvwidth, glyph->uvheight, 1.0f, color4, PF_SubpixelFont);
+			drawTile(glyph->texture.get(), std::round(gx) / uiscale, std::round(gy) / uiscale, glyph->uvwidth / uiscale, glyph->uvheight / uiscale, glyph->u, glyph->v, glyph->uvwidth, glyph->uvheight, 1.0f, color4, PF_SubpixelFont);
 		}
 
 		x += std::round(glyph->metrics.advanceWidth);
