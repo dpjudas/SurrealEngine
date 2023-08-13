@@ -5,7 +5,6 @@
 #include "ExpressionEvaluator.h"
 #include "NativeFunc.h"
 #include "UObject/UTextBuffer.h"
-#include "UI/Debugger/DebuggerWindow.h"
 #include "Audio/AudioSubsystem.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"

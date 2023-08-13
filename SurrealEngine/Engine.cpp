@@ -23,7 +23,6 @@
 #include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
 #include "VM/ScriptCall.h"
-#include "UI/Debugger/DebuggerWindow.h"
 #include <chrono>
 #include <set>
 

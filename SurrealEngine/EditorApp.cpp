@@ -7,9 +7,9 @@
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 #include "Window/Window.h"
-#include "UI/Core/Element/Canvas.h"
-#include "UI/Core/Element/Colorf.h"
-#include "UI/Core/Element/Rect.h"
+#include "UI/Core/Canvas.h"
+#include "UI/Core/Colorf.h"
+#include "UI/Core/Rect.h"
 
 bool exiteditor;
 
@@ -90,6 +90,7 @@ int EditorApp::main(std::vector<std::string> args)
 		frame.canvas->drawText(Point(12.0, 1080.0 - 12.0), Colorf(0.2f, 0.2f, 0.2f), "Viewport 3");
 		frame.canvas->drawText(Point(1920.0 * 0.5 + 12.0, 1080.0 - 12.0), Colorf(0.2f, 0.2f, 0.2f), "Viewport 4");
 
+		engine->CameraLocation = vec3(0.0f, 0.0f, 600.0f);
 		engine->CameraRotation = Rotator(0, 0, 0);
 		engine->ViewportX = 0;
 		engine->ViewportY = 32;
@@ -106,16 +107,16 @@ int EditorApp::main(std::vector<std::string> args)
 
 		engine->CameraRotation = Rotator(-2000, 0, 0);
 		engine->ViewportX = 0;
-		engine->ViewportY = 1080 / 2;
+		engine->ViewportY = 1080 / 2 + 8;
 		engine->ViewportWidth = 1920 / 2;
-		engine->ViewportHeight = 1080 / 2 - 30;
+		engine->ViewportHeight = 1080 / 2 - 30 - 8;
 		engine->render->DrawEditorViewport();
 
 		engine->CameraRotation = Rotator(-3000, 0, 0);
 		engine->ViewportX = 1920 / 2 + 8;
-		engine->ViewportY = 1080 / 2;
+		engine->ViewportY = 1080 / 2 + 8;
 		engine->ViewportWidth = 1920 / 2 - 8;
-		engine->ViewportHeight = 1080 / 2 - 30;
+		engine->ViewportHeight = 1080 / 2 - 30 - 8;
 		engine->render->DrawEditorViewport();
 
 		frame.canvas->end();

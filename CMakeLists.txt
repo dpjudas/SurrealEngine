@@ -9,12 +9,27 @@ project(SurrealEngine)
 
 set(SURREALCOMMON_SOURCES
 	SurrealEngine/Precomp.cpp
+	SurrealEngine/Precomp.h
 	SurrealEngine/GameApp.cpp
 	SurrealEngine/GameApp.h
 	SurrealEngine/EditorApp.cpp
 	SurrealEngine/EditorApp.h
 	SurrealEngine/DebuggerApp.cpp
 	SurrealEngine/DebuggerApp.h
+	SurrealEngine/Engine.cpp
+	SurrealEngine/Engine.h
+	SurrealEngine/File.cpp
+	SurrealEngine/File.h
+	SurrealEngine/UTF16.cpp
+	SurrealEngine/UTF16.h
+	SurrealEngine/UTF8Reader.cpp
+	SurrealEngine/UTF8Reader.h
+	SurrealEngine/JsonValue.cpp
+	SurrealEngine/JsonValue.h
+	SurrealEngine/GameFolder.cpp
+	SurrealEngine/GameFolder.h
+	SurrealEngine/CommandLine.cpp
+	SurrealEngine/CommandLine.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/ExtractCommandlet.cpp
@@ -58,11 +73,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Render/Lightmap/Shadowmap.h
 	SurrealEngine/Render/Lightmap/FogmapBuilder.cpp
 	SurrealEngine/Render/Lightmap/FogmapBuilder.h
-	SurrealEngine/Engine.cpp
-	SurrealEngine/File.cpp
-	SurrealEngine/UTF16.cpp
-	SurrealEngine/UTF8Reader.cpp
-	SurrealEngine/UTF8Reader.h
 	SurrealEngine/VM/NativeFuncExtractor.h
 	SurrealEngine/VM/NativeFunc.cpp
 	SurrealEngine/VM/NativeFuncExtractor.cpp
@@ -80,7 +90,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/VM/ExpressionVisitor.h
 	SurrealEngine/VM/Iterator.cpp
 	SurrealEngine/VM/Iterator.h
-	SurrealEngine/Engine.h
 	SurrealEngine/Audio/AudioSource.h
 	SurrealEngine/Audio/AudioSource.cpp
 	SurrealEngine/Audio/AudioDevice.cpp
@@ -245,105 +254,30 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/OverlapCylinderLevel.h
 	SurrealEngine/Collision/OverlapAABBModel.cpp
 	SurrealEngine/Collision/OverlapAABBModel.h
-	SurrealEngine/UI/Widgets/Widget.cpp
-	SurrealEngine/UI/Widgets/Widget.h
-	SurrealEngine/UI/Controls/LineEdit/LineEdit.cpp
-	SurrealEngine/UI/Controls/LineEdit/LineEdit.h
-	SurrealEngine/UI/Controls/TextLabel/TextLabel.cpp
-	SurrealEngine/UI/Controls/TextLabel/TextLabel.h
-	SurrealEngine/UI/Controls/ImageBox/ImageBox.cpp
-	SurrealEngine/UI/Controls/ImageBox/ImageBox.h
-	SurrealEngine/UI/Controls/Button/Button.h
-	SurrealEngine/UI/Controls/Button/Button.cpp
-	SurrealEngine/UI/Controls/SvgBox/SvgBox.h
-	SurrealEngine/UI/Controls/SvgBox/SvgBox.cpp
-	SurrealEngine/UI/Controls/ListView/ListViewItemView.cpp
-	SurrealEngine/UI/Controls/ListView/ListViewItemView.h
-	SurrealEngine/UI/Controls/ListView/ListViewItem.h
-	SurrealEngine/UI/Controls/ListView/ListView.cpp
-	SurrealEngine/UI/Controls/ListView/ListView.h
-	SurrealEngine/UI/Controls/ListView/ListViewItem.cpp
-	SurrealEngine/UI/Controls/TabControl/TabControl.h
-	SurrealEngine/UI/Controls/TabControl/TabControl.cpp
-	SurrealEngine/UI/Controls/BorderLayoutView/BorderLayoutView.cpp
-	SurrealEngine/UI/Controls/BorderLayoutView/BorderLayoutView.h
-	SurrealEngine/UI/Core/UTF8Reader.cpp
-	SurrealEngine/UI/Core/JsonValue.cpp
-	SurrealEngine/UI/Core/View.cpp
-	SurrealEngine/UI/Core/JsonValue.h
-	SurrealEngine/UI/Core/Element/Element.h
-	SurrealEngine/UI/Core/Element/Canvas.cpp
-	SurrealEngine/UI/Core/Element/WindowFrame.cpp
-	SurrealEngine/UI/Core/Element/Canvas.h
-	SurrealEngine/UI/Core/Element/ElementGeometry.cpp
-	SurrealEngine/UI/Core/Element/Rect.h
-	SurrealEngine/UI/Core/Element/Event.cpp
-	SurrealEngine/UI/Core/Element/Element.cpp
-	SurrealEngine/UI/Core/Element/WindowFrame.h
-	SurrealEngine/UI/Core/Element/ComputedBorder.h
-	SurrealEngine/UI/Core/Element/ElementGeometry.h
-	SurrealEngine/UI/Core/Element/Event.h
-	SurrealEngine/UI/Core/Element/ElementStyle.cpp
-	SurrealEngine/UI/Core/Element/ElementStyle.h
-	SurrealEngine/UI/Core/Element/Colorf.h
-	SurrealEngine/UI/Core/View.h
-	SurrealEngine/UI/Core/UTF8Reader.h
-	SurrealEngine/UI/Dialog/MessageBox.h
-	SurrealEngine/UI/Dialog/AppMenu.cpp
-	SurrealEngine/UI/Dialog/WebsiteHeader.cpp
-	SurrealEngine/UI/Dialog/DialogButtonbar.cpp
-	SurrealEngine/UI/Dialog/DockHeaderButton.h
-	SurrealEngine/UI/Dialog/WindowHeader.cpp
-	SurrealEngine/UI/Dialog/DialogButtonbar.h
-	SurrealEngine/UI/Dialog/DialogButton.cpp
-	SurrealEngine/UI/Dialog/DialogButton.h
-	SurrealEngine/UI/Dialog/AppMenu.h
-	SurrealEngine/UI/Dialog/DockHeaderButton.cpp
-	SurrealEngine/UI/Dialog/DialogHeader.h
-	SurrealEngine/UI/Dialog/Dialog.h
-	SurrealEngine/UI/Dialog/WindowHeader.h
-	SurrealEngine/UI/Dialog/MessageBox.cpp
-	SurrealEngine/UI/Dialog/WebsiteHeader.h
-	SurrealEngine/UI/Dialog/Dialog.cpp
-	SurrealEngine/UI/Dialog/DialogHeader.cpp
-	SurrealEngine/UI/Dialog/DockHeader.cpp
-	SurrealEngine/UI/Dialog/DialogHeaderButton.cpp
-	SurrealEngine/UI/Dialog/DialogHeaderButton.h
-	SurrealEngine/UI/Dialog/DockHeader.h
-	SurrealEngine/UI/Debugger/DebuggerWindow.h
-	SurrealEngine/UI/Debugger/DisassemblyPage.cpp
-	SurrealEngine/UI/Debugger/LocalsPage.cpp
-	SurrealEngine/UI/Debugger/ObjectViewerPage.cpp
-	SurrealEngine/UI/Debugger/CallstackPage.cpp
-	SurrealEngine/UI/Debugger/CallstackPage.h
-	SurrealEngine/UI/Debugger/DebuggerWindow.cpp
-	SurrealEngine/UI/Debugger/ObjectViewerPage.h
-	SurrealEngine/UI/Debugger/ExpressionItemBuilder.cpp
-	SurrealEngine/UI/Debugger/DisassemblyPage.h
-	SurrealEngine/UI/Debugger/ExpressionItemBuilder.h
-	SurrealEngine/UI/Debugger/LocalsPage.h
-	SurrealEngine/UI/Debugger/LogPage.cpp
-	SurrealEngine/UI/Debugger/LogPage.h
-	SurrealEngine/UI/MainWindow/Menubar.h
-	SurrealEngine/UI/MainWindow/Statusbar.h
-	SurrealEngine/UI/MainWindow/VToolbar.cpp
-	SurrealEngine/UI/MainWindow/Statusbar.cpp
-	SurrealEngine/UI/MainWindow/MenubarModal.h
-	SurrealEngine/UI/MainWindow/Menu.h
-	SurrealEngine/UI/MainWindow/Toolbar.cpp
-	SurrealEngine/UI/MainWindow/Menu.cpp
-	SurrealEngine/UI/MainWindow/Menubar.cpp
-	SurrealEngine/UI/MainWindow/Toolbar.h
-	SurrealEngine/UI/MainWindow/VToolbar.h
-	SurrealEngine/UI/MainWindow/MenubarModal.cpp
+	SurrealEngine/UI/Core/Widget.cpp
+	SurrealEngine/UI/Core/Widget.h
+	SurrealEngine/UI/Core/Canvas.cpp
+	SurrealEngine/UI/Core/Canvas.h
+	SurrealEngine/UI/Core/Rect.h
+	SurrealEngine/UI/Core/Colorf.h
+	SurrealEngine/UI/Widgets/MainWindow/MainWindow.cpp
+	SurrealEngine/UI/Widgets/MainWindow/MainWindow.h
+	SurrealEngine/UI/Widgets/Menubar/Menubar.cpp
+	SurrealEngine/UI/Widgets/Menubar/Menubar.h
+	SurrealEngine/UI/Widgets/Toolbar/Toolbar.cpp
+	SurrealEngine/UI/Widgets/Toolbar/Toolbar.h
+	SurrealEngine/UI/Widgets/Toolbar/ToolbarButton.cpp
+	SurrealEngine/UI/Widgets/Toolbar/ToolbarButton.h
+	SurrealEngine/UI/Widgets/Statusbar/Statusbar.cpp
+	SurrealEngine/UI/Widgets/Statusbar/Statusbar.h
+	SurrealEngine/UI/Editor/EditorMainWindow.cpp
+	SurrealEngine/UI/Editor/EditorMainWindow.h
+	SurrealEngine/UI/Editor/EditorWorkspace.cpp
+	SurrealEngine/UI/Editor/EditorWorkspace.h
+	SurrealEngine/UI/Editor/EditorViewport.cpp
+	SurrealEngine/UI/Editor/EditorViewport.h
 	SurrealEngine/Window/Window.cpp
 	SurrealEngine/Window/Window.h
-	SurrealEngine/File.h
-	SurrealEngine/Precomp.h
-	SurrealEngine/GameFolder.cpp
-	SurrealEngine/GameFolder.h
-	SurrealEngine/CommandLine.cpp
-	SurrealEngine/CommandLine.h
 )
 
 set(SURREALCOMMON_WIN32_SOURCES
@@ -524,21 +458,13 @@ source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CU
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
-source_group("SurrealEngine\\UI\\Widgets" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/.+")
-source_group("SurrealEngine\\UI\\Controls" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/.+")
-source_group("SurrealEngine\\UI\\Controls\\BorderLayoutView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/BorderLayoutView/.+")
-source_group("SurrealEngine\\UI\\Controls\\Button" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/Button/.+")
-source_group("SurrealEngine\\UI\\Controls\\ImageBox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/ImageBox/.+")
-source_group("SurrealEngine\\UI\\Controls\\LineEdit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/LineEdit/.+")
-source_group("SurrealEngine\\UI\\Controls\\ListView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/ListView/.+")
-source_group("SurrealEngine\\UI\\Controls\\SvgBox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/SvgBox/.+")
-source_group("SurrealEngine\\UI\\Controls\\TabControl" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/TabControl/.+")
-source_group("SurrealEngine\\UI\\Controls\\TextLabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/TextLabel/.+")
 source_group("SurrealEngine\\UI\\Core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Core/.+")
-source_group("SurrealEngine\\UI\\Core\\Element" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Core/Element/.+")
-source_group("SurrealEngine\\UI\\Debugger" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Debugger/.+")
-source_group("SurrealEngine\\UI\\Dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Dialog/.+")
-source_group("SurrealEngine\\UI\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/MainWindow/.+")
+source_group("SurrealEngine\\UI\\Widgets" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/.+")
+source_group("SurrealEngine\\UI\\Widgets\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/MainWindow/.+")
+source_group("SurrealEngine\\UI\\Widgets\\Menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Menubar/.+")
+source_group("SurrealEngine\\UI\\Widgets\\Statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Statusbar/.+")
+source_group("SurrealEngine\\UI\\Widgets\\Toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Toolbar/.+")
+source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Editor/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
