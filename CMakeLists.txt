@@ -245,6 +245,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/OverlapCylinderLevel.h
 	SurrealEngine/Collision/OverlapAABBModel.cpp
 	SurrealEngine/Collision/OverlapAABBModel.h
+	SurrealEngine/UI/Widgets/Widget.cpp
+	SurrealEngine/UI/Widgets/Widget.h
 	SurrealEngine/UI/Controls/LineEdit/LineEdit.cpp
 	SurrealEngine/UI/Controls/LineEdit/LineEdit.h
 	SurrealEngine/UI/Controls/TextLabel/TextLabel.cpp
@@ -522,6 +524,7 @@ source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CU
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
+source_group("SurrealEngine\\UI\\Widgets" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/.+")
 source_group("SurrealEngine\\UI\\Controls" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/.+")
 source_group("SurrealEngine\\UI\\Controls\\BorderLayoutView" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/BorderLayoutView/.+")
 source_group("SurrealEngine\\UI\\Controls\\Button" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Controls/Button/.+")
