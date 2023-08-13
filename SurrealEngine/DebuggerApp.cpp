@@ -39,6 +39,10 @@ int DebuggerApp::Main(std::vector<std::string> args)
 
 	Frame::RunDebugger = [=]() { FrameDebugBreak(); };
 
+	Engine engine(launchinfo);
+	engine.tickDebugger = [&]() { Tick(); };
+	engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
+
 	WritePrompt();
 	while (!ExitRequested)
 	{
@@ -226,10 +230,7 @@ void DebuggerApp::RunGame()
 		{
 			WriteOutput("Launching game..." + NewLine());
 			GameRunning = true;
-			Engine engine(launchinfo);
-			engine.tickDebugger = [&]() { Tick(); };
-			engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
-			engine.Run();
+			engine->Run();
 			GameRunning = false;
 			EndPrompt();
 			WriteOutput("Game ended." + NewLine());
