@@ -28,6 +28,8 @@ class RenderSubsystem
 public:
 	RenderSubsystem(RenderDevice* renderdevice);
 
+	void DrawEditorViewport();
+
 	void DrawGame(float levelTimeElapsed);
 	void OnMapLoaded();
 

@@ -175,6 +175,10 @@ void Engine::Run()
 
 		UpdateAudio();
 
+		ViewportX = 0;
+		ViewportY = 0;
+		ViewportWidth = engine->window->SizeX;
+		ViewportHeight = engine->window->SizeY;
 		render->DrawGame(levelElapsed);
 	}
 }

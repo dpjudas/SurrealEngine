@@ -346,12 +346,12 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 void RenderSubsystem::SetupSceneFrame(const mat4& worldToView)
 {
-	Scene.Frame.XB = 0;
-	Scene.Frame.YB = 0;
-	Scene.Frame.X = engine->window->SizeX;
-	Scene.Frame.Y = engine->window->SizeY;
-	Scene.Frame.FX = (float)engine->window->SizeX;
-	Scene.Frame.FY = (float)engine->window->SizeY;
+	Scene.Frame.XB = engine->ViewportX;
+	Scene.Frame.YB = engine->ViewportY;
+	Scene.Frame.X = engine->ViewportWidth;
+	Scene.Frame.Y = engine->ViewportHeight;
+	Scene.Frame.FX = (float)engine->ViewportWidth;
+	Scene.Frame.FY = (float)engine->ViewportHeight;
 	Scene.Frame.FX2 = Scene.Frame.FX * 0.5f;
 	Scene.Frame.FY2 = Scene.Frame.FY * 0.5f;
 	Scene.Frame.ObjectToWorld = mat4::identity();

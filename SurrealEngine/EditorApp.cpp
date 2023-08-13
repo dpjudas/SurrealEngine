@@ -1,6 +1,11 @@
 
 #include "Precomp.h"
 #include "EditorApp.h"
+#include "CommandLine.h"
+#include "GameFolder.h"
+#include "Engine.h"
+#include "Render/RenderSubsystem.h"
+#include "Package/PackageManager.h"
 #include "Window/Window.h"
 #include "UI/Core/Element/Canvas.h"
 #include "UI/Core/Element/Colorf.h"
@@ -58,9 +63,21 @@ int EditorApp::main(std::vector<std::string> args)
 {
 	EditorWindowFrame frame;
 
+	CommandLine cmd(args);
+	commandline = &cmd;
+	GameLaunchInfo launchinfo = GameFolderSelection::GetLaunchInfo();
+
+	Engine editorengine(launchinfo);
+	engine->render = std::make_unique<RenderSubsystem>(frame.window->GetRenderDevice());
+
+	engine->LevelPackage = engine->packages->GetPackage("CTF-Face");
+	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
+	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
+	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
+
 	while (!exiteditor)
 	{
-		frame.canvas->begin(Colorf(80 / 255.0f, 80 / 255.0f, 80 / 255.0f));
+		frame.canvas->begin(Colorf(20 / 255.0f, 20 / 255.0f, 20 / 255.0f));
 		frame.canvas->fillRect(Rect::xywh(0.0, 0.0, 1920.0, 32.0), Colorf(240/255.0f, 240/255.0f, 240/255.0f));
 		frame.canvas->drawText(Point(16.0, 21.0), Colorf(0.0f, 0.0f, 0.0f), "File      Edit      View      Tools      Window     Help");
 
@@ -73,6 +90,33 @@ int EditorApp::main(std::vector<std::string> args)
 		frame.canvas->drawText(Point(12.0, 1080.0 - 12.0), Colorf(0.2f, 0.2f, 0.2f), "Viewport 3");
 		frame.canvas->drawText(Point(1920.0 * 0.5 + 12.0, 1080.0 - 12.0), Colorf(0.2f, 0.2f, 0.2f), "Viewport 4");
 
+		engine->CameraRotation = Rotator(0, 0, 0);
+		engine->ViewportX = 0;
+		engine->ViewportY = 32;
+		engine->ViewportWidth = 1920 / 2;
+		engine->ViewportHeight = 1080 / 2 - 30 - 32;
+		engine->render->DrawEditorViewport();
+
+		engine->CameraRotation = Rotator(-1000, 0, 0);
+		engine->ViewportX = 1920 / 2 + 8;
+		engine->ViewportY = 32;
+		engine->ViewportWidth = 1920 / 2 - 8;
+		engine->ViewportHeight = 1080 / 2 - 30 - 32;
+		engine->render->DrawEditorViewport();
+
+		engine->CameraRotation = Rotator(-2000, 0, 0);
+		engine->ViewportX = 0;
+		engine->ViewportY = 1080 / 2;
+		engine->ViewportWidth = 1920 / 2;
+		engine->ViewportHeight = 1080 / 2 - 30;
+		engine->render->DrawEditorViewport();
+
+		engine->CameraRotation = Rotator(-3000, 0, 0);
+		engine->ViewportX = 1920 / 2 + 8;
+		engine->ViewportY = 1080 / 2;
+		engine->ViewportWidth = 1920 / 2 - 8;
+		engine->ViewportHeight = 1080 / 2 - 30;
+		engine->render->DrawEditorViewport();
 
 		frame.canvas->end();
 
