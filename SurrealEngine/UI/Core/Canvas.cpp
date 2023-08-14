@@ -184,6 +184,9 @@ public:
 	void begin(const Colorf& color) override;
 	void end() override;
 
+	void begin3d() override;
+	void end3d() override;
+
 	Point getOrigin() override;
 	void setOrigin(const Point& origin) override;
 
@@ -248,6 +251,17 @@ void RenderDeviceCanvas::end()
 	renderDevice->Unlock(true);
 }
 
+void RenderDeviceCanvas::begin3d()
+{
+	renderDevice->ClearZ(&frame);
+}
+
+void RenderDeviceCanvas::end3d()
+{
+	renderDevice->SetSceneNode(&frame);
+	renderDevice->ClearZ(&frame);
+}
+
 Point RenderDeviceCanvas::getOrigin()
 {
 	return origin;
@@ -276,8 +290,8 @@ void RenderDeviceCanvas::fillRect(const Rect& box, const Colorf& color)
 
 void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)
 {
-	double x = std::round(pos.x * uiscale);
-	double y = std::round(pos.y * uiscale);
+	double x = origin.x + std::round(pos.x * uiscale);
+	double y = origin.y + std::round(pos.y * uiscale);
 
 	vec4 color4(color.r, color.g, color.b, 1.0f);
 

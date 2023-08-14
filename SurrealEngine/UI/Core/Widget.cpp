@@ -99,15 +99,7 @@ void Widget::SetWindowTitle(const std::string& text)
 
 Size Widget::GetSize() const
 {
-	if (Type == WidgetType::Child)
-	{
-		return Geometry.size();
-	}
-	else
-	{
-		const_cast<Widget*>(this)->NeedsWindow();
-		return Size(DispWindow->SizeX, DispWindow->SizeY);
-	}
+	return Geometry.size();
 }
 
 Rect Widget::GetFrameGeometry() const
@@ -138,7 +130,7 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 {
 	//if (DispWindow)
 	//	DispWindow->SetGeometry(geometry);
-	Geometry = Rect::xywh(0.0, 0.0, geometry.width, geometry.height);
+	Geometry = geometry;
 	OnGeometryChanged();
 }
 
@@ -248,7 +240,7 @@ void Widget::Repaint()
 void Widget::Paint(Canvas* canvas)
 {
 	Point oldOrigin = canvas->getOrigin();
-	canvas->pushClip(Geometry);
+	//canvas->pushClip(Geometry);
 	canvas->setOrigin(oldOrigin + Geometry.topLeft());
 	OnPaint(canvas);
 	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
@@ -256,7 +248,7 @@ void Widget::Paint(Canvas* canvas)
 		w->Paint(canvas);
 	}
 	canvas->setOrigin(oldOrigin);
-	canvas->popClip();
+	//canvas->popClip();
 }
 
 void Widget::SetFocus()

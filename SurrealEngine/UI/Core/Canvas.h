@@ -15,6 +15,9 @@ public:
 	virtual void begin(const Colorf& color) = 0;
 	virtual void end() = 0;
 
+	virtual void begin3d() = 0;
+	virtual void end3d() = 0;
+
 	virtual Point getOrigin() = 0;
 	virtual void setOrigin(const Point& origin) = 0;
 

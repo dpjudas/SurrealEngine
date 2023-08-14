@@ -37,7 +37,6 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 void RenderSubsystem::DrawEditorViewport()
 {
-	Device->ClearZ(nullptr);
 	DrawScene();
 }
 
