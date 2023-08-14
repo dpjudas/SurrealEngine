@@ -589,20 +589,13 @@ void UActor::TickFalling(float elapsed)
 			vec3 up(0.0, 0.0, 1.0);
 			if (dot(up, hit.Normal) < 0.7071f)
 			{
+				vec3 at, left, up;
 				Rotator rot = Rotator::FromVector(hit.Normal);
+				Coords::Rotation(rot).GetAxes(at, left, up);
 
-				vec3 rads(radians(rot.PitchDegrees()), radians(rot.YawDegrees()), radians(rot.RollDegrees()));
-				float cp, sp, cy, sy, cr, sr;
-				cp = cosf(rads.x);
-				cy = cosf(rads.y);
-				cr = cosf(rads.z);
-				sp = sinf(rads.x);
-				sy = sinf(rads.y);
-				sr = sinf(rads.z);
-
-				gravityVector.x = -((cr * sp * cy) - (sr * -sy));	
-				gravityVector.y = ((cr * sp * sy) - (sr * cy));
-				gravityVector.z = -(cr * cp);
+				gravityVector.x = at.x;
+				gravityVector.y = -at.z;
+				gravityVector.z = at.y;
 				gravityVector *= (float)(gravityMag * 0.5);
 
 				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
