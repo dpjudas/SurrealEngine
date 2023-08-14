@@ -136,13 +136,10 @@ void Widget::NeedsWindow()
 
 void Widget::SetFrameGeometry(const Rect& geometry)
 {
-	if (Geometry != geometry)
-	{
-		Geometry = geometry;
-		//if (DispWindow)
-		//	DispWindow->SetGeometry(geometry);
-		OnGeometryChanged();
-	}
+	//if (DispWindow)
+	//	DispWindow->SetGeometry(geometry);
+	Geometry = Rect::xywh(0.0, 0.0, geometry.width, geometry.height);
+	OnGeometryChanged();
 }
 
 void Widget::Show()
@@ -242,9 +239,24 @@ void Widget::Update()
 
 void Widget::Repaint()
 {
-	DispCanvas->begin(Colorf(240/255.0f, 240/255.0f, 240/255.0f));
-	OnPaint(DispCanvas.get());
-	DispCanvas->end();
+	Widget* w = Window();
+	w->DispCanvas->begin(Colorf(240/255.0f, 240/255.0f, 240/255.0f));
+	w->Paint(DispCanvas.get());
+	w->DispCanvas->end();
+}
+
+void Widget::Paint(Canvas* canvas)
+{
+	Point oldOrigin = canvas->getOrigin();
+	canvas->pushClip(Geometry);
+	canvas->setOrigin(oldOrigin + Geometry.topLeft());
+	OnPaint(canvas);
+	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
+	{
+		w->Paint(canvas);
+	}
+	canvas->setOrigin(oldOrigin);
+	canvas->popClip();
 }
 
 void Widget::SetFocus()
@@ -263,34 +275,78 @@ void Widget::SetEnabled(bool value)
 {
 }
 
-Widget* Widget::Window() const
+Widget* Widget::Window()
 {
+	for (Widget* w = this; w != nullptr; w = w->Parent())
+	{
+		if (w->DispWindow)
+			return w;
+	}
 	return nullptr;
 }
 
-Widget* Widget::ChildAt(const Point& pos) const
+Widget* Widget::ChildAt(const Point& pos)
 {
+	for (Widget* cur = LastChild(); cur != nullptr; cur = cur->PrevSibling())
+	{
+		if (cur->Geometry.contains(pos))
+		{
+			return cur;
+		}
+	}
 	return nullptr;
 }
 
 Point Widget::MapFrom(const Widget* parent, const Point& pos) const
 {
-	return pos;
+	Point p = pos;
+	for (const Widget* cur = this; cur != nullptr; cur = cur->Parent())
+	{
+		if (cur == parent)
+			return p;
+		p -= cur->Geometry.topLeft();
+	}
+	throw std::runtime_error("MapFrom: not a parent of widget");
 }
 
 Point Widget::MapFromGlobal(const Point& pos) const
 {
-	return pos;
+	Point p = pos;
+	for (const Widget* cur = this; cur != nullptr; cur = cur->Parent())
+	{
+		if (cur->DispWindow)
+		{
+			return p - cur->GetFrameGeometry().topLeft();
+		}
+		p -= cur->Geometry.topLeft();
+	}
+	throw std::runtime_error("MapFromGlobal: no window widget found");
 }
 
 Point Widget::MapTo(const Widget* parent, const Point& pos) const
 {
-	return pos;
+	Point p = pos;
+	for (const Widget* cur = this; cur != nullptr; cur = cur->Parent())
+	{
+		if (cur == parent)
+			return p;
+		p += cur->Geometry.topLeft();
+	}
+	throw std::runtime_error("MapTo: not a parent of widget");
 }
 
 Point Widget::MapToGlobal(const Point& pos) const
 {
-	return pos;
+	Point p = pos;
+	for (const Widget* cur = this; cur != nullptr; cur = cur->Parent())
+	{
+		if (cur->DispWindow)
+		{
+			return cur->GetFrameGeometry().topLeft() + p;
+		}
+		p += cur->Geometry.topLeft();
+	}
+	throw std::runtime_error("MapFromGlobal: no window widget found");
 }
 
 void Widget::Key(DisplayWindow* window, std::string key)

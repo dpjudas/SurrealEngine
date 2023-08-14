@@ -12,4 +12,7 @@ public:
 	~EditorMainWindow();
 
 	EditorWorkspace* Workspace = nullptr;
+
+	bool ExitFlag = false;
+	void OnClose() override { ExitFlag = true; }
 };

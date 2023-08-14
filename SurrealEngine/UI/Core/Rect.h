@@ -8,6 +8,9 @@ public:
 
 	double x = 0;
 	double y = 0;
+
+	Point& operator+=(const Point& p) { x += p.x; y += p.y; return *this; }
+	Point& operator-=(const Point& p) { x -= p.x; y -= p.y; return *this; }
 };
 
 class Size
@@ -53,3 +56,13 @@ inline bool operator==(const Size& a, const Size& b) { return a.width == b.width
 inline bool operator!=(const Size& a, const Size& b) { return a.width != b.width || a.height != b.height; }
 inline bool operator==(const Rect& a, const Rect& b) { return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height; }
 inline bool operator!=(const Rect& a, const Rect& b) { return a.x != b.x || a.y != b.y || a.width != b.width || a.height != b.height; }
+
+inline Point operator+(const Point& a, double b) { return Point(a.x + b, a.y + b); }
+inline Point operator-(const Point& a, double b) { return Point(a.x - b, a.y - b); }
+inline Point operator*(const Point& a, double b) { return Point(a.x * b, a.y * b); }
+inline Point operator/(const Point& a, double b) { return Point(a.x / b, a.y / b); }
+
+inline Size operator+(const Size& a, double b) { return Size(a.width + b, a.height + b); }
+inline Size operator-(const Size& a, double b) { return Size(a.width - b, a.height - b); }
+inline Size operator*(const Size& a, double b) { return Size(a.width * b, a.height * b); }
+inline Size operator/(const Size& a, double b) { return Size(a.width / b, a.height / b); }

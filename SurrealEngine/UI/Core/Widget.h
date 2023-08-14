@@ -61,9 +61,9 @@ public:
 	void SetDisabled(bool value) { SetEnabled(!value); }
 	void SetHidden(bool value) { if (value) Hide(); else Show(); }
 
-	Widget* Window() const;
-	Widget* ChildAt(double x, double y) const { return ChildAt(Point(x, y)); }
-	Widget* ChildAt(const Point& pos) const;
+	Widget* Window();
+	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
+	Widget* ChildAt(const Point& pos);
 
 	Widget* Parent() const { return ParentObj; }
 	Widget* PrevSibling() const { return PrevSiblingObj; }
@@ -78,6 +78,9 @@ public:
 	Point MapTo(const Widget* parent, const Point& pos) const;
 	Point MapToGlobal(const Point& pos) const;
 	Point MapToParent(const Point& pos) const { return MapTo(Parent(), pos); }
+
+	void TickWindow() { DispWindow->Tick(); } // To do: remove this. The entire Window subsystem should tick as a single thing instead.
+	RenderDevice* GetRenderDevice() { return DispWindow->GetRenderDevice(); }
 
 protected:
 	virtual void OnPaint(Canvas* canvas) { }
@@ -98,6 +101,8 @@ protected:
 private:
 	void DetachFromParent();
 	void NeedsWindow();
+
+	void Paint(Canvas* canvas);
 
 	// DisplayWindowHost
 	void Key(DisplayWindow* window, std::string key) override;
