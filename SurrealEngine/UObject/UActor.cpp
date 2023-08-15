@@ -586,19 +586,20 @@ void UActor::TickFalling(float elapsed)
 			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 			// slide along surfaces sloped steeper than 45 degrees
-			vec3 up(0.0, 0.0, 1.0);
+			if (hit.Normal.z < 0.7071f)
 			if (dot(up, hit.Normal) < 0.7071f)
 			{
 				vec3 at, left, up;
 				Rotator rot = Rotator::FromVector(hit.Normal);
+				vec3 at, left, up;
 				Coords::Rotation(rot).GetAxes(at, left, up);
 
 				gravityVector.x = at.x;
 				gravityVector.y = -at.z;
-				gravityVector.z = at.y;
-				gravityVector *= (float)(gravityMag * 0.5);
+				gravityVector.z = at.y * 0.5f;
+				gravityVector *= (float)(gravityMag * 0.5f);
 
-				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.5f * elapsed;
+				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.75f * elapsed;
 
 				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
