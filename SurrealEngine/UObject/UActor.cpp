@@ -522,7 +522,7 @@ void UActor::TickFalling(float elapsed)
 		CallEvent(this, EventName::FellOutOfWorld);
 		return;
 	}
-
+	
 	UZoneInfo* zone = Region().Zone;
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
@@ -553,7 +553,7 @@ void UActor::TickFalling(float elapsed)
 	gravityVector = zone->ZoneGravity();
 	double gravityMag = length(gravityVector);
 	vec3 oldVelocity = Velocity();
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + (Acceleration() + (gravityScale * gravityVector)) * 0.5f * elapsed;
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 2.0f) + (gravityScale * gravityVector)) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -587,9 +587,7 @@ void UActor::TickFalling(float elapsed)
 
 			// slide along surfaces sloped steeper than 45 degrees
 			if (hit.Normal.z < 0.7071f)
-			if (dot(up, hit.Normal) < 0.7071f)
 			{
-				vec3 at, left, up;
 				Rotator rot = Rotator::FromVector(hit.Normal);
 				vec3 at, left, up;
 				Coords::Rotation(rot).GetAxes(at, left, up);
@@ -1193,7 +1191,6 @@ CollisionHit UActor::TryMove(const vec3& delta)
 	}
 
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
-	engine->PlayerHitLocation = Location() + actuallyMoved;
 	vec3 OldLocation = Location();
 
 	XLevel()->Hash.RemoveFromCollision(this);
@@ -1247,14 +1244,6 @@ CollisionHit UActor::TryMove(const vec3& delta)
 	}
 
 	UpdateActorZone();
-
-	// TODO: remove this when we're no longer debugging collision
-	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
-	if (player)
-	{
-		engine->PlayerBspNode = blockingHit.Node;
-		engine->PlayerHitNormal = blockingHit.Normal;
-	}
 
 	return blockingHit;
 }
