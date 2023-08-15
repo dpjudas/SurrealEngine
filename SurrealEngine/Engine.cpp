@@ -23,7 +23,6 @@
 #include "VM/Frame.h"
 #include "VM/NativeFuncExtractor.h"
 #include "VM/ScriptCall.h"
-#include "UI/Debugger/DebuggerWindow.h"
 #include <chrono>
 #include <set>
 
@@ -175,6 +174,10 @@ void Engine::Run()
 
 		UpdateAudio();
 
+		ViewportX = 0;
+		ViewportY = 0;
+		ViewportWidth = engine->window->SizeX;
+		ViewportHeight = engine->window->SizeY;
 		render->DrawGame(levelElapsed);
 	}
 }

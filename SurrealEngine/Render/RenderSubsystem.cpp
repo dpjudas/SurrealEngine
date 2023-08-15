@@ -35,6 +35,11 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	Device->Unlock(true);
 }
 
+void RenderSubsystem::DrawEditorViewport()
+{
+	DrawScene();
+}
+
 void RenderSubsystem::OnMapLoaded()
 {
 	Device->Flush(true);

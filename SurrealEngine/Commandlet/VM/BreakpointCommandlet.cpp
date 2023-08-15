@@ -17,9 +17,9 @@ void ListBreakpointsCommandlet::OnCommand(DebuggerApp* console, const std::strin
 	for (const Breakpoint& bp : Frame::Breakpoints)
 	{
 		if (bp.Enabled)
-			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString());
+			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + NewLine());
 		else
-			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + " [disabled]");
+			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + " [disabled]" + NewLine());
 		index++;
 	}
 }
