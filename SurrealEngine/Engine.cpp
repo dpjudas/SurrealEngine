@@ -78,6 +78,8 @@ void Engine::Run()
 
 	LoginPlayer();
 
+	window->LockCursor();
+
 	bool firstCall = true;
 	while (!quit)
 	{
@@ -178,6 +180,10 @@ void Engine::Run()
 		ViewportHeight = engine->window->GetPixelHeight();
 		render->DrawGame(levelElapsed);
 	}
+
+	window->UnlockCursor();
+
+	CloseWindow();
 }
 
 void Engine::UpdateAudio()
@@ -784,7 +790,7 @@ void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 
 void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
 {
-	InputEvent(key, IST_Press);
+	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
