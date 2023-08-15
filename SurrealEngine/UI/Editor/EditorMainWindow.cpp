@@ -16,6 +16,8 @@ EditorMainWindow::EditorMainWindow()
 	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
 	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
 	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
+
+	SetWindowTitle("Surreal Engine Editor");
 }
 
 EditorMainWindow::~EditorMainWindow()

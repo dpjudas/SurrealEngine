@@ -47,12 +47,10 @@ void Engine::Run()
 	LoadEngineSettings();
 	LoadKeybindings();
 
-	window = DisplayWindow::Create(this);
-
 	int width = StartupFullscreen ? FullscreenViewportX : WindowedViewportX;
 	int height = StartupFullscreen ? FullscreenViewportY : WindowedViewportY;
 
-	window->OpenWindow(width, height, StartupFullscreen);
+	OpenWindow(width, height, StartupFullscreen);
 
 	audio = std::make_unique<AudioSubsystem>();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
@@ -79,6 +77,8 @@ void Engine::Run()
 		LoadMap(UnrealURL(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")), LaunchInfo.url));
 
 	LoginPlayer();
+
+	window->LockCursor();
 
 	bool firstCall = true;
 	while (!quit)
@@ -176,10 +176,14 @@ void Engine::Run()
 
 		ViewportX = 0;
 		ViewportY = 0;
-		ViewportWidth = engine->window->SizeX;
-		ViewportHeight = engine->window->SizeY;
+		ViewportWidth = engine->window->GetPixelWidth();
+		ViewportHeight = engine->window->GetPixelHeight();
 		render->DrawGame(levelElapsed);
 	}
+
+	window->UnlockCursor();
+
+	CloseWindow();
 }
 
 void Engine::UpdateAudio()
@@ -703,9 +707,7 @@ void Engine::UpdateInput(float timeElapsed)
 	if (timeElapsed <= 0.0f)
 		return;
 
-	InputEvent(window.get(), IK_MouseX, IST_Axis, 0);
-	InputEvent(window.get(), IK_MouseY, IST_Axis, 0);
-	window->Tick();
+	TickWindow();
 	if (tickDebugger)
 		tickDebugger();
 	for (auto& it : activeInputButtons)
@@ -723,18 +725,137 @@ void Engine::UpdateInput(float timeElapsed)
 	}
 }
 
-void Engine::MouseMove(float x, float y)
+void Engine::OpenWindow(int width, int height, bool fullscreen)
 {
-	viewport->WindowsMouseX() = x;
-	viewport->WindowsMouseY() = y;
+	if (!window)
+		window = DisplayWindow::Create(this);
+
+	window->SetWindowTitle("Unreal Tournament");
+	window->SetWindowFrame(Rect::xywh(0.0, 0.0, width, height));
+
+	if (fullscreen)
+		window->ShowFullscreen();
+	else
+		window->ShowNormal();
 }
 
-bool Engine::MouseCursorVisible()
+void Engine::CloseWindow()
 {
-	return viewport->bShowWindowsMouse();
+	window.reset();
 }
 
-void Engine::Key(DisplayWindow* viewport, std::string key)
+void Engine::TickWindow()
+{
+	if (window)
+		window->ShowCursor(viewport->bShowWindowsMouse());
+
+	InputEvent(IK_MouseX, IST_Axis, 0);
+	InputEvent(IK_MouseY, IST_Axis, 0);
+
+	DisplayWindow::ProcessEvents();
+
+	if (MouseMoveX != 0 || MouseMoveY != 0)
+	{
+		int dx = MouseMoveX;
+		int dy = MouseMoveY;
+		MouseMoveX = 0;
+		MouseMoveY = 0;
+
+		// Send to input subsystem.
+		if (dx)
+			InputEvent(IK_MouseX, IST_Axis, dx);
+		if (dy)
+			InputEvent(IK_MouseY, IST_Axis, -dy);
+	}
+}
+
+void Engine::OnWindowPaint()
+{
+}
+
+void Engine::OnWindowMouseMove(const Point& pos)
+{
+	viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
+	viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
+}
+
+void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
+{
+	InputEvent(key, IST_Press);
+}
+
+void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
+{
+}
+
+void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
+{
+	InputEvent(key, IST_Release);
+}
+
+void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
+{
+	InputEvent(key, IST_Press);
+	InputEvent(key, IST_Release);
+}
+
+void Engine::OnWindowRawMouseMove(int dx, int dy)
+{
+	MouseMoveX += dx;
+	MouseMoveY += dy;
+}
+
+void Engine::OnWindowKeyChar(std::string chars)
+{
+	Key(chars);
+}
+
+void Engine::OnWindowKeyDown(EInputKey key)
+{
+	InputEvent((EInputKey)key, IST_Press);
+}
+
+void Engine::OnWindowKeyUp(EInputKey key)
+{
+	InputEvent((EInputKey)key, IST_Release);
+}
+
+void Engine::OnWindowGeometryChanged()
+{
+}
+
+void Engine::OnWindowClose()
+{
+	quit = true;
+}
+
+void Engine::OnWindowActivated()
+{
+	SetPause(false);
+}
+
+void Engine::OnWindowDeactivated()
+{
+	SetPause(true);
+}
+
+void Engine::OnWindowDpiScaleChanged()
+{
+}
+
+void Engine::LockCursor()
+{
+	if (window)
+		window->LockCursor();
+}
+
+void Engine::UnlockCursor()
+{
+	if (window)
+		window->UnlockCursor();
+}
+
+void Engine::Key(std::string key)
 {
 	if (Frame::RunState != FrameRunState::Running)
 		return;
@@ -745,7 +866,7 @@ void Engine::Key(DisplayWindow* viewport, std::string key)
 	}
 }
 
-void Engine::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta)
+void Engine::InputEvent(EInputKey key, EInputType type, int delta)
 {
 	if (Frame::RunState != FrameRunState::Running)
 		return;
@@ -880,23 +1001,6 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
-}
-
-void Engine::LockCursor()
-{
-	if (window)
-		window->bLockCursor = true;
-}
-
-void Engine::UnlockCursor()
-{
-	if (window)
-		window->bLockCursor = false;
-}
-
-void Engine::WindowClose(DisplayWindow* viewport)
-{
-	quit = true;
 }
 
 void Engine::LogMessage(const std::string& message)

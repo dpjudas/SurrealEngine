@@ -27,7 +27,6 @@
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkancompatibledevice.h>
 #include <zvulkan/vulkanbuilders.h>
-#include "Engine.h"
 #include <dlfcn.h>
 #include <string.h>
 #include <algorithm>
@@ -71,21 +70,14 @@ public:
 	}
 };
 
+std::map<Window, X11Window*> X11Window::Windows;
+bool X11Window::ExitLoopFlag;
+
 X11Window::X11Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
 {
 	display = X11Display::GetDisplay();
 	screen = DefaultScreen(display);
 	atoms = X11Atoms(display);
-}
-
-X11Window::~X11Window()
-{
-	CloseWindow();
-}
-
-void X11Window::OpenWindow(int width, int height, bool fullscreen)
-{
-	CloseWindow();
 
 	auto instance = VulkanInstanceBuilder()
 		.RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME)
@@ -138,27 +130,11 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	Status result;
 
 	int disp_width_px = XDisplayWidth(display, screen);
-	int disp_height_px = XDisplayHeight(display, screen);
 	int disp_width_mm = XDisplayWidthMM(display, screen);
 
 	// Get DPI of screen or use 96 if Xlib doesn't have a value
 	double dpi = (disp_width_mm < 24) ? 96.0 : (25.4 * static_cast<double>(disp_width_px) / static_cast<double>(disp_width_mm));
 	dpiscale = dpi / 96.0;
-
-	int w = (int)std::round(width * dpiscale);
-	int h = (int)std::round(height * dpiscale);
-
-	if (fullscreen)
-	{
-		w = disp_width_px;
-		h = disp_height_px;
-	}
-
-	int x = (disp_width_px - w) / 2;
-	int y = (disp_height_px - h) / 2;
-
-	SizeX = w;
-	SizeY = h;
 
 	size_hints = XAllocSizeHints();
 	if (!size_hints)
@@ -171,8 +147,6 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	size_hints->max_height  = 0;
 	size_hints->width_inc   = 1;
 	size_hints->height_inc  = 1;
-	size_hints->base_width  = w;
-	size_hints->base_height = h;
 	size_hints->win_gravity = NorthWestGravity;
 
 	Window root_window = RootWindow(display, screen);
@@ -199,9 +173,11 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	attr.colormap = colormap;
 	attr.cursor = None;
 
-	window = XCreateWindow(display, root_window, x, y, w, h, 0, visualInfo.depth, InputOutput, visualInfo.visual, CWBorderPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask | CWColormap, &attr);
+	window = XCreateWindow(display, root_window, 0, 0, 100, 100, 0, visualInfo.depth, InputOutput, visualInfo.visual, CWBorderPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask | CWColormap, &attr);
 	if (!window)
 		throw std::runtime_error("Could not create window");
+
+	Windows[window] = this;
 
 	char data[8 * 8];
 	memset(data, 0, 8 * 8);
@@ -210,9 +186,6 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	hidden_cursor = XCreatePixmapCursor(display, cursor_bitmap, cursor_bitmap, &black_color, &black_color, 0,0);
 
 	system_cursor = XCreateFontCursor(display, XC_left_ptr); // This is allowed to fail
-
-	std::string title = "UTEngine";
-	XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, nullptr, 0, nullptr);
 
 	{   // Inform the window manager who we are, so it can kill us if we're not good for its universe.
 		Atom atom;
@@ -232,25 +205,11 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 		}
 	}
 
-	XSetWMNormalHints(display, window, size_hints);
-
 	Atom protocol = atoms["WM_DELETE_WINDOW"];
 	result = XSetWMProtocols(display, window, &protocol, 1);
 
 	Bool supports_detectable_autorepeat = {};
 	XkbSetDetectableAutoRepeat(display, True, &supports_detectable_autorepeat);
-
-	if (atoms["_NET_WM_STATE"] == None && atoms["_NET_WM_STATE_FULLSCREEN"])
-	{
-		fullscreen = false; // Fullscreen not supported by WM
-	}
-
-	if (fullscreen)
-	{
-		Atom state = atoms["_NET_WM_STATE_FULLSCREEN"];
-		XChangeProperty(display, window, atoms["_NET_WM_STATE"], XA_ATOM, 32, PropModeReplace, (unsigned char *)&state, 1);
-		is_fullscreen = true;
-	}
 
 	VkXlibSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
 	createInfo.dpy = display;
@@ -263,17 +222,15 @@ void X11Window::OpenWindow(int width, int height, bool fullscreen)
 	auto surface = std::make_shared<VulkanSurface>(instance, surfacehandle);
 
 	RendDevice = RenderDevice::Create(this, surface);
-
-	MapWindow();
-	HideSystemCursor();
 }
 
-void X11Window::CloseWindow()
+X11Window::~X11Window()
 {
 	RendDevice.reset();
 
 	if (window)
 	{
+		Windows.erase(Windows.find(window));
 		XDestroyWindow(display, window);
 		window = 0;
 	}
@@ -309,194 +266,320 @@ void X11Window::CloseWindow()
 	}
 }
 
-void* X11Window::GetDisplay()
+void X11Window::SetWindowTitle(const std::string& title)
 {
-	return display;
+	XSetStandardProperties(display, window, title.c_str(), title.c_str(), None, nullptr, 0, nullptr);
 }
 
-void* X11Window::GetWindow()
+void X11Window::SetWindowFrame(const Rect& box)
 {
-	return (void*)window;
+	// How to do this with X11? Does this size and position include the WM decorations?
+
+	WindowX = (int)std::round(box.x * dpiscale);
+	WindowY = (int)std::round(box.y * dpiscale);
+	WindowSizeX = (int)std::round(box.width * dpiscale);
+	WindowSizeY = (int)std::round(box.height * dpiscale);
+	ClientSizeX = WindowSizeX;
+	ClientSizeY = WindowSizeY;
+
+	XMoveResizeWindow(display, window, WindowX, WindowY, WindowSizeX, WindowSizeY);
+
+	windowHost->OnWindowGeometryChanged();
 }
 
-void X11Window::Tick()
+void X11Window::SetClientFrame(const Rect& box)
 {
-	XEvent event;
-	while (XPending(display) > 0)
+	// How to do this with X11? Does this size and position include the WM decorations?
+	SetWindowFrame(box);
+}
+
+void X11Window::Show()
+{
+	MapWindow();
+}
+
+void X11Window::ShowFullscreen()
+{
+	int disp_width_px = XDisplayWidth(display, screen);
+	int disp_height_px = XDisplayHeight(display, screen);
+	XMoveResizeWindow(display, window, 0, 0, disp_width_px, disp_height_px);
+
+	if (atoms["_NET_WM_STATE"] == None && atoms["_NET_WM_STATE_FULLSCREEN"])
 	{
-		XNextEvent(display, &event);
+		// Fullscreen not supported by WM
+	}
+	else
+	{
+		Atom state = atoms["_NET_WM_STATE_FULLSCREEN"];
+		XChangeProperty(display, window, atoms["_NET_WM_STATE"], XA_ATOM, 32, PropModeReplace, (unsigned char *)&state, 1);
+		is_fullscreen = true;
+	}
 
-		switch(event.type)
+	WindowX = 0;
+	WindowY = 0;
+	WindowSizeX = disp_width_px;
+	WindowSizeY = disp_height_px;
+	ClientSizeX = WindowSizeX;
+	ClientSizeY = WindowSizeY;
+	windowHost->OnWindowGeometryChanged();
+
+	MapWindow();
+}
+
+void X11Window::ShowMaximized()
+{
+	MapWindow();
+}
+
+void X11Window::ShowMinimized()
+{
+	MapWindow();
+}
+
+void X11Window::ShowNormal()
+{
+	MapWindow();
+}
+
+void X11Window::Hide()
+{
+	UnmapWindow();
+}
+
+void X11Window::Activate()
+{
+}
+
+void X11Window::ShowCursor(bool enable)
+{
+}
+
+void X11Window::LockCursor()
+{
+	HideSystemCursor();
+}
+
+void X11Window::UnlockCursor()
+{
+	ShowSystemCursor();
+}
+
+void X11Window::Update()
+{
+}
+
+Rect X11Window::GetWindowFrame() const
+{
+	return Rect::xywh(WindowX / dpiscale, WindowY / dpiscale, WindowSizeX / dpiscale, WindowSizeY / dpiscale);
+}
+
+Size X11Window::GetClientSize() const
+{
+	return Size(ClientSizeX / dpiscale, ClientSizeY / dpiscale);
+}
+
+int X11Window::GetPixelWidth() const
+{
+	return ClientSizeX;
+}
+
+int X11Window::GetPixelHeight() const
+{
+	return ClientSizeY;
+}
+
+double X11Window::GetDpiScale() const
+{
+	return dpiscale;
+}
+
+void X11Window::ProcessEvents()
+{
+	while (XPending(X11Display::GetDisplay()) > 0)
+	{
+		XEvent event;
+		XNextEvent(X11Display::GetDisplay(), &event);
+		auto it = Windows.find(event.xany.window);
+		if (it != Windows.end())
 		{
-		case ConfigureNotify:
+			it->second->OnX11Event(event);
+		}
+	}
+}
+
+void X11Window::RunLoop()
+{
+	while (!ExitLoopFlag)
+	{
+		XEvent event;
+		XNextEvent(X11Display::GetDisplay(), &event);
+		auto it = Windows.find(event.xany.window);
+		if (it != Windows.end())
 		{
-			// WindowX = event.xconfigure.x;
-			// WindowY = event.xconfigure.y;
-			// WindowSizeX = event.xconfigure.x + event.xconfigure.border_width * 2;
-			// WindowSizeY = event.xconfigure.y + event.xconfigure.border_width * 2;
-			SizeX = event.xconfigure.width;
-			SizeY = event.xconfigure.height;
-			// windowHost->OnGeometryChanged(this);
+			it->second->OnX11Event(event);
+		}
+	}
+	ExitLoopFlag = false;
+}
+
+void X11Window::ExitLoop()
+{
+	ExitLoopFlag = true;
+}
+
+void X11Window::OnX11Event(XEvent& event)
+{
+	switch(event.type)
+	{
+	case ConfigureNotify:
+	{
+		WindowX = event.xconfigure.x;
+		WindowY = event.xconfigure.y;
+		WindowSizeX = event.xconfigure.x + event.xconfigure.border_width * 2;
+		WindowSizeY = event.xconfigure.y + event.xconfigure.border_width * 2;
+		ClientSizeX = event.xconfigure.width;
+		ClientSizeY = event.xconfigure.height;
+		windowHost->OnWindowGeometryChanged();
+		break;
+	}
+	case ClientMessage:
+	{	// handle window manager messages
+		Atom WM_PROTOCOLS = atoms["WM_PROTOCOLS"];
+		if (WM_PROTOCOLS == None)
+		{
 			break;
 		}
-		case ClientMessage:
-		{	// handle window manager messages
-			Atom WM_PROTOCOLS = atoms["WM_PROTOCOLS"];
-			if (WM_PROTOCOLS == None)
+		else if (event.xclient.message_type == WM_PROTOCOLS)
+		{
+			unsigned long protocol = event.xclient.data.l[0];
+			if (protocol == None)
 			{
 				break;
 			}
-			else if (event.xclient.message_type == WM_PROTOCOLS)
+
+			Atom WM_DELETE_WINDOW = atoms["WM_DELETE_WINDOW"];
+			Atom _NET_WM_PING = atoms["_NET_WM_PING"];
+
+			if (protocol == WM_DELETE_WINDOW)
 			{
-				unsigned long protocol = event.xclient.data.l[0];
-				if (protocol == None)
-				{
-					break;
-				}
-
-				Atom WM_DELETE_WINDOW = atoms["WM_DELETE_WINDOW"];
-				Atom _NET_WM_PING = atoms["_NET_WM_PING"];
-
-				if (protocol == WM_DELETE_WINDOW)
-				{
-					windowHost->WindowClose(this);
-				}
-				else if (protocol == _NET_WM_PING)
-				{
-					XSendEvent(display, RootWindow(display, screen), False, SubstructureNotifyMask | SubstructureRedirectMask, &event);
-				}
+				windowHost->OnWindowClose();
 			}
-			break;
+			else if (protocol == _NET_WM_PING)
+			{
+				XSendEvent(display, RootWindow(display, screen), False, SubstructureNotifyMask | SubstructureRedirectMask, &event);
+			}
 		}
-		case Expose:
-		{	// Window exposure
-			// windowHost->OnPaint();
-			break;
-		}
-		case FocusIn:
-			//windowHost->WindowGotFocus(this);
-			break;
-		case FocusOut:
-			//if (!HasFocus())	// For an unknown reason, FocusOut is called when clicking on title bar of window
-			//  windowHost->WindowLostFocus(this);
-			break;
-		case PropertyNotify:
-		{	// Iconify, Maximized, ...
-			/*
-			Atom _NET_WM_STATE = atoms["_NET_WM_STATE"];
-			Atom WM_STATE = atoms["WM_STATE"]; // legacy.
-
-			if (_NET_WM_STATE != None && event.xproperty.atom == _NET_WM_STATE && event.xproperty.state == PropertyNewValue)
-			{
-				if (is_minimized())
-				{
-					if (!minimized && site != nullptr)
-						site->sig_window_minimized()();
-					minimized = true;
-					maximized = false;
-				}
-				else if (is_maximized())
-				{
-					if (!maximized && site != nullptr)
-						site->sig_window_maximized()();
-					if (minimized && site != nullptr)
-					{
-						// generate resize events for minimized -> maximized transition
-						Rectf rectf = get_geometry();
-						rectf.left   /= pixel_ratio;
-						rectf.top    /= pixel_ratio;
-						rectf.right  /= pixel_ratio;
-						rectf.bottom /= pixel_ratio;
-
-						site->sig_window_moved()();
-						if (site->func_window_resize())
-							site->func_window_resize()(rectf);
-
-						if (callback_on_resized)
-							callback_on_resized();
-
-						site->sig_resize()(rectf.width(), rectf.height());
-					}
-					minimized = false;
-					maximized = true;
-				}
-				else
-				{
-					if ((minimized || maximized) && site != nullptr)
-						site->sig_window_restored()();
-					minimized = false;
-					maximized = false;
-				}
-			}
-			else if (WM_STATE != None && event.xproperty.atom == WM_STATE && event.xproperty.state == PropertyNewValue)
-			{
-				if (is_minimized())
-				{
-					if (!minimized && site != nullptr)
-						site->sig_window_minimized()();
-					minimized = true;
-				}
-				else
-				{
-					if (minimized && site != nullptr)
-						site->sig_window_restored()();
-					minimized = false;
-				}
-			}
-			*/
-			break;
-		}
-		case KeyRelease:
-		case KeyPress:
-			OnKeyboardInput(event.xkey);
-			break;
-		case ButtonPress:
-		case ButtonRelease:
-			if (event.xany.send_event == 0)
-			{
-				OnMouseInput(event.xbutton);
-			}
-			break;
-		case MotionNotify:
-			if (event.xany.send_event == 0)
-			{
-				OnMouseMove(event.xmotion);
-			}
-			break;
-		case SelectionClear: // New clipboard selection owner
-			// clipboard.event_selection_clear(event.xselectionclear);
-			break;
-		case SelectionNotify:
-			// clipboard.event_selection_notify();
-			break;
-		case SelectionRequest:	// Clipboard requests
-			// clipboard.event_selection_request(event.xselectionrequest);
-			break;
-		default:
-			break;
-		}
+		break;
 	}
-
-	// To do: use XGrabPointer to restrict the pointer to be within the window - or maybe there's a better way to track the mouse than this?
-	XWarpPointer(display, window, window, 0, 0, SizeX, SizeY, SizeX / 2, SizeY / 2);
-
-	bool Paused = false;
-	if (Paused)
-	{
-		MouseMoveX = 0;
-		MouseMoveY = 0;
+	case Expose:
+	{	// Window exposure
+		windowHost->OnWindowPaint();
+		break;
 	}
-	else if (MouseMoveX != 0 || MouseMoveY != 0)
-	{
-		int DX = MouseMoveX;
-		int DY = MouseMoveY;
-		MouseMoveX = 0;
-		MouseMoveY = 0;
+	case FocusIn:
+		windowHost->OnWindowActivated();
+		break;
+	case FocusOut:
+		if (!HasFocus())	// For an unknown reason, FocusOut is called when clicking on title bar of window
+			windowHost->OnWindowDeactivated();
+		break;
+	case PropertyNotify:
+	{	// Iconify, Maximized, ...
+		/*
+		Atom _NET_WM_STATE = atoms["_NET_WM_STATE"];
+		Atom WM_STATE = atoms["WM_STATE"]; // legacy.
 
-		if (DX)
-			windowHost->InputEvent(this, IK_MouseX, IST_Axis, +DX);
-		if (DY)
-			windowHost->InputEvent(this, IK_MouseY, IST_Axis, -DY);
+		if (_NET_WM_STATE != None && event.xproperty.atom == _NET_WM_STATE && event.xproperty.state == PropertyNewValue)
+		{
+			if (is_minimized())
+			{
+				if (!minimized && site != nullptr)
+					site->sig_window_minimized()();
+				minimized = true;
+				maximized = false;
+			}
+			else if (is_maximized())
+			{
+				if (!maximized && site != nullptr)
+					site->sig_window_maximized()();
+				if (minimized && site != nullptr)
+				{
+					// generate resize events for minimized -> maximized transition
+					Rectf rectf = get_geometry();
+					rectf.left   /= pixel_ratio;
+					rectf.top    /= pixel_ratio;
+					rectf.right  /= pixel_ratio;
+					rectf.bottom /= pixel_ratio;
+
+					site->sig_window_moved()();
+					if (site->func_window_resize())
+						site->func_window_resize()(rectf);
+
+					if (callback_on_resized)
+						callback_on_resized();
+
+					site->sig_resize()(rectf.width(), rectf.height());
+				}
+				minimized = false;
+				maximized = true;
+			}
+			else
+			{
+				if ((minimized || maximized) && site != nullptr)
+					site->sig_window_restored()();
+				minimized = false;
+				maximized = false;
+			}
+		}
+		else if (WM_STATE != None && event.xproperty.atom == WM_STATE && event.xproperty.state == PropertyNewValue)
+		{
+			if (is_minimized())
+			{
+				if (!minimized && site != nullptr)
+					site->sig_window_minimized()();
+				minimized = true;
+			}
+			else
+			{
+				if (minimized && site != nullptr)
+					site->sig_window_restored()();
+				minimized = false;
+			}
+		}
+		*/
+		break;
+	}
+	case KeyRelease:
+	case KeyPress:
+		OnKeyboardInput(event.xkey);
+		break;
+	case ButtonPress:
+	case ButtonRelease:
+		if (event.xany.send_event == 0)
+		{
+			OnMouseInput(event.xbutton);
+		}
+		break;
+	case MotionNotify:
+		if (event.xany.send_event == 0)
+		{
+			OnMouseMove(event.xmotion);
+
+			if (cursor_hidden)
+				XWarpPointer(display, window, window, 0, 0, ClientSizeX, ClientSizeY, ClientSizeX / 2, ClientSizeY / 2);
+		}
+		break;
+	case SelectionClear: // New clipboard selection owner
+		// clipboard.event_selection_clear(event.xselectionclear);
+		break;
+	case SelectionNotify:
+		// clipboard.event_selection_notify();
+		break;
+	case SelectionRequest:	// Clipboard requests
+		// clipboard.event_selection_request(event.xselectionrequest);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -520,13 +603,12 @@ void X11Window::OnMouseInput(XButtonEvent &event)
 
 	if (event.type == ButtonPress)
 	{
-		windowHost->InputEvent(this, id, IST_Press);
+		windowHost->OnWindowMouseDown(Point(event.x / dpiscale, event.y / dpiscale), id);
 	}
 	else if (event.type == ButtonRelease)
 	{
-		windowHost->InputEvent(this, id, IST_Release);
+		windowHost->OnWindowMouseUp(Point(event.x / dpiscale, event.y / dpiscale), id);
 
-		/*
 		Time time_change = event.time - time_at_last_press;
 		time_at_last_press = event.time;
 
@@ -544,39 +626,34 @@ void X11Window::OnMouseInput(XButtonEvent &event)
 			last_press_id = id;
 		}
 
-		windowHost->InputEvent(this, id, IST_Click);
 		if (is_a_double_click_event)
-			windowHost->InputEvent(this, id, IST_DoubleClick);
-		*/
+			windowHost->OnWindowMouseDoubleclick(Point(event.x / dpiscale, event.y / dpiscale), id);
 	}
 }
 
 void X11Window::OnMouseMove(XMotionEvent &event)
 {
-	if (event.x == SizeX / 2 && event.y == SizeY / 2) // XWarpPointer moved the cursor to the center of the window
+	if (event.x == ClientSizeX / 2 && event.y == ClientSizeY / 2) // XWarpPointer moved the cursor to the center of the window
 	{
-		MouseX = SizeX / 2;
-		MouseY = SizeY / 2;
+		MouseX = ClientSizeX / 2;
+		MouseY = ClientSizeY / 2;
 	}
 
 	if (MouseX != -1 && MouseY != -1)
 	{
-		MouseMoveX += event.x - MouseX;
-		MouseMoveY += event.y - MouseY;
+		windowHost->OnWindowRawMouseMove(event.x - MouseX, event.y - MouseY);
 	}
 
 	MouseX = event.x;
 	MouseY = event.y;
 
-	//windowHost->OnMouseMove(MouseX, MouseY);
+	windowHost->OnWindowMouseMove(Point(MouseX / dpiscale, MouseY / dpiscale));
 }
 
 void X11Window::OnKeyboardInput(XKeyEvent &event)
 {
 	bool keydown = (event.type == KeyPress);
 	KeySym key_symbol = XkbKeycodeToKeysym(display, event.keycode, 0, 0);
-
-	EInputType keytype = keydown ? IST_Press : IST_Release;
 
 	if (keydown)
 	{
@@ -615,10 +692,13 @@ void X11Window::OnKeyboardInput(XKeyEvent &event)
 		buff[result] = 0;
 		std::string keystr(buff, result);
 		if (!keystr.empty())
-			windowHost->Key(this, keystr);
+			windowHost->OnWindowKeyChar(keystr);
 	}
 
-	windowHost->InputEvent(this, KeySymToInputKey(key_symbol), keytype);
+	if (keydown)
+		windowHost->OnWindowKeyDown(KeySymToInputKey(key_symbol));
+	else
+		windowHost->OnWindowKeyUp(KeySymToInputKey(key_symbol));
 }
 
 EInputKey X11Window::KeySymToInputKey(KeySym keysym)
@@ -752,6 +832,10 @@ void X11Window::MapWindow()
 	if (is_window_mapped)
 		return;
 
+	size_hints->base_width  = ClientSizeX;
+	size_hints->base_height = ClientSizeY;
+	XSetWMNormalHints(display, window, size_hints);
+
 	int result = XMapWindow(display, window);
 	if ((result == BadValue) || (result == BadWindow))
 		throw std::runtime_error("Failed to map window");
@@ -852,11 +936,13 @@ bool X11Window::IsVisible() const
 void X11Window::ShowSystemCursor()
 {
 	XDefineCursor(display, window, system_cursor);
+	cursor_hidden = false;
 }
 
 void X11Window::HideSystemCursor()
 {
 	XDefineCursor(display, window, hidden_cursor);
+	cursor_hidden = true;
 }
 
 void X11Window::SetCursor(StandardCursor type)

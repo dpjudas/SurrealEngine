@@ -1,12 +1,12 @@
 
 #include "Precomp.h"
 #include "Win32Window.h"
+#include "UTF16.h"
 #include "RenderDevice/RenderDevice.h"
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkancompatibledevice.h>
 #include <zvulkan/vulkanbuilders.h>
-#include "Engine.h"
-#include "UObject/UClient.h"
+#include <windowsx.h>
 
 #ifndef HID_USAGE_PAGE_GENERIC
 #define HID_USAGE_PAGE_GENERIC		((USHORT) 0x01)
@@ -28,8 +28,11 @@
 #define RIDEV_INPUTSINK	(0x100)
 #endif
 
-Win32Window::Win32Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
+Win32Window::Win32Window(DisplayWindowHost* windowHost) : WindowHost(windowHost)
 {
+	Windows.push_front(this);
+	WindowsIterator = Windows.begin();
+
 	WNDCLASSEX classdesc = {};
 	classdesc.cbSize = sizeof(WNDCLASSEX);
 	classdesc.hInstance = GetModuleHandle(0);
@@ -38,7 +41,7 @@ Win32Window::Win32Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
 	classdesc.lpfnWndProc = &Win32Window::WndProc;
 	RegisterClassEx(&classdesc);
 
-	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"Win32Window", L"Unreal Tournament", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"Win32Window", L"", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	RAWINPUTDEVICE rid;
 	rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -46,52 +49,6 @@ Win32Window::Win32Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
 	rid.dwFlags = RIDEV_INPUTSINK;
 	rid.hwndTarget = WindowHandle;
 	BOOL result = RegisterRawInputDevices(&rid, 1, sizeof(RAWINPUTDEVICE));
-}
-
-Win32Window::~Win32Window()
-{
-	RenderDevice.reset();
-	if (WindowHandle)
-	{
-		DestroyWindow(WindowHandle);
-		WindowHandle = 0;
-	}
-}
-
-void Win32Window::OpenWindow(int width, int height, bool fullscreen)
-{
-	if (!WindowHandle)
-		return;
-
-	if (fullscreen)
-	{
-		HDC screenDC = GetDC(0);
-		width = GetDeviceCaps(screenDC, HORZRES);
-		height = GetDeviceCaps(screenDC, VERTRES);
-		ReleaseDC(0, screenDC);
-		bool visible = IsWindowVisible(WindowHandle);
-		SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
-		SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED | (GetWindowLongPtr(WindowHandle, GWL_STYLE) & WS_VISIBLE));
-		SetWindowPos(WindowHandle, 0, 0, 0, width, height, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
-	}
-	else
-	{
-		SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW);
-		SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPEDWINDOW | (GetWindowLongPtr(WindowHandle, GWL_STYLE) & WS_VISIBLE));
-
-		RECT rect = { 0, 0, width, height };
-		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-		SetWindowPos(WindowHandle, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
-	}
-
-	Fullscreen = fullscreen;
-	SizeX = width;
-	SizeY = height;
-
-	RECT box = {};
-	GetClientRect(WindowHandle, &box);
-	SizeX = box.right;
-	SizeY = box.bottom;
 
 	auto instance = VulkanInstanceBuilder()
 		.RequireSurfaceExtensions()
@@ -100,179 +57,157 @@ void Win32Window::OpenWindow(int width, int height, bool fullscreen)
 
 	auto surface = std::make_shared<VulkanSurface>(instance, WindowHandle);
 
-	// Create rendering device.
-	if (!RenderDevice)
-		RenderDevice = RenderDevice::Create(this, surface);
+	Device = RenderDevice::Create(this, surface);
+}
 
-	if (!IsWindowVisible(WindowHandle))
+Win32Window::~Win32Window()
+{
+	Device.reset();
+	if (WindowHandle)
 	{
-		ShowWindow(WindowHandle, SW_SHOW);
-		SetActiveWindow(WindowHandle);
-		ResetMouse();
+		DestroyWindow(WindowHandle);
+		WindowHandle = 0;
+	}
+
+	Windows.erase(WindowsIterator);
+}
+
+void Win32Window::SetWindowTitle(const std::string& text)
+{
+	SetWindowText(WindowHandle, to_utf16(text).c_str());
+}
+
+void Win32Window::SetWindowFrame(const Rect& box)
+{
+	double dpiscale = GetDpiScale();
+	SetWindowPos(WindowHandle, nullptr, (int)std::round(box.x * dpiscale), (int)std::round(box.y * dpiscale), (int)std::round(box.width * dpiscale), (int)std::round(box.height * dpiscale), SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
+void Win32Window::SetClientFrame(const Rect& box)
+{
+	double dpiscale = GetDpiScale();
+
+	RECT rect = {};
+	rect.left = (int)std::round(box.x * dpiscale);
+	rect.top = (int)std::round(box.y * dpiscale);
+	rect.right = rect.left + (int)std::round(box.width * dpiscale);
+	rect.bottom = rect.top + (int)std::round(box.height * dpiscale);
+
+	DWORD style = (DWORD)GetWindowLongPtr(WindowHandle, GWL_STYLE);
+	DWORD exstyle = (DWORD)GetWindowLongPtr(WindowHandle, GWL_EXSTYLE);
+	AdjustWindowRectExForDpi(&rect, style, FALSE, exstyle, GetDpiForWindow(WindowHandle));
+
+	SetWindowPos(WindowHandle, nullptr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
+void Win32Window::Show()
+{
+	ShowWindow(WindowHandle, SW_SHOW);
+}
+
+void Win32Window::ShowFullscreen()
+{
+	HDC screenDC = GetDC(0);
+	int width = GetDeviceCaps(screenDC, HORZRES);
+	int height = GetDeviceCaps(screenDC, VERTRES);
+	ReleaseDC(0, screenDC);
+	SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
+	SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED);
+	SetWindowPos(WindowHandle, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	Fullscreen = true;
+}
+
+void Win32Window::ShowMaximized()
+{
+	ShowWindow(WindowHandle, SW_SHOWMAXIMIZED);
+}
+
+void Win32Window::ShowMinimized()
+{
+	ShowWindow(WindowHandle, SW_SHOWMINIMIZED);
+}
+
+void Win32Window::ShowNormal()
+{
+	ShowWindow(WindowHandle, SW_NORMAL);
+}
+
+void Win32Window::Hide()
+{
+	ShowWindow(WindowHandle, SW_HIDE);
+}
+
+void Win32Window::Activate()
+{
+	SetFocus(WindowHandle);
+}
+
+void Win32Window::ShowCursor(bool enable)
+{
+}
+
+void Win32Window::LockCursor()
+{
+	if (!MouseLocked)
+	{
+		MouseLocked = true;
+		GetCursorPos(&MouseLockPos);
+		::ShowCursor(FALSE);
 	}
 }
 
-void Win32Window::CloseWindow()
+void Win32Window::UnlockCursor()
 {
-	if (WindowHandle && IsWindowVisible(WindowHandle))
-		ShowWindow(WindowHandle, SW_HIDE);
-}
-
-void* Win32Window::GetWindow()
-{
-	return (void*)WindowHandle;
-}
-
-void Win32Window::Tick()
-{
-	if (!WindowHandle)
-		return;
-
-	MSG msg;
-	while (WindowHandle && PeekMessage(&msg, 0/*WindowHandle*/, 0, 0, PM_REMOVE))
+	if (MouseLocked)
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-
-	std::vector<ReceivedWindowMessage> messages;
-	messages.swap(ReceivedMessages);
-
-	for (const ReceivedWindowMessage& e : messages)
-	{
-		switch (e.msg)
-		{
-		case WM_CHAR:
-			windowHost->Key(this, std::string(1, (char)e.wparam));
-			break;
-		case WM_KEYDOWN:
-			windowHost->InputEvent(this, (EInputKey)e.wparam, IST_Press);
-			break;
-		case WM_KEYUP:
-			windowHost->InputEvent(this, (EInputKey)e.wparam, IST_Release);
-			break;
-		case WM_LBUTTONDOWN:
-			windowHost->InputEvent(this, IK_LeftMouse, IST_Press);
-			break;
-		case WM_MBUTTONDOWN:
-			windowHost->InputEvent(this, IK_MiddleMouse, IST_Press);
-			break;
-		case WM_RBUTTONDOWN:
-			windowHost->InputEvent(this, IK_RightMouse, IST_Press);
-			break;
-		case WM_LBUTTONUP:
-			windowHost->InputEvent(this, IK_LeftMouse, IST_Release);
-			break;
-		case WM_MBUTTONUP:
-			windowHost->InputEvent(this, IK_MiddleMouse, IST_Release);
-			break;
-		case WM_RBUTTONUP:
-			windowHost->InputEvent(this, IK_RightMouse, IST_Release);
-			break;
-		case WM_MOUSEWHEEL:
-			if (GET_WHEEL_DELTA_WPARAM(msg.wParam) != 0)
-			{
-				EInputKey key = GET_WHEEL_DELTA_WPARAM(msg.wParam) > 0 ? IK_MouseWheelUp : IK_MouseWheelDown;
-				windowHost->InputEvent(this, key, IST_Press);
-				windowHost->InputEvent(this, key, IST_Release);
-			}
-			break;
-		case WM_SETFOCUS:
-			ResumeGame();
-			break;
-		case WM_KILLFOCUS:
-			PauseGame();
-			break;
-		}
-	}
-
-	if (Paused)
-	{
-		MouseMoveX = 0;
-		MouseMoveY = 0;
-		return;
-	}
-
-	// Deliver mouse behavior to the windowHost.
-	if (MouseMoveX != 0 || MouseMoveY != 0)
-	{
-		int DX = MouseMoveX;
-		int DY = MouseMoveY;
-		MouseMoveX = 0;
-		MouseMoveY = 0;
-
-		// Send to input subsystem.
-		if (DX)
-			windowHost->InputEvent(this, IK_MouseX, IST_Axis, +DX);
-		if (DY)
-			windowHost->InputEvent(this, IK_MouseY, IST_Axis, -DY);
-
-		// TODO: feels like this shouldn't go here...
-		if (windowHost->MouseCursorVisible())
-		{
-			GetCursorPos(&MouseCoords);
-			windowHost->MouseMove((float)MouseCoords.x, (float)MouseCoords.y);
-		}
-		else
-		{
-			ResetMouse();
-		}
+		MouseLocked = false;
+		SetCursorPos(MouseLockPos.x, MouseLockPos.y);
+		::ShowCursor(TRUE);
 	}
 }
 
-void Win32Window::PauseGame()
+void Win32Window::Update()
 {
-	if (!Paused)
-	{
-		Paused = true;
-		windowHost->FocusChange(true);
-	}
+	InvalidateRect(WindowHandle, nullptr, FALSE);
 }
 
-void Win32Window::ResumeGame()
+Rect Win32Window::GetWindowFrame() const
 {
-	if (Paused)
-	{
-		Paused = false;
-		windowHost->FocusChange(false);
-	}
+	RECT box = {};
+	GetWindowRect(WindowHandle, &box);
+	double dpiscale = GetDpiScale();
+	return Rect(box.left / dpiscale, box.top / dpiscale, box.right / dpiscale, box.bottom / dpiscale);
 }
 
-void Win32Window::ResetMouse()
+Size Win32Window::GetClientSize() const
 {
-	// TODO: Remember last mouse position
-	// Center the mouse
-	POINT Center;
-	Center.x = SizeX / 2;
-	Center.y = SizeY / 2;
-	ClientToScreen(WindowHandle, &Center);
-	SetCursorPos(Center.x, Center.y);
+	RECT box = {};
+	GetClientRect(WindowHandle, &box);
+	double dpiscale = GetDpiScale();
+	return Size(box.right / dpiscale, box.bottom / dpiscale);
+}
 
-	MouseCoords = Center;
+int Win32Window::GetPixelWidth() const
+{
+	RECT box = {};
+	GetClientRect(WindowHandle, &box);
+	return box.right;
+}
+
+int Win32Window::GetPixelHeight() const
+{
+	RECT box = {};
+	GetClientRect(WindowHandle, &box);
+	return box.bottom;
+}
+
+double Win32Window::GetDpiScale() const
+{
+	return GetDpiForWindow(WindowHandle) / 96.0;
 }
 
 LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	if (msg == WM_CREATE ||
-		msg == WM_DESTROY ||
-		msg == WM_SHOWWINDOW ||
-		msg == WM_KILLFOCUS ||
-		msg == WM_LBUTTONDOWN ||
-		msg == WM_LBUTTONUP ||
-		msg == WM_MBUTTONDOWN ||
-		msg == WM_MBUTTONUP ||
-		msg == WM_RBUTTONDOWN ||
-		msg == WM_RBUTTONUP ||
-		msg == WM_MOUSEWHEEL ||
-		msg == WM_CHAR ||
-		msg == WM_KEYDOWN ||
-		msg == WM_KEYUP ||
-		msg == WM_SETFOCUS ||
-		msg == WM_KILLFOCUS)
-	{
-		ReceivedMessages.push_back({ msg, wparam, lparam });
-	}
-
 	if (msg == WM_INPUT)
 	{
 		HRAWINPUT handle = (HRAWINPUT)lparam;
@@ -280,6 +215,7 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 		UINT result = GetRawInputData(handle, RID_INPUT, 0, &size, sizeof(RAWINPUTHEADER));
 		if (result == 0 && size > 0)
 		{
+			size *= 2;
 			std::vector<uint8_t*> buffer(size);
 			result = GetRawInputData(handle, RID_INPUT, buffer.data(), &size, sizeof(RAWINPUTHEADER));
 			if (result >= 0)
@@ -287,12 +223,79 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 				RAWINPUT* rawinput = (RAWINPUT*)buffer.data();
 				if (rawinput->header.dwType == RIM_TYPEMOUSE)
 				{
-					MouseMoveX += rawinput->data.mouse.lLastX;
-					MouseMoveY += rawinput->data.mouse.lLastY;
+					WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
 				}
 			}
 		}
 		return DefWindowProc(WindowHandle, msg, wparam, lparam);
+	}
+	else if (msg == WM_PAINT)
+	{
+		ValidateRect(WindowHandle, nullptr);
+		WindowHost->OnWindowPaint();
+	}
+	else if (msg == WM_ACTIVATE)
+	{
+		WindowHost->OnWindowActivated();
+	}
+	else if (msg == WM_MOUSEMOVE)
+	{
+		if (MouseLocked)
+		{
+			RECT box = {};
+			GetClientRect(WindowHandle, &box);
+
+			POINT center = {};
+			center.x = box.right / 2;
+			center.y = box.bottom / 2;
+			ClientToScreen(WindowHandle, &center);
+
+			SetCursorPos(center.x, center.y);
+		}
+
+		WindowHost->OnWindowMouseMove(GetLParamPos(lparam));
+	}
+	else if (msg == WM_LBUTTONDOWN)
+	{
+		WindowHost->OnWindowMouseDown(GetLParamPos(lparam), IK_LeftMouse);
+	}
+	else if (msg == WM_LBUTTONUP)
+	{
+		WindowHost->OnWindowMouseUp(GetLParamPos(lparam), IK_LeftMouse);
+	}
+	else if (msg == WM_MBUTTONDOWN)
+	{
+		WindowHost->OnWindowMouseDown(GetLParamPos(lparam), IK_MiddleMouse);
+	}
+	else if (msg == WM_MBUTTONUP)
+	{
+		WindowHost->OnWindowMouseUp(GetLParamPos(lparam), IK_MiddleMouse);
+	}
+	else if (msg == WM_RBUTTONDOWN)
+	{
+		WindowHost->OnWindowMouseDown(GetLParamPos(lparam), IK_RightMouse);
+	}
+	else if (msg == WM_RBUTTONUP)
+	{
+		WindowHost->OnWindowMouseUp(GetLParamPos(lparam), IK_RightMouse);
+	}
+	else if (msg == WM_MOUSEWHEEL)
+	{
+		double delta = GET_WHEEL_DELTA_WPARAM(wparam) / (double)WHEEL_DELTA;
+		WindowHost->OnWindowMouseWheel(GetLParamPos(lparam), delta < 0.0 ? IK_MouseWheelDown : IK_MouseWheelUp);
+	}
+	else if (msg == WM_CHAR)
+	{
+		wchar_t buf[2] = { (wchar_t)wparam, 0 };
+		WindowHost->OnWindowKeyChar(from_utf16(buf));
+	}
+	else if (msg == WM_KEYDOWN)
+	{
+		WindowHost->OnWindowKeyDown((EInputKey)wparam);
+	}
+	else if (msg == WM_KEYUP)
+	{
+		WindowHost->OnWindowKeyUp((EInputKey)wparam);
 	}
 	else if (msg == WM_SETFOCUS)
 	{
@@ -304,18 +307,21 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_CLOSE)
 	{
-		windowHost->WindowClose(this);
+		WindowHost->OnWindowClose();
 		return 0;
 	}
 	else if (msg == WM_SIZE)
 	{
-		RECT box = {};
-		GetClientRect(WindowHandle, &box);
-		SizeX = box.right;
-		SizeY = box.bottom;
+		WindowHost->OnWindowGeometryChanged();
 	}
 
 	return DefWindowProc(WindowHandle, msg, wparam, lparam);
+}
+
+Point Win32Window::GetLParamPos(LPARAM lparam) const
+{
+	double dpiscale = GetDpiScale();
+	return Point(GET_X_LPARAM(lparam) / dpiscale, GET_Y_LPARAM(lparam) / dpiscale);
 }
 
 LRESULT Win32Window::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -347,3 +353,36 @@ LRESULT Win32Window::WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM 
 		}
 	}
 }
+
+void Win32Window::ProcessEvents()
+{
+	while (true)
+	{
+		MSG msg = {};
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE) <= 0)
+			break;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+void Win32Window::RunLoop()
+{
+	while (!ExitRunLoop && !Windows.empty())
+	{
+		MSG msg = {};
+		if (GetMessage(&msg, 0, 0, 0) <= 0)
+			break;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	ExitRunLoop = false;
+}
+
+void Win32Window::ExitLoop()
+{
+	ExitRunLoop = true;
+}
+
+std::list<Win32Window*> Win32Window::Windows;
+bool Win32Window::ExitRunLoop;

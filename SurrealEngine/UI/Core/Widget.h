@@ -48,8 +48,6 @@ public:
 	void Hide();
 
 	void ActivateWindow();
-	void Raise();
-	void Lower();
 
 	void Close();
 
@@ -79,8 +77,7 @@ public:
 	Point MapToGlobal(const Point& pos) const;
 	Point MapToParent(const Point& pos) const { return MapTo(Parent(), pos); }
 
-	void TickWindow() { DispWindow->Tick(); } // To do: remove this. The entire Window subsystem should tick as a single thing instead.
-	RenderDevice* GetRenderDevice() { return DispWindow->GetRenderDevice(); }
+	RenderDevice* GetRenderDevice() { return DispWindow ? DispWindow->GetRenderDevice() : nullptr; }
 
 protected:
 	virtual void OnPaint(Canvas* canvas) { }
@@ -100,17 +97,25 @@ protected:
 
 private:
 	void DetachFromParent();
-	void NeedsWindow();
 
 	void Paint(Canvas* canvas);
 
 	// DisplayWindowHost
-	void Key(DisplayWindow* window, std::string key) override;
-	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta) override;
-	void FocusChange(bool lost) override;
-	void MouseMove(float x, float y) override;
-	bool MouseCursorVisible() override;
-	void WindowClose(DisplayWindow* window) override;
+	void OnWindowPaint() override;
+	void OnWindowMouseMove(const Point& pos) override;
+	void OnWindowMouseDown(const Point& pos, EInputKey key) override;
+	void OnWindowMouseDoubleclick(const Point& pos, EInputKey key) override;
+	void OnWindowMouseUp(const Point& pos, EInputKey key) override;
+	void OnWindowMouseWheel(const Point& pos, EInputKey key) override;
+	void OnWindowRawMouseMove(int dx, int dy) override;
+	void OnWindowKeyChar(std::string chars) override;
+	void OnWindowKeyDown(EInputKey key) override;
+	void OnWindowKeyUp(EInputKey key) override;
+	void OnWindowGeometryChanged() override;
+	void OnWindowClose() override;
+	void OnWindowActivated() override;
+	void OnWindowDeactivated() override;
+	void OnWindowDpiScaleChanged() override;
 
 	WidgetType Type = {};
 
