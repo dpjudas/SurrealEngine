@@ -34,12 +34,33 @@ class X11Window : public DisplayWindow
 public:
 	X11Window(DisplayWindowHost* windowHost);
 	~X11Window();
-	void OpenWindow(int width, int height, bool fullscreen) override;
-	void CloseWindow() override;
-	void* GetDisplay() override;
-	void* GetWindow() override;
-	void Tick() override;
+
+	static void ProcessEvents();
+	static void RunLoop();
+	static void ExitLoop();
+
+	void SetWindowTitle(const std::string& text) override;
+	void SetWindowFrame(const Rect& box) override;
+	void SetClientFrame(const Rect& box) override;
+	void Show() override;
+	void ShowFullscreen() override;
+	void ShowMaximized() override;
+	void ShowMinimized() override;
+	void ShowNormal() override;
+	void Hide() override;
+	void Activate() override;
+	void ShowCursor(bool enable) override;
+	void LockCursor() override;
+	void UnlockCursor() override;
+	void Update() override;
+
 	RenderDevice* GetRenderDevice() override { return RendDevice.get(); }
+
+	Rect GetWindowFrame() const override;
+	Size GetClientSize() const override;
+	int GetPixelWidth() const override;
+	int GetPixelHeight() const override;
+	double GetDpiScale() const override;
 
 	bool HasFocus() const;
 	bool IsMinimized() const;
@@ -55,6 +76,8 @@ public:
 	void OnKeyboardInput(XKeyEvent &event);
 	void OnMouseInput(XButtonEvent &event);
 	void OnMouseMove(XMotionEvent &event);
+
+	void OnX11Event(XEvent& event);
 
 	EInputKey KeySymToInputKey(KeySym keysym);
 
@@ -75,6 +98,15 @@ public:
 	EInputKey last_press_id = IK_None;
 	Time time_at_last_press = 0;
 
+	bool cursor_hidden = false;
+
+	int WindowX = 0;
+	int WindowY = 0;
+	int WindowSizeX = 0;
+	int WindowSizeY = 0;
+	int ClientSizeX = 0;
+	int ClientSizeY = 0;
+
 	int MouseX = -1;
 	int MouseY = -1;
 	int MouseMoveX = 0;
@@ -85,4 +117,7 @@ public:
 	bool alt_down = false;
 
 	double dpiscale = 1.0;
+
+	static std::map<Window, X11Window*> Windows;
+	static bool ExitLoopFlag;
 };
