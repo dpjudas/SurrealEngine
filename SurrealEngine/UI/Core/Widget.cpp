@@ -6,6 +6,12 @@
 
 Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 {
+	if (type != WidgetType::Child)
+	{
+		DispWindow = DisplayWindow::Create(this);
+		DispCanvas = Canvas::create(DispWindow->GetRenderDevice());
+	}
+
 	SetParent(parent);
 }
 
@@ -92,8 +98,8 @@ void Widget::SetWindowTitle(const std::string& text)
 	if (WindowTitle != text)
 	{
 		WindowTitle = text;
-		//if (DispWindow)
-		//	DispWindow->SetWindowTitle(WindowTitle);
+		if (DispWindow)
+			DispWindow->SetWindowTitle(WindowTitle);
 	}
 }
 
@@ -110,36 +116,28 @@ Rect Widget::GetFrameGeometry() const
 	}
 	else
 	{
-		const_cast<Widget*>(this)->NeedsWindow();
-		//return DispWindow->GetGeometry();
-		return {};
-	}
-}
-
-void Widget::NeedsWindow()
-{
-	if (!DispWindow)
-	{
-		DispWindow = DisplayWindow::Create(this);
-		DispWindow->OpenWindow((int)std::round(Geometry.width), (int)std::round(Geometry.height), false);
-		DispCanvas = Canvas::create(DispWindow->GetRenderDevice());
+		return DispWindow->GetWindowFrame();
 	}
 }
 
 void Widget::SetFrameGeometry(const Rect& geometry)
 {
-	//if (DispWindow)
-	//	DispWindow->SetGeometry(geometry);
-	Geometry = geometry;
-	OnGeometryChanged();
+	if (Type == WidgetType::Child)
+	{
+		Geometry = geometry;
+		OnGeometryChanged();
+	}
+	else
+	{
+		DispWindow->SetWindowFrame(geometry);
+	}
 }
 
 void Widget::Show()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->Show();
+		DispWindow->Show();
 	}
 }
 
@@ -147,8 +145,7 @@ void Widget::ShowFullscreen()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->ShowFullscreen();
+		DispWindow->ShowFullscreen();
 	}
 }
 
@@ -156,8 +153,7 @@ void Widget::ShowMaximized()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->ShowMaximized();
+		DispWindow->ShowMaximized();
 	}
 }
 
@@ -165,8 +161,7 @@ void Widget::ShowMinimized()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->ShowMinimized();
+		DispWindow->ShowMinimized();
 	}
 }
 
@@ -174,8 +169,7 @@ void Widget::ShowNormal()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->ShowNormal();
+		DispWindow->ShowNormal();
 	}
 }
 
@@ -183,8 +177,8 @@ void Widget::Hide()
 {
 	if (Type != WidgetType::Child)
 	{
-		DispCanvas.reset();
-		DispWindow.reset();
+		if (DispWindow)
+			DispWindow->Hide();
 	}
 }
 
@@ -192,26 +186,7 @@ void Widget::ActivateWindow()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
-		// DispWindow->Activate();
-	}
-}
-
-void Widget::Raise()
-{
-	if (Type != WidgetType::Child)
-	{
-		NeedsWindow();
-		// DispWindow->Raise();
-	}
-}
-
-void Widget::Lower()
-{
-	if (Type != WidgetType::Child)
-	{
-		NeedsWindow();
-		// DispWindow->Lower();
+		DispWindow->Activate();
 	}
 }
 
@@ -224,7 +199,6 @@ void Widget::Update()
 {
 	if (Type != WidgetType::Child)
 	{
-		NeedsWindow();
 		// DispWindow->Update();
 	}
 }
@@ -245,7 +219,8 @@ void Widget::Paint(Canvas* canvas)
 	OnPaint(canvas);
 	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
 	{
-		w->Paint(canvas);
+		if (w->Type == WidgetType::Child)
+			w->Paint(canvas);
 	}
 	canvas->setOrigin(oldOrigin);
 	//canvas->popClip();
@@ -341,40 +316,113 @@ Point Widget::MapToGlobal(const Point& pos) const
 	throw std::runtime_error("MapFromGlobal: no window widget found");
 }
 
-void Widget::Key(DisplayWindow* window, std::string key)
+void Widget::OnWindowPaint()
 {
-	if (FocusWidget)
-		FocusWidget->OnKeyChar(key);
+	Repaint();
 }
 
-void Widget::InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta)
-{
-}
-
-void Widget::FocusChange(bool lost)
-{
-}
-
-void Widget::MouseMove(float x, float y)
+void Widget::OnWindowMouseMove(const Point& pos)
 {
 	if (CaptureWidget)
 	{
-		CaptureWidget->OnMouseMove(CaptureWidget->MapFrom(this, Point(x, y)));
+		CaptureWidget->OnMouseMove(CaptureWidget->MapFrom(this, pos));
 	}
 	else
 	{
-		Widget* widget = ChildAt(Point(x, y));
+		Widget* widget = ChildAt(pos);
 		if (widget)
-			widget->OnMouseMove(widget->MapFrom(this, Point(x, y)));
+			widget->OnMouseMove(widget->MapFrom(this, pos));
 	}
 }
 
-bool Widget::MouseCursorVisible()
+void Widget::OnWindowMouseDown(const Point& pos, EInputKey key)
 {
-	return true;
+	if (CaptureWidget)
+	{
+		CaptureWidget->OnMouseDown(CaptureWidget->MapFrom(this, pos), key);
+	}
+	else
+	{
+		Widget* widget = ChildAt(pos);
+		if (widget)
+			widget->OnMouseDown(widget->MapFrom(this, pos), key);
+	}
 }
 
-void Widget::WindowClose(DisplayWindow* window)
+void Widget::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
+{
+	if (CaptureWidget)
+	{
+		CaptureWidget->OnMouseDoubleclick(CaptureWidget->MapFrom(this, pos), key);
+	}
+	else
+	{
+		Widget* widget = ChildAt(pos);
+		if (widget)
+			widget->OnMouseDoubleclick(widget->MapFrom(this, pos), key);
+	}
+}
+
+void Widget::OnWindowMouseUp(const Point& pos, EInputKey key)
+{
+	if (CaptureWidget)
+	{
+		CaptureWidget->OnMouseUp(CaptureWidget->MapFrom(this, pos), key);
+	}
+	else
+	{
+		Widget* widget = ChildAt(pos);
+		if (widget)
+			widget->OnMouseUp(widget->MapFrom(this, pos), key);
+	}
+}
+
+void Widget::OnWindowMouseWheel(const Point& pos, EInputKey key)
+{
+}
+
+void Widget::OnWindowRawMouseMove(int dx, int dy)
+{
+}
+
+void Widget::OnWindowKeyChar(std::string chars)
+{
+	if (FocusWidget)
+		FocusWidget->OnKeyChar(chars);
+}
+
+void Widget::OnWindowKeyDown(EInputKey key)
+{
+	if (FocusWidget)
+		FocusWidget->OnKeyDown(key);
+}
+
+void Widget::OnWindowKeyUp(EInputKey key)
+{
+	if (FocusWidget)
+		FocusWidget->OnKeyUp(key);
+}
+
+void Widget::OnWindowGeometryChanged()
+{
+	Size size = DispWindow->GetClientSize();
+	Geometry = Rect::xywh(0.0, 0.0, size.width, size.height);
+	OnGeometryChanged();
+}
+
+void Widget::OnWindowClose()
 {
 	Close();
+}
+
+void Widget::OnWindowActivated()
+{
+}
+
+void Widget::OnWindowDeactivated()
+{
+}
+
+void Widget::OnWindowDpiScaleChanged()
+{
 }

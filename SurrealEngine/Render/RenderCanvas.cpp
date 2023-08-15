@@ -9,15 +9,15 @@
 
 void RenderSubsystem::ResetCanvas()
 {
-	Canvas.uiscale = std::max((Device->Viewport->SizeY + 540) / 1080, 1);
+	Canvas.uiscale = std::max((engine->ViewportHeight + 540) / 1080, 1);
 
 	FSceneNode frame;
 	Canvas.Frame.XB = 0;
 	Canvas.Frame.YB = 0;
-	Canvas.Frame.X = engine->window->SizeX;
-	Canvas.Frame.Y = engine->window->SizeY;
-	Canvas.Frame.FX = (float)engine->window->SizeX;
-	Canvas.Frame.FY = (float)engine->window->SizeY;
+	Canvas.Frame.X = engine->ViewportWidth;
+	Canvas.Frame.Y = engine->ViewportHeight;
+	Canvas.Frame.FX = (float)engine->ViewportWidth;
+	Canvas.Frame.FY = (float)engine->ViewportHeight;
 	Canvas.Frame.FX2 = Canvas.Frame.FX * 0.5f;
 	Canvas.Frame.FY2 = Canvas.Frame.FY * 0.5f;
 	Canvas.Frame.ObjectToWorld = mat4::identity();
@@ -29,8 +29,8 @@ void RenderSubsystem::ResetCanvas()
 	float RFY2 = 2.0f * RProjZ * Aspect / Canvas.Frame.FY;
 	Canvas.Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
 
-	int sizeX = (int)(Device->Viewport->SizeX / (float)Canvas.uiscale);
-	int sizeY = (int)(Device->Viewport->SizeY / (float)Canvas.uiscale);
+	int sizeX = (int)(engine->ViewportWidth / (float)Canvas.uiscale);
+	int sizeY = (int)(engine->ViewportHeight / (float)Canvas.uiscale);
 	engine->canvas->CurX() = 0.0f;
 	engine->canvas->CurY() = 0.0f;
 	engine->console->FrameX() = (float)sizeX;
@@ -403,7 +403,7 @@ void RenderSubsystem::DrawTimedemoStats()
 			float curY = 180;
 			for (const std::string& text : lines)
 			{
-				float curX = engine->window->SizeX / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+				float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
 				float curYL = 0.0f;
 				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 				curY += curYL + 4.0f;
@@ -478,7 +478,7 @@ void RenderSubsystem::DrawCollisionDebug()
 		float curY = 180;
 		for (const std::string& text : lines)
 		{
-			float curX = engine->window->SizeX / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+			float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
 			float curYL = 0.0f;
 			DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 			curY += curYL;

@@ -13,6 +13,5 @@ public:
 
 	EditorWorkspace* Workspace = nullptr;
 
-	bool ExitFlag = false;
-	void OnClose() override { ExitFlag = true; }
+	void OnClose() override { DisplayWindow::ExitLoop(); }
 };

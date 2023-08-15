@@ -286,11 +286,14 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
-	if (!Textures->Scene || Textures->Scene->width != Viewport->SizeX || Textures->Scene->height != Viewport->SizeY)
+	int width = Viewport->GetPixelWidth();
+	int height = Viewport->GetPixelHeight();
+
+	if (!Textures->Scene || Textures->Scene->width != width || Textures->Scene->height != height)
 	{
 		Framebuffers->DestroySceneFramebuffer();
 		Textures->Scene.reset();
-		Textures->Scene.reset(new SceneTextures(this, Viewport->SizeX, Viewport->SizeY, Multisample));
+		Textures->Scene.reset(new SceneTextures(this, width, height, Multisample));
 		RenderPasses->CreateRenderPass();
 		RenderPasses->CreatePipelines();
 		Framebuffers->CreateSceneFramebuffer();
@@ -381,7 +384,7 @@ void VulkanRenderDevice::Unlock(bool Blit)
 	RenderPasses->EndScene(Commands->GetDrawCommands());
 
 	BlitSceneToPostprocess();
-	SubmitAndWait(Blit, Viewport->SizeX, Viewport->SizeY);
+	SubmitAndWait(Blit, Viewport->GetPixelWidth(), Viewport->GetPixelHeight());
 
 	IsLocked = false;
 }
@@ -733,10 +736,9 @@ void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 
 void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 {
-	int w = Viewport->SizeX;
-	int h = Viewport->SizeY;
+	int w = Viewport->GetPixelWidth();
+	int h = Viewport->GetPixelHeight();
 	void* data = Pixels;
-	float gamma = 1.5f * Viewport->Brightness;
 
 	auto dstimage = ImageBuilder()
 		.Format(VK_FORMAT_B8G8R8A8_UNORM)
@@ -952,7 +954,7 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 
 void VulkanRenderDevice::DrawPresentTexture(int x, int y, int width, int height)
 {
-	float gamma = Viewport->Brightness * 2.0f;
+	float gamma = 1.0f; // Viewport->Brightness * 2.0f;
 
 	PresentPushConstants pushconstants;
 	pushconstants.InvGamma = 1.0f / gamma;

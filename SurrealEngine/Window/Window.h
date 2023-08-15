@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math/vec.h"
+#include "UI/Core/Rect.h"
 
 class Engine;
 class RenderDevice;
@@ -104,12 +105,21 @@ class DisplayWindow;
 class DisplayWindowHost
 {
 public:
-	virtual void Key(DisplayWindow* window, std::string key) = 0;
-	virtual void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0) = 0;
-	virtual void FocusChange(bool lost) = 0;
-	virtual void MouseMove(float x, float y) = 0;
-	virtual bool MouseCursorVisible() = 0;
-	virtual void WindowClose(DisplayWindow* window) = 0;
+	virtual void OnWindowPaint() = 0;
+	virtual void OnWindowMouseMove(const Point& pos) = 0;
+	virtual void OnWindowMouseDown(const Point& pos, EInputKey key) = 0;
+	virtual void OnWindowMouseDoubleclick(const Point& pos, EInputKey key) = 0;
+	virtual void OnWindowMouseUp(const Point& pos, EInputKey key) = 0;
+	virtual void OnWindowMouseWheel(const Point& pos, EInputKey key) = 0;
+	virtual void OnWindowRawMouseMove(int dx, int dy) = 0;
+	virtual void OnWindowKeyChar(std::string chars) = 0;
+	virtual void OnWindowKeyDown(EInputKey key) = 0;
+	virtual void OnWindowKeyUp(EInputKey key) = 0;
+	virtual void OnWindowGeometryChanged() = 0;
+	virtual void OnWindowClose() = 0;
+	virtual void OnWindowActivated() = 0;
+	virtual void OnWindowDeactivated() = 0;
+	virtual void OnWindowDpiScaleChanged() = 0;
 };
 
 class DisplayWindow
@@ -117,18 +127,32 @@ class DisplayWindow
 public:
 	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost);
 
+	static void ProcessEvents();
+	static void RunLoop();
+	static void ExitLoop();
+
 	virtual ~DisplayWindow() = default;
-	virtual void OpenWindow(int width, int height, bool fullscreen) = 0;
-	virtual void CloseWindow() = 0;
-	virtual void* GetDisplay() = 0;
-	virtual void* GetWindow() = 0;
-	virtual void Tick() = 0;
+
+	virtual void SetWindowTitle(const std::string& text) = 0;
+	virtual void SetWindowFrame(const Rect& box) = 0;
+	virtual void SetClientFrame(const Rect& box) = 0;
+	virtual void Show() = 0;
+	virtual void ShowFullscreen() = 0;
+	virtual void ShowMaximized() = 0;
+	virtual void ShowMinimized() = 0;
+	virtual void ShowNormal() = 0;
+	virtual void Hide() = 0;
+	virtual void Activate() = 0;
+	virtual void ShowCursor(bool enable) = 0;
+	virtual void LockCursor() = 0;
+	virtual void UnlockCursor() = 0;
+	virtual void Update() = 0;
+
 	virtual RenderDevice* GetRenderDevice() = 0;
 
-	int SizeX = 0;
-	int SizeY = 0;
-
-	float Brightness = 0.6f;
-
-	bool bLockCursor = false;
+	virtual Rect GetWindowFrame() const = 0;
+	virtual Size GetClientSize() const = 0;
+	virtual int GetPixelWidth() const = 0;
+	virtual int GetPixelHeight() const = 0;
+	virtual double GetDpiScale() const = 0;
 };

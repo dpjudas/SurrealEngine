@@ -80,12 +80,28 @@ public:
 
 	void UpdateAudio();
 
-	void Key(DisplayWindow* window, std::string key) override;
-	void InputEvent(DisplayWindow* window, EInputKey key, EInputType type, int delta = 0) override;
-	void FocusChange(bool lost) override { SetPause(lost); }
-	void MouseMove(float x, float y) override;
-	bool MouseCursorVisible() override;
-	void WindowClose(DisplayWindow* window) override;
+	void OpenWindow(int width, int height, bool fullscreen);
+	void CloseWindow();
+	void TickWindow();
+
+	void Key(std::string key);
+	void InputEvent(EInputKey key, EInputType type, int delta = 0);
+
+	void OnWindowPaint() override;
+	void OnWindowMouseMove(const Point& pos) override;
+	void OnWindowMouseDown(const Point& pos, EInputKey key) override;
+	void OnWindowMouseDoubleclick(const Point& pos, EInputKey key) override;
+	void OnWindowMouseUp(const Point& pos, EInputKey key) override;
+	void OnWindowMouseWheel(const Point& pos, EInputKey key) override;
+	void OnWindowRawMouseMove(int dx, int dy) override;
+	void OnWindowKeyChar(std::string chars) override;
+	void OnWindowKeyDown(EInputKey key) override;
+	void OnWindowKeyUp(EInputKey key) override;
+	void OnWindowGeometryChanged() override;
+	void OnWindowClose() override;
+	void OnWindowActivated() override;
+	void OnWindowDeactivated() override;
+	void OnWindowDpiScaleChanged() override;
 
 	void SetPause(bool value);
 
@@ -119,6 +135,9 @@ public:
 	std::unique_ptr<DisplayWindow> window; // TODO: Move into UViewport
 	std::unique_ptr<RenderSubsystem> render;
 	std::unique_ptr<AudioSubsystem> audio;
+
+	int MouseMoveX = 0;
+	int MouseMoveY = 0;
 
 	float CalcTimeElapsed();
 

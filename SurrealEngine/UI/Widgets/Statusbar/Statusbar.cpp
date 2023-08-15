@@ -13,5 +13,5 @@ Statusbar::~Statusbar()
 
 void Statusbar::OnPaint(Canvas* canvas)
 {
-	canvas->drawText(Point(16.0, 19.0), Colorf(0.0f, 0.0f, 0.0f), "Ready");
+	canvas->drawText(Point(16.0, 21.0), Colorf(0.0f, 0.0f, 0.0f), "Ready");
 }

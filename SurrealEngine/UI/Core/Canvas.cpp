@@ -227,10 +227,10 @@ void RenderDeviceCanvas::begin(const Colorf& color)
 {
 	frame.XB = 0;
 	frame.YB = 0;
-	frame.X = renderDevice->Viewport->SizeX;
-	frame.Y = renderDevice->Viewport->SizeY;
-	frame.FX = (float)renderDevice->Viewport->SizeX;
-	frame.FY = (float)renderDevice->Viewport->SizeY;
+	frame.X = renderDevice->Viewport->GetPixelWidth();
+	frame.Y = renderDevice->Viewport->GetPixelHeight();
+	frame.FX = (float)renderDevice->Viewport->GetPixelWidth();
+	frame.FY = (float)renderDevice->Viewport->GetPixelHeight();
 	frame.FX2 = frame.FX * 0.5f;
 	frame.FY2 = frame.FY * 0.5f;
 	frame.ObjectToWorld = mat4::identity();
