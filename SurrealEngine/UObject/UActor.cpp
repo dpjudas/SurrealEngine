@@ -560,12 +560,10 @@ void UActor::TickFalling(float elapsed)
 	if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
 	{
 		float xySpeed = length(Velocity().xy());
-		Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+		newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
 	}
-	else
-	{
-		Velocity() = newVelocity;
-	}
+
+	Velocity() = newVelocity;
 
 	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
@@ -597,21 +595,18 @@ void UActor::TickFalling(float elapsed)
 				gravityVector.z = at.y * 0.5f;
 				gravityVector *= (float)(gravityMag * 0.5f);
 
-				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + (Acceleration() + gravityScale * gravityVector) * 0.75f * elapsed;
+				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * elapsed;
 
 				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
 				if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
 				{
 					float xySpeed = length(Velocity().xy());
-					Velocity() = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
-				}
-				else
-				{
-					Velocity() = newVelocity;
+					newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
 				}
 
-				MoveSmooth(Velocity() * elapsed);
+				Velocity() = newVelocity;
+				MoveSmooth(newVelocity * elapsed);
 			}
 			else
 			{
