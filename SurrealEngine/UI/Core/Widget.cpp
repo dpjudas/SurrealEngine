@@ -197,9 +197,10 @@ void Widget::Close()
 
 void Widget::Update()
 {
-	if (Type != WidgetType::Child)
+	Widget* w = Window();
+	if (w)
 	{
-		// DispWindow->Update();
+		w->DispWindow->Update();
 	}
 }
 
@@ -231,7 +232,8 @@ void Widget::SetFocus()
 	Widget* window = Window();
 	if (window)
 	{
-		window->FocusWidget->OnLostFocus();
+		if (window->FocusWidget)
+			window->FocusWidget->OnLostFocus();
 		window->FocusWidget = this;
 		window->FocusWidget->OnSetFocus();
 		window->ActivateWindow();
@@ -240,6 +242,26 @@ void Widget::SetFocus()
 
 void Widget::SetEnabled(bool value)
 {
+}
+
+void Widget::LockCursor()
+{
+	Widget* w = Window();
+	if (w && w->CaptureWidget != this)
+	{
+		w->CaptureWidget = this;
+		w->DispWindow->LockCursor();
+	}
+}
+
+void Widget::UnlockCursor()
+{
+	Widget* w = Window();
+	if (w && w->CaptureWidget != nullptr)
+	{
+		w->CaptureWidget = nullptr;
+		w->DispWindow->UnlockCursor();
+	}
 }
 
 Widget* Widget::Window()
@@ -258,7 +280,8 @@ Widget* Widget::ChildAt(const Point& pos)
 	{
 		if (cur->Geometry.contains(pos))
 		{
-			return cur;
+			Widget* cur2 = cur->ChildAt(pos - Geometry.topLeft());
+			return cur2 ? cur2 : cur;
 		}
 	}
 	return nullptr;
@@ -330,8 +353,9 @@ void Widget::OnWindowMouseMove(const Point& pos)
 	else
 	{
 		Widget* widget = ChildAt(pos);
-		if (widget)
-			widget->OnMouseMove(widget->MapFrom(this, pos));
+		if (!widget)
+			widget = this;
+		widget->OnMouseMove(widget->MapFrom(this, pos));
 	}
 }
 
@@ -344,8 +368,9 @@ void Widget::OnWindowMouseDown(const Point& pos, EInputKey key)
 	else
 	{
 		Widget* widget = ChildAt(pos);
-		if (widget)
-			widget->OnMouseDown(widget->MapFrom(this, pos), key);
+		if (!widget)
+			widget = this;
+		widget->OnMouseDown(widget->MapFrom(this, pos), key);
 	}
 }
 
@@ -358,8 +383,9 @@ void Widget::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 	else
 	{
 		Widget* widget = ChildAt(pos);
-		if (widget)
-			widget->OnMouseDoubleclick(widget->MapFrom(this, pos), key);
+		if (!widget)
+			widget = this;
+		widget->OnMouseDoubleclick(widget->MapFrom(this, pos), key);
 	}
 }
 
@@ -372,17 +398,37 @@ void Widget::OnWindowMouseUp(const Point& pos, EInputKey key)
 	else
 	{
 		Widget* widget = ChildAt(pos);
-		if (widget)
-			widget->OnMouseUp(widget->MapFrom(this, pos), key);
+		if (!widget)
+			widget = this;
+		widget->OnMouseUp(widget->MapFrom(this, pos), key);
 	}
 }
 
 void Widget::OnWindowMouseWheel(const Point& pos, EInputKey key)
 {
+	if (CaptureWidget)
+	{
+		CaptureWidget->OnMouseWheel(CaptureWidget->MapFrom(this, pos), key);
+	}
+	else
+	{
+		Widget* widget = ChildAt(pos);
+		if (!widget)
+			widget = this;
+		widget->OnMouseWheel(widget->MapFrom(this, pos), key);
+	}
 }
 
 void Widget::OnWindowRawMouseMove(int dx, int dy)
 {
+	if (CaptureWidget)
+	{
+		CaptureWidget->OnRawMouseMove(dx, dy);
+	}
+	else if (FocusWidget)
+	{
+		FocusWidget->OnRawMouseMove(dx, dy);
+	}
 }
 
 void Widget::OnWindowKeyChar(std::string chars)
