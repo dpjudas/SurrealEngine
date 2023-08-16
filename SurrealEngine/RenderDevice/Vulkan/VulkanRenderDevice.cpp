@@ -954,7 +954,7 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 
 void VulkanRenderDevice::DrawPresentTexture(int x, int y, int width, int height)
 {
-	float gamma = 1.0f; // Viewport->Brightness * 2.0f;
+	float gamma = Brightness * 2.0f;
 
 	PresentPushConstants pushconstants;
 	pushconstants.InvGamma = 1.0f / gamma;

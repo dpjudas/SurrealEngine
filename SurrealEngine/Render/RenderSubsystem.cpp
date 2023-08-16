@@ -19,6 +19,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 	Light.FogFrameCounter++;
 
+	Device->Brightness = engine->Brightness;
 	Device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
 
 	ResetCanvas();
@@ -37,6 +38,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 void RenderSubsystem::DrawEditorViewport()
 {
+	Device->Brightness = engine->Brightness;
 	DrawScene();
 }
 

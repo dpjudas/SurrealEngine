@@ -111,4 +111,5 @@ public:
 
 	DisplayWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
+	float Brightness = 0.5f;
 };

@@ -666,6 +666,7 @@ void Engine::LoadEngineSettings()
 	FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
 	FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
 	StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
+	Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
 }
 
 void Engine::LoadKeybindings()
