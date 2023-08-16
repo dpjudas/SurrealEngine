@@ -195,6 +195,8 @@ public:
 	bool TextureModified = false;
 	int RealtimeChangeCount = 0;
 
+	int FrameCounter = -1;
+
 	uint32_t PolyFlags()
 	{
 		// To do: implement packed booleans in the VM so that this can be done as a single uint32_t

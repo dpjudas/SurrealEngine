@@ -12,12 +12,9 @@ RenderSubsystem::RenderSubsystem(RenderDevice* renderdevice) : Device(renderdevi
 
 void RenderSubsystem::DrawGame(float levelTimeElapsed)
 {
+	FrameCounter++;
+	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
-
-	for (UTexture* tex : Textures)
-		tex->Update(levelTimeElapsed);
-
-	Light.FogFrameCounter++;
 
 	Device->Brightness = engine->Brightness;
 	Device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
@@ -42,6 +39,15 @@ void RenderSubsystem::DrawEditorViewport()
 	DrawScene();
 }
 
+void RenderSubsystem::UpdateTexture(UTexture* tex)
+{
+	if (tex && tex->FrameCounter != FrameCounter)
+	{
+		tex->Update(LevelTimeElapsed);
+		tex->FrameCounter = FrameCounter;
+	}
+}
+
 void RenderSubsystem::OnMapLoaded()
 {
 	Device->Flush(true);
@@ -55,17 +61,4 @@ void RenderSubsystem::OnMapLoaded()
 		lightset.insert(light);
 	for (UActor* light : lightset)
 		Light.Lights.push_back(light);
-
-	Textures.clear();
-	for (BspSurface& surf : engine->Level->Model->Surfaces)
-	{
-		if (surf.Material)
-		{
-			Textures.insert(surf.Material);
-			if (surf.Material->DetailTexture())
-				Textures.insert(surf.Material->DetailTexture());
-			if (surf.Material->MacroTexture())
-				Textures.insert(surf.Material->MacroTexture());
-		}
-	}
 }

@@ -31,6 +31,8 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255/*light->LightBrightness()*/);
 
+				UpdateTexture(light->Skin());
+
 				FTextureInfo texinfo;
 				texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();
 				texinfo.Texture = light->Skin()->GetAnimTexture();
@@ -41,6 +43,9 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 				texinfo.VSize = texinfo.Texture->VSize();
 				if (texinfo.Texture->Palette())
 					texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+
+				UpdateTexture(texinfo.Texture);
+
 				Device->DrawTile(frame, texinfo, x - size * 0.5f, y - size * 0.5f, size, size, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
 			}
 		}

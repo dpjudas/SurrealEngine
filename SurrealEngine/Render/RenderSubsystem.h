@@ -42,6 +42,8 @@ public:
 	ivec2 GetTextSize(UFont* font, const std::string& text);
 	ivec2 GetTextClippedSize(UFont* font, const std::string& text, float clipX);
 
+	void UpdateTexture(UTexture* tex);
+
 	bool ShowTimedemoStats = false;
 	bool ShowCollisionDebug = false;
 
@@ -88,7 +90,9 @@ private:
 
 	RenderDevice* Device = nullptr;
 
+	float LevelTimeElapsed = 0.0f;
 	float AutoUV = 0.0f;
+	int FrameCounter = 0;
 
 	struct
 	{
@@ -129,8 +133,6 @@ private:
 		LightmapBuilder Builder;
 		int FogFrameCounter = 0;
 	} Light;
-
-	std::set<UTexture*> Textures;
 
 	std::vector<vec3> VertexBuffer;
 };

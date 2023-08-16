@@ -53,10 +53,13 @@ void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, c
 	if (!surface.Material)
 		return;
 
+	UpdateTexture(surface.Material);
+
 	FTextureInfo texture;
 	if (surface.Material)
 	{
 		UTexture* tex = surface.Material->GetAnimTexture();
+		UpdateTexture(tex);
 
 		texture.CacheID = (uint64_t)(ptrdiff_t)tex;
 		texture.bRealtimeChanged = tex->TextureModified;

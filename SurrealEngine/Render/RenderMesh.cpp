@@ -154,6 +154,8 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		if ( !tex )
 			continue;
 
+		UpdateTexture(tex);
+
 		FTextureInfo texinfo;
 		texinfo.Texture = tex;
 		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
