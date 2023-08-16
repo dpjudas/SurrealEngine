@@ -65,32 +65,59 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const Bs
 	return lmtexture;
 }
 
-vec3 RenderSubsystem::FindLightAt(const vec3& location, int zoneIndex)
+void RenderSubsystem::UpdateActorLightList(UActor* actor)
 {
-	UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(engine->Level->Model->Zones[zoneIndex].ZoneActor);
-	if (!zoneActor)
-		zoneActor = engine->LevelInfo;
+	vec3 location = actor->Location();
 
-	vec3 color = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness()) * 0.5f;
+	if (actor->LightListFound && actor->LightListLocation == location)
+		return;
+
+	actor->LightListFound = true;
+	actor->LightListLocation = location;
+	actor->LightList.clear();
+
+	if (actor->bUnlit())
+		return;
 
 	for (UActor* light : Light.Lights)
 	{
 		if (light && !light->bCorona() && !light->bSpecialLit())
 		{
-			vec3 L = light->Location() - location;
 			float radius = light->WorldLightRadius();
-			float dist = dot(L, L) / (radius * radius);
-			if (dist < 1.0f && !engine->Level->TraceRayAnyHit(light->Location(), location, nullptr, false, true, true))
+			vec3 L = light->Location() - location;
+			if (light->LightEffect() == LE_Cylinder) // Cylinder lights have infinite Z axis range
 			{
-				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
-
-				float distanceAttenuation = LightEffect::LightDistanceFalloff(dist);
-				float angleAttenuation = 0.75f; // std::max(dot(normalize(L), N), 0.0f);
-				float attenuation = distanceAttenuation * angleAttenuation;
-				color += lightcolor * attenuation;
+				L.z = 0.0f;
+			}
+			if (dot(L, L) < radius * radius && !engine->Level->TraceRayAnyHit(light->Location(), location, nullptr, false, true, true))
+			{
+				actor->LightList.push_back(light);
 			}
 		}
 	}
+}
 
-	return color;
+vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit)
+{
+	if (unlit)
+	{
+		return vec3(clamp(actor->ScaleGlow() * 0.5f + actor->AmbientGlow() * (1.0f / 256.0f), 0.0f, 1.0f));
+	}
+	else
+	{
+		UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(engine->Level->Model->Zones[actor->Region().ZoneNumber].ZoneActor);
+		if (!zoneActor)
+			zoneActor = engine->LevelInfo;
+
+		vec3 color = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
+
+		for (UActor* light : actor->LightList)
+		{
+			float attenuation = LightEffect::VertexLight(light, location, normal);
+			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
+			color += lightcolor * attenuation;
+		}
+
+		return color;
+	}
 }

@@ -11,8 +11,9 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 	UModel* brush = actor->Brush();
 	const vec3& location = actor->Location();
 	float drawscale = actor->DrawScale();
-	const vec3& color = actor->light;
 	FSceneNode brushframe = *frame;
+
+	UpdateActorLightList(actor);
 
 	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(drawscale);
 
@@ -20,18 +21,18 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(frame, brush, node, 0, color);
+		DrawNodeSurfaceGouraud(frame, brush, node, 0, actor);
 	}
 
 	for (const BspNode& node : brush->Nodes)
 	{
-		DrawNodeSurfaceGouraud(frame, brush, node, 1, color);
+		DrawNodeSurfaceGouraud(frame, brush, node, 1, actor);
 	}
 
 	Device->SetSceneNode(frame);
 }
 
-void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color)
+void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, UActor* actor)
 {
 	if (node.NumVertices <= 0 || node.Surf < 0)
 		return;
@@ -91,7 +92,7 @@ void RenderSubsystem::DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, c
 	{
 		GouraudVertex gv;
 		gv.Point = model->Points[v[j].Vertex];
-		gv.Light = color;
+		gv.Light = GetVertexLight(actor, gv.Point, model->Vectors[surface.vNormal], surface.PolyFlags & PF_Unlit);
 		gv.UV = { dot(UVec, gv.Point) - UPan, dot(VVec, gv.Point) - VPan };
 		vertices.push_back(gv);
 	}

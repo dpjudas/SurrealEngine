@@ -220,8 +220,9 @@ public:
 	vec3 gravityVector;
 
 	// Cached calculations needed by the renderer
-	bool lightsCalculated = false;
-	vec3 light = { 0.0f };
+	bool LightListFound = false;
+	vec3 LightListLocation = vec3(0.0f);
+	std::vector<UActor*> LightList;
 	vec3 fogcolor = { 0.0f };
 	float brightness = -1.0f;
 	float fog = -1.0f;

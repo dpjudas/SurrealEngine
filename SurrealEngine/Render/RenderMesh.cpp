@@ -10,23 +10,25 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 	if (!mesh)
 		return;
 
+	UpdateActorLightList(actor);
+
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
 	mat4 meshToObject = Coords::Rotation(mesh->RotOrigin).ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);
 	mat4 meshToWorld = objectToWorld * meshToObject;
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))
-		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld, actor->light);
+		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld);
 	else if (dynamic_cast<ULodMesh*>(mesh))
-		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld, actor->light);
+		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld);
 	else
-		DrawMesh(frame, actor, mesh, meshToWorld, actor->light);
+		DrawMesh(frame, actor, mesh, meshToWorld);
 }
 
-void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld)
 {
 }
 
-void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld)
 {
 	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
 	float animFrame = actor->AnimFrame() * seq->NumFrames;
@@ -56,8 +58,8 @@ void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 	}
 
 	SetupMeshTextures(actor, mesh);
-	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, color, mesh->SpecialVerts, vertexOffsets, t0, t1);
-	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, color, 0, vertexOffsets, t0, t1);
+	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1);
+	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, 0, vertexOffsets, t0, t1);
 }
 
 void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
@@ -120,7 +122,7 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
 	}
 }
 
-void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& lightcolor, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
+void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
 {
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
@@ -135,16 +137,6 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 	if (actor->bMeshCurvy()) polyFlags |= PF_Flat;
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
-
-	vec3 color;
-	if (polyFlags & PF_Unlit)
-	{
-		color = vec3(clamp(actor->ScaleGlow() * 0.5f + actor->AmbientGlow() * (1.0f / 256.0f), 0.0f, 1.0f));
-	}
-	else
-	{
-		color = lightcolor;
-	}
 
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
@@ -189,13 +181,13 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { wedge.U * uscale, wedge.V * vscale };
-			vertices[i].Light = color;
 		}
+
+		// To do: this needs to be the smoothed normal
+		vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
 
 		if (renderflags & PF_Environment)
 		{
-			// To do: this needs to be the smoothed normal
-			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
 			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
 			for (int i = 0; i < 3; i++)
 			{
@@ -205,11 +197,16 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 			}
 		}
 
+		for (int i = 0; i < 3; i++)
+		{
+			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, n, !!(polyFlags & PF_Unlit));
+		}
+
 		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
 }
 
-void RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color)
+void RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld)
 {
-	DrawLodMesh(frame, actor, mesh, ObjectToWorld, color);
+	DrawLodMesh(frame, actor, mesh, ObjectToWorld);
 }

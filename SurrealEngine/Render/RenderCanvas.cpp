@@ -72,7 +72,6 @@ void RenderSubsystem::PostRender()
 
 void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 {
-	actor->light = FindLightAt(actor->Location(), actor->Region().ZoneNumber);
 	actor->bHidden() = false;
 
 	Device->SetSceneNode(&Scene.Frame);
@@ -108,7 +107,6 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 	if (ClearZ)
 		Device->ClearZ(&frame);
 
-	actor->light = vec3(1.0);
 	actor->bHidden() = false;
 	DrawMesh(&frame, actor, WireFrame);
 	actor->bHidden() = true;

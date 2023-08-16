@@ -654,7 +654,7 @@ void UActor::TickSwimming(float elapsed)
 
 	if (dot(Acceleration(), Acceleration()) > 0.0001f)
 	{
-		float accelRate = pawn->AccelRate() * 0.3;
+		float accelRate = pawn->AccelRate() * 0.3f;
 
 		// Acceleration must never exceed the acceleration rate
 		float accelSpeed = length(Acceleration());

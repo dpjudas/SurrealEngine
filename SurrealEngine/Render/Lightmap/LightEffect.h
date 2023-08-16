@@ -10,6 +10,8 @@ class LightEffect
 public:
 	void Run(UActor* light, int width, int height, const vec3* locations, vec3 normal, const float* shadowmap, float* result);
 
+	static float VertexLight(UActor* light, const vec3& location, const vec3& normal);
+
 	static float LightDistanceFalloff(float dist)
 	{
 		float v = std::sqrt(dist + (1.0f / 4096.0f));
