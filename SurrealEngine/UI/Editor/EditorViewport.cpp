@@ -27,8 +27,8 @@ void EditorViewport::OnPaint(Canvas* canvas)
 	if (!engine->render)
 		engine->render = std::make_unique<RenderSubsystem>(Window()->GetRenderDevice());
 
-	engine->CameraLocation = vec3(0.0f, 0.0f, 600.0f);
-	engine->CameraRotation = Rotator(0, 0, 0);
+	engine->CameraLocation = Location;
+	engine->CameraRotation = Rotation;
 	engine->ViewportX = (int)std::round(topLeft.x);
 	engine->ViewportY = (int)std::round(topLeft.y);
 	engine->ViewportWidth = (int)std::round(GetWidth());
@@ -36,4 +36,89 @@ void EditorViewport::OnPaint(Canvas* canvas)
 	engine->render->DrawEditorViewport();
 
 	canvas->end3d();
+}
+
+void EditorViewport::OnMouseMove(const Point& pos)
+{
+}
+
+void EditorViewport::OnMouseDown(const Point& pos, int key)
+{
+	SetFocus();
+	if (key == IK_RightMouse)
+	{
+		LockCursor();
+		MouseIsPanning = true;
+	}
+	else if (key == IK_MiddleMouse)
+	{
+		LockCursor();
+		MouseIsMoving = true;
+	}
+}
+
+void EditorViewport::OnMouseDoubleclick(const Point& pos, int key)
+{
+}
+
+void EditorViewport::OnMouseUp(const Point& pos, int key)
+{
+	if (key == IK_RightMouse && MouseIsPanning)
+	{
+		UnlockCursor();
+		MouseIsPanning = false;
+	}
+	else if (key == IK_MiddleMouse && MouseIsMoving)
+	{
+		UnlockCursor();
+		MouseIsMoving = false;
+	}
+}
+
+void EditorViewport::OnKeyDown(int key)
+{
+	if (key == IK_W)
+	{
+		MoveCamera(0.0f, 0.0f, 100.0f);
+	}
+	else if (key == IK_S)
+	{
+		MoveCamera(0.0f, 0.0f, -100.0f);
+	}
+	else if (key == IK_A)
+	{
+		MoveCamera(0.0f, -100.0f, 0.0f);
+	}
+	else if (key == IK_D)
+	{
+		MoveCamera(0.0f, 100.0f, 0.0f);
+	}
+}
+
+void EditorViewport::OnKeyUp(int key)
+{
+}
+
+void EditorViewport::OnRawMouseMove(int dx, int dy)
+{
+	if (MouseIsPanning)
+	{
+		Rotation.Yaw += dx * 10;
+		Rotation.Pitch = clamp(Rotation.Pitch + dy * 10, -90 * 65536 / 360, 90 * 65536 / 360);
+		Update();
+	}
+	else if (MouseIsMoving)
+	{
+		MoveCamera((float)-dy, (float)dx, 0.0f);
+	}
+}
+
+void EditorViewport::MoveCamera(float x, float y, float z)
+{
+	vec3 axisX, axisY, axisZ;
+	Coords::Rotation(Rotation).GetAxes(axisX, axisY, axisZ);
+	Location += axisX * x;
+	Location += axisY * y;
+	Location += axisZ * z;
+	Update();
 }

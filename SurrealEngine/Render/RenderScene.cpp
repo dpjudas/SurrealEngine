@@ -68,15 +68,6 @@ void RenderSubsystem::DrawActors()
 
 		if (!actor->bHidden() && actor != engine->CameraActor)
 		{
-			if (!actor->lightsCalculated)
-			{
-				actor->lightsCalculated = true;
-				if (!actor->bUnlit())
-					actor->light = FindLightAt(actor->Location(), actor->Region().ZoneNumber);
-				else
-					actor->light = vec3(1.0f);
-			}
-
 			EDrawType dt = (EDrawType)actor->DrawType();
 			if (dt == DT_Mesh && actor->Mesh())
 			{

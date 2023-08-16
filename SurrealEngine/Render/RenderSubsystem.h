@@ -58,7 +58,8 @@ private:
 
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture(const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	vec3 FindLightAt(const vec3& location, int zoneIndex);
+	void UpdateActorLightList(UActor* actor);
+	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
 
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	void UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
@@ -72,15 +73,15 @@ private:
 	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
 
 	void DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe = false);
-	void DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
-	void DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
-	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const vec3& color, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
-	void DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const vec3& color);
+	void DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld);
+	void DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld);
+	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
+	void DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld);
 	void SetupMeshTextures(UActor* actor, UMesh* mesh);
 	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
 
 	void DrawBrush(FSceneNode* frame, UActor* actor);
-	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, const vec3& color = { 0.0f });
+	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, UActor* actor);
 
 	void DrawSprite(FSceneNode* frame, UActor* actor);
 	void DrawCoronas(FSceneNode* frame);

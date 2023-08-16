@@ -59,6 +59,9 @@ public:
 	void SetDisabled(bool value) { SetEnabled(!value); }
 	void SetHidden(bool value) { if (value) Hide(); else Show(); }
 
+	void LockCursor();
+	void UnlockCursor();
+
 	Widget* Window();
 	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
 	Widget* ChildAt(const Point& pos);
@@ -85,6 +88,8 @@ protected:
 	virtual void OnMouseDown(const Point& pos, int key) { }
 	virtual void OnMouseDoubleclick(const Point& pos, int key) { }
 	virtual void OnMouseUp(const Point& pos, int key) { }
+	virtual void OnMouseWheel(const Point& pos, EInputKey key) { }
+	virtual void OnRawMouseMove(int dx, int dy) { }
 	virtual void OnKeyChar(std::string chars) { }
 	virtual void OnKeyDown(int key) { }
 	virtual void OnKeyUp(int key) { }
