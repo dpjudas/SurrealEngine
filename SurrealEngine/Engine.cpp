@@ -68,6 +68,9 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
+	if (!StartupFullscreen)
+		viewport->bWindowsMouseAvailable() = true;
+
 	if (!LaunchInfo.noEntryMap)
 		LoadEntryMap();
 
@@ -747,7 +750,12 @@ void Engine::CloseWindow()
 void Engine::TickWindow()
 {
 	if (window)
-		window->ShowCursor(viewport->bShowWindowsMouse());
+	{
+		if (viewport->bShowWindowsMouse() && viewport->bWindowsMouseAvailable())
+			window->UnlockCursor();
+		else
+			window->LockCursor();
+	}
 
 	InputEvent(IK_MouseX, IST_Axis, 0);
 	InputEvent(IK_MouseY, IST_Axis, 0);
