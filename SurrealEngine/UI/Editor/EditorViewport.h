@@ -21,7 +21,10 @@ protected:
 	void OnKeyUp(int key) override;
 
 private:
-	bool IsLocked = false;
+	void MoveCamera(float x, float y, float z);
+
+	bool MouseIsMoving = false;
+	bool MouseIsPanning = false;
 	vec3 Location = vec3(0.0f);
 	Rotator Rotation = Rotator(0, 0, 0);
 };
