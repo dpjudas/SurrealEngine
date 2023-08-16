@@ -731,7 +731,7 @@ void Engine::OpenWindow(int width, int height, bool fullscreen)
 		window = DisplayWindow::Create(this);
 
 	window->SetWindowTitle("Unreal Tournament");
-	window->SetWindowFrame(Rect::xywh(0.0, 0.0, width, height));
+	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
 		window->ShowFullscreen();
