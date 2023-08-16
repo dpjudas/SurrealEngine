@@ -13,6 +13,8 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
 
+	UpdateTexture(texture);
+
 	if (actor->DrawType() == DT_SpriteAnimOnce)
 	{
 		float t = (1.0f - actor->LifeSpan() / static_cast<UActor*>(actor->Class->GetDefaultObject())->LifeSpan());
@@ -25,6 +27,8 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	{
 		texture = texture->GetAnimTexture();
 	}
+
+	UpdateTexture(texture);
 
 	FTextureInfo texinfo;
 	texinfo.Texture = texture;
