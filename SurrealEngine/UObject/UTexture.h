@@ -456,6 +456,39 @@ public:
 	uint8_t& VertPanSpeed() { return Value<uint8_t>(PropOffsets_IceTexture.VertPanSpeed); }
 };
 
+enum class ADropType : uint8_t
+{
+	FixedDepth,
+	PhaseSpot,
+	ShallowSpot,
+	HalfAmpl,
+	RandomMover,
+	FixedRandomSpot,
+	WhirlyThing,
+	BigWhirly,
+	HorizontalLine,
+	VerticalLine,
+	DiagonalLine1,
+	DiagonalLine2,
+	HorizontalOsc,
+	VerticalOsc,
+	DiagonalOsc1,
+	DiagonalOsc2,
+	RainDrops,
+	AreaClamp,
+	LeakyTap,
+	DrippyTap
+};
+
+struct ADrop
+{
+	ADropType Type;
+	uint8_t Depth;
+	uint8_t X;
+	uint8_t Y;
+	uint8_t ByteA,ByteB, ByteC, ByteD;
+};
+
 class UWaterTexture : public UFractalTexture
 {
 public:
@@ -464,6 +497,7 @@ public:
 	void UpdateFrame() override;
 
 	uint8_t& DropType() { return Value<uint8_t>(PropOffsets_WaterTexture.DropType); }
+	ADrop* Drops() { return FixedArray<ADrop>(PropOffsets_WaterTexture.Drops); }
 	// ADrop& Drops() { return Value<ADrop>(PropOffsets_WaterTexture.Drops); }
 	uint8_t& FX_Amplitude() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Amplitude); }
 	uint8_t& FX_Depth() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Depth); }
@@ -480,6 +514,11 @@ public:
 	uint8_t& WaterParity() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterParity); }
 	uint8_t& WaterTable() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterTable); }
 	uint8_t& WaveAmp() { return Value<uint8_t>(PropOffsets_WaterTexture.WaveAmp); }
+
+protected:
+	void UpdateWater();
+
+	std::vector<float> WaterDepth, WaterDepth2;
 };
 
 class UWaveTexture : public UWaterTexture

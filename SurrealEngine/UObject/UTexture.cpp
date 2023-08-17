@@ -368,18 +368,162 @@ void UWaterTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
+		UpdateWater();
+
+		// Show the current water in the texture:
+		// To do: this probably shouldn't just show the depth, but rather the slope
+
 		UnrealMipmap& mipmap = Mipmaps.front();
 
 		int width = mipmap.Width;
 		int height = mipmap.Height;
 		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
-		int count = width * height;
-		for (int i = 0; i < count; i++)
+
+		for (int y = 0; y < height; y++)
 		{
-			pixels[i] = 200;
+			const float* waterline = &WaterDepth[y * width];
+			uint8_t* destline = pixels + y * width;
+			for (int x = 0; x < width; x++)
+			{
+				destline[x] = (uint8_t)clamp((int)(waterline[x] * 128.0f + 128.0f), 0, 255);
+			}
 		}
 
 		TextureModified = true;
+	}
+}
+
+void UWaterTexture::UpdateWater()
+{
+	UnrealMipmap& mipmap = Mipmaps.front();
+
+	int width = mipmap.Width;
+	int height = mipmap.Height;
+	uint8_t* pixels = (uint8_t*)mipmap.Data.data();
+
+	WaterDepth.resize(width * height);
+	WaterDepth2.resize(width * height);
+
+	ADrop* drops = Drops();
+	for (int i = 0, count = NumDrops(); i < count; i++)
+	{
+		ADrop& drop = drops[i];
+		float& water = WaterDepth[drop.X * 2 + drop.Y * 2 * width];
+		switch (drop.Type)
+		{
+		case ADropType::FixedDepth:
+		{
+			water = ((int)drop.Depth - 128) * (10.0f / 255);
+			break;
+		}
+		case ADropType::PhaseSpot:
+		{
+			drop.Depth += drop.ByteD;
+			water = std::sin(drop.Depth * (3.14f / 128)) * 10.0f; // To do: use a table since there are only 256 possible values passed into std::sin here
+			break;
+		}
+		case ADropType::ShallowSpot:
+		{
+			break;
+		}
+		case ADropType::HalfAmpl:
+		{
+			break;
+		}
+		case ADropType::RandomMover:
+		{
+			break;
+		}
+		case ADropType::FixedRandomSpot:
+		{
+			break;
+		}
+		case ADropType::WhirlyThing:
+		{
+			break;
+		}
+		case ADropType::BigWhirly:
+		{
+			break;
+		}
+		case ADropType::HorizontalLine:
+		{
+			break;
+		}
+		case ADropType::VerticalLine:
+		{
+			break;
+		}
+		case ADropType::DiagonalLine1:
+		{
+			break;
+		}
+		case ADropType::DiagonalLine2:
+		{
+			break;
+		}
+		case ADropType::HorizontalOsc:
+		{
+			break;
+		}
+		case ADropType::VerticalOsc:
+		{
+			break;
+		}
+		case ADropType::DiagonalOsc1:
+		{
+			break;
+		}
+		case ADropType::DiagonalOsc2:
+		{
+			break;
+		}
+		case ADropType::RainDrops:
+		{
+			break;
+		}
+		case ADropType::AreaClamp:
+		{
+			break;
+		}
+		case ADropType::LeakyTap:
+		{
+			break;
+		}
+		case ADropType::DrippyTap:
+		{
+			break;
+		}
+		default: break;
+		}
+	}
+
+	// Simulate waves by doing a dumb blur:
+	// 
+	// Horizontal:
+	for (int y = 0; y < height; y++)
+	{
+		const float* srcline = &WaterDepth[y * width];
+		float* destline = &WaterDepth2[y * width];
+		for (int x = 0; x < width; x++)
+		{
+			int xleft = x - 1 >= 0 ? x - 1 : width - 1;
+			int xright = x + 1 < width ? x + 1 : 0;
+			destline[x] = srcline[xleft] * 0.25f + srcline[x] * 0.50f + srcline[xright] * 0.25f;
+		}
+	}
+
+	// Vertical:
+	for (int y = 0; y < height; y++)
+	{
+		const float* srcline = &WaterDepth2[y * width];
+		const float* srclinetop = &WaterDepth2[(y - 1 >= 0 ? y - 1 : height - 1) * width];
+		const float* srclinebottom = &WaterDepth2[(y + 1 < height ? y + 1 : 0) * width];
+		float* destline = &WaterDepth[y * width];
+		for (int x = 0; x < width; x++)
+		{
+			destline[x] = (srclinetop[x] * 0.25f + srcline[x] * 0.50f + srclinebottom[x] * 0.25f) * 0.95f; // 0.95 to slowly go back to 0
+		}
 	}
 }
 
@@ -389,15 +533,26 @@ void UWaveTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
+		UpdateWater();
+
+		// What is the difference between a water texture and a wave texture?
+		// 
+		// To do: this probably shouldn't just show the depth, but rather the slope
+
 		UnrealMipmap& mipmap = Mipmaps.front();
 
 		int width = mipmap.Width;
 		int height = mipmap.Height;
 		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
-		int count = width * height;
-		for (int i = 0; i < count; i++)
+
+		for (int y = 0; y < height; y++)
 		{
-			pixels[i] = 200;
+			const float* waterline = &WaterDepth[y * width];
+			uint8_t* destline = pixels + y * width;
+			for (int x = 0; x < width; x++)
+			{
+				destline[x] = (uint8_t)clamp((int)(waterline[x] * 128.0f + 128.0f), 0, 255);
+			}
 		}
 
 		TextureModified = true;
@@ -410,6 +565,8 @@ void UWetTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
+		UpdateWater();
+
 		UnrealMipmap& mipmap = Mipmaps.front();
 
 		UTexture* tex = SourceTexture();
@@ -419,15 +576,19 @@ void UWetTexture::UpdateFrame()
 			int height = mipmap.Height;
 			uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
-			int count = width * height;
-			for (int i = 0; i < count; i++)
+			for (int y = 0; y < height; y++)
 			{
-				pixels[i] = srcpixels[i];
+				const float* waterline = &WaterDepth[y * width];
+				const uint8_t* srcline = srcpixels + y * width;
+				uint8_t* destline = pixels + y * width;
+				for (int x = 0; x < width; x++)
+				{
+					// Use water depth as displacement
+					int water = (int)(waterline[x] * width);
+					int srcx = clamp(x + water, 0, width - 1);
+					destline[x] = srcline[srcx];
+				}
 			}
-		}
-		else
-		{
-			UWaterTexture::UpdateFrame();
 		}
 
 		TextureModified = true;
