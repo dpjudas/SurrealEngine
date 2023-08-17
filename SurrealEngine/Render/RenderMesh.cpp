@@ -27,6 +27,115 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 
 void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
 {
+	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
+	float animFrame = actor->AnimFrame() * seq->NumFrames;
+
+	int vertexOffsets[3];
+	float t0, t1;
+
+	if (animFrame >= 0.0f)
+	{
+		int frame0 = (int)animFrame;
+		int frame1 = frame0 + 1;
+		frame0 = frame0 % seq->NumFrames;
+		frame1 = frame1 % seq->NumFrames;
+		t0 = animFrame - (float)frame0;
+		t1 = 0.0f;
+		vertexOffsets[0] = (seq->StartFrame + frame0) * mesh->FrameVerts;
+		vertexOffsets[1] = (seq->StartFrame + frame1) * mesh->FrameVerts;
+		vertexOffsets[2] = 0;
+	}
+	else // Tween from old animation
+	{
+		t0 = actor->TweenFromAnimFrame.T;
+		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
+		vertexOffsets[0] = actor->TweenFromAnimFrame.V0;
+		vertexOffsets[1] = actor->TweenFromAnimFrame.V1;
+		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
+	}
+
+	SetupMeshTextures(actor, mesh);
+
+	uint32_t polyflags = 0;
+	switch (actor->Style())
+	{
+	case 2: polyflags |= PF_Masked; break; // STY_Masked
+	case 3: polyflags |= PF_Translucent; break; // STY_Translucent
+	case 4: polyflags |= PF_Modulated; break; // STY_Modulated
+	}
+	if (actor->bNoSmooth()) polyflags |= PF_NoSmooth;
+	if (actor->bSelected()) polyflags |= PF_Selected;
+	if (actor->bMeshEnviroMap()) polyflags |= PF_Environment;
+	if (actor->bMeshCurvy()) polyflags |= PF_Flat;
+	if (actor->bNoSmooth()) polyflags |= PF_NoSmooth;
+	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyflags |= PF_Unlit;
+
+	GouraudVertex vertices[3];
+	for (const MeshTri& tri : mesh->Tris)
+	{
+		if (tri.TextureIndex >= mesh->Textures.size())
+			continue;
+
+		uint32_t renderflags = tri.PolyFlags | polyflags;
+		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[tri.TextureIndex];
+		if (!tex)
+			continue;
+
+		FTextureInfo texinfo;
+		texinfo.Texture = tex;
+		texinfo.CacheID = (uint64_t)(ptrdiff_t)tex;
+		texinfo.Format = tex->ActualFormat;
+		texinfo.Mips = tex->Mipmaps.data();
+		texinfo.NumMips = (int)tex->Mipmaps.size();
+		texinfo.USize = tex->USize();
+		texinfo.VSize = tex->VSize();
+		if (tex->Palette())
+			texinfo.Palette = (FColor*)tex->Palette()->Colors.data();
+
+		float uscale = (tex ? tex->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
+		float vscale = (tex ? tex->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
+
+		for (int i = 0; i < 3; i++)
+		{
+			vec3 vertex = mesh->Verts[tri.Indices[i]];
+			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
+			vertices[i].UV = { tri.UV[i].x * uscale, tri.UV[i].y * vscale };
+		}
+
+		if (renderflags & PF_Environment)
+		{
+			// To do: this needs to be the smoothed normal
+			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
+			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
+			for (int i = 0; i < 3; i++)
+			{
+				vec3 v = normalize(vertices[i].Point);
+				vec3 p = rotmat * reflect(v, n);
+				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
+			}
+		}
+
+		// To do: this needs to be the smoothed normal
+		vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
+
+		if (renderflags & PF_Environment)
+		{
+			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
+			for (int i = 0; i < 3; i++)
+			{
+				vec3 v = normalize(vertices[i].Point);
+				vec3 p = rotmat * reflect(v, n);
+				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
+			}
+		}
+
+		for (int i = 0; i < 3; i++)
+		{
+			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit));
+		}
+
+		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
+	}
 }
 
 void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
@@ -58,12 +167,72 @@ void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
 	}
 
-	SetupMeshTextures(actor, mesh);
+	SetupLodMeshTextures(actor, mesh);
 	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1);
 	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, ObjectNormalToWorld, 0, vertexOffsets, t0, t1);
 }
 
-void RenderSubsystem::SetupMeshTextures(UActor* actor, ULodMesh* mesh)
+void RenderSubsystem::SetupMeshTextures(UActor* actor, UMesh* mesh)
+{
+	if (Mesh.textures.size() < mesh->Textures.size())
+		Mesh.textures.resize(mesh->Textures.size());
+
+	Mesh.envmap = nullptr;
+
+	for (int i = 0; i < (int)mesh->Textures.size(); i++)
+	{
+		// Multiskins always take precedent
+		UTexture* tex = actor->GetMultiskin(i);
+		if (!tex)
+		{
+			// Skin acts as MultiSkin[0], unless the mesh group has no texture
+			if (!mesh->Textures[i] || i == 0)
+				tex = actor->Skin();
+
+			// Check mesh skin next
+			if (!tex)
+				tex = mesh->Textures[i];
+
+			// Check texture
+			if (!tex)
+				tex = actor->Texture();
+
+			// Get the last multiskin
+			if (!tex)
+			{
+				for (int j = 0; j < mesh->Textures.size(); j++)
+				{
+					UTexture* multiskin = actor->GetMultiskin(j);
+					if (multiskin)
+						tex = multiskin;
+				}
+			}
+		}
+
+		//if (tex)
+		//{
+		//	tex = tex->GetAnimTexture();
+		//	Mesh.envmap = tex;
+		//}
+
+		Mesh.textures[i] = tex;
+	}
+
+	if (actor->Texture())
+	{
+		Mesh.envmap = actor->Texture();
+	}
+	else if (actor->Region().Zone && actor->Region().Zone->EnvironmentMap())
+	{
+		Mesh.envmap = actor->Region().Zone->EnvironmentMap();
+	}
+	else if (actor->Level()->EnvironmentMap())
+	{
+		Mesh.envmap = actor->Level()->EnvironmentMap();
+	}
+}
+
+void RenderSubsystem::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 {
 	if (Mesh.textures.size() < mesh->Textures.size())
 		Mesh.textures.resize(mesh->Textures.size());
@@ -151,7 +320,7 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
 
 		// skip if no texture
-		if ( !tex )
+		if (!tex)
 			continue;
 
 		UpdateTexture(tex);

@@ -16,8 +16,20 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
 
+	Light.FogFrameCounter++;
+
+	vec3 flashScale = 0.5f;
+	vec3 flashFog = vec3(1.0f, 0.0f, 0.0f);
+
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(engine->CameraActor);
+	if (player)
+	{
+		flashScale = player->FlashScale();
+		flashFog = player->FlashFog();
+	}
+
 	Device->Brightness = engine->Brightness;
-	Device->Lock(0.5f, vec4(1.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f));
+	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f));
 
 	ResetCanvas();
 	PreRender();
@@ -29,6 +41,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	}
 
 	PostRender();
+	Device->EndFlash();
 
 	Device->Unlock(true);
 }

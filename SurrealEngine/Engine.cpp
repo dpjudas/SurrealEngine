@@ -68,6 +68,9 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
+	if (!StartupFullscreen)
+		viewport->bWindowsMouseAvailable() = true;
+
 	if (!LaunchInfo.noEntryMap)
 		LoadEntryMap();
 
@@ -732,7 +735,7 @@ void Engine::OpenWindow(int width, int height, bool fullscreen)
 		window = DisplayWindow::Create(this);
 
 	window->SetWindowTitle("Unreal Tournament");
-	window->SetWindowFrame(Rect::xywh(0.0, 0.0, width, height));
+	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
 		window->ShowFullscreen();
@@ -748,7 +751,12 @@ void Engine::CloseWindow()
 void Engine::TickWindow()
 {
 	if (window)
-		window->ShowCursor(viewport->bShowWindowsMouse());
+	{
+		if (viewport->bShowWindowsMouse() && viewport->bWindowsMouseAvailable())
+			window->UnlockCursor();
+		else
+			window->LockCursor();
+	}
 
 	InputEvent(IK_MouseX, IST_Axis, 0);
 	InputEvent(IK_MouseY, IST_Axis, 0);

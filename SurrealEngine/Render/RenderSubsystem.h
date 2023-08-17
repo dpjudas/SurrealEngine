@@ -79,7 +79,8 @@ private:
 	void DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
 	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
 	void DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
-	void SetupMeshTextures(UActor* actor, ULodMesh* mesh);
+	void SetupMeshTextures(UActor* actor, UMesh* mesh);
+	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
 
 	void DrawBrush(FSceneNode* frame, UActor* actor);
 	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, UActor* actor);
