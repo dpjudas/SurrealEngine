@@ -165,6 +165,7 @@ public:
 	int FullscreenViewportX;
 	int FullscreenViewportY;
 	bool StartupFullscreen;
+	float Brightness = 0.5f;
 
 	void LoadKeybindings();
 	std::map<std::string, std::string> keybindings;
