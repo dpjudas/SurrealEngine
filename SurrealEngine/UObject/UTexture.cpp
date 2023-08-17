@@ -381,11 +381,14 @@ void UWaterTexture::UpdateFrame()
 
 		for (int y = 0; y < height; y++)
 		{
-			const float* waterline = &WaterDepth[y * width];
+			const WaterPixel* waterline = &WaterDepth[CurrentWaterDepth][y * width];
 			uint8_t* destline = pixels + y * width;
 			for (int x = 0; x < width; x++)
 			{
-				destline[x] = (uint8_t)clamp((int)(waterline[x] * 128.0f + 128.0f), 0, 255);
+				// float u = 0.2f * waterline[x].XGradient;
+				// float v = 0.2f * waterline[x].YGradient;
+				vec3 normal = normalize(vec3(-waterline[x].XGradient, 0.2f, -waterline[x].YGradient));
+				destline[x] = (uint8_t)clamp(std::abs(normal.y) * 255.0f + 128.0f, 0.0f, 255.0f);
 			}
 		}
 
@@ -401,25 +404,25 @@ void UWaterTexture::UpdateWater()
 	int height = mipmap.Height;
 	uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 
-	WaterDepth.resize(width * height);
-	WaterDepth2.resize(width * height);
+	WaterDepth[0].resize(width * height);
+	WaterDepth[1].resize(width * height);
 
 	ADrop* drops = Drops();
 	for (int i = 0, count = NumDrops(); i < count; i++)
 	{
 		ADrop& drop = drops[i];
-		float& water = WaterDepth[drop.X * 2 + drop.Y * 2 * width];
+		WaterPixel& water = WaterDepth[CurrentWaterDepth][drop.X * 2 + drop.Y * 2 * width];
 		switch (drop.Type)
 		{
 		case ADropType::FixedDepth:
 		{
-			water = ((int)drop.Depth - 128) * (10.0f / 255);
+			water.Pressure = ((int)drop.Depth - 128) * (1.0f / 255);
 			break;
 		}
 		case ADropType::PhaseSpot:
 		{
 			drop.Depth += drop.ByteD;
-			water = std::sin(drop.Depth * (3.14f / 128)) * 10.0f; // To do: use a table since there are only 256 possible values passed into std::sin here
+			water.Pressure = std::sin(drop.Depth * (3.14f / 128)); // To do: use a table since there are only 256 possible values passed into std::sin here
 			break;
 		}
 		case ADropType::ShallowSpot:
@@ -498,31 +501,52 @@ void UWaterTexture::UpdateWater()
 		}
 	}
 
-	// Simulate waves by doing a dumb blur:
-	// 
-	// Horizontal:
+	int cur = CurrentWaterDepth;
+	int next = (cur + 1) % 2;
+	CurrentWaterDepth = next;
+
 	for (int y = 0; y < height; y++)
 	{
-		const float* srcline = &WaterDepth[y * width];
-		float* destline = &WaterDepth2[y * width];
+		const WaterPixel* srcline = &WaterDepth[cur][y * width];
+		const WaterPixel* srclineup = &WaterDepth[cur][(y - 1 >= 0 ? y - 1 : height - 1) * width];
+		const WaterPixel* srclinedown = &WaterDepth[cur][(y + 1 < height ? y + 1 : 0) * width];
+		WaterPixel* destline = &WaterDepth[next][y * width];
 		for (int x = 0; x < width; x++)
 		{
 			int xleft = x - 1 >= 0 ? x - 1 : width - 1;
 			int xright = x + 1 < width ? x + 1 : 0;
-			destline[x] = srcline[xleft] * 0.25f + srcline[x] * 0.50f + srcline[xright] * 0.25f;
-		}
-	}
 
-	// Vertical:
-	for (int y = 0; y < height; y++)
-	{
-		const float* srcline = &WaterDepth2[y * width];
-		const float* srclinetop = &WaterDepth2[(y - 1 >= 0 ? y - 1 : height - 1) * width];
-		const float* srclinebottom = &WaterDepth2[(y + 1 < height ? y + 1 : 0) * width];
-		float* destline = &WaterDepth[y * width];
-		for (int x = 0; x < width; x++)
-		{
-			destline[x] = (srclinetop[x] * 0.25f + srcline[x] * 0.50f + srclinebottom[x] * 0.25f) * 0.95f; // 0.95 to slowly go back to 0
+			float velocity = srcline[x].Velocity;
+			float pressure = srcline[x].Pressure;
+			float pressureLeft = srcline[xleft].Pressure;
+			float pressureRight = srcline[xright].Pressure;
+			float pressureUp = srclineup[x].Pressure;
+			float pressureDown = srclinedown[x].Pressure;
+
+			const float delta = 1.0f; // Use a smaller number for a smaller timestep
+
+			// Apply horizontal wave function
+			velocity += delta * (-2.0f * pressure + pressureRight + pressureLeft) * 0.25f;
+
+			// Apply vertical wave function
+			velocity += delta * (-2.0f * pressure + pressureUp + pressureDown) * 0.25f;
+
+			// Change pressure by pressure velocity
+			pressure += delta * velocity;
+
+			// "Spring" motion. This makes the waves look more like water waves and less like sound waves.
+			velocity -= 0.005f * delta * pressure;
+
+			// Velocity damping so things eventually calm down
+			velocity *= 1.0f - 0.002f * delta;
+
+			// Pressure damping to prevent it from building up forever.
+			pressure *= 0.999f;
+
+			destline[x].Pressure = pressure;
+			destline[x].Velocity = velocity;
+			destline[x].XGradient = (pressureRight - pressureLeft) * 0.5f;
+			destline[x].YGradient = (pressureDown - pressureUp) * 0.5f;
 		}
 	}
 }
@@ -531,32 +555,8 @@ void UWaterTexture::UpdateWater()
 
 void UWaveTexture::UpdateFrame()
 {
-	if (!TextureModified)
-	{
-		UpdateWater();
-
-		// What is the difference between a water texture and a wave texture?
-		// 
-		// To do: this probably shouldn't just show the depth, but rather the slope
-
-		UnrealMipmap& mipmap = Mipmaps.front();
-
-		int width = mipmap.Width;
-		int height = mipmap.Height;
-		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
-
-		for (int y = 0; y < height; y++)
-		{
-			const float* waterline = &WaterDepth[y * width];
-			uint8_t* destline = pixels + y * width;
-			for (int x = 0; x < width; x++)
-			{
-				destline[x] = (uint8_t)clamp((int)(waterline[x] * 128.0f + 128.0f), 0, 255);
-			}
-		}
-
-		TextureModified = true;
-	}
+	// What is the difference between a water texture and a wave texture?
+	UWaterTexture::UpdateFrame();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -578,13 +578,14 @@ void UWetTexture::UpdateFrame()
 			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
 			for (int y = 0; y < height; y++)
 			{
-				const float* waterline = &WaterDepth[y * width];
+				const WaterPixel* waterline = &WaterDepth[CurrentWaterDepth][y * width];
 				const uint8_t* srcline = srcpixels + y * width;
 				uint8_t* destline = pixels + y * width;
 				for (int x = 0; x < width; x++)
 				{
-					// Use water depth as displacement
-					int water = (int)(waterline[x] * width);
+					// Use water as displacement
+
+					int water = (int)(0.5f * waterline[x].XGradient * width);
 					int srcx = clamp(x + water, 0, width - 1);
 					destline[x] = srcline[srcx];
 				}

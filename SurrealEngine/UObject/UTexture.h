@@ -489,6 +489,14 @@ struct ADrop
 	uint8_t ByteA,ByteB, ByteC, ByteD;
 };
 
+struct WaterPixel
+{
+	float Pressure = 0.0f;
+	float Velocity = 0.0f;
+	float XGradient = 0.0f;
+	float YGradient = 0.0f;
+};
+
 class UWaterTexture : public UFractalTexture
 {
 public:
@@ -518,7 +526,8 @@ public:
 protected:
 	void UpdateWater();
 
-	std::vector<float> WaterDepth, WaterDepth2;
+	std::vector<WaterPixel> WaterDepth[2];
+	int CurrentWaterDepth = 0;
 };
 
 class UWaveTexture : public UWaterTexture
