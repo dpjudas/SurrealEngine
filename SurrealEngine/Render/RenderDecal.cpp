@@ -10,7 +10,10 @@ void RenderSubsystem::DrawDecals(FSceneNode* frame)
 	{
 		if (leveldecal->Decal->Texture())
 		{
+			UpdateTexture(leveldecal->Decal->Texture());
+
 			UTexture* texture = leveldecal->Decal->Texture()->GetAnimTexture();
+			UpdateTexture(texture);
 
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)texture;

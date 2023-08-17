@@ -109,10 +109,13 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	const vec3& VVec = model->Vectors[surface.vTextureV];
 	const vec3& Base = model->Points[surface.pBase];
 
+	UpdateTexture(surface.Material);
+
 	FTextureInfo texture;
 	if (surface.Material)
 	{
 		UTexture* tex = surface.Material->GetAnimTexture();
+		UpdateTexture(tex);
 		texture.CacheID = (uint64_t)(ptrdiff_t)tex;
 		texture.bRealtimeChanged = tex->TextureModified;
 		texture.UScale = tex->DrawScale();
@@ -139,6 +142,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	if (surface.Material && surface.Material->DetailTexture())
 	{
 		UTexture* tex = surface.Material->DetailTexture()->GetAnimTexture();
+		UpdateTexture(tex);
 		detailtex.CacheID = (uint64_t)(ptrdiff_t)tex;
 		detailtex.bRealtimeChanged = false;
 		detailtex.UScale = tex->DrawScale();
@@ -162,6 +166,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	if (surface.Material && surface.Material->MacroTexture())
 	{
 		UTexture* tex = surface.Material->MacroTexture()->GetAnimTexture();
+		UpdateTexture(tex);
 		macrotex.CacheID = (uint64_t)(ptrdiff_t)tex;
 		macrotex.bRealtimeChanged = false;
 		macrotex.UScale = tex->DrawScale();

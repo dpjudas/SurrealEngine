@@ -160,11 +160,11 @@ public:
 	uint64_t lastTime = 0;
 
 	void LoadEngineSettings();
-	int WindowedViewportX;
-	int WindowedViewportY;
-	int FullscreenViewportX;
-	int FullscreenViewportY;
-	bool StartupFullscreen;
+	int WindowedViewportX = 0;
+	int WindowedViewportY = 0;
+	int FullscreenViewportX = 0;
+	int FullscreenViewportY = 0;
+	bool StartupFullscreen = false;
 	float Brightness = 0.5f;
 
 	void LoadKeybindings();
