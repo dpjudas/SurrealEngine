@@ -16,9 +16,6 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
 
-	for (UTexture* tex : Textures)
-		tex->Update(levelTimeElapsed);
-
 	Light.FogFrameCounter++;
 
 	vec3 flashScale = 0.5f;
