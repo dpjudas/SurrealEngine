@@ -25,6 +25,7 @@ public:
 	virtual void popClip() = 0;
 
 	virtual void fillRect(const Rect& box, const Colorf& color) = 0;
+	virtual void line(const Point& p0, const Point& p1, const Colorf& color) = 0;
 	virtual void drawText(const Point& pos, const Colorf& color, const std::string& text) = 0;
 	virtual Rect measureText(const std::string& text) = 0;
 };

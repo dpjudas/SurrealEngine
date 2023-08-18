@@ -30,6 +30,9 @@ public:
 	void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) override;
 	void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
 	void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
+	void Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) override;
+	void Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) override;
+	void Draw2DPoint(FSceneNode* Frame, vec4 Color, float X1, float Y1, float X2, float Y2, float Z) override;
 	void ClearZ(FSceneNode* Frame) override;
 	void ReadPixels(FColor* Pixels) override;
 	void EndFlash() override;

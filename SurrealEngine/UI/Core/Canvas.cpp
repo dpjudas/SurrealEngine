@@ -194,6 +194,7 @@ public:
 	void popClip() override;
 
 	void fillRect(const Rect& box, const Colorf& color) override;
+	void line(const Point& p0, const Point& p1, const Colorf& color) override;
 	void drawText(const Point& pos, const Colorf& color, const std::string& text) override;
 	Rect measureText(const std::string& text) override;
 
@@ -286,6 +287,12 @@ void RenderDeviceCanvas::fillRect(const Rect& box, const Colorf& color)
 {
 	vec4 premultcolor = { color.r * color.a, color.g * color.a, color.b * color.a, color.a };
 	drawTile(whiteTexture.get(), origin.x + box.x, origin.y + box.y, box.width, box.height, 0.0, 0.0, 1.0, 1.0, 1.0, premultcolor, PF_Highlighted);
+}
+
+void RenderDeviceCanvas::line(const Point& p0, const Point& p1, const Colorf& color)
+{
+	vec4 premultcolor = { color.r * color.a, color.g * color.a, color.b * color.a, color.a };
+	renderDevice->Draw2DLine(&frame, premultcolor, vec3((float)(origin.x + p0.x), (float)(origin.y + p0.y), 1.0f), vec3((float)(origin.x + p1.x), (float)(origin.y + p1.y), 1.0f));
 }
 
 void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)

@@ -218,6 +218,72 @@ void RenderPassManager::CreatePipelines()
 
 			pipeline[type][i] = builder.Create(renderer->Device.get());
 		}
+
+		// Line pipeline
+		{
+			GraphicsPipelineBuilder builder;
+			builder.AddVertexShader(vertShader[type]);
+			builder.Viewport(0.0f, 0.0f, (float)renderer->Textures->Scene->width, (float)renderer->Textures->Scene->height);
+			builder.Scissor(0, 0, renderer->Textures->Scene->width, renderer->Textures->Scene->height);
+			builder.Topology(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+			builder.Cull(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+			builder.AddVertexBufferBinding(0, sizeof(SceneVertex));
+			builder.AddVertexAttribute(0, 0, VK_FORMAT_R32_UINT, offsetof(SceneVertex, Flags));
+			builder.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SceneVertex, Position));
+			builder.AddVertexAttribute(2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord));
+			builder.AddVertexAttribute(3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord2));
+			builder.AddVertexAttribute(4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord3));
+			builder.AddVertexAttribute(5, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord4));
+			builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
+			if (type == 1)
+				builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
+			builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+			builder.Layout(layout[type]);
+			builder.RenderPass(SceneRenderPass.get());
+
+			builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+			builder.DepthStencilEnable(false, false, false);
+			builder.AddFragmentShader(fragShader[type]);
+
+			builder.SubpassColorAttachmentCount(1);
+			builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
+			builder.DebugName(debugName[type]);
+
+			linepipeline[type] = builder.Create(renderer->Device.get());
+		}
+
+		// Point pipeline
+		{
+			GraphicsPipelineBuilder builder;
+			builder.AddVertexShader(vertShader[type]);
+			builder.Viewport(0.0f, 0.0f, (float)renderer->Textures->Scene->width, (float)renderer->Textures->Scene->height);
+			builder.Scissor(0, 0, renderer->Textures->Scene->width, renderer->Textures->Scene->height);
+			builder.Topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+			builder.Cull(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+			builder.AddVertexBufferBinding(0, sizeof(SceneVertex));
+			builder.AddVertexAttribute(0, 0, VK_FORMAT_R32_UINT, offsetof(SceneVertex, Flags));
+			builder.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SceneVertex, Position));
+			builder.AddVertexAttribute(2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord));
+			builder.AddVertexAttribute(3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord2));
+			builder.AddVertexAttribute(4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord3));
+			builder.AddVertexAttribute(5, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord4));
+			builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
+			if (type == 1)
+				builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
+			builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+			builder.Layout(layout[type]);
+			builder.RenderPass(SceneRenderPass.get());
+
+			builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+			builder.DepthStencilEnable(false, false, false);
+			builder.AddFragmentShader(fragShader[type]);
+
+			builder.SubpassColorAttachmentCount(1);
+			builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
+			builder.DebugName(debugName[type]);
+
+			pointpipeline[type] = builder.Create(renderer->Device.get());
+		}
 	}
 }
 

@@ -720,6 +720,128 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 	Stats.Tiles++;
 }
 
+void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2)
+{
+	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
+
+	ivec4 textureBinds;
+	if (UsesBindless)
+	{
+		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+	}
+	else
+	{
+		textureBinds.x = 0;
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
+	}
+
+	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
+	uint32_t* iptr = Buffers->SceneIndexes + SceneIndexPos;
+
+	v[0] = { 0, vec3(P1.x, P1.y, P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+	v[1] = { 0, vec3(P2.x, P2.y, P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+
+	iptr[0] = SceneVertexPos;
+	iptr[1] = SceneVertexPos + 1;
+
+	SceneVertexPos += 2;
+	SceneIndexPos += 2;
+}
+
+void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2)
+{
+	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
+
+	ivec4 textureBinds;
+	if (UsesBindless)
+	{
+		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+	}
+	else
+	{
+		textureBinds.x = 0;
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
+	}
+
+	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
+	uint32_t* iptr = Buffers->SceneIndexes + SceneIndexPos;
+
+	v[0] = { 0, vec3(RFX2 * P1.z * (P1.x - Frame->FX2), RFY2 * P1.z * (P1.y - Frame->FY2), P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+	v[1] = { 0, vec3(RFX2 * P2.z * (P2.x - Frame->FX2), RFY2 * P2.z * (P2.y - Frame->FY2), P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+
+	iptr[0] = SceneVertexPos;
+	iptr[1] = SceneVertexPos + 1;
+
+	SceneVertexPos += 2;
+	SceneIndexPos += 2;
+}
+
+void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, float X1, float Y1, float X2, float Y2, float Z)
+{
+	SetPipeline(RenderPasses->getPointPipeline(UsesBindless));
+
+	ivec4 textureBinds;
+	if (UsesBindless)
+	{
+		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+	}
+	else
+	{
+		textureBinds.x = 0;
+		textureBinds.y = 0;
+		textureBinds.z = 0;
+		textureBinds.w = 0;
+
+		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
+	}
+
+	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
+
+	v[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2), RFY2 * Z * (Y1 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+	v[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2), RFY2 * Z * (Y1 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+	v[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2), RFY2 * Z * (Y2 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+	v[3] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2), RFY2 * Z * (Y2 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
+
+	uint32_t vstart = SceneVertexPos;
+	uint32_t vcount = 4;
+	uint32_t istart = SceneIndexPos;
+	uint32_t icount = (vcount - 2) * 3;
+
+	uint32_t* iptr = Buffers->SceneIndexes + istart;
+	for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+	{
+		*(iptr++) = vstart;
+		*(iptr++) = i - 1;
+		*(iptr++) = i;
+	}
+
+	SceneVertexPos += vcount;
+	SceneIndexPos += icount;
+}
+
 void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 {
 	DrawBatch(Commands->GetDrawCommands());

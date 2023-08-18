@@ -36,6 +36,8 @@ void EditorViewport::OnPaint(Canvas* canvas)
 	engine->render->DrawEditorViewport();
 
 	canvas->end3d();
+
+	canvas->line(Point(10.0f, 10.f), Point(100.0f, 100.0f), Colorf(1.0f, 0.5f, 0.2f));
 }
 
 void EditorViewport::OnMouseMove(const Point& pos)
