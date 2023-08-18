@@ -1,12 +1,17 @@
 
 #include "Precomp.h"
 #include "EditorWorkspace.h"
-#include "EditorViewport.h"
+#include "EditorViewportFrame.h"
 
 EditorWorkspace::EditorWorkspace(Widget* parent) : Widget(parent)
 {
 	for (auto& viewport : Viewports)
-		viewport = new EditorViewport(this);
+		viewport = new EditorViewportFrame(this);
+
+	Viewports[0]->Set2DMode();
+	Viewports[1]->Set2DMode();
+	Viewports[2]->Set3DMode();
+	Viewports[3]->Set2DMode();
 }
 
 EditorWorkspace::~EditorWorkspace()
