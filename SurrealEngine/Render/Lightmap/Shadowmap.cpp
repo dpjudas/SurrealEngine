@@ -55,6 +55,8 @@ void Shadowmap::Load(UModel* model, const BspSurface& surface, int lightindex)
 					value += src[yyy * width + xxx] * weights[4 + xx + yy * 3];
 				}
 			}
+
+			// XXX: Change this to control map brightness
 			value *= 0.5f;
 
 			dest[x] = value;
