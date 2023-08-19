@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Editor2DViewport.h"
 #include "Engine.h"
+#include "UObject/ULevel.h"
 #include "UI/Core/Colorf.h"
 
 Editor2DViewport::Editor2DViewport(Widget* parent) : EditorViewport(parent)
@@ -15,12 +16,72 @@ Editor2DViewport::~Editor2DViewport()
 void Editor2DViewport::OnPaint(Canvas* canvas)
 {
 	Colorf background(230 / 255.0f, 230 / 255.0f, 230 / 255.0f);
-	Colorf linecolor(220 / 255.0f, 220 / 255.0f, 220 / 255.0f);
-
 	canvas->fillRect(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()), background);
+	DrawGrid(canvas);
+	if (engine && engine->Level)
+	{
+		DrawLevel(canvas);
+	}
+}
 
-	if (!engine)
-		return;
+void Editor2DViewport::DrawLevel(Canvas* canvas)
+{
+	DrawNode(canvas, &engine->Level->Model->Nodes[0]);
+}
+
+void Editor2DViewport::DrawNode(Canvas* canvas, BspNode* node)
+{
+	// Draw surfaces on this plane
+	BspNode* polynode = node;
+	while (true)
+	{
+		DrawNodeSurface(canvas, polynode);
+
+		if (polynode->Plane < 0) break;
+		polynode = &engine->Level->Model->Nodes[polynode->Plane];
+	}
+
+	if (node->Front >= 0)
+	{
+		DrawNode(canvas, &engine->Level->Model->Nodes[node->Front]);
+	}
+	if (node->Back >= 0)
+	{
+		DrawNode(canvas, &engine->Level->Model->Nodes[node->Back]);
+	}
+}
+
+void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
+{
+	UModel* model = engine->Level->Model;
+	const BspSurface& surface = model->Surfaces[node->Surf];
+
+	uint32_t PolyFlags = surface.PolyFlags;
+	const vec3& UVec = model->Vectors[surface.vTextureU];
+	const vec3& VVec = model->Vectors[surface.vTextureV];
+	const vec3& Base = model->Points[surface.pBase];
+
+	BspVert* v = &model->Vertices[node->VertPool];
+
+	Colorf linecolor(80 / 255.0f, 80 / 255.0f, 220 / 255.0f);
+
+	int numverts = node->NumVertices;
+	for (int j = 0; j < numverts; j++)
+	{
+		int k = j + 1;
+		if (k == numverts)
+			k = 0;
+
+		const vec3 p0 = model->Points[v[j].Vertex];
+		const vec3 p1 = model->Points[v[k].Vertex];
+
+		canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * (0.01 * Zoom), Point(p1.x - Location.x, p1.y - Location.y) * (0.01 * Zoom), linecolor);
+	}
+}
+
+void Editor2DViewport::DrawGrid(Canvas* canvas)
+{
+	Colorf linecolor(220 / 255.0f, 220 / 255.0f, 220 / 255.0f);
 
 	double w = GetWidth();
 	double h = GetHeight();
@@ -63,19 +124,19 @@ void Editor2DViewport::OnMouseUp(const Point& pos, int key)
 
 void Editor2DViewport::OnKeyDown(int key)
 {
-	if (key == IK_W)
+	if (key == IK_A)
+	{
+		MoveCamera(-100.0f, 0.0f);
+	}
+	else if (key == IK_D)
 	{
 		MoveCamera(100.0f, 0.0f);
 	}
-	else if (key == IK_S)
-	{
-		MoveCamera(100.0f, 0.0f);
-	}
-	else if (key == IK_A)
+	else if (key == IK_W)
 	{
 		MoveCamera(0.0f, -100.0f);
 	}
-	else if (key == IK_D)
+	else if (key == IK_S)
 	{
 		MoveCamera(0.0f, 100.0f);
 	}
@@ -89,7 +150,7 @@ void Editor2DViewport::OnRawMouseMove(int dx, int dy)
 {
 	if (MouseIsMoving)
 	{
-		MoveCamera((float)-dy, (float)dx);
+		MoveCamera(-dx * 20.0f, -dy * 20.0f);
 	}
 }
 

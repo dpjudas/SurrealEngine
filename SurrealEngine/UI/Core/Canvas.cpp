@@ -198,6 +198,7 @@ public:
 	void drawText(const Point& pos, const Colorf& color, const std::string& text) override;
 	Rect measureText(const std::string& text) override;
 
+	void drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color);
 	void drawTile(CanvasTexture* texture, double x, double y, double width, double height, double u, double v, double uvwidth, double uvheight, double z, vec4 color, uint32_t flags);
 
 	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels);
@@ -275,7 +276,29 @@ void RenderDeviceCanvas::setOrigin(const Point& newOrigin)
 
 void RenderDeviceCanvas::pushClip(const Rect& box)
 {
-	clipStack.push_back(box);
+	if (!clipStack.empty())
+	{
+		const Rect& clip = clipStack.back();
+
+		double x0 = box.x + origin.x;
+		double y0 = box.y + origin.y;
+		double x1 = x0 + box.width;
+		double y1 = y0 + box.height;
+
+		x0 = std::max(x0, clip.x);
+		y0 = std::max(y0, clip.y);
+		x1 = std::min(x1, clip.x + clip.width);
+		y1 = std::min(y1, clip.y + clip.height);
+
+		if (x0 < x1 && y0 < y1)
+			clipStack.push_back(Rect::ltrb(x0, y0, x1, y1));
+		else
+			clipStack.push_back(Rect::xywh(0.0, 0.0, 0.0, 0.0));
+	}
+	else
+	{
+		clipStack.push_back(box);
+	}
 }
 
 void RenderDeviceCanvas::popClip()
@@ -291,8 +314,95 @@ void RenderDeviceCanvas::fillRect(const Rect& box, const Colorf& color)
 
 void RenderDeviceCanvas::line(const Point& p0, const Point& p1, const Colorf& color)
 {
+	double x0 = origin.x + p0.x;
+	double y0 = origin.y + p0.y;
+	double x1 = origin.x + p1.x;
+	double y1 = origin.y + p1.y;
+
+	if (clipStack.empty())// || (clipStack.back().contains({ x0, y0 }) && clipStack.back().contains({ x1, y1 })))
+	{
+		drawLineUnclipped({ x0, y0 }, { x1, y1 }, color);
+	}
+	else
+	{
+		const Rect& clip = clipStack.back();
+
+		if (x0 > x1)
+		{
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
+
+		if (x1 < clip.x || x0 >= clip.x + clip.width)
+			return;
+
+		// Clip left edge
+		if (x0 < clip.x)
+		{
+			double dx = x1 - x0;
+			double dy = y1 - y0;
+			if (std::abs(dx) < 0.0001)
+				return;
+			y0 = y0 + (clip.x - x0) * dy / dx;
+			x0 = clip.x;
+		}
+
+		// Clip right edge
+		if (x1 > clip.x + clip.width)
+		{
+			double dx = x1 - x0;
+			double dy = y1 - y0;
+			if (std::abs(dx) < 0.0001)
+				return;
+			y1 = y1 + (clip.x + clip.width - x1) * dy / dx;
+			x1 = clip.x + clip.width;
+		}
+
+		if (y0 > y1)
+		{
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
+
+		if (y1 < clip.y || y0 >= clip.y + clip.height)
+			return;
+
+		// Clip top edge
+		if (y0 < clip.y)
+		{
+			double dx = x1 - x0;
+			double dy = y1 - y0;
+			if (std::abs(dy) < 0.0001)
+				return;
+			x0 = x0 + (clip.y - y0) * dx / dy;
+			y0 = clip.y;
+		}
+
+		// Clip bottom edge
+		if (y1 > clip.y + clip.height)
+		{
+			double dx = x1 - x0;
+			double dy = y1 - y0;
+			if (std::abs(dy) < 0.0001)
+				return;
+			x1 = x1 + (clip.y + clip.height - y1) * dx / dy;
+			y1 = clip.y + clip.height;
+		}
+
+		x0 = clamp(x0, clip.x, clip.x + clip.width);
+		x1 = clamp(x1, clip.x, clip.x + clip.width);
+		y0 = clamp(y0, clip.y, clip.y + clip.height);
+		y1 = clamp(y1, clip.y, clip.y + clip.height);
+
+		if (x0 != x1 || y0 != y1)
+			drawLineUnclipped({ x0, y0 }, { x1, y1 }, color);
+	}
+}
+
+void RenderDeviceCanvas::drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color)
+{
 	vec4 premultcolor = { color.r * color.a, color.g * color.a, color.b * color.a, color.a };
-	renderDevice->Draw2DLine(&frame, premultcolor, vec3((float)(origin.x + p0.x), (float)(origin.y + p0.y), 1.0f), vec3((float)(origin.x + p1.x), (float)(origin.y + p1.y), 1.0f));
+	renderDevice->Draw2DLine(&frame, premultcolor, vec3((float)p0.x, (float)p0.y, 1.0f), vec3((float)p1.x, (float)p1.y, 1.0f));
 }
 
 void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)

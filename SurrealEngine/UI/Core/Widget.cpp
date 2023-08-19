@@ -215,7 +215,7 @@ void Widget::Repaint()
 void Widget::Paint(Canvas* canvas)
 {
 	Point oldOrigin = canvas->getOrigin();
-	//canvas->pushClip(Geometry);
+	canvas->pushClip(Geometry);
 	canvas->setOrigin(oldOrigin + Geometry.topLeft());
 	OnPaint(canvas);
 	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
@@ -224,7 +224,7 @@ void Widget::Paint(Canvas* canvas)
 			w->Paint(canvas);
 	}
 	canvas->setOrigin(oldOrigin);
-	//canvas->popClip();
+	canvas->popClip();
 }
 
 void Widget::SetFocus()

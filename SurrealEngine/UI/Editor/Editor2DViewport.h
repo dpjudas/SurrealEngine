@@ -4,6 +4,8 @@
 #include "EditorViewport.h"
 #include "Math/rotator.h"
 
+class BspNode;
+
 class Editor2DViewport : public EditorViewport
 {
 public:
@@ -21,6 +23,10 @@ protected:
 	void OnKeyUp(int key) override;
 
 private:
+	void DrawLevel(Canvas* canvas);
+	void DrawNode(Canvas* canvas, BspNode* node);
+	void DrawNodeSurface(Canvas* canvas, BspNode* node);
+	void DrawGrid(Canvas* canvas);
 	void MoveCamera(float x, float y);
 
 	bool MouseIsMoving = false;
