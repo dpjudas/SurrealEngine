@@ -8,10 +8,10 @@ EditorWorkspace::EditorWorkspace(Widget* parent) : Widget(parent)
 	for (auto& viewport : Viewports)
 		viewport = new EditorViewportFrame(this);
 
-	Viewports[0]->Set2DMode();
-	Viewports[1]->Set2DMode();
+	Viewports[0]->SetTopMode();
+	Viewports[1]->SetFrontMode();
 	Viewports[2]->Set3DMode();
-	Viewports[3]->Set2DMode();
+	Viewports[3]->SetSideMode();
 }
 
 EditorWorkspace::~EditorWorkspace()

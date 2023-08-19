@@ -5,7 +5,7 @@
 #include "UObject/ULevel.h"
 #include "UI/Core/Colorf.h"
 
-Editor2DViewport::Editor2DViewport(Widget* parent) : EditorViewport(parent)
+Editor2DViewport::Editor2DViewport(const Coords& coords, Widget* parent) : EditorViewport(parent), ViewCoords(coords)
 {
 }
 
@@ -15,7 +15,7 @@ Editor2DViewport::~Editor2DViewport()
 
 void Editor2DViewport::OnPaint(Canvas* canvas)
 {
-	Colorf background(230 / 255.0f, 230 / 255.0f, 230 / 255.0f);
+	Colorf background(160 / 255.0f, 160 / 255.0f, 160 / 255.0f);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()), background);
 	DrawGrid(canvas);
 	if (engine && engine->Level)
@@ -64,6 +64,7 @@ void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
 	BspVert* v = &model->Vertices[node->VertPool];
 
 	Colorf linecolor(80 / 255.0f, 80 / 255.0f, 220 / 255.0f);
+	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
 	int numverts = node->NumVertices;
 	for (int j = 0; j < numverts; j++)
@@ -72,26 +73,25 @@ void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
 		if (k == numverts)
 			k = 0;
 
-		const vec3 p0 = model->Points[v[j].Vertex];
-		const vec3 p1 = model->Points[v[k].Vertex];
+		const vec3 p0 = ViewCoords * model->Points[v[j].Vertex];
+		const vec3 p1 = ViewCoords * model->Points[v[k].Vertex];
 
-		canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * (0.01 * Zoom), Point(p1.x - Location.x, p1.y - Location.y) * (0.01 * Zoom), linecolor);
+		canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * Zoom + center, Point(p1.x - Location.x, p1.y - Location.y) * Zoom + center, linecolor);
 	}
 }
 
 void Editor2DViewport::DrawGrid(Canvas* canvas)
 {
-	Colorf linecolor(220 / 255.0f, 220 / 255.0f, 220 / 255.0f);
+	Colorf linecolor(128 / 255.0f, 128 / 255.0f, 128 / 255.0f);
+	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
-	double w = GetWidth();
-	double h = GetHeight();
-	for (double y = 0.0; y < h; y += 10.0 * Zoom)
+	for (double y = -32767.0; y < 32767.0; y += 1000.0)
 	{
-		canvas->line(Point(0.0, y), Point(w - 1.0, y), linecolor);
+		canvas->line(Point(-32767.0 - Location.x, y - Location.y) * Zoom + center, Point(32767.0 - Location.x, y - Location.y) * Zoom + center, linecolor);
 	}
-	for (double x = 0.0; x < w; x += 10.0 * Zoom)
+	for (double x = -32767.0; x < 32767.0; x += 1000.0)
 	{
-		canvas->line(Point(x, 0.0), Point(x, h - 1.0), linecolor);
+		canvas->line(Point(x - Location.x, -32767.0 - Location.y) * Zoom + center, Point(x - Location.x, 32767.0 - Location.y) * Zoom + center, linecolor);
 	}
 }
 

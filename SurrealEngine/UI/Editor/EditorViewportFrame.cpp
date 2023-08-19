@@ -13,10 +13,39 @@ EditorViewportFrame::~EditorViewportFrame()
 {
 }
 
-void EditorViewportFrame::Set2DMode()
+void EditorViewportFrame::SetTopMode()
 {
 	delete Viewport; Viewport = nullptr;
-	Viewport = new Editor2DViewport(this);
+	Coords coords;
+	coords.Origin = vec3(0.0f);
+	coords.XAxis = vec3(1.0f, 0.0f, 0.0f);
+	coords.YAxis = vec3(0.0f, 1.0f, 0.0f);
+	coords.ZAxis = vec3(0.0f, 0.0f, 1.0f);
+	Viewport = new Editor2DViewport(coords, this);
+	OnGeometryChanged();
+}
+
+void EditorViewportFrame::SetFrontMode()
+{
+	delete Viewport; Viewport = nullptr;
+	Coords coords;
+	coords.Origin = vec3(0.0f);
+	coords.XAxis = vec3(1.0f, 0.0f, 0.0f);
+	coords.YAxis = vec3(0.0f, 0.0f, -1.0f);
+	coords.ZAxis = vec3(0.0f, 1.0f, 0.0f);
+	Viewport = new Editor2DViewport(coords, this);
+	OnGeometryChanged();
+}
+
+void EditorViewportFrame::SetSideMode()
+{
+	delete Viewport; Viewport = nullptr;
+	Coords coords;
+	coords.Origin = vec3(0.0f);
+	coords.XAxis = vec3(0.0f, 1.0f, 0.0f);
+	coords.YAxis = vec3(0.0f, 0.0f, -1.0f);
+	coords.ZAxis = vec3(1.0f, 0.0f, 0.0f);
+	Viewport = new Editor2DViewport(coords, this);
 	OnGeometryChanged();
 }
 

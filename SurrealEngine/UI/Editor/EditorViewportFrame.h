@@ -12,7 +12,9 @@ public:
 	EditorViewportFrame(Widget* parent);
 	~EditorViewportFrame();
 
-	void Set2DMode();
+	void SetTopMode();
+	void SetFrontMode();
+	void SetSideMode();
 	void Set3DMode();
 
 protected:

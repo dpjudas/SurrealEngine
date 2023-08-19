@@ -3,13 +3,14 @@
 
 #include "EditorViewport.h"
 #include "Math/rotator.h"
+#include "Math/coords.h"
 
 class BspNode;
 
 class Editor2DViewport : public EditorViewport
 {
 public:
-	Editor2DViewport(Widget* parent);
+	Editor2DViewport(const Coords& coords, Widget* parent);
 	~Editor2DViewport();
 
 protected:
@@ -31,5 +32,6 @@ private:
 
 	bool MouseIsMoving = false;
 	vec2 Location = vec2(0.0f);
-	float Zoom = 1.5f;
+	double Zoom = 0.01;
+	Coords ViewCoords = Coords::Identity();
 };
