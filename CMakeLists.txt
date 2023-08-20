@@ -276,6 +276,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Editor/EditorWorkspace.h
 	SurrealEngine/UI/Editor/EditorViewportFrame.cpp
 	SurrealEngine/UI/Editor/EditorViewportFrame.h
+	SurrealEngine/UI/Editor/EditorViewportHeader.cpp
+	SurrealEngine/UI/Editor/EditorViewportHeader.h
 	SurrealEngine/UI/Editor/EditorViewport.cpp
 	SurrealEngine/UI/Editor/EditorViewport.h
 	SurrealEngine/UI/Editor/Editor2DViewport.cpp

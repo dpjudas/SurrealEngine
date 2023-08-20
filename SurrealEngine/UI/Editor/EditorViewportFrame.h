@@ -5,6 +5,7 @@
 #include "Math/rotator.h"
 
 class EditorViewport;
+class EditorViewportHeader;
 
 class EditorViewportFrame : public Widget
 {
@@ -22,5 +23,6 @@ protected:
 	void OnGeometryChanged() override;
 
 private:
+	EditorViewportHeader* Header = nullptr;
 	EditorViewport* Viewport = nullptr;
 };
