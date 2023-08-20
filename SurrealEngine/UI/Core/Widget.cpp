@@ -280,7 +280,7 @@ Widget* Widget::ChildAt(const Point& pos)
 	{
 		if (cur->Geometry.contains(pos))
 		{
-			Widget* cur2 = cur->ChildAt(pos - Geometry.topLeft());
+			Widget* cur2 = cur->ChildAt(pos - cur->Geometry.topLeft());
 			return cur2 ? cur2 : cur;
 		}
 	}
