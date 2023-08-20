@@ -21,7 +21,7 @@ EditorWorkspace::~EditorWorkspace()
 void EditorWorkspace::OnGeometryChanged()
 {
 	Size s = GetSize() * 0.5;
-	double borderSize = 4.0;
+	double borderSize = 2.0;
 
 	Viewports[0]->SetFrameGeometry(0.0, 0.0, s.width - borderSize, s.height - borderSize);
 	Viewports[1]->SetFrameGeometry(s.width + borderSize, 0.0, s.width - borderSize, s.height - borderSize);
