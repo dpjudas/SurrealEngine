@@ -50,8 +50,8 @@ public:
 	void SetNumericMode(bool enable = true, bool decimals = false);
 	void SetMaxLength(int length);
 	void SetText(const std::string& text);
-	void SetText(int number);
-	void SetText(float number, int num_decimal_places = 6);
+	void SetTextInt(int number);
+	void SetTextFloat(float number, int num_decimal_places = 6);
 	void SetSelection(int pos, int length);
 	void ClearSelection();
 	void SetCursorPos(int pos);
@@ -128,8 +128,6 @@ private:
 	std::string input_mask;
 	std::string decimal_char = ".";
 
-	static std::string break_characters;
-
 	VerticalTextPosition vertical_text_align;
 	Timer* scroll_timer = nullptr;
 
@@ -156,5 +154,6 @@ private:
 
 	bool select_all_on_focus_gain = true;
 
+	static const std::string break_characters;
 	static const std::string numeric_mode_characters;
 };

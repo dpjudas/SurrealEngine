@@ -438,7 +438,7 @@ void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const s
 Rect RenderDeviceCanvas::measureText(const std::string& text)
 {
 	double x = 0.0;
-	double y = font->textmetrics.ascender + font->textmetrics.descender;
+	double y = font->textmetrics.ascender - font->textmetrics.descender;
 
 	UTF8Reader reader(text.data(), text.size());
 	while (!reader.is_end())
@@ -449,11 +449,7 @@ Rect RenderDeviceCanvas::measureText(const std::string& text)
 			glyph = font->getGlyph(32);
 		}
 
-		if (glyph->texture)
-		{
-			x += glyph->metrics.advanceWidth;
-		}
-
+		x += std::round(glyph->metrics.advanceWidth);
 		reader.next();
 	}
 
@@ -464,8 +460,8 @@ VerticalTextPosition RenderDeviceCanvas::verticalTextAlign()
 {
 	VerticalTextPosition align;
 	align.top = 0.0f;
-	align.baseline = font->textmetrics.lineGap * 0.5f + font->textmetrics.ascender;
-	align.bottom = font->textmetrics.ascender + font->textmetrics.descender + font->textmetrics.lineGap;
+	align.baseline = font->textmetrics.ascender;
+	align.bottom = font->textmetrics.ascender - font->textmetrics.descender;
 	return align;
 }
 

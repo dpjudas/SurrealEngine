@@ -234,7 +234,7 @@ void Widget::Paint(Canvas* canvas)
 bool Widget::GetKeyState(EInputKey key)
 {
 	Widget* window = Window();
-	return window ? window->GetKeyState(key) : false;
+	return window ? window->DispWindow->GetKeyState(key) : false;
 }
 
 bool Widget::HasFocus()

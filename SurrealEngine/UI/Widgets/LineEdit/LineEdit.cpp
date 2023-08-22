@@ -193,7 +193,7 @@ void LineEdit::SetText(const std::string& newtext)
 	Update();
 }
 
-void LineEdit::SetText(int number)
+void LineEdit::SetTextInt(int number)
 {
 	text = std::to_string(number);
 	clip_start_offset = 0;
@@ -203,7 +203,7 @@ void LineEdit::SetText(int number)
 	Update();
 }
 
-void LineEdit::SetText(float number, int num_decimal_places)
+void LineEdit::SetTextFloat(float number, int num_decimal_places)
 {
 	text = ToFixed(number, num_decimal_places);
 	clip_start_offset = 0;
@@ -359,9 +359,7 @@ void LineEdit::OnKeyChar(std::string chars)
 	if (!chars.empty() && !(chars[0] >= 0 && chars[0] < 32))
 	{
 		if (FuncBeforeEditChanged)
-		{
 			FuncBeforeEditChanged();
-		}
 
 		DeleteSelectedText();
 		if (input_mask.empty())
@@ -406,20 +404,19 @@ void LineEdit::OnKeyChar(std::string chars)
 		UpdateTextClipping();
 
 		if (FuncAfterEditChanged)
-		{
 			FuncAfterEditChanged();
-		}
 	}
 }
 
 void LineEdit::OnKeyDown(EInputKey key)
 {
-	if (FuncIgnoreKeyDown(key))
+	if (FuncIgnoreKeyDown && FuncIgnoreKeyDown(key))
 		return;
 
 	if (key == IK_Enter)
 	{
-		FuncEnterPressed();
+		if (FuncEnterPressed)
+			FuncEnterPressed();
 		return;
 	}
 
@@ -589,9 +586,7 @@ void LineEdit::OnKeyDown(EInputKey key)
 	}
 
 	if (FuncAfterEditChanged)
-	{
 		FuncAfterEditChanged();
-	}
 }
 
 void LineEdit::OnKeyUp(EInputKey key)
@@ -917,8 +912,6 @@ Rect LineEdit::GetSelectionRect()
 	return selection_rect;
 }
 
-std::string LineEdit::break_characters = " ::;,.-";
-
 int LineEdit::FindNextBreakCharacter(int search_start)
 {
 	if (search_start >= int(text.size()) - 1)
@@ -1070,6 +1063,16 @@ std::string LineEdit::GetVisibleTextAfterSelection()
 
 void LineEdit::OnPaint(Canvas* canvas)
 {
+	// To do: draw frame elsewhere, maybe in a OnPaintFrame function?
+	double w = GetWidth();
+	double h = GetHeight();
+	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
+	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf(1.0f, 1.0f, 1.0f, 1.0f));
+	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
+	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
+	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
+	canvas->fillRect(Rect::xywh(w - 1.0, 0.0, 1.0, h - 0.0), bordercolor);
+
 	std::string txt_before = GetVisibleTextBeforeSelection();
 	std::string txt_selected = GetVisibleSelectedText();
 	std::string txt_after = GetVisibleTextAfterSelection();
@@ -1086,6 +1089,13 @@ void LineEdit::OnPaint(Canvas* canvas)
 	Size size_before = canvas->measureText(txt_before).size();
 	Size size_selected = canvas->measureText(txt_selected).size();
 
+	if (!txt_selected.empty())
+	{
+		// Draw selection box.
+		Rect selection_rect = GetSelectionRect();
+		canvas->fillRect(selection_rect, HasFocus() ? Colorf(153 / 255.0f, 201 / 255.0f, 239 / 255.0f) : Colorf(229 / 255.0f, 235 / 255.0f, 241 / 255.0f));
+	}
+
 	// Draw text before selection
 	if (!txt_before.empty())
 	{
@@ -1093,9 +1103,6 @@ void LineEdit::OnPaint(Canvas* canvas)
 	}
 	if (!txt_selected.empty())
 	{
-		// Draw selection box.
-		Rect selection_rect = GetSelectionRect();
-		canvas->fillRect(selection_rect, HasFocus() ? Colorf(153 / 255.0f, 201 / 255.0f, 239 / 255.0f) : Colorf(229 / 255.0f, 235 / 255.0f, 241 / 255.0f));
 		canvas->drawText(Point(size_before.width, canvas->verticalTextAlign().baseline), Colorf(0.0f, 0.0f, 0.0f), txt_selected);
 	}
 	if (!txt_after.empty())
@@ -1173,3 +1180,6 @@ std::string LineEdit::ToUpper(const std::string& text)
 {
 	return text;
 }
+
+const std::string LineEdit::break_characters = " ::;,.-";
+const std::string LineEdit::numeric_mode_characters = "0123456789";

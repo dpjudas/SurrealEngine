@@ -173,7 +173,7 @@ void Win32Window::Update()
 
 bool Win32Window::GetKeyState(EInputKey key)
 {
-	return ::GetKeyState((int)key) != 0;
+	return ::GetKeyState((int)key) & 0x8000; // High bit (0x8000) means key is down, Low bit (0x0001) means key is sticky on (like Caps Lock, Num Lock, etc.)
 }
 
 Rect Win32Window::GetWindowFrame() const
