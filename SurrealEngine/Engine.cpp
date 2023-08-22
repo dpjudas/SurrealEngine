@@ -821,12 +821,12 @@ void Engine::OnWindowKeyChar(std::string chars)
 
 void Engine::OnWindowKeyDown(EInputKey key)
 {
-	InputEvent((EInputKey)key, IST_Press);
+	InputEvent(key, IST_Press);
 }
 
 void Engine::OnWindowKeyUp(EInputKey key)
 {
-	InputEvent((EInputKey)key, IST_Release);
+	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowGeometryChanged()

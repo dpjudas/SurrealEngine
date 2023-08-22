@@ -368,6 +368,11 @@ void X11Window::Update()
 {
 }
 
+bool Win32Window::GetKeyState(EInputKey key)
+{
+	return false;
+}
+
 Rect X11Window::GetWindowFrame() const
 {
 	return Rect::xywh(WindowX / dpiscale, WindowY / dpiscale, WindowSizeX / dpiscale, WindowSizeY / dpiscale);

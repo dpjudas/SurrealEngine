@@ -171,6 +171,11 @@ void Win32Window::Update()
 	InvalidateRect(WindowHandle, nullptr, FALSE);
 }
 
+bool Win32Window::GetKeyState(EInputKey key)
+{
+	return ::GetKeyState((int)key) != 0;
+}
+
 Rect Win32Window::GetWindowFrame() const
 {
 	RECT box = {};

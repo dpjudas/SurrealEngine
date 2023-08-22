@@ -195,8 +195,10 @@ public:
 
 	void fillRect(const Rect& box, const Colorf& color) override;
 	void line(const Point& p0, const Point& p1, const Colorf& color) override;
+
 	void drawText(const Point& pos, const Colorf& color, const std::string& text) override;
 	Rect measureText(const std::string& text) override;
+	VerticalTextPosition verticalTextAlign() override;
 
 	void drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color);
 	void drawTile(CanvasTexture* texture, double x, double y, double width, double height, double u, double v, double uvwidth, double uvheight, double z, vec4 color, uint32_t flags);
@@ -456,6 +458,15 @@ Rect RenderDeviceCanvas::measureText(const std::string& text)
 	}
 
 	return Rect::xywh(0.0, 0.0, x, y);
+}
+
+VerticalTextPosition RenderDeviceCanvas::verticalTextAlign()
+{
+	VerticalTextPosition align;
+	align.top = 0.0f;
+	align.baseline = font->textmetrics.lineGap * 0.5f + font->textmetrics.ascender;
+	align.bottom = font->textmetrics.ascender + font->textmetrics.descender + font->textmetrics.lineGap;
+	return align;
 }
 
 void RenderDeviceCanvas::drawTile(CanvasTexture* texture, double x, double y, double width, double height, double u, double v, double uvwidth, double uvheight, double z, vec4 color, uint32_t flags)

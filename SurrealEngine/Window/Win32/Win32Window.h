@@ -24,6 +24,7 @@ public:
 	void LockCursor() override;
 	void UnlockCursor() override;
 	void Update() override;
+	bool GetKeyState(EInputKey key) override;
 
 	RenderDevice* GetRenderDevice() override { return Device.get(); }
 

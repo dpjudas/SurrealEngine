@@ -20,8 +20,8 @@ protected:
 	void OnMouseDoubleclick(const Point& pos, int key) override;
 	void OnMouseUp(const Point& pos, int key) override;
 	void OnRawMouseMove(int dx, int dy) override;
-	void OnKeyDown(int key) override;
-	void OnKeyUp(int key) override;
+	void OnKeyDown(EInputKey key) override;
+	void OnKeyUp(EInputKey key) override;
 
 private:
 	void DrawLevel(Canvas* canvas);

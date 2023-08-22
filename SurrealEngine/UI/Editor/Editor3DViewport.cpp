@@ -75,7 +75,7 @@ void Editor3DViewport::OnMouseUp(const Point& pos, int key)
 	}
 }
 
-void Editor3DViewport::OnKeyDown(int key)
+void Editor3DViewport::OnKeyDown(EInputKey key)
 {
 	if (key == IK_W)
 	{
@@ -95,7 +95,7 @@ void Editor3DViewport::OnKeyDown(int key)
 	}
 }
 
-void Editor3DViewport::OnKeyUp(int key)
+void Editor3DViewport::OnKeyUp(EInputKey key)
 {
 }
 

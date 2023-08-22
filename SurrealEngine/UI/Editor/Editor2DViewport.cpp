@@ -122,7 +122,7 @@ void Editor2DViewport::OnMouseUp(const Point& pos, int key)
 	}
 }
 
-void Editor2DViewport::OnKeyDown(int key)
+void Editor2DViewport::OnKeyDown(EInputKey key)
 {
 	if (key == IK_A)
 	{
@@ -142,7 +142,7 @@ void Editor2DViewport::OnKeyDown(int key)
 	}
 }
 
-void Editor2DViewport::OnKeyUp(int key)
+void Editor2DViewport::OnKeyUp(EInputKey key)
 {
 }
 
