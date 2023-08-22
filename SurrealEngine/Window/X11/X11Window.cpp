@@ -368,7 +368,7 @@ void X11Window::Update()
 {
 }
 
-bool Win32Window::GetKeyState(EInputKey key)
+bool X11Window::GetKeyState(EInputKey key)
 {
 	return false;
 }
