@@ -1,8 +1,8 @@
 # License information
 
-## License for the UTEngine
+## License for the SurrealEngine
 
-	//  UTEngine
+	//  SurrealEngine
 	//  Copyright (c) 2021 Magnus Norddahl
 	//
 	//  This software is provided 'as-is', without any express or implied
