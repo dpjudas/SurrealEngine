@@ -14,9 +14,10 @@ public:
 
 	static float LightDistanceFalloff(float dist)
 	{
-		float v = std::sqrt(dist + (1.0f / 4096.0f));
-		float v2 = v * v;
-		float v3 = v2 * v;
-		return (1.0f + 2.0f * v3 - 3.0f * v2) / v; // To do: is this the correct falloff?
+		return (-logf(dist));
+		//float v = std::sqrt(dist);
+		//float v2 = v * v;
+		//float v3 = v2 * v;
+		//return (1.0f + 2.0f * v3 - 3.0f * v2) / (2 * dist); // To do: is this the correct falloff?
 	}
 };
