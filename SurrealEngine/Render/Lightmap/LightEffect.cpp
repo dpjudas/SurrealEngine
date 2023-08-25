@@ -38,7 +38,7 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 			float dist = std::sqrt(dot(L, L)) * invRadius;
 			if (dist < 1.0f)
 			{
-				float distanceAttenuation = clamp(LightDistanceFalloff(dist), 0.0f, 1.0f);
+				float distanceAttenuation = LightDistanceFalloff(dist);
 				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
 				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation;
 			}
