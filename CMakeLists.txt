@@ -258,6 +258,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Core/Widget.h
 	SurrealEngine/UI/Core/Canvas.cpp
 	SurrealEngine/UI/Core/Canvas.h
+	SurrealEngine/UI/Core/Timer.cpp
+	SurrealEngine/UI/Core/Timer.h
 	SurrealEngine/UI/Core/Rect.h
 	SurrealEngine/UI/Core/Colorf.h
 	SurrealEngine/UI/Widgets/MainWindow/MainWindow.cpp
@@ -270,12 +272,22 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Widgets/Toolbar/ToolbarButton.h
 	SurrealEngine/UI/Widgets/Statusbar/Statusbar.cpp
 	SurrealEngine/UI/Widgets/Statusbar/Statusbar.h
+	SurrealEngine/UI/Widgets/LineEdit/LineEdit.cpp
+	SurrealEngine/UI/Widgets/LineEdit/LineEdit.h
 	SurrealEngine/UI/Editor/EditorMainWindow.cpp
 	SurrealEngine/UI/Editor/EditorMainWindow.h
 	SurrealEngine/UI/Editor/EditorWorkspace.cpp
 	SurrealEngine/UI/Editor/EditorWorkspace.h
+	SurrealEngine/UI/Editor/EditorViewportFrame.cpp
+	SurrealEngine/UI/Editor/EditorViewportFrame.h
+	SurrealEngine/UI/Editor/EditorViewportHeader.cpp
+	SurrealEngine/UI/Editor/EditorViewportHeader.h
 	SurrealEngine/UI/Editor/EditorViewport.cpp
 	SurrealEngine/UI/Editor/EditorViewport.h
+	SurrealEngine/UI/Editor/Editor2DViewport.cpp
+	SurrealEngine/UI/Editor/Editor2DViewport.h
+	SurrealEngine/UI/Editor/Editor3DViewport.cpp
+	SurrealEngine/UI/Editor/Editor3DViewport.h
 	SurrealEngine/Window/Window.cpp
 	SurrealEngine/Window/Window.h
 )
@@ -464,6 +476,7 @@ source_group("SurrealEngine\\UI\\Widgets\\MainWindow" REGULAR_EXPRESSION "${CMAK
 source_group("SurrealEngine\\UI\\Widgets\\Menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Menubar/.+")
 source_group("SurrealEngine\\UI\\Widgets\\Statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Statusbar/.+")
 source_group("SurrealEngine\\UI\\Widgets\\Toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Toolbar/.+")
+source_group("SurrealEngine\\UI\\Widgets\\LineEdit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/LineEdit/.+")
 source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Editor/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")

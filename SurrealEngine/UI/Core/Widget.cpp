@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Widget.h"
+#include "Timer.h"
 #include "Colorf.h"
 #include <stdexcept>
 
@@ -19,6 +20,9 @@ Widget::~Widget()
 {
 	while (LastChildObj)
 		delete LastChildObj;
+
+	while (FirstTimerObj)
+		delete FirstTimerObj;
 
 	DetachFromParent();
 }
@@ -215,7 +219,7 @@ void Widget::Repaint()
 void Widget::Paint(Canvas* canvas)
 {
 	Point oldOrigin = canvas->getOrigin();
-	//canvas->pushClip(Geometry);
+	canvas->pushClip(Geometry);
 	canvas->setOrigin(oldOrigin + Geometry.topLeft());
 	OnPaint(canvas);
 	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
@@ -224,7 +228,29 @@ void Widget::Paint(Canvas* canvas)
 			w->Paint(canvas);
 	}
 	canvas->setOrigin(oldOrigin);
-	//canvas->popClip();
+	canvas->popClip();
+}
+
+bool Widget::GetKeyState(EInputKey key)
+{
+	Widget* window = Window();
+	return window ? window->DispWindow->GetKeyState(key) : false;
+}
+
+bool Widget::HasFocus()
+{
+	Widget* window = Window();
+	return window ? window->FocusWidget == this : false;
+}
+
+bool Widget::IsEnabled()
+{
+	return true;
+}
+
+bool Widget::IsVisible()
+{
+	return true;
 }
 
 void Widget::SetFocus()
@@ -264,6 +290,27 @@ void Widget::UnlockCursor()
 	}
 }
 
+void Widget::SetCursor(StandardCursor cursor)
+{
+}
+
+void Widget::CaptureMouse()
+{
+}
+
+void Widget::ReleaseMouseCapture()
+{
+}
+
+std::string Widget::GetClipboardText()
+{
+	return {};
+}
+
+void Widget::SetClipboardText(const std::string& text)
+{
+}
+
 Widget* Widget::Window()
 {
 	for (Widget* w = this; w != nullptr; w = w->Parent())
@@ -274,13 +321,23 @@ Widget* Widget::Window()
 	return nullptr;
 }
 
+Canvas* Widget::GetCanvas()
+{
+	for (Widget* w = this; w != nullptr; w = w->Parent())
+	{
+		if (w->DispCanvas)
+			return w->DispCanvas.get();
+	}
+	return nullptr;
+}
+
 Widget* Widget::ChildAt(const Point& pos)
 {
 	for (Widget* cur = LastChild(); cur != nullptr; cur = cur->PrevSibling())
 	{
 		if (cur->Geometry.contains(pos))
 		{
-			Widget* cur2 = cur->ChildAt(pos - Geometry.topLeft());
+			Widget* cur2 = cur->ChildAt(pos - cur->Geometry.topLeft());
 			return cur2 ? cur2 : cur;
 		}
 	}

@@ -100,6 +100,16 @@ enum EInputType
 	IST_Axis
 };
 
+class KeyEvent
+{
+public:
+	EInputKey Key;
+	bool Ctrl = false;
+	bool Alt = false;
+	bool Shift = false;
+	Point MousePos = Point(0.0, 0.0);
+};
+
 class DisplayWindow;
 
 class DisplayWindowHost
@@ -147,6 +157,7 @@ public:
 	virtual void LockCursor() = 0;
 	virtual void UnlockCursor() = 0;
 	virtual void Update() = 0;
+	virtual bool GetKeyState(EInputKey key) = 0;
 
 	virtual RenderDevice* GetRenderDevice() = 0;
 

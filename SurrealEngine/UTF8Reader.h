@@ -54,6 +54,23 @@ public:
 	/// \brief Set the current position of the reader
 	void set_position(std::string::size_type position);
 
+	static size_t utf8_length(const std::string& text)
+	{
+		return utf8_length(text.data(), text.size());
+	}
+
+	static size_t utf8_length(const std::string::value_type* text, std::string::size_type length)
+	{
+		UTF8Reader reader(text, length);
+		size_t i = 0; 
+		while (!reader.is_end())
+		{
+			reader.next();
+			i++;
+		}
+		return i;
+	}
+
 private:
 	std::string::size_type current_position = 0;
 	std::string::size_type length = 0;

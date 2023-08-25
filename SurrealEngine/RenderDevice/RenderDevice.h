@@ -99,6 +99,9 @@ public:
 	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
 	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
 	virtual void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
+	virtual void Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DPoint(FSceneNode* Frame, vec4 Color, float X1, float Y1, float X2, float Y2, float Z) = 0;
 	virtual void ClearZ(FSceneNode* Frame) = 0;
 	virtual void ReadPixels(FColor* Pixels) = 0;
 	virtual void EndFlash() = 0;

@@ -7,6 +7,7 @@
 #include "Window/Window.h"
 
 class Canvas;
+class Timer;
 
 enum class WidgetType
 {
@@ -54,6 +55,10 @@ public:
 	void Update();
 	void Repaint();
 
+	bool HasFocus();
+	bool IsEnabled();
+	bool IsVisible();
+
 	void SetFocus();
 	void SetEnabled(bool value);
 	void SetDisabled(bool value) { SetEnabled(!value); }
@@ -61,8 +66,17 @@ public:
 
 	void LockCursor();
 	void UnlockCursor();
+	void SetCursor(StandardCursor cursor);
+	void CaptureMouse();
+	void ReleaseMouseCapture();
+
+	bool GetKeyState(EInputKey key);
+
+	std::string GetClipboardText();
+	void SetClipboardText(const std::string& text);
 
 	Widget* Window();
+	Canvas* GetCanvas();
 	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
 	Widget* ChildAt(const Point& pos);
 
@@ -91,14 +105,13 @@ protected:
 	virtual void OnMouseWheel(const Point& pos, EInputKey key) { }
 	virtual void OnRawMouseMove(int dx, int dy) { }
 	virtual void OnKeyChar(std::string chars) { }
-	virtual void OnKeyDown(int key) { }
-	virtual void OnKeyUp(int key) { }
+	virtual void OnKeyDown(EInputKey key) { }
+	virtual void OnKeyUp(EInputKey key) { }
 	virtual void OnGeometryChanged() { }
 	virtual void OnClose() { delete this; }
 	virtual void OnSetFocus() { }
 	virtual void OnLostFocus() { }
-	virtual void OnEnabled() { }
-	virtual void OnDisabled() { }
+	virtual void OnEnableChanged() { }
 
 private:
 	void DetachFromParent();
@@ -130,6 +143,8 @@ private:
 	Widget* FirstChildObj = nullptr;
 	Widget* LastChildObj = nullptr;
 
+	Timer* FirstTimerObj = nullptr;
+
 	Rect Geometry = Rect::xywh(-1.0, -1.0, 0.0, 0.0);
 
 	std::string WindowTitle;
@@ -140,4 +155,6 @@ private:
 
 	Widget(const Widget&) = delete;
 	Widget& operator=(const Widget&) = delete;
+
+	friend class Timer;
 };

@@ -3,7 +3,7 @@
 
 #include "UI/Core/Widget.h"
 
-class EditorViewport;
+class EditorViewportFrame;
 
 class EditorWorkspace : public Widget
 {
@@ -11,11 +11,11 @@ public:
 	EditorWorkspace(Widget* parent);
 	~EditorWorkspace();
 
-	EditorViewport* GetViewport(int index) const { return Viewports[index]; }
+	EditorViewportFrame* GetViewport(int index) const { return Viewports[index]; }
 
 protected:
 	void OnGeometryChanged() override;
 
 private:
-	EditorViewport* Viewports[4] = {};
+	EditorViewportFrame* Viewports[4] = {};
 };
