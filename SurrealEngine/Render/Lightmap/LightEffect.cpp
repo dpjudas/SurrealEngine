@@ -5,13 +5,16 @@
 #include "UObject/UActor.h"
 #include "Math/coords.h"
 
-void LightEffect::Run(UActor* light, int width, int height, const vec3* locations, vec3 N, const float* shadowmap, float* result)
+void LightEffect::Run(UActor* light, int width, int height, const vec3* locations, vec3 base, vec3 N, const float* shadowmap, float* result)
 {
 	int size = width * height;
 
 	float radius = light->WorldLightRadius();
 	float invRadius = 1.0f / radius;
 	float invRadiusSquared = 1.0f / (radius * radius);
+
+	// UE1 uses a single angle attenuation for the entire surface
+	float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
 
 	// To do: implement all the light effects
 
@@ -34,12 +37,10 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
-			//float dist = dot(L, L) * invRadiusSquared;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			if (dist < 1.0f)
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f)
 			{
-				float distanceAttenuation = LightDistanceFalloff(dist);
-				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
 				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation;
 			}
 			else
@@ -62,8 +63,8 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
-			float dist = (L.x * L.x + L.y * L.y) * invRadiusSquared;
-			result[i] = shadowmap[i] * std::max(1.0f - dist, 0.0f);
+			float distsqr = (L.x * L.x + L.y * L.y) * invRadiusSquared;
+			result[i] = shadowmap[i] * std::max(1.0f - distsqr, 0.0f);
 		}
 		break;
 
@@ -89,19 +90,13 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		{
 			vec3 L = light->Location() - locations[i];
 
-			//float dist = dot(L, L) * invRadiusSquared;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			if (dist < 1.0f && lightCosOuterAngle < 1.0f)
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
 			{
-				float distanceAttenuation = LightDistanceFalloff(dist);
-				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
 				float cosDir = dot(normalize(L), spotDir);
-#if 0
-				float spotAttenuation = smoothstep(lightCosOuterAngle, lightCosInnerAngle, cosDir);
-#else
 				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
 				spotAttenuation = spotAttenuation * spotAttenuation;
-#endif
 				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
 			}
 			else
@@ -128,6 +123,8 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	float invRadius = 1.0f / radius;
 	float invRadiusSquared = 1.0f / (radius * radius);
 
+	float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
+
 	// To do: implement all the light effects
 
 	switch (light->LightEffect())
@@ -148,12 +145,10 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	case LE_Unused:
 		{
 			vec3 L = light->Location() - location;
-			//float dist = dot(L, L) * invRadiusSquared;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			if (dist < 1.0f)
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f)
 			{
-				float distanceAttenuation = LightDistanceFalloff(dist);
-				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
 				return distanceAttenuation * angleAttenuation;
 			}
 			else
@@ -174,8 +169,8 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	case LE_Cylinder:
 		{
 			vec3 L = light->Location() - location;
-			float dist = (L.x * L.x + L.y * L.y) * invRadiusSquared;
-			return std::max(1.0f - dist, 0.0f);
+			float distsqr = (L.x * L.x + L.y * L.y) * invRadiusSquared;
+			return std::max(1.0f - distsqr, 0.0f);
 		}
 		break;
 
@@ -199,19 +194,13 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 		{
 			vec3 L = light->Location() - location;
 
-			//float dist = dot(L, L) * invRadiusSquared;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			if (dist < 1.0f && lightCosOuterAngle < 1.0f)
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
 			{
-				float distanceAttenuation = LightDistanceFalloff(dist);
-				float angleAttenuation = std::max(dot(normalize(L), N), 0.0f);
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
 				float cosDir = dot(normalize(L), spotDir);
-#if 0
-				float spotAttenuation = smoothstep(lightCosOuterAngle, lightCosInnerAngle, cosDir);
-#else
 				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
 				spotAttenuation = spotAttenuation * spotAttenuation;
-#endif
 				return distanceAttenuation * angleAttenuation * spotAttenuation;
 			}
 			else

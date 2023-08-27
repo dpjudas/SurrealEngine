@@ -31,6 +31,7 @@ private:
 
 	std::vector<vec3> points;
 	vec3 normal;
+	vec3 base;
 
 	Shadowmap Shadow;
 	LightEffect Effect;
