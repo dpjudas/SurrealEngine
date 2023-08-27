@@ -13,6 +13,7 @@ void LightmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo*
 	width = lmindex.UClamp;
 	height = lmindex.VClamp;
 	normal = model->Vectors[surface.vNormal];
+	base = model->Points[surface.pBase];
 
 	// Stop allocations over time by building up a reserve
 
@@ -54,7 +55,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
 			if (light->LightType() != LT_None && light->LightBrightness() > 0)
 			{
 				Shadow.Load(model, surface, lightindex);
-				Effect.Run(light, width, height, WorldLocations(), WorldNormal(), Shadow.Pixels(), illuminationmap.data());
+				Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 

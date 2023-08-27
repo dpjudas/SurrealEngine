@@ -41,6 +41,28 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const Bs
 	Light.Builder.Setup(model, surface, zoneActor);
 	Light.Builder.AddStaticLights(model, surface);
 
+#if 1 // Float high quality lightmaps
+
+	UnrealMipmap lmmip;
+	lmmip.Width = Light.Builder.Width();
+	lmmip.Height = Light.Builder.Height();
+	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * sizeof(vec4));
+
+	vec4* dest = (vec4*)lmmip.Data.data();
+	const vec3* src = Light.Builder.Pixels();
+	int count = lmmip.Width * lmmip.Height;
+	for (int i = 0; i < count; i++)
+	{
+		dest[i] = vec4(src[i], 1.0f);
+	}
+
+	auto lmtexture = std::make_unique<LightmapTexture>();
+	lmtexture->Format = TextureFormat::RGBA32_F;
+	lmtexture->Mip = std::move(lmmip);
+	return lmtexture;
+
+#else // Low quality lightmaps like UE1 got them
+
 	UnrealMipmap lmmip;
 	lmmip.Width = Light.Builder.Width();
 	lmmip.Height = Light.Builder.Height();
@@ -63,6 +85,8 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const Bs
 	lmtexture->Format = TextureFormat::BGRA8_LM;
 	lmtexture->Mip = std::move(lmmip);
 	return lmtexture;
+
+#endif
 }
 
 void RenderSubsystem::UpdateActorLightList(UActor* actor)
