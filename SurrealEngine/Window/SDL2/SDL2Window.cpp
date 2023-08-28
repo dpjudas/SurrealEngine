@@ -1,6 +1,3 @@
-#include <SDL2/SDL_mouse.h>
-#define VK_USE_PLATFORM_XLIB_KHR
-
 #include "SDL2Window.h"
 
 #include <stdexcept>
