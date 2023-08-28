@@ -3,6 +3,8 @@
 #include "Window.h"
 #ifdef WIN32
 #include "Win32/Win32Window.h"
+#elif defined(USE_SDL)
+#include "SDL2/SDL2Window.h"
 #else
 #include "X11/X11Window.h"
 #endif
@@ -29,6 +31,28 @@ void DisplayWindow::RunLoop()
 void DisplayWindow::ExitLoop()
 {
 	Win32Window::ExitLoop();
+}
+
+#elif defined(USE_SDL)
+
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
+{
+	return std::make_unique<SDL2Window>(windowHost);
+}
+
+void DisplayWindow::ProcessEvents()
+{
+	SDL2Window::ProcessEvents();
+}
+
+void DisplayWindow::RunLoop()
+{
+	SDL2Window::RunLoop();
+}
+
+void DisplayWindow::ExitLoop()
+{
+	SDL2Window::ExitLoop();
 }
 
 #else
