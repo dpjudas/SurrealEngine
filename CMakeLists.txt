@@ -4,6 +4,9 @@ add_subdirectory( Thirdparty/ZVulkan )
 if(WIN32)
 add_subdirectory( Thirdparty/openal-soft )
 endif()
+if(UNIX AND NOT APPLE)
+find_package(SDL2)
+endif()
 
 project(SurrealEngine)
 
@@ -305,6 +308,11 @@ set(SURREALCOMMON_UNIX_SOURCES
 	SurrealEngine/Window/X11/X11Atoms.h
 )
 
+set(SURREALCOMMON_UNIX_SDL2_SOURCES
+	SurrealEngine/Window/SDL2/SDL2Window.cpp
+	SurrealEngine/Window/SDL2/SDL2Window.h
+)
+
 set(THIRDPARTY_SOURCES
 	Thirdparty/dr_wav.h
 	Thirdparty/minimp3_ex.h
@@ -488,6 +496,7 @@ source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}
 source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")
 source_group("SurrealEngine\\Window\\Win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/Win32/.+")
 source_group("SurrealEngine\\Window\\X11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/X11/.+")
+source_group("SurrealEngine\\Window\\SDL2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/SDL2/.+")
 source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
 source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
 source_group("Thirdparty\\dumb" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/.+")
@@ -501,6 +510,10 @@ source_group("Thirdparty\\schrift" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DI
 
 include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include Thirdparty/openal-soft/include)
 
+if(UNIX AND NOT APPLE AND SDL2_FOUND)
+	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})
+endif()
+
 if(WIN32)
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_WIN32_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_WIN32_SOURCES})
@@ -513,9 +526,15 @@ elseif(APPLE)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 else()
-	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
+	if(SDL2_FOUND)
+		set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SDL2_SOURCES})
+		set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${SDL2_LIBRARIES} ${CMAKE_DL_LIBS} -lSDL2 -ldl -lasound)
+		add_definitions(-DUSE_SDL)
+	else()
+		set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
+		set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
+	endif()
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
-	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS} -lX11 -ldl -lasound)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 endif()
