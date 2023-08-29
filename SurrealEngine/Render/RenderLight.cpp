@@ -129,7 +129,7 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 	}
 	else
 	{
-		UZoneInfo* zoneActor = dynamic_cast<UZoneInfo*>(engine->Level->Model->Zones[actor->Region().ZoneNumber].ZoneActor);
+		UZoneInfo* zoneActor = static_cast<UZoneInfo*>(engine->Level->Model->Zones[actor->Region().ZoneNumber].ZoneActor);
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 

@@ -211,7 +211,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		UZoneInfo* zoneActor = !model->Zones.empty() ? dynamic_cast<UZoneInfo*>(model->Zones[node->Zone1].ZoneActor) : nullptr;
+		UZoneInfo* zoneActor = !model->Zones.empty() ? static_cast<UZoneInfo*>(model->Zones[node->Zone1].ZoneActor) : nullptr;
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 		lightmap = GetSurfaceLightmap(surface, facet, zoneActor, model);
