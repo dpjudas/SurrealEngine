@@ -262,7 +262,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 		return;
 
 	// Add bsp node actors to the visible set
-	for (UActor* actor : node->Actors)
+	for (UActor* actor = node->ActorList; actor != nullptr; actor = actor->BspInfo.Next)
 	{
 		if (actor->LastDrawFrame != FrameCounter)
 		{

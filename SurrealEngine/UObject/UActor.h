@@ -210,6 +210,8 @@ public:
 	void MakeNoise(float loudness);
 
 	void UpdateBspInfo();
+	void AddToBspNode(BspNode* node);
+	void RemoveFromBspNode();
 	static int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
 
 	// The status of the actor in the collision hash
@@ -245,7 +247,8 @@ public:
 		vec3 Location = vec3(0.0f);
 		vec3 Extents = vec3(0.0f);
 		BspNode* Node = nullptr;
-		std::list<UActor*>::iterator Iterator;
+		UActor* Prev = nullptr;
+		UActor* Next = nullptr;
 	} BspInfo;
 
 	// Tweening animation state

@@ -176,11 +176,7 @@ bool UActor::Destroy()
 
 	ULevel* level = XLevel();
 
-	if (BspInfo.Node)
-	{
-		BspInfo.Node->Actors.erase(BspInfo.Iterator);
-		BspInfo.Node = nullptr;
-	}
+	RemoveFromBspNode();
 	level->Hash.RemoveFromCollision(this);
 
 	CallEvent(this, EventName::Destroyed);
@@ -1726,11 +1722,7 @@ void UActor::UpdateBspInfo()
 	// Is actor still in the bsp tree at the correct location?
 	if (!BspInfo.Node || BspInfo.Location != Location() || BspInfo.Extents != extents)
 	{
-		if (BspInfo.Node)
-		{
-			BspInfo.Node->Actors.erase(BspInfo.Iterator);
-			BspInfo.Node = nullptr;
-		}
+		RemoveFromBspNode();
 
 		BspInfo.Location = Location();
 		BspInfo.Extents = extents;
@@ -1742,9 +1734,7 @@ void UActor::UpdateBspInfo()
 			int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
 			if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
 			{
-				node->Actors.push_back(this);
-				BspInfo.Node = node;
-				BspInfo.Iterator = --node->Actors.end();
+				AddToBspNode(node);
 				break;
 			}
 			else if (side < 0)
@@ -1756,6 +1746,41 @@ void UActor::UpdateBspInfo()
 				node = &level->Model->Nodes[node->Back];
 			}
 		}
+	}
+}
+
+void UActor::AddToBspNode(BspNode* node)
+{
+	BspInfo.Node = node;
+
+	if (node->ActorList)
+	{
+		node->ActorList->BspInfo.Prev = this;
+		BspInfo.Next = node->ActorList;
+	}
+
+	node->ActorList = this;
+}
+
+void UActor::RemoveFromBspNode()
+{
+	if (BspInfo.Node)
+	{
+		if (BspInfo.Next)
+		{
+			BspInfo.Next->BspInfo.Prev = BspInfo.Prev;
+		}
+		if (BspInfo.Prev)
+		{
+			BspInfo.Prev->BspInfo.Next = BspInfo.Next;
+		}
+		if (BspInfo.Node->ActorList == this)
+		{
+			BspInfo.Node->ActorList = BspInfo.Next;
+		}
+		BspInfo.Node = nullptr;
+		BspInfo.Prev = nullptr;
+		BspInfo.Next = nullptr;
 	}
 }
 

@@ -44,7 +44,7 @@ public:
 
 	BBox GetCollisionBox(UModel* model) const;
 
-	std::list<UActor*> Actors;
+	UActor* ActorList = nullptr;
 };
 
 class BspSurface
