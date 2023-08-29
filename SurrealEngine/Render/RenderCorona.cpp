@@ -12,7 +12,7 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 	frame2d.WorldToView = mat4::identity();
 	Device->SetSceneNode(&frame2d);
 
-	for (UActor* light : Corona.Lights)
+	for (UActor* light : Scene.Coronas)
 	{
 		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceRayAnyHit(light->Location(), engine->CameraLocation, nullptr, false, true, true))
 		{

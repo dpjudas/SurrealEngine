@@ -112,11 +112,6 @@ private:
 
 	struct
 	{
-		std::vector<UActor*> Lights;
-	} Corona;
-
-	struct
-	{
 		FSceneNode Frame;
 		FrustumPlanes FrustumClip;
 		vec4 ViewLocation;
@@ -124,6 +119,8 @@ private:
 		uint64_t ViewZoneMask = 0;
 		std::vector<DrawNodeInfo> OpaqueNodes;
 		std::vector<DrawNodeInfo> TranslucentNodes;
+		std::vector<UActor*> Coronas;
+		std::vector<UActor*> Actors;
 	} Scene;
 
 	struct

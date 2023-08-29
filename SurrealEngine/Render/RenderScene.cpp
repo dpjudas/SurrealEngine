@@ -8,6 +8,13 @@
 
 void RenderSubsystem::DrawScene()
 {
+	// Make sure all actors are at the right location in the BSP
+	for (UActor* actor : engine->Level->Actors)
+	{
+		if (actor)
+			actor->UpdateBspInfo();
+	}
+
 	// To do: use the zone specified in the surface with the PF_FakeBackdrop PolyFlags
 	UZoneInfo* skyZone = nullptr;
 	for (const auto& zone : engine->Level->Model->Zones)
@@ -41,6 +48,8 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
 	Scene.OpaqueNodes.clear();
 	Scene.TranslucentNodes.clear();
+	Scene.Actors.clear();
+	Scene.Coronas.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 
 	Device->SetSceneNode(&Scene.Frame);
@@ -54,17 +63,10 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 
 void RenderSubsystem::DrawActors()
 {
-	Corona.Lights.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
-
-	// To do: only draw the actors currently visible
-
-	for (UActor* actor : engine->Level->Actors)
+	for (UActor* actor : Scene.Actors)
 	{
-		if (!actor)
-			continue;
-
 		if (actor->bCorona())
-			Corona.Lights.push_back(actor);
+			Scene.Coronas.push_back(actor);
 
 		if (!actor->bHidden() && actor != engine->CameraActor)
 		{
@@ -258,6 +260,16 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 {
 	if ((node->ZoneMask & Scene.ViewZoneMask) == 0)
 		return;
+
+	// Add bsp node actors to the visible set
+	for (UActor* actor : node->Actors)
+	{
+		if (actor->LastDrawFrame != FrameCounter)
+		{
+			actor->LastDrawFrame = FrameCounter;
+			Scene.Actors.push_back(actor);
+		}
+	}
 
 	// Skip node if its AABB is not visible
 	if (node->RenderBound != -1)

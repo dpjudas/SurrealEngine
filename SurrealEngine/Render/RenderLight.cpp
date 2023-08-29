@@ -93,12 +93,12 @@ void RenderSubsystem::UpdateActorLightList(UActor* actor)
 {
 	vec3 location = actor->Location();
 
-	if (actor->LightListFound && actor->LightListLocation == location)
+	if (!actor->LightInfo.NeedsUpdate && actor->LightInfo.Location == location)
 		return;
 
-	actor->LightListFound = true;
-	actor->LightListLocation = location;
-	actor->LightList.clear();
+	actor->LightInfo.NeedsUpdate = false;
+	actor->LightInfo.Location = location;
+	actor->LightInfo.LightList.clear();
 
 	if (actor->bUnlit())
 		return;
@@ -115,7 +115,7 @@ void RenderSubsystem::UpdateActorLightList(UActor* actor)
 			}
 			if (dot(L, L) < radius * radius && !engine->Level->TraceRayAnyHit(light->Location(), location, nullptr, false, true, true))
 			{
-				actor->LightList.push_back(light);
+				actor->LightInfo.LightList.push_back(light);
 			}
 		}
 	}
@@ -135,7 +135,7 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 
 		vec3 color = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
 
-		for (UActor* light : actor->LightList)
+		for (UActor* light : actor->LightInfo.LightList)
 		{
 			float attenuation = LightEffect::VertexLight(light, location, normal);
 			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();

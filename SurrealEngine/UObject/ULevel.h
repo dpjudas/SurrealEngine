@@ -43,6 +43,8 @@ public:
 	int32_t Leaf1;
 
 	BBox GetCollisionBox(UModel* model) const;
+
+	std::list<UActor*> Actors;
 };
 
 class BspSurface
