@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Image.h"
+#include <cstring>
 
 class ImageImpl : public Image
 {
