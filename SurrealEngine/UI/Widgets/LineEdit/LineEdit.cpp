@@ -454,20 +454,20 @@ void LineEdit::OnKeyDown(EInputKey key)
 	}
 	else if (key == IK_Left)
 	{
-		move(-1, GetKeyState(IK_Ctrl), GetKeyState(IK_Shift));
+		Move(-1, GetKeyState(IK_Ctrl), GetKeyState(IK_Shift));
 	}
 	else if (key == IK_Right)
 	{
-		move(1, GetKeyState(IK_Ctrl), GetKeyState(IK_Shift));
+		Move(1, GetKeyState(IK_Ctrl), GetKeyState(IK_Shift));
 	}
 	else if (key == IK_Backspace)
 	{
-		backspace();
+		Backspace();
 		UpdateTextClipping();
 	}
 	else if (key == IK_Delete)
 	{
-		del();
+		Del();
 		UpdateTextClipping();
 	}
 	else if (key == IK_Home)
@@ -619,7 +619,7 @@ void LineEdit::OnLostFocus()
 		FuncFocusLost();
 }
 
-void LineEdit::move(int steps, bool ctrl, bool shift)
+void LineEdit::Move(int steps, bool ctrl, bool shift)
 {
 	if (shift && selection_length == 0)
 		SetSelectionStart(cursor_pos);
@@ -697,7 +697,7 @@ bool LineEdit::InsertText(int pos, const std::string& str)
 	return true;
 }
 
-void LineEdit::backspace()
+void LineEdit::Backspace()
 {
 	if (undo_info.first_erase)
 	{
@@ -729,7 +729,7 @@ void LineEdit::backspace()
 	SetCursorPos(old_pos);
 }
 
-void LineEdit::del()
+void LineEdit::Del()
 {
 	if (undo_info.first_erase)
 	{
@@ -1124,9 +1124,9 @@ void LineEdit::OnPaint(Canvas* canvas)
 void LineEdit::OnScrollTimerExpired()
 {
 	if (mouse_moves_left)
-		move(-1, false, false);
+		Move(-1, false, false);
 	else
-		move(1, false, false);
+		Move(1, false, false);
 }
 
 void LineEdit::OnEnableChanged()
