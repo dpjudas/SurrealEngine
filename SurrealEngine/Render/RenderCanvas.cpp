@@ -397,7 +397,7 @@ void RenderSubsystem::DrawTimedemoStats()
 			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
 
-		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible nodes");
+		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
 		lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
 		lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
 

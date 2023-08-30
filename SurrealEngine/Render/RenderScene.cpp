@@ -255,8 +255,15 @@ int RenderSubsystem::FindZoneAt(const vec4& location, BspNode* node, BspNode* no
 
 void RenderSubsystem::ProcessNode(BspNode* node)
 {
+	// Skip node if it is not part of the portal zones we have seen so far
 	if ((node->ZoneMask & Scene.ViewZoneMask) == 0)
 		return;
+
+	// Skip node if its AABB is not visible
+	if (node->RenderBound != -1 && !Scene.Clipper.IsAABBVisible(engine->Level->Model->Bounds[node->RenderBound]))
+	{
+		return;
+	}
 
 	// Add bsp node actors to the visible set
 	for (UActor* actor = node->ActorList; actor != nullptr; actor = actor->BspInfo.Next)
@@ -268,13 +275,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 		}
 	}
 
-	// Skip node if its AABB is not visible
-	if (node->RenderBound != -1 && !Scene.Clipper.IsAABBVisible(engine->Level->Model->Bounds[node->RenderBound]))
-	{
-		return;
-	}
-
-	// Decide which side the view point is on
+	// Decide which side the plane the camera is
 	vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
 	bool swapFrontAndBack = dot(Scene.ViewLocation, plane) < 0.0f;
 	int back = node->Back;
@@ -330,7 +331,7 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 	if (PolyFlags & PF_Portal)
 	{
-		int zone = swapFrontAndBack ? node->Zone1 : node->Zone0;
+		int zone = swapFrontAndBack ? node->Zone0 : node->Zone1;
 		Scene.ViewZoneMask |= 1ULL << zone;
 	}
 

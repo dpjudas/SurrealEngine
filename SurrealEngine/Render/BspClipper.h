@@ -8,8 +8,8 @@ class BBox;
 class ClipSpan
 {
 public:
-	int left;
-	int right;
+	int x0;
+	int x1;
 };
 
 class BspClipper

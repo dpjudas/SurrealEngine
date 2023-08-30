@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "BspClipper.h"
+#include "Math/bbox.h"
 
 #ifndef NO_SSE
 #include <immintrin.h>
@@ -52,7 +53,74 @@ bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
 
 bool BspClipper::IsAABBVisible(const BBox& bbox)
 {
-	return FrustumClip.test(bbox) != IntersectionTestResult::outside;
+	// First quickly check if we can rule it out using the frustum planes
+	if (FrustumClip.test(bbox) == IntersectionTestResult::outside)
+		return false;
+
+	// Perform visibility check of the bounding box itself using the spans:
+
+	// Vertices of the AABB
+	vec4 verts[8] =
+	{
+		WorldToProjection * vec4(bbox.min.x, bbox.min.y, bbox.min.z, 1.0f),
+		WorldToProjection * vec4(bbox.max.x, bbox.min.y, bbox.min.z, 1.0f),
+		WorldToProjection * vec4(bbox.min.x, bbox.max.y, bbox.min.z, 1.0f),
+		WorldToProjection * vec4(bbox.max.x, bbox.max.y, bbox.min.z, 1.0f),
+		WorldToProjection * vec4(bbox.min.x, bbox.min.y, bbox.max.z, 1.0f),
+		WorldToProjection * vec4(bbox.max.x, bbox.min.y, bbox.max.z, 1.0f),
+		WorldToProjection * vec4(bbox.min.x, bbox.max.y, bbox.max.z, 1.0f),
+		WorldToProjection * vec4(bbox.max.x, bbox.max.y, bbox.max.z, 1.0f)
+	};
+
+	float viewport_x = 0.0f;
+	float viewport_y = 0.0f;
+	float viewport_width = (float)ViewportWidth;
+	float viewport_height = (float)ViewportHeight;
+
+	// Map to 2D viewport:
+	for (int j = 0; j < 8; j++)
+	{
+		auto& v = verts[j];
+
+		// Calculate normalized device coordinates:
+		v.w = 1.0f / v.w;
+		v.x *= v.w;
+		v.y *= v.w;
+		v.z *= v.w;
+
+		// Apply viewport scale to get screen coordinates:
+		v.x = viewport_x + viewport_width * (1.0f + v.x) * 0.5f;
+		v.y = viewport_y + viewport_height * (1.0f - v.y) * 0.5f;
+	}
+
+	// Find the 2D bounding box
+
+	vec2 min2d = verts[0].xy();
+	vec2 max2d = verts[0].xy();
+	for (int j = 1; j < 8; j++)
+	{
+		min2d.x = std::min(min2d.x, verts[j].x);
+		min2d.y = std::min(min2d.y, verts[j].y);
+		max2d.x = std::max(max2d.x, verts[j].x);
+		max2d.y = std::max(max2d.y, verts[j].y);
+	}
+
+	// Check if any of it can be seen:
+
+	int topY = std::max((int)(min2d.y + 0.5f), 0);
+	int bottomY = std::min((int)(max2d.y + 0.5f), ViewportHeight);
+	if (topY >= bottomY)
+		return false;
+	int x0 = clamp((int)min2d.x, 0, ViewportWidth);
+	int x1 = clamp((int)max2d.x, 0, ViewportWidth);
+	if (x0 >= x1)
+		return false;
+	for (int y = topY; y < bottomY; y++)
+	{
+		if (IsVisible(y, x0, x1))
+			return true;
+	}
+	return false;
 }
 
 bool BspClipper::IsVisible(int y, int x0, int x1)
@@ -60,13 +128,13 @@ bool BspClipper::IsVisible(int y, int x0, int x1)
 	auto& line = Viewport[y];
 	std::vector<ClipSpan>::iterator start = line.begin();
 
-	while (start != line.end() && start->right < x0)
+	while (start->x1 < x0)
 		start++;
 
-	if (x0 < start->left)
+	if (x0 < start->x0)
 		return true;
 
-	if (x1 > start->right)
+	if (x1 > start->x1)
 		return true;
 
 	return false;
@@ -82,26 +150,26 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 	std::vector<ClipSpan>::iterator start = line.begin();
 	bool visible = false;
 
-	while (start->right < x0)
+	while (start->x1 < x0)
 		start++;
 
-	if (x0 < start->left)
+	if (x0 < start->x0)
 	{
 		visible = true;
 
-		if (x1 <= start->left)
+		if (x1 <= start->x0)
 		{
 			if (solid)
 			{
-				if (x1 == start->left)
+				if (x1 == start->x0)
 				{
-					start->left = x0;
+					start->x0 = x0;
 				}
 				else
 				{
 					ClipSpan span;
-					span.left = x0;
-					span.right = x1;
+					span.x0 = x0;
+					span.x1 = x1;
 					line.insert(start, span);
 				}
 			}
@@ -110,26 +178,26 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 
 		if (solid)
 		{
-			start->left = x0;
+			start->x0 = x0;
 		}
 	}
 
-	if (x1 <= start->right)
+	if (x1 <= start->x1)
 		return visible;
 
 	std::vector<ClipSpan>::iterator next = start;
-	while (x1 >= (next + 1)->left)
+	while (x1 >= (next + 1)->x0)
 	{
 		visible = true;
 		next++;
 
-		if (x1 <= next->right)
+		if (x1 <= next->x1)
 		{
-			x1 = next->right;
+			x1 = next->x1;
 
 			if (solid)
 			{
-				start->right = x1;
+				start->x1 = x1;
 
 				if (next != start)
 				{
@@ -142,7 +210,7 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 
 	if (solid)
 	{
-		start->right = x1;
+		start->x1 = x1;
 
 		if (next != start)
 		{
