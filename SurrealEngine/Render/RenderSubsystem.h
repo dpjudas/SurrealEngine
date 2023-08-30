@@ -6,7 +6,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Math/FrustumPlanes.h"
+#include "BspClipper.h"
 #include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
@@ -113,7 +113,7 @@ private:
 	struct
 	{
 		FSceneNode Frame;
-		FrustumPlanes FrustumClip;
+		BspClipper Clipper;
 		vec4 ViewLocation;
 		int ViewZone = 0;
 		uint64_t ViewZoneMask = 0;
@@ -133,4 +133,11 @@ private:
 	} Light;
 
 	std::vector<vec3> VertexBuffer;
+
+	vec3* GetTempVertexBuffer(size_t count)
+	{
+		if (VertexBuffer.size() < count)
+			VertexBuffer.resize(count);
+		return VertexBuffer.data();
+	}
 };

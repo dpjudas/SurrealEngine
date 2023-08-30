@@ -42,7 +42,7 @@ void RenderSubsystem::DrawScene()
 void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 {
 	SetupSceneFrame(worldToView);
-	Scene.FrustumClip = FrustumPlanes(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
+	Scene.Clipper.Setup(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
 	Scene.ViewLocation = vec4(location, 1.0f);
 	Scene.ViewZone = FindZoneAt(location);
 	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
@@ -77,7 +77,7 @@ void RenderSubsystem::DrawActors()
 				BBox bbox = actor->Mesh()->BoundingBox;
 				bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
 				bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
-				if (Scene.FrustumClip.test(bbox) != IntersectionTestResult::outside)
+				if (Scene.Clipper.IsAABBVisible(bbox))
 				{
 					DrawMesh(&Scene.Frame, actor);
 				}
@@ -91,7 +91,7 @@ void RenderSubsystem::DrawActors()
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();
 				bbox.max += actor->Location();
-				if (Scene.FrustumClip.test(bbox) != IntersectionTestResult::outside)
+				if (Scene.Clipper.IsAABBVisible(bbox))
 				{
 					DrawBrush(&Scene.Frame, actor);
 				}
@@ -188,13 +188,10 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
 	}
 
-	BspVert* v = &model->Vertices[node->VertPool];
-
-	if (VertexBuffer.size() < node->NumVertices)
-		VertexBuffer.resize(node->NumVertices);
-
-	vec3* points = VertexBuffer.data();
 	int numverts = node->NumVertices;
+	vec3* points = GetTempVertexBuffer(numverts);
+
+	BspVert* v = &model->Vertices[node->VertPool];
 	for (int j = 0; j < numverts; j++)
 	{
 		points[j] = model->Points[v[j].Vertex];
@@ -272,11 +269,9 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	}
 
 	// Skip node if its AABB is not visible
-	if (node->RenderBound != -1)
+	if (node->RenderBound != -1 && !Scene.Clipper.IsAABBVisible(engine->Level->Model->Bounds[node->RenderBound]))
 	{
-		const BBox& bbox = engine->Level->Model->Bounds[node->RenderBound];
-		if (Scene.FrustumClip.test(bbox) == IntersectionTestResult::outside)
-			return;
+		return;
 	}
 
 	// Decide which side the view point is on
@@ -317,6 +312,17 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 	UModel* model = engine->Level->Model;
 	const BspSurface& surface = model->Surfaces[node->Surf];
+
+	int numverts = node->NumVertices;
+	vec3* points = GetTempVertexBuffer(numverts);
+	BspVert* v = &model->Vertices[node->VertPool];
+	for (int j = 0; j < numverts; j++)
+	{
+		points[j] = model->Points[v[j].Vertex];
+	}
+
+	if (!Scene.Clipper.CheckSurface(points, numverts, (surface.PolyFlags & PF_NoOcclude) == 0))
+		return;
 
 	uint32_t PolyFlags = surface.PolyFlags;
 	if (surface.Material)
