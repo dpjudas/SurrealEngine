@@ -115,6 +115,14 @@ void PackageManager::UnloadPackage(const NameString& name)
 	auto it = packages.find(name);
 	if (it != packages.end())
 	{
+		for (auto streamit = openStreams.begin(); streamit != openStreams.end(); ++streamit)
+		{
+			if (streamit->Pkg == it->second.get())
+			{
+				openStreams.erase(streamit);
+				break;
+			}
+		}
 		packages.erase(it);
 	}
 }

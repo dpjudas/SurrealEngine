@@ -115,6 +115,7 @@ private:
 		FSceneNode Frame;
 		BspClipper Clipper;
 		vec4 ViewLocation;
+		Coords ViewRotation;
 		int ViewZone = 0;
 		uint64_t ViewZoneMask = 0;
 		std::vector<DrawNodeInfo> OpaqueNodes;

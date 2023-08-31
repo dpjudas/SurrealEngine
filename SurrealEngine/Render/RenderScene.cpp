@@ -46,6 +46,7 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.ViewLocation = vec4(location, 1.0f);
 	Scene.ViewZone = FindZoneAt(location);
 	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
+	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
 	Scene.TranslucentNodes.clear();
 	Scene.Actors.clear();
@@ -66,37 +67,18 @@ void RenderSubsystem::DrawActors()
 {
 	for (UActor* actor : Scene.Actors)
 	{
-		if (actor->bCorona())
-			Scene.Coronas.push_back(actor);
-
-		if (!actor->bHidden() && actor != engine->CameraActor)
+		EDrawType dt = (EDrawType)actor->DrawType();
+		if (dt == DT_Mesh && actor->Mesh())
 		{
-			EDrawType dt = (EDrawType)actor->DrawType();
-			if (dt == DT_Mesh && actor->Mesh())
-			{
-				// Note: this doesn't take the rotation into account!
-				BBox bbox = actor->Mesh()->BoundingBox;
-				bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
-				bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
-				//if (Scene.Clipper.IsAABBVisible(bbox))
-				{
-					DrawMesh(&Scene.Frame, actor);
-				}
-			}
-			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
-			{
-				DrawSprite(&Scene.Frame, actor);
-			}
-			else if (dt == DT_Brush && actor->Brush())
-			{
-				BBox bbox = actor->Brush()->BoundingBox;
-				bbox.min += actor->Location();
-				bbox.max += actor->Location();
-				//if (Scene.Clipper.IsAABBVisible(bbox))
-				{
-					DrawBrush(&Scene.Frame, actor);
-				}
-			}
+			DrawMesh(&Scene.Frame, actor);
+		}
+		else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
+		{
+			DrawSprite(&Scene.Frame, actor);
+		}
+		else if (dt == DT_Brush && actor->Brush())
+		{
+			DrawBrush(&Scene.Frame, actor);
 		}
 	}
 }
@@ -272,8 +254,39 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 		if (actor->LastDrawFrame != Scene.FrameCounter)
 		{
 			actor->LastDrawFrame = Scene.FrameCounter;
-			if (!actor->bHidden())
-				Scene.Actors.push_back(actor);
+
+			if (actor->bCorona())
+				Scene.Coronas.push_back(actor);
+
+			if (!actor->bHidden() && actor != engine->CameraActor)
+			{
+				EDrawType dt = (EDrawType)actor->DrawType();
+				if (dt == DT_Mesh && actor->Mesh())
+				{
+					// Note: this doesn't take the rotation into account!
+					BBox bbox = actor->Mesh()->BoundingBox;
+					bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
+					bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
+					if (Scene.Clipper.IsAABBVisible(bbox))
+					{
+						Scene.Actors.push_back(actor);
+					}
+				}
+				else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
+				{
+					Scene.Actors.push_back(actor);
+				}
+				else if (dt == DT_Brush && actor->Brush())
+				{
+					BBox bbox = actor->Brush()->BoundingBox;
+					bbox.min += actor->Location();
+					bbox.max += actor->Location();
+					if (Scene.Clipper.IsAABBVisible(bbox))
+					{
+						Scene.Actors.push_back(actor);
+					}
+				}
+			}
 		}
 	}
 

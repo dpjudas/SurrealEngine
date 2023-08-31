@@ -62,13 +62,12 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 		return;
 
 	drawscale *= 0.5f;
-	Coords viewrotation = Coords::Rotation(engine->CameraRotation);
-	vec3 sideAxis = viewrotation.YAxis * (texwidth * drawscale);
-	vec3 upAxis = viewrotation.ZAxis * (texheight * drawscale);
+
+	vec3 sideAxis = Scene.ViewRotation.YAxis * (texwidth * drawscale);
+	vec3 upAxis = Scene.ViewRotation.ZAxis * (texheight * drawscale);
+	vec3 offsetlocation = location - Scene.ViewRotation.XAxis * 30.0f;
 
 	vec3 color = clamp(actor->ScaleGlow(), 0.0f, 1.0f);
-
-	vec3 offsetlocation = location - viewrotation.XAxis * 30.0f;
 
 	GouraudVertex vertices[4];
 	vertices[0].Point = offsetlocation - sideAxis - upAxis;
@@ -87,5 +86,6 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = color;
 	vertices[3].Fog = { 0.0f };
+
 	Device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
 }
