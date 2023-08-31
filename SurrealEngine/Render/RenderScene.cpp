@@ -293,7 +293,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	BspNode* polynode = node;
 	while (true)
 	{
-		ProcessNodeSurface(polynode, swapFrontAndBack);
+		ProcessNodeSurface(polynode);
 
 		if (polynode->Plane < 0) break;
 		polynode = &engine->Level->Model->Nodes[polynode->Plane];
@@ -306,7 +306,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	}
 }
 
-void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
+void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 {
 	if (node->NumVertices <= 0 || node->Surf < 0)
 		return;
@@ -331,8 +331,8 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 
 	if (PolyFlags & PF_Portal)
 	{
-		int zone = swapFrontAndBack ? node->Zone0 : node->Zone1;
-		Scene.ViewZoneMask |= 1ULL << zone;
+		Scene.ViewZoneMask |= 1ULL << node->Zone0;
+		Scene.ViewZoneMask |= 1ULL << node->Zone1;
 	}
 
 	if (PolyFlags & PF_FakeBackdrop)

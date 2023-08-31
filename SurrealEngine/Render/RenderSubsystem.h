@@ -53,7 +53,7 @@ private:
 	int FindZoneAt(const vec3& location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
 	void ProcessNode(BspNode* node);
-	void ProcessNodeSurface(BspNode* node, bool swapFrontAndBack);
+	void ProcessNodeSurface(BspNode* node);
 	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);

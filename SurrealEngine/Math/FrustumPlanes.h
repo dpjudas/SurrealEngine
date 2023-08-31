@@ -19,6 +19,7 @@ public:
 	FrustumPlanes(const mat4& world_to_projection);
 
 	IntersectionTestResult test(const BBox& box) const;
+	int testIntersecting(const BBox& box) const;
 
 	vec4 planes[6];
 

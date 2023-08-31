@@ -54,8 +54,12 @@ bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
 bool BspClipper::IsAABBVisible(const BBox& bbox)
 {
 	// First quickly check if we can rule it out using the frustum planes
-	if (FrustumClip.test(bbox) == IntersectionTestResult::outside)
+	int bits = FrustumClip.testIntersecting(bbox);
+	if (bits == -1) // outside
 		return false;
+
+	if (bits & (1 << 0)) // Near plane intersecting with bbox
+		return true;
 
 	// Perform visibility check of the bounding box itself using the spans:
 
@@ -104,6 +108,12 @@ bool BspClipper::IsAABBVisible(const BBox& bbox)
 		max2d.x = std::max(max2d.x, verts[j].x);
 		max2d.y = std::max(max2d.y, verts[j].y);
 	}
+
+	// if we are intersecting with any of the sides then include the entire edge
+	if (bits & (1 << 2)) min2d.x = 0;
+	if (bits & (1 << 3)) max2d.x = (float)ViewportWidth;
+	if (bits & (1 << 4)) min2d.y = 0;
+	if (bits & (1 << 5)) max2d.y = (float)ViewportHeight;
 
 	// Check if any of it can be seen:
 
