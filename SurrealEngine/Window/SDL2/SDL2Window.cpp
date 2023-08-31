@@ -22,12 +22,22 @@ SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
         std::runtime_error(message.c_str());
     }
 
-    auto instance = VulkanInstanceBuilder()
-		.RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME)
-		.RequireExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME)
-		.OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME)
-		.DebugLayer(false)
-		.Create();
+    // Generate a required extensions list
+    unsigned int extCount;
+    SDL_Vulkan_GetInstanceExtensions(m_SDLWindow, &extCount, nullptr);
+    const char** extNames = new const char*[extCount];
+    SDL_Vulkan_GetInstanceExtensions(m_SDLWindow, &extCount, extNames);
+
+    // Create the instance
+    auto instanceBuilder = VulkanInstanceBuilder();
+    for (int i = 0 ; i < extCount ; i++)
+    {
+        instanceBuilder.RequireExtension(std::string(extNames[i]));
+    }
+    instanceBuilder.OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME)
+                   .DebugLayer(false);
+    auto instance = instanceBuilder.Create();
+    delete[] extNames;
 
     VkSurfaceKHR surfaceHandle;
     SDL_Vulkan_CreateSurface(m_SDLWindow, instance->Instance, &surfaceHandle);
