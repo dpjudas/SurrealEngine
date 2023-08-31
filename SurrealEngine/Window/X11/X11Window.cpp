@@ -398,6 +398,46 @@ double X11Window::GetDpiScale() const
 	return dpiscale;
 }
 
+void X11Window::GetAvailableResolutions() const
+{
+	std::string result = "";
+	std::vector<std::string> availableResolutions{};
+
+	int nSizes;
+	auto screenSizes = XRRSizes(display, screen, &nSizes);
+
+	for (int i = 0 ; i <nSizes ; i++)
+	{
+		std::string resolution = std::to_string(screenSizes[i].width) + "x" + std::to_string(screenSizes[i].height);
+
+		// Skip over the current resolution if it is already inserted
+		// (in case of multiple refresh rates being available for the display)
+		bool resolutionAlreadyAdded = false;
+		for (auto res : availableResolutions)
+		{
+			if (resolution.compare(res) == 0)
+			{
+				resolutionAlreadyAdded = true;
+				break;
+			}
+		}
+		if (resolutionAlreadyAdded)
+			continue;
+
+		availableResolutions.push_back(resolution);
+	}
+
+	// "Flatten" the resolutions list into a single string
+	for (int i = 0 ; i < availableResolutions.size() ; i++)
+	{
+		result += availableResolutions[i];
+		if (i < availableResolutions.size() - 1)
+			result += " ";
+	}
+
+	return result;
+}
+
 void X11Window::ProcessEvents()
 {
 	while (XPending(X11Display::GetDisplay()) > 0)
