@@ -36,20 +36,20 @@ void FogmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo* z
 
 void FogmapBuilder::AddLight(UActor* light, vec3 view)
 {
-	if (light->brightness < 0.0f)
+	if (light->FogInfo.brightness < 0.0f)
 	{
-		light->fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-		light->brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
-		light->fog = light->VolumeFog() * (1.0f / 255.0f);
-		light->radius = light->WorldVolumetricRadius();
-		light->r2 = light->radius * light->radius;
+		light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+		light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
+		light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
+		light->FogInfo.radius = light->WorldVolumetricRadius();
+		light->FogInfo.r2 = light->FogInfo.radius * light->FogInfo.radius;
 	}
 
-	vec3 fogcolor = light->fogcolor;
-	float brightness = light->brightness;
-	float fog = light->fog;
-	float radius = light->radius;
-	float r2 = light->r2;
+	vec3 fogcolor = light->FogInfo.fogcolor;
+	float brightness = light->FogInfo.brightness;
+	float fog = light->FogInfo.fog;
+	float radius = light->FogInfo.radius;
+	float r2 = light->FogInfo.r2;
 
 	vec3 lightpos = light->Location();
 

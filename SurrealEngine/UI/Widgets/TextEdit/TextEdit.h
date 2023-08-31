@@ -3,63 +3,47 @@
 
 #include "UI/Core/Widget.h"
 #include "UI/Core/Timer.h"
+#include "UI/Core/SpanLayout.h"
+#include "UI/Core/Font.h"
 #include <functional>
 
-class LineEdit : public Widget
+class Scrollbar;
+
+class TextEdit : public Widget
 {
 public:
-	LineEdit(Widget* parent);
-	~LineEdit();
+	TextEdit(Widget* parent);
+	~TextEdit();
 
-	enum Alignment
-	{
-		align_left,
-		align_center,
-		align_right
-	};
-
-	Alignment GetAlignment() const;
 	bool IsReadOnly() const;
 	bool IsLowercase() const;
 	bool IsUppercase() const;
-	bool IsPasswordMode() const;
 	int GetMaxLength() const;
-
 	std::string GetText() const;
-	int GetTextInt() const;
-	float GetTextFloat() const;
-
+	int GetLineCount() const;
+	std::string GetLineText(int line) const;
 	std::string GetSelection() const;
 	int GetSelectionStart() const;
 	int GetSelectionLength() const;
-
 	int GetCursorPos() const;
-	Size GetTextSize();
-
-	Size GetTextSize(const std::string& str);
-	double GetPreferredContentWidth();
-	double GetPreferredContentHeight(double width);
+	int GetCursorLineNumber() const;
+	double GetTotalHeight();
 
 	void SetSelectAllOnFocusGain(bool enable);
 	void SelectAll();
-	void SetAlignment(Alignment alignment);
 	void SetReadOnly(bool enable = true);
 	void SetLowercase(bool enable = true);
 	void SetUppercase(bool enable = true);
-	void SetPasswordMode(bool enable = true);
-	void SetNumericMode(bool enable = true, bool decimals = false);
 	void SetMaxLength(int length);
 	void SetText(const std::string& text);
-	void SetTextInt(int number);
-	void SetTextFloat(float number, int num_decimal_places = 6);
+	void AddText(const std::string& text);
 	void SetSelection(int pos, int length);
 	void ClearSelection();
 	void SetCursorPos(int pos);
 	void DeleteSelectedText();
 	void SetInputMask(const std::string& mask);
-	void SetDecimalCharacter(const std::string& decimal_char);
+	void SetCursorDrawingEnabled(bool enable);
 
-	std::function<bool(int key)> FuncIgnoreKeyDown;
 	std::function<std::string(std::string text)> FuncFilterKeyChar;
 	std::function<void()> FuncBeforeEditChanged;
 	std::function<void()> FuncAfterEditChanged;
@@ -69,7 +53,7 @@ public:
 	std::function<void()> FuncEnterPressed;
 
 protected:
-	void OnPaint(Canvas* canvas) override;
+	void OnPaint(Canvas* canvas);
 	void OnMouseMove(const Point& pos) override;
 	void OnMouseDown(const Point& pos, int key) override;
 	void OnMouseDoubleclick(const Point& pos, int key) override;
@@ -83,50 +67,51 @@ protected:
 	void OnLostFocus() override;
 
 private:
+	void LayoutLines(Canvas* canvas);
+
 	void OnTimerExpired();
 	void OnScrollTimerExpired();
-	void UpdateTextClipping();
+	void CreateComponents();
+	void OnVerticalScroll();
+	void UpdateVerticalScroll();
+	void MoveVerticalScroll();
+	double GetTotalLineHeight();
 
-	void Move(int steps, bool ctrl, bool shift);
-	bool InsertText(int pos, const std::string& str);
-	void Backspace();
-	void Del();
-	int GetCharacterIndex(double x);
-	int FindNextBreakCharacter(int pos);
-	int FindPreviousBreakCharacter(int pos);
-	std::string GetVisibleTextBeforeSelection();
-	std::string GetVisibleTextAfterSelection();
-	std::string GetVisibleSelectedText();
-	std::string CreatePassword(std::string::size_type num_letters) const;
-	Size GetVisualTextSize(Canvas* canvas, int pos, int npos) const;
-	Size GetVisualTextSize(Canvas* canvas) const;
-	Rect GetCursorRect();
-	Rect GetSelectionRect();
-	bool InputMaskAcceptsInput(int cursor_pos, const std::string& str);
-	void SetSelectionStart(int start);
-	void SetSelectionLength(int length);
-	void SetTextSelection(int start, int length);
+	struct Line
+	{
+		std::string text;
+		SpanLayout layout;
+		Rect box;
+		bool invalidated = true;
+	};
 
-	static std::string ToFixed(float number, int num_decimal_places);
-	static std::string ToLower(const std::string& text);
-	static std::string ToUpper(const std::string& text);
-
+	TextEdit* textedit;
+	Scrollbar* vert_scrollbar;
 	Timer* timer = nullptr;
-	std::string text;
-	Alignment alignment = align_left;
-	int cursor_pos = 0;
+	std::vector<Line> lines = { Line() };
+	ivec2 cursor_pos = { 0, 0 };
 	int max_length = -1;
 	bool mouse_selecting = false;
 	bool lowercase = false;
 	bool uppercase = false;
-	bool password_mode = false;
-	bool numeric_mode = false;
-	bool numeric_mode_decimals = false;
 	bool readonly = false;
-	int selection_start = -1;
+	ivec2 selection_start = { -1, 0 };
 	int selection_length = 0;
 	std::string input_mask;
-	std::string decimal_char = ".";
+
+	static std::string break_characters;
+
+	void Move(int steps, bool shift, bool ctrl);
+	void InsertText(ivec2 pos, const std::string& str);
+	void Backspace();
+	void Del();
+	ivec2 GetCharacterIndex(Point mouse_wincoords);
+	ivec2 FindNextBreakCharacter(ivec2 pos);
+	ivec2 FindPreviousBreakCharacter(ivec2 pos);
+	bool InputMaskAcceptsInput(ivec2 cursor_pos, const std::string& str);
+
+	std::string::size_type ToOffset(ivec2 pos) const;
+	ivec2 FromOffset(std::string::size_type offset) const;
 
 	VerticalTextPosition vertical_text_align;
 	Timer* scroll_timer = nullptr;
@@ -145,15 +130,13 @@ private:
 		   - destructive block operation (del, cut etc)
 		   - beginning erase
 		*/
+
 		std::string undo_text;
 		bool first_erase = false;
 		bool first_text_insert = false;
-	};
-	
-	UndoInfo undo_info;
+	} undo_info;
 
-	bool select_all_on_focus_gain = true;
+	bool select_all_on_focus_gain = false;
 
-	static const std::string break_characters;
-	static const std::string numeric_mode_characters;
+	std::shared_ptr<Font> font = Font::Create("Segoe UI", 12.0);
 };

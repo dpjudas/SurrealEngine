@@ -6,7 +6,7 @@
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Math/FrustumPlanes.h"
+#include "BspClipper.h"
 #include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
@@ -53,7 +53,7 @@ private:
 	int FindZoneAt(const vec3& location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
 	void ProcessNode(BspNode* node);
-	void ProcessNodeSurface(BspNode* node, bool swapFrontAndBack);
+	void ProcessNodeSurface(BspNode* node);
 	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);
@@ -112,18 +112,17 @@ private:
 
 	struct
 	{
-		std::vector<UActor*> Lights;
-	} Corona;
-
-	struct
-	{
 		FSceneNode Frame;
-		FrustumPlanes FrustumClip;
+		BspClipper Clipper;
 		vec4 ViewLocation;
+		Coords ViewRotation;
 		int ViewZone = 0;
 		uint64_t ViewZoneMask = 0;
 		std::vector<DrawNodeInfo> OpaqueNodes;
 		std::vector<DrawNodeInfo> TranslucentNodes;
+		std::vector<UActor*> Coronas;
+		std::vector<UActor*> Actors;
+		int FrameCounter = 0;
 	} Scene;
 
 	struct
@@ -136,4 +135,11 @@ private:
 	} Light;
 
 	std::vector<vec3> VertexBuffer;
+
+	vec3* GetTempVertexBuffer(size_t count)
+	{
+		if (VertexBuffer.size() < count)
+			VertexBuffer.resize(count);
+		return VertexBuffer.data();
+	}
 };

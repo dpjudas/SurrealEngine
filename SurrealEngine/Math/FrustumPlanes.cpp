@@ -34,6 +34,24 @@ IntersectionTestResult FrustumPlanes::test(const BBox& box) const
 		return IntersectionTestResult::inside;
 }
 
+int FrustumPlanes::testIntersecting(const BBox& box) const
+{
+	int bits = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		IntersectionTestResult result = planeAABB(planes[i], box);
+		if (result == IntersectionTestResult::outside)
+		{
+			return -1;
+		}
+		else if (result == IntersectionTestResult::intersecting)
+		{
+			bits |= (1 << i);
+		}
+	}
+	return bits;
+}
+
 IntersectionTestResult FrustumPlanes::planeAABB(const vec4& plane, const BBox& aabb)
 {
 	vec3 center = aabb.center();

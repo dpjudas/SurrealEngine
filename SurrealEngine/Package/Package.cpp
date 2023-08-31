@@ -391,6 +391,7 @@ ImportTableEntry* Package::GetImportEntry(int objref)
 void Package::ReadTables()
 {
 	auto stream = Packages->GetStream(this);
+	stream->Seek(0);
 
 	uint32_t signature = stream->ReadInt32();
 	if (signature != 0x9E2A83C1)

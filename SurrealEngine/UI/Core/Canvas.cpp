@@ -200,6 +200,23 @@ public:
 	Rect measureText(const std::string& text) override;
 	VerticalTextPosition verticalTextAlign() override;
 
+	void drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color) override { drawText(pos, color, text); }
+	void drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color) override { drawText(pos, color, text); }
+	Rect measureText(const std::shared_ptr<Font>& font, const std::string& text) override { return measureText(text); }
+	FontMetrics getFontMetrics(const std::shared_ptr<Font>& font) override
+	{
+		VerticalTextPosition vtp = verticalTextAlign();
+		FontMetrics metrics;
+		metrics.external_leading = vtp.top;
+		metrics.ascent = vtp.baseline - vtp.top;
+		metrics.descent = vtp.bottom - vtp.baseline;
+		metrics.height = metrics.ascent + metrics.descent;
+		return metrics;
+	}
+	int getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint) override { return 0; }
+
+	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override { }
+
 	void drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color);
 	void drawTile(CanvasTexture* texture, double x, double y, double width, double height, double u, double v, double uvwidth, double uvheight, double z, vec4 color, uint32_t flags);
 

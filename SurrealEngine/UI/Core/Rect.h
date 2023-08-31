@@ -27,6 +27,7 @@ class Rect
 {
 public:
 	Rect() = default;
+	Rect(const Point& p, const Size& s) : x(p.x), y(p.y), width(s.width), height(s.height) { }
 	Rect(double x, double y, double width, double height) : x(x), y(y), width(width), height(height) { }
 
 	Point pos() const { return { x, y }; }
@@ -36,6 +37,11 @@ public:
 	Point topRight() const { return { x + width, y }; }
 	Point bottomLeft() const { return { x, y + height }; }
 	Point bottomRight() const { return { x + width, y + height }; }
+
+	double left() const { return x; }
+	double top() const { return y; }
+	double right() const { return x + width; }
+	double bottom() const { return y + height; }
 
 	static Rect xywh(double x, double y, double width, double height) { return Rect(x, y, width, height); }
 	static Rect ltrb(double left, double top, double right, double bottom) { return Rect(left, top, right - left, bottom - top); }

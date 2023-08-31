@@ -8,6 +8,13 @@
 
 void RenderSubsystem::DrawScene()
 {
+	// Make sure all actors are at the right location in the BSP
+	for (UActor* actor : engine->Level->Actors)
+	{
+		if (actor)
+			actor->UpdateBspInfo();
+	}
+
 	// To do: use the zone specified in the surface with the PF_FakeBackdrop PolyFlags
 	UZoneInfo* skyZone = nullptr;
 	for (const auto& zone : engine->Level->Model->Zones)
@@ -35,12 +42,16 @@ void RenderSubsystem::DrawScene()
 void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 {
 	SetupSceneFrame(worldToView);
-	Scene.FrustumClip = FrustumPlanes(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
+	Scene.Clipper.Setup(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
 	Scene.ViewLocation = vec4(location, 1.0f);
 	Scene.ViewZone = FindZoneAt(location);
 	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
+	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
 	Scene.TranslucentNodes.clear();
+	Scene.Actors.clear();
+	Scene.Coronas.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
+	Scene.FrameCounter++;
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 
 	Device->SetSceneNode(&Scene.Frame);
@@ -54,46 +65,20 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 
 void RenderSubsystem::DrawActors()
 {
-	Corona.Lights.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
-
-	// To do: only draw the actors currently visible
-
-	for (UActor* actor : engine->Level->Actors)
+	for (UActor* actor : Scene.Actors)
 	{
-		if (!actor)
-			continue;
-
-		if (actor->bCorona())
-			Corona.Lights.push_back(actor);
-
-		if (!actor->bHidden() && actor != engine->CameraActor)
+		EDrawType dt = (EDrawType)actor->DrawType();
+		if (dt == DT_Mesh && actor->Mesh())
 		{
-			EDrawType dt = (EDrawType)actor->DrawType();
-			if (dt == DT_Mesh && actor->Mesh())
-			{
-				// Note: this doesn't take the rotation into account!
-				BBox bbox = actor->Mesh()->BoundingBox;
-				bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
-				bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
-				if (Scene.FrustumClip.test(bbox) != IntersectionTestResult::outside)
-				{
-					DrawMesh(&Scene.Frame, actor);
-				}
-			}
-			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
-			{
-				DrawSprite(&Scene.Frame, actor);
-			}
-			else if (dt == DT_Brush && actor->Brush())
-			{
-				BBox bbox = actor->Brush()->BoundingBox;
-				bbox.min += actor->Location();
-				bbox.max += actor->Location();
-				if (Scene.FrustumClip.test(bbox) != IntersectionTestResult::outside)
-				{
-					DrawBrush(&Scene.Frame, actor);
-				}
-			}
+			DrawMesh(&Scene.Frame, actor);
+		}
+		else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
+		{
+			DrawSprite(&Scene.Frame, actor);
+		}
+		else if (dt == DT_Brush && actor->Brush())
+		{
+			DrawBrush(&Scene.Frame, actor);
 		}
 	}
 }
@@ -186,13 +171,10 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
 	}
 
-	BspVert* v = &model->Vertices[node->VertPool];
-
-	if (VertexBuffer.size() < node->NumVertices)
-		VertexBuffer.resize(node->NumVertices);
-
-	vec3* points = VertexBuffer.data();
 	int numverts = node->NumVertices;
+	vec3* points = GetTempVertexBuffer(numverts);
+
+	BspVert* v = &model->Vertices[node->VertPool];
 	for (int j = 0; j < numverts; j++)
 	{
 		points[j] = model->Points[v[j].Vertex];
@@ -209,7 +191,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		UZoneInfo* zoneActor = !model->Zones.empty() ? dynamic_cast<UZoneInfo*>(model->Zones[node->Zone1].ZoneActor) : nullptr;
+		UZoneInfo* zoneActor = !model->Zones.empty() ? static_cast<UZoneInfo*>(model->Zones[node->Zone1].ZoneActor) : nullptr;
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
 		lightmap = GetSurfaceLightmap(surface, facet, zoneActor, model);
@@ -256,18 +238,59 @@ int RenderSubsystem::FindZoneAt(const vec4& location, BspNode* node, BspNode* no
 
 void RenderSubsystem::ProcessNode(BspNode* node)
 {
+	// Skip node if it is not part of the portal zones we have seen so far
 	if ((node->ZoneMask & Scene.ViewZoneMask) == 0)
 		return;
 
 	// Skip node if its AABB is not visible
-	if (node->RenderBound != -1)
+	if (node->RenderBound != -1 && !Scene.Clipper.IsAABBVisible(engine->Level->Model->Bounds[node->RenderBound]))
 	{
-		const BBox& bbox = engine->Level->Model->Bounds[node->RenderBound];
-		if (Scene.FrustumClip.test(bbox) == IntersectionTestResult::outside)
-			return;
+		return;
 	}
 
-	// Decide which side the view point is on
+	// Add bsp node actors to the visible set
+	for (UActor* actor = node->ActorList; actor != nullptr; actor = actor->BspInfo.Next)
+	{
+		if (actor->LastDrawFrame != Scene.FrameCounter)
+		{
+			actor->LastDrawFrame = Scene.FrameCounter;
+
+			if (actor->bCorona())
+				Scene.Coronas.push_back(actor);
+
+			if (!actor->bHidden() && actor != engine->CameraActor)
+			{
+				EDrawType dt = (EDrawType)actor->DrawType();
+				if (dt == DT_Mesh && actor->Mesh())
+				{
+					// Note: this doesn't take the rotation into account!
+					BBox bbox = actor->Mesh()->BoundingBox;
+					bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
+					bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
+					if (Scene.Clipper.IsAABBVisible(bbox))
+					{
+						Scene.Actors.push_back(actor);
+					}
+				}
+				else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
+				{
+					Scene.Actors.push_back(actor);
+				}
+				else if (dt == DT_Brush && actor->Brush())
+				{
+					BBox bbox = actor->Brush()->BoundingBox;
+					bbox.min += actor->Location();
+					bbox.max += actor->Location();
+					if (Scene.Clipper.IsAABBVisible(bbox))
+					{
+						Scene.Actors.push_back(actor);
+					}
+				}
+			}
+		}
+	}
+
+	// Decide which side the plane the camera is
 	vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
 	bool swapFrontAndBack = dot(Scene.ViewLocation, plane) < 0.0f;
 	int back = node->Back;
@@ -285,7 +308,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	BspNode* polynode = node;
 	while (true)
 	{
-		ProcessNodeSurface(polynode, swapFrontAndBack);
+		ProcessNodeSurface(polynode);
 
 		if (polynode->Plane < 0) break;
 		polynode = &engine->Level->Model->Nodes[polynode->Plane];
@@ -298,7 +321,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	}
 }
 
-void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
+void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 {
 	if (node->NumVertices <= 0 || node->Surf < 0)
 		return;
@@ -306,14 +329,25 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node, bool swapFrontAndBack)
 	UModel* model = engine->Level->Model;
 	const BspSurface& surface = model->Surfaces[node->Surf];
 
+	int numverts = node->NumVertices;
+	vec3* points = GetTempVertexBuffer(numverts);
+	BspVert* v = &model->Vertices[node->VertPool];
+	for (int j = 0; j < numverts; j++)
+	{
+		points[j] = model->Points[v[j].Vertex];
+	}
+
+	if (!Scene.Clipper.CheckSurface(points, numverts, (surface.PolyFlags & PF_NoOcclude) == 0))
+		return;
+
 	uint32_t PolyFlags = surface.PolyFlags;
 	if (surface.Material)
 		PolyFlags |= surface.Material->PolyFlags();
 
 	if (PolyFlags & PF_Portal)
 	{
-		int zone = swapFrontAndBack ? node->Zone1 : node->Zone0;
-		Scene.ViewZoneMask |= 1ULL << zone;
+		Scene.ViewZoneMask |= 1ULL << node->Zone0;
+		Scene.ViewZoneMask |= 1ULL << node->Zone1;
 	}
 
 	if (PolyFlags & PF_FakeBackdrop)

@@ -176,6 +176,7 @@ bool UActor::Destroy()
 
 	ULevel* level = XLevel();
 
+	RemoveFromBspNode();
 	level->Hash.RemoveFromCollision(this);
 
 	CallEvent(this, EventName::Destroyed);
@@ -1704,6 +1705,96 @@ void UActor::MakeNoise(float loudness)
 			CallEvent(pawn, EventName::HearNoise, { ExpressionValue::FloatValue(loudness), ExpressionValue::ObjectValue(this) });
 		}
 	}
+}
+
+void UActor::UpdateBspInfo()
+{
+	vec3 extents;
+	if (LightBrightness() == 0)
+	{
+		extents = { VisibilityRadius(), VisibilityRadius(), VisibilityHeight() };
+	}
+	else
+	{
+		extents = { WorldLightRadius(), WorldLightRadius(), WorldLightRadius() };
+	}
+
+	// Is actor still in the bsp tree at the correct location?
+	if (!BspInfo.Node || BspInfo.Location != Location() || BspInfo.Extents != extents)
+	{
+		RemoveFromBspNode();
+
+		BspInfo.Location = Location();
+		BspInfo.Extents = extents;
+
+		ULevel* level = XLevel();
+		BspNode* node = &level->Model->Nodes[0];
+		while (node)
+		{
+			int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
+			if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
+			{
+				AddToBspNode(node);
+				break;
+			}
+			else if (side < 0)
+			{
+				node = &level->Model->Nodes[node->Front];
+			}
+			else
+			{
+				node = &level->Model->Nodes[node->Back];
+			}
+		}
+	}
+}
+
+void UActor::AddToBspNode(BspNode* node)
+{
+	BspInfo.Node = node;
+
+	if (node->ActorList)
+	{
+		node->ActorList->BspInfo.Prev = this;
+		BspInfo.Next = node->ActorList;
+	}
+
+	node->ActorList = this;
+}
+
+void UActor::RemoveFromBspNode()
+{
+	if (BspInfo.Node)
+	{
+		if (BspInfo.Next)
+		{
+			BspInfo.Next->BspInfo.Prev = BspInfo.Prev;
+		}
+		if (BspInfo.Prev)
+		{
+			BspInfo.Prev->BspInfo.Next = BspInfo.Next;
+		}
+		if (BspInfo.Node->ActorList == this)
+		{
+			BspInfo.Node->ActorList = BspInfo.Next;
+		}
+		BspInfo.Node = nullptr;
+		BspInfo.Prev = nullptr;
+		BspInfo.Next = nullptr;
+	}
+}
+
+// -1 = inside, 0 = intersects, 1 = outside
+int UActor::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node)
+{
+	float e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
+	float s = center.x * node->PlaneX + center.y * node->PlaneY + center.z * node->PlaneZ - node->PlaneW;
+	if (s - e > 0.0f)
+		return -1;
+	else if (s + e < 0.0f)
+		return 1;
+	else
+		return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////

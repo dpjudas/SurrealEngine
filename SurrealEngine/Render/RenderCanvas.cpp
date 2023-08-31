@@ -392,12 +392,14 @@ void RenderSubsystem::DrawTimedemoStats()
 		lines.push_back(std::to_string(Canvas.fps) + " FPS");
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 
-		size_t numCollisionActors = 0;
+		/*size_t numCollisionActors = 0;
 		for (auto& it : engine->Level->Hash.CollisionActors)
 			numCollisionActors += it.second.size();
-		lines.push_back(std::to_string(numCollisionActors) + " collision actors");
+		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
 
-		lines.push_back("x = " + std::to_string(engine->CameraLocation.x) + ", y = " + std::to_string(engine->CameraLocation.y) + ", z = " + std::to_string(engine->CameraLocation.z));
+		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
+		lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
+		lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)
@@ -408,9 +410,10 @@ void RenderSubsystem::DrawTimedemoStats()
 				float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
 				float curYL = 0.0f;
 				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
-				curY += curYL + 4.0f;
+				curY += curYL;
 			}
 
+			/*
 			std::vector<std::string> leftlines;
 			engine->audio->AddStats(leftlines);
 			curY = 64;
@@ -419,8 +422,9 @@ void RenderSubsystem::DrawTimedemoStats()
 				float curX = 16.0f;
 				float curYL = 0.0f;
 				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
-				curY += curYL + 4.0f;
+				curY += curYL;
 			}
+			*/
 		}
 	}
 }

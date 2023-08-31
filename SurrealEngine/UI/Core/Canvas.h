@@ -1,10 +1,21 @@
 #pragma once
 
+class Font;
+class Image;
 class Point;
 class Rect;
 class Colorf;
 class RenderDevice;
 struct VerticalTextPosition;
+
+class FontMetrics
+{
+public:
+	double ascent = 0.0;
+	double descent = 0.0;
+	double external_leading = 0.0;
+	double height = 0.0;
+};
 
 class Canvas
 {
@@ -31,6 +42,14 @@ public:
 	virtual void drawText(const Point& pos, const Colorf& color, const std::string& text) = 0;
 	virtual Rect measureText(const std::string& text) = 0;
 	virtual VerticalTextPosition verticalTextAlign() = 0;
+
+	virtual void drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color) = 0;
+	virtual void drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color) = 0;
+	virtual Rect measureText(const std::shared_ptr<Font>& font, const std::string& text) = 0;
+	virtual FontMetrics getFontMetrics(const std::shared_ptr<Font>& font) = 0;
+	virtual int getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint) = 0;
+
+	virtual void drawImage(const std::shared_ptr<Image>& image, const Point& pos) = 0;
 };
 
 struct VerticalTextPosition

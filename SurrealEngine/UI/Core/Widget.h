@@ -41,6 +41,7 @@ public:
 	void SetFrameGeometry(const Rect& geometry);
 	void SetFrameGeometry(double x, double y, double width, double height) { SetFrameGeometry(Rect::xywh(x, y, width, height)); }
 
+	void SetVisible(bool enable) { if (enable) Show(); else Hide(); }
 	void Show();
 	void ShowFullscreen();
 	void ShowMaximized();
@@ -103,6 +104,7 @@ protected:
 	virtual void OnMouseDoubleclick(const Point& pos, int key) { }
 	virtual void OnMouseUp(const Point& pos, int key) { }
 	virtual void OnMouseWheel(const Point& pos, EInputKey key) { }
+	virtual void OnMouseLeave() { }
 	virtual void OnRawMouseMove(int dx, int dy) { }
 	virtual void OnKeyChar(std::string chars) { }
 	virtual void OnKeyDown(EInputKey key) { }

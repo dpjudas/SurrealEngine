@@ -28,6 +28,7 @@ class UWarpZoneInfo;
 class UZoneInfo;
 class PackageManager;
 class CollisionHit;
+class BspNode;
 struct MeshAnimSeq;
 
 struct PointRegion
@@ -208,6 +209,12 @@ public:
 
 	void MakeNoise(float loudness);
 
+	void UpdateBspInfo();
+	void AddToBspNode(BspNode* node);
+	void RemoveFromBspNode();
+	static int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
+
+	// The status of the actor in the collision hash
 	struct
 	{
 		bool Inserted = false;
@@ -216,25 +223,46 @@ public:
 		float Radius = 0.0f;
 	} CollisionHashInfo;
 
-	float SleepTimeLeft = 0.0f;
-	vec3 gravityVector;
+	// Lights touching this actor
+	struct
+	{
+		bool NeedsUpdate = true;
+		vec3 Location = vec3(0.0f);
+		std::vector<UActor*> LightList;
+	} LightInfo;
 
-	// Cached calculations needed by the renderer
-	bool LightListFound = false;
-	vec3 LightListLocation = vec3(0.0f);
-	std::vector<UActor*> LightList;
-	vec3 fogcolor = { 0.0f };
-	float brightness = -1.0f;
-	float fog = -1.0f;
-	float radius = -1.0f;
-	float r2 = -1.0f;
+	// Fog between actor and camera
+	struct
+	{
+		vec3 fogcolor = { 0.0f };
+		float brightness = -1.0f;
+		float fog = -1.0f;
+		float radius = -1.0f;
+		float r2 = -1.0f;
+	} FogInfo;
 
+	// Location in the BSP tree
+	struct
+	{
+		vec3 Location = vec3(0.0f);
+		vec3 Extents = vec3(0.0f);
+		BspNode* Node = nullptr;
+		UActor* Prev = nullptr;
+		UActor* Next = nullptr;
+	} BspInfo;
+
+	// Tweening animation state
 	struct
 	{
 		int V0 = 0;
 		int V1 = 0;
 		float T = -1.0f;
 	} TweenFromAnimFrame;
+
+	int LastDrawFrame = -1;
+
+	float SleepTimeLeft = 0.0f;
+	vec3 gravityVector;
 
 	void SetTweenFromAnimFrame();
 

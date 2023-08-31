@@ -332,16 +332,40 @@ inline vec3 refract(const vec3& I, const vec3& N, float eta) { float NdotI = dot
 inline dvec3 refract(const dvec3& I, const dvec3& N, double eta) { double NdotI = dot(N, I); double k = 1.0 - eta * eta * (1.0 - NdotI * NdotI); return k < 0.0 ? dvec3(0.0) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
 
 template<typename T>
-T mix(const T& a, const T& b, float t) { return a * (1.0f - t) + b * t; }
+T mix(T a, T b, float t) { return a * (1.0f - t) + b * t; }
 
 template<typename T>
-T mix(const T& a, const T& b, double t) { return a * (1.0 - t) + b * t; }
+T mix(T a, T b, double t) { return a * (1.0 - t) + b * t; }
 
 template<typename T>
-T clamp(const T& val, const T& minval, const T& maxval) { return std::max<T>(std::min<T>(val, maxval), minval); }
+T clamp(T val, T minval, T maxval) { return std::max<T>(std::min<T>(val, maxval), minval); }
+
+template<>
+inline int clamp(int val, int minval, int maxval)
+{
+	if (maxval < val) val = maxval;
+	if (minval > val) val = minval;
+	return val;
+}
+
+template<>
+inline float clamp(float val, float minval, float maxval)
+{
+	if (maxval < val) val = maxval;
+	if (minval > val) val = minval;
+	return val;
+}
+
+template<>
+inline double clamp(double val, double minval, double maxval)
+{
+	if (maxval < val) val = maxval;
+	if (minval > val) val = minval;
+	return val;
+}
 
 template<class T>
-T smoothstep(const T& edge0, const T& edge1, const T& x)
+T smoothstep(T edge0, T edge1, T x)
 {
 	auto t = clamp<T>((x - edge0) / (edge1 - edge0), T(0.0), T(1.0));
 	return t * t * (T(3.0) - T(2.0) * t);
