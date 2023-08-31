@@ -213,7 +213,7 @@ double Win32Window::GetDpiScale() const
 
 std::string Win32Window::GetAvailableResolutions() const
 {
-	string result = "";
+	std::string result = "";
 	std::vector<std::string> availableResolutions{};
 
 	int modeNum = 0;
