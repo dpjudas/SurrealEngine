@@ -327,6 +327,65 @@ double SDL2Window::GetDpiScale() const
     return (double) drawable_width / (double) window_width;
 }
 
+std::string SDL2Window::GetAvailableResolutions() const
+{
+    std::string result = "";
+    std::vector<std::string> availableResolutions{};
+
+    // First, obtain the display the window is on
+    int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
+    if (displayIndex < 0)
+    {
+        std::string message{"Error on SDL_GetWindowDisplayIndex(): " + std::string(SDL_GetError())};
+        std::runtime_error(message.c_str());
+    }
+
+    // Then obtain the amount of available resolutions
+    int numDisplayModes = SDL_GetNumDisplayModes(displayIndex);
+    if (numDisplayModes < 0)
+    {
+        std::string message{"Error on SDL_GetNumDisplayModes(): " + std::string(SDL_GetError())};
+        std::runtime_error(message.c_str());
+    }
+
+    for (int i = 0 ; i < numDisplayModes ; i++)
+    {
+        SDL_DisplayMode displayMode;
+
+        SDL_GetDisplayMode(displayIndex, i, &displayMode);
+
+        // The data also includes refresh rate but we ignore it (for now?)
+        std::string resolution = std::to_string(displayMode.w) + "x" + std::to_string(displayMode.h);
+
+        // Skip over the current resolution if it is already inserted
+        // (in case of multiple refresh rates being available for the display)
+        bool resolutionAlreadyAdded = false;
+        for (auto res : availableResolutions)
+        {
+            if (resolution.compare(res) == 0)
+            {
+                resolutionAlreadyAdded = true;
+                break;
+            }
+        }
+        if (resolutionAlreadyAdded)
+            continue;
+
+        // Add the resolution, as it is not added before
+        availableResolutions.push_back(resolution);
+    }
+
+    // "Flatten" the resolutions list into a single string
+    for (int i = 0 ; i < availableResolutions.size() ; i++)
+    {
+        result += availableResolutions[i];
+        if (i < availableResolutions.size() - 1)
+            result += " ";
+    }
+
+    return result;
+}
+
 EInputKey SDL2Window::SDLScancodeToInputKey(SDL_Scancode keycode)
 {
     switch (keycode) {

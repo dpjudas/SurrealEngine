@@ -166,4 +166,5 @@ public:
 	virtual int GetPixelWidth() const = 0;
 	virtual int GetPixelHeight() const = 0;
 	virtual double GetDpiScale() const = 0;
+	virtual std::string GetAvailableResolutions() const = 0;
 };

@@ -25,6 +25,7 @@
 #include "X11Atoms.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrandr.h>
 #include <X11/cursorfont.h>
 
 class VulkanDevice;
@@ -62,6 +63,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
+	std::string GetAvailableResolutions() const override;
 
 	bool HasFocus() const;
 	bool IsMinimized() const;
