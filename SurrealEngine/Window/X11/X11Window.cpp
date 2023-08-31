@@ -398,7 +398,7 @@ double X11Window::GetDpiScale() const
 	return dpiscale;
 }
 
-void X11Window::GetAvailableResolutions() const
+std::string X11Window::GetAvailableResolutions() const
 {
 	std::string result = "";
 	std::vector<std::string> availableResolutions{};
