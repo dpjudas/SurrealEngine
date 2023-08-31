@@ -50,6 +50,7 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.TranslucentNodes.clear();
 	Scene.Actors.clear();
 	Scene.Coronas.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
+	Scene.FrameCounter++;
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 
 	Device->SetSceneNode(&Scene.Frame);
@@ -77,7 +78,7 @@ void RenderSubsystem::DrawActors()
 				BBox bbox = actor->Mesh()->BoundingBox;
 				bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
 				bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
-				if (Scene.Clipper.IsAABBVisible(bbox))
+				//if (Scene.Clipper.IsAABBVisible(bbox))
 				{
 					DrawMesh(&Scene.Frame, actor);
 				}
@@ -91,7 +92,7 @@ void RenderSubsystem::DrawActors()
 				BBox bbox = actor->Brush()->BoundingBox;
 				bbox.min += actor->Location();
 				bbox.max += actor->Location();
-				if (Scene.Clipper.IsAABBVisible(bbox))
+				//if (Scene.Clipper.IsAABBVisible(bbox))
 				{
 					DrawBrush(&Scene.Frame, actor);
 				}
@@ -268,10 +269,11 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 	// Add bsp node actors to the visible set
 	for (UActor* actor = node->ActorList; actor != nullptr; actor = actor->BspInfo.Next)
 	{
-		if (actor->LastDrawFrame != FrameCounter)
+		if (actor->LastDrawFrame != Scene.FrameCounter)
 		{
-			actor->LastDrawFrame = FrameCounter;
-			Scene.Actors.push_back(actor);
+			actor->LastDrawFrame = Scene.FrameCounter;
+			if (!actor->bHidden())
+				Scene.Actors.push_back(actor);
 		}
 	}
 

@@ -136,17 +136,20 @@ bool BspClipper::IsAABBVisible(const BBox& bbox)
 bool BspClipper::IsVisible(int y, int x0, int x1)
 {
 	auto& line = Viewport[y];
-	std::vector<ClipSpan>::iterator start = line.begin();
+	for (size_t pos = 0; pos < line.size(); pos++)
+	{
+		int left = line[pos].x1;
+		if (left >= x1)
+			break;
+		int right = line[pos + 1].x0;
 
-	while (start->x1 < x0)
-		start++;
-
-	if (x0 < start->x0)
-		return true;
-
-	if (x1 > start->x1)
-		return true;
-
+		left = std::max(left, x0);
+		right = std::min(right, x1);
+		if (left < right)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -155,86 +158,51 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 	if (x1 <= x0)
 		return false;
 
+	if (!solid)
+		return IsVisible(y, x0, x1);
+
 	auto& line = Viewport[y];
 
-	std::vector<ClipSpan>::iterator start = line.begin();
 	bool visible = false;
-
-	while (start->x1 < x0)
-		start++;
-
-	if (x0 < start->x0)
+	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		visible = true;
+		int left = line[pos].x1;
+		if (left >= x1)
+			break;
+		int right = line[pos + 1].x0;
 
-		if (x1 <= start->x0)
+		left = std::max(left, x0);
+		right = std::min(right, x1);
+		if (left < right)
 		{
-			if (solid)
+			visible = true;
+			if (left == line[pos].x1)
 			{
-				if (x1 == start->x0)
-				{
-					start->x0 = x0;
-				}
-				else
-				{
-					ClipSpan span;
-					span.x0 = x0;
-					span.x1 = x1;
-					line.insert(start, span);
-				}
+				line[pos].x1 = right;
 			}
-			return true;
-		}
-
-		if (solid)
-		{
-			start->x0 = x0;
-		}
-	}
-
-	if (x1 <= start->x1)
-		return visible;
-
-	std::vector<ClipSpan>::iterator next = start;
-	while (x1 >= (next + 1)->x0)
-	{
-		visible = true;
-		next++;
-
-		if (x1 <= next->x1)
-		{
-			x1 = next->x1;
-
-			if (solid)
+			else if (right == line[pos + 1].x0)
 			{
-				start->x1 = x1;
-
-				if (next != start)
-				{
-					line.erase(start + 1);
-				}
+				line[pos + 1].x0 = left;
 			}
-			return true;
+			else
+			{
+				pos++;
+				ClipSpan span;
+				span.x0 = left;
+				span.x1 = right;
+				line.insert(line.begin() + pos, span);
+			}
 		}
 	}
 
-	if (solid)
-	{
-		start->x1 = x1;
-
-		if (next != start)
-		{
-			line.erase(start + 1);
-		}
-	}
-	return true;
+	return visible;
 }
 
 bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 {
 	// Reject triangle if degenerate
-	if (IsDegenerate(vert))
-		return false;
+	//if (IsDegenerate(vert))
+	//	return false;
 
 	// Cull, clip and generate additional vertices as needed
 	vec4 clippedvert[max_additional_vertices];
@@ -326,7 +294,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 			args[0] = &clippedvert[numclipvert - 1];
 			args[1] = &clippedvert[i - 1];
 			args[2] = &clippedvert[i - 2];
-			if (IsFrontfacing(args) == ccw)
+			//if (IsFrontfacing(args) == ccw)
 			{
 				result |= DrawClippedTriangle(args, solid);
 			}
@@ -340,7 +308,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 			args[0] = &clippedvert[0];
 			args[1] = &clippedvert[i - 1];
 			args[2] = &clippedvert[i];
-			if (IsFrontfacing(args) != ccw)
+			//if (IsFrontfacing(args) != ccw)
 			{
 				result |= DrawClippedTriangle(args, solid);
 			}

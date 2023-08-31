@@ -121,6 +121,7 @@ private:
 		std::vector<DrawNodeInfo> TranslucentNodes;
 		std::vector<UActor*> Coronas;
 		std::vector<UActor*> Actors;
+		int FrameCounter = 0;
 	} Scene;
 
 	struct
