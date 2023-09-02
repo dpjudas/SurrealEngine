@@ -21,8 +21,8 @@ void BspClipper::Setup(const mat4& world_to_projection)
 	WorldToProjection = world_to_projection;
 	FrustumClip = FrustumPlanes(world_to_projection);
 
-	ClipSpan left = { -100000, 0 };
-	ClipSpan right = { ViewportWidth, 100000 };
+	ClipSpan left = { 0x8000, 0 };
+	ClipSpan right = { ViewportWidth, 0x7fff };
 	for (auto& line : Viewport)
 	{
 		line.clear();
@@ -133,15 +133,18 @@ bool BspClipper::IsAABBVisible(const BBox& bbox)
 	return false;
 }
 
-bool BspClipper::IsVisible(int y, int x0, int x1)
+bool BspClipper::IsVisible(int16_t y, int16_t x0, int16_t x1)
 {
+//#ifndef NOSEE
+
+//#else
 	auto& line = Viewport[y];
 	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		int left = line[pos].x1;
+		int16_t left = line[pos].x1;
 		if (left >= x1)
 			break;
-		int right = line[pos + 1].x0;
+		int16_t right = line[pos + 1].x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
@@ -151,9 +154,10 @@ bool BspClipper::IsVisible(int y, int x0, int x1)
 		}
 	}
 	return false;
+//#endif
 }
 
-bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
+bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 {
 	if (x1 <= x0)
 		return false;
@@ -164,12 +168,13 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 	auto& line = Viewport[y];
 
 	bool visible = false;
+#ifdef NOSSE
 	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		int left = line[pos].x1;
+		int16_t left = line[pos].x1;
 		if (left >= x1)
 			break;
-		int right = line[pos + 1].x0;
+		int16_t right = line[pos + 1].x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
@@ -194,7 +199,23 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 			}
 		}
 	}
+#else
+	size_t sse_size = line.size() / 8;
+	size_t sse_rem = line.size() % 8;
+	if (sse_rem == 1)
+	{
+		// 7 6 5 4 3 2 1 0
+		// 
 
+		for (size_t pos = 0; pos < sse_size; pos++)
+		{
+			__m128i lines0 = _mm_loadu_si128((const __m128i*) & line[pos * 4].x1);
+			__m128i lines1 = _mm_loadu_si128((const __m128i*) & line[(pos + 1) * 4].x1);
+			__m128i lx1    = _mm_shufflehi_epi16(lines0, 0xFF)
+			__m128i mask = _mm_unpackhi_epi16()
+		}
+	}
+#endif
 	return visible;
 }
 
@@ -478,17 +499,18 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 {
 	// Sort vertices by Y position
+
 	const vec4* sortedVertices[3];
 	SortVertices(vertices, sortedVertices);
 
-	int clipleft = 0;
-	int clipright = ViewportWidth;
-	int cliptop = 0;
-	int clipbottom = ViewportHeight;
+	int16_t clipleft = 0;
+	int16_t clipright = ViewportWidth;
+	int16_t cliptop = 0;
+	int16_t clipbottom = ViewportHeight;
 
-	int topY = (int)(sortedVertices[0]->y + 0.5f);
-	int midY = (int)(sortedVertices[1]->y + 0.5f);
-	int bottomY = (int)(sortedVertices[2]->y + 0.5f);
+	int16_t topY = (int)(sortedVertices[0]->y + 0.5f);
+	int16_t midY = (int)(sortedVertices[1]->y + 0.5f);
+	int16_t bottomY = (int)(sortedVertices[2]->y + 0.5f);
 
 	topY = std::max(topY, cliptop);
 	midY = std::min(midY, clipbottom);
@@ -499,7 +521,7 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 	// Find start/end X positions for each line covered by the triangle:
 
-	int y = topY;
+	int16_t y = topY;
 
 	float longDX = sortedVertices[2]->x - sortedVertices[0]->x;
 	float longDY = sortedVertices[2]->y - sortedVertices[0]->y;
@@ -517,8 +539,8 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 		while (y < midY)
 		{
-			int x0 = (int)shortPos;
-			int x1 = (int)longPos;
+			int16_t x0 = (int16_t)shortPos;
+			int16_t x1 = (int16_t)longPos;
 			if (x1 < x0) std::swap(x0, x1);
 			x0 = clamp(x0, clipleft, clipright);
 			x1 = clamp(x1, clipleft, clipright);
@@ -540,8 +562,8 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 		while (y < bottomY)
 		{
-			int x0 = (int)shortPos;
-			int x1 = (int)longPos;
+			int16_t x0 = (int16_t)shortPos;
+			int16_t x1 = (int16_t)longPos;
 			if (x1 < x0) std::swap(x0, x1);
 			x0 = clamp(x0, clipleft, clipright);
 			x1 = clamp(x1, clipleft, clipright);

@@ -8,8 +8,8 @@ class BBox;
 class ClipSpan
 {
 public:
-	int x0;
-	int x1;
+	int16_t x0;
+	int16_t x1;
 };
 
 class BspClipper
@@ -24,13 +24,13 @@ public:
 	bool IsAABBVisible(const BBox& bbox);
 
 private:
-	bool IsVisible(int y, int x0, int x1);
+	bool IsVisible(int16_t y, int16_t x0, int16_t x1);
 
 	bool DrawTriangle(const vec4* const* vert, bool solid, bool ccw);
 	int ClipEdge(const vec4* const* verts);
 
 	bool DrawClippedTriangle(const vec4* const* vertices, bool solid);
-	bool DrawSpan(int y, int x0, int x1, bool solid);
+	bool DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid);
 
 	static bool IsDegenerate(const vec4* const* vert);
 	static bool IsFrontfacing(const vec4* const* vert);

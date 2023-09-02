@@ -15,7 +15,8 @@ public:
 	static float LightDistanceFalloff(float distsqr)
 	{
 #if 0
-		return pow(1.0f - distsqr, 2.3f);
+		//return pow(1.0f - distsqr, 2.3f);
+		return (-logf(dist));
 #else
 		float v = std::sqrt(distsqr + (1.0f / 4096.0f));
 		float v2 = v * v;
