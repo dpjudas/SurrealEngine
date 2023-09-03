@@ -105,6 +105,7 @@ Documentation of all members: vk_mem_alloc.h
 */
 
 #ifdef __cplusplus
+#include <cstdio>
 extern "C" {
 #endif
 
