@@ -237,7 +237,10 @@ std::string Win32Window::GetAvailableResolutions() const
 			}
 		}
 		if (resolutionAlreadyAdded)
+		{
+			modeNum++;
 			continue;
+		}
 
 		// Add the resolution, as it is not added before
 		availableResolutions.push_back(resolution);
