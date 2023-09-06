@@ -515,6 +515,13 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		render->ShowTimedemoStats = args[1] == "1";
 	}
+	else if (command == "stat" && args.size() == 2)
+	{
+		render->ShowRenderStats = 0;
+
+		if (args[1] == "render")
+			render->ShowRenderStats = 1;
+	}
 	else if (command == "collisiondebug" && args.size() == 2)
 	{
 		render->ShowCollisionDebug = args[1] == "1";

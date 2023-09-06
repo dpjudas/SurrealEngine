@@ -34,6 +34,10 @@ public:
 	bool CheckSurface(const vec3* vertices, uint32_t count, bool solid);
 	bool IsAABBVisible(const BBox& bbox);
 
+	int numDrawSpans;
+	int numSurfs;
+	int numTris;
+
 private:
 	bool IsVisible(int16_t y, int16_t x0, int16_t x1);
 
@@ -42,7 +46,6 @@ private:
 
 	bool DrawClippedTriangle(const vec4* const* vertices, bool solid);
 	bool DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid);
-	void MergeSpans();
 
 	static bool IsDegenerate(const vec4* const* vert);
 	static bool IsFrontfacing(const vec4* const* vert);

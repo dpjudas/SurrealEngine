@@ -54,6 +54,8 @@ bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
 	if (count < 3)
 		return false;
 
+	numSurfs++;
+
 	vec4 buffer[3];
 	vec4* triverts[3] = { &buffer[0], &buffer[1], &buffer[2] };
 
@@ -183,6 +185,8 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 	if (!solid)
 		return IsVisible(y, x0, x1);
 
+	numDrawSpans++;
+
 	auto& line = Viewport[y];
 
 	bool visible = false;
@@ -237,6 +241,8 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 	// Reject triangle if degenerate
 	//if (IsDegenerate(vert))
 	//	return false;
+
+	numTris++;
 
 	// Cull, clip and generate additional vertices as needed
 	vec4 clippedvert[max_additional_vertices];

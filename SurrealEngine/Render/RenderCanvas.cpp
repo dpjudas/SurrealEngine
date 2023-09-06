@@ -427,6 +427,39 @@ void RenderSubsystem::DrawTimedemoStats()
 			*/
 		}
 	}
+
+	if (ShowRenderStats)
+	{
+		std::vector<std::string> lines;
+		lines.push_back(std::to_string(Canvas.fps) + " FPS");
+		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
+
+		/*size_t numCollisionActors = 0;
+		for (auto& it : engine->Level->Hash.CollisionActors)
+			numCollisionActors += it.second.size();
+		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
+
+		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
+		lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
+		lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
+
+		lines.push_back(std::to_string(Scene.Clipper.numDrawSpans) + " spans");
+		lines.push_back(std::to_string(Scene.Clipper.numSurfs) + " checked surfaces");
+		lines.push_back(std::to_string(Scene.Clipper.numTris) + " checked triangles");
+
+		UFont* font = engine->canvas->MedFont();
+		if (font)
+		{
+			float curY = 180;
+			for (const std::string& text : lines)
+			{
+				float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+				float curYL = 0.0f;
+				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+				curY += curYL;
+			}
+		}
+	}
 }
 
 void RenderSubsystem::DrawCollisionDebug()
