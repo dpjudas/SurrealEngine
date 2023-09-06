@@ -12,6 +12,17 @@ public:
 	int16_t x1;
 };
 
+class SpanLine
+{
+public:
+	void Init(ClipSpan& left, ClipSpan& right);
+	void Insert(size_t pos, ClipSpan& span);
+	void Erase(size_t pos);
+
+	ClipSpan spans[64];
+	int count;
+};
+
 class BspClipper
 {
 public:
@@ -31,12 +42,13 @@ private:
 
 	bool DrawClippedTriangle(const vec4* const* vertices, bool solid);
 	bool DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid);
+	void MergeSpans();
 
 	static bool IsDegenerate(const vec4* const* vert);
 	static bool IsFrontfacing(const vec4* const* vert);
 	static void SortVertices(const vec4* const* vertices, const vec4** sortedVertices);
 
-	std::vector<std::vector<ClipSpan>> Viewport;
+	std::vector<SpanLine> Viewport;
 	FrustumPlanes FrustumClip;
 	mat4 WorldToProjection;
 
@@ -44,6 +56,6 @@ private:
 	float weightsbuffer[max_additional_vertices * 3 * 2];
 	float* weights = nullptr;
 
-	const int ViewportWidth = 1024;
-	const int ViewportHeight = 1024;
+	const int ViewportWidth = 2048;
+	const int ViewportHeight = 1080;
 };

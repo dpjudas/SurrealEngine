@@ -16,6 +16,26 @@ BspClipper::~BspClipper()
 {
 }
 
+void SpanLine::Init(ClipSpan& left, ClipSpan& right)
+{
+	spans[0] = left;
+	spans[1] = right;
+	count = 2;
+}
+
+void SpanLine::Insert(size_t pos, ClipSpan& span)
+{
+	std::memmove(&spans[pos + 1], &spans[pos], (count - pos) * sizeof(ClipSpan));
+	spans[pos] = span;
+	count++;
+}
+
+void SpanLine::Erase(size_t pos)
+{
+	std::memmove(&spans[pos], &spans[pos + 1], (count - pos) * sizeof(ClipSpan));
+	count--;
+}
+
 void BspClipper::Setup(const mat4& world_to_projection)
 {
 	WorldToProjection = world_to_projection;
@@ -25,9 +45,7 @@ void BspClipper::Setup(const mat4& world_to_projection)
 	ClipSpan right = { ViewportWidth, 0x7fff };
 	for (auto& line : Viewport)
 	{
-		line.clear();
-		line.push_back(left);
-		line.push_back(right);
+		line.Init(left, right);
 	}
 }
 
@@ -139,12 +157,12 @@ bool BspClipper::IsVisible(int16_t y, int16_t x0, int16_t x1)
 
 //#else
 	auto& line = Viewport[y];
-	for (size_t pos = 0; pos < line.size(); pos++)
+	for (size_t pos = 0; pos < line.count; pos++)
 	{
-		int16_t left = line[pos].x1;
+		int16_t left = line.spans[pos].x1;
 		if (left >= x1)
 			break;
-		int16_t right = line[pos + 1].x0;
+		int16_t right = line.spans[pos + 1].x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
@@ -168,26 +186,38 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 	auto& line = Viewport[y];
 
 	bool visible = false;
-#ifdef NOSSE
-	for (size_t pos = 0; pos < line.size(); pos++)
+	for (size_t pos = 0; pos < line.count; pos++)
 	{
-		int16_t left = line[pos].x1;
+		ClipSpan& span = line.spans[pos];
+		ClipSpan& nextspan = line.spans[pos + 1];
+
+		int16_t left = span.x1;
 		if (left >= x1)
 			break;
-		int16_t right = line[pos + 1].x0;
+		int16_t right = nextspan.x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
 		if (left < right)
 		{
 			visible = true;
-			if (left == line[pos].x1)
+			if (left == span.x1)
 			{
-				line[pos].x1 = right;
+				span.x1 = right;
+				if (span.x1 == nextspan.x0)
+				{
+					span.x1 = nextspan.x1;
+					line.Erase(pos + 1);
+				}
 			}
-			else if (right == line[pos + 1].x0)
+			else if (right == nextspan.x0)
 			{
-				line[pos + 1].x0 = left;
+				nextspan.x0 = left;
+				if (span.x1 == nextspan.x0)
+				{
+					span.x1 = nextspan.x1;
+					line.Erase(pos + 1);
+				}
 			}
 			else
 			{
@@ -195,27 +225,10 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 				ClipSpan span;
 				span.x0 = left;
 				span.x1 = right;
-				line.insert(line.begin() + pos, span);
+				line.Insert(pos, span);
 			}
 		}
 	}
-#else
-	size_t sse_size = line.size() / 8;
-	size_t sse_rem = line.size() % 8;
-	if (sse_rem == 1)
-	{
-		// 7 6 5 4 3 2 1 0
-		// 
-
-		for (size_t pos = 0; pos < sse_size; pos++)
-		{
-			__m128i lines0 = _mm_loadu_si128((const __m128i*) & line[pos * 4].x1);
-			__m128i lines1 = _mm_loadu_si128((const __m128i*) & line[(pos + 1) * 4].x1);
-			__m128i lx1    = _mm_shufflehi_epi16(lines0, 0xFF)
-			__m128i mask = _mm_unpackhi_epi16()
-		}
-	}
-#endif
 	return visible;
 }
 
@@ -508,9 +521,9 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 	int16_t cliptop = 0;
 	int16_t clipbottom = ViewportHeight;
 
-	int16_t topY = (int)(sortedVertices[0]->y + 0.5f);
-	int16_t midY = (int)(sortedVertices[1]->y + 0.5f);
-	int16_t bottomY = (int)(sortedVertices[2]->y + 0.5f);
+	int16_t topY = (int16_t)(sortedVertices[0]->y + 0.5f);
+	int16_t midY = (int16_t)(sortedVertices[1]->y + 0.5f);
+	int16_t bottomY = (int16_t)(sortedVertices[2]->y + 0.5f);
 
 	topY = std::max(topY, cliptop);
 	midY = std::min(midY, clipbottom);
