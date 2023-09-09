@@ -42,14 +42,12 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 		light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
 		light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
 		light->FogInfo.radius = light->WorldVolumetricRadius();
-		light->FogInfo.r2 = light->FogInfo.radius * light->FogInfo.radius;
 	}
 
 	vec3 fogcolor = light->FogInfo.fogcolor;
-	float brightness = light->FogInfo.brightness;
+	float brightness = light->FogInfo.brightness * 5.0f;
 	float fog = light->FogInfo.fog;
 	float radius = light->FogInfo.radius;
-	float r2 = light->FogInfo.r2;
 
 	vec3 lightpos = light->Location();
 
@@ -58,46 +56,60 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 	vec4* dest = fogcolors.data();
 	for (size_t i = 0; i < size; i++)
 	{
-		// Find the one or two points where the light intersects with our ray from the texel to the view
-		vec3 ijk = locations[i] - view;
-		vec3 tmp = view - lightpos;
-		float a = dot(ijk, ijk);
-		float b = 2.0f * dot(ijk, tmp);
-		float c = dot(tmp, tmp) - r2;
-		float det = b * b - 4.0f * a * c;
-		if (det < 0.0f)
-			continue; // no hit, we are outside the fog
-#ifndef NOSSE
-		float sqrdet = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(det)));
-#else
-		float sqrdet = std::sqrt(det);
-#endif
-		float t0 = (-b - sqrdet) / (2.0f * a);
-		float t1 = (-b + sqrdet) / (2.0f * a);
-		t0 = clamp(t0, 0.0f, 1.0f);
-		t1 = clamp(t1, 0.0f, 1.0f);
-		vec3 fogp0 = view + ijk * t0;
-		vec3 fogp1 = view + ijk * t1;
-		tmp = fogp1 - fogp0;
-		float fogdistance2 = dot(tmp, tmp);
+		vec3 rayDirection = locations[i] - view;
+		float depth = std::sqrt(dot(rayDirection, rayDirection));
+		rayDirection *= (1.0f / depth);
+		float fogamount = SphereDensity(view, rayDirection, lightpos, light->FogInfo.radius, depth) * brightness;
 
-#if 0
-#ifndef NOSSE
-		float fogdistance = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(fogdistance2)));
-#else
-		float fogdistance = std::sqrt(fogdistance2);
-#endif
-		float fogamount = std::min(fogdistance / radius, 1.0f) * brightness;
-#else
-		float fogamount = std::min(fogdistance2 / r2, 1.0f) * brightness;
-#endif
-		float alpha = std::min(fog * fogamount, 1.0f);
+		float alpha = std::min(fogamount * fog, 1.0f);
 		float invalpha = 1.0f - alpha;
 		dest[i].r = fogcolor.r * fogamount + dest[i].r * invalpha;
 		dest[i].g = fogcolor.g * fogamount + dest[i].g * invalpha;
 		dest[i].b = fogcolor.b * fogamount + dest[i].b * invalpha;
 		dest[i].a = std::min(dest[i].a + alpha, 1.0f);
 	}
+}
+
+// The MIT License
+// https://www.youtube.com/c/InigoQuilez
+// https://iquilezles.org/
+// Copyright (c) 2015 Inigo Quilez
+//
+// Analytically integrating quadratically decaying participating media within a sphere.
+// Related info: https://iquilezles.org/articles/spherefunctions
+//
+float FogmapBuilder::SphereDensity(const vec3& rayOrigin, const vec3& rayDirection, const vec3& sphereCenter, float sphereRadius, float dbuffer)
+{
+	// normalize the problem to the canonical sphere
+	float ndbuffer = dbuffer / sphereRadius;
+	vec3 rc = (rayOrigin - sphereCenter) / sphereRadius;
+
+	// find intersection with sphere
+	float b = dot(rayDirection, rc);
+	float c = dot(rc, rc) - 1.0f;
+	float h = b * b - c;
+
+	// not intersecting
+	if (h < 0.0f) return 0.0f;
+
+	h = std::sqrt(h);
+
+	//return h*h*h;
+
+	float t1 = -b - h;
+	float t2 = -b + h;
+
+	// not visible (behind camera or behind ndbuffer)
+	if (t2 < 0.0f || t1 > ndbuffer) return 0.0f;
+
+	// clip integration segment from camera to ndbuffer
+	t1 = std::max(t1, 0.0f);
+	t2 = std::min(t2, ndbuffer);
+
+	// analytical integration of an inverse squared density
+	float i1 = -(c * t1 + b * t1 * t1 + t1 * t1 * t1 * (1.0f / 3.0f));
+	float i2 = -(c * t2 + b * t2 * t2 + t2 * t2 * t2 * (1.0f / 3.0f));
+	return (i2 - i1) * (3.0f / 4.0f);
 }
 
 void FogmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex)

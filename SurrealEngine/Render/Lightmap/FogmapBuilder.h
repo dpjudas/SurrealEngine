@@ -23,6 +23,8 @@ private:
 
 	void CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex);
 
+	static float SphereDensity(const vec3& rayOrigin, const vec3& rayDirection, const vec3& sphereCenter, float sphereRadius, float dbuffer);
+
 	int width = 0;
 	int height = 0;
 	std::vector<vec4> fogcolors;
