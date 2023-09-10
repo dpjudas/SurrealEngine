@@ -13,13 +13,11 @@ std::map<int, SDL2Window*> SDL2Window::windows;
 SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        std::string message = "Unable to initialize SDL: " + std::string(SDL_GetError());
-        std::runtime_error(message.c_str());
+        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError());
     }
     m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1366, 768, SDL_WINDOW_VULKAN | SDL_WINDOW_FULLSCREEN_DESKTOP);
     if (!m_SDLWindow) {
-        std::string message = "Unable to create SDL Window: " + std::string(SDL_GetError());
-        std::runtime_error(message.c_str());
+        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError());
     }
 
     // Generate a required extensions list
@@ -97,6 +95,11 @@ void SDL2Window::RunLoop()
 
 void SDL2Window::ExitLoop()
 {
+}
+
+void SDL2Window::SDLWindowError(const std::string& message) const
+{
+    throw std::runtime_error(message.c_str());
 }
 
 void SDL2Window::OnSDLEvent(SDL_Event& event)
@@ -335,18 +338,12 @@ std::string SDL2Window::GetAvailableResolutions() const
     // First, obtain the display the window is on
     int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
     if (displayIndex < 0)
-    {
-        std::string message{"Error on SDL_GetWindowDisplayIndex(): " + std::string(SDL_GetError())};
-        std::runtime_error(message.c_str());
-    }
+        SDLWindowError("Error on SDL_GetWindowDisplayIndex(): " + std::string(SDL_GetError()));
 
     // Then obtain the amount of available resolutions
     int numDisplayModes = SDL_GetNumDisplayModes(displayIndex);
     if (numDisplayModes < 0)
-    {
-        std::string message{"Error on SDL_GetNumDisplayModes(): " + std::string(SDL_GetError())};
-        std::runtime_error(message.c_str());
-    }
+        SDLWindowError("Error on SDL_GetNumDisplayModes(): " + std::string(SDL_GetError()));
 
     for (int i = 0 ; i < numDisplayModes ; i++)
     {
