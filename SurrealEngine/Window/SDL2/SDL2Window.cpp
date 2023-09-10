@@ -342,8 +342,14 @@ int SDL2Window::GetPixelHeight() const
 
 double SDL2Window::GetDpiScale() const
 {
+    /*
+     * From the SDL2 documentation:
+     * It is almost always better to use SDL_GetWindowSize() to find the window size, which might be in logical points instead of pixels,
+     * and then SDL_GL_GetDrawableSize(), SDL_Vulkan_GetDrawableSize(), SDL_Metal_GetDrawableSize(), or SDL_GetRendererOutputSize(),
+     * and compare the two values to get an actual scaling value between the two.
+     */
     int drawable_width, window_width;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, &window_width, nullptr);
+    SDL_GetWindowSize(m_SDLWindow, &window_width, nullptr);
     SDL_Vulkan_GetDrawableSize(m_SDLWindow, &drawable_width, nullptr);
 
     return (double) drawable_width / (double) window_width;
