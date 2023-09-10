@@ -3,6 +3,7 @@
 #include "vulkanobjects.h"
 #include "vulkansurface.h"
 #include "vulkanbuilders.h"
+#include <stdexcept>
 
 VulkanSwapChain::VulkanSwapChain(VulkanDevice* device) : device(device)
 {

@@ -5,6 +5,7 @@
 #include "vulkanswapchain.h"
 #include "glslang/glslang/Public/ShaderLang.h"
 #include "glslang/spirv/GlslangToSpv.h"
+#include <stdexcept>
 
 static const TBuiltInResource DefaultTBuiltInResource = {
 	/* .MaxLights = */ 32,
