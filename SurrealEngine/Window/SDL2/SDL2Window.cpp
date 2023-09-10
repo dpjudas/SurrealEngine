@@ -15,7 +15,8 @@ SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
         SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError());
     }
-    m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1366, 768, SDL_WINDOW_VULKAN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    // Width and height won't matter much as the window will be resized based on the values in [GameExecutableName].ini anyways
+    m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_VULKAN);
     if (!m_SDLWindow) {
         SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError());
     }
