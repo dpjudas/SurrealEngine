@@ -38,10 +38,10 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	{
 		DrawScene();
 		RenderOverlays();
+		Device->EndFlash();
 	}
 
 	PostRender();
-	Device->EndFlash();
 
 	Device->Unlock(true);
 }

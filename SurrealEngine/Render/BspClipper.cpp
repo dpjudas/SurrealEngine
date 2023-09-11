@@ -21,8 +21,8 @@ void BspClipper::Setup(const mat4& world_to_projection)
 	WorldToProjection = world_to_projection;
 	FrustumClip = FrustumPlanes(world_to_projection);
 
-	ClipSpan left = { -100000, 0 };
-	ClipSpan right = { ViewportWidth, 100000 };
+	ClipSpan left = { (int16_t)0x8000, 0 };
+	ClipSpan right = { (int16_t)ViewportWidth, (int16_t)0x7fff };
 	for (auto& line : Viewport)
 	{
 		line.clear();
@@ -35,6 +35,8 @@ bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
 {
 	if (count < 3)
 		return false;
+
+	numSurfs++;
 
 	vec4 buffer[3];
 	vec4* triverts[3] = { &buffer[0], &buffer[1], &buffer[2] };
@@ -133,15 +135,15 @@ bool BspClipper::IsAABBVisible(const BBox& bbox)
 	return false;
 }
 
-bool BspClipper::IsVisible(int y, int x0, int x1)
+bool BspClipper::IsVisible(int16_t y, int16_t x0, int16_t x1)
 {
 	auto& line = Viewport[y];
 	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		int left = line[pos].x1;
+		int16_t left = line[pos].x1;
 		if (left >= x1)
 			break;
-		int right = line[pos + 1].x0;
+		int16_t right = line[pos + 1].x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
@@ -153,7 +155,7 @@ bool BspClipper::IsVisible(int y, int x0, int x1)
 	return false;
 }
 
-bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
+bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 {
 	if (x1 <= x0)
 		return false;
@@ -161,28 +163,43 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 	if (!solid)
 		return IsVisible(y, x0, x1);
 
+	numDrawSpans++;
+
 	auto& line = Viewport[y];
 
 	bool visible = false;
 	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		int left = line[pos].x1;
+		ClipSpan& span = line[pos];
+		ClipSpan& nextspan = line[pos + 1];
+
+		int16_t left = span.x1;
 		if (left >= x1)
 			break;
-		int right = line[pos + 1].x0;
+		int16_t right = nextspan.x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
 		if (left < right)
 		{
 			visible = true;
-			if (left == line[pos].x1)
+			if (left == span.x1)
 			{
-				line[pos].x1 = right;
+				span.x1 = right;
+				if (span.x1 == nextspan.x0)
+				{
+					span.x1 = nextspan.x1;
+					line.erase(line.begin() + pos + 1);
+				}
 			}
-			else if (right == line[pos + 1].x0)
+			else if (right == nextspan.x0)
 			{
-				line[pos + 1].x0 = left;
+				nextspan.x0 = left;
+				if (span.x1 == nextspan.x0)
+				{
+					span.x1 = nextspan.x1;
+					line.erase(line.begin() + pos + 1);
+				}
 			}
 			else
 			{
@@ -194,7 +211,6 @@ bool BspClipper::DrawSpan(int y, int x0, int x1, bool solid)
 			}
 		}
 	}
-
 	return visible;
 }
 
@@ -203,6 +219,8 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 	// Reject triangle if degenerate
 	//if (IsDegenerate(vert))
 	//	return false;
+
+	numTris++;
 
 	// Cull, clip and generate additional vertices as needed
 	vec4 clippedvert[max_additional_vertices];
@@ -478,17 +496,18 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 {
 	// Sort vertices by Y position
+
 	const vec4* sortedVertices[3];
 	SortVertices(vertices, sortedVertices);
 
-	int clipleft = 0;
-	int clipright = ViewportWidth;
-	int cliptop = 0;
-	int clipbottom = ViewportHeight;
+	int16_t clipleft = 0;
+	int16_t clipright = ViewportWidth;
+	int16_t cliptop = 0;
+	int16_t clipbottom = ViewportHeight;
 
-	int topY = (int)(sortedVertices[0]->y + 0.5f);
-	int midY = (int)(sortedVertices[1]->y + 0.5f);
-	int bottomY = (int)(sortedVertices[2]->y + 0.5f);
+	int16_t topY = (int16_t)(sortedVertices[0]->y + 0.5f);
+	int16_t midY = (int16_t)(sortedVertices[1]->y + 0.5f);
+	int16_t bottomY = (int16_t)(sortedVertices[2]->y + 0.5f);
 
 	topY = std::max(topY, cliptop);
 	midY = std::min(midY, clipbottom);
@@ -499,7 +518,7 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 	// Find start/end X positions for each line covered by the triangle:
 
-	int y = topY;
+	int16_t y = topY;
 
 	float longDX = sortedVertices[2]->x - sortedVertices[0]->x;
 	float longDY = sortedVertices[2]->y - sortedVertices[0]->y;
@@ -517,8 +536,8 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 		while (y < midY)
 		{
-			int x0 = (int)shortPos;
-			int x1 = (int)longPos;
+			int16_t x0 = (int16_t)shortPos;
+			int16_t x1 = (int16_t)longPos;
 			if (x1 < x0) std::swap(x0, x1);
 			x0 = clamp(x0, clipleft, clipright);
 			x1 = clamp(x1, clipleft, clipright);
@@ -540,8 +559,8 @@ bool BspClipper::DrawClippedTriangle(const vec4* const* vertices, bool solid)
 
 		while (y < bottomY)
 		{
-			int x0 = (int)shortPos;
-			int x1 = (int)longPos;
+			int16_t x0 = (int16_t)shortPos;
+			int16_t x1 = (int16_t)longPos;
 			if (x1 < x0) std::swap(x0, x1);
 			x0 = clamp(x0, clipleft, clipright);
 			x1 = clamp(x1, clipleft, clipright);

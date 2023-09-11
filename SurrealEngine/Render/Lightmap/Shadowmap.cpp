@@ -36,9 +36,7 @@ void Shadowmap::Load(UModel* model, const BspSurface& surface, int lightindex)
 	}
 
 	// Apply 3x3 gaussian blur
-
 	static const float weights[9] = { 0.125f, 0.25f, 0.125f, 0.25f, 0.50f, 0.25f, 0.125f, 0.25f, 0.125f };
-
 	float* dest = pixels.data();
 	const float* src = tempbuf.data();
 	for (int y = 0; y < height; y++, dest += width, src += width)
@@ -55,7 +53,6 @@ void Shadowmap::Load(UModel* model, const BspSurface& surface, int lightindex)
 					value += src[yyy * width + xxx] * weights[4 + xx + yy * 3];
 				}
 			}
-			value *= 0.5f;
 
 			dest[x] = value;
 		}

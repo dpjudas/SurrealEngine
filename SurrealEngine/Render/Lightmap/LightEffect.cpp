@@ -11,10 +11,15 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 
 	float radius = light->WorldLightRadius();
 	float invRadius = 1.0f / radius;
-	float invRadiusSquared = 1.0f / (radius * radius);
+	float invRadiusSquared = invRadius * invRadius;
 
 	// UE1 uses a single angle attenuation for the entire surface
+//#ifndef NOSSE
+//	__m128d base = _mm_
+//	float angleAttenuation = 
+//#else
 	float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
+//#endif
 
 	// To do: implement all the light effects
 
@@ -121,7 +126,7 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 {
 	float radius = light->WorldLightRadius();
 	float invRadius = 1.0f / radius;
-	float invRadiusSquared = 1.0f / (radius * radius);
+	float invRadiusSquared = invRadius * invRadius;
 
 	float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
 

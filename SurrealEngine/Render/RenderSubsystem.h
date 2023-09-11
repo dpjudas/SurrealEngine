@@ -45,6 +45,7 @@ public:
 	void UpdateTexture(UTexture* tex);
 
 	bool ShowTimedemoStats = false;
+	bool ShowRenderStats = false;
 	bool ShowCollisionDebug = false;
 
 private:

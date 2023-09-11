@@ -57,7 +57,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
 				Shadow.Load(model, surface, lightindex);
 				Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
-				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
+				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 
 				const float* src = illuminationmap.data();
 				vec3* dest = lightcolors.data();

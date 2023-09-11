@@ -8,6 +8,10 @@
 
 void RenderSubsystem::DrawScene()
 {
+	Scene.Clipper.numDrawSpans = 0;
+	Scene.Clipper.numSurfs = 0;
+	Scene.Clipper.numTris = 0;
+
 	// Make sure all actors are at the right location in the BSP
 	for (UActor* actor : engine->Level->Actors)
 	{
@@ -337,10 +341,14 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 		points[j] = model->Points[v[j].Vertex];
 	}
 
-	if (!Scene.Clipper.CheckSurface(points, numverts, (surface.PolyFlags & PF_NoOcclude) == 0))
+	uint32_t PolyFlags = surface.PolyFlags;
+	UTexture* texture = surface.Material;
+	bool opaqueSurface = ((PolyFlags & PF_NoOcclude) == 0) &&
+		!texture->bMasked() && !texture->bTransparent() && !texture->bModulate();
+
+	if (!Scene.Clipper.CheckSurface(points, numverts, opaqueSurface))
 		return;
 
-	uint32_t PolyFlags = surface.PolyFlags;
 	if (surface.Material)
 		PolyFlags |= surface.Material->PolyFlags();
 
@@ -363,7 +371,6 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 	info.Node = node;
 	info.PolyFlags = PolyFlags;
 
-	bool opaqueSurface = (PolyFlags & PF_NoOcclude) == 0;
 	if (opaqueSurface)
 	{
 		Scene.OpaqueNodes.push_back(info);

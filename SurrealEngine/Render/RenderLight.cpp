@@ -138,7 +138,7 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 		for (UActor* light : actor->LightInfo.LightList)
 		{
 			float attenuation = LightEffect::VertexLight(light, location, normal);
-			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255) * clamp(light->LightBrightness() * (1.0f / 255.0f), 0.0f, 1.0f) * light->Level()->Brightness();
+			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 			color += lightcolor * attenuation;
 		}
 
