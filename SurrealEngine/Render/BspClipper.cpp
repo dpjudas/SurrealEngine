@@ -16,26 +16,6 @@ BspClipper::~BspClipper()
 {
 }
 
-void SpanLine::Init(ClipSpan& left, ClipSpan& right)
-{
-	spans[0] = left;
-	spans[1] = right;
-	count = 2;
-}
-
-void SpanLine::Insert(size_t pos, ClipSpan& span)
-{
-	std::memmove(&spans[pos + 1], &spans[pos], (count - pos) * sizeof(ClipSpan));
-	spans[pos] = span;
-	count++;
-}
-
-void SpanLine::Erase(size_t pos)
-{
-	std::memmove(&spans[pos], &spans[pos + 1], (count - pos) * sizeof(ClipSpan));
-	count--;
-}
-
 void BspClipper::Setup(const mat4& world_to_projection)
 {
 	WorldToProjection = world_to_projection;

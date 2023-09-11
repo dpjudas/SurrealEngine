@@ -12,17 +12,6 @@ public:
 	int16_t x1;
 };
 
-class SpanLine
-{
-public:
-	void Init(ClipSpan& left, ClipSpan& right);
-	void Insert(size_t pos, ClipSpan& span);
-	void Erase(size_t pos);
-
-	ClipSpan spans[64];
-	int count;
-};
-
 class BspClipper
 {
 public:
