@@ -21,8 +21,8 @@ void BspClipper::Setup(const mat4& world_to_projection)
 	WorldToProjection = world_to_projection;
 	FrustumClip = FrustumPlanes(world_to_projection);
 
-	ClipSpan left = { 0x8000, 0 };
-	ClipSpan right = { ViewportWidth, 0x7fff };
+	ClipSpan left = { (int16_t)0x8000, 0 };
+	ClipSpan right = { (int16_t)ViewportWidth, (int16_t)0x7fff };
 	for (auto& line : Viewport)
 	{
 		line.clear();
