@@ -45,7 +45,9 @@ void BspClipper::Setup(const mat4& world_to_projection)
 	ClipSpan right = { ViewportWidth, 0x7fff };
 	for (auto& line : Viewport)
 	{
-		line.Init(left, right);
+		line.clear();
+		line.push_back(left);
+		line.push_back(right);
 	}
 }
 
@@ -155,16 +157,13 @@ bool BspClipper::IsAABBVisible(const BBox& bbox)
 
 bool BspClipper::IsVisible(int16_t y, int16_t x0, int16_t x1)
 {
-//#ifndef NOSEE
-
-//#else
 	auto& line = Viewport[y];
-	for (size_t pos = 0; pos < line.count; pos++)
+	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		int16_t left = line.spans[pos].x1;
+		int16_t left = line[pos].x1;
 		if (left >= x1)
 			break;
-		int16_t right = line.spans[pos + 1].x0;
+		int16_t right = line[pos + 1].x0;
 
 		left = std::max(left, x0);
 		right = std::min(right, x1);
@@ -174,7 +173,6 @@ bool BspClipper::IsVisible(int16_t y, int16_t x0, int16_t x1)
 		}
 	}
 	return false;
-//#endif
 }
 
 bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
@@ -190,10 +188,10 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 	auto& line = Viewport[y];
 
 	bool visible = false;
-	for (size_t pos = 0; pos < line.count; pos++)
+	for (size_t pos = 0; pos < line.size(); pos++)
 	{
-		ClipSpan& span = line.spans[pos];
-		ClipSpan& nextspan = line.spans[pos + 1];
+		ClipSpan& span = line[pos];
+		ClipSpan& nextspan = line[pos + 1];
 
 		int16_t left = span.x1;
 		if (left >= x1)
@@ -211,7 +209,7 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 				if (span.x1 == nextspan.x0)
 				{
 					span.x1 = nextspan.x1;
-					line.Erase(pos + 1);
+					line.erase(line.begin() + pos + 1);
 				}
 			}
 			else if (right == nextspan.x0)
@@ -220,7 +218,7 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 				if (span.x1 == nextspan.x0)
 				{
 					span.x1 = nextspan.x1;
-					line.Erase(pos + 1);
+					line.erase(line.begin() + pos + 1);
 				}
 			}
 			else
@@ -229,7 +227,7 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 				ClipSpan span;
 				span.x0 = left;
 				span.x1 = right;
-				line.Insert(pos, span);
+				line.insert(line.begin() + pos, span);
 			}
 		}
 	}
