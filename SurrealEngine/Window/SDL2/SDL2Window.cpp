@@ -13,13 +13,12 @@ std::map<int, SDL2Window*> SDL2Window::windows;
 SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        std::string message = "Unable to initialize SDL: " + std::string(SDL_GetError());
-        std::runtime_error(message.c_str());
+        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError());
     }
-    m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1366, 768, SDL_WINDOW_VULKAN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    // Width and height won't matter much as the window will be resized based on the values in [GameExecutableName].ini anyways
+    m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_VULKAN);
     if (!m_SDLWindow) {
-        std::string message = "Unable to create SDL Window: " + std::string(SDL_GetError());
-        std::runtime_error(message.c_str());
+        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError());
     }
 
     // Generate a required extensions list
@@ -99,6 +98,11 @@ void SDL2Window::ExitLoop()
 {
 }
 
+void SDL2Window::SDLWindowError(const std::string& message) const
+{
+    throw std::runtime_error(message.c_str());
+}
+
 void SDL2Window::OnSDLEvent(SDL_Event& event)
 {
     switch (event.type) {
@@ -141,8 +145,23 @@ void SDL2Window::SetWindowTitle(const std::string& text)
 
 void SDL2Window::SetWindowFrame(const Rect& box)
 {
-    SDL_SetWindowPosition(m_SDLWindow, box.x, box.y);
-    SDL_SetWindowSize(m_SDLWindow, box.width, box.height);
+    if (isFullscreen)
+    {
+        // Fullscreen windows are handled with SDL_DisplayMode
+        SDL_DisplayMode mode;
+        SDL_GetWindowDisplayMode(m_SDLWindow, &mode);
+        mode.w = box.width;
+        mode.h = box.height;
+        mode.refresh_rate = 0;
+        int set_result = SDL_SetWindowDisplayMode(m_SDLWindow, &mode);
+        if (set_result < 0)
+            SDLWindowError("Error on SDL_SetWindowDisplayMode(): " + std::string(SDL_GetError()));
+    }
+    else
+    {
+        SDL_SetWindowPosition(m_SDLWindow, box.x, box.y);
+        SDL_SetWindowSize(m_SDLWindow, box.width, box.height);
+    }
 }
 
 void SDL2Window::SetClientFrame(const Rect& box)
@@ -158,6 +177,7 @@ void SDL2Window::Show()
 void SDL2Window::ShowFullscreen()
 {
     SDL_SetWindowFullscreen(m_SDLWindow, SDL_WINDOW_FULLSCREEN);
+    isFullscreen = true;
 }
 
 void SDL2Window::ShowMaximized()
@@ -172,7 +192,9 @@ void SDL2Window::ShowMinimized()
 
 void SDL2Window::ShowNormal()
 {
-    SDL_RestoreWindow(m_SDLWindow);
+    // Clear the Fullscreen flag
+    SDL_SetWindowFullscreen(m_SDLWindow, 0);
+    isFullscreen = false;
 }
 
 void SDL2Window::Hide()
@@ -320,11 +342,70 @@ int SDL2Window::GetPixelHeight() const
 
 double SDL2Window::GetDpiScale() const
 {
+    /*
+     * From the SDL2 documentation:
+     * It is almost always better to use SDL_GetWindowSize() to find the window size, which might be in logical points instead of pixels,
+     * and then SDL_GL_GetDrawableSize(), SDL_Vulkan_GetDrawableSize(), SDL_Metal_GetDrawableSize(), or SDL_GetRendererOutputSize(),
+     * and compare the two values to get an actual scaling value between the two.
+     */
     int drawable_width, window_width;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, &window_width, nullptr);
+    SDL_GetWindowSize(m_SDLWindow, &window_width, nullptr);
     SDL_Vulkan_GetDrawableSize(m_SDLWindow, &drawable_width, nullptr);
 
     return (double) drawable_width / (double) window_width;
+}
+
+std::string SDL2Window::GetAvailableResolutions() const
+{
+    std::string result = "";
+    std::vector<std::string> availableResolutions{};
+
+    // First, obtain the display the window is on
+    int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
+    if (displayIndex < 0)
+        SDLWindowError("Error on SDL_GetWindowDisplayIndex(): " + std::string(SDL_GetError()));
+
+    // Then obtain the amount of available resolutions
+    int numDisplayModes = SDL_GetNumDisplayModes(displayIndex);
+    if (numDisplayModes < 0)
+        SDLWindowError("Error on SDL_GetNumDisplayModes(): " + std::string(SDL_GetError()));
+
+    for (int i = 0 ; i < numDisplayModes ; i++)
+    {
+        SDL_DisplayMode displayMode;
+
+        SDL_GetDisplayMode(displayIndex, i, &displayMode);
+
+        // The data also includes refresh rate but we ignore it (for now?)
+        std::string resolution = std::to_string(displayMode.w) + "x" + std::to_string(displayMode.h);
+
+        // Skip over the current resolution if it is already inserted
+        // (in case of multiple refresh rates being available for the display)
+        bool resolutionAlreadyAdded = false;
+        for (auto res : availableResolutions)
+        {
+            if (resolution.compare(res) == 0)
+            {
+                resolutionAlreadyAdded = true;
+                break;
+            }
+        }
+        if (resolutionAlreadyAdded)
+            continue;
+
+        // Add the resolution, as it is not added before
+        availableResolutions.push_back(resolution);
+    }
+
+    // "Flatten" the resolutions list into a single string
+    for (int i = 0 ; i < availableResolutions.size() ; i++)
+    {
+        result += availableResolutions[i];
+        if (i < availableResolutions.size() - 1)
+            result += " ";
+    }
+
+    return result;
 }
 
 EInputKey SDL2Window::SDLScancodeToInputKey(SDL_Scancode keycode)

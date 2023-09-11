@@ -542,8 +542,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}*/
 	else if (command == "getres")
 	{
-		// TODO: actually query this
-		return "1920x1080 1024x768 800x600";
+		return window->GetAvailableResolutions();
 	}
 	else if (command == "getcolordepths")
 	{

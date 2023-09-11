@@ -6,7 +6,10 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
-#define NOFOG // The current fog implementation is just too slow!
+// Don't render the fog in debug builds as we'd rather have a higher frame rate
+#if defined(DEBUG) || defined(_DEBUG)
+#define NOFOG
+#endif
 
 FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
@@ -18,7 +21,7 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfa
 
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 
-	uint64_t cacheID = (((uint64_t)surface.LightMap) << 16) | ((uint64_t)ambientID << 8) | 2;
+	uint64_t cacheID = (((uint64_t)surface.LightMap) << 32) | (((uint64_t)ambientID) << 8) | 2;
 
 	auto level = engine->Level;
 	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
@@ -26,6 +29,16 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfa
 	std::unique_ptr<LightmapTexture>& fogtexture = fogtex.second;
 	if (!fogtexture)
 	{
+#if 1 // Float high quality lightmaps
+		UnrealMipmap fogmip;
+		fogmip.Width = lmindex.UClamp;
+		fogmip.Height = lmindex.VClamp;
+		fogmip.Data.resize((size_t)fogmip.Width * fogmip.Height * sizeof(vec4));
+
+		fogtexture = std::make_unique<LightmapTexture>();
+		fogtexture->Format = TextureFormat::RGBA32_F;
+		fogtexture->Mip = std::move(fogmip);
+#else // Low quality lightmaps like UE1 got them
 		UnrealMipmap fogmip;
 		fogmip.Width = lmindex.UClamp;
 		fogmip.Height = lmindex.VClamp;
@@ -34,6 +47,7 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfa
 		fogtexture = std::make_unique<LightmapTexture>();
 		fogtexture->Format = TextureFormat::BGRA8_LM;
 		fogtexture->Mip = std::move(fogmip);
+#endif
 	}
 
 	bool firstDrawThisScene = false;
@@ -74,6 +88,11 @@ void RenderSubsystem::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t
 		}
 	}
 
+#if 1 // Float high quality lightmaps
+	size_t size = (size_t)builder.Width() * builder.Height();
+	const vec4* src = builder.Pixels();
+	memcpy(dest, src, size * sizeof(vec4));
+#else // Low quality lightmaps like UE1 got them
 	size_t size = (size_t)builder.Width() * builder.Height();
 	const vec4* src = builder.Pixels();
 	for (size_t i = 0; i < size; i++)
@@ -87,4 +106,5 @@ void RenderSubsystem::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t
 
 		dest[i] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 	}
+#endif
 }
