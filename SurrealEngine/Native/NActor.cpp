@@ -114,11 +114,11 @@ void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::stri
 {
 	// "Execute a console command in the context of the current level and game engine"
 
-	bool found;
-	ReturnValue = engine->ConsoleCommand(Self, Command, found);
+	ExpressionValue found = ExpressionValue::BoolValue(false);
+	ReturnValue = engine->ConsoleCommand(Self, Command, found.ToType<BitfieldBool&>());
 }
 
-void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
+void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -131,7 +131,7 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 	}
 }
 
-void NActor::Destroy(UObject* Self, bool& ReturnValue)
+void NActor::Destroy(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->Destroy();
 }
@@ -142,7 +142,7 @@ void NActor::Error(UObject* Self, const std::string& S)
 	UObject::Cast<UActor>(Self)->Destroy();
 }
 
-void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, bool& ReturnValue)
+void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	vec3 start = TraceStart ? *TraceStart : SelfActor->Location();
@@ -166,7 +166,7 @@ void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString&
 	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
 }
 
-void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, bool& ReturnValue)
+void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("Actor.GetCacheEntry not implemented");
 }
@@ -289,12 +289,12 @@ void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 	ReturnValue = UObject::Cast<UActor>(Self)->Level()->URL.Map;
 }
 
-void NActor::HasAnim(UObject* Self, const NameString& Sequence, bool& ReturnValue)
+void NActor::HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->HasAnim(Sequence);
 }
 
-void NActor::IsAnimating(UObject* Self, bool& ReturnValue)
+void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->IsAnimating();
 }
@@ -314,17 +314,17 @@ void NActor::MakeNoise(UObject* Self, float Loudness)
 	UObject::Cast<UActor>(Self)->MakeNoise(Loudness);
 }
 
-void NActor::Move(UObject* Self, const vec3& Delta, bool& ReturnValue)
+void NActor::Move(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->Move(Delta);
 }
 
-void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, bool& ReturnValue)
+void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("Actor.MoveCacheEntry not implemented");
 }
 
-void NActor::MoveSmooth(UObject* Self, const vec3& Delta, bool& ReturnValue)
+void NActor::MoveSmooth(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->MoveSmooth(Delta);
 }
@@ -354,7 +354,7 @@ void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, fl
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
 }
 
-void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
+void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -367,7 +367,7 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 	}
 }
 
-void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, bool* bNoOverride, float* Radius, float* Pitch)
+void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -380,7 +380,7 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	}
 }
 
-void NActor::PlayerCanSeeMe(UObject* Self, bool& ReturnValue)
+void NActor::PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Actor.PlayerCanSeeMe");
 	ReturnValue = false;
@@ -396,7 +396,7 @@ void NActor::SetBase(UObject* Self, UObject* NewBase)
 	UObject::Cast<UActor>(Self)->SetBase(UObject::Cast<UActor>(NewBase), true);
 }
 
-void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActors, bool* NewBlockPlayers)
+void NActor::SetCollision(UObject* Self, BitfieldBool* NewColActors, BitfieldBool* NewBlockActors, BitfieldBool* NewBlockPlayers)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	SelfActor->SetCollision(
@@ -405,12 +405,12 @@ void NActor::SetCollision(UObject* Self, bool* NewColActors, bool* NewBlockActor
 		NewBlockPlayers ? *NewBlockPlayers : SelfActor->bBlockPlayers());
 }
 
-void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, bool& ReturnValue)
+void NActor::SetCollisionSize(UObject* Self, float NewRadius, float NewHeight, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->SetCollisionSize(NewRadius, NewHeight);
 }
 
-void NActor::SetLocation(UObject* Self, const vec3& NewLocation, bool& ReturnValue)
+void NActor::SetLocation(UObject* Self, const vec3& NewLocation, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->SetLocation(NewLocation);
 }
@@ -425,7 +425,7 @@ void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 	UObject::Cast<UActor>(Self)->SetPhysics(newPhysics);
 }
 
-void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, bool& ReturnValue)
+void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->SetRotation(NewRotation);
 }
@@ -466,7 +466,7 @@ void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 	Frame::CreatedIterator = std::make_unique<TouchingActorsIterator>(BaseClass, &Actor);
 }
 
-void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, bool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
+void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, BitfieldBool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->Trace(
@@ -499,7 +499,7 @@ void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, f
 		Loc ? *Loc : SelfActor->Location());
 }
 
-void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, bool* bIgnoreHidden)
+void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, BitfieldBool* bIgnoreHidden)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<VisibleCollidingActorsIterator>(
@@ -541,7 +541,7 @@ void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eve
 	engine->LogUnimplemented("Actor.AISendEvent");
 }
 
-void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, bool* bCheckVisibility, bool* bCheckDir, bool* bCheckCylinder, bool* bCheckLOS)
+void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS)
 {
 	engine->LogUnimplemented("Actor.AISetEventCallback");
 }
@@ -551,7 +551,7 @@ void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t ev
 	engine->LogUnimplemented("Actor.AIStartEvent");
 }
 
-void NActor::AIVisibility(UObject* Self, bool* bIncludeVelocity, float& ReturnValue)
+void NActor::AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& ReturnValue)
 {
 	engine->LogUnimplemented("Actor.AIVisibility");
 	ReturnValue = 0.0f;

@@ -77,14 +77,14 @@ void UObject::Load(ObjectStream* stream)
 	}
 }
 
-size_t UObject::GetPropertyDataOffset(const NameString& name) const
+PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == name)
 			return prop->DataOffset;
 	}
-	return (size_t)~(size_t)0;
+	return PropertyDataOffset();
 }
 
 const void* UObject::GetProperty(const NameString& name) const
@@ -129,7 +129,12 @@ uint32_t UObject::GetInt(const NameString& name) const
 
 bool UObject::GetBool(const NameString& name) const
 {
-	return *static_cast<const bool*>(GetProperty(name));
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
+	}
+	throw std::runtime_error("Property '" + name.ToString() + "' not found");
 }
 
 float UObject::GetFloat(const NameString& name) const
@@ -184,7 +189,11 @@ void UObject::SetInt(const NameString& name, uint32_t value)
 
 void UObject::SetBool(const NameString& name, bool value)
 {
-	*static_cast<bool*>(GetProperty(name)) = value;
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			static_cast<UBoolProperty*>(prop)->SetBool(PropertyData.Ptr(prop), value);
+	}
 }
 
 void UObject::SetFloat(const NameString& name, float value)
@@ -347,12 +356,12 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 void* PropertyDataBlock::Ptr(const UProperty* prop)
 {
-	return static_cast<uint8_t*>(Data) + prop->DataOffset;
+	return static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset;
 }
 
 const void* PropertyDataBlock::Ptr(const UProperty* prop) const
 {
-	return static_cast<const uint8_t*>(Data) + prop->DataOffset;
+	return static_cast<const uint8_t*>(Data) + prop->DataOffset.DataOffset;
 }
 
 void PropertyDataBlock::Reset()
@@ -380,13 +389,13 @@ void PropertyDataBlock::Init(UClass* cls)
 	for (UProperty* prop : cls->Properties)
 	{
 #ifdef _DEBUG
-		if (prop->DataOffset + prop->Size() > cls->StructSize)
+		if (prop->DataOffset.DataOffset + prop->Size() > cls->StructSize)
 			throw std::runtime_error("Memory corruption detected!");
 #endif
 
 		if (&cls->PropertyData != this)
 			prop->CopyConstruct(Ptr(prop), cls->PropertyData.Ptr(prop));
-		else if (cls->BaseStruct && prop->DataOffset < cls->BaseStruct->StructSize) // inherit from base default object
+		else if (cls->BaseStruct && prop->DataOffset.DataOffset < cls->BaseStruct->StructSize) // inherit from base default object
 			prop->CopyConstruct(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
 		else
 			prop->Construct(Ptr(prop));

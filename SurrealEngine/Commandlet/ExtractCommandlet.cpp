@@ -35,4 +35,6 @@ void ExtractCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 void ExtractCommandlet::OnPrintHelp(DebuggerApp* console)
 {
+	console->WriteOutput("Syntax: extract nativefunc" + NewLine());
+	console->WriteOutput("Syntax: extract nativeobj" + NewLine());
 }

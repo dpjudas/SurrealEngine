@@ -85,7 +85,7 @@ void NDumpLocation::GetFirstDumpFile(UObject* Self, std::string& ReturnValue)
 	throw std::runtime_error("DumpLocation.GetFirstDumpFile not implemented");
 }
 
-void NDumpLocation::GetFirstDumpFileLocation(UObject* Self, bool& ReturnValue)
+void NDumpLocation::GetFirstDumpFileLocation(UObject* Self, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("DumpLocation.GetFirstDumpFileLocation not implemented");
 }
@@ -95,7 +95,7 @@ void NDumpLocation::GetNextDumpFile(UObject* Self, std::string& ReturnValue)
 	throw std::runtime_error("DumpLocation.GetNextDumpFile not implemented");
 }
 
-void NDumpLocation::GetNextDumpFileLocation(UObject* Self, bool& ReturnValue)
+void NDumpLocation::GetNextDumpFileLocation(UObject* Self, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("DumpLocation.GetNextDumpFileLocation not implemented");
 }
@@ -105,7 +105,7 @@ void NDumpLocation::GetNextDumpFileLocationID(UObject* Self, int& ReturnValue)
 	throw std::runtime_error("DumpLocation.GetNextDumpFileLocationID not implemented");
 }
 
-void NDumpLocation::HasLocationBeenSaved(UObject* Self, bool& ReturnValue)
+void NDumpLocation::HasLocationBeenSaved(UObject* Self, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("DumpLocation.HasLocationBeenSaved not implemented");
 }
@@ -115,7 +115,7 @@ void NDumpLocation::LoadLocation(UObject* Self)
 	throw std::runtime_error("DumpLocation.LoadLocation not implemented");
 }
 
-void NDumpLocation::OpenDumpFile(UObject* Self, const std::string& FileName, bool& ReturnValue)
+void NDumpLocation::OpenDumpFile(UObject* Self, const std::string& FileName, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("DumpLocation.OpenDumpFile not implemented");
 }
@@ -125,7 +125,7 @@ void NDumpLocation::SaveLocation(UObject* Self)
 	throw std::runtime_error("DumpLocation.SaveLocation not implemented");
 }
 
-void NDumpLocation::SelectDumpFileLocation(UObject* Self, int dumpLocationID, bool& ReturnValue)
+void NDumpLocation::SelectDumpFileLocation(UObject* Self, int dumpLocationID, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("DumpLocation.SelectDumpFileLocation not implemented");
 }

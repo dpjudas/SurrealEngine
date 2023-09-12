@@ -17,7 +17,7 @@ void LocalsCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		for (UProperty* prop : frame->Func->Properties)
 		{
-			void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
+			void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset.DataOffset;
 
 			std::string name = prop->Name.ToString();
 			std::string value = prop->PrintValue(ptr);

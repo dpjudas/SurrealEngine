@@ -66,7 +66,7 @@ public:
 	void LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo = {});
 	void UnloadMap();
 	void LoginPlayer();
-	std::string ConsoleCommand(UObject* context, const std::string& command, bool& found);
+	std::string ConsoleCommand(UObject* context, const std::string& command, BitfieldBool& found);
 
 	void UpdateInput(float timeElapsed);
 	void InputCommand(const std::string& command, EInputKey key, int delta);

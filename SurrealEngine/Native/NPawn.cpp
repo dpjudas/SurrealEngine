@@ -44,13 +44,13 @@ void NPawn::AddPawn(UObject* Self)
 	SelfPawn->Level()->PawnList() = SelfPawn;
 }
 
-void NPawn::CanSee(UObject* Self, UObject* Other, bool& ReturnValue)
+void NPawn::CanSee(UObject* Self, UObject* Other, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.CanSee");
 	ReturnValue = false;
 }
 
-void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, bool& ReturnValue)
+void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("Pawn.CheckValidSkinPackage not implemented");
 }
@@ -76,19 +76,19 @@ void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredict
 	ReturnValue = nullptr;
 }
 
-void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, bool* bSinglePath, bool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.FindPathTo");
 	ReturnValue = nullptr;
 }
 
-void NPawn::FindPathToward(UObject* Self, UObject* anActor, bool* bSinglePath, bool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindPathToward(UObject* Self, UObject* anActor, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.FindPathToward");
 	ReturnValue = nullptr;
 }
 
-void NPawn::FindRandomDest(UObject* Self, bool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindRandomDest(UObject* Self, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.FindRandomDest");
 	ReturnValue = nullptr;
@@ -100,7 +100,7 @@ void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 	ReturnValue = 0;
 }
 
-void NPawn::LineOfSightTo(UObject* Self, UObject* Other, bool& ReturnValue)
+void NPawn::LineOfSightTo(UObject* Self, UObject* Other, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.LineOfSightTo(" + UObject::GetUClassName(Other).ToString() + ")");
 	ReturnValue = false;
@@ -130,7 +130,7 @@ void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec
 	ReturnValue = nullptr;
 }
 
-void NPawn::PickWallAdjust(UObject* Self, bool& ReturnValue)
+void NPawn::PickWallAdjust(UObject* Self, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.PickWallAdjust");
 	ReturnValue = false;
@@ -196,13 +196,13 @@ void NPawn::WaitForLanding(UObject* Self)
 	SelfPawn->WaitForLanding();
 }
 
-void NPawn::actorReachable(UObject* Self, UObject* anActor, bool& ReturnValue)
+void NPawn::actorReachable(UObject* Self, UObject* anActor, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.actorReachable");
 	ReturnValue = false;
 }
 
-void NPawn::pointReachable(UObject* Self, const vec3& aPoint, bool& ReturnValue)
+void NPawn::pointReachable(UObject* Self, const vec3& aPoint, BitfieldBool& ReturnValue)
 {
 	engine->LogUnimplemented("Pawn.pointReachable");
 	ReturnValue = false;

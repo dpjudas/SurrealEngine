@@ -132,9 +132,24 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 
 			if (!args.empty()) args += ", ";
 
-			if (AnyFlags(prop->PropFlags, PropertyFlags::OptionalParm | PropertyFlags::SkipParm)) type += "*";
-			else if (AnyFlags(prop->PropFlags, PropertyFlags::OutParm | PropertyFlags::ReturnParm)) type += "&";
-			else if (!pointer && !primitive) type = "const " + type + "&";
+			if (AnyFlags(prop->PropFlags, PropertyFlags::OptionalParm | PropertyFlags::SkipParm))
+			{
+				if (type == "bool")
+					type = "BitfieldBool*";
+				else
+					type += "*";
+			}
+			else if (AnyFlags(prop->PropFlags, PropertyFlags::OutParm | PropertyFlags::ReturnParm))
+			{
+				if (type == "bool")
+					type = "BitfieldBool&";
+				else
+					type += "&";
+			}
+			else if (!pointer && !primitive)
+			{
+				type = "const " + type + "&";
+			}
 
 			args += type + " " + prop->Name.ToString();
 		}

@@ -16,27 +16,27 @@ void NTcpLink::RegisterFunctions()
 	RegisterVMNativeFunc_2("TcpLink", "SendText", &NTcpLink::SendText, 0);
 }
 
-void NTcpLink::BindPort(UObject* Self, int* Port, bool* bUseNextAvailable, int& ReturnValue)
+void NTcpLink::BindPort(UObject* Self, int* Port, BitfieldBool* bUseNextAvailable, int& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->BindPort(Port ? *Port : 7777, bUseNextAvailable ? *bUseNextAvailable : false);
 }
 
-void NTcpLink::Close(UObject* Self, bool& ReturnValue)
+void NTcpLink::Close(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->Close();
 }
 
-void NTcpLink::IsConnected(UObject* Self, bool& ReturnValue)
+void NTcpLink::IsConnected(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->IsConnected();
 }
 
-void NTcpLink::Listen(UObject* Self, bool& ReturnValue)
+void NTcpLink::Listen(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->Listen();
 }
 
-void NTcpLink::Open(UObject* Self, const IpAddr& Addr, bool& ReturnValue)
+void NTcpLink::Open(UObject* Self, const IpAddr& Addr, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->Open(Addr);
 }

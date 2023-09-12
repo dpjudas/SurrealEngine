@@ -493,7 +493,7 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
-std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, bool& found)
+std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, BitfieldBool& found)
 {
 	found = false;
 

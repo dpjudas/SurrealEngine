@@ -26,7 +26,7 @@ void NInternetLink::GetLocalIP(UObject* Self, IpAddr& Arg)
 	Arg = Self->Cast<UInternetLink>(Self)->GetLocalIP();
 }
 
-void NInternetLink::IsDataPending(UObject* Self, bool& ReturnValue)
+void NInternetLink::IsDataPending(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = Self->Cast<UInternetLink>(Self)->IsDataPending();
 }
@@ -41,12 +41,12 @@ void NInternetLink::IpAddrToString(UObject* Self, const IpAddr& Arg, std::string
 	ReturnValue = Self->Cast<UInternetLink>(Self)->IpAddrToString(Arg);
 }
 
-void NInternetLink::StringToIpAddr(UObject* Self, const std::string& Str, IpAddr& Addr, bool& ReturnValue)
+void NInternetLink::StringToIpAddr(UObject* Self, const std::string& Str, IpAddr& Addr, BitfieldBool& ReturnValue)
 {
 	ReturnValue = Self->Cast<UInternetLink>(Self)->StringToIpAddr(Str, Addr);
 }
 
-void NInternetLink::ParseURL(UObject* Self, const std::string& URL, std::string& Addr, int& Port, std::string& LevelName, std::string& EntryName, bool& ReturnValue)
+void NInternetLink::ParseURL(UObject* Self, const std::string& URL, std::string& Addr, int& Port, std::string& LevelName, std::string& EntryName, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("InternetLink.ParseURL not implemented");
 }

@@ -31,8 +31,8 @@ public:
 		{
 			for (UProperty* prop : Struct->Properties)
 				prop->CopyValue(
-					static_cast<uint8_t*>(dest) + prop->DataOffset,
-					static_cast<uint8_t*>(Ptr) + prop->DataOffset);
+					static_cast<uint8_t*>(dest) + prop->DataOffset.DataOffset,
+					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
 		}
 	}
 
@@ -45,8 +45,8 @@ public:
 			Ptr = new uint64_t[(Struct->StructSize + 7) / 8];
 			for (UProperty* prop : Struct->Properties)
 				prop->CopyConstruct(
-					static_cast<uint8_t*>(Ptr) + prop->DataOffset,
-					static_cast<uint8_t*>(src) + prop->DataOffset);
+					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
+					static_cast<uint8_t*>(src) + prop->DataOffset.DataOffset);
 		}
 	}
 
@@ -55,7 +55,7 @@ public:
 		if (Struct)
 		{
 			for (UProperty* prop : Struct->Properties)
-				prop->Destruct(static_cast<uint8_t*>(Ptr) + prop->DataOffset);
+				prop->Destruct(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
 			delete[](uint64_t*)Ptr;
 			Struct = nullptr;
 		}
@@ -89,7 +89,7 @@ public:
 class ExpressionValue
 {
 public:
-	ExpressionValue() : Type(ExpressionValueType::Nothing) { Ptr = nullptr; }
+	ExpressionValue() : Type(ExpressionValueType::Nothing) { Ptr = nullptr; BoolInfo.Ptr = nullptr; BoolInfo.Mask = 1; }
 
 	ExpressionValue(const ExpressionValue& v) : Type(v.Type)
 	{
@@ -112,6 +112,8 @@ public:
 			VariableProperty = v.VariableProperty;
 			Ptr = v.Ptr;
 		}
+		BoolInfo.Ptr = (uint32_t*)Ptr;
+		BoolInfo.Mask = v.BoolInfo.Mask;
 	}
 
 	ExpressionValue(ExpressionValue&& v) : Type(v.Type)
@@ -135,6 +137,8 @@ public:
 			VariableProperty = v.VariableProperty;
 			Ptr = v.Ptr;
 		}
+		BoolInfo.Ptr = (uint32_t*)Ptr;
+		BoolInfo.Mask = v.BoolInfo.Mask;
 	}
 
 	ExpressionValue& operator=(const ExpressionValue& v)
@@ -163,6 +167,8 @@ public:
 				VariableProperty = v.VariableProperty;
 				Ptr = v.Ptr;
 			}
+			BoolInfo.Ptr = (uint32_t*)Ptr;
+			BoolInfo.Mask = v.BoolInfo.Mask;
 		}
 		return *this;
 	}
@@ -194,7 +200,7 @@ public:
 	static ExpressionValue NothingValue() { return ExpressionValue(); }
 	static ExpressionValue ByteValue(uint8_t value) { ExpressionValue v(ExpressionValueType::ValueByte); *v.PtrByte = value; return v; }
 	static ExpressionValue IntValue(int32_t value) { ExpressionValue v(ExpressionValueType::ValueInt); *v.PtrInt = value; return v; }
-	static ExpressionValue BoolValue(bool value) { ExpressionValue v(ExpressionValueType::ValueBool); *v.PtrBool = value; return v; }
+	static ExpressionValue BoolValue(bool value) { ExpressionValue v(ExpressionValueType::ValueBool); v.BoolInfo.Set(value); return v; }
 	static ExpressionValue FloatValue(float value) { ExpressionValue v(ExpressionValueType::ValueFloat); *v.PtrFloat = value; return v; }
 	static ExpressionValue ObjectValue(UObject* value) { ExpressionValue v(ExpressionValueType::ValueObject); *v.PtrObject = value; return v; }
 	static ExpressionValue VectorValue(vec3 value) { ExpressionValue v(ExpressionValueType::ValueVector); *v.PtrVector = value; return v; }
@@ -245,12 +251,16 @@ private:
 		case ExpressionValueType::ValueColor: new(PtrByte) Color(); break;
 		case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(); Ptr = GetStructValue()->Ptr; break;
 		}
+		BoolInfo.Ptr = (uint32_t*)Ptr;
+		BoolInfo.Mask = 1;
 	}
 
 	ExpressionValue(void* ptr, UProperty* prop) : Type(prop->ValueType)
 	{
 		Ptr = ptr;
 		VariableProperty = prop;
+		BoolInfo.Ptr = (uint32_t*)Ptr;
+		BoolInfo.Mask = VariableProperty->DataOffset.BitfieldMask;
 	}
 
 	void Deinit()
@@ -282,7 +292,7 @@ private:
 	{
 		uint8_t Byte;
 		int32_t Int;
-		bool Bool;
+		uint32_t Bool32;
 		float Float;
 		UObject* Object;
 		uint8_t Vector[sizeof(vec3)];
@@ -300,7 +310,7 @@ private:
 		void* Ptr;
 		uint8_t* PtrByte;
 		int32_t* PtrInt;
-		bool* PtrBool;
+		uint32_t* PtrBool32;
 		float* PtrFloat;
 		UObject** PtrObject;
 		vec3* PtrVector;
@@ -312,6 +322,7 @@ private:
 	};
 
 	UProperty* VariableProperty = nullptr;
+	BitfieldBool BoolInfo;
 };
 
 // Pass by value
@@ -330,7 +341,7 @@ template<> inline const IpAddr& ExpressionValue::ToType() { return ToIpAddr(); }
 // Pass by reference
 template<> inline uint8_t& ExpressionValue::ToType() { return *PtrByte; }
 template<> inline int32_t& ExpressionValue::ToType() { return *PtrInt; }
-template<> inline bool& ExpressionValue::ToType() { return *PtrBool; }
+template<> inline BitfieldBool& ExpressionValue::ToType() { return BoolInfo; }
 template<> inline float& ExpressionValue::ToType() { return *PtrFloat; }
 template<> inline UObject*& ExpressionValue::ToType() { return *PtrObject; }
 template<> inline vec3& ExpressionValue::ToType() { return *PtrVector; }
@@ -343,7 +354,7 @@ template<> inline IpAddr& ExpressionValue::ToType() { return *PtrIpAddr; }
 // Optional arguments
 template<> inline uint8_t* ExpressionValue::ToType() { return PtrByte; }
 template<> inline int32_t* ExpressionValue::ToType() { return PtrInt; }
-template<> inline bool* ExpressionValue::ToType() { return PtrBool; }
+template<> inline BitfieldBool* ExpressionValue::ToType() { return BoolInfo.Ptr ? &BoolInfo : nullptr; }
 template<> inline float* ExpressionValue::ToType() { return PtrFloat; }
 template<> inline UObject** ExpressionValue::ToType() { return PtrObject; }
 template<> inline vec3* ExpressionValue::ToType() { return PtrVector; }
@@ -384,7 +395,7 @@ inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 
 inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
 {
-	return ExpressionValue(static_cast<uint8_t*>(data) + prop->DataOffset, prop);
+	return ExpressionValue(static_cast<uint8_t*>(data) + prop->DataOffset.DataOffset, prop);
 }
 
 inline void ExpressionValue::Store(const ExpressionValue& rvalue)
@@ -394,7 +405,7 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 	case ExpressionValueType::Nothing: break;
 	case ExpressionValueType::ValueByte: *PtrByte = rvalue.ToByte(); break;
 	case ExpressionValueType::ValueInt: *PtrInt = rvalue.ToInt(); break;
-	case ExpressionValueType::ValueBool: *PtrBool = rvalue.ToBool(); break;
+	case ExpressionValueType::ValueBool: BoolInfo.Set(rvalue.ToBool()); break;
 	case ExpressionValueType::ValueFloat: *PtrFloat = rvalue.ToFloat(); break;
 	case ExpressionValueType::ValueObject: *PtrObject = rvalue.ToObject(); break;
 	case ExpressionValueType::ValueVector: *PtrVector = rvalue.ToVector(); break;
@@ -410,8 +421,8 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 			{
 				for (UProperty* prop : Struct->Properties)
 					prop->CopyValue(
-						static_cast<uint8_t*>(Ptr) + prop->DataOffset,
-						static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset);
+						static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
+						static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
 			}
 		}
 		else
@@ -433,7 +444,7 @@ inline void ExpressionValue::Load()
 		case ExpressionValueType::Nothing: break;
 		case ExpressionValueType::ValueByte: *value.PtrByte = *PtrByte; break;
 		case ExpressionValueType::ValueInt: *value.PtrInt = *PtrInt; break;
-		case ExpressionValueType::ValueBool: *value.PtrBool = *PtrBool; break;
+		case ExpressionValueType::ValueBool: value.BoolInfo.Set(BoolInfo.Get()); break;
 		case ExpressionValueType::ValueFloat: *value.PtrFloat = *PtrFloat; break;
 		case ExpressionValueType::ValueObject: *value.PtrObject = *PtrObject; break;
 		case ExpressionValueType::ValueVector: *value.PtrVector = *PtrVector; break;
@@ -497,7 +508,7 @@ inline int32_t ExpressionValue::ToInt() const
 inline bool ExpressionValue::ToBool() const
 {
 	if (Type == ExpressionValueType::ValueBool)
-		return *PtrBool;
+		return BoolInfo.Get();
 	else
 		throw std::runtime_error("Not a bool value");
 }
