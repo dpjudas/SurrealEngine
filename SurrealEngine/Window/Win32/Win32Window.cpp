@@ -262,6 +262,8 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_INPUT)
 	{
+		bool hasFocus = GetFocus() != 0;
+
 		HRAWINPUT handle = (HRAWINPUT)lparam;
 		UINT size = 0;
 		UINT result = GetRawInputData(handle, RID_INPUT, 0, &size, sizeof(RAWINPUTHEADER));
@@ -275,7 +277,8 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 				RAWINPUT* rawinput = (RAWINPUT*)buffer.data();
 				if (rawinput->header.dwType == RIM_TYPEMOUSE)
 				{
-					WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
+					if (hasFocus)
+						WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
 				}
 			}
 		}
@@ -292,7 +295,7 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_MOUSEMOVE)
 	{
-		if (MouseLocked)
+		if (MouseLocked && GetFocus() != 0)
 		{
 			RECT box = {};
 			GetClientRect(WindowHandle, &box);
@@ -303,6 +306,10 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 			ClientToScreen(WindowHandle, &center);
 
 			SetCursorPos(center.x, center.y);
+		}
+		else
+		{
+			SetCursor((HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, LR_DEFAULTSIZE, LR_DEFAULTSIZE, LR_SHARED));
 		}
 
 		WindowHost->OnWindowMouseMove(GetLParamPos(lparam));
@@ -351,11 +358,17 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_SETFOCUS)
 	{
-		ShowCursor(FALSE);
+		if (MouseLocked)
+		{
+			::ShowCursor(FALSE);
+		}
 	}
 	else if (msg == WM_KILLFOCUS)
 	{
-		ShowCursor(TRUE);
+		if (MouseLocked)
+		{
+			::ShowCursor(TRUE);
+		}
 	}
 	else if (msg == WM_CLOSE)
 	{
