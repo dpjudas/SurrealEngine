@@ -199,6 +199,8 @@ void UMesh::Load(ObjectStream* stream)
 		}
 	}
 
+	meshToObject = Coords::Rotation(RotOrigin).ToMatrix() * mat4::scale(Scale) * mat4::translate(-Origin);
+
 	// Build smoothed normals
 	// 
 	// To do: build normals from mesh faces (maybe using the Connects array?)

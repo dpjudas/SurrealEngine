@@ -101,6 +101,7 @@ public:
 	uint32_t CurVertex = 0;
 
 	std::vector<vec3> Normals;
+	mat4 meshToObject;
 };
 
 class ULodMesh : public UMesh
