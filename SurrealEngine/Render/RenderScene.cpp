@@ -269,8 +269,9 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 				{
 					// Note: this doesn't take the rotation into account!
 					BBox bbox = actor->Mesh()->BoundingBox;
-					bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
-					bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
+					vec3 Scale = actor->Mesh()->Scale * actor->DrawScale();
+					bbox.min = (bbox.min * Scale) + actor->Location();
+					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (Scene.Clipper.IsAABBVisible(bbox))
 					{
 						Scene.Actors.push_back(actor);
