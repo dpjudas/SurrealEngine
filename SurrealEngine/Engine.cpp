@@ -550,7 +550,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "getcurrentres")
 	{
-		return "1920x1080";
+		int width = window->GetPixelWidth();
+		int height = window->GetPixelHeight();
+
+		return std::to_string(width) + "x" + std::to_string(height);
 	}
 	else if (command == "getcurrentcolordepth")
 	{
