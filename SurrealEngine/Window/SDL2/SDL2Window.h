@@ -18,7 +18,7 @@ public:
 	static void RunLoop();
 	static void ExitLoop();
 
-	void SDLWindowError(std::string& message) const;
+	void SDLWindowError(const std::string&& message) const;
 	void OnSDLEvent(SDL_Event& event);
 
 	void SetWindowTitle(const std::string& text) override;
