@@ -218,7 +218,10 @@ public:
 	template<typename T>
 	T& Value(PropertyDataOffset offset) { return *static_cast<T*>(PropertyData.Ptr(offset.DataOffset)); }
 
+#ifdef _MSC_VER
+	// MSVC has a non-standard extension that makes this possible
 	template<> bool& Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+#endif
 
 	BitfieldBool BoolValue(PropertyDataOffset offset) { BitfieldBool b; b.Ptr = static_cast<uint32_t*>(PropertyData.Ptr(offset.DataOffset)); b.Mask = offset.BitfieldMask; return b; }
 
@@ -256,3 +259,8 @@ T* ObjectStream::ReadObject()
 {
 	return UObject::Cast<T>(package->GetUObject(ReadIndex()));
 }
+
+#ifndef _MSC_VER
+// Same deal with above, but for non-MSVC compilers
+template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+#endif

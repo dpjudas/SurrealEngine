@@ -13,12 +13,12 @@ std::map<int, SDL2Window*> SDL2Window::windows;
 SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError());
+        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError()));
     }
     // Width and height won't matter much as the window will be resized based on the values in [GameExecutableName].ini anyways
     m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_VULKAN);
     if (!m_SDLWindow) {
-        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError());
+        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError()));
     }
 
     // Generate a required extensions list
@@ -98,7 +98,7 @@ void SDL2Window::ExitLoop()
 {
 }
 
-void SDL2Window::SDLWindowError(const std::string& message) const
+void SDL2Window::SDLWindowError(const std::string&& message) const
 {
     throw std::runtime_error(message.c_str());
 }
