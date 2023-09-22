@@ -114,7 +114,7 @@ void Win32Window::ShowFullscreen()
 	SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 	SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED);
 	SetWindowPos(WindowHandle, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-	Fullscreen = true;
+	isWindowFullscreen = true;
 }
 
 void Win32Window::ShowMaximized()
@@ -267,6 +267,24 @@ std::string Win32Window::GetAvailableResolutions() const
 	}
 
 	return result;
+}
+
+void Win32Window::SetResolution(std::string& resolutionString)
+{
+	Size parsedResolution = ParseResolutionString(resolutionString);
+	if (parsedResolution.width == 0 || parsedResolution.height == 0)
+		return;
+
+	if (isWindowFullscreen)
+		parsedResolution = GetClosestResolution(parsedResolution);
+
+	Rect windowRect = GetWindowFrame();
+	double dpi = GetDpiScale();
+
+	windowRect.width = parsedResolution.width / dpi;
+	windowRect.height = parsedResolution.height / dpi;
+
+	SetWindowFrame(windowRect);
 }
 
 LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)

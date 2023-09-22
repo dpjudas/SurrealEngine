@@ -168,4 +168,10 @@ public:
 	virtual double GetDpiScale() const = 0;
 	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
 	virtual std::string GetAvailableResolutions() const = 0;
+
+	Size ParseResolutionString(std::string& resolutionString);
+	Size GetClosestResolution(Size resolution) const;
+	virtual void SetResolution(std::string& resolutionString);
+
+	bool isWindowFullscreen = false;
 };

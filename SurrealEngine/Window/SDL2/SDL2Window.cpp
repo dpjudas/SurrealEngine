@@ -145,7 +145,7 @@ void SDL2Window::SetWindowTitle(const std::string& text)
 
 void SDL2Window::SetWindowFrame(const Rect& box)
 {
-    if (isFullscreen)
+    if (isWindowFullscreen)
     {
         // Fullscreen windows are handled with SDL_DisplayMode
         SDL_DisplayMode mode;
@@ -177,7 +177,7 @@ void SDL2Window::Show()
 void SDL2Window::ShowFullscreen()
 {
     SDL_SetWindowFullscreen(m_SDLWindow, SDL_WINDOW_FULLSCREEN);
-    isFullscreen = true;
+    isWindowFullscreen = true;
 }
 
 void SDL2Window::ShowMaximized()
@@ -194,7 +194,7 @@ void SDL2Window::ShowNormal()
 {
     // Clear the Fullscreen flag
     SDL_SetWindowFullscreen(m_SDLWindow, 0);
-    isFullscreen = false;
+    isWindowFullscreen = false;
 }
 
 void SDL2Window::Hide()

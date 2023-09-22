@@ -35,6 +35,7 @@ public:
 	double GetDpiScale() const override;
 	std::vector<Size> QueryAvailableResolutions() const override;
 	std::string GetAvailableResolutions() const override;
+	void SetResolution(std::string& resolutionString) override;
 
 	Point GetLParamPos(LPARAM lparam) const;
 
@@ -52,7 +53,6 @@ public:
 	DisplayWindowHost* WindowHost = nullptr;
 
 	HWND WindowHandle = 0;
-	bool Fullscreen = false;
 
 	bool MouseLocked = false;
 	POINT MouseLockPos = {};

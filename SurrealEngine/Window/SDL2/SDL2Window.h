@@ -60,5 +60,4 @@ public:
 	std::unique_ptr<RenderDevice> rendDevice;
 
 	static std::map<int, SDL2Window*> windows;
-	bool isFullscreen = false;
 };
