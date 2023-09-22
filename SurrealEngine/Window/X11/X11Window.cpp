@@ -429,26 +429,6 @@ std::vector<Size> X11Window::QueryAvailableResolutions() const
 	return result;
 }
 
-std::string X11Window::GetAvailableResolutions() const
-{
-	std::string result = "";
-
-	auto resolutions = QueryAvailableResolutions();
-
-	// "Flatten" the resolutions list into a single string
-	for (int i = 0; i < resolutions.size(); i++)
-	{
-		auto& res = resolutions[i];
-		std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
-
-		result += resString;
-		if (i < resolutions.size() - 1)
-			result += " ";
-	}
-
-	return result;
-}
-
 void X11Window::ProcessEvents()
 {
 	while (XPending(X11Display::GetDisplay()) > 0)

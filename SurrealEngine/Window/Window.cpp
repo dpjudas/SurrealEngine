@@ -82,6 +82,26 @@ void DisplayWindow::ExitLoop()
 
 #endif
 
+std::string DisplayWindow::GetAvailableResolutions() const
+{
+	std::string result = "";
+
+	auto resolutions = QueryAvailableResolutions();
+
+	// "Flatten" the resolutions list into a single string
+	for (int i = 0; i < resolutions.size(); i++)
+	{
+		auto& res = resolutions[i];
+		std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
+
+		result += resString;
+		if (i < resolutions.size() - 1)
+			result += " ";
+	}
+
+	return result;
+}
+
 Size DisplayWindow::ParseResolutionString(std::string& resolutionString)
 {
 	if (resolutionString.empty())

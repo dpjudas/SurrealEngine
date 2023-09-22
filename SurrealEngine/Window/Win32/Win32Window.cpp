@@ -249,26 +249,6 @@ std::vector<Size> Win32Window::QueryAvailableResolutions() const
 	return result;
 }
 
-std::string Win32Window::GetAvailableResolutions() const
-{
-	std::string result = "";
-
-	auto resolutions = QueryAvailableResolutions();
-
-	// "Flatten" the resolutions list into a single string
-	for (int i = 0; i < resolutions.size(); i++)
-	{
-		auto& res = resolutions[i];
-		std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
-
-		result += resString;
-		if (i < resolutions.size() - 1)
-			result += " ";
-	}
-
-	return result;
-}
-
 void Win32Window::SetResolution(std::string& resolutionString)
 {
 	Size parsedResolution = ParseResolutionString(resolutionString);

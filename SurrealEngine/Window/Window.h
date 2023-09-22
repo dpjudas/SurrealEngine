@@ -167,7 +167,7 @@ public:
 	virtual int GetPixelHeight() const = 0;
 	virtual double GetDpiScale() const = 0;
 	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
-	virtual std::string GetAvailableResolutions() const = 0;
+	std::string GetAvailableResolutions() const;
 
 	Size ParseResolutionString(std::string& resolutionString);
 	Size GetClosestResolution(Size resolution) const;
