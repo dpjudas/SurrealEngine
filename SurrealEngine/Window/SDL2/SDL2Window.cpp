@@ -355,10 +355,9 @@ double SDL2Window::GetDpiScale() const
     return (double) drawable_width / (double) window_width;
 }
 
-std::string SDL2Window::GetAvailableResolutions() const
+std::vector<Size> SDL2Window::QueryAvailableResolutions() const
 {
-    std::string result = "";
-    std::vector<std::string> availableResolutions{};
+    std::vector<Size> result{};
 
     // First, obtain the display the window is on
     int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
@@ -370,21 +369,21 @@ std::string SDL2Window::GetAvailableResolutions() const
     if (numDisplayModes < 0)
         SDLWindowError("Error on SDL_GetNumDisplayModes(): " + std::string(SDL_GetError()));
 
-    for (int i = 0 ; i < numDisplayModes ; i++)
+    for (int i = 0; i < numDisplayModes; i++)
     {
         SDL_DisplayMode displayMode;
 
         SDL_GetDisplayMode(displayIndex, i, &displayMode);
 
         // The data also includes refresh rate but we ignore it (for now?)
-        std::string resolution = std::to_string(displayMode.w) + "x" + std::to_string(displayMode.h);
+        Size resolution(displayMode.w, displayMode.h);
 
         // Skip over the current resolution if it is already inserted
         // (in case of multiple refresh rates being available for the display)
         bool resolutionAlreadyAdded = false;
         for (auto res : availableResolutions)
         {
-            if (resolution.compare(res) == 0)
+            if (resolution == res)
             {
                 resolutionAlreadyAdded = true;
                 break;
@@ -394,14 +393,26 @@ std::string SDL2Window::GetAvailableResolutions() const
             continue;
 
         // Add the resolution, as it is not added before
-        availableResolutions.push_back(resolution);
+        result.push_back(resolution);
     }
 
+    return result;
+}
+
+std::string SDL2Window::GetAvailableResolutions() const
+{
+    std::string result = "";
+
+    auto resolutions = QueryAvailableResolutions();
+
     // "Flatten" the resolutions list into a single string
-    for (int i = 0 ; i < availableResolutions.size() ; i++)
+    for (int i = 0; i < resolutions.size(); i++)
     {
-        result += availableResolutions[i];
-        if (i < availableResolutions.size() - 1)
+        auto& res = resolutions[i];
+        std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
+
+        result += resString;
+        if (i < resolutions.size() - 1)
             result += " ";
     }
 

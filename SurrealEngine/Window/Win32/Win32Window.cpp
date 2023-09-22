@@ -211,10 +211,9 @@ double Win32Window::GetDpiScale() const
 	return GetDpiForWindow(WindowHandle) / 96.0;
 }
 
-std::string Win32Window::GetAvailableResolutions() const
+std::vector<Size> Win32Window::QueryAvailableResolutions() const
 {
-	std::string result = "";
-	std::vector<std::string> availableResolutions{};
+	std::vector<Size> result{};
 
 	int modeNum = 0;
 	DEVMODE deviceMode = {};
@@ -223,14 +222,14 @@ std::string Win32Window::GetAvailableResolutions() const
 
 	while (EnumDisplaySettings(nullptr, modeNum, &deviceMode) != 0)
 	{
-		std::string resolution = std::to_string(deviceMode.dmPelsWidth) + "x" + std::to_string(deviceMode.dmPelsHeight);
+		Size resolution(deviceMode.dmPelsWidth, deviceMode.dmPelsHeight);
 
 		// Skip over the current resolution if it is already inserted
-        // (in case of multiple refresh rates being available for the display)
+		// (in case of multiple refresh rates being available for the display)
 		bool resolutionAlreadyAdded = false;
-		for (auto res : availableResolutions)
+		for (auto res : result)
 		{
-			if (resolution.compare(res) == 0)
+			if (resolution == res)
 			{
 				resolutionAlreadyAdded = true;
 				break;
@@ -243,15 +242,27 @@ std::string Win32Window::GetAvailableResolutions() const
 		}
 
 		// Add the resolution, as it is not added before
-		availableResolutions.push_back(resolution);
+		result.push_back(resolution);
 		modeNum++;
 	}
 
+	return result;
+}
+
+std::string Win32Window::GetAvailableResolutions() const
+{
+	std::string result = "";
+
+	auto resolutions = QueryAvailableResolutions();
+
 	// "Flatten" the resolutions list into a single string
-	for (int i = 0 ; i < availableResolutions.size() ; i++)
+	for (int i = 0; i < resolutions.size(); i++)
 	{
-		result += availableResolutions[i];
-		if (i < availableResolutions.size() - 1)
+		auto& res = resolutions[i];
+		std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
+
+		result += resString;
+		if (i < resolutions.size() - 1)
 			result += " ";
 	}
 

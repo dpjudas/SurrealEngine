@@ -63,6 +63,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
+	std::vector<Size> QueryAvailableResolutions() const override;
 	std::string GetAvailableResolutions() const override;
 
 	bool HasFocus() const;
