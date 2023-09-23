@@ -381,7 +381,7 @@ std::vector<Size> SDL2Window::QueryAvailableResolutions() const
         // Skip over the current resolution if it is already inserted
         // (in case of multiple refresh rates being available for the display)
         bool resolutionAlreadyAdded = false;
-        for (auto res : availableResolutions)
+        for (auto res : result)
         {
             if (resolution == res)
             {
