@@ -4,6 +4,7 @@
 #include "File.h"
 #include "UTF16.h"
 #include "CommandLine.h"
+#include <filesystem>
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
@@ -16,15 +17,31 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 			foundGames.push_back(game);
 	}
 
-	for (const std::string& folder : FindGameFolders())
+	if (foundGames.empty())
 	{
-		GameFolder game = ExamineFolder(folder);
-		if (!game.name.empty())
-			foundGames.push_back(game);
+		// Check if we're within an UE1-game System folder.
+		auto p = std::filesystem::current_path();
+		if (p.filename().string() == "System")
+		{
+			GameFolder game = ExamineFolder(p.parent_path().string());
+			if (!game.name.empty())
+				foundGames.push_back(game);
+		}
 	}
 
 	if (foundGames.empty())
 	{
+		for (const std::string& folder : FindGameFolders())
+		{
+			GameFolder game = ExamineFolder(folder);
+			if (!game.name.empty())
+				foundGames.push_back(game);
+		}
+	}
+	
+	if (foundGames.empty())
+	{
+		// If we STILL didn't find anything, then there is nothing else we can do
 		throw std::runtime_error("Unable to find a game folder");
 	}
 
