@@ -106,13 +106,11 @@ void SDL2Window::SDLWindowError(const std::string&& message) const
 void SDL2Window::OnSDLEvent(SDL_Event& event)
 {
     switch (event.type) {
-    case SDL_QUIT:
-        windowHost->OnWindowClose();
-        break;
-
     case SDL_WINDOWEVENT:
-        // ???
-        windowHost->OnWindowGeometryChanged();
+        if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+            windowHost->OnWindowClose();
+        else
+            windowHost->OnWindowGeometryChanged();
         break;
 
     case SDL_TEXTINPUT:
