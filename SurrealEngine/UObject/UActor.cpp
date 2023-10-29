@@ -459,58 +459,61 @@ void UActor::TickWalking(float elapsed)
 
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
-	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
+	vec3 vel = Velocity();
+	if (vel.x != 0.0f && vel.y != 0.0f)
 	{
-		vec3 moveDelta = Velocity() * timeLeft;
-
-		TryMove(stepUpDelta);
-		CollisionHit hit = TryMove(moveDelta);
-		timeLeft -= timeLeft * hit.Fraction;
-
-		if (hit.Fraction < 1.0f)
+		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
-			if (player && UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+			vec3 moveDelta = vel * timeLeft;
+
+			TryMove(stepUpDelta);
+			CollisionHit hit = TryMove(moveDelta);
+			timeLeft -= timeLeft * hit.Fraction;
+
+			if (hit.Fraction < 1.0f)
 			{
-				// We hit a pushable decoration that is facing our movement direction
-
-				bJustTeleported() = true;
-				Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-				timeLeft = 0.0f;
-			}
-			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
-			{
-				// We hit a wall
-
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-
-				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
-				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				if (player && UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
 				{
-					hit = TryMove(alignedDelta);
-					timeLeft -= timeLeft * hit.Fraction;
-					if (hit.Fraction < 1.0f)
-					{
-						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-					}
-				}
+					// We hit a pushable decoration that is facing our movement direction
 
-				timeLeft = 0.0f;
+					bJustTeleported() = true;
+					vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					timeLeft = 0.0f;
+				}
+				else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
+				{
+					// We hit a wall
+
+					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+
+					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+					if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+					{
+						hit = TryMove(alignedDelta);
+						timeLeft -= timeLeft * hit.Fraction;
+						if (hit.Fraction < 1.0f)
+						{
+							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						}
+					}
+
+					timeLeft = 0.0f;
+				}
 			}
+
+			// Check if unrealscript got us out of walking mode
+			if (Physics() != PHYS_Walking)
+				return;
 		}
 
-		// Check if unrealscript got us out of walking mode
-		if (Physics() != PHYS_Walking)
-			return;
+		// Step down after movement to see if we are still walking or if we are now falling
+		CollisionHit hit = TryMove(stepDownDelta);
+		if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
+		{
+			SetPhysics(PHYS_Falling);
+		}
 	}
-
-	// Step down after movement to see if we are still walking or if we are now falling
-	CollisionHit hit = TryMove(stepDownDelta);
-	if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071068f))
-	{
-		SetPhysics(PHYS_Falling);
-	}
-
 	if (!bJustTeleported())
 		Velocity() = (Location() - OldLocation()) / elapsed;
 	Velocity().z = 0.0f;
@@ -585,11 +588,12 @@ void UActor::TickFalling(float elapsed)
 			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 			// slide along surfaces sloped steeper than 45 degrees
-			if (hit.Normal.z < 0.7071f)
+			if (hit.Normal.z < 0.7071f && hit.Normal.z >= 0.0f)
 			{
 				Rotator rot = Rotator::FromVector(hit.Normal);
 				vec3 at, left, up;
 				Coords::Rotation(rot).GetAxes(at, left, up);
+				float z = newVelocity.z;
 
 				gravityVector.x = at.x;
 				gravityVector.y = -at.z;
@@ -597,6 +601,8 @@ void UActor::TickFalling(float elapsed)
 				gravityVector *= (float)(gravityMag * 0.5f);
 
 				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * elapsed;
+				if (hit.Normal.z == 0.0f)
+					newVelocity.z = z;
 
 				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
