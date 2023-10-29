@@ -107,12 +107,27 @@ void SDL2Window::OnSDLEvent(SDL_Event& event)
 {
     switch (event.type) {
     case SDL_WINDOWEVENT:
-        if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-            windowHost->OnWindowClose();
-        else
-            windowHost->OnWindowGeometryChanged();
+        switch (event.window.event)
+        {
+            case SDL_WINDOWEVENT_CLOSE:
+                windowHost->OnWindowClose();
+                break;
+            case SDL_WINDOWEVENT_MOVED:
+            case SDL_WINDOWEVENT_RESIZED:
+                windowHost->OnWindowGeometryChanged();
+                break;
+            case SDL_WINDOWEVENT_SHOWN:
+            case SDL_WINDOWEVENT_EXPOSED:
+                windowHost->OnWindowPaint();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                windowHost->OnWindowActivated();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                windowHost->OnWindowDeactivated();
+                break;
+        }
         break;
-
     case SDL_TEXTINPUT:
         OnKeyboardTextInput(event.text);
         break;
