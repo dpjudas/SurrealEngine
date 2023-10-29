@@ -49,7 +49,7 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.Clipper.Setup(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
 	Scene.ViewLocation = vec4(location, 1.0f);
 	Scene.ViewZone = FindZoneAt(location);
-	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
+	Scene.ViewZoneMask = Scene.ViewZone ? 1ULL << Scene.ViewZone : -1;
 	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
 	Scene.TranslucentNodes.clear();
