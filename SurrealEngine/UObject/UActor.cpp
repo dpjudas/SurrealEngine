@@ -587,13 +587,22 @@ void UActor::TickFalling(float elapsed)
 		{
 			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-			// slide along surfaces sloped steeper than 45 degrees
-			if (hit.Normal.z < 0.7071f && hit.Normal.z >= 0.0f)
+			if (hit.Normal.z < 0.0f)
 			{
+				// TODO: need to add xy based on the slope of the ceiling
+				// hit something above us
+				newVelocity.x += hit.Normal.x;
+				newVelocity.y += hit.Normal.y;
+				newVelocity.z = -newVelocity.z;
+				Velocity() = newVelocity;
+				MoveSmooth(newVelocity * elapsed);
+			}
+			else if (hit.Normal.z < 0.7071f)
+			{
+				// slide along surfaces sloped steeper than 45 degrees
 				Rotator rot = Rotator::FromVector(hit.Normal);
 				vec3 at, left, up;
 				Coords::Rotation(rot).GetAxes(at, left, up);
-				float z = newVelocity.z;
 
 				gravityVector.x = at.x;
 				gravityVector.y = -at.z;
@@ -601,8 +610,6 @@ void UActor::TickFalling(float elapsed)
 				gravityVector *= (float)(gravityMag * 0.5f);
 
 				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * elapsed;
-				if (hit.Normal.z == 0.0f)
-					newVelocity.z = z;
 
 				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -614,6 +621,7 @@ void UActor::TickFalling(float elapsed)
 
 				Velocity() = newVelocity;
 				MoveSmooth(newVelocity * elapsed);
+
 			}
 			else
 			{
