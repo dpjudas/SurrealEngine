@@ -51,7 +51,6 @@ public:
 	DisplayWindowHost* WindowHost = nullptr;
 
 	HWND WindowHandle = 0;
-	bool Fullscreen = false;
 
 	bool MouseLocked = false;
 	POINT MouseLockPos = {};

@@ -312,7 +312,7 @@ void X11Window::ShowFullscreen()
 	{
 		Atom state = atoms["_NET_WM_STATE_FULLSCREEN"];
 		XChangeProperty(display, window, atoms["_NET_WM_STATE"], XA_ATOM, 32, PropModeReplace, (unsigned char *)&state, 1);
-		is_fullscreen = true;
+		isWindowFullscreen = true;
 	}
 
 	WindowX = 0;
@@ -873,7 +873,7 @@ void X11Window::MapWindow()
 
 	is_window_mapped = true;
 
-	if (is_fullscreen)
+	if (isWindowFullscreen)
 	{
 		XSetInputFocus(display, window, RevertToParent, CurrentTime);
 		XFlush(display);
