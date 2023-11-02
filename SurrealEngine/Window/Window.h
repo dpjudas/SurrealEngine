@@ -169,4 +169,6 @@ public:
 	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
 	virtual std::string GetAvailableResolutions() const;
 	void AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const;
+
+	bool isWindowFullscreen = false;
 };

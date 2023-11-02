@@ -114,7 +114,7 @@ void Win32Window::ShowFullscreen()
 	SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 	SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED);
 	SetWindowPos(WindowHandle, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-	Fullscreen = true;
+	isWindowFullscreen = true;
 }
 
 void Win32Window::ShowMaximized()
