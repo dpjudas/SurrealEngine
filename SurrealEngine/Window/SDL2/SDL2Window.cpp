@@ -368,10 +368,9 @@ double SDL2Window::GetDpiScale() const
     return (double) drawable_width / (double) window_width;
 }
 
-std::string SDL2Window::GetAvailableResolutions() const
+std::vector<Size> SDL2Window::QueryAvailableResolutions() const
 {
-    std::string result = "";
-    std::vector<std::string> availableResolutions{};
+    std::vector<Size> result{};
 
     // First, obtain the display the window is on
     int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
@@ -390,32 +389,9 @@ std::string SDL2Window::GetAvailableResolutions() const
         SDL_GetDisplayMode(displayIndex, i, &displayMode);
 
         // The data also includes refresh rate but we ignore it (for now?)
-        std::string resolution = std::to_string(displayMode.w) + "x" + std::to_string(displayMode.h);
+        Size resolution(displayMode.w, displayMode.h);
 
-        // Skip over the current resolution if it is already inserted
-        // (in case of multiple refresh rates being available for the display)
-        bool resolutionAlreadyAdded = false;
-        for (auto res : availableResolutions)
-        {
-            if (resolution.compare(res) == 0)
-            {
-                resolutionAlreadyAdded = true;
-                break;
-            }
-        }
-        if (resolutionAlreadyAdded)
-            continue;
-
-        // Add the resolution, as it is not added before
-        availableResolutions.push_back(resolution);
-    }
-
-    // "Flatten" the resolutions list into a single string
-    for (int i = 0 ; i < availableResolutions.size() ; i++)
-    {
-        result += availableResolutions[i];
-        if (i < availableResolutions.size() - 1)
-            result += " ";
+        AddResolutionIfNotAdded(result, resolution);
     }
 
     return result;

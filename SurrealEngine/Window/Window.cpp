@@ -78,3 +78,41 @@ void DisplayWindow::ExitLoop()
 }
 
 #endif
+
+std::string DisplayWindow::GetAvailableResolutions() const
+{
+	std::string result = "";
+
+	auto resolutions = QueryAvailableResolutions();
+
+	// "Flatten" the resolutions list into a single string
+	for (int i = 0; i < resolutions.size(); i++)
+	{
+		auto& res = resolutions[i];
+		std::string resString = std::to_string(int(res.width)) + "x" + std::to_string(int(res.height));
+
+		result += resString;
+		if (i < resolutions.size() - 1)
+			result += " ";
+	}
+
+	return result;
+}
+
+void DisplayWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const
+{
+	// Skip over the current resolution if it is already inserted
+	// (in case of multiple refresh rates being available for the display)
+	bool resolutionAlreadyAdded = false;
+	for (auto& res : resList)
+	{
+		if (resolution == res)
+		{
+			resolutionAlreadyAdded = true;
+			break;
+		}
+	}
+	if (!resolutionAlreadyAdded)
+		// Add the resolution, as it is not added before
+		resList.push_back(resolution);
+}

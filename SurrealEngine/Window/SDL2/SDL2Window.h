@@ -50,7 +50,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
-	std::string GetAvailableResolutions() const override;
+	std::vector<Size> QueryAvailableResolutions() const override;
 
 	EInputKey SDLScancodeToInputKey(SDL_Scancode keycode);
 	SDL_Scancode InputKeyToSDLScancode(EInputKey inputkey);
