@@ -167,7 +167,7 @@ public:
 	virtual int GetPixelHeight() const = 0;
 	virtual double GetDpiScale() const = 0;
 	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
-	virtual std::string GetAvailableResolutions() const;
+	std::string GetAvailableResolutions() const;
 	void AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const;
 
 	bool isWindowFullscreen = false;
