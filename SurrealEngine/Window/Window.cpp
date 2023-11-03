@@ -103,16 +103,12 @@ void DisplayWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size res
 {
 	// Skip over the current resolution if it is already inserted
 	// (in case of multiple refresh rates being available for the display)
-	bool resolutionAlreadyAdded = false;
 	for (auto& res : resList)
 	{
 		if (resolution == res)
-		{
-			resolutionAlreadyAdded = true;
-			break;
-		}
+			return;
 	}
-	if (!resolutionAlreadyAdded)
-		// Add the resolution, as it is not added before
-		resList.push_back(resolution);
+
+	// Add the resolution, as it is not added before
+	resList.push_back(resolution);
 }
