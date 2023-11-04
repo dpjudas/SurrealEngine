@@ -344,6 +344,9 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 
 	uint32_t PolyFlags = surface.PolyFlags;
 	UTexture* texture = surface.Material;
+	if (!texture)
+		texture = engine->LevelInfo->DefaultTexture();
+
 	bool opaqueSurface = ((PolyFlags & PF_NoOcclude) == 0) &&
 		!texture->bMasked() && !texture->bTransparent() && !texture->bModulate();
 
