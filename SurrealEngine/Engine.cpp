@@ -620,7 +620,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "setres" && args.size() == 2)
 	{
-		LogUnimplemented("SetRes command is not implemented: " + commandline);
+		window->SetResolution(args[1]);
 	}
 	else
 	{

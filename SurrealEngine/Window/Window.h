@@ -169,6 +169,9 @@ public:
 	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
 	std::string GetAvailableResolutions() const;
 	void AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const;
+	Size ParseResolutionString(std::string& resolutionString) const;
+	Size GetClosestResolution(Size resolution) const;
+	void SetResolution(std::string& resolutionString);
 
 	bool isWindowFullscreen = false;
 };
