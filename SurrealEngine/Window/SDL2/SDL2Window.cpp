@@ -195,10 +195,14 @@ void SDL2Window::SetWindowFrame(const Rect& box)
         SDL_GetWindowDisplayMode(m_SDLWindow, &mode);
         mode.w = box.width;
         mode.h = box.height;
-        mode.refresh_rate = 0;
+
+        // Switch outta fullscreen, change the display mode, THEN switch back to fullscreen
+        // This avoids the device lost errors, also makes resolution switching work on Wayland
+        SDL_SetWindowFullscreen(m_SDLWindow, 0);
         int set_result = SDL_SetWindowDisplayMode(m_SDLWindow, &mode);
         if (set_result < 0)
             SDLWindowError("Error on SDL_SetWindowDisplayMode(): " + std::string(SDL_GetError()));
+        SDL_SetWindowFullscreen(m_SDLWindow, SDL_WINDOW_FULLSCREEN);
     }
     else
     {
