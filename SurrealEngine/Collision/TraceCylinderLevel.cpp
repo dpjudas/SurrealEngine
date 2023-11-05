@@ -15,7 +15,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 	dvec3 origin = to_dvec3(from);
 	dvec3 rayEnd = to_dvec3(to);
 	dvec3 direction = to_dvec3(to) - origin;
-`
+	double tmin = 0.0f;
 	double tmax = length(direction);
 	if (tmax < tmin)
 		return {};
