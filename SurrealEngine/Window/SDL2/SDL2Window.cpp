@@ -9,6 +9,7 @@
 #include "RenderDevice/RenderDevice.h"
 
 std::map<int, SDL2Window*> SDL2Window::windows;
+bool SDL2Window::exitRunLoop = false;
 
 SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
 {
@@ -92,10 +93,39 @@ void SDL2Window::ProcessEvents()
 
 void SDL2Window::RunLoop()
 {
+    exitRunLoop = false;
+    SDL_Event event;
+    while (!exitRunLoop && SDL_PollEvent(&event))
+    {
+        int windowID;
+        switch (event.type) {
+            case SDL_WINDOWEVENT:
+                windowID = event.window.windowID; break;
+            case SDL_TEXTINPUT:
+                windowID = event.text.windowID; break;
+            case SDL_KEYUP:
+            case SDL_KEYDOWN:
+                windowID = event.key.windowID; break;
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                windowID = event.button.windowID; break;
+            case SDL_MOUSEWHEEL:
+                windowID = event.wheel.windowID; break;
+            case SDL_MOUSEMOTION:
+                windowID = event.motion.windowID; break;
+
+            default: continue;
+        }
+        auto it = windows.find(windowID);
+        if (it != windows.end()) {
+            it->second->OnSDLEvent(event);
+        }
+    }
 }
 
 void SDL2Window::ExitLoop()
 {
+    exitRunLoop = true;
 }
 
 void SDL2Window::SDLWindowError(const std::string&& message) const
