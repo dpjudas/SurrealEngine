@@ -96,10 +96,8 @@ private:
 		}
 
 		bool ClipBoxPlanes(const BBox& box)
-		{
-			// TODO: is this actually correct?
-			// AABB does not encompass the bsp surface really at all, but treating
-			// the sides of the AABB like planes seems to work??
+		{ 
+			// Treat the sides of each AABB as a plane
 			dvec4 boxPlanes[] =
 			{
 				{ 1.0,  0.0,  0.0,  box.max.x},
