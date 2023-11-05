@@ -80,13 +80,27 @@ void Win32Window::SetWindowTitle(const std::string& text)
 void Win32Window::SetWindowFrame(const Rect& box)
 {
 	double dpiscale = GetDpiScale();
+	if (isWindowFullscreen)
+	{
+		DEVMODE devMode = {};
+		devMode.dmSize = sizeof(DEVMODE);
+		devMode.dmDriverExtra = 0;
+
+		devMode.dmPelsWidth = (int)std::round(box.width * dpiscale);
+		devMode.dmPelsHeight = (int)std::round(box.height * dpiscale);
+
+		devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		// Does not work properly on the resolutions <1280x1024 + 1360x768 due to Windows also changing the DPI scale
+		// We get a much smaller window instead (Due to the calculation [Resolution / [Previous Screen DPI Scale] * 1.0])
+		ChangeDisplaySettings(&devMode, CDS_FULLSCREEN);
+	}
 	SetWindowPos(WindowHandle, nullptr, (int)std::round(box.x * dpiscale), (int)std::round(box.y * dpiscale), (int)std::round(box.width * dpiscale), (int)std::round(box.height * dpiscale), SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void Win32Window::SetClientFrame(const Rect& box)
 {
 	double dpiscale = GetDpiScale();
-
 	RECT rect = {};
 	rect.left = (int)std::round(box.x * dpiscale);
 	rect.top = (int)std::round(box.y * dpiscale);
@@ -130,6 +144,7 @@ void Win32Window::ShowMinimized()
 void Win32Window::ShowNormal()
 {
 	ShowWindow(WindowHandle, SW_NORMAL);
+	isWindowFullscreen = false;
 }
 
 void Win32Window::Hide()
