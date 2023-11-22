@@ -188,6 +188,7 @@ public:
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 
 	CollisionHit TryMove(const vec3& delta);
+	CollisionHit TryMoveSmooth(const vec3& delta);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 

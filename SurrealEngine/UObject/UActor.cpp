@@ -472,19 +472,26 @@ void UActor::TickWalking(float elapsed)
 
 			if (hit.Fraction < 1.0f)
 			{
-				if (player && UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+				if (player && hit.Actor)
 				{
-					// We hit a pushable decoration that is facing our movement direction
+					if (UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+					{
+						// We hit a pushable decoration that is facing our movement direction
 
-					bJustTeleported() = true;
-					vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-					timeLeft = 0.0f;
+						bJustTeleported() = true;
+						vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						timeLeft = 0.0f;
+					}
+					else if (hit.Actor->bCollideActors() && hit.Actor->CollisionHeight() > 0.0f && hit.Actor->CollisionRadius() > 0.0f)
+					{
+						// TODO: We hit a non-movable actor
+
+					}
 				}
 				else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 				{
 					// We hit a wall
-
 					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
 					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
@@ -526,7 +533,7 @@ void UActor::TickFalling(float elapsed)
 		CallEvent(this, EventName::FellOutOfWorld);
 		return;
 	}
-	
+
 	UZoneInfo* zone = Region().Zone;
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
@@ -566,77 +573,119 @@ void UActor::TickFalling(float elapsed)
 		float xySpeed = length(Velocity().xy());
 		newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
 	}
-
 	Velocity() = newVelocity;
 
-	float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
-	if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
+	float timeLeft = elapsed;
+	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 	{
-		Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
-	}
-
-	CollisionHit hit = TryMove((Velocity() + zone->ZoneVelocity()) * elapsed);
-	if (hit.Fraction < 1.0f)
-	{
-		if (bBounce())
+		float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
+		if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
 		{
-			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-			// TODO: perform bounce
+			Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
+			newVelocity = Velocity();
 		}
-		else
+
+		vec3 moveDelta = (newVelocity + zone->ZoneVelocity()) * timeLeft;
+
+		CollisionHit hit = TryMove(moveDelta);
+		timeLeft -= timeLeft * hit.Fraction;
+
+		if (hit.Fraction < 1.0f)
 		{
-			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-
-			if (hit.Normal.z < 0.0f)
+			if (bBounce())
 			{
-				// TODO: need to add xy based on the slope of the ceiling
-				// hit something above us
-				newVelocity.x += hit.Normal.x;
-				newVelocity.y += hit.Normal.y;
-				newVelocity.z = -newVelocity.z;
-				Velocity() = newVelocity;
-				MoveSmooth(newVelocity * elapsed);
-			}
-			else if (hit.Normal.z < 0.7071f)
-			{
-				// slide along surfaces sloped steeper than 45 degrees
-				Rotator rot = Rotator::FromVector(hit.Normal);
-				vec3 at, left, up;
-				Coords::Rotation(rot).GetAxes(at, left, up);
-
-				gravityVector.x = at.x;
-				gravityVector.y = -at.z;
-				gravityVector.z = at.y * 0.5f;
-				gravityVector *= (float)(gravityMag * 0.5f);
-
-				newVelocity = oldVelocity * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * elapsed;
-
-				// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
-				curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
-				if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
-				{
-					float xySpeed = length(Velocity().xy());
-					newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
-				}
-
-				Velocity() = newVelocity;
-				MoveSmooth(newVelocity * elapsed);
-
+				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+				// TODO: perform bounce
 			}
 			else
 			{
-				CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hit.Normal) });
+				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-				if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+				// TODO: ugh, what a fucking mess
+				// 
+				// there several cases we have to consider when hitting a surface in mid-air, all dependent on the normal.Z of the surface we hit, these cases are:
+				// - Hit a ceiling				(hit.Normal.z >= -1.0f   && hit.Normal.z <= -0.7071f)	-> Invert Z velocity, apply X/Y velocity based on hit.Normal.{x,y} * newVelocity.z
+				// - Hit a ceiling slope	(hit.Normal.z > -0.7071f && hit.Normal.z < 0.0f)		  -> Adjust gravity along the slope of the surface
+				// - Hit a wall						(hit.Normal.z == 0.0f)															  -> Glide along the wall (as TickWalking does)
+				// - Hit a floor slope		(hit.Normal.z > 0.0f		 && hit.Normal.z < 0.7071f)		-> Adjust gravity along the slope of the surface
+				// - Hit a floor					(hit.Normal.z <= 1.0f		 && hit.Normal.z >= 0.7071f)  -> Landed, go to PHYS_Walking
+				//
+				if (hit.Normal.z <= -0.7071f)
 				{
-					if (UObject::TryCast<UPawn>(this))
+					// hit a ceiling
+					newVelocity.x += newVelocity.z * hit.Normal.x * 0.5f;
+					newVelocity.y += newVelocity.z * hit.Normal.y * 0.5f;
+					newVelocity.z = -newVelocity.z;
+					Velocity() = newVelocity;
+				}
+				else if (hit.Normal.z > -0.7071f && hit.Normal.z < 0.0f)
+				{
+					// hit a sloped surface above us
+					newVelocity.x = newVelocity.z * hit.Normal.x;
+					newVelocity.y = newVelocity.z * hit.Normal.y;
+					Velocity() = newVelocity;
+				}
+				else if (hit.Normal.z == 0.0f)
+				{
+					newVelocity = (oldVelocity - hit.Normal * dot(oldVelocity, hit.Normal)) * (1.0f - hit.Fraction);
+					if (dot(oldVelocity, newVelocity) >= 0.0f)
 					{
-						SetPhysics(PHYS_Walking);
+						Velocity() = newVelocity;
+
+						hit = TryMove(newVelocity * timeLeft);
+						timeLeft -= timeLeft * hit.Fraction;
+
+						if (hit.Fraction < 1.0f)
+						{
+							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						}
 					}
-					else
+				}
+				else if (hit.Normal.z < 0.7071f && hit.Normal.z > 0.0f)
+				{
+					// XXX: This is still wrong, velocity increases too much
+					// slide along floors sloped steeper than 45 degrees
+					Rotator rot = Rotator::FromVector(hit.Normal);
+					vec3 at, left, up;
+					Coords::Rotation(rot).GetAxes(at, left, up);
+
+					gravityVector.x = at.x;
+					gravityVector.y = -at.z;
+					gravityVector.z = at.y * 0.5f;
+					gravityVector *= (float)(gravityMag * 0.5f);
+
+					newVelocity = oldVelocity * (1.0f - fluidFriction * timeLeft) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * timeLeft;
+
+					// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
+					curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
+					if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
 					{
-						SetPhysics(PHYS_None);
-						Velocity() = vec3(0.0f);
+						float xySpeed = length(Velocity().xy());
+						newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+					}
+
+					Velocity() = newVelocity;
+					MoveSmooth(newVelocity * timeLeft);
+					timeLeft = 0.0f;
+				}
+				else
+				{
+					timeLeft = 0.0f;
+
+					// landed on the floor
+					CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hit.Normal) });
+
+					if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+					{
+						if (UObject::TryCast<UPawn>(this))
+						{
+							SetPhysics(PHYS_Walking);
+						}
+						else
+						{
+							SetPhysics(PHYS_None);
+							Velocity() = vec3(0.0f);
+						}
 					}
 				}
 			}
@@ -1258,6 +1307,23 @@ CollisionHit UActor::TryMove(const vec3& delta)
 	return blockingHit;
 }
 
+CollisionHit UActor::TryMoveSmooth(const vec3& delta)
+{
+	CollisionHit hit = TryMove(delta);
+	if (hit.Fraction != 1.0f)
+	{
+		// We hit a slope. Try to follow it.
+		vec3 alignedDelta = (delta - hit.Normal * dot(delta, hit.Normal)) * (1.0f - hit.Fraction);
+		if (dot(delta, alignedDelta) >= 0.0f) // Don't end up going backwards
+		{
+			CollisionHit hit2 = TryMove(alignedDelta);
+			return hit2; // XXX: does this break anything?
+		}
+	}
+
+	return hit;
+}
+
 void UActor::Touch(UActor* actor)
 {
 	UActor** TouchingArray = Touching();
@@ -1338,17 +1404,7 @@ bool UActor::Move(const vec3& delta)
 
 bool UActor::MoveSmooth(const vec3& delta)
 {
-	CollisionHit hit = TryMove(delta);
-	if (hit.Fraction != 1.0f)
-	{
-		// We hit a slope. Try to follow it.
-		vec3 alignedDelta = (delta - hit.Normal * dot(delta, hit.Normal)) * (1.0f - hit.Fraction);
-		if (dot(delta, alignedDelta) >= 0.0f) // Don't end up going backwards
-		{
-			CollisionHit hit2 = TryMove(alignedDelta);
-		}
-	}
-
+	CollisionHit hit = TryMoveSmooth(delta);
 	return hit.Fraction != 1.0f;
 }
 
