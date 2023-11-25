@@ -446,6 +446,7 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/stb_vorbis.h
 	Thirdparty/schrift/schrift.cpp
 	Thirdparty/schrift/schrift.h
+	Thirdparty/TinySHA1/TinySHA1.hpp
 )
 
 set(THIRDPARTY_WIN32_SOURCES
