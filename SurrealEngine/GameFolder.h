@@ -1,8 +1,5 @@
 #pragma once
 
-#include <map>
-#include <vector>
-
 struct GameLaunchInfo
 {
 	std::string folder;
@@ -30,7 +27,7 @@ enum class KnownUE1Games
 	KLINGON_219
 };
 
-std::map<std::string, KnownUE1Games> SHA1Database = {
+const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Unreal Gold, 226
 	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226},
 
@@ -76,7 +73,7 @@ std::map<std::string, KnownUE1Games> SHA1Database = {
 	// ???
 };
 
-std::vector<std::string> knownUE1ExecutableNames = {
+const std::vector<std::string> knownUE1ExecutableNames = {
 	"Unreal.exe",
 	"UnrealLinux.bin",
 	"UnrealTournament.exe",
