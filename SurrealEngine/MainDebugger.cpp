@@ -22,7 +22,8 @@ int wmain(int argc, wchar_t* argv[])
 		for (int i = 1; i < argc; i++)
 			args.push_back(from_utf16(argv[i]));
 
-		SetProcessDPIAware();
+		//SetProcessDPIAware();
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 		InitCommonControls();
 
 		WORD winsock_version = MAKEWORD(2, 2);
