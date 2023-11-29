@@ -63,7 +63,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
-	std::string GetAvailableResolutions() const override;
+	std::vector<Size> QueryAvailableResolutions() const override;
 
 	bool HasFocus() const;
 	bool IsMinimized() const;
@@ -97,7 +97,6 @@ public:
 	Cursor hidden_cursor = {};
 	XSizeHints* size_hints = nullptr;
 	bool is_window_mapped = false;
-	bool is_fullscreen = false;
 	EInputKey last_press_id = IK_None;
 	Time time_at_last_press = 0;
 

@@ -80,13 +80,27 @@ void Win32Window::SetWindowTitle(const std::string& text)
 void Win32Window::SetWindowFrame(const Rect& box)
 {
 	double dpiscale = GetDpiScale();
+	if (isWindowFullscreen)
+	{
+		DEVMODE devMode = {};
+		devMode.dmSize = sizeof(DEVMODE);
+		devMode.dmDriverExtra = 0;
+
+		devMode.dmPelsWidth = (int)std::round(box.width * dpiscale);
+		devMode.dmPelsHeight = (int)std::round(box.height * dpiscale);
+
+		devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		// Does not work properly on the resolutions <1280x1024 + 1360x768 due to Windows also changing the DPI scale
+		// We get a much smaller window instead (Due to the calculation [Resolution / [Previous Screen DPI Scale] * 1.0])
+		ChangeDisplaySettings(&devMode, CDS_FULLSCREEN);
+	}
 	SetWindowPos(WindowHandle, nullptr, (int)std::round(box.x * dpiscale), (int)std::round(box.y * dpiscale), (int)std::round(box.width * dpiscale), (int)std::round(box.height * dpiscale), SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void Win32Window::SetClientFrame(const Rect& box)
 {
 	double dpiscale = GetDpiScale();
-
 	RECT rect = {};
 	rect.left = (int)std::round(box.x * dpiscale);
 	rect.top = (int)std::round(box.y * dpiscale);
@@ -114,7 +128,7 @@ void Win32Window::ShowFullscreen()
 	SetWindowLongPtr(WindowHandle, GWL_EXSTYLE, WS_EX_APPWINDOW);
 	SetWindowLongPtr(WindowHandle, GWL_STYLE, WS_OVERLAPPED);
 	SetWindowPos(WindowHandle, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-	Fullscreen = true;
+	isWindowFullscreen = true;
 }
 
 void Win32Window::ShowMaximized()
@@ -130,6 +144,7 @@ void Win32Window::ShowMinimized()
 void Win32Window::ShowNormal()
 {
 	ShowWindow(WindowHandle, SW_NORMAL);
+	isWindowFullscreen = false;
 }
 
 void Win32Window::Hide()
@@ -211,10 +226,9 @@ double Win32Window::GetDpiScale() const
 	return GetDpiForWindow(WindowHandle) / 96.0;
 }
 
-std::string Win32Window::GetAvailableResolutions() const
+std::vector<Size> Win32Window::QueryAvailableResolutions() const
 {
-	std::string result = "";
-	std::vector<std::string> availableResolutions{};
+	std::vector<Size> result{};
 
 	int modeNum = 0;
 	DEVMODE deviceMode = {};
@@ -223,36 +237,11 @@ std::string Win32Window::GetAvailableResolutions() const
 
 	while (EnumDisplaySettings(nullptr, modeNum, &deviceMode) != 0)
 	{
-		std::string resolution = std::to_string(deviceMode.dmPelsWidth) + "x" + std::to_string(deviceMode.dmPelsHeight);
+		Size resolution(deviceMode.dmPelsWidth, deviceMode.dmPelsHeight);
 
-		// Skip over the current resolution if it is already inserted
-        // (in case of multiple refresh rates being available for the display)
-		bool resolutionAlreadyAdded = false;
-		for (auto res : availableResolutions)
-		{
-			if (resolution.compare(res) == 0)
-			{
-				resolutionAlreadyAdded = true;
-				break;
-			}
-		}
-		if (resolutionAlreadyAdded)
-		{
-			modeNum++;
-			continue;
-		}
+		AddResolutionIfNotAdded(result, resolution);
 
-		// Add the resolution, as it is not added before
-		availableResolutions.push_back(resolution);
 		modeNum++;
-	}
-
-	// "Flatten" the resolutions list into a single string
-	for (int i = 0 ; i < availableResolutions.size() ; i++)
-	{
-		result += availableResolutions[i];
-		if (i < availableResolutions.size() - 1)
-			result += " ";
 	}
 
 	return result;
@@ -262,6 +251,8 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_INPUT)
 	{
+		bool hasFocus = GetFocus() != 0;
+
 		HRAWINPUT handle = (HRAWINPUT)lparam;
 		UINT size = 0;
 		UINT result = GetRawInputData(handle, RID_INPUT, 0, &size, sizeof(RAWINPUTHEADER));
@@ -275,7 +266,8 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 				RAWINPUT* rawinput = (RAWINPUT*)buffer.data();
 				if (rawinput->header.dwType == RIM_TYPEMOUSE)
 				{
-					WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
+					if (hasFocus)
+						WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
 				}
 			}
 		}
@@ -292,7 +284,7 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_MOUSEMOVE)
 	{
-		if (MouseLocked)
+		if (MouseLocked && GetFocus() != 0)
 		{
 			RECT box = {};
 			GetClientRect(WindowHandle, &box);
@@ -303,6 +295,10 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 			ClientToScreen(WindowHandle, &center);
 
 			SetCursorPos(center.x, center.y);
+		}
+		else
+		{
+			SetCursor((HCURSOR)LoadImage(0, IDC_ARROW, IMAGE_CURSOR, LR_DEFAULTSIZE, LR_DEFAULTSIZE, LR_SHARED));
 		}
 
 		WindowHost->OnWindowMouseMove(GetLParamPos(lparam));
@@ -351,11 +347,17 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_SETFOCUS)
 	{
-		ShowCursor(FALSE);
+		if (MouseLocked)
+		{
+			::ShowCursor(FALSE);
+		}
 	}
 	else if (msg == WM_KILLFOCUS)
 	{
-		ShowCursor(TRUE);
+		if (MouseLocked)
+		{
+			::ShowCursor(TRUE);
+		}
 	}
 	else if (msg == WM_CLOSE)
 	{

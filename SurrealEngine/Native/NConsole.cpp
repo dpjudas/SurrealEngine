@@ -10,7 +10,7 @@ void NConsole::RegisterFunctions()
 	RegisterVMNativeFunc_1("Console", "SaveTimeDemo", &NConsole::SaveTimeDemo, 0);
 }
 
-void NConsole::ConsoleCommand(UObject* Self, const std::string& S, bool& ReturnValue)
+void NConsole::ConsoleCommand(UObject* Self, const std::string& S, BitfieldBool& ReturnValue)
 {
 	engine->ConsoleCommand(Self, S, ReturnValue);
 }

@@ -76,24 +76,48 @@ void UStruct::Load(ObjectStream* stream)
 		Properties = BaseStruct->Properties;
 		offset = BaseStruct->StructSize;
 	}
+
+	uint64_t bitfieldMask = 1;
+
 	UField* child = Children;
 	while (child)
 	{
 		child->LoadNow();
 
-		UProperty* prop = dynamic_cast<UProperty*>(child);
-		if (prop)
+		if (UProperty* prop = dynamic_cast<UBoolProperty*>(child))
+		{
+			// Pack bool properties into 32 bit bitfields
+			Properties.push_back(prop);
+			if (bitfieldMask == 1 || bitfieldMask == (1ULL << 32))
+			{
+				size_t alignment = prop->Alignment();
+				size_t size = prop->Size();
+				prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
+				prop->DataOffset.BitfieldMask = 1;
+				bitfieldMask = 2;
+				offset = prop->DataOffset.DataOffset + size;
+			}
+			else
+			{
+				prop->DataOffset.DataOffset = offset - prop->Size();
+				prop->DataOffset.BitfieldMask = (uint32_t)bitfieldMask;
+				bitfieldMask <<= 1;
+			}
+		}
+		else if (UProperty* prop = dynamic_cast<UProperty*>(child))
 		{
 			Properties.push_back(prop);
+			bitfieldMask = 1;
 
 			size_t alignment = prop->Alignment();
 			size_t size = prop->Size();
-			prop->DataOffset = (offset + alignment - 1) / alignment * alignment;
-			offset = prop->DataOffset + size;
+			prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
+			offset = prop->DataOffset.DataOffset + size;
 		}
-		else if (dynamic_cast<UStruct*>(child))
+		else if (UStruct* childstruct = dynamic_cast<UStruct*>(child))
 		{
-			static_cast<UStruct*>(child)->StructParent = this;
+			bitfieldMask = 1;
+			childstruct->StructParent = this;
 		}
 
 		child = child->Next;
@@ -446,12 +470,12 @@ void UClass::Load(ObjectStream* stream)
 					else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<NameString*>(ptr) = value;
 					else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
 					else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-					else if (dynamic_cast<UBoolProperty*>(prop))
+					else if (auto boolprop = dynamic_cast<UBoolProperty*>(prop))
 					{
 						for (char& c : value)
 							if (c >= 'A' && c <= 'Z')
 								c += 'a' - 'A';
-						*static_cast<bool*>(ptr) = (value == "1" || value == "true" || value == "yes");
+						boolprop->SetBool(ptr, value == "1" || value == "true" || value == "yes");
 					}
 					else if (dynamic_cast<UClassProperty*>(prop))
 					{
@@ -478,19 +502,19 @@ void UClass::Load(ObjectStream* stream)
 						for (UProperty* member : static_cast<UStructProperty*>(prop)->Struct->Properties)
 						{
 							std::string membervalue = values[member->Name];
-							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset;
+							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset.DataOffset;
 							if (dynamic_cast<UByteProperty*>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
 							else if (dynamic_cast<UIntProperty*>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
 							else if (dynamic_cast<UFloatProperty*>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
 							else if (dynamic_cast<UNameProperty*>(member)) *static_cast<NameString*>(memberptr) = membervalue;
 							else if (dynamic_cast<UStrProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
 							else if (dynamic_cast<UStringProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
-							else if (dynamic_cast<UBoolProperty*>(member))
+							else if (auto boolprop = dynamic_cast<UBoolProperty*>(member))
 							{
 								for (char& c : membervalue)
 									if (c >= 'A' && c <= 'Z')
 										c += 'a' - 'A';
-								*static_cast<bool*>(memberptr) = (membervalue == "1" || membervalue == "true" || membervalue == "yes");
+								boolprop->SetBool(memberptr, membervalue == "1" || membervalue == "true" || membervalue == "yes");
 							}
 							else if (dynamic_cast<UClassProperty*>(member))
 							{

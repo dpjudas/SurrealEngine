@@ -84,7 +84,7 @@ public:
 	NameString Category;
 	uint16_t ReplicationOffset = 0;
 
-	size_t DataOffset = 0;
+	PropertyDataOffset DataOffset = { 0, 1 };
 	ExpressionValueType ValueType = ExpressionValueType::Nothing;
 };
 
@@ -345,7 +345,7 @@ public:
 					print += print.empty() ? " " : ", ";
 					print += fieldprop->Name.ToString();
 					print += " = ";
-					print += fieldprop->PrintValue(d + fieldprop->DataOffset);
+					print += fieldprop->PrintValue(d + fieldprop->DataOffset.DataOffset);
 				}
 			}
 			return "{" + print + " }";
@@ -374,7 +374,33 @@ public:
 	UBoolProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
-	std::string PrintValue(void* data) override { return std::to_string(*(bool*)data); }
+
+	void Construct(void* data) override
+	{
+		SetBool(data, false);
+	}
+
+	void CopyConstruct(void* data, void* src) override
+	{
+		SetBool(data, GetBool(src));
+	}
+
+	bool GetBool(const void* data) const
+	{
+		uint32_t v = *reinterpret_cast<const uint32_t*>(data);
+		return (v & DataOffset.BitfieldMask) != 0;
+	}
+
+	void SetBool(void* data, bool value)
+	{
+		uint32_t& v = *reinterpret_cast<uint32_t*>(data);
+		if (value)
+			v = v | DataOffset.BitfieldMask;
+		else
+			v = v & ~DataOffset.BitfieldMask;
+	}
+
+	std::string PrintValue(void* data) override { return std::to_string(GetBool(data)); }
 };
 
 class UFloatProperty : public UProperty

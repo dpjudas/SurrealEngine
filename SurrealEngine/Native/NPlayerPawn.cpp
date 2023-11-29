@@ -29,8 +29,8 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 {
 	// "Execute a console command in the context of this player, then forward to Actor.ConsoleCommand"
 
-	bool found;
-	ReturnValue = engine->ConsoleCommand(Self, Command, found);
+	ExpressionValue found = ExpressionValue::BoolValue(false);
+	ReturnValue = engine->ConsoleCommand(Self, Command, found.ToType<BitfieldBool&>());
 }
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)

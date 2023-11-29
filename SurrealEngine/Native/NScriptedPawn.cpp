@@ -35,12 +35,12 @@ void NScriptedPawn::GetPawnAllianceType(UObject* Self, UObject* QueryPawn, uint8
 	throw std::runtime_error("ScriptedPawn.GetPawnAllianceType not implemented");
 }
 
-void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName, bool& ReturnValue)
+void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("ScriptedPawn.HaveSeenCarcass not implemented");
 }
 
-void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, bool* bCheckAlliance, bool& ReturnValue)
+void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, BitfieldBool* bCheckAlliance, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("ScriptedPawn.IsValidEnemy not implemented");
 }

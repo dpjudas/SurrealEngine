@@ -9,16 +9,17 @@
 #include "RenderDevice/RenderDevice.h"
 
 std::map<int, SDL2Window*> SDL2Window::windows;
+bool SDL2Window::exitRunLoop = false;
 
 SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError());
+        SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError()));
     }
     // Width and height won't matter much as the window will be resized based on the values in [GameExecutableName].ini anyways
     m_SDLWindow = SDL_CreateWindow("Surreal Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_VULKAN);
     if (!m_SDLWindow) {
-        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError());
+        SDLWindowError("Unable to create SDL Window: " + std::string(SDL_GetError()));
     }
 
     // Generate a required extensions list
@@ -92,13 +93,42 @@ void SDL2Window::ProcessEvents()
 
 void SDL2Window::RunLoop()
 {
+    exitRunLoop = false;
+    SDL_Event event;
+    while (!exitRunLoop && SDL_PollEvent(&event))
+    {
+        int windowID;
+        switch (event.type) {
+            case SDL_WINDOWEVENT:
+                windowID = event.window.windowID; break;
+            case SDL_TEXTINPUT:
+                windowID = event.text.windowID; break;
+            case SDL_KEYUP:
+            case SDL_KEYDOWN:
+                windowID = event.key.windowID; break;
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                windowID = event.button.windowID; break;
+            case SDL_MOUSEWHEEL:
+                windowID = event.wheel.windowID; break;
+            case SDL_MOUSEMOTION:
+                windowID = event.motion.windowID; break;
+
+            default: continue;
+        }
+        auto it = windows.find(windowID);
+        if (it != windows.end()) {
+            it->second->OnSDLEvent(event);
+        }
+    }
 }
 
 void SDL2Window::ExitLoop()
 {
+    exitRunLoop = true;
 }
 
-void SDL2Window::SDLWindowError(const std::string& message) const
+void SDL2Window::SDLWindowError(const std::string&& message) const
 {
     throw std::runtime_error(message.c_str());
 }
@@ -106,15 +136,28 @@ void SDL2Window::SDLWindowError(const std::string& message) const
 void SDL2Window::OnSDLEvent(SDL_Event& event)
 {
     switch (event.type) {
-    case SDL_QUIT:
-        windowHost->OnWindowClose();
-        break;
-
     case SDL_WINDOWEVENT:
-        // ???
-        windowHost->OnWindowGeometryChanged();
+        switch (event.window.event)
+        {
+            case SDL_WINDOWEVENT_CLOSE:
+                windowHost->OnWindowClose();
+                break;
+            case SDL_WINDOWEVENT_MOVED:
+            case SDL_WINDOWEVENT_RESIZED:
+                windowHost->OnWindowGeometryChanged();
+                break;
+            case SDL_WINDOWEVENT_SHOWN:
+            case SDL_WINDOWEVENT_EXPOSED:
+                windowHost->OnWindowPaint();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                windowHost->OnWindowActivated();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                windowHost->OnWindowDeactivated();
+                break;
+        }
         break;
-
     case SDL_TEXTINPUT:
         OnKeyboardTextInput(event.text);
         break;
@@ -145,17 +188,21 @@ void SDL2Window::SetWindowTitle(const std::string& text)
 
 void SDL2Window::SetWindowFrame(const Rect& box)
 {
-    if (isFullscreen)
+    if (isWindowFullscreen)
     {
         // Fullscreen windows are handled with SDL_DisplayMode
         SDL_DisplayMode mode;
         SDL_GetWindowDisplayMode(m_SDLWindow, &mode);
         mode.w = box.width;
         mode.h = box.height;
-        mode.refresh_rate = 0;
+
+        // Switch outta fullscreen, change the display mode, THEN switch back to fullscreen
+        // This avoids the device lost errors, also makes resolution switching work on Wayland
+        SDL_SetWindowFullscreen(m_SDLWindow, 0);
         int set_result = SDL_SetWindowDisplayMode(m_SDLWindow, &mode);
         if (set_result < 0)
             SDLWindowError("Error on SDL_SetWindowDisplayMode(): " + std::string(SDL_GetError()));
+        SDL_SetWindowFullscreen(m_SDLWindow, SDL_WINDOW_FULLSCREEN);
     }
     else
     {
@@ -177,7 +224,7 @@ void SDL2Window::Show()
 void SDL2Window::ShowFullscreen()
 {
     SDL_SetWindowFullscreen(m_SDLWindow, SDL_WINDOW_FULLSCREEN);
-    isFullscreen = true;
+    isWindowFullscreen = true;
 }
 
 void SDL2Window::ShowMaximized()
@@ -194,7 +241,7 @@ void SDL2Window::ShowNormal()
 {
     // Clear the Fullscreen flag
     SDL_SetWindowFullscreen(m_SDLWindow, 0);
-    isFullscreen = false;
+    isWindowFullscreen = false;
 }
 
 void SDL2Window::Hide()
@@ -355,10 +402,9 @@ double SDL2Window::GetDpiScale() const
     return (double) drawable_width / (double) window_width;
 }
 
-std::string SDL2Window::GetAvailableResolutions() const
+std::vector<Size> SDL2Window::QueryAvailableResolutions() const
 {
-    std::string result = "";
-    std::vector<std::string> availableResolutions{};
+    std::vector<Size> result{};
 
     // First, obtain the display the window is on
     int displayIndex = SDL_GetWindowDisplayIndex(m_SDLWindow);
@@ -377,32 +423,9 @@ std::string SDL2Window::GetAvailableResolutions() const
         SDL_GetDisplayMode(displayIndex, i, &displayMode);
 
         // The data also includes refresh rate but we ignore it (for now?)
-        std::string resolution = std::to_string(displayMode.w) + "x" + std::to_string(displayMode.h);
+        Size resolution(displayMode.w, displayMode.h);
 
-        // Skip over the current resolution if it is already inserted
-        // (in case of multiple refresh rates being available for the display)
-        bool resolutionAlreadyAdded = false;
-        for (auto res : availableResolutions)
-        {
-            if (resolution.compare(res) == 0)
-            {
-                resolutionAlreadyAdded = true;
-                break;
-            }
-        }
-        if (resolutionAlreadyAdded)
-            continue;
-
-        // Add the resolution, as it is not added before
-        availableResolutions.push_back(resolution);
-    }
-
-    // "Flatten" the resolutions list into a single string
-    for (int i = 0 ; i < availableResolutions.size() ; i++)
-    {
-        result += availableResolutions[i];
-        if (i < availableResolutions.size() - 1)
-            result += " ";
+        AddResolutionIfNotAdded(result, resolution);
     }
 
     return result;

@@ -37,8 +37,8 @@ public:
 	uint8_t& Style() { return Value<uint8_t>(PropOffsets_Canvas.Style); }
 	UViewport*& Viewport() { return Value<UViewport*>(PropOffsets_Canvas.Viewport); }
 	float& Z() { return Value<float>(PropOffsets_Canvas.Z); }
-	bool& bCenter() { return Value<bool>(PropOffsets_Canvas.bCenter); }
-	bool& bNoSmooth() { return Value<bool>(PropOffsets_Canvas.bNoSmooth); }
+	BitfieldBool bCenter() { return BoolValue(PropOffsets_Canvas.bCenter); }
+	BitfieldBool bNoSmooth() { return BoolValue(PropOffsets_Canvas.bNoSmooth); }
 };
 
 class UConsole : public UObject
@@ -93,13 +93,13 @@ public:
 	int& TopLine() { return Value<int>(PropOffsets_Console.TopLine); }
 	std::string& TypedStr() { return Value<std::string>(PropOffsets_Console.TypedStr); }
 	UViewport*& Viewport() { return Value<UViewport*>(PropOffsets_Console.Viewport); }
-	bool& bNoDrawWorld() { return Value<bool>(PropOffsets_Console.bNoDrawWorld); }
-	bool& bNoStuff() { return Value<bool>(PropOffsets_Console.bNoStuff); }
-	bool& bRestartTimeDemo() { return Value<bool>(PropOffsets_Console.bRestartTimeDemo); }
-	bool& bSaveTimeDemoToFile() { return Value<bool>(PropOffsets_Console.bSaveTimeDemoToFile); }
-	bool& bStartTimeDemo() { return Value<bool>(PropOffsets_Console.bStartTimeDemo); }
-	bool& bTimeDemo() { return Value<bool>(PropOffsets_Console.bTimeDemo); }
-	bool& bTyping() { return Value<bool>(PropOffsets_Console.bTyping); }
+	BitfieldBool bNoDrawWorld() { return BoolValue(PropOffsets_Console.bNoDrawWorld); }
+	BitfieldBool bNoStuff() { return BoolValue(PropOffsets_Console.bNoStuff); }
+	BitfieldBool bRestartTimeDemo() { return BoolValue(PropOffsets_Console.bRestartTimeDemo); }
+	BitfieldBool bSaveTimeDemoToFile() { return BoolValue(PropOffsets_Console.bSaveTimeDemoToFile); }
+	BitfieldBool bStartTimeDemo() { return BoolValue(PropOffsets_Console.bStartTimeDemo); }
+	BitfieldBool bTimeDemo() { return BoolValue(PropOffsets_Console.bTimeDemo); }
+	BitfieldBool bTyping() { return BoolValue(PropOffsets_Console.bTyping); }
 	std::string& fpsText() { return Value<std::string>(PropOffsets_Console.fpsText); }
 	int& numLines() { return Value<int>(PropOffsets_Console.numLines); }
 	int& vtblOut() { return Value<int>(PropOffsets_Console.vtblOut); }
@@ -118,9 +118,9 @@ public:
 	uint8_t& SelectedCursor() { return Value<uint8_t>(PropOffsets_Player.SelectedCursor); }
 	float& WindowsMouseX() { return Value<float>(PropOffsets_Player.WindowsMouseX); }
 	float& WindowsMouseY() { return Value<float>(PropOffsets_Player.WindowsMouseY); }
-	bool& bShowWindowsMouse() { return Value<bool>(PropOffsets_Player.bShowWindowsMouse); }
-	bool& bSuspendPrecaching() { return Value<bool>(PropOffsets_Player.bSuspendPrecaching); }
-	bool& bWindowsMouseAvailable() { return Value<bool>(PropOffsets_Player.bWindowsMouseAvailable); }
+	BitfieldBool bShowWindowsMouse() { return BoolValue(PropOffsets_Player.bShowWindowsMouse); }
+	BitfieldBool bSuspendPrecaching() { return BoolValue(PropOffsets_Player.bSuspendPrecaching); }
+	BitfieldBool bWindowsMouseAvailable() { return BoolValue(PropOffsets_Player.bWindowsMouseAvailable); }
 	int& vfExec() { return Value<int>(PropOffsets_Player.vfExec); } // native
 	int& vfOut() { return Value<int>(PropOffsets_Player.vfOut); } // native
 };

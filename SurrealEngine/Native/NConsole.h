@@ -7,6 +7,6 @@ class NConsole
 public:
 	static void RegisterFunctions();
 
-	static void ConsoleCommand(UObject* Self, const std::string& S, bool& ReturnValue);
+	static void ConsoleCommand(UObject* Self, const std::string& S, BitfieldBool& ReturnValue);
 	static void SaveTimeDemo(UObject* Self, const std::string& S);
 };

@@ -166,5 +166,8 @@ std::string NativeObjExtractor::WritePropertyGetter(const NameString& clsname, U
 	if (!comment.empty())
 		comment = " // " + comment;
 
-	return type + "& " + prop->Name.ToString() + "() { return Value<" + type + ">(PropOffsets_" + clsname.ToString() + "." + prop->Name.ToString() + "); }" + comment;
+	if (type == "bool")
+		return "BitfieldBool " + prop->Name.ToString() + "() { return BoolValue(PropOffsets_" + clsname.ToString() + "." + prop->Name.ToString() + "); }" + comment;
+	else
+		return type + "& " + prop->Name.ToString() + "() { return Value<" + type + ">(PropOffsets_" + clsname.ToString() + "." + prop->Name.ToString() + "); }" + comment;
 }

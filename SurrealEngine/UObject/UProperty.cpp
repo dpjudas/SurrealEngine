@@ -99,12 +99,12 @@ void UFloatProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 void UBoolProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Bool);
-	*reinterpret_cast<bool*>(data) = header.boolValue;
+	SetBool(data, header.boolValue);
 }
 
 void UBoolProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<bool*>(data) = stream->ReadUInt8() == 1; // Is this always a byte? Is it aligned? Bitfield stuff?
+	SetBool(data, stream->ReadUInt8() == 1); // Is this always a byte? Is it aligned? Bitfield stuff?
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -261,7 +261,7 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 		UProperty* fieldprop = dynamic_cast<UProperty*>(field);
 		if (fieldprop)
 		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset;
+			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
 			fieldprop->LoadStructMemberValue(fielddata, stream);
 		}
 	}
@@ -274,7 +274,7 @@ void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 		UProperty* fieldprop = dynamic_cast<UProperty*>(field);
 		if (fieldprop)
 		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset;
+			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
 			fieldprop->LoadStructMemberValue(fielddata, stream);
 		}
 	}

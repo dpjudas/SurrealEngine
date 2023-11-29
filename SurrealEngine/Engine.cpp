@@ -493,7 +493,7 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
-std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, bool& found)
+std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, BitfieldBool& found)
 {
 	found = false;
 
@@ -550,7 +550,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "getcurrentres")
 	{
-		return "1920x1080";
+		int width = window->GetPixelWidth();
+		int height = window->GetPixelHeight();
+
+		return std::to_string(width) + "x" + std::to_string(height);
 	}
 	else if (command == "getcurrentcolordepth")
 	{
@@ -617,7 +620,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "setres" && args.size() == 2)
 	{
-		LogUnimplemented("SetRes command is not implemented: " + commandline);
+		window->SetResolution(args[1]);
 	}
 	else
 	{

@@ -261,12 +261,12 @@ void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 	ReturnValue = A + B;
 }
 
-void NObject::OrOr_BoolBool(bool A, bool* B, bool& ReturnValue)
+void NObject::OrOr_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A || *B;
 }
 
-void NObject::AndAnd_BoolBool(bool A, bool* B, bool& ReturnValue)
+void NObject::AndAnd_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A && *B;
 }
@@ -309,7 +309,7 @@ void NObject::Clamp(int V, int A, int B, int& ReturnValue)
 	ReturnValue = clamp(V, A, B);
 }
 
-void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, bool& ReturnValue)
+void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, BitfieldBool& ReturnValue)
 {
 	for (UClass* cls = UObject::Cast<UClass>(TestClass); cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 	{
@@ -322,12 +322,12 @@ void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, bool& Ret
 	ReturnValue = false;
 }
 
-void NObject::ComplementEqual_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	throw std::runtime_error("Object.ComplementEqual_FloatFloat not implemented");
 }
 
-void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 #ifdef WIN32
 	ReturnValue = _stricmp(A.c_str(), B.c_str()) == 0;
@@ -411,7 +411,7 @@ void NObject::Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue)
 	ReturnValue = dot(A, B);
 }
 
-void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, bool* MayFail, UObject*& ReturnValue)
+void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, BitfieldBool* MayFail, UObject*& ReturnValue)
 {
 	ReturnValue = nullptr;
 
@@ -444,42 +444,42 @@ void NObject::Enable(UObject* Self, const NameString& ProbeFunc)
 	Self->EnableEvent(ProbeFunc);
 }
 
-void NObject::EqualEqual_BoolBool(bool A, bool B, bool& ReturnValue)
+void NObject::EqualEqual_BoolBool(bool A, bool B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::EqualEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (Float::Equals(A, B));
 }
 
-void NObject::EqualEqual_IntInt(int A, int B, bool& ReturnValue)
+void NObject::EqualEqual_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
+void NObject::EqualEqual_NameName(const NameString& A, const NameString& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
+void NObject::EqualEqual_ObjectObject(UObject* A, UObject* B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue)
+void NObject::EqualEqual_RotatorRotator(const Rotator& A, const Rotator& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::EqualEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
 
-void NObject::EqualEqual_VectorVector(const vec3& A, const vec3& B, bool& ReturnValue)
+void NObject::EqualEqual_VectorVector(const vec3& A, const vec3& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = (A == B);
 }
@@ -548,17 +548,17 @@ void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)
 	Self->GotoState(NewState ? *NewState : std::string(), Label ? *Label : std::string());
 }
 
-void NObject::GreaterEqual_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::GreaterEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A >= B;
 }
 
-void NObject::GreaterEqual_IntInt(int A, int B, bool& ReturnValue)
+void NObject::GreaterEqual_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A >= B;
 }
 
-void NObject::GreaterEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::GreaterEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A >= B;
 }
@@ -578,17 +578,17 @@ void NObject::GreaterGreater_VectorRotator(const vec3& A, const Rotator& B, vec3
 	ReturnValue = Coords::Rotation(B).Inverse() * A;
 }
 
-void NObject::Greater_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::Greater_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A > B;
 }
 
-void NObject::Greater_IntInt(int A, int B, bool& ReturnValue)
+void NObject::Greater_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A > B;
 }
 
-void NObject::Greater_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::Greater_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A > B;
 }
@@ -611,12 +611,12 @@ void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
 	Z.x = m[6]; Z.y = m[7]; Z.z = m[8];
 }
 
-void NObject::IsA(UObject* Self, const NameString& ClassName, bool& ReturnValue)
+void NObject::IsA(UObject* Self, const NameString& ClassName, BitfieldBool& ReturnValue)
 {
 	ReturnValue = Self->IsA(ClassName);
 }
 
-void NObject::IsInState(UObject* Self, const NameString& TestState, bool& ReturnValue)
+void NObject::IsInState(UObject* Self, const NameString& TestState, BitfieldBool& ReturnValue)
 {
 	ReturnValue = Self->GetStateName() == TestState;
 }
@@ -636,17 +636,17 @@ void NObject::Lerp(float Alpha, float A, float B, float& ReturnValue)
 	ReturnValue = mix(A, B, Alpha);
 }
 
-void NObject::LessEqual_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::LessEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A <= B;
 }
 
-void NObject::LessEqual_IntInt(int A, int B, bool& ReturnValue)
+void NObject::LessEqual_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A <= B;
 }
 
-void NObject::LessEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::LessEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A <= B;
 }
@@ -661,17 +661,17 @@ void NObject::LessLess_VectorRotator(const vec3& A, const Rotator& B, vec3& Retu
 	ReturnValue = Coords::Rotation(B) * A;
 }
 
-void NObject::Less_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::Less_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A < B;
 }
 
-void NObject::Less_IntInt(int A, int B, bool& ReturnValue)
+void NObject::Less_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A < B;
 }
 
-void NObject::Less_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::Less_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A < B;
 }
@@ -799,47 +799,47 @@ void NObject::Normalize(const Rotator& Rot, Rotator& ReturnValue)
 	ReturnValue = normalize(Rot);
 }
 
-void NObject::NotEqual_BoolBool(bool A, bool B, bool& ReturnValue)
+void NObject::NotEqual_BoolBool(bool A, bool B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_FloatFloat(float A, float B, bool& ReturnValue)
+void NObject::NotEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_IntInt(int A, int B, bool& ReturnValue)
+void NObject::NotEqual_IntInt(int A, int B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_NameName(const NameString& A, const NameString& B, bool& ReturnValue)
+void NObject::NotEqual_NameName(const NameString& A, const NameString& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, bool& ReturnValue)
+void NObject::NotEqual_ObjectObject(UObject* A, UObject* B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, bool& ReturnValue)
+void NObject::NotEqual_RotatorRotator(const Rotator& A, const Rotator& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_StrStr(const std::string& A, const std::string& B, bool& ReturnValue)
+void NObject::NotEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::NotEqual_VectorVector(const vec3& A, const vec3& B, bool& ReturnValue)
+void NObject::NotEqual_VectorVector(const vec3& A, const vec3& B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A != B;
 }
 
-void NObject::Not_PreBool(bool A, bool& ReturnValue)
+void NObject::Not_PreBool(bool A, BitfieldBool& ReturnValue)
 {
 	ReturnValue = !A;
 }
@@ -882,7 +882,7 @@ void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
 	ReturnValue = S.substr(S.size() - count);
 }
 
-void NObject::RotRand(bool* bRoll, Rotator& ReturnValue)
+void NObject::RotRand(BitfieldBool* bRoll, Rotator& ReturnValue)
 {
 	ReturnValue.Yaw = (int)(std::rand() * 0xffffLL / RAND_MAX);
 	ReturnValue.Pitch = (int)(std::rand() * 0xffffLL / RAND_MAX);
@@ -1027,7 +1027,7 @@ void NObject::Warn(const std::string& S)
 	engine->LogMessage("Warning: " + S);
 }
 
-void NObject::XorXor_BoolBool(bool A, bool B, bool& ReturnValue)
+void NObject::XorXor_BoolBool(bool A, bool B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = !A ^ !B;
 }

@@ -98,6 +98,28 @@ public:
 	UClass* Class = nullptr;
 };
 
+struct BitfieldBool
+{
+	uint32_t* Ptr;
+	uint32_t Mask;
+
+	bool Get() const
+	{
+		return ((*Ptr) & Mask) != 0;
+	}
+
+	void Set(bool value)
+	{
+		if (value)
+			(*Ptr) |= Mask;
+		else
+			(*Ptr) &= ~Mask;
+	}
+
+	operator bool() const { return Get(); }
+	BitfieldBool& operator=(bool v) { Set(v); return *this; }
+};
+
 class PropertyDataBlock
 {
 public:
@@ -137,7 +159,7 @@ public:
 	bool HasProperty(const NameString& name) const;
 	void* GetProperty(const NameString& name);
 	const void* GetProperty(const NameString& name) const;
-	size_t GetPropertyDataOffset(const NameString& name) const;
+	PropertyDataOffset GetPropertyDataOffset(const NameString& name) const;
 
 	uint8_t GetByte(const NameString& name) const;
 	uint32_t GetInt(const NameString& name) const;
@@ -194,10 +216,17 @@ public:
 	std::shared_ptr<Frame> StateFrame;
 
 	template<typename T>
-	T& Value(size_t offset) { return *static_cast<T*>(PropertyData.Ptr(offset)); }
+	T& Value(PropertyDataOffset offset) { return *static_cast<T*>(PropertyData.Ptr(offset.DataOffset)); }
+
+#ifdef _MSC_VER
+	// MSVC has a non-standard extension that makes this possible
+	template<> bool& Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+#endif
+
+	BitfieldBool BoolValue(PropertyDataOffset offset) { BitfieldBool b; b.Ptr = static_cast<uint32_t*>(PropertyData.Ptr(offset.DataOffset)); b.Mask = offset.BitfieldMask; return b; }
 
 	template<typename T>
-	T* FixedArray(size_t offset) { return static_cast<T*>(PropertyData.Ptr(offset)); }
+	T* FixedArray(PropertyDataOffset offset) { return static_cast<T*>(PropertyData.Ptr(offset.DataOffset)); }
 
 	template<typename T>
 	static T* Cast(UObject* obj)
@@ -230,3 +259,8 @@ T* ObjectStream::ReadObject()
 {
 	return UObject::Cast<T>(package->GetUObject(ReadIndex()));
 }
+
+#ifndef _MSC_VER
+// Same deal with above, but for non-MSVC compilers
+template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+#endif

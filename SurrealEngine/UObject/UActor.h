@@ -377,95 +377,95 @@ public:
 	uint8_t& VolumeFog() { return Value<uint8_t>(PropOffsets_Actor.VolumeFog); }
 	uint8_t& VolumeRadius() { return Value<uint8_t>(PropOffsets_Actor.VolumeRadius); }
 	ULevel*& XLevel() { return Value<ULevel*>(PropOffsets_Actor.XLevel); }
-	bool& bActorShadows() { return Value<bool>(PropOffsets_Actor.bActorShadows); }
-	bool& bAlwaysRelevant() { return Value<bool>(PropOffsets_Actor.bAlwaysRelevant); }
-	bool& bAlwaysTick() { return Value<bool>(PropOffsets_Actor.bAlwaysTick); }
-	bool& bAnimByOwner() { return Value<bool>(PropOffsets_Actor.bAnimByOwner); }
-	bool& bAnimFinished() { return Value<bool>(PropOffsets_Actor.bAnimFinished); }
-	bool& bAnimLoop() { return Value<bool>(PropOffsets_Actor.bAnimLoop); }
-	bool& bAnimNotify() { return Value<bool>(PropOffsets_Actor.bAnimNotify); }
-	bool& bAssimilated() { return Value<bool>(PropOffsets_Actor.bAssimilated); }
-	bool& bBlockActors() { return Value<bool>(PropOffsets_Actor.bBlockActors); }
-	bool& bBlockPlayers() { return Value<bool>(PropOffsets_Actor.bBlockPlayers); }
-	bool& bBounce() { return Value<bool>(PropOffsets_Actor.bBounce); }
-	bool& bCanTeleport() { return Value<bool>(PropOffsets_Actor.bCanTeleport); }
-	bool& bCarriedItem() { return Value<bool>(PropOffsets_Actor.bCarriedItem); }
-	bool& bClientAnim() { return Value<bool>(PropOffsets_Actor.bClientAnim); }
-	bool& bClientDemoNetFunc() { return Value<bool>(PropOffsets_Actor.bClientDemoNetFunc); }
-	bool& bClientDemoRecording() { return Value<bool>(PropOffsets_Actor.bClientDemoRecording); }
-	bool& bCollideActors() { return Value<bool>(PropOffsets_Actor.bCollideActors); }
-	bool& bCollideWhenPlacing() { return Value<bool>(PropOffsets_Actor.bCollideWhenPlacing); }
-	bool& bCollideWorld() { return Value<bool>(PropOffsets_Actor.bCollideWorld); }
-	bool& bCorona() { return Value<bool>(PropOffsets_Actor.bCorona); }
-	bool& bDeleteMe() { return Value<bool>(PropOffsets_Actor.bDeleteMe); }
-	bool& bDemoRecording() { return Value<bool>(PropOffsets_Actor.bDemoRecording); }
-	bool& bDifficulty0() { return Value<bool>(PropOffsets_Actor.bDifficulty0); }
-	bool& bDifficulty1() { return Value<bool>(PropOffsets_Actor.bDifficulty1); }
-	bool& bDifficulty2() { return Value<bool>(PropOffsets_Actor.bDifficulty2); }
-	bool& bDifficulty3() { return Value<bool>(PropOffsets_Actor.bDifficulty3); }
-	bool& bDirectional() { return Value<bool>(PropOffsets_Actor.bDirectional); }
-	bool& bDynamicLight() { return Value<bool>(PropOffsets_Actor.bDynamicLight); }
-	bool& bEdLocked() { return Value<bool>(PropOffsets_Actor.bEdLocked); }
-	bool& bEdShouldSnap() { return Value<bool>(PropOffsets_Actor.bEdShouldSnap); }
-	bool& bEdSnap() { return Value<bool>(PropOffsets_Actor.bEdSnap); }
-	bool& bFilterByVolume() { return Value<bool>(PropOffsets_Actor.bFilterByVolume); }
-	bool& bFixedRotationDir() { return Value<bool>(PropOffsets_Actor.bFixedRotationDir); }
-	bool& bForcePhysicsUpdate() { return Value<bool>(PropOffsets_Actor.bForcePhysicsUpdate); }
-	bool& bForceStasis() { return Value<bool>(PropOffsets_Actor.bForceStasis); }
-	bool& bGameRelevant() { return Value<bool>(PropOffsets_Actor.bGameRelevant); }
-	bool& bHidden() { return Value<bool>(PropOffsets_Actor.bHidden); }
-	bool& bHiddenEd() { return Value<bool>(PropOffsets_Actor.bHiddenEd); }
-	bool& bHighDetail() { return Value<bool>(PropOffsets_Actor.bHighDetail); }
-	bool& bHighlighted() { return Value<bool>(PropOffsets_Actor.bHighlighted); }
-	bool& bHurtEntry() { return Value<bool>(PropOffsets_Actor.bHurtEntry); }
-	bool& bInterpolating() { return Value<bool>(PropOffsets_Actor.bInterpolating); }
-	bool& bIsItemGoal() { return Value<bool>(PropOffsets_Actor.bIsItemGoal); }
-	bool& bIsKillGoal() { return Value<bool>(PropOffsets_Actor.bIsKillGoal); }
-	bool& bIsMover() { return Value<bool>(PropOffsets_Actor.bIsMover); }
-	bool& bIsPawn() { return Value<bool>(PropOffsets_Actor.bIsPawn); }
-	bool& bIsSecretGoal() { return Value<bool>(PropOffsets_Actor.bIsSecretGoal); }
-	bool& bJustTeleported() { return Value<bool>(PropOffsets_Actor.bJustTeleported); }
-	bool& bLensFlare() { return Value<bool>(PropOffsets_Actor.bLensFlare); }
-	bool& bLightChanged() { return Value<bool>(PropOffsets_Actor.bLightChanged); }
-	bool& bMemorized() { return Value<bool>(PropOffsets_Actor.bMemorized); }
-	bool& bMeshCurvy() { return Value<bool>(PropOffsets_Actor.bMeshCurvy); }
-	bool& bMeshEnviroMap() { return Value<bool>(PropOffsets_Actor.bMeshEnviroMap); }
-	bool& bMovable() { return Value<bool>(PropOffsets_Actor.bMovable); }
-	bool& bNet() { return Value<bool>(PropOffsets_Actor.bNet); }
-	bool& bNetFeel() { return Value<bool>(PropOffsets_Actor.bNetFeel); }
-	bool& bNetHear() { return Value<bool>(PropOffsets_Actor.bNetHear); }
-	bool& bNetInitial() { return Value<bool>(PropOffsets_Actor.bNetInitial); }
-	bool& bNetOptional() { return Value<bool>(PropOffsets_Actor.bNetOptional); }
-	bool& bNetOwner() { return Value<bool>(PropOffsets_Actor.bNetOwner); }
-	bool& bNetRelevant() { return Value<bool>(PropOffsets_Actor.bNetRelevant); }
-	bool& bNetSee() { return Value<bool>(PropOffsets_Actor.bNetSee); }
-	bool& bNetSpecial() { return Value<bool>(PropOffsets_Actor.bNetSpecial); }
-	bool& bNetTemporary() { return Value<bool>(PropOffsets_Actor.bNetTemporary); }
-	bool& bNoDelete() { return Value<bool>(PropOffsets_Actor.bNoDelete); }
-	bool& bNoSmooth() { return Value<bool>(PropOffsets_Actor.bNoSmooth); }
-	bool& bOnlyOwnerSee() { return Value<bool>(PropOffsets_Actor.bOnlyOwnerSee); }
-	bool& bOwnerNoSee() { return Value<bool>(PropOffsets_Actor.bOwnerNoSee); }
-	bool& bParticles() { return Value<bool>(PropOffsets_Actor.bParticles); }
-	bool& bProjTarget() { return Value<bool>(PropOffsets_Actor.bProjTarget); }
-	bool& bRandomFrame() { return Value<bool>(PropOffsets_Actor.bRandomFrame); }
-	bool& bReplicateInstigator() { return Value<bool>(PropOffsets_Actor.bReplicateInstigator); }
-	bool& bRotateToDesired() { return Value<bool>(PropOffsets_Actor.bRotateToDesired); }
-	bool& bScriptInitialized() { return Value<bool>(PropOffsets_Actor.bScriptInitialized); }
-	bool& bSelected() { return Value<bool>(PropOffsets_Actor.bSelected); }
-	bool& bShadowCast() { return Value<bool>(PropOffsets_Actor.bShadowCast); }
-	bool& bSimFall() { return Value<bool>(PropOffsets_Actor.bSimFall); }
-	bool& bSimulatedPawn() { return Value<bool>(PropOffsets_Actor.bSimulatedPawn); }
-	bool& bSinglePlayer() { return Value<bool>(PropOffsets_Actor.bSinglePlayer); }
-	bool& bSpecialLit() { return Value<bool>(PropOffsets_Actor.bSpecialLit); }
-	bool& bStasis() { return Value<bool>(PropOffsets_Actor.bStasis); }
-	bool& bStatic() { return Value<bool>(PropOffsets_Actor.bStatic); }
-	bool& bTempEditor() { return Value<bool>(PropOffsets_Actor.bTempEditor); }
-	bool& bTicked() { return Value<bool>(PropOffsets_Actor.bTicked); }
-	bool& bTimerLoop() { return Value<bool>(PropOffsets_Actor.bTimerLoop); }
-	bool& bTrailerPrePivot() { return Value<bool>(PropOffsets_Actor.bTrailerPrePivot); }
-	bool& bTrailerSameRotation() { return Value<bool>(PropOffsets_Actor.bTrailerSameRotation); }
-	bool& bTravel() { return Value<bool>(PropOffsets_Actor.bTravel); }
-	bool& bUnlit() { return Value<bool>(PropOffsets_Actor.bUnlit); }
+	BitfieldBool bActorShadows() { return BoolValue(PropOffsets_Actor.bActorShadows); }
+	BitfieldBool bAlwaysRelevant() { return BoolValue(PropOffsets_Actor.bAlwaysRelevant); }
+	BitfieldBool bAlwaysTick() { return BoolValue(PropOffsets_Actor.bAlwaysTick); }
+	BitfieldBool bAnimByOwner() { return BoolValue(PropOffsets_Actor.bAnimByOwner); }
+	BitfieldBool bAnimFinished() { return BoolValue(PropOffsets_Actor.bAnimFinished); }
+	BitfieldBool bAnimLoop() { return BoolValue(PropOffsets_Actor.bAnimLoop); }
+	BitfieldBool bAnimNotify() { return BoolValue(PropOffsets_Actor.bAnimNotify); }
+	BitfieldBool bAssimilated() { return BoolValue(PropOffsets_Actor.bAssimilated); }
+	BitfieldBool bBlockActors() { return BoolValue(PropOffsets_Actor.bBlockActors); }
+	BitfieldBool bBlockPlayers() { return BoolValue(PropOffsets_Actor.bBlockPlayers); }
+	BitfieldBool bBounce() { return BoolValue(PropOffsets_Actor.bBounce); }
+	BitfieldBool bCanTeleport() { return BoolValue(PropOffsets_Actor.bCanTeleport); }
+	BitfieldBool bCarriedItem() { return BoolValue(PropOffsets_Actor.bCarriedItem); }
+	BitfieldBool bClientAnim() { return BoolValue(PropOffsets_Actor.bClientAnim); }
+	BitfieldBool bClientDemoNetFunc() { return BoolValue(PropOffsets_Actor.bClientDemoNetFunc); }
+	BitfieldBool bClientDemoRecording() { return BoolValue(PropOffsets_Actor.bClientDemoRecording); }
+	BitfieldBool bCollideActors() { return BoolValue(PropOffsets_Actor.bCollideActors); }
+	BitfieldBool bCollideWhenPlacing() { return BoolValue(PropOffsets_Actor.bCollideWhenPlacing); }
+	BitfieldBool bCollideWorld() { return BoolValue(PropOffsets_Actor.bCollideWorld); }
+	BitfieldBool bCorona() { return BoolValue(PropOffsets_Actor.bCorona); }
+	BitfieldBool bDeleteMe() { return BoolValue(PropOffsets_Actor.bDeleteMe); }
+	BitfieldBool bDemoRecording() { return BoolValue(PropOffsets_Actor.bDemoRecording); }
+	BitfieldBool bDifficulty0() { return BoolValue(PropOffsets_Actor.bDifficulty0); }
+	BitfieldBool bDifficulty1() { return BoolValue(PropOffsets_Actor.bDifficulty1); }
+	BitfieldBool bDifficulty2() { return BoolValue(PropOffsets_Actor.bDifficulty2); }
+	BitfieldBool bDifficulty3() { return BoolValue(PropOffsets_Actor.bDifficulty3); }
+	BitfieldBool bDirectional() { return BoolValue(PropOffsets_Actor.bDirectional); }
+	BitfieldBool bDynamicLight() { return BoolValue(PropOffsets_Actor.bDynamicLight); }
+	BitfieldBool bEdLocked() { return BoolValue(PropOffsets_Actor.bEdLocked); }
+	BitfieldBool bEdShouldSnap() { return BoolValue(PropOffsets_Actor.bEdShouldSnap); }
+	BitfieldBool bEdSnap() { return BoolValue(PropOffsets_Actor.bEdSnap); }
+	BitfieldBool bFilterByVolume() { return BoolValue(PropOffsets_Actor.bFilterByVolume); }
+	BitfieldBool bFixedRotationDir() { return BoolValue(PropOffsets_Actor.bFixedRotationDir); }
+	BitfieldBool bForcePhysicsUpdate() { return BoolValue(PropOffsets_Actor.bForcePhysicsUpdate); }
+	BitfieldBool bForceStasis() { return BoolValue(PropOffsets_Actor.bForceStasis); }
+	BitfieldBool bGameRelevant() { return BoolValue(PropOffsets_Actor.bGameRelevant); }
+	BitfieldBool bHidden() { return BoolValue(PropOffsets_Actor.bHidden); }
+	BitfieldBool bHiddenEd() { return BoolValue(PropOffsets_Actor.bHiddenEd); }
+	BitfieldBool bHighDetail() { return BoolValue(PropOffsets_Actor.bHighDetail); }
+	BitfieldBool bHighlighted() { return BoolValue(PropOffsets_Actor.bHighlighted); }
+	BitfieldBool bHurtEntry() { return BoolValue(PropOffsets_Actor.bHurtEntry); }
+	BitfieldBool bInterpolating() { return BoolValue(PropOffsets_Actor.bInterpolating); }
+	BitfieldBool bIsItemGoal() { return BoolValue(PropOffsets_Actor.bIsItemGoal); }
+	BitfieldBool bIsKillGoal() { return BoolValue(PropOffsets_Actor.bIsKillGoal); }
+	BitfieldBool bIsMover() { return BoolValue(PropOffsets_Actor.bIsMover); }
+	BitfieldBool bIsPawn() { return BoolValue(PropOffsets_Actor.bIsPawn); }
+	BitfieldBool bIsSecretGoal() { return BoolValue(PropOffsets_Actor.bIsSecretGoal); }
+	BitfieldBool bJustTeleported() { return BoolValue(PropOffsets_Actor.bJustTeleported); }
+	BitfieldBool bLensFlare() { return BoolValue(PropOffsets_Actor.bLensFlare); }
+	BitfieldBool bLightChanged() { return BoolValue(PropOffsets_Actor.bLightChanged); }
+	BitfieldBool bMemorized() { return BoolValue(PropOffsets_Actor.bMemorized); }
+	BitfieldBool bMeshCurvy() { return BoolValue(PropOffsets_Actor.bMeshCurvy); }
+	BitfieldBool bMeshEnviroMap() { return BoolValue(PropOffsets_Actor.bMeshEnviroMap); }
+	BitfieldBool bMovable() { return BoolValue(PropOffsets_Actor.bMovable); }
+	BitfieldBool bNet() { return BoolValue(PropOffsets_Actor.bNet); }
+	BitfieldBool bNetFeel() { return BoolValue(PropOffsets_Actor.bNetFeel); }
+	BitfieldBool bNetHear() { return BoolValue(PropOffsets_Actor.bNetHear); }
+	BitfieldBool bNetInitial() { return BoolValue(PropOffsets_Actor.bNetInitial); }
+	BitfieldBool bNetOptional() { return BoolValue(PropOffsets_Actor.bNetOptional); }
+	BitfieldBool bNetOwner() { return BoolValue(PropOffsets_Actor.bNetOwner); }
+	BitfieldBool bNetRelevant() { return BoolValue(PropOffsets_Actor.bNetRelevant); }
+	BitfieldBool bNetSee() { return BoolValue(PropOffsets_Actor.bNetSee); }
+	BitfieldBool bNetSpecial() { return BoolValue(PropOffsets_Actor.bNetSpecial); }
+	BitfieldBool bNetTemporary() { return BoolValue(PropOffsets_Actor.bNetTemporary); }
+	BitfieldBool bNoDelete() { return BoolValue(PropOffsets_Actor.bNoDelete); }
+	BitfieldBool bNoSmooth() { return BoolValue(PropOffsets_Actor.bNoSmooth); }
+	BitfieldBool bOnlyOwnerSee() { return BoolValue(PropOffsets_Actor.bOnlyOwnerSee); }
+	BitfieldBool bOwnerNoSee() { return BoolValue(PropOffsets_Actor.bOwnerNoSee); }
+	BitfieldBool bParticles() { return BoolValue(PropOffsets_Actor.bParticles); }
+	BitfieldBool bProjTarget() { return BoolValue(PropOffsets_Actor.bProjTarget); }
+	BitfieldBool bRandomFrame() { return BoolValue(PropOffsets_Actor.bRandomFrame); }
+	BitfieldBool bReplicateInstigator() { return BoolValue(PropOffsets_Actor.bReplicateInstigator); }
+	BitfieldBool bRotateToDesired() { return BoolValue(PropOffsets_Actor.bRotateToDesired); }
+	BitfieldBool bScriptInitialized() { return BoolValue(PropOffsets_Actor.bScriptInitialized); }
+	BitfieldBool bSelected() { return BoolValue(PropOffsets_Actor.bSelected); }
+	BitfieldBool bShadowCast() { return BoolValue(PropOffsets_Actor.bShadowCast); }
+	BitfieldBool bSimFall() { return BoolValue(PropOffsets_Actor.bSimFall); }
+	BitfieldBool bSimulatedPawn() { return BoolValue(PropOffsets_Actor.bSimulatedPawn); }
+	BitfieldBool bSinglePlayer() { return BoolValue(PropOffsets_Actor.bSinglePlayer); }
+	BitfieldBool bSpecialLit() { return BoolValue(PropOffsets_Actor.bSpecialLit); }
+	BitfieldBool bStasis() { return BoolValue(PropOffsets_Actor.bStasis); }
+	BitfieldBool bStatic() { return BoolValue(PropOffsets_Actor.bStatic); }
+	BitfieldBool bTempEditor() { return BoolValue(PropOffsets_Actor.bTempEditor); }
+	BitfieldBool bTicked() { return BoolValue(PropOffsets_Actor.bTicked); }
+	BitfieldBool bTimerLoop() { return BoolValue(PropOffsets_Actor.bTimerLoop); }
+	BitfieldBool bTrailerPrePivot() { return BoolValue(PropOffsets_Actor.bTrailerPrePivot); }
+	BitfieldBool bTrailerSameRotation() { return BoolValue(PropOffsets_Actor.bTrailerSameRotation); }
+	BitfieldBool bTravel() { return BoolValue(PropOffsets_Actor.bTravel); }
+	BitfieldBool bUnlit() { return BoolValue(PropOffsets_Actor.bUnlit); }
 };
 
 class ULight : public UActor
@@ -540,21 +540,21 @@ public:
 	UTexture*& StatusIcon() { return Value<UTexture*>(PropOffsets_Inventory.StatusIcon); }
 	UMesh*& ThirdPersonMesh() { return Value<UMesh*>(PropOffsets_Inventory.ThirdPersonMesh); }
 	float& ThirdPersonScale() { return Value<float>(PropOffsets_Inventory.ThirdPersonScale); }
-	bool& bActivatable() { return Value<bool>(PropOffsets_Inventory.bActivatable); }
-	bool& bActive() { return Value<bool>(PropOffsets_Inventory.bActive); }
-	bool& bAmbientGlow() { return Value<bool>(PropOffsets_Inventory.bAmbientGlow); }
-	bool& bDisplayableInv() { return Value<bool>(PropOffsets_Inventory.bDisplayableInv); }
-	bool& bFirstFrame() { return Value<bool>(PropOffsets_Inventory.bFirstFrame); }
-	bool& bHeldItem() { return Value<bool>(PropOffsets_Inventory.bHeldItem); }
-	bool& bInstantRespawn() { return Value<bool>(PropOffsets_Inventory.bInstantRespawn); }
-	bool& bIsAnArmor() { return Value<bool>(PropOffsets_Inventory.bIsAnArmor); }
-	bool& bMuzzleFlashParticles() { return Value<bool>(PropOffsets_Inventory.bMuzzleFlashParticles); }
-	bool& bRotatingPickup() { return Value<bool>(PropOffsets_Inventory.bRotatingPickup); }
-	bool& bSleepTouch() { return Value<bool>(PropOffsets_Inventory.bSleepTouch); }
-	bool& bSteadyFlash3rd() { return Value<bool>(PropOffsets_Inventory.bSteadyFlash3rd); }
-	bool& bSteadyToggle() { return Value<bool>(PropOffsets_Inventory.bSteadyToggle); }
-	bool& bToggleSteadyFlash() { return Value<bool>(PropOffsets_Inventory.bToggleSteadyFlash); }
-	bool& bTossedOut() { return Value<bool>(PropOffsets_Inventory.bTossedOut); }
+	BitfieldBool bActivatable() { return BoolValue(PropOffsets_Inventory.bActivatable); }
+	BitfieldBool bActive() { return BoolValue(PropOffsets_Inventory.bActive); }
+	BitfieldBool bAmbientGlow() { return BoolValue(PropOffsets_Inventory.bAmbientGlow); }
+	BitfieldBool bDisplayableInv() { return BoolValue(PropOffsets_Inventory.bDisplayableInv); }
+	BitfieldBool bFirstFrame() { return BoolValue(PropOffsets_Inventory.bFirstFrame); }
+	BitfieldBool bHeldItem() { return BoolValue(PropOffsets_Inventory.bHeldItem); }
+	BitfieldBool bInstantRespawn() { return BoolValue(PropOffsets_Inventory.bInstantRespawn); }
+	BitfieldBool bIsAnArmor() { return BoolValue(PropOffsets_Inventory.bIsAnArmor); }
+	BitfieldBool bMuzzleFlashParticles() { return BoolValue(PropOffsets_Inventory.bMuzzleFlashParticles); }
+	BitfieldBool bRotatingPickup() { return BoolValue(PropOffsets_Inventory.bRotatingPickup); }
+	BitfieldBool bSleepTouch() { return BoolValue(PropOffsets_Inventory.bSleepTouch); }
+	BitfieldBool bSteadyFlash3rd() { return BoolValue(PropOffsets_Inventory.bSteadyFlash3rd); }
+	BitfieldBool bSteadyToggle() { return BoolValue(PropOffsets_Inventory.bSteadyToggle); }
+	BitfieldBool bToggleSteadyFlash() { return BoolValue(PropOffsets_Inventory.bToggleSteadyFlash); }
+	BitfieldBool bTossedOut() { return BoolValue(PropOffsets_Inventory.bTossedOut); }
 	UInventorySpot*& myMarker() { return Value<UInventorySpot*>(PropOffsets_Inventory.myMarker); }
 };
 
@@ -601,27 +601,27 @@ public:
 	uint8_t& ReloadCount() { return Value<uint8_t>(PropOffsets_Weapon.ReloadCount); }
 	USound*& SelectSound() { return Value<USound*>(PropOffsets_Weapon.SelectSound); }
 	float& aimerror() { return Value<float>(PropOffsets_Weapon.aimerror); }
-	bool& bAltInstantHit() { return Value<bool>(PropOffsets_Weapon.bAltInstantHit); }
-	bool& bAltWarnTarget() { return Value<bool>(PropOffsets_Weapon.bAltWarnTarget); }
-	bool& bCanThrow() { return Value<bool>(PropOffsets_Weapon.bCanThrow); }
-	bool& bChangeWeapon() { return Value<bool>(PropOffsets_Weapon.bChangeWeapon); }
-	bool& bDrawMuzzleFlash() { return Value<bool>(PropOffsets_Weapon.bDrawMuzzleFlash); }
-	bool& bHideWeapon() { return Value<bool>(PropOffsets_Weapon.bHideWeapon); }
-	bool& bInstantHit() { return Value<bool>(PropOffsets_Weapon.bInstantHit); }
-	bool& bLockedOn() { return Value<bool>(PropOffsets_Weapon.bLockedOn); }
-	bool& bMeleeWeapon() { return Value<bool>(PropOffsets_Weapon.bMeleeWeapon); }
+	BitfieldBool bAltInstantHit() { return BoolValue(PropOffsets_Weapon.bAltInstantHit); }
+	BitfieldBool bAltWarnTarget() { return BoolValue(PropOffsets_Weapon.bAltWarnTarget); }
+	BitfieldBool bCanThrow() { return BoolValue(PropOffsets_Weapon.bCanThrow); }
+	BitfieldBool bChangeWeapon() { return BoolValue(PropOffsets_Weapon.bChangeWeapon); }
+	BitfieldBool bDrawMuzzleFlash() { return BoolValue(PropOffsets_Weapon.bDrawMuzzleFlash); }
+	BitfieldBool bHideWeapon() { return BoolValue(PropOffsets_Weapon.bHideWeapon); }
+	BitfieldBool bInstantHit() { return BoolValue(PropOffsets_Weapon.bInstantHit); }
+	BitfieldBool bLockedOn() { return BoolValue(PropOffsets_Weapon.bLockedOn); }
+	BitfieldBool bMeleeWeapon() { return BoolValue(PropOffsets_Weapon.bMeleeWeapon); }
 	uint8_t& bMuzzleFlash() { return Value<uint8_t>(PropOffsets_Weapon.bMuzzleFlash); }
-	bool& bOwnsCrosshair() { return Value<bool>(PropOffsets_Weapon.bOwnsCrosshair); }
-	bool& bPointing() { return Value<bool>(PropOffsets_Weapon.bPointing); }
-	bool& bRapidFire() { return Value<bool>(PropOffsets_Weapon.bRapidFire); }
-	bool& bRecommendAltSplashDamage() { return Value<bool>(PropOffsets_Weapon.bRecommendAltSplashDamage); }
-	bool& bRecommendSplashDamage() { return Value<bool>(PropOffsets_Weapon.bRecommendSplashDamage); }
-	bool& bSetFlashTime() { return Value<bool>(PropOffsets_Weapon.bSetFlashTime); }
-	bool& bSpecialIcon() { return Value<bool>(PropOffsets_Weapon.bSpecialIcon); }
-	bool& bSplashDamage() { return Value<bool>(PropOffsets_Weapon.bSplashDamage); }
-	bool& bWarnTarget() { return Value<bool>(PropOffsets_Weapon.bWarnTarget); }
-	bool& bWeaponStay() { return Value<bool>(PropOffsets_Weapon.bWeaponStay); }
-	bool& bWeaponUp() { return Value<bool>(PropOffsets_Weapon.bWeaponUp); }
+	BitfieldBool bOwnsCrosshair() { return BoolValue(PropOffsets_Weapon.bOwnsCrosshair); }
+	BitfieldBool bPointing() { return BoolValue(PropOffsets_Weapon.bPointing); }
+	BitfieldBool bRapidFire() { return BoolValue(PropOffsets_Weapon.bRapidFire); }
+	BitfieldBool bRecommendAltSplashDamage() { return BoolValue(PropOffsets_Weapon.bRecommendAltSplashDamage); }
+	BitfieldBool bRecommendSplashDamage() { return BoolValue(PropOffsets_Weapon.bRecommendSplashDamage); }
+	BitfieldBool bSetFlashTime() { return BoolValue(PropOffsets_Weapon.bSetFlashTime); }
+	BitfieldBool bSpecialIcon() { return BoolValue(PropOffsets_Weapon.bSpecialIcon); }
+	BitfieldBool bSplashDamage() { return BoolValue(PropOffsets_Weapon.bSplashDamage); }
+	BitfieldBool bWarnTarget() { return BoolValue(PropOffsets_Weapon.bWarnTarget); }
+	BitfieldBool bWeaponStay() { return BoolValue(PropOffsets_Weapon.bWeaponStay); }
+	BitfieldBool bWeaponUp() { return BoolValue(PropOffsets_Weapon.bWeaponUp); }
 	float& shakemag() { return Value<float>(PropOffsets_Weapon.shakemag); }
 	float& shaketime() { return Value<float>(PropOffsets_Weapon.shaketime); }
 	float& shakevert() { return Value<float>(PropOffsets_Weapon.shakevert); }
@@ -637,14 +637,14 @@ public:
 	int& PrunedPaths() { return Value<int>(PropOffsets_NavigationPoint.PrunedPaths); }
 	UActor*& RouteCache() { return Value<UActor*>(PropOffsets_NavigationPoint.RouteCache); }
 	UNavigationPoint*& VisNoReachPaths() { return Value<UNavigationPoint*>(PropOffsets_NavigationPoint.VisNoReachPaths); }
-	bool& bAutoBuilt() { return Value<bool>(PropOffsets_NavigationPoint.bAutoBuilt); }
-	bool& bEndPoint() { return Value<bool>(PropOffsets_NavigationPoint.bEndPoint); }
-	bool& bEndPointOnly() { return Value<bool>(PropOffsets_NavigationPoint.bEndPointOnly); }
-	bool& bNeverUseStrafing() { return Value<bool>(PropOffsets_NavigationPoint.bNeverUseStrafing); }
-	bool& bOneWayPath() { return Value<bool>(PropOffsets_NavigationPoint.bOneWayPath); }
-	bool& bPlayerOnly() { return Value<bool>(PropOffsets_NavigationPoint.bPlayerOnly); }
-	bool& bSpecialCost() { return Value<bool>(PropOffsets_NavigationPoint.bSpecialCost); }
-	bool& bTwoWay() { return Value<bool>(PropOffsets_NavigationPoint.bTwoWay); }
+	BitfieldBool bAutoBuilt() { return BoolValue(PropOffsets_NavigationPoint.bAutoBuilt); }
+	BitfieldBool bEndPoint() { return BoolValue(PropOffsets_NavigationPoint.bEndPoint); }
+	BitfieldBool bEndPointOnly() { return BoolValue(PropOffsets_NavigationPoint.bEndPointOnly); }
+	BitfieldBool bNeverUseStrafing() { return BoolValue(PropOffsets_NavigationPoint.bNeverUseStrafing); }
+	BitfieldBool bOneWayPath() { return BoolValue(PropOffsets_NavigationPoint.bOneWayPath); }
+	BitfieldBool bPlayerOnly() { return BoolValue(PropOffsets_NavigationPoint.bPlayerOnly); }
+	BitfieldBool bSpecialCost() { return BoolValue(PropOffsets_NavigationPoint.bSpecialCost); }
+	BitfieldBool bTwoWay() { return BoolValue(PropOffsets_NavigationPoint.bTwoWay); }
 	int& bestPathWeight() { return Value<int>(PropOffsets_NavigationPoint.bestPathWeight); }
 	int& cost() { return Value<int>(PropOffsets_NavigationPoint.cost); }
 	UNavigationPoint*& nextNavigationPoint() { return Value<UNavigationPoint*>(PropOffsets_NavigationPoint.nextNavigationPoint); }
@@ -653,7 +653,7 @@ public:
 	UNavigationPoint*& prevOrdered() { return Value<UNavigationPoint*>(PropOffsets_NavigationPoint.prevOrdered); }
 	UNavigationPoint*& previousPath() { return Value<UNavigationPoint*>(PropOffsets_NavigationPoint.previousPath); }
 	UNavigationPoint*& startPath() { return Value<UNavigationPoint*>(PropOffsets_NavigationPoint.startPath); }
-	bool& taken() { return Value<bool>(PropOffsets_NavigationPoint.taken); }
+	BitfieldBool taken() { return BoolValue(PropOffsets_NavigationPoint.taken); }
 	int& upstreamPaths() { return Value<int>(PropOffsets_NavigationPoint.upstreamPaths); }
 	int& visitedWeight() { return Value<int>(PropOffsets_NavigationPoint.visitedWeight); }
 };
@@ -721,9 +721,9 @@ public:
 	using UNavigationPoint::UNavigationPoint;
 
 	uint8_t& TeamNumber() { return Value<uint8_t>(PropOffsets_PlayerStart.TeamNumber); }
-	bool& bCoopStart() { return Value<bool>(PropOffsets_PlayerStart.bCoopStart); }
-	bool& bEnabled() { return Value<bool>(PropOffsets_PlayerStart.bEnabled); }
-	bool& bSinglePlayerStart() { return Value<bool>(PropOffsets_PlayerStart.bSinglePlayerStart); }
+	BitfieldBool bCoopStart() { return BoolValue(PropOffsets_PlayerStart.bCoopStart); }
+	BitfieldBool bEnabled() { return BoolValue(PropOffsets_PlayerStart.bEnabled); }
+	BitfieldBool bSinglePlayerStart() { return BoolValue(PropOffsets_PlayerStart.bSinglePlayerStart); }
 };
 
 class UTeleporter : public UNavigationPoint
@@ -737,12 +737,12 @@ public:
 	UActor*& TriggerActor() { return Value<UActor*>(PropOffsets_Teleporter.TriggerActor); }
 	UActor*& TriggerActor2() { return Value<UActor*>(PropOffsets_Teleporter.TriggerActor2); }
 	std::string& URL() { return Value<std::string>(PropOffsets_Teleporter.URL); }
-	bool& bChangesVelocity() { return Value<bool>(PropOffsets_Teleporter.bChangesVelocity); }
-	bool& bChangesYaw() { return Value<bool>(PropOffsets_Teleporter.bChangesYaw); }
-	bool& bEnabled() { return Value<bool>(PropOffsets_Teleporter.bEnabled); }
-	bool& bReversesX() { return Value<bool>(PropOffsets_Teleporter.bReversesX); }
-	bool& bReversesY() { return Value<bool>(PropOffsets_Teleporter.bReversesY); }
-	bool& bReversesZ() { return Value<bool>(PropOffsets_Teleporter.bReversesZ); }
+	BitfieldBool bChangesVelocity() { return BoolValue(PropOffsets_Teleporter.bChangesVelocity); }
+	BitfieldBool bChangesYaw() { return BoolValue(PropOffsets_Teleporter.bChangesYaw); }
+	BitfieldBool bEnabled() { return BoolValue(PropOffsets_Teleporter.bEnabled); }
+	BitfieldBool bReversesX() { return BoolValue(PropOffsets_Teleporter.bReversesX); }
+	BitfieldBool bReversesY() { return BoolValue(PropOffsets_Teleporter.bReversesY); }
+	BitfieldBool bReversesZ() { return BoolValue(PropOffsets_Teleporter.bReversesZ); }
 };
 
 class UPathNode : public UNavigationPoint
@@ -759,12 +759,12 @@ public:
 	UClass*& EffectWhenDestroyed() { return Value<UClass*>(PropOffsets_Decoration.EffectWhenDestroyed); }
 	USound*& EndPushSound() { return Value<USound*>(PropOffsets_Decoration.EndPushSound); }
 	USound*& PushSound() { return Value<USound*>(PropOffsets_Decoration.PushSound); }
-	bool& bBobbing() { return Value<bool>(PropOffsets_Decoration.bBobbing); }
-	bool& bOnlyTriggerable() { return Value<bool>(PropOffsets_Decoration.bOnlyTriggerable); }
-	bool& bPushSoundPlaying() { return Value<bool>(PropOffsets_Decoration.bPushSoundPlaying); }
-	bool& bPushable() { return Value<bool>(PropOffsets_Decoration.bPushable); }
-	bool& bSplash() { return Value<bool>(PropOffsets_Decoration.bSplash); }
-	bool& bWasCarried() { return Value<bool>(PropOffsets_Decoration.bWasCarried); }
+	BitfieldBool bBobbing() { return BoolValue(PropOffsets_Decoration.bBobbing); }
+	BitfieldBool bOnlyTriggerable() { return BoolValue(PropOffsets_Decoration.bOnlyTriggerable); }
+	BitfieldBool bPushSoundPlaying() { return BoolValue(PropOffsets_Decoration.bPushSoundPlaying); }
+	BitfieldBool bPushable() { return BoolValue(PropOffsets_Decoration.bPushable); }
+	BitfieldBool bSplash() { return BoolValue(PropOffsets_Decoration.bSplash); }
+	BitfieldBool bWasCarried() { return BoolValue(PropOffsets_Decoration.bWasCarried); }
 	UClass*& content2() { return Value<UClass*>(PropOffsets_Decoration.content2); }
 	UClass*& content3() { return Value<UClass*>(PropOffsets_Decoration.content3); }
 	UClass*& contents() { return Value<UClass*>(PropOffsets_Decoration.contents); }
@@ -779,10 +779,10 @@ public:
 	UPawn*& Bugs() { return Value<UPawn*>(PropOffsets_Carcass.Bugs); }
 	int& CumulativeDamage() { return Value<int>(PropOffsets_Carcass.CumulativeDamage); }
 	UPlayerReplicationInfo*& PlayerOwner() { return Value<UPlayerReplicationInfo*>(PropOffsets_Carcass.PlayerOwner); }
-	bool& bDecorative() { return Value<bool>(PropOffsets_Carcass.bDecorative); }
-	bool& bPlayerCarcass() { return Value<bool>(PropOffsets_Carcass.bPlayerCarcass); }
-	bool& bReducedHeight() { return Value<bool>(PropOffsets_Carcass.bReducedHeight); }
-	bool& bSlidingCarcass() { return Value<bool>(PropOffsets_Carcass.bSlidingCarcass); }
+	BitfieldBool bDecorative() { return BoolValue(PropOffsets_Carcass.bDecorative); }
+	BitfieldBool bPlayerCarcass() { return BoolValue(PropOffsets_Carcass.bPlayerCarcass); }
+	BitfieldBool bReducedHeight() { return BoolValue(PropOffsets_Carcass.bReducedHeight); }
+	BitfieldBool bSlidingCarcass() { return BoolValue(PropOffsets_Carcass.bSlidingCarcass); }
 	uint8_t& flies() { return Value<uint8_t>(PropOffsets_Carcass.flies); }
 	uint8_t& rats() { return Value<uint8_t>(PropOffsets_Carcass.rats); }
 };
@@ -833,8 +833,8 @@ public:
 	float& RateModifier() { return Value<float>(PropOffsets_InterpolationPoint.RateModifier); }
 	vec3& ScreenFlashFog() { return Value<vec3>(PropOffsets_InterpolationPoint.ScreenFlashFog); }
 	float& ScreenFlashScale() { return Value<float>(PropOffsets_InterpolationPoint.ScreenFlashScale); }
-	bool& bEndOfPath() { return Value<bool>(PropOffsets_InterpolationPoint.bEndOfPath); }
-	bool& bSkipNextPath() { return Value<bool>(PropOffsets_InterpolationPoint.bSkipNextPath); }
+	BitfieldBool bEndOfPath() { return BoolValue(PropOffsets_InterpolationPoint.bEndOfPath); }
+	BitfieldBool bSkipNextPath() { return BoolValue(PropOffsets_InterpolationPoint.bSkipNextPath); }
 };
 
 class UTriggers : public UActor
@@ -857,8 +857,8 @@ public:
 	UActor*& TriggerActor2() { return Value<UActor*>(PropOffsets_Trigger.TriggerActor2); }
 	float& TriggerTime() { return Value<float>(PropOffsets_Trigger.TriggerTime); }
 	uint8_t& TriggerType() { return Value<uint8_t>(PropOffsets_Trigger.TriggerType); }
-	bool& bInitiallyActive() { return Value<bool>(PropOffsets_Trigger.bInitiallyActive); }
-	bool& bTriggerOnceOnly() { return Value<bool>(PropOffsets_Trigger.bTriggerOnceOnly); }
+	BitfieldBool bInitiallyActive() { return BoolValue(PropOffsets_Trigger.bInitiallyActive); }
+	BitfieldBool bTriggerOnceOnly() { return BoolValue(PropOffsets_Trigger.bTriggerOnceOnly); }
 };
 
 class UHUD : public UActor
@@ -895,8 +895,8 @@ public:
 	std::string& RightString() { return Value<std::string>(PropOffsets_Menu.RightString); }
 	int& Selection() { return Value<int>(PropOffsets_Menu.Selection); }
 	std::string& YesString() { return Value<std::string>(PropOffsets_Menu.YesString); }
-	bool& bConfigChanged() { return Value<bool>(PropOffsets_Menu.bConfigChanged); }
-	bool& bExitAllMenus() { return Value<bool>(PropOffsets_Menu.bExitAllMenus); }
+	BitfieldBool bConfigChanged() { return BoolValue(PropOffsets_Menu.bConfigChanged); }
+	BitfieldBool bExitAllMenus() { return BoolValue(PropOffsets_Menu.bExitAllMenus); }
 };
 
 class UInfo : public UActor
@@ -915,7 +915,7 @@ public:
 	UMutator*& NextHUDMutator() { return Value<UMutator*>(PropOffsets_Mutator.NextHUDMutator); }
 	UMutator*& NextMessageMutator() { return Value<UMutator*>(PropOffsets_Mutator.NextMessageMutator); }
 	UMutator*& NextMutator() { return Value<UMutator*>(PropOffsets_Mutator.NextMutator); }
-	bool& bHUDMutator() { return Value<bool>(PropOffsets_Mutator.bHUDMutator); }
+	BitfieldBool bHUDMutator() { return BoolValue(PropOffsets_Mutator.bHUDMutator); }
 };
 
 class UGameInfo : public UInfo
@@ -986,29 +986,29 @@ public:
 	UStatLog*& WorldLog() { return Value<UStatLog*>(PropOffsets_GameInfo.WorldLog); }
 	std::string& WorldLogFileName() { return Value<std::string>(PropOffsets_GameInfo.WorldLogFileName); }
 	std::string& WrongPassword() { return Value<std::string>(PropOffsets_GameInfo.WrongPassword); }
-	bool& bAllowFOV() { return Value<bool>(PropOffsets_GameInfo.bAllowFOV); }
-	bool& bAlternateMode() { return Value<bool>(PropOffsets_GameInfo.bAlternateMode); }
-	bool& bBatchLocal() { return Value<bool>(PropOffsets_GameInfo.bBatchLocal); }
-	bool& bCanChangeSkin() { return Value<bool>(PropOffsets_GameInfo.bCanChangeSkin); }
-	bool& bCanViewOthers() { return Value<bool>(PropOffsets_GameInfo.bCanViewOthers); }
-	bool& bClassicDeathMessages() { return Value<bool>(PropOffsets_GameInfo.bClassicDeathMessages); }
-	bool& bCoopWeaponMode() { return Value<bool>(PropOffsets_GameInfo.bCoopWeaponMode); }
-	bool& bDeathMatch() { return Value<bool>(PropOffsets_GameInfo.bDeathMatch); }
-	bool& bExternalBatcher() { return Value<bool>(PropOffsets_GameInfo.bExternalBatcher); }
-	bool& bGameEnded() { return Value<bool>(PropOffsets_GameInfo.bGameEnded); }
-	bool& bHumansOnly() { return Value<bool>(PropOffsets_GameInfo.bHumansOnly); }
-	bool& bLocalLog() { return Value<bool>(PropOffsets_GameInfo.bLocalLog); }
-	bool& bLoggingGame() { return Value<bool>(PropOffsets_GameInfo.bLoggingGame); }
-	bool& bLowGore() { return Value<bool>(PropOffsets_GameInfo.bLowGore); }
-	bool& bMuteSpectators() { return Value<bool>(PropOffsets_GameInfo.bMuteSpectators); }
-	bool& bNoCheating() { return Value<bool>(PropOffsets_GameInfo.bNoCheating); }
-	bool& bNoMonsters() { return Value<bool>(PropOffsets_GameInfo.bNoMonsters); }
-	bool& bOverTime() { return Value<bool>(PropOffsets_GameInfo.bOverTime); }
-	bool& bPauseable() { return Value<bool>(PropOffsets_GameInfo.bPauseable); }
-	bool& bRestartLevel() { return Value<bool>(PropOffsets_GameInfo.bRestartLevel); }
-	bool& bTeamGame() { return Value<bool>(PropOffsets_GameInfo.bTeamGame); }
-	bool& bVeryLowGore() { return Value<bool>(PropOffsets_GameInfo.bVeryLowGore); }
-	bool& bWorldLog() { return Value<bool>(PropOffsets_GameInfo.bWorldLog); }
+	BitfieldBool bAllowFOV() { return BoolValue(PropOffsets_GameInfo.bAllowFOV); }
+	BitfieldBool bAlternateMode() { return BoolValue(PropOffsets_GameInfo.bAlternateMode); }
+	BitfieldBool bBatchLocal() { return BoolValue(PropOffsets_GameInfo.bBatchLocal); }
+	BitfieldBool bCanChangeSkin() { return BoolValue(PropOffsets_GameInfo.bCanChangeSkin); }
+	BitfieldBool bCanViewOthers() { return BoolValue(PropOffsets_GameInfo.bCanViewOthers); }
+	BitfieldBool bClassicDeathMessages() { return BoolValue(PropOffsets_GameInfo.bClassicDeathMessages); }
+	BitfieldBool bCoopWeaponMode() { return BoolValue(PropOffsets_GameInfo.bCoopWeaponMode); }
+	BitfieldBool bDeathMatch() { return BoolValue(PropOffsets_GameInfo.bDeathMatch); }
+	BitfieldBool bExternalBatcher() { return BoolValue(PropOffsets_GameInfo.bExternalBatcher); }
+	BitfieldBool bGameEnded() { return BoolValue(PropOffsets_GameInfo.bGameEnded); }
+	BitfieldBool bHumansOnly() { return BoolValue(PropOffsets_GameInfo.bHumansOnly); }
+	BitfieldBool bLocalLog() { return BoolValue(PropOffsets_GameInfo.bLocalLog); }
+	BitfieldBool bLoggingGame() { return BoolValue(PropOffsets_GameInfo.bLoggingGame); }
+	BitfieldBool bLowGore() { return BoolValue(PropOffsets_GameInfo.bLowGore); }
+	BitfieldBool bMuteSpectators() { return BoolValue(PropOffsets_GameInfo.bMuteSpectators); }
+	BitfieldBool bNoCheating() { return BoolValue(PropOffsets_GameInfo.bNoCheating); }
+	BitfieldBool bNoMonsters() { return BoolValue(PropOffsets_GameInfo.bNoMonsters); }
+	BitfieldBool bOverTime() { return BoolValue(PropOffsets_GameInfo.bOverTime); }
+	BitfieldBool bPauseable() { return BoolValue(PropOffsets_GameInfo.bPauseable); }
+	BitfieldBool bRestartLevel() { return BoolValue(PropOffsets_GameInfo.bRestartLevel); }
+	BitfieldBool bTeamGame() { return BoolValue(PropOffsets_GameInfo.bTeamGame); }
+	BitfieldBool bVeryLowGore() { return BoolValue(PropOffsets_GameInfo.bVeryLowGore); }
+	BitfieldBool bWorldLog() { return BoolValue(PropOffsets_GameInfo.bWorldLog); }
 };
 
 class USavedMove : public UInfo
@@ -1020,13 +1020,13 @@ public:
 	uint8_t& DodgeMove() { return Value<uint8_t>(PropOffsets_SavedMove.DodgeMove); }
 	USavedMove*& NextMove() { return Value<USavedMove*>(PropOffsets_SavedMove.NextMove); }
 	float& TimeStamp() { return Value<float>(PropOffsets_SavedMove.TimeStamp); }
-	bool& bAltFire() { return Value<bool>(PropOffsets_SavedMove.bAltFire); }
-	bool& bDuck() { return Value<bool>(PropOffsets_SavedMove.bDuck); }
-	bool& bFire() { return Value<bool>(PropOffsets_SavedMove.bFire); }
-	bool& bForceAltFire() { return Value<bool>(PropOffsets_SavedMove.bForceAltFire); }
-	bool& bForceFire() { return Value<bool>(PropOffsets_SavedMove.bForceFire); }
-	bool& bPressedJump() { return Value<bool>(PropOffsets_SavedMove.bPressedJump); }
-	bool& bRun() { return Value<bool>(PropOffsets_SavedMove.bRun); }
+	BitfieldBool bAltFire() { return BoolValue(PropOffsets_SavedMove.bAltFire); }
+	BitfieldBool bDuck() { return BoolValue(PropOffsets_SavedMove.bDuck); }
+	BitfieldBool bFire() { return BoolValue(PropOffsets_SavedMove.bFire); }
+	BitfieldBool bForceAltFire() { return BoolValue(PropOffsets_SavedMove.bForceAltFire); }
+	BitfieldBool bForceFire() { return BoolValue(PropOffsets_SavedMove.bForceFire); }
+	BitfieldBool bPressedJump() { return BoolValue(PropOffsets_SavedMove.bPressedJump); }
+	BitfieldBool bRun() { return BoolValue(PropOffsets_SavedMove.bRun); }
 };
 
 class UInternetInfo : public UInfo
@@ -1081,18 +1081,18 @@ public:
 	NameString& ZoneTag() { return Value<NameString>(PropOffsets_ZoneInfo.ZoneTag); }
 	float& ZoneTerminalVelocity() { return Value<float>(PropOffsets_ZoneInfo.ZoneTerminalVelocity); }
 	vec3& ZoneVelocity() { return Value<vec3>(PropOffsets_ZoneInfo.ZoneVelocity); }
-	bool& bBounceVelocity() { return Value<bool>(PropOffsets_ZoneInfo.bBounceVelocity); }
-	bool& bDestructive() { return Value<bool>(PropOffsets_ZoneInfo.bDestructive); }
-	bool& bFogZone() { return Value<bool>(PropOffsets_ZoneInfo.bFogZone); }
-	bool& bGravityZone() { return Value<bool>(PropOffsets_ZoneInfo.bGravityZone); }
-	bool& bKillZone() { return Value<bool>(PropOffsets_ZoneInfo.bKillZone); }
-	bool& bMoveProjectiles() { return Value<bool>(PropOffsets_ZoneInfo.bMoveProjectiles); }
-	bool& bNeutralZone() { return Value<bool>(PropOffsets_ZoneInfo.bNeutralZone); }
-	bool& bNoInventory() { return Value<bool>(PropOffsets_ZoneInfo.bNoInventory); }
-	bool& bPainZone() { return Value<bool>(PropOffsets_ZoneInfo.bPainZone); }
-	bool& bRaytraceReverb() { return Value<bool>(PropOffsets_ZoneInfo.bRaytraceReverb); }
-	bool& bReverbZone() { return Value<bool>(PropOffsets_ZoneInfo.bReverbZone); }
-	bool& bWaterZone() { return Value<bool>(PropOffsets_ZoneInfo.bWaterZone); }
+	BitfieldBool bBounceVelocity() { return BoolValue(PropOffsets_ZoneInfo.bBounceVelocity); }
+	BitfieldBool bDestructive() { return BoolValue(PropOffsets_ZoneInfo.bDestructive); }
+	BitfieldBool bFogZone() { return BoolValue(PropOffsets_ZoneInfo.bFogZone); }
+	BitfieldBool bGravityZone() { return BoolValue(PropOffsets_ZoneInfo.bGravityZone); }
+	BitfieldBool bKillZone() { return BoolValue(PropOffsets_ZoneInfo.bKillZone); }
+	BitfieldBool bMoveProjectiles() { return BoolValue(PropOffsets_ZoneInfo.bMoveProjectiles); }
+	BitfieldBool bNeutralZone() { return BoolValue(PropOffsets_ZoneInfo.bNeutralZone); }
+	BitfieldBool bNoInventory() { return BoolValue(PropOffsets_ZoneInfo.bNoInventory); }
+	BitfieldBool bPainZone() { return BoolValue(PropOffsets_ZoneInfo.bPainZone); }
+	BitfieldBool bRaytraceReverb() { return BoolValue(PropOffsets_ZoneInfo.bRaytraceReverb); }
+	BitfieldBool bReverbZone() { return BoolValue(PropOffsets_ZoneInfo.bReverbZone); }
+	BitfieldBool bWaterZone() { return BoolValue(PropOffsets_ZoneInfo.bWaterZone); }
 	Ulocationid*& locationid() { return Value<Ulocationid*>(PropOffsets_ZoneInfo.locationid); }
 };
 
@@ -1336,20 +1336,20 @@ public:
 	std::string& Title() { return Value<std::string>(PropOffsets_LevelInfo.Title); }
 	std::string& VisibleGroups() { return Value<std::string>(PropOffsets_LevelInfo.VisibleGroups); }
 	int& Year() { return Value<int>(PropOffsets_LevelInfo.Year); }
-	bool& bAggressiveLOD() { return Value<bool>(PropOffsets_LevelInfo.bAggressiveLOD); }
-	bool& bAllowFOV() { return Value<bool>(PropOffsets_LevelInfo.bAllowFOV); }
-	bool& bBegunPlay() { return Value<bool>(PropOffsets_LevelInfo.bBegunPlay); }
-	bool& bCheckWalkSurfaces() { return Value<bool>(PropOffsets_LevelInfo.bCheckWalkSurfaces); }
-	bool& bDropDetail() { return Value<bool>(PropOffsets_LevelInfo.bDropDetail); }
-	bool& bHighDetailMode() { return Value<bool>(PropOffsets_LevelInfo.bHighDetailMode); }
-	bool& bHumansOnly() { return Value<bool>(PropOffsets_LevelInfo.bHumansOnly); }
-	bool& bLonePlayer() { return Value<bool>(PropOffsets_LevelInfo.bLonePlayer); }
-	bool& bLowRes() { return Value<bool>(PropOffsets_LevelInfo.bLowRes); }
-	bool& bNeverPrecache() { return Value<bool>(PropOffsets_LevelInfo.bNeverPrecache); }
-	bool& bNextItems() { return Value<bool>(PropOffsets_LevelInfo.bNextItems); }
-	bool& bNoCheating() { return Value<bool>(PropOffsets_LevelInfo.bNoCheating); }
-	bool& bPlayersOnly() { return Value<bool>(PropOffsets_LevelInfo.bPlayersOnly); }
-	bool& bStartup() { return Value<bool>(PropOffsets_LevelInfo.bStartup); }
+	BitfieldBool bAggressiveLOD() { return BoolValue(PropOffsets_LevelInfo.bAggressiveLOD); }
+	BitfieldBool bAllowFOV() { return BoolValue(PropOffsets_LevelInfo.bAllowFOV); }
+	BitfieldBool bBegunPlay() { return BoolValue(PropOffsets_LevelInfo.bBegunPlay); }
+	BitfieldBool bCheckWalkSurfaces() { return BoolValue(PropOffsets_LevelInfo.bCheckWalkSurfaces); }
+	BitfieldBool bDropDetail() { return BoolValue(PropOffsets_LevelInfo.bDropDetail); }
+	BitfieldBool bHighDetailMode() { return BoolValue(PropOffsets_LevelInfo.bHighDetailMode); }
+	BitfieldBool bHumansOnly() { return BoolValue(PropOffsets_LevelInfo.bHumansOnly); }
+	BitfieldBool bLonePlayer() { return BoolValue(PropOffsets_LevelInfo.bLonePlayer); }
+	BitfieldBool bLowRes() { return BoolValue(PropOffsets_LevelInfo.bLowRes); }
+	BitfieldBool bNeverPrecache() { return BoolValue(PropOffsets_LevelInfo.bNeverPrecache); }
+	BitfieldBool bNextItems() { return BoolValue(PropOffsets_LevelInfo.bNextItems); }
+	BitfieldBool bNoCheating() { return BoolValue(PropOffsets_LevelInfo.bNoCheating); }
+	BitfieldBool bPlayersOnly() { return BoolValue(PropOffsets_LevelInfo.bPlayersOnly); }
+	BitfieldBool bStartup() { return BoolValue(PropOffsets_LevelInfo.bStartup); }
 };
 
 class UWarpZoneInfo : public UZoneInfo
@@ -1363,7 +1363,7 @@ public:
 	std::string& OtherSideURL() { return Value<std::string>(PropOffsets_WarpZoneInfo.OtherSideURL); }
 	NameString& ThisTag() { return Value<NameString>(PropOffsets_WarpZoneInfo.ThisTag); }
 	//Coords& WarpCoords() { return Value<Coords>(PropOffsets_WarpZoneInfo.WarpCoords); }
-	bool& bNoTeleFrag() { return Value<bool>(PropOffsets_WarpZoneInfo.bNoTeleFrag); }
+	BitfieldBool bNoTeleFrag() { return BoolValue(PropOffsets_WarpZoneInfo.bNoTeleFrag); }
 	int& iWarpZone() { return Value<int>(PropOffsets_WarpZoneInfo.iWarpZone); }
 	int& numDestinations() { return Value<int>(PropOffsets_WarpZoneInfo.numDestinations); }
 };
@@ -1402,12 +1402,12 @@ public:
 	std::string& TeamName() { return Value<std::string>(PropOffsets_PlayerReplicationInfo.TeamName); }
 	int& TimeAcc() { return Value<int>(PropOffsets_PlayerReplicationInfo.TimeAcc); }
 	UClass*& VoiceType() { return Value<UClass*>(PropOffsets_PlayerReplicationInfo.VoiceType); }
-	bool& bAdmin() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bAdmin); }
-	bool& bFeigningDeath() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bFeigningDeath); }
-	bool& bIsABot() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bIsABot); }
-	bool& bIsFemale() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bIsFemale); }
-	bool& bIsSpectator() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bIsSpectator); }
-	bool& bWaitingPlayer() { return Value<bool>(PropOffsets_PlayerReplicationInfo.bWaitingPlayer); }
+	BitfieldBool bAdmin() { return BoolValue(PropOffsets_PlayerReplicationInfo.bAdmin); }
+	BitfieldBool bFeigningDeath() { return BoolValue(PropOffsets_PlayerReplicationInfo.bFeigningDeath); }
+	BitfieldBool bIsABot() { return BoolValue(PropOffsets_PlayerReplicationInfo.bIsABot); }
+	BitfieldBool bIsFemale() { return BoolValue(PropOffsets_PlayerReplicationInfo.bIsFemale); }
+	BitfieldBool bIsSpectator() { return BoolValue(PropOffsets_PlayerReplicationInfo.bIsSpectator); }
+	BitfieldBool bWaitingPlayer() { return BoolValue(PropOffsets_PlayerReplicationInfo.bWaitingPlayer); }
 };
 
 class UGameReplicationInfo : public UReplicationInfo
@@ -1435,9 +1435,9 @@ public:
 	std::string& ShortName() { return Value<std::string>(PropOffsets_GameReplicationInfo.ShortName); }
 	int& SumFrags() { return Value<int>(PropOffsets_GameReplicationInfo.SumFrags); }
 	float& UpdateTimer() { return Value<float>(PropOffsets_GameReplicationInfo.UpdateTimer); }
-	bool& bClassicDeathMessages() { return Value<bool>(PropOffsets_GameReplicationInfo.bClassicDeathMessages); }
-	bool& bStopCountDown() { return Value<bool>(PropOffsets_GameReplicationInfo.bStopCountDown); }
-	bool& bTeamGame() { return Value<bool>(PropOffsets_GameReplicationInfo.bTeamGame); }
+	BitfieldBool bClassicDeathMessages() { return BoolValue(PropOffsets_GameReplicationInfo.bClassicDeathMessages); }
+	BitfieldBool bStopCountDown() { return BoolValue(PropOffsets_GameReplicationInfo.bStopCountDown); }
+	BitfieldBool bTeamGame() { return BoolValue(PropOffsets_GameReplicationInfo.bTeamGame); }
 };
 
 class UStatLog : public UInfo
@@ -1463,8 +1463,8 @@ public:
 	std::string& WorldLogDir() { return Value<std::string>(PropOffsets_StatLog.WorldLogDir); }
 	std::string& WorldStandard() { return Value<std::string>(PropOffsets_StatLog.WorldStandard); }
 	std::string& WorldStatsURL() { return Value<std::string>(PropOffsets_StatLog.WorldStatsURL); }
-	bool& bWorld() { return Value<bool>(PropOffsets_StatLog.bWorld); }
-	bool& bWorldBatcherError() { return Value<bool>(PropOffsets_StatLog.bWorldBatcherError); }
+	BitfieldBool bWorld() { return BoolValue(PropOffsets_StatLog.bWorld); }
+	BitfieldBool bWorldBatcherError() { return BoolValue(PropOffsets_StatLog.bWorldBatcherError); }
 };
 
 class UStatLogFile : public UStatLog
@@ -1475,7 +1475,7 @@ public:
 	int& LogAr() { return Value<int>(PropOffsets_StatLogFile.LogAr); }
 	std::string& StatLogFile() { return Value<std::string>(PropOffsets_StatLogFile.StatLogFile); }
 	std::string& StatLogFinal() { return Value<std::string>(PropOffsets_StatLogFile.StatLogFinal); }
-	bool& bWatermark() { return Value<bool>(PropOffsets_StatLogFile.bWatermark); }
+	BitfieldBool bWatermark() { return BoolValue(PropOffsets_StatLogFile.bWatermark); }
 };
 
 class UBrush : public UActor
@@ -1491,7 +1491,7 @@ public:
 	// Scale& PostScale() { return Value<Scale>(PropOffsets_Brush.PostScale); }
 	// Scale& TempScale() { return Value<Scale>(PropOffsets_Brush.TempScale); }
 	UObject*& UnusedLightMesh() { return Value<UObject*>(PropOffsets_Brush.UnusedLightMesh); }
-	bool& bColored() { return Value<bool>(PropOffsets_Brush.bColored); }
+	BitfieldBool bColored() { return BoolValue(PropOffsets_Brush.bColored); }
 };
 
 class UMover : public UBrush
@@ -1545,15 +1545,15 @@ public:
 	UActor*& TriggerActor2() { return Value<UActor*>(PropOffsets_Mover.TriggerActor2); }
 	UPawn*& WaitingPawn() { return Value<UPawn*>(PropOffsets_Mover.WaitingPawn); }
 	uint8_t& WorldRaytraceKey() { return Value<uint8_t>(PropOffsets_Mover.WorldRaytraceKey); }
-	bool& bClientPause() { return Value<bool>(PropOffsets_Mover.bClientPause); }
-	bool& bDamageTriggered() { return Value<bool>(PropOffsets_Mover.bDamageTriggered); }
-	bool& bDelaying() { return Value<bool>(PropOffsets_Mover.bDelaying); }
-	bool& bDynamicLightMover() { return Value<bool>(PropOffsets_Mover.bDynamicLightMover); }
-	bool& bOpening() { return Value<bool>(PropOffsets_Mover.bOpening); }
-	bool& bPlayerOnly() { return Value<bool>(PropOffsets_Mover.bPlayerOnly); }
-	bool& bSlave() { return Value<bool>(PropOffsets_Mover.bSlave); }
-	bool& bTriggerOnceOnly() { return Value<bool>(PropOffsets_Mover.bTriggerOnceOnly); }
-	bool& bUseTriggered() { return Value<bool>(PropOffsets_Mover.bUseTriggered); }
+	BitfieldBool bClientPause() { return BoolValue(PropOffsets_Mover.bClientPause); }
+	BitfieldBool bDamageTriggered() { return BoolValue(PropOffsets_Mover.bDamageTriggered); }
+	BitfieldBool bDelaying() { return BoolValue(PropOffsets_Mover.bDelaying); }
+	BitfieldBool bDynamicLightMover() { return BoolValue(PropOffsets_Mover.bDynamicLightMover); }
+	BitfieldBool bOpening() { return BoolValue(PropOffsets_Mover.bOpening); }
+	BitfieldBool bPlayerOnly() { return BoolValue(PropOffsets_Mover.bPlayerOnly); }
+	BitfieldBool bSlave() { return BoolValue(PropOffsets_Mover.bSlave); }
+	BitfieldBool bTriggerOnceOnly() { return BoolValue(PropOffsets_Mover.bTriggerOnceOnly); }
+	BitfieldBool bUseTriggered() { return BoolValue(PropOffsets_Mover.bUseTriggered); }
 	UNavigationPoint*& myMarker() { return Value<UNavigationPoint*>(PropOffsets_Mover.myMarker); }
 	int& numTriggerEvents() { return Value<int>(PropOffsets_Mover.numTriggerEvents); }
 };
@@ -1667,51 +1667,51 @@ public:
 	float& WaterSpeed() { return Value<float>(PropOffsets_Pawn.WaterSpeed); }
 	USound*& WaterStep() { return Value<USound*>(PropOffsets_Pawn.WaterStep); }
 	UWeapon*& Weapon() { return Value<UWeapon*>(PropOffsets_Pawn.Weapon); }
-	bool& bAdvancedTactics() { return Value<bool>(PropOffsets_Pawn.bAdvancedTactics); }
+	BitfieldBool bAdvancedTactics() { return BoolValue(PropOffsets_Pawn.bAdvancedTactics); }
 	uint8_t& bAltFire() { return Value<uint8_t>(PropOffsets_Pawn.bAltFire); }
-	bool& bAutoActivate() { return Value<bool>(PropOffsets_Pawn.bAutoActivate); }
-	bool& bAvoidLedges() { return Value<bool>(PropOffsets_Pawn.bAvoidLedges); }
-	bool& bBehindView() { return Value<bool>(PropOffsets_Pawn.bBehindView); }
-	bool& bCanDoSpecial() { return Value<bool>(PropOffsets_Pawn.bCanDoSpecial); }
-	bool& bCanFly() { return Value<bool>(PropOffsets_Pawn.bCanFly); }
-	bool& bCanJump() { return Value<bool>(PropOffsets_Pawn.bCanJump); }
-	bool& bCanOpenDoors() { return Value<bool>(PropOffsets_Pawn.bCanOpenDoors); }
-	bool& bCanStrafe() { return Value<bool>(PropOffsets_Pawn.bCanStrafe); }
-	bool& bCanSwim() { return Value<bool>(PropOffsets_Pawn.bCanSwim); }
-	bool& bCanWalk() { return Value<bool>(PropOffsets_Pawn.bCanWalk); }
-	bool& bCountJumps() { return Value<bool>(PropOffsets_Pawn.bCountJumps); }
-	bool& bDrowning() { return Value<bool>(PropOffsets_Pawn.bDrowning); }
+	BitfieldBool bAutoActivate() { return BoolValue(PropOffsets_Pawn.bAutoActivate); }
+	BitfieldBool bAvoidLedges() { return BoolValue(PropOffsets_Pawn.bAvoidLedges); }
+	BitfieldBool bBehindView() { return BoolValue(PropOffsets_Pawn.bBehindView); }
+	BitfieldBool bCanDoSpecial() { return BoolValue(PropOffsets_Pawn.bCanDoSpecial); }
+	BitfieldBool bCanFly() { return BoolValue(PropOffsets_Pawn.bCanFly); }
+	BitfieldBool bCanJump() { return BoolValue(PropOffsets_Pawn.bCanJump); }
+	BitfieldBool bCanOpenDoors() { return BoolValue(PropOffsets_Pawn.bCanOpenDoors); }
+	BitfieldBool bCanStrafe() { return BoolValue(PropOffsets_Pawn.bCanStrafe); }
+	BitfieldBool bCanSwim() { return BoolValue(PropOffsets_Pawn.bCanSwim); }
+	BitfieldBool bCanWalk() { return BoolValue(PropOffsets_Pawn.bCanWalk); }
+	BitfieldBool bCountJumps() { return BoolValue(PropOffsets_Pawn.bCountJumps); }
+	BitfieldBool bDrowning() { return BoolValue(PropOffsets_Pawn.bDrowning); }
 	uint8_t& bDuck() { return Value<uint8_t>(PropOffsets_Pawn.bDuck); }
 	uint8_t& bExtra0() { return Value<uint8_t>(PropOffsets_Pawn.bExtra0); }
 	uint8_t& bExtra1() { return Value<uint8_t>(PropOffsets_Pawn.bExtra1); }
 	uint8_t& bExtra2() { return Value<uint8_t>(PropOffsets_Pawn.bExtra2); }
 	uint8_t& bExtra3() { return Value<uint8_t>(PropOffsets_Pawn.bExtra3); }
 	uint8_t& bFire() { return Value<uint8_t>(PropOffsets_Pawn.bFire); }
-	bool& bFixedStart() { return Value<bool>(PropOffsets_Pawn.bFixedStart); }
+	BitfieldBool bFixedStart() { return BoolValue(PropOffsets_Pawn.bFixedStart); }
 	uint8_t& bFreeLook() { return Value<uint8_t>(PropOffsets_Pawn.bFreeLook); }
-	bool& bFromWall() { return Value<bool>(PropOffsets_Pawn.bFromWall); }
-	bool& bHitSlopedWall() { return Value<bool>(PropOffsets_Pawn.bHitSlopedWall); }
-	bool& bHunting() { return Value<bool>(PropOffsets_Pawn.bHunting); }
-	bool& bIsFemale() { return Value<bool>(PropOffsets_Pawn.bIsFemale); }
-	bool& bIsHuman() { return Value<bool>(PropOffsets_Pawn.bIsHuman); }
-	bool& bIsMultiSkinned() { return Value<bool>(PropOffsets_Pawn.bIsMultiSkinned); }
-	bool& bIsPlayer() { return Value<bool>(PropOffsets_Pawn.bIsPlayer); }
-	bool& bIsWalking() { return Value<bool>(PropOffsets_Pawn.bIsWalking); }
-	bool& bJumpOffPawn() { return Value<bool>(PropOffsets_Pawn.bJumpOffPawn); }
-	bool& bJustLanded() { return Value<bool>(PropOffsets_Pawn.bJustLanded); }
-	bool& bLOSflag() { return Value<bool>(PropOffsets_Pawn.bLOSflag); }
+	BitfieldBool bFromWall() { return BoolValue(PropOffsets_Pawn.bFromWall); }
+	BitfieldBool bHitSlopedWall() { return BoolValue(PropOffsets_Pawn.bHitSlopedWall); }
+	BitfieldBool bHunting() { return BoolValue(PropOffsets_Pawn.bHunting); }
+	BitfieldBool bIsFemale() { return BoolValue(PropOffsets_Pawn.bIsFemale); }
+	BitfieldBool bIsHuman() { return BoolValue(PropOffsets_Pawn.bIsHuman); }
+	BitfieldBool bIsMultiSkinned() { return BoolValue(PropOffsets_Pawn.bIsMultiSkinned); }
+	BitfieldBool bIsPlayer() { return BoolValue(PropOffsets_Pawn.bIsPlayer); }
+	BitfieldBool bIsWalking() { return BoolValue(PropOffsets_Pawn.bIsWalking); }
+	BitfieldBool bJumpOffPawn() { return BoolValue(PropOffsets_Pawn.bJumpOffPawn); }
+	BitfieldBool bJustLanded() { return BoolValue(PropOffsets_Pawn.bJustLanded); }
+	BitfieldBool bLOSflag() { return BoolValue(PropOffsets_Pawn.bLOSflag); }
 	uint8_t& bLook() { return Value<uint8_t>(PropOffsets_Pawn.bLook); }
-	bool& bNeverSwitchOnPickup() { return Value<bool>(PropOffsets_Pawn.bNeverSwitchOnPickup); }
-	bool& bReducedSpeed() { return Value<bool>(PropOffsets_Pawn.bReducedSpeed); }
+	BitfieldBool bNeverSwitchOnPickup() { return BoolValue(PropOffsets_Pawn.bNeverSwitchOnPickup); }
+	BitfieldBool bReducedSpeed() { return BoolValue(PropOffsets_Pawn.bReducedSpeed); }
 	uint8_t& bRun() { return Value<uint8_t>(PropOffsets_Pawn.bRun); }
-	bool& bShootSpecial() { return Value<bool>(PropOffsets_Pawn.bShootSpecial); }
+	BitfieldBool bShootSpecial() { return BoolValue(PropOffsets_Pawn.bShootSpecial); }
 	uint8_t& bSnapLevel() { return Value<uint8_t>(PropOffsets_Pawn.bSnapLevel); }
-	bool& bStopAtLedges() { return Value<bool>(PropOffsets_Pawn.bStopAtLedges); }
+	BitfieldBool bStopAtLedges() { return BoolValue(PropOffsets_Pawn.bStopAtLedges); }
 	uint8_t& bStrafe() { return Value<uint8_t>(PropOffsets_Pawn.bStrafe); }
-	bool& bUpAndOut() { return Value<bool>(PropOffsets_Pawn.bUpAndOut); }
-	bool& bUpdatingDisplay() { return Value<bool>(PropOffsets_Pawn.bUpdatingDisplay); }
-	bool& bViewTarget() { return Value<bool>(PropOffsets_Pawn.bViewTarget); }
-	bool& bWarping() { return Value<bool>(PropOffsets_Pawn.bWarping); }
+	BitfieldBool bUpAndOut() { return BoolValue(PropOffsets_Pawn.bUpAndOut); }
+	BitfieldBool bUpdatingDisplay() { return BoolValue(PropOffsets_Pawn.bUpdatingDisplay); }
+	BitfieldBool bViewTarget() { return BoolValue(PropOffsets_Pawn.bViewTarget); }
+	BitfieldBool bWarping() { return BoolValue(PropOffsets_Pawn.bWarping); }
 	uint8_t& bZoom() { return Value<uint8_t>(PropOffsets_Pawn.bZoom); }
 	UDecoration*& carriedDecoration() { return Value<UDecoration*>(PropOffsets_Pawn.carriedDecoration); }
 	UNavigationPoint*& home() { return Value<UNavigationPoint*>(PropOffsets_Pawn.home); }
@@ -1789,7 +1789,7 @@ public:
 	std::string& ProgressMessage() { return Value<std::string>(PropOffsets_PlayerPawn.ProgressMessage); }
 	float& ProgressTimeOut() { return Value<float>(PropOffsets_PlayerPawn.ProgressTimeOut); }
 	std::string& QuickSaveString() { return Value<std::string>(PropOffsets_PlayerPawn.QuickSaveString); }
-	bool& ReceivedSecretChecksum() { return Value<bool>(PropOffsets_PlayerPawn.ReceivedSecretChecksum); }
+	BitfieldBool ReceivedSecretChecksum() { return BoolValue(PropOffsets_PlayerPawn.ReceivedSecretChecksum); }
 	int& RendMap() { return Value<int>(PropOffsets_PlayerPawn.RendMap); }
 	USavedMove*& SavedMoves() { return Value<USavedMove*>(PropOffsets_PlayerPawn.SavedMoves); }
 	// UScoreBoard*& Scoring() { return Value<UScoreBoard*>(PropOffsets_PlayerPawn.Scoring); }
@@ -1825,56 +1825,56 @@ public:
 	float& aStrafe() { return Value<float>(PropOffsets_PlayerPawn.aStrafe); }
 	float& aTurn() { return Value<float>(PropOffsets_PlayerPawn.aTurn); }
 	float& aUp() { return Value<float>(PropOffsets_PlayerPawn.aUp); }
-	bool& bAdmin() { return Value<bool>(PropOffsets_PlayerPawn.bAdmin); }
-	bool& bAlwaysMouseLook() { return Value<bool>(PropOffsets_PlayerPawn.bAlwaysMouseLook); }
-	bool& bAnimTransition() { return Value<bool>(PropOffsets_PlayerPawn.bAnimTransition); }
-	bool& bBadConnectionAlert() { return Value<bool>(PropOffsets_PlayerPawn.bBadConnectionAlert); }
-	bool& bCenterView() { return Value<bool>(PropOffsets_PlayerPawn.bCenterView); }
-	bool& bCheatsEnabled() { return Value<bool>(PropOffsets_PlayerPawn.bCheatsEnabled); }
-	bool& bDelayedCommand() { return Value<bool>(PropOffsets_PlayerPawn.bDelayedCommand); }
-	bool& bEdgeBack() { return Value<bool>(PropOffsets_PlayerPawn.bEdgeBack); }
-	bool& bEdgeForward() { return Value<bool>(PropOffsets_PlayerPawn.bEdgeForward); }
-	bool& bEdgeLeft() { return Value<bool>(PropOffsets_PlayerPawn.bEdgeLeft); }
-	bool& bEdgeRight() { return Value<bool>(PropOffsets_PlayerPawn.bEdgeRight); }
-	bool& bFixedCamera() { return Value<bool>(PropOffsets_PlayerPawn.bFixedCamera); }
-	bool& bFrozen() { return Value<bool>(PropOffsets_PlayerPawn.bFrozen); }
-	bool& bInvertMouse() { return Value<bool>(PropOffsets_PlayerPawn.bInvertMouse); }
-	bool& bIsCrouching() { return Value<bool>(PropOffsets_PlayerPawn.bIsCrouching); }
-	bool& bIsTurning() { return Value<bool>(PropOffsets_PlayerPawn.bIsTurning); }
-	bool& bIsTyping() { return Value<bool>(PropOffsets_PlayerPawn.bIsTyping); }
-	bool& bJumpStatus() { return Value<bool>(PropOffsets_PlayerPawn.bJumpStatus); }
-	bool& bJustAltFired() { return Value<bool>(PropOffsets_PlayerPawn.bJustAltFired); }
-	bool& bJustFired() { return Value<bool>(PropOffsets_PlayerPawn.bJustFired); }
-	bool& bKeyboardLook() { return Value<bool>(PropOffsets_PlayerPawn.bKeyboardLook); }
-	bool& bLookUpStairs() { return Value<bool>(PropOffsets_PlayerPawn.bLookUpStairs); }
-	bool& bMaxMouseSmoothing() { return Value<bool>(PropOffsets_PlayerPawn.bMaxMouseSmoothing); }
-	bool& bMessageBeep() { return Value<bool>(PropOffsets_PlayerPawn.bMessageBeep); }
-	bool& bMouseZeroed() { return Value<bool>(PropOffsets_PlayerPawn.bMouseZeroed); }
-	bool& bNeverAutoSwitch() { return Value<bool>(PropOffsets_PlayerPawn.bNeverAutoSwitch); }
-	bool& bNoFlash() { return Value<bool>(PropOffsets_PlayerPawn.bNoFlash); }
-	bool& bNoVoices() { return Value<bool>(PropOffsets_PlayerPawn.bNoVoices); }
-	bool& bPressedJump() { return Value<bool>(PropOffsets_PlayerPawn.bPressedJump); }
-	bool& bReadyToPlay() { return Value<bool>(PropOffsets_PlayerPawn.bReadyToPlay); }
-	bool& bReducedVis() { return Value<bool>(PropOffsets_PlayerPawn.bReducedVis); }
-	bool& bRising() { return Value<bool>(PropOffsets_PlayerPawn.bRising); }
-	bool& bShakeDir() { return Value<bool>(PropOffsets_PlayerPawn.bShakeDir); }
-	bool& bShowMenu() { return Value<bool>(PropOffsets_PlayerPawn.bShowMenu); }
-	bool& bShowScores() { return Value<bool>(PropOffsets_PlayerPawn.bShowScores); }
-	bool& bSinglePlayer() { return Value<bool>(PropOffsets_PlayerPawn.bSinglePlayer); }
-	bool& bSnapToLevel() { return Value<bool>(PropOffsets_PlayerPawn.bSnapToLevel); }
-	bool& bSpecialMenu() { return Value<bool>(PropOffsets_PlayerPawn.bSpecialMenu); }
-	bool& bUpdatePosition() { return Value<bool>(PropOffsets_PlayerPawn.bUpdatePosition); }
-	bool& bUpdating() { return Value<bool>(PropOffsets_PlayerPawn.bUpdating); }
-	bool& bWasBack() { return Value<bool>(PropOffsets_PlayerPawn.bWasBack); }
-	bool& bWasForward() { return Value<bool>(PropOffsets_PlayerPawn.bWasForward); }
-	bool& bWasLeft() { return Value<bool>(PropOffsets_PlayerPawn.bWasLeft); }
-	bool& bWasRight() { return Value<bool>(PropOffsets_PlayerPawn.bWasRight); }
-	bool& bWokeUp() { return Value<bool>(PropOffsets_PlayerPawn.bWokeUp); }
-	bool& bZooming() { return Value<bool>(PropOffsets_PlayerPawn.bZooming); }
+	BitfieldBool bAdmin() { return BoolValue(PropOffsets_PlayerPawn.bAdmin); }
+	BitfieldBool bAlwaysMouseLook() { return BoolValue(PropOffsets_PlayerPawn.bAlwaysMouseLook); }
+	BitfieldBool bAnimTransition() { return BoolValue(PropOffsets_PlayerPawn.bAnimTransition); }
+	BitfieldBool bBadConnectionAlert() { return BoolValue(PropOffsets_PlayerPawn.bBadConnectionAlert); }
+	BitfieldBool bCenterView() { return BoolValue(PropOffsets_PlayerPawn.bCenterView); }
+	BitfieldBool bCheatsEnabled() { return BoolValue(PropOffsets_PlayerPawn.bCheatsEnabled); }
+	BitfieldBool bDelayedCommand() { return BoolValue(PropOffsets_PlayerPawn.bDelayedCommand); }
+	BitfieldBool bEdgeBack() { return BoolValue(PropOffsets_PlayerPawn.bEdgeBack); }
+	BitfieldBool bEdgeForward() { return BoolValue(PropOffsets_PlayerPawn.bEdgeForward); }
+	BitfieldBool bEdgeLeft() { return BoolValue(PropOffsets_PlayerPawn.bEdgeLeft); }
+	BitfieldBool bEdgeRight() { return BoolValue(PropOffsets_PlayerPawn.bEdgeRight); }
+	BitfieldBool bFixedCamera() { return BoolValue(PropOffsets_PlayerPawn.bFixedCamera); }
+	BitfieldBool bFrozen() { return BoolValue(PropOffsets_PlayerPawn.bFrozen); }
+	BitfieldBool bInvertMouse() { return BoolValue(PropOffsets_PlayerPawn.bInvertMouse); }
+	BitfieldBool bIsCrouching() { return BoolValue(PropOffsets_PlayerPawn.bIsCrouching); }
+	BitfieldBool bIsTurning() { return BoolValue(PropOffsets_PlayerPawn.bIsTurning); }
+	BitfieldBool bIsTyping() { return BoolValue(PropOffsets_PlayerPawn.bIsTyping); }
+	BitfieldBool bJumpStatus() { return BoolValue(PropOffsets_PlayerPawn.bJumpStatus); }
+	BitfieldBool bJustAltFired() { return BoolValue(PropOffsets_PlayerPawn.bJustAltFired); }
+	BitfieldBool bJustFired() { return BoolValue(PropOffsets_PlayerPawn.bJustFired); }
+	BitfieldBool bKeyboardLook() { return BoolValue(PropOffsets_PlayerPawn.bKeyboardLook); }
+	BitfieldBool bLookUpStairs() { return BoolValue(PropOffsets_PlayerPawn.bLookUpStairs); }
+	BitfieldBool bMaxMouseSmoothing() { return BoolValue(PropOffsets_PlayerPawn.bMaxMouseSmoothing); }
+	BitfieldBool bMessageBeep() { return BoolValue(PropOffsets_PlayerPawn.bMessageBeep); }
+	BitfieldBool bMouseZeroed() { return BoolValue(PropOffsets_PlayerPawn.bMouseZeroed); }
+	BitfieldBool bNeverAutoSwitch() { return BoolValue(PropOffsets_PlayerPawn.bNeverAutoSwitch); }
+	BitfieldBool bNoFlash() { return BoolValue(PropOffsets_PlayerPawn.bNoFlash); }
+	BitfieldBool bNoVoices() { return BoolValue(PropOffsets_PlayerPawn.bNoVoices); }
+	BitfieldBool bPressedJump() { return BoolValue(PropOffsets_PlayerPawn.bPressedJump); }
+	BitfieldBool bReadyToPlay() { return BoolValue(PropOffsets_PlayerPawn.bReadyToPlay); }
+	BitfieldBool bReducedVis() { return BoolValue(PropOffsets_PlayerPawn.bReducedVis); }
+	BitfieldBool bRising() { return BoolValue(PropOffsets_PlayerPawn.bRising); }
+	BitfieldBool bShakeDir() { return BoolValue(PropOffsets_PlayerPawn.bShakeDir); }
+	BitfieldBool bShowMenu() { return BoolValue(PropOffsets_PlayerPawn.bShowMenu); }
+	BitfieldBool bShowScores() { return BoolValue(PropOffsets_PlayerPawn.bShowScores); }
+	BitfieldBool bSinglePlayer() { return BoolValue(PropOffsets_PlayerPawn.bSinglePlayer); }
+	BitfieldBool bSnapToLevel() { return BoolValue(PropOffsets_PlayerPawn.bSnapToLevel); }
+	BitfieldBool bSpecialMenu() { return BoolValue(PropOffsets_PlayerPawn.bSpecialMenu); }
+	BitfieldBool bUpdatePosition() { return BoolValue(PropOffsets_PlayerPawn.bUpdatePosition); }
+	BitfieldBool bUpdating() { return BoolValue(PropOffsets_PlayerPawn.bUpdating); }
+	BitfieldBool bWasBack() { return BoolValue(PropOffsets_PlayerPawn.bWasBack); }
+	BitfieldBool bWasForward() { return BoolValue(PropOffsets_PlayerPawn.bWasForward); }
+	BitfieldBool bWasLeft() { return BoolValue(PropOffsets_PlayerPawn.bWasLeft); }
+	BitfieldBool bWasRight() { return BoolValue(PropOffsets_PlayerPawn.bWasRight); }
+	BitfieldBool bWokeUp() { return BoolValue(PropOffsets_PlayerPawn.bWokeUp); }
+	BitfieldBool bZooming() { return BoolValue(PropOffsets_PlayerPawn.bZooming); }
 	float& bobtime() { return Value<float>(PropOffsets_PlayerPawn.bobtime); }
 	float& maxshake() { return Value<float>(PropOffsets_PlayerPawn.maxshake); }
 	UHUD*& myHUD() { return Value<UHUD*>(PropOffsets_PlayerPawn.myHUD); }
-	bool& ngSecretSet() { return Value<bool>(PropOffsets_PlayerPawn.ngSecretSet); }
+	BitfieldBool ngSecretSet() { return BoolValue(PropOffsets_PlayerPawn.ngSecretSet); }
 	std::string& ngWorldSecret() { return Value<std::string>(PropOffsets_PlayerPawn.ngWorldSecret); }
 	int& shakemag() { return Value<int>(PropOffsets_PlayerPawn.shakemag); }
 	float& shaketimer() { return Value<float>(PropOffsets_PlayerPawn.shaketimer); }

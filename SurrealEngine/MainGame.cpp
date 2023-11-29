@@ -28,7 +28,8 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 			LocalFree(argv);
 		}
 
-		SetProcessDPIAware();
+		//SetProcessDPIAware();
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 		InitCommonControls();
 
 		WORD winsock_version = MAKEWORD(2, 2);

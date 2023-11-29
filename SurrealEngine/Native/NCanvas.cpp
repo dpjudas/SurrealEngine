@@ -25,21 +25,21 @@ void NCanvas::RegisterFunctions()
 	RegisterVMNativeFunc_3("Canvas", "TextSize", &NCanvas::TextSize, 470);
 }
 
-void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, bool* ClearZ)
+void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, BitfieldBool* ClearZ)
 {
 	engine->render->DrawActor(UObject::Cast<UActor>(A), WireFrame, ClearZ ? *ClearZ : false);
 }
 
-void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, bool* ClearZ)
+void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, BitfieldBool* ClearZ)
 {
 	engine->render->DrawClippedActor(UObject::Cast<UActor>(A), WireFrame, X, Y, XB, YB, ClearZ ? *ClearZ : false);
 }
 
-void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, int* FOV, bool* ClearZ)
+void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, int* FOV, BitfieldBool* ClearZ)
 {
 }
 
-void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
+void NCanvas::DrawText(UObject* Self, const std::string& Text, BitfieldBool* CR)
 {
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	float& orgX = SelfCanvas->OrgX();
@@ -50,7 +50,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 	Color& color = SelfCanvas->DrawColor();
 	float& curYL = SelfCanvas->CurYL();
 	uint8_t& style = SelfCanvas->Style();
-	bool& center = SelfCanvas->bCenter();
+	bool center = SelfCanvas->bCenter();
 	float& spaceX = SelfCanvas->SpaceX();
 	float& spaceY = SelfCanvas->SpaceY();
 
@@ -68,7 +68,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, bool* CR)
 	}
 }
 
-void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bCheckHotKey)
+void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, BitfieldBool* bCheckHotKey)
 {
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	float& orgX = SelfCanvas->OrgX();
@@ -80,7 +80,7 @@ void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, bool* bChe
 	UFont*& font = SelfCanvas->Font();
 	Color& color = SelfCanvas->DrawColor();
 	uint8_t& style = SelfCanvas->Style();
-	bool& center = SelfCanvas->bCenter();
+	bool center = SelfCanvas->bCenter();
 
 	bool checkHotKey = bCheckHotKey && *bCheckHotKey;
 	
@@ -109,7 +109,7 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 	float& spaceX = SelfCanvas->SpaceX();
 	float& spaceY = SelfCanvas->SpaceY();
 	float& curYL = SelfCanvas->CurYL();
-	bool& noSmooth = SelfCanvas->bNoSmooth();
+	bool noSmooth = SelfCanvas->bNoSmooth();
 
 	if (XL <= 0.0f || YL <= 0.0f)
 		return;
@@ -143,7 +143,7 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	float& spaceX = SelfCanvas->SpaceX();
 	float& spaceY = SelfCanvas->SpaceY();
 	float& curYL = SelfCanvas->CurYL();
-	bool& noSmooth = SelfCanvas->bNoSmooth();
+	bool noSmooth = SelfCanvas->bNoSmooth();
 	float& clipX = SelfCanvas->ClipX();
 	float& clipY = SelfCanvas->ClipY();
 

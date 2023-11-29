@@ -199,6 +199,11 @@ public:
 
 	uint32_t PolyFlags()
 	{
+#if 1
+		// UE1 has this as a native uint32_t that is declared in unreal script as bitfield booleans.
+		BitfieldBool flagsBool = bInvisible();
+		return *flagsBool.Ptr;
+#else
 		// To do: implement packed booleans in the VM so that this can be done as a single uint32_t
 		uint32_t flags = ((uint32_t)bInvisible()) << 0;
 		flags |= ((uint32_t)bMasked()) << 1;
@@ -233,6 +238,7 @@ public:
 		flags |= ((uint32_t)bX6()) << 30;
 		flags |= ((uint32_t)bX7()) << 31;
 		return flags;
+#endif
 	}
 
 	float& Accumulator() { return Value<float>(PropOffsets_Texture.Accumulator); }
@@ -257,44 +263,44 @@ public:
 	uint8_t& PrimeCount() { return Value<uint8_t>(PropOffsets_Texture.PrimeCount); }
 	uint8_t& PrimeCurrent() { return Value<uint8_t>(PropOffsets_Texture.PrimeCurrent); }
 	float& Specular() { return Value<float>(PropOffsets_Texture.Specular); }
-	bool& bAutoUPan() { return Value<bool>(PropOffsets_Texture.bAutoUPan); }
-	bool& bAutoVPan() { return Value<bool>(PropOffsets_Texture.bAutoVPan); }
-	bool& bBigWavy() { return Value<bool>(PropOffsets_Texture.bBigWavy); }
-	bool& bCloudWavy() { return Value<bool>(PropOffsets_Texture.bCloudWavy); }
-	bool& bDirtyShadows() { return Value<bool>(PropOffsets_Texture.bDirtyShadows); }
-	bool& bEnvironment() { return Value<bool>(PropOffsets_Texture.bEnvironment); }
-	bool& bFakeBackdrop() { return Value<bool>(PropOffsets_Texture.bFakeBackdrop); }
-	bool& bGouraud() { return Value<bool>(PropOffsets_Texture.bGouraud); }
-	bool& bHasComp() { return Value<bool>(PropOffsets_Texture.bHasComp); }
-	bool& bHighColorQuality() { return Value<bool>(PropOffsets_Texture.bHighColorQuality); }
-	bool& bHighLedge() { return Value<bool>(PropOffsets_Texture.bHighLedge); }
-	bool& bHighShadowDetail() { return Value<bool>(PropOffsets_Texture.bHighShadowDetail); }
-	bool& bHighTextureQuality() { return Value<bool>(PropOffsets_Texture.bHighTextureQuality); }
-	bool& bInvisible() { return Value<bool>(PropOffsets_Texture.bInvisible); }
-	bool& bLowShadowDetail() { return Value<bool>(PropOffsets_Texture.bLowShadowDetail); }
-	bool& bMasked() { return Value<bool>(PropOffsets_Texture.bMasked); }
-	bool& bMirrored() { return Value<bool>(PropOffsets_Texture.bMirrored); }
-	bool& bModulate() { return Value<bool>(PropOffsets_Texture.bModulate); }
-	bool& bNoMerge() { return Value<bool>(PropOffsets_Texture.bNoMerge); }
-	bool& bNoSmooth() { return Value<bool>(PropOffsets_Texture.bNoSmooth); }
-	bool& bNotSolid() { return Value<bool>(PropOffsets_Texture.bNotSolid); }
-	bool& bParametric() { return Value<bool>(PropOffsets_Texture.bParametric); }
-	bool& bPortal() { return Value<bool>(PropOffsets_Texture.bPortal); }
-	bool& bRealtime() { return Value<bool>(PropOffsets_Texture.bRealtime); }
-	bool& bRealtimeChanged() { return Value<bool>(PropOffsets_Texture.bRealtimeChanged); }
-	bool& bSemisolid() { return Value<bool>(PropOffsets_Texture.bSemisolid); }
-	bool& bSmallWavy() { return Value<bool>(PropOffsets_Texture.bSmallWavy); }
-	bool& bSpecialLit() { return Value<bool>(PropOffsets_Texture.bSpecialLit); }
-	bool& bTransparent() { return Value<bool>(PropOffsets_Texture.bTransparent); }
-	bool& bTwoSided() { return Value<bool>(PropOffsets_Texture.bTwoSided); }
-	bool& bUnlit() { return Value<bool>(PropOffsets_Texture.bUnlit); }
-	bool& bWaterWavy() { return Value<bool>(PropOffsets_Texture.bWaterWavy); }
-	bool& bX2() { return Value<bool>(PropOffsets_Texture.bX2); }
-	bool& bX3() { return Value<bool>(PropOffsets_Texture.bX3); }
-	bool& bX4() { return Value<bool>(PropOffsets_Texture.bX4); }
-	bool& bX5() { return Value<bool>(PropOffsets_Texture.bX5); }
-	bool& bX6() { return Value<bool>(PropOffsets_Texture.bX6); }
-	bool& bX7() { return Value<bool>(PropOffsets_Texture.bX7); }
+	BitfieldBool bAutoUPan() { return BoolValue(PropOffsets_Texture.bAutoUPan); }
+	BitfieldBool bAutoVPan() { return BoolValue(PropOffsets_Texture.bAutoVPan); }
+	BitfieldBool bBigWavy() { return BoolValue(PropOffsets_Texture.bBigWavy); }
+	BitfieldBool bCloudWavy() { return BoolValue(PropOffsets_Texture.bCloudWavy); }
+	BitfieldBool bDirtyShadows() { return BoolValue(PropOffsets_Texture.bDirtyShadows); }
+	BitfieldBool bEnvironment() { return BoolValue(PropOffsets_Texture.bEnvironment); }
+	BitfieldBool bFakeBackdrop() { return BoolValue(PropOffsets_Texture.bFakeBackdrop); }
+	BitfieldBool bGouraud() { return BoolValue(PropOffsets_Texture.bGouraud); }
+	BitfieldBool bHasComp() { return BoolValue(PropOffsets_Texture.bHasComp); }
+	BitfieldBool bHighColorQuality() { return BoolValue(PropOffsets_Texture.bHighColorQuality); }
+	BitfieldBool bHighLedge() { return BoolValue(PropOffsets_Texture.bHighLedge); }
+	BitfieldBool bHighShadowDetail() { return BoolValue(PropOffsets_Texture.bHighShadowDetail); }
+	BitfieldBool bHighTextureQuality() { return BoolValue(PropOffsets_Texture.bHighTextureQuality); }
+	BitfieldBool bInvisible() { return BoolValue(PropOffsets_Texture.bInvisible); }
+	BitfieldBool bLowShadowDetail() { return BoolValue(PropOffsets_Texture.bLowShadowDetail); }
+	BitfieldBool bMasked() { return BoolValue(PropOffsets_Texture.bMasked); }
+	BitfieldBool bMirrored() { return BoolValue(PropOffsets_Texture.bMirrored); }
+	BitfieldBool bModulate() { return BoolValue(PropOffsets_Texture.bModulate); }
+	BitfieldBool bNoMerge() { return BoolValue(PropOffsets_Texture.bNoMerge); }
+	BitfieldBool bNoSmooth() { return BoolValue(PropOffsets_Texture.bNoSmooth); }
+	BitfieldBool bNotSolid() { return BoolValue(PropOffsets_Texture.bNotSolid); }
+	BitfieldBool bParametric() { return BoolValue(PropOffsets_Texture.bParametric); }
+	BitfieldBool bPortal() { return BoolValue(PropOffsets_Texture.bPortal); }
+	BitfieldBool bRealtime() { return BoolValue(PropOffsets_Texture.bRealtime); }
+	BitfieldBool bRealtimeChanged() { return BoolValue(PropOffsets_Texture.bRealtimeChanged); }
+	BitfieldBool bSemisolid() { return BoolValue(PropOffsets_Texture.bSemisolid); }
+	BitfieldBool bSmallWavy() { return BoolValue(PropOffsets_Texture.bSmallWavy); }
+	BitfieldBool bSpecialLit() { return BoolValue(PropOffsets_Texture.bSpecialLit); }
+	BitfieldBool bTransparent() { return BoolValue(PropOffsets_Texture.bTransparent); }
+	BitfieldBool bTwoSided() { return BoolValue(PropOffsets_Texture.bTwoSided); }
+	BitfieldBool bUnlit() { return BoolValue(PropOffsets_Texture.bUnlit); }
+	BitfieldBool bWaterWavy() { return BoolValue(PropOffsets_Texture.bWaterWavy); }
+	BitfieldBool bX2() { return BoolValue(PropOffsets_Texture.bX2); }
+	BitfieldBool bX3() { return BoolValue(PropOffsets_Texture.bX3); }
+	BitfieldBool bX4() { return BoolValue(PropOffsets_Texture.bX4); }
+	BitfieldBool bX5() { return BoolValue(PropOffsets_Texture.bX5); }
+	BitfieldBool bX6() { return BoolValue(PropOffsets_Texture.bX6); }
+	BitfieldBool bX7() { return BoolValue(PropOffsets_Texture.bX7); }
 };
 
 class UFractalTexture : public UTexture
@@ -414,7 +420,7 @@ public:
 	//std::vector<Spark*>& Sparks() { return Value<std::vector<Spark*>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
-	bool& bRising() { return Value<bool>(PropOffsets_FireTexture.bRising); }
+	BitfieldBool bRising() { return BoolValue(PropOffsets_FireTexture.bRising); }
 
 private:
 	int RandomByteValue() { return (int)(rand() * 256LL / (RAND_MAX + 1LL)); }
@@ -440,7 +446,7 @@ public:
 	uint8_t& HorizPanSpeed() { return Value<uint8_t>(PropOffsets_IceTexture.HorizPanSpeed); }
 	int& LocalSource() { return Value<int>(PropOffsets_IceTexture.LocalSource); }
 	float& MasterCount() { return Value<float>(PropOffsets_IceTexture.MasterCount); }
-	bool& MoveIce() { return Value<bool>(PropOffsets_IceTexture.MoveIce); }
+	BitfieldBool MoveIce() { return BoolValue(PropOffsets_IceTexture.MoveIce); }
 	UTexture*& OldGlassTex() { return Value<UTexture*>(PropOffsets_IceTexture.OldGlassTex); }
 	UTexture*& OldSourceTex() { return Value<UTexture*>(PropOffsets_IceTexture.OldSourceTex); }
 	int& OldUDisplace() { return Value<int>(PropOffsets_IceTexture.OldUDisplace); }

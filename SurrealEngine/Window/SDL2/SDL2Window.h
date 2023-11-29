@@ -18,7 +18,7 @@ public:
 	static void RunLoop();
 	static void ExitLoop();
 
-	void SDLWindowError(std::string& message) const;
+	void SDLWindowError(const std::string&& message) const;
 	void OnSDLEvent(SDL_Event& event);
 
 	void SetWindowTitle(const std::string& text) override;
@@ -50,7 +50,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
-	std::string GetAvailableResolutions() const override;
+	std::vector<Size> QueryAvailableResolutions() const override;
 
 	EInputKey SDLScancodeToInputKey(SDL_Scancode keycode);
 	SDL_Scancode InputKeyToSDLScancode(EInputKey inputkey);
@@ -59,5 +59,5 @@ public:
 	std::unique_ptr<RenderDevice> rendDevice;
 
 	static std::map<int, SDL2Window*> windows;
-	bool isFullscreen = false;
+	static bool exitRunLoop;
 };

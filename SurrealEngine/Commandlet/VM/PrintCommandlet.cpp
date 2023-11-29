@@ -30,7 +30,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		{
 			if (prop->Name == chunks[0] && (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop)))
 			{
-				void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset;
+				void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset.DataOffset;
 				obj = *(UObject**)ptr;
 				bFoundObj = true;
 				break;
@@ -62,7 +62,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		{
 			if (prop->Name == (*chunk))
 			{
-				void* ptr = ((uint8_t*)obj) + prop->DataOffset;
+				void* ptr = ((uint8_t*)obj) + prop->DataOffset.DataOffset;
 				void* val = obj->PropertyData.Ptr(prop);
 
 				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
