@@ -1728,7 +1728,7 @@ void UActor::UpdateBspInfo()
 		BspInfo.Extents = extents;
 
 		ULevel* level = XLevel();
-		BspNode* node = &level->Model->Nodes[0];
+		BspNode* node = level ? &level->Model->Nodes[0] : nullptr;
 		while (node)
 		{
 			int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
