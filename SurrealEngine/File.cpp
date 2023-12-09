@@ -286,25 +286,51 @@ std::vector<std::string> Directory::files(const std::string &filename)
 
 #endif
 
-std::string OS::get_fonts_folder()
-{
-#ifdef WIN32
-	return "C:\\Windows\\Fonts";
-#else
-	// TODO: No macOS stuff yet
-	// TODO: Also this seems highly dependent on distro???
-	return "/usr/share/fonts/TTF";
-#endif
-}
-
 std::string OS::get_default_font_name()
 {
 #ifdef WIN32
-	return "segoeui";
+	return "segoeui.ttf";
+#elif defined(APPLE)
+	return "SFUIDisplay-Regular.otf"; // Guess this is the default on Apple?
 #else
-	// TODO: No macOS stuff yet either
-	return "DejaVuSans";
+	return "DejaVuSans.ttf";
 #endif
+}
+
+std::string OS::find_truetype_font(const std::string& font_name_and_extension)
+{
+#ifdef WIN32
+	const std::vector<std::string> possible_fonts_folders = {
+		"C:\\Windows\\Fonts"
+	};
+#elif defined(APPLE)
+	// Based on: https://superuser.com/a/407449
+	// Start from user Fonts folder, and go up from there
+	const std::vector<std::string> possible_fonts_folders = {
+		"~/Library/Fonts",
+		"/Library/Fonts",
+		"/System/Library/Fonts"
+	};
+#else
+	// Linux is Linux and as always, how the fonts stored can be wholly different
+	// So here we try to account for possible paths
+	// ...is there a better way to do this?
+	const std::vector<std::string> possible_fonts_folders = {
+		"/usr/share/fonts",
+		"/usr/share/fonts/truetype",
+		"/usr/share/fonts/TTF"
+	};
+#endif
+
+	for (auto& current_font_folder : possible_fonts_folders) {
+		std::string final_path = FilePath::combine(current_font_folder, font_name_and_extension);
+
+		if (File::try_open_existing(final_path))
+			return final_path;
+	}
+
+	// We couldn't find the font in any of the folders, bail out
+	return "";
 }
 
 /////////////////////////////////////////////////////////////////////////////
