@@ -286,6 +286,27 @@ std::vector<std::string> Directory::files(const std::string &filename)
 
 #endif
 
+std::string OS::get_fonts_folder()
+{
+#ifdef WIN32
+	return "C:\\Windows\\Fonts";
+#else
+	// TODO: No macOS stuff yet
+	// TODO: Also this seems highly dependent on distro???
+	return "/usr/share/fonts/TTF";
+#endif
+}
+
+std::string OS::get_default_font_name()
+{
+#ifdef WIN32
+	return "segoeui";
+#else
+	// TODO: No macOS stuff yet either
+	return "DejaVuSans";
+#endif
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 bool FilePath::has_extension(const std::string &filename, const char *checkext)
