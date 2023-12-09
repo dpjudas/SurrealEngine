@@ -208,40 +208,7 @@ bool UActor::Destroy()
 
 PointRegion UActor::FindRegion(const vec3& offset)
 {
-	PointRegion region;
-	region.BspLeaf = 0;
-	region.ZoneNumber = 0;
-
-	vec4 location = vec4(Location() + offset, 1.0f);
-
-	// Search the BSP
-	BspNode* nodes = XLevel()->Model->Nodes.data();
-	BspNode* node = nodes;
-	while (true)
-	{
-		vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-		float side = dot(location, plane);
-		if (node->Front >= 0 && side >= 0.0f)
-		{
-			node = nodes + node->Front;
-		}
-		else if (node->Back >= 0 && side <= 0.0f)
-		{
-			node = nodes + node->Back;
-		}
-		else
-		{
-			region.ZoneNumber = node->Zone1;
-			region.BspLeaf = side >= 0.0f ? node->Leaf0 : node->Leaf1;
-			break;
-		}
-	}
-
-	region.Zone = UObject::Cast<UZoneInfo>(XLevel()->Model->Zones[region.ZoneNumber].ZoneActor);
-	if (!region.Zone)
-		region.Zone = Level();
-
-	return region;
+	return XLevel()->Model->FindRegion(Location() + offset, Level());
 }
 
 void UActor::InitActorZone()
@@ -1141,7 +1108,7 @@ bool UActor::IsOverlapping(UActor* other)
 	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
-CollisionHit UActor::TryMove(const vec3& delta)
+CollisionHit UActor::TryMove(const vec3& delta, bool dryRun)
 {
 	// Static and non-movable objects can't move
 	if (bStatic() || !bMovable())
@@ -1185,6 +1152,9 @@ CollisionHit UActor::TryMove(const vec3& delta)
 			}
 		}
 	}
+	
+	if (dryRun)
+		return blockingHit;
 
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
 	vec3 OldLocation = Location();
@@ -1707,6 +1677,37 @@ void UActor::MakeNoise(float loudness)
 	}
 }
 
+bool UActor::PlayerCanSeeMe()
+{
+	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
+	{
+		if (pawn == this)
+			continue;
+
+		vec3 L = Location() - pawn->Location();
+		float dist2 = dot(L, L);
+
+		// Too far away
+		if (dist2 > 500 * 500)
+			continue;
+
+		// Without behind view the pawn can only see in a 75 degree cone in front of them
+		if (!pawn->bBehindView())
+		{
+			vec3 viewDirection = Coords::Rotation(pawn->ViewRotation()).XAxis;
+			if (dot(viewDirection, L) < 0.2588190451f * dist2)
+				continue;
+		}
+
+		// Try check for line of sight
+		vec3 eyePos = pawn->Location();
+		eyePos.z += pawn->BaseEyeHeight();
+		if (pawn->FastTrace(Location(), eyePos))
+			return true;
+	}
+	return false;
+}
+
 void UActor::UpdateBspInfo()
 {
 	vec3 extents;
@@ -1727,25 +1728,25 @@ void UActor::UpdateBspInfo()
 		BspInfo.Location = Location();
 		BspInfo.Extents = extents;
 
-		ULevel* level = XLevel();
-		BspNode* node = level ? &level->Model->Nodes[0] : nullptr;
-		while (node)
-		{
-			int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
-			if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
-			{
-				AddToBspNode(node);
-				break;
-			}
-			else if (side < 0)
-			{
-				node = &level->Model->Nodes[node->Front];
-			}
-			else
-			{
-				node = &level->Model->Nodes[node->Back];
-			}
-		}
+ULevel* level = XLevel();
+BspNode* node = level ? &level->Model->Nodes[0] : nullptr;
+while (node)
+{
+	int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
+	if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
+	{
+		AddToBspNode(node);
+		break;
+	}
+	else if (side < 0)
+	{
+		node = &level->Model->Nodes[node->Front];
+	}
+	else
+	{
+		node = &level->Model->Nodes[node->Back];
+	}
+}
 	}
 }
 
@@ -1798,6 +1799,68 @@ int UActor::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* no
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+bool UPawn::ActorReachable(UActor* anActor)
+{
+	if (!anActor)
+		return false;
+
+	// Check if we are trying to reach a navigation point. They can also be hiding in an inventory for patent-pending spaghetti reasons.
+	UNavigationPoint* navPoint = UObject::TryCast<UNavigationPoint>(anActor);
+	if (UInventory* inventory = UObject::TryCast<UInventory>(anActor))
+		navPoint = inventory->myMarker();
+
+	vec3 eyePos = Location();
+	eyePos.z += BaseEyeHeight();
+
+	vec3 delta = anActor->Location() - Location();
+
+	// If we can reach any navigation point in the map then we can also reach the navigation point asked for
+	if (navPoint)
+	{
+		for (UNavigationPoint* cur = Level()->NavigationPointList(); cur != nullptr; cur = cur->nextNavigationPoint())
+		{
+			if (std::abs(cur->Location().z - Location().z) < CollisionHeight())
+			{
+				if (FastTrace(cur->Location(), eyePos) && TryMove(delta, true).Fraction == 1.0f)
+					return true;
+			}
+		}
+	}
+
+	UPawn* aPawn = UObject::TryCast<UPawn>(anActor);
+	if (aPawn)
+	{
+		if (aPawn->FootRegion().Zone->bPainZone() && aPawn->FootRegion().Zone->DamageType() != ReducedDamageType())
+			return false;
+	}
+	else
+	{
+		float dist2 = dot(delta, delta);
+		if (dist2 > 1000.0f * 1000.0f)
+			return false;
+		if (anActor->Region().Zone->bPainZone() && anActor->Region().Zone->DamageType() != ReducedDamageType())
+			return false;
+	}
+
+	if (anActor->Region().Zone->bWaterZone() && !bCanSwim())
+		return false;
+
+	return FastTrace(anActor->Location(), eyePos) && TryMove(delta, true).Fraction == 1.0f;
+}
+
+bool UPawn::PointReachable(vec3 aPoint)
+{
+	PointRegion pointRegion = XLevel()->Model->FindRegion(aPoint, Level());
+
+	if (!Region().Zone->bWaterZone() && !bCanSwim() && pointRegion.Zone->bWaterZone())
+		return false;
+	if (!FootRegion().Zone->bPainZone() && pointRegion.Zone->bPainZone() && pointRegion.Zone->DamageType() != ReducedDamageType())
+		return false;
+
+	vec3 delta = aPoint - Location();
+	return TryMove(delta, true).Fraction == 1.0f;
+}
 
 bool UPawn::CanHearNoise(UActor* source, float loudness)
 {

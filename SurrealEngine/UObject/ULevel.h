@@ -10,6 +10,8 @@ class UActor;
 class UPawn;
 class UBrush;
 class UDecal;
+class UZoneInfo;
+struct PointRegion;
 
 enum EBspNodeFlags
 {
@@ -166,6 +168,8 @@ public:
 	void Load(ObjectStream* stream) override;
 
 	CollisionHitList TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
+
+	PointRegion FindRegion(const vec3& point, UZoneInfo* levelZoneInfo);
 
 	std::vector<vec3> Vectors;
 	std::vector<vec3> Points;

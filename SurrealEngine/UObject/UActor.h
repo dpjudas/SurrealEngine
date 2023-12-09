@@ -187,7 +187,7 @@ public:
 	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 
-	CollisionHit TryMove(const vec3& delta);
+	CollisionHit TryMove(const vec3& delta, bool dryRun = false);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);
 
@@ -208,6 +208,7 @@ public:
 	void TweenAnim(const NameString& sequence, float tweenTime);
 
 	void MakeNoise(float loudness);
+	bool PlayerCanSeeMe();
 
 	void UpdateBspInfo();
 	void AddToBspNode(BspNode* node);
@@ -1582,6 +1583,8 @@ public:
 	bool TickMoveTo(const vec3& target);
 
 	bool CanHearNoise(UActor* source, float loudness);
+	bool ActorReachable(UActor* anActor);
+	bool PointReachable(vec3 aPoint);
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }
