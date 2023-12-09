@@ -36,9 +36,10 @@ class CanvasFont
 public:
 	CanvasFont(const std::string& fontname, double height) : fontname(fontname), height(height)
 	{
-		std::string fonts_folder = OS::get_fonts_folder();
+		std::string full_font_path = OS::find_truetype_font(fontname);
 
-		std::string full_font_path = FilePath::combine(fonts_folder, fontname + ".ttf");
+		if (full_font_path.empty())
+			throw std::runtime_error("Couldn't find font " + fontname);
 
 		data = File::read_all_bytes(full_font_path);
 		loadFont(data.data(), data.size());
