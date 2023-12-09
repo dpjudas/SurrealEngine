@@ -36,7 +36,11 @@ class CanvasFont
 public:
 	CanvasFont(const std::string& fontname, double height) : fontname(fontname), height(height)
 	{
-		data = File::read_all_bytes("C:\\Windows\\Fonts\\segoeui.ttf");
+		std::string fonts_folder = OS::get_fonts_folder();
+
+		std::string full_font_path = FilePath::combine(fonts_folder, fontname + ".ttf");
+
+		data = File::read_all_bytes(full_font_path);
 		loadFont(data.data(), data.size());
 
 		try
@@ -237,7 +241,7 @@ RenderDeviceCanvas::RenderDeviceCanvas(RenderDevice* renderDevice) : renderDevic
 {
 	uint32_t white = 0xffffffff;
 	whiteTexture = createTexture(1, 1, &white);
-	font = std::make_unique<CanvasFont>("Segoe UI", 13.0*uiscale);
+	font = std::make_unique<CanvasFont>(OS::get_default_font_name(), 13.0*uiscale);
 }
 
 RenderDeviceCanvas::~RenderDeviceCanvas()
