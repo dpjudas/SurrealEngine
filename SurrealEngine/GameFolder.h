@@ -22,7 +22,9 @@ enum class KnownUE1Games
 	UNREALGOLD_227j,
 	UT99_436,
 	UT99_451,
-	UT99_469d_RC4,
+	UT99_469b,
+	UT99_469c,
+	UT99_469d,
 	DEUS_EX_1112fm,
 	KLINGON_219
 };
@@ -57,14 +59,27 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux
 	{"04ac234a7e4d01a44e476a50ea8cd73d838e5137", KnownUE1Games::UT99_451},
 
-	// Unreal Tournament, v469d RC4, Windows + Linux versions (32 + 64 bit)
-	// (TODO: Should be recalculated for 469d final, whenever it comes out)
+	// Unreal Tournament, v469b, Windows + Linux versions (32 bit)
 	// Windows
-	{"a396908c74b922041c8de6c7959923de20f379f7", KnownUE1Games::UT99_469d_RC4},
+	{"88e714db07b26717fc53fd88db3b9145e0f2c4c5", KnownUE1Games::UT99_469b},
+	// Linux
+	{"32e208c38d9a5b4a505f4d7a608f90c9b36954b8", KnownUE1Games::UT99_469b},
+
+	// Unreal Tournament, v469c, Windows + Linux versions (32 + 64 bit)
+	// Windows
+	{"9f7597a85e9cff2cbd85e871e2005f3b7230ad7c", KnownUE1Games::UT99_469c},
 	// Linux, 32 bit
-	{"2504e5ee2e3bd38e0cda65062862d2a83c68cf91", KnownUE1Games::UT99_469d_RC4},
+	{"59a6382fbc32c4bad0df70c7b5b4aebde2c2776c", KnownUE1Games::UT99_469c},
 	// Linux, 64 bit
-	{"9cee66da8d3cddff5685f36104be009252e414ee", KnownUE1Games::UT99_469d_RC4},
+	{"994da56d669b7956b289ea2f0221adf9814a894c", KnownUE1Games::UT99_469c},
+
+	// Unreal Tournament, v469d, Windows + Linux versions (32 + 64 bit)
+	// Windows
+	{"78c65e9434b442b15820d863136bb5a44700ad26", KnownUE1Games::UT99_469d},
+	// Linux, 32 bit
+	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469d},
+	// Linux, 64 bit
+	{"e117d883e3d0c480e9c56b01932b161c6c6f1315", KnownUE1Games::UT99_469d},
 
 	// Deus Ex, v1112fm
 	{"2a933e26aa9cfb33b37f78afe21434caa031f14a", KnownUE1Games::DEUS_EX_1112fm},

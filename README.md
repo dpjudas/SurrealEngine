@@ -12,8 +12,8 @@ It will attempt to load all level actors and initialize the map. However, while 
 
 At the time of this writing, SurrealEngine can detect the following UE1 games:
 
-* Unreal Tournament (v436, v451b, v469d RC4)
-* Unreal Gold (v226, v227i, v227j)
+* Unreal Tournament (v436, v451b, v469(b, c, d))
+* Unreal Gold (v226, v227(i, j))
 * Deus Ex (v1112fm)
 
 Klingon Honor Guard has its executable's SHA1 sum missing, so it cannot be detected, although the relevant entries for it are there.
