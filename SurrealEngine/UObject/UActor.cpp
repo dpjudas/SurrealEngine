@@ -561,10 +561,8 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	gravityVector = zone->ZoneGravity();
-	double gravityMag = length(gravityVector);
 	vec3 oldVelocity = Velocity();
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 2.0f) + (gravityScale * gravityVector)) * 0.5f * elapsed;
+	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 2.0f) + (gravityScale * zone->ZoneGravity())) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
 	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
@@ -586,106 +584,55 @@ void UActor::TickFalling(float elapsed)
 		}
 
 		vec3 moveDelta = (newVelocity + zone->ZoneVelocity()) * timeLeft;
+		vec3 dirNormal = normalize(newVelocity);
 
 		CollisionHit hit = TryMove(moveDelta);
 		timeLeft -= timeLeft * hit.Fraction;
 
 		if (hit.Fraction < 1.0f)
 		{
-			if (bBounce())
+			if (hit.Actor != nullptr)
 			{
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-				// TODO: perform bounce
+				// Hit an actor
+
 			}
 			else
 			{
 				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-				// TODO: ugh, what a fucking mess
-				// 
-				// there several cases we have to consider when hitting a surface in mid-air, all dependent on the normal.Z of the surface we hit, these cases are:
-				// - Hit a ceiling				(hit.Normal.z >= -1.0f   && hit.Normal.z <= -0.7071f)	-> Invert Z velocity, apply X/Y velocity based on hit.Normal.{x,y} * newVelocity.z
-				// - Hit a ceiling slope	(hit.Normal.z > -0.7071f && hit.Normal.z < 0.0f)		  -> Adjust gravity along the slope of the surface
-				// - Hit a wall						(hit.Normal.z == 0.0f)															  -> Glide along the wall (as TickWalking does)
-				// - Hit a floor slope		(hit.Normal.z > 0.0f		 && hit.Normal.z < 0.7071f)		-> Adjust gravity along the slope of the surface
-				// - Hit a floor					(hit.Normal.z <= 1.0f		 && hit.Normal.z >= 0.7071f)  -> Landed, go to PHYS_Walking
-				//
-				if (hit.Normal.z <= -0.7071f)
+				// Hit the level
+				if (bBounce())
 				{
-					// hit a ceiling
-					newVelocity.x += newVelocity.z * hit.Normal.x * 0.5f;
-					newVelocity.y += newVelocity.z * hit.Normal.y * 0.5f;
-					newVelocity.z = -newVelocity.z;
-					Velocity() = newVelocity;
-				}
-				else if (hit.Normal.z > -0.7071f && hit.Normal.z < 0.0f)
-				{
-					// hit a sloped surface above us
-					newVelocity.x = newVelocity.z * hit.Normal.x;
-					newVelocity.y = newVelocity.z * hit.Normal.y;
-					Velocity() = newVelocity;
-				}
-				else if (hit.Normal.z == 0.0f)
-				{
-					newVelocity = (oldVelocity - hit.Normal * dot(oldVelocity, hit.Normal)) * (1.0f - hit.Fraction);
-					if (dot(oldVelocity, newVelocity) >= 0.0f)
-					{
-						Velocity() = newVelocity;
-
-						hit = TryMove(newVelocity * timeLeft);
-						timeLeft -= timeLeft * hit.Fraction;
-
-						if (hit.Fraction < 1.0f)
-						{
-							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-						}
-					}
-				}
-				else if (hit.Normal.z < 0.7071f && hit.Normal.z > 0.0f)
-				{
-					// XXX: This is still wrong, velocity increases too much
-					// slide along floors sloped steeper than 45 degrees
-					Rotator rot = Rotator::FromVector(hit.Normal);
-					vec3 at, left, up;
-					Coords::Rotation(rot).GetAxes(at, left, up);
-
-					gravityVector.x = at.x;
-					gravityVector.y = -at.z;
-					gravityVector.z = at.y * 0.5f;
-					gravityVector *= (float)(gravityMag * 0.5f);
-
-					newVelocity = oldVelocity * (1.0f - fluidFriction * timeLeft) + ((Acceleration() * 0.3f) + gravityScale * gravityVector) * 0.75f * timeLeft;
-
-					// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
-					curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
-					if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
-					{
-						float xySpeed = length(Velocity().xy());
-						newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
-					}
-
-					Velocity() = newVelocity;
-					MoveSmooth(newVelocity * timeLeft);
-					timeLeft = 0.0f;
+					// TODO: perform bounce
 				}
 				else
 				{
-					timeLeft = 0.0f;
-
-					// landed on the floor
-					CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hit.Normal) });
-
-					if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+					if (hit.Normal.z < 0.7071f)
 					{
-						if (UObject::TryCast<UPawn>(this))
+						// We hit a slope. Try to follow it.
+						vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+						if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
 						{
-							SetPhysics(PHYS_Walking);
-						}
-						else
+							hit = TryMove(alignedDelta);
+							if (hit.Fraction < 1.0f && hit.Normal.z > 0.7071f)
+							{
+								PhysLanded(hit.Normal);
+								return;
+							}
+						} 
+
+						// adjust velocity along the slope
+						if (!bBounce() && !bJustTeleported())
 						{
-							SetPhysics(PHYS_None);
-							Velocity() = vec3(0.0f);
+							Velocity() = (Location() - OldLocation()) / elapsed;
 						}
+
+						timeLeft = 0.0f;
+					}
+					else
+					{
+						PhysLanded(hit.Normal);
+						timeLeft = 0.0f;
 					}
 				}
 			}
@@ -1075,6 +1022,25 @@ void UActor::TickTrailer(float elapsed)
 	if (bTrailerSameRotation() && DrawType() != DT_Sprite)
 	{
 		SetRotation(Owner()->Rotation());
+	}
+}
+
+void UActor::PhysLanded(const vec3& hitNormal)
+{
+	// landed on the floor
+	CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hitNormal) });
+
+	if (Physics() == PHYS_Falling) // Landed event might have changed the physics mode
+	{
+		if (UObject::TryCast<UPawn>(this))
+		{
+			SetPhysics(PHYS_Walking);
+		}
+		else
+		{
+			SetPhysics(PHYS_None);
+			Velocity() = vec3(0.0f);
+		}
 	}
 }
 

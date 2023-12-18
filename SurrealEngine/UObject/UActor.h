@@ -173,6 +173,8 @@ public:
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
 
+	void PhysLanded(const vec3& hitNormal);
+
 	virtual void TickRotating(float elapsed);
 
 	void SetPhysics(uint8_t newPhysics);
