@@ -538,12 +538,20 @@ void UActor::TickFalling(float elapsed)
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
 
+	// UnrealScript property references
+	vec3& acceleration = Acceleration();
+	vec3& velocity = Velocity();
+	vec3& oldLocation = OldLocation();
+	vec3& location = Location();
+	float groundSpeed = 0.0f;
+
 	if (pawn)
 	{
+		groundSpeed = pawn->GroundSpeed();
 		float maxAccel = pawn->AirControl() * pawn->AccelRate();
-		float accel = length(Acceleration());
+		float accel = length(acceleration);
 		if (accel > maxAccel)
-			Acceleration() = normalize(Acceleration()) * maxAccel;
+			acceleration = normalize(acceleration) * maxAccel;
 	}
 
 	float gravityScale = 2.0f;
@@ -553,7 +561,7 @@ void UActor::TickFalling(float elapsed)
 	{
 		gravityScale = 1.0f;
 	}
-	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && Velocity().z < 0.0f)
+	else if (pawn && pawn->FootRegion().Zone->bWaterZone() && velocity.z < 0.0f)
 	{
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
@@ -561,26 +569,32 @@ void UActor::TickFalling(float elapsed)
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
-	vec3 oldVelocity = Velocity();
-	vec3 newVelocity = Velocity() * (1.0f - fluidFriction * elapsed) + ((Acceleration() * 2.0f) + (gravityScale * zone->ZoneGravity())) * 0.5f * elapsed;
+	float fluidFactor = 1.0f - fluidFriction * elapsed;
+	vec3 accelVector = acceleration * 1.5f;
+	vec3 gravityVector = gravityScale * zone->ZoneGravity();
+
+	vec3 oldVelocity = velocity;
+	vec3 newVelocity = oldVelocity * fluidFactor + (accelVector + gravityVector) * 0.5f * elapsed;
 
 	// Limit air control to controlling which direction we are moving in the XY plane, but not increase the speed beyond the ground speed
-	float curSpeedSquared = dot(Velocity().xy(), Velocity().xy());
-	if (pawn && curSpeedSquared >= (pawn->GroundSpeed() * pawn->GroundSpeed()) && dot(newVelocity.xy(), newVelocity.xy()) > curSpeedSquared)
+	vec2 velocity2d = velocity.xy();
+	vec2 newVelocity2d = newVelocity.xy();
+	float curSpeedSquared = dot(velocity2d, velocity2d);
+	if (pawn && curSpeedSquared >= (groundSpeed * groundSpeed) && dot(newVelocity2d, newVelocity2d) > curSpeedSquared)
 	{
-		float xySpeed = length(Velocity().xy());
-		newVelocity = vec3(normalize(newVelocity.xy()) * xySpeed, newVelocity.z);
+		float xySpeed = length(velocity2d);
+		newVelocity = vec3(normalize(newVelocity2d) * xySpeed, newVelocity.z);
 	}
-	Velocity() = newVelocity;
+	velocity = newVelocity;
 
 	float timeLeft = elapsed;
 	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 	{
 		float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
-		if (dot(Velocity(), Velocity()) > zoneTerminalVelocity * zoneTerminalVelocity)
+		if (dot(velocity, velocity) > zoneTerminalVelocity * zoneTerminalVelocity)
 		{
-			Velocity() = normalize(Velocity()) * zoneTerminalVelocity;
-			newVelocity = Velocity();
+			velocity = normalize(velocity) * zoneTerminalVelocity;
+			newVelocity = velocity;
 		}
 
 		vec3 moveDelta = (newVelocity + zone->ZoneVelocity()) * timeLeft;
@@ -593,8 +607,7 @@ void UActor::TickFalling(float elapsed)
 		{
 			if (hit.Actor != nullptr)
 			{
-				// Hit an actor
-
+				// TODO: Hit an actor
 			}
 			else
 			{
@@ -623,9 +636,7 @@ void UActor::TickFalling(float elapsed)
 
 						// adjust velocity along the slope
 						if (!bBounce() && !bJustTeleported())
-						{
-							Velocity() = (Location() - OldLocation()) / elapsed;
-						}
+							velocity = (location - oldLocation) / elapsed;
 
 						timeLeft = 0.0f;
 					}
