@@ -616,12 +616,12 @@ std::map<NameString, std::string> UClass::ParseStructValue(const std::string& te
 	return desc;
 }
 
-UProperty* UClass::GetProperty(const NameString& name)
+UProperty* UClass::GetProperty(const NameString& propName)
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if (prop->Name == name)
+		if (prop->Name == propName)
 			return prop;
 	}
-	throw std::runtime_error("Property '" + name.ToString() + "' not found");
+	throw std::runtime_error("Class Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
