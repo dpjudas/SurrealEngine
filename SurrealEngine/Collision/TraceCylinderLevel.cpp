@@ -15,7 +15,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 	dvec3 origin = to_dvec3(from);
 	dvec3 rayEnd = to_dvec3(to);
 	dvec3 direction = to_dvec3(to) - origin;
-	double tmin = 0.01f;
+	double tmin = 0.0f; // if this goes above 0.0, you will be able to walk through walls!
 	double tmax = length(direction);
 	if (tmax < tmin)
 		return {};

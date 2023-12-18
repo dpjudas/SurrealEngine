@@ -49,7 +49,7 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.Clipper.Setup(Scene.Frame.Projection * Scene.Frame.WorldToView * Scene.Frame.ObjectToWorld);
 	Scene.ViewLocation = vec4(location, 1.0f);
 	Scene.ViewZone = FindZoneAt(location);
-	Scene.ViewZoneMask = 1ULL << Scene.ViewZone;
+	Scene.ViewZoneMask = Scene.ViewZone ? 1ULL << Scene.ViewZone : -1;
 	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
 	Scene.TranslucentNodes.clear();
@@ -269,8 +269,9 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 				{
 					// Note: this doesn't take the rotation into account!
 					BBox bbox = actor->Mesh()->BoundingBox;
-					bbox.min = bbox.min * actor->Mesh()->Scale + actor->Location();
-					bbox.max = bbox.max * actor->Mesh()->Scale + actor->Location();
+					vec3 Scale = actor->Mesh()->Scale * actor->DrawScale();
+					bbox.min = (bbox.min * Scale) + actor->Location();
+					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (Scene.Clipper.IsAABBVisible(bbox))
 					{
 						Scene.Actors.push_back(actor);
@@ -343,6 +344,9 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 
 	uint32_t PolyFlags = surface.PolyFlags;
 	UTexture* texture = surface.Material;
+	if (!texture)
+		texture = engine->LevelInfo->DefaultTexture();
+
 	bool opaqueSurface = ((PolyFlags & PF_NoOcclude) == 0) &&
 		!texture->bMasked() && !texture->bTransparent() && !texture->bModulate();
 

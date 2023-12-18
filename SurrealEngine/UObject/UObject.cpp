@@ -87,24 +87,24 @@ PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const
 	return PropertyDataOffset();
 }
 
-const void* UObject::GetProperty(const NameString& name) const
+const void* UObject::GetProperty(const NameString& propName) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if (prop->Name == name)
+		if (prop->Name == propName)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Property '" + name.ToString() + "' not found");
+	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
-void* UObject::GetProperty(const NameString& name)
+void* UObject::GetProperty(const NameString& propName)
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if (prop->Name == name)
+		if (prop->Name == propName)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Property '" + name.ToString() + "' not found");
+	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 bool UObject::HasProperty(const NameString& name) const
@@ -127,14 +127,14 @@ uint32_t UObject::GetInt(const NameString& name) const
 	return *static_cast<const uint32_t*>(GetProperty(name));
 }
 
-bool UObject::GetBool(const NameString& name) const
+bool UObject::GetBool(const NameString& propName) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if (prop->Name == name)
+		if (prop->Name == propName)
 			return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
 	}
-	throw std::runtime_error("Property '" + name.ToString() + "' not found");
+	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 float UObject::GetFloat(const NameString& name) const

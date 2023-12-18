@@ -98,15 +98,25 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Unreal";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 226;
+						folder.launchInfo.engineSubVersion = 0;
 						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227i:
+					{
+						folder.name = "Unreal";
+						folder.launchInfo.folder = path;
+						folder.launchInfo.engineVersion = 227;
+						folder.launchInfo.engineSubVersion = 9;
+						folder.launchInfo.gameName = "Unreal";
+					}
+					break;
 					case KnownUE1Games::UNREALGOLD_227j:
 					{
 						folder.name = "Unreal";
 						folder.launchInfo.folder = path;
-						folder.launchInfo.engineVersion = 227; // No subversions...
+						folder.launchInfo.engineVersion = 227;
+						folder.launchInfo.engineSubVersion = 10;
 						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
@@ -115,6 +125,7 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Unreal Tournament";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 436;
+						folder.launchInfo.engineSubVersion = 0;
 						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
@@ -123,16 +134,20 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Unreal Tournament";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 451;
+						folder.launchInfo.engineSubVersion = 0;
 						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::UT99_469b:
+						folder.launchInfo.engineSubVersion = 1;
 					case KnownUE1Games::UT99_469c:
+						folder.launchInfo.engineSubVersion = 2;
 					case KnownUE1Games::UT99_469d:
 					{
 						folder.name = "Unreal Tournament";
 						folder.launchInfo.folder = path;
-						folder.launchInfo.engineVersion = 469; // No subversions either...
+						folder.launchInfo.engineVersion = 469;
+						folder.launchInfo.engineSubVersion = 3;
 						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
@@ -141,6 +156,7 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Deus Ex";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 1112;
+						folder.launchInfo.engineSubVersion = 0;
 						folder.launchInfo.gameName = "DeusEx";
 						folder.launchInfo.noEntryMap = true;
 					}
@@ -150,6 +166,7 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Klingon Honor Guard";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 219;
+						folder.launchInfo.engineSubVersion = 0;
 						folder.launchInfo.gameName = "klingons";
 					}
 					break;

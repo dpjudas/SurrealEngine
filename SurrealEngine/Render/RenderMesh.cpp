@@ -13,8 +13,7 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 	UpdateActorLightList(actor);
 
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
-	mat4 meshToObject = Coords::Rotation(mesh->RotOrigin).ToMatrix() * mat4::scale(mesh->Scale) * mat4::translate(-mesh->Origin);
-	mat4 meshToWorld = objectToWorld * meshToObject;
+	mat4 meshToWorld = objectToWorld * mesh->meshToObject;
 	mat3 meshNormalToWorld = mat3::transpose(mat3(meshToWorld));
 
 	if (dynamic_cast<USkeletalMesh*>(mesh))

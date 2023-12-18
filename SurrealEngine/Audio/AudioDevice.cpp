@@ -416,6 +416,9 @@ public:
 
 	void UpdateMusicBuffer() override
 	{
+		if (!music)
+			return;
+
 		int format = AL_FORMAT_STEREO_FLOAT32;
 		if (music->GetChannels() == 1)
 			format = AL_FORMAT_MONO_FLOAT32;
