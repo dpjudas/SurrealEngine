@@ -382,8 +382,8 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 
 void NActor::PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Actor.PlayerCanSeeMe");
-	ReturnValue = false;
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->PlayerCanSeeMe();
 }
 
 void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, vec3* Loc)

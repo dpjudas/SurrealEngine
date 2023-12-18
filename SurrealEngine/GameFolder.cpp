@@ -126,7 +126,9 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
-					case KnownUE1Games::UT99_469d_RC4:
+					case KnownUE1Games::UT99_469b:
+					case KnownUE1Games::UT99_469c:
+					case KnownUE1Games::UT99_469d:
 					{
 						folder.name = "Unreal Tournament";
 						folder.launchInfo.folder = path;

@@ -354,6 +354,44 @@ CollisionHitList UModel::TraceRay(const dvec3& origin, double tmin, const dvec3&
 	return trace.Trace(this, origin, tmin, dirNormalized, tmax, visibilityOnly);
 }
 
+PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
+{
+	PointRegion region;
+	region.BspLeaf = 0;
+	region.ZoneNumber = 0;
+
+	vec4 location = vec4(point, 1.0f);
+
+	// Search the BSP
+	BspNode* nodes = Nodes.data();
+	BspNode* node = nodes;
+	while (true)
+	{
+		vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
+		float side = dot(location, plane);
+		if (node->Front >= 0 && side >= 0.0f)
+		{
+			node = nodes + node->Front;
+		}
+		else if (node->Back >= 0 && side <= 0.0f)
+		{
+			node = nodes + node->Back;
+		}
+		else
+		{
+			region.ZoneNumber = node->Zone1;
+			region.BspLeaf = side >= 0.0f ? node->Leaf0 : node->Leaf1;
+			break;
+		}
+	}
+
+	region.Zone = UObject::Cast<UZoneInfo>(Zones[region.ZoneNumber].ZoneActor);
+	if (!region.Zone)
+		region.Zone = levelZoneInfo;
+
+	return region;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UPolys::Load(ObjectStream* stream)

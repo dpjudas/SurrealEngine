@@ -57,6 +57,13 @@ public:
 	static std::vector<std::string> files(const std::string &filename);
 };
 
+class OS
+{
+public:
+	static std::string get_default_font_name();
+	static std::string find_truetype_font(const std::string& font_name);
+};
+
 class FilePath
 {
 public:

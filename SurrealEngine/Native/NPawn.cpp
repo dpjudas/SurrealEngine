@@ -198,12 +198,12 @@ void NPawn::WaitForLanding(UObject* Self)
 
 void NPawn::actorReachable(UObject* Self, UObject* anActor, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.actorReachable");
-	ReturnValue = false;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = SelfPawn->ActorReachable(UObject::Cast<UActor>(anActor));
 }
 
 void NPawn::pointReachable(UObject* Self, const vec3& aPoint, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.pointReachable");
-	ReturnValue = false;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = SelfPawn->PointReachable(aPoint);
 }
