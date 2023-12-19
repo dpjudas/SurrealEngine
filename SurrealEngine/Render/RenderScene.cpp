@@ -100,6 +100,14 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 
 	UpdateTexture(surface.Material);
 
+	// Try to find the Zone the surface is in, to obtain its ZoneInfo actor.
+	auto zoneNum = FindZoneAt(Base);
+	// Might return NULL if there is no corresponding ZoneInfo actor for the given Zone.
+	auto zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[zoneNum].ZoneActor);
+
+	float ZoneUPanSpeed = zoneInfo ? zoneInfo->TexUPanSpeed() : 1.0f;
+	float ZoneVPanSpeed = zoneInfo ? zoneInfo->TexVPanSpeed() : 1.0f;
+
 	FTextureInfo texture;
 	if (surface.Material)
 	{
@@ -123,8 +131,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	FTextureInfo detailtex;
@@ -147,8 +155,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (detailtex.Texture->Palette())
 			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	FTextureInfo macrotex;
@@ -171,8 +179,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (macrotex.Texture->Palette())
 			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	int numverts = node->NumVertices;
