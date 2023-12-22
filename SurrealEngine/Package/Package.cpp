@@ -401,7 +401,7 @@ void Package::ReadTables()
 	uint16_t licenseeMode = stream->ReadInt16();
 
 	if (Version < 60 || Version >= 100)
-		throw std::runtime_error("Unsupported unreal package version");
+		throw std::runtime_error("Unsupported unreal package version: " + Name.ToString());
 
 	Flags = (PackageFlags)stream->ReadUInt32();
 
