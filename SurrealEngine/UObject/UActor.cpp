@@ -341,15 +341,18 @@ void UActor::TickPhysics(float elapsed)
 
 		TickRotating(physTimeElapsed);
 
-		if (PendingTouch())
+		if (engine->LaunchInfo.engineVersion >= 400)
 		{
-			CallEvent(PendingTouch(), EventName::PostTouch, { ExpressionValue::ObjectValue(this) });
 			if (PendingTouch())
 			{
-				UActor* cur = PendingTouch();
-				UActor* next = cur->PendingTouch();
-				PendingTouch() = next;
-				cur->PendingTouch() = nullptr;
+				CallEvent(PendingTouch(), EventName::PostTouch, { ExpressionValue::ObjectValue(this) });
+				if (PendingTouch())
+				{
+					UActor* cur = PendingTouch();
+					UActor* next = cur->PendingTouch();
+					PendingTouch() = next;
+					cur->PendingTouch() = nullptr;
+				}
 			}
 		}
 	}
