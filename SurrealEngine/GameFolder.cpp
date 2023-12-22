@@ -98,7 +98,7 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.name = "Unreal";
 						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 226;
-						folder.launchInfo.engineSubVersion = 0;
+						folder.launchInfo.engineSubVersion = 2;
 						folder.launchInfo.gameName = "Unreal";
 					}
 					break;

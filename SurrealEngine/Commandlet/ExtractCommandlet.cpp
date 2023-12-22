@@ -10,7 +10,7 @@
 ExtractCommandlet::ExtractCommandlet()
 {
 	SetLongFormName("extract");
-	SetShortDescription("Extra data from packages");
+	SetShortDescription("Extra native info from packages into JSON files");
 }
 
 void ExtractCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
@@ -20,7 +20,13 @@ void ExtractCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		if (!console->launchinfo.folder.empty())
 		{
 			Engine engine(console->launchinfo);
-			File::write_all_text("nativefuncs.txt", NativeFuncExtractor::Run(engine.packages.get()));
+
+			std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
+			if (console->launchinfo.engineSubVersion != 0)
+				path += "-" + std::to_string(console->launchinfo.engineSubVersion);
+			path += "-Natives.json";
+
+			File::write_all_text(path, NativeFuncExtractor::Run(engine.packages.get()));
 		}
 	}
 	else if (args == "nativeobj")
@@ -28,7 +34,13 @@ void ExtractCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		if (!console->launchinfo.folder.empty())
 		{
 			Engine engine(console->launchinfo);
-			File::write_all_text("nativeobjs.txt", NativeObjExtractor::Run(engine.packages.get()));
+
+			std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
+			if (console->launchinfo.engineSubVersion != 0)
+				path += "-" + std::to_string(console->launchinfo.engineSubVersion);
+			path += "-Properties.json";
+
+			File::write_all_text(path, NativeObjExtractor::Run(engine.packages.get()));
 		}
 	}
 }
