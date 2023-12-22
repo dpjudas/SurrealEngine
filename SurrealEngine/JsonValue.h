@@ -53,6 +53,8 @@ public:
 	JsonValue &prop(const std::string &name) { return _properties[name]; }
 	JsonValue &prop(const char *name) { return _properties[name]; }
 
+	void add(const std::string name, const JsonValue& value);
+
 	void remove(const std::string &name) { auto it = _properties.find(name); if (it != _properties.end()) _properties.erase(it); }
 	void remove(const char *name) { auto it = _properties.find(name); if (it != _properties.end()) _properties.erase(it); }
 
