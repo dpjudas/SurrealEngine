@@ -5,107 +5,68 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
+#include "JsonValue.h"
 #include "File.h"
 #include <set>
 
 std::string NativeFuncExtractor::Run(PackageManager* packages)
 {
-	std::string headers;
-	std::string bodies;
+	JsonValue jsonRoot = JsonValue::object();
 
 	//for (std::string pkgname : { "Core", "Engine", "IpDrv", "DeusEx", "Extension" } /* packages->GetPackageNames() */)
 	for (NameString pkgname : packages->GetPackageNames())
 	{
 		if (pkgname == "Editor")
 			continue;
+
 		Package* package = packages->GetPackage(pkgname.ToString());
-		std::vector<UClass*> classes = package->GetAllClasses();
 
-		for (UClass* cls : classes)
+		JsonValue jsonPackage = CreatePackageJson(package);
+		if (jsonPackage.properties().size() > 0)
 		{
-			headers += WriteClassHeader(cls);
-			bodies += WriteClassBody(cls);
+			jsonRoot.add(pkgname.ToString(), jsonPackage);
 		}
 	}
 
-	return headers + "\r\n\r\n" + bodies;
+	return jsonRoot.to_json();
 }
 
-std::string NativeFuncExtractor::WriteClassHeader(UClass* cls)
+JsonValue NativeFuncExtractor::CreatePackageJson(Package* package)
 {
-	std::map<NameString, std::string> funcs;
+	JsonValue jsonPackage = JsonValue::object();
+
+	std::vector<UClass*> classes = package->GetAllClasses();
+	for (UClass* cls : classes)
+	{
+		JsonValue jsonClass = CreateClassJson(cls);
+		if (jsonClass.properties().size() > 0)
+		{
+			jsonPackage.add(cls->Name.ToString(), jsonClass);
+		}
+	}
+
+	return jsonPackage;
+}
+
+JsonValue NativeFuncExtractor::CreateClassJson(UClass* cls)
+{
+	JsonValue jsonClass = JsonValue::object();
 
 	for (UField* child = cls->Children; child != nullptr; child = child->Next)
 	{
 		UFunction* func = UClass::TryCast<UFunction>(child);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
 		{
-			funcs[func->Name] = "\tstatic void " + WriteFunctionSignature(func) + ";\r\n";
+			jsonClass.add(func->Name.ToString(), CreateFunctionJson(func));
 		}
 	}
-	if (funcs.empty())
-		return {};
 
-	std::string header;
-	header += "\r\nclass N" + cls->Name.ToString() + "\r\n";
-	header += "{\r\npublic:\r\n\tstatic void RegisterFunctions();\r\n\r\n";
-	for (auto& it : funcs) header += it.second;
-	header += "};\r\n";
-	return header;
+	return jsonClass;
 }
 
-std::string NativeFuncExtractor::WriteClassBody(UClass* cls)
+JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 {
-	std::map<NameString, std::string> funcs;
-
-	for (UField* child = cls->Children; child != nullptr; child = child->Next)
-	{
-		UFunction* func = UClass::TryCast<UFunction>(child);
-		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
-		{
-			funcs[func->Name] = "void N" + cls->Name.ToString() + "::" + WriteFunctionSignature(func) + "\r\n{\r\n\tthrow std::runtime_error(\"" + cls->Name.ToString() + "." + func->Name.ToString() + " not implemented\");\r\n}\r\n\r\n";
-		}
-	}
-
-	if (funcs.empty())
-		return {};
-
-	std::map<std::string, std::string> registrations;
-	for (UField* child = cls->Children; child != nullptr; child = child->Next)
-	{
-		UFunction* func = UClass::TryCast<UFunction>(child);
-		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
-		{
-			int numargs = 0;
-			for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
-			{
-				UProperty* prop = UClass::TryCast<UProperty>(arg);
-				if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm))
-					numargs++;
-			}
-
-			registrations[func->Name.ToString()] = "\tRegisterVMNativeFunc_" + std::to_string(numargs) + "(\"" + cls->Name.ToString() + "\", \"" + func->Name.ToString() + "\", &N" + cls->Name.ToString() + "::" + func->Name.ToString() + ", " + std::to_string(func->NativeFuncIndex) + ");\r\n";
-		}
-	}
-
-	std::string body;
-
-	body += "void N" + cls->Name.ToString() + "::RegisterFunctions()\r\n{\r\n";
-	for (auto& it : registrations) body += it.second;
-	body += "}\r\n\r\n";
-	for (auto& it : funcs) body += it.second;
-	return body;
-}
-
-std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
-{
-	std::string args;
-
-	if (!AllFlags(func->FuncFlags, FunctionFlags::Static))
-	{
-		args += "UObject* Self";
-	}
-
+	JsonValue jsonFunc = JsonValue::object();
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(arg);
@@ -130,8 +91,6 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 
 			if (NameString(type) == "Vector") type = "vec3";
 
-			if (!args.empty()) args += ", ";
-
 			if (AnyFlags(prop->PropFlags, PropertyFlags::OptionalParm | PropertyFlags::SkipParm))
 			{
 				if (type == "bool")
@@ -151,10 +110,9 @@ std::string NativeFuncExtractor::WriteFunctionSignature(UFunction* func)
 				type = "const " + type + "&";
 			}
 
-			args += type + " " + prop->Name.ToString();
+			jsonFunc.add(arg->Name.ToString(), JsonValue::string(type));
 		}
 	}
 
-	return func->Name.ToString() + "(" + args + ")";
+	return jsonFunc;
 }
-
