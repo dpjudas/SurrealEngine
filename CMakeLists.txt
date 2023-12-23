@@ -35,8 +35,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/CommandLine.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
-	SurrealEngine/Commandlet/ExtractCommandlet.cpp
-	SurrealEngine/Commandlet/ExtractCommandlet.h
+	SurrealEngine/Commandlet/NativesCommandlet.cpp
+	SurrealEngine/Commandlet/NativesCommandlet.h
 	SurrealEngine/Commandlet/QuitCommandlet.cpp
 	SurrealEngine/Commandlet/QuitCommandlet.h
 	SurrealEngine/Commandlet/RunCommandlet.cpp
