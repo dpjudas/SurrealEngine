@@ -91,97 +91,80 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 
 			if (it != SHA1Database.end())
 			{
+				folder.launchInfo.folder = path;
+				folder.launchInfo.gameName = FilePath::remove_extension(executable_name);
+
 				switch (it->second)
 				{
 					case KnownUE1Games::UNREALGOLD_226:
 					{
 						folder.name = "Unreal";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 226;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227i:
 					{
 						folder.name = "Unreal";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 227;
 						folder.launchInfo.engineSubVersion = 9;
-						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227j:
 					{
 						folder.name = "Unreal";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 227;
 						folder.launchInfo.engineSubVersion = 10;
-						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
 					case KnownUE1Games::UT99_436:
 					{
 						folder.name = "Unreal Tournament";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 436;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::UT99_451:
 					{
 						folder.name = "Unreal Tournament";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 451;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::UT99_469b:
 					{
 						folder.name = "Unreal Tournament";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 469;
 						folder.launchInfo.engineSubVersion = 1;
-						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::UT99_469c:
 					{
 						folder.name = "Unreal Tournament";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 469;
 						folder.launchInfo.engineSubVersion = 2;
-						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::UT99_469d:
 					{
 						folder.name = "Unreal Tournament";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 469;
 						folder.launchInfo.engineSubVersion = 3;
-						folder.launchInfo.gameName = "UnrealTournament";
 					}
 					break;
 					case KnownUE1Games::DEUS_EX_1112fm:
 					{
 						folder.name = "Deus Ex";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 1112;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.gameName = "DeusEx";
 						folder.launchInfo.noEntryMap = true;
 					}
 					break;
 					case KnownUE1Games::KLINGON_219:
 					{
 						folder.name = "Klingon Honor Guard";
-						folder.launchInfo.folder = path;
 						folder.launchInfo.engineVersion = 219;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.gameName = "klingons";
 					}
 					break;
 				}
