@@ -139,9 +139,23 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 					}
 					break;
 					case KnownUE1Games::UT99_469b:
+					{
+						folder.name = "Unreal Tournament";
+						folder.launchInfo.folder = path;
+						folder.launchInfo.engineVersion = 469;
 						folder.launchInfo.engineSubVersion = 1;
+						folder.launchInfo.gameName = "UnrealTournament";
+					}
+					break;
 					case KnownUE1Games::UT99_469c:
+					{
+						folder.name = "Unreal Tournament";
+						folder.launchInfo.folder = path;
+						folder.launchInfo.engineVersion = 469;
 						folder.launchInfo.engineSubVersion = 2;
+						folder.launchInfo.gameName = "UnrealTournament";
+					}
+					break;
 					case KnownUE1Games::UT99_469d:
 					{
 						folder.name = "Unreal Tournament";
