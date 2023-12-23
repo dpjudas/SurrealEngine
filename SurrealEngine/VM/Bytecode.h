@@ -57,7 +57,7 @@ public:
 	void ReadBytes(void* d, uint32_t s)
 	{
 		if (pos + s > size)
-			throw std::runtime_error("Unexpected end of file");
+			throw std::runtime_error("BytecodeStream::ReadBytes: Unexpected end of file in " + package->GetPackageName().ToString());
 		memcpy(d, data + pos, s);
 		pos += s;
 	}
@@ -102,14 +102,14 @@ public:
 	ExprToken ReadToken()
 	{
 		if (pos >= size)
-			throw std::runtime_error("Unexpected end of file");
+			throw std::runtime_error("BytecodeStream::ReadToken: Unexpected end of file in " + package->GetPackageName().ToString());
 		return (ExprToken)data[pos++];
 	}
 
 	ExprToken PeekToken()
 	{
 		if (pos >= size)
-			throw std::runtime_error("Unexpected end of file");
+			throw std::runtime_error("BytecodeStream::PeekToken: Unexpected end of file in " + package->GetPackageName().ToString());
 		return (ExprToken)data[pos];
 	}
 
