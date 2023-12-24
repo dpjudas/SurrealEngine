@@ -100,13 +100,16 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 
 	UpdateTexture(surface.Material);
 
-	// Try to find the Zone the surface is in, to obtain its ZoneInfo actor.
-	auto zoneNum = FindZoneAt(Base);
+	// Try to find the Zone the surface is in using the corresponding node, to obtain its ZoneInfo actor.
+	// Checking for Zone1 first seems to work better, as otherwise the clouds in CTF-LavaGiant remain fast.
 	// Might return NULL if there is no corresponding ZoneInfo actor for the given Zone.
-	auto zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[zoneNum].ZoneActor);
+	auto zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[node->Zone1].ZoneActor);
+	if (!zoneInfo)
+		zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[node->Zone0].ZoneActor);
 
-	float ZoneUPanSpeed = zoneInfo ? zoneInfo->TexUPanSpeed() : 1.0f;
-	float ZoneVPanSpeed = zoneInfo ? zoneInfo->TexVPanSpeed() : 1.0f;
+	// If no ZoneInfo is found, use the values from LevelInfo instead.
+	float ZoneUPanSpeed = zoneInfo ? zoneInfo->TexUPanSpeed() : engine->LevelInfo->TexUPanSpeed();
+	float ZoneVPanSpeed = zoneInfo ? zoneInfo->TexVPanSpeed() : engine->LevelInfo->TexVPanSpeed();
 
 	FTextureInfo texture;
 	if (surface.Material)
