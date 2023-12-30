@@ -462,7 +462,7 @@ std::string FilePath::combine(const std::string &path1, const std::string &path2
 	else if (path2_conv.empty())
 		return path1_conv;
 	else if (path2_conv.front() == '/')
-		return path2;
+		return path2_conv;
 	else if (path1_conv.back() != '/')
 		return path1_conv + "/" + path2_conv;
 	else
