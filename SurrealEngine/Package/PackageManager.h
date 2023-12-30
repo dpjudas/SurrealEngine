@@ -23,6 +23,7 @@ public:
 	PackageManager(const GameLaunchInfo& launchInfo);
 
 	bool IsUnreal1() const { return launchInfo.gameName == "Unreal"; }
+	bool IsUnreal1_226() const { return IsUnreal1() && launchInfo.engineVersion == 226; }
 	bool IsUnreal1_227() const { return IsUnreal1() && launchInfo.engineVersion == 227; }
 	bool IsUnrealTournament() const { return launchInfo.gameName == "UnrealTournament"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
