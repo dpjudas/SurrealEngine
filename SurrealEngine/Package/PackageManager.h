@@ -2,6 +2,7 @@
 
 #include "Package.h"
 #include "IniFile.h"
+#include "GameFolder.h"
 #include <list>
 
 class PackageStream;
@@ -19,10 +20,16 @@ struct IntObject
 class PackageManager
 {
 public:
-	PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName);
+	PackageManager(const GameLaunchInfo& launchInfo);
 
-	bool IsUnreal1() const { return engineVersion < 300; }
-	int GetEngineVersion() const { return engineVersion; }
+	bool IsUnreal1() const { return launchInfo.gameName == "Unreal"; }
+	bool IsUnreal1_227() const { return IsUnreal1() && launchInfo.engineVersion == 227; }
+	bool IsUnrealTournament() const { return launchInfo.gameName == "UnrealTournament"; }
+	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
+	bool IsDeusEx() const { return launchInfo.gameName == "DeusEx"; }
+
+	int GetEngineVersion() const { return launchInfo.engineVersion; }
+	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
 
 	Package *GetPackage(const NameString& name);
 	std::vector<NameString> GetPackageNames() const;
@@ -55,7 +62,6 @@ private:
 	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
-	std::string basepath;
 	std::map<NameString, std::string> packageFilenames;
 	std::map<NameString, std::unique_ptr<Package>> packages;
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
@@ -73,8 +79,7 @@ private:
 
 	std::list<OpenStream> openStreams;
 
-	std::string gameName;
-	int engineVersion = 436;
+	GameLaunchInfo launchInfo;
 
 	friend class Package;
 	friend struct SetDelayLoadActive;

@@ -36,7 +36,7 @@
 #include "Native/NScriptedPawn.h"
 #include "Native/NPlayerPawnExt.h"
 
-PackageManager::PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName) : basepath(basepath), engineVersion(engineVersion), gameName(gameName)
+PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
 	NActor::RegisterFunctions();
 	NCanvas::RegisterFunctions();
@@ -57,7 +57,7 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 	NInternetLink::RegisterFunctions();
 	NTcpLink::RegisterFunctions();
 	NUdpLink::RegisterFunctions();
-	if (gameName == "DeusEx")
+	if (IsDeusEx())
 	{
 		NDebugInfo::RegisterFunctions();
 		NDeusExDecoration::RegisterFunctions();
@@ -102,7 +102,8 @@ Package* PackageManager::GetPackage(const NameString& name)
 	}
 	else
 	{
-		if (name == "UnrealI")
+		// TODO: Read things from the PackageRemap section of the .ini, perhaps?
+		if (IsUnrealTournament() && name == "UnrealI")
 			return GetPackage("UnrealShare");
 		throw std::runtime_error("Could not find package " + name.ToString());
 	}
@@ -129,7 +130,7 @@ void PackageManager::UnloadPackage(const NameString& name)
 
 void PackageManager::ScanForMaps()
 {
-	std::string packagedir = FilePath::combine(basepath, "Maps");
+	std::string packagedir = FilePath::combine(launchInfo.folder, "Maps");
 	for (std::string filename : Directory::files(FilePath::combine(packagedir, "*.unr")))
 	{
 		maps.push_back(filename);
@@ -138,7 +139,7 @@ void PackageManager::ScanForMaps()
 
 void PackageManager::ScanFolder(const std::string& name, const std::string& search)
 {
-	std::string packagedir = FilePath::combine(basepath, name);
+	std::string packagedir = FilePath::combine(launchInfo.folder, name);
 	for (std::string filename : Directory::files(FilePath::combine(packagedir, search)))
 	{
 		packageFilenames[NameString(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
@@ -234,14 +235,14 @@ UClass* PackageManager::FindClass(const NameString& name)
 std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = gameName;
+		iniName = launchInfo.gameName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetValue(sectionName, keyName);
@@ -249,7 +250,7 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 
 void PackageManager::LoadIntFiles()
 {
-	std::string systemdir = FilePath::combine(basepath, "System");
+	std::string systemdir = FilePath::combine(launchInfo.folder, "System");
 	for (std::string filename : Directory::files(FilePath::combine(systemdir, "*.int")))
 	{
 		try
@@ -316,7 +317,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	{
 		try
 		{
-			intFile = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + packageName.ToString() + ".int"));
+			intFile = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + packageName.ToString() + ".int"));
 		}
 		catch (...)
 		{
