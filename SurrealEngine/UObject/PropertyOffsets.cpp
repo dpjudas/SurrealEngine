@@ -2428,10 +2428,14 @@ static void InitPropertyOffsets_TcpLink(PackageManager* packages)
 		memset(&PropOffsets_TcpLink, 0xff, sizeof(PropOffsets_TcpLink));
 		return;
 	}
-	PropOffsets_TcpLink.AcceptClass = cls->GetProperty("AcceptClass")->DataOffset;
+
+	// AcceptClass and SendFIFO don't seem to exist in Unreal Gold 226 for some reason?
+	if (!packages->IsUnreal1_226())
+		PropOffsets_TcpLink.AcceptClass = cls->GetProperty("AcceptClass")->DataOffset;
 	PropOffsets_TcpLink.LinkState = cls->GetProperty("LinkState")->DataOffset;
 	PropOffsets_TcpLink.RemoteAddr = cls->GetProperty("RemoteAddr")->DataOffset;
-	PropOffsets_TcpLink.SendFIFO = cls->GetProperty("SendFIFO")->DataOffset;
+	if (!packages->IsUnreal1_226())
+		PropOffsets_TcpLink.SendFIFO = cls->GetProperty("SendFIFO")->DataOffset;
 }
 
 void InitPropertyOffsets(PackageManager* packages)
