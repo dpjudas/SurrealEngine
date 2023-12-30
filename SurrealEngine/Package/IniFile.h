@@ -8,6 +8,7 @@ public:
 	IniFile() = default;
 	IniFile(const std::string& filename);
 
+	std::vector<NameString> GetKeys(NameString sectionName) const;
 	std::string GetValue(NameString sectionName, NameString keyName) const;
 	std::vector<std::string> GetValues(NameString sectionName, NameString keyName) const;
 
