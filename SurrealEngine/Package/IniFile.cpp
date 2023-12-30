@@ -73,6 +73,24 @@ bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
 	return true;
 }
 
+std::vector<NameString> IniFile::GetKeys(NameString sectionName) const
+{
+	std::vector<NameString> result;
+	
+	auto itSection = sections.find(sectionName);
+	if (itSection == sections.end())
+		return {};
+
+	const auto& values = itSection->second;
+
+	for (auto& key : values)
+	{
+		result.push_back(key.first);
+	}
+
+	return result;
+}
+
 std::string IniFile::GetValue(NameString sectionName, NameString keyName) const
 {
 	auto itSection = sections.find(sectionName);
