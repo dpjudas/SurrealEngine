@@ -44,7 +44,9 @@ public:
 
 	UClass* FindClass(const NameString& name);
 
+	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
 	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName);
+	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName);
 	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
 
 	std::vector<IntObject>& GetIntObjects(const NameString& metaclass);
@@ -52,11 +54,13 @@ public:
 
 private:
 	void LoadIntFiles();
+	void LoadPackageRemaps();
 	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
 
 	void ScanForMaps();
 
-	void ScanFolder(const std::string& name, const std::string& search);
+	void ScanFolder(const std::string& packagedir, const std::string& search);
+	void ScanPaths();
 
 	void DelayLoadNow();
 
@@ -67,6 +71,7 @@ private:
 	std::map<NameString, std::unique_ptr<Package>> packages;
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
+	std::map<std::string, std::string> packageRemaps;
 
 	std::map<NameString, std::vector<IntObject>> IntObjects;
 
