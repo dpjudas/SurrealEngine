@@ -261,7 +261,7 @@ std::vector<std::string> Directory::files(const std::string &filename)
 	if (!dir)
 	{
 		//throw std::runtime_error("Could not open folder: " + path);
-		printf("Could not open folder: %s\n", path.c_str());
+		//printf("Could not open folder: %s\n", path.c_str());
 		return {};
 	}
 	
