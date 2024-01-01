@@ -70,7 +70,10 @@ public:
 	static bool has_extension(const std::string &filename, const char *extension);
 	static std::string extension(const std::string &filename);
 	static std::string remove_extension(const std::string &filename);
+	static std::string first_component(const std::string& path);
+	static std::string remove_first_component(const std::string& path);
 	static std::string last_component(const std::string &path);
 	static std::string remove_last_component(const std::string &path);
 	static std::string combine(const std::string &path1, const std::string &path2);
+	static std::string convert_path_delimiters(const std::string &path);
 };

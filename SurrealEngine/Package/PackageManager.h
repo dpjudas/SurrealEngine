@@ -2,6 +2,7 @@
 
 #include "Package.h"
 #include "IniFile.h"
+#include "GameFolder.h"
 #include <list>
 
 class PackageStream;
@@ -19,10 +20,17 @@ struct IntObject
 class PackageManager
 {
 public:
-	PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName);
+	PackageManager(const GameLaunchInfo& launchInfo);
 
-	bool IsUnreal1() const { return engineVersion < 300; }
-	int GetEngineVersion() const { return engineVersion; }
+	bool IsUnreal1() const { return launchInfo.gameName == "Unreal"; }
+	bool IsUnreal1_226() const { return IsUnreal1() && launchInfo.engineVersion == 226; }
+	bool IsUnreal1_227() const { return IsUnreal1() && launchInfo.engineVersion == 227; }
+	bool IsUnrealTournament() const { return launchInfo.gameName == "UnrealTournament"; }
+	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
+	bool IsDeusEx() const { return launchInfo.gameName == "DeusEx"; }
+
+	int GetEngineVersion() const { return launchInfo.engineVersion; }
+	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
 
 	Package *GetPackage(const NameString& name);
 	std::vector<NameString> GetPackageNames() const;
@@ -36,7 +44,9 @@ public:
 
 	UClass* FindClass(const NameString& name);
 
+	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
 	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName);
+	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName);
 	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
 
 	std::vector<IntObject>& GetIntObjects(const NameString& metaclass);
@@ -44,22 +54,24 @@ public:
 
 private:
 	void LoadIntFiles();
+	void LoadPackageRemaps();
 	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
 
 	void ScanForMaps();
 
-	void ScanFolder(const std::string& name, const std::string& search);
+	void ScanFolder(const std::string& packagedir, const std::string& search);
+	void ScanPaths();
 
 	void DelayLoadNow();
 
 	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
-	std::string basepath;
 	std::map<NameString, std::string> packageFilenames;
 	std::map<NameString, std::unique_ptr<Package>> packages;
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
+	std::map<std::string, std::string> packageRemaps;
 
 	std::map<NameString, std::vector<IntObject>> IntObjects;
 
@@ -73,8 +85,7 @@ private:
 
 	std::list<OpenStream> openStreams;
 
-	std::string gameName;
-	int engineVersion = 436;
+	GameLaunchInfo launchInfo;
 
 	friend class Package;
 	friend struct SetDelayLoadActive;

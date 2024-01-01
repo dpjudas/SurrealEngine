@@ -259,7 +259,11 @@ std::vector<std::string> Directory::files(const std::string &filename)
 
 	DIR *dir = opendir(path.c_str());
 	if (!dir)
-		throw std::runtime_error("Could not open folder: " + path);
+	{
+		//throw std::runtime_error("Could not open folder: " + path);
+		//printf("Could not open folder: %s\n", path.c_str());
+		return {};
+	}
 	
 	while (true)
 	{
@@ -373,63 +377,108 @@ std::string FilePath::remove_extension(const std::string &filename)
 		return filename.substr(0, filename.length() - file.length() + pos);
 }
 
+std::string FilePath::first_component(const std::string& path)
+{
+	auto path_conv = convert_path_delimiters(path);
+#ifdef WIN32
+	auto first_slash = path_conv.find_first_of("/\\");
+#else
+	auto first_slash = path_conv.find_first_of('/');
+#endif
+	if (first_slash != std::string::npos)
+		return path_conv.substr(0, first_slash);
+	else
+		return path_conv;
+}
+
+std::string FilePath::remove_first_component(const std::string& path)
+{
+	auto path_conv = convert_path_delimiters(path);
+#ifdef WIN32
+	auto first_slash = path_conv.find_first_of("/\\");
+#else
+	auto first_slash = path_conv.find_first_of('/');
+#endif
+	if (first_slash != std::string::npos)
+		return path_conv.substr(first_slash + 1);
+	else
+		return std::string();
+}
+
 std::string FilePath::last_component(const std::string &path)
 {
+	auto path_conv = convert_path_delimiters(path);
 #ifdef WIN32
-	auto last_slash = path.find_last_of("/\\");
-	if (last_slash != std::string::npos)
-		return path.substr(last_slash + 1);
-	else
-		return path;
+	auto last_slash = path_conv.find_last_of("/\\");
 #else
-	auto last_slash = path.find_last_of('/');
-	if (last_slash != std::string::npos)
-		return path.substr(last_slash + 1);
-	else
-		return path;
+	auto last_slash = path_conv.find_last_of('/');
 #endif
+	if (last_slash != std::string::npos)
+		return path_conv.substr(last_slash + 1);
+	else
+		return path_conv;
 }
 
 std::string FilePath::remove_last_component(const std::string &path)
 {
+	auto path_conv = convert_path_delimiters(path);
 #ifdef WIN32
-	auto last_slash = path.find_last_of("/\\");
-	if (last_slash != std::string::npos)
-		return path.substr(0, last_slash);
-	else
-		return std::string();
+	auto last_slash = path_conv.find_last_of("/\\");
 #else
-	auto last_slash = path.find_last_of('/');
+	auto last_slash = path_conv.find_last_of('/');
+#endif
 	if (last_slash != std::string::npos)
-		return path.substr(0, last_slash);
+		return path_conv.substr(0, last_slash);
 	else
 		return std::string();
-#endif
 }
 
 std::string FilePath::combine(const std::string &path1, const std::string &path2)
 {
+	auto path1_conv = convert_path_delimiters(path1);
+	auto path2_conv = convert_path_delimiters(path2);
 #ifdef WIN32
-	if (path1.empty())
-		return path2;
-	else if (path2.empty())
-		return path1;
-	else if (path2.front() == '/' || path2.front() == '\\')
-		return path2;
-	else if (path1.back() != '/' && path1.back() != '\\')
-		return path1 + "\\" + path2;
+	if (path1_conv.empty())
+		return path2_conv;
+	else if (path2_conv.empty())
+		return path1_conv;
+	else if (path2_conv.front() == '/' || path2_conv.front() == '\\')
+		return path2_conv;
+	else if (path1_conv.back() != '/' && path1_conv.back() != '\\')
+		return path1_conv + "\\" + path2_conv;
 	else
-		return path1 + path2;
+		return path1_conv + path2_conv;
 #else
-	if (path1.empty())
-		return path2;
-	else if (path2.empty())
-		return path1;
-	else if (path2.front() == '/')
-		return path2;
-	else if (path1.back() != '/')
-		return path1 + "/" + path2;
+	if (path1_conv.empty())
+		return path2_conv;
+	else if (path2_conv.empty())
+		return path1_conv;
+	else if (path2_conv.front() == '/')
+		return path2_conv;
+	else if (path1_conv.back() != '/')
+		return path1_conv + "/" + path2_conv;
 	else
-		return path1 + path2;
+		return path1_conv + path2_conv;
 #endif
+}
+
+std::string FilePath::convert_path_delimiters(const std::string &path)
+{
+	std::string result = path;
+#ifdef WIN32
+	auto pos = result.find("/");
+	while (pos != std::string::npos)
+	{
+		result.replace(result.find("/"), 1, "\\");
+		pos = result.find("/");
+	}
+#else
+	auto pos = result.find("\\");
+	while (pos != std::string::npos)
+	{
+		result.replace(result.find("\\"), 1, "/");
+		pos = result.find("\\");
+	}
+#endif
+	return result;
 }

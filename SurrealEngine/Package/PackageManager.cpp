@@ -36,7 +36,7 @@
 #include "Native/NScriptedPawn.h"
 #include "Native/NPlayerPawnExt.h"
 
-PackageManager::PackageManager(const std::string& basepath, int engineVersion, const std::string& gameName) : basepath(basepath), engineVersion(engineVersion), gameName(gameName)
+PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
 	NActor::RegisterFunctions();
 	NCanvas::RegisterFunctions();
@@ -57,7 +57,7 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 	NInternetLink::RegisterFunctions();
 	NTcpLink::RegisterFunctions();
 	NUdpLink::RegisterFunctions();
-	if (gameName == "DeusEx")
+	if (IsDeusEx())
 	{
 		NDebugInfo::RegisterFunctions();
 		NDeusExDecoration::RegisterFunctions();
@@ -71,17 +71,9 @@ PackageManager::PackageManager(const std::string& basepath, int engineVersion, c
 	}
 
 	LoadIntFiles();
+	LoadPackageRemaps();
 	ScanForMaps();
-
-	// TODO: parse game ini for this info
-	ScanFolder("Maps", "*.unr");
-	ScanFolder("Maps", "*.dx"); // Deus Ex
-	if (IsUnreal1())
-		ScanFolder("Maps/UPak", "*.unr");
-	ScanFolder("Music", "*.umx");
-	ScanFolder("Sounds", "*.uax");
-	ScanFolder("System", "*.u");
-	ScanFolder("Textures", "*.utx");
+	ScanPaths();
 
 	InitPropertyOffsets(this);
 
@@ -95,15 +87,23 @@ Package* PackageManager::GetPackage(const NameString& name)
 	if (package)
 		return package.get();
 	
-	auto it = packageFilenames.find(name);
+	// TODO: Is this how PackageRemap really works?
+	// There is no documentation of it anywhere it seems
+	NameString remapped_name = name;
+
+	auto remap_it = packageRemaps.find(name.ToString());
+	if (remap_it != packageRemaps.end())
+	{
+		remapped_name = NameString(remap_it->second);
+	}
+
+	auto it = packageFilenames.find(remapped_name);
 	if (it != packageFilenames.end())
 	{
-		package = std::make_unique<Package>(this, name, it->second);
+		package = std::make_unique<Package>(this, remapped_name, it->second);
 	}
 	else
 	{
-		if (name == "UnrealI")
-			return GetPackage("UnrealShare");
 		throw std::runtime_error("Could not find package " + name.ToString());
 	}
 
@@ -129,19 +129,58 @@ void PackageManager::UnloadPackage(const NameString& name)
 
 void PackageManager::ScanForMaps()
 {
-	std::string packagedir = FilePath::combine(basepath, "Maps");
+	std::string packagedir = FilePath::combine(launchInfo.folder, "Maps");
 	for (std::string filename : Directory::files(FilePath::combine(packagedir, "*.unr")))
 	{
 		maps.push_back(filename);
 	}
 }
 
-void PackageManager::ScanFolder(const std::string& name, const std::string& search)
+void PackageManager::ScanFolder(const std::string& packagedir, const std::string& search)
 {
-	std::string packagedir = FilePath::combine(basepath, name);
 	for (std::string filename : Directory::files(FilePath::combine(packagedir, search)))
 	{
-		packageFilenames[NameString(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
+		// Do not add the package again if it exists
+		// This is useful for example when you have HD textures installed in a different folder
+		// And you wish to load them instead of the original ones
+		auto it = packageFilenames.find(NameString(FilePath::remove_extension(filename)));
+		if (it == packageFilenames.end())
+			packageFilenames[NameString(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
+	}
+}
+
+void PackageManager::ScanPaths()
+{
+	auto paths = GetIniValues("system", "Core.System", "Paths");
+
+	for (auto& current_path : paths)
+	{
+		// Get the filename
+		std::string filename = FilePath::last_component(current_path);
+		current_path = FilePath::remove_last_component(current_path);
+
+		// Paths are relative from the System folder the executable (and the ini file) is in
+		// So we should start from there
+		auto resulting_root_path = FilePath::combine(launchInfo.folder, "System");
+
+		auto first_component = FilePath::first_component(current_path);
+
+		while (first_component == ".." || first_component == ".")
+		{
+			if (first_component == "..")
+			{
+				// "Go one directory up" as many as the amount of ".."s in the current_path
+				resulting_root_path = FilePath::remove_last_component(resulting_root_path);
+			}
+
+			current_path = FilePath::remove_first_component(current_path);
+			first_component = FilePath::first_component(current_path);
+		}
+
+		// Combine everything
+		auto final_path = FilePath::combine(resulting_root_path, current_path);
+
+		ScanFolder(final_path, filename);
 	}
 }
 
@@ -231,25 +270,67 @@ UClass* PackageManager::FindClass(const NameString& name)
 	}
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
+std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = gameName;
+		iniName = launchInfo.gameName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+	}
+
+	return ini->GetKeys(sectionName);
+}
+
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
+{
+	if (iniName == "system" || iniName == "System")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetValue(sectionName, keyName);
 }
 
+std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName)
+{
+	if (iniName == "system" || iniName == "System")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+	}
+
+	return ini->GetValues(sectionName, keyName);
+}
+
+void PackageManager::LoadPackageRemaps()
+{
+	auto remap_keys = GetIniKeysFromSection("system", "PackageRemap");
+
+	for (auto& key : remap_keys)
+	{
+		packageRemaps[key.ToString()] = GetIniValue("system", "PackageRemap", key);
+	}
+}
+
 void PackageManager::LoadIntFiles()
 {
-	std::string systemdir = FilePath::combine(basepath, "System");
+	std::string systemdir = FilePath::combine(launchInfo.folder, "System");
 	for (std::string filename : Directory::files(FilePath::combine(systemdir, "*.int")))
 	{
 		try
@@ -316,7 +397,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	{
 		try
 		{
-			intFile = std::make_unique<IniFile>(FilePath::combine(basepath, "System/" + packageName.ToString() + ".int"));
+			intFile = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + packageName.ToString() + ".int"));
 		}
 		catch (...)
 		{

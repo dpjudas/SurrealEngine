@@ -100,6 +100,17 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 
 	UpdateTexture(surface.Material);
 
+	// Try to find the Zone the surface is in using the corresponding node, to obtain its ZoneInfo actor.
+	// Checking for Zone1 first seems to work better, as otherwise the clouds in CTF-LavaGiant remain fast.
+	// Might return NULL if there is no corresponding ZoneInfo actor for the given Zone.
+	auto zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[node->Zone1].ZoneActor);
+	if (!zoneInfo)
+		zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[node->Zone0].ZoneActor);
+
+	// If no ZoneInfo is found, use the values from LevelInfo instead.
+	float ZoneUPanSpeed = zoneInfo ? zoneInfo->TexUPanSpeed() : engine->LevelInfo->TexUPanSpeed();
+	float ZoneVPanSpeed = zoneInfo ? zoneInfo->TexVPanSpeed() : engine->LevelInfo->TexVPanSpeed();
+
 	FTextureInfo texture;
 	if (surface.Material)
 	{
@@ -123,8 +134,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (surface.Material->TextureModified)
 			surface.Material->TextureModified = false;
 
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	FTextureInfo detailtex;
@@ -147,8 +158,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (detailtex.Texture->Palette())
 			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	FTextureInfo macrotex;
@@ -171,8 +182,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		if (macrotex.Texture->Palette())
 			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
 
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV;
+		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV * ZoneUPanSpeed;
+		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV * ZoneVPanSpeed;
 	}
 
 	int numverts = node->NumVertices;
