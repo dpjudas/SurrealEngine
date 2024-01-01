@@ -67,6 +67,7 @@ JsonValue NativeFuncExtractor::CreateClassJson(UClass* cls)
 JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 {
 	JsonValue jsonFunc = JsonValue::object();
+	jsonFunc.add("NativeFuncIndex", JsonValue::number(func->NativeFuncIndex));
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(arg);

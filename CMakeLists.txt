@@ -224,12 +224,14 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UTexture.cpp
 	SurrealEngine/UObject/UFont.cpp
 	SurrealEngine/UObject/UObject.h
+	SurrealEngine/UObject/NativeCppGenerator.cpp
 	SurrealEngine/UObject/NativeObjExtractor.cpp
 	SurrealEngine/UObject/UProperty.h
 	SurrealEngine/UObject/UMusic.h
 	SurrealEngine/UObject/UTexture.h
 	SurrealEngine/UObject/USound.h
 	SurrealEngine/UObject/UClient.h
+	SurrealEngine/UObject/NativeCppGenerator.h
 	SurrealEngine/UObject/NativeObjExtractor.h
 	SurrealEngine/UObject/UMesh.cpp
 	SurrealEngine/UObject/UMesh.h

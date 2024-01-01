@@ -3,6 +3,7 @@
 #include "NativesCommandlet.h"
 #include "DebuggerApp.h"
 #include "Engine.h"
+#include "UObject/NativeCppGenerator.h"
 #include "UObject/NativeObjExtractor.h"
 #include "VM/NativeFuncExtractor.h"
 #include "File.h"
@@ -27,7 +28,7 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 		std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
 		if (console->launchinfo.engineSubVersion != 0)
-			path += "-" + std::to_string(console->launchinfo.engineSubVersion);
+			path += ('`' + console->launchinfo.engineSubVersion);
 		path += "-Natives.json";
 
 		File::write_all_text(path, NativeFuncExtractor::Run(engine.packages.get()));
@@ -38,13 +39,18 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 		std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
 		if (console->launchinfo.engineSubVersion != 0)
-			path += "-" + std::to_string(console->launchinfo.engineSubVersion);
+			path += ('`' + console->launchinfo.engineSubVersion);
 		path += "-Properties.json";
 
 		File::write_all_text(path, NativeObjExtractor::Run(engine.packages.get()));
 	}
 	else if (args == "createcpp")
 	{
+		NativeCppGenerator::Run();
+	}
+	else
+	{
+		console->WriteOutput("Unknown command " + args + NewLine());
 	}
 }
 
