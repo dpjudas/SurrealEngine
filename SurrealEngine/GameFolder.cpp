@@ -96,7 +96,7 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 
 				switch (it->second)
 				{
-					case KnownUE1Games::UNREALGOLD_226:
+					case KnownUE1Games::UNREALGOLD_226b:
 					{
 						folder.name = "Unreal";
 						folder.launchInfo.engineVersion = 226;

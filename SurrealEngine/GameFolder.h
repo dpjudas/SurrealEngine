@@ -18,7 +18,7 @@ struct GameFolder
 
 enum class KnownUE1Games
 {
-	UNREALGOLD_226,
+	UNREALGOLD_226b,
 	UNREALGOLD_227i,
 	UNREALGOLD_227j,
 	UT99_436,
@@ -32,7 +32,7 @@ enum class KnownUE1Games
 
 const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Unreal Gold, 226
-	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226},
+	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226b},
 
 	// Unreal Gold, 227i, Windows + Linux versions
 	// Windows
