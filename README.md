@@ -12,11 +12,10 @@ It will attempt to load all level actors and initialize the map. However, while 
 
 At the time of this writing, SurrealEngine can detect the following UE1 games:
 
-* Unreal Tournament (v436, v451b, v469(b, c, d))
+* Unreal Tournament (v436, v451b, v469(a, b, c, d))
 * Unreal Gold (v226, v227(i, j))
 * Deus Ex (v1112fm)
-
-Klingon Honor Guard has its executable's SHA1 sum missing, so it cannot be detected, although the relevant entries for it are there.
+* Klingon Honor Guard (219)
 
 From the list above, only Unreal Tournament v436 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes. Unreal Gold v226 also runs but is significantly more buggy compared to UT (only the intro map really works)
 

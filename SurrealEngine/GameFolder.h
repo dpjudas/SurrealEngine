@@ -23,6 +23,7 @@ enum class KnownUE1Games
 	UNREALGOLD_227j,
 	UT99_436,
 	UT99_451,
+	UT99_469a,
 	UT99_469b,
 	UT99_469c,
 	UT99_469d,
@@ -60,6 +61,12 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux
 	{"04ac234a7e4d01a44e476a50ea8cd73d838e5137", KnownUE1Games::UT99_451},
 
+	// Unreal Tournament, v469a, Windows + Linux versions (32 bit)
+	// Windows
+	{"6deb44e2902a29ab58d0fe4db8d3cc49e50cd68f", KnownUE1Games::UT99_469a},
+	// Linux
+	{"3e12742cd5338b9cd58ab97fc0d541b119364e33", KnownUE1Games::UT99_469a},
+
 	// Unreal Tournament, v469b, Windows + Linux versions (32 bit)
 	// Windows
 	{"88e714db07b26717fc53fd88db3b9145e0f2c4c5", KnownUE1Games::UT99_469b},
@@ -68,7 +75,7 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 
 	// Unreal Tournament, v469c, Windows + Linux versions (32 + 64 bit)
 	// Windows
-	{"9f7597a85e9cff2cbd85e871e2005f3b7230ad7c", KnownUE1Games::UT99_469c},
+	{"d32bd20c2b2160633e758882a36d113bf2280632", KnownUE1Games::UT99_469c},
 	// Linux, 32 bit
 	{"59a6382fbc32c4bad0df70c7b5b4aebde2c2776c", KnownUE1Games::UT99_469c},
 	// Linux, 64 bit
@@ -85,8 +92,14 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Deus Ex, v1112fm
 	{"2a933e26aa9cfb33b37f78afe21434caa031f14a", KnownUE1Games::DEUS_EX_1112fm},
 
-	// Klingon Honor Guard, 209
-	// ???
+	// Klingon Honor Guard, 219
+	// One oddity with this game is that they seem to have changed the executable name in the 1.1 patch
+	// (which I presume IS version 219)
+	// SHA1Sums of both exe files will be here just in case
+	// Klingons.exe (Version 1.0)
+	{"4b1c00883d289edd2e7ed02fd4da13fb4be2256f", KnownUE1Games::KLINGON_219},
+	// Khg.exe (Version 1.1)
+	{"96a35fff68d3e1539b4d4da8d7363dfbbd115cc5", KnownUE1Games::KLINGON_219},
 };
 
 const std::vector<std::string> knownUE1ExecutableNames = {
@@ -97,7 +110,8 @@ const std::vector<std::string> knownUE1ExecutableNames = {
 	"ut-bin-x86",
 	"ut-bin-x64",
 	"DeusEx.exe",
-	"klingon.exe",
+	"Klingons.exe",
+	"Khg.exe"
 };
 
 class GameFolderSelection
