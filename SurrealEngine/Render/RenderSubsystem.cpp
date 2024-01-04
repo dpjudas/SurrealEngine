@@ -28,7 +28,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 		flashFog = player->FlashFog();
 	}
 
-	Device->Brightness = engine->Brightness;
+	Device->Brightness = engine->Subsystem.ViewportManager.Brightness;
 	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f));
 
 	ResetCanvas();
@@ -48,7 +48,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 void RenderSubsystem::DrawEditorViewport()
 {
-	Device->Brightness = engine->Brightness;
+	Device->Brightness = engine->Subsystem.ViewportManager.Brightness;
 	DrawScene();
 }
 

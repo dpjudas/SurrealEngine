@@ -48,10 +48,10 @@ void Engine::Run()
 	LoadEngineSettings();
 	LoadKeybindings();
 
-	int width = StartupFullscreen ? FullscreenViewportX : WindowedViewportX;
-	int height = StartupFullscreen ? FullscreenViewportY : WindowedViewportY;
+	int width = Subsystem.ViewportManager.StartupFullscreen ? Subsystem.ViewportManager.FullscreenViewportX : Subsystem.ViewportManager.WindowedViewportX;
+	int height = Subsystem.ViewportManager.StartupFullscreen ? Subsystem.ViewportManager.FullscreenViewportY : Subsystem.ViewportManager.WindowedViewportY;
 
-	OpenWindow(width, height, StartupFullscreen);
+	OpenWindow(width, height, Subsystem.ViewportManager.StartupFullscreen);
 
 	audio = std::make_unique<AudioSubsystem>();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
@@ -69,7 +69,7 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
-	if (!StartupFullscreen)
+	if (!Subsystem.ViewportManager.StartupFullscreen)
 		viewport->bWindowsMouseAvailable() = true;
 
 	if (!LaunchInfo.noEntryMap)
@@ -494,6 +494,42 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
+std::string Engine::ParseClassName(std::string className)
+{
+	if (className.size() < 4 || className.substr(0, 4) != "ini:")
+		return className;
+
+	size_t pos = className.find_last_of('.');
+	if (pos == std::string::npos)
+		throw std::runtime_error("Parse error");
+
+	NameString sectionName = className.substr(4, pos - 4);
+	NameString keyName = className.substr(pos + 1);
+
+	// Override the ini file for things that are internal in Surreal Engine
+	if (sectionName == "Engine.Engine")
+	{
+		if (keyName == "GameRenderDevice" || keyName == "WindowedRenderDevice")
+		{
+			return Subsystem.RenderDevice.Class;
+		}
+		else if (keyName == "AudioDevice")
+		{
+			return Subsystem.AudioDevice.Class;
+		}
+		else if (keyName == "NetworkDevice")
+		{
+			return Subsystem.NetworkDevice.Class;
+		}
+		else if (keyName == "ViewportManager")
+		{
+			return Subsystem.ViewportManager.Class;
+		}
+	}
+
+	return packages->GetIniValue("system", sectionName, keyName);
+}
+
 std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, BitfieldBool& found)
 {
 	found = false;
@@ -580,44 +616,87 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "get" && args.size() == 3)
 	{
-		std::string section = args[1];
-		std::string key = args[2];
-		if (section.size() > 4 && section.substr(0, 4) == "ini:")
-		{
-			size_t pos = section.find_first_of('.', 4);
-			if (pos != std::string::npos)
-			{
-				std::string packageName = section.substr(4, pos - 4);
-				std::string sectionName = section.substr(pos + 1);
-				if (packageName == "Engine" || packageName == "Core")
-					packageName = "system";
-				try
-				{
-					return packages->GetIniValue(packageName, sectionName, key);
-				}
-				catch (const std::exception& e)
-				{
-					LogMessage("Could not get ini value from " + section + ": " + e.what());
-				}
-			}
-		}
-		else if (section == "windrv.windowsclient")
-		{
-			if (key == "usejoystick")
-			{
-				return "0";
-			}
-			else if (key == "UseDirectInput")
-			{
-				return "1";
-			}
-		}
+		NameString className = ParseClassName(args[1]);
+		NameString propertyName = args[2];
 
-		LogMessage("Unknown get: " + commandline);
+		if (className == Subsystem.RenderDevice.Class)
+		{
+			return GetRenderDeviceProperty(propertyName);
+		}
+		else if (className == Subsystem.AudioDevice.Class)
+		{
+			return GetAudioDeviceProperty(propertyName);
+		}
+		else if (className == Subsystem.NetworkDevice.Class)
+		{
+			return GetNetworkDeviceProperty(propertyName);
+		}
+		else if (className == Subsystem.ViewportManager.Class)
+		{
+			return GetViewportManagerProperty(propertyName);
+		}
+		else
+		{
+			UClass* cls = packages->FindClass(className);
+			if (!cls)
+			{
+				LogMessage("Could not find class '" + className.ToString() + "': " + commandline);
+				return {};
+			}
+
+			try
+			{
+				return cls->GetPropertyAsString(propertyName);
+			}
+			catch (const std::exception&)
+			{
+				LogMessage("Could not get property '" + propertyName.ToString() + "': " + commandline);
+				return {};
+			}
+		}
 	}
 	else if (command == "set" && args.size() == 4)
 	{
-		LogUnimplemented("Set command is not implemented: " + commandline);
+		NameString className = ParseClassName(args[1]);
+		NameString propertyName = args[2];
+		std::string value = args[3];
+
+		if (className == Subsystem.RenderDevice.Class)
+		{
+			SetRenderDeviceProperty(propertyName, value);
+		}
+		else if (className == Subsystem.AudioDevice.Class)
+		{
+			SetAudioDeviceProperty(propertyName, value);
+		}
+		else if (className == Subsystem.NetworkDevice.Class)
+		{
+			SetNetworkDeviceProperty(propertyName, value);
+		}
+		else if (className == Subsystem.ViewportManager.Class)
+		{
+			SetViewportManagerProperty(propertyName, value);
+		}
+		else
+		{
+			UClass* cls = packages->FindClass(className);
+			if (!cls)
+			{
+				LogMessage("Could not find class '" + className.ToString() + "': " + commandline);
+				return {};
+			}
+
+			try
+			{
+				LogUnimplemented("Set command is not implemented: " + commandline);
+				// return cls->SetPropertyFromString(propertyName, value);
+			}
+			catch (const std::exception&)
+			{
+				LogMessage("Could not set property '" + propertyName.ToString() + "': " + commandline);
+				return {};
+			}
+		}
 	}
 	else if (command == "setres" && args.size() == 2)
 	{
@@ -632,6 +711,200 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		}
 	}
 	return {};
+}
+
+std::string Engine::GetRenderDeviceProperty(NameString propertyName)
+{
+	if (propertyName == "Class")
+		return Subsystem.RenderDevice.Class;
+	if (propertyName == "Translucency")
+		return Subsystem.RenderDevice.Translucency ? "1" : "0";
+	else if (propertyName == "VolumetricLighting")
+		return Subsystem.RenderDevice.VolumetricLighting ? "1" : "0";
+	else if (propertyName == "ShinySurfaces")
+		return Subsystem.RenderDevice.ShinySurfaces ? "1" : "0";
+	else if (propertyName == "Coronas")
+		return Subsystem.RenderDevice.Coronas ? "1" : "0";
+	else if (propertyName == "HighDetailActors")
+		return Subsystem.RenderDevice.HighDetailActors ? "1" : "0";
+
+	LogMessage("Queried unknown property for Surreal.RenderDevice: " + propertyName.ToString());
+	return {};
+}
+
+void Engine::SetRenderDeviceProperty(NameString propertyName, const std::string& value)
+{
+	if (propertyName == "Translucency")
+		Subsystem.RenderDevice.Translucency = std::atoi(value.c_str());
+	else if (propertyName == "VolumetricLighting")
+		Subsystem.RenderDevice.VolumetricLighting = std::atoi(value.c_str());
+	else if (propertyName == "ShinySurfaces")
+		Subsystem.RenderDevice.ShinySurfaces = std::atoi(value.c_str());
+	else if (propertyName == "Coronas")
+		Subsystem.RenderDevice.Coronas = std::atoi(value.c_str());
+	else if (propertyName == "HighDetailActors")
+		Subsystem.RenderDevice.HighDetailActors = std::atoi(value.c_str());
+	else
+		LogMessage("Setting unknown property for Surreal.RenderDevice: " + propertyName.ToString());
+}
+
+std::string Engine::GetAudioDeviceProperty(NameString propertyName)
+{
+	if (propertyName == "UseFilter")
+		return Subsystem.AudioDevice.UseFilter ? "1" : "0";
+	else if (propertyName == "UseSurround")
+		return Subsystem.AudioDevice.UseSurround ? "1" : "0";
+	else if (propertyName == "UseStereo")
+		return Subsystem.AudioDevice.UseStereo ? "1" : "0";
+	else if (propertyName == "UseCDMusic")
+		return Subsystem.AudioDevice.UseCDMusic ? "1" : "0";
+	else if (propertyName == "UseDigitalMusic")
+		return Subsystem.AudioDevice.UseDigitalMusic ? "1" : "0";
+	else if (propertyName == "UseSpatial")
+		return Subsystem.AudioDevice.UseSpatial ? "1" : "0";
+	else if (propertyName == "UseReverb")
+		return Subsystem.AudioDevice.UseReverb ? "1" : "0";
+	else if (propertyName == "Use3dHardware")
+		return Subsystem.AudioDevice.Use3dHardware ? "1" : "0";
+	else if (propertyName == "LowSoundQuality")
+		return Subsystem.AudioDevice.LowSoundQuality ? "1" : "0";
+	else if (propertyName == "ReverseStereo")
+		return Subsystem.AudioDevice.ReverseStereo ? "1" : "0";
+	else if (propertyName == "Latency")
+		return std::to_string(Subsystem.AudioDevice.Latency);
+	else if (propertyName == "OutputRate")
+		return std::to_string(Subsystem.AudioDevice.OutputRate);
+	else if (propertyName == "Channels")
+		return std::to_string(Subsystem.AudioDevice.Channels);
+	else if (propertyName == "MusicVolume")
+		return std::to_string(Subsystem.AudioDevice.MusicVolume);
+	else if (propertyName == "SoundVolume")
+		return std::to_string(Subsystem.AudioDevice.SoundVolume);
+	else if (propertyName == "AmbientFactor")
+		return std::to_string(Subsystem.AudioDevice.AmbientFactor);
+
+	LogMessage("Queried unknown property for Surreal.AudioDevice: " + propertyName.ToString());
+	return {};
+}
+
+void Engine::SetAudioDeviceProperty(NameString propertyName, const std::string& value)
+{
+	if (propertyName == "UseFilter")
+		Subsystem.AudioDevice.UseFilter = std::atoi(value.c_str());
+	else if (propertyName == "UseSurround")
+		Subsystem.AudioDevice.UseSurround = std::atoi(value.c_str());
+	else if (propertyName == "UseStereo")
+		Subsystem.AudioDevice.UseStereo = std::atoi(value.c_str());
+	else if (propertyName == "UseCDMusic")
+		Subsystem.AudioDevice.UseCDMusic = std::atoi(value.c_str());
+	else if (propertyName == "UseDigitalMusic")
+		Subsystem.AudioDevice.UseDigitalMusic = std::atoi(value.c_str());
+	else if (propertyName == "UseSpatial")
+		Subsystem.AudioDevice.UseSpatial = std::atoi(value.c_str());
+	else if (propertyName == "UseReverb")
+		Subsystem.AudioDevice.UseReverb = std::atoi(value.c_str());
+	else if (propertyName == "Use3dHardware")
+		Subsystem.AudioDevice.Use3dHardware = std::atoi(value.c_str());
+	else if (propertyName == "LowSoundQuality")
+		Subsystem.AudioDevice.LowSoundQuality = std::atoi(value.c_str());
+	else if (propertyName == "ReverseStereo")
+		Subsystem.AudioDevice.ReverseStereo = std::atoi(value.c_str());
+	else if (propertyName == "Latency")
+		Subsystem.AudioDevice.Latency = std::atoi(value.c_str());
+	else if (propertyName == "OutputRate")
+		Subsystem.AudioDevice.OutputRate = std::atoi(value.c_str());
+	else if (propertyName == "Channels")
+		Subsystem.AudioDevice.Channels = std::atoi(value.c_str());
+	else if (propertyName == "MusicVolume")
+		Subsystem.AudioDevice.MusicVolume = std::atoi(value.c_str());
+	else if (propertyName == "SoundVolume")
+		Subsystem.AudioDevice.SoundVolume = std::atoi(value.c_str());
+	else if (propertyName == "AmbientFactor")
+		Subsystem.AudioDevice.AmbientFactor = (float)std::atof(value.c_str());
+	else
+		LogMessage("Setting unknown property for Surreal.AudioDevice: " + propertyName.ToString());
+}
+
+std::string Engine::GetNetworkDeviceProperty(NameString propertyName)
+{
+	LogMessage("Queried unknown property for Surreal.NetworkDevice: " + propertyName.ToString());
+	return {};
+}
+
+void Engine::SetNetworkDeviceProperty(NameString propertyName, const std::string& value)
+{
+	LogMessage("Setting unknown property for Surreal.NetworkDevice: " + propertyName.ToString());
+}
+
+std::string Engine::GetViewportManagerProperty(NameString propertyName)
+{
+	if (propertyName == "StartupFullscreen")
+		return Subsystem.ViewportManager.StartupFullscreen ? "1" : "0";
+	if (propertyName == "WindowedViewportX")
+		return std::to_string(Subsystem.ViewportManager.WindowedViewportX);
+	else if (propertyName == "WindowedViewportY")
+		return std::to_string(Subsystem.ViewportManager.WindowedViewportY);
+	else if (propertyName == "WindowedColorBits")
+		return std::to_string(Subsystem.ViewportManager.WindowedColorBits);
+	else if (propertyName == "FullscreenViewportX")
+		return std::to_string(Subsystem.ViewportManager.FullscreenViewportX);
+	else if (propertyName == "FullscreenViewportY")
+		return std::to_string(Subsystem.ViewportManager.FullscreenViewportY);
+	else if (propertyName == "FullscreenColorBits")
+		return std::to_string(Subsystem.ViewportManager.FullscreenColorBits);
+	else if (propertyName == "Brightness")
+		return std::to_string(Subsystem.ViewportManager.Brightness);
+	else if (propertyName == "UseJoystick")
+		return Subsystem.ViewportManager.UseJoystick ? "1" : "0";
+	else if (propertyName == "UseDirectInput")
+		return Subsystem.ViewportManager.UseDirectInput ? "1" : "0";
+	else if (propertyName == "MinDesiredFrameRate")
+		return std::to_string(Subsystem.ViewportManager.MinDesiredFrameRate);
+	else if (propertyName == "Decals")
+		return Subsystem.ViewportManager.Decals ? "1" : "0";
+	else if (propertyName == "NoDynamicLights")
+		return Subsystem.ViewportManager.NoDynamicLights ? "1" : "0";
+	else if (propertyName == "TextureDetail")
+		return Subsystem.ViewportManager.TextureDetail;
+	else if (propertyName == "SkinDetail")
+		return Subsystem.ViewportManager.SkinDetail;
+
+	LogMessage("Queried unknown property for Surreal.ViewportManager: " + propertyName.ToString());
+	return {};
+}
+
+void Engine::SetViewportManagerProperty(NameString propertyName, const std::string& value)
+{
+	if (propertyName == "WindowedViewportX")
+		Subsystem.ViewportManager.WindowedViewportX = std::atoi(value.c_str());
+	else if (propertyName == "WindowedViewportY")
+		Subsystem.ViewportManager.WindowedViewportY = std::atoi(value.c_str());
+	else if (propertyName == "WindowedColorBits")
+		Subsystem.ViewportManager.WindowedColorBits = std::atoi(value.c_str());
+	else if (propertyName == "FullscreenViewportX")
+		Subsystem.ViewportManager.FullscreenViewportX = std::atoi(value.c_str());
+	else if (propertyName == "FullscreenViewportY")
+		Subsystem.ViewportManager.FullscreenViewportY = std::atoi(value.c_str());
+	else if (propertyName == "FullscreenColorBits")
+		Subsystem.ViewportManager.FullscreenColorBits = std::atoi(value.c_str());
+	else if (propertyName == "Brightness")
+		Subsystem.ViewportManager.Brightness = (float)std::atof(value.c_str());
+	else if (propertyName == "UseJoystick")
+		Subsystem.ViewportManager.UseJoystick = std::atoi(value.c_str());
+	else if (propertyName == "UseDirectInput")
+		Subsystem.ViewportManager.UseDirectInput = std::atoi(value.c_str());
+	else if (propertyName == "MinDesiredFrameRate")
+		Subsystem.ViewportManager.MinDesiredFrameRate = std::atoi(value.c_str());
+	else if (propertyName == "Decals")
+		Subsystem.ViewportManager.Decals = std::atoi(value.c_str());
+	else if (propertyName == "NoDynamicLights")
+		Subsystem.ViewportManager.NoDynamicLights = std::atoi(value.c_str());
+	else if (propertyName == "TextureDetail")
+		Subsystem.ViewportManager.TextureDetail = value;
+	else if (propertyName == "SkinDetail")
+		Subsystem.ViewportManager.SkinDetail = value;
+	else
+		LogMessage("Setting unknown property for Surreal.ViewportManager: " + propertyName.ToString());
 }
 
 std::vector<std::string> Engine::GetArgs(const std::string& commandline)
@@ -674,12 +947,12 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 
 void Engine::LoadEngineSettings()
 {
-	WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
-	WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
-	FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
-	FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
-	StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
-	Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
+	Subsystem.ViewportManager.WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
+	Subsystem.ViewportManager.WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
+	Subsystem.ViewportManager.FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
+	Subsystem.ViewportManager.FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
+	Subsystem.ViewportManager.StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
+	Subsystem.ViewportManager.Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
 }
 
 void Engine::LoadKeybindings()
