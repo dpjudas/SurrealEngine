@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GameFolder.h"
 #include "JsonValue.h"
 
 class PackageManager;
@@ -19,8 +20,9 @@ private:
 	{
 		std::string name;
 		std::string args;
-		int index;
-		std::vector<int> versions;
+		std::vector<std::pair<KnownUE1Games, int>> versionIndex;
+
+		void AddVersionIndex(const int version, const int subversion, const int index);
 	};
 
 	struct NativeProperty
@@ -34,13 +36,20 @@ private:
 		std::string name;
 		std::vector<NativeFunction> funcs;
 		std::vector<NativeProperty> props;
+
+		NativeFunction& AddUniqueNativeFunction(const std::string& funcName);
+		NativeProperty& AddUniqueNativeProperty(const std::string& propName);
+
+		void ParseClassFunction(const std::string& funcName, const JsonValue& json, const int version, const int subversion);
 	};
 
 	static void ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion);
-	static std::string ParseClassNatives(const std::string& className, const JsonValue& json);
+	static void ParseClassNatives(const std::string& className, const JsonValue& json, const int version, const int subversion);
 
 	static void ParseGameProperties(const JsonValue& json, const std::string& game, const int version, const int subversion);
-	static std::string GenerateClassProperties(const std::string& className, const JsonValue& json);
+	static void ParseClassProperties(const std::string& className, const JsonValue& json);
 
-	static std::vector<NativeClass> classes;
+	static NativeClass& AddUniqueNativeClass(const std::string& className);
+
+	static std::vector<NativeCppGenerator::NativeClass> classes;
 };
