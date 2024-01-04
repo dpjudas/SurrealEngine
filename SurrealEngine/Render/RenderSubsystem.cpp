@@ -3,6 +3,7 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
+#include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 
@@ -28,7 +29,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 		flashFog = player->FlashFog();
 	}
 
-	Device->Brightness = engine->Subsystem.ViewportManager.Brightness;
+	Device->Brightness = engine->client->Brightness;
 	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f));
 
 	ResetCanvas();
@@ -48,7 +49,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 void RenderSubsystem::DrawEditorViewport()
 {
-	Device->Brightness = engine->Subsystem.ViewportManager.Brightness;
+	Device->Brightness = engine->client->Brightness;
 	DrawScene();
 }
 

@@ -127,6 +127,11 @@ std::string UObject::GetPropertyAsString(const NameString& propName) const
 	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
+void UObject::SetPropertyFromString(const NameString& name, const std::string& value)
+{
+	throw std::runtime_error("UObject::SetPropertyFromString not implemented");
+}
+
 uint8_t UObject::GetByte(const NameString& name) const
 {
 	return *static_cast<const uint8_t*>(GetProperty(name));
