@@ -79,7 +79,7 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UVectors>(enginePackage, "Vectors", "Object");
 	RegisterNativeClass<UVerts>(enginePackage, "Verts", "Object");
 
-	RegisterNativeClass<UBitmap>(enginePackage, "Texture", "Object");
+	RegisterNativeClass<UBitmap>(enginePackage, "Bitmap", "Object");
 	RegisterNativeClass<UTexture>(enginePackage, "Texture", "Bitmap");
 	RegisterNativeClass<UFractalTexture>(enginePackage, "FractalTexture", "Texture");
 	RegisterNativeClass<UFireTexture>(enginePackage, "FireTexture", "FractalTexture");
