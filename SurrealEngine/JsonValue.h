@@ -18,31 +18,6 @@ enum class JsonType
 
 class JsonValue
 {
-private:
-	inline JsonValue& _prop(const char* name)
-	{
-		for (auto it = _properties.begin(); it != _properties.end(); it++)
-		{
-			if ((*it).first == name)
-				return (*it).second;
-		}
-
-		_properties.push_back(std::make_pair(std::string(name), JsonValue()));
-		return _properties.back().second;
-	}
-
-	inline const JsonValue& _prop(const char* name) const
-	{
-		for (auto it = _properties.begin(); it != _properties.end(); it++)
-		{
-			if ((*it).first == name)
-				return (*it).second;
-		}
-
-		static JsonValue undef;
-		return undef;
-	}
-
 public:
 	static JsonValue undefined() { JsonValue v; v._type = JsonType::undefined; return v; }
 	static JsonValue null() { JsonValue v; v._type = JsonType::null; return v; }
@@ -73,31 +48,15 @@ public:
 	static JsonValue parse(const std::string &json);
 	std::string to_json() const;
 
-	const JsonValue& prop(const std::string& name) const { return _prop(name.c_str()); }
-	const JsonValue& prop(const char *name) const { return _prop(name); }
-	JsonValue& prop(const std::string &name) { return _prop(name.c_str()); }
-	JsonValue& prop(const char* name) { return _prop(name); }
+	const JsonValue &prop(const std::string &name) const { auto it = _properties.find(name); if (it != _properties.end()) return it->second; static JsonValue undef; return undef; }
+	const JsonValue &prop(const char *name) const { auto it = _properties.find(name); if (it != _properties.end()) return it->second; static JsonValue undef; return undef; }
+	JsonValue &prop(const std::string &name) { return _properties[name]; }
+	JsonValue &prop(const char *name) { return _properties[name]; }
 
 	void add(const std::string name, const JsonValue& value);
-	void assign(const JsonValue& value) { *this = value; }
 
-	void remove(const std::string &name) 
-	{ 
-		for (auto it = _properties.begin(); it != _properties.end(); it++)
-		{
-			if ((*it).first == name)
-				_properties.erase(it);
-		}
-	}
-
-	void remove(const char *name) 
-	{
-		for (auto it = _properties.begin(); it != _properties.end(); it++)
-		{
-			if ((*it).first == name)
-				_properties.erase(it);
-		}
-	}
+	void remove(const std::string &name) { auto it = _properties.find(name); if (it != _properties.end()) _properties.erase(it); }
+	void remove(const char *name) { auto it = _properties.find(name); if (it != _properties.end()) _properties.erase(it); }
 
 	size_t size() const { return _items.size(); }
 	JsonValue &at(size_t index) { return _items.at(index); }
@@ -114,8 +73,8 @@ public:
 	bool is_number() const { return type() == JsonType::number; }
 	bool is_boolean() const { return type() == JsonType::boolean; }
 
-	std::vector<std::pair<std::string, JsonValue>> &properties() { return _properties; }
-	const std::vector<std::pair<std::string, JsonValue>> &properties() const { return _properties; }
+	std::map<std::string, JsonValue> &properties() { return _properties; }
+	const std::map<std::string, JsonValue> &properties() const { return _properties; }
 
 	std::vector<JsonValue> &items() { return _items; }
 	const std::vector<JsonValue> &items() const { return _items; }
@@ -160,7 +119,7 @@ public:
 private:
 	JsonType _type = JsonType::undefined;
 	std::vector<JsonValue> _items;
-	std::vector<std::pair<std::string, JsonValue>> _properties;
+	std::map<std::string, JsonValue> _properties;
 	std::string _string;
 	double _number = 0.0;
 	bool _boolean = false;
