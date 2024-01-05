@@ -32,11 +32,11 @@ void NativeCppGenerator::Run()
 
 		size_t dashPos = file.find("-");
 		game = file.substr(0, dashPos);
-		version = file.substr(dashPos + 1, jsonTypePos - dashPos);
+		version = file.substr(dashPos + 1, jsonTypePos - dashPos - 1);
 
 		int subversion = 0;
-		if (isalpha(*version.end()))
-			subversion = *version.end() - '`';
+		if (isalpha(version.back()))
+			subversion = version.back() - '`';
 
 		JsonValue json = JsonValue::parse(File::read_all_text(file));
 
@@ -49,7 +49,7 @@ void NativeCppGenerator::Run()
 
 void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
-	const std::map<std::string, JsonValue>& props = json.properties();
+	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const JsonValue& package = (*prop).second;
@@ -63,7 +63,7 @@ void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::stri
 void NativeCppGenerator::ParseClassNatives(const std::string& className, const JsonValue& json, const int version, const int subversion)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
-	const std::map<std::string, JsonValue>& props = json.properties();
+	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const std::string& funcName = (*prop).first;
@@ -74,7 +74,7 @@ void NativeCppGenerator::ParseClassNatives(const std::string& className, const J
 
 void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
-	const std::map<std::string, JsonValue>& props = json.properties();
+	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const std::string& packageName = (*prop).first;
@@ -104,16 +104,18 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 {
 	NativeFunction& func = AddUniqueNativeFunction(funcName);
 	func.AddVersionIndex(version, subversion, json["NativeFuncIndex"].to_int());
+	func.args += "UObject* Self";
 
-	for (auto prop : json.properties())
+	if (json.properties().size() > 1)
 	{
-		if (prop.first.compare("NativeFuncIndex") == 0)
-			continue;
+		for (auto prop : json.properties())
+		{
+			if (prop.first.compare("NativeFuncIndex") == 0)
+				continue;
 
-		func.args += prop.second.to_string() + " " + prop.first + ", ";
+			func.args += ", " + prop.second.to_string() + " " + prop.first;
+		}
 	}
-
-	func.args.resize(func.args.size() - 2);
 }
 
 NativeCppGenerator::NativeFunction& NativeCppGenerator::NativeClass::AddUniqueNativeFunction(const std::string& funcName)
@@ -166,4 +168,5 @@ void NativeCppGenerator::NativeFunction::AddVersionIndex(const int version, cons
 	}
 
 	vi.second = index;
+	versionIndex.push_back(vi);
 }
