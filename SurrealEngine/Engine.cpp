@@ -14,6 +14,7 @@
 #include "UObject/USound.h"
 #include "UObject/UClass.h"
 #include "UObject/UClient.h"
+#include "UObject/USubsystem.h"
 #include "UObject/NativeObjExtractor.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
@@ -45,18 +46,11 @@ void Engine::Run()
 {
 	std::srand((unsigned int)std::time(nullptr));
 
-	LoadEngineSettings();
-	LoadKeybindings();
-
-	int width = StartupFullscreen ? FullscreenViewportX : WindowedViewportX;
-	int height = StartupFullscreen ? FullscreenViewportY : WindowedViewportY;
-
-	OpenWindow(width, height, StartupFullscreen);
-
-	audio = std::make_unique<AudioSubsystem>();
-	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
-
-	client = UObject::Cast<UClient>(packages->NewObject("client", "Engine", "Client"));
+	gameengine = UObject::Cast<UGameEngine>(packages->NewObject("gameengine", "Engine", "GameEngine"));
+	audiodev = UObject::Cast<USurrealAudioDevice>(packages->NewObject("audiodev", "Engine", "SurrealAudioDevice"));
+	renderdev = UObject::Cast<USurrealRenderDevice>(packages->NewObject("renderdev", "Engine", "SurrealRenderDevice"));
+	netdev = UObject::Cast<USurrealNetworkDevice>(packages->NewObject("netdev", "Engine", "SurrealNetworkDevice"));
+	client = UObject::Cast<USurrealClient>(packages->NewObject("client", "Engine", "SurrealClient"));
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
 
@@ -69,7 +63,15 @@ void Engine::Run()
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
 
-	if (!StartupFullscreen)
+	LoadEngineSettings();
+	LoadKeybindings();
+
+	OpenWindow();
+
+	audio = std::make_unique<AudioSubsystem>();
+	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
+
+	if (!client->StartupFullscreen)
 		viewport->bWindowsMouseAvailable() = true;
 
 	if (!LaunchInfo.noEntryMap)
@@ -495,6 +497,48 @@ float Engine::CalcTimeElapsed()
 	return clamp(deltaTime / 1'000'000.0f, 0.0f, 1.0f);
 }
 
+std::string Engine::ParseClassName(std::string className)
+{
+	// Workaround for broken unrealscript code referencing windrv.windowsclient directly
+	if (className == "windrv.windowsclient")
+	{
+		className = "ini:Engine.ViewportManager";
+	}
+
+	if (className.size() < 4 || className.substr(0, 4) != "ini:")
+		return className;
+
+	size_t pos = className.find_last_of('.');
+	if (pos == std::string::npos)
+		throw std::runtime_error("Parse error");
+
+	NameString sectionName = className.substr(4, pos - 4);
+	NameString keyName = className.substr(pos + 1);
+
+	// Override the ini file for things that are internal in Surreal Engine
+	if (sectionName == "Engine.Engine")
+	{
+		if (keyName == "GameRenderDevice" || keyName == "WindowedRenderDevice")
+		{
+			return renderdev->Class;
+		}
+		else if (keyName == "AudioDevice")
+		{
+			return audiodev->Class;
+		}
+		else if (keyName == "NetworkDevice")
+		{
+			return netdev->Class;
+		}
+		else if (keyName == "ViewportManager")
+		{
+			return client->Class;
+		}
+	}
+
+	return packages->GetIniValue("system", sectionName, keyName);
+}
+
 std::string Engine::ConsoleCommand(UObject* context, const std::string& commandline, BitfieldBool& found)
 {
 	found = false;
@@ -581,44 +625,86 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "get" && args.size() == 3)
 	{
-		std::string section = args[1];
-		std::string key = args[2];
-		if (section.size() > 4 && section.substr(0, 4) == "ini:")
+		NameString className = ParseClassName(args[1]);
+		NameString propertyName = args[2];
+
+		UClass* cls = packages->FindClass(className);
+		if (!cls)
 		{
-			size_t pos = section.find_first_of('.', 4);
-			if (pos != std::string::npos)
-			{
-				std::string packageName = section.substr(4, pos - 4);
-				std::string sectionName = section.substr(pos + 1);
-				if (packageName == "Engine" || packageName == "Core")
-					packageName = "system";
-				try
-				{
-					return packages->GetIniValue(packageName, sectionName, key);
-				}
-				catch (const std::exception& e)
-				{
-					LogMessage("Could not get ini value from " + section + ": " + e.what());
-				}
-			}
-		}
-		else if (section == "windrv.windowsclient")
-		{
-			if (key == "usejoystick")
-			{
-				return "0";
-			}
-			else if (key == "UseDirectInput")
-			{
-				return "1";
-			}
+			LogMessage("Could not find class '" + className.ToString() + "': " + commandline);
+			return {};
 		}
 
-		LogMessage("Unknown get: " + commandline);
+		if (className == renderdev->Class)
+		{
+			return renderdev->GetPropertyAsString(propertyName);
+		}
+		else if (className == audiodev->Class)
+		{
+			return audiodev->GetPropertyAsString(propertyName);
+		}
+		else if (className == netdev->Class)
+		{
+			return netdev->GetPropertyAsString(propertyName);
+		}
+		else if (className == client->Class)
+		{
+			return client->GetPropertyAsString(propertyName);
+		}
+		else
+		{
+			try
+			{
+				return cls->GetPropertyAsString(propertyName);
+			}
+			catch (const std::exception&)
+			{
+				LogMessage("Could not get property '" + propertyName.ToString() + "': " + commandline);
+				return {};
+			}
+		}
 	}
 	else if (command == "set" && args.size() == 4)
 	{
-		LogUnimplemented("Set command is not implemented: " + commandline);
+		NameString className = ParseClassName(args[1]);
+		NameString propertyName = args[2];
+		std::string value = args[3];
+
+		UClass* cls = packages->FindClass(className);
+		if (!cls)
+		{
+			LogMessage("Could not find class '" + className.ToString() + "': " + commandline);
+			return {};
+		}
+
+		if (className == renderdev->Class)
+		{
+			renderdev->SetPropertyFromString(propertyName, value);
+		}
+		else if (className == audiodev->Class)
+		{
+			audiodev->SetPropertyFromString(propertyName, value);
+		}
+		else if (className == netdev->Class)
+		{
+			netdev->SetPropertyFromString(propertyName, value);
+		}
+		else if (className == client->Class)
+		{
+			client->SetPropertyFromString(propertyName, value);
+		}
+		else
+		{
+			try
+			{
+				cls->SetPropertyFromString(propertyName, value);
+			}
+			catch (const std::exception&)
+			{
+				LogMessage("Could not set property '" + propertyName.ToString() + "': " + commandline);
+			}
+			return {};
+		}
 	}
 	else if (command == "setres" && args.size() == 2)
 	{
@@ -675,12 +761,12 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 
 void Engine::LoadEngineSettings()
 {
-	WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
-	WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
-	FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
-	FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
-	StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
-	Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
+	client->WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
+	client->WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
+	client->FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
+	client->FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
+	client->StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
+	client->Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
 }
 
 void Engine::LoadKeybindings()
@@ -740,10 +826,14 @@ void Engine::UpdateInput(float timeElapsed)
 	}
 }
 
-void Engine::OpenWindow(int width, int height, bool fullscreen)
+void Engine::OpenWindow()
 {
 	if (!window)
 		window = DisplayWindow::Create(this);
+
+	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
+	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
+	bool fullscreen = client->StartupFullscreen;
 
 	window->SetWindowTitle("Unreal Tournament");
 	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));

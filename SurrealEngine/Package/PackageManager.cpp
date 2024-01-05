@@ -392,6 +392,13 @@ std::vector<IntObject>& PackageManager::GetIntObjects(const NameString& metaclas
 
 std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName)
 {
+	if (packageName == "Engine" && keyName == "ClassCaption")
+	{
+		if (sectionName == "SurrealRenderDevice") return "Surreal Graphics";
+		else if (sectionName == "SurrealAudioDevice") return "Surreal Audio";
+		else if (sectionName == "SurrealNetworkDevice") return "Surreal Network";
+	}
+
 	auto& intFile = intFiles[packageName];
 	if (!intFile)
 	{

@@ -33,6 +33,11 @@ class UPlayerPawn;
 class UGameInfo;
 class UGameReplicationInfo;
 class UPlayerReplicationInfo;
+class UGameEngine;
+class USurrealRenderDevice;
+class USurrealAudioDevice;
+class USurrealNetworkDevice;
+class USurrealClient;
 class BspSurface;
 class BspNode;
 class LightMapIndex;
@@ -80,7 +85,7 @@ public:
 
 	void UpdateAudio();
 
-	void OpenWindow(int width, int height, bool fullscreen);
+	void OpenWindow();
 	void CloseWindow();
 	void TickWindow();
 
@@ -105,7 +110,13 @@ public:
 
 	void SetPause(bool value);
 
-	UClient* client = nullptr;
+	std::string ParseClassName(std::string className);
+
+	UGameEngine* gameengine = nullptr;
+	USurrealRenderDevice* renderdev = nullptr;
+	USurrealAudioDevice* audiodev = nullptr;
+	USurrealNetworkDevice* netdev = nullptr;
+	USurrealClient* client = nullptr;
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
 	UConsole* console = nullptr;
@@ -152,20 +163,14 @@ public:
 
 	// Collision debug
 	BspNode* PlayerBspNode = nullptr;
-	vec3 PlayerHitNormal;
-	vec3 PlayerHitLocation;
+	vec3 PlayerHitNormal = vec3(0.0f);
+	vec3 PlayerHitLocation = vec3(0.0f);
 
 	bool quit = false;
 
 	uint64_t lastTime = 0;
 
 	void LoadEngineSettings();
-	int WindowedViewportX = 0;
-	int WindowedViewportY = 0;
-	int FullscreenViewportX = 0;
-	int FullscreenViewportY = 0;
-	bool StartupFullscreen = false;
-	float Brightness = 0.5f;
 
 	void LoadKeybindings();
 	std::map<std::string, std::string> keybindings;

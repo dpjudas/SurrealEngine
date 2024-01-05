@@ -75,7 +75,7 @@ public:
 	}
 	virtual void Destruct(void* data) { }
 
-	virtual std::string PrintValue(void* data) { return "?"; }
+	virtual std::string PrintValue(const void* data) { return "?"; }
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
@@ -97,7 +97,7 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
-	std::string PrintValue(void* data) override { return "pointer"; }
+	std::string PrintValue(const void* data) override { return "pointer"; }
 };
 
 class UByteProperty : public UProperty
@@ -109,7 +109,7 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
-	std::string PrintValue(void* data) override { return std::to_string(*(uint8_t*)data); }
+	std::string PrintValue(const void* data) override { return std::to_string(*(uint8_t*)data); }
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
@@ -123,7 +123,7 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
-	std::string PrintValue(void* data) override
+	std::string PrintValue(const void* data) override
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
@@ -182,7 +182,7 @@ public:
 		}
 	}
 
-	std::string PrintValue(void* data) override { return "fixed array"; }
+	std::string PrintValue(const void* data) override { return "fixed array"; }
 
 	UProperty* Inner = nullptr;
 	int Count = 0;
@@ -237,7 +237,7 @@ public:
 		}
 	}
 
-	std::string PrintValue(void* data) override { return "array"; }
+	std::string PrintValue(const void* data) override { return "array"; }
 
 	UProperty* Inner = nullptr;
 };
@@ -295,7 +295,7 @@ public:
 		}
 	}
 
-	std::string PrintValue(void* data) override { return "map"; }
+	std::string PrintValue(const void* data) override { return "map"; }
 
 	UProperty* Key = nullptr;
 	UProperty* Value = nullptr;
@@ -307,7 +307,7 @@ public:
 	using UObjectProperty::UObjectProperty;
 	void Load(ObjectStream* stream) override;
 
-	std::string PrintValue(void* data) override
+	std::string PrintValue(const void* data) override
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
@@ -331,7 +331,7 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
-	std::string PrintValue(void* data) override
+	std::string PrintValue(const void* data) override
 	{
 		if (Struct)
 		{
@@ -365,7 +365,7 @@ public:
 	UIntProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueInt; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
-	std::string PrintValue(void* data) override { return std::to_string(*(int32_t*)data); }
+	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
 };
 
 class UBoolProperty : public UProperty
@@ -400,7 +400,7 @@ public:
 			v = v & ~DataOffset.BitfieldMask;
 	}
 
-	std::string PrintValue(void* data) override { return std::to_string(GetBool(data)); }
+	std::string PrintValue(const void* data) override { return std::to_string(GetBool(data)); }
 };
 
 class UFloatProperty : public UProperty
@@ -409,7 +409,7 @@ public:
 	UFloatProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueFloat; }
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
-	std::string PrintValue(void* data) override { return std::to_string(*(float*)data); }
+	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
 };
 
 class UNameProperty : public UProperty
@@ -445,7 +445,7 @@ public:
 			str[i].~NameString();
 	}
 
-	std::string PrintValue(void* data) override { return ((NameString*)data)->ToString(); }
+	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
 };
 
 class UStrProperty : public UProperty
@@ -481,7 +481,7 @@ public:
 			str[i].~basic_string();
 	}
 
-	std::string PrintValue(void* data) override { return *(std::string*)data; }
+	std::string PrintValue(const void* data) override { return *(std::string*)data; }
 };
 
 class UStringProperty : public UProperty
@@ -516,5 +516,5 @@ public:
 			str[i].~basic_string();
 	}
 
-	std::string PrintValue(void* data) override { return *(std::string*)data; }
+	std::string PrintValue(const void* data) override { return *(std::string*)data; }
 };

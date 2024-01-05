@@ -161,6 +161,9 @@ public:
 	const void* GetProperty(const NameString& name) const;
 	PropertyDataOffset GetPropertyDataOffset(const NameString& name) const;
 
+	virtual std::string GetPropertyAsString(const NameString& name) const;
+	virtual void SetPropertyFromString(const NameString& name, const std::string& value);
+
 	uint8_t GetByte(const NameString& name) const;
 	uint32_t GetInt(const NameString& name) const;
 	bool GetBool(const NameString& name) const;

@@ -16,6 +16,7 @@
 #include "UObject/UTextBuffer.h"
 #include "UObject/UClient.h"
 #include "UObject/UInternetLink.h"
+#include "UObject/USubsystem.h"
 #include "File.h"
 
 Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
@@ -58,6 +59,17 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 		RegisterNativeClass<UObject>(enginePackage, "RenderIterator", "Object");
 	}
 
+	RegisterNativeClass<USubsystem>(corePackage, "Subsystem", "Object");
+	RegisterNativeClass<ULanguage>(corePackage, "Language", "Object");
+
+	RegisterNativeClass<UEngine>(enginePackage, "Engine", "Subsystem");
+	RegisterNativeClass<UGameEngine>(enginePackage, "GameEngine", "Engine");
+	RegisterNativeClass<UEditorEngine>(enginePackage, "EditorEngine", "Engine");
+	RegisterNativeClass<URenderBase>(enginePackage, "RenderBase", "Subsystem");
+	RegisterNativeClass<URenderDevice>(enginePackage, "RenderDevice", "Subsystem");
+	RegisterNativeClass<UAudioSubsystem>(enginePackage, "AudioSubsystem", "Subsystem");
+	RegisterNativeClass<UNetDriver>(enginePackage, "NetDriver", "Subsystem");
+
 	RegisterNativeClass<UFont>(enginePackage, "Font", "Object");
 	RegisterNativeClass<UPalette>(enginePackage, "Palette", "Object");
 	RegisterNativeClass<USound>(enginePackage, "Sound", "Object");
@@ -79,7 +91,7 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UVectors>(enginePackage, "Vectors", "Object");
 	RegisterNativeClass<UVerts>(enginePackage, "Verts", "Object");
 
-	RegisterNativeClass<UBitmap>(enginePackage, "Texture", "Object");
+	RegisterNativeClass<UBitmap>(enginePackage, "Bitmap", "Object");
 	RegisterNativeClass<UTexture>(enginePackage, "Texture", "Bitmap");
 	RegisterNativeClass<UFractalTexture>(enginePackage, "FractalTexture", "Texture");
 	RegisterNativeClass<UFireTexture>(enginePackage, "FireTexture", "FractalTexture");
@@ -103,6 +115,11 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UControlChannel>(enginePackage, "ControlChannel", "Channel");
 	RegisterNativeClass<UActorChannel>(enginePackage, "ActorChannel", "Channel");
 	RegisterNativeClass<UFileChannel>(enginePackage, "FileChannel", "Channel");
+
+	RegisterNativeClass<USurrealRenderDevice>(enginePackage, "SurrealRenderDevice", "RenderDevice");
+	RegisterNativeClass<USurrealAudioDevice>(enginePackage, "SurrealAudioDevice", "AudioSubsystem");
+	RegisterNativeClass<USurrealNetworkDevice>(enginePackage, "SurrealNetworkDevice", "NetDriver");
+	RegisterNativeClass<USurrealClient>(enginePackage, "SurrealClient", "Client");
 
 	RegisterNativeClass<UActor>(enginePackage, "Actor", "Object");
 	RegisterNativeClass<ULight>(enginePackage, "Light", "Actor");
