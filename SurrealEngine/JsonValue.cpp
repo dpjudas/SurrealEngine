@@ -41,7 +41,8 @@ JsonValue JsonValue::parse(const std::string &json)
 
 void JsonValue::add(const std::string name, const JsonValue& value)
 {
-	_properties.insert_or_assign(_properties.end(), name, value);
+	JsonValue& prop = _prop(name.c_str());
+	prop.assign(value);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ void JsonValueImpl::write_array(const JsonValue &value, std::string &json)
 void JsonValueImpl::write_object(const JsonValue &value, std::string &json)
 {
 	json += "{";
-	std::map<std::string, JsonValue>::const_iterator it;
+	std::vector<std::pair<std::string, JsonValue>>::const_iterator it;
 	for (it = value.properties().begin(); it != value.properties().end(); ++it)
 	{
 		if (it != value.properties().begin())
