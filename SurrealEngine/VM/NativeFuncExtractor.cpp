@@ -68,6 +68,8 @@ JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 {
 	JsonValue jsonFunc = JsonValue::object();
 	jsonFunc.add("NativeFuncIndex", JsonValue::number(func->NativeFuncIndex));
+
+	std::vector<std::string> args;
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(arg);
@@ -111,9 +113,11 @@ JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 				type = "const " + type + "&";
 			}
 
-			jsonFunc.add(arg->Name.ToString(), JsonValue::string(type));
+			args.push_back(type + " " + arg->Name.ToString());
 		}
 	}
 
+	JsonValue jsonArgs = JsonValue::array(args);
+	jsonFunc.add("Arguments", jsonArgs);
 	return jsonFunc;
 }

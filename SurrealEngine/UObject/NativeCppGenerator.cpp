@@ -49,7 +49,7 @@ void NativeCppGenerator::Run()
 
 void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
-	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
+	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const JsonValue& package = (*prop).second;
@@ -63,7 +63,7 @@ void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::stri
 void NativeCppGenerator::ParseClassNatives(const std::string& className, const JsonValue& json, const int version, const int subversion)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
-	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
+	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const std::string& funcName = (*prop).first;
@@ -74,13 +74,10 @@ void NativeCppGenerator::ParseClassNatives(const std::string& className, const J
 
 void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
-	const std::vector<std::pair<std::string, JsonValue>>& props = json.properties();
+	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
-		const std::string& packageName = (*prop).first;
-		const JsonValue& packageJson = (*prop).second;
 
-		
 	}
 }
 
@@ -106,14 +103,12 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 	func.AddVersionIndex(version, subversion, json["NativeFuncIndex"].to_int());
 	func.args += "UObject* Self";
 
-	if (json.properties().size() > 1)
+	const std::vector<JsonValue>& args = json["Arguments"].items();
+	if (args.size() > 0)
 	{
-		for (auto prop : json.properties())
+		for (auto arg : args)
 		{
-			if (prop.first.compare("NativeFuncIndex") == 0)
-				continue;
-
-			func.args += ", " + prop.second.to_string() + " " + prop.first;
+			func.args += ", " + arg.to_string();
 		}
 	}
 }
