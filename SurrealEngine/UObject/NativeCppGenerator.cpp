@@ -55,12 +55,12 @@ void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::stri
 		const JsonValue& package = (*prop).second;
 		for (auto cls : package.properties())
 		{
-			ParseClassNatives(cls.first, cls.second, version, subversion);
+			ParseClassNatives(cls.first, cls.second, game, version, subversion);
 		}
 	}
 }
 
-void NativeCppGenerator::ParseClassNatives(const std::string& className, const JsonValue& json, const int version, const int subversion)
+void NativeCppGenerator::ParseClassNatives(const std::string& className, const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
 	const std::map<std::string, JsonValue>& props = json.properties();
@@ -68,7 +68,7 @@ void NativeCppGenerator::ParseClassNatives(const std::string& className, const J
 	{
 		const std::string& funcName = (*prop).first;
 		const JsonValue& funcJson = (*prop).second;
-		cls.ParseClassFunction(funcName, funcJson, version, subversion);
+		cls.ParseClassFunction(funcName, funcJson, game, version, subversion);
 	}
 }
 
@@ -97,10 +97,10 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 }
 
 
-void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const int version, const int subversion)
+void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
 	NativeFunction& func = AddUniqueNativeFunction(funcName);
-	func.AddVersionIndex(version, subversion, json["NativeFuncIndex"].to_int());
+	func.AddVersionIndex(game, version, subversion, json["NativeFuncIndex"].to_int());
 	func.args += "UObject* Self";
 
 	const std::vector<JsonValue>& args = json["Arguments"].items();
@@ -143,21 +143,61 @@ NativeCppGenerator::NativeProperty& NativeCppGenerator::NativeClass::AddUniqueNa
 	return props.back();
 }
 
-void NativeCppGenerator::NativeFunction::AddVersionIndex(const int version, const int subversion, const int index)
+void NativeCppGenerator::NativeFunction::AddVersionIndex(const std::string& game, const int version, const int subversion, const int index)
 {
 	std::pair<KnownUE1Games, int> vi;
 	
 	switch (version)
 	{
+		case 200:
+		{
+			if (game == "TnnHunt")
+				vi.first = KnownUE1Games::TNN_200;
+			else
+				vi.first = KnownUE1Games::UNREAL_200;
+			break;
+		}
+		case 219:
+		{
+			if (game == "Klingons")
+				vi.first = KnownUE1Games::KLINGON_219;
+			else
+				vi.first = KnownUE1Games::UNREAL_219;
+			break;
+		}
 		case 226:
 		{
 			if (subversion == 2)
 				vi.first = KnownUE1Games::UNREALGOLD_226b;
+			else
+				vi.first = KnownUE1Games::UNREAL_226f;
 			break;
 		}
 		case 436:
 		{
 			vi.first = KnownUE1Games::UT99_436;
+			break;
+		}
+		case 451:
+		{
+			vi.first = KnownUE1Games::UT99_451;
+			break;
+		}
+		case 469:
+		{
+			if (subversion == 1)
+				vi.first = KnownUE1Games::UT99_469a;
+			else if (subversion == 2)
+				vi.first = KnownUE1Games::UT99_469b;
+			else if (subversion == 3)
+				vi.first = KnownUE1Games::UT99_469c;
+			else
+				vi.first = KnownUE1Games::UT99_469d;
+			break;
+		}
+		case 1112:
+		{
+			vi.first = KnownUE1Games::DEUS_EX_1112fm;
 			break;
 		}
 	}
