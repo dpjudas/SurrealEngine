@@ -189,6 +189,8 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	packages->SaveAllIniFiles();
+
 	CloseWindow();
 }
 
