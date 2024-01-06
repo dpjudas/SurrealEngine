@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "USubsystem.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 std::string USurrealRenderDevice::GetPropertyAsString(const NameString& propertyName) const
 {
@@ -36,6 +37,8 @@ void USurrealRenderDevice::SetPropertyFromString(const NameString& propertyName,
 		HighDetailActors = std::atoi(value.c_str());
 	else
 		engine->LogMessage("Setting unknown property for SurrealRenderDevice: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -117,6 +120,8 @@ void USurrealAudioDevice::SetPropertyFromString(const NameString& propertyName, 
 		AmbientFactor = (float)std::atof(value.c_str());
 	else
 		engine->LogMessage("Setting unknown property for SurrealAudioDevice: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -133,6 +138,7 @@ std::string USurrealNetworkDevice::GetPropertyAsString(const NameString& propert
 void USurrealNetworkDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	engine->LogMessage("Setting unknown property for SurrealNetworkDevice: " + propertyName.ToString());
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -208,4 +214,6 @@ void USurrealClient::SetPropertyFromString(const NameString& propertyName, const
 		SkinDetail = value;
 	else
 		engine->LogMessage("Setting unknown property for Surreal.ViewportManager: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }

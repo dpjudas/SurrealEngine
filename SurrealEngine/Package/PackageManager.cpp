@@ -354,7 +354,7 @@ void PackageManager::SaveAllIniFiles()
 		else if (iniFile.first == "User")
 			iniFile.second->SaveTo(FilePath::combine(system_folder, "SE-User.ini"));
 		else
-			iniFile.second->SaveTo(FilePath::combine(system_folder, iniFile.first.ToString() + ".ini"));
+			iniFile.second->SaveTo();
 	}
 }
 
