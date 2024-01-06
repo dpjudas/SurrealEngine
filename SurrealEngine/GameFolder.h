@@ -18,17 +18,25 @@ struct GameFolder
 
 enum class KnownUE1Games
 {
+	UNREAL_200,
+	UNREAL_219,
+	UNREAL_226f,
 	UNREALGOLD_226b,
 	UNREALGOLD_227i,
 	UNREALGOLD_227j,
+	UT99_400,
 	UT99_436,
 	UT99_451,
 	UT99_469a,
 	UT99_469b,
 	UT99_469c,
 	UT99_469d,
+	DEUS_EX_1002f,
 	DEUS_EX_1112fm,
-	KLINGON_219
+	KLINGON_219,
+	NERF_300,
+	TNN_200,
+	UNDYING_420
 };
 
 const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -111,7 +119,9 @@ const std::vector<std::string> knownUE1ExecutableNames = {
 	"ut-bin-x64",
 	"DeusEx.exe",
 	"Klingons.exe",
-	"Khg.exe"
+	"Khg.exe",
+	"Rune.exe",
+	"Spore.exe"
 };
 
 class GameFolderSelection
