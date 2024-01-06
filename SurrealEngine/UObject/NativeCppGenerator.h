@@ -16,13 +16,17 @@ public:
 
 private:
 
+	struct NativeFunctionDecl
+	{
+		std::string args;
+		std::vector<KnownUE1Games> games;
+	};
+
 	struct NativeFunction
 	{
 		std::string name;
-		std::string args;
+		std::vector<NativeFunctionDecl> decls;
 		std::vector<std::pair<KnownUE1Games, int>> versionIndex;
-
-		void AddVersionIndex(const std::string& game, const int version, const int subversion, const int index);
 	};
 
 	struct NativeProperty
@@ -40,7 +44,7 @@ private:
 		NativeFunction& AddUniqueNativeFunction(const std::string& funcName);
 		NativeProperty& AddUniqueNativeProperty(const std::string& propName);
 
-		void ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& game, const int version, const int subversion);
+		void ParseClassFunction(const std::string& funcName, const JsonValue& json,  const std::string& game, const int version, const int subversion);
 	};
 
 	static void ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion);

@@ -11,6 +11,66 @@
 
 std::vector<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
 
+static KnownUE1Games GetKnownGame(const std::string& game, const int version, const int subversion)
+{
+	switch (version)
+	{
+		case 200:
+		{
+			if (game == "TnnHunt")
+				return KnownUE1Games::TNN_200;
+			else
+				return KnownUE1Games::UNREAL_200;
+			break;
+		}
+		case 219:
+		{
+			if (game == "Klingons")
+				return KnownUE1Games::KLINGON_219;
+			else
+				return KnownUE1Games::UNREAL_219;
+			break;
+		}
+		case 226:
+		{
+			if (subversion == 2)
+				return KnownUE1Games::UNREALGOLD_226b;
+			else
+				return KnownUE1Games::UNREAL_226f;
+			break;
+		}
+		case 436:
+		{
+			return KnownUE1Games::UT99_436;
+			break;
+		}
+		case 451:
+		{
+			return KnownUE1Games::UT99_451;
+			break;
+		}
+		case 469:
+		{
+			if (subversion == 1)
+				return KnownUE1Games::UT99_469a;
+			else if (subversion == 2)
+				return KnownUE1Games::UT99_469b;
+			else if (subversion == 3)
+				return KnownUE1Games::UT99_469c;
+			else
+				return KnownUE1Games::UT99_469d;
+			break;
+		}
+		case 1112:
+		{
+			return KnownUE1Games::DEUS_EX_1112fm;
+			break;
+		}
+	}
+
+	throw std::runtime_error("Unknown game - Game: " + game + ", Version: " + std::to_string(version) + " , Subversion: " + std::to_string(subversion));
+}
+
 void NativeCppGenerator::Run()
 {
 	classes.clear();
@@ -96,21 +156,43 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 	return classes.back();
 }
 
-
 void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& game, const int version, const int subversion)
 {
-	NativeFunction& func = AddUniqueNativeFunction(funcName);
-	func.AddVersionIndex(game, version, subversion, json["NativeFuncIndex"].to_int());
-	func.args += "UObject* Self";
+	std::string funcArgs = "UObject* Self";
+	KnownUE1Games knownGame = GetKnownGame(game, version, subversion);
 
 	const std::vector<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
+		// Assemble function arguments
 		for (auto arg : args)
 		{
-			func.args += ", " + arg.to_string();
+			funcArgs += ", " + arg.to_string();
 		}
 	}
+
+	NativeFunction& func = AddUniqueNativeFunction(funcName);
+	func.versionIndex.push_back(std::make_pair(knownGame, json["NativeFuncIndex"].to_int()));
+
+	if (func.decls.size() > 0)
+	{
+		// Need to check all existing function declarations.
+		// Games can have different versions of the same function.
+		for (auto decl : func.decls)
+		{
+			if (funcArgs == decl.args)
+			{
+				decl.games.push_back(knownGame);
+				return;
+			}
+		}
+	}
+
+	// Add a new declaration
+	NativeFunctionDecl decl;
+	decl.args = funcArgs;
+	decl.games.push_back(knownGame);
+	func.decls.push_back(std::move(decl));
 }
 
 NativeCppGenerator::NativeFunction& NativeCppGenerator::NativeClass::AddUniqueNativeFunction(const std::string& funcName)
@@ -143,65 +225,3 @@ NativeCppGenerator::NativeProperty& NativeCppGenerator::NativeClass::AddUniqueNa
 	return props.back();
 }
 
-void NativeCppGenerator::NativeFunction::AddVersionIndex(const std::string& game, const int version, const int subversion, const int index)
-{
-	std::pair<KnownUE1Games, int> vi;
-	
-	switch (version)
-	{
-		case 200:
-		{
-			if (game == "TnnHunt")
-				vi.first = KnownUE1Games::TNN_200;
-			else
-				vi.first = KnownUE1Games::UNREAL_200;
-			break;
-		}
-		case 219:
-		{
-			if (game == "Klingons")
-				vi.first = KnownUE1Games::KLINGON_219;
-			else
-				vi.first = KnownUE1Games::UNREAL_219;
-			break;
-		}
-		case 226:
-		{
-			if (subversion == 2)
-				vi.first = KnownUE1Games::UNREALGOLD_226b;
-			else
-				vi.first = KnownUE1Games::UNREAL_226f;
-			break;
-		}
-		case 436:
-		{
-			vi.first = KnownUE1Games::UT99_436;
-			break;
-		}
-		case 451:
-		{
-			vi.first = KnownUE1Games::UT99_451;
-			break;
-		}
-		case 469:
-		{
-			if (subversion == 1)
-				vi.first = KnownUE1Games::UT99_469a;
-			else if (subversion == 2)
-				vi.first = KnownUE1Games::UT99_469b;
-			else if (subversion == 3)
-				vi.first = KnownUE1Games::UT99_469c;
-			else
-				vi.first = KnownUE1Games::UT99_469d;
-			break;
-		}
-		case 1112:
-		{
-			vi.first = KnownUE1Games::DEUS_EX_1112fm;
-			break;
-		}
-	}
-
-	vi.second = index;
-	versionIndex.push_back(vi);
-}
