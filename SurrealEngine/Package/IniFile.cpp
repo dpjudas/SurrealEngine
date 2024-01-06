@@ -43,6 +43,8 @@ IniFile::IniFile(const std::string& filename)
 			}
 		}
 	}
+
+	ini_file_path = filename;
 }
 
 bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
@@ -133,9 +135,14 @@ void IniFile::SetValues(NameString sectionName, NameString keyName, const std::v
 	isModified = true;
 }
 
+void IniFile::SaveTo()
+{
+	SaveTo(ini_file_path);
+}
+
 void IniFile::SaveTo(const std::string& filename)
 {
-	if (!isModified)
+	if (filename == ini_file_path && !isModified)
 		return;
 	
 	std::string ini_text = "";
@@ -155,14 +162,18 @@ void IniFile::SaveTo(const std::string& filename)
 			// and so on, hence this loop
 			for (auto& value : entry.second)
 			{
-				section_text = entry.first.ToString() + "=" + value + "\n";
+				section_text += entry.first.ToString() + "=" + value + "\n";
 			}
 		}
 
-		ini_text += section_text;
+		ini_text += section_text + "\n";
 	}
 
 	// Overwrite whatever is there
 	File::write_all_text(filename, ini_text);
+
+	if (filename != ini_file_path)
+		ini_file_path = filename;
+
 	isModified = false;
 }
