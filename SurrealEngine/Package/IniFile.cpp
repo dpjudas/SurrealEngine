@@ -121,3 +121,48 @@ std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString k
 
 	return itValues->second;
 }
+
+void IniFile::SetValue(NameString sectionName, NameString keyName, const std::string& newValue)
+{
+	SetValues(sectionName, keyName, { newValue });
+}
+
+void IniFile::SetValues(NameString sectionName, NameString keyName, const std::vector<std::string>& newValues)
+{
+	sections[sectionName][keyName] = newValues;
+	isModified = true;
+}
+
+void IniFile::SaveTo(const std::string& filename)
+{
+	if (!isModified)
+		return;
+	
+	std::string ini_text = "";
+
+	// Start with sections first
+	for (auto& section : sections)
+	{
+		// Section header (i.e. [Engine.Engine])
+		std::string section_text = "[" + section.first.ToString() + "]\n";
+
+		// key=value pairs
+		for (auto& entry : section.second)
+		{
+			// a key can hold multiple values, like
+			// Paths=path1
+			// Paths=path2
+			// and so on, hence this loop
+			for (auto& value : entry.second)
+			{
+				section_text = entry.first.ToString() + "=" + value + "\n";
+			}
+		}
+
+		ini_text += section_text;
+	}
+
+	// Overwrite whatever is there
+	File::write_all_text(filename, ini_text);
+	isModified = false;
+}
