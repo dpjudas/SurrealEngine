@@ -70,6 +70,7 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 		NPlayerPawnExt::RegisterFunctions();
 	}
 
+	LoadEngineIniFiles();
 	LoadIntFiles();
 	LoadPackageRemaps();
 	ScanForMaps();
@@ -318,6 +319,45 @@ std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const 
 	return ini->GetValues(sectionName, keyName);
 }
 
+void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue)
+{
+	SetIniValues(iniName, sectionName, keyName, { newValue });
+}
+
+void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
+{
+	if (iniName == "System" || iniName == "system")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+	}
+
+	ini->SetValues(sectionName, keyName, newValues);
+}
+
+void PackageManager::SaveAllIniFiles()
+{
+	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+
+	for (auto& iniFile : iniFiles)
+	{
+		if (iniFile.first == launchInfo.gameName)
+		{
+			const std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+			iniFile.second->SaveTo(FilePath::combine(system_folder, engine_ini_name));
+		}
+		else if (iniFile.first == "User")
+			iniFile.second->SaveTo(FilePath::combine(system_folder, "SE-User.ini"));
+		else
+			iniFile.second->SaveTo(FilePath::combine(system_folder, iniFile.first.ToString() + ".ini"));
+	}
+}
+
 void PackageManager::LoadPackageRemaps()
 {
 	auto remap_keys = GetIniKeysFromSection("system", "PackageRemap");
@@ -326,6 +366,25 @@ void PackageManager::LoadPackageRemaps()
 	{
 		packageRemaps[key.ToString()] = GetIniValue("system", "PackageRemap", key);
 	}
+}
+
+void PackageManager::LoadEngineIniFiles()
+{
+	// Load SE-[GameName].ini and SE-User.ini from the appropriate places
+	// If they do not exist, import the appropriate [GameName].ini and User.ini files
+
+	std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+	std::string user_ini_name = "SE-User.ini";
+
+	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+
+	if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
+		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
+	iniFiles[launchInfo.gameName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+
+	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+		user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
+	iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
 }
 
 void PackageManager::LoadIntFiles()
