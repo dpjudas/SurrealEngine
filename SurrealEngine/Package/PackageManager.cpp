@@ -287,7 +287,7 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 	return ini->GetKeys(sectionName);
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameName;
@@ -300,10 +300,10 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValue(sectionName, keyName);
+	return ini->GetValue(sectionName, keyName, default_value);
 }
 
-std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName)
+std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameName;
@@ -316,7 +316,7 @@ std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const 
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValues(sectionName, keyName);
+	return ini->GetValues(sectionName, keyName, default_values);
 }
 
 void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue)
@@ -379,7 +379,11 @@ void PackageManager::LoadEngineIniFiles()
 	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
 
 	if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
+	{
+		missing_se_system_ini = true;
 		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
+	}
+		
 	iniFiles[launchInfo.gameName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
 
 	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
