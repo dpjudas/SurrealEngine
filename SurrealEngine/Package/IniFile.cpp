@@ -47,6 +47,12 @@ IniFile::IniFile(const std::string& filename)
 	ini_file_path = filename;
 }
 
+IniFile::IniFile(const IniFile& other)
+{
+	ini_file_path = other.ini_file_path;
+	sections = other.sections;
+}
+
 bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
 {
 	// Skip whitespace

@@ -1,12 +1,14 @@
 #pragma once
 
 #include "NameString.h"
+#include <map>
 
 class IniFile
 {
 public:
 	IniFile() = default;
 	IniFile(const std::string& filename);
+	IniFile(const IniFile& other);
 
 	bool IsModified() const { return isModified; }
 
