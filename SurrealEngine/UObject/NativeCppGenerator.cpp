@@ -105,6 +105,8 @@ void NativeCppGenerator::Run()
 		else
 			ParseGameProperties(json, game, std::stoi(version), subversion);
 	}
+
+	
 }
 
 void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion)
@@ -137,7 +139,23 @@ void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::s
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
+		const JsonValue& package = (*prop).second;
+		for (auto cls : package.properties())
+		{
+			ParseClassProperties(cls.first, cls.second, game, version, subversion);
+		}
+	}
+}
 
+void NativeCppGenerator::ParseClassProperties(const std::string& className, const JsonValue& json, const std::string& game, const int version, const int subversion)
+{
+	NativeClass& cls = AddUniqueNativeClass(className);
+	const std::map<std::string, JsonValue>& props = json.properties();
+	for (auto prop = props.begin(); prop != props.end(); prop++)
+	{
+		NativeProperty& nativeProp = cls.AddUniqueNativeProperty((*prop).first);
+		nativeProp.type = (*prop).second.to_string();
+		nativeProp.games.push_back(GetKnownGame(game, version, subversion));
 	}
 }
 

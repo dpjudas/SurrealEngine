@@ -33,6 +33,7 @@ private:
 	{
 		std::string name;
 		std::string type;
+		std::vector<KnownUE1Games> games;
 	};
 
 	struct NativeClass
