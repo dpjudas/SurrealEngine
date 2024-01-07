@@ -7,6 +7,9 @@ class USubsystem : public UObject
 {
 public:
 	using UObject::UObject;
+
+	virtual void LoadProperties(const NameString& from = "") {}
+	virtual void SaveProperties() {}
 };
 
 class ULanguage : public UObject
@@ -71,6 +74,9 @@ public:
 	bool Coronas = true;
 	bool HighDetailActors = true;
 
+	void LoadProperties(const NameString& from = "") override;
+	void SaveProperties() override;
+
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
 };
@@ -97,6 +103,9 @@ public:
 	uint8_t MusicVolume = 160;
 	uint8_t SoundVolume = 200;
 	float AmbientFactor = 0.7f;
+
+	void LoadProperties(const NameString& from = "") override;
+	void SaveProperties() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;

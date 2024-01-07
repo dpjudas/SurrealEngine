@@ -66,6 +66,17 @@ void Engine::Run()
 	LoadEngineSettings();
 	LoadKeybindings();
 
+	if (packages->MissingSESystemIni())
+	{
+		audiodev->LoadProperties("Galaxy.GalaxyAudioSubsystem");
+		renderdev->LoadProperties("D3DDrv.Direct3DRenderDevice");
+	}
+	else
+	{
+		audiodev->LoadProperties();
+		renderdev->LoadProperties();
+	}
+
 	OpenWindow();
 
 	audio = std::make_unique<AudioSubsystem>();
@@ -189,6 +200,8 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	audiodev->SaveProperties();
+	renderdev->SaveProperties();
 	packages->SaveAllIniFiles();
 
 	CloseWindow();
