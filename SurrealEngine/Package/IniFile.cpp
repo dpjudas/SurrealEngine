@@ -93,33 +93,33 @@ std::vector<NameString> IniFile::GetKeys(NameString sectionName) const
 	return result;
 }
 
-std::string IniFile::GetValue(NameString sectionName, NameString keyName) const
+std::string IniFile::GetValue(NameString sectionName, NameString keyName, std::string default_value) const
 {
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
-		return {};
+		return default_value;
 
 	const auto& values = itSection->second;
 	auto itValues = values.find(keyName);
 	if (itValues == values.end())
-		return {};
+		return default_value;
 
 	if (itValues->second.empty())
-		return {};
+		return default_value;
 
 	return itValues->second.front();
 }
 
-std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName) const
+std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName, std::vector<std::string> default_values) const
 {
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
-		return {};
+		return default_values;
 
 	const auto& values = itSection->second;
 	auto itValues = values.find(keyName);
 	if (itValues == values.end())
-		return {};
+		return default_values;
 
 	return itValues->second;
 }
@@ -131,6 +131,11 @@ void IniFile::SetValue(NameString sectionName, NameString keyName, const std::st
 
 void IniFile::SetValues(NameString sectionName, NameString keyName, const std::vector<std::string>& newValues)
 {
+	auto& oldValues = sections[sectionName][keyName];
+
+	if (oldValues == newValues)
+		return;
+	
 	sections[sectionName][keyName] = newValues;
 	isModified = true;
 }
