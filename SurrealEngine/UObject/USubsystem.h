@@ -145,6 +145,9 @@ public:
 	IniProperty<std::string> TextureDetail = "High";
 	IniProperty<std::string> SkinDetail = "High";
 
+	void LoadProperties(const NameString& from = "");
+	void SaveProperties();
+
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
 };

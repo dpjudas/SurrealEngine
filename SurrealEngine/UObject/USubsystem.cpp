@@ -211,6 +211,49 @@ void USurrealNetworkDevice::SetPropertyFromString(const NameString& propertyName
 
 /////////////////////////////////////////////////////////////////////////////
 
+void USurrealClient::LoadProperties(const NameString& from)
+{
+	NameString name_from = from;
+
+	if (from == "")
+		name_from = NameString(Class);
+
+	StartupFullscreen.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "StartupFullscreen");
+	WindowedViewportX.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportX");
+	WindowedViewportY.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportY");
+	WindowedColorBits.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedColorBits");
+	FullscreenViewportX.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenViewportX");
+	FullscreenViewportY.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenViewportY");
+	FullscreenColorBits.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenColorBits");
+	Brightness.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Brightness");
+	UseJoystick.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseJoystick");
+	UseDirectInput.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseDirectInput");
+	MinDesiredFrameRate.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "MinDesiredFrameRate");
+	Decals.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Decals");
+	NoDynamicLights.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "NoDynamicLights");
+	TextureDetail.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "TextureDetail");
+	SkinDetail.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SkinDetail");
+}
+
+void USurrealClient::SaveProperties()
+{
+	engine->packages->SetIniValue("System", Class, "StartupFullscreen", StartupFullscreen.ToString());
+	engine->packages->SetIniValue("System", Class, "WindowedViewportX", WindowedViewportX.ToString());
+	engine->packages->SetIniValue("System", Class, "WindowedViewportY", WindowedViewportY.ToString());
+	engine->packages->SetIniValue("System", Class, "WindowedColorBits", WindowedColorBits.ToString());
+	engine->packages->SetIniValue("System", Class, "FullscreenViewportX", FullscreenViewportX.ToString());
+	engine->packages->SetIniValue("System", Class, "FullscreenViewportY", FullscreenViewportY.ToString());
+	engine->packages->SetIniValue("System", Class, "FullscreenColorBits", FullscreenColorBits.ToString());
+	engine->packages->SetIniValue("System", Class, "Brightness", Brightness.ToString());
+	engine->packages->SetIniValue("System", Class, "UseJoystick", UseJoystick.ToString());
+	engine->packages->SetIniValue("System", Class, "UseDirectInput", UseDirectInput.ToString());
+	engine->packages->SetIniValue("System", Class, "MinDesiredFrameRate", MinDesiredFrameRate.ToString());
+	engine->packages->SetIniValue("System", Class, "Decals", Decals.ToString());
+	engine->packages->SetIniValue("System", Class, "NoDynamicLights", NoDynamicLights.ToString());
+	engine->packages->SetIniValue("System", Class, "TextureDetail", TextureDetail.Value());
+	engine->packages->SetIniValue("System", Class, "SkinDetail", SkinDetail.Value());
+}
+
 std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) const
 {
 	if (propertyName == "Class")
