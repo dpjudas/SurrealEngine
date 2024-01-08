@@ -9,15 +9,15 @@ std::string USurrealRenderDevice::GetPropertyAsString(const NameString& property
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	if (propertyName == "Translucency")
-		return Translucency ? "1" : "0";
+		return Translucency.ToString();
 	else if (propertyName == "VolumetricLighting")
-		return VolumetricLighting ? "1" : "0";
+		return VolumetricLighting.ToString();
 	else if (propertyName == "ShinySurfaces")
-		return ShinySurfaces ? "1" : "0";
+		return ShinySurfaces.ToString();
 	else if (propertyName == "Coronas")
-		return Coronas ? "1" : "0";
+		return Coronas.ToString();
 	else if (propertyName == "HighDetailActors")
-		return HighDetailActors ? "1" : "0";
+		return HighDetailActors.ToString();
 
 	engine->LogMessage("Queried unknown property for SurrealRenderDevice: " + propertyName.ToString());
 	return {};
@@ -26,15 +26,15 @@ std::string USurrealRenderDevice::GetPropertyAsString(const NameString& property
 void USurrealRenderDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "Translucency")
-		Translucency = std::atoi(value.c_str());
+		Translucency.FromString(value);
 	else if (propertyName == "VolumetricLighting")
-		VolumetricLighting = std::atoi(value.c_str());
+		VolumetricLighting.FromString(value);
 	else if (propertyName == "ShinySurfaces")
-		ShinySurfaces = std::atoi(value.c_str());
+		ShinySurfaces.FromString(value);
 	else if (propertyName == "Coronas")
-		Coronas = std::atoi(value.c_str());
+		Coronas.FromString(value);
 	else if (propertyName == "HighDetailActors")
-		HighDetailActors = std::atoi(value.c_str());
+		HighDetailActors.FromString(value);
 	else
 		engine->LogMessage("Setting unknown property for SurrealRenderDevice: " + propertyName.ToString());
 
@@ -48,20 +48,21 @@ void USurrealRenderDevice::LoadProperties(const NameString& from)
 	if (from == "")
 		name_from = NameString(Class);
 
-	Translucency = std::atoi(engine->packages->GetIniValue("System", name_from, "Translucency", std::to_string(Translucency)).c_str());
-	VolumetricLighting = std::atoi(engine->packages->GetIniValue("System", name_from, "VolumetricLighting", std::to_string(VolumetricLighting)).c_str());
-	ShinySurfaces = std::atoi(engine->packages->GetIniValue("System", name_from, "ShinySurfaces", std::to_string(ShinySurfaces)).c_str());
-	Coronas = std::atoi(engine->packages->GetIniValue("System", name_from, "Coronas", std::to_string(Coronas)).c_str());
-	HighDetailActors = std::atoi(engine->packages->GetIniValue("System", name_from, "HighDetailActors", std::to_string(HighDetailActors)).c_str());
+	Translucency.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Translucency");
+	//Translucency = std::atoi(engine->packages->GetIniValue("System", name_from, "Translucency", Translucency.ToString()).c_str());
+	VolumetricLighting.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "VolumetricLighting");
+	ShinySurfaces.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "ShinySurfaces");
+	Coronas.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Coronas");
+	HighDetailActors.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "HighDetailActors");
 }
 
 void USurrealRenderDevice::SaveProperties()
 {
-	engine->packages->SetIniValue("System", Class, "Translucency", std::to_string(Translucency));
-	engine->packages->SetIniValue("System", Class, "VolumetricLighting", std::to_string(VolumetricLighting));
-	engine->packages->SetIniValue("System", Class, "ShinySurfaces", std::to_string(ShinySurfaces));
-	engine->packages->SetIniValue("System", Class, "Coronas", std::to_string(Coronas));
-	engine->packages->SetIniValue("System", Class, "HighDetailActors", std::to_string(HighDetailActors));
+	engine->packages->SetIniValue("System", Class, "Translucency", Translucency.ToString());
+	engine->packages->SetIniValue("System", Class, "VolumetricLighting", VolumetricLighting.ToString());
+	engine->packages->SetIniValue("System", Class, "ShinySurfaces", ShinySurfaces.ToString());
+	engine->packages->SetIniValue("System", Class, "Coronas", Coronas.ToString());
+	engine->packages->SetIniValue("System", Class, "HighDetailActors", HighDetailActors.ToString());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -71,37 +72,37 @@ std::string USurrealAudioDevice::GetPropertyAsString(const NameString& propertyN
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	else if (propertyName == "UseFilter")
-		return UseFilter ? "1" : "0";
+		return UseFilter.ToString();
 	else if (propertyName == "UseSurround")
-		return UseSurround ? "1" : "0";
+		return UseSurround.ToString();
 	else if (propertyName == "UseStereo")
-		return UseStereo ? "1" : "0";
+		return UseStereo.ToString();
 	else if (propertyName == "UseCDMusic")
-		return UseCDMusic ? "1" : "0";
+		return UseCDMusic.ToString();
 	else if (propertyName == "UseDigitalMusic")
-		return UseDigitalMusic ? "1" : "0";
+		return UseDigitalMusic.ToString();
 	else if (propertyName == "UseSpatial")
-		return UseSpatial ? "1" : "0";
+		return UseSpatial.ToString();
 	else if (propertyName == "UseReverb")
-		return UseReverb ? "1" : "0";
+		return UseReverb.ToString();
 	else if (propertyName == "Use3dHardware")
-		return Use3dHardware ? "1" : "0";
+		return Use3dHardware.ToString();
 	else if (propertyName == "LowSoundQuality")
-		return LowSoundQuality ? "1" : "0";
+		return LowSoundQuality.ToString();
 	else if (propertyName == "ReverseStereo")
-		return ReverseStereo ? "1" : "0";
+		return ReverseStereo.ToString();
 	else if (propertyName == "Latency")
-		return std::to_string(Latency);
+		return Latency.ToString();
 	else if (propertyName == "OutputRate")
-		return std::to_string(OutputRate);
+		return OutputRate.ToString();
 	else if (propertyName == "Channels")
-		return std::to_string(Channels);
+		return Channels.ToString();
 	else if (propertyName == "MusicVolume")
-		return std::to_string(MusicVolume);
+		return MusicVolume.ToString();
 	else if (propertyName == "SoundVolume")
-		return std::to_string(SoundVolume);
+		return SoundVolume.ToString();
 	else if (propertyName == "AmbientFactor")
-		return std::to_string(AmbientFactor);
+		return AmbientFactor.ToString();
 
 	engine->LogMessage("Queried unknown property for SurrealAudioDevice: " + propertyName.ToString());
 	return {};
@@ -110,37 +111,37 @@ std::string USurrealAudioDevice::GetPropertyAsString(const NameString& propertyN
 void USurrealAudioDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "UseFilter")
-		UseFilter = std::atoi(value.c_str());
+		UseFilter.FromString(value);
 	else if (propertyName == "UseSurround")
-		UseSurround = std::atoi(value.c_str());
+		UseSurround.FromString(value);
 	else if (propertyName == "UseStereo")
-		UseStereo = std::atoi(value.c_str());
+		UseStereo.FromString(value);
 	else if (propertyName == "UseCDMusic")
-		UseCDMusic = std::atoi(value.c_str());
+		UseCDMusic.FromString(value);
 	else if (propertyName == "UseDigitalMusic")
-		UseDigitalMusic = std::atoi(value.c_str());
+		UseDigitalMusic.FromString(value);
 	else if (propertyName == "UseSpatial")
-		UseSpatial = std::atoi(value.c_str());
+		UseSpatial.FromString(value);
 	else if (propertyName == "UseReverb")
-		UseReverb = std::atoi(value.c_str());
+		UseReverb.FromString(value);
 	else if (propertyName == "Use3dHardware")
-		Use3dHardware = std::atoi(value.c_str());
+		Use3dHardware.FromString(value);
 	else if (propertyName == "LowSoundQuality")
-		LowSoundQuality = std::atoi(value.c_str());
+		LowSoundQuality.FromString(value);
 	else if (propertyName == "ReverseStereo")
-		ReverseStereo = std::atoi(value.c_str());
+		ReverseStereo.FromString(value);
 	else if (propertyName == "Latency")
-		Latency = std::atoi(value.c_str());
+		Latency.FromString(value);
 	else if (propertyName == "OutputRate")
-		OutputRate = std::atoi(value.c_str());
+		OutputRate.FromString(value);
 	else if (propertyName == "Channels")
-		Channels = std::atoi(value.c_str());
+		Channels.FromString(value);
 	else if (propertyName == "MusicVolume")
-		MusicVolume = std::atoi(value.c_str());
+		MusicVolume.FromString(value);
 	else if (propertyName == "SoundVolume")
-		SoundVolume = std::atoi(value.c_str());
+		SoundVolume.FromString(value);
 	else if (propertyName == "AmbientFactor")
-		AmbientFactor = (float)std::atof(value.c_str());
+		AmbientFactor.FromString(value);
 	else
 		engine->LogMessage("Setting unknown property for SurrealAudioDevice: " + propertyName.ToString());
 
@@ -154,42 +155,60 @@ void USurrealAudioDevice::LoadProperties(const NameString& from)
 	if (from == "")
 		name_from = NameString(Class);
 
-	UseFilter = std::atoi(engine->packages->GetIniValue("System", name_from, "UseFilter", std::to_string(UseFilter)).c_str());
-	UseSurround = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSurround", std::to_string(UseSurround)).c_str());
-	UseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "UseStereo", std::to_string(UseStereo)).c_str());
-	UseCDMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseCDMusic", std::to_string(UseCDMusic)).c_str());
-	UseDigitalMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseDigitalMusic", std::to_string(UseDigitalMusic)).c_str());
-	UseSpatial = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSpatial", std::to_string(UseSpatial)).c_str());
-	UseReverb = std::atoi(engine->packages->GetIniValue("System", name_from, "UseReverb", std::to_string(UseReverb)).c_str());
-	Use3dHardware = std::atoi(engine->packages->GetIniValue("System", name_from, "Use3dHardware", std::to_string(Use3dHardware)).c_str());
-	LowSoundQuality = std::atoi(engine->packages->GetIniValue("System", name_from, "LowSoundQuality", std::to_string(LowSoundQuality)).c_str());
-	ReverseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "ReverseStereo", std::to_string(ReverseStereo)).c_str());
-	Latency = std::atoi(engine->packages->GetIniValue("System", name_from, "Latency", std::to_string(Latency)).c_str());
-	OutputRate = std::atoi(engine->packages->GetIniValue("System", name_from, "OutputRate", std::to_string(OutputRate)).c_str());
-	Channels = std::atoi(engine->packages->GetIniValue("System", name_from, "Channels", std::to_string(Channels)).c_str());
-	MusicVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "MusicVolume", std::to_string(MusicVolume)).c_str());
-	SoundVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "SoundVolume", std::to_string(SoundVolume)).c_str());
-	AmbientFactor = (float)std::atof(engine->packages->GetIniValue("System", name_from, "AmbientFactor", std::to_string(AmbientFactor)).c_str());
+	UseFilter.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseFilter");
+	UseSurround.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseSurround");
+	UseStereo.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseStereo");
+	UseCDMusic.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseCDMusic");
+	UseDigitalMusic.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseDigitalMusic");
+	UseSpatial.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseSpatial");
+	UseReverb.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseReverb");
+	Use3dHardware.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Use3dHardware");
+	LowSoundQuality.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "LowSoundQuality");
+	ReverseStereo.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "ReverseStereo");
+	Latency.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Latency");
+	OutputRate.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "OutputRate");
+	Channels.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Channels");
+	MusicVolume.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "MusicVolume");
+	SoundVolume.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SoundVolume");
+	AmbientFactor.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "AmbientFactor");
+	/*
+	UseFilter = std::atoi(engine->packages->GetIniValue("System", name_from, "UseFilter", UseFilter.ToString()).c_str());
+	UseSurround = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSurround", UseSurround.ToString()).c_str());
+	UseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "UseStereo", UseStereo.ToString()).c_str());
+	UseCDMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseCDMusic", UseCDMusic.ToString()).c_str());
+	UseDigitalMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseDigitalMusic", UseDigitalMusic.ToString()).c_str());
+	UseSpatial = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSpatial", UseSpatial.ToString()).c_str());
+	UseReverb = std::atoi(engine->packages->GetIniValue("System", name_from, "UseReverb", UseReverb.ToString()).c_str());
+	Use3dHardware = std::atoi(engine->packages->GetIniValue("System", name_from, "Use3dHardware", Use3dHardware.ToString()).c_str());
+	LowSoundQuality = std::atoi(engine->packages->GetIniValue("System", name_from, "LowSoundQuality", LowSoundQuality.ToString()).c_str());
+	ReverseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "ReverseStereo", ReverseStereo.ToString()).c_str());
+	Latency = std::atoi(engine->packages->GetIniValue("System", name_from, "Latency", Latency.ToString()).c_str());
+	OutputRate = std::atoi(engine->packages->GetIniValue("System", name_from, "OutputRate", OutputRate.ToString()).c_str());
+	Channels = std::atoi(engine->packages->GetIniValue("System", name_from, "Channels", Channels.ToString()).c_str());
+	MusicVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "MusicVolume", MusicVolume.ToString()).c_str());
+	SoundVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "SoundVolume", SoundVolume.ToString()).c_str());
+	AmbientFactor = (float)std::atof(engine->packages->GetIniValue("System", name_from, "AmbientFactor", AmbientFactor.ToString()).c_str());
+	*/
 }
 
 void USurrealAudioDevice::SaveProperties()
 {
-	engine->packages->SetIniValue("System", Class, "UseFilter", std::to_string(UseFilter));
-	engine->packages->SetIniValue("System", Class, "UseSurround", std::to_string(UseSurround));
-	engine->packages->SetIniValue("System", Class, "UseStereo", std::to_string(UseStereo));
-	engine->packages->SetIniValue("System", Class, "UseCDMusic", std::to_string(UseCDMusic));
-	engine->packages->SetIniValue("System", Class, "UseDigitalMusic", std::to_string(UseDigitalMusic));
-	engine->packages->SetIniValue("System", Class, "UseSpatial", std::to_string(UseSpatial));
-	engine->packages->SetIniValue("System", Class, "UseReverb", std::to_string(UseReverb));
-	engine->packages->SetIniValue("System", Class, "Use3dHardware", std::to_string(Use3dHardware));
-	engine->packages->SetIniValue("System", Class, "LowSoundQuality", std::to_string(LowSoundQuality));
-	engine->packages->SetIniValue("System", Class, "ReverseStereo", std::to_string(ReverseStereo));
-	engine->packages->SetIniValue("System", Class, "Latency", std::to_string(Latency));
-	engine->packages->SetIniValue("System", Class, "OutputRate", std::to_string(OutputRate));
-	engine->packages->SetIniValue("System", Class, "Channels", std::to_string(Channels));
-	engine->packages->SetIniValue("System", Class, "MusicVolume", std::to_string(MusicVolume));
-	engine->packages->SetIniValue("System", Class, "SoundVolume", std::to_string(SoundVolume));
-	engine->packages->SetIniValue("System", Class, "AmbientFactor", std::to_string(AmbientFactor));
+	engine->packages->SetIniValue("System", Class, "UseFilter", UseFilter.ToString());
+	engine->packages->SetIniValue("System", Class, "UseSurround", UseSurround.ToString());
+	engine->packages->SetIniValue("System", Class, "UseStereo", UseStereo.ToString());
+	engine->packages->SetIniValue("System", Class, "UseCDMusic", UseCDMusic.ToString());
+	engine->packages->SetIniValue("System", Class, "UseDigitalMusic", UseDigitalMusic.ToString());
+	engine->packages->SetIniValue("System", Class, "UseSpatial", UseSpatial.ToString());
+	engine->packages->SetIniValue("System", Class, "UseReverb", UseReverb.ToString());
+	engine->packages->SetIniValue("System", Class, "Use3dHardware", Use3dHardware.ToString());
+	engine->packages->SetIniValue("System", Class, "LowSoundQuality", LowSoundQuality.ToString());
+	engine->packages->SetIniValue("System", Class, "ReverseStereo", ReverseStereo.ToString());
+	engine->packages->SetIniValue("System", Class, "Latency", Latency.ToString());
+	engine->packages->SetIniValue("System", Class, "OutputRate", OutputRate.ToString());
+	engine->packages->SetIniValue("System", Class, "Channels", Channels.ToString());
+	engine->packages->SetIniValue("System", Class, "MusicVolume", MusicVolume.ToString());
+	engine->packages->SetIniValue("System", Class, "SoundVolume", SoundVolume.ToString());
+	engine->packages->SetIniValue("System", Class, "AmbientFactor", AmbientFactor.ToString());
 }
 
 /////////////////////////////////////////////////////////////////////////////
