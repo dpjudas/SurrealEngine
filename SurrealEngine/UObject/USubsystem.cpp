@@ -216,35 +216,35 @@ std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) 
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	else if (propertyName == "StartupFullscreen")
-		return StartupFullscreen ? "1" : "0";
+		return StartupFullscreen.ToString();
 	else if (propertyName == "WindowedViewportX")
-		return std::to_string(WindowedViewportX);
+		return WindowedViewportX.ToString();
 	else if (propertyName == "WindowedViewportY")
-		return std::to_string(WindowedViewportY);
+		return WindowedViewportY.ToString();
 	else if (propertyName == "WindowedColorBits")
-		return std::to_string(WindowedColorBits);
+		return WindowedColorBits.ToString();
 	else if (propertyName == "FullscreenViewportX")
-		return std::to_string(FullscreenViewportX);
+		return FullscreenViewportX.ToString();
 	else if (propertyName == "FullscreenViewportY")
-		return std::to_string(FullscreenViewportY);
+		return FullscreenViewportY.ToString();
 	else if (propertyName == "FullscreenColorBits")
-		return std::to_string(FullscreenColorBits);
+		return FullscreenColorBits.ToString();
 	else if (propertyName == "Brightness")
-		return std::to_string(Brightness);
+		return Brightness.ToString();
 	else if (propertyName == "UseJoystick")
-		return UseJoystick ? "1" : "0";
+		return UseJoystick.ToString();
 	else if (propertyName == "UseDirectInput")
-		return UseDirectInput ? "1" : "0";
+		return UseDirectInput.ToString();
 	else if (propertyName == "MinDesiredFrameRate")
-		return std::to_string(MinDesiredFrameRate);
+		return MinDesiredFrameRate.ToString();
 	else if (propertyName == "Decals")
-		return Decals ? "1" : "0";
+		return Decals.ToString();
 	else if (propertyName == "NoDynamicLights")
-		return NoDynamicLights ? "1" : "0";
+		return NoDynamicLights.ToString();
 	else if (propertyName == "TextureDetail")
-		return TextureDetail;
+		return TextureDetail.Value();
 	else if (propertyName == "SkinDetail")
-		return SkinDetail;
+		return SkinDetail.Value();
 
 	engine->LogMessage("Queried unknown property for Surreal.ViewportManager: " + propertyName.ToString());
 	return {};
@@ -253,29 +253,29 @@ std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) 
 void USurrealClient::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "WindowedViewportX")
-		WindowedViewportX = std::atoi(value.c_str());
+		WindowedViewportX.FromString(value);
 	else if (propertyName == "WindowedViewportY")
-		WindowedViewportY = std::atoi(value.c_str());
+		WindowedViewportY.FromString(value);
 	else if (propertyName == "WindowedColorBits")
-		WindowedColorBits = std::atoi(value.c_str());
+		WindowedColorBits.FromString(value);
 	else if (propertyName == "FullscreenViewportX")
-		FullscreenViewportX = std::atoi(value.c_str());
+		FullscreenViewportX.FromString(value);
 	else if (propertyName == "FullscreenViewportY")
-		FullscreenViewportY = std::atoi(value.c_str());
+		FullscreenViewportY.FromString(value);
 	else if (propertyName == "FullscreenColorBits")
-		FullscreenColorBits = std::atoi(value.c_str());
+		FullscreenColorBits.FromString(value);
 	else if (propertyName == "Brightness")
-		Brightness = (float)std::atof(value.c_str());
+		Brightness.FromString(value);
 	else if (propertyName == "UseJoystick")
-		UseJoystick = std::atoi(value.c_str());
+		UseJoystick.FromString(value);
 	else if (propertyName == "UseDirectInput")
-		UseDirectInput = std::atoi(value.c_str());
+		UseDirectInput.FromString(value);
 	else if (propertyName == "MinDesiredFrameRate")
-		MinDesiredFrameRate = std::atoi(value.c_str());
+		MinDesiredFrameRate.FromString(value);
 	else if (propertyName == "Decals")
-		Decals = std::atoi(value.c_str());
+		Decals.FromString(value);
 	else if (propertyName == "NoDynamicLights")
-		NoDynamicLights = std::atoi(value.c_str());
+		NoDynamicLights.FromString(value);
 	else if (propertyName == "TextureDetail")
 		TextureDetail = value;
 	else if (propertyName == "SkinDetail")

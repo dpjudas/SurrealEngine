@@ -129,21 +129,21 @@ public:
 	using UClient::UClient;
 
 	std::string Class = "Engine.SurrealClient";
-	bool StartupFullscreen = false;
-	int WindowedViewportX = 1920;
-	int WindowedViewportY = 1080;
-	int WindowedColorBits = 32;
-	int FullscreenViewportX = 0;
-	int FullscreenViewportY = 0;
-	int FullscreenColorBits = 32;
-	float Brightness = 0.5f;
-	bool UseJoystick = false;
-	bool UseDirectInput = true;
-	int MinDesiredFrameRate = 200;
-	bool Decals = true;
-	bool NoDynamicLights = false;
-	std::string TextureDetail = "High";
-	std::string SkinDetail = "High";
+	IniProperty<bool> StartupFullscreen = false;
+	IniProperty<int> WindowedViewportX = 1920;
+	IniProperty<int> WindowedViewportY = 1080;
+	IniProperty<int> WindowedColorBits = 32;
+	IniProperty<int> FullscreenViewportX = 0;
+	IniProperty<int> FullscreenViewportY = 0;
+	IniProperty<int> FullscreenColorBits = 32;
+	IniProperty<float> Brightness = 0.5f;
+	IniProperty<bool> UseJoystick = false;
+	IniProperty<bool> UseDirectInput = true;
+	IniProperty<int> MinDesiredFrameRate = 200;
+	IniProperty<bool> Decals = true;
+	IniProperty<bool> NoDynamicLights = false;
+	IniProperty<std::string> TextureDetail = "High";
+	IniProperty<std::string> SkinDetail = "High";
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
