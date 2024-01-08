@@ -100,16 +100,117 @@ void NativeCppGenerator::Run()
 
 		JsonValue json = JsonValue::parse(File::read_all_text(file));
 
+		KnownUE1Games knownGame = GetKnownGame(game, std::stoi(version), subversion);
+
 		if (parseNatives)
-			ParseGameNatives(json, game, std::stoi(version), subversion);
+			ParseGameNatives(json, knownGame);
 		else
-			ParseGameProperties(json, game, std::stoi(version), subversion);
+			ParseGameProperties(json, knownGame);
 	}
 
-	
+	Directory::make_directory("Cpp");
+	Directory::make_directory("Cpp/Native");
+	Directory::make_directory("Cpp/Package");
+	Directory::make_directory("Cpp/UObject");
+
+	std::string packageManagerRegisterFuncsText;
+	std::string propertyOffsetsHText;
+	std::string propertyOffsetsCppText;
+
+	packageManagerRegisterFuncsText += "\t// Copy/paste this into the PackageManager constructor\r\n";
+
+	propertyOffsetsHText += "#pragma once\r\n\r\n";
+	propertyOffsetsHText += "class PackageManager;\r\n\r\n";
+	propertyOffsetsHText += "void InitPropertyOffsets(PackageManager * packages); \r\n\r\n";
+	propertyOffsetsHText += "struct PropertyDataOffset\r\n{\r\n\tsize_t DataOffset = ~(size_t)0;\r\n\tuint32_t BitfieldMask = 1;\r\n};\r\n\r\n";
+
+	propertyOffsetsCppText += "#include \"Precomp.h\"\r\n";
+	propertyOffsetsCppText += "#include \"PropertyOffsets.h\"\r\n";
+	propertyOffsetsCppText += "#include \"Package/PackageManager.h\"\r\n";
+	propertyOffsetsCppText += "#include \"UClass.h\"\r\n";
+	propertyOffsetsCppText += "#include \"UProperty.h\"\r\n\r\n";
+
+	for (auto cls : classes)
+	{
+		std::string nClassCppText;
+		std::string nClassHText;
+		std::string nClassCppRegisterFunctionsText;
+		std::string nClassCppFunctionImplsText;
+
+		// Write native function info
+		if (cls.funcs.size() > 0)
+		{
+			nClassHText += "#pragma once\r\n\r\n";
+			nClassHText += "#include \"UObject/UObject.h\"\r\n\r\n";
+
+			nClassHText += "class N" + cls.name;
+			nClassHText += "\r\n{\r\npublic:\r\n\tstatic void RegisterFunctions();\r\n\r\n";
+
+			nClassCppText += "#include \"Precomp.h\"\r\n";
+			nClassCppText += "#include \"N" + cls.name + "\"\r\n";
+			nClassCppText += "#include \"VM/NativeFunc.h\"\r\n";
+			nClassCppText += "#include \"Engine.h\"\r\n\r\n";
+
+			nClassCppText += "void N" + cls.name + "::RegisterFunctions(const std::map<std::string, int>& funcIndexMap)\r\n{\r\n";
+
+			for (auto func : cls.funcs)
+			{
+				for (int i = 0; i < func.decls.size(); i++)
+				{
+					NativeFunctionDecl& decl = func.decls[i];
+					std::string funcName = func.name;
+					if (i > 0)
+						funcName += "_" + std::to_string(i);
+
+					std::string cppFuncName = "N" + cls.name + "::" + funcName;
+					std::string cppFuncDecl = "void " + cppFuncName + "(" + decl.args + ")";
+
+					nClassCppRegisterFunctionsText += "\tRegisterVMNativeFunc_" + std::to_string(decl.argCount) + "(\"" + cls.name + "\", \"" + func.name + "\", &" + cppFuncName + ", funcIndexMap[\"" + cppFuncName + "\"]);\r\n";
+					nClassCppFunctionImplsText += "\r\n" + cppFuncDecl + "\r\n{\r\n\tthrow std::runtime_error(\"" + cppFuncName + " not implemented\");\r\n}\r\n";
+					nClassHText += "static void " + funcName + "(" + decl.args + ")" + ";\r\n";
+				}
+			}
+
+			nClassHText += "};\r\n";
+
+			nClassCppText += nClassCppRegisterFunctionsText;
+			nClassCppText += nClassCppFunctionImplsText;
+
+			File::write_all_text("Cpp/Native/N" + cls.name + ".cpp", nClassCppText);
+			File::write_all_text("Cpp/Native/N" + cls.name + ".h", nClassHText);
+		}
+
+		// Write native property info
+		packageManagerRegisterFuncsText += "\tN" + cls.name + "::RegisterFunctions(funcIndexMap);\r\n";
+		std::string propOffsetsVarName = "PropOffsets_" + cls.name;
+		std::string propOffsetsStructName = "PropertyOffsets_" + cls.name;
+		std::string propOffsetsVarDecl = propOffsetsStructName + " " + propOffsetsVarName + ";\r\n\r\n";
+
+		propertyOffsetsCppText += propOffsetsVarDecl;
+		propertyOffsetsCppText += "static void InitPropertyOffsets_" + cls.name + "(PackageManager* packages)\r\n{\r\n";
+		propertyOffsetsCppText += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + cls.package + "\")->GetUObject(\"Class\", \"" + cls.name + "\"));\r\n";
+		propertyOffsetsCppText += "\tif (!cls)\r\n\t{\r\n";
+		propertyOffsetsCppText += "\t\tmemset(&" + propOffsetsVarName + ", 0xff, sizeof(" + propOffsetsVarName + "));\r\n";
+		propertyOffsetsCppText += "\t\treturn;\r\n\t}\r\n";
+
+		propertyOffsetsHText += "struct " + propOffsetsStructName + "\r\n{\r\n";
+
+		for (auto prop : cls.props)
+		{
+			propertyOffsetsCppText += "\t" + propOffsetsVarName + "." + prop.name + " = cls->GetPropertyDataOffset(\"" + prop.name + "\");\r\n";
+			propertyOffsetsHText += "\tPropertyDataOffset " + prop.name + ";\r\n";
+		}
+
+		propertyOffsetsCppText += "}\r\n\r\n";
+		propertyOffsetsHText += "}\r\n\r\nextern " + propOffsetsVarDecl;
+	}
+
+	File::write_all_text("Cpp/Package/PackageManager_RegisterFuncs.cpp", packageManagerRegisterFuncsText);
+	File::write_all_text("Cpp/UObject/PropertyOffsets.cpp", propertyOffsetsCppText);
+	File::write_all_text("Cpp/UObject/PropertyOffsets.h", propertyOffsetsHText);
 }
 
-void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& game, const int version, const int subversion)
+void NativeCppGenerator::ParseGameNatives(const JsonValue& json, KnownUE1Games knownGame)
 {
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
@@ -117,24 +218,32 @@ void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::stri
 		const JsonValue& package = (*prop).second;
 		for (auto cls : package.properties())
 		{
-			ParseClassNatives(cls.first, cls.second, game, version, subversion);
+			ParseClassNatives(cls.first, (*prop).first, cls.second, knownGame);
 		}
 	}
 }
 
-void NativeCppGenerator::ParseClassNatives(const std::string& className, const JsonValue& json, const std::string& game, const int version, const int subversion)
+void NativeCppGenerator::ParseClassNatives(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
+
+	// Hopefully we never run into this scenario :)
+	// If we do, we'll have to figure out a way to address this
+	if (cls.package.size() > 0 && cls.package != packageName)
+		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+
+	cls.package = packageName;
+
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		const std::string& funcName = (*prop).first;
 		const JsonValue& funcJson = (*prop).second;
-		cls.ParseClassFunction(funcName, funcJson, game, version, subversion);
+		cls.ParseClassFunction(funcName, funcJson, knownGame);
 	}
 }
 
-void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::string& game, const int version, const int subversion)
+void NativeCppGenerator::ParseGameProperties(const JsonValue& json, KnownUE1Games knownGame)
 {
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
@@ -142,20 +251,28 @@ void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::s
 		const JsonValue& package = (*prop).second;
 		for (auto cls : package.properties())
 		{
-			ParseClassProperties(cls.first, cls.second, game, version, subversion);
+			ParseClassProperties(cls.first, (*prop).first, cls.second, knownGame);
 		}
 	}
 }
 
-void NativeCppGenerator::ParseClassProperties(const std::string& className, const JsonValue& json, const std::string& game, const int version, const int subversion)
+void NativeCppGenerator::ParseClassProperties(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
+
+	// Hopefully we never run into this scenario :)
+	// If we do, we'll have to figure out a way to address this
+	if (cls.package.size() > 0 && cls.package != packageName)
+		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+
+	cls.package = packageName;
+
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
 	{
 		NativeProperty& nativeProp = cls.AddUniqueNativeProperty((*prop).first);
 		nativeProp.type = (*prop).second.to_string();
-		nativeProp.games.push_back(GetKnownGame(game, version, subversion));
+		nativeProp.games.push_back(knownGame);
 	}
 }
 
@@ -174,11 +291,9 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 	return classes.back();
 }
 
-void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& game, const int version, const int subversion)
+void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, KnownUE1Games knownGame)
 {
 	std::string funcArgs = "UObject* Self";
-	KnownUE1Games knownGame = GetKnownGame(game, version, subversion);
-
 	const std::vector<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
@@ -210,6 +325,7 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 	NativeFunctionDecl decl;
 	decl.args = funcArgs;
 	decl.games.push_back(knownGame);
+	decl.argCount = args.size();
 	func.decls.push_back(std::move(decl));
 }
 
