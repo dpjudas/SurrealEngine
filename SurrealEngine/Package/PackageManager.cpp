@@ -271,6 +271,16 @@ UClass* PackageManager::FindClass(const NameString& name)
 	}
 }
 
+std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
+{
+	if (iniName == "system" || iniName == "System")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	return std::make_unique<IniFile>(*iniFiles[iniName]);
+}
+
 std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	if (iniName == "system" || iniName == "System")
