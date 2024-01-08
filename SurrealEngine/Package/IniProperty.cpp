@@ -1,11 +1,15 @@
 #include "IniProperty.h"
 #include <stdexcept>
 
+template<typename T> void IniProperty<T>::FromString(const std::string& valueString)
+{
+}
+
 template<> void IniProperty<float>::FromString(const std::string& valueString)
 {
 	if (valueString.empty())
 		throw std::runtime_error("Empty value received. Expected: float");
-	
+
 	value = std::stof(valueString);
 }
 
@@ -36,15 +40,10 @@ template<> void IniProperty<bool>::FromString(const std::string& valueString)
 	if (valueString.empty())
 		throw std::runtime_error("Empty value received. Expected: boolean");
 
-	if (valueString == "True" || valueString == "true")
+	if (valueString == "True" || valueString == "true" || valueString == "1")
 		value = true;
-	else if (valueString == "False" || valueString == "false")
+	else if (valueString == "False" || valueString == "false" || valueString == "0")
 		value = false;
 	else
 		throw std::runtime_error("Received a non-boolean value: " + valueString);
-}
-
-template<> std::string IniProperty<bool>::ToString() const
-{
-	return value ? "True" : "False";
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include "IniFile.h"
 
 template <typename T>
@@ -16,7 +17,7 @@ public:
 	void FromString(const std::string& valueString);
 	void FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName)
 	{
-		FromString(iniFile.GetValue(section, keyName, std::to_string(value)));
+		FromString(iniFile.GetValue(section, keyName, ToString()));
 	}
 
 	std::string ToString() const { return std::to_string(value); }
@@ -29,3 +30,8 @@ public:
 private:
 	T value;
 };
+
+template<> std::string IniProperty<bool>::ToString() const 
+{
+	return value ? "True" : "False";
+}
