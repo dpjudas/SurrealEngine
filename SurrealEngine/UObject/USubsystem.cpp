@@ -49,7 +49,6 @@ void USurrealRenderDevice::LoadProperties(const NameString& from)
 		name_from = NameString(Class);
 
 	Translucency.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Translucency");
-	//Translucency = std::atoi(engine->packages->GetIniValue("System", name_from, "Translucency", Translucency.ToString()).c_str());
 	VolumetricLighting.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "VolumetricLighting");
 	ShinySurfaces.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "ShinySurfaces");
 	Coronas.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Coronas");
@@ -171,24 +170,6 @@ void USurrealAudioDevice::LoadProperties(const NameString& from)
 	MusicVolume.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "MusicVolume");
 	SoundVolume.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SoundVolume");
 	AmbientFactor.FromIniFile(*engine->packages->GetIniFile("System"), name_from, "AmbientFactor");
-	/*
-	UseFilter = std::atoi(engine->packages->GetIniValue("System", name_from, "UseFilter", UseFilter.ToString()).c_str());
-	UseSurround = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSurround", UseSurround.ToString()).c_str());
-	UseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "UseStereo", UseStereo.ToString()).c_str());
-	UseCDMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseCDMusic", UseCDMusic.ToString()).c_str());
-	UseDigitalMusic = std::atoi(engine->packages->GetIniValue("System", name_from, "UseDigitalMusic", UseDigitalMusic.ToString()).c_str());
-	UseSpatial = std::atoi(engine->packages->GetIniValue("System", name_from, "UseSpatial", UseSpatial.ToString()).c_str());
-	UseReverb = std::atoi(engine->packages->GetIniValue("System", name_from, "UseReverb", UseReverb.ToString()).c_str());
-	Use3dHardware = std::atoi(engine->packages->GetIniValue("System", name_from, "Use3dHardware", Use3dHardware.ToString()).c_str());
-	LowSoundQuality = std::atoi(engine->packages->GetIniValue("System", name_from, "LowSoundQuality", LowSoundQuality.ToString()).c_str());
-	ReverseStereo = std::atoi(engine->packages->GetIniValue("System", name_from, "ReverseStereo", ReverseStereo.ToString()).c_str());
-	Latency = std::atoi(engine->packages->GetIniValue("System", name_from, "Latency", Latency.ToString()).c_str());
-	OutputRate = std::atoi(engine->packages->GetIniValue("System", name_from, "OutputRate", OutputRate.ToString()).c_str());
-	Channels = std::atoi(engine->packages->GetIniValue("System", name_from, "Channels", Channels.ToString()).c_str());
-	MusicVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "MusicVolume", MusicVolume.ToString()).c_str());
-	SoundVolume = std::atoi(engine->packages->GetIniValue("System", name_from, "SoundVolume", SoundVolume.ToString()).c_str());
-	AmbientFactor = (float)std::atof(engine->packages->GetIniValue("System", name_from, "AmbientFactor", AmbientFactor.ToString()).c_str());
-	*/
 }
 
 void USurrealAudioDevice::SaveProperties()
