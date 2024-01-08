@@ -185,7 +185,7 @@ void PackageManager::ScanPaths()
 		// Combine everything
 		auto final_path = FilePath::combine(resulting_root_path, current_path);
 
-		// Do not add maps as packages, scan them separately instead
+		// Add map folders in a separate list, so ScanForMaps() can use them
 		if (filename == "*." + mapExtension)
 		{
 			mapFolders.push_back(final_path);
