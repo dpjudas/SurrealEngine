@@ -226,7 +226,10 @@ void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool tr
 UnrealURL Engine::GetDefaultURL(const std::string& map)
 {
 	UnrealURL url;
-	url.Map = map;
+	if (map.find_last_of("." + packages->GetMapExtension()) == std::string::npos)
+		url.Map = map + "." + packages->GetMapExtension();
+	else
+		url.Map = map;
 	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
 	{
 		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
@@ -237,7 +240,7 @@ UnrealURL Engine::GetDefaultURL(const std::string& map)
 void Engine::LoadEntryMap()
 {
 	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
-	LoadMap(GetDefaultURL("Entry.unr"));
+	LoadMap(GetDefaultURL("Entry"));
 	EntryLevelInfo = LevelInfo;
 	EntryLevel = Level;
 	LevelInfo = nullptr;
