@@ -35,3 +35,8 @@ template<> std::string IniProperty<bool>::ToString() const
 {
 	return value ? "True" : "False";
 }
+
+template<> void IniProperty<std::string>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName)
+{
+	value = iniFile.GetValue(section, keyName, value);
+}
