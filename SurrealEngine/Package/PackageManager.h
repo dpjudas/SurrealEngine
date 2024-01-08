@@ -44,6 +44,8 @@ public:
 
 	UClass* FindClass(const NameString& name);
 
+	std::string GetMapExtension() { return mapExtension; }
+
 	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
 	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
 	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value = "");
@@ -83,7 +85,11 @@ private:
 
 	std::map<NameString, std::vector<IntObject>> IntObjects;
 
+	std::vector<std::string> mapFolders;
 	std::vector<std::string> maps;
+
+	std::string mapExtension;
+	std::string saveExtension;
 
 	bool missing_se_system_ini = false;
 

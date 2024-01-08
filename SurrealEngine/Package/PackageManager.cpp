@@ -73,8 +73,8 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 	LoadEngineIniFiles();
 	LoadIntFiles();
 	LoadPackageRemaps();
-	ScanForMaps();
 	ScanPaths();
+	ScanForMaps();
 
 	InitPropertyOffsets(this);
 
@@ -130,10 +130,12 @@ void PackageManager::UnloadPackage(const NameString& name)
 
 void PackageManager::ScanForMaps()
 {
-	std::string packagedir = FilePath::combine(launchInfo.folder, "Maps");
-	for (std::string filename : Directory::files(FilePath::combine(packagedir, "*.unr")))
+	for (auto& mapFolderPath : mapFolders)
 	{
-		maps.push_back(filename);
+		for (std::string filename : Directory::files(FilePath::combine(mapFolderPath, "*." + mapExtension)))
+		{
+			maps.push_back(filename);
+		}
 	}
 }
 
@@ -153,6 +155,8 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 void PackageManager::ScanPaths()
 {
 	auto paths = GetIniValues("system", "Core.System", "Paths");
+	mapExtension = GetIniValue("System", "URL", "MapExt");
+	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
 	for (auto& current_path : paths)
 	{
@@ -180,6 +184,12 @@ void PackageManager::ScanPaths()
 
 		// Combine everything
 		auto final_path = FilePath::combine(resulting_root_path, current_path);
+
+		// Do not add maps as packages, scan them separately instead
+		if (filename == "*." + mapExtension)
+		{
+			mapFolders.push_back(final_path);
+		}
 
 		ScanFolder(final_path, filename);
 	}
