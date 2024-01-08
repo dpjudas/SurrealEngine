@@ -2,6 +2,7 @@
 
 #include "UObject.h"
 #include "UClient.h"
+#include "Package/IniProperty.h"
 
 class USubsystem : public UObject
 {
@@ -68,11 +69,11 @@ public:
 	using URenderDevice::URenderDevice;
 
 	std::string Class = "Engine.SurrealRenderDevice";
-	bool Translucency = true;
-	bool VolumetricLighting = true;
-	bool ShinySurfaces = true;
-	bool Coronas = true;
-	bool HighDetailActors = true;
+	IniProperty<bool> Translucency = true;
+	IniProperty<bool> VolumetricLighting = true;
+	IniProperty<bool> ShinySurfaces = true;
+	IniProperty<bool> Coronas = true;
+	IniProperty<bool> HighDetailActors = true;
 
 	void LoadProperties(const NameString& from = "") override;
 	void SaveProperties() override;
@@ -87,22 +88,22 @@ public:
 	using UAudioSubsystem::UAudioSubsystem;
 
 	std::string Class = "Engine.SurrealAudioDevice";
-	bool UseFilter = true;
-	bool UseSurround = true;
-	bool UseStereo = true;
-	bool UseCDMusic = false;
-	bool UseDigitalMusic = true;
-	bool UseSpatial = true;
-	bool UseReverb = true;
-	bool Use3dHardware = true;
-	bool LowSoundQuality = false;
-	bool ReverseStereo = false;
-	int Latency = 40;
-	int OutputRate = 44100;
-	int Channels = 16;
-	uint8_t MusicVolume = 160;
-	uint8_t SoundVolume = 200;
-	float AmbientFactor = 0.7f;
+	IniProperty<bool> UseFilter = true;
+	IniProperty<bool> UseSurround = true;
+	IniProperty<bool> UseStereo = true;
+	IniProperty<bool> UseCDMusic = false;
+	IniProperty<bool> UseDigitalMusic = true;
+	IniProperty<bool> UseSpatial = true;
+	IniProperty<bool> UseReverb = true;
+	IniProperty<bool> Use3dHardware = true;
+	IniProperty<bool> LowSoundQuality = false;
+	IniProperty<bool> ReverseStereo = false;
+	IniProperty<int> Latency = 40;
+	IniProperty<int> OutputRate = 44100;
+	IniProperty<int> Channels = 16;
+	IniProperty<uint8_t> MusicVolume = 160;
+	IniProperty<uint8_t> SoundVolume = 200;
+	IniProperty<float> AmbientFactor = 0.7f;
 
 	void LoadProperties(const NameString& from = "") override;
 	void SaveProperties() override;
