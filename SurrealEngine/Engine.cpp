@@ -66,17 +66,6 @@ void Engine::Run()
 	LoadEngineSettings();
 	LoadKeybindings();
 
-	if (packages->MissingSESystemIni())
-	{
-		audiodev->LoadProperties("Galaxy.GalaxyAudioSubsystem");
-		renderdev->LoadProperties("D3DDrv.Direct3DRenderDevice");
-	}
-	else
-	{
-		audiodev->LoadProperties();
-		renderdev->LoadProperties();
-	}
-
 	OpenWindow();
 
 	audio = std::make_unique<AudioSubsystem>();
@@ -200,6 +189,7 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	client->SaveProperties();
 	audiodev->SaveProperties();
 	renderdev->SaveProperties();
 	packages->SaveAllIniFiles();
@@ -226,7 +216,7 @@ void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool tr
 UnrealURL Engine::GetDefaultURL(const std::string& map)
 {
 	UnrealURL url;
-	if (map.find_last_of("." + packages->GetMapExtension()) == std::string::npos)
+	if (map.find("." + packages->GetMapExtension()) == std::string::npos)
 		url.Map = map + "." + packages->GetMapExtension();
 	else
 		url.Map = map;
@@ -778,12 +768,17 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 
 void Engine::LoadEngineSettings()
 {
-	client->WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
-	client->WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
-	client->FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
-	client->FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
-	client->StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
-	client->Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
+	if (packages->MissingSESystemIni())
+	{
+		client->LoadProperties("WinDrv.WindowsClient");
+		audiodev->LoadProperties("Galaxy.GalaxyAudioSubsystem");
+		renderdev->LoadProperties("D3DDrv.Direct3DRenderDevice");
+		return;
+	}
+
+	client->LoadProperties();
+	audiodev->LoadProperties();
+	renderdev->LoadProperties();
 }
 
 void Engine::LoadKeybindings()
