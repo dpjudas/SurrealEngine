@@ -25,16 +25,10 @@ template<> void IniProperty<uint8_t>::FromString(const std::string& valueString)
 	value = std::stoi(valueString);
 }
 
-
 template<> void IniProperty<std::string>::FromString(const std::string& valueString)
 {
 	// Lmao
 	value = valueString;
-}
-
-template<> std::string IniProperty<std::string>::ToString() const
-{
-	return Value();
 }
 
 template<> void IniProperty<bool>::FromString(const std::string& valueString)
