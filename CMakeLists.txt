@@ -197,6 +197,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Package/IniFile.h
 	SurrealEngine/Package/PackageStream.h
 	SurrealEngine/Package/IniFile.cpp
+	SurrealEngine/Package/IniProperty.h
+	SurrealEngine/Package/IniProperty.cpp
 	SurrealEngine/Package/NameString.cpp
 	SurrealEngine/Package/NameString.h
 	SurrealEngine/Math/FrustumPlanes.h
