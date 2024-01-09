@@ -3,6 +3,7 @@
 #include "UObject.h"
 #include "UClient.h"
 #include "Package/IniProperty.h"
+#include "USound.h"
 
 class USubsystem : public UObject
 {
@@ -99,7 +100,7 @@ public:
 	bool LowSoundQuality = false;
 	bool ReverseStereo = false;
 	int Latency = 40;
-	int OutputRate = 44100;
+	AudioFrequency OutputRate = 44100;
 	int Channels = 16;
 	uint8_t MusicVolume = 160;
 	uint8_t SoundVolume = 200;

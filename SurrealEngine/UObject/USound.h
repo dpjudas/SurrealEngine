@@ -10,6 +10,13 @@ public:
 	uint64_t LoopEnd = 0;
 };
 
+class AudioFrequency
+{
+public:
+	AudioFrequency(int frequency) : frequency(frequency) {}
+	int frequency = 0;
+};
+
 class USound : public UObject
 {
 public:
