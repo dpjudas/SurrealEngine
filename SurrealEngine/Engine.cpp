@@ -843,9 +843,9 @@ void Engine::OpenWindow()
 	if (!window)
 		window = DisplayWindow::Create(this);
 
-	int width = client->StartupFullscreen.Value() ? client->FullscreenViewportX.Value() : client->WindowedViewportX.Value();
-	int height = client->StartupFullscreen.Value() ? client->FullscreenViewportY.Value() : client->WindowedViewportY.Value();
-	bool fullscreen = client->StartupFullscreen.Value();
+	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
+	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
+	bool fullscreen = client->StartupFullscreen;
 
 	window->SetWindowTitle("Unreal Tournament");
 	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));

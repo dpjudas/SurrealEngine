@@ -1,49 +1,38 @@
 #include "IniProperty.h"
 #include <stdexcept>
 
-template<typename T> void IniProperty<T>::FromString(const std::string& valueString)
+template<>
+int IniPropertyConverter<int>::FromString(const std::string& valueString)
 {
+	return std::stoi(valueString);
 }
 
-template<> void IniProperty<float>::FromString(const std::string& valueString)
+template<>
+float IniPropertyConverter<float>::FromString(const std::string& valueString)
 {
-	if (valueString.empty())
-		throw std::runtime_error("Empty value received. Expected: float");
-
-	value = std::stof(valueString);
+	return std::stof(valueString);
 }
 
-template<> void IniProperty<int>::FromString(const std::string& valueString)
+template<>
+uint8_t IniPropertyConverter<uint8_t>::FromString(const std::string& valueString)
 {
-	if (valueString.empty())
-		throw std::runtime_error("Empty value received. Expected: int");
-
-	value = std::stoi(valueString);
+	return (uint8_t)std::stoul(valueString);
 }
 
-template<> void IniProperty<uint8_t>::FromString(const std::string& valueString)
+template<>
+bool IniPropertyConverter<bool>::FromString(const std::string& valueString)
 {
-	if (valueString.empty())
-		throw std::runtime_error("Empty value received. Expected: uint8");
-
-	value = std::stoi(valueString);
-}
-
-template<> void IniProperty<std::string>::FromString(const std::string& valueString)
-{
-	// Lmao
-	value = valueString;
-}
-
-template<> void IniProperty<bool>::FromString(const std::string& valueString)
-{
-	if (valueString.empty())
-		throw std::runtime_error("Empty value received. Expected: boolean");
-
 	if (valueString == "True" || valueString == "true" || valueString == "1")
-		value = true;
+		return true;
 	else if (valueString == "False" || valueString == "false" || valueString == "0")
-		value = false;
+		return false;
 	else
-		throw std::runtime_error("Received a non-boolean value: " + valueString);
+		throw std::runtime_error("Encountered non-boolean value: " + valueString);
 }
+
+template<>
+std::string IniPropertyConverter<std::string>::FromString(const std::string& valueString)
+{
+	return valueString;
+}
+
