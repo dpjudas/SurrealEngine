@@ -69,11 +69,11 @@ public:
 	using URenderDevice::URenderDevice;
 
 	std::string Class = "Engine.SurrealRenderDevice";
-	IniProperty<bool> Translucency = true;
-	IniProperty<bool> VolumetricLighting = true;
-	IniProperty<bool> ShinySurfaces = true;
-	IniProperty<bool> Coronas = true;
-	IniProperty<bool> HighDetailActors = true;
+	bool Translucency = true;
+	bool VolumetricLighting = true;
+	bool ShinySurfaces = true;
+	bool Coronas = true;
+	bool HighDetailActors = true;
 
 	void LoadProperties(const NameString& from = "") override;
 	void SaveProperties() override;
@@ -88,22 +88,22 @@ public:
 	using UAudioSubsystem::UAudioSubsystem;
 
 	std::string Class = "Engine.SurrealAudioDevice";
-	IniProperty<bool> UseFilter = true;
-	IniProperty<bool> UseSurround = true;
-	IniProperty<bool> UseStereo = true;
-	IniProperty<bool> UseCDMusic = false;
-	IniProperty<bool> UseDigitalMusic = true;
-	IniProperty<bool> UseSpatial = true;
-	IniProperty<bool> UseReverb = true;
-	IniProperty<bool> Use3dHardware = true;
-	IniProperty<bool> LowSoundQuality = false;
-	IniProperty<bool> ReverseStereo = false;
-	IniProperty<int> Latency = 40;
-	IniProperty<int> OutputRate = 44100;
-	IniProperty<int> Channels = 16;
-	IniProperty<uint8_t> MusicVolume = 160;
-	IniProperty<uint8_t> SoundVolume = 200;
-	IniProperty<float> AmbientFactor = 0.7f;
+	bool UseFilter = true;
+	bool UseSurround = true;
+	bool UseStereo = true;
+	bool UseCDMusic = false;
+	bool UseDigitalMusic = true;
+	bool UseSpatial = true;
+	bool UseReverb = true;
+	bool Use3dHardware = true;
+	bool LowSoundQuality = false;
+	bool ReverseStereo = false;
+	int Latency = 40;
+	int OutputRate = 44100;
+	int Channels = 16;
+	uint8_t MusicVolume = 160;
+	uint8_t SoundVolume = 200;
+	float AmbientFactor = 0.7f;
 
 	void LoadProperties(const NameString& from = "") override;
 	void SaveProperties() override;
@@ -129,21 +129,21 @@ public:
 	using UClient::UClient;
 
 	std::string Class = "Engine.SurrealClient";
-	IniProperty<bool> StartupFullscreen = false;
-	IniProperty<int> WindowedViewportX = 1920;
-	IniProperty<int> WindowedViewportY = 1080;
-	IniProperty<int> WindowedColorBits = 32;
-	IniProperty<int> FullscreenViewportX = 0;
-	IniProperty<int> FullscreenViewportY = 0;
-	IniProperty<int> FullscreenColorBits = 32;
-	IniProperty<float> Brightness = 0.5f;
-	IniProperty<bool> UseJoystick = false;
-	IniProperty<bool> UseDirectInput = true;
-	IniProperty<int> MinDesiredFrameRate = 200;
-	IniProperty<bool> Decals = true;
-	IniProperty<bool> NoDynamicLights = false;
-	IniProperty<std::string> TextureDetail = "High";
-	IniProperty<std::string> SkinDetail = "High";
+	bool StartupFullscreen = false;
+	int WindowedViewportX = 1920;
+	int WindowedViewportY = 1080;
+	int WindowedColorBits = 32;
+	int FullscreenViewportX = 0;
+	int FullscreenViewportY = 0;
+	int FullscreenColorBits = 32;
+	float Brightness = 0.5f;
+	bool UseJoystick = false;
+	bool UseDirectInput = true;
+	int MinDesiredFrameRate = 200;
+	bool Decals = true;
+	bool NoDynamicLights = false;
+	std::string TextureDetail = "High";
+	std::string SkinDetail = "High";
 
 	void LoadProperties(const NameString& from = "");
 	void SaveProperties();

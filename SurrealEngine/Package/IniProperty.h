@@ -5,38 +5,16 @@
 #include "IniFile.h"
 
 template <typename T>
-class IniProperty
+class IniPropertyConverter
 {
 public:
-	IniProperty(T& value) : value(value) {}
-	IniProperty(T&& value) : value(value) {}
-	IniProperty(const std::string& valueString) { FromString(valueString); }
-	IniProperty(const IniFile& iniFile, const NameString& section, const NameString& keyName) { FromIniFile(iniFile, section, keyName); }
-
-	T Value() const { return value; }
-	void FromString(const std::string& valueString);
-	void FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName)
+	static std::string ToString(const T& value) { return std::to_string(value); }
+	static T FromString(const std::string& valueString);
+	static T FromString(const char* valueString) { return FromString(std::string(valueString)); }
+	static T FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName)
 	{
-		FromString(iniFile.GetValue(section, keyName, ToString()));
+		return FromString(iniFile.GetValue(section, keyName));
 	}
 
-	std::string ToString() const { return std::to_string(value); }
-
-	void operator=(const T& other) { value = other; }
-	bool operator==(const T& other) const { return value == other; }
-	bool operator!=(const T& other) const { return value != other; }
-	bool operator!() const { return !value; }
-
-private:
-	T value;
+	IniPropertyConverter() = delete;
 };
-
-template<> std::string IniProperty<bool>::ToString() const 
-{
-	return value ? "True" : "False";
-}
-
-template<> void IniProperty<std::string>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName)
-{
-	value = iniFile.GetValue(section, keyName, value);
-}
