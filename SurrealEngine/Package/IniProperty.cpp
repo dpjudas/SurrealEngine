@@ -14,6 +14,14 @@ int IniPropertyConverter<int>::FromIniFile(const IniFile& iniFile, const NameStr
 }
 
 template<>
+std::string IniPropertyConverter<int>::ToString(const int& value)
+{
+	return std::to_string(value);
+}
+
+//====================================================================
+
+template<>
 float IniPropertyConverter<float>::FromString(const std::string& valueString)
 {
 	return std::stof(valueString);
@@ -26,6 +34,14 @@ float IniPropertyConverter<float>::FromIniFile(const IniFile& iniFile, const Nam
 }
 
 template<>
+std::string IniPropertyConverter<float>::ToString(const float& value)
+{
+	return std::to_string(value);
+}
+
+//====================================================================
+
+template<>
 uint8_t IniPropertyConverter<uint8_t>::FromString(const std::string& valueString)
 {
 	return (uint8_t)std::stoul(valueString);
@@ -36,6 +52,14 @@ uint8_t IniPropertyConverter<uint8_t>::FromIniFile(const IniFile& iniFile, const
 {
 	return std::stoul(iniFile.GetValue(section, keyName, ToString(default_value)));
 }
+
+template<>
+std::string IniPropertyConverter<uint8_t>::ToString(const uint8_t& value)
+{
+	return std::to_string(value);
+}
+
+//====================================================================
 
 template<>
 bool IniPropertyConverter<bool>::FromString(const std::string& valueString)
@@ -55,6 +79,14 @@ bool IniPropertyConverter<bool>::FromIniFile(const IniFile& iniFile, const NameS
 }
 
 template<>
+std::string IniPropertyConverter<bool>::ToString(const bool& value)
+{
+	return value ? "True" : "False";
+}
+
+//====================================================================
+
+template<>
 std::string IniPropertyConverter<std::string>::FromString(const std::string& valueString)
 {
 	return valueString;
@@ -65,6 +97,14 @@ std::string IniPropertyConverter<std::string>::FromIniFile(const IniFile& iniFil
 {
 	return iniFile.GetValue(section, keyName, default_value);
 }
+
+template<>
+std::string IniPropertyConverter<std::string>::ToString(const std::string& value)
+{
+	return value;
+}
+
+//====================================================================
 
 template<>
 AudioFrequency IniPropertyConverter<AudioFrequency>::FromString(const std::string& valueString)
@@ -81,4 +121,10 @@ template<>
 AudioFrequency IniPropertyConverter<AudioFrequency>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const AudioFrequency& default_value)
 {
 	return FromString(iniFile.GetValue(section, keyName, ToString(default_value)));
+}
+
+template<>
+std::string IniPropertyConverter<AudioFrequency>::ToString(const AudioFrequency& value)
+{
+	return std::to_string(value.frequency) + "Hz";
 }
