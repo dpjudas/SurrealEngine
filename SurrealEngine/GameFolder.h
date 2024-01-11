@@ -2,18 +2,13 @@
 
 struct GameLaunchInfo
 {
-	std::string folder;
 	int engineVersion = 0;
 	int engineSubVersion = 0;
-	std::string gameName;
 	bool noEntryMap = false;
-	std::string url;
-};
-
-struct GameFolder
-{
-	std::string name;
-	GameLaunchInfo launchInfo;
+	std::string gameName = "";
+	std::string gameRootFolder = "";
+	std::string gameExecutableName = "";
+	std::string url = "";
 };
 
 enum class KnownUE1Games
@@ -147,7 +142,7 @@ public:
 	static GameLaunchInfo GetLaunchInfo();
 
 private:
-	static GameFolder ExamineFolder(const std::string& path);
+	static GameLaunchInfo ExamineFolder(const std::string& path);
 	static std::vector<std::string> FindGameFolders();
 	static std::string GetExePath();
 };
