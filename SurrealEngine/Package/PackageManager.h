@@ -44,15 +44,25 @@ public:
 
 	UClass* FindClass(const NameString& name);
 
+	std::string GetMapExtension() { return mapExtension; }
+
+	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
 	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
-	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName);
-	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName);
+	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value = "");
+	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values = {});
+	void SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue);
+	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues);
+	void SaveAllIniFiles();
+
 	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
 
 	std::vector<IntObject>& GetIntObjects(const NameString& metaclass);
 	const std::vector<std::string>& GetMaps() const { return maps; }
 
+	bool MissingSESystemIni() const { return missing_se_system_ini; }
+
 private:
+	void LoadEngineIniFiles();
 	void LoadIntFiles();
 	void LoadPackageRemaps();
 	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
@@ -75,7 +85,13 @@ private:
 
 	std::map<NameString, std::vector<IntObject>> IntObjects;
 
+	std::vector<std::string> mapFolders;
 	std::vector<std::string> maps;
+
+	std::string mapExtension;
+	std::string saveExtension;
+
+	bool missing_se_system_ini = false;
 
 	struct OpenStream
 	{

@@ -2,11 +2,16 @@
 
 #include "UObject.h"
 #include "UClient.h"
+#include "Package/IniProperty.h"
+#include "USound.h"
 
 class USubsystem : public UObject
 {
 public:
 	using UObject::UObject;
+
+	virtual void LoadProperties(const NameString& from = "") {}
+	virtual void SaveProperties() {}
 };
 
 class ULanguage : public UObject
@@ -71,6 +76,9 @@ public:
 	bool Coronas = true;
 	bool HighDetailActors = true;
 
+	void LoadProperties(const NameString& from = "") override;
+	void SaveProperties() override;
+
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
 };
@@ -92,11 +100,14 @@ public:
 	bool LowSoundQuality = false;
 	bool ReverseStereo = false;
 	int Latency = 40;
-	int OutputRate = 44100;
+	AudioFrequency OutputRate = 44100;
 	int Channels = 16;
 	uint8_t MusicVolume = 160;
 	uint8_t SoundVolume = 200;
 	float AmbientFactor = 0.7f;
+
+	void LoadProperties(const NameString& from = "") override;
+	void SaveProperties() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
@@ -134,6 +145,9 @@ public:
 	bool NoDynamicLights = false;
 	std::string TextureDetail = "High";
 	std::string SkinDetail = "High";
+
+	void LoadProperties(const NameString& from = "");
+	void SaveProperties();
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;

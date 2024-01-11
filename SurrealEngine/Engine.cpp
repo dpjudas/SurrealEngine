@@ -190,6 +190,11 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	client->SaveProperties();
+	audiodev->SaveProperties();
+	renderdev->SaveProperties();
+	packages->SaveAllIniFiles();
+
 	CloseWindow();
 }
 
@@ -212,7 +217,10 @@ void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool tr
 UnrealURL Engine::GetDefaultURL(const std::string& map)
 {
 	UnrealURL url;
-	url.Map = map;
+	if (map.find("." + packages->GetMapExtension()) == std::string::npos)
+		url.Map = map + "." + packages->GetMapExtension();
+	else
+		url.Map = map;
 	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
 	{
 		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
@@ -223,7 +231,7 @@ UnrealURL Engine::GetDefaultURL(const std::string& map)
 void Engine::LoadEntryMap()
 {
 	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
-	LoadMap(GetDefaultURL("Entry.unr"));
+	LoadMap(GetDefaultURL("Entry"));
 	EntryLevelInfo = LevelInfo;
 	EntryLevel = Level;
 	LevelInfo = nullptr;
@@ -761,12 +769,17 @@ std::vector<std::string> Engine::GetSubcommands(const std::string& command)
 
 void Engine::LoadEngineSettings()
 {
-	client->WindowedViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportX"));
-	client->WindowedViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "WindowedViewportY"));
-	client->FullscreenViewportX = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportX"));
-	client->FullscreenViewportY = std::stoi(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "FullscreenViewportY"));
-	client->StartupFullscreen = packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "StartupFullscreen") == "True";
-	client->Brightness = std::stof(packages->GetIniValue(LaunchInfo.gameName, "WinDrv.WindowsClient", "Brightness"));
+	if (packages->MissingSESystemIni())
+	{
+		client->LoadProperties("WinDrv.WindowsClient");
+		audiodev->LoadProperties("Galaxy.GalaxyAudioSubsystem");
+		renderdev->LoadProperties("D3DDrv.Direct3DRenderDevice");
+		return;
+	}
+
+	client->LoadProperties();
+	audiodev->LoadProperties();
+	renderdev->LoadProperties();
 }
 
 void Engine::LoadKeybindings()

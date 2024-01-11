@@ -70,10 +70,11 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 		NPlayerPawnExt::RegisterFunctions();
 	}
 
+	LoadEngineIniFiles();
 	LoadIntFiles();
 	LoadPackageRemaps();
-	ScanForMaps();
 	ScanPaths();
+	ScanForMaps();
 
 	InitPropertyOffsets(this);
 
@@ -129,10 +130,12 @@ void PackageManager::UnloadPackage(const NameString& name)
 
 void PackageManager::ScanForMaps()
 {
-	std::string packagedir = FilePath::combine(launchInfo.folder, "Maps");
-	for (std::string filename : Directory::files(FilePath::combine(packagedir, "*.unr")))
+	for (auto& mapFolderPath : mapFolders)
 	{
-		maps.push_back(filename);
+		for (std::string filename : Directory::files(FilePath::combine(mapFolderPath, "*." + mapExtension)))
+		{
+			maps.push_back(filename);
+		}
 	}
 }
 
@@ -152,6 +155,8 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 void PackageManager::ScanPaths()
 {
 	auto paths = GetIniValues("system", "Core.System", "Paths");
+	mapExtension = GetIniValue("System", "URL", "MapExt");
+	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
 	for (auto& current_path : paths)
 	{
@@ -179,6 +184,12 @@ void PackageManager::ScanPaths()
 
 		// Combine everything
 		auto final_path = FilePath::combine(resulting_root_path, current_path);
+
+		// Add map folders in a separate list, so ScanForMaps() can use them
+		if (filename == "*." + mapExtension)
+		{
+			mapFolders.push_back(final_path);
+		}
 
 		ScanFolder(final_path, filename);
 	}
@@ -270,6 +281,16 @@ UClass* PackageManager::FindClass(const NameString& name)
 	}
 }
 
+std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
+{
+	if (iniName == "system" || iniName == "System")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	return std::make_unique<IniFile>(*iniFiles[iniName]);
+}
+
 std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	if (iniName == "system" || iniName == "System")
@@ -286,7 +307,7 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 	return ini->GetKeys(sectionName);
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName)
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameName;
@@ -299,10 +320,10 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValue(sectionName, keyName);
+	return ini->GetValue(sectionName, keyName, default_value);
 }
 
-std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName)
+std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameName;
@@ -315,7 +336,46 @@ std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const 
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValues(sectionName, keyName);
+	return ini->GetValues(sectionName, keyName, default_values);
+}
+
+void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue)
+{
+	SetIniValues(iniName, sectionName, keyName, { newValue });
+}
+
+void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
+{
+	if (iniName == "System" || iniName == "system")
+		iniName = launchInfo.gameName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+	}
+
+	ini->SetValues(sectionName, keyName, newValues);
+}
+
+void PackageManager::SaveAllIniFiles()
+{
+	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+
+	for (auto& iniFile : iniFiles)
+	{
+		if (iniFile.first == launchInfo.gameName)
+		{
+			const std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+			iniFile.second->SaveTo(FilePath::combine(system_folder, engine_ini_name));
+		}
+		else if (iniFile.first == "User")
+			iniFile.second->SaveTo(FilePath::combine(system_folder, "SE-User.ini"));
+		else
+			iniFile.second->SaveTo();
+	}
 }
 
 void PackageManager::LoadPackageRemaps()
@@ -326,6 +386,29 @@ void PackageManager::LoadPackageRemaps()
 	{
 		packageRemaps[key.ToString()] = GetIniValue("system", "PackageRemap", key);
 	}
+}
+
+void PackageManager::LoadEngineIniFiles()
+{
+	// Load SE-[GameName].ini and SE-User.ini from the appropriate places
+	// If they do not exist, import the appropriate [GameName].ini and User.ini files
+
+	std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+	std::string user_ini_name = "SE-User.ini";
+
+	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+
+	if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
+	{
+		missing_se_system_ini = true;
+		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
+	}
+		
+	iniFiles[launchInfo.gameName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+
+	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+		user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
+	iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
 }
 
 void PackageManager::LoadIntFiles()

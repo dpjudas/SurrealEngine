@@ -2,21 +2,22 @@
 #include "Precomp.h"
 #include "USubsystem.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 std::string USurrealRenderDevice::GetPropertyAsString(const NameString& propertyName) const
 {
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	if (propertyName == "Translucency")
-		return Translucency ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(Translucency);
 	else if (propertyName == "VolumetricLighting")
-		return VolumetricLighting ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(VolumetricLighting);
 	else if (propertyName == "ShinySurfaces")
-		return ShinySurfaces ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(ShinySurfaces);
 	else if (propertyName == "Coronas")
-		return Coronas ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(Coronas);
 	else if (propertyName == "HighDetailActors")
-		return HighDetailActors ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(HighDetailActors);
 
 	engine->LogMessage("Queried unknown property for SurrealRenderDevice: " + propertyName.ToString());
 	return {};
@@ -25,17 +26,42 @@ std::string USurrealRenderDevice::GetPropertyAsString(const NameString& property
 void USurrealRenderDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "Translucency")
-		Translucency = std::atoi(value.c_str());
+		Translucency = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "VolumetricLighting")
-		VolumetricLighting = std::atoi(value.c_str());
+		VolumetricLighting = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "ShinySurfaces")
-		ShinySurfaces = std::atoi(value.c_str());
+		ShinySurfaces = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "Coronas")
-		Coronas = std::atoi(value.c_str());
+		Coronas = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "HighDetailActors")
-		HighDetailActors = std::atoi(value.c_str());
+		HighDetailActors = IniPropertyConverter<bool>::FromString(value);
 	else
 		engine->LogMessage("Setting unknown property for SurrealRenderDevice: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
+}
+
+void USurrealRenderDevice::LoadProperties(const NameString& from)
+{	
+	NameString name_from = from;
+	
+	if (from == "")
+		name_from = NameString(Class);
+
+	Translucency = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Translucency", Translucency);
+	VolumetricLighting = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "VolumetricLighting", VolumetricLighting);
+	ShinySurfaces = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "ShinySurfaces", ShinySurfaces);
+	Coronas = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Coronas", Coronas);
+	HighDetailActors = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "HighDetailActors", HighDetailActors);
+}
+
+void USurrealRenderDevice::SaveProperties()
+{
+	engine->packages->SetIniValue("System", Class, "Translucency", IniPropertyConverter<bool>::ToString(Translucency));
+	engine->packages->SetIniValue("System", Class, "VolumetricLighting", IniPropertyConverter<bool>::ToString(VolumetricLighting));
+	engine->packages->SetIniValue("System", Class, "ShinySurfaces", IniPropertyConverter<bool>::ToString(ShinySurfaces));
+	engine->packages->SetIniValue("System", Class, "Coronas", IniPropertyConverter<bool>::ToString(Coronas));
+	engine->packages->SetIniValue("System", Class, "HighDetailActors", IniPropertyConverter<bool>::ToString(HighDetailActors));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -45,37 +71,37 @@ std::string USurrealAudioDevice::GetPropertyAsString(const NameString& propertyN
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	else if (propertyName == "UseFilter")
-		return UseFilter ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseFilter);
 	else if (propertyName == "UseSurround")
-		return UseSurround ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseSurround);
 	else if (propertyName == "UseStereo")
-		return UseStereo ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseStereo);
 	else if (propertyName == "UseCDMusic")
-		return UseCDMusic ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseCDMusic);
 	else if (propertyName == "UseDigitalMusic")
-		return UseDigitalMusic ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseDigitalMusic);
 	else if (propertyName == "UseSpatial")
-		return UseSpatial ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseSpatial);
 	else if (propertyName == "UseReverb")
-		return UseReverb ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseReverb);
 	else if (propertyName == "Use3dHardware")
-		return Use3dHardware ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(Use3dHardware);
 	else if (propertyName == "LowSoundQuality")
-		return LowSoundQuality ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(LowSoundQuality);
 	else if (propertyName == "ReverseStereo")
-		return ReverseStereo ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(ReverseStereo);
 	else if (propertyName == "Latency")
-		return std::to_string(Latency);
+		return IniPropertyConverter<int>::ToString(Latency);
 	else if (propertyName == "OutputRate")
-		return std::to_string(OutputRate);
+		return IniPropertyConverter<AudioFrequency>::ToString(OutputRate);
 	else if (propertyName == "Channels")
-		return std::to_string(Channels);
+		return IniPropertyConverter<int>::ToString(Channels);
 	else if (propertyName == "MusicVolume")
-		return std::to_string(MusicVolume);
+		return IniPropertyConverter<uint8_t>::ToString(MusicVolume);
 	else if (propertyName == "SoundVolume")
-		return std::to_string(SoundVolume);
+		return IniPropertyConverter<uint8_t>::ToString(SoundVolume);
 	else if (propertyName == "AmbientFactor")
-		return std::to_string(AmbientFactor);
+		return IniPropertyConverter<float>::ToString(AmbientFactor);
 
 	engine->LogMessage("Queried unknown property for SurrealAudioDevice: " + propertyName.ToString());
 	return {};
@@ -84,39 +110,86 @@ std::string USurrealAudioDevice::GetPropertyAsString(const NameString& propertyN
 void USurrealAudioDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "UseFilter")
-		UseFilter = std::atoi(value.c_str());
+		UseFilter = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseSurround")
-		UseSurround = std::atoi(value.c_str());
+		UseSurround = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseStereo")
-		UseStereo = std::atoi(value.c_str());
+		UseStereo = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseCDMusic")
-		UseCDMusic = std::atoi(value.c_str());
+		UseCDMusic = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseDigitalMusic")
-		UseDigitalMusic = std::atoi(value.c_str());
+		UseDigitalMusic = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseSpatial")
-		UseSpatial = std::atoi(value.c_str());
+		UseSpatial = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseReverb")
-		UseReverb = std::atoi(value.c_str());
+		UseReverb = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "Use3dHardware")
-		Use3dHardware = std::atoi(value.c_str());
+		Use3dHardware = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "LowSoundQuality")
-		LowSoundQuality = std::atoi(value.c_str());
+		LowSoundQuality = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "ReverseStereo")
-		ReverseStereo = std::atoi(value.c_str());
+		ReverseStereo = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "Latency")
-		Latency = std::atoi(value.c_str());
+		Latency = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "OutputRate")
-		OutputRate = std::atoi(value.c_str());
+		OutputRate = IniPropertyConverter<AudioFrequency>::FromString(value);
 	else if (propertyName == "Channels")
-		Channels = std::atoi(value.c_str());
+		Channels = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "MusicVolume")
-		MusicVolume = std::atoi(value.c_str());
+		MusicVolume = IniPropertyConverter<uint8_t>::FromString(value);
 	else if (propertyName == "SoundVolume")
-		SoundVolume = std::atoi(value.c_str());
+		SoundVolume = IniPropertyConverter<uint8_t>::FromString(value);
 	else if (propertyName == "AmbientFactor")
-		AmbientFactor = (float)std::atof(value.c_str());
+		AmbientFactor = IniPropertyConverter<float>::FromString(value);
 	else
 		engine->LogMessage("Setting unknown property for SurrealAudioDevice: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
+}
+
+void USurrealAudioDevice::LoadProperties(const NameString& from)
+{
+	NameString name_from = from;
+
+	if (from == "")
+		name_from = NameString(Class);
+
+	UseFilter = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseFilter", UseFilter);
+	UseSurround = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseSurround", UseSurround);
+	UseStereo = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseStereo", UseStereo);
+	UseCDMusic = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseCDMusic", UseCDMusic);
+	UseDigitalMusic = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseDigitalMusic", UseDigitalMusic);
+	UseSpatial = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseSpatial", UseSpatial);
+	UseReverb = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseReverb", UseReverb);
+	Use3dHardware = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Use3dHardware", Use3dHardware);
+	LowSoundQuality = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "LowSoundQuality", LowSoundQuality);
+	ReverseStereo = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "ReverseStereo", ReverseStereo);
+	Latency = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Latency", Latency);
+	OutputRate = IniPropertyConverter<AudioFrequency>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "OutputRate", OutputRate);
+	Channels = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Channels", Channels);
+	MusicVolume = IniPropertyConverter<uint8_t>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "MusicVolume", MusicVolume);
+	SoundVolume = IniPropertyConverter<uint8_t>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SoundVolume", SoundVolume);
+	AmbientFactor = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "AmbientFactor", AmbientFactor);
+}
+
+void USurrealAudioDevice::SaveProperties()
+{
+	engine->packages->SetIniValue("System", Class, "UseFilter", IniPropertyConverter<bool>::ToString(UseFilter));
+	engine->packages->SetIniValue("System", Class, "UseSurround", IniPropertyConverter<bool>::ToString(UseSurround));
+	engine->packages->SetIniValue("System", Class, "UseStereo", IniPropertyConverter<bool>::ToString(UseStereo));
+	engine->packages->SetIniValue("System", Class, "UseCDMusic", IniPropertyConverter<bool>::ToString(UseCDMusic));
+	engine->packages->SetIniValue("System", Class, "UseDigitalMusic", IniPropertyConverter<bool>::ToString(UseDigitalMusic));
+	engine->packages->SetIniValue("System", Class, "UseSpatial", IniPropertyConverter<bool>::ToString(UseSpatial));
+	engine->packages->SetIniValue("System", Class, "UseReverb", IniPropertyConverter<bool>::ToString(UseReverb));
+	engine->packages->SetIniValue("System", Class, "Use3dHardware", IniPropertyConverter<bool>::ToString(Use3dHardware));
+	engine->packages->SetIniValue("System", Class, "LowSoundQuality", IniPropertyConverter<bool>::ToString(LowSoundQuality));
+	engine->packages->SetIniValue("System", Class, "ReverseStereo", IniPropertyConverter<bool>::ToString(ReverseStereo));
+	engine->packages->SetIniValue("System", Class, "Latency", IniPropertyConverter<int>::ToString(Latency));
+	engine->packages->SetIniValue("System", Class, "OutputRate", IniPropertyConverter<AudioFrequency>::ToString(OutputRate));
+	engine->packages->SetIniValue("System", Class, "Channels", IniPropertyConverter<int>::ToString(Channels));
+	engine->packages->SetIniValue("System", Class, "MusicVolume", IniPropertyConverter<uint8_t>::ToString(MusicVolume));
+	engine->packages->SetIniValue("System", Class, "SoundVolume", IniPropertyConverter<uint8_t>::ToString(SoundVolume));
+	engine->packages->SetIniValue("System", Class, "AmbientFactor", IniPropertyConverter<float>::ToString(AmbientFactor));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -133,40 +206,84 @@ std::string USurrealNetworkDevice::GetPropertyAsString(const NameString& propert
 void USurrealNetworkDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	engine->LogMessage("Setting unknown property for SurrealNetworkDevice: " + propertyName.ToString());
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+void USurrealClient::LoadProperties(const NameString& from)
+{
+	NameString name_from = from;
+
+	if (from == "")
+		name_from = NameString(Class);
+
+	StartupFullscreen = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "StartupFullscreen", StartupFullscreen);
+	WindowedViewportX = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportX", WindowedViewportX);
+	WindowedViewportY = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportY", WindowedViewportY);
+	WindowedColorBits = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedColorBits", WindowedColorBits);
+	FullscreenViewportX = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenViewportX", FullscreenViewportX);
+	FullscreenViewportY = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenViewportY", FullscreenViewportY);
+	FullscreenColorBits = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "FullscreenColorBits", FullscreenColorBits);
+	Brightness = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Brightness", Brightness);
+	UseJoystick = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseJoystick", UseJoystick);
+	UseDirectInput = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "UseDirectInput", UseDirectInput);
+	MinDesiredFrameRate = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "MinDesiredFrameRate", MinDesiredFrameRate);
+	Decals = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "Decals", Decals);
+	NoDynamicLights = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "NoDynamicLights", NoDynamicLights);
+	TextureDetail = IniPropertyConverter<std::string>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "TextureDetail", TextureDetail);
+	SkinDetail = IniPropertyConverter<std::string>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SkinDetail", SkinDetail);
+}
+
+void USurrealClient::SaveProperties()
+{
+	engine->packages->SetIniValue("System", Class, "StartupFullscreen", IniPropertyConverter<bool>::ToString(StartupFullscreen));
+	engine->packages->SetIniValue("System", Class, "WindowedViewportX", IniPropertyConverter<int>::ToString(WindowedViewportX));
+	engine->packages->SetIniValue("System", Class, "WindowedViewportY", IniPropertyConverter<int>::ToString(WindowedViewportY));
+	engine->packages->SetIniValue("System", Class, "WindowedColorBits", IniPropertyConverter<int>::ToString(WindowedColorBits));
+	engine->packages->SetIniValue("System", Class, "FullscreenViewportX", IniPropertyConverter<int>::ToString(FullscreenViewportX));
+	engine->packages->SetIniValue("System", Class, "FullscreenViewportY", IniPropertyConverter<int>::ToString(FullscreenViewportY));
+	engine->packages->SetIniValue("System", Class, "FullscreenColorBits", IniPropertyConverter<int>::ToString(FullscreenColorBits));
+	engine->packages->SetIniValue("System", Class, "Brightness", IniPropertyConverter<float>::ToString(Brightness));
+	engine->packages->SetIniValue("System", Class, "UseJoystick", IniPropertyConverter<bool>::ToString(UseJoystick));
+	engine->packages->SetIniValue("System", Class, "UseDirectInput", IniPropertyConverter<bool>::ToString(UseDirectInput));
+	engine->packages->SetIniValue("System", Class, "MinDesiredFrameRate", IniPropertyConverter<int>::ToString(MinDesiredFrameRate));
+	engine->packages->SetIniValue("System", Class, "Decals", IniPropertyConverter<bool>::ToString(Decals));
+	engine->packages->SetIniValue("System", Class, "NoDynamicLights", IniPropertyConverter<bool>::ToString(NoDynamicLights));
+	engine->packages->SetIniValue("System", Class, "TextureDetail", TextureDetail);
+	engine->packages->SetIniValue("System", Class, "SkinDetail", SkinDetail);
+}
 
 std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) const
 {
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 	else if (propertyName == "StartupFullscreen")
-		return StartupFullscreen ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(StartupFullscreen);
 	else if (propertyName == "WindowedViewportX")
-		return std::to_string(WindowedViewportX);
+		return IniPropertyConverter<int>::ToString(WindowedViewportX);
 	else if (propertyName == "WindowedViewportY")
-		return std::to_string(WindowedViewportY);
+		return IniPropertyConverter<int>::ToString(WindowedViewportY);
 	else if (propertyName == "WindowedColorBits")
-		return std::to_string(WindowedColorBits);
+		return IniPropertyConverter<int>::ToString(WindowedColorBits);
 	else if (propertyName == "FullscreenViewportX")
-		return std::to_string(FullscreenViewportX);
+		return IniPropertyConverter<int>::ToString(FullscreenViewportX);
 	else if (propertyName == "FullscreenViewportY")
-		return std::to_string(FullscreenViewportY);
+		return IniPropertyConverter<int>::ToString(FullscreenViewportY);
 	else if (propertyName == "FullscreenColorBits")
-		return std::to_string(FullscreenColorBits);
+		return IniPropertyConverter<int>::ToString(FullscreenColorBits);
 	else if (propertyName == "Brightness")
-		return std::to_string(Brightness);
+		return IniPropertyConverter<float>::ToString(Brightness);
 	else if (propertyName == "UseJoystick")
-		return UseJoystick ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseJoystick);
 	else if (propertyName == "UseDirectInput")
-		return UseDirectInput ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(UseDirectInput);
 	else if (propertyName == "MinDesiredFrameRate")
-		return std::to_string(MinDesiredFrameRate);
+		return IniPropertyConverter<int>::ToString(MinDesiredFrameRate);
 	else if (propertyName == "Decals")
-		return Decals ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(Decals);
 	else if (propertyName == "NoDynamicLights")
-		return NoDynamicLights ? "1" : "0";
+		return IniPropertyConverter<bool>::ToString(NoDynamicLights);
 	else if (propertyName == "TextureDetail")
 		return TextureDetail;
 	else if (propertyName == "SkinDetail")
@@ -179,33 +296,35 @@ std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) 
 void USurrealClient::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
 	if (propertyName == "WindowedViewportX")
-		WindowedViewportX = std::atoi(value.c_str());
+		WindowedViewportX = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "WindowedViewportY")
-		WindowedViewportY = std::atoi(value.c_str());
+		WindowedViewportY = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "WindowedColorBits")
-		WindowedColorBits = std::atoi(value.c_str());
+		WindowedColorBits = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "FullscreenViewportX")
-		FullscreenViewportX = std::atoi(value.c_str());
+		FullscreenViewportX = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "FullscreenViewportY")
-		FullscreenViewportY = std::atoi(value.c_str());
+		FullscreenViewportY = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "FullscreenColorBits")
-		FullscreenColorBits = std::atoi(value.c_str());
+		FullscreenColorBits = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "Brightness")
-		Brightness = (float)std::atof(value.c_str());
+		Brightness = IniPropertyConverter<float>::FromString(value);
 	else if (propertyName == "UseJoystick")
-		UseJoystick = std::atoi(value.c_str());
+		UseJoystick = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "UseDirectInput")
-		UseDirectInput = std::atoi(value.c_str());
+		UseDirectInput = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "MinDesiredFrameRate")
-		MinDesiredFrameRate = std::atoi(value.c_str());
+		MinDesiredFrameRate = IniPropertyConverter<int>::FromString(value);
 	else if (propertyName == "Decals")
-		Decals = std::atoi(value.c_str());
+		Decals = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "NoDynamicLights")
-		NoDynamicLights = std::atoi(value.c_str());
+		NoDynamicLights = IniPropertyConverter<bool>::FromString(value);
 	else if (propertyName == "TextureDetail")
 		TextureDetail = value;
 	else if (propertyName == "SkinDetail")
 		SkinDetail = value;
 	else
 		engine->LogMessage("Setting unknown property for Surreal.ViewportManager: " + propertyName.ToString());
+
+	engine->packages->SetIniValue("System", Class, propertyName, value);
 }

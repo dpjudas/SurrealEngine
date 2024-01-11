@@ -43,6 +43,14 @@ IniFile::IniFile(const std::string& filename)
 			}
 		}
 	}
+
+	ini_file_path = filename;
+}
+
+IniFile::IniFile(const IniFile& other)
+{
+	ini_file_path = other.ini_file_path;
+	sections = other.sections;
 }
 
 bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
@@ -91,33 +99,92 @@ std::vector<NameString> IniFile::GetKeys(NameString sectionName) const
 	return result;
 }
 
-std::string IniFile::GetValue(NameString sectionName, NameString keyName) const
+std::string IniFile::GetValue(NameString sectionName, NameString keyName, std::string default_value) const
 {
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
-		return {};
+		return default_value;
 
 	const auto& values = itSection->second;
 	auto itValues = values.find(keyName);
 	if (itValues == values.end())
-		return {};
+		return default_value;
 
 	if (itValues->second.empty())
-		return {};
+		return default_value;
 
 	return itValues->second.front();
 }
 
-std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName) const
+std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName, std::vector<std::string> default_values) const
 {
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
-		return {};
+		return default_values;
 
 	const auto& values = itSection->second;
 	auto itValues = values.find(keyName);
 	if (itValues == values.end())
-		return {};
+		return default_values;
 
 	return itValues->second;
+}
+
+void IniFile::SetValue(NameString sectionName, NameString keyName, const std::string& newValue)
+{
+	SetValues(sectionName, keyName, { newValue });
+}
+
+void IniFile::SetValues(NameString sectionName, NameString keyName, const std::vector<std::string>& newValues)
+{
+	auto& oldValues = sections[sectionName][keyName];
+
+	if (oldValues == newValues)
+		return;
+	
+	sections[sectionName][keyName] = newValues;
+	isModified = true;
+}
+
+void IniFile::SaveTo()
+{
+	SaveTo(ini_file_path);
+}
+
+void IniFile::SaveTo(const std::string& filename)
+{
+	if (filename == ini_file_path && !isModified)
+		return;
+	
+	std::string ini_text = "";
+
+	// Start with sections first
+	for (auto& section : sections)
+	{
+		// Section header (i.e. [Engine.Engine])
+		std::string section_text = "[" + section.first.ToString() + "]\n";
+
+		// key=value pairs
+		for (auto& entry : section.second)
+		{
+			// a key can hold multiple values, like
+			// Paths=path1
+			// Paths=path2
+			// and so on, hence this loop
+			for (auto& value : entry.second)
+			{
+				section_text += entry.first.ToString() + "=" + value + "\n";
+			}
+		}
+
+		ini_text += section_text + "\n";
+	}
+
+	// Overwrite whatever is there
+	File::write_all_text(filename, ini_text);
+
+	if (filename != ini_file_path)
+		ini_file_path = filename;
+
+	isModified = false;
 }
