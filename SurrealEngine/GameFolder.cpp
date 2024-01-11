@@ -9,11 +9,11 @@
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
-	std::vector<GameFolder> foundGames;
+	std::vector<GameLaunchInfo> foundGames;
 
 	for (const std::string& folder : commandline->GetItems())
 	{
-		GameFolder game = ExamineFolder(folder);
+		GameLaunchInfo game = ExamineFolder(folder);
 		if (!game.name.empty())
 			foundGames.push_back(game);
 	}
@@ -24,8 +24,8 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 		auto p = std::filesystem::current_path();
 		if (p.filename().string() == "System")
 		{
-			GameFolder game = ExamineFolder(p.parent_path().string());
-			if (!game.name.empty())
+			GameLaunchInfo game = ExamineFolder(p.parent_path().string());
+			if (!game.gameName.empty())
 				foundGames.push_back(game);
 		}
 	}
@@ -34,8 +34,8 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	{
 		for (const std::string& folder : FindGameFolders())
 		{
-			GameFolder game = ExamineFolder(folder);
-			if (!game.name.empty())
+			GameLaunchInfo game = ExamineFolder(folder);
+			if (!game.gameName.empty())
 				foundGames.push_back(game);
 		}
 	}
@@ -48,7 +48,7 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 
 	// To do: present some UI here instead of grabbing the first game we found
 
-	GameLaunchInfo info = foundGames.front().launchInfo;
+	GameLaunchInfo info = foundGames.front();
 
 	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);
@@ -60,10 +60,10 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 
 GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 {
-	GameFolder folder;
+	GameLaunchInfo info;
 
 	if (path.empty())
-		return folder;
+		return info;
 	
 	std::string path_with_system = FilePath::combine(path, "System");
 
@@ -91,119 +91,115 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 
 			if (it != SHA1Database.end())
 			{
-				folder.launchInfo.folder = path;
-				folder.launchInfo.gameName = FilePath::remove_extension(executable_name);
+				info.gameRootFolder = path;
+				info.gameExecutableName = FilePath::remove_extension(executable_name);
 
 				switch (it->second)
 				{
 					case KnownUE1Games::UNREALGOLD_226b:
 					{
-						folder.name = "Unreal";
-						folder.launchInfo.engineVersion = 226;
-						folder.launchInfo.engineSubVersion = 2;
-						folder.launchInfo.gameName = "Unreal";
+						info.gameName = "Unreal";
+						info.engineVersion = 226;
+						info.engineSubVersion = 2;
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227i:
 					{
-						folder.name = "Unreal";
-						folder.launchInfo.engineVersion = 227;
-						folder.launchInfo.engineSubVersion = 9;
+						info.gameName = "Unreal";
+						info.engineVersion = 227;
+						info.engineSubVersion = 9;
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227j:
 					{
-						folder.name = "Unreal";
-						folder.launchInfo.engineVersion = 227;
-						folder.launchInfo.engineSubVersion = 10;
+						info.gameName = "Unreal";
+						info.engineVersion = 227;
+						info.engineSubVersion = 10;
 					}
 					break;
 					case KnownUE1Games::UT99_436:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 436;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 436;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::UT99_451:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 451;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 451;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::UT99_469a:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 469;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 469;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::UT99_469b:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 469;
-						folder.launchInfo.engineSubVersion = 1;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 469;
+						info.engineSubVersion = 1;
 					}
 					break;
 					case KnownUE1Games::UT99_469c:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 469;
-						folder.launchInfo.engineSubVersion = 2;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 469;
+						info.engineSubVersion = 2;
 					}
 					break;
 					case KnownUE1Games::UT99_469d:
 					{
-						folder.name = "Unreal Tournament";
-						folder.launchInfo.engineVersion = 469;
-						folder.launchInfo.engineSubVersion = 3;
+						info.gameName = "Unreal Tournament";
+						info.engineVersion = 469;
+						info.engineSubVersion = 3;
 					}
 					break;
 					case KnownUE1Games::DEUS_EX_1002f:
 					{
-						folder.name = "Deus Ex";
-						folder.launchInfo.engineVersion = 1002;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Deus Ex";
+						info.engineVersion = 1002;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::DEUS_EX_1112fm:
 					{
-						folder.name = "Deus Ex";
-						folder.launchInfo.engineVersion = 1112;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Deus Ex";
+						info.engineVersion = 1112;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::NERF_300:
 					{
-						folder.name = "Nerf Arena Blast";
-						folder.launchInfo.engineVersion = 300;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Nerf Arena Blast";
+						info.engineVersion = 300;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::KLINGON_219:
 					{
-						folder.name = "Klingon Honor Guard";
-						folder.launchInfo.engineVersion = 219;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "Klingon Honor Guard";
+						info.engineVersion = 219;
+						info.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::TNN_200:
 					{
-						folder.name = "TNN";
-						folder.launchInfo.engineVersion = 200;
-						folder.launchInfo.engineSubVersion = 0;
+						info.gameName = "TNN";
+						info.engineVersion = 200;
+						info.engineSubVersion = 0;
 					}
 				}
-
-				// Return the folder with the detected game
-				return folder;
 			}
 		}
 	}
 
-	// Return the empty folder if nothing could be found
-	return folder;
+	// If no game is found, this will be an empty GameLaunchInfo
+	return info;
 }
 
 #ifdef WIN32
