@@ -14,7 +14,7 @@ int GameApp::main(std::vector<std::string> args)
 	commandline = &cmd;
 
 	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-	if (!info.folder.empty())
+	if (!info.gameRootFolder.empty())
 	{
 		Engine engine(info);
 		engine.Run();

@@ -166,7 +166,7 @@ void PackageManager::ScanPaths()
 
 		// Paths are relative from the System folder the executable (and the ini file) is in
 		// So we should start from there
-		auto resulting_root_path = FilePath::combine(launchInfo.folder, "System");
+		auto resulting_root_path = FilePath::combine(launchInfo.gameRootFolder, "System");
 
 		auto first_component = FilePath::first_component(current_path);
 
@@ -284,7 +284,7 @@ UClass* PackageManager::FindClass(const NameString& name)
 std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameName;
+		iniName = launchInfo.gameExecutableName;
 	else if (iniName == "user")
 		iniName = "User";
 
@@ -294,14 +294,14 @@ std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameName;
+		iniName = launchInfo.gameExecutableName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetKeys(sectionName);
@@ -310,14 +310,14 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameName;
+		iniName = launchInfo.gameExecutableName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetValue(sectionName, keyName, default_value);
@@ -326,14 +326,14 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
 {
 	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameName;
+		iniName = launchInfo.gameExecutableName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	return ini->GetValues(sectionName, keyName, default_values);
@@ -347,14 +347,14 @@ void PackageManager::SetIniValue(NameString iniName, const NameString& sectionNa
 void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
 {
 	if (iniName == "System" || iniName == "system")
-		iniName = launchInfo.gameName;
+		iniName = launchInfo.gameExecutableName;
 	else if (iniName == "user")
 		iniName = "User";
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + iniName.ToString() + ".ini"));
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
 	ini->SetValues(sectionName, keyName, newValues);
@@ -362,13 +362,13 @@ void PackageManager::SetIniValues(NameString iniName, const NameString& sectionN
 
 void PackageManager::SaveAllIniFiles()
 {
-	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+	const std::string system_folder = FilePath::combine(launchInfo.gameRootFolder, "System");
 
 	for (auto& iniFile : iniFiles)
 	{
-		if (iniFile.first == launchInfo.gameName)
+		if (iniFile.first == launchInfo.gameExecutableName)
 		{
-			const std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+			const std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
 			iniFile.second->SaveTo(FilePath::combine(system_folder, engine_ini_name));
 		}
 		else if (iniFile.first == "User")
@@ -393,10 +393,10 @@ void PackageManager::LoadEngineIniFiles()
 	// Load SE-[GameName].ini and SE-User.ini from the appropriate places
 	// If they do not exist, import the appropriate [GameName].ini and User.ini files
 
-	std::string engine_ini_name = "SE-" + launchInfo.gameName + ".ini";
+	std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
 	std::string user_ini_name = "SE-User.ini";
 
-	const std::string system_folder = FilePath::combine(launchInfo.folder, "System");
+	const std::string system_folder = FilePath::combine(launchInfo.gameRootFolder, "System");
 
 	if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
 	{
@@ -404,7 +404,7 @@ void PackageManager::LoadEngineIniFiles()
 		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
 	}
 		
-	iniFiles[launchInfo.gameName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+	iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
 
 	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
 		user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
@@ -415,7 +415,7 @@ void PackageManager::LoadEngineIniFiles()
 
 void PackageManager::LoadIntFiles()
 {
-	std::string systemdir = FilePath::combine(launchInfo.folder, "System");
+	std::string systemdir = FilePath::combine(launchInfo.gameRootFolder, "System");
 	for (std::string filename : Directory::files(FilePath::combine(systemdir, "*.int")))
 	{
 		try
@@ -489,7 +489,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	{
 		try
 		{
-			intFile = std::make_unique<IniFile>(FilePath::combine(launchInfo.folder, "System/" + packageName.ToString() + ".int"));
+			intFile = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + packageName.ToString() + ".int"));
 		}
 		catch (...)
 		{
