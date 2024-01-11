@@ -32,7 +32,13 @@ void UMesh::Load(ObjectStream* stream)
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
-	if (stream->GetPackage()->GetPackageManager()->GetEngineVersion() == 1112) // Deus Ex
+
+	// XXX: Something to consider if we decide to load DeusEx packages
+	//      without necessarily running DeusEx, we will need some kind
+	//      of indicator as to what mesh type we're looking at.
+	//      Maybe just some optional metadata in the package that describes 
+	//			which type of mesh this is?
+	if (stream->GetPackage()->GetPackageManager()->IsDeusEx())
 	{
 		for (int i = 0; i < NumVerts; i++)
 		{
