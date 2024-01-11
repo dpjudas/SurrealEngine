@@ -220,7 +220,7 @@ std::string File::read_all_text(const std::string& filename)
 
 #ifdef WIN32
 
-std::vector<std::string> Directory::files(const std::string &filename)
+std::vector<std::string> Directory::files(const std::string& filename)
 {
 	std::vector<std::string> files;
 
@@ -248,9 +248,18 @@ std::vector<std::string> Directory::files(const std::string &filename)
 	return files;
 }
 
+void Directory::make_directory(const std::string& dirname)
+{
+	if (!CreateDirectory(to_utf16(dirname).c_str(), NULL))
+	{
+		if (GetLastError() != ERROR_ALREADY_EXISTS)
+			throw std::runtime_error("Could not create directory " + dirname);
+	}
+}
+
 #else
 
-std::vector<std::string> Directory::files(const std::string &filename)
+std::vector<std::string> Directory::files(const std::string& filename)
 {
 	std::vector<std::string> files;
 
@@ -286,6 +295,15 @@ std::vector<std::string> Directory::files(const std::string &filename)
 
 	closedir(dir);
 	return files;
+}
+
+void Directory::make_directory(const std::string& dirname)
+{
+	if (mkdir(dirname.c_str(), 0777) < 0)
+	{
+		if (errno != EEXIST)
+			throw std::runtime_error("Could not create directory " + dirname);
+	}
 }
 
 #endif

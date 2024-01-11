@@ -39,7 +39,28 @@ IniFile::IniFile(const std::string& filename)
 				if (valuepos != std::string::npos)
 					value = line.substr(valuepos);
 				if (!name.empty())
-					sections[sectionName][name].push_back(value);
+				{
+					size_t bracket = name.find('[');
+					if (bracket != std::string::npos)
+					{
+						size_t rightBracket = name.find(']');
+						if (rightBracket == std::string::npos)
+							throw std::runtime_error("malformed INI array index");
+						
+						int index = std::stoi(name.substr(bracket + 1, rightBracket - bracket - 1));
+						name = name.substr(0, bracket);
+
+						std::vector<std::string>& nameValues = sections[sectionName][name];
+						if ((index + 1) > nameValues.size())
+							nameValues.resize(index + 1);
+
+						nameValues[index] = value;
+					}
+					else
+					{
+						sections[sectionName][name].push_back(value);
+					}
+				}
 			}
 		}
 	}

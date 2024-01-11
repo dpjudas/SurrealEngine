@@ -18,24 +18,32 @@ struct GameFolder
 
 enum class KnownUE1Games
 {
-	UNREALGOLD_226,
+	UNREAL_200,
+	UNREAL_219,
+	UNREAL_226f,
+	UNREALGOLD_226b,
 	UNREALGOLD_227i,
 	UNREALGOLD_227j,
+	UT99_400,
 	UT99_436,
 	UT99_451,
 	UT99_469a,
 	UT99_469b,
 	UT99_469c,
 	UT99_469d,
+	DEUS_EX_1002f,
 	DEUS_EX_1112fm,
-	KLINGON_219
+	KLINGON_219,
+	NERF_300,
+	TNN_200,
+	UNDYING_420
 };
 
 const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Unreal Gold, 226
-	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226},
+	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226b},
 	// Unreal Gold, 226 - Steam Version
-	{"ecca639b3b4307952c96dc350dd10ca810cbfcc6", KnownUE1Games::UNREALGOLD_226},
+	{"ecca639b3b4307952c96dc350dd10ca810cbfcc6", KnownUE1Games::UNREALGOLD_226b},
 
 	// Unreal Gold, 227i, Windows + Linux versions
 	// Windows
@@ -93,10 +101,16 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux, 64 bit
 	{"e117d883e3d0c480e9c56b01932b161c6c6f1315", KnownUE1Games::UT99_469d},
 
+	// Deus Ex, v1002f
+	{"9f923d667a396e8243028c14dc3f5e0a6db13d84", KnownUE1Games::DEUS_EX_1002f},
+
 	// Deus Ex, v1112fm
 	{"2a933e26aa9cfb33b37f78afe21434caa031f14a", KnownUE1Games::DEUS_EX_1112fm},
 	// Deus Ex, v1112fm - Steam Version
 	{"af951ddd35b38e8d9cc8501b8a50a02a3ab6cae7", KnownUE1Games::DEUS_EX_1112fm},
+
+	// Nerf, Version 300
+	{"7026a49ba2bc71ff52653589661c6d8cda3a8748", KnownUE1Games::NERF_300},
 
 	// Klingon Honor Guard, 219
 	// One oddity with this game is that they seem to have changed the executable name in the 1.1 patch
@@ -106,6 +120,9 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"4b1c00883d289edd2e7ed02fd4da13fb4be2256f", KnownUE1Games::KLINGON_219},
 	// Khg.exe (Version 1.1)
 	{"96a35fff68d3e1539b4d4da8d7363dfbbd115cc5", KnownUE1Games::KLINGON_219},
+
+	// TNN Outdoors Pro Hunter
+	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200}
 };
 
 const std::vector<std::string> knownUE1ExecutableNames = {
@@ -117,7 +134,11 @@ const std::vector<std::string> knownUE1ExecutableNames = {
 	"ut-bin-x64",
 	"DeusEx.exe",
 	"Klingons.exe",
-	"Khg.exe"
+	"Khg.exe",
+	"Nerf.exe",
+	"Rune.exe",
+	"Spore.exe",
+	"TnnHunt.exe"
 };
 
 class GameFolderSelection

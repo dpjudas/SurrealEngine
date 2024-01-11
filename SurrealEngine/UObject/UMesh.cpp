@@ -32,7 +32,13 @@ void UMesh::Load(ObjectStream* stream)
 	uint32_t VertsSkipOffset = 0;
 	if (stream->GetVersion() > 61) VertsSkipOffset = stream->ReadUInt32();
 	int NumVerts = stream->ReadIndex();
-	if (stream->GetPackage()->GetPackageManager()->GetEngineVersion() == 1112) // Deus Ex
+
+	// XXX: Something to consider if we decide to load DeusEx packages
+	//      without necessarily running DeusEx, we will need some kind
+	//      of indicator as to what mesh type we're looking at.
+	//      Maybe just some optional metadata in the package that describes 
+	//			which type of mesh this is?
+	if (stream->GetPackage()->GetPackageManager()->IsDeusEx())
 	{
 		for (int i = 0; i < NumVerts; i++)
 		{
@@ -351,6 +357,9 @@ void USkeletalMesh::Load(ObjectStream* stream)
 		bone.Orientation.y = stream->ReadFloat();
 		bone.Orientation.z = stream->ReadFloat();
 		bone.Orientation.w = stream->ReadFloat();
+		bone.Position.x = stream->ReadFloat();
+		bone.Position.y = stream->ReadFloat();
+		bone.Position.z = stream->ReadFloat();
 		bone.Length = stream->ReadFloat();
 		bone.Size.x = stream->ReadFloat();
 		bone.Size.y = stream->ReadFloat();
@@ -433,6 +442,7 @@ void UAnimation::Load(ObjectStream* stream)
 		move.RootSpeed3D.z = stream->ReadFloat();
 		move.TrackTime = stream->ReadFloat();
 		move.StartBone = stream->ReadUInt32();
+		move.Flags = stream->ReadUInt32();
 
 		int NumBoneIndices = stream->ReadIndex();
 		for (int j = 0; j < NumBoneIndices; j++)
@@ -469,35 +479,37 @@ void UAnimation::Load(ObjectStream* stream)
 			for (int k = 0; k < NumKeyTime; k++)
 				track.KeyTime.push_back(stream->ReadFloat());
 
-			track.RootTrack.Flags = stream->ReadUInt32();
-
-			NumKeyQuat = stream->ReadIndex();
-			for (int k = 0; k < NumKeyQuat; k++)
-			{
-				quaternion q;
-				q.x = stream->ReadFloat();
-				q.y = stream->ReadFloat();
-				q.z = stream->ReadFloat();
-				q.w = stream->ReadFloat();
-				track.RootTrack.KeyQuat.push_back(q);
-			}
-
-			NumKeyPos = stream->ReadIndex();
-			for (int k = 0; k < NumKeyPos; k++)
-			{
-				vec3 pos;
-				pos.x = stream->ReadFloat();
-				pos.y = stream->ReadFloat();
-				pos.z = stream->ReadFloat();
-				track.RootTrack.KeyPos.push_back(pos);
-			}
-
-			NumKeyTime = stream->ReadIndex();
-			for (int k = 0; k < NumKeyTime; k++)
-				track.RootTrack.KeyTime.push_back(stream->ReadFloat());
-
 			move.AnimTracks.push_back(track);
 		}
+
+		AnimTrack rootTrack;
+		rootTrack.Flags = stream->ReadUInt32();
+
+		int NumKeyQuat = stream->ReadIndex();
+		for (int k = 0; k < NumKeyQuat; k++)
+		{
+			quaternion q;
+			q.x = stream->ReadFloat();
+			q.y = stream->ReadFloat();
+			q.z = stream->ReadFloat();
+			q.w = stream->ReadFloat();
+			rootTrack.KeyQuat.push_back(q);
+		}
+
+		int NumKeyPos = stream->ReadIndex();
+		for (int k = 0; k < NumKeyPos; k++)
+		{
+			vec3 pos;
+			pos.x = stream->ReadFloat();
+			pos.y = stream->ReadFloat();
+			pos.z = stream->ReadFloat();
+			rootTrack.KeyPos.push_back(pos);
+		}
+
+		int NumKeyTime = stream->ReadIndex();
+		for (int k = 0; k < NumKeyTime; k++)
+			rootTrack.KeyTime.push_back(stream->ReadFloat());
+
 		Moves.push_back(move);
 	}
 }

@@ -96,11 +96,12 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 
 				switch (it->second)
 				{
-					case KnownUE1Games::UNREALGOLD_226:
+					case KnownUE1Games::UNREALGOLD_226b:
 					{
 						folder.name = "Unreal";
 						folder.launchInfo.engineVersion = 226;
-						folder.launchInfo.engineSubVersion = 0;
+						folder.launchInfo.engineSubVersion = 2;
+						folder.launchInfo.gameName = "Unreal";
 					}
 					break;
 					case KnownUE1Games::UNREALGOLD_227i:
@@ -159,12 +160,25 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.launchInfo.engineSubVersion = 3;
 					}
 					break;
+					case KnownUE1Games::DEUS_EX_1002f:
+					{
+						folder.name = "Deus Ex";
+						folder.launchInfo.engineVersion = 1002;
+						folder.launchInfo.engineSubVersion = 0;
+					}
+					break;
 					case KnownUE1Games::DEUS_EX_1112fm:
 					{
 						folder.name = "Deus Ex";
 						folder.launchInfo.engineVersion = 1112;
 						folder.launchInfo.engineSubVersion = 0;
-						folder.launchInfo.noEntryMap = true;
+					}
+					break;
+					case KnownUE1Games::NERF_300:
+					{
+						folder.name = "Nerf Arena Blast";
+						folder.launchInfo.engineVersion = 300;
+						folder.launchInfo.engineSubVersion = 0;
 					}
 					break;
 					case KnownUE1Games::KLINGON_219:
@@ -174,6 +188,12 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.launchInfo.engineSubVersion = 0;
 					}
 					break;
+					case KnownUE1Games::TNN_200:
+					{
+						folder.name = "TNN";
+						folder.launchInfo.engineVersion = 200;
+						folder.launchInfo.engineSubVersion = 0;
+					}
 				}
 
 				// Return the folder with the detected game

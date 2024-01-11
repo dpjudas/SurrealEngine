@@ -202,13 +202,6 @@ struct AnimTrack
 	std::vector<quaternion> KeyQuat;
 	std::vector<vec3> KeyPos;
 	std::vector<float> KeyTime;
-	struct
-	{
-		uint32_t Flags = 0;
-		std::vector<quaternion> KeyQuat;
-		std::vector<vec3> KeyPos;
-		std::vector<float> KeyTime;
-	} RootTrack;
 };
 
 struct AnimMove
@@ -216,6 +209,7 @@ struct AnimMove
 	vec3 RootSpeed3D;
 	float TrackTime = 0.0f;
 	uint32_t StartBone = 0;
+	uint32_t Flags = 0;
 	std::vector<uint32_t> BoneIndices;
 	std::vector<AnimTrack> AnimTracks;
 };

@@ -218,7 +218,7 @@ void ExpressionEvaluator::Expr(ContextExpression* expr)
 	}
 	else
 	{
-		Frame::ThrowException("Object reference is None");
+		Result.Result = StatementResult::AccessedNone;
 	}
 }
 

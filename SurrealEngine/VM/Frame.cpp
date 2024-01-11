@@ -410,6 +410,9 @@ ExpressionEvalResult Frame::Run()
 				ThrowException("Iterator pop statement without an iterator!");
 			Iterators.pop_back();
 			break;
+		case StatementResult::AccessedNone:
+			engine->LogMessage("Accessed None in function" + Object->Name.ToString() + "." + Func->Name.ToString());
+			break;
 		}
 
 		if (Object->StateFrame.get() == this && LatentState != LatentRunState::Continue)

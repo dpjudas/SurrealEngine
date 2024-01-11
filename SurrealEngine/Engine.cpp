@@ -86,6 +86,10 @@ void Engine::Run()
 
 	window->LockCursor();
 
+	UObjectProperty objprop({}, nullptr, ObjectFlags::NoFlags);
+	UStructProperty vecprop({}, nullptr, ObjectFlags::NoFlags);
+	UStructProperty rotprop({}, nullptr, ObjectFlags::NoFlags);
+
 	bool firstCall = true;
 	while (!quit)
 	{
@@ -162,9 +166,6 @@ void Engine::Run()
 		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");
 		if (funcPlayerCalcView)
 		{
-			UObjectProperty objprop({}, nullptr, ObjectFlags::NoFlags);
-			UStructProperty vecprop({}, nullptr, ObjectFlags::NoFlags);
-			UStructProperty rotprop({}, nullptr, ObjectFlags::NoFlags);
 			vecprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
 			rotprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
 			CameraActor = viewport->Actor();

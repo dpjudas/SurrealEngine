@@ -43,17 +43,17 @@ public:
 	void Seek(uint32_t offset)
 	{
 		if (offset < startoffset)
-			throw std::runtime_error("Seeking outside object");
+			throw std::runtime_error("ObjectStream::Seek: Seeking outside object in" + package->GetPackageName().ToString());
 		offset -= (uint32_t)startoffset;
 		if (offset > size)
-			throw std::runtime_error("Unexpected end of file");
+			throw std::runtime_error("ObjectStream::Seek: Unexpected end of file in " + package->GetPackageName().ToString());
 		pos = offset;
 	}
 
 	void Skip(uint32_t bytes)
 	{
 		if (pos + bytes > size)
-			throw std::runtime_error("Unexpected end of file");
+			throw std::runtime_error("ObjectStream::Skip: Unexpected end of file in " + package->GetPackageName().ToString());
 		pos += bytes;
 	}
 

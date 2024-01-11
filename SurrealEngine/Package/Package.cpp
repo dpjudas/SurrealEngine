@@ -374,7 +374,7 @@ const NameString& Package::GetName(int index) const
 	if (index >= 0 && (size_t)index < NameTable.size())
 		return NameTable[index].Name;
 	else
-		throw std::runtime_error("Name index out of bounds!");
+		throw std::runtime_error("Name index out of bounds!: " + Name.ToString());
 }
 
 ExportTableEntry* Package::GetExportEntry(int objref)
@@ -382,11 +382,11 @@ ExportTableEntry* Package::GetExportEntry(int objref)
 	if (objref == 0)
 		return nullptr;
 	else if (objref < 0)
-		throw std::runtime_error("Expected an export table entry");
+		throw std::runtime_error("Expected an export table entry: " + Name.ToString());
 
 	int index = objref - 1;
 	if ((size_t)index >= ExportTable.size())
-		throw std::runtime_error("Export table entry out of bounds!");
+		throw std::runtime_error("Export table entry out of bounds!: " + Name.ToString());
 
 	return ExportTable.data() + index;
 }
@@ -396,11 +396,11 @@ ImportTableEntry* Package::GetImportEntry(int objref)
 	if (objref == 0)
 		return nullptr;
 	else if (objref > 0)
-		throw std::runtime_error("Expected an import table entry");
+		throw std::runtime_error("Expected an import table entry: " + Name.ToString());
 
 	int index = -objref - 1;
 	if ((size_t)index >= ImportTable.size())
-		throw std::runtime_error("Import table entry out of bounds!");
+		throw std::runtime_error("Import table entry out of bounds!: " + Name.ToString());
 
 	return ImportTable.data() + index;
 }
@@ -412,13 +412,13 @@ void Package::ReadTables()
 
 	uint32_t signature = stream->ReadInt32();
 	if (signature != 0x9E2A83C1)
-		throw std::runtime_error("Not an unreal package file");
+		throw std::runtime_error("Not an unreal package file: " + Name.ToString());
 
 	Version = stream->ReadInt16();
 	uint16_t licenseeMode = stream->ReadInt16();
 
 	if (Version < 60 || Version >= 100)
-		throw std::runtime_error("Unsupported unreal package version");
+		throw std::runtime_error("Unsupported unreal package version: " + Name.ToString());
 
 	Flags = (PackageFlags)stream->ReadUInt32();
 

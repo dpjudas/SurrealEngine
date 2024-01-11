@@ -39,6 +39,11 @@ JsonValue JsonValue::parse(const std::string &json)
 	return JsonValueImpl::read(json, pos);
 }
 
+void JsonValue::add(const std::string name, const JsonValue& value)
+{
+	_properties.insert_or_assign(_properties.end(), name, value);
+}
+
 /////////////////////////////////////////////////////////////////////////
 
 void JsonValueImpl::write(const JsonValue &value, std::string &json)

@@ -54,7 +54,8 @@ public:
 class Directory
 {
 public:
-	static std::vector<std::string> files(const std::string &filename);
+	static std::vector<std::string> files(const std::string& filename);
+	static void make_directory(const std::string& dirname);
 };
 
 class OS
