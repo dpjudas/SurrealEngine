@@ -97,8 +97,14 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux, 64 bit
 	{"e117d883e3d0c480e9c56b01932b161c6c6f1315", KnownUE1Games::UT99_469d},
 
+	// Deus Ex, v1002f
+	{"9f923d667a396e8243028c14dc3f5e0a6db13d84", KnownUE1Games::DEUS_EX_1002f},
+
 	// Deus Ex, v1112fm
 	{"2a933e26aa9cfb33b37f78afe21434caa031f14a", KnownUE1Games::DEUS_EX_1112fm},
+
+	// Nerf, Version 300
+	{"7026a49ba2bc71ff52653589661c6d8cda3a8748", KnownUE1Games::NERF_300},
 
 	// Klingon Honor Guard, 219
 	// One oddity with this game is that they seem to have changed the executable name in the 1.1 patch
@@ -120,6 +126,7 @@ const std::vector<std::string> knownUE1ExecutableNames = {
 	"DeusEx.exe",
 	"Klingons.exe",
 	"Khg.exe",
+	"Nerf.exe",
 	"Rune.exe",
 	"Spore.exe"
 };
