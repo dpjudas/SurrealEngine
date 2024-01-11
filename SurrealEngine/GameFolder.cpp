@@ -14,7 +14,7 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	for (const std::string& folder : commandline->GetItems())
 	{
 		GameLaunchInfo game = ExamineFolder(folder);
-		if (!game.name.empty())
+		if (!game.gameName.empty())
 			foundGames.push_back(game);
 	}
 
@@ -58,7 +58,7 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	return info;
 }
 
-GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
+GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 {
 	GameLaunchInfo info;
 
