@@ -114,6 +114,9 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"4b1c00883d289edd2e7ed02fd4da13fb4be2256f", KnownUE1Games::KLINGON_219},
 	// Khg.exe (Version 1.1)
 	{"96a35fff68d3e1539b4d4da8d7363dfbbd115cc5", KnownUE1Games::KLINGON_219},
+
+	// TNN Outdoors Pro Hunter
+	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200}
 };
 
 const std::vector<std::string> knownUE1ExecutableNames = {
@@ -128,7 +131,8 @@ const std::vector<std::string> knownUE1ExecutableNames = {
 	"Khg.exe",
 	"Nerf.exe",
 	"Rune.exe",
-	"Spore.exe"
+	"Spore.exe",
+	"TnnHunt.exe"
 };
 
 class GameFolderSelection

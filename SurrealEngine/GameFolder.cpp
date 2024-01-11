@@ -188,6 +188,12 @@ GameFolder GameFolderSelection::ExamineFolder(const std::string& path)
 						folder.launchInfo.engineSubVersion = 0;
 					}
 					break;
+					case KnownUE1Games::TNN_200:
+					{
+						folder.name = "TNN";
+						folder.launchInfo.engineVersion = 200;
+						folder.launchInfo.engineSubVersion = 0;
+					}
 				}
 
 				// Return the folder with the detected game
