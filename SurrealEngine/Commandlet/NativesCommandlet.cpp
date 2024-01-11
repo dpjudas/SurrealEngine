@@ -22,7 +22,7 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		return;
 	}
 
-	if (args == "extractfunc")
+	if (args == "extractfuncs")
 	{
 		Engine engine(console->launchinfo);
 
