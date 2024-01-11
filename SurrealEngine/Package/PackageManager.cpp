@@ -408,7 +408,9 @@ void PackageManager::LoadEngineIniFiles()
 
 	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
 		user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
-	iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
+
+	if (launchInfo.engineVersion > 200)
+		iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
 }
 
 void PackageManager::LoadIntFiles()
