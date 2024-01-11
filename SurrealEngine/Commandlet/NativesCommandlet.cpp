@@ -16,9 +16,9 @@ NativesCommandlet::NativesCommandlet()
 
 void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
-	if (console->launchinfo.folder.empty())
+	if (console->launchinfo.gameRootFolder.empty())
 	{
-		console->WriteOutput("LaunchInfo folder is empty!");
+		console->WriteOutput("Root Folder section of LaunchInfo is empty!");
 		return;
 	}
 
@@ -26,7 +26,7 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		Engine engine(console->launchinfo);
 
-		std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
+		std::string path = console->launchinfo.gameExecutableName + "-" + std::to_string(console->launchinfo.engineVersion);
 		if (console->launchinfo.engineSubVersion != 0)
 			path += ('`' + console->launchinfo.engineSubVersion);
 		path += "-Natives.json";
@@ -37,7 +37,7 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		Engine engine(console->launchinfo);
 
-		std::string path = console->launchinfo.gameName + "-" + std::to_string(console->launchinfo.engineVersion);
+		std::string path = console->launchinfo.gameExecutableName + "-" + std::to_string(console->launchinfo.engineVersion);
 		if (console->launchinfo.engineSubVersion != 0)
 			path += ('`' + console->launchinfo.engineSubVersion);
 		path += "-Properties.json";

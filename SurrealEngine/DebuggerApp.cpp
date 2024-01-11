@@ -226,7 +226,7 @@ void DebuggerApp::RunGame()
 	}
 	else
 	{
-		if (!launchinfo.folder.empty())
+		if (!launchinfo.gameRootFolder.empty())
 		{
 			WriteOutput("Launching game..." + NewLine());
 			GameRunning = true;
