@@ -42,6 +42,8 @@ enum class KnownUE1Games
 const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Unreal Gold, 226
 	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226b},
+	// Unreal Gold, 226 - Steam Version
+	{"ecca639b3b4307952c96dc350dd10ca810cbfcc6", KnownUE1Games::UNREALGOLD_226b},
 
 	// Unreal Gold, 227i, Windows + Linux versions
 	// Windows
@@ -62,6 +64,8 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Unreal Tournament, v436, Windows version
 	// (TODO: get sha1sum of the Linux version)
 	{"38e7c23e17b4acbc745d955f234726bad730d3e2", KnownUE1Games::UT99_436},
+	// Unreal Tournament, v436, Windows Steam version
+	{"4325ca919d7fc807848aa8338d8d32ea43734c89", KnownUE1Games::UT99_436},
 
 	// Unreal Tournament, v451b, Windows + Linux versions
 	// Windows
@@ -102,6 +106,8 @@ const std::map<std::string, KnownUE1Games> SHA1Database = {
 
 	// Deus Ex, v1112fm
 	{"2a933e26aa9cfb33b37f78afe21434caa031f14a", KnownUE1Games::DEUS_EX_1112fm},
+	// Deus Ex, v1112fm - Steam Version
+	{"af951ddd35b38e8d9cc8501b8a50a02a3ab6cae7", KnownUE1Games::DEUS_EX_1112fm},
 
 	// Nerf, Version 300
 	{"7026a49ba2bc71ff52653589661c6d8cda3a8748", KnownUE1Games::NERF_300},
