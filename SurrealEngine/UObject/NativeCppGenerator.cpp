@@ -61,6 +61,11 @@ static KnownUE1Games GetKnownGame(const std::string& game, const int version, co
 				return KnownUE1Games::UT99_469d;
 			break;
 		}
+		case 1002:
+		{
+			return KnownUE1Games::DEUS_EX_1002f;
+			break;
+		}
 		case 1112:
 		{
 			return KnownUE1Games::DEUS_EX_1112fm;
@@ -309,11 +314,21 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 
 	if (func.decls.size() > 0)
 	{
+		// Some games (Deus Ex for example) only change the capitalization of argument names
+		// Lowercase the strings and check those so we don't add another decl unnecessarily
+		std::string funcArgsLower;
+		funcArgsLower.resize(funcArgs.size());
+		std::transform(funcArgs.begin(), funcArgs.end(), funcArgsLower.begin(), [](unsigned char c) { return tolower(c); });
+
 		// Need to check all existing function declarations.
 		// Games can have different versions of the same function.
 		for (auto decl : func.decls)
 		{
-			if (funcArgs == decl.args)
+			std::string declArgsLower;
+			declArgsLower.resize(decl.args.size());
+			std::transform(decl.args.begin(), decl.args.end(), declArgsLower.begin(), [](unsigned char c) {return tolower(c); });
+
+			if (funcArgsLower == declArgsLower)
 			{
 				decl.games.push_back(knownGame);
 				return;
