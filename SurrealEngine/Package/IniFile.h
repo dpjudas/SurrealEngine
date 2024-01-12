@@ -13,7 +13,7 @@ public:
 	bool IsModified() const { return isModified; }
 
 	std::vector<NameString> GetKeys(NameString sectionName) const;
-	std::string GetValue(NameString sectionName, NameString keyName, std::string default_value="") const;
+	std::string GetValue(NameString sectionName, NameString keyName, const int index = 0, std::string default_value="") const;
 	std::vector<std::string> GetValues(NameString sectionName, NameString keyName, std::vector<std::string> default_values = {}) const;
 
 	void SetValue(NameString sectionName, NameString keyName, const std::string& newValue);
