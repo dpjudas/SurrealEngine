@@ -120,7 +120,7 @@ std::vector<NameString> IniFile::GetKeys(NameString sectionName) const
 	return result;
 }
 
-std::string IniFile::GetValue(NameString sectionName, NameString keyName, std::string default_value) const
+std::string IniFile::GetValue(NameString sectionName, NameString keyName, const int index, std::string default_value) const
 {
 	auto itSection = sections.find(sectionName);
 	if (itSection == sections.end())
@@ -134,7 +134,7 @@ std::string IniFile::GetValue(NameString sectionName, NameString keyName, std::s
 	if (itValues->second.empty())
 		return default_value;
 
-	return itValues->second.front();
+	return itValues->second[index];
 }
 
 std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName, std::vector<std::string> default_values) const

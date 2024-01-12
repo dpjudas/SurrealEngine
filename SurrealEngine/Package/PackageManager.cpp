@@ -307,7 +307,7 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 	return ini->GetKeys(sectionName);
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value)
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const int index, std::string default_value)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameExecutableName;
@@ -320,7 +320,7 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValue(sectionName, keyName, default_value);
+	return ini->GetValue(sectionName, keyName, index, default_value);
 }
 
 std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
