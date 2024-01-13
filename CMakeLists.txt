@@ -31,6 +31,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/JsonValue.h
 	SurrealEngine/GameFolder.cpp
 	SurrealEngine/GameFolder.h
+	SurrealEngine/UE1GameDatabase.h
+	SurrealEngine/UE1GameDatabase.cpp
 	SurrealEngine/CommandLine.cpp
 	SurrealEngine/CommandLine.h
 	SurrealEngine/Commandlet/Commandlet.cpp

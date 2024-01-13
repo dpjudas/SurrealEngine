@@ -1,7 +1,7 @@
 #pragma once
 
 #include <set>
-#include "GameFolder.h"
+#include "UE1GameDatabase.h"
 #include "JsonValue.h"
 
 class PackageManager;
