@@ -3,9 +3,9 @@
 #include "GameFolder.h"
 #include "File.h"
 #include "UTF16.h"
+#include "UE1GameDatabase.h"
 #include "CommandLine.h"
 #include <filesystem>
-#include "TinySHA1/TinySHA1.hpp"
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
@@ -64,140 +64,130 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 
 	if (path.empty())
 		return info;
-	
-	std::string path_with_system = FilePath::combine(path, "System");
 
-	for (auto& executable_name : knownUE1ExecutableNames)
+	auto ue1_game = FindUE1GameInPath(path);
+
+	if (ue1_game.first != KnownUE1Games::UE1_GAME_NOT_FOUND)
 	{
-		std::string executable_path = FilePath::combine(path_with_system, executable_name);
+		info.gameRootFolder = path;
+		info.gameExecutableName = FilePath::remove_extension(ue1_game.second);
 
-		if (File::try_open_existing(executable_path))
+		switch (ue1_game.first)
 		{
-			// Such executable exists, let's try to take SHA1Sum of it
-			auto bytes = File::read_all_bytes(executable_path);
-
-			sha1::SHA1 s;
-			s.processBytes(bytes.data(), bytes.size());
-			uint32_t digest[5];
-			s.getDigest(digest);
-
-			char temp[41];
-			snprintf(temp, 41, "%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
-
-			std::string sha1sum(temp);
-
-			// Now check whether there is a match within the database or not
-			auto it = SHA1Database.find(sha1sum);
-
-			if (it != SHA1Database.end())
+			case KnownUE1Games::UNREALGOLD_226b:
 			{
-				info.gameRootFolder = path;
-				info.gameExecutableName = FilePath::remove_extension(executable_name);
-
-				switch (it->second)
-				{
-					case KnownUE1Games::UNREALGOLD_226b:
-					{
-						info.gameName = "Unreal";
-						info.engineVersion = 226;
-						info.engineSubVersion = 2;
-					}
-					break;
-					case KnownUE1Games::UNREALGOLD_227i:
-					{
-						info.gameName = "Unreal";
-						info.engineVersion = 227;
-						info.engineSubVersion = 9;
-					}
-					break;
-					case KnownUE1Games::UNREALGOLD_227j:
-					{
-						info.gameName = "Unreal";
-						info.engineVersion = 227;
-						info.engineSubVersion = 10;
-					}
-					break;
-					case KnownUE1Games::UT99_436:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 436;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::UT99_451:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 451;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::UT99_469a:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 469;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::UT99_469b:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 469;
-						info.engineSubVersion = 1;
-					}
-					break;
-					case KnownUE1Games::UT99_469c:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 469;
-						info.engineSubVersion = 2;
-					}
-					break;
-					case KnownUE1Games::UT99_469d:
-					{
-						info.gameName = "Unreal Tournament";
-						info.engineVersion = 469;
-						info.engineSubVersion = 3;
-					}
-					break;
-					case KnownUE1Games::DEUS_EX_1002f:
-					{
-						info.gameName = "Deus Ex";
-						info.engineVersion = 1002;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::DEUS_EX_1112fm:
-					{
-						info.gameName = "Deus Ex";
-						info.engineVersion = 1112;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::NERF_300:
-					{
-						info.gameName = "Nerf Arena Blast";
-						info.engineVersion = 300;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::KLINGON_219:
-					{
-						info.gameName = "Klingon Honor Guard";
-						info.engineVersion = 219;
-						info.engineSubVersion = 0;
-					}
-					break;
-					case KnownUE1Games::TNN_200:
-					{
-						info.gameName = "TNN";
-						info.engineVersion = 200;
-						info.engineSubVersion = 0;
-					}
-				}
+				info.gameName = "Unreal";
+				info.engineVersion = 226;
+				info.engineSubVersion = 2;
+				info.gameVersionString = "226b";
+			}
+			break;
+			case KnownUE1Games::UNREALGOLD_227i:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 227;
+				info.engineSubVersion = 9;
+				info.gameVersionString = "227i";
+			}
+			break;
+			case KnownUE1Games::UNREALGOLD_227j:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 227;
+				info.engineSubVersion = 10;
+				info.gameVersionString = "227j";
+			}
+			break;
+			case KnownUE1Games::UT99_436:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 436;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "436";
+			}
+			break;
+			case KnownUE1Games::UT99_451:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 451;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "451";
+			}
+			break;
+			case KnownUE1Games::UT99_469a:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 469;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "469a";
+			}
+			break;
+			case KnownUE1Games::UT99_469b:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 469;
+				info.engineSubVersion = 1;
+				info.gameVersionString = "469b";
+			}
+			break;
+			case KnownUE1Games::UT99_469c:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 469;
+				info.engineSubVersion = 2;
+				info.gameVersionString = "469c";
+			}
+			break;
+			case KnownUE1Games::UT99_469d:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 469;
+				info.engineSubVersion = 3;
+				info.gameVersionString = "469d";
+			}
+			break;
+			case KnownUE1Games::DEUS_EX_1002f:
+			{
+				info.gameName = "Deus Ex";
+				info.engineVersion = 1002;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "1002";
+			}
+			break;
+			case KnownUE1Games::DEUS_EX_1112fm:
+			{
+				info.gameName = "Deus Ex";
+				info.engineVersion = 1112;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "1112fm";
+			}
+			break;
+			case KnownUE1Games::NERF_300:
+			{
+				info.gameName = "Nerf Arena Blast";
+				info.engineVersion = 300;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "300";
+			}
+			break;
+			case KnownUE1Games::KLINGON_219:
+			{
+				info.gameName = "Klingon Honor Guard";
+				info.engineVersion = 219;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "219";
+			}
+			break;
+			case KnownUE1Games::TNN_200:
+			{
+				info.gameName = "TNN";
+				info.engineVersion = 200;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "200";
 			}
 		}
 	}
-
+	
 	// If no game is found, this will be an empty GameLaunchInfo
 	return info;
 }
