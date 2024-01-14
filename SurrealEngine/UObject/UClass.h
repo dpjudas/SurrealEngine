@@ -170,8 +170,9 @@ enum class ClassFlags : uint32_t
 	NativeReplication = 0x00800, // Replication handled in C++
 };
 
-static const uint32_t operator&(ClassFlags lhs, ClassFlags rhs) { return uint32_t(lhs) & uint32_t(rhs); }
-static const uint32_t operator|(ClassFlags lhs, ClassFlags rhs) { return uint32_t(lhs) | uint32_t(rhs); }
+static uint32_t operator&(const ClassFlags lhs, const ClassFlags rhs) { return uint32_t(lhs) & uint32_t(rhs); }
+static uint32_t operator|(const ClassFlags lhs, const ClassFlags rhs) { return uint32_t(lhs) | uint32_t(rhs); }
+static uint32_t operator^(const ClassFlags lhs, const ClassFlags rhs) { return uint32_t(lhs) ^ uint32_t(rhs); }
 
 class UClass : public UState
 {
