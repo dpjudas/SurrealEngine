@@ -16,7 +16,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 {
 	// To do: return null if spawn location isn't valid
 
-	if (!SpawnClass) // To do: return null if spawn class is abstract
+	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
 	{
 		return nullptr;
 	}
