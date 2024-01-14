@@ -46,8 +46,9 @@ void NPawn::AddPawn(UObject* Self)
 
 void NPawn::CanSee(UObject* Self, UObject* Other, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.CanSee");
-	ReturnValue = false;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	UActor* otherActor = UObject::Cast<UActor>(Other);
+	ReturnValue = selfPawn->CanSee(otherActor);
 }
 
 void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, BitfieldBool& ReturnValue)
@@ -102,8 +103,9 @@ void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 
 void NPawn::LineOfSightTo(UObject* Self, UObject* Other, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.LineOfSightTo(" + UObject::GetUClassName(Other).ToString() + ")");
-	ReturnValue = false;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	UActor* otherActor = UObject::Cast<UActor>(Other);
+	ReturnValue = selfPawn->LineOfSightTo(otherActor);
 }
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)
