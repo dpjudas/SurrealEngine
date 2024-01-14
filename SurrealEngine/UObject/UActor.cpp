@@ -14,8 +14,6 @@ static std::string tickEventName = "Tick";
 
 UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
-	// To do: return null if spawn location isn't valid
-
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
 	{
 		return nullptr;
