@@ -1585,6 +1585,10 @@ public:
 	bool TickRotateTo(const vec3& target);
 	bool TickMoveTo(const vec3& target);
 
+	// Returns true if any of the several points of other is visible (origin, top, bottom)
+	bool LineOfSightTo(UActor* other);
+	// Similar to LineOfSightTo() but takes the Pawn's peripheral vision into account (SightRadius and PeripheralVision)
+	bool CanSee(UActor* other);
 	bool CanHearNoise(UActor* source, float loudness);
 	bool ActorReachable(UActor* anActor);
 	bool PointReachable(vec3 aPoint);
