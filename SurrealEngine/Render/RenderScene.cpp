@@ -62,13 +62,21 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	for (const DrawNodeInfo& nodeInfo : Scene.OpaqueNodes)
 		DrawNodeSurface(nodeInfo);
 	DrawDecals(&Scene.Frame);
+	DrawActors();
+	// Draw transparent surfaces last
 	for (auto it = Scene.TranslucentNodes.rbegin(); it != Scene.TranslucentNodes.rend(); ++it)
 		DrawNodeSurface(*it);
-	DrawActors();
 }
 
 void RenderSubsystem::DrawActors()
 {
+	// Sort the actors according to their distance to the camera
+	std::sort(Scene.Actors.begin(), Scene.Actors.end(), 
+		[&](UActor* actor1, UActor* actor2) { 
+			return length(Scene.ViewLocation - vec4(actor1->Location(), 1.0f)) > length(Scene.ViewLocation - vec4(actor2->Location(), 1.0f));
+		}
+	);
+
 	for (UActor* actor : Scene.Actors)
 	{
 		EDrawType dt = (EDrawType)actor->DrawType();
