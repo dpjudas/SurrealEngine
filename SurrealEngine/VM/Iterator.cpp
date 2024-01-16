@@ -65,24 +65,47 @@ bool RadiusActorsIterator::Next()
 
 TouchingActorsIterator::TouchingActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.TouchingActors");
+	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
+
+	OverlapCylinderLevel collisionTester;
+
+	hitList = collisionTester.TestOverlap(BaseActor->XLevel(), BaseActor->Location(), BaseActor->CollisionHeight(),
+		BaseActor->CollisionRadius(), true, false, false);
+
+	iterator = hitList.begin();
 }
 
 bool TouchingActorsIterator::Next()
 {
-	return false;
+	iterator++;
+	*Actor = iterator->Actor;
+
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
-	engine->LogUnimplemented("Actor.TraceActors");
+	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
+	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, Start, true, Extent));
+
+	if (tracedActor)
+		tracedActors.push_back(tracedActor);
+
+	while (tracedActor)
+	{
+		tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, *HitLoc, true, Extent));
+
+		if (tracedActor)
+			tracedActors.push_back(tracedActor);
+	}
 }
 
 bool TraceActorsIterator::Next()
 {
-	return false;
+	*Actor = *++iterator;
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
