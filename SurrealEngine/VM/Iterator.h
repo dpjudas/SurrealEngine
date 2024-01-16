@@ -62,6 +62,9 @@ public:
 	float Radius = 0.0f;
 	vec3 Location;
 	size_t index = 0;
+
+	CollisionHitList hitList;
+	CollisionHitList::iterator iterator;
 };
 
 class TouchingActorsIterator : public Iterator
