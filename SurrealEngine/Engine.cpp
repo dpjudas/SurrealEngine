@@ -792,7 +792,7 @@ void Engine::LoadKeybindings()
 
 	for (int i = 0; i < 40; i++)
 	{
-		std::string alias = packages->GetIniValue("user", "Engine.Input", "Aliases", i);
+		std::string alias = packages->GetIniValue("user", "Engine.Input", "Aliases", "", i);
 
 		// Total trash parsing, but it will do for the aliases I have! Feel free to improve it!
 		std::string commandStart = "(Command=\"";
