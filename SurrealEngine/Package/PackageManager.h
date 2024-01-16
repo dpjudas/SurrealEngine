@@ -62,6 +62,7 @@ public:
 	bool MissingSESystemIni() const { return missing_se_system_ini; }
 
 private:
+	std::unique_ptr<IniFile>& GetSystemIniFile(NameString iniName);
 	void LoadEngineIniFiles();
 	void LoadIntFiles();
 	void LoadPackageRemaps();
