@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExpressionValue.h"
+#include "Collision/OverlapCylinderLevel.h"
 
 class UZoneInfo;
 class UActor;
@@ -72,6 +73,9 @@ public:
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	CollisionHitList hitList;
+	CollisionHitList::iterator iterator;
 };
 
 class TraceActorsIterator : public Iterator
@@ -88,6 +92,9 @@ public:
 	vec3 Start = vec3(0.0f);
 	vec3 Extent = vec3(0.0f);
 	size_t index = 0;
+
+	std::vector<UActor*> tracedActors;
+	std::vector<UActor*>::iterator iterator = tracedActors.begin();
 };
 
 class VisibleActorsIterator : public Iterator
