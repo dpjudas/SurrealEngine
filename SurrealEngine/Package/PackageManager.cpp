@@ -320,7 +320,7 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetValue(sectionName, keyName, index, default_value);
+	return ini->GetValue(sectionName, keyName, default_value, index);
 }
 
 std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
