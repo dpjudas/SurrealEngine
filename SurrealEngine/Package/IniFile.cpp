@@ -2,6 +2,20 @@
 #include "Precomp.h"
 #include "IniFile.h"
 #include "File.h"
+#include "MurmurHash3/MurmurHash3.h"
+#include <algorithm>
+
+static uint32_t HashIniString(const std::string& str)
+{
+	std::string strLower;
+	strLower.resize(str.size());
+	std::transform(str.begin(), str.end(), strLower.begin(), [](unsigned char c) { return tolower(c); });
+
+	uint32_t hash = 0;
+	MurmurHash3_x86_32(strLower.c_str(), strLower.length(), 0, &hash);
+
+	return hash;
+}
 
 IniFile::IniFile(const std::string& filename)
 {
@@ -17,9 +31,6 @@ IniFile::IniFile(const std::string& filename)
 		if (line.size() >= 2 && line.front() == '[' && line.back() == ']')
 		{
 			sectionName = line.substr(1, line.size() - 2);
-			for (char& c : sectionName)
-				if (c >= 'A' && c <= 'Z')
-					c += 'a' - 'A';
 		}
 		else
 		{
@@ -30,36 +41,29 @@ IniFile::IniFile(const std::string& filename)
 				while (!name.empty() && (name.back() == ' ' || name.back() == '\t'))
 					name.pop_back();
 
-				for (char& c : name)
-					if (c >= 'A' && c <= 'Z')
-						c += 'a' - 'A';
-
 				std::string value;
 				size_t valuepos = line.find_first_not_of(" \t", equalpos + 1);
 				if (valuepos != std::string::npos)
 					value = line.substr(valuepos);
+
 				if (!name.empty())
 				{
 					size_t bracket = name.find('[');
+					int index = -1;
+					bool indexed = false;
 					if (bracket != std::string::npos)
 					{
 						size_t rightBracket = name.find(']');
 						if (rightBracket == std::string::npos)
 							throw std::runtime_error("malformed INI array index");
-						
-						int index = std::stoi(name.substr(bracket + 1, rightBracket - bracket - 1));
+
+						indexed = true;
+						index = std::stoi(name.substr(bracket + 1, rightBracket - bracket - 1));
 						name = name.substr(0, bracket);
-
-						std::vector<std::string>& nameValues = sections[sectionName][name];
-						if ((index + 1) > nameValues.size())
-							nameValues.resize(index + 1);
-
-						nameValues[index] = value;
 					}
-					else
-					{
-						sections[sectionName][name].push_back(value);
-					}
+
+					IniSection& section = AddUniqueSection(sectionName);
+					section.SetValue(name, value, index, indexed);
 				}
 			}
 		}
@@ -102,69 +106,51 @@ bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
 	return true;
 }
 
-std::vector<NameString> IniFile::GetKeys(NameString sectionName) const
+std::vector<NameString> IniFile::GetKeys(const NameString& sectionName) const
 {
 	std::vector<NameString> result;
-	
-	auto itSection = sections.find(sectionName);
-	if (itSection == sections.end())
-		return {};
 
-	const auto& values = itSection->second;
-
-	for (auto& key : values)
+	const IniSection* section = FindSection(sectionName.ToString());
+	if (section != nullptr)
 	{
-		result.push_back(key.first);
+		auto& keys = section->GetKeys();
+		for (const IniKey& key : keys)
+			result.push_back(key.GetName());
 	}
 
 	return result;
 }
 
-std::string IniFile::GetValue(NameString sectionName, NameString keyName, const int index, std::string default_value) const
+std::string IniFile::GetValue(const NameString& sectionName, const NameString& keyName, const std::string& defaultValue, const int index) const
 {
-	auto itSection = sections.find(sectionName);
-	if (itSection == sections.end())
-		return default_value;
+	const IniSection* section = FindSection(sectionName.ToString());
+	if (section == nullptr)
+		return defaultValue;
 
-	const auto& values = itSection->second;
-	auto itValues = values.find(keyName);
-	if (itValues == values.end())
-		return default_value;
-
-	if (itValues->second.empty())
-		return default_value;
-
-	return itValues->second[index];
+	return section->GetValue(keyName, defaultValue, index);
 }
 
-std::vector<std::string> IniFile::GetValues(NameString sectionName, NameString keyName, std::vector<std::string> default_values) const
+std::vector<std::string> IniFile::GetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& defaultValues) const
 {
-	auto itSection = sections.find(sectionName);
-	if (itSection == sections.end())
-		return default_values;
+	const IniSection* section = FindSection(sectionName.ToString());
+	if (section == nullptr)
+		return defaultValues;
 
-	const auto& values = itSection->second;
-	auto itValues = values.find(keyName);
-	if (itValues == values.end())
-		return default_values;
-
-	return itValues->second;
+	return section->GetValues(keyName, defaultValues);
 }
 
-void IniFile::SetValue(NameString sectionName, NameString keyName, const std::string& newValue)
+void IniFile::SetValue(const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index)
 {
-	SetValues(sectionName, keyName, { newValue });
+	IniSection& section = AddUniqueSection(sectionName.ToString());
+	if (section.SetValue(keyName, newValue, index))
+		isModified = true;
 }
 
-void IniFile::SetValues(NameString sectionName, NameString keyName, const std::vector<std::string>& newValues)
+void IniFile::SetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
 {
-	auto& oldValues = sections[sectionName][keyName];
-
-	if (oldValues == newValues)
-		return;
-	
-	sections[sectionName][keyName] = newValues;
-	isModified = true;
+	IniSection& section = AddUniqueSection(sectionName.ToString());
+	if (section.SetValues(keyName, newValues))
+		isModified = true;
 }
 
 void IniFile::SaveTo()
@@ -176,25 +162,27 @@ void IniFile::SaveTo(const std::string& filename)
 {
 	if (filename == ini_file_path && !isModified)
 		return;
-	
+
 	std::string ini_text = "";
 
 	// Start with sections first
 	for (auto& section : sections)
 	{
 		// Section header (i.e. [Engine.Engine])
-		std::string section_text = "[" + section.first.ToString() + "]\n";
+		std::string section_text = "[" + section.GetName() + "]\n";
 
 		// key=value pairs
-		for (auto& entry : section.second)
+		auto& keys = section.GetKeys();
+		for (auto& key : keys)
 		{
 			// a key can hold multiple values, like
 			// Paths=path1
 			// Paths=path2
 			// and so on, hence this loop
-			for (auto& value : entry.second)
+			auto& values = key.GetValues();
+			for (auto& value : values)
 			{
-				section_text += entry.first.ToString() + "=" + value + "\n";
+				section_text += key.GetName() + "=" + value + "\n";
 			}
 		}
 
@@ -208,4 +196,221 @@ void IniFile::SaveTo(const std::string& filename)
 		ini_file_path = filename;
 
 	isModified = false;
+}
+
+IniSection& IniFile::AddUniqueSection(const std::string& sectionName)
+{
+	uint32_t sectionHash = HashIniString(sectionName);
+	for (auto& section : sections)
+	{
+		if (section.GetHash() == sectionHash)
+			return section;
+	}
+
+	sections.push_back(std::move(IniSection(sectionName, sectionHash)));
+	return sections.back();
+}
+
+const IniSection* IniFile::FindSection(const std::string& sectionName) const
+{
+	uint32_t sectionHash = HashIniString(sectionName);
+	for (auto& section : sections)
+	{
+		if (section.GetHash() == sectionHash)
+			return &section;
+	}
+
+	return nullptr;
+}
+
+//====================================================================
+
+IniSection::IniSection(const std::string& _name, const uint32_t _hash)
+{
+	name = _name;
+	hash = _hash;
+}
+
+IniSection::IniSection(const IniSection& other)
+{
+	name = other.name;
+	hash = other.hash;
+	keys = other.keys;
+}
+
+const std::string& IniSection::GetName() const
+{
+	return name;
+}
+
+uint32_t IniSection::GetHash() const
+{
+	return hash;
+}
+
+const std::vector<IniKey>& IniSection::GetKeys() const
+{
+	return keys;
+}
+
+std::string IniSection::GetValue(const NameString& keyName, const std::string& defaultValue, const int index) const
+{
+	uint32_t keyHash = HashIniString(keyName.ToString());
+	for (auto& key : keys)
+	{
+		if (key.GetHash() == keyHash)
+		{
+			std::string value = key.GetValue(index);
+			if (value.size() == 0)
+				break;
+
+			return value;
+		}
+	}
+
+	return defaultValue;
+}
+
+std::vector<std::string> IniSection::GetValues(const NameString& keyName, const std::vector<std::string>& defaultValues) const
+{
+	uint32_t keyHash = HashIniString(keyName.ToString());
+	for (auto& key : keys)
+	{
+		if (key.GetHash() == keyHash)
+			return key.GetValues();
+	}
+
+	return defaultValues;
+}
+
+bool IniSection::SetValue(const NameString& keyName, const std::string& newValue, const int index, const bool indexed)
+{
+	int result = -1;
+	uint32_t keyHash = HashIniString(keyName.ToString());
+	for (auto& key : keys)
+	{
+		if (key.GetHash() == keyHash)
+		{
+			result = key.SetValue(newValue, index);
+			result |= key.SetIndexed(indexed);
+			break;
+		}
+	}
+
+	if (result < 0)
+	{
+		IniKey newKey(keyName.ToString(), keyHash);
+		newKey.SetValue(newValue, index);
+		newKey.SetIndexed(indexed);
+		keys.push_back(std::move(newKey));
+		return true;
+	}
+
+	return result == 1;
+}
+
+bool IniSection::SetValues(const NameString& keyName, const std::vector<std::string>& newValues, const bool indexed)
+{
+	int result = -1;
+	uint32_t keyHash = HashIniString(keyName.ToString());
+	for (auto& key : keys)
+	{
+		if (key.GetHash() == keyHash)
+		{
+			result = key.SetValues(newValues);
+			result |= key.SetIndexed(indexed);
+			break;
+		}
+	}
+
+	if (result < 0)
+	{
+		IniKey newKey(keyName.ToString(), keyHash);
+		newKey.SetValues(newValues);
+		newKey.SetIndexed(indexed);
+		keys.push_back(std::move(newKey));
+		return true;
+	}
+
+	return result == 1;
+}
+
+//====================================================================
+
+IniKey::IniKey(const std::string& _name, const uint32_t _hash)
+{
+	name = _name;
+	hash = _hash;
+}
+
+IniKey::IniKey(const IniKey& other)
+{
+	name = other.name;
+	hash = other.hash;
+	values = other.values;
+}
+
+uint32_t IniKey::GetHash() const
+{
+	return hash;
+}
+
+const std::string& IniKey::GetName() const
+{
+	return name;
+}
+
+const std::vector<std::string>& IniKey::GetValues() const
+{
+	return values;
+}
+
+bool IniKey::GetIndexed() const
+{
+	return indexed;
+}
+
+std::string IniKey::GetValue(const int index) const
+{
+	std::string value = "";
+	if (index < values.size())
+		value = values[index];
+	return value;
+}
+
+int IniKey::SetValue(const std::string& newValue, const int index)
+{
+	if (index == -1)
+	{
+		values.push_back(newValue);
+		return 1;
+	}
+	else if (index < values.size())
+	{
+		if (values[index] == newValue)
+			return 0;
+	}
+	else
+	{
+		values.resize(index + 1);
+	}
+
+	values[index] = newValue;
+	return 1;
+}
+
+int IniKey::SetValues(const std::vector<std::string>& newValues)
+{
+	if (newValues == values)
+		return 0;
+
+	values = newValues;
+	return 1;
+}
+
+int IniKey::SetIndexed(bool newIndexed)
+{
+	bool result = !((int)indexed ^ (int)newIndexed);
+	indexed = newIndexed;
+	return result;
 }

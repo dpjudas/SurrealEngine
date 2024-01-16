@@ -434,6 +434,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/dumb/include/internal/it.h
 	Thirdparty/dumb/include/internal/riff.h
 	Thirdparty/dumb/include/dumb.h
+	Thirdparty/MurmurHash3/MurmurHash3.cpp
+	Thirdparty/MurmurHash3/MurmurHash3.h
 	Thirdparty/resample/CDSPSincFilterGen.h
 	Thirdparty/resample/CDSPHBDownsampler.h
 	Thirdparty/resample/CDSPResampler.h

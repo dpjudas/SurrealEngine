@@ -88,20 +88,10 @@ Package* PackageManager::GetPackage(const NameString& name)
 	if (package)
 		return package.get();
 	
-	// TODO: Is this how PackageRemap really works?
-	// There is no documentation of it anywhere it seems
-	NameString remapped_name = name;
-
-	auto remap_it = packageRemaps.find(name.ToString());
-	if (remap_it != packageRemaps.end())
-	{
-		remapped_name = NameString(remap_it->second);
-	}
-
-	auto it = packageFilenames.find(remapped_name);
+	auto it = packageFilenames.find(name);
 	if (it != packageFilenames.end())
 	{
-		package = std::make_unique<Package>(this, remapped_name, it->second);
+		package = std::make_unique<Package>(this, name, it->second);
 	}
 	else
 	{
@@ -291,7 +281,7 @@ std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 	return std::make_unique<IniFile>(*iniFiles[iniName]);
 }
 
-std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
+std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameExecutableName;
@@ -304,60 +294,32 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
 	}
 
-	return ini->GetKeys(sectionName);
+	return ini;
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const int index, std::string default_value)
+std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
-	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameExecutableName;
-	else if (iniName == "user")
-		iniName = "User";
+	return GetSystemIniFile(iniName)->GetKeys(sectionName);
+}
 
-	auto& ini = iniFiles[iniName];
-	if (!ini)
-	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
-	}
-
-	return ini->GetValue(sectionName, keyName, index, default_value);
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value, const int index)
+{
+	return GetSystemIniFile(iniName)->GetValue(sectionName, keyName, default_value, index);
 }
 
 std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
 {
-	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameExecutableName;
-	else if (iniName == "user")
-		iniName = "User";
-
-	auto& ini = iniFiles[iniName];
-	if (!ini)
-	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
-	}
-
-	return ini->GetValues(sectionName, keyName, default_values);
+	return GetSystemIniFile(iniName)->GetValues(sectionName, keyName, default_values);
 }
 
-void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue)
+void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index)
 {
-	SetIniValues(iniName, sectionName, keyName, { newValue });
+	GetSystemIniFile(iniName)->SetValue(sectionName, keyName, newValue, index);
 }
 
 void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
 {
-	if (iniName == "System" || iniName == "system")
-		iniName = launchInfo.gameExecutableName;
-	else if (iniName == "user")
-		iniName = "User";
-
-	auto& ini = iniFiles[iniName];
-	if (!ini)
-	{
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
-	}
-
-	ini->SetValues(sectionName, keyName, newValues);
+	GetSystemIniFile(iniName)->SetValues(sectionName, keyName, newValues);
 }
 
 void PackageManager::SaveAllIniFiles()
