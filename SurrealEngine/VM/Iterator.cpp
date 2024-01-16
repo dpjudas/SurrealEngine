@@ -53,12 +53,23 @@ bool ChildActorsIterator::Next()
 
 RadiusActorsIterator::RadiusActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, vec3 Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
-	engine->LogUnimplemented("Actor.RadiusActors");
+	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
+
+	OverlapCylinderLevel collisionTester;
+
+	// Is this spherical instead?
+	hitList = collisionTester.TestOverlap(BaseActor->XLevel(), Location, BaseActor->CollisionHeight(),
+		Radius, true, false, false);
+
+	iterator = hitList.begin();
 }
 
 bool RadiusActorsIterator::Next()
 {
-	return false;
+	iterator++;
+	*Actor = iterator->Actor;
+
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
