@@ -48,9 +48,9 @@ public:
 
 	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
 	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
-	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const int index = 0, std::string default_value = "");
+	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value = "", const int index = 0);
 	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values = {});
-	void SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue);
+	void SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index = 0);
 	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues);
 	void SaveAllIniFiles();
 

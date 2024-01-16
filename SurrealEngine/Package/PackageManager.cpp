@@ -88,20 +88,10 @@ Package* PackageManager::GetPackage(const NameString& name)
 	if (package)
 		return package.get();
 	
-	// TODO: Is this how PackageRemap really works?
-	// There is no documentation of it anywhere it seems
-	NameString remapped_name = name;
-
-	auto remap_it = packageRemaps.find(name.ToString());
-	if (remap_it != packageRemaps.end())
-	{
-		remapped_name = NameString(remap_it->second);
-	}
-
-	auto it = packageFilenames.find(remapped_name);
+	auto it = packageFilenames.find(name);
 	if (it != packageFilenames.end())
 	{
-		package = std::make_unique<Package>(this, remapped_name, it->second);
+		package = std::make_unique<Package>(this, name, it->second);
 	}
 	else
 	{
@@ -307,7 +297,7 @@ std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName
 	return ini->GetKeys(sectionName);
 }
 
-std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const int index, std::string default_value)
+std::string PackageManager::GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value, const int index)
 {
 	if (iniName == "system" || iniName == "System")
 		iniName = launchInfo.gameExecutableName;
@@ -339,9 +329,20 @@ std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const 
 	return ini->GetValues(sectionName, keyName, default_values);
 }
 
-void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue)
+void PackageManager::SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index)
 {
-	SetIniValues(iniName, sectionName, keyName, { newValue });
+	if (iniName == "System" || iniName == "system")
+		iniName = launchInfo.gameExecutableName;
+	else if (iniName == "user")
+		iniName = "User";
+
+	auto& ini = iniFiles[iniName];
+	if (!ini)
+	{
+		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
+	}
+
+	ini->SetValue(sectionName, keyName, newValue, index);
 }
 
 void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
