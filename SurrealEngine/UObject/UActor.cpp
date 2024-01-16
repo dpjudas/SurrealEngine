@@ -14,9 +14,7 @@ static std::string tickEventName = "Tick";
 
 UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
-	// To do: return null if spawn location isn't valid
-
-	if (!SpawnClass) // To do: return null if spawn class is abstract
+	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
 	{
 		return nullptr;
 	}
@@ -1910,6 +1908,50 @@ bool UPawn::PointReachable(vec3 aPoint)
 
 	vec3 delta = aPoint - Location();
 	return TryMove(delta, true).Fraction == 1.0f;
+}
+
+bool UPawn::LineOfSightTo(UActor* other)
+{
+	if (!other)
+		return false;
+
+	vec3 eye_pos = Location();
+	eye_pos.z += BaseEyeHeight();
+
+	auto& origin = other->Location();
+	auto top = origin + vec3{0.f, 0.f, other->CollisionHeight() / 2};
+	auto bottom = origin - vec3{ 0.f, 0.f, other->CollisionHeight() / 2 };
+
+	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);
+}
+
+bool UPawn::CanSee(UActor* other)
+{
+	if (!other)
+		return false;
+
+	// Two fields to keep in mind of:
+	// float SightRadius: Maximum seeing distance
+	// float PeripheralVision: Cosine of limits of peripheral vision
+
+	auto& origin = other->Location();
+	auto top = origin + vec3{ 0.f, 0.f, other->CollisionHeight() / 2 };
+	auto bottom = origin - vec3{ 0.f, 0.f, other->CollisionHeight() / 2 };
+
+	vec3 eye_pos = Location();
+	eye_pos.z += BaseEyeHeight();
+
+	// Cannot see if the actor is too far away from the sight radius
+	if (length(origin - eye_pos) > SightRadius())
+		return false;
+
+	// Cannot see if the actor is outside of the peripheral vision angles
+	auto orientation = Coords::Rotation(Rotation()).XAxis;
+
+	if (abs(dot(orientation, origin)) > PeripheralVision())
+		return false;
+
+	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);
 }
 
 bool UPawn::CanHearNoise(UActor* source, float loudness)

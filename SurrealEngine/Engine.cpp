@@ -848,7 +848,9 @@ void Engine::OpenWindow()
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
 	bool fullscreen = client->StartupFullscreen;
 
-	window->SetWindowTitle("Surreal Engine: " + LaunchInfo.gameName + " (v" + std::to_string(LaunchInfo.engineVersion) + ")");
+	std::string versionString = !LaunchInfo.gameVersionString.empty() ? " (v" + LaunchInfo.gameVersionString + ")" : "";
+
+	window->SetWindowTitle("Surreal Engine: " + LaunchInfo.gameName + versionString);
 	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
