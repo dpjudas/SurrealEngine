@@ -66,8 +66,11 @@ RadiusActorsIterator::RadiusActorsIterator(UObject* BaseClass, UObject** Actor, 
 
 bool RadiusActorsIterator::Next()
 {
-	iterator++;
+	if (iterator == hitList.end())
+		return false;
+
 	*Actor = iterator->Actor;
+	iterator++;
 
 	return *Actor;
 }
@@ -88,8 +91,11 @@ TouchingActorsIterator::TouchingActorsIterator(UObject* BaseClass, UObject** Act
 
 bool TouchingActorsIterator::Next()
 {
-	iterator++;
+	if (iterator == hitList.end())
+		return false;
+	
 	*Actor = iterator->Actor;
+	iterator++;
 
 	return *Actor;
 }
@@ -99,23 +105,31 @@ bool TouchingActorsIterator::Next()
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
 	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, Start, true, Extent));
+	UActor* tracedActor = nullptr;
 
-	if (tracedActor)
-		tracedActors.push_back(tracedActor);
+	vec3 startPoint = Start;
 
-	while (tracedActor)
-	{
-		tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, *HitLoc, true, Extent));
+	do {
+		tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
 
 		if (tracedActor)
+		{
 			tracedActors.push_back(tracedActor);
-	}
+			startPoint = *HitLoc;	// Make hit location the start point for the next trace
+		}
+	} while (tracedActor);
+
+	iterator = tracedActors.begin();
 }
 
 bool TraceActorsIterator::Next()
 {
-	*Actor = *++iterator;
+	if (iterator == tracedActors.end())
+		return false;
+
+	*Actor = *iterator;
+	iterator++;
+
 	return *Actor;
 }
 
