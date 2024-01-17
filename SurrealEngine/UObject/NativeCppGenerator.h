@@ -21,21 +21,21 @@ private:
 	{
 		std::string args;
 		int argCount;
-		std::vector<KnownUE1Games> games;
+		std::vector<std::string> games;
 	};
 
 	struct NativeFunction
 	{
 		std::string name;
 		std::vector<NativeFunctionDecl> decls;
-		std::vector<std::pair<KnownUE1Games, int>> versionIndex;
+		std::vector<std::pair<std::string, int>> versionIndex;
 	};
 
 	struct NativeProperty
 	{
 		std::string name;
 		std::string type;
-		std::vector<KnownUE1Games> games;
+		std::vector<std::string> games;
 	};
 
 	struct NativeClass
@@ -48,13 +48,13 @@ private:
 		NativeFunction& AddUniqueNativeFunction(const std::string& funcName);
 		NativeProperty& AddUniqueNativeProperty(const std::string& propName);
 
-		void ParseClassFunction(const std::string& funcName, const JsonValue& json, KnownUE1Games knownGame);
+		void ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& version);
 	};
 
-	static void ParseClassNatives(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame);
-	static void ParseClassProperties(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame);
-	static void ParseGameNatives(const JsonValue& json, KnownUE1Games knownGame);
-	static void ParseGameProperties(const JsonValue& json, KnownUE1Games knownGame);
+	static void ParseClassNatives(const std::string& className, const std::string& packageName, const JsonValue& json, const std::string& version);
+	static void ParseClassProperties(const std::string& className, const std::string& packageName, const JsonValue& json, const std::string& version);
+	static void ParseGameNatives(const JsonValue& json, const std::string& version);
+	static void ParseGameProperties(const JsonValue& json, const std::string& version);
 
 	static NativeClass& AddUniqueNativeClass(const std::string& className);
 
