@@ -97,7 +97,7 @@ public:
 	size_t index = 0;
 
 	std::vector<UActor*> tracedActors;
-	std::vector<UActor*>::iterator iterator = tracedActors.begin();
+	std::vector<UActor*>::iterator iterator;
 };
 
 class VisibleActorsIterator : public Iterator
@@ -138,4 +138,7 @@ public:
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> ZoneActors;
+	std::vector<UActor*>::iterator iterator;
 };
