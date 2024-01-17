@@ -4,6 +4,7 @@
 #include "Engine.h"
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
+#include "Collision/OverlapCylinderLevel.h"
 
 AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
 {
@@ -27,7 +28,7 @@ bool AllObjectsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-BasedActorsIterator::BasedActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
+BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
 	engine->LogUnimplemented("Actor.BasedActors");
 }
@@ -39,37 +40,47 @@ bool BasedActorsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-ChildActorsIterator::ChildActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
+ChildActorsIterator::ChildActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.ChildActors");
+	for (UActor* levelActor : engine->Level->Actors)
+	{
+		if (levelActor->Owner() == Caller && levelActor->IsA(BaseClass->Name))
+			ChildActors.push_back(levelActor);
+	}
+
+	iterator = ChildActors.begin();
 }
 
 bool ChildActorsIterator::Next()
 {
-	return false;
+	if (iterator == ChildActors.end())
+		return false;
+
+	*Actor = *iterator;
+	iterator++;
+
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-RadiusActorsIterator::RadiusActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, vec3 Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
+RadiusActorsIterator::RadiusActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor, float Radius, vec3 Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
-	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
+	for (UActor* levelActor : engine->Level->Actors)
+	{
+		if (levelActor->IsA(BaseClass->Name) && length(levelActor->Location() - Location) <= Radius)
+			RadiusActors.push_back(levelActor);
+	}
 
-	OverlapCylinderLevel collisionTester;
-
-	// Is this spherical instead?
-	hitList = collisionTester.TestOverlap(BaseActor->XLevel(), Location, BaseActor->CollisionHeight(),
-		Radius, true, false, false);
-
-	iterator = hitList.begin();
+	iterator = RadiusActors.begin();
 }
 
 bool RadiusActorsIterator::Next()
 {
-	if (iterator == hitList.end())
+	if (iterator == RadiusActors.end())
 		return false;
 
-	*Actor = iterator->Actor;
+	*Actor = *iterator;
 	iterator++;
 
 	return *Actor;
@@ -77,27 +88,32 @@ bool RadiusActorsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-TouchingActorsIterator::TouchingActorsIterator(UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
+TouchingActorsIterator::TouchingActorsIterator(UActor* Caller, UObject* BaseClass, UObject** outActor) : BaseClass(BaseClass), outActor(outActor)
 {
-	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-
 	OverlapCylinderLevel collisionTester;
 
-	hitList = collisionTester.TestOverlap(BaseActor->XLevel(), BaseActor->Location(), BaseActor->CollisionHeight(),
-		BaseActor->CollisionRadius(), true, false, false);
+	CollisionHitList hitList = collisionTester.TestOverlap(Caller->XLevel(), Caller->Location(), Caller->CollisionHeight(),
+		Caller->CollisionRadius(), true, false, false);
 
-	iterator = hitList.begin();
+	for (auto& hit : hitList)
+	{
+		// Only allow the Actors of type BaseClass
+		if (hit.Actor->IsA(BaseClass->Name))
+			TouchingActors.push_back(hit.Actor);
+	}
+
+	iterator = TouchingActors.begin();
 }
 
 bool TouchingActorsIterator::Next()
 {
-	if (iterator == hitList.end())
+	if (iterator == TouchingActors.end())
 		return false;
 	
-	*Actor = iterator->Actor;
+	*outActor = *iterator;
 	iterator++;
 
-	return *Actor;
+	return *outActor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -105,17 +121,19 @@ bool TouchingActorsIterator::Next()
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
 	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-	UActor* tracedActor = nullptr;
 
 	vec3 startPoint = Start;
 
-	do {
-		tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
+	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
 
+	do {		
 		if (tracedActor)
 		{
-			tracedActors.push_back(tracedActor);
+			// Only allow the Actors of type BaseClass
+			if (tracedActor->IsA(BaseClass->Name))
+				tracedActors.push_back({ tracedActor, *HitLoc, *HitNorm });
 			startPoint = *HitLoc;	// Make hit location the start point for the next trace
+			tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
 		}
 	} while (tracedActor);
 
@@ -127,7 +145,9 @@ bool TraceActorsIterator::Next()
 	if (iterator == tracedActors.end())
 		return false;
 
-	*Actor = *iterator;
+	*Actor = iterator->tracedActor;
+	*HitLoc = iterator->HitLoc;
+	*HitNorm = iterator->HitNorm;
 	iterator++;
 
 	return *Actor;
@@ -135,14 +155,32 @@ bool TraceActorsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-VisibleActorsIterator::VisibleActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
+VisibleActorsIterator::VisibleActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
-	engine->LogUnimplemented("Actor.VisibleActor");
+	for (auto levelActor : engine->Level->Actors)
+	{
+		// Our checks:
+		// * Whether the actor we're dealing with is not hidden and is the class of BaseClass
+		// * Then whether the distance of the actor from our given Location is no more than Radius
+		if (!levelActor->bHidden() && levelActor->IsA(BaseClass->Name) && 
+			length(levelActor->Location() - Location) <= Radius && Caller->FastTrace(levelActor->Location(), Location))
+		{
+			VisibleActors.push_back(levelActor);
+		}
+	}
+
+	iterator = VisibleActors.begin();
 }
 
 bool VisibleActorsIterator::Next()
 {
-	return false;
+	if (iterator == VisibleActors.end())
+		return false;
+
+	*Actor = *iterator;
+	iterator++;
+
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -171,10 +209,30 @@ bool VisibleCollidingActorsIterator::Next()
 
 ZoneActorsIterator::ZoneActorsIterator(UZoneInfo* zone, UObject* BaseClass, UObject** Actor) : Zone(zone), BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("ZoneInfo.ZoneActors");
+	int zoneNum = zone->BspInfo.Node->Zone1;
+
+	if (engine->Level->Model->Zones[zoneNum].ZoneActor != zone)
+		zoneNum = zone->BspInfo.Node->Zone0;
+
+	for (UActor* levelActor : engine->Level->Actors)
+	{
+		if ((levelActor->BspInfo.Node->Zone1 == zoneNum || levelActor->BspInfo.Node->Zone0 == zoneNum) 
+			&& levelActor->IsA(BaseClass->Name))
+		{
+			ZoneActors.push_back(levelActor);
+		}
+	}
+
+	iterator = ZoneActors.begin();
 }
 
 bool ZoneActorsIterator::Next()
 {
-	return false;
+	if (iterator == ZoneActors.end())
+		return false;
+
+	*Actor = *iterator;
+	iterator++;
+
+	return *Actor;
 }
