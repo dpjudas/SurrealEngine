@@ -25,23 +25,13 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	if (args == "extractfuncs")
 	{
 		Engine engine(console->launchinfo);
-
-		std::string path = console->launchinfo.gameExecutableName + "-" + std::to_string(console->launchinfo.engineVersion);
-		if (console->launchinfo.engineSubVersion != 0)
-			path += ('`' + console->launchinfo.engineSubVersion);
-		path += "-Natives.json";
-
+		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Natives.json";
 		File::write_all_text(path, NativeFuncExtractor::Run(engine.packages.get()));
 	}
 	else if (args == "extractprops")
 	{
 		Engine engine(console->launchinfo);
-
-		std::string path = console->launchinfo.gameExecutableName + "-" + std::to_string(console->launchinfo.engineVersion);
-		if (console->launchinfo.engineSubVersion != 0)
-			path += ('`' + console->launchinfo.engineSubVersion);
-		path += "-Properties.json";
-
+		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Properties.json";
 		File::write_all_text(path, NativeObjExtractor::Run(engine.packages.get()));
 	}
 	else if (args == "createcpp")
