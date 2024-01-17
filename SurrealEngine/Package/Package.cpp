@@ -70,7 +70,6 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UAudioSubsystem>(enginePackage, "AudioSubsystem", "Subsystem");
 	RegisterNativeClass<UNetDriver>(enginePackage, "NetDriver", "Subsystem");
 
-	RegisterNativeClass<UFont>(enginePackage, "Font", "Object");
 	RegisterNativeClass<UPalette>(enginePackage, "Palette", "Object");
 	RegisterNativeClass<USound>(enginePackage, "Sound", "Object");
 	RegisterNativeClass<UMusic>(enginePackage, "Music", "Object");
@@ -100,6 +99,11 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UWaveTexture>(enginePackage, "WaveTexture", "WaterTexture");
 	RegisterNativeClass<UWetTexture>(enginePackage, "WetTexture", "WaterTexture");
 	RegisterNativeClass<UScriptedTexture>(enginePackage, "ScriptedTexture", "Texture");
+
+	if (packageManager->GetEngineVersion() <= 220)
+		RegisterNativeClass<UFont>(enginePackage, "Font", "Texture");
+	else
+		RegisterNativeClass<UFont>(enginePackage, "Font", "Object");
 
 	RegisterNativeClass<UClient>(enginePackage, "Client", "Object");
 	RegisterNativeClass<UViewport>(enginePackage, "Viewport", "Player");
