@@ -273,20 +273,22 @@ UClass* PackageManager::FindClass(const NameString& name)
 
 std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 {
-	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameExecutableName;
-	else if (iniName == "user")
+	bool userIni = (iniName == "user");
+	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
+	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
+		iniName = launchInfo.gameExecutableName;
 
 	return std::make_unique<IniFile>(*iniFiles[iniName]);
 }
 
 std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 {
-	if (iniName == "system" || iniName == "System")
-		iniName = launchInfo.gameExecutableName;
-	else if (iniName == "user")
+	bool userIni = (iniName == "user");
+	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
+	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
+		iniName = launchInfo.gameExecutableName;
 
 	auto& ini = iniFiles[iniName];
 	if (!ini)
@@ -368,11 +370,13 @@ void PackageManager::LoadEngineIniFiles()
 		
 	iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
 
-	if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
-		user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
+	if (launchInfo.engineVersion > 209)
+	{
+		if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+			user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
 
-	if (launchInfo.engineVersion > 200)
 		iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
+	}
 }
 
 void PackageManager::LoadIntFiles()
