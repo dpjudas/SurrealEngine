@@ -6,7 +6,7 @@
 void UFont::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
-	if (stream->GetVersion() <= 61)
+	if (stream->GetVersion() <= 63)
 	{
 		pages.resize(1);
 
