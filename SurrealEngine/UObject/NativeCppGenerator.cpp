@@ -11,71 +11,6 @@
 
 std::vector<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
 
-static KnownUE1Games GetKnownGame(const std::string& game, const int version, const int subversion)
-{
-	switch (version)
-	{
-		case 200:
-		{
-			if (game == "TnnHunt")
-				return KnownUE1Games::TNN_200;
-			else
-				return KnownUE1Games::UNREAL_200;
-			break;
-		}
-		case 219:
-		{
-			if (game == "Klingons")
-				return KnownUE1Games::KLINGON_219;
-			else
-				return KnownUE1Games::UNREAL_219;
-			break;
-		}
-		case 226:
-		{
-			if (subversion == 2)
-				return KnownUE1Games::UNREALGOLD_226b;
-			else
-				return KnownUE1Games::UNREAL_226f;
-			break;
-		}
-		case 436:
-		{
-			return KnownUE1Games::UT99_436;
-			break;
-		}
-		case 451:
-		{
-			return KnownUE1Games::UT99_451;
-			break;
-		}
-		case 469:
-		{
-			if (subversion == 1)
-				return KnownUE1Games::UT99_469a;
-			else if (subversion == 2)
-				return KnownUE1Games::UT99_469b;
-			else if (subversion == 3)
-				return KnownUE1Games::UT99_469c;
-			else
-				return KnownUE1Games::UT99_469d;
-			break;
-		}
-		case 1002:
-		{
-			return KnownUE1Games::DEUS_EX_1002f;
-			break;
-		}
-		case 1112:
-		{
-			return KnownUE1Games::DEUS_EX_1112fm;
-			break;
-		}
-	}
-
-	throw std::runtime_error("Unknown game - Game: " + game + ", Version: " + std::to_string(version) + " , Subversion: " + std::to_string(subversion));
-}
-
 void NativeCppGenerator::Run()
 {
 	classes.clear();
@@ -99,18 +34,12 @@ void NativeCppGenerator::Run()
 		game = file.substr(0, dashPos);
 		version = file.substr(dashPos + 1, jsonTypePos - dashPos - 1);
 
-		int subversion = 0;
-		if (isalpha(version.back()))
-			subversion = version.back() - '`';
-
 		JsonValue json = JsonValue::parse(File::read_all_text(file));
 
-		KnownUE1Games knownGame = GetKnownGame(game, std::stoi(version), subversion);
-
 		if (parseNatives)
-			ParseGameNatives(json, knownGame);
+			ParseGameNatives(json, version);
 		else
-			ParseGameProperties(json, knownGame);
+			ParseGameProperties(json, version);
 	}
 
 	Directory::make_directory("Cpp");
@@ -215,7 +144,7 @@ void NativeCppGenerator::Run()
 	File::write_all_text("Cpp/UObject/PropertyOffsets.h", propertyOffsetsHText);
 }
 
-void NativeCppGenerator::ParseGameNatives(const JsonValue& json, KnownUE1Games knownGame)
+void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& version)
 {
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
@@ -223,12 +152,12 @@ void NativeCppGenerator::ParseGameNatives(const JsonValue& json, KnownUE1Games k
 		const JsonValue& package = (*prop).second;
 		for (auto cls : package.properties())
 		{
-			ParseClassNatives(cls.first, (*prop).first, cls.second, knownGame);
+			ParseClassNatives(cls.first, (*prop).first, cls.second, version);
 		}
 	}
 }
 
-void NativeCppGenerator::ParseClassNatives(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame)
+void NativeCppGenerator::ParseClassNatives(const std::string& className, const std::string& packageName, const JsonValue& json, const std::string& version)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
 
@@ -244,11 +173,11 @@ void NativeCppGenerator::ParseClassNatives(const std::string& className, const s
 	{
 		const std::string& funcName = (*prop).first;
 		const JsonValue& funcJson = (*prop).second;
-		cls.ParseClassFunction(funcName, funcJson, knownGame);
+		cls.ParseClassFunction(funcName, funcJson, version);
 	}
 }
 
-void NativeCppGenerator::ParseGameProperties(const JsonValue& json, KnownUE1Games knownGame)
+void NativeCppGenerator::ParseGameProperties(const JsonValue& json, const std::string& version)
 {
 	const std::map<std::string, JsonValue>& props = json.properties();
 	for (auto prop = props.begin(); prop != props.end(); prop++)
@@ -256,12 +185,12 @@ void NativeCppGenerator::ParseGameProperties(const JsonValue& json, KnownUE1Game
 		const JsonValue& package = (*prop).second;
 		for (auto cls : package.properties())
 		{
-			ParseClassProperties(cls.first, (*prop).first, cls.second, knownGame);
+			ParseClassProperties(cls.first, (*prop).first, cls.second, version);
 		}
 	}
 }
 
-void NativeCppGenerator::ParseClassProperties(const std::string& className, const std::string& packageName, const JsonValue& json, KnownUE1Games knownGame)
+void NativeCppGenerator::ParseClassProperties(const std::string& className, const std::string& packageName, const JsonValue& json, const std::string& version)
 {
 	NativeClass& cls = AddUniqueNativeClass(className);
 
@@ -277,7 +206,7 @@ void NativeCppGenerator::ParseClassProperties(const std::string& className, cons
 	{
 		NativeProperty& nativeProp = cls.AddUniqueNativeProperty((*prop).first);
 		nativeProp.type = (*prop).second.to_string();
-		nativeProp.games.push_back(knownGame);
+		nativeProp.games.push_back(version);
 	}
 }
 
@@ -296,7 +225,7 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 	return classes.back();
 }
 
-void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, KnownUE1Games knownGame)
+void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& version)
 {
 	std::string funcArgs = "UObject* Self";
 	const std::vector<JsonValue>& args = json["Arguments"].items();
@@ -310,7 +239,7 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 	}
 
 	NativeFunction& func = AddUniqueNativeFunction(funcName);
-	func.versionIndex.push_back(std::make_pair(knownGame, json["NativeFuncIndex"].to_int()));
+	func.versionIndex.push_back(std::make_pair(version, json["NativeFuncIndex"].to_int()));
 
 	if (func.decls.size() > 0)
 	{
@@ -330,7 +259,7 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 
 			if (funcArgsLower == declArgsLower)
 			{
-				decl.games.push_back(knownGame);
+				decl.games.push_back(version);
 				return;
 			}
 		}
@@ -339,7 +268,7 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 	// Add a new declaration
 	NativeFunctionDecl decl;
 	decl.args = funcArgs;
-	decl.games.push_back(knownGame);
+	decl.games.push_back(version);
 	decl.argCount = args.size();
 	func.decls.push_back(std::move(decl));
 }

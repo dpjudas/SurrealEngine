@@ -77,7 +77,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		stream->ReadToken();
 		return expr;
 	}
-	else if (token == ExprToken::LetBool && stream->GetVersion() <= 61)
+	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{
 		FunctionArgumentsExpression* expr = Create<FunctionArgumentsExpression>(exproffset);
 		while (true)

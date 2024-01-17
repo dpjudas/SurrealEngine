@@ -236,7 +236,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		PushIndex(name);
 		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == ExprToken::LetBool && stream->GetVersion() <= 61)
+	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{
 		while (true)
 		{
