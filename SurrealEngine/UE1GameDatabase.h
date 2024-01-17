@@ -4,7 +4,15 @@ enum class KnownUE1Games
 {
 	UE1_GAME_NOT_FOUND,
 	UNREAL_200,
+	UNREAL_209,
+	UNREAL_216,
+	UNREAL_217,
+	UNREAL_218,
 	UNREAL_219,
+	UNREAL_220,
+	UNREAL_221,
+	UNREAL_224v,
+	UNREAL_225f,
 	UNREAL_226f,
 	UNREALGOLD_226b,
 	UNREALGOLD_227i,
@@ -25,6 +33,18 @@ enum class KnownUE1Games
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
+	// Unreal, 200
+	{"a1f81460fa9fb10931284eaa0d8ab19b3d519d7c", KnownUE1Games::UNREAL_200},
+	// Unreal, 209
+	{"3ee90cb15846ee930a665fe9f60e717ee731bde2", KnownUE1Games::UNREAL_209},
+	// Unreal, 220
+	{"f193c97acbbc86451a807a10b53a3c410e7ad018", KnownUE1Games::UNREAL_220},
+	// Unreal, 224v
+	{"b5fbc9e80b0c91148616ea3909773b57269e5486", KnownUE1Games::UNREAL_224v},
+	// Unreal, 225f
+	{"21cd58e9e544be8459bffcfd906170ee6187c87a", KnownUE1Games::UNREAL_225f},
+	// Unreal, 226f
+	{"4c528e17542527b48841ce61682487f44d7b107a", KnownUE1Games::UNREAL_226f},
 	// Unreal Gold, 226
 	{"a4e8149a3e3a9aeba3921eb5004973c4cb1a5c35", KnownUE1Games::UNREALGOLD_226b},
 	// Unreal Gold, 226 - Steam Version

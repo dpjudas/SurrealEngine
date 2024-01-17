@@ -74,6 +74,46 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 
 		switch (ue1_game.first)
 		{
+			case KnownUE1Games::UNREAL_200:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 200;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "200";
+			}
+			break;
+			case KnownUE1Games::UNREAL_220:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 220;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "220";
+			}
+			break;
+			case KnownUE1Games::UNREAL_224v:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 224;
+				info.engineSubVersion = 22;
+				info.gameVersionString = "224v";
+			}
+			break;
+			case KnownUE1Games::UNREAL_225f:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 225;
+				info.engineSubVersion = 6;
+				info.gameVersionString = "225f";
+			}
+			break;
+			case KnownUE1Games::UNREAL_226f:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 226;
+				info.engineSubVersion = 6;
+				info.gameVersionString = "226f";
+			}
+			break;
 			case KnownUE1Games::UNREALGOLD_226b:
 			{
 				info.gameName = "Unreal";
@@ -118,7 +158,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Unreal Tournament";
 				info.engineVersion = 469;
-				info.engineSubVersion = 0;
+				info.engineSubVersion = 1;
 				info.gameVersionString = "469a";
 			}
 			break;
@@ -126,7 +166,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Unreal Tournament";
 				info.engineVersion = 469;
-				info.engineSubVersion = 1;
+				info.engineSubVersion = 2;
 				info.gameVersionString = "469b";
 			}
 			break;
@@ -134,7 +174,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Unreal Tournament";
 				info.engineVersion = 469;
-				info.engineSubVersion = 2;
+				info.engineSubVersion = 3;
 				info.gameVersionString = "469c";
 			}
 			break;
@@ -142,7 +182,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Unreal Tournament";
 				info.engineVersion = 469;
-				info.engineSubVersion = 3;
+				info.engineSubVersion = 4;
 				info.gameVersionString = "469d";
 			}
 			break;
