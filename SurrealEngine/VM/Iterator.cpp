@@ -30,21 +30,33 @@ bool AllObjectsIterator::Next()
 
 BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	engine->LogUnimplemented("Actor.BasedActors");
+	for (UActor* levelActor : engine->Level->Actors)
+	{
+		if (levelActor->IsA(BaseClass->Name) && levelActor->IsBasedOn(Caller))
+			BasedActors.push_back(levelActor);
+	}
+
+	iterator = BasedActors.begin();
 }
 
 bool BasedActorsIterator::Next()
 {
-	return false;
+	if (iterator == BasedActors.end())
+		return false;
+
+	*Actor = *iterator;
+	iterator++;
+
+	return *Actor;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 ChildActorsIterator::ChildActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	for (UActor* levelActor : engine->Level->Actors)
+	for (UActor* levelActor : Caller->ChildActors)
 	{
-		if (levelActor->Owner() == Caller && levelActor->IsA(BaseClass->Name))
+		if (levelActor->IsA(BaseClass->Name))
 			ChildActors.push_back(levelActor);
 	}
 

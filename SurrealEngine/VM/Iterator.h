@@ -37,6 +37,9 @@ public:
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> BasedActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
 // An Iterator for iterating through all child actors of a given actor (e.g. due to being spawned by them)
