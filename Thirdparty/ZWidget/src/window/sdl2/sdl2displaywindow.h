@@ -27,7 +27,7 @@ public:
 	void CaptureMouse() override;
 	void ReleaseMouseCapture() override;
 	void Update() override;
-	bool GetKeyState(EInputKey key) override;
+	bool GetKeyState(InputKey key) override;
 	void SetCursor(StandardCursor cursor) override;
 
 	Rect GetWindowFrame() const override;
@@ -58,10 +58,10 @@ public:
 	void OnMouseMotion(const SDL_MouseMotionEvent& event);
 	void OnPaintEvent();
 
-	EInputKey GetMouseButtonKey(const SDL_MouseButtonEvent& event);
+	InputKey GetMouseButtonKey(const SDL_MouseButtonEvent& event);
 
-	static EInputKey ScancodeToInputKey(SDL_Scancode keycode);
-	static SDL_Scancode InputKeyToScancode(EInputKey inputkey);
+	static InputKey ScancodeToInputKey(SDL_Scancode keycode);
+	static SDL_Scancode InputKeyToScancode(InputKey inputkey);
 
 	template<typename T>
 	Point GetMousePos(const T& event)
