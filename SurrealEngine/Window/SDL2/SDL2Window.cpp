@@ -374,7 +374,11 @@ Size SDL2Window::GetClientSize() const
 int SDL2Window::GetPixelWidth() const
 {
     int width;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, &width, nullptr);
+    #if SDL_VERSION_ATLEAST(2, 26, 0)
+        SDL_GetWindowSizeInPixels(m_SDLWindow, &width, nullptr);
+    #else
+        SDL_GetWindowSize(m_SDLWindow, &width, nullptr);
+    #endif
 
     return width;
 }
@@ -382,7 +386,11 @@ int SDL2Window::GetPixelWidth() const
 int SDL2Window::GetPixelHeight() const
 {
     int height;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, nullptr, &height);
+    #if SDL_VERSION_ATLEAST(2, 26, 0)
+        SDL_GetWindowSizeInPixels(m_SDLWindow, nullptr, &height);
+    #else
+        SDL_GetWindowSize(m_SDLWindow, nullptr, &height);
+    #endif
 
     return height;
 }
