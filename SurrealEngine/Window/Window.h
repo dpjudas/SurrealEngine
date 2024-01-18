@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Math/vec.h"
-#include <ZWidget/core/rect.h>
+#include <zwidget/core/rect.h>
 
 class Engine;
 class RenderDevice;
