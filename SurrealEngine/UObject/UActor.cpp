@@ -238,12 +238,41 @@ void UActor::UpdateActorZone()
 void UActor::SetOwner(UActor* newOwner)
 {
 	if (Owner())
+	{
 		CallEvent(Owner(), EventName::LostChild, { ExpressionValue::ObjectValue(this) });
-
+		Owner()->RemoveChildActor(this);
+	}
+		
 	Owner() = newOwner;
 
 	if (Owner())
+	{
 		CallEvent(Owner(), EventName::GainedChild, { ExpressionValue::ObjectValue(this) });
+		Owner()->AddChildActor(this);
+	}
+}
+
+void UActor::AddChildActor(UActor* actor)
+{
+	ChildActors.push_back(actor);
+}
+
+void UActor::RemoveChildActor(UActor* actor)
+{
+	if (!actor)
+		return;
+
+	auto it = ChildActors.begin();
+
+	while (it != ChildActors.end())
+	{
+		if (*it == actor)
+		{
+			ChildActors.erase(it);
+			return;
+		}
+		it++;
+	}
 }
 
 void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
