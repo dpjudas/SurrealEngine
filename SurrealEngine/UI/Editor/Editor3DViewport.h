@@ -13,12 +13,12 @@ public:
 protected:
 	void OnPaint(Canvas* canvas) override;
 	void OnMouseMove(const Point& pos) override;
-	void OnMouseDown(const Point& pos, int key) override;
-	void OnMouseDoubleclick(const Point& pos, int key) override;
-	void OnMouseUp(const Point& pos, int key) override;
+	bool OnMouseDown(const Point& pos, InputKey key) override;
+	bool OnMouseDoubleclick(const Point& pos, InputKey key) override;
+	bool OnMouseUp(const Point& pos, InputKey key) override;
 	void OnRawMouseMove(int dx, int dy) override;
-	void OnKeyDown(EInputKey key) override;
-	void OnKeyUp(EInputKey key) override;
+	void OnKeyDown(InputKey key) override;
+	void OnKeyUp(InputKey key) override;
 
 private:
 	void MoveCamera(float x, float y, float z);

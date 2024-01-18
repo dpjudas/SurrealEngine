@@ -6,7 +6,7 @@
 
 #include "UObject/UTexture.h"
 
-class DisplayWindow;
+class GameWindow;
 class UTexture;
 class UActor;
 class VulkanSurface;
@@ -17,7 +17,7 @@ struct FSceneNode
 	int X, Y; // viewport size
 	float FX, FY;
 	float FX2, FY2;
-	DisplayWindow* Viewport = nullptr;
+	GameWindow* Viewport = nullptr;
 	float FovAngle;
 
 	mat4 ObjectToWorld;
@@ -88,7 +88,7 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(DisplayWindow* viewport, std::shared_ptr<VulkanSurface> surface);
+	static std::unique_ptr<RenderDevice> Create(GameWindow* viewport, std::shared_ptr<VulkanSurface> surface);
 
 	virtual ~RenderDevice() = default;
 
@@ -112,7 +112,7 @@ public:
 
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 
-	DisplayWindow* Viewport = nullptr;
+	GameWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 	float Brightness = 0.5f;
 };

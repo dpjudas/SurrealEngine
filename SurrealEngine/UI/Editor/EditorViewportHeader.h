@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UI/Core/Widget.h"
+#include <zwidget/core/widget.h>
 
 class EditorViewportHeader : public Widget
 {

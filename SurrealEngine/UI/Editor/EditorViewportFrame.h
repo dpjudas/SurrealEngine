@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "UI/Core/Widget.h"
+#include <zwidget/core/widget.h>
 #include "Math/rotator.h"
 
 class EditorViewport;

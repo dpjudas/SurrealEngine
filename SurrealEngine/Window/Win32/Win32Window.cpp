@@ -28,7 +28,7 @@
 #define RIDEV_INPUTSINK	(0x100)
 #endif
 
-Win32Window::Win32Window(DisplayWindowHost* windowHost) : WindowHost(windowHost)
+Win32Window::Win32Window(GameWindowHost* windowHost) : WindowHost(windowHost)
 {
 	Windows.push_front(this);
 	WindowsIterator = Windows.begin();

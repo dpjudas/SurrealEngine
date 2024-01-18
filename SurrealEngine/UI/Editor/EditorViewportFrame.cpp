@@ -4,7 +4,7 @@
 #include "EditorViewportHeader.h"
 #include "Editor2DViewport.h"
 #include "Editor3DViewport.h"
-#include "UI/Core/Colorf.h"
+#include <zwidget/core/colorf.h>
 
 EditorViewportFrame::EditorViewportFrame(Widget* parent) : Widget(parent)
 {

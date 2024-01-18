@@ -12,7 +12,7 @@ static uint32_t HashIniString(const std::string& str)
 	std::transform(str.begin(), str.end(), strLower.begin(), [](unsigned char c) { return tolower(c); });
 
 	uint32_t hash = 0;
-	MurmurHash3_x86_32(strLower.c_str(), strLower.length(), 0, &hash);
+	MurmurHash3_x86_32(strLower.c_str(), (int)strLower.length(), 0, &hash);
 
 	return hash;
 }

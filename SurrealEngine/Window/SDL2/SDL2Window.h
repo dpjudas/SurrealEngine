@@ -7,11 +7,11 @@
 
 #include "Window/Window.h"
 
-class SDL2Window : public DisplayWindow
+class SDL2Window : public GameWindow
 {
 	SDL_Window* m_SDLWindow;
 public:
-	SDL2Window(DisplayWindowHost *windowHost);
+	SDL2Window(GameWindowHost *windowHost);
 	~SDL2Window();
 
 	static void ProcessEvents();
@@ -55,7 +55,7 @@ public:
 	EInputKey SDLScancodeToInputKey(SDL_Scancode keycode);
 	SDL_Scancode InputKeyToSDLScancode(EInputKey inputkey);
 
-	DisplayWindowHost* windowHost = nullptr;
+	GameWindowHost* windowHost = nullptr;
 	std::unique_ptr<RenderDevice> rendDevice;
 
 	static std::map<int, SDL2Window*> windows;

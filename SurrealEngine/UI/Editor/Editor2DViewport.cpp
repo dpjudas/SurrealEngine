@@ -3,7 +3,7 @@
 #include "Editor2DViewport.h"
 #include "Engine.h"
 #include "UObject/ULevel.h"
-#include "UI/Core/Colorf.h"
+#include <ZWidget/core/colorf.h>
 
 Editor2DViewport::Editor2DViewport(const Coords& coords, Widget* parent) : EditorViewport(parent), ViewCoords(coords)
 {
@@ -20,7 +20,7 @@ void Editor2DViewport::OnPaint(Canvas* canvas)
 	DrawGrid(canvas);
 	if (engine && engine->Level)
 	{
-		DrawLevel(canvas);
+		//DrawLevel(canvas);
 	}
 }
 
@@ -99,50 +99,53 @@ void Editor2DViewport::OnMouseMove(const Point& pos)
 {
 }
 
-void Editor2DViewport::OnMouseDown(const Point& pos, int key)
+bool Editor2DViewport::OnMouseDown(const Point& pos, InputKey key)
 {
 	SetFocus();
-	if (key == IK_RightMouse)
+	if (key == InputKey::RightMouse)
 	{
 		LockCursor();
 		MouseIsMoving = true;
 	}
+	return true;
 }
 
-void Editor2DViewport::OnMouseDoubleclick(const Point& pos, int key)
+bool Editor2DViewport::OnMouseDoubleclick(const Point& pos, InputKey key)
 {
+	return true;
 }
 
-void Editor2DViewport::OnMouseUp(const Point& pos, int key)
+bool Editor2DViewport::OnMouseUp(const Point& pos, InputKey key)
 {
-	if (key == IK_RightMouse && MouseIsMoving)
+	if (key == InputKey::RightMouse && MouseIsMoving)
 	{
 		UnlockCursor();
 		MouseIsMoving = false;
 	}
+	return true;
 }
 
-void Editor2DViewport::OnKeyDown(EInputKey key)
+void Editor2DViewport::OnKeyDown(InputKey key)
 {
-	if (key == IK_A)
+	if (key == InputKey::A)
 	{
 		MoveCamera(-100.0f, 0.0f);
 	}
-	else if (key == IK_D)
+	else if (key == InputKey::D)
 	{
 		MoveCamera(100.0f, 0.0f);
 	}
-	else if (key == IK_W)
+	else if (key == InputKey::W)
 	{
 		MoveCamera(0.0f, -100.0f);
 	}
-	else if (key == IK_S)
+	else if (key == InputKey::S)
 	{
 		MoveCamera(0.0f, 100.0f);
 	}
 }
 
-void Editor2DViewport::OnKeyUp(EInputKey key)
+void Editor2DViewport::OnKeyUp(InputKey key)
 {
 }
 

@@ -3,7 +3,7 @@
 #include "Editor3DViewport.h"
 #include "Engine.h"
 #include "Render/RenderSubsystem.h"
-#include "UI/Core/Colorf.h"
+#include <zwidget/core/colorf.h>
 
 Editor3DViewport::Editor3DViewport(Widget* parent) : EditorViewport(parent)
 {
@@ -24,8 +24,8 @@ void Editor3DViewport::OnPaint(Canvas* canvas)
 
 	canvas->begin3d();
 
-	if (!engine->render)
-		engine->render = std::make_unique<RenderSubsystem>(Window()->GetRenderDevice());
+	//if (!engine->render)
+	//	engine->render = std::make_unique<RenderSubsystem>(Window()->GetRenderDevice());
 
 	engine->CameraLocation = Location;
 	engine->CameraRotation = Rotation;
@@ -33,7 +33,7 @@ void Editor3DViewport::OnPaint(Canvas* canvas)
 	engine->ViewportY = (int)std::round(topLeft.y);
 	engine->ViewportWidth = (int)std::round(GetWidth());
 	engine->ViewportHeight = (int)std::round(GetHeight());
-	engine->render->DrawEditorViewport();
+	//engine->render->DrawEditorViewport();
 
 	canvas->end3d();
 }
@@ -42,60 +42,63 @@ void Editor3DViewport::OnMouseMove(const Point& pos)
 {
 }
 
-void Editor3DViewport::OnMouseDown(const Point& pos, int key)
+bool Editor3DViewport::OnMouseDown(const Point& pos, InputKey key)
 {
 	SetFocus();
-	if (key == IK_RightMouse)
+	if (key == InputKey::RightMouse)
 	{
 		LockCursor();
 		MouseIsPanning = true;
 	}
-	else if (key == IK_MiddleMouse)
+	else if (key == InputKey::MiddleMouse)
 	{
 		LockCursor();
 		MouseIsMoving = true;
 	}
+	return true;
 }
 
-void Editor3DViewport::OnMouseDoubleclick(const Point& pos, int key)
+bool Editor3DViewport::OnMouseDoubleclick(const Point& pos, InputKey key)
 {
+	return true;
 }
 
-void Editor3DViewport::OnMouseUp(const Point& pos, int key)
+bool Editor3DViewport::OnMouseUp(const Point& pos, InputKey key)
 {
-	if (key == IK_RightMouse && MouseIsPanning)
+	if (key == InputKey::RightMouse && MouseIsPanning)
 	{
 		UnlockCursor();
 		MouseIsPanning = false;
 	}
-	else if (key == IK_MiddleMouse && MouseIsMoving)
+	else if (key == InputKey::MiddleMouse && MouseIsMoving)
 	{
 		UnlockCursor();
 		MouseIsMoving = false;
 	}
+	return true;
 }
 
-void Editor3DViewport::OnKeyDown(EInputKey key)
+void Editor3DViewport::OnKeyDown(InputKey key)
 {
-	if (key == IK_W)
+	if (key == InputKey::W)
 	{
 		MoveCamera(0.0f, 0.0f, 100.0f);
 	}
-	else if (key == IK_S)
+	else if (key == InputKey::S)
 	{
 		MoveCamera(0.0f, 0.0f, -100.0f);
 	}
-	else if (key == IK_A)
+	else if (key == InputKey::A)
 	{
 		MoveCamera(0.0f, -100.0f, 0.0f);
 	}
-	else if (key == IK_D)
+	else if (key == InputKey::D)
 	{
 		MoveCamera(0.0f, 100.0f, 0.0f);
 	}
 }
 
-void Editor3DViewport::OnKeyUp(EInputKey key)
+void Editor3DViewport::OnKeyUp(InputKey key)
 {
 }
 

@@ -842,7 +842,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = DisplayWindow::Create(this);
+		window = GameWindow::Create(this);
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
@@ -877,7 +877,7 @@ void Engine::TickWindow()
 	InputEvent(IK_MouseX, IST_Axis, 0);
 	InputEvent(IK_MouseY, IST_Axis, 0);
 
-	DisplayWindow::ProcessEvents();
+	GameWindow::ProcessEvents();
 
 	if (MouseMoveX != 0 || MouseMoveY != 0)
 	{

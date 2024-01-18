@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "UI/Widgets/MainWindow/MainWindow.h"
+#include <zwidget/widgets/mainwindow/mainwindow.h>
 
 class EditorWorkspace;
 

@@ -11,7 +11,7 @@
 std::map<int, SDL2Window*> SDL2Window::windows;
 bool SDL2Window::exitRunLoop = false;
 
-SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
+SDL2Window::SDL2Window(GameWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
         SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError()));

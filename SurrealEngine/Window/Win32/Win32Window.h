@@ -4,10 +4,10 @@
 #include "Window/Window.h"
 #include <zvulkan/vulkandevice.h>
 
-class Win32Window : public DisplayWindow
+class Win32Window : public GameWindow
 {
 public:
-	Win32Window(DisplayWindowHost* windowHost);
+	Win32Window(GameWindowHost* windowHost);
 	~Win32Window();
 
 	void SetWindowTitle(const std::string& text) override;
@@ -48,7 +48,7 @@ public:
 	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
 	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
 
-	DisplayWindowHost* WindowHost = nullptr;
+	GameWindowHost* WindowHost = nullptr;
 
 	HWND WindowHandle = 0;
 

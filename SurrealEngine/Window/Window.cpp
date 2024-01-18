@@ -15,73 +15,73 @@
 
 #ifdef WIN32
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
 	return std::make_unique<Win32Window>(windowHost);
 }
 
-void DisplayWindow::ProcessEvents()
+void GameWindow::ProcessEvents()
 {
 	Win32Window::ProcessEvents();
 }
 
-void DisplayWindow::RunLoop()
+void GameWindow::RunLoop()
 {
 	Win32Window::RunLoop();
 }
 
-void DisplayWindow::ExitLoop()
+void GameWindow::ExitLoop()
 {
 	Win32Window::ExitLoop();
 }
 
 #elif defined(USE_SDL)
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
 	return std::make_unique<SDL2Window>(windowHost);
 }
 
-void DisplayWindow::ProcessEvents()
+void GameWindow::ProcessEvents()
 {
 	SDL2Window::ProcessEvents();
 }
 
-void DisplayWindow::RunLoop()
+void GameWindow::RunLoop()
 {
 	SDL2Window::RunLoop();
 }
 
-void DisplayWindow::ExitLoop()
+void GameWindow::ExitLoop()
 {
 	SDL2Window::ExitLoop();
 }
 
 #else
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost)
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
 	return std::make_unique<X11Window>(windowHost);
 }
 
-void DisplayWindow::ProcessEvents()
+void GameWindow::ProcessEvents()
 {
 	X11Window::ProcessEvents();
 }
 
-void DisplayWindow::RunLoop()
+void GameWindow::RunLoop()
 {
 	X11Window::RunLoop();
 }
 
-void DisplayWindow::ExitLoop()
+void GameWindow::ExitLoop()
 {
 	X11Window::ExitLoop();
 }
 
 #endif
 
-std::string DisplayWindow::GetAvailableResolutions() const
+std::string GameWindow::GetAvailableResolutions() const
 {
 	std::string result = "";
 
@@ -101,7 +101,7 @@ std::string DisplayWindow::GetAvailableResolutions() const
 	return result;
 }
 
-void DisplayWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const
+void GameWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const
 {
 	// Skip over the current resolution if it is already inserted
 	// (in case of multiple refresh rates being available for the display)
@@ -115,7 +115,7 @@ void DisplayWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size res
 	resList.push_back(resolution);
 }
 
-Size DisplayWindow::ParseResolutionString(std::string& resolutionString) const
+Size GameWindow::ParseResolutionString(std::string& resolutionString) const
 {
 	if (resolutionString.empty())
 		return Size(0, 0);
@@ -141,7 +141,7 @@ Size DisplayWindow::ParseResolutionString(std::string& resolutionString) const
 	return Size(width, height);
 }
 
-Size DisplayWindow::GetClosestResolution(Size resolution) const
+Size GameWindow::GetClosestResolution(Size resolution) const
 {
 	auto resolutions = QueryAvailableResolutions();
 
@@ -173,7 +173,7 @@ Size DisplayWindow::GetClosestResolution(Size resolution) const
 	return resolutions[index];
 }
 
-void DisplayWindow::SetResolution(std::string& resolutionString)
+void GameWindow::SetResolution(std::string& resolutionString)
 {
 	Size parsedResolution = ParseResolutionString(resolutionString);
 	if (parsedResolution == Size(0, 0))

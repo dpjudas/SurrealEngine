@@ -15,7 +15,7 @@ class PackageManager;
 class UObject;
 class ULevel;
 class UModel;
-class DisplayWindow;
+class GameWindow;
 class UTexture;
 class UActor;
 class UFont;
@@ -58,7 +58,7 @@ struct LogMessageLine
 	std::string Text;
 };
 
-class Engine : public DisplayWindowHost
+class Engine : public GameWindowHost
 {
 public:
 	Engine(GameLaunchInfo launchinfo);
@@ -143,7 +143,7 @@ public:
 
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
-	std::unique_ptr<DisplayWindow> window; // TODO: Move into UViewport
+	std::unique_ptr<GameWindow> window; // TODO: Move into UViewport
 	std::unique_ptr<RenderSubsystem> render;
 	std::unique_ptr<AudioSubsystem> audio;
 
