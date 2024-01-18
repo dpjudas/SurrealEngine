@@ -267,6 +267,12 @@ public:
 	float SleepTimeLeft = 0.0f;
 	vec3 gravityVector;
 
+	// Child actor tracking
+	std::vector<UActor*> ChildActors;
+
+	void AddChildActor(UActor* actor);
+	void RemoveChildActor(UActor* actor);
+
 	void SetTweenFromAnimFrame();
 
 	UTexture* GetMultiskin(int index)
