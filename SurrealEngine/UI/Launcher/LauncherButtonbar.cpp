@@ -1,6 +1,6 @@
 
-#include "launcherbuttonbar.h"
-#include "launcherwindow.h"
+#include "LauncherButtonbar.h"
+#include "LauncherWindow.h"
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 
 LauncherButtonbar::LauncherButtonbar(LauncherWindow* parent) : Widget(parent)
