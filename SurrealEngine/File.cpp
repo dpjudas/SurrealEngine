@@ -5,9 +5,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #else
-#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
-#endif
 #include <fnmatch.h>
 #include <unistd.h>
 #include <sys/types.h>
