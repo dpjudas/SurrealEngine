@@ -6,10 +6,13 @@
 #include "Engine.h"
 #include "UObject/NativeObjExtractor.h"
 #include "VM/NativeFuncExtractor.h"
+#include "UI/WidgetResourceData.h"
 #include "File.h"
 
 int GameApp::main(std::vector<std::string> args)
 {
+	InitWidgetResources();
+
 	CommandLine cmd(args);
 	commandline = &cmd;
 
@@ -20,5 +23,6 @@ int GameApp::main(std::vector<std::string> args)
 		engine.Run();
 	}
 
+	DeinitWidgetResources();
 	return 0;
 }

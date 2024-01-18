@@ -5,9 +5,12 @@
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/Editor/EditorMainWindow.h"
+#include "UI/WidgetResourceData.h"
 
 int EditorApp::main(std::vector<std::string> args)
 {
+	InitWidgetResources();
+
 	CommandLine cmd(args);
 	commandline = &cmd;
 	GameLaunchInfo launchinfo = GameFolderSelection::GetLaunchInfo();
@@ -20,5 +23,6 @@ int EditorApp::main(std::vector<std::string> args)
 
 	DisplayWindow::RunLoop();
 
+	DeinitWidgetResources();
 	return 0;
 }

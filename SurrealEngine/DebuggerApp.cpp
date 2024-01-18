@@ -15,6 +15,7 @@
 #include "Commandlet/VM/LocalsCommandlet.h"
 #include "Commandlet/VM/PrintCommandlet.h"
 #include "Commandlet/VM/StepCommandlet.h"
+#include "UI/WidgetResourceData.h"
 #include "VM/Frame.h"
 #include "UTF16.h"
 #include <iostream>
@@ -26,6 +27,8 @@
 
 int DebuggerApp::Main(std::vector<std::string> args)
 {
+	InitWidgetResources();
+
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
 	WriteOutput("Type " + ColorEscape(92) + "help" + ResetEscape() + " for a list of commands" + NewLine());
@@ -51,6 +54,7 @@ int DebuggerApp::Main(std::vector<std::string> args)
 	}
 	EndPrompt();
 
+	DeinitWidgetResources();
 	return 0;
 }
 
