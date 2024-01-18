@@ -18,39 +18,44 @@ void DeinitWidgetResources()
 	mz_zip_reader_end(&widgetResources);
 }
 
-static std::vector<uint8_t> TryLoadWidgetFile(const std::string& name)
+static bool TryLoadWidgetFile(const std::string& name, std::vector<uint8_t>& buffer)
 {
 	mz_bool result;
 	mz_zip_archive_file_stat stat;
 	mz_uint32 fileIndex;
+
+	buffer.clear();
 	
 	result = mz_zip_reader_locate_file_v2(&widgetResources, name.c_str(), nullptr, 0, &fileIndex);
 	if (!result)
-		return {};
+		return false;
 
 	result = mz_zip_reader_file_stat(&widgetResources, fileIndex, &stat);
 	if (!result)
-		return {};
+		return false;
 
-	std::vector<uint8_t> buffer(stat.m_uncomp_size);
+	buffer.resize(stat.m_uncomp_size);
 	result = mz_zip_reader_extract_file_to_mem(&widgetResources, name.c_str(), buffer.data(), buffer.size(), 0);
 	if (!result)
-		return {};
+		return false;
 
-	return buffer;
+	return true;
 }
 
 std::vector<SingleFontData> LoadWidgetFontData(const std::string& name)
 {
 	std::vector<SingleFontData> fonts;
 	fonts.resize(3);
-	fonts[0].fontdata = TryLoadWidgetFile("noto/notosans-regular.ttf");
-	fonts[1].fontdata = TryLoadWidgetFile("noto/notosansarmenian-regular.ttf");
-	fonts[2].fontdata = TryLoadWidgetFile("noto/notosansgeorgian-regular.ttf");
+	TryLoadWidgetFile("noto/notosans-regular.ttf", fonts[0].fontdata);
+	TryLoadWidgetFile("noto/notosansarmenian-regular.ttf", fonts[1].fontdata);
+	TryLoadWidgetFile("noto/notosansgeorgian-regular.ttf", fonts[2].fontdata);
 	return fonts;
 }
 
 std::vector<uint8_t> LoadWidgetData(const std::string& name)
 {
-	return TryLoadWidgetFile(name);
+	std::vector<uint8_t> buffer;
+	if (!TryLoadWidgetFile(name, buffer))
+		throw std::runtime_error("Could not load " + name);
+	return buffer;
 }

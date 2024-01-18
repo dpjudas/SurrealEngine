@@ -288,6 +288,16 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Editor/Editor2DViewport.h
 	SurrealEngine/UI/Editor/Editor3DViewport.cpp
 	SurrealEngine/UI/Editor/Editor3DViewport.h
+	SurrealEngine/UI/Launcher/LauncherBanner.cpp
+	SurrealEngine/UI/Launcher/LauncherBanner.h
+	SurrealEngine/UI/Launcher/LauncherButtonbar.cpp
+	SurrealEngine/UI/Launcher/LauncherButtonbar.h
+	SurrealEngine/UI/Launcher/LauncherWindow.cpp
+	SurrealEngine/UI/Launcher/LauncherWindow.h
+	SurrealEngine/UI/Launcher/PlayGamePage.cpp
+	SurrealEngine/UI/Launcher/PlayGamePage.h
+	SurrealEngine/UI/Launcher/SettingsPage.cpp
+	SurrealEngine/UI/Launcher/SettingsPage.h
 	SurrealEngine/Window/Window.cpp
 	SurrealEngine/Window/Window.h
 )

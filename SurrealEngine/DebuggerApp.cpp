@@ -38,21 +38,24 @@ int DebuggerApp::Main(std::vector<std::string> args)
 
 	CommandLine cmd(args);
 	commandline = &cmd;
+
 	launchinfo = GameFolderSelection::GetLaunchInfo();
-
-	Frame::RunDebugger = [=]() { FrameDebugBreak(); };
-
-	Engine engine(launchinfo);
-	engine.tickDebugger = [&]() { Tick(); };
-	engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
-
-	WritePrompt();
-	while (!ExitRequested)
+	if (!launchinfo.gameRootFolder.empty())
 	{
-		WaitForInput();
-		Tick();
+		Frame::RunDebugger = [=]() { FrameDebugBreak(); };
+
+		Engine engine(launchinfo);
+		engine.tickDebugger = [&]() { Tick(); };
+		engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
+
+		WritePrompt();
+		while (!ExitRequested)
+		{
+			WaitForInput();
+			Tick();
+		}
+		EndPrompt();
 	}
-	EndPrompt();
 
 	DeinitWidgetResources();
 	return 0;
