@@ -2129,7 +2129,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
-		if (bViewTarget())
+		if (engine->LaunchInfo.engineVersion >= 436 && bViewTarget())
 			CallEvent(this, EventName::UpdateEyeHeight, { ExpressionValue::FloatValue(elapsed) });
 		else
 			ViewRotation() = Rotation();
@@ -2155,7 +2155,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 			if (SpeechTime() == 0.0f)
 				CallEvent(this, EventName::SpeechTimer);
 		}
-		if (bAdvancedTactics())
+		if (engine->LaunchInfo.engineVersion >= 436 && bAdvancedTactics())
 			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
 	}
 }

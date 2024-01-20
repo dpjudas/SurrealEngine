@@ -106,8 +106,11 @@ void Engine::Run()
 		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
 		// To do: set these to true if the frame rate is too low
-		LevelInfo->bDropDetail() = false;
-		LevelInfo->bAggressiveLOD() = false;
+		if (LaunchInfo.engineVersion >= 436)
+		{
+			LevelInfo->bDropDetail() = false;
+			LevelInfo->bAggressiveLOD() = false;
+		}
 
 		if (EntryLevel)
 			EntryLevel->Tick(entryLevelElapsed);
