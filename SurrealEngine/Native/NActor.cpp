@@ -202,7 +202,12 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 	// Filter list to only those with the matching map type
 	for (const std::string& name : engine->packages->GetMaps())
 	{
-		if (name.size() >= NameEnding.size() && name.substr(0, NameEnding.size()) == NameEnding)
+		// Case insensitive prefix comparison because Unreal Deathmatch maps start with "Dm" instead of "DM"
+#ifdef WIN32
+		if (name.size() >= NameEnding.size() && _stricmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
+#else
+		if (name.size() >= NameEnding.size() && strcasecmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
+#endif
 			maps.push_back(name);
 	}
 
