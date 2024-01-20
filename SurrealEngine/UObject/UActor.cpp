@@ -254,7 +254,8 @@ void UActor::SetOwner(UActor* newOwner)
 
 void UActor::AddChildActor(UActor* actor)
 {
-	ChildActors.push_back(actor);
+	if (actor)
+		ChildActors.push_back(actor);
 }
 
 void UActor::RemoveChildActor(UActor* actor)
