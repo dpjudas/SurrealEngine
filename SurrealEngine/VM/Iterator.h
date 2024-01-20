@@ -28,6 +28,22 @@ private:
 	size_t index = 0;
 };
 
+// As seen on Unreal Gold 227
+class AllFilesIterator : public Iterator
+{
+public:
+	// Iterates through all files of a type (Extensions are the usual Unreal Package extensions, or all files, if the FileExtension string is empty)
+	AllFilesIterator(const std::string& FileExtension, const std::string& FilePrefix, std::string& FileName);
+	bool Next() override;
+
+private:
+	std::string FileExtension;
+	std::string FilePrefix;
+	std::string& FileName;
+	std::vector<std::string> FoundFiles;
+	std::vector<std::string>::iterator iterator;
+};
+
 class BasedActorsIterator : public Iterator
 {
 public:
