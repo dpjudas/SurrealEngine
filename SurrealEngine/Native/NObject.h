@@ -21,6 +21,7 @@ public:
 	static void Add_IntInt(int A, int B, int& ReturnValue);
 	static void Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
+	static void AllFiles(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName);
 	static void AndAnd_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue);
 	static void And_IntInt(int A, int B, int& ReturnValue);
 	static void Asc(const std::string& S, int& ReturnValue);
