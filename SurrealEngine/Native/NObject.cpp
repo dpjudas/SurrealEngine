@@ -171,6 +171,12 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "XorXor_BoolBool", &NObject::XorXor_BoolBool, 131);
 	RegisterVMNativeFunc_3("Object", "Xor_IntInt", &NObject::Xor_IntInt, 157);
 
+	// Unreal Gold 227 exclusive functions
+	if (engine->LaunchInfo.gameExecutableName == "Unreal" && engine->LaunchInfo.engineVersion == 227)
+	{
+		RegisterVMNativeFunc_3("Object", "AllFiles", &NObject::AllFiles, 603);
+	}
+
 	// Package 61 stuff
 	if (engine->LaunchInfo.engineVersion <= 219)
 	{
@@ -274,6 +280,11 @@ void NObject::AndAnd_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue
 void NObject::And_IntInt(int A, int B, int& ReturnValue)
 {
 	ReturnValue = A & B;
+}
+
+void NObject::AllFiles(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName)
+{
+	Frame::CreatedIterator = std::make_unique<AllFilesIterator>(FileExtension, FilePrefix, outFileName);
 }
 
 void NObject::Asc(const std::string& S, int& ReturnValue)
