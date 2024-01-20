@@ -10,7 +10,7 @@
 
 TextEdit::TextEdit(Widget* parent) : Widget(parent)
 {
-	SetNoncontentSizes(8.0, 8.0, 8.0, 8.0);
+	SetStyleClass("textedit");
 
 	timer = new Timer(this);
 	timer->FuncExpired = [=]() { OnTimerExpired(); };
@@ -961,6 +961,7 @@ void TextEdit::LayoutLines(Canvas* canvas)
 		sel_end = selection_start;
 	}
 
+	Colorf textColor = GetStyleColor("color");
 	Point draw_pos;
 	for (size_t i = (size_t)vert_scrollbar->GetPosition(); i < lines.size(); i++)
 	{
@@ -969,9 +970,9 @@ void TextEdit::LayoutLines(Canvas* canvas)
 		{
 			line.layout.Clear();
 			if (!line.text.empty())
-				line.layout.AddText(line.text, font, Colorf::fromRgba8(255, 255, 255));
+				line.layout.AddText(line.text, font, textColor);
 			else
-				line.layout.AddText(" ", font, Colorf::fromRgba8(255, 255, 255)); // Draw one space character to get the correct height
+				line.layout.AddText(" ", font, textColor); // Draw one space character to get the correct height
 			line.layout.Layout(canvas, GetWidth());
 			line.box = Rect(draw_pos, line.layout.GetSize());
 			line.invalidated = false;
@@ -992,7 +993,7 @@ void TextEdit::LayoutLines(Canvas* canvas)
 			if (cursor_blink_visible && cursor_pos.y == i)
 			{
 				line.layout.SetCursorPos(cursor_pos.x);
-				line.layout.SetCursorColor(Colorf::fromRgba8(255, 255, 255));
+				line.layout.SetCursorColor(textColor);
 				line.layout.ShowCursor();
 			}
 		}
@@ -1004,18 +1005,6 @@ void TextEdit::LayoutLines(Canvas* canvas)
 		draw_pos = line.box.bottomLeft();
 	}
 	UpdateVerticalScroll();
-}
-
-void TextEdit::OnPaintFrame(Canvas* canvas)
-{
-	double w = GetFrameGeometry().width;
-	double h = GetFrameGeometry().height;
-	Colorf bordercolor = Colorf::fromRgba8(100, 100, 100);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(38, 38, 38));
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
-	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
-	canvas->fillRect(Rect::xywh(w - 1.0, 0.0, 1.0, h - 0.0), bordercolor);
 }
 
 void TextEdit::OnPaint(Canvas* canvas)

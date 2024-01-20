@@ -4,7 +4,7 @@
 
 ListView::ListView(Widget* parent) : Widget(parent)
 {
-	SetNoncontentSizes(10.0, 10.0, 3.0, 10.0);
+	SetStyleClass("listview");
 
 	scrollbar = new Scrollbar(this);
 	scrollbar->FuncScroll = [=]() { OnScrollbarScroll(); };
@@ -67,6 +67,9 @@ void ListView::OnPaint(Canvas* canvas)
 	double w = GetWidth() - scrollbar->GetPreferredWidth() - 2.0;
 	double h = 20.0;
 
+	Colorf textColor = GetStyleColor("color");
+	Colorf selectionColor = GetStyleColor("selection-color");
+
 	int index = 0;
 	for (const std::string& item : items)
 	{
@@ -75,25 +78,13 @@ void ListView::OnPaint(Canvas* canvas)
 		{
 			if (index == selectedItem)
 			{
-				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, h), Colorf::fromRgba8(100, 100, 100));
+				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, h), selectionColor);
 			}
-			canvas->drawText(Point(x, y + 15.0), Colorf::fromRgba8(255, 255, 255), item);
+			canvas->drawText(Point(x, y + 15.0), textColor, item);
 		}
 		y += h;
 		index++;
 	}
-}
-
-void ListView::OnPaintFrame(Canvas* canvas)
-{
-	double w = GetFrameGeometry().width;
-	double h = GetFrameGeometry().height;
-	Colorf bordercolor = Colorf::fromRgba8(100, 100, 100);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(38, 38, 38));
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
-	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
-	canvas->fillRect(Rect::xywh(w - 1.0, 0.0, 1.0, h - 0.0), bordercolor);
 }
 
 bool ListView::OnMouseDown(const Point& pos, InputKey key)

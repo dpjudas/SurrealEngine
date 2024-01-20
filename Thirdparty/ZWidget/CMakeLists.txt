@@ -8,6 +8,7 @@ set(ZWIDGET_SOURCES
 	src/core/span_layout.cpp
 	src/core/timer.cpp
 	src/core/widget.cpp
+	src/core/theme.cpp
 	src/core/utf8reader.cpp
 	src/core/pathfill.cpp
 	src/core/truetypefont.cpp
@@ -44,6 +45,7 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/core/span_layout.h
 	include/zwidget/core/timer.h
 	include/zwidget/core/widget.h
+	include/zwidget/core/theme.h
 	include/zwidget/core/utf8reader.h
 	include/zwidget/core/resourcedata.h
 	include/zwidget/widgets/lineedit/lineedit.h

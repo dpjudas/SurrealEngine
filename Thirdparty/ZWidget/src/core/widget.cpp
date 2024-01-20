@@ -2,6 +2,7 @@
 #include "core/widget.h"
 #include "core/timer.h"
 #include "core/colorf.h"
+#include "core/theme.h"
 #include <stdexcept>
 
 Widget::Widget(Widget* parent, WidgetType type) : Type(type)
@@ -10,6 +11,15 @@ Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 	{
 		DispWindow = DisplayWindow::Create(this);
 		DispCanvas = Canvas::create(DispWindow.get());
+		SetStyleState("root");
+
+		SetWindowBackground(GetStyleColor("window-background"));
+		if (GetStyleColor("window-border").a > 0.0f)
+			SetWindowBorderColor(GetStyleColor("window-border"));
+		if (GetStyleColor("window-caption-color").a > 0.0f)
+			SetWindowCaptionColor(GetStyleColor("window-caption-color"));
+		if (GetStyleColor("window-caption-text-color").a > 0.0f)
+			SetWindowCaptionTextColor(GetStyleColor("window-caption-text-color"));
 	}
 
 	SetParent(parent);
@@ -138,10 +148,10 @@ Rect Widget::GetFrameGeometry() const
 
 void Widget::SetNoncontentSizes(double left, double top, double right, double bottom)
 {
-	Noncontent.Left = left;
-	Noncontent.Top = top;
-	Noncontent.Right = right;
-	Noncontent.Bottom = bottom;
+	SetStyleDouble("noncontent-left", left);
+	SetStyleDouble("noncontent-top", top);
+	SetStyleDouble("noncontent-right", right);
+	SetStyleDouble("noncontent-bottom", bottom);
 }
 
 void Widget::SetFrameGeometry(const Rect& geometry)
@@ -149,10 +159,10 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 	if (Type == WidgetType::Child)
 	{
 		FrameGeometry = geometry;
-		double left = FrameGeometry.left() + Noncontent.Left;
-		double top = FrameGeometry.top() + Noncontent.Top;
-		double right = FrameGeometry.right() - Noncontent.Right;
-		double bottom = FrameGeometry.bottom() - Noncontent.Bottom;
+		double left = FrameGeometry.left() + GetNoncontentLeft();
+		double top = FrameGeometry.top() + GetNoncontentTop();
+		double right = FrameGeometry.right() - GetNoncontentRight();
+		double bottom = FrameGeometry.bottom() - GetNoncontentBottom();
 		left = std::min(left, FrameGeometry.right());
 		top = std::min(top, FrameGeometry.bottom());
 		right = std::max(right, FrameGeometry.left());
@@ -314,6 +324,15 @@ void Widget::Paint(Canvas* canvas)
 	}
 	canvas->setOrigin(oldOrigin);
 	canvas->popClip();
+}
+
+void Widget::OnPaintFrame(Canvas* canvas)
+{
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	if (style)
+	{
+		style->Paint(this, canvas, GetFrameGeometry().size());
+	}
 }
 
 bool Widget::GetKeyState(InputKey key)
@@ -710,4 +729,92 @@ void Widget::OnWindowDpiScaleChanged()
 Size Widget::GetScreenSize()
 {
 	return DisplayWindow::GetScreenSize();
+}
+
+void Widget::SetStyleClass(const std::string& themeClass)
+{
+	if (StyleClass != themeClass)
+	{
+		StyleClass = themeClass;
+		Update();
+	}
+}
+
+void Widget::SetStyleState(const std::string& state)
+{
+	if (StyleState != state)
+	{
+		StyleState = state;
+		Update();
+	}
+}
+
+void Widget::SetStyleBool(const std::string& propertyName, bool value)
+{
+	StyleProperties[propertyName] = value;
+}
+
+void Widget::SetStyleInt(const std::string& propertyName, int value)
+{
+	StyleProperties[propertyName] = value;
+}
+
+void Widget::SetStyleDouble(const std::string& propertyName, double value)
+{
+	StyleProperties[propertyName] = value;
+}
+
+void Widget::SetStyleString(const std::string& propertyName, const std::string& value)
+{
+	StyleProperties[propertyName] = value;
+}
+
+void Widget::SetStyleColor(const std::string& propertyName, const Colorf& value)
+{
+	StyleProperties[propertyName] = value;
+}
+
+bool Widget::GetStyleBool(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<bool>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetBool(StyleState, propertyName) : false;
+}
+
+int Widget::GetStyleInt(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<int>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetInt(StyleState, propertyName) : 0;
+}
+
+double Widget::GetStyleDouble(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<double>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetDouble(StyleState, propertyName) : 0.0;
+}
+
+std::string Widget::GetStyleString(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<std::string>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetString(StyleState, propertyName) : std::string();
+}
+
+Colorf Widget::GetStyleColor(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<Colorf>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetColor(StyleState, propertyName) : Colorf::transparent();
 }

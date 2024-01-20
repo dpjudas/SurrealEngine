@@ -69,7 +69,6 @@ public:
 	std::function<void()> FuncEnterPressed;
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnPaint(Canvas* canvas) override;
 	void OnMouseMove(const Point& pos) override;
 	bool OnMouseDown(const Point& pos, InputKey key) override;

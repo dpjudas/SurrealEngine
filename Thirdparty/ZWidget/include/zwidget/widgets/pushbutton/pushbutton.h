@@ -19,7 +19,6 @@ public:
 	std::function<void()> OnClick;
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnPaint(Canvas* canvas) override;
 	bool OnMouseDown(const Point& pos, InputKey key) override;
 	bool OnMouseUp(const Point& pos, InputKey key) override;
@@ -30,6 +29,4 @@ protected:
 
 private:
 	std::string text;
-	bool buttonDown = false;
-	bool hot = false;
 };

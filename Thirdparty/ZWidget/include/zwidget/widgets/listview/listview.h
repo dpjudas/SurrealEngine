@@ -24,7 +24,6 @@ public:
 
 protected:
 	void OnPaint(Canvas* canvas) override;
-	void OnPaintFrame(Canvas* canvas) override;
 	bool OnMouseDown(const Point& pos, InputKey key) override;
 	bool OnMouseDoubleclick(const Point& pos, InputKey key) override;
 	bool OnMouseWheel(const Point& pos, InputKey key) override;

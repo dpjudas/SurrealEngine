@@ -37,7 +37,6 @@ public:
 	std::function<void()> OnCurrentChanged;
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnGeometryChanged() override;
 
 private:
@@ -67,7 +66,6 @@ public:
 	std::function<void()> OnCurrentChanged;
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnGeometryChanged() override;
 
 private:
@@ -92,7 +90,6 @@ public:
 	std::function<void()> OnClick;
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnGeometryChanged() override;
 	bool OnMouseDown(const Point& pos, InputKey key) override;
 	bool OnMouseUp(const Point& pos, InputKey key) override;
@@ -116,7 +113,6 @@ public:
 	Widget* GetCurrentWidget() const { return CurrentWidget; }
 
 protected:
-	void OnPaintFrame(Canvas* canvas) override;
 	void OnGeometryChanged() override;
 
 private:

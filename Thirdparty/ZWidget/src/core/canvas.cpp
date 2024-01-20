@@ -529,7 +529,7 @@ int BitmapCanvas::getClipMaxY() const
 
 void BitmapCanvas::fillTile(float left, float top, float width, float height, Colorf color)
 {
-	if (width <= 0.0f || height <= 0.0f)
+	if (width <= 0.0f || height <= 0.0f || color.a <= 0.0f)
 		return;
 
 	int dwidth = this->width;
@@ -558,7 +558,7 @@ void BitmapCanvas::fillTile(float left, float top, float width, float height, Co
 	{
 		uint32_t c = (calpha << 24) | (cred << 16) | (cgreen << 8) | cblue;
 #ifdef USE_SSE2
-		__m128i crgba = _mm_set1_epi32(c);
+		__m128i cargb = _mm_set1_epi32(c);
 #endif
 
 		for (int y = y0; y < y1; y++)
@@ -570,7 +570,7 @@ void BitmapCanvas::fillTile(float left, float top, float width, float height, Co
 			int ssex1 = x0 + (((x1 - x0) >> 2) << 2);
 			while (x < ssex1)
 			{
-				_mm_storeu_si128((__m128i*)(dline + x), crgba);
+				_mm_storeu_si128((__m128i*)(dline + x), cargb);
 				x += 4;
 			}
 #endif
@@ -589,7 +589,7 @@ void BitmapCanvas::fillTile(float left, float top, float width, float height, Co
 		cblue <<= 8;
 		calpha <<= 8;
 #ifdef USE_SSE2
-		__m128i crgba = _mm_set_epi16(calpha, cblue, cgreen, cred, calpha, cblue, cgreen, cred);
+		__m128i cargb = _mm_set_epi16(calpha, cred, cgreen, cblue, calpha, cred, cgreen, cblue);
 		__m128i cinvalpha = _mm_set1_epi16(invalpha);
 #endif
 
@@ -606,7 +606,7 @@ void BitmapCanvas::fillTile(float left, float top, float width, float height, Co
 				dpixel = _mm_unpacklo_epi8(dpixel, _mm_setzero_si128());
 
 				// dest.rgba = color.rgba + dest.rgba * (1-color.a)
-				__m128i result = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(crgba, _mm_mullo_epi16(dpixel, cinvalpha)), _mm_set1_epi16(127)), 8);
+				__m128i result = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(cargb, _mm_mullo_epi16(dpixel, cinvalpha)), _mm_set1_epi16(127)), 8);
 				_mm_storel_epi64((__m128i*)(dline + x), _mm_packus_epi16(result, _mm_setzero_si128()));
 				x += 2;
 			}
@@ -634,7 +634,7 @@ void BitmapCanvas::fillTile(float left, float top, float width, float height, Co
 
 void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
-	if (width <= 0.0f || height <= 0.0f)
+	if (width <= 0.0f || height <= 0.0f || color.a <= 0.0f)
 		return;
 
 	int swidth = texture->Width;
@@ -662,7 +662,7 @@ void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float
 	uint32_t cblue = (int32_t)clamp(color.b * 256.0f, 0.0f, 256.0f);
 	uint32_t calpha = (int32_t)clamp(color.a * 256.0f, 0.0f, 256.0f);
 #ifdef USE_SSE2
-	__m128i crgba = _mm_set_epi16(calpha, cblue, cgreen, cred, calpha, cblue, cgreen, cred);
+	__m128i cargb = _mm_set_epi16(calpha, cred, cgreen, cblue, calpha, cred, cgreen, cblue);
 #endif
 
 	float uscale = uvwidth / width;
@@ -690,7 +690,7 @@ void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float
 			dpixel = _mm_unpacklo_epi8(dpixel, _mm_setzero_si128());
 
 			// Pixel shade
-			spixel = _mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(spixel, crgba), _mm_set1_epi16(127)), 8);
+			spixel = _mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(spixel, cargb), _mm_set1_epi16(127)), 8);
 
 			// Rescale from [0,255] to [0,256]
 			__m128i sa = _mm_shufflehi_epi16(_mm_shufflelo_epi16(spixel, _MM_SHUFFLE(3, 3, 3, 3)), _MM_SHUFFLE(3, 3, 3, 3));

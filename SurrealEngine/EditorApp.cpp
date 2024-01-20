@@ -6,10 +6,12 @@
 #include "Engine.h"
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/WidgetResourceData.h"
+#include <zwidget/core/theme.h>
 
 int EditorApp::main(std::vector<std::string> args)
 {
 	InitWidgetResources();
+	WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>());
 
 	CommandLine cmd(args);
 	commandline = &cmd;

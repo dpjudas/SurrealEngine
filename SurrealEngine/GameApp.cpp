@@ -8,10 +8,12 @@
 #include "VM/NativeFuncExtractor.h"
 #include "UI/WidgetResourceData.h"
 #include "File.h"
+#include <zwidget/core/theme.h>
 
 int GameApp::main(std::vector<std::string> args)
 {
 	InitWidgetResources();
+	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
 	CommandLine cmd(args);
 	commandline = &cmd;

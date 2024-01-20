@@ -28,10 +28,6 @@ int LauncherWindow::ExecModal(const std::vector<GameLaunchInfo>& games)
 
 LauncherWindow::LauncherWindow(const std::vector<GameLaunchInfo>& games) : Widget(nullptr, WidgetType::Window)
 {
-	SetWindowBackground(Colorf::fromRgba8(51, 51, 51));
-	SetWindowBorderColor(Colorf::fromRgba8(51, 51, 51));
-	SetWindowCaptionColor(Colorf::fromRgba8(33, 33, 33));
-	SetWindowCaptionTextColor(Colorf::fromRgba8(226, 223, 219));
 	SetWindowTitle("Surreal Engine");
 
 	Banner = new LauncherBanner(this);

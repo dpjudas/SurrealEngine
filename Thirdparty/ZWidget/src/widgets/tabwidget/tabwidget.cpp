@@ -98,10 +98,6 @@ void TabWidget::OnBarCurrentChanged()
 		OnCurrentChanged();
 }
 
-void TabWidget::OnPaintFrame(Canvas* canvas)
-{
-}
-
 void TabWidget::OnGeometryChanged()
 {
 	double w = GetWidth();
@@ -115,7 +111,7 @@ void TabWidget::OnGeometryChanged()
 
 TabBar::TabBar(Widget* parent) : Widget(parent)
 {
-	SetNoncontentSizes(20.0, 0.0, 20.0, 0.0);
+	SetStyleClass("tabbar");
 }
 
 int TabBar::AddTab(const std::string& label)
@@ -187,13 +183,6 @@ int TabBar::GetTabIndex(TabBarTab* tab)
 	return -1;
 }
 
-void TabBar::OnPaintFrame(Canvas* canvas)
-{
-	double w = GetFrameGeometry().width;
-	double h = GetFrameGeometry().height;
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(38, 38, 38));
-}
-
 void TabBar::OnGeometryChanged()
 {
 	double w = GetWidth();
@@ -211,7 +200,7 @@ void TabBar::OnGeometryChanged()
 
 TabBarTab::TabBarTab(Widget* parent) : Widget(parent)
 {
-	SetNoncontentSizes(15.0, 0.0, 15.0, 0.0);
+	SetStyleClass("tabbar-tab");
 }
 
 void TabBarTab::SetText(const std::string& text)
@@ -257,7 +246,7 @@ void TabBarTab::SetCurrent(bool value)
 	if (IsCurrent != value)
 	{
 		IsCurrent = value;
-		Update();
+		SetStyleState(value ? "active" : "");
 	}
 }
 
@@ -266,20 +255,6 @@ double TabBarTab::GetPreferredWidth() const
 	double x = Icon ? 32.0 + 5.0 : 0.0;
 	if (Label) x += Label->GetPreferredWidth();
 	return x;
-}
-
-void TabBarTab::OnPaintFrame(Canvas* canvas)
-{
-	double w = GetFrameGeometry().width;
-	double h = GetFrameGeometry().height;
-	if (IsCurrent)
-	{
-		canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(51, 51, 51));
-	}
-	else if (hot)
-	{
-		canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(45, 45, 45));
-	}
 }
 
 void TabBarTab::OnGeometryChanged()
@@ -300,10 +275,9 @@ void TabBarTab::OnGeometryChanged()
 
 void TabBarTab::OnMouseMove(const Point& pos)
 {
-	if (!hot)
+	if (GetStyleState().empty())
 	{
-		hot = true;
-		Update();
+		SetStyleState("hover");
 	}
 }
 
@@ -321,7 +295,8 @@ bool TabBarTab::OnMouseUp(const Point& pos, InputKey key)
 
 void TabBarTab::OnMouseLeave()
 {
-	hot = false;
+	if (GetStyleState() == "hover")
+		SetStyleState("");
 	Update();
 }
 
@@ -329,7 +304,7 @@ void TabBarTab::OnMouseLeave()
 
 TabWidgetStack::TabWidgetStack(Widget* parent) : Widget(parent)
 {
-	SetNoncontentSizes(20.0, 5.0, 20.0, 5.0);
+	SetStyleClass("tabwidget-stack");
 }
 
 void TabWidgetStack::SetCurrentWidget(Widget* widget)
@@ -345,10 +320,6 @@ void TabWidgetStack::SetCurrentWidget(Widget* widget)
 			OnGeometryChanged();
 		}
 	}
-}
-
-void TabWidgetStack::OnPaintFrame(Canvas* canvas)
-{
 }
 
 void TabWidgetStack::OnGeometryChanged()

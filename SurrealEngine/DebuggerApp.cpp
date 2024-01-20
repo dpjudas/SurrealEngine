@@ -18,6 +18,7 @@
 #include "UI/WidgetResourceData.h"
 #include "VM/Frame.h"
 #include "UTF16.h"
+#include <zwidget/core/theme.h>
 #include <iostream>
 
 #ifndef WIN32
@@ -28,6 +29,7 @@
 int DebuggerApp::Main(std::vector<std::string> args)
 {
 	InitWidgetResources();
+	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
