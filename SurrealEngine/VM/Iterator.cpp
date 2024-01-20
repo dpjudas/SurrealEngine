@@ -1,7 +1,9 @@
 
 #include "Precomp.h"
 #include "Iterator.h"
+#include "File.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 #include "Collision/OverlapCylinderLevel.h"
@@ -24,6 +26,37 @@ bool AllObjectsIterator::Next()
 		}
 	}
 	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+AllFilesIterator::AllFilesIterator(const std::string& FileExtension, const std::string& FilePrefix, std::string& FileName) : FileExtension(FileExtension), FilePrefix(FilePrefix), FileName(FileName)
+{
+	auto packageNames = engine->packages->GetPackageNames();
+
+	for (auto& packageName : packageNames)
+	{
+		auto package = engine->packages->GetPackage(packageName);
+
+		if ((FileExtension.empty() || FilePath::extension(package->GetPackageFilename()) == FileExtension) && 
+			(FilePrefix.empty() || package->GetPackageFilename().find(FilePrefix) != std::string::npos))
+		{
+			FoundFiles.push_back(packageName.ToString());
+		}
+	}
+
+	iterator = FoundFiles.begin();
+}
+
+bool AllFilesIterator::Next()
+{
+	if (iterator == FoundFiles.end())
+		return false;
+
+	FileName = *iterator;
+	iterator++;
+
+	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
