@@ -634,6 +634,27 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		std::string name = args[1];
 		return keybindings[name];
 	}
+	else if (command == "open" && args.size() == 2)
+	{
+		std::string maparg = args[1];
+
+		for (auto& map : packages->GetMaps())
+		{
+			std::string mapname = FilePath::remove_extension(map);
+#ifdef WIN32
+			if (_stricmp(mapname.c_str(), maparg.c_str()) == 0)
+#else
+			if (strcasecmp(mapname.c_str(), maparg.c_str()) == 0)
+#endif
+			{
+				UnloadMap();
+				LoadMap(GetDefaultURL(mapname));
+				LoginPlayer();
+			}	
+		}
+
+		LogMessage("Couldn't find map " + maparg);
+	}
 	else if (command == "get" && args.size() == 3)
 	{
 		NameString className = ParseClassName(args[1]);
