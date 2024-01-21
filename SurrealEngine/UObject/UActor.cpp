@@ -125,6 +125,11 @@ void UActor::InitBase()
 			SetBase(hits.front().Actor, true);
 		}
 	}
+
+	if (engine->LaunchInfo.engineVersion < 400 && !ActorBase()) // Unreal expects a base to always exist. What about UT? TournamentPlayer seems to indicate not.
+	{
+		SetBase(Level(), false);
+	}
 }
 
 std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float height, bool check)
