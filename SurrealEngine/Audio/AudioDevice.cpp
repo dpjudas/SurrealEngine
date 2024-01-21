@@ -393,14 +393,15 @@ public:
 
 	void PlayMusicBuffer() override
 	{
-		int format = AL_FORMAT_STEREO_FLOAT32;
-		if (music->GetChannels() == 1)
-			format = AL_FORMAT_MONO_FLOAT32;
+		playbackMutex.lock();
+		int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
+		int freq = music->GetFrequency();
+		playbackMutex.unlock();
 
 		ALenum error;
 		for (int i = 0; i < musicBufferCount; i++)
 		{
-			alBufferData(alMusicBuffers[i], format, musicQueue.Pop(), musicBufferSize*4, music->GetFrequency());
+			alBufferData(alMusicBuffers[i], format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if ((error = alGetError()) != AL_NO_ERROR)
 				throw std::runtime_error("alBufferData failed in PlayMusicBuffer: " + getALErrorString());
 
@@ -419,10 +420,6 @@ public:
 		if (!music)
 			return;
 
-		int format = AL_FORMAT_STEREO_FLOAT32;
-		if (music->GetChannels() == 1)
-			format = AL_FORMAT_MONO_FLOAT32;
-
 		ALint status;
 		alGetSourcei(alMusicSource, AL_BUFFERS_PROCESSED, &status);
 
@@ -430,7 +427,13 @@ public:
 		{
 			ALuint buffer;
 			alSourceUnqueueBuffers(alMusicSource, 1, &buffer);
-			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, music->GetFrequency());
+
+			playbackMutex.lock();
+			int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
+			int freq = music->GetFrequency();
+			playbackMutex.unlock();
+
+			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if (alGetError() != AL_NO_ERROR)
 				throw std::runtime_error("alBufferData failed in UpdateMusicBuffer: " + getALErrorString());
 
