@@ -1026,14 +1026,14 @@ void UActor::TickTrailer(float elapsed)
 
 	vec3 newLocation = Owner()->Location();
 
-	if (bTrailerPrePivot())
+	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerPrePivot())
 	{
 		newLocation += PrePivot();
 	}
 
 	SetLocation(newLocation);
 
-	if (bTrailerSameRotation() && DrawType() != DT_Sprite)
+	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerSameRotation() && DrawType() != DT_Sprite)
 	{
 		SetRotation(Owner()->Rotation());
 	}

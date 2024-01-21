@@ -1167,7 +1167,7 @@ void Engine::LogMessage(const std::string& message)
 		}
 
 		LogMessageLine line;
-		line.Time = LevelInfo->TimeSeconds();
+		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
 		line.Source = name;
 		line.Text = message;
 		Log.push_back(std::move(line));
@@ -1175,7 +1175,7 @@ void Engine::LogMessage(const std::string& message)
 	else
 	{
 		LogMessageLine line;
-		line.Time = LevelInfo->TimeSeconds();
+		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
 		line.Text = message;
 		Log.push_back(std::move(line));
 	}
