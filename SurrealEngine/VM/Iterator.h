@@ -28,32 +28,55 @@ private:
 	size_t index = 0;
 };
 
+// As seen on Unreal Gold 227
+class AllFilesIterator : public Iterator
+{
+public:
+	// Iterates through all files of a type (Extensions are the usual Unreal Package extensions, or all files, if the FileExtension string is empty)
+	AllFilesIterator(const std::string& FileExtension, const std::string& FilePrefix, std::string& FileName);
+	bool Next() override;
+
+private:
+	std::string FileExtension;
+	std::string FilePrefix;
+	std::string& FileName;
+	std::vector<std::string> FoundFiles;
+	std::vector<std::string>::iterator iterator;
+};
+
 class BasedActorsIterator : public Iterator
 {
 public:
-	BasedActorsIterator(UObject* BaseClass, UObject** Actor);
+	BasedActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> BasedActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
+// An Iterator for iterating through all child actors of a given actor (e.g. due to being spawned by them)
 class ChildActorsIterator : public Iterator
 {
 public:
-	ChildActorsIterator(UObject* BaseClass, UObject** Actor);
+	ChildActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> ChildActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
 class RadiusActorsIterator : public Iterator
 {
 public:
-	RadiusActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, vec3 Location);
+	RadiusActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor, float Radius, vec3 Location);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
@@ -61,17 +84,23 @@ public:
 	float Radius = 0.0f;
 	vec3 Location;
 	size_t index = 0;
+
+	std::vector<UActor*> RadiusActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
 class TouchingActorsIterator : public Iterator
 {
 public:
-	TouchingActorsIterator(UObject* BaseClass, UObject** Actor);
+	TouchingActorsIterator(UActor* Caller, UObject* BaseClass, UObject** outActor);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
-	UObject** Actor = nullptr;
+	UObject** outActor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> TouchingActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
 class TraceActorsIterator : public Iterator
@@ -88,12 +117,22 @@ public:
 	vec3 Start = vec3(0.0f);
 	vec3 Extent = vec3(0.0f);
 	size_t index = 0;
+
+	struct TraceInfo
+	{
+		UActor* tracedActor;
+		vec3 HitLoc;
+		vec3 HitNorm;
+	};
+
+	std::vector<TraceInfo> tracedActors;
+	std::vector<TraceInfo>::iterator iterator;
 };
 
 class VisibleActorsIterator : public Iterator
 {
 public:
-	VisibleActorsIterator(UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location);
+	VisibleActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location);
 	bool Next() override;
 
 	UObject* BaseClass = nullptr;
@@ -101,6 +140,9 @@ public:
 	float Radius = 0.0f;
 	vec3 Location = vec3(0.0f);
 	size_t index = 0;
+
+	std::vector<UActor*> VisibleActors;
+	std::vector<UActor*>::iterator iterator;
 };
 
 class VisibleCollidingActorsIterator : public Iterator
@@ -118,6 +160,7 @@ public:
 	std::vector<UActor*> HitActors;
 };
 
+// Iterator for iterating through all actors in a given Zone
 class ZoneActorsIterator : public Iterator
 {
 public:
@@ -128,4 +171,7 @@ public:
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	size_t index = 0;
+
+	std::vector<UActor*> ZoneActors;
+	std::vector<UActor*>::iterator iterator;
 };

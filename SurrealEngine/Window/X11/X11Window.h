@@ -30,10 +30,10 @@
 
 class VulkanDevice;
 
-class X11Window : public DisplayWindow
+class X11Window : public GameWindow
 {
 public:
-	X11Window(DisplayWindowHost* windowHost);
+	X11Window(GameWindowHost* windowHost);
 	~X11Window();
 
 	static void ProcessEvents();
@@ -84,7 +84,7 @@ public:
 
 	EInputKey KeySymToInputKey(KeySym keysym);
 
-	DisplayWindowHost* windowHost = nullptr;
+	GameWindowHost* windowHost = nullptr;
 	std::unique_ptr<RenderDevice> RendDevice;
 
 	Display* display = nullptr;

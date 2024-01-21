@@ -11,7 +11,7 @@
 std::map<int, SDL2Window*> SDL2Window::windows;
 bool SDL2Window::exitRunLoop = false;
 
-SDL2Window::SDL2Window(DisplayWindowHost *windowHost) : windowHost(windowHost)
+SDL2Window::SDL2Window(GameWindowHost *windowHost) : windowHost(windowHost)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
         SDLWindowError("Unable to initialize SDL: " + std::string(SDL_GetError()));
@@ -374,7 +374,11 @@ Size SDL2Window::GetClientSize() const
 int SDL2Window::GetPixelWidth() const
 {
     int width;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, &width, nullptr);
+    #if SDL_VERSION_ATLEAST(2, 26, 0)
+        SDL_GetWindowSizeInPixels(m_SDLWindow, &width, nullptr);
+    #else
+        SDL_GetWindowSize(m_SDLWindow, &width, nullptr);
+    #endif
 
     return width;
 }
@@ -382,7 +386,11 @@ int SDL2Window::GetPixelWidth() const
 int SDL2Window::GetPixelHeight() const
 {
     int height;
-    SDL_GetWindowSizeInPixels(m_SDLWindow, nullptr, &height);
+    #if SDL_VERSION_ATLEAST(2, 26, 0)
+        SDL_GetWindowSizeInPixels(m_SDLWindow, nullptr, &height);
+    #else
+        SDL_GetWindowSize(m_SDLWindow, nullptr, &height);
+    #endif
 
     return height;
 }

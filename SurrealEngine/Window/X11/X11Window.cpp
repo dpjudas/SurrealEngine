@@ -73,7 +73,7 @@ public:
 std::map<Window, X11Window*> X11Window::Windows;
 bool X11Window::ExitLoopFlag;
 
-X11Window::X11Window(DisplayWindowHost* windowHost) : windowHost(windowHost)
+X11Window::X11Window(GameWindowHost* windowHost) : windowHost(windowHost)
 {
 	display = X11Display::GetDisplay();
 	screen = DefaultScreen(display);

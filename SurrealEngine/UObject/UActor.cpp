@@ -125,6 +125,11 @@ void UActor::InitBase()
 			SetBase(hits.front().Actor, true);
 		}
 	}
+
+	if (engine->LaunchInfo.engineVersion < 400 && !ActorBase()) // Unreal expects a base to always exist. What about UT? TournamentPlayer seems to indicate not.
+	{
+		SetBase(Level(), false);
+	}
 }
 
 std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float height, bool check)
@@ -238,12 +243,42 @@ void UActor::UpdateActorZone()
 void UActor::SetOwner(UActor* newOwner)
 {
 	if (Owner())
+	{
 		CallEvent(Owner(), EventName::LostChild, { ExpressionValue::ObjectValue(this) });
-
+		Owner()->RemoveChildActor(this);
+	}
+		
 	Owner() = newOwner;
 
 	if (Owner())
+	{
 		CallEvent(Owner(), EventName::GainedChild, { ExpressionValue::ObjectValue(this) });
+		Owner()->AddChildActor(this);
+	}
+}
+
+void UActor::AddChildActor(UActor* actor)
+{
+	if (actor)
+		ChildActors.push_back(actor);
+}
+
+void UActor::RemoveChildActor(UActor* actor)
+{
+	if (!actor)
+		return;
+
+	auto it = ChildActors.begin();
+
+	while (it != ChildActors.end())
+	{
+		if (*it == actor)
+		{
+			ChildActors.erase(it);
+			return;
+		}
+		it++;
+	}
 }
 
 void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
@@ -991,14 +1026,14 @@ void UActor::TickTrailer(float elapsed)
 
 	vec3 newLocation = Owner()->Location();
 
-	if (bTrailerPrePivot())
+	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerPrePivot())
 	{
 		newLocation += PrePivot();
 	}
 
 	SetLocation(newLocation);
 
-	if (bTrailerSameRotation() && DrawType() != DT_Sprite)
+	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerSameRotation() && DrawType() != DT_Sprite)
 	{
 		SetRotation(Owner()->Rotation());
 	}
@@ -2099,7 +2134,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
-		if (bViewTarget())
+		if (engine->LaunchInfo.engineVersion < 400 || bViewTarget())
 			CallEvent(this, EventName::UpdateEyeHeight, { ExpressionValue::FloatValue(elapsed) });
 		else
 			ViewRotation() = Rotation();
@@ -2125,7 +2160,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 			if (SpeechTime() == 0.0f)
 				CallEvent(this, EventName::SpeechTimer);
 		}
-		if (bAdvancedTactics())
+		if (engine->LaunchInfo.engineVersion >= 436 && bAdvancedTactics())
 			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
 	}
 }

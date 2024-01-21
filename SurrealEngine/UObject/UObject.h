@@ -120,6 +120,18 @@ struct BitfieldBool
 	BitfieldBool& operator=(bool v) { Set(v); return *this; }
 };
 
+class PropertyDataView
+{
+public:
+	PropertyDataView() = default;
+	PropertyDataView(void* data, size_t size) : d(data), s(size) {}
+	void* data() const { return d; }
+	size_t size() const { return s; }
+private:
+	void* d = nullptr;
+	size_t s = 0;
+};
+
 class PropertyDataBlock
 {
 public:
@@ -130,14 +142,15 @@ public:
 	void ReadProperties(ObjectStream* stream);
 
 	void* Ptr(const UProperty* prop);
-	void* Ptr(size_t offset) { return static_cast<uint8_t*>(Data) + offset; }
+	void* Ptr(size_t offset);
 	const void* Ptr(const UProperty* prop) const;
-	const void* Ptr(size_t offset) const { return static_cast<const uint8_t*>(Data) + offset; }
+	const void* Ptr(size_t offset) const;
 
 	template<typename T>
 	T& Value(size_t offset) { return *reinterpret_cast<T*>(static_cast<uint8_t*>(Data) + offset); }
 
 	void* Data = nullptr;
+	size_t Size = 0;
 	UClass* Class = nullptr;
 
 private:

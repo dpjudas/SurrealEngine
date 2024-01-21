@@ -267,6 +267,12 @@ public:
 	float SleepTimeLeft = 0.0f;
 	vec3 gravityVector;
 
+	// Child actor tracking
+	std::vector<UActor*> ChildActors;
+
+	void AddChildActor(UActor* actor);
+	void RemoveChildActor(UActor* actor);
+
 	void SetTweenFromAnimFrame();
 
 	UTexture* GetMultiskin(int index)
@@ -1128,6 +1134,10 @@ public:
 				pos = endpos + 1;
 			}
 		}
+
+		// Unreal uses relative urls
+		if (Map.size() > 8 && Map.substr(0, 8) == "..\\maps\\")
+			Map = Map.substr(8);
 	}
 
 	std::string Protocol = "unreal";

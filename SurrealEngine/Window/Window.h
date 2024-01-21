@@ -1,27 +1,10 @@
 #pragma once
 
 #include "Math/vec.h"
-#include "UI/Core/Rect.h"
+#include <zwidget/core/rect.h>
 
 class Engine;
 class RenderDevice;
-
-enum class StandardCursor
-{
-	arrow,
-	appstarting,
-	cross,
-	hand,
-	ibeam,
-	no,
-	size_all,
-	size_nesw,
-	size_ns,
-	size_nwse,
-	size_we,
-	uparrow,
-	wait
-};
 
 enum EInputKey
 {
@@ -100,19 +83,9 @@ enum EInputType
 	IST_Axis
 };
 
-class KeyEvent
-{
-public:
-	EInputKey Key;
-	bool Ctrl = false;
-	bool Alt = false;
-	bool Shift = false;
-	Point MousePos = Point(0.0, 0.0);
-};
+class GameWindow;
 
-class DisplayWindow;
-
-class DisplayWindowHost
+class GameWindowHost
 {
 public:
 	virtual void OnWindowPaint() = 0;
@@ -132,16 +105,16 @@ public:
 	virtual void OnWindowDpiScaleChanged() = 0;
 };
 
-class DisplayWindow
+class GameWindow
 {
 public:
-	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost);
+	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost);
 
 	static void ProcessEvents();
 	static void RunLoop();
 	static void ExitLoop();
 
-	virtual ~DisplayWindow() = default;
+	virtual ~GameWindow() = default;
 
 	virtual void SetWindowTitle(const std::string& text) = 0;
 	virtual void SetWindowFrame(const Rect& box) = 0;

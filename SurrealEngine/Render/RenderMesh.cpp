@@ -342,6 +342,14 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		for (int i = 0; i < 3; i++)
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
+
+			if ((size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0] >= mesh->Verts.size() ||
+				(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1] >= mesh->Verts.size())
+			{
+				// Out of bounds. Something is wrong with the mesh. Aborting render to prevent a crash.
+				return;
+			}
+
 			const vec3& v0 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];
 			const vec3& v1 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1]];
 			const vec3& n0 = mesh->Normals[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];

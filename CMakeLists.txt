@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory( Thirdparty/ZVulkan )
+add_subdirectory( Thirdparty/ZWidget )
 if(WIN32)
-add_subdirectory( Thirdparty/openal-soft )
+	add_subdirectory( Thirdparty/openal-soft )
 endif()
 if(UNIX AND NOT APPLE)
-find_package(SDL2)
+	find_package(SDL2 QUIET)
+	if(NOT ${SDL2_FOUND})
+		include(FindPkgConfig)
+		pkg_search_module(SDL2 REQUIRED sdl2)
+	endif()
 endif()
 
 project(SurrealEngine)
@@ -43,6 +48,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/QuitCommandlet.h
 	SurrealEngine/Commandlet/RunCommandlet.cpp
 	SurrealEngine/Commandlet/RunCommandlet.h
+	SurrealEngine/Commandlet/ExportCommandlet.cpp
+	SurrealEngine/Commandlet/ExportCommandlet.h
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.cpp
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.h
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.cpp
@@ -267,36 +274,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/OverlapCylinderLevel.h
 	SurrealEngine/Collision/OverlapAABBModel.cpp
 	SurrealEngine/Collision/OverlapAABBModel.h
-	SurrealEngine/UI/Core/Widget.cpp
-	SurrealEngine/UI/Core/Widget.h
-	SurrealEngine/UI/Core/Canvas.cpp
-	SurrealEngine/UI/Core/Canvas.h
-	SurrealEngine/UI/Core/Timer.cpp
-	SurrealEngine/UI/Core/Timer.h
-	SurrealEngine/UI/Core/SpanLayout.cpp
-	SurrealEngine/UI/Core/SpanLayout.h
-	SurrealEngine/UI/Core/Font.cpp
-	SurrealEngine/UI/Core/Font.h
-	SurrealEngine/UI/Core/Image.cpp
-	SurrealEngine/UI/Core/Image.h
-	SurrealEngine/UI/Core/Rect.h
-	SurrealEngine/UI/Core/Colorf.h
-	SurrealEngine/UI/Widgets/MainWindow/MainWindow.cpp
-	SurrealEngine/UI/Widgets/MainWindow/MainWindow.h
-	SurrealEngine/UI/Widgets/Menubar/Menubar.cpp
-	SurrealEngine/UI/Widgets/Menubar/Menubar.h
-	SurrealEngine/UI/Widgets/Toolbar/Toolbar.cpp
-	SurrealEngine/UI/Widgets/Toolbar/Toolbar.h
-	SurrealEngine/UI/Widgets/Toolbar/ToolbarButton.cpp
-	SurrealEngine/UI/Widgets/Toolbar/ToolbarButton.h
-	SurrealEngine/UI/Widgets/Statusbar/Statusbar.cpp
-	SurrealEngine/UI/Widgets/Statusbar/Statusbar.h
-	SurrealEngine/UI/Widgets/Scrollbar/Scrollbar.cpp
-	SurrealEngine/UI/Widgets/Scrollbar/Scrollbar.h
-	SurrealEngine/UI/Widgets/LineEdit/LineEdit.cpp
-	SurrealEngine/UI/Widgets/LineEdit/LineEdit.h
-	SurrealEngine/UI/Widgets/TextEdit/TextEdit.cpp
-	SurrealEngine/UI/Widgets/TextEdit/TextEdit.h
+	SurrealEngine/UI/WidgetResourceData.cpp
+	SurrealEngine/UI/WidgetResourceData.h
 	SurrealEngine/UI/Editor/EditorMainWindow.cpp
 	SurrealEngine/UI/Editor/EditorMainWindow.h
 	SurrealEngine/UI/Editor/EditorWorkspace.cpp
@@ -311,6 +290,16 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Editor/Editor2DViewport.h
 	SurrealEngine/UI/Editor/Editor3DViewport.cpp
 	SurrealEngine/UI/Editor/Editor3DViewport.h
+	SurrealEngine/UI/Launcher/LauncherBanner.cpp
+	SurrealEngine/UI/Launcher/LauncherBanner.h
+	SurrealEngine/UI/Launcher/LauncherButtonbar.cpp
+	SurrealEngine/UI/Launcher/LauncherButtonbar.h
+	SurrealEngine/UI/Launcher/LauncherWindow.cpp
+	SurrealEngine/UI/Launcher/LauncherWindow.h
+	SurrealEngine/UI/Launcher/PlayGamePage.cpp
+	SurrealEngine/UI/Launcher/PlayGamePage.h
+	SurrealEngine/UI/Launcher/SettingsPage.cpp
+	SurrealEngine/UI/Launcher/SettingsPage.h
 	SurrealEngine/Window/Window.cpp
 	SurrealEngine/Window/Window.h
 )
@@ -454,9 +443,9 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/resample/r8bbase.h
 	Thirdparty/dr_flac.h
 	Thirdparty/stb_vorbis.h
-	Thirdparty/schrift/schrift.cpp
-	Thirdparty/schrift/schrift.h
 	Thirdparty/TinySHA1/TinySHA1.hpp
+	Thirdparty/miniz/miniz.c
+	Thirdparty/miniz/miniz.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
@@ -467,15 +456,14 @@ set(THIRDPARTY_UNIX_SOURCES
 
 set(SURREALCOMMON_LIBS
 	zvulkan
+	zwidget
 )
 
 set(SURREALCOMMON_WIN32_LIBS
-	zvulkan
 	OpenAL
 )
 
 set(SURREALCOMMON_UNIX_LIBS
-	zvulkan
 	openal
 )
 
@@ -501,16 +489,8 @@ source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CU
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
-source_group("SurrealEngine\\UI\\Core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Core/.+")
-source_group("SurrealEngine\\UI\\Widgets" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/.+")
-source_group("SurrealEngine\\UI\\Widgets\\MainWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/MainWindow/.+")
-source_group("SurrealEngine\\UI\\Widgets\\Menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Menubar/.+")
-source_group("SurrealEngine\\UI\\Widgets\\Statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Statusbar/.+")
-source_group("SurrealEngine\\UI\\Widgets\\Toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Toolbar/.+")
-source_group("SurrealEngine\\UI\\Widgets\\Scrollbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/Scrollbar/.+")
-source_group("SurrealEngine\\UI\\Widgets\\LineEdit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/LineEdit/.+")
-source_group("SurrealEngine\\UI\\Widgets\\TextEdit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Widgets/TextEdit/.+")
 source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Editor/.+")
+source_group("SurrealEngine\\UI\\Launcher" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Launcher/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
@@ -531,9 +511,9 @@ source_group("Thirdparty\\dumb\\src\\helpers" REGULAR_EXPRESSION "${CMAKE_CURREN
 source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/src/it/.+")
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
-source_group("Thirdparty\\schrift" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/schrift/.+")
+source_group("Thirdparty\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/miniz/.+")
 
-include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/dumb/include Thirdparty/openal-soft/include)
+include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/ZWidget/include Thirdparty/dumb/include Thirdparty/openal-soft/include Thirdparty/miniz)
 
 if(UNIX AND NOT APPLE AND SDL2_FOUND)
 	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})
@@ -591,6 +571,8 @@ set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 17)
 if(WIN32)
 add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
 endif()
+
+add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3" $<TARGET_FILE_DIR:SurrealEngine>)
 
 install(TARGETS SurrealEngine RUNTIME DESTINATION bin BUNDLE DESTINATION app)
 install(TARGETS SurrealEditor RUNTIME DESTINATION bin BUNDLE DESTINATION app)

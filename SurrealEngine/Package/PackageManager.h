@@ -22,12 +22,12 @@ class PackageManager
 public:
 	PackageManager(const GameLaunchInfo& launchInfo);
 
-	bool IsUnreal1() const { return launchInfo.gameName == "Unreal"; }
+	bool IsUnreal1() const { return launchInfo.gameExecutableName == "Unreal"; }
 	bool IsUnreal1_226() const { return IsUnreal1() && launchInfo.engineVersion == 226; }
 	bool IsUnreal1_227() const { return IsUnreal1() && launchInfo.engineVersion == 227; }
-	bool IsUnrealTournament() const { return launchInfo.gameName == "UnrealTournament"; }
+	bool IsUnrealTournament() const { return launchInfo.gameExecutableName == "UnrealTournament"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
-	bool IsDeusEx() const { return launchInfo.gameName == "DeusEx"; }
+	bool IsDeusEx() const { return launchInfo.gameExecutableName == "DeusEx"; }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }

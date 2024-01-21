@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
 #include "EditorViewportHeader.h"
-#include "UI/Core/Canvas.h"
-#include "UI/Core/Colorf.h"
+#include <zwidget/core/canvas.h>
+#include <zwidget/core/colorf.h>
 
 EditorViewportHeader::EditorViewportHeader(Widget* parent) : Widget(parent)
 {

@@ -23,7 +23,7 @@ void VulkanError(const char* text)
 	throw std::runtime_error(text);
 }
 
-VulkanRenderDevice::VulkanRenderDevice(DisplayWindow* InViewport, std::shared_ptr<VulkanSurface> surface)
+VulkanRenderDevice::VulkanRenderDevice(GameWindow* InViewport, std::shared_ptr<VulkanSurface> surface)
 {
 	Viewport = InViewport;
 

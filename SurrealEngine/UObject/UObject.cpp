@@ -371,12 +371,26 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 void* PropertyDataBlock::Ptr(const UProperty* prop)
 {
-	return static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset;
+	return Ptr(prop->DataOffset.DataOffset);
 }
 
 const void* PropertyDataBlock::Ptr(const UProperty* prop) const
 {
-	return static_cast<const uint8_t*>(Data) + prop->DataOffset.DataOffset;
+	return Ptr(prop->DataOffset.DataOffset);
+}
+
+void* PropertyDataBlock::Ptr(size_t offset)
+{
+	if (offset >= Size)
+		throw std::runtime_error("Property offset out of bounds!");
+	return static_cast<uint8_t*>(Data) + offset;
+}
+
+const void* PropertyDataBlock::Ptr(size_t offset) const
+{
+	if (offset >= Size)
+		throw std::runtime_error("Property offset out of bounds!");
+	return static_cast<const uint8_t*>(Data) + offset;
 }
 
 void PropertyDataBlock::Reset()
@@ -400,7 +414,9 @@ void PropertyDataBlock::Init(UClass* cls)
 	Reset();
 
 	Class = cls;
-	Data = new int64_t[(cls->StructSize + 7) / 8];
+	Size = (cls->StructSize + 7) / 8;
+	Data = new int64_t[Size];
+	Size *= 8;
 	for (UProperty* prop : cls->Properties)
 	{
 #ifdef _DEBUG

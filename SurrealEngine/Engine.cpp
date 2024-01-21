@@ -106,8 +106,11 @@ void Engine::Run()
 		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
 		// To do: set these to true if the frame rate is too low
-		LevelInfo->bDropDetail() = false;
-		LevelInfo->bAggressiveLOD() = false;
+		if (LaunchInfo.engineVersion >= 436)
+		{
+			LevelInfo->bDropDetail() = false;
+			LevelInfo->bAggressiveLOD() = false;
+		}
 
 		if (EntryLevel)
 			EntryLevel->Tick(entryLevelElapsed);
@@ -631,6 +634,27 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		std::string name = args[1];
 		return keybindings[name];
 	}
+	else if (command == "open" && args.size() == 2)
+	{
+		std::string maparg = args[1];
+
+		for (auto& map : packages->GetMaps())
+		{
+			std::string mapname = FilePath::remove_extension(map);
+#ifdef WIN32
+			if (_stricmp(mapname.c_str(), maparg.c_str()) == 0)
+#else
+			if (strcasecmp(mapname.c_str(), maparg.c_str()) == 0)
+#endif
+			{
+				UnloadMap();
+				LoadMap(GetDefaultURL(mapname));
+				LoginPlayer();
+			}	
+		}
+
+		LogMessage("Couldn't find map " + maparg);
+	}
 	else if (command == "get" && args.size() == 3)
 	{
 		NameString className = ParseClassName(args[1]);
@@ -842,7 +866,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = DisplayWindow::Create(this);
+		window = GameWindow::Create(this);
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
@@ -877,7 +901,7 @@ void Engine::TickWindow()
 	InputEvent(IK_MouseX, IST_Axis, 0);
 	InputEvent(IK_MouseY, IST_Axis, 0);
 
-	DisplayWindow::ProcessEvents();
+	GameWindow::ProcessEvents();
 
 	if (MouseMoveX != 0 || MouseMoveY != 0)
 	{
@@ -1143,7 +1167,7 @@ void Engine::LogMessage(const std::string& message)
 		}
 
 		LogMessageLine line;
-		line.Time = LevelInfo->TimeSeconds();
+		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
 		line.Source = name;
 		line.Text = message;
 		Log.push_back(std::move(line));
@@ -1151,7 +1175,7 @@ void Engine::LogMessage(const std::string& message)
 	else
 	{
 		LogMessageLine line;
-		line.Time = LevelInfo->TimeSeconds();
+		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
 		line.Text = message;
 		Log.push_back(std::move(line));
 	}

@@ -5,6 +5,7 @@
 #include "GameFolder.h"
 #include "Engine.h"
 #include "Commandlet/NativesCommandlet.h"
+#include "Commandlet/ExportCommandlet.h"
 #include "Commandlet/QuitCommandlet.h"
 #include "Commandlet/RunCommandlet.h"
 #include "Commandlet/Debug/CollisionCommandlet.h"
@@ -15,8 +16,10 @@
 #include "Commandlet/VM/LocalsCommandlet.h"
 #include "Commandlet/VM/PrintCommandlet.h"
 #include "Commandlet/VM/StepCommandlet.h"
+#include "UI/WidgetResourceData.h"
 #include "VM/Frame.h"
 #include "UTF16.h"
+#include <zwidget/core/theme.h>
 #include <iostream>
 
 #ifndef WIN32
@@ -26,6 +29,9 @@
 
 int DebuggerApp::Main(std::vector<std::string> args)
 {
+	InitWidgetResources();
+	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
+
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
 	WriteOutput("Type " + ColorEscape(92) + "help" + ResetEscape() + " for a list of commands" + NewLine());
@@ -35,22 +41,26 @@ int DebuggerApp::Main(std::vector<std::string> args)
 
 	CommandLine cmd(args);
 	commandline = &cmd;
+
 	launchinfo = GameFolderSelection::GetLaunchInfo();
-
-	Frame::RunDebugger = [=]() { FrameDebugBreak(); };
-
-	Engine engine(launchinfo);
-	engine.tickDebugger = [&]() { Tick(); };
-	engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
-
-	WritePrompt();
-	while (!ExitRequested)
+	if (!launchinfo.gameRootFolder.empty())
 	{
-		WaitForInput();
-		Tick();
-	}
-	EndPrompt();
+		Frame::RunDebugger = [=]() { FrameDebugBreak(); };
 
+		Engine engine(launchinfo);
+		engine.tickDebugger = [&]() { Tick(); };
+		engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
+
+		WritePrompt();
+		while (!ExitRequested)
+		{
+			WaitForInput();
+			Tick();
+		}
+		EndPrompt();
+	}
+
+	DeinitWidgetResources();
 	return 0;
 }
 
@@ -58,6 +68,7 @@ void DebuggerApp::CreateCommandlets()
 {
 	Commandlets.push_back(std::make_unique<RunCommandlet>());
 	Commandlets.push_back(std::make_unique<NativesCommandlet>());
+	Commandlets.push_back(std::make_unique<ExportCommandlet>());
 	Commandlets.push_back(std::make_unique<ListBreakpointsCommandlet>());
 	Commandlets.push_back(std::make_unique<BreakpointCommandlet>());
 	Commandlets.push_back(std::make_unique<WatchpointCommandlet>());

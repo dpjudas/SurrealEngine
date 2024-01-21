@@ -5,6 +5,7 @@
 #include "UTF16.h"
 #include "UE1GameDatabase.h"
 #include "CommandLine.h"
+#include "UI/Launcher/LauncherWindow.h"
 #include <filesystem>
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
@@ -46,9 +47,11 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 		throw std::runtime_error("Unable to find a game folder");
 	}
 
-	// To do: present some UI here instead of grabbing the first game we found
+	int selectedGame = LauncherWindow::ExecModal(foundGames);
+	if (selectedGame < 0)
+		return {};
 
-	GameLaunchInfo info = foundGames.front();
+	GameLaunchInfo info = foundGames[selectedGame];
 
 	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);

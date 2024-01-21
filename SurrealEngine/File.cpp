@@ -5,9 +5,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #else
-#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
-#endif
 #include <fnmatch.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -15,6 +13,12 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+#ifdef EXTERN___PROGNAME
+extern const char* __progname;
+#endif
 #endif
 #include <stdexcept>
 #include <string.h>
@@ -307,6 +311,106 @@ void Directory::make_directory(const std::string& dirname)
 }
 
 #endif
+
+std::string OS::executable_path()
+{
+#if defined(WIN32)
+	WCHAR exe_filename[_MAX_PATH];
+	DWORD len = GetModuleFileName(nullptr, exe_filename, _MAX_PATH);
+	if (len == 0 || len == _MAX_PATH)
+		throw std::runtime_error("GetModuleFileName failed!");
+
+	WCHAR drive[_MAX_DRIVE], dir[_MAX_DIR];
+	_wsplitpath_s(exe_filename, drive, _MAX_DRIVE, dir, _MAX_DIR, NULL, 0, NULL, 0);
+
+	return from_utf16(std::wstring(drive) + dir);
+#elif defined(__APPLE__)
+	CFBundleRef mainBundle = CFBundleGetMainBundle();
+	if (mainBundle)
+	{
+		CFURLRef mainURL = CFBundleCopyBundleURL(mainBundle);
+
+		if (mainURL)
+		{
+			char exe_file[PATH_MAX];
+			int ok = CFURLGetFileSystemRepresentation(mainURL, (Boolean)true, (UInt8*)exe_file, PATH_MAX);
+			if (ok)
+			{
+				return std::string(exe_file) + "/";
+			}
+		}
+	}
+
+	throw std::runtime_error("get_exe_path failed");
+#else
+	#ifndef PROC_EXE_PATH
+	#define PROC_EXE_PATH "/proc/self/exe"
+	#endif
+
+	char exe_file[PATH_MAX];
+	int size;
+	struct stat sb;
+	if (lstat(PROC_EXE_PATH, &sb) < 0)
+	{
+		#ifdef EXTERN___PROGNAME
+			char* pathenv, * name, * end;
+			char fname[PATH_MAX];
+			char cwd[PATH_MAX];
+			struct stat sba;
+
+			exe_file[0] = '\0';
+			if ((pathenv = getenv("PATH")) != nullptr)
+			{
+				for (name = pathenv; name; name = end)
+				{
+					if ((end = strchr(name, ':')))
+						*end++ = '\0';
+					snprintf(fname, sizeof(fname),
+						"%s/%s", name, (char*)__progname);
+					if (stat(fname, &sba) == 0) {
+						snprintf(exe_file, sizeof(exe_file),
+							"%s/", name);
+						break;
+					}
+				}
+			}
+			// if getenv failed or path still not found
+			// try current directory as last resort
+			if (!exe_file[0])
+			{
+				if (getcwd(cwd, sizeof(cwd)) != nullptr)
+				{
+					snprintf(fname, sizeof(fname),
+						"%s/%s", cwd, (char*)__progname);
+					if (stat(fname, &sba) == 0)
+						snprintf(exe_file, sizeof(exe_file),
+							"%s/", cwd);
+				}
+			}
+			if (!exe_file[0])
+				throw std::runtime_error("get_exe_path: could not find path");
+			else
+				return std::string(exe_file);
+		#else
+			throw std::runtime_error("get_exe_path: proc file system not accesible");
+		#endif
+	}
+	else
+	{
+		size = readlink(PROC_EXE_PATH, exe_file, PATH_MAX);
+		if (size < 0)
+		{
+			throw std::runtime_error(strerror(errno));
+		}
+		else
+		{
+			exe_file[size] = '\0';
+			return std::string(dirname(exe_file)) + "/";
+		}
+	}
+
+	#endif
+}
 
 std::string OS::get_default_font_name()
 {

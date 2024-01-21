@@ -269,7 +269,7 @@ void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& func
 	NativeFunctionDecl decl;
 	decl.args = funcArgs;
 	decl.games.push_back(version);
-	decl.argCount = args.size();
+	decl.argCount = (int)args.size();
 	func.decls.push_back(std::move(decl));
 }
 

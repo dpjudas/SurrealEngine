@@ -102,12 +102,12 @@ void NActor::AutonomousPhysics(UObject* Self, float DeltaSeconds)
 
 void NActor::BasedActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	Frame::CreatedIterator = std::make_unique<BasedActorsIterator>(BaseClass, &Actor);
+	Frame::CreatedIterator = std::make_unique<BasedActorsIterator>(UObject::Cast<UActor>(Self), BaseClass, &Actor);
 }
 
 void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	Frame::CreatedIterator = std::make_unique<ChildActorsIterator>(BaseClass, &Actor);
+	Frame::CreatedIterator = std::make_unique<ChildActorsIterator>(UObject::Cast<UActor>(Self), BaseClass, &Actor);
 }
 
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
@@ -202,7 +202,12 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 	// Filter list to only those with the matching map type
 	for (const std::string& name : engine->packages->GetMaps())
 	{
-		if (name.size() >= NameEnding.size() && name.substr(0, NameEnding.size()) == NameEnding)
+		// Case insensitive prefix comparison because Unreal Deathmatch maps start with "Dm" instead of "DM"
+#ifdef WIN32
+		if (name.size() >= NameEnding.size() && _stricmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
+#else
+		if (name.size() >= NameEnding.size() && strcasecmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
+#endif
 			maps.push_back(name);
 	}
 
@@ -388,7 +393,8 @@ void NActor::PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue)
 
 void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, vec3* Loc)
 {
-	Frame::CreatedIterator = std::make_unique<RadiusActorsIterator>(BaseClass, &Actor, Radius, Loc ? *Loc : UObject::Cast<UActor>(Self)->Location());
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<RadiusActorsIterator>(SelfActor, BaseClass, &Actor, Radius, Loc ? *Loc : SelfActor->Location());
 }
 
 void NActor::SetBase(UObject* Self, UObject* NewBase)
@@ -463,7 +469,7 @@ void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnVa
 
 void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
-	Frame::CreatedIterator = std::make_unique<TouchingActorsIterator>(BaseClass, &Actor);
+	Frame::CreatedIterator = std::make_unique<TouchingActorsIterator>(UObject::TryCast<UActor>(Self), BaseClass, &Actor);
 }
 
 void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, BitfieldBool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
@@ -494,7 +500,7 @@ void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, f
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<VisibleActorsIterator>(
-		BaseClass, &Actor,
+		SelfActor, BaseClass, &Actor,
 		Radius ? *Radius : SelfActor->CollisionRadius(),
 		Loc ? *Loc : SelfActor->Location());
 }

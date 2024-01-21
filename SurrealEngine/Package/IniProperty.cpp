@@ -56,7 +56,7 @@ std::string IniPropertyConverter<uint8_t>::ToString(const uint8_t& value)
 template<>
 uint8_t IniPropertyConverter<uint8_t>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const uint8_t& default_value, const int index)
 {
-	return std::stoul(iniFile.GetValue(section, keyName, ToString(default_value), index));
+	return (uint8_t)std::stoul(iniFile.GetValue(section, keyName, ToString(default_value), index));
 }
 
 //====================================================================
