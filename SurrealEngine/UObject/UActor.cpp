@@ -2134,7 +2134,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
-		if (engine->LaunchInfo.engineVersion >= 436 && bViewTarget())
+		if (engine->LaunchInfo.engineVersion < 400 || bViewTarget())
 			CallEvent(this, EventName::UpdateEyeHeight, { ExpressionValue::FloatValue(elapsed) });
 		else
 			ViewRotation() = Rotation();
