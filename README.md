@@ -13,15 +13,29 @@ It will attempt to load all level actors and initialize the map. However, while 
 At the time of this writing, SurrealEngine can detect the following UE1 games:
 
 * Unreal Tournament (v436, v451b, v469(a, b, c, d))
-* Unreal Gold (v226, v227(i, j))
-* Deus Ex (v1112fm)
+* Unreal (v200, v209, v220, v224v, v225f, v226f)
+* Unreal Gold (v226b, v227(i, j))
+* Deus Ex (v1002f, v1112fm)
 * Klingon Honor Guard (219)
+* NERF Arena Blast (v300)
+* TNN Outdoors Pro Hunter (v200)
+* Rune Classic (v1.10)
 
-From the list above, only Unreal Tournament v436 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes. Unreal Gold v226 also runs but is significantly more buggy compared to UT (only the intro map really works)
+Clive Barker's Undying (v420) is also in the database, but there is no corresponding SHA1sum for its executable file yet.
+
+From the list above, only Unreal Tournament v436 and Unreal Gold v226 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes.
 
 ### Unreal Tournament v436
 
-The game launches, menu options will work and botmatches can be played, however the bots won't have any AI, and some maps will have some functionality missing (like DM-Morpheus will not have the "X leading the match" screens work).
+The game launches, menu options will work and botmatches can be played, however the bots will barely have any AI (they move around sometimes and retaliate upon being attacked), and some maps will have some functionality missing (like DM-Morpheus will not have the "X leading the match" screens work).
+
+### Unreal Gold v226
+
+The game launches, menu options will work most of the time. Only botmatches can be played for the time being, as trying to open up single player maps result in crashes. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken. Trying to pick up Razorjack ammo will crash the game.
+
+### Deus Ex v1112fm
+
+Only the intro flyby works. No keyboard or mouse inputs will be detected, as Deus Ex handles them differently than Unreal/UT. 
 
 ## Command line parameters
 
