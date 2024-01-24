@@ -295,7 +295,7 @@ void IniFile::UpdateFile()
 				}
 
 				// If the key don't have any brackets, check if we encountered the said key before
-					// If we did, then get the next index from it, else add the key we found to the database
+				// If we did, then get the next index from it, else add the key we found to the database
 				int found_index = 0;
 				bool occurance_found = false;
 
