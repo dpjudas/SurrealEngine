@@ -191,9 +191,6 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
-	client->SaveProperties();
-	audiodev->SaveProperties();
-	renderdev->SaveProperties();
 	packages->SaveAllIniFiles();
 
 	CloseWindow();
