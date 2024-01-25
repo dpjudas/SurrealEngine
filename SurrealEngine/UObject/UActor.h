@@ -180,6 +180,8 @@ public:
 	void SetPhysics(uint8_t newPhysics);
 	void SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers);
 
+	virtual double TestCollision(ULevel* level, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius);
+
 	std::pair<bool, vec3> CheckLocation(vec3 location, float radius, float height, bool check);
 
 	bool SetLocation(const vec3& newLocation);
