@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "ScriptCall.h"
 #include "Frame.h"
+#include <unordered_map>
 
 NameString ToNameString(EventName name)
 {
@@ -35,6 +36,28 @@ NameString ToNameString(EventName name)
 		"PostLogin", "KeyType", "KeyEvent"
 	};
 	return names[(int)name];
+}
+
+// This is so nasty. Maybe we should just put the probe names at the top of the name index table?
+static std::unordered_map<int, EventName> CreateLookup()
+{
+	std::unordered_map<int, EventName> lookup;
+	for (int i = 0; i < (int)EventName::MaxEventNameValue; i++)
+	{
+		EventName name = (EventName)i;
+		lookup[ToNameString(name).GetCompareIndex()] = name;
+	}
+	return lookup;
+}
+
+bool NameStringToEventName(const NameString& name, EventName& eventName)
+{
+	static std::unordered_map<int, EventName> lookup = CreateLookup();
+	auto it = lookup.find(name.GetCompareIndex());
+	if (it == lookup.end())
+		return false;
+	eventName = it->second;
+	return true;
 }
 
 ExpressionValue CallEvent(UObject* Context, EventName eventname, std::vector<ExpressionValue> args)

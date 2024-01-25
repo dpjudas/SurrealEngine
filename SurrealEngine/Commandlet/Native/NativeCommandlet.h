@@ -2,10 +2,10 @@
 
 #include "Commandlet/Commandlet.h"
 
-class NativesCommandlet : public Commandlet
+class NativeCommandlet : public Commandlet
 {
 public:
-	NativesCommandlet();
+	NativeCommandlet();
 
 	void OnCommand(DebuggerApp* console, const std::string& args) override;
 	void OnPrintHelp(DebuggerApp* console) override;

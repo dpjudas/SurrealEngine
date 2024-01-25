@@ -1,20 +1,20 @@
 
 #include "Precomp.h"
-#include "NativesCommandlet.h"
+#include "NativeCommandlet.h"
 #include "DebuggerApp.h"
 #include "Engine.h"
-#include "UObject/NativeCppGenerator.h"
-#include "UObject/NativeObjExtractor.h"
-#include "VM/NativeFuncExtractor.h"
+#include "NativeCppUpdater.h"
+#include "NativeObjExtractor.h"
+#include "NativeFuncExtractor.h"
 #include "File.h"
 
-NativesCommandlet::NativesCommandlet()
+NativeCommandlet::NativeCommandlet()
 {
-	SetLongFormName("natives");
+	SetLongFormName("native");
 	SetShortDescription("Extract native info or assemble code from native info");
 }
 
-void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
+void NativeCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
 	if (console->launchinfo.gameRootFolder.empty())
 	{
@@ -25,7 +25,7 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	if (args == "extractfuncs")
 	{
 		Engine engine(console->launchinfo);
-		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Natives.json";
+		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Native.json";
 		File::write_all_text(path, NativeFuncExtractor::Run(engine.packages.get()));
 	}
 	else if (args == "extractprops")
@@ -34,9 +34,10 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Properties.json";
 		File::write_all_text(path, NativeObjExtractor::Run(engine.packages.get()));
 	}
-	else if (args == "createcpp")
+	else if (args == "update")
 	{
-		NativeCppGenerator::Run();
+		NativeCppUpdater updater(console);
+		updater.Run();
 	}
 	else
 	{
@@ -44,8 +45,9 @@ void NativesCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	}
 }
 
-void NativesCommandlet::OnPrintHelp(DebuggerApp* console)
+void NativeCommandlet::OnPrintHelp(DebuggerApp* console)
 {
-	console->WriteOutput("Syntax: natives extractfunc" + NewLine());
-	console->WriteOutput("Syntax: natives extractobj" + NewLine());
+	console->WriteOutput("Syntax: native extractfuncs" + NewLine());
+	console->WriteOutput("Syntax: native extractprops" + NewLine());
+	console->WriteOutput("Syntax: native update" + NewLine());
 }

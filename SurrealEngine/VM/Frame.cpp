@@ -144,6 +144,11 @@ std::string Frame::GetCallstack()
 
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
 {
+	if (!instance->IsEventEnabled(func->Name))
+	{
+		return ExpressionValue::NothingValue();
+	}
+
 	int argindex = 0;
 	for (UField* field = func->Children; field != nullptr; field = field->Next)
 	{

@@ -15,14 +15,12 @@
 #include "UObject/UClass.h"
 #include "UObject/UClient.h"
 #include "UObject/USubsystem.h"
-#include "UObject/NativeObjExtractor.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "Window/Window.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioSubsystem.h"
 #include "VM/Frame.h"
-#include "VM/NativeFuncExtractor.h"
 #include "VM/ScriptCall.h"
 #include <chrono>
 #include <set>

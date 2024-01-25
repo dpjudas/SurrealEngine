@@ -42,8 +42,16 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/CommandLine.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
-	SurrealEngine/Commandlet/NativesCommandlet.cpp
-	SurrealEngine/Commandlet/NativesCommandlet.h
+	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp
+	SurrealEngine/Commandlet/Native/NativeCommandlet.h
+	SurrealEngine/Commandlet/Native/NativeObjExtractor.cpp
+	SurrealEngine/Commandlet/Native/NativeObjExtractor.h
+	SurrealEngine/Commandlet/Native/NativeFuncExtractor.cpp
+	SurrealEngine/Commandlet/Native/NativeFuncExtractor.h
+	SurrealEngine/Commandlet/Native/NativeCppGenerator.cpp
+	SurrealEngine/Commandlet/Native/NativeCppGenerator.h
+	SurrealEngine/Commandlet/Native/NativeCppUpdater.cpp
+	SurrealEngine/Commandlet/Native/NativeCppUpdater.h
 	SurrealEngine/Commandlet/QuitCommandlet.cpp
 	SurrealEngine/Commandlet/QuitCommandlet.h
 	SurrealEngine/Commandlet/RunCommandlet.cpp
@@ -87,9 +95,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Render/Lightmap/Shadowmap.h
 	SurrealEngine/Render/Lightmap/FogmapBuilder.cpp
 	SurrealEngine/Render/Lightmap/FogmapBuilder.h
-	SurrealEngine/VM/NativeFuncExtractor.h
 	SurrealEngine/VM/NativeFunc.cpp
-	SurrealEngine/VM/NativeFuncExtractor.cpp
 	SurrealEngine/VM/Frame.cpp
 	SurrealEngine/VM/ExpressionValue.h
 	SurrealEngine/VM/ScriptCall.cpp
@@ -235,15 +241,11 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UTexture.cpp
 	SurrealEngine/UObject/UFont.cpp
 	SurrealEngine/UObject/UObject.h
-	SurrealEngine/UObject/NativeCppGenerator.cpp
-	SurrealEngine/UObject/NativeObjExtractor.cpp
 	SurrealEngine/UObject/UProperty.h
 	SurrealEngine/UObject/UMusic.h
 	SurrealEngine/UObject/UTexture.h
 	SurrealEngine/UObject/USound.h
 	SurrealEngine/UObject/UClient.h
-	SurrealEngine/UObject/NativeCppGenerator.h
-	SurrealEngine/UObject/NativeObjExtractor.h
 	SurrealEngine/UObject/UMesh.cpp
 	SurrealEngine/UObject/UMesh.h
 	SurrealEngine/UObject/UProperty.cpp
@@ -496,6 +498,7 @@ source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOUR
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
 source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Debug/.+")
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
+source_group("SurrealEngine\\Commandlet\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Native/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")

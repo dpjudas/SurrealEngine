@@ -4,7 +4,7 @@
 #include "CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
-#include "Commandlet/NativesCommandlet.h"
+#include "Commandlet/Native/NativeCommandlet.h"
 #include "Commandlet/ExportCommandlet.h"
 #include "Commandlet/QuitCommandlet.h"
 #include "Commandlet/RunCommandlet.h"
@@ -67,7 +67,7 @@ int DebuggerApp::Main(std::vector<std::string> args)
 void DebuggerApp::CreateCommandlets()
 {
 	Commandlets.push_back(std::make_unique<RunCommandlet>());
-	Commandlets.push_back(std::make_unique<NativesCommandlet>());
+	Commandlets.push_back(std::make_unique<NativeCommandlet>());
 	Commandlets.push_back(std::make_unique<ExportCommandlet>());
 	Commandlets.push_back(std::make_unique<ListBreakpointsCommandlet>());
 	Commandlets.push_back(std::make_unique<BreakpointCommandlet>());

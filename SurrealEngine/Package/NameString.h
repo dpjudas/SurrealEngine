@@ -28,6 +28,8 @@ public:
 	bool operator<=(const NameString& other) const { return CompareIndex <= other.CompareIndex; }
 	bool operator>=(const NameString& other) const { return CompareIndex >= other.CompareIndex; }
 
+	int GetCompareIndex() const { return CompareIndex; }
+
 private:
 	int CompareIndex = 0;
 	int SpelledIndex = 0;

@@ -31,7 +31,9 @@ enum class EventName
 	Reset, PreRender, RenderOverlays, PostRender,
 	NotifyLevelChange, InitGame, PreLogin, Login,
 	Possess, TravelPreAccept, AcceptInventory, TravelPostAccept,
-	PostLogin, KeyType, KeyEvent
+	PostLogin, KeyType, KeyEvent,
+
+	MaxEventNameValue // Why isn't this part of C++ after 40+ years of people doing this in both C and C++?
 };
 
 ExpressionValue CallEvent(UObject* Context, EventName name, std::vector<ExpressionValue> args = {});
@@ -40,3 +42,4 @@ ExpressionValue CallEvent(UObject* Context, const NameString& name, std::vector<
 UFunction* FindEventFunction(UObject* Context, const NameString& name);
 
 NameString ToNameString(EventName name);
+bool NameStringToEventName(const NameString& name, EventName& eventName);
