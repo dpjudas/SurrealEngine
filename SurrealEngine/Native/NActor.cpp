@@ -156,7 +156,6 @@ void NActor::FinishAnim(UObject* Self)
 
 void NActor::FinishInterpolation(UObject* Self)
 {
-	engine->LogUnimplemented("FinishInterpolation");
 	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::FinishInterpolation;
 }

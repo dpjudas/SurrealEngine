@@ -122,14 +122,14 @@ void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
 
 void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickAnyTarget");
-	ReturnValue = nullptr;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = SelfPawn->PickAnyTarget(bestAim, bestDist, FireDir, projStart);
 }
 
 void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickTarget");
-	ReturnValue = nullptr;
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = SelfPawn->PickTarget(bestAim, bestDist, FireDir, projStart);
 }
 
 void NPawn::PickWallAdjust(UObject* Self, BitfieldBool& ReturnValue)

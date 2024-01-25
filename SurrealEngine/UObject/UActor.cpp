@@ -2031,6 +2031,75 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 	return !XLevel()->TraceRayAnyHit(source->Location(), Location(), source, false, true, false);
 }
 
+UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
+{
+	bestAim = 0.0f;
+	bestDist = 0.0f;
+	UActor* bestActor = nullptr;
+	for (UActor* actor : XLevel()->Actors)
+	{
+		// We are only looking for targets that isn't a pawn (pawn uses PickTarget if it wants a pawn)
+		if (!actor || actor == this || UObject::TryCast<UPawn>(actor) || !actor->bProjTarget())
+			continue;
+
+		if (CheckIfBestTarget(actor, bestAim, bestDist, FireDir, projStart))
+			bestActor = actor;
+	}
+	return bestActor;
+}
+
+UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
+{
+	bestAim = 0.0f;
+	bestDist = 0.0f;
+	UActor* bestActor = nullptr;
+	auto ourPlayerInfo = PlayerReplicationInfo();
+	bool teamGame = ourPlayerInfo && Level()->Game()->bTeamGame();
+	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
+	{
+		// Skip dead pawns or ourselves
+		if (pawn == this || pawn->Health() > 0)
+			continue;
+
+		// Skip team mates
+		auto pawnPlayerInfo = pawn->PlayerReplicationInfo();
+		if (teamGame && pawnPlayerInfo && ourPlayerInfo->Team() == pawnPlayerInfo->Team())
+			continue;
+
+		if (CheckIfBestTarget(pawn, bestAim, bestDist, FireDir, projStart))
+			bestActor = pawn;
+	}
+	return bestActor;
+}
+
+bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
+{
+	// Ignore targets behind us
+	vec3 delta = actor->Location() - projStart;
+	float angle = dot(FireDir, delta);
+	if (angle < 0.0f)
+		return false;
+
+	// Skip things too far away
+	float distance = length(delta);
+	if (distance == 0.0f || distance > 2500.0f)
+		return false;
+
+	// Skip if we already have a target closer to the direction we are facing
+	angle /= distance;
+	if (angle < bestAim)
+		return false;
+
+	// Skip if we can't see the target
+	if (!LineOfSightTo(actor))
+		return false;
+
+	// OK, this is better than what we have
+	bestAim = angle;
+	bestDist = distance;
+	return true;
+}
+
 void UPawn::InitActorZone()
 {
 	UActor::InitActorZone();
