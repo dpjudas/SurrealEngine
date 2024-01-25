@@ -255,9 +255,17 @@ bool UObject::IsA(const NameString& className) const
 
 bool UObject::IsEventEnabled(const NameString& name) const
 {
-	NameString stateName = GetStateName();
-	auto it = DisabledEvents.find(stateName);
-	return it == DisabledEvents.end() || it->second.find(name) == it->second.end();
+	EventName eventName = {};
+	if (NameStringToEventName(name, eventName))
+	{
+		return IsEventEnabled(eventName);
+	}
+	else
+	{
+		NameString stateName = GetStateName();
+		auto it = DisabledEvents.find(stateName);
+		return it == DisabledEvents.end() || it->second.find(name) == it->second.end();
+	}
 }
 
 bool UObject::IsEventEnabled(EventName name) const
@@ -292,7 +300,10 @@ bool UObject::IsEventEnabled(EventName name) const
 		if (!foundProbe)
 			return false;
 	}
-	return IsEventEnabled(ToNameString(name));
+
+	NameString stateName = GetStateName();
+	auto it = DisabledEvents.find(stateName);
+	return it == DisabledEvents.end() || it->second.find(ToNameString(name)) == it->second.end();
 }
 
 std::string UObject::PrintProperties()
