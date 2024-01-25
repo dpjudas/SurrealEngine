@@ -31,7 +31,7 @@ The game launches, menu options will work and botmatches can be played, however 
 
 ### Unreal Gold v226
 
-The game launches, menu options will work most of the time. Only botmatches can be played for the time being, as trying to open up single player maps result in crashes. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken. Trying to pick up Razorjack ammo will crash the game.
+The game launches, menu options will work most of the time. Only botmatches can be played for the time being, as trying to open up single player maps result in crashes. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken.
 
 ### Deus Ex v1112fm
 
