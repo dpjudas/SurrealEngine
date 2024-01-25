@@ -333,12 +333,12 @@ void PackageManager::SaveAllIniFiles()
 		if (iniFile.first == launchInfo.gameExecutableName)
 		{
 			const std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
-			iniFile.second->SaveTo(FilePath::combine(system_folder, engine_ini_name));
+			iniFile.second->UpdateIfExists(FilePath::combine(system_folder, engine_ini_name));
 		}
 		else if (iniFile.first == "User")
-			iniFile.second->SaveTo(FilePath::combine(system_folder, "SE-User.ini"));
+			iniFile.second->UpdateIfExists(FilePath::combine(system_folder, "SE-User.ini"));
 		else
-			iniFile.second->SaveTo();
+			iniFile.second->UpdateFile();
 	}
 }
 
