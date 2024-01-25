@@ -183,6 +183,8 @@ public:
 	UProperty* GetProperty(const NameString& name);
 	UObject* GetDefaultObject() { return this; }
 
+	void SaveToConfig(PackageManager& packageManager);
+
 	uint32_t OldClassRecordSize = 0;
 	ClassFlags ClsFlags = {};
 	Guid ClassGuid;
