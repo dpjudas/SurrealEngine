@@ -57,8 +57,8 @@ From the folder you want to clone the repo to (commands should be entered in the
     cd SurrealEngine
     mkdir build
     cd build
-    cmake ..
-    make
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j 16
 
 When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
 
