@@ -15,7 +15,7 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 
 	UpdateActorLightList(actor);
 
-	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(drawscale);
+	brushframe.ObjectToWorld = mat4::translate(location - actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(drawscale);
 
 	Device->SetSceneNode(&brushframe);
 
