@@ -902,7 +902,8 @@ void NObject::RotRand(BitfieldBool* bRoll, Rotator& ReturnValue)
 
 void NObject::SaveConfig(UObject* Self)
 {
-	engine->LogUnimplemented("Object.SaveConfig(name=" + Self->Name.ToString() + ", class=" + UObject::GetUClassName(Self).ToString() + ")");
+	//engine->LogUnimplemented("Object.SaveConfig(name=" + Self->Name.ToString() + ", class=" + UObject::GetUClassName(Self).ToString() + ")");
+	Self->SaveConfig();
 }
 
 void NObject::SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue)
