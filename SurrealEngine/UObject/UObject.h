@@ -177,6 +177,8 @@ public:
 	virtual std::string GetPropertyAsString(const NameString& name) const;
 	virtual void SetPropertyFromString(const NameString& name, const std::string& value);
 
+	virtual void SaveConfig();
+
 	uint8_t GetByte(const NameString& name) const;
 	uint32_t GetInt(const NameString& name) const;
 	bool GetBool(const NameString& name) const;
