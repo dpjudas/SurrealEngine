@@ -55,7 +55,7 @@ void USurrealRenderDevice::LoadProperties(const NameString& from)
 	HighDetailActors = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "HighDetailActors", HighDetailActors);
 }
 
-void USurrealRenderDevice::SaveProperties()
+void USurrealRenderDevice::SaveConfig()
 {
 	engine->packages->SetIniValue("System", Class, "Translucency", IniPropertyConverter<bool>::ToString(Translucency));
 	engine->packages->SetIniValue("System", Class, "VolumetricLighting", IniPropertyConverter<bool>::ToString(VolumetricLighting));
@@ -172,7 +172,7 @@ void USurrealAudioDevice::LoadProperties(const NameString& from)
 	AmbientFactor = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "AmbientFactor", AmbientFactor);
 }
 
-void USurrealAudioDevice::SaveProperties()
+void USurrealAudioDevice::SaveConfig()
 {
 	engine->packages->SetIniValue("System", Class, "UseFilter", IniPropertyConverter<bool>::ToString(UseFilter));
 	engine->packages->SetIniValue("System", Class, "UseSurround", IniPropertyConverter<bool>::ToString(UseSurround));
@@ -235,7 +235,7 @@ void USurrealClient::LoadProperties(const NameString& from)
 	SkinDetail = IniPropertyConverter<std::string>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "SkinDetail", SkinDetail);
 }
 
-void USurrealClient::SaveProperties()
+void USurrealClient::SaveConfig()
 {
 	engine->packages->SetIniValue("System", Class, "StartupFullscreen", IniPropertyConverter<bool>::ToString(StartupFullscreen));
 	engine->packages->SetIniValue("System", Class, "WindowedViewportX", IniPropertyConverter<int>::ToString(WindowedViewportX));

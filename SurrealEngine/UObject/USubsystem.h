@@ -11,7 +11,6 @@ public:
 	using UObject::UObject;
 
 	virtual void LoadProperties(const NameString& from = "") {}
-	virtual void SaveProperties() {}
 };
 
 class ULanguage : public UObject
@@ -77,7 +76,7 @@ public:
 	bool HighDetailActors = true;
 
 	void LoadProperties(const NameString& from = "") override;
-	void SaveProperties() override;
+	void SaveConfig() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
@@ -107,7 +106,7 @@ public:
 	float AmbientFactor = 0.7f;
 
 	void LoadProperties(const NameString& from = "") override;
-	void SaveProperties() override;
+	void SaveConfig() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
@@ -147,7 +146,7 @@ public:
 	std::string SkinDetail = "High";
 
 	void LoadProperties(const NameString& from = "");
-	void SaveProperties();
+	void SaveConfig() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
