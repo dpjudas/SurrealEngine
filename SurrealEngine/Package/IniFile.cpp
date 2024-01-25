@@ -200,9 +200,17 @@ void IniFile::SaveTo(const std::string& filename)
 
 void IniFile::UpdateFile()
 {
+	UpdateFile(ini_file_path);
+}
+
+void IniFile::UpdateFile(const std::string& filename)
+{
+	if (filename == ini_file_path && !isModified)
+		return;
+
 	// The logic is simple: Read the file, check each line one-by-one, modify the differing lines, and write everything back
 	// The implementation however, is not :V
-	auto lines = File::read_all_lines(ini_file_path);
+	auto lines = File::read_all_lines(filename);
 
 	const IniSection* current_section = nullptr;
 
@@ -341,9 +349,20 @@ void IniFile::UpdateFile()
 			final_text += "\n";
 	}
 	
-	File::write_all_text(ini_file_path, final_text);
+	File::write_all_text(filename, final_text);
+
+	if (filename != ini_file_path)
+		ini_file_path = filename;
 
 	isModified = false;
+}
+
+void IniFile::UpdateIfExists(const std::string& filename)
+{
+	if (File::try_open_existing(filename))
+		UpdateFile(filename);
+	else
+		SaveTo(filename);
 }
 
 IniSection& IniFile::AddUniqueSection(const std::string& sectionName)
