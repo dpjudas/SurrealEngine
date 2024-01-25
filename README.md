@@ -31,7 +31,7 @@ The game launches, menu options will work and botmatches can be played, however 
 
 ### Unreal Gold v226
 
-The game launches, menu options will work most of the time. Only botmatches can be played for the time being, as trying to open up single player maps result in crashes. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken.
+The game launches, menu options will work most of the time. Single player maps can be played, as well as botmatches. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken.
 
 ### Deus Ex v1112fm
 
@@ -50,6 +50,17 @@ Use CMake to build the project. There are no other external third party dependen
 ## Linux build instructions
 
 Use CMake to build the project.
+
+From the folder you want to clone the repo to (commands should be entered in the given order):
+
+    git clone https://github.com/dpjudas/SurrealEngine.git
+    cd SurrealEngine
+    mkdir build
+    cd build
+    cmake ..
+    make
+
+When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
 
 You'll need the dev packages for the following things:
 
