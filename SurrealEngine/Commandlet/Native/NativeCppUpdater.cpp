@@ -6,6 +6,7 @@
 #include "DebuggerApp.h"
 #include <filesystem>
 #include <stdexcept>
+#include <algorithm>
 
 namespace
 {
