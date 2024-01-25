@@ -2033,8 +2033,6 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 
 UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
 {
-	bestAim = 0.0f;
-	bestDist = 0.0f;
 	UActor* bestActor = nullptr;
 	for (UActor* actor : XLevel()->Actors)
 	{
@@ -2050,8 +2048,6 @@ UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDi
 
 UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
 {
-	bestAim = 0.0f;
-	bestDist = 0.0f;
 	UActor* bestActor = nullptr;
 	auto ourPlayerInfo = PlayerReplicationInfo();
 	bool teamGame = ourPlayerInfo && Level()->Game()->bTeamGame();
