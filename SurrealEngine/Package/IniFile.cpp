@@ -288,7 +288,7 @@ void IniFile::UpdateFile(const std::string& filename)
 			{
 				std::string key = line.substr(0, equal_pos);
 				std::string key_without_brackets = key; // Will differ from key if the said key contains brackets
-				std::string value = line.substr(equal_pos + 1);
+				std::string value_from_file = line.substr(equal_pos + 1);
 
 				size_t left_bracket_pos = key.find('['),
 					   right_bracket_pos = key.find(']');
@@ -332,8 +332,8 @@ void IniFile::UpdateFile(const std::string& filename)
 					ini_value = current_section->GetValue(key, "", occurance_found ? keyOccurrances[found_index].currentIndex : 0);
 				
 				// Update the current line if the value differs
-				if (value != ini_value)
-					*line_it = key + "=" + value;
+				if (value_from_file != ini_value)
+					*line_it = key + "=" + ini_value;
 			}
 		}
 	}
