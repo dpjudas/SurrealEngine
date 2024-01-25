@@ -342,6 +342,8 @@ void IniFile::UpdateFile()
 	}
 	
 	File::write_all_text(ini_file_path, final_text);
+
+	isModified = false;
 }
 
 IniSection& IniFile::AddUniqueSection(const std::string& sectionName)
