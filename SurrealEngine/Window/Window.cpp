@@ -120,8 +120,13 @@ Size GameWindow::ParseResolutionString(std::string& resolutionString) const
 	if (resolutionString.empty())
 		return Size(0, 0);
 
+#ifdef WIN32
+	int width, height;
+	int parsedDataCount = sscanf_s(resolutionString.c_str(), "%dx%d", &width, &height);
+#else
 	int width, height;
 	int parsedDataCount = sscanf(resolutionString.c_str(), "%dx%d", &width, &height);
+#endif
 
 	// Handle incorrect parsings
 	// sscanf() returns EOF on input failure, or the amount of "data processed" otherwise

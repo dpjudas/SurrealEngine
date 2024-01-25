@@ -4,8 +4,6 @@
 #include "CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
-#include "UObject/NativeObjExtractor.h"
-#include "VM/NativeFuncExtractor.h"
 #include "UI/WidgetResourceData.h"
 #include "File.h"
 #include <zwidget/core/theme.h>
