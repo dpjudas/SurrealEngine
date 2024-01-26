@@ -28,7 +28,7 @@ std::string NativeFuncExtractor::Run(PackageManager* packages)
 		}
 	}
 
-	return jsonRoot.to_json();
+	return jsonRoot.to_json(true);
 }
 
 JsonValue NativeFuncExtractor::CreatePackageJson(Package* package)

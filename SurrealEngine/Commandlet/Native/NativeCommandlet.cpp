@@ -25,7 +25,7 @@ void NativeCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	if (args == "extractfuncs")
 	{
 		Engine engine(console->launchinfo);
-		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Native.json";
+		std::string path = console->launchinfo.gameExecutableName + "-" + console->launchinfo.gameVersionString + "-Natives.json";
 		File::write_all_text(path, NativeFuncExtractor::Run(engine.packages.get()));
 	}
 	else if (args == "extractprops")

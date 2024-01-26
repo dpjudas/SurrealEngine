@@ -26,7 +26,7 @@ std::string NativeObjExtractor::Run(PackageManager* packages)
 		}
 	}
 
-	return jsonRoot.to_json();
+	return jsonRoot.to_json(true);
 }
 
 JsonValue NativeObjExtractor::CreatePackageJson(Package* package)
