@@ -18,6 +18,7 @@ private:
 	{
 		std::string args;
 		std::vector<std::string> games;
+		int argCount = 0;
 	};
 
 	struct NativeFunction

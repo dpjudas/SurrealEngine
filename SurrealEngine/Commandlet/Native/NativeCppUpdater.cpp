@@ -172,6 +172,56 @@ std::string NativeCppUpdater::UpdateBlock(const std::string& args, const std::st
 			}
 		}
 	}
+	else if (type == "Register") // Native functions registration block (PackageManager::RegisterFunctions)
+	{
+		bool foundGameVersion = false;
+		for (const NativeClass& cls : Classes)
+		{
+			for (const NativeFunction& func : cls.funcs)
+			{
+				// Is this function available in this game version?
+				std::pair<std::string, int> versionIndex;
+				for (const auto& item : func.versionIndex)
+				{
+					if (item.first == name)
+					{
+						versionIndex = item;
+						break;
+					}
+				}
+				if (versionIndex.first.empty())
+					continue;
+
+				for (int i = 0; i < func.decls.size(); i++)
+				{
+					const NativeFunctionDecl& decl = func.decls[i];
+
+					// Is this the declaration for this game version?
+					if (std::find(decl.games.begin(), decl.games.end(), name) == decl.games.end())
+						continue;
+
+					std::string funcName = func.name;
+
+					// To do: we can't use the decl index here as that assumes we have all json files and in the correct order.
+					if (i > 0)
+						funcName += "_" + std::to_string(i);
+
+					std::string cppFuncName = "N" + cls.name + "::" + funcName;
+					std::string code = "RegisterVMNativeFunc_" + std::to_string(decl.argCount) + "(\"" + cls.name + "\", \"" + func.name + "\", &" + cppFuncName + ", " + std::to_string(versionIndex.second) + ");";
+
+					output += whitespaceprefix;
+					output += code;
+					output += NewLineStr;
+
+					foundGameVersion = true;
+				}
+			}
+		}
+		if (!foundGameVersion) // Block from game we don't have json files for. Just let it be.
+		{
+			output += block;
+		}
+	}
 	else // Unknown block. Just let it be.
 	{
 		output += block;
@@ -216,9 +266,9 @@ void NativeCppUpdater::ParseJsonFiles()
 		JsonValue json = JsonValue::parse(File::read_all_text(file));
 
 		if (parseNatives)
-			ParseGameNatives(json, version);
+			ParseGameNatives(json, game + "-" + version);
 		else
-			ParseGameProperties(json, version);
+			ParseGameProperties(json, game + "-" + version);
 	}
 }
 
@@ -334,7 +384,7 @@ void NativeCppUpdater::NativeClass::ParseClassFunction(const std::string& funcNa
 
 		// Need to check all existing function declarations.
 		// Games can have different versions of the same function.
-		for (auto decl : func.decls)
+		for (auto& decl : func.decls)
 		{
 			std::string declArgsLower;
 			declArgsLower.resize(decl.args.size());
@@ -352,6 +402,7 @@ void NativeCppUpdater::NativeClass::ParseClassFunction(const std::string& funcNa
 	NativeFunctionDecl decl;
 	decl.args = funcArgs;
 	decl.games.push_back(version);
+	decl.argCount = (int)args.size();
 	func.decls.push_back(std::move(decl));
 }
 
