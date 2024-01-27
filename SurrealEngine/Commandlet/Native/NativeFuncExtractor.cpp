@@ -68,6 +68,7 @@ JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 {
 	JsonValue jsonFunc = JsonValue::object();
 	jsonFunc.add("NativeFuncIndex", JsonValue::number(func->NativeFuncIndex));
+	jsonFunc.add("Static", JsonValue::boolean(AllFlags(func->FuncFlags, FunctionFlags::Static)));
 
 	std::vector<std::string> args;
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
