@@ -92,10 +92,11 @@ void JsonValueImpl::write_array(const JsonValue &value, std::string &json, int i
 
 void JsonValueImpl::write_object(const JsonValue &value, std::string &json, int indent)
 {
+	json += "{";
+
 	if (indent >= 0)
 		indent += 2;
 
-	json += "{";
 	std::map<std::string, JsonValue>::const_iterator it;
 	for (it = value.properties().begin(); it != value.properties().end(); ++it)
 	{
@@ -108,6 +109,10 @@ void JsonValueImpl::write_object(const JsonValue &value, std::string &json, int 
 			json.push_back(' ');
 		write(it->second, json, indent);
 	}
+
+	if (indent >= 0)
+		indent -= 2;
+
 	write_indent(json, indent);
 	json += "}";
 }
