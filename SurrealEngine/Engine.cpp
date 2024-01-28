@@ -207,7 +207,13 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
-	ClientTravelInfo.URL = newURL;
+	size_t tagPos = newURL.find('#');
+
+	if (tagPos != std::string::npos)
+		ClientTravelInfo.URL = newURL.substr(0, tagPos);
+	else
+		ClientTravelInfo.URL = newURL;
+
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -215,10 +221,23 @@ void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool tr
 UnrealURL Engine::GetDefaultURL(const std::string& map)
 {
 	UnrealURL url;
+	std::string teleporterTag = "";
+	std::string finalMapName = map;
+
+	size_t tagPos = map.find('#');
+
+	if (tagPos != std::string::npos)
+	{
+		teleporterTag = map.substr(tagPos + 1);
+		finalMapName = map.substr(0, tagPos);
+	}
 	if (map.find("." + packages->GetMapExtension()) == std::string::npos)
-		url.Map = map + "." + packages->GetMapExtension();
+		url.Map = finalMapName + "." + packages->GetMapExtension();
 	else
-		url.Map = map;
+		url.Map = finalMapName;
+
+	if (!teleporterTag.empty())
+		url.Portal = teleporterTag;
 	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
 	{
 		url.Options.push_back(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
