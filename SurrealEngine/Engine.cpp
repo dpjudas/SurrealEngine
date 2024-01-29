@@ -207,13 +207,8 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
-	size_t tagPos = newURL.find('#');
-
-	if (tagPos != std::string::npos)
-		ClientTravelInfo.URL = newURL.substr(0, tagPos);
-	else
-		ClientTravelInfo.URL = newURL;
-
+	UnrealURL url(newURL);
+	ClientTravelInfo.URL = url.Map;
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -652,17 +647,18 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		std::string maparg = args[1];
 
+		UnrealURL url(maparg);
+
 		for (auto& map : packages->GetMaps())
 		{
 			std::string mapname = FilePath::remove_extension(map);
 #ifdef WIN32
-			if (_stricmp(mapname.c_str(), maparg.c_str()) == 0)
+			if (_stricmp(mapname.c_str(), url.Map.c_str()) == 0)
 #else
-			if (strcasecmp(mapname.c_str(), maparg.c_str()) == 0)
+			if (strcasecmp(mapname.c_str(), url.Map.c_str()) == 0)
 #endif
 			{
-				UnloadMap();
-				LoadMap(GetDefaultURL(mapname));
+				LoadMap(url);
 				LoginPlayer();
 			}	
 		}
