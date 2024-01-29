@@ -153,6 +153,7 @@ DarkWidgetTheme::DarkWidgetTheme()
 	auto tabbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar");
 	auto tabbar_tab = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar-tab");
 	auto tabwidget_stack = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabwidget-stack");
+	auto checkbox_label = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "checkbox-label");
 
 	widget->SetString("font-family", "NotoSans");
 	widget->SetColor("color", Colorf::fromRgba8(226, 223, 219));
@@ -222,6 +223,12 @@ DarkWidgetTheme::DarkWidgetTheme()
 	tabwidget_stack->SetDouble("noncontent-top", 5.0);
 	tabwidget_stack->SetDouble("noncontent-right", 20.0);
 	tabwidget_stack->SetDouble("noncontent-bottom", 5.0);
+
+	checkbox_label->SetColor("checked-outer-border-color", Colorf::fromRgba8(100, 100, 100));
+	checkbox_label->SetColor("checked-inner-border-color", Colorf::fromRgba8(51, 51, 51));
+	checkbox_label->SetColor("checked-color", Colorf::fromRgba8(226, 223, 219));
+	checkbox_label->SetColor("unchecked-outer-border-color", Colorf::fromRgba8(99, 99, 99));
+	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(51, 51, 51));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -238,10 +245,14 @@ LightWidgetTheme::LightWidgetTheme()
 	auto tabbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar");
 	auto tabbar_tab = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar-tab");
 	auto tabwidget_stack = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabwidget-stack");
+	auto checkbox_label = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "checkbox-label");
 
 	widget->SetString("font-family", "NotoSans");
 	widget->SetColor("color", Colorf::fromRgba8(0, 0, 0));
 	widget->SetColor("window-background", Colorf::fromRgba8(240, 240, 240));
+	widget->SetColor("window-border", Colorf::fromRgba8(100, 100, 100));
+	widget->SetColor("window-caption-color", Colorf::fromRgba8(70, 70, 70));
+	widget->SetColor("window-caption-text-color", Colorf::fromRgba8(226, 223, 219));
 
 	pushbutton->SetDouble("noncontent-left", 10.0);
 	pushbutton->SetDouble("noncontent-top", 5.0);
@@ -304,4 +315,10 @@ LightWidgetTheme::LightWidgetTheme()
 	tabwidget_stack->SetDouble("noncontent-top", 5.0);
 	tabwidget_stack->SetDouble("noncontent-right", 20.0);
 	tabwidget_stack->SetDouble("noncontent-bottom", 5.0);
+
+	checkbox_label->SetColor("checked-outer-border-color", Colorf::fromRgba8(155, 155, 155));
+	checkbox_label->SetColor("checked-inner-border-color", Colorf::fromRgba8(200, 200, 200));
+	checkbox_label->SetColor("checked-color", Colorf::fromRgba8(50, 50, 50));
+	checkbox_label->SetColor("unchecked-outer-border-color", Colorf::fromRgba8(156, 156, 156));
+	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(200, 200, 200));
 }
