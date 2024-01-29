@@ -2,6 +2,8 @@
 
 #include "UObject.h"
 
+#include <sstream>
+
 class UTexture;
 class UMesh;
 class UModel;
@@ -1138,6 +1140,65 @@ public:
 		// Unreal uses relative urls
 		if (Map.size() > 8 && Map.substr(0, 8) == "..\\maps\\")
 			Map = Map.substr(8);
+	}
+	UnrealURL(const std::string& urlString)
+	{
+		// Expected url format on a local game:
+		// mapname[#teleporttag][?key1=value1[?key2=value2]...]
+
+		std::string mapName = "";
+		std::string teleportTag = "";
+		std::string options = "";
+
+		size_t teleportTagPos = urlString.find('#');
+
+		if (teleportTagPos != std::string::npos)
+		{
+			mapName = urlString.substr(0, teleportTagPos);
+
+			size_t optionsTagPos = urlString.find_first_of('?');
+
+			if (optionsTagPos != std::string::npos)
+			{
+				teleportTag = urlString.substr(teleportTagPos + 1, optionsTagPos - teleportTagPos + 1);
+				options = urlString.substr(optionsTagPos + 1);
+			}
+			else
+				// No options mean that the string consists of only the map name and teleporter tag
+				teleportTag = urlString.substr(teleportTagPos + 1);
+		}
+		else
+		{
+			// No teleporter tag
+			size_t optionsTagPos = urlString.find_first_of('?');
+
+			if (optionsTagPos != std::string::npos)
+			{
+				mapName = urlString.substr(0, optionsTagPos);
+				options = urlString.substr(optionsTagPos + 1);
+			}
+			else
+				// No options either, which means the url is just the name of the map
+				mapName = urlString;
+		}
+
+		// Remove map extension from mapName if it is there
+		size_t extPos = mapName.find(".");
+		if (extPos != std::string::npos)
+			mapName = mapName.substr(0, extPos);
+
+		Map = mapName;
+		Portal = teleportTag;
+
+		// Parse the options
+		if (!options.empty())
+		{
+			std::stringstream ss(options);
+			std::string option;
+
+			while (getline(ss, option, '?'))
+				AddOrReplaceOption(option); // The key=value parsing is done within AddOrReplaceOption()
+		}
 	}
 
 	std::string Protocol = "unreal";
