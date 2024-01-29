@@ -28,7 +28,7 @@ std::string NativeFuncExtractor::Run(PackageManager* packages)
 		}
 	}
 
-	return jsonRoot.to_json();
+	return jsonRoot.to_json(true);
 }
 
 JsonValue NativeFuncExtractor::CreatePackageJson(Package* package)
@@ -68,6 +68,7 @@ JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 {
 	JsonValue jsonFunc = JsonValue::object();
 	jsonFunc.add("NativeFuncIndex", JsonValue::number(func->NativeFuncIndex));
+	jsonFunc.add("Static", JsonValue::boolean(AllFlags(func->FuncFlags, FunctionFlags::Static)));
 
 	std::vector<std::string> args;
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)

@@ -33,6 +33,7 @@ public:
 	static void write_all_text(const std::string& filename, const std::string& text);
 	static std::vector<uint8_t> read_all_bytes(const std::string& filename);
 	static std::string read_all_text(const std::string& filename);
+	static std::vector<std::string> read_all_lines(const std::string& filename);
 
 	uint8_t read_uint8() { uint8_t v; read(&v, sizeof(uint8_t)); return v; }
 	int8_t read_int8() { int8_t v; read(&v, sizeof(int8_t)); return v; }

@@ -22,6 +22,7 @@ extern const char* __progname;
 #endif
 #include <stdexcept>
 #include <string.h>
+#include <sstream>
 
 #ifdef WIN32
 
@@ -218,6 +219,25 @@ std::string File::read_all_text(const std::string& filename)
 	buffer.resize(size);
 	file->read(&buffer[0], buffer.size());
 	return buffer;
+}
+
+std::vector<std::string> File::read_all_lines(const std::string& filename)
+{
+	std::string text = read_all_text(filename);
+
+	if (text.empty())
+		return {};
+
+	std::vector<std::string> result;
+
+	std::string buffer;
+
+	std::stringstream ss(text);
+
+	while (std::getline(ss, buffer)) // Default delimiter is '\n'
+		result.push_back(buffer);
+
+	return result;
 }
 
 /////////////////////////////////////////////////////////////////////////////

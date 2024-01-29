@@ -74,6 +74,7 @@ private:
 	void ScanPaths();
 
 	void DelayLoadNow();
+	void RegisterFunctions();
 
 	std::vector<UObject*> delayLoads;
 	int delayLoadActive = 0;

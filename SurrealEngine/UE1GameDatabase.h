@@ -29,6 +29,7 @@ enum class KnownUE1Games
 	KLINGON_219,
 	NERF_300,
 	TNN_200,
+	RUNE_110,
 	UNDYING_420
 };
 
@@ -125,6 +126,9 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"4b1c00883d289edd2e7ed02fd4da13fb4be2256f", KnownUE1Games::KLINGON_219},
 	// Khg.exe (Version 1.1)
 	{"96a35fff68d3e1539b4d4da8d7363dfbbd115cc5", KnownUE1Games::KLINGON_219},
+
+	// Rune Classic, Version 1.10
+	{"4a517c7f96a27cf7e25534c80d50af8db4065276", KnownUE1Games::RUNE_110},
 
 	// TNN Outdoors Pro Hunter
 	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200}

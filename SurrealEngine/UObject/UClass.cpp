@@ -625,3 +625,20 @@ UProperty* UClass::GetProperty(const NameString& propName)
 	}
 	throw std::runtime_error("Class Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
+
+void UClass::SaveToConfig(PackageManager& packageManager)
+{
+	if (!(ClsFlags & ClassFlags::Config))
+		return;
+
+	auto ini_file = packageManager.GetIniFile(ClassConfigName);
+
+	// Iterate and save Properties that are marked with Config
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if ((uint32_t)(prop->PropFlags & PropertyFlags::Config))
+		{
+			ini_file->SetValue(this->Name, prop->Name, prop->PrintValue(PropertyData.Ptr(prop)));
+		}
+	}
+}

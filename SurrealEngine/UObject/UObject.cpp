@@ -132,6 +132,11 @@ void UObject::SetPropertyFromString(const NameString& name, const std::string& v
 	throw std::runtime_error("UObject::SetPropertyFromString not implemented");
 }
 
+void UObject::SaveConfig()
+{
+	Class->SaveToConfig(*engine->packages.get());
+}
+
 uint8_t UObject::GetByte(const NameString& name) const
 {
 	return *static_cast<const uint8_t*>(GetProperty(name));

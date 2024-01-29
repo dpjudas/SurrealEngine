@@ -1605,6 +1605,10 @@ public:
 	bool ActorReachable(UActor* anActor);
 	bool PointReachable(vec3 aPoint);
 
+	UActor* PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
+	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
+	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
+
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }
 	float& AirSpeed() { return Value<float>(PropOffsets_Pawn.AirSpeed); }

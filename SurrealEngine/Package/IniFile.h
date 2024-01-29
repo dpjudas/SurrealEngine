@@ -73,6 +73,15 @@ public:
 	// Saves values to a specified file
 	void SaveTo(const std::string& filename);
 
+	// Compares the text written in the ini file with what's in the memory, and updates the changed sections
+	// (File is still completely replaced, but this way the previous additional data in it won't be lost)
+	void UpdateFile();
+	// Updates values in a specified file
+	void UpdateFile(const std::string& filename);
+
+	// Updates the file with the changed values if it exists, otherwise saves the values to a new file instead
+	void UpdateIfExists(const std::string& filename);
+
 private:
 	bool ReadLine(const std::string& text, size_t& pos, std::string& line);
 
