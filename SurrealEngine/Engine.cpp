@@ -51,6 +51,7 @@ void Engine::Run()
 	client = UObject::Cast<USurrealClient>(packages->NewObject("client", "Engine", "SurrealClient"));
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
+	DefaultTexture = UObject::Cast<UTexture>(packages->GetPackage("engine")->GetUObject("Texture", "DefaultTexture"));
 
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
 	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
@@ -301,6 +302,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		LevelInfo->MinNetVersion() = "500";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
+	LevelInfo->DefaultTexture() = engine->DefaultTexture;
 
 	LevelInfo->URL = url;
 

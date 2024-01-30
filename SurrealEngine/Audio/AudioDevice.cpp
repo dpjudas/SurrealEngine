@@ -394,6 +394,9 @@ public:
 	void PlayMusicBuffer() override
 	{
 		playbackMutex.lock();
+		if (!music)
+			return;
+
 		int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 		int freq = music->GetFrequency();
 		playbackMutex.unlock();
@@ -417,9 +420,6 @@ public:
 
 	void UpdateMusicBuffer() override
 	{
-		if (!music)
-			return;
-
 		ALint status;
 		alGetSourcei(alMusicSource, AL_BUFFERS_PROCESSED, &status);
 
@@ -429,6 +429,10 @@ public:
 			alSourceUnqueueBuffers(alMusicSource, 1, &buffer);
 
 			playbackMutex.lock();
+
+			if (!music)
+				return;
+
 			int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 			int freq = music->GetFrequency();
 			playbackMutex.unlock();

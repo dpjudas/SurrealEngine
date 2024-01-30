@@ -5,7 +5,7 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
-FTextureInfo RenderSubsystem::GetBrushLightmap(const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	int lightmapIndex = poly.BrushPolyIndex;
 	if (lightmapIndex < 0)
@@ -13,14 +13,14 @@ FTextureInfo RenderSubsystem::GetBrushLightmap(const Poly& poly, UZoneInfo* zone
 
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 
-	uint64_t cacheID = (((uint64_t)lightmapIndex) << 32) | (((uint64_t)ambientID) << 8) | 1;
+	uint64_t cacheID = (uint64_t)&poly; //(((uint64_t)lightmapIndex) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
 	auto level = engine->Level;
 	auto& lmtexture = Light.brushlmtextures[{ model, cacheID }];
 	if (!lmtexture)
 	{
 		Coords mapCoords;
-		mapCoords.Origin = poly.Base;
+		mapCoords.Origin = poly.Base - actor->PrePivot();
 		mapCoords.XAxis = poly.TextureU;
 		mapCoords.YAxis = poly.TextureV;
 		mapCoords.ZAxis = poly.Normal;
