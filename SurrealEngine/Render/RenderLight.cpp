@@ -5,7 +5,7 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
-FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model, const mat4& objectToWorld)
 {
 	int lightmapIndex = poly.BrushPolyIndex;
 	if (lightmapIndex < 0)
@@ -19,8 +19,10 @@ FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, 
 	auto& lmtexture = Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
+		// To do: do we also need to rotate XAxis, YAxis and ZAxis?
+		// To do: is objectToWorld correct here? It needs to be the location used at the original lightmap trace bake in the editor
 		Coords mapCoords;
-		mapCoords.Origin = poly.Base;
+		mapCoords.Origin = (objectToWorld * vec4(poly.Base, 1.0f)).xyz();
 		mapCoords.XAxis = poly.TextureU;
 		mapCoords.YAxis = poly.TextureV;
 		mapCoords.ZAxis = poly.Normal;
