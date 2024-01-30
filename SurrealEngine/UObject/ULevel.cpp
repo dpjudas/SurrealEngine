@@ -280,7 +280,7 @@ void UModel::Load(ObjectStream* stream)
 		}
 	}
 
-	Polys = stream->ReadIndex();
+	Polys = stream->ReadObject<UPolys>();
 
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)

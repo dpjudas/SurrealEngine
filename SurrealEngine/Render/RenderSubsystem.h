@@ -85,6 +85,7 @@ private:
 
 	void DrawBrush(FSceneNode* frame, UActor* actor);
 	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, UActor* actor);
+	void DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UActor* actor);
 
 	void DrawSprite(FSceneNode* frame, UActor* actor);
 	void DrawCoronas(FSceneNode* frame);
