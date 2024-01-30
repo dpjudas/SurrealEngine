@@ -151,8 +151,8 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		// lightmap = GetSurfaceLightmap(surface, facet, zoneActor, model);
-		// fogmap = GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
+		lightmap = GetBrushLightmap(poly, zoneActor, model);
+		//fogmap = GetSurfaceFogmap(poly, engine->CameraActor->Region().Zone, model);
 	}
 
 	FSurfaceInfo surfaceinfo;
