@@ -1126,6 +1126,12 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 	return true;
 }
 
+double UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
+{
+	// Default cylinder
+	return level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
+}
+
 UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent)
 {
 	TraceFlags flags;

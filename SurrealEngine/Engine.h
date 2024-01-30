@@ -129,6 +129,7 @@ public:
 	ULevel* Level = nullptr;
 	Package* LevelPackage = nullptr;
 	UGameInfo* GameInfo = nullptr;
+	UTexture* DefaultTexture = nullptr;
 	struct
 	{
 		std::string URL;

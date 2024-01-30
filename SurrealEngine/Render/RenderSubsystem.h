@@ -59,13 +59,15 @@ private:
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);
 
-	FTextureInfo GetBrushLightmap(const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 	void UpdateActorLightList(UActor* actor);
 	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
 
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
+	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
+	void UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
 	void UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 
 	void ResetCanvas();

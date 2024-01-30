@@ -5,7 +5,7 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
-FTextureInfo RenderSubsystem::GetBrushLightmap(const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	int lightmapIndex = poly.BrushPolyIndex;
 	if (lightmapIndex < 0)

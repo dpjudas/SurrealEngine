@@ -124,26 +124,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	{
 		UTexture* tex = surface.Material->GetAnimTexture();
 		UpdateTexture(tex);
-		texture.CacheID = (uint64_t)(ptrdiff_t)tex;
-		texture.bRealtimeChanged = tex->TextureModified;
-		texture.UScale = tex->DrawScale();
-		texture.VScale = tex->DrawScale();
-		texture.Pan.x = -(float)surface.PanU;
-		texture.Pan.y = -(float)surface.PanV;
-		texture.Texture = tex;
-		texture.Format = texture.Texture->ActualFormat;
-		texture.Mips = texture.Texture->Mipmaps.data();
-		texture.NumMips = (int)texture.Texture->Mipmaps.size();
-		texture.USize = texture.Texture->USize();
-		texture.VSize = texture.Texture->VSize();
-		if (texture.Texture->Palette())
-			texture.Palette = (FColor*)texture.Texture->Palette()->Colors.data();
-
-		if (surface.Material->TextureModified)
-			surface.Material->TextureModified = false;
-
-		if (PolyFlags & PF_AutoUPan) texture.Pan.x -= AutoUV * ZoneUPanSpeed;
-		if (PolyFlags & PF_AutoVPan) texture.Pan.y -= AutoUV * ZoneVPanSpeed;
+		UpdateTextureInfo(texture, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
 
 	FTextureInfo detailtex;
@@ -151,23 +132,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	{
 		UTexture* tex = surface.Material->DetailTexture()->GetAnimTexture();
 		UpdateTexture(tex);
-		detailtex.CacheID = (uint64_t)(ptrdiff_t)tex;
-		detailtex.bRealtimeChanged = false;
-		detailtex.UScale = tex->DrawScale();
-		detailtex.VScale = tex->DrawScale();
-		detailtex.Pan.x = -(float)surface.PanU;
-		detailtex.Pan.y = -(float)surface.PanV;
-		detailtex.Texture = tex;
-		detailtex.Format = detailtex.Texture->ActualFormat;
-		detailtex.Mips = detailtex.Texture->Mipmaps.data();
-		detailtex.NumMips = (int)detailtex.Texture->Mipmaps.size();
-		detailtex.USize = detailtex.Texture->USize();
-		detailtex.VSize = detailtex.Texture->VSize();
-		if (detailtex.Texture->Palette())
-			detailtex.Palette = (FColor*)detailtex.Texture->Palette()->Colors.data();
-
-		if (PolyFlags & PF_AutoUPan) detailtex.Pan.x -= AutoUV * ZoneUPanSpeed;
-		if (PolyFlags & PF_AutoVPan) detailtex.Pan.y -= AutoUV * ZoneVPanSpeed;
+		UpdateTextureInfo(detailtex, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
 
 	FTextureInfo macrotex;
@@ -175,23 +140,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	{
 		UTexture* tex = surface.Material->MacroTexture()->GetAnimTexture();
 		UpdateTexture(tex);
-		macrotex.CacheID = (uint64_t)(ptrdiff_t)tex;
-		macrotex.bRealtimeChanged = false;
-		macrotex.UScale = tex->DrawScale();
-		macrotex.VScale = tex->DrawScale();
-		macrotex.Pan.x = -(float)surface.PanU;
-		macrotex.Pan.y = -(float)surface.PanV;
-		macrotex.Format = macrotex.Texture->ActualFormat;
-		macrotex.Texture = tex;
-		macrotex.Mips = macrotex.Texture->Mipmaps.data();
-		macrotex.NumMips = (int)macrotex.Texture->Mipmaps.size();
-		macrotex.USize = macrotex.Texture->USize();
-		macrotex.VSize = macrotex.Texture->VSize();
-		if (macrotex.Texture->Palette())
-			macrotex.Palette = (FColor*)macrotex.Texture->Palette()->Colors.data();
-
-		if (PolyFlags & PF_AutoUPan) macrotex.Pan.x -= AutoUV * ZoneUPanSpeed;
-		if (PolyFlags & PF_AutoVPan) macrotex.Pan.y -= AutoUV * ZoneVPanSpeed;
+		UpdateTextureInfo(macrotex, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
 
 	int numverts = node->NumVertices;
@@ -302,10 +251,11 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 				}
 				else if (dt == DT_Brush && actor->Brush())
 				{
-					BBox bbox = actor->Brush()->BoundingBox;
+					UModel* brush = actor->Brush();
+					BBox bbox = brush->BoundingBox;
 					bbox.min += actor->Location();
 					bbox.max += actor->Location();
-					if (Scene.Clipper.IsAABBVisible(bbox))
+					if (brush->Nodes.size() > 0 && Scene.Clipper.IsAABBVisible(bbox))
 					{
 						Scene.Actors.push_back(actor);
 					}
