@@ -5,6 +5,47 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
+FTextureInfo RenderSubsystem::GetBrushLightmap(const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+{
+	int lightmapIndex = poly.BrushPolyIndex;
+	if (lightmapIndex < 0)
+		return {};
+
+	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
+
+	uint64_t cacheID = (((uint64_t)lightmapIndex) << 32) | (((uint64_t)ambientID) << 8) | 1;
+
+	auto level = engine->Level;
+	auto& lmtexture = Light.brushlmtextures[{ model, cacheID }];
+	if (!lmtexture)
+	{
+		Coords mapCoords;
+		mapCoords.Origin = poly.Base;
+		mapCoords.XAxis = poly.TextureU;
+		mapCoords.YAxis = poly.TextureV;
+		mapCoords.ZAxis = poly.Normal;
+
+		Light.Builder.Setup(model, mapCoords, lightmapIndex, zoneActor);
+		Light.Builder.AddStaticLights(model, lightmapIndex);
+
+		lmtexture = CreateLightmapTexture();
+	}
+
+	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
+
+	FTextureInfo texinfo;
+	texinfo.CacheID = cacheID;
+	texinfo.Format = lmtexture->Format;
+	texinfo.Mips = &lmtexture->Mip;
+	texinfo.NumMips = 1;
+	texinfo.USize = texinfo.Mips[0].Width;
+	texinfo.VSize = texinfo.Mips[0].Height;
+	texinfo.Pan = { lmindex.PanX, lmindex.PanY };
+	texinfo.UScale = lmindex.UScale;
+	texinfo.VScale = lmindex.VScale;
+	return texinfo;
+}
+
 FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
 {
 	if (surface.LightMap < 0)
@@ -18,7 +59,16 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSur
 	auto& lmtexture = Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
-		lmtexture = CreateLightmapTexture(surface, zoneActor, model);
+		Coords mapCoords;
+		mapCoords.Origin = model->Points[surface.pBase];
+		mapCoords.XAxis = model->Vectors[surface.vTextureU];
+		mapCoords.YAxis = model->Vectors[surface.vTextureV];
+		mapCoords.ZAxis = model->Vectors[surface.vNormal];
+
+		Light.Builder.Setup(model, mapCoords, surface.LightMap, zoneActor);
+		Light.Builder.AddStaticLights(model, surface.LightMap);
+
+		lmtexture = CreateLightmapTexture();
 	}
 
 	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
@@ -36,11 +86,8 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSur
 	return texinfo;
 }
 
-std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture(const BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 {
-	Light.Builder.Setup(model, surface, zoneActor);
-	Light.Builder.AddStaticLights(model, surface);
-
 #if 1 // Float high quality lightmaps
 
 	UnrealMipmap lmmip;

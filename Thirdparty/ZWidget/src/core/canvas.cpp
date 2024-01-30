@@ -769,7 +769,7 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float left, float top, floa
 	uint32_t cgreen = (int32_t)clamp(color.g * 255.0f, 0.0f, 255.0f);
 	uint32_t cblue = (int32_t)clamp(color.b * 255.0f, 0.0f, 255.0f);
 #ifdef USE_SSE2
-	__m128i crgba = _mm_set_epi16(0, cblue, cgreen, cred, 0, cblue, cgreen, cred);
+	__m128i crgba = _mm_set_epi16(0, cred, cgreen, cblue, 0, cred, cgreen, cblue);
 #endif
 
 	float uscale = uvwidth / width;

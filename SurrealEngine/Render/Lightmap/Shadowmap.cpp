@@ -4,9 +4,9 @@
 #include "Math/vec.h"
 #include "UObject/ULevel.h"
 
-void Shadowmap::Load(UModel* model, const BspSurface& surface, int lightindex)
+void Shadowmap::Load(UModel* model, int lightMap, int lightindex)
 {
-	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
+	const LightMapIndex& lmindex = model->LightMap[lightMap];
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
 	int pitch = (width + 7) / 8;

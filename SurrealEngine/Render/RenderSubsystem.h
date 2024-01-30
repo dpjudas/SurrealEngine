@@ -59,8 +59,9 @@ private:
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);
 
+	FTextureInfo GetBrushLightmap(const Poly& poly, UZoneInfo* zoneActor, UModel* model);
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
-	std::unique_ptr<LightmapTexture> CreateLightmapTexture(const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
+	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 	void UpdateActorLightList(UActor* actor);
 	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
 
@@ -85,6 +86,7 @@ private:
 
 	void DrawBrush(FSceneNode* frame, UActor* actor);
 	void DrawNodeSurfaceGouraud(FSceneNode* frame, UModel* model, const BspNode& node, int pass, UActor* actor);
+	void DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UActor* actor);
 
 	void DrawSprite(FSceneNode* frame, UActor* actor);
 	void DrawCoronas(FSceneNode* frame);
@@ -128,6 +130,7 @@ private:
 
 	struct
 	{
+		std::map<std::pair<UModel*, uint64_t>, std::unique_ptr<LightmapTexture>> brushlmtextures;
 		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
 		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
 		std::vector<UActor*> Lights;

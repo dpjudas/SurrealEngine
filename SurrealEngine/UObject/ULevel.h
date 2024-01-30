@@ -11,6 +11,7 @@ class UPawn;
 class UBrush;
 class UDecal;
 class UZoneInfo;
+class UPolys;
 struct PointRegion;
 
 enum EBspNodeFlags
@@ -181,7 +182,7 @@ public:
 
 	std::vector<ZoneProperties> Zones;
 
-	int Polys;
+	UPolys* Polys = nullptr;
 
 	std::vector<LightMapIndex> LightMap;
 	std::vector<uint8_t> LightBits;

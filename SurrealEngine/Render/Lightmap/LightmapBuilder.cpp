@@ -6,14 +6,14 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Math/hsb.h"
 
-void LightmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo* zoneActor)
+void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
 {
-	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
+	const LightMapIndex& lmindex = model->LightMap[lightMap];
 
 	width = lmindex.UClamp;
 	height = lmindex.VClamp;
-	normal = model->Vectors[surface.vNormal];
-	base = model->Points[surface.pBase];
+	normal = mapCoords.ZAxis;
+	base = mapCoords.Origin;
 
 	// Stop allocations over time by building up a reserve
 
@@ -25,7 +25,7 @@ void LightmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo*
 	if (illuminationmap.size() < size)
 		illuminationmap.resize(size);
 
-	CalcWorldLocations(model, surface, lmindex);
+	CalcWorldLocations(mapCoords, lmindex);
 
 	// Initialize lightmap with the ambient color
 
@@ -41,11 +41,11 @@ void LightmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo*
 	//bool isTranslucent = (surface.PolyFlags & PF_Translucent) == PF_Translucent;
 }
 
-void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
+void LightmapBuilder::AddStaticLights(UModel* model, int lightMap)
 {
 	size_t count = (size_t)width * height;
 
-	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
+	const LightMapIndex& lmindex = model->LightMap[lightMap];
 	if (lmindex.LightActors >= 0)
 	{
 		UActor** lightlist = &model->Lights[lmindex.LightActors];
@@ -54,7 +54,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
 			UActor* light = lightlist[lightindex];
 			if (light->LightType() != LT_None && light->LightBrightness() > 0)
 			{
-				Shadow.Load(model, surface, lightindex);
+				Shadow.Load(model, lightMap, lightindex);
 				Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
@@ -74,7 +74,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, const BspSurface& surface)
 	}
 }
 
-void LightmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex)
+void LightmapBuilder::CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex)
 {
 	// Note: this could be simplified a lot for better performance
 
@@ -82,13 +82,8 @@ void LightmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surfac
 	int width = this->width;
 	int height = this->height;
 
-	FSurfaceFacet facet;
-	facet.MapCoords.Origin = model->Points[surface.pBase];
-	facet.MapCoords.XAxis = model->Vectors[surface.vTextureU];
-	facet.MapCoords.YAxis = model->Vectors[surface.vTextureV];
-
-	float UDot = dot(facet.MapCoords.XAxis, facet.MapCoords.Origin);
-	float VDot = dot(facet.MapCoords.YAxis, facet.MapCoords.Origin);
+	float UDot = dot(MapCoords.XAxis, MapCoords.Origin);
+	float VDot = dot(MapCoords.YAxis, MapCoords.Origin);
 	float LMUPan = UDot + lmindex.PanX - 0.5f * lmindex.UScale;
 	float LMVPan = VDot + lmindex.PanY - 0.5f * lmindex.VScale;
 	float LMUMult = 1.0f / lmindex.UScale;
@@ -96,9 +91,9 @@ void LightmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surfac
 
 	vec3 p[3] =
 	{
-		facet.MapCoords.Origin,
-		facet.MapCoords.Origin + facet.MapCoords.XAxis,
-		facet.MapCoords.Origin + facet.MapCoords.YAxis
+		MapCoords.Origin,
+		MapCoords.Origin + MapCoords.XAxis,
+		MapCoords.Origin + MapCoords.YAxis
 	};
 
 	vec2 uv[3];
@@ -106,8 +101,8 @@ void LightmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surfac
 	{
 		uv[j] =
 		{
-			(dot(facet.MapCoords.XAxis, p[j]) - LMUPan) * LMUMult,
-			(dot(facet.MapCoords.YAxis, p[j]) - LMVPan) * LMVMult
+			(dot(MapCoords.XAxis, p[j]) - LMUPan) * LMUMult,
+			(dot(MapCoords.YAxis, p[j]) - LMVPan) * LMVMult
 		};
 	}
 

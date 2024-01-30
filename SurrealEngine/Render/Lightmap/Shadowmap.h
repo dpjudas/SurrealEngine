@@ -6,7 +6,7 @@ class BspSurface;
 class Shadowmap
 {
 public:
-	void Load(UModel* model, const BspSurface& surface, int lightindex);
+	void Load(UModel* model, int lightMap, int lightindex);
 
 	int Width() const { return width; }
 	int Height() const { return height; }

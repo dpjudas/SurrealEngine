@@ -8,12 +8,14 @@ class BspSurface;
 class LightMapIndex;
 class UModel;
 class UZoneInfo;
+class Coords;
+struct Poly;
 
 class LightmapBuilder
 {
 public:
-	void Setup(UModel* model, const BspSurface& surface, UZoneInfo* zoneActor);
-	void AddStaticLights(UModel* model, const BspSurface& surface);
+	void Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
+	void AddStaticLights(UModel* model, int lightMap);
 
 	int Width() const { return width; }
 	int Height() const { return height; }
@@ -23,7 +25,7 @@ private:
 	const vec3* WorldLocations() const { return points.data(); }
 	const vec3& WorldNormal() const { return normal; }
 
-	void CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex);
+	void CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex);
 
 	int width = 0;
 	int height = 0;
