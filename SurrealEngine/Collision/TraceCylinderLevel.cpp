@@ -47,7 +47,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 						{
 							for (UActor* actor : it->second)
 							{
-								double t = actor->TestCollision(level, origin, tmin, direction, tmax, dheight, dradius);
+								double t = actor->TraceTest(level, origin, tmin, direction, tmax, dheight, dradius);
 								if (t < tmax)
 								{
 									dvec3 hitpos = origin + direction * t;

@@ -1126,7 +1126,7 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 	return true;
 }
 
-double UActor::TestCollision(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
+double UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
 {
 	// Default cylinder
 	return level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
