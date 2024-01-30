@@ -282,6 +282,8 @@ void UModel::Load(ObjectStream* stream)
 
 	Polys = stream->ReadObject<UPolys>();
 
+	static uint32_t NextLMCacheID = 0; // For easier unique CacheIDs for lightmap textures
+
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
@@ -295,6 +297,7 @@ void UModel::Load(ObjectStream* stream)
 		entry.UScale = stream->ReadFloat();
 		entry.VScale = stream->ReadFloat();
 		entry.LightActors = stream->ReadInt32();
+		entry.LMCacheID = NextLMCacheID++;
 		LightMap.push_back(entry);
 	}
 
