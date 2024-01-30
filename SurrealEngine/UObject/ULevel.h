@@ -93,6 +93,8 @@ public:
 	float UScale;
 	float VScale;
 	int LightActors;
+
+	uint32_t LMCacheID = 0;
 };
 
 class ConvexVolumeLeaf
