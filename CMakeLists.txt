@@ -515,11 +515,13 @@ include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdpar
 
 if(NOT APPLE AND SDL2_FOUND)
 	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})
-	add_definitions(-DUSE_SDL2)
+	if (NOT DEFINED USE_SDL2)
+		add_definitions(-DUSE_SDL2)
+	endif()
 endif()
 
 if(WIN32)
-	if (SDL2_FOUND)
+	if (DEFINED USE_SDL2 AND SDL2_FOUND)
 		set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_WIN32_SOURCES} ${SURREALCOMMON_SDL2_SOURCES})
 		set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_WIN32_LIBS} ${SDL2_LIBRARIES})
 	else()
