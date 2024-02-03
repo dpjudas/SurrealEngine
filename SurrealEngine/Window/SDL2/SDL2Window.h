@@ -2,8 +2,15 @@
 
 #include <map>
 
+#ifdef WIN32
+// On Windows, headers from the development version of SDL2 aren't contained within a SDL2 folder
+#include <SDL.h>
+#include <SDL_vulkan.h>
+#else
+// On Linux, SDL headers are within a SDL2 folder instead (if the devel packages are installed, that is)
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
+#endif
 
 #include "Window/Window.h"
 
