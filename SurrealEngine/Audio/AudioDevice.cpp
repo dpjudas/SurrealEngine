@@ -316,10 +316,9 @@ public:
 
 	void PlayMusic(std::unique_ptr<AudioSource> source)
 	{
-		playbackMutex.lock();
+		std::unique_lock lock(playbackMutex);
 		music = std::move(source);
 		musicUpdate = true;
-		playbackMutex.unlock();
 	}
 
 	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
@@ -393,13 +392,13 @@ public:
 
 	void PlayMusicBuffer() override
 	{
-		playbackMutex.lock();
+		std::unique_lock lock(playbackMutex);
 		if (!music)
 			return;
 
 		int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 		int freq = music->GetFrequency();
-		playbackMutex.unlock();
+		lock.unlock();
 
 		ALenum error;
 		for (int i = 0; i < musicBufferCount; i++)
@@ -428,14 +427,14 @@ public:
 			ALuint buffer;
 			alSourceUnqueueBuffers(alMusicSource, 1, &buffer);
 
-			playbackMutex.lock();
+			std::unique_lock lock(playbackMutex);
 
 			if (!music)
 				return;
 
 			int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 			int freq = music->GetFrequency();
-			playbackMutex.unlock();
+			lock.unlock();
 
 			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if (alGetError() != AL_NO_ERROR)
@@ -490,7 +489,7 @@ public:
 	{
 		while (!bExit)
 		{
-			playbackMutex.lock();
+			std::unique_lock lock(playbackMutex);
 			if (musicUpdate)
 			{
 				musicUpdate = false;
@@ -510,7 +509,7 @@ public:
 					music->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
 					musicQueue.Push(musicQueue.GetNextFree());
 				}
-				playbackMutex.unlock();
+				lock.unlock();
 
 				if (!bMusicPlaying)
 				{
@@ -526,7 +525,7 @@ public:
 			}
 			else
 			{
-				playbackMutex.unlock();
+				lock.unlock();
 				bMusicPlaying = false;
 			}
 			using namespace std::chrono_literals;
