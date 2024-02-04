@@ -85,11 +85,17 @@ void GameWindow::ExitLoop()
 {
 #if defined(WIN32)
 	if (windowingSystemName == "Win32")
+	{
 		Win32Window::ExitLoop();
+		return;
+	}
 #endif
 #if defined(USE_SDL2)
-	else if (windowingSystemName == "SDL2")
+	if (windowingSystemName == "SDL2")
+	{
 		SDL2Window::ExitLoop();
+		return;
+	}
 #endif
 }
 
