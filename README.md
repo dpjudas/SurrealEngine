@@ -45,7 +45,11 @@ You can simply copy paste the SurrealEngine executable inside the System folder 
 
 ## Windows build instructions
 
-Use CMake to build the project. There are no other external third party dependencies.
+Use CMake to build the project. A recent version of Visual Studio, and MSVC compiler that supports C++17 is required.
+
+On Windows, SDL2 is an optional dependency that you need to supply locally yourself (download the Visual C++ version of SDL2, extract it somewhere and point to that folder in CMake settings). Supplying SDL2 will allow you to use it as an alternative windowing system.
+
+Other than that there are no other external third party dependencies.
 
 ## Linux build instructions
 
@@ -69,10 +73,8 @@ You'll need the dev packages for the following things:
 * pthreads
 * dl
 * alsa (libasound2)
+* SDL2
 
-If you have SDL2 installed on your system, SurrealEngine will utilise it for its windowing functionalities and native Wayland support (with `SDL_VIDEODRIVER=wayland`). Otherwise, it will fall back to using X11, which requires the following packages:
-
-* XRandR
-* Xlib
+On Linux, SDL2 is required, as SurrealEngine will utilise it for its windowing functionalities and native Wayland support (with `SDL_VIDEODRIVER=wayland`).
 
 Note that these packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
