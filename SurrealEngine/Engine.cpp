@@ -192,6 +192,13 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	if (packages->MissingSESystemIni())
+	{
+		// Add the missing Subsystem entries
+		client->SaveConfig();
+		audiodev->SaveConfig();
+		renderdev->SaveConfig();
+	}
 	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
