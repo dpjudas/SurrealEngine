@@ -161,8 +161,8 @@ public:
 private:
 	UActor* actor = nullptr;
 	USound* sound = nullptr;
-	vec3 position;
-	vec3 velocity;
+	vec3 position = vec3(0.0f);
+	vec3 velocity = vec3(0.0f);
 	float radius = 0.0f;
 	float volume = 0.0f;
 	float pitch = 0.0f;
@@ -533,14 +533,14 @@ public:
 		}
 	}
 
-	ALCdevice* alDevice;
-	ALCcontext* alContext;
-	ALenum alError;
-	ALuint alMusicSource;
+	ALCdevice* alDevice = nullptr;
+	ALCcontext* alContext = nullptr;
+	ALenum alError = 0;
+	ALuint alMusicSource = 0;
 	std::vector<ALuint> alMusicBuffers;
 	std::vector<ALSoundSource> sources;
-	ALint monoSources;
-	ALint stereoSources;
+	ALint monoSources = 0;
+	ALint stereoSources = 0;
 };
 
 std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize)
