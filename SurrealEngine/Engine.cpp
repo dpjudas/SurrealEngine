@@ -192,6 +192,7 @@ void Engine::Run()
 
 	window->UnlockCursor();
 
+	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
 	CloseWindow();
@@ -810,12 +811,19 @@ void Engine::LoadEngineSettings()
 		client->LoadProperties("WinDrv.WindowsClient");
 		audiodev->LoadProperties("Galaxy.GalaxyAudioSubsystem");
 		renderdev->LoadProperties("D3DDrv.Direct3DRenderDevice");
-		return;
+	}
+	else
+	{
+		client->LoadProperties();
+		audiodev->LoadProperties();
+		renderdev->LoadProperties();
 	}
 
-	client->LoadProperties();
-	audiodev->LoadProperties();
-	renderdev->LoadProperties();
+#ifdef WIN32
+	windowingSystemName = packages->GetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", "Win32");
+#else
+	windowingSystemName = packages->GetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", "SDL2");
+#endif
 }
 
 void Engine::LoadKeybindings()
@@ -878,7 +886,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = GameWindow::Create(this);
+		window = GameWindow::Create(this, windowingSystemName);
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;

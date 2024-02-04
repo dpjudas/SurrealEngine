@@ -108,7 +108,9 @@ public:
 class GameWindow
 {
 public:
-	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost);
+	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost, std::string& windowingSystemName);
+
+	static std::string windowingSystemName;
 
 	static void ProcessEvents();
 	static void RunLoop();
