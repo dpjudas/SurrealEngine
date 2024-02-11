@@ -469,8 +469,15 @@ void UActor::TickWalking(float elapsed)
 		{
 			vec3 moveDelta = vel * timeLeft;
 
+			// step up first
 			TryMove(stepUpDelta);
 			CollisionHit hit = TryMove(moveDelta);
+			timeLeft -= timeLeft * hit.Fraction;
+			moveDelta = vel * timeLeft;
+
+			// step back down so we don't bump our heads
+			TryMove(stepDownDelta);
+			hit = TryMove(moveDelta);
 			timeLeft -= timeLeft * hit.Fraction;
 
 			if (hit.Fraction < 1.0f)
@@ -2504,4 +2511,12 @@ void UDecal::DetachDecal()
 		else
 			++it;
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
+{
+	// Default cylinder
+	return level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
 }
