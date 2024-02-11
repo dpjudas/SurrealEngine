@@ -1,85 +1,103 @@
 
 #include "Precomp.h"
 #include "Window.h"
+
 #ifdef WIN32
 #include "Win32/Win32Window.h"
-#elif defined(USE_SDL)
-#include "SDL2/SDL2Window.h"
-#else
-#include "X11/X11Window.h"
 #endif
+
+#ifdef USE_SDL2
+#include "SDL2/SDL2Window.h"
+#endif
+
 #include <cstdio>
 #include <cmath>
 
-// TODO: base this off of ini setting, not dependent on OS macro
+std::string GameWindow::windowingSystemName;
 
-#ifdef WIN32
-
-std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost, std::string& windowingSystemName)
 {
-	return std::make_unique<Win32Window>(windowHost);
-}
+	if (windowingSystemName.empty())
+		throw std::runtime_error("Windowing system field is empty.");
 
-void GameWindow::ProcessEvents()
-{
-	Win32Window::ProcessEvents();
-}
-
-void GameWindow::RunLoop()
-{
-	Win32Window::RunLoop();
-}
-
-void GameWindow::ExitLoop()
-{
-	Win32Window::ExitLoop();
-}
-
-#elif defined(USE_SDL)
-
-std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
-{
-	return std::make_unique<SDL2Window>(windowHost);
-}
-
-void GameWindow::ProcessEvents()
-{
-	SDL2Window::ProcessEvents();
-}
-
-void GameWindow::RunLoop()
-{
-	SDL2Window::RunLoop();
-}
-
-void GameWindow::ExitLoop()
-{
-	SDL2Window::ExitLoop();
-}
-
-#else
-
-std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
-{
-	return std::make_unique<X11Window>(windowHost);
-}
-
-void GameWindow::ProcessEvents()
-{
-	X11Window::ProcessEvents();
-}
-
-void GameWindow::RunLoop()
-{
-	X11Window::RunLoop();
-}
-
-void GameWindow::ExitLoop()
-{
-	X11Window::ExitLoop();
-}
-
+#if !defined(WIN32)
+	if (windowingSystemName == "Win32")
+		throw std::runtime_error("Win32 windowing system can only work on the Windows version of SurrealEngine");
 #endif
+
+#if !defined(USE_SDL2)
+	if (windowingSystemName == "SDL2")
+		throw std::runtime_error("SurrealEngine is built without SDL2 support. Windowing system cannot be SDL2");
+#endif
+
+	GameWindow::windowingSystemName = windowingSystemName;
+
+#if defined(WIN32)
+	if (windowingSystemName == "Win32")
+		return std::make_unique<Win32Window>(windowHost);
+#endif
+
+#if defined(USE_SDL2)
+	if (windowingSystemName == "SDL2")
+		return std::make_unique<SDL2Window>(windowHost);
+#endif
+
+	throw std::runtime_error("Invalid Windowing system name: " + windowingSystemName);
+}
+
+void GameWindow::ProcessEvents()
+{
+#if defined(WIN32)
+	if (windowingSystemName == "Win32")
+	{
+		Win32Window::ProcessEvents();
+		return;
+	}
+#endif
+#if defined(USE_SDL2)
+	if (windowingSystemName == "SDL2")
+	{
+		SDL2Window::ProcessEvents();
+		return;
+	}
+#endif
+}
+
+void GameWindow::RunLoop()
+{
+#if defined(WIN32)
+	if (windowingSystemName == "Win32")
+	{
+		Win32Window::RunLoop();
+		return;
+	}
+#endif
+#if defined(USE_SDL2)
+	if (windowingSystemName == "SDL2")
+	{
+		SDL2Window::RunLoop();
+		return;
+	}
+#endif
+}
+
+void GameWindow::ExitLoop()
+{
+#if defined(WIN32)
+	if (windowingSystemName == "Win32")
+	{
+		Win32Window::ExitLoop();
+		return;
+	}
+#endif
+#if defined(USE_SDL2)
+	if (windowingSystemName == "SDL2")
+	{
+		SDL2Window::ExitLoop();
+		return;
+	}
+#endif
+}
 
 std::string GameWindow::GetAvailableResolutions() const
 {

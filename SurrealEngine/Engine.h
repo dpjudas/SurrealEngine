@@ -162,6 +162,8 @@ public:
 	Rotator CameraRotation = Rotator(0,0,0);
 	float CameraFovAngle = 95.0f;
 
+	std::string windowingSystemName;
+
 	// Collision debug
 	BspNode* PlayerBspNode = nullptr;
 	vec3 PlayerHitNormal = vec3(0.0f);
