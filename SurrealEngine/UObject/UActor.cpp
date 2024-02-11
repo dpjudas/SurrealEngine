@@ -8,6 +8,8 @@
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
+#include "Collision/TraceAABBModel.h"
+#include "Collision/TraceRayModel.h"
 #include "Collision/OverlapCylinderLevel.h"
 
 static std::string tickEventName = "Tick";
@@ -476,7 +478,15 @@ void UActor::TickWalking(float elapsed)
 			moveDelta = vel * timeLeft;
 
 			// step back down so we don't bump our heads
-			TryMove(stepDownDelta);
+			hit = TryMove(stepDownDelta);
+			if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f)
+			{
+				// TODO: do we really have to TryMove again? we can't set the Location directly?
+				TryMove(stepUpDelta);
+				SetPhysics(PHYS_Falling);
+				return;
+			}
+
 			hit = TryMove(moveDelta);
 			timeLeft -= timeLeft * hit.Fraction;
 
@@ -2517,6 +2527,24 @@ void UDecal::DetachDecal()
 
 double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
 {
-	// Default cylinder
-	return level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
+	CollisionHitList worldHits;
+
+	if (radius == 0.0 && height == 0.0)
+	{
+		// Line/triangle intersect
+		TraceRayModel tracemodel;
+		worldHits = tracemodel.Trace(Brush(), origin, tmin, direction, tmax, false);
+	}
+	else
+	{
+		// AABB/Triangle intersect
+		TraceAABBModel tracemodel;
+		dvec3 extents = { (double)radius, (double)radius, (double)height };
+		worldHits = tracemodel.Trace(Brush(), origin, tmin, direction, tmax, extents, false);
+	}
+
+	if (worldHits.empty())
+		return tmax;
+
+	return worldHits.front().Fraction;
 }
