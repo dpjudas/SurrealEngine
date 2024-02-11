@@ -63,8 +63,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 
 	if (traceWorld)
 	{
-		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		if (extents == dvec3(0.0, 0.0, 0.0))
+		if (radius == 0.0 && height == 0.0)
 		{
 			// Line/triangle intersect
 			TraceRayModel tracemodel;
@@ -75,6 +74,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 		{
 			// AABB/Triangle intersect
 			TraceAABBModel tracemodel;
+			dvec3 extents = { (double)radius, (double)radius, (double)height };
 			CollisionHitList worldHits = tracemodel.Trace(Level->Model, origin, tmin, direction, tmax, extents, visibilityOnly);
 			hits.push_back(worldHits);
 		}
