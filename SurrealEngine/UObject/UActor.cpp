@@ -525,7 +525,7 @@ void UActor::TickWalking(float elapsed)
 		}
 
 		// Step down after movement to see if we are still walking or if we are now falling
-		CollisionHit hit = TryMove(stepDownDelta);
+		CollisionHit hit = TryMove(stepDownDelta, true);
 		if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
 		{
 			SetPhysics(PHYS_Falling);
