@@ -784,6 +784,15 @@ void UActor::TickFlying(float elapsed)
 
 void UActor::TickRotating(float elapsed)
 {
+	UInventory* inventory = TryCast<UInventory>(this);
+	if (inventory)
+	{
+		if (!inventory->bRotatingPickup())
+		{
+			return; // All pickups will rotate without this.
+		}
+	}
+
 	if (bRotateToDesired())
 	{
 		if (Rotation() != DesiredRotation())
