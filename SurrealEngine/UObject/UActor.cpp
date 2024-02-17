@@ -12,6 +12,9 @@
 
 static std::string tickEventName = "Tick";
 
+// TODO: Compare behavior more closely with original engine. Might differ depending on game.
+static constexpr float stepDownDeltaFactor = 1.3f;
+
 UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
@@ -458,7 +461,7 @@ void UActor::TickWalking(float elapsed)
 
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 	vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * pawn->MaxStepHeight());
-	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * pawn->MaxStepHeight() * 2.0f);
+	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * pawn->MaxStepHeight() * stepDownDeltaFactor);
 
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
