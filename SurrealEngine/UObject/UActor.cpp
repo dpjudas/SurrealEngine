@@ -629,7 +629,8 @@ void UActor::TickFalling(float elapsed)
 				// Hit the level
 				if (bBounce())
 				{
-					// TODO: perform bounce
+					vec3 reflectedDelta = reflect(moveDelta, hit.Normal);
+					hit = TryMove(reflectedDelta);
 				}
 				else
 				{
