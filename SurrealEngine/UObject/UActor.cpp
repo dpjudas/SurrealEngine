@@ -828,6 +828,8 @@ void UActor::TickProjectile(float elapsed)
 		return;
 	}
 
+	ApplyRotationPhysics(*this, elapsed);
+
 	UZoneInfo* zone = Region().Zone;
 	UProjectile* projectile = UObject::TryCast<UProjectile>(this);
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
