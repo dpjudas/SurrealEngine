@@ -14,6 +14,42 @@
 
 static std::string tickEventName = "Tick";
 
+// TODO: Compare behavior more closely with original engine. Might differ depending on game.
+static constexpr float stepDownDeltaFactor = 1.3f;
+
+static void ApplyRotationPhysics(UActor& actor, float elapsed)
+{
+	if (actor.bRotateToDesired())
+	{
+		if (actor.Rotation() != actor.DesiredRotation())
+		{
+			Rotator rot = actor.Rotation();
+			if (actor.bFixedRotationDir())
+			{
+				rot.Yaw = Rotator::TurnToFixed(rot.Yaw, actor.DesiredRotation().Yaw, (int)(actor.RotationRate().Yaw * elapsed));
+				rot.Pitch = Rotator::TurnToFixed(rot.Pitch, actor.DesiredRotation().Pitch, (int)(actor.RotationRate().Pitch * elapsed));
+				rot.Roll = Rotator::TurnToFixed(rot.Roll, actor.DesiredRotation().Roll, (int)(actor.RotationRate().Roll * elapsed));
+			}
+			else
+			{
+				rot.Yaw = Rotator::TurnToShortest(rot.Yaw, actor.DesiredRotation().Yaw, (int)std::abs(actor.RotationRate().Yaw * elapsed));
+				rot.Pitch = Rotator::TurnToShortest(rot.Pitch, actor.DesiredRotation().Pitch, (int)std::abs(actor.RotationRate().Pitch * elapsed));
+				rot.Roll = Rotator::TurnToShortest(rot.Roll, actor.DesiredRotation().Roll, (int)std::abs(actor.RotationRate().Roll * elapsed));
+			}
+			actor.Rotation() = rot;
+
+			if (actor.Rotation() == actor.DesiredRotation())
+			{
+				CallEvent(&actor, EventName::EndedRotation);
+			}
+		}
+	}
+	else if (actor.bFixedRotationDir())
+	{
+		actor.Rotation() += actor.RotationRate() * elapsed;
+	}
+}
+
 UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
@@ -249,7 +285,7 @@ void UActor::SetOwner(UActor* newOwner)
 		CallEvent(Owner(), EventName::LostChild, { ExpressionValue::ObjectValue(this) });
 		Owner()->RemoveChildActor(this);
 	}
-		
+
 	Owner() = newOwner;
 
 	if (Owner())
@@ -364,7 +400,7 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Falling: TickFalling(physTimeElapsed); break;
 			case PHYS_Swimming: TickSwimming(physTimeElapsed); break;
 			case PHYS_Flying: TickFlying(physTimeElapsed); break;
-			case PHYS_Rotating: break;
+			case PHYS_Rotating: TickRotating(physTimeElapsed); break;
 			case PHYS_Projectile: TickProjectile(physTimeElapsed); break;
 			case PHYS_Rolling: TickRolling(physTimeElapsed); break;
 			case PHYS_Interpolating: TickInterpolating(physTimeElapsed); break;
@@ -373,8 +409,6 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
 			}
 		}
-
-		TickRotating(physTimeElapsed);
 
 		if (engine->LaunchInfo.engineVersion >= 400)
 		{
@@ -460,7 +494,7 @@ void UActor::TickWalking(float elapsed)
 
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 	vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * pawn->MaxStepHeight());
-	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * pawn->MaxStepHeight() * 2.0f);
+	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * pawn->MaxStepHeight() * stepDownDeltaFactor);
 
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
@@ -535,7 +569,7 @@ void UActor::TickWalking(float elapsed)
 		}
 
 		// Step down after movement to see if we are still walking or if we are now falling
-		CollisionHit hit = TryMove(stepDownDelta);
+		CollisionHit hit = TryMove(stepDownDelta, true);
 		if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
 		{
 			SetPhysics(PHYS_Falling);
@@ -585,6 +619,8 @@ void UActor::TickFalling(float elapsed)
 	{
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
+
+	ApplyRotationPhysics(*this, elapsed);
 
 	OldLocation() = Location();
 	bJustTeleported() = false;
@@ -636,7 +672,8 @@ void UActor::TickFalling(float elapsed)
 				// Hit the level
 				if (bBounce())
 				{
-					// TODO: perform bounce
+					vec3 reflectedDelta = reflect(moveDelta, hit.Normal);
+					hit = TryMove(reflectedDelta);
 				}
 				else
 				{
@@ -652,7 +689,7 @@ void UActor::TickFalling(float elapsed)
 								PhysLanded(hit.Normal);
 								return;
 							}
-						} 
+						}
 
 						// adjust velocity along the slope
 						if (!bBounce() && !bJustTeleported())
@@ -783,45 +820,14 @@ void UActor::TickFlying(float elapsed)
 		// is this correct?
 		if (bBounce())
 		{
-			CallEvent(this, EventName::HitWall, {ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level())});
+			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 		}
 	}
 }
 
 void UActor::TickRotating(float elapsed)
 {
-	if (Physics() == PHYS_Rotating)
-	{
-		if (bRotateToDesired())
-		{
-			if (Rotation() != DesiredRotation())
-			{
-				Rotator rot = Rotation();
-				if (bFixedRotationDir())
-				{
-					rot.Yaw = Rotator::TurnToFixed(rot.Yaw, DesiredRotation().Yaw, (int)(RotationRate().Yaw * elapsed));
-					rot.Pitch = Rotator::TurnToFixed(rot.Pitch, DesiredRotation().Pitch, (int)(RotationRate().Pitch * elapsed));
-					rot.Roll = Rotator::TurnToFixed(rot.Roll, DesiredRotation().Roll, (int)(RotationRate().Roll * elapsed));
-				}
-				else
-				{
-					rot.Yaw = Rotator::TurnToShortest(rot.Yaw, DesiredRotation().Yaw, (int)std::abs(RotationRate().Yaw * elapsed));
-					rot.Pitch = Rotator::TurnToShortest(rot.Pitch, DesiredRotation().Pitch, (int)std::abs(RotationRate().Pitch * elapsed));
-					rot.Roll = Rotator::TurnToShortest(rot.Roll, DesiredRotation().Roll, (int)std::abs(RotationRate().Roll * elapsed));
-				}
-				Rotation() = rot;
-
-				if (Rotation() == DesiredRotation())
-				{
-					CallEvent(this, EventName::EndedRotation);
-				}
-			}
-		}
-		else if (bFixedRotationDir())
-		{
-			Rotation() += RotationRate() * elapsed;
-		}
-	}
+	ApplyRotationPhysics(*this, elapsed);
 }
 
 void UActor::TickProjectile(float elapsed)
@@ -831,6 +837,8 @@ void UActor::TickProjectile(float elapsed)
 		Destroy();
 		return;
 	}
+
+	ApplyRotationPhysics(*this, elapsed);
 
 	UZoneInfo* zone = Region().Zone;
 	UProjectile* projectile = UObject::TryCast<UProjectile>(this);
@@ -1251,7 +1259,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun)
 			}
 		}
 	}
-	
+
 	if (dryRun)
 		return blockingHit;
 
@@ -1834,25 +1842,25 @@ void UActor::UpdateBspInfo()
 		BspInfo.Location = Location();
 		BspInfo.Extents = extents;
 
-ULevel* level = XLevel();
-BspNode* node = level ? &level->Model->Nodes[0] : nullptr;
-while (node)
-{
-	int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
-	if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
-	{
-		AddToBspNode(node);
-		break;
-	}
-	else if (side < 0)
-	{
-		node = &level->Model->Nodes[node->Front];
-	}
-	else
-	{
-		node = &level->Model->Nodes[node->Back];
-	}
-}
+		ULevel* level = XLevel();
+		BspNode* node = level ? &level->Model->Nodes[0] : nullptr;
+		while (node)
+		{
+			int side = NodeAABBOverlap(BspInfo.Location, BspInfo.Extents, node);
+			if (side == 0 || (side < 0 && node->Front < 0) || (side > 0 && node->Back < 0))
+			{
+				AddToBspNode(node);
+				break;
+			}
+			else if (side < 0)
+			{
+				node = &level->Model->Nodes[node->Front];
+			}
+			else
+			{
+				node = &level->Model->Nodes[node->Back];
+			}
+		}
 	}
 }
 
@@ -1977,7 +1985,7 @@ bool UPawn::LineOfSightTo(UActor* other)
 	eye_pos.z += BaseEyeHeight();
 
 	auto& origin = other->Location();
-	auto top = origin + vec3{0.f, 0.f, other->CollisionHeight() / 2};
+	auto top = origin + vec3{ 0.f, 0.f, other->CollisionHeight() / 2 };
 	auto bottom = origin - vec3{ 0.f, 0.f, other->CollisionHeight() / 2 };
 
 	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);
