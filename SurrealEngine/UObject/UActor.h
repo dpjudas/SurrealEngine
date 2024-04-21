@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UObject.h"
-#include "UURL.h"
+#include "UnrealURL.h"
 
 class UTexture;
 class UMesh;
