@@ -1,5 +1,7 @@
 #include "UURL.h"
 
+#include <sstream>
+
 UnrealURL::UnrealURL(const UnrealURL& base, const std::string& url)
 {
 	// To do: this also needs to be able to handle fully qualified URLs for network support
