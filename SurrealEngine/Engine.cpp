@@ -154,11 +154,11 @@ void Engine::Run()
 			}
 		}
 
-		if (!ClientTravelInfo.URL.empty())
+		if (!ClientTravelInfo.URL.Map.empty())
 		{
 			// To do: need to do something about that travel type and transfering of items
 
-			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
+			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL.ToString());
 			LogMessage("Client travel to " + url.ToString());
 			LoadMap(url);
 			LoginPlayer();
@@ -216,8 +216,7 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
-	UnrealURL url(newURL);
-	ClientTravelInfo.URL = url.Map;
+	ClientTravelInfo.URL = UnrealURL(newURL);
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -276,7 +275,7 @@ void Engine::UnloadMap()
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
 {
-	ClientTravelInfo.URL.clear();
+	ClientTravelInfo.URL.Map.clear();
 
 	if (Level)
 		CallEvent(console, EventName::NotifyLevelChange);
