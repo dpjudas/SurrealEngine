@@ -3,8 +3,6 @@
 #include "UObject.h"
 #include "UURL.h"
 
-#include <sstream>
-
 class UTexture;
 class UMesh;
 class UModel;
