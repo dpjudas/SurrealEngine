@@ -158,7 +158,7 @@ void Engine::Run()
 		{
 			// To do: need to do something about that travel type and transfering of items
 
-			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL.ToString());
+			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
 			LogMessage("Client travel to " + url.ToString());
 			LoadMap(url);
 			LoginPlayer();

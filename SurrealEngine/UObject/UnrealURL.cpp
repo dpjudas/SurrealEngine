@@ -2,31 +2,18 @@
 
 #include <sstream>
 
-UnrealURL::UnrealURL(const UnrealURL& base, const std::string& url)
+UnrealURL::UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL)
 {
 	// To do: this also needs to be able to handle fully qualified URLs for network support
 
-	*this = base;
+	*this = baseURL;
 
-	size_t pos = url.find('?');
-	if (pos == std::string::npos)
-	{
-		Map = url;
-	}
-	else
-	{
-		Map = url.substr(0, pos);
+	// Pass options from the nextURL to the base one
+	Map = nextURL.Map;
+	Portal = nextURL.Portal;
 
-		pos++;
-		while (pos < url.size())
-		{
-			size_t endpos = url.find('?', pos);
-			if (endpos == std::string::npos)
-				endpos = url.size();
-			AddOrReplaceOption(url.substr(pos, endpos - pos));
-			pos = endpos + 1;
-		}
-	}
+	for (auto& option : nextURL.Options)
+		AddOrReplaceOption(option);
 
 	// Unreal uses relative urls
 	if (Map.size() > 8 && Map.substr(0, 8) == "..\\maps\\")
@@ -185,10 +172,7 @@ std::string UnrealURL::GetOptions() const
 
 std::string UnrealURL::GetPortal() const
 {
-	if (!Portal.empty())
-		return "#" + Portal;
-	else
-		return std::string();
+	return Portal;
 }
 
 std::string UnrealURL::ToString() const
