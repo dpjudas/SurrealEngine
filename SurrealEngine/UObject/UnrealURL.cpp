@@ -47,17 +47,18 @@ UnrealURL::UnrealURL(const std::string& urlString)
 	if (teleportTagPos != std::string::npos)
 	{
 		mapName = urlString.substr(0, teleportTagPos);
+		std::string allOptsString = urlString.substr(teleportTagPos + 1);
 
-		size_t optionsTagPos = urlString.find_first_of('?');
+		size_t optionsTagPos = allOptsString.find_first_of('?');
 
 		if (optionsTagPos != std::string::npos)
 		{
-			teleportTag = urlString.substr(teleportTagPos + 1, optionsTagPos - teleportTagPos + 1);
-			options = urlString.substr(optionsTagPos + 1);
+			teleportTag = allOptsString.substr(0, optionsTagPos);
+			options = allOptsString.substr(optionsTagPos + 1);
 		}
 		else
 			// No options mean that the string consists of only the map name and teleporter tag
-			teleportTag = urlString.substr(teleportTagPos + 1);
+			teleportTag = allOptsString;
 	}
 	else
 	{
