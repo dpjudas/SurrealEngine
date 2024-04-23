@@ -20,10 +20,16 @@ UnrealURL::UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL)
 		Map = Map.substr(8);
 }
 
-UnrealURL::UnrealURL(const std::string& urlString)
+UnrealURL::UnrealURL(std::string urlString)
 {
 	// Expected url format on a local game:
 	// mapname[#teleporttag][?key1=value1[?key2=value2]...]
+
+	// Trim the url string of whitespaces
+	// Fixes the crash during the transition from Temple of Vandora to The Trench in Unreal
+	// Due to the exit teleporter pointing to " trench" (with the whitespace at the beginning)
+	urlString.erase(urlString.find_last_not_of(' ') + 1);
+	urlString.erase(0, urlString.find_first_not_of(' '));
 
 	std::string mapName = "";
 	std::string teleportTag = "";

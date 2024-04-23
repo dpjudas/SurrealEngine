@@ -9,7 +9,7 @@ public:
 	// Constructs an UnrealURL by passing the options from nextURL to the baseURL
 	UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL);
 	// Constructs an UnrealURL from a given parse-able string.
-	UnrealURL(const std::string& urlString);
+	UnrealURL(std::string urlString);
 
 	void AddOrReplaceOption(const std::string& newvalue);
 	bool HasOption(const std::string& name) const;
