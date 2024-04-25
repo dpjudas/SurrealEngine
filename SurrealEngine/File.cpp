@@ -624,3 +624,27 @@ std::string FilePath::convert_path_delimiters(const std::string &path)
 #endif
 	return result;
 }
+
+std::string FilePath::relative_to_absolute_from_system(std::string game_system_path, std::string relative_path)
+{
+	// Get the filename
+	std::string filename = FilePath::last_component(relative_path);
+	relative_path = FilePath::remove_last_component(relative_path);
+
+	auto first_component = FilePath::first_component(relative_path);
+
+	while (first_component == ".." || first_component == ".")
+	{
+		if (first_component == "..")
+		{
+			// "Go one directory up" as many as the amount of ".."s in the current_path
+			game_system_path = FilePath::remove_last_component(game_system_path);
+		}
+
+		relative_path = FilePath::remove_first_component(relative_path);
+		first_component = FilePath::first_component(relative_path);
+	}
+
+	// Combine everything
+	return FilePath::combine(game_system_path, relative_path);
+}
