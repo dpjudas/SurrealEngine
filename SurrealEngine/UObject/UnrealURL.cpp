@@ -15,9 +15,11 @@ UnrealURL::UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL)
 	for (auto& option : nextURL.Options)
 		AddOrReplaceOption(option);
 
+	/*
 	// Unreal uses relative urls
 	if (Map.size() > 8 && Map.substr(0, 8) == "..\\maps\\")
 		Map = Map.substr(8);
+	*/
 }
 
 UnrealURL::UnrealURL(std::string urlString)
@@ -68,10 +70,11 @@ UnrealURL::UnrealURL(std::string urlString)
 			mapName = urlString;
 	}
 
+	/*
 	// Remove map extension from mapName if it is there
-	size_t extPos = mapName.find(".");
+	size_t extPos = mapName.find_last_of(".");
 	if (extPos != std::string::npos)
-		mapName = mapName.substr(0, extPos);
+		mapName = mapName.substr(0, extPos);*/
 
 	Map = mapName;
 	Portal = teleportTag;
