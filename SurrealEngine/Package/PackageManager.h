@@ -33,6 +33,7 @@ public:
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
 
 	Package *GetPackage(const NameString& name);
+	Package *GetPackageFromPath(const std::string& path);
 	std::vector<NameString> GetPackageNames() const;
 
 	void UnloadPackage(const NameString& name);
