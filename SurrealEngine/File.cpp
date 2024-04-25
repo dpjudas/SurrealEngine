@@ -627,10 +627,6 @@ std::string FilePath::convert_path_delimiters(const std::string &path)
 
 std::string FilePath::relative_to_absolute_from_system(std::string game_system_path, std::string relative_path)
 {
-	// Get the filename
-	std::string filename = FilePath::last_component(relative_path);
-	relative_path = FilePath::remove_last_component(relative_path);
-
 	auto first_component = FilePath::first_component(relative_path);
 
 	while (first_component == ".." || first_component == ".")
