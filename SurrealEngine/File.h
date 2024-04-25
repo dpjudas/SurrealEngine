@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <memory>
@@ -79,4 +78,6 @@ public:
 	static std::string remove_last_component(const std::string &path);
 	static std::string combine(const std::string &path1, const std::string &path2);
 	static std::string convert_path_delimiters(const std::string &path);
+	// Converts a relative path to an absolute one, starting from the system path of the current game.
+	static std::string relative_to_absolute_from_system(std::string game_system_path, std::string relative_path);
 };
