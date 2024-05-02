@@ -30,7 +30,9 @@ enum class KnownUE1Games
 	NERF_300,
 	TNN_200,
 	RUNE_110,
-	UNDYING_420
+	UNDYING_420,
+	TACTICAL_OPS_436,
+	TACTICAL_OPS_469,
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -131,7 +133,14 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"4a517c7f96a27cf7e25534c80d50af8db4065276", KnownUE1Games::RUNE_110},
 
 	// TNN Outdoors Pro Hunter
-	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200}
+	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200},
+
+	// Tactical-Ops: Assault On Terror
+	// v3.4.0 and v3.5.0, running on UT v436 engine
+	{"3175cee69d3808b70213b171b6e0e635daefaee1", KnownUE1Games::TACTICAL_OPS_436},
+	// v3.4.0 and v3.5.0, running on UT v469 engine
+	// Has identical hash to UT v469d executable
+	// {"78c65e9434b442b15820d863136bb5a44700ad26", KnownUE1Games::TACTICAL_OPS_469},
 };
 
 static const std::vector<std::string> knownUE1ExecutableNames = {
@@ -147,7 +156,8 @@ static const std::vector<std::string> knownUE1ExecutableNames = {
 	"Nerf.exe",
 	"Rune.exe",
 	"Spore.exe",
-	"TnnHunt.exe"
+	"TnnHunt.exe",
+	"TacticalOps.exe"
 };
 
 // Returns a pair of UE1-Game type and executable name
