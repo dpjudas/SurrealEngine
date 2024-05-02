@@ -20,6 +20,7 @@ At the time of this writing, SurrealEngine can detect the following UE1 games:
 * NERF Arena Blast (v300)
 * TNN Outdoors Pro Hunter (v200)
 * Rune Classic (v1.10)
+* Tactical-Ops: Assault on Terror (v3.4.0 and v3.5.0 - both running under UT436 and UT469 engines)
 
 Clive Barker's Undying (v420) is also in the database, but there is no corresponding SHA1sum for its executable file yet.
 

@@ -39,6 +39,10 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 			if (it == SHA1Database.end())
 				return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
 
+			// Hack: Tactical-Ops has a version that contains the exact same UTv469d executable. Handle that here
+			if (it->second == KnownUE1Games::UT99_469d && executable_name == "TacticalOps.exe")
+				return std::make_pair(KnownUE1Games::TACTICAL_OPS_469, executable_name);
+
 			return std::make_pair(it->second, executable_name);
 		}
 	}
