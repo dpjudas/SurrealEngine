@@ -6,6 +6,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Window/Window.h"
 #include "UObject/UObject.h"
+#include "UObject/UnrealURL.h"
 #include "GameFolder.h"
 #include <set>
 #include <list>
@@ -132,7 +133,7 @@ public:
 	UTexture* DefaultTexture = nullptr;
 	struct
 	{
-		std::string URL;
+		UnrealURL URL;
 		uint8_t TravelType = 0;
 		bool TransferItems = false;
 	} ClientTravelInfo;

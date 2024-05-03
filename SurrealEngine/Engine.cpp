@@ -154,7 +154,7 @@ void Engine::Run()
 			}
 		}
 
-		if (!ClientTravelInfo.URL.empty())
+		if (!ClientTravelInfo.URL.Map.empty())
 		{
 			// To do: need to do something about that travel type and transfering of items
 
@@ -216,8 +216,7 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
 {
-	UnrealURL url(newURL);
-	ClientTravelInfo.URL = url.Map;
+	ClientTravelInfo.URL = UnrealURL(newURL);
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -276,7 +275,7 @@ void Engine::UnloadMap()
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
 {
-	ClientTravelInfo.URL.clear();
+	ClientTravelInfo.URL.Map.clear();
 
 	if (Level)
 		CallEvent(console, EventName::NotifyLevelChange);
@@ -287,7 +286,13 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	UnloadMap();
 
 	// Load map objects
-	LevelPackage = packages->GetPackage(FilePath::remove_extension(url.Map));
+
+	// Determine if we're getting a relative path
+	// Which is the case with Unreal's New game menu
+	if (url.Map.substr(0, 2) == "..")
+		LevelPackage = packages->GetPackageFromPath(url.Map);
+	else
+		LevelPackage = packages->GetPackage(FilePath::remove_extension(url.Map));
 
 	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
 	if (packages->IsUnreal1())

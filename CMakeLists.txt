@@ -264,6 +264,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/PropertyOffsets.h
 	SurrealEngine/UObject/USubsystem.cpp
 	SurrealEngine/UObject/USubsystem.h
+	"SurrealEngine/UObject/UnrealURL.cpp"
+	"SurrealEngine/UObject/UnrealURL.h"
 	SurrealEngine/Collision/CollisionHash.cpp
 	SurrealEngine/Collision/CollisionHash.h
 	SurrealEngine/Collision/CollisionHit.h

@@ -71,6 +71,28 @@ Package* PackageManager::GetPackage(const NameString& name)
 	return package.get();
 }
 
+Package* PackageManager::GetPackageFromPath(const std::string& path)
+{
+	auto absolute_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "System"), path);
+
+	// Manually find the relevant package
+	for (auto& packageName : packageFilenames)
+	{
+		if (NameString(packageName.second) == NameString(absolute_path))
+		{
+			auto& package = packages[packageName.first];
+
+			if (!package)
+				package = std::make_unique<Package>(this, packageName.first, packageName.second);
+
+			return package.get();
+		}
+			
+	}
+
+	throw std::runtime_error("Could not find package from the given path: " + path);
+}
+
 void PackageManager::UnloadPackage(const NameString& name)
 {
 	auto it = packages.find(name);
@@ -122,28 +144,10 @@ void PackageManager::ScanPaths()
 	{
 		// Get the filename
 		std::string filename = FilePath::last_component(current_path);
-		current_path = FilePath::remove_last_component(current_path);
 
-		// Paths are relative from the System folder the executable (and the ini file) is in
-		// So we should start from there
-		auto resulting_root_path = FilePath::combine(launchInfo.gameRootFolder, "System");
-
-		auto first_component = FilePath::first_component(current_path);
-
-		while (first_component == ".." || first_component == ".")
-		{
-			if (first_component == "..")
-			{
-				// "Go one directory up" as many as the amount of ".."s in the current_path
-				resulting_root_path = FilePath::remove_last_component(resulting_root_path);
-			}
-
-			current_path = FilePath::remove_first_component(current_path);
-			first_component = FilePath::first_component(current_path);
-		}
-
-		// Combine everything
-		auto final_path = FilePath::combine(resulting_root_path, current_path);
+		// Calculate the final, absolute path
+		auto final_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "System"), current_path);
+		final_path = FilePath::remove_last_component(final_path);
 
 		// Add map folders in a separate list, so ScanForMaps() can use them
 		if (filename == "*." + mapExtension)
