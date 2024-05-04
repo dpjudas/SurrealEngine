@@ -9,6 +9,7 @@
 #include "UObject/UFont.h"
 #include "UObject/UMesh.h"
 #include "UObject/UActor.h"
+#include "UObject/ObjectTravelInfo.h"
 #include "UObject/UTexture.h"
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
@@ -159,8 +160,26 @@ void Engine::Run()
 			// To do: need to do something about that travel type and transfering of items
 
 			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
+
+			auto travelInfo = Level->TravelInfo;
+			for (UActor* actor : Level->Actors)
+			{
+				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
+				if (pawn && pawn->Player())
+				{
+					std::vector<ObjectTravelInfo> actorTravelInfo;
+					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
+					{
+						ObjectTravelInfo objInfo(item);
+						actorTravelInfo.push_back(std::move(objInfo));
+					}
+					std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+					travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
+				}
+			}
+
 			LogMessage("Client travel to " + url.ToString());
-			LoadMap(url);
+			LoadMap(url, travelInfo);
 			LoginPlayer();
 		}
 
@@ -501,6 +520,10 @@ void Engine::LoginPlayer()
 				const ObjectTravelInfo& objInfo = it.second;
 
 				// To do: load properties
+				for (auto it = objInfo.Properties.begin(); it != objInfo.Properties.end(); it++)
+				{
+					acceptedActor->SetPropertyFromString(it->first, it->second);
+				}
 			}
 		}
 	}
