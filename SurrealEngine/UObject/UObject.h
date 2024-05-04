@@ -266,6 +266,7 @@ public:
 	}
 
 	static NameString GetUClassName(UObject* obj);
+	static NameString GetUClassFullName(UObject* obj);
 
 	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
 	NameString& uc_Name() { return Value<NameString>(PropOffsets_Object.Name); } // native

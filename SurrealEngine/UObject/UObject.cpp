@@ -201,6 +201,11 @@ NameString UObject::GetUClassName(UObject* obj)
 	return obj->Class ? obj->Class->Name : NameString();
 }
 
+NameString UObject::GetUClassFullName(UObject* obj)
+{
+	return obj->Class ? NameString(obj->Class->PackageName.ToString() + "." + obj->Class->Name.ToString()) : NameString();
+}
+
 void UObject::SetByte(const NameString& name, uint8_t value)
 {
 	*static_cast<uint8_t*>(GetProperty(name)) = value;
