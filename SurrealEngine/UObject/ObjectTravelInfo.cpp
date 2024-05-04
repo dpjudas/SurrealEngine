@@ -8,12 +8,12 @@
 
 ObjectTravelInfo::ObjectTravelInfo(UInventory* inventory)
 {
-	// To do: read properties
-	// Note: only include properties with PropertyFlags::Travel
 	if (inventory)
 	{
-		// Need to figure out WHICH package the class is coming from.
-		ClassName = "UnrealShare." + UObject::GetUClassName(inventory).ToString();
+		// Full name, a.k.a. [PackageName].[ClassName]
+		ClassName = UObject::GetUClassFullName(inventory).ToString();
+
+		// Only include properties with PropertyFlags::Travel
 		auto allProperties = inventory->GetAllTravelProperties();
 
 		for (UProperty* property : allProperties)
@@ -30,9 +30,7 @@ std::vector<ObjectTravelInfo> ObjectTravelInfo::Parse(const std::string& text)
 	std::string propertyString;
 
 	while (getline(textStream, propertyString, '?'))
-	{
 		result.push_back(ParseSingleObject(propertyString));
-	}
 
 	return result;
 }
