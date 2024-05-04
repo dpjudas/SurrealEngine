@@ -192,6 +192,7 @@ public:
 	std::vector<int> PackageImports;
 	int ClassWithin = 0;
 	NameString ClassConfigName;
+	NameString PackageName;
 
 	UState* GetState(const NameString& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
 	std::map<NameString, UState*> States;
