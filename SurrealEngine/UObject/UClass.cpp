@@ -435,8 +435,8 @@ void UClass::Load(ObjectStream* stream)
 	SetInt("ObjectFlags", (int)Flags);
 
 	auto packages = stream->GetPackage()->GetPackageManager();
-	NameString packageName = stream->GetPackage()->GetPackageName();
-	NameString sectionName = packageName.ToString() + "." + Name.ToString();
+	PackageName = stream->GetPackage()->GetPackageName();
+	NameString sectionName = PackageName.ToString() + "." + Name.ToString();
 	NameString configName = ClassConfigName;
 	if (configName.IsNone()) configName = "system";
 	for (UProperty* prop : Properties)
@@ -459,7 +459,7 @@ void UClass::Load(ObjectStream* stream)
 				}
 				else if (isLocalized)
 				{
-					value = packages->Localize(packageName, Name, name);
+					value = packages->Localize(PackageName, Name, name);
 				}
 
 				if (!value.empty())
