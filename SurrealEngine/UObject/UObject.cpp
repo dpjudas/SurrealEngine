@@ -129,7 +129,11 @@ std::string UObject::GetPropertyAsString(const NameString& propName) const
 
 void UObject::SetPropertyFromString(const NameString& name, const std::string& value)
 {
-	throw std::runtime_error("UObject::SetPropertyFromString not implemented");
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (prop->Name == name)
+			prop->SetValueFromString(PropertyData.Ptr(prop), value);
+	}
 }
 
 void UObject::SaveConfig()
@@ -322,6 +326,31 @@ std::string UObject::PrintProperties()
 		void* ptr = PropertyData.Ptr(prop);
 		result += prop->PrintValue(ptr);
 		result += "\n";
+	}
+
+	return result;
+}
+
+std::vector<UProperty*> UObject::GetAllProperties()
+{
+	std::vector<UProperty*> result;
+
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		result.push_back(prop);
+	}
+
+	return result;
+}
+
+std::vector<UProperty*> UObject::GetAllTravelProperties()
+{
+	std::vector<UProperty*> result;
+
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (bool(prop->PropFlags & PropertyFlags::Travel))
+			result.push_back(prop);
 	}
 
 	return result;

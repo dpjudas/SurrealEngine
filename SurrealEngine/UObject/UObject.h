@@ -221,6 +221,8 @@ public:
 	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
+	std::vector<UProperty*> GetAllProperties();
+	std::vector<UProperty*> GetAllTravelProperties();
 
 	std::map<NameString, std::set<NameString>> DisabledEvents;
 
