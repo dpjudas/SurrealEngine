@@ -2,6 +2,8 @@
 
 #include "UClass.h"
 
+#include <sstream>
+
 struct PropertyHeader;
 
 enum class PropertyFlags : uint32_t
@@ -77,6 +79,11 @@ public:
 
 	virtual std::string PrintValue(const void* data) { return "?"; }
 
+	virtual void SetValueFromString(void* data, const std::string& valueString) 
+	{ 
+		//throw std::runtime_error("SetValueFromString() is unimplemented on this Property type!");
+	}
+
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
 	uint32_t ArrayDimension = 0;
@@ -110,6 +117,11 @@ public:
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
 	std::string PrintValue(const void* data) override { return std::to_string(*(uint8_t*)data); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(uint8_t*)data = (uint8_t) std::stoi(valueString);
+	}
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
@@ -357,6 +369,64 @@ public:
 	}
 
 	UStruct* Struct = nullptr;
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		if (valueString.empty())
+			return;
+		
+		std::map<NameString, std::string> properties;
+
+		if (valueString[0] != '{')
+			throw std::runtime_error("{ not found in the property string: " + valueString);
+
+		if (valueString[valueString.size() - 1] != '}')
+			throw std::runtime_error("} not found in the property string: " + valueString);
+
+		std::string propsString = valueString.substr(1, valueString.find('}') - 1);
+
+		std::stringstream propsStream(propsString);
+		std::string prop;
+
+		while (getline(propsStream, prop, ','))
+		{
+			auto currProp = ParseSingleProperty(prop);
+			properties[currProp.first] = currProp.second;
+		}
+
+		if (Struct)
+		{
+			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
+			{
+				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				if (fieldprop)
+				{
+					auto it = properties.find(fieldprop->Name);
+
+					if (it != properties.end())
+					{
+						fieldprop->SetValueFromString(data, it->second);
+					}
+				}
+			}
+		}
+	}
+
+	std::pair<NameString, std::string> ParseSingleProperty(std::string& propString)
+	{
+		propString.erase(propString.find_last_not_of(' ') + 1);
+		propString.erase(0, propString.find_first_not_of(' '));
+
+		auto equalsPos = propString.find('=');
+
+		if (equalsPos == std::string::npos)
+			throw std::runtime_error("No = found in the property string: " + propString);
+
+		std::string name = propString.substr(0, equalsPos);
+		std::string value = propString.substr(equalsPos + 1);
+
+		return std::make_pair(name, value);
+	}
 };
 
 class UIntProperty : public UProperty
@@ -366,6 +436,11 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(int32_t*)data = std::stoi(valueString);
+	}
 };
 
 class UBoolProperty : public UProperty
@@ -401,6 +476,18 @@ public:
 	}
 
 	std::string PrintValue(const void* data) override { return std::to_string(GetBool(data)); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		NameString valueName(valueString);
+
+		if (valueName != "true" && valueName != "false" && valueName != "0" && valueName != "1")
+			throw std::runtime_error("Invalid bool value given to SetValueFromString(): " + valueString);
+
+		bool value = (valueName == "true" || valueName == "1")  ? true : false;
+
+		SetBool(data, value);
+	}
 };
 
 class UFloatProperty : public UProperty
@@ -410,6 +497,11 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(float*)data = std::stof(valueString);
+	}
 };
 
 class UNameProperty : public UProperty
@@ -446,6 +538,11 @@ public:
 	}
 
 	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(NameString*)data = NameString(valueString);
+	}
 };
 
 class UStrProperty : public UProperty
@@ -482,6 +579,11 @@ public:
 	}
 
 	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(std::string*)data = valueString;
+	}
 };
 
 class UStringProperty : public UProperty
@@ -517,4 +619,9 @@ public:
 	}
 
 	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(std::string*)data = valueString;
+	}
 };
