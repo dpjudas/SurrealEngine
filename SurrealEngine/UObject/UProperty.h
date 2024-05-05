@@ -53,6 +53,53 @@ enum class ExpressionValueType
 	ValueStruct
 };
 
+// Helper functions for parsing property strings with multiple values
+
+// Parses a single property
+static std::pair<NameString, std::string> ParseSingleProperty(std::string& propString)
+{
+	propString.erase(propString.find_last_not_of(' ') + 1);
+	propString.erase(0, propString.find_first_not_of(' '));
+
+	auto equalsPos = propString.find('=');
+
+	if (equalsPos == std::string::npos)
+		throw std::runtime_error("No = found in the property string: " + propString);
+
+	std::string name = propString.substr(0, equalsPos);
+	std::string value = propString.substr(equalsPos + 1);
+
+	return std::make_pair(name, value);
+}
+
+// Parses all properties given in the string
+static std::map<NameString, std::string> ParsePropertiesFromString(std::string propertiesString)
+{
+	std::map<NameString, std::string> properties;
+
+	if (propertiesString.empty())
+		return {};
+
+	if (propertiesString[0] != '{')
+		throw std::runtime_error("{ not found in the property string: " + propertiesString);
+
+	if (propertiesString[propertiesString.size() - 1] != '}')
+		throw std::runtime_error("} not found in the property string: " + propertiesString);
+
+	std::string propsString = propertiesString.substr(1, propertiesString.find('}') - 1);
+
+	std::stringstream propsStream(propsString);
+	std::string prop;
+
+	while (getline(propsStream, prop, ','))
+	{
+		auto currProp = ParseSingleProperty(prop);
+		properties[currProp.first] = currProp.second;
+	}
+
+	return properties;
+}
+
 class UProperty : public UField
 {
 public:
@@ -139,10 +186,12 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ name=\"" + obj->Name.ToString() + "\", class=" + UObject::GetUClassName(obj).ToString() + " }";
+			return "{ name=\"" + obj->Name.ToString() + "\", class=" + UObject::GetUClassFullName(obj).ToString() + " }";
 		else
 			return "null";
 	}
+
+	void SetValueFromString(void* data, const std::string& valueString) override;
 
 	UClass* ObjectClass = nullptr;
 };
@@ -375,24 +424,7 @@ public:
 		if (valueString.empty())
 			return;
 		
-		std::map<NameString, std::string> properties;
-
-		if (valueString[0] != '{')
-			throw std::runtime_error("{ not found in the property string: " + valueString);
-
-		if (valueString[valueString.size() - 1] != '}')
-			throw std::runtime_error("} not found in the property string: " + valueString);
-
-		std::string propsString = valueString.substr(1, valueString.find('}') - 1);
-
-		std::stringstream propsStream(propsString);
-		std::string prop;
-
-		while (getline(propsStream, prop, ','))
-		{
-			auto currProp = ParseSingleProperty(prop);
-			properties[currProp.first] = currProp.second;
-		}
+		auto properties = ParsePropertiesFromString(valueString);
 
 		if (Struct)
 		{
@@ -410,22 +442,6 @@ public:
 				}
 			}
 		}
-	}
-
-	std::pair<NameString, std::string> ParseSingleProperty(std::string& propString)
-	{
-		propString.erase(propString.find_last_not_of(' ') + 1);
-		propString.erase(0, propString.find_first_not_of(' '));
-
-		auto equalsPos = propString.find('=');
-
-		if (equalsPos == std::string::npos)
-			throw std::runtime_error("No = found in the property string: " + propString);
-
-		std::string name = propString.substr(0, equalsPos);
-		std::string value = propString.substr(equalsPos + 1);
-
-		return std::make_pair(name, value);
 	}
 };
 
