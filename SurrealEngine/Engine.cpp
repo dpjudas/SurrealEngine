@@ -168,6 +168,7 @@ void Engine::Run()
 				if (pawn && pawn->Player())
 				{
 					std::vector<ObjectTravelInfo> actorTravelInfo;
+					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
 					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 					{
 						ObjectTravelInfo objInfo(item);
@@ -499,18 +500,22 @@ void Engine::LoginPlayer()
 		{
 			for (const ObjectTravelInfo& objInfo : ObjectTravelInfo::Parse(it->second))
 			{
-				UClass* cls = packages->FindClass(objInfo.ClassName);
-				UActor* acceptedActor = nullptr;
-				if (cls)
-					acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
-
-				if (acceptedActor)
+				if (objInfo.isPlayerPawn)
 				{
-					acceptedActors.push_back({ acceptedActor, objInfo });
+					acceptedActors.push_back({ pawn, objInfo });
 				}
 				else
 				{
-					LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
+					UClass* cls = packages->FindClass(objInfo.ClassName);
+					UActor* acceptedActor = nullptr;
+
+					if (cls)
+						acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
+
+					if (acceptedActor)
+						acceptedActors.push_back({ acceptedActor, objInfo });
+					else
+						LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
 				}
 			}
 
@@ -519,11 +524,8 @@ void Engine::LoginPlayer()
 				UActor* acceptedActor = it.first;
 				const ObjectTravelInfo& objInfo = it.second;
 
-				// To do: load properties
 				for (auto it = objInfo.Properties.begin(); it != objInfo.Properties.end(); it++)
-				{
 					acceptedActor->SetPropertyFromString(it->first, it->second);
-				}
 			}
 		}
 	}
