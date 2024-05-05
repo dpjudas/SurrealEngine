@@ -5,7 +5,7 @@
 
 #include <string>
 #include <sstream>
-
+/*
 ObjectTravelInfo::ObjectTravelInfo(UInventory* inventory)
 {
 	if (inventory)
@@ -18,6 +18,23 @@ ObjectTravelInfo::ObjectTravelInfo(UInventory* inventory)
 
 		for (UProperty* property : allProperties)
 			Properties[property->Name.ToString()] = inventory->GetPropertyAsString(property->Name);
+	}
+}
+*/
+ObjectTravelInfo::ObjectTravelInfo(UActor* travelActor)
+{
+	if (travelActor)
+	{
+		// Full name, a.k.a. [PackageName].[ClassName]
+		ClassName = UObject::GetUClassFullName(travelActor).ToString();
+
+		isPlayerPawn = UObject::TryCast<UPlayerPawn>(travelActor);
+
+		// Only include properties with PropertyFlags::Travel
+		auto allProperties = travelActor->GetAllTravelProperties();
+
+		for (UProperty* property : allProperties)
+			Properties[property->Name.ToString()] = travelActor->GetPropertyAsString(property->Name);
 	}
 }
 
@@ -42,12 +59,21 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 	if (colonPos == std::string::npos)
 		throw std::runtime_error("No Class name found while parsing " + singleObjectText);
 
-	std::string className = singleObjectText.substr(0, colonPos);
+	std::string classNameAndType = singleObjectText.substr(0, colonPos);
 	std::string properties = singleObjectText.substr(colonPos + 1);
 
-	ObjectTravelInfo result(nullptr);
+	auto hashtagPos = classNameAndType.find('#');
+
+	if (hashtagPos == std::string::npos)
+		throw std::runtime_error("No # discriminator found while parsing " + singleObjectText);
+
+	ObjectTravelInfo result;
+
+	std::string className = classNameAndType.substr(0, hashtagPos);
 
 	result.ClassName = className;
+
+	result.isPlayerPawn = classNameAndType.substr(hashtagPos + 1) == "player";
 
 	std::stringstream propStream(properties);
 
@@ -72,12 +98,12 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 std::string ObjectTravelInfo::ToString(const std::vector<ObjectTravelInfo>& objects)
 {
 	// Example:
-	// Object1:prop1=value1;prop2=value2;prop3=value3...?Object2:prop1=value1;prop2=value2...
+	// Object1#player:prop1=value1;prop2=value2;prop3=value3...?Object2#inv:prop1=value1;prop2=value2...
 	std::string result = "";
 
 	for (auto& object : objects)
 	{
-		result += object.ClassName + ":";
+		result += object.ClassName + "#" + (object.isPlayerPawn ? "player" : "inv") + ":";
 
 		for (auto it = object.Properties.begin(); it != object.Properties.end(); it++)
 		{
