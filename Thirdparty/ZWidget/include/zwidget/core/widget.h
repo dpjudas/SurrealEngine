@@ -129,6 +129,8 @@ public:
 
 	static Size GetScreenSize();
 
+	void* GetNativeHandle();
+
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);
 	virtual void OnPaint(Canvas* canvas) { }

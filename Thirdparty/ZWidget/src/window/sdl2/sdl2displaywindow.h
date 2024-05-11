@@ -8,7 +8,7 @@
 class SDL2DisplayWindow : public DisplayWindow
 {
 public:
-	SDL2DisplayWindow(DisplayWindowHost* windowHost);
+	SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow);
 	~SDL2DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
@@ -44,6 +44,11 @@ public:
 
 	std::string GetClipboardText() override;
 	void SetClipboardText(const std::string& text) override;
+
+	Point MapFromGlobal(const Point& pos) const override;
+	Point MapToGlobal(const Point& pos) const override;
+
+	void* GetNativeHandle() override { return WindowHandle; }
 
 	static void DispatchEvent(const SDL_Event& event);
 	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
