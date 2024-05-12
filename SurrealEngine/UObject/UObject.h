@@ -172,7 +172,10 @@ public:
 	bool HasProperty(const NameString& name) const;
 	void* GetProperty(const NameString& name);
 	const void* GetProperty(const NameString& name) const;
+	void* GetProperty(UProperty* prop);
+	const void* GetProperty(UProperty* prop) const;
 	PropertyDataOffset GetPropertyDataOffset(const NameString& name) const;
+	UProperty* GetMemberProperty(const NameString& name) const;
 
 	virtual std::string GetPropertyAsString(const NameString& name) const;
 	virtual void SetPropertyFromString(const NameString& name, const std::string& value);
