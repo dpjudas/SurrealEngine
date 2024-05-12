@@ -80,6 +80,10 @@ static std::map<NameString, std::string> ParsePropertiesFromString(std::string p
 	if (propertiesString.empty())
 		return {};
 
+	// Also check for the string being "null" or "null struct"
+	if (propertiesString == "null" || propertiesString == "null struct")
+		return {};
+
 	if (propertiesString[0] != '{')
 		throw std::runtime_error("{ not found in the property string: " + propertiesString);
 
