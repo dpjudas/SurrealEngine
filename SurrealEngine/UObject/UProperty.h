@@ -186,7 +186,7 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ name=\"" + obj->Name.ToString() + "\", class=" + UObject::GetUClassFullName(obj).ToString() + " }";
+			return "{ name=" + obj->Name.ToString() + ", class=" + UObject::GetUClassFullName(obj).ToString() + " }";
 		else
 			return "null";
 	}
