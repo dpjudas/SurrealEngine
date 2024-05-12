@@ -132,7 +132,78 @@ void UObject::SetPropertyFromString(const NameString& name, const std::string& v
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == name)
-			prop->SetValueFromString(PropertyData.Ptr(prop), value);
+		{
+			switch (prop->ValueType)
+			{
+				case ExpressionValueType::Nothing:
+					throw std::runtime_error("Attempted to change a None property: " + name.ToString());
+
+				case ExpressionValueType::ValueByte:
+				{
+					uint8_t parsedValue = std::stoi(value);
+					SetByte(name, parsedValue);
+				}
+				return;
+
+				case ExpressionValueType::ValueInt:
+				{
+					uint32_t parsedValue = std::stoul(value);
+					SetInt(name, parsedValue);
+				}
+				return;
+
+				case ExpressionValueType::ValueBool:
+				{
+					if (value == "True" || value == "true" || value == "1")
+						SetBool(name, true);
+					else if (value == "False" || value == "false" || value == "0")
+						SetBool(name, false);
+					else
+						throw std::invalid_argument("Encountered a non-boolean value: " + value);
+				}
+				return;
+
+				case ExpressionValueType::ValueFloat:
+				{
+					double parsedValue = std::stod(value);
+					SetFloat(name, parsedValue);
+				}
+				return;
+
+				case ExpressionValueType::ValueObject:
+				{
+					auto properties = ParsePropertiesFromString(value);
+
+					if (properties.empty())
+						return;
+
+					UObject* foundObject = engine->FindObject(properties["Name"], properties["Class"]);
+
+					if (!foundObject)
+						return;
+
+					SetObject(name, foundObject);
+				}
+				return;
+
+				// These are all struct types
+				case ExpressionValueType::ValueVector:
+				case ExpressionValueType::ValueRotator:
+				case ExpressionValueType::ValueStruct:
+				case ExpressionValueType::ValueColor:
+					prop->SetValueFromString(PropertyData.Ptr(prop), value);
+					return;
+
+				case ExpressionValueType::ValueString:
+					SetString(name, value);
+					return;
+
+				case ExpressionValueType::ValueName:
+					SetName(name, value);
+					return;
+			}
+		}
+			
 	}
 }
 
