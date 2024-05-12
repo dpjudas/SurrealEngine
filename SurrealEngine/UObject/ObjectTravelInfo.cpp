@@ -36,6 +36,19 @@ ObjectTravelInfo::ObjectTravelInfo(UActor* travelActor)
 		for (UProperty* property : allProperties)
 			Properties[property->Name.ToString()] = travelActor->GetPropertyAsString(property->Name);
 	}
+
+	if (isPlayerPawn)
+	{
+		// Hacky workaround for selected Weapon and Inventory
+		auto playerActor = UObject::Cast<UPlayerPawn>(travelActor);
+		auto selectedInventory = UObject::Cast<UInventory>(playerActor->GetUObject("SelectedItem"));
+		if (selectedInventory)
+			Properties["SelectedItem"] = "{ name=None, class=" + UObject::GetUClassFullName(selectedInventory).ToString() + " }";
+
+		auto selectedWeapon = UObject::Cast<UInventory>(playerActor->GetUObject("Weapon"));
+		if (selectedWeapon)
+			Properties["Weapon"] = "{ name=None, class=" + UObject::GetUClassFullName(selectedWeapon).ToString() + " }";
+	}
 }
 
 std::vector<ObjectTravelInfo> ObjectTravelInfo::Parse(const std::string& text)
