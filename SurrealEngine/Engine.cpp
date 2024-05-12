@@ -168,12 +168,13 @@ void Engine::Run()
 				if (pawn && pawn->Player())
 				{
 					std::vector<ObjectTravelInfo> actorTravelInfo;
-					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
 					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 					{
 						ObjectTravelInfo objInfo(item);
 						actorTravelInfo.push_back(std::move(objInfo));
 					}
+					// Add the pawn itself last
+					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
 					std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
 					travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
 				}
@@ -542,6 +543,17 @@ void Engine::LoginPlayer()
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
+}
+
+UObject* Engine::FindObject(NameString name, NameString className)
+{
+	for (auto actor : Level->Actors)
+	{
+		if (actor && actor->Name == name && UObject::GetUClassFullName(actor) == className)
+			return actor;
+	}
+
+	return nullptr;
 }
 
 float Engine::CalcTimeElapsed()
