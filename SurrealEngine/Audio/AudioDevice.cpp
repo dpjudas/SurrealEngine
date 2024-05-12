@@ -16,8 +16,6 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 
-class AudioDeviceImpl;
-
 #define UU_PER_METER 43
 
 class ALSoundSource
@@ -182,19 +180,13 @@ private:
 class OpenALAudioDevice : public AudioDevice
 {
 public:
-	static void startPlaybackThread(OpenALAudioDevice* device)
-	{
-		device->UpdateMusicLoop();
-	}
-
 	OpenALAudioDevice(int inFrequency, int numVoices, int inMusicBufferCount, int inMusicBufferSize)
 	{
 		frequency = inFrequency;
-		bMusicPlaying = false;
 		musicBufferCount = inMusicBufferCount;
 		musicBufferSize = inMusicBufferSize;
 
-		musicBuffer = new float[musicBufferSize * musicBufferCount];
+		musicBuffer.resize(musicBufferSize * musicBufferCount);
 		musicQueue.Resize(musicBufferCount);
 
 		for (int i = 0; i < musicBufferCount; i++)
@@ -248,14 +240,15 @@ public:
 		alGenBuffers(musicBufferCount, &alMusicBuffers[0]);
 
 		// init playback thread
-		bExit = false;
-		playbackThread = std::make_unique<std::thread>(startPlaybackThread, this);
+		musicThreadData.thread = std::thread([=]() { MusicThreadMain(); });
 	}
 
 	~OpenALAudioDevice()
 	{
-		bExit = true;
-		playbackThread->join();
+		std::unique_lock lock(musicThreadData.mutex);
+		musicThreadData.exitFlag = true;
+		lock.unlock();
+		musicThreadData.thread.join();
 
 		alSourceStop(alMusicSource);
 		alDeleteSources(1, &alMusicSource);
@@ -271,8 +264,6 @@ public:
 
 		alcDestroyContext(alContext);
 		alcCloseDevice(alDevice);
-
-		delete musicBuffer;
 	}
 
 	void AddSound(USound* sound) override
@@ -308,20 +299,20 @@ public:
 		}
 	}
 
-	bool IsPlaying(int channel)
+	bool IsPlaying(int channel) override
 	{
 		ALSoundSource& source = sources[channel];
 		return source.IsPlaying();
 	}
 
-	void PlayMusic(std::unique_ptr<AudioSource> source)
+	void PlayMusic(std::unique_ptr<AudioSource> source) override
 	{
-		std::unique_lock lock(playbackMutex);
-		music = std::move(source);
-		musicUpdate = true;
+		std::unique_lock lock(musicThreadData.mutex);
+		musicThreadData.music = std::move(source);
+		musicThreadData.musicUpdate = true;
 	}
 
-	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
+	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override
 	{
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 			throw std::runtime_error("Invalid PlaySound arguments");
@@ -390,15 +381,10 @@ public:
 		}
 	}
 
-	void PlayMusicBuffer() override
+	void PlayMusicBuffer(AudioSource* music)
 	{
-		std::unique_lock lock(playbackMutex);
-		if (!music)
-			return;
-
 		int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 		int freq = music->GetFrequency();
-		lock.unlock();
 
 		ALenum error;
 		for (int i = 0; i < musicBufferCount; i++)
@@ -417,7 +403,7 @@ public:
 			throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
 	}
 
-	void UpdateMusicBuffer() override
+	void UpdateMusicBuffer(AudioSource* music)
 	{
 		ALint status;
 		alGetSourcei(alMusicSource, AL_BUFFERS_PROCESSED, &status);
@@ -427,14 +413,8 @@ public:
 			ALuint buffer;
 			alSourceUnqueueBuffers(alMusicSource, 1, &buffer);
 
-			std::unique_lock lock(playbackMutex);
-
-			if (!music)
-				return;
-
 			int format = (music->GetChannels() == 1) ? AL_FORMAT_MONO_FLOAT32 : AL_FORMAT_STEREO_FLOAT32;
 			int freq = music->GetFrequency();
-			lock.unlock();
 
 			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if (alGetError() != AL_NO_ERROR)
@@ -485,48 +465,55 @@ public:
 		}
 	}
 
-	void UpdateMusicLoop()
+	void MusicThreadMain()
 	{
-		while (!bExit)
+		std::unique_ptr<AudioSource> currentMusic;
+		bool musicPlaying = false;
+
+		while (true)
 		{
-			std::unique_lock lock(playbackMutex);
-			if (musicUpdate)
+			// Lock the mutex. Grab the data we need from the main thread. Then unlock.
+			std::unique_lock lock(musicThreadData.mutex);
+			if (musicThreadData.exitFlag)
+				break;
+			if (musicThreadData.musicUpdate)
 			{
-				musicUpdate = false;
-				if (bMusicPlaying)
+				if (musicPlaying)
 				{
 					alSourceStop(alMusicSource);
 					alSourceUnqueueBuffers(alMusicSource, (ALsizei)alMusicBuffers.size(), &alMusicBuffers[0]);
-					bMusicPlaying = false;
+					musicPlaying = false;
 				}
+				currentMusic = std::move(musicThreadData.music);
+				musicThreadData.musicUpdate = false;
 			}
+			lock.unlock();
+			// Never touch anything from musicThreadData after this point.
 
-			if (music)
+			if (currentMusic)
 			{
 				while (musicQueue.Size() < musicBufferCount)
 				{
 					// render a chunk of music
-					music->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
+					currentMusic->ReadSamples(musicQueue.GetNextFree(), musicBufferSize);
 					musicQueue.Push(musicQueue.GetNextFree());
 				}
-				lock.unlock();
 
-				if (!bMusicPlaying)
+				if (!musicPlaying)
 				{
-					PlayMusicBuffer();
-					bMusicPlaying = true;
+					PlayMusicBuffer(currentMusic.get());
+					musicPlaying = true;
 				}
 				else if (musicQueue.Size() > 0)
 				{
-					UpdateMusicBuffer();
+					UpdateMusicBuffer(currentMusic.get());
 				}
 
 				// TODO: music fade in/out
 			}
 			else
 			{
-				lock.unlock();
-				bMusicPlaying = false;
+				musicPlaying = false;
 			}
 			using namespace std::chrono_literals;
 			std::this_thread::sleep_for(5ms);
@@ -541,6 +528,146 @@ public:
 	std::vector<ALSoundSource> sources;
 	ALint monoSources = 0;
 	ALint stereoSources = 0;
+
+	template<class T> class RingQueue
+	{
+	public:
+		RingQueue<T>()
+		{
+			Data = nullptr;
+			Len = 0;
+			Num = 0;
+			Current = 0;
+		}
+
+		RingQueue<T>(size_t n)
+		{
+			Data = static_cast<T*>(malloc(sizeof(T) * n));
+			Len = n;
+			Num = 0;
+			Current = 0;
+		}
+
+		RingQueue<T>(size_t n, const T& Value)
+		{
+			Data = static_cast<T*>(malloc(sizeof(T) * n));
+			for (int i = 0; i < n; i++)
+				Data[i] = Value;
+
+			Len = n;
+			Num = 0;
+			Current = 0;
+		}
+
+		~RingQueue<T>()
+		{
+			free(Data);
+		}
+
+		bool Empty()
+		{
+			return (Num == 0);
+		}
+
+		size_t Size()
+		{
+			return Num;
+		}
+
+		T& Front()
+		{
+			return Data[Current];
+		}
+
+		T& GetNextFree()
+		{
+			size_t Index = Current + Num;
+			if (Index >= Len)
+				Index -= Len;
+
+			return Data[Index];
+		}
+
+		bool Push(const T& Val)
+		{
+			if (Num == Len)
+				return false;
+
+			GetNextFree() = Val;
+			Num++;
+
+			return true;
+		}
+
+		bool Push(T& Val)
+		{
+			if (Num == Len)
+				return false;
+
+			GetNextFree() = Val;
+			Num++;
+
+			return true;
+		}
+
+		T& Pop()
+		{
+			T& Out = Data[Current];
+			if (Num > 0)
+			{
+				Current++;
+				if (Current >= Len)
+					Current = 0;
+
+				Num--;
+			}
+			return Out;
+		}
+
+		bool Resize(size_t NewSize)
+		{
+			T* NewData = static_cast<T*>(realloc(Data, sizeof(T) * NewSize));
+			if (NewData == NULL)
+				return false;
+
+			Data = NewData;
+			Len = NewSize;
+			return true;
+		}
+
+		void Clear()
+		{
+			Current = 0;
+			Num = 0;
+		}
+
+	private:
+		T* Data = nullptr;
+		size_t Len = 0;
+		size_t Current = 0;
+		size_t Num = 0;
+	};
+
+	int frequency = 48000;
+	std::vector<USound*> sounds;
+
+	// Note: variables changed in musicThreadData *must* be done within a mutex lock to be thread safe
+	struct
+	{
+		std::mutex mutex;
+		std::thread thread;
+		bool exitFlag = false;
+		std::unique_ptr<AudioSource> music;
+		bool musicUpdate = false;
+	} musicThreadData;
+
+	RingQueue<float*> musicQueue;
+	int musicBufferCount = 0;
+	int musicBufferSize = 0;
+	std::vector<float> musicBuffer;
+	float currentMusicVolume = 0.0f;
+	float targetMusicVolume = 0.0f;
+	float fadeRate = 0.0f;
 };
 
 std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize)
