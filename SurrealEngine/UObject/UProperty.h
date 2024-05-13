@@ -63,6 +63,48 @@ public:
 	virtual size_t Alignment() { return 4; }
 	size_t Size() { return ElementSize() * ArrayDimension; }
 	virtual size_t ElementSize() { return 4; }
+	virtual void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	{
+		if (i >= ArrayDimension)
+			Exception::Throw("UProperty::GetExportText index out of bounds");
+
+		size_t elementSize = ElementSize();
+		int offset = i * (int)elementSize;
+
+		void* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + offset;
+		void* defval = nullptr;
+		try
+		{
+			defval = (default) ? static_cast<uint8_t*>(default->GetProperty(Name)) + offset : nullptr;
+		}
+		catch (...) 
+		{
+			// ignore exceptions, its ok if GetProperty fails here
+		}
+
+		std::string innerbuf;
+		GetExportText(innerbuf, whitespace, objval, defval, i);
+		if (innerbuf.size() > 0)
+			innerbuf += "\r\n";
+
+		buf += innerbuf;
+	}
+	virtual void GetExportText(std::string& buf, const std::string& whitespace, void* objval, void* defval, int i)
+	{
+		if (!defval && IsDefaultValue(objval))
+			return;
+		else if (defval && Compare(objval, defval))
+			return;
+
+		buf += whitespace + Name.ToString();
+		if (ArrayDimension > 1)
+			buf += '(' + std::to_string(i) + ')';
+		buf += '=' + PrintValue(objval);
+	}
+	virtual bool Compare(void* v1, void* v2)
+	{
+		return memcmp(v1, v2, ElementSize()) == 0;
+	}
 	virtual void Construct(void* data) { memset(data, 0, Size()); }
 	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
 	virtual void CopyValue(void* data, void* src)
@@ -74,12 +116,13 @@ public:
 		}
 	}
 	virtual void Destruct(void* data) { }
+	virtual bool IsDefaultValue(void* val) { return false; }
 
 	virtual std::string PrintValue(const void* data) { return "?"; }
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
-	uint32_t ArrayDimension = 0;
+	int ArrayDimension = 0;
 	PropertyFlags PropFlags = {};
 	NameString Category;
 	uint16_t ReplicationOffset = 0;
@@ -109,7 +152,19 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
-	std::string PrintValue(const void* data) override { return std::to_string(*(uint8_t*)data); }
+
+	std::string PrintValue(const void* data) override 
+	{ 
+		uint8_t val = *(uint8_t*)data;
+		if (EnumType && val < EnumType->ElementNames.size())
+			return EnumType->ElementNames[val].ToString();
+		
+		return std::to_string(*(uint8_t*)data); 
+	}
+	bool IsDefaultValue(void* val)
+	{
+		return *(uint8_t*)val == 0;
+	}
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
@@ -123,13 +178,23 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
+	bool Compare(void* v1, void* v2)
+	{
+		UObject* o1 = *(UObject**)v1;
+		UObject* o2 = *(UObject**)v2;
+		return o1 == o2;
+	}
 	std::string PrintValue(const void* data) override
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ name=\"" + obj->Name.ToString() + "\", class=" + UObject::GetUClassName(obj).ToString() + " }";
+			return obj->Class->Name.ToString() + '\'' + obj->package->GetExportName(obj->exportIndex) + '\'';
 		else
-			return "null";
+			return "None";
+	}
+	bool IsDefaultValue(void* val)
+	{
+		return *(UObject**)val == nullptr;
 	}
 
 	UClass* ObjectClass = nullptr;
@@ -197,10 +262,30 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::vector<void*>); }
 
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	{
+		if (i >= ArrayDimension)
+			Exception::Throw("UArrayProperty::GetExportText index out of bounds");
+
+		size_t elementSize = ElementSize();
+		int offset = i * (int)elementSize;
+
+		std::vector<void*>* objarray = static_cast<std::vector<void*>*>(obj->GetProperty(Name)) + offset;
+		std::vector<void*>* defarray = (default) ? static_cast<std::vector<void*>*>(default->GetProperty(Name)) + offset : nullptr;
+
+		for (int k = 0; k < objarray->size(); k++)
+		{
+			void* objval = objarray->at(k);
+			void* defval = (defarray && k < defarray->size()) ? defarray->at(k) : nullptr;
+
+			Inner->GetExportText(buf, whitespace, objval, defval, i);
+		}
+	}
+
 	void Construct(void* data) override
 	{
 		auto vec = static_cast<std::vector<void*>*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(vec + i) std::vector<void*>();
 	}
 
@@ -209,7 +294,7 @@ public:
 		auto vec = static_cast<std::vector<void*>*>(data);
 		auto srcvec = static_cast<std::vector<void*>*>(src);
 
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 		{
 			new(vec + i) std::vector<void*>();
 
@@ -226,7 +311,7 @@ public:
 	void Destruct(void* data) override
 	{
 		auto vec = static_cast<std::vector<void*>*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 		{
 			for (void* d : vec[i])
 			{
@@ -254,7 +339,7 @@ public:
 	void Construct(void* data) override
 	{
 		auto map = static_cast<std::map<void*, void*>*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(map + i) std::map<void*, void*>();
 	}
 
@@ -262,7 +347,7 @@ public:
 	{
 		auto map = static_cast<std::map<void*, void*>*>(data);
 		auto srcmap = static_cast<std::map<void*, void*>*>(src);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 		{
 			new(map + i) std::map<void*, void*>();
 
@@ -282,7 +367,7 @@ public:
 	void Destruct(void* data) override
 	{
 		auto map = static_cast<std::map<void*, void*>*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 		{
 			for (auto& it : map[i])
 			{
@@ -311,9 +396,9 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-			return "{ class=\"" + obj->Name.ToString() + " }";
+			return "Class'" + obj->package->GetPackageName().ToString() + '.' + obj->Name.ToString() + '\'';
 		else
-			return "null";
+			return "None";
 	}
 
 	UClass* MetaClass = nullptr;
@@ -331,6 +416,61 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	{
+		if (!Struct)
+		{
+			buf += whitespace + Name.ToString() + '=' + "null struct";
+			return;
+		}
+
+		if (i >= ArrayDimension)
+			Exception::Throw("UStructProperty::GetExportText index out of bounds");
+
+		uint8_t* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + (i * ElementSize());
+		uint8_t* defval = nullptr;
+		try
+		{
+			if (default)
+				defval = static_cast<uint8_t*>(default->GetProperty(Name)) + (i * ElementSize());
+		}
+		catch (...)
+		{
+		}
+
+		std::string structbuf = "(";
+		std::string innerbuf;
+
+		for (UField* field = Struct->Children; field != nullptr; field = field->Next) 
+		{
+			UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+
+			if (fieldprop == nullptr)
+				continue;
+
+			size_t offset = fieldprop->DataOffset.DataOffset;
+
+			for (int k = 0; k < fieldprop->ArrayDimension; k++)
+			{
+				uint8_t* objsubval = objval + offset;
+				uint8_t* defsubval = (defval) ? defval + offset : nullptr;
+				fieldprop->GetExportText(innerbuf, "", objsubval, defsubval, k);
+
+				if (innerbuf.length() > 0)
+				{
+					structbuf += innerbuf + ',';
+					innerbuf.clear();
+				}
+			}
+		}
+
+		if (structbuf.length() > 1)
+		{
+			structbuf.pop_back();
+			buf += whitespace + Name.ToString() + "=" + structbuf + ")\r\n";
+		}
+	}
+
 	std::string PrintValue(const void* data) override
 	{
 		if (Struct)
@@ -344,11 +484,11 @@ public:
 				{
 					print += print.empty() ? " " : ", ";
 					print += fieldprop->Name.ToString();
-					print += " = ";
+					print += "=";
 					print += fieldprop->PrintValue(d + fieldprop->DataOffset.DataOffset);
 				}
 			}
-			return "{" + print + " }";
+			return "(" + print + ")";
 		}
 		else
 		{
@@ -366,6 +506,10 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
+	bool IsDefaultValue(void* val)
+	{
+		return *(int*)val == 0;
+	}
 };
 
 class UBoolProperty : public UProperty
@@ -375,6 +519,12 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
+	bool Compare(void* v1, void* v2)
+	{
+		bool b1 = GetBool(v1);
+		bool b2 = GetBool(v2);
+		return b1 == b2;
+	}
 	void Construct(void* data) override
 	{
 		SetBool(data, false);
@@ -400,7 +550,12 @@ public:
 			v = v & ~DataOffset.BitfieldMask;
 	}
 
-	std::string PrintValue(const void* data) override { return std::to_string(GetBool(data)); }
+	bool IsDefaultValue(void* val)
+	{
+		return GetBool(val) == false;
+	}
+
+	std::string PrintValue(const void* data) override { return GetBool(data) ? "True" : "False"; }
 };
 
 class UFloatProperty : public UProperty
@@ -410,6 +565,10 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
+	bool IsDefaultValue(void* val)
+	{
+		return *(float*)val == 0.0f;
+	}
 };
 
 class UNameProperty : public UProperty
@@ -422,11 +581,18 @@ public:
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(NameString); }
+	
+	bool Compare(void* v1, void* v2)
+	{
+		NameString* n1 = static_cast<NameString*>(v1);
+		NameString* n2 = static_cast<NameString*>(v2);
+		return *n1 == *n2;
+	}
 
 	void Construct(void* data) override
 	{
 		auto str = static_cast<NameString*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) NameString();
 	}
 
@@ -434,18 +600,23 @@ public:
 	{
 		auto str = static_cast<NameString*>(data);
 		auto srcstr = static_cast<NameString*>(src);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) NameString(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
 		auto str = static_cast<NameString*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			str[i].~NameString();
 	}
 
 	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
+
+	bool IsDefaultValue(void* val)
+	{
+		return static_cast<NameString*>(val)->IsNone();
+	}
 };
 
 class UStrProperty : public UProperty
@@ -462,7 +633,7 @@ public:
 	void Construct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) std::string();
 	}
 
@@ -470,18 +641,22 @@ public:
 	{
 		auto str = static_cast<std::string*>(data);
 		auto srcstr = static_cast<std::string*>(src);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			str[i].~basic_string();
 	}
 
-	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
+	bool IsDefaultValue(void* val)
+	{
+		return ((std::string*)val)->length() == 0;
+	}
 };
 
 class UStringProperty : public UProperty
@@ -497,7 +672,7 @@ public:
 	void Construct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) std::string();
 	}
 
@@ -505,16 +680,20 @@ public:
 	{
 		auto str = static_cast<std::string*>(data);
 		auto srcstr = static_cast<std::string*>(src);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			new(str + i) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
-		for (uint32_t i = 0; i < ArrayDimension; i++)
+		for (int i = 0; i < ArrayDimension; i++)
 			str[i].~basic_string();
 	}
 
-	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
+	bool IsDefaultValue(void* val)
+	{
+		return ((std::string*)val)->length() == 0;
+	}
 };
