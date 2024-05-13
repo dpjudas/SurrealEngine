@@ -228,6 +228,8 @@ public:
 
 	NameString Name;
 	UClass* Class = nullptr;
+	Package* package = nullptr;
+	uint32_t exportIndex = 0;
 	ObjectFlags Flags = ObjectFlags::NoFlags;
 
 	PropertyDataBlock PropertyData;

@@ -206,6 +206,7 @@ UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectF
 		if (it != NativeClasses.end())
 		{
 			UObject* obj = it->second(objname, objclass, flags);
+			obj->package = this;
 			if (initProperties)
 			{
 				obj->PropertyData.Init(objclass);
@@ -268,7 +269,10 @@ UObject* Package::GetUObject(int objref)
 		if (Packages->delayLoadActive == 0)
 			Packages->DelayLoadNow();
 
-		return Objects[index].get();
+		UObject* object = Objects[index].get();
+		object->package = this;
+		object->exportIndex = index;
+		return object;
 	}
 	else if (objref < 0) // Import table object
 	{
