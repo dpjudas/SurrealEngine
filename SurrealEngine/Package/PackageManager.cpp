@@ -437,7 +437,13 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		}
 	}
 
-	return intFile->GetValue(sectionName, keyName);
+	std::string& value = intFile->GetValue(sectionName, keyName);
+	if (*value.begin() == '"' && *(value.end() - 1) == '"')
+	{
+		value.erase(value.begin());
+		value.erase(value.end()-1);
+	}
+	return value;
 }
 
 std::map<NameString, std::string> PackageManager::ParseIntPublicValue(const std::string& text)
