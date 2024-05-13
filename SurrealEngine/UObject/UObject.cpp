@@ -535,6 +535,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		if (header.arrayIndex < 0 || header.arrayIndex >= prop->ArrayDimension)
 			Exception::Throw("Array property is out of bounds!");
 
+		prop->Flags |= ObjectFlags::TagExp;
 		prop->LoadValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream, header);
 	}
 }
