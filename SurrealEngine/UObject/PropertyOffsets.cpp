@@ -9,7 +9,7 @@ PropertyOffsets_Object PropOffsets_Object;
 
 static void InitPropertyOffsets_Object(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Object"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Core")->GetUObject("Class", "Object"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Object, 0xff, sizeof(PropOffsets_Object));
@@ -26,7 +26,7 @@ PropertyOffsets_Commandlet PropOffsets_Commandlet;
 
 static void InitPropertyOffsets_Commandlet(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Commandlet"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Core")->GetUObject("Class", "Commandlet"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Commandlet, 0xff, sizeof(PropOffsets_Commandlet));
@@ -51,7 +51,7 @@ PropertyOffsets_Subsystem PropOffsets_Subsystem;
 
 static void InitPropertyOffsets_Subsystem(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "Subsystem"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Core")->GetUObject("Class", "Subsystem"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Subsystem, 0xff, sizeof(PropOffsets_Subsystem));
@@ -64,7 +64,7 @@ PropertyOffsets_HelloWorldCommandlet PropOffsets_HelloWorldCommandlet;
 
 static void InitPropertyOffsets_HelloWorldCommandlet(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "HelloWorldCommandlet"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Core")->GetUObject("Class", "HelloWorldCommandlet"));
 	if (!cls)
 	{
 		memset(&PropOffsets_HelloWorldCommandlet, 0xff, sizeof(PropOffsets_HelloWorldCommandlet));
@@ -78,7 +78,7 @@ PropertyOffsets_SimpleCommandlet PropOffsets_SimpleCommandlet;
 
 static void InitPropertyOffsets_SimpleCommandlet(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("core")->GetUObject("Class", "SimpleCommandlet"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Core")->GetUObject("Class", "SimpleCommandlet"));
 	if (!cls)
 	{
 		memset(&PropOffsets_SimpleCommandlet, 0xff, sizeof(PropOffsets_SimpleCommandlet));
@@ -91,7 +91,7 @@ PropertyOffsets_Pawn PropOffsets_Pawn;
 
 static void InitPropertyOffsets_Pawn(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Pawn"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Pawn"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Pawn, 0xff, sizeof(PropOffsets_Pawn));
@@ -243,7 +243,7 @@ PropertyOffsets_Actor PropOffsets_Actor;
 
 static void InitPropertyOffsets_Actor(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Actor"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Actor"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Actor, 0xff, sizeof(PropOffsets_Actor));
@@ -443,7 +443,7 @@ PropertyOffsets_LevelInfo PropOffsets_LevelInfo;
 
 static void InitPropertyOffsets_LevelInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LevelInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "LevelInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_LevelInfo, 0xff, sizeof(PropOffsets_LevelInfo));
@@ -511,7 +511,7 @@ PropertyOffsets_Inventory PropOffsets_Inventory;
 
 static void InitPropertyOffsets_Inventory(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Inventory"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Inventory"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Inventory, 0xff, sizeof(PropOffsets_Inventory));
@@ -578,7 +578,7 @@ PropertyOffsets_PlayerPawn PropOffsets_PlayerPawn;
 
 static void InitPropertyOffsets_PlayerPawn(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerPawn"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "PlayerPawn"));
 	if (!cls)
 	{
 		memset(&PropOffsets_PlayerPawn, 0xff, sizeof(PropOffsets_PlayerPawn));
@@ -730,7 +730,7 @@ PropertyOffsets_PlayerReplicationInfo PropOffsets_PlayerReplicationInfo;
 
 static void InitPropertyOffsets_PlayerReplicationInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerReplicationInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "PlayerReplicationInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_PlayerReplicationInfo, 0xff, sizeof(PropOffsets_PlayerReplicationInfo));
@@ -765,7 +765,7 @@ PropertyOffsets_Weapon PropOffsets_Weapon;
 
 static void InitPropertyOffsets_Weapon(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Weapon"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Weapon"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Weapon, 0xff, sizeof(PropOffsets_Weapon));
@@ -839,7 +839,7 @@ PropertyOffsets_GameInfo PropOffsets_GameInfo;
 
 static void InitPropertyOffsets_GameInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "GameInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "GameInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_GameInfo, 0xff, sizeof(PropOffsets_GameInfo));
@@ -937,7 +937,7 @@ PropertyOffsets_ZoneInfo PropOffsets_ZoneInfo;
 
 static void InitPropertyOffsets_ZoneInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ZoneInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "ZoneInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_ZoneInfo, 0xff, sizeof(PropOffsets_ZoneInfo));
@@ -1003,7 +1003,7 @@ PropertyOffsets_Canvas PropOffsets_Canvas;
 
 static void InitPropertyOffsets_Canvas(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Canvas"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Canvas"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Canvas, 0xff, sizeof(PropOffsets_Canvas));
@@ -1039,7 +1039,7 @@ PropertyOffsets_SavedMove PropOffsets_SavedMove;
 
 static void InitPropertyOffsets_SavedMove(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SavedMove"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "SavedMove"));
 	if (!cls)
 	{
 		memset(&PropOffsets_SavedMove, 0xff, sizeof(PropOffsets_SavedMove));
@@ -1062,7 +1062,7 @@ PropertyOffsets_StatLog PropOffsets_StatLog;
 
 static void InitPropertyOffsets_StatLog(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "StatLog"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "StatLog"));
 	if (!cls)
 	{
 		memset(&PropOffsets_StatLog, 0xff, sizeof(PropOffsets_StatLog));
@@ -1094,7 +1094,7 @@ PropertyOffsets_Texture PropOffsets_Texture;
 
 static void InitPropertyOffsets_Texture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Texture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Texture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Texture, 0xff, sizeof(PropOffsets_Texture));
@@ -1166,7 +1166,7 @@ PropertyOffsets_Ammo PropOffsets_Ammo;
 
 static void InitPropertyOffsets_Ammo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Ammo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Ammo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Ammo, 0xff, sizeof(PropOffsets_Ammo));
@@ -1183,7 +1183,7 @@ PropertyOffsets_NavigationPoint PropOffsets_NavigationPoint;
 
 static void InitPropertyOffsets_NavigationPoint(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "NavigationPoint"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "NavigationPoint"));
 	if (!cls)
 	{
 		memset(&PropOffsets_NavigationPoint, 0xff, sizeof(PropOffsets_NavigationPoint));
@@ -1219,7 +1219,7 @@ PropertyOffsets_Mutator PropOffsets_Mutator;
 
 static void InitPropertyOffsets_Mutator(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Mutator"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Mutator"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Mutator, 0xff, sizeof(PropOffsets_Mutator));
@@ -1237,7 +1237,7 @@ PropertyOffsets_Mover PropOffsets_Mover;
 
 static void InitPropertyOffsets_Mover(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Mover"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Mover"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Mover, 0xff, sizeof(PropOffsets_Mover));
@@ -1306,7 +1306,7 @@ PropertyOffsets_HUD PropOffsets_HUD;
 
 static void InitPropertyOffsets_HUD(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "HUD"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "HUD"));
 	if (!cls)
 	{
 		memset(&PropOffsets_HUD, 0xff, sizeof(PropOffsets_HUD));
@@ -1326,7 +1326,7 @@ PropertyOffsets_Decoration PropOffsets_Decoration;
 
 static void InitPropertyOffsets_Decoration(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Decoration"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Decoration"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Decoration, 0xff, sizeof(PropOffsets_Decoration));
@@ -1351,7 +1351,7 @@ PropertyOffsets_TestInfo PropOffsets_TestInfo;
 
 static void InitPropertyOffsets_TestInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "TestInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "TestInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_TestInfo, 0xff, sizeof(PropOffsets_TestInfo));
@@ -1377,7 +1377,7 @@ PropertyOffsets_GameReplicationInfo PropOffsets_GameReplicationInfo;
 
 static void InitPropertyOffsets_GameReplicationInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "GameReplicationInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "GameReplicationInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_GameReplicationInfo, 0xff, sizeof(PropOffsets_GameReplicationInfo));
@@ -1412,7 +1412,7 @@ PropertyOffsets_Menu PropOffsets_Menu;
 
 static void InitPropertyOffsets_Menu(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Menu"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Menu"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Menu, 0xff, sizeof(PropOffsets_Menu));
@@ -1440,7 +1440,7 @@ PropertyOffsets_LiftExit PropOffsets_LiftExit;
 
 static void InitPropertyOffsets_LiftExit(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LiftExit"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "LiftExit"));
 	if (!cls)
 	{
 		memset(&PropOffsets_LiftExit, 0xff, sizeof(PropOffsets_LiftExit));
@@ -1457,7 +1457,7 @@ PropertyOffsets_Trigger PropOffsets_Trigger;
 
 static void InitPropertyOffsets_Trigger(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Trigger"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Trigger"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Trigger, 0xff, sizeof(PropOffsets_Trigger));
@@ -1480,7 +1480,7 @@ PropertyOffsets_Player PropOffsets_Player;
 
 static void InitPropertyOffsets_Player(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Player"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Player"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Player, 0xff, sizeof(PropOffsets_Player));
@@ -1505,7 +1505,7 @@ PropertyOffsets_LocalMessage PropOffsets_LocalMessage;
 
 static void InitPropertyOffsets_LocalMessage(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LocalMessage"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "LocalMessage"));
 	if (!cls)
 	{
 		memset(&PropOffsets_LocalMessage, 0xff, sizeof(PropOffsets_LocalMessage));
@@ -1531,7 +1531,7 @@ PropertyOffsets_locationid PropOffsets_locationid;
 
 static void InitPropertyOffsets_locationid(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "locationid"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "locationid"));
 	if (!cls)
 	{
 		memset(&PropOffsets_locationid, 0xff, sizeof(PropOffsets_locationid));
@@ -1546,7 +1546,7 @@ PropertyOffsets_Carcass PropOffsets_Carcass;
 
 static void InitPropertyOffsets_Carcass(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Carcass"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Carcass"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Carcass, 0xff, sizeof(PropOffsets_Carcass));
@@ -1567,7 +1567,7 @@ PropertyOffsets_InterpolationPoint PropOffsets_InterpolationPoint;
 
 static void InitPropertyOffsets_InterpolationPoint(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "InterpolationPoint"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "InterpolationPoint"));
 	if (!cls)
 	{
 		memset(&PropOffsets_InterpolationPoint, 0xff, sizeof(PropOffsets_InterpolationPoint));
@@ -1589,7 +1589,7 @@ PropertyOffsets_Projectile PropOffsets_Projectile;
 
 static void InitPropertyOffsets_Projectile(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Projectile"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Projectile"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Projectile, 0xff, sizeof(PropOffsets_Projectile));
@@ -1611,7 +1611,7 @@ PropertyOffsets_Teleporter PropOffsets_Teleporter;
 
 static void InitPropertyOffsets_Teleporter(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Teleporter"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Teleporter"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Teleporter, 0xff, sizeof(PropOffsets_Teleporter));
@@ -1635,7 +1635,7 @@ PropertyOffsets_Palette PropOffsets_Palette;
 
 static void InitPropertyOffsets_Palette(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Palette"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Palette"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Palette, 0xff, sizeof(PropOffsets_Palette));
@@ -1648,7 +1648,7 @@ PropertyOffsets_SpawnNotify PropOffsets_SpawnNotify;
 
 static void InitPropertyOffsets_SpawnNotify(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SpawnNotify"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "SpawnNotify"));
 	if (!cls)
 	{
 		memset(&PropOffsets_SpawnNotify, 0xff, sizeof(PropOffsets_SpawnNotify));
@@ -1662,7 +1662,7 @@ PropertyOffsets_Fragment PropOffsets_Fragment;
 
 static void InitPropertyOffsets_Fragment(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Fragment"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Fragment"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Fragment, 0xff, sizeof(PropOffsets_Fragment));
@@ -1677,7 +1677,7 @@ PropertyOffsets_WarpZoneInfo PropOffsets_WarpZoneInfo;
 
 static void InitPropertyOffsets_WarpZoneInfo(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "WarpZoneInfo"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "WarpZoneInfo"));
 	if (!cls)
 	{
 		memset(&PropOffsets_WarpZoneInfo, 0xff, sizeof(PropOffsets_WarpZoneInfo));
@@ -1698,7 +1698,7 @@ PropertyOffsets_Console PropOffsets_Console;
 
 static void InitPropertyOffsets_Console(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Console"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Console"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Console, 0xff, sizeof(PropOffsets_Console));
@@ -1767,7 +1767,7 @@ PropertyOffsets_PlayerStart PropOffsets_PlayerStart;
 
 static void InitPropertyOffsets_PlayerStart(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PlayerStart"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "PlayerStart"));
 	if (!cls)
 	{
 		memset(&PropOffsets_PlayerStart, 0xff, sizeof(PropOffsets_PlayerStart));
@@ -1783,7 +1783,7 @@ PropertyOffsets_Pickup PropOffsets_Pickup;
 
 static void InitPropertyOffsets_Pickup(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Pickup"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Pickup"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Pickup, 0xff, sizeof(PropOffsets_Pickup));
@@ -1801,7 +1801,7 @@ PropertyOffsets_Brush PropOffsets_Brush;
 
 static void InitPropertyOffsets_Brush(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Brush"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Brush"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Brush, 0xff, sizeof(PropOffsets_Brush));
@@ -1822,7 +1822,7 @@ PropertyOffsets_ScoreBoard PropOffsets_ScoreBoard;
 
 static void InitPropertyOffsets_ScoreBoard(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ScoreBoard"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "ScoreBoard"));
 	if (!cls)
 	{
 		memset(&PropOffsets_ScoreBoard, 0xff, sizeof(PropOffsets_ScoreBoard));
@@ -1836,7 +1836,7 @@ PropertyOffsets_Spectator PropOffsets_Spectator;
 
 static void InitPropertyOffsets_Spectator(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Spectator"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Spectator"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Spectator, 0xff, sizeof(PropOffsets_Spectator));
@@ -1849,7 +1849,7 @@ PropertyOffsets_InventorySpot PropOffsets_InventorySpot;
 
 static void InitPropertyOffsets_InventorySpot(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "InventorySpot"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "InventorySpot"));
 	if (!cls)
 	{
 		memset(&PropOffsets_InventorySpot, 0xff, sizeof(PropOffsets_InventorySpot));
@@ -1862,7 +1862,7 @@ PropertyOffsets_Decal PropOffsets_Decal;
 
 static void InitPropertyOffsets_Decal(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Decal"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Decal"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Decal, 0xff, sizeof(PropOffsets_Decal));
@@ -1877,7 +1877,7 @@ PropertyOffsets_PatrolPoint PropOffsets_PatrolPoint;
 
 static void InitPropertyOffsets_PatrolPoint(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "PatrolPoint"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "PatrolPoint"));
 	if (!cls)
 	{
 		memset(&PropOffsets_PatrolPoint, 0xff, sizeof(PropOffsets_PatrolPoint));
@@ -1897,7 +1897,7 @@ PropertyOffsets_Counter PropOffsets_Counter;
 
 static void InitPropertyOffsets_Counter(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Counter"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Counter"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Counter, 0xff, sizeof(PropOffsets_Counter));
@@ -1914,7 +1914,7 @@ PropertyOffsets_Bitmap PropOffsets_Bitmap;
 
 static void InitPropertyOffsets_Bitmap(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Bitmap"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Bitmap"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Bitmap, 0xff, sizeof(PropOffsets_Bitmap));
@@ -1937,7 +1937,7 @@ PropertyOffsets_MapList PropOffsets_MapList;
 
 static void InitPropertyOffsets_MapList(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "MapList"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "MapList"));
 	if (!cls)
 	{
 		memset(&PropOffsets_MapList, 0xff, sizeof(PropOffsets_MapList));
@@ -1951,7 +1951,7 @@ PropertyOffsets_Effects PropOffsets_Effects;
 
 static void InitPropertyOffsets_Effects(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Effects"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Effects"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Effects, 0xff, sizeof(PropOffsets_Effects));
@@ -1966,7 +1966,7 @@ PropertyOffsets_StatLogFile PropOffsets_StatLogFile;
 
 static void InitPropertyOffsets_StatLogFile(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "StatLogFile"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "StatLogFile"));
 	if (!cls)
 	{
 		memset(&PropOffsets_StatLogFile, 0xff, sizeof(PropOffsets_StatLogFile));
@@ -1982,7 +1982,7 @@ PropertyOffsets_LevelSummary PropOffsets_LevelSummary;
 
 static void InitPropertyOffsets_LevelSummary(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LevelSummary"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "LevelSummary"));
 	if (!cls)
 	{
 		memset(&PropOffsets_LevelSummary, 0xff, sizeof(PropOffsets_LevelSummary));
@@ -2000,7 +2000,7 @@ PropertyOffsets_ScriptedTexture PropOffsets_ScriptedTexture;
 
 static void InitPropertyOffsets_ScriptedTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "ScriptedTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "ScriptedTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_ScriptedTexture, 0xff, sizeof(PropOffsets_ScriptedTexture));
@@ -2018,7 +2018,7 @@ PropertyOffsets_Engine PropOffsets_Engine;
 
 static void InitPropertyOffsets_Engine(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Engine"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Engine"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Engine, 0xff, sizeof(PropOffsets_Engine));
@@ -2045,7 +2045,7 @@ PropertyOffsets_TriggerLight PropOffsets_TriggerLight;
 
 static void InitPropertyOffsets_TriggerLight(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "TriggerLight"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "TriggerLight"));
 	if (!cls)
 	{
 		memset(&PropOffsets_TriggerLight, 0xff, sizeof(PropOffsets_TriggerLight));
@@ -2066,7 +2066,7 @@ PropertyOffsets_SpecialEvent PropOffsets_SpecialEvent;
 
 static void InitPropertyOffsets_SpecialEvent(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "SpecialEvent"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "SpecialEvent"));
 	if (!cls)
 	{
 		memset(&PropOffsets_SpecialEvent, 0xff, sizeof(PropOffsets_SpecialEvent));
@@ -2085,7 +2085,7 @@ PropertyOffsets_RoundRobin PropOffsets_RoundRobin;
 
 static void InitPropertyOffsets_RoundRobin(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "RoundRobin"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "RoundRobin"));
 	if (!cls)
 	{
 		memset(&PropOffsets_RoundRobin, 0xff, sizeof(PropOffsets_RoundRobin));
@@ -2100,7 +2100,7 @@ PropertyOffsets_MusicEvent PropOffsets_MusicEvent;
 
 static void InitPropertyOffsets_MusicEvent(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "MusicEvent"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "MusicEvent"));
 	if (!cls)
 	{
 		memset(&PropOffsets_MusicEvent, 0xff, sizeof(PropOffsets_MusicEvent));
@@ -2119,7 +2119,7 @@ PropertyOffsets_HomeBase PropOffsets_HomeBase;
 
 static void InitPropertyOffsets_HomeBase(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "HomeBase"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "HomeBase"));
 	if (!cls)
 	{
 		memset(&PropOffsets_HomeBase, 0xff, sizeof(PropOffsets_HomeBase));
@@ -2133,7 +2133,7 @@ PropertyOffsets_Dispatcher PropOffsets_Dispatcher;
 
 static void InitPropertyOffsets_Dispatcher(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Dispatcher"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Dispatcher"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Dispatcher, 0xff, sizeof(PropOffsets_Dispatcher));
@@ -2148,7 +2148,7 @@ PropertyOffsets_DemoRecSpectator PropOffsets_DemoRecSpectator;
 
 static void InitPropertyOffsets_DemoRecSpectator(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "DemoRecSpectator"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "DemoRecSpectator"));
 	if (!cls)
 	{
 		memset(&PropOffsets_DemoRecSpectator, 0xff, sizeof(PropOffsets_DemoRecSpectator));
@@ -2162,7 +2162,7 @@ PropertyOffsets_DamageType PropOffsets_DamageType;
 
 static void InitPropertyOffsets_DamageType(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "DamageType"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "DamageType"));
 	if (!cls)
 	{
 		memset(&PropOffsets_DamageType, 0xff, sizeof(PropOffsets_DamageType));
@@ -2179,7 +2179,7 @@ PropertyOffsets_Ambushpoint PropOffsets_Ambushpoint;
 
 static void InitPropertyOffsets_Ambushpoint(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "Ambushpoint"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "Ambushpoint"));
 	if (!cls)
 	{
 		memset(&PropOffsets_Ambushpoint, 0xff, sizeof(PropOffsets_Ambushpoint));
@@ -2195,7 +2195,7 @@ PropertyOffsets_WarpZoneMarker PropOffsets_WarpZoneMarker;
 
 static void InitPropertyOffsets_WarpZoneMarker(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "WarpZoneMarker"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "WarpZoneMarker"));
 	if (!cls)
 	{
 		memset(&PropOffsets_WarpZoneMarker, 0xff, sizeof(PropOffsets_WarpZoneMarker));
@@ -2210,7 +2210,7 @@ PropertyOffsets_LiftCenter PropOffsets_LiftCenter;
 
 static void InitPropertyOffsets_LiftCenter(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "LiftCenter"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "LiftCenter"));
 	if (!cls)
 	{
 		memset(&PropOffsets_LiftCenter, 0xff, sizeof(PropOffsets_LiftCenter));
@@ -2230,7 +2230,7 @@ PropertyOffsets_RenderIterator PropOffsets_RenderIterator;
 
 static void InitPropertyOffsets_RenderIterator(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("engine")->GetUObject("Class", "RenderIterator"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Engine")->GetUObject("Class", "RenderIterator"));
 	if (!cls)
 	{
 		memset(&PropOffsets_RenderIterator, 0xff, sizeof(PropOffsets_RenderIterator));
@@ -2246,7 +2246,7 @@ PropertyOffsets_FractalTexture PropOffsets_FractalTexture;
 
 static void InitPropertyOffsets_FractalTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FractalTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "FractalTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_FractalTexture, 0xff, sizeof(PropOffsets_FractalTexture));
@@ -2265,7 +2265,7 @@ PropertyOffsets_WaterTexture PropOffsets_WaterTexture;
 
 static void InitPropertyOffsets_WaterTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaterTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "WaterTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_WaterTexture, 0xff, sizeof(PropOffsets_WaterTexture));
@@ -2294,7 +2294,7 @@ PropertyOffsets_WaveTexture PropOffsets_WaveTexture;
 
 static void InitPropertyOffsets_WaveTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WaveTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "WaveTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_WaveTexture, 0xff, sizeof(PropOffsets_WaveTexture));
@@ -2310,7 +2310,7 @@ PropertyOffsets_FireTexture PropOffsets_FireTexture;
 
 static void InitPropertyOffsets_FireTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "FireTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "FireTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_FireTexture, 0xff, sizeof(PropOffsets_FireTexture));
@@ -2342,7 +2342,7 @@ PropertyOffsets_WetTexture PropOffsets_WetTexture;
 
 static void InitPropertyOffsets_WetTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "WetTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "WetTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_WetTexture, 0xff, sizeof(PropOffsets_WetTexture));
@@ -2357,7 +2357,7 @@ PropertyOffsets_IceTexture PropOffsets_IceTexture;
 
 static void InitPropertyOffsets_IceTexture(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("fire")->GetUObject("Class", "IceTexture"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("Fire")->GetUObject("Class", "IceTexture"));
 	if (!cls)
 	{
 		memset(&PropOffsets_IceTexture, 0xff, sizeof(PropOffsets_IceTexture));
@@ -2390,7 +2390,7 @@ PropertyOffsets_InternetLink PropOffsets_InternetLink;
 
 static void InitPropertyOffsets_InternetLink(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "InternetLink"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("IpDrv")->GetUObject("Class", "InternetLink"));
 	if (!cls)
 	{
 		memset(&PropOffsets_InternetLink, 0xff, sizeof(PropOffsets_InternetLink));
@@ -2409,7 +2409,7 @@ PropertyOffsets_UdpLink PropOffsets_UdpLink;
 
 static void InitPropertyOffsets_UdpLink(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "UdpLink"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("IpDrv")->GetUObject("Class", "UdpLink"));
 	if (!cls)
 	{
 		memset(&PropOffsets_UdpLink, 0xff, sizeof(PropOffsets_UdpLink));
@@ -2422,7 +2422,7 @@ PropertyOffsets_TcpLink PropOffsets_TcpLink;
 
 static void InitPropertyOffsets_TcpLink(PackageManager* packages)
 {
-	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("ipdrv")->GetUObject("Class", "TcpLink"));
+	UClass* cls = dynamic_cast<UClass*>(packages->GetPackage("IpDrv")->GetUObject("Class", "TcpLink"));
 	if (!cls)
 	{
 		memset(&PropOffsets_TcpLink, 0xff, sizeof(PropOffsets_TcpLink));

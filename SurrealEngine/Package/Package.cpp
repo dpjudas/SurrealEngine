@@ -23,9 +23,9 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 {
 	ReadTables();
 
-	bool corePackage = name == "core";
-	bool enginePackage = name == "engine";
-	bool ipdrvPackage = name == "ipdrv";
+	bool corePackage = name == "Core";
+	bool enginePackage = name == "Engine";
+	bool ipdrvPackage = name == "IpDrv";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
