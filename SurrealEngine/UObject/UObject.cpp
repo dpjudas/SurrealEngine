@@ -8,6 +8,7 @@
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Engine.h"
+#include "Exception.h"
 
 UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {
@@ -94,7 +95,7 @@ const void* UObject::GetProperty(const NameString& propName) const
 		if (prop->Name == propName)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 void* UObject::GetProperty(const NameString& propName)
@@ -104,7 +105,7 @@ void* UObject::GetProperty(const NameString& propName)
 		if (prop->Name == propName)
 			return PropertyData.Ptr(prop);
 	}
-	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 bool UObject::HasProperty(const NameString& name) const
@@ -124,12 +125,12 @@ std::string UObject::GetPropertyAsString(const NameString& propName) const
 		if (prop->Name == propName)
 			return prop->PrintValue(PropertyData.Ptr(prop));
 	}
-	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 void UObject::SetPropertyFromString(const NameString& name, const std::string& value)
 {
-	throw std::runtime_error("UObject::SetPropertyFromString not implemented");
+	Exception::Throw("UObject::SetPropertyFromString not implemented");
 }
 
 void UObject::SaveConfig()
@@ -154,7 +155,7 @@ bool UObject::GetBool(const NameString& propName) const
 		if (prop->Name == propName)
 			return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
 	}
-	throw std::runtime_error("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 float UObject::GetFloat(const NameString& name) const
@@ -398,14 +399,14 @@ const void* PropertyDataBlock::Ptr(const UProperty* prop) const
 void* PropertyDataBlock::Ptr(size_t offset)
 {
 	if (offset >= Size)
-		throw std::runtime_error("Property offset out of bounds!");
+		Exception::Throw("Property offset out of bounds!");
 	return static_cast<uint8_t*>(Data) + offset;
 }
 
 const void* PropertyDataBlock::Ptr(size_t offset) const
 {
 	if (offset >= Size)
-		throw std::runtime_error("Property offset out of bounds!");
+		Exception::Throw("Property offset out of bounds!");
 	return static_cast<const uint8_t*>(Data) + offset;
 }
 
@@ -437,7 +438,7 @@ void PropertyDataBlock::Init(UClass* cls)
 	{
 #ifdef _DEBUG
 		if (prop->DataOffset.DataOffset + prop->Size() > cls->StructSize)
-			throw std::runtime_error("Memory corruption detected!");
+			Exception::Throw("Memory corruption detected!");
 #endif
 
 		if (&cls->PropertyData != this)
@@ -520,7 +521,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		if (!prop)
 		{
 #if 0
-			throw std::runtime_error("Unknown property " + name);
+			Exception::Throw("Unknown property " + name);
 #else
 			engine->LogMessage("Skipping unknown property " + name.ToString());
 			if (header.type != UPT_Bool)
@@ -531,8 +532,8 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 
 		void* data = Ptr(prop);
 
-		if (header.arrayIndex < 0 || (uint32_t)header.arrayIndex >= prop->ArrayDimension)
-			throw std::runtime_error("Array property is out of bounds!");
+		if (header.arrayIndex < 0 || header.arrayIndex >= prop->ArrayDimension)
+			Exception::Throw("Array property is out of bounds!");
 
 		prop->LoadValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream, header);
 	}

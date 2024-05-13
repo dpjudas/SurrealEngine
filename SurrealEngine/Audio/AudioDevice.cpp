@@ -7,7 +7,7 @@
 #include "UObject/UActor.h"
 #include "UObject/USound.h"
 #include <mutex>
-#include <stdexcept>
+#include "Exception.h"
 #include <map>
 #include <cmath>
 #include <queue>
@@ -27,7 +27,7 @@ public:
 	{
 		alGenSources(1, &id);
 		if (alGetError() != AL_NO_ERROR)
-			throw std::runtime_error("Failed to generate AL source");
+			Exception::Throw("Failed to generate AL source");
 
 		alSourcef(id, AL_ROLLOFF_FACTOR, 1.1f);
 	}
@@ -43,7 +43,7 @@ public:
 	{
 		alSourcePlay(id);
 		if (alGetError() != AL_NO_ERROR)
-			throw std::runtime_error("Failed to play AL source");
+			Exception::Throw("Failed to play AL source");
 	}
 
 	void Stop()
@@ -207,7 +207,7 @@ public:
 		// TODO: Add device enumeration
 		alDevice = alcOpenDevice(NULL);
 		if (alDevice == nullptr)
-			throw std::runtime_error("Failed to initialize OpenAL device");
+			Exception::Throw("Failed to initialize OpenAL device");
 
 		const ALCint ctxAttribs[] =
 		{
@@ -218,10 +218,10 @@ public:
 
 		alContext = alcCreateContext(alDevice, NULL);
 		if (alContext == nullptr)
-			throw std::runtime_error("Failed to initialize OpenAL context");
+			Exception::Throw("Failed to initialize OpenAL context");
 
 		if (alcMakeContextCurrent(alContext) == ALC_FALSE)
-			throw std::runtime_error("Failed to make OpenAL context current");
+			Exception::Throw("Failed to make OpenAL context current");
 
 		// init listener state
 		ALfloat listenerOri[] = { 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, -1.0f };
@@ -288,7 +288,7 @@ public:
 		alBufferData(id, format, sound->samples.data(), (ALsizei)(sound->samples.size()*sizeof(sound->samples[0])), sound->frequency);
 		alError = alGetError();
 		if (alError != AL_NO_ERROR)
-			throw std::runtime_error("Failed to buffer sound data for " + sound->Name.ToString());
+			Exception::Throw("Failed to buffer sound data for " + sound->Name.ToString());
 
 		sound->handle = (void*)(ptrdiff_t)id;
 	}
@@ -324,7 +324,7 @@ public:
 	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
-			throw std::runtime_error("Invalid PlaySound arguments");
+			Exception::Throw("Invalid PlaySound arguments");
 
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
@@ -349,7 +349,7 @@ public:
 	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 	{
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
-			throw std::runtime_error("Invalid PlaySound arguments");
+			Exception::Throw("Invalid PlaySound arguments");
 
 		ALSoundSource& source = sources[channel];
 
@@ -364,7 +364,7 @@ public:
 	void StopSound(int channel) override
 	{
 		if (channel >= sources.size())
-			throw std::runtime_error("Invalid StopSound arguments");
+			Exception::Throw("Invalid StopSound arguments");
 
 		sources[channel].Stop();
 	}
@@ -405,16 +405,16 @@ public:
 		{
 			alBufferData(alMusicBuffers[i], format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if ((error = alGetError()) != AL_NO_ERROR)
-				throw std::runtime_error("alBufferData failed in PlayMusicBuffer: " + getALErrorString());
+				Exception::Throw("alBufferData failed in PlayMusicBuffer: " + getALErrorString());
 
 			alSourceQueueBuffers(alMusicSource, 1, &alMusicBuffers[i]);
 			if (alGetError() != AL_NO_ERROR)
-				throw std::runtime_error("alSourceQueueBuffers failed in PlayMusicBuffer: " + getALErrorString());
+				Exception::Throw("alSourceQueueBuffers failed in PlayMusicBuffer: " + getALErrorString());
 		}
 
 		alSourcePlay(alMusicSource);
 		if (alGetError() != AL_NO_ERROR)
-			throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
+			Exception::Throw("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
 	}
 
 	void UpdateMusicBuffer() override
@@ -438,11 +438,11 @@ public:
 
 			alBufferData(buffer, format, musicQueue.Pop(), musicBufferSize*4, freq);
 			if (alGetError() != AL_NO_ERROR)
-				throw std::runtime_error("alBufferData failed in UpdateMusicBuffer: " + getALErrorString());
+				Exception::Throw("alBufferData failed in UpdateMusicBuffer: " + getALErrorString());
 
 			alSourceQueueBuffers(alMusicSource, 1, &buffer);
 			if (alGetError() != AL_NO_ERROR)
-				throw std::runtime_error("alSourceQueueBuffers failed in UpdateMusicBuffer: " + getALErrorString());
+				Exception::Throw("alSourceQueueBuffers failed in UpdateMusicBuffer: " + getALErrorString());
 
 			status--;
 		}
@@ -452,7 +452,7 @@ public:
 		{
 			alSourcePlay(alMusicSource);
 			if (alGetError() != AL_NO_ERROR)
-				throw std::runtime_error("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
+				Exception::Throw("alSourcePlay failed in PlayMusicBuffer: " + getALErrorString());
 		}
 	}
 

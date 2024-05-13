@@ -217,7 +217,7 @@ UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectF
 		}
 	}
 
-	throw std::runtime_error("Could not find the native class for " + objname.ToString());
+	Exception::Throw("Could not find the native class for " + objname.ToString());
 }
 
 void Package::LoadExportObject(int index)
@@ -234,7 +234,7 @@ void Package::LoadExportObject(int index)
 		if (!objclass)
 		{
 			objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
-			throw std::runtime_error("Could not find the object class for " + objname.ToString());
+			Exception::Throw("Could not find the object class for " + objname.ToString());
 		}
 
 		Objects[index].reset(NewObject(objname, objclass, ExportTable[index].ObjFlags, false));
@@ -260,7 +260,7 @@ UObject* Package::GetUObject(int objref)
 		int index = objref - 1;
 
 		if ((size_t)index > Objects.size())
-			throw std::runtime_error("Invalid object reference");
+			Exception::Throw("Invalid object reference");
 
 		if (!Objects[index])
 			LoadExportObject(index);
@@ -378,7 +378,7 @@ const NameString& Package::GetName(int index) const
 	if (index >= 0 && (size_t)index < NameTable.size())
 		return NameTable[index].Name;
 	else
-		throw std::runtime_error("Name index out of bounds!: " + Name.ToString());
+		Exception::Throw("Name index out of bounds!: " + Name.ToString());
 }
 
 ExportTableEntry* Package::GetExportEntry(int objref)
@@ -386,11 +386,11 @@ ExportTableEntry* Package::GetExportEntry(int objref)
 	if (objref == 0)
 		return nullptr;
 	else if (objref < 0)
-		throw std::runtime_error("Expected an export table entry: " + Name.ToString());
+		Exception::Throw("Expected an export table entry: " + Name.ToString());
 
 	int index = objref - 1;
 	if ((size_t)index >= ExportTable.size())
-		throw std::runtime_error("Export table entry out of bounds!: " + Name.ToString());
+		Exception::Throw("Export table entry out of bounds!: " + Name.ToString());
 
 	return ExportTable.data() + index;
 }
@@ -400,11 +400,11 @@ ImportTableEntry* Package::GetImportEntry(int objref)
 	if (objref == 0)
 		return nullptr;
 	else if (objref > 0)
-		throw std::runtime_error("Expected an import table entry: " + Name.ToString());
+		Exception::Throw("Expected an import table entry: " + Name.ToString());
 
 	int index = -objref - 1;
 	if ((size_t)index >= ImportTable.size())
-		throw std::runtime_error("Import table entry out of bounds!: " + Name.ToString());
+		Exception::Throw("Import table entry out of bounds!: " + Name.ToString());
 
 	return ImportTable.data() + index;
 }
@@ -416,13 +416,13 @@ void Package::ReadTables()
 
 	uint32_t signature = stream->ReadInt32();
 	if (signature != 0x9E2A83C1)
-		throw std::runtime_error("Not an unreal package file: " + Name.ToString());
+		Exception::Throw("Not an unreal package file: " + Name.ToString());
 
 	Version = stream->ReadInt16();
 	uint16_t licenseeMode = stream->ReadInt16();
 
 	if (Version < 60 || Version >= 100)
-		throw std::runtime_error("Unsupported unreal package version: " + Name.ToString());
+		Exception::Throw("Unsupported unreal package version: " + Name.ToString());
 
 	Flags = (PackageFlags)stream->ReadUInt32();
 

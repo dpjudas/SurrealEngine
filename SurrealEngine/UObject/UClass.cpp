@@ -53,7 +53,7 @@ void UStruct::Load(ObjectStream* stream)
 	Children = stream->ReadObject<UField>();
 	FriendlyName = stream->ReadName();
 	if (FriendlyName == "None")
-		throw std::runtime_error("Struct FriendlyName must not be None");
+		Exception::Throw("Struct FriendlyName must not be None");
 
 	Line = stream->ReadUInt32();
 	TextPos = stream->ReadUInt32();
@@ -65,7 +65,7 @@ void UStruct::Load(ObjectStream* stream)
 		ReadToken(stream, 0);
 	}
 	if (Bytecode.size() != ScriptSize)
-		throw std::runtime_error("Bytecode load failed");
+		Exception::Throw("Bytecode load failed");
 
 	Code = std::make_shared<::Bytecode>(Bytecode, stream->GetPackage());
 
@@ -188,7 +188,7 @@ static const char* tokennames[256] =
 ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 {
 	if (depth == 64)
-		throw std::runtime_error("Bytecode parsing error");
+		Exception::Throw("Bytecode parsing error");
 	depth++;
 
 	ExprToken token = (ExprToken)stream->ReadUInt8();
@@ -302,7 +302,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::StructCmpNe: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
 		case ExprToken::UnicodeStringConst: PushUnicodeZ(stream->ReadUnicodeZ()); break;
 		case ExprToken::StructMember: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
-		default: throw std::runtime_error("Unknown script bytecode token encountered");
+		default: Exception::Throw("Unknown script bytecode token encountered");
 		}
 	}
 	return token;
@@ -446,7 +446,7 @@ void UClass::Load(ObjectStream* stream)
 		if (isConfig || isLocalized)
 		{
 			void* ptr = PropertyData.Ptr(prop);
-			for (uint32_t arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
+			for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 			{
 				NameString name = prop->Name;
 				if (prop->ArrayDimension > 1)
@@ -540,13 +540,13 @@ void UClass::Load(ObjectStream* stream)
 							}
 							else
 							{
-								throw std::runtime_error("localize keyword used on unsupported struct member property type");
+								Exception::Throw("localize keyword used on unsupported struct member property type");
 							}
 						}
 					}
 					else
 					{
-						throw std::runtime_error("localize keyword used on unsupported property type");
+						Exception::Throw("localize keyword used on unsupported property type");
 					}
 				}
 
@@ -623,7 +623,7 @@ UProperty* UClass::GetProperty(const NameString& propName)
 		if (prop->Name == propName)
 			return prop;
 	}
-	throw std::runtime_error("Class Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+	Exception::Throw("Class Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
 void UClass::SaveToConfig(PackageManager& packageManager)

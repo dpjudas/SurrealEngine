@@ -44,7 +44,7 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	if (foundGames.empty())
 	{
 		// If we STILL didn't find anything, then there is nothing else we can do
-		throw std::runtime_error("Unable to find a game folder");
+		Exception::Throw("Unable to find a game folder");
 	}
 
 	int selectedGame = LauncherWindow::ExecModal(foundGames);

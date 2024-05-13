@@ -48,10 +48,10 @@ void NInternetLink::StringToIpAddr(UObject* Self, const std::string& Str, IpAddr
 
 void NInternetLink::ParseURL(UObject* Self, const std::string& URL, std::string& Addr, int& Port, std::string& LevelName, std::string& EntryName, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("InternetLink.ParseURL not implemented");
+	Exception::Throw("InternetLink.ParseURL not implemented");
 }
 
 void NInternetLink::Validate(UObject* Self, const std::string& ValidationString, const std::string& GameName, std::string& ReturnValue)
 {
-	throw std::runtime_error("InternetLink.Validate not implemented");
+	Exception::Throw("InternetLink.Validate not implemented");
 }

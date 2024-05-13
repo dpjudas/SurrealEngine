@@ -100,7 +100,7 @@ void NativeCppGenerator::Run()
 					std::string cppFuncDecl = "void " + cppFuncName + "(" + decl.args + ")";
 
 					nClassCppRegisterFunctionsText += "\tRegisterVMNativeFunc_" + std::to_string(decl.argCount) + "(\"" + cls.name + "\", \"" + func.name + "\", &" + cppFuncName + ", funcIndexMap[\"" + cppFuncName + "\"]);\r\n";
-					nClassCppFunctionImplsText += "\r\n" + cppFuncDecl + "\r\n{\r\n\tthrow std::runtime_error(\"" + cppFuncName + " not implemented\");\r\n}\r\n";
+					nClassCppFunctionImplsText += "\r\n" + cppFuncDecl + "\r\n{\r\n\tException::Throw(\"" + cppFuncName + " not implemented\");\r\n}\r\n";
 					nClassHText += "static void " + funcName + "(" + decl.args + ")" + ";\r\n";
 				}
 			}
@@ -164,7 +164,7 @@ void NativeCppGenerator::ParseClassNatives(const std::string& className, const s
 	// Hopefully we never run into this scenario :)
 	// If we do, we'll have to figure out a way to address this
 	if (cls.package.size() > 0 && cls.package != packageName)
-		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+		Exception::Throw("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
 
 	cls.package = packageName;
 
@@ -197,7 +197,7 @@ void NativeCppGenerator::ParseClassProperties(const std::string& className, cons
 	// Hopefully we never run into this scenario :)
 	// If we do, we'll have to figure out a way to address this
 	if (cls.package.size() > 0 && cls.package != packageName)
-		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+		Exception::Throw("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
 
 	cls.package = packageName;
 

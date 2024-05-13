@@ -12,5 +12,5 @@ void NDeusExDecoration::RegisterFunctions()
 
 void NDeusExDecoration::ConBindEvents(UObject* Self)
 {
-	throw std::runtime_error("DeusExDecoration.ConBindEvents not implemented");
+	Exception::Throw("DeusExDecoration.ConBindEvents not implemented");
 }

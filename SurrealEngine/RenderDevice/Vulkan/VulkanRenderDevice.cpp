@@ -20,7 +20,7 @@ void VulkanPrintLog(const char* typestr, const std::string& msg)
 
 void VulkanError(const char* text)
 {
-	throw std::runtime_error(text);
+	Exception::Throw(text);
 }
 
 VulkanRenderDevice::VulkanRenderDevice(GameWindow* InViewport, std::shared_ptr<VulkanSurface> surface)

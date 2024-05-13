@@ -18,16 +18,16 @@ std::string GameWindow::windowingSystemName;
 std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost, std::string& windowingSystemName)
 {
 	if (windowingSystemName.empty())
-		throw std::runtime_error("Windowing system field is empty.");
+		Exception::Throw("Windowing system field is empty.");
 
 #if !defined(WIN32)
 	if (windowingSystemName == "Win32")
-		throw std::runtime_error("Win32 windowing system can only work on the Windows version of SurrealEngine");
+		Exception::Throw("Win32 windowing system can only work on the Windows version of SurrealEngine");
 #endif
 
 #if !defined(USE_SDL2)
 	if (windowingSystemName == "SDL2")
-		throw std::runtime_error("SurrealEngine is built without SDL2 support. Windowing system cannot be SDL2");
+		Exception::Throw("SurrealEngine is built without SDL2 support. Windowing system cannot be SDL2");
 #endif
 
 	GameWindow::windowingSystemName = windowingSystemName;
@@ -42,7 +42,7 @@ std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost, std::
 		return std::make_unique<SDL2Window>(windowHost);
 #endif
 
-	throw std::runtime_error("Invalid Windowing system name: " + windowingSystemName);
+	Exception::Throw("Invalid Windowing system name: " + windowingSystemName);
 }
 
 void GameWindow::ProcessEvents()

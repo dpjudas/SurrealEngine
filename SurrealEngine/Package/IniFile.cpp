@@ -55,7 +55,7 @@ IniFile::IniFile(const std::string& filename)
 					{
 						size_t rightBracket = name.find(']');
 						if (rightBracket == std::string::npos)
-							throw std::runtime_error("malformed INI array index");
+							Exception::Throw("malformed INI array index");
 
 						indexed = true;
 						index = std::stoi(name.substr(bracket + 1, rightBracket - bracket - 1));

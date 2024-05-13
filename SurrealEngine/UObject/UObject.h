@@ -252,7 +252,7 @@ public:
 		T* target = dynamic_cast<T*>(obj);
 		if (target == nullptr && obj != nullptr)
 		{
-			throw std::runtime_error("Could not cast object " + obj->Name.ToString() + " (class " + GetUClassName(obj).ToString() + ") to " + (std::string)typeid(T).name());
+			Exception::Throw("Could not cast object " + obj->Name.ToString() + " (class " + GetUClassName(obj).ToString() + ") to " + (std::string)typeid(T).name());
 		}
 		return target;
 	}

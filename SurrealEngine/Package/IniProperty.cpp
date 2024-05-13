@@ -1,5 +1,5 @@
 #include "IniProperty.h"
-#include <stdexcept>
+#include "Exception.h"
 
 template<>
 int IniPropertyConverter<int>::FromString(const std::string& valueString)
@@ -69,7 +69,7 @@ bool IniPropertyConverter<bool>::FromString(const std::string& valueString)
 	else if (valueString == "False" || valueString == "false" || valueString == "0")
 		return false;
 	else
-		throw std::invalid_argument("Encountered a non-boolean value: " + valueString);
+		Exception::Throw("Encountered a non-boolean value: " + valueString);
 }
 
 
@@ -115,7 +115,7 @@ AudioFrequency IniPropertyConverter<AudioFrequency>::FromString(const std::strin
 		int frequency = std::stoi(valueString.substr(0, pos));
 		return AudioFrequency(frequency);
 	}
-	throw std::invalid_argument("Invalid value '" + valueString + "' for changing frequency. The value must be a number that ends with 'Hz'.");
+	Exception::Throw("Invalid value '" + valueString + "' for changing frequency. The value must be a number that ends with 'Hz'.");
 }
 
 template<>

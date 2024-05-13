@@ -32,105 +32,105 @@ void NDumpLocation::RegisterFunctions()
 
 void NDumpLocation::AddDumpFileLocation(UObject* Self, const std::string& FileName, const std::string& newTitle, const std::string& newDescription)
 {
-	throw std::runtime_error("DumpLocation.AddDumpFileLocation not implemented");
+	Exception::Throw("DumpLocation.AddDumpFileLocation not implemented");
 }
 
 void NDumpLocation::CloseDumpFile(UObject* Self)
 {
-	throw std::runtime_error("DumpLocation.CloseDumpFile not implemented");
+	Exception::Throw("DumpLocation.CloseDumpFile not implemented");
 }
 
 void NDumpLocation::DeleteDumpFile(UObject* Self, const std::string& FileName)
 {
-	throw std::runtime_error("DumpLocation.DeleteDumpFile not implemented");
+	Exception::Throw("DumpLocation.DeleteDumpFile not implemented");
 }
 
 void NDumpLocation::DeleteDumpFileLocation(UObject* Self, int dumpLocationID)
 {
-	throw std::runtime_error("DumpLocation.DeleteDumpFileLocation not implemented");
+	Exception::Throw("DumpLocation.DeleteDumpFileLocation not implemented");
 }
 
 void NDumpLocation::GetCurrentUser(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetCurrentUser not implemented");
+	Exception::Throw("DumpLocation.GetCurrentUser not implemented");
 }
 
 void NDumpLocation::GetDumpFileCount(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetDumpFileCount not implemented");
+	Exception::Throw("DumpLocation.GetDumpFileCount not implemented");
 }
 
 void NDumpLocation::GetDumpFileIndex(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetDumpFileIndex not implemented");
+	Exception::Throw("DumpLocation.GetDumpFileIndex not implemented");
 }
 
 void NDumpLocation::GetDumpFileLocationCount(UObject* Self, const std::string& FileName, int& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetDumpFileLocationCount not implemented");
+	Exception::Throw("DumpLocation.GetDumpFileLocationCount not implemented");
 }
 
 void NDumpLocation::GetDumpFileLocationInfo(UObject* Self)
 {
-	throw std::runtime_error("DumpLocation.GetDumpFileLocationInfo not implemented");
+	Exception::Throw("DumpLocation.GetDumpFileLocationInfo not implemented");
 }
 
 void NDumpLocation::GetDumpLocationIndex(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetDumpLocationIndex not implemented");
+	Exception::Throw("DumpLocation.GetDumpLocationIndex not implemented");
 }
 
 void NDumpLocation::GetFirstDumpFile(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetFirstDumpFile not implemented");
+	Exception::Throw("DumpLocation.GetFirstDumpFile not implemented");
 }
 
 void NDumpLocation::GetFirstDumpFileLocation(UObject* Self, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetFirstDumpFileLocation not implemented");
+	Exception::Throw("DumpLocation.GetFirstDumpFileLocation not implemented");
 }
 
 void NDumpLocation::GetNextDumpFile(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetNextDumpFile not implemented");
+	Exception::Throw("DumpLocation.GetNextDumpFile not implemented");
 }
 
 void NDumpLocation::GetNextDumpFileLocation(UObject* Self, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetNextDumpFileLocation not implemented");
+	Exception::Throw("DumpLocation.GetNextDumpFileLocation not implemented");
 }
 
 void NDumpLocation::GetNextDumpFileLocationID(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.GetNextDumpFileLocationID not implemented");
+	Exception::Throw("DumpLocation.GetNextDumpFileLocationID not implemented");
 }
 
 void NDumpLocation::HasLocationBeenSaved(UObject* Self, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.HasLocationBeenSaved not implemented");
+	Exception::Throw("DumpLocation.HasLocationBeenSaved not implemented");
 }
 
 void NDumpLocation::LoadLocation(UObject* Self)
 {
-	throw std::runtime_error("DumpLocation.LoadLocation not implemented");
+	Exception::Throw("DumpLocation.LoadLocation not implemented");
 }
 
 void NDumpLocation::OpenDumpFile(UObject* Self, const std::string& FileName, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.OpenDumpFile not implemented");
+	Exception::Throw("DumpLocation.OpenDumpFile not implemented");
 }
 
 void NDumpLocation::SaveLocation(UObject* Self)
 {
-	throw std::runtime_error("DumpLocation.SaveLocation not implemented");
+	Exception::Throw("DumpLocation.SaveLocation not implemented");
 }
 
 void NDumpLocation::SelectDumpFileLocation(UObject* Self, int dumpLocationID, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("DumpLocation.SelectDumpFileLocation not implemented");
+	Exception::Throw("DumpLocation.SelectDumpFileLocation not implemented");
 }
 
 void NDumpLocation::SetPlayer(UObject* Self, UObject* NewPlayer)
 {
-	throw std::runtime_error("DumpLocation.SetPlayer not implemented");
+	Exception::Throw("DumpLocation.SetPlayer not implemented");
 }

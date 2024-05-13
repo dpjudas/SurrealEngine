@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "AudioSource.h"
 #include "resample/CDSPResampler.h"
-#include <stdexcept>
+#include "Exception.h"
 #include <functional>
 
 #ifdef _MSC_VER
@@ -35,7 +35,7 @@ public:
 	{
 		int error = mp3dec_ex_open_buf(&decoder, input.data(), input.size(), MP3D_SEEK_TO_SAMPLE);
 		if (error)
-			throw std::runtime_error("mp3dec_ex_open_buf failed");
+			Exception::Throw("mp3dec_ex_open_buf failed");
 
 		memset(&frame_info, 0, sizeof(frame_info));
 	}
@@ -64,7 +64,7 @@ public:
 	{
 		int error = mp3dec_ex_seek(&decoder, position);
 		if (error)
-			throw std::runtime_error("mp3dec_ex_seek failed");
+			Exception::Throw("mp3dec_ex_seek failed");
 	}
 
 	size_t ReadSamples(float* output, size_t samples) override
@@ -117,7 +117,7 @@ public:
 	{
 		decoder = drflac_open(&FlacAudioSource::StaticInputRead, &FlacAudioSource::StaticInputSeek, this, nullptr);
 		if (!decoder)
-			throw std::runtime_error("Could not open flac file");
+			Exception::Throw("Could not open flac file");
 	}
 
 	~FlacAudioSource()
@@ -214,7 +214,7 @@ public:
 	{
 		drwav_bool32 result = drwav_init_ex(&decoder, &WavAudioSource::StaticInputRead, &WavAudioSource::StaticInputSeek, nullptr, this, nullptr, 0, nullptr);
 		if (!result)
-			throw std::runtime_error("Could not open wav file");
+			Exception::Throw("Could not open wav file");
 
 		// drwav only supports 1 loop
 		if (decoder.smpl.numSampleLoops == 1)
@@ -320,7 +320,7 @@ public:
 		int error = 0;
 		handle = stb_vorbis_open_pushdata(filedata.data(), (int)filedata.size(), &stream_byte_offset, &error, nullptr);
 		if (!handle)
-			throw std::runtime_error("Unable to read ogg file");
+			Exception::Throw("Unable to read ogg file");
 
 		stream_info = stb_vorbis_get_info(handle);
 	}
@@ -359,7 +359,7 @@ public:
 		int error = 0;
 		handle = stb_vorbis_open_pushdata(filedata.data(), (int)filedata.size(), &stream_byte_offset, &error, nullptr);
 		if (handle == nullptr)
-			throw std::runtime_error("Unable to read ogg file");
+			Exception::Throw("Unable to read ogg file");
 
 		stream_info = stb_vorbis_get_info(handle);
 		stream_eof = false;
@@ -435,13 +435,13 @@ public:
 
 		handle = dumbfile_open_ex(this, &dfs);
 		if (!handle)
-			throw std::runtime_error("Could not open tracker file");
+			Exception::Throw("Could not open tracker file");
 
 		duh = readCallback(handle);
 		if (duh == nullptr)
 		{
 			dumbfile_close(handle);
-			throw std::runtime_error("Could not read tracker file");
+			Exception::Throw("Could not read tracker file");
 		}
 
 		renderer = duh_start_sigrenderer(duh, 0, 2, 0);
@@ -449,7 +449,7 @@ public:
 		{
 			unload_duh(duh);
 			dumbfile_close(handle);
-			throw std::runtime_error("Could not tracker rendering");
+			Exception::Throw("Could not tracker rendering");
 		}
 
 		DUMB_IT_SIGRENDERER* itsr = duh_get_it_sigrenderer(renderer);

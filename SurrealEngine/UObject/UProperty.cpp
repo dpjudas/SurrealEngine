@@ -6,7 +6,7 @@ void UProperty::Load(ObjectStream* stream)
 {
 	UField::Load(stream);
 
-	ArrayDimension = stream->ReadUInt32();
+	ArrayDimension = stream->ReadInt32();
 	PropFlags = (PropertyFlags)stream->ReadUInt32();
 	Category = stream->ReadName();
 	if (AllFlags(PropFlags, PropertyFlags::Net))
@@ -22,13 +22,13 @@ void UProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader
 
 void UProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	throw std::runtime_error("Unsupported struct member type");
+	Exception::Throw("Unsupported struct member type");
 }
 
 void UProperty::ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type)
 {
 	if (header.type != type)
-		throw std::runtime_error("Property value does not match property type!");
+		Exception::Throw("Property value does not match property type!");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 	}
 	else
 	{
-		throw std::runtime_error("Property value does not match property type!");
+		Exception::Throw("Property value does not match property type!");
 	}
 }
 
@@ -206,7 +206,7 @@ void UArrayProperty::Load(ObjectStream* stream)
 void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Array);
-	throw std::runtime_error("Array properties not implemented");
+	Exception::Throw("Array properties not implemented");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	ThrowIfTypeMismatch(header, UPT_Struct);
 
 	if (Struct->Name != header.structName)
-		throw std::runtime_error("Encountered struct '" + header.structName.ToString() + "' does not match expected struct property '" + Struct->Name.ToString() + "'");
+		Exception::Throw("Encountered struct '" + header.structName.ToString() + "' does not match expected struct property '" + Struct->Name.ToString() + "'");
 
 	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 	{

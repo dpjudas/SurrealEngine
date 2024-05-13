@@ -12,5 +12,5 @@ void NDeusExSaveInfo::RegisterFunctions()
 
 void NDeusExSaveInfo::UpdateTimeStamp(UObject* Self)
 {
-	throw std::runtime_error("DeusExSaveInfo.UpdateTimeStamp not implemented");
+	Exception::Throw("DeusExSaveInfo.UpdateTimeStamp not implemented");
 }

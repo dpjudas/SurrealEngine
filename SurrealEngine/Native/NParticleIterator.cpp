@@ -12,5 +12,5 @@ void NParticleIterator::RegisterFunctions()
 
 void NParticleIterator::UpdateParticles(UObject* Self, float DeltaTime)
 {
-	throw std::runtime_error("ParticleIterator.UpdateParticles not implemented");
+	Exception::Throw("ParticleIterator.UpdateParticles not implemented");
 }

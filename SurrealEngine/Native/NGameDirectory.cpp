@@ -26,75 +26,75 @@ void NGameDirectory::RegisterFunctions()
 
 void NGameDirectory::DeleteSaveInfo(UObject* Self, UObject* saveInfo)
 {
-	throw std::runtime_error("GameDirectory.DeleteSaveInfo not implemented");
+	Exception::Throw("GameDirectory.DeleteSaveInfo not implemented");
 }
 
 void NGameDirectory::GenerateNewSaveFilename(UObject* Self, int* newIndex, std::string& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GenerateNewSaveFilename not implemented");
+	Exception::Throw("GameDirectory.GenerateNewSaveFilename not implemented");
 }
 
 void NGameDirectory::GenerateSaveFilename(UObject* Self, int saveIndex, std::string& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GenerateSaveFilename not implemented");
+	Exception::Throw("GameDirectory.GenerateSaveFilename not implemented");
 }
 
 void NGameDirectory::GetDirCount(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetDirCount not implemented");
+	Exception::Throw("GameDirectory.GetDirCount not implemented");
 }
 
 void NGameDirectory::GetDirFilename(UObject* Self, int fileIndex, std::string& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetDirFilename not implemented");
+	Exception::Throw("GameDirectory.GetDirFilename not implemented");
 }
 
 void NGameDirectory::GetGameDirectory(UObject* Self)
 {
-	throw std::runtime_error("GameDirectory.GetGameDirectory not implemented");
+	Exception::Throw("GameDirectory.GetGameDirectory not implemented");
 }
 
 void NGameDirectory::GetNewSaveFileIndex(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetNewSaveFileIndex not implemented");
+	Exception::Throw("GameDirectory.GetNewSaveFileIndex not implemented");
 }
 
 void NGameDirectory::GetSaveDirectorySize(UObject* Self, int saveIndex, int& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetSaveDirectorySize not implemented");
+	Exception::Throw("GameDirectory.GetSaveDirectorySize not implemented");
 }
 
 void NGameDirectory::GetSaveFreeSpace(UObject* Self, int& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetSaveFreeSpace not implemented");
+	Exception::Throw("GameDirectory.GetSaveFreeSpace not implemented");
 }
 
 void NGameDirectory::GetSaveInfo(UObject* Self, int fileIndex, UObject*& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetSaveInfo not implemented");
+	Exception::Throw("GameDirectory.GetSaveInfo not implemented");
 }
 
 void NGameDirectory::GetSaveInfoFromDirectoryIndex(UObject* Self, int DirectoryIndex, UObject*& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetSaveInfoFromDirectoryIndex not implemented");
+	Exception::Throw("GameDirectory.GetSaveInfoFromDirectoryIndex not implemented");
 }
 
 void NGameDirectory::GetTempSaveInfo(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("GameDirectory.GetTempSaveInfo not implemented");
+	Exception::Throw("GameDirectory.GetTempSaveInfo not implemented");
 }
 
 void NGameDirectory::PurgeAllSaveInfo(UObject* Self)
 {
-	throw std::runtime_error("GameDirectory.PurgeAllSaveInfo not implemented");
+	Exception::Throw("GameDirectory.PurgeAllSaveInfo not implemented");
 }
 
 void NGameDirectory::SetDirFilter(UObject* Self, const std::string& strFilter)
 {
-	throw std::runtime_error("GameDirectory.SetDirFilter not implemented");
+	Exception::Throw("GameDirectory.SetDirFilter not implemented");
 }
 
 void NGameDirectory::SetDirType(UObject* Self, uint8_t newDirType)
 {
-	throw std::runtime_error("GameDirectory.SetDirType not implemented");
+	Exception::Throw("GameDirectory.SetDirType not implemented");
 }

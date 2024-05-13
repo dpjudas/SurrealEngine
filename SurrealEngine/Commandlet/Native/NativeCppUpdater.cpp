@@ -5,7 +5,7 @@
 #include "JsonValue.h"
 #include "DebuggerApp.h"
 #include <filesystem>
-#include <stdexcept>
+#include "Exception.h"
 #include <algorithm>
 #include <unordered_set>
 
@@ -292,7 +292,7 @@ void NativeCppUpdater::ParseClassNatives(const std::string& className, const std
 	// Hopefully we never run into this scenario :)
 	// If we do, we'll have to figure out a way to address this
 	if (cls.package.size() > 0 && cls.package != packageName)
-		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+		Exception::Throw("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
 
 	cls.package = packageName;
 
@@ -325,7 +325,7 @@ void NativeCppUpdater::ParseClassProperties(const std::string& className, const 
 	// Hopefully we never run into this scenario :)
 	// If we do, we'll have to figure out a way to address this
 	if (cls.package.size() > 0 && cls.package != packageName)
-		throw std::runtime_error("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
+		Exception::Throw("Class package mismatch between games, got " + cls.package + "first, then " + packageName);
 
 	cls.package = packageName;
 

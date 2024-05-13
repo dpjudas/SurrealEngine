@@ -167,7 +167,7 @@ void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString&
 
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("Actor.GetCacheEntry not implemented");
+	Exception::Throw("Actor.GetCacheEntry not implemented");
 }
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
@@ -305,7 +305,7 @@ void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
 
 void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 {
-	throw std::runtime_error("Actor.LinkSkelAnim not implemented");
+	Exception::Throw("Actor.LinkSkelAnim not implemented");
 }
 
 void NActor::LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, float* MinRate)
@@ -325,7 +325,7 @@ void NActor::Move(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
 
 void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("Actor.MoveCacheEntry not implemented");
+	Exception::Throw("Actor.MoveCacheEntry not implemented");
 }
 
 void NActor::MoveSmooth(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
