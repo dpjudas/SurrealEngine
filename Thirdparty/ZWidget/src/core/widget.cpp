@@ -9,7 +9,7 @@ Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 {
 	if (type != WidgetType::Child)
 	{
-		DispWindow = DisplayWindow::Create(this);
+		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup);
 		DispCanvas = Canvas::create(DispWindow.get());
 		SetStyleState("root");
 
@@ -510,7 +510,7 @@ Point Widget::MapFromGlobal(const Point& pos) const
 	{
 		if (cur->DispWindow)
 		{
-			return p - cur->GetFrameGeometry().topLeft();
+			return cur->DispWindow->MapFromGlobal(p);
 		}
 		p -= cur->ContentGeometry.topLeft();
 	}
@@ -536,7 +536,7 @@ Point Widget::MapToGlobal(const Point& pos) const
 	{
 		if (cur->DispWindow)
 		{
-			return cur->GetFrameGeometry().topLeft() + p;
+			return cur->DispWindow->MapToGlobal(p);
 		}
 		p += cur->ContentGeometry.topLeft();
 	}
@@ -705,9 +705,21 @@ void Widget::OnWindowKeyUp(InputKey key)
 
 void Widget::OnWindowGeometryChanged()
 {
+	if (!DispWindow)
+		return;
 	Size size = DispWindow->GetClientSize();
 	FrameGeometry = Rect::xywh(0.0, 0.0, size.width, size.height);
-	ContentGeometry = FrameGeometry;
+
+	double left = FrameGeometry.left() + GetNoncontentLeft();
+	double top = FrameGeometry.top() + GetNoncontentTop();
+	double right = FrameGeometry.right() - GetNoncontentRight();
+	double bottom = FrameGeometry.bottom() - GetNoncontentBottom();
+	left = std::min(left, FrameGeometry.right());
+	top = std::min(top, FrameGeometry.bottom());
+	right = std::max(right, FrameGeometry.left());
+	bottom = std::max(bottom, FrameGeometry.top());
+	ContentGeometry = Rect::ltrb(left, top, right, bottom);
+
 	OnGeometryChanged();
 }
 
@@ -731,6 +743,12 @@ void Widget::OnWindowDpiScaleChanged()
 Size Widget::GetScreenSize()
 {
 	return DisplayWindow::GetScreenSize();
+}
+
+void* Widget::GetNativeHandle()
+{
+	Widget* w = Window();
+	return w ? w->DispWindow->GetNativeHandle() : nullptr;
 }
 
 void Widget::SetStyleClass(const std::string& themeClass)

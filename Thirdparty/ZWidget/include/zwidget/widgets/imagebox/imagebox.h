@@ -11,6 +11,7 @@ public:
 
 	void SetImage(std::shared_ptr<Image> newImage);
 
+	double GetPreferredWidth() const;
 	double GetPreferredHeight() const;
 
 protected:

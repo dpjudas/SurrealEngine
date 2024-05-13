@@ -2,6 +2,8 @@
 
 #include "UClass.h"
 
+#include <sstream>
+
 struct PropertyHeader;
 
 enum class PropertyFlags : uint32_t
@@ -50,6 +52,57 @@ enum class ExpressionValueType
 	ValueColor,
 	ValueStruct
 };
+
+// Helper functions for parsing property strings with multiple values
+
+// Parses a single property
+static std::pair<NameString, std::string> ParseSingleProperty(std::string& propString)
+{
+	propString.erase(propString.find_last_not_of(' ') + 1);
+	propString.erase(0, propString.find_first_not_of(' '));
+
+	auto equalsPos = propString.find('=');
+
+	if (equalsPos == std::string::npos)
+		throw std::runtime_error("No = found in the property string: " + propString);
+
+	std::string name = propString.substr(0, equalsPos);
+	std::string value = propString.substr(equalsPos + 1);
+
+	return std::make_pair(name, value);
+}
+
+// Parses all properties given in the string
+static std::map<NameString, std::string> ParsePropertiesFromString(std::string propertiesString)
+{
+	std::map<NameString, std::string> properties;
+
+	if (propertiesString.empty())
+		return {};
+
+	// Also check for the string being "null" or "null struct"
+	if (propertiesString == "null" || propertiesString == "null struct")
+		return {};
+
+	if (propertiesString[0] != '{')
+		throw std::runtime_error("{ not found in the property string: " + propertiesString);
+
+	if (propertiesString[propertiesString.size() - 1] != '}')
+		throw std::runtime_error("} not found in the property string: " + propertiesString);
+
+	std::string propsString = propertiesString.substr(1, propertiesString.find('}') - 1);
+
+	std::stringstream propsStream(propsString);
+	std::string prop;
+
+	while (getline(propsStream, prop, ','))
+	{
+		auto currProp = ParseSingleProperty(prop);
+		properties[currProp.first] = currProp.second;
+	}
+
+	return properties;
+}
 
 class UProperty : public UField
 {
@@ -120,6 +173,11 @@ public:
 
 	virtual std::string PrintValue(const void* data) { return "?"; }
 
+	virtual void SetValueFromString(void* data, const std::string& valueString) 
+	{ 
+		//throw std::runtime_error("SetValueFromString() is unimplemented on this Property type!");
+	}
+
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
 	int ArrayDimension = 0;
@@ -166,6 +224,11 @@ public:
 		return *(uint8_t*)val == 0;
 	}
 
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(uint8_t*)data = (uint8_t) std::stoi(valueString);
+	}
+
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
 
@@ -188,7 +251,11 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
+<<<<<<< HEAD
 			return obj->Class->Name.ToString() + '\'' + obj->package->GetExportName(obj->exportIndex) + '\'';
+=======
+			return "{ name=" + obj->Name.ToString() + ", class=" + UObject::GetUClassFullName(obj).ToString() + " }";
+>>>>>>> dpjudas/master
 		else
 			return "None";
 	}
@@ -196,6 +263,8 @@ public:
 	{
 		return *(UObject**)val == nullptr;
 	}
+
+	void SetValueFromString(void* data, const std::string& valueString) override;
 
 	UClass* ObjectClass = nullptr;
 };
@@ -497,6 +566,31 @@ public:
 	}
 
 	UStruct* Struct = nullptr;
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		if (valueString.empty())
+			return;
+		
+		auto properties = ParsePropertiesFromString(valueString);
+
+		if (Struct)
+		{
+			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
+			{
+				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				if (fieldprop)
+				{
+					auto it = properties.find(fieldprop->Name);
+
+					if (it != properties.end())
+					{
+						fieldprop->SetValueFromString(data, it->second);
+					}
+				}
+			}
+		}
+	}
 };
 
 class UIntProperty : public UProperty
@@ -506,9 +600,16 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
+<<<<<<< HEAD
 	bool IsDefaultValue(void* val)
 	{
 		return *(int*)val == 0;
+=======
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(int32_t*)data = std::stoi(valueString);
+>>>>>>> dpjudas/master
 	}
 };
 
@@ -550,12 +651,28 @@ public:
 			v = v & ~DataOffset.BitfieldMask;
 	}
 
+<<<<<<< HEAD
 	bool IsDefaultValue(void* val)
 	{
 		return GetBool(val) == false;
 	}
 
 	std::string PrintValue(const void* data) override { return GetBool(data) ? "True" : "False"; }
+=======
+	std::string PrintValue(const void* data) override { return std::to_string(GetBool(data)); }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		NameString valueName(valueString);
+
+		if (valueName != "true" && valueName != "false" && valueName != "0" && valueName != "1")
+			throw std::runtime_error("Invalid bool value given to SetValueFromString(): " + valueString);
+
+		bool value = (valueName == "true" || valueName == "1")  ? true : false;
+
+		SetBool(data, value);
+	}
+>>>>>>> dpjudas/master
 };
 
 class UFloatProperty : public UProperty
@@ -565,9 +682,16 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
+<<<<<<< HEAD
 	bool IsDefaultValue(void* val)
 	{
 		return *(float*)val == 0.0f;
+=======
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(float*)data = std::stof(valueString);
+>>>>>>> dpjudas/master
 	}
 };
 
@@ -613,9 +737,15 @@ public:
 
 	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
 
+<<<<<<< HEAD
 	bool IsDefaultValue(void* val)
 	{
 		return static_cast<NameString*>(val)->IsNone();
+=======
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(NameString*)data = NameString(valueString);
+>>>>>>> dpjudas/master
 	}
 };
 
@@ -652,10 +782,18 @@ public:
 			str[i].~basic_string();
 	}
 
+<<<<<<< HEAD
 	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
 	bool IsDefaultValue(void* val)
 	{
 		return ((std::string*)val)->length() == 0;
+=======
+	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(std::string*)data = valueString;
+>>>>>>> dpjudas/master
 	}
 };
 
@@ -691,9 +829,17 @@ public:
 			str[i].~basic_string();
 	}
 
+<<<<<<< HEAD
 	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
 	bool IsDefaultValue(void* val)
 	{
 		return ((std::string*)val)->length() == 0;
+=======
+	std::string PrintValue(const void* data) override { return *(std::string*)data; }
+
+	void SetValueFromString(void* data, const std::string& valueString) override
+	{
+		*(std::string*)data = valueString;
+>>>>>>> dpjudas/master
 	}
 };

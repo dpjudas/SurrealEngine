@@ -237,6 +237,23 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "1.10";
 			}
 			break;
+			case KnownUE1Games::TACTICAL_OPS_436:
+			{
+				info.gameName = "Tactical-Ops: Assault on Terror";
+				info.engineVersion = 436;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "436";
+			}
+			break;
+			case KnownUE1Games::TACTICAL_OPS_469:
+			{
+				// exe is identical to UT v469d
+				info.gameName = "Tactical-Ops: Assault on Terror";
+				info.engineVersion = 469;
+				info.engineSubVersion = 3;
+				info.gameVersionString = "469d";
+			}
+			break;
 		}
 	}
 	

@@ -56,7 +56,7 @@ static std::wstring to_utf16(const std::string& str)
 	return result;
 }
 
-Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost) : WindowHost(windowHost)
+Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow) : WindowHost(windowHost)
 {
 	Windows.push_front(this);
 	WindowsIterator = Windows.begin();
@@ -74,7 +74,18 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost) : WindowHo
 	// WS_CAPTION shows the caption (yay! actually a flag that does what it says it does!)
 	// WS_SYSMENU shows the min/max/close buttons
 	// WS_THICKFRAME makes the window resizable
-	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME, L"ZWidgetWindow", L"", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+
+	DWORD style = 0, exstyle = 0;
+	if (popupWindow)
+	{
+		style = WS_POPUP;
+	}
+	else
+	{
+		exstyle = WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME;
+		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+	}
+	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	/*
 	RAWINPUTDEVICE rid;
@@ -244,6 +255,26 @@ Rect Win32DisplayWindow::GetWindowFrame() const
 	GetWindowRect(WindowHandle, &box);
 	double dpiscale = GetDpiScale();
 	return Rect(box.left / dpiscale, box.top / dpiscale, box.right / dpiscale, box.bottom / dpiscale);
+}
+
+Point Win32DisplayWindow::MapFromGlobal(const Point& pos) const
+{
+	double dpiscale = GetDpiScale();
+	POINT point = {};
+	point.x = (LONG)std::round(pos.x / dpiscale);
+	point.y = (LONG)std::round(pos.y / dpiscale);
+	ScreenToClient(WindowHandle, &point);
+	return Point(point.x * dpiscale, point.y * dpiscale);
+}
+
+Point Win32DisplayWindow::MapToGlobal(const Point& pos) const
+{
+	double dpiscale = GetDpiScale();
+	POINT point = {};
+	point.x = (LONG)std::round(pos.x * dpiscale);
+	point.y = (LONG)std::round(pos.y * dpiscale);
+	ClientToScreen(WindowHandle, &point);
+	return Point(point.x / dpiscale, point.y / dpiscale);
 }
 
 Size Win32DisplayWindow::GetClientSize() const

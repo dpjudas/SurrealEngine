@@ -9,6 +9,7 @@
 #include "UObject/UFont.h"
 #include "UObject/UMesh.h"
 #include "UObject/UActor.h"
+#include "UObject/ObjectTravelInfo.h"
 #include "UObject/UTexture.h"
 #include "UObject/UMusic.h"
 #include "UObject/USound.h"
@@ -159,8 +160,28 @@ void Engine::Run()
 			// To do: need to do something about that travel type and transfering of items
 
 			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
+
+			auto travelInfo = Level->TravelInfo;
+			for (UActor* actor : Level->Actors)
+			{
+				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
+				if (pawn && pawn->Player())
+				{
+					std::vector<ObjectTravelInfo> actorTravelInfo;
+					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
+					{
+						ObjectTravelInfo objInfo(item);
+						actorTravelInfo.push_back(std::move(objInfo));
+					}
+					// Add the pawn itself last
+					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
+					std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+					travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
+				}
+			}
+
 			LogMessage("Client travel to " + url.ToString());
-			LoadMap(url);
+			LoadMap(url, travelInfo);
 			LoginPlayer();
 		}
 
@@ -480,18 +501,22 @@ void Engine::LoginPlayer()
 		{
 			for (const ObjectTravelInfo& objInfo : ObjectTravelInfo::Parse(it->second))
 			{
-				UClass* cls = packages->FindClass(objInfo.ClassName);
-				UActor* acceptedActor = nullptr;
-				if (cls)
-					acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
-
-				if (acceptedActor)
+				if (objInfo.isPlayerPawn)
 				{
-					acceptedActors.push_back({ acceptedActor, objInfo });
+					acceptedActors.push_back({ pawn, objInfo });
 				}
 				else
 				{
-					LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
+					UClass* cls = packages->FindClass(objInfo.ClassName);
+					UActor* acceptedActor = nullptr;
+
+					if (cls)
+						acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
+
+					if (acceptedActor)
+						acceptedActors.push_back({ acceptedActor, objInfo });
+					else
+						LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
 				}
 			}
 
@@ -500,7 +525,23 @@ void Engine::LoginPlayer()
 				UActor* acceptedActor = it.first;
 				const ObjectTravelInfo& objInfo = it.second;
 
-				// To do: load properties
+				for (auto it = objInfo.Properties.begin(); it != objInfo.Properties.end(); it++)
+				{
+					UProperty* prop = acceptedActor->GetMemberProperty(it->first);
+					if (UObject::TryCast<UObjectProperty>(prop))
+					{
+						auto properties = ParsePropertiesFromString(it->second);
+						UObject* foundObject = FindObject(properties["Name"], properties["Class"]);
+						if (foundObject)
+						{
+							*static_cast<UObject**>(acceptedActor->GetProperty(prop)) = foundObject;
+						}
+					}
+					else
+					{
+						acceptedActor->SetPropertyFromString(it->first, it->second);
+					}
+				}
 			}
 		}
 	}
@@ -517,6 +558,17 @@ void Engine::LoginPlayer()
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
+}
+
+UObject* Engine::FindObject(NameString name, NameString className)
+{
+	for (auto actor : Level->Actors)
+	{
+		if (actor && actor->Name == name && UObject::GetUClassFullName(actor) == className)
+			return actor;
+	}
+
+	return nullptr;
 }
 
 float Engine::CalcTimeElapsed()

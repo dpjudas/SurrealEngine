@@ -172,7 +172,10 @@ public:
 	bool HasProperty(const NameString& name) const;
 	void* GetProperty(const NameString& name);
 	const void* GetProperty(const NameString& name) const;
+	void* GetProperty(UProperty* prop);
+	const void* GetProperty(UProperty* prop) const;
 	PropertyDataOffset GetPropertyDataOffset(const NameString& name) const;
+	UProperty* GetMemberProperty(const NameString& name) const;
 
 	virtual std::string GetPropertyAsString(const NameString& name) const;
 	virtual void SetPropertyFromString(const NameString& name, const std::string& value);
@@ -221,6 +224,8 @@ public:
 	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
+	std::vector<UProperty*> GetAllProperties();
+	std::vector<UProperty*> GetAllTravelProperties();
 
 	std::map<NameString, std::set<NameString>> DisabledEvents;
 
@@ -266,6 +271,7 @@ public:
 	}
 
 	static NameString GetUClassName(UObject* obj);
+	static NameString GetUClassFullName(UObject* obj);
 
 	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
 	NameString& uc_Name() { return Value<NameString>(PropOffsets_Object.Name); } // native

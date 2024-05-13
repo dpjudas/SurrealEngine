@@ -88,24 +88,43 @@ PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const
 	return PropertyDataOffset();
 }
 
-const void* UObject::GetProperty(const NameString& propName) const
+UProperty* UObject::GetMemberProperty(const NameString& propName) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == propName)
-			return PropertyData.Ptr(prop);
+			return prop;
 	}
 	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
+void* UObject::GetProperty(UProperty* prop)
+{
+	return PropertyData.Ptr(prop);
+}
+
+const void* UObject::GetProperty(UProperty* prop) const
+{
+	return PropertyData.Ptr(prop);
+}
+
+const void* UObject::GetProperty(const NameString& propName) const
+{
+	return GetProperty(GetMemberProperty(propName));
+}
+
 void* UObject::GetProperty(const NameString& propName)
 {
+<<<<<<< HEAD
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == propName)
 			return PropertyData.Ptr(prop);
 	}
 	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+=======
+	return GetProperty(GetMemberProperty(propName));
+>>>>>>> dpjudas/master
 }
 
 bool UObject::HasProperty(const NameString& name) const
@@ -120,17 +139,27 @@ bool UObject::HasProperty(const NameString& name) const
 
 std::string UObject::GetPropertyAsString(const NameString& propName) const
 {
+<<<<<<< HEAD
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == propName)
 			return prop->PrintValue(PropertyData.Ptr(prop));
 	}
 	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+=======
+	UProperty* prop = GetMemberProperty(propName);
+	return prop->PrintValue(PropertyData.Ptr(prop));
+>>>>>>> dpjudas/master
 }
 
 void UObject::SetPropertyFromString(const NameString& name, const std::string& value)
 {
+<<<<<<< HEAD
 	Exception::Throw("UObject::SetPropertyFromString not implemented");
+=======
+	UProperty* prop = GetMemberProperty(name);
+	prop->SetValueFromString(PropertyData.Ptr(prop), value);
+>>>>>>> dpjudas/master
 }
 
 void UObject::SaveConfig()
@@ -150,12 +179,17 @@ uint32_t UObject::GetInt(const NameString& name) const
 
 bool UObject::GetBool(const NameString& propName) const
 {
+<<<<<<< HEAD
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
 		if (prop->Name == propName)
 			return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
 	}
 	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
+=======
+	UProperty* prop = GetMemberProperty(propName);
+	return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
+>>>>>>> dpjudas/master
 }
 
 float UObject::GetFloat(const NameString& name) const
@@ -198,6 +232,11 @@ NameString UObject::GetUClassName(UObject* obj)
 	return obj->Class ? obj->Class->Name : NameString();
 }
 
+NameString UObject::GetUClassFullName(UObject* obj)
+{
+	return obj->Class ? NameString(obj->Class->PackageName.ToString() + "." + obj->Class->Name.ToString()) : NameString();
+}
+
 void UObject::SetByte(const NameString& name, uint8_t value)
 {
 	*static_cast<uint8_t*>(GetProperty(name)) = value;
@@ -210,11 +249,8 @@ void UObject::SetInt(const NameString& name, uint32_t value)
 
 void UObject::SetBool(const NameString& name, bool value)
 {
-	for (UProperty* prop : PropertyData.Class->Properties)
-	{
-		if (prop->Name == name)
-			static_cast<UBoolProperty*>(prop)->SetBool(PropertyData.Ptr(prop), value);
-	}
+	UProperty* prop = GetMemberProperty(name);
+	static_cast<UBoolProperty*>(prop)->SetBool(PropertyData.Ptr(prop), value);
 }
 
 void UObject::SetFloat(const NameString& name, float value)
@@ -323,6 +359,31 @@ std::string UObject::PrintProperties()
 		void* ptr = PropertyData.Ptr(prop);
 		result += prop->PrintValue(ptr);
 		result += "\n";
+	}
+
+	return result;
+}
+
+std::vector<UProperty*> UObject::GetAllProperties()
+{
+	std::vector<UProperty*> result;
+
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		result.push_back(prop);
+	}
+
+	return result;
+}
+
+std::vector<UProperty*> UObject::GetAllTravelProperties()
+{
+	std::vector<UProperty*> result;
+
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (bool(prop->PropFlags & PropertyFlags::Travel))
+			result.push_back(prop);
 	}
 
 	return result;

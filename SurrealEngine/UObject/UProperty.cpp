@@ -126,6 +126,23 @@ void UObjectProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<UObject**>(data) = stream->ReadObject<UObject>();
 }
 
+void UObjectProperty::SetValueFromString(void* data, const std::string& valueString)
+{
+	if (valueString.empty())
+		return;
+
+	// Casts to NULL for some reason
+	UObject* obj = *(UObject**)data;
+
+	if (obj)
+	{
+		auto parsedProperties = ParsePropertiesFromString(valueString);
+
+		for (auto& prop : parsedProperties)
+			obj->SetPropertyFromString(prop.first, prop.second);
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UNameProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
