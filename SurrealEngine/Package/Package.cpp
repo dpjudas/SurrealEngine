@@ -508,3 +508,21 @@ std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const NameStr
 		return std::make_unique<ObjectStream>(this, std::unique_ptr<uint64_t[]>(), 0, 0, entry.ObjFlags, name, base);
 	}
 }
+
+std::string Package::GetExportName(int objref)
+{
+	if (objref <= 0)
+		return "None";
+
+	ExportTableEntry& entry = ExportTable[objref];
+	std::string objname = NameTable[entry.ObjName].Name.ToString();
+
+	while (entry.ObjPackage != 0)
+	{
+		entry = ExportTable[entry.ObjPackage - 1];
+		objname = NameTable[entry.ObjName].Name.ToString() + '.' + objname;
+	}
+
+	objname = Name.ToString() + '.' + objname;
+	return objname;
+}

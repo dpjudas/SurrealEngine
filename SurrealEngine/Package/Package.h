@@ -61,6 +61,8 @@ public:
 	ImportTableEntry* GetImportEntry(int objref);
 	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName = {});
 
+	std::string GetExportName(int objref);
+
 	std::vector<UClass*> GetAllClasses();
 
 private:
@@ -128,6 +130,7 @@ private:
 
 
 inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
+inline ObjectFlags operator|=(ObjectFlags& a, ObjectFlags b) { a = (ObjectFlags)((uint32_t)a | (uint32_t)b); return a; }
 inline ObjectFlags operator&(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a & (uint32_t)b); }
 inline bool AllFlags(ObjectFlags value, ObjectFlags flags) { return (value & flags) == flags; }
 inline bool AnyFlags(ObjectFlags value, ObjectFlags flags) { return (uint32_t)(value & flags) != 0; }
