@@ -115,16 +115,7 @@ const void* UObject::GetProperty(const NameString& propName) const
 
 void* UObject::GetProperty(const NameString& propName)
 {
-<<<<<<< HEAD
-	for (UProperty* prop : PropertyData.Class->Properties)
-	{
-		if (prop->Name == propName)
-			return PropertyData.Ptr(prop);
-	}
-	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
-=======
 	return GetProperty(GetMemberProperty(propName));
->>>>>>> dpjudas/master
 }
 
 bool UObject::HasProperty(const NameString& name) const
@@ -139,27 +130,14 @@ bool UObject::HasProperty(const NameString& name) const
 
 std::string UObject::GetPropertyAsString(const NameString& propName) const
 {
-<<<<<<< HEAD
-	for (UProperty* prop : PropertyData.Class->Properties)
-	{
-		if (prop->Name == propName)
-			return prop->PrintValue(PropertyData.Ptr(prop));
-	}
-	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
-=======
 	UProperty* prop = GetMemberProperty(propName);
 	return prop->PrintValue(PropertyData.Ptr(prop));
->>>>>>> dpjudas/master
 }
 
 void UObject::SetPropertyFromString(const NameString& name, const std::string& value)
 {
-<<<<<<< HEAD
-	Exception::Throw("UObject::SetPropertyFromString not implemented");
-=======
 	UProperty* prop = GetMemberProperty(name);
 	prop->SetValueFromString(PropertyData.Ptr(prop), value);
->>>>>>> dpjudas/master
 }
 
 void UObject::SaveConfig()
@@ -179,17 +157,8 @@ uint32_t UObject::GetInt(const NameString& name) const
 
 bool UObject::GetBool(const NameString& propName) const
 {
-<<<<<<< HEAD
-	for (UProperty* prop : PropertyData.Class->Properties)
-	{
-		if (prop->Name == propName)
-			return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
-	}
-	Exception::Throw("Object Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
-=======
 	UProperty* prop = GetMemberProperty(propName);
 	return static_cast<UBoolProperty*>(prop)->GetBool(PropertyData.Ptr(prop));
->>>>>>> dpjudas/master
 }
 
 float UObject::GetFloat(const NameString& name) const

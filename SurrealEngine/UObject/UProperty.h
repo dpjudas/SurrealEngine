@@ -219,7 +219,7 @@ public:
 		
 		return std::to_string(*(uint8_t*)data); 
 	}
-	bool IsDefaultValue(void* val)
+	bool IsDefaultValue(void* val) override
 	{
 		return *(uint8_t*)val == 0;
 	}
@@ -241,7 +241,7 @@ public:
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
-	bool Compare(void* v1, void* v2)
+	bool Compare(void* v1, void* v2) override
 	{
 		UObject* o1 = *(UObject**)v1;
 		UObject* o2 = *(UObject**)v2;
@@ -251,15 +251,11 @@ public:
 	{
 		UObject* obj = *(UObject**)data;
 		if (obj)
-<<<<<<< HEAD
 			return obj->Class->Name.ToString() + '\'' + obj->package->GetExportName(obj->exportIndex) + '\'';
-=======
-			return "{ name=" + obj->Name.ToString() + ", class=" + UObject::GetUClassFullName(obj).ToString() + " }";
->>>>>>> dpjudas/master
 		else
 			return "None";
 	}
-	bool IsDefaultValue(void* val)
+	bool IsDefaultValue(void* val) override
 	{
 		return *(UObject**)val == nullptr;
 	}
@@ -485,7 +481,7 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i) override
 	{
 		if (!Struct)
 		{
@@ -600,16 +596,14 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
-<<<<<<< HEAD
 	bool IsDefaultValue(void* val)
 	{
 		return *(int*)val == 0;
-=======
+	}
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		*(int32_t*)data = std::stoi(valueString);
->>>>>>> dpjudas/master
 	}
 };
 
@@ -620,7 +614,7 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
-	bool Compare(void* v1, void* v2)
+	bool Compare(void* v1, void* v2) override
 	{
 		bool b1 = GetBool(v1);
 		bool b2 = GetBool(v2);
@@ -651,16 +645,6 @@ public:
 			v = v & ~DataOffset.BitfieldMask;
 	}
 
-<<<<<<< HEAD
-	bool IsDefaultValue(void* val)
-	{
-		return GetBool(val) == false;
-	}
-
-	std::string PrintValue(const void* data) override { return GetBool(data) ? "True" : "False"; }
-=======
-	std::string PrintValue(const void* data) override { return std::to_string(GetBool(data)); }
-
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		NameString valueName(valueString);
@@ -668,11 +652,17 @@ public:
 		if (valueName != "true" && valueName != "false" && valueName != "0" && valueName != "1")
 			throw std::runtime_error("Invalid bool value given to SetValueFromString(): " + valueString);
 
-		bool value = (valueName == "true" || valueName == "1")  ? true : false;
+		bool value = (valueName == "true" || valueName == "1") ? true : false;
 
 		SetBool(data, value);
 	}
->>>>>>> dpjudas/master
+
+	bool IsDefaultValue(void* val) override
+	{
+		return GetBool(val) == false;
+	}
+
+	std::string PrintValue(const void* data) override { return GetBool(data) ? "True" : "False"; }
 };
 
 class UFloatProperty : public UProperty
@@ -682,16 +672,15 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
-<<<<<<< HEAD
+
 	bool IsDefaultValue(void* val)
 	{
 		return *(float*)val == 0.0f;
-=======
+	}
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		*(float*)data = std::stof(valueString);
->>>>>>> dpjudas/master
 	}
 };
 
@@ -706,7 +695,7 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(NameString); }
 	
-	bool Compare(void* v1, void* v2)
+	bool Compare(void* v1, void* v2) override
 	{
 		NameString* n1 = static_cast<NameString*>(v1);
 		NameString* n2 = static_cast<NameString*>(v2);
@@ -735,17 +724,16 @@ public:
 			str[i].~NameString();
 	}
 
-	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
-
-<<<<<<< HEAD
-	bool IsDefaultValue(void* val)
-	{
-		return static_cast<NameString*>(val)->IsNone();
-=======
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		*(NameString*)data = NameString(valueString);
->>>>>>> dpjudas/master
+	}
+
+	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
+
+	bool IsDefaultValue(void* val) override
+	{
+		return static_cast<NameString*>(val)->IsNone();
 	}
 };
 
@@ -782,18 +770,16 @@ public:
 			str[i].~basic_string();
 	}
 
-<<<<<<< HEAD
-	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
-	bool IsDefaultValue(void* val)
-	{
-		return ((std::string*)val)->length() == 0;
-=======
-	std::string PrintValue(const void* data) override { return *(std::string*)data; }
-
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		*(std::string*)data = valueString;
->>>>>>> dpjudas/master
+	}
+
+	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
+
+	bool IsDefaultValue(void* val) override
+	{
+		return ((std::string*)val)->length() == 0;
 	}
 };
 
@@ -829,17 +815,15 @@ public:
 			str[i].~basic_string();
 	}
 
-<<<<<<< HEAD
-	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
-	bool IsDefaultValue(void* val)
-	{
-		return ((std::string*)val)->length() == 0;
-=======
-	std::string PrintValue(const void* data) override { return *(std::string*)data; }
-
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
 		*(std::string*)data = valueString;
->>>>>>> dpjudas/master
+	}
+
+	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
+
+	bool IsDefaultValue(void* val) override
+	{
+		return ((std::string*)val)->length() == 0;
 	}
 };
