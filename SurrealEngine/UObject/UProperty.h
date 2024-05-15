@@ -116,7 +116,7 @@ public:
 	virtual size_t Alignment() { return 4; }
 	size_t Size() { return ElementSize() * ArrayDimension; }
 	virtual size_t ElementSize() { return 4; }
-	virtual void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	virtual void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
 	{
 		if (i >= ArrayDimension)
 			Exception::Throw("UProperty::GetExportText index out of bounds");
@@ -128,7 +128,7 @@ public:
 		void* defval = nullptr;
 		try
 		{
-			defval = (default) ? static_cast<uint8_t*>(default->GetProperty(Name)) + offset : nullptr;
+			defval = (defobj) ? static_cast<uint8_t*>(defobj->GetProperty(Name)) + offset : nullptr;
 		}
 		catch (...) 
 		{
@@ -327,7 +327,7 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::vector<void*>); }
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i)
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
 	{
 		if (i >= ArrayDimension)
 			Exception::Throw("UArrayProperty::GetExportText index out of bounds");
@@ -336,7 +336,7 @@ public:
 		int offset = i * (int)elementSize;
 
 		std::vector<void*>* objarray = static_cast<std::vector<void*>*>(obj->GetProperty(Name)) + offset;
-		std::vector<void*>* defarray = (default) ? static_cast<std::vector<void*>*>(default->GetProperty(Name)) + offset : nullptr;
+		std::vector<void*>* defarray = (defobj) ? static_cast<std::vector<void*>*>(defobj->GetProperty(Name)) + offset : nullptr;
 
 		for (int k = 0; k < objarray->size(); k++)
 		{
@@ -481,7 +481,7 @@ public:
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* default, int i) override
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i) override
 	{
 		if (!Struct)
 		{
@@ -496,8 +496,8 @@ public:
 		uint8_t* defval = nullptr;
 		try
 		{
-			if (default)
-				defval = static_cast<uint8_t*>(default->GetProperty(Name)) + (i * ElementSize());
+			if (defobj)
+				defval = static_cast<uint8_t*>(defobj->GetProperty(Name)) + (i * ElementSize());
 		}
 		catch (...)
 		{
