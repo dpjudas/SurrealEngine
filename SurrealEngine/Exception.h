@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <string>
 
 class Exception
@@ -13,6 +14,7 @@ public:
 private:
 	static int CaptureStackFrames(std::ostringstream& sstream, int maxframes);
 
+	static std::mutex mutex;
 	static bool bInited;
 	static bool bHasSymbols;
 	static void* PlatformData;

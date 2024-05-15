@@ -23,6 +23,7 @@
 
 #endif
 
+std::mutex Exception::mutex;
 bool Exception::bInited = false;
 bool Exception::bHasSymbols = false;
 void* Exception::PlatformData = nullptr;
@@ -73,6 +74,7 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 		char sibuf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME];
 
+		bool gotSymbol = false;
 		DWORD64 symDisp = 0;
 		DWORD lineDisp = 0;
 		PSYMBOL_INFO si = reinterpret_cast<PSYMBOL_INFO>(sibuf);
@@ -80,7 +82,14 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 		si->SizeOfStruct = sizeof(SYMBOL_INFO);
 		si->MaxNameLen = MAX_SYM_NAME;
 
-		if (bHasSymbols && SymFromAddr(hProcess, (DWORD64)context.Rip, &symDisp, si))
+		mutex.lock();
+
+		if (bHasSymbols)
+			gotSymbol = SymFromAddr(hProcess, (DWORD64)context.Rip, &symDisp, si);
+
+		mutex.unlock();
+
+		if (gotSymbol)
 		{
 			if (strncmp(si->Name, "wmain", si->NameLen) == 0)
 				break;
@@ -91,12 +100,9 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 		}
 		else
 		{
-			int err = GetLastError();
 			sstream << "\t0x" << std::hex << context.Rip << std::endl;
 		}
 	}
-
-	SymCleanup(hProcess);
 
 	return frame;
 
