@@ -437,7 +437,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		}
 	}
 
-	std::string& value = intFile->GetValue(sectionName, keyName);
+	std::string value = intFile->GetValue(sectionName, keyName);
 	if (*value.begin() == '"' && *(value.end() - 1) == '"')
 	{
 		value.erase(value.begin());
