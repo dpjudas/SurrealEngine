@@ -26,11 +26,11 @@ std::string Exporter::ExportObject(UObject* obj, int tablevel, bool bInline)
 			if (AnyFlags(prop->Flags, ObjectFlags::TagExp))
 			{
 				// Get default property from super class
-				UObject* default = nullptr;
+				UObject* defobj = nullptr;
 				if (obj->Class == obj->Class->Class)
-					default = obj->Class->BaseStruct;
+					defobj = obj->Class->BaseStruct;
 				else
-					default = obj->Class;
+					defobj = obj->Class;
 
 				if (prop->Name == "Tag")
 				{
@@ -42,7 +42,7 @@ std::string Exporter::ExportObject(UObject* obj, int tablevel, bool bInline)
 				// not necessary until we support <= 227j
 
 				std::string tabs(tablevel, '\t');
-				prop->GetExportText(txt, tabs, obj, default, i);
+				prop->GetExportText(txt, tabs, obj, defobj, i);
 			}
 		}
 	}
