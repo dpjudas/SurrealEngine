@@ -9,6 +9,29 @@
 #include <Windows.h>
 #include <DbgHelp.h>
 
+struct InitDbgHelp
+{
+	InitDbgHelp()
+	{
+		bHasSymbols = false;
+		HANDLE hCurrentProcess = GetCurrentProcess();
+		SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+		if (DuplicateHandle(hCurrentProcess, hCurrentProcess, hCurrentProcess, &hProcess, 0, FALSE, DUPLICATE_SAME_ACCESS))
+		{
+			// initialize symbols
+			bHasSymbols = SymInitialize(hProcess, NULL, TRUE);
+		}
+	}
+
+	~InitDbgHelp()
+	{
+		SymCleanup(hProcess);
+	}
+
+	HANDLE hProcess;
+	bool bHasSymbols;
+};
+
 #elif defined __linux__
 
 #include <execinfo.h>
@@ -24,16 +47,13 @@
 #endif
 
 std::mutex Exception::mutex;
-bool Exception::bInited = false;
-bool Exception::bHasSymbols = false;
-void* Exception::PlatformData = nullptr;
 
 int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 {
 /////////////////////////////////////////////////////////////////////
 #if defined _WIN64
 
-	static bool bSymInitialized = false;
+	static InitDbgHelp dbgHelp;
 
 	CONTEXT context;
 	RtlCaptureContext(&context);
@@ -43,7 +63,7 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 	ULONG64 establisherframe = 0;
 	PVOID handlerdata = nullptr;
-	HANDLE hProcess = PlatformData;
+	HANDLE hProcess = dbgHelp.hProcess;
 
 	int frame;
 	for (frame = 0; frame < maxframes; frame++)
@@ -84,7 +104,7 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 		mutex.lock();
 
-		if (bHasSymbols)
+		if (dbgHelp.bHasSymbols)
 			gotSymbol = SymFromAddr(hProcess, (DWORD64)context.Rip, &symDisp, si);
 
 		mutex.unlock();
@@ -114,53 +134,6 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 /////////////////////////////////////////////////////////////////////
 #endif
-}
-
-bool Exception::Init()
-{
-/////////////////////////////////////////////////////////////////////
-#if defined _WIN64
-
-	// duplicate current process handle
-	HANDLE hProcess;
-	HANDLE hCurrentProcess = GetCurrentProcess();
-	SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
-	if (DuplicateHandle(hCurrentProcess, hCurrentProcess, hCurrentProcess, &hProcess, 0, FALSE, DUPLICATE_SAME_ACCESS))
-	{
-		// initialize symbols
-		bHasSymbols = SymInitialize(hProcess, NULL, TRUE);
-	}
-	else
-	{
-		return false;
-	}
-
-	PlatformData = hProcess;
-	bInited = true;
-
-/////////////////////////////////////////////////////////////////////
-#elif defined __linux__
-
-/////////////////////////////////////////////////////////////////////
-#endif
-
-	return true;
-}
-
-bool Exception::Exit()
-{
-	/////////////////////////////////////////////////////////////////////
-#if defined _WIN64
-
-	SymCleanup(PlatformData);
-
-	/////////////////////////////////////////////////////////////////////
-#elif defined __linux__
-
-/////////////////////////////////////////////////////////////////////
-#endif
-
-	return true;
 }
 
 void Exception::Throw(const std::string& text)

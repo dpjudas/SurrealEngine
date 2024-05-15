@@ -29,9 +29,6 @@
 
 int DebuggerApp::Main(std::vector<std::string> args)
 {
-	if (!Exception::Init())
-		throw std::runtime_error("Failed to initialize exception handler");
-
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
@@ -64,8 +61,6 @@ int DebuggerApp::Main(std::vector<std::string> args)
 	}
 
 	DeinitWidgetResources();
-
-	Exception::Exit();
 	return 0;
 }
 
