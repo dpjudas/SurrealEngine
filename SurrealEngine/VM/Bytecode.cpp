@@ -15,7 +15,7 @@ Bytecode::Bytecode(const std::vector<uint8_t>& bytecode, Package* package)
 Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 {
 	if (depth == 64)
-		throw std::runtime_error("Bytecode parsing error");
+		Exception::Throw("Bytecode parsing error");
 	depth++;
 
 	uint16_t exproffset = stream->GetOffset();
@@ -419,7 +419,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::VectorToString: { auto expr = Create<VectorToStringExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::RotatorToString: { auto expr = Create<RotatorToStringExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		default:
-			throw std::runtime_error("Unknown script bytecode token encountered");
+			Exception::Throw("Unknown script bytecode token encountered");
 		}
 	}
 }

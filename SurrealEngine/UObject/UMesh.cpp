@@ -61,7 +61,7 @@ void UMesh::Load(ObjectStream* stream)
 		}
 	}
 	if (stream->GetVersion() > 61 && stream->Tell() != VertsSkipOffset)
-		throw std::runtime_error("Unexpected lazy array size");
+		Exception::Throw("Unexpected lazy array size");
 
 	uint32_t TrisSkipOffset = 0;
 	if (stream->GetVersion() > 61) TrisSkipOffset = stream->ReadUInt32();
@@ -83,7 +83,7 @@ void UMesh::Load(ObjectStream* stream)
 		Tris.push_back(tri);
 	}
 	if (stream->GetVersion() > 61 && stream->Tell() != TrisSkipOffset)
-		throw std::runtime_error("Unexpected lazy array size");
+		Exception::Throw("Unexpected lazy array size");
 
 	int NumAnimSeq = stream->ReadIndex();
 	for (int i = 0; i < NumAnimSeq; i++)
@@ -117,7 +117,7 @@ void UMesh::Load(ObjectStream* stream)
 		Connects.push_back(connect);
 	}
 	if (stream->GetVersion() > 61 && stream->Tell() != ConnectsSkipOffset)
-		throw std::runtime_error("Unexpected lazy array size");
+		Exception::Throw("Unexpected lazy array size");
 
 	// Unknown bbox and sphere?
 	BBox bbox;
@@ -141,7 +141,7 @@ void UMesh::Load(ObjectStream* stream)
 		VertLinks.push_back(stream->ReadInt32());
 	}
 	if (stream->GetVersion() > 61 && stream->Tell() != VertLinksSkipOffset)
-		throw std::runtime_error("Unexpected lazy array size");
+		Exception::Throw("Unexpected lazy array size");
 
 	int NumTextures = stream->ReadIndex();
 	for (int i = 0; i < NumTextures; i++)

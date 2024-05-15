@@ -2,7 +2,7 @@
 #include "WidgetResourceData.h"
 #include "File.h"
 #include <miniz.h>
-#include <stdexcept>
+#include "Exception.h"
 
 static mz_zip_archive widgetResources;
 
@@ -10,7 +10,7 @@ void InitWidgetResources()
 {
 	mz_bool result = mz_zip_reader_init_file(&widgetResources, FilePath::combine(OS::executable_path(), "SurrealEngine.pk3").c_str(), 0);
 	if (!result)
-		throw std::runtime_error("Could not open SurrealEngine.pk3");
+		Exception::Throw("Could not open SurrealEngine.pk3");
 }
 
 void DeinitWidgetResources()
@@ -56,6 +56,6 @@ std::vector<uint8_t> LoadWidgetData(const std::string& name)
 {
 	std::vector<uint8_t> buffer;
 	if (!TryLoadWidgetFile(name, buffer))
-		throw std::runtime_error("Could not load " + name);
+		Exception::Throw("Could not load " + name);
 	return buffer;
 }

@@ -10,5 +10,5 @@ void NCommandlet::RegisterFunctions()
 
 void NCommandlet::Main(UObject* Self, const std::string& Parms, int& ReturnValue)
 {
-	throw std::runtime_error("Commandlet.Main not implemented");
+	Exception::Throw("Commandlet.Main not implemented");
 }

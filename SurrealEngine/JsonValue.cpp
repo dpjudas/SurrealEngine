@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "JsonValue.h"
 #include "UTF8Reader.h"
-#include <stdexcept>
+#include "Exception.h"
 #include <cstring>
 
 class JsonValueImpl
@@ -232,7 +232,7 @@ JsonValue JsonValueImpl::read(const std::string &json, size_t &pos)
 	read_whitespace(json, pos);
 
 	if (pos == json.length())
-		throw std::runtime_error("Unexpected end of JSON data");
+		Exception::Throw("Unexpected end of JSON data");
 
 	switch (json[pos])
 	{
@@ -260,7 +260,7 @@ JsonValue JsonValueImpl::read(const std::string &json, size_t &pos)
 	case 'n':
 		return read_null(json, pos);
 	default:
-		throw std::runtime_error("Unexpected character in JSON data");
+		Exception::Throw("Unexpected character in JSON data");
 	}
 }
 
@@ -273,7 +273,7 @@ JsonValue JsonValueImpl::read_object(const std::string &json, size_t &pos)
 	read_whitespace(json, pos);
 
 	if (pos == json.length())
-		throw std::runtime_error("Unexpected end of JSON data");
+		Exception::Throw("Unexpected end of JSON data");
 
 	while (pos != json.length() && json[pos] != '}')
 	{
@@ -282,9 +282,9 @@ JsonValue JsonValueImpl::read_object(const std::string &json, size_t &pos)
 		read_whitespace(json, pos);
 
 		if (pos == json.length())
-			throw std::runtime_error("Unexpected end of JSON data");
+			Exception::Throw("Unexpected end of JSON data");
 		else if (json[pos] != ':')
-			throw std::runtime_error("Unexpected character in JSON data");
+			Exception::Throw("Unexpected character in JSON data");
 		pos++;
 
 		read_whitespace(json, pos);
@@ -295,7 +295,7 @@ JsonValue JsonValueImpl::read_object(const std::string &json, size_t &pos)
 
 		if (pos == json.length())
 		{
-			throw std::runtime_error("Unexpected end of JSON data");
+			Exception::Throw("Unexpected end of JSON data");
 		}
 		else if (json[pos] == '}')
 		{
@@ -308,7 +308,7 @@ JsonValue JsonValueImpl::read_object(const std::string &json, size_t &pos)
 		}
 		else
 		{
-			throw std::runtime_error("Unexpected character in JSON data");
+			Exception::Throw("Unexpected character in JSON data");
 		}
 	}
 	pos++;
@@ -325,7 +325,7 @@ JsonValue JsonValueImpl::read_array(const std::string &json, size_t &pos)
 	read_whitespace(json, pos);
 
 	if (pos == json.length())
-		throw std::runtime_error("Unexpected end of JSON data");
+		Exception::Throw("Unexpected end of JSON data");
 
 	while (json[pos] != ']')
 	{
@@ -335,7 +335,7 @@ JsonValue JsonValueImpl::read_array(const std::string &json, size_t &pos)
 
 		if (pos == json.length())
 		{
-			throw std::runtime_error("Unexpected end of JSON data");
+			Exception::Throw("Unexpected end of JSON data");
 		}
 		else if (json[pos] == ']')
 		{
@@ -348,7 +348,7 @@ JsonValue JsonValueImpl::read_array(const std::string &json, size_t &pos)
 		}
 		else
 		{
-			throw std::runtime_error("Unexpected character in JSON data");
+			Exception::Throw("Unexpected character in JSON data");
 		}
 	}
 	pos++;
@@ -360,14 +360,14 @@ std::string JsonValueImpl::read_string(const std::string &json, size_t &pos)
 {
 	pos++;
 	if (pos == json.length())
-		throw std::runtime_error("Unexpected end of JSON data");
+		Exception::Throw("Unexpected end of JSON data");
 
 	std::string result;
 	while (true)
 	{
 		if (pos == json.length())
 		{
-			throw std::runtime_error("Unexpected end of JSON data");
+			Exception::Throw("Unexpected end of JSON data");
 		}
 		else if (json[pos] == '"')
 		{
@@ -377,7 +377,7 @@ std::string JsonValueImpl::read_string(const std::string &json, size_t &pos)
 		{
 			pos++;
 			if (pos == json.length())
-				throw std::runtime_error("Unexpected end of JSON data");
+				Exception::Throw("Unexpected end of JSON data");
 
 			unsigned codepoint;
 			switch (json[pos])
@@ -408,7 +408,7 @@ std::string JsonValueImpl::read_string(const std::string &json, size_t &pos)
 				break;
 			case 'u':
 				if (pos + 5 > json.length())
-					throw std::runtime_error("Unexpected end of JSON data");
+					Exception::Throw("Unexpected end of JSON data");
 
 				codepoint = 0;
 				for (int i = 0; i < 4; i++)
@@ -431,7 +431,7 @@ std::string JsonValueImpl::read_string(const std::string &json, size_t &pos)
 					}
 					else
 					{
-						throw std::runtime_error("Invalid unicode escape");
+						Exception::Throw("Invalid unicode escape");
 					}
 				}
 				result += from_utf32(codepoint);
@@ -475,7 +475,7 @@ JsonValue JsonValueImpl::read_number(const std::string &json, size_t &pos)
 
 	std::string number_string = json.substr(start_pos, end_pos - start_pos);
 	if (number_string.empty())
-		throw std::runtime_error("Unexpected character in JSON data");
+		Exception::Throw("Unexpected character in JSON data");
 
 	double result = std::atof(number_string.c_str());
 	return JsonValue::number(result);
@@ -486,14 +486,14 @@ JsonValue JsonValueImpl::read_boolean(const std::string &json, size_t &pos)
 	if (json[pos] == 't')
 	{
 		if (pos + 4 > json.length() || memcmp(&json[pos], "true", 4) != 0)
-			throw std::runtime_error("Unexpected character in JSON data");
+			Exception::Throw("Unexpected character in JSON data");
 		pos += 4;
 		return JsonValue::boolean(true);
 	}
 	else
 	{
 		if (pos + 5 > json.length() || memcmp(&json[pos], "false", 5) != 0)
-			throw std::runtime_error("Unexpected character in JSON data");
+			Exception::Throw("Unexpected character in JSON data");
 		pos += 5;
 		return JsonValue::boolean(false);
 	}
@@ -502,7 +502,7 @@ JsonValue JsonValueImpl::read_boolean(const std::string &json, size_t &pos)
 JsonValue JsonValueImpl::read_null(const std::string &json, size_t &pos)
 {
 	if (pos + 4 > json.length() || memcmp(&json[pos], "null", 4) != 0)
-		throw std::runtime_error("Unexpected character in JSON data");
+		Exception::Throw("Unexpected character in JSON data");
 	pos += 4;
 	return JsonValue::null();
 }

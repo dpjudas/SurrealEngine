@@ -81,7 +81,7 @@ void Frame::Break()
 			std::string message = "Script execution error:\r\n\r\n";
 			message += ExceptionText;
 			message += "\r\n\r\nCall stack:\r\n\r\n" + callstack;
-			throw std::runtime_error(message);
+			Exception::Throw(message);
 		}
 	}
 }
@@ -197,7 +197,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				}
 				else
 				{
-					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+					Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
 				}
 			}
 			else
@@ -212,7 +212,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 				}
 				else
 				{
-					throw std::runtime_error("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+					Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
 				}
 			}
 		}

@@ -52,7 +52,7 @@ void Engine::Run()
 	client = UObject::Cast<USurrealClient>(packages->NewObject("client", "Engine", "SurrealClient"));
 	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
 	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
-	DefaultTexture = UObject::Cast<UTexture>(packages->GetPackage("engine")->GetUObject("Texture", "DefaultTexture"));
+	DefaultTexture = UObject::Cast<UTexture>(packages->GetPackage("Engine")->GetUObject("Texture", "DefaultTexture"));
 
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
 	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
@@ -322,7 +322,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
 	}
 	if (!LevelInfo)
-		throw std::runtime_error("Could not find the LevelInfo object for this map!");
+		Exception::Throw("Could not find the LevelInfo object for this map!");
 
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
@@ -337,7 +337,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
 	if (!Level)
-		throw std::runtime_error("Could not find the Level object for this map!");
+		Exception::Throw("Could not find the Level object for this map!");
 
 	Level->TravelInfo = travelInfo; // Initially used travel info for level restart
 
@@ -370,7 +370,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	if (!gameInfoClass)
 		gameInfoClass = packages->FindClass("Botpack.DeathMatchPlus");
 	if (!gameInfoClass)
-		throw std::runtime_error("Could not find any gameinfo class!");
+		Exception::Throw("Could not find any gameinfo class!");
 
 	// Spawn GameInfo actor
 	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
@@ -432,7 +432,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	LevelInfo->bStartup() = true;
 	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
 	if (!error.empty())
-		throw std::runtime_error("InitGame failed: " + error);
+		Exception::Throw("InitGame failed: " + error);
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PreBeginPlay); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::BeginPlay); }
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PostBeginPlay); }
@@ -466,7 +466,7 @@ void Engine::LoginPlayer()
 		ExpressionValue::Variable(&failcode, &stringProp),
 		});
 	if (!error.empty() || !failcode.empty())
-		throw std::runtime_error("GameInfo prelogin failed: " + error + " (" + failcode + ")");
+		Exception::Throw("GameInfo prelogin failed: " + error + " (" + failcode + ")");
 
 	// Create viewport pawn
 	size_t numActors = Level->Actors.size();
@@ -477,7 +477,7 @@ void Engine::LoginPlayer()
 		ExpressionValue::ObjectValue(pawnClass)
 		}).ToObject());
 	if (!pawn || !error.empty())
-		throw std::runtime_error("GameInfo login failed: " + error);
+		Exception::Throw("GameInfo login failed: " + error);
 	bool actorActuallySpawned = Level->Actors.size() != numActors;
 
 	// Assign the pawn to the viewport
@@ -597,7 +597,7 @@ std::string Engine::ParseClassName(std::string className)
 
 	size_t pos = className.find_last_of('.');
 	if (pos == std::string::npos)
-		throw std::runtime_error("Parse error");
+		Exception::Throw("Parse error");
 
 	NameString sectionName = className.substr(4, pos - 4);
 	NameString keyName = className.substr(pos + 1);

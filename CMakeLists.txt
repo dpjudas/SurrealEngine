@@ -29,6 +29,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/DebuggerApp.h
 	SurrealEngine/Engine.cpp
 	SurrealEngine/Engine.h
+	SurrealEngine/Exception.cpp
+	SurrealEngine/Exception.h
 	SurrealEngine/File.cpp
 	SurrealEngine/File.h
 	SurrealEngine/UTF16.cpp
@@ -77,6 +79,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/VM/PrintCommandlet.h
 	SurrealEngine/Commandlet/VM/StepCommandlet.cpp
 	SurrealEngine/Commandlet/VM/StepCommandlet.h
+	SurrealEngine/Editor/Export.cpp
+	SurrealEngine/Editor/Export.h
 	SurrealEngine/Render/RenderSubsystem.cpp
 	SurrealEngine/Render/RenderSubsystem.h
 	SurrealEngine/Render/RenderCanvas.cpp
@@ -463,6 +467,7 @@ set(SURREALCOMMON_LIBS
 
 set(SURREALCOMMON_WIN32_LIBS
 	OpenAL
+	DbgHelp
 )
 
 set(SURREALCOMMON_UNIX_LIBS
@@ -499,6 +504,7 @@ source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Debug/.+")
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
 source_group("SurrealEngine\\Commandlet\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Native/.+")
+source_group("SurrealEngine\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Editor/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")

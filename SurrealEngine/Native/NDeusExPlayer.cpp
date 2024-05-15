@@ -23,12 +23,12 @@ void NDeusExPlayer::RegisterFunctions()
 
 void NDeusExPlayer::ConBindEvents(UObject* Self)
 {
-	throw std::runtime_error("DeusExPlayer.ConBindEvents not implemented");
+	Exception::Throw("DeusExPlayer.ConBindEvents not implemented");
 }
 
 void NDeusExPlayer::CreateDataVaultImageNoteObject(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateDataVaultImageNoteObject not implemented");
+	Exception::Throw("DeusExPlayer.CreateDataVaultImageNoteObject not implemented");
 }
 
 void NDeusExPlayer::CreateDumpLocationObject(UObject* Self, UObject*& ReturnValue)
@@ -39,45 +39,45 @@ void NDeusExPlayer::CreateDumpLocationObject(UObject* Self, UObject*& ReturnValu
 
 void NDeusExPlayer::CreateGameDirectoryObject(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateGameDirectoryObject not implemented");
+	Exception::Throw("DeusExPlayer.CreateGameDirectoryObject not implemented");
 }
 
 void NDeusExPlayer::CreateHistoryEvent(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateHistoryEvent not implemented");
+	Exception::Throw("DeusExPlayer.CreateHistoryEvent not implemented");
 }
 
 void NDeusExPlayer::CreateHistoryObject(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateHistoryObject not implemented");
+	Exception::Throw("DeusExPlayer.CreateHistoryObject not implemented");
 }
 
 void NDeusExPlayer::CreateLogObject(UObject* Self, UObject*& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.CreateLogObject not implemented");
+	Exception::Throw("DeusExPlayer.CreateLogObject not implemented");
 }
 
 void NDeusExPlayer::DeleteSaveGameFiles(UObject* Self, std::string* saveDirectory)
 {
-	throw std::runtime_error("DeusExPlayer.DeleteSaveGameFiles not implemented");
+	Exception::Throw("DeusExPlayer.DeleteSaveGameFiles not implemented");
 }
 
 void NDeusExPlayer::GetDeusExVersion(UObject* Self, std::string& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.GetDeusExVersion not implemented");
+	Exception::Throw("DeusExPlayer.GetDeusExVersion not implemented");
 }
 
 void NDeusExPlayer::SaveGame(UObject* Self, int saveIndex, std::string* saveDesc)
 {
-	throw std::runtime_error("DeusExPlayer.SaveGame not implemented");
+	Exception::Throw("DeusExPlayer.SaveGame not implemented");
 }
 
 void NDeusExPlayer::SetBoolFlagFromString(UObject* Self, const std::string& flagNameString, bool bValue, NameString& ReturnValue)
 {
-	throw std::runtime_error("DeusExPlayer.SetBoolFlagFromString not implemented");
+	Exception::Throw("DeusExPlayer.SetBoolFlagFromString not implemented");
 }
 
 void NDeusExPlayer::UnloadTexture(UObject* Self, UObject* Texture)
 {
-	throw std::runtime_error("DeusExPlayer.UnloadTexture not implemented");
+	Exception::Throw("DeusExPlayer.UnloadTexture not implemented");
 }

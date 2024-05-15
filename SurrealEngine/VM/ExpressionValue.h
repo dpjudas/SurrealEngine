@@ -374,14 +374,14 @@ inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 		memset(v.Ptr, 0, sizeof(Buffer));
 		if (v.Type != ExpressionValueType::Nothing)
 			return v;
-		throw std::runtime_error("Unsupported expression value property type");
+		Exception::Throw("Unsupported expression value property type");
 	}
 	case ExpressionValueType::ValueVector: return VectorValue(vec3(0.0f));
 	case ExpressionValueType::ValueRotator: return RotatorValue(Rotator(0, 0, 0));
 	case ExpressionValueType::ValueString: return StringValue({});
 	case ExpressionValueType::ValueName: return NameValue({});
 	case ExpressionValueType::ValueColor: { Color c; c.R = c.G = c.B = c.A = 0; return ColorValue(c); }
-	case ExpressionValueType::ValueStruct: throw std::runtime_error("Default value for a struct type is not implemented");
+	case ExpressionValueType::ValueStruct: Exception::Throw("Default value for a struct type is not implemented");
 	}
 }
 
@@ -390,7 +390,7 @@ inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 	ExpressionValue v(prop->ValueType);
 	if (v.Type != ExpressionValueType::Nothing)
 		return v;
-	throw std::runtime_error("Unsupported expression value property type");
+	Exception::Throw("Unsupported expression value property type");
 }
 
 inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
@@ -477,7 +477,7 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	case ExpressionValueType::ValueString: return ToString() == value.ToString();
 	case ExpressionValueType::ValueName: return ToName() == value.ToName();
 	case ExpressionValueType::ValueColor: return ToColor() == value.ToColor();
-	case ExpressionValueType::ValueStruct: throw std::runtime_error("IsEqual not implemented for complex structs");
+	case ExpressionValueType::ValueStruct: Exception::Throw("IsEqual not implemented for complex structs");
 	}
 }
 
@@ -490,7 +490,7 @@ inline uint8_t ExpressionValue::ToByte() const
 	else if (Type == ExpressionValueType::ValueFloat)
 		return (uint8_t)*PtrFloat;
 	else
-		throw std::runtime_error("Not a byte compatible value");
+		Exception::Throw("Not a byte compatible value");
 }
 
 inline int32_t ExpressionValue::ToInt() const
@@ -502,7 +502,7 @@ inline int32_t ExpressionValue::ToInt() const
 	else if (Type == ExpressionValueType::ValueFloat)
 		return (int)*PtrFloat;
 	else
-		throw std::runtime_error("Not an int compatible value");
+		Exception::Throw("Not an int compatible value");
 }
 
 inline bool ExpressionValue::ToBool() const
@@ -510,7 +510,7 @@ inline bool ExpressionValue::ToBool() const
 	if (Type == ExpressionValueType::ValueBool)
 		return BoolInfo.Get();
 	else
-		throw std::runtime_error("Not a bool value");
+		Exception::Throw("Not a bool value");
 }
 
 inline float ExpressionValue::ToFloat() const
@@ -522,7 +522,7 @@ inline float ExpressionValue::ToFloat() const
 	else if (Type == ExpressionValueType::ValueByte)
 		return *PtrByte;
 	else
-		throw std::runtime_error("Not a float compatible value");
+		Exception::Throw("Not a float compatible value");
 }
 
 inline UObject* ExpressionValue::ToObject() const
@@ -530,7 +530,7 @@ inline UObject* ExpressionValue::ToObject() const
 	if (Type == ExpressionValueType::ValueObject)
 		return *PtrObject;
 	else
-		throw std::runtime_error("Not an object value");
+		Exception::Throw("Not an object value");
 }
 
 inline const vec3& ExpressionValue::ToVector() const
@@ -538,7 +538,7 @@ inline const vec3& ExpressionValue::ToVector() const
 	if (Type == ExpressionValueType::ValueVector)
 		return *PtrVector;
 	else
-		throw std::runtime_error("Not a vector value");
+		Exception::Throw("Not a vector value");
 }
 
 inline const Rotator& ExpressionValue::ToRotator() const
@@ -546,7 +546,7 @@ inline const Rotator& ExpressionValue::ToRotator() const
 	if (Type == ExpressionValueType::ValueRotator)
 		return *PtrRotator;
 	else
-		throw std::runtime_error("Not a rotator value");
+		Exception::Throw("Not a rotator value");
 }
 
 inline const std::string& ExpressionValue::ToString() const
@@ -556,7 +556,7 @@ inline const std::string& ExpressionValue::ToString() const
 	else if (Type == ExpressionValueType::ValueName)
 		return PtrName->ToString();
 	else
-		throw std::runtime_error("Not a string value");
+		Exception::Throw("Not a string value");
 }
 
 inline const NameString& ExpressionValue::ToName() const
@@ -564,7 +564,7 @@ inline const NameString& ExpressionValue::ToName() const
 	if (Type == ExpressionValueType::ValueName)
 		return *PtrName;
 	else
-		throw std::runtime_error("Not a name value");
+		Exception::Throw("Not a name value");
 }
 
 inline const Color& ExpressionValue::ToColor() const
@@ -572,7 +572,7 @@ inline const Color& ExpressionValue::ToColor() const
 	if (Type == ExpressionValueType::ValueColor)
 		return *PtrColor;
 	else
-		throw std::runtime_error("Not a color value");
+		Exception::Throw("Not a color value");
 }
 
 inline const IpAddr& ExpressionValue::ToIpAddr() const
@@ -580,5 +580,5 @@ inline const IpAddr& ExpressionValue::ToIpAddr() const
 	if (Type == ExpressionValueType::ValueStruct)
 		return *PtrIpAddr;
 	else
-		throw std::runtime_error("Not a ipaddr/struct value");
+		Exception::Throw("Not a ipaddr/struct value");
 }

@@ -2,7 +2,7 @@
 
 #include "Package.h"
 #include <string.h>
-#include <stdexcept>
+#include "Exception.h"
 
 enum class ObjectFlags : uint32_t;
 class UClass;
@@ -16,7 +16,7 @@ public:
 	void ReadBytes(void* d, uint32_t s)
 	{
 		if (pos + s > size)
-			throw std::runtime_error("Unexpected end of file");
+			Exception::Throw("Unexpected end of file");
 		memcpy(d, data + pos, s);
 		pos += s;
 	}
@@ -24,7 +24,7 @@ public:
 	void ThrowIfNotEnd()
 	{
 		if (pos != size)
-			throw std::runtime_error("Unexpected bytes at end of object stream");
+			Exception::Throw("Unexpected bytes at end of object stream");
 	}
 
 	bool IsEmptyStream() const { return size == 0; }
@@ -43,17 +43,17 @@ public:
 	void Seek(uint32_t offset)
 	{
 		if (offset < startoffset)
-			throw std::runtime_error("ObjectStream::Seek: Seeking outside object in" + package->GetPackageName().ToString());
+			Exception::Throw("ObjectStream::Seek: Seeking outside object in" + package->GetPackageName().ToString());
 		offset -= (uint32_t)startoffset;
 		if (offset > size)
-			throw std::runtime_error("ObjectStream::Seek: Unexpected end of file in " + package->GetPackageName().ToString());
+			Exception::Throw("ObjectStream::Seek: Unexpected end of file in " + package->GetPackageName().ToString());
 		pos = offset;
 	}
 
 	void Skip(uint32_t bytes)
 	{
 		if (pos + bytes > size)
-			throw std::runtime_error("ObjectStream::Skip: Unexpected end of file in " + package->GetPackageName().ToString());
+			Exception::Throw("ObjectStream::Skip: Unexpected end of file in " + package->GetPackageName().ToString());
 		pos += bytes;
 	}
 

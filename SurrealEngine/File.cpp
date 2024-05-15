@@ -20,7 +20,7 @@
 extern const char* __progname;
 #endif
 #endif
-#include <stdexcept>
+#include "Exception.h"
 #include <string.h>
 #include <sstream>
 
@@ -46,7 +46,7 @@ public:
 			size_t writesize = std::min(size, (size_t)0xffffffff);
 			BOOL result = WriteFile(handle, (const uint8_t*)data + pos, (DWORD)writesize, nullptr, nullptr);
 			if (result == FALSE)
-				throw std::runtime_error("WriteFile failed");
+				Exception::Throw("WriteFile failed");
 			pos += writesize;
 		}
 	}
@@ -60,7 +60,7 @@ public:
 			DWORD bytesRead = 0;
 			BOOL result = ReadFile(handle, (uint8_t*)data + pos, (DWORD)readsize, &bytesRead, nullptr);
 			if (result == FALSE || bytesRead != readsize)
-				throw std::runtime_error("ReadFile failed");
+				Exception::Throw("ReadFile failed");
 			pos += readsize;
 		}
 	}
@@ -70,7 +70,7 @@ public:
 		LARGE_INTEGER fileSize;
 		BOOL result = GetFileSizeEx(handle, &fileSize);
 		if (result == FALSE)
-			throw std::runtime_error("GetFileSizeEx failed");
+			Exception::Throw("GetFileSizeEx failed");
 		return fileSize.QuadPart;
 	}
 
@@ -83,7 +83,7 @@ public:
 		else if (origin == SeekPoint::end) moveMethod = FILE_END;
 		BOOL result = SetFilePointerEx(handle, off, &newoff, moveMethod);
 		if (result == FALSE)
-			throw std::runtime_error("SetFilePointerEx failed");
+			Exception::Throw("SetFilePointerEx failed");
 	}
 
 	uint64_t tell() override
@@ -92,7 +92,7 @@ public:
 		delta.QuadPart = 0;
 		BOOL result = SetFilePointerEx(handle, delta, &offset, FILE_CURRENT);
 		if (result == FALSE)
-			throw std::runtime_error("SetFilePointerEx failed");
+			Exception::Throw("SetFilePointerEx failed");
 		return offset.QuadPart;
 	}
 
@@ -103,7 +103,7 @@ std::shared_ptr<File> File::create_always(const std::string &filename)
 {
 	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_WRITE_ACCESS, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
-		throw std::runtime_error("Could not create " + filename);
+		Exception::Throw("Could not create " + filename);
 
 	return std::make_shared<FileImpl>(handle);
 }
@@ -112,7 +112,7 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 {
 	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_READ_ACCESS, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
-		throw std::runtime_error("Could not open " + filename);
+		Exception::Throw("Could not open " + filename);
 
 	return std::make_shared<FileImpl>(handle);
 }
@@ -139,14 +139,14 @@ public:
 	{
 		size_t result = fread(data, size, 1, handle);
 		if (result != 1)
-			throw std::runtime_error("fread failed");
+			Exception::Throw("fread failed");
 	}
 
 	void write(const void *data, size_t size) override
 	{
 		size_t result = fwrite(data, size, 1, handle);
 		if (result != 1)
-			throw std::runtime_error("fwrite failed");
+			Exception::Throw("fwrite failed");
 	}
 
 	void seek(int64_t offset, SeekPoint origin = SeekPoint::begin) override
@@ -156,14 +156,14 @@ public:
 		else if (origin == SeekPoint::end) moveMethod = SEEK_END;
 		int result = fseek(handle, offset, moveMethod);
 		if (result != 0)
-			throw std::runtime_error("fseek failed");
+			Exception::Throw("fseek failed");
 	}
 
 	uint64_t tell() override
 	{
 		auto result = ftell(handle);
 		if (result == -1)
-			throw std::runtime_error("ftell failed");
+			Exception::Throw("ftell failed");
 		return result;
 	}
 
@@ -174,7 +174,7 @@ std::shared_ptr<File> File::create_always(const std::string &filename)
 {
 	FILE* handle = fopen(filename.c_str(), "wb");
 	if (handle == nullptr)
-		throw std::runtime_error("Could not create " + filename);
+		Exception::Throw("Could not create " + filename);
 
 	return std::make_shared<FileImpl>(handle);
 }
@@ -183,7 +183,7 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 {
 	FILE* handle = fopen(filename.c_str(), "rb");
 	if (handle == nullptr)
-		throw std::runtime_error("Could not open " + filename);
+		Exception::Throw("Could not open " + filename);
 
 	return std::make_shared<FileImpl>(handle);
 }
@@ -277,7 +277,7 @@ void Directory::make_directory(const std::string& dirname)
 	if (!CreateDirectory(to_utf16(dirname).c_str(), NULL))
 	{
 		if (GetLastError() != ERROR_ALREADY_EXISTS)
-			throw std::runtime_error("Could not create directory " + dirname);
+			Exception::Throw("Could not create directory " + dirname);
 	}
 }
 
@@ -293,7 +293,7 @@ std::vector<std::string> Directory::files(const std::string& filename)
 	DIR *dir = opendir(path.c_str());
 	if (!dir)
 	{
-		//throw std::runtime_error("Could not open folder: " + path);
+		//Exception::Throw("Could not open folder: " + path);
 		//printf("Could not open folder: %s\n", path.c_str());
 		return {};
 	}
@@ -326,7 +326,7 @@ void Directory::make_directory(const std::string& dirname)
 	if (mkdir(dirname.c_str(), 0777) < 0)
 	{
 		if (errno != EEXIST)
-			throw std::runtime_error("Could not create directory " + dirname);
+			Exception::Throw("Could not create directory " + dirname);
 	}
 }
 
@@ -338,7 +338,7 @@ std::string OS::executable_path()
 	WCHAR exe_filename[_MAX_PATH];
 	DWORD len = GetModuleFileName(nullptr, exe_filename, _MAX_PATH);
 	if (len == 0 || len == _MAX_PATH)
-		throw std::runtime_error("GetModuleFileName failed!");
+		Exception::Throw("GetModuleFileName failed!");
 
 	WCHAR drive[_MAX_DRIVE], dir[_MAX_DIR];
 	_wsplitpath_s(exe_filename, drive, _MAX_DRIVE, dir, _MAX_DIR, NULL, 0, NULL, 0);
@@ -361,7 +361,7 @@ std::string OS::executable_path()
 		}
 	}
 
-	throw std::runtime_error("get_exe_path failed");
+	Exception::Throw("get_exe_path failed");
 #else
 	#ifndef PROC_EXE_PATH
 	#define PROC_EXE_PATH "/proc/self/exe"
@@ -408,11 +408,11 @@ std::string OS::executable_path()
 				}
 			}
 			if (!exe_file[0])
-				throw std::runtime_error("get_exe_path: could not find path");
+				Exception::Throw("get_exe_path: could not find path");
 			else
 				return std::string(exe_file);
 		#else
-			throw std::runtime_error("get_exe_path: proc file system not accesible");
+			Exception::Throw("get_exe_path: proc file system not accesible");
 		#endif
 	}
 	else
@@ -420,7 +420,7 @@ std::string OS::executable_path()
 		size = readlink(PROC_EXE_PATH, exe_file, PATH_MAX);
 		if (size < 0)
 		{
-			throw std::runtime_error(strerror(errno));
+			Exception::Throw(strerror(errno));
 		}
 		else
 		{

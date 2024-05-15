@@ -305,7 +305,7 @@ void DebuggerApp::FrameDebugBreak()
 	ResumeProgram = false;
 
 	if (ExitRequested)
-		throw std::runtime_error("Debugger exit");
+		Exception::Throw("Debugger exit");
 }
 
 Frame* DebuggerApp::GetCurrentFrame()

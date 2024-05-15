@@ -17,7 +17,7 @@ void CollisionCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 	std::vector<std::string> params = SplitString(args);
 
 	if (params.size() < 16)
-		throw std::runtime_error("Invalid number of arguments");
+		Exception::Throw("Invalid number of arguments");
 
 	if (params[0] == "cylindercylindertrace")
 	{

@@ -11,10 +11,10 @@ void NWarpZoneInfo::RegisterFunctions()
 
 void NWarpZoneInfo::UnWarp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	throw std::runtime_error("WarpZoneInfo.UnWarp not implemented");
+	Exception::Throw("WarpZoneInfo.UnWarp not implemented");
 }
 
 void NWarpZoneInfo::Warp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	throw std::runtime_error("WarpZoneInfo.Warp not implemented");
+	Exception::Throw("WarpZoneInfo.Warp not implemented");
 }

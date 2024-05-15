@@ -36,7 +36,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		WSADATA wsaData;
 		int err = WSAStartup(winsock_version, &wsaData);
 		if (err != 0)
-			throw std::runtime_error("Failed to initialize winsockets");
+			Exception::Throw("Failed to initialize winsockets");
 
 		EditorApp app;
 		return app.main(std::move(args));

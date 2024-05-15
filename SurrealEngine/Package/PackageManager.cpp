@@ -65,7 +65,7 @@ Package* PackageManager::GetPackage(const NameString& name)
 	}
 	else
 	{
-		throw std::runtime_error("Could not find package " + name.ToString());
+		Exception::Throw("Could not find package " + name.ToString());
 	}
 
 	return package.get();
@@ -90,7 +90,7 @@ Package* PackageManager::GetPackageFromPath(const std::string& path)
 			
 	}
 
-	throw std::runtime_error("Could not find package from the given path: " + path);
+	Exception::Throw("Could not find package from the given path: " + path);
 }
 
 void PackageManager::UnloadPackage(const NameString& name)
@@ -215,7 +215,7 @@ UObject* PackageManager::NewObject(const NameString& name, const NameString& pac
 	Package* pkg = GetPackage(package);
 	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
 	if (!cls)
-		throw std::runtime_error("Could not find class " + className.ToString());
+		Exception::Throw("Could not find class " + className.ToString());
 	return pkg->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
@@ -437,7 +437,13 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		}
 	}
 
-	return intFile->GetValue(sectionName, keyName);
+	std::string value = intFile->GetValue(sectionName, keyName);
+	if (*value.begin() == '"' && *(value.end() - 1) == '"')
+	{
+		value.erase(value.begin());
+		value.erase(value.end()-1);
+	}
+	return value;
 }
 
 std::map<NameString, std::string> PackageManager::ParseIntPublicValue(const std::string& text)

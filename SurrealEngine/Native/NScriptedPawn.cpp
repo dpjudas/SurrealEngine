@@ -17,30 +17,30 @@ void NScriptedPawn::RegisterFunctions()
 
 void NScriptedPawn::AddCarcass(UObject* Self, const NameString& CarcassName)
 {
-	throw std::runtime_error("ScriptedPawn.AddCarcass not implemented");
+	Exception::Throw("ScriptedPawn.AddCarcass not implemented");
 }
 
 void NScriptedPawn::ConBindEvents(UObject* Self)
 {
-	throw std::runtime_error("ScriptedPawn.ConBindEvents not implemented");
+	Exception::Throw("ScriptedPawn.ConBindEvents not implemented");
 }
 
 void NScriptedPawn::GetAllianceType(UObject* Self, const NameString& AllianceName, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("ScriptedPawn.GetAllianceType not implemented");
+	Exception::Throw("ScriptedPawn.GetAllianceType not implemented");
 }
 
 void NScriptedPawn::GetPawnAllianceType(UObject* Self, UObject* QueryPawn, uint8_t& ReturnValue)
 {
-	throw std::runtime_error("ScriptedPawn.GetPawnAllianceType not implemented");
+	Exception::Throw("ScriptedPawn.GetPawnAllianceType not implemented");
 }
 
 void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("ScriptedPawn.HaveSeenCarcass not implemented");
+	Exception::Throw("ScriptedPawn.HaveSeenCarcass not implemented");
 }
 
 void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, BitfieldBool* bCheckAlliance, BitfieldBool& ReturnValue)
 {
-	throw std::runtime_error("ScriptedPawn.IsValidEnemy not implemented");
+	Exception::Throw("ScriptedPawn.IsValidEnemy not implemented");
 }
