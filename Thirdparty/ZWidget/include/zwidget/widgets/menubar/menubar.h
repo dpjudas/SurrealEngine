@@ -4,6 +4,7 @@
 #include "../../core/widget.h"
 #include "../textlabel/textlabel.h"
 #include "../imagebox/imagebox.h"
+#include <vector>
 
 class Menu;
 class MenubarItem;
