@@ -4,6 +4,8 @@
 #include "core/colorf.h"
 #include "core/theme.h"
 #include <stdexcept>
+#include <cmath>
+#include <algorithm>
 
 Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 {
@@ -167,6 +169,10 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 		top = std::min(top, FrameGeometry.bottom());
 		right = std::max(right, FrameGeometry.left());
 		bottom = std::max(bottom, FrameGeometry.top());
+		left = GridFitPoint(left);
+		top = GridFitPoint(top);
+		right = GridFitPoint(right);
+		bottom = GridFitPoint(bottom);
 		ContentGeometry = Rect::ltrb(left, top, right, bottom);
 		OnGeometryChanged();
 	}
@@ -458,12 +464,12 @@ void Widget::SetClipboardText(const std::string& text)
 		w->DispWindow->SetClipboardText(text);
 }
 
-Widget* Widget::Window()
+Widget* Widget::Window() const
 {
-	for (Widget* w = this; w != nullptr; w = w->Parent())
+	for (const Widget* w = this; w != nullptr; w = w->Parent())
 	{
 		if (w->DispWindow)
-			return w;
+			return const_cast<Widget*>(w);
 	}
 	return nullptr;
 }
@@ -738,6 +744,26 @@ void Widget::OnWindowDeactivated()
 
 void Widget::OnWindowDpiScaleChanged()
 {
+}
+
+double Widget::GetDpiScale() const
+{
+	Widget* w = Window();
+	return w ? w->DispWindow->GetDpiScale() : 1.0;
+}
+
+double Widget::GridFitPoint(double p) const
+{
+	double dpiscale = GetDpiScale();
+	return std::round(p * dpiscale) / dpiscale;
+}
+
+double Widget::GridFitSize(double s) const
+{
+	if (s <= 0.0)
+		return 0.0;
+	double dpiscale = GetDpiScale();
+	return std::max(std::floor(s * dpiscale + 0.25), 1.0) / dpiscale;
 }
 
 Size Widget::GetScreenSize()

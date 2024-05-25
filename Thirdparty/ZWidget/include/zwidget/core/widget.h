@@ -41,10 +41,23 @@ public:
 
 	// Widget noncontent area
 	void SetNoncontentSizes(double left, double top, double right, double bottom);
-	double GetNoncontentLeft() const { return GetStyleDouble("noncontent-left"); }
-	double GetNoncontentTop() const { return GetStyleDouble("noncontent-top"); }
-	double GetNoncontentRight() const { return GetStyleDouble("noncontent-right"); }
-	double GetNoncontentBottom() const { return GetStyleDouble("noncontent-bottom"); }
+	double GetNoncontentLeft() const { return GridFitSize(GetStyleDouble("noncontent-left")); }
+	double GetNoncontentTop() const { return GridFitSize(GetStyleDouble("noncontent-top")); }
+	double GetNoncontentRight() const { return GridFitSize(GetStyleDouble("noncontent-right")); }
+	double GetNoncontentBottom() const { return GridFitSize(GetStyleDouble("noncontent-bottom")); }
+
+	// Get the DPI scale factor for the window the widget is located on
+	double GetDpiScale() const;
+
+	// Align point to the nearest physical screen pixel
+	double GridFitPoint(double p) const;
+	Point GridFitPoint(double x, double y) const { return GridFitPoint(Point(x, y)); }
+	Point GridFitPoint(Point p) const { return Point(GridFitPoint(p.x), GridFitPoint(p.y)); }
+
+	// Convert size to exactly covering physical screen pixels
+	double GridFitSize(double s) const;
+	Size GridFitSize(double w, double h) const { return GridFitSize(Size(w, h)); }
+	Size GridFitSize(Size s) const { return Size(GridFitSize(s.width), GridFitSize(s.height)); }
 
 	// Widget frame box
 	Rect GetFrameGeometry() const;
@@ -108,7 +121,7 @@ public:
 	std::string GetClipboardText();
 	void SetClipboardText(const std::string& text);
 
-	Widget* Window();
+	Widget* Window() const;
 	Canvas* GetCanvas() const;
 	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
 	Widget* ChildAt(const Point& pos);

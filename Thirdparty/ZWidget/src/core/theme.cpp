@@ -102,14 +102,16 @@ void BasicWidgetStyle::Paint(Widget* widget, Canvas* canvas, Size size)
 	Colorf borderright = widget->GetStyleColor("border-right-color");
 	Colorf borderbottom = widget->GetStyleColor("border-bottom-color");
 
+	double borderwidth = widget->GridFitSize(1.0);
+
 	if (bordertop.a > 0.0f)
-		canvas->fillRect(Rect::xywh(0.0, 0.0, size.width, 1.0), bordertop);
+		canvas->fillRect(Rect::xywh(0.0, 0.0, size.width, borderwidth), bordertop);
 	if (borderbottom.a > 0.0f)
-		canvas->fillRect(Rect::xywh(0.0, size.height - 1.0, size.width, 1.0), borderbottom);
+		canvas->fillRect(Rect::xywh(0.0, size.height - borderwidth, size.width, borderwidth), borderbottom);
 	if (borderleft.a > 0.0f)
-		canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, size.height - 0.0), borderleft);
+		canvas->fillRect(Rect::xywh(0.0, 0.0, borderwidth, size.height), borderleft);
 	if (borderright.a > 0.0f)
-		canvas->fillRect(Rect::xywh(size.width - 1.0, 0.0, 1.0, size.height - 0.0), borderright);
+		canvas->fillRect(Rect::xywh(size.width - borderwidth, 0.0, borderwidth, size.height), borderright);
 }
 
 /////////////////////////////////////////////////////////////////////////////
