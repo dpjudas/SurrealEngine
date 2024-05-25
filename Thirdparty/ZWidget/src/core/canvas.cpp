@@ -765,6 +765,95 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float left, float top, floa
 	if (x1 <= x0 || y1 <= y0)
 		return;
 
+#if 1 // Use gamma correction
+
+	// To linear
+	float cred = color.r * color.r; // std::pow(color.r, 2.2f);
+	float cgreen = color.g * color.g; // std::pow(color.g, 2.2f);
+	float cblue = color.b * color.b; // std::pow(color.b, 2.2f);
+#ifdef USE_SSE2
+	__m128 crgba = _mm_set_ps(0.0f, cred, cgreen, cblue);
+#endif
+
+	float uscale = uvwidth / width;
+	float vscale = uvheight / height;
+
+	for (int y = y0; y < y1; y++)
+	{
+		float vpix = v + vscale * (y + 0.5f - top);
+		const uint32_t* sline = src + ((int)vpix) * swidth;
+		uint32_t* dline = dest + y * dwidth;
+
+		int x = x0;
+#ifdef USE_SSE2
+		while (x < x1)
+		{
+			float upix = u + uscale * (x + 0.5f - left);
+			__m128i spixel = _mm_cvtsi32_si128(sline[(int)upix]);
+			spixel = _mm_unpacklo_epi8(spixel, _mm_setzero_si128());
+			spixel = _mm_unpacklo_epi16(spixel, _mm_setzero_si128());
+			__m128 srgba = _mm_mul_ps(_mm_cvtepi32_ps(spixel), _mm_set_ps1(1.0f / 255.0f));
+
+			__m128i dpixel = _mm_cvtsi32_si128(dline[x]);
+			dpixel = _mm_unpacklo_epi8(dpixel, _mm_setzero_si128());
+			dpixel = _mm_unpacklo_epi16(dpixel, _mm_setzero_si128());
+			__m128 drgba = _mm_mul_ps(_mm_cvtepi32_ps(dpixel), _mm_set_ps1(1.0f / 255.0f));
+
+			// To linear
+			drgba = _mm_mul_ps(drgba, drgba);
+
+			// dest.rgb = color.rgb * src.rgb + dest.rgb * (1-src.rgb)
+			__m128 frgba = _mm_add_ps(_mm_mul_ps(crgba, srgba), _mm_mul_ps(drgba, _mm_sub_ps(_mm_set_ps1(1.0f), srgba)));
+
+			// To srgb
+			frgba = _mm_sqrt_ps(frgba);
+
+			__m128i rgba = _mm_cvtps_epi32(_mm_add_ps(_mm_mul_ps(frgba, _mm_set_ps1(255.0f)), _mm_set_ps1(0.5f)));
+			rgba = _mm_packs_epi32(rgba, _mm_setzero_si128());
+			rgba = _mm_packus_epi16(rgba, _mm_setzero_si128());
+			dline[x] = ((uint32_t)_mm_cvtsi128_si32(rgba)) | 0xff000000;
+			x++;
+		}
+#else
+		while (x < x1)
+		{
+			float upix = u + uscale * (x + 0.5f - left);
+			uint32_t spixel = sline[(int)upix];
+			float sred = ((spixel >> 16) & 0xff) * (1.0f / 255.0f);
+			float sgreen = ((spixel >> 8) & 0xff) * (1.0f / 255.0f);
+			float sblue = (spixel & 0xff) * (1.0f / 255.0f);
+
+			uint32_t dpixel = dline[x];
+			float dred = ((dpixel >> 16) & 0xff) * (1.0f / 255.0f);
+			float dgreen = ((dpixel >> 8) & 0xff) * (1.0f / 255.0f);
+			float dblue = (dpixel & 0xff) * (1.0f / 255.0f);
+
+			// To linear
+			dred = dred * dred; // std::pow(dred, 2.2f);
+			dgreen = dgreen * dgreen; // std::pow(dgreen, 2.2f);
+			dblue = dblue * dblue; // std::pow(dblue, 2.2f);
+
+			// dest.rgb = color.rgb * src.rgb + dest.rgb * (1-src.rgb)
+			double fr = cred * sred + dred * (1.0f - sred);
+			double fg = cgreen * sgreen + dgreen * (1.0f - sgreen);
+			double fb = cblue * sblue + dblue * (1.0f - sblue);
+
+			// To srgb
+			fr = std::sqrt(fr); // std::pow(fr, 1.0f / 2.2f);
+			fg = std::sqrt(fg); // std::pow(fg, 1.0f / 2.2f);
+			fb = std::sqrt(fb); // std::pow(fb, 1.0f / 2.2f);
+
+			uint32_t r = (int)(fr * 255.0f + 0.5f);
+			uint32_t g = (int)(fg * 255.0f + 0.5f);
+			uint32_t b = (int)(fb * 255.0f + 0.5f);
+			dline[x] = 0xff000000 | (r << 16) | (g << 8) | b;
+			x++;
+		}
+#endif
+	}
+
+#else
+
 	uint32_t cred = (int32_t)clamp(color.r * 255.0f, 0.0f, 255.0f);
 	uint32_t cgreen = (int32_t)clamp(color.g * 255.0f, 0.0f, 255.0f);
 	uint32_t cblue = (int32_t)clamp(color.b * 255.0f, 0.0f, 255.0f);
@@ -832,6 +921,7 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float left, float top, floa
 			x++;
 		}
 	}
+#endif
 }
 
 void BitmapCanvas::begin(const Colorf& color)
