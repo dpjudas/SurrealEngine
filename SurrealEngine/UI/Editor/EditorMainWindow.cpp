@@ -6,6 +6,7 @@
 #include "Package/PackageManager.h"
 #include "UObject/UActor.h"
 #include "UObject/ULevel.h"
+#include "File.h"
 #include <zwidget/widgets/menubar/menubar.h>
 
 EditorMainWindow::EditorMainWindow()
@@ -89,6 +90,24 @@ void EditorMainWindow::OnFileNew()
 
 void EditorMainWindow::OnFileOpen()
 {
+	auto mapExtension = engine->packages->GetMapExtension();
+	openFileDialog = OpenFileDialog::Create(this);
+	openFileDialog->SetTitle("Select Map");
+	openFileDialog->AddFilter("Map files", "*." + mapExtension);
+	openFileDialog->SetInitialDirectory(FilePath::combine(engine->LaunchInfo.gameRootFolder, "Maps"));
+
+	if (openFileDialog->Show())
+	{
+		// Load the map and all that stuff
+		auto mapFile = FilePath::last_component(openFileDialog->Filename());
+		auto mapName = FilePath::remove_extension(mapFile);
+
+		LoadMap(mapName);
+
+		this->SetWindowTitle("Surreal Editor: " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - " + mapFile);
+		// Refresh the viewports after loading the level
+		Update();
+	}
 }
 
 void EditorMainWindow::OnFileSave()
@@ -166,4 +185,12 @@ void EditorMainWindow::OnHelpHome()
 
 void EditorMainWindow::OnHelpAbout()
 {
+}
+
+void EditorMainWindow::LoadMap(std::string& mapName)
+{
+	engine->LevelPackage = engine->packages->GetPackage(FilePath::remove_extension(mapName));
+	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
+	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
+	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
 }

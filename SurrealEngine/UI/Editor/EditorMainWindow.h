@@ -2,6 +2,7 @@
 #pragma once
 
 #include <zwidget/widgets/mainwindow/mainwindow.h>
+#include <ZWidget/systemdialogs/open_file_dialog.h>
 
 class EditorWorkspace;
 class Menu;
@@ -48,4 +49,8 @@ public:
 
 	void OnHelpHome();
 	void OnHelpAbout();
+
+private:
+	void LoadMap(std::string& mapName);
+	std::unique_ptr<OpenFileDialog> openFileDialog = nullptr;
 };
