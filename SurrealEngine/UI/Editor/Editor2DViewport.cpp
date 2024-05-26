@@ -26,7 +26,31 @@ void Editor2DViewport::OnPaint(Canvas* canvas)
 
 void Editor2DViewport::DrawLevel(Canvas* canvas)
 {
+#if 0
+	if (engine->Level->Model->Polys)
+	{
+		for (const Poly& poly : engine->Level->Model->Polys->Polys)
+		{
+			Colorf linecolor(80 / 255.0f, 80 / 255.0f, 220 / 255.0f);
+			Point center(GetWidth() * 0.5, GetHeight() * 0.5);
+
+			int numverts = (int)poly.Vertices.size();
+			for (int j = 0; j < numverts; j++)
+			{
+				int k = j + 1;
+				if (k == numverts)
+					k = 0;
+
+				const vec3 p0 = ViewCoords * poly.Vertices[j];
+				const vec3 p1 = ViewCoords * poly.Vertices[k];
+
+				canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * Zoom + center, Point(p1.x - Location.x, p1.y - Location.y) * Zoom + center, linecolor);
+			}
+		}
+	}
+#else
 	DrawNode(canvas, &engine->Level->Model->Nodes[0]);
+#endif
 }
 
 void Editor2DViewport::DrawNode(Canvas* canvas, BspNode* node)

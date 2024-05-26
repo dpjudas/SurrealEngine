@@ -32,6 +32,6 @@ private:
 
 	bool MouseIsMoving = false;
 	vec2 Location = vec2(0.0f);
-	double Zoom = 0.01;
+	double Zoom = 0.05;
 	Coords ViewCoords = Coords::Identity();
 };
