@@ -24,7 +24,7 @@ static void CheckInitSDL()
 	static InitSDL initsdl;
 }
 
-SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow) : WindowHost(windowHost)
+SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner) : WindowHost(windowHost)
 {
 	CheckInitSDL();
 

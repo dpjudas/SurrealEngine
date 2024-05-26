@@ -56,7 +56,7 @@ static std::wstring to_utf16(const std::string& str)
 	return result;
 }
 
-Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow) : WindowHost(windowHost)
+Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner) : WindowHost(windowHost)
 {
 	Windows.push_front(this);
 	WindowsIterator = Windows.begin();
@@ -85,7 +85,7 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 		exstyle = WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME;
 		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 	}
-	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, 0, 0, 100, 100, owner ? owner->WindowHandle : 0, 0, GetModuleHandle(0), this);
 
 	/*
 	RAWINPUTDEVICE rid;
@@ -464,7 +464,22 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 			UpdateCursor();
 		}
 
+		if (!TrackMouseActive)
+		{
+			TRACKMOUSEEVENT eventTrack = {};
+			eventTrack.cbSize = sizeof(TRACKMOUSEEVENT);
+			eventTrack.hwndTrack = WindowHandle;
+			eventTrack.dwFlags = TME_LEAVE;
+			if (TrackMouseEvent(&eventTrack))
+				TrackMouseActive = true;
+		}
+
 		WindowHost->OnWindowMouseMove(GetLParamPos(lparam));
+	}
+	else if (msg == WM_MOUSELEAVE)
+	{
+		TrackMouseActive = false;
+		WindowHost->OnWindowMouseLeave();
 	}
 	else if (msg == WM_LBUTTONDOWN)
 	{

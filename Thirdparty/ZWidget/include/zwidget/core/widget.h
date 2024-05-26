@@ -171,6 +171,7 @@ private:
 	// DisplayWindowHost
 	void OnWindowPaint() override;
 	void OnWindowMouseMove(const Point& pos) override;
+	void OnWindowMouseLeave() override;
 	void OnWindowMouseDown(const Point& pos, InputKey key) override;
 	void OnWindowMouseDoubleclick(const Point& pos, InputKey key) override;
 	void OnWindowMouseUp(const Point& pos, InputKey key) override;

@@ -11,7 +11,8 @@ Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 {
 	if (type != WidgetType::Child)
 	{
-		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup);
+		Widget* owner = parent ? parent->Window() : nullptr;
+		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup, owner ? owner->DispWindow.get() : nullptr);
 		DispCanvas = Canvas::create(DispWindow.get());
 		SetStyleState("root");
 
@@ -488,7 +489,7 @@ Widget* Widget::ChildAt(const Point& pos)
 {
 	for (Widget* cur = LastChild(); cur != nullptr; cur = cur->PrevSibling())
 	{
-		if (!cur->HiddenFlag && cur->FrameGeometry.contains(pos))
+		if (cur->Type == WidgetType::Child && !cur->HiddenFlag && cur->FrameGeometry.contains(pos))
 		{
 			Widget* cur2 = cur->ChildAt(pos - cur->ContentGeometry.topLeft());
 			return cur2 ? cur2 : cur;
@@ -592,6 +593,18 @@ void Widget::OnWindowMouseMove(const Point& pos)
 				break;
 			widget = widget->Parent();
 		} while (widget);
+	}
+}
+
+void Widget::OnWindowMouseLeave()
+{
+	if (HoverWidget)
+	{
+		for (Widget* w = HoverWidget; w; w = w->Parent())
+		{
+			w->OnMouseLeave();
+		}
+		HoverWidget = nullptr;
 	}
 }
 

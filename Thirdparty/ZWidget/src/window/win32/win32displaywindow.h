@@ -14,7 +14,7 @@
 class Win32DisplayWindow : public DisplayWindow
 {
 public:
-	Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow);
+	Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner);
 	~Win32DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
@@ -84,6 +84,8 @@ public:
 
 	bool MouseLocked = false;
 	POINT MouseLockPos = {};
+
+	bool TrackMouseActive = false;
 
 	HDC PaintDC = 0;
 

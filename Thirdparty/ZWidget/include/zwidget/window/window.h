@@ -100,6 +100,7 @@ class DisplayWindowHost
 public:
 	virtual void OnWindowPaint() = 0;
 	virtual void OnWindowMouseMove(const Point& pos) = 0;
+	virtual void OnWindowMouseLeave() = 0;
 	virtual void OnWindowMouseDown(const Point& pos, InputKey key) = 0;
 	virtual void OnWindowMouseDoubleclick(const Point& pos, InputKey key) = 0;
 	virtual void OnWindowMouseUp(const Point& pos, InputKey key) = 0;
@@ -118,7 +119,7 @@ public:
 class DisplayWindow
 {
 public:
-	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow);
+	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner);
 
 	static void ProcessEvents();
 	static void RunLoop();

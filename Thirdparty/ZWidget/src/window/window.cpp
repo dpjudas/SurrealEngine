@@ -6,9 +6,9 @@
 
 #include "win32/win32displaywindow.h"
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
 {
-	return std::make_unique<Win32DisplayWindow>(windowHost, popupWindow);
+	return std::make_unique<Win32DisplayWindow>(windowHost, popupWindow, static_cast<Win32DisplayWindow*>(owner));
 }
 
 void DisplayWindow::ProcessEvents()
@@ -43,7 +43,7 @@ void DisplayWindow::StopTimer(void* timerID)
 
 #elif defined(__APPLE__)
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
 {
 	throw std::runtime_error("DisplayWindow::Create not implemented");
 }
@@ -82,9 +82,9 @@ void DisplayWindow::StopTimer(void* timerID)
 
 #include "sdl2/sdl2displaywindow.h"
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
 {
-	return std::make_unique<SDL2DisplayWindow>(windowHost, popupWindow);
+	return std::make_unique<SDL2DisplayWindow>(windowHost, popupWindow, static_cast<SDL2DisplayWindow*>(owner));
 }
 
 void DisplayWindow::ProcessEvents()
