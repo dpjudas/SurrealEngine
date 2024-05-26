@@ -169,7 +169,7 @@ public:
 		if (SUCCEEDED(result))
 		{
 			ComPtr<IShellItemArray> items;
-			result = open_dialog->GetSelectedItems(items.TypedInitPtr());
+			result = open_dialog->GetResults(items.TypedInitPtr());
 			throw_if_failed(result, "IFileOpenDialog.GetSelectedItems failed");
 
 			DWORD num_items = 0;
