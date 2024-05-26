@@ -225,6 +225,7 @@ public:
 
 	std::string PrintProperties();
 	std::vector<UProperty*> GetAllProperties();
+	std::vector<UProperty*> GetAllUserEditableProperties();
 	std::vector<UProperty*> GetAllTravelProperties();
 
 	std::map<NameString, std::set<NameString>> DisabledEvents;
