@@ -80,8 +80,8 @@ static std::map<NameString, std::string> ParsePropertiesFromString(std::string p
 	if (propertiesString.empty())
 		return {};
 
-	// Also check for the string being "null" or "null struct"
-	if (propertiesString == "null" || propertiesString == "null struct")
+	// Also check for the string being "null", "null struct" or "None"
+	if (propertiesString == "null" || propertiesString == "null struct" || propertiesString == "None")
 		return {};
 
 	if (propertiesString[0] != '{')
