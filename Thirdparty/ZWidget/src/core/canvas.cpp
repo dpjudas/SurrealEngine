@@ -216,6 +216,8 @@ public:
 	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override;
 
 	void drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color);
+	void drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color);
+	void plot(float x, float y, float alpha, const Colorf& color);
 
 	void fillTile(float x, float y, float width, float height, Colorf color);
 	void drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color);
@@ -503,7 +505,122 @@ void BitmapCanvas::drawLineUnclipped(const Point& p0, const Point& p1, const Col
 	}
 	else
 	{
-		// To do: draw line using bresenham
+		drawLineAntialiased((float)(p0.x * uiscale), (float)(p0.y * uiscale), (float)(p1.x * uiscale), (float)(p1.y * uiscale), color);
+	}
+}
+
+static float fpart(float x)
+{
+	return x - std::floor(x);
+}
+
+static float rfpart(float x)
+{
+	return 1 - fpart(x);
+}
+
+void BitmapCanvas::plot(float x, float y, float alpha, const Colorf& color)
+{
+	int xx = (int)x;
+	int yy = (int)y;
+
+	int dwidth = width;
+	int dheight = height;
+	uint32_t* dest = pixels.data() + xx + yy * dwidth;
+
+	uint32_t cred = (int32_t)clamp(color.r * 256.0f, 0.0f, 256.0f);
+	uint32_t cgreen = (int32_t)clamp(color.g * 256.0f, 0.0f, 256.0f);
+	uint32_t cblue = (int32_t)clamp(color.b * 256.0f, 0.0f, 256.0f);
+	uint32_t calpha = (int32_t)clamp(color.a * alpha * 256.0f, 0.0f, 256.0f);
+	uint32_t invalpha = 256 - calpha;
+
+	uint32_t dpixel = *dest;
+	uint32_t dalpha = dpixel >> 24;
+	uint32_t dred = (dpixel >> 16) & 0xff;
+	uint32_t dgreen = (dpixel >> 8) & 0xff;
+	uint32_t dblue = dpixel & 0xff;
+
+	// dest.rgba = color.rgba + dest.rgba * (1-color.a)
+	uint32_t a = (calpha * calpha + dalpha * invalpha + 127) >> 8;
+	uint32_t r = (cred * calpha + dred * invalpha + 127) >> 8;
+	uint32_t g = (cgreen * calpha + dgreen * invalpha + 127) >> 8;
+	uint32_t b = (cblue * calpha + dblue * invalpha + 127) >> 8;
+	*dest = (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+void BitmapCanvas::drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color)
+{
+	bool steep = std::abs(y1 - y0) > std::abs(x1 - x0);
+	
+	if (steep)
+	{
+		std::swap(x0, y0);
+		std::swap(x1, y1);
+	}
+
+	if (x0 > x1)
+	{
+		std::swap(x0, x1);
+		std::swap(y0, y1);
+	}
+
+	float dx = x1 - x0;
+	float dy = y1 - y0;
+	float gradient = (dx == 0.0f) ? 1.0f : dy / dx;
+
+	// handle first endpoint
+	float xend = std::round(x0);
+	float yend = y0 + gradient * (xend - x0);
+	float xgap = rfpart(x0 + 0.5f);
+	float xpxl1 = xend; // this will be used in the main loop
+	float ypxl1 = std::floor(yend);
+	if (steep)
+	{
+		plot(ypxl1, xpxl1, rfpart(yend) * xgap, color);
+		plot(ypxl1 + 1, xpxl1, fpart(yend) * xgap, color);
+	}
+	else
+	{
+		plot(xpxl1, ypxl1, rfpart(yend) * xgap, color);
+		plot(xpxl1, ypxl1 + 1, fpart(yend) * xgap, color);
+	}
+	float intery = yend + gradient; // first y-intersection for the main loop
+
+	// handle second endpoint
+	xend = std::floor(x1 + 0.5f);
+	yend = y1 + gradient * (xend - x1);
+	xgap = fpart(x1 + 0.5f);
+	float xpxl2 = xend; // this will be used in the main loop
+	float ypxl2 = std::floor(yend);
+	if (steep)
+	{
+		plot(ypxl2, xpxl2, rfpart(yend) * xgap, color);
+		plot(ypxl2 + 1.0f, xpxl2, fpart(yend) * xgap, color);
+	}
+	else
+	{
+		plot(xpxl2, ypxl2, rfpart(yend) * xgap, color);
+		plot(xpxl2, ypxl2 + 1.0f, fpart(yend) * xgap, color);
+	}
+
+	// main loop
+	if (steep)
+	{
+		for (float x = xpxl1 + 1.0f; x <= xpxl2 - 1.0f; x++)
+		{
+			plot(std::floor(intery), x, rfpart(intery), color);
+			plot(std::floor(intery) + 1.0f, x, fpart(intery), color);
+			intery = intery + gradient;
+		}
+	}
+	else
+	{
+		for (float x = xpxl1 + 1.0f; x <= xpxl2 - 1.0f; x++)
+		{
+			plot(x, std::floor(intery), rfpart(intery), color);
+			plot(x, std::floor(intery) + 1, fpart(intery), color);
+			intery = intery + gradient;
+		}
 	}
 }
 

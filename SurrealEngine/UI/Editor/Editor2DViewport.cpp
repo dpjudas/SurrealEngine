@@ -20,7 +20,7 @@ void Editor2DViewport::OnPaint(Canvas* canvas)
 	DrawGrid(canvas);
 	if (engine && engine->Level)
 	{
-		//DrawLevel(canvas);
+		DrawLevel(canvas);
 	}
 }
 
