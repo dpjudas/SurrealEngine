@@ -78,6 +78,7 @@ public:
 	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	DisplayWindowHost* WindowHost = nullptr;
+	bool PopupWindow = false;
 
 	HWND WindowHandle = 0;
 	bool Fullscreen = false;

@@ -291,7 +291,7 @@ bool TextEdit::OnMouseDown(const Point& pos, InputKey key)
 {
 	if (key == InputKey::LeftMouse)
 	{
-		CaptureMouse();
+		SetPointerCapture();
 		mouse_selecting = true;
 		cursor_pos = GetCharacterIndex(pos);
 		selection_start = cursor_pos;
@@ -313,14 +313,14 @@ bool TextEdit::OnMouseUp(const Point& pos, InputKey key)
 	{
 		if (ignore_mouse_events) // This prevents text selection from changing from what was set when focus was gained.
 		{
-			ReleaseMouseCapture();
+			ReleasePointerCapture();
 			ignore_mouse_events = false;
 			mouse_selecting = false;
 		}
 		else
 		{
 			scroll_timer->Stop();
-			ReleaseMouseCapture();
+			ReleasePointerCapture();
 			mouse_selecting = false;
 			ivec2 sel_end = GetCharacterIndex(pos);
 			selection_length = ToOffset(sel_end) - ToOffset(selection_start);

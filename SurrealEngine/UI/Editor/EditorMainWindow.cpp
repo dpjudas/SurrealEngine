@@ -97,6 +97,7 @@ void EditorMainWindow::OnFileSave()
 
 void EditorMainWindow::OnFileExit()
 {
+	Close();
 }
 
 void EditorMainWindow::OnEditUndo()

@@ -509,22 +509,22 @@ void BitmapCanvas::drawLineUnclipped(const Point& p0, const Point& p1, const Col
 
 int BitmapCanvas::getClipMinX() const
 {
-	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().x * uiscale, 0.0);
+	return clipStack.empty() ? 0 : (int)std::round(std::max(clipStack.back().x * uiscale, 0.0));
 }
 
 int BitmapCanvas::getClipMinY() const
 {
-	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().y * uiscale, 0.0);
+	return clipStack.empty() ? 0 : (int)std::round(std::max(clipStack.back().y * uiscale, 0.0));
 }
 
 int BitmapCanvas::getClipMaxX() const
 {
-	return clipStack.empty() ? width : (int)std::min((clipStack.back().x + clipStack.back().width) * uiscale, (double)width);
+	return clipStack.empty() ? width : (int)std::round(std::min((clipStack.back().x + clipStack.back().width) * uiscale, (double)width));
 }
 
 int BitmapCanvas::getClipMaxY() const
 {
-	return clipStack.empty() ? height : (int)std::min((clipStack.back().y + clipStack.back().height) * uiscale, (double)height);
+	return clipStack.empty() ? height : (int)std::round(std::min((clipStack.back().y + clipStack.back().height) * uiscale, (double)height));
 }
 
 void BitmapCanvas::fillTile(float left, float top, float width, float height, Colorf color)

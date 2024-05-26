@@ -21,13 +21,22 @@ public:
 
 protected:
 	void OnGeometryChanged() override;
+	bool OnMouseDown(const Point& pos, InputKey key) override;
+	bool OnMouseUp(const Point& pos, InputKey key) override;
+	void OnMouseMove(const Point& pos) override;
+	void OnKeyDown(InputKey key) override;
 
 private:
 	void ShowMenu(MenubarItem* item);
 	void CloseMenu();
 
+	MenubarItem* GetMenubarItemAt(const Point& pos);
+	int GetItemIndex(MenubarItem* item);
+
 	std::vector<MenubarItem*> menuItems;
+	int currentMenubarItem = -1;
 	Menu* openMenu = nullptr;
+	bool modalMode = false;
 
 	friend class MenubarItem;
 };
@@ -70,10 +79,13 @@ public:
 	double GetPreferredWidth() const;
 	double GetPreferredHeight() const;
 
+	void SetSelected(MenuItem* item);
+
 protected:
 	void OnGeometryChanged() override;
 
 	std::function<void()> onCloseMenu;
+	MenuItem* selectedItem = nullptr;
 
 	friend class Menubar;
 };
@@ -81,19 +93,29 @@ protected:
 class MenuItem : public Widget
 {
 public:
-	MenuItem(Widget* parent);
+	MenuItem(Menu* menu, std::function<void()> onClick);
 
+	void Click();
+
+	Menu* menu = nullptr;
 	ImageBox* icon = nullptr;
 	TextLabel* text = nullptr;
 
 protected:
+	bool OnMouseUp(const Point& pos, InputKey key) override;
 	void OnMouseMove(const Point& pos) override;
 	void OnMouseLeave() override;
 	void OnGeometryChanged() override;
+
+private:
+	std::function<void()> onClick;
 };
 
 class MenuItemSeparator : public Widget
 {
 public:
 	MenuItemSeparator(Widget* parent);
+
+protected:
+	void OnPaint(Canvas* canvas) override;
 };

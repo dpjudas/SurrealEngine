@@ -56,7 +56,7 @@ static std::wstring to_utf16(const std::string& str)
 	return result;
 }
 
-Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner) : WindowHost(windowHost)
+Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner) : WindowHost(windowHost), PopupWindow(popupWindow)
 {
 	Windows.push_front(this);
 	WindowsIterator = Windows.begin();
@@ -78,6 +78,7 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 	DWORD style = 0, exstyle = 0;
 	if (popupWindow)
 	{
+		exstyle = WS_EX_NOACTIVATE;
 		style = WS_POPUP;
 	}
 	else
@@ -156,7 +157,7 @@ void Win32DisplayWindow::SetClientFrame(const Rect& box)
 
 void Win32DisplayWindow::Show()
 {
-	ShowWindow(WindowHandle, SW_SHOW);
+	ShowWindow(WindowHandle, PopupWindow ? SW_SHOWNA : SW_SHOW);
 }
 
 void Win32DisplayWindow::ShowFullscreen()
@@ -193,7 +194,8 @@ void Win32DisplayWindow::Hide()
 
 void Win32DisplayWindow::Activate()
 {
-	SetFocus(WindowHandle);
+	if (!PopupWindow)
+		SetFocus(WindowHandle);
 }
 
 void Win32DisplayWindow::ShowCursor(bool enable)
@@ -254,7 +256,7 @@ Rect Win32DisplayWindow::GetWindowFrame() const
 	RECT box = {};
 	GetWindowRect(WindowHandle, &box);
 	double dpiscale = GetDpiScale();
-	return Rect(box.left / dpiscale, box.top / dpiscale, box.right / dpiscale, box.bottom / dpiscale);
+	return Rect(box.left / dpiscale, box.top / dpiscale, (box.right - box.left) / dpiscale, (box.bottom - box.top) / dpiscale);
 }
 
 Point Win32DisplayWindow::MapFromGlobal(const Point& pos) const
@@ -444,6 +446,12 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 	else if (msg == WM_ACTIVATE)
 	{
 		WindowHost->OnWindowActivated();
+	}
+	else if (msg == WM_MOUSEACTIVATE)
+	{
+		// We don't want to activate the window on mouse clicks as that changes the focus from the popup owner to the popup itself
+		if (PopupWindow)
+			return MA_NOACTIVATE;
 	}
 	else if (msg == WM_MOUSEMOVE)
 	{

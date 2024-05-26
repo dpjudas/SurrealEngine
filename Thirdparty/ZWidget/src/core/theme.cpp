@@ -156,6 +156,7 @@ DarkWidgetTheme::DarkWidgetTheme()
 	auto tabbar_tab = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar-tab");
 	auto tabwidget_stack = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabwidget-stack");
 	auto checkbox_label = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "checkbox-label");
+	auto menubar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menubar");
 	auto menubaritem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menubaritem");
 	auto menu = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menu");
 	auto menuitem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menuitem");
@@ -235,8 +236,13 @@ DarkWidgetTheme::DarkWidgetTheme()
 	checkbox_label->SetColor("unchecked-outer-border-color", Colorf::fromRgba8(99, 99, 99));
 	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(51, 51, 51));
 
+	menubar->SetColor("background-color", Colorf::fromRgba8(70, 70, 70));
+
+	menubaritem->SetColor("color", Colorf::fromRgba8(226, 223, 219));
 	menubaritem->SetColor("hover", "background-color", Colorf::fromRgba8(78, 78, 78));
+	menubaritem->SetColor("hover", "color", Colorf::fromRgba8(0, 0, 0));
 	menubaritem->SetColor("down", "background-color", Colorf::fromRgba8(88, 88, 88));
+	menubaritem->SetColor("down", "color", Colorf::fromRgba8(0, 0, 0));
 
 	menu->SetDouble("noncontent-left", 5.0);
 	menu->SetDouble("noncontent-top", 5.0);
@@ -266,6 +272,7 @@ LightWidgetTheme::LightWidgetTheme()
 	auto tabbar_tab = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabbar-tab");
 	auto tabwidget_stack = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "tabwidget-stack");
 	auto checkbox_label = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "checkbox-label");
+	auto menubar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menubar");
 	auto menubaritem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menubaritem");
 	auto menu = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menu");
 	auto menuitem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menuitem");
@@ -345,13 +352,19 @@ LightWidgetTheme::LightWidgetTheme()
 	checkbox_label->SetColor("unchecked-outer-border-color", Colorf::fromRgba8(156, 156, 156));
 	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(200, 200, 200));
 
+	menubar->SetColor("background-color", Colorf::fromRgba8(70, 70, 70));
+
+	menubaritem->SetColor("color", Colorf::fromRgba8(226, 223, 219));
 	menubaritem->SetColor("hover", "background-color", Colorf::fromRgba8(200, 200, 200));
+	menubaritem->SetColor("hover", "color", Colorf::fromRgba8(0, 0, 0));
 	menubaritem->SetColor("down", "background-color", Colorf::fromRgba8(190, 190, 190));
+	menubaritem->SetColor("down", "color", Colorf::fromRgba8(0, 0, 0));
 
 	menu->SetDouble("noncontent-left", 5.0);
 	menu->SetDouble("noncontent-top", 5.0);
 	menu->SetDouble("noncontent-right", 5.0);
 	menu->SetDouble("noncontent-bottom", 5.0);
+	menu->SetColor("background-color", Colorf::fromRgba8(255, 255, 255));
 	menu->SetColor("border-left-color", Colorf::fromRgba8(155, 155, 155));
 	menu->SetColor("border-top-color", Colorf::fromRgba8(155, 155, 155));
 	menu->SetColor("border-right-color", Colorf::fromRgba8(155, 155, 155));

@@ -113,8 +113,12 @@ public:
 	void LockCursor();
 	void UnlockCursor();
 	void SetCursor(StandardCursor cursor);
-	void CaptureMouse();
-	void ReleaseMouseCapture();
+
+	void SetPointerCapture();
+	void ReleasePointerCapture();
+
+	void SetModalCapture();
+	void ReleaseModalCapture();
 
 	bool GetKeyState(InputKey key);
 
@@ -125,6 +129,9 @@ public:
 	Canvas* GetCanvas() const;
 	Widget* ChildAt(double x, double y) { return ChildAt(Point(x, y)); }
 	Widget* ChildAt(const Point& pos);
+
+	bool IsParent(const Widget* w) const;
+	bool IsChild(const Widget* w) const;
 
 	Widget* Parent() const { return ParentObj; }
 	Widget* PrevSibling() const { return PrevSiblingObj; }

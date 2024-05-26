@@ -254,7 +254,7 @@ bool Scrollbar::OnMouseDown(const Point& pos, InputKey key)
 	UpdatePartPositions();
 
 	Update();
-	CaptureMouse();
+	SetPointerCapture();
 	return true;
 }
 
@@ -270,7 +270,7 @@ bool Scrollbar::OnMouseUp(const Point& pos, InputKey key)
 	mouse_down_timer->Stop();
 
 	Update();
-	ReleaseMouseCapture();
+	ReleasePointerCapture();
 	return true;
 }
 

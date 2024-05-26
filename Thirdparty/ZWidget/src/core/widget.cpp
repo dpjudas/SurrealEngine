@@ -429,7 +429,7 @@ void Widget::SetCursor(StandardCursor cursor)
 	}
 }
 
-void Widget::CaptureMouse()
+void Widget::SetPointerCapture()
 {
 	Widget* w = Window();
 	if (w && w->CaptureWidget != this)
@@ -439,13 +439,31 @@ void Widget::CaptureMouse()
 	}
 }
 
-void Widget::ReleaseMouseCapture()
+void Widget::ReleasePointerCapture()
 {
 	Widget* w = Window();
 	if (w && w->CaptureWidget != nullptr)
 	{
 		w->CaptureWidget = nullptr;
 		w->DispWindow->ReleaseMouseCapture();
+	}
+}
+
+void Widget::SetModalCapture()
+{
+	Widget* w = Window();
+	if (w && w->CaptureWidget != this)
+	{
+		w->CaptureWidget = this;
+	}
+}
+
+void Widget::ReleaseModalCapture()
+{
+	Widget* w = Window();
+	if (w && w->CaptureWidget != nullptr)
+	{
+		w->CaptureWidget = nullptr;
 	}
 }
 
@@ -483,6 +501,24 @@ Canvas* Widget::GetCanvas() const
 			return w->DispCanvas.get();
 	}
 	return nullptr;
+}
+
+bool Widget::IsParent(const Widget* w) const
+{
+	while (w)
+	{
+		w = w->Parent();
+		if (w == this)
+			return true;
+	}
+	return false;
+}
+
+bool Widget::IsChild(const Widget* w) const
+{
+	if (!w)
+		return false;
+	return w->IsParent(this);
 }
 
 Widget* Widget::ChildAt(const Point& pos)

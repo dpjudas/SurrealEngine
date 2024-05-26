@@ -22,7 +22,17 @@ MenubarItem* Menubar::AddItem(std::string text, std::function<void(Menu* menu)> 
 
 void Menubar::ShowMenu(MenubarItem* item)
 {
+	int index = GetItemIndex(item);
+	if (index == currentMenubarItem)
+		return;
+
 	CloseMenu();
+	SetFocus();
+	SetModalCapture();
+	currentMenubarItem = index;
+	if (currentMenubarItem != -1)
+		menuItems[currentMenubarItem]->SetStyleState("hover");
+	modalMode = true;
 	if (item->GetOpenCallback())
 	{
 		openMenu = new Menu(this);
@@ -38,8 +48,13 @@ void Menubar::ShowMenu(MenubarItem* item)
 
 void Menubar::CloseMenu()
 {
-	//delete openMenu;
-	//openMenu = nullptr;
+	if (currentMenubarItem != -1)
+		menuItems[currentMenubarItem]->SetStyleState("");
+	currentMenubarItem = -1;
+	delete openMenu;
+	openMenu = nullptr;
+	ReleaseModalCapture();
+	modalMode = false;
 }
 
 void Menubar::OnGeometryChanged()
@@ -62,6 +77,139 @@ void Menubar::OnGeometryChanged()
 			right -= itemwidth;
 			item->SetFrameGeometry(right, 0.0, itemwidth, h);
 		}
+	}
+}
+
+MenubarItem* Menubar::GetMenubarItemAt(const Point& pos)
+{
+	Widget* widget = ChildAt(pos);
+	for (MenubarItem* item : menuItems)
+	{
+		if (widget == item)
+			return item;
+	}
+	return nullptr;
+}
+
+bool Menubar::OnMouseDown(const Point& pos, InputKey key)
+{
+	if (!modalMode)
+		return Widget::OnMouseDown(pos, key);
+
+	MenubarItem* item = GetMenubarItemAt(pos);
+	if (item)
+		ShowMenu(item);
+	else
+		CloseMenu();
+	return true;
+}
+
+bool Menubar::OnMouseUp(const Point& pos, InputKey key)
+{
+	if (!modalMode)
+		return Widget::OnMouseUp(pos, key);
+
+	MenubarItem* item = GetMenubarItemAt(pos);
+	if (!item)
+		CloseMenu();
+	return true;
+}
+
+void Menubar::OnMouseMove(const Point& pos)
+{
+	if (!modalMode)
+		return Widget::OnMouseMove(pos);
+
+	MenubarItem* item = GetMenubarItemAt(pos);
+	if (item)
+		ShowMenu(item);
+}
+
+int Menubar::GetItemIndex(MenubarItem* item)
+{
+	int i = 0;
+	for (MenubarItem* cur : menuItems)
+	{
+		if (cur == item)
+			return i;
+		i++;
+	}
+	return -1;
+}
+
+void Menubar::OnKeyDown(InputKey key)
+{
+	if (!modalMode)
+		return Widget::OnKeyDown(key);
+
+	if (key == InputKey::Left)
+	{
+		if (!menuItems.empty())
+		{
+			int index = currentMenubarItem - 1;
+			if (index < 0)
+				index = (int)menuItems.size() - 1;
+			ShowMenu(menuItems[index]);
+		}
+	}
+	else if (key == InputKey::Right)
+	{
+		if (!menuItems.empty())
+		{
+			int index = currentMenubarItem + 1;
+			if (index == (int)menuItems.size())
+				index = 0;
+			ShowMenu(menuItems[index]);
+		}
+	}
+	else if (key == InputKey::Up)
+	{
+		if (openMenu)
+		{
+			// Keep trying until we don't find a separator
+			for (int i = 0; i < 10; i++)
+			{
+				if (!openMenu->selectedItem || !openMenu->selectedItem->PrevSibling())
+				{
+					if (openMenu->LastChild())
+						openMenu->SetSelected(static_cast<MenuItem*>(openMenu->LastChild()));
+				}
+				else
+				{
+					openMenu->SetSelected(static_cast<MenuItem*>(openMenu->selectedItem->PrevSibling()));
+				}
+
+				if (openMenu->selectedItem && openMenu->selectedItem->GetStyleClass() != "menuitemseparator")
+					break;
+			}
+		}
+	}
+	else if (key == InputKey::Down)
+	{
+		if (openMenu)
+		{
+			// Keep trying until we don't find a separator
+			for (int i = 0; i < 10; i++)
+			{
+				if (!openMenu->selectedItem || !openMenu->selectedItem->NextSibling())
+				{
+					if (openMenu->FirstChild())
+						openMenu->SetSelected(static_cast<MenuItem*>(openMenu->FirstChild()));
+				}
+				else
+				{
+					openMenu->SetSelected(static_cast<MenuItem*>(openMenu->selectedItem->NextSibling()));
+				}
+
+				if (openMenu->selectedItem && openMenu->selectedItem->GetStyleClass() != "menuitemseparator")
+					break;
+			}
+		}
+	}
+	else if (key == InputKey::Enter)
+	{
+		if (openMenu && openMenu->selectedItem)
+			openMenu->selectedItem->Click();
 	}
 }
 
@@ -127,20 +275,10 @@ void Menu::SetRightPosition(const Point& pos)
 
 MenuItem* Menu::AddItem(std::shared_ptr<Image> icon, std::string text, std::function<void()> onClick)
 {
-	auto item = new MenuItem(this);
+	auto item = new MenuItem(this, [this, onClick]() { if (onCloseMenu) onCloseMenu(); if (onClick) onClick(); });
 	if (icon)
 		item->icon->SetImage(icon);
 	item->text->SetText(text);
-	/*
-	item->element->addEventListener("click", [=](Event* event)
-		{
-			event->stopPropagation();
-			if (onCloseMenu)
-				onCloseMenu();
-			if (onClick)
-				onClick();
-		});
-	*/
 	return item;
 }
 
@@ -152,7 +290,7 @@ MenuItemSeparator* Menu::AddSeparator()
 
 double Menu::GetPreferredWidth() const
 {
-	return 200.0;
+	return GridFitSize(200.0);
 }
 
 double Menu::GetPreferredHeight() const
@@ -160,7 +298,8 @@ double Menu::GetPreferredHeight() const
 	double h = 0.0;
 	for (Widget* item = FirstChild(); item != nullptr; item = item->NextSibling())
 	{
-		h += 20.0;
+		double itemheight = GridFitSize((item->GetStyleClass() == "menuitemseparator") ? 7.0 : 30.0);
+		h += itemheight;
 	}
 	return h;
 }
@@ -168,18 +307,31 @@ double Menu::GetPreferredHeight() const
 void Menu::OnGeometryChanged()
 {
 	double w = GetWidth();
-	double h = GetHeight();
 	double y = 0.0;
 	for (Widget* item = FirstChild(); item != nullptr; item = item->NextSibling())
 	{
-		item->SetFrameGeometry(Rect::xywh(0.0, y, w, 20.0));
-		y += 20.0;
+		double itemheight = GridFitSize((item->GetStyleClass() == "menuitemseparator") ? 7.0 : 30.0);
+		item->SetFrameGeometry(Rect::xywh(0.0, y, w, itemheight));
+		y += itemheight;
+	}
+}
+
+void Menu::SetSelected(MenuItem* item)
+{
+	if (selectedItem)
+	{
+		selectedItem->SetStyleState("");
+	}
+	selectedItem = item;
+	if (selectedItem)
+	{
+		selectedItem->SetStyleState("hover");
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-MenuItem::MenuItem(Widget* parent) : Widget(parent)
+MenuItem::MenuItem(Menu* menu, std::function<void()> onClick) : Widget(menu), menu(menu), onClick(onClick)
 {
 	SetStyleClass("menuitem");
 	icon = new ImageBox(this);
@@ -188,25 +340,41 @@ MenuItem::MenuItem(Widget* parent) : Widget(parent)
 
 void MenuItem::OnMouseMove(const Point& pos)
 {
-	if (GetStyleState().empty())
+	menu->SetSelected(this);
+}
+
+bool MenuItem::OnMouseUp(const Point& pos, InputKey key)
+{
+	Click();
+	return true;
+}
+
+void MenuItem::Click()
+{
+	if (onClick)
 	{
-		SetStyleState("hover");
+		// We have to make a copy of the handler as it may delete 'this'
+		auto handler = onClick;
+		handler();
 	}
 }
 
 void MenuItem::OnMouseLeave()
 {
-	SetStyleState("");
+	menu->SetSelected(nullptr);
 }
 
 void MenuItem::OnGeometryChanged()
 {
-	double iconwidth = icon->GetPreferredWidth();
-	double iconheight = icon->GetPreferredHeight();
+	double iconwidth = GridFitSize(icon->GetPreferredWidth());
+	double iconheight = GridFitSize(icon->GetPreferredHeight());
 	double w = GetWidth();
 	double h = GetHeight();
-	icon->SetFrameGeometry(Rect::xywh(0.0, (h - iconheight) * 0.5, iconwidth, iconheight));
-	text->SetFrameGeometry(Rect::xywh(iconwidth, 0.0, w - iconwidth, h));
+	double textheight = 19.0;
+	double x0 = GridFitPoint(5.0);
+	double x1 = GridFitPoint(5.0 + iconwidth);
+	icon->SetFrameGeometry(Rect::xywh(x0, GridFitPoint((h - iconheight) * 0.5), iconwidth, iconheight));
+	text->SetFrameGeometry(Rect::xywh(x1, GridFitPoint((h - textheight) * 0.5), w - x1, textheight));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -214,4 +382,9 @@ void MenuItem::OnGeometryChanged()
 MenuItemSeparator::MenuItemSeparator(Widget* parent) : Widget(parent)
 {
 	SetStyleClass("menuitemseparator");
+}
+
+void MenuItemSeparator::OnPaint(Canvas* canvas)
+{
+	canvas->fillRect(Rect::xywh(0.0, GridFitPoint(GetHeight() * 0.5), GetWidth(), GridFitSize(1.0)), Colorf::fromRgba8(200, 200, 200));
 }
