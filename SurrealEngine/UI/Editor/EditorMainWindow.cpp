@@ -21,12 +21,7 @@ EditorMainWindow::EditorMainWindow()
 	Workspace = new EditorWorkspace(this);
 	SetCentralWidget(Workspace);
 
-	engine->LevelPackage = engine->packages->GetPackage("CTF-Face");
-	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
-	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
-
-	SetWindowTitle("Surreal Editor");
+	SetWindowTitle("Surreal Editor: " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - [Untitled Map]");
 }
 
 EditorMainWindow::~EditorMainWindow()
