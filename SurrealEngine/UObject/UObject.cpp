@@ -345,6 +345,19 @@ std::vector<UProperty*> UObject::GetAllProperties()
 	return result;
 }
 
+std::vector<UProperty*> UObject::GetAllUserEditableProperties()
+{
+	std::vector<UProperty*> result;
+
+	for (UProperty* prop : PropertyData.Class->Properties)
+	{
+		if (bool(prop->PropFlags & PropertyFlags::Edit))
+			result.push_back(prop);
+	}
+
+	return result;
+}
+
 std::vector<UProperty*> UObject::GetAllTravelProperties()
 {
 	std::vector<UProperty*> result;
