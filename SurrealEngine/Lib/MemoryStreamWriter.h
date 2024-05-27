@@ -82,7 +82,7 @@ public:
 		Write(s, strlen(s));
 		return *this;
 	}
-	MemoryStreamWriter& operator<<(std::string& s)
+	MemoryStreamWriter& operator<<(std::string s)
 	{
 		Write(s.data(), s.size());
 		return *this;

@@ -123,7 +123,8 @@ MemoryStreamWriter Exporter::ExportFireTexture(UFireTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	// Export full color palette as well
@@ -136,7 +137,8 @@ MemoryStreamWriter Exporter::ExportFireTexture(UFireTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	data << "END OBJECT\r\n";
@@ -161,7 +163,8 @@ MemoryStreamWriter Exporter::ExportWaveTexture(UWaveTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	// Export full color palette as well
@@ -174,7 +177,8 @@ MemoryStreamWriter Exporter::ExportWaveTexture(UWaveTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	data << "END OBJECT\r\n";
@@ -199,7 +203,8 @@ MemoryStreamWriter Exporter::ExportWetTexture(UWetTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	// Export full color palette as well
@@ -212,7 +217,8 @@ MemoryStreamWriter Exporter::ExportWetTexture(UWetTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	data << "END OBJECT\r\n";
@@ -237,7 +243,8 @@ MemoryStreamWriter Exporter::ExportIceTexture(UIceTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	// Export full color palette as well
@@ -250,7 +257,8 @@ MemoryStreamWriter Exporter::ExportIceTexture(UIceTexture* tex)
 		data << "=(R=" << std::to_string(r);
 		data << ",G=" << std::to_string(g);
 		data << ",B=" << std::to_string(b);
-		data << ",A=" << std::to_string(a) + ")\r\n";
+		data << ",A=" << std::to_string(a);
+		data << ")\r\n";
 	}
 
 	data << "END OBJECT\r\n";
@@ -259,7 +267,7 @@ MemoryStreamWriter Exporter::ExportIceTexture(UIceTexture* tex)
 
 /////////////////////////////////////////////////////////////////////////////
 
-struct BmpHeader
+struct BmpHeaderV3
 {
 	uint16_t signature;
 	uint32_t fileSize;
@@ -279,7 +287,7 @@ struct BmpHeader
 	uint32_t colorsImportant;
 };
 
-MemoryStreamWriter& operator<<(MemoryStreamWriter& s, BmpHeader& bmp)
+MemoryStreamWriter& operator<<(MemoryStreamWriter& s, BmpHeaderV3& bmp)
 {
 	s << bmp.signature;
 	s << bmp.fileSize;
@@ -303,7 +311,7 @@ MemoryStreamWriter& operator<<(MemoryStreamWriter& s, BmpHeader& bmp)
 MemoryStreamWriter Exporter::ExportBmpIndexed(UTexture* tex)
 {
 	MemoryStreamWriter data;
-	BmpHeader hdr = { 0 };
+	BmpHeaderV3 hdr = { 0 };
 	int usize = tex->USize();
 	int vsize = tex->VSize();
 
@@ -316,7 +324,7 @@ MemoryStreamWriter Exporter::ExportBmpIndexed(UTexture* tex)
 
 	hdr.signature = 0x4d42;
 	hdr.fileSize = 0; // re-fill later
-	hdr.pixelOffset = sizeof(BmpHeader) + (4 * 256);
+	hdr.pixelOffset = sizeof(BmpHeaderV3) + (4 * 256);
 	hdr.dibHeaderSize = 40;
 	hdr.imageWidth = tex->USize();
 	hdr.imageHeight = tex->VSize();
