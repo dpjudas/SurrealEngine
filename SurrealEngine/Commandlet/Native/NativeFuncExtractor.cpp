@@ -35,7 +35,7 @@ JsonValue NativeFuncExtractor::CreatePackageJson(Package* package)
 {
 	JsonValue jsonPackage = JsonValue::object();
 
-	std::vector<UClass*> classes = package->GetAllClasses();
+	std::vector<UClass*> classes = package->GetAllObjects<UClass>();
 	for (UClass* cls : classes)
 	{
 		JsonValue jsonClass = CreateClassJson(cls);

@@ -183,21 +183,6 @@ Package::~Package()
 {
 }
 
-std::vector<UClass*> Package::GetAllClasses()
-{
-	std::vector<UClass*> classes;
-	int objref = 1;
-	for (ExportTableEntry& e : ExportTable)
-	{
-		if (e.ObjClass == 0)
-		{
-			classes.push_back(UObject::Cast<UClass>(GetUObject(objref)));
-		}
-		objref++;
-	}
-	return classes;
-}
-
 UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
 {
 	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
@@ -234,7 +219,6 @@ void Package::LoadExportObject(int index)
 		UClass* objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
 		if (!objclass)
 		{
-			objclass = UObject::Cast<UClass>(GetUObject(entry->ObjClass));
 			Exception::Throw("Could not find the object class for " + objname.ToString());
 		}
 

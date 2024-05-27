@@ -33,7 +33,7 @@ JsonValue NativeObjExtractor::CreatePackageJson(Package* package)
 {
 	JsonValue jsonPackage = JsonValue::object();
 
-	std::vector<UClass*> classes = package->GetAllClasses();
+	std::vector<UClass*> classes = package->GetAllObjects<UClass>();
 	for (UClass* cls : classes)
 	{
 		if (AllFlags(cls->Flags, ObjectFlags::Native))

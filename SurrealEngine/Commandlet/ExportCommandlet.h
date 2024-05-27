@@ -18,4 +18,8 @@ private:
 	void ExportMusic(DebuggerApp* console, std::vector<std::string>& packages);
 	void ExportMeshes(DebuggerApp* console, std::vector<std::string>& packages);
 	void ExportLevel(DebuggerApp* console, std::vector<std::string>& packages);
+
+	void InitExport(std::vector<std::string>& packages);
+
+	std::vector<std::string> packageNames;
 };
