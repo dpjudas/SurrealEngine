@@ -236,7 +236,7 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 			else
 				ext.assign("bmp");
 
-			MemoryStreamWriter& stream = Exporter::ExportTexture(tex, ext);
+			MemoryStreamWriter stream = Exporter::ExportTexture(tex, ext);
 			if (stream.Size() > 0)
 			{
 				if (!pkgpathcreated)
