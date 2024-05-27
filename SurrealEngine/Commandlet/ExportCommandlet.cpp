@@ -32,7 +32,7 @@ ExportCommandlet::ExportCommandlet()
 
 static ExportCommand GetCommand(const std::string& command)
 {
-	static std::pair<char*, ExportCommand> commands[] =
+	static std::pair<std::string, ExportCommand> commands[] =
 	{
 		{"all", ExportCommand::All},
 		{"scripts", ExportCommand::Scripts},
@@ -46,10 +46,10 @@ static ExportCommand GetCommand(const std::string& command)
 	std::string lowerCmd = command;
 	std::transform(lowerCmd.begin(), lowerCmd.end(), lowerCmd.begin(), [](unsigned char c) { return tolower(c); });
 
-	for (int i = 0; i < (sizeof(commands) / sizeof(std::pair<char*, ExportCommand>)); i++)
+	for (int i = 0; i < (sizeof(commands) / sizeof(std::pair<std::string, ExportCommand>)); i++)
 	{
 		auto& iter = commands[i];
-		if (lowerCmd == iter.first)
+		if (lowerCmd.compare(iter.first) == 0)
 			return iter.second;
 	}
 
