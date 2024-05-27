@@ -63,7 +63,35 @@ public:
 
 	std::string GetExportName(int objref);
 
-	template<class T> std::vector<T*> GetAllObjects();
+	template<class T> std::vector<T*> GetAllObjects()
+	{
+		std::vector<T*> objects;
+		int objref = 1;
+		for (ExportTableEntry& e : ExportTable)
+		{
+			std::string className;
+			if (e.ObjClass < 0)
+			{
+				className = GetName(GetImportEntry(e.ObjClass)->ObjName).ToString();
+			}
+			else if (e.ObjClass != 0)
+			{
+				className = GetName(GetExportEntry(e.ObjClass)->ObjName).ToString();
+			}
+
+			// ignore "Groups", they're not real objects
+			if (className.compare("Package") != 0)
+			{
+				T* obj = dynamic_cast<T*>(GetUObject(objref));
+				if (obj)
+				{
+					objects.push_back(obj);
+				}
+			}
+			objref++;
+		}
+		return objects;
+	}
 
 private:
 	void ReadTables();
