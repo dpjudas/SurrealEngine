@@ -169,7 +169,7 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::stri
 
 		for (UClass* cls : classes)
 		{
-			MemoryStreamWriter& stream = Exporter::ExportClass(cls);
+			MemoryStreamWriter stream = Exporter::ExportClass(cls);
 			if (stream.Size() > 0)
 			{
 				if (!pkgpathcreated)
