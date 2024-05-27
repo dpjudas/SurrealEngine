@@ -401,6 +401,8 @@ public:
 	void Load(ObjectStream* stream) override;
 	void UpdateFrame() override;
 
+	const std::vector<Spark>& GetSparks() const { return Sparks; }
+
 	FireDrawMode& DrawMode() { return Value<FireDrawMode>(PropOffsets_FireTexture.DrawMode); }
 	uint8_t& FX_Area() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Area); }
 	uint8_t& FX_AuxSize() { return Value<uint8_t>(PropOffsets_FireTexture.FX_AuxSize); }

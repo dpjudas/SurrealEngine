@@ -19,6 +19,11 @@
 #undef DrawText
 #endif
 
+// TODO: if we eventually support big endian platforms, these need to be implemented properly
+#define BSWAP16(i) i
+#define BSWAP32(i) i
+#define BSWAP64(i) i
+
 #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))) || ((defined(__i386__) || defined(__x86_64__) || defined(__e2k__)) && defined(__SSE2__))
 #else
 #define NOSSE
