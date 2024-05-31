@@ -127,10 +127,14 @@ void DebuggerApp::Tick()
 		{
 			EndPrompt();
 			WriteOutput(NewLine());
-			std::string cmdline = promptline;
+			cmdline = promptline;
 			promptline.clear();
-			OnCommandEntered(cmdline);
-			WritePrompt();
+
+			if (!InCommandlet)
+			{
+				OnCommandEntered();
+				WritePrompt();
+			}
 		}
 		pos = std::min(endpos + InputNewLine().size(), text.size());
 	}
@@ -161,23 +165,35 @@ void DebuggerApp::EndPrompt()
 	}
 }
 
-void DebuggerApp::OnCommandEntered(const std::string& line)
+std::string DebuggerApp::GetInput()
+{
+	WritePrompt();
+	while (cmdline.size() == 0)
+	{
+		WaitForInput();
+		Tick();
+	}
+	return std::move(cmdline);
+}
+
+void DebuggerApp::OnCommandEntered()
 {
 	try
 	{
 		std::string command;
 		std::string args;
-		size_t pos = std::min(line.find(' '), line.size());
-		if (pos == line.size())
+		size_t pos = std::min(cmdline.find(' '), cmdline.size());
+		if (pos == cmdline.size())
 		{
-			command = line;
+			command = cmdline;
 		}
 		else
 		{
-			command = line.substr(0, pos);
-			pos = std::min(line.find_first_not_of(' ', pos + 1), line.size());
-			args = line.substr(pos);
+			command = cmdline.substr(0, pos);
+			pos = std::min(cmdline.find_first_not_of(' ', pos + 1), cmdline.size());
+			args = cmdline.substr(pos);
 		}
+		cmdline.clear();
 
 		if (command == "help")
 		{
@@ -211,7 +227,9 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 			{
 				if (cmdlet->GetShortFormName() == command || cmdlet->GetLongFormName() == command)
 				{
+					InCommandlet = true;
 					cmdlet->OnCommand(this, args);
+					InCommandlet = false;
 					found = true;
 					break;
 				}
@@ -223,6 +241,7 @@ void DebuggerApp::OnCommandEntered(const std::string& line)
 	}
 	catch (const std::exception& e)
 	{
+		InCommandlet = false;
 		EndPrompt();
 		if (!ExitRequested)
 			WriteOutput(ColorEscape(91) + e.what() + ResetEscape() + NewLine());

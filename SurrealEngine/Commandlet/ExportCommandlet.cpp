@@ -187,6 +187,12 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::stri
 
 /////////////////////////////////////////////////////////////////////////////
 
+const std::vector<std::string> formats =
+{
+	"bmp",
+	"png"
+};
+
 void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::string>& packages)
 {
 	InitExport(packages);
@@ -212,6 +218,32 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 		console->WriteOutput("No textures found" + NewLine());
 		return;
 	}
+	
+	// TODO: ini setting which specifies choice automatically?
+	// Ask for texture format
+	console->WriteOutput("Input desired texture format:" + console->NewLine());
+	for (const std::string& format : formats)
+	{
+		console->WriteOutput("\t" + format + console->NewLine());
+	}
+	std::string desiredExt = console->GetInput();
+	std::transform(desiredExt.begin(), desiredExt.end(), desiredExt.begin(), [](unsigned char c) { return tolower(c); });
+
+	bool validExt = false;
+	for (const std::string& format : formats)
+	{
+		if (format.compare(desiredExt))
+		{
+			validExt = true;
+			break;
+		}
+	}
+
+	if (!validExt)
+	{
+		console->WriteOutput("Unknown format " + desiredExt + console->NewLine());
+		return;
+	}
 
 	for (PackageNamePair& pkgobject : packageObjects)
 	{
@@ -234,7 +266,7 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 			if (tex->IsA("FractalTexture"))
 				ext.assign("fx");
 			else
-				ext.assign("bmp");
+				ext.assign(desiredExt);
 
 			MemoryStreamWriter stream = Exporter::ExportTexture(tex, ext);
 			if (stream.Size() > 0)

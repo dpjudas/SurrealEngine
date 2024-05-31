@@ -19,4 +19,8 @@ private:
 	static MemoryStreamWriter ExportIceTexture(UIceTexture* tex);
 
 	static MemoryStreamWriter ExportBmpIndexed(UTexture* tex);
+	static MemoryStreamWriter ExportPng(UTexture* tex);
+
+	static MemoryStreamWriter GetImage(UTexture* tex);
+	static MemoryStreamWriter GetImageP8(UTexture* tex);
 };

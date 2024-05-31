@@ -13,6 +13,7 @@ public:
 	int Main(std::vector<std::string> args);
 
 	void WriteOutput(const std::string& text);
+	std::string GetInput();
 
 	void Exit() { ExitRequested = true; }
 	void RunGame();
@@ -40,7 +41,7 @@ private:
 	void PrintLog(const LogMessageLine& line);
 	static std::string ToFixed(float time);
 
-	void OnCommandEntered(const std::string& line);
+	void OnCommandEntered();
 	void WritePrompt();
 	void EndPrompt();
 
@@ -52,10 +53,12 @@ private:
 	std::vector<std::unique_ptr<Commandlet>> Commandlets;
 
 	std::string promptline;
+	std::string cmdline;
 	bool ExitRequested = false;
 
 	bool PromptLineActive = false;
 	bool GameRunning = false;
+	bool InCommandlet = false;
 
 	friend class Commandlet;
 };

@@ -1,3 +1,4 @@
+#include "miniz/miniz.h"
 #include "Editor/Export.h"
 #include "UObject/UProperty.h"
 #include "UObject/UTextBuffer.h"
@@ -89,16 +90,10 @@ MemoryStreamWriter Exporter::ExportTexture(UTexture* tex, const std::string& ext
 	{
 		if (ext.compare("bmp") == 0)
 			return ExportBmpIndexed(tex);
-
-		Exception::Throw("Unknown texture export format: " + ext);
 	}
 
-	std::vector<Color> pixels;
-	switch (tex->ActualFormat)
-	{
-	default:
-		Exception::Throw("Unsupported texture format (" + std::to_string(static_cast<int>(tex->ActualFormat)) + ")");
-	}
+	if (ext.compare("png") == 0)
+		return ExportPng(tex);
 	
 	Exception::Throw("Unknown texture export format: " + ext);
 }
@@ -359,6 +354,50 @@ MemoryStreamWriter Exporter::ExportBmpIndexed(UTexture* tex)
 	hdr.fileSize = static_cast<uint32_t>(data.Tell());
 	data.Seek(0, SEEK_SET);
 	data << hdr;
+
+	return data;
+}
+
+MemoryStreamWriter Exporter::ExportPng(UTexture* tex)
+{
+	MemoryStreamWriter image = GetImage(tex);
+	MemoryStreamWriter data;
+
+	size_t pLen = 0;
+	void* png = tdefl_write_image_to_png_file_in_memory_ex(image.Data(), tex->USize(), tex->VSize(), 4, &pLen, MZ_BEST_COMPRESSION, 0);
+
+	data.Write(png, pLen);
+	return data;
+}
+
+MemoryStreamWriter Exporter::GetImage(UTexture* tex)
+{
+	switch (tex->ActualFormat)
+	{
+	case TextureFormat::P8:
+		return GetImageP8(tex);
+	default:
+		Exception::Throw(tex->Name.ToString() + "Unimplemented for texture type" + std::to_string(static_cast<int>(tex->ActualFormat)));
+	}
+}
+
+MemoryStreamWriter Exporter::GetImageP8(UTexture* tex)
+{
+	MemoryStreamWriter data;
+	UPalette* palette = tex->Palette();
+	uint8_t* pixels = tex->Mipmaps[0].Data.data();
+
+	int usize = tex->USize();
+	int vsize = tex->VSize();
+
+	for (int y = 0; y < vsize; y++)
+	{
+		for (int x = 0; x < usize; x++)
+		{
+			int color = pixels[(y * usize) + x];
+			data << palette->Colors[color];
+		}
+	}
 
 	return data;
 }
