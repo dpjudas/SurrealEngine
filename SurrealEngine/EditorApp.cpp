@@ -7,9 +7,15 @@
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/WidgetResourceData.h"
 #include <zwidget/core/theme.h>
+#include <zwidget/window/window.h>
 
 int EditorApp::main(std::vector<std::string> args)
 {
+	auto backend = DisplayBackend::TryCreateWin32();
+	if (!backend) backend = DisplayBackend::TryCreateWayland();
+	if (!backend) backend = DisplayBackend::TryCreateX11();
+	if (!backend) backend = DisplayBackend::TryCreateSDL2();
+	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>());
 

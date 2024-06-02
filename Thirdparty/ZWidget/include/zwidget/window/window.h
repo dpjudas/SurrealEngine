@@ -172,3 +172,27 @@ public:
 
 	virtual void* GetNativeHandle() = 0;
 };
+
+class DisplayBackend
+{
+public:
+	static DisplayBackend* Get();
+	static void Set(std::unique_ptr<DisplayBackend> instance);
+
+	static std::unique_ptr<DisplayBackend> TryCreateWin32();
+	static std::unique_ptr<DisplayBackend> TryCreateSDL2();
+	static std::unique_ptr<DisplayBackend> TryCreateX11();
+	static std::unique_ptr<DisplayBackend> TryCreateWayland();
+
+	virtual ~DisplayBackend() = default;
+
+	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner) = 0;
+	virtual void ProcessEvents() = 0;
+	virtual void RunLoop() = 0;
+	virtual void ExitLoop() = 0;
+
+	virtual void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer) = 0;
+	virtual void StopTimer(void* timerID) = 0;
+
+	virtual Size GetScreenSize() = 0;
+};

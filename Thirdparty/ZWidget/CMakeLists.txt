@@ -84,6 +84,11 @@ set(ZWIDGET_SDL2_SOURCES
 	src/window/sdl2/sdl2displaywindow.h
 )
 
+set(ZWIDGET_X11_SOURCES
+	src/window/x11/x11displaywindow.cpp
+	src/window/x11/x11displaywindow.h
+)
+
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
 source_group("src\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/.+")
 source_group("src\\core\\picopng" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/picopng/.+")
@@ -123,6 +128,7 @@ source_group("include\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_S
 source_group("include\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/.+")
 source_group("include\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/win32/.+")
 source_group("include\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/sdl2/.+")
+source_group("include\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/x11/.+")
 source_group("include\\systemdialogs" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/systemdialogs/.+")
 
 include_directories(include include/zwidget src)
@@ -136,9 +142,9 @@ elseif(APPLE)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
 else()
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
-	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
-	add_definitions(-DUNIX -D_UNIX)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES} ${ZWIDGET_X11_SOURCES})
+	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl -lX11)
+	add_definitions(-DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
 	add_link_options(-pthread)
 endif()
 
