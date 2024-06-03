@@ -85,7 +85,7 @@ private:
 	void CreateBackbuffer(int width, int height);
 	void DestroyBackbuffer();
 
-	static InputKey GetInputKey(XEvent* event);
+	InputKey GetInputKey(XEvent* event);
 	Point GetMousePos(XEvent* event);
 
 	static bool WaitForEvents(int timeout);
@@ -103,11 +103,15 @@ private:
 	int depth = 0;
 	Visual* visual = nullptr;
 	Colormap colormap = {};
+	XIC xic = nullptr;
 	StandardCursor cursor = {};
-	bool isCursorEnabled = false;
+	bool isCursorEnabled = true;
 	bool isMapped = false;
 	bool isMinimized = false;
 	double dpiScale = 1.0;
+
+	Pixmap cursor_bitmap = None;
+	Cursor hidden_cursor = None;
 
 	std::map<InputKey, bool> keyState;
 

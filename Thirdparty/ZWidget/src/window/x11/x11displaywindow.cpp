@@ -25,17 +25,34 @@ public:
 		// Make auto-repeat keys detectable
 		Bool supports_detectable_autorepeat = {};
 		XkbSetDetectableAutoRepeat(display, True, &supports_detectable_autorepeat);
+
+		// Loads the XMODIFIERS environment variable to see what IME to use
+		XSetLocaleModifiers("");
+		xim = XOpenIM(display, 0, 0, 0);
+		if (!xim)
+		{
+			// fallback to internal input method
+			XSetLocaleModifiers("@im=none");
+			xim = XOpenIM(display, 0, 0, 0);
+		}
 	}
 
 	~X11Connection()
 	{
+		for (auto& it : standardCursors)
+			XFreeCursor(display, it.second);
+		if (xim)
+			XCloseIM(xim);
 		XCloseDisplay(display);
 	}
 
 	Display* display = nullptr;
 	std::map<std::string, Atom> atoms;
 	std::map<Window, X11DisplayWindow*> windows;
+	std::map<StandardCursor, Cursor> standardCursors;
 	bool ExitRunLoop = false;
+
+	XIM xim = nullptr;
 };
 
 static X11Connection* GetX11Connection()
@@ -139,10 +156,28 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 			XChangeProperty(display, window, GetAtom("_NET_WM_WINDOW_TYPE"), XA_ATOM, 32, PropModeReplace, (unsigned char *)&type, 1);
 		}
 	}
+
+	// Create input context
+	if (GetX11Connection()->xim)
+	{
+		xic = XCreateIC(
+			GetX11Connection()->xim,
+			XNInputStyle,
+			XIMPreeditNothing | XIMStatusNothing,
+			XNClientWindow, window,
+			XNFocusWindow, window,
+			nullptr);
+	}
 }
 
 X11DisplayWindow::~X11DisplayWindow()
 {
+	if (hidden_cursor != None)
+	{
+		XFreeCursor(display, hidden_cursor);
+		XFreePixmap(display, cursor_bitmap);
+	}
+
 	DestroyBackbuffer();
 	XDestroyWindow(display, window);
 	GetX11Connection()->windows.erase(GetX11Connection()->windows.find(window));
@@ -281,38 +316,41 @@ void X11DisplayWindow::UpdateCursor()
 {
 	if (isCursorEnabled)
 	{
-		unsigned int index = XC_left_ptr;
-		switch (cursor)
+		Cursor& x11cursor = GetX11Connection()->standardCursors[cursor];
+		if (x11cursor == None)
 		{
-		case StandardCursor::arrow: index = XC_left_ptr; break;
-		case StandardCursor::appstarting: index = XC_watch; break;
-		case StandardCursor::cross: index = XC_cross; break;
-		case StandardCursor::hand: index = XC_hand2; break;
-		case StandardCursor::ibeam: index = XC_xterm; break;
-		case StandardCursor::size_all: index = XC_fleur; break;
-		case StandardCursor::size_ns: index = XC_double_arrow; break;
-		case StandardCursor::size_we: index = XC_sb_h_double_arrow; break;
-		case StandardCursor::uparrow: index = XC_sb_up_arrow; break;
-		case StandardCursor::wait: index = XC_watch; break;
-		case StandardCursor::no: index = XC_X_cursor; break;
-		case StandardCursor::size_nesw: break; // To do: need to map this
-		case StandardCursor::size_nwse: break;
-		default: break;
+			unsigned int index = XC_left_ptr;
+			switch (cursor)
+			{
+			default:
+			case StandardCursor::arrow: index = XC_left_ptr; break;
+			case StandardCursor::appstarting: index = XC_watch; break;
+			case StandardCursor::cross: index = XC_cross; break;
+			case StandardCursor::hand: index = XC_hand2; break;
+			case StandardCursor::ibeam: index = XC_xterm; break;
+			case StandardCursor::size_all: index = XC_fleur; break;
+			case StandardCursor::size_ns: index = XC_double_arrow; break;
+			case StandardCursor::size_we: index = XC_sb_h_double_arrow; break;
+			case StandardCursor::uparrow: index = XC_sb_up_arrow; break;
+			case StandardCursor::wait: index = XC_watch; break;
+			case StandardCursor::no: index = XC_X_cursor; break;
+			case StandardCursor::size_nesw: break; // To do: need to map this
+			case StandardCursor::size_nwse: break;
+			}
+			x11cursor = XCreateFontCursor(display, index);
 		}
-
-		Cursor x11cursor =  XCreateFontCursor(display, index);
 		XDefineCursor(display, window, x11cursor);
-		XFreeCursor(display, x11cursor);
 	}
 	else
 	{
-		char data[64] = {};
-		XColor black_color = {};
-		Pixmap cursor_bitmap = XCreateBitmapFromData(display, window, data, 8, 8);
-		Cursor hidden_cursor = XCreatePixmapCursor(display, cursor_bitmap, cursor_bitmap, &black_color, &black_color, 0, 0);
+		if (hidden_cursor == None)
+		{
+			char data[64] = {};
+			XColor black_color = {};
+			cursor_bitmap = XCreateBitmapFromData(display, window, data, 8, 8);
+			hidden_cursor = XCreatePixmapCursor(display, cursor_bitmap, cursor_bitmap, &black_color, &black_color, 0, 0);
+		}
 		XDefineCursor(display, window, hidden_cursor);
-		XFreeCursor(display, hidden_cursor);
-		XFreePixmap(display, cursor_bitmap);
 	}
 }
 
@@ -677,6 +715,9 @@ void X11DisplayWindow::OnExpose(XEvent* event)
 
 void X11DisplayWindow::OnFocusIn(XEvent* event)
 {
+	if (xic)
+		XSetICFocus(xic);
+
 	windowHost->OnWindowActivated();
 }
 
@@ -694,7 +735,128 @@ InputKey X11DisplayWindow::GetInputKey(XEvent* event)
 {
 	if (event->type == KeyPress || event->type == KeyRelease)
 	{
-
+		KeySym keysymbol = XkbKeycodeToKeysym(display, event->xkey.keycode, 0, 0);
+		switch (keysymbol)
+		{
+		case XK_BackSpace: return InputKey::Backspace;
+		case XK_Tab: return InputKey::Tab;
+		case XK_Return: return InputKey::Enter;
+		// To do: should we merge them or not? Windows merges them
+		case XK_Shift_L: return InputKey::Shift; // InputKey::LShift
+		case XK_Shift_R: return InputKey::Shift; // InputKey::RShift
+		case XK_Control_L: return InputKey::Ctrl; // InputKey::LControl
+		case XK_Control_R: return InputKey::Ctrl; // InputKey::RControl
+		case XK_Meta_L: return InputKey::Alt;
+		case XK_Meta_R: return InputKey::Alt;
+		case XK_Pause: return InputKey::Pause;
+		case XK_Caps_Lock: return InputKey::CapsLock;
+		case XK_Escape: return InputKey::Escape;
+		case XK_space: return InputKey::Space;
+		case XK_Page_Up: return InputKey::PageUp;
+		case XK_Page_Down: return InputKey::PageDown;
+		case XK_End: return InputKey::End;
+		case XK_Home: return InputKey::Home;
+		case XK_Left: return InputKey::Left;
+		case XK_Up: return InputKey::Up;
+		case XK_Right: return InputKey::Right;
+		case XK_Down: return InputKey::Select;
+		case XK_Print: return InputKey::Print;
+		case XK_Execute: return InputKey::Execute;
+		// case XK_Print_Screen: return InputKey::PrintScrn;
+		case XK_Insert: return InputKey::Insert;
+		case XK_Delete: return InputKey::Delete;
+		case XK_Help: return InputKey::Help;
+		case XK_0: return InputKey::_0;
+		case XK_1: return InputKey::_1;
+		case XK_2: return InputKey::_2;
+		case XK_3: return InputKey::_3;
+		case XK_4: return InputKey::_4;
+		case XK_5: return InputKey::_5;
+		case XK_6: return InputKey::_6;
+		case XK_7: return InputKey::_7;
+		case XK_8: return InputKey::_8;
+		case XK_9: return InputKey::_9;
+		case XK_A: return InputKey::A;
+		case XK_B: return InputKey::B;
+		case XK_C: return InputKey::C;
+		case XK_D: return InputKey::D;
+		case XK_E: return InputKey::E;
+		case XK_F: return InputKey::F;
+		case XK_G: return InputKey::G;
+		case XK_H: return InputKey::H;
+		case XK_I: return InputKey::I;
+		case XK_J: return InputKey::J;
+		case XK_K: return InputKey::K;
+		case XK_L: return InputKey::L;
+		case XK_M: return InputKey::M;
+		case XK_N: return InputKey::N;
+		case XK_O: return InputKey::O;
+		case XK_P: return InputKey::P;
+		case XK_Q: return InputKey::Q;
+		case XK_R: return InputKey::R;
+		case XK_S: return InputKey::S;
+		case XK_T: return InputKey::T;
+		case XK_U: return InputKey::U;
+		case XK_V: return InputKey::V;
+		case XK_W: return InputKey::W;
+		case XK_X: return InputKey::X;
+		case XK_Y: return InputKey::Y;
+		case XK_Z: return InputKey::Z;
+		case XK_KP_0: return InputKey::NumPad0;
+		case XK_KP_1: return InputKey::NumPad1;
+		case XK_KP_2: return InputKey::NumPad2;
+		case XK_KP_3: return InputKey::NumPad3;
+		case XK_KP_4: return InputKey::NumPad4;
+		case XK_KP_5: return InputKey::NumPad5;
+		case XK_KP_6: return InputKey::NumPad6;
+		case XK_KP_7: return InputKey::NumPad7;
+		case XK_KP_8: return InputKey::NumPad8;
+		case XK_KP_9: return InputKey::NumPad9;
+		case XK_KP_Multiply: return InputKey::GreyStar;
+		case XK_KP_Add: return InputKey::GreyPlus;
+		case XK_KP_Separator: return InputKey::Separator;
+		case XK_KP_Subtract: return InputKey::GreyMinus;
+		case XK_KP_Decimal: return InputKey::NumPadPeriod;
+		case XK_KP_Divide: return InputKey::GreySlash;
+		case XK_F1: return InputKey::F1;
+		case XK_F2: return InputKey::F2;
+		case XK_F3: return InputKey::F3;
+		case XK_F4: return InputKey::F4;
+		case XK_F5: return InputKey::F5;
+		case XK_F6: return InputKey::F6;
+		case XK_F7: return InputKey::F7;
+		case XK_F8: return InputKey::F8;
+		case XK_F9: return InputKey::F9;
+		case XK_F10: return InputKey::F10;
+		case XK_F11: return InputKey::F11;
+		case XK_F12: return InputKey::F12;
+		case XK_F13: return InputKey::F13;
+		case XK_F14: return InputKey::F14;
+		case XK_F15: return InputKey::F15;
+		case XK_F16: return InputKey::F16;
+		case XK_F17: return InputKey::F17;
+		case XK_F18: return InputKey::F18;
+		case XK_F19: return InputKey::F19;
+		case XK_F20: return InputKey::F20;
+		case XK_F21: return InputKey::F21;
+		case XK_F22: return InputKey::F22;
+		case XK_F23: return InputKey::F23;
+		case XK_F24: return InputKey::F24;
+		case XK_Num_Lock: return InputKey::NumLock;
+		case XK_Scroll_Lock: return InputKey::ScrollLock;
+		case XK_semicolon: return InputKey::Semicolon;
+		case XK_equal: return InputKey::Equals;
+		case XK_comma: return InputKey::Comma;
+		case XK_minus: return InputKey::Minus;
+		case XK_period: return InputKey::Period;
+		case XK_slash: return InputKey::Slash;
+		case XK_dead_tilde: return InputKey::Tilde;
+		case XK_bracketleft: return InputKey::LeftBracket;
+		case XK_backslash: return InputKey::Backslash;
+		case XK_bracketright: return InputKey::RightBracket;
+		case XK_apostrophe: return InputKey::SingleQuote;
+		default: return (InputKey)(((uint32_t)keysymbol) << 8);
+		}
 	}
 	else if (event->type == ButtonPress || event->type == ButtonRelease)
 	{
@@ -723,9 +885,46 @@ Point X11DisplayWindow::GetMousePos(XEvent* event)
 
 void X11DisplayWindow::OnKeyPress(XEvent* event)
 {
+	// If we ever want to track keypress repeat:
+	// char keyboard_state[32];
+	// XQueryKeymap(display, keyboard_state);
+	// unsigned int keycode = event->xkey.keycode;
+	// bool isrepeat = event->type == KeyPress && keyboard_state[keycode / 8] & (1 << keycode % 8);
+
 	InputKey key = GetInputKey(event);
 	keyState[key] = true;
 	windowHost->OnWindowKeyDown(key);
+
+	std::string text;
+	if (xic) // utf-8 text input
+	{
+		Status status = {};
+		KeySym keysym = NoSymbol;
+		char buffer[32] = {};
+		Xutf8LookupString(xic, &event->xkey, buffer, sizeof(buffer) - 1, &keysym, &status);
+		if (status == XLookupChars || status == XLookupBoth)
+			text = buffer;
+	}
+	else // latin-1 input fallback
+	{
+		const int buff_size = 16;
+		char buff[buff_size];
+		int result = XLookupString(&event->xkey, buff, buff_size - 1, nullptr, nullptr);
+		if (result < 0) result = 0;
+		if (result > (buff_size - 1)) result = buff_size - 1;
+		buff[result] = 0;
+		text = std::string(buff, result);
+
+		// Lazy way to convert to utf-8
+		for (char& c : text)
+		{
+			if (c < 0)
+				c = '?';
+		}
+	}
+
+	if (!text.empty())
+		windowHost->OnWindowKeyChar(std::move(text));
 }
 
 void X11DisplayWindow::OnKeyRelease(XEvent* event)
