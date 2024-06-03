@@ -69,7 +69,7 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 	int disp_height_px = XDisplayHeight(display, screen);
 	int disp_width_mm = XDisplayWidthMM(display, screen);
 	double ppi = (disp_width_mm < 24) ? 96.0 : (25.4 * static_cast<double>(disp_width_px) / static_cast<double>(disp_width_mm));
-	dpiScale = ppi / 96.0;
+	dpiScale = std::round(ppi / 96.0 * 4.0) / 4.0; // 100%, 125%, 150%, 175%, 200%, etc.
 
 	XSetWindowAttributes attributes = {};
 	attributes.backing_store = Always;
