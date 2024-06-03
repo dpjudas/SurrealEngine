@@ -73,6 +73,7 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 
 	XSetWindowAttributes attributes = {};
 	attributes.backing_store = Always;
+	attributes.override_redirect = popupWindow ? True : False;
 	attributes.save_under = popupWindow ? True : False;
 	attributes.colormap = colormap;
 	attributes.event_mask =
@@ -80,7 +81,7 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 		EnterWindowMask | LeaveWindowMask | PointerMotionMask | KeymapStateMask |
 		ExposureMask | StructureNotifyMask | FocusChangeMask | PropertyChangeMask;
 		
-	unsigned long mask = CWBackingStore | CWSaveUnder | CWEventMask;
+	unsigned long mask = CWBackingStore | CWSaveUnder | CWEventMask | CWOverrideRedirect;
 
 	window = XCreateWindow(display, XRootWindow(display, screen), 0, 0, 100, 100, 0, depth, InputOutput, visual, mask, &attributes);
 	GetX11Connection()->windows[window] = this;
@@ -124,11 +125,11 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 		Atom type = None;
 		if (popupWindow)
 		{
-			type = GetAtom("_NET_WM_WINDOW_TYPE_POPUP_MENU");
+			type = GetAtom("_NET_WM_WINDOW_TYPE_DROPDOWN_MENU");
+			if (type == None)
+				type =  GetAtom("_NET_WM_WINDOW_TYPE_POPUP_MENU");
 			if (type == None)
 				type = GetAtom("_NET_WM_WINDOW_TYPE_COMBO");
-			if (type == None)
-				type =  GetAtom("_NET_WM_WINDOW_TYPE_DROPDOWN_MENU");
 		}
 		if (type == None)
 			type = GetAtom("_NET_WM_WINDOW_TYPE_NORMAL");
@@ -681,6 +682,7 @@ void X11DisplayWindow::OnFocusIn(XEvent* event)
 
 void X11DisplayWindow::OnFocusOut(XEvent* event)
 {
+	windowHost->OnWindowDeactivated();
 }
 
 void X11DisplayWindow::OnPropertyNotify(XEvent* event)
