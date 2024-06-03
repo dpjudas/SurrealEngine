@@ -276,11 +276,161 @@ std::unique_ptr<OpenFileDialog> OpenFileDialog::Create(Widget* owner)
 	return std::make_unique<OpenFileDialogImpl>(owner);
 }
 
-#else
+#elif defined(__APPLE__)
+
+class OpenFileDialogImpl : public OpenFileDialog
+{
+public:
+	OpenFileDialogImpl(Widget* owner)
+	{
+	}
+
+	std::string Filename() const override
+	{
+		return {};
+	}
+
+	std::vector<std::string> Filenames() const override
+	{
+		return {};
+	}
+
+	void SetMultiSelect(bool multiselect) override
+	{
+	}
+
+	void SetFilename(const std::string &filename) override
+	{
+	}
+
+	void SetDefaultExtension(const std::string& extension) override
+	{
+	}
+
+	void AddFilter(const std::string &filter_description, const std::string &filter_extension) override
+	{
+	}
+
+	void ClearFilters() override
+	{
+	}
+
+	void SetFilterIndex(int filter_index) override
+	{
+	}
+
+	void SetInitialDirectory(const std::string &path) override
+	{
+	}
+
+	void SetTitle(const std::string &title) override
+	{
+	}
+
+	bool Show() override
+	{
+		return false;
+	}
+};
 
 std::unique_ptr<OpenFileDialog> OpenFileDialog::Create(Widget* owner)
 {
-	return {};
+	return std::make_unique<OpenFileDialogImpl>(owner);
+}
+
+#else
+
+class OpenFileDialogImpl : public OpenFileDialog
+{
+public:
+	OpenFileDialogImpl(Widget* owner) : owner(owner)
+	{
+	}
+
+	std::string Filename() const override
+	{
+		return outputFilenames.empty() ? std::string() : outputFilenames.front();
+	}
+
+	std::vector<std::string> Filenames() const override
+	{
+		return outputFilenames;
+	}
+
+	void SetMultiSelect(bool multiselect) override
+	{
+		this->multiSelect = multiSelect;
+	}
+
+	void SetFilename(const std::string &filename) override
+	{
+		inputFilename = filename;
+	}
+
+	void SetDefaultExtension(const std::string& extension) override
+	{
+		defaultExt = extension;
+	}
+
+	void AddFilter(const std::string &filter_description, const std::string &filter_extension) override
+	{
+		filters.push_back({ filter_description, filter_extension });
+	}
+
+	void ClearFilters() override
+	{
+		filters.clear();
+	}
+
+	void SetFilterIndex(int filter_index) override
+	{
+		this->filter_index = filter_index;
+	}
+
+	void SetInitialDirectory(const std::string &path) override
+	{
+		initialDirectory = path;
+	}
+
+	void SetTitle(const std::string &title) override
+	{
+		this->title = title;
+	}
+
+	bool Show() override
+	{
+		// To do: do a bunch of d-bus stuff. See the following sources:
+		// https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.FileChooser.html
+		// https://github.com/makercrew/dbus-sample
+		//
+		// To do: create a way to detect if the window is x11 vs wayland
+		unsigned long x11windowhandle = 0;
+		if (owner)
+			x11windowhandle = reinterpret_cast<unsigned long>(owner->GetNativeHandle());
+		
+		return false;
+	}
+
+	Widget* owner = nullptr;
+	std::string title;
+	std::string initialDirectory;
+	std::string inputFilename;
+	std::string defaultExt;
+	std::vector<std::string> outputFilenames;
+	bool multiSelect = false;
+
+	struct Filter
+	{
+		std::string description;
+		std::string extension;
+	};
+	std::vector<Filter> filters;
+	int filter_index = 0;
+};
+
+std::unique_ptr<OpenFileDialog> OpenFileDialog::Create(Widget* owner)
+{
+	return std::make_unique<OpenFileDialogImpl>(owner);
 }
 
 #endif
