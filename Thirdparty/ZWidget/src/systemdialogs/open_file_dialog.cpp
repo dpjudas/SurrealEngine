@@ -340,6 +340,11 @@ std::unique_ptr<OpenFileDialog> OpenFileDialog::Create(Widget* owner)
 
 #else
 
+#ifdef USE_DBUS
+#include <dbus/dbus.h>
+#include <iostream>
+#endif
+
 class OpenFileDialogImpl : public OpenFileDialog
 {
 public:
@@ -397,19 +402,71 @@ public:
 		this->title = title;
 	}
 
+#ifdef USE_DBUS
 	bool Show() override
 	{
-		// To do: do a bunch of d-bus stuff. See the following sources:
+		// To do: convert the code below to send a request to org.freedesktop.portal.FileChooser instead:
+		//
 		// https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.FileChooser.html
-		// https://github.com/makercrew/dbus-sample
 		//
 		// To do: create a way to detect if the window is x11 vs wayland
 		unsigned long x11windowhandle = 0;
 		if (owner)
 			x11windowhandle = reinterpret_cast<unsigned long>(owner->GetNativeHandle());
+
+		DBusError error = {};
+		dbus_error_init(&error);
+		
+		DBusConnection* connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
+		if (!connection)
+		{
+			dbus_error_free(&error);
+			return false;
+		}
+
+		DBusMessage* request = dbus_message_new_method_call("org.freedesktop.DBus", "/", "org.freedesktop.DBus.Introspectable", "Introspect");
+		if (!request)
+		{
+			dbus_connection_unref(connection);
+			dbus_error_free(&error);
+			return false;
+		}
+
+		DBusMessage* response = dbus_connection_send_with_reply_and_block(connection, request, DBUS_TIMEOUT_USE_DEFAULT, &error);
+		if (!response)
+		{
+			dbus_message_unref(request);
+			dbus_connection_unref(connection);
+			dbus_error_free(&error);
+			return false;
+		}
+
+		const char* result = nullptr;
+		if (!dbus_message_get_args(response, &error, DBUS_TYPE_STRING, &result, DBUS_TYPE_INVALID))
+		{
+			dbus_message_unref(response);
+			dbus_message_unref(request);
+			dbus_connection_unref(connection);
+			dbus_error_free(&error);
+			return false;
+		}
+
+		std::cout << "Our name on the bus is: " << dbus_bus_get_unique_name(connection) << std::endl;
+		std::cout << "Response result was: " << result << std::endl;
+
+		dbus_message_unref(response);
+		dbus_message_unref(request);
+		dbus_connection_unref(connection);
+		dbus_error_free(&error);
 		
 		return false;
 	}
+#else
+	bool Show() override
+	{
+		return false;
+	}
+#endif
 
 	Widget* owner = nullptr;
 	std::string title;

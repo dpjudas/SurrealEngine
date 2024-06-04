@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.11)
 project(zwidget)
 
+if (UNIX AND NOT APPLE)
+	include(FindPkgConfig)
+	pkg_check_modules(DBUS REQUIRED dbus-1)
+#	pkg_check_modules(WAYLAND REQUIRED
+#		wayland-client>=1.20
+#		wayland-cursor>=1.20
+#		xkbcommon>=0.5.0
+#	)
+endif()
+
 set(ZWIDGET_SOURCES
 	src/core/canvas.cpp
 	src/core/font.cpp
@@ -89,6 +99,15 @@ set(ZWIDGET_X11_SOURCES
 	src/window/x11/x11displaywindow.h
 )
 
+set(ZWIDGET_WAYLAND_SOURCES
+	src/window/wayland/waylanddisplaywindow.cpp
+	src/window/wayland/waylanddisplaywindow.h
+	src/window/wayland/xdg-output-unstable.c
+	src/window/wayland/xdg-output-unstable.h
+	src/window/wayland/xdg-shell.c
+	src/window/wayland/xdg-shell.h
+)
+
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
 source_group("src\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/.+")
 source_group("src\\core\\picopng" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/picopng/.+")
@@ -108,6 +127,10 @@ source_group("src\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_S
 source_group("src\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/listview/.+")
 source_group("src\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/tabwidget/.+")
 source_group("src\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/.+")
+source_group("src\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/win32/.+")
+source_group("src\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/sdl2/.+")
+source_group("src\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/x11/.+")
+source_group("src\\window\\wayland" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/wayland/.+")
 source_group("src\\systemdialogs" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/systemdialogs/.+")
 source_group("include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/.+")
 source_group("include\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/core/.+")
@@ -126,37 +149,60 @@ source_group("include\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRE
 source_group("include\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/listview/.+")
 source_group("include\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/tabwidget/.+")
 source_group("include\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/.+")
-source_group("include\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/win32/.+")
-source_group("include\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/sdl2/.+")
-source_group("include\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/x11/.+")
 source_group("include\\systemdialogs" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/systemdialogs/.+")
 
-include_directories(include include/zwidget src)
+# Include directory to external projects using zwidget
+include_directories(include)
+
+# Internal include dirs for building zwidget
+set(ZWIDGET_INCLUDE_DIRS include/zwidget src)
+
+set(ZWIDGET_COMPILE_OPTIONS ${CMAKE_CXX_FLAGS})
 
 if(WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WIN32_SOURCES})
-	add_definitions(-DUNICODE -D_UNICODE)
+	set(ZWIDGET_DEFINES -DUNICODE -D_UNICODE)
+	set(ZWIDGET_LINK_OPTIONS)
+	if(MSVC)
+		# Use all cores for compilation
+		set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /MP)
+
+		# Don't slow down std containers in debug builds
+		set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /D_ITERATOR_DEBUG_LEVEL=0)
+
+		# Ignore warnings
+		#set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /wd4244 /wd4267 /wd4005 /wd4018)
+
+		# Ignore warning about legacy CRT functions
+		#set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_CRT_SECURE_NO_WARNINGS)
+	endif()
 elseif(APPLE)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_COCOA_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
-	add_definitions(-DUNIX -D_UNIX)
-	add_link_options(-pthread)
+	set(ZWIDGET_DEFINES -DUNIX -D_UNIX)
+	set(ZWIDGET_LINK_OPTIONS -pthread)
 else()
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES} ${ZWIDGET_X11_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl -lX11)
-	add_definitions(-DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
-	add_link_options(-pthread)
-endif()
-
-if(MSVC)
-	# Use all cores for compilation
-	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
-
-	# Ignore warnings in third party code
-	#set_source_files_properties(${ZWIDGET_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
+	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
+	set(ZWIDGET_LINK_OPTIONS -pthread)
+	if (DBUS_FOUND)
+		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
+		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${DBUS_LDFLAGS})
+		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_DBUS)
+	endif()
+	if (WAYLAND_FOUND)
+		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${WAYLAND_INCLUDE_DIRS})
+		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLAND_LDFLAGS})
+		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_WAYLAND)
+	endif()
 endif()
 
 add_library(zwidget STATIC ${ZWIDGET_SOURCES} ${ZWIDGET_INCLUDES})
+target_compile_options(zwidget PRIVATE ${ZWIDGET_COMPILE_OPTIONS})
+target_compile_definitions(zwidget PRIVATE ${ZWIDGET_DEFINES})
+target_include_directories(zwidget PRIVATE ${ZWIDGET_INCLUDE_DIRS})
+target_link_options(zwidget PRIVATE ${ZWIDGET_LINK_OPTIONS})
 target_link_libraries(zwidget ${ZWIDGET_LIBS})
 set_target_properties(zwidget PROPERTIES CXX_STANDARD 17)
 
