@@ -157,7 +157,7 @@ include_directories(include)
 # Internal include dirs for building zwidget
 set(ZWIDGET_INCLUDE_DIRS include/zwidget src)
 
-set(ZWIDGET_COMPILE_OPTIONS ${CMAKE_CXX_FLAGS})
+set(ZWIDGET_COMPILE_OPTIONS)
 
 if(WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WIN32_SOURCES})
@@ -167,11 +167,11 @@ if(WIN32)
 		# Use all cores for compilation
 		set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /MP)
 
-		# Don't slow down std containers in debug builds
-		set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /D_ITERATOR_DEBUG_LEVEL=0)
-
-		# Ignore warnings
+		# Ignore specific warnings
 		#set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /wd4244 /wd4267 /wd4005 /wd4018)
+
+		# Don't slow down std containers in debug builds
+		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_ITERATOR_DEBUG_LEVEL=0)
 
 		# Ignore warning about legacy CRT functions
 		#set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_CRT_SECURE_NO_WARNINGS)
@@ -192,6 +192,7 @@ else()
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_DBUS)
 	endif()
 	if (WAYLAND_FOUND)
+		set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WAYLAND_SOURCES})
 		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${WAYLAND_INCLUDE_DIRS})
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLAND_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_WAYLAND)
