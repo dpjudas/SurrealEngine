@@ -127,4 +127,6 @@ private:
 	} backbuffer;
 
 	bool needsUpdate = false;
+
+	friend class X11DisplayBackend;
 };

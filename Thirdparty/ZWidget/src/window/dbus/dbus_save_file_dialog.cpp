@@ -1,5 +1,5 @@
 
-#include "stub_save_file_dialog.h"
+#include "dbus_save_file_dialog.h"
 
 DBusSaveFileDialog::DBusSaveFileDialog(std::string ownerHandle) : ownerHandle(ownerHandle)
 {

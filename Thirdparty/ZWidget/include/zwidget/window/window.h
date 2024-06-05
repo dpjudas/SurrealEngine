@@ -199,7 +199,7 @@ public:
 
 	virtual Size GetScreenSize() = 0;
 
-	virtual std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(Widget* owner);
-	virtual std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(Widget* owner);
-	virtual std::unique_ptr<OpenFolderDialog> CreateOpenFolderDialog(Widget* owner);
+	virtual std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(DisplayWindow* owner);
+	virtual std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(DisplayWindow* owner);
+	virtual std::unique_ptr<OpenFolderDialog> CreateOpenFolderDialog(DisplayWindow* owner);
 };

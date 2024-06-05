@@ -227,4 +227,7 @@ private:
 	Widget& operator=(const Widget&) = delete;
 
 	friend class Timer;
+	friend class OpenFileDialog;
+	friend class OpenFolderDialog;
+	friend class SaveFileDialog;
 };

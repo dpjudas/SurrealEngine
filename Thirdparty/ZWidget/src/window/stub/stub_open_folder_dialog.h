@@ -2,10 +2,12 @@
 
 #include "systemdialogs/open_folder_dialog.h"
 
+class DisplayWindow;
+
 class StubOpenFolderDialog : public OpenFolderDialog
 {
 public:
-	StubOpenFolderDialog(Widget* owner);
+	StubOpenFolderDialog(DisplayWindow* owner);
 
 	bool Show() override;
 	std::string SelectedPath() const override;
@@ -13,7 +15,7 @@ public:
 	void SetTitle(const std::string& newtitle) override;
 
 private:
-	Widget* owner = nullptr;
+	DisplayWindow* owner = nullptr;
 
 	std::string selected_path;
 	std::string initial_directory;

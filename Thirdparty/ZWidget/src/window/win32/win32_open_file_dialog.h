@@ -3,10 +3,12 @@
 #include "systemdialogs/open_file_dialog.h"
 #include "win32_util.h"
 
+class Win32DisplayWindow;
+
 class Win32OpenFileDialog : public OpenFileDialog
 {
 public:
-	Win32OpenFileDialog(Widget* owner);
+	Win32OpenFileDialog(Win32DisplayWindow* owner);
 
 	bool Show() override;
 	std::string Filename() const override;
@@ -23,7 +25,7 @@ public:
 private:
 	void throw_if_failed(HRESULT result, const std::string& error);
 
-	Widget* owner = nullptr;
+	Win32DisplayWindow* owner = nullptr;
 
 	std::string initial_directory;
 	std::string initial_filename;

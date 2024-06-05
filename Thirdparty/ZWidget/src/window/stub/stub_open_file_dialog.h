@@ -2,10 +2,12 @@
 
 #include "systemdialogs/open_file_dialog.h"
 
+class DisplayWindow;
+
 class StubOpenFileDialog : public OpenFileDialog
 {
 public:
-	StubOpenFileDialog(Widget* owner);
+	StubOpenFileDialog(DisplayWindow* owner);
 
 	bool Show() override;
 	std::string Filename() const override;
@@ -20,7 +22,7 @@ public:
 	void SetDefaultExtension(const std::string& extension) override;
 
 private:
-	Widget* owner = nullptr;
+	DisplayWindow* owner = nullptr;
 
 	std::string initial_directory;
 	std::string initial_filename;

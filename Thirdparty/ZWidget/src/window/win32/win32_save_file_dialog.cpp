@@ -1,8 +1,9 @@
 
 #include "win32_save_file_dialog.h"
+#include "win32_display_window.h"
 #include "core/widget.h"
 
-Win32SaveFileDialog::Win32SaveFileDialog(Widget* owner) : owner(owner)
+Win32SaveFileDialog::Win32SaveFileDialog(Win32DisplayWindow* owner) : owner(owner)
 {
 }
 
@@ -84,8 +85,8 @@ bool Win32SaveFileDialog::Show()
 		}
 	}
 
-	if (owner && owner->Window())
-		result = save_dialog->Show((HWND)owner->Window()->GetNativeHandle());
+	if (owner)
+		result = save_dialog->Show(owner->WindowHandle);
 	else
 		result = save_dialog->Show(0);
 

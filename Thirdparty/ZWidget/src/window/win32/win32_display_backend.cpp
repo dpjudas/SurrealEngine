@@ -40,17 +40,17 @@ void Win32DisplayBackend::StopTimer(void* timerID)
 	Win32DisplayWindow::StopTimer(timerID);
 }
 
-std::unique_ptr<OpenFileDialog> Win32DisplayBackend::CreateOpenFileDialog(Widget* owner)
+std::unique_ptr<OpenFileDialog> Win32DisplayBackend::CreateOpenFileDialog(DisplayWindow* owner)
 {
-	return std::make_unique<Win32OpenFileDialog>(owner);
+	return std::make_unique<Win32OpenFileDialog>(static_cast<Win32DisplayWindow*>(owner));
 }
 
-std::unique_ptr<SaveFileDialog> Win32DisplayBackend::CreateSaveFileDialog(Widget* owner)
+std::unique_ptr<SaveFileDialog> Win32DisplayBackend::CreateSaveFileDialog(DisplayWindow* owner)
 {
-	return std::make_unique<Win32SaveFileDialog>(owner);
+	return std::make_unique<Win32SaveFileDialog>(static_cast<Win32DisplayWindow*>(owner));
 }
 
-std::unique_ptr<OpenFolderDialog> Win32DisplayBackend::CreateOpenFolderDialog(Widget* owner)
+std::unique_ptr<OpenFolderDialog> Win32DisplayBackend::CreateOpenFolderDialog(DisplayWindow* owner)
 {
-	return std::make_unique<Win32OpenFolderDialog>(owner);
+	return std::make_unique<Win32OpenFolderDialog>(static_cast<Win32DisplayWindow*>(owner));
 }

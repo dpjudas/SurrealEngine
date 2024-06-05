@@ -16,6 +16,7 @@ public:
 	void ClearFilters() override;
 	void SetFilterIndex(int filter_index) override;
 	void SetInitialDirectory(const std::string &path) override;
+	void SetTitle(const std::string& newtitle) override;
 	bool Show() override;
 
 private:

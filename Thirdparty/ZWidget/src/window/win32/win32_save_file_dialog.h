@@ -6,7 +6,7 @@
 class Win32SaveFileDialog : public SaveFileDialog
 {
 public:
-	Win32SaveFileDialog(Widget* owner);
+	Win32SaveFileDialog(Win32DisplayWindow* owner);
 
 	bool Show() override;
 	std::string Filename() const override;
@@ -21,7 +21,7 @@ public:
 private:
 	void throw_if_failed(HRESULT result, const std::string& error);
 
-	Widget* owner = nullptr;
+	Win32DisplayWindow* owner = nullptr;
 
 	std::string filename;
 	std::string initial_directory;

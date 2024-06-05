@@ -1,9 +1,10 @@
 
 #include "win32_open_file_dialog.h"
+#include "win32_display_window.h"
 #include "core/widget.h"
 #include <stdexcept>
 
-Win32OpenFileDialog::Win32OpenFileDialog(Widget* owner) : owner(owner)
+Win32DisplayWindow::Win32DisplayWindow(Win32DisplayWindow* owner) : owner(owner)
 {
 }
 
@@ -87,8 +88,8 @@ bool Win32OpenFileDialog::Show()
 		}
 	}
 
-	if (owner && owner->Window())
-		result = open_dialog->Show((HWND)owner->Window()->GetNativeHandle());
+	if (owner)
+		result = open_dialog->Show(owner->WindowHandle);
 	else
 		result = open_dialog->Show(0);
 

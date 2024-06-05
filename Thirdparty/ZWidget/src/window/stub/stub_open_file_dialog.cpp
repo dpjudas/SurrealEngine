@@ -1,7 +1,7 @@
 
 #include "stub_open_file_dialog.h"
 
-StubOpenFileDialog::StubOpenFileDialog(Widget* owner) : owner(owner)
+StubOpenFileDialog::StubOpenFileDialog(DisplayWindow* owner) : owner(owner)
 {
 }
 

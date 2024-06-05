@@ -6,7 +6,7 @@
 class Win32OpenFolderDialog : public OpenFolderDialog
 {
 public:
-	Win32OpenFolderDialog(Widget* owner);
+	Win32OpenFolderDialog(Win32DisplayWindow* owner);
 
 	bool Show() override;
 	std::string SelectedPath() const override;
@@ -16,7 +16,7 @@ public:
 private:
 	void throw_if_failed(HRESULT result, const std::string& error);
 
-	Widget* owner = nullptr;
+	Win32DisplayWindow* owner = nullptr;
 
 	std::string selected_path;
 	std::string initial_directory;

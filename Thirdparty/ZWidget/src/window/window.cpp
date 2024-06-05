@@ -60,17 +60,17 @@ void DisplayBackend::Set(std::unique_ptr<DisplayBackend> instance)
 	GetBackendVar() = std::move(instance);
 }
 
-std::unique_ptr<OpenFileDialog> DisplayBackend::CreateOpenFileDialog(Widget* owner)
+std::unique_ptr<OpenFileDialog> DisplayBackend::CreateOpenFileDialog(DisplayWindow* owner)
 {
 	return std::make_unique<StubOpenFileDialog>(owner);
 }
 
-std::unique_ptr<SaveFileDialog> DisplayBackend::CreateSaveFileDialog(Widget* owner)
+std::unique_ptr<SaveFileDialog> DisplayBackend::CreateSaveFileDialog(DisplayWindow* owner)
 {
 	return std::make_unique<StubSaveFileDialog>(owner);
 }
 
-std::unique_ptr<OpenFolderDialog> DisplayBackend::CreateOpenFolderDialog(Widget* owner)
+std::unique_ptr<OpenFolderDialog> DisplayBackend::CreateOpenFolderDialog(DisplayWindow* owner)
 {
 	return std::make_unique<StubOpenFolderDialog>(owner);
 }

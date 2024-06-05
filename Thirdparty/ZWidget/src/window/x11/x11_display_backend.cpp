@@ -3,9 +3,9 @@
 #include "x11_display_window.h"
 
 #ifdef USE_DBUS
-#include "window/dbus/x11_open_file_dialog.h"
-#include "window/dbus/x11_save_file_dialog.h"
-#include "window/dbus/x11_open_folder_dialog.h"
+#include "window/dbus/dbus_open_file_dialog.h"
+#include "window/dbus/dbus_save_file_dialog.h"
+#include "window/dbus/dbus_open_folder_dialog.h"
 #endif
 
 std::unique_ptr<DisplayWindow> X11DisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
@@ -44,27 +44,27 @@ void X11DisplayBackend::StopTimer(void* timerID)
 }
 
 #ifdef USE_DBUS
-std::unique_ptr<OpenFileDialog> X11DisplayBackend::CreateOpenFileDialog(Widget* owner)
+std::unique_ptr<OpenFileDialog> X11DisplayBackend::CreateOpenFileDialog(DisplayWindow* owner)
 {
 	std::string ownerHandle;
 	if (owner)
-		ownerHandle = "x11:" + std::to_string(reinterpret_cast<unsigned long>(owner->GetNativeHandle()));
+		ownerHandle = "x11:" + std::to_string(static_cast<X11DisplayWindow*>(owner)->window);
 	return std::make_unique<DBusOpenFileDialog>(ownerHandle);
 }
 
-std::unique_ptr<SaveFileDialog> X11DisplayBackend::CreateSaveFileDialog(Widget* owner)
+std::unique_ptr<SaveFileDialog> X11DisplayBackend::CreateSaveFileDialog(DisplayWindow* owner)
 {
 	std::string ownerHandle;
 	if (owner)
-		ownerHandle = "x11:" + std::to_string(reinterpret_cast<unsigned long>(owner->GetNativeHandle()));
+		ownerHandle = "x11:" + std::to_string(static_cast<X11DisplayWindow*>(owner)->window);
 	return std::make_unique<DBusSaveFileDialog>(ownerHandle);
 }
 
-std::unique_ptr<OpenFolderDialog> X11DisplayBackend::CreateOpenFolderDialog(Widget* owner)
+std::unique_ptr<OpenFolderDialog> X11DisplayBackend::CreateOpenFolderDialog(DisplayWindow* owner)
 {
 	std::string ownerHandle;
 	if (owner)
-		ownerHandle = "x11:" + std::to_string(reinterpret_cast<unsigned long>(owner->GetNativeHandle()));
+		ownerHandle = "x11:" + std::to_string(static_cast<X11DisplayWindow*>(owner)->window);
 	return std::make_unique<DBusOpenFolderDialog>(ownerHandle);
 }
 #endif
