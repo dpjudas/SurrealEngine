@@ -1,5 +1,5 @@
 
-#include "x11displaywindow.h"
+#include "x11_display_window.h"
 #include <stdexcept>
 #include <vector>
 #include <cmath>

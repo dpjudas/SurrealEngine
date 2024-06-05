@@ -7,13 +7,13 @@
 class Widget;
 
 /// \brief Displays the system folder browsing dialog
-class BrowseFolderDialog
+class OpenFolderDialog
 {
 public:
 	/// \brief Constructs an browse folder dialog.
-	static std::unique_ptr<BrowseFolderDialog> Create(Widget*owner);
+	static std::unique_ptr<OpenFolderDialog> Create(Widget*owner);
 
-	virtual ~BrowseFolderDialog() = default;
+	virtual ~OpenFolderDialog() = default;
 
 	/// \brief Get the full path of the directory selected.
 	virtual std::string SelectedPath() const = 0;

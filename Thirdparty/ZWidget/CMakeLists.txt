@@ -43,7 +43,13 @@ set(ZWIDGET_SOURCES
 	src/widgets/listview/listview.cpp
 	src/widgets/tabwidget/tabwidget.cpp
 	src/window/window.cpp
-	src/systemdialogs/folder_browse_dialog.cpp
+	src/window/stub/stub_open_folder_dialog.cpp
+	src/window/stub/stub_open_folder_dialog.h
+	src/window/stub/stub_open_file_dialog.cpp
+	src/window/stub/stub_open_file_dialog.h
+	src/window/stub/stub_save_file_dialog.cpp
+	src/window/stub/stub_save_file_dialog.h
+	src/systemdialogs/open_folder_dialog.cpp
 	src/systemdialogs/open_file_dialog.cpp
 	src/systemdialogs/save_file_dialog.cpp
 )
@@ -76,27 +82,49 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/widgets/listview/listview.h
 	include/zwidget/widgets/tabwidget/tabwidget.h
 	include/zwidget/window/window.h
-	include/zwidget/systemdialogs/folder_browse_dialog.h
+	include/zwidget/systemdialogs/open_folder_dialog.h
 	include/zwidget/systemdialogs/open_file_dialog.h
 	include/zwidget/systemdialogs/save_file_dialog.h
 )
 
 set(ZWIDGET_WIN32_SOURCES
-	src/window/win32/win32displaywindow.cpp
-	src/window/win32/win32displaywindow.h
+	src/window/win32/win32_display_backend.cpp
+	src/window/win32/win32_display_backend.h
+	src/window/win32/win32_display_window.cpp
+	src/window/win32/win32_display_window.h
+	src/window/win32/win32_open_folder_dialog.cpp
+	src/window/win32/win32_open_folder_dialog.h
+	src/window/win32/win32_open_file_dialog.cpp
+	src/window/win32/win32_open_file_dialog.h
+	src/window/win32/win32_save_file_dialog.cpp
+	src/window/win32/win32_save_file_dialog.h
+	src/window/win32/win32_util.h
+)
+
+set(ZWIDGET_DBUS_SOURCES
+	src/window/dbus/dbus_open_folder_dialog.cpp
+	src/window/dbus/dbus_open_folder_dialog.h
+	src/window/dbus/dbus_open_file_dialog.cpp
+	src/window/dbus/dbus_open_file_dialog.h
+	src/window/dbus/dbus_save_file_dialog.cpp
+	src/window/dbus/dbus_save_file_dialog.h
 )
 
 set(ZWIDGET_COCOA_SOURCES
 )
 
 set(ZWIDGET_SDL2_SOURCES
-	src/window/sdl2/sdl2displaywindow.cpp
-	src/window/sdl2/sdl2displaywindow.h
+	src/window/sdl2/sdl2_display_backend.cpp
+	src/window/sdl2/sdl2_display_backend.h
+	src/window/sdl2/sdl2_display_window.cpp
+	src/window/sdl2/sdl2_display_window.h
 )
 
 set(ZWIDGET_X11_SOURCES
-	src/window/x11/x11displaywindow.cpp
-	src/window/x11/x11displaywindow.h
+	src/window/x11/x11_display_backend.cpp
+	src/window/x11/x11_display_backend.h
+	src/window/x11/x11_display_window.cpp
+	src/window/x11/x11_display_window.h
 )
 
 set(ZWIDGET_WAYLAND_SOURCES
@@ -127,10 +155,12 @@ source_group("src\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_S
 source_group("src\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/listview/.+")
 source_group("src\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/tabwidget/.+")
 source_group("src\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/.+")
-source_group("src\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/win32/.+")
-source_group("src\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/sdl2/.+")
-source_group("src\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/x11/.+")
-source_group("src\\window\\wayland" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/zwidget/window/wayland/.+")
+source_group("src\\window\\stub" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/stub/.+")
+source_group("src\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/win32/.+")
+source_group("src\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/sdl2/.+")
+source_group("src\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/x11/.+")
+source_group("src\\window\\wayland" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/wayland/.+")
+source_group("src\\window\\dbus" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/dbus/.+")
 source_group("src\\systemdialogs" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/systemdialogs/.+")
 source_group("include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/.+")
 source_group("include\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/core/.+")
@@ -187,6 +217,7 @@ else()
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
 	if (DBUS_FOUND)
+		set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_DBUS_SOURCES})
 		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${DBUS_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_DBUS)

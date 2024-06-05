@@ -6,7 +6,10 @@
 #include <cstdint>
 #include "../core/rect.h"
 
-class Engine;
+class Widget;
+class OpenFileDialog;
+class SaveFileDialog;
+class OpenFolderDialog;
 
 enum class StandardCursor
 {
@@ -195,4 +198,8 @@ public:
 	virtual void StopTimer(void* timerID) = 0;
 
 	virtual Size GetScreenSize() = 0;
+
+	virtual std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(Widget* owner);
+	virtual std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(Widget* owner);
+	virtual std::unique_ptr<OpenFolderDialog> CreateOpenFolderDialog(Widget* owner);
 };

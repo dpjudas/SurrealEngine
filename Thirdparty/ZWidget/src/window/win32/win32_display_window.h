@@ -1,11 +1,6 @@
 #pragma once
 
-#define NOMINMAX
-#define WIN32_MEAN_AND_LEAN
-#ifndef WINVER
-#define WINVER 0x0605
-#endif
-#include <Windows.h>
+#include "win32_util.h"
 
 #include <list>
 #include <unordered_map>
