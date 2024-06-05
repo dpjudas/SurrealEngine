@@ -4,7 +4,7 @@
 #include "core/widget.h"
 #include <stdexcept>
 
-Win32DisplayWindow::Win32DisplayWindow(Win32DisplayWindow* owner) : owner(owner)
+Win32OpenFileDialog::Win32OpenFileDialog(Win32DisplayWindow* owner) : owner(owner)
 {
 }
 

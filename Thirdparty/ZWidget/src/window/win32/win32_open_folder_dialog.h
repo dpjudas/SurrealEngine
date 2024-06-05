@@ -3,6 +3,8 @@
 #include "systemdialogs/open_folder_dialog.h"
 #include "win32_util.h"
 
+class Win32DisplayWindow;
+
 class Win32OpenFolderDialog : public OpenFolderDialog
 {
 public:

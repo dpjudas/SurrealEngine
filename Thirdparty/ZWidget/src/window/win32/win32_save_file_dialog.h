@@ -3,6 +3,8 @@
 #include "systemdialogs/save_file_dialog.h"
 #include "win32_util.h"
 
+class Win32DisplayWindow;
+
 class Win32SaveFileDialog : public SaveFileDialog
 {
 public:
