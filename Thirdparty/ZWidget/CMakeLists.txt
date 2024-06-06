@@ -4,11 +4,11 @@ project(zwidget)
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
 	pkg_check_modules(DBUS REQUIRED dbus-1)
-#	pkg_check_modules(WAYLAND REQUIRED
-#		wayland-client>=1.20
-#		wayland-cursor>=1.20
-#		xkbcommon>=0.5.0
-#	)
+	pkg_check_modules(WAYLAND
+		wayland-client>=1.20
+		wayland-cursor>=1.20
+		xkbcommon>=0.5.0
+	)
 endif()
 
 set(ZWIDGET_SOURCES
@@ -128,8 +128,12 @@ set(ZWIDGET_X11_SOURCES
 )
 
 set(ZWIDGET_WAYLAND_SOURCES
-	src/window/wayland/waylanddisplaywindow.cpp
-	src/window/wayland/waylanddisplaywindow.h
+	src/window/wayland/wayland_display_backend.cpp
+	src/window/wayland/wayland_display_backend.h
+	src/window/wayland/wayland_display_window.cpp
+	src/window/wayland/wayland_display_window.h
+	src/window/wayland/xdg-foreign-unstable-v2.c
+	src/window/wayland/xdg-foreign-unstable-v2.h
 	src/window/wayland/xdg-output-unstable.c
 	src/window/wayland/xdg-output-unstable.h
 	src/window/wayland/xdg-shell.c
