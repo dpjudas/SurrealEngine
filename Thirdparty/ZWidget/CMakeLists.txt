@@ -4,9 +4,11 @@ project(zwidget)
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
 	pkg_check_modules(DBUS REQUIRED dbus-1)
-	pkg_check_modules(WAYLAND
-		wayland-client>=1.20
-		wayland-cursor>=1.20
+	pkg_check_modules(WAYLANDPP
+		wayland-client++
+		wayland-client-extra++
+		wayland-client-unstable++
+		wayland-cursor++
 		xkbcommon>=0.5.0
 	)
 endif()
@@ -226,10 +228,10 @@ else()
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${DBUS_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_DBUS)
 	endif()
-	if (WAYLAND_FOUND)
+	if (WAYLANDPP_FOUND)
 		set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WAYLAND_SOURCES})
-		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${WAYLAND_INCLUDE_DIRS})
-		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLAND_LDFLAGS})
+		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${WAYLANDPP_INCLUDE_DIRS})
+		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLANDPP_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_WAYLAND)
 	endif()
 endif()

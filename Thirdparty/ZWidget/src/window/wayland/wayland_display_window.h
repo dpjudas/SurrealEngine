@@ -10,12 +10,13 @@
 #include <algorithm>
 #include <random>
 
-#include <wayland-client.h>
-#include <wayland-cursor.h>
-#include "xdg-shell.h"
-#include "xdg-output-unstable.h"
-#include "xdg-foreign-unstable-v2.h" // Mainly for sending owner window ID over D-Bus
+#include <wayland-client.hpp>
+#include <wayland-client-protocol-extra.hpp>
+#include <wayland-client-protocol-unstable.hpp>
+#include <wayland-cursor.hpp>
 #include <linux/input.h>
+
+#include <xkbcommon/xkbcommon.h>
 
 #include "zwidget/window/window.h"
 
@@ -76,39 +77,6 @@ private:
     void *mem = nullptr;
 };
 
-struct WaylandOutputState {
-    int32_t physicalWidth = 0;
-    int32_t physicalHeight = 0;
-    double scaleFactor = 1.0;
-};
-
-struct WaylandClientState {
-    wl_display* waylandDisplay = nullptr;
-    wl_registry* waylandRegistry = nullptr;
-    wl_compositor* waylandCompositor = nullptr;
-    wl_output* waylandOutput = nullptr;
-    wl_shell* waylandShell = nullptr;
-    wl_seat* waylandSeat = nullptr;
-    wl_shm* waylandSHM = nullptr;
-    xdg_wm_base* xdgWMBase = nullptr;
-    zxdg_output_manager_v1* xdgOutputManager = nullptr;
-    zxdg_exporter_v2* xdgExporter = nullptr;
-    bool hasKeyboard = false;
-    bool hasPointer = false;
-    WaylandOutputState outputState;
-};
-
-struct XDGOutputPositionInfo {
-    int32_t xPos;
-    int32_t yPos;
-};
-
-struct WaylandCursorInfo {
-    wl_cursor_image* cursorImage;
-    wl_buffer* cursorBuffer;
-    wl_surface* cursorSurface;
-};
-
 class WaylandDisplayWindow : public DisplayWindow
 {
 public:
@@ -158,54 +126,63 @@ public:
     static void RunLoop();
     static void ExitLoop();
     static Size GetScreenSize();
+    static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
+    static void StopTimer(void* timerID);
 private:
     DisplayWindowHost* windowHost = nullptr;
     bool m_PopupWindow = false;
 
     static bool exitRunLoop;
-    static WaylandClientState clientState;
 
-    XDGOutputPositionInfo m_GlobalPosInfo = {0};
+    int32_t m_windowGlobalX = 0;
+    int32_t m_windowGlobalY = 0;
     uint32_t m_windowWidth = 0;
     uint32_t m_windowHeight = 0;
+    double m_ScaleFactor = 1.0;
 
-    Size m_ScreenSize = Size{0, 0};
+    static Size m_ScreenSize;
 
-    // Local Wayland objects
-    wl_surface* m_AppSurface = nullptr;
-    wl_shell_surface* m_ShellSurface = nullptr;
-    wl_buffer* m_AppSurfaceBuffer = nullptr;
-    xdg_surface* m_XDGSurface = nullptr;
-    xdg_toplevel* m_XDGToplevel = nullptr;
-    xdg_popup* m_XDGPopup = nullptr; // This will be set when m_PopupWindow is true
-    wl_keyboard* m_WaylandKeyboard = nullptr;
-    wl_pointer* m_WaylandPointer = nullptr;
-    zxdg_output_v1* m_XDGOutput = nullptr;
+    static wayland::display_t m_waylandDisplay;
+    wayland::registry_t m_waylandRegistry;
+    wayland::compositor_t m_waylandCompositor;
+    wayland::shm_t m_waylandSHM;
+    wayland::seat_t m_waylandSeat;
+    wayland::output_t m_waylandOutput;
+    wayland::xdg_wm_base_t m_XDGWMBase;
+    wayland::zwp_pointer_constraints_v1_t m_PointerConstraints;
+    wayland::xdg_activation_v1_t m_XDGActivation;
 
-    WaylandCursorInfo m_CursorInfo = {0};
+    wayland::zxdg_decoration_manager_v1_t m_XDGDecorationManager;
+    wayland::zxdg_toplevel_decoration_v1_t m_XDGToplevelDecoration;
+
+    wayland::surface_t m_AppSurface;
+    wayland::buffer_t m_AppSurfaceBuffer;
+
+    wayland::xdg_surface_t m_XDGSurface;
+    wayland::xdg_toplevel_t m_XDGToplevel;
+    wayland::xdg_popup_t m_XDGPopup;
+
+    bool hasKeyboard = false;
+    bool hasPointer = false;
+
+    wayland::keyboard_t m_waylandKeyboard;
+    wayland::pointer_t m_waylandPointer;
+
+    wayland::zxdg_output_manager_v1_t m_XDGOutputManager;
+    wayland::zxdg_output_v1_t m_XDGOutput;
+
+    wayland::zxdg_exporter_v2_t m_XDGExporter;
+    wayland::zxdg_exported_v2_t m_XDGExported;
+
+    wayland::cursor_image_t m_cursorImage;
+    wayland::surface_t m_cursorSurface;
+    wayland::buffer_t m_cursorBuffer;
+
+    wayland::zwp_locked_pointer_v1_t m_LockedPointer;
+
+    std::string m_windowID;
 
     std::shared_ptr<SharedMemHelper> shared_mem;
-
-    // Wayland event handler functions
-    static void RegistryGlobalHandler(void* data, wl_registry *registry, uint32_t name, const char *interface, uint32_t version);
-    static void RegisterSeatCapabilities(void* data, wl_seat* seat, uint32_t capabilities);
-    static void OnOutputScaleEvent(void* data, wl_output* output, int32_t newScaleFactor);
-    static void OnOutputGeometryEvent(void* data, wl_output* output, int32_t x, int32_t y, int32_t physicalWidth, int32_t physicalHeight,
-			 int32_t subpixel, const char *make, const char *model,	 int32_t transform);
-    static void OnOutputModeEvent(void* data, wl_output* output, uint32_t flags, int32_t width, int32_t height, int32_t refresh);
-    static void OnOutputDoneEvent(void* data, wl_output* output);
-    static void OnOutputNameEvent(void* data, wl_output* output, const char* name);
-    static void OnOutputDescriptionEvent(void* data, wl_output* output, const char* description);
-    static void OnXDGWMBasePingEvent(void* data, xdg_wm_base* wmBase, uint32_t serial);
-    static void OnXDGSurfaceConfigureEvent(void* data, xdg_surface* xdgSurface, uint32_t serial);
-    static void OnXDGOutputLogicalPositionEvent(void* data, zxdg_output_v1* xdgOutput, int32_t xPos, int32_t yPos);
-    static void OnXDGOutputLogicalSizeEvent(void* data, zxdg_output_v1* xdgOutput, int32_t width, int32_t height);
-    static void OnXDGOutputDoneEvent(void* data, zxdg_output_v1* xdgOutput);
-    static void OnXDGOutputNameEvent(void* data, zxdg_output_v1* output, const char* name);
-    static void OnXDGOutputDescriptionEvent(void* data, zxdg_output_v1* output, const char* description);
-    static void OnPointerEnterEvent(void* data, wl_pointer* pointer, uint32_t serial,
-                               wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y);
-    static void OnXDGExportedHandleEvent(void* data, zxdg_exported_v2* exportedSurface, const char* handleName);
 
     // Helper functions
     void CreateBuffers(int32_t width, int32_t height);

@@ -3,122 +3,133 @@
 #include <cstring>
 
 bool WaylandDisplayWindow::exitRunLoop = false;
-WaylandClientState WaylandDisplayWindow::clientState;
+Size WaylandDisplayWindow::m_ScreenSize = Size(0, 0);
+wayland::display_t WaylandDisplayWindow::m_waylandDisplay;
 
 WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
     : windowHost(windowHost), m_PopupWindow(popupWindow)
 {
-    clientState.waylandDisplay = wl_display_connect(nullptr);
+    if (!m_waylandDisplay)
+        m_waylandDisplay = wayland::display_t();
 
-    if (!clientState.waylandDisplay)
-        throw std::runtime_error("WaylandDisplayWindow: Failed to connect display!");
+    m_waylandRegistry = m_waylandDisplay.get_registry();
 
-    clientState.waylandRegistry = wl_display_get_registry(clientState.waylandDisplay);
-
-    if (!clientState.waylandRegistry)
-        throw std::runtime_error("WaylandDisplayWindow: Failed to obtain global registry!");
-
-    wl_registry_listener registryListener = {
-        .global = RegistryGlobalHandler
+    m_waylandRegistry.on_global() = [&](uint32_t name, std::string interface, uint32_t version) {
+        if (interface == wayland::compositor_t::interface_name)
+            m_waylandRegistry.bind(name, m_waylandCompositor, 3);
+        if (interface == wayland::shm_t::interface_name)
+            m_waylandRegistry.bind(name, m_waylandSHM, version);
+        if (interface == wayland::output_t::interface_name)
+            m_waylandRegistry.bind(name, m_waylandOutput, version);
+        if (interface == wayland::seat_t::interface_name)
+            m_waylandRegistry.bind(name, m_waylandSeat, version);
+        if (interface == wayland::xdg_wm_base_t::interface_name)
+            m_waylandRegistry.bind(name, m_XDGWMBase, 1);
+        if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
+            m_waylandRegistry.bind(name, m_XDGOutputManager, version);
+        if (interface == wayland::zxdg_exporter_v2_t::interface_name)
+            m_waylandRegistry.bind(name, m_XDGExporter, 1);
+        if (interface == wayland::zwp_pointer_constraints_v1_t::interface_name)
+            m_waylandRegistry.bind(name, m_PointerConstraints, 1);
+        if (interface == wayland::xdg_activation_v1_t::interface_name)
+            m_waylandRegistry.bind(name, m_XDGActivation, 1);
+        if (interface == wayland::zxdg_decoration_manager_v1_t::interface_name)
+            m_waylandRegistry.bind(name, m_XDGDecorationManager, 1);
     };
 
-    wl_registry_add_listener(clientState.waylandRegistry, &registryListener, &clientState);
+    m_waylandDisplay.roundtrip();
 
-    wl_display_roundtrip(clientState.waylandDisplay);
+    if (!m_XDGWMBase)
+        throw std::runtime_error("WaylandDisplayWindow: XDG-Shell is required!");
 
-    wl_output_listener outputListener = {
-            .geometry = OnOutputGeometryEvent,
-            .mode = OnOutputModeEvent,
-            .done = OnOutputDoneEvent,
-            .scale = OnOutputScaleEvent,
-            .name = OnOutputNameEvent,
-            .description = OnOutputDescriptionEvent
+    if (!m_XDGOutputManager)
+        throw std::runtime_error("WaylandDisplayWindow: xdg-output-manager-v1 is required!");
+
+    if (!m_XDGExporter)
+        throw std::runtime_error("WaylandDisplayWindow: xdg-foreign-unstable-v2 is required!");
+
+    if (!m_PointerConstraints)
+        throw std::runtime_error("WaylandDisplayWindow: pointer-constrains-unstable-v1 is required!");
+
+    m_AppSurface = m_waylandCompositor.create_surface();
+
+    m_waylandOutput.on_mode() = [&] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
+        m_ScreenSize = Size(width, height);
     };
 
-    wl_output_add_listener(clientState.waylandOutput, &outputListener, &clientState.outputState);
-
-    if (!clientState.xdgWMBase)
-        throw std::runtime_error("WaylandDisplayWindow: xdg_wm_base protocol is required!");
-
-    if (!clientState.xdgOutputManager)
-        throw std::runtime_error("WaylandDisplayWindow: zxdg_output_manager_v1 protocol is required!");
-
-    wl_seat_listener seatListener = {
-        .capabilities = RegisterSeatCapabilities
+    m_XDGWMBase.on_ping() = [&] (uint32_t serial) {
+        m_XDGWMBase.pong(serial);
     };
 
-    wl_seat_add_listener(clientState.waylandSeat, &seatListener, &clientState);
-
-    m_AppSurface = wl_compositor_create_surface(clientState.waylandCompositor);
-
-    xdg_wm_base_listener wmBaseListener = {
-        .ping = OnXDGWMBasePingEvent
+    m_XDGSurface = m_XDGWMBase.get_xdg_surface(m_AppSurface);
+    m_XDGSurface.on_configure() = [&] (uint32_t serial) {
+        m_XDGSurface.ack_configure(serial);
     };
-
-    xdg_wm_base_add_listener(clientState.xdgWMBase, &wmBaseListener, nullptr);
-
-    m_XDGSurface = xdg_wm_base_get_xdg_surface(clientState.xdgWMBase, m_AppSurface);
-
-    xdg_surface_listener xdgSurfaceListener = {
-        .configure = OnXDGSurfaceConfigureEvent
-    };
-
-    xdg_surface_add_listener(m_XDGSurface, &xdgSurfaceListener, nullptr);
-
 
     if (popupWindow)
     {
-        // Create an xdg_popup instead of an xdg_toplevel
-        // Also needs an xdg_positioner
-        // m_XGDPopup = m_XDGSurface.get_popup(owner ? owner->GetNativeHandle() : nullptr);
+        wayland::xdg_positioner_t popupPositioner;
     }
-    else
+
+    m_XDGToplevel = m_XDGSurface.get_toplevel();
+    m_XDGToplevel.set_title("ZWidget Window");
+
+    if (owner)
+        m_XDGToplevel.set_parent(owner->m_XDGToplevel);
+
+    if (m_XDGToplevel && m_XDGDecorationManager)
     {
-        m_XDGToplevel = xdg_surface_get_toplevel(m_XDGSurface);
-
-        xdg_toplevel_set_title(m_XDGToplevel, "ZWidget Window");
-
-        if (owner)
-            xdg_toplevel_set_parent(m_XDGToplevel, (xdg_toplevel*)owner->GetNativeHandle());
+        // Force server side decorations if possible
+        m_XDGToplevelDecoration = m_XDGDecorationManager.get_toplevel_decoration(m_XDGToplevel);
+        m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
     }
 
-    m_XDGOutput = zxdg_output_manager_v1_get_xdg_output(clientState.xdgOutputManager, clientState.waylandOutput);
-
-    zxdg_output_v1_listener xdgOutputListener = {
-        .logical_position = OnXDGOutputLogicalPositionEvent,
-        .logical_size = OnXDGOutputLogicalSizeEvent,
-        .done = OnXDGOutputDoneEvent,
-        .name = OnXDGOutputNameEvent,
-        .description = OnXDGOutputDescriptionEvent
+    m_XDGToplevel.on_close() = [&] () {
+        windowHost->OnWindowClose();
     };
 
-    zxdg_output_v1_add_listener(m_XDGOutput, &xdgOutputListener, &m_GlobalPosInfo);
+    m_XDGOutput = m_XDGOutputManager.get_xdg_output(m_waylandOutput);
 
-    wl_surface_commit(m_AppSurface);
+    m_XDGOutput.on_logical_position() = [&] (int32_t x, int32_t y) {
+        m_windowGlobalX = x;
+        m_windowGlobalY = y;
+    };
 
-    wl_display_roundtrip(clientState.waylandDisplay);
+    m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
+        m_windowWidth = width;
+        m_windowHeight = height;
+    };
 
-    if(!clientState.hasKeyboard)
-      throw std::runtime_error("No keyboard found.");
-    if(!clientState.hasPointer)
-      throw std::runtime_error("No pointer found.");
+    m_waylandOutput.on_scale() = [&] (int32_t scale) {
+        m_ScaleFactor = scale;
+    };
 
-    m_WaylandKeyboard = wl_seat_get_keyboard(clientState.waylandSeat);
-    m_WaylandPointer = wl_seat_get_pointer(clientState.waylandSeat);
+    m_waylandSeat.on_capabilities() = [&] (uint32_t capabilities) {
+        hasKeyboard = capabilities & wayland::seat_capability::keyboard;
+        hasPointer = capabilities & wayland::seat_capability::pointer;
+    };
 
-    CreateBuffers(640, 480);
+    m_AppSurface.commit();
 
+    m_waylandDisplay.roundtrip();
+
+    if (!hasKeyboard)
+        throw std::runtime_error("No keyboard detected!");
+    if (!hasPointer)
+        throw std::runtime_error("No pointer device detected!");
+
+    m_waylandKeyboard = m_waylandSeat.get_keyboard();
+    m_waylandPointer = m_waylandSeat.get_pointer();
+
+    m_cursorSurface = m_waylandCompositor.create_surface();
     SetCursor(StandardCursor::arrow);
 
-    // create cursor surface
-    // P.S. KDevelop is stupid trying to convert the . to -> for no reason
-    m_CursorInfo.cursorSurface = wl_compositor_create_surface(clientState.waylandCompositor);
-
-    wl_pointer_listener pointerListener = {
-        .enter = OnPointerEnterEvent
+    m_waylandPointer.on_enter() = [&](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
+        m_cursorSurface.attach(m_cursorBuffer, 0, 0);
+        m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
+        m_cursorSurface.commit();
+        m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
     };
-
-    wl_pointer_add_listener(m_WaylandPointer, &pointerListener, &m_CursorInfo);
 }
 
 WaylandDisplayWindow::~WaylandDisplayWindow()
@@ -128,47 +139,55 @@ WaylandDisplayWindow::~WaylandDisplayWindow()
 void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
 {
     if (m_XDGToplevel)
-        xdg_toplevel_set_title(m_XDGToplevel, text.c_str());
+        m_XDGToplevel.set_title(text);
 }
 
 void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
 {
-
+    m_XDGSurface.set_window_geometry((int32_t)box.left(), (int32_t)box.top(),
+                                     (int32_t)box.width, (int32_t)box.height);
+    // Resizing will be shown on the next commit
+    CreateBuffers(box.width, box.height);
+    m_AppSurface.commit();
 }
 
 void WaylandDisplayWindow::SetClientFrame(const Rect& box)
 {
-
+    SetWindowFrame(box);
 }
 
 void WaylandDisplayWindow::Show()
 {
-    wl_surface_attach(m_AppSurface, m_AppSurfaceBuffer, 0, 0);
-    wl_surface_commit(m_AppSurface);
+    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
+    m_AppSurface.damage(0, 0, m_windowWidth, m_windowHeight);
+    m_AppSurface.commit();
 }
 
 void WaylandDisplayWindow::ShowFullscreen()
 {
     if (m_XDGToplevel)
-        xdg_toplevel_set_fullscreen(m_XDGToplevel, clientState.waylandOutput);
+        m_XDGToplevel.set_fullscreen(m_waylandOutput);
 }
 
 void WaylandDisplayWindow::ShowMaximized()
 {
     if (m_XDGToplevel)
-        xdg_toplevel_set_maximized(m_XDGToplevel);
+    {
+        m_XDGToplevel.set_maximized();
+    }
+
 }
 
 void WaylandDisplayWindow::ShowMinimized()
 {
     if (m_XDGToplevel)
-        xdg_toplevel_set_minimized(m_XDGToplevel);
+        m_XDGToplevel.set_minimized();
 }
 
 void WaylandDisplayWindow::ShowNormal()
 {
     if (m_XDGToplevel)
-        xdg_toplevel_unset_fullscreen(m_XDGToplevel);
+        m_XDGToplevel.unset_fullscreen();
 }
 
 void WaylandDisplayWindow::Hide()
@@ -176,28 +195,42 @@ void WaylandDisplayWindow::Hide()
     // Apparently this is how hiding a window works
     // By attaching a null buffer to the surface
     // See: https://lists.freedesktop.org/archives/wayland-devel/2017-November/035963.html
-    wl_surface_attach(m_AppSurface, nullptr, 0, 0);
-    wl_surface_commit(m_AppSurface);
+    m_AppSurface.attach(nullptr, 0, 0);
+    m_AppSurface.commit();
 }
 
 void WaylandDisplayWindow::Activate()
 {
+    wayland::xdg_activation_token_v1_t xdgActivationToken = m_XDGActivation.get_activation_token();
 
+    std::string tokenString;
+
+    xdgActivationToken.on_done() = [&tokenString] (std::string obtainedString) {
+        tokenString = obtainedString;
+    };
+
+    xdgActivationToken.set_surface(m_AppSurface);
+    xdgActivationToken.commit();  // This will set our token string
+
+    m_XDGActivation.activate(tokenString, m_AppSurface);
 }
 
 void WaylandDisplayWindow::ShowCursor(bool enable)
 {
-
+    m_cursorSurface.attach(enable ? m_cursorBuffer : nullptr, 0, 0);
+    m_cursorSurface.commit();
 }
 
 void WaylandDisplayWindow::LockCursor()
 {
-
+    m_LockedPointer = m_PointerConstraints.lock_pointer(m_AppSurface, m_waylandPointer, nullptr,
+                                                        wayland::zwp_pointer_constraints_v1_lifetime::persistent);
 }
 
 void WaylandDisplayWindow::UnlockCursor()
 {
-
+    if (m_LockedPointer)
+        m_LockedPointer.proxy_release();
 }
 
 void WaylandDisplayWindow::CaptureMouse()
@@ -225,15 +258,15 @@ void WaylandDisplayWindow::SetCursor(StandardCursor cursor)
     std::string cursorName = GetWaylandCursorName(cursor);
 
     // Perhaps the cursor size can be inferred from the user prefs as well?
-    wl_cursor_theme* cursorTheme = wl_cursor_theme_load("default", 16, clientState.waylandSHM);
-    wl_cursor* obtainedCursor = wl_cursor_theme_get_cursor(cursorTheme, cursorName.c_str());
-    m_CursorInfo.cursorImage = obtainedCursor->images[0];
-    m_CursorInfo.cursorBuffer = wl_cursor_image_get_buffer(m_CursorInfo.cursorImage);
+    wayland::cursor_theme_t cursorTheme = wayland::cursor_theme_t("default", 16, m_waylandSHM);
+    wayland::cursor_t obtainedCursor = cursorTheme.get_cursor(cursorName);
+    m_cursorImage = obtainedCursor.image(0);
+    m_cursorBuffer = m_cursorImage.get_buffer();
 }
 
 Rect WaylandDisplayWindow::GetWindowFrame() const
 {
-    return Rect(m_GlobalPosInfo.xPos, m_GlobalPosInfo.yPos, m_windowWidth, m_windowHeight);
+    return Rect(m_windowGlobalX, m_windowGlobalY, m_windowWidth, m_windowHeight);
 }
 
 Size WaylandDisplayWindow::GetClientSize() const
@@ -253,7 +286,7 @@ int WaylandDisplayWindow::GetPixelHeight() const
 
 double WaylandDisplayWindow::GetDpiScale() const
 {
-    return clientState.outputState.scaleFactor;
+    return m_ScaleFactor;
 }
 
 void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pixels)
@@ -264,8 +297,9 @@ void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* 
 
     std::memcpy(shared_mem->get_mem(), (void*)pixels, width * height * 4);
 
-    wl_surface_attach(m_AppSurface, m_AppSurfaceBuffer, 0, 0);
-    wl_surface_commit(m_AppSurface);
+    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
+    m_AppSurface.damage(0, 0, width, height);
+    m_AppSurface.commit();
 }
 
 void WaylandDisplayWindow::SetBorderColor(uint32_t bgra8)
@@ -305,18 +339,19 @@ Point WaylandDisplayWindow::MapToGlobal(const Point& pos) const
 
 void WaylandDisplayWindow::ProcessEvents()
 {
-    //TODO: Implement
+    //TODO: Implement (???)
+    while (m_waylandDisplay.dispatch() > 0 )
+    {
+    }
 }
 
 void WaylandDisplayWindow::RunLoop()
 {
-    //TODO: Implement
+    //TODO: Implement (???)
     while (!exitRunLoop)
     {
-        while (wl_display_dispatch(clientState.waylandDisplay) != -1)
-        {
-
-        }
+        if (m_waylandDisplay.dispatch() == -1)
+            break;
     }
 }
 
@@ -327,130 +362,17 @@ void WaylandDisplayWindow::ExitLoop()
 
 Size WaylandDisplayWindow::GetScreenSize()
 {
-    // TODO: Implement
-    return Size(0, 0);
+    return m_ScreenSize;
 }
 
-void WaylandDisplayWindow::RegistryGlobalHandler(void* data, wl_registry* registry, uint32_t name, const char* interface, uint32_t version)
+void * WaylandDisplayWindow::StartTimer(int timeoutMilliseconds, std::function<void ()> onTimer)
 {
-    WaylandClientState* state = (WaylandClientState*) data;
-    if (strcmp(interface, wl_compositor_interface.name) == 0)
-        state->waylandCompositor = (wl_compositor*) wl_registry_bind(registry, name, &wl_compositor_interface, 3);
-    if (strcmp(interface, wl_shell_interface.name) == 0)
-        state->waylandShell =  (wl_shell*) wl_registry_bind(registry, name, &wl_shell_interface, 1);
-    if (strcmp(interface, wl_seat_interface.name) == 0)
-        state->waylandSeat = (wl_seat*) wl_registry_bind(registry, name, &wl_seat_interface, 1);
-    if (strcmp(interface, wl_shm_interface.name) == 0)
-        state->waylandSHM = (wl_shm*) wl_registry_bind(registry, name, &wl_shm_interface, 1);
-    if (strcmp(interface, xdg_wm_base_interface.name) == 0)
-        state->xdgWMBase = (xdg_wm_base*) wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
-    if (strcmp(interface, wl_output_interface.name) == 0)
-        state->waylandOutput = (wl_output*) wl_registry_bind(registry, name, &wl_output_interface, 4);
-    if (strcmp(interface, zxdg_exporter_v2_interface.name) == 0)
-        state->xdgExporter = (zxdg_exporter_v2*) wl_registry_bind(registry, name, &zxdg_exporter_v2_interface, 1);
-    if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0)
-        state->xdgOutputManager = (zxdg_output_manager_v1*) wl_registry_bind(registry, name, &zxdg_output_manager_v1_interface, 1);
+    return nullptr;
 }
 
-void WaylandDisplayWindow::RegisterSeatCapabilities(void *data, wl_seat* seat, uint32_t capabilities)
+void WaylandDisplayWindow::StopTimer(void* timerID)
 {
-    WaylandClientState* state = (WaylandClientState*)data;
-    state->hasKeyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
-    state->hasPointer = capabilities & WL_SEAT_CAPABILITY_POINTER;
 }
-
-void WaylandDisplayWindow::OnOutputScaleEvent(void* data, wl_output* output, int32_t newScaleFactor)
-{
-    // We default to 1.0 on scale, but if this event gets sent, we change the scale to the factor provided instead
-    WaylandOutputState* outputState = (WaylandOutputState*) data;
-
-    outputState->scaleFactor = (double)newScaleFactor;
-}
-
-void WaylandDisplayWindow::OnOutputGeometryEvent(void* data, wl_output* output, int32_t x, int32_t y, int32_t physicalWidth, int32_t physicalHeight, int32_t subpixel, const char* make, const char* model, int32_t transform)
-{
-    WaylandOutputState* outputState = (WaylandOutputState*) data;
-
-    outputState->physicalWidth = physicalWidth;
-    outputState->physicalHeight = physicalHeight;
-}
-
-void WaylandDisplayWindow::OnOutputModeEvent(void* data, wl_output* output, uint32_t flags, int32_t width, int32_t height, int32_t refresh)
-{
-    // no-op (but might be useful?)
-}
-
-void WaylandDisplayWindow::OnOutputDoneEvent(void* data, wl_output* output)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnOutputNameEvent(void* data, wl_output* output, const char* name)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnOutputDescriptionEvent(void* data, wl_output* output, const char* description)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnXDGWMBasePingEvent(void* data, xdg_wm_base* wmBase, uint32_t serial)
-{
-    xdg_wm_base_pong(wmBase, serial);
-}
-
-void WaylandDisplayWindow::OnXDGSurfaceConfigureEvent(void* data, xdg_surface* xdgSurface, uint32_t serial)
-{
-    xdg_surface_ack_configure(xdgSurface, serial);
-}
-
-void WaylandDisplayWindow::OnXDGOutputLogicalPositionEvent(void* data, zxdg_output_v1* xdgOutput, int32_t xPos, int32_t yPos)
-{
-    XDGOutputPositionInfo* posInfo = (XDGOutputPositionInfo*) data;
-
-    posInfo->xPos = xPos;
-    posInfo->yPos = yPos;
-}
-
-void WaylandDisplayWindow::OnXDGOutputLogicalSizeEvent(void* data, zxdg_output_v1* xdgOutput, int32_t width, int32_t height)
-{
-    // no-op (might be useful?)
-}
-
-void WaylandDisplayWindow::OnXDGOutputDoneEvent(void* data, zxdg_output_v1* xdgOutput)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnXDGOutputNameEvent(void* data, zxdg_output_v1* output, const char* name)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnXDGOutputDescriptionEvent(void* data, zxdg_output_v1* output, const char* description)
-{
-    // no-op
-}
-
-void WaylandDisplayWindow::OnPointerEnterEvent(void* data, wl_pointer* pointer, uint32_t serial,
-                                          wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
-{
-    WaylandCursorInfo* cursorInfo = (WaylandCursorInfo*) data;
-
-    wl_surface_attach(cursorInfo->cursorSurface, cursorInfo->cursorBuffer, 0, 0);
-    wl_surface_damage(cursorInfo->cursorSurface, 0, 0, cursorInfo->cursorImage->width, cursorInfo->cursorImage->height);
-    wl_surface_commit(cursorInfo->cursorSurface);
-    wl_pointer_set_cursor(pointer, serial, cursorInfo->cursorSurface, 0, 0);
-}
-
-void WaylandDisplayWindow::OnXDGExportedHandleEvent(void* data, zxdg_exported_v2* exportedSurface, const char* handleName)
-{
-    std::string* dataStr = (std::string*) data;
-
-    dataStr->assign(handleName);
-}
-
 
 void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 {
@@ -458,9 +380,9 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
         shared_mem.reset();
 
     shared_mem = std::make_shared<SharedMemHelper>(2 * width * height * 4);
-    auto pool = wl_shm_create_pool(clientState.waylandSHM, shared_mem->get_fd(), 2 * width * height * 4);
+    auto pool = m_waylandSHM.create_pool(shared_mem->get_fd(), 2 * width * height * 4);
 
-    m_AppSurfaceBuffer = wl_shm_pool_create_buffer(pool, width * height * 4, width, height, width * 4, WL_SHM_FORMAT_ARGB8888);
+    m_AppSurfaceBuffer = pool.create_buffer(width * height * 4, width, height, width * 4, wayland::shm_format::argb8888);
 
     m_windowWidth = width;
     m_windowHeight = height;
@@ -506,20 +428,13 @@ std::string WaylandDisplayWindow::GetWaylandCursorName(StandardCursor cursor)
 
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {
-    zxdg_exported_v2* exportedSurface = nullptr;
-
-    std::string exportHandle;
-
-    zxdg_exported_v2_listener listener = {
-        .handle = OnXDGExportedHandleEvent
+    m_XDGExported.on_handle() = [&] (std::string handleStr) {
+        m_windowID = handleStr;
     };
 
-    zxdg_exported_v2_add_listener(exportedSurface, &listener, &exportHandle);
+    m_XDGExported = m_XDGExporter.export_toplevel(m_AppSurface);
 
-    // export_toplevel() will cause a handle event to happen
-    exportedSurface = zxdg_exporter_v2_export_toplevel(clientState.xdgExporter, m_AppSurface);
-
-    return exportHandle;
+    return m_windowID;
 }
 
 
