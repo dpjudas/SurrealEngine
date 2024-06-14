@@ -9,6 +9,8 @@
 #include <ctime>
 #include <algorithm>
 #include <random>
+#include <map>
+#include <list>
 
 #include <wayland-client.hpp>
 #include <wayland-client-protocol-extra.hpp>
@@ -24,6 +26,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+template <typename R, typename T, typename... Args>
+std::function<R(Args...)> bind_mem_fn(R(T::* func)(Args...), T *t)
+{
+  return [func, t] (Args... args)
+    {
+      return (t->*func)(args...);
+    };
+}
 
 class SharedMemHelper
 {
@@ -129,6 +140,7 @@ public:
     static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
     static void StopTimer(void* timerID);
 private:
+    void DrawSurface(uint32_t serial = 0);
     DisplayWindowHost* windowHost = nullptr;
     bool m_PopupWindow = false;
 
@@ -141,6 +153,8 @@ private:
     double m_ScaleFactor = 1.0;
 
     static Size m_ScreenSize;
+    static std::list<WaylandDisplayWindow*> s_Windows;
+    static std::list<WaylandDisplayWindow*>::iterator s_WindowsIterator;
 
     static wayland::display_t m_waylandDisplay;
     wayland::registry_t m_waylandRegistry;
@@ -179,6 +193,8 @@ private:
     wayland::buffer_t m_cursorBuffer;
 
     wayland::zwp_locked_pointer_v1_t m_LockedPointer;
+
+    wayland::callback_t m_FrameCallback;
 
     std::string m_windowID;
 

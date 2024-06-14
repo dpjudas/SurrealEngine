@@ -4,13 +4,15 @@
 
 bool WaylandDisplayWindow::exitRunLoop = false;
 Size WaylandDisplayWindow::m_ScreenSize = Size(0, 0);
-wayland::display_t WaylandDisplayWindow::m_waylandDisplay;
+wayland::display_t WaylandDisplayWindow::m_waylandDisplay = wayland::display_t();
+std::list<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
+std::list<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
 WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
     : windowHost(windowHost), m_PopupWindow(popupWindow)
 {
     if (!m_waylandDisplay)
-        m_waylandDisplay = wayland::display_t();
+        throw std::runtime_error("Wayland Display initialization failed!");
 
     m_waylandRegistry = m_waylandDisplay.get_registry();
 
@@ -84,10 +86,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
     }
 
-    m_XDGToplevel.on_close() = [&] () {
-        windowHost->OnWindowClose();
-    };
-
     m_XDGOutput = m_XDGOutputManager.get_xdg_output(m_waylandOutput);
 
     m_XDGOutput.on_logical_position() = [&] (int32_t x, int32_t y) {
@@ -98,10 +96,12 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
         m_windowWidth = width;
         m_windowHeight = height;
+        windowHost->OnWindowGeometryChanged();
     };
 
     m_waylandOutput.on_scale() = [&] (int32_t scale) {
         m_ScaleFactor = scale;
+        windowHost->OnWindowDpiScaleChanged();
     };
 
     m_waylandSeat.on_capabilities() = [&] (uint32_t capabilities) {
@@ -112,6 +112,17 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_AppSurface.commit();
 
     m_waylandDisplay.roundtrip();
+
+    m_XDGToplevel.on_configure() = [&] (int32_t width, int32_t height, wayland::array_t states) {
+        Rect rect = GetWindowFrame();
+        rect.width = width;
+        rect.height = height;
+        SetWindowFrame(rect);
+    };
+
+    m_XDGToplevel.on_close() = [&] () {
+        windowHost->OnWindowClose();
+    };
 
     if (!hasKeyboard)
         throw std::runtime_error("No keyboard detected!");
@@ -130,10 +141,16 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         m_cursorSurface.commit();
         m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
     };
+
+    s_Windows.push_front(this);
+    s_WindowsIterator = s_Windows.begin();
+
+    this->DrawSurface();
 }
 
 WaylandDisplayWindow::~WaylandDisplayWindow()
 {
+    s_Windows.erase(s_WindowsIterator);
 }
 
 void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
@@ -293,13 +310,13 @@ void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* 
 {
     // Make new buffers if the sizes don't match
     if (width != m_windowWidth || height != m_windowHeight)
+    {
         CreateBuffers(width, height);
+        m_windowWidth = width;
+        m_windowHeight = height;
+    }
 
     std::memcpy(shared_mem->get_mem(), (void*)pixels, width * height * 4);
-
-    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-    m_AppSurface.damage(0, 0, width, height);
-    m_AppSurface.commit();
 }
 
 void WaylandDisplayWindow::SetBorderColor(uint32_t bgra8)
@@ -374,6 +391,18 @@ void WaylandDisplayWindow::StopTimer(void* timerID)
 {
 }
 
+void WaylandDisplayWindow::DrawSurface(uint32_t serial)
+{
+    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
+    m_AppSurface.damage(0, 0, m_windowWidth, m_windowHeight);
+
+    m_FrameCallback = m_AppSurface.frame();
+
+    m_FrameCallback.on_done() = bind_mem_fn(&WaylandDisplayWindow::DrawSurface, this);
+
+    m_AppSurface.commit();
+}
+
 void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 {
     if (shared_mem)
@@ -382,7 +411,7 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
     shared_mem = std::make_shared<SharedMemHelper>(2 * width * height * 4);
     auto pool = m_waylandSHM.create_pool(shared_mem->get_fd(), 2 * width * height * 4);
 
-    m_AppSurfaceBuffer = pool.create_buffer(width * height * 4, width, height, width * 4, wayland::shm_format::argb8888);
+    m_AppSurfaceBuffer = pool.create_buffer(width * height * 4, width, height, width * 4, wayland::shm_format::xrgb8888);
 
     m_windowWidth = width;
     m_windowHeight = height;
