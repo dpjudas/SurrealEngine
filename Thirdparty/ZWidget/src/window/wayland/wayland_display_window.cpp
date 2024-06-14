@@ -96,11 +96,13 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
         m_windowWidth = width;
         m_windowHeight = height;
+        m_NeedsUpdate = true;
         windowHost->OnWindowGeometryChanged();
     };
 
     m_waylandOutput.on_scale() = [&] (int32_t scale) {
         m_ScaleFactor = scale;
+        m_NeedsUpdate = true;
         windowHost->OnWindowDpiScaleChanged();
     };
 
@@ -262,7 +264,7 @@ void WaylandDisplayWindow::ReleaseMouseCapture()
 
 void WaylandDisplayWindow::Update()
 {
-
+    m_NeedsUpdate = true;
 }
 
 bool WaylandDisplayWindow::GetKeyState(InputKey key)
@@ -310,11 +312,7 @@ void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* 
 {
     // Make new buffers if the sizes don't match
     if (width != m_windowWidth || height != m_windowHeight)
-    {
         CreateBuffers(width, height);
-        m_windowWidth = width;
-        m_windowHeight = height;
-    }
 
     std::memcpy(shared_mem->get_mem(), (void*)pixels, width * height * 4);
 }
@@ -367,6 +365,7 @@ void WaylandDisplayWindow::RunLoop()
     //TODO: Implement (???)
     while (!exitRunLoop)
     {
+        CheckNeedsUpdate();
         if (m_waylandDisplay.dispatch() == -1)
             break;
     }
@@ -389,6 +388,18 @@ void * WaylandDisplayWindow::StartTimer(int timeoutMilliseconds, std::function<v
 
 void WaylandDisplayWindow::StopTimer(void* timerID)
 {
+}
+
+void WaylandDisplayWindow::CheckNeedsUpdate()
+{
+    for (auto window: s_Windows)
+    {
+        if (window->m_NeedsUpdate)
+        {
+            window->m_NeedsUpdate = false;
+            window->windowHost->OnWindowPaint();
+        }
+    }
 }
 
 void WaylandDisplayWindow::DrawSurface(uint32_t serial)
