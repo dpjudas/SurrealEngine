@@ -208,5 +208,7 @@ private:
     std::string GetWaylandCursorName(StandardCursor cursor);
     std::string GetWaylandWindowID();
 
+    InputKey LinuxInputEventCodeToInputKey(uint32_t inputCode);
+
     friend WaylandDisplayBackend;
 };

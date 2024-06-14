@@ -144,6 +144,15 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
     };
 
+    m_waylandPointer.on_motion() = [&] (uint32_t serial, double surfaceX, double surfaceY) {
+
+    };
+
+    m_waylandPointer.on_button() = [&] (uint32_t serial, uint32_t time, uint32_t button, wayland::pointer_button_state state) {
+        if (button == BTN_LEFT && state == wayland::pointer_button_state::pressed)
+            windowHost->OnWindowMouseDown(Point(0,0), LinuxInputEventCodeToInputKey(button)); // TODO: Probably the global coords...
+    };
+
     s_Windows.push_front(this);
     s_WindowsIterator = s_Windows.begin();
 
@@ -167,6 +176,8 @@ void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
                                      (int32_t)box.width, (int32_t)box.height);
     // Resizing will be shown on the next commit
     CreateBuffers(box.width, box.height);
+    windowHost->OnWindowGeometryChanged();
+    m_NeedsUpdate = true;
     m_AppSurface.commit();
 }
 
@@ -419,10 +430,10 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
     if (shared_mem)
         shared_mem.reset();
 
-    shared_mem = std::make_shared<SharedMemHelper>(2 * width * height * 4);
-    auto pool = m_waylandSHM.create_pool(shared_mem->get_fd(), 2 * width * height * 4);
+    shared_mem = std::make_shared<SharedMemHelper>(width * height * 4);
+    auto pool = m_waylandSHM.create_pool(shared_mem->get_fd(), width * height * 4);
 
-    m_AppSurfaceBuffer = pool.create_buffer(width * height * 4, width, height, width * 4, wayland::shm_format::xrgb8888);
+    m_AppSurfaceBuffer = pool.create_buffer(0, width, height, width * 4, wayland::shm_format::xrgb8888);
 
     m_windowWidth = width;
     m_windowHeight = height;
@@ -477,4 +488,205 @@ std::string WaylandDisplayWindow::GetWaylandWindowID()
     return m_windowID;
 }
 
+InputKey WaylandDisplayWindow::LinuxInputEventCodeToInputKey(uint32_t inputCode)
+{
+    switch (inputCode)
+    {
+        // Keyboard
+        case KEY_ESC:
+            return InputKey::Escape;
+        case KEY_1:
+            return InputKey::_1;
+        case KEY_2:
+            return InputKey::_2;
+        case KEY_3:
+            return InputKey::_3;
+        case KEY_4:
+            return InputKey::_4;
+        case KEY_5:
+            return InputKey::_5;
+        case KEY_6:
+            return InputKey::_6;
+        case KEY_7:
+            return InputKey::_7;
+        case KEY_8:
+            return InputKey::_8;
+        case KEY_9:
+            return InputKey::_9;
+        case KEY_0:
+            return InputKey::_0;
+        case KEY_KP1:
+            return InputKey::NumPad1;
+        case KEY_KP2:
+            return InputKey::NumPad2;
+        case KEY_KP3:
+            return InputKey::NumPad3;
+        case KEY_KP4:
+            return InputKey::NumPad4;
+        case KEY_KP5:
+            return InputKey::NumPad5;
+        case KEY_KP6:
+            return InputKey::NumPad6;
+        case KEY_KP7:
+            return InputKey::NumPad7;
+        case KEY_KP8:
+            return InputKey::NumPad8;
+        case KEY_KP9:
+            return InputKey::NumPad9;
+        case KEY_KP0:
+            return InputKey::NumPad0;
+        case KEY_F1:
+            return InputKey::F1;
+        case KEY_F2:
+            return InputKey::F2;
+        case KEY_F3:
+            return InputKey::F3;
+        case KEY_F4:
+            return InputKey::F4;
+        case KEY_F5:
+            return InputKey::F5;
+        case KEY_F6:
+            return InputKey::F6;
+        case KEY_F7:
+            return InputKey::F7;
+        case KEY_F8:
+            return InputKey::F8;
+        case KEY_F9:
+            return InputKey::F9;
+        case KEY_F10:
+            return InputKey::F10;
+        case KEY_F11:
+            return InputKey::F11;
+        case KEY_F12:
+            return InputKey::F12;
+        case KEY_F13:
+            return InputKey::F13;
+        case KEY_F14:
+            return InputKey::F14;
+        case KEY_F15:
+            return InputKey::F15;
+        case KEY_F16:
+            return InputKey::F16;
+        case KEY_F17:
+            return InputKey::F17;
+        case KEY_F18:
+            return InputKey::F18;
+        case KEY_F19:
+            return InputKey::F19;
+        case KEY_F20:
+            return InputKey::F20;
+        case KEY_F21:
+            return InputKey::F21;
+        case KEY_F22:
+            return InputKey::F22;
+        case KEY_F23:
+            return InputKey::F23;
+        case KEY_F24:
+            return InputKey::F24;
+        case KEY_MINUS:
+        case KEY_KPMINUS:
+            return InputKey::Minus;
+        case KEY_EQUAL:
+            return InputKey::Equals;
+        case KEY_BACKSPACE:
+            return InputKey::Backspace;
+        case KEY_BACKSLASH:
+            return InputKey::Backslash;
+        case KEY_TAB:
+            return InputKey::Tab;
+        case KEY_LEFTBRACE:
+            return InputKey::LeftBracket;
+        case KEY_RIGHTBRACE:
+            return InputKey::RightBracket;
+        case KEY_LEFTCTRL:
+        case KEY_RIGHTCTRL:
+            return InputKey::Ctrl;
+        case KEY_LEFTALT:
+        case KEY_RIGHTALT:
+            return InputKey::Alt;
+        case KEY_DELETE:
+            return InputKey::Delete;
+        case KEY_SEMICOLON:
+            return InputKey::Semicolon;
+        case KEY_COMMA:
+            return InputKey::Comma;
+        case KEY_DOT:
+            return InputKey::Period;
+        case KEY_NUMLOCK:
+            return InputKey::NumLock;
+        case KEY_CAPSLOCK:
+            return InputKey::CapsLock;
+        case KEY_SCROLLDOWN:
+            return InputKey::ScrollLock;
+        case KEY_LEFTSHIFT:
+            return InputKey::LShift;
+        case KEY_RIGHTSHIFT:
+            return InputKey::RShift;
+        case KEY_GRAVE:
+            return InputKey::Tilde;
+        case KEY_APOSTROPHE:
+            return InputKey::SingleQuote;
+        case KEY_A:
+            return InputKey::A;
+        case KEY_B:
+            return InputKey::B;
+        case KEY_C:
+            return InputKey::C;
+        case KEY_D:
+            return InputKey::D;
+        case KEY_E:
+            return InputKey::E;
+        case KEY_F:
+            return InputKey::F;
+        case KEY_G:
+            return InputKey::G;
+        case KEY_H:
+            return InputKey::H;
+        case KEY_I:
+            return InputKey::I;
+        case KEY_J:
+            return InputKey::J;
+        case KEY_K:
+            return InputKey::K;
+        case KEY_L:
+            return InputKey::L;
+        case KEY_M:
+            return InputKey::M;
+        case KEY_N:
+            return InputKey::N;
+        case KEY_O:
+            return InputKey::O;
+        case KEY_P:
+            return InputKey::P;
+        case KEY_Q:
+            return InputKey::Q;
+        case KEY_R:
+            return InputKey::R;
+        case KEY_S:
+            return InputKey::S;
+        case KEY_T:
+            return InputKey::T;
+        case KEY_U:
+            return InputKey::U;
+        case KEY_V:
+            return InputKey::V;
+        case KEY_W:
+            return InputKey::W;
+        case KEY_X:
+            return InputKey::X;
+        case KEY_Y:
+            return InputKey::Y;
+        case KEY_Z:
+            return InputKey::Z;
 
+        // Mouse
+        case BTN_LEFT:
+            return InputKey::LeftMouse;
+        case BTN_RIGHT:
+            return InputKey::RightMouse;
+        case BTN_MIDDLE:
+            return InputKey::MiddleMouse;
+        default:
+            return InputKey::None;
+    }
+}
