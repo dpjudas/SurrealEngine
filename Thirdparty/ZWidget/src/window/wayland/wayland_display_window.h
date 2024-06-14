@@ -144,6 +144,9 @@ private:
     DisplayWindowHost* windowHost = nullptr;
     bool m_PopupWindow = false;
 
+    bool m_NeedsUpdate = true;
+    static void CheckNeedsUpdate();
+
     static bool exitRunLoop;
 
     int32_t m_windowGlobalX = 0;
