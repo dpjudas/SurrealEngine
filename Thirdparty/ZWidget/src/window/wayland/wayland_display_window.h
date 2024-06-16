@@ -140,7 +140,19 @@ public:
     static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
     static void StopTimer(void* timerID);
 private:
+    // Event handlers as otherwise linking DisplayWindowHost On...() functions with Wayland events directly crashes the app
+    // Alternatively to avoid crashes one can capture by value ([=]) instead of reference ([&])
+    void OnXDGToplevelConfigureEvent(int32_t width, int32_t height);
+    void OnMouseEnterEvent(uint32_t serial);
+    void OnMouseLeaveEvent();
+    void OnMousePressEvent(InputKey button);
+    void OnMouseReleaseEvent(InputKey button);
+    void OnMouseMoveEvent(Point surfacePos);
+    void OnMouseWheelEvent(InputKey button);
+    void OnExitEvent();
+
     void DrawSurface(uint32_t serial = 0);
+
     DisplayWindowHost* windowHost = nullptr;
     bool m_PopupWindow = false;
 
@@ -149,11 +161,11 @@ private:
 
     static bool exitRunLoop;
 
-    int32_t m_windowGlobalX = 0;
-    int32_t m_windowGlobalY = 0;
-    uint32_t m_windowWidth = 0;
-    uint32_t m_windowHeight = 0;
+    Point m_WindowGlobalPos = Point(0, 0);
+    Size m_WindowSize = Size(0, 0);
     double m_ScaleFactor = 1.0;
+
+    Point m_SurfaceMousePos = Point(0, 0);
 
     static Size m_ScreenSize;
     static std::list<WaylandDisplayWindow*> s_Windows;
