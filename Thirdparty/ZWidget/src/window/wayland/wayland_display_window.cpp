@@ -24,7 +24,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         if (interface == wayland::output_t::interface_name)
             m_waylandRegistry.bind(name, m_waylandOutput, version);
         if (interface == wayland::seat_t::interface_name)
-            m_waylandRegistry.bind(name, m_waylandSeat, version);
+            m_waylandRegistry.bind(name, m_waylandSeat, 8);
         if (interface == wayland::xdg_wm_base_t::interface_name)
             m_waylandRegistry.bind(name, m_XDGWMBase, 1);
         if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
@@ -89,13 +89,11 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_XDGOutput = m_XDGOutputManager.get_xdg_output(m_waylandOutput);
 
     m_XDGOutput.on_logical_position() = [&] (int32_t x, int32_t y) {
-        m_windowGlobalX = x;
-        m_windowGlobalY = y;
+        m_WindowGlobalPos = Point(x, y);
     };
 
     m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
-        m_windowWidth = width;
-        m_windowHeight = height;
+        m_WindowSize = Size(width, height);
         m_NeedsUpdate = true;
         windowHost->OnWindowGeometryChanged();
     };
@@ -116,14 +114,11 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_waylandDisplay.roundtrip();
 
     m_XDGToplevel.on_configure() = [&] (int32_t width, int32_t height, wayland::array_t states) {
-        Rect rect = GetWindowFrame();
-        rect.width = width;
-        rect.height = height;
-        SetWindowFrame(rect);
+        OnXDGToplevelConfigureEvent(width, height);
     };
 
     m_XDGToplevel.on_close() = [&] () {
-        windowHost->OnWindowClose();
+        OnExitEvent();
     };
 
     if (!hasKeyboard)
@@ -138,19 +133,37 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     SetCursor(StandardCursor::arrow);
 
     m_waylandPointer.on_enter() = [&](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
-        m_cursorSurface.attach(m_cursorBuffer, 0, 0);
-        m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
-        m_cursorSurface.commit();
-        m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
+        OnMouseEnterEvent(serial);
+    };
+
+    m_waylandPointer.on_leave() = [&](uint32_t serial, wayland::surface_t surfaceLeft) {
+        OnMouseLeaveEvent();
     };
 
     m_waylandPointer.on_motion() = [&] (uint32_t serial, double surfaceX, double surfaceY) {
-
+        OnMouseMoveEvent(Point(surfaceX, surfaceY));
     };
 
     m_waylandPointer.on_button() = [&] (uint32_t serial, uint32_t time, uint32_t button, wayland::pointer_button_state state) {
-        if (button == BTN_LEFT && state == wayland::pointer_button_state::pressed)
-            windowHost->OnWindowMouseDown(Point(0,0), LinuxInputEventCodeToInputKey(button)); // TODO: Probably the global coords...
+        if (state == wayland::pointer_button_state::pressed)
+            OnMousePressEvent(LinuxInputEventCodeToInputKey(button));
+        if (state == wayland::pointer_button_state::released)
+            OnMouseReleaseEvent(LinuxInputEventCodeToInputKey(button));
+    };
+
+    m_waylandPointer.on_axis() = [&] (uint32_t serial, wayland::pointer_axis axis, double value) {
+        if (axis == wayland::pointer_axis::vertical_scroll && value > 0)
+            OnMouseWheelEvent(InputKey::MouseWheelDown);
+        if (axis == wayland::pointer_axis::vertical_scroll && value < 0)
+            OnMouseWheelEvent(InputKey::MouseWheelUp);
+    };
+
+    // High resolution scroll event
+    m_waylandPointer.on_axis_value120() = [&] (wayland::pointer_axis axis, int32_t value) {
+        if (axis == wayland::pointer_axis::vertical_scroll && value > 0)
+            OnMouseWheelEvent(InputKey::MouseWheelDown);
+        if (axis == wayland::pointer_axis::vertical_scroll && value < 0)
+            OnMouseWheelEvent(InputKey::MouseWheelUp);
     };
 
     s_Windows.push_front(this);
@@ -189,7 +202,7 @@ void WaylandDisplayWindow::SetClientFrame(const Rect& box)
 void WaylandDisplayWindow::Show()
 {
     m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-    m_AppSurface.damage(0, 0, m_windowWidth, m_windowHeight);
+    m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
     m_AppSurface.commit();
 }
 
@@ -202,10 +215,7 @@ void WaylandDisplayWindow::ShowFullscreen()
 void WaylandDisplayWindow::ShowMaximized()
 {
     if (m_XDGToplevel)
-    {
         m_XDGToplevel.set_maximized();
-    }
-
 }
 
 void WaylandDisplayWindow::ShowMinimized()
@@ -296,22 +306,22 @@ void WaylandDisplayWindow::SetCursor(StandardCursor cursor)
 
 Rect WaylandDisplayWindow::GetWindowFrame() const
 {
-    return Rect(m_windowGlobalX, m_windowGlobalY, m_windowWidth, m_windowHeight);
+    return Rect(m_WindowGlobalPos.x, m_WindowGlobalPos.y, m_WindowSize.width, m_WindowSize.height);
 }
 
 Size WaylandDisplayWindow::GetClientSize() const
 {
-    return Size(m_windowWidth, m_windowHeight);
+    return m_WindowSize;
 }
 
 int WaylandDisplayWindow::GetPixelWidth() const
 {
-    return m_windowWidth;
+    return m_WindowSize.width;
 }
 
 int WaylandDisplayWindow::GetPixelHeight() const
 {
-    return m_windowHeight;
+    return m_WindowSize.height;
 }
 
 double WaylandDisplayWindow::GetDpiScale() const
@@ -322,7 +332,7 @@ double WaylandDisplayWindow::GetDpiScale() const
 void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pixels)
 {
     // Make new buffers if the sizes don't match
-    if (width != m_windowWidth || height != m_windowHeight)
+    if (width != m_WindowSize.width || height != m_WindowSize.height)
         CreateBuffers(width, height);
 
     std::memcpy(shared_mem->get_mem(), (void*)pixels, width * height * 4);
@@ -355,17 +365,16 @@ void WaylandDisplayWindow::SetClipboardText(const std::string& text)
 
 Point WaylandDisplayWindow::MapFromGlobal(const Point& pos) const
 {
-    return Point(0.0, 0.0);
+    return pos - m_WindowGlobalPos;
 }
 
 Point WaylandDisplayWindow::MapToGlobal(const Point& pos) const
 {
-    return Point(0.0, 0.0);
+    return m_WindowGlobalPos + pos;
 }
 
 void WaylandDisplayWindow::ProcessEvents()
 {
-    //TODO: Implement (???)
     while (m_waylandDisplay.dispatch() > 0 )
     {
     }
@@ -373,7 +382,6 @@ void WaylandDisplayWindow::ProcessEvents()
 
 void WaylandDisplayWindow::RunLoop()
 {
-    //TODO: Implement (???)
     while (!exitRunLoop)
     {
         CheckNeedsUpdate();
@@ -413,10 +421,58 @@ void WaylandDisplayWindow::CheckNeedsUpdate()
     }
 }
 
+void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t height)
+{
+    Rect rect = GetWindowFrame();
+    rect.width = width;
+    rect.height = height;
+    SetWindowFrame(rect);
+    windowHost->OnWindowGeometryChanged();
+}
+
+void WaylandDisplayWindow::OnMouseEnterEvent(uint32_t serial)
+{
+    m_cursorSurface.attach(m_cursorBuffer, 0, 0);
+    m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
+    m_cursorSurface.commit();
+    m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
+}
+
+void WaylandDisplayWindow::OnMouseLeaveEvent()
+{
+    windowHost->OnWindowMouseLeave();
+}
+
+void WaylandDisplayWindow::OnMousePressEvent(InputKey button)
+{
+    windowHost->OnWindowMouseDown(MapToGlobal(m_SurfaceMousePos), button);
+}
+
+void WaylandDisplayWindow::OnMouseReleaseEvent(InputKey button)
+{
+    windowHost->OnWindowMouseUp(MapToGlobal(m_SurfaceMousePos), button);
+}
+
+void WaylandDisplayWindow::OnMouseMoveEvent(Point surfacePos)
+{
+    m_SurfaceMousePos = surfacePos;
+    windowHost->OnWindowMouseMove(MapToGlobal(m_SurfaceMousePos));
+}
+
+void WaylandDisplayWindow::OnMouseWheelEvent(InputKey button)
+{
+    windowHost->OnWindowMouseWheel(MapToGlobal(m_SurfaceMousePos), button);
+}
+
+void WaylandDisplayWindow::OnExitEvent()
+{
+    windowHost->OnWindowClose();
+}
+
 void WaylandDisplayWindow::DrawSurface(uint32_t serial)
 {
     m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-    m_AppSurface.damage(0, 0, m_windowWidth, m_windowHeight);
+    m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
 
     m_FrameCallback = m_AppSurface.frame();
 
@@ -435,8 +491,7 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 
     m_AppSurfaceBuffer = pool.create_buffer(0, width, height, width * 4, wayland::shm_format::xrgb8888);
 
-    m_windowWidth = width;
-    m_windowHeight = height;
+    m_WindowSize = Size(width, height);
 }
 
 std::string WaylandDisplayWindow::GetWaylandCursorName(StandardCursor cursor)
