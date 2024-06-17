@@ -25,7 +25,7 @@ int EditorApp::main(std::vector<std::string> args)
 		Engine engine(info);
 
 		auto editorWindow = std::make_unique<EditorMainWindow>();
-		editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1920.0, 1080.0));
+		editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
 		editorWindow->Show();
 
 		DisplayWindow::RunLoop();
