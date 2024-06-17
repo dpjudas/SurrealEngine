@@ -179,9 +179,13 @@ private:
     wayland::shm_t m_waylandSHM;
     wayland::seat_t m_waylandSeat;
     wayland::output_t m_waylandOutput;
+    wayland::data_device_manager_t m_DataDeviceManager;
     wayland::xdg_wm_base_t m_XDGWMBase;
     wayland::zwp_pointer_constraints_v1_t m_PointerConstraints;
     wayland::xdg_activation_v1_t m_XDGActivation;
+
+    wayland::data_device_t m_DataDevice;
+    wayland::data_source_t m_DataSource;
 
     wayland::zxdg_decoration_manager_v1_t m_XDGDecorationManager;
     wayland::zxdg_toplevel_decoration_v1_t m_XDGToplevelDecoration;
@@ -198,6 +202,8 @@ private:
 
     wayland::keyboard_t m_waylandKeyboard;
     wayland::pointer_t m_waylandPointer;
+
+    uint32_t m_KeyboardSerial = 0;
 
     xkb_context* m_KeymapContext = nullptr;
     xkb_keymap* m_Keymap = nullptr;
@@ -220,6 +226,7 @@ private:
     wayland::callback_t m_FrameCallback;
 
     std::string m_windowID;
+    std::string m_ClipboardContents = "";
 
     std::shared_ptr<SharedMemHelper> shared_mem;
 

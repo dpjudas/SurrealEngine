@@ -25,6 +25,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
             m_waylandRegistry.bind(name, m_waylandOutput, version);
         if (interface == wayland::seat_t::interface_name)
             m_waylandRegistry.bind(name, m_waylandSeat, 8);
+        if (interface == wayland::data_device_manager_t::interface_name)
+            m_waylandRegistry.bind(name, m_DataDeviceManager, 3);
         if (interface == wayland::xdg_wm_base_t::interface_name)
             m_waylandRegistry.bind(name, m_XDGWMBase, 1);
         if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
@@ -57,6 +59,52 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_waylandOutput.on_mode() = [&] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
         m_ScreenSize = Size(width, height);
+    };
+
+    m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
+
+    m_DataSource = m_DataDeviceManager.create_data_source();
+    m_DataSource.offer("text/plain");
+
+    m_DataSource.on_send() = [&] (std::string mime_type, int fd) {
+        if (mime_type != "text/plain")
+            return;
+
+        if (!m_ClipboardContents.empty())
+            write(fd, m_ClipboardContents.data(), m_ClipboardContents.size());
+        close(fd);
+    };
+
+    m_DataDevice.on_selection() = [&] (wayland::data_offer_t dataOffer) {
+        m_ClipboardContents.clear();
+
+        if (!dataOffer)
+            // Clipboard is empty
+            return;
+
+        int fds[2];
+        pipe(fds);
+
+        dataOffer.receive("text/plain", fds[1]);
+        close(fds[1]);
+
+        m_waylandDisplay.roundtrip();
+
+        while (true)
+        {
+            char buf[1024];
+
+            ssize_t n = read(fds[0], buf, sizeof(buf));
+
+            if (n <= 0)
+                break;
+
+            m_ClipboardContents += buf;
+        }
+
+        close(fds[0]);
+
+        dataOffer.proxy_release();
     };
 
     m_XDGWMBase.on_ping() = [&] (uint32_t serial) {
@@ -178,6 +226,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_waylandKeyboard.on_enter() = [&] (uint32_t serial, wayland::surface_t surfaceEntered, wayland::array_t keys) {
         std::vector<uint32_t> keysVec = keys;
 
+        m_KeyboardSerial = serial;
+
         for (auto key: keysVec)
         {
             // keys parameter represents the keys pressed when entering the surface
@@ -203,6 +253,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         xkb_state_key_get_utf8(m_KeyboardState, key + 8, buf, sizeof(buf));
 
         OnKeyboardCharEvent(buf);
+
+        m_DataDevice.set_selection(m_DataSource, m_KeyboardSerial);
     };
 
     m_cursorSurface = m_waylandCompositor.create_surface();
@@ -267,8 +319,8 @@ void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
 
 void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
 {
-    m_XDGSurface.set_window_geometry((int32_t)box.left(), (int32_t)box.top(),
-                                     (int32_t)box.width, (int32_t)box.height);
+    //m_XDGSurface.set_window_geometry((int32_t)box.left(), (int32_t)box.top(),
+    //                                 (int32_t)box.width, (int32_t)box.height);
     // Resizing will be shown on the next commit
     CreateBuffers(box.width, box.height);
     windowHost->OnWindowGeometryChanged();
@@ -335,6 +387,7 @@ void WaylandDisplayWindow::Activate()
     xdgActivationToken.commit();  // This will set our token string
 
     m_XDGActivation.activate(tokenString, m_AppSurface);
+    windowHost->OnWindowActivated();
 }
 
 void WaylandDisplayWindow::ShowCursor(bool enable)
@@ -443,12 +496,12 @@ void WaylandDisplayWindow::SetCaptionTextColor(uint32_t bgra8)
 
 std::string WaylandDisplayWindow::GetClipboardText()
 {
-    return "";
+    return m_ClipboardContents;
 }
 
 void WaylandDisplayWindow::SetClipboardText(const std::string& text)
 {
-
+    m_ClipboardContents = text;
 }
 
 Point WaylandDisplayWindow::MapFromGlobal(const Point& pos) const
