@@ -75,6 +75,45 @@ std::unique_ptr<OpenFolderDialog> DisplayBackend::CreateOpenFolderDialog(Display
 	return std::make_unique<StubOpenFolderDialog>(owner);
 }
 
+std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateBackend()
+{
+	auto backend = TryCreateWin32();
+	if (!backend)
+	{
+		// Check if there is an environment variable specified for the desired backend
+		const char* backendSelectionEnv = std::getenv("ZWIDGET_DISPLAY_BACKEND");
+		if (backendSelectionEnv)
+		{
+			std::string backendSelectionStr(backendSelectionEnv);
+
+			if (backendSelectionStr == "X11")
+			{
+				backend = TryCreateX11();
+				if (!backend) TryCreateWayland();
+				if (!backend) TryCreateSDL2();
+			}
+			else if (backendSelectionStr == "SDL2")
+			{
+				backend = TryCreateSDL2();
+				if (!backend) TryCreateWayland();
+				if (!backend) TryCreateX11();
+			}
+			// Wayland is already first priority by default
+			// so no need to handle that case here
+			else if (backendSelectionStr != "Wayland")
+				std::runtime_error("ZWidget: Unrecognized backend: " + backendSelectionStr);
+		}
+	}
+	if (!backend)
+	{
+		backend = TryCreateWayland();
+		if (!backend) TryCreateX11();
+		if (!backend) TryCreateSDL2();
+	}
+
+	return backend;
+}
+
 #ifdef WIN32
 
 #include "win32/win32_display_backend.h"

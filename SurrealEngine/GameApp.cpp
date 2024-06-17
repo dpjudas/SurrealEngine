@@ -13,10 +13,7 @@
 
 int GameApp::main(std::vector<std::string> args)
 {
-	auto backend = DisplayBackend::TryCreateWin32();
-	if (!backend) backend = DisplayBackend::TryCreateWayland();
-	if (!backend) backend = DisplayBackend::TryCreateX11();
-	if (!backend) backend = DisplayBackend::TryCreateSDL2();
+	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());

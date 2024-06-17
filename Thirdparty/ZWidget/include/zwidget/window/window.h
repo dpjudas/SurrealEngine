@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <cstdint>
+#include <cstdlib>
 #include "../core/rect.h"
 
 class Widget;
@@ -186,6 +187,8 @@ public:
 	static std::unique_ptr<DisplayBackend> TryCreateSDL2();
 	static std::unique_ptr<DisplayBackend> TryCreateX11();
 	static std::unique_ptr<DisplayBackend> TryCreateWayland();
+
+	static std::unique_ptr<DisplayBackend> TryCreateBackend();
 
 	virtual ~DisplayBackend() = default;
 
