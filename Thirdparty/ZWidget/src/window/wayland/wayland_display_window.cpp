@@ -5,6 +5,7 @@
 bool WaylandDisplayWindow::exitRunLoop = false;
 Size WaylandDisplayWindow::m_ScreenSize = Size(0, 0);
 wayland::display_t WaylandDisplayWindow::m_waylandDisplay = wayland::display_t();
+wayland::registry_t WaylandDisplayWindow::m_waylandRegistry;
 std::list<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
 std::list<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
@@ -120,7 +121,19 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     {
         wayland::xdg_positioner_t popupPositioner = m_XDGWMBase.create_positioner();
 
+        popupPositioner.set_anchor(wayland::xdg_positioner_anchor::bottom_left);
+        popupPositioner.set_anchor_rect(0, 30, 1, 50);
+        popupPositioner.set_size(100, 100);
+
         m_XDGPopup = m_XDGSurface.get_popup(owner ? owner->m_XDGSurface : nullptr, popupPositioner);
+
+        m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
+            SetClientFrame(Rect::xywh(x, y, width, height));
+        };
+
+        m_XDGPopup.on_popup_done() = [&] () {
+            OnExitEvent();
+        };
     }
     else
     {
@@ -173,16 +186,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         };
 
         m_XDGToplevel.on_close() = [&] () {
-            OnExitEvent();
-        };
-    }
-    else
-    {
-        m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
-            SetClientFrame(Rect(x, y, width, height));
-        };
-
-        m_XDGPopup.on_popup_done() = [&] () {
             OnExitEvent();
         };
     }

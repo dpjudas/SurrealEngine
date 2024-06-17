@@ -174,7 +174,7 @@ private:
     static std::list<WaylandDisplayWindow*>::iterator s_WindowsIterator;
 
     static wayland::display_t m_waylandDisplay;
-    wayland::registry_t m_waylandRegistry;
+    static wayland::registry_t m_waylandRegistry;
     wayland::compositor_t m_waylandCompositor;
     wayland::shm_t m_waylandSHM;
     wayland::seat_t m_waylandSeat;
