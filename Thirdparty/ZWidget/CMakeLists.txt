@@ -134,12 +134,6 @@ set(ZWIDGET_WAYLAND_SOURCES
 	src/window/wayland/wayland_display_backend.h
 	src/window/wayland/wayland_display_window.cpp
 	src/window/wayland/wayland_display_window.h
-	src/window/wayland/xdg-foreign-unstable-v2.c
-	src/window/wayland/xdg-foreign-unstable-v2.h
-	src/window/wayland/xdg-output-unstable.c
-	src/window/wayland/xdg-output-unstable.h
-	src/window/wayland/xdg-shell.c
-	src/window/wayland/xdg-shell.h
 )
 
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
