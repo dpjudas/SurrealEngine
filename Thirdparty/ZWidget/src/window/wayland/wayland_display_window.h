@@ -58,7 +58,7 @@ public:
 
         mem = mmap(nullptr, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
         if(mem == MAP_FAILED) // NOLINT
-            throw std::runtime_error("mmap failed.");
+            throw std::runtime_error("mmap failed with len " + std::to_string(len) + ".");
     }
 
     ~SharedMemHelper() noexcept
@@ -143,6 +143,8 @@ private:
     // Event handlers as otherwise linking DisplayWindowHost On...() functions with Wayland events directly crashes the app
     // Alternatively to avoid crashes one can capture by value ([=]) instead of reference ([&])
     void OnXDGToplevelConfigureEvent(int32_t width, int32_t height);
+    void OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::keyboard_key_state state);
+    void OnKeyboardCharEvent(const char* ch);
     void OnMouseEnterEvent(uint32_t serial);
     void OnMouseLeaveEvent();
     void OnMousePressEvent(InputKey button);
@@ -197,6 +199,12 @@ private:
     wayland::keyboard_t m_waylandKeyboard;
     wayland::pointer_t m_waylandPointer;
 
+    xkb_context* m_KeymapContext = nullptr;
+    xkb_keymap* m_Keymap = nullptr;
+    xkb_state* m_KeyboardState = nullptr;
+
+    std::map<InputKey, bool> inputKeyStates; // True when the key is pressed, false when isn't
+
     wayland::zxdg_output_manager_v1_t m_XDGOutputManager;
     wayland::zxdg_output_v1_t m_XDGOutput;
 
@@ -220,6 +228,7 @@ private:
     std::string GetWaylandCursorName(StandardCursor cursor);
     std::string GetWaylandWindowID();
 
+    InputKey XKBKeySymToInputKey(xkb_keysym_t keySym);
     InputKey LinuxInputEventCodeToInputKey(uint32_t inputCode);
 
     friend WaylandDisplayBackend;
