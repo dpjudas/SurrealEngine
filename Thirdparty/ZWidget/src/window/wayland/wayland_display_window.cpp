@@ -70,30 +70,34 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     if (popupWindow)
     {
-        wayland::xdg_positioner_t popupPositioner;
+        wayland::xdg_positioner_t popupPositioner = m_XDGWMBase.create_positioner();
+
+        m_XDGPopup = m_XDGSurface.get_popup(owner ? owner->m_XDGSurface : nullptr, popupPositioner);
     }
-
-    m_XDGToplevel = m_XDGSurface.get_toplevel();
-    m_XDGToplevel.set_title("ZWidget Window");
-
-    if (owner)
-        m_XDGToplevel.set_parent(owner->m_XDGToplevel);
-
-    if (m_XDGToplevel && m_XDGDecorationManager)
+    else
     {
-        // Force server side decorations if possible
-        m_XDGToplevelDecoration = m_XDGDecorationManager.get_toplevel_decoration(m_XDGToplevel);
-        m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
+        m_XDGToplevel = m_XDGSurface.get_toplevel();
+        m_XDGToplevel.set_title("ZWidget Window");
+
+        if (owner)
+            m_XDGToplevel.set_parent(owner->m_XDGToplevel);
+
+        if (m_XDGToplevel && m_XDGDecorationManager)
+        {
+            // Force server side decorations if possible
+            m_XDGToplevelDecoration = m_XDGDecorationManager.get_toplevel_decoration(m_XDGToplevel);
+            m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
+        }
     }
 
     m_XDGOutput = m_XDGOutputManager.get_xdg_output(m_waylandOutput);
 
     m_XDGOutput.on_logical_position() = [&] (int32_t x, int32_t y) {
-        m_WindowGlobalPos = Point(x, y);
+        //m_WindowGlobalPos = Point(x, y);
     };
 
     m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
-        m_WindowSize = Size(width, height);
+        m_ScreenSize = Size(width, height);
         m_NeedsUpdate = true;
         windowHost->OnWindowGeometryChanged();
     };
@@ -113,13 +117,27 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_waylandDisplay.roundtrip();
 
-    m_XDGToplevel.on_configure() = [&] (int32_t width, int32_t height, wayland::array_t states) {
-        OnXDGToplevelConfigureEvent(width, height);
-    };
+    // These have to be added after the roundtrip
+    if (m_XDGToplevel)
+    {
+        m_XDGToplevel.on_configure() = [&] (int32_t width, int32_t height, wayland::array_t states) {
+            OnXDGToplevelConfigureEvent(width, height);
+        };
 
-    m_XDGToplevel.on_close() = [&] () {
-        OnExitEvent();
-    };
+        m_XDGToplevel.on_close() = [&] () {
+            OnExitEvent();
+        };
+    }
+    else
+    {
+        m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
+            SetClientFrame(Rect(x, y, width, height));
+        };
+
+        m_XDGPopup.on_popup_done() = [&] () {
+            OnExitEvent();
+        };
+    }
 
     if (!hasKeyboard)
         throw std::runtime_error("No keyboard detected!");
@@ -128,6 +146,64 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_waylandKeyboard = m_waylandSeat.get_keyboard();
     m_waylandPointer = m_waylandSeat.get_pointer();
+
+    m_KeymapContext = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+    m_waylandKeyboard.on_keymap() = [&] (wayland::keyboard_keymap_format format, int fd, uint32_t size) {
+        if (format != wayland::keyboard_keymap_format::xkb_v1)
+            throw std::runtime_error("WaylandDisplayWindow: Unrecognized keymap format!");
+
+        char* mapSHM = (char*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (mapSHM == MAP_FAILED)
+            throw std::runtime_error("WaylandDisplayWindow: Keymap shared memory allocation failed!");
+
+        if (m_Keymap)
+            xkb_keymap_unref(m_Keymap);
+
+        m_Keymap = xkb_keymap_new_from_string(m_KeymapContext, mapSHM, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+        munmap(mapSHM, size);
+        close(fd);
+
+        if (m_KeyboardState)
+            xkb_state_unref(m_KeyboardState);
+
+        m_KeyboardState = xkb_state_new(m_Keymap);
+    };
+
+    m_waylandKeyboard.on_modifiers() = [&] (uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
+                                            uint32_t mods_locked, uint32_t group) {
+        xkb_state_update_mask(m_KeyboardState, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+    };
+
+    m_waylandKeyboard.on_enter() = [&] (uint32_t serial, wayland::surface_t surfaceEntered, wayland::array_t keys) {
+        std::vector<uint32_t> keysVec = keys;
+
+        for (auto key: keysVec)
+        {
+            // keys parameter represents the keys pressed when entering the surface
+            // key variable is Linux evdev scancode, to translate it to XKB keycode, we must add 8
+            xkb_keysym_t sym = xkb_state_key_get_one_sym(m_KeyboardState, key + 8);
+            OnKeyboardKeyEvent(sym, wayland::keyboard_key_state::pressed);
+
+            // Also cause a Char event
+            char buf[128];
+            xkb_state_key_get_utf8(m_KeyboardState, key + 8, buf, sizeof(buf));
+
+            OnKeyboardCharEvent(buf);
+        }
+    };
+
+    m_waylandKeyboard.on_key() = [&] (uint32_t serial, uint32_t time, uint32_t key, wayland::keyboard_key_state state) {
+        // key is Linux evdev scancode, to translate it to XKB keycode, we must add 8
+        xkb_keysym_t sym = xkb_state_key_get_one_sym(m_KeyboardState, key + 8);
+        OnKeyboardKeyEvent(sym, state);
+
+        // Also cause a Char event
+        char buf[128];
+        xkb_state_key_get_utf8(m_KeyboardState, key + 8, buf, sizeof(buf));
+
+        OnKeyboardCharEvent(buf);
+    };
 
     m_cursorSurface = m_waylandCompositor.create_surface();
     SetCursor(StandardCursor::arrow);
@@ -174,6 +250,12 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
 WaylandDisplayWindow::~WaylandDisplayWindow()
 {
+    if (m_KeymapContext)
+        xkb_context_unref(m_KeymapContext);
+
+    if (m_KeyboardState)
+        xkb_state_unref(m_KeyboardState);
+
     s_Windows.erase(s_WindowsIterator);
 }
 
@@ -290,7 +372,13 @@ void WaylandDisplayWindow::Update()
 
 bool WaylandDisplayWindow::GetKeyState(InputKey key)
 {
-    return false;
+    auto it = inputKeyStates.find(key);
+
+    // if the key isn't "registered", then it is not pressed.
+    if (it == inputKeyStates.end())
+        return false;
+
+    return it->second;
 }
 
 void WaylandDisplayWindow::SetCursor(StandardCursor cursor)
@@ -430,6 +518,27 @@ void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t he
     windowHost->OnWindowGeometryChanged();
 }
 
+void WaylandDisplayWindow::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::keyboard_key_state state)
+{
+    InputKey inputKey = XKBKeySymToInputKey(xkbKeySym);
+
+    if (state == wayland::keyboard_key_state::pressed)
+    {
+        inputKeyStates[inputKey] = true;
+        windowHost->OnWindowKeyDown(inputKey);
+    }
+    if (state == wayland::keyboard_key_state::released)
+    {
+        inputKeyStates[inputKey] = false;
+        windowHost->OnWindowKeyUp(inputKey);
+    }
+}
+
+void WaylandDisplayWindow::OnKeyboardCharEvent(const char* ch)
+{
+    windowHost->OnWindowKeyChar(std::string(ch));
+}
+
 void WaylandDisplayWindow::OnMouseEnterEvent(uint32_t serial)
 {
     m_cursorSurface.attach(m_cursorBuffer, 0, 0);
@@ -543,11 +652,246 @@ std::string WaylandDisplayWindow::GetWaylandWindowID()
     return m_windowID;
 }
 
+InputKey WaylandDisplayWindow::XKBKeySymToInputKey(xkb_keysym_t keySym)
+{
+    switch (keySym)
+    {
+        case XKB_KEY_Escape:
+            return InputKey::Escape;
+        case XKB_KEY_1:
+            return InputKey::_1;
+        case XKB_KEY_2:
+            return InputKey::_2;
+        case XKB_KEY_3:
+            return InputKey::_3;
+        case XKB_KEY_4:
+            return InputKey::_4;
+        case XKB_KEY_5:
+            return InputKey::_5;
+        case XKB_KEY_6:
+            return InputKey::_6;
+        case XKB_KEY_7:
+            return InputKey::_7;
+        case XKB_KEY_8:
+            return InputKey::_8;
+        case XKB_KEY_9:
+            return InputKey::_9;
+        case XKB_KEY_0:
+            return InputKey::_0;
+        case XKB_KEY_KP_1:
+            return InputKey::NumPad1;
+        case XKB_KEY_KP_2:
+            return InputKey::NumPad2;
+        case XKB_KEY_KP_3:
+            return InputKey::NumPad3;
+        case XKB_KEY_KP_4:
+            return InputKey::NumPad4;
+        case XKB_KEY_KP_5:
+            return InputKey::NumPad5;
+        case XKB_KEY_KP_6:
+            return InputKey::NumPad6;
+        case XKB_KEY_KP_7:
+            return InputKey::NumPad7;
+        case XKB_KEY_KP_8:
+            return InputKey::NumPad8;
+        case XKB_KEY_KP_9:
+            return InputKey::NumPad9;
+        case XKB_KEY_KP_0:
+            return InputKey::NumPad0;
+        case XKB_KEY_F1:
+            return InputKey::F1;
+        case XKB_KEY_F2:
+            return InputKey::F2;
+        case XKB_KEY_F3:
+            return InputKey::F3;
+        case XKB_KEY_F4:
+            return InputKey::F4;
+        case XKB_KEY_F5:
+            return InputKey::F5;
+        case XKB_KEY_F6:
+            return InputKey::F6;
+        case XKB_KEY_F7:
+            return InputKey::F7;
+        case XKB_KEY_F8:
+            return InputKey::F8;
+        case XKB_KEY_F9:
+            return InputKey::F9;
+        case XKB_KEY_F10:
+            return InputKey::F10;
+        case XKB_KEY_F11:
+            return InputKey::F11;
+        case XKB_KEY_F12:
+            return InputKey::F12;
+        case XKB_KEY_F13:
+            return InputKey::F13;
+        case XKB_KEY_F14:
+            return InputKey::F14;
+        case XKB_KEY_F15:
+            return InputKey::F15;
+        case XKB_KEY_F16:
+            return InputKey::F16;
+        case XKB_KEY_F17:
+            return InputKey::F17;
+        case XKB_KEY_F18:
+            return InputKey::F18;
+        case XKB_KEY_F19:
+            return InputKey::F19;
+        case XKB_KEY_F20:
+            return InputKey::F20;
+        case XKB_KEY_F21:
+            return InputKey::F21;
+        case XKB_KEY_F22:
+            return InputKey::F22;
+        case XKB_KEY_F23:
+            return InputKey::F23;
+        case XKB_KEY_F24:
+            return InputKey::F24;
+        case XKB_KEY_minus:
+        case XKB_KEY_KP_Subtract:
+            return InputKey::Minus;
+        case XKB_KEY_equal:
+            return InputKey::Equals;
+        case XKB_KEY_BackSpace:
+            return InputKey::Backspace;
+        case XKB_KEY_backslash:
+            return InputKey::Backslash;
+        case XKB_KEY_Tab:
+            return InputKey::Tab;
+        case XKB_KEY_braceleft:
+            return InputKey::LeftBracket;
+        case XKB_KEY_braceright:
+            return InputKey::RightBracket;
+        case XKB_KEY_Control_L:
+        case XKB_KEY_Control_R:
+            return InputKey::Ctrl;
+        case XKB_KEY_Alt_L:
+        case XKB_KEY_Alt_R:
+            return InputKey::Alt;
+        case XKB_KEY_Delete:
+            return InputKey::Delete;
+        case XKB_KEY_semicolon:
+            return InputKey::Semicolon;
+        case XKB_KEY_comma:
+            return InputKey::Comma;
+        case XKB_KEY_period:
+            return InputKey::Period;
+        case XKB_KEY_Num_Lock:
+            return InputKey::NumLock;
+        case XKB_KEY_Caps_Lock:
+            return InputKey::CapsLock;
+        case XKB_KEY_Scroll_Lock:
+            return InputKey::ScrollLock;
+        case XKB_KEY_Shift_L:
+            return InputKey::LShift;
+        case XKB_KEY_Shift_R:
+            return InputKey::RShift;
+        case XKB_KEY_grave:
+            return InputKey::Tilde;
+        case XKB_KEY_apostrophe:
+            return InputKey::SingleQuote;
+
+        case XKB_KEY_Up:
+            return InputKey::Up;
+        case XKB_KEY_Down:
+            return InputKey::Down;
+        case XKB_KEY_Left:
+            return InputKey::Left;
+        case XKB_KEY_Right:
+            return InputKey::Right;
+
+        case XKB_KEY_A:
+        case XKB_KEY_a:
+            return InputKey::A;
+        case XKB_KEY_B:
+        case XKB_KEY_b:
+            return InputKey::B;
+        case XKB_KEY_C:
+        case XKB_KEY_c:
+            return InputKey::C;
+        case XKB_KEY_D:
+        case XKB_KEY_d:
+            return InputKey::D;
+        case XKB_KEY_E:
+        case XKB_KEY_e:
+            return InputKey::E;
+        case XKB_KEY_F:
+        case XKB_KEY_f:
+            return InputKey::F;
+        case XKB_KEY_G:
+        case XKB_KEY_g:
+            return InputKey::G;
+        case XKB_KEY_H:
+        case XKB_KEY_h:
+            return InputKey::H;
+        case XKB_KEY_I:
+        case XKB_KEY_i:
+            return InputKey::I;
+        case XKB_KEY_J:
+        case XKB_KEY_j:
+            return InputKey::J;
+        case XKB_KEY_K:
+        case XKB_KEY_k:
+            return InputKey::K;
+        case XKB_KEY_L:
+        case XKB_KEY_l:
+            return InputKey::L;
+        case XKB_KEY_M:
+        case XKB_KEY_m:
+            return InputKey::M;
+        case XKB_KEY_N:
+        case XKB_KEY_n:
+            return InputKey::N;
+        case XKB_KEY_O:
+        case XKB_KEY_o:
+            return InputKey::O;
+        case XKB_KEY_P:
+        case XKB_KEY_p:
+            return InputKey::P;
+        case XKB_KEY_Q:
+        case XKB_KEY_q:
+            return InputKey::Q;
+        case XKB_KEY_R:
+        case XKB_KEY_r:
+            return InputKey::R;
+        case XKB_KEY_S:
+        case XKB_KEY_s:
+            return InputKey::S;
+        case XKB_KEY_T:
+        case XKB_KEY_t:
+            return InputKey::T;
+        case XKB_KEY_U:
+        case XKB_KEY_u:
+            return InputKey::U;
+        case XKB_KEY_V:
+        case XKB_KEY_v:
+            return InputKey::V;
+        case XKB_KEY_W:
+        case XKB_KEY_w:
+            return InputKey::W;
+        case XKB_KEY_X:
+        case XKB_KEY_x:
+            return InputKey::X;
+        case XKB_KEY_Y:
+        case XKB_KEY_y:
+            return InputKey::Y;
+        case XKB_KEY_Z:
+        case XKB_KEY_z:
+            return InputKey::Z;
+
+        case XKB_KEY_NoSymbol:
+        case XKB_KEY_VoidSymbol:
+            return InputKey::None;
+        default:
+            return InputKey::None;
+    }
+}
+
 InputKey WaylandDisplayWindow::LinuxInputEventCodeToInputKey(uint32_t inputCode)
 {
     switch (inputCode)
     {
         // Keyboard
+        // Probably not needed due to the existence of XKBKeySym
         case KEY_ESC:
             return InputKey::Escape;
         case KEY_1:
@@ -654,8 +998,9 @@ InputKey WaylandDisplayWindow::LinuxInputEventCodeToInputKey(uint32_t inputCode)
         case KEY_RIGHTBRACE:
             return InputKey::RightBracket;
         case KEY_LEFTCTRL:
+            return InputKey::LControl;
         case KEY_RIGHTCTRL:
-            return InputKey::Ctrl;
+            return InputKey::RControl;
         case KEY_LEFTALT:
         case KEY_RIGHTALT:
             return InputKey::Alt;
@@ -681,6 +1026,16 @@ InputKey WaylandDisplayWindow::LinuxInputEventCodeToInputKey(uint32_t inputCode)
             return InputKey::Tilde;
         case KEY_APOSTROPHE:
             return InputKey::SingleQuote;
+
+        case KEY_UP:
+            return InputKey::Up;
+        case KEY_DOWN:
+            return InputKey::Down;
+        case KEY_LEFT:
+            return InputKey::Left;
+        case KEY_RIGHT:
+            return InputKey::Right;
+
         case KEY_A:
             return InputKey::A;
         case KEY_B:
