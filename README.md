@@ -75,6 +75,7 @@ You'll need the dev packages for the following things:
 * dl
 * alsa (libasound2)
 * SDL2
+* waylandpp (optional) (C++ bindings for Wayland, used on ZWidget Wayland backend)
 
 On Linux, SDL2 is required, as SurrealEngine will utilise it for its windowing functionalities and native Wayland support (with `SDL_VIDEODRIVER=wayland`).
 
