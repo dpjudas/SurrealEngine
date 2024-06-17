@@ -60,7 +60,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_waylandOutput.on_mode() = [&] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
         m_ScreenSize = Size(width, height);
     };
-
+/*
     m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
 
     m_DataSource = m_DataDeviceManager.create_data_source();
@@ -106,7 +106,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
         dataOffer.proxy_release();
     };
-
+*/
     m_XDGWMBase.on_ping() = [&] (uint32_t serial) {
         m_XDGWMBase.pong(serial);
     };
@@ -254,7 +254,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
         OnKeyboardCharEvent(buf);
 
-        m_DataDevice.set_selection(m_DataSource, m_KeyboardSerial);
+        //m_DataDevice.set_selection(m_DataSource, m_KeyboardSerial);
     };
 
     m_cursorSurface = m_waylandCompositor.create_surface();
@@ -523,6 +523,8 @@ void WaylandDisplayWindow::ProcessEvents()
 
 void WaylandDisplayWindow::RunLoop()
 {
+    exitRunLoop = false;
+
     while (!exitRunLoop)
     {
         CheckNeedsUpdate();
