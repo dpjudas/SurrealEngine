@@ -3,46 +3,46 @@
 #include <cstring>
 
 bool WaylandDisplayWindow::exitRunLoop = false;
-Size WaylandDisplayWindow::m_ScreenSize = Size(0, 0);
-wayland::display_t WaylandDisplayWindow::m_waylandDisplay = wayland::display_t();
-wayland::registry_t WaylandDisplayWindow::m_waylandRegistry;
+Size WaylandDisplayWindow::s_ScreenSize = Size(0, 0);
+wayland::display_t WaylandDisplayWindow::s_waylandDisplay = wayland::display_t();
+wayland::registry_t WaylandDisplayWindow::s_waylandRegistry;
 std::vector<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
 std::vector<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
 WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
     : windowHost(windowHost), m_PopupWindow(popupWindow)
 {
-    if (!m_waylandDisplay)
+    if (!s_waylandDisplay)
         throw std::runtime_error("Wayland Display initialization failed!");
 
-    m_waylandRegistry = m_waylandDisplay.get_registry();
+    s_waylandRegistry = s_waylandDisplay.get_registry();
 
-    m_waylandRegistry.on_global() = [&](uint32_t name, std::string interface, uint32_t version) {
+    s_waylandRegistry.on_global() = [&](uint32_t name, std::string interface, uint32_t version) {
         if (interface == wayland::compositor_t::interface_name)
-            m_waylandRegistry.bind(name, m_waylandCompositor, 3);
+            s_waylandRegistry.bind(name, m_waylandCompositor, 3);
         if (interface == wayland::shm_t::interface_name)
-            m_waylandRegistry.bind(name, m_waylandSHM, version);
+            s_waylandRegistry.bind(name, m_waylandSHM, version);
         if (interface == wayland::output_t::interface_name)
-            m_waylandRegistry.bind(name, m_waylandOutput, version);
+            s_waylandRegistry.bind(name, m_waylandOutput, version);
         if (interface == wayland::seat_t::interface_name)
-            m_waylandRegistry.bind(name, m_waylandSeat, 8);
+            s_waylandRegistry.bind(name, m_waylandSeat, 8);
         if (interface == wayland::data_device_manager_t::interface_name)
-            m_waylandRegistry.bind(name, m_DataDeviceManager, 3);
+            s_waylandRegistry.bind(name, m_DataDeviceManager, 3);
         if (interface == wayland::xdg_wm_base_t::interface_name)
-            m_waylandRegistry.bind(name, m_XDGWMBase, 1);
+            s_waylandRegistry.bind(name, m_XDGWMBase, 1);
         if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
-            m_waylandRegistry.bind(name, m_XDGOutputManager, version);
+            s_waylandRegistry.bind(name, m_XDGOutputManager, version);
         if (interface == wayland::zxdg_exporter_v2_t::interface_name)
-            m_waylandRegistry.bind(name, m_XDGExporter, 1);
+            s_waylandRegistry.bind(name, m_XDGExporter, 1);
         if (interface == wayland::zwp_pointer_constraints_v1_t::interface_name)
-            m_waylandRegistry.bind(name, m_PointerConstraints, 1);
+            s_waylandRegistry.bind(name, m_PointerConstraints, 1);
         if (interface == wayland::xdg_activation_v1_t::interface_name)
-            m_waylandRegistry.bind(name, m_XDGActivation, 1);
+            s_waylandRegistry.bind(name, m_XDGActivation, 1);
         if (interface == wayland::zxdg_decoration_manager_v1_t::interface_name)
-            m_waylandRegistry.bind(name, m_XDGDecorationManager, 1);
+            s_waylandRegistry.bind(name, m_XDGDecorationManager, 1);
     };
 
-    m_waylandDisplay.roundtrip();
+    s_waylandDisplay.roundtrip();
 
     if (!m_XDGWMBase)
         throw std::runtime_error("WaylandDisplayWindow: XDG-Shell is required!");
@@ -59,7 +59,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_AppSurface = m_waylandCompositor.create_surface();
 
     m_waylandOutput.on_mode() = [&] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
-        m_ScreenSize = Size(width, height);
+        s_ScreenSize = Size(width, height);
     };
 /*
     m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
@@ -158,7 +158,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     };
 
     m_XDGOutput.on_logical_size() = [&] (int32_t width, int32_t height) {
-        m_ScreenSize = Size(width, height);
+        s_ScreenSize = Size(width, height);
         m_NeedsUpdate = true;
         windowHost->OnWindowGeometryChanged();
     };
@@ -176,7 +176,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_AppSurface.commit();
 
-    m_waylandDisplay.roundtrip();
+    s_waylandDisplay.roundtrip();
 
     // These have to be added after the roundtrip
     if (m_XDGToplevel)
@@ -543,7 +543,7 @@ Point WaylandDisplayWindow::MapToGlobal(const Point& pos) const
 
 void WaylandDisplayWindow::ProcessEvents()
 {
-    while (m_waylandDisplay.dispatch() > 0)
+    while (s_waylandDisplay.dispatch() > 0)
     {
     }
 }
@@ -557,7 +557,7 @@ void WaylandDisplayWindow::RunLoop()
         CheckNeedsUpdate();
         for (auto window: s_Windows)
             window->UpdateTimers();
-        if (m_waylandDisplay.dispatch() == -1)
+        if (s_waylandDisplay.dispatch() == -1)
             break;
     }
 }
@@ -569,7 +569,7 @@ void WaylandDisplayWindow::ExitLoop()
 
 Size WaylandDisplayWindow::GetScreenSize()
 {
-    return m_ScreenSize;
+    return s_ScreenSize;
 }
 
 void * WaylandDisplayWindow::StartTimer(int timeoutMilliseconds, std::function<void ()> onTimer)

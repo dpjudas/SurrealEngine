@@ -171,12 +171,12 @@ private:
 
     Point m_SurfaceMousePos = Point(0, 0);
 
-    static Size m_ScreenSize;
+    static Size s_ScreenSize;
     static std::vector<WaylandDisplayWindow*> s_Windows;
     static std::vector<WaylandDisplayWindow*>::iterator s_WindowsIterator;
 
-    static wayland::display_t m_waylandDisplay;
-    static wayland::registry_t m_waylandRegistry;
+    static wayland::display_t s_waylandDisplay;
+    static wayland::registry_t s_waylandRegistry;
     wayland::compositor_t m_waylandCompositor;
     wayland::shm_t m_waylandSHM;
     wayland::seat_t m_waylandSeat;
