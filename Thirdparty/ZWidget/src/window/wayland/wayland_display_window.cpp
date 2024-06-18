@@ -262,7 +262,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_waylandKeyboard.on_repeat_info() = [&] (int32_t rate, int32_t delay) {
         // rate is characters per second, delay is in milliseconds
-        printf("RepeatInfo: rate = %d chars/sec - delay = %d milliseconds\n", rate, delay);
         m_keyboardDelayTimer.SetDuration(WLTimer::Duration(delay));
         m_keyboardRepeatTimer.SetDuration(WLTimer::Duration(1000.0 / rate));
     };
@@ -312,9 +311,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_keyboardDelayTimer.SetCallback([&] () { OnKeyboardDelayEnd(); });
     m_keyboardRepeatTimer.SetCallback([&] () { OnKeyboardRepeat(); });
-
-    //m_keyboardDelayTimer.SetDuration(WLTimer::Duration(600));
-    //m_keyboardRepeatTimer.SetDuration(WLTimer::Duration(1000.0 / 25));
 
     m_keyboardRepeatTimer.SetRepeating(true);
 
@@ -637,7 +633,6 @@ void WaylandDisplayWindow::OnKeyboardCharEvent(const char* ch)
 
 void WaylandDisplayWindow::OnKeyboardDelayEnd()
 {
-    printf("Delay ended\n");
     if (inputKeyStates[previousKey])
         m_keyboardRepeatTimer.Start();
 }
