@@ -51,6 +51,8 @@ set(ZWIDGET_SOURCES
 	src/window/stub/stub_open_file_dialog.h
 	src/window/stub/stub_save_file_dialog.cpp
 	src/window/stub/stub_save_file_dialog.h
+	src/window/ztimer/ztimer.h
+	src/window/ztimer/ztimer.cpp
 	src/systemdialogs/open_folder_dialog.cpp
 	src/systemdialogs/open_file_dialog.cpp
 	src/systemdialogs/save_file_dialog.cpp

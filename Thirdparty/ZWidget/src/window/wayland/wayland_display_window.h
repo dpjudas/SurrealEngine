@@ -1,13 +1,13 @@
 #pragma once
 
 #include "wayland_display_backend.h"
+#include "window/ztimer/ztimer.h"
 
 #include <stdexcept>
 #include <array>
 #include <memory>
 #include <sstream>
-#include <ctime>
-#include <chrono>
+
 #include <algorithm>
 #include <random>
 #include <map>
@@ -87,85 +87,6 @@ private:
     int fd = 0;
     size_t len = 0;
     void *mem = nullptr;
-};
-
-class WLTimer
-{
-public:
-    using Duration = std::chrono::duration<double, std::milli>;
-    using Clock = std::chrono::system_clock;
-    using TimePoint = std::chrono::time_point<Clock, Duration>;
-    WLTimer() {}
-
-    WLTimer(Duration duration_ms) : m_timerDuration(duration_ms) {}
-
-    WLTimer(Duration duration_ms, std::function<void()> callback)
-        : m_timerDuration(duration_ms), m_callback(callback)
-        {}
-
-    ~WLTimer() {
-        Stop();
-    }
-
-    void Start() {
-        m_startTime = Clock::now();
-        m_currentTime = m_startTime;
-        m_timerStarted = true;
-        m_timerFinished = false;
-    }
-
-    void Stop() {
-        m_timerStarted = false;
-    }
-
-    void SetDuration(Duration duration_ms) {
-        if (m_timerStarted)
-            return;
-        m_timerDuration = duration_ms;
-    }
-
-    void SetCallback(std::function<void()> callback) {
-        if (m_timerStarted)
-            return;
-        m_callback = callback;
-    }
-
-    void SetRepeating(bool value) {
-        if (m_timerStarted)
-            return;
-        m_repeatingTimer = value;
-    }
-
-    void Update(Duration deltaTime) {
-        if (!m_timerStarted)
-            return;
-
-        m_currentTime += deltaTime;
-
-        if (m_currentTime >= m_startTime + m_timerDuration)
-        {
-            m_callback();
-            if (!m_repeatingTimer)
-            {
-                Stop();
-                m_timerFinished = true;
-            }
-            else
-                Start();
-        }
-    }
-
-    bool IsStarted() { return m_timerStarted; }
-    bool IsFinished() { return m_timerFinished; }
-private:
-    bool m_timerStarted = false;
-    bool m_repeatingTimer = false;
-    bool m_timerFinished = false;
-
-    TimePoint m_startTime;
-    TimePoint m_currentTime;
-    Duration m_timerDuration;
-    std::function<void()> m_callback;
 };
 
 class WaylandDisplayWindow : public DisplayWindow
@@ -281,11 +202,11 @@ private:
     bool hasKeyboard = false;
     bool hasPointer = false;
 
-    WLTimer::TimePoint m_previousTime;
-    WLTimer::TimePoint m_currentTime;
+    ZTimer::TimePoint m_previousTime;
+    ZTimer::TimePoint m_currentTime;
 
-    WLTimer m_keyboardDelayTimer;
-    WLTimer m_keyboardRepeatTimer;
+    ZTimer m_keyboardDelayTimer;
+    ZTimer m_keyboardRepeatTimer;
 
     void UpdateTimers();
 
