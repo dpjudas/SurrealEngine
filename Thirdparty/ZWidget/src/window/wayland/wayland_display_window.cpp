@@ -337,7 +337,7 @@ WaylandDisplayWindow::~WaylandDisplayWindow()
     if (m_KeyboardState)
         xkb_state_unref(m_KeyboardState);
 
-    s_Windows.erase(s_WindowsIterator);
+    s_WindowsIterator = s_Windows.erase(s_WindowsIterator);
 }
 
 void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
