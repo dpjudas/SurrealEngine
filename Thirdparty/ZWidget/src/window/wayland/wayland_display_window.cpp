@@ -262,8 +262,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_waylandKeyboard.on_repeat_info() = [&] (int32_t rate, int32_t delay) {
         // rate is characters per second, delay is in milliseconds
-        m_keyboardDelayTimer.SetDuration(WLTimer::Duration(delay));
-        m_keyboardRepeatTimer.SetDuration(WLTimer::Duration(1000.0 / rate));
+        m_keyboardDelayTimer.SetDuration(ZTimer::Duration(delay));
+        m_keyboardRepeatTimer.SetDuration(ZTimer::Duration(1000.0 / rate));
     };
 
     m_cursorSurface = m_waylandCompositor.create_surface();
@@ -306,16 +306,16 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     s_Windows.push_back(this);
     s_WindowsIterator = s_Windows.end();
 
-    m_keyboardDelayTimer = WLTimer();
-    m_keyboardRepeatTimer = WLTimer();
+    m_keyboardDelayTimer = ZTimer();
+    m_keyboardRepeatTimer = ZTimer();
 
     m_keyboardDelayTimer.SetCallback([&] () { OnKeyboardDelayEnd(); });
     m_keyboardRepeatTimer.SetCallback([&] () { OnKeyboardRepeat(); });
 
     m_keyboardRepeatTimer.SetRepeating(true);
 
-    m_previousTime = WLTimer::Clock::now();
-    m_currentTime = WLTimer::Clock::now();
+    m_previousTime = ZTimer::Clock::now();
+    m_currentTime = ZTimer::Clock::now();
 
     if (!popupWindow)
     {
@@ -595,7 +595,7 @@ void WaylandDisplayWindow::CheckNeedsUpdate()
 
 void WaylandDisplayWindow::UpdateTimers()
 {
-    m_currentTime = WLTimer::Clock::now();
+    m_currentTime = ZTimer::Clock::now();
 
     m_keyboardDelayTimer.Update(m_currentTime - m_previousTime);
     m_keyboardRepeatTimer.Update(m_currentTime - m_previousTime);
