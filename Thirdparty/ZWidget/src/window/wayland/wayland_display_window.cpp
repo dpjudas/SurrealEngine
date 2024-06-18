@@ -260,6 +260,13 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         //m_DataDevice.set_selection(m_DataSource, m_KeyboardSerial);
     };
 
+    m_waylandKeyboard.on_repeat_info() = [&] (int32_t rate, int32_t delay) {
+        // rate is characters per second, delay is in milliseconds
+        printf("RepeatInfo: rate = %d chars/sec - delay = %d milliseconds\n", rate, delay);
+        m_keyboardDelayTimer.SetDuration(WLTimer::Duration(delay));
+        m_keyboardRepeatTimer.SetDuration(WLTimer::Duration(1000.0 / rate));
+    };
+
     m_cursorSurface = m_waylandCompositor.create_surface();
     SetCursor(StandardCursor::arrow);
 
@@ -299,6 +306,20 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     s_Windows.push_front(this);
     s_WindowsIterator = s_Windows.begin();
+
+    m_keyboardDelayTimer = WLTimer();
+    m_keyboardRepeatTimer = WLTimer();
+
+    m_keyboardDelayTimer.SetCallback([&] () { OnKeyboardDelayEnd(); });
+    m_keyboardRepeatTimer.SetCallback([&] () { OnKeyboardRepeat(); });
+
+    //m_keyboardDelayTimer.SetDuration(WLTimer::Duration(600));
+    //m_keyboardRepeatTimer.SetDuration(WLTimer::Duration(1000.0 / 25));
+
+    m_keyboardRepeatTimer.SetRepeating(true);
+
+    m_previousTime = WLTimer::Clock::now();
+    m_currentTime = WLTimer::Clock::now();
 
     this->DrawSurface();
 }
@@ -519,7 +540,7 @@ Point WaylandDisplayWindow::MapToGlobal(const Point& pos) const
 
 void WaylandDisplayWindow::ProcessEvents()
 {
-    while (m_waylandDisplay.dispatch() > 0 )
+    while (m_waylandDisplay.dispatch() > 0)
     {
     }
 }
@@ -531,6 +552,8 @@ void WaylandDisplayWindow::RunLoop()
     while (!exitRunLoop)
     {
         CheckNeedsUpdate();
+        for (auto window: s_Windows)
+            window->UpdateTimers();
         if (m_waylandDisplay.dispatch() == -1)
             break;
     }
@@ -567,6 +590,16 @@ void WaylandDisplayWindow::CheckNeedsUpdate()
     }
 }
 
+void WaylandDisplayWindow::UpdateTimers()
+{
+    m_currentTime = WLTimer::Clock::now();
+
+    m_keyboardDelayTimer.Update(m_currentTime - m_previousTime);
+    m_keyboardRepeatTimer.Update(m_currentTime - m_previousTime);
+
+    m_previousTime = m_currentTime;
+}
+
 void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t height)
 {
     Rect rect = GetWindowFrame();
@@ -584,17 +617,38 @@ void WaylandDisplayWindow::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::k
     {
         inputKeyStates[inputKey] = true;
         windowHost->OnWindowKeyDown(inputKey);
+        previousKey = inputKey;
+        m_keyboardDelayTimer.Start();
     }
     if (state == wayland::keyboard_key_state::released)
     {
         inputKeyStates[inputKey] = false;
         windowHost->OnWindowKeyUp(inputKey);
+        m_keyboardDelayTimer.Stop();
+        m_keyboardRepeatTimer.Stop();
     }
 }
 
 void WaylandDisplayWindow::OnKeyboardCharEvent(const char* ch)
 {
-    windowHost->OnWindowKeyChar(std::string(ch));
+    previousChars = std::string(ch);
+    windowHost->OnWindowKeyChar(previousChars);
+}
+
+void WaylandDisplayWindow::OnKeyboardDelayEnd()
+{
+    printf("Delay ended\n");
+    if (inputKeyStates[previousKey])
+        m_keyboardRepeatTimer.Start();
+}
+
+void WaylandDisplayWindow::OnKeyboardRepeat()
+{
+    if (inputKeyStates[previousKey])
+    {
+        windowHost->OnWindowKeyDown(previousKey);
+        windowHost->OnWindowKeyChar(previousChars);
+    }
 }
 
 void WaylandDisplayWindow::OnMouseEnterEvent(uint32_t serial)
