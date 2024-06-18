@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <random>
 #include <map>
-#include <list>
+#include <vector>
 
 #include <wayland-client.hpp>
 #include <wayland-client-protocol-extra.hpp>
@@ -231,6 +231,7 @@ private:
     void OnMouseReleaseEvent(InputKey button);
     void OnMouseMoveEvent(Point surfacePos);
     void OnMouseWheelEvent(InputKey button);
+    void OnExportHandleEvent(std::string exportedHandle);
     void OnExitEvent();
 
     void DrawSurface(uint32_t serial = 0);
@@ -250,8 +251,8 @@ private:
     Point m_SurfaceMousePos = Point(0, 0);
 
     static Size m_ScreenSize;
-    static std::list<WaylandDisplayWindow*> s_Windows;
-    static std::list<WaylandDisplayWindow*>::iterator s_WindowsIterator;
+    static std::vector<WaylandDisplayWindow*> s_Windows;
+    static std::vector<WaylandDisplayWindow*>::iterator s_WindowsIterator;
 
     static wayland::display_t m_waylandDisplay;
     static wayland::registry_t m_waylandRegistry;

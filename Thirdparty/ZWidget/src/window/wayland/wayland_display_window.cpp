@@ -6,8 +6,8 @@ bool WaylandDisplayWindow::exitRunLoop = false;
 Size WaylandDisplayWindow::m_ScreenSize = Size(0, 0);
 wayland::display_t WaylandDisplayWindow::m_waylandDisplay = wayland::display_t();
 wayland::registry_t WaylandDisplayWindow::m_waylandRegistry;
-std::list<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
-std::list<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
+std::vector<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
+std::vector<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
 WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
     : windowHost(windowHost), m_PopupWindow(popupWindow)
@@ -303,8 +303,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
             OnMouseWheelEvent(InputKey::MouseWheelUp);
     };
 
-    s_Windows.push_front(this);
-    s_WindowsIterator = s_Windows.begin();
+    s_Windows.push_back(this);
+    s_WindowsIterator = s_Windows.end();
 
     m_keyboardDelayTimer = WLTimer();
     m_keyboardRepeatTimer = WLTimer();
@@ -316,6 +316,15 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_previousTime = WLTimer::Clock::now();
     m_currentTime = WLTimer::Clock::now();
+
+    if (!popupWindow)
+    {
+        m_XDGExported = m_XDGExporter.export_toplevel(m_AppSurface);
+
+        m_XDGExported.on_handle() = [&] (std::string handleStr) {
+            OnExportHandleEvent(handleStr);
+        };
+    }
 
     this->DrawSurface();
 }
@@ -339,8 +348,6 @@ void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
 
 void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
 {
-    //m_XDGSurface.set_window_geometry((int32_t)box.left(), (int32_t)box.top(),
-    //                                 (int32_t)box.width, (int32_t)box.height);
     // Resizing will be shown on the next commit
     CreateBuffers(box.width, box.height);
     windowHost->OnWindowGeometryChanged();
@@ -680,6 +687,11 @@ void WaylandDisplayWindow::OnMouseWheelEvent(InputKey button)
     windowHost->OnWindowMouseWheel(MapToGlobal(m_SurfaceMousePos), button);
 }
 
+void WaylandDisplayWindow::OnExportHandleEvent(std::string exportedHandle)
+{
+    m_windowID = exportedHandle;
+}
+
 void WaylandDisplayWindow::OnExitEvent()
 {
     windowHost->OnWindowClose();
@@ -750,12 +762,6 @@ std::string WaylandDisplayWindow::GetWaylandCursorName(StandardCursor cursor)
 
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {
-    m_XDGExported.on_handle() = [&] (std::string handleStr) {
-        m_windowID = handleStr;
-    };
-
-    m_XDGExported = m_XDGExporter.export_toplevel(m_AppSurface);
-
     return m_windowID;
 }
 
