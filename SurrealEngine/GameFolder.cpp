@@ -254,6 +254,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "469d";
 			}
 			break;
+			case KnownUE1Games::WHEELOFTIME_333:
+			{
+				info.gameName = "Wheel of Time";
+				info.engineVersion = 333;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "333";
+			}
+			break;
 		}
 	}
 	
