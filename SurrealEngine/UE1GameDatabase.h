@@ -33,6 +33,7 @@ enum class KnownUE1Games
 	UNDYING_420,
 	TACTICAL_OPS_436,
 	TACTICAL_OPS_469,
+	WHEELOFTIME_333,
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -141,6 +142,9 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// v3.4.0 and v3.5.0, running on UT v469 engine
 	// Has identical hash to UT v469d executable
 	// {"78c65e9434b442b15820d863136bb5a44700ad26", KnownUE1Games::TACTICAL_OPS_469},
+
+	// Wheel of Time, version 333 (GOG)
+	{"102013ab6e4535a515c7c589d0b5cdd484ef8fdd", KnownUE1Games::WHEELOFTIME_333},
 };
 
 static const std::vector<std::string> knownUE1ExecutableNames = {
@@ -157,7 +161,8 @@ static const std::vector<std::string> knownUE1ExecutableNames = {
 	"Rune.exe",
 	"Spore.exe",
 	"TnnHunt.exe",
-	"TacticalOps.exe"
+	"TacticalOps.exe",
+	"WoT.exe"
 };
 
 // Returns a pair of UE1-Game type and executable name
