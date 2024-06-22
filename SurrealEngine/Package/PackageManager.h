@@ -28,6 +28,7 @@ public:
 	bool IsUnrealTournament() const { return launchInfo.gameExecutableName == "UnrealTournament"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
 	bool IsDeusEx() const { return launchInfo.gameExecutableName == "DeusEx"; }
+	bool IsCliveBarkersUndying() const { return launchInfo.gameExecutableName == "Undying"; }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }

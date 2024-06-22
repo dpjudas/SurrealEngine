@@ -251,7 +251,13 @@ std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
 	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
-		iniName = launchInfo.gameExecutableName;
+	{
+		// Clive Barker's Undying uses System.ini instead of ExeName.ini
+		if (IsCliveBarkersUndying())
+			iniName = "System";
+		else
+			iniName = launchInfo.gameExecutableName;
+	}
 
 	return std::make_unique<IniFile>(*iniFiles[iniName]);
 }
@@ -262,8 +268,14 @@ std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
 	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
-		iniName = launchInfo.gameExecutableName;
-
+	{
+		// Clive Barker's Undying uses System.ini instead of ExeName.ini
+		if (IsCliveBarkersUndying())
+			iniName = "System";
+		else
+			iniName = launchInfo.gameExecutableName;
+	}
+	
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
@@ -341,8 +353,11 @@ void PackageManager::LoadEngineIniFiles()
 		missing_se_system_ini = true;
 		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
 	}
-		
-	iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+	
+	if (IsCliveBarkersUndying())
+		iniFiles["System"] = std::make_unique<IniFile>(FilePath::combine(system_folder, "System.ini"));
+	else
+		iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
 
 	if (launchInfo.engineVersion > 209)
 	{
