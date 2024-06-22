@@ -141,6 +141,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "227j";
 			}
 			break;
+			case KnownUE1Games::UNREALGOLD_227k_11:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 227;
+				info.engineSubVersion = 11;
+				info.gameVersionString = "227k_11";
+			}
+			break;
 			case KnownUE1Games::UT99_436:
 			{
 				info.gameName = "Unreal Tournament";
@@ -235,6 +243,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.engineVersion = 110;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1.10";
+			}
+			break;
+			case KnownUE1Games::UNDYING_420:
+			{
+				info.gameName = "Clive Barker's Undying";
+				info.engineVersion = 420;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "420";
 			}
 			break;
 			case KnownUE1Games::TACTICAL_OPS_436:
