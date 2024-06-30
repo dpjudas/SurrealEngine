@@ -145,7 +145,7 @@ private:
     // Alternatively to avoid crashes one can capture by value ([=]) instead of reference ([&])
     void OnXDGToplevelConfigureEvent(int32_t width, int32_t height);
     void OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::keyboard_key_state state);
-    void OnKeyboardCharEvent(const char* ch);
+    void OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state);
     void OnMouseEnterEvent(uint32_t serial);
     void OnMouseLeaveEvent();
     void OnMousePressEvent(InputKey button);
@@ -157,6 +157,11 @@ private:
 
     void DrawSurface(uint32_t serial = 0);
 
+    void InitializeToplevel();
+    void InitializePopup();
+    void ConnectDeviceEvents();
+
+    WaylandDisplayWindow* m_owner = nullptr;
     DisplayWindowHost* windowHost = nullptr;
     bool m_PopupWindow = false;
 
