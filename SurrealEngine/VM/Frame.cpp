@@ -137,7 +137,7 @@ std::string Frame::GetCallstack()
 		if (func)
 			name += " line " + std::to_string(func->Line);
 		if (!result.empty()) result += newline;
-		result += name;
+		result += "at " + name;
 	}
 	return result;
 }
@@ -183,42 +183,51 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 			}
 		}
 
-		try
+		if (func->NativeFuncIndex != 0)
 		{
-			if (func->NativeFuncIndex != 0)
+			auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
+			if (callback)
 			{
-				auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
-				if (callback)
+				Frame frame(instance, func);
+				Callstack.push_back(&frame);
+				try
 				{
-					Frame frame(instance, func);
-					Callstack.push_back(&frame);
 					callback(instance, args.data());
 					Callstack.pop_back();
 				}
-				else
+				catch (...)
 				{
-					Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+					Callstack.pop_back();
+					throw;
 				}
 			}
 			else
 			{
-				auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
-				if (callback)
+				Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+			}
+		}
+		else
+		{
+			auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
+			if (callback)
+			{
+				Frame frame(instance, func);
+				Callstack.push_back(&frame);
+				try
 				{
-					Frame frame(instance, func);
-					Callstack.push_back(&frame);
 					callback(instance, args.data());
 					Callstack.pop_back();
 				}
-				else
+				catch (...)
 				{
-					Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+					Callstack.pop_back();
+					throw;
 				}
 			}
-		}
-		catch (const std::exception& e)
-		{
-			Frame::ThrowException(e.what());
+			else
+			{
+				Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+			}
 		}
 
 		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
