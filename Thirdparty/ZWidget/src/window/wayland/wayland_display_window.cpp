@@ -10,7 +10,7 @@ std::vector<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
 std::vector<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
 WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
-    : windowHost(windowHost), m_PopupWindow(popupWindow)
+    : m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow)
 {
     if (!s_waylandDisplay)
         throw std::runtime_error("Wayland Display initialization failed!");
@@ -119,37 +119,49 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     if (popupWindow)
     {
-        wayland::xdg_positioner_t popupPositioner = m_XDGWMBase.create_positioner();
-
-        popupPositioner.set_anchor(wayland::xdg_positioner_anchor::bottom_left);
-        popupPositioner.set_anchor_rect(0, 30, 1, 50);
-        popupPositioner.set_size(100, 100);
-
-        m_XDGPopup = m_XDGSurface.get_popup(owner ? owner->m_XDGSurface : nullptr, popupPositioner);
-
-        m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
-            SetClientFrame(Rect::xywh(x, y, width, height));
-        };
-
-        m_XDGPopup.on_popup_done() = [&] () {
-            OnExitEvent();
-        };
+        InitializePopup();
     }
     else
     {
-        m_XDGToplevel = m_XDGSurface.get_toplevel();
-        m_XDGToplevel.set_title("ZWidget Window");
-
-        if (owner)
-            m_XDGToplevel.set_parent(owner->m_XDGToplevel);
-
-        if (m_XDGToplevel && m_XDGDecorationManager)
-        {
-            // Force server side decorations if possible
-            m_XDGToplevelDecoration = m_XDGDecorationManager.get_toplevel_decoration(m_XDGToplevel);
-            m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
-        }
+        InitializeToplevel();
     }
+
+    s_Windows.push_back(this);
+    s_WindowsIterator = s_Windows.end();
+
+    this->DrawSurface();
+}
+
+WaylandDisplayWindow::~WaylandDisplayWindow()
+{
+    if (m_KeymapContext)
+        xkb_context_unref(m_KeymapContext);
+
+    if (m_KeyboardState)
+        xkb_state_unref(m_KeyboardState);
+
+    s_WindowsIterator = s_Windows.erase(s_WindowsIterator);
+}
+
+void WaylandDisplayWindow::InitializeToplevel()
+{
+    m_XDGToplevel = m_XDGSurface.get_toplevel();
+    m_XDGToplevel.set_title("ZWidget Window");
+
+    if (m_owner)
+        m_XDGToplevel.set_parent(m_owner->m_XDGToplevel);
+
+    if (m_XDGDecorationManager)
+    {
+        // Force server side decorations if possible
+        m_XDGToplevelDecoration = m_XDGDecorationManager.get_toplevel_decoration(m_XDGToplevel);
+        m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
+    }
+
+    m_waylandSeat.on_capabilities() = [&] (uint32_t capabilities) {
+        hasKeyboard = capabilities & wayland::seat_capability::keyboard;
+        hasPointer = capabilities & wayland::seat_capability::pointer;
+    };
 
     m_XDGOutput = m_XDGOutputManager.get_xdg_output(m_waylandOutput);
 
@@ -167,11 +179,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         m_ScaleFactor = scale;
         m_NeedsUpdate = true;
         windowHost->OnWindowDpiScaleChanged();
-    };
-
-    m_waylandSeat.on_capabilities() = [&] (uint32_t capabilities) {
-        hasKeyboard = capabilities & wayland::seat_capability::keyboard;
-        hasPointer = capabilities & wayland::seat_capability::pointer;
     };
 
     m_AppSurface.commit();
@@ -198,6 +205,53 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_waylandKeyboard = m_waylandSeat.get_keyboard();
     m_waylandPointer = m_waylandSeat.get_pointer();
 
+    m_cursorSurface = m_waylandCompositor.create_surface();
+    SetCursor(StandardCursor::arrow);
+
+    ConnectDeviceEvents();
+
+    m_XDGExported = m_XDGExporter.export_toplevel(m_AppSurface);
+
+    m_XDGExported.on_handle() = [&] (std::string handleStr) {
+        OnExportHandleEvent(handleStr);
+    };
+}
+
+void WaylandDisplayWindow::InitializePopup()
+{
+    if (!m_owner)
+        throw std::runtime_error("Popup window must have an owner!");
+
+    wayland::xdg_positioner_t popupPositioner = m_XDGWMBase.create_positioner();
+
+    popupPositioner.set_anchor(wayland::xdg_positioner_anchor::bottom);
+    popupPositioner.set_anchor_rect(0, 0, 1, 30);
+    popupPositioner.set_size(1, 1);
+
+    m_XDGPopup = m_XDGSurface.get_popup(m_owner->m_XDGSurface, popupPositioner);
+
+    m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
+        SetClientFrame(Rect::xywh(x, y, width, height));
+    };
+
+    m_XDGPopup.on_popup_done() = [&] () {
+        OnExitEvent();
+    };
+
+    m_waylandKeyboard = m_waylandSeat.get_keyboard();
+    m_waylandPointer = m_waylandSeat.get_pointer();
+
+    m_cursorSurface = m_owner->m_cursorSurface;
+
+    m_AppSurface.commit();
+
+    s_waylandDisplay.roundtrip();
+
+    ConnectDeviceEvents();
+}
+
+void WaylandDisplayWindow::ConnectDeviceEvents()
+{
     m_KeymapContext = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 
     m_waylandKeyboard.on_keymap() = [&] (wayland::keyboard_keymap_format format, int fd, uint32_t size) {
@@ -242,7 +296,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
             char buf[128];
             xkb_state_key_get_utf8(m_KeyboardState, key + 8, buf, sizeof(buf));
 
-            OnKeyboardCharEvent(buf);
+            OnKeyboardCharEvent(buf, wayland::keyboard_key_state::pressed);
         }
     };
 
@@ -255,19 +309,10 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
         char buf[128];
         xkb_state_key_get_utf8(m_KeyboardState, key + 8, buf, sizeof(buf));
 
-        OnKeyboardCharEvent(buf);
+        OnKeyboardCharEvent(buf, state);
 
         //m_DataDevice.set_selection(m_DataSource, m_KeyboardSerial);
     };
-
-    m_waylandKeyboard.on_repeat_info() = [&] (int32_t rate, int32_t delay) {
-        // rate is characters per second, delay is in milliseconds
-        m_keyboardDelayTimer.SetDuration(ZTimer::Duration(delay));
-        m_keyboardRepeatTimer.SetDuration(ZTimer::Duration(1000.0 / rate));
-    };
-
-    m_cursorSurface = m_waylandCompositor.create_surface();
-    SetCursor(StandardCursor::arrow);
 
     m_waylandPointer.on_enter() = [&](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
         OnMouseEnterEvent(serial);
@@ -303,11 +348,14 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
             OnMouseWheelEvent(InputKey::MouseWheelUp);
     };
 
-    s_Windows.push_back(this);
-    s_WindowsIterator = s_Windows.end();
-
     m_keyboardDelayTimer = ZTimer();
     m_keyboardRepeatTimer = ZTimer();
+
+    m_waylandKeyboard.on_repeat_info() = [&] (int32_t rate, int32_t delay) {
+        // rate is characters per second, delay is in milliseconds
+        m_keyboardDelayTimer.SetDuration(ZTimer::Duration(delay));
+        m_keyboardRepeatTimer.SetDuration(ZTimer::Duration(1000.0 / rate));
+    };
 
     m_keyboardDelayTimer.SetCallback([&] () { OnKeyboardDelayEnd(); });
     m_keyboardRepeatTimer.SetCallback([&] () { OnKeyboardRepeat(); });
@@ -316,28 +364,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
 
     m_previousTime = ZTimer::Clock::now();
     m_currentTime = ZTimer::Clock::now();
-
-    if (!popupWindow)
-    {
-        m_XDGExported = m_XDGExporter.export_toplevel(m_AppSurface);
-
-        m_XDGExported.on_handle() = [&] (std::string handleStr) {
-            OnExportHandleEvent(handleStr);
-        };
-    }
-
-    this->DrawSurface();
-}
-
-WaylandDisplayWindow::~WaylandDisplayWindow()
-{
-    if (m_KeymapContext)
-        xkb_context_unref(m_KeymapContext);
-
-    if (m_KeyboardState)
-        xkb_state_unref(m_KeyboardState);
-
-    s_WindowsIterator = s_Windows.erase(s_WindowsIterator);
 }
 
 void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
@@ -427,12 +453,16 @@ void WaylandDisplayWindow::LockCursor()
 {
     m_LockedPointer = m_PointerConstraints.lock_pointer(m_AppSurface, m_waylandPointer, nullptr,
                                                         wayland::zwp_pointer_constraints_v1_lifetime::persistent);
+    m_cursorSurface.attach(nullptr, 0, 0);
+    m_cursorSurface.commit();
 }
 
 void WaylandDisplayWindow::UnlockCursor()
 {
     if (m_LockedPointer)
         m_LockedPointer.proxy_release();
+    m_cursorSurface.attach(m_cursorBuffer, 0, 0);
+    m_cursorSurface.commit();
 }
 
 void WaylandDisplayWindow::CaptureMouse()
@@ -620,7 +650,12 @@ void WaylandDisplayWindow::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::k
     {
         inputKeyStates[inputKey] = true;
         windowHost->OnWindowKeyDown(inputKey);
-        previousKey = inputKey;
+        if (inputKey != previousKey)
+        {
+            previousKey = inputKey;
+            m_keyboardDelayTimer.Stop();
+            m_keyboardRepeatTimer.Stop();
+        }
         m_keyboardDelayTimer.Start();
     }
     if (state == wayland::keyboard_key_state::released)
@@ -632,10 +667,13 @@ void WaylandDisplayWindow::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::k
     }
 }
 
-void WaylandDisplayWindow::OnKeyboardCharEvent(const char* ch)
+void WaylandDisplayWindow::OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state)
 {
-    previousChars = std::string(ch);
-    windowHost->OnWindowKeyChar(previousChars);
+    if (state == wayland::keyboard_key_state::pressed)
+    {
+        previousChars = std::string(ch);
+        windowHost->OnWindowKeyChar(previousChars);
+    }
 }
 
 void WaylandDisplayWindow::OnKeyboardDelayEnd()
@@ -668,23 +706,23 @@ void WaylandDisplayWindow::OnMouseLeaveEvent()
 
 void WaylandDisplayWindow::OnMousePressEvent(InputKey button)
 {
-    windowHost->OnWindowMouseDown(MapToGlobal(m_SurfaceMousePos), button);
+    windowHost->OnWindowMouseDown(m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayWindow::OnMouseReleaseEvent(InputKey button)
 {
-    windowHost->OnWindowMouseUp(MapToGlobal(m_SurfaceMousePos), button);
+    windowHost->OnWindowMouseUp(m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayWindow::OnMouseMoveEvent(Point surfacePos)
 {
     m_SurfaceMousePos = surfacePos;
-    windowHost->OnWindowMouseMove(MapToGlobal(m_SurfaceMousePos));
+    windowHost->OnWindowMouseMove(m_SurfaceMousePos);
 }
 
 void WaylandDisplayWindow::OnMouseWheelEvent(InputKey button)
 {
-    windowHost->OnWindowMouseWheel(MapToGlobal(m_SurfaceMousePos), button);
+    windowHost->OnWindowMouseWheel(m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayWindow::OnExportHandleEvent(std::string exportedHandle)
