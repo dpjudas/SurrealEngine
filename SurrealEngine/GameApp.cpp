@@ -6,6 +6,7 @@
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/WidgetResourceData.h"
+#include "UI/ErrorWindow/ErrorWindow.h"
 #include "File.h"
 #include <stdexcept>
 #include <zwidget/core/theme.h>
@@ -24,8 +25,17 @@ int GameApp::main(std::vector<std::string> args)
 	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
 	if (!info.gameRootFolder.empty())
 	{
-		Engine engine(info);
-		engine.Run();
+		auto engine = std::make_unique<Engine>(info);
+		try
+		{
+			engine->Run();
+		}
+		catch (const std::exception& e)
+		{
+			auto log = std::move(engine->Log);
+			engine.reset();
+			ErrorWindow::ExecModal(e.what(), log);
+		}
 	}
 
 	DeinitWidgetResources();

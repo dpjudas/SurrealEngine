@@ -289,6 +289,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/OverlapAABBModel.h
 	SurrealEngine/UI/WidgetResourceData.cpp
 	SurrealEngine/UI/WidgetResourceData.h
+	SurrealEngine/UI/ErrorWindow/ErrorWindow.cpp
+	SurrealEngine/UI/ErrorWindow/ErrorWindow.h
 	SurrealEngine/UI/Editor/EditorMainWindow.cpp
 	SurrealEngine/UI/Editor/EditorMainWindow.h
 	SurrealEngine/UI/Editor/EditorWorkspace.cpp
@@ -498,6 +500,7 @@ source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CU
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
+source_group("SurrealEngine\\UI\\ErrorWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/ErrorWindow/.+")
 source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Editor/.+")
 source_group("SurrealEngine\\UI\\Launcher" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Launcher/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")

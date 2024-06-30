@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include "Exception.h"
+#include "VM/Frame.h"
 
 #ifdef WIN32
 
@@ -116,11 +117,11 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 			SymGetLineFromAddr(hProcess, (DWORD64)context.Rip, &lineDisp, &ih);
 			std::string funcStr(&si->Name[0], si->NameLen);
-			sstream << "\t" << funcStr << ":" << ih.LineNumber << std::endl;
+			sstream << "at " << funcStr << " line " << ih.LineNumber << std::endl;
 		}
 		else
 		{
-			sstream << "\t0x" << std::hex << context.Rip << std::endl;
+			sstream << "at 0x" << std::hex << context.Rip << std::dec << std::endl;
 		}
 	}
 
@@ -139,9 +140,18 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 void Exception::Throw(const std::string& text)
 {
 	std::ostringstream sstream;
+	sstream << text << std::endl;
 
-	sstream << "Exception: " << text << std::endl;
-	CaptureStackFrames(sstream, 32);
+	std::string scriptcallstack = Frame::GetCallstack();
+	if (scriptcallstack.empty())
+	{
+		CaptureStackFrames(sstream, 32);
+	}
+	else
+	{
+		sstream << std::endl << "Script call stack:" << std::endl << scriptcallstack << std::endl << std::endl << "Native call stack: " << std::endl;
+		CaptureStackFrames(sstream, 4);
+	}
 
 	throw std::runtime_error(sstream.str());
 }

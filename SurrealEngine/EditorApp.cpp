@@ -5,6 +5,7 @@
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/Editor/EditorMainWindow.h"
+#include "UI/ErrorWindow/ErrorWindow.h"
 #include "UI/WidgetResourceData.h"
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>
@@ -22,13 +23,22 @@ int EditorApp::main(std::vector<std::string> args)
 	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
 	if (!info.gameRootFolder.empty())
 	{
-		Engine engine(info);
+		auto engine = std::make_unique<Engine>(info);
 
-		auto editorWindow = std::make_unique<EditorMainWindow>();
-		editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
-		editorWindow->Show();
+		try
+		{
+			auto editorWindow = std::make_unique<EditorMainWindow>();
+			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
+			editorWindow->Show();
 
-		DisplayWindow::RunLoop();
+			DisplayWindow::RunLoop();
+		}
+		catch (const std::exception& e)
+		{
+			auto log = std::move(engine->Log);
+			engine.reset();
+			ErrorWindow::ExecModal(e.what(), log);
+		}
 	}
 
 	DeinitWidgetResources();
