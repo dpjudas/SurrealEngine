@@ -58,46 +58,46 @@ void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string
 
 void NPawn::ClearPaths(UObject* Self)
 {
-	engine->LogUnimplemented("Pawn.ClearPaths");
+	LogUnimplemented("Pawn.ClearPaths");
 }
 
 void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, const vec3& SoundLocation, const vec3& Parameters)
 {
-	engine->LogUnimplemented("Pawn.ClientHearSound");
+	LogUnimplemented("Pawn.ClientHearSound");
 }
 
 void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.EAdjustJump");
+	LogUnimplemented("Pawn.EAdjustJump");
 }
 
 void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredictRespawns, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.FindBestInventoryPath");
+	LogUnimplemented("Pawn.FindBestInventoryPath");
 	ReturnValue = nullptr;
 }
 
 void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.FindPathTo");
+	LogUnimplemented("Pawn.FindPathTo");
 	ReturnValue = nullptr;
 }
 
 void NPawn::FindPathToward(UObject* Self, UObject* anActor, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.FindPathToward");
+	LogUnimplemented("Pawn.FindPathToward");
 	ReturnValue = nullptr;
 }
 
 void NPawn::FindRandomDest(UObject* Self, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.FindRandomDest");
+	LogUnimplemented("Pawn.FindRandomDest");
 	ReturnValue = nullptr;
 }
 
 void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.FindStairRotation");
+	LogUnimplemented("Pawn.FindStairRotation");
 	ReturnValue = 0;
 }
 
@@ -134,7 +134,7 @@ void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec
 
 void NPawn::PickWallAdjust(UObject* Self, BitfieldBool& ReturnValue)
 {
-	engine->LogUnimplemented("Pawn.PickWallAdjust");
+	LogUnimplemented("Pawn.PickWallAdjust");
 	ReturnValue = false;
 }
 

@@ -17,28 +17,26 @@ int EditorApp::main(std::vector<std::string> args)
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>());
 
-	CommandLine cmd(args);
-	commandline = &cmd;
-
-	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-	if (!info.gameRootFolder.empty())
+	try
 	{
-		auto engine = std::make_unique<Engine>(info);
+		CommandLine cmd(args);
+		commandline = &cmd;
 
-		try
+		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
+		if (!info.gameRootFolder.empty())
 		{
+			Engine engine(info);
+
 			auto editorWindow = std::make_unique<EditorMainWindow>();
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
 			editorWindow->Show();
 
 			DisplayWindow::RunLoop();
 		}
-		catch (const std::exception& e)
-		{
-			auto log = std::move(engine->Log);
-			engine.reset();
-			ErrorWindow::ExecModal(e.what(), log);
-		}
+	}
+	catch (const std::exception& e)
+	{
+		ErrorWindow::ExecModal(e.what(), Logger::Get()->GetLog());
 	}
 
 	DeinitWidgetResources();

@@ -100,6 +100,7 @@ void Engine::Run()
 		if (EntryLevel)
 			EntryLevelInfo->TimeSeconds() += entryLevelElapsed;
 		LevelInfo->TimeSeconds() += levelElapsed;
+		Logger::Get()->SetTimeSeconds(LevelInfo->TimeSeconds());
 
 		UpdateInput(realTimeElapsed);
 
@@ -1234,43 +1235,6 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
-}
-
-void Engine::LogMessage(const std::string& message)
-{
-	if (!Frame::Callstack.empty() && Frame::Callstack.back()->Func)
-	{
-		UStruct* func = Frame::Callstack.back()->Func;
-		std::string name;
-		for (UStruct* s = func; s != nullptr; s = s->StructParent)
-		{
-			if (name.empty())
-				name = s->Name.ToString();
-			else
-				name = s->Name.ToString() + "." + name;
-		}
-
-		LogMessageLine line;
-		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
-		line.Source = name;
-		line.Text = message;
-		Log.push_back(std::move(line));
-	}
-	else
-	{
-		LogMessageLine line;
-		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
-		line.Text = message;
-		Log.push_back(std::move(line));
-	}
-
-	if (printLogDebugger)
-		printLogDebugger(Log.back());
-}
-
-void Engine::LogUnimplemented(const std::string& message)
-{
-	LogMessage("Unimplemented: " + message);
 }
 
 const char* Engine::keynames[256] =

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Logger.h"
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "Math/floating.h"
@@ -51,13 +52,6 @@ struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
 struct MeshFace;
-
-struct LogMessageLine
-{
-	float Time;
-	std::string Source;
-	std::string Text;
-};
 
 class Engine : public GameWindowHost
 {
@@ -141,11 +135,6 @@ public:
 		bool TransferItems = false;
 	} ClientTravelInfo;
 
-	void LogMessage(const std::string& message);
-	void LogUnimplemented(const std::string& message);
-
-	std::list<LogMessageLine> Log;
-
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<GameWindow> window; // TODO: Move into UViewport
@@ -194,7 +183,6 @@ public:
 	std::map<std::string, ActiveInputAxis> activeInputAxes;
 
 	std::function<void()> tickDebugger;
-	std::function<void(const LogMessageLine& line)> printLogDebugger;
 };
 
 extern Engine* engine;

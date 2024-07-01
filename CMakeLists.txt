@@ -27,6 +27,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/EditorApp.h
 	SurrealEngine/DebuggerApp.cpp
 	SurrealEngine/DebuggerApp.h
+	SurrealEngine/Logger.cpp
+	SurrealEngine/Logger.h
 	SurrealEngine/Engine.cpp
 	SurrealEngine/Engine.h
 	SurrealEngine/Exception.cpp

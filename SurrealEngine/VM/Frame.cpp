@@ -425,7 +425,7 @@ ExpressionEvalResult Frame::Run()
 			Iterators.pop_back();
 			break;
 		case StatementResult::AccessedNone:
-			engine->LogMessage("Accessed None in function" + Object->Name.ToString() + "." + Func->Name.ToString());
+			LogMessage("Accessed None in function" + Object->Name.ToString() + "." + Func->Name.ToString());
 			break;
 		}
 

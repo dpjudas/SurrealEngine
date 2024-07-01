@@ -17,5 +17,5 @@ void NConsole::ConsoleCommand(UObject* Self, const std::string& S, BitfieldBool&
 
 void NConsole::SaveTimeDemo(UObject* Self, const std::string& S)
 {
-	engine->LogUnimplemented("Console.SaveTimeDemo(" + S + ")");
+	LogUnimplemented("Console.SaveTimeDemo(" + S + ")");
 }

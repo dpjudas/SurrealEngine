@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Exception.h"
+#include "Logger.h"
 #include "GameApp.h"
 #include "CommandLine.h"
 #include "GameFolder.h"
@@ -19,23 +20,21 @@ int GameApp::main(std::vector<std::string> args)
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
-	CommandLine cmd(args);
-	commandline = &cmd;
-
-	GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-	if (!info.gameRootFolder.empty())
+	try
 	{
-		auto engine = std::make_unique<Engine>(info);
-		try
+		CommandLine cmd(args);
+		commandline = &cmd;
+
+		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
+		if (!info.gameRootFolder.empty())
 		{
-			engine->Run();
+			Engine engine(info);
+			engine.Run();
 		}
-		catch (const std::exception& e)
-		{
-			auto log = std::move(engine->Log);
-			engine.reset();
-			ErrorWindow::ExecModal(e.what(), log);
-		}
+	}
+	catch (const std::exception& e)
+	{
+		ErrorWindow::ExecModal(e.what(), Logger::Get()->GetLog());
 	}
 
 	DeinitWidgetResources();

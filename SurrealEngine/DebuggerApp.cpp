@@ -35,6 +35,8 @@ int DebuggerApp::Main(std::vector<std::string> args)
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
+	Logger::Get()->SetCallback([&](const LogMessageLine& line) { PrintLog(line); });
+
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
 	WriteOutput("Type " + ColorEscape(92) + "help" + ResetEscape() + " for a list of commands" + NewLine());
@@ -52,7 +54,6 @@ int DebuggerApp::Main(std::vector<std::string> args)
 
 		Engine engine(launchinfo);
 		engine.tickDebugger = [&]() { Tick(); };
-		engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
 
 		WritePrompt();
 		while (!ExitRequested)

@@ -19,7 +19,7 @@ std::string USurrealRenderDevice::GetPropertyAsString(const NameString& property
 	else if (propertyName == "HighDetailActors")
 		return IniPropertyConverter<bool>::ToString(HighDetailActors);
 
-	engine->LogMessage("Queried unknown property for SurrealRenderDevice: " + propertyName.ToString());
+	LogMessage("Queried unknown property for SurrealRenderDevice: " + propertyName.ToString());
 	return {};
 }
 
@@ -36,7 +36,7 @@ void USurrealRenderDevice::SetPropertyFromString(const NameString& propertyName,
 	else if (propertyName == "HighDetailActors")
 		HighDetailActors = IniPropertyConverter<bool>::FromString(value);
 	else
-		engine->LogMessage("Setting unknown property for SurrealRenderDevice: " + propertyName.ToString());
+		LogMessage("Setting unknown property for SurrealRenderDevice: " + propertyName.ToString());
 
 	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
@@ -103,7 +103,7 @@ std::string USurrealAudioDevice::GetPropertyAsString(const NameString& propertyN
 	else if (propertyName == "AmbientFactor")
 		return IniPropertyConverter<float>::ToString(AmbientFactor);
 
-	engine->LogMessage("Queried unknown property for SurrealAudioDevice: " + propertyName.ToString());
+	LogMessage("Queried unknown property for SurrealAudioDevice: " + propertyName.ToString());
 	return {};
 }
 
@@ -142,7 +142,7 @@ void USurrealAudioDevice::SetPropertyFromString(const NameString& propertyName, 
 	else if (propertyName == "AmbientFactor")
 		AmbientFactor = IniPropertyConverter<float>::FromString(value);
 	else
-		engine->LogMessage("Setting unknown property for SurrealAudioDevice: " + propertyName.ToString());
+		LogMessage("Setting unknown property for SurrealAudioDevice: " + propertyName.ToString());
 
 	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
@@ -199,13 +199,13 @@ std::string USurrealNetworkDevice::GetPropertyAsString(const NameString& propert
 	if (propertyName == "Class")
 		return "class'" + Class + "'";
 
-	engine->LogMessage("Queried unknown property for SurrealNetworkDevice: " + propertyName.ToString());
+	LogMessage("Queried unknown property for SurrealNetworkDevice: " + propertyName.ToString());
 	return {};
 }
 
 void USurrealNetworkDevice::SetPropertyFromString(const NameString& propertyName, const std::string& value)
 {
-	engine->LogMessage("Setting unknown property for SurrealNetworkDevice: " + propertyName.ToString());
+	LogMessage("Setting unknown property for SurrealNetworkDevice: " + propertyName.ToString());
 	engine->packages->SetIniValue("System", Class, propertyName, value);
 }
 
@@ -289,7 +289,7 @@ std::string USurrealClient::GetPropertyAsString(const NameString& propertyName) 
 	else if (propertyName == "SkinDetail")
 		return SkinDetail;
 
-	engine->LogMessage("Queried unknown property for Surreal.ViewportManager: " + propertyName.ToString());
+	LogMessage("Queried unknown property for Surreal.ViewportManager: " + propertyName.ToString());
 	return {};
 }
 
@@ -324,7 +324,7 @@ void USurrealClient::SetPropertyFromString(const NameString& propertyName, const
 	else if (propertyName == "SkinDetail")
 		SkinDetail = value;
 	else
-		engine->LogMessage("Setting unknown property for Surreal.ViewportManager: " + propertyName.ToString());
+		LogMessage("Setting unknown property for Surreal.ViewportManager: " + propertyName.ToString());
 
 	engine->packages->SetIniValue("System", Class, propertyName, value);
 }

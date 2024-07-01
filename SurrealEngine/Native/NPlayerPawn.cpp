@@ -35,7 +35,7 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)
 {
-	engine->LogUnimplemented("PlayerPawn.CopyToClipboard(" + Text + ")");
+	LogUnimplemented("PlayerPawn.CopyToClipboard(" + Text + ")");
 }
 
 void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::string& ReturnValue)
@@ -50,19 +50,19 @@ void NPlayerPawn::GetEntryLevel(UObject* Self, UObject*& ReturnValue)
 
 void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue)
 {
-	engine->LogUnimplemented("PlayerPawn.GetPlayerNetworkAddress");
+	LogUnimplemented("PlayerPawn.GetPlayerNetworkAddress");
 	ReturnValue = "";
 }
 
 void NPlayerPawn::PasteFromClipboard(UObject* Self, std::string& ReturnValue)
 {
-	engine->LogUnimplemented("PlayerPawn.PasteFromClipboard");
+	LogUnimplemented("PlayerPawn.PasteFromClipboard");
 	ReturnValue = "";
 }
 
 void NPlayerPawn::ResetKeyboard(UObject* Self)
 {
-	engine->LogUnimplemented("PlayerPawn.ResetKeyboard");
+	LogUnimplemented("PlayerPawn.ResetKeyboard");
 }
 
 void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const std::string& NewValue, bool bSaveDefault)
@@ -70,5 +70,5 @@ void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const s
 	UPlayerPawn* SelfPlayerPawn = UObject::Cast<UPlayerPawn>(Self);
 	SelfPlayerPawn->Level()->URL.AddOrReplaceOption(NewOption + "=" + NewValue);
 	if (bSaveDefault)
-		engine->LogUnimplemented("PlayerPawn.UpdateURL save default");
+		LogUnimplemented("PlayerPawn.UpdateURL save default");
 }

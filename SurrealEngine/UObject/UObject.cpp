@@ -566,7 +566,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 #if 0
 			Exception::Throw("Unknown property " + name);
 #else
-			engine->LogMessage("Skipping unknown property " + name.ToString());
+			LogMessage("Skipping unknown property " + name.ToString());
 			if (header.type != UPT_Bool)
 				stream->Skip(header.size);
 			continue;

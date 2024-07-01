@@ -320,7 +320,7 @@ public:
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
 		{
-			engine->LogMessage("Attempted to play sound on active channel " + channel);
+			LogMessage("Attempted to play sound on active channel " + channel);
 			return 0;
 		}
 
