@@ -2,6 +2,7 @@
 
 #include <zwidget/core/widget.h>
 #include <zwidget/core/span_layout.h>
+#include <list>
 
 class LogViewer;
 class PushButton;
