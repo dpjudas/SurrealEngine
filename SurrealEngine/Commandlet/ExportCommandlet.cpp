@@ -3,7 +3,7 @@
 #include "ExportCommandlet.h"
 #include "DebuggerApp.h"
 #include "Engine.h"
-#include "File.h"
+#include "Utils/File.h"
 #include "Package/PackageManager.h"
 #include "Package/Package.h"
 #include "Editor/Export.h"

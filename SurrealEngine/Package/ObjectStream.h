@@ -2,7 +2,7 @@
 
 #include "Package.h"
 #include <string.h>
-#include "Exception.h"
+#include "Utils/Exception.h"
 
 enum class ObjectFlags : uint32_t;
 class UClass;

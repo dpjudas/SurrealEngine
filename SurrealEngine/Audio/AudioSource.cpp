@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "AudioSource.h"
 #include "resample/CDSPResampler.h"
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include <functional>
 
 #ifdef _MSC_VER

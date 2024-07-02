@@ -8,7 +8,7 @@
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Engine.h"
-#include "Exception.h"
+#include "Utils/Exception.h"
 
 UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {

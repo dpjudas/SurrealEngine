@@ -1,11 +1,11 @@
 
 #include "Precomp.h"
 #include "NativeCppUpdater.h"
-#include "File.h"
-#include "JsonValue.h"
+#include "Utils/File.h"
+#include "Utils/JsonValue.h"
 #include "DebuggerApp.h"
 #include <filesystem>
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include <algorithm>
 #include <unordered_set>
 

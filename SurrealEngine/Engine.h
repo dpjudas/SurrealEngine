@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "Math/floating.h"

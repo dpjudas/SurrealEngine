@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include "VM/Frame.h"
 
 #ifdef WIN32

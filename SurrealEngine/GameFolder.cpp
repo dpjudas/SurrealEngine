@@ -1,10 +1,10 @@
 
 #include "Precomp.h"
 #include "GameFolder.h"
-#include "File.h"
-#include "UTF16.h"
+#include "Utils/File.h"
+#include "Utils/UTF16.h"
 #include "UE1GameDatabase.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include <filesystem>
 

@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "EditorApp.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/Editor/EditorMainWindow.h"

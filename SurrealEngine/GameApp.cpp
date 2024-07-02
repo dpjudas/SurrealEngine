@@ -1,14 +1,14 @@
 
 #include "Precomp.h"
-#include "Exception.h"
-#include "Logger.h"
+#include "Utils/Exception.h"
+#include "Utils/Logger.h"
 #include "GameApp.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/WidgetResourceData.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
-#include "File.h"
+#include "Utils/File.h"
 #include <stdexcept>
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>

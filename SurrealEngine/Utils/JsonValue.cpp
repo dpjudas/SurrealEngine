@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
-#include "JsonValue.h"
-#include "UTF8Reader.h"
-#include "Exception.h"
+#include "Utils/JsonValue.h"
+#include "Utils/UTF8Reader.h"
+#include "Utils/Exception.h"
 #include <cstring>
 
 class JsonValueImpl

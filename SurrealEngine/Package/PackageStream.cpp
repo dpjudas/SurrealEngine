@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "PackageStream.h"
 #include "Package.h"
-#include "File.h"
+#include "Utils/File.h"
 
 PackageStream::PackageStream(Package* package, std::shared_ptr<File> file) : package(package), file(file)
 {

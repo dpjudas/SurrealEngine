@@ -1,5 +1,5 @@
 #include "IniProperty.h"
-#include "Exception.h"
+#include "Utils/Exception.h"
 
 template<>
 int IniPropertyConverter<int>::FromString(const std::string& valueString)

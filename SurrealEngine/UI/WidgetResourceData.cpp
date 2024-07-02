@@ -1,8 +1,8 @@
 
 #include "WidgetResourceData.h"
-#include "File.h"
+#include "Utils/File.h"
 #include <miniz.h>
-#include "Exception.h"
+#include "Utils/Exception.h"
 
 static mz_zip_archive widgetResources;
 

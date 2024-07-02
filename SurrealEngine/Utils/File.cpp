@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
-#include "File.h"
-#include "UTF16.h"
+#include "Utils/File.h"
+#include "Utils/UTF16.h"
 #ifdef WIN32
 #include <Windows.h>
 #else
@@ -20,7 +20,7 @@
 extern const char* __progname;
 #endif
 #endif
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include <string.h>
 #include <sstream>
 

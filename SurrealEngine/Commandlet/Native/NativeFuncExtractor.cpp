@@ -5,8 +5,8 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
-#include "JsonValue.h"
-#include "File.h"
+#include "Utils/JsonValue.h"
+#include "Utils/File.h"
 #include <set>
 
 std::string NativeFuncExtractor::Run(PackageManager* packages)

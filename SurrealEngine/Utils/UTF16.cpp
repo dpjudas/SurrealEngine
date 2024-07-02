@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
-#include "UTF16.h"
-#include "Exception.h"
+#include "Utils/UTF16.h"
+#include "Utils/Exception.h"
 
 #ifdef WIN32
 

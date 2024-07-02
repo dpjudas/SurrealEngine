@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include "VM/Frame.h"
 
 void LogMessage(const std::string& message)

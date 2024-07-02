@@ -27,26 +27,28 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/EditorApp.h
 	SurrealEngine/DebuggerApp.cpp
 	SurrealEngine/DebuggerApp.h
-	SurrealEngine/Logger.cpp
-	SurrealEngine/Logger.h
 	SurrealEngine/Engine.cpp
 	SurrealEngine/Engine.h
-	SurrealEngine/Exception.cpp
-	SurrealEngine/Exception.h
-	SurrealEngine/File.cpp
-	SurrealEngine/File.h
-	SurrealEngine/UTF16.cpp
-	SurrealEngine/UTF16.h
-	SurrealEngine/UTF8Reader.cpp
-	SurrealEngine/UTF8Reader.h
-	SurrealEngine/JsonValue.cpp
-	SurrealEngine/JsonValue.h
 	SurrealEngine/GameFolder.cpp
 	SurrealEngine/GameFolder.h
 	SurrealEngine/UE1GameDatabase.h
 	SurrealEngine/UE1GameDatabase.cpp
-	SurrealEngine/CommandLine.cpp
-	SurrealEngine/CommandLine.h
+	SurrealEngine/Utils/CommandLine.cpp
+	SurrealEngine/Utils/CommandLine.h
+	SurrealEngine/Utils/Exception.cpp
+	SurrealEngine/Utils/Exception.h
+	SurrealEngine/Utils/File.cpp
+	SurrealEngine/Utils/File.h
+	SurrealEngine/Utils/Logger.cpp
+	SurrealEngine/Utils/Logger.h
+	SurrealEngine/Utils/JsonValue.cpp
+	SurrealEngine/Utils/JsonValue.h
+	SurrealEngine/Utils/UTF16.cpp
+	SurrealEngine/Utils/UTF16.h
+	SurrealEngine/Utils/UTF8Reader.cpp
+	SurrealEngine/Utils/UTF8Reader.h
+	SurrealEngine/Utils/MemoryStreamWriter.cpp
+	SurrealEngine/Utils/MemoryStreamWriter.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp
@@ -319,8 +321,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/SettingsPage.h
 	SurrealEngine/Window/Window.cpp
 	SurrealEngine/Window/Window.h
-	SurrealEngine/Lib/MemoryStreamWriter.h
-	SurrealEngine/Lib/MemoryStreamWriter.cpp
 )
 
 set(SURREALCOMMON_WIN32_SOURCES

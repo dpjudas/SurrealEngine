@@ -20,7 +20,7 @@
 */
 
 #include "Precomp.h"
-#include "UTF8Reader.h"
+#include "Utils/UTF8Reader.h"
 
 namespace
 {

@@ -5,7 +5,7 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
-#include "File.h"
+#include "Utils/File.h"
 #include <filesystem>
 #include <set>
 

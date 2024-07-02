@@ -17,7 +17,7 @@
 #include "UObject/UClient.h"
 #include "UObject/UInternetLink.h"
 #include "UObject/USubsystem.h"
-#include "File.h"
+#include "Utils/File.h"
 
 Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
 {
