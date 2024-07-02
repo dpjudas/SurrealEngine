@@ -181,7 +181,13 @@ public:
 	void Load(ObjectStream* stream) override;
 
 	UProperty* GetProperty(const NameString& name);
-	UObject* GetDefaultObject() { return this; }
+
+	template<typename T>
+	T* GetDefaultObject()
+	{
+		// Note: this is a horrible hack. The object is not actually the type returned, but our property getters are members on that type.
+		return static_cast<T*>(static_cast<UObject*>(this));
+	}
 
 	void SaveToConfig(PackageManager& packageManager);
 

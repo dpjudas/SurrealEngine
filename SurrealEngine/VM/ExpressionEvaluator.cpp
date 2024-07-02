@@ -45,7 +45,7 @@ void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 	if (UObject::TryCast<UClass>(Context))
 		Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
 	else
-		Result.Value = ExpressionValue::Variable(Context->Class->GetDefaultObject()->PropertyData.Data, expr->Variable);
+		Result.Value = ExpressionValue::Variable(Context->Class->GetDefaultObject<UObject>()->PropertyData.Data, expr->Variable);
 }
 
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
@@ -167,7 +167,7 @@ void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 	UClass* cls = UObject::TryCast<UClass>(object.ToObject());
 	if (cls)
 	{
-		Result = Eval(expr->ContextExpr, Self, cls->GetDefaultObject(), LocalVariables);
+		Result = Eval(expr->ContextExpr, Self, cls->GetDefaultObject<UObject>(), LocalVariables);
 	}
 	else
 	{

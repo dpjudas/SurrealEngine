@@ -60,10 +60,10 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	vec3 location = SpawnLocation ? *SpawnLocation : Location();
 	Rotator rotation = SpawnRotation ? *SpawnRotation : Rotation();
 
-	float radius = SpawnClass->GetDefaultObject()->GetFloat("CollisionRadius");
-	float height = SpawnClass->GetDefaultObject()->GetFloat("CollisionHeight");
-	bool bCollideWorld = SpawnClass->GetDefaultObject()->GetBool("bCollideWorld");
-	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject()->GetBool("bCollideWhenPlacing");
+	float radius = SpawnClass->GetDefaultObject<UActor>()->CollisionRadius();
+	float height = SpawnClass->GetDefaultObject<UActor>()->CollisionHeight();
+	bool bCollideWorld = SpawnClass->GetDefaultObject<UActor>()->bCollideWorld();
+	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject<UActor>()->bCollideWhenPlacing();
 	if (bCollideWorld || bCollideWhenPlacing)
 	{
 		auto result = CheckLocation(location, radius, height, bCollideWorld || bCollideWhenPlacing);
@@ -897,7 +897,7 @@ void UActor::TickInterpolating(float elapsed)
 		{
 			pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
 			pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
-			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject()->GetFloat("FovAngle");
+			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject<UPlayerPawn>()->FovAngle();
 			pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
 			pawn->FlashFog() = pawn->DesiredFlashFog();
 		}
