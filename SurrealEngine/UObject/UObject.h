@@ -274,6 +274,10 @@ public:
 		}
 		catch (const std::exception& e)
 		{
+			// dynamic_cast will NEVER throw unless something is very wrong. Launch the debugger in a debug build.
+			#if defined(_DEBUG) && defined(WIN32)
+			DebugBreak();
+			#endif
 			Exception::Throw(e.what());
 		}
 	}
