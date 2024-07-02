@@ -257,7 +257,7 @@ public:
 	template<typename T>
 	static T* Cast(UObject* obj)
 	{
-		T* target = dynamic_cast<T*>(obj);
+		T* target = TryCast<T>(obj);
 		if (target == nullptr && obj != nullptr)
 		{
 			Exception::Throw("Could not cast object " + obj->Name.ToString() + " (class " + GetUClassName(obj).ToString() + ") to " + (std::string)typeid(T).name());
@@ -268,7 +268,20 @@ public:
 	template<typename T>
 	static T* TryCast(UObject* obj)
 	{
-		return dynamic_cast<T*>(obj);
+		try
+		{
+			return dynamic_cast<T*>(obj);
+		}
+		catch (const std::exception& e)
+		{
+			Exception::Throw(e.what());
+		}
+	}
+
+	template<typename T>
+	static bool IsType(UObject* obj)
+	{
+		return TryCast<T>(obj);
 	}
 
 	static NameString GetUClassName(UObject* obj);

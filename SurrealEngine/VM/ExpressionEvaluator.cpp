@@ -42,7 +42,7 @@ void ExpressionEvaluator::Expr(InstanceVariableExpression* expr)
 
 void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 {
-	if (dynamic_cast<UClass*>(Context))
+	if (UObject::TryCast<UClass>(Context))
 		Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
 	else
 		Result.Value = ExpressionValue::Variable(Context->Class->GetDefaultObject()->PropertyData.Data, expr->Variable);
@@ -164,7 +164,7 @@ void ExpressionEvaluator::Expr(NewExpression* expr)
 void ExpressionEvaluator::Expr(ClassContextExpression* expr)
 {
 	ExpressionValue object = Eval(expr->ObjectExpr).Value;
-	UClass* cls = dynamic_cast<UClass*>(object.ToObject());
+	UClass* cls = UObject::TryCast<UClass>(object.ToObject());
 	if (cls)
 	{
 		Result = Eval(expr->ContextExpr, Self, cls->GetDefaultObject(), LocalVariables);
@@ -569,7 +569,7 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
-	UClass* contextClass = dynamic_cast<UClass*>(Context);
+	UClass* contextClass = UObject::TryCast<UClass>(Context);
 	if (!contextClass)
 		contextClass = Context->Class;
 
@@ -617,7 +617,7 @@ void ExpressionEvaluator::Expr(GlobalFunctionExpression* expr)
 {
 	// Global function calls skip the states and only searches normal member functions
 
-	UClass* contextClass = dynamic_cast<UClass*>(Context);
+	UClass* contextClass = UObject::TryCast<UClass>(Context);
 	if (!contextClass)
 		contextClass = Context->Class;
 

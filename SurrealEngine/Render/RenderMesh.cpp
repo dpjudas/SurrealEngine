@@ -16,10 +16,10 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 	mat4 meshToWorld = objectToWorld * mesh->meshToObject;
 	mat3 meshNormalToWorld = mat3::transpose(mat3(meshToWorld));
 
-	if (dynamic_cast<USkeletalMesh*>(mesh))
-		DrawSkeletalMesh(frame, actor, static_cast<USkeletalMesh*>(mesh), meshToWorld, meshNormalToWorld);
-	else if (dynamic_cast<ULodMesh*>(mesh))
-		DrawLodMesh(frame, actor, static_cast<ULodMesh*>(mesh), meshToWorld, meshNormalToWorld);
+	if (auto skeletalmesh = UObject::TryCast<USkeletalMesh>(mesh))
+		DrawSkeletalMesh(frame, actor, skeletalmesh, meshToWorld, meshNormalToWorld);
+	else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
+		DrawLodMesh(frame, actor, lodmesh, meshToWorld, meshNormalToWorld);
 	else
 		DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld);
 }

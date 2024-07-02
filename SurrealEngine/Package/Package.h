@@ -82,7 +82,7 @@ public:
 			// ignore "Groups", they're not real objects
 			if (className.compare("Package") != 0)
 			{
-				T* obj = dynamic_cast<T*>(GetUObject(objref));
+				T* obj = UObject::TryCast<T>(GetUObject(objref));
 				if (obj)
 				{
 					objects.push_back(obj);

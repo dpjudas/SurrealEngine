@@ -508,7 +508,7 @@ public:
 
 		for (UField* field = Struct->Children; field != nullptr; field = field->Next) 
 		{
-			UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+			UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 
 			if (fieldprop == nullptr)
 				continue;
@@ -544,7 +544,7 @@ public:
 			uint8_t* d = (uint8_t*)data;
 			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 				if (fieldprop)
 				{
 					print += print.empty() ? " " : ", ";
@@ -574,7 +574,7 @@ public:
 		{
 			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 				if (fieldprop)
 				{
 					auto it = properties.find(fieldprop->Name);

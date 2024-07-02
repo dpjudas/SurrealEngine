@@ -17,7 +17,7 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 
 	if (actor->DrawType() == DT_SpriteAnimOnce)
 	{
-		float t = (1.0f - actor->LifeSpan() / static_cast<UActor*>(actor->Class->GetDefaultObject())->LifeSpan());
+		float t = (1.0f - actor->LifeSpan() / UObject::Cast<UActor>(actor->Class->GetDefaultObject())->LifeSpan());
 		int count = texture->GetAnimTextureCount();
 		int index = (int)std::floor(clamp(t, 0.0f, 1.0f) * count);
 		for (int i = 0; i < index; i++)

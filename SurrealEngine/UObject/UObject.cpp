@@ -24,9 +24,8 @@ void UObject::LoadNow()
 		{
 			Load(stream.get());
 		}
-		else if (dynamic_cast<UStruct*>(this))
+		else if (auto s = UObject::TryCast<UStruct>(this))
 		{
-			auto s = static_cast<UStruct*>(this);
 			if (s->BaseStruct)
 			{
 				s->BaseStruct->LoadNow();
@@ -34,10 +33,10 @@ void UObject::LoadNow()
 				s->StructSize = s->BaseStruct->StructSize;
 			}
 
-			if (dynamic_cast<UClass*>(this))
+			if (auto c = UObject::TryCast<UClass>(this))
 			{
-				PropertyData.Init(static_cast<UClass*>(this));
-				if (!static_cast<UClass*>(this)->Properties.empty())
+				PropertyData.Init(c);
+				if (!c->Properties.empty())
 				{
 					SetObject("Class", Class);
 					SetName("Name", Name);
@@ -65,7 +64,7 @@ void UObject::Load(ObjectStream* stream)
 		}
 	}
 
-	if (!dynamic_cast<UClass*>(this))
+	if (!UObject::TryCast<UClass>(this))
 	{
 		PropertyData.Init(Class);
 		PropertyData.ReadProperties(stream);

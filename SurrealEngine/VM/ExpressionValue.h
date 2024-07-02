@@ -453,7 +453,7 @@ inline void ExpressionValue::Load()
 		case ExpressionValueType::ValueName: *value.PtrName = *PtrName; break;
 		case ExpressionValueType::ValueColor: *value.PtrColor = *PtrColor; break;
 		case ExpressionValueType::ValueStruct:
-			value.GetStructValue()->Load(dynamic_cast<UStructProperty*>(VariableProperty)->Struct, Ptr);
+			value.GetStructValue()->Load(UObject::Cast<UStructProperty>(VariableProperty)->Struct, Ptr);
 			value.Ptr = value.GetStructValue()->Ptr;
 			break;
 		}

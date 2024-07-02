@@ -122,7 +122,7 @@ void NativeCppGenerator::Run()
 
 		propertyOffsetsCppText += propOffsetsVarDecl;
 		propertyOffsetsCppText += "static void InitPropertyOffsets_" + cls.name + "(PackageManager* packages)\r\n{\r\n";
-		propertyOffsetsCppText += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + cls.package + "\")->GetUObject(\"Class\", \"" + cls.name + "\"));\r\n";
+		propertyOffsetsCppText += "\tUClass* cls = UObject::TryCast<UClass>(packages->GetPackage(\"" + cls.package + "\")->GetUObject(\"Class\", \"" + cls.name + "\"));\r\n";
 		propertyOffsetsCppText += "\tif (!cls)\r\n\t{\r\n";
 		propertyOffsetsCppText += "\t\tmemset(&" + propOffsetsVarName + ", 0xff, sizeof(" + propOffsetsVarName + "));\r\n";
 		propertyOffsetsCppText += "\t\treturn;\r\n\t}\r\n";

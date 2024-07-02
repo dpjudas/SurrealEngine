@@ -1174,7 +1174,7 @@ bool Engine::ExecCommand(const std::vector<std::string>& args)
 			int argindex = 0;
 			for (UField* field = func->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* prop = dynamic_cast<UProperty*>(field);
+				UProperty* prop = UObject::TryCast<UProperty>(field);
 				if (prop)
 				{
 					if (AllFlags(prop->PropFlags, PropertyFlags::Parm) && !AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
