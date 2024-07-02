@@ -308,3 +308,34 @@ T* ObjectStream::ReadObject()
 // Same deal with above, but for non-MSVC compilers
 template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
 #endif
+
+template<class T>
+std::vector<T*> Package::GetAllObjects()
+{
+	std::vector<T*> objects;
+	int objref = 1;
+	for (ExportTableEntry& e : ExportTable)
+	{
+		std::string className;
+		if (e.ObjClass < 0)
+		{
+			className = GetName(GetImportEntry(e.ObjClass)->ObjName).ToString();
+		}
+		else if (e.ObjClass != 0)
+		{
+			className = GetName(GetExportEntry(e.ObjClass)->ObjName).ToString();
+		}
+
+		// ignore "Groups", they're not real objects
+		if (className.compare("Package") != 0)
+		{
+			T* obj = UObject::TryCast<T>(GetUObject(objref));
+			if (obj)
+			{
+				objects.push_back(obj);
+			}
+		}
+		objref++;
+	}
+	return objects;
+}
