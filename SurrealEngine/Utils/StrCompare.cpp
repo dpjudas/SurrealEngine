@@ -1,29 +1,16 @@
 #include "StrCompare.h"
 
-int StrCompare::ignore_case(const std::string& str1, const std::string& str2)
-{
-#ifdef WIN32
-	return _stricmp(str1.c_str(), str2.c_str());
-#else
-	return strcasecmp(str1.c_str(), str2.c_str());
-#endif
-}
-
-int StrCompare::ignore_case(const std::string& str1, const char* str2)
-{
-#ifdef WIN32
-	return _stricmp(str1.c_str(), str2);
-#else
-	return strcasecmp(str1.c_str(), str2);
-#endif
-}
-
 bool StrCompare::equals_ignore_case(const std::string& str1, const std::string& str2)
 {
-	return ignore_case(str1, str2) == 0;
+	if (str1.size() != str1.size())
+		return false;
+	for (size_t i = 0, length = str1.size(); i < length; i++)
+		if (stricmptable[str1[i]] != stricmptable[str2[i]])
+			return false;
+	return true;
 }
 
 bool StrCompare::equals_ignore_case(const std::string& str1, const char* str2)
 {
-	return ignore_case(str1, str2) == 0;
+	return equals_ignore_case(str1, std::string(str2));
 }
