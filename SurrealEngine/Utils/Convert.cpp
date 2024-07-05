@@ -99,21 +99,3 @@ double Convert::to_double(const std::string& str)
 		Exception::Throw(e.what() + std::string(" (value = ") + str + ")");
 	}
 }
-
-std::string Convert::as_lowercase(const std::string& str)
-{
-	std::string result{ str };
-
-	std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
-
-	return result;
-}
-
-std::string Convert::as_uppercase(const std::string& str)
-{
-	std::string result{ str };
-
-	std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::toupper(c); });
-
-	return result;
-}

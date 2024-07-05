@@ -15,9 +15,4 @@ public:
 
 	static float to_float(const std::string& str);
 	static double to_double(const std::string& str);
-
-	// String manipulations
-	// These make a copy of the string with the desired operation applied
-	std::string as_lowercase(const std::string& str);
-	std::string as_uppercase(const std::string& str);
 };
