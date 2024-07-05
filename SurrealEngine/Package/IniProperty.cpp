@@ -1,10 +1,11 @@
 #include "IniProperty.h"
 #include "Utils/Exception.h"
+#include "Utils/Convert.h"
 
 template<>
 int IniPropertyConverter<int>::FromString(const std::string& valueString)
 {
-	return std::stoi(valueString);
+	return Convert::to_int32(valueString);
 }
 
 template<>
@@ -16,7 +17,7 @@ std::string IniPropertyConverter<int>::ToString(const int& value)
 template<>
 int IniPropertyConverter<int>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const int& default_value, const int index)
 {
-	return std::stoi(iniFile.GetValue(section, keyName, ToString(default_value), index));
+	return Convert::to_int32(iniFile.GetValue(section, keyName, ToString(default_value), index));
 }
 
 //====================================================================
@@ -24,7 +25,7 @@ int IniPropertyConverter<int>::FromIniFile(const IniFile& iniFile, const NameStr
 template<>
 float IniPropertyConverter<float>::FromString(const std::string& valueString)
 {
-	return std::stof(valueString);
+	return Convert::to_float(valueString);
 }
 
 template<>
@@ -36,7 +37,7 @@ std::string IniPropertyConverter<float>::ToString(const float& value)
 template<>
 float IniPropertyConverter<float>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const float& default_value, const int index)
 {
-	return std::stof(iniFile.GetValue(section, keyName, ToString(default_value), index));
+	return Convert::to_float(iniFile.GetValue(section, keyName, ToString(default_value), index));
 }
 
 //====================================================================
@@ -44,7 +45,7 @@ float IniPropertyConverter<float>::FromIniFile(const IniFile& iniFile, const Nam
 template<>
 uint8_t IniPropertyConverter<uint8_t>::FromString(const std::string& valueString)
 {
-	return (uint8_t)std::stoul(valueString);
+	return Convert::to_uint8(valueString);
 }
 
 template<>
@@ -56,7 +57,7 @@ std::string IniPropertyConverter<uint8_t>::ToString(const uint8_t& value)
 template<>
 uint8_t IniPropertyConverter<uint8_t>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const uint8_t& default_value, const int index)
 {
-	return (uint8_t)std::stoul(iniFile.GetValue(section, keyName, ToString(default_value), index));
+	return Convert::to_uint8(iniFile.GetValue(section, keyName, ToString(default_value), index));
 }
 
 //====================================================================
@@ -112,7 +113,7 @@ AudioFrequency IniPropertyConverter<AudioFrequency>::FromString(const std::strin
 {
 	if (auto pos = valueString.find("Hz"); pos != std::string::npos)
 	{
-		int frequency = std::stoi(valueString.substr(0, pos));
+		int frequency = Convert::to_int32(valueString.substr(0, pos));
 		return AudioFrequency(frequency);
 	}
 	Exception::Throw("Invalid value '" + valueString + "' for changing frequency. The value must be a number that ends with 'Hz'.");

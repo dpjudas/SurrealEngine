@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Utils/File.h"
 #include "Utils/UTF16.h"
+#include "Utils/StrCompare.h"
 #ifdef WIN32
 #include <Windows.h>
 #else
@@ -484,11 +485,8 @@ std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 bool FilePath::has_extension(const std::string &filename, const char *checkext)
 {
 	auto fileext = extension(filename);
-#ifdef WIN32
-	return _stricmp(fileext.c_str(), checkext) == 0;
-#else
-	return strcasecmp(fileext.c_str(), checkext) == 0;
-#endif
+
+	return StrCompare::equals_ignore_case(fileext, checkext);
 }
 
 std::string FilePath::extension(const std::string &filename)
