@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "IniFile.h"
 #include "Utils/File.h"
+#include "Utils/Convert.h"
 #include "MurmurHash3/MurmurHash3.h"
 #include <algorithm>
 
@@ -60,7 +61,7 @@ IniFile::IniFile(const std::string& filename)
 							Exception::Throw("malformed INI array index");
 
 						indexed = true;
-						index = std::stoi(name.substr(bracket + 1, rightBracket - bracket - 1));
+						index = Convert::to_int32(name.substr(bracket + 1, rightBracket - bracket - 1));
 						name = name.substr(0, bracket);
 					}
 
@@ -299,7 +300,7 @@ void IniFile::UpdateFile(const std::string& filename)
 
 				if (left_bracket_pos != std::string::npos && right_bracket_pos != std::string::npos && left_bracket_pos < right_bracket_pos)
 				{
-					bracket_index = std::stoi(key.substr(left_bracket_pos, right_bracket_pos - left_bracket_pos + 1));
+					bracket_index = Convert::to_int32(key.substr(left_bracket_pos, right_bracket_pos - left_bracket_pos + 1));
 					key_without_brackets = key.substr(0, left_bracket_pos);
 					key_has_brackets = true;
 				}

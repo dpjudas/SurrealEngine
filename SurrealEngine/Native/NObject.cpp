@@ -6,6 +6,7 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Math/quaternion.h"
+#include "Utils/StrCompare.h"
 #include <cmath>
 
 #ifdef _MSC_VER
@@ -340,11 +341,7 @@ void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnV
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
-#ifdef WIN32
-	ReturnValue = _stricmp(A.c_str(), B.c_str()) == 0;
-#else
-	ReturnValue = strcasecmp(A.c_str(), B.c_str()) == 0;
-#endif
+	ReturnValue = StrCompare::equals_ignore_case(A, B);
 }
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)

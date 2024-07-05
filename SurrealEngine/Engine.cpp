@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "Utils/File.h"
+#include "Utils/StrCompare.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
@@ -720,14 +721,12 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		for (auto& map : packages->GetMaps())
 		{
 			std::string mapname = FilePath::remove_extension(map);
-#ifdef WIN32
-			if (_stricmp(mapname.c_str(), url.Map.c_str()) == 0)
-#else
-			if (strcasecmp(mapname.c_str(), url.Map.c_str()) == 0)
-#endif
+
+			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
 				LoadMap(url);
 				LoginPlayer();
+				return {};
 			}	
 		}
 

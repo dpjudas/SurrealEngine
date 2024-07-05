@@ -35,6 +35,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UE1GameDatabase.cpp
 	SurrealEngine/Utils/CommandLine.cpp
 	SurrealEngine/Utils/CommandLine.h
+	SurrealEngine/Utils/Convert.cpp
+	SurrealEngine/Utils/Convert.h
 	SurrealEngine/Utils/Exception.cpp
 	SurrealEngine/Utils/Exception.h
 	SurrealEngine/Utils/File.cpp
@@ -43,6 +45,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/Logger.h
 	SurrealEngine/Utils/JsonValue.cpp
 	SurrealEngine/Utils/JsonValue.h
+	SurrealEngine/Utils/StrCompare.cpp
+	SurrealEngine/Utils/StrCompare.h
 	SurrealEngine/Utils/UTF16.cpp
 	SurrealEngine/Utils/UTF16.h
 	SurrealEngine/Utils/UTF8Reader.cpp

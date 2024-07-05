@@ -2,6 +2,8 @@
 
 #include "UClass.h"
 
+#include "Utils/Convert.h"
+
 #include <sstream>
 
 struct PropertyHeader;
@@ -226,7 +228,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(uint8_t*)data = (uint8_t) std::stoi(valueString);
+		*(uint8_t*)data = Convert::to_uint8(valueString);
 	}
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
@@ -603,7 +605,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(int32_t*)data = std::stoi(valueString);
+		*(int32_t*)data = Convert::to_int32(valueString);
 	}
 };
 
@@ -680,7 +682,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(float*)data = std::stof(valueString);
+		*(float*)data = Convert::to_float(valueString);
 	}
 };
 
