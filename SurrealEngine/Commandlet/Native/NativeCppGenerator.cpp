@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <set>
 
-std::vector<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
+Array<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
 
 void NativeCppGenerator::Run()
 {
@@ -228,7 +228,7 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& version)
 {
 	std::string funcArgs = "UObject* Self";
-	const std::vector<JsonValue>& args = json["Arguments"].items();
+	const Array<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
 		// Assemble function arguments

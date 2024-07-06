@@ -174,26 +174,26 @@ public:
 
 	PointRegion FindRegion(const vec3& point, UZoneInfo* levelZoneInfo);
 
-	std::vector<vec3> Vectors;
-	std::vector<vec3> Points;
-	std::vector<BspNode> Nodes;
-	std::vector<BspSurface> Surfaces;
-	std::vector<BspVert> Vertices;
+	Array<vec3> Vectors;
+	Array<vec3> Points;
+	Array<BspNode> Nodes;
+	Array<BspSurface> Surfaces;
+	Array<BspVert> Vertices;
 
 	int32_t NumSharedSides;
 
-	std::vector<ZoneProperties> Zones;
+	Array<ZoneProperties> Zones;
 
 	UPolys* Polys = nullptr;
 
-	std::vector<LightMapIndex> LightMap;
-	std::vector<uint8_t> LightBits;
+	Array<LightMapIndex> LightMap;
+	Array<uint8_t> LightBits;
 
-	std::vector<BBox> Bounds;
-	std::vector<int32_t> LeafHulls;
-	std::vector<ConvexVolumeLeaf> Leaves;
+	Array<BBox> Bounds;
+	Array<int32_t> LeafHulls;
+	Array<ConvexVolumeLeaf> Leaves;
 
-	std::vector<UActor*> Lights;
+	Array<UActor*> Lights;
 
 	int32_t RootOutside;
 	int32_t Linked;
@@ -217,13 +217,13 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<UActor*> Actors;
+	Array<UActor*> Actors;
 
 	std::string Protocol;
 	std::string Host;
 	int Port = 0;
 	std::string Map;
-	std::vector<std::string> Options;
+	Array<std::string> Options;
 	std::string Portal;
 };
 
@@ -260,11 +260,11 @@ public:
 
 	bool TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
 
-	std::vector<LevelReachSpec> ReachSpecs;
+	Array<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
 	CollisionHash Hash;
-	std::vector<std::unique_ptr<LevelDecal>> Decals;
+	Array<std::unique_ptr<LevelDecal>> Decals;
 
 	std::map<std::string, std::string> TravelInfo;
 
@@ -291,7 +291,7 @@ struct Poly
 	vec3 Normal;
 	vec3 TextureU;
 	vec3 TextureV;
-	std::vector<vec3> Vertices;
+	Array<vec3> Vertices;
 	uint32_t PolyFlags;
 	UBrush* Actor;
 	UTexture* Texture;
@@ -308,7 +308,7 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<Poly> Polys;
+	Array<Poly> Polys;
 };
 
 class UBspNodes : public UObject
@@ -317,8 +317,8 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<BspNode> Nodes;
-	std::vector<ZoneProperties> Zones;
+	Array<BspNode> Nodes;
+	Array<ZoneProperties> Zones;
 };
 
 class UBspSurfs : public UObject
@@ -327,7 +327,7 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<BspSurface> Surfaces;
+	Array<BspSurface> Surfaces;
 };
 
 class UVectors : public UObject
@@ -336,7 +336,7 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<vec3> Vectors;
+	Array<vec3> Vectors;
 };
 
 class UVerts : public UObject
@@ -345,6 +345,6 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<BspVert> Vertices;
+	Array<BspVert> Vertices;
 	int32_t NumSharedSides;
 };

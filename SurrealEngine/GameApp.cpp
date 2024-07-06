@@ -13,7 +13,7 @@
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>
 
-int GameApp::main(std::vector<std::string> args)
+int GameApp::main(Array<std::string> args)
 {
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));

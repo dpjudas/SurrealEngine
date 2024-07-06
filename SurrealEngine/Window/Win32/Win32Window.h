@@ -33,7 +33,7 @@ public:
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;
 	double GetDpiScale() const override;
-	std::vector<Size> QueryAvailableResolutions() const override;
+	Array<Size> QueryAvailableResolutions() const override;
 
 	Point GetLParamPos(LPARAM lparam) const;
 

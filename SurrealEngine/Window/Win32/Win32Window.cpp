@@ -226,9 +226,9 @@ double Win32Window::GetDpiScale() const
 	return GetDpiForWindow(WindowHandle) / 96.0;
 }
 
-std::vector<Size> Win32Window::QueryAvailableResolutions() const
+Array<Size> Win32Window::QueryAvailableResolutions() const
 {
-	std::vector<Size> result{};
+	Array<Size> result{};
 
 	int modeNum = 0;
 	DEVMODE deviceMode = {};
@@ -259,7 +259,7 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 		if (result == 0 && size > 0)
 		{
 			size *= 2;
-			std::vector<uint8_t*> buffer(size);
+			Array<uint8_t*> buffer(size);
 			result = GetRawInputData(handle, RID_INPUT, buffer.data(), &size, sizeof(RAWINPUTHEADER));
 			if (result >= 0)
 			{

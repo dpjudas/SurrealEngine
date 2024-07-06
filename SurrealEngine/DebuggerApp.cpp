@@ -28,7 +28,7 @@
 #include <unistd.h>
 #endif
 
-int DebuggerApp::Main(std::vector<std::string> args)
+int DebuggerApp::Main(Array<std::string> args)
 {
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));

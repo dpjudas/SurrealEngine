@@ -29,13 +29,13 @@ private:
 
 	int width = 0;
 	int height = 0;
-	std::vector<vec3> lightcolors;
+	Array<vec3> lightcolors;
 
-	std::vector<vec3> points;
+	Array<vec3> points;
 	vec3 normal;
 	vec3 base;
 
 	Shadowmap Shadow;
 	LightEffect Effect;
-	std::vector<float> illuminationmap;
+	Array<float> illuminationmap;
 };

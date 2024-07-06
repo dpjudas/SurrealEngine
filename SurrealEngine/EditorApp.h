@@ -3,5 +3,5 @@
 class EditorApp
 {
 public:
-	int main(std::vector<std::string> args);
+	int main(Array<std::string> args);
 };

@@ -11,7 +11,7 @@ class UnrealMipmap
 public:
 	int Width;
 	int Height;
-	std::vector<uint8_t> Data;
+	Array<uint8_t> Data;
 };
 
 enum class TextureFormat : uint32_t
@@ -191,7 +191,7 @@ public:
 	virtual void UpdateFrame();
 
 	TextureFormat ActualFormat = TextureFormat::P8;
-	std::vector<UnrealMipmap> Mipmaps;
+	Array<UnrealMipmap> Mipmaps;
 	bool TextureModified = false;
 	int RealtimeChangeCount = 0;
 
@@ -247,7 +247,7 @@ public:
 	UTexture*& AnimNext() { return Value<UTexture*>(PropOffsets_Texture.AnimNext); }
 	UTexture*& BumpMap() { return Value<UTexture*>(PropOffsets_Texture.BumpMap); }
 	uint8_t& CompFormat() { return Value<uint8_t>(PropOffsets_Texture.CompFormat); }
-	std::vector<void*>& CompMips() { return Value<std::vector<void*>>(PropOffsets_Texture.CompMips); } // native
+	Array<void*>& CompMips() { return Value<Array<void*>>(PropOffsets_Texture.CompMips); } // native
 	UTexture*& DetailTexture() { return Value<UTexture*>(PropOffsets_Texture.DetailTexture); }
 	float& Diffuse() { return Value<float>(PropOffsets_Texture.Diffuse); }
 	float& DrawScale() { return Value<float>(PropOffsets_Texture.DrawScale); }
@@ -259,7 +259,7 @@ public:
 	float& MaxFrameRate() { return Value<float>(PropOffsets_Texture.MaxFrameRate); }
 	float& MinFrameRate() { return Value<float>(PropOffsets_Texture.MinFrameRate); }
 	float& MipMult() { return Value<float>(PropOffsets_Texture.MipMult); }
-	std::vector<void*>& Mips() { return Value<std::vector<void*>>(PropOffsets_Texture.Mips); } // native
+	Array<void*>& Mips() { return Value<Array<void*>>(PropOffsets_Texture.Mips); } // native
 	uint8_t& PrimeCount() { return Value<uint8_t>(PropOffsets_Texture.PrimeCount); }
 	uint8_t& PrimeCurrent() { return Value<uint8_t>(PropOffsets_Texture.PrimeCurrent); }
 	float& Specular() { return Value<float>(PropOffsets_Texture.Specular); }
@@ -401,7 +401,7 @@ public:
 	void Load(ObjectStream* stream) override;
 	void UpdateFrame() override;
 
-	const std::vector<Spark>& GetSparks() const { return Sparks; }
+	const Array<Spark>& GetSparks() const { return Sparks; }
 
 	FireDrawMode& DrawMode() { return Value<FireDrawMode>(PropOffsets_FireTexture.DrawMode); }
 	uint8_t& FX_Area() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Area); }
@@ -419,7 +419,7 @@ public:
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
 	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
-	//std::vector<Spark*>& Sparks() { return Value<std::vector<Spark*>>(PropOffsets_FireTexture.Sparks); }
+	//Array<Spark*>& Sparks() { return Value<Array<Spark*>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
 	BitfieldBool bRising() { return BoolValue(PropOffsets_FireTexture.bRising); }
@@ -427,11 +427,11 @@ public:
 private:
 	int RandomByteValue() { return (int)(rand() * 256LL / (RAND_MAX + 1LL)); }
 
-	std::vector<uint8_t> WorkBuffer;
+	Array<uint8_t> WorkBuffer;
 	uint8_t FadeTable[4 * 256];
 	int CurrentRenderHeat = -1;
-	std::vector<Spark> Sparks;
-	std::vector<SparkParticle> Particles;
+	Array<Spark> Sparks;
+	Array<SparkParticle> Particles;
 };
 
 class UIceTexture : public UFractalTexture
@@ -534,7 +534,7 @@ public:
 protected:
 	void UpdateWater();
 
-	std::vector<WaterPixel> WaterDepth[2];
+	Array<WaterPixel> WaterDepth[2];
 	int CurrentWaterDepth = 0;
 };
 
@@ -582,7 +582,7 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<uint32_t> Colors;
+	Array<uint32_t> Colors;
 
-	// std::vector<void*>& Colors() { return Value<std::vector<void*>>(PropOffsets_Palette.Colors); } // native
+	// Array<void*>& Colors() { return Value<Array<void*>>(PropOffsets_Palette.Colors); } // native
 };

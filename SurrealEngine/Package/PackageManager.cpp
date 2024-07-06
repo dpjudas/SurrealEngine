@@ -159,9 +159,9 @@ void PackageManager::ScanPaths()
 	}
 }
 
-std::vector<NameString> PackageManager::GetPackageNames() const
+Array<NameString> PackageManager::GetPackageNames() const
 {
-	std::vector<NameString> names;
+	Array<NameString> names;
 	for (auto& it : packageFilenames)
 	{
 		names.push_back(it.first);
@@ -285,7 +285,7 @@ std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 	return ini;
 }
 
-std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
+Array<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	return GetSystemIniFile(iniName)->GetKeys(sectionName);
 }
@@ -295,7 +295,7 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 	return GetSystemIniFile(iniName)->GetValue(sectionName, keyName, default_value, index);
 }
 
-std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
+Array<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, Array<std::string> default_values)
 {
 	return GetSystemIniFile(iniName)->GetValues(sectionName, keyName, default_values);
 }
@@ -305,7 +305,7 @@ void PackageManager::SetIniValue(NameString iniName, const NameString& sectionNa
 	GetSystemIniFile(iniName)->SetValue(sectionName, keyName, newValue, index);
 }
 
-void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
+void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues)
 {
 	GetSystemIniFile(iniName)->SetValues(sectionName, keyName, newValues);
 }
@@ -421,7 +421,7 @@ void PackageManager::LoadIntFiles()
 	}
 }
 
-std::vector<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
+Array<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 {
 	size_t pos = metaclass.ToString().find_last_of('.');
 	if (pos == std::string::npos)

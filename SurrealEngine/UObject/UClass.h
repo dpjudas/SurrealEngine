@@ -33,7 +33,7 @@ public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<NameString> ElementNames;
+	Array<NameString> ElementNames;
 };
 
 class UStruct : public UField
@@ -54,11 +54,11 @@ public:
 	std::string BytecodePlainText;
 #endif
 	UStruct* StructParent = nullptr;
-	std::vector<uint8_t> Bytecode;
+	Array<uint8_t> Bytecode;
 	std::shared_ptr<::Bytecode> Code;
 
 	size_t StructSize = 0;
-	std::vector<UProperty*> Properties;
+	Array<UProperty*> Properties;
 
 private:
 	ExprToken ReadToken(ObjectStream* stream, int depth);
@@ -194,8 +194,8 @@ public:
 	uint32_t OldClassRecordSize = 0;
 	ClassFlags ClsFlags = {};
 	Guid ClassGuid;
-	std::vector<ClassDependency> Dependencies;
-	std::vector<int> PackageImports;
+	Array<ClassDependency> Dependencies;
+	Array<int> PackageImports;
 	int ClassWithin = 0;
 	NameString ClassConfigName;
 	NameString PackageName;

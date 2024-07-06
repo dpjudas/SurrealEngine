@@ -6,7 +6,7 @@
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/lineedit/lineedit.h>
 
-PlayGamePage::PlayGamePage(LauncherWindow* launcher, const std::vector<GameLaunchInfo>& games) : Widget(nullptr), Launcher(launcher)
+PlayGamePage::PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>& games) : Widget(nullptr), Launcher(launcher)
 {
 	WelcomeLabel = new TextLabel(this);
 	SelectLabel = new TextLabel(this);

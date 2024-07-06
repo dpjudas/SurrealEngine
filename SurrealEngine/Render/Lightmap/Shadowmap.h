@@ -15,6 +15,6 @@ public:
 private:
 	int width = 0;
 	int height = 0;
-	std::vector<float> pixels;
-	std::vector<float> tempbuf;
+	Array<float> pixels;
+	Array<float> tempbuf;
 };

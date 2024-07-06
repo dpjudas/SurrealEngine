@@ -162,7 +162,7 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 {
 	ThrowIfTypeMismatch(header, UPT_String);
 	int len = header.size;
-	std::vector<char> s;
+	Array<char> s;
 	s.resize(len);
 	stream->ReadBytes(s.data(), (int)s.size());
 	s.push_back(0);
@@ -180,7 +180,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 	else if (header.type == UPT_String)
 	{
 		int len = header.size;
-		std::vector<char> s;
+		Array<char> s;
 		s.resize(len);
 		stream->ReadBytes(s.data(), (int)s.size());
 		s.push_back(0);

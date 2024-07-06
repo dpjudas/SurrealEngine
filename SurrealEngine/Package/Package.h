@@ -63,7 +63,7 @@ public:
 
 	std::string GetExportName(int objref);
 
-	template<class T> std::vector<T*> GetAllObjects();
+	template<class T> Array<T*> GetAllObjects();
 
 private:
 	void ReadTables();
@@ -79,13 +79,13 @@ private:
 
 	int Version = 0;
 	PackageFlags Flags = PackageFlags::NoFlags;
-	std::vector<NameTableEntry> NameTable;
-	std::vector<ExportTableEntry> ExportTable;
-	std::vector<ImportTableEntry> ImportTable;
+	Array<NameTableEntry> NameTable;
+	Array<ExportTableEntry> ExportTable;
+	Array<ImportTableEntry> ImportTable;
 
 	std::map<NameString, int> NameHash;
 
-	std::vector<std::unique_ptr<UObject>> Objects;
+	Array<std::unique_ptr<UObject>> Objects;
 
 	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 

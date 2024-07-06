@@ -332,9 +332,9 @@ std::string UObject::PrintProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllProperties()
+Array<UProperty*> UObject::GetAllProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -344,9 +344,9 @@ std::vector<UProperty*> UObject::GetAllProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllUserEditableProperties()
+Array<UProperty*> UObject::GetAllUserEditableProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -357,9 +357,9 @@ std::vector<UProperty*> UObject::GetAllUserEditableProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllTravelProperties()
+Array<UProperty*> UObject::GetAllTravelProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{

@@ -285,7 +285,7 @@ void AudioSubsystem::BreakpointTriggered()
 	}
 }
 
-void AudioSubsystem::AddStats(std::vector<std::string>& lines)
+void AudioSubsystem::AddStats(Array<std::string>& lines)
 {
 	const int bufsize = 1024;
 	char buffer[bufsize];

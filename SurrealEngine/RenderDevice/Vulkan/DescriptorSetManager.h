@@ -79,7 +79,7 @@ private:
 	WriteDescriptors WriteBindless;
 	int NextBindlessIndex = 0;
 
-	std::vector<std::unique_ptr<VulkanDescriptorPool>> SceneDescriptorPool;
+	Array<std::unique_ptr<VulkanDescriptorPool>> SceneDescriptorPool;
 	int SceneDescriptorPoolSetsLeft = 0;
 
 	std::unordered_map<TexDescriptorKey, std::unique_ptr<VulkanDescriptorSet>> TextureDescriptorSets;

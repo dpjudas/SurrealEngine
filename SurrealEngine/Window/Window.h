@@ -141,9 +141,9 @@ public:
 	virtual int GetPixelWidth() const = 0;
 	virtual int GetPixelHeight() const = 0;
 	virtual double GetDpiScale() const = 0;
-	virtual std::vector<Size> QueryAvailableResolutions() const = 0;
+	virtual Array<Size> QueryAvailableResolutions() const = 0;
 	std::string GetAvailableResolutions() const;
-	void AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const;
+	void AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const;
 	Size ParseResolutionString(std::string& resolutionString) const;
 	Size GetClosestResolution(Size resolution) const;
 	void SetResolution(std::string& resolutionString);

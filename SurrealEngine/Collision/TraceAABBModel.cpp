@@ -35,7 +35,7 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 		if (cursor.ClipBoxPlanes(bbox))
 		{
 			// Grab the hull planes and flip the plane direction if the plane points in the wrong direction.
-			std::vector<dvec4> planes;
+			Array<dvec4> planes;
 			for (int i = 0; i < hullPlanesCount; i++)
 			{
 				int32_t hullIndex = hullIndexList[i];

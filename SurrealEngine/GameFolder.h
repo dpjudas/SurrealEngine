@@ -19,6 +19,6 @@ public:
 
 private:
 	static GameLaunchInfo ExamineFolder(const std::string& path);
-	static std::vector<std::string> FindGameFolders();
+	static Array<std::string> FindGameFolders();
 	static std::string GetExePath();
 };

@@ -173,7 +173,7 @@ void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::strin
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
-	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	Array<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
 		ReturnValue = objects[Num].Name.ToString();
 	else
@@ -182,7 +182,7 @@ void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, st
 
 void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description)
 {
-	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	Array<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
 	{
 		Entry = objects[Num].Name.ToString();
@@ -197,7 +197,7 @@ void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num
 
 void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std::string& MapName, int Dir, std::string& ReturnValue)
 {
-	std::vector<std::string> maps;
+	Array<std::string> maps;
 
 	// Filter list to only those with the matching map type
 	for (const std::string& name : engine->packages->GetMaps())
@@ -237,7 +237,7 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 	else
 		prefix = Prefix;
 
-	std::vector<const IntObject*> skins;
+	Array<const IntObject*> skins;
 
 	// Filter list to only those with the matching skin prefix
 	for (const IntObject& skin : engine->packages->GetIntObjects("Texture"))

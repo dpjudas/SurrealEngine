@@ -203,10 +203,10 @@ void File::write_all_text(const std::string& filename, const std::string& text)
 	file->write(text.data(), text.size());
 }
 
-std::vector<uint8_t> File::read_all_bytes(const std::string& filename)
+Array<uint8_t> File::read_all_bytes(const std::string& filename)
 {
 	auto file = open_existing(filename);
-	std::vector<uint8_t> buffer(file->size());
+	Array<uint8_t> buffer(file->size());
 	file->read(buffer.data(), buffer.size());
 	return buffer;
 }
@@ -222,14 +222,14 @@ std::string File::read_all_text(const std::string& filename)
 	return buffer;
 }
 
-std::vector<std::string> File::read_all_lines(const std::string& filename)
+Array<std::string> File::read_all_lines(const std::string& filename)
 {
 	std::string text = read_all_text(filename);
 
 	if (text.empty())
 		return {};
 
-	std::vector<std::string> result;
+	Array<std::string> result;
 
 	std::string buffer;
 
@@ -245,9 +245,9 @@ std::vector<std::string> File::read_all_lines(const std::string& filename)
 
 #ifdef WIN32
 
-std::vector<std::string> Directory::files(const std::string& filename)
+Array<std::string> Directory::files(const std::string& filename)
 {
-	std::vector<std::string> files;
+	Array<std::string> files;
 
 	WIN32_FIND_DATA fileinfo;
 	HANDLE handle = FindFirstFile(to_utf16(filename).c_str(), &fileinfo);
@@ -284,9 +284,9 @@ void Directory::make_directory(const std::string& dirname)
 
 #else
 
-std::vector<std::string> Directory::files(const std::string& filename)
+Array<std::string> Directory::files(const std::string& filename)
 {
-	std::vector<std::string> files;
+	Array<std::string> files;
 
 	std::string filter = FilePath::last_component(filename);
 	std::string path = FilePath::remove_last_component(filename);
@@ -447,13 +447,13 @@ std::string OS::get_default_font_name()
 std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 {
 #ifdef WIN32
-	const std::vector<std::string> possible_fonts_folders = {
+	const Array<std::string> possible_fonts_folders = {
 		"C:\\Windows\\Fonts"
 	};
 #elif defined(APPLE)
 	// Based on: https://superuser.com/a/407449
 	// Start from user Fonts folder, and go up from there
-	const std::vector<std::string> possible_fonts_folders = {
+	const Array<std::string> possible_fonts_folders = {
 		"~/Library/Fonts",
 		"/Library/Fonts",
 		"/System/Library/Fonts"
@@ -462,7 +462,7 @@ std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 	// Linux is Linux and as always, how the fonts stored can be wholly different
 	// So here we try to account for possible paths
 	// ...is there a better way to do this?
-	const std::vector<std::string> possible_fonts_folders = {
+	const Array<std::string> possible_fonts_folders = {
 		"/usr/share/fonts",
 		"/usr/share/fonts/truetype",
 		"/usr/share/fonts/TTF"

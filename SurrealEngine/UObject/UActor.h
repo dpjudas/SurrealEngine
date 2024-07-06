@@ -235,7 +235,7 @@ public:
 	{
 		bool NeedsUpdate = true;
 		vec3 Location = vec3(0.0f);
-		std::vector<UActor*> LightList;
+		Array<UActor*> LightList;
 	} LightInfo;
 
 	// Fog between actor and camera
@@ -271,7 +271,7 @@ public:
 	vec3 gravityVector;
 
 	// Child actor tracking
-	std::vector<UActor*> ChildActors;
+	Array<UActor*> ChildActors;
 
 	void AddChildActor(UActor* actor);
 	void RemoveChildActor(UActor* actor);
@@ -496,7 +496,7 @@ public:
 
 	float& LastRenderedTime() { return Value<float>(PropOffsets_Decal.LastRenderedTime); }
 	int& MultiDecalLevel() { return Value<int>(PropOffsets_Decal.MultiDecalLevel); }
-	std::vector<void*>& SurfList() { return Value<std::vector<void*>>(PropOffsets_Decal.SurfList); }
+	Array<void*>& SurfList() { return Value<Array<void*>>(PropOffsets_Decal.SurfList); }
 };
 
 class USpawnNotify : public UActor

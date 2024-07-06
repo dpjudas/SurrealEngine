@@ -33,9 +33,9 @@ std::string Commandlet::NewLine()
 	return DebuggerApp::NewLine();
 }
 
-std::vector<std::string> Commandlet::SplitString(const std::string& text, char separator)
+Array<std::string> Commandlet::SplitString(const std::string& text, char separator)
 {
-	std::vector<std::string> result;
+	Array<std::string> result;
 
 	size_t pos = 0;
 	while (pos < text.size())

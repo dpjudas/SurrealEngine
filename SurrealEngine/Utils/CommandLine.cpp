@@ -4,7 +4,7 @@
 
 CommandLine* commandline;
 
-CommandLine::CommandLine(const std::vector<std::string>& args)
+CommandLine::CommandLine(const Array<std::string>& args)
 {
 	for (const std::string& arg : args)
 	{

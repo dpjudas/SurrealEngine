@@ -40,7 +40,7 @@ private:
 	static bool IsFrontfacing(const vec4* const* vert);
 	static void SortVertices(const vec4* const* vertices, const vec4** sortedVertices);
 
-	std::vector<std::vector<ClipSpan>> Viewport;
+	Array<Array<ClipSpan>> Viewport;
 	FrustumPlanes FrustumClip;
 	mat4 WorldToProjection;
 

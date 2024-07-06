@@ -127,7 +127,7 @@ private:
 	void Expr(NativeFunctionExpression* expr) override;
 	void Expr(FunctionArgumentsExpression* expr) override;
 
-	void Call(UFunction* func, const std::vector<Expression*>& exprArgs);
+	void Call(UFunction* func, const Array<Expression*>& exprArgs);
 
 	ExpressionEvalResult Result;
 	UObject* Self = nullptr;

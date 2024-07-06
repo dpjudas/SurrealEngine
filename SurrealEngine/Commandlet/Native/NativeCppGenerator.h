@@ -21,29 +21,29 @@ private:
 	{
 		std::string args;
 		int argCount;
-		std::vector<std::string> games;
+		Array<std::string> games;
 	};
 
 	struct NativeFunction
 	{
 		std::string name;
-		std::vector<NativeFunctionDecl> decls;
-		std::vector<std::pair<std::string, int>> versionIndex;
+		Array<NativeFunctionDecl> decls;
+		Array<std::pair<std::string, int>> versionIndex;
 	};
 
 	struct NativeProperty
 	{
 		std::string name;
 		std::string type;
-		std::vector<std::string> games;
+		Array<std::string> games;
 	};
 
 	struct NativeClass
 	{
 		std::string name;
 		std::string package;
-		std::vector<NativeFunction> funcs;
-		std::vector<NativeProperty> props;
+		Array<NativeFunction> funcs;
+		Array<NativeProperty> props;
 
 		NativeFunction& AddUniqueNativeFunction(const std::string& funcName);
 		NativeProperty& AddUniqueNativeProperty(const std::string& propName);
@@ -58,5 +58,5 @@ private:
 
 	static NativeClass& AddUniqueNativeClass(const std::string& className);
 
-	static std::vector<NativeCppGenerator::NativeClass> classes;
+	static Array<NativeCppGenerator::NativeClass> classes;
 };

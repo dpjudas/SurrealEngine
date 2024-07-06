@@ -49,14 +49,14 @@ struct Breakpoint
 class Frame
 {
 public:
-	static ExpressionValue Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args);
+	static ExpressionValue Call(UFunction* func, UObject* instance, Array<ExpressionValue> args);
 	static std::string GetCallstack();
 
 	static bool AddBreakpoint(const NameString& package, const NameString& cls, const NameString& func, const NameString& state = {});
 
 	static std::function<void()> RunDebugger;
-	static std::vector<Breakpoint> Breakpoints;
-	static std::vector<Frame*> Callstack;
+	static Array<Breakpoint> Breakpoints;
+	static Array<Frame*> Callstack;
 	static FrameRunState RunState;
 	static Frame* StepFrame;
 	static Expression* StepExpression;
@@ -83,7 +83,7 @@ public:
 	UObject* Object = nullptr;
 	UStruct* Func = nullptr;
 	size_t StatementIndex = 0;
-	std::vector<std::unique_ptr<Iterator>> Iterators;
+	Array<std::unique_ptr<Iterator>> Iterators;
 
 private:
 	ExpressionEvalResult Run();

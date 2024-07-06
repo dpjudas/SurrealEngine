@@ -40,7 +40,7 @@ public:
 	void NoteDestroy(UActor* Actor);
 
 	void BreakpointTriggered();
-	void AddStats(std::vector<std::string>& lines);
+	void AddStats(Array<std::string>& lines);
 	void StopSounds();
 
 	AudioDevice* GetDevice() { return Device.get(); }
@@ -65,7 +65,7 @@ private:
 	float DopplerSpeed = 9000.0f;
 
 	std::unique_ptr<AudioDevice> Device;
-	std::vector<PlayingSound> PlayingSounds;
+	Array<PlayingSound> PlayingSounds;
 	UMusic* CurrentSong = nullptr;
 	int CurrentSection = 255;
 	int FreeSlot = 0x07ffffff;

@@ -28,9 +28,9 @@ public:
 	int GetChannels();
 
 	NameString Format;
-	std::vector<uint8_t> Data;
+	Array<uint8_t> Data;
 
-	std::vector<float> samples;
+	Array<float> samples;
 	float duration = 0.0f;
 	int frequency = 0;
 	int channels = 0;

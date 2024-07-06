@@ -31,7 +31,7 @@
 class Mp3AudioSource : public AudioSource
 {
 public:
-	Mp3AudioSource(std::vector<uint8_t> filedata) : input(std::move(filedata))
+	Mp3AudioSource(Array<uint8_t> filedata) : input(std::move(filedata))
 	{
 		int error = mp3dec_ex_open_buf(&decoder, input.data(), input.size(), MP3D_SEEK_TO_SAMPLE);
 		if (error)
@@ -102,7 +102,7 @@ public:
 		endofdata = (available == 0);
 	}
 
-	std::vector<uint8_t> input;
+	Array<uint8_t> input;
 	mp3d_sample_t* buffer = nullptr;
 	size_t available = 0;
 	bool endofdata = false;
@@ -113,7 +113,7 @@ public:
 class FlacAudioSource : public AudioSource
 {
 public:
-	FlacAudioSource(std::vector<uint8_t> filedata) : filedata(std::move(filedata))
+	FlacAudioSource(Array<uint8_t> filedata) : filedata(std::move(filedata))
 	{
 		decoder = drflac_open(&FlacAudioSource::StaticInputRead, &FlacAudioSource::StaticInputSeek, this, nullptr);
 		if (!decoder)
@@ -202,7 +202,7 @@ public:
 	}
 
 	drflac* decoder = nullptr;
-	std::vector<uint8_t> filedata;
+	Array<uint8_t> filedata;
 	size_t inputpos = 0;
 	bool eofdata = false;
 };
@@ -210,7 +210,7 @@ public:
 class WavAudioSource : public AudioSource
 {
 public:
-	WavAudioSource(std::vector<uint8_t> filedata) : filedata(std::move(filedata))
+	WavAudioSource(Array<uint8_t> filedata) : filedata(std::move(filedata))
 	{
 		drwav_bool32 result = drwav_init_ex(&decoder, &WavAudioSource::StaticInputRead, &WavAudioSource::StaticInputSeek, nullptr, this, nullptr, 0, nullptr);
 		if (!result)
@@ -307,7 +307,7 @@ public:
 	}
 
 	drwav decoder = {};
-	std::vector<uint8_t> filedata;
+	Array<uint8_t> filedata;
 	size_t inputpos = 0;
 	bool eofdata = false;
 };
@@ -315,7 +315,7 @@ public:
 class OggAudioSource : public AudioSource
 {
 public:
-	OggAudioSource(std::vector<uint8_t> input) : filedata(std::move(input))
+	OggAudioSource(Array<uint8_t> input) : filedata(std::move(input))
 	{
 		int error = 0;
 		handle = stb_vorbis_open_pushdata(filedata.data(), (int)filedata.size(), &stream_byte_offset, &error, nullptr);
@@ -408,7 +408,7 @@ public:
 		return (data_requested - data_left) * stream_info.channels;
 	}
 
-	std::vector<uint8_t> filedata;
+	Array<uint8_t> filedata;
 	bool stream_eof = false;
 
 	stb_vorbis* handle = nullptr;
@@ -423,7 +423,7 @@ public:
 class DumbAudioSource : public AudioSource
 {
 public:
-	DumbAudioSource(std::vector<uint8_t> initfiledata, bool loop, std::function<DUH*(DUMBFILE*)> readCallback) : filedata(std::move(initfiledata))
+	DumbAudioSource(Array<uint8_t> initfiledata, bool loop, std::function<DUH*(DUMBFILE*)> readCallback) : filedata(std::move(initfiledata))
 	{
 		dfs.open = &DumbAudioSource::DfsOpen;
 		dfs.skip = &DumbAudioSource::DfsSkip;
@@ -551,7 +551,7 @@ public:
 		return self->filedata.size();
 	}
 
-	std::vector<uint8_t> filedata;
+	Array<uint8_t> filedata;
 	size_t filepointer = 0;
 	bool seekerror = false;
 
@@ -564,27 +564,27 @@ public:
 	DUH_SIGRENDERER* renderer = nullptr;
 };
 
-std::unique_ptr<AudioSource> AudioSource::CreateMp3(std::vector<uint8_t> filedata)
+std::unique_ptr<AudioSource> AudioSource::CreateMp3(Array<uint8_t> filedata)
 {
 	return std::make_unique<Mp3AudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateFlac(std::vector<uint8_t> filedata)
+std::unique_ptr<AudioSource> AudioSource::CreateFlac(Array<uint8_t> filedata)
 {
 	return std::make_unique<FlacAudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateWav(std::vector<uint8_t> filedata)
+std::unique_ptr<AudioSource> AudioSource::CreateWav(Array<uint8_t> filedata)
 {
 	return std::make_unique<WavAudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateOgg(std::vector<uint8_t> filedata)
+std::unique_ptr<AudioSource> AudioSource::CreateOgg(Array<uint8_t> filedata)
 {
 	return std::make_unique<OggAudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateMod(std::vector<uint8_t> filedata, bool loop, int restrict_, int subsong)
+std::unique_ptr<AudioSource> AudioSource::CreateMod(Array<uint8_t> filedata, bool loop, int restrict_, int subsong)
 {
 	return std::make_unique<DumbAudioSource>(std::move(filedata), loop, [=](auto handle) { return dumb_read_any(handle, restrict_, subsong); });
 }
@@ -698,15 +698,15 @@ public:
 
 	struct Channel
 	{
-		std::vector<double> inputbuffer;
+		Array<double> inputbuffer;
 		int inputavailable = 0;
 		double* outputbuffer = nullptr;
 		int outputavailable = 0;
 		std::unique_ptr<r8b::CDSPResampler> resampler;
 	};
 
-	std::vector<float> srcbuffer;
-	std::vector<Channel> channels;
+	Array<float> srcbuffer;
+	Array<Channel> channels;
 	int maxInSize = 4096;
 	bool endofdata = false;
 

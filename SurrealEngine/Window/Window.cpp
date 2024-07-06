@@ -119,7 +119,7 @@ std::string GameWindow::GetAvailableResolutions() const
 	return result;
 }
 
-void GameWindow::AddResolutionIfNotAdded(std::vector<Size>& resList, Size resolution) const
+void GameWindow::AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const
 {
 	// Skip over the current resolution if it is already inserted
 	// (in case of multiple refresh rates being available for the display)

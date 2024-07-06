@@ -18,7 +18,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	UObject* obj = nullptr;
 	bool bFoundObj = false;
 
-	std::vector<std::string> chunks = SplitString(args, '.');
+	Array<std::string> chunks = SplitString(args, '.');
 
 	if (NameString("self") == chunks[0])
 	{

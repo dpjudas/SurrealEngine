@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "NativeFunc.h"
 
-std::vector<UFunction*> NativeFunctions::FuncByIndex;
-std::vector<NativeFuncHandler> NativeFunctions::NativeByIndex;
+Array<UFunction*> NativeFunctions::FuncByIndex;
+Array<NativeFuncHandler> NativeFunctions::NativeByIndex;
 std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeFunctions::NativeByName;
 
 void NativeFunctions::RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler)

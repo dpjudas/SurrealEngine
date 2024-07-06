@@ -53,6 +53,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/UTF8Reader.h
 	SurrealEngine/Utils/MemoryStreamWriter.cpp
 	SurrealEngine/Utils/MemoryStreamWriter.h
+	SurrealEngine/Utils/Array.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp

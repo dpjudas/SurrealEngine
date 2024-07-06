@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include "Utils/Array.h"
 #include "Utils/Exception.h"
 
 #ifdef WIN32

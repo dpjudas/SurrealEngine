@@ -10,8 +10,8 @@
 #include "Package/PackageManager.h"
 
 std::function<void()> Frame::RunDebugger;
-std::vector<Breakpoint> Frame::Breakpoints;
-std::vector<Frame*> Frame::Callstack;
+Array<Breakpoint> Frame::Breakpoints;
+Array<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
 Expression* Frame::StepExpression = nullptr;
@@ -142,7 +142,7 @@ std::string Frame::GetCallstack()
 	return result;
 }
 
-ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
+ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
 {
 	if (!instance->IsEventEnabled(func->Name))
 	{

@@ -14,8 +14,8 @@ public:
 	void AddToCollision(UActor* actor);
 	void RemoveFromCollision(UActor* actor);
 
-	std::vector<UActor*> CollidingActors(const vec3& origin, float radius);
-	std::vector<UActor*> CollidingActors(const vec3& origin, float height, float radius);
+	Array<UActor*> CollidingActors(const vec3& origin, float radius);
+	Array<UActor*> CollidingActors(const vec3& origin, float height, float radius);
 
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
 	{

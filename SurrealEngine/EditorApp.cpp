@@ -10,7 +10,7 @@
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>
 
-int EditorApp::main(std::vector<std::string> args)
+int EditorApp::main(Array<std::string> args)
 {
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));

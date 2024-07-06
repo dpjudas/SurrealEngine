@@ -103,7 +103,7 @@ void ULevel::Tick(float elapsed)
 		}
 	}
 
-	std::vector<UActor*> newActorList;
+	Array<UActor*> newActorList;
 	newActorList.reserve(Actors.size());
 	for (UActor* actor : Actors)
 	{

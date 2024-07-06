@@ -27,6 +27,6 @@ private:
 
 	int width = 0;
 	int height = 0;
-	std::vector<vec4> fogcolors;
-	std::vector<vec3> points;
+	Array<vec4> fogcolors;
+	Array<vec3> points;
 };

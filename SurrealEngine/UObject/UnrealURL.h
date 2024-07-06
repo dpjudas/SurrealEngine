@@ -28,5 +28,5 @@ public:
 	std::string MapExt = "unr";
 	std::string SaveExt = "usa";
 	int Port = 7777;
-	std::vector<std::string> Options;
+	Array<std::string> Options;
 };

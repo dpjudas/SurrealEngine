@@ -161,7 +161,7 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"102013ab6e4535a515c7c589d0b5cdd484ef8fdd", KnownUE1Games::WHEELOFTIME_333},
 };
 
-static const std::vector<std::string> knownUE1ExecutableNames = {
+static const Array<std::string> knownUE1ExecutableNames = {
 	"Unreal.exe",
 	"UnrealLinux.bin",
 	"UnrealTournament.exe",

@@ -10,7 +10,7 @@ class BytecodeStream;
 class Bytecode
 {
 public:
-	Bytecode(const std::vector<uint8_t>& bytecode, Package* package);
+	Bytecode(const Array<uint8_t>& bytecode, Package* package);
 
 	int FindStatementIndex(uint16_t offset) const
 	{
@@ -31,7 +31,7 @@ public:
 		return -1;
 	}
 
-	std::vector<Expression*> Statements;
+	Array<Expression*> Statements;
 
 private:
 	Expression* ReadToken(BytecodeStream* stream, int depth);
@@ -46,7 +46,7 @@ private:
 	}
 
 	std::map<uint16_t, Expression*> OffsetToExpression;
-	std::vector<std::unique_ptr<Expression>> Allocations;
+	Array<std::unique_ptr<Expression>> Allocations;
 };
 
 class BytecodeStream

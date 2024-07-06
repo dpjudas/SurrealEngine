@@ -109,9 +109,9 @@ bool IniFile::ReadLine(const std::string& text, size_t& pos, std::string& line)
 	return true;
 }
 
-std::vector<NameString> IniFile::GetKeys(const NameString& sectionName) const
+Array<NameString> IniFile::GetKeys(const NameString& sectionName) const
 {
-	std::vector<NameString> result;
+	Array<NameString> result;
 
 	const IniSection* section = FindSection(sectionName.ToString());
 	if (section != nullptr)
@@ -133,7 +133,7 @@ std::string IniFile::GetValue(const NameString& sectionName, const NameString& k
 	return section->GetValue(keyName, defaultValue, index);
 }
 
-std::vector<std::string> IniFile::GetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& defaultValues) const
+Array<std::string> IniFile::GetValues(const NameString& sectionName, const NameString& keyName, const Array<std::string>& defaultValues) const
 {
 	const IniSection* section = FindSection(sectionName.ToString());
 	if (section == nullptr)
@@ -149,7 +149,7 @@ void IniFile::SetValue(const NameString& sectionName, const NameString& keyName,
 		isModified = true;
 }
 
-void IniFile::SetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
+void IniFile::SetValues(const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues)
 {
 	IniSection& section = AddUniqueSection(sectionName.ToString());
 	if (section.SetValues(keyName, newValues))
@@ -224,7 +224,7 @@ void IniFile::UpdateFile(const std::string& filename)
 		unsigned int currentIndex = 0;
 	};
 
-	std::vector<KeyOccurance> keyOccurrances;
+	Array<KeyOccurance> keyOccurrances;
 
 	bool key_has_brackets = false;
 	std::string ini_value;			// Value read from the ini file
@@ -418,7 +418,7 @@ uint32_t IniSection::GetHash() const
 	return hash;
 }
 
-const std::vector<IniKey>& IniSection::GetKeys() const
+const Array<IniKey>& IniSection::GetKeys() const
 {
 	return keys;
 }
@@ -441,7 +441,7 @@ std::string IniSection::GetValue(const NameString& keyName, const std::string& d
 	return defaultValue;
 }
 
-std::vector<std::string> IniSection::GetValues(const NameString& keyName, const std::vector<std::string>& defaultValues) const
+Array<std::string> IniSection::GetValues(const NameString& keyName, const Array<std::string>& defaultValues) const
 {
 	uint32_t keyHash = HashIniString(keyName.ToString());
 	for (auto& key : keys)
@@ -479,7 +479,7 @@ bool IniSection::SetValue(const NameString& keyName, const std::string& newValue
 	return result == 1;
 }
 
-bool IniSection::SetValues(const NameString& keyName, const std::vector<std::string>& newValues, const bool indexed)
+bool IniSection::SetValues(const NameString& keyName, const Array<std::string>& newValues, const bool indexed)
 {
 	int result = -1;
 	uint32_t keyHash = HashIniString(keyName.ToString());
@@ -530,7 +530,7 @@ const std::string& IniKey::GetName() const
 	return name;
 }
 
-const std::vector<std::string>& IniKey::GetValues() const
+const Array<std::string>& IniKey::GetValues() const
 {
 	return values;
 }
@@ -569,7 +569,7 @@ int IniKey::SetValue(const std::string& newValue, const int index)
 	return 1;
 }
 
-int IniKey::SetValues(const std::vector<std::string>& newValues)
+int IniKey::SetValues(const Array<std::string>& newValues)
 {
 	if (newValues == values)
 		return 0;

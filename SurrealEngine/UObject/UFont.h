@@ -17,7 +17,7 @@ class FontPage
 {
 public:
 	UTexture* Texture = nullptr;
-	std::vector<FontCharacter> Characters;
+	Array<FontCharacter> Characters;
 };
 
 class FontGlyph
@@ -44,6 +44,6 @@ public:
 private:
 	FontGlyph FindGlyph(char c) const;
 
-	std::vector<FontPage> pages;
+	Array<FontPage> pages;
 	int charactersPerPage;
 };

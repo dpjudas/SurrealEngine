@@ -90,6 +90,6 @@ public:
 	}
 
 private:
-	std::vector<uint8_t> data;
+	Array<uint8_t> data;
 	size_t pos;
 };

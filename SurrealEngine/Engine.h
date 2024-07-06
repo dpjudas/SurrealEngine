@@ -77,9 +77,9 @@ public:
 	void LockCursor();
 	void UnlockCursor();
 
-	bool ExecCommand(const std::vector<std::string>& args);
-	std::vector<std::string> GetArgs(const std::string& commandline);
-	std::vector<std::string> GetSubcommands(const std::string& commandline);
+	bool ExecCommand(const Array<std::string>& args);
+	Array<std::string> GetArgs(const std::string& commandline);
+	Array<std::string> GetSubcommands(const std::string& commandline);
 
 	void UpdateAudio();
 

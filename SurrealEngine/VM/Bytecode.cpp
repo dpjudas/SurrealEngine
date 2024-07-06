@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "Bytecode.h"
 
-Bytecode::Bytecode(const std::vector<uint8_t>& bytecode, Package* package)
+Bytecode::Bytecode(const Array<uint8_t>& bytecode, Package* package)
 {
 	BytecodeStream stream(bytecode.data(), bytecode.size(), package);
 	while (!stream.IsEnd())

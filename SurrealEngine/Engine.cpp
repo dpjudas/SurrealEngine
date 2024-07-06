@@ -136,7 +136,7 @@ void Engine::Run()
 						UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 						if (pawn && pawn->Player())
 						{
-							std::vector<ObjectTravelInfo> actorTravelInfo;
+							Array<ObjectTravelInfo> actorTravelInfo;
 							for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 							{
 								ObjectTravelInfo objInfo(item);
@@ -169,7 +169,7 @@ void Engine::Run()
 				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 				if (pawn && pawn->Player())
 				{
-					std::vector<ObjectTravelInfo> actorTravelInfo;
+					Array<ObjectTravelInfo> actorTravelInfo;
 					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 					{
 						ObjectTravelInfo objInfo(item);
@@ -491,7 +491,7 @@ void Engine::LoginPlayer()
 
 	CallEvent(pawn, EventName::TravelPreAccept);
 
-	std::vector<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
+	Array<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
 	if (actorActuallySpawned)
 	{
 		std::string playerName = url.GetOption("Name");
@@ -632,7 +632,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 {
 	found = false;
 
-	std::vector<std::string> args = GetArgs(commandline);
+	Array<std::string> args = GetArgs(commandline);
 	if (args.empty())
 	{
 		return {};
@@ -830,9 +830,9 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	return {};
 }
 
-std::vector<std::string> Engine::GetArgs(const std::string& commandline)
+Array<std::string> Engine::GetArgs(const std::string& commandline)
 {
-	std::vector<std::string> args;
+	Array<std::string> args;
 	size_t i = 0;
 	while (i < commandline.size())
 	{
@@ -850,9 +850,9 @@ std::vector<std::string> Engine::GetArgs(const std::string& commandline)
 	return args;
 }
 
-std::vector<std::string> Engine::GetSubcommands(const std::string& command)
+Array<std::string> Engine::GetSubcommands(const std::string& command)
 {
-	std::vector<std::string> subcommands;
+	Array<std::string> subcommands;
 	size_t pos = 0;
 	while (pos < command.size())
 	{
@@ -1159,7 +1159,7 @@ void Engine::InputEvent(EInputKey key, EInputType type, int delta)
 	}
 }
 
-bool Engine::ExecCommand(const std::vector<std::string>& args)
+bool Engine::ExecCommand(const Array<std::string>& args)
 {
 	for (UObject* target : { static_cast<UObject*>(viewport->Actor()), static_cast<UObject*>(console) })
 	{
@@ -1169,7 +1169,7 @@ bool Engine::ExecCommand(const std::vector<std::string>& args)
 		UFunction* func = FindEventFunction(target, args[0]);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
 		{
-			std::vector<ExpressionValue> vmArgs;
+			Array<ExpressionValue> vmArgs;
 			int argindex = 0;
 			for (UField* field = func->Children; field != nullptr; field = field->Next)
 			{
@@ -1207,7 +1207,7 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 {
 	for (const std::string& commandline : GetSubcommands(commands))
 	{
-		std::vector<std::string> args = GetArgs(commandline);
+		Array<std::string> args = GetArgs(commandline);
 		if (!args.empty())
 		{
 			std::string command = args[0];

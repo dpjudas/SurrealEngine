@@ -88,7 +88,7 @@ public:
 		if (GetVersion() >= 64)
 		{
 			int len = ReadIndex();
-			std::vector<char> s;
+			Array<char> s;
 			s.resize(len);
 			ReadBytes(s.data(), (int)s.size());
 			s.push_back(0);

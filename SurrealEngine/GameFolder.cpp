@@ -10,7 +10,7 @@
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
-	std::vector<GameLaunchInfo> foundGames;
+	Array<GameLaunchInfo> foundGames;
 
 	for (const std::string& folder : commandline->GetItems())
 	{
@@ -289,7 +289,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 
 static std::string FindEpicRegisteredGame(const std::string& keyname)
 {
-	std::vector<wchar_t> buffer(1024);
+	Array<wchar_t> buffer(1024);
 	HKEY regkey = 0;
 	if (RegOpenKeyEx(HKEY_CURRENT_USER, to_utf16("SOFTWARE\\Unreal Technology\\Installed Apps\\" + keyname).c_str(), 0, KEY_READ, &regkey) == ERROR_SUCCESS)
 	{
@@ -320,7 +320,7 @@ static std::string FindEpicRegisteredGame(const std::string& keyname)
 
 std::string GameFolderSelection::GetExePath()
 {
-	std::vector<wchar_t> buffer(1024);
+	Array<wchar_t> buffer(1024);
 	if (GetModuleFileName(0, buffer.data(), 1024))
 	{
 		buffer.back() = 0;
@@ -329,7 +329,7 @@ std::string GameFolderSelection::GetExePath()
 	return {};
 }
 
-std::vector<std::string> GameFolderSelection::FindGameFolders()
+Array<std::string> GameFolderSelection::FindGameFolders()
 {
 	return
 	{
@@ -347,7 +347,7 @@ std::string GameFolderSelection::GetExePath()
 	return {};
 }
 
-std::vector<std::string> GameFolderSelection::FindGameFolders()
+Array<std::string> GameFolderSelection::FindGameFolders()
 {
 	return {};
 }

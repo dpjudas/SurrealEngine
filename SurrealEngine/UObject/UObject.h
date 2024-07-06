@@ -224,9 +224,9 @@ public:
 	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
-	std::vector<UProperty*> GetAllProperties();
-	std::vector<UProperty*> GetAllUserEditableProperties();
-	std::vector<UProperty*> GetAllTravelProperties();
+	Array<UProperty*> GetAllProperties();
+	Array<UProperty*> GetAllUserEditableProperties();
+	Array<UProperty*> GetAllTravelProperties();
 
 	std::map<NameString, std::set<NameString>> DisabledEvents;
 
@@ -310,9 +310,9 @@ template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans
 #endif
 
 template<class T>
-std::vector<T*> Package::GetAllObjects()
+Array<T*> Package::GetAllObjects()
 {
-	std::vector<T*> objects;
+	Array<T*> objects;
 	int objref = 1;
 	for (ExportTableEntry& e : ExportTable)
 	{

@@ -11,15 +11,15 @@ public:
 	void OnPrintHelp(DebuggerApp* console) override;
 
 private:
-	void ExportAll(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportScripts(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportTextures(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportSounds(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportMusic(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportMeshes(DebuggerApp* console, std::vector<std::string>& packages);
-	void ExportLevel(DebuggerApp* console, std::vector<std::string>& packages);
+	void ExportAll(DebuggerApp* console, Array<std::string>& packages);
+	void ExportScripts(DebuggerApp* console, Array<std::string>& packages);
+	void ExportTextures(DebuggerApp* console, Array<std::string>& packages);
+	void ExportSounds(DebuggerApp* console, Array<std::string>& packages);
+	void ExportMusic(DebuggerApp* console, Array<std::string>& packages);
+	void ExportMeshes(DebuggerApp* console, Array<std::string>& packages);
+	void ExportLevel(DebuggerApp* console, Array<std::string>& packages);
 
-	void InitExport(std::vector<std::string>& packages);
+	void InitExport(Array<std::string>& packages);
 
-	std::vector<std::string> packageNames;
+	Array<std::string> packageNames;
 };

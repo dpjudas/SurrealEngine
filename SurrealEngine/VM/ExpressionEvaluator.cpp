@@ -639,7 +639,7 @@ void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 	Call(NativeFunctions::FuncByIndex[expr->nativeindex], expr->Args);
 }
 
-void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& exprArgs)
+void ExpressionEvaluator::Call(UFunction* func, const Array<Expression*>& exprArgs)
 {
 	if (func->NativeFuncIndex == 130)
 	{
@@ -651,7 +651,7 @@ void ExpressionEvaluator::Call(UFunction* func, const std::vector<Expression*>& 
 	}
 	else
 	{
-		std::vector<ExpressionValue> args;
+		Array<ExpressionValue> args;
 		args.reserve(exprArgs.size());
 		for (Expression* arg : exprArgs)
 			args.push_back(Eval(arg, Self, Self, LocalVariables).Value);

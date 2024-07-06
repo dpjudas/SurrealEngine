@@ -362,7 +362,7 @@ void NativeCppUpdater::NativeClass::ParseClassFunction(const std::string& funcNa
 	std::string funcArgs;
 	if (!func.staticFlag)
 		funcArgs += "UObject* Self";
-	const std::vector<JsonValue>& args = json["Arguments"].items();
+	const Array<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
 		// Assemble function arguments

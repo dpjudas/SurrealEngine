@@ -45,7 +45,7 @@ void BreakpointCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 		return;
 	}
 
-	std::vector<std::string> params = SplitString(args);
+	Array<std::string> params = SplitString(args);
 	if (params.size() == 3)
 	{
 		if (Frame::AddBreakpoint(params[0], params[1], params[2]))
@@ -90,7 +90,7 @@ void WatchpointCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 	console->WriteOutput("Not implemented" + NewLine());
 
 	/*
-	std::vector<std::string> params = SplitString(args);
+	Array<std::string> params = SplitString(args);
 	if (params.size() == 3)
 	{
 		if (Frame::AddWatchpoint(params[0], params[1], params[2]))
