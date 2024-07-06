@@ -203,7 +203,7 @@ if(WIN32)
 		#set(ZWIDGET_COMPILE_OPTIONS ${ZWIDGET_COMPILE_OPTIONS} /wd4244 /wd4267 /wd4005 /wd4018)
 
 		# Don't slow down std containers in debug builds
-		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_ITERATOR_DEBUG_LEVEL=0)
+		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES})
 
 		# Ignore warning about legacy CRT functions
 		#set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_CRT_SECURE_NO_WARNINGS)

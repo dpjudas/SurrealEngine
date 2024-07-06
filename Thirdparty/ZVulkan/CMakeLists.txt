@@ -186,7 +186,7 @@ endif()
 
 if(MSVC)
 	# Use all cores for compilation
-	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
+	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
 
 	# Ignore warnings in third party code
 	#set_source_files_properties(${ZVULKAN_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
