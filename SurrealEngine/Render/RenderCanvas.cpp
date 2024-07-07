@@ -3,7 +3,7 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioSubsystem.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 

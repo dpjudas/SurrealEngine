@@ -5,7 +5,7 @@
 #include "Math/mat.h"
 #include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "UObject/UObject.h"
 #include "UObject/UnrealURL.h"
 #include "GameFolder.h"

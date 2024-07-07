@@ -19,7 +19,7 @@
 #include "UObject/USubsystem.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioSubsystem.h"
 #include "VM/Frame.h"

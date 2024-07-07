@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "Window.h"
+#include "GameWindow.h"
 #include "RenderDevice/RenderDevice.h"
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkancompatibledevice.h>

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
+#include "GameWindow.h"
 #include <zvulkan/vulkanbuilders.h>
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkanswapchain.h>
@@ -10,7 +11,6 @@
 #include "UObject/ULevel.h"
 #include "UObject/UClient.h"
 #include "UObject/UTexture.h"
-#include "Window/Window.h"
 #include <set>
 
 void VulkanPrintLog(const char* typestr, const std::string& msg)
