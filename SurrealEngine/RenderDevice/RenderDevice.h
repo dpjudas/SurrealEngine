@@ -120,6 +120,13 @@ public:
 	float Brightness = 0.5f;
 };
 
+class RenderDeviceTexture : public CanvasTexture
+{
+public:
+	FTextureInfo Info;
+	UnrealMipmap Mip;
+};
+
 class RenderDeviceCanvas : public Canvas
 {
 public:
@@ -131,28 +138,16 @@ public:
 	void begin3d() override;
 	void end3d() override;
 
-	Point getOrigin() override;
-	void setOrigin(const Point& origin) override;
-
-	void pushClip(const Rect& box) override;
-	void popClip() override;
-
-	void fillRect(const Rect& box, const Colorf& color) override;
-	void line(const Point& p0, const Point& p1, const Colorf& color) override;
-
-	void drawText(const Point& pos, const Colorf& color, const std::string& text) override;
-	Rect measureText(const std::string& text) override;
-	VerticalTextPosition verticalTextAlign() override;
-
-	void drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color) override;
-	void drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color) override;
-	Rect measureText(const std::shared_ptr<Font>& font, const std::string& text) override;
-	FontMetrics getFontMetrics(const std::shared_ptr<Font>& font) override;
-	int getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint) override;
-
-	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override;
+protected:
+	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels, ImageFormat format) override;
+	void drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color) override;
+	void fillTile(float x, float y, float width, float height, Colorf color) override;
+	void drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color) override;
+	void drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color) override;
 
 private:
+	void CheckFrame();
+
 	RenderDevice* device = nullptr;
-	Point origin;
+	FSceneNode frame;
 };

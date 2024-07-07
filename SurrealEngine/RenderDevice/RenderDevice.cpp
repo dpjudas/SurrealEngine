@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "RenderDevice.h"
 #include "Vulkan/VulkanRenderDevice.h"
+#include "UObject/ULevel.h"
+#include <zwidget/core/colorf.h>
 
 std::unique_ptr<RenderDevice> RenderDevice::Create(GameWindow* viewport, std::shared_ptr<VulkanSurface> surface)
 {
@@ -16,83 +18,70 @@ RenderDeviceCanvas::RenderDeviceCanvas(RenderDevice* device) : device(device)
 
 void RenderDeviceCanvas::begin(const Colorf& color)
 {
+	device->Lock(vec4(0.0f), vec4(0.0f), vec4(color.r, color.g, color.b, color.a));
 }
 
 void RenderDeviceCanvas::end()
 {
+	device->Unlock(true);
 }
 
 void RenderDeviceCanvas::begin3d()
 {
+	CheckFrame();
+	device->ClearZ(&frame);
 }
 
 void RenderDeviceCanvas::end3d()
 {
+	CheckFrame();
+	device->ClearZ(&frame);
 }
 
-Point RenderDeviceCanvas::getOrigin()
+std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int height, const void* pixels, ImageFormat format)
 {
-	return origin;
+	auto texture = std::make_unique<RenderDeviceTexture>();
+	texture->Width = width;
+	texture->Height = height;
+	texture->Info.CacheID = (uint64_t)(ptrdiff_t)texture.get();
+	texture->Info.Format = TextureFormat::ARGB8;
+	texture->Info.USize = width;
+	texture->Info.VSize = height;
+	texture->Info.NumMips = 1;
+	texture->Info.Mips = &texture->Mip;
+	texture->Mip.Width = width;
+	texture->Mip.Height = height;
+	texture->Mip.Data.resize(width * height * 4);
+	memcpy(texture->Mip.Data.data(), pixels, width * height * 4);
+	return texture;
 }
 
-void RenderDeviceCanvas::setOrigin(const Point& newOrigin)
+void RenderDeviceCanvas::drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color)
 {
-	origin = newOrigin;
+	CheckFrame();
+	device->Draw2DLine(&frame, vec4(color.r, color.g, color.b, color.a), vec3(x0, y0, 1.0f), vec3(x1, y1, 1.0f));
 }
 
-void RenderDeviceCanvas::pushClip(const Rect& box)
+void RenderDeviceCanvas::fillTile(float x, float y, float width, float height, Colorf color)
 {
+	CheckFrame();
+	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(whiteTexture.get())->Info, x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), 0);
 }
 
-void RenderDeviceCanvas::popClip()
+void RenderDeviceCanvas::drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
+	CheckFrame();
+	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(texture)->Info, x, y, width, height, u, v, uvwidth, uvheight, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), 0);
 }
 
-void RenderDeviceCanvas::fillRect(const Rect& box, const Colorf& color)
+void RenderDeviceCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
+	CheckFrame();
+	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(texture)->Info, x, y, width, height, u, v, uvwidth, uvheight, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), PF_SubpixelFont);
 }
 
-void RenderDeviceCanvas::line(const Point& p0, const Point& p1, const Colorf& color)
+void RenderDeviceCanvas::CheckFrame()
 {
-}
-
-void RenderDeviceCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)
-{
-}
-
-Rect RenderDeviceCanvas::measureText(const std::string& text)
-{
-	return Rect();
-}
-
-VerticalTextPosition RenderDeviceCanvas::verticalTextAlign()
-{
-	return VerticalTextPosition();
-}
-
-void RenderDeviceCanvas::drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color)
-{
-}
-
-void RenderDeviceCanvas::drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color)
-{
-}
-
-Rect RenderDeviceCanvas::measureText(const std::shared_ptr<Font>& font, const std::string& text)
-{
-	return Rect();
-}
-
-FontMetrics RenderDeviceCanvas::getFontMetrics(const std::shared_ptr<Font>& font)
-{
-	return FontMetrics();
-}
-
-int RenderDeviceCanvas::getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint)
-{
-	return 0;
-}
-
-void RenderDeviceCanvas::drawImage(const std::shared_ptr<Image>& image, const Point& pos)
-{
+	// To do: check if frame is up to date and update it if not
+	// device->SetSceneNode(&frame);
 }
