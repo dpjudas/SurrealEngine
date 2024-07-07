@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "image.h"
 #include "rect.h"
+#include <vector>
 
 class Font;
 class Point;

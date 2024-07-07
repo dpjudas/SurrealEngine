@@ -617,39 +617,38 @@ public:
 		std::swap(_capacity, other._capacity);
 	}
 
+	bool operator==(const Array<T>& rhs) const
+	{
+		if (this->size() != rhs.size())
+			return false;
+
+		auto count = this->size();
+		for (size_type i = 0; i < count; i++)
+		{
+			if (((*this)[i] == rhs[i]) == false)
+				return false;
+		}
+		return true;
+	}
+
+	bool operator!=(const Array<T>& rhs) const
+	{
+		if (this->size() != rhs.size())
+			return true;
+		size_type count = this->size();
+		for (size_type i = 0; i < count; i++)
+		{
+			if ((*this)[i] != rhs[i])
+				return true;
+		}
+		return false;
+	}
+
 private:
 	T* _data = nullptr;
 	size_type _size = size_type(0);
 	size_type _capacity = size_type(0);
 };
-
-template<typename T>
-bool operator==(const Array<T>& lhs, const Array<T>& rhs)
-{
-	if (lhs.size() != rhs.size())
-		return false;
-	auto count = lhs.size();
-	for (Array<T>::size_type i = 0; i < count; i++)
-	{
-		if ((lhs[i] == rhs[i]) == false)
-			return false;
-	}
-	return true;
-}
-
-template<typename T>
-bool operator!=(const Array<T>& lhs, const Array<T>& rhs)
-{
-	if (lhs.size() != rhs.size())
-		return true;
-	auto count = lhs.size();
-	for (Array<T>::size_type i = 0; i < count; i++)
-	{
-		if (lhs[i] != rhs[i])
-			return true;
-	}
-	return false;
-}
 
 namespace std
 {
