@@ -60,7 +60,7 @@ bool NameStringToEventName(const NameString& name, EventName& eventName)
 	return true;
 }
 
-ExpressionValue CallEvent(UObject* Context, EventName eventname, std::vector<ExpressionValue> args)
+ExpressionValue CallEvent(UObject* Context, EventName eventname, Array<ExpressionValue> args)
 {
 	if (!Context->IsEventEnabled(eventname))
 		return ExpressionValue::NothingValue();
@@ -72,7 +72,7 @@ ExpressionValue CallEvent(UObject* Context, EventName eventname, std::vector<Exp
 		return ExpressionValue::NothingValue();
 }
 
-ExpressionValue CallEvent(UObject* Context, const NameString& name, std::vector<ExpressionValue> args)
+ExpressionValue CallEvent(UObject* Context, const NameString& name, Array<ExpressionValue> args)
 {
 	if (!Context->IsEventEnabled(name))
 		return ExpressionValue::NothingValue();

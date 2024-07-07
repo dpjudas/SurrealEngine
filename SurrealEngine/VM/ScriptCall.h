@@ -36,8 +36,8 @@ enum class EventName
 	MaxEventNameValue // Why isn't this part of C++ after 40+ years of people doing this in both C and C++?
 };
 
-ExpressionValue CallEvent(UObject* Context, EventName name, std::vector<ExpressionValue> args = {});
-ExpressionValue CallEvent(UObject* Context, const NameString& name, std::vector<ExpressionValue> args = {});
+ExpressionValue CallEvent(UObject* Context, EventName name, Array<ExpressionValue> args = {});
+ExpressionValue CallEvent(UObject* Context, const NameString& name, Array<ExpressionValue> args = {});
 
 UFunction* FindEventFunction(UObject* Context, const NameString& name);
 

@@ -6,6 +6,9 @@
 
 #include "UObject/UTexture.h"
 
+#include <zwidget/core/canvas.h>
+#include <zwidget/core/rect.h>
+
 class GameWindow;
 class UTexture;
 class UActor;
@@ -115,4 +118,36 @@ public:
 	GameWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 	float Brightness = 0.5f;
+};
+
+class RenderDeviceTexture : public CanvasTexture
+{
+public:
+	FTextureInfo Info;
+	UnrealMipmap Mip;
+};
+
+class RenderDeviceCanvas : public Canvas
+{
+public:
+	RenderDeviceCanvas(RenderDevice* device);
+
+	void begin(const Colorf& color) override;
+	void end() override;
+
+	void begin3d() override;
+	void end3d() override;
+
+protected:
+	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels, ImageFormat format) override;
+	void drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color) override;
+	void fillTile(float x, float y, float width, float height, Colorf color) override;
+	void drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color) override;
+	void drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color) override;
+
+private:
+	void CheckFrame();
+
+	RenderDevice* device = nullptr;
+	FSceneNode frame;
 };

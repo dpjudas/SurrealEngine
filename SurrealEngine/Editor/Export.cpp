@@ -57,7 +57,7 @@ MemoryStreamWriter Exporter::ExportClass(UClass* cls)
 
 	text << cls->ScriptText->Text;
 	text << "\r\ndefaultproperties\r\n{\r\n";
-	text << ExportObject(cls->GetDefaultObject(), 1, false);
+	text << ExportObject(cls->GetDefaultObject<UObject>(), 1, false);
 	return text;
 }
 
@@ -340,7 +340,7 @@ MemoryStreamWriter Exporter::ExportBmpIndexed(UTexture* tex)
 		data << bgra;
 	}
 
-	hdr.pixelOffset = data.Tell();
+	hdr.pixelOffset = (uint32_t)data.Tell();
 
 	uint8_t *pixels = tex->Mipmaps[0].Data.data();
 	for (int y = vsize; y > 0; y--)

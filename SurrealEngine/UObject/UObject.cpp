@@ -8,7 +8,7 @@
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Engine.h"
-#include "Exception.h"
+#include "Utils/Exception.h"
 
 UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {
@@ -24,9 +24,8 @@ void UObject::LoadNow()
 		{
 			Load(stream.get());
 		}
-		else if (dynamic_cast<UStruct*>(this))
+		else if (auto s = UObject::TryCast<UStruct>(this))
 		{
-			auto s = static_cast<UStruct*>(this);
 			if (s->BaseStruct)
 			{
 				s->BaseStruct->LoadNow();
@@ -34,10 +33,10 @@ void UObject::LoadNow()
 				s->StructSize = s->BaseStruct->StructSize;
 			}
 
-			if (dynamic_cast<UClass*>(this))
+			if (auto c = UObject::TryCast<UClass>(this))
 			{
-				PropertyData.Init(static_cast<UClass*>(this));
-				if (!static_cast<UClass*>(this)->Properties.empty())
+				PropertyData.Init(c);
+				if (!c->Properties.empty())
 				{
 					SetObject("Class", Class);
 					SetName("Name", Name);
@@ -65,7 +64,7 @@ void UObject::Load(ObjectStream* stream)
 		}
 	}
 
-	if (!dynamic_cast<UClass*>(this))
+	if (!UObject::TryCast<UClass>(this))
 	{
 		PropertyData.Init(Class);
 		PropertyData.ReadProperties(stream);
@@ -333,9 +332,9 @@ std::string UObject::PrintProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllProperties()
+Array<UProperty*> UObject::GetAllProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -345,9 +344,9 @@ std::vector<UProperty*> UObject::GetAllProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllUserEditableProperties()
+Array<UProperty*> UObject::GetAllUserEditableProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -358,9 +357,9 @@ std::vector<UProperty*> UObject::GetAllUserEditableProperties()
 	return result;
 }
 
-std::vector<UProperty*> UObject::GetAllTravelProperties()
+Array<UProperty*> UObject::GetAllTravelProperties()
 {
-	std::vector<UProperty*> result;
+	Array<UProperty*> result;
 
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
@@ -566,7 +565,7 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 #if 0
 			Exception::Throw("Unknown property " + name);
 #else
-			engine->LogMessage("Skipping unknown property " + name.ToString());
+			LogMessage("Skipping unknown property " + name.ToString());
 			if (header.type != UPT_Bool)
 				stream->Skip(header.size);
 			continue;

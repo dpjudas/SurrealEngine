@@ -23,17 +23,17 @@ public:
 	static JsonValue null() { JsonValue v; v._type = JsonType::null; return v; }
 	static JsonValue object() { JsonValue v; v._type = JsonType::object; return v; }
 	static JsonValue array() { JsonValue v; v._type = JsonType::array; return v; }
-	static JsonValue array(std::vector<JsonValue> items) { JsonValue v = array(); v._items = std::move(items); return v; }
-	static JsonValue array(const std::vector<double>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<float>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<int>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<unsigned int>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<short>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<unsigned short>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<char>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<unsigned char>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
-	static JsonValue array(const std::vector<bool>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::boolean(i)); return v; }
-	static JsonValue array(const std::vector<std::string>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::string(i)); return v; }
+	static JsonValue array(Array<JsonValue> items) { JsonValue v = array(); v._items = std::move(items); return v; }
+	static JsonValue array(const Array<double>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<float>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<int>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<unsigned int>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<short>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<unsigned short>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<char>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<unsigned char>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::number(i)); return v; }
+	static JsonValue array(const Array<bool>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::boolean(i)); return v; }
+	static JsonValue array(const Array<std::string>& items) { JsonValue v = array(); v._items.reserve(items.size()); for (const auto& i : items) v._items.push_back(JsonValue::string(i)); return v; }
 	static JsonValue number(double value) { JsonValue v; v._type = JsonType::number; v._number = value; return v; }
 	static JsonValue number(float value) { return JsonValue::number(static_cast<double>(value)); }
 	static JsonValue number(int value) { return JsonValue::number(static_cast<double>(value)); }
@@ -76,8 +76,8 @@ public:
 	std::map<std::string, JsonValue> &properties() { return _properties; }
 	const std::map<std::string, JsonValue> &properties() const { return _properties; }
 
-	std::vector<JsonValue> &items() { return _items; }
-	const std::vector<JsonValue> &items() const { return _items; }
+	Array<JsonValue> &items() { return _items; }
+	const Array<JsonValue> &items() const { return _items; }
 
 	double to_number() const { return _number; }
 	bool to_boolean() const { return _boolean; }
@@ -118,7 +118,7 @@ public:
 
 private:
 	JsonType _type = JsonType::undefined;
-	std::vector<JsonValue> _items;
+	Array<JsonValue> _items;
 	std::map<std::string, JsonValue> _properties;
 	std::string _string;
 	double _number = 0.0;

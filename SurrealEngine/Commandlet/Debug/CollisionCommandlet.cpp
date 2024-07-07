@@ -3,7 +3,7 @@
 #include "CollisionCommandlet.h"
 #include "DebuggerApp.h"
 #include "Engine.h"
-#include "File.h"
+#include "Utils/File.h"
 #include "Collision/CollisionHash.h"
 
 CollisionCommandlet::CollisionCommandlet()
@@ -14,7 +14,7 @@ CollisionCommandlet::CollisionCommandlet()
 
 void CollisionCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
-	std::vector<std::string> params = SplitString(args);
+	Array<std::string> params = SplitString(args);
 
 	if (params.size() < 16)
 		Exception::Throw("Invalid number of arguments");

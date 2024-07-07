@@ -5,11 +5,11 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
-#include "File.h"
+#include "Utils/File.h"
 #include <filesystem>
 #include <set>
 
-std::vector<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
+Array<NativeCppGenerator::NativeClass> NativeCppGenerator::classes;
 
 void NativeCppGenerator::Run()
 {
@@ -122,7 +122,7 @@ void NativeCppGenerator::Run()
 
 		propertyOffsetsCppText += propOffsetsVarDecl;
 		propertyOffsetsCppText += "static void InitPropertyOffsets_" + cls.name + "(PackageManager* packages)\r\n{\r\n";
-		propertyOffsetsCppText += "\tUClass* cls = dynamic_cast<UClass*>(packages->GetPackage(\"" + cls.package + "\")->GetUObject(\"Class\", \"" + cls.name + "\"));\r\n";
+		propertyOffsetsCppText += "\tUClass* cls = UObject::TryCast<UClass>(packages->GetPackage(\"" + cls.package + "\")->GetUObject(\"Class\", \"" + cls.name + "\"));\r\n";
 		propertyOffsetsCppText += "\tif (!cls)\r\n\t{\r\n";
 		propertyOffsetsCppText += "\t\tmemset(&" + propOffsetsVarName + ", 0xff, sizeof(" + propOffsetsVarName + "));\r\n";
 		propertyOffsetsCppText += "\t\treturn;\r\n\t}\r\n";
@@ -228,7 +228,7 @@ NativeCppGenerator::NativeClass& NativeCppGenerator::AddUniqueNativeClass(const 
 void NativeCppGenerator::NativeClass::ParseClassFunction(const std::string& funcName, const JsonValue& json, const std::string& version)
 {
 	std::string funcArgs = "UObject* Self";
-	const std::vector<JsonValue>& args = json["Arguments"].items();
+	const Array<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
 		// Assemble function arguments

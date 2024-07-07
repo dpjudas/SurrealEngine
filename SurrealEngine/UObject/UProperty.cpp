@@ -162,7 +162,7 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 {
 	ThrowIfTypeMismatch(header, UPT_String);
 	int len = header.size;
-	std::vector<char> s;
+	Array<char> s;
 	s.resize(len);
 	stream->ReadBytes(s.data(), (int)s.size());
 	s.push_back(0);
@@ -180,7 +180,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 	else if (header.type == UPT_String)
 	{
 		int len = header.size;
-		std::vector<char> s;
+		Array<char> s;
 		s.resize(len);
 		stream->ReadBytes(s.data(), (int)s.size());
 		s.push_back(0);
@@ -275,7 +275,7 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 
 	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 	{
-		UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 		if (fieldprop)
 		{
 			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
@@ -288,7 +288,7 @@ void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
 	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 	{
-		UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 		if (fieldprop)
 		{
 			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;

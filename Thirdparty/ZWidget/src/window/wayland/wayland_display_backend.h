@@ -15,6 +15,8 @@ public:
 
 	Size GetScreenSize() override;
 
+	bool IsWayland() override { return true; }
+
 #ifdef USE_DBUS
 	std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(DisplayWindow* owner) override;
 	std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(DisplayWindow* owner) override;

@@ -10,7 +10,7 @@ struct LogMessageLine;
 class DebuggerApp
 {
 public:
-	int Main(std::vector<std::string> args);
+	int Main(Array<std::string> args);
 
 	void WriteOutput(const std::string& text);
 	std::string GetInput();
@@ -50,7 +50,7 @@ private:
 
 	void FrameDebugBreak();
 
-	std::vector<std::unique_ptr<Commandlet>> Commandlets;
+	Array<std::unique_ptr<Commandlet>> Commandlets;
 
 	std::string promptline;
 	std::string cmdline;

@@ -1,11 +1,11 @@
 
 #include "Precomp.h"
 #include "NativeCppUpdater.h"
-#include "File.h"
-#include "JsonValue.h"
+#include "Utils/File.h"
+#include "Utils/JsonValue.h"
 #include "DebuggerApp.h"
 #include <filesystem>
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include <algorithm>
 #include <unordered_set>
 
@@ -362,7 +362,7 @@ void NativeCppUpdater::NativeClass::ParseClassFunction(const std::string& funcNa
 	std::string funcArgs;
 	if (!func.staticFlag)
 		funcArgs += "UObject* Self";
-	const std::vector<JsonValue>& args = json["Arguments"].items();
+	const Array<JsonValue>& args = json["Arguments"].items();
 	if (args.size() > 0)
 	{
 		// Assemble function arguments

@@ -60,10 +60,10 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	vec3 location = SpawnLocation ? *SpawnLocation : Location();
 	Rotator rotation = SpawnRotation ? *SpawnRotation : Rotation();
 
-	float radius = SpawnClass->GetDefaultObject()->GetFloat("CollisionRadius");
-	float height = SpawnClass->GetDefaultObject()->GetFloat("CollisionHeight");
-	bool bCollideWorld = SpawnClass->GetDefaultObject()->GetBool("bCollideWorld");
-	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject()->GetBool("bCollideWhenPlacing");
+	float radius = SpawnClass->GetDefaultObject<UActor>()->CollisionRadius();
+	float height = SpawnClass->GetDefaultObject<UActor>()->CollisionHeight();
+	bool bCollideWorld = SpawnClass->GetDefaultObject<UActor>()->bCollideWorld();
+	bool bCollideWhenPlacing = SpawnClass->GetDefaultObject<UActor>()->bCollideWhenPlacing();
 	if (bCollideWorld || bCollideWhenPlacing)
 	{
 		auto result = CheckLocation(location, radius, height, bCollideWorld || bCollideWhenPlacing);
@@ -528,7 +528,7 @@ void UActor::TickWalking(float elapsed)
 			{
 				if (player && hit.Actor)
 				{
-					if (UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+					if (UObject::IsType<UDecoration>(hit.Actor) && UObject::Cast<UDecoration>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
 					{
 						// We hit a pushable decoration that is facing our movement direction
 
@@ -777,7 +777,7 @@ void UActor::TickSwimming(float elapsed)
 
 		if (hit.Fraction < 1.0f)
 		{
-			if (player && UObject::TryCast<UDecoration>(hit.Actor) && static_cast<UDecoration*>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+			if (player && UObject::IsType<UDecoration>(hit.Actor) && UObject::Cast<UDecoration>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
 			{
 				// We hit a pushable decoration that is facing our movement direction
 
@@ -893,12 +893,11 @@ void UActor::TickInterpolating(float elapsed)
 
 		float physAlpha = PhysAlpha();
 
-		if (dynamic_cast<UPlayerPawn*>(this))
+		if (auto pawn = UObject::TryCast<UPlayerPawn>(this))
 		{
-			UPlayerPawn* pawn = static_cast<UPlayerPawn*>(this);
 			pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
 			pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
-			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject()->GetFloat("FovAngle");
+			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject<UPlayerPawn>()->FovAngle();
 			pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
 			pawn->FlashFog() = pawn->DesiredFlashFog();
 		}
@@ -941,9 +940,9 @@ void UActor::TickInterpolating(float elapsed)
 		TryMove(location - Location());
 		Rotation() = rotation;
 
-		if (dynamic_cast<UPawn*>(this))
+		if (auto pawn = UObject::TryCast<UPawn>(this))
 		{
-			static_cast<UPawn*>(this)->ViewRotation() = Rotation();
+			pawn->ViewRotation() = Rotation();
 		}
 
 		if (interpolateStart)

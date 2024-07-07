@@ -116,7 +116,7 @@ class LabelTableExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	std::vector<LabelEntry> Labels;
+	Array<LabelEntry> Labels;
 };
 
 class GotoLabelExpression : public Expression
@@ -704,7 +704,7 @@ public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
 	NameString Name;
-	std::vector<Expression*> Args;
+	Array<Expression*> Args;
 };
 
 class FinalFunctionExpression : public Expression
@@ -713,7 +713,7 @@ public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
 	UFunction* Func = nullptr;
-	std::vector<Expression*> Args;
+	Array<Expression*> Args;
 };
 
 class GlobalFunctionExpression : public Expression
@@ -722,7 +722,7 @@ public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
 	NameString Name;
-	std::vector<Expression*> Args;
+	Array<Expression*> Args;
 };
 
 class NativeFunctionExpression : public Expression
@@ -731,7 +731,7 @@ public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
 	int nativeindex = 0;
-	std::vector<Expression*> Args;
+	Array<Expression*> Args;
 };
 
 struct FunctionArgInfo
@@ -745,5 +745,5 @@ class FunctionArgumentsExpression : public Expression
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	std::vector<FunctionArgInfo> args;
+	Array<FunctionArgInfo> args;
 };

@@ -3,7 +3,7 @@
 class CommandLine
 {
 public:
-	CommandLine(const std::vector<std::string>& args);
+	CommandLine(const Array<std::string>& args);
 
 	bool HasArg(const std::string& shortform, const std::string& longform) const;
 	std::string GetArg(const std::string& shortform, const std::string& longform, const std::string& defaultValue = {}) const;
@@ -32,11 +32,11 @@ public:
 			return defaultValue;
 	}
 
-	const std::vector<std::string>& GetItems() const { return Items; }
+	const Array<std::string>& GetItems() const { return Items; }
 
 private:
 	std::map<std::string, std::string> Args;
-	std::vector<std::string> Items;
+	Array<std::string> Items;
 };
 
 extern CommandLine* commandline;

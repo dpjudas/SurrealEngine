@@ -29,7 +29,7 @@ struct MeshAnimSeq
 	int StartFrame;
 	int NumFrames;
 	float Rate;
-	std::vector<MeshAnimNotify> Notifys;
+	Array<MeshAnimNotify> Notifys;
 };
 
 struct MeshVertConnect
@@ -81,15 +81,15 @@ public:
 		return AnimSeqs.data();
 	}
 
-	std::vector<vec3> Verts;
-	std::vector<MeshTri> Tris;
-	std::vector<MeshAnimSeq> AnimSeqs;
-	std::vector<MeshVertConnect> Connects;
-	std::vector<BBox> BoundingBoxes;
-	std::vector<vec4> BoundingSpheres;
-	std::vector<int> VertLinks;
-	std::vector<UTexture*> Textures;
-	std::vector<float> TextureLOD;
+	Array<vec3> Verts;
+	Array<MeshTri> Tris;
+	Array<MeshAnimSeq> AnimSeqs;
+	Array<MeshVertConnect> Connects;
+	Array<BBox> BoundingBoxes;
+	Array<vec4> BoundingSpheres;
+	Array<int> VertLinks;
+	Array<UTexture*> Textures;
+	Array<float> TextureLOD;
 	int FrameVerts = 0;
 	int AnimFrames = 0;
 	uint32_t AndFlags = 0;
@@ -100,7 +100,7 @@ public:
 	uint32_t CurPoly = 0;
 	uint32_t CurVertex = 0;
 
-	std::vector<vec3> Normals;
+	Array<vec3> Normals;
 	mat4 meshToObject;
 };
 
@@ -110,13 +110,13 @@ public:
 	using UMesh::UMesh;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<uint16_t> CollapsePointThus;
-	std::vector<uint16_t> FaceLevel;
-	std::vector<MeshFace> Faces;
-	std::vector<uint16_t> CollapseWedgeThus;
-	std::vector<MeshWedge> Wedges;
-	std::vector<MeshMaterial> Materials;
-	std::vector<MeshFace> SpecialFaces;
+	Array<uint16_t> CollapsePointThus;
+	Array<uint16_t> FaceLevel;
+	Array<MeshFace> Faces;
+	Array<uint16_t> CollapseWedgeThus;
+	Array<MeshWedge> Wedges;
+	Array<MeshMaterial> Materials;
+	Array<MeshFace> SpecialFaces;
 	uint32_t ModelVerts = 0;
 	uint32_t SpecialVerts = 0;
 	float MeshScaleMax = 0.0f;
@@ -125,7 +125,7 @@ public:
 	uint32_t LODMinVerts = 0;
 	float LODMorph = 0.0f;
 	float LODZDisplace = 0.0f;
-	std::vector<uint16_t> ReMapAnimVerts;
+	Array<uint16_t> ReMapAnimVerts;
 	uint32_t OldFrameVerts = 0;
 };
 
@@ -169,12 +169,12 @@ public:
 	using ULodMesh::ULodMesh;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<ExtMeshWedge> ExtWedges;
-	std::vector<vec3> Points;
-	std::vector<RefSkeletonBone> RefSkeleton;
-	std::vector<BoneWeightIndex> BoneWeightIndices;
-	std::vector<BoneWeight> BoneWeights;
-	std::vector<vec3> LocalPoints;
+	Array<ExtMeshWedge> ExtWedges;
+	Array<vec3> Points;
+	Array<RefSkeletonBone> RefSkeleton;
+	Array<BoneWeightIndex> BoneWeightIndices;
+	Array<BoneWeight> BoneWeights;
+	Array<vec3> LocalPoints;
 
 	uint32_t SkeletalDepth = 0;
 	UAnimation* DefaultAnimation = nullptr;
@@ -199,9 +199,9 @@ struct RefBone
 struct AnimTrack
 {
 	uint32_t Flags = 0;
-	std::vector<quaternion> KeyQuat;
-	std::vector<vec3> KeyPos;
-	std::vector<float> KeyTime;
+	Array<quaternion> KeyQuat;
+	Array<vec3> KeyPos;
+	Array<float> KeyTime;
 };
 
 struct AnimMove
@@ -210,8 +210,8 @@ struct AnimMove
 	float TrackTime = 0.0f;
 	uint32_t StartBone = 0;
 	uint32_t Flags = 0;
-	std::vector<uint32_t> BoneIndices;
-	std::vector<AnimTrack> AnimTracks;
+	Array<uint32_t> BoneIndices;
+	Array<AnimTrack> AnimTracks;
 };
 
 class UAnimation : public UObject
@@ -220,6 +220,6 @@ public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
 
-	std::vector<RefBone> RefBones;
-	std::vector<AnimMove> Moves;
+	Array<RefBone> RefBones;
+	Array<AnimMove> Moves;
 };

@@ -1,10 +1,10 @@
 
 #include "Precomp.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 
 CommandLine* commandline;
 
-CommandLine::CommandLine(const std::vector<std::string>& args)
+CommandLine::CommandLine(const Array<std::string>& args)
 {
 	for (const std::string& arg : args)
 	{

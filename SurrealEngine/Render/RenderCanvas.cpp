@@ -3,7 +3,7 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioSubsystem.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 
@@ -388,7 +388,7 @@ void RenderSubsystem::DrawTimedemoStats()
 
 	if (ShowTimedemoStats)
 	{
-		std::vector<std::string> lines;
+		Array<std::string> lines;
 		lines.push_back(std::to_string(Canvas.fps) + " FPS");
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 
@@ -414,7 +414,7 @@ void RenderSubsystem::DrawTimedemoStats()
 			}
 
 			/*
-			std::vector<std::string> leftlines;
+			Array<std::string> leftlines;
 			engine->audio->AddStats(leftlines);
 			curY = 64;
 			for (const std::string& text : leftlines)
@@ -430,7 +430,7 @@ void RenderSubsystem::DrawTimedemoStats()
 
 	if (ShowRenderStats)
 	{
-		std::vector<std::string> lines;
+		Array<std::string> lines;
 		lines.push_back(std::to_string(Canvas.fps) + " FPS");
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 
@@ -464,7 +464,7 @@ void RenderSubsystem::DrawTimedemoStats()
 
 void RenderSubsystem::DrawCollisionDebug()
 {
-	std::vector<std::string> lines;
+	Array<std::string> lines;
 	if (engine->PlayerBspNode)
 	{
 		BspNode* node = engine->PlayerBspNode;

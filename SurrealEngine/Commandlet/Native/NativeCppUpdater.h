@@ -17,15 +17,15 @@ private:
 	struct NativeFunctionDecl
 	{
 		std::string args;
-		std::vector<std::string> games;
+		Array<std::string> games;
 		int argCount = 0;
 	};
 
 	struct NativeFunction
 	{
 		std::string name;
-		std::vector<NativeFunctionDecl> decls;
-		std::vector<std::pair<std::string, int>> versionIndex;
+		Array<NativeFunctionDecl> decls;
+		Array<std::pair<std::string, int>> versionIndex;
 		bool staticFlag = false;
 	};
 
@@ -33,15 +33,15 @@ private:
 	{
 		std::string name;
 		std::string type;
-		std::vector<std::string> games;
+		Array<std::string> games;
 	};
 
 	struct NativeClass
 	{
 		std::string name;
 		std::string package;
-		std::vector<NativeFunction> funcs;
-		std::vector<NativeProperty> props;
+		Array<NativeFunction> funcs;
+		Array<NativeProperty> props;
 
 		NativeFunction& AddUniqueNativeFunction(const std::string& funcName);
 		NativeProperty& AddUniqueNativeProperty(const std::string& propName);
@@ -65,5 +65,5 @@ private:
 
 	DebuggerApp* Console = nullptr;
 	std::filesystem::path SourceBasePath;
-	std::vector<NativeClass> Classes;
+	Array<NativeClass> Classes;
 };

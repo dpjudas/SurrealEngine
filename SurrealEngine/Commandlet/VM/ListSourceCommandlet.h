@@ -19,6 +19,6 @@ private:
 	};
 
 	std::string SyntaxHighlight(const std::string& text);
-	std::vector<TextSpan> CreateTextSpans(const std::string& text);
-	void InsertHighlight(std::vector<TextSpan>& spans, size_t pos, size_t length, int color);
+	Array<TextSpan> CreateTextSpans(const std::string& text);
+	void InsertHighlight(Array<TextSpan>& spans, size_t pos, size_t length, int color);
 };

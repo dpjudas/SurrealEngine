@@ -1,7 +1,8 @@
 
 #include "Precomp.h"
 #include "Engine.h"
-#include "File.h"
+#include "Utils/File.h"
+#include "Utils/StrCompare.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
@@ -18,7 +19,7 @@
 #include "UObject/USubsystem.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Audio/AudioSubsystem.h"
 #include "VM/Frame.h"
@@ -100,6 +101,7 @@ void Engine::Run()
 		if (EntryLevel)
 			EntryLevelInfo->TimeSeconds() += entryLevelElapsed;
 		LevelInfo->TimeSeconds() += levelElapsed;
+		Logger::Get()->SetTimeSeconds(LevelInfo->TimeSeconds());
 
 		UpdateInput(realTimeElapsed);
 
@@ -134,7 +136,7 @@ void Engine::Run()
 						UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 						if (pawn && pawn->Player())
 						{
-							std::vector<ObjectTravelInfo> actorTravelInfo;
+							Array<ObjectTravelInfo> actorTravelInfo;
 							for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 							{
 								ObjectTravelInfo objInfo(item);
@@ -167,7 +169,7 @@ void Engine::Run()
 				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 				if (pawn && pawn->Player())
 				{
-					std::vector<ObjectTravelInfo> actorTravelInfo;
+					Array<ObjectTravelInfo> actorTravelInfo;
 					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
 					{
 						ObjectTravelInfo objInfo(item);
@@ -489,7 +491,7 @@ void Engine::LoginPlayer()
 
 	CallEvent(pawn, EventName::TravelPreAccept);
 
-	std::vector<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
+	Array<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
 	if (actorActuallySpawned)
 	{
 		std::string playerName = url.GetOption("Name");
@@ -630,7 +632,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 {
 	found = false;
 
-	std::vector<std::string> args = GetArgs(commandline);
+	Array<std::string> args = GetArgs(commandline);
 	if (args.empty())
 	{
 		return {};
@@ -719,14 +721,12 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		for (auto& map : packages->GetMaps())
 		{
 			std::string mapname = FilePath::remove_extension(map);
-#ifdef WIN32
-			if (_stricmp(mapname.c_str(), url.Map.c_str()) == 0)
-#else
-			if (strcasecmp(mapname.c_str(), url.Map.c_str()) == 0)
-#endif
+
+			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
 				LoadMap(url);
 				LoginPlayer();
+				return {};
 			}	
 		}
 
@@ -830,9 +830,9 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	return {};
 }
 
-std::vector<std::string> Engine::GetArgs(const std::string& commandline)
+Array<std::string> Engine::GetArgs(const std::string& commandline)
 {
-	std::vector<std::string> args;
+	Array<std::string> args;
 	size_t i = 0;
 	while (i < commandline.size())
 	{
@@ -850,9 +850,9 @@ std::vector<std::string> Engine::GetArgs(const std::string& commandline)
 	return args;
 }
 
-std::vector<std::string> Engine::GetSubcommands(const std::string& command)
+Array<std::string> Engine::GetSubcommands(const std::string& command)
 {
-	std::vector<std::string> subcommands;
+	Array<std::string> subcommands;
 	size_t pos = 0;
 	while (pos < command.size())
 	{
@@ -950,7 +950,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = GameWindow::Create(this, windowingSystemName);
+		window = GameWindow::Create(this);
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
@@ -959,7 +959,7 @@ void Engine::OpenWindow()
 	std::string versionString = !LaunchInfo.gameVersionString.empty() ? " (v" + LaunchInfo.gameVersionString + ")" : "";
 
 	window->SetWindowTitle("Surreal Engine: " + LaunchInfo.gameName + versionString);
-	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));
+	window->SetFrameGeometry(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
 		window->ShowFullscreen();
@@ -1159,7 +1159,7 @@ void Engine::InputEvent(EInputKey key, EInputType type, int delta)
 	}
 }
 
-bool Engine::ExecCommand(const std::vector<std::string>& args)
+bool Engine::ExecCommand(const Array<std::string>& args)
 {
 	for (UObject* target : { static_cast<UObject*>(viewport->Actor()), static_cast<UObject*>(console) })
 	{
@@ -1169,11 +1169,11 @@ bool Engine::ExecCommand(const std::vector<std::string>& args)
 		UFunction* func = FindEventFunction(target, args[0]);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Exec))
 		{
-			std::vector<ExpressionValue> vmArgs;
+			Array<ExpressionValue> vmArgs;
 			int argindex = 0;
 			for (UField* field = func->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* prop = dynamic_cast<UProperty*>(field);
+				UProperty* prop = UObject::TryCast<UProperty>(field);
 				if (prop)
 				{
 					if (AllFlags(prop->PropFlags, PropertyFlags::Parm) && !AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
@@ -1207,7 +1207,7 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 {
 	for (const std::string& commandline : GetSubcommands(commands))
 	{
-		std::vector<std::string> args = GetArgs(commandline);
+		Array<std::string> args = GetArgs(commandline);
 		if (!args.empty())
 		{
 			std::string command = args[0];
@@ -1234,43 +1234,6 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
-}
-
-void Engine::LogMessage(const std::string& message)
-{
-	if (!Frame::Callstack.empty() && Frame::Callstack.back()->Func)
-	{
-		UStruct* func = Frame::Callstack.back()->Func;
-		std::string name;
-		for (UStruct* s = func; s != nullptr; s = s->StructParent)
-		{
-			if (name.empty())
-				name = s->Name.ToString();
-			else
-				name = s->Name.ToString() + "." + name;
-		}
-
-		LogMessageLine line;
-		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
-		line.Source = name;
-		line.Text = message;
-		Log.push_back(std::move(line));
-	}
-	else
-	{
-		LogMessageLine line;
-		line.Time = LevelInfo ? LevelInfo->TimeSeconds() : 0.0f;
-		line.Text = message;
-		Log.push_back(std::move(line));
-	}
-
-	if (printLogDebugger)
-		printLogDebugger(Log.back());
-}
-
-void Engine::LogUnimplemented(const std::string& message)
-{
-	LogMessage("Unimplemented: " + message);
 }
 
 const char* Engine::keynames[256] =

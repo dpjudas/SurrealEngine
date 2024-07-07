@@ -51,9 +51,9 @@ ObjectTravelInfo::ObjectTravelInfo(UActor* travelActor)
 	}
 }
 
-std::vector<ObjectTravelInfo> ObjectTravelInfo::Parse(const std::string& text)
+Array<ObjectTravelInfo> ObjectTravelInfo::Parse(const std::string& text)
 {
-	std::vector<ObjectTravelInfo> result;
+	Array<ObjectTravelInfo> result;
 
 	std::stringstream textStream(text);
 
@@ -108,7 +108,7 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 	return result;
 }
 
-std::string ObjectTravelInfo::ToString(const std::vector<ObjectTravelInfo>& objects)
+std::string ObjectTravelInfo::ToString(const Array<ObjectTravelInfo>& objects)
 {
 	// Example:
 	// Object1#player:prop1=value1;prop2=value2;prop3=value3...?Object2#inv:prop1=value1;prop2=value2...

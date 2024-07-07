@@ -4,7 +4,7 @@
 #include "Package.h"
 #include "PackageStream.h"
 #include "IniFile.h"
-#include "File.h"
+#include "Utils/File.h"
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
 #include "VM/NativeFunc.h"
@@ -159,9 +159,9 @@ void PackageManager::ScanPaths()
 	}
 }
 
-std::vector<NameString> PackageManager::GetPackageNames() const
+Array<NameString> PackageManager::GetPackageNames() const
 {
-	std::vector<NameString> names;
+	Array<NameString> names;
 	for (auto& it : packageFilenames)
 	{
 		names.push_back(it.first);
@@ -251,7 +251,13 @@ std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
 	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
-		iniName = launchInfo.gameExecutableName;
+	{
+		// Clive Barker's Undying uses System.ini instead of ExeName.ini
+		if (IsCliveBarkersUndying())
+			iniName = "System";
+		else
+			iniName = launchInfo.gameExecutableName;
+	}
 
 	return std::make_unique<IniFile>(*iniFiles[iniName]);
 }
@@ -262,8 +268,14 @@ std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 	if (userIni && launchInfo.engineVersion > 219)
 		iniName = "User";
 	if (iniName == "system" || iniName == "System" || (userIni && launchInfo.engineVersion == 219))
-		iniName = launchInfo.gameExecutableName;
-
+	{
+		// Clive Barker's Undying uses System.ini instead of ExeName.ini
+		if (IsCliveBarkersUndying())
+			iniName = "System";
+		else
+			iniName = launchInfo.gameExecutableName;
+	}
+	
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
@@ -273,7 +285,7 @@ std::unique_ptr<IniFile>& PackageManager::GetSystemIniFile(NameString iniName)
 	return ini;
 }
 
-std::vector<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
+Array<NameString> PackageManager::GetIniKeysFromSection(NameString iniName, const NameString& sectionName)
 {
 	return GetSystemIniFile(iniName)->GetKeys(sectionName);
 }
@@ -283,7 +295,7 @@ std::string PackageManager::GetIniValue(NameString iniName, const NameString& se
 	return GetSystemIniFile(iniName)->GetValue(sectionName, keyName, default_value, index);
 }
 
-std::vector<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values)
+Array<std::string> PackageManager::GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, Array<std::string> default_values)
 {
 	return GetSystemIniFile(iniName)->GetValues(sectionName, keyName, default_values);
 }
@@ -293,7 +305,7 @@ void PackageManager::SetIniValue(NameString iniName, const NameString& sectionNa
 	GetSystemIniFile(iniName)->SetValue(sectionName, keyName, newValue, index);
 }
 
-void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues)
+void PackageManager::SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues)
 {
 	GetSystemIniFile(iniName)->SetValues(sectionName, keyName, newValues);
 }
@@ -341,8 +353,11 @@ void PackageManager::LoadEngineIniFiles()
 		missing_se_system_ini = true;
 		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
 	}
-		
-	iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+	
+	if (IsCliveBarkersUndying())
+		iniFiles["System"] = std::make_unique<IniFile>(FilePath::combine(system_folder, "System.ini"));
+	else
+		iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
 
 	if (launchInfo.engineVersion > 209)
 	{
@@ -406,7 +421,7 @@ void PackageManager::LoadIntFiles()
 	}
 }
 
-std::vector<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
+Array<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 {
 	size_t pos = metaclass.ToString().find_last_of('.');
 	if (pos == std::string::npos)
@@ -438,7 +453,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	}
 
 	std::string value = intFile->GetValue(sectionName, keyName);
-	if (*value.begin() == '"' && *(value.end() - 1) == '"')
+	if (!value.empty() && value.front() == '"' && value.back() == '"')
 	{
 		value.erase(value.begin());
 		value.erase(value.end()-1);

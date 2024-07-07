@@ -82,7 +82,7 @@ public:
 	UClass*& AcceptClass() { return Value<UClass*>(PropOffsets_TcpLink.AcceptClass); }
 	uint8_t& LinkState() { return Value<uint8_t>(PropOffsets_TcpLink.LinkState); }
 	IpAddr& RemoteAddr() { return Value<IpAddr>(PropOffsets_TcpLink.RemoteAddr); }
-	std::vector<void*>& SendFIFO() { return Value<std::vector<void*>>(PropOffsets_TcpLink.SendFIFO); }
+	Array<void*>& SendFIFO() { return Value<Array<void*>>(PropOffsets_TcpLink.SendFIFO); }
 
 	socket_t handle = invalid_socket_value;
 };

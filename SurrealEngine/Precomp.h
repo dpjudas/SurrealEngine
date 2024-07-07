@@ -5,7 +5,8 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include "Exception.h"
+#include "Utils/Array.h"
+#include "Utils/Exception.h"
 
 #ifdef WIN32
 #define WIN32_MEAN_AND_LEAN

@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "Audio/AudioDevice.h"
 #include "Audio/AudioSubsystem.h"
+#include "Utils/StrCompare.h"
 
 void NActor::RegisterFunctions()
 {
@@ -138,7 +139,7 @@ void NActor::Destroy(UObject* Self, BitfieldBool& ReturnValue)
 
 void NActor::Error(UObject* Self, const std::string& S)
 {
-	engine->LogMessage("Error: " + S);
+	LogMessage("Error: " + S);
 	UObject::Cast<UActor>(Self)->Destroy();
 }
 
@@ -172,7 +173,7 @@ void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::strin
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
 {
-	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	Array<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
 		ReturnValue = objects[Num].Name.ToString();
 	else
@@ -181,7 +182,7 @@ void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, st
 
 void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description)
 {
-	std::vector<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
+	Array<IntObject>& objects = engine->packages->GetIntObjects(ClassName);
 	if (Num >= 0 && (size_t)Num < objects.size())
 	{
 		Entry = objects[Num].Name.ToString();
@@ -196,17 +197,13 @@ void NActor::GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num
 
 void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std::string& MapName, int Dir, std::string& ReturnValue)
 {
-	std::vector<std::string> maps;
+	Array<std::string> maps;
 
 	// Filter list to only those with the matching map type
 	for (const std::string& name : engine->packages->GetMaps())
 	{
 		// Case insensitive prefix comparison because Unreal Deathmatch maps start with "Dm" instead of "DM"
-#ifdef WIN32
-		if (name.size() >= NameEnding.size() && _stricmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
-#else
-		if (name.size() >= NameEnding.size() && strcasecmp(name.substr(0, NameEnding.size()).c_str(), NameEnding.c_str()) == 0)
-#endif
+		if ( name.size() >= NameEnding.size() && StrCompare::equals_ignore_case(name.substr(0, NameEnding.size()), NameEnding) )
 			maps.push_back(name);
 	}
 
@@ -240,7 +237,7 @@ void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::st
 	else
 		prefix = Prefix;
 
-	std::vector<const IntObject*> skins;
+	Array<const IntObject*> skins;
 
 	// Filter list to only those with the matching skin prefix
 	for (const IntObject& skin : engine->packages->GetIntObjects("Texture"))
@@ -516,55 +513,55 @@ void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*&
 
 void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("Actor.GetPlayerPawn");
+	LogUnimplemented("Actor.GetPlayerPawn");
 	ReturnValue = nullptr;
 }
 
 void NActor::AIClearEvent(UObject* Self, const NameString& eventName)
 {
-	engine->LogUnimplemented("Actor.AIClearEvent");
+	LogUnimplemented("Actor.AIClearEvent");
 }
 
 void NActor::AIClearEventCallback(UObject* Self, const NameString& eventName)
 {
-	engine->LogUnimplemented("Actor.AIClearEventCallback");
+	LogUnimplemented("Actor.AIClearEventCallback");
 }
 
 void NActor::AIEndEvent(UObject* Self, const NameString& eventName, uint8_t eventType)
 {
-	engine->LogUnimplemented("Actor.AIEndEvent");
+	LogUnimplemented("Actor.AIEndEvent");
 }
 
 void NActor::AIGetLightLevel(UObject* Self, const vec3& Location, float& ReturnValue)
 {
-	engine->LogUnimplemented("Actor.AIGetLightLevel");
+	LogUnimplemented("Actor.AIGetLightLevel");
 	ReturnValue = 1.0f;
 }
 
 void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
 {
-	engine->LogUnimplemented("Actor.AISendEvent");
+	LogUnimplemented("Actor.AISendEvent");
 }
 
 void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS)
 {
-	engine->LogUnimplemented("Actor.AISetEventCallback");
+	LogUnimplemented("Actor.AISetEventCallback");
 }
 
 void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
 {
-	engine->LogUnimplemented("Actor.AIStartEvent");
+	LogUnimplemented("Actor.AIStartEvent");
 }
 
 void NActor::AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& ReturnValue)
 {
-	engine->LogUnimplemented("Actor.AIVisibility");
+	LogUnimplemented("Actor.AIVisibility");
 	ReturnValue = 0.0f;
 }
 
 void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
-	engine->LogUnimplemented("Actor.TraceTexture");
+	LogUnimplemented("Actor.TraceTexture");
 	// Deus Ex
 	// Note: this is not correct, but it will give unrealscript an iterator
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
@@ -576,7 +573,7 @@ void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, Na
 
 void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
-	engine->LogUnimplemented("Actor.TraceVisibleActors");
+	LogUnimplemented("Actor.TraceVisibleActors");
 	// Deus Ex
 	// Note: this is not correct, but it will give unrealscript an iterator
 	UActor* SelfActor = UObject::Cast<UActor>(Self);

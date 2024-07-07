@@ -5,8 +5,8 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
-#include "JsonValue.h"
-#include "File.h"
+#include "Utils/JsonValue.h"
+#include "Utils/File.h"
 #include <set>
 
 std::string NativeFuncExtractor::Run(PackageManager* packages)
@@ -35,7 +35,7 @@ JsonValue NativeFuncExtractor::CreatePackageJson(Package* package)
 {
 	JsonValue jsonPackage = JsonValue::object();
 
-	std::vector<UClass*> classes = package->GetAllObjects<UClass>();
+	Array<UClass*> classes = package->GetAllObjects<UClass>();
 	for (UClass* cls : classes)
 	{
 		JsonValue jsonClass = CreateClassJson(cls);
@@ -70,7 +70,7 @@ JsonValue NativeFuncExtractor::CreateFunctionJson(UFunction* func)
 	jsonFunc.add("NativeFuncIndex", JsonValue::number(func->NativeFuncIndex));
 	jsonFunc.add("Static", JsonValue::boolean(AllFlags(func->FuncFlags, FunctionFlags::Static)));
 
-	std::vector<std::string> args;
+	Array<std::string> args;
 	for (UField* arg = func->Children; arg != nullptr; arg = arg->Next)
 	{
 		UProperty* prop = UClass::TryCast<UProperty>(arg);

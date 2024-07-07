@@ -3,7 +3,7 @@
 #include "ExportCommandlet.h"
 #include "DebuggerApp.h"
 #include "Engine.h"
-#include "File.h"
+#include "Utils/File.h"
 #include "Package/PackageManager.h"
 #include "Package/Package.h"
 #include "Editor/Export.h"
@@ -79,7 +79,7 @@ void ExportCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		return;
 	}
 
-	std::vector<std::string> packages;
+	Array<std::string> packages;
 	if (argsStripped.size() != cmdArgs.size())
 	{
 		size_t sep = cmdArgs.find_first_of(' ');
@@ -120,14 +120,14 @@ void ExportCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportAll(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportAll(DebuggerApp* console, Array<std::string>& packages)
 {
 	console->WriteOutput("Unimplemented" + NewLine());
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportScripts(DebuggerApp* console, Array<std::string>& packages)
 {
 	InitExport(packages);
 
@@ -135,14 +135,14 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::stri
 		console->WriteOutput("Checking all packages..." + NewLine());
 
 	// cull out packages without scripts
-	std::vector<PackageNamePair> packageObjects;
+	Array<PackageNamePair> packageObjects;
 	for (std::string pkgname : packageNames)
 	{
 		if (pkgname == "Editor")
 			continue;
 
 		Package* package = engine->packages->GetPackage(pkgname);
-		std::vector<UClass*> classes = package->GetAllObjects<UClass>();
+		Array<UClass*> classes = package->GetAllObjects<UClass>();
 		if (!classes.empty())
 			packageObjects.push_back(PackageNamePair(package, pkgname));
 	}
@@ -165,7 +165,7 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::stri
 
 		console->WriteOutput("Exporting scripts from " + ColorEscape(96) + name + ResetEscape() + NewLine());
 
-		std::vector<UClass*> classes = package->GetAllObjects<UClass>();
+		Array<UClass*> classes = package->GetAllObjects<UClass>();
 
 		for (UClass* cls : classes)
 		{
@@ -187,13 +187,13 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, std::vector<std::stri
 
 /////////////////////////////////////////////////////////////////////////////
 
-const std::vector<std::string> formats =
+const Array<std::string> formats =
 {
 	"bmp",
 	"png"
 };
 
-void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportTextures(DebuggerApp* console, Array<std::string>& packages)
 {
 	InitExport(packages);
 
@@ -201,14 +201,14 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 		console->WriteOutput("Checking all packages..." + NewLine());
 
 	// cull out packages without textures
-	std::vector<PackageNamePair> packageObjects;
+	Array<PackageNamePair> packageObjects;
 	for (std::string pkgname : packageNames)
 	{
 		if (pkgname == "Editor")
 			continue;
 
 		Package* package = engine->packages->GetPackage(pkgname);
-		std::vector<UTexture*> objects = package->GetAllObjects<UTexture>();
+		Array<UTexture*> objects = package->GetAllObjects<UTexture>();
 		if (!objects.empty())
 			packageObjects.push_back(PackageNamePair(package, pkgname));
 	}
@@ -257,7 +257,7 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 
 		console->WriteOutput("Exporting textures from " + ColorEscape(96) + name + ResetEscape() + NewLine());
 
-		std::vector<UTexture*> textures = package->GetAllObjects<UTexture>();
+		Array<UTexture*> textures = package->GetAllObjects<UTexture>();
 
 		for (UTexture* tex : textures)
 		{
@@ -287,28 +287,28 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, std::vector<std::str
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportSounds(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportSounds(DebuggerApp* console, Array<std::string>& packages)
 {
 	console->WriteOutput("Unimplemented" + NewLine());
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportMusic(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportMusic(DebuggerApp* console, Array<std::string>& packages)
 {
 	console->WriteOutput("Unimplemented" + NewLine());
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportMeshes(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportMeshes(DebuggerApp* console, Array<std::string>& packages)
 {
 	console->WriteOutput("Unimplemented" + NewLine());
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-void ExportCommandlet::ExportLevel(DebuggerApp* console, std::vector<std::string>& packages)
+void ExportCommandlet::ExportLevel(DebuggerApp* console, Array<std::string>& packages)
 {
 	console->WriteOutput("Unimplemented" + NewLine());
 }
@@ -321,11 +321,11 @@ void ExportCommandlet::OnPrintHelp(DebuggerApp* console)
 	console->WriteOutput("Commands: all scripts textures sounds music meshes level" + NewLine());
 }
 
-void ExportCommandlet::InitExport(std::vector<std::string>& packages)
+void ExportCommandlet::InitExport(Array<std::string>& packages)
 {
 	if (packages.size() == 0)
 	{
-		std::vector<NameString> packageNameStrings = engine->packages->GetPackageNames();
+		Array<NameString> packageNameStrings = engine->packages->GetPackageNames();
 		for (NameString pkgname : packageNameStrings)
 			packageNames.push_back(pkgname.ToString());
 	}

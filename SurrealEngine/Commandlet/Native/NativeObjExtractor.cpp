@@ -5,7 +5,7 @@
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
-#include "File.h"
+#include "Utils/File.h"
 #include <set>
 
 std::string NativeObjExtractor::Run(PackageManager* packages)
@@ -33,7 +33,7 @@ JsonValue NativeObjExtractor::CreatePackageJson(Package* package)
 {
 	JsonValue jsonPackage = JsonValue::object();
 
-	std::vector<UClass*> classes = package->GetAllObjects<UClass>();
+	Array<UClass*> classes = package->GetAllObjects<UClass>();
 	for (UClass* cls : classes)
 	{
 		if (AllFlags(cls->Flags, ObjectFlags::Native))
@@ -71,8 +71,8 @@ JsonValue NativeObjExtractor::CreateClassJson(UClass* cls)
 					type = "U" + objprop->ObjectClass->Name.ToString() + "*"; 
 			}
 			else if (UClass::TryCast<UFloatProperty>(prop)) type = "float";
-			else if (UClass::TryCast<UFixedArrayProperty>(prop)) type = "std::vector<void*>";
-			else if (UClass::TryCast<UArrayProperty>(prop)) type = "std::vector<void*>";
+			else if (UClass::TryCast<UFixedArrayProperty>(prop)) type = "Array<void*>";
+			else if (UClass::TryCast<UArrayProperty>(prop)) type = "Array<void*>";
 			else if (UClass::TryCast<UMapProperty>(prop)) type = "std::map<void*, void*>*";
 			else if (UClass::TryCast<UClassProperty>(prop)) type = "UClass*";
 			else if (UClass::TryCast<UStructProperty>(prop)) type = UClass::Cast<UStructProperty>(prop)->Struct->Name.ToString();

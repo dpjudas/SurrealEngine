@@ -15,27 +15,27 @@ void NScriptedTexture::RegisterFunctions()
 
 void NScriptedTexture::DrawColoredText(UObject* Self, float X, float Y, const std::string& Text, UObject* Font, const Color& FontColor)
 {
-	engine->LogUnimplemented("ScriptedTexture.DrawColoredText");
+	LogUnimplemented("ScriptedTexture.DrawColoredText");
 }
 
 void NScriptedTexture::DrawText(UObject* Self, float X, float Y, const std::string& Text, UObject* Font)
 {
-	engine->LogUnimplemented("ScriptedTexture.DrawText");
+	LogUnimplemented("ScriptedTexture.DrawText");
 }
 
 void NScriptedTexture::DrawTile(UObject* Self, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, UObject* Tex, bool bMasked)
 {
-	engine->LogUnimplemented("ScriptedTexture.DrawTile");
+	LogUnimplemented("ScriptedTexture.DrawTile");
 }
 
 void NScriptedTexture::ReplaceTexture(UObject* Self, UObject* Tex)
 {
-	engine->LogUnimplemented("ScriptedTexture.ReplaceTexture");
+	LogUnimplemented("ScriptedTexture.ReplaceTexture");
 }
 
 void NScriptedTexture::TextSize(UObject* Self, const std::string& Text, float& XL, float& YL, UObject* Font)
 {
-	engine->LogUnimplemented("ScriptedTexture.TextSize");
+	LogUnimplemented("ScriptedTexture.TextSize");
 	XL = 0.0f;
 	YL = 0.0f;
 }

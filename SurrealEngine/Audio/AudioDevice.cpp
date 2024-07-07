@@ -7,7 +7,7 @@
 #include "UObject/UActor.h"
 #include "UObject/USound.h"
 #include <mutex>
-#include "Exception.h"
+#include "Utils/Exception.h"
 #include <map>
 #include <cmath>
 #include <queue>
@@ -320,7 +320,7 @@ public:
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
 		{
-			engine->LogMessage("Attempted to play sound on active channel " + channel);
+			LogMessage("Attempted to play sound on active channel " + channel);
 			return 0;
 		}
 
@@ -524,8 +524,8 @@ public:
 	ALCcontext* alContext = nullptr;
 	ALenum alError = 0;
 	ALuint alMusicSource = 0;
-	std::vector<ALuint> alMusicBuffers;
-	std::vector<ALSoundSource> sources;
+	Array<ALuint> alMusicBuffers;
+	Array<ALSoundSource> sources;
 	ALint monoSources = 0;
 	ALint stereoSources = 0;
 
@@ -649,7 +649,7 @@ public:
 	};
 
 	int frequency = 48000;
-	std::vector<USound*> sounds;
+	Array<USound*> sounds;
 
 	// Note: variables changed in musicThreadData *must* be done within a mutex lock to be thread safe
 	struct
@@ -664,7 +664,7 @@ public:
 	RingQueue<float*> musicQueue;
 	int musicBufferCount = 0;
 	int musicBufferSize = 0;
-	std::vector<float> musicBuffer;
+	Array<float> musicBuffer;
 	float currentMusicVolume = 0.0f;
 	float targetMusicVolume = 0.0f;
 	float fadeRate = 0.0f;

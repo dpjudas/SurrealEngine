@@ -28,13 +28,14 @@ public:
 	bool IsUnrealTournament() const { return launchInfo.gameExecutableName == "UnrealTournament"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
 	bool IsDeusEx() const { return launchInfo.gameExecutableName == "DeusEx"; }
+	bool IsCliveBarkersUndying() const { return launchInfo.gameExecutableName == "Undying"; }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
 
 	Package *GetPackage(const NameString& name);
 	Package *GetPackageFromPath(const std::string& path);
-	std::vector<NameString> GetPackageNames() const;
+	Array<NameString> GetPackageNames() const;
 
 	void UnloadPackage(const NameString& name);
 
@@ -48,17 +49,17 @@ public:
 	std::string GetMapExtension() { return mapExtension; }
 
 	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
-	std::vector<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
+	Array<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
 	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value = "", const int index = 0);
-	std::vector<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, std::vector<std::string> default_values = {});
+	Array<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, Array<std::string> default_values = {});
 	void SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index = 0);
-	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues);
+	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues);
 	void SaveAllIniFiles();
 
 	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
 
-	std::vector<IntObject>& GetIntObjects(const NameString& metaclass);
-	const std::vector<std::string>& GetMaps() const { return maps; }
+	Array<IntObject>& GetIntObjects(const NameString& metaclass);
+	const Array<std::string>& GetMaps() const { return maps; }
 
 	bool MissingSESystemIni() const { return missing_se_system_ini; }
 
@@ -77,7 +78,7 @@ private:
 	void DelayLoadNow();
 	void RegisterFunctions();
 
-	std::vector<UObject*> delayLoads;
+	Array<UObject*> delayLoads;
 	int delayLoadActive = 0;
 
 	std::map<NameString, std::string> packageFilenames;
@@ -86,10 +87,10 @@ private:
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
 	std::map<std::string, std::string> packageRemaps;
 
-	std::map<NameString, std::vector<IntObject>> IntObjects;
+	std::map<NameString, Array<IntObject>> IntObjects;
 
-	std::vector<std::string> mapFolders;
-	std::vector<std::string> maps;
+	Array<std::string> mapFolders;
+	Array<std::string> maps;
 
 	std::string mapExtension;
 	std::string saveExtension;

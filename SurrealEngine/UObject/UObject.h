@@ -224,9 +224,9 @@ public:
 	void GotoState(NameString stateName, const NameString& labelName);
 
 	std::string PrintProperties();
-	std::vector<UProperty*> GetAllProperties();
-	std::vector<UProperty*> GetAllUserEditableProperties();
-	std::vector<UProperty*> GetAllTravelProperties();
+	Array<UProperty*> GetAllProperties();
+	Array<UProperty*> GetAllUserEditableProperties();
+	Array<UProperty*> GetAllTravelProperties();
 
 	std::map<NameString, std::set<NameString>> DisabledEvents;
 
@@ -257,7 +257,7 @@ public:
 	template<typename T>
 	static T* Cast(UObject* obj)
 	{
-		T* target = dynamic_cast<T*>(obj);
+		T* target = TryCast<T>(obj);
 		if (target == nullptr && obj != nullptr)
 		{
 			Exception::Throw("Could not cast object " + obj->Name.ToString() + " (class " + GetUClassName(obj).ToString() + ") to " + (std::string)typeid(T).name());
@@ -268,7 +268,24 @@ public:
 	template<typename T>
 	static T* TryCast(UObject* obj)
 	{
-		return dynamic_cast<T*>(obj);
+		try
+		{
+			return dynamic_cast<T*>(obj);
+		}
+		catch (const std::exception& e)
+		{
+			// dynamic_cast will NEVER throw unless something is very wrong. Launch the debugger in a debug build.
+			#if defined(_DEBUG) && defined(WIN32)
+			DebugBreak();
+			#endif
+			Exception::Throw(e.what());
+		}
+	}
+
+	template<typename T>
+	static bool IsType(UObject* obj)
+	{
+		return TryCast<T>(obj);
 	}
 
 	static NameString GetUClassName(UObject* obj);
@@ -291,3 +308,34 @@ T* ObjectStream::ReadObject()
 // Same deal with above, but for non-MSVC compilers
 template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
 #endif
+
+template<class T>
+Array<T*> Package::GetAllObjects()
+{
+	Array<T*> objects;
+	int objref = 1;
+	for (ExportTableEntry& e : ExportTable)
+	{
+		std::string className;
+		if (e.ObjClass < 0)
+		{
+			className = GetName(GetImportEntry(e.ObjClass)->ObjName).ToString();
+		}
+		else if (e.ObjClass != 0)
+		{
+			className = GetName(GetExportEntry(e.ObjClass)->ObjName).ToString();
+		}
+
+		// ignore "Groups", they're not real objects
+		if (className.compare("Package") != 0)
+		{
+			T* obj = UObject::TryCast<T>(GetUObject(objref));
+			if (obj)
+			{
+				objects.push_back(obj);
+			}
+		}
+		objref++;
+	}
+	return objects;
+}

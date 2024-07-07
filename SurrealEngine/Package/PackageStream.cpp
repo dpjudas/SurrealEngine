@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "PackageStream.h"
 #include "Package.h"
-#include "File.h"
+#include "Utils/File.h"
 
 PackageStream::PackageStream(Package* package, std::shared_ptr<File> file) : package(package), file(file)
 {
@@ -109,7 +109,7 @@ std::string PackageStream::ReadString()
 	if (GetVersion() >= 64)
 	{
 		int len = ReadIndex();
-		std::vector<char> s;
+		Array<char> s;
 		s.resize(len);
 		ReadBytes(s.data(), (int)s.size());
 		s.push_back(0);

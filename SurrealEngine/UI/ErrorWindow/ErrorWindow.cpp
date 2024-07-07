@@ -1,6 +1,6 @@
 
 #include "ErrorWindow.h"
-#include "File.h"
+#include "Utils/File.h"
 #include "Engine.h"
 #include <zwidget/core/image.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
@@ -8,7 +8,7 @@
 #include <zwidget/systemdialogs/save_file_dialog.h>
 #include <miniz.h>
 
-void ErrorWindow::ExecModal(const std::string& text, const std::list<LogMessageLine>& log, std::vector<uint8_t> minidump)
+void ErrorWindow::ExecModal(const std::string& text, const std::list<LogMessageLine>& log, Array<uint8_t> minidump)
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 1200.0;
@@ -22,7 +22,7 @@ void ErrorWindow::ExecModal(const std::string& text, const std::list<LogMessageL
 	DisplayWindow::RunLoop();
 }
 
-ErrorWindow::ErrorWindow(std::vector<uint8_t> initminidump) : Widget(nullptr, WidgetType::Window), minidump(std::move(initminidump))
+ErrorWindow::ErrorWindow(Array<uint8_t> initminidump) : Widget(nullptr, WidgetType::Window), minidump(std::move(initminidump))
 {
 	SetWindowTitle("Fatal Error - Surreal Engine");
 	SetWindowBackground(Colorf::fromRgba8(51, 51, 51));

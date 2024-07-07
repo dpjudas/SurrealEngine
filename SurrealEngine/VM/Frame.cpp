@@ -10,8 +10,8 @@
 #include "Package/PackageManager.h"
 
 std::function<void()> Frame::RunDebugger;
-std::vector<Breakpoint> Frame::Breakpoints;
-std::vector<Frame*> Frame::Callstack;
+Array<Breakpoint> Frame::Breakpoints;
+Array<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
 Expression* Frame::StepExpression = nullptr;
@@ -32,9 +32,9 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 	{
 		for (UField* child = cls->Children; child; child = child->Next)
 		{
-			if (child->Name == funcName && dynamic_cast<UFunction*>(child))
+			if (child->Name == funcName && UObject::IsType<UFunction>(child))
 			{
-				UFunction* func = static_cast<UFunction*>(child);
+				UFunction* func = UObject::Cast<UFunction>(child);
 				bp.Expr = func->Code->Statements.front();
 				Breakpoints.push_back(bp);
 				return true;
@@ -45,14 +45,14 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 	{
 		for (UField* child = cls->Children; child; child = child->Next)
 		{
-			if (child->Name == stateName && dynamic_cast<UState*>(child))
+			if (child->Name == stateName && UObject::IsType<UState>(child))
 			{
-				UState* state = static_cast<UState*>(child);
+				UState* state = UObject::Cast<UState>(child);
 				for (UField* stateChild = state->Children; stateChild; stateChild = stateChild->Next)
 				{
-					if (child->Name == funcName && dynamic_cast<UFunction*>(child))
+					if (child->Name == funcName && UObject::IsType<UFunction>(child))
 					{
-						UFunction* func = static_cast<UFunction*>(child);
+						UFunction* func = UObject::Cast<UFunction>(child);
 						bp.Expr = func->Code->Statements.front();
 						Breakpoints.push_back(bp);
 						return true;
@@ -142,7 +142,7 @@ std::string Frame::GetCallstack()
 	return result;
 }
 
-ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<ExpressionValue> args)
+ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
 {
 	if (!instance->IsEventEnabled(func->Name))
 	{
@@ -152,7 +152,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 	int argindex = 0;
 	for (UField* field = func->Children; field != nullptr; field = field->Next)
 	{
-		UProperty* prop = dynamic_cast<UProperty*>(field);
+		UProperty* prop = UObject::TryCast<UProperty>(field);
 		if (prop)
 		{
 			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
@@ -169,7 +169,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
 		{
-			UProperty* prop = dynamic_cast<UProperty*>(field);
+			UProperty* prop = UObject::TryCast<UProperty>(field);
 			if (prop)
 			{
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
@@ -239,7 +239,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		int argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
 		{
-			UProperty* prop = dynamic_cast<UProperty*>(field);
+			UProperty* prop = UObject::TryCast<UProperty>(field);
 			if (prop)
 			{
 				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
@@ -262,7 +262,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, std::vector<Expr
 		argindex = 0;
 		for (UField* field = func->Children; field != nullptr; field = field->Next)
 		{
-			UProperty* prop = dynamic_cast<UProperty*>(field);
+			UProperty* prop = UObject::TryCast<UProperty>(field);
 			if (prop)
 			{
 				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
@@ -389,7 +389,7 @@ ExpressionEvalResult Frame::Run()
 			{
 				for (UField* field = Func->Children; field != nullptr; field = field->Next)
 				{
-					UProperty* prop = dynamic_cast<UProperty*>(field);
+					UProperty* prop = UObject::TryCast<UProperty>(field);
 					if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 					{
 						result.Value = ExpressionValue::PropertyValue(prop);
@@ -425,7 +425,7 @@ ExpressionEvalResult Frame::Run()
 			Iterators.pop_back();
 			break;
 		case StatementResult::AccessedNone:
-			engine->LogMessage("Accessed None in function" + Object->Name.ToString() + "." + Func->Name.ToString());
+			LogMessage("Accessed None in function" + Object->Name.ToString() + "." + Func->Name.ToString());
 			break;
 		}
 

@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "DebuggerApp.h"
-#include "UTF16.h"
+#include "Utils/UTF16.h"
 #include <iostream>
 #include <vector>
 #ifdef WIN32
@@ -18,7 +18,7 @@ int wmain(int argc, wchar_t* argv[])
 {
 	try
 	{
-		std::vector<std::string> args;
+		Array<std::string> args;
 		for (int i = 1; i < argc; i++)
 			args.push_back(from_utf16(argv[i]));
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		std::vector<std::string> args;
+		Array<std::string> args;
 		for (int i = 1; i < argc; i++)
 			args.push_back(argv[i]);
 

@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "DebuggerApp.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
 #include "Commandlet/Native/NativeCommandlet.h"
@@ -18,7 +18,7 @@
 #include "Commandlet/VM/StepCommandlet.h"
 #include "UI/WidgetResourceData.h"
 #include "VM/Frame.h"
-#include "UTF16.h"
+#include "Utils/UTF16.h"
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>
 #include <iostream>
@@ -28,12 +28,14 @@
 #include <unistd.h>
 #endif
 
-int DebuggerApp::Main(std::vector<std::string> args)
+int DebuggerApp::Main(Array<std::string> args)
 {
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
 	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
+
+	Logger::Get()->SetCallback([&](const LogMessageLine& line) { PrintLog(line); });
 
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
@@ -52,7 +54,6 @@ int DebuggerApp::Main(std::vector<std::string> args)
 
 		Engine engine(launchinfo);
 		engine.tickDebugger = [&]() { Tick(); };
-		engine.printLogDebugger = [&](const LogMessageLine& line) { PrintLog(line); };
 
 		WritePrompt();
 		while (!ExitRequested)

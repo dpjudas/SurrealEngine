@@ -28,7 +28,7 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 
 		if (scriptText)
 		{
-			std::vector<std::string_view> lines;
+			Array<std::string_view> lines;
 			size_t pos = 0;
 			while (pos < scriptText->Text.size())
 			{
@@ -80,7 +80,7 @@ void ListSourceCommandlet::OnPrintHelp(DebuggerApp* console)
 
 std::string ListSourceCommandlet::SyntaxHighlight(const std::string& text)
 {
-	std::vector<ListSourceCommandlet::TextSpan> spans = CreateTextSpans(text);
+	Array<ListSourceCommandlet::TextSpan> spans = CreateTextSpans(text);
 
 	std::string output;
 	output.reserve(text.size() + (spans.size() + 1) * 5);
@@ -105,7 +105,7 @@ std::string ListSourceCommandlet::SyntaxHighlight(const std::string& text)
 	return output;
 }
 
-std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpans(const std::string& text)
+Array<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpans(const std::string& text)
 {
 	struct Pattern
 	{
@@ -114,7 +114,7 @@ std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpan
 		size_t group;
 	};
 
-	static std::vector<Pattern> patterns =
+	static Array<Pattern> patterns =
 	{
 		{ std::regex("(^|[^a-z_0-9])(local|function|for(each)?|if|then|else(\\s+(if|do|while))?|do|while|return|break|goto|optional|coerce|class|enum|none|out|event|simulated(\\s+(function|event))?|state|true|false|super|ignores|static(\\s+function)?|exec)($|[^a-z_0-9])", std::regex::icase), 96, 2 }, // keywords
 		{ std::regex("[+\\-=/\\\\$[\\]\\!&~\\^,;()*]+"), 90, 0 }, // symbols
@@ -122,7 +122,7 @@ std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpan
 		{ std::regex("['\"].*?['\"]"), 97, 0 }, // quoted text
 	};
 
-	std::vector<TextSpan> spans;
+	Array<TextSpan> spans;
 	spans.push_back({ 0, text.length(), 0 });
 
 	for (const Pattern& pattern : patterns)
@@ -145,7 +145,7 @@ std::vector<ListSourceCommandlet::TextSpan> ListSourceCommandlet::CreateTextSpan
 	return spans;
 }
 
-void ListSourceCommandlet::InsertHighlight(std::vector<TextSpan>& spans, size_t pos, size_t length, int color)
+void ListSourceCommandlet::InsertHighlight(Array<TextSpan>& spans, size_t pos, size_t length, int color)
 {
 	size_t start = pos;
 	size_t end = pos + length;

@@ -29,22 +29,33 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/DebuggerApp.h
 	SurrealEngine/Engine.cpp
 	SurrealEngine/Engine.h
-	SurrealEngine/Exception.cpp
-	SurrealEngine/Exception.h
-	SurrealEngine/File.cpp
-	SurrealEngine/File.h
-	SurrealEngine/UTF16.cpp
-	SurrealEngine/UTF16.h
-	SurrealEngine/UTF8Reader.cpp
-	SurrealEngine/UTF8Reader.h
-	SurrealEngine/JsonValue.cpp
-	SurrealEngine/JsonValue.h
 	SurrealEngine/GameFolder.cpp
 	SurrealEngine/GameFolder.h
+	SurrealEngine/GameWindow.cpp
+	SurrealEngine/GameWindow.h
 	SurrealEngine/UE1GameDatabase.h
 	SurrealEngine/UE1GameDatabase.cpp
-	SurrealEngine/CommandLine.cpp
-	SurrealEngine/CommandLine.h
+	SurrealEngine/Utils/CommandLine.cpp
+	SurrealEngine/Utils/CommandLine.h
+	SurrealEngine/Utils/Convert.cpp
+	SurrealEngine/Utils/Convert.h
+	SurrealEngine/Utils/Exception.cpp
+	SurrealEngine/Utils/Exception.h
+	SurrealEngine/Utils/File.cpp
+	SurrealEngine/Utils/File.h
+	SurrealEngine/Utils/Logger.cpp
+	SurrealEngine/Utils/Logger.h
+	SurrealEngine/Utils/JsonValue.cpp
+	SurrealEngine/Utils/JsonValue.h
+	SurrealEngine/Utils/StrCompare.cpp
+	SurrealEngine/Utils/StrCompare.h
+	SurrealEngine/Utils/UTF16.cpp
+	SurrealEngine/Utils/UTF16.h
+	SurrealEngine/Utils/UTF8Reader.cpp
+	SurrealEngine/Utils/UTF8Reader.h
+	SurrealEngine/Utils/MemoryStreamWriter.cpp
+	SurrealEngine/Utils/MemoryStreamWriter.h
+	SurrealEngine/Utils/Array.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp
@@ -315,21 +326,13 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/PlayGamePage.h
 	SurrealEngine/UI/Launcher/SettingsPage.cpp
 	SurrealEngine/UI/Launcher/SettingsPage.h
-	SurrealEngine/Window/Window.cpp
-	SurrealEngine/Window/Window.h
-	SurrealEngine/Lib/MemoryStreamWriter.h
-	SurrealEngine/Lib/MemoryStreamWriter.cpp
 )
 
 set(SURREALCOMMON_WIN32_SOURCES
-	SurrealEngine/Window/Win32/Win32Window.cpp
-	SurrealEngine/Window/Win32/Win32Window.h
 	SurrealEngine/SurrealEngine.natvis
 )
 
 set(SURREALCOMMON_SDL2_SOURCES
-	SurrealEngine/Window/SDL2/SDL2Window.cpp
-	SurrealEngine/Window/SDL2/SDL2Window.h
 )
 
 set(THIRDPARTY_SOURCES
@@ -510,12 +513,9 @@ source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURR
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
 source_group("SurrealEngine\\Commandlet\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Native/.+")
 source_group("SurrealEngine\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Editor/.+")
-source_group("SurrealEngine\\Lib" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Lib/.+")
+source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Utils/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
-source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")
-source_group("SurrealEngine\\Window\\Win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/Win32/.+")
-source_group("SurrealEngine\\Window\\SDL2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/SDL2/.+")
 source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
 source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
 source_group("Thirdparty\\dumb" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/.+")
@@ -545,7 +545,7 @@ if(WIN32)
 		set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_WIN32_LIBS})
 	endif()
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_WIN32_SOURCES})
-	add_definitions(-DUNICODE -D_UNICODE)
+	add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS)
 elseif(APPLE)
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
 	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
@@ -562,7 +562,7 @@ endif()
 
 if(MSVC)
 	# Use all cores for compilation
-	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
+	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
 
 	# Ignore warnings in third party code
 	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")

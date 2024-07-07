@@ -2,6 +2,7 @@
 
 #include <zwidget/core/widget.h>
 #include <zwidget/core/span_layout.h>
+#include <list>
 
 class LogViewer;
 class PushButton;
@@ -11,9 +12,9 @@ struct LogMessageLine;
 class ErrorWindow : public Widget
 {
 public:
-	static void ExecModal(const std::string& text, const std::list<LogMessageLine>& log, std::vector<uint8_t> minidump = {});
+	static void ExecModal(const std::string& text, const std::list<LogMessageLine>& log, Array<uint8_t> minidump = {});
 
-	ErrorWindow(std::vector<uint8_t> minidump);
+	ErrorWindow(Array<uint8_t> minidump);
 
 protected:
 	void OnClose() override;
@@ -32,7 +33,7 @@ private:
 	PushButton* CloseButton = nullptr;
 	PushButton* SaveReportButton = nullptr;
 
-	std::vector<uint8_t> minidump;
+	Array<uint8_t> minidump;
 	std::string clipboardtext;
 };
 
@@ -69,6 +70,6 @@ private:
 
 	std::shared_ptr<Font> largefont = Font::Create("Poppins", 16.0);
 	std::shared_ptr<Font> font = Font::Create("Poppins", 12.0);
-	std::vector<LogLine> loglines;
-	std::vector<SpanLayout> errorlines;
+	Array<LogLine> loglines;
+	Array<SpanLayout> errorlines;
 };

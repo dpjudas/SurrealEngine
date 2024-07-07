@@ -6,6 +6,7 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Math/quaternion.h"
+#include "Utils/StrCompare.h"
 #include <cmath>
 
 #ifdef _MSC_VER
@@ -340,11 +341,7 @@ void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnV
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
-#ifdef WIN32
-	ReturnValue = _stricmp(A.c_str(), B.c_str()) == 0;
-#else
-	ReturnValue = strcasecmp(A.c_str(), B.c_str()) == 0;
-#endif
+	ReturnValue = StrCompare::equals_ignore_case(A, B);
 }
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)
@@ -446,7 +443,7 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 
 	if (!ReturnValue && (!MayFail || *MayFail == false))
 	{
-		engine->LogMessage("Object.DynamicLoadObject: could not load '" + ObjectName + "'");
+		LogMessage("Object.DynamicLoadObject: could not load '" + ObjectName + "'");
 	}
 }
 
@@ -695,9 +692,9 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 void NObject::Log(const std::string& S, NameString* Tag)
 {
 	if (Tag)
-		engine->LogMessage("[" + Tag->ToString() + "] " + S);
+		LogMessage("[" + Tag->ToString() + "] " + S);
 	else
-		engine->LogMessage(S);
+		LogMessage(S);
 }
 
 void NObject::Loge(float A, float& ReturnValue)
@@ -884,7 +881,7 @@ void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 
 void NObject::ResetConfig()
 {
-	engine->LogUnimplemented("Object.ResetConfig");
+	LogUnimplemented("Object.ResetConfig");
 }
 
 void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
@@ -933,7 +930,7 @@ void NObject::Square(float A, float& ReturnValue)
 
 void NObject::StaticSaveConfig()
 {
-	engine->LogUnimplemented("Object.StaticSaveConfig");
+	LogUnimplemented("Object.StaticSaveConfig");
 }
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)
@@ -1036,7 +1033,7 @@ void NObject::VSize(const vec3& A, float& ReturnValue)
 
 void NObject::Warn(const std::string& S)
 {
-	engine->LogMessage("Warning: " + S);
+	LogMessage("Warning: " + S);
 }
 
 void NObject::XorXor_BoolBool(bool A, bool B, BitfieldBool& ReturnValue)

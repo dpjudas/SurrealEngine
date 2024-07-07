@@ -1,16 +1,16 @@
 
 #include "Precomp.h"
 #include "GameFolder.h"
-#include "File.h"
-#include "UTF16.h"
+#include "Utils/File.h"
+#include "Utils/UTF16.h"
 #include "UE1GameDatabase.h"
-#include "CommandLine.h"
+#include "Utils/CommandLine.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include <filesystem>
 
 GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 {
-	std::vector<GameLaunchInfo> foundGames;
+	Array<GameLaunchInfo> foundGames;
 
 	for (const std::string& folder : commandline->GetItems())
 	{
@@ -141,6 +141,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "227j";
 			}
 			break;
+			case KnownUE1Games::UNREALGOLD_227k_11:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 227;
+				info.engineSubVersion = 11;
+				info.gameVersionString = "227k_11";
+			}
+			break;
 			case KnownUE1Games::UT99_436:
 			{
 				info.gameName = "Unreal Tournament";
@@ -237,6 +245,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "1.10";
 			}
 			break;
+			case KnownUE1Games::UNDYING_420:
+			{
+				info.gameName = "Clive Barker's Undying";
+				info.engineVersion = 420;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "420";
+			}
+			break;
 			case KnownUE1Games::TACTICAL_OPS_436:
 			{
 				info.gameName = "Tactical-Ops: Assault on Terror";
@@ -254,6 +270,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "469d";
 			}
 			break;
+			case KnownUE1Games::WHEELOFTIME_333:
+			{
+				info.gameName = "Wheel of Time";
+				info.engineVersion = 333;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "333";
+			}
+			break;
 		}
 	}
 	
@@ -265,7 +289,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 
 static std::string FindEpicRegisteredGame(const std::string& keyname)
 {
-	std::vector<wchar_t> buffer(1024);
+	Array<wchar_t> buffer(1024);
 	HKEY regkey = 0;
 	if (RegOpenKeyEx(HKEY_CURRENT_USER, to_utf16("SOFTWARE\\Unreal Technology\\Installed Apps\\" + keyname).c_str(), 0, KEY_READ, &regkey) == ERROR_SUCCESS)
 	{
@@ -296,7 +320,7 @@ static std::string FindEpicRegisteredGame(const std::string& keyname)
 
 std::string GameFolderSelection::GetExePath()
 {
-	std::vector<wchar_t> buffer(1024);
+	Array<wchar_t> buffer(1024);
 	if (GetModuleFileName(0, buffer.data(), 1024))
 	{
 		buffer.back() = 0;
@@ -305,7 +329,7 @@ std::string GameFolderSelection::GetExePath()
 	return {};
 }
 
-std::vector<std::string> GameFolderSelection::FindGameFolders()
+Array<std::string> GameFolderSelection::FindGameFolders()
 {
 	return
 	{
@@ -323,7 +347,7 @@ std::string GameFolderSelection::GetExePath()
 	return {};
 }
 
-std::vector<std::string> GameFolderSelection::FindGameFolders()
+Array<std::string> GameFolderSelection::FindGameFolders()
 {
 	return {};
 }

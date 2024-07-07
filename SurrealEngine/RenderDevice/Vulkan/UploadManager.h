@@ -36,7 +36,7 @@ private:
 	};
 
 	int UploadBufferPos = 0;
-	std::vector<UploadedTexture> Uploads;
-	std::vector<VkBufferImageCopy> ImageCopies;
-	std::unordered_map<VkImage, std::vector<VkBufferImageCopy>> RectUploads;
+	Array<UploadedTexture> Uploads;
+	Array<VkBufferImageCopy> ImageCopies;
+	std::unordered_map<VkImage, Array<VkBufferImageCopy>> RectUploads;
 };

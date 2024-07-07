@@ -12,20 +12,20 @@ public:
 
 	uint32_t GetHash() const;
 	const std::string& GetName() const;
-	const std::vector<std::string>& GetValues() const;
+	const Array<std::string>& GetValues() const;
 	bool GetIndexed() const;
 
 	std::string GetValue(const int index = 0) const;
 
 	int SetValue(const std::string& newValue, const int index = 0);
-	int SetValues(const std::vector<std::string>& newValues);
+	int SetValues(const Array<std::string>& newValues);
 
 	int SetIndexed(bool newIndexed);
 
 private:
 	std::string name;
 	uint32_t hash;
-	std::vector<std::string> values;
+	Array<std::string> values;
 	bool indexed = false;
 };
 
@@ -38,18 +38,18 @@ public:
 
 	uint32_t GetHash() const;
 	const std::string& GetName() const;
-	const std::vector<IniKey>& GetKeys() const;
+	const Array<IniKey>& GetKeys() const;
 
 	std::string GetValue(const NameString& keyName, const std::string& defaultValue, const int index = 0) const;
-	std::vector<std::string> GetValues(const NameString& keyName, const std::vector<std::string>& defaultValues = {}) const;
+	Array<std::string> GetValues(const NameString& keyName, const Array<std::string>& defaultValues = {}) const;
 
 	bool SetValue(const NameString& keyName, const std::string& newValue, const int index = 0, const bool indexed = false);
-	bool SetValues(const NameString& keyName, const std::vector<std::string>& newValues, const bool indexed = false);
+	bool SetValues(const NameString& keyName, const Array<std::string>& newValues, const bool indexed = false);
 
 private:
 	std::string name;
 	uint32_t hash;
-	std::vector<IniKey> keys;
+	Array<IniKey> keys;
 };
 
 class IniFile
@@ -61,12 +61,12 @@ public:
 
 	bool IsModified() const { return isModified; }
 
-	std::vector<NameString> GetKeys(const NameString& sectionName) const;
+	Array<NameString> GetKeys(const NameString& sectionName) const;
 	std::string GetValue(const NameString& sectionName, const NameString& keyName, const std::string& defaultValue = "", const int index = 0) const;
-	std::vector<std::string> GetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& defaultValues = {}) const;
+	Array<std::string> GetValues(const NameString& sectionName, const NameString& keyName, const Array<std::string>& defaultValues = {}) const;
 
 	void SetValue(const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index = 0);
-	void SetValues(const NameString& sectionName, const NameString& keyName, const std::vector<std::string>& newValues);
+	void SetValues(const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues);
 
 	// Saves values to the ini file the said values are loaded from
 	void SaveTo();
@@ -91,5 +91,5 @@ private:
 
 	bool isModified = false;
 	std::string ini_file_path;
-	std::vector<IniSection> sections;
+	Array<IniSection> sections;
 };

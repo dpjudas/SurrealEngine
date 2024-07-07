@@ -2,6 +2,8 @@
 
 #include "UClass.h"
 
+#include "Utils/Convert.h"
+
 #include <sstream>
 
 struct PropertyHeader;
@@ -226,7 +228,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(uint8_t*)data = (uint8_t) std::stoi(valueString);
+		*(uint8_t*)data = Convert::to_uint8(valueString);
 	}
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
@@ -325,7 +327,7 @@ public:
 	void Load(ObjectStream* stream) override;
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
-	size_t ElementSize() override { return sizeof(std::vector<void*>); }
+	size_t ElementSize() override { return sizeof(Array<void*>); }
 
 	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
 	{
@@ -335,8 +337,8 @@ public:
 		size_t elementSize = ElementSize();
 		int offset = i * (int)elementSize;
 
-		std::vector<void*>* objarray = static_cast<std::vector<void*>*>(obj->GetProperty(Name)) + offset;
-		std::vector<void*>* defarray = (defobj) ? static_cast<std::vector<void*>*>(defobj->GetProperty(Name)) + offset : nullptr;
+		Array<void*>* objarray = static_cast<Array<void*>*>(obj->GetProperty(Name)) + offset;
+		Array<void*>* defarray = (defobj) ? static_cast<Array<void*>*>(defobj->GetProperty(Name)) + offset : nullptr;
 
 		for (int k = 0; k < objarray->size(); k++)
 		{
@@ -349,19 +351,19 @@ public:
 
 	void Construct(void* data) override
 	{
-		auto vec = static_cast<std::vector<void*>*>(data);
+		auto vec = static_cast<Array<void*>*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(vec + i) std::vector<void*>();
+			new(vec + i) Array<void*>();
 	}
 
 	void CopyConstruct(void* data, void* src) override
 	{
-		auto vec = static_cast<std::vector<void*>*>(data);
-		auto srcvec = static_cast<std::vector<void*>*>(src);
+		auto vec = static_cast<Array<void*>*>(data);
+		auto srcvec = static_cast<Array<void*>*>(src);
 
 		for (int i = 0; i < ArrayDimension; i++)
 		{
-			new(vec + i) std::vector<void*>();
+			new(vec + i) Array<void*>();
 
 			size_t s = (Inner->Size() + 7) / 8;
 			for (auto& sp : srcvec[i])
@@ -375,7 +377,7 @@ public:
 
 	void Destruct(void* data) override
 	{
-		auto vec = static_cast<std::vector<void*>*>(data);
+		auto vec = static_cast<Array<void*>*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
 		{
 			for (void* d : vec[i])
@@ -383,7 +385,7 @@ public:
 				Inner->Destruct(d);
 				delete[](int64_t*)d;
 			}
-			vec[i].~vector();
+			vec[i].~Array();
 		}
 	}
 
@@ -508,7 +510,7 @@ public:
 
 		for (UField* field = Struct->Children; field != nullptr; field = field->Next) 
 		{
-			UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+			UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 
 			if (fieldprop == nullptr)
 				continue;
@@ -544,7 +546,7 @@ public:
 			uint8_t* d = (uint8_t*)data;
 			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 				if (fieldprop)
 				{
 					print += print.empty() ? " " : ", ";
@@ -574,7 +576,7 @@ public:
 		{
 			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
 			{
-				UProperty* fieldprop = dynamic_cast<UProperty*>(field);
+				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 				if (fieldprop)
 				{
 					auto it = properties.find(fieldprop->Name);
@@ -603,7 +605,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(int32_t*)data = std::stoi(valueString);
+		*(int32_t*)data = Convert::to_int32(valueString);
 	}
 };
 
@@ -680,7 +682,7 @@ public:
 
 	void SetValueFromString(void* data, const std::string& valueString) override
 	{
-		*(float*)data = std::stof(valueString);
+		*(float*)data = Convert::to_float(valueString);
 	}
 };
 

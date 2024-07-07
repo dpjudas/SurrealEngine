@@ -17,6 +17,7 @@ enum class KnownUE1Games
 	UNREALGOLD_226b,
 	UNREALGOLD_227i,
 	UNREALGOLD_227j,
+	UNREALGOLD_227k_11,
 	UT99_400,
 	UT99_436,
 	UT99_451,
@@ -33,6 +34,7 @@ enum class KnownUE1Games
 	UNDYING_420,
 	TACTICAL_OPS_436,
 	TACTICAL_OPS_469,
+	WHEELOFTIME_333,
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -68,6 +70,16 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"a613cfcb78ad38190a8612a5267af1c6052ab95d", KnownUE1Games::UNREALGOLD_227j},
 	// Linux, 64 bit
 	{"60425d1dc310e49f1aa0d05c81abc3195f0b03d9", KnownUE1Games::UNREALGOLD_227j},
+
+	// Unreal Gold, 227k_11, Windows + Linux versions (32 + 64 bit)
+	// Windows 32 bit
+	{"2e32d9900ead5ab97812d9018a85850732c58b12", KnownUE1Games::UNREALGOLD_227k_11},
+	// Windows 64 bit
+	{"1f1c32b2ff52dd8232536216b2ffaaf519c975dc", KnownUE1Games::UNREALGOLD_227k_11},
+	// Linux 32 bit
+	{"a613cfcb78ad38190a8612a5267af1c6052ab95d", KnownUE1Games::UNREALGOLD_227k_11},
+	// Linux 64 bit
+	{"60425d1dc310e49f1aa0d05c81abc3195f0b03d9", KnownUE1Games::UNREALGOLD_227k_11},
 
 	// Unreal Tournament, v436, Windows version
 	// (TODO: get sha1sum of the Linux version)
@@ -132,6 +144,9 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Rune Classic, Version 1.10
 	{"4a517c7f96a27cf7e25534c80d50af8db4065276", KnownUE1Games::RUNE_110},
 
+	// Clive Barker's Undying, Version 420 (GOG)
+	{"65aa7c5caca6495681c9c2dc919645de5c15b96e", KnownUE1Games::UNDYING_420},
+
 	// TNN Outdoors Pro Hunter
 	{"f4fbacdaaee360794187c8224f51ea82bd902a43", KnownUE1Games::TNN_200},
 
@@ -141,9 +156,12 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// v3.4.0 and v3.5.0, running on UT v469 engine
 	// Has identical hash to UT v469d executable
 	// {"78c65e9434b442b15820d863136bb5a44700ad26", KnownUE1Games::TACTICAL_OPS_469},
+
+	// Wheel of Time, version 333 (GOG)
+	{"102013ab6e4535a515c7c589d0b5cdd484ef8fdd", KnownUE1Games::WHEELOFTIME_333},
 };
 
-static const std::vector<std::string> knownUE1ExecutableNames = {
+static const Array<std::string> knownUE1ExecutableNames = {
 	"Unreal.exe",
 	"UnrealLinux.bin",
 	"UnrealTournament.exe",
@@ -155,9 +173,11 @@ static const std::vector<std::string> knownUE1ExecutableNames = {
 	"Khg.exe",
 	"Nerf.exe",
 	"Rune.exe",
+	"Undying.exe",
 	"Spore.exe",
 	"TnnHunt.exe",
-	"TacticalOps.exe"
+	"TacticalOps.exe",
+	"WoT.exe"
 };
 
 // Returns a pair of UE1-Game type and executable name

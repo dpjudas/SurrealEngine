@@ -63,35 +63,7 @@ public:
 
 	std::string GetExportName(int objref);
 
-	template<class T> std::vector<T*> GetAllObjects()
-	{
-		std::vector<T*> objects;
-		int objref = 1;
-		for (ExportTableEntry& e : ExportTable)
-		{
-			std::string className;
-			if (e.ObjClass < 0)
-			{
-				className = GetName(GetImportEntry(e.ObjClass)->ObjName).ToString();
-			}
-			else if (e.ObjClass != 0)
-			{
-				className = GetName(GetExportEntry(e.ObjClass)->ObjName).ToString();
-			}
-
-			// ignore "Groups", they're not real objects
-			if (className.compare("Package") != 0)
-			{
-				T* obj = dynamic_cast<T*>(GetUObject(objref));
-				if (obj)
-				{
-					objects.push_back(obj);
-				}
-			}
-			objref++;
-		}
-		return objects;
-	}
+	template<class T> Array<T*> GetAllObjects();
 
 private:
 	void ReadTables();
@@ -99,39 +71,7 @@ private:
 	void LoadExportObject(int index);
 
 	template<typename T>
-	void RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass = {})
-	{
-		NativeClasses[className] = [](const NameString& name, UClass* cls, ObjectFlags flags) -> UObject*
-		{
-			return new T(name, cls, flags);
-		};
-
-		if (registerInPackage)
-		{
-			int objref = FindObjectReference("Class", className);
-			if (objref == 0)
-			{
-				if (NameHash.find(className) == NameHash.end())
-				{
-					NameTableEntry nameentry;
-					nameentry.Flags = 0;
-					nameentry.Name = className;
-					NameTable.push_back(nameentry);
-					NameHash[className] = (int)NameTable.size() - 1;
-				}
-
-				ExportTableEntry entry;
-				entry.ObjClass = 0;
-				entry.ObjBase = baseClass.IsNone() ? 0 : FindObjectReference("Class", baseClass);
-				entry.ObjPackage = 0;
-				entry.ObjName = NameHash[className];
-				entry.ObjFlags = ObjectFlags::Native;
-				entry.ObjSize = 0;
-				entry.ObjOffset = 0;
-				ExportTable.push_back(entry);
-			}
-		}
-	}
+	void RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass = {});
 
 	PackageManager* Packages = nullptr;
 	NameString Name;
@@ -139,13 +79,13 @@ private:
 
 	int Version = 0;
 	PackageFlags Flags = PackageFlags::NoFlags;
-	std::vector<NameTableEntry> NameTable;
-	std::vector<ExportTableEntry> ExportTable;
-	std::vector<ImportTableEntry> ImportTable;
+	Array<NameTableEntry> NameTable;
+	Array<ExportTableEntry> ExportTable;
+	Array<ImportTableEntry> ImportTable;
 
 	std::map<NameString, int> NameHash;
 
-	std::vector<std::unique_ptr<UObject>> Objects;
+	Array<std::unique_ptr<UObject>> Objects;
 
 	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 
@@ -156,9 +96,43 @@ private:
 	friend class UObject;
 };
 
-
 inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
 inline ObjectFlags operator|=(ObjectFlags& a, ObjectFlags b) { a = (ObjectFlags)((uint32_t)a | (uint32_t)b); return a; }
 inline ObjectFlags operator&(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a & (uint32_t)b); }
 inline bool AllFlags(ObjectFlags value, ObjectFlags flags) { return (value & flags) == flags; }
 inline bool AnyFlags(ObjectFlags value, ObjectFlags flags) { return (uint32_t)(value & flags) != 0; }
+
+template<typename T>
+void Package::RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass)
+{
+	NativeClasses[className] = [](const NameString& name, UClass* cls, ObjectFlags flags) -> UObject*
+		{
+			return new T(name, cls, flags);
+		};
+
+	if (registerInPackage)
+	{
+		int objref = FindObjectReference("Class", className);
+		if (objref == 0)
+		{
+			if (NameHash.find(className) == NameHash.end())
+			{
+				NameTableEntry nameentry;
+				nameentry.Flags = 0;
+				nameentry.Name = className;
+				NameTable.push_back(nameentry);
+				NameHash[className] = (int)NameTable.size() - 1;
+			}
+
+			ExportTableEntry entry;
+			entry.ObjClass = 0;
+			entry.ObjBase = baseClass.IsNone() ? 0 : FindObjectReference("Class", baseClass);
+			entry.ObjPackage = 0;
+			entry.ObjName = NameHash[className];
+			entry.ObjFlags = ObjectFlags::Native;
+			entry.ObjSize = 0;
+			entry.ObjOffset = 0;
+			ExportTable.push_back(entry);
+		}
+	}
+}

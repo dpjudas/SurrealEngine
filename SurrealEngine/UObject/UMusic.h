@@ -9,5 +9,5 @@ public:
 	void Load(ObjectStream* stream) override;
 
 	NameString Format;
-	std::vector<uint8_t> Data;
+	Array<uint8_t> Data;
 };

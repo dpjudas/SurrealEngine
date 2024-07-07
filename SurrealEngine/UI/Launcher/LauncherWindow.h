@@ -12,9 +12,9 @@ struct GameLaunchInfo;
 class LauncherWindow : public Widget
 {
 public:
-	static int ExecModal(const std::vector<GameLaunchInfo>& games);
+	static int ExecModal(const Array<GameLaunchInfo>& games);
 
-	LauncherWindow(const std::vector<GameLaunchInfo>& games);
+	LauncherWindow(const Array<GameLaunchInfo>& games);
 
 	void Start();
 	void Exit();

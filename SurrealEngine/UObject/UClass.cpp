@@ -84,7 +84,7 @@ void UStruct::Load(ObjectStream* stream)
 	{
 		child->LoadNow();
 
-		if (UProperty* prop = dynamic_cast<UBoolProperty*>(child))
+		if (UProperty* prop = UObject::TryCast<UBoolProperty>(child))
 		{
 			// Pack bool properties into 32 bit bitfields
 			Properties.push_back(prop);
@@ -104,7 +104,7 @@ void UStruct::Load(ObjectStream* stream)
 				bitfieldMask <<= 1;
 			}
 		}
-		else if (UProperty* prop = dynamic_cast<UProperty*>(child))
+		else if (UProperty* prop = UObject::TryCast<UProperty>(child))
 		{
 			Properties.push_back(prop);
 			bitfieldMask = 1;
@@ -114,7 +114,7 @@ void UStruct::Load(ObjectStream* stream)
 			prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
 			offset = prop->DataOffset.DataOffset + size;
 		}
-		else if (UStruct* childstruct = dynamic_cast<UStruct*>(child))
+		else if (UStruct* childstruct = UObject::TryCast<UStruct>(child))
 		{
 			bitfieldMask = 1;
 			childstruct->StructParent = this;
@@ -126,7 +126,7 @@ void UStruct::Load(ObjectStream* stream)
 	child = Children;
 	while (child)
 	{
-		UFunction* func = dynamic_cast<UFunction*>(child);
+		UFunction* func = UObject::TryCast<UFunction>(child);
 		if (func && AllFlags(func->FuncFlags, FunctionFlags::Native))
 		{
 			func->NativeStruct = this;
@@ -378,9 +378,9 @@ void UState::Load(ObjectStream* stream)
 
 	for (UField* child = Children; child; child = child->Next)
 	{
-		if (UObject::TryCast<UFunction>(child))
+		if (auto func = UObject::TryCast<UFunction>(child))
 		{
-			Functions[child->Name] = static_cast<UFunction*>(child);
+			Functions[child->Name] = func;
 		}
 	}
 }
@@ -464,20 +464,20 @@ void UClass::Load(ObjectStream* stream)
 
 				if (!value.empty())
 				{
-					if (dynamic_cast<UByteProperty*>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
-					else if (dynamic_cast<UIntProperty*>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
-					else if (dynamic_cast<UFloatProperty*>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
-					else if (dynamic_cast<UNameProperty*>(prop)) *static_cast<NameString*>(ptr) = value;
-					else if (dynamic_cast<UStrProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-					else if (dynamic_cast<UStringProperty*>(prop)) *static_cast<std::string*>(ptr) = value;
-					else if (auto boolprop = dynamic_cast<UBoolProperty*>(prop))
+					if (UObject::IsType<UByteProperty>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+					else if (UObject::IsType<UIntProperty>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
+					else if (UObject::IsType<UFloatProperty>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
+					else if (UObject::IsType<UNameProperty>(prop)) *static_cast<NameString*>(ptr) = value;
+					else if (UObject::IsType<UStrProperty>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (UObject::IsType<UStringProperty>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (auto boolprop = UObject::TryCast<UBoolProperty>(prop))
 					{
 						for (char& c : value)
 							if (c >= 'A' && c <= 'Z')
 								c += 'a' - 'A';
 						boolprop->SetBool(ptr, value == "1" || value == "true" || value == "yes");
 					}
-					else if (dynamic_cast<UClassProperty*>(prop))
+					else if (UObject::IsType<UClassProperty>(prop))
 					{
 						try
 						{
@@ -495,28 +495,28 @@ void UClass::Load(ObjectStream* stream)
 							// To do: is this actually a fatal error?
 						}
 					}
-					else if (dynamic_cast<UStructProperty*>(prop))
+					else if (auto structprop = UObject::TryCast<UStructProperty>(prop))
 					{
 						// Yes, this is total spaghetti code at this point. No, I don't care anymore. ;)
 						auto values = ParseStructValue(value);
-						for (UProperty* member : static_cast<UStructProperty*>(prop)->Struct->Properties)
+						for (UProperty* member : structprop->Struct->Properties)
 						{
 							std::string membervalue = values[member->Name];
 							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset.DataOffset;
-							if (dynamic_cast<UByteProperty*>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
-							else if (dynamic_cast<UIntProperty*>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
-							else if (dynamic_cast<UFloatProperty*>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
-							else if (dynamic_cast<UNameProperty*>(member)) *static_cast<NameString*>(memberptr) = membervalue;
-							else if (dynamic_cast<UStrProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
-							else if (dynamic_cast<UStringProperty*>(member)) *static_cast<std::string*>(memberptr) = membervalue;
-							else if (auto boolprop = dynamic_cast<UBoolProperty*>(member))
+							if (UObject::IsType<UByteProperty>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
+							else if (UObject::IsType<UIntProperty>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
+							else if (UObject::IsType<UFloatProperty>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
+							else if (UObject::IsType<UNameProperty>(member)) *static_cast<NameString*>(memberptr) = membervalue;
+							else if (UObject::IsType<UStrProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (UObject::IsType<UStringProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (auto boolprop = UObject::TryCast<UBoolProperty>(member))
 							{
 								for (char& c : membervalue)
 									if (c >= 'A' && c <= 'Z')
 										c += 'a' - 'A';
 								boolprop->SetBool(memberptr, membervalue == "1" || membervalue == "true" || membervalue == "yes");
 							}
-							else if (dynamic_cast<UClassProperty*>(member))
+							else if (UObject::IsType<UClassProperty>(member))
 							{
 								try
 								{
@@ -534,7 +534,7 @@ void UClass::Load(ObjectStream* stream)
 									// To do: is this actually a fatal error?
 								}
 							}
-							else if (dynamic_cast<UObjectProperty*>(member))
+							else if (UObject::IsType<UObjectProperty>(member))
 							{
 								// This happens for Deus Ex
 							}
@@ -557,9 +557,9 @@ void UClass::Load(ObjectStream* stream)
 
 	for (UField* child = Children; child; child = child->Next)
 	{
-		if (UObject::TryCast<UState>(child))
+		if (auto state = UObject::TryCast<UState>(child))
 		{
-			States[child->Name] = static_cast<UState*>(child);
+			States[child->Name] = state;
 		}
 	}
 }

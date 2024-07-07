@@ -445,13 +445,13 @@ double CollisionHash::CylinderActorTrace(const dvec3& origin, double tmin, const
 	}
 }
 
-std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
+Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
 {
 	dvec3 dorigin = to_dvec3(origin);
 	double dradius = radius;
 	vec3 extents = { radius, radius, radius };
 
-	std::vector<UActor*> hits;
+	Array<UActor*> hits;
 
 	ivec3 start = GetStartExtents(origin, extents);
 	ivec3 end = GetEndExtents(origin, extents);
@@ -478,7 +478,7 @@ std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float ra
 	}
 
 	std::set<UActor*> seenActors;
-	std::vector<UActor*> uniqueHits;
+	Array<UActor*> uniqueHits;
 	uniqueHits.reserve(hits.size());
 	for (auto& hit : hits)
 	{
@@ -499,14 +499,14 @@ std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float ra
 	return uniqueHits;
 }
 
-std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float height, float radius)
+Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float height, float radius)
 {
 	dvec3 dorigin = to_dvec3(origin);
 	double dheight = height;
 	double dradius = radius;
 	vec3 extents = { radius, radius, height };
 
-	std::vector<UActor*> hits;
+	Array<UActor*> hits;
 
 	ivec3 start = GetStartExtents(origin, extents);
 	ivec3 end = GetEndExtents(origin, extents);
@@ -533,7 +533,7 @@ std::vector<UActor*> CollisionHash::CollidingActors(const vec3& origin, float he
 	}
 
 	std::set<UActor*> seenActors;
-	std::vector<UActor*> uniqueHits;
+	Array<UActor*> uniqueHits;
 	uniqueHits.reserve(hits.size());
 	for (auto& hit : hits)
 	{

@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "Lib/MemoryStreamWriter.h"
+#include "Utils/MemoryStreamWriter.h"
 #include "UObject/UClass.h"
 #include "UObject/UTexture.h"
 

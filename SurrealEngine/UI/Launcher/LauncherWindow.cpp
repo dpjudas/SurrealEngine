@@ -11,7 +11,7 @@
 CVAR(String, additional_parameters, "", CVAR_ARCHIVE | CVAR_NOSET | CVAR_GLOBALCONFIG);
 #endif
 
-int LauncherWindow::ExecModal(const std::vector<GameLaunchInfo>& games)
+int LauncherWindow::ExecModal(const Array<GameLaunchInfo>& games)
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 615.0;
@@ -26,7 +26,7 @@ int LauncherWindow::ExecModal(const std::vector<GameLaunchInfo>& games)
 	return launcher->ExecResult;
 }
 
-LauncherWindow::LauncherWindow(const std::vector<GameLaunchInfo>& games) : Widget(nullptr, WidgetType::Window)
+LauncherWindow::LauncherWindow(const Array<GameLaunchInfo>& games) : Widget(nullptr, WidgetType::Window)
 {
 	SetWindowTitle("Surreal Engine");
 

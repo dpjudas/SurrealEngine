@@ -81,7 +81,7 @@ private:
 	void DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe = false);
 	void DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
 	void DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
-	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const std::vector<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
+	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
 	void DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
 	void SetupMeshTextures(UActor* actor, UMesh* mesh);
 	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
@@ -110,7 +110,7 @@ private:
 
 	struct
 	{
-		std::vector<UTexture*> textures;
+		Array<UTexture*> textures;
 		UTexture* envmap = nullptr;
 	} Mesh;
 
@@ -122,10 +122,10 @@ private:
 		Coords ViewRotation;
 		int ViewZone = 0;
 		uint64_t ViewZoneMask = 0;
-		std::vector<DrawNodeInfo> OpaqueNodes;
-		std::vector<DrawNodeInfo> TranslucentNodes;
-		std::vector<UActor*> Coronas;
-		std::vector<UActor*> Actors;
+		Array<DrawNodeInfo> OpaqueNodes;
+		Array<DrawNodeInfo> TranslucentNodes;
+		Array<UActor*> Coronas;
+		Array<UActor*> Actors;
 		int FrameCounter = 0;
 	} Scene;
 
@@ -133,12 +133,12 @@ private:
 	{
 		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
 		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
-		std::vector<UActor*> Lights;
+		Array<UActor*> Lights;
 		LightmapBuilder Builder;
 		int FogFrameCounter = 0;
 	} Light;
 
-	std::vector<vec3> VertexBuffer;
+	Array<vec3> VertexBuffer;
 
 	vec3* GetTempVertexBuffer(size_t count)
 	{

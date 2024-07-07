@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Window/Window.h"
+#include "GameWindow.h"
 #include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"

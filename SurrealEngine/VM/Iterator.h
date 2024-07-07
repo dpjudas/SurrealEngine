@@ -40,8 +40,8 @@ private:
 	std::string FileExtension;
 	std::string FilePrefix;
 	std::string& FileName;
-	std::vector<std::string> FoundFiles;
-	std::vector<std::string>::iterator iterator;
+	Array<std::string> FoundFiles;
+	Array<std::string>::iterator iterator;
 };
 
 class BasedActorsIterator : public Iterator
@@ -54,8 +54,8 @@ public:
 	UObject** Actor = nullptr;
 	size_t index = 0;
 
-	std::vector<UActor*> BasedActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> BasedActors;
+	Array<UActor*>::iterator iterator;
 };
 
 // An Iterator for iterating through all child actors of a given actor (e.g. due to being spawned by them)
@@ -69,8 +69,8 @@ public:
 	UObject** Actor = nullptr;
 	size_t index = 0;
 
-	std::vector<UActor*> ChildActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> ChildActors;
+	Array<UActor*>::iterator iterator;
 };
 
 class RadiusActorsIterator : public Iterator
@@ -85,8 +85,8 @@ public:
 	vec3 Location;
 	size_t index = 0;
 
-	std::vector<UActor*> RadiusActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> RadiusActors;
+	Array<UActor*>::iterator iterator;
 };
 
 class TouchingActorsIterator : public Iterator
@@ -99,8 +99,8 @@ public:
 	UObject** outActor = nullptr;
 	size_t index = 0;
 
-	std::vector<UActor*> TouchingActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> TouchingActors;
+	Array<UActor*>::iterator iterator;
 };
 
 class TraceActorsIterator : public Iterator
@@ -125,8 +125,8 @@ public:
 		vec3 HitNorm;
 	};
 
-	std::vector<TraceInfo> tracedActors;
-	std::vector<TraceInfo>::iterator iterator;
+	Array<TraceInfo> tracedActors;
+	Array<TraceInfo>::iterator iterator;
 };
 
 class VisibleActorsIterator : public Iterator
@@ -141,8 +141,8 @@ public:
 	vec3 Location = vec3(0.0f);
 	size_t index = 0;
 
-	std::vector<UActor*> VisibleActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> VisibleActors;
+	Array<UActor*>::iterator iterator;
 };
 
 class VisibleCollidingActorsIterator : public Iterator
@@ -157,7 +157,7 @@ public:
 	vec3 Location = vec3(0.0f);
 	bool IgnoreHidden = false;
 	size_t index = 0;
-	std::vector<UActor*> HitActors;
+	Array<UActor*> HitActors;
 };
 
 // Iterator for iterating through all actors in a given Zone
@@ -172,6 +172,6 @@ public:
 	UObject** Actor = nullptr;
 	size_t index = 0;
 
-	std::vector<UActor*> ZoneActors;
-	std::vector<UActor*>::iterator iterator;
+	Array<UActor*> ZoneActors;
+	Array<UActor*>::iterator iterator;
 };

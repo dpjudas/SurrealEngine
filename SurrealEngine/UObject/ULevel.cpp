@@ -103,7 +103,7 @@ void ULevel::Tick(float elapsed)
 		}
 	}
 
-	std::vector<UActor*> newActorList;
+	Array<UActor*> newActorList;
 	newActorList.reserve(Actors.size());
 	for (UActor* actor : Actors)
 	{
@@ -189,6 +189,8 @@ void UModel::Load(ObjectStream* stream)
 		Points = points->Vectors;
 		Nodes = nodes->Nodes;
 		Zones = nodes->Zones;
+		if (Zones.size() < 64)
+			Zones.resize(64);
 		Surfaces = surfaces->Surfaces;
 		Vertices = verts->Vertices;
 		NumSharedSides = verts->NumSharedSides;
@@ -278,6 +280,8 @@ void UModel::Load(ObjectStream* stream)
 			zone.Visibility = stream->ReadUInt64();
 			Zones.push_back(zone);
 		}
+		if (NumZones < 64)
+			Zones.resize(64);
 	}
 
 	Polys = stream->ReadObject<UPolys>();

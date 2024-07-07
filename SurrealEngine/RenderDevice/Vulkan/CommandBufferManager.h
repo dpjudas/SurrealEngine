@@ -18,10 +18,10 @@ public:
 
 	struct DeleteList
 	{
-		std::vector<std::unique_ptr<VulkanImage>> images;
-		std::vector<std::unique_ptr<VulkanImageView>> imageViews;
-		std::vector<std::unique_ptr<VulkanBuffer>> buffers;
-		std::vector<std::unique_ptr<VulkanDescriptorSet>> descriptors;
+		Array<std::unique_ptr<VulkanImage>> images;
+		Array<std::unique_ptr<VulkanImageView>> imageViews;
+		Array<std::unique_ptr<VulkanBuffer>> buffers;
+		Array<std::unique_ptr<VulkanDescriptorSet>> descriptors;
 	};
 	std::unique_ptr<DeleteList> FrameDeleteList;
 

@@ -13,7 +13,7 @@ struct GameLaunchInfo;
 class PlayGamePage : public Widget
 {
 public:
-	PlayGamePage(LauncherWindow* launcher, const std::vector<GameLaunchInfo>& games);
+	PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>& games);
 
 #if defined(EXTRAARGS)
 	void SetExtraArgs(const std::string& args);

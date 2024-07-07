@@ -12,8 +12,8 @@ typedef std::function<void(UObject* self, ExpressionValue* Args)> NativeFuncHand
 class NativeFunctions
 {
 public:
-	static std::vector<UFunction*> FuncByIndex;
-	static std::vector<NativeFuncHandler> NativeByIndex;
+	static Array<UFunction*> FuncByIndex;
+	static Array<NativeFuncHandler> NativeByIndex;
 	static std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeByName;
 
 	static void RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler);

@@ -107,7 +107,7 @@ private:
 		SpellStringToIndex[value] = { CompareIndex, SpelledIndex };
 	}
 
-	static std::vector<std::string> Names;
+	static Array<std::string> Names;
 	static std::unordered_map<std::string, int> CompareStringToIndex;
 	static std::unordered_map<std::string, std::pair<int, int>> SpellStringToIndex;
 };

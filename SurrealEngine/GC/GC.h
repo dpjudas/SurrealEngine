@@ -11,7 +11,7 @@ struct GCTypeMember
 struct GCType
 {
 	size_t size;
-	std::vector<GCTypeMember> members;
+	Array<GCTypeMember> members;
 };
 
 struct GCAllocation

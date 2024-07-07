@@ -33,7 +33,7 @@ void NDeusExPlayer::CreateDataVaultImageNoteObject(UObject* Self, UObject*& Retu
 
 void NDeusExPlayer::CreateDumpLocationObject(UObject* Self, UObject*& ReturnValue)
 {
-	engine->LogUnimplemented("DeusExPlayer.CreateDumpLocationObject");
+	LogUnimplemented("DeusExPlayer.CreateDumpLocationObject");
 	ReturnValue = nullptr;
 }
 
