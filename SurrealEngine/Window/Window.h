@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 #include <zwidget/core/rect.h>
+#include <zwidget/core/widget.h>
 
 class Engine;
 class RenderDevice;
@@ -83,8 +84,6 @@ enum EInputType
 	IST_Axis
 };
 
-class GameWindow;
-
 class GameWindowHost
 {
 public:
@@ -105,12 +104,12 @@ public:
 	virtual void OnWindowDpiScaleChanged() = 0;
 };
 
-class GameWindow
+class GameWindow : public Widget
 {
 public:
-	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost, std::string& windowingSystemName);
+	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost);
 
-	static std::string windowingSystemName;
+	GameWindow(GameWindowHost* windowHost);
 
 	static void ProcessEvents();
 	static void RunLoop();
@@ -118,35 +117,40 @@ public:
 
 	virtual ~GameWindow() = default;
 
-	virtual void SetWindowTitle(const std::string& text) = 0;
-	virtual void SetWindowFrame(const Rect& box) = 0;
-	virtual void SetClientFrame(const Rect& box) = 0;
-	virtual void Show() = 0;
-	virtual void ShowFullscreen() = 0;
-	virtual void ShowMaximized() = 0;
-	virtual void ShowMinimized() = 0;
-	virtual void ShowNormal() = 0;
-	virtual void Hide() = 0;
-	virtual void Activate() = 0;
-	virtual void ShowCursor(bool enable) = 0;
-	virtual void LockCursor() = 0;
-	virtual void UnlockCursor() = 0;
-	virtual void Update() = 0;
-	virtual bool GetKeyState(EInputKey key) = 0;
+	bool GetKeyState(EInputKey key);
 
-	virtual RenderDevice* GetRenderDevice() = 0;
+	RenderDevice* GetRenderDevice();
 
-	virtual Rect GetWindowFrame() const = 0;
-	virtual Size GetClientSize() const = 0;
-	virtual int GetPixelWidth() const = 0;
-	virtual int GetPixelHeight() const = 0;
-	virtual double GetDpiScale() const = 0;
-	virtual Array<Size> QueryAvailableResolutions() const = 0;
+	int GetPixelWidth();
+	int GetPixelHeight();
+
 	std::string GetAvailableResolutions() const;
+	void SetResolution(const std::string& resolutionString);
+
+protected:
+	void OnPaint(Canvas* canvas) override;
+	bool OnMouseDown(const Point& pos, InputKey key) override;
+	bool OnMouseDoubleclick(const Point& pos, InputKey key) override;
+	bool OnMouseUp(const Point& pos, InputKey key) override;
+	bool OnMouseWheel(const Point& pos, InputKey key) override;
+	void OnMouseMove(const Point& pos) override;
+	void OnRawMouseMove(int dx, int dy) override;
+	void OnKeyChar(std::string chars) override;
+	void OnKeyDown(InputKey key) override;
+	void OnKeyUp(InputKey key) override;
+	void OnGeometryChanged() override;
+	void OnClose() override;
+	void OnSetFocus() override;
+	void OnLostFocus() override;
+
+private:
+	Array<Size> QueryAvailableResolutions() const;
 	void AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const;
-	Size ParseResolutionString(std::string& resolutionString) const;
+	Size ParseResolutionString(const std::string& resolutionString) const;
 	Size GetClosestResolution(Size resolution) const;
-	void SetResolution(std::string& resolutionString);
 
 	bool isWindowFullscreen = false;
+
+	GameWindowHost* windowHost = nullptr;
+	std::unique_ptr<RenderDevice> device;
 };

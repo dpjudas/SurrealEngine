@@ -329,14 +329,10 @@ set(SURREALCOMMON_SOURCES
 )
 
 set(SURREALCOMMON_WIN32_SOURCES
-	SurrealEngine/Window/Win32/Win32Window.cpp
-	SurrealEngine/Window/Win32/Win32Window.h
 	SurrealEngine/SurrealEngine.natvis
 )
 
 set(SURREALCOMMON_SDL2_SOURCES
-	SurrealEngine/Window/SDL2/SDL2Window.cpp
-	SurrealEngine/Window/SDL2/SDL2Window.h
 )
 
 set(THIRDPARTY_SOURCES
@@ -521,8 +517,6 @@ source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_D
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")
-source_group("SurrealEngine\\Window\\Win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/Win32/.+")
-source_group("SurrealEngine\\Window\\SDL2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/SDL2/.+")
 source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
 source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
 source_group("Thirdparty\\dumb" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/.+")

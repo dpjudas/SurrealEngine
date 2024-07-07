@@ -826,6 +826,18 @@ void* Widget::GetNativeHandle()
 	return w ? w->DispWindow->GetNativeHandle() : nullptr;
 }
 
+int Widget::GetNativePixelWidth()
+{
+	Widget* w = Window();
+	return w ? w->DispWindow->GetPixelWidth() : 0;
+}
+
+int Widget::GetNativePixelHeight()
+{
+	Widget* w = Window();
+	return w ? w->DispWindow->GetPixelHeight() : 0;
+}
+
 void Widget::SetStyleClass(const std::string& themeClass)
 {
 	if (StyleClass != themeClass)

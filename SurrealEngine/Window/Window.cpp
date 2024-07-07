@@ -1,102 +1,200 @@
 
 #include "Precomp.h"
 #include "Window.h"
+#include "RenderDevice/RenderDevice.h"
+#include <zvulkan/vulkansurface.h>
+#include <zvulkan/vulkancompatibledevice.h>
+#include <zvulkan/vulkanbuilders.h>
 
+#if defined(USE_SDL2)
 #ifdef WIN32
-#include "Win32/Win32Window.h"
+// On Windows, headers from the development version of SDL2 aren't contained within a SDL2 folder
+#include <SDL.h>
+#include <SDL_vulkan.h>
+#else
+// On Linux, SDL headers are within a SDL2 folder instead (if the devel packages are installed, that is)
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_vulkan.h>
+#endif
 #endif
 
-#ifdef USE_SDL2
-#include "SDL2/SDL2Window.h"
-#endif
-
-#include <cstdio>
-#include <cmath>
-
-std::string GameWindow::windowingSystemName;
-
-std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost, std::string& windowingSystemName)
+GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType::Window), windowHost(windowHost)
 {
-	if (windowingSystemName.empty())
-		Exception::Throw("Windowing system field is empty.");
-
-#if !defined(WIN32)
-	if (windowingSystemName == "Win32")
-		Exception::Throw("Win32 windowing system can only work on the Windows version of SurrealEngine");
-#endif
-
-#if !defined(USE_SDL2)
-	if (windowingSystemName == "SDL2")
-		Exception::Throw("SurrealEngine is built without SDL2 support. Windowing system cannot be SDL2");
-#endif
-
-	GameWindow::windowingSystemName = windowingSystemName;
+	std::shared_ptr<VulkanSurface> surface;
 
 #if defined(WIN32)
-	if (windowingSystemName == "Win32")
-		return std::make_unique<Win32Window>(windowHost);
+	if (DisplayBackend::Get()->IsWin32())
+	{
+		auto instance = VulkanInstanceBuilder()
+			.RequireSurfaceExtensions()
+			.DebugLayer(false)
+			.Create();
+
+		surface = std::make_shared<VulkanSurface>(instance, (HWND)GetNativeHandle());
+	}
 #endif
 
 #if defined(USE_SDL2)
-	if (windowingSystemName == "SDL2")
-		return std::make_unique<SDL2Window>(windowHost);
+	if (DisplayBackend::Get()->IsSDL2())
+	{
+		auto sdlwindow = (SDL_Window*)GetNativeHandle();
+
+		// Generate a required extensions list
+		unsigned int extCount = 0;
+		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, nullptr);
+		std::vector<const char*> extNames(extCount);
+		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, extNames.data());
+
+		auto instanceBuilder = VulkanInstanceBuilder();
+		for (int i = 0; i < extCount; i++)
+		{
+			instanceBuilder.RequireExtension(std::string(extNames[i]));
+		}
+		instanceBuilder.OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
+		instanceBuilder.DebugLayer(false);
+		auto instance = instanceBuilder.Create();
+
+		VkSurfaceKHR surfaceHandle = {};
+		SDL_Vulkan_CreateSurface(sdlwindow, instance->Instance, &surfaceHandle);
+
+		surface = std::make_shared<VulkanSurface>(instance, surfaceHandle);
+	}
 #endif
 
-	Exception::Throw("Invalid Windowing system name: " + windowingSystemName);
+	if (DisplayBackend::Get()->IsX11())
+	{
+		// To do: handle X11 backend
+	}
+
+	if (DisplayBackend::Get()->IsWayland())
+	{
+		// To do: handle Wayland backend
+	}
+
+	if (!surface)
+		throw std::runtime_error("No vulkan surface found");
+	device = RenderDevice::Create(this, surface);
+
+	SetFocus();
+}
+
+RenderDevice* GameWindow::GetRenderDevice()
+{
+	return device.get();
+}
+
+int GameWindow::GetPixelWidth()
+{
+	return GetNativePixelWidth();
+}
+
+int GameWindow::GetPixelHeight()
+{
+	return GetNativePixelHeight();
+}
+
+bool GameWindow::GetKeyState(EInputKey key)
+{
+	return Widget::GetKeyState((InputKey)key);
+}
+
+Array<Size> GameWindow::QueryAvailableResolutions() const
+{
+	return { DisplayBackend::Get()->GetScreenSize() };
+}
+
+void GameWindow::OnPaint(Canvas* canvas)
+{
+	windowHost->OnWindowPaint();
+}
+
+bool GameWindow::OnMouseDown(const Point& pos, InputKey key)
+{
+	windowHost->OnWindowMouseDown(pos, (EInputKey)key);
+	return true;
+}
+
+bool GameWindow::OnMouseDoubleclick(const Point& pos, InputKey key)
+{
+	windowHost->OnWindowMouseDoubleclick(pos, (EInputKey)key);
+	return true;
+}
+
+bool GameWindow::OnMouseUp(const Point& pos, InputKey key)
+{
+	windowHost->OnWindowMouseUp(pos, (EInputKey)key);
+	return true;
+}
+
+bool GameWindow::OnMouseWheel(const Point& pos, InputKey key)
+{
+	windowHost->OnWindowMouseWheel(pos, (EInputKey)key);
+	return true;
+}
+
+void GameWindow::OnMouseMove(const Point& pos)
+{
+	windowHost->OnWindowMouseMove(pos);
+}
+
+void GameWindow::OnRawMouseMove(int dx, int dy)
+{
+	windowHost->OnWindowRawMouseMove(dx, dy);
+}
+
+void GameWindow::OnKeyChar(std::string chars)
+{
+	windowHost->OnWindowKeyChar(chars);
+}
+
+void GameWindow::OnKeyDown(InputKey key)
+{
+	windowHost->OnWindowKeyDown((EInputKey)key);
+}
+
+void GameWindow::OnKeyUp(InputKey key)
+{
+	windowHost->OnWindowKeyUp((EInputKey)key);
+}
+
+void GameWindow::OnGeometryChanged()
+{
+	windowHost->OnWindowGeometryChanged();
+}
+
+void GameWindow::OnClose()
+{
+	windowHost->OnWindowClose();
+}
+
+void GameWindow::OnSetFocus()
+{
+	windowHost->OnWindowActivated();
+}
+
+void GameWindow::OnLostFocus()
+{
+	windowHost->OnWindowDeactivated();
+}
+
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
+{
+	return std::make_unique<GameWindow>(windowHost);
 }
 
 void GameWindow::ProcessEvents()
 {
-#if defined(WIN32)
-	if (windowingSystemName == "Win32")
-	{
-		Win32Window::ProcessEvents();
-		return;
-	}
-#endif
-#if defined(USE_SDL2)
-	if (windowingSystemName == "SDL2")
-	{
-		SDL2Window::ProcessEvents();
-		return;
-	}
-#endif
+	DisplayBackend::Get()->ProcessEvents();
 }
 
 void GameWindow::RunLoop()
 {
-#if defined(WIN32)
-	if (windowingSystemName == "Win32")
-	{
-		Win32Window::RunLoop();
-		return;
-	}
-#endif
-#if defined(USE_SDL2)
-	if (windowingSystemName == "SDL2")
-	{
-		SDL2Window::RunLoop();
-		return;
-	}
-#endif
+	DisplayBackend::Get()->RunLoop();
 }
 
 void GameWindow::ExitLoop()
 {
-#if defined(WIN32)
-	if (windowingSystemName == "Win32")
-	{
-		Win32Window::ExitLoop();
-		return;
-	}
-#endif
-#if defined(USE_SDL2)
-	if (windowingSystemName == "SDL2")
-	{
-		SDL2Window::ExitLoop();
-		return;
-	}
-#endif
+	DisplayBackend::Get()->ExitLoop();
 }
 
 std::string GameWindow::GetAvailableResolutions() const
@@ -133,7 +231,7 @@ void GameWindow::AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) 
 	resList.push_back(resolution);
 }
 
-Size GameWindow::ParseResolutionString(std::string& resolutionString) const
+Size GameWindow::ParseResolutionString(const std::string& resolutionString) const
 {
 	if (resolutionString.empty())
 		return Size(0, 0);
@@ -196,13 +294,13 @@ Size GameWindow::GetClosestResolution(Size resolution) const
 	return resolutions[index];
 }
 
-void GameWindow::SetResolution(std::string& resolutionString)
+void GameWindow::SetResolution(const std::string& resolutionString)
 {
 	Size parsedResolution = ParseResolutionString(resolutionString);
 	if (parsedResolution == Size(0, 0))
 		return;
 
-	Rect windowRect = GetWindowFrame();
+	Rect windowRect = GetFrameGeometry();
 
 	if (isWindowFullscreen)
 	{
@@ -211,15 +309,9 @@ void GameWindow::SetResolution(std::string& resolutionString)
 		windowRect.y = 0;
 	}
 		
-	
-#ifdef WIN32
 	auto dpi = GetDpiScale();
 	windowRect.width = parsedResolution.width / dpi;
 	windowRect.height = parsedResolution.height / dpi;
-#else
-	windowRect.width = parsedResolution.width;
-	windowRect.height = parsedResolution.height;
-#endif
 
-	SetWindowFrame(windowRect);
+	SetFrameGeometry(windowRect);
 }

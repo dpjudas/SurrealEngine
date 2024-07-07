@@ -950,7 +950,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = GameWindow::Create(this, windowingSystemName);
+		window = GameWindow::Create(this);
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;
@@ -959,7 +959,7 @@ void Engine::OpenWindow()
 	std::string versionString = !LaunchInfo.gameVersionString.empty() ? " (v" + LaunchInfo.gameVersionString + ")" : "";
 
 	window->SetWindowTitle("Surreal Engine: " + LaunchInfo.gameName + versionString);
-	window->SetClientFrame(Rect::xywh(0.0, 0.0, width, height));
+	window->SetFrameGeometry(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
 		window->ShowFullscreen();

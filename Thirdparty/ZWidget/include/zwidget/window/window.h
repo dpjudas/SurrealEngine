@@ -192,6 +192,11 @@ public:
 
 	virtual ~DisplayBackend() = default;
 
+	virtual bool IsWin32() { return false; }
+	virtual bool IsSDL2() { return false; }
+	virtual bool IsX11() { return false; }
+	virtual bool IsWayland() { return false; }
+
 	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner) = 0;
 	virtual void ProcessEvents() = 0;
 	virtual void RunLoop() = 0;

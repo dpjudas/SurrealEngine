@@ -75,40 +75,39 @@ std::unique_ptr<OpenFolderDialog> DisplayBackend::CreateOpenFolderDialog(Display
 	return std::make_unique<StubOpenFolderDialog>(owner);
 }
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4996) // warning C4996 : 'getenv' : This function or variable may be unsafe.Consider using _dupenv_s instead.To disable deprecation, use _CRT_SECURE_NO_WARNINGS.See online help for details.
+#endif
+
 std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateBackend()
 {
-	auto backend = TryCreateWin32();
-	if (!backend)
-	{
-		// Check if there is an environment variable specified for the desired backend
-		const char* backendSelectionEnv = std::getenv("ZWIDGET_DISPLAY_BACKEND");
-		if (backendSelectionEnv)
-		{
-			std::string backendSelectionStr(backendSelectionEnv);
+	std::unique_ptr<DisplayBackend> backend;
 
-			if (backendSelectionStr == "X11")
-			{
-				backend = TryCreateX11();
-				if (!backend) TryCreateWayland();
-				if (!backend) TryCreateSDL2();
-			}
-			else if (backendSelectionStr == "SDL2")
-			{
-				backend = TryCreateSDL2();
-				if (!backend) TryCreateWayland();
-				if (!backend) TryCreateX11();
-			}
-			// Wayland is already first priority by default
-			// so no need to handle that case here
-			else if (backendSelectionStr != "Wayland")
-				std::runtime_error("ZWidget: Unrecognized backend: " + backendSelectionStr);
+	// Check if there is an environment variable specified for the desired backend
+	const char* backendSelectionEnv = std::getenv("ZWIDGET_DISPLAY_BACKEND");
+	if (backendSelectionEnv)
+	{
+		std::string backendSelectionStr(backendSelectionEnv);
+		if (backendSelectionStr == "Win32")
+		{
+			backend = TryCreateWin32();
+		}
+		else if (backendSelectionStr == "X11")
+		{
+			backend = TryCreateX11();
+		}
+		else if (backendSelectionStr == "SDL2")
+		{
+			backend = TryCreateSDL2();
 		}
 	}
+
 	if (!backend)
 	{
-		backend = TryCreateWayland();
-		if (!backend) TryCreateX11();
-		if (!backend) TryCreateSDL2();
+		backend = TryCreateWin32();
+		if (!backend) backend = TryCreateWayland();
+		if (!backend) backend = TryCreateX11();
+		if (!backend) backend = TryCreateSDL2();
 	}
 
 	return backend;

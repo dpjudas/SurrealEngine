@@ -150,6 +150,8 @@ public:
 	static Size GetScreenSize();
 
 	void* GetNativeHandle();
+	int GetNativePixelWidth();
+	int GetNativePixelHeight();
 
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);
