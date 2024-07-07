@@ -23,9 +23,12 @@ public:
 class Canvas
 {
 public:
-	static std::unique_ptr<Canvas> create(DisplayWindow* window);
+	static std::unique_ptr<Canvas> create();
 
 	virtual ~Canvas() = default;
+
+	virtual void attach(DisplayWindow* window) { }
+	virtual void detach() { }
 
 	virtual void begin(const Colorf& color) = 0;
 	virtual void end() = 0;

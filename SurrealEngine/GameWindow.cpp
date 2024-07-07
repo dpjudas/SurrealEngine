@@ -74,6 +74,7 @@ GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType:
 	if (!surface)
 		throw std::runtime_error("No vulkan surface found");
 	device = RenderDevice::Create(this, surface);
+	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
 
 	SetFocus();
 }

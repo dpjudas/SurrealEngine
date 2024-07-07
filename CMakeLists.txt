@@ -31,6 +31,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Engine.h
 	SurrealEngine/GameFolder.cpp
 	SurrealEngine/GameFolder.h
+	SurrealEngine/GameWindow.cpp
+	SurrealEngine/GameWindow.h
 	SurrealEngine/UE1GameDatabase.h
 	SurrealEngine/UE1GameDatabase.cpp
 	SurrealEngine/Utils/CommandLine.cpp
@@ -324,8 +326,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/PlayGamePage.h
 	SurrealEngine/UI/Launcher/SettingsPage.cpp
 	SurrealEngine/UI/Launcher/SettingsPage.h
-	SurrealEngine/Window/Window.cpp
-	SurrealEngine/Window/Window.h
 )
 
 set(SURREALCOMMON_WIN32_SOURCES
@@ -516,7 +516,6 @@ source_group("SurrealEngine\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_
 source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Utils/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
-source_group("SurrealEngine\\Window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Window/.+")
 source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
 source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
 source_group("Thirdparty\\dumb" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/.+")

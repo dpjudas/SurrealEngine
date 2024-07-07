@@ -176,8 +176,8 @@ public:
 class BitmapCanvas : public Canvas
 {
 public:
-	BitmapCanvas(DisplayWindow* window);
-	~BitmapCanvas();
+	void attach(DisplayWindow* window) override;
+	void detach() override;
 
 	void begin(const Colorf& color) override;
 	void end() override;
@@ -252,15 +252,16 @@ public:
 	std::string language;
 };
 
-BitmapCanvas::BitmapCanvas(DisplayWindow* window) : window(window)
+void BitmapCanvas::attach(DisplayWindow* newWindow)
 {
+	window = newWindow;
 	uiscale = window->GetDpiScale();
 	uint32_t white = 0xffffffff;
 	whiteTexture = createTexture(1, 1, &white);
 	font = std::make_unique<CanvasFontGroup>("NotoSans", 13.0 * uiscale);
 }
 
-BitmapCanvas::~BitmapCanvas()
+void BitmapCanvas::detach()
 {
 }
 
@@ -1071,7 +1072,7 @@ void BitmapCanvas::end3d()
 
 /////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<Canvas> Canvas::create(DisplayWindow* window)
+std::unique_ptr<Canvas> Canvas::create()
 {
-	return std::make_unique<BitmapCanvas>(window);
+	return std::make_unique<BitmapCanvas>();
 }

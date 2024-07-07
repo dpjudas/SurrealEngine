@@ -6,6 +6,9 @@
 
 #include "UObject/UTexture.h"
 
+#include <zwidget/core/canvas.h>
+#include <zwidget/core/rect.h>
+
 class GameWindow;
 class UTexture;
 class UActor;
@@ -115,4 +118,41 @@ public:
 	GameWindow* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 	float Brightness = 0.5f;
+};
+
+class RenderDeviceCanvas : public Canvas
+{
+public:
+	RenderDeviceCanvas(RenderDevice* device);
+
+	void begin(const Colorf& color) override;
+	void end() override;
+
+	void begin3d() override;
+	void end3d() override;
+
+	Point getOrigin() override;
+	void setOrigin(const Point& origin) override;
+
+	void pushClip(const Rect& box) override;
+	void popClip() override;
+
+	void fillRect(const Rect& box, const Colorf& color) override;
+	void line(const Point& p0, const Point& p1, const Colorf& color) override;
+
+	void drawText(const Point& pos, const Colorf& color, const std::string& text) override;
+	Rect measureText(const std::string& text) override;
+	VerticalTextPosition verticalTextAlign() override;
+
+	void drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color) override;
+	void drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color) override;
+	Rect measureText(const std::shared_ptr<Font>& font, const std::string& text) override;
+	FontMetrics getFontMetrics(const std::shared_ptr<Font>& font) override;
+	int getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint) override;
+
+	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override;
+
+private:
+	RenderDevice* device = nullptr;
+	Point origin;
 };

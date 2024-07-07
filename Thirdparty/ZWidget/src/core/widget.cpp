@@ -13,7 +13,8 @@ Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 	{
 		Widget* owner = parent ? parent->Window() : nullptr;
 		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup, owner ? owner->DispWindow.get() : nullptr);
-		DispCanvas = Canvas::create(DispWindow.get());
+		DispCanvas = Canvas::create();
+		DispCanvas->attach(DispWindow.get());
 		SetStyleState("root");
 
 		SetWindowBackground(GetStyleColor("window-background"));
@@ -30,6 +31,9 @@ Widget::Widget(Widget* parent, WidgetType type) : Type(type)
 
 Widget::~Widget()
 {
+	if (DispCanvas)
+		DispCanvas->detach();
+
 	while (LastChildObj)
 		delete LastChildObj;
 
@@ -37,6 +41,16 @@ Widget::~Widget()
 		delete FirstTimerObj;
 
 	DetachFromParent();
+}
+
+void Widget::SetCanvas(std::unique_ptr<Canvas> canvas)
+{
+	if (DispWindow)
+	{
+		DispCanvas->detach();
+		DispCanvas = std::move(canvas);
+		DispCanvas->attach(DispWindow.get());
+	}
 }
 
 void Widget::SetParent(Widget* newParent)
