@@ -16,6 +16,7 @@
 #include <wayland-client.hpp>
 #include <wayland-client-protocol-extra.hpp>
 #include <wayland-client-protocol-unstable.hpp>
+#include "wl_fractional_scaling_protocol.hpp"
 #include <wayland-cursor.hpp>
 #include <linux/input.h>
 
@@ -196,6 +197,9 @@ private:
 
     wayland::zxdg_decoration_manager_v1_t m_XDGDecorationManager;
     wayland::zxdg_toplevel_decoration_v1_t m_XDGToplevelDecoration;
+
+    wayland::fractional_scale_manager_v1_t m_FractionalScaleManager;
+    wayland::fractional_scale_v1_t m_FractionalScale;
 
     wayland::surface_t m_AppSurface;
     wayland::buffer_t m_AppSurfaceBuffer;
