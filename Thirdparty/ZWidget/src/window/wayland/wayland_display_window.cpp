@@ -40,6 +40,8 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
             s_waylandRegistry.bind(name, m_XDGActivation, 1);
         if (interface == wayland::zxdg_decoration_manager_v1_t::interface_name)
             s_waylandRegistry.bind(name, m_XDGDecorationManager, 1);
+        if (interface == wayland::fractional_scale_manager_v1_t::interface_name)
+            s_waylandRegistry.bind(name, m_FractionalScaleManager, 1);
     };
 
     s_waylandDisplay.roundtrip();
@@ -61,6 +63,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool p
     m_waylandOutput.on_mode() = [&] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
         s_ScreenSize = Size(width, height);
     };
+
 /*
     m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
 
@@ -175,11 +178,26 @@ void WaylandDisplayWindow::InitializeToplevel()
         windowHost->OnWindowGeometryChanged();
     };
 
-    m_waylandOutput.on_scale() = [&] (int32_t scale) {
-        m_ScaleFactor = scale;
-        m_NeedsUpdate = true;
-        windowHost->OnWindowDpiScaleChanged();
-    };
+    if (m_FractionalScaleManager)
+    {
+        m_FractionalScale = m_FractionalScaleManager.get_fractional_scale(m_AppSurface);
+
+        m_FractionalScale.on_preferred_scale() = [&](uint32_t scale_numerator) {
+            // parameter is the numerator of a fraction with the denominator of 120
+            m_ScaleFactor = scale_numerator / 120.0;
+
+            m_NeedsUpdate = true;
+            windowHost->OnWindowDpiScaleChanged();
+        };
+    }
+    else
+    {
+        m_waylandOutput.on_scale() = [&] (int32_t scale) {
+            m_ScaleFactor = scale;
+            m_NeedsUpdate = true;
+            windowHost->OnWindowDpiScaleChanged();
+        };
+    }
 
     m_AppSurface.commit();
 
