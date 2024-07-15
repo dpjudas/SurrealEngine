@@ -7,9 +7,9 @@
 #include "window/dbus/dbus_open_folder_dialog.h"
 #endif
 
-std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
+std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
 {
-	return std::make_unique<WaylandDisplayWindow>(windowHost, popupWindow, static_cast<WaylandDisplayWindow*>(owner));
+	return std::make_unique<WaylandDisplayWindow>(windowHost, popupWindow, static_cast<WaylandDisplayWindow*>(owner), renderAPI);
 }
 
 void WaylandDisplayBackend::ProcessEvents()

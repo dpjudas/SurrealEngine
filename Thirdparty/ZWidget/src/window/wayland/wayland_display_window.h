@@ -93,7 +93,7 @@ private:
 class WaylandDisplayWindow : public DisplayWindow
 {
 public:
-    WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner);
+    WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner, RenderAPI renderAPI);
     ~WaylandDisplayWindow();
 
     void SetWindowTitle(const std::string& text) override;

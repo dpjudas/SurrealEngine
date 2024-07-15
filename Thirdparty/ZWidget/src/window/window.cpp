@@ -6,9 +6,9 @@
 #include "core/widget.h"
 #include <stdexcept>
 
-std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner)
+std::unique_ptr<DisplayWindow> DisplayWindow::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
 {
-	return DisplayBackend::Get()->Create(windowHost, popupWindow, owner);
+	return DisplayBackend::Get()->Create(windowHost, popupWindow, owner, renderAPI);
 }
 
 void DisplayWindow::ProcessEvents()

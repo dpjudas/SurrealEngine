@@ -18,7 +18,7 @@
 #endif
 #endif
 
-GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType::Window), windowHost(windowHost)
+GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType::Window, RenderAPI::Vulkan), windowHost(windowHost)
 {
 	std::shared_ptr<VulkanSurface> surface;
 

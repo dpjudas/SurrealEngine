@@ -97,6 +97,17 @@ enum class InputKey : uint32_t
 	NoName, PA1, OEMClear
 };
 
+enum class RenderAPI
+{
+	Unspecified,
+	Bitmap,
+	Vulkan,
+	OpenGL,
+	D3D11,
+	D3D12,
+	Metal
+};
+
 class DisplayWindow;
 
 class DisplayWindowHost
@@ -123,7 +134,7 @@ public:
 class DisplayWindow
 {
 public:
-	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner);
+	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI);
 
 	static void ProcessEvents();
 	static void RunLoop();
@@ -197,7 +208,7 @@ public:
 	virtual bool IsX11() { return false; }
 	virtual bool IsWayland() { return false; }
 
-	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner) = 0;
+	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI) = 0;
 	virtual void ProcessEvents() = 0;
 	virtual void RunLoop() = 0;
 	virtual void ExitLoop() = 0;

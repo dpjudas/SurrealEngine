@@ -9,7 +9,7 @@ wayland::registry_t WaylandDisplayWindow::s_waylandRegistry;
 std::vector<WaylandDisplayWindow*> WaylandDisplayWindow::s_Windows;
 std::vector<WaylandDisplayWindow*>::iterator WaylandDisplayWindow::s_WindowsIterator;
 
-WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner)
+WaylandDisplayWindow::WaylandDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner, RenderAPI renderAPI)
     : m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow)
 {
     if (!s_waylandDisplay)

@@ -24,11 +24,15 @@ static void CheckInitSDL()
 	static InitSDL initsdl;
 }
 
-SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner) : WindowHost(windowHost)
+SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner, RenderAPI renderAPI) : WindowHost(windowHost)
 {
 	CheckInitSDL();
 
 	unsigned int flags = SDL_WINDOW_HIDDEN /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
+	if (renderAPI == RenderAPI::Vulkan)
+		flags |= SDL_WINDOW_VULKAN;
+	else if (renderAPI == RenderAPI::Metal)
+		flags |= SDL_WINDOW_METAL;
 	if (popupWindow)
 		flags |= SDL_WINDOW_BORDERLESS;
 	int result = SDL_CreateWindowAndRenderer(320, 200, flags, &WindowHandle, &RendererHandle);

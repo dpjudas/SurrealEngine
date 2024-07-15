@@ -5,7 +5,7 @@
 class WaylandDisplayBackend : public DisplayBackend
 {
 public:
-	std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner) override;
+	std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI) override;
 	void ProcessEvents() override;
 	void RunLoop() override;
 	void ExitLoop() override;

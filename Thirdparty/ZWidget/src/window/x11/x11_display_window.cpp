@@ -73,7 +73,7 @@ static Atom GetAtom(const std::string& name)
 	return atom;
 }
 
-X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, X11DisplayWindow* owner) : windowHost(windowHost), owner(owner)
+X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, X11DisplayWindow* owner, RenderAPI renderAPI) : windowHost(windowHost), owner(owner)
 {
 	display = GetX11Connection()->display;
 

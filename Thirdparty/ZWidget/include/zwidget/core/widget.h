@@ -22,7 +22,7 @@ enum class WidgetType
 class Widget : DisplayWindowHost
 {
 public:
-	Widget(Widget* parent = nullptr, WidgetType type = WidgetType::Child);
+	Widget(Widget* parent = nullptr, WidgetType type = WidgetType::Child, RenderAPI api = RenderAPI::Unspecified);
 	virtual ~Widget();
 
 	void SetParent(Widget* parent);

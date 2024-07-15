@@ -12,7 +12,7 @@
 class X11DisplayWindow : public DisplayWindow
 {
 public:
-	X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, X11DisplayWindow* owner);
+	X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, X11DisplayWindow* owner, RenderAPI renderAPI);
 	~X11DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;

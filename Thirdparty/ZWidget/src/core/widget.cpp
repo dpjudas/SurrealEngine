@@ -7,12 +7,12 @@
 #include <cmath>
 #include <algorithm>
 
-Widget::Widget(Widget* parent, WidgetType type) : Type(type)
+Widget::Widget(Widget* parent, WidgetType type, RenderAPI renderAPI) : Type(type)
 {
 	if (type != WidgetType::Child)
 	{
 		Widget* owner = parent ? parent->Window() : nullptr;
-		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup, owner ? owner->DispWindow.get() : nullptr);
+		DispWindow = DisplayWindow::Create(this, type == WidgetType::Popup, owner ? owner->DispWindow.get() : nullptr, renderAPI);
 		DispCanvas = Canvas::create();
 		DispCanvas->attach(DispWindow.get());
 		SetStyleState("root");
