@@ -44,7 +44,8 @@ GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType:
 		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, nullptr);
 		std::vector<const char*> extNames(extCount);
 		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, extNames.data());
-
+		if( extCount == 0)
+			Exception::Throw("SDL2 reported no vulkan support");
 		auto instanceBuilder = VulkanInstanceBuilder();
 		for (int i = 0; i < extCount; i++)
 		{
