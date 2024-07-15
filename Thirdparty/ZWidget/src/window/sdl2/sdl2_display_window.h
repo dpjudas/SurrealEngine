@@ -90,6 +90,8 @@ public:
 	int BackBufferWidth = 0;
 	int BackBufferHeight = 0;
 
+	bool CursorLocked = false;
+
 	static bool ExitRunLoop;
 	static Uint32 PaintEventNumber;
 	static std::unordered_map<int, SDL2DisplayWindow*> WindowList;
