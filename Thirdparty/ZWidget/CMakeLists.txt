@@ -86,6 +86,11 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/widgets/listview/listview.h
 	include/zwidget/widgets/tabwidget/tabwidget.h
 	include/zwidget/window/window.h
+	include/zwidget/window/x11nativehandle.h
+	include/zwidget/window/waylandnativehandle.h
+	include/zwidget/window/win32nativehandle.h
+	include/zwidget/window/sdl2nativehandle.h
+	include/zwidget/window/zvulkanwidget.h
 	include/zwidget/systemdialogs/open_folder_dialog.h
 	include/zwidget/systemdialogs/open_file_dialog.h
 	include/zwidget/systemdialogs/save_file_dialog.h

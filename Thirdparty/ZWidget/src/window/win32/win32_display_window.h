@@ -5,6 +5,7 @@
 #include <list>
 #include <unordered_map>
 #include <zwidget/window/window.h>
+#include <zwidget/window/win32nativehandle.h>
 
 class Win32DisplayWindow : public DisplayWindow
 {
@@ -53,7 +54,7 @@ public:
 
 	Point GetLParamPos(LPARAM lparam) const;
 
-	void* GetNativeHandle() override { return reinterpret_cast<void*>(WindowHandle); }
+	void* GetNativeHandle() override { return &WindowHandle; }
 
 	static void ProcessEvents();
 	static void RunLoop();
@@ -75,7 +76,7 @@ public:
 	DisplayWindowHost* WindowHost = nullptr;
 	bool PopupWindow = false;
 
-	HWND WindowHandle = 0;
+	Win32NativeHandle WindowHandle;
 	bool Fullscreen = false;
 
 	bool MouseLocked = false;

@@ -3,6 +3,7 @@
 #include "window/stub/stub_open_folder_dialog.h"
 #include "window/stub/stub_open_file_dialog.h"
 #include "window/stub/stub_save_file_dialog.h"
+#include "window/sdl2nativehandle.h"
 #include "core/widget.h"
 #include <stdexcept>
 
@@ -140,11 +141,42 @@ std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateSDL2()
 	return std::make_unique<SDL2DisplayBackend>();
 }
 
+std::vector<std::string> SDL2NativeHandle::VulkanGetInstanceExtensions()
+{
+	unsigned int extCount = 0;
+	SDL_Vulkan_GetInstanceExtensions(window, &extCount, nullptr);
+	std::vector<const char*> extNames(extCount);
+	SDL_Vulkan_GetInstanceExtensions(window, &extCount, extNames.data());
+
+	std::vector<std::string> result;
+	result.reserve(extNames.size());
+	for (const char* ext : extNames)
+		result.emplace_back(ext);
+	return result;
+}
+
+VkSurfaceKHR SDL2NativeHandle::VulkanCreateSurface(VkInstance instance)
+{
+	VkSurfaceKHR surfaceHandle = {};
+	SDL_Vulkan_CreateSurface(window, instance, &surfaceHandle);
+	return surfaceHandle;
+}
+
 #else
 
 std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateSDL2()
 {
 	return nullptr;
+}
+
+std::vector<std::string> SDL2NativeHandle::VulkanGetInstanceExtensions()
+{
+	return {};
+}
+
+VkSurfaceKHR SDL2NativeHandle::VulkanCreateSurface(VkInstance instance)
+{
+	return {};
 }
 
 #endif

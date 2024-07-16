@@ -3,6 +3,7 @@
 #include <list>
 #include <unordered_map>
 #include <zwidget/window/window.h>
+#include <zwidget/window/sdl2nativehandle.h>
 #include <SDL2/SDL.h>
 
 class SDL2DisplayWindow : public DisplayWindow
@@ -48,7 +49,7 @@ public:
 	Point MapFromGlobal(const Point& pos) const override;
 	Point MapToGlobal(const Point& pos) const override;
 
-	void* GetNativeHandle() override { return WindowHandle; }
+	void* GetNativeHandle() override { return &Handle; }
 
 	static void DispatchEvent(const SDL_Event& event);
 	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
@@ -84,7 +85,7 @@ public:
 	static void StopTimer(void* timerID);
 
 	DisplayWindowHost* WindowHost = nullptr;
-	SDL_Window* WindowHandle = nullptr;
+	SDL2NativeHandle Handle;
 	SDL_Renderer* RendererHandle = nullptr;
 	SDL_Texture* BackBufferTexture = nullptr;
 	int BackBufferWidth = 0;

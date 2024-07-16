@@ -5,91 +5,19 @@
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkancompatibledevice.h>
 #include <zvulkan/vulkanbuilders.h>
-
-#if defined(USE_SDL2)
-#ifdef WIN32
-// On Windows, headers from the development version of SDL2 aren't contained within a SDL2 folder
-#include <SDL.h>
-#include <SDL_vulkan.h>
-#else
-// On Linux, SDL headers are within a SDL2 folder instead (if the devel packages are installed, that is)
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-#endif
-#endif
+#include <zwidget/window/zvulkanwidget.h>
 
 GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType::Window, RenderAPI::Vulkan), windowHost(windowHost)
 {
-	std::shared_ptr<VulkanSurface> surface;
+	std::shared_ptr<VulkanInstance> instance = CreateZVulkanInstanceBuilder(this)
+		.OptionalSwapchainColorspace()
+		.DebugLayer(false)
+		.Create();
 
-#if defined(WIN32)
-	if (DisplayBackend::Get()->IsWin32())
-	{
-		auto instance = VulkanInstanceBuilder()
-			.RequireWin32Surface()
-			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
-			.Create();
-
-		surface = std::make_shared<VulkanSurface>(instance, (HWND)GetNativeHandle());
-	}
-#endif
-
-#if defined(USE_SDL2)
-	if (DisplayBackend::Get()->IsSDL2())
-	{
-		auto sdlwindow = (SDL_Window*)GetNativeHandle();
-
-		// Generate a required extensions list
-		unsigned int extCount = 0;
-		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, nullptr);
-		std::vector<const char*> extNames(extCount);
-		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, extNames.data());
-		if( extCount == 0)
-			Exception::Throw("SDL2 reported no vulkan support");
-
-		auto instance = VulkanInstanceBuilder()
-			.RequireExtensions(extNames)
-			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
-			.Create();
-
-		VkSurfaceKHR surfaceHandle = {};
-		SDL_Vulkan_CreateSurface(sdlwindow, instance->Instance, &surfaceHandle);
-		surface = std::make_shared<VulkanSurface>(instance, surfaceHandle);
-	}
-#endif
-
-	if (DisplayBackend::Get()->IsX11())
-	{
-		/*
-		auto instance = VulkanInstanceBuilder()
-			.RequireX11Surface()
-			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
-			.Create();
-		
-		auto handle = (X11NativeHandle*)GetNativeHandle();
-		surface = std::make_shared<VulkanSurface>(instance, handle->display, handle->window);
-		*/
-	}
-
-	if (DisplayBackend::Get()->IsWayland())
-	{
-		/*
-		auto instance = VulkanInstanceBuilder()
-			.RequireWaylandSurface()
-			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
-			.Create();
-		
-		auto handle = (WaylandNativeHandle*)GetNativeHandle();
-		surface = std::make_shared<VulkanSurface>(instance, handle->display, handle->surface);
-		*/
-	}
-
+	std::shared_ptr<VulkanSurface> surface = CreateZVulkanSurface(this, instance);
 	if (!surface)
 		throw std::runtime_error("No vulkan surface found");
+
 	device = RenderDevice::Create(this, surface);
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
 

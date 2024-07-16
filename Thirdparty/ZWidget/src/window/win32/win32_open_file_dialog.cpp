@@ -89,7 +89,7 @@ bool Win32OpenFileDialog::Show()
 	}
 
 	if (owner)
-		result = open_dialog->Show(owner->WindowHandle);
+		result = open_dialog->Show(owner->WindowHandle.hwnd);
 	else
 		result = open_dialog->Show(0);
 

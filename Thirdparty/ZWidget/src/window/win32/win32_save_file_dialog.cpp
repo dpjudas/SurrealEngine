@@ -86,7 +86,7 @@ bool Win32SaveFileDialog::Show()
 	}
 
 	if (owner)
-		result = save_dialog->Show(owner->WindowHandle);
+		result = save_dialog->Show(owner->WindowHandle.hwnd);
 	else
 		result = save_dialog->Show(0);
 
