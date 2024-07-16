@@ -135,6 +135,7 @@ std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateWin32()
 #ifdef USE_SDL2
 
 #include "sdl2/sdl2_display_backend.h"
+#include <SDL2/SDL_vulkan.h>
 
 std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateSDL2()
 {
