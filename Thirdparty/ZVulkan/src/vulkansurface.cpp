@@ -37,7 +37,7 @@ VulkanSurface::VulkanSurface(std::shared_ptr<VulkanInstance> instance, HWND wind
 VulkanSurface::VulkanSurface(std::shared_ptr<VulkanInstance> instance, Display* display, Window window) : Instance(std::move(instance)), X11Display(display), X11Window(window)
 {
 	VkXlibSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
-	createInfo.display = display;
+	createInfo.dpy = display;
 	createInfo.window = window;
 
 	VkResult result = vkCreateXlibSurfaceKHR(Instance->Instance, &createInfo, nullptr, &Surface);
@@ -53,7 +53,7 @@ VulkanSurface::VulkanSurface(std::shared_ptr<VulkanInstance> instance, wl_displa
 {
 	VkWaylandSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR };
 	createInfo.display = display;
-	createInfo.window = surface;
+	createInfo.surface = surface;
 
 	VkResult result = vkCreateWaylandSurfaceKHR(Instance->Instance, &createInfo, nullptr, &Surface);
 	if (result != VK_SUCCESS)
