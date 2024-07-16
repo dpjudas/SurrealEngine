@@ -104,6 +104,7 @@ set(ZVULKAN_SOURCES
 )
 
 set(ZVULKAN_INCLUDES
+	include/zvulkan/vulkan.h
 	include/zvulkan/vulkanbuilders.h
 	include/zvulkan/vulkancompatibledevice.h
 	include/zvulkan/vulkandevice.h
