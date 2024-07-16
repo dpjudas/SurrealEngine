@@ -13,8 +13,20 @@ public:
 
 	VulkanInstanceBuilder& ApiVersionsToTry(const std::vector<uint32_t>& versions);
 	VulkanInstanceBuilder& RequireExtension(const std::string& extensionName);
-	VulkanInstanceBuilder& RequireSurfaceExtensions(bool enable = true);
+	VulkanInstanceBuilder& RequireExtensions(const std::vector<std::string>& extensions);
+	VulkanInstanceBuilder& RequireExtensions(const std::vector<const char*>& extensions);
+	VulkanInstanceBuilder& RequireExtensions(const char** extensions, size_t count);
 	VulkanInstanceBuilder& OptionalExtension(const std::string& extensionName);
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+	VulkanInstanceBuilder& RequireWin32Surface();
+#endif
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+	VulkanInstanceBuilder& RequireX11Surface();
+#endif
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+	VulkanInstanceBuilder& RequireWaylandSurface();
+#endif
+	VulkanInstanceBuilder& OptionalSwapchainColorspace();
 	VulkanInstanceBuilder& DebugLayer(bool enable = true);
 
 	std::shared_ptr<VulkanInstance> Create();

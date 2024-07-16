@@ -26,7 +26,8 @@ GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType:
 	if (DisplayBackend::Get()->IsWin32())
 	{
 		auto instance = VulkanInstanceBuilder()
-			.RequireSurfaceExtensions()
+			.RequireWin32Surface()
+			.OptionalSwapchainColorspace()
 			.DebugLayer(false)
 			.Create();
 
@@ -46,30 +47,45 @@ GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType:
 		SDL_Vulkan_GetInstanceExtensions(sdlwindow, &extCount, extNames.data());
 		if( extCount == 0)
 			Exception::Throw("SDL2 reported no vulkan support");
-		auto instanceBuilder = VulkanInstanceBuilder();
-		for (int i = 0; i < extCount; i++)
-		{
-			instanceBuilder.RequireExtension(std::string(extNames[i]));
-		}
-		instanceBuilder.OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
-		instanceBuilder.DebugLayer(false);
-		auto instance = instanceBuilder.Create();
+
+		auto instance = VulkanInstanceBuilder()
+			.RequireExtensions(extNames)
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
 
 		VkSurfaceKHR surfaceHandle = {};
 		SDL_Vulkan_CreateSurface(sdlwindow, instance->Instance, &surfaceHandle);
-
 		surface = std::make_shared<VulkanSurface>(instance, surfaceHandle);
 	}
 #endif
 
 	if (DisplayBackend::Get()->IsX11())
 	{
-		// To do: handle X11 backend
+		/*
+		auto instance = VulkanInstanceBuilder()
+			.RequireX11Surface()
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
+		
+		auto handle = (X11NativeHandle*)GetNativeHandle();
+		surface = std::make_shared<VulkanSurface>(instance, handle->display, handle->window);
+		*/
 	}
 
 	if (DisplayBackend::Get()->IsWayland())
 	{
-		// To do: handle Wayland backend
+		/*
+		auto instance = VulkanInstanceBuilder()
+			.RequireWaylandSurface()
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
+		
+		auto handle = (WaylandNativeHandle*)GetNativeHandle();
+		surface = std::make_shared<VulkanSurface>(instance, handle->display, handle->surface);
+		*/
 	}
 
 	if (!surface)

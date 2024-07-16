@@ -1506,22 +1506,57 @@ VulkanInstanceBuilder& VulkanInstanceBuilder::RequireExtension(const std::string
 	return *this;
 }
 
-VulkanInstanceBuilder& VulkanInstanceBuilder::RequireSurfaceExtensions(bool enable)
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireExtensions(const std::vector<std::string>& extensions)
 {
-	if (enable)
-	{
-		RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+	for (const auto& ext : extensions)
+		RequireExtension(ext);
+	return *this;
+}
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-		RequireExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-		RequireExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-		RequireExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireExtensions(const std::vector<const char*>& extensions)
+{
+	for (const auto& ext : extensions)
+		RequireExtension(ext);
+	return *this;
+}
+
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireExtensions(const char** extensions, size_t count)
+{
+	for (size_t i = 0; i < count; i++)
+		RequireExtension(extensions[i]);
+	return *this;
+}
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireWin32Surface()
+{
+	RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+	RequireExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	return *this;
+}
 #endif
 
-		OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME); // For HDR support
-	}
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireX11Surface()
+{
+	RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+	RequireExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+	return *this;
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+VulkanInstanceBuilder& VulkanInstanceBuilder::RequireWaylandSurface()
+{
+	RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME);
+	RequireExtension(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+	return *this;
+}
+#endif
+
+VulkanInstanceBuilder& VulkanInstanceBuilder::OptionalSwapchainColorspace()
+{
+	OptionalExtension(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME); // For HDR support
 	return *this;
 }
 
