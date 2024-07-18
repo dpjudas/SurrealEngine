@@ -158,7 +158,7 @@ public:
 	virtual void UpdateActorZone();
 	PointRegion FindRegion(const vec3& offset = vec3(0.0f));
 
-	virtual void Tick(float elapsed, bool tickedFlag);
+	virtual void Tick(float elapsed);
 
 	void TickAnimation(float elapsed);
 
@@ -1388,7 +1388,7 @@ class UPawn : public UActor
 public:
 	using UActor::UActor;
 
-	void Tick(float elapsed, bool tickedFlag) override;
+	void Tick(float elapsed) override;
 	void TickRotating(float elapsed) override;
 
 	void InitActorZone() override;
@@ -1572,7 +1572,7 @@ class UPlayerPawn : public UPawn
 public:
 	using UPawn::UPawn;
 
-	void Tick(float elapsed, bool tickedFlag) override;
+	void Tick(float elapsed) override;
 	void TickRotating(float elapsed) override;
 
 	float& AppliedBob() { return Value<float>(PropOffsets_PlayerPawn.AppliedBob); }

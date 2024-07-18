@@ -26,9 +26,9 @@ UInternetLink::~UInternetLink()
 		Thread.join();
 }
 
-void UInternetLink::Tick(float elapsed, bool tickedFlag)
+void UInternetLink::Tick(float elapsed)
 {
-	UInternetInfo::Tick(elapsed, tickedFlag);
+	UInternetInfo::Tick(elapsed);
 
 	std::unique_lock<std::mutex> lock(Mutex);
 	IpAddr resolvedAddr = ResolvedAddr;
@@ -151,9 +151,9 @@ UTcpLink::~UTcpLink()
 		closesocket(handle);
 }
 
-void UTcpLink::Tick(float elapsed, bool tickedFlag)
+void UTcpLink::Tick(float elapsed)
 {
-	UInternetLink::Tick(elapsed, tickedFlag);
+	UInternetLink::Tick(elapsed);
 
 	// event ReceivedText(string Text);
 	// event ReceivedLine(string Line);
@@ -232,9 +232,9 @@ UUdpLink::~UUdpLink()
 		closesocket(handle);
 }
 
-void UUdpLink::Tick(float elapsed, bool tickedFlag)
+void UUdpLink::Tick(float elapsed)
 {
-	UInternetLink::Tick(elapsed, tickedFlag);
+	UInternetLink::Tick(elapsed);
 
 	// int result = recvfrom(handle, (char*)data, size, 0, (sockaddr *)&addr, &addr_len);
 

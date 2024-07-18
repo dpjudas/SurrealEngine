@@ -269,6 +269,8 @@ public:
 	std::map<std::string, std::string> TravelInfo;
 
 private:
+	void TickActor(float elapsed, UActor* actor);
+
 	bool ticked = false;
 };
 

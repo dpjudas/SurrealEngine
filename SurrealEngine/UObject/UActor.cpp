@@ -348,10 +348,8 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 	}
 }
 
-void UActor::Tick(float elapsed, bool tickedFlag)
+void UActor::Tick(float elapsed)
 {
-	bTicked() = tickedFlag;
-
 	TickAnimation(elapsed);
 
 	if (Role() >= ROLE_SimulatedProxy && IsEventEnabled(EventName::Tick))
@@ -2157,7 +2155,7 @@ void UPawn::UpdateActorZone()
 		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
 }
 
-void UPawn::Tick(float elapsed, bool tickedFlag)
+void UPawn::Tick(float elapsed)
 {
 	MoveTimer() -= elapsed;
 
@@ -2233,7 +2231,7 @@ void UPawn::Tick(float elapsed, bool tickedFlag)
 		}
 	}
 
-	UActor::Tick(elapsed, tickedFlag);
+	UActor::Tick(elapsed);
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
@@ -2429,9 +2427,9 @@ float UPawn::GetSpeed()
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UPlayerPawn::Tick(float elapsed, bool tickedFlag)
+void UPlayerPawn::Tick(float elapsed)
 {
-	UPawn::Tick(elapsed, tickedFlag);
+	UPawn::Tick(elapsed);
 
 	if (Role() >= ROLE_SimulatedProxy)
 	{

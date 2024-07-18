@@ -31,7 +31,7 @@ public:
 	using UInternetInfo::UInternetInfo;
 	~UInternetLink();
 
-	void Tick(float elapsed, bool tickedFlag) override;
+	void Tick(float elapsed) override;
 
 	int GetLastError();
 	IpAddr GetLocalIP();
@@ -63,7 +63,7 @@ public:
 	UTcpLink(NameString name, UClass* base, ObjectFlags flags);
 	~UTcpLink();
 
-	void Tick(float elapsed, bool tickedFlag) override;
+	void Tick(float elapsed) override;
 
 	int BindPort(int Port, bool bUseNextAvailable);
 	bool Listen();
@@ -93,7 +93,7 @@ public:
 	UUdpLink(NameString name, UClass* base, ObjectFlags flags);
 	~UUdpLink();
 
-	void Tick(float elapsed, bool tickedFlag) override;
+	void Tick(float elapsed) override;
 
 	int BindPort(int Port, bool bUseNextAvailable);
 

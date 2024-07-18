@@ -81,26 +81,45 @@ void ULevel::Load(ObjectStream* stream)
 	}
 }
 
+void ULevel::TickActor(float elapsed, UActor* actor)
+{
+	if (!actor)
+		return;
+
+	// If we have an owner, tick it first
+	if (!actor->bDeleteMe() && actor->Owner())
+	{
+		TickActor(elapsed, actor->Owner());
+	}
+
+	// Do we have an actor? is it deleted? did it already tick?
+	if (actor->bDeleteMe() || actor->bTicked() == ticked)
+		return;
+
+	// Mark actor as ticked
+	actor->bTicked() = ticked;
+
+	// Tick the actor for this turn
+	actor->Tick(elapsed);
+
+	// Destroy the actor if its time
+	if (actor->Role() >= ROLE_SimulatedProxy && actor->LifeSpan() != 0.0f)
+	{
+		actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
+		if (actor->LifeSpan() == 0.0f)
+		{
+			CallEvent(actor, EventName::Expired);
+			actor->Destroy();
+		}
+	}
+}
+
 void ULevel::Tick(float elapsed)
 {
 	// To do: owned actors must tick before their children:
 	for (size_t i = 0; i < Actors.size(); i++)
 	{
-		UActor* actor = Actors[i];
-		if (actor)
-		{
-			actor->Tick(elapsed, ticked);
-
-			if (actor->Role() >= ROLE_SimulatedProxy && actor->LifeSpan() != 0.0f)
-			{
-				actor->LifeSpan() = std::max(actor->LifeSpan() - elapsed, 0.0f);
-				if (actor->LifeSpan() == 0.0f)
-				{
-					CallEvent(actor, EventName::Expired);
-					actor->Destroy();
-				}
-			}
-		}
+		TickActor(elapsed, Actors[i]);
 	}
 
 	Array<UActor*> newActorList;
