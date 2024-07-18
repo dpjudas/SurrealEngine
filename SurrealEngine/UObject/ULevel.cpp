@@ -116,7 +116,6 @@ void ULevel::TickActor(float elapsed, UActor* actor)
 
 void ULevel::Tick(float elapsed)
 {
-	// To do: owned actors must tick before their children:
 	for (size_t i = 0; i < Actors.size(); i++)
 	{
 		TickActor(elapsed, Actors[i]);
