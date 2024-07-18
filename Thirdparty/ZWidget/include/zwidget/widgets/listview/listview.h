@@ -13,6 +13,7 @@ public:
 	ListView(Widget* parent = nullptr);
 
 	void AddItem(const std::string& text);
+	void RemoveItem(int index);
 	int GetSelectedItem() const { return selectedItem; }
 	void SetSelectedItem(int index);
 	void ScrollToItem(int index);
