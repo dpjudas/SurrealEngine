@@ -497,7 +497,8 @@ void UActor::TickWalking(float elapsed)
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
 	vec3 vel = Velocity();
-	if (vel.x != 0.0f && vel.y != 0.0f)
+	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	if (isMoving)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
@@ -565,14 +566,14 @@ void UActor::TickWalking(float elapsed)
 			if (Physics() != PHYS_Walking)
 				return;
 		}
-
-		// Step down after movement to see if we are still walking or if we are now falling
-		CollisionHit hit = TryMove(stepDownDelta, true);
-		if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
-		{
-			SetPhysics(PHYS_Falling);
-		}
 	}
+
+	CollisionHit hit = TryMove(stepDownDelta, isMoving);
+	if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
+	{
+		SetPhysics(PHYS_Falling);
+	}
+
 	if (!bJustTeleported())
 		Velocity() = (Location() - OldLocation()) / elapsed;
 	Velocity().z = 0.0f;
