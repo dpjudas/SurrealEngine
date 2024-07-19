@@ -5,7 +5,7 @@
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <ZWidget/systemdialogs/open_folder_dialog.h>
+#include <zwidget/systemdialogs/open_folder_dialog.h>
 
 SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {
