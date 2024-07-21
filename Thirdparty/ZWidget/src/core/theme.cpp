@@ -236,7 +236,7 @@ DarkWidgetTheme::DarkWidgetTheme()
 	checkbox_label->SetColor("unchecked-outer-border-color", Colorf::fromRgba8(99, 99, 99));
 	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(51, 51, 51));
 
-	menubar->SetColor("background-color", Colorf::fromRgba8(70, 70, 70));
+	menubar->SetColor("background-color", Colorf::fromRgba8(33, 33, 33));
 
 	menubaritem->SetColor("color", Colorf::fromRgba8(226, 223, 219));
 	menubaritem->SetColor("hover", "background-color", Colorf::fromRgba8(78, 78, 78));

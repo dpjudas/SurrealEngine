@@ -16,7 +16,7 @@ Editor3DViewport::~Editor3DViewport()
 
 void Editor3DViewport::OnPaint(Canvas* canvas)
 {
-	canvas->fillRect(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()), Colorf(40 / 255.0f, 40 / 255.0f, 40 / 255.0f));
+	canvas->fillRect(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()), Colorf::fromRgba8(0, 0, 0));
 
 	if (!engine)
 		return;

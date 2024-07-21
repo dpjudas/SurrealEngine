@@ -15,7 +15,7 @@ int EditorApp::main(Array<std::string> args)
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
-	WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>());
+	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
 
 	try
 	{
@@ -29,7 +29,7 @@ int EditorApp::main(Array<std::string> args)
 
 			auto editorWindow = std::make_unique<EditorMainWindow>();
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
-			editorWindow->Show();
+			editorWindow->ShowMaximized();
 
 			DisplayWindow::RunLoop();
 		}

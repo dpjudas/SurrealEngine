@@ -15,7 +15,7 @@ Editor2DViewport::~Editor2DViewport()
 
 void Editor2DViewport::OnPaint(Canvas* canvas)
 {
-	Colorf background(160 / 255.0f, 160 / 255.0f, 160 / 255.0f);
+	Colorf background = Colorf::fromRgba8(40, 40, 40);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()), background);
 	DrawGrid(canvas);
 	if (engine && engine->Level)
@@ -87,7 +87,7 @@ void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
 
 	BspVert* v = &model->Vertices[node->VertPool];
 
-	Colorf linecolor(80 / 255.0f, 80 / 255.0f, 220 / 255.0f);
+	Colorf linecolor = Colorf::fromRgba8(150, 150, 150);
 	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
 	int numverts = node->NumVertices;
@@ -106,7 +106,7 @@ void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
 
 void Editor2DViewport::DrawGrid(Canvas* canvas)
 {
-	Colorf linecolor(128 / 255.0f, 128 / 255.0f, 128 / 255.0f);
+	Colorf linecolor = Colorf::fromRgba8(75, 75, 75);
 	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
 	for (double y = -32767.0; y < 32767.0; y += 1000.0)

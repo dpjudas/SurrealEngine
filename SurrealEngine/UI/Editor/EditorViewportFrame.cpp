@@ -64,7 +64,7 @@ void EditorViewportFrame::Set3DMode()
 
 void EditorViewportFrame::OnPaint(Canvas* canvas)
 {
-	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
+	Colorf bordercolor(80 / 255.0f, 80 / 255.0f, 80 / 255.0f);
 	double headerHeight = 24.0;
 
 	double w = GetWidth();

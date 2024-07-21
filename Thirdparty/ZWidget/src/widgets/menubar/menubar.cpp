@@ -386,5 +386,5 @@ MenuItemSeparator::MenuItemSeparator(Widget* parent) : Widget(parent)
 
 void MenuItemSeparator::OnPaint(Canvas* canvas)
 {
-	canvas->fillRect(Rect::xywh(0.0, GridFitPoint(GetHeight() * 0.5), GetWidth(), GridFitSize(1.0)), Colorf::fromRgba8(200, 200, 200));
+	canvas->fillRect(Rect::xywh(0.0, GridFitPoint(GetHeight() * 0.5), GetWidth(), GridFitSize(1.0)), Colorf::fromRgba8(75, 75, 75));
 }
