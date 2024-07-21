@@ -5,6 +5,8 @@
 
 Statusbar::Statusbar(Widget* parent) : Widget(parent)
 {
+	SetStyleClass("statusbar");
+
 	CommandEdit = new LineEdit(this);
 	CommandEdit->SetFrameGeometry(Rect::xywh(90.0, 4.0, 400.0, 23.0));
 }

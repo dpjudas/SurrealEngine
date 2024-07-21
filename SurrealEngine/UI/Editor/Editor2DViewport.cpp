@@ -87,10 +87,21 @@ void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
 
 	BspVert* v = &model->Vertices[node->VertPool];
 
-	Colorf linecolor = Colorf::fromRgba8(150, 150, 150);
 	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
 	int numverts = node->NumVertices;
+
+	vec3 n = vec3(0.0f, 0.0f, -1.0f);
+	if (numverts > 2)
+	{
+		const vec3 p0 = ViewCoords * model->Points[v[0].Vertex];
+		const vec3 p1 = ViewCoords * model->Points[v[1].Vertex];
+		const vec3 p2 = ViewCoords * model->Points[v[2].Vertex];
+		n = cross(p0 - p1, p2 - p1);
+	}
+
+	Colorf linecolor = n.z > 0.0f ? Colorf::fromRgba8(150, 150, 150) : Colorf::fromRgba8(100, 100, 100);
+
 	for (int j = 0; j < numverts; j++)
 	{
 		int k = j + 1;

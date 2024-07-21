@@ -12,6 +12,7 @@
 #include <zvulkan/vulkanbuilders.h>
 #include <zwidget/window/zvulkanwidget.h>
 #include <zwidget/widgets/menubar/menubar.h>
+#include <zwidget/widgets/toolbar/toolbar.h>
 
 EditorMainWindow::EditorMainWindow() : MainWindow(RenderAPI::Vulkan)
 {
@@ -33,6 +34,16 @@ EditorMainWindow::EditorMainWindow() : MainWindow(RenderAPI::Vulkan)
 	GetMenubar()->AddItem("Tools", [this](Menu* menu) { OnToolsMenu(menu); });
 	//GetMenubar()->AddItem("Window", [this](Menu* menu) { OnWindowMenu(menu); });
 	GetMenubar()->AddItem("Help", [this](Menu* menu) { OnHelpMenu(menu); });
+
+	GetTopToolbar()->AddButton("icons/apps.png", "New", [this]() { OnFileNew(); });
+	GetTopToolbar()->AddButton("icons/home.png", "Open", [this]() { OnFileOpen(); });
+	GetTopToolbar()->AddButton("icons/pets.png", "Save", [this]() { OnFileSave(); });
+
+	GetLeftToolbar()->AddButton("icons/cancel.png", {}, [this]() {}); // To do: What tools are needed here?
+	GetLeftToolbar()->AddButton("icons/sentiment_satisfied.png", {}, [this]() {});
+	GetLeftToolbar()->AddButton("icons/settings.png", {}, [this]() {});
+	GetLeftToolbar()->AddButton("icons/terminal.png", {}, [this]() {});
+	GetLeftToolbar()->AddButton("icons/system_update_alt.png", {}, [this]() {});
 
 	Workspace = new EditorWorkspace(this);
 	SetCentralWidget(Workspace);

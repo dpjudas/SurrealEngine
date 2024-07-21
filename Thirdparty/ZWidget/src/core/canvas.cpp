@@ -270,6 +270,17 @@ void Canvas::drawImage(const std::shared_ptr<Image>& image, const Point& pos)
 	drawTile(texture.get(), (float)((origin.x + pos.x) * uiscale), (float)((origin.y + pos.y) * uiscale), (float)(texture->Width * uiscale), (float)(texture->Height * uiscale), 0.0, 0.0, (float)texture->Width, (float)texture->Height, color);
 }
 
+void Canvas::drawImage(const std::shared_ptr<Image>& image, const Rect& box)
+{
+	auto& texture = imageTextures[image];
+	if (!texture)
+	{
+		texture = createTexture(image->GetWidth(), image->GetHeight(), image->GetData(), image->GetFormat());
+	}
+	Colorf color(1.0f, 1.0f, 1.0f);
+	drawTile(texture.get(), (float)((origin.x + box.x) * uiscale), (float)((origin.y + box.y) * uiscale), (float)(box.width * uiscale), (float)(box.height * uiscale), 0.0, 0.0, (float)texture->Width, (float)texture->Height, color);
+}
+
 void Canvas::line(const Point& p0, const Point& p1, const Colorf& color)
 {
 	double x0 = origin.x + p0.x;

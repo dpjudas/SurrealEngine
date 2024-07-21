@@ -71,7 +71,24 @@ std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int 
 	texture->Mip.Width = width;
 	texture->Mip.Height = height;
 	texture->Mip.Data.resize(width * height * 4);
-	memcpy(texture->Mip.Data.data(), pixels, width * height * 4);
+	if (format == ImageFormat::B8G8R8A8)
+	{
+		memcpy(texture->Mip.Data.data(), pixels, width * height * 4);
+	}
+	else // Convert it to BGRA8
+	{
+		const uint32_t* src = (const uint32_t*)pixels;
+		uint32_t* dest = (uint32_t*)texture->Mip.Data.data();
+		int count = width * height;
+		for (int i = 0; i < count; i++)
+		{
+			uint32_t a = (src[i] >> 24) & 0xff;
+			uint32_t b = (src[i] >> 16) & 0xff;
+			uint32_t g = (src[i] >> 8) & 0xff;
+			uint32_t r = src[i] & 0xff;
+			dest[i] = (a << 24) | (r << 16) | (g << 8) | b;
+		}
+	}
 	return texture;
 }
 

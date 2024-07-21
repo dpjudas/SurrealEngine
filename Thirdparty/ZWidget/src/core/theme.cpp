@@ -160,6 +160,9 @@ DarkWidgetTheme::DarkWidgetTheme()
 	auto menubaritem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menubaritem");
 	auto menu = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menu");
 	auto menuitem = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "menuitem");
+	auto toolbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "toolbar");
+	auto toolbarbutton = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "toolbarbutton");
+	auto statusbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "statusbar");
 
 	widget->SetString("font-family", "NotoSans");
 	widget->SetColor("color", Colorf::fromRgba8(226, 223, 219));
@@ -237,6 +240,11 @@ DarkWidgetTheme::DarkWidgetTheme()
 	checkbox_label->SetColor("unchecked-inner-border-color", Colorf::fromRgba8(51, 51, 51));
 
 	menubar->SetColor("background-color", Colorf::fromRgba8(33, 33, 33));
+	toolbar->SetColor("background-color", Colorf::fromRgba8(33, 33, 33));
+	statusbar->SetColor("background-color", Colorf::fromRgba8(33, 33, 33));
+
+	toolbarbutton->SetColor("hover", "background-color", Colorf::fromRgba8(78, 78, 78));
+	toolbarbutton->SetColor("down", "background-color", Colorf::fromRgba8(88, 88, 88));
 
 	menubaritem->SetColor("color", Colorf::fromRgba8(226, 223, 219));
 	menubaritem->SetColor("hover", "background-color", Colorf::fromRgba8(78, 78, 78));
