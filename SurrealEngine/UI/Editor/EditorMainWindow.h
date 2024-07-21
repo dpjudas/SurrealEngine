@@ -6,6 +6,7 @@
 
 class EditorWorkspace;
 class Menu;
+class RenderDevice;
 
 class EditorMainWindow : public MainWindow
 {
@@ -52,5 +53,6 @@ public:
 
 private:
 	void LoadMap(std::string& mapName);
+	std::unique_ptr<RenderDevice> device;
 	std::unique_ptr<OpenFileDialog> openFileDialog = nullptr;
 };

@@ -3,6 +3,10 @@
 #include "win32_display_window.h"
 #include "core/widget.h"
 #include <stdexcept>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
 
 Win32OpenFileDialog::Win32OpenFileDialog(Win32DisplayWindow* owner) : owner(owner)
 {
@@ -88,10 +92,35 @@ bool Win32OpenFileDialog::Show()
 		}
 	}
 
-	if (owner)
-		result = open_dialog->Show(owner->WindowHandle.hwnd);
-	else
-		result = open_dialog->Show(0);
+	// For some reason this can hang deep inside Win32 if we do it on the calling thread!
+	{
+		bool done = false;
+		std::mutex mutex;
+		std::condition_variable condvar;
+
+		std::thread thread([&]() {
+
+			if (owner)
+				result = open_dialog->Show(owner->WindowHandle.hwnd);
+			else
+				result = open_dialog->Show(0);
+
+			std::unique_lock lock(mutex);
+			done = true;
+			condvar.notify_all();
+
+			});
+
+		std::unique_lock lock(mutex);
+		while (!done)
+		{
+			DisplayBackend::Get()->ProcessEvents();
+			using namespace std::chrono_literals;
+			condvar.wait_for(lock, 50ms, [&]() { return done; });
+		}
+		lock.unlock();
+		thread.join();
+	}
 
 	if (SUCCEEDED(result))
 	{

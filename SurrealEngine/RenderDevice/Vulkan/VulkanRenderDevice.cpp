@@ -23,7 +23,7 @@ void VulkanError(const char* text)
 	Exception::Throw(text);
 }
 
-VulkanRenderDevice::VulkanRenderDevice(GameWindow* InViewport, std::shared_ptr<VulkanSurface> surface)
+VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<VulkanSurface> surface)
 {
 	Viewport = InViewport;
 
@@ -286,8 +286,8 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
-	int width = Viewport->GetPixelWidth();
-	int height = Viewport->GetPixelHeight();
+	int width = Viewport->GetNativePixelWidth();
+	int height = Viewport->GetNativePixelHeight();
 
 	if (!Textures->Scene || Textures->Scene->width != width || Textures->Scene->height != height)
 	{
@@ -384,7 +384,7 @@ void VulkanRenderDevice::Unlock(bool Blit)
 	RenderPasses->EndScene(Commands->GetDrawCommands());
 
 	BlitSceneToPostprocess();
-	SubmitAndWait(Blit, Viewport->GetPixelWidth(), Viewport->GetPixelHeight());
+	SubmitAndWait(Blit, Viewport->GetNativePixelWidth(), Viewport->GetNativePixelHeight());
 
 	IsLocked = false;
 }
@@ -858,8 +858,8 @@ void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 
 void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 {
-	int w = Viewport->GetPixelWidth();
-	int h = Viewport->GetPixelHeight();
+	int w = Viewport->GetNativePixelWidth();
+	int h = Viewport->GetNativePixelHeight();
 	void* data = Pixels;
 
 	auto dstimage = ImageBuilder()

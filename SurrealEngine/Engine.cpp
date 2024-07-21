@@ -35,15 +35,7 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 
 	//packages = std::make_unique<PackageManager>(LaunchInfo.folder, LaunchInfo.engineVersion, LaunchInfo.gameName);
 	packages = std::make_unique<PackageManager>(LaunchInfo);
-}
 
-Engine::~Engine()
-{
-	engine = nullptr;
-}
-
-void Engine::Run()
-{
 	std::srand((unsigned int)std::time(nullptr));
 
 	gameengine = UObject::Cast<UGameEngine>(packages->NewObject("gameengine", "Engine", "GameEngine"));
@@ -63,7 +55,15 @@ void Engine::Run()
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;
 	viewport->Console() = console;
+}
 
+Engine::~Engine()
+{
+	engine = nullptr;
+}
+
+void Engine::Run()
+{
 	LoadEngineSettings();
 	LoadKeybindings();
 

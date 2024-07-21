@@ -7,10 +7,26 @@
 #include "UObject/UActor.h"
 #include "UObject/ULevel.h"
 #include "Utils/File.h"
+#include "RenderDevice/RenderDevice.h"
+#include <zvulkan/vulkansurface.h>
+#include <zvulkan/vulkanbuilders.h>
+#include <zwidget/window/zvulkanwidget.h>
 #include <zwidget/widgets/menubar/menubar.h>
 
-EditorMainWindow::EditorMainWindow()
+EditorMainWindow::EditorMainWindow() : MainWindow(RenderAPI::Vulkan)
 {
+	std::shared_ptr<VulkanInstance> instance = CreateZVulkanInstanceBuilder(this)
+		.OptionalSwapchainColorspace()
+		.DebugLayer(false)
+		.Create();
+
+	std::shared_ptr<VulkanSurface> surface = CreateZVulkanSurface(this, instance);
+	if (!surface)
+		throw std::runtime_error("No vulkan surface found");
+
+	device = RenderDevice::Create(this, surface);
+	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
+
 	GetMenubar()->AddItem("File", [this](Menu* menu) { OnFileMenu(menu); });
 	GetMenubar()->AddItem("Edit", [this](Menu* menu) { OnEditMenu(menu); });
 	GetMenubar()->AddItem("View", [this](Menu* menu) { OnViewMenu(menu); });

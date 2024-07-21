@@ -4,7 +4,7 @@
 #include "widgets/toolbar/toolbar.h"
 #include "widgets/statusbar/statusbar.h"
 
-MainWindow::MainWindow() : Widget(nullptr, WidgetType::Window)
+MainWindow::MainWindow(RenderAPI api) : Widget(nullptr, WidgetType::Window, api)
 {
 	MenubarWidget = new Menubar(this);
 	// ToolbarWidget = new Toolbar(this);

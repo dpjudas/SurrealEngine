@@ -4,8 +4,9 @@
 #include "Vulkan/VulkanRenderDevice.h"
 #include "UObject/ULevel.h"
 #include <zwidget/core/colorf.h>
+#include <ZWidget/core/widget.h>
 
-std::unique_ptr<RenderDevice> RenderDevice::Create(GameWindow* viewport, std::shared_ptr<VulkanSurface> surface)
+std::unique_ptr<RenderDevice> RenderDevice::Create(Widget* viewport, std::shared_ptr<VulkanSurface> surface)
 {
 	return std::make_unique<VulkanRenderDevice>(viewport, surface);
 }
@@ -19,6 +20,25 @@ RenderDeviceCanvas::RenderDeviceCanvas(RenderDevice* device) : device(device)
 void RenderDeviceCanvas::begin(const Colorf& color)
 {
 	device->Lock(vec4(0.0f), vec4(0.0f), vec4(color.r, color.g, color.b, color.a));
+
+	frame.XB = 0;
+	frame.YB = 0;
+	frame.X = device->Viewport->GetNativePixelWidth();
+	frame.Y = device->Viewport->GetNativePixelHeight();
+	frame.FX = (float)device->Viewport->GetNativePixelWidth();
+	frame.FY = (float)device->Viewport->GetNativePixelHeight();
+	frame.FX2 = (float)device->Viewport->GetNativePixelWidth() * 0.5f;
+	frame.FY2 = (float)device->Viewport->GetNativePixelHeight() * 0.5f;
+	frame.Viewport = device->Viewport;
+	frame.FovAngle = 90.0f;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = mat4::identity();
+	float Aspect = frame.FY / frame.FX;
+	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
+	float RFX2 = 2.0f * RProjZ / frame.FX;
+	float RFY2 = 2.0f * RProjZ * Aspect / frame.FY;
+	frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	device->SetSceneNode(&frame);
 }
 
 void RenderDeviceCanvas::end()
@@ -28,13 +48,12 @@ void RenderDeviceCanvas::end()
 
 void RenderDeviceCanvas::begin3d()
 {
-	CheckFrame();
 	device->ClearZ(&frame);
 }
 
 void RenderDeviceCanvas::end3d()
 {
-	CheckFrame();
+	device->SetSceneNode(&frame);
 	device->ClearZ(&frame);
 }
 
@@ -44,7 +63,7 @@ std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int 
 	texture->Width = width;
 	texture->Height = height;
 	texture->Info.CacheID = (uint64_t)(ptrdiff_t)texture.get();
-	texture->Info.Format = TextureFormat::ARGB8;
+	texture->Info.Format = TextureFormat::BGRA8;
 	texture->Info.USize = width;
 	texture->Info.VSize = height;
 	texture->Info.NumMips = 1;
@@ -58,30 +77,20 @@ std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int 
 
 void RenderDeviceCanvas::drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color)
 {
-	CheckFrame();
 	device->Draw2DLine(&frame, vec4(color.r, color.g, color.b, color.a), vec3(x0, y0, 1.0f), vec3(x1, y1, 1.0f));
 }
 
 void RenderDeviceCanvas::fillTile(float x, float y, float width, float height, Colorf color)
 {
-	CheckFrame();
-	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(whiteTexture.get())->Info, x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), 0);
+	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(whiteTexture.get())->Info, x, y, width, height, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), PF_Highlighted);
 }
 
 void RenderDeviceCanvas::drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
-	CheckFrame();
-	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(texture)->Info, x, y, width, height, u, v, uvwidth, uvheight, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), 0);
+	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(texture)->Info, x, y, width, height, u, v, uvwidth, uvheight, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), PF_Highlighted);
 }
 
 void RenderDeviceCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
-	CheckFrame();
 	device->DrawTile(&frame, static_cast<RenderDeviceTexture*>(texture)->Info, x, y, width, height, u, v, uvwidth, uvheight, 1.0f, vec4(color.r, color.g, color.b, color.a), vec4(0.0f), PF_SubpixelFont);
-}
-
-void RenderDeviceCanvas::CheckFrame()
-{
-	// To do: check if frame is up to date and update it if not
-	// device->SetSceneNode(&frame);
 }

@@ -20,7 +20,7 @@ class CachedTexture;
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(GameWindow* InViewport, std::shared_ptr<VulkanSurface> surface);
+	VulkanRenderDevice(Widget* InViewport, std::shared_ptr<VulkanSurface> surface);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;

@@ -12,6 +12,9 @@ void RenderSubsystem::DrawScene()
 	Scene.Clipper.numSurfs = 0;
 	Scene.Clipper.numTris = 0;
 
+	if (!engine->Level)
+		return;
+
 	// Make sure all actors are at the right location in the BSP
 	for (UActor* actor : engine->Level->Actors)
 	{

@@ -9,10 +9,10 @@
 #include <zwidget/core/canvas.h>
 #include <zwidget/core/rect.h>
 
-class GameWindow;
 class UTexture;
 class UActor;
 class VulkanSurface;
+class Widget;
 
 struct FSceneNode
 {
@@ -20,7 +20,7 @@ struct FSceneNode
 	int X, Y; // viewport size
 	float FX, FY;
 	float FX2, FY2;
-	GameWindow* Viewport = nullptr;
+	Widget* Viewport = nullptr;
 	float FovAngle;
 
 	mat4 ObjectToWorld;
@@ -91,7 +91,7 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(GameWindow* viewport, std::shared_ptr<VulkanSurface> surface);
+	static std::unique_ptr<RenderDevice> Create(Widget* viewport, std::shared_ptr<VulkanSurface> surface);
 
 	virtual ~RenderDevice() = default;
 
@@ -115,7 +115,7 @@ public:
 
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 
-	GameWindow* Viewport = nullptr;
+	Widget* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 	float Brightness = 0.5f;
 };
@@ -138,6 +138,8 @@ public:
 	void begin3d() override;
 	void end3d() override;
 
+	RenderDevice* GetRenderDevice() { return device; }
+
 protected:
 	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels, ImageFormat format) override;
 	void drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color) override;
@@ -146,8 +148,6 @@ protected:
 	void drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color) override;
 
 private:
-	void CheckFrame();
-
 	RenderDevice* device = nullptr;
 	FSceneNode frame;
 };

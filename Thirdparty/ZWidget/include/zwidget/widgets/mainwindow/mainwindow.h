@@ -10,7 +10,7 @@ class Statusbar;
 class MainWindow : public Widget
 {
 public:
-	MainWindow();
+	MainWindow(RenderAPI api = RenderAPI::Unspecified);
 	~MainWindow();
 
 	Menubar* GetMenubar() const { return MenubarWidget; }

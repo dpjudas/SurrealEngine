@@ -3,6 +3,7 @@
 #include "Editor3DViewport.h"
 #include "Engine.h"
 #include "Render/RenderSubsystem.h"
+#include "RenderDevice/RenderDevice.h"
 #include <zwidget/core/colorf.h>
 
 Editor3DViewport::Editor3DViewport(Widget* parent) : EditorViewport(parent)
@@ -24,16 +25,16 @@ void Editor3DViewport::OnPaint(Canvas* canvas)
 
 	canvas->begin3d();
 
-	//if (!engine->render)
-	//	engine->render = std::make_unique<RenderSubsystem>(Window()->GetRenderDevice());
+	if (!engine->render)
+		engine->render = std::make_unique<RenderSubsystem>(static_cast<RenderDeviceCanvas*>(canvas)->GetRenderDevice());
 
 	engine->CameraLocation = Location;
 	engine->CameraRotation = Rotation;
-	engine->ViewportX = (int)std::round(topLeft.x);
-	engine->ViewportY = (int)std::round(topLeft.y);
-	engine->ViewportWidth = (int)std::round(GetWidth());
-	engine->ViewportHeight = (int)std::round(GetHeight());
-	//engine->render->DrawEditorViewport();
+	engine->ViewportX = (int)std::round(topLeft.x * GetDpiScale());
+	engine->ViewportY = (int)std::round(topLeft.y * GetDpiScale());
+	engine->ViewportWidth = (int)std::round(GetWidth() * GetDpiScale());
+	engine->ViewportHeight = (int)std::round(GetHeight() * GetDpiScale());
+	engine->render->DrawEditorViewport();
 
 	canvas->end3d();
 }

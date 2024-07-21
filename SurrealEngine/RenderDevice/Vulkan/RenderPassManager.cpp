@@ -208,7 +208,7 @@ void RenderPassManager::CreatePipelines()
 			}
 			else // PF_SubpixelFont
 			{
-				builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_CONSTANT_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR/*, VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE*/);
+				builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_CONSTANT_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
 				builder.AddFragmentShader(fragShaderAlphaTest[type]);
 			}
 
