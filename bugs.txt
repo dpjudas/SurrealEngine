@@ -1,18 +1,86 @@
-- Gibbing on certain maps in Debug mode causes out of bounds vertex access
-- There's a memory leak (might have to do with some actors not disappearing? unsure, need a longer test run)
-- Teleporters are fuckin weird sometimes
-- Respawning in the ground?
-- swimming physics not implemented
-- PHYS_Swimming persists after dying in WaterZone
-	- might be because water physics isn't implemented
-- font rendering is a bit broken
-- where are the scripted textures?
-- ughhh......water textures ;-;
-- decals don't clip to bsp correctly
-- decals don't appear at all sometimes
-- rendering seeds crashes the game
-- viewclass crashes with null deref
-- lightmap rendering is kind of off
-- In DM-Deck16][, it is possible to pick up the shield belt by walking on the bridge above the actual pickup
-- Bots literally rotate their entire body (feet off the ground) to look up/downin ways they shouldn't be able to
-	- i think its reproducible by jumping on top of a bot?
+----------------------------------
+Surreal Engine Known Bugs and Woes
+----------------------------------
+
+Engine general:
+---------------
+* Movers aren't fully implemented. They don't have any collision, and only "work" if there is a trigger that activates them.
+* Scripted textures are not implemented.
+* Some native functions related to text rendering aren't implemented, resulting in glitchy texts.
+* Mirrors/reflections rendering isn't implemented.
+* Portals aren't implemented. They do not render or "teleport" the player, and crash the engine under certain conditions.
+* Some rendering glitches may occur when transparent surfaces are involved. An earlier attempt at fixing it wasn't entirely successful.
+* Bot and Scripted Pawn AI isn't fully functional due to the related native functions not being implemented.
+All they currently do is to sometimes retaliate if attacked, and pick up nearby items.
+* Bots literally rotate their entire body (feet off the ground) to look up/down in ways they shouldn't be able to.
+* Decals don't clip to BSP correctly, or sometimes do not appear at all.
+* Parsing UClasses from Strings (e.g. class'UnrealShare.DispersionPistol') is not implemented,
+causing a crash because SE tries to parse them like UObjects.
+* Waving water textures at the end of waterfalls render broken. Easily observable in NyLeve's Falls (Unreal) or DM-ArcaneTemple (UT)
+* Inventory travelling is quite buggy: Either they travel, but get deselected upon the next level load, or cause a crash.
+And not all travel types are implemented.
+* Player-to-decoration and player-to-other-pawns collisions aren't properly implemented. The player usually gets stuck and if they manage to get free
+they end up dying because SE thinks that they've fallen from a great height.
+* If the player currently has a power-up active that tints the screen (like Invisibility or Energy Amplifier), the tint remains
+(and accumulates if a new power-up of the same type is picked up and activated) until the player switches to a different map.
+* viewclass command crashes with null deref.
+* Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
+* Third person views don't work properly as the player character is not rendered.
+* Teleporters do not work properly sometimes.
+* Zones don't apply velocity to the players when they should (Like the conveyor belt in DM-Conveyor)
+* Zones don't hurt the player when they should (Drowning in water/getting burned in lava, etc.)
+* Games don't pause when ESC is pressed.
+* Settings and stuff from various menus do not get saved. SaveConfig() implementation is broken?
+* There are no OpenGL and D3D renderers.
+* There is no networking support at all.
+* By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
+* [Linux/ZWidget] Wayland backend is extremely buggy due to Wayland APIs being unpleasant to work with, to name a few things:
+ - Menus don't properly position themselves.
+ - Switching menus rapidly sometimes leads to a crash.
+ - Assigning a wl_surface as a Vulkan surface crashes SurrealEditor, because Vulkan tries to "own" the surface(?) while the app itself also tries the same
+ causing a protocol error due to explicit sync.
+ - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
+ because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
+ - Currently SurrealEditor crashes immediately due to a queue assertion failure.
+
+Engine general - Needs testing:
+-------------------------------
+* There seem to be a memory leak due to Garbage Collection not being implemented. This is probably extremely hard to notice as UE1 games 
+won't use much memory when run on modern computers. Might need to run SE for a looooong time before it is noticeable.
+* Gibbing on certain maps in Debug mode causes out of bounds vertex access
+* Lightmap rendering is kind of off
+
+Unreal (Gold) specific:
+-----------------------
+* [227*] Many new native functions/features are not yet implemented.
+* ALL RTNP models are broken (at least in 226?).
+* The vent Skaarj in Vortex Rikers cause a crash in a few seconds when alerted.
+* Firing sounds don't seem to play with Eightball Gun and RazorJack.
+* Zones are extremely broken, especially water zones. Easily observable with DmAriza.
+* Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
+* ASMD primary fire rings does not render.
+* Player model does not render in the Player Setup menu.
+* FOV setting does not persist between map switches (226 bug?)
+
+Unreal Tournament specific:
+---------------------------
+* [469*] Many new native functions/features are not yet implemented.
+* Shock Rifle beams render glitchy.
+* Player model is rendered upside-down in the Player Setup menu.
+* UDamage effect does not render.
+* Player can slide through on some of the catwalks in the room with lava in DM-Conveyor
+
+Deus Ex specific:
+-----------------
+* Keyboard (and mouse?) input doesn't work. No keys are recognized, preventing us from testing literally everything else.
+Might be because input stuff is moved to native Extension package, which isn't implemented?
+
+Tactical-Ops: Assault on Terror specific:
+-----------------------------------------
+* Main menu has a red tint for some reason.
+* Attempting to bring up the menus crashes the engine.
+* Opening up any map crashes the engine.
+
+Any other UE1 game not mentioned above:
+--------------------------------------
+* They crash the engine upon startup for various reasons. Will probably take quite a while before the necessary functionality gets implemented.
