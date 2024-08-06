@@ -3,6 +3,7 @@
 #include "Editor2DViewport.h"
 #include "Engine.h"
 #include "UObject/ULevel.h"
+#include "UObject/UActor.h"
 #include <zwidget/core/colorf.h>
 
 Editor2DViewport::Editor2DViewport(const Coords& coords, Widget* parent) : EditorViewport(parent), ViewCoords(coords)
@@ -26,92 +27,47 @@ void Editor2DViewport::OnPaint(Canvas* canvas)
 
 void Editor2DViewport::DrawLevel(Canvas* canvas)
 {
-#if 0
-	if (engine->Level->Model->Polys)
+	for (UActor* actor : engine->Level->Actors)
 	{
-		for (const Poly& poly : engine->Level->Model->Polys->Polys)
+		UBrush* brush = UActor::TryCast<UBrush>(actor);
+		if (brush)
 		{
-			Colorf linecolor(80 / 255.0f, 80 / 255.0f, 220 / 255.0f);
-			Point center(GetWidth() * 0.5, GetHeight() * 0.5);
-
-			int numverts = (int)poly.Vertices.size();
-			for (int j = 0; j < numverts; j++)
+			UModel* model = brush->Brush();
+			if (model)
 			{
-				int k = j + 1;
-				if (k == numverts)
-					k = 0;
+				mat4 objectToWorld = mat4::translate(actor->Location()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::translate(-actor->PrePivot()) * mat4::scale(actor->DrawScale());
 
-				const vec3 p0 = ViewCoords * poly.Vertices[j];
-				const vec3 p1 = ViewCoords * poly.Vertices[k];
+				for (const Poly& poly : model->Polys->Polys)
+				{
+					Point center(GetWidth() * 0.5, GetHeight() * 0.5);
 
-				canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * Zoom + center, Point(p1.x - Location.x, p1.y - Location.y) * Zoom + center, linecolor);
+					int numverts = (int)poly.Vertices.size();
+
+					vec3 n = vec3(0.0f, 0.0f, -1.0f);
+					if (numverts > 2)
+					{
+						const vec3 p0 = ViewCoords * (objectToWorld * vec4(poly.Vertices[0], 1.0f)).xyz();
+						const vec3 p1 = ViewCoords * (objectToWorld * vec4(poly.Vertices[1], 1.0f)).xyz();
+						const vec3 p2 = ViewCoords * (objectToWorld * vec4(poly.Vertices[2], 1.0f)).xyz();
+						n = cross(p0 - p1, p2 - p1);
+					}
+
+					Colorf linecolor = n.z > 0.0f ? Colorf::fromRgba8(150, 150, 150) : Colorf::fromRgba8(100, 100, 100);
+
+					for (int j = 0; j < numverts; j++)
+					{
+						int k = j + 1;
+						if (k == numverts)
+							k = 0;
+
+						const vec3 p0 = ViewCoords * (objectToWorld * vec4(poly.Vertices[j], 1.0f)).xyz();
+						const vec3 p1 = ViewCoords * (objectToWorld * vec4(poly.Vertices[k], 1.0f)).xyz();
+
+						canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * Zoom + center, Point(p1.x - Location.x, p1.y - Location.y) * Zoom + center, linecolor);
+					}
+				}
 			}
 		}
-	}
-#else
-	DrawNode(canvas, &engine->Level->Model->Nodes[0]);
-#endif
-}
-
-void Editor2DViewport::DrawNode(Canvas* canvas, BspNode* node)
-{
-	// Draw surfaces on this plane
-	BspNode* polynode = node;
-	while (true)
-	{
-		DrawNodeSurface(canvas, polynode);
-
-		if (polynode->Plane < 0) break;
-		polynode = &engine->Level->Model->Nodes[polynode->Plane];
-	}
-
-	if (node->Front >= 0)
-	{
-		DrawNode(canvas, &engine->Level->Model->Nodes[node->Front]);
-	}
-	if (node->Back >= 0)
-	{
-		DrawNode(canvas, &engine->Level->Model->Nodes[node->Back]);
-	}
-}
-
-void Editor2DViewport::DrawNodeSurface(Canvas* canvas, BspNode* node)
-{
-	UModel* model = engine->Level->Model;
-	const BspSurface& surface = model->Surfaces[node->Surf];
-
-	uint32_t PolyFlags = surface.PolyFlags;
-	const vec3& UVec = model->Vectors[surface.vTextureU];
-	const vec3& VVec = model->Vectors[surface.vTextureV];
-	const vec3& Base = model->Points[surface.pBase];
-
-	BspVert* v = &model->Vertices[node->VertPool];
-
-	Point center(GetWidth() * 0.5, GetHeight() * 0.5);
-
-	int numverts = node->NumVertices;
-
-	vec3 n = vec3(0.0f, 0.0f, -1.0f);
-	if (numverts > 2)
-	{
-		const vec3 p0 = ViewCoords * model->Points[v[0].Vertex];
-		const vec3 p1 = ViewCoords * model->Points[v[1].Vertex];
-		const vec3 p2 = ViewCoords * model->Points[v[2].Vertex];
-		n = cross(p0 - p1, p2 - p1);
-	}
-
-	Colorf linecolor = n.z > 0.0f ? Colorf::fromRgba8(150, 150, 150) : Colorf::fromRgba8(100, 100, 100);
-
-	for (int j = 0; j < numverts; j++)
-	{
-		int k = j + 1;
-		if (k == numverts)
-			k = 0;
-
-		const vec3 p0 = ViewCoords * model->Points[v[j].Vertex];
-		const vec3 p1 = ViewCoords * model->Points[v[k].Vertex];
-
-		canvas->line(Point(p0.x - Location.x, p0.y - Location.y) * Zoom + center, Point(p1.x - Location.x, p1.y - Location.y) * Zoom + center, linecolor);
 	}
 }
 
@@ -128,6 +84,21 @@ void Editor2DViewport::DrawGrid(Canvas* canvas)
 	{
 		canvas->line(Point(x - Location.x, -32767.0 - Location.y) * Zoom + center, Point(x - Location.x, 32767.0 - Location.y) * Zoom + center, linecolor);
 	}
+}
+
+bool Editor2DViewport::OnMouseWheel(const Point& pos, InputKey key)
+{
+	if (key == InputKey::MouseWheelUp)
+	{
+		Zoom = std::min(Zoom + 0.01, 2.0);
+		Update();
+	}
+	else if (key == InputKey::MouseWheelDown)
+	{
+		Zoom = std::max(Zoom - 0.01, 0.01);
+		Update();
+	}
+	return true;
 }
 
 void Editor2DViewport::OnMouseMove(const Point& pos)

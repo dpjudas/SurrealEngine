@@ -5,8 +5,6 @@
 #include "Math/rotator.h"
 #include "Math/coords.h"
 
-class BspNode;
-
 class Editor2DViewport : public EditorViewport
 {
 public:
@@ -19,14 +17,13 @@ protected:
 	bool OnMouseDown(const Point& pos, InputKey key) override;
 	bool OnMouseDoubleclick(const Point& pos, InputKey key) override;
 	bool OnMouseUp(const Point& pos, InputKey key) override;
+	bool OnMouseWheel(const Point& pos, InputKey key) override;
 	void OnRawMouseMove(int dx, int dy) override;
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;
 
 private:
 	void DrawLevel(Canvas* canvas);
-	void DrawNode(Canvas* canvas, BspNode* node);
-	void DrawNodeSurface(Canvas* canvas, BspNode* node);
 	void DrawGrid(Canvas* canvas);
 	void MoveCamera(float x, float y);
 
