@@ -537,6 +537,8 @@ inline UObject* ExpressionValue::ToObject() const
 {
 	if (Type == ExpressionValueType::ValueObject)
 		return *PtrObject;
+	else if (Type == ExpressionValueType::Nothing)
+		return nullptr;
 	else
 		Exception::Throw("Not an object value");
 }
@@ -544,33 +546,69 @@ inline UObject* ExpressionValue::ToObject() const
 inline const vec3& ExpressionValue::ToVector() const
 {
 	if (Type == ExpressionValueType::ValueVector)
+	{
 		return *PtrVector;
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static vec3 nothing(0.0f);
+		return nothing;
+	}
 	else
+	{
 		Exception::Throw("Not a vector value");
+	}
 }
 
 inline const Rotator& ExpressionValue::ToRotator() const
 {
 	if (Type == ExpressionValueType::ValueRotator)
+	{
 		return *PtrRotator;
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static Rotator nothing(0, 0, 0);
+		return nothing;
+	}
 	else
+	{
 		Exception::Throw("Not a rotator value");
+	}
 }
 
 inline const std::string& ExpressionValue::ToString() const
 {
 	if (Type == ExpressionValueType::ValueString)
+	{
 		return *PtrString;
+	}
 	else if (Type == ExpressionValueType::ValueName)
+	{
 		return PtrName->ToString();
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static std::string nothing;
+		return nothing;
+	}
 	else
+	{
 		Exception::Throw("Not a string value");
+	}
 }
 
 inline const NameString& ExpressionValue::ToName() const
 {
 	if (Type == ExpressionValueType::ValueName)
+	{
 		return *PtrName;
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static NameString nothing;
+		return nothing;
+	}
 	else
 		Exception::Throw("Not a name value");
 }
@@ -578,15 +616,33 @@ inline const NameString& ExpressionValue::ToName() const
 inline const Color& ExpressionValue::ToColor() const
 {
 	if (Type == ExpressionValueType::ValueColor)
+	{
 		return *PtrColor;
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static Color nothing = {};
+		return nothing;
+	}
 	else
+	{
 		Exception::Throw("Not a color value");
+	}
 }
 
 inline const IpAddr& ExpressionValue::ToIpAddr() const
 {
 	if (Type == ExpressionValueType::ValueStruct)
+	{
 		return *PtrIpAddr;
+	}
+	else if (Type == ExpressionValueType::Nothing)
+	{
+		static IpAddr nothing = {};
+		return nothing;
+	}
 	else
+	{
 		Exception::Throw("Not a ipaddr/struct value");
+	}
 }
