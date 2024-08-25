@@ -13,6 +13,10 @@ void InitWidgetResources()
 	// On Linux, SurrealEngine.pk3 can additionally be put in /usr/share/surrealengine
 	if (!result)
 		result = mz_zip_reader_init_file(&widgetResources, FilePath::combine("/usr/share/surrealengine", "SurrealEngine.pk3").c_str(), 0);
+	if (!result)
+		result = mz_zip_reader_init_file(&widgetResources, FilePath::combine("~/.local/share/surrealengine", "SurrealEngine.pk3").c_str(), 0);
+	if (!result)
+		result = mz_zip_reader_init_file(&widgetResources, FilePath::combine("~/.surrealengine", "SurrealEngine.pk3").c_str(), 0);
 #endif
 	if (!result)
 		Exception::Throw("Could not open SurrealEngine.pk3");
