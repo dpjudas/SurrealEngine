@@ -1,6 +1,6 @@
 # Surreal Engine
 
-The goal of this project is to reimplement enough of the original Unreal Engine to make the Unreal Tournament (UT99) maps playable.
+The goal of this project is to reimplement enough of the original Unreal Engine to make the Unreal Tournament (UT99) maps playable, and more UE1 games in the future.
 
 ![facingworlds](https://user-images.githubusercontent.com/5136903/125014285-afc65580-e06d-11eb-80c0-0a1992a7d0ff.jpg)
 
