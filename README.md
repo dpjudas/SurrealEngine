@@ -54,20 +54,7 @@ Other than that there are no other external third party dependencies.
 
 ## Linux build instructions
 
-Use CMake to build the project.
-
-From the folder you want to clone the repo to (commands should be entered in the given order):
-
-    git clone https://github.com/dpjudas/SurrealEngine.git
-    cd SurrealEngine
-    mkdir build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j 16
-
-When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
-
-You'll need the dev packages for the following things:
+Use CMake to build the project. You're gonna need the development versions of the following packages:
 
 * cmake
 * g++
@@ -80,3 +67,18 @@ You'll need the dev packages for the following things:
 On Linux, SDL2 is required, as SurrealEngine will utilise it for its windowing functionalities and native Wayland support (with `SDL_VIDEODRIVER=wayland`).
 
 Note that these packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
+
+### Ubuntu
+
+    # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl2-dev libxkbcommon-dev waylandpp-dev
+
+Once you've installed all of the prerequisites, enter these commands in the given order from the folder you want to clone the repo to:
+
+    git clone https://github.com/dpjudas/SurrealEngine.git
+    cd SurrealEngine
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j 16
+
+When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
