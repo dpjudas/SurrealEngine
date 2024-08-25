@@ -10,7 +10,7 @@ void InitWidgetResources()
 {
 	mz_bool result = mz_zip_reader_init_file(&widgetResources, FilePath::combine(OS::executable_path(), "SurrealEngine.pk3").c_str(), 0);
 #ifndef WIN32
-	// On Linux, SurrealEngine.pk3 can additionally be put in /usr/share/surrealengine
+	// On Linux, SurrealEngine.pk3 can additionally be put in some other folders given below.
 	if (!result)
 		result = mz_zip_reader_init_file(&widgetResources, FilePath::combine("/usr/share/surrealengine", "SurrealEngine.pk3").c_str(), 0);
 	if (!result)
