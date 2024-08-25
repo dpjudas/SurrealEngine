@@ -4,6 +4,12 @@ The goal of this project is to reimplement enough of the original Unreal Engine 
 
 ![facingworlds](https://user-images.githubusercontent.com/5136903/125014285-afc65580-e06d-11eb-80c0-0a1992a7d0ff.jpg)
 
+## Requirements
+
+* Original copies of the UE1 games you want to run
+* Windows 10+ or a modern Linux distro
+* A Vulkan capable graphics card
+
 ## Current status
 
 The engine can load and render the maps. The Unrealscript VM is almost feature complete - only arrays and network conditional execution are not implemented yet.
