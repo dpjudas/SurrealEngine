@@ -10,6 +10,7 @@ struct GameLaunchInfo
 	std::string gameExecutableName = "";	// Name of the game executable (e.g. "UnrealTournament")
 	std::string gameVersionString = "";		// Version (+ sub version) info as a string (e.g. "469d")
 	std::string url = "";					// The UnrealURL to launch upon startup
+	bool showHelp = false;
 };
 
 class GameFolderSelection
