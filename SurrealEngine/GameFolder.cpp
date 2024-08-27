@@ -42,7 +42,8 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	}
 	
 	GameLaunchInfo info;
-	if (!foundGames.empty()) {
+	info.showHelp = commandline->HasArg("-h", "--help");
+	if (!info.showHelp && !foundGames.empty()) {
 		int selectedGame = LauncherWindow::ExecModal(foundGames);
 		if (selectedGame < 0)
 			return {};
@@ -53,7 +54,6 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);
 	info.noEntryMap = commandline->HasArg("-n", "--noentrymap") || info.noEntryMap;
 	info.url = commandline->GetArg("-u", "--url", info.url);
-	info.showHelp = commandline->HasArg("-h", "--help");
 
 	return info;
 }
