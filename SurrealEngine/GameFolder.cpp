@@ -41,22 +41,19 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 		}
 	}
 	
-	if (foundGames.empty())
-	{
-		// If we STILL didn't find anything, then there is nothing else we can do
-		Exception::Throw("Unable to find a game folder");
+	GameLaunchInfo info;
+	if (!foundGames.empty()) {
+		int selectedGame = LauncherWindow::ExecModal(foundGames);
+		if (selectedGame < 0)
+			return {};
+		info = foundGames[selectedGame];
 	}
-
-	int selectedGame = LauncherWindow::ExecModal(foundGames);
-	if (selectedGame < 0)
-		return {};
-
-	GameLaunchInfo info = foundGames[selectedGame];
 
 	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);
 	info.noEntryMap = commandline->HasArg("-n", "--noentrymap") || info.noEntryMap;
 	info.url = commandline->GetArg("-u", "--url", info.url);
+	info.showHelp = commandline->HasArg("-h", "--help");
 
 	return info;
 }

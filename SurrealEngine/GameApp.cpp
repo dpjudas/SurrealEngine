@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <zwidget/core/theme.h>
 #include <zwidget/window/window.h>
+#include <iostream>
 
 int GameApp::main(Array<std::string> args)
 {
@@ -28,8 +29,9 @@ int GameApp::main(Array<std::string> args)
 		commandline = &cmd;
 
 		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-		if (!info.gameRootFolder.empty())
-		{
+		if (info.showHelp || info.gameRootFolder.empty()) {
+			std::cout << "SurrealEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]\n";
+		} else {
 			Engine engine(info);
 			engine.Run();
 		}
