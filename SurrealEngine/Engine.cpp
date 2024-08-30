@@ -170,10 +170,13 @@ void Engine::Run()
 				if (pawn && pawn->Player())
 				{
 					Array<ObjectTravelInfo> actorTravelInfo;
-					for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
+					if (ClientTravelInfo.TransferItems)
 					{
-						ObjectTravelInfo objInfo(item);
-						actorTravelInfo.push_back(std::move(objInfo));
+						for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
+						{
+							ObjectTravelInfo objInfo(item);
+							actorTravelInfo.push_back(std::move(objInfo));
+						}
 					}
 					// Add the pawn itself last
 					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
