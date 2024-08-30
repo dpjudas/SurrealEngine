@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NWarpZoneInfo.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NWarpZoneInfo::RegisterFunctions()
 {
@@ -11,10 +12,10 @@ void NWarpZoneInfo::RegisterFunctions()
 
 void NWarpZoneInfo::UnWarp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	Exception::Throw("WarpZoneInfo.UnWarp not implemented");
+	LogUnimplemented("WarpZoneInfo.UnWarp not implemented");
 }
 
 void NWarpZoneInfo::Warp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	Exception::Throw("WarpZoneInfo.Warp not implemented");
+	LogUnimplemented("WarpZoneInfo.Warp not implemented");
 }
