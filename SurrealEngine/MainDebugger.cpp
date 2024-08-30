@@ -38,7 +38,7 @@ int wmain(int argc, wchar_t* argv[])
 		HANDLE stdoutput = GetStdHandle(STD_OUTPUT_HANDLE);
 		if (stdoutput != INVALID_HANDLE_VALUE)
 		{
-			SetConsoleMode(stdoutput, ENABLE_VIRTUAL_TERMINAL_PROCESSING | ENABLE_PROCESSED_OUTPUT);
+			SetConsoleMode(stdoutput, ENABLE_VIRTUAL_TERMINAL_PROCESSING | ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | DISABLE_NEWLINE_AUTO_RETURN);
 		}
 
 		HANDLE stdinput = GetStdHandle(STD_INPUT_HANDLE);
