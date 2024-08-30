@@ -547,7 +547,7 @@ void ExpressionEvaluator::Expr(FloatToStringExpression* expr)
 void ExpressionEvaluator::Expr(ObjectToStringExpression* expr)
 {
 	UObject* obj = Eval(expr->Value).Value.ToObject();
-	Result.Value = ExpressionValue::StringValue(obj ? obj->Class->Name.ToString() + "/" + obj->Name.ToString() : "None");
+	Result.Value = ExpressionValue::StringValue(obj ? obj->package->GetPackageName().ToString() + "." + obj->Name.ToString() : "None");
 }
 
 void ExpressionEvaluator::Expr(NameToStringExpression* expr)
