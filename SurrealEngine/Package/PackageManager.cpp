@@ -71,42 +71,32 @@ Package* PackageManager::GetPackage(const NameString& name)
 	return package.get();
 }
 
-Package* PackageManager::GetPackageFromPath(const std::string& path)
+std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
 {
-	auto absolute_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "System"), path);
-
-	// Manually find the relevant package
-	for (auto& packageName : packageFilenames)
-	{
-		if (NameString(packageName.second) == NameString(absolute_path))
-		{
-			auto& package = packages[packageName.first];
-
-			if (!package)
-				package = std::make_unique<Package>(this, packageName.first, packageName.second);
-
-			return package.get();
-		}
-			
-	}
-
-	Exception::Throw("Could not find package from the given path: " + path);
+	// Path is relative to the Maps folder?
+	// Or is it relative to the package requesting the map load?
+	// Or is it relative to the previous map?
+	// 
+	// Only one of the above is most likely true. Lets begin with assuming its relative to the Maps folder.
+	std::string name = FilePath::remove_extension(FilePath::last_component(path));
+	std::string absolute_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "Maps"), path);
+	return std::make_unique<Package>(this, name, absolute_path);
 }
 
-void PackageManager::UnloadPackage(const NameString& name)
+void PackageManager::UnloadMap(std::unique_ptr<Package> package)
 {
-	auto it = packages.find(name);
-	if (it != packages.end())
+	// Remove package from open streams cache:
+	auto streamit = openStreams.begin();
+	while (streamit != openStreams.end())
 	{
-		for (auto streamit = openStreams.begin(); streamit != openStreams.end(); ++streamit)
+		if (streamit->Pkg == package.get())
 		{
-			if (streamit->Pkg == it->second.get())
-			{
-				openStreams.erase(streamit);
-				break;
-			}
+			streamit = openStreams.erase(streamit);
 		}
-		packages.erase(it);
+		else
+		{
+			++streamit;
+		}
 	}
 }
 

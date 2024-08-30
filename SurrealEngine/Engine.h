@@ -122,10 +122,11 @@ public:
 	ULevelInfo* EntryLevelInfo = nullptr;
 	ULevel* EntryLevel = nullptr;
 	UGameInfo* EntryGameInfo = nullptr;
+	std::unique_ptr<Package> EntryLevelPackage = nullptr;
 
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
-	Package* LevelPackage = nullptr;
+	std::unique_ptr<Package> LevelPackage;
 	UGameInfo* GameInfo = nullptr;
 	UTexture* DefaultTexture = nullptr;
 	struct

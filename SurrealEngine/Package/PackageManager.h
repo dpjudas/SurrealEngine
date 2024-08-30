@@ -34,10 +34,10 @@ public:
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
 
 	Package *GetPackage(const NameString& name);
-	Package *GetPackageFromPath(const std::string& path);
 	Array<NameString> GetPackageNames() const;
 
-	void UnloadPackage(const NameString& name);
+	std::unique_ptr<Package> LoadMap(const std::string& path);
+	void UnloadMap(std::unique_ptr<Package> package);
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 

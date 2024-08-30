@@ -277,9 +277,9 @@ void Engine::LoadEntryMap()
 	LoadMap(GetDefaultURL("Entry"));
 	EntryLevelInfo = LevelInfo;
 	EntryLevel = Level;
+	EntryLevelPackage = std::move(LevelPackage);
 	LevelInfo = nullptr;
 	Level = nullptr;
-	LevelPackage = nullptr;
 }
 
 void Engine::UnloadMap()
@@ -287,13 +287,9 @@ void Engine::UnloadMap()
 	if (!LevelPackage)
 		return;
 
-	NameString packageName = LevelPackage->GetPackageName();
-
 	LevelInfo = nullptr;
 	Level = nullptr;
-	LevelPackage = nullptr;
-
-	packages->UnloadPackage(packageName);
+	packages->UnloadMap(std::move(LevelPackage));
 }
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
@@ -310,12 +306,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	// Load map objects
 
-	// Determine if we're getting a relative path
-	// Which is the case with Unreal's New game menu
-	if (url.Map.substr(0, 2) == "..")
-		LevelPackage = packages->GetPackageFromPath(url.Map);
-	else
-		LevelPackage = packages->GetPackage(FilePath::remove_extension(url.Map));
+	LevelPackage = packages->LoadMap(url.Map);
 
 	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
 	if (packages->IsUnreal1())
