@@ -16,7 +16,7 @@ GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType:
 
 	std::shared_ptr<VulkanSurface> surface = CreateZVulkanSurface(this, instance);
 	if (!surface)
-		throw std::runtime_error("No vulkan surface found");
+		Exception::Throw("No vulkan surface found");
 
 	device = RenderDevice::Create(this, surface);
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));

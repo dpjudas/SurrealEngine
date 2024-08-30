@@ -70,7 +70,7 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 	auto colonPos = singleObjectText.find(':');
 
 	if (colonPos == std::string::npos)
-		throw std::runtime_error("No Class name found while parsing " + singleObjectText);
+		Exception::Throw("No Class name found while parsing " + singleObjectText);
 
 	std::string classNameAndType = singleObjectText.substr(0, colonPos);
 	std::string properties = singleObjectText.substr(colonPos + 1);
@@ -78,7 +78,7 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 	auto hashtagPos = classNameAndType.find('#');
 
 	if (hashtagPos == std::string::npos)
-		throw std::runtime_error("No # discriminator found while parsing " + singleObjectText);
+		Exception::Throw("No # discriminator found while parsing " + singleObjectText);
 
 	ObjectTravelInfo result;
 
@@ -97,7 +97,7 @@ ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText)
 		auto equalsPos = readProperty.find('=');
 
 		if (equalsPos == std::string::npos)
-			throw std::runtime_error("No = found while parsing property text: " + readProperty);
+			Exception::Throw("No = found while parsing property text: " + readProperty);
 
 		std::string propName = readProperty.substr(0, equalsPos);
 		std::string propValue = readProperty.substr(equalsPos + 1);

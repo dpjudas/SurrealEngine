@@ -66,7 +66,7 @@ static std::pair<NameString, std::string> ParseSingleProperty(std::string& propS
 	auto equalsPos = propString.find('=');
 
 	if (equalsPos == std::string::npos)
-		throw std::runtime_error("No = found in the property string: " + propString);
+		Exception::Throw("No = found in the property string: " + propString);
 
 	std::string name = propString.substr(0, equalsPos);
 	std::string value = propString.substr(equalsPos + 1);
@@ -87,10 +87,10 @@ static std::map<NameString, std::string> ParsePropertiesFromString(std::string p
 		return {};
 
 	if (propertiesString[0] != '{')
-		throw std::runtime_error("{ not found in the property string: " + propertiesString);
+		Exception::Throw("{ not found in the property string: " + propertiesString);
 
 	if (propertiesString[propertiesString.size() - 1] != '}')
-		throw std::runtime_error("} not found in the property string: " + propertiesString);
+		Exception::Throw("} not found in the property string: " + propertiesString);
 
 	std::string propsString = propertiesString.substr(1, propertiesString.find('}') - 1);
 
@@ -177,7 +177,7 @@ public:
 
 	virtual void SetValueFromString(void* data, const std::string& valueString) 
 	{ 
-		//throw std::runtime_error("SetValueFromString() is unimplemented on this Property type!");
+		//Exception::Throw("SetValueFromString() is unimplemented on this Property type!");
 	}
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
@@ -652,7 +652,7 @@ public:
 		NameString valueName(valueString);
 
 		if (valueName != "true" && valueName != "false" && valueName != "0" && valueName != "1")
-			throw std::runtime_error("Invalid bool value given to SetValueFromString(): " + valueString);
+			Exception::Throw("Invalid bool value given to SetValueFromString(): " + valueString);
 
 		bool value = (valueName == "true" || valueName == "1") ? true : false;
 

@@ -60,5 +60,7 @@ private:
 	bool GameRunning = false;
 	bool InCommandlet = false;
 
+	std::string WriteBuffer;
+
 	friend class Commandlet;
 };

@@ -451,8 +451,23 @@ void DebuggerApp::WriteOutput(const std::string& text)
 	if (text.empty())
 		return;
 
+	// Convert any type of string to valid Windows \r\n output
+	WriteBuffer.clear();
+	for (char c : text)
+	{
+		if (c != '\r' && c != '\n')
+		{
+			WriteBuffer.push_back(c);
+		}
+		else if (c == '\n')
+		{
+			WriteBuffer.push_back('\r');
+			WriteBuffer.push_back('\n');
+		}
+	}
+
 #ifdef WIN32
-	std::wstring text16 = to_utf16(text);
+	std::wstring text16 = to_utf16(WriteBuffer);
 	size_t pos = 0;
 	while (pos < text16.size())
 	{
