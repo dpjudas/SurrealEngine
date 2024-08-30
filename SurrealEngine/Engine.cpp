@@ -520,6 +520,7 @@ void Engine::LoginPlayer()
 
 				for (auto it = objInfo.Properties.begin(); it != objInfo.Properties.end(); it++)
 				{
+					LogMessage("Travelling '" + objInfo.ClassName + "' property '" + it->first + "': " + it->second);
 					UProperty* prop = acceptedActor->GetMemberProperty(it->first);
 					if (UObject::TryCast<UObjectProperty>(prop))
 					{
@@ -536,6 +537,15 @@ void Engine::LoginPlayer()
 					}
 				}
 			}
+		}
+		else
+		{
+			if (travelInfo.empty())
+				LogMessage("Skipping travel transfer. No travel data");
+			else if (playerName.empty())
+				LogMessage("Skipping travel transfer. Player name is empty");
+			else
+				LogMessage("Skipping travel transfer. Player not found in travel info");
 		}
 	}
 
