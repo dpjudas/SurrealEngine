@@ -143,6 +143,7 @@ void Engine::Run()
 								actorTravelInfo.push_back(std::move(objInfo));
 							}
 							std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+							LogMessage("Adding travel data for player '" + playerName + "'");
 							travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
 						}
 					}
@@ -548,7 +549,7 @@ void Engine::LoginPlayer()
 			else if (playerName.empty())
 				LogMessage("Skipping travel transfer. Player name is empty");
 			else
-				LogMessage("Skipping travel transfer. Player not found in travel info");
+				LogMessage("Skipping travel transfer. Player '" + playerName + "' not found in travel info");
 		}
 	}
 

@@ -13,7 +13,7 @@ public:
 
 	void AddOrReplaceOption(const std::string& newvalue);
 	bool HasOption(const std::string& name) const;
-	std::string GetOption(const std::string& name) const;
+	std::string GetOption(std::string name) const;
 	std::string GetAddressURL() const;
 	std::string GetOptions() const;
 	std::string GetPortal() const;

@@ -148,8 +148,10 @@ bool UnrealURL::HasOption(const std::string& name) const
 	return false;
 }
 
-std::string UnrealURL::GetOption(const std::string& name) const
+std::string UnrealURL::GetOption(std::string name) const
 {
+	for (char& c : name) c = std::tolower(c);
+
 	for (const std::string& option : Options)
 	{
 		if (option.size() >= name.size() + 1 && option[name.size()] == '=')
