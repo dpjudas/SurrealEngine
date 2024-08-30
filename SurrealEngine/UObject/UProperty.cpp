@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "UProperty.h"
+#include "Package/PackageManager.h"
 
 void UProperty::Load(ObjectStream* stream)
 {
@@ -131,15 +132,25 @@ void UObjectProperty::SetValueFromString(void* data, const std::string& valueStr
 	if (valueString.empty())
 		return;
 
-	// Casts to NULL for some reason
-	UObject* obj = *(UObject**)data;
+	UObject** propertyValue = (UObject**)data;
 
-	if (obj)
+	if (valueString.substr(0, 6) == "Class'")
 	{
-		auto parsedProperties = ParsePropertiesFromString(valueString);
+		*propertyValue = package->GetPackageManager()->FindClass(valueString.substr(6, valueString.length() - 7));
+	}
+	else
+	{
+		// This code is trying to set properties recursively into objects that already exists.
+		// Is this something UE1 actually does?
 
-		for (auto& prop : parsedProperties)
-			obj->SetPropertyFromString(prop.first, prop.second);
+		UObject* obj = *propertyValue;
+		if (obj)
+		{
+			auto parsedProperties = ParsePropertiesFromString(valueString);
+
+			for (auto& prop : parsedProperties)
+				obj->SetPropertyFromString(prop.first, prop.second);
+		}
 	}
 }
 

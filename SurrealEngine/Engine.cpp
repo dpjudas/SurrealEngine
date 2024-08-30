@@ -526,19 +526,7 @@ void Engine::LoginPlayer()
 				{
 					LogMessage("Travelling '" + objInfo.ClassName + "' property '" + it->first + "': " + it->second);
 					UProperty* prop = acceptedActor->GetMemberProperty(it->first);
-					if (UObject::TryCast<UObjectProperty>(prop))
-					{
-						auto properties = ParsePropertiesFromString(it->second);
-						UObject* foundObject = FindObject(properties["Name"], properties["Class"]);
-						if (foundObject)
-						{
-							*static_cast<UObject**>(acceptedActor->GetProperty(prop)) = foundObject;
-						}
-					}
-					else
-					{
-						acceptedActor->SetPropertyFromString(it->first, it->second);
-					}
+					acceptedActor->SetPropertyFromString(it->first, it->second);
 				}
 			}
 		}
