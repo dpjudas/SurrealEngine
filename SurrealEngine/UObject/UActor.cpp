@@ -2490,10 +2490,16 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 	CollisionHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
-	vec3 N = hits.front().Normal;
+	// Do not attempt to create a decal if we hit a surface that's invisible or a fake backdrop
+	auto& hit = hits.front();
+	if (hit.Node && (XLevel()->Model->Surfaces[hit.Node->Surf].PolyFlags & PF_FakeBackdrop 
+		|| XLevel()->Model->Surfaces[hit.Node->Surf].PolyFlags & PF_Invisible))
+		return nullptr;
+
+	vec3 N = hit.Normal;
 	vec3 xdir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
 	vec3 ydir = cross(N, xdir);
-	vec3 pos = Location() + dirNormalized * hits.front().Fraction + N;
+	vec3 pos = Location() + dirNormalized * hit.Fraction + N;
 
 	float usize = (float)Texture()->USize();
 	float vsize = (float)Texture()->VSize();
