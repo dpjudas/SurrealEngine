@@ -17,8 +17,8 @@ sha512sums=('SKIP')
 
 build() {
   cd SurrealEngine
-  mkdir build
-  cd build
+  [[ -d build ]] && rm -rf build
+  mkdir build && cd build
   cmake -DCMAKE_BUILD_TYPE=Release ..
 
   make -j 16
