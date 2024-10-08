@@ -15,6 +15,11 @@ license=('BSD-3-Clause AND MIT AND various others')
 source=("git+${url}.git")
 sha512sums=('SKIP')
 
+pkgver() {
+  cd "${srcdir}/SurrealEngine"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
 build() {
   cd SurrealEngine
   [[ -d build ]] && rm -rf build
@@ -33,6 +38,13 @@ package() {
 
   # Copy SurrealEngine.pk3
   install -Dm755 "${srcdir}/SurrealEngine/build/SurrealEngine.pk3" "${pkgdir}/usr/share/surrealengine/SurrealEngine.pk3"
+
+  # Copy license file and readme
+  install -Dm644 "${srcdir}/SurrealEngine/LICENSE.md" "${pkgdir}/usr/share/licenses/${pkgname}"
+
+  mkdir -p "${pkgdir}/usr/share/doc/surrealengine/"
+
+  install -Dm644 "${srcdir}/SurrealEngine/README.md" "${pkgdir}/usr/share/doc/surrealengine/readme.md"
 }
 
 post_install() {
