@@ -3,7 +3,7 @@
 
 pkgname=surrealengine-git
 pkgdesc="A reimplementation of Unreal Engine 1 (Git version)"
-pkgver=0.0.1
+pkgver=r1042.784a270
 pkgrel=1
 arch=('x86_64')
 depends=('libx11' 'spirv-tools' 'vulkan-icd-loader' 'vulkan-driver' 'sdl2' 'alsa-lib')
