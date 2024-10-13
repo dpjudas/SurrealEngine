@@ -30,7 +30,8 @@ At the time of this writing, SurrealEngine can detect the following UE1 games:
 * Tactical-Ops: Assault on Terror (v3.4.0 and v3.5.0 - both running under UT436 and UT469 engines)
 * Wheel of Time (v333)
 
-From the list above, only Unreal Tournament v436 and Unreal Gold v226 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes.
+> [!NOTE]
+> From the list above, only Unreal Tournament v436 and Unreal Gold v226 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes.
 
 ### Unreal Tournament v436
 
@@ -77,6 +78,13 @@ Note that these packages won't always have the exact names given above, as it ca
 ### Ubuntu
 
     # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl2-dev libxkbcommon-dev waylandpp-dev
+
+### Arch Linux
+
+> [!NOTE]
+> [An AUR package is available](https://aur.archlinux.org/packages/surrealengine-git).
+
+    # pacman -S libx11 gcc git cmake sdl2 alsa-lib waylandpp
 
 Once you've installed all of the prerequisites, enter these commands in the given order from the folder you want to clone the repo to:
 
