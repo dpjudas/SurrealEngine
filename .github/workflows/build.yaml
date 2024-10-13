@@ -120,7 +120,7 @@ jobs:
         if ("${{ runner.os }}" STREQUAL "Windows")
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           execute_process(
-            COMMAND sudo apt-get install libsdl2-dev libopenal-dev
+            COMMAND sudo apt-get install libsdl2-dev libopenal-dev libdbus-1-dev
           )
         elseif ("${{ runner.os }}" STREQUAL "macOS")
           execute_process(
