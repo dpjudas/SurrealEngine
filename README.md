@@ -51,7 +51,15 @@ Only the intro flyby works. No keyboard or mouse inputs will be detected, as Deu
 
 You can simply copy paste the SurrealEngine executable inside the System folder of your UE1 game of choice, and run it from there. If no game folder is specified, and the executable isn't in a System folder, the engine will search the registry (Windows only) for the registry keys Epic originally set. If no URL is specified it will use the default URL in the ini file (per default the intro map). The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
 
-## Windows build instructions
+## Packages
+
+Surreal Engine is available on:
+
+* AUR: https://aur.archlinux.org/packages/surrealengine-git
+
+## Building Surreal Engine
+
+### Windows
 
 Use CMake to build the project. A recent version of Visual Studio, and MSVC compiler that supports C++17 is required.
 
@@ -59,7 +67,7 @@ On Windows, SDL2 is an optional dependency that you need to supply locally yours
 
 Other than that there are no other external third party dependencies.
 
-## Linux build instructions
+### Linux
 
 Use CMake to build the project. You're gonna need the development versions of the following packages:
 
@@ -75,16 +83,17 @@ On Linux, SDL2 is required, as SurrealEngine will utilise it for its windowing f
 
 Note that these packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
 
-### Ubuntu
+#### Installing the prerequisite packages
+
+**Ubuntu**
 
     # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl2-dev libxkbcommon-dev waylandpp-dev
 
-### Arch Linux
-
-> [!NOTE]
-> [An AUR package is available](https://aur.archlinux.org/packages/surrealengine-git).
+**Arch Linux**
 
     # pacman -S libx11 gcc git cmake sdl2 alsa-lib waylandpp
+
+#### After installing prerequisites
 
 Once you've installed all of the prerequisites, enter these commands in the given order from the folder you want to clone the repo to:
 
