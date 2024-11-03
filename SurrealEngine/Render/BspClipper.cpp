@@ -3,7 +3,7 @@
 #include "BspClipper.h"
 #include "Math/bbox.h"
 
-#ifndef NO_SSE
+#ifndef NOSSE
 #include <immintrin.h>
 #endif
 
@@ -247,7 +247,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 	float viewport_width = (float)ViewportWidth;
 	float viewport_height = (float)ViewportHeight;
 
-#ifdef NO_SSE
+#ifdef NOSSE
 	// Map to 2D viewport:
 	for (int j = 0; j < numclipvert; j++)
 	{
@@ -356,7 +356,7 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 
 	// halfspace clip distances
 	static const int numclipdistances = 6; // 9;
-#ifdef NO_SSE
+#ifdef NOSSE
 	float clipdistance[numclipdistances * 3];
 	bool needsclipping = false;
 	float* clipd = clipdistance;
@@ -441,7 +441,7 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 		for (int i = 0; i < inputverts; i++)
 		{
 			int j = (i + 1) % inputverts;
-#ifdef NO_SSE
+#ifdef NOSSE
 			float clipdistance1 =
 				clipdistance[0 * numclipdistances + p] * input[i * 3 + 0] +
 				clipdistance[1 * numclipdistances + p] * input[i * 3 + 1] +

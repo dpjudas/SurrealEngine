@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "mat.h"
 #include <cmath>
-#ifndef NO_SSE
+#ifndef NOSSE
 #include <emmintrin.h>
 #endif
 #include <string.h>
@@ -199,7 +199,7 @@ mat4 mat4::operator*(const mat4 &mult) const
 
 vec4 mat4::operator*(const vec4 &v) const
 {
-#ifdef NO_SSE
+#ifdef NOSSE
 	vec4 result;
 	result.x = matrix[0 * 4 + 0] * v.x + matrix[1 * 4 + 0] * v.y + matrix[2 * 4 + 0] * v.z + matrix[3 * 4 + 0] * v.w;
 	result.y = matrix[0 * 4 + 1] * v.x + matrix[1 * 4 + 1] * v.y + matrix[2 * 4 + 1] * v.z + matrix[3 * 4 + 1] * v.w;
