@@ -188,7 +188,14 @@ VkSurfaceKHR SDL2NativeHandle::VulkanCreateSurface(VkInstance instance)
 
 std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateX11()
 {
-	return std::make_unique<X11DisplayBackend>();
+	try
+	{
+		return std::make_unique<X11DisplayBackend>();
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
 }
 
 #else
@@ -206,7 +213,14 @@ std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateX11()
 
 std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateWayland()
 {
-	return std::make_unique<WaylandDisplayBackend>();
+	try
+	{
+		return std::make_unique<WaylandDisplayBackend>();
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
 }
 
 #else
