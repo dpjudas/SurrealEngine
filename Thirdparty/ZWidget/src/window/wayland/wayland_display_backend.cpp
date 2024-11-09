@@ -198,6 +198,13 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 
         m_KeyboardSerial = serial;
 
+		// Find the window to focus on by checking the surface window owns.
+		for (auto win: s_Windows)
+		{
+			if (win->GetWindowSurface() == surfaceEntered)
+				m_FocusWindow = win;
+		}
+
         for (auto key: keysVec)
         {
             // keys parameter represents the keys pressed when entering the surface
@@ -228,6 +235,13 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
     };
 
     m_waylandPointer.on_enter() = [this](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
+		// Find the window to focus on by checking the surface window owns.
+		for (auto win: s_Windows)
+		{
+			if (win->GetWindowSurface() == surfaceEntered)
+				m_FocusWindow = win;
+		}
+
         OnMouseEnterEvent(serial);
     };
 
@@ -341,7 +355,8 @@ void WaylandDisplayBackend::OnMouseEnterEvent(uint32_t serial)
 
 void WaylandDisplayBackend::OnMouseLeaveEvent()
 {
-    m_FocusWindow->windowHost->OnWindowMouseLeave();
+    if (m_FocusWindow)
+		m_FocusWindow->windowHost->OnWindowMouseLeave();
 }
 
 void WaylandDisplayBackend::OnMousePressEvent(InputKey button)
@@ -356,8 +371,11 @@ void WaylandDisplayBackend::OnMouseReleaseEvent(InputKey button)
 
 void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 {
-    m_FocusWindow->m_SurfaceMousePos = surfacePos / m_FocusWindow->m_ScaleFactor;
-    m_FocusWindow->windowHost->OnWindowMouseMove(m_FocusWindow->m_SurfaceMousePos);
+	if (m_FocusWindow)
+	{
+		m_FocusWindow->m_SurfaceMousePos = surfacePos / m_FocusWindow->m_ScaleFactor;
+		m_FocusWindow->windowHost->OnWindowMouseMove(m_FocusWindow->m_SurfaceMousePos);
+	}
 }
 
 void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
@@ -390,6 +408,7 @@ std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* 
 void WaylandDisplayBackend::OnWindowCreated(WaylandDisplayWindow* window)
 {
     s_Windows.push_back(window);
+	m_FocusWindow = window;
 }
 
 void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
