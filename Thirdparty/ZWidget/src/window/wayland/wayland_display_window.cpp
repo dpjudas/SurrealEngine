@@ -187,7 +187,7 @@ void WaylandDisplayWindow::Activate()
 
 void WaylandDisplayWindow::ShowCursor(bool enable)
 {
-    ShowCursor(enable);
+    backend->ShowCursor(enable);
 }
 
 void WaylandDisplayWindow::LockCursor()
