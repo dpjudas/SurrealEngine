@@ -125,6 +125,7 @@ public:
 	Point MapToGlobal(const Point& pos) const override;
 
     void* GetNativeHandle() override { return (void*)&m_XDGToplevel; }
+    wayland::surface_t GetWindowSurface() { return m_AppSurface; }
 
 private:
     // Event handlers as otherwise linking DisplayWindowHost On...() functions with Wayland events directly crashes the app
