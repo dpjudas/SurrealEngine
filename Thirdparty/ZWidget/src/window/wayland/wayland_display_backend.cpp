@@ -361,12 +361,14 @@ void WaylandDisplayBackend::OnMouseLeaveEvent()
 
 void WaylandDisplayBackend::OnMousePressEvent(InputKey button)
 {
-    m_FocusWindow->windowHost->OnWindowMouseDown(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_FocusWindow)
+        m_FocusWindow->windowHost->OnWindowMouseDown(m_FocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::OnMouseReleaseEvent(InputKey button)
 {
-    m_FocusWindow->windowHost->OnWindowMouseUp(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_FocusWindow)
+        m_FocusWindow->windowHost->OnWindowMouseUp(m_FocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
@@ -380,7 +382,8 @@ void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 
 void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
 {
-    m_FocusWindow->windowHost->OnWindowMouseWheel(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_FocusWindow)
+        m_FocusWindow->windowHost->OnWindowMouseWheel(m_FocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::SetCursor(StandardCursor cursor)
