@@ -1,7 +1,6 @@
 #pragma once
 
-struct wl_display;
-struct wl_surface;
+#include <wayland-client-protocol.h>
 
 class WaylandNativeHandle
 {
