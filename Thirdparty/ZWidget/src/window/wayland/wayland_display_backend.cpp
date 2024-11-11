@@ -411,6 +411,8 @@ std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* 
 void WaylandDisplayBackend::OnWindowCreated(WaylandDisplayWindow* window)
 {
     s_Windows.push_back(window);
+    if (!window->m_PopupWindow)
+        m_FocusWindow = window;
 }
 
 void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
