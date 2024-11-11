@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "zwidget/window/window.h"
+#include "zwidget/window/waylandnativehandle.h"
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -124,7 +125,7 @@ public:
 	Point MapFromGlobal(const Point& pos) const override;
 	Point MapToGlobal(const Point& pos) const override;
 
-    void* GetNativeHandle() override { return (void*)&m_XDGToplevel; }
+    void* GetNativeHandle() override { return (void*)&m_NativeHandle; }
     wayland::surface_t GetWindowSurface() { return m_AppSurface; }
 
 private:
@@ -151,6 +152,9 @@ private:
     double m_ScaleFactor = 1.0;
 
     Point m_SurfaceMousePos = Point(0, 0);
+
+    WaylandNativeHandle m_NativeHandle;
+    RenderAPI m_renderAPI;
 
     wayland::data_device_t m_DataDevice;
     wayland::data_source_t m_DataSource;

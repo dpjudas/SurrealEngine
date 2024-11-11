@@ -4,9 +4,12 @@
 
 
 WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner, RenderAPI renderAPI)
-    : backend(backend), m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow)
+    : backend(backend), m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow), m_renderAPI(renderAPI)
 {
     m_AppSurface = backend->m_waylandCompositor.create_surface();
+
+    m_NativeHandle.display = backend->s_waylandDisplay;
+    m_NativeHandle.surface = m_AppSurface;
 
     if (backend->m_FractionalScaleManager)
     {
@@ -318,13 +321,15 @@ void WaylandDisplayWindow::OnExitEvent()
 
 void WaylandDisplayWindow::DrawSurface(uint32_t serial)
 {
-    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-    m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
+    if (m_renderAPI == RenderAPI::Unspecified || m_renderAPI == RenderAPI::Bitmap)
+    {
+        m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
+        m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
 
-    m_FrameCallback = m_AppSurface.frame();
+        m_FrameCallback = m_AppSurface.frame();
 
-    m_FrameCallback.on_done() = bind_mem_fn(&WaylandDisplayWindow::DrawSurface, this);
-
+        m_FrameCallback.on_done() = bind_mem_fn(&WaylandDisplayWindow::DrawSurface, this);
+    }
     m_AppSurface.commit();
 }
 
