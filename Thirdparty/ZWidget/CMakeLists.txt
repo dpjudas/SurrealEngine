@@ -5,6 +5,7 @@ if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
 	pkg_check_modules(DBUS REQUIRED dbus-1)
 	pkg_check_modules(WAYLANDPP
+		wayland-client
 		wayland-client++
 		wayland-client-extra++
 		wayland-client-unstable++
