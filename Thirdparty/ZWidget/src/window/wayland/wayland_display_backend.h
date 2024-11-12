@@ -3,14 +3,25 @@
 #include "window/window.h"
 #include "window/ztimer/ztimer.h"
 
+#include <wayland-client.h>
 #include <wayland-client.hpp>
 #include <wayland-client-protocol-extra.hpp>
 #include <wayland-client-protocol-unstable.hpp>
 #include <wayland-cursor.hpp>
 #include "wl_fractional_scaling_protocol.hpp"
 #include <linux/input.h>
+#include <poll.h>
 #include <map>
 #include <xkbcommon/xkbcommon.h>
+
+static short poll_single(int fd, short events, int timeout) {
+    pollfd pfd { .fd = fd, .events = events, .revents = 0 };
+    if (0 > poll(&pfd, 1, timeout)) {
+        throw std::runtime_error("poll() failed");
+    }
+
+    return pfd.revents;
+}
 
 class WaylandDisplayWindow;
 

@@ -239,10 +239,14 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		for (auto win: s_Windows)
 		{
 			if (win->GetWindowSurface() == surfaceEntered)
-				m_FocusWindow = win;
+            {
+                m_FocusWindow = win;
+            }
+
 		}
 
         OnMouseEnterEvent(serial);
+        OnMouseMoveEvent(Point(surfaceX, surfaceY));
     };
 
     m_waylandPointer.on_leave() = [this](uint32_t serial, wayland::surface_t surfaceLeft) {
@@ -427,9 +431,22 @@ void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
 
 void WaylandDisplayBackend::ProcessEvents()
 {
-    while (s_waylandDisplay.dispatch() > 0)
+    while (wl_display_prepare_read(s_waylandDisplay))
+        s_waylandDisplay.dispatch_pending();
+
+    while (wl_display_flush(s_waylandDisplay) < 0 && errno == EAGAIN)
+        poll_single(s_waylandDisplay.get_fd(), POLLOUT, -1);
+
+    if (poll_single(s_waylandDisplay.get_fd(), POLLIN, 0) & POLLIN)
     {
+        wl_display_read_events(s_waylandDisplay);
+        s_waylandDisplay.dispatch_pending();
     }
+    else
+        wl_display_cancel_read(s_waylandDisplay);
+
+    if (s_waylandDisplay.get_error())
+        throw std::runtime_error("Wayland Protocol Error");
 }
 
 void WaylandDisplayBackend::RunLoop()
