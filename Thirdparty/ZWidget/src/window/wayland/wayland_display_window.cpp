@@ -335,6 +335,9 @@ void WaylandDisplayWindow::DrawSurface(uint32_t serial)
 
 void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 {
+    if (width == 0 || height == 0)
+        return;
+
     if (shared_mem)
         shared_mem.reset();
 
