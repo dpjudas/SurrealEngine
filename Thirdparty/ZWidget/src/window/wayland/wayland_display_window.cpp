@@ -185,6 +185,8 @@ void WaylandDisplayWindow::Activate()
     xdgActivationToken.commit();  // This will set our token string
 
     backend->m_XDGActivation.activate(tokenString, m_AppSurface);
+    backend->m_FocusWindow = this;
+    backend->m_MouseFocusWindow = this;
     windowHost->OnWindowActivated();
 }
 
@@ -197,6 +199,7 @@ void WaylandDisplayWindow::LockCursor()
 {
     m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
     ShowCursor(false);
+    backend->SetMouseLocked(true);
 }
 
 void WaylandDisplayWindow::UnlockCursor()
@@ -204,6 +207,7 @@ void WaylandDisplayWindow::UnlockCursor()
     if (m_LockedPointer)
         m_LockedPointer.proxy_release();
     ShowCursor(true);
+    backend->SetMouseLocked(false);
 }
 
 void WaylandDisplayWindow::CaptureMouse()

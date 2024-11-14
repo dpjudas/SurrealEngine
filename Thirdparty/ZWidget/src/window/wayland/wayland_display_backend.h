@@ -62,6 +62,7 @@ public:
 	wayland::registry_t s_waylandRegistry;
 	std::vector<WaylandDisplayWindow*> s_Windows;
 	WaylandDisplayWindow* m_FocusWindow = nullptr;
+    WaylandDisplayWindow* m_MouseFocusWindow = nullptr; // Mouse focus should be tracked separately.
 
     wayland::compositor_t m_waylandCompositor;
     wayland::shm_t m_waylandSHM;
@@ -86,6 +87,9 @@ public:
 
     std::map<InputKey, bool> inputKeyStates; // True when the key is pressed, false when isn't
 
+    bool IsMouseLocked() { return hasMouseLock; }
+    void SetMouseLocked(bool val) { hasMouseLock = val; }
+
 private:
     void CheckNeedsUpdate();
 	void UpdateTimers();
@@ -99,6 +103,7 @@ private:
     void OnMousePressEvent(InputKey button);
     void OnMouseReleaseEvent(InputKey button);
     void OnMouseMoveEvent(Point surfacePos);
+    void OnMouseMoveRawEvent(int surfaceX, int surfaceY);
     void OnMouseWheelEvent(InputKey button);
 
     InputKey XKBKeySymToInputKey(xkb_keysym_t keySym);
@@ -108,6 +113,7 @@ private:
 
     bool hasKeyboard = false;
     bool hasPointer = false;
+    bool hasMouseLock = false;
 
     ZTimer::TimePoint m_previousTime;
     ZTimer::TimePoint m_currentTime;

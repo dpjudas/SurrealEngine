@@ -240,12 +240,13 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		{
 			if (win->GetWindowSurface() == surfaceEntered)
             {
-                m_FocusWindow = win;
+                m_MouseFocusWindow = win;
             }
 
 		}
 
         OnMouseEnterEvent(serial);
+
         OnMouseMoveEvent(Point(surfaceX, surfaceY));
     };
 
@@ -254,7 +255,10 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
     };
 
     m_waylandPointer.on_motion() = [this] (uint32_t serial, double surfaceX, double surfaceY) {
-        OnMouseMoveEvent(Point(surfaceX, surfaceY));
+        if (hasMouseLock)
+            OnMouseMoveRawEvent(int(surfaceX), int(surfaceY));
+        else
+            OnMouseMoveEvent(Point(surfaceX, surfaceY));
     };
 
     m_waylandPointer.on_button() = [this] (uint32_t serial, uint32_t time, uint32_t button, wayland::pointer_button_state state) {
@@ -301,11 +305,18 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
 {
     InputKey inputKey = XKBKeySymToInputKey(xkbKeySym);
 
+    if (!m_FocusWindow)
+    {
+        previousKey = InputKey::None;
+        m_keyboardDelayTimer.Stop();
+        m_keyboardRepeatTimer.Stop();
+        return;
+    }
+
     if (state == wayland::keyboard_key_state::pressed)
     {
         inputKeyStates[inputKey] = true;
-		if (m_FocusWindow)
-        	m_FocusWindow->windowHost->OnWindowKeyDown(inputKey);
+        m_FocusWindow->windowHost->OnWindowKeyDown(inputKey);
         if (inputKey != previousKey)
         {
             previousKey = inputKey;
@@ -317,11 +328,11 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
     if (state == wayland::keyboard_key_state::released)
     {
         inputKeyStates[inputKey] = false;
-		if (m_FocusWindow)
-        	m_FocusWindow->windowHost->OnWindowKeyUp(inputKey);
+        m_FocusWindow->windowHost->OnWindowKeyUp(inputKey);
         m_keyboardDelayTimer.Stop();
         m_keyboardRepeatTimer.Stop();
     }
+
 }
 
 void WaylandDisplayBackend::OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state)
@@ -359,35 +370,48 @@ void WaylandDisplayBackend::OnMouseEnterEvent(uint32_t serial)
 
 void WaylandDisplayBackend::OnMouseLeaveEvent()
 {
-    if (m_FocusWindow)
-		m_FocusWindow->windowHost->OnWindowMouseLeave();
+    if (m_MouseFocusWindow)
+    {
+        m_MouseFocusWindow->windowHost->OnWindowMouseLeave();
+        m_MouseFocusWindow = nullptr;
+    }
 }
 
 void WaylandDisplayBackend::OnMousePressEvent(InputKey button)
 {
-    if (m_FocusWindow)
-        m_FocusWindow->windowHost->OnWindowMouseDown(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_MouseFocusWindow)
+        m_MouseFocusWindow->windowHost->OnWindowMouseDown(m_MouseFocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::OnMouseReleaseEvent(InputKey button)
 {
-    if (m_FocusWindow)
-        m_FocusWindow->windowHost->OnWindowMouseUp(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_MouseFocusWindow)
+        m_MouseFocusWindow->windowHost->OnWindowMouseUp(m_MouseFocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 {
-	if (m_FocusWindow)
+	if (m_MouseFocusWindow)
 	{
-		m_FocusWindow->m_SurfaceMousePos = surfacePos / m_FocusWindow->m_ScaleFactor;
-		m_FocusWindow->windowHost->OnWindowMouseMove(m_FocusWindow->m_SurfaceMousePos);
+		m_MouseFocusWindow->m_SurfaceMousePos = surfacePos / m_MouseFocusWindow->m_ScaleFactor;
+		m_MouseFocusWindow->windowHost->OnWindowMouseMove(m_MouseFocusWindow->m_SurfaceMousePos);
 	}
+}
+
+void WaylandDisplayBackend::OnMouseMoveRawEvent(int surfaceX, int surfaceY)
+{
+    if (m_MouseFocusWindow && hasMouseLock)
+    {
+        //int xdif = m_MouseFocusWindow->m_SurfaceMousePos.x - surfaceX;
+        //int ydif = m_MouseFocusWindow->m_SurfaceMousePos.y - surfaceY;
+        m_MouseFocusWindow->windowHost->OnWindowRawMouseMove(surfaceX, surfaceY);
+    }
 }
 
 void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
 {
-    if (m_FocusWindow)
-        m_FocusWindow->windowHost->OnWindowMouseWheel(m_FocusWindow->m_SurfaceMousePos, button);
+    if (m_MouseFocusWindow)
+        m_MouseFocusWindow->windowHost->OnWindowMouseWheel(m_MouseFocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::SetCursor(StandardCursor cursor)
@@ -416,7 +440,11 @@ void WaylandDisplayBackend::OnWindowCreated(WaylandDisplayWindow* window)
 {
     s_Windows.push_back(window);
     if (!window->m_PopupWindow)
+    {
         m_FocusWindow = window;
+        m_MouseFocusWindow = window;
+    }
+
 }
 
 void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
@@ -427,6 +455,9 @@ void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
 
     if (m_FocusWindow == window)
         m_FocusWindow = nullptr;
+
+    if (m_MouseFocusWindow == window)
+        m_MouseFocusWindow = nullptr;
 }
 
 void WaylandDisplayBackend::ProcessEvents()
