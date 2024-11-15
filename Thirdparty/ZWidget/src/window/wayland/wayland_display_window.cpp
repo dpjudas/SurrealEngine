@@ -197,27 +197,30 @@ void WaylandDisplayWindow::ShowCursor(bool enable)
 
 void WaylandDisplayWindow::LockCursor()
 {
-    ShowCursor(false);
     m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
     backend->SetMouseLocked(true);
+    ShowCursor(false);
 }
 
 void WaylandDisplayWindow::UnlockCursor()
 {
     if (m_LockedPointer)
         m_LockedPointer.proxy_release();
-    ShowCursor(true);
     backend->SetMouseLocked(false);
+    ShowCursor(true);
 }
 
 void WaylandDisplayWindow::CaptureMouse()
 {
-    backend->SetMouseLocked(true);
+    m_ConfinedPointer = backend->m_PointerConstraints.confine_pointer(GetWindowSurface(), backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
+    ShowCursor(false);
 }
 
 void WaylandDisplayWindow::ReleaseMouseCapture()
 {
-    backend->SetMouseLocked(false);
+    if (m_ConfinedPointer)
+        m_ConfinedPointer.proxy_release();
+    ShowCursor(true);
 }
 
 void WaylandDisplayWindow::Update()

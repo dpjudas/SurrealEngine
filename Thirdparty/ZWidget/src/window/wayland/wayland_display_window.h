@@ -173,6 +173,7 @@ private:
     wayland::zxdg_exported_v2_t m_XDGExported;
 
     wayland::zwp_locked_pointer_v1_t m_LockedPointer;
+    wayland::zwp_confined_pointer_v1_t m_ConfinedPointer;
 
     wayland::callback_t m_FrameCallback;
 
