@@ -197,8 +197,8 @@ void WaylandDisplayWindow::ShowCursor(bool enable)
 
 void WaylandDisplayWindow::LockCursor()
 {
-    m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
     ShowCursor(false);
+    m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
     backend->SetMouseLocked(true);
 }
 
@@ -212,12 +212,12 @@ void WaylandDisplayWindow::UnlockCursor()
 
 void WaylandDisplayWindow::CaptureMouse()
 {
-
+    backend->SetMouseLocked(true);
 }
 
 void WaylandDisplayWindow::ReleaseMouseCapture()
 {
-
+    backend->SetMouseLocked(false);
 }
 
 void WaylandDisplayWindow::Update()
