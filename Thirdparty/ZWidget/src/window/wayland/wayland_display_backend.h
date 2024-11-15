@@ -23,6 +23,37 @@ static short poll_single(int fd, short events, int timeout) {
     return pfd.revents;
 }
 
+enum pointer_event_mask {
+       POINTER_EVENT_ENTER = 1 << 0,
+       POINTER_EVENT_LEAVE = 1 << 1,
+       POINTER_EVENT_MOTION = 1 << 2,
+       POINTER_EVENT_BUTTON = 1 << 3,
+       POINTER_EVENT_AXIS = 1 << 4,
+       POINTER_EVENT_AXIS_SOURCE = 1 << 5,
+       POINTER_EVENT_AXIS_STOP = 1 << 6,
+       POINTER_EVENT_AXIS_DISCRETE = 1 << 7,
+       POINTER_EVENT_AXIS_120 = 1 << 8,
+       POINTER_EVENT_RELATIVE_MOTION = 1 << 9,
+};
+
+struct WaylandPointerEvent
+{
+    uint32_t event_mask;
+    double surfaceX, surfaceY;
+    double dx, dy;
+    uint32_t button;
+    wayland::pointer_button_state state;
+    uint32_t time;
+    uint32_t serial;
+    struct {
+        bool valid;
+        double value;
+        int32_t discrete;
+        int32_t value120;
+    } axes[2];
+    wayland::pointer_axis_source axis_source;
+};
+
 class WaylandDisplayWindow;
 
 class WaylandDisplayBackend : public DisplayBackend
@@ -81,6 +112,9 @@ public:
     wayland::keyboard_t m_waylandKeyboard;
     wayland::pointer_t m_waylandPointer;
 
+    wayland::zwp_relative_pointer_manager_v1_t m_RelativePointerManager;
+    wayland::zwp_relative_pointer_v1_t m_RelativePointer;
+
     wayland::cursor_image_t m_cursorImage;
     wayland::surface_t m_cursorSurface;
     wayland::buffer_t m_cursorBuffer;
@@ -129,4 +163,6 @@ private:
     xkb_context* m_KeymapContext = nullptr;
     xkb_keymap* m_Keymap = nullptr;
     xkb_state* m_KeyboardState = nullptr;
+
+    WaylandPointerEvent currentPointerEvent = {0};
 };

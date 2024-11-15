@@ -39,21 +39,26 @@ WaylandDisplayBackend::WaylandDisplayBackend()
             s_waylandRegistry.bind(name, m_XDGDecorationManager, 1);
         if (interface == wayland::fractional_scale_manager_v1_t::interface_name)
             s_waylandRegistry.bind(name, m_FractionalScaleManager, 1);
+        if (interface == wayland::zwp_relative_pointer_manager_v1_t::interface_name)
+            s_waylandRegistry.bind(name, m_RelativePointerManager, 1);
     };
 
     s_waylandDisplay.roundtrip();
 
     if (!m_XDGWMBase)
-        throw std::runtime_error("WaylandDisplayWindow: XDG-Shell is required!");
+        throw std::runtime_error("WaylandDisplayBackend: XDG-Shell is required!");
 
     if (!m_XDGOutputManager)
-        throw std::runtime_error("WaylandDisplayWindow: xdg-output-manager-v1 is required!");
+        throw std::runtime_error("WaylandDisplayBackend: xdg-output-manager-v1 is required!");
 
     if (!m_XDGExporter)
-        throw std::runtime_error("WaylandDisplayWindow: xdg-foreign-unstable-v2 is required!");
+        throw std::runtime_error("WaylandDisplayBackend: xdg-foreign-unstable-v2 is required!");
 
     if (!m_PointerConstraints)
-        throw std::runtime_error("WaylandDisplayWindow: pointer-constrains-unstable-v1 is required!");
+        throw std::runtime_error("WaylandDisplayBackend: pointer-constrains-unstable-v1 is required!");
+
+    if (!m_RelativePointerManager)
+        throw std::runtime_error("WaylandDisplayBackend: relative-pointer-unstable-v1 is required!");
 
     m_waylandOutput.on_mode() = [this] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
         s_ScreenSize = Size(width, height);
@@ -100,6 +105,7 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 
     m_waylandKeyboard = m_waylandSeat.get_keyboard();
     m_waylandPointer = m_waylandSeat.get_pointer();
+    m_RelativePointer = m_RelativePointerManager.get_relative_pointer(m_waylandPointer);
 
 	ConnectDeviceEvents();
 
@@ -245,42 +251,122 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 
 		}
 
-        OnMouseEnterEvent(serial);
-
-        OnMouseMoveEvent(Point(surfaceX, surfaceY));
+		currentPointerEvent.event_mask |= POINTER_EVENT_ENTER;
+		currentPointerEvent.serial = serial;
+        currentPointerEvent.surfaceX = surfaceX;
+        currentPointerEvent.surfaceY = surfaceY;
     };
 
     m_waylandPointer.on_leave() = [this](uint32_t serial, wayland::surface_t surfaceLeft) {
-        OnMouseLeaveEvent();
+        currentPointerEvent.event_mask |= POINTER_EVENT_LEAVE;
+        currentPointerEvent.serial = serial;
     };
 
     m_waylandPointer.on_motion() = [this] (uint32_t serial, double surfaceX, double surfaceY) {
-        if (hasMouseLock)
-            OnMouseMoveRawEvent(int(surfaceX), int(surfaceY));
-        else
-            OnMouseMoveEvent(Point(surfaceX, surfaceY));
+        currentPointerEvent.event_mask |= POINTER_EVENT_MOTION;
+        currentPointerEvent.serial = serial;
+        currentPointerEvent.surfaceX = surfaceX;
+        currentPointerEvent.surfaceY = surfaceY;
     };
 
     m_waylandPointer.on_button() = [this] (uint32_t serial, uint32_t time, uint32_t button, wayland::pointer_button_state state) {
-        if (state == wayland::pointer_button_state::pressed)
-            OnMousePressEvent(LinuxInputEventCodeToInputKey(button));
-        if (state == wayland::pointer_button_state::released)
-            OnMouseReleaseEvent(LinuxInputEventCodeToInputKey(button));
+        currentPointerEvent.event_mask |= POINTER_EVENT_BUTTON;
+        currentPointerEvent.serial = serial;
+        currentPointerEvent.time = time;
+        currentPointerEvent.button = button;
+        currentPointerEvent.state = state;
     };
 
     m_waylandPointer.on_axis() = [this] (uint32_t serial, wayland::pointer_axis axis, double value) {
-        if (axis == wayland::pointer_axis::vertical_scroll && value > 0)
-            OnMouseWheelEvent(InputKey::MouseWheelDown);
-        if (axis == wayland::pointer_axis::vertical_scroll && value < 0)
-            OnMouseWheelEvent(InputKey::MouseWheelUp);
+        currentPointerEvent.event_mask |= POINTER_EVENT_AXIS;
+        currentPointerEvent.serial = serial;
+        currentPointerEvent.axes[uint32_t(axis)].value = value;
+        currentPointerEvent.axes[uint32_t(axis)].valid = true;
     };
 
     // High resolution scroll event
     m_waylandPointer.on_axis_value120() = [this] (wayland::pointer_axis axis, int32_t value) {
-        if (axis == wayland::pointer_axis::vertical_scroll && value > 0)
-            OnMouseWheelEvent(InputKey::MouseWheelDown);
-        if (axis == wayland::pointer_axis::vertical_scroll && value < 0)
-            OnMouseWheelEvent(InputKey::MouseWheelUp);
+        currentPointerEvent.event_mask |= POINTER_EVENT_AXIS_120;
+        currentPointerEvent.axes[uint32_t(axis)].valid = true;
+        currentPointerEvent.axes[uint32_t(axis)].value120 = value;
+    };
+
+    m_waylandPointer.on_axis_source() = [this] (wayland::pointer_axis_source axis) {
+        currentPointerEvent.event_mask |= POINTER_EVENT_AXIS_SOURCE;
+        currentPointerEvent.axis_source = axis;
+    };
+
+    m_waylandPointer.on_axis_stop() = [this] (uint32_t time, wayland::pointer_axis axis) {
+        currentPointerEvent.event_mask |= POINTER_EVENT_AXIS_STOP;
+        currentPointerEvent.time = time;
+        currentPointerEvent.axes[uint32_t(axis)].valid = true;
+    };
+
+    m_RelativePointer.on_relative_motion() = [this] (uint32_t utime_hi, uint32_t utime_lo,
+                                                     double dx, double dy,
+                                                     double dx_unaccel, double dy_unaccel) {
+        currentPointerEvent.event_mask |= POINTER_EVENT_RELATIVE_MOTION;
+        currentPointerEvent.time = utime_lo;
+        currentPointerEvent.dx = dx;
+        currentPointerEvent.dy = dy;
+    };
+
+    m_waylandPointer.on_frame() = [this] () {
+        if (currentPointerEvent.event_mask & POINTER_EVENT_ENTER)
+            OnMouseEnterEvent(currentPointerEvent.serial);
+
+        if (currentPointerEvent.event_mask & POINTER_EVENT_LEAVE)
+            OnMouseLeaveEvent();
+
+        if (currentPointerEvent.event_mask & POINTER_EVENT_MOTION)
+        {
+            OnMouseMoveEvent(Point(currentPointerEvent.surfaceX, currentPointerEvent.surfaceY));
+        }
+
+        if (currentPointerEvent.event_mask & POINTER_EVENT_RELATIVE_MOTION)
+        {
+            if (hasMouseLock)
+                OnMouseMoveRawEvent(int(currentPointerEvent.dx), int(currentPointerEvent.dy));
+        }
+
+        if (currentPointerEvent.event_mask & POINTER_EVENT_BUTTON)
+        {
+            InputKey ikey = LinuxInputEventCodeToInputKey(currentPointerEvent.button);
+            if (currentPointerEvent.state == wayland::pointer_button_state::pressed)
+                OnMousePressEvent(ikey);
+            else // released
+                OnMouseReleaseEvent(ikey);
+        }
+
+        uint32_t axisevents = POINTER_EVENT_AXIS | POINTER_EVENT_AXIS_120 | POINTER_EVENT_AXIS_SOURCE | POINTER_EVENT_AXIS_STOP;
+
+        if (currentPointerEvent.event_mask & axisevents)
+        {
+            for (size_t idx = 0 ; idx < 2 ; idx++)
+            {
+                if (!currentPointerEvent.axes[idx].valid)
+                    continue;
+
+                if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS)
+                {
+                    if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value > 0)
+                        OnMouseWheelEvent(InputKey::MouseWheelDown);
+                    if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value < 0)
+                        OnMouseWheelEvent(InputKey::MouseWheelUp);
+                }
+
+                if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS_120)
+                {
+                    if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value120 > 0)
+                        OnMouseWheelEvent(InputKey::MouseWheelDown);
+                    if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value120 < 0)
+                        OnMouseWheelEvent(InputKey::MouseWheelUp);
+                }
+            }
+        }
+
+        // Reset everything once all the events are processed
+        currentPointerEvent = {0};
     };
 
     m_keyboardDelayTimer = ZTimer();
@@ -373,7 +459,7 @@ void WaylandDisplayBackend::OnMouseLeaveEvent()
     if (m_MouseFocusWindow)
     {
         m_MouseFocusWindow->windowHost->OnWindowMouseLeave();
-        m_MouseFocusWindow = nullptr;
+        //m_MouseFocusWindow = nullptr;
     }
 }
 
@@ -398,13 +484,11 @@ void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 	}
 }
 
-void WaylandDisplayBackend::OnMouseMoveRawEvent(int surfaceX, int surfaceY)
+void WaylandDisplayBackend::OnMouseMoveRawEvent(int dx, int dy)
 {
-    if (m_MouseFocusWindow && hasMouseLock)
+    if (m_MouseFocusWindow)
     {
-        //int xdif = m_MouseFocusWindow->m_SurfaceMousePos.x - surfaceX;
-        //int ydif = m_MouseFocusWindow->m_SurfaceMousePos.y - surfaceY;
-        m_MouseFocusWindow->windowHost->OnWindowRawMouseMove(surfaceX, surfaceY);
+        m_MouseFocusWindow->windowHost->OnWindowRawMouseMove(dx, dy);
     }
 }
 
