@@ -26,7 +26,7 @@ WaylandDisplayBackend::WaylandDisplayBackend()
         if (interface == wayland::data_device_manager_t::interface_name)
             s_waylandRegistry.bind(name, m_DataDeviceManager, 3);
         if (interface == wayland::xdg_wm_base_t::interface_name)
-            s_waylandRegistry.bind(name, m_XDGWMBase, 1);
+            s_waylandRegistry.bind(name, m_XDGWMBase, 4);
         if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
             s_waylandRegistry.bind(name, m_XDGOutputManager, version);
         if (interface == wayland::zxdg_exporter_v2_t::interface_name)
@@ -205,11 +205,15 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
         m_KeyboardSerial = serial;
 
 		// Find the window to focus on by checking the surface window owns.
-		for (auto win: s_Windows)
-		{
-			if (win->GetWindowSurface() == surfaceEntered)
-				m_FocusWindow = win;
-		}
+        if (!m_FocusWindow || m_FocusWindow->GetWindowSurface() != surfaceEntered)
+        {
+            for (auto win: s_Windows)
+            {
+                if (win->GetWindowSurface() == surfaceEntered)
+                    m_FocusWindow = win;
+            }
+        }
+
 
         for (auto key: keysVec)
         {
@@ -242,13 +246,16 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 
     m_waylandPointer.on_enter() = [this](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
 		// Find the window to focus on by checking the surface window owns.
-		for (auto win: s_Windows)
-		{
-			if (win->GetWindowSurface() == surfaceEntered)
+        if (!m_MouseFocusWindow || m_MouseFocusWindow->GetWindowSurface() != surfaceEntered)
+        {
+            for (auto win: s_Windows)
             {
-                m_MouseFocusWindow = win;
+                if (win->GetWindowSurface() == surfaceEntered)
+                {
+                    m_MouseFocusWindow = win;
+                }
             }
-		}
+        }
 
 		currentPointerEvent.event_mask |= POINTER_EVENT_ENTER;
 		currentPointerEvent.serial = serial;
@@ -390,14 +397,6 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
 {
     InputKey inputKey = XKBKeySymToInputKey(xkbKeySym);
 
-    if (!m_FocusWindow)
-    {
-        //previousKey = InputKey::None;
-        //m_keyboardDelayTimer.Stop();
-        //m_keyboardRepeatTimer.Stop();
-        return;
-    }
-
     if (state == wayland::keyboard_key_state::pressed)
     {
         inputKeyStates[inputKey] = true;
@@ -413,7 +412,8 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
     if (state == wayland::keyboard_key_state::released)
     {
         inputKeyStates[inputKey] = false;
-        m_FocusWindow->windowHost->OnWindowKeyUp(inputKey);
+        if (m_FocusWindow)
+            m_FocusWindow->windowHost->OnWindowKeyUp(inputKey);
         m_keyboardDelayTimer.Stop();
         m_keyboardRepeatTimer.Stop();
     }
@@ -425,8 +425,7 @@ void WaylandDisplayBackend::OnKeyboardCharEvent(const char* ch, wayland::keyboar
     if (state == wayland::keyboard_key_state::pressed)
     {
         previousChars = std::string(ch);
-		if (m_FocusWindow)
-        	m_FocusWindow->windowHost->OnWindowKeyChar(previousChars);
+        m_FocusWindow->windowHost->OnWindowKeyChar(previousChars);
     }
 }
 
@@ -438,7 +437,7 @@ void WaylandDisplayBackend::OnKeyboardDelayEnd()
 
 void WaylandDisplayBackend::OnKeyboardRepeat()
 {
-    if (inputKeyStates[previousKey] && m_FocusWindow)
+    if (inputKeyStates[previousKey])
     {
         m_FocusWindow->windowHost->OnWindowKeyDown(previousKey);
         m_FocusWindow->windowHost->OnWindowKeyChar(previousChars);
@@ -570,8 +569,8 @@ void WaylandDisplayBackend::RunLoop()
     {
         CheckNeedsUpdate();
         UpdateTimers();
-        if (s_waylandDisplay.dispatch() == -1)
-            break;
+
+        ProcessEvents();
     }
 }
 

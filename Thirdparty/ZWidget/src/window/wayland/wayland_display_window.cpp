@@ -76,6 +76,11 @@ void WaylandDisplayWindow::InitializeToplevel()
         OnExitEvent();
     };
 
+    m_XDGToplevel.on_configure_bounds() = [this] (int32_t width, int32_t height)
+    {
+
+    };
+
     m_XDGExported = backend->m_XDGExporter.export_toplevel(m_AppSurface);
 
     m_XDGExported.on_handle() = [&] (std::string handleStr) {
@@ -99,6 +104,8 @@ void WaylandDisplayWindow::InitializePopup()
     m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
         SetClientFrame(Rect::xywh(x, y, width, height));
     };
+
+    //m_XDGPopup.on_repositioned()
 
     m_XDGPopup.on_popup_done() = [&] () {
         OnExitEvent();
@@ -328,11 +335,11 @@ void WaylandDisplayWindow::OnExitEvent()
 
 void WaylandDisplayWindow::DrawSurface(uint32_t serial)
 {
+    m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
+    m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
+
     if (m_renderAPI == RenderAPI::Unspecified || m_renderAPI == RenderAPI::Bitmap)
     {
-        m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-        m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
-
         m_FrameCallback = m_AppSurface.frame();
 
         m_FrameCallback.on_done() = bind_mem_fn(&WaylandDisplayWindow::DrawSurface, this);
