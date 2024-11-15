@@ -176,11 +176,11 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 
     m_waylandKeyboard.on_keymap() = [this] (wayland::keyboard_keymap_format format, int fd, uint32_t size) {
         if (format != wayland::keyboard_keymap_format::xkb_v1)
-            throw std::runtime_error("WaylandDisplayWindow: Unrecognized keymap format!");
+            throw std::runtime_error("WaylandDisplayBackend: Unrecognized keymap format!");
 
         char* mapSHM = (char*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
         if (mapSHM == MAP_FAILED)
-            throw std::runtime_error("WaylandDisplayWindow: Keymap shared memory allocation failed!");
+            throw std::runtime_error("WaylandDisplayBackend: Keymap shared memory allocation failed!");
 
         if (m_Keymap)
             xkb_keymap_unref(m_Keymap);
@@ -248,7 +248,6 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
             {
                 m_MouseFocusWindow = win;
             }
-
 		}
 
 		currentPointerEvent.event_mask |= POINTER_EVENT_ENTER;
@@ -393,9 +392,9 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
 
     if (!m_FocusWindow)
     {
-        previousKey = InputKey::None;
-        m_keyboardDelayTimer.Stop();
-        m_keyboardRepeatTimer.Stop();
+        //previousKey = InputKey::None;
+        //m_keyboardDelayTimer.Stop();
+        //m_keyboardRepeatTimer.Stop();
         return;
     }
 
@@ -448,8 +447,9 @@ void WaylandDisplayBackend::OnKeyboardRepeat()
 
 void WaylandDisplayBackend::OnMouseEnterEvent(uint32_t serial)
 {
-    m_cursorSurface.attach(m_cursorBuffer, 0, 0);
-    m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
+    m_cursorSurface.attach(!hasMouseLock ? m_cursorBuffer : nullptr, 0, 0);
+    if (!hasMouseLock)
+        m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
     m_cursorSurface.commit();
     m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
 }
@@ -459,7 +459,7 @@ void WaylandDisplayBackend::OnMouseLeaveEvent()
     if (m_MouseFocusWindow)
     {
         m_MouseFocusWindow->windowHost->OnWindowMouseLeave();
-        //m_MouseFocusWindow = nullptr;
+        //m_MouseFocusWindow = nullptr; // Borks up the menus
     }
 }
 
@@ -487,9 +487,7 @@ void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 void WaylandDisplayBackend::OnMouseMoveRawEvent(int dx, int dy)
 {
     if (m_MouseFocusWindow)
-    {
         m_MouseFocusWindow->windowHost->OnWindowRawMouseMove(dx, dy);
-    }
 }
 
 void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
