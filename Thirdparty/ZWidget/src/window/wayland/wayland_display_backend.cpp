@@ -789,6 +789,11 @@ InputKey WaylandDisplayBackend::XKBKeySymToInputKey(xkb_keysym_t keySym)
             return InputKey::Tilde;
         case XKB_KEY_apostrophe:
             return InputKey::SingleQuote;
+        case XKB_KEY_KP_Enter:
+        case XKB_KEY_Return:
+            return InputKey::Enter;
+        case XKB_KEY_space:
+            return InputKey::Space;
 
         case XKB_KEY_Up:
             return InputKey::Up;
