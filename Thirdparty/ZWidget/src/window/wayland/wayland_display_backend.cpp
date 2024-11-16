@@ -1031,6 +1031,11 @@ InputKey WaylandDisplayBackend::LinuxInputEventCodeToInputKey(uint32_t inputCode
             return InputKey::Tilde;
         case KEY_APOSTROPHE:
             return InputKey::SingleQuote;
+        case KEY_SPACE:
+            return InputKey::Space;
+        case KEY_ENTER:
+        case KEY_KPENTER:
+            return InputKey::Enter;
 
         case KEY_UP:
             return InputKey::Up;
