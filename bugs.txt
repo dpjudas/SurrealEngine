@@ -32,12 +32,12 @@ they end up dying because SE thinks that they've fallen from a great height.
 * There are no OpenGL and D3D renderers.
 * There is no networking support at all.
 * By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
-* [Linux/ZWidget] Wayland backend is extremely buggy due to Wayland APIs being unpleasant to work with, to name a few things:
+* [Linux/ZWidget] Wayland backend is somewhat buggy due to Wayland APIs being unpleasant to work with, to name a few things:
  - Menus don't properly position themselves.
- - Sometimes menus remain persistent (due to rapidly switching?), if the user then tries to resize the parent window, it causes a crash.
+ - Sometimes menus remain persistent (due to rapidly switching?)
  - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
  because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
- - SurrealEngine produces a black screen that is not interactable in any way, while SurrealEditor crashes when trying to open a map
+ - SurrealEditor crashes when trying to open a map
 
 Engine general - Needs testing:
 -------------------------------
