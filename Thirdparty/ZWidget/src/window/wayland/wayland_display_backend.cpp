@@ -353,15 +353,14 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
                 if (!currentPointerEvent.axes[idx].valid)
                     continue;
 
-                if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS)
+                if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS_120)
                 {
                     if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value > 0)
                         OnMouseWheelEvent(InputKey::MouseWheelDown);
                     if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value < 0)
                         OnMouseWheelEvent(InputKey::MouseWheelUp);
                 }
-
-                if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS_120)
+                else if (currentPointerEvent.event_mask & POINTER_EVENT_AXIS)
                 {
                     if (idx == uint32_t(wayland::pointer_axis::vertical_scroll) && currentPointerEvent.axes[idx].value120 > 0)
                         OnMouseWheelEvent(InputKey::MouseWheelDown);
