@@ -55,7 +55,8 @@ You can simply copy paste the SurrealEngine executable inside the System folder 
 
 Surreal Engine is available on:
 
-* AUR: https://aur.archlinux.org/packages/surrealengine-git
+* Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
+* Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
 
 ## Building Surreal Engine
 
