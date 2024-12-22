@@ -772,6 +772,14 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		NameString propertyName = args[2];
 		std::string value = args[3];
 
+		// Special input setting handling
+		if (className == "input")
+		{
+			keybindings[propertyName.ToString()] = value;
+			packages->SetIniValue("user", "Engine.Input", propertyName, value);
+			return {};
+		}
+
 		UClass* cls = packages->FindClass(className);
 		if (!cls)
 		{
