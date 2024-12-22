@@ -636,7 +636,7 @@ void UClass::SaveToConfig(PackageManager& packageManager)
 	// Iterate and save Properties that are marked with Config
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if ((uint32_t)(prop->PropFlags & PropertyFlags::Config))
+		if (AnyFlags(prop->PropFlags, PropertyFlags::Config | PropertyFlags::GlobalConfig))
 		{
 			ini_file->SetValue(this->Name, prop->Name, prop->PrintValue(PropertyData.Ptr(prop)));
 		}
