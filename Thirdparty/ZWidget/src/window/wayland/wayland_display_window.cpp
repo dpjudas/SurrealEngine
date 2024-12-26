@@ -154,6 +154,11 @@ void WaylandDisplayWindow::ShowFullscreen()
         
 }
 
+bool WaylandDisplayWindow::IsWindowFullscreen()
+{
+    return isFullscreen;
+}
+
 void WaylandDisplayWindow::ShowMaximized()
 {
     if (m_XDGToplevel)
