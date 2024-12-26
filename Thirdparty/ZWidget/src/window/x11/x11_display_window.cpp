@@ -234,6 +234,11 @@ void X11DisplayWindow::ShowFullscreen()
 	}
 }
 
+bool X11DisplayWindow::IsWindowFullscreen()
+{
+	return isFullscreen;
+}
+
 void X11DisplayWindow::ShowMaximized()
 {
 	Show();

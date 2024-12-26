@@ -20,7 +20,7 @@ public:
 	void ShowMaximized() override;
 	void ShowMinimized() override;
 	void ShowNormal() override;
-	void IsWindowFullscreen() override;
+	bool IsWindowFullscreen() override;
 	void Hide() override;
 	void Activate() override;
 	void ShowCursor(bool enable) override;
