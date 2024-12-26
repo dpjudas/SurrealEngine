@@ -148,6 +148,12 @@ void Win32DisplayWindow::ShowMinimized()
 void Win32DisplayWindow::ShowNormal()
 {
 	ShowWindow(WindowHandle.hwnd, SW_NORMAL);
+	Fullscreen = false;
+}
+
+bool Win32DisplayWindow::IsWindowFullscreen()
+{
+	return Fullscreen;
 }
 
 void Win32DisplayWindow::Hide()

@@ -20,6 +20,7 @@ public:
 	void ShowMaximized() override;
 	void ShowMinimized() override;
 	void ShowNormal() override;
+	void IsWindowFullscreen() override;
 	void Hide() override;
 	void Activate() override;
 	void ShowCursor(bool enable) override;
@@ -96,4 +97,6 @@ public:
 	static bool ExitRunLoop;
 	static Uint32 PaintEventNumber;
 	static std::unordered_map<int, SDL2DisplayWindow*> WindowList;
+
+	bool isFullscreen = false;
 };
