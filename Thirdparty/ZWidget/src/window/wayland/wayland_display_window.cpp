@@ -147,7 +147,11 @@ void WaylandDisplayWindow::Show()
 void WaylandDisplayWindow::ShowFullscreen()
 {
     if (m_XDGToplevel)
+    {
         m_XDGToplevel.set_fullscreen(backend->m_waylandOutput);
+        isFullscreen = true;
+    }
+        
 }
 
 void WaylandDisplayWindow::ShowMaximized()
@@ -165,7 +169,10 @@ void WaylandDisplayWindow::ShowMinimized()
 void WaylandDisplayWindow::ShowNormal()
 {
     if (m_XDGToplevel)
+    {
         m_XDGToplevel.unset_fullscreen();
+        isFullscreen = true;
+    }
 }
 
 void WaylandDisplayWindow::Hide()

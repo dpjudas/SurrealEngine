@@ -96,6 +96,7 @@ public:
 	void ShowMaximized() override;
 	void ShowMinimized() override;
 	void ShowNormal() override;
+    bool IsWindowFullscreen() override;
 	void Hide() override;
 	void Activate() override;
 	void ShowCursor(bool enable) override;
@@ -181,6 +182,8 @@ private:
     std::string m_ClipboardContents;
 
     std::shared_ptr<SharedMemHelper> shared_mem;
+
+    bool isFullscreen;
 
     // Helper functions
     void CreateBuffers(int32_t width, int32_t height);

@@ -128,5 +128,7 @@ private:
 
 	bool needsUpdate = false;
 
+	bool isFullscreen = false;
+
 	friend class X11DisplayBackend;
 };
