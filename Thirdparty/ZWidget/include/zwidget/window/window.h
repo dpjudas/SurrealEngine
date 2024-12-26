@@ -155,6 +155,7 @@ public:
 	virtual void ShowMaximized() = 0;
 	virtual void ShowMinimized() = 0;
 	virtual void ShowNormal() = 0;
+	virtual bool IsWindowFullscreen() = 0;
 	virtual void Hide() = 0;
 	virtual void Activate() = 0;
 	virtual void ShowCursor(bool enable) = 0;
