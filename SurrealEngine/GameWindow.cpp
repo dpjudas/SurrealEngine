@@ -39,6 +39,35 @@ int GameWindow::GetPixelHeight()
 	return GetNativePixelHeight();
 }
 
+void GameWindow::ToggleWindowFullscreen(Size newResolution)
+{
+	if (this->IsFullscreen())
+	{
+		// First switch to normal
+		this->ShowNormal();
+
+		// Then resize the window
+		auto geometry = this->GetFrameGeometry();
+		geometry.width = newResolution.width;
+		geometry.height = newResolution.height;
+		this->SetFrameGeometry(geometry);
+	}
+	else
+	{
+		// Get the nearest valid fullscreen resolution first
+		auto selectedResolution = GetClosestResolution(newResolution);
+
+		// Then resize the window to the resolution
+		auto geometry = this->GetFrameGeometry();
+		geometry.width = selectedResolution.width;
+		geometry.height = selectedResolution.height;
+		this->SetFrameGeometry(geometry);
+
+		// Finally switch to fullscreen
+		this->ShowFullscreen();
+	}
+}
+
 bool GameWindow::GetKeyState(EInputKey key)
 {
 	return Widget::GetKeyState((InputKey)key);
@@ -248,7 +277,7 @@ void GameWindow::SetResolution(const std::string& resolutionString)
 
 	Rect windowRect = GetFrameGeometry();
 
-	if (isWindowFullscreen)
+	if (IsFullscreen())
 	{
 		parsedResolution = GetClosestResolution(parsedResolution);
 		windowRect.x = 0;

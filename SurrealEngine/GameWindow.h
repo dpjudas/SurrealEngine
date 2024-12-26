@@ -124,6 +124,8 @@ public:
 	int GetPixelWidth();
 	int GetPixelHeight();
 
+	void ToggleWindowFullscreen(Size newResolution);
+
 	std::string GetAvailableResolutions() const;
 	void SetResolution(const std::string& resolutionString);
 
@@ -148,8 +150,6 @@ private:
 	void AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const;
 	Size ParseResolutionString(const std::string& resolutionString) const;
 	Size GetClosestResolution(Size resolution) const;
-
-	bool isWindowFullscreen = false;
 
 	GameWindowHost* windowHost = nullptr;
 	std::unique_ptr<RenderDevice> device;
