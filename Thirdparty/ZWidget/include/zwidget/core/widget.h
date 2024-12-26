@@ -88,6 +88,7 @@ public:
 	void SetVisible(bool enable) { if (enable) Show(); else Hide(); }
 	void Show();
 	void ShowFullscreen();
+	bool IsFullscreen();
 	void ShowMaximized();
 	void ShowMinimized();
 	void ShowNormal();

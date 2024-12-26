@@ -218,6 +218,16 @@ void Widget::ShowFullscreen()
 	}
 }
 
+bool Widget::IsFullscreen()
+{
+	if (Type != WidgetType::Child)
+	{
+		return DispWindow->IsWindowFullscreen();
+	}
+
+	return false;
+}
+
 void Widget::ShowMaximized()
 {
 	if (Type != WidgetType::Child)
