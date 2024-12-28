@@ -820,6 +820,22 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		window->SetResolution(args[1]);
 	}
+	else if (command == "togglefullscreen")
+	{
+		bool isFullscreen = window->IsFullscreen();
+
+		// Get the resolutions to SWITCH TO
+		int width = isFullscreen ? client->WindowedViewportX : client->FullscreenViewportX;
+		int height = isFullscreen ? client->WindowedViewportY : client->FullscreenViewportY;
+
+		Size resolution;
+		resolution.width = width;
+		resolution.height = height;
+
+		window->ToggleWindowFullscreen(resolution);
+
+		return {};
+	}
 	else
 	{
 		if (!ExecCommand(args))
