@@ -25,14 +25,23 @@ public:
 	VkPhysicalDeviceDescriptorIndexingFeatures DescriptorIndexing = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT };
 };
 
+class VulkanDeviceProperties
+{
+public:
+	VkPhysicalDeviceProperties Properties = {};
+	VkPhysicalDeviceMemoryProperties Memory = {};
+	VkPhysicalDeviceAccelerationStructurePropertiesKHR AccelerationStructure = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR };
+	VkPhysicalDeviceDescriptorIndexingProperties DescriptorIndexing = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES_EXT };
+	VkPhysicalDeviceLayeredDriverPropertiesMSFT LayeredDriver = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_DRIVER_PROPERTIES_MSFT };
+};
+
 class VulkanPhysicalDevice
 {
 public:
 	VkPhysicalDevice Device = VK_NULL_HANDLE;
 	std::vector<VkExtensionProperties> Extensions;
 	std::vector<VkQueueFamilyProperties> QueueFamilies;
-	VkPhysicalDeviceProperties Properties = {};
-	VkPhysicalDeviceMemoryProperties MemoryProperties = {};
+	VulkanDeviceProperties Properties;
 	VulkanDeviceFeatures Features;
 };
 
@@ -50,7 +59,7 @@ public:
 	std::vector<VkLayerProperties> AvailableLayers;
 	std::vector<VkExtensionProperties> AvailableExtensions;
 
-	std::set<std::string> EnabledValidationLayers;
+	std::set<std::string> EnabledLayers;
 	std::set<std::string> EnabledExtensions;
 
 	std::vector<VulkanPhysicalDevice> PhysicalDevices;

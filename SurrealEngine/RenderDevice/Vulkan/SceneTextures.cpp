@@ -74,7 +74,7 @@ SceneTextures::~SceneTextures()
 
 VkSampleCountFlagBits SceneTextures::GetBestSampleCount(VulkanDevice* device, int multisample)
 {
-	const auto& limits = device->PhysicalDevice.Properties.limits;
+	const auto& limits = device->PhysicalDevice.Properties.Properties.limits;
 	int requestedSamples = clamp(multisample, 0, 64);
 	VkSampleCountFlags deviceSampleCounts = limits.sampledImageColorSampleCounts & limits.sampledImageDepthSampleCounts & limits.sampledImageStencilSampleCounts;
 

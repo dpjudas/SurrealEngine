@@ -1,119 +1,10 @@
-
 #include "vulkanbuilders.h"
 #include "vulkansurface.h"
 #include "vulkancompatibledevice.h"
 #include "vulkanswapchain.h"
 #include "glslang/glslang/Public/ShaderLang.h"
+#include "glslang/glslang/Public/ResourceLimits.h"
 #include "glslang/spirv/GlslangToSpv.h"
-#include <stdexcept>
-
-static const TBuiltInResource DefaultTBuiltInResource = {
-	/* .MaxLights = */ 32,
-	/* .MaxClipPlanes = */ 6,
-	/* .MaxTextureUnits = */ 32,
-	/* .MaxTextureCoords = */ 32,
-	/* .MaxVertexAttribs = */ 64,
-	/* .MaxVertexUniformComponents = */ 4096,
-	/* .MaxVaryingFloats = */ 64,
-	/* .MaxVertexTextureImageUnits = */ 32,
-	/* .MaxCombinedTextureImageUnits = */ 80,
-	/* .MaxTextureImageUnits = */ 32,
-	/* .MaxFragmentUniformComponents = */ 4096,
-	/* .MaxDrawBuffers = */ 32,
-	/* .MaxVertexUniformVectors = */ 128,
-	/* .MaxVaryingVectors = */ 8,
-	/* .MaxFragmentUniformVectors = */ 16,
-	/* .MaxVertexOutputVectors = */ 16,
-	/* .MaxFragmentInputVectors = */ 15,
-	/* .MinProgramTexelOffset = */ -8,
-	/* .MaxProgramTexelOffset = */ 7,
-	/* .MaxClipDistances = */ 8,
-	/* .MaxComputeWorkGroupCountX = */ 65535,
-	/* .MaxComputeWorkGroupCountY = */ 65535,
-	/* .MaxComputeWorkGroupCountZ = */ 65535,
-	/* .MaxComputeWorkGroupSizeX = */ 1024,
-	/* .MaxComputeWorkGroupSizeY = */ 1024,
-	/* .MaxComputeWorkGroupSizeZ = */ 64,
-	/* .MaxComputeUniformComponents = */ 1024,
-	/* .MaxComputeTextureImageUnits = */ 16,
-	/* .MaxComputeImageUniforms = */ 8,
-	/* .MaxComputeAtomicCounters = */ 8,
-	/* .MaxComputeAtomicCounterBuffers = */ 1,
-	/* .MaxVaryingComponents = */ 60,
-	/* .MaxVertexOutputComponents = */ 64,
-	/* .MaxGeometryInputComponents = */ 64,
-	/* .MaxGeometryOutputComponents = */ 128,
-	/* .MaxFragmentInputComponents = */ 128,
-	/* .MaxImageUnits = */ 8,
-	/* .MaxCombinedImageUnitsAndFragmentOutputs = */ 8,
-	/* .MaxCombinedShaderOutputResources = */ 8,
-	/* .MaxImageSamples = */ 0,
-	/* .MaxVertexImageUniforms = */ 0,
-	/* .MaxTessControlImageUniforms = */ 0,
-	/* .MaxTessEvaluationImageUniforms = */ 0,
-	/* .MaxGeometryImageUniforms = */ 0,
-	/* .MaxFragmentImageUniforms = */ 8,
-	/* .MaxCombinedImageUniforms = */ 8,
-	/* .MaxGeometryTextureImageUnits = */ 16,
-	/* .MaxGeometryOutputVertices = */ 256,
-	/* .MaxGeometryTotalOutputComponents = */ 1024,
-	/* .MaxGeometryUniformComponents = */ 1024,
-	/* .MaxGeometryVaryingComponents = */ 64,
-	/* .MaxTessControlInputComponents = */ 128,
-	/* .MaxTessControlOutputComponents = */ 128,
-	/* .MaxTessControlTextureImageUnits = */ 16,
-	/* .MaxTessControlUniformComponents = */ 1024,
-	/* .MaxTessControlTotalOutputComponents = */ 4096,
-	/* .MaxTessEvaluationInputComponents = */ 128,
-	/* .MaxTessEvaluationOutputComponents = */ 128,
-	/* .MaxTessEvaluationTextureImageUnits = */ 16,
-	/* .MaxTessEvaluationUniformComponents = */ 1024,
-	/* .MaxTessPatchComponents = */ 120,
-	/* .MaxPatchVertices = */ 32,
-	/* .MaxTessGenLevel = */ 64,
-	/* .MaxViewports = */ 16,
-	/* .MaxVertexAtomicCounters = */ 0,
-	/* .MaxTessControlAtomicCounters = */ 0,
-	/* .MaxTessEvaluationAtomicCounters = */ 0,
-	/* .MaxGeometryAtomicCounters = */ 0,
-	/* .MaxFragmentAtomicCounters = */ 8,
-	/* .MaxCombinedAtomicCounters = */ 8,
-	/* .MaxAtomicCounterBindings = */ 1,
-	/* .MaxVertexAtomicCounterBuffers = */ 0,
-	/* .MaxTessControlAtomicCounterBuffers = */ 0,
-	/* .MaxTessEvaluationAtomicCounterBuffers = */ 0,
-	/* .MaxGeometryAtomicCounterBuffers = */ 0,
-	/* .MaxFragmentAtomicCounterBuffers = */ 1,
-	/* .MaxCombinedAtomicCounterBuffers = */ 1,
-	/* .MaxAtomicCounterBufferSize = */ 16384,
-	/* .MaxTransformFeedbackBuffers = */ 4,
-	/* .MaxTransformFeedbackInterleavedComponents = */ 64,
-	/* .MaxCullDistances = */ 8,
-	/* .MaxCombinedClipAndCullDistances = */ 8,
-	/* .MaxSamples = */ 4,
-	/* .maxMeshOutputVerticesNV = */ 256,
-	/* .maxMeshOutputPrimitivesNV = */ 512,
-	/* .maxMeshWorkGroupSizeX_NV = */ 32,
-	/* .maxMeshWorkGroupSizeY_NV = */ 1,
-	/* .maxMeshWorkGroupSizeZ_NV = */ 1,
-	/* .maxTaskWorkGroupSizeX_NV = */ 32,
-	/* .maxTaskWorkGroupSizeY_NV = */ 1,
-	/* .maxTaskWorkGroupSizeZ_NV = */ 1,
-	/* .maxMeshViewCountNV = */ 4,
-	/* .maxDualSourceDrawBuffersEXT = */ 1,
-
-	/* .limits = */ {
-		/* .nonInductiveForLoops = */ 1,
-		/* .whileLoops = */ 1,
-		/* .doWhileLoops = */ 1,
-		/* .generalUniformIndexing = */ 1,
-		/* .generalAttributeMatrixVectorIndexing = */ 1,
-		/* .generalVaryingIndexing = */ 1,
-		/* .generalSamplerIndexing = */ 1,
-		/* .generalVariableIndexing = */ 1,
-		/* .generalConstantMatrixVectorIndexing = */ 1,
-	}
-};
 
 void ShaderBuilder::Init()
 {
@@ -129,29 +20,141 @@ ShaderBuilder::ShaderBuilder()
 {
 }
 
-ShaderBuilder& ShaderBuilder::VertexShader(const std::string& c)
+ShaderBuilder& ShaderBuilder::Type(ShaderType type)
 {
-	code = c;
-	stage = EShLanguage::EShLangVertex;
+	switch (type)
+	{
+	case ShaderType::Vertex: stage = EShLanguage::EShLangVertex; break;
+	case ShaderType::TessControl: stage = EShLanguage::EShLangTessControl; break;
+	case ShaderType::TessEvaluation: stage = EShLanguage::EShLangTessEvaluation; break;
+	case ShaderType::Geometry: stage = EShLanguage::EShLangGeometry; break;
+	case ShaderType::Fragment: stage = EShLanguage::EShLangFragment; break;
+	case ShaderType::Compute: stage = EShLanguage::EShLangCompute; break;
+	}
 	return *this;
 }
 
-ShaderBuilder& ShaderBuilder::FragmentShader(const std::string& c)
+ShaderBuilder& ShaderBuilder::AddSource(const std::string& name, const std::string& code)
 {
-	code = c;
-	stage = EShLanguage::EShLangFragment;
+	sources.push_back({ name, code });
 	return *this;
 }
+
+ShaderBuilder& ShaderBuilder::OnIncludeSystem(std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeSystem)
+{
+	this->onIncludeSystem = std::move(onIncludeSystem);
+	return *this;
+}
+
+ShaderBuilder& ShaderBuilder::OnIncludeLocal(std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeLocal)
+{
+	this->onIncludeLocal = std::move(onIncludeLocal);
+	return *this;
+}
+
+class ShaderBuilderIncluderImpl : public glslang::TShader::Includer
+{
+public:
+	ShaderBuilderIncluderImpl(ShaderBuilder* shaderBuilder) : shaderBuilder(shaderBuilder)
+	{
+	}
+
+	IncludeResult* includeSystem(const char* headerName, const char* includerName, size_t inclusionDepth) override
+	{
+		if (!shaderBuilder->onIncludeSystem)
+		{
+			return nullptr;
+		}
+
+		try
+		{
+			std::unique_ptr<ShaderIncludeResult> result;
+			try
+			{
+				result = std::make_unique<ShaderIncludeResult>(shaderBuilder->onIncludeSystem(headerName, includerName, inclusionDepth));
+			}
+			catch (const std::exception& e)
+			{
+				result = std::make_unique<ShaderIncludeResult>(e.what());
+			}
+
+			if (!result || (result->name.empty() && result->text.empty()))
+			{
+				return nullptr;
+			}
+
+			IncludeResult* outer = new IncludeResult(result->name, result->text.data(), result->text.size(), result.get());
+			result.release();
+			return outer;
+		}
+		catch (...)
+		{
+			return nullptr;
+		}
+	}
+
+	IncludeResult* includeLocal(const char* headerName, const char* includerName, size_t inclusionDepth) override
+	{
+		if (!shaderBuilder->onIncludeLocal)
+		{
+			return nullptr;
+		}
+
+		try
+		{
+			std::unique_ptr<ShaderIncludeResult> result;
+			try
+			{
+				result = std::make_unique<ShaderIncludeResult>(shaderBuilder->onIncludeLocal(headerName, includerName, inclusionDepth));
+			}
+			catch (const std::exception& e)
+			{
+				result = std::make_unique<ShaderIncludeResult>(e.what());
+			}
+
+			if (!result || (result->name.empty() && result->text.empty()))
+			{
+				return nullptr;
+			}
+
+			IncludeResult* outer = new IncludeResult(result->name, result->text.data(), result->text.size(), result.get());
+			result.release();
+			return outer;
+		}
+		catch (...)
+		{
+			return nullptr;
+		}
+	}
+
+	void releaseInclude(IncludeResult* result) override
+	{
+		if (result)
+		{
+			delete (ShaderIncludeResult*)result->userData;
+			delete result;
+		}
+	}
+
+private:
+	ShaderBuilder* shaderBuilder = nullptr;
+};
 
 std::unique_ptr<VulkanShader> ShaderBuilder::Create(const char *shadername, VulkanDevice *device)
 {
 	EShLanguage stage = (EShLanguage)this->stage;
-	const char *sources[] = { code.c_str() };
 
-	TBuiltInResource resources = DefaultTBuiltInResource;
+	std::vector<const char*> namesC, sourcesC;
+	std::vector<int> lengthsC;
+	for (const auto& s : sources)
+	{
+		namesC.push_back(s.first.c_str());
+		sourcesC.push_back(s.second.c_str());
+		lengthsC.push_back((int)s.second.size());
+	}
 
 	glslang::TShader shader(stage);
-	shader.setStrings(sources, 1);
+	shader.setStringsWithLengthsAndNames(sourcesC.data(), lengthsC.data(), namesC.data(), (int)sources.size());
 	shader.setEnvInput(glslang::EShSourceGlsl, stage, glslang::EShClientVulkan, 100);
     if (device->Instance->ApiVersion >= VK_API_VERSION_1_2)
     {
@@ -163,10 +166,12 @@ std::unique_ptr<VulkanShader> ShaderBuilder::Create(const char *shadername, Vulk
         shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
         shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
     }
-	bool compileSuccess = shader.parse(&resources, 110, false, EShMsgVulkanRules);
+
+	ShaderBuilderIncluderImpl includer(this);
+	bool compileSuccess = shader.parse(GetDefaultResources(), 110, false, EShMsgVulkanRules, includer);
 	if (!compileSuccess)
 	{
-		throw std::runtime_error(std::string("Shader compile failed: ") + shader.getInfoLog());
+		VulkanError((std::string("Shader compile failed: ") + shader.getInfoLog()).c_str());
 	}
 
 	glslang::TProgram program;
@@ -174,13 +179,13 @@ std::unique_ptr<VulkanShader> ShaderBuilder::Create(const char *shadername, Vulk
 	bool linkSuccess = program.link(EShMsgDefault);
 	if (!linkSuccess)
 	{
-		throw std::runtime_error(std::string("Shader link failed: ") + program.getInfoLog());
+		VulkanError((std::string("Shader link failed: ") + program.getInfoLog()).c_str());
 	}
 
 	glslang::TIntermediate *intermediate = program.getIntermediate(stage);
 	if (!intermediate)
 	{
-		throw std::runtime_error("Internal shader compiler error");
+		VulkanError("Internal shader compiler error");
 	}
 
 	glslang::SpvOptions spvOptions;
@@ -200,7 +205,7 @@ std::unique_ptr<VulkanShader> ShaderBuilder::Create(const char *shadername, Vulk
 	VkShaderModule shaderModule;
 	VkResult result = vkCreateShaderModule(device->device, &createInfo, nullptr, &shaderModule);
 	if (result != VK_SUCCESS)
-		throw std::runtime_error("Could not create vulkan shader module");
+		VulkanError("Could not create vulkan shader module");
 
 	auto obj = std::make_unique<VulkanShader>(device, shaderModule);
 	if (debugName)
@@ -269,6 +274,18 @@ ImageBuilder::ImageBuilder()
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageInfo.flags = 0;
+}
+
+ImageBuilder& ImageBuilder::Type(VkImageType type)
+{
+	imageInfo.imageType = type;
+	return *this;
+}
+
+ImageBuilder& ImageBuilder::Flags(VkImageCreateFlags flags)
+{
+	imageInfo.flags = flags;
+	return *this;
 }
 
 ImageBuilder& ImageBuilder::Size(int width, int height, int mipLevels, int arrayLayers)
@@ -390,13 +407,15 @@ ImageViewBuilder& ImageViewBuilder::Type(VkImageViewType type)
 	return *this;
 }
 
-ImageViewBuilder& ImageViewBuilder::Image(VulkanImage* image, VkFormat format, VkImageAspectFlags aspectMask)
+ImageViewBuilder& ImageViewBuilder::Image(VulkanImage* image, VkFormat format, VkImageAspectFlags aspectMask, int mipLevel, int arrayLayer, int levelCount, int layerCount)
 {
 	viewInfo.image = image->image;
 	viewInfo.format = format;
-	viewInfo.subresourceRange.levelCount = image->mipLevels;
+	viewInfo.subresourceRange.levelCount = levelCount == 0 ? image->mipLevels : levelCount;
 	viewInfo.subresourceRange.aspectMask = aspectMask;
-	viewInfo.subresourceRange.layerCount = image->layerCount;
+	viewInfo.subresourceRange.layerCount = layerCount == 0 ? image->layerCount : layerCount;
+	viewInfo.subresourceRange.baseMipLevel = mipLevel;
+	viewInfo.subresourceRange.baseArrayLayer = arrayLayer;
 	return *this;
 }
 
@@ -528,15 +547,29 @@ BufferBuilder& BufferBuilder::MemoryType(VkMemoryPropertyFlags requiredFlags, Vk
 	return *this;
 }
 
+BufferBuilder& BufferBuilder::MinAlignment(VkDeviceSize memoryAlignment)
+{
+	minAlignment = memoryAlignment;
+	return *this;
+}
+
 std::unique_ptr<VulkanBuffer> BufferBuilder::Create(VulkanDevice* device)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
 
-	VkResult result = vmaCreateBuffer(device->allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
-	CheckVulkanError(result, "Could not allocate memory for vulkan buffer");
+	if (minAlignment == 0)
+	{
+		VkResult result = vmaCreateBuffer(device->allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
+		CheckVulkanError(result, "Could not allocate memory for vulkan buffer");
+	}
+	else
+	{
+		VkResult result = vmaCreateBufferWithAlignment(device->allocator, &bufferInfo, &allocInfo, minAlignment, &buffer, &allocation, nullptr);
+		CheckVulkanError(result, "Could not allocate memory for vulkan buffer");
+	}
 
-	auto obj = std::make_unique<VulkanBuffer>(device, buffer, allocation, bufferInfo.size);
+	auto obj = std::make_unique<VulkanBuffer>(device, buffer, allocation, (size_t)bufferInfo.size);
 	if (debugName)
 		obj->SetDebugName(debugName);
 	return obj;
@@ -575,7 +608,7 @@ std::unique_ptr<VulkanAccelerationStructure> AccelerationStructureBuilder::Creat
 	VkAccelerationStructureKHR hande = {};
 	VkResult result = vkCreateAccelerationStructureKHR(device->device, &createInfo, nullptr, &hande);
 	if (result != VK_SUCCESS)
-		throw std::runtime_error("vkCreateAccelerationStructureKHR failed");
+		VulkanError("vkCreateAccelerationStructureKHR failed");
 	auto obj = std::make_unique<VulkanAccelerationStructure>(device, hande);
 	if (debugName)
 		obj->SetDebugName(debugName);
@@ -588,6 +621,12 @@ ComputePipelineBuilder::ComputePipelineBuilder()
 {
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 	stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+}
+
+ComputePipelineBuilder& ComputePipelineBuilder::Cache(VulkanPipelineCache* cache)
+{
+	this->cache = cache;
+	return *this;
 }
 
 ComputePipelineBuilder& ComputePipelineBuilder::Layout(VulkanPipelineLayout* layout)
@@ -609,7 +648,7 @@ ComputePipelineBuilder& ComputePipelineBuilder::ComputeShader(VulkanShader* shad
 std::unique_ptr<VulkanPipeline> ComputePipelineBuilder::Create(VulkanDevice* device)
 {
 	VkPipeline pipeline;
-	vkCreateComputePipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+	vkCreateComputePipelines(device->device, cache ? cache->cache : VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
 	auto obj = std::make_unique<VulkanPipeline>(device, pipeline);
 	if (debugName)
 		obj->SetDebugName(debugName);
@@ -784,6 +823,63 @@ std::unique_ptr<VulkanFramebuffer> FramebufferBuilder::Create(VulkanDevice* devi
 
 /////////////////////////////////////////////////////////////////////////////
 
+
+ColorBlendAttachmentBuilder::ColorBlendAttachmentBuilder()
+{
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_FALSE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+
+ColorBlendAttachmentBuilder& ColorBlendAttachmentBuilder::ColorWriteMask(VkColorComponentFlags mask)
+{
+	colorBlendAttachment.colorWriteMask = mask;
+	return *this;
+}
+
+ColorBlendAttachmentBuilder& ColorBlendAttachmentBuilder::AdditiveBlendMode()
+{
+	colorBlendAttachment.blendEnable = VK_TRUE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	return *this;
+}
+
+ColorBlendAttachmentBuilder& ColorBlendAttachmentBuilder::AlphaBlendMode()
+{
+	colorBlendAttachment.blendEnable = VK_TRUE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	return *this;
+}
+
+ColorBlendAttachmentBuilder& ColorBlendAttachmentBuilder::BlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst)
+{
+	colorBlendAttachment.blendEnable = VK_TRUE;
+	colorBlendAttachment.srcColorBlendFactor = src;
+	colorBlendAttachment.dstColorBlendFactor = dst;
+	colorBlendAttachment.colorBlendOp = op;
+	colorBlendAttachment.srcAlphaBlendFactor = src;
+	colorBlendAttachment.dstAlphaBlendFactor = dst;
+	colorBlendAttachment.alphaBlendOp = op;
+	return *this;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 {
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -844,20 +940,9 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 	multisampling.alphaToCoverageEnable = VK_FALSE;
 	multisampling.alphaToOneEnable = VK_FALSE;
 
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable = VK_FALSE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlending.logicOpEnable = VK_FALSE;
 	colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	colorBlending.attachmentCount = 1;
-	colorBlending.pAttachments = &colorBlendAttachment;
 	colorBlending.blendConstants[0] = 0.0f;
 	colorBlending.blendConstants[1] = 0.0f;
 	colorBlending.blendConstants[2] = 0.0f;
@@ -869,6 +954,12 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder()
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::RasterizationSamples(VkSampleCountFlagBits samples)
 {
 	multisampling.rasterizationSamples = samples;
+	return *this;
+}
+
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::Cache(VulkanPipelineCache* cache)
+{
+	this->cache = cache;
 	return *this;
 }
 
@@ -972,53 +1063,9 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::DepthBias(bool enable, float b
 	return *this;
 }
 
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::ColorWriteMask(VkColorComponentFlags mask)
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddColorBlendAttachment(VkPipelineColorBlendAttachmentState state)
 {
-	colorBlendAttachment.colorWriteMask = mask;
-	return *this;
-}
-
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::AdditiveBlendMode()
-{
-	colorBlendAttachment.blendEnable = VK_TRUE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-	return *this;
-}
-
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::AlphaBlendMode()
-{
-	colorBlendAttachment.blendEnable = VK_TRUE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-	return *this;
-}
-
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::BlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst)
-{
-	colorBlendAttachment.blendEnable = VK_TRUE;
-	colorBlendAttachment.srcColorBlendFactor = src;
-	colorBlendAttachment.dstColorBlendFactor = dst;
-	colorBlendAttachment.colorBlendOp = op;
-	colorBlendAttachment.srcAlphaBlendFactor = src;
-	colorBlendAttachment.dstAlphaBlendFactor = dst;
-	colorBlendAttachment.alphaBlendOp = op;
-	return *this;
-}
-
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SubpassColorAttachmentCount(int count)
-{
-	colorBlendAttachments.resize(count, colorBlendAttachment);
-	colorBlending.pAttachments = colorBlendAttachments.data();
-	colorBlending.attachmentCount = (uint32_t)colorBlendAttachments.size();
+	colorBlendAttachments.push_back(state);
 	return *this;
 }
 
@@ -1087,8 +1134,13 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::AddDynamicState(VkDynamicState
 
 std::unique_ptr<VulkanPipeline> GraphicsPipelineBuilder::Create(VulkanDevice* device)
 {
+	if (colorBlendAttachments.empty())
+		colorBlendAttachments.push_back(ColorBlendAttachmentBuilder().Create());
+	colorBlending.pAttachments = colorBlendAttachments.data();
+	colorBlending.attachmentCount = (uint32_t)colorBlendAttachments.size();
+
 	VkPipeline pipeline = 0;
-	VkResult result = vkCreateGraphicsPipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
+	VkResult result = vkCreateGraphicsPipelines(device->device, cache ? cache->cache : VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline);
 	CheckVulkanError(result, "Could not create graphics pipeline");
 	auto obj = std::make_unique<VulkanPipeline>(device, pipeline);
 	if (debugName)
@@ -1129,6 +1181,54 @@ std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::Create(VulkanDevice
 	VkResult result = vkCreatePipelineLayout(device->device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 	CheckVulkanError(result, "Could not create pipeline layout");
 	auto obj = std::make_unique<VulkanPipelineLayout>(device, pipelineLayout);
+	if (debugName)
+		obj->SetDebugName(debugName);
+	return obj;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PipelineCacheBuilder::PipelineCacheBuilder()
+{
+	pipelineCacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+}
+
+PipelineCacheBuilder& PipelineCacheBuilder::InitialData(const void* data, size_t size)
+{
+	initData.resize(size);
+	memcpy(initData.data(), data, size);
+	return *this;
+}
+
+PipelineCacheBuilder& PipelineCacheBuilder::Flags(VkPipelineCacheCreateFlags flags)
+{
+	pipelineCacheInfo.flags = flags;
+	return *this;
+}
+
+std::unique_ptr<VulkanPipelineCache> PipelineCacheBuilder::Create(VulkanDevice* device)
+{
+	pipelineCacheInfo.pInitialData = nullptr;
+	pipelineCacheInfo.initialDataSize = 0;
+
+	// Check if the saved cache data is compatible with our device:
+	if (initData.size() >= sizeof(VkPipelineCacheHeaderVersionOne))
+	{
+		VkPipelineCacheHeaderVersionOne* header = (VkPipelineCacheHeaderVersionOne*)initData.data();
+		if (header->headerVersion == VK_PIPELINE_CACHE_HEADER_VERSION_ONE &&
+			header->vendorID == device->PhysicalDevice.Properties.Properties.vendorID &&
+			header->deviceID == device->PhysicalDevice.Properties.Properties.deviceID &&
+			memcmp(header->pipelineCacheUUID, device->PhysicalDevice.Properties.Properties.pipelineCacheUUID, VK_UUID_SIZE) == 0)
+		{
+			pipelineCacheInfo.pInitialData = initData.data();
+			pipelineCacheInfo.initialDataSize = initData.size();
+		}
+	}
+
+	VkPipelineCache pipelineCache;
+	VkResult result = vkCreatePipelineCache(device->device, &pipelineCacheInfo, nullptr, &pipelineCache);
+	CheckVulkanError(result, "Could not create pipeline cache");
+	auto obj = std::make_unique<VulkanPipelineCache>(device, pipelineCache);
 	if (debugName)
 		obj->SetDebugName(debugName);
 	return obj;
@@ -1270,12 +1370,12 @@ PipelineBarrier& PipelineBarrier::AddBuffer(VulkanBuffer* buffer, VkDeviceSize o
 	return *this;
 }
 
-PipelineBarrier& PipelineBarrier::AddImage(VulkanImage* image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount)
+PipelineBarrier& PipelineBarrier::AddImage(VulkanImage* image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount, int baseArrayLayer, int layerCount)
 {
-	return AddImage(image->image, oldLayout, newLayout, srcAccessMask, dstAccessMask, aspectMask, baseMipLevel, levelCount);
+	return AddImage(image->image, oldLayout, newLayout, srcAccessMask, dstAccessMask, aspectMask, baseMipLevel, levelCount, baseArrayLayer, layerCount);
 }
 
-PipelineBarrier& PipelineBarrier::AddImage(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount)
+PipelineBarrier& PipelineBarrier::AddImage(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask, int baseMipLevel, int levelCount, int baseArrayLayer, int layerCount)
 {
 	VkImageMemoryBarrier barrier = { };
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1289,8 +1389,8 @@ PipelineBarrier& PipelineBarrier::AddImage(VkImage image, VkImageLayout oldLayou
 	barrier.subresourceRange.aspectMask = aspectMask;
 	barrier.subresourceRange.baseMipLevel = baseMipLevel;
 	barrier.subresourceRange.levelCount = levelCount;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.baseArrayLayer = baseArrayLayer;
+	barrier.subresourceRange.layerCount = layerCount;
 	imageMemoryBarriers.push_back(barrier);
 	return *this;
 }
@@ -1600,10 +1700,20 @@ std::shared_ptr<VulkanSurface> VulkanSurfaceBuilder::Create(std::shared_ptr<Vulk
 
 /////////////////////////////////////////////////////////////////////////////
 
+#ifndef VK_KHR_MAINTENANCE4_EXTENSION_NAME
+#define VK_KHR_MAINTENANCE4_EXTENSION_NAME "VK_KHR_maintenance4"
+#endif
+
 VulkanDeviceBuilder::VulkanDeviceBuilder()
 {
+	// Extensions desired by vk_mem_alloc
 	OptionalExtension(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
 	OptionalExtension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+	OptionalExtension(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+	//OptionalExtension(VK_KHR_MAINTENANCE4_EXTENSION_NAME);
+	OptionalExtension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+	OptionalExtension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+	OptionalExtension(VK_AMD_DEVICE_COHERENT_MEMORY_EXTENSION_NAME);
 }
 
 VulkanDeviceBuilder& VulkanDeviceBuilder::RequireExtension(const std::string& extensionName)
@@ -1669,7 +1779,9 @@ std::vector<VulkanCompatibleDevice> VulkanDeviceBuilder::FindDevices(const std::
 
 		// Check if all required features are there
 		if (info.Features.Features.samplerAnisotropy != VK_TRUE ||
-			info.Features.Features.fragmentStoresAndAtomics != VK_TRUE)
+			info.Features.Features.fragmentStoresAndAtomics != VK_TRUE ||
+			info.Features.Features.multiDrawIndirect != VK_TRUE ||
+			info.Features.Features.independentBlend != VK_TRUE)
 			continue;
 
 		VulkanCompatibleDevice dev;
@@ -1692,6 +1804,9 @@ std::vector<VulkanCompatibleDevice> VulkanDeviceBuilder::FindDevices(const std::
 		enabledFeatures.Features.fragmentStoresAndAtomics = deviceFeatures.Features.fragmentStoresAndAtomics;
 		enabledFeatures.Features.depthClamp = deviceFeatures.Features.depthClamp;
 		enabledFeatures.Features.shaderClipDistance = deviceFeatures.Features.shaderClipDistance;
+		enabledFeatures.Features.multiDrawIndirect = deviceFeatures.Features.multiDrawIndirect;
+		enabledFeatures.Features.independentBlend = deviceFeatures.Features.independentBlend;
+		enabledFeatures.Features.imageCubeArray = deviceFeatures.Features.imageCubeArray;
 		enabledFeatures.BufferDeviceAddress.bufferDeviceAddress = deviceFeatures.BufferDeviceAddress.bufferDeviceAddress;
 		enabledFeatures.AccelerationStructure.accelerationStructure = deviceFeatures.AccelerationStructure.accelerationStructure;
 		enabledFeatures.RayQuery.rayQuery = deviceFeatures.RayQuery.rayQuery;
@@ -1699,6 +1814,7 @@ std::vector<VulkanCompatibleDevice> VulkanDeviceBuilder::FindDevices(const std::
 		enabledFeatures.DescriptorIndexing.descriptorBindingPartiallyBound = deviceFeatures.DescriptorIndexing.descriptorBindingPartiallyBound;
 		enabledFeatures.DescriptorIndexing.descriptorBindingSampledImageUpdateAfterBind = deviceFeatures.DescriptorIndexing.descriptorBindingSampledImageUpdateAfterBind;
 		enabledFeatures.DescriptorIndexing.descriptorBindingVariableDescriptorCount = deviceFeatures.DescriptorIndexing.descriptorBindingVariableDescriptorCount;
+		enabledFeatures.DescriptorIndexing.shaderSampledImageArrayNonUniformIndexing = deviceFeatures.DescriptorIndexing.shaderSampledImageArrayNonUniformIndexing;
 
 		// Figure out which queue can present
 		if (surface)
@@ -1743,13 +1859,19 @@ std::vector<VulkanCompatibleDevice> VulkanDeviceBuilder::FindDevices(const std::
 	{
 		// Sort by GPU type first. This will ensure the "best" device is most likely to map to vk_device 0
 		static const int typeSort[] = { 4, 1, 0, 2, 3 };
-		int sortA = a.Device->Properties.deviceType < 5 ? typeSort[a.Device->Properties.deviceType] : (int)a.Device->Properties.deviceType;
-		int sortB = b.Device->Properties.deviceType < 5 ? typeSort[b.Device->Properties.deviceType] : (int)b.Device->Properties.deviceType;
+		int sortA = a.Device->Properties.Properties.deviceType < 5 ? typeSort[a.Device->Properties.Properties.deviceType] : (int)a.Device->Properties.Properties.deviceType;
+		int sortB = b.Device->Properties.Properties.deviceType < 5 ? typeSort[b.Device->Properties.Properties.deviceType] : (int)b.Device->Properties.Properties.deviceType;
+		if (sortA != sortB)
+			return sortA < sortB;
+
+		// Any driver that is emulating vulkan (i.e. via Direct3D 12) should only be chosen as the last option within each GPU type
+		sortA = a.Device->Properties.LayeredDriver.underlyingAPI;
+		sortB = b.Device->Properties.LayeredDriver.underlyingAPI;
 		if (sortA != sortB)
 			return sortA < sortB;
 
 		// Then sort by the device's unique ID so that vk_device uses a consistent order
-		int sortUUID = memcmp(a.Device->Properties.pipelineCacheUUID, b.Device->Properties.pipelineCacheUUID, VK_UUID_SIZE);
+		int sortUUID = memcmp(a.Device->Properties.Properties.pipelineCacheUUID, b.Device->Properties.Properties.pipelineCacheUUID, VK_UUID_SIZE);
 		return sortUUID < 0;
 	};
 	std::stable_sort(supportedDevices.begin(), supportedDevices.end(), sortFunc);
@@ -1781,4 +1903,65 @@ VulkanSwapChainBuilder::VulkanSwapChainBuilder()
 std::shared_ptr<VulkanSwapChain> VulkanSwapChainBuilder::Create(VulkanDevice* device)
 {
 	return std::make_shared<VulkanSwapChain>(device);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+BufferTransfer& BufferTransfer::AddBuffer(VulkanBuffer* buffer, size_t offset, const void* data, size_t size)
+{
+	bufferCopies.push_back({ buffer, offset, data, size, nullptr, 0 });
+	return *this;
+}
+
+BufferTransfer& BufferTransfer::AddBuffer(VulkanBuffer* buffer, const void* data, size_t size)
+{
+	bufferCopies.push_back({ buffer, 0, data, size, nullptr, 0 });
+	return *this;
+}
+
+BufferTransfer& BufferTransfer::AddBuffer(VulkanBuffer* buffer, const void* data0, size_t size0, const void* data1, size_t size1)
+{
+	bufferCopies.push_back({ buffer, 0, data0, size0, data1, size1 });
+	return *this;
+}
+
+std::unique_ptr<VulkanBuffer> BufferTransfer::Execute(VulkanDevice* device, VulkanCommandBuffer* cmdbuffer)
+{
+	size_t transferbuffersize = 0;
+	for (const auto& copy : bufferCopies)
+		transferbuffersize += copy.size0 + copy.size1;
+
+	if (transferbuffersize == 0)
+		return nullptr;
+
+	auto transferBuffer = BufferBuilder()
+		.Usage(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY)
+		.Size(transferbuffersize)
+		.DebugName("BufferTransfer.transferBuffer")
+		.Create(device);
+
+	uint8_t* data = (uint8_t*)transferBuffer->Map(0, transferbuffersize);
+	size_t pos = 0;
+	for (const auto& copy : bufferCopies)
+	{
+		memcpy(data + pos, copy.data0, copy.size0);
+		pos += copy.size0;
+		memcpy(data + pos, copy.data1, copy.size1);
+		pos += copy.size1;
+	}
+	transferBuffer->Unmap();
+
+	pos = 0;
+	for (const auto& copy : bufferCopies)
+	{
+		if (copy.size0 > 0)
+			cmdbuffer->copyBuffer(transferBuffer.get(), copy.buffer, pos, copy.offset, copy.size0);
+		pos += copy.size0;
+
+		if (copy.size1 > 0)
+			cmdbuffer->copyBuffer(transferBuffer.get(), copy.buffer, pos, copy.offset + copy.size0, copy.size1);
+		pos += copy.size1;
+	}
+
+	return transferBuffer;
 }

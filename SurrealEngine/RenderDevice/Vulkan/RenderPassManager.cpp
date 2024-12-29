@@ -171,26 +171,29 @@ void RenderPassManager::CreatePipelines()
 
 			if (i < 32)
 			{
+				ColorBlendAttachmentBuilder colorBlend;
 				switch (i & 3)
 				{
 				case 0: // PF_Translucent
-					builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
+					colorBlend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
 					break;
 				case 1: // PF_Modulated
-					builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_SRC_COLOR);
+					colorBlend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_SRC_COLOR);
 					break;
 				case 2: // PF_Highlighted
-					builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+					colorBlend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
 					break;
 				case 3:
-					builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ZERO); // Hmm, is it faster to keep the blend mode enabled or to toggle it?
+					colorBlend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ZERO); // Hmm, is it faster to keep the blend mode enabled or to toggle it?
 					break;
 				}
 
 				if (i & 4) // PF_Invisible
 				{
-					builder.ColorWriteMask(0);
+					colorBlend.ColorWriteMask(0);
 				}
+
+				builder.AddColorBlendAttachment(colorBlend.Create());
 
 				if (i & 8) // PF_Occlude
 				{
@@ -208,11 +211,12 @@ void RenderPassManager::CreatePipelines()
 			}
 			else // PF_SubpixelFont
 			{
-				builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_CONSTANT_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
+				builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder()
+					.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_CONSTANT_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR)
+					.Create());
 				builder.AddFragmentShader(fragShaderAlphaTest[type]);
 			}
 
-			builder.SubpassColorAttachmentCount(1);
 			builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
 			builder.DebugName(debugName[type]);
 
@@ -241,11 +245,13 @@ void RenderPassManager::CreatePipelines()
 			builder.Layout(layout[type]);
 			builder.RenderPass(SceneRenderPass.get());
 
-			builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+			builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder()
+				.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+				.Create());
+
 			builder.DepthStencilEnable(false, false, false);
 			builder.AddFragmentShader(fragShader[type]);
 
-			builder.SubpassColorAttachmentCount(1);
 			builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
 			builder.DebugName(debugName[type]);
 
@@ -274,11 +280,13 @@ void RenderPassManager::CreatePipelines()
 			builder.Layout(layout[type]);
 			builder.RenderPass(SceneRenderPass.get());
 
-			builder.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+			builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder()
+				.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+				.Create());
+
 			builder.DepthStencilEnable(false, false, false);
 			builder.AddFragmentShader(fragShader[type]);
 
-			builder.SubpassColorAttachmentCount(1);
 			builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
 			builder.DebugName(debugName[type]);
 

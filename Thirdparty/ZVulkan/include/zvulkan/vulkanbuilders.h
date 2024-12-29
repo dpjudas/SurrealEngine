@@ -131,6 +131,8 @@ class ImageBuilder
 public:
 	ImageBuilder();
 
+	ImageBuilder& Type(VkImageType type);
+	ImageBuilder& Flags(VkImageCreateFlags flags);
 	ImageBuilder& Size(int width, int height, int miplevels = 1, int arrayLayers = 1);
 	ImageBuilder& Samples(VkSampleCountFlagBits samples);
 	ImageBuilder& Format(VkFormat format);
@@ -156,7 +158,7 @@ public:
 	ImageViewBuilder();
 
 	ImageViewBuilder& Type(VkImageViewType type);
-	ImageViewBuilder& Image(VulkanImage *image, VkFormat format, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT);
+	ImageViewBuilder& Image(VulkanImage *image, VkFormat format, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int mipLevel = 0, int arrayLayer = 0, int levelCount = 0, int layerCount = 0);
 	ImageViewBuilder& DebugName(const char* name) { debugName = name; return *this; }
 
 	std::unique_ptr<VulkanImageView> Create(VulkanDevice *device);
@@ -196,6 +198,7 @@ public:
 	BufferBuilder& Size(size_t size);
 	BufferBuilder& Usage(VkBufferUsageFlags bufferUsage, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY, VmaAllocationCreateFlags allocFlags = 0);
 	BufferBuilder& MemoryType(VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags preferredFlags, uint32_t memoryTypeBits = 0);
+	BufferBuilder& MinAlignment(VkDeviceSize memoryAlignment);
 	BufferBuilder& DebugName(const char* name) { debugName = name; return *this; }
 
 	std::unique_ptr<VulkanBuffer> Create(VulkanDevice *device);
@@ -204,6 +207,27 @@ private:
 	VkBufferCreateInfo bufferInfo = {};
 	VmaAllocationCreateInfo allocInfo = {};
 	const char* debugName = nullptr;
+	VkDeviceSize minAlignment = 0;
+};
+
+enum class ShaderType
+{
+	Vertex,
+	TessControl,
+	TessEvaluation,
+	Geometry,
+	Fragment,
+	Compute
+};
+
+class ShaderIncludeResult
+{
+public:
+	ShaderIncludeResult(std::string name, std::string text) : name(std::move(name)), text(std::move(text)) { }
+	ShaderIncludeResult(std::string error) : text(std::move(error)) { }
+
+	std::string name; // fully resolved name of the included header file
+	std::string text; // the file contents - or include error message if name is empty
 };
 
 class ShaderBuilder
@@ -214,16 +238,23 @@ public:
 	static void Init();
 	static void Deinit();
 
-	ShaderBuilder& VertexShader(const std::string &code);
-	ShaderBuilder& FragmentShader(const std::string&code);
+	ShaderBuilder& Type(ShaderType type);
+	ShaderBuilder& AddSource(const std::string& name, const std::string& code);
+
+	ShaderBuilder& OnIncludeSystem(std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeSystem);
+	ShaderBuilder& OnIncludeLocal(std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeLocal);
+
 	ShaderBuilder& DebugName(const char* name) { debugName = name; return *this; }
 
 	std::unique_ptr<VulkanShader> Create(const char *shadername, VulkanDevice *device);
 
 private:
-	std::string code;
+	std::vector<std::pair<std::string, std::string>> sources;
+	std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeSystem;
+	std::function<ShaderIncludeResult(std::string headerName, std::string includerName, size_t inclusionDepth)> onIncludeLocal;
 	int stage = 0;
 	const char* debugName = nullptr;
+	friend class ShaderBuilderIncluderImpl;
 };
 
 class AccelerationStructureBuilder
@@ -248,6 +279,7 @@ class ComputePipelineBuilder
 public:
 	ComputePipelineBuilder();
 
+	ComputePipelineBuilder& Cache(VulkanPipelineCache* cache);
 	ComputePipelineBuilder& Layout(VulkanPipelineLayout *layout);
 	ComputePipelineBuilder& ComputeShader(VulkanShader *shader);
 	ComputePipelineBuilder& DebugName(const char* name) { debugName = name; return *this; }
@@ -257,6 +289,7 @@ public:
 private:
 	VkComputePipelineCreateInfo pipelineInfo = {};
 	VkPipelineShaderStageCreateInfo stageInfo = {};
+	VulkanPipelineCache* cache = nullptr;
 	const char* debugName = nullptr;
 };
 
@@ -331,11 +364,28 @@ private:
 	const char* debugName = nullptr;
 };
 
+class ColorBlendAttachmentBuilder
+{
+public:
+	ColorBlendAttachmentBuilder();
+
+	ColorBlendAttachmentBuilder& ColorWriteMask(VkColorComponentFlags mask);
+	ColorBlendAttachmentBuilder& AdditiveBlendMode();
+	ColorBlendAttachmentBuilder& AlphaBlendMode();
+	ColorBlendAttachmentBuilder& BlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst);
+
+	VkPipelineColorBlendAttachmentState Create() { return colorBlendAttachment; }
+
+private:
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = { };
+};
+
 class GraphicsPipelineBuilder
 {
 public:
 	GraphicsPipelineBuilder();
 
+	GraphicsPipelineBuilder& Cache(VulkanPipelineCache* cache);
 	GraphicsPipelineBuilder& Subpass(int subpass);
 	GraphicsPipelineBuilder& Layout(VulkanPipelineLayout *layout);
 	GraphicsPipelineBuilder& RenderPass(VulkanRenderPass *renderPass);
@@ -349,13 +399,9 @@ public:
 	GraphicsPipelineBuilder& DepthFunc(VkCompareOp func);
 	GraphicsPipelineBuilder& DepthClampEnable(bool value);
 	GraphicsPipelineBuilder& DepthBias(bool enable, float biasConstantFactor, float biasClamp, float biasSlopeFactor);
-	GraphicsPipelineBuilder& ColorWriteMask(VkColorComponentFlags mask);
 	GraphicsPipelineBuilder& Stencil(VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp, uint32_t compareMask, uint32_t writeMask, uint32_t reference);
 
-	GraphicsPipelineBuilder& AdditiveBlendMode();
-	GraphicsPipelineBuilder& AlphaBlendMode();
-	GraphicsPipelineBuilder& BlendMode(VkBlendOp op, VkBlendFactor src, VkBlendFactor dst);
-	GraphicsPipelineBuilder& SubpassColorAttachmentCount(int count);
+	GraphicsPipelineBuilder& AddColorBlendAttachment(VkPipelineColorBlendAttachmentState state);
 
 	GraphicsPipelineBuilder& AddVertexShader(VulkanShader *shader);
 	GraphicsPipelineBuilder& AddFragmentShader(VulkanShader *shader);
@@ -378,7 +424,6 @@ private:
 	VkPipelineViewportStateCreateInfo viewportState = { };
 	VkPipelineRasterizationStateCreateInfo rasterizer = { };
 	VkPipelineMultisampleStateCreateInfo multisampling = { };
-	VkPipelineColorBlendAttachmentState colorBlendAttachment = { };
 	VkPipelineColorBlendStateCreateInfo colorBlending = { };
 	VkPipelineDepthStencilStateCreateInfo depthStencil = { };
 	VkPipelineDynamicStateCreateInfo dynamicState = {};
@@ -389,6 +434,7 @@ private:
 	std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
 	std::vector<VkDynamicState> dynamicStates;
 
+	VulkanPipelineCache* cache = nullptr;
 	const char* debugName = nullptr;
 };
 
@@ -408,6 +454,24 @@ private:
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	std::vector<VkDescriptorSetLayout> setLayouts;
 	std::vector<VkPushConstantRange> pushConstantRanges;
+	const char* debugName = nullptr;
+};
+
+class PipelineCacheBuilder
+{
+public:
+	PipelineCacheBuilder();
+
+	PipelineCacheBuilder& InitialData(const void* data, size_t size);
+	PipelineCacheBuilder& Flags(VkPipelineCacheCreateFlags flags);
+
+	PipelineCacheBuilder& DebugName(const char* name) { debugName = name; return *this; }
+
+	std::unique_ptr<VulkanPipelineCache> Create(VulkanDevice* device);
+
+private:
+	VkPipelineCacheCreateInfo pipelineCacheInfo = {};
+	std::vector<uint8_t> initData;
 	const char* debugName = nullptr;
 };
 
@@ -453,8 +517,8 @@ public:
 	PipelineBarrier& AddMemory(VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 	PipelineBarrier& AddBuffer(VulkanBuffer *buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 	PipelineBarrier& AddBuffer(VulkanBuffer *buffer, VkDeviceSize offset, VkDeviceSize size, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
-	PipelineBarrier& AddImage(VulkanImage *image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int baseMipLevel = 0, int levelCount = 1);
-	PipelineBarrier& AddImage(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int baseMipLevel = 0, int levelCount = 1);
+	PipelineBarrier& AddImage(VulkanImage *image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int baseMipLevel = 0, int levelCount = 1, int baseArrayLayer = 0, int layerCount = 1);
+	PipelineBarrier& AddImage(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int baseMipLevel = 0, int levelCount = 1, int baseArrayLayer = 0, int layerCount = 1);
 	PipelineBarrier& AddQueueTransfer(int srcFamily, int dstFamily, VulkanBuffer *buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask);
 	PipelineBarrier& AddQueueTransfer(int srcFamily, int dstFamily, VulkanImage *image, VkImageLayout layout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, int baseMipLevel = 0, int levelCount = 1);
 
@@ -506,4 +570,25 @@ private:
 
 	std::vector<VkWriteDescriptorSet> writes;
 	std::vector<std::unique_ptr<WriteExtra>> writeExtras;
+};
+
+class BufferTransfer
+{
+public:
+	BufferTransfer& AddBuffer(VulkanBuffer* buffer, size_t offset, const void* data, size_t size);
+	BufferTransfer& AddBuffer(VulkanBuffer* buffer, const void* data, size_t size);
+	BufferTransfer& AddBuffer(VulkanBuffer* buffer, const void* data0, size_t size0, const void* data1, size_t size1);
+	std::unique_ptr<VulkanBuffer> Execute(VulkanDevice* device, VulkanCommandBuffer* cmdbuffer);
+
+private:
+	struct BufferCopy
+	{
+		VulkanBuffer* buffer;
+		size_t offset;
+		const void* data0;
+		size_t size0;
+		const void* data1;
+		size_t size1;
+	};
+	std::vector<BufferCopy> bufferCopies;
 };

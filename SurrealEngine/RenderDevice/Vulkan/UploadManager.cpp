@@ -27,8 +27,8 @@ void UploadManager::UploadTexture(CachedTexture* tex, const FTextureInfo& Info, 
 
 	TextureUploader* uploader = TextureUploader::GetUploader(Info.Format);
 
-	if ((uint32_t)Info.USize > renderer->Device.get()->PhysicalDevice.Properties.limits.maxImageDimension2D ||
-		(uint32_t)Info.VSize > renderer->Device.get()->PhysicalDevice.Properties.limits.maxImageDimension2D ||
+	if ((uint32_t)Info.USize > renderer->Device.get()->PhysicalDevice.Properties.Properties.limits.maxImageDimension2D ||
+		(uint32_t)Info.VSize > renderer->Device.get()->PhysicalDevice.Properties.Properties.limits.maxImageDimension2D ||
 		!uploader)
 	{
 		width = 1;

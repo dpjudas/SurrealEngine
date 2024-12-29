@@ -39,13 +39,11 @@ public:
 	int PresentFamily = -1;
 	bool GraphicsTimeQueries = false;
 
-	bool SupportsDeviceExtension(const char* ext) const;
+	bool SupportsExtension(const char* ext) const;
 
 	void SetObjectName(const char* name, uint64_t handle, VkObjectType type);
 
 private:
-	bool DebugLayerActive = false;
-
 	void CreateDevice();
 	void CreateAllocator();
 	void ReleaseResources();

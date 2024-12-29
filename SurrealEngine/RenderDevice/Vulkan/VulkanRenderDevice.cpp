@@ -263,16 +263,8 @@ bool VulkanRenderDevice::Exec(std::string Cmd, OutputDevice& Ar)
 			.FindDevices(Device->Instance);
 		for (size_t i = 0; i < supportedDevices.size(); i++)
 		{
-			Ar.Log("#" + std::to_string(i) + " - " + supportedDevices[i].Device->Properties.deviceName + "\r\n");
+			Ar.Log("#" + std::to_string(i) + " - " + supportedDevices[i].Device->Properties.Properties.deviceName + "\r\n");
 		}
-		return true;
-	}
-	else if (ParseCommand(&Cmd, "VkMemStats"))
-	{
-		VmaStats stats = {};
-		vmaCalculateStats(Device->allocator, &stats);
-		Ar.Log("Allocated objects: " + std::to_string(stats.total.allocationCount) + ", used bytes: " + std::to_string(stats.total.usedBytes / (1024 * 1024)) + " MB\r\n");
-		Ar.Log("Unused range count: " + std::to_string(stats.total.unusedRangeCount) + ", unused bytes: " + std::to_string(stats.total.unusedBytes / (1024 * 1024)) + " MB\r\n");
 		return true;
 	}
 	else
