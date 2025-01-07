@@ -151,7 +151,6 @@ void WaylandDisplayWindow::ShowFullscreen()
         m_XDGToplevel.set_fullscreen(backend->m_waylandOutput);
         isFullscreen = true;
     }
-        
 }
 
 bool WaylandDisplayWindow::IsWindowFullscreen()
@@ -176,7 +175,7 @@ void WaylandDisplayWindow::ShowNormal()
     if (m_XDGToplevel)
     {
         m_XDGToplevel.unset_fullscreen();
-        isFullscreen = true;
+        isFullscreen = false;
     }
 }
 
