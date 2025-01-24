@@ -5,7 +5,7 @@
 #include "ExpressionEvaluator.h"
 #include "NativeFunc.h"
 #include "UObject/UTextBuffer.h"
-#include "Audio/AudioSubsystem.h"
+#include "UObject/USubsystem.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
@@ -70,7 +70,7 @@ void Frame::Break()
 
 	if (RunDebugger)
 	{
-		engine->audio->BreakpointTriggered();
+		engine->audiodev->BreakpointTriggered();
 		RunDebugger();
 	}
 	else
