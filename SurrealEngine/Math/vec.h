@@ -331,6 +331,9 @@ inline dvec3 reflect(const dvec3& I, const dvec3& N) { return I - 2.0 * dot(N, I
 inline vec3 refract(const vec3& I, const vec3& N, float eta) { float NdotI = dot(N, I); float k = 1.0f - eta * eta * (1.0f - NdotI * NdotI); return k < 0.0f ? vec3(0.0f) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
 inline dvec3 refract(const dvec3& I, const dvec3& N, double eta) { double NdotI = dot(N, I); double k = 1.0 - eta * eta * (1.0 - NdotI * NdotI); return k < 0.0 ? dvec3(0.0) : I * eta - (eta * NdotI + std::sqrt(k)) * N; }
 
+inline float dist_squared(const vec3& a, const vec3& b) { return dot(b - a, b - a); }
+inline float dist_squared(const dvec3& a, const dvec3& b) { return dot(b - a, b - a); }
+
 template<typename T>
 T mix(T a, T b, float t) { return a * (1.0f - t) + b * t; }
 
