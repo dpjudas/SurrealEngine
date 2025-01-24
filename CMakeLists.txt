@@ -132,8 +132,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Audio/AudioSource.cpp
 	SurrealEngine/Audio/AudioDevice.cpp
 	SurrealEngine/Audio/AudioDevice.h
-	SurrealEngine/Audio/AudioSubsystem.cpp
-	SurrealEngine/Audio/AudioSubsystem.h
 	SurrealEngine/Native/NStatLog.h
 	SurrealEngine/Native/NZoneInfo.cpp
 	SurrealEngine/Native/NNavigationPoint.cpp
