@@ -5,6 +5,8 @@
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
+static float square(float x) { return x * x; }
+
 std::string USurrealRenderDevice::GetPropertyAsString(const NameString& propertyName) const
 {
 	if (propertyName == "Class")
@@ -248,7 +250,7 @@ void USurrealAudioDevice::StartAmbience()
 		int actorIndex = 0;
 		for (UActor* Actor : m_Viewport->Actor()->XLevel()->Actors)
 		{
-			if (Actor && Actor->AmbientSound() && dist_squared(ViewActor->Location(), Actor->Location()) <= pow(Actor->WorldSoundRadius(), 2))
+			if (Actor && Actor->AmbientSound() && dist_squared(ViewActor->Location(), Actor->Location()) <= square(Actor->WorldSoundRadius()))
 			{
 				int Id = actorIndex * 16 + SLOT_Ambient * 2;
 				bool foundSound = false;
@@ -277,7 +279,7 @@ void USurrealAudioDevice::UpdateAmbience()
 		PlayingSound& Playing = PlayingSounds[i];
 		if ((Playing.Id & 14) == SLOT_Ambient * 2)
 		{
-			if (Playing.Actor->bDeleteMe() || dist_squared(ViewActor->Location(), Playing.Actor->Location()) > pow(Playing.Actor->WorldSoundRadius(), 2) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
+			if (Playing.Actor->bDeleteMe() || dist_squared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
 			{
 				// Ambient sound went out of range
 				StopSound(i);
