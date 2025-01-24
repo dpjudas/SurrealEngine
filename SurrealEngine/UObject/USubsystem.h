@@ -1,9 +1,29 @@
 #pragma once
 
 #include "UObject.h"
+#include "UActor.h"
 #include "UClient.h"
 #include "Package/IniProperty.h"
 #include "USound.h"
+#include "UMusic.h"
+#include "Audio/AudioDevice.h"
+
+struct PlayingSound
+{
+	PlayingSound() = default;
+	PlayingSound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, float Priority) : Actor(Actor), Id(Id), Sound(Sound), Location(Location), Volume(Volume), Radius(Radius), Pitch(Pitch), Priority(Priority) {}
+
+	int Id = 0;
+	int Channel = 0;
+	float Priority = 0.0f;
+	UActor* Actor = nullptr;
+	USound* Sound = nullptr;
+	vec3 Location = { 0.0f, 0.0f, 0.0f };
+	float Volume = 1.0f;
+	float Radius = 1.0f;
+	float Pitch = 1.0f;
+	float CurrentVolume = 0.0f;
+};
 
 class USubsystem : public UObject
 {
@@ -110,6 +130,39 @@ public:
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
+
+	void InitDevice();
+	void ShutdownDevice() { m_Device.reset(); }
+	void SetViewport(UViewport* InViewport);
+	UViewport* GetViewport() { return m_Viewport; }
+
+	void Update(const mat4& listener);
+
+	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch);
+	void NoteDestroy(UActor* Actor);
+	void StopSounds();
+
+	void BreakpointTriggered();
+	void AddStats(Array<std::string>& lines);
+
+	AudioDevice* GetDevice() { return m_Device.get(); }
+
+private:
+	void StartAmbience();
+	void UpdateAmbience();
+	void UpdateSounds(const mat4& listener);
+	void UpdateMusic();
+	void StopSound(size_t index);
+
+	static float SoundPriority(UViewport* Viewport, vec3 Location, float Volume, float Radius);
+
+	UViewport* m_Viewport = nullptr;
+
+	std::unique_ptr<AudioDevice> m_Device;
+	Array<PlayingSound> PlayingSounds;
+	UMusic* CurrentSong = nullptr;
+	int CurrentSection = 255;
+	int FreeSlot = 0x07ffffff;
 };
 
 class USurrealNetworkDevice : public UNetDriver
