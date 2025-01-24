@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "USubsystem.h"
+#include "ULevel.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
@@ -190,6 +191,292 @@ void USurrealAudioDevice::SaveConfig()
 	engine->packages->SetIniValue("System", Class, "MusicVolume", IniPropertyConverter<uint8_t>::ToString(MusicVolume));
 	engine->packages->SetIniValue("System", Class, "SoundVolume", IniPropertyConverter<uint8_t>::ToString(SoundVolume));
 	engine->packages->SetIniValue("System", Class, "AmbientFactor", IniPropertyConverter<float>::ToString(AmbientFactor));
+}
+
+void USurrealAudioDevice::InitDevice()
+{
+	// TODO: Add configurable option for audio device
+	// TODO: Add configurable option for audio output frequency
+	// TODO: Add option for number of sound channels
+	// TODO: Add option for music buffer count
+	// TODO: Add option for music buffer size
+	// m_Device = AudioDevice::Create(48000, 256, 16, 256);
+	m_Device = AudioDevice::Create(OutputRate.frequency, 256, 16, 256);
+}
+
+void USurrealAudioDevice::SetViewport(UViewport* InViewport)
+{
+	if (m_Viewport != InViewport)
+	{
+		StopSounds();
+
+		if (m_Viewport)
+		{
+			m_Device->PlayMusic({});
+		}
+
+		m_Viewport = InViewport;
+
+		if (m_Viewport)
+		{
+			if (m_Viewport->Actor()->Song() && m_Viewport->Actor()->Transition() == MTRAN_None)
+				m_Viewport->Actor()->Transition() = MTRAN_Instant;
+
+			PlayingSounds.resize(Channels);
+		}
+	}
+}
+
+void USurrealAudioDevice::Update(const mat4& listener)
+{
+	StartAmbience();
+	UpdateAmbience();
+	UpdateSounds(listener);
+	UpdateMusic();
+
+	m_Device->SetMusicVolume(MusicVolume / 255.0f);
+	m_Device->SetSoundVolume(SoundVolume / 255.0f);
+	m_Device->Update();
+}
+
+void USurrealAudioDevice::StartAmbience()
+{
+	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
+	if (Realtime)
+	{
+		UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
+		int actorIndex = 0;
+		for (UActor* Actor : m_Viewport->Actor()->XLevel()->Actors)
+		{
+			if (Actor && Actor->AmbientSound() && dist_squared(ViewActor->Location(), Actor->Location()) <= pow(Actor->WorldSoundRadius(), 2))
+			{
+				int Id = actorIndex * 16 + SLOT_Ambient * 2;
+				bool foundSound = false;
+				for (size_t j = 0; j < PlayingSounds.size(); j++)
+				{
+					if (PlayingSounds[j].Id == Id)
+					{
+						foundSound = true;
+						break;
+					}
+				}
+				if (!foundSound)
+					PlaySound(Actor, Id, Actor->AmbientSound(), Actor->Location(), AmbientFactor * Actor->SoundVolume() / 255.0f, Actor->WorldSoundRadius(), Actor->SoundPitch() / 64.0f);
+			}
+			actorIndex++;
+		}
+	}
+}
+
+void USurrealAudioDevice::UpdateAmbience()
+{
+	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
+	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+	{
+		PlayingSound& Playing = PlayingSounds[i];
+		if ((Playing.Id & 14) == SLOT_Ambient * 2)
+		{
+			if (Playing.Actor->bDeleteMe() || dist_squared(ViewActor->Location(), Playing.Actor->Location()) > pow(Playing.Actor->WorldSoundRadius(), 2) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
+			{
+				// Ambient sound went out of range
+				StopSound(i);
+			}
+			else
+			{
+				// Update basic sound properties
+				Playing.Volume = 2.0f * (AmbientFactor * Playing.Actor->SoundVolume() / 255.0f);
+				Playing.Radius = Playing.Actor->WorldSoundRadius();
+				Playing.Pitch = Playing.Actor->SoundPitch() / 64.0f;
+			}
+		}
+	}
+}
+
+void USurrealAudioDevice::UpdateSounds(const mat4& listener)
+{
+	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+	{
+		PlayingSound& Playing = PlayingSounds[i];
+
+		if (Playing.Id != 0)
+		{
+			// Update positioning from actor, if available
+			if (Playing.Actor)
+				Playing.Location = Playing.Actor->Location();
+
+			// Update the priority
+			Playing.Priority = SoundPriority(m_Viewport, Playing.Location, Playing.Volume, Playing.Radius);
+
+			// Update the sound.
+			Playing.CurrentVolume = SoundVolume;
+			if (Playing.Channel)
+			{
+				if (m_Device->IsPlaying(Playing.Channel))
+				{
+					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+				}
+				else
+				{
+					PlayingSounds[i] = {};
+				}
+			}
+			else
+			{
+				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+			}
+		}
+	}
+}
+
+void USurrealAudioDevice::UpdateMusic()
+{
+	if (m_Viewport->Actor() && m_Viewport->Actor()->Transition() != MTRAN_None)
+	{
+		// To do: this needs to fade out the old song before switching
+
+		if (CurrentSong)
+		{
+			m_Device->PlayMusic({});
+			CurrentSong = nullptr;
+		}
+
+		CurrentSong = m_Viewport->Actor()->Song();
+		CurrentSection = m_Viewport->Actor()->SongSection();
+
+		if (CurrentSong && UseDigitalMusic)
+		{
+			int subsong = CurrentSection != 255 ? CurrentSection : 0;
+			m_Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
+		}
+
+		m_Viewport->Actor()->Transition() = MTRAN_None;
+	}
+}
+
+bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch)
+{
+	if (!m_Viewport || !Sound)
+		return false;
+
+	// Allocate a new slot if requested
+	if ((Id & 14) == 2 * SLOT_None)
+		Id = 16 * --FreeSlot;
+
+	float Priority = SoundPriority(m_Viewport, Location, Volume, Radius);
+
+	// If already playing, stop it
+	size_t Index = PlayingSounds.size();
+	float BestPriority = Priority;
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+	{
+		PlayingSound& Playing = PlayingSounds[i];
+		if ((Playing.Id & ~1) == (Id & ~1))
+		{
+			// Skip if not interruptable.
+			if (Id & 1)
+				return 0;
+
+			// Stop the sound.
+			Index = i;
+			break;
+		}
+		else if (Playing.Priority <= BestPriority)
+		{
+			Index = i;
+			BestPriority = Playing.Priority;
+		}
+	}
+
+	// If no sound, or its priority is overruled, stop it
+	if (Index == PlayingSounds.size())
+		return 0;
+
+	Sound->GetSound();
+
+	// Put the sound on the play-list
+	StopSound(Index);
+	PlayingSounds[Index] = PlayingSound(Actor, Id, Sound, Location, Volume, Radius, Pitch, Priority);
+
+	return true;
+}
+
+void USurrealAudioDevice::NoteDestroy(UActor* Actor)
+{
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+	{
+		if (PlayingSounds[i].Actor == Actor)
+		{
+			if ((PlayingSounds[i].Id & 14) == SLOT_Ambient * 2)
+			{
+				// Stop ambient sound when actor dies
+				StopSound(i);
+			}
+			else
+			{
+				// Unbind regular sounds from actors
+				PlayingSounds[i].Actor = nullptr;
+			}
+		}
+	}
+}
+
+void USurrealAudioDevice::StopSound(size_t index)
+{
+	PlayingSound& Playing = PlayingSounds[index];
+
+	if (Playing.Channel)
+	{
+		m_Device->StopSound(Playing.Channel);
+	}
+
+	PlayingSounds[index] = {};
+}
+
+void USurrealAudioDevice::StopSounds()
+{
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+		StopSound(i);
+}
+
+void USurrealAudioDevice::BreakpointTriggered()
+{
+	if (m_Device)
+	{
+		m_Device->SetSoundVolume(0.0f);
+		m_Device->Update();
+	}
+}
+
+void USurrealAudioDevice::AddStats(Array<std::string>& lines)
+{
+	const int bufsize = 1024;
+	char buffer[bufsize];
+	int index = 0;
+	for (const PlayingSound& sound : PlayingSounds)
+	{
+		if (sound.Channel)
+		{
+			std::snprintf(buffer, bufsize - 1, "Channel %2i: Vol: %05.2f %s", index, sound.CurrentVolume, sound.Sound->Name.ToString().c_str());
+		}
+		else
+		{
+			if (index >= 10)
+				std::snprintf(buffer, bufsize - 1, "Channel %i:  None", index);
+			else
+				std::snprintf(buffer, bufsize - 1, "Channel %i: None", index);
+		}
+		buffer[bufsize - 1] = 0;
+		lines.push_back(buffer);
+		index++;
+	}
+}
+
+float USurrealAudioDevice::SoundPriority(UViewport* Viewport, vec3 Location, float Volume, float Radius)
+{
+	UActor* target = Viewport->Actor()->ViewTarget() ? Viewport->Actor()->ViewTarget() : Viewport->Actor();
+	return std::max(Volume * (1.0f - length(Location - target->Location()) / Radius), 0.0f);
 }
 
 /////////////////////////////////////////////////////////////////////////////
