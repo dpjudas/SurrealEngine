@@ -140,7 +140,6 @@ public:
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<GameWindow> window; // TODO: Move into UViewport
 	std::unique_ptr<RenderSubsystem> render;
-	std::unique_ptr<AudioSubsystem> audio;
 
 	int MouseMoveX = 0;
 	int MouseMoveY = 0;

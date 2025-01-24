@@ -21,7 +21,6 @@
 #include "Math/FrustumPlanes.h"
 #include "GameWindow.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Audio/AudioSubsystem.h"
 #include "VM/Frame.h"
 #include "VM/ScriptCall.h"
 #include <chrono>
@@ -33,7 +32,6 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 {
 	engine = this;
 
-	//packages = std::make_unique<PackageManager>(LaunchInfo.folder, LaunchInfo.engineVersion, LaunchInfo.gameName);
 	packages = std::make_unique<PackageManager>(LaunchInfo);
 
 	std::srand((unsigned int)std::time(nullptr));
@@ -69,7 +67,7 @@ void Engine::Run()
 
 	OpenWindow();
 
-	audio = std::make_unique<AudioSubsystem>();
+	audiodev->InitDevice();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
 
 	if (!client->StartupFullscreen)
@@ -229,6 +227,8 @@ void Engine::Run()
 	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
+	audiodev->ShutdownDevice();
+
 	CloseWindow();
 }
 
@@ -237,8 +237,8 @@ void Engine::UpdateAudio()
 	mat4 translate = mat4::translate(vec3(0.0f) - CameraLocation);
 	mat4 listener = Coords::ViewToAudioDev().ToMatrix() * Coords::Rotation(CameraRotation).ToMatrix() * translate;
 
-	audio->SetViewport(viewport);
-	audio->Update(listener);
+	audiodev->SetViewport(viewport);
+	audiodev->Update(listener);
 }
 
 void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
@@ -437,7 +437,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
 
-	audio->StopSounds();
+	audiodev->StopSounds();
 }
 
 void Engine::LoginPlayer()
