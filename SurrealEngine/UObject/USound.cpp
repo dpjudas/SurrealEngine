@@ -4,7 +4,7 @@
 #include "Engine.h"
 #include "Audio/AudioSource.h"
 #include "Audio/AudioDevice.h"
-#include "Audio/AudioSubsystem.h"
+#include "UObject/USubsystem.h"
 
 void USound::Load(ObjectStream* stream)
 {
@@ -37,7 +37,7 @@ void USound::GetSound()
 	loopInfo.LoopStart = source->loopStart;
 	loopInfo.LoopEnd = source->loopEnd;
 
-	engine->audio->GetDevice()->AddSound(this);
+	engine->audiodev->GetDevice()->AddSound(this);
 }
 
 float USound::GetDuration()
