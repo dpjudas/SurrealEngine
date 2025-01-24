@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Audio/AudioSubsystem.h"
+#include "UObject/USubsystem.h"
 #include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
@@ -415,7 +415,7 @@ void RenderSubsystem::DrawTimedemoStats()
 
 			/*
 			Array<std::string> leftlines;
-			engine->audio->AddStats(leftlines);
+			engine->audiodev->AddStats(leftlines);
 			curY = 64;
 			for (const std::string& text : leftlines)
 			{
