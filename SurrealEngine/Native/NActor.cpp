@@ -10,7 +10,7 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Audio/AudioDevice.h"
-#include "Audio/AudioSubsystem.h"
+#include "UObject/USubsystem.h"
 #include "Utils/StrCompare.h"
 
 void NActor::RegisterFunctions()
@@ -128,7 +128,7 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* 
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audio->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 	}
 }
 
@@ -364,7 +364,7 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audio->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 	}
 }
 
@@ -377,7 +377,7 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audio->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
 	}
 }
 
