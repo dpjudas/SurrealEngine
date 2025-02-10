@@ -3,7 +3,10 @@ project(zwidget)
 
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
-	pkg_check_modules(DBUS REQUIRED dbus-1)
+	pkg_check_modules(DBUS dbus-1)
+	if (!DBUS_FOUND)
+		pkg_check_modules(DBUS REQUIRED dbus) # Fedora Linux looks for dbus instead
+	endif()
 	pkg_check_modules(WAYLANDPP
 		wayland-client
 		wayland-client++
