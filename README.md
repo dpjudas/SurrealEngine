@@ -93,6 +93,10 @@ Note that these packages won't always have the exact names given above, as it ca
 **Arch Linux**
 
     # pacman -S libx11 gcc git cmake sdl2 alsa-lib waylandpp
+    
+**Fedora**
+
+    # dnf install libX11 libX11-devel libxkbcommon libxkbcommon-devel SDL2-devel openal-soft-devel alsa-lib-devel waylandpp waylandpp-devel
 
 #### After installing prerequisites
 
