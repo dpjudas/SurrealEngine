@@ -132,6 +132,8 @@ public:
 
 	wayland::surface_t GetWindowSurface() { return m_AppSurface; }
 
+	bool IsWindowFullscreen() override;
+
 private:
     // Event handlers as otherwise linking DisplayWindowHost On...() functions with Wayland events directly crashes the app
     // Alternatively to avoid crashes one can capture by value ([=]) instead of reference ([&])
