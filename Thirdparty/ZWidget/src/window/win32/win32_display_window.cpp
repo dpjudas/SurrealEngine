@@ -126,10 +126,10 @@ void Win32DisplayWindow::Show()
 void Win32DisplayWindow::ShowFullscreen()
 {
 	HDC screenDC = GetDC(0);
-	DWORD dwStyle = GetWindowLong(WindowHandle.hwnd, GWL_STYLE);
 	int width = GetDeviceCaps(screenDC, HORZRES);
 	int height = GetDeviceCaps(screenDC, VERTRES);
 	ReleaseDC(0, screenDC);
+	DWORD dwStyle = GetWindowLong(WindowHandle.hwnd, GWL_STYLE);
 	SetWindowLongPtr(WindowHandle.hwnd, GWL_EXSTYLE, WS_EX_APPWINDOW);
 	SetWindowLongPtr(WindowHandle.hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
 	SetWindowPos(WindowHandle.hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
@@ -148,9 +148,12 @@ void Win32DisplayWindow::ShowMinimized()
 
 void Win32DisplayWindow::ShowNormal()
 {
-	SetWindowLongPtr(WindowHandle.hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+	if (Fullscreen)
+	{
+		SetWindowLongPtr(WindowHandle.hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		Fullscreen = false;
+	}
 	ShowWindow(WindowHandle.hwnd, SW_NORMAL);
-	Fullscreen = false;
 }
 
 bool Win32DisplayWindow::IsWindowFullscreen()
@@ -668,6 +671,87 @@ Size Win32DisplayWindow::GetScreenSize()
 	ReleaseDC(0, screenDC);
 
 	return Size(screenWidth / dpiScale, screenHeight / dpiScale);
+}
+
+// This is to avoid needing all the Vulkan headers and the volk binding library just for this:
+#ifndef VK_VERSION_1_0
+
+#define VKAPI_CALL __stdcall
+#define VKAPI_PTR VKAPI_CALL
+
+typedef uint32_t VkFlags;
+typedef enum VkStructureType { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR = 1000009000, VK_OBJECT_TYPE_MAX_ENUM = 0x7FFFFFFF } VkStructureType;
+typedef enum VkResult { VK_SUCCESS = 0, VK_RESULT_MAX_ENUM = 0x7FFFFFFF } VkResult;
+typedef struct VkAllocationCallbacks VkAllocationCallbacks;
+
+typedef void (VKAPI_PTR* PFN_vkVoidFunction)(void);
+typedef PFN_vkVoidFunction(VKAPI_PTR* PFN_vkGetInstanceProcAddr)(VkInstance instance, const char* pName);
+
+#ifndef VK_KHR_win32_surface
+
+typedef VkFlags VkWin32SurfaceCreateFlagsKHR;
+typedef struct VkWin32SurfaceCreateInfoKHR
+{
+	VkStructureType                 sType;
+	const void* pNext;
+	VkWin32SurfaceCreateFlagsKHR    flags;
+	HINSTANCE                       hinstance;
+	HWND                            hwnd;
+} VkWin32SurfaceCreateInfoKHR;
+
+typedef VkResult(VKAPI_PTR* PFN_vkCreateWin32SurfaceKHR)(VkInstance instance, const VkWin32SurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#endif
+#endif
+
+class ZWidgetVulkanLoader
+{
+public:
+	ZWidgetVulkanLoader()
+	{
+		module = LoadLibraryA("vulkan-1.dll");
+		if (!module)
+			throw std::runtime_error("Could not load vulkan-1.dll");
+
+		vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)(void(*)(void))GetProcAddress(module, "vkGetInstanceProcAddr");
+		if (!vkGetInstanceProcAddr)
+		{
+			FreeLibrary(module);
+			throw std::runtime_error("vkGetInstanceProcAddr not found in vulkan-1.dll");
+		}
+	}
+
+	~ZWidgetVulkanLoader()
+	{
+		FreeLibrary(module);
+	}
+
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
+	HMODULE module = {};
+};
+
+VkSurfaceKHR Win32DisplayWindow::CreateVulkanSurface(VkInstance instance)
+{
+	static ZWidgetVulkanLoader loader;
+
+	auto vkCreateWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)loader.vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
+	if (!vkCreateWin32SurfaceKHR)
+		throw std::runtime_error("Could not create vulkan surface");
+
+	VkWin32SurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+	createInfo.hwnd = WindowHandle.hwnd;
+	createInfo.hinstance = GetModuleHandle(nullptr);
+
+	VkSurfaceKHR surface = {};
+	VkResult result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface);
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("Could not create vulkan surface");
+	return surface;
+}
+
+std::vector<std::string> Win32DisplayWindow::GetVulkanInstanceExtensions()
+{
+	return { "VK_KHR_surface", "VK_KHR_win32_surface" };
 }
 
 static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)

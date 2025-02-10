@@ -56,6 +56,9 @@ public:
 
 	void* GetNativeHandle() override;
 
+	std::vector<std::string> GetVulkanInstanceExtensions() override;
+	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+
 	static void ProcessEvents();
 	static void RunLoop();
 	static void ExitLoop();
@@ -109,6 +112,7 @@ private:
 	bool isCursorEnabled = true;
 	bool isMapped = false;
 	bool isMinimized = false;
+	bool isFullscreen = false;
 	double dpiScale = 1.0;
 
 	Pixmap cursor_bitmap = None;
@@ -128,8 +132,6 @@ private:
 	} backbuffer;
 
 	bool needsUpdate = false;
-
-	bool isFullscreen = false;
 
 	friend class X11DisplayBackend;
 };

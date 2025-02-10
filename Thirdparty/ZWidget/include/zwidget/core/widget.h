@@ -88,7 +88,6 @@ public:
 	void SetVisible(bool enable) { if (enable) Show(); else Hide(); }
 	void Show();
 	void ShowFullscreen();
-	bool IsFullscreen();
 	void ShowMaximized();
 	void ShowMinimized();
 	void ShowNormal();
@@ -105,6 +104,7 @@ public:
 	bool IsEnabled();
 	bool IsVisible();
 	bool IsHidden();
+	bool IsFullscreen();
 
 	void SetFocus();
 	void SetEnabled(bool value);
@@ -154,6 +154,10 @@ public:
 	void* GetNativeHandle();
 	int GetNativePixelWidth();
 	int GetNativePixelHeight();
+
+	// Vulkan support:
+	std::vector<std::string> GetVulkanInstanceExtensions() { return Window()->DispWindow->GetVulkanInstanceExtensions(); }
+	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) { return Window()->DispWindow->CreateVulkanSurface(instance); }
 
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);

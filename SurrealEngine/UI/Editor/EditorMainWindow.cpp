@@ -10,18 +10,18 @@
 #include "RenderDevice/RenderDevice.h"
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkanbuilders.h>
-#include <zwidget/window/zvulkanwidget.h>
 #include <zwidget/widgets/menubar/menubar.h>
 #include <zwidget/widgets/toolbar/toolbar.h>
 
 EditorMainWindow::EditorMainWindow() : MainWindow(RenderAPI::Vulkan)
 {
-	std::shared_ptr<VulkanInstance> instance = CreateZVulkanInstanceBuilder(this)
+	std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
+		.RequireExtensions(GetVulkanInstanceExtensions())
 		.OptionalSwapchainColorspace()
 		.DebugLayer(false)
 		.Create();
 
-	std::shared_ptr<VulkanSurface> surface = CreateZVulkanSurface(this, instance);
+	auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
 	if (!surface)
 		Exception::Throw("No vulkan surface found");
 

@@ -153,11 +153,6 @@ void WaylandDisplayWindow::ShowFullscreen()
     }
 }
 
-bool WaylandDisplayWindow::IsWindowFullscreen()
-{
-    return isFullscreen;
-}
-
 void WaylandDisplayWindow::ShowMaximized()
 {
     if (m_XDGToplevel)
@@ -173,10 +168,12 @@ void WaylandDisplayWindow::ShowMinimized()
 void WaylandDisplayWindow::ShowNormal()
 {
     if (m_XDGToplevel)
-    {
         m_XDGToplevel.unset_fullscreen();
-        isFullscreen = false;
-    }
+}
+
+bool WaylandDisplayWindow::IsWindowFullscreen()
+{
+    return isFullscreen;
 }
 
 void WaylandDisplayWindow::Hide()
@@ -380,4 +377,96 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {
     return m_windowID;
+}
+
+// This is to avoid needing all the Vulkan headers and the volk binding library just for this:
+#ifndef VK_VERSION_1_0
+
+#define VKAPI_CALL
+#define VKAPI_PTR VKAPI_CALL
+
+typedef uint32_t VkFlags;
+typedef enum VkStructureType { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR = 1000006000, VK_OBJECT_TYPE_MAX_ENUM = 0x7FFFFFFF } VkStructureType;
+typedef enum VkResult { VK_SUCCESS = 0, VK_RESULT_MAX_ENUM = 0x7FFFFFFF } VkResult;
+typedef struct VkAllocationCallbacks VkAllocationCallbacks;
+
+typedef void (VKAPI_PTR* PFN_vkVoidFunction)(void);
+typedef PFN_vkVoidFunction(VKAPI_PTR* PFN_vkGetInstanceProcAddr)(VkInstance instance, const char* pName);
+
+#ifndef VK_KHR_wayland_surface
+
+typedef VkFlags VkWaylandSurfaceCreateFlagsKHR;
+typedef struct VkWaylandSurfaceCreateInfoKHR
+{
+    VkStructureType                   sType;
+    const void*                       pNext;
+    VkWaylandSurfaceCreateFlagsKHR    flags;
+    struct wl_display*                display;
+    struct wl_surface*                surface;
+} VkWaylandSurfaceCreateInfoKHR;
+
+typedef VkResult(VKAPI_PTR* PFN_vkCreateWaylandSurfaceKHR)(VkInstance instance, const VkWaylandSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#endif
+#endif
+
+class ZWidgetWaylandVulkanLoader
+{
+public:
+	ZWidgetWaylandVulkanLoader()
+	{
+#if defined(__APPLE__)
+		module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+#else
+		module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+#endif
+
+		if (!module)
+			throw std::runtime_error("Could not load vulkan");
+
+		vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+		if (!vkGetInstanceProcAddr)
+		{
+			dlclose(module);
+			throw std::runtime_error("vkGetInstanceProcAddr not found");
+		}
+	}
+
+	~ZWidgetWaylandVulkanLoader()
+	{
+		dlclose(module);
+	}
+
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
+	void* module = nullptr;
+};
+
+VkSurfaceKHR WaylandDisplayWindow::CreateVulkanSurface(VkInstance instance)
+{
+	static ZWidgetWaylandVulkanLoader loader;
+
+	auto vkCreateWaylandSurfaceKHR = (PFN_vkCreateWaylandSurfaceKHR)loader.vkGetInstanceProcAddr(instance, "vkCreateWaylandSurfaceKHR");
+	if (!vkCreateWaylandSurfaceKHR)
+		throw std::runtime_error("Could not create vulkan surface");
+
+	VkWaylandSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR };
+	createInfo.display = m_NativeHandle.display;
+	createInfo.surface = m_NativeHandle.surface;
+
+	VkSurfaceKHR surface = {};
+	VkResult result = vkCreateWaylandSurfaceKHR(instance, &createInfo, nullptr, &surface);
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("Could not create vulkan surface");
+	return surface;
+}
+
+std::vector<std::string> WaylandDisplayWindow::GetVulkanInstanceExtensions()
+{
+	return { "VK_KHR_surface", "VK_KHR_wayland_surface" };
 }

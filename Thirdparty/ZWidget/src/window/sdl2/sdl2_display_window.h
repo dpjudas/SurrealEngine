@@ -52,6 +52,9 @@ public:
 
 	void* GetNativeHandle() override { return &Handle; }
 
+	std::vector<std::string> GetVulkanInstanceExtensions() override;
+	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+
 	static void DispatchEvent(const SDL_Event& event);
 	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
 
@@ -93,10 +96,9 @@ public:
 	int BackBufferHeight = 0;
 
 	bool CursorLocked = false;
+	bool isFullscreen = false;
 
 	static bool ExitRunLoop;
 	static Uint32 PaintEventNumber;
 	static std::unordered_map<int, SDL2DisplayWindow*> WindowList;
-
-	bool isFullscreen = false;
 };

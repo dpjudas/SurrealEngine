@@ -25,7 +25,7 @@ void ListView::RemoveItem(int index)
 
 	if (selectedItem == items.size())
 	{
-		selectedItem = !items.empty() ? items.size() - 1 : 0;
+		selectedItem = !items.empty() ? (int)items.size() - 1 : 0;
 	}
 }
 

@@ -1067,3 +1067,95 @@ void* X11DisplayWindow::StartTimer(int timeoutMilliseconds, std::function<void()
 void X11DisplayWindow::StopTimer(void* timerID)
 {
 }
+
+// This is to avoid needing all the Vulkan headers and the volk binding library just for this:
+#ifndef VK_VERSION_1_0
+
+#define VKAPI_CALL
+#define VKAPI_PTR VKAPI_CALL
+
+typedef uint32_t VkFlags;
+typedef enum VkStructureType { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR = 1000004000, VK_OBJECT_TYPE_MAX_ENUM = 0x7FFFFFFF } VkStructureType;
+typedef enum VkResult { VK_SUCCESS = 0, VK_RESULT_MAX_ENUM = 0x7FFFFFFF } VkResult;
+typedef struct VkAllocationCallbacks VkAllocationCallbacks;
+
+typedef void (VKAPI_PTR* PFN_vkVoidFunction)(void);
+typedef PFN_vkVoidFunction(VKAPI_PTR* PFN_vkGetInstanceProcAddr)(VkInstance instance, const char* pName);
+
+#ifndef VK_KHR_xlib_surface
+
+typedef VkFlags VkXlibSurfaceCreateFlagsKHR;
+typedef struct VkXlibSurfaceCreateInfoKHR
+{
+    VkStructureType                sType;
+    const void*                    pNext;
+    VkXlibSurfaceCreateFlagsKHR    flags;
+    Display*                       dpy;
+    Window                         window;
+} VkXlibSurfaceCreateInfoKHR;
+
+typedef VkResult(VKAPI_PTR* PFN_vkCreateXlibSurfaceKHR)(VkInstance instance, const VkXlibSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#endif
+#endif
+
+class ZWidgetX11VulkanLoader
+{
+public:
+	ZWidgetX11VulkanLoader()
+	{
+#if defined(__APPLE__)
+		module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+#else
+		module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
+		if (!module)
+			module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+#endif
+
+		if (!module)
+			throw std::runtime_error("Could not load vulkan");
+
+		vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+		if (!vkGetInstanceProcAddr)
+		{
+			dlclose(module);
+			throw std::runtime_error("vkGetInstanceProcAddr not found");
+		}
+	}
+
+	~ZWidgetX11VulkanLoader()
+	{
+		dlclose(module);
+	}
+
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
+	void* module = nullptr;
+};
+
+VkSurfaceKHR X11DisplayWindow::CreateVulkanSurface(VkInstance instance)
+{
+	static ZWidgetX11VulkanLoader loader;
+
+	auto vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)loader.vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
+	if (!vkCreateXlibSurfaceKHR)
+		throw std::runtime_error("Could not create vulkan surface");
+
+	VkXlibSurfaceCreateInfoKHR createInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
+	createInfo.dpy = display;
+	createInfo.window = window;
+
+	VkSurfaceKHR surface = {};
+	VkResult result = vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface);
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("Could not create vulkan surface");
+	return surface;
+}
+
+std::vector<std::string> X11DisplayWindow::GetVulkanInstanceExtensions()
+{
+	return { "VK_KHR_surface", "VK_KHR_xlib_surface" };
+}
