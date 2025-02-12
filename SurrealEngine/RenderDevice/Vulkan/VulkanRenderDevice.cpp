@@ -41,6 +41,11 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<Vulka
 			Device->EnabledFeatures.DescriptorIndexing.runtimeDescriptorArray &&
 			Device->EnabledFeatures.DescriptorIndexing.shaderSampledImageArrayNonUniformIndexing;
 
+		// AMD's driver produces artifacts when using bindless textures.
+		// This is not ideal, but can't get AMD to fix this as I'm not AAA and thus can't just call them...
+		if ((Device->PhysicalDevice.Properties.Properties.vendorID & 0xffff) == 0x1002)
+			SupportsBindless = false;
+
 		Commands.reset(new CommandBufferManager(this));
 		Samplers.reset(new SamplerManager(this));
 		Textures.reset(new TextureManager(this));
