@@ -285,18 +285,22 @@ void X11DisplayWindow::ShowCursor(bool enable)
 
 void X11DisplayWindow::LockCursor()
 {
+	ShowCursor(false);
 }
 
 void X11DisplayWindow::UnlockCursor()
 {
+	ShowCursor(true);
 }
 
 void X11DisplayWindow::CaptureMouse()
 {
+	ShowCursor(false);
 }
 
 void X11DisplayWindow::ReleaseMouseCapture()
 {
+	ShowCursor(true);
 }
 
 void X11DisplayWindow::Update()
@@ -692,6 +696,8 @@ void X11DisplayWindow::OnEvent(XEvent* event)
 
 void X11DisplayWindow::OnConfigureNotify(XEvent* event)
 {
+	ClientSizeX = event->xconfigure.width;
+	ClientSizeY = event->xconfigure.height;
 	windowHost->OnWindowGeometryChanged();
 }
 
@@ -766,7 +772,7 @@ InputKey X11DisplayWindow::GetInputKey(XEvent* event)
 		case XK_Left: return InputKey::Left;
 		case XK_Up: return InputKey::Up;
 		case XK_Right: return InputKey::Right;
-		case XK_Down: return InputKey::Select;
+		case XK_Down: return InputKey::Down;
 		case XK_Print: return InputKey::Print;
 		case XK_Execute: return InputKey::Execute;
 		// case XK_Print_Screen: return InputKey::PrintScrn;
@@ -783,32 +789,32 @@ InputKey X11DisplayWindow::GetInputKey(XEvent* event)
 		case XK_7: return InputKey::_7;
 		case XK_8: return InputKey::_8;
 		case XK_9: return InputKey::_9;
-		case XK_A: return InputKey::A;
-		case XK_B: return InputKey::B;
-		case XK_C: return InputKey::C;
-		case XK_D: return InputKey::D;
-		case XK_E: return InputKey::E;
-		case XK_F: return InputKey::F;
-		case XK_G: return InputKey::G;
-		case XK_H: return InputKey::H;
-		case XK_I: return InputKey::I;
-		case XK_J: return InputKey::J;
-		case XK_K: return InputKey::K;
-		case XK_L: return InputKey::L;
-		case XK_M: return InputKey::M;
-		case XK_N: return InputKey::N;
-		case XK_O: return InputKey::O;
-		case XK_P: return InputKey::P;
-		case XK_Q: return InputKey::Q;
-		case XK_R: return InputKey::R;
-		case XK_S: return InputKey::S;
-		case XK_T: return InputKey::T;
-		case XK_U: return InputKey::U;
-		case XK_V: return InputKey::V;
-		case XK_W: return InputKey::W;
-		case XK_X: return InputKey::X;
-		case XK_Y: return InputKey::Y;
-		case XK_Z: return InputKey::Z;
+		case XK_A: case XK_a:  return InputKey::A;
+		case XK_B: case XK_b:  return InputKey::B;
+		case XK_C: case XK_c:  return InputKey::C;
+		case XK_D: case XK_d:  return InputKey::D;
+		case XK_E: case XK_e:  return InputKey::E;
+		case XK_F: case XK_f:  return InputKey::F;
+		case XK_G: case XK_g:  return InputKey::G;
+		case XK_H: case XK_h:  return InputKey::H;
+		case XK_I: case XK_i:  return InputKey::I;
+		case XK_J: case XK_j:  return InputKey::J;
+		case XK_K: case XK_k:  return InputKey::K;
+		case XK_L: case XK_l:  return InputKey::L;
+		case XK_M: case XK_m:  return InputKey::M;
+		case XK_N: case XK_n:  return InputKey::N;
+		case XK_O: case XK_o:  return InputKey::O;
+		case XK_P: case XK_p: return InputKey::P;
+		case XK_Q: case XK_q: return InputKey::Q;
+		case XK_R: case XK_r: return InputKey::R;
+		case XK_S: case XK_s: return InputKey::S;
+		case XK_T: case XK_t: return InputKey::T;
+		case XK_U: case XK_u: return InputKey::U;
+		case XK_V: case XK_v: return InputKey::V;
+		case XK_W: case XK_w: return InputKey::W;
+		case XK_X: case XK_x: return InputKey::X;
+		case XK_Y: case XK_y: return InputKey::Y;
+		case XK_Z: case XK_z: return InputKey::Z;
 		case XK_KP_0: return InputKey::NumPad0;
 		case XK_KP_1: return InputKey::NumPad1;
 		case XK_KP_2: return InputKey::NumPad2;
@@ -962,7 +968,24 @@ void X11DisplayWindow::OnMotionNotify(XEvent* event)
 	double dpiScale = GetDpiScale();
 	int x = event->xmotion.x;
 	int y = event->xmotion.y;
-	windowHost->OnWindowMouseMove(Point(x / dpiScale, y / dpiScale));
+	if (isCursorEnabled)
+	{
+		windowHost->OnWindowMouseMove(Point(x / dpiScale, y / dpiScale));
+	}
+	else
+	{
+		MouseX = ClientSizeX / 2;
+		MouseY = ClientSizeY / 2;
+
+		if (MouseX != -1 && MouseY != -1)
+		{
+			windowHost->OnWindowRawMouseMove(x - MouseX, y - MouseY);
+		}
+
+		// Warp pointer to the center of the window
+		XWarpPointer(display, window, window, 0, 0, ClientSizeX, ClientSizeY, ClientSizeX / 2, ClientSizeY / 2);
+	}
+
 }
 
 void X11DisplayWindow::OnLeaveNotify(XEvent* event)
