@@ -69,6 +69,7 @@ public:
 class FilePath
 {
 public:
+	static bool exists(const std::string& filepath);
 	static bool has_extension(const std::string &filename, const char *extension);
 	static std::string extension(const std::string &filename);
 	static std::string remove_extension(const std::string &filename);
