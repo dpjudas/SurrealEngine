@@ -73,17 +73,32 @@ Package* PackageManager::GetPackage(const NameString& name)
 
 std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
 {
+	std::string map = FilePath::last_component(path);
+
+	if (!FilePath::has_extension(map, GetMapExtension().c_str()))
+		map += "." + GetMapExtension();
+
+	// Check the map name against the map folders we know
+	for (auto& folder : mapFolders)
+	{
+		std::string finalPath = FilePath::combine(folder, map);
+
+		if (FilePath::exists(finalPath))
+		{
+			return std::make_unique<Package>(this, FilePath::remove_extension(map), finalPath);
+		}
+	}
+
 	// Path is relative to the Maps folder?
 	// Or is it relative to the package requesting the map load?
 	// Or is it relative to the previous map?
 	// 
 	// Only one of the above is most likely true. Lets begin with assuming its relative to the Maps folder.
-	std::string name = FilePath::remove_extension(FilePath::last_component(path));
 	std::string absolute_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "Maps"), path);
 	// Add the file extension if it is missing
 	if (!FilePath::has_extension(absolute_path, GetMapExtension().c_str()))
 		absolute_path += "." + GetMapExtension();
-	return std::make_unique<Package>(this, name, absolute_path);
+	return std::make_unique<Package>(this, FilePath::remove_extension(map), absolute_path);
 }
 
 void PackageManager::UnloadMap(std::unique_ptr<Package> package)
