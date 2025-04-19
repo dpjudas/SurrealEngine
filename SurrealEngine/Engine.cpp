@@ -712,17 +712,15 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		std::string maparg = args[1];
 
-		if (!FilePath::has_extension(maparg, packages->GetMapExtension().c_str()))
-			maparg += "." + packages->GetMapExtension();
-
 		UnrealURL url(maparg);
 
 		for (auto& map : packages->GetMaps())
 		{
-			//std::string mapname = FilePath::remove_extension(map);
+			std::string mapname = FilePath::remove_extension(map);
 
-			if (StrCompare::equals_ignore_case(map, url.Map))
+			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
+				url.Map = mapname; // Workaround against case sensitivity problems under Linux
 				LoadMap(url);
 				LoginPlayer();
 				return {};
