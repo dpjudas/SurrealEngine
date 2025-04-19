@@ -12,6 +12,7 @@
 #include <cmath>
 #include <queue>
 #include <thread>
+#include <chrono>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
