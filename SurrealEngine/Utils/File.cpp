@@ -5,6 +5,7 @@
 #include "Utils/StrCompare.h"
 #ifdef WIN32
 #include <Windows.h>
+#include <Shlwapi.h>
 #else
 #include <libgen.h>
 #include <fnmatch.h>
@@ -481,6 +482,15 @@ std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+bool FilePath::exists(const std::string& filepath)
+{
+#ifdef WIN32
+	return PathFileExistsA(filepath.c_str());
+#else
+	return access(filepath.c_str(), F_OK) == 0;
+#endif
+}
 
 bool FilePath::has_extension(const std::string &filename, const char *checkext)
 {
