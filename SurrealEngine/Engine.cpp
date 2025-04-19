@@ -57,6 +57,9 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 
 Engine::~Engine()
 {
+	if (audiodev)
+		audiodev->ShutdownDevice();
+
 	engine = nullptr;
 }
 
@@ -227,7 +230,7 @@ void Engine::Run()
 	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
-	audiodev->ShutdownDevice();
+	//audiodev->ShutdownDevice();
 
 	CloseWindow();
 }
