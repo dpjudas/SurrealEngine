@@ -46,10 +46,14 @@ public:
 	bool SetValue(const NameString& keyName, const std::string& newValue, const int index = 0, const bool indexed = false);
 	bool SetValues(const NameString& keyName, const Array<std::string>& newValues, const bool indexed = false);
 
+	bool HasNewKey() const { return hasNewKey; }
+	void SetHasNewKey(bool value) { hasNewKey = value; }
+
 private:
 	std::string name;
 	uint32_t hash;
 	Array<IniKey> keys;
+	bool hasNewKey = false; // True when SetValue[s]() adds a new key to the Section.
 };
 
 class IniFile
@@ -90,6 +94,7 @@ private:
 	const IniSection* FindSection(const std::string& sectionName) const;
 
 	bool isModified = false;
+	bool hasNewKeys = false; // True if any of the IniSection.hasNewKey values are true. If this is true, then the IniFile must be written to the disk from scratch.
 	std::string ini_file_path;
 	Array<IniSection> sections;
 };
