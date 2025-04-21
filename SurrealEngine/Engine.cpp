@@ -480,6 +480,8 @@ void Engine::LoginPlayer()
 		Exception::Throw("GameInfo login failed: " + error);
 	bool actorActuallySpawned = Level->Actors.size() != numActors;
 
+	pawn->LoadProperties();
+
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;
 	viewport->Actor()->Player() = viewport;
