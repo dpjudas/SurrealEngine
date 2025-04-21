@@ -146,14 +146,21 @@ void IniFile::SetValue(const NameString& sectionName, const NameString& keyName,
 {
 	IniSection& section = AddUniqueSection(sectionName.ToString());
 	if (section.SetValue(keyName, newValue, index))
+	{
 		isModified = true;
+		hasNewKeys = hasNewKeys || section.HasNewKey();
+	}
 }
 
 void IniFile::SetValues(const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues)
 {
 	IniSection& section = AddUniqueSection(sectionName.ToString());
 	if (section.SetValues(keyName, newValues))
+	{
 		isModified = true;
+		hasNewKeys = hasNewKeys || section.HasNewKey();
+	}
+		
 }
 
 void IniFile::SaveTo()
@@ -188,6 +195,7 @@ void IniFile::SaveTo(const std::string& filename)
 				section_text += key.GetName() + "=" + value + "\n";
 			}
 		}
+		section.SetHasNewKey(false); // New key in section won't be new anymore after saving.
 
 		ini_text += section_text + "\n";
 	}
@@ -362,10 +370,12 @@ void IniFile::UpdateFile(const std::string& filename)
 
 void IniFile::UpdateIfExists(const std::string& filename)
 {
-	if (File::try_open_existing(filename))
+	if (File::try_open_existing(filename) && !hasNewKeys)
 		UpdateFile(filename);
 	else
 		SaveTo(filename);
+
+	hasNewKeys = false;
 }
 
 IniSection& IniFile::AddUniqueSection(const std::string& sectionName)
@@ -378,6 +388,7 @@ IniSection& IniFile::AddUniqueSection(const std::string& sectionName)
 	}
 
 	sections.push_back(std::move(IniSection(sectionName, sectionHash)));
+	hasNewKeys = true;
 	return sections.back();
 }
 
@@ -473,6 +484,7 @@ bool IniSection::SetValue(const NameString& keyName, const std::string& newValue
 		newKey.SetValue(newValue, index);
 		newKey.SetIndexed(indexed);
 		keys.push_back(std::move(newKey));
+		hasNewKey = true;
 		return true;
 	}
 
@@ -499,6 +511,7 @@ bool IniSection::SetValues(const NameString& keyName, const Array<std::string>& 
 		newKey.SetValues(newValues);
 		newKey.SetIndexed(indexed);
 		keys.push_back(std::move(newKey));
+		hasNewKey = true;
 		return true;
 	}
 
