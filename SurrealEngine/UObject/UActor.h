@@ -1715,6 +1715,9 @@ public:
 	float& shaketimer() { return Value<float>(PropOffsets_PlayerPawn.shaketimer); }
 	float& shakevert() { return Value<float>(PropOffsets_PlayerPawn.shakevert); }
 	float& verttimer() { return Value<float>(PropOffsets_PlayerPawn.verttimer); }
+
+	void LoadProperties(); // Always loaded from User.ini
+	void SaveConfig() override;
 };
 
 class UCamera : public UPlayerPawn
