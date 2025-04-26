@@ -230,8 +230,6 @@ void Engine::Run()
 	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
-	//audiodev->ShutdownDevice();
-
 	CloseWindow();
 }
 
@@ -722,7 +720,6 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
-				url.Map = mapname; // Workaround against case sensitivity problems under Linux
 				LoadMap(url);
 				LoginPlayer();
 				return {};
@@ -830,7 +827,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		bool isFullscreen = window->IsFullscreen();
 
-		// Get the resolutions to SWITCH TO
+		// Get the resolution to SWITCH TO
 		int width = isFullscreen ? client->WindowedViewportX : client->FullscreenViewportX;
 		int height = isFullscreen ? client->WindowedViewportY : client->FullscreenViewportY;
 

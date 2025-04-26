@@ -5,6 +5,7 @@
 #include "PackageStream.h"
 #include "IniFile.h"
 #include "Utils/File.h"
+#include "Utils/StrCompare.h"
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
 #include "VM/NativeFunc.h"
@@ -77,6 +78,13 @@ std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
 
 	if (!FilePath::has_extension(map, GetMapExtension().c_str()))
 		map += "." + GetMapExtension();
+
+	// Check if the map is in the map list
+	for (auto& mapName : maps)
+	{
+		if (StrCompare::equals_ignore_case(mapName, map))
+			map = mapName; // Workaround against case sensitivity problems under Linux
+	}
 
 	// Check the map name against the map folders we know
 	for (auto& folder : mapFolders)
