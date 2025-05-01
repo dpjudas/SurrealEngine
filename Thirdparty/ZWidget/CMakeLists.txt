@@ -229,6 +229,7 @@ else()
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
 	if (DBUS_FOUND)
+		include_directories("/usr/lib64/dbus-1.0/include") # Bazzite (and probably Fedora 42) keeps the platform-specific dbus headers in this folder
 		set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_DBUS_SOURCES})
 		set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${DBUS_LDFLAGS})
