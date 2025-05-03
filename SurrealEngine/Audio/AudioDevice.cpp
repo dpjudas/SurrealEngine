@@ -130,9 +130,14 @@ public:
 		if (volume != newVolume)
 		{
 			volume = newVolume;
-			alSourcef(id, AL_GAIN, volume);
-			alSourcef(id, AL_MAX_GAIN, volume);
+			alSourcef(id, AL_GAIN, volume * globalVolume);
+			alSourcef(id, AL_MAX_GAIN, volume * globalVolume);
 		}
+	}
+
+	void SetGlobalVolume(float newGlobalVolume)
+	{
+		globalVolume = newGlobalVolume;
 	}
 
 	void SetPitch(float newPitch)
@@ -164,6 +169,7 @@ private:
 	vec3 velocity = vec3(0.0f);
 	float radius = 0.0f;
 	float volume = 0.0f;
+	float globalVolume = 1.0f; // Comes from Audio Subsystem
 	float pitch = 0.0f;
 	float dopplerFactor = 0.0f;
 	bool bIs3d = false;
@@ -292,7 +298,7 @@ public:
 		{
 			if (*it == sound)
 			{
-				// TOOD: find sources playing this sound and stop them?
+				// TODO: find sources playing this sound and stop them?
 				sounds.erase(it);
 				alDeleteBuffers(1, reinterpret_cast<const ALuint*>(&sound->handle));
 				return;
@@ -321,7 +327,7 @@ public:
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
 		{
-			LogMessage("Attempted to play sound on active channel " + channel);
+			LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
 			return 0;
 		}
 
@@ -330,6 +336,7 @@ public:
 		source.SetSound(sound);
 		source.SetPosition(dummy);
 		source.SetVolume(volume / 255.0f);
+		source.SetGlobalVolume(globalSoundVolume / 255.0f);
 		source.SetRadius(radius);
 		source.SetPitch(pitch);
 		source.SetSpatial(true);
@@ -338,7 +345,7 @@ public:
 		return channel;
 	}
 
-	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
+	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override
 	{
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 			Exception::Throw("Invalid PlaySound arguments");
@@ -347,6 +354,7 @@ public:
 
 		source.SetPosition(location);
 		source.SetVolume(volume / 255.0f);
+		source.SetGlobalVolume(globalSoundVolume / 255.0f);
 		source.SetRadius(radius);
 		source.SetPitch(pitch);
 
@@ -444,7 +452,10 @@ public:
 
 	void SetSoundVolume(float volume) override
 	{
-		alListenerf(AL_GAIN, volume);
+		globalSoundVolume = volume;
+
+		for (auto& soundSource : sources)
+			soundSource.SetGlobalVolume(globalSoundVolume);
 	}
 
 	void Update() override
@@ -669,6 +680,7 @@ public:
 	float currentMusicVolume = 0.0f;
 	float targetMusicVolume = 0.0f;
 	float fadeRate = 0.0f;
+	float globalSoundVolume = 1.0f;
 };
 
 std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, int musicBufferCount, int musicBufferSize)
