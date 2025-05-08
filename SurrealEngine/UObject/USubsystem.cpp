@@ -317,7 +317,7 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			{
 				if (m_Device->IsPlaying(Playing.Channel))
 				{
-					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * 0.5f, Playing.Radius, Playing.Pitch);
 				}
 				else
 				{
@@ -326,7 +326,7 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			}
 			else
 			{
-				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * 0.25f, Playing.Radius, Playing.Pitch);
+				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * 0.5f, Playing.Radius, Playing.Pitch);
 			}
 		}
 	}
