@@ -17,6 +17,14 @@ if (UNIX AND NOT APPLE)
 	)
 endif()
 
+# SDL2 finding stuff
+# Optional on all platforms
+find_package(SDL2 QUIET)
+if(NOT ${SDL2_FOUND})
+	include(FindPkgConfig)
+	pkg_search_module(SDL2 sdl2)
+endif()
+
 set(ZWIDGET_SOURCES
 	src/core/canvas.cpp
 	src/core/font.cpp
@@ -224,9 +232,9 @@ elseif(APPLE)
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
 else()
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES} ${ZWIDGET_X11_SOURCES})
-	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl -lX11)
-	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_SDL2 -DUSE_X11)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_X11_SOURCES})
+	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -lX11)
+	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_X11)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
 	if (DBUS_FOUND)
 		include_directories("/usr/lib64/dbus-1.0/include") # Bazzite (and probably Fedora 42) keeps the platform-specific dbus headers in this folder
@@ -241,6 +249,12 @@ else()
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLANDPP_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_WAYLAND)
 	endif()
+endif()
+
+if(SDL2_FOUND)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
+	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${SDL2_LIBRARIES} -lSDL2)
+	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL2)
 endif()
 
 add_library(zwidget STATIC ${ZWIDGET_SOURCES} ${ZWIDGET_INCLUDES})
