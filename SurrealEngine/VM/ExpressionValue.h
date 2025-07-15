@@ -237,6 +237,14 @@ public:
 		VariableProperty->Destruct(Ptr);
 	}
 
+	void CheckType(ExpressionValueType type)
+	{
+		if (Type == ExpressionValueType::Nothing)
+			Exception::Throw("Accessed None");
+		else if (Type != type)
+			Exception::Throw("Accessed mismatched value type");
+	}
+
 private:
 	ExpressionValue(ExpressionValueType type) : Type(type)
 	{
@@ -339,17 +347,17 @@ template<> inline const Color& ExpressionValue::ToType() { return ToColor(); }
 template<> inline const IpAddr& ExpressionValue::ToType() { return ToIpAddr(); }
 
 // Pass by reference
-template<> inline uint8_t& ExpressionValue::ToType() { return *PtrByte; }
-template<> inline int32_t& ExpressionValue::ToType() { return *PtrInt; }
-template<> inline BitfieldBool& ExpressionValue::ToType() { return BoolInfo; }
-template<> inline float& ExpressionValue::ToType() { return *PtrFloat; }
-template<> inline UObject*& ExpressionValue::ToType() { return *PtrObject; }
-template<> inline vec3& ExpressionValue::ToType() { return *PtrVector; }
-template<> inline Rotator& ExpressionValue::ToType() { return *PtrRotator; }
-template<> inline std::string& ExpressionValue::ToType() { return *PtrString; }
-template<> inline NameString& ExpressionValue::ToType() { return *PtrName; }
-template<> inline Color& ExpressionValue::ToType() { return *PtrColor; }
-template<> inline IpAddr& ExpressionValue::ToType() { return *PtrIpAddr; }
+template<> inline uint8_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueByte); return *PtrByte; }
+template<> inline int32_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueInt); return *PtrInt; }
+template<> inline BitfieldBool& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueBool); return BoolInfo; }
+template<> inline float& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueFloat); return *PtrFloat; }
+template<> inline UObject*& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueObject); return *PtrObject; }
+template<> inline vec3& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueVector); return *PtrVector; }
+template<> inline Rotator& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueRotator); return *PtrRotator; }
+template<> inline std::string& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueString); return *PtrString; }
+template<> inline NameString& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueName); return *PtrName; }
+template<> inline Color& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueColor); return *PtrColor; }
+template<> inline IpAddr& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueStruct); return *PtrIpAddr; }
 
 // Optional arguments
 template<> inline uint8_t* ExpressionValue::ToType() { return PtrByte; }
