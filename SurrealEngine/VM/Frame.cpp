@@ -195,10 +195,17 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 					callback(instance, args.data());
 					Callstack.pop_back();
 				}
+				catch (const std::exception& e)
+				{
+					Callstack.pop_back();
+					LogMessage(std::string("Script error: ") + e.what());
+					return ExpressionValue::NothingValue();
+				}
 				catch (...)
 				{
 					Callstack.pop_back();
-					throw;
+					LogMessage("Script error: Unknown error");
+					return ExpressionValue::NothingValue();
 				}
 			}
 			else
@@ -218,10 +225,17 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 					callback(instance, args.data());
 					Callstack.pop_back();
 				}
+				catch (const std::exception& e)
+				{
+					Callstack.pop_back();
+					LogMessage(std::string("Script error: ") + e.what());
+					return ExpressionValue::NothingValue();
+				}
 				catch (...)
 				{
 					Callstack.pop_back();
-					throw;
+					LogMessage("Script error: Unknown error");
+					return ExpressionValue::NothingValue();
 				}
 			}
 			else
