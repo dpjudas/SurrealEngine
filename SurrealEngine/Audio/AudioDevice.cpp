@@ -327,7 +327,7 @@ public:
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
 		{
-			LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
+			//LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
 			return 0;
 		}
 
