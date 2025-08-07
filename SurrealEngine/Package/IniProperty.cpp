@@ -1,6 +1,9 @@
 #include "IniProperty.h"
 #include "Utils/Exception.h"
 #include "Utils/Convert.h"
+#include "UObject/UObject.h"
+
+#include <sstream>
 
 template<>
 int IniPropertyConverter<int>::FromString(const std::string& valueString)
@@ -127,6 +130,69 @@ std::string IniPropertyConverter<AudioFrequency>::ToString(const AudioFrequency&
 
 template<>
 AudioFrequency IniPropertyConverter<AudioFrequency>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const AudioFrequency& default_value, const int index)
+{
+	return FromString(iniFile.GetValue(section, keyName, ToString(default_value), index));
+}
+
+//====================================================================
+
+template<>
+Color IniPropertyConverter<Color>::FromString(const std::string& valueString)
+{
+	if (valueString.size() <= 2 || valueString[0] != '(' || valueString[valueString.size() - 1] != ')')
+		Exception::Throw("Invalid Color String: " + valueString);
+
+	// Get rid of ()s
+	auto subString = valueString.substr(1, valueString.size() - 2);
+
+	uint8_t r = 0, g = 0, b = 0, a = 0;
+
+	std::stringstream ss(subString);
+
+	std::string t;
+
+	while (getline(ss, t, ','))
+	{
+		size_t equals = t.find('=');
+
+		if (equals == -1)
+			Exception::Throw("Malformed Color String: " + valueString);
+
+		auto lhs = t.substr(0, equals);
+
+		auto rhs = Convert::to_uint8(t.substr(equals + 1));
+
+		if (lhs == "R")
+			r = rhs;
+		else if (lhs == "G")
+			g = rhs;
+		else if (lhs == "B")
+			b = rhs;
+		else if (lhs == "A")
+			a = rhs;
+		else
+			Exception::Throw("Unexpected Color Property: " + lhs);
+	}
+
+	return Color {
+		.R = r,
+		.G = g,
+		.B = b,
+		.A = a
+	};
+}
+
+template <>
+std::string IniPropertyConverter<Color>::ToString(const Color& value)
+{
+	return "(R=" + std::to_string(value.R)
+		   + ",G=" + std::to_string(value.G)
+		   + ",B=" + std::to_string(value.B)
+	       + ",A=" + std::to_string(value.A) + ")";
+}
+
+template<>
+Color IniPropertyConverter<Color>::FromIniFile(const IniFile& iniFile, const NameString& section, const NameString& keyName, const Color& default_value, const int index)
 {
 	return FromString(iniFile.GetValue(section, keyName, ToString(default_value), index));
 }
