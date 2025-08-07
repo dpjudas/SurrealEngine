@@ -3,11 +3,15 @@
 #include "Editor2DViewport.h"
 #include "Engine.h"
 #include "UObject/ULevel.h"
-#include "UObject/UActor.h"
 #include <zwidget/core/colorf.h>
+
+#include "Package/PackageManager.h"
+#include "Package/IniFile.h"
+#include "Package/IniProperty.h"
 
 Editor2DViewport::Editor2DViewport(const Coords& coords, Widget* parent) : EditorViewport(parent), ViewCoords(coords)
 {
+	ReadLineColors();
 }
 
 Editor2DViewport::~Editor2DViewport()
@@ -52,7 +56,8 @@ void Editor2DViewport::DrawLevel(Canvas* canvas)
 						n = cross(p0 - p1, p2 - p1);
 					}
 
-					Colorf linecolor = n.z > 0.0f ? Colorf::fromRgba8(150, 150, 150) : Colorf::fromRgba8(100, 100, 100);
+					// Colorf linecolor = n.z > 0.0f ? Colorf::fromRgba8(150, 150, 150) : Colorf::fromRgba8(100, 100, 100);
+					auto linecolor = GetActorLineColor(actor);
 
 					for (int j = 0; j < numverts; j++)
 					{
@@ -169,3 +174,64 @@ void Editor2DViewport::MoveCamera(float x, float y)
 	Location.y += y;
 	Update();
 }
+
+Colorf Editor2DViewport::GetActorLineColor(UActor* actor) const
+{
+	auto drawType = actor->DrawType();
+
+	if (drawType == DT_Brush)
+	{
+		// If the brush is a mover, then it should be colored as such
+		if (auto mover = UObject::TryCast<UMover>(actor); mover)
+			return m_MoverColor;
+
+		// Otherwise, it will get the color of the CSG operation it has
+		auto brush = UObject::TryCast<UBrush>(actor);
+
+		if (brush)
+		{
+			auto csgOper = brush->CsgOper();
+
+			switch (csgOper)
+			{
+				case CSG_Active:
+					return m_BrushWireColor;
+				case CSG_Add:
+					return m_BrushAddColor;
+				case CSG_Sub:
+					return m_BrushSubColor;
+				default:
+					return {0, 0, 0, 0};
+			}
+		}
+	}
+	else if (drawType == DT_Mesh)
+		return m_ActorWireColor;
+
+	return {0, 0, 0, 0};
+}
+
+void Editor2DViewport::ReadLineColors()
+{
+	// Editor colors reside in System ini file.
+	auto systemini = engine->packages->GetIniFile("System");
+
+	// More can be added as needed
+	Color brushColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_BrushWire", Color());
+	Color brushAddColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_AddWire", Color());
+	Color brushSubColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_SubtractWire", Color());
+	Color brushActorColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_ActorWire", Color());
+	Color brushSemiSolidColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_SemiSolidWire", Color());
+	Color brushNonSolidColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_NonSolidWire", Color());
+	Color brushMoverColor = IniPropertyConverter<Color>::FromIniFile(*systemini, "Editor.EditorEngine", "C_Mover", Color());
+
+	// Manually convert Color to Colorf
+	m_ActorWireColor = Colorf::fromRgba8(brushActorColor.R, brushActorColor.G, brushActorColor.B, brushActorColor.A);
+	m_BrushWireColor = Colorf::fromRgba8(brushColor.R, brushColor.G, brushColor.B, brushColor.A);
+	m_BrushAddColor = Colorf::fromRgba8(brushAddColor.R, brushAddColor.G, brushAddColor.B, brushAddColor.A);
+	m_BrushSubColor = Colorf::fromRgba8(brushSubColor.R, brushSubColor.G, brushSubColor.B, brushSubColor.A);
+	m_SemiSolidWireColor = Colorf::fromRgba8(brushSemiSolidColor.R, brushSemiSolidColor.G, brushSemiSolidColor.B, brushSemiSolidColor.A);
+	m_NonSolidWireColor = Colorf::fromRgba8(brushNonSolidColor.R, brushNonSolidColor.G, brushNonSolidColor.B, brushNonSolidColor.A);
+	m_MoverColor = Colorf::fromRgba8(brushMoverColor.R, brushMoverColor.G, brushMoverColor.B, brushMoverColor.A);
+}
+
