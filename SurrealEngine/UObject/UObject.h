@@ -52,6 +52,15 @@ enum UnrealUPropertyStruct
 	UPS_PointRegion
 };
 
+enum CSGOper
+{
+	CSG_Active,
+	CSG_Add,
+	CSG_Sub,
+	CSG_Intersect,
+	CSG_Deintersect
+};
+
 struct PropertyHeader
 {
 	UnrealPropertyType type;
