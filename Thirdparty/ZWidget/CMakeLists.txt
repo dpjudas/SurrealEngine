@@ -263,7 +263,7 @@ target_compile_definitions(zwidget PRIVATE ${ZWIDGET_DEFINES})
 target_include_directories(zwidget PRIVATE ${ZWIDGET_INCLUDE_DIRS})
 target_link_options(zwidget PRIVATE ${ZWIDGET_LINK_OPTIONS})
 target_link_libraries(zwidget ${ZWIDGET_LIBS})
-set_target_properties(zwidget PROPERTIES CXX_STANDARD 17)
+set_target_properties(zwidget PROPERTIES CXX_STANDARD 20)
 
 #if(MSVC)
 #	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

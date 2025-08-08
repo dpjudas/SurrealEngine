@@ -553,20 +553,20 @@ if(MSVC)
 endif()
 
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
-set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 17)
+set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 20)
 target_precompile_headers(SurrealCommon PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Precomp.h>)
 
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${SURREALENGINE_SOURCES})
 target_link_libraries(SurrealEngine SurrealCommon ${SURREALCOMMON_LIBS})
-set_target_properties(SurrealEngine PROPERTIES CXX_STANDARD 17)
+set_target_properties(SurrealEngine PROPERTIES CXX_STANDARD 20)
 
 add_executable(SurrealEditor WIN32 MACOSX_BUNDLE ${SURREALEDITOR_SOURCES})
 target_link_libraries(SurrealEditor SurrealCommon ${SURREALCOMMON_LIBS})
-set_target_properties(SurrealEditor PROPERTIES CXX_STANDARD 17)
+set_target_properties(SurrealEditor PROPERTIES CXX_STANDARD 20)
 
 add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
-set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 17)
+set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
 
 if(WIN32)
 add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
