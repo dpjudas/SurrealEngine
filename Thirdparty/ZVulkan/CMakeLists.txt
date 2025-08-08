@@ -208,7 +208,7 @@ endif()
 
 add_library(zvulkan STATIC ${ZVULKAN_SOURCES} ${ZVULKAN_INCLUDES} ${VULKAN_INCLUDES})
 target_link_libraries(zvulkan ${ZVULKAN_LIBS})
-set_target_properties(zvulkan PROPERTIES CXX_STANDARD 17)
+set_target_properties(zvulkan PROPERTIES CXX_STANDARD 20)
 
 #if(MSVC)
 #	set_property(TARGET zvulkan PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
