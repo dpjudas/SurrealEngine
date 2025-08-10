@@ -56,13 +56,13 @@ You can simply copy paste the SurrealEngine executable inside the System folder 
 Surreal Engine is available on:
 
 * Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
-* Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
+* Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) | [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
 
 ## Building Surreal Engine
 
 ### Windows
 
-Use CMake to build the project. A recent version of Visual Studio, and MSVC compiler that supports C++17 is required.
+Use CMake to build the project. A recent version of Visual Studio, and MSVC compiler that supports C++20 is required.
 
 On Windows, SDL2 is an optional dependency that you need to supply locally yourself (download the Visual C++ version of SDL2, extract it somewhere and point to that folder in CMake settings). Supplying SDL2 will allow you to use it as an alternative windowing system.
 
@@ -77,12 +77,12 @@ Use CMake to build the project. You're gonna need the development versions of th
 * pthreads
 * dl
 * alsa (libasound2)
-* SDL2
-* waylandpp (optional) (C++ bindings for Wayland, used on ZWidget Wayland backend)
+* SDL2 (Optional - Used on ZWidget SDL2 backend)
+* waylandpp (Optional - C++ bindings for Wayland, used on ZWidget Wayland backend)
 
-On Linux, SDL2 is required, as SurrealEngine will utilise it for its windowing functionalities and native Wayland support (with `SDL_VIDEODRIVER=wayland`).
+> [!NOTE] On some distros, SDL2 is replaced by SDL3, so you'll probably need the devel package for the **compat library** on these instead.
 
-Note that these packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
+> [!NOTE] These packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
 
 #### Installing the prerequisite packages
 
