@@ -26,6 +26,7 @@ int EditorApp::main(Array<std::string> args)
 		if (!info.gameRootFolder.empty())
 		{
 			Engine engine(info);
+			engine.setEditorMode(true);
 
 			auto editorWindow = std::make_unique<EditorMainWindow>();
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
