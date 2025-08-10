@@ -36,6 +36,9 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 {
 	uint32_t PolyFlags = poly.PolyFlags;
 
+	if (!engine->getEditorMode() && PolyFlags & PolyFlags::PF_Invisible)
+		return;
+
 	//UpdateTexture(poly.Texture);
 
 	auto zoneActor = actor->Region().Zone;
