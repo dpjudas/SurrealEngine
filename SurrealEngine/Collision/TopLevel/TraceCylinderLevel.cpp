@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
 #include "TraceCylinderLevel.h"
-#include "TraceAABBModel.h"
-#include "TraceRayModel.h"
+#include "Collision/BottomLevel/TraceAABBModel.h"
+#include "Collision/BottomLevel/TraceRayModel.h"
 #include "UObject/UActor.h"
 
 CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)

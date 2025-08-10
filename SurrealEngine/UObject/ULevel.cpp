@@ -5,9 +5,9 @@
 #include "UTexture.h"
 #include "UClass.h"
 #include "VM/ScriptCall.h"
-#include "Collision/TraceRayLevel.h"
-#include "Collision/TraceRayModel.h"
-#include "Collision/TraceCylinderLevel.h"
+#include "Collision/TopLevel/TraceRayLevel.h"
+#include "Collision/TopLevel/TraceCylinderLevel.h"
+#include "Collision/BottomLevel/TraceRayModel.h"
 
 BBox BspNode::GetCollisionBox(UModel* model) const
 {

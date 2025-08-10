@@ -4,7 +4,7 @@
 #include "DebuggerApp.h"
 #include "Engine.h"
 #include "Utils/File.h"
-#include "Collision/CollisionHash.h"
+#include "Collision/TopLevel/CollisionHash.h"
 
 CollisionCommandlet::CollisionCommandlet()
 {

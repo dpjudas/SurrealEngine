@@ -2,8 +2,8 @@
 
 #include "UMesh.h"
 #include "Math/bbox.h"
-#include "Collision/CollisionHash.h"
-#include "Collision/CollisionHit.h"
+#include "Collision/TopLevel/CollisionHash.h"
+#include "Collision/TopLevel/CollisionHit.h"
 
 class UTexture;
 class UActor;

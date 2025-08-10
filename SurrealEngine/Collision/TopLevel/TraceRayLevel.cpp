@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "TraceRayLevel.h"
-#include "TraceRayModel.h"
+#include "Collision/BottomLevel/TraceRayModel.h"
 #include "UObject/UActor.h"
 
 bool TraceRayLevel::TraceAnyHit(ULevel* level, vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)

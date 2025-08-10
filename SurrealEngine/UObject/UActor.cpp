@@ -9,9 +9,9 @@
 #include "Package/PackageManager.h"
 #include "Package/IniProperty.h"
 #include "Engine.h"
-#include "Collision/TraceAABBModel.h"
-#include "Collision/TraceRayModel.h"
-#include "Collision/OverlapCylinderLevel.h"
+#include "Collision/BottomLevel/TraceAABBModel.h"
+#include "Collision/BottomLevel/TraceRayModel.h"
+#include "Collision/TopLevel/OverlapCylinderLevel.h"
 
 static std::string tickEventName = "Tick";
 
@@ -2597,18 +2597,21 @@ double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const 
 {
 	CollisionHitList worldHits;
 
+	// Do we have to take rotation into account here?
+	dvec3 localOrigin = origin - dvec3(Location());
+
 	if (radius == 0.0 && height == 0.0)
 	{
 		// Line/triangle intersect
 		TraceRayModel tracemodel;
-		worldHits = tracemodel.Trace(Brush(), origin, tmin, direction, tmax, false);
+		worldHits = tracemodel.Trace(Brush(), localOrigin, tmin, direction, tmax, false);
 	}
 	else
 	{
 		// AABB/Triangle intersect
 		TraceAABBModel tracemodel;
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		worldHits = tracemodel.Trace(Brush(), origin, tmin, direction, tmax, extents, false);
+		worldHits = tracemodel.Trace(Brush(), localOrigin, tmin, direction, tmax, extents, false);
 	}
 
 	if (worldHits.empty())
