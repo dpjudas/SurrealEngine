@@ -2597,21 +2597,31 @@ double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const 
 {
 	CollisionHitList worldHits;
 
-	// Do we have to take rotation into account here?
-	dvec3 localOrigin = origin - dvec3(Location());
+	// Note: DrawScale does not affect mover
+
+	//mat4 objectToWorld = mat4::translate(Location()) * Coords::Rotation(Rotation()).ToMatrix() * mat4::translate(-PrePivot()) * mat4::scale(DrawScale());
+
+	mat4 rotateObjToWorld = Coords::Rotation(Rotation()).ToMatrix();
+	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
+
+	dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - Location(), 1.0f)).xyz() + PrePivot()));
+	dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(direction), 1.0f)).xyz());
+
+	double localTMin = tmin;
+	double localTMax = tmax;
 
 	if (radius == 0.0 && height == 0.0)
 	{
 		// Line/triangle intersect
 		TraceRayModel tracemodel;
-		worldHits = tracemodel.Trace(Brush(), localOrigin, tmin, direction, tmax, false);
+		worldHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, false);
 	}
 	else
 	{
 		// AABB/Triangle intersect
 		TraceAABBModel tracemodel;
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		worldHits = tracemodel.Trace(Brush(), localOrigin, tmin, direction, tmax, extents, false);
+		worldHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
 	}
 
 	if (worldHits.empty())
