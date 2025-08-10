@@ -28,7 +28,6 @@ they end up dying because SE thinks that they've fallen from a great height.
 * Zones don't apply velocity to the players when they should (Like the conveyor belt in DM-Conveyor)
 * Zones don't hurt the player when they should (Drowning in water/getting burned in lava, etc.)
 * Games don't pause when ESC is pressed.
-* Settings and stuff from various menus do not get saved. SaveConfig() implementation is broken?
 * There are no OpenGL and D3D renderers.
 * There is no networking support at all.
 * By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
@@ -37,7 +36,6 @@ they end up dying because SE thinks that they've fallen from a great height.
  - Sometimes menus remain persistent (due to rapidly switching?)
  - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
  because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
- - SurrealEditor crashes when trying to open a map
 
 Engine general - Needs testing:
 -------------------------------
@@ -50,17 +48,17 @@ Unreal (Gold) specific:
 -----------------------
 * [227*] Many new native functions/features are not yet implemented.
 * ALL RTNP models are broken (at least in 226?).
-* The vent Skaarj in Vortex Rikers cause a crash in a few seconds when alerted.
+* Fighting Skaarj can sometimes lead to crashes.
 * Firing sounds don't seem to play with Eightball Gun and RazorJack.
 * Zones are extremely broken, especially water zones. Easily observable with DmAriza.
 * Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
 * ASMD primary fire rings does not render.
 * Player model does not render in the Player Setup menu.
-* FOV setting does not persist between map switches (226 bug?)
 
 Unreal Tournament specific:
 ---------------------------
 * [469*] Many new native functions/features are not yet implemented.
+* In certain situations (compiler related?) the engine can crash after running for a second.
 * Shock Rifle beams render glitchy.
 * Player model is rendered upside-down in the Player Setup menu.
 * UDamage effect does not render.
