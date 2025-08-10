@@ -663,7 +663,7 @@ void UActor::TickFalling(float elapsed)
 
 		if (hit.Fraction < 1.0f)
 		{
-			if (hit.Actor != nullptr)
+			if (hit.Actor && !hit.Actor->IsA("Mover"))
 			{
 				// TODO: Hit an actor
 			}
@@ -1152,10 +1152,15 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 	return true;
 }
 
-double UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
+void UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius, CollisionHitList& hits)
 {
 	// Default cylinder
-	return level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
+	double t = level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
+	if (t < tmax)
+	{
+		dvec3 hitpos = origin + direction * t;
+		hits.push_back({ (float)t, normalize(to_vec3(hitpos) - Location()), this, nullptr });
+	}
 }
 
 UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent)
@@ -2593,9 +2598,9 @@ void UDecal::DetachDecal()
 
 /////////////////////////////////////////////////////////////////////////////
 
-double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius)
+void UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius, CollisionHitList& hits)
 {
-	CollisionHitList worldHits;
+	CollisionHitList brushHits;
 
 	// Note: DrawScale does not affect mover
 
@@ -2614,18 +2619,23 @@ double UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const 
 	{
 		// Line/triangle intersect
 		TraceRayModel tracemodel;
-		worldHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, false);
+		brushHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, false);
 	}
 	else
 	{
 		// AABB/Triangle intersect
 		TraceAABBModel tracemodel;
 		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		worldHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
+		brushHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
 	}
 
-	if (worldHits.empty())
-		return tmax;
-
-	return worldHits.front().Fraction;
+	if (radius != 0.0 || height != 0.0)
+	{
+		for (auto& hit : brushHits)
+		{
+			hit.Actor = this;
+			hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
+			hits.push_back(hit);
+		}
+	}
 }

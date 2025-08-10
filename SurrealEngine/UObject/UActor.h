@@ -30,6 +30,7 @@ class UZoneInfo;
 class PackageManager;
 class CollisionHit;
 class BspNode;
+class CollisionHitList;
 struct MeshAnimSeq;
 
 struct PointRegion
@@ -181,7 +182,7 @@ public:
 	void SetPhysics(uint8_t newPhysics);
 	void SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers);
 
-	virtual double TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius);
+	virtual void TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits);
 
 	std::pair<bool, vec3> CheckLocation(vec3 location, float radius, float height, bool check);
 
@@ -1322,7 +1323,7 @@ class UMover : public UBrush
 public:
 	using UBrush::UBrush;
 
-	virtual double TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius);
+	virtual void TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits);
 
 	vec3& BasePos() { return Value<vec3>(PropOffsets_Mover.BasePos); }
 	Rotator& BaseRot() { return Value<Rotator>(PropOffsets_Mover.BaseRot); }
