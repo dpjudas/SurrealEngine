@@ -403,7 +403,10 @@ inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 
 inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
 {
-	return ExpressionValue(static_cast<uint8_t*>(data) + prop->DataOffset.DataOffset, prop);
+	if (data)
+		return ExpressionValue(static_cast<uint8_t*>(data) + prop->DataOffset.DataOffset, prop);
+	else
+		return ExpressionValue(ExpressionValueType::Nothing);
 }
 
 inline void ExpressionValue::Store(const ExpressionValue& rvalue)
