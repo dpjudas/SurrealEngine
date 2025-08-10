@@ -274,21 +274,21 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/ObjectTravelInfo.h
 	SurrealEngine/UObject/UnrealURL.cpp
 	SurrealEngine/UObject/UnrealURL.h
-	SurrealEngine/Collision/CollisionHash.cpp
-	SurrealEngine/Collision/CollisionHash.h
-	SurrealEngine/Collision/CollisionHit.h
-	SurrealEngine/Collision/TraceRayLevel.cpp
-	SurrealEngine/Collision/TraceRayLevel.h
-	SurrealEngine/Collision/TraceRayModel.cpp
-	SurrealEngine/Collision/TraceRayModel.h
-	SurrealEngine/Collision/TraceCylinderLevel.cpp
-	SurrealEngine/Collision/TraceCylinderLevel.h
-	SurrealEngine/Collision/TraceAABBModel.cpp
-	SurrealEngine/Collision/TraceAABBModel.h
-	SurrealEngine/Collision/OverlapCylinderLevel.cpp
-	SurrealEngine/Collision/OverlapCylinderLevel.h
-	SurrealEngine/Collision/OverlapAABBModel.cpp
-	SurrealEngine/Collision/OverlapAABBModel.h
+	SurrealEngine/Collision/TopLevel/CollisionHash.cpp
+	SurrealEngine/Collision/TopLevel/CollisionHash.h
+	SurrealEngine/Collision/TopLevel/CollisionHit.h
+	SurrealEngine/Collision/TopLevel/TraceRayLevel.cpp
+	SurrealEngine/Collision/TopLevel/TraceRayLevel.h
+	SurrealEngine/Collision/TopLevel/TraceCylinderLevel.cpp
+	SurrealEngine/Collision/TopLevel/TraceCylinderLevel.h
+	SurrealEngine/Collision/TopLevel/OverlapCylinderLevel.cpp
+	SurrealEngine/Collision/TopLevel/OverlapCylinderLevel.h
+	SurrealEngine/Collision/BottomLevel/TraceRayModel.cpp
+	SurrealEngine/Collision/BottomLevel/TraceRayModel.h
+	SurrealEngine/Collision/BottomLevel/TraceAABBModel.cpp
+	SurrealEngine/Collision/BottomLevel/TraceAABBModel.h
+	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.cpp
+	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.h
 	SurrealEngine/UI/WidgetResourceData.cpp
 	SurrealEngine/UI/WidgetResourceData.h
 	SurrealEngine/UI/ErrorWindow/ErrorWindow.cpp
@@ -497,6 +497,8 @@ source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("SurrealEngine\\UI\\Launcher" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Launcher/.+")
 source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UObject/.+")
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
+source_group("SurrealEngine\\Collision\\TopLevel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/TopLevel/.+")
+source_group("SurrealEngine\\Collision\\BottomLevel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/BottomLevel/.+")
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
 source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Debug/.+")
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")
