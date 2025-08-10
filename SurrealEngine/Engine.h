@@ -183,6 +183,11 @@ public:
 	std::map<std::string, ActiveInputAxis> activeInputAxes;
 
 	std::function<void()> tickDebugger;
+
+	bool getEditorMode() const { return m_EditorMode; }
+	void setEditorMode(const bool value) { m_EditorMode = value; }
+private:
+	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
 };
 
 extern Engine* engine;
