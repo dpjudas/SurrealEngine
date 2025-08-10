@@ -80,9 +80,11 @@ Use CMake to build the project. You're gonna need the development versions of th
 * SDL2 (Optional - Used on ZWidget SDL2 backend)
 * waylandpp (Optional - C++ bindings for Wayland, used on ZWidget Wayland backend)
 
-> [!NOTE] On some distros, SDL2 is replaced by SDL3, so you'll probably need the devel package for the **compat library** on these instead.
+> [!NOTE] 
+> On some distros, SDL2 is replaced by SDL3, so you'll probably need the devel package for the **compat library** on these instead.
 
-> [!NOTE] These packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
+> [!NOTE] 
+> These packages won't always have the exact names given above, as it can change from distro to distro. In general, if you get an include error that looks like it is trying to include something external, then you are probably missing the dev package for that library. :)
 
 #### Installing the prerequisite packages
 
