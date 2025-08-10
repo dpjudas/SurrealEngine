@@ -688,6 +688,7 @@ void UActor::TickFalling(float elapsed)
 							hit = TryMove(alignedDelta);
 							if (hit.Fraction < 1.0f && hit.Normal.z > 0.7071f)
 							{
+								SetBase(hit.Actor, true);
 								PhysLanded(hit.Normal);
 								return;
 							}
@@ -701,6 +702,7 @@ void UActor::TickFalling(float elapsed)
 					}
 					else
 					{
+						SetBase(hit.Actor, true);
 						PhysLanded(hit.Normal);
 						timeLeft = 0.0f;
 					}
@@ -987,7 +989,10 @@ void UActor::TickMovingBrush(float elapsed)
 		float timeLeft = elapsed;
 		while (timeLeft > 0.0f)
 		{
-			if (PhysRate() <= 0.0f || !bInterpolating())
+			if (!bInterpolating())
+				break;
+
+			if (PhysRate() <= 0.0f)
 				break;
 
 			float physAlpha = PhysAlpha();
@@ -1021,7 +1026,7 @@ void UActor::TickMovingBrush(float elapsed)
 
 			Rotator targetRotation = oldrot + (baserot + keyrot - oldrot) * t;
 
-			// engine->LogMessage("Moving brush: " + std::to_string(t) + " key=" + std::to_string(keyIndex) +" keypos=(" + std::to_string(keypos.x) + "," + std::to_string(keypos.y) + "," + std::to_string(keypos.z) + ")");
+			// LogMessage("Moving brush: " + std::to_string(t) + " key=" + std::to_string(keyIndex) +" keypos=(" + std::to_string(keypos.x) + "," + std::to_string(keypos.y) + "," + std::to_string(keypos.z) + ")");
 
 			if (TryMove(targetPos - Location()).Fraction == 1.0f)
 			{
