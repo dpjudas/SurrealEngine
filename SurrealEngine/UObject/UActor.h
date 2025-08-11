@@ -175,7 +175,7 @@ public:
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
 
-	void PhysLanded(const vec3& hitNormal);
+	void PhysLanded(UActor* hitActor, const vec3& hitNormal);
 
 	virtual void TickRotating(float elapsed);
 

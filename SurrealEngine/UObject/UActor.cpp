@@ -261,6 +261,7 @@ void UActor::InitActorZone()
 	if (Region().Zone->bWaterZone())
 	{
 		SetPhysics(PHYS_Swimming);
+		SetBase(nullptr, true);
 	}
 }
 
@@ -507,24 +508,23 @@ void UActor::TickWalking(float elapsed)
 		{
 			vec3 moveDelta = vel * timeLeft;
 
-			// step up first
+			// step up first so we can get past stairs going up
 			TryMove(stepUpDelta);
+
+			// try move forward
 			CollisionHit hit = TryMove(moveDelta);
 			timeLeft -= timeLeft * hit.Fraction;
 			moveDelta = vel * timeLeft;
 
-			// step back down so we don't bump our heads
-			hit = TryMove(stepDownDelta);
-			if (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f)
-			{
-				// TODO: do we really have to TryMove again? we can't set the Location directly?
-				TryMove(stepUpDelta);
-				SetPhysics(PHYS_Falling);
-				return;
-			}
+			// move back down to original vertical position
+			TryMove(-stepUpDelta);
 
-			hit = TryMove(moveDelta);
-			timeLeft -= timeLeft * hit.Fraction;
+			if (hit.Fraction < FLT_EPSILON)
+			{
+				// try move forward once again, in case our head bumped into something while stepped up
+				hit = TryMove(moveDelta);
+				timeLeft -= timeLeft * hit.Fraction;
+			}
 
 			if (hit.Fraction < 1.0f)
 			{
@@ -568,13 +568,31 @@ void UActor::TickWalking(float elapsed)
 			// Check if unrealscript got us out of walking mode
 			if (Physics() != PHYS_Walking)
 				return;
+
+			// Can we reach the ground from here if we step down? (dry run)
+			CollisionHit floorHit = TryMove(stepDownDelta, true);
+			if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
+			{
+				// No we couldn't. We are falling
+				SetPhysics(PHYS_Falling);
+				SetBase(nullptr, true);
+				return;
+			}
+
+			// We could reach the ground. Step down there.
+			hit = TryMove(stepDownDelta);
 		}
 	}
-
-	CollisionHit hit = TryMove(stepDownDelta, isMoving);
-	if (Physics() == PHYS_Walking && (hit.Fraction == 1.0f || dot(hit.Normal, vec3(0.0f, 0.0f, 1.0f)) < 0.7071f))
+	else
 	{
-		SetPhysics(PHYS_Falling);
+		// Can we reach the ground from here?
+		CollisionHit floorHit = TryMove(stepDownDelta, true);
+		if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
+		{
+			// No we couldn't. We are falling
+			SetPhysics(PHYS_Falling);
+			SetBase(nullptr, true);
+		}
 	}
 
 	if (!bJustTeleported())
@@ -688,8 +706,7 @@ void UActor::TickFalling(float elapsed)
 							hit = TryMove(alignedDelta);
 							if (hit.Fraction < 1.0f && hit.Normal.z > 0.7071f)
 							{
-								SetBase(hit.Actor, true);
-								PhysLanded(hit.Normal);
+								PhysLanded(hit.Actor, hit.Normal);
 								return;
 							}
 						}
@@ -702,8 +719,7 @@ void UActor::TickFalling(float elapsed)
 					}
 					else
 					{
-						SetBase(hit.Actor, true);
-						PhysLanded(hit.Normal);
+						PhysLanded(hit.Actor, hit.Normal);
 						timeLeft = 0.0f;
 					}
 				}
@@ -1070,7 +1086,7 @@ void UActor::TickTrailer(float elapsed)
 	}
 }
 
-void UActor::PhysLanded(const vec3& hitNormal)
+void UActor::PhysLanded(UActor* hitActor, const vec3& hitNormal)
 {
 	// landed on the floor
 	CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hitNormal) });
@@ -1080,10 +1096,12 @@ void UActor::PhysLanded(const vec3& hitNormal)
 		if (UObject::TryCast<UPawn>(this))
 		{
 			SetPhysics(PHYS_Walking);
+			SetBase(hitActor, true);
 		}
 		else
 		{
 			SetPhysics(PHYS_None);
+			SetBase(hitActor, true);
 			Velocity() = vec3(0.0f);
 		}
 	}

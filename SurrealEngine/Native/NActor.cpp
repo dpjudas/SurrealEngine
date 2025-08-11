@@ -425,6 +425,7 @@ void NActor::SetOwner(UObject* Self, UObject* NewOwner)
 void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
 	UObject::Cast<UActor>(Self)->SetPhysics(newPhysics);
+	// We are calling Self->SetBase() for all other calls to SetPhysics. Do we need to do it here as well?
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, BitfieldBool& ReturnValue)
