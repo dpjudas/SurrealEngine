@@ -580,7 +580,9 @@ void UActor::TickWalking(float elapsed)
 			}
 
 			// We could reach the ground. Step down there.
-			hit = TryMove(stepDownDelta);
+			floorHit = TryMove(stepDownDelta);
+			if (floorHit.Fraction != 1.0f)
+				SetBase(floorHit.Actor, true);
 		}
 	}
 	else
