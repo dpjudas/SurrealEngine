@@ -50,7 +50,7 @@ int DebuggerApp::Main(Array<std::string> args)
 	launchinfo = GameFolderSelection::GetLaunchInfo();
 	if (!launchinfo.gameRootFolder.empty())
 	{
-		Frame::RunDebugger = [=]() { FrameDebugBreak(); };
+		Frame::RunDebugger = [this]() { FrameDebugBreak(); };
 
 		Engine engine(launchinfo);
 		engine.tickDebugger = [&]() { Tick(); };
