@@ -80,7 +80,7 @@ void UInternetLink::Resolve(const std::string& Domain)
 			Thread.detach();
 
 		std::string _address = Domain;
-		auto threadMain = [=]()
+		auto threadMain = [this, _address]()
 		{
 			in_addr_t ipv4_address = inet_addr(_address.c_str());
 			if (ipv4_address == INADDR_NONE)
