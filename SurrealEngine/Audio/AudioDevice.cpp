@@ -247,7 +247,7 @@ public:
 		alGenBuffers(musicBufferCount, &alMusicBuffers[0]);
 
 		// init playback thread
-		musicThreadData.thread = std::thread([=]() { MusicThreadMain(); });
+		musicThreadData.thread = std::thread([this]() { MusicThreadMain(); });
 	}
 
 	~OpenALAudioDevice()
@@ -544,7 +544,7 @@ public:
 	template<class T> class RingQueue
 	{
 	public:
-		RingQueue<T>()
+		RingQueue()
 		{
 			Data = nullptr;
 			Len = 0;
@@ -552,7 +552,7 @@ public:
 			Current = 0;
 		}
 
-		RingQueue<T>(size_t n)
+		RingQueue(size_t n)
 		{
 			Data = static_cast<T*>(malloc(sizeof(T) * n));
 			Len = n;
@@ -560,7 +560,7 @@ public:
 			Current = 0;
 		}
 
-		RingQueue<T>(size_t n, const T& Value)
+		RingQueue(size_t n, const T& Value)
 		{
 			Data = static_cast<T*>(malloc(sizeof(T) * n));
 			for (int i = 0; i < n; i++)
@@ -571,7 +571,7 @@ public:
 			Current = 0;
 		}
 
-		~RingQueue<T>()
+		~RingQueue()
 		{
 			free(Data);
 		}
