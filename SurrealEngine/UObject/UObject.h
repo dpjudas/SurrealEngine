@@ -150,10 +150,10 @@ public:
 	void Init(UClass* cls);
 	void ReadProperties(ObjectStream* stream);
 
-	void* Ptr(const UProperty* prop);
-	void* Ptr(size_t offset);
-	const void* Ptr(const UProperty* prop) const;
-	const void* Ptr(size_t offset) const;
+	inline void* Ptr(const UProperty* prop);
+	inline void* Ptr(size_t offset);
+	inline const void* Ptr(const UProperty* prop) const;
+	inline const void* Ptr(size_t offset) const;
 
 	template<typename T>
 	T& Value(size_t offset) { return *reinterpret_cast<T*>(static_cast<uint8_t*>(Data) + offset); }
@@ -347,4 +347,18 @@ Array<T*> Package::GetAllObjects()
 		objref++;
 	}
 	return objects;
+}
+
+inline void* PropertyDataBlock::Ptr(size_t offset)
+{
+	if (offset < Size)
+		return static_cast<uint8_t*>(Data) + offset;
+	Exception::Throw("Property offset out of bounds!");
+}
+
+inline const void* PropertyDataBlock::Ptr(size_t offset) const
+{
+	if (offset < Size)
+		return static_cast<const uint8_t*>(Data) + offset;
+	Exception::Throw("Property offset out of bounds!");
 }

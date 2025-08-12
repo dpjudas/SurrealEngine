@@ -428,30 +428,6 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void* PropertyDataBlock::Ptr(const UProperty* prop)
-{
-	return Ptr(prop->DataOffset.DataOffset);
-}
-
-const void* PropertyDataBlock::Ptr(const UProperty* prop) const
-{
-	return Ptr(prop->DataOffset.DataOffset);
-}
-
-void* PropertyDataBlock::Ptr(size_t offset)
-{
-	if (offset >= Size)
-		Exception::Throw("Property offset out of bounds!");
-	return static_cast<uint8_t*>(Data) + offset;
-}
-
-const void* PropertyDataBlock::Ptr(size_t offset) const
-{
-	if (offset >= Size)
-		Exception::Throw("Property offset out of bounds!");
-	return static_cast<const uint8_t*>(Data) + offset;
-}
-
 void PropertyDataBlock::Reset()
 {
 	// To do: this crashes as the class might have been destroyed first

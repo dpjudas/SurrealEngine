@@ -829,3 +829,19 @@ public:
 		return ((std::string*)val)->length() == 0;
 	}
 };
+
+inline void* PropertyDataBlock::Ptr(const UProperty* prop)
+{
+	size_t offset = prop->DataOffset.DataOffset;
+	if (offset < Size)
+		return static_cast<uint8_t*>(Data) + offset;
+	Exception::Throw("Property offset out of bounds!");
+}
+
+inline const void* PropertyDataBlock::Ptr(const UProperty* prop) const
+{
+	size_t offset = prop->DataOffset.DataOffset;
+	if (offset < Size)
+		return static_cast<const uint8_t*>(Data) + offset;
+	Exception::Throw("Property offset out of bounds!");
+}
