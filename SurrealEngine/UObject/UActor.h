@@ -193,7 +193,7 @@ public:
 	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 
-	CollisionHit TryMove(const vec3 & delta, bool dryRun = false);
+	CollisionHit TryMove(const vec3 & delta, bool dryRun = false, bool isOwnBaseBlocking = true);
 	CollisionHit TryMoveSmooth(const vec3& delta);
 	bool Move(const vec3& delta);
 	bool MoveSmooth(const vec3& delta);

@@ -1250,7 +1250,7 @@ bool UActor::IsOverlapping(UActor* other)
 	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
-CollisionHit UActor::TryMove(const vec3& delta, bool dryRun)
+CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlocking)
 {
 	// Static and non-movable objects can't move
 	if (bStatic() || !bMovable())
@@ -1281,7 +1281,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun)
 					isBlocking = hit.Actor->bBlockActors() && bBlockActors();
 
 				// We never hit ourselves or anything moving along with us
-				if (isBlocking && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+				if (isBlocking && (isOwnBaseBlocking || !hit.Actor->IsBasedOn(this)) && !IsBasedOn(hit.Actor))
 				{
 					blockingHit = hit;
 					break;
@@ -1314,7 +1314,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun)
 			UActor* actor = level->Actors[i];
 			if (actor && actor->ActorBase() == this)
 			{
-				actor->TryMove(actuallyMoved);
+				actor->TryMove(actuallyMoved, false, false);
 			}
 		}
 	}
