@@ -374,11 +374,11 @@ void UActor::Tick(float elapsed)
 			if (!bInterpolating())
 				StateFrame->LatentState = LatentRunState::Continue;
 		}
-	}
 
-	if (Role() >= ROLE_SimulatedProxy && StateFrame && StateFrame->LatentState == LatentRunState::Continue)
-	{
-		StateFrame->Tick();
+		if (Role() >= ROLE_SimulatedProxy && StateFrame->LatentState == LatentRunState::Continue)
+		{
+			StateFrame->Tick();
+		}
 	}
 
 	TickPhysics(elapsed);
