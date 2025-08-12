@@ -361,11 +361,19 @@ void UActor::Tick(float elapsed)
 		CallEvent(this, EventName::Tick, { ExpressionValue::FloatValue(elapsed) });
 	}
 
-	if (StateFrame && StateFrame->LatentState == LatentRunState::Sleep)
+	if (StateFrame)
 	{
-		SleepTimeLeft = std::max(SleepTimeLeft - elapsed, 0.0f);
-		if (SleepTimeLeft == 0.0f)
-			StateFrame->LatentState = LatentRunState::Continue;
+		if (StateFrame->LatentState == LatentRunState::Sleep)
+		{
+			SleepTimeLeft = std::max(SleepTimeLeft - elapsed, 0.0f);
+			if (SleepTimeLeft == 0.0f)
+				StateFrame->LatentState = LatentRunState::Continue;
+		}
+		else if (StateFrame->LatentState == LatentRunState::FinishInterpolation)
+		{
+			if (!bInterpolating())
+				StateFrame->LatentState = LatentRunState::Continue;
+		}
 	}
 
 	if (Role() >= ROLE_SimulatedProxy && StateFrame && StateFrame->LatentState == LatentRunState::Continue)
