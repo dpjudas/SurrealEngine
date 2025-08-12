@@ -378,7 +378,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
 	GameInfo->InitActorZone();
-
+	GameInfo->Index = (int)Level->Actors.size();
 	Level->Actors.push_back(GameInfo);
 
 	// Note: this is never true. But maybe it will be once map loading or level hubs are implemented? If not, delete it!

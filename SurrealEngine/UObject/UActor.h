@@ -271,6 +271,9 @@ public:
 	float SleepTimeLeft = 0.0f;
 	vec3 gravityVector;
 
+	// Index in level Actors array
+	int Index = -1;
+
 	// Child actor tracking
 	Array<UActor*> ChildActors;
 

@@ -89,7 +89,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	actor->OldLocation() = location;
 	actor->Rotation() = rotation;
 	actor->Region().Zone = actor->Level();
-
+	actor->Index = (int)XLevel()->Actors.size();
 	XLevel()->Actors.push_back(actor);
 	XLevel()->Hash.AddToCollision(actor);
 
@@ -234,18 +234,14 @@ bool UActor::Destroy()
 
 	SetOwner(nullptr);
 
-	for (size_t i = 0; i < level->Actors.size(); i++)
+	while (!ChildActors.empty())
 	{
-		UActor* actor = level->Actors[i];
-		if (actor && actor->Owner() == this)
-		{
-			actor->SetOwner(nullptr);
-		}
-		if (actor == this)
-		{
-			level->Actors[i] = nullptr;
-		}
+		ChildActors.back()->SetOwner(nullptr);
 	}
+
+	if (Index == -1)
+		throw std::runtime_error("Actor index was never set!");
+	level->Actors[Index] = nullptr;
 
 	return true;
 }

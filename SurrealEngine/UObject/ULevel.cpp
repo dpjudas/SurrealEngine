@@ -33,7 +33,10 @@ void ULevelBase::Load(ObjectStream* stream)
 	int32_t dbmax = stream->ReadInt32();
 	for (int32_t i = 0; i < dbnum; i++)
 	{
-		Actors.push_back(stream->ReadObject<UActor>());
+		auto actor = stream->ReadObject<UActor>();
+		if (actor)
+			actor->Index = (int)Actors.size();
+		Actors.push_back(actor);
 	}
 
 	Protocol = stream->ReadString();
@@ -126,7 +129,10 @@ void ULevel::Tick(float elapsed)
 	for (UActor* actor : Actors)
 	{
 		if (actor)
+		{
+			actor->Index = (int)newActorList.size();
 			newActorList.push_back(actor);
+		}
 	}
 	Actors.swap(newActorList);
 
