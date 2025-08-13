@@ -24,9 +24,11 @@ bool StrCompare::equals_ignore_case(const std::string_view& str1, const std::str
 {
 	if (str1.size() != str2.size())
 		return false;
-	for (size_t i = 0, length = str1.size(); i < length; i++)
-		if (stricmptable[(uint8_t)str1[i]] != stricmptable[(uint8_t)str2[i]])
-			return false;
+    for (size_t i = 0, length = str1.size(); i < length; i++)
+    {
+        if (stricmptable[(uint8_t)str1[i]] != stricmptable[(uint8_t)str2[i]])
+            return false;
+    }
 	return true;
 }
 

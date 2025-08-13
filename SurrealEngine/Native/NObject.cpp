@@ -869,6 +869,7 @@ void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
+	Max--; // Returns a random number from 0 to Max-1
 	float t = (float)(std::rand() / (double)RAND_MAX);
 	ReturnValue = (int)std::round(Max * t);
 }
