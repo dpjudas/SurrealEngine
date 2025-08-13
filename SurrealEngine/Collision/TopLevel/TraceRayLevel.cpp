@@ -24,6 +24,8 @@ bool TraceRayLevel::TraceAnyHit(ULevel* level, vec3 from, vec3 to, UActor* traci
 
 	if (traceActors)
 	{
+		CollisionHitList hits;
+
 		ivec3 start = Level->Hash.GetRayStartExtents(from, to);
 		ivec3 end = Level->Hash.GetRayEndExtents(from, to);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -39,8 +41,12 @@ bool TraceRayLevel::TraceAnyHit(ULevel* level, vec3 from, vec3 to, UActor* traci
 						{
 							for (UActor* actor : it->second)
 							{
-								if (actor != tracingActor && actor->bBlockActors() && Level->Hash.RayActorTrace(origin, tmin, direction, tmax, actor) < tmax)
-									return true;
+								if (actor != tracingActor && actor->bBlockActors())
+								{
+									actor->TraceTest(level, origin, tmin, direction, tmax, 0.0, 0.0, hits);
+									if (!hits.empty())
+										return true;
+								}
 							}
 						}
 					}
