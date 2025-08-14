@@ -391,7 +391,12 @@ ExpressionEvalResult Frame::Run()
 			ProcessSwitch(result.Value);
 			break;
 		case StatementResult::GotoLabel:
-			StatementIndex = Func->Code->FindLabelIndex(result.Label);
+			{
+				int index = Func->Code->FindLabelIndex(result.Label);
+				if (index == -1)
+					ThrowException("Could not find label: " + result.Label.ToString());
+				StatementIndex = index;
+			}
 			break;
 		case StatementResult::Stop:
 			LatentState = LatentRunState::Stop;
