@@ -7,63 +7,55 @@
 
 ShaderManager::ShaderManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
-	ShaderBuilder::Init();
+	GLSLCompiler::Init();
 
-	Scene.VertexShader = ShaderBuilder()
+	Scene.VertexShader = GLSLCompiler()
 		.Type(ShaderType::Vertex)
 		.AddSource("shaders/Scene.vert", LoadShaderCode("shaders/Scene.vert"))
-		.DebugName("vertexShader")
-		.Create("vertexShader", renderer->Device.get());
+		.Compile(renderer->Device.get());
 
-	Scene.FragmentShader = ShaderBuilder()
+	Scene.FragmentShader = GLSLCompiler()
 		.Type(ShaderType::Fragment)
 		.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag"))
-		.DebugName("fragmentShader")
-		.Create("fragmentShader", renderer->Device.get());
+		.Compile(renderer->Device.get());
 
-	Scene.FragmentShaderAlphaTest = ShaderBuilder()
+	Scene.FragmentShaderAlphaTest = GLSLCompiler()
 		.Type(ShaderType::Fragment)
 		.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag", "#define ALPHATEST"))
-		.DebugName("fragmentShader")
-		.Create("fragmentShader", renderer->Device.get());
+		.Compile(renderer->Device.get());
 
 	if (renderer->SupportsBindless)
 	{
-		SceneBindless.VertexShader = ShaderBuilder()
+		SceneBindless.VertexShader = GLSLCompiler()
 			.Type(ShaderType::Vertex)
 			.AddSource("shaders/Scene.vert", LoadShaderCode("shaders/Scene.vert", "#extension GL_EXT_nonuniform_qualifier : enable\r\n#define BINDLESS_TEXTURES"))
-			.DebugName("vertexShader")
-			.Create("vertexShader", renderer->Device.get());
+			.Compile(renderer->Device.get());
 
-		SceneBindless.FragmentShader = ShaderBuilder()
+		SceneBindless.FragmentShader = GLSLCompiler()
 			.Type(ShaderType::Fragment)
 			.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag", "#extension GL_EXT_nonuniform_qualifier : enable\r\n#define BINDLESS_TEXTURES"))
-			.DebugName("fragmentShader")
-			.Create("fragmentShader", renderer->Device.get());
+			.Compile(renderer->Device.get());
 
-		SceneBindless.FragmentShaderAlphaTest = ShaderBuilder()
+		SceneBindless.FragmentShaderAlphaTest = GLSLCompiler()
 			.Type(ShaderType::Fragment)
 			.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag", "#extension GL_EXT_nonuniform_qualifier : enable\r\n#define BINDLESS_TEXTURES\r\n#define ALPHATEST"))
-			.DebugName("fragmentShader")
-			.Create("fragmentShader", renderer->Device.get());
+			.Compile(renderer->Device.get());
 	}
 
-	ppVertexShader = ShaderBuilder()
+	ppVertexShader = GLSLCompiler()
 		.Type(ShaderType::Vertex)
 		.AddSource("shaders/PPStep.vert", LoadShaderCode("shaders/PPStep.vert"))
-		.DebugName("ppVertexShader")
-		.Create("ppVertexShader", renderer->Device.get());
+		.Compile(renderer->Device.get());
 
-	ppFragmentPresentShader = ShaderBuilder()
+	ppFragmentPresentShader = GLSLCompiler()
 		.Type(ShaderType::Fragment)
 		.AddSource("shaders/Present.frag", LoadShaderCode("shaders/Present.frag"))
-		.DebugName("ppFragmentPresentShader")
-		.Create("ppFragmentPresentShader", renderer->Device.get());
+		.Compile(renderer->Device.get());
 }
 
 ShaderManager::~ShaderManager()
 {
-	ShaderBuilder::Deinit();
+	GLSLCompiler::Deinit();
 }
 
 std::string ShaderManager::LoadShaderCode(const std::string& filename, const std::string& defines)

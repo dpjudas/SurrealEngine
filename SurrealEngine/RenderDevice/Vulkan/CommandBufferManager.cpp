@@ -69,7 +69,7 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 			renderer->RenderPasses->DestroyPresentRenderPass();
 			renderer->RenderPasses->DestroyPresentPipeline();
 
-			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, false, false);
+			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, false);
 
 			renderer->RenderPasses->CreatePresentRenderPass();
 			renderer->RenderPasses->CreatePresentPipeline();

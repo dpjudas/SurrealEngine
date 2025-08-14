@@ -38,13 +38,13 @@ public:
 
 	struct SceneShaders
 	{
-		std::unique_ptr<VulkanShader> VertexShader;
-		std::unique_ptr<VulkanShader> FragmentShader;
-		std::unique_ptr<VulkanShader> FragmentShaderAlphaTest;
+		std::vector<uint32_t> VertexShader;
+		std::vector<uint32_t> FragmentShader;
+		std::vector<uint32_t> FragmentShaderAlphaTest;
 	} Scene, SceneBindless;
 
-	std::unique_ptr<VulkanShader> ppVertexShader;
-	std::unique_ptr<VulkanShader> ppFragmentPresentShader;
+	std::vector<uint32_t> ppVertexShader;
+	std::vector<uint32_t> ppFragmentPresentShader;
 
 	static std::string LoadShaderCode(const std::string& filename, const std::string& defines = {});
 

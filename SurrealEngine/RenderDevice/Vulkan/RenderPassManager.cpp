@@ -132,9 +132,9 @@ VulkanPipeline* RenderPassManager::getEndFlashPipeline()
 
 void RenderPassManager::CreatePipelines()
 {
-	VulkanShader* vertShader[2] = { renderer->Shaders->Scene.VertexShader.get(), renderer->Shaders->SceneBindless.VertexShader.get() };
-	VulkanShader* fragShader[2] = { renderer->Shaders->Scene.FragmentShader.get(), renderer->Shaders->SceneBindless.FragmentShader.get() };
-	VulkanShader* fragShaderAlphaTest[2] = { renderer->Shaders->Scene.FragmentShaderAlphaTest.get(), renderer->Shaders->SceneBindless.FragmentShaderAlphaTest.get() };
+	std::vector<uint32_t> vertShader[2] = { renderer->Shaders->Scene.VertexShader, renderer->Shaders->SceneBindless.VertexShader };
+	std::vector<uint32_t> fragShader[2] = { renderer->Shaders->Scene.FragmentShader, renderer->Shaders->SceneBindless.FragmentShader };
+	std::vector<uint32_t> fragShaderAlphaTest[2] = { renderer->Shaders->Scene.FragmentShaderAlphaTest, renderer->Shaders->SceneBindless.FragmentShaderAlphaTest };
 	VulkanPipelineLayout* layout[2] = { ScenePipelineLayout.get(), SceneBindlessPipelineLayout.get() };
 	static const char* debugName[2] = { "ScenePipeline", "SceneBindlessPipeline" };
 
@@ -350,8 +350,8 @@ void RenderPassManager::CreatePresentRenderPass()
 void RenderPassManager::CreatePresentPipeline()
 {
 	PresentPipeline = GraphicsPipelineBuilder()
-		.AddVertexShader(renderer->Shaders->ppVertexShader.get())
-		.AddFragmentShader(renderer->Shaders->ppFragmentPresentShader.get())
+		.AddVertexShader(renderer->Shaders->ppVertexShader)
+		.AddFragmentShader(renderer->Shaders->ppFragmentPresentShader)
 		.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT)
 		.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR)
 		.Viewport(0.0f, 0.0f, 0.0f, 0.0f) // Note: the actual values are ignored since we use dynamic viewport+scissor states
