@@ -259,11 +259,11 @@ if(SDL2_FOUND)
 	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL2)
 endif()
 
-if(MSVC)
-	set(CXX_WARNING_FLAGS /W3)
-else()
-	set(CXX_WARNING_FLAGS -Wall -Wpedantic)
-endif()
+#if(MSVC)
+#	set(CXX_WARNING_FLAGS /W3)
+#else()
+#	set(CXX_WARNING_FLAGS -Wall -Wpedantic)
+#endif()
 
 add_library(zwidget STATIC ${ZWIDGET_SOURCES} ${ZWIDGET_INCLUDES})
 target_compile_options(zwidget PRIVATE ${ZWIDGET_COMPILE_OPTIONS})
@@ -274,49 +274,6 @@ target_link_libraries(zwidget ${ZWIDGET_LIBS})
 set_target_properties(zwidget PROPERTIES CXX_STANDARD 20)
 target_compile_options(zwidget PRIVATE ${CXX_WARNING_FLAGS})
 
-if(MSVC)
-	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-
-option(ZWIDGET_BUILD_EXAMPLE "Build the zwidget example application" ON)
-
-if(ZWIDGET_BUILD_EXAMPLE)
-	if (UNIX AND NOT APPLE)
-		find_package(SDL2 REQUIRED)
-	endif()
-
-	add_executable(zwidget_example WIN32
-		example/example.cpp
-		example/picopng.cpp
-		example/picopng.h
-	)
-	target_compile_options(zwidget_example PRIVATE ${CXX_WARNING_FLAGS})
-
-	add_custom_command(
-		TARGET zwidget_example POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy
-			"${CMAKE_CURRENT_SOURCE_DIR}/example/banner.png"
-			"${CMAKE_CURRENT_BINARY_DIR}/banner.png"
-		COMMAND ${CMAKE_COMMAND} -E copy
-			"${CMAKE_CURRENT_SOURCE_DIR}/example/OpenSans.ttf"
-			"${CMAKE_CURRENT_BINARY_DIR}/OpenSans.ttf"
-	)
-
-	target_include_directories(zwidget_example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/example)
-	target_link_libraries(zwidget_example PRIVATE zwidget)
-
-	if(WIN32)
-		target_compile_definitions(zwidget_example PRIVATE UNICODE _UNICODE)
-		target_link_libraries(zwidget_example PRIVATE gdi32 user32 shell32 comdlg32)
-	elseif(APPLE)
-		target_link_libraries(zwidget_example PRIVATE "-framework Cocoa -framework OpenGL")
-	else()
-		target_link_libraries(zwidget_example PRIVATE ${ZWIDGET_LIBS} SDL2::SDL2)
-	endif()
-
-	set_target_properties(zwidget_example PROPERTIES CXX_STANDARD 20)
-
-	if(MSVC)
-		set_property(TARGET zwidget_example PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	endif()
-endif()
+#if(MSVC)
+#	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+#endif()
