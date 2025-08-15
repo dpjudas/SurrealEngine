@@ -3,6 +3,8 @@
 #include "CollisionHash.h"
 #include "UObject/UActor.h"
 #include "Math/floating.h"
+#include "Math/coords.h"
+#include "Collision/BottomLevel/OverlapAABBModel.h"
 
 void CollisionHash::AddToCollision(UActor* actor)
 {
@@ -470,6 +472,81 @@ Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
 						{
 							if (SphereActorOverlap(dorigin, dradius, actor))
 								hits.push_back(actor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	Array<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+
+	return uniqueHits;
+}
+
+Array<UActor*> CollisionHash::EncroachingActors(UActor* actor)
+{
+	UModel* brush = actor->Brush();
+	if (!brush)
+		return CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius());
+
+	// To do: is radius and height correct for a mover? Should it use the brush bounding box?
+
+	vec3 origin = actor->Location();
+	float height = actor->CollisionHeight();
+	float radius = actor->CollisionRadius();
+	vec3 extents = { radius, radius, height };
+
+	mat4 rotateObjToWorld = Coords::Rotation(actor->Rotation()).ToMatrix();
+	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
+	vec3 prePivot = actor->PrePivot();
+
+	Array<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* testActor : it->second)
+						{
+							if (testActor == actor || testActor->Brush())
+								continue;
+
+							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() + prePivot;
+
+							float testHeight = testActor->CollisionHeight();
+							float testRadius = testActor->CollisionRadius();
+							vec3 testExtents = { testRadius, testRadius, testHeight };
+							OverlapAABBModel test;
+							auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
+							if (!modelHits.empty())
+								hits.push_back(testActor);
 						}
 					}
 				}

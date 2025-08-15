@@ -16,6 +16,7 @@ public:
 
 	Array<UActor*> CollidingActors(const vec3& origin, float radius);
 	Array<UActor*> CollidingActors(const vec3& origin, float height, float radius);
+	Array<UActor*> EncroachingActors(UActor* actor);
 
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
 	{
