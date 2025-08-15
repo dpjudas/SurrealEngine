@@ -22,8 +22,8 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	AddButton->SetText("Add");
 	RemoveButton->SetText("Remove");
 
-	AddButton->OnClick = [=]() { OnAddButtonClicked(); };
-	RemoveButton->OnClick = [=]() { OnRemoveButtonClicked(); };
+	AddButton->OnClick = [this]() { OnAddButtonClicked(); };
+	RemoveButton->OnClick = [this]() { OnRemoveButtonClicked(); };
 }
 
 void SettingsPage::Save()

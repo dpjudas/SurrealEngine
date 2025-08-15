@@ -34,7 +34,7 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>
 	}
 	*/
 
-	GamesList->OnActivated = [=]() { OnGamesListActivated(); };
+	GamesList->OnActivated = [this]() { OnGamesListActivated(); };
 }
 
 #if defined(EXTRAARGS)

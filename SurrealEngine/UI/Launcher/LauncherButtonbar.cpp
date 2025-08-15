@@ -10,8 +10,8 @@ LauncherButtonbar::LauncherButtonbar(LauncherWindow* parent) : Widget(parent)
 	PlayButton->SetText("Play");
 	ExitButton->SetText("Exit");
 
-	PlayButton->OnClick = [=]() { OnPlayButtonClicked(); };
-	ExitButton->OnClick = [=]() { OnExitButtonClicked(); };
+	PlayButton->OnClick = [this]() { OnPlayButtonClicked(); };
+	ExitButton->OnClick = [this]() { OnExitButtonClicked(); };
 }
 
 double LauncherButtonbar::GetPreferredHeight() const
