@@ -9,7 +9,7 @@ Scrollbar::Scrollbar(Widget* parent) : Widget(parent)
 	UpdatePartPositions();
 
 	mouse_down_timer = new Timer(this);
-	mouse_down_timer->FuncExpired = [=]() { OnTimerExpired(); };
+	mouse_down_timer->FuncExpired = [this]() { OnTimerExpired(); };
 }
 
 Scrollbar::~Scrollbar()
