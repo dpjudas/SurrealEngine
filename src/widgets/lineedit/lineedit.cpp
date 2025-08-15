@@ -90,12 +90,16 @@ int LineEdit::GetCursorPos() const
 Size LineEdit::GetTextSize()
 {
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return Size(0.0, 0.0);
 	return GetVisualTextSize(canvas);
 }
 
 Size LineEdit::GetTextSize(const std::string& str)
 {
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return Size(0.0, 0.0);
 	return canvas->measureText(str).size();
 }
 
@@ -757,6 +761,9 @@ int LineEdit::GetCharacterIndex(double mouse_x)
 	}
 
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return 0;
+
 	UTF8Reader utf8_reader(text.data(), text.length());
 
 	int seek_start = clip_start_offset;
@@ -862,6 +869,8 @@ void LineEdit::UpdateTextClipping()
 Rect LineEdit::GetCursorRect()
 {
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return Rect::xywh(0.0, 0.0, 0.0, 0.0);
 
 	int substr_end = cursor_pos - clip_start_offset;
 	if (substr_end < 0)
@@ -890,6 +899,8 @@ Rect LineEdit::GetCursorRect()
 Rect LineEdit::GetSelectionRect()
 {
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return Rect::xywh(0.0, 0.0, 0.0, 0.0);
 
 	// text before selection:
 
@@ -949,6 +960,8 @@ void LineEdit::OnTimerExpired()
 void LineEdit::OnGeometryChanged()
 {
 	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return;
 
 	vertical_text_align = canvas->verticalTextAlign();
 
