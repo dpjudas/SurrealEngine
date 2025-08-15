@@ -48,7 +48,11 @@ int DebuggerApp::Main(Array<std::string> args)
 	commandline = &cmd;
 
 	launchinfo = GameFolderSelection::GetLaunchInfo();
-	if (!launchinfo.gameRootFolder.empty())
+	if (launchinfo.gameRootFolder.empty())
+	{
+		WriteOutput(ColorEscape(91) + "No game found!" + ResetEscape() + NewLine() + NewLine());
+	}
+	else
 	{
 		Frame::RunDebugger = [this]() { FrameDebugBreak(); };
 
