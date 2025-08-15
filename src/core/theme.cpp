@@ -146,7 +146,7 @@ WidgetTheme* WidgetTheme::GetTheme()
 DarkWidgetTheme::DarkWidgetTheme()
 {
 	auto widget = RegisterStyle(std::make_unique<BasicWidgetStyle>(), "widget");
-	auto textlabel = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textlabel");
+	/*auto textlabel =*/ RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textlabel");
 	auto pushbutton = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "pushbutton");
 	auto lineedit = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "lineedit");
 	auto textedit = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textedit");
@@ -298,7 +298,7 @@ DarkWidgetTheme::DarkWidgetTheme()
 LightWidgetTheme::LightWidgetTheme()
 {
 	auto widget = RegisterStyle(std::make_unique<BasicWidgetStyle>(), "widget");
-	auto textlabel = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textlabel");
+	/*auto textlabel =*/ RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textlabel");
 	auto pushbutton = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "pushbutton");
 	auto lineedit = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "lineedit");
 	auto textedit = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "textedit");

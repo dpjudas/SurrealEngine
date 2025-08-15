@@ -15,8 +15,8 @@ class X11Connection
 public:
 	X11Connection()
 	{
-		// If we ever want to support windows on multiple threads:
-		// XInitThreads();
+		// This is required by vulkan
+		XInitThreads();
 
 		display = XOpenDisplay(nullptr);
 		if (!display)
@@ -82,11 +82,14 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 	visual = XDefaultVisual(display, screen);
 	colormap = XDefaultColormap(display, screen);
 
-	int disp_width_px = XDisplayWidth(display, screen);
-	int disp_height_px = XDisplayHeight(display, screen);
-	int disp_width_mm = XDisplayWidthMM(display, screen);
-	double ppi = (disp_width_mm < 24) ? 96.0 : (25.4 * static_cast<double>(disp_width_px) / static_cast<double>(disp_width_mm));
-	dpiScale = std::round(ppi / 96.0 * 4.0) / 4.0; // 100%, 125%, 150%, 175%, 200%, etc.
+	if (char* value = XGetDefault(display, "Xft", "dpi"))
+	{
+		int dpi = std::atoi(value);
+		if (dpi != 0)
+		{
+			dpiScale = dpi / 96.0;
+		}
+	}
 
 	XSetWindowAttributes attributes = {};
 	attributes.backing_store = Always;
@@ -378,7 +381,7 @@ Rect X11DisplayWindow::GetWindowFrame() const
 	unsigned int height = 0;
 	unsigned int borderwidth = 0;
 	unsigned int depth = 0;
-	Status status = XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
+	/*Status status =*/ XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
 
 	return Rect::xywh(x / dpiscale, y / dpiscale, width / dpiscale, height / dpiscale);
 }
@@ -394,7 +397,7 @@ Size X11DisplayWindow::GetClientSize() const
 	unsigned int height = 0;
 	unsigned int borderwidth = 0;
 	unsigned int depth = 0;
-	Status status = XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
+	/*Status status =*/ XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
 
 	return Size(width / dpiscale, height / dpiscale);
 }
@@ -408,7 +411,7 @@ int X11DisplayWindow::GetPixelWidth() const
 	unsigned int height = 0;
 	unsigned int borderwidth = 0;
 	unsigned int depth = 0;
-	Status status = XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
+	/*Status status =*/ XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
 	return width;
 }
 
@@ -421,7 +424,7 @@ int X11DisplayWindow::GetPixelHeight() const
 	unsigned int height = 0;
 	unsigned int borderwidth = 0;
 	unsigned int depth = 0;
-	Status status = XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
+	/*Status status =*/ XGetGeometry(display, window, &root, &x, &y, &width, &height, &borderwidth, &depth);
 	return height;
 }
 
@@ -486,8 +489,8 @@ void X11DisplayWindow::SetCaptionTextColor(uint32_t bgra8)
 std::vector<uint8_t> X11DisplayWindow::GetWindowProperty(Atom property, Atom &actual_type, int &actual_format, unsigned long &item_count)
 {
 	long read_bytes = 0;
-	Atom _actual_type = actual_type;
-	int  _actual_format = actual_format;
+	//Atom _actual_type = actual_type;
+	//int  _actual_format = actual_format;
 	unsigned long _item_count = item_count;
 	unsigned long bytes_remaining = 0;
 	unsigned char *read_data = nullptr;
@@ -565,7 +568,7 @@ Point X11DisplayWindow::MapFromGlobal(const Point& pos) const
 	int srcy = (int)std::round(pos.y * dpiscale);
 	int destx = 0;
 	int desty = 0;
-	Bool result = XTranslateCoordinates(display, root, window, srcx, srcy, &destx, &desty, &child);
+	/*Bool result =*/ XTranslateCoordinates(display, root, window, srcx, srcy, &destx, &desty, &child);
 	return Point(destx / dpiscale, desty / dpiscale);
 }
 
@@ -578,7 +581,7 @@ Point X11DisplayWindow::MapToGlobal(const Point& pos) const
 	int srcy = (int)std::round(pos.y * dpiscale);
 	int destx = 0;
 	int desty = 0;
-	Bool result = XTranslateCoordinates(display, window, root, srcx, srcy, &destx, &desty, &child);
+	/*Bool result =*/ XTranslateCoordinates(display, window, root, srcx, srcy, &destx, &desty, &child);
 	return Point(destx / dpiscale, desty / dpiscale);
 }
 

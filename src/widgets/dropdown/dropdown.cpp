@@ -14,7 +14,8 @@ Dropdown::Dropdown(Widget* parent) : Widget(parent)
 }
 
 DropdownList::DropdownList(Widget* parent, Dropdown* owner) : ListView(parent), owner(owner)
-{}
+{
+}
 
 void DropdownList::OnKeyDown(InputKey key)
 {
@@ -311,8 +312,8 @@ bool Dropdown::OpenDropdown()
 
 	listView->SetSelectedItem(selectedItem);
 
-	listView->OnActivated = [=]() { OnDropdownActivated(); };
-	listView->OnChanged = [=](int index) { OnDropdownActivated(); };
+	listView->OnActivated = [this]() { OnDropdownActivated(); };
+	listView->OnChanged = [this](int index) { OnDropdownActivated(); };
 
 	listView->SetFrameGeometry(
 		0,
