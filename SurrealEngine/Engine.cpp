@@ -242,7 +242,7 @@ void Engine::UpdateAudio()
 	audiodev->Update(listener);
 }
 
-void Engine::ClientTravel(const std::string& newURL, uint8_t travelType, bool transferItems)
+void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, bool transferItems)
 {
 	ClientTravelInfo.URL = UnrealURL(newURL);
 	ClientTravelInfo.TravelType = travelType;

@@ -22,7 +22,7 @@ void NPlayerPawn::RegisterFunctions()
 
 void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t TravelType, bool bItems)
 {
-	engine->ClientTravel(URL, TravelType, bItems);
+	engine->ClientTravel(URL, static_cast<ETravelType>(TravelType), bItems);
 }
 
 void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)

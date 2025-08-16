@@ -144,6 +144,13 @@ enum EDrawType
 	DT_SpriteAnimOnce
 };
 
+enum class ETravelType : uint8_t
+{
+	TRAVEL_Absolute, // Absolute URL
+	TRAVEL_Partial,  // Partial (Carry name, reset server)
+	TRAVEL_Relative  // Relative URL
+};
+
 class UActor : public UObject
 {
 public:

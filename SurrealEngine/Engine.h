@@ -6,7 +6,7 @@
 #include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
 #include "GameWindow.h"
-#include "UObject/UObject.h"
+#include "UObject/UActor.h"
 #include "UObject/UnrealURL.h"
 #include "GameFolder.h"
 #include <set>
@@ -60,7 +60,7 @@ public:
 	~Engine();
 
 	void Run();
-	void ClientTravel(const std::string& URL, uint8_t travelType, bool transferItems);
+	void ClientTravel(const std::string& URL, ETravelType travelType, bool transferItems);
 	UnrealURL GetDefaultURL(const std::string& map);
 	void LoadEntryMap();
 	void LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo = {});
@@ -132,7 +132,7 @@ public:
 	struct
 	{
 		UnrealURL URL;
-		uint8_t TravelType = 0;
+		ETravelType TravelType = ETravelType::TRAVEL_Absolute;
 		bool TransferItems = false;
 	} ClientTravelInfo;
 
