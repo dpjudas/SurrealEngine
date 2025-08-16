@@ -4,6 +4,8 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "Math/rotator.h"
+#include "Math/scale.h"
+#include "Math/coords.h"
 #include "PropertyOffsets.h"
 #include <set>
 
@@ -68,17 +70,6 @@ struct PropertyHeader
 	bool boolValue = false;
 	NameString structName;
 	int size = 0;
-};
-
-enum UnrealSheerAxis
-{
-	SHEER_None = 0,
-	SHEER_XY = 1,
-	SHEER_XZ = 2,
-	SHEER_YX = 3,
-	SHEER_YZ = 4,
-	SHEER_ZX = 5,
-	SHEER_ZY = 6,
 };
 
 class Color

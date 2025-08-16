@@ -225,19 +225,20 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Package/IniProperty.h
 	SurrealEngine/Package/NameString.cpp
 	SurrealEngine/Package/NameString.h
-	SurrealEngine/Math/FrustumPlanes.h
-	SurrealEngine/Math/quaternion.h
 	SurrealEngine/Math/FrustumPlanes.cpp
+	SurrealEngine/Math/FrustumPlanes.h
 	SurrealEngine/Math/halffloat.cpp
-	SurrealEngine/Math/hsb.cpp
 	SurrealEngine/Math/halffloat.h
+	SurrealEngine/Math/hsb.cpp
+	SurrealEngine/Math/hsb.h
+	SurrealEngine/Math/mat.cpp
 	SurrealEngine/Math/mat.h
+	SurrealEngine/Math/quaternion.h
 	SurrealEngine/Math/vec.h
 	SurrealEngine/Math/rotator.h
-	SurrealEngine/Math/mat.cpp
 	SurrealEngine/Math/bbox.h
-	SurrealEngine/Math/hsb.h
 	SurrealEngine/Math/coords.h
+	SurrealEngine/Math/scale.h
 	SurrealEngine/GC/GC.cpp
 	SurrealEngine/GC/GC.h
 	SurrealEngine/UObject/ULevel.cpp
