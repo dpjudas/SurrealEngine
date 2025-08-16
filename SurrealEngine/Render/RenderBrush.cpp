@@ -10,12 +10,11 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 {
 	UModel* brush = actor->Brush();
 	const vec3& location = actor->Location();
-	float drawscale = actor->DrawScale();
 	FSceneNode brushframe = *frame;
 
 	UpdateActorLightList(actor);
 
-	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::translate(-actor->PrePivot()) * mat4::scale(drawscale);
+	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::translate(-actor->PrePivot());
 
 	Device->SetSceneNode(&brushframe);
 
