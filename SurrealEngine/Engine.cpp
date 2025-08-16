@@ -163,7 +163,7 @@ void Engine::Run()
 		{
 			// To do: need to do something about that travel type and transfering of items
 
-			UnrealURL url(LevelInfo->URL, ClientTravelInfo.URL);
+			UnrealURL url(ClientTravelInfo.URL);
 
 			auto travelInfo = Level->TravelInfo;
 			for (UActor* actor : Level->Actors)
@@ -244,7 +244,16 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, bool transferItems)
 {
-	ClientTravelInfo.URL = UnrealURL(newURL);
+	if (travelType == ETravelType::TRAVEL_Absolute)
+		ClientTravelInfo.URL = UnrealURL(newURL);
+	else if (travelType == ETravelType::TRAVEL_Partial)
+	{
+		auto name = ClientTravelInfo.URL.GetOption("name");
+		ClientTravelInfo.URL = UnrealURL(newURL);
+		ClientTravelInfo.URL.AddOrReplaceOption("name=" + name);
+	}
+	else if (travelType == ETravelType::TRAVEL_Relative)
+		ClientTravelInfo.URL = UnrealURL(ClientTravelInfo.URL, newURL);
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
