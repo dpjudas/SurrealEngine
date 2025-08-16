@@ -8,13 +8,17 @@
 
 void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 {
+	UMover* mover = UActor::TryCast<UMover>(actor);
+	if (!mover)
+		return;
+
 	UModel* brush = actor->Brush();
 	const vec3& location = actor->Location();
 	FSceneNode brushframe = *frame;
 
 	UpdateActorLightList(actor);
 
-	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::translate(actor->PrePivot());
+	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-actor->PrePivot());
 
 	Device->SetSceneNode(&brushframe);
 

@@ -518,6 +518,12 @@ Array<UActor*> CollisionHash::EncroachingActors(UActor* actor)
 	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
 	vec3 prePivot = actor->PrePivot();
 
+	vec3 mainScale(1.0f);
+	if (UMover* mover = UActor::TryCast<UMover>(actor))
+	{
+		mainScale = mover->MainScale().Scale;
+	}
+
 	Array<UActor*> hits;
 
 	ivec3 start = GetStartExtents(origin, extents);
@@ -538,11 +544,13 @@ Array<UActor*> CollisionHash::EncroachingActors(UActor* actor)
 							if (testActor == actor || testActor->Brush())
 								continue;
 
-							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() + prePivot;
+							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
 
 							float testHeight = testActor->CollisionHeight();
 							float testRadius = testActor->CollisionRadius();
 							vec3 testExtents = { testRadius, testRadius, testHeight };
+							testExtents /= mainScale;
+
 							OverlapAABBModel test;
 							auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
 							if (!modelHits.empty())
