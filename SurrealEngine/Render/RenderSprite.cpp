@@ -65,24 +65,23 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 
 	vec3 sideAxis = Scene.ViewRotation.YAxis * (texwidth * drawscale);
 	vec3 upAxis = Scene.ViewRotation.ZAxis * (texheight * drawscale);
-	vec3 offsetlocation = location - Scene.ViewRotation.XAxis * 30.0f;
 
 	vec3 color = clamp(actor->ScaleGlow(), 0.0f, 1.0f);
 
 	GouraudVertex vertices[4];
-	vertices[0].Point = offsetlocation - sideAxis - upAxis;
+	vertices[0].Point = location - sideAxis - upAxis;
 	vertices[0].UV = { 0.0f, 0.0f };
 	vertices[0].Light = color;
 	vertices[0].Fog = { 0.0f };
-	vertices[1].Point = offsetlocation + sideAxis - upAxis;
+	vertices[1].Point = location + sideAxis - upAxis;
 	vertices[1].UV = { texwidth, 0.0f };
 	vertices[1].Light = color;
 	vertices[1].Fog = { 0.0f };
-	vertices[2].Point = offsetlocation + sideAxis + upAxis;
+	vertices[2].Point = location + sideAxis + upAxis;
 	vertices[2].UV = { texwidth, texheight };
 	vertices[2].Light = color;
 	vertices[2].Fog = { 0.0f };
-	vertices[3].Point = offsetlocation - sideAxis + upAxis;
+	vertices[3].Point = location - sideAxis + upAxis;
 	vertices[3].UV = { 0.0f, texheight };
 	vertices[3].Light = color;
 	vertices[3].Fog = { 0.0f };
