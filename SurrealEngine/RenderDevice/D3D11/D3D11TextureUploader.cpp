@@ -20,6 +20,7 @@ D3D11TextureUploader* D3D11TextureUploader::GetUploader(TextureFormat format)
 		Uploaders[TextureFormat::BC1].reset(new D3D11TextureUploader_4x4Block(DXGI_FORMAT_BC1_UNORM, 8));
 		Uploaders[TextureFormat::RGB8].reset(new D3D11TextureUploader_RGB8());
 		Uploaders[TextureFormat::BGRA8].reset(new D3D11TextureUploader_Simple(DXGI_FORMAT_B8G8R8A8_UNORM, 4));
+		Uploaders[TextureFormat::RGBA32_F].reset(new D3D11TextureUploader_Simple(DXGI_FORMAT_R32G32B32A32_FLOAT, 16));
 	}
 
 	auto it = Uploaders.find(format);

@@ -28,7 +28,11 @@ int EditorApp::main(Array<std::string> args)
 			Engine engine(info);
 			engine.setEditorMode(true);
 
+#ifdef WIN32
+			auto editorWindow = std::make_unique<EditorMainWindow>(RenderAPI::D3D11);
+#else
 			auto editorWindow = std::make_unique<EditorMainWindow>(RenderAPI::Vulkan);
+#endif
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
 			editorWindow->ShowMaximized();
 

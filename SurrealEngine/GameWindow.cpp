@@ -165,7 +165,11 @@ void GameWindow::OnLostFocus()
 
 std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
+#ifdef WIN32
+	return std::make_unique<GameWindow>(windowHost, RenderAPI::D3D11);
+#else
 	return std::make_unique<GameWindow>(windowHost, RenderAPI::Vulkan);
+#endif
 }
 
 void GameWindow::ProcessEvents()
