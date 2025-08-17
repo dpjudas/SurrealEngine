@@ -2,13 +2,25 @@
 #include "Precomp.h"
 #include "RenderDevice.h"
 #include "Vulkan/VulkanRenderDevice.h"
+#ifdef WIN32
+#include "D3D11/D3D11RenderDevice.h"
+#endif
 #include "UObject/ULevel.h"
 #include <zwidget/core/colorf.h>
 #include <zwidget/core/widget.h>
 
-std::unique_ptr<RenderDevice> RenderDevice::Create(Widget* viewport, std::shared_ptr<VulkanSurface> surface)
+std::unique_ptr<RenderDevice> RenderDevice::CreateVulkan(Widget* viewport, std::shared_ptr<VulkanSurface> surface)
 {
 	return std::make_unique<VulkanRenderDevice>(viewport, surface);
+}
+
+std::unique_ptr<RenderDevice> RenderDevice::CreateD3D11(Widget* viewport)
+{
+#ifdef WIN32
+	return std::make_unique<D3D11RenderDevice>(viewport);
+#else
+	Exception::Throw("D3D11 not available on this platform");
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -19,7 +31,7 @@ RenderDeviceCanvas::RenderDeviceCanvas(RenderDevice* device) : device(device)
 
 void RenderDeviceCanvas::begin(const Colorf& color)
 {
-	device->Lock(vec4(0.0f), vec4(0.0f), vec4(color.r, color.g, color.b, color.a));
+	device->Lock(vec4(0.0f), vec4(0.0f), vec4(color.r, color.g, color.b, color.a), nullptr, nullptr);
 
 	frame.XB = 0;
 	frame.YB = 0;
@@ -94,7 +106,7 @@ std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int 
 
 void RenderDeviceCanvas::drawLineAntialiased(float x0, float y0, float x1, float y1, Colorf color)
 {
-	device->Draw2DLine(&frame, vec4(color.r, color.g, color.b, color.a), vec3(x0, y0, 1.0f), vec3(x1, y1, 1.0f));
+	device->Draw2DLine(&frame, vec4(color.r, color.g, color.b, color.a), 0, vec3(x0, y0, 1.0f), vec3(x1, y1, 1.0f));
 }
 
 void RenderDeviceCanvas::fillTile(float x, float y, float width, float height, Colorf color)

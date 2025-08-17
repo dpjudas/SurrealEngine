@@ -164,6 +164,22 @@ enum PolyFlags
 	PF_SubpixelFont = 0x20000000 // For drawing fonts with subpixels
 };
 
+inline uint32_t ApplyPrecedenceRules(uint32_t PolyFlags)
+{
+	// Adjust PolyFlags according to Unreal's precedence rules.
+	if (!(PolyFlags & (PF_Translucent | PF_Modulated)))
+		PolyFlags |= PF_Occlude;
+	else if (PolyFlags & PF_Translucent)
+		PolyFlags &= ~PF_Masked;
+	return PolyFlags;
+}
+
+enum LineFlags
+{
+	LINE_None = 0,
+	LINE_DepthCued = 1
+};
+
 class UModel : public UPrimitive
 {
 public:

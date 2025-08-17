@@ -13,19 +13,35 @@
 #include <zwidget/widgets/menubar/menubar.h>
 #include <zwidget/widgets/toolbar/toolbar.h>
 
-EditorMainWindow::EditorMainWindow() : MainWindow(RenderAPI::Vulkan)
+#ifdef WIN32
+#define USE_D3D11
+#endif
+
+EditorMainWindow::EditorMainWindow(RenderAPI renderAPI) : MainWindow(renderAPI)
 {
-	std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
-		.RequireExtensions(GetVulkanInstanceExtensions())
-		.OptionalSwapchainColorspace()
-		.DebugLayer(false)
-		.Create();
+	if (renderAPI == RenderAPI::D3D11)
+	{
+		device = RenderDevice::CreateD3D11(this);
+	}
+	else if (renderAPI == RenderAPI::Vulkan)
+	{
+		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
+			.RequireExtensions(GetVulkanInstanceExtensions())
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
 
-	auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
-	if (!surface)
-		Exception::Throw("No vulkan surface found");
+		auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
+		if (!surface)
+			Exception::Throw("No vulkan surface found");
 
-	device = RenderDevice::Create(this, surface);
+		device = RenderDevice::CreateVulkan(this, surface);
+	}
+	else
+	{
+		Exception::Throw("Unsupported render API");
+	}
+
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
 
 	GetMenubar()->AddItem("File", [this](Menu* menu) { OnFileMenu(menu); });

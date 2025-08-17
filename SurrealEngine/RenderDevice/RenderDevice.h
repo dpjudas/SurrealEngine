@@ -26,6 +26,9 @@ struct FSceneNode
 	mat4 ObjectToWorld;
 	mat4 WorldToView;
 	mat4 Projection;
+
+	vec4 NearClip = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	float Zoom = 1.0f;
 };
 
 struct GouraudVertex
@@ -72,6 +75,9 @@ struct FTextureInfo
 	FColor* Palette = nullptr;
 };
 
+inline float GetUMult(const FTextureInfo& Info) { return 1.0f / (Info.UScale * Info.USize); }
+inline float GetVMult(const FTextureInfo& Info) { return 1.0f / (Info.VScale * Info.VSize); }
+
 struct FSurfaceInfo
 {
 	uint32_t PolyFlags = 0;
@@ -91,21 +97,24 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(Widget* viewport, std::shared_ptr<VulkanSurface> surface);
+	static std::unique_ptr<RenderDevice> CreateVulkan(Widget* viewport, std::shared_ptr<VulkanSurface> surface);
+	static std::unique_ptr<RenderDevice> CreateD3D11(Widget* viewport);
 
 	virtual ~RenderDevice() = default;
 
 	virtual void Flush(bool AllowPrecache) = 0;
 	virtual bool Exec(std::string Cmd, OutputDevice& Ar) { return false; }
-	virtual void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear) = 0;
+	virtual void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear, uint8_t* HitData, int* HitSize) = 0;
 	virtual void Unlock(bool Blit) = 0;
 	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
 	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
 	virtual void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
-	virtual void Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DPoint(FSceneNode* Frame, vec4 Color, float X1, float Y1, float X2, float Y2, float Z) = 0;
+	virtual void Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
 	virtual void ClearZ(FSceneNode* Frame) = 0;
+	virtual void PushHit(const uint8_t* Data, int Count) = 0;
+	virtual void PopHit(int Count, bool bForce) = 0;
 	virtual void ReadPixels(FColor* Pixels) = 0;
 	virtual void EndFlash() = 0;
 	virtual void SetSceneNode(FSceneNode* Frame) = 0;
@@ -118,6 +127,16 @@ public:
 	Widget* Viewport = nullptr;
 	bool PrecacheOnFlip = false;
 	float Brightness = 0.5f;
+
+	// 2D rendering
+	bool IsOrtho = false;
+	bool IsOrthoLowDetail = false;
+
+	// For editor hit testing
+	int HitX = 0;
+	int HitY = 0;
+	int HitWidth = 0;
+	int HitHeight = 0;
 };
 
 class RenderDeviceTexture : public CanvasTexture

@@ -322,6 +322,18 @@ set(SURREALCOMMON_SOURCES
 
 set(SURREALCOMMON_WIN32_SOURCES
 	SurrealEngine/SurrealEngine.natvis
+	SurrealEngine/Utils/ComPtr.h
+	SurrealEngine/RenderDevice/D3D11/D3D11RenderDevice.cpp
+	SurrealEngine/RenderDevice/D3D11/D3D11RenderDevice.h
+	SurrealEngine/RenderDevice/D3D11/D3D11FileResource.cpp
+	SurrealEngine/RenderDevice/D3D11/D3D11FileResource.h
+	SurrealEngine/RenderDevice/D3D11/D3D11TextureManager.cpp
+	SurrealEngine/RenderDevice/D3D11/D3D11TextureManager.h
+	SurrealEngine/RenderDevice/D3D11/D3D11TextureUploader.cpp
+	SurrealEngine/RenderDevice/D3D11/D3D11TextureUploader.h
+	SurrealEngine/RenderDevice/D3D11/D3D11UploadManager.cpp
+	SurrealEngine/RenderDevice/D3D11/D3D11UploadManager.h
+	SurrealEngine/RenderDevice/D3D11/D3D11CachedTexture.h
 )
 
 set(THIRDPARTY_SOURCES
@@ -490,6 +502,7 @@ source_group("SurrealEngine\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_
 source_group("SurrealEngine\\Package" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Package/.+")
 source_group("SurrealEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/.+")
 source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/Vulkan/.+")
+source_group("SurrealEngine\\RenderDevice/D3D11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/D3D11/.+")
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")

@@ -14,6 +14,22 @@
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "Ws2_32.lib")
 
+class InitCOM
+{
+public:
+	InitCOM()
+	{
+		HRESULT result = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+		if (FAILED(result))
+			Exception::Throw("CoInitializeEx(COINIT_APARTMENTTHREADED) failed");
+	}
+
+	~InitCOM()
+	{
+		CoUninitialize();
+	}
+};
+
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
 	try
@@ -37,6 +53,8 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 		int err = WSAStartup(winsock_version, &wsaData);
 		if (err != 0)
 			Exception::Throw("Failed to initialize winsockets");
+
+		InitCOM initCOM;
 
 		EditorApp app;
 		return app.main(std::move(args));

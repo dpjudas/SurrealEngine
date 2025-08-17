@@ -109,7 +109,7 @@ class GameWindow : public Widget
 public:
 	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost);
 
-	GameWindow(GameWindowHost* windowHost);
+	GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI);
 
 	static void ProcessEvents();
 	static void RunLoop();

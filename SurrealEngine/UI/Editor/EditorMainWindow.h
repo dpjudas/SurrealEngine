@@ -11,7 +11,7 @@ class RenderDevice;
 class EditorMainWindow : public MainWindow
 {
 public:
-	EditorMainWindow();
+	EditorMainWindow(RenderAPI renderAPI);
 	~EditorMainWindow();
 
 	EditorWorkspace* Workspace = nullptr;

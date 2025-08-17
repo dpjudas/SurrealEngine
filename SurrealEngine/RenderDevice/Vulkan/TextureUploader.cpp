@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "TextureUploader.h"
+#include "RenderDevice/RenderDevice.h"
 #include "UObject/UTexture.h"
 
 TextureUploader* TextureUploader::GetUploader(TextureFormat format)

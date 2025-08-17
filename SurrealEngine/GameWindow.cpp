@@ -6,21 +6,32 @@
 #include <zvulkan/vulkancompatibledevice.h>
 #include <zvulkan/vulkanbuilders.h>
 
-GameWindow::GameWindow(GameWindowHost* windowHost) : Widget(nullptr, WidgetType::Window, RenderAPI::Vulkan), windowHost(windowHost)
+GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI) : Widget(nullptr, WidgetType::Window, renderAPI), windowHost(windowHost)
 {
-	std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
-		.RequireExtensions(GetVulkanInstanceExtensions())
-		.OptionalSwapchainColorspace()
-		.DebugLayer(false)
-		.Create();
+	if (renderAPI == RenderAPI::D3D11)
+	{
+		device = RenderDevice::CreateD3D11(this);
+	}
+	else if (renderAPI == RenderAPI::Vulkan)
+	{
+		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
+			.RequireExtensions(GetVulkanInstanceExtensions())
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
 
-	auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
-	if (!surface)
-		Exception::Throw("No vulkan surface found");
+		auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
+		if (!surface)
+			Exception::Throw("No vulkan surface found");
 
-	device = RenderDevice::Create(this, surface);
+		device = RenderDevice::CreateVulkan(this, surface);
+	}
+	else
+	{
+		Exception::Throw("Unsupported render API");
+	}
+
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
-
 	SetFocus();
 }
 
@@ -154,7 +165,7 @@ void GameWindow::OnLostFocus()
 
 std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
-	return std::make_unique<GameWindow>(windowHost);
+	return std::make_unique<GameWindow>(windowHost, RenderAPI::Vulkan);
 }
 
 void GameWindow::ProcessEvents()

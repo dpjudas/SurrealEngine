@@ -60,6 +60,22 @@ struct ApplyConsoleMode
 	HANDLE stdinput = INVALID_HANDLE_VALUE;
 };
 
+class InitCOM
+{
+public:
+	InitCOM()
+	{
+		HRESULT result = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+		if (FAILED(result))
+			Exception::Throw("CoInitializeEx(COINIT_APARTMENTTHREADED) failed");
+	}
+
+	~InitCOM()
+	{
+		CoUninitialize();
+	}
+};
+
 int wmain(int argc, wchar_t* argv[])
 {
 	ApplyConsoleMode applyConsoleMode;
@@ -79,6 +95,8 @@ int wmain(int argc, wchar_t* argv[])
 		int err = WSAStartup(winsock_version, &wsaData);
 		if (err != 0)
 			throw std::runtime_error("Failed to initialize winsockets");
+
+		InitCOM initCOM;
 
 		DebuggerApp app;
 		return app.Main(std::move(args));

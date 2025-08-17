@@ -30,7 +30,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	}
 
 	Device->Brightness = engine->client->Brightness;
-	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f));
+	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f), nullptr, nullptr);
 
 	ResetCanvas();
 	PreRender();

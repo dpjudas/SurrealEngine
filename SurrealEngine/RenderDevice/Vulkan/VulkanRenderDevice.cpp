@@ -273,7 +273,7 @@ bool VulkanRenderDevice::Exec(std::string Cmd, OutputDevice& Ar)
 	}
 }
 
-void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear)
+void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, uint8_t* InHitData, int* InHitSize)
 {
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
@@ -712,7 +712,7 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 	Stats.Tiles++;
 }
 
-void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
 
@@ -749,7 +749,7 @@ void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3
 	SceneIndexPos += 2;
 }
 
-void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
 
@@ -786,7 +786,7 @@ void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, vec3 P1, vec3
 	SceneIndexPos += 2;
 }
 
-void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, float X1, float Y1, float X2, float Y2, float Z)
+void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
 	SetPipeline(RenderPasses->getPointPipeline(UsesBindless));
 
