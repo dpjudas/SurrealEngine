@@ -1,8 +1,8 @@
 #pragma once
 
-#include <zvulkan/vulkanobjects.h>
-#include <zvulkan/vulkanbuilders.h>
+#include "SceneTextures.h"
 #include <unordered_map>
+#include <zvulkan/vulkanbuilders.h>
 
 class VulkanRenderDevice;
 class CachedTexture;
@@ -51,39 +51,58 @@ public:
 	DescriptorSetManager(VulkanRenderDevice* renderer);
 	~DescriptorSetManager();
 
-	VulkanDescriptorSet* GetTextureDescriptorSet(uint32_t PolyFlags, CachedTexture* tex, CachedTexture* lightmap = nullptr, CachedTexture* macrotex = nullptr, CachedTexture* detailtex = nullptr, bool clamp = false);
 	void ClearCache();
 
+	bool IsTextureArrayFull() const { return Textures.NextBindlessIndex + 4 > MaxBindlessTextures; }
 	int GetTextureArrayIndex(uint32_t PolyFlags, CachedTexture* tex, bool clamp = false);
-	VulkanDescriptorSet* GetBindlessDescriptorSet() { return SceneBindlessDescriptorSet.get(); }
-	void UpdateBindlessDescriptorSet();
 
-	VulkanDescriptorSet* GetPresentDescriptorSet() { return PresentDescriptorSet.get(); }
+	VulkanDescriptorSet* GetBindlessSet() { return Textures.BindlessSet.get(); }
+	VulkanDescriptorSet* GetPresentSet() { return Present.Set.get(); }
+	VulkanDescriptorSet* GetBloomPPImageSet() { return Bloom.PPImageSet.get(); }
+	VulkanDescriptorSet* GetBloomVTextureSet(int level) { return Bloom.VTextureSets[level].get(); }
+	VulkanDescriptorSet* GetBloomHTextureSet(int level) { return Bloom.HTextureSets[level].get(); }
+
+	void UpdateBindlessSet();
+	void UpdateFrameDescriptors();
 
 	static const int MaxBindlessTextures = 16536;
 
-	std::unique_ptr<VulkanDescriptorSetLayout> SceneBindlessDescriptorSetLayout;
-	std::unique_ptr<VulkanDescriptorSetLayout> SceneDescriptorSetLayout;
-	std::unique_ptr<VulkanDescriptorSetLayout> PresentDescriptorSetLayout;
+	VulkanDescriptorSetLayout* GetTextureBindlessLayout() { return Textures.BindlessLayout.get(); }
+	VulkanDescriptorSetLayout* GetPresentLayout() { return Present.Layout.get(); }
+	VulkanDescriptorSetLayout* GetBloomLayout() { return Bloom.Layout.get(); }
 
 private:
-	void CreateBindlessSceneDescriptorSet();
-	void CreateSceneDescriptorSetLayout();
-	void CreatePresentDescriptorSetLayout();
-	void CreatePresentDescriptorSet();
+	void CreateBindlessTextureSet();
+	void CreatePresentLayout();
+	void CreatePresentSet();
+	void CreateBloomLayout();
+	void CreateBloomSets();
 
 	VulkanRenderDevice* renderer = nullptr;
 
-	std::unique_ptr<VulkanDescriptorPool> SceneBindlessDescriptorPool;
-	std::unique_ptr<VulkanDescriptorSet> SceneBindlessDescriptorSet;
-	WriteDescriptors WriteBindless;
-	int NextBindlessIndex = 0;
+	struct
+	{
+		std::unique_ptr<VulkanDescriptorSetLayout> BindlessLayout;
+		std::unique_ptr<VulkanDescriptorPool> BindlessPool;
+		std::unique_ptr<VulkanDescriptorSet> BindlessSet;
+		WriteDescriptors WriteBindless;
+		int NextBindlessIndex = 0;
 
-	Array<std::unique_ptr<VulkanDescriptorPool>> SceneDescriptorPool;
-	int SceneDescriptorPoolSetsLeft = 0;
+	} Textures;
 
-	std::unordered_map<TexDescriptorKey, std::unique_ptr<VulkanDescriptorSet>> TextureDescriptorSets;
+	struct
+	{
+		std::unique_ptr<VulkanDescriptorSetLayout> Layout;
+		std::unique_ptr<VulkanDescriptorPool> Pool;
+		std::unique_ptr<VulkanDescriptorSet> Set;
+	} Present;
 
-	std::unique_ptr<VulkanDescriptorPool> PresentDescriptorPool;
-	std::unique_ptr<VulkanDescriptorSet> PresentDescriptorSet;
+	struct
+	{
+		std::unique_ptr<VulkanDescriptorSetLayout> Layout;
+		std::unique_ptr<VulkanDescriptorPool> Pool;
+		std::unique_ptr<VulkanDescriptorSet> VTextureSets[NumBloomLevels];
+		std::unique_ptr<VulkanDescriptorSet> HTextureSets[NumBloomLevels];
+		std::unique_ptr<VulkanDescriptorSet> PPImageSet;
+	} Bloom;
 };

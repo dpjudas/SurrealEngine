@@ -1,6 +1,5 @@
 #pragma once
 
-#include <zvulkan/vulkanobjects.h>
 #include "ShaderManager.h"
 
 class VulkanRenderDevice;

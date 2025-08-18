@@ -11,22 +11,24 @@ public:
 	~CommandBufferManager();
 
 	void WaitForTransfer();
-	void SubmitCommands(bool present, int presentWidth, int presentHeight);
+	void SubmitCommands(bool present, int presentWidth, int presentHeight, bool presentFullscreen);
 	VulkanCommandBuffer* GetTransferCommands();
 	VulkanCommandBuffer* GetDrawCommands();
 	void DeleteFrameObjects();
 
 	struct DeleteList
 	{
-		Array<std::unique_ptr<VulkanImage>> images;
-		Array<std::unique_ptr<VulkanImageView>> imageViews;
-		Array<std::unique_ptr<VulkanBuffer>> buffers;
-		Array<std::unique_ptr<VulkanDescriptorSet>> descriptors;
+		std::vector<std::unique_ptr<VulkanImage>> images;
+		std::vector<std::unique_ptr<VulkanImageView>> imageViews;
+		std::vector<std::unique_ptr<VulkanBuffer>> buffers;
+		std::vector<std::unique_ptr<VulkanDescriptorSet>> descriptors;
 	};
 	std::unique_ptr<DeleteList> FrameDeleteList;
 
 	std::shared_ptr<VulkanSwapChain> SwapChain;
-	uint32_t PresentImageIndex = 0xffffffff;
+	int PresentImageIndex = -1;
+	bool UsingVsync = false;
+	bool UsingHdr = false;
 
 private:
 	VulkanRenderDevice* renderer = nullptr;

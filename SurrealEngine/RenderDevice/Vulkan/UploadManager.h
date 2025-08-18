@@ -1,7 +1,7 @@
 #pragma once
 
-#include <zvulkan/vulkanobjects.h>
 #include "TextureUploader.h"
+#include <unordered_map>
 
 class VulkanRenderDevice;
 class CachedTexture;
@@ -20,23 +20,16 @@ public:
 
 	void SubmitUploads();
 
+	void ClearCache();
+
 private:
-	void UploadData(VkImage image, const FTextureInfo& Info, bool masked, TextureUploader* uploader);
-	void UploadWhite(VkImage image);
+	void UploadData(CachedTexture* tex, const FTextureInfo& Info, bool masked, TextureUploader* uploader);
+	void UploadWhite(CachedTexture* tex);
 	void WaitIfUploadBufferIsFull(int bytes);
+	void AddPendingUpload(CachedTexture* tex, const VkBufferImageCopy& region, bool isPartial);
 
 	VulkanRenderDevice* renderer = nullptr;
 
-	struct UploadedTexture
-	{
-		VkImage Image = {};
-		int Index = 0;
-		int Count = 0;
-		bool PartialUpdate = false;
-	};
-
 	int UploadBufferPos = 0;
-	Array<UploadedTexture> Uploads;
-	Array<VkBufferImageCopy> ImageCopies;
-	std::unordered_map<VkImage, Array<VkBufferImageCopy>> RectUploads;
+	std::vector<CachedTexture*> PendingUploads;
 };

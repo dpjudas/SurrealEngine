@@ -1,9 +1,15 @@
 #pragma once
 
 #include <zvulkan/vulkanobjects.h>
-#include "Math/vec.h"
 
 class VulkanRenderDevice;
+
+struct PipelineState
+{
+	std::unique_ptr<VulkanPipeline> Pipeline;
+	float MinDepth = 0.1f;
+	float MaxDepth = 1.0f;
+};
 
 class RenderPassManager
 {
@@ -11,41 +17,59 @@ public:
 	RenderPassManager(VulkanRenderDevice* renderer);
 	~RenderPassManager();
 
-	std::unique_ptr<VulkanPipelineLayout> ScenePipelineLayout;
-	std::unique_ptr<VulkanPipelineLayout> SceneBindlessPipelineLayout;
-	std::unique_ptr<VulkanPipelineLayout> PresentPipelineLayout;
-
 	void CreateRenderPass();
 	void CreatePipelines();
 
 	void CreatePresentRenderPass();
 	void CreatePresentPipeline();
-	void DestroyPresentRenderPass();
-	void DestroyPresentPipeline();
+	void CreateScreenshotPipeline();
 
-	void BeginScene(VulkanCommandBuffer* cmdbuffer, vec4 screenClear);
-	void EndScene(VulkanCommandBuffer* cmdbuffer);
+	void CreatePostprocessRenderPass();
+	void CreateBloomPipeline();
 
-	void BeginPresent(VulkanCommandBuffer* cmdbuffer);
-	void EndPresent(VulkanCommandBuffer* cmdbuffer);
+	PipelineState* GetPipeline(DWORD polyflags);
+	PipelineState* GetEndFlashPipeline();
+	PipelineState* GetLinePipeline(bool occludeLines) { return &Scene.LinePipeline[occludeLines]; }
+	PipelineState* GetPointPipeline(bool occludeLines) { return &Scene.PointPipeline[occludeLines]; }
 
-	VulkanPipeline* getPipeline(uint32_t polyflags, bool bindless);
-	VulkanPipeline* getEndFlashPipeline();
-	VulkanPipeline* getLinePipeline(bool bindless) { return linepipeline[bindless].get(); }
-	VulkanPipeline* getPointPipeline(bool bindless) { return pointpipeline[bindless].get(); }
+	struct
+	{
+		std::unique_ptr<VulkanPipelineLayout> BindlessPipelineLayout;
+		std::unique_ptr<VulkanRenderPass> RenderPass;
+		std::unique_ptr<VulkanRenderPass> RenderPassContinue;
+		PipelineState Pipeline[32];
+		PipelineState LinePipeline[2];
+		PipelineState PointPipeline[2];
+	} Scene;
 
-	std::unique_ptr<VulkanRenderPass> SceneRenderPass;
+	struct
+	{
+		std::unique_ptr<VulkanPipelineLayout> PipelineLayout;
+		std::unique_ptr<VulkanRenderPass> RenderPass;
+		std::unique_ptr<VulkanPipeline> Pipeline[16];
+		std::unique_ptr<VulkanPipeline> ScreenshotPipeline[16];
+	} Present;
 
-	std::unique_ptr<VulkanRenderPass> PresentRenderPass;
-	std::unique_ptr<VulkanPipeline> PresentPipeline;
+	struct
+	{
+		std::unique_ptr<VulkanPipelineLayout> PipelineLayout;
+		std::unique_ptr<VulkanPipeline> Extract;
+		std::unique_ptr<VulkanPipeline> Combine;
+		std::unique_ptr<VulkanPipeline> Scale;
+		std::unique_ptr<VulkanPipeline> BlurVertical;
+		std::unique_ptr<VulkanPipeline> BlurHorizontal;
+	} Bloom;
+
+	struct
+	{
+		std::unique_ptr<VulkanRenderPass> RenderPass;
+		std::unique_ptr<VulkanRenderPass> RenderPassCombine;
+	} Postprocess;
 
 private:
-	void CreateScenePipelineLayout();
 	void CreateSceneBindlessPipelineLayout();
 	void CreatePresentPipelineLayout();
+	void CreateBloomPipelineLayout();
 
 	VulkanRenderDevice* renderer = nullptr;
-	std::unique_ptr<VulkanPipeline> pipeline[2][33];
-	std::unique_ptr<VulkanPipeline> linepipeline[2];
-	std::unique_ptr<VulkanPipeline> pointpipeline[2];
 };

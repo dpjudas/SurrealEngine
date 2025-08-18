@@ -6,38 +6,7 @@
 
 SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
-	for (int i = 0; i < 4; i++)
-	{
-		SamplerBuilder builder;
-		builder.Anisotropy(8.0f);
-		builder.MipLodBias(-0.5f);
-
-		if (i & 1)
-		{
-			builder.MinFilter(VK_FILTER_NEAREST);
-			builder.MagFilter(VK_FILTER_NEAREST);
-			builder.MipmapMode(VK_SAMPLER_MIPMAP_MODE_NEAREST);
-		}
-		else
-		{
-			builder.MinFilter(VK_FILTER_LINEAR);
-			builder.MagFilter(VK_FILTER_LINEAR);
-			builder.MipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);
-		}
-
-		if (i & 2)
-		{
-			builder.AddressMode(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
-		}
-		else
-		{
-			builder.AddressMode(VK_SAMPLER_ADDRESS_MODE_REPEAT);
-		}
-
-		builder.DebugName("SceneSampler");
-
-		Samplers[i] = builder.Create(renderer->Device.get());
-	}
+	CreateSceneSamplers();
 
 	// To do: detail texture needs a zbias of 15
 
@@ -56,4 +25,42 @@ SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer
 		.AddressMode(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
 		.DebugName("ppLinearClamp")
 		.Create(renderer->Device.get());
+}
+
+void SamplerManager::CreateSceneSamplers()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		SamplerBuilder builder;
+		builder.Anisotropy(8.0f);
+		builder.MipLodBias(renderer->LODBias);
+
+		if (i & 1)
+		{
+			builder.MinFilter(VK_FILTER_NEAREST);
+			builder.MagFilter(VK_FILTER_NEAREST);
+			builder.MipmapMode(VK_SAMPLER_MIPMAP_MODE_NEAREST);
+		}
+		else
+		{
+			builder.MinFilter(VK_FILTER_LINEAR);
+			builder.MagFilter(VK_FILTER_LINEAR);
+			builder.MipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);
+		}
+
+		if (i & 2)
+		{
+			builder.AddressMode(VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE);
+		}
+		else
+		{
+			builder.AddressMode(VK_SAMPLER_ADDRESS_MODE_REPEAT);
+		}
+
+		builder.DebugName("SceneSampler");
+
+		Samplers[i] = builder.Create(renderer->Device.get());
+	}
+
+	LODBias = renderer->LODBias;
 }

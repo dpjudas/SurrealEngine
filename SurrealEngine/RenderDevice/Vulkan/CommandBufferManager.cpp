@@ -2,7 +2,6 @@
 #include "Precomp.h"
 #include "CommandBufferManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
 #include <zvulkan/vulkanswapchain.h>
 
 CommandBufferManager::CommandBufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
@@ -22,9 +21,7 @@ CommandBufferManager::CommandBufferManager(VulkanRenderDevice* renderer) : rende
 		.DebugName("RenderFinishedFence")
 		.Create(renderer->Device.get());
 
-	TransferSemaphore = SemaphoreBuilder()
-		.DebugName("TransferSemaphore")
-		.Create(renderer->Device.get());
+	TransferSemaphore.reset(new VulkanSemaphore(renderer->Device.get()));
 
 	CommandPool = CommandPoolBuilder()
 		.QueueFamily(renderer->Device.get()->GraphicsFamily)
@@ -58,27 +55,25 @@ void CommandBufferManager::WaitForTransfer()
 	}
 }
 
-void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int presentHeight)
+void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int presentHeight, bool presentFullscreen)
 {
 	renderer->Uploads->SubmitUploads();
 
 	if (present)
 	{
-		if (SwapChain->Lost() || SwapChain->Width() != presentWidth || SwapChain->Height() != presentHeight)
+		if (SwapChain->Lost() || SwapChain->Width() != presentWidth || SwapChain->Height() != presentHeight || UsingVsync != renderer->UseVSync || UsingHdr != renderer->Hdr)
 		{
-			renderer->RenderPasses->DestroyPresentRenderPass();
-			renderer->RenderPasses->DestroyPresentPipeline();
-
-			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, false);
-
-			renderer->RenderPasses->CreatePresentRenderPass();
-			renderer->RenderPasses->CreatePresentPipeline();
+			UsingVsync = renderer->UseVSync;
+			UsingHdr = renderer->Hdr;
+			renderer->Framebuffers->DestroySwapChainFramebuffers();
+			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, renderer->Hdr);
+			renderer->Framebuffers->CreateSwapChainFramebuffers();
 		}
 
 		PresentImageIndex = SwapChain->AcquireImage(ImageAvailableSemaphore.get());
 		if (PresentImageIndex != -1)
 		{
-			renderer->DrawPresentTexture(0, 0, presentWidth, presentHeight);
+			renderer->DrawPresentTexture(presentWidth, presentHeight);
 		}
 	}
 
@@ -146,5 +141,5 @@ VulkanCommandBuffer* CommandBufferManager::GetDrawCommands()
 
 void CommandBufferManager::DeleteFrameObjects()
 {
-	FrameDeleteList.reset(new DeleteList());
+	FrameDeleteList = std::make_unique<DeleteList>();
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <zvulkan/vulkanobjects.h>
-#include <unordered_map>
 #include "SceneTextures.h"
 
 struct FTextureInfo;
@@ -18,6 +16,7 @@ public:
 	CachedTexture* GetTexture(FTextureInfo* info, bool masked);
 
 	void ClearCache();
+	void ClearAllBindlessIndexes();
 
 	std::unique_ptr<VulkanImage> NullTexture;
 	std::unique_ptr<VulkanImageView> NullTextureView;

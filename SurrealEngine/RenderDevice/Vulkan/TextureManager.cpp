@@ -4,7 +4,6 @@
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
 #include <zvulkan/vulkanbuilders.h>
-#include "UObject/UTexture.h"
 
 TextureManager::TextureManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -31,16 +30,20 @@ CachedTexture* TextureManager::GetTexture(FTextureInfo* info, bool masked)
 	if (!info)
 		return nullptr;
 
+	if (info->Texture && (info->Texture->PolyFlags() & PF_Masked))
+		masked = true;
+
+	if (info->Format != TextureFormat::P8)
+		masked = false;
+
 	std::unique_ptr<CachedTexture>& tex = TextureCache[(int)masked][info->CacheID];
 	if (!tex)
 	{
 		tex.reset(new CachedTexture());
 		renderer->Uploads->UploadTexture(tex.get(), *info, masked);
 	}
-	else if (info->bRealtimeChanged /*&& (!info->Texture || info->Texture->RealtimeChangeCount != tex->RealtimeChangeCount)*/)
+	else if (info->bRealtimeChanged)
 	{
-		/*if (info->Texture)
-			info->Texture->RealtimeChangeCount = tex->RealtimeChangeCount;*/
 		info->bRealtimeChanged = 0;
 		renderer->Uploads->UploadTexture(tex.get(), *info, masked);
 	}
@@ -52,6 +55,18 @@ void TextureManager::ClearCache()
 	for (auto& cache : TextureCache)
 	{
 		cache.clear();
+	}
+}
+
+void TextureManager::ClearAllBindlessIndexes()
+{
+	for (auto& cache : TextureCache)
+	{
+		for (auto& it : cache)
+		{
+			for (int& index : it.second->BindlessIndex)
+				index = -1;
+		}
 	}
 }
 

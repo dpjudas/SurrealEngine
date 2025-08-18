@@ -20,14 +20,23 @@ struct SceneVertex
 struct ScenePushConstants
 {
 	mat4 objectToProjection;
+	vec4 nearClip;
+	uint32_t hitIndex;
+	uint32_t padding1, padding2, padding3;
 };
 
 struct PresentPushConstants
 {
-	float InvGamma;
-	float padding1;
-	float padding2;
-	float padding3;
+	float Contrast;
+	float Saturation;
+	float Brightness;
+	float HdrScale;
+	vec4 GammaCorrection;
+};
+
+struct BloomPushConstants
+{
+	float SampleWeights[8];
 };
 
 class ShaderManager
@@ -41,10 +50,21 @@ public:
 		std::vector<uint32_t> VertexShader;
 		std::vector<uint32_t> FragmentShader;
 		std::vector<uint32_t> FragmentShaderAlphaTest;
-	} Scene, SceneBindless;
+	} Scene;
 
-	std::vector<uint32_t> ppVertexShader;
-	std::vector<uint32_t> ppFragmentPresentShader;
+	struct
+	{
+		std::vector<uint32_t> VertexShader;
+		std::vector<uint32_t> FragmentPresentShader[16];
+	} Postprocess;
+
+	struct
+	{
+		std::vector<uint32_t> Extract;
+		std::vector<uint32_t> Combine;
+		std::vector<uint32_t> BlurVertical;
+		std::vector<uint32_t> BlurHorizontal;
+	} Bloom;
 
 	static std::string LoadShaderCode(const std::string& filename, const std::string& defines = {});
 

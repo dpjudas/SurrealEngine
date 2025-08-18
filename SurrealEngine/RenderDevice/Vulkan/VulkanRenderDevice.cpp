@@ -2,26 +2,13 @@
 #include "Precomp.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
-#include "GameWindow.h"
+#include "Utils/Logger.h"
 #include <zvulkan/vulkanbuilders.h>
-#include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkanswapchain.h>
-#include <zvulkan/vulkancompatibledevice.h>
-#include "Utils/UTF16.h"
-#include "UObject/ULevel.h"
-#include "UObject/UClient.h"
-#include "UObject/UTexture.h"
-#include <set>
-
-void VulkanPrintLog(const char* typestr, const std::string& msg)
-{
-	//debugf("[%s] %s", typestr, msg.c_str());
-}
-
-void VulkanError(const char* text)
-{
-	Exception::Throw(text);
-}
+#include <zvulkan/vulkansurface.h>
+#include <zwidget/core/widget.h>
+#include <cmath>
+#include <stdexcept>
 
 VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<VulkanSurface> surface)
 {
@@ -29,17 +16,22 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<Vulka
 
 	try
 	{
-		Device = VulkanDeviceBuilder()
-			.OptionalDescriptorIndexing()
-			.OptionalRayQuery()
-			.Surface(surface)
-			.SelectDevice(0)
-			.Create(surface->Instance);
+		auto deviceBuilder = VulkanDeviceBuilder();
+		deviceBuilder.OptionalDescriptorIndexing();
+		deviceBuilder.OptionalRayQuery();
+		deviceBuilder.Surface(surface);
+		deviceBuilder.RequireExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+		deviceBuilder.RequireExtension(VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME);
+		deviceBuilder.SelectDevice(VkDeviceIndex);
+		Device = deviceBuilder.Create(surface->Instance);
 
-		SupportsBindless =
+		bool supportsBindless =
 			Device->EnabledFeatures.DescriptorIndexing.descriptorBindingPartiallyBound &&
 			Device->EnabledFeatures.DescriptorIndexing.runtimeDescriptorArray &&
 			Device->EnabledFeatures.DescriptorIndexing.shaderSampledImageArrayNonUniformIndexing;
+
+		if (!supportsBindless)
+			throw std::runtime_error("VulkanDrv requires a GPU that supports bindless textures!");
 
 		Commands.reset(new CommandBufferManager(this));
 		Samplers.reset(new SamplerManager(this));
@@ -51,47 +43,36 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<Vulka
 		RenderPasses.reset(new RenderPassManager(this));
 		Framebuffers.reset(new FramebufferManager(this));
 
-		UsesBindless = SupportsBindless;
+		const auto& props = Device->PhysicalDevice.Properties.Properties;
 
-		/*if (VkDebug)
+		std::string deviceType;
+		switch (props.deviceType)
 		{
-			const auto& props = Device->PhysicalDevice.Properties;
+		case VK_PHYSICAL_DEVICE_TYPE_OTHER: deviceType = "other"; break;
+		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: deviceType = "integrated gpu"; break;
+		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: deviceType = "discrete gpu"; break;
+		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: deviceType = "virtual gpu"; break;
+		case VK_PHYSICAL_DEVICE_TYPE_CPU: deviceType = "cpu"; break;
+		default: deviceType = std::to_string((int)props.deviceType); break;
+		}
 
-			std::string deviceType;
-			switch (props.deviceType)
-			{
-			case VK_PHYSICAL_DEVICE_TYPE_OTHER: deviceType = "other"; break;
-			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: deviceType = "integrated gpu"; break;
-			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: deviceType = "discrete gpu"; break;
-			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: deviceType = "virtual gpu"; break;
-			case VK_PHYSICAL_DEVICE_TYPE_CPU: deviceType = "cpu"; break;
-			default: deviceType = std::to_string((int)props.deviceType); break;
-			}
+		std::string apiVersion = std::to_string(VK_VERSION_MAJOR(props.apiVersion)) + "." + std::to_string(VK_VERSION_MINOR(props.apiVersion)) + "." + std::to_string(VK_VERSION_PATCH(props.apiVersion));
+		std::string driverVersion = std::to_string(VK_VERSION_MAJOR(props.driverVersion)) + "." + std::to_string(VK_VERSION_MINOR(props.driverVersion)) + "." + std::to_string(VK_VERSION_PATCH(props.driverVersion));
 
-			std::string apiVersion, driverVersion;
-			apiVersion = FString::Printf("%d.%d.%d", VK_VERSION_MAJOR(props.apiVersion), VK_VERSION_MINOR(props.apiVersion), VK_VERSION_PATCH(props.apiVersion));
-			driverVersion = FString::Printf("%d.%d.%d", VK_VERSION_MAJOR(props.driverVersion), VK_VERSION_MINOR(props.driverVersion), VK_VERSION_PATCH(props.driverVersion));
-
-			debugf("Vulkan device: %s", to_utf16(props.deviceName).c_str());
-			debugf("Vulkan device type: %s", *deviceType);
-			debugf("Vulkan version: %s (api) %s (driver)", *apiVersion, *driverVersion);
-		}*/
+		LogMessage(std::string("Vulkan device: ") + props.deviceName);
+		LogMessage("Vulkan device type: " + deviceType);
+		LogMessage("Vulkan version: " + apiVersion + " (api) " + driverVersion + " (driver)");
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-		Dispose();
-		throw;
+		Exception::Throw(std::string("Could not create vulkan renderer: ") + e.what());
 	}
 }
 
 VulkanRenderDevice::~VulkanRenderDevice()
 {
-	Dispose();
-}
-
-void VulkanRenderDevice::Dispose()
-{
-	if (Device) vkDeviceWaitIdle(Device->device);
+	if (Device)
+		vkDeviceWaitIdle(Device->device);
 
 	Framebuffers.reset();
 	RenderPasses.reset();
@@ -102,17 +83,26 @@ void VulkanRenderDevice::Dispose()
 	Textures.reset();
 	Samplers.reset();
 	Commands.reset();
+
+	Device.reset();
 }
 
-void VulkanRenderDevice::SubmitAndWait(bool present, int presentWidth, int presentHeight)
+void VulkanPrintLog(const char* typestr, const std::string& msg)
 {
-	if (UsesBindless)
-		DescriptorSets->UpdateBindlessDescriptorSet();
+	LogMessage(std::string("[") + typestr + "] " + msg);
+}
 
-	Commands->SubmitCommands(present, presentWidth, presentHeight);
+void VulkanError(const char* text)
+{
+	throw std::runtime_error(text);
+}
 
-	Batch.Pipeline = nullptr;
-	Batch.DescriptorSet = nullptr;
+void VulkanRenderDevice::SubmitAndWait(bool present, int presentWidth, int presentHeight, bool presentFullscreen)
+{
+	DescriptorSets->UpdateBindlessSet();
+
+	Commands->SubmitCommands(present, presentWidth, presentHeight, presentFullscreen);
+
 	Batch.SceneIndexStart = 0;
 	SceneVertexPos = 0;
 	SceneIndexPos = 0;
@@ -123,13 +113,34 @@ void VulkanRenderDevice::Flush(bool AllowPrecache)
 	if (IsLocked)
 	{
 		DrawBatch(Commands->GetDrawCommands());
-		RenderPasses->EndScene(Commands->GetDrawCommands());
-		SubmitAndWait(false, 0, 0);
+		Commands->GetDrawCommands()->endRenderPass();
+		SubmitAndWait(false, 0, 0, false);
 
 		ClearTextureCache();
 
 		auto cmdbuffer = Commands->GetDrawCommands();
-		RenderPasses->BeginScene(cmdbuffer, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+		VkAccessFlags srcColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		VkAccessFlags dstColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		VkAccessFlags srcDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		VkAccessFlags dstDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		VkPipelineStageFlags dstStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+			.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+			.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+			.Execute(cmdbuffer, srcStages, dstStages);
+
+		RenderPassBegin()
+			.RenderPass(RenderPasses->Scene.RenderPassContinue.get())
+			.Framebuffer(Framebuffers->SceneFramebuffer.get())
+			.RenderArea(0, 0, Textures->Scene->Width, Textures->Scene->Height)
+			.AddClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+			.AddClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+			.AddClearDepthStencil(1.0f, 0)
+			.Execute(cmdbuffer);
 
 		VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
 		VkDeviceSize offsets[] = { 0 };
@@ -145,170 +156,53 @@ void VulkanRenderDevice::Flush(bool AllowPrecache)
 		PrecacheOnFlip = 1;
 }
 
-bool VulkanRenderDevice::Exec(std::string Cmd, OutputDevice& Ar)
-{
-	if (RenderDevice::Exec(Cmd, Ar))
-	{
-		return true;
-	}
-	else if (ParseCommand(&Cmd, "DGL"))
-	{
-		if (ParseCommand(&Cmd, "BUFFERTRIS"))
-		{
-			return true;
-		}
-		else if (ParseCommand(&Cmd, "BUILD"))
-		{
-			return true;
-		}
-		else if (ParseCommand(&Cmd, "AA"))
-		{
-			return true;
-		}
-		return true;
-	}
-	else if (ParseCommand(&Cmd, "GetRes"))
-	{
-		struct Resolution
-		{
-			int X;
-			int Y;
-
-			// For sorting highest resolution first
-			bool operator<(const Resolution& other) const { if (X != other.X) return X > other.X; else return Y > other.Y; }
-		};
-
-		std::set<Resolution> resolutions;
-
-#ifdef WIN32
-		// Always include what the monitor is currently using
-		HDC screenDC = GetDC(0);
-		int screenWidth = GetDeviceCaps(screenDC, HORZRES);
-		int screenHeight = GetDeviceCaps(screenDC, VERTRES);
-		resolutions.insert({ screenWidth, screenHeight });
-		ReleaseDC(0, screenDC);
-
-		// Get what else is available according to Windows
-		DEVMODE devmode = {};
-		devmode.dmSize = sizeof(DEVMODE);
-		int i = 0;
-		while (EnumDisplaySettingsEx(nullptr, i++, &devmode, 0) != 0)
-		{
-			if ((devmode.dmFields & (DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT)) == (DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT) && devmode.dmBitsPerPel >= 24)
-			{
-				resolutions.insert({ (int)devmode.dmPelsWidth, (int)devmode.dmPelsHeight });
-			}
-
-			devmode = {};
-			devmode.dmSize = sizeof(DEVMODE);
-		}
-
-		// Add a letterboxed 4:3 mode for widescreen monitors
-		resolutions.insert({ (screenHeight * 4 + 2) / 3, screenHeight });
-
-		// Include a few classics from the era
-		resolutions.insert({ 640, 480 });
-		resolutions.insert({ 800, 600 });
-		resolutions.insert({ 1024, 768 });
-		resolutions.insert({ 1600, 1200 });
-#else
-		resolutions.insert({ 640, 480 });
-		resolutions.insert({ 800, 600 });
-		resolutions.insert({ 1280, 720 });
-		resolutions.insert({ 1024, 768 });
-		resolutions.insert({ 1280, 768 });
-		resolutions.insert({ 1152, 864 });
-		resolutions.insert({ 1280, 900 });
-		resolutions.insert({ 1280, 1024 });
-		resolutions.insert({ 1400, 1024 });
-		resolutions.insert({ 1920, 1080 });
-		resolutions.insert({ 2560, 1440 });
-		resolutions.insert({ 2560, 1600 });
-		resolutions.insert({ 3840, 2160 });
-#endif
-
-		std::string Str;
-		for (const Resolution& resolution : resolutions)
-		{
-			Str += std::to_string(resolution.X) + "x" + std::to_string(resolution.Y);
-		}
-		Ar.Log(Str);
-		return true;
-	}
-	else if (ParseCommand(&Cmd, "VSTAT"))
-	{
-		if (ParseCommand(&Cmd, "Memory"))
-		{
-			StatMemory = !StatMemory;
-			return true;
-		}
-		else if (ParseCommand(&Cmd, "Resources"))
-		{
-			StatResources = !StatResources;
-			return true;
-		}
-		else if (ParseCommand(&Cmd, "Draw"))
-		{
-			StatDraw = !StatDraw;
-			return true;
-		}
-		return false;
-	}
-	else if (ParseCommand(&Cmd, "GetVkDevices"))
-	{
-		std::vector<VulkanCompatibleDevice> supportedDevices = VulkanDeviceBuilder()
-			.OptionalDescriptorIndexing()
-			.OptionalRayQuery()
-			.Surface(Device->Surface)
-			.FindDevices(Device->Instance);
-		for (size_t i = 0; i < supportedDevices.size(); i++)
-		{
-			Ar.Log("#" + std::to_string(i) + " - " + supportedDevices[i].Device->Properties.Properties.deviceName + "\r\n");
-		}
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
 void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, uint8_t* InHitData, int* InHitSize)
 {
+	HitData = InHitData;
+	HitSize = InHitSize;
+
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
-	int width = Viewport->GetNativePixelWidth();
-	int height = Viewport->GetNativePixelHeight();
+	pushconstants.hitIndex = 0;
+	ForceHitIndex = -1;
 
-	if (!Textures->Scene || Textures->Scene->width != width || Textures->Scene->height != height)
+	// If frame textures no longer match the window or user settings, recreate them along with the swap chain
+	if (!Textures->Scene || Textures->Scene->Width != Viewport->GetNativePixelWidth() || Textures->Scene->Height != Viewport->GetNativePixelHeight() ||Textures->Scene->Multisample != GetSettingsMultisample())
 	{
 		Framebuffers->DestroySceneFramebuffer();
 		Textures->Scene.reset();
-		Textures->Scene.reset(new SceneTextures(this, width, height, Multisample));
+		Textures->Scene.reset(new SceneTextures(this, Viewport->GetNativePixelWidth(), Viewport->GetNativePixelHeight(), GetSettingsMultisample()));
 		RenderPasses->CreateRenderPass();
 		RenderPasses->CreatePipelines();
 		Framebuffers->CreateSceneFramebuffer();
-
-		auto descriptors = DescriptorSets->GetPresentDescriptorSet();
-		WriteDescriptors()
-			.AddCombinedImageSampler(descriptors, 0, Textures->Scene->PPImageView.get(), Samplers->PPLinearClamp.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.AddCombinedImageSampler(descriptors, 1, Textures->DitherImageView.get(), Samplers->PPNearestRepeat.get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			.Execute(Device.get());
+		DescriptorSets->UpdateFrameDescriptors();
 	}
 
-	PipelineBarrier()
-		.AddImage(
-			Textures->Scene->ColorBuffer.get(),
-			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			VK_ACCESS_SHADER_READ_BIT,
-			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT)
-		.Execute(Commands->GetDrawCommands(), VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
 	auto cmdbuffer = Commands->GetDrawCommands();
-	RenderPasses->BeginScene(cmdbuffer, ScreenClear);
+
+	// Special thanks to Khronos and AMD for making this absolute hell to use.
+	VkAccessFlags srcColorAccess = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	VkAccessFlags dstColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	VkAccessFlags srcDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkAccessFlags dstDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkPipelineStageFlags dstStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+
+	PipelineBarrier()
+		.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+		.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+		.Execute(cmdbuffer, srcStages, dstStages);
+
+	RenderPassBegin()
+		.RenderPass(RenderPasses->Scene.RenderPass.get())
+		.Framebuffer(Framebuffers->SceneFramebuffer.get())
+		.RenderArea(0, 0, Textures->Scene->Width, Textures->Scene->Height)
+		.AddClearColor(ScreenClear.x, ScreenClear.y, ScreenClear.z, ScreenClear.w)
+		.AddClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+		.AddClearDepthStencil(1.0f, 0)
+		.Execute(cmdbuffer);
 
 	VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -318,72 +212,112 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	IsLocked = true;
 }
 
+void VulkanRenderDevice::FlushDrawBatchAndWait()
+{
+	DrawBatch(Commands->GetDrawCommands());
+	Commands->GetDrawCommands()->endRenderPass();
+	SubmitAndWait(false, 0, 0, false);
+
+	auto drawcommands = Commands->GetDrawCommands();
+
+	VkAccessFlags srcColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	VkAccessFlags dstColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	VkAccessFlags srcDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkAccessFlags dstDepthAccess = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkPipelineStageFlags dstStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+
+	PipelineBarrier()
+		.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+		.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+		.Execute(drawcommands, srcStages, dstStages);
+
+	RenderPassBegin()
+		.RenderPass(RenderPasses->Scene.RenderPassContinue.get())
+		.Framebuffer(Framebuffers->SceneFramebuffer.get())
+		.RenderArea(0, 0, Textures->Scene->Width, Textures->Scene->Height)
+		.Execute(drawcommands);
+
+	VkBuffer vertexBuffers[] = { Buffers->SceneVertexBuffer->buffer };
+	VkDeviceSize offsets[] = { 0 };
+	drawcommands->bindVertexBuffers(0, 1, vertexBuffers, offsets);
+	drawcommands->bindIndexBuffer(Buffers->SceneIndexBuffer->buffer, 0, VK_INDEX_TYPE_UINT32);
+	drawcommands->setViewport(0, 1, &viewportdesc);
+}
+
 void VulkanRenderDevice::Unlock(bool Blit)
 {
-#if 0
-	if (Blit && (StatMemory || StatResources || StatDraw))
-	{
-		UCanvas* canvas = Viewport->Canvas;
-		canvas->CurX = 16;
-		canvas->CurY = 94;
-		canvas->WrappedPrintf(canvas->SmallFont, 0, "Vulkan Statistics");
-
-		int y = 110;
-
-		if (StatMemory)
-		{
-			VmaStats stats = {};
-			vmaCalculateStats(Device->allocator, &stats);
-			canvas->CurX = 16;
-			canvas->CurY = y;
-			canvas->WrappedPrintf(canvas->SmallFont, 0, "Allocated objects: %d, used bytes: %d MB\r\n", (int)stats.total.allocationCount, (int)stats.total.usedBytes / (1024 * 1024));
-			y += 8;
-		}
-
-		if (StatResources)
-		{
-			VmaStats stats = {};
-			vmaCalculateStats(Device->allocator, &stats);
-			canvas->CurX = 16;
-			canvas->CurY = y;
-			canvas->WrappedPrintf(canvas->SmallFont, 0, "Textures in cache: %d\r\n", Textures->GetTexturesInCache());
-			y += 8;
-		}
-
-		if (StatDraw)
-		{
-			VmaStats stats = {};
-			vmaCalculateStats(Device->allocator, &stats);
-			canvas->CurX = 16;
-			canvas->CurY = y;
-			canvas->WrappedPrintf(canvas->SmallFont, 0, "Draw calls: %d, Complex surfaces: %d, Gouraud polygons: %d, Tiles: %d; Uploads: %d, Rect Uploads: %d\r\n", Stats.DrawCalls, Stats.ComplexSurfaces, Stats.GouraudPolygons, Stats.Tiles, Stats.Uploads, Stats.RectUploads);
-			y += 8;
-		}
-	}
-#endif
-
-	if (Blit)
-	{
-		Stats.DrawCalls = 0;
-		Stats.ComplexSurfaces = 0;
-		Stats.GouraudPolygons = 0;
-		Stats.Tiles = 0;
-		Stats.Uploads = 0;
-		Stats.RectUploads = 0;
-	}
-
 	DrawBatch(Commands->GetDrawCommands());
-	RenderPasses->EndScene(Commands->GetDrawCommands());
+	Commands->GetDrawCommands()->endRenderPass();
 
 	BlitSceneToPostprocess();
-	SubmitAndWait(Blit, Viewport->GetNativePixelWidth(), Viewport->GetNativePixelHeight());
+	if (Bloom)
+	{
+		RunBloomPass();
+	}
+
+	int windowWidth = Viewport->GetNativePixelWidth();
+	int windowHeight = Viewport->GetNativePixelHeight();
+
+	SubmitAndWait(Blit ? true : false, windowWidth, windowHeight, Viewport->IsFullscreen());
+
+	Batch.Pipeline = nullptr;
+
+	if (Samplers->LODBias != LODBias)
+	{
+		DescriptorSets->ClearCache();
+		Textures->ClearAllBindlessIndexes();
+		Samplers->CreateSceneSamplers();
+	}
+
+	if (HitData)
+	{
+		// Look for the last hit
+		int width = HitWidth;
+		int height = HitHeight;
+		int hit = 0;
+		const int32_t* data = (const int32_t*)Textures->Scene->StagingHitBuffer->Map(0, width * height * sizeof(int32_t));
+		if (data)
+		{
+			for (int y = 0; y < height; y++)
+			{
+				const int* line = data + y * width;
+				for (int x = 0; x < width; x++)
+				{
+					hit = std::max(hit, line[x]);
+				}
+			}
+			Textures->Scene->StagingHitBuffer->Unmap();
+		}
+		hit--;
+
+		hit = std::max(hit, ForceHitIndex);
+
+		if (hit >= 0 && hit < (int)HitQueries.size())
+		{
+			const HitQuery& query = HitQueries[hit];
+			memcpy(HitData, HitBuffer.data() + query.Start, query.Count);
+			*HitSize = query.Count;
+		}
+		else
+		{
+			*HitSize = 0;
+		}
+	}
+
+	HitQueryStack.clear();
+	HitQueries.clear();
+	HitBuffer.clear();
+	HitData = nullptr;
+	HitSize = nullptr;
 
 	IsLocked = false;
 }
 
 bool VulkanRenderDevice::SupportsTextureFormat(TextureFormat Format)
 {
-	return Uploads->SupportsTextureFormat(Format);
+	return Uploads->SupportsTextureFormat(Format) ? TRUE : FALSE;
 }
 
 void VulkanRenderDevice::UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL)
@@ -393,15 +327,21 @@ void VulkanRenderDevice::UpdateTextureRect(FTextureInfo& Info, int U, int V, int
 
 void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 {
-	uint32_t icount = SceneIndexPos - Batch.SceneIndexStart;
+	size_t icount = SceneIndexPos - Batch.SceneIndexStart;
 	if (icount > 0)
 	{
-		auto layout = Batch.Bindless ? RenderPasses->SceneBindlessPipelineLayout.get() : RenderPasses->ScenePipelineLayout.get();
-		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, Batch.Pipeline);
-		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, Batch.DescriptorSet);
+		if (viewportdesc.minDepth != Batch.Pipeline->MinDepth || viewportdesc.maxDepth != Batch.Pipeline->MaxDepth)
+		{
+			viewportdesc.minDepth = Batch.Pipeline->MinDepth;
+			viewportdesc.maxDepth = Batch.Pipeline->MaxDepth;
+			cmdbuffer->setViewport(0, 1, &viewportdesc);
+		}
+
+		auto layout = RenderPasses->Scene.BindlessPipelineLayout.get();
+		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, Batch.Pipeline->Pipeline.get());
+		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, DescriptorSets->GetBindlessSet());
 		cmdbuffer->pushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
-		cmdbuffer->setBlendConstants(Batch.BlendConstants);
-		cmdbuffer->drawIndexed(icount, 1, Batch.SceneIndexStart, 0, 0);
+		cmdbuffer->drawIndexed((uint32_t)icount, 1, (uint32_t)Batch.SceneIndexStart, 0, 0);
 		Batch.SceneIndexStart = SceneIndexPos;
 		Stats.DrawCalls++;
 	}
@@ -409,11 +349,16 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 
 void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
 {
-	CachedTexture* tex = Textures->GetTexture(Surface.Texture, !!(Surface.PolyFlags & PF_Masked));
+	if (Facet.VertexCount < 3)
+		return;
+
+	uint32_t PolyFlags = ApplyPrecedenceRules(Surface.PolyFlags);
+
+	CachedTexture* tex = Textures->GetTexture(Surface.Texture, !!(PolyFlags & PF_Masked));
 	CachedTexture* lightmap = Textures->GetTexture(Surface.LightMap, false);
 	CachedTexture* macrotex = Textures->GetTexture(Surface.MacroTexture, false);
 	CachedTexture* detailtex = Textures->GetTexture(Surface.DetailTexture, false);
-	CachedTexture* fogmap = Textures->GetTexture(Surface.FogMap, false);
+	CachedTexture* fogmap = (Surface.FogMap && Surface.FogMap->NumMips > 0 && !Surface.FogMap->Mips[0].Data.empty()) ? Textures->GetTexture(Surface.FogMap, false) : nullptr;
 
 	if (Surface.DetailTexture && Surface.FogMap) detailtex = nullptr;
 
@@ -432,8 +377,8 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	float MacroVPan = macrotex ? VDot + Surface.MacroTexture->Pan.y : 0.0f;
 	float MacroUMult = macrotex ? GetUMult(*Surface.MacroTexture) : 0.0f;
 	float MacroVMult = macrotex ? GetVMult(*Surface.MacroTexture) : 0.0f;
-	float DetailUPan = detailtex ? UDot + Surface.DetailTexture->Pan.x : 0.0f;
-	float DetailVPan = detailtex ? VDot + Surface.DetailTexture->Pan.y : 0.0f;
+	float DetailUPan = UPan;
+	float DetailVPan = VPan;
 	float DetailUMult = detailtex ? GetUMult(*Surface.DetailTexture) : 0.0f;
 	float DetailVMult = detailtex ? GetVMult(*Surface.DetailTexture) : 0.0f;
 
@@ -442,6 +387,8 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	if (macrotex) flags |= 2;
 	if (detailtex && !fogmap) flags |= 4;
 	if (fogmap) flags |= 8;
+
+	if (LightMode == 1) flags |= 64;
 
 	if (fogmap) // if Surface.FogMap exists, use instead of detail texture
 	{
@@ -452,226 +399,165 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 		DetailVMult = GetVMult(*Surface.FogMap);
 	}
 
-	SetPipeline(RenderPasses->getPipeline(Surface.PolyFlags, UsesBindless));
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
 
-	ivec4 textureBinds;
-	if (UsesBindless)
-	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(Surface.PolyFlags, tex);
-		textureBinds.y = DescriptorSets->GetTextureArrayIndex(0, macrotex);
-		textureBinds.z = DescriptorSets->GetTextureArrayIndex(0, detailtex);
-		textureBinds.w = DescriptorSets->GetTextureArrayIndex(0, lightmap);
-
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
-	}
-	else
-	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(Surface.PolyFlags, tex, lightmap, macrotex, detailtex), false);
-	}
-
-	uint32_t vpos = SceneVertexPos;
-	uint32_t ipos = SceneIndexPos;
-
-	SceneVertex* vptr = Buffers->SceneVertices + vpos;
-	uint32_t* iptr = Buffers->SceneIndexes + ipos;
-
-	uint32_t istart = ipos;
-	uint32_t icount = 0;
+	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex, lightmap, macrotex, detailtex);
+	vec4 color(1.0f);
 
 	auto pts = Facet.Vertices;
 	uint32_t vcount = Facet.VertexCount;
 
-	for (uint32_t i = 0; i < vcount; i++)
+	uint32_t icount = (vcount - 2) * 3;
+	auto alloc = ReserveVertices(vcount, icount);
+	if (alloc.vptr)
 	{
-		vec3 point = pts[i];
-		float u = dot(Facet.MapCoords.XAxis, point);
-		float v = dot(Facet.MapCoords.YAxis, point);
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
 
-		vptr->Flags = flags;
-		vptr->Position.x = point.x;
-		vptr->Position.y = point.y;
-		vptr->Position.z = point.z;
-		vptr->TexCoord.s = (u - UPan) * UMult;
-		vptr->TexCoord.t = (v - VPan) * VMult;
-		vptr->TexCoord2.s = (u - LMUPan) * LMUMult;
-		vptr->TexCoord2.t = (v - LMVPan) * LMVMult;
-		vptr->TexCoord3.s = (u - MacroUPan) * MacroUMult;
-		vptr->TexCoord3.t = (v - MacroVPan) * MacroVMult;
-		vptr->TexCoord4.s = (u - DetailUPan) * DetailUMult;
-		vptr->TexCoord4.t = (v - DetailVPan) * DetailVMult;
-		vptr->Color.r = 1.0f;
-		vptr->Color.g = 1.0f;
-		vptr->Color.b = 1.0f;
-		vptr->Color.a = 1.0f;
-		vptr->TextureBinds = textureBinds;
-		vptr++;
+		for (uint32_t i = 0; i < vcount; i++)
+		{
+			vec3 point = pts[i];
+			float u = dot(Facet.MapCoords.XAxis, point);
+			float v = dot(Facet.MapCoords.YAxis, point);
+
+			vptr->Flags = flags;
+			vptr->Position.x = point.x;
+			vptr->Position.y = point.y;
+			vptr->Position.z = point.z;
+			vptr->TexCoord.s = (u - UPan) * UMult;
+			vptr->TexCoord.t = (v - VPan) * VMult;
+			vptr->TexCoord2.s = (u - LMUPan) * LMUMult;
+			vptr->TexCoord2.t = (v - LMVPan) * LMVMult;
+			vptr->TexCoord3.s = (u - MacroUPan) * MacroUMult;
+			vptr->TexCoord3.t = (v - MacroVPan) * MacroVMult;
+			vptr->TexCoord4.s = (u - DetailUPan) * DetailUMult;
+			vptr->TexCoord4.t = (v - DetailVPan) * DetailVMult;
+			vptr->Color = color;
+			vptr->TextureBinds = textureBinds;
+			vptr++;
+		}
+
+		for (uint32_t i = vpos + 2; i < vpos + vcount; i++)
+		{
+			*(iptr++) = vpos;
+			*(iptr++) = i - 1;
+			*(iptr++) = i;
+		}
+
+		UseVertices(vcount, icount);
 	}
-
-	for (uint32_t i = vpos + 2; i < vpos + vcount; i++)
-	{
-		*(iptr++) = vpos;
-		*(iptr++) = i - 1;
-		*(iptr++) = i;
-	}
-
-	vpos += vcount;
-	icount += (vcount - 2) * 3;
 
 	Stats.ComplexSurfaces++;
-
-	SceneVertexPos = vpos;
-	SceneIndexPos = ipos + icount;
 }
 
 void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (NumPts < 3) return; // This can apparently happen!!
 
-	SetPipeline(RenderPasses->getPipeline(PolyFlags, UsesBindless));
+	PolyFlags = ApplyPrecedenceRules(PolyFlags);
+
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
-	ivec4 textureBinds;
-	if (UsesBindless)
-	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PolyFlags, tex);
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
-	}
-	else
-	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PolyFlags, tex), false);
-	}
+	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex);
 
 	float UMult = GetUMult(Info);
 	float VMult = GetVMult(Info);
 	int flags = (PolyFlags & (PF_RenderFog | PF_Translucent | PF_Modulated)) == PF_RenderFog ? 16 : 0;
 
-	if (PolyFlags & PF_Modulated)
+	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0 && LightMode == 2) flags |= 32;
+
+	auto alloc = ReserveVertices(NumPts, (NumPts - 2) * 3);
+	if (alloc.vptr)
 	{
-		SceneVertex* vertex = &Buffers->SceneVertices[SceneVertexPos];
-		for (int i = 0; i < NumPts; i++)
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
+
+		if (PolyFlags & PF_Modulated)
 		{
-			const GouraudVertex* P = Pts + i;
-			vertex->Flags = flags;
-			vertex->Position.x = P->Point.x;
-			vertex->Position.y = P->Point.y;
-			vertex->Position.z = P->Point.z;
-			vertex->TexCoord.s = P->UV.s * UMult;
-			vertex->TexCoord.t = P->UV.t * VMult;
-			vertex->TexCoord2.s = P->Fog.x;
-			vertex->TexCoord2.t = P->Fog.y;
-			vertex->TexCoord3.s = P->Fog.z;
-			vertex->TexCoord3.t = P->Fog.w;
-			vertex->TexCoord4.s = 0.0f;
-			vertex->TexCoord4.t = 0.0f;
-			vertex->Color.r = 1.0f;
-			vertex->Color.g = 1.0f;
-			vertex->Color.b = 1.0f;
-			vertex->Color.a = 1.0f;
-			vertex->TextureBinds = textureBinds;
-			vertex++;
+			SceneVertex* vertex = vptr;
+			for (int i = 0; i < NumPts; i++)
+			{
+				const GouraudVertex* P = &Pts[i];
+				vertex->Flags = flags;
+				vertex->Position.x = P->Point.x;
+				vertex->Position.y = P->Point.y;
+				vertex->Position.z = P->Point.z;
+				vertex->TexCoord.s = P->UV.x * UMult;
+				vertex->TexCoord.t = P->UV.y * VMult;
+				vertex->TexCoord2.s = P->Fog.x;
+				vertex->TexCoord2.t = P->Fog.y;
+				vertex->TexCoord3.s = P->Fog.z;
+				vertex->TexCoord3.t = P->Fog.w;
+				vertex->TexCoord4.s = 0.0f;
+				vertex->TexCoord4.t = 0.0f;
+				vertex->Color.r = 1.0f;
+				vertex->Color.g = 1.0f;
+				vertex->Color.b = 1.0f;
+				vertex->Color.a = 1.0f;
+				vertex->TextureBinds = textureBinds;
+				vertex++;
+			}
 		}
-	}
-	else
-	{
-		SceneVertex* vertex = &Buffers->SceneVertices[SceneVertexPos];
-		for (int i = 0; i < NumPts; i++)
+		else
 		{
-			const GouraudVertex* P = Pts + i;
-			vertex->Flags = flags;
-			vertex->Position.x = P->Point.x;
-			vertex->Position.y = P->Point.y;
-			vertex->Position.z = P->Point.z;
-			vertex->TexCoord.s = P->UV.s * UMult;
-			vertex->TexCoord.t = P->UV.t * VMult;
-			vertex->TexCoord2.s = P->Fog.x;
-			vertex->TexCoord2.t = P->Fog.y;
-			vertex->TexCoord3.s = P->Fog.z;
-			vertex->TexCoord3.t = P->Fog.w;
-			vertex->TexCoord4.s = 0.0f;
-			vertex->TexCoord4.t = 0.0f;
-			vertex->Color.r = P->Light.x;
-			vertex->Color.g = P->Light.y;
-			vertex->Color.b = P->Light.z;
-			vertex->Color.a = 1.0f;
-			vertex->TextureBinds = textureBinds;
-			vertex++;
+			SceneVertex* vertex = vptr;
+			for (int i = 0; i < NumPts; i++)
+			{
+				const GouraudVertex* P = &Pts[i];
+				vertex->Flags = flags;
+				vertex->Position.x = P->Point.x;
+				vertex->Position.y = P->Point.y;
+				vertex->Position.z = P->Point.z;
+				vertex->TexCoord.s = P->UV.x * UMult;
+				vertex->TexCoord.t = P->UV.y * VMult;
+				vertex->TexCoord2.s = P->Fog.x;
+				vertex->TexCoord2.t = P->Fog.y;
+				vertex->TexCoord3.s = P->Fog.z;
+				vertex->TexCoord3.t = P->Fog.w;
+				vertex->TexCoord4.s = 0.0f;
+				vertex->TexCoord4.t = 0.0f;
+				vertex->Color.r = P->Light.x;
+				vertex->Color.g = P->Light.y;
+				vertex->Color.b = P->Light.z;
+				vertex->Color.a = 1.0f;
+				vertex->TextureBinds = textureBinds;
+				vertex++;
+			}
 		}
+
+		uint32_t vstart = vpos;
+		uint32_t vcount = NumPts;
+		for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+		{
+			*(iptr++) = vstart;
+			*(iptr++) = i - 1;
+			*(iptr++) = i;
+		}
+
+		UseVertices(NumPts, (NumPts - 2) * 3);
 	}
-
-	uint32_t vstart = SceneVertexPos;
-	uint32_t vcount = NumPts;
-	uint32_t istart = SceneIndexPos;
-	uint32_t icount = (vcount - 2) * 3;
-
-	uint32_t* iptr = Buffers->SceneIndexes + istart;
-	for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
-	{
-		*(iptr++) = vstart;
-		*(iptr++) = i - 1;
-		*(iptr++) = i;
-	}
-
-	SceneVertexPos += vcount;
-	SceneIndexPos += icount;
 
 	Stats.GouraudPolygons++;
 }
 
 void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
-	if ((PolyFlags & (PF_Modulated)) == PF_Modulated && Info.Format == TextureFormat::P8)
-		PolyFlags = PF_Modulated;
-
-	if (PolyFlags & PF_SubpixelFont)
-	{
-		DrawBatch(Commands->GetDrawCommands());
-		Batch.BlendConstants[0] = Color.x;
-		Batch.BlendConstants[1] = Color.y;
-		Batch.BlendConstants[2] = Color.z;
-		Batch.BlendConstants[3] = Color.w;
-		Color = vec4(1.0f);
-	}
+	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
-
-	SetPipeline(RenderPasses->getPipeline(PolyFlags, UsesBindless));
-
-	ivec4 textureBinds;
-	if (UsesBindless)
-	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PolyFlags, tex, true);
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
-	}
-	else
-	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PolyFlags, tex, nullptr, nullptr, nullptr, true), false);
-	}
-
 	float UMult = tex ? GetUMult(Info) : 0.0f;
 	float VMult = tex ? GetVMult(Info) : 0.0f;
+	float u0 = U * UMult;
+	float v0 = V * VMult;
+	float u1 = (U + UL) * UMult;
+	float v1 = (V + VL) * VMult;
+	bool clamp = (u0 >= 0.0f && u1 <= 1.00001f && v0 >= 0.0f && v1 <= 1.00001f);
 
-	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
+	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex, clamp);
 
 	float r, g, b, a;
 	if (PolyFlags & PF_Modulated)
@@ -688,150 +574,149 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 	}
 	a = 1.0f;
 
-	v[0] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y - Frame->FY2),      Z), vec2(U * UMult,        V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
-	v[1] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y - Frame->FY2),      Z), vec2((U + UL) * UMult, V * VMult),        vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
-	v[2] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2((U + UL) * UMult, (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
-	v[3] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(U * UMult,        (V + VL) * VMult), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
-
-	uint32_t vstart = SceneVertexPos;
-	uint32_t vcount = 4;
-	uint32_t istart = SceneIndexPos;
-	uint32_t icount = (vcount - 2) * 3;
-
-	uint32_t* iptr = Buffers->SceneIndexes + istart;
-	for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+	if (Textures->Scene->Multisample > 1)
 	{
-		*(iptr++) = vstart;
-		*(iptr++) = i - 1;
-		*(iptr++) = i;
+		XL = std::floor(X + XL + 0.5f);
+		YL = std::floor(Y + YL + 0.5f);
+		X = std::floor(X + 0.5f);
+		Y = std::floor(Y + 0.5f);
+		XL = XL - X;
+		YL = YL - Y;
 	}
 
-	SceneVertexPos += vcount;
-	SceneIndexPos += icount;
+	auto alloc = ReserveVertices(4, 6);
+	if (alloc.vptr)
+	{
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
+
+		vptr[0] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y - Frame->FY2),      Z), vec2(u0, v0), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
+		vptr[1] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y - Frame->FY2),      Z), vec2(u1, v0), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
+		vptr[2] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(u1, v1), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
+		vptr[3] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(u0, v1), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
+
+		iptr[0] = vpos;
+		iptr[1] = vpos + 1;
+		iptr[2] = vpos + 2;
+		iptr[3] = vpos;
+		iptr[4] = vpos + 2;
+		iptr[5] = vpos + 3;
+
+		UseVertices(4, 6);
+	}
 
 	Stats.Tiles++;
 }
 
+vec4 VulkanRenderDevice::ApplyInverseGamma(vec4 color)
+{
+	if (IsOrtho)
+		return color;
+	float brightness = clamp(Brightness * 2.0f, 0.05f, 2.99f);
+	float gammaRed = std::max(brightness + GammaOffset + GammaOffsetRed, 0.001f);
+	float gammaGreen = std::max(brightness + GammaOffset + GammaOffsetGreen, 0.001f);
+	float gammaBlue = std::max(brightness + GammaOffset + GammaOffsetBlue, 0.001f);
+	return vec4(pow(color.r, gammaRed), pow(color.g, gammaGreen), pow(color.b, gammaBlue), color.a);
+}
+
 void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
-	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
-
-	ivec4 textureBinds;
-	if (UsesBindless)
+	if (IsOrtho)
 	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
+		P1.x = (P1.x) / Frame->Zoom + Frame->FX2;
+		P1.y = (P1.y) / Frame->Zoom + Frame->FY2;
+		P1.z = 1;
+		P2.x = (P2.x) / Frame->Zoom + Frame->FX2;
+		P2.y = (P2.y) / Frame->Zoom + Frame->FY2;
+		P2.z = 1;
 
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+		if (std::abs(P2.x - P1.x) + std::abs(P2.y - P1.y) >= 0.2f)
+		{
+			Draw2DLine(Frame, Color, LineFlags, P1, P2);
+		}
+		else if (IsOrthoLowDetail)
+		{
+			Draw2DPoint(Frame, Color, LINE_None, P1.x - 1, P1.y - 1, P1.x + 1, P1.y + 1, P1.z);
+		}
 	}
 	else
 	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
+		bool occlude = !!(LineFlags & LINE_DepthCued);
+		SetPipeline(RenderPasses->GetLinePipeline(occlude));
+		ivec4 textureBinds = GetTextureIndexes(PF_Highlighted, nullptr);
+		vec4 color = ApplyInverseGamma(vec4(Color.x, Color.y, Color.z, 1.0f));
 
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
+		auto alloc = ReserveVertices(2, 2);
+		if (alloc.vptr)
+		{
+			SceneVertex* vptr = alloc.vptr;
+			uint32_t* iptr = alloc.iptr;
+			uint32_t vpos = alloc.vpos;
+
+			vptr[0] = { 0, vec3(P1.x, P1.y, P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+			vptr[1] = { 0, vec3(P2.x, P2.y, P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+
+			iptr[0] = vpos;
+			iptr[1] = vpos + 1;
+
+			UseVertices(2, 2);
+		}
 	}
-
-	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
-	uint32_t* iptr = Buffers->SceneIndexes + SceneIndexPos;
-
-	v[0] = { 0, vec3(P1.x, P1.y, P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-	v[1] = { 0, vec3(P2.x, P2.y, P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-
-	iptr[0] = SceneVertexPos;
-	iptr[1] = SceneVertexPos + 1;
-
-	SceneVertexPos += 2;
-	SceneIndexPos += 2;
 }
 
 void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
-	SetPipeline(RenderPasses->getLinePipeline(UsesBindless));
+	bool occlude = !!(LineFlags & LINE_DepthCued);
+	SetPipeline(RenderPasses->GetLinePipeline(occlude));
+	ivec4 textureBinds = GetTextureIndexes(PF_Highlighted, nullptr);
+	vec4 color = ApplyInverseGamma(vec4(Color.x, Color.y, Color.z, 1.0f));
 
-	ivec4 textureBinds;
-	if (UsesBindless)
+	auto alloc = ReserveVertices(2, 2);
+	if (alloc.vptr)
 	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
 
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+		vptr[0] = { 0, vec3(RFX2 * P1.z * (P1.x - Frame->FX2), RFY2 * P1.z * (P1.y - Frame->FY2), P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+		vptr[1] = { 0, vec3(RFX2 * P2.z * (P2.x - Frame->FX2), RFY2 * P2.z * (P2.y - Frame->FY2), P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+
+		iptr[0] = vpos;
+		iptr[1] = vpos + 1;
+
+		UseVertices(2, 2);
 	}
-	else
-	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
-	}
-
-	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
-	uint32_t* iptr = Buffers->SceneIndexes + SceneIndexPos;
-
-	v[0] = { 0, vec3(RFX2 * P1.z * (P1.x - Frame->FX2), RFY2 * P1.z * (P1.y - Frame->FY2), P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-	v[1] = { 0, vec3(RFX2 * P2.z * (P2.x - Frame->FX2), RFY2 * P2.z * (P2.y - Frame->FY2), P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-
-	iptr[0] = SceneVertexPos;
-	iptr[1] = SceneVertexPos + 1;
-
-	SceneVertexPos += 2;
-	SceneIndexPos += 2;
 }
 
 void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
-	SetPipeline(RenderPasses->getPointPipeline(UsesBindless));
+	bool occlude = !!(LineFlags & LINE_DepthCued);
+	SetPipeline(RenderPasses->GetPointPipeline(occlude));
+	ivec4 textureBinds = GetTextureIndexes(PF_Highlighted, nullptr);
+	vec4 color = ApplyInverseGamma(vec4(Color.x, Color.y, Color.z, 1.0f));
 
-	ivec4 textureBinds;
-	if (UsesBindless)
+	auto alloc = ReserveVertices(4, 6);
+	if (alloc.vptr)
 	{
-		textureBinds.x = DescriptorSets->GetTextureArrayIndex(PF_Highlighted, nullptr, true);
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
 
-		SetDescriptorSet(DescriptorSets->GetBindlessDescriptorSet(), true);
+		vptr[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+		vptr[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+		vptr[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+		vptr[3] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
+
+		iptr[0] = vpos;
+		iptr[1] = vpos + 1;
+		iptr[2] = vpos + 2;
+		iptr[3] = vpos;
+		iptr[4] = vpos + 2;
+		iptr[5] = vpos + 3;
+
+		UseVertices(4, 6);
 	}
-	else
-	{
-		textureBinds.x = 0;
-		textureBinds.y = 0;
-		textureBinds.z = 0;
-		textureBinds.w = 0;
-
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(PF_Highlighted, nullptr, nullptr, nullptr, nullptr, true), false);
-	}
-
-	SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
-
-	v[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2), RFY2 * Z * (Y1 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-	v[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2), RFY2 * Z * (Y1 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-	v[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2), RFY2 * Z * (Y2 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-	v[3] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2), RFY2 * Z * (Y2 - Frame->FY2), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec4(Color.x, Color.y, Color.z, 1.0f), textureBinds };
-
-	uint32_t vstart = SceneVertexPos;
-	uint32_t vcount = 4;
-	uint32_t istart = SceneIndexPos;
-	uint32_t icount = (vcount - 2) * 3;
-
-	uint32_t* iptr = Buffers->SceneIndexes + istart;
-	for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
-	{
-		*(iptr++) = vstart;
-		*(iptr++) = i - 1;
-		*(iptr++) = i;
-	}
-
-	SceneVertexPos += vcount;
-	SceneIndexPos += icount;
 }
 
 void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
@@ -843,13 +728,114 @@ void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
 	attachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 	attachment.clearValue.depthStencil.depth = 1.0f;
 	rect.layerCount = 1;
-	rect.rect.extent.width = Textures->Scene->width;
-	rect.rect.extent.height = Textures->Scene->height;
+	rect.rect.extent.width = Textures->Scene->Width;
+	rect.rect.extent.height = Textures->Scene->Height;
 	Commands->GetDrawCommands()->clearAttachments(1, &attachment, 1, &rect);
+}
+
+void VulkanRenderDevice::PushHit(const uint8_t* Data, int Count)
+{
+	if (Count <= 0) return;
+	HitQueryStack.insert(HitQueryStack.end(), Data, Data + Count);
+
+	SetHitLocation();
+}
+
+void VulkanRenderDevice::PopHit(int Count, bool bForce)
+{
+	if (bForce) // Force hit what we are popping
+		ForceHitIndex = (int)HitQueries.size() - 1;
+
+	HitQueryStack.resize(HitQueryStack.size() - Count);
+
+	SetHitLocation();
+}
+
+void VulkanRenderDevice::SetHitLocation()
+{
+	DrawBatch(Commands->GetDrawCommands());
+
+	if (!HitQueryStack.empty())
+	{
+		int index = (int)HitQueries.size();
+
+		HitQuery query;
+		query.Start = (int)HitBuffer.size();
+		query.Count = (int)HitQueryStack.size();
+		HitQueries.push_back(query);
+
+		HitBuffer.insert(HitBuffer.end(), HitQueryStack.begin(), HitQueryStack.end());
+
+		pushconstants.hitIndex = index + 1;
+	}
+	else
+	{
+		pushconstants.hitIndex = 0;
+	}
 }
 
 void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 {
+	auto cmdbuffer = Commands->GetDrawCommands();
+
+	DrawBatch(cmdbuffer);
+
+	if (GammaCorrectScreenshots)
+	{
+		PresentPushConstants pushconstants = GetPresentPushConstants();
+
+		bool ActiveHdr = false; // (Commands->SwapChain->Format().colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT) ? 1 : 0;
+
+		// Select present shader based on what the user is actually using
+		int presentShader = 0;
+		if (ActiveHdr) presentShader |= 1;
+		if (GammaMode == 1) presentShader |= 2;
+		if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (clamp(GrayFormula, 0, 2) + 1) << 2;
+
+		VkViewport viewport = {};
+		viewport.width = (float)Textures->Scene->Width;
+		viewport.height = (float)Textures->Scene->Height;
+		viewport.maxDepth = 1.0f;
+
+		VkRect2D scissor = {};
+		scissor.extent.width = Textures->Scene->Width;
+		scissor.extent.height = Textures->Scene->Height;
+
+		auto cmdbuffer = Commands->GetDrawCommands();
+
+		VkAccessFlags srcColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		VkAccessFlags dstColorAccess = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		VkPipelineStageFlags dstStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->PPImage[1].get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
+			.Execute(cmdbuffer, srcStages, dstStages);
+
+		RenderPassBegin()
+			.RenderPass(RenderPasses->Postprocess.RenderPass.get())
+			.Framebuffer(Framebuffers->PPImageFB[1].get())
+			.RenderArea(0, 0, Textures->Scene->Width, Textures->Scene->Height)
+			.AddClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+			.Execute(cmdbuffer);
+
+		cmdbuffer->setViewport(0, 1, &viewport);
+		cmdbuffer->setScissor(0, 1, &scissor);
+		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->Present.ScreenshotPipeline[presentShader].get());
+		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->Present.PipelineLayout.get(), 0, DescriptorSets->GetPresentSet());
+		cmdbuffer->pushConstants(RenderPasses->Present.PipelineLayout.get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PresentPushConstants), &pushconstants);
+		cmdbuffer->draw(6, 1, 0, 0);
+
+		cmdbuffer->endRenderPass();
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->PPImage[1].get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+	}
+
+	// Convert from rgba16f to bgra8 using the GPU:
+	auto srcimage = Textures->Scene->PPImage[GammaCorrectScreenshots ? 1 : 0].get();
+
 	int w = Viewport->GetNativePixelWidth();
 	int h = Viewport->GetNativePixelHeight();
 	void* data = Pixels;
@@ -860,12 +846,6 @@ void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 		.Size(w, h)
 		.DebugName("ReadPixelsDstImage")
 		.Create(Device.get());
-
-	// Convert from rgba16f to bgra8 using the GPU:
-	auto srcimage = Textures->Scene->PPImage.get();
-	auto cmdbuffer = Commands->GetDrawCommands();
-
-	DrawBatch(cmdbuffer);
 
 	PipelineBarrier()
 		.AddImage(srcimage, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_READ_BIT)
@@ -912,7 +892,7 @@ void VulkanRenderDevice::ReadPixels(FColor* Pixels)
 	cmdbuffer->copyImageToBuffer(dstimage->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, staging->buffer, 1, &region);
 
 	// Submit command buffers and wait for device to finish the work
-	SubmitAndWait(false, 0, 0);
+	SubmitAndWait(false, 0, 0, false);
 
 	uint8_t* pixels = (uint8_t*)staging->Map(0, w * h * 4);
 	memcpy(data, pixels, w * h * 4);
@@ -929,33 +909,33 @@ void VulkanRenderDevice::EndFlash()
 
 		DrawBatch(Commands->GetDrawCommands());
 		pushconstants.objectToProjection = mat4::identity();
+		pushconstants.nearClip = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-		SetPipeline(RenderPasses->getEndFlashPipeline());
-		SetDescriptorSet(DescriptorSets->GetTextureDescriptorSet(0, nullptr), false);
+		SetPipeline(RenderPasses->GetEndFlashPipeline());
 
-		SceneVertex* v = &Buffers->SceneVertices[SceneVertexPos];
-
-		v[0] = { 0, vec3(-1.0f, -1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
-		v[1] = { 0, vec3( 1.0f, -1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
-		v[2] = { 0, vec3( 1.0f,  1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
-		v[3] = { 0, vec3(-1.0f,  1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
-
-		uint32_t vstart = SceneVertexPos;
-		uint32_t vcount = 4;
-		uint32_t istart = SceneIndexPos;
-		uint32_t icount = (vcount - 2) * 3;
-
-		uint32_t* iptr = Buffers->SceneIndexes + istart;
-		for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+		auto alloc = ReserveVertices(4, 6);
+		if (alloc.vptr)
 		{
-			*(iptr++) = vstart;
-			*(iptr++) = i - 1;
-			*(iptr++) = i;
+			SceneVertex* vptr = alloc.vptr;
+			uint32_t* iptr = alloc.iptr;
+			uint32_t vpos = alloc.vpos;
+
+			vptr[0] = { 0, vec3(-1.0f, -1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
+			vptr[1] = { 0, vec3(1.0f, -1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
+			vptr[2] = { 0, vec3(1.0f,  1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
+			vptr[3] = { 0, vec3(-1.0f,  1.0f, 0.0f), zero2, zero2, zero2, zero2, color, zero4 };
+
+			iptr[0] = vpos;
+			iptr[1] = vpos + 1;
+			iptr[2] = vpos + 2;
+			iptr[3] = vpos;
+			iptr[4] = vpos + 2;
+			iptr[5] = vpos + 3;
+
+			UseVertices(4, 6);
 		}
 
-		SceneVertexPos += vcount;
-		SceneIndexPos += icount;
-
+		DrawBatch(Commands->GetDrawCommands());
 		if (CurrentFrame)
 			SetSceneNode(CurrentFrame);
 	}
@@ -972,12 +952,12 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	RFX2 = 2.0f * RProjZ / Frame->FX;
 	RFY2 = 2.0f * RProjZ * Aspect / Frame->FY;
 
-	VkViewport viewportdesc = {};
+	viewportdesc = {};
 	viewportdesc.x = (float)Frame->XB;
 	viewportdesc.y = (float)Frame->YB;
 	viewportdesc.width = (float)Frame->X;
 	viewportdesc.height = (float)Frame->Y;
-	viewportdesc.minDepth = 0.0f;
+	viewportdesc.minDepth = 0.1f;
 	viewportdesc.maxDepth = 1.0f;
 	commands->setViewport(0, 1, &viewportdesc);
 
@@ -986,10 +966,13 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	// TBD; do this or do like UE1 does and do the transform on the CPU?
 	// maybe optionally do one or the other? transform on CPU can be super slow --Xaleros
 	pushconstants.objectToProjection = pushconstants.objectToProjection * Frame->WorldToView * Frame->ObjectToWorld;
+
+	pushconstants.nearClip = vec4(Frame->NearClip.x, Frame->NearClip.y, Frame->NearClip.z, Frame->NearClip.w);
 }
 
 void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
 {
+	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 	Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 }
 
@@ -997,6 +980,7 @@ void VulkanRenderDevice::ClearTextureCache()
 {
 	DescriptorSets->ClearCache();
 	Textures->ClearCache();
+	Uploads->ClearCache();
 }
 
 void VulkanRenderDevice::BlitSceneToPostprocess()
@@ -1004,23 +988,40 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 	auto buffers = Textures->Scene.get();
 	auto cmdbuffer = Commands->GetDrawCommands();
 
-	PipelineBarrier()
-		.AddImage(
-			buffers->ColorBuffer.get(),
+	PipelineBarrier barrer0;
+	VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	barrer0.AddImage(
+		buffers->ColorBuffer.get(),
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		VK_ACCESS_TRANSFER_READ_BIT);
+	if (HitData)
+	{
+		barrer0.AddImage(
+			buffers->HitBuffer.get(),
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			VK_ACCESS_TRANSFER_READ_BIT)
-		.AddImage(
-			buffers->PPImage.get(),
+			VK_ACCESS_TRANSFER_READ_BIT);
+		barrer0.AddImage(
+			buffers->PPHitBuffer.get(),
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			VK_ACCESS_TRANSFER_WRITE_BIT)
-		.Execute(
-			Commands->GetDrawCommands(),
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT);
+			VK_ACCESS_TRANSFER_READ_BIT,
+			VK_ACCESS_TRANSFER_WRITE_BIT);
+		srcStageMask |= VK_ACCESS_TRANSFER_WRITE_BIT;
+	}
+	barrer0.AddImage(
+		buffers->PPImage[0].get(),
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		VK_ACCESS_TRANSFER_WRITE_BIT);
+	barrer0.Execute(
+		Commands->GetDrawCommands(),
+		srcStageMask,
+		VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 	if (buffers->SceneSamples != VK_SAMPLE_COUNT_1_BIT)
 	{
@@ -1032,8 +1033,15 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 		resolve.extent = { (uint32_t)buffers->ColorBuffer->width, (uint32_t)buffers->ColorBuffer->height, 1 };
 		cmdbuffer->resolveImage(
 			buffers->ColorBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			buffers->PPImage->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			buffers->PPImage[0]->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &resolve);
+		if (HitData)
+		{
+			cmdbuffer->resolveImage(
+				buffers->HitBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				buffers->PPHitBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1, &resolve);
+		}
 	}
 	else
 	{
@@ -1049,50 +1057,359 @@ void VulkanRenderDevice::BlitSceneToPostprocess()
 		blit.dstSubresource.layerCount = 1;
 		cmdbuffer->blitImage(
 			colorBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			buffers->PPImage->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			buffers->PPImage[0]->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &blit, VK_FILTER_NEAREST);
+		if (HitData)
+		{
+			VkImageCopy copy = {};
+			copy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copy.srcSubresource.layerCount = 1;
+			copy.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copy.dstSubresource.layerCount = 1;
+			copy.extent = { (uint32_t)colorBuffer->width, (uint32_t)colorBuffer->height, (uint32_t)1 };
+			cmdbuffer->copyImage(
+				buffers->HitBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				buffers->PPHitBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1, &copy);
+		}
+	}
+
+	PipelineBarrier barrier1;
+	barrier1.AddImage(
+		buffers->PPImage[0].get(),
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_ACCESS_SHADER_READ_BIT);
+	if (HitData)
+	{
+		barrier1.AddImage(
+			buffers->PPHitBuffer.get(),
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			VK_ACCESS_TRANSFER_READ_BIT);
+	}
+	barrier1.Execute(
+		Commands->GetDrawCommands(),
+		VK_PIPELINE_STAGE_TRANSFER_BIT,
+		HitData ? VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+	if (HitData)
+	{
+		VkBufferImageCopy copy = {};
+		copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		copy.imageSubresource.layerCount = 1;
+		copy.imageOffset = { (int32_t)HitX, (int32_t)HitY, (int32_t)0 };
+		copy.imageExtent = { (uint32_t)HitWidth, (uint32_t)HitHeight, (uint32_t)1 };
+		cmdbuffer->copyImageToBuffer(buffers->PPHitBuffer->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers->StagingHitBuffer->buffer, 1, &copy);
+
+		PipelineBarrier()
+			.AddBuffer(buffers->StagingHitBuffer.get(), VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+	}
+}
+
+void VulkanRenderDevice::RunBloomPass()
+{
+	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
+	BloomPushConstants pushconstants;
+	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
+
+	auto cmdbuffer = Commands->GetDrawCommands();
+
+	PipelineBarrier()
+		.AddImage(Textures->Scene->BloomBlurLevels[0].VTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+		.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+	// Extract overbright pixels that we want to bloom:
+	BloomStep(cmdbuffer,
+		RenderPasses->Bloom.Extract.get(),
+		DescriptorSets->GetBloomPPImageSet(),
+		Framebuffers->BloomBlurLevels[0].VTextureFB.get(),
+		Textures->Scene->BloomBlurLevels[0].Width,
+		Textures->Scene->BloomBlurLevels[0].Height,
+		pushconstants);
+
+	// Blur and downscale:
+	for (int i = 0; i < NumBloomLevels - 1; i++)
+	{
+		PipelineBarrier()
+			.AddImage(Textures->Scene->BloomBlurLevels[i].HTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+			.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		// Gaussian blur
+		BloomStep(cmdbuffer,
+			RenderPasses->Bloom.BlurVertical.get(),
+			DescriptorSets->GetBloomVTextureSet(i),
+			Framebuffers->BloomBlurLevels[i].HTextureFB.get(),
+			Textures->Scene->BloomBlurLevels[i].Width,
+			Textures->Scene->BloomBlurLevels[i].Height,
+			pushconstants);
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+			.AddImage(Textures->Scene->BloomBlurLevels[i].HTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		BloomStep(cmdbuffer,
+			RenderPasses->Bloom.BlurHorizontal.get(),
+			DescriptorSets->GetBloomHTextureSet(i),
+			Framebuffers->BloomBlurLevels[i].VTextureFB.get(),
+			Textures->Scene->BloomBlurLevels[i].Width,
+			Textures->Scene->BloomBlurLevels[i].Height,
+			pushconstants);
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->BloomBlurLevels[i + 1].VTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+			.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		// Linear downscale
+		BloomStep(cmdbuffer,
+			RenderPasses->Bloom.Scale.get(),
+			DescriptorSets->GetBloomVTextureSet(i),
+			Framebuffers->BloomBlurLevels[i + 1].VTextureFB.get(),
+			Textures->Scene->BloomBlurLevels[i + 1].Width,
+			Textures->Scene->BloomBlurLevels[i + 1].Height,
+			pushconstants);
+	}
+
+	// Blur and upscale:
+	for (int i = NumBloomLevels - 1; i >= 0; i--)
+	{
+		PipelineBarrier()
+			.AddImage(Textures->Scene->BloomBlurLevels[i].HTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+			.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		// Gaussian blur
+		BloomStep(cmdbuffer,
+			RenderPasses->Bloom.BlurVertical.get(),
+			DescriptorSets->GetBloomVTextureSet(i),
+			Framebuffers->BloomBlurLevels[i].HTextureFB.get(),
+			Textures->Scene->BloomBlurLevels[i].Width,
+			Textures->Scene->BloomBlurLevels[i].Height,
+			pushconstants);
+
+		PipelineBarrier()
+			.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+			.AddImage(Textures->Scene->BloomBlurLevels[i].HTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		BloomStep(cmdbuffer,
+			RenderPasses->Bloom.BlurHorizontal.get(),
+			DescriptorSets->GetBloomHTextureSet(i),
+			Framebuffers->BloomBlurLevels[i].VTextureFB.get(),
+			Textures->Scene->BloomBlurLevels[i].Width,
+			Textures->Scene->BloomBlurLevels[i].Height,
+			pushconstants);
+
+		// Linear upscale
+		if (i > 0)
+		{
+			PipelineBarrier()
+				.AddImage(Textures->Scene->BloomBlurLevels[i - 1].VTexture.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+				.AddImage(Textures->Scene->BloomBlurLevels[i].VTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+				.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+			BloomStep(cmdbuffer,
+				RenderPasses->Bloom.Scale.get(),
+				DescriptorSets->GetBloomVTextureSet(i),
+				Framebuffers->BloomBlurLevels[i - 1].VTextureFB.get(),
+				Textures->Scene->BloomBlurLevels[i - 1].Width,
+				Textures->Scene->BloomBlurLevels[i - 1].Height,
+				pushconstants);
+		}
 	}
 
 	PipelineBarrier()
-		.AddImage(
-			buffers->PPImage.get(),
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			VK_ACCESS_TRANSFER_WRITE_BIT,
-			VK_ACCESS_SHADER_READ_BIT)
-		.Execute(
-			Commands->GetDrawCommands(),
-			VK_PIPELINE_STAGE_TRANSFER_BIT,
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+		.AddImage(Textures->Scene->PPImage[0].get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT)
+		.AddImage(Textures->Scene->BloomBlurLevels[0].VTexture.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+		.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+	// Add bloom back to frame post process texture:
+	BloomStep(cmdbuffer,
+		RenderPasses->Bloom.Combine.get(),
+		DescriptorSets->GetBloomVTextureSet(0),
+		Framebuffers->PPImageFB[0].get(),
+		Textures->Scene->Width,
+		Textures->Scene->Height,
+		pushconstants);
+
+	PipelineBarrier()
+		.AddImage(Textures->Scene->PPImage[0].get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+		.Execute(cmdbuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 }
 
-void VulkanRenderDevice::DrawPresentTexture(int x, int y, int width, int height)
+void VulkanRenderDevice::BloomStep(VulkanCommandBuffer* cmdbuffer, VulkanPipeline* pipeline, VulkanDescriptorSet* input, VulkanFramebuffer* output, int width, int height, const BloomPushConstants& pushconstants)
 {
-	float gamma = Brightness * 2.0f;
-
-	PresentPushConstants pushconstants;
-	pushconstants.InvGamma = 1.0f / gamma;
+	RenderPassBegin()
+		.RenderPass(pipeline != RenderPasses->Bloom.Combine.get() ? RenderPasses->Postprocess.RenderPass.get() : RenderPasses->Postprocess.RenderPassCombine.get())
+		.Framebuffer(output)
+		.RenderArea(0, 0, width, height)
+		.AddClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+		.Execute(cmdbuffer);
 
 	VkViewport viewport = {};
-	viewport.x = (float)x;
-	viewport.y = (float)y;
 	viewport.width = (float)width;
 	viewport.height = (float)height;
-	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor = {};
 	scissor.extent.width = width;
 	scissor.extent.height = height;
 
-	auto cmdbuffer = Commands->GetDrawCommands();
-
-	RenderPasses->BeginPresent(cmdbuffer);
 	cmdbuffer->setViewport(0, 1, &viewport);
 	cmdbuffer->setScissor(0, 1, &scissor);
-	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PresentPipeline.get());
-	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->PresentPipelineLayout.get(), 0, DescriptorSets->GetPresentDescriptorSet());
-	cmdbuffer->pushConstants(RenderPasses->PresentPipelineLayout.get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PresentPushConstants), &pushconstants);
+	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->Bloom.PipelineLayout.get(), 0, input);
+	cmdbuffer->pushConstants(RenderPasses->Bloom.PipelineLayout.get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(BloomPushConstants), &pushconstants);
 	cmdbuffer->draw(6, 1, 0, 0);
-	RenderPasses->EndPresent(cmdbuffer);
+
+	cmdbuffer->endRenderPass();
+}
+
+float VulkanRenderDevice::ComputeBlurGaussian(float n, float theta) // theta = Blur Amount
+{
+	return (float)((1.0f / sqrt(2 * 3.14159265359f * theta)) * expf(-(n * n) / (2.0f * theta * theta)));
+}
+
+void VulkanRenderDevice::ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights)
+{
+	sampleWeights[0] = ComputeBlurGaussian(0, blurAmount);
+
+	float totalWeights = sampleWeights[0];
+
+	for (int i = 0; i < sampleCount / 2; i++)
+	{
+		float weight = ComputeBlurGaussian(i + 1.0f, blurAmount);
+
+		sampleWeights[i * 2 + 1] = weight;
+		sampleWeights[i * 2 + 2] = weight;
+
+		totalWeights += weight * 2;
+	}
+
+	for (int i = 0; i < sampleCount; i++)
+	{
+		sampleWeights[i] /= totalWeights;
+	}
+}
+
+PresentPushConstants VulkanRenderDevice::GetPresentPushConstants()
+{
+	PresentPushConstants pushconstants;
+	pushconstants.HdrScale = 0.8f + HdrScale * (3.0f / 255.0f);
+	if (IsOrtho)
+	{
+		pushconstants.GammaCorrection = { 1.0f };
+		pushconstants.Contrast = 1.0f;
+		pushconstants.Saturation = 1.0f;
+		pushconstants.Brightness = 0.0f;
+	}
+	else
+	{
+		float brightness = clamp(Brightness * 2.0f, 0.05f, 2.99f);
+
+		if (GammaMode == 0)
+		{
+			float invGammaRed = 1.0f / std::max(brightness + GammaOffset + GammaOffsetRed, 0.001f);
+			float invGammaGreen = 1.0f / std::max(brightness + GammaOffset + GammaOffsetGreen, 0.001f);
+			float invGammaBlue = 1.0f / std::max(brightness + GammaOffset + GammaOffsetBlue, 0.001f);
+			pushconstants.GammaCorrection = vec4(invGammaRed, invGammaGreen, invGammaBlue, 0.0f);
+		}
+		else
+		{
+			float invGammaRed = (GammaOffset + GammaOffsetRed + 2.0f) > 0.0f ? 1.0f / (GammaOffset + GammaOffsetRed + 1.0f) : 1.0f;
+			float invGammaGreen = (GammaOffset + GammaOffsetGreen + 2.0f) > 0.0f ? 1.0f / (GammaOffset + GammaOffsetGreen + 1.0f) : 1.0f;
+			float invGammaBlue = (GammaOffset + GammaOffsetBlue + 2.0f) > 0.0f ? 1.0f / (GammaOffset + GammaOffsetBlue + 1.0f) : 1.0f;
+			pushconstants.GammaCorrection = vec4(invGammaRed, invGammaGreen, invGammaBlue, brightness);
+		}
+
+		// pushconstants.Contrast = clamp(Contrast, 0.1f, 3.f);
+		if (Contrast >= 128)
+		{
+			pushconstants.Contrast = 1.0f + (Contrast - 128) / 127.0f * 3.0f;
+		}
+		else
+		{
+			pushconstants.Contrast = std::max(Contrast / 128.0f, 0.1f);
+		}
+
+		// pushconstants.Saturation = clamp(Saturation, -1.0f, 1.0f);
+		pushconstants.Saturation = 1.0f - 2.0f * (255 - Saturation) / 255.0f;
+
+		// pushconstants.Brightness = clamp(LinearBrightness, -1.8f, 1.8f);
+		if (LinearBrightness >= 128)
+		{
+			pushconstants.Brightness = (LinearBrightness - 128) / 127.0f * 1.8f;
+		}
+		else
+		{
+			pushconstants.Brightness = (128 - LinearBrightness) / 128.0f * -1.8f;
+		}
+	}
+	return pushconstants;
+}
+
+void VulkanRenderDevice::DrawPresentTexture(int width, int height)
+{
+	int vpWidth = Viewport->GetNativePixelWidth();
+	int vpHeight = Viewport->GetNativePixelHeight();
+
+	PresentPushConstants pushconstants = GetPresentPushConstants();
+
+	bool ActiveHdr = (Commands->SwapChain->Format().colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT) ? 1 : 0;
+
+	// Select present shader based on what the user is actually using
+	int presentShader = 0;
+	if (ActiveHdr) presentShader |= 1;
+	if (GammaMode == 1) presentShader |= 2;
+	if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (clamp(GrayFormula, 0, 2) + 1) << 2;
+
+	float scale = std::min(width / (float)vpWidth, height / (float)vpHeight);
+	int letterboxWidth = (int)std::round(vpWidth * scale);
+	int letterboxHeight = (int)std::round(vpHeight * scale);
+	int letterboxX = (width - letterboxWidth) / 2;
+	int letterboxY = (height - letterboxHeight) / 2;
+
+	VkViewport viewport = {};
+	viewport.x = (float)letterboxX;
+	viewport.y = (float)letterboxY;
+	viewport.width = (float)letterboxWidth;
+	viewport.height = (float)letterboxHeight;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor = {};
+	scissor.offset.x = letterboxX;
+	scissor.offset.y = letterboxY;
+	scissor.extent.width = letterboxWidth;
+	scissor.extent.height = letterboxHeight;
+
+	auto cmdbuffer = Commands->GetDrawCommands();
+
+	PipelineBarrier()
+		.AddImage(Commands->SwapChain->GetImage(Commands->PresentImageIndex), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+		.Execute(cmdbuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+	RenderPassBegin()
+		.RenderPass(RenderPasses->Present.RenderPass.get())
+		.Framebuffer(Framebuffers->GetSwapChainFramebuffer())
+		.RenderArea(0, 0, Commands->SwapChain->Width(), Commands->SwapChain->Height())
+		.AddClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+		.Execute(cmdbuffer);
+	cmdbuffer->setViewport(0, 1, &viewport);
+	cmdbuffer->setScissor(0, 1, &scissor);
+	cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->Present.Pipeline[presentShader].get());
+	cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, RenderPasses->Present.PipelineLayout.get(), 0, DescriptorSets->GetPresentSet());
+	cmdbuffer->pushConstants(RenderPasses->Present.PipelineLayout.get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PresentPushConstants), &pushconstants);
+	cmdbuffer->draw(6, 1, 0, 0);
+	cmdbuffer->endRenderPass();
+
+	PipelineBarrier()
+		.AddImage(Commands->SwapChain->GetImage(Commands->PresentImageIndex), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, 0)
+		.Execute(cmdbuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 }

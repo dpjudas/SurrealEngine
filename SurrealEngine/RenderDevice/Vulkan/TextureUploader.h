@@ -1,10 +1,10 @@
 #pragma once
 
 #include <zvulkan/vulkanobjects.h>
-#include "RenderDevice/RenderDevice.h"
 
 struct FTextureInfo;
 class UnrealMipmap;
+struct FColor;
 enum class TextureFormat : uint32_t;
 
 class TextureUploader

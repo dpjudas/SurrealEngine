@@ -4,7 +4,6 @@
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
 #include <zvulkan/vulkanbuilders.h>
-#include "UObject/UTexture.h"
 
 UploadManager::UploadManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -12,6 +11,11 @@ UploadManager::UploadManager(VulkanRenderDevice* renderer) : renderer(renderer)
 
 UploadManager::~UploadManager()
 {
+}
+
+void UploadManager::ClearCache()
+{
+	PendingUploads.clear();
 }
 
 bool UploadManager::SupportsTextureFormat(TextureFormat Format) const
@@ -54,10 +58,13 @@ void UploadManager::UploadTexture(CachedTexture* tex, const FTextureInfo& Info, 
 			.Create(renderer->Device.get());
 	}
 
+	tex->pendingUploads[0].clear();
+	tex->pendingUploads[1].clear();
+
 	if (uploader)
-		UploadData(tex->image->image, Info, masked, uploader);
+		UploadData(tex, Info, masked, uploader);
 	else
-		UploadWhite(tex->image->image);
+		UploadWhite(tex);
 }
 
 void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h)
@@ -66,10 +73,10 @@ void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& In
 	if (!uploader || Info.NumMips < 1 || x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > Info.Mips[0].Width || y + h > Info.Mips[0].Height || Info.Mips[0].Data.empty())
 		return;
 
-	int pixelsSize = uploader->GetUploadSize(x, y, w, h);
+	size_t pixelsSize = uploader->GetUploadSize(x, y, w, h);
 	pixelsSize = (pixelsSize + 15) / 16 * 16; // memory alignment
 
-	WaitIfUploadBufferIsFull(pixelsSize);
+	WaitIfUploadBufferIsFull((int)pixelsSize);
 
 	uint8_t* data = renderer->Buffers->UploadData;
 	uint8_t* Ptr = data + UploadBufferPos;
@@ -82,33 +89,29 @@ void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& In
 	region.imageSubresource.layerCount = 1;
 	region.imageOffset = { (int32_t)x, (int32_t)y, 0 };
 	region.imageExtent = { (uint32_t)w, (uint32_t)h, 1 };
-	RectUploads[tex->image->image].push_back(region);
 
-	UploadBufferPos += pixelsSize;
+	AddPendingUpload(tex, region, true);
+
+	UploadBufferPos += (int)pixelsSize;
 }
 
-void UploadManager::UploadData(VkImage image, const FTextureInfo& Info, bool masked, TextureUploader* uploader)
+void UploadManager::UploadData(CachedTexture* tex, const FTextureInfo& Info, bool masked, TextureUploader* uploader)
 {
-	int pixelsSize = 0;
-	for (int level = 0; level < Info.NumMips; level++)
+	size_t pixelsSize = 0;
+	for (INT level = 0; level < Info.NumMips; level++)
 	{
 		UnrealMipmap* Mip = &Info.Mips[level];
 		if (!Mip->Data.empty())
 		{
-			int mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
+			INT mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
 			mipsize = (mipsize + 15) / 16 * 16; // memory alignment
 			pixelsSize += mipsize;
 		}
 	}
 
-	WaitIfUploadBufferIsFull(pixelsSize);
+	WaitIfUploadBufferIsFull((int)pixelsSize);
 
-	UploadedTexture upload;
-	upload.Image = image;
-	upload.Index = (int)ImageCopies.size();
-	upload.Count = 0;
-
-	for (int level = 0; level < Info.NumMips; level++)
+	for (INT level = 0; level < Info.NumMips; level++)
 	{
 		UnrealMipmap* Mip = &Info.Mips[level];
 		if (!Mip->Data.empty())
@@ -123,28 +126,20 @@ void UploadManager::UploadData(VkImage image, const FTextureInfo& Info, bool mas
 			region.imageSubresource.layerCount = 1;
 			region.imageOffset = { 0, 0, 0 };
 			region.imageExtent = { mipwidth, mipheight, 1 };
-			ImageCopies.push_back(region);
-			upload.Count++;
+			AddPendingUpload(tex, region, false);
 
 			uploader->UploadRect(renderer->Buffers->UploadData + UploadBufferPos, Mip, 0, 0, Mip->Width, Mip->Height, Info.Palette, masked);
 
-			int mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
+			INT mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
 			mipsize = (mipsize + 15) / 16 * 16; // memory alignment
 			UploadBufferPos += mipsize;
 		}
 	}
-
-	Uploads.push_back(upload);
 }
 
-void UploadManager::UploadWhite(VkImage image)
+void UploadManager::UploadWhite(CachedTexture* tex)
 {
 	WaitIfUploadBufferIsFull(16);
-
-	UploadedTexture upload;
-	upload.Image = image;
-	upload.Index = (int)ImageCopies.size();
-	upload.Count = 1;
 
 	auto data = (uint32_t*)(renderer->Buffers->UploadData + UploadBufferPos);
 	data[0] = 0xffffffff;
@@ -154,9 +149,8 @@ void UploadManager::UploadWhite(VkImage image)
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.layerCount = 1;
 	region.imageExtent = { 1, 1, 1 };
+	AddPendingUpload(tex, region, false);
 
-	Uploads.push_back(upload);
-	ImageCopies.push_back(region);
 	UploadBufferPos += 16; // 16-byte aligned
 }
 
@@ -168,71 +162,84 @@ void UploadManager::WaitIfUploadBufferIsFull(int bytes)
 	}
 }
 
-void UploadManager::SubmitUploads()
+void UploadManager::AddPendingUpload(CachedTexture* tex, const VkBufferImageCopy& region, bool isPartial)
 {
-	if (Uploads.empty() && RectUploads.empty())
-		return;
-
-	// Group all rect uploads for each texture into one combined vkCopyBufferToImage call
-	bool partialUpdates = !RectUploads.empty();
-	for (auto& it : RectUploads)
+	if (!tex->inPendingUploads)
 	{
-		UploadedTexture upload;
-		upload.Image = it.first;
-		upload.Index = (int)ImageCopies.size();
-		upload.Count = (int)it.second.size();
-		upload.PartialUpdate = true;
-		Uploads.push_back(upload);
-		ImageCopies.insert(ImageCopies.end(), it.second.begin(), it.second.end());
-		renderer->Stats.RectUploads += (int)it.second.size();
+		PendingUploads.push_back(tex);
+		tex->inPendingUploads = true;
 	}
 
-	renderer->Stats.Uploads += (int)Uploads.size();
+	tex->pendingUploads[isPartial].push_back(region);
+}
+
+void UploadManager::SubmitUploads()
+{
+	if (PendingUploads.empty())
+		return;
 
 	auto cmdbuffer = renderer->Commands->GetTransferCommands();
 
-	// Transition images for upload
+	// Transition images to transfer
 	PipelineBarrier beforeBarrier;
-	for (const UploadedTexture& upload : Uploads)
+	for (CachedTexture* tex : PendingUploads)
 	{
 		beforeBarrier.AddImage(
-			upload.Image,
-			upload.PartialUpdate ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED,
+			tex->image->image,
+			tex->imageLayout,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			upload.PartialUpdate ? VK_ACCESS_SHADER_READ_BIT : 0,
+			VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
 			VK_ACCESS_TRANSFER_WRITE_BIT,
 			VK_IMAGE_ASPECT_COLOR_BIT,
-			0, upload.Count);
-	}
-	VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-	if (partialUpdates)
-		srcStage |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	beforeBarrier.Execute(cmdbuffer, srcStage , VK_PIPELINE_STAGE_TRANSFER_BIT);
+			0, tex->image->mipLevels);
 
-	// Copy from buffer to images
-	VkBuffer buffer = renderer->Buffers->UploadBuffer->buffer;
-	for (const UploadedTexture& upload : Uploads)
+		tex->imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	}
+	beforeBarrier.Execute(cmdbuffer, VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+	// Do full texture uploads, then partial
+	for (int i = 0; i < 2; i++)
 	{
-		cmdbuffer->copyBufferToImage(buffer, upload.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, upload.Count, ImageCopies.data() + upload.Index);
+		// Copy from buffer to images
+		VkBuffer buffer = renderer->Buffers->UploadBuffer->buffer;
+		for (CachedTexture* tex : PendingUploads)
+		{
+			if (!tex->pendingUploads[i].empty())
+			{
+				if (i == 0)
+					renderer->Stats.Uploads++;
+				else
+					renderer->Stats.RectUploads++;
+
+				cmdbuffer->copyBufferToImage(buffer, tex->image->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (uint32_t)tex->pendingUploads[i].size(), tex->pendingUploads[i].data());
+			}
+		}
 	}
 
-	// Transition images for texture sampling
+	// Transition images to texture sampling
 	PipelineBarrier afterBarrier;
-	for (const UploadedTexture& upload : Uploads)
+	for (CachedTexture* tex : PendingUploads)
 	{
 		afterBarrier.AddImage(
-			upload.Image,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			tex->image->image,
+			tex->imageLayout,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 			VK_ACCESS_TRANSFER_WRITE_BIT,
 			VK_ACCESS_SHADER_READ_BIT,
 			VK_IMAGE_ASPECT_COLOR_BIT,
-			0, upload.Count);
+			0, tex->image->mipLevels);
+
+		tex->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 	afterBarrier.Execute(cmdbuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
+	// Remove textures from pending uploads
+	for (CachedTexture* tex : PendingUploads)
+	{
+		tex->pendingUploads[0].clear();
+		tex->pendingUploads[1].clear();
+		tex->inPendingUploads = false;
+	}
+	PendingUploads.clear();
 	UploadBufferPos = 0;
-	Uploads.clear();
-	ImageCopies.clear();
-	RectUploads.clear();
 }

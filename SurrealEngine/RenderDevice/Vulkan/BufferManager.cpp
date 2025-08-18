@@ -2,7 +2,6 @@
 #include "Precomp.h"
 #include "BufferManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
 
 BufferManager::BufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
@@ -15,7 +14,6 @@ BufferManager::~BufferManager()
 {
 	if (SceneVertices) { SceneVertexBuffer->Unmap(); SceneVertices = nullptr; }
 	if (SceneIndexes) { SceneIndexBuffer->Unmap(); SceneIndexes = nullptr; }
-	if (UploadData) { UploadBuffer->Unmap(); UploadData = nullptr; }
 }
 
 void BufferManager::CreateSceneVertexBuffer()
