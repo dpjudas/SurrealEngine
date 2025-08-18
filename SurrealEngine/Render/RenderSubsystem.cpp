@@ -16,6 +16,8 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	FrameCounter++;
 	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
+	AmbientGlowTime = std::fmod(AmbientGlowTime + 0.8f * levelTimeElapsed, 1.0f);
+	AmbientGlowAmount = 0.20f + 0.20f * std::sin(radians(AmbientGlowTime * 360.0f));
 
 	Light.FogFrameCounter++;
 

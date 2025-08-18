@@ -97,6 +97,8 @@ private:
 
 	float LevelTimeElapsed = 0.0f;
 	float AutoUV = 0.0f;
+	float AmbientGlowTime = 0.0f;
+	float AmbientGlowAmount = 0.0f;
 	int FrameCounter = 0;
 
 	struct

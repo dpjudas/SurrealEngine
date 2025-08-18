@@ -172,17 +172,21 @@ void RenderSubsystem::UpdateActorLightList(UActor* actor)
 
 vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit)
 {
+	UZoneInfo* zoneActor = UObject::TryCast<UZoneInfo>(engine->Level->Model->Zones[actor->Region().ZoneNumber].ZoneActor);
+	if (!zoneActor)
+		zoneActor = engine->LevelInfo;
+
+	// AmbientGlow value 255 is a special pulsating effect used for powerups
+	float ambientGlow = actor->AmbientGlow() == 255 ? AmbientGlowAmount : actor->AmbientGlow() * (1.0f / 255.0f);
+	vec3 ambientColor = ambientGlow + hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
+
 	if (unlit)
 	{
-		return vec3(clamp(actor->ScaleGlow() * 0.5f + actor->AmbientGlow() * (1.0f / 256.0f), 0.0f, 1.0f));
+		return ambientColor + actor->ScaleGlow() * 0.5f;
 	}
 	else
 	{
-		UZoneInfo* zoneActor = UObject::TryCast<UZoneInfo>(engine->Level->Model->Zones[actor->Region().ZoneNumber].ZoneActor);
-		if (!zoneActor)
-			zoneActor = engine->LevelInfo;
-
-		vec3 color = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
+		vec3 color(0.0f);
 
 		for (UActor* light : actor->LightInfo.LightList)
 		{
@@ -191,6 +195,6 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 			color += lightcolor * attenuation;
 		}
 
-		return color * 3.0f;
+		return ambientColor + color * (actor->ScaleGlow() * 1.5f);
 	}
 }
