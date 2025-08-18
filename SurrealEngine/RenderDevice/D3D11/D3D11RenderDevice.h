@@ -230,8 +230,8 @@ public:
 	uint8_t HdrScale = 128;
 	bool Bloom = false;
 	uint8_t BloomAmount = 128;
-	float LODBias = 0.0f;
-	uint8_t AntialiasMode = 0;
+	float LODBias = -0.5f;
+	uint8_t AntialiasMode = 2; // 4x multisample
 	uint8_t GammaMode = 0;
 	uint8_t LightMode = 0;
 	int RefreshRate = 0;
