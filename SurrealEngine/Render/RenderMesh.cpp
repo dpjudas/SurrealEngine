@@ -80,16 +80,10 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 		if (!tex)
 			continue;
 
+		UpdateTexture(tex);
+
 		FTextureInfo texinfo;
-		texinfo.Texture = tex;
-		texinfo.CacheID = (uint64_t)(ptrdiff_t)tex;
-		texinfo.Format = tex->ActualFormat;
-		texinfo.Mips = tex->Mipmaps.data();
-		texinfo.NumMips = (int)tex->Mipmaps.size();
-		texinfo.USize = tex->USize();
-		texinfo.VSize = tex->VSize();
-		if (tex->Palette())
-			texinfo.Palette = (FColor*)tex->Palette()->Colors.data();
+		UpdateTextureInfo(texinfo, tex);
 
 		float uscale = (tex ? tex->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (tex ? tex->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
@@ -325,15 +319,7 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		UpdateTexture(tex);
 
 		FTextureInfo texinfo;
-		texinfo.Texture = tex;
-		texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
-		texinfo.Format = texinfo.Texture->ActualFormat;
-		texinfo.Mips = texinfo.Texture->Mipmaps.data();
-		texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
-		texinfo.USize = texinfo.Texture->USize();
-		texinfo.VSize = texinfo.Texture->VSize();
-		if (texinfo.Texture->Palette())
-			texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+		UpdateTextureInfo(texinfo, tex);
 
 		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Height : 256) * (1.0f / 255.0f);

@@ -134,6 +134,8 @@ void UFireTexture::UpdateFrame()
 			bool canEmit = Sparks.size() + Particles.size() < (size_t)SparksLimit();
 			switch (spark.Type)
 			{
+			default: // Always create some output as otherwise textures might completely disappear
+			case ESpark::Eels: // This is the amp powerup effect
 			case ESpark::Burn:
 			{
 				int x = spark.X;

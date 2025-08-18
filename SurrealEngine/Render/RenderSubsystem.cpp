@@ -66,37 +66,34 @@ void RenderSubsystem::UpdateTexture(UTexture* tex)
 
 void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
 {
-	info.CacheID = (uint64_t)(ptrdiff_t)texture;
-	info.bRealtimeChanged = texture->TextureModified;
-	info.UScale = texture->DrawScale();
-	info.VScale = texture->DrawScale();
+	UpdateTextureInfo(info, texture);
+
 	info.Pan.x = -(float)surface.PanU;
 	info.Pan.y = -(float)surface.PanV;
-	info.Texture = texture;
-	info.Format = texture->ActualFormat;
-	info.Mips = texture->Mipmaps.data();
-	info.NumMips = (int)texture->Mipmaps.size();
-	info.USize = texture->USize();
-	info.VSize = texture->VSize();
-	if (texture->Palette())
-		info.Palette = (FColor*)texture->Palette()->Colors.data();
-
-	if (texture->TextureModified)
-		texture->TextureModified = false;
-
 	if (surface.PolyFlags & PF_AutoUPan) info.Pan.x -= AutoUV * ZoneUPanSpeed;
 	if (surface.PolyFlags & PF_AutoVPan) info.Pan.y -= AutoUV * ZoneVPanSpeed;
 }
 
 void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
 {
-	info.CacheID = (uint64_t)(ptrdiff_t)texture;
-	info.bRealtimeChanged = texture->TextureModified;
-	info.UScale = texture->DrawScale();
-	info.VScale = texture->DrawScale();
+	UpdateTextureInfo(info, texture);
+
 	info.Pan.x = -(float)poly.PanU;
 	info.Pan.y = -(float)poly.PanV;
+	if (poly.PolyFlags & PF_AutoUPan) info.Pan.x -= AutoUV * ZoneUPanSpeed;
+	if (poly.PolyFlags & PF_AutoVPan) info.Pan.y -= AutoUV * ZoneVPanSpeed;
+}
+
+void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
+{
 	info.Texture = texture;
+	info.CacheID = (uint64_t)(ptrdiff_t)texture;
+
+	if (!info.Texture)
+		return;
+
+	info.UScale = texture->DrawScale();
+	info.VScale = texture->DrawScale();
 	info.Format = texture->ActualFormat;
 	info.Mips = texture->Mipmaps.data();
 	info.NumMips = (int)texture->Mipmaps.size();
@@ -105,11 +102,9 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UT
 	if (texture->Palette())
 		info.Palette = (FColor*)texture->Palette()->Colors.data();
 
+	info.bRealtimeChanged = texture->TextureModified;
 	if (texture->TextureModified)
 		texture->TextureModified = false;
-
-	if (poly.PolyFlags & PF_AutoUPan) info.Pan.x -= AutoUV * ZoneUPanSpeed;
-	if (poly.PolyFlags & PF_AutoVPan) info.Pan.y -= AutoUV * ZoneVPanSpeed;
 }
 
 void RenderSubsystem::OnMapLoaded()
