@@ -45,10 +45,6 @@ public:
 	bool SupportsTextureFormat(TextureFormat Format) override;
 	void UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL) override;
 
-#ifdef WIN32
-	HWND WindowHandle = 0;
-#endif
-
 	std::shared_ptr<VulkanDevice> Device;
 
 	std::unique_ptr<CommandBufferManager> Commands;

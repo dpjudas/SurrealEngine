@@ -46,7 +46,7 @@ void RenderPassManager::CreateBloomPipelineLayout()
 		.Create(renderer->Device.get());
 }
 
-PipelineState* RenderPassManager::GetPipeline(DWORD PolyFlags)
+PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags)
 {
 	int index;
 	if (PolyFlags & PF_Translucent)

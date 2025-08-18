@@ -27,7 +27,7 @@ public:
 	void CreatePostprocessRenderPass();
 	void CreateBloomPipeline();
 
-	PipelineState* GetPipeline(DWORD polyflags);
+	PipelineState* GetPipeline(uint32_t polyflags);
 	PipelineState* GetEndFlashPipeline();
 	PipelineState* GetLinePipeline(bool occludeLines) { return &Scene.LinePipeline[occludeLines]; }
 	PipelineState* GetPointPipeline(bool occludeLines) { return &Scene.PointPipeline[occludeLines]; }
