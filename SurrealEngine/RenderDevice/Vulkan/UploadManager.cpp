@@ -98,12 +98,12 @@ void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& In
 void UploadManager::UploadData(CachedTexture* tex, const FTextureInfo& Info, bool masked, TextureUploader* uploader)
 {
 	size_t pixelsSize = 0;
-	for (INT level = 0; level < Info.NumMips; level++)
+	for (int level = 0; level < Info.NumMips; level++)
 	{
 		UnrealMipmap* Mip = &Info.Mips[level];
 		if (!Mip->Data.empty())
 		{
-			INT mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
+			int mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
 			mipsize = (mipsize + 15) / 16 * 16; // memory alignment
 			pixelsSize += mipsize;
 		}
@@ -111,7 +111,7 @@ void UploadManager::UploadData(CachedTexture* tex, const FTextureInfo& Info, boo
 
 	WaitIfUploadBufferIsFull((int)pixelsSize);
 
-	for (INT level = 0; level < Info.NumMips; level++)
+	for (int level = 0; level < Info.NumMips; level++)
 	{
 		UnrealMipmap* Mip = &Info.Mips[level];
 		if (!Mip->Data.empty())
@@ -130,7 +130,7 @@ void UploadManager::UploadData(CachedTexture* tex, const FTextureInfo& Info, boo
 
 			uploader->UploadRect(renderer->Buffers->UploadData + UploadBufferPos, Mip, 0, 0, Mip->Width, Mip->Height, Info.Palette, masked);
 
-			INT mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
+			int mipsize = uploader->GetUploadSize(0, 0, Mip->Width, Mip->Height);
 			mipsize = (mipsize + 15) / 16 * 16; // memory alignment
 			UploadBufferPos += mipsize;
 		}

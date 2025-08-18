@@ -317,7 +317,7 @@ void VulkanRenderDevice::Unlock(bool Blit)
 
 bool VulkanRenderDevice::SupportsTextureFormat(TextureFormat Format)
 {
-	return Uploads->SupportsTextureFormat(Format) ? TRUE : FALSE;
+	return Uploads->SupportsTextureFormat(Format);
 }
 
 void VulkanRenderDevice::UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL)
