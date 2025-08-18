@@ -3,19 +3,16 @@
 #include "LauncherButtonbar.h"
 #include "PlayGamePage.h"
 #include "SettingsPage.h"
+#include "GameFoldersPage.h"
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/window/window.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
 
-#if defined(EXTRAARGS)
-CVAR(String, additional_parameters, "", CVAR_ARCHIVE | CVAR_NOSET | CVAR_GLOBALCONFIG);
-#endif
-
 int LauncherWindow::ExecModal(const Array<GameLaunchInfo>& games)
 {
 	Size screenSize = GetScreenSize();
-	double windowWidth = 615.0;
-	double windowHeight = 700.0;
+	double windowWidth = 676.0;
+	double windowHeight = 770.0;
 
 	auto launcher = std::make_unique<LauncherWindow>(games);
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
@@ -36,13 +33,11 @@ LauncherWindow::LauncherWindow(const Array<GameLaunchInfo>& games) : Widget(null
 
 	PlayGame = new PlayGamePage(this, games);
 	Settings = new SettingsPage(this);
+	GameFolders = new GameFoldersPage(this);
 
 	Pages->AddTab(PlayGame, "Play");
 	Pages->AddTab(Settings, "Settings");
-
-#if defined(EXTRAARGS)
-	PlayGame->SetExtraArgs(static_cast<FString>(additional_parameters).GetChars());
-#endif
+	Pages->AddTab(GameFolders, "Games");
 
 	Pages->SetCurrentWidget(PlayGame);
 	PlayGame->SetFocus();
@@ -51,16 +46,7 @@ LauncherWindow::LauncherWindow(const Array<GameLaunchInfo>& games) : Widget(null
 void LauncherWindow::Start()
 {
 	Settings->Save();
-
-#if defined(EXTRAARGS)
-	std::string extraargs = PlayGame->GetExtraArgs();
-	if (extraargs != static_cast<FString>(additional_parameters).GetChars())
-	{
-		additional_parameters = extraargs.c_str();
-
-		// To do: restart the process like the cocoa backend is doing?
-	}
-#endif
+	GameFolders->Save();
 
 	ExecResult = PlayGame->GetSelectedGame();
 	DisplayWindow::ExitLoop();
