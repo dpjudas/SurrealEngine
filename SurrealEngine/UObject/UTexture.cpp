@@ -118,6 +118,14 @@ void UFireTexture::Load(ObjectStream* stream)
 	}
 }
 
+static void SetPixel(uint8_t* pixels, int x, int y, int width, int height, uint8_t value)
+{
+	if (x >= 0 && y >= 0 && x < width && y < height)
+	{
+		pixels[x + y * width] = value;
+	}
+}
+
 void UFireTexture::UpdateFrame()
 {
 	if (!TextureModified)
@@ -140,7 +148,7 @@ void UFireTexture::UpdateFrame()
 			{
 				int x = spark.X;
 				int y = spark.Y;
-				pixels[x + y * width] = RandomByteValue();
+				SetPixel(pixels, x, y, width, height, RandomByteValue());
 				break;
 			}
 			case ESpark::Wheel:
@@ -231,7 +239,7 @@ void UFireTexture::UpdateFrame()
 						else if (x >= width) x -= width;
 						if (y < 0) y += height;
 						else if (y >= height) y -= height;
-						pixels[x + y * width] = c;
+						SetPixel(pixels, x, y, width, height, c);
 
 						x0 += (float)(rand() * 2.0 / RAND_MAX - 1.0);
 						y0 += (float)(rand() * 2.0 / RAND_MAX - 1.0);
@@ -255,7 +263,7 @@ void UFireTexture::UpdateFrame()
 					int y = (int)particle.Twirl.Y;
 					if (x < 0) x += width; else if (x >= width) x -= width;
 					if (y < 0) y += height; else if (y >= height) y -= height;
-					pixels[x + y * width] = particle.Twirl.Heat;
+					SetPixel(pixels, x, y, width, height, particle.Twirl.Heat);
 
 					float angle = particle.Twirl.Angle;
 					float dx = std::sin(angle);
@@ -282,7 +290,7 @@ void UFireTexture::UpdateFrame()
 					int y = (int)particle.Drift.Y;
 					if (x < 0) x += width; else if (x >= width) x -= width;
 					if (y < 0) y += height; else if (y >= height) y -= height;
-					pixels[x + y * width] = particle.Drift.Heat;
+					SetPixel(pixels, x, y, width, height, particle.Drift.Heat);
 
 					particle.Drift.X += particle.Drift.SpeedX;
 					particle.Drift.Y += particle.Drift.SpeedY;
