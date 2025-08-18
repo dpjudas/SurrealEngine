@@ -191,6 +191,6 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 			color += lightcolor * attenuation;
 		}
 
-		return color * 2.0f;
+		return color * 3.0f;
 	}
 }
