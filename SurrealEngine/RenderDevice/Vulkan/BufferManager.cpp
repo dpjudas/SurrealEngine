@@ -14,6 +14,7 @@ BufferManager::~BufferManager()
 {
 	if (SceneVertices) { SceneVertexBuffer->Unmap(); SceneVertices = nullptr; }
 	if (SceneIndexes) { SceneIndexBuffer->Unmap(); SceneIndexes = nullptr; }
+	if (UploadData) { UploadBuffer->Unmap(); UploadData = nullptr; }
 }
 
 void BufferManager::CreateSceneVertexBuffer()
