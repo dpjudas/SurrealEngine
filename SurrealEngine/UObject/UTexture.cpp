@@ -677,6 +677,17 @@ void UScriptedTexture::Load(ObjectStream* stream)
 
 void UScriptedTexture::UpdateFrame()
 {
+	if (TextureModified)
+		return;
+
+	if (engine->LaunchInfo.engineVersion < 469)
+	{
+		double timeSinceLastUpdate = engine->TotalTime - LastUpdate;
+		if (timeSinceLastUpdate < 1.0 / 80.0) // Rate limit to about 80 fps updates as 436 unrealscript code breaks if called too often
+			return;
+		LastUpdate = engine->TotalTime;
+	}
+
 	UTexture* sourceTex = SourceTexture();
 	if (sourceTex)
 	{

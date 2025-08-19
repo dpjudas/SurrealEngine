@@ -124,6 +124,8 @@ public:
 	UGameInfo* EntryGameInfo = nullptr;
 	std::unique_ptr<Package> EntryLevelPackage = nullptr;
 
+	double TotalTime = 0.0;
+
 	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
 	std::unique_ptr<Package> LevelPackage;

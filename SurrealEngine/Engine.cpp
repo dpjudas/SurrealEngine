@@ -99,6 +99,8 @@ void Engine::Run()
 		float entryLevelElapsed = EntryLevel ? clamp(realTimeElapsed * EntryLevelInfo->TimeDilation(), 1.0f / 400.0f, 1.0f / 2.5f) : 0.0f;
 		float levelElapsed = clamp(realTimeElapsed * LevelInfo->TimeDilation(), 1.0f / 400.0f, 1.0f / 2.5f);
 
+		TotalTime += realTimeElapsed;
+
 		if (EntryLevel)
 			EntryLevelInfo->TimeSeconds() += entryLevelElapsed;
 		LevelInfo->TimeSeconds() += levelElapsed;

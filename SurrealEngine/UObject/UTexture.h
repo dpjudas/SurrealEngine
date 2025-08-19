@@ -589,6 +589,8 @@ private:
 	void DrawTileP8(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight);
 	void DrawTileP8Masked(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight);
 	void DrawTileP8Color(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, uint8_t color);
+
+	double LastUpdate = -1.0;
 };
 
 class UPalette : public UObject
