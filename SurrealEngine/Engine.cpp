@@ -333,9 +333,9 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
-	LevelInfo->EngineVersion() = "500";
+	LevelInfo->EngineVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
 	if (packages->GetEngineVersion() > 219)
-		LevelInfo->MinNetVersion() = "500";
+		LevelInfo->MinNetVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
 	LevelInfo->DefaultTexture() = engine->DefaultTexture;
