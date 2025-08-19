@@ -26,8 +26,12 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 
 void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
 {
-	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
-	float animFrame = actor->AnimFrame() * seq->NumFrames;
+	UActor* animSource = actor;
+	if (actor->bAnimByOwner() && actor->Owner())
+		animSource = actor->Owner();
+
+	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
+	float animFrame = animSource->AnimFrame() * seq->NumFrames;
 
 	int vertexOffsets[3];
 	float t0, t1;
@@ -46,10 +50,10 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 	}
 	else // Tween from old animation
 	{
-		t0 = actor->TweenFromAnimFrame.T;
+		t0 = animSource->TweenFromAnimFrame.T;
 		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
-		vertexOffsets[0] = actor->TweenFromAnimFrame.V0;
-		vertexOffsets[1] = actor->TweenFromAnimFrame.V1;
+		vertexOffsets[0] = animSource->TweenFromAnimFrame.V0;
+		vertexOffsets[1] = animSource->TweenFromAnimFrame.V1;
 		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
 	}
 
@@ -133,8 +137,12 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 
 void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
 {
-	MeshAnimSeq* seq = mesh->GetSequence(actor->AnimSequence());
-	float animFrame = actor->AnimFrame() * seq->NumFrames;
+	UActor* animSource = actor;
+	if (actor->bAnimByOwner() && actor->Owner())
+		animSource = actor->Owner();
+
+	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
+	float animFrame = animSource->AnimFrame() * seq->NumFrames;
 
 	int vertexOffsets[3];
 	float t0, t1;
@@ -153,10 +161,10 @@ void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 	}
 	else // Tween from old animation
 	{
-		t0 = actor->TweenFromAnimFrame.T;
+		t0 = animSource->TweenFromAnimFrame.T;
 		t1 = clamp(animFrame + 1.0f, 0.0f, 1.0f);
-		vertexOffsets[0] = actor->TweenFromAnimFrame.V0;
-		vertexOffsets[1] = actor->TweenFromAnimFrame.V1;
+		vertexOffsets[0] = animSource->TweenFromAnimFrame.V0;
+		vertexOffsets[1] = animSource->TweenFromAnimFrame.V1;
 		vertexOffsets[2] = seq->StartFrame * mesh->FrameVerts;
 	}
 
