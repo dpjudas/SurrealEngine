@@ -233,14 +233,16 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 			if (actor->bCorona())
 				Scene.Coronas.push_back(actor);
 
-			if (!actor->bHidden() && actor != engine->CameraActor)
+			if (actor != engine->CameraActor && !actor->bHidden() && (!actor->bOwnerNoSee() || actor->Owner() != engine->CameraActor))
 			{
+				// Note: this doesn't take the rotation into account!
+				// Note: multiplying by 1.5 is just a hack to make it less likely to get culled.
+
 				EDrawType dt = (EDrawType)actor->DrawType();
 				if (dt == DT_Mesh && actor->Mesh())
 				{
-					// Note: this doesn't take the rotation into account!
 					BBox bbox = actor->Mesh()->BoundingBox;
-					vec3 Scale = actor->Mesh()->Scale * actor->DrawScale();
+					vec3 Scale = actor->Mesh()->Scale * actor->DrawScale() * 1.5f;
 					bbox.min = (bbox.min * Scale) + actor->Location();
 					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (Scene.Clipper.IsAABBVisible(bbox))
@@ -256,8 +258,11 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 				{
 					UModel* brush = actor->Brush();
 					BBox bbox = brush->BoundingBox;
-					bbox.min += actor->Location();
-					bbox.max += actor->Location();
+					vec3 Scale = 1.5f;
+					if (auto mover = UObject::TryCast<UMover>(actor))
+						Scale *= mover->MainScale().Scale;
+					bbox.min = (bbox.min * Scale) + actor->Location();
+					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (brush->Nodes.size() > 0 && Scene.Clipper.IsAABBVisible(bbox))
 					{
 						Scene.Actors.push_back(actor);
