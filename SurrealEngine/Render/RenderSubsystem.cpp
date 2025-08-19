@@ -22,7 +22,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	Light.FogFrameCounter++;
 
 	vec3 flashScale = 0.5f;
-	vec3 flashFog = vec3(1.0f, 0.0f, 0.0f);
+	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
 
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(engine->CameraActor);
 	if (player)
