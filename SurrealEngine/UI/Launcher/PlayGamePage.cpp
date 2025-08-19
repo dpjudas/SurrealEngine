@@ -6,7 +6,7 @@
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/lineedit/lineedit.h>
 
-PlayGamePage::PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>& games) : Widget(nullptr), Launcher(launcher)
+PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {
 	WelcomeLabel = new TextLabel(this);
 	SelectLabel = new TextLabel(this);
@@ -21,10 +21,7 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>
 	WelcomeLabel->SetText("Welcome to Surreal Engine!");
 	SelectLabel->SetText("Please select a game to play:");
 
-	for (const GameLaunchInfo& info : games)
-	{
-		GamesList->AddItem(info.gameName + " (" + info.gameVersionString + ")");
-	}
+	UpdateList();
 
 	/*
 	if (defaultGame != -1)
@@ -35,6 +32,17 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>
 	*/
 
 	GamesList->OnActivated = [this]() { OnGamesListActivated(); };
+}
+
+void PlayGamePage::UpdateList()
+{
+	GameFolderSelection::UpdateList();
+
+	// GamesList->Clear(); // To do: add this to zwidget
+	for (const GameLaunchInfo& info : GameFolderSelection::Games)
+	{
+		GamesList->AddItem(info.gameName + " (" + info.gameVersionString + ")");
+	}
 }
 
 #if defined(EXTRAARGS)

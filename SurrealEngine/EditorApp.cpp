@@ -4,6 +4,7 @@
 #include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
+#include "UI/Launcher/LauncherWindow.h"
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
 #include "UI/WidgetResourceData.h"
@@ -22,7 +23,7 @@ int EditorApp::main(Array<std::string> args)
 		CommandLine cmd(args);
 		commandline = &cmd;
 
-		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
+		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(LauncherWindow::ExecModal());
 		if (!info.gameRootFolder.empty())
 		{
 			Engine engine(info);

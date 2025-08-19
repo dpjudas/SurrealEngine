@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "UI/WidgetResourceData.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
+#include "UI/Launcher/LauncherWindow.h"
 #include "Utils/File.h"
 #include <stdexcept>
 #include <zwidget/core/theme.h>
@@ -26,13 +27,15 @@ int GameApp::main(Array<std::string> args)
 		CommandLine cmd(args);
 		commandline = &cmd;
 
-		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo();
-		if (info.showHelp || info.gameRootFolder.empty()) {
+		if (commandline->HasArg("-h", "--help"))
+		{
 			std::cout << "SurrealEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]\n";
-		} else {
-			Engine engine(info);
-			engine.Run();
+			return 0;
 		}
+
+		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(LauncherWindow::ExecModal());
+		Engine engine(info);
+		engine.Run();
 	}
 	catch (const std::exception& e)
 	{

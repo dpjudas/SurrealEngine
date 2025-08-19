@@ -13,7 +13,7 @@ struct GameLaunchInfo;
 class PlayGamePage : public Widget
 {
 public:
-	PlayGamePage(LauncherWindow* launcher, const Array<GameLaunchInfo>& games);
+	PlayGamePage(LauncherWindow* launcher);
 
 #if defined(EXTRAARGS)
 	void SetExtraArgs(const std::string& args);
@@ -21,6 +21,7 @@ public:
 #endif
 
 	int GetSelectedGame();
+	void UpdateList();
 
 private:
 	void OnGeometryChanged() override;

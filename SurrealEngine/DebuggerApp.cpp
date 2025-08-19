@@ -17,6 +17,7 @@
 #include "Commandlet/VM/PrintCommandlet.h"
 #include "Commandlet/VM/StepCommandlet.h"
 #include "UI/WidgetResourceData.h"
+#include "UI/Launcher/LauncherWindow.h"
 #include "VM/Frame.h"
 #include "Utils/UTF16.h"
 #include <zwidget/core/theme.h>
@@ -39,21 +40,39 @@ int DebuggerApp::Main(Array<std::string> args)
 
 	WriteOutput(ColorEscape(96) + "Welcome to the Surreal Engine debugger!" + ResetEscape() + NewLine());
 	WriteOutput(NewLine());
-	WriteOutput("Type " + ColorEscape(92) + "help" + ResetEscape() + " for a list of commands" + NewLine());
-	WriteOutput(NewLine());
 
 	CreateCommandlets();
 
 	CommandLine cmd(args);
 	commandline = &cmd;
 
-	launchinfo = GameFolderSelection::GetLaunchInfo();
+	WriteOutput("Please select a game:" + NewLine() + NewLine());
+	GameFolderSelection::UpdateList();
+	int index = 1;
+	for (const GameLaunchInfo& info : GameFolderSelection::Games)
+	{
+		WriteOutput(ColorEscape(92) + std::to_string(index++) + ResetEscape() + " - " + info.gameName + NewLine());
+	}
+	WriteOutput(ColorEscape(92) + std::to_string(index++) + ResetEscape() + " - Show launcher" + NewLine());
+	WriteOutput(NewLine());
+	int result = std::atoi(GetInput().c_str()) - 1;
+	if (result < 0)
+		return 0;
+	if (result >= (int)GameFolderSelection::Games.size())
+		result = LauncherWindow::ExecModal();
+
+	launchinfo = GameFolderSelection::GetLaunchInfo(result);
 	if (launchinfo.gameRootFolder.empty())
 	{
 		WriteOutput(ColorEscape(91) + "No game found!" + ResetEscape() + NewLine() + NewLine());
 	}
 	else
 	{
+		WriteOutput("Using " + ColorEscape(96) + launchinfo.gameName + ResetEscape() + NewLine());
+		WriteOutput(NewLine());
+		WriteOutput("Type " + ColorEscape(92) + "help" + ResetEscape() + " for a list of commands" + NewLine());
+		WriteOutput(NewLine());
+
 		Frame::RunDebugger = [this]() { FrameDebugBreak(); };
 
 		Engine engine(launchinfo);
@@ -175,12 +194,17 @@ void DebuggerApp::EndPrompt()
 
 std::string DebuggerApp::GetInput()
 {
+	bool oldInCommandlet = InCommandlet;
+	InCommandlet = true;
+
 	WritePrompt();
 	while (cmdline.size() == 0)
 	{
 		WaitForInput();
 		Tick();
 	}
+
+	InCommandlet = oldInCommandlet;
 	return std::move(cmdline);
 }
 

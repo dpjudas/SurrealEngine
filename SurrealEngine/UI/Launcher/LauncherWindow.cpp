@@ -8,13 +8,13 @@
 #include <zwidget/window/window.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
 
-int LauncherWindow::ExecModal(const Array<GameLaunchInfo>& games)
+int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 676.0;
 	double windowHeight = 770.0;
 
-	auto launcher = std::make_unique<LauncherWindow>(games);
+	auto launcher = std::make_unique<LauncherWindow>();
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
 	launcher->Show();
 
@@ -23,7 +23,7 @@ int LauncherWindow::ExecModal(const Array<GameLaunchInfo>& games)
 	return launcher->ExecResult;
 }
 
-LauncherWindow::LauncherWindow(const Array<GameLaunchInfo>& games) : Widget(nullptr, WidgetType::Window)
+LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 {
 	SetWindowTitle("Surreal Engine");
 
@@ -31,7 +31,7 @@ LauncherWindow::LauncherWindow(const Array<GameLaunchInfo>& games) : Widget(null
 	Pages = new TabWidget(this);
 	Buttonbar = new LauncherButtonbar(this);
 
-	PlayGame = new PlayGamePage(this, games);
+	PlayGame = new PlayGamePage(this);
 	Settings = new SettingsPage(this);
 	GameFolders = new GameFoldersPage(this);
 

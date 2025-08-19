@@ -5,21 +5,22 @@
 #include "Utils/UTF16.h"
 #include "UE1GameDatabase.h"
 #include "Utils/CommandLine.h"
-#include "UI/Launcher/LauncherWindow.h"
 #include <filesystem>
 
-GameLaunchInfo GameFolderSelection::GetLaunchInfo()
+Array<GameLaunchInfo> GameFolderSelection::Games;
+
+void GameFolderSelection::UpdateList()
 {
-	Array<GameLaunchInfo> foundGames;
+	Games.clear();
 
 	for (const std::string& folder : commandline->GetItems())
 	{
 		GameLaunchInfo game = ExamineFolder(folder);
 		if (!game.gameName.empty())
-			foundGames.push_back(game);
+			Games.push_back(game);
 	}
 
-	if (foundGames.empty())
+	if (Games.empty())
 	{
 		// Check if we're within an UE1-game System folder.
 		auto p = std::filesystem::current_path();
@@ -27,34 +28,31 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo()
 		{
 			GameLaunchInfo game = ExamineFolder(p.parent_path().string());
 			if (!game.gameName.empty())
-				foundGames.push_back(game);
+				Games.push_back(game);
 		}
 	}
 
-	if (foundGames.empty())
+	if (Games.empty())
 	{
 		for (const std::string& folder : FindGameFolders())
 		{
 			GameLaunchInfo game = ExamineFolder(folder);
 			if (!game.gameName.empty())
-				foundGames.push_back(game);
+				Games.push_back(game);
 		}
 	}
-	
-	GameLaunchInfo info;
-	info.showHelp = commandline->HasArg("-h", "--help");
-	if (!info.showHelp && !foundGames.empty()) {
-		int selectedGame = LauncherWindow::ExecModal(foundGames);
-		if (selectedGame < 0)
-			return {};
-		info = foundGames[selectedGame];
-	}
+}
 
+GameLaunchInfo GameFolderSelection::GetLaunchInfo(int selectedGame)
+{
+	if (selectedGame < 0 || (size_t)selectedGame >= Games.size())
+		return {};
+
+	GameLaunchInfo info = Games[selectedGame];
 	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);
 	info.noEntryMap = commandline->HasArg("-n", "--noentrymap") || info.noEntryMap;
 	info.url = commandline->GetArg("-u", "--url", info.url);
-
 	return info;
 }
 

@@ -13,9 +13,9 @@ struct GameLaunchInfo;
 class LauncherWindow : public Widget
 {
 public:
-	static int ExecModal(const Array<GameLaunchInfo>& games);
+	static int ExecModal();
 
-	LauncherWindow(const Array<GameLaunchInfo>& games);
+	LauncherWindow();
 
 	void Start();
 	void Exit();
