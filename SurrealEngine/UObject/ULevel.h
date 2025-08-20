@@ -21,6 +21,13 @@ enum EBspNodeFlags
 	NF_NotVisBlocking = 4
 };
 
+struct LevelDecal
+{
+	UDecal* Decal = nullptr;
+	vec3 Positions[4];
+	vec2 UVs[4];
+};
+
 class UModel;
 class BspVert;
 class BspNode
@@ -48,6 +55,7 @@ public:
 	BBox GetCollisionBox(UModel* model) const;
 
 	UActor* ActorList = nullptr;
+	Array<LevelDecal> Decals;
 };
 
 class BspSurface
@@ -256,13 +264,6 @@ struct TraceFlags
 	bool traceWorld() const { return world; }
 };
 
-struct LevelDecal
-{
-	UDecal* Decal = nullptr;
-	vec3 Positions[4];
-	vec2 UVs[4];
-};
-
 class ULevel : public ULevelBase
 {
 public:
@@ -280,8 +281,6 @@ public:
 	UModel* Model = nullptr;
 
 	CollisionHash Hash;
-	Array<std::unique_ptr<LevelDecal>> Decals;
-
 	std::map<std::string, std::string> TravelInfo;
 
 private:

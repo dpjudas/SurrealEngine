@@ -64,7 +64,6 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Device->SetSceneNode(&Scene.Frame);
 	for (const DrawNodeInfo& nodeInfo : Scene.OpaqueNodes)
 		DrawNodeSurface(nodeInfo);
-	DrawDecals(&Scene.Frame);
 	DrawActors();
 	// Draw transparent surfaces last
 	for (auto it = Scene.TranslucentNodes.rbegin(); it != Scene.TranslucentNodes.rend(); ++it)
@@ -182,6 +181,8 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
 
 	Device->DrawComplexSurface(&Scene.Frame, surfaceinfo, facet);
+
+	DrawDecals(&Scene.Frame, node);
 }
 
 int RenderSubsystem::FindZoneAt(const vec3& location)

@@ -2626,13 +2626,15 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 		dirNormalized = normalize(decalDir);
 	}
 
-	CollisionHitList hits = XLevel()->Model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	UModel* model = XLevel()->Model;
+	CollisionHitList hits = model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	// Do not attempt to create a decal if we hit a surface that's invisible or a fake backdrop
 	auto& hit = hits.front();
-	if (hit.Node && (XLevel()->Model->Surfaces[hit.Node->Surf].PolyFlags & PF_FakeBackdrop 
-		|| XLevel()->Model->Surfaces[hit.Node->Surf].PolyFlags & PF_Invisible))
+	if (!hit.Node ||
+		model->Surfaces[hit.Node->Surf].PolyFlags & PF_FakeBackdrop ||
+		model->Surfaces[hit.Node->Surf].PolyFlags & PF_Invisible)
 		return nullptr;
 
 	vec3 N = hit.Normal;
@@ -2645,35 +2647,48 @@ UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
 	xdir *= DrawScale() * usize * 0.5f;
 	ydir *= DrawScale() * vsize * 0.5f;
 
-	// To do: clip this to model surfaces
+	LevelDecal leveldecal;
+	leveldecal.Decal = this;
 
-	auto leveldecal = std::make_unique<LevelDecal>();
-	leveldecal->Decal = this;
-	leveldecal->Positions[0] = pos - xdir - ydir;
-	leveldecal->Positions[1] = pos + xdir - ydir;
-	leveldecal->Positions[2] = pos + xdir + ydir;
-	leveldecal->Positions[3] = pos - xdir + ydir;
-	leveldecal->UVs[0] = vec2(0.0f, 0.0f);
-	leveldecal->UVs[1] = vec2(usize, 0.0f);
-	leveldecal->UVs[2] = vec2(usize, vsize);
-	leveldecal->UVs[3] = vec2(0.0f, vsize);
-	XLevel()->Decals.push_back(std::move(leveldecal));
+	// To do: clip this to bsp node shape
+
+	//BspVert* v = &model->Vertices[hit.Node->VertPool];
+	//for (int j = 0; j < hit.Node->NumVertices; j++)
+	//{
+	//	vec3 vertex = model->Points[v[j].Vertex];
+	//}
+
+	leveldecal.Positions[0] = pos - xdir - ydir;
+	leveldecal.Positions[1] = pos + xdir - ydir;
+	leveldecal.Positions[2] = pos + xdir + ydir;
+	leveldecal.Positions[3] = pos - xdir + ydir;
+	leveldecal.UVs[0] = vec2(0.0f, 0.0f);
+	leveldecal.UVs[1] = vec2(usize, 0.0f);
+	leveldecal.UVs[2] = vec2(usize, vsize);
+	leveldecal.UVs[3] = vec2(0.0f, vsize);
+
+	hit.Node->Decals.push_back(leveldecal);
+	Nodes.push_back(hit.Node);
 
 	return Level();
 }
 
 void UDecal::DetachDecal()
 {
-	auto& decals = XLevel()->Decals;
-	auto it = decals.begin();
-	while (it != decals.end())
+	for (BspNode* node : Nodes)
 	{
-		auto& leveldecal = *it;
-		if (leveldecal->Decal == this)
-			it = decals.erase(it);
-		else
-			++it;
+		auto& decals = node->Decals;
+		auto it = decals.begin();
+		while (it != decals.end())
+		{
+			auto& leveldecal = *it;
+			if (leveldecal.Decal == this)
+				it = decals.erase(it);
+			else
+				++it;
+		}
 	}
+	Nodes.clear();
 }
 
 /////////////////////////////////////////////////////////////////////////////

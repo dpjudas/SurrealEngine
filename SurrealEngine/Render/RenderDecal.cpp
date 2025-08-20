@@ -4,15 +4,15 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 
-void RenderSubsystem::DrawDecals(FSceneNode* frame)
+void RenderSubsystem::DrawDecals(FSceneNode* frame, BspNode* node)
 {
-	for (auto& leveldecal : engine->Level->Decals)
+	for (auto& leveldecal : node->Decals)
 	{
-		if (leveldecal->Decal->Texture())
+		if (leveldecal.Decal->Texture())
 		{
-			UpdateTexture(leveldecal->Decal->Texture());
+			UpdateTexture(leveldecal.Decal->Texture());
 
-			UTexture* texture = leveldecal->Decal->Texture()->GetAnimTexture();
+			UTexture* texture = leveldecal.Decal->Texture()->GetAnimTexture();
 			UpdateTexture(texture);
 
 			FTextureInfo texinfo;
@@ -30,8 +30,8 @@ void RenderSubsystem::DrawDecals(FSceneNode* frame)
 			for (int i = 0; i < 4; i++)
 			{
 				points[i].Light = vec3(1.0f);
-				points[i].Point = leveldecal->Positions[i];
-				points[i].UV = leveldecal->UVs[i];
+				points[i].Point = leveldecal.Positions[i];
+				points[i].UV = leveldecal.UVs[i];
 			}
 
 			/*int style = leveldecal->Decal->Style();

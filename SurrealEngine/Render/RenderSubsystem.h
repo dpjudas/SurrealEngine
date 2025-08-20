@@ -92,7 +92,7 @@ private:
 
 	void DrawSprite(FSceneNode* frame, UActor* actor);
 	void DrawCoronas(FSceneNode* frame);
-	void DrawDecals(FSceneNode* frame);
+	void DrawDecals(FSceneNode* frame, BspNode* node);
 
 	RenderDevice* Device = nullptr;
 

@@ -508,6 +508,8 @@ public:
 	float& LastRenderedTime() { return Value<float>(PropOffsets_Decal.LastRenderedTime); }
 	int& MultiDecalLevel() { return Value<int>(PropOffsets_Decal.MultiDecalLevel); }
 	Array<void*>& SurfList() { return Value<Array<void*>>(PropOffsets_Decal.SurfList); }
+
+	Array<BspNode*> Nodes;
 };
 
 class USpawnNotify : public UActor
