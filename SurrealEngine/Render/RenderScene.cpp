@@ -5,6 +5,7 @@
 #include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
+#include <ranges>
 
 void RenderSubsystem::DrawScene()
 {
@@ -55,19 +56,54 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.ViewZoneMask = Scene.ViewZone ? 1ULL << Scene.ViewZone : -1;
 	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
-	Scene.TranslucentNodes.clear();
-	Scene.Actors.clear();
+	//Scene.TranslucentNodes.clear();
+	Scene.TranslucentNodesAndActors.clear();
+	//Scene.Actors.clear();
 	Scene.Coronas.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
 	Scene.FrameCounter++;
 	ProcessNode(&engine->Level->Model->Nodes[0]);
+	ProcessTranslucentNodesAndActors();
 
 	Device->SetSceneNode(&Scene.Frame);
 	for (const DrawNodeInfo& nodeInfo : Scene.OpaqueNodes)
 		DrawNodeSurface(nodeInfo);
-	DrawActors();
+
+	for (auto& info : Scene.TranslucentNodesAndActors)
+	{
+		if (info.Actor)
+		{
+			EDrawType dt = (EDrawType)info.Actor->DrawType();
+			if (dt == DT_Mesh && info.Actor->Mesh())
+			{
+				DrawMesh(&Scene.Frame, info.Actor);
+			}
+			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (info.Actor->Texture()))
+			{
+				DrawSprite(&Scene.Frame, info.Actor);
+			}
+			else if (dt == DT_Brush && info.Actor->Brush())
+			{
+				DrawBrush(&Scene.Frame, info.Actor);
+			}
+		}
+		else
+			DrawNodeSurface(info.TranslucentNodeInfo);
+	}
+	//DrawActors();
 	// Draw transparent surfaces last
-	for (auto it = Scene.TranslucentNodes.rbegin(); it != Scene.TranslucentNodes.rend(); ++it)
-		DrawNodeSurface(*it);
+	/*for (auto it = Scene.TranslucentNodes.rbegin(); it != Scene.TranslucentNodes.rend(); ++it)
+		DrawNodeSurface(*it);*/
+}
+
+void RenderSubsystem::ProcessTranslucentNodesAndActors()
+{
+	std::ranges::sort(Scene.TranslucentNodesAndActors,
+	[&](const TranslucentNodeAndActorInfo& info1, const TranslucentNodeAndActorInfo& info2)
+		{
+		  return length(Scene.ViewLocation - vec4(info1.Location(), 1.0f))
+		      > length(Scene.ViewLocation - vec4(info2.Location(), 1.0f));
+		}
+	);
 }
 
 void RenderSubsystem::DrawActors()
@@ -248,12 +284,20 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (Scene.Clipper.IsAABBVisible(bbox))
 					{
-						Scene.Actors.push_back(actor);
+						//Scene.Actors.push_back(actor);
+						Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{
+								.Actor = actor
+							}
+						);
 					}
 				}
 				else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
 				{
-					Scene.Actors.push_back(actor);
+					//Scene.Actors.push_back(actor);
+					Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{
+							.Actor = actor
+						}
+					);
 				}
 				else if (dt == DT_Brush && actor->Brush())
 				{
@@ -266,7 +310,11 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (brush->Nodes.size() > 0 && Scene.Clipper.IsAABBVisible(bbox))
 					{
-						Scene.Actors.push_back(actor);
+						//Scene.Actors.push_back(actor);
+						Scene.TranslucentNodesAndActors.push_back( TranslucentNodeAndActorInfo {
+								.Actor = actor
+							}
+						);
 					}
 				}
 			}
@@ -359,7 +407,12 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 	}
 	else
 	{
-		Scene.TranslucentNodes.push_back(info);
+		//Scene.TranslucentNodes.push_back(info);
+		Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{
+				.Actor = nullptr,
+				.TranslucentNodeInfo = info
+			}
+		);
 	}
 }
 
