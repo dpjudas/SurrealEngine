@@ -553,7 +553,7 @@ void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 
 void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)
 {
-	Self->GotoState(NewState ? *NewState : std::string(), Label ? *Label : std::string());
+	Self->GotoState(NewState ? *NewState : Self->GetStateName(), Label ? *Label : std::string());
 }
 
 void NObject::GreaterEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
