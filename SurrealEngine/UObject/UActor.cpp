@@ -2698,7 +2698,7 @@ UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 					vec2 uvNext = uvs[(i + 1) % vertCount];
 
 					// Ray/plane intersection
-					float t = (plane.w - dot(vec4(p, 1.0f), plane)) / dot(vec4(pNext - p, 1.0f), plane);
+					float t = -dot(vec4(p, 1.0f), plane) / dot(plane.xyz(), pNext - p);
 					vec3 pInsert = mix(p, pNext, t);
 					vec2 uvInsert = mix(uv, uvNext, t);
 
