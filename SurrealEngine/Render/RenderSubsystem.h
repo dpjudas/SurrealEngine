@@ -7,6 +7,7 @@
 #include "UObject/UClient.h"
 #include "RenderDevice/RenderDevice.h"
 #include "BspClipper.h"
+#include "Engine.h"
 #include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
@@ -15,6 +16,27 @@ struct DrawNodeInfo
 {
 	BspNode* Node;
 	uint32_t PolyFlags;
+};
+
+// Used for sorting translucent/masked BSP nodes and Actors by the distance to the camera
+struct TranslucentNodeAndActorInfo
+{
+	UActor* Actor;
+	DrawNodeInfo TranslucentNodeInfo;
+
+	[[nodiscard]] vec3 Location() const
+	{
+		if (Actor)
+			return Actor->Location();
+		else
+		{
+			UModel* model = engine->Level->Model;
+			const BspNode* node = TranslucentNodeInfo.Node;
+			const BspSurface& surface = model->Surfaces[node->Surf];
+
+			return model->Points[surface.pBase];
+		}
+	}
 };
 
 struct LightmapTexture
@@ -55,6 +77,7 @@ private:
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
 	void ProcessNode(BspNode* node);
 	void ProcessNodeSurface(BspNode* node);
+	void ProcessTranslucentNodesAndActors();
 	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
 	void DrawActors();
 	void SetupSceneFrame(const mat4& worldToView);
@@ -127,6 +150,7 @@ private:
 		uint64_t ViewZoneMask = 0;
 		Array<DrawNodeInfo> OpaqueNodes;
 		Array<DrawNodeInfo> TranslucentNodes;
+		Array<TranslucentNodeAndActorInfo> TranslucentNodesAndActors;
 		Array<UActor*> Coronas;
 		Array<UActor*> Actors;
 		int FrameCounter = 0;
