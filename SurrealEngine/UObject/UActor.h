@@ -502,7 +502,7 @@ class UDecal : public UActor
 public:
 	using UActor::UActor;
 
-	UObject* AttachDecal(float traceDistance, const vec3& decalDir);
+	UObject* AttachDecal(float traceDistance, vec3 decalDir);
 	void DetachDecal();
 
 	float& LastRenderedTime() { return Value<float>(PropOffsets_Decal.LastRenderedTime); }

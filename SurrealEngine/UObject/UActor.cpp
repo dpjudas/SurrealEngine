@@ -2608,39 +2608,41 @@ void ULevelInfo::UpdateActorZone()
 
 /////////////////////////////////////////////////////////////////////////////
 
-UObject* UDecal::AttachDecal(float traceDistance, const vec3& decalDir)
+UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 {
 	if (!Texture())
 		return nullptr;
 
-	vec3 dirNormalized;
-	if (dot(decalDir, decalDir) < 0.01f)
-	{
-		dirNormalized = normalize(vec3(
-			(float)(std::rand() / (double)RAND_MAX),
-			(float)(std::rand() / (double)RAND_MAX),
-			(float)(std::rand() / (double)RAND_MAX)));
-	}
-	else
-	{
-		dirNormalized = normalize(decalDir);
-	}
+	vec3 traceDirection = -Coords::Rotation(Rotation()).XAxis;
 
 	UModel* model = XLevel()->Model;
-	CollisionHitList hits = model->TraceRay(to_dvec3(Location()), 0.1f, to_dvec3(dirNormalized), traceDistance, false);
+	CollisionHitList hits = model->TraceRay(to_dvec3(Location()), 0.0f, to_dvec3(traceDirection), traceDistance, false);
 	if (hits.empty()) return nullptr;
 
 	// Do not attempt to create a decal if we hit a surface that's invisible or a fake backdrop
 	auto& hit = hits.front();
-	if (!hit.Node ||
-		model->Surfaces[hit.Node->Surf].PolyFlags & PF_FakeBackdrop ||
-		model->Surfaces[hit.Node->Surf].PolyFlags & PF_Invisible)
+	if (!hit.Node || (model->Surfaces[hit.Node->Surf].PolyFlags & (PF_FakeBackdrop | PF_Invisible)) != 0)
 		return nullptr;
 
 	vec3 N = hit.Normal;
-	vec3 xdir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
+	vec3 pos = Location() + traceDirection * hit.Fraction + N;
+
+	if (dot(decalDir, decalDir) < 0.01f) // decalDir specifies which direction the decal texture faces. If its zero use a random direction
+	{
+		vec3 randomDir;
+		while (true)
+		{
+			randomDir = vec3((float)(std::rand() / (double)RAND_MAX), (float)(std::rand() / (double)RAND_MAX), (float)(std::rand() / (double)RAND_MAX)) * 2.0f - 1.0f;
+			if (dot(randomDir, randomDir) >= 1.0f)
+				break;
+		}
+		decalDir = normalize(randomDir);
+	}
+
+	vec3 xdir = decalDir - dot(decalDir, N) * N;
+	if (dot(xdir, xdir) < 0.01f)
+		xdir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
 	vec3 ydir = cross(N, xdir);
-	vec3 pos = Location() + dirNormalized * hit.Fraction + N;
 
 	float usize = (float)Texture()->USize();
 	float vsize = (float)Texture()->VSize();
