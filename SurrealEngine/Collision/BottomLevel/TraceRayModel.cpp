@@ -27,7 +27,7 @@ void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNorm
 			double t = NodeRayIntersect(origin, tmin, dirNormalized, tmax, polynode);
 			if (t >= tmin && t < tmax)
 			{
-				CollisionHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr, polynode };
+				CollisionHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr, polynode, node };
 				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
 					hit.Normal = -hit.Normal;
 				hits.push_back(hit);

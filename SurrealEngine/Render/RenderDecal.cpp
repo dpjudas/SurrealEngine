@@ -26,11 +26,14 @@ void RenderSubsystem::DrawDecals(FSceneNode* frame, BspNode* node)
 			if (texinfo.Texture->Palette())
 				texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
 
-			GouraudVertex points[4];
-			for (int i = 0; i < 4; i++)
+			vec3 N(node->PlaneX, node->PlaneY, node->PlaneZ);
+
+			int count = (int)leveldecal.Positions.size();
+			GouraudVertex* points = GetTempGouraudVertexBuffer(count);
+			for (int i = 0; i < count; i++)
 			{
 				points[i].Light = vec3(1.0f);
-				points[i].Point = leveldecal.Positions[i];
+				points[i].Point = leveldecal.Positions[i] + N;
 				points[i].UV = leveldecal.UVs[i];
 			}
 
@@ -45,7 +48,7 @@ void RenderSubsystem::DrawDecals(FSceneNode* frame, BspNode* node)
 			if (texture->bMasked())
 				renderflags |= PF_Masked;*/
 
-			Device->DrawGouraudPolygon(frame, texinfo, points, 4, PF_Modulated);
+			Device->DrawGouraudPolygon(frame, texinfo, points, count, PF_Modulated);
 		}
 	}
 }

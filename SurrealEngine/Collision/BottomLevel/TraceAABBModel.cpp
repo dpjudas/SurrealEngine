@@ -92,7 +92,7 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 			double t = cursor.HitFraction();
 			if (t >= tmin && t < tmax)
 			{
-				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr, node };
+				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr, node, node };
 				hits.push_back(hit);
 			}
 		}

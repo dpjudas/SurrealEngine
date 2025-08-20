@@ -142,11 +142,19 @@ private:
 	} Light;
 
 	Array<vec3> VertexBuffer;
+	Array<GouraudVertex> GouraudVertexBuffer;
 
 	vec3* GetTempVertexBuffer(size_t count)
 	{
 		if (VertexBuffer.size() < count)
 			VertexBuffer.resize(count);
 		return VertexBuffer.data();
+	}
+
+	GouraudVertex* GetTempGouraudVertexBuffer(size_t count)
+	{
+		if (GouraudVertexBuffer.size() < count)
+			GouraudVertexBuffer.resize(count);
+		return GouraudVertexBuffer.data();
 	}
 };

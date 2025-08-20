@@ -38,7 +38,7 @@ CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& lo
 								if (Level->Hash.CylinderActorOverlap(dlocation, dheight, dradius, actor))
 								{
 									vec3 normal(0.0f); // To do: do we need the normal for contact tests?
-									hits.push_back({ 0.0f, normal, actor, nullptr });
+									hits.push_back({ 0.0f, normal, actor, nullptr, nullptr });
 								}
 							}
 						}

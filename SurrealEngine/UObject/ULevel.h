@@ -24,8 +24,8 @@ enum EBspNodeFlags
 struct LevelDecal
 {
 	UDecal* Decal = nullptr;
-	vec3 Positions[4];
-	vec2 UVs[4];
+	Array<vec3> Positions;
+	Array<vec2> UVs;
 };
 
 class UModel;

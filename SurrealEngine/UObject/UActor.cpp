@@ -1188,7 +1188,7 @@ void UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dv
 	if (t < tmax)
 	{
 		dvec3 hitpos = origin + direction * t;
-		hits.push_back({ (float)t, normalize(to_vec3(hitpos) - Location()), this, nullptr });
+		hits.push_back({ (float)t, normalize(to_vec3(hitpos) - Location()), this, nullptr, nullptr });
 	}
 }
 
@@ -2625,7 +2625,7 @@ UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 		return nullptr;
 
 	vec3 N = hit.Normal;
-	vec3 pos = Location() + traceDirection * hit.Fraction + N;
+	vec3 pos = Location() + traceDirection * hit.Fraction;
 
 	if (dot(decalDir, decalDir) < 0.01f) // decalDir specifies which direction the decal texture faces. If its zero use a random direction
 	{
@@ -2649,28 +2649,99 @@ UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 	xdir *= DrawScale() * usize * 0.5f;
 	ydir *= DrawScale() * vsize * 0.5f;
 
-	LevelDecal leveldecal;
-	leveldecal.Decal = this;
+	static Array<vec3> positions;
+	static Array<vec2> uvs;
+	static Array<float> edgeDistances;
 
-	// To do: clip this to bsp node shape
+	// Walk all nodes in the same plane
+	BspNode* polynode = hit.NodeHead;
+	while (true)
+	{
+		positions.clear();
+		uvs.clear();
 
-	//BspVert* v = &model->Vertices[hit.Node->VertPool];
-	//for (int j = 0; j < hit.Node->NumVertices; j++)
-	//{
-	//	vec3 vertex = model->Points[v[j].Vertex];
-	//}
+		// Place decal on the surface plane
+		positions.push_back(pos - xdir - ydir);
+		positions.push_back(pos + xdir - ydir);
+		positions.push_back(pos + xdir + ydir);
+		positions.push_back(pos - xdir + ydir);
+		uvs.push_back({ 0.0f, 0.0f });
+		uvs.push_back({ usize, 0.0f });
+		uvs.push_back({ usize, vsize });
+		uvs.push_back({ 0.0f, vsize });
 
-	leveldecal.Positions[0] = pos - xdir - ydir;
-	leveldecal.Positions[1] = pos + xdir - ydir;
-	leveldecal.Positions[2] = pos + xdir + ydir;
-	leveldecal.Positions[3] = pos - xdir + ydir;
-	leveldecal.UVs[0] = vec2(0.0f, 0.0f);
-	leveldecal.UVs[1] = vec2(usize, 0.0f);
-	leveldecal.UVs[2] = vec2(usize, vsize);
-	leveldecal.UVs[3] = vec2(0.0f, vsize);
+		// Clip to BSP node shape
+		int vertCount = (int)positions.size();
+		BspVert* v = &model->Vertices[polynode->VertPool];
+		for (int j = 0; j < polynode->NumVertices; j++)
+		{
+			const vec3& edgeStart = model->Points[v[j > 0 ? j - 1 : polynode->NumVertices - 1].Vertex];
+			const vec3& edgeEnd = model->Points[v[j].Vertex];
+			vec3 planeN = cross(N, edgeEnd - edgeStart); // Note: not normalized as we don't need it
+			vec4 plane(planeN, -dot(edgeEnd, planeN));
 
-	hit.Node->Decals.push_back(leveldecal);
-	Nodes.push_back(hit.Node);
+			// Find vertex distances to edge plane
+			edgeDistances.clear();
+			for (int i = 0; i < vertCount; i++)
+				edgeDistances.push_back(dot(plane, vec4(positions[i], 1.0f)));
+
+			// Insert points at the edge for any line crossing the plane
+			for (int i = 0; i < vertCount; i++)
+			{
+				float dist = edgeDistances[i];
+				float distNext = edgeDistances[(i + 1) % vertCount];
+				if ((dist > 0.0f && distNext < 0.0f) || (distNext > 0.0f && dist < 0.0f))
+				{
+					vec3 p = positions[i];
+					vec3 pNext = positions[(i + 1) % vertCount];
+					vec2 uv = uvs[i];
+					vec2 uvNext = uvs[(i + 1) % vertCount];
+
+					// Ray/plane intersection
+					float t = (plane.w - dot(vec4(p, 1.0f), plane)) / dot(vec4(pNext - p, 1.0f), plane);
+					vec3 pInsert = mix(p, pNext, t);
+					vec2 uvInsert = mix(uv, uvNext, t);
+
+					int insertAt = i + 1;
+					positions.insert(positions.begin() + insertAt, pInsert);
+					uvs.insert(uvs.begin() + insertAt, uvInsert);
+					edgeDistances.insert(edgeDistances.begin() + insertAt, 0.0f);
+					vertCount++;
+				}
+			}
+
+			// Remove points outside
+			int i = 0;
+			while (i < vertCount)
+			{
+				if (edgeDistances[i] < 0.0f)
+				{
+					positions.erase(positions.begin() + i);
+					uvs.erase(uvs.begin() + i);
+					edgeDistances.erase(edgeDistances.begin() + i);
+					vertCount--;
+				}
+				else
+				{
+					i++;
+				}
+			}
+		}
+
+		// Add to decals list if we still got anything left to render
+		if (!positions.empty())
+		{
+			LevelDecal leveldecal;
+			leveldecal.Decal = this;
+			leveldecal.Positions = positions;
+			leveldecal.UVs = uvs;
+			polynode->Decals.push_back(leveldecal);
+			Nodes.push_back(polynode);
+		}
+
+		if (polynode->Plane < 0) break;
+		polynode = &model->Nodes[polynode->Plane];
+	}
 
 	return Level();
 }

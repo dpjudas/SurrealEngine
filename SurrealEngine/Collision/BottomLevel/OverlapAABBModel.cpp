@@ -50,7 +50,7 @@ void OverlapAABBModel::TestOverlap(const dvec3& center, const dvec3& extents, bo
 			if (!foundOutside)
 			{
 				vec3 normal(0.0f);
-				hits.push_back({ 0.0f, normal, nullptr, node });
+				hits.push_back({ 0.0f, normal, nullptr, node, node });
 			}
 		}
 	}

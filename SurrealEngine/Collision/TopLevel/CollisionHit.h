@@ -9,12 +9,13 @@ class CollisionHit
 {
 public:
 	CollisionHit() = default;
-	CollisionHit(float fraction, vec3 normal, UActor* actor, BspNode* node) : Fraction(fraction), Normal(normal), Actor(actor), Node(node) { }
+	CollisionHit(float fraction, vec3 normal, UActor* actor, BspNode* node, BspNode* nodeHead) : Fraction(fraction), Normal(normal), Actor(actor), Node(node), NodeHead(nodeHead) { }
 
 	float Fraction = 1.0;
 	vec3 Normal = vec3(0.0);
 	UActor* Actor = nullptr;
 	BspNode* Node = nullptr;
+	BspNode* NodeHead = nullptr;
 };
 
 class CollisionHitList
