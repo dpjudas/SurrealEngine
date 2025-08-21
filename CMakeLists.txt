@@ -278,12 +278,11 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/TopLevel/CollisionSystem.cpp
 	SurrealEngine/Collision/TopLevel/CollisionSystem.h
 	SurrealEngine/Collision/TopLevel/CollisionHit.h
-	SurrealEngine/Collision/TopLevel/TraceRayLevel.cpp
-	SurrealEngine/Collision/TopLevel/TraceRayLevel.h
-	SurrealEngine/Collision/TopLevel/TraceCylinderLevel.cpp
-	SurrealEngine/Collision/TopLevel/TraceCylinderLevel.h
-	SurrealEngine/Collision/TopLevel/OverlapCylinderLevel.cpp
-	SurrealEngine/Collision/TopLevel/OverlapCylinderLevel.h
+	SurrealEngine/Collision/TopLevel/CollisionTest.h
+	SurrealEngine/Collision/TopLevel/TraceTest.cpp
+	SurrealEngine/Collision/TopLevel/TraceTest.h
+	SurrealEngine/Collision/TopLevel/OverlapTest.cpp
+	SurrealEngine/Collision/TopLevel/OverlapTest.h
 	SurrealEngine/Collision/BottomLevel/TraceRayModel.cpp
 	SurrealEngine/Collision/BottomLevel/TraceRayModel.h
 	SurrealEngine/Collision/BottomLevel/TraceAABBModel.cpp

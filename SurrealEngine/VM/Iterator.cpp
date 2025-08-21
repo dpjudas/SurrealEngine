@@ -6,7 +6,6 @@
 #include "Package/PackageManager.h"
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
-#include "Collision/TopLevel/OverlapCylinderLevel.h"
 
 AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
 {
