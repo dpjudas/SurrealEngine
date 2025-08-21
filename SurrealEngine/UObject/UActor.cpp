@@ -2679,13 +2679,15 @@ UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 			if (dot(randomDir, randomDir) >= 1.0f)
 				break;
 		}
-		decalDir = normalize(randomDir);
+		decalDir = randomDir;
 	}
 
-	vec3 xdir = decalDir - dot(decalDir, N) * N;
-	if (dot(xdir, xdir) < 0.01f)
-		xdir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
-	vec3 ydir = cross(N, xdir);
+	vec3 ydir = -(decalDir - dot(decalDir, N) * N);
+	if (dot(ydir, ydir) < 0.01f)
+		ydir = normalize(cross(N, std::abs(N.x) > std::abs(N.y) ? vec3(0.0f, 1.0f, 0.0f) : vec3(1.0f, 0.0f, 0.0f)));
+	else
+		ydir = normalize(ydir);
+	vec3 xdir = cross(N, ydir);
 
 	float usize = (float)Texture()->USize();
 	float vsize = (float)Texture()->VSize();
