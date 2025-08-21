@@ -18,13 +18,13 @@ bool CollisionSystem::IsOverlapping(UActor* actor1, UActor* actor2)
 
 CollisionHitList CollisionSystem::OverlapTest(UActor* actor)
 {
-	return OverlapTest(actor->XLevel(), actor->Location(), actor->CollisionHeight(), actor->CollisionRadius(), true, false, false);
+	return OverlapTest(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius(), true, false, false);
 }
 
-CollisionHitList CollisionSystem::OverlapTest(ULevel* level, const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly)
+CollisionHitList CollisionSystem::OverlapTest(const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly)
 {
 	OverlapCylinderLevel overlap;
-	return overlap.TestOverlap(level, location, height, radius, false, true, false);
+	return overlap.TestOverlap(Level, location, height, radius, false, true, false);
 }
 
 void CollisionSystem::TraceTest(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits)

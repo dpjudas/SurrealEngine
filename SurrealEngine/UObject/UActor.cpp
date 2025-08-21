@@ -187,7 +187,7 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 			for (int x = 0; x < 3 && !found; x++)
 			{
 				vec3 testlocation = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
-				CollisionHitList hits = XLevel()->Collision.OverlapTest(XLevel(), testlocation, height, radius, false, true, false);
+				CollisionHitList hits = XLevel()->Collision.OverlapTest(testlocation, height, radius, false, true, false);
 				if (hits.empty())
 				{
 					location = testlocation;

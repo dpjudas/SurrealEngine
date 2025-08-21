@@ -29,7 +29,7 @@ public:
 
 	bool IsOverlapping(UActor* actor1, UActor* actor2);
 	CollisionHitList OverlapTest(UActor* actor);
-	CollisionHitList OverlapTest(ULevel* level, const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly);
+	CollisionHitList OverlapTest(const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly);
 
 	void TraceTest(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits);
 	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
