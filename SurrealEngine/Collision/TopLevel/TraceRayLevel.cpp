@@ -43,7 +43,7 @@ bool TraceRayLevel::TraceAnyHit(ULevel* level, vec3 from, vec3 to, UActor* traci
 							{
 								if (actor != tracingActor && actor->bBlockActors())
 								{
-									actor->TraceTest(level, origin, tmin, direction, tmax, 0.0, 0.0, hits);
+									level->Collision.TraceTest(actor, origin, tmin, direction, tmax, 0.0, 0.0, hits);
 									if (!hits.empty())
 										return true;
 								}

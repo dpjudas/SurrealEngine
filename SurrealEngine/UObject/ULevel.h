@@ -194,7 +194,6 @@ public:
 	using UPrimitive::UPrimitive;
 	void Load(ObjectStream* stream) override;
 
-	CollisionHitList TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
 
 	PointRegion FindRegion(const vec3& point, UZoneInfo* levelZoneInfo);
 
@@ -262,31 +261,13 @@ public:
 	std::string Portal;
 };
 
-struct TraceFlags
-{
-	bool pawns = false;
-	bool movers = false;
-	bool others = false;
-	bool world = false;
-	bool zoneChanges = false;
-	bool onlyProjectiles = false;
-
-	bool traceActors() const { return pawns || movers || others || zoneChanges || onlyProjectiles; }
-	bool traceWorld() const { return world; }
-};
-
 class ULevel : public ULevelBase
 {
 public:
-	using ULevelBase::ULevelBase;
+	ULevel(NameString name, UClass* base, ObjectFlags flags);
 	void Load(ObjectStream* stream) override;
 
 	void Tick(float elapsed);
-
-	CollisionHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
-	CollisionHitList Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
-
-	bool TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
 
 	Array<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;

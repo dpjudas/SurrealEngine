@@ -4,19 +4,52 @@
 #include <unordered_map>
 #include <list>
 
+class ULevel;
 class UActor;
+class CollisionHitList;
+class CollisionHit;
+
+struct TraceFlags
+{
+	bool pawns = false;
+	bool movers = false;
+	bool others = false;
+	bool world = false;
+	bool zoneChanges = false;
+	bool onlyProjectiles = false;
+
+	bool traceActors() const { return pawns || movers || others || zoneChanges || onlyProjectiles; }
+	bool traceWorld() const { return world; }
+};
 
 class CollisionSystem
 {
 public:
-	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
+	// To do: Clean this up. Too many functions doing kinda the same with subtle differences.
 
-	void AddToCollision(UActor* actor);
-	void RemoveFromCollision(UActor* actor);
+	bool IsOverlapping(UActor* actor1, UActor* actor2);
+	CollisionHitList OverlapTest(UActor* actor);
+	CollisionHitList OverlapTest(ULevel* level, const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly);
+
+	void TraceTest(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits);
+	bool TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly);
+	CollisionHitList Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly);
+	CollisionHitList TraceDecal(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly);
+	CollisionHit TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags);
 
 	Array<UActor*> CollidingActors(const vec3& origin, float radius);
 	Array<UActor*> CollidingActors(const vec3& origin, float height, float radius);
 	Array<UActor*> EncroachingActors(UActor* actor);
+
+	void SetLevel(ULevel* level);
+	void AddToCollision(UActor* actor);
+	void RemoveFromCollision(UActor* actor);
+
+private: // Important: this is private for a reason. Do not break the separation of concerns by making UObject related stuff peak directly into this!
+	friend class OverlapCylinderLevel;
+	friend class TraceRayLevel;
+	friend class TraceCylinderLevel;
+	friend class CollisionCommandlet;
 
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
 	{
@@ -95,7 +128,6 @@ public:
 	// Cylinder/actor overlap test
 	static bool CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor);
 
-//private:
 	// Ray/sphere hit trace
 	static double RaySphereTrace(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius);
 
@@ -116,4 +148,7 @@ public:
 
 	// Cylinder/cylinder overlap test
 	static bool CylinderCylinderOverlap(const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, const dvec3& cylinderCenterB, double cylinderHeightB, double cylinderRadiusB);
+
+	ULevel* Level = nullptr;
+	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
 };

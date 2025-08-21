@@ -5,6 +5,335 @@
 #include "Math/floating.h"
 #include "Math/coords.h"
 #include "Collision/BottomLevel/OverlapAABBModel.h"
+#include "Collision/BottomLevel/TraceAABBModel.h"
+#include "Collision/BottomLevel/TraceRayModel.h"
+#include "Collision/TopLevel/OverlapCylinderLevel.h"
+#include "Collision/TopLevel/TraceRayLevel.h"
+#include "Collision/TopLevel/TraceCylinderLevel.h"
+
+bool CollisionSystem::IsOverlapping(UActor* actor1, UActor* actor2)
+{
+	return CylinderActorOverlap(to_dvec3(actor1->Location()), actor1->CollisionHeight(), actor1->CollisionRadius(), actor2);
+}
+
+CollisionHitList CollisionSystem::OverlapTest(UActor* actor)
+{
+	return OverlapTest(actor->XLevel(), actor->Location(), actor->CollisionHeight(), actor->CollisionRadius(), true, false, false);
+}
+
+CollisionHitList CollisionSystem::OverlapTest(ULevel* level, const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly)
+{
+	OverlapCylinderLevel overlap;
+	return overlap.TestOverlap(level, location, height, radius, false, true, false);
+}
+
+void CollisionSystem::TraceTest(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits)
+{
+	if (UMover* mover = UObject::TryCast<UMover>(actor))
+	{
+		CollisionHitList brushHits;
+
+		// Note: DrawScale does not affect mover
+
+		//mat4 objectToWorld = mat4::translate(Location()) * Coords::Rotation(Rotation()).ToMatrix() * mat4::translate(-PrePivot()) * mat4::scale(DrawScale());
+
+		mat4 rotateObjToWorld = Coords::Rotation(mover->Rotation()).ToMatrix();
+		mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
+
+		dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - mover->Location(), 1.0f)).xyz() + mover->PrePivot()));
+		dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(dirNormalized), 1.0f)).xyz());
+
+		double localTMin = tmin;
+		double localTMax = tmax;
+
+		if (radius == 0.0 && height == 0.0)
+		{
+			// Line/triangle intersect
+			TraceRayModel tracemodel;
+			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, false);
+		}
+		else
+		{
+			// AABB/Triangle intersect
+			TraceAABBModel tracemodel;
+			dvec3 extents = { (double)radius, (double)radius, (double)height };
+			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
+		}
+
+		if (radius != 0.0 || height != 0.0)
+		{
+			for (auto& hit : brushHits)
+			{
+				hit.Actor = actor;
+				hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
+				hits.push_back(hit);
+			}
+		}
+	}
+	else
+	{
+		// Default cylinder
+		double t = CylinderActorTrace(origin, tmin, dirNormalized, tmax, height, radius, actor);
+		if (t < tmax)
+		{
+			dvec3 hitpos = origin + dirNormalized * t;
+			hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor, nullptr, nullptr });
+		}
+	}
+}
+
+bool CollisionSystem::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)
+{
+	TraceRayLevel trace;
+	return trace.TraceAnyHit(Level, from, to, tracingActor, traceActors, traceWorld, visibilityOnly);
+}
+
+CollisionHitList CollisionSystem::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
+{
+	TraceCylinderLevel trace;
+	return trace.Trace(Level, from, to, height, radius, traceActors, traceWorld, visibilityOnly);
+}
+
+CollisionHitList CollisionSystem::TraceDecal(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+{
+	TraceRayModel trace;
+	return trace.Trace(Level->Model, origin, tmin, dirNormalized, tmax, visibilityOnly);
+}
+
+CollisionHit CollisionSystem::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
+{
+	for (const CollisionHit& hit : Trace(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
+	{
+		if (hit.Actor && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
+		{
+			if (hit.Actor->IsA("Pawn"))
+			{
+				if (flags.pawns)
+					return hit;
+			}
+			else if (hit.Actor->IsA("Mover"))
+			{
+				if (flags.movers)
+					return hit;
+			}
+			else if (hit.Actor->IsA("ZoneInfo"))
+			{
+				if (flags.zoneChanges)
+					return hit;
+			}
+			else if (flags.others)
+			{
+				if (!flags.onlyProjectiles || hit.Actor->bProjTarget() || (hit.Actor->bBlockActors() && hit.Actor->bBlockPlayers()))
+					return hit;
+			}
+		}
+		else if (flags.world && !hit.Actor)
+		{
+			CollisionHit worldHit = hit;
+			if (tracingActor)
+				worldHit.Actor = tracingActor->Level();
+			return worldHit;
+		}
+	}
+	return {};
+}
+
+Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float radius)
+{
+	dvec3 dorigin = to_dvec3(origin);
+	double dradius = radius;
+	vec3 extents = { radius, radius, radius };
+
+	Array<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* actor : it->second)
+						{
+							if (SphereActorOverlap(dorigin, dradius, actor))
+								hits.push_back(actor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	Array<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+
+	return uniqueHits;
+}
+
+Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float height, float radius)
+{
+	dvec3 dorigin = to_dvec3(origin);
+	double dheight = height;
+	double dradius = radius;
+	vec3 extents = { radius, radius, height };
+
+	Array<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* actor : it->second)
+						{
+							if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
+								hits.push_back(actor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	Array<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+
+	return uniqueHits;
+}
+
+Array<UActor*> CollisionSystem::EncroachingActors(UActor* actor)
+{
+	UModel* brush = actor->Brush();
+	if (!brush)
+		return CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius());
+
+	// To do: is radius and height correct for a mover? Should it use the brush bounding box?
+
+	vec3 origin = actor->Location();
+	float height = actor->CollisionHeight();
+	float radius = actor->CollisionRadius();
+	vec3 extents = { radius, radius, height };
+
+	mat4 rotateObjToWorld = Coords::Rotation(actor->Rotation()).ToMatrix();
+	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
+	vec3 prePivot = actor->PrePivot();
+
+	vec3 mainScale(1.0f);
+	if (UMover* mover = UActor::TryCast<UMover>(actor))
+	{
+		mainScale = mover->MainScale().Scale;
+	}
+
+	Array<UActor*> hits;
+
+	ivec3 start = GetStartExtents(origin, extents);
+	ivec3 end = GetEndExtents(origin, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
+		{
+			for (int y = start.y; y < end.y; y++)
+			{
+				for (int x = start.x; x < end.x; x++)
+				{
+					auto it = CollisionActors.find(GetBucketId(x, y, z));
+					if (it != CollisionActors.end())
+					{
+						for (UActor* testActor : it->second)
+						{
+							if (testActor == actor || testActor->Brush())
+								continue;
+
+							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
+
+							float testHeight = testActor->CollisionHeight();
+							float testRadius = testActor->CollisionRadius();
+							vec3 testExtents = { testRadius, testRadius, testHeight };
+							testExtents /= mainScale;
+
+							OverlapAABBModel test;
+							auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
+							if (!modelHits.empty())
+								hits.push_back(testActor);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::set<UActor*> seenActors;
+	Array<UActor*> uniqueHits;
+	uniqueHits.reserve(hits.size());
+	for (auto& hit : hits)
+	{
+		if (hit)
+		{
+			if (seenActors.find(hit) == seenActors.end())
+			{
+				seenActors.insert(hit);
+				uniqueHits.push_back(hit);
+			}
+		}
+		else
+		{
+			uniqueHits.push_back(hit);
+		}
+	}
+
+	return uniqueHits;
+}
+
+void CollisionSystem::SetLevel(ULevel* level)
+{
+	Level = level;
+}
 
 void CollisionSystem::AddToCollision(UActor* actor)
 {
@@ -445,196 +774,4 @@ double CollisionSystem::CylinderActorTrace(const dvec3& origin, double tmin, con
 		// Downgrade to a ray test if the cylinder is a point
 		return RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
 	}
-}
-
-Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float radius)
-{
-	dvec3 dorigin = to_dvec3(origin);
-	double dradius = radius;
-	vec3 extents = { radius, radius, radius };
-
-	Array<UActor*> hits;
-
-	ivec3 start = GetStartExtents(origin, extents);
-	ivec3 end = GetEndExtents(origin, extents);
-	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
-	{
-		for (int z = start.z; z < end.z; z++)
-		{
-			for (int y = start.y; y < end.y; y++)
-			{
-				for (int x = start.x; x < end.x; x++)
-				{
-					auto it = CollisionActors.find(GetBucketId(x, y, z));
-					if (it != CollisionActors.end())
-					{
-						for (UActor* actor : it->second)
-						{
-							if (SphereActorOverlap(dorigin, dradius, actor))
-								hits.push_back(actor);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	std::set<UActor*> seenActors;
-	Array<UActor*> uniqueHits;
-	uniqueHits.reserve(hits.size());
-	for (auto& hit : hits)
-	{
-		if (hit)
-		{
-			if (seenActors.find(hit) == seenActors.end())
-			{
-				seenActors.insert(hit);
-				uniqueHits.push_back(hit);
-			}
-		}
-		else
-		{
-			uniqueHits.push_back(hit);
-		}
-	}
-
-	return uniqueHits;
-}
-
-Array<UActor*> CollisionSystem::EncroachingActors(UActor* actor)
-{
-	UModel* brush = actor->Brush();
-	if (!brush)
-		return CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius());
-
-	// To do: is radius and height correct for a mover? Should it use the brush bounding box?
-
-	vec3 origin = actor->Location();
-	float height = actor->CollisionHeight();
-	float radius = actor->CollisionRadius();
-	vec3 extents = { radius, radius, height };
-
-	mat4 rotateObjToWorld = Coords::Rotation(actor->Rotation()).ToMatrix();
-	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
-	vec3 prePivot = actor->PrePivot();
-
-	vec3 mainScale(1.0f);
-	if (UMover* mover = UActor::TryCast<UMover>(actor))
-	{
-		mainScale = mover->MainScale().Scale;
-	}
-
-	Array<UActor*> hits;
-
-	ivec3 start = GetStartExtents(origin, extents);
-	ivec3 end = GetEndExtents(origin, extents);
-	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
-	{
-		for (int z = start.z; z < end.z; z++)
-		{
-			for (int y = start.y; y < end.y; y++)
-			{
-				for (int x = start.x; x < end.x; x++)
-				{
-					auto it = CollisionActors.find(GetBucketId(x, y, z));
-					if (it != CollisionActors.end())
-					{
-						for (UActor* testActor : it->second)
-						{
-							if (testActor == actor || testActor->Brush())
-								continue;
-
-							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
-
-							float testHeight = testActor->CollisionHeight();
-							float testRadius = testActor->CollisionRadius();
-							vec3 testExtents = { testRadius, testRadius, testHeight };
-							testExtents /= mainScale;
-
-							OverlapAABBModel test;
-							auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
-							if (!modelHits.empty())
-								hits.push_back(testActor);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	std::set<UActor*> seenActors;
-	Array<UActor*> uniqueHits;
-	uniqueHits.reserve(hits.size());
-	for (auto& hit : hits)
-	{
-		if (hit)
-		{
-			if (seenActors.find(hit) == seenActors.end())
-			{
-				seenActors.insert(hit);
-				uniqueHits.push_back(hit);
-			}
-		}
-		else
-		{
-			uniqueHits.push_back(hit);
-		}
-	}
-
-	return uniqueHits;
-}
-
-Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float height, float radius)
-{
-	dvec3 dorigin = to_dvec3(origin);
-	double dheight = height;
-	double dradius = radius;
-	vec3 extents = { radius, radius, height };
-
-	Array<UActor*> hits;
-
-	ivec3 start = GetStartExtents(origin, extents);
-	ivec3 end = GetEndExtents(origin, extents);
-	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
-	{
-		for (int z = start.z; z < end.z; z++)
-		{
-			for (int y = start.y; y < end.y; y++)
-			{
-				for (int x = start.x; x < end.x; x++)
-				{
-					auto it = CollisionActors.find(GetBucketId(x, y, z));
-					if (it != CollisionActors.end())
-					{
-						for (UActor* actor : it->second)
-						{
-							if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
-								hits.push_back(actor);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	std::set<UActor*> seenActors;
-	Array<UActor*> uniqueHits;
-	uniqueHits.reserve(hits.size());
-	for (auto& hit : hits)
-	{
-		if (hit)
-		{
-			if (seenActors.find(hit) == seenActors.end())
-			{
-				seenActors.insert(hit);
-				uniqueHits.push_back(hit);
-			}
-		}
-		else
-		{
-			uniqueHits.push_back(hit);
-		}
-	}
-
-	return uniqueHits;
 }

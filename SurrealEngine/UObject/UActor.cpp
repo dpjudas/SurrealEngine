@@ -9,9 +9,6 @@
 #include "Package/PackageManager.h"
 #include "Package/IniProperty.h"
 #include "Engine.h"
-#include "Collision/BottomLevel/TraceAABBModel.h"
-#include "Collision/BottomLevel/TraceRayModel.h"
-#include "Collision/TopLevel/OverlapCylinderLevel.h"
 
 static std::string tickEventName = "Tick";
 
@@ -159,8 +156,7 @@ void UActor::InitBase()
 	bool isDecorationInventoryOrPawn = UObject::TryCast<UDecoration>(this) || UObject::TryCast<UInventory>(this) || UObject::TryCast<UPawn>(this);
 	if (isDecorationInventoryOrPawn && !ActorBase() && bCollideWorld() && (Physics() == PHYS_None || Physics() == PHYS_Rotating))
 	{
-		OverlapCylinderLevel overlap;
-		CollisionHitList hits = overlap.TestOverlap(XLevel(), Location(), CollisionHeight(), CollisionRadius(), true, false, false);
+		CollisionHitList hits = XLevel()->Collision.OverlapTest(this);
 		if (!hits.empty())
 		{
 			SetBase(hits.front().Actor, true);
@@ -191,8 +187,7 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 			for (int x = 0; x < 3 && !found; x++)
 			{
 				vec3 testlocation = location + vec3(offset[x] * scale, offset[y] * scale, offset[z] * scale);
-				OverlapCylinderLevel overlap;
-				CollisionHitList hits = overlap.TestOverlap(XLevel(), testlocation, height, radius, false, true, false);
+				CollisionHitList hits = XLevel()->Collision.OverlapTest(XLevel(), testlocation, height, radius, false, true, false);
 				if (hits.empty())
 				{
 					location = testlocation;
@@ -1181,17 +1176,6 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 	return true;
 }
 
-void UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius, CollisionHitList& hits)
-{
-	// Default cylinder
-	double t = level->Collision.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
-	if (t < tmax)
-	{
-		dvec3 hitpos = origin + direction * t;
-		hits.push_back({ (float)t, normalize(to_vec3(hitpos) - Location()), this, nullptr, nullptr });
-	}
-}
-
 UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent)
 {
 	TraceFlags flags;
@@ -1210,7 +1194,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 		flags.zoneChanges = true;
 	}
 
-	CollisionHit hit = XLevel()->TraceFirstHit(traceStart, traceEnd, this, extent, flags);
+	CollisionHit hit = XLevel()->Collision.TraceFirstHit(traceStart, traceEnd, this, extent, flags);
 	hitNormal = hit.Normal;
 	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
 	return hit.Actor;
@@ -1218,7 +1202,7 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
-	return !XLevel()->TraceRayAnyHit(traceStart, traceEnd, this, false, true, false);
+	return !XLevel()->Collision.TraceAnyHit(traceStart, traceEnd, this, false, true, false);
 }
 
 bool UActor::IsBasedOn(UActor* other)
@@ -1247,7 +1231,7 @@ bool UActor::IsOwnedBy(UActor* owner)
 
 bool UActor::IsOverlapping(UActor* other)
 {
-	return CollisionSystem::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
+	return XLevel()->Collision.IsOverlapping(this, other);
 }
 
 CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlocking)
@@ -1270,7 +1254,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	CollisionHitList hits;
 	if (!Brush())
 	{
-		hits = XLevel()->Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+		hits = XLevel()->Collision.Trace(Location(), Location() + delta, CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
 		if (bCollideWorld() || bBlockActors() || bBlockPlayers())
 		{
 			for (auto& hit : hits)
@@ -2145,7 +2129,7 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 		return false;
 	}
 
-	return !XLevel()->TraceRayAnyHit(source->Location(), Location(), source, false, true, false);
+	return !XLevel()->Collision.TraceAnyHit(source->Location(), Location(), source, false, true, false);
 }
 
 UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
@@ -2658,9 +2642,10 @@ UObject* UDecal::AttachDecal(float traceDistance, vec3 decalDir)
 
 	vec3 traceDirection = -Coords::Rotation(Rotation()).XAxis;
 
-	UModel* model = XLevel()->Model;
-	CollisionHitList hits = model->TraceRay(to_dvec3(Location()), 0.0f, to_dvec3(traceDirection), traceDistance, false);
+	CollisionHitList hits = XLevel()->Collision.TraceDecal(to_dvec3(Location()), 0.0f, to_dvec3(traceDirection), traceDistance, false);
 	if (hits.empty()) return nullptr;
+
+	UModel* model = XLevel()->Model;
 
 	// Do not attempt to create a decal if we hit a surface that's invisible or a fake backdrop
 	auto& hit = hits.front();
@@ -2807,48 +2792,4 @@ void UDecal::DetachDecal()
 		}
 	}
 	Nodes.clear();
-}
-
-/////////////////////////////////////////////////////////////////////////////
-
-void UMover::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius, CollisionHitList& hits)
-{
-	CollisionHitList brushHits;
-
-	// Note: DrawScale does not affect mover
-
-	//mat4 objectToWorld = mat4::translate(Location()) * Coords::Rotation(Rotation()).ToMatrix() * mat4::translate(-PrePivot()) * mat4::scale(DrawScale());
-
-	mat4 rotateObjToWorld = Coords::Rotation(Rotation()).ToMatrix();
-	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
-
-	dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - Location(), 1.0f)).xyz() + PrePivot()));
-	dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(direction), 1.0f)).xyz());
-
-	double localTMin = tmin;
-	double localTMax = tmax;
-
-	if (radius == 0.0 && height == 0.0)
-	{
-		// Line/triangle intersect
-		TraceRayModel tracemodel;
-		brushHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, false);
-	}
-	else
-	{
-		// AABB/Triangle intersect
-		TraceAABBModel tracemodel;
-		dvec3 extents = { (double)radius, (double)radius, (double)height };
-		brushHits = tracemodel.Trace(Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
-	}
-
-	if (radius != 0.0 || height != 0.0)
-	{
-		for (auto& hit : brushHits)
-		{
-			hit.Actor = this;
-			hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
-			hits.push_back(hit);
-		}
-	}
 }

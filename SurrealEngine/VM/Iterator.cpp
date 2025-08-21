@@ -135,11 +135,7 @@ bool RadiusActorsIterator::Next()
 
 TouchingActorsIterator::TouchingActorsIterator(UActor* Caller, UObject* BaseClass, UObject** outActor) : BaseClass(BaseClass), outActor(outActor)
 {
-	OverlapCylinderLevel collisionTester;
-
-	CollisionHitList hitList = collisionTester.TestOverlap(Caller->XLevel(), Caller->Location(), Caller->CollisionHeight(),
-		Caller->CollisionRadius(), true, false, false);
-
+	CollisionHitList hitList = Caller->XLevel()->Collision.OverlapTest(Caller->XLevel(), Caller->Location(), Caller->CollisionHeight(), Caller->CollisionRadius(), true, false, false);
 	for (auto& hit : hitList)
 	{
 		// Only allow the Actors of type BaseClass

@@ -14,7 +14,7 @@ void RenderSubsystem::DrawCoronas(FSceneNode* frame)
 
 	for (UActor* light : Scene.Coronas)
 	{
-		if (light && light->bCorona() && light->Skin() && !engine->Level->TraceRayAnyHit(light->Location(), engine->CameraLocation, nullptr, false, true, true))
+		if (light && light->bCorona() && light->Skin() && !engine->Level->Collision.TraceAnyHit(light->Location(), engine->CameraLocation, nullptr, false, true, true))
 		{
 			vec4 pos = frame->WorldToView * frame->ObjectToWorld * vec4(light->Location(), 1.0f);
 			if (pos.z >= 1.0f)

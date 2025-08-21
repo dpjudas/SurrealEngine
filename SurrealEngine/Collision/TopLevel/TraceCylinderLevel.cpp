@@ -47,7 +47,7 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 						{
 							for (UActor* actor : it->second)
 							{
-								actor->TraceTest(level, origin, tmin, direction, tmax, dheight, dradius, hits);
+								Level->Collision.TraceTest(actor, origin, tmin, direction, tmax, dheight, dradius, hits);
 							}
 						}
 					}

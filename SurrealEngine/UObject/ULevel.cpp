@@ -5,9 +5,6 @@
 #include "UTexture.h"
 #include "UClass.h"
 #include "VM/ScriptCall.h"
-#include "Collision/TopLevel/TraceRayLevel.h"
-#include "Collision/TopLevel/TraceCylinderLevel.h"
-#include "Collision/BottomLevel/TraceRayModel.h"
 
 BBox BspNode::GetCollisionBox(UModel* model) const
 {
@@ -57,6 +54,11 @@ void ULevelBase::Load(ObjectStream* stream)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+ULevel::ULevel(NameString name, UClass* base, ObjectFlags flags) : ULevelBase(name, base, flags)
+{
+	Collision.SetLevel(this);
+}
 
 void ULevel::Load(ObjectStream* stream)
 {
@@ -137,56 +139,6 @@ void ULevel::Tick(float elapsed)
 	Actors.swap(newActorList);
 
 	ticked = !ticked;
-}
-
-CollisionHit ULevel::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
-{
-	for (const CollisionHit& hit : Trace(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
-	{
-		if (hit.Actor && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
-		{
-			if (hit.Actor->IsA("Pawn"))
-			{
-				if (flags.pawns)
-					return hit;
-			}
-			else if (hit.Actor->IsA("Mover"))
-			{
-				if (flags.movers)
-					return hit;
-			}
-			else if (hit.Actor->IsA("ZoneInfo"))
-			{
-				if (flags.zoneChanges)
-					return hit;
-			}
-			else if (flags.others)
-			{
-				if (!flags.onlyProjectiles || hit.Actor->bProjTarget() || (hit.Actor->bBlockActors() && hit.Actor->bBlockPlayers()))
-					return hit;
-			}
-		}
-		else if (flags.world && !hit.Actor)
-		{
-			CollisionHit worldHit = hit;
-			if (tracingActor)
-				worldHit.Actor = tracingActor->Level();
-			return worldHit;
-		}
-	}
-	return {};
-}
-
-CollisionHitList ULevel::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
-{
-	TraceCylinderLevel trace;
-	return trace.Trace(this, from, to, height, radius, traceActors, traceWorld, visibilityOnly);
-}
-
-bool ULevel::TraceRayAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)
-{
-	TraceRayLevel trace;
-	return trace.TraceAnyHit(this, from, to, tracingActor, traceActors, traceWorld, visibilityOnly);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -377,12 +329,6 @@ void UModel::Load(ObjectStream* stream)
 
 	RootOutside = stream->ReadInt32();
 	Linked = stream->ReadInt32();
-}
-
-CollisionHitList UModel::TraceRay(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
-{
-	TraceRayModel trace;
-	return trace.Trace(this, origin, tmin, dirNormalized, tmax, visibilityOnly);
 }
 
 PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
