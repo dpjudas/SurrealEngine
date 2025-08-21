@@ -223,6 +223,17 @@ public:
 	int32_t Linked;
 };
 
+enum EReachSpecFlags
+{
+	R_WALK = 1,
+	R_FLY = 2,
+	R_SWIM = 4,
+	R_JUMP = 8,
+	R_DOOR = 16,
+	R_SPECIAL = 32,
+	R_PLAYERONLY = 64
+};
+
 class LevelReachSpec
 {
 public:
