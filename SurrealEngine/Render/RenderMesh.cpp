@@ -4,11 +4,11 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 
-void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
+bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe, bool translucentPass)
 {
 	UMesh* mesh = actor->Mesh();
 	if (!mesh)
-		return;
+		return false;
 
 	UpdateActorLightList(actor);
 
@@ -17,14 +17,14 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe)
 	mat3 meshNormalToWorld = mat3::transpose(mat3(meshToWorld));
 
 	if (auto skeletalmesh = UObject::TryCast<USkeletalMesh>(mesh))
-		DrawSkeletalMesh(frame, actor, skeletalmesh, meshToWorld, meshNormalToWorld);
+		return DrawSkeletalMesh(frame, actor, skeletalmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
-		DrawLodMesh(frame, actor, lodmesh, meshToWorld, meshNormalToWorld);
+		return DrawLodMesh(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	else
-		DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld);
+		return DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 }
 
-void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
+bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (actor->bAnimByOwner() && actor->Owner())
@@ -73,6 +73,8 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 	if (actor->bNoSmooth()) polyflags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyflags |= PF_Unlit;
 
+	bool needTranslucentPass = false;
+
 	GouraudVertex vertices[3];
 	for (const MeshTri& tri : mesh->Tris)
 	{
@@ -83,6 +85,18 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[tri.TextureIndex];
 		if (!tex)
 			continue;
+
+		bool isTranslucent = (renderflags & (PF_Translucent | PF_Modulated | PF_Highlighted)) != 0;
+		if (isTranslucent && !translucentPass)
+		{
+			needTranslucentPass = true;
+			continue;
+		}
+		else if (!isTranslucent && translucentPass)
+		{
+			// We already drew the opaque surface
+			continue;
+		}
 
 		UpdateTexture(tex);
 
@@ -133,9 +147,10 @@ void RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 
 		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
+	return needTranslucentPass;
 }
 
-void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
+bool RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (actor->bAnimByOwner() && actor->Owner())
@@ -169,8 +184,10 @@ void RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 	}
 
 	SetupLodMeshTextures(actor, mesh);
-	DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1);
-	DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, ObjectNormalToWorld, 0, vertexOffsets, t0, t1);
+	bool needTranslucentPass = false;
+	needTranslucentPass = DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass) || needTranslucentPass;
+	needTranslucentPass = DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, ObjectNormalToWorld, 0, vertexOffsets, t0, t1, translucentPass) || needTranslucentPass;
+	return needTranslucentPass;
 }
 
 void RenderSubsystem::SetupMeshTextures(UActor* actor, UMesh* mesh)
@@ -293,7 +310,7 @@ void RenderSubsystem::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 	}
 }
 
-void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1)
+bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
 {
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
@@ -309,6 +326,8 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
 
+	bool needTranslucentPass = false;
+
 	GouraudVertex vertices[3];
 	for (const MeshFace& face : faces)
 	{
@@ -323,6 +342,18 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		// skip if no texture
 		if (!tex)
 			continue;
+
+		bool isTranslucent = (renderflags & (PF_Translucent | PF_Modulated | PF_Highlighted)) != 0;
+		if (isTranslucent && !translucentPass)
+		{
+			needTranslucentPass = true;
+			continue;
+		}
+		else if (!isTranslucent && translucentPass)
+		{
+			// We already drew the opaque surface
+			continue;
+		}
 
 		UpdateTexture(tex);
 
@@ -341,7 +372,7 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 				(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1] >= mesh->Verts.size())
 			{
 				// Out of bounds. Something is wrong with the mesh. Aborting render to prevent a crash.
-				return;
+				return false;
 			}
 
 			const vec3& v0 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];
@@ -381,9 +412,11 @@ void RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 
 		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
+
+	return needTranslucentPass;
 }
 
-void RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld)
+bool RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
-	DrawLodMesh(frame, actor, mesh, ObjectToWorld, ObjectNormalToWorld);
+	return DrawLodMesh(frame, actor, mesh, ObjectToWorld, ObjectNormalToWorld, translucentPass);
 }

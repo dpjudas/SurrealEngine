@@ -56,9 +56,8 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	Scene.ViewZoneMask = Scene.ViewZone ? 1ULL << Scene.ViewZone : -1;
 	Scene.ViewRotation = Coords::Rotation(engine->CameraRotation);
 	Scene.OpaqueNodes.clear();
-	//Scene.TranslucentNodes.clear();
 	Scene.TranslucentNodesAndActors.clear();
-	//Scene.Actors.clear();
+	Scene.Actors.clear();
 	Scene.Coronas.clear(); // To do: don't do this - make them fade out instead if they don't get refreshed
 	Scene.FrameCounter++;
 	ProcessNode(&engine->Level->Model->Nodes[0]);
@@ -68,6 +67,8 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 	for (const DrawNodeInfo& nodeInfo : Scene.OpaqueNodes)
 		DrawNodeSurface(nodeInfo);
 
+	DrawOpaqueActors();
+
 	for (auto& info : Scene.TranslucentNodesAndActors)
 	{
 		if (info.Actor)
@@ -75,7 +76,7 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 			EDrawType dt = (EDrawType)info.Actor->DrawType();
 			if (dt == DT_Mesh && info.Actor->Mesh())
 			{
-				DrawMesh(&Scene.Frame, info.Actor);
+				DrawMesh(&Scene.Frame, info.Actor, false, true);
 			}
 			else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (info.Actor->Texture()))
 			{
@@ -89,10 +90,6 @@ void RenderSubsystem::DrawFrame(const vec3& location, const mat4& worldToView)
 		else
 			DrawNodeSurface(info.TranslucentNodeInfo);
 	}
-	//DrawActors();
-	// Draw transparent surfaces last
-	/*for (auto it = Scene.TranslucentNodes.rbegin(); it != Scene.TranslucentNodes.rend(); ++it)
-		DrawNodeSurface(*it);*/
 }
 
 void RenderSubsystem::ProcessTranslucentNodesAndActors()
@@ -106,29 +103,32 @@ void RenderSubsystem::ProcessTranslucentNodesAndActors()
 	);
 }
 
-void RenderSubsystem::DrawActors()
+void RenderSubsystem::DrawOpaqueActors()
 {
-	// Sort the actors according to their distance to the camera
-	std::sort(Scene.Actors.begin(), Scene.Actors.end(), 
-		[&](UActor* actor1, UActor* actor2) { 
-			return length(Scene.ViewLocation - vec4(actor1->Location(), 1.0f)) > length(Scene.ViewLocation - vec4(actor2->Location(), 1.0f));
-		}
-	);
-
 	for (UActor* actor : Scene.Actors)
 	{
 		EDrawType dt = (EDrawType)actor->DrawType();
 		if (dt == DT_Mesh && actor->Mesh())
 		{
-			DrawMesh(&Scene.Frame, actor);
+			// Draw opaque mesh surfaces. If there are any translucent surfaces found, add mesh to the translucent pass
+			if (DrawMesh(&Scene.Frame, actor, false, false))
+			{
+				Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{ .Actor = actor });
+			}
 		}
 		else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
 		{
-			DrawSprite(&Scene.Frame, actor);
+			// Assume all sprites are translucent for now
+
+			// DrawSprite(&Scene.Frame, actor);
+			Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{ .Actor = actor });
 		}
 		else if (dt == DT_Brush && actor->Brush())
 		{
+			// Assume brushes are opaque for now.
+
 			DrawBrush(&Scene.Frame, actor);
+			//Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{ .Actor = actor });
 		}
 	}
 }
@@ -284,20 +284,12 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (Scene.Clipper.IsAABBVisible(bbox))
 					{
-						//Scene.Actors.push_back(actor);
-						Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{
-								.Actor = actor
-							}
-						);
+						Scene.Actors.push_back(actor);
 					}
 				}
 				else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
 				{
-					//Scene.Actors.push_back(actor);
-					Scene.TranslucentNodesAndActors.push_back(TranslucentNodeAndActorInfo{
-							.Actor = actor
-						}
-					);
+					Scene.Actors.push_back(actor);
 				}
 				else if (dt == DT_Brush && actor->Brush())
 				{
@@ -310,11 +302,7 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 					bbox.max = (bbox.max * Scale) + actor->Location();
 					if (brush->Nodes.size() > 0 && Scene.Clipper.IsAABBVisible(bbox))
 					{
-						//Scene.Actors.push_back(actor);
-						Scene.TranslucentNodesAndActors.push_back( TranslucentNodeAndActorInfo {
-								.Actor = actor
-							}
-						);
+						Scene.Actors.push_back(actor);
 					}
 				}
 			}

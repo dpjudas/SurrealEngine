@@ -77,7 +77,8 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 	Device->SetSceneNode(&Scene.Frame);
 	if (ClearZ)
 		Device->ClearZ(&Scene.Frame);
-	DrawMesh(&Scene.Frame, actor, WireFrame);
+	if (DrawMesh(&Scene.Frame, actor, WireFrame, false))
+		DrawMesh(&Scene.Frame, actor, WireFrame, true);
 	Device->SetSceneNode(&Canvas.Frame);
 
 	actor->bHidden() = true;
@@ -108,7 +109,8 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 		Device->ClearZ(&frame);
 
 	actor->bHidden() = false;
-	DrawMesh(&frame, actor, WireFrame);
+	if (DrawMesh(&frame, actor, WireFrame, false))
+		DrawMesh(&frame, actor, WireFrame, true);
 	actor->bHidden() = true;
 
 	Device->SetSceneNode(&Canvas.Frame);

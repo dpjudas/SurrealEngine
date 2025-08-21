@@ -79,7 +79,7 @@ private:
 	void ProcessNodeSurface(BspNode* node);
 	void ProcessTranslucentNodesAndActors();
 	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
-	void DrawActors();
+	void DrawOpaqueActors();
 	void SetupSceneFrame(const mat4& worldToView);
 
 	FTextureInfo GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model, const mat4& objectToWorld);
@@ -102,11 +102,11 @@ private:
 	void DrawCollisionDebug();
 	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
 
-	void DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe = false);
-	void DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
-	void DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
-	void DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1);
-	void DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld);
+	bool DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe, bool translucentPass);
+	bool DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass);
+	bool DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
 	void SetupMeshTextures(UActor* actor, UMesh* mesh);
 	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
 
