@@ -236,7 +236,7 @@ public:
 		vec3 Location = { 0.0f };
 		float Height = 0.0f;
 		float Radius = 0.0f;
-	} CollisionHashInfo;
+	} Collision;
 
 	// Lights touching this actor
 	struct

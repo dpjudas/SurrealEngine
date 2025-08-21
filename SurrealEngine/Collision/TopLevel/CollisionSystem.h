@@ -6,7 +6,7 @@
 
 class UActor;
 
-class CollisionHash
+class CollisionSystem
 {
 public:
 	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;

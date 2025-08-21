@@ -32,8 +32,8 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 		double dheight = height;
 		vec3 extents = { radius, radius, height };
 
-		ivec3 start = Level->Hash.GetSweepStartExtents(from, to, extents);
-		ivec3 end = Level->Hash.GetSweepEndExtents(from, to, extents);
+		ivec3 start = Level->Collision.GetSweepStartExtents(from, to, extents);
+		ivec3 end = Level->Collision.GetSweepEndExtents(from, to, extents);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 		{
 			for (int z = start.z; z < end.z; z++)
@@ -42,8 +42,8 @@ CollisionHitList TraceCylinderLevel::Trace(ULevel* level, const vec3& from, cons
 				{
 					for (int x = start.x; x < end.x; x++)
 					{
-						auto it = Level->Hash.CollisionActors.find(Level->Hash.GetBucketId(x, y, z));
-						if (it != Level->Hash.CollisionActors.end())
+						auto it = Level->Collision.CollisionActors.find(Level->Collision.GetBucketId(x, y, z));
+						if (it != Level->Collision.CollisionActors.end())
 						{
 							for (UActor* actor : it->second)
 							{

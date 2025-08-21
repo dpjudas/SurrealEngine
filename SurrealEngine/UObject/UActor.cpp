@@ -91,7 +91,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	actor->Region().Zone = actor->Level();
 	actor->Index = (int)XLevel()->Actors.size();
 	XLevel()->Actors.push_back(actor);
-	XLevel()->Hash.AddToCollision(actor);
+	XLevel()->Collision.AddToCollision(actor);
 
 	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
 
@@ -221,7 +221,7 @@ bool UActor::Destroy()
 	ULevel* level = XLevel();
 
 	RemoveFromBspNode();
-	level->Hash.RemoveFromCollision(this);
+	level->Collision.RemoveFromCollision(this);
 
 	CallEvent(this, EventName::Destroyed);
 
@@ -1120,11 +1120,11 @@ void UActor::SetPhysics(uint8_t newPhysics)
 
 void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers)
 {
-	XLevel()->Hash.RemoveFromCollision(this);
+	XLevel()->Collision.RemoveFromCollision(this);
 	bCollideActors() = newColActors;
 	bBlockActors() = newBlockActors;
 	bBlockPlayers() = newBlockPlayers;
-	XLevel()->Hash.AddToCollision(this);
+	XLevel()->Collision.AddToCollision(this);
 }
 
 bool UActor::SetLocation(const vec3& newLocation)
@@ -1133,14 +1133,14 @@ bool UActor::SetLocation(const vec3& newLocation)
 	if (!result.first)
 		return false;
 
-	XLevel()->Hash.RemoveFromCollision(this);
+	XLevel()->Collision.RemoveFromCollision(this);
 	Location() = result.second;
-	XLevel()->Hash.AddToCollision(this);
+	XLevel()->Collision.AddToCollision(this);
 
 	if (Level()->bBegunPlay())
 	{
 		// Send touch notifications for anything at the new location
-		for (UActor* actor : XLevel()->Hash.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
+		for (UActor* actor : XLevel()->Collision.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
 		{
 			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
 			{
@@ -1174,17 +1174,17 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 {
 	// To do: return false if there isn't room
 
-	XLevel()->Hash.RemoveFromCollision(this);
+	XLevel()->Collision.RemoveFromCollision(this);
 	CollisionRadius() = newRadius;
 	CollisionHeight() = newHeight;
-	XLevel()->Hash.AddToCollision(this);
+	XLevel()->Collision.AddToCollision(this);
 	return true;
 }
 
 void UActor::TraceTest(ULevel* level, const dvec3& origin, double tmin, const dvec3& direction, double tmax, double height, double radius, CollisionHitList& hits)
 {
 	// Default cylinder
-	double t = level->Hash.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
+	double t = level->Collision.CylinderActorTrace(origin, tmin, direction, tmax, height, radius, this);
 	if (t < tmax)
 	{
 		dvec3 hitpos = origin + direction * t;
@@ -1247,7 +1247,7 @@ bool UActor::IsOwnedBy(UActor* owner)
 
 bool UActor::IsOverlapping(UActor* other)
 {
-	return CollisionHash::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
+	return CollisionSystem::CylinderActorOverlap(to_dvec3(Location()), CollisionHeight(), CollisionRadius(), other);
 }
 
 CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlocking)
@@ -1305,9 +1305,9 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	vec3 actuallyMoved = delta * blockingHit.Fraction;
 	vec3 OldLocation = Location();
 
-	XLevel()->Hash.RemoveFromCollision(this);
+	XLevel()->Collision.RemoveFromCollision(this);
 	Location() += actuallyMoved;
-	XLevel()->Hash.AddToCollision(this);
+	XLevel()->Collision.AddToCollision(this);
 
 	// Based actors needs to move with us
 	if (StandingCount() > 0)
@@ -1326,7 +1326,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	// Notify actor of encroachment
 	if (Brush() || bBlockPlayers() || bBlockActors() || bCollideActors())
 	{
-		Array<UActor*> encroachingActors = XLevel()->Hash.EncroachingActors(this);
+		Array<UActor*> encroachingActors = XLevel()->Collision.EncroachingActors(this);
 		for (UActor* actor : encroachingActors)
 		{
 			if (actor == this)
@@ -1343,9 +1343,9 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 				bool stopMovement = CallEvent(this, EventName::EncroachingOn, { ExpressionValue::ObjectValue(actor) }).ToBool();
 				if (stopMovement)
 				{
-					XLevel()->Hash.RemoveFromCollision(this);
+					XLevel()->Collision.RemoveFromCollision(this);
 					Location() = OldLocation;
-					XLevel()->Hash.AddToCollision(this);
+					XLevel()->Collision.AddToCollision(this);
 
 					CollisionHit hit;
 					hit.Fraction = 0.0f;

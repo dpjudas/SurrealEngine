@@ -4,7 +4,7 @@
 #include "DebuggerApp.h"
 #include "Engine.h"
 #include "Utils/File.h"
-#include "Collision/TopLevel/CollisionHash.h"
+#include "Collision/TopLevel/CollisionSystem.h"
 
 CollisionCommandlet::CollisionCommandlet()
 {
@@ -31,7 +31,7 @@ void CollisionCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		double cHeightB = std::stod(params[14]);
 		double cRadiusB = std::stod(params[15]);
 
-		double t = CollisionHash::CylinderCylinderTrace(origin, dir, tmin, tmax, cCenterA, cHeightA, cRadiusA, cHeightB, cRadiusB);
+		double t = CollisionSystem::CylinderCylinderTrace(origin, dir, tmin, tmax, cCenterA, cHeightA, cRadiusA, cHeightB, cRadiusB);
 		console->WriteOutput(std::to_string(t));
 	}
 }

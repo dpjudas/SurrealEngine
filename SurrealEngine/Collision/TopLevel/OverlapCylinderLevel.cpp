@@ -20,8 +20,8 @@ CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& lo
 		double dheight = height;
 		dvec3 dlocation = to_dvec3(location);
 
-		ivec3 start = Level->Hash.GetStartExtents(location, extents);
-		ivec3 end = Level->Hash.GetEndExtents(location, extents);
+		ivec3 start = Level->Collision.GetStartExtents(location, extents);
+		ivec3 end = Level->Collision.GetEndExtents(location, extents);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 		{
 			for (int z = start.z; z < end.z; z++)
@@ -30,12 +30,12 @@ CollisionHitList OverlapCylinderLevel::TestOverlap(ULevel* level, const vec3& lo
 				{
 					for (int x = start.x; x < end.x; x++)
 					{
-						auto it = Level->Hash.CollisionActors.find(Level->Hash.GetBucketId(x, y, z));
-						if (it != Level->Hash.CollisionActors.end())
+						auto it = Level->Collision.CollisionActors.find(Level->Collision.GetBucketId(x, y, z));
+						if (it != Level->Collision.CollisionActors.end())
 						{
 							for (UActor* actor : it->second)
 							{
-								if (Level->Hash.CylinderActorOverlap(dlocation, dheight, dradius, actor))
+								if (Level->Collision.CylinderActorOverlap(dlocation, dheight, dradius, actor))
 								{
 									vec3 normal(0.0f); // To do: do we need the normal for contact tests?
 									hits.push_back({ 0.0f, normal, actor, nullptr, nullptr });

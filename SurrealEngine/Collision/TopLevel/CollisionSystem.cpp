@@ -1,12 +1,12 @@
 
 #include "Precomp.h"
-#include "CollisionHash.h"
+#include "CollisionSystem.h"
 #include "UObject/UActor.h"
 #include "Math/floating.h"
 #include "Math/coords.h"
 #include "Collision/BottomLevel/OverlapAABBModel.h"
 
-void CollisionHash::AddToCollision(UActor* actor)
+void CollisionSystem::AddToCollision(UActor* actor)
 {
 	if (actor->bCollideActors())
 	{
@@ -15,10 +15,10 @@ void CollisionHash::AddToCollision(UActor* actor)
 		float radius = actor->CollisionRadius();
 		vec3 extents = { radius, radius, height };
 
-		actor->CollisionHashInfo.Inserted = true;
-		actor->CollisionHashInfo.Location = location;
-		actor->CollisionHashInfo.Height = height;
-		actor->CollisionHashInfo.Radius = radius;
+		actor->Collision.Inserted = true;
+		actor->Collision.Location = location;
+		actor->Collision.Height = height;
+		actor->Collision.Radius = radius;
 
 		ivec3 start = GetStartExtents(location, extents);
 		ivec3 end = GetEndExtents(location, extents);
@@ -35,13 +35,13 @@ void CollisionHash::AddToCollision(UActor* actor)
 	}
 }
 
-void CollisionHash::RemoveFromCollision(UActor* actor)
+void CollisionSystem::RemoveFromCollision(UActor* actor)
 {
-	if (actor->CollisionHashInfo.Inserted)
+	if (actor->Collision.Inserted)
 	{
-		vec3 location = actor->CollisionHashInfo.Location;
-		float height = actor->CollisionHashInfo.Height;
-		float radius = actor->CollisionHashInfo.Radius;
+		vec3 location = actor->Collision.Location;
+		float height = actor->Collision.Height;
+		float radius = actor->Collision.Radius;
 		vec3 extents = { radius, radius, height };
 
 		ivec3 start = GetStartExtents(location, extents);
@@ -63,11 +63,11 @@ void CollisionHash::RemoveFromCollision(UActor* actor)
 			}
 		}
 
-		actor->CollisionHashInfo.Inserted = false;
+		actor->Collision.Inserted = false;
 	}
 }
 
-double CollisionHash::RaySphereTrace(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius)
+double CollisionSystem::RaySphereTrace(const dvec3& rayOrigin, double tmin, const dvec3& rayDirNormalized, double tmax, const dvec3& sphereCenter, double sphereRadius)
 {
 	dvec3 l = sphereCenter - rayOrigin;
 	double s = dot(l, rayDirNormalized);
@@ -113,7 +113,7 @@ static int GetQuadraticRoots(double a, double b, double c, double& root_lower, d
 // Compute the intersection of a ray and a plane with infinite bounds. The ray direction 
 // must be normalized. Returns the hit distance, from the ray's origin; to get the hit 
 // position, multiply that by the ray's direction and then add the ray's origin.
-bool CollisionHash::RayPlaneTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t)
+bool CollisionSystem::RayPlaneTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& planeOrigin, const dvec3& planeNormal, double& t)
 {
 	double denom = dot(planeNormal, rayDirNormalized);
 	//
@@ -133,7 +133,7 @@ bool CollisionHash::RayPlaneTrace(const dvec3& rayOrigin, const dvec3& rayDirNor
 
 // Compute the intersection of a ray and a disc. The ray direction must be normalized. 
 // Returns the hit distance, from the ray's origin.
-bool CollisionHash::RayCircleTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t)
+bool CollisionSystem::RayCircleTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, const dvec3& circleCenter, const dvec3& circleNormal, double radius, double& t)
 {
 	double hd;
 	bool plane = RayPlaneTrace(rayOrigin, rayDirNormalized, circleCenter, circleNormal, hd);
@@ -149,7 +149,7 @@ bool CollisionHash::RayCircleTrace(const dvec3& rayOrigin, const dvec3& rayDirNo
 	return true;
 }
 
-bool CollisionHash::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, const dvec3& cylinderCenterB, double cylinderHeightB, double cylinderRadiusB)
+bool CollisionSystem::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, const dvec3& cylinderCenterB, double cylinderHeightB, double cylinderRadiusB)
 {
 	dvec3 dist = cylinderCenterA - cylinderCenterB;
 	double h = cylinderHeightA + cylinderHeightB;
@@ -157,7 +157,7 @@ bool CollisionHash::CylinderCylinderOverlap(const dvec3& cylinderCenterA, double
 	return std::abs(dist.z) < h && dot(dist.xy(), dist.xy()) < r * r;
 }
 
-double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, double cylinderHeightB, double cylinderRadiusB)
+double CollisionSystem::CylinderCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenterA, double cylinderHeightA, double cylinderRadiusA, double cylinderHeightB, double cylinderRadiusB)
 {
 	// A cylinder/cylinder trace is the same as a ray/cylinder trace, except the cylinder's radius and height has been extended by the other cylinder
 
@@ -166,7 +166,7 @@ double CollisionHash::CylinderCylinderTrace(const dvec3& origin, const dvec3& di
 
 #if 0 // Shock rifle combo blasts does not work with this version. Why? Does this mean that CylinderCylinderOverlap is broken as it is built upon the same idea?
 
-double CollisionHash::RayCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+double CollisionSystem::RayCylinderTrace(const dvec3& origin, const dvec3& dirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
 {
 	// Find the trace range where the ray can hit the cylinders (ray/planes test):
 	double t0, t1;
@@ -214,7 +214,7 @@ double CollisionHash::RayCylinderTrace(const dvec3& origin, const dvec3& dirNorm
 
 #else
 
-double CollisionHash::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
+double CollisionSystem::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDirNormalized, double tmin, double tmax, const dvec3& cylinderCenter, double cylinderHeight, double cylinderRadius)
 {
 	//
 	// First, identify intersections between a line and an infinite cylinder. An infinite 
@@ -379,7 +379,7 @@ static double SqDistPointSegment(const dvec3& a, const dvec3& b, const dvec3& c)
 	return dot(ac, ac) - e * e / f;
 }
 
-bool CollisionHash::SphereCapsuleOverlap(const dvec3& sphereCenter, double sphereRadius, const dvec3& capsuleCenter, double capsuleHeight, double capsuleRadius)
+bool CollisionSystem::SphereCapsuleOverlap(const dvec3& sphereCenter, double sphereRadius, const dvec3& capsuleCenter, double capsuleHeight, double capsuleRadius)
 {
 	dvec3 base = capsuleCenter - capsuleHeight;
 	dvec3 tip = capsuleCenter + capsuleHeight;
@@ -392,7 +392,7 @@ bool CollisionHash::SphereCapsuleOverlap(const dvec3& sphereCenter, double spher
 	return dist2 <= totalradius * totalradius;
 }
 
-bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereRadius, UActor* actor)
+bool CollisionSystem::SphereActorOverlap(const dvec3& sphereCenter, double sphereRadius, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return false;
@@ -405,7 +405,7 @@ bool CollisionHash::SphereActorOverlap(const dvec3& sphereCenter, double sphereR
 	return SphereCapsuleOverlap(sphereCenter, sphereRadius, center, std::max(height - radius, 0.0), radius);
 }
 
-bool CollisionHash::CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor)
+bool CollisionSystem::CylinderActorOverlap(const dvec3& origin, double cylinderHeight, double cylinderRadius, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return false;
@@ -416,7 +416,7 @@ bool CollisionHash::CylinderActorOverlap(const dvec3& origin, double cylinderHei
 	return CylinderCylinderOverlap(origin, cylinderHeight, cylinderRadius, center, height, radius);
 }
 
-double CollisionHash::RayActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
+double CollisionSystem::RayActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return tmax;
@@ -427,7 +427,7 @@ double CollisionHash::RayActorTrace(const dvec3& origin, double tmin, const dvec
 	return RayCylinderTrace(origin, dirNormalized, tmin, tmax, center, height, radius);
 }
 
-double CollisionHash::CylinderActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double cylinderHeight, double cylinderRadius, UActor* actor)
+double CollisionSystem::CylinderActorTrace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double cylinderHeight, double cylinderRadius, UActor* actor)
 {
 	if (actor->Brush()) // Ignore brushes for now
 		return tmax;
@@ -447,7 +447,7 @@ double CollisionHash::CylinderActorTrace(const dvec3& origin, double tmin, const
 	}
 }
 
-Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
+Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float radius)
 {
 	dvec3 dorigin = to_dvec3(origin);
 	double dradius = radius;
@@ -501,7 +501,7 @@ Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float radius)
 	return uniqueHits;
 }
 
-Array<UActor*> CollisionHash::EncroachingActors(UActor* actor)
+Array<UActor*> CollisionSystem::EncroachingActors(UActor* actor)
 {
 	UModel* brush = actor->Brush();
 	if (!brush)
@@ -584,7 +584,7 @@ Array<UActor*> CollisionHash::EncroachingActors(UActor* actor)
 	return uniqueHits;
 }
 
-Array<UActor*> CollisionHash::CollidingActors(const vec3& origin, float height, float radius)
+Array<UActor*> CollisionSystem::CollidingActors(const vec3& origin, float height, float radius)
 {
 	dvec3 dorigin = to_dvec3(origin);
 	double dheight = height;

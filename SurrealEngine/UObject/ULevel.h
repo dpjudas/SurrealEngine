@@ -2,7 +2,7 @@
 
 #include "UMesh.h"
 #include "Math/bbox.h"
-#include "Collision/TopLevel/CollisionHash.h"
+#include "Collision/TopLevel/CollisionSystem.h"
 #include "Collision/TopLevel/CollisionHit.h"
 
 class UTexture;
@@ -291,7 +291,7 @@ public:
 	Array<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;
 
-	CollisionHash Hash;
+	CollisionSystem Collision;
 	std::map<std::string, std::string> TravelInfo;
 
 private:

@@ -275,8 +275,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/ObjectTravelInfo.h
 	SurrealEngine/UObject/UnrealURL.cpp
 	SurrealEngine/UObject/UnrealURL.h
-	SurrealEngine/Collision/TopLevel/CollisionHash.cpp
-	SurrealEngine/Collision/TopLevel/CollisionHash.h
+	SurrealEngine/Collision/TopLevel/CollisionSystem.cpp
+	SurrealEngine/Collision/TopLevel/CollisionSystem.h
 	SurrealEngine/Collision/TopLevel/CollisionHit.h
 	SurrealEngine/Collision/TopLevel/TraceRayLevel.cpp
 	SurrealEngine/Collision/TopLevel/TraceRayLevel.h
