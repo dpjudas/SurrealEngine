@@ -2213,6 +2213,49 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 	return true;
 }
 
+void UPawn::ClearPaths()
+{
+	// What does this do?
+	LogUnimplemented("Pawn.ClearPaths");
+}
+
+UObject* UPawn::FindRandomDest()
+{
+	std::vector<UNavigationPoint*> reachablePoints;
+	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
+	{
+		if (ActorReachable(navPoint))
+		{
+			reachablePoints.push_back(navPoint);
+		}
+	}
+	if (reachablePoints.empty())
+		return nullptr;
+
+	float randomValue = rand() / (float)RAND_MAX;
+	int index = (int)std::round(randomValue * (float)(reachablePoints.size() - 1));
+	return reachablePoints[index];
+}
+
+UObject* UPawn::FindPathTo(const vec3& aPoint, bool bSinglePath)
+{
+	LogUnimplemented("Pawn.FindPathTo");
+	return nullptr;
+}
+
+UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
+{
+	LogUnimplemented("Pawn.FindPathToward");
+	return nullptr;
+}
+
+UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
+{
+	LogUnimplemented("Pawn.FindBestInventoryPath");
+	outMinWeight = 0.0f;
+	return nullptr;
+}
+
 void UPawn::InitActorZone()
 {
 	UActor::InitActorZone();

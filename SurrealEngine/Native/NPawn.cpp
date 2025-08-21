@@ -58,7 +58,8 @@ void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string
 
 void NPawn::ClearPaths(UObject* Self)
 {
-	LogUnimplemented("Pawn.ClearPaths");
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	selfPawn->ClearPaths();
 }
 
 void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, const vec3& SoundLocation, const vec3& Parameters)
@@ -73,26 +74,32 @@ void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
 
 void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredictRespawns, UObject*& ReturnValue)
 {
-	LogUnimplemented("Pawn.FindBestInventoryPath");
-	ReturnValue = nullptr;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = selfPawn->FindBestInventoryPath(bPredictRespawns, MinWeight);
 }
 
 void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	LogUnimplemented("Pawn.FindPathTo");
-	ReturnValue = nullptr;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	if (!bClearPaths || *bClearPaths)
+		selfPawn->ClearPaths();
+	ReturnValue = selfPawn->FindPathTo(aPoint, bSinglePath ? *bSinglePath : false);
 }
 
 void NPawn::FindPathToward(UObject* Self, UObject* anActor, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	LogUnimplemented("Pawn.FindPathToward");
-	ReturnValue = nullptr;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	if (!bClearPaths || *bClearPaths)
+		selfPawn->ClearPaths();
+	ReturnValue = selfPawn->FindPathToward(anActor, bSinglePath ? *bSinglePath : false);
 }
 
 void NPawn::FindRandomDest(UObject* Self, BitfieldBool* bClearPaths, UObject*& ReturnValue)
 {
-	LogUnimplemented("Pawn.FindRandomDest");
-	ReturnValue = nullptr;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	if (!bClearPaths || *bClearPaths)
+		selfPawn->ClearPaths();
+	ReturnValue = selfPawn->FindRandomDest();
 }
 
 void NPawn::FindStairRotation(UObject* Self, float DeltaTime, int& ReturnValue)

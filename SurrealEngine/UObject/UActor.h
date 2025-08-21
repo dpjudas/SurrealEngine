@@ -1432,6 +1432,12 @@ public:
 	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 
+	void ClearPaths();
+	UObject* FindRandomDest();
+	UObject* FindPathTo(const vec3& aPoint, bool bSinglePath);
+	UObject* FindPathToward(UObject* anActor, bool singlePath);
+	UObject* FindBestInventoryPath(bool predictRespawns, float& outMinWeight);
+
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }
 	float& AirSpeed() { return Value<float>(PropOffsets_Pawn.AirSpeed); }
