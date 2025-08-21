@@ -35,7 +35,7 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)
 {
-	LogUnimplemented("PlayerPawn.CopyToClipboard(" + Text + ")");
+	engine->window->SetClipboardText(Text);
 }
 
 void NPlayerPawn::GetDefaultURL(UObject* Self, const std::string& Option, std::string& ReturnValue)
@@ -56,8 +56,7 @@ void NPlayerPawn::GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValu
 
 void NPlayerPawn::PasteFromClipboard(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("PlayerPawn.PasteFromClipboard");
-	ReturnValue = "";
+	ReturnValue = engine->window->GetClipboardText();
 }
 
 void NPlayerPawn::ResetKeyboard(UObject* Self)
