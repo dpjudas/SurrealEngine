@@ -158,7 +158,7 @@ public:
 		ComPtr<ID3D11PixelShader> PixelShader;
 		ComPtr<ID3D11PixelShader> PixelShaderAlphaTest;
 		ComPtr<ID3D11SamplerState> Samplers[16];
-		ScenePipelineState Pipelines[32];
+		ScenePipelineState Pipelines[33];
 		ScenePipelineState LinePipeline[2];
 		ScenePipelineState PointPipeline[2];
 		float LODBias = 0.0f;
@@ -179,6 +179,7 @@ public:
 		uint32_t TexSamplerMode = 0;
 		uint32_t DetailtexSamplerMode = 0;
 		uint32_t MacrotexSamplerMode = 0;
+		float BlendConstants[4] = {};
 	} Batch;
 	std::vector<DrawBatchEntry> QueuedBatches;
 	D3D11CachedTexture* nulltex = nullptr;

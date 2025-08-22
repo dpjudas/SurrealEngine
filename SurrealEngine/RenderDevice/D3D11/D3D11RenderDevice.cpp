@@ -800,50 +800,65 @@ void D3D11RenderDevice::CreateScenePass()
 		SetDebugName(ScenePass.RasterizerState[i], "ScenePass.RasterizerState");
 	}
 
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < 33; i++)
 	{
 		D3D11_BLEND_DESC blendDesc = {};
 		blendDesc.IndependentBlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;
-		switch (i & 3)
+		if (i < 32)
 		{
-		case 0: // PF_Translucent
+			blendDesc.RenderTarget[0].BlendEnable = TRUE;
+			switch (i & 3)
+			{
+			case 0: // PF_Translucent
+				blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_COLOR;
+				blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+				break;
+			case 1: // PF_Modulated
+				blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_DEST_COLOR;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+				blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC_COLOR;
+				blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+				break;
+			case 2: // PF_Highlighted
+				blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+				blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+				break;
+			case 3: // Hmm, is it faster to keep the blend mode enabled or to toggle it?
+				blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+				blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+				blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+				break;
+			}
+			if (i & 4) // PF_Invisible
+				blendDesc.RenderTarget[0].RenderTargetWriteMask = 0;
+			else
+				blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		}
+		else // PF_SubpixelFont
+		{
+			blendDesc.IndependentBlendEnable = TRUE;
+			blendDesc.RenderTarget[0].BlendEnable = TRUE;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR;
 			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_COLOR;
 			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			break;
-		case 1: // PF_Modulated
-			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_DEST_COLOR;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC_COLOR;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-			break;
-		case 2: // PF_Highlighted
-			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-			break;
-		case 3: // Hmm, is it faster to keep the blend mode enabled or to toggle it?
-			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-			break;
-		}
-		if (i & 4) // PF_Invisible
-			blendDesc.RenderTarget[0].RenderTargetWriteMask = 0;
-		else
 			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		}
 		blendDesc.RenderTarget[1].BlendEnable = FALSE;
 		blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		HRESULT result = Device->CreateBlendState(&blendDesc, ScenePass.Pipelines[i].BlendState.TypedInitPtr());
@@ -861,7 +876,7 @@ void D3D11RenderDevice::CreateScenePass()
 		ThrowIfFailed(result, "CreateDepthStencilState(ScenePass.Pipelines.DepthStencilState) failed");
 		SetDebugName(ScenePass.Pipelines[i].DepthStencilState, "ScenePass.Pipelines.DepthStencilState");
 
-		if (i & 16) // PF_Masked
+		if ((i & 16) || i == 32) // PF_Masked or PF_SubpixelFont
 			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShaderAlphaTest;
 		else
 			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader;
@@ -1128,6 +1143,11 @@ D3D11RenderDevice::ScenePipelineState* D3D11RenderDevice::GetPipeline(uint32_t P
 	if (PolyFlags & PF_Masked)
 	{
 		index |= 16;
+	}
+
+	if (PolyFlags & PF_SubpixelFont)
+	{
+		index = 32;
 	}
 
 	return &ScenePass.Pipelines[index];
@@ -2010,6 +2030,16 @@ void D3D11RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X,
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
+	if (PolyFlags & PF_SubpixelFont)
+	{
+		AddDrawBatch();
+		Batch.BlendConstants[0] = Color.x;
+		Batch.BlendConstants[1] = Color.y;
+		Batch.BlendConstants[2] = Color.z;
+		Batch.BlendConstants[3] = Color.w;
+		Color = vec4(1.0f);
+	}
+
 	D3D11CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 	float UMult = tex->UMult;
 	float VMult = tex->VMult;
@@ -2527,7 +2557,7 @@ void D3D11RenderDevice::DrawEntry(const DrawBatchEntry& entry)
 	Context->PSSetShaderResources(0, 4, views);
 	Context->PSSetShader(entry.Pipeline->PixelShader, nullptr, 0);
 
-	Context->OMSetBlendState(entry.Pipeline->BlendState, nullptr, 0xffffffff);
+	Context->OMSetBlendState(entry.Pipeline->BlendState, entry.BlendConstants, 0xffffffff);
 	Context->OMSetDepthStencilState(entry.Pipeline->DepthStencilState, 0);
 
 	Context->IASetPrimitiveTopology(entry.Pipeline->PrimitiveTopology);

@@ -37,7 +37,7 @@ public:
 		std::unique_ptr<VulkanPipelineLayout> BindlessPipelineLayout;
 		std::unique_ptr<VulkanRenderPass> RenderPass;
 		std::unique_ptr<VulkanRenderPass> RenderPassContinue;
-		PipelineState Pipeline[32];
+		PipelineState Pipeline[33];
 		PipelineState LinePipeline[2];
 		PipelineState PointPipeline[2];
 	} Scene;

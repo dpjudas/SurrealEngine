@@ -341,6 +341,7 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 		cmdbuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, Batch.Pipeline->Pipeline.get());
 		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, DescriptorSets->GetBindlessSet());
 		cmdbuffer->pushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
+		cmdbuffer->setBlendConstants(Batch.BlendConstants);
 		cmdbuffer->drawIndexed((uint32_t)icount, 1, (uint32_t)Batch.SceneIndexStart, 0, 0);
 		Batch.SceneIndexStart = SceneIndexPos;
 		Stats.DrawCalls++;
@@ -546,6 +547,16 @@ void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
+
+	if (PolyFlags & PF_SubpixelFont)
+	{
+		DrawBatch(Commands->GetDrawCommands());
+		Batch.BlendConstants[0] = Color.x;
+		Batch.BlendConstants[1] = Color.y;
+		Batch.BlendConstants[2] = Color.z;
+		Batch.BlendConstants[3] = Color.w;
+		Color = vec4(1.0f);
+	}
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 	float UMult = tex ? GetUMult(Info) : 0.0f;

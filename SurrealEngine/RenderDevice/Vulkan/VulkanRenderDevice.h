@@ -170,6 +170,7 @@ private:
 	{
 		size_t SceneIndexStart = 0;
 		PipelineState* Pipeline = nullptr;
+		float BlendConstants[4] = {};
 	} Batch;
 
 	ScenePushConstants pushconstants;

@@ -79,6 +79,11 @@ PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags)
 		index |= 16;
 	}
 
+	if (PolyFlags & PF_SubpixelFont)
+	{
+		index = 32;
+	}
+
 	return &Scene.Pipeline[index];
 }
 
@@ -95,7 +100,7 @@ void RenderPassManager::CreatePipelines()
 	VulkanPipelineLayout* layout = Scene.BindlessPipelineLayout.get();
 	static const char* debugName = "ScenePipeline";
 
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < 33; i++)
 	{
 		GraphicsPipelineBuilder builder;
 		builder.AddVertexShader(vertShader);
@@ -120,47 +125,58 @@ void RenderPassManager::CreatePipelines()
 		if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
 			builder.DepthClampEnable(true);
 
-		ColorBlendAttachmentBuilder colorblend;
-		switch (i & 3)
+		if (i < 32)
 		{
-		case 0: // PF_Translucent
-			colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
-			builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
-			break;
-		case 1: // PF_Modulated
-			colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_SRC_COLOR);
-			builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
-			break;
-		case 2: // PF_Highlighted
-			colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
-			builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
-			break;
-		case 3:
-			colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ZERO); // Hmm, is it faster to keep the blend mode enabled or to toggle it?
-			break;
-		}
+			ColorBlendAttachmentBuilder colorblend;
+			switch (i & 3)
+			{
+			case 0: // PF_Translucent
+				colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR);
+				builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
+				break;
+			case 1: // PF_Modulated
+				colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_FACTOR_SRC_COLOR);
+				builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
+				break;
+			case 2: // PF_Highlighted
+				colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+				builder.DepthBias(true, -1.0f, 0.0f, -1.0f);
+				break;
+			case 3:
+				colorblend.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_ZERO); // Hmm, is it faster to keep the blend mode enabled or to toggle it?
+				break;
+			}
 
-		if (i & 4) // PF_Invisible
-		{
-			colorblend.ColorWriteMask(0);
-		}
+			if (i & 4) // PF_Invisible
+			{
+				colorblend.ColorWriteMask(0);
+			}
 
-		if (i & 8) // PF_Occlude
-		{
-			builder.DepthStencilEnable(true, true, false);
-		}
-		else
-		{
-			builder.DepthStencilEnable(true, false, false);
-		}
+			if (i & 8) // PF_Occlude
+			{
+				builder.DepthStencilEnable(true, true, false);
+			}
+			else
+			{
+				builder.DepthStencilEnable(true, false, false);
+			}
 
-		if (i & 16) // PF_Masked
+			if (i & 16) // PF_Masked
+				builder.AddFragmentShader(fragShaderAlphaTest);
+			else
+				builder.AddFragmentShader(fragShader);
+
+			builder.AddColorBlendAttachment(colorblend.Create());
+			builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder().Create());
+		}
+		else // PF_SubpixelFont
+		{
 			builder.AddFragmentShader(fragShaderAlphaTest);
-		else
-			builder.AddFragmentShader(fragShader);
-
-		builder.AddColorBlendAttachment(colorblend.Create());
-		builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder().Create());
+			builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder()
+				.BlendMode(VK_BLEND_OP_ADD, VK_BLEND_FACTOR_CONSTANT_COLOR, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR)
+				.Create());
+			builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder().Create());
+		}
 
 		builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
 		builder.DebugName(debugName);
