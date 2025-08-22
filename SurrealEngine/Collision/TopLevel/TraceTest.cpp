@@ -186,14 +186,11 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
 		}
 
-		if (radius != 0.0 || height != 0.0)
+		for (auto& hit : brushHits)
 		{
-			for (auto& hit : brushHits)
-			{
-				hit.Actor = actor;
-				hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
-				hits.push_back(hit);
-			}
+			hit.Actor = actor;
+			hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
+			hits.push_back(hit);
 		}
 	}
 	else
