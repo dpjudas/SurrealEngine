@@ -208,6 +208,12 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		fogmap = GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
 	}
 
+	if (PolyFlags & PF_Mirrored)
+	{
+		// We don't support mirrored surfaces right now. Force them to be rendered as opaque
+		PolyFlags = 0;
+	}
+
 	FSurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = PolyFlags;
 	surfaceinfo.Texture = surface.Material ? &texture : nullptr;
