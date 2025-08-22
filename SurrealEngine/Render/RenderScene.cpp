@@ -278,37 +278,8 @@ void RenderSubsystem::ProcessNode(BspNode* node)
 
 			if (actor != engine->CameraActor && !actor->bHidden() && (!actor->bOwnerNoSee() || actor->Owner() != engine->CameraActor))
 			{
-				EDrawType dt = (EDrawType)actor->DrawType();
-				if (dt == DT_Mesh && actor->Mesh())
-				{
-					UMesh* mesh = actor->Mesh();
-
-					Coords rotation = Coords::Rotation(actor->Rotation());
-					mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
-					mat4 meshToWorld = objectToWorld * mesh->meshToObject;
-					BBox bbox = mesh->BoundingBox.transform(meshToWorld);
-					if (Scene.Clipper.IsAABBVisible(bbox))
-					{
-						Scene.Actors.push_back(actor);
-					}
-				}
-				else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (actor->Texture()))
-				{
+				if (Scene.Clipper.IsAABBVisible(actor->BspInfo.BoundingBox))
 					Scene.Actors.push_back(actor);
-				}
-				else if (dt == DT_Brush && actor->Brush() && actor->Brush()->Nodes.size() > 0)
-				{
-					UModel* brush = actor->Brush();
-					if (UMover* mover = UObject::TryCast<UMover>(actor))
-					{
-						mat4 objectToWorld = mat4::translate(actor->Location()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-actor->PrePivot());
-						BBox bbox = brush->BoundingBox.transform(objectToWorld);
-						if (Scene.Clipper.IsAABBVisible(bbox))
-						{
-							Scene.Actors.push_back(actor);
-						}
-					}
-				}
 			}
 		}
 	}

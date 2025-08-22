@@ -66,3 +66,6 @@ public:
 
 	bool IsValid = true;
 };
+
+inline bool operator==(const BBox& a, const BBox& b) { return a.min == b.min && a.max == b.max && a.IsValid == b.IsValid; }
+inline bool operator!=(const BBox& a, const BBox& b) { return a.min != b.min || a.max != b.max || a.IsValid != b.IsValid; }

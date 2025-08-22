@@ -2,6 +2,7 @@
 
 #include "UObject.h"
 #include "UnrealURL.h"
+#include "Math/bbox.h"
 
 class UTexture;
 class UMesh;
@@ -255,8 +256,7 @@ public:
 	// Location in the BSP tree
 	struct
 	{
-		vec3 Location = vec3(0.0f);
-		vec3 Extents = vec3(0.0f);
+		BBox BoundingBox;
 		BspNode* Node = nullptr;
 		UActor* Prev = nullptr;
 		UActor* Next = nullptr;
