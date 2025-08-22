@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vec.h"
+#include "mat.h"
 
 class BBox
 {
@@ -29,6 +30,35 @@ public:
 		if (max.z < box.min.z || min.z > box.max.z) return false;
 
 		return true;
+	}
+
+	BBox transform(const mat4& objectToWorld) const
+	{
+		vec4 verts[8] =
+		{
+			objectToWorld * vec4(min.x, min.y, min.z, 1.0f),
+			objectToWorld * vec4(max.x, min.y, min.z, 1.0f),
+			objectToWorld * vec4(min.x, max.y, min.z, 1.0f),
+			objectToWorld * vec4(max.x, max.y, min.z, 1.0f),
+			objectToWorld * vec4(min.x, min.y, max.z, 1.0f),
+			objectToWorld * vec4(max.x, min.y, max.z, 1.0f),
+			objectToWorld * vec4(min.x, max.y, max.z, 1.0f),
+			objectToWorld * vec4(max.x, max.y, max.z, 1.0f)
+		};
+
+		BBox result;
+		result.min = verts[0].xyz();
+		result.max = verts[0].xyz();
+		for (int i = 1; i < 8; i++)
+		{
+			result.min.x = std::min(result.min.x, verts[i].x);
+			result.min.y = std::min(result.min.y, verts[i].y);
+			result.min.z = std::min(result.min.z, verts[i].z);
+			result.max.x = std::max(result.max.x, verts[i].x);
+			result.max.y = std::max(result.max.y, verts[i].y);
+			result.max.z = std::max(result.max.z, verts[i].z);
+		}
+		return result;
 	}
 
 	vec3 min;

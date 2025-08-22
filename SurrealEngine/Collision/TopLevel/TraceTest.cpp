@@ -159,14 +159,10 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 	{
 		CollisionHitList brushHits;
 
-		// Note: DrawScale does not affect mover
-
-		//mat4 objectToWorld = mat4::translate(Location()) * Coords::Rotation(Rotation()).ToMatrix() * mat4::translate(-PrePivot()) * mat4::scale(DrawScale());
-
 		mat4 rotateObjToWorld = Coords::Rotation(mover->Rotation()).ToMatrix();
 		mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
 
-		dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - mover->Location(), 1.0f)).xyz() + mover->PrePivot()));
+		dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - mover->Location(), 1.0f)).xyz() / mover->MainScale().Scale + mover->PrePivot()));
 		dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(dirNormalized), 1.0f)).xyz());
 
 		double localTMin = tmin;
@@ -189,7 +185,7 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 		for (auto& hit : brushHits)
 		{
 			hit.Actor = actor;
-			hit.Normal = (rotateWorldToObj * vec4(hit.Normal, 1.0f)).xyz();
+			hit.Normal = normalize((rotateWorldToObj * vec4(hit.Normal * mover->MainScale().Scale, 1.0f)).xyz());
 			hits.push_back(hit);
 		}
 	}

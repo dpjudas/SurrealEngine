@@ -113,10 +113,21 @@ void CollisionSystem::AddToCollision(UActor* actor)
 		float radius = actor->CollisionRadius();
 		vec3 extents = { radius, radius, height };
 
+		if (UMover* mover = UObject::TryCast<UMover>(actor))
+		{
+			UModel* brush = mover->Brush();
+			if (brush)
+			{
+				mat4 objectToWorld = mat4::translate(actor->Location()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-actor->PrePivot());
+				BBox bbox = brush->BoundingBox.transform(objectToWorld);
+				location = bbox.center();
+				extents = bbox.extents() + 0.1f; // 0.1 for numerical stability
+			}
+		}
+
 		actor->Collision.Inserted = true;
 		actor->Collision.Location = location;
-		actor->Collision.Height = height;
-		actor->Collision.Radius = radius;
+		actor->Collision.Extents = extents;
 
 		ivec3 start = GetStartExtents(location, extents);
 		ivec3 end = GetEndExtents(location, extents);
@@ -138,9 +149,7 @@ void CollisionSystem::RemoveFromCollision(UActor* actor)
 	if (actor->Collision.Inserted)
 	{
 		vec3 location = actor->Collision.Location;
-		float height = actor->Collision.Height;
-		float radius = actor->Collision.Radius;
-		vec3 extents = { radius, radius, height };
+		vec3 extents = actor->Collision.Extents;
 
 		ivec3 start = GetStartExtents(location, extents);
 		ivec3 end = GetEndExtents(location, extents);

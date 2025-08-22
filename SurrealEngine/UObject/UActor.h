@@ -232,8 +232,7 @@ public:
 	{
 		bool Inserted = false;
 		vec3 Location = { 0.0f };
-		float Height = 0.0f;
-		float Radius = 0.0f;
+		vec3 Extents = { 0.0f };
 	} Collision;
 
 	// Lights touching this actor
