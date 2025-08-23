@@ -200,46 +200,9 @@ public:
 
 	uint32_t PolyFlags()
 	{
-#if 1
 		// UE1 has this as a native uint32_t that is declared in unreal script as bitfield booleans.
 		BitfieldBool flagsBool = bInvisible();
 		return *flagsBool.Ptr;
-#else
-		// To do: implement packed booleans in the VM so that this can be done as a single uint32_t
-		uint32_t flags = ((uint32_t)bInvisible()) << 0;
-		flags |= ((uint32_t)bMasked()) << 1;
-		flags |= ((uint32_t)bTransparent()) << 2;
-		flags |= ((uint32_t)bNotSolid()) << 3;
-		flags |= ((uint32_t)bEnvironment()) << 4;
-		flags |= ((uint32_t)bSemisolid()) << 5;
-		flags |= ((uint32_t)bModulate()) << 6;
-		flags |= ((uint32_t)bFakeBackdrop()) << 7;
-		flags |= ((uint32_t)bTwoSided()) << 8;
-		flags |= ((uint32_t)bAutoUPan()) << 9;
-		flags |= ((uint32_t)bAutoVPan()) << 10;
-		flags |= ((uint32_t)bNoSmooth()) << 11;
-		flags |= ((uint32_t)bBigWavy()) << 12;
-		flags |= ((uint32_t)bSmallWavy()) << 13;
-		flags |= ((uint32_t)bWaterWavy()) << 14;
-		flags |= ((uint32_t)bLowShadowDetail()) << 15;
-		flags |= ((uint32_t)bNoMerge()) << 16;
-		flags |= ((uint32_t)bCloudWavy()) << 17;
-		flags |= ((uint32_t)bDirtyShadows()) << 18;
-		flags |= ((uint32_t)bHighLedge()) << 19;
-		flags |= ((uint32_t)bSpecialLit()) << 20;
-		flags |= ((uint32_t)bGouraud()) << 21;
-		flags |= ((uint32_t)bUnlit()) << 22;
-		flags |= ((uint32_t)bHighShadowDetail()) << 23;
-		flags |= ((uint32_t)bPortal()) << 24;
-		flags |= ((uint32_t)bMirrored()) << 25;
-		flags |= ((uint32_t)bX2()) << 26;
-		flags |= ((uint32_t)bX3()) << 27;
-		flags |= ((uint32_t)bX4()) << 28;
-		flags |= ((uint32_t)bX5()) << 29;
-		flags |= ((uint32_t)bX6()) << 30;
-		flags |= ((uint32_t)bX7()) << 31;
-		return flags;
-#endif
 	}
 
 	float& Accumulator() { return Value<float>(PropOffsets_Texture.Accumulator); }
