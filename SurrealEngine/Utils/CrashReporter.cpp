@@ -800,9 +800,9 @@ CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 	return info;
 }
 
-#else // gcc and clang on Windows
+#else // gcc and clang on Windows (no idea how compatible they are with msvc/pdb here and we don't use them on Windows anyway)
 
-void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(std::function<void(const void* data, size_t size)>)> getLog)
+void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(const std::string& logFilename)> saveLog)
 {
 }
 
@@ -822,7 +822,7 @@ CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 #endif // _MSC_VER
 #else // Linux
 
-void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(std::function<void(const void* data, size_t size)>)> getLog)
+void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(const std::string& logFilename)> saveLog)
 {
 }
 

@@ -37,12 +37,13 @@ bool ErrorWindow::CheckCrashReporter()
 				pos = end + 1;
 			}
 			ExecModal(dumpInfo.exception, log);
+
+			File::try_delete(dumpFilename);
+			File::try_delete(logFilename);
 		}
 		catch (...)
 		{
 		}
-		File::try_delete(dumpFilename);
-		File::try_delete(logFilename);
 		return true;
 	}
 	else

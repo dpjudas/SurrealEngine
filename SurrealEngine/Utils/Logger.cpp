@@ -61,17 +61,21 @@ Logger* Logger::Get()
 void Logger::SaveLog(const std::string& filename)
 {
 	// We want this formatted in a specific way so its reasonably readable both by humans and still by a json parser.
-	std::string json = "[\n";
+	std::string json = "[";
+	bool firstLine = true;
 	for (const LogMessageLine& line : Log)
 	{
+		if (!firstLine)
+			json += ',';
+		firstLine = false;
+		json += '\n';
 		JsonValue logMessage = JsonValue::array();
 		logMessage.items().push_back(JsonValue::number(line.Time));
 		logMessage.items().push_back(JsonValue::string(line.Source));
 		logMessage.items().push_back(JsonValue::string(line.Text));
 		json += logMessage.to_json(false);
-		json += '\n';
 	}
-	json += "]\n";
+	json += "\n]\n";
 	File::write_all_text(filename, json);
 }
 
