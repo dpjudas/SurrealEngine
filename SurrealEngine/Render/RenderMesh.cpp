@@ -368,23 +368,28 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		{
 			const MeshWedge& wedge = mesh->Wedges[face.Indices[i]];
 
-			if ((size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0] >= mesh->Verts.size() ||
-				(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1] >= mesh->Verts.size())
-			{
-				// Out of bounds. Something is wrong with the mesh. Aborting render to prevent a crash.
-				return false;
-			}
+			size_t vbase = (size_t)wedge.Vertex + baseVertexOffset;
+			size_t vindex = mesh->ReMapAnimVerts.empty() ? vbase : mesh->ReMapAnimVerts[vbase];
+			size_t vindex0 = vindex + vertexOffsets[0];
+			size_t vindex1 = vindex + vertexOffsets[1];
 
-			const vec3& v0 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];
-			const vec3& v1 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1]];
-			const vec3& n0 = mesh->Normals[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[0]];
-			const vec3& n1 = mesh->Normals[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[1]];
+			if (vindex0 >= mesh->Verts.size() || vindex1 >= mesh->Verts.size())
+				return false; // out of bounds
+
+			const vec3& v0 = mesh->Verts[vindex0];
+			const vec3& v1 = mesh->Verts[vindex1];
+			const vec3& n0 = mesh->Normals[vindex0];
+			const vec3& n1 = mesh->Normals[vindex1];
 			vec3 vertex = mix(v0, v1, t0);
 			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
-				const vec3& v2 = mesh->Verts[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[2]];
-				const vec3& n2 = mesh->Normals[(size_t)wedge.Vertex + baseVertexOffset + vertexOffsets[2]];
+				size_t vindex2 = vindex + vertexOffsets[2];
+				if (vindex2 >= mesh->Verts.size())
+					return false; // out of bounds
+
+				const vec3& v2 = mesh->Verts[vindex2];
+				const vec3& n2 = mesh->Normals[vindex2];
 				vertex = mix(vertex, v2, t1);
 				normal = mix(normal, n2, t1);
 			}
