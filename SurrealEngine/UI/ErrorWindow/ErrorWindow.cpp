@@ -36,7 +36,7 @@ bool ErrorWindow::CheckCrashReporter()
 					break;
 				pos = end + 1;
 			}
-			ExecModal(dumpInfo.exception, log);
+			ExecModal(dumpInfo.exception, log, File::read_all_bytes(dumpFilename));
 
 			File::try_delete(dumpFilename);
 			File::try_delete(logFilename);
