@@ -694,7 +694,7 @@ public:
 		result = SymGetLineFromAddr64(process, (DWORD64)frame, &displacement1, &line64);
 		if (result)
 		{
-			return std::string("Called from ") + symbol64->Name + " at " + line64.FileName + "%s, line " + std::to_string(line64.LineNumber) + "\n";
+			return std::string("Called from ") + symbol64->Name + " at " + line64.FileName + ", line " + std::to_string(line64.LineNumber) + "\n";
 		}
 		else
 		{
