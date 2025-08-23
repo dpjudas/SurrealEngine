@@ -1,6 +1,8 @@
 
 #include "ErrorWindow.h"
 #include "Utils/File.h"
+#include "Utils/CrashReporter.h"
+#include "Utils/CommandLine.h"
 #include "Engine.h"
 #include <zwidget/core/image.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
@@ -8,11 +10,55 @@
 #include <zwidget/systemdialogs/save_file_dialog.h>
 #include <miniz.h>
 
+bool ErrorWindow::CheckCrashReporter()
+{
+	if (commandline->HasArg("", "--showcrashreport") && commandline->GetItems().size() == 2)
+	{
+		std::string dumpFilename = commandline->GetItems()[0];
+		std::string logFilename = commandline->GetItems()[1];
+		try
+		{
+			CrashDumpInfo dumpInfo = CrashReporter::GetCrashDumpInfo(dumpFilename);
+			std::list<LogMessageLine> log = Logger::Get()->LoadLog(logFilename);
+
+			LogMessageLine line;
+			line.Source = "Crash Reporter";
+			line.Text = dumpInfo.exception;
+			log.push_back(line);
+
+			size_t pos = 0;
+			while (pos < dumpInfo.callstack.size())
+			{
+				size_t end = std::min(dumpInfo.callstack.find('\n', pos), dumpInfo.callstack.size());
+				line.Text = dumpInfo.callstack.substr(pos, end - pos);
+				log.push_back(line);
+				if (end == dumpInfo.callstack.size())
+					break;
+				pos = end + 1;
+			}
+			ExecModal(dumpInfo.exception, log);
+		}
+		catch (...)
+		{
+		}
+		File::try_delete(dumpFilename);
+		File::try_delete(logFilename);
+		return true;
+	}
+	else
+	{
+		std::string reportsDirectory = FilePath::combine(Directory::localAppData(), "SurrealEngine/CrashReports");
+		Directory::create(reportsDirectory);
+		CrashReporter::Init(reportsDirectory, [](const std::string& logFilename) { Logger::Get()->SaveLog(logFilename); });
+		return false;
+	}
+}
+
 void ErrorWindow::ExecModal(const std::string& text, const std::list<LogMessageLine>& log, Array<uint8_t> minidump)
 {
 	Size screenSize = GetScreenSize();
-	double windowWidth = 1200.0;
-	double windowHeight = 700.0;
+	double windowWidth = 1500.0;
+	double windowHeight = 800.0;
 
 	auto window = std::make_unique<ErrorWindow>(std::move(minidump));
 	window->SetText(text, log);

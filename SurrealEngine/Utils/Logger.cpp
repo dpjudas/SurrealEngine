@@ -1,6 +1,8 @@
 
 #include "Precomp.h"
 #include "Utils/Logger.h"
+#include "Utils/JsonValue.h"
+#include "Utils/File.h"
 #include "VM/Frame.h"
 
 void LogMessage(const std::string& message)
@@ -54,4 +56,36 @@ Logger* Logger::Get()
 {
 	static Logger logger;
 	return &logger;
+}
+
+void Logger::SaveLog(const std::string& filename)
+{
+	// We want this formatted in a specific way so its reasonably readable both by humans and still by a json parser.
+	std::string json = "[\n";
+	for (const LogMessageLine& line : Log)
+	{
+		JsonValue logMessage = JsonValue::array();
+		logMessage.items().push_back(JsonValue::number(line.Time));
+		logMessage.items().push_back(JsonValue::string(line.Source));
+		logMessage.items().push_back(JsonValue::string(line.Text));
+		json += logMessage.to_json(false);
+		json += '\n';
+	}
+	json += "]\n";
+	File::write_all_text(filename, json);
+}
+
+std::list<LogMessageLine> Logger::LoadLog(const std::string& filename)
+{
+	std::list<LogMessageLine> log;
+	JsonValue json = JsonValue::parse(File::read_all_text(filename));
+	for (const JsonValue& logMessage : json.items())
+	{
+		LogMessageLine line;
+		line.Time = logMessage.at(0).to_float();
+		line.Source = logMessage.at(1).to_string();
+		line.Text = logMessage.at(2).to_string();
+		log.push_back(std::move(line));
+	}
+	return log;
 }

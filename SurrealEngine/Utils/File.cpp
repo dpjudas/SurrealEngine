@@ -6,6 +6,7 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
+#include <Shlobj.h>
 #else
 #include <libgen.h>
 #include <fnmatch.h>
@@ -25,6 +26,7 @@ extern const char* __progname;
 #include "Utils/Exception.h"
 #include <string.h>
 #include <sstream>
+#include <cstdio>
 
 #ifdef WIN32
 
@@ -119,6 +121,17 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 	return std::make_shared<FileImpl>(handle);
 }
 
+bool File::try_delete(const std::string& filename)
+{
+	return DeleteFile(to_utf16(filename).c_str()) == TRUE;
+}
+
+void File::delete_always(const std::string& filename)
+{
+	if (!try_delete(filename))
+		throw std::runtime_error("Could not delete " + filename);
+}
+
 #else
 
 class FileImpl : public File
@@ -188,6 +201,17 @@ std::shared_ptr<File> File::open_existing(const std::string &filename)
 		Exception::Throw("Could not open " + filename);
 
 	return std::make_shared<FileImpl>(handle);
+}
+
+bool File::try_delete(const std::string& filename)
+{
+	return std::remove(filename.c_str()) == 0;
+}
+
+void File::delete_always(const std::string& filename)
+{
+	if (!try_delete(filename))
+		throw std::runtime_error("Could not delete " + filename);
 }
 
 #endif
@@ -274,12 +298,55 @@ Array<std::string> Directory::files(const std::string& filename)
 	return files;
 }
 
-void Directory::make_directory(const std::string& dirname)
+void Directory::create(const std::string& path)
 {
-	if (!CreateDirectory(to_utf16(dirname).c_str(), NULL))
+#ifdef WIN32
+	BOOL result = CreateDirectory(to_utf16(path).c_str(), nullptr);
+	if (result == FALSE)
 	{
-		if (GetLastError() != ERROR_ALREADY_EXISTS)
-			Exception::Throw("Could not create directory " + dirname);
+		DWORD error = GetLastError();
+		if (error == ERROR_ALREADY_EXISTS)
+		{
+			return;
+		}
+		else if (error == ERROR_PATH_NOT_FOUND)
+		{
+			try
+			{
+				std::string parent = FilePath::remove_last_component(path);
+				if (!parent.empty())
+				{
+					Directory::create(parent);
+					if (CreateDirectory(to_utf16(path).c_str(), nullptr) == TRUE)
+						return;
+				}
+			}
+			catch (...)
+			{
+			}
+		}
+		throw std::runtime_error("Could not create directory for path " + path);
+	}
+#else
+	throw std::runtime_error("Directory::create not implemented");
+#endif
+}
+
+std::string Directory::localAppData()
+{
+	PWSTR path = nullptr;
+	if (FAILED(SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &path)))
+		throw std::runtime_error("SHGetKnownFolderPath(FOLDERID_LocalAppData) failed");
+	try
+	{
+		std::string folder = from_utf16(path);
+		CoTaskMemFree(path);
+		return folder;
+	}
+	catch (...)
+	{
+		CoTaskMemFree(path);
+		throw;
 	}
 }
 
@@ -323,13 +390,18 @@ Array<std::string> Directory::files(const std::string& filename)
 	return files;
 }
 
-void Directory::make_directory(const std::string& dirname)
+void Directory::create(const std::string& dirname)
 {
 	if (mkdir(dirname.c_str(), 0777) < 0)
 	{
 		if (errno != EEXIST)
 			Exception::Throw("Could not create directory " + dirname);
 	}
+}
+
+std::string Directory::localAppData()
+{
+	return "~/.config";
 }
 
 #endif

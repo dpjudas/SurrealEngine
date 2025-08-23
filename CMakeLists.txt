@@ -49,6 +49,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/MemoryStreamWriter.cpp
 	SurrealEngine/Utils/MemoryStreamWriter.h
 	SurrealEngine/Utils/Array.h
+	SurrealEngine/Utils/CrashReporter.cpp
+	SurrealEngine/Utils/CrashReporter.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp

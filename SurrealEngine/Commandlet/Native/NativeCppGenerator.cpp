@@ -42,10 +42,10 @@ void NativeCppGenerator::Run()
 			ParseGameProperties(json, version);
 	}
 
-	Directory::make_directory("Cpp");
-	Directory::make_directory("Cpp/Native");
-	Directory::make_directory("Cpp/Package");
-	Directory::make_directory("Cpp/UObject");
+	Directory::create("Cpp");
+	Directory::create("Cpp/Native");
+	Directory::create("Cpp/Package");
+	Directory::create("Cpp/UObject");
 
 	std::string packageManagerRegisterFuncsText;
 	std::string propertyOffsetsHText;

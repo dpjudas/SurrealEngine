@@ -25,6 +25,9 @@ public:
 	void SetCallback(std::function<void(const LogMessageLine& line)> cb) { printLogDebugger = std::move(cb); }
 	const std::list<LogMessageLine>& GetLog() const { return Log; }
 
+	void SaveLog(const std::string& filename);
+	static std::list<LogMessageLine> LoadLog(const std::string& filename);
+
 private:
 	float time = 0.0f;
 	std::list<LogMessageLine> Log;

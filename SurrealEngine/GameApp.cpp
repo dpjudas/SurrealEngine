@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "Utils/Exception.h"
 #include "Utils/Logger.h"
-#include "GameApp.h"
 #include "Utils/CommandLine.h"
+#include "GameApp.h"
 #include "GameFolder.h"
 #include "Engine.h"
 #include "UI/WidgetResourceData.h"
@@ -26,6 +26,9 @@ int GameApp::main(Array<std::string> args)
 	{
 		CommandLine cmd(args);
 		commandline = &cmd;
+
+		if (ErrorWindow::CheckCrashReporter())
+			return 0;
 
 		if (commandline->HasArg("-h", "--help"))
 		{

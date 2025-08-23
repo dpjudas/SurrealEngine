@@ -174,8 +174,8 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, Array<std::string>& p
 			{
 				if (!pkgpathcreated)
 				{
-					Directory::make_directory(pkgpath);
-					Directory::make_directory(classespath);
+					Directory::create(pkgpath);
+					Directory::create(classespath);
 					pkgpathcreated = true;
 				}
 				std::string filename = FilePath::combine(classespath, cls->FriendlyName.ToString() + ".uc");
@@ -273,8 +273,8 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, Array<std::string>& 
 			{
 				if (!pkgpathcreated)
 				{
-					Directory::make_directory(pkgpath);
-					Directory::make_directory(texturespath);
+					Directory::create(pkgpath);
+					Directory::create(texturespath);
 					pkgpathcreated = true;
 				}
 

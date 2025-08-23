@@ -34,6 +34,9 @@ public:
 	static std::string read_all_text(const std::string& filename);
 	static Array<std::string> read_all_lines(const std::string& filename);
 
+	static bool try_delete(const std::string& filename);
+	static void delete_always(const std::string& filename);
+
 	uint8_t read_uint8() { uint8_t v; read(&v, sizeof(uint8_t)); return v; }
 	int8_t read_int8() { int8_t v; read(&v, sizeof(int8_t)); return v; }
 	uint16_t read_uint16() { uint16_t v; read(&v, sizeof(uint16_t)); return v; }
@@ -55,7 +58,8 @@ class Directory
 {
 public:
 	static Array<std::string> files(const std::string& filename);
-	static void make_directory(const std::string& dirname);
+	static void create(const std::string& path);
+	static std::string localAppData();
 };
 
 class OS
