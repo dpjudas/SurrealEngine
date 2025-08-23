@@ -8,55 +8,37 @@ The goal of this project is to reimplement enough of the original Unreal Engine 
 
 * Original copies of the UE1 games you want to run
 * Windows 10+ or a modern Linux distro
-* A Vulkan capable graphics card
+* A DirectX 11 or Vulkan capable graphics card
 
 ## Current status
 
-The engine can load and render the maps. The Unrealscript VM is almost feature complete - only arrays and network conditional execution are not implemented yet.
+Please refer to [Status.md](Docs/Status.md) for the current status of Surreal Engine!
 
-It will attempt to load all level actors and initialize the map. However, while the menus and the HUD will appear, there are still many native functions not implemented yet. It is also quite possible some events aren't firing as they should. You will therefore see exceptions shown if you interact with them and that is where the project is at.
+## Downloads
 
-At the time of this writing, SurrealEngine can detect the following UE1 games:
+[Nightly builds are available on the Releases section](https://github.com/dpjudas/SurrealEngine/releases/tag/nightly). Just download the zip file for your OS, and either:
 
-* Unreal Tournament (v436, v451b, v469(a, b, c, d))
-* Unreal (v200, v209, v220, v224v, v225f, v226f)
-* Unreal Gold (v226b, v227(i, j, k_11))
-* Deus Ex (v1002f, v1112fm)
-* Klingon Honor Guard (219)
-* NERF Arena Blast (v300)
-* TNN Outdoors Pro Hunter (v200)
-* Rune Classic (v1.10)
-* Clive Barker's Undying (v420)
-* Tactical-Ops: Assault on Terror (v3.4.0 and v3.5.0 - both running under UT436 and UT469 engines)
-* Wheel of Time (v333)
+* extract everything to the `system` folder of the UE1 game you want to play and run the `SurrealEngine` executable.
 
-> [!NOTE]
-> From the list above, only Unreal Tournament v436 and Unreal Gold v226 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes.
+or
 
-### Unreal Tournament v436
+* extract it to anywhere you want and provide the path of the UE1 game you want to play as a parameter (see "Command line parameters" section below).
 
-The game launches, menu options will work and botmatches can be played, however the bots will barely have any AI (they move around sometimes and retaliate upon being attacked), and some maps will have some functionality missing (like DM-Morpheus will not have the "X leading the match" screens work).
+Additionally, Surreal Engine is available on following Linux distributions:
 
-### Unreal Gold v226
-
-The game launches, menu options will work most of the time. Single player maps can be played, as well as botmatches. The AI will behave more or less the same as how they behave in UT. Objects from Return to Na Pali have their models appear broken.
-
-### Deus Ex v1112fm
-
-Only the intro flyby works. No keyboard or mouse inputs will be detected, as Deus Ex handles them differently than Unreal/UT. 
+* Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
+* Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) | [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
 
 ## Command line parameters
 
 `SurrealEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]`
 
-You can simply copy paste the SurrealEngine executable inside the System folder of your UE1 game of choice, and run it from there. If no game folder is specified, and the executable isn't in a System folder, the engine will search the registry (Windows only) for the registry keys Epic originally set. If no URL is specified it will use the default URL in the ini file (per default the intro map). The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
+If no game folder is specified, and the executable isn't in a System folder, the engine will search the registry (Windows only) for the registry keys Epic originally set.
 
-## Packages
+If no URL is specified it will use the default URL in the ini file (per default the intro map).
 
-Surreal Engine is available on:
+The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
 
-* Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
-* Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) | [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
 
 ## Building Surreal Engine
 
