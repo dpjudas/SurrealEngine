@@ -401,7 +401,13 @@ void Directory::create(const std::string& dirname)
 
 std::string Directory::localAppData()
 {
-	return "~/.config";
+	// We're trying to find "~/.config" here
+	const char* homeDir = getenv("HOME");
+
+	if (!homeDir)
+		throw std::runtime_error("HOME environment variable is not set... somehow.");
+
+	return FilePath::combine(std::string(homeDir), ".config");
 }
 
 #endif
