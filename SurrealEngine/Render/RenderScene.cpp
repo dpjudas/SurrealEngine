@@ -208,7 +208,7 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		fogmap = GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
 	}
 
-	if (PolyFlags & (PF_Mirrored | PF_Portal))
+	if (PolyFlags & PF_Mirrored)
 	{
 		// We don't support mirrors or portal surfaces right now. Force them to be rendered as opaque
 		PolyFlags = PF_Occlude;
