@@ -15,39 +15,6 @@ static std::string tickEventName = "Tick";
 // TODO: Compare behavior more closely with original engine. Might differ depending on game.
 static constexpr float stepDownDeltaFactor = 1.3f;
 
-static void ApplyRotationPhysics(UActor& actor, float elapsed)
-{
-	if (actor.bRotateToDesired())
-	{
-		if (actor.Rotation() != actor.DesiredRotation())
-		{
-			Rotator rot = actor.Rotation();
-			if (actor.bFixedRotationDir())
-			{
-				rot.Yaw = Rotator::TurnToFixed(rot.Yaw, actor.DesiredRotation().Yaw, (int)(actor.RotationRate().Yaw * elapsed));
-				rot.Pitch = Rotator::TurnToFixed(rot.Pitch, actor.DesiredRotation().Pitch, (int)(actor.RotationRate().Pitch * elapsed));
-				rot.Roll = Rotator::TurnToFixed(rot.Roll, actor.DesiredRotation().Roll, (int)(actor.RotationRate().Roll * elapsed));
-			}
-			else
-			{
-				rot.Yaw = Rotator::TurnToShortest(rot.Yaw, actor.DesiredRotation().Yaw, (int)std::abs(actor.RotationRate().Yaw * elapsed));
-				rot.Pitch = Rotator::TurnToShortest(rot.Pitch, actor.DesiredRotation().Pitch, (int)std::abs(actor.RotationRate().Pitch * elapsed));
-				rot.Roll = Rotator::TurnToShortest(rot.Roll, actor.DesiredRotation().Roll, (int)std::abs(actor.RotationRate().Roll * elapsed));
-			}
-			actor.Rotation() = rot;
-
-			if (actor.Rotation() == actor.DesiredRotation())
-			{
-				CallEvent(&actor, EventName::EndedRotation);
-			}
-		}
-	}
-	else if (actor.bFixedRotationDir())
-	{
-		actor.Rotation() += actor.RotationRate() * elapsed;
-	}
-}
-
 UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
 {
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
@@ -401,7 +368,7 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Falling: TickFalling(physTimeElapsed); break;
 			case PHYS_Swimming: TickSwimming(physTimeElapsed); break;
 			case PHYS_Flying: TickFlying(physTimeElapsed); break;
-			case PHYS_Rotating: TickRotating(physTimeElapsed); break;
+			case PHYS_Rotating: break;
 			case PHYS_Projectile: TickProjectile(physTimeElapsed); break;
 			case PHYS_Rolling: TickRolling(physTimeElapsed); break;
 			case PHYS_Interpolating: TickInterpolating(physTimeElapsed); break;
@@ -410,6 +377,8 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
 			}
 		}
+
+		TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 
 		if (engine->LaunchInfo.engineVersion >= 400)
 		{
@@ -641,8 +610,6 @@ void UActor::TickFalling(float elapsed)
 		fluidFriction = pawn->FootRegion().Zone->ZoneFluidFriction();
 	}
 
-	ApplyRotationPhysics(*this, elapsed);
-
 	OldLocation() = Location();
 	bJustTeleported() = false;
 
@@ -848,7 +815,39 @@ void UActor::TickFlying(float elapsed)
 
 void UActor::TickRotating(float elapsed)
 {
-	ApplyRotationPhysics(*this, elapsed);
+	// Does this apply to more than just those two modes?
+	if (Physics() != PHYS_Rotating && Physics() != PHYS_Projectile)
+		return;
+
+	if (bRotateToDesired())
+	{
+		if (Rotation() != DesiredRotation())
+		{
+			Rotator rot = Rotation();
+			if (bFixedRotationDir())
+			{
+				rot.Yaw = Rotator::TurnToFixed(rot.Yaw, DesiredRotation().Yaw, (int)(RotationRate().Yaw * elapsed));
+				rot.Pitch = Rotator::TurnToFixed(rot.Pitch, DesiredRotation().Pitch, (int)(RotationRate().Pitch * elapsed));
+				rot.Roll = Rotator::TurnToFixed(rot.Roll, DesiredRotation().Roll, (int)(RotationRate().Roll * elapsed));
+			}
+			else
+			{
+				rot.Yaw = Rotator::TurnToShortest(rot.Yaw, DesiredRotation().Yaw, (int)std::abs(RotationRate().Yaw * elapsed));
+				rot.Pitch = Rotator::TurnToShortest(rot.Pitch, DesiredRotation().Pitch, (int)std::abs(RotationRate().Pitch * elapsed));
+				rot.Roll = Rotator::TurnToShortest(rot.Roll, DesiredRotation().Roll, (int)std::abs(RotationRate().Roll * elapsed));
+			}
+			Rotation() = rot;
+
+			if (Rotation() == DesiredRotation())
+			{
+				CallEvent(this, EventName::EndedRotation);
+			}
+		}
+	}
+	else if (bFixedRotationDir())
+	{
+		Rotation() += RotationRate() * elapsed;
+	}
 }
 
 void UActor::TickProjectile(float elapsed)
@@ -858,8 +857,6 @@ void UActor::TickProjectile(float elapsed)
 		Destroy();
 		return;
 	}
-
-	ApplyRotationPhysics(*this, elapsed);
 
 	UZoneInfo* zone = Region().Zone;
 	UProjectile* projectile = UObject::TryCast<UProjectile>(this);
@@ -2421,6 +2418,9 @@ void UPawn::TickRotating(float elapsed)
 	bRotateToDesired() = true;
 	bFixedRotationDir() = false;
 
+	if (Rotation() == DesiredRotation())
+		return;
+
 	Rotator rot = Rotation();
 
 	if ((DesiredRotation().Yaw & 0xffff) != (rot.Yaw & 0xffff))
@@ -2444,6 +2444,11 @@ void UPawn::TickRotating(float elapsed)
 	// To do: apply RotationRate().Roll
 
 	Rotation() = rot;
+
+	if (Rotation() == DesiredRotation())
+	{
+		CallEvent(this, EventName::EndedRotation);
+	}
 }
 
 bool UPawn::TickRotateTo(const vec3& target)
@@ -2492,6 +2497,8 @@ void UPawn::MoveToward(UActor* newTarget, float speed)
 		return;
 
 	MoveTarget() = newTarget;
+	Destination() = newTarget->Location();
+	Focus() = newTarget->Location();
 	bReducedSpeed() = false;
 	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
 	SetMoveDuration(newTarget->Location() - Location());

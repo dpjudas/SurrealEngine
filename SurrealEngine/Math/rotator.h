@@ -71,7 +71,11 @@ public:
 	static Rotator FromVector(const vec3& v)
 	{
 		float scale = 0x10000 / (2.0f * 3.14159265359f);
-		return Rotator((int)(std::atan2(v.z, std::sqrt(v.x * v.x + v.y * v.y)) * scale), (int)(std::atan2(v.y, v.x) * scale), 0);
+		Rotator rotation;
+		rotation.Yaw = (int)(std::atan2(v.y, v.x) * scale);
+		rotation.Pitch = (int)(std::atan2(v.z, std::sqrt(v.x * v.x + v.y * v.y)) * scale);
+		rotation.Roll = 0;
+		return rotation;
 	}
 };
 
