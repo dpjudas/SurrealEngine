@@ -1490,7 +1490,7 @@ public:
 	UClass*& PlayerReplicationInfoClass() { return Value<UClass*>(PropOffsets_Pawn.PlayerReplicationInfoClass); }
 	float& ReducedDamagePct() { return Value<float>(PropOffsets_Pawn.ReducedDamagePct); }
 	NameString& ReducedDamageType() { return Value<NameString>(PropOffsets_Pawn.ReducedDamageType); }
-	UNavigationPoint*& RouteCache() { return Value<UNavigationPoint*>(PropOffsets_Pawn.RouteCache); }
+	UNavigationPoint** RouteCache() { return FixedArray<UNavigationPoint*>(PropOffsets_Pawn.RouteCache); }
 	int& SecretCount() { return Value<int>(PropOffsets_Pawn.SecretCount); }
 	UInventory*& SelectedItem() { return Value<UInventory*>(PropOffsets_Pawn.SelectedItem); }
 	std::string& SelectionMesh() { return Value<std::string>(PropOffsets_Pawn.SelectionMesh); }

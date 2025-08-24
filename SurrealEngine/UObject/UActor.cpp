@@ -2229,8 +2229,9 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 
 void UPawn::ClearPaths()
 {
-	// What does this do?
-	LogUnimplemented("Pawn.ClearPaths");
+	UNavigationPoint** cache = RouteCache();
+	for (int i = 0; i < 16; i++)
+		cache[i] = nullptr;
 }
 
 UObject* UPawn::FindRandomDest()
