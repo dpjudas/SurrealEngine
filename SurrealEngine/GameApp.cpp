@@ -36,9 +36,13 @@ int GameApp::main(Array<std::string> args)
 			return 0;
 		}
 
-		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(LauncherWindow::ExecModal());
-		Engine engine(info);
-		engine.Run();
+		int selectedGameIndex = LauncherWindow::ExecModal();
+		if (selectedGameIndex >= 0)
+		{
+			GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(selectedGameIndex);
+			Engine engine(info);
+			engine.Run();
+		}
 	}
 	catch (const std::exception& e)
 	{
