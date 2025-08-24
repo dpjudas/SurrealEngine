@@ -548,7 +548,7 @@ void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
-	if (PolyFlags & PF_SubpixelFont)
+	if (PolyFlags == PF_SubpixelFont)
 	{
 		DrawBatch(Commands->GetDrawCommands());
 		Batch.BlendConstants[0] = Color.x;
