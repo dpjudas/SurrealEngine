@@ -79,7 +79,7 @@ PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags)
 		index |= 16;
 	}
 
-	if (PolyFlags & PF_SubpixelFont)
+	if (PolyFlags == PF_SubpixelFont)
 	{
 		index = 32;
 	}

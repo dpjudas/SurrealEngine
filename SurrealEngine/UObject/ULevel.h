@@ -169,7 +169,7 @@ enum PolyFlags
 	PF_NoShadows		= PF_Unlit | PF_Invisible | PF_Environment | PF_FakeBackdrop,
 	PF_Transient		= PF_Highlighted,
 
-	PF_SubpixelFont = 0x20000000 // For drawing fonts with subpixels
+	PF_SubpixelFont = 0xffffffff // For drawing fonts with subpixels
 };
 
 inline uint32_t ApplyPrecedenceRules(uint32_t PolyFlags)

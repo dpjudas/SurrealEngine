@@ -208,10 +208,10 @@ void RenderSubsystem::DrawNodeSurface(const DrawNodeInfo& nodeInfo)
 		fogmap = GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
 	}
 
-	if (PolyFlags & PF_Mirrored)
+	if (PolyFlags & (PF_Mirrored | PF_Portal))
 	{
-		// We don't support mirrored surfaces right now. Force them to be rendered as opaque
-		PolyFlags = 0;
+		// We don't support mirrors or portal surfaces right now. Force them to be rendered as opaque
+		PolyFlags = PF_Occlude;
 	}
 
 	FSurfaceInfo surfaceinfo;
@@ -336,14 +336,19 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 	if (!texture)
 		texture = engine->LevelInfo->DefaultTexture();
 
-	bool opaqueSurface = ((PolyFlags & PF_NoOcclude) == 0) &&
-		!texture->bMasked() && !texture->bTransparent() && !texture->bModulate();
-
-	if (!Scene.Clipper.CheckSurface(points, numverts, opaqueSurface))
-		return;
-
 	if (surface.Material)
 		PolyFlags |= surface.Material->PolyFlags();
+
+	bool blockingSurface = (PolyFlags & PF_NoOcclude) == 0;
+
+	//if ((PolyFlags & (PF_Portal | PF_Invisible)) == (PF_Portal | PF_Invisible))
+	//	blockingSurface = true; // all portals are solid to the clipper
+
+	if ((PolyFlags & PF_Mirrored) != 0)
+		blockingSurface = true; // all mirrors are solid to the clipper
+
+	if (!Scene.Clipper.CheckSurface(points, numverts, blockingSurface))
+		return;
 
 	if (PolyFlags & PF_Portal)
 	{
@@ -364,7 +369,7 @@ void RenderSubsystem::ProcessNodeSurface(BspNode* node)
 	info.Node = node;
 	info.PolyFlags = PolyFlags;
 
-	if (opaqueSurface)
+	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
 	{
 		Scene.OpaqueNodes.push_back(info);
 	}

@@ -804,9 +804,9 @@ void D3D11RenderDevice::CreateScenePass()
 	{
 		D3D11_BLEND_DESC blendDesc = {};
 		blendDesc.IndependentBlendEnable = TRUE;
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;
 		if (i < 32)
 		{
-			blendDesc.RenderTarget[0].BlendEnable = TRUE;
 			switch (i & 3)
 			{
 			case 0: // PF_Translucent
@@ -849,8 +849,6 @@ void D3D11RenderDevice::CreateScenePass()
 		}
 		else // PF_SubpixelFont
 		{
-			blendDesc.IndependentBlendEnable = TRUE;
-			blendDesc.RenderTarget[0].BlendEnable = TRUE;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
@@ -1145,7 +1143,7 @@ D3D11RenderDevice::ScenePipelineState* D3D11RenderDevice::GetPipeline(uint32_t P
 		index |= 16;
 	}
 
-	if (PolyFlags & PF_SubpixelFont)
+	if (PolyFlags == PF_SubpixelFont)
 	{
 		index = 32;
 	}
@@ -2030,7 +2028,7 @@ void D3D11RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X,
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
-	if (PolyFlags & PF_SubpixelFont)
+	if (PolyFlags == PF_SubpixelFont)
 	{
 		AddDrawBatch();
 		Batch.BlendConstants[0] = Color.x;
