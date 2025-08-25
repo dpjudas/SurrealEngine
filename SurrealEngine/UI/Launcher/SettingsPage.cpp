@@ -14,11 +14,13 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 {
 	RenderDeviceLabel = new TextLabel(this);
 	Vulkan = new CheckboxLabel(this);
+	Vulkan->SetRadioStyle(true);
+#ifdef WIN32
 	D3D11 = new CheckboxLabel(this);
 	//D3D12 = new CheckboxLabel(this);
-	Vulkan->SetRadioStyle(true);
 	D3D11->SetRadioStyle(true);
 	//D3D12->SetRadioStyle(true);
+#endif
 
 	AdvancedLabel = new TextLabel(this);
 	UseVSync = new CheckboxLabel(this);
@@ -40,8 +42,10 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 
 	RenderDeviceLabel->SetText("Render device:");
 	Vulkan->SetText("Vulkan");
+#ifdef WIN32
 	D3D11->SetText("Direct3D 11");
 	//D3D12->SetText("Direct3D 12");
+#endif
 	AdvancedLabel->SetText("Render settings:");
 	UseVSync->SetText("Use vertical sync");
 	AntialiasModesLabel->SetText("Anti aliasing");
@@ -66,14 +70,21 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	LightModes->AddItem("1x blending");
 	LightModes->AddItem("Brighter actors");
 
+
+#ifdef WIN32
 	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
 	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
 	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); }};
+#else
+	Vulkan->FuncChanged = [this](bool on) { /* Add checkbox logic here if an OpenGL renderer ever gets added */ };
+#endif
 
 	auto& settings = LauncherSettings::Get();
 	Vulkan->SetChecked(settings.RenderDevice.Type == RenderDeviceType::Vulkan);
+#ifdef WIN32
 	D3D11->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D11);
 	//D3D12->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D12);
+#endif
 	UseVSync->SetChecked(settings.RenderDevice.UseVSync);
 	AntialiasModes->SetSelectedItem((int)settings.RenderDevice.Antialias);
 	LightModes->SetSelectedItem((int)settings.RenderDevice.Light);
@@ -94,10 +105,12 @@ void SettingsPage::Save()
 
 	if (Vulkan->GetChecked())
 		settings.RenderDevice.Type = RenderDeviceType::Vulkan;
+#ifdef WIN32
 	if (D3D11->GetChecked())
 		settings.RenderDevice.Type = RenderDeviceType::D3D11;
 	//if (D3D12->GetChecked())
 	//	settings.RenderDevice.Type = RenderDeviceType::D3D12;
+#endif
 
 	settings.RenderDevice.UseVSync = UseVSync->GetChecked();
 
@@ -131,8 +144,10 @@ void SettingsPage::Save()
 void SettingsPage::OnResetButtonClicked()
 {
 	Vulkan->SetChecked(true);
+#ifdef WIN32
 	D3D11->SetChecked(false);
 	//D3D12->SetChecked(false);
+#endif
 	UseVSync->SetChecked(true);
 	AntialiasModes->SetSelectedItem(0);
 	LightModes->SetSelectedItem(0);
@@ -160,8 +175,10 @@ void SettingsPage::OnGeometryChanged()
 	y += lineHeight + gap;
 
 	Vulkan->SetFrameGeometry(0.0, y, rendevWidth, lineHeight);
+#ifdef WIN32
 	D3D11->SetFrameGeometry(rendevWidth, y, rendevWidth, lineHeight);
 	//D3D12->SetFrameGeometry(rendevWidth * 2.0, y, rendevWidth, lineHeight);
+#endif
 	y += lineHeight + groupEndGap;
 
 	AdvancedLabel->SetFrameGeometry(0.0, y, width, lineHeight);
