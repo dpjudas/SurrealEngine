@@ -477,8 +477,10 @@ void USurrealAudioDevice::AddStats(Array<std::string>& lines)
 
 float USurrealAudioDevice::SoundPriority(UViewport* Viewport, vec3 Location, float Volume, float Radius)
 {
-	UActor* target = Viewport->Actor()->ViewTarget() ? Viewport->Actor()->ViewTarget() : Viewport->Actor();
-	return std::max(Volume * (1.0f - length(Location - target->Location()) / Radius), 0.0f);
+	UActor* target = Viewport->Actor();
+	if (target && Viewport->Actor()->ViewTarget())
+		target = Viewport->Actor()->ViewTarget();
+	return target ? std::max(Volume * (1.0f - length(Location - target->Location()) / Radius), 0.0f) : 0.0f;
 }
 
 /////////////////////////////////////////////////////////////////////////////
