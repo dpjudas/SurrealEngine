@@ -10,7 +10,7 @@ LauncherSettings& LauncherSettings::Get()
 	return settings;
 }
 
-static std::string getSettingsFilename()
+static std::string GetSettingsFilename()
 {
 	return FilePath::combine(Directory::localAppData(), "SurrealEngine/Settings.json");
 }
@@ -19,7 +19,7 @@ LauncherSettings::LauncherSettings()
 {
 	try
 	{
-		JsonValue settings = JsonValue::parse(File::read_all_text(getSettingsFilename()));
+		JsonValue settings = JsonValue::parse(File::read_all_text(GetSettingsFilename()));
 
 		std::string rendevtype = settings["RenderDevice"]["Type"].to_string();
 		if (rendevtype == "Vulkan")
@@ -51,6 +51,7 @@ LauncherSettings::LauncherSettings()
 		else if (rendevgamma == "XOpenGL")
 			RenderDevice.Gamma = GammaMode::XOpenGL;
 
+		RenderDevice.GammaCorrectScreenshots = settings["RenderDevice"]["GammaCorrectScreenshots"].to_boolean();
 		RenderDevice.UseVSync = settings["RenderDevice"]["UseVSync"].to_boolean();
 		RenderDevice.Hdr = settings["RenderDevice"]["Hdr"].to_boolean();
 		RenderDevice.HdrScale = settings["RenderDevice"]["HdrScale"].to_int();
@@ -104,6 +105,7 @@ void LauncherSettings::Save()
 	case GammaMode::XOpenGL: rendev["Gamma"] = JsonValue::string("XOpenGL"); break;
 	}
 
+	rendev["GammaCorrectScreenshots"] = JsonValue::boolean(RenderDevice.GammaCorrectScreenshots);
 	rendev["UseVSync"] = JsonValue::boolean(RenderDevice.UseVSync);
 	rendev["Hdr"] = JsonValue::boolean(RenderDevice.Hdr);
 	rendev["HdrScale"] = JsonValue::number(RenderDevice.HdrScale);
@@ -119,7 +121,7 @@ void LauncherSettings::Save()
 	settings["RenderDevice"] = std::move(rendev);
 	settings["Games"] = std::move(games);
 
-	std::string filename = getSettingsFilename();
+	std::string filename = GetSettingsFilename();
 	Directory::create(FilePath::remove_last_component(filename));
 	File::write_all_text(filename, settings.to_json(true));
 }

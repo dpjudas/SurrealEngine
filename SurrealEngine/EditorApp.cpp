@@ -4,6 +4,7 @@
 #include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
+#include "LauncherSettings.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
@@ -29,11 +30,15 @@ int EditorApp::main(Array<std::string> args)
 			Engine engine(info);
 			engine.setEditorMode(true);
 
-#ifdef WIN32
-			auto editorWindow = std::make_unique<EditorMainWindow>(RenderAPI::D3D11);
-#else
-			auto editorWindow = std::make_unique<EditorMainWindow>(RenderAPI::Vulkan);
-#endif
+			RenderAPI api;
+			switch (LauncherSettings::Get().RenderDevice.Type)
+			{
+			default:
+			case RenderDeviceType::Vulkan: api = RenderAPI::Vulkan; break;
+			case RenderDeviceType::D3D11: api = RenderAPI::D3D11; break;
+			case RenderDeviceType::D3D12: api = RenderAPI::D3D12; break;
+			}
+			auto editorWindow = std::make_unique<EditorMainWindow>(api);
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
 			editorWindow->ShowMaximized();
 

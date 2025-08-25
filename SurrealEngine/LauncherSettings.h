@@ -40,6 +40,7 @@ public:
 		AntialiasMode Antialias = AntialiasMode::MSAA4x;
 		LightMode Light = LightMode::Normal;
 		GammaMode Gamma = GammaMode::D3D9;
+		bool GammaCorrectScreenshots = false;
 		bool Hdr = false;
 		int HdrScale = 128;
 		bool Bloom = false;

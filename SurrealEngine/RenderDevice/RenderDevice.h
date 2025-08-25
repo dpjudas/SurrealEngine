@@ -11,8 +11,8 @@
 
 class UTexture;
 class UActor;
-class VulkanSurface;
 class Widget;
+enum class RenderAPI;
 
 struct FSceneNode
 {
@@ -97,9 +97,9 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> CreateVulkan(Widget* viewport, std::shared_ptr<VulkanSurface> surface);
-	static std::unique_ptr<RenderDevice> CreateD3D11(Widget* viewport);
+	static std::unique_ptr<RenderDevice> Create(Widget* viewport, RenderAPI renderAPI);
 
+	RenderDevice();
 	virtual ~RenderDevice() = default;
 
 	virtual void Flush(bool AllowPrecache) = 0;
@@ -137,6 +137,27 @@ public:
 	int HitY = 0;
 	int HitWidth = 0;
 	int HitHeight = 0;
+
+	// Settings
+	bool UseVSync = true;
+	float GammaOffset = 0.0f;
+	float GammaOffsetRed = 0.0f;
+	float GammaOffsetGreen = 0.0f;
+	float GammaOffsetBlue = 0.0f;
+	uint8_t LinearBrightness = 128; // 0.0f;
+	uint8_t Contrast = 128; // 1.0f;
+	uint8_t Saturation = 255; // 1.0f;
+	int GrayFormula = 1;
+	bool Hdr = false;
+	uint8_t HdrScale = 128;
+	bool Bloom = false;
+	uint8_t BloomAmount = 128;
+	float LODBias = -0.5f;
+	uint8_t AntialiasMode = 2; // 4x multisample
+	uint8_t GammaMode = 0;
+	uint8_t LightMode = 0;
+	bool GammaCorrectScreenshots = true;
+	bool UseDebugLayer = false;
 };
 
 class RenderDeviceTexture : public CanvasTexture

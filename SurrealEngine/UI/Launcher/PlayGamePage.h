@@ -15,13 +15,9 @@ class PlayGamePage : public Widget
 public:
 	PlayGamePage(LauncherWindow* launcher);
 
-#if defined(EXTRAARGS)
-	void SetExtraArgs(const std::string& args);
-	std::string GetExtraArgs();
-#endif
-
 	int GetSelectedGame();
 	void UpdateList();
+	void Save();
 
 private:
 	void OnGeometryChanged() override;

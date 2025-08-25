@@ -1,6 +1,7 @@
 
 #include "SettingsPage.h"
 #include "LauncherWindow.h"
+#include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <zwidget/widgets/checkboxlabel/checkboxlabel.h>
@@ -69,20 +70,78 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
 	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); }};
 
-	Vulkan->SetChecked(true);
-
-	HdrScale->SetText("128");
-	BloomAmount->SetText("128");
+	auto& settings = LauncherSettings::Get();
+	Vulkan->SetChecked(settings.RenderDevice.Type == RenderDeviceType::Vulkan);
+	D3D11->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D11);
+	//D3D12->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D12);
+	UseVSync->SetChecked(settings.RenderDevice.UseVSync);
+	AntialiasModes->SetSelectedItem((int)settings.RenderDevice.Antialias);
+	LightModes->SetSelectedItem((int)settings.RenderDevice.Light);
+	GammaModes->SetSelectedItem((int)settings.RenderDevice.Gamma);
+	GammaCorrectScreenshots->SetChecked(settings.RenderDevice.GammaCorrectScreenshots);
+	Hdr->SetChecked(settings.RenderDevice.Hdr);
+	HdrScale->SetTextInt(settings.RenderDevice.HdrScale);
+	Bloom->SetChecked(settings.RenderDevice.Bloom);
+	BloomAmount->SetTextInt(settings.RenderDevice.BloomAmount);
+	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
 }
 
 void SettingsPage::Save()
 {
+	auto& settings = LauncherSettings::Get();
+
+	if (Vulkan->GetChecked())
+		settings.RenderDevice.Type = RenderDeviceType::Vulkan;
+	if (D3D11->GetChecked())
+		settings.RenderDevice.Type = RenderDeviceType::D3D11;
+	//if (D3D12->GetChecked())
+	//	settings.RenderDevice.Type = RenderDeviceType::D3D12;
+
+	settings.RenderDevice.UseVSync = UseVSync->GetChecked();
+
+	if (AntialiasModes->GetSelectedItem() == 0)
+		settings.RenderDevice.Antialias = AntialiasMode::Off;
+	else if (AntialiasModes->GetSelectedItem() == 1)
+		settings.RenderDevice.Antialias = AntialiasMode::MSAA2x;
+	else if (AntialiasModes->GetSelectedItem() == 2)
+		settings.RenderDevice.Antialias = AntialiasMode::MSAA4x;
+
+	if (LightModes->GetSelectedItem() == 0)
+		settings.RenderDevice.Light = LightMode::Normal;
+	else if (LightModes->GetSelectedItem() == 1)
+		settings.RenderDevice.Light = LightMode::OneX;
+	else if (LightModes->GetSelectedItem() == 2)
+		settings.RenderDevice.Light = LightMode::BrighterActors;
+
+	if (GammaModes->GetSelectedItem() == 0)
+		settings.RenderDevice.Gamma = GammaMode::D3D9;
+	else if (GammaModes->GetSelectedItem() == 1)
+		settings.RenderDevice.Gamma = GammaMode::XOpenGL;
+
+	settings.RenderDevice.GammaCorrectScreenshots = GammaCorrectScreenshots->GetChecked();
+	settings.RenderDevice.Hdr = Hdr->GetChecked();
+	settings.RenderDevice.HdrScale = HdrScale->GetTextInt();
+	settings.RenderDevice.Bloom = Bloom->GetChecked();
+	settings.RenderDevice.BloomAmount = BloomAmount->GetTextInt();
+	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
 }
 
 void SettingsPage::OnResetButtonClicked()
 {
+	Vulkan->SetChecked(true);
+	D3D11->SetChecked(false);
+	//D3D12->SetChecked(false);
+	UseVSync->SetChecked(true);
+	AntialiasModes->SetSelectedItem(0);
+	LightModes->SetSelectedItem(0);
+	GammaModes->SetSelectedItem(0);
+	Hdr->SetChecked(false);
+	HdrScale->SetTextInt(128);
+	Bloom->SetChecked(false);
+	BloomAmount->SetTextInt(128);
+	UseDebugLayer->SetChecked(false);
 }
 
 void SettingsPage::OnGeometryChanged()

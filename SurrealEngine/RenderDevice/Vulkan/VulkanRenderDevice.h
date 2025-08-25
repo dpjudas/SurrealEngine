@@ -20,7 +20,7 @@ class CachedTexture;
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(Widget* viewport, std::shared_ptr<VulkanSurface> surface);
+	VulkanRenderDevice(Widget* viewport);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;
@@ -59,28 +59,7 @@ public:
 	std::unique_ptr<RenderPassManager> RenderPasses;
 	std::unique_ptr<FramebufferManager> Framebuffers;
 
-	bool UseVSync = true;
-	float GammaOffset = 0.0f;
-	float GammaOffsetRed = 0.0f;
-	float GammaOffsetGreen = 0.0f;
-	float GammaOffsetBlue = 0.0f;
-	uint8_t LinearBrightness = 128; // 0.0f
-	uint8_t Contrast = 128; // 1.0f
-	uint8_t Saturation = 255; // 1.0f
-	int GrayFormula = 1;
-	bool Hdr = false;
-	uint8_t HdrScale = 128;
-	bool OccludeLines = false;
-	bool Bloom = false;
-	uint8_t BloomAmount = 128;
-	float LODBias = 0.0f;
-	uint8_t AntialiasMode = 2;
-	uint8_t GammaMode = 0;
-	uint8_t LightMode = 0;
-	bool GammaCorrectScreenshots = true;
-
 	int VkDeviceIndex = 0;
-	bool VkDebug = false;
 
 	void RunBloomPass();
 	void BloomStep(VulkanCommandBuffer* cmdbuffer, VulkanPipeline* pipeline, VulkanDescriptorSet* input, VulkanFramebuffer* output, int width, int height, const BloomPushConstants &pushconstants);
@@ -151,10 +130,10 @@ private:
 	vec4 FlashScale;
 	vec4 FlashFog;
 	FSceneNode* CurrentFrame = nullptr;
-	float Aspect;
-	float RProjZ;
-	float RFX2;
-	float RFY2;
+	float Aspect = 0.0f;
+	float RProjZ = 0.0f;
+	float RFX2 = 0.0f;
+	float RFY2 = 0.0f;
 
 	bool IsLocked = false;
 
@@ -173,7 +152,7 @@ private:
 		float BlendConstants[4] = {};
 	} Batch;
 
-	ScenePushConstants pushconstants;
+	ScenePushConstants pushconstants = {};
 
 	size_t SceneVertexPos = 0;
 	size_t SceneIndexPos = 0;

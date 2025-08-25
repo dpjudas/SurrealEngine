@@ -10,12 +10,22 @@
 #include <cmath>
 #include <stdexcept>
 
-VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, std::shared_ptr<VulkanSurface> surface)
+VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport)
 {
 	Viewport = InViewport;
 
 	try
 	{
+		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
+			.RequireExtensions(Viewport->GetVulkanInstanceExtensions())
+			.OptionalSwapchainColorspace()
+			.DebugLayer(false)
+			.Create();
+
+		auto surface = std::make_shared<VulkanSurface>(instance, Viewport->CreateVulkanSurface(instance->Instance));
+		if (!surface)
+			throw std::runtime_error("No vulkan surface found");
+
 		auto deviceBuilder = VulkanDeviceBuilder();
 		deviceBuilder.OptionalDescriptorIndexing();
 		deviceBuilder.OptionalRayQuery();

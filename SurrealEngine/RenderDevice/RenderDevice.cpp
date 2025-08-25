@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "RenderDevice.h"
+#include "LauncherSettings.h"
 #include "Vulkan/VulkanRenderDevice.h"
 #ifdef WIN32
 #include "D3D11/D3D11RenderDevice.h"
@@ -9,18 +10,37 @@
 #include <zwidget/core/colorf.h>
 #include <zwidget/core/widget.h>
 
-std::unique_ptr<RenderDevice> RenderDevice::CreateVulkan(Widget* viewport, std::shared_ptr<VulkanSurface> surface)
+RenderDevice::RenderDevice()
 {
-	return std::make_unique<VulkanRenderDevice>(viewport, surface);
+	const auto& settings = LauncherSettings::Get();
+	UseVSync = settings.RenderDevice.UseVSync;
+	Hdr = settings.RenderDevice.Hdr;
+	HdrScale = settings.RenderDevice.HdrScale;
+	Bloom = settings.RenderDevice.Bloom;
+	BloomAmount = settings.RenderDevice.BloomAmount;
+	AntialiasMode = (int)settings.RenderDevice.Antialias;
+	GammaMode = (int)settings.RenderDevice.Gamma;
+	LightMode = (int)settings.RenderDevice.Light;
+	GammaCorrectScreenshots = settings.RenderDevice.GammaCorrectScreenshots;
+	UseDebugLayer = settings.RenderDevice.UseDebugLayer;
 }
 
-std::unique_ptr<RenderDevice> RenderDevice::CreateD3D11(Widget* viewport)
+std::unique_ptr<RenderDevice> RenderDevice::Create(Widget* viewport, RenderAPI renderAPI)
 {
+	if (renderAPI == RenderAPI::Vulkan)
+	{
+		return std::make_unique<VulkanRenderDevice>(viewport);
+	}
 #ifdef WIN32
-	return std::make_unique<D3D11RenderDevice>(viewport);
-#else
-	Exception::Throw("D3D11 not available on this platform");
+	else if (renderAPI == RenderAPI::D3D11)
+	{
+		return std::make_unique<D3D11RenderDevice>(viewport);
+	}
 #endif
+	else
+	{
+		Exception::Throw("Render API not available on this platform");
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////

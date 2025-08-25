@@ -4,6 +4,7 @@
 #include "PlayGamePage.h"
 #include "SettingsPage.h"
 #include "GameFoldersPage.h"
+#include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/window/window.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
@@ -43,17 +44,29 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 	PlayGame->SetFocus();
 }
 
-void LauncherWindow::Start()
+void LauncherWindow::Save()
 {
+	PlayGame->Save();
 	Settings->Save();
 	GameFolders->Save();
+	LauncherSettings::Get().Save();
+}
 
+void LauncherWindow::GamesListChanged()
+{
+	PlayGame->UpdateList();
+}
+
+void LauncherWindow::Start()
+{
+	Save();
 	ExecResult = PlayGame->GetSelectedGame();
 	DisplayWindow::ExitLoop();
 }
 
 void LauncherWindow::Exit()
 {
+	Save();
 	ExecResult = -1;
 	DisplayWindow::ExitLoop();
 }

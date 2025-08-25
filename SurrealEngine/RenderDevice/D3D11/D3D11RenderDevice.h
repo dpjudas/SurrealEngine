@@ -218,26 +218,7 @@ public:
 	std::unique_ptr<D3D11TextureManager> Textures;
 	std::unique_ptr<D3D11UploadManager> Uploads;
 
-	bool UseVSync = true;
-	float GammaOffset = 0.0f;
-	float GammaOffsetRed = 0.0f;
-	float GammaOffsetGreen = 0.0f;
-	float GammaOffsetBlue = 0.0f;
-	uint8_t LinearBrightness = 128; // 0.0f;
-	uint8_t Contrast = 128; // 1.0f;
-	uint8_t Saturation = 255; // 1.0f;
-	int GrayFormula = 1;
-	bool Hdr = false;
-	uint8_t HdrScale = 128;
-	bool Bloom = false;
-	uint8_t BloomAmount = 128;
-	float LODBias = -0.5f;
-	uint8_t AntialiasMode = 2; // 4x multisample
-	uint8_t GammaMode = 0;
-	uint8_t LightMode = 0;
 	int RefreshRate = 0;
-	bool GammaCorrectScreenshots = true;
-	bool UseDebugLayer = false;
 
 	struct
 	{

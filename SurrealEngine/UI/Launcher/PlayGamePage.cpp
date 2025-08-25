@@ -1,6 +1,7 @@
 
 #include "PlayGamePage.h"
 #include "LauncherWindow.h"
+#include "LauncherSettings.h"
 #include "GameFolder.h"
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <zwidget/widgets/listview/listview.h>
@@ -23,13 +24,13 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 
 	UpdateList();
 
-	/*
-	if (defaultGame != -1)
+	auto& settings = LauncherSettings::Get();
+
+	if (settings.Games.LastSelected >= 0 && settings.Games.LastSelected < (int)GamesList->GetItemAmount())
 	{
-		GamesList->SetSelectedItem(defaultgame);
-		GamesList->ScrollToItem(defaultgame);
+		GamesList->SetSelectedItem(settings.Games.LastSelected);
+		GamesList->ScrollToItem(settings.Games.LastSelected);
 	}
-	*/
 
 	GamesList->OnActivated = [this]() { OnGamesListActivated(); };
 }
@@ -39,23 +40,21 @@ void PlayGamePage::UpdateList()
 	GameFolderSelection::UpdateList();
 
 	// GamesList->Clear(); // To do: add this to zwidget
+	while (GamesList->GetItemAmount() != 0)
+		GamesList->RemoveItem((int)GamesList->GetItemAmount() - 1);
+
 	for (const GameLaunchInfo& info : GameFolderSelection::Games)
 	{
 		GamesList->AddItem(info.gameName + " (" + info.gameVersionString + ")");
 	}
 }
 
-#if defined(EXTRAARGS)
-void PlayGamePage::SetExtraArgs(const std::string& args)
+void PlayGamePage::Save()
 {
-	ParametersEdit->SetText(args);
+	auto& settings = LauncherSettings::Get();
+	if (GamesList->GetSelectedItem() != -1)
+		settings.Games.LastSelected = GamesList->GetSelectedItem();
 }
-
-std::string PlayGamePage::GetExtraArgs()
-{
-	return ParametersEdit->GetText();
-}
-#endif
 
 int PlayGamePage::GetSelectedGame()
 {

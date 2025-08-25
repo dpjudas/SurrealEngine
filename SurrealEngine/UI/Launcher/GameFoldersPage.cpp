@@ -1,6 +1,7 @@
 
 #include "GameFoldersPage.h"
 #include "LauncherWindow.h"
+#include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <zwidget/widgets/listview/listview.h>
@@ -14,16 +15,18 @@ GameFoldersPage::GameFoldersPage(LauncherWindow* launcher) : Widget(nullptr), La
 	AddButton = new PushButton(this);
 	RemoveButton = new PushButton(this);
 
-	SearchList->AddItem("C:\\Games\\UnrealTournament436");
-	SearchList->AddItem("C:\\Games\\Steam\\steamapps\\common\\Unreal Gold");
-	SearchList->AddItem("C:\\Games\\Deus Ex");
-
 	Label->SetText("Folders to scan for games:");
 	AddButton->SetText("Add");
 	RemoveButton->SetText("Remove");
 
 	AddButton->OnClick = [this]() { OnAddButtonClicked(); };
 	RemoveButton->OnClick = [this]() { OnRemoveButtonClicked(); };
+
+	auto& settings = LauncherSettings::Get();
+	for (auto& game : settings.Games.SearchList)
+	{
+		SearchList->AddItem(game);
+	}
 }
 
 void GameFoldersPage::Save()
@@ -36,7 +39,11 @@ void GameFoldersPage::OnAddButtonClicked()
 	dialog->SetTitle("Select Game Folder");
 	if (dialog->Show())
 	{
-		SearchList->AddItem(dialog->SelectedPath());
+		std::string path = dialog->SelectedPath();
+		SearchList->AddItem(path);
+		auto& settings = LauncherSettings::Get();
+		settings.Games.SearchList.push_back(path);
+		Launcher->GamesListChanged();
 	}
 }
 
@@ -46,6 +53,9 @@ void GameFoldersPage::OnRemoveButtonClicked()
 	if (item != -1)
 	{
 		SearchList->RemoveItem(item);
+		auto& settings = LauncherSettings::Get();
+		settings.Games.SearchList.erase(settings.Games.SearchList.begin() + item);
+		Launcher->GamesListChanged();
 	}
 }
 

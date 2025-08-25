@@ -19,8 +19,10 @@ public:
 
 	void Start();
 	void Exit();
+	void GamesListChanged();
 
 private:
+	void Save();
 	void OnClose() override;
 	void OnGeometryChanged() override;
 

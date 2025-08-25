@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "GameWindow.h"
+#include "LauncherSettings.h"
 #include "RenderDevice/RenderDevice.h"
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkancompatibledevice.h>
@@ -8,29 +9,7 @@
 
 GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI) : Widget(nullptr, WidgetType::Window, renderAPI), windowHost(windowHost)
 {
-	if (renderAPI == RenderAPI::D3D11)
-	{
-		device = RenderDevice::CreateD3D11(this);
-	}
-	else if (renderAPI == RenderAPI::Vulkan)
-	{
-		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
-			.RequireExtensions(GetVulkanInstanceExtensions())
-			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
-			.Create();
-
-		auto surface = std::make_shared<VulkanSurface>(instance, CreateVulkanSurface(instance->Instance));
-		if (!surface)
-			Exception::Throw("No vulkan surface found");
-
-		device = RenderDevice::CreateVulkan(this, surface);
-	}
-	else
-	{
-		Exception::Throw("Unsupported render API");
-	}
-
+	device = RenderDevice::Create(this, renderAPI);
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
 	SetFocus();
 }
@@ -165,11 +144,15 @@ void GameWindow::OnLostFocus()
 
 std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 {
-#ifdef WIN32
-	return std::make_unique<GameWindow>(windowHost, RenderAPI::D3D11);
-#else
-	return std::make_unique<GameWindow>(windowHost, RenderAPI::Vulkan);
-#endif
+	RenderAPI api;
+	switch (LauncherSettings::Get().RenderDevice.Type)
+	{
+	default:
+	case RenderDeviceType::Vulkan: api = RenderAPI::Vulkan; break;
+	case RenderDeviceType::D3D11: api = RenderAPI::D3D11; break;
+	case RenderDeviceType::D3D12: api = RenderAPI::D3D12; break;
+	}
+	return std::make_unique<GameWindow>(windowHost, api);
 }
 
 void GameWindow::ProcessEvents()

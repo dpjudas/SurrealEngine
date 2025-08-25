@@ -4,6 +4,7 @@
 #include "Utils/File.h"
 #include "Utils/UTF16.h"
 #include "UE1GameDatabase.h"
+#include "LauncherSettings.h"
 #include "Utils/CommandLine.h"
 #include <filesystem>
 
@@ -326,6 +327,9 @@ std::string GameFolderSelection::GetExePath()
 
 Array<std::string> GameFolderSelection::FindGameFolders()
 {
+#if 1
+	return LauncherSettings::Get().Games.SearchList;
+#else
 	return
 	{
 		FindEpicRegisteredGame("UnrealTournament"),
@@ -333,6 +337,7 @@ Array<std::string> GameFolderSelection::FindGameFolders()
 		FindEpicRegisteredGame("Unreal"),
 		FindEpicRegisteredGame("Deus Ex")
 	};
+#endif
 }
 
 #else
