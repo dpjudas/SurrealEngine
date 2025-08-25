@@ -29,6 +29,10 @@ Additionally, Surreal Engine is available on following Linux distributions:
 * Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
 * Nix: [Package Search](https://search.nixos.org/packages?channel=unstable&show=surreal-engine) | [Quickstart](https://github.com/NixOS/nixpkgs/pull/337069)
 
+## Discord server
+
+Visit us on Discord at https://discord.gg/5AEry4s
+
 ## Command line parameters
 
 `SurrealEngine [--url=<mapname>] [--engineversion=X] [Path to game folder]`
