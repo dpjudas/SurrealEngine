@@ -32,6 +32,7 @@ public:
 	void GetUnAxes(vec3& X, vec3& Y, vec3& Z) const;
 
 	mat4 ToMatrix() const;
+	static Coords FromMatrix(const mat4& m);
 };
 
 inline vec3 operator*(const Coords& coords, const vec3& v)
@@ -211,4 +212,14 @@ inline mat4 Coords::ToMatrix() const
 	coordsmatrix[14] = -Origin.z;
 	coordsmatrix[15] = 1.0f;
 	return coordsmatrix;
+}
+
+inline Coords Coords::FromMatrix(const mat4& coordsmatrix)
+{
+	Coords coords;
+	coords.Origin = vec3(coordsmatrix[12], coordsmatrix[13], coordsmatrix[14]);
+	coords.XAxis = vec3(coordsmatrix[0], coordsmatrix[1], coordsmatrix[2]);
+	coords.YAxis = vec3(coordsmatrix[4], coordsmatrix[5], coordsmatrix[6]);
+	coords.ZAxis = vec3(coordsmatrix[8], coordsmatrix[9], coordsmatrix[10]);
+	return coords;
 }

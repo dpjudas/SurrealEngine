@@ -82,7 +82,7 @@ private:
 	void DrawOpaqueActors();
 	void SetupSceneFrame(const mat4& worldToView);
 
-	FTextureInfo GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model, const mat4& objectToWorld);
+	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
 	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 	void UpdateActorLightList(UActor* actor);
@@ -112,7 +112,7 @@ private:
 	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
 
 	void DrawBrush(FSceneNode* frame, UActor* actor);
-	void DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UActor* actor);
+	void DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UMover* mover);
 
 	void DrawSprite(FSceneNode* frame, UActor* actor);
 	void DrawCoronas(FSceneNode* frame);

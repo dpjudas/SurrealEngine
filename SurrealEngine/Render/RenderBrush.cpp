@@ -12,30 +12,30 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 	if (!mover)
 		return;
 
-	UModel* brush = actor->Brush();
-	const vec3& location = actor->Location();
+	UModel* brush = mover->Brush();
+	const vec3& location = mover->Location();
 	FSceneNode brushframe = *frame;
 
-	UpdateActorLightList(actor);
+	UpdateActorLightList(mover);
 
-	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-actor->PrePivot());
+	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(mover->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot());
 
 	Device->SetSceneNode(&brushframe);
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(&brushframe, brush, poly, 0, actor);
+		DrawBrushPoly(&brushframe, brush, poly, 0, mover);
 	}
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(&brushframe, brush, poly, 1, actor);
+		DrawBrushPoly(&brushframe, brush, poly, 1, mover);
 	}
 
 	Device->SetSceneNode(frame);
 }
 
-void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UActor* actor)
+void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UMover* mover)
 {
 	uint32_t PolyFlags = poly.PolyFlags;
 
@@ -44,7 +44,7 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 
 	//UpdateTexture(poly.Texture);
 
-	auto zoneActor = actor->Region().Zone;
+	auto zoneActor = mover->Region().Zone;
 	if (!zoneActor)
 		zoneActor = engine->LevelInfo;
 	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
@@ -97,7 +97,7 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		lightmap = GetBrushLightmap(actor, poly, zoneActor, model, frame->ObjectToWorld);
+		lightmap = GetBrushLightmap(mover, poly, zoneActor, model);
 		//fogmap = GetSurfaceFogmap(poly, engine->CameraActor->Region().Zone, model);
 	}
 

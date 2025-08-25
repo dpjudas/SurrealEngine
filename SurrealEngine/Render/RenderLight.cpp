@@ -5,8 +5,10 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
-FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, UZoneInfo* zoneActor, UModel* model, const mat4& objectToWorld)
+FTextureInfo RenderSubsystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
+	// To do: implement mover->bDynamicLightMover()
+
 	int lightmapIndex = poly.BrushPolyIndex;
 	if (lightmapIndex < 0)
 		return {};
@@ -19,15 +21,18 @@ FTextureInfo RenderSubsystem::GetBrushLightmap(UActor* actor, const Poly& poly, 
 	auto& lmtexture = Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
-		// To do: do we also need to rotate XAxis, YAxis and ZAxis?
-		// To do: is objectToWorld correct here? It needs to be the location used at the original lightmap trace bake in the editor
-		Coords mapCoords;
-		mapCoords.Origin = (objectToWorld * vec4(poly.Base, 1.0f)).xyz();
-		mapCoords.XAxis = poly.TextureU;
-		mapCoords.YAxis = poly.TextureV;
-		mapCoords.ZAxis = poly.Normal;
+		Coords localCoords;
+		localCoords.Origin = -poly.Base;
+		localCoords.XAxis = poly.TextureU;
+		localCoords.YAxis = poly.TextureV;
+		localCoords.ZAxis = poly.Normal;
 
-		Light.Builder.Setup(model, mapCoords, lightmapIndex, zoneActor);
+		vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
+		Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
+		mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+		Coords worldCoords = Coords::FromMatrix(objectToWorld);
+
+		Light.Builder.Setup(model, worldCoords, lightmapIndex, zoneActor);
 		Light.Builder.AddStaticLights(model, lightmapIndex);
 
 		lmtexture = CreateLightmapTexture();
