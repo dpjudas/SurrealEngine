@@ -18,12 +18,12 @@ public:
 	int Height() const { return height; }
 	const vec4* Pixels() const { return fogcolors.data(); }
 
+	static float SphereDensity(const vec3& rayOrigin, const vec3& rayDirection, const vec3& sphereCenter, float sphereRadius, float dbuffer);
+
 private:
 	const vec3* WorldLocations() const { return points.data(); }
 
 	void CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex);
-
-	static float SphereDensity(const vec3& rayOrigin, const vec3& rayDirection, const vec3& sphereCenter, float sphereRadius, float dbuffer);
 
 	int width = 0;
 	int height = 0;

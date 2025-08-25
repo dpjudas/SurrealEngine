@@ -143,7 +143,10 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 		for (int i = 0; i < 3; i++)
 		{
 			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit));
+			vertices[i].Fog = GetVertexFog(actor, vertices[i].Point);
 		}
+
+		renderflags |= PF_RenderFog;
 
 		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}
@@ -413,7 +416,10 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		for (int i = 0; i < 3; i++)
 		{
 			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit));
+			vertices[i].Fog = GetVertexFog(actor, vertices[i].Point);
 		}
+
+		renderflags |= PF_RenderFog;
 
 		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
 	}

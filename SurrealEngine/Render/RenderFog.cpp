@@ -108,3 +108,44 @@ void RenderSubsystem::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t
 	}
 #endif
 }
+
+vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
+{
+	vec4 color(0.0f);
+#ifndef NOFOG
+	vec3 view = engine->CameraLocation;
+	vec3 rayDirection = location - view;
+	float depth = std::sqrt(dot(rayDirection, rayDirection));
+	rayDirection *= (1.0f / depth);
+
+	for (UActor* light : Light.Lights)
+	{
+		if (light && light->VolumeRadius() != 0)
+		{
+			if (light->FogInfo.brightness < 0.0f)
+			{
+				light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+				light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
+				light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
+				light->FogInfo.radius = light->WorldVolumetricRadius();
+			}
+
+			vec3 fogcolor = light->FogInfo.fogcolor;
+			float brightness = light->FogInfo.brightness * 5.0f;
+			float fog = light->FogInfo.fog;
+			float radius = light->FogInfo.radius;
+			vec3 lightpos = light->Location();
+
+			float fogamount = FogmapBuilder::SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
+
+			float alpha = std::min(fogamount * fog, 1.0f);
+			float invalpha = 1.0f - alpha;
+			color.r = fogcolor.r * fogamount + color.r * invalpha;
+			color.g = fogcolor.g * fogamount + color.g * invalpha;
+			color.b = fogcolor.b * fogamount + color.b * invalpha;
+			color.a = std::min(color.a + alpha, 1.0f);
+		}
+	}
+#endif
+	return color;
+}

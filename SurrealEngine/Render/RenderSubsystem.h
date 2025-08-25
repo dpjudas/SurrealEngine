@@ -87,6 +87,7 @@ private:
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 	void UpdateActorLightList(UActor* actor);
 	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
+	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
 	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);

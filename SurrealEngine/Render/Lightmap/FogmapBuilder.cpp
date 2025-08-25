@@ -59,7 +59,7 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 		vec3 rayDirection = locations[i] - view;
 		float depth = std::sqrt(dot(rayDirection, rayDirection));
 		rayDirection *= (1.0f / depth);
-		float fogamount = SphereDensity(view, rayDirection, lightpos, light->FogInfo.radius, depth) * brightness;
+		float fogamount = SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
 
 		float alpha = std::min(fogamount * fog, 1.0f);
 		float invalpha = 1.0f - alpha;
