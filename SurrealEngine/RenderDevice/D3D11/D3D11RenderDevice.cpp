@@ -2286,7 +2286,7 @@ void D3D11RenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t Line
 	}
 }
 
-void D3D11RenderDevice::ClearZ(FSceneNode* Frame)
+void D3D11RenderDevice::ClearZ()
 {
 	DrawBatches();
 

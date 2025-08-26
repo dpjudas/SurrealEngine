@@ -32,7 +32,7 @@ public:
 	void Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 OrigP, vec3 OrigQ) override;
 	void Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) override;
 	void Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) override;
-	void ClearZ(FSceneNode* Frame) override;
+	void ClearZ() override;
 	void PushHit(const uint8_t* Data, int Count) override;
 	void PopHit(int Count, bool bForce) override;
 	void ReadPixels(FColor* Pixels) override;

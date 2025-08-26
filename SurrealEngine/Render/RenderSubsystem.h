@@ -1,43 +1,9 @@
 #pragma once
 
-#include "UObject/UActor.h"
-#include "UObject/UTexture.h"
-#include "UObject/UFont.h"
-#include "UObject/ULevel.h"
-#include "UObject/UClient.h"
-#include "RenderDevice/RenderDevice.h"
-#include "BspClipper.h"
-#include "Engine.h"
+#include "VisibleFrame.h"
 #include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
-
-struct DrawNodeInfo
-{
-	BspNode* Node;
-	uint32_t PolyFlags;
-};
-
-// Used for sorting translucent/masked BSP nodes and Actors by the distance to the camera
-struct TranslucentNodeAndActorInfo
-{
-	UActor* Actor;
-	DrawNodeInfo TranslucentNodeInfo;
-
-	[[nodiscard]] vec3 Location() const
-	{
-		if (Actor)
-			return Actor->Location();
-		else
-		{
-			UModel* model = engine->Level->Model;
-			const BspNode* node = TranslucentNodeInfo.Node;
-			const BspSurface& surface = model->Surfaces[node->Surf];
-
-			return model->Points[surface.pBase];
-		}
-	}
-};
 
 struct LightmapTexture
 {
@@ -70,104 +36,8 @@ public:
 	bool ShowRenderStats = false;
 	bool ShowCollisionDebug = false;
 
-private:
-	void DrawScene();
-	void DrawFrame(const vec3& location, const mat4& worldToView);
-	int FindZoneAt(const vec3& location);
-	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
-	void ProcessNode(BspNode* node);
-	void ProcessNodeSurface(BspNode* node);
-	void ProcessTranslucentNodesAndActors();
-	void DrawNodeSurface(const DrawNodeInfo& nodeInfo);
-	void DrawOpaqueActors();
-	void SetupSceneFrame(const mat4& worldToView);
-
-	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
-	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
-	void UpdateActorLightList(UActor* actor);
-	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
-	vec4 GetVertexFog(UActor* actor, const vec3& location);
-
-	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
-	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
-	void UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
-	void UpdateTextureInfo(FTextureInfo& info, UTexture* texture);
-	void UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-
-	void ResetCanvas();
-	void PreRender();
-	void RenderOverlays();
-	void PostRender();
-	void DrawTimedemoStats();
-	void DrawCollisionDebug();
-	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
-
-	bool DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe, bool translucentPass);
-	bool DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass);
-	bool DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	void SetupMeshTextures(UActor* actor, UMesh* mesh);
-	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
-
-	void DrawBrush(FSceneNode* frame, UActor* actor);
-	void DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UMover* mover);
-
-	void DrawSprite(FSceneNode* frame, UActor* actor);
-	void DrawCoronas(FSceneNode* frame);
-	void DrawDecals(FSceneNode* frame, BspNode* node);
-
-	RenderDevice* Device = nullptr;
-
-	float LevelTimeElapsed = 0.0f;
-	float AutoUV = 0.0f;
-	float AmbientGlowTime = 0.0f;
-	float AmbientGlowAmount = 0.0f;
+	int TextureFrameCounter = 0;
 	int FrameCounter = 0;
-
-	struct
-	{
-		int uiscale = 1;
-		int fps = 0;
-		int framesDrawn = 0;
-		uint64_t startFPSTime = 0;
-		FSceneNode Frame;
-	} Canvas;
-
-	struct
-	{
-		Array<UTexture*> textures;
-		UTexture* envmap = nullptr;
-	} Mesh;
-
-	struct
-	{
-		FSceneNode Frame;
-		BspClipper Clipper;
-		vec4 ViewLocation;
-		Coords ViewRotation;
-		int ViewZone = 0;
-		uint64_t ViewZoneMask = 0;
-		Array<DrawNodeInfo> OpaqueNodes;
-		Array<DrawNodeInfo> TranslucentNodes;
-		Array<TranslucentNodeAndActorInfo> TranslucentNodesAndActors;
-		Array<UActor*> Coronas;
-		Array<UActor*> Actors;
-		int FrameCounter = 0;
-	} Scene;
-
-	struct
-	{
-		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
-		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
-		Array<UActor*> Lights;
-		LightmapBuilder Builder;
-		int FogFrameCounter = 0;
-	} Light;
-
-	Array<vec3> VertexBuffer;
-	Array<GouraudVertex> GouraudVertexBuffer;
 
 	vec3* GetTempVertexBuffer(size_t count)
 	{
@@ -182,4 +52,69 @@ private:
 			GouraudVertexBuffer.resize(count);
 		return GouraudVertexBuffer.data();
 	}
+
+	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model);
+
+	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
+	vec4 GetVertexFog(UActor* actor, const vec3& location);
+
+	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
+	void UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
+	void UpdateTextureInfo(FTextureInfo& info, UTexture* texture);
+
+	void UpdateActorLightList(UActor* actor);
+
+	RenderDevice* Device = nullptr;
+
+	struct
+	{
+		Array<UTexture*> textures;
+		UTexture* envmap = nullptr;
+	} Mesh;
+
+private:
+	void DrawScene();
+
+	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
+
+	void UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* texels, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
+
+	void ResetCanvas();
+	void PreRender();
+	void RenderOverlays();
+	void PostRender();
+	void DrawTimedemoStats();
+	void DrawCollisionDebug();
+	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
+
+	float LevelTimeElapsed = 0.0f;
+	float AutoUV = 0.0f;
+	float AmbientGlowTime = 0.0f;
+	float AmbientGlowAmount = 0.0f;
+
+	VisibleFrame SkyFrame;
+	VisibleFrame MainFrame;
+
+	struct
+	{
+		int uiscale = 1;
+		int fps = 0;
+		int framesDrawn = 0;
+		uint64_t startFPSTime = 0;
+		FSceneNode Frame;
+	} Canvas;
+
+	struct
+	{
+		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
+		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
+		Array<UActor*> Lights;
+		LightmapBuilder Builder;
+		int FogFrameCounter = 0;
+	} Light;
+
+	Array<vec3> VertexBuffer;
+	Array<GouraudVertex> GouraudVertexBuffer;
 };

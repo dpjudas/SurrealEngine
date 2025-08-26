@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "RenderSubsystem.h"
+#include "VisibleMesh.h"
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/USubsystem.h"
 #include "GameWindow.h"
@@ -72,16 +73,17 @@ void RenderSubsystem::PostRender()
 
 void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 {
-	actor->bHidden() = false;
-
-	Device->SetSceneNode(&Scene.Frame);
+	Device->SetSceneNode(&MainFrame.Frame);
 	if (ClearZ)
-		Device->ClearZ(&Scene.Frame);
-	if (DrawMesh(&Scene.Frame, actor, WireFrame, false))
-		DrawMesh(&Scene.Frame, actor, WireFrame, true);
-	Device->SetSceneNode(&Canvas.Frame);
+		Device->ClearZ();
 
+	actor->bHidden() = false;
+	VisibleMesh vismesh;
+	if (vismesh.DrawMesh(&MainFrame, actor, WireFrame, false))
+		vismesh.DrawMesh(&MainFrame, actor, WireFrame, true);
 	actor->bHidden() = true;
+
+	Device->SetSceneNode(&Canvas.Frame);
 }
 
 void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y, int XB, int YB, bool ClearZ)
@@ -106,11 +108,12 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 	Device->SetSceneNode(&frame);
 
 	if (ClearZ)
-		Device->ClearZ(&frame);
+		Device->ClearZ();
 
 	actor->bHidden() = false;
-	if (DrawMesh(&frame, actor, WireFrame, false))
-		DrawMesh(&frame, actor, WireFrame, true);
+	VisibleMesh vismesh;
+	if (vismesh.DrawMesh(&MainFrame, actor, WireFrame, false))
+		vismesh.DrawMesh(&MainFrame, actor, WireFrame, true);
 	actor->bHidden() = true;
 
 	Device->SetSceneNode(&Canvas.Frame);
@@ -399,9 +402,9 @@ void RenderSubsystem::DrawTimedemoStats()
 			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
 
-		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
-		lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
-		lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
+		//lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
+		//lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
+		//lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)
@@ -441,13 +444,13 @@ void RenderSubsystem::DrawTimedemoStats()
 			numCollisionActors += it.second.size();
 		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
 
-		lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
+		/*lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
 		lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
 		lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
 
 		lines.push_back(std::to_string(Scene.Clipper.numDrawSpans) + " spans");
 		lines.push_back(std::to_string(Scene.Clipper.numSurfs) + " checked surfaces");
-		lines.push_back(std::to_string(Scene.Clipper.numTris) + " checked triangles");
+		lines.push_back(std::to_string(Scene.Clipper.numTris) + " checked triangles");*/
 
 		UFont* font = engine->canvas->MedFont();
 		if (font)

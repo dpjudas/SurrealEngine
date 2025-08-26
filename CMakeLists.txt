@@ -89,14 +89,28 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/VM/StepCommandlet.h
 	SurrealEngine/Editor/Export.cpp
 	SurrealEngine/Editor/Export.h
+	SurrealEngine/Render/VisibleActor.cpp
+	SurrealEngine/Render/VisibleActor.h
+	SurrealEngine/Render/VisibleBrush.cpp
+	SurrealEngine/Render/VisibleBrush.h
+	SurrealEngine/Render/VisibleCorona.cpp
+	SurrealEngine/Render/VisibleCorona.h
+	SurrealEngine/Render/VisibleDecal.cpp
+	SurrealEngine/Render/VisibleDecal.h
+	SurrealEngine/Render/VisibleFrame.cpp
+	SurrealEngine/Render/VisibleFrame.h
+	SurrealEngine/Render/VisibleMesh.cpp
+	SurrealEngine/Render/VisibleMesh.h
+	SurrealEngine/Render/VisibleNode.cpp
+	SurrealEngine/Render/VisibleNode.h
+	SurrealEngine/Render/VisiblePortal.cpp
+	SurrealEngine/Render/VisiblePortal.h
+	SurrealEngine/Render/VisibleSprite.cpp
+	SurrealEngine/Render/VisibleSprite.h
+	SurrealEngine/Render/VisibleTranslucent.h
 	SurrealEngine/Render/RenderSubsystem.cpp
 	SurrealEngine/Render/RenderSubsystem.h
 	SurrealEngine/Render/RenderCanvas.cpp
-	SurrealEngine/Render/RenderMesh.cpp
-	SurrealEngine/Render/RenderBrush.cpp
-	SurrealEngine/Render/RenderSprite.cpp
-	SurrealEngine/Render/RenderCorona.cpp
-	SurrealEngine/Render/RenderDecal.cpp
 	SurrealEngine/Render/RenderScene.cpp
 	SurrealEngine/Render/RenderLight.cpp
 	SurrealEngine/Render/RenderFog.cpp

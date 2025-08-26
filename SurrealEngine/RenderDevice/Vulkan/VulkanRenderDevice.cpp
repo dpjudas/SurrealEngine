@@ -740,7 +740,7 @@ void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t Lin
 	}
 }
 
-void VulkanRenderDevice::ClearZ(FSceneNode* Frame)
+void VulkanRenderDevice::ClearZ()
 {
 	DrawBatch(Commands->GetDrawCommands());
 

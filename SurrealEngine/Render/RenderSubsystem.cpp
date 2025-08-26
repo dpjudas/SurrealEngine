@@ -13,13 +13,10 @@ RenderSubsystem::RenderSubsystem(RenderDevice* renderdevice) : Device(renderdevi
 
 void RenderSubsystem::DrawGame(float levelTimeElapsed)
 {
-	FrameCounter++;
 	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
 	AmbientGlowTime = std::fmod(AmbientGlowTime + 0.8f * levelTimeElapsed, 1.0f);
 	AmbientGlowAmount = 0.20f + 0.20f * std::sin(radians(AmbientGlowTime * 360.0f));
-
-	Light.FogFrameCounter++;
 
 	vec3 flashScale = 0.5f;
 	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
@@ -57,10 +54,10 @@ void RenderSubsystem::DrawEditorViewport()
 
 void RenderSubsystem::UpdateTexture(UTexture* tex)
 {
-	if (tex && tex->FrameCounter != FrameCounter)
+	if (tex && tex->FrameCounter != TextureFrameCounter)
 	{
 		tex->Update(LevelTimeElapsed);
-		tex->FrameCounter = FrameCounter;
+		tex->FrameCounter = TextureFrameCounter;
 	}
 }
 

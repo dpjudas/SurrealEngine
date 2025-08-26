@@ -1,12 +1,13 @@
 
 #include "Precomp.h"
+#include "VisibleBrush.h"
+#include "VisibleFrame.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 
-void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
+void VisibleBrush::Draw(VisibleFrame* frame, UActor* actor)
 {
 	UMover* mover = UActor::TryCast<UMover>(actor);
 	if (!mover)
@@ -14,28 +15,28 @@ void RenderSubsystem::DrawBrush(FSceneNode* frame, UActor* actor)
 
 	UModel* brush = mover->Brush();
 	const vec3& location = mover->Location();
-	FSceneNode brushframe = *frame;
+	FSceneNode brushframe = frame->Frame;
 
-	UpdateActorLightList(mover);
+	engine->render->UpdateActorLightList(mover);
 
 	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(mover->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot());
 
-	Device->SetSceneNode(&brushframe);
+	frame->Device->SetSceneNode(&brushframe);
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(&brushframe, brush, poly, 0, mover);
+		DrawBrushPoly(frame, brush, poly, 0, mover);
 	}
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(&brushframe, brush, poly, 1, mover);
+		DrawBrushPoly(frame, brush, poly, 1, mover);
 	}
 
-	Device->SetSceneNode(frame);
+	frame->Device->SetSceneNode(&frame->Frame);
 }
 
-void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly& poly, int pass, UMover* mover)
+void VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly& poly, int pass, UMover* mover)
 {
 	uint32_t PolyFlags = poly.PolyFlags;
 
@@ -62,23 +63,23 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 	if (polyTex)
 	{
 		UTexture* tex = polyTex->GetAnimTexture();
-		UpdateTexture(tex);
-		UpdateTextureInfo(texture, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
+		engine->render->UpdateTexture(tex);
+		engine->render->UpdateTextureInfo(texture, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 		surfaceinfo.Texture = &texture;
 
 		if (polyTex->DetailTexture())
 		{
 			UTexture* tex = polyTex->DetailTexture()->GetAnimTexture();
-			UpdateTexture(tex);
-			UpdateTextureInfo(detailtex, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
+			engine->render->UpdateTexture(tex);
+			engine->render->UpdateTextureInfo(detailtex, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 			surfaceinfo.DetailTexture = &detailtex;
 		}
 
 		if (polyTex->MacroTexture())
 		{
 			UTexture* tex = poly.Texture->MacroTexture()->GetAnimTexture();
-			UpdateTexture(tex);
-			UpdateTextureInfo(macrotex, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
+			engine->render->UpdateTexture(tex);
+			engine->render->UpdateTextureInfo(macrotex, poly, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 			surfaceinfo.MacroTexture = &macrotex;
 		}
 	}
@@ -97,13 +98,13 @@ void RenderSubsystem::DrawBrushPoly(FSceneNode* frame, UModel* model, const Poly
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		lightmap = GetBrushLightmap(mover, poly, zoneActor, model);
-		//fogmap = GetSurfaceFogmap(poly, engine->CameraActor->Region().Zone, model);
+		lightmap = engine->render->GetBrushLightmap(mover, poly, zoneActor, model);
+		//fogmap = engine->render->GetSurfaceFogmap(poly, engine->CameraActor->Region().Zone, model);
 	}
 
 	surfaceinfo.PolyFlags = PolyFlags;
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
 
-	Device->DrawComplexSurface(&Scene.Frame, surfaceinfo, facet);
+	frame->Device->DrawComplexSurface(&frame->Frame, surfaceinfo, facet);
 }

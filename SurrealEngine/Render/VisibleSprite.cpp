@@ -1,11 +1,13 @@
 
 #include "Precomp.h"
-#include "RenderSubsystem.h"
-#include "RenderDevice/RenderDevice.h"
-#include "Engine.h"
+#include "VisibleSprite.h"
 #include "UObject/UClass.h"
+#include "UObject/UTexture.h"
+#include "UObject/UActor.h"
+#include "Engine.h"
+#include "RenderSubsystem.h"
 
-void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
+void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 {
 	UTexture* texture = actor->Texture();
 	const vec3& location = actor->Location();
@@ -13,7 +15,7 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	int style = actor->Style();
 	bool noSmooth = actor->bNoSmooth();
 
-	UpdateTexture(texture);
+	engine->render->UpdateTexture(texture);
 
 	if (actor->DrawType() == DT_SpriteAnimOnce)
 	{
@@ -28,7 +30,7 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 		texture = texture->GetAnimTexture();
 	}
 
-	UpdateTexture(texture);
+	engine->render->UpdateTexture(texture);
 
 	FTextureInfo texinfo;
 	texinfo.Texture = texture;
@@ -63,8 +65,8 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 
 	drawscale *= 0.5f;
 
-	vec3 sideAxis = Scene.ViewRotation.YAxis * (texwidth * drawscale);
-	vec3 upAxis = Scene.ViewRotation.ZAxis * (texheight * drawscale);
+	vec3 sideAxis = frame->ViewRotation.YAxis * (texwidth * drawscale);
+	vec3 upAxis = frame->ViewRotation.ZAxis * (texheight * drawscale);
 
 	vec3 color = clamp(actor->ScaleGlow(), 0.0f, 1.0f);
 
@@ -86,5 +88,5 @@ void RenderSubsystem::DrawSprite(FSceneNode* frame, UActor* actor)
 	vertices[3].Light = color;
 	vertices[3].Fog = { 0.0f };
 
-	Device->DrawGouraudPolygon(frame, texinfo, vertices, 4, renderflags);
+	frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 4, renderflags);
 }

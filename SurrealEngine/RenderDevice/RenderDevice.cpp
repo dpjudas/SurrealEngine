@@ -80,13 +80,13 @@ void RenderDeviceCanvas::end()
 
 void RenderDeviceCanvas::begin3d()
 {
-	device->ClearZ(&frame);
+	device->ClearZ();
 }
 
 void RenderDeviceCanvas::end3d()
 {
 	device->SetSceneNode(&frame);
-	device->ClearZ(&frame);
+	device->ClearZ();
 }
 
 std::unique_ptr<CanvasTexture> RenderDeviceCanvas::createTexture(int width, int height, const void* pixels, ImageFormat format)

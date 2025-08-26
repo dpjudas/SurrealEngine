@@ -1,16 +1,18 @@
 
 #include "Precomp.h"
+#include "VisibleMesh.h"
+#include "VisibleFrame.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 
-bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe, bool translucentPass)
+bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, bool translucentPass)
 {
 	UMesh* mesh = actor->Mesh();
 	if (!mesh)
 		return false;
 
-	UpdateActorLightList(actor);
+	engine->render->UpdateActorLightList(actor);
 
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
 	mat4 meshToWorld = objectToWorld * mesh->meshToObject;
@@ -24,7 +26,7 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, bool wireframe,
 		return DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 }
 
-bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (actor->bAnimByOwner() && actor->Owner())
@@ -82,7 +84,7 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 			continue;
 
 		uint32_t renderflags = tri.PolyFlags | polyflags;
-		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[tri.TextureIndex];
+		UTexture* tex = (renderflags & PF_Environment) ? engine->render->Mesh.envmap : engine->render->Mesh.textures[tri.TextureIndex];
 		if (!tex)
 			continue;
 
@@ -98,10 +100,10 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 			continue;
 		}
 
-		UpdateTexture(tex);
+		engine->render->UpdateTexture(tex);
 
 		FTextureInfo texinfo;
-		UpdateTextureInfo(texinfo, tex);
+		engine->render->UpdateTextureInfo(texinfo, tex);
 
 		float uscale = (tex ? tex->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (tex ? tex->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
@@ -117,7 +119,7 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 		{
 			// To do: this needs to be the smoothed normal
 			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
-			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
+			mat3 rotmat = mat3(frame->Frame.WorldToView * frame->Frame.ObjectToWorld);
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
@@ -131,7 +133,7 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 
 		if (renderflags & PF_Environment)
 		{
-			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
+			mat3 rotmat = mat3(frame->Frame.WorldToView * frame->Frame.ObjectToWorld);
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
@@ -142,18 +144,18 @@ bool RenderSubsystem::DrawMesh(FSceneNode* frame, UActor* actor, UMesh* mesh, co
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit));
-			vertices[i].Fog = GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit));
+			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
 
-		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
 	}
 	return needTranslucentPass;
 }
 
-bool RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (actor->bAnimByOwner() && actor->Owner())
@@ -193,12 +195,12 @@ bool RenderSubsystem::DrawLodMesh(FSceneNode* frame, UActor* actor, ULodMesh* me
 	return needTranslucentPass;
 }
 
-void RenderSubsystem::SetupMeshTextures(UActor* actor, UMesh* mesh)
+void VisibleMesh::SetupMeshTextures(UActor* actor, UMesh* mesh)
 {
-	if (Mesh.textures.size() < mesh->Textures.size())
-		Mesh.textures.resize(mesh->Textures.size());
+	if (engine->render->Mesh.textures.size() < mesh->Textures.size())
+		engine->render->Mesh.textures.resize(mesh->Textures.size());
 
-	Mesh.envmap = nullptr;
+	engine->render->Mesh.envmap = nullptr;
 
 	for (int i = 0; i < (int)mesh->Textures.size(); i++)
 	{
@@ -236,29 +238,29 @@ void RenderSubsystem::SetupMeshTextures(UActor* actor, UMesh* mesh)
 		//	Mesh.envmap = tex;
 		//}
 
-		Mesh.textures[i] = tex;
+		engine->render->Mesh.textures[i] = tex;
 	}
 
 	if (actor->Texture())
 	{
-		Mesh.envmap = actor->Texture();
+		engine->render->Mesh.envmap = actor->Texture();
 	}
 	else if (actor->Region().Zone && actor->Region().Zone->EnvironmentMap())
 	{
-		Mesh.envmap = actor->Region().Zone->EnvironmentMap();
+		engine->render->Mesh.envmap = actor->Region().Zone->EnvironmentMap();
 	}
 	else if (actor->Level()->EnvironmentMap())
 	{
-		Mesh.envmap = actor->Level()->EnvironmentMap();
+		engine->render->Mesh.envmap = actor->Level()->EnvironmentMap();
 	}
 }
 
-void RenderSubsystem::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
+void VisibleMesh::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 {
-	if (Mesh.textures.size() < mesh->Textures.size())
-		Mesh.textures.resize(mesh->Textures.size());
+	if (engine->render->Mesh.textures.size() < mesh->Textures.size())
+		engine->render->Mesh.textures.resize(mesh->Textures.size());
 
-	Mesh.envmap = nullptr;
+	engine->render->Mesh.envmap = nullptr;
 
 	for (int i = 0; i < (int)mesh->Textures.size(); i++)
 	{
@@ -296,24 +298,24 @@ void RenderSubsystem::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 		//	Mesh.envmap = tex;
 		//}
 
-		Mesh.textures[i] = tex;
+		engine->render->Mesh.textures[i] = tex;
 	}
 
 	if (actor->Texture())
 	{
-		Mesh.envmap = actor->Texture();
+		engine->render->Mesh.envmap = actor->Texture();
 	}
 	else if (actor->Region().Zone && actor->Region().Zone->EnvironmentMap())
 	{
-		Mesh.envmap = actor->Region().Zone->EnvironmentMap();
+		engine->render->Mesh.envmap = actor->Region().Zone->EnvironmentMap();
 	}
 	else if (actor->Level()->EnvironmentMap())
 	{
-		Mesh.envmap = actor->Level()->EnvironmentMap();
+		engine->render->Mesh.envmap = actor->Level()->EnvironmentMap();
 	}
 }
 
-bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
+bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
 {
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
@@ -340,7 +342,7 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
 
 		uint32_t renderflags = material.PolyFlags | polyFlags;
-		UTexture* tex = (renderflags & PF_Environment) ? Mesh.envmap : Mesh.textures[material.TextureIndex];
+		UTexture* tex = (renderflags & PF_Environment) ? engine->render->Mesh.envmap : engine->render->Mesh.textures[material.TextureIndex];
 
 		// skip if no texture
 		if (!tex)
@@ -358,10 +360,10 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 			continue;
 		}
 
-		UpdateTexture(tex);
+		engine->render->UpdateTexture(tex);
 
 		FTextureInfo texinfo;
-		UpdateTextureInfo(texinfo, tex);
+		engine->render->UpdateTextureInfo(texinfo, tex);
 
 		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
@@ -404,7 +406,7 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 
 		if (renderflags & PF_Environment)
 		{
-			mat3 rotmat = mat3(frame->WorldToView * frame->ObjectToWorld);
+			mat3 rotmat = mat3(frame->Frame.WorldToView * frame->Frame.ObjectToWorld);
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
@@ -415,19 +417,19 @@ bool RenderSubsystem::DrawLodMeshFace(FSceneNode* frame, UActor* actor, ULodMesh
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit));
-			vertices[i].Fog = GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit));
+			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
 
-		Device->DrawGouraudPolygon(frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
 	}
 
 	return needTranslucentPass;
 }
 
-bool RenderSubsystem::DrawSkeletalMesh(FSceneNode* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	return DrawLodMesh(frame, actor, mesh, ObjectToWorld, ObjectNormalToWorld, translucentPass);
 }

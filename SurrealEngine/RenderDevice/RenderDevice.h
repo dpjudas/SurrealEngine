@@ -112,7 +112,7 @@ public:
 	virtual void Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
 	virtual void Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
 	virtual void Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
-	virtual void ClearZ(FSceneNode* Frame) = 0;
+	virtual void ClearZ() = 0;
 	virtual void PushHit(const uint8_t* Data, int Count) = 0;
 	virtual void PopHit(int Count, bool bForce) = 0;
 	virtual void ReadPixels(FColor* Pixels) = 0;
