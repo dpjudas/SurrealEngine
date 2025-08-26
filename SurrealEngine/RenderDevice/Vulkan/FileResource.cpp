@@ -12,6 +12,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			layout(push_constant) uniform ScenePushConstants
 			{
 				mat4 objectToProjection;
+				mat4 objectToView;
 				vec4 nearClip;
 				uint uHitIndex;
 				uint padding1, padding2, padding3;
@@ -38,7 +39,7 @@ std::string FileResource::readAllText(const std::string& filename)
 			void main()
 			{
 				gl_Position = objectToProjection * vec4(aPosition, 1.0);
-				gl_ClipDistance[0] = dot(nearClip, vec4(aPosition, 1.0));
+				gl_ClipDistance[0] = dot(nearClip, objectToView * vec4(aPosition, 1.0));
 				flags = aFlags;
 				texCoord = aTexCoord;
 				texCoord2 = aTexCoord2;

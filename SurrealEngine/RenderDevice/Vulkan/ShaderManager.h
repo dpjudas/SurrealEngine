@@ -20,6 +20,7 @@ struct SceneVertex
 struct ScenePushConstants
 {
 	mat4 objectToProjection;
+	mat4 objectToView;
 	vec4 nearClip;
 	uint32_t hitIndex;
 	uint32_t padding1, padding2, padding3;

@@ -2407,7 +2407,8 @@ void D3D11RenderDevice::EndFlash()
 		vec2 zero2(0.0f);
 
 		SceneConstants.ObjectToProjection = mat4::identity();
-		SceneConstants.NearClip = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		SceneConstants.ObjectToView = mat4::identity();
+		SceneConstants.NearClip = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		Context->UpdateSubresource(ScenePass.ConstantBuffer, 0, nullptr, &SceneConstants, 0, 0);
 
 		SetPipeline(PF_Highlighted);
@@ -2466,7 +2467,8 @@ void D3D11RenderDevice::SetSceneNode(FSceneNode* Frame)
 	// maybe optionally do one or the other? transform on CPU can be super slow --Xaleros
 	SceneConstants.ObjectToProjection = SceneConstants.ObjectToProjection * Frame->WorldToView * Frame->ObjectToWorld;
 
-	SceneConstants.NearClip = vec4(Frame->NearClip.x, Frame->NearClip.y, Frame->NearClip.z, Frame->NearClip.w);
+	SceneConstants.ObjectToView = Frame->WorldToView * Frame->ObjectToWorld;
+	SceneConstants.NearClip = Frame->NearClip;
 
 	Context->UpdateSubresource(ScenePass.ConstantBuffer, 0, nullptr, &SceneConstants, 0, 0);
 }

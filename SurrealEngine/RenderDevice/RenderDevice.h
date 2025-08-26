@@ -27,7 +27,7 @@ struct FSceneNode
 	mat4 WorldToView;
 	mat4 Projection;
 
-	vec4 NearClip = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 NearClip = vec4(0.0f, 0.0f, 1.0f, -1.0f);
 	float Zoom = 1.0f;
 };
 

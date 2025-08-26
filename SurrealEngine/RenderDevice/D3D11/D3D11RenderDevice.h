@@ -34,6 +34,7 @@ struct D3D11SceneVertex
 struct D3D11ScenePushConstants
 {
 	mat4 ObjectToProjection;
+	mat4 ObjectToView;
 	vec4 NearClip;
 	int HitIndex;
 	int Padding1, Padding2, Padding3;
