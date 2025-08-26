@@ -190,6 +190,7 @@ public:
 	void setEditorMode(const bool value) { m_EditorMode = value; }
 private:
 	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
+	bool m_GamePaused = false;
 };
 
 extern Engine* engine;

@@ -49,7 +49,6 @@ they end up dying because SE thinks that they've fallen from a great height.
 * Teleporters do not work properly sometimes.
 * Zones don't apply velocity to the players when they should (Like the conveyor belt in DM-Conveyor)
 * Zones don't hurt the player when they should (Drowning in water/getting burned in lava, etc.)
-* Games don't pause when ESC is pressed.
 * There is no OpenGL renderer.
 * There is no networking support at all.
 * By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
