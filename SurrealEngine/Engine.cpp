@@ -108,6 +108,10 @@ void Engine::Run()
 
 		UpdateInput(realTimeElapsed);
 
+		SetPause(!LevelInfo->Pauser().empty());
+
+
+		// Do NOT pause this Tick event otherwise some messages will stay on screen forever.
 		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
 		// To do: set these to true if the frame rate is too low
@@ -117,9 +121,12 @@ void Engine::Run()
 			LevelInfo->bAggressiveLOD() = false;
 		}
 
-		if (EntryLevel)
-			EntryLevel->Tick(entryLevelElapsed);
-		Level->Tick(levelElapsed);
+		if (!m_GamePaused)
+		{
+			if (EntryLevel)
+				EntryLevel->Tick(entryLevelElapsed);
+			Level->Tick(levelElapsed);
+		}
 
 		if (!LevelInfo->NextURL().empty())
 		{
@@ -1095,12 +1102,12 @@ void Engine::OnWindowClose()
 
 void Engine::OnWindowActivated()
 {
-	SetPause(false);
+	//SetPause(false);
 }
 
 void Engine::OnWindowDeactivated()
 {
-	SetPause(true);
+	//SetPause(true);
 }
 
 void Engine::OnWindowDpiScaleChanged()
@@ -1265,6 +1272,7 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 
 void Engine::SetPause(bool value)
 {
+	m_GamePaused = value;
 }
 
 const char* Engine::keynames[256] =
