@@ -22,27 +22,6 @@ void RenderSubsystem::DrawScene()
 			actor->UpdateBspInfo();
 	}
 
-	// To do: use the zone specified in the surface with the PF_FakeBackdrop PolyFlags
-	UZoneInfo* skyZone = nullptr;
-	for (const auto& zone : engine->Level->Model->Zones)
-	{
-		UZoneInfo* zoneInfo = UObject::TryCast<UZoneInfo>(zone.ZoneActor);
-		if (zoneInfo && zoneInfo->SkyZone())
-		{
-			skyZone = zoneInfo->SkyZone();
-			break;
-		}
-	}
-
-	if (skyZone)
-	{
-		mat4 skyToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Rotation(skyZone->Rotation()).ToMatrix() * Coords::Location(skyZone->Location()).ToMatrix();
-
-		SkyFrame.Process(skyZone->Location(), skyToView);
-		SkyFrame.Draw();
-		Device->ClearZ();
-	}
-
 	mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() * Coords::Location(engine->CameraLocation).ToMatrix();
 	MainFrame.Process(engine->CameraLocation, worldToView);
 	MainFrame.Draw();

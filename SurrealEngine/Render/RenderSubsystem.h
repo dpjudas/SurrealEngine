@@ -94,7 +94,6 @@ private:
 	float AmbientGlowTime = 0.0f;
 	float AmbientGlowAmount = 0.0f;
 
-	VisibleFrame SkyFrame;
 	VisibleFrame MainFrame;
 
 	struct

@@ -139,15 +139,35 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	if (surface.Material)
 		PolyFlags |= surface.Material->PolyFlags();
 
+	VisibleNode info;
+	info.Node = node;
+	info.PolyFlags = PolyFlags;
+
 	if (PolyFlags & PF_FakeBackdrop)
 	{
-		if (Clipper.CheckSurface(points, numverts, true))
+		int zone = front ? node->Zone0 : node->Zone1;
+		if (UZoneInfo* zoneInfo = UObject::TryCast<UZoneInfo>(model->Zones[zone].ZoneActor))
 		{
-			VisiblePortal portal;
-			portal.Node = node;
-			portal.PolyFlags = PolyFlags;
-			Portals.push_back(portal);
-			return;
+			if (zoneInfo->SkyZone())
+			{
+				if (Clipper.CheckSurface(points, numverts, true))
+				{
+					USkyZoneInfo* skyZone = zoneInfo->SkyZone();
+					for (auto& p : Portals)
+					{
+						if (p.SkyZone == skyZone)
+						{
+							p.Nodes.push_back(info);
+							return;
+						}
+					}
+					VisiblePortal portal;
+					portal.Nodes.push_back(info);
+					portal.SkyZone = skyZone;
+					Portals.push_back(portal);
+					return;
+				}
+			}
 		}
 	}
 	else if (PolyFlags & PF_Portal)
@@ -160,9 +180,17 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 			{
 				if (Clipper.CheckSurface(points, numverts, true))
 				{
+					for (auto& p : Portals)
+					{
+						if (p.WarpZone == warpZone)
+						{
+							p.Nodes.push_back(info);
+							return;
+						}
+					}
 					VisiblePortal portal;
-					portal.Node = node;
-					portal.PolyFlags = PolyFlags;
+					portal.Nodes.push_back(info);
+					portal.WarpZone = warpZone;
 					Portals.push_back(portal);
 					return;
 				}
@@ -173,9 +201,9 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	{
 		if (Clipper.CheckSurface(points, numverts, true))
 		{
+			// To do: how to merge mirror surfaces? Use the plane?
 			VisiblePortal portal;
-			portal.Node = node;
-			portal.PolyFlags = PolyFlags;
+			portal.Nodes.push_back(info);
 			Portals.push_back(portal);
 			return;
 		}
@@ -195,9 +223,6 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 
 	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
 	{
-		VisibleNode info;
-		info.Node = node;
-		info.PolyFlags = PolyFlags;
 		OpaqueNodes.push_back(info);
 	}
 	else
@@ -205,9 +230,6 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 		UModel* model = engine->Level->Model;
 		const BspSurface& surface = model->Surfaces[node->Surf];
 		vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
-		VisibleNode info;
-		info.Node = node;
-		info.PolyFlags = PolyFlags;
 		Translucents.emplace_back(info, dot(v, v));
 	}
 }
@@ -289,36 +311,47 @@ void VisibleFrame::DrawPortals()
 {
 	for (VisiblePortal& portal : Portals)
 	{
-		// To do: actually draw the portals here
-		if (portal.PolyFlags & PF_FakeBackdrop)
+		if (portal.SkyZone)
+		{
+			mat4 skyToView =
+				Coords::ViewToRenderDev().ToMatrix() *
+				Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() *
+				Coords::Rotation(portal.SkyZone->Rotation()).ToMatrix() *
+				Coords::Location(portal.SkyZone->Location()).ToMatrix();
+
+			VisibleFrame skyframe;
+			skyframe.Process(portal.SkyZone->Location(), skyToView);
+			Device->SetSceneNode(&skyframe.Frame);
+			skyframe.Draw();
+			Device->ClearZ();
+		}
+		else if (portal.WarpZone)
 		{
 		}
-		else if (portal.PolyFlags & PF_Mirrored)
+		else // Mirror
 		{
-			Device->SetSceneNode(&Frame);
+		}
+	}
 
-			if ((portal.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
+	// Seal the portals
+	Device->SetSceneNode(&Frame);
+	for (VisiblePortal& portal : Portals)
+	{
+		for (auto info : portal.Nodes)
+		{
+			info.PolyFlags = PF_Occlude | PF_Invisible;
+
+			if ((info.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
 			{
-				VisibleNode info;
-				info.Node = portal.Node;
-				info.PolyFlags = portal.PolyFlags;
 				OpaqueNodes.push_back(info);
 			}
 			else
 			{
 				UModel* model = engine->Level->Model;
-				const BspSurface& surface = model->Surfaces[portal.Node->Surf];
+				const BspSurface& surface = model->Surfaces[info.Node->Surf];
 				vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
-				VisibleNode info;
-				info.Node = portal.Node;
-				info.PolyFlags = portal.PolyFlags;
 				Translucents.emplace_back(info, dot(v, v));
 			}
-
-			Device->ClearZ();
-		}
-		else if (portal.PolyFlags & PF_Portal)
-		{
 		}
 	}
 }

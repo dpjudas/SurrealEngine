@@ -1,10 +1,15 @@
 #pragma once
 
+#include "VisibleNode.h"
+
 class BspNode;
+class USkyZoneInfo;
+class UWarpZoneInfo;
 
 class VisiblePortal
 {
 public:
-	BspNode* Node = nullptr;
-	uint32_t PolyFlags = 0;
+	Array<VisibleNode> Nodes;
+	USkyZoneInfo* SkyZone = nullptr;
+	UWarpZoneInfo* WarpZone = nullptr;
 };
