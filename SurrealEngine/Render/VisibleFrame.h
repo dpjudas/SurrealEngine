@@ -5,6 +5,7 @@
 #include "VisibleTranslucent.h"
 #include "VisibleCorona.h"
 #include "VisibleActor.h"
+#include "VisiblePortal.h"
 #include "BspClipper.h"
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/UActor.h"
@@ -34,16 +35,18 @@ public:
 	Array<VisibleActor> Actors;
 	Array<VisibleTranslucent> Translucents;
 	Array<VisibleCorona> Coronas;
+	Array<VisiblePortal> Portals;
 
 private:
 	void SetupSceneFrame(const mat4& worldToView);
 	void ProcessNode(BspNode* node);
-	void ProcessNodeSurface(BspNode* node);
+	void ProcessNodeSurface(BspNode* node, bool front);
 	void SortTranslucent();
 
 	void DrawOpaqueNodes();
 	void DrawOpaqueActors();
 	void DrawTranslucent();
+	void DrawPortals();
 
 	int FindZoneAt(const vec3& location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);

@@ -26,6 +26,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView)
 	Actors.clear();
 	Translucents.clear();
 	Coronas.clear();
+	Portals.clear();
 
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 }
@@ -101,7 +102,7 @@ void VisibleFrame::ProcessNode(BspNode* node)
 	BspNode* polynode = node;
 	while (true)
 	{
-		ProcessNodeSurface(polynode);
+		ProcessNodeSurface(polynode, swapFrontAndBack);
 
 		if (polynode->Plane < 0) break;
 		polynode = &engine->Level->Model->Nodes[polynode->Plane];
@@ -114,7 +115,7 @@ void VisibleFrame::ProcessNode(BspNode* node)
 	}
 }
 
-void VisibleFrame::ProcessNodeSurface(BspNode* node)
+void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 {
 	if (node->NumVertices <= 0 || node->Surf < 0)
 		return;
@@ -138,15 +139,49 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node)
 	if (surface.Material)
 		PolyFlags |= surface.Material->PolyFlags();
 
-	bool blockingSurface = (PolyFlags & PF_NoOcclude) == 0;
+	if (PolyFlags & PF_FakeBackdrop)
+	{
+		if (Clipper.CheckSurface(points, numverts, true))
+		{
+			VisiblePortal portal;
+			portal.Node = node;
+			portal.PolyFlags = PolyFlags;
+			Portals.push_back(portal);
+			return;
+		}
+	}
+	else if (PolyFlags & PF_Portal)
+	{
+		int portalZone = front ? node->Zone1 : node->Zone0;
+		if (portalZone > 0)
+		{
+			UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(model->Zones[portalZone].ZoneActor);
+			if (warpZone)
+			{
+				if (Clipper.CheckSurface(points, numverts, true))
+				{
+					VisiblePortal portal;
+					portal.Node = node;
+					portal.PolyFlags = PolyFlags;
+					Portals.push_back(portal);
+					return;
+				}
+			}
+		}
+	}
+	else if (PolyFlags & PF_Mirrored)
+	{
+		if (Clipper.CheckSurface(points, numverts, true))
+		{
+			VisiblePortal portal;
+			portal.Node = node;
+			portal.PolyFlags = PolyFlags;
+			Portals.push_back(portal);
+			return;
+		}
+	}
 
-	//if ((PolyFlags & (PF_Portal | PF_Invisible)) == (PF_Portal | PF_Invisible))
-	//	blockingSurface = true; // all portals are solid to the clipper
-
-	if ((PolyFlags & PF_Mirrored) != 0)
-		blockingSurface = true; // all mirrors are solid to the clipper
-
-	if (!Clipper.CheckSurface(points, numverts, blockingSurface))
+	if (!Clipper.CheckSurface(points, numverts, (PolyFlags & PF_NoOcclude) == 0))
 		return;
 
 	if (PolyFlags & PF_Portal)
@@ -155,21 +190,14 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node)
 		ViewZoneMask |= 1ULL << node->Zone1;
 	}
 
-	if (PolyFlags & PF_FakeBackdrop)
-	{
-		PolyFlags |= PF_Invisible;
-	}
-	else if (PolyFlags & PF_Invisible)
-	{
+	if (PolyFlags & PF_Invisible)
 		return;
-	}
-
-	VisibleNode info;
-	info.Node = node;
-	info.PolyFlags = PolyFlags;
 
 	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
 	{
+		VisibleNode info;
+		info.Node = node;
+		info.PolyFlags = PolyFlags;
 		OpaqueNodes.push_back(info);
 	}
 	else
@@ -177,6 +205,9 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node)
 		UModel* model = engine->Level->Model;
 		const BspSurface& surface = model->Surfaces[node->Surf];
 		vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
+		VisibleNode info;
+		info.Node = node;
+		info.PolyFlags = PolyFlags;
 		Translucents.emplace_back(info, dot(v, v));
 	}
 }
@@ -215,7 +246,7 @@ int VisibleFrame::FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes
 
 void VisibleFrame::Draw()
 {
-	Device->SetSceneNode(&Frame);
+	DrawPortals();
 	DrawOpaqueNodes();
 	DrawOpaqueActors();
 	SortTranslucent();
@@ -235,18 +266,59 @@ void VisibleFrame::DrawCoronas()
 
 void VisibleFrame::DrawOpaqueNodes()
 {
+	Device->SetSceneNode(&Frame);
 	for (VisibleNode& node : OpaqueNodes)
 		node.Draw(this);
 }
 
 void VisibleFrame::DrawOpaqueActors()
 {
+	Device->SetSceneNode(&Frame);
 	for (VisibleActor& actor : Actors)
 		actor.DrawOpaque(this);
 }
 
 void VisibleFrame::DrawTranslucent()
 {
+	Device->SetSceneNode(&Frame);
 	for (VisibleTranslucent& translucent : Translucents)
 		translucent.Draw(this);
+}
+
+void VisibleFrame::DrawPortals()
+{
+	for (VisiblePortal& portal : Portals)
+	{
+		// To do: actually draw the portals here
+		if (portal.PolyFlags & PF_FakeBackdrop)
+		{
+		}
+		else if (portal.PolyFlags & PF_Mirrored)
+		{
+			Device->SetSceneNode(&Frame);
+
+			if ((portal.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
+			{
+				VisibleNode info;
+				info.Node = portal.Node;
+				info.PolyFlags = portal.PolyFlags;
+				OpaqueNodes.push_back(info);
+			}
+			else
+			{
+				UModel* model = engine->Level->Model;
+				const BspSurface& surface = model->Surfaces[portal.Node->Surf];
+				vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
+				VisibleNode info;
+				info.Node = portal.Node;
+				info.PolyFlags = portal.PolyFlags;
+				Translucents.emplace_back(info, dot(v, v));
+			}
+
+			Device->ClearZ();
+		}
+		else if (portal.PolyFlags & PF_Portal)
+		{
+		}
+	}
 }
