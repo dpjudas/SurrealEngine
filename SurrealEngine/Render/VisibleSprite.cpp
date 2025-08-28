@@ -29,6 +29,8 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 	{
 		texture = texture->GetAnimTexture();
 	}
+	if (!texture)
+		return;
 
 	engine->render->UpdateTexture(texture);
 

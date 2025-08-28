@@ -21,7 +21,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 
 	ViewLocation = vec4(location, 1.0f);
 	ViewZone = FindZoneAt(location);
-	ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
+	//ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
 	ViewRotation = viewRotation;
 
 	OpaqueNodes.clear();
@@ -56,8 +56,8 @@ void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
 void VisibleFrame::ProcessNode(BspNode* node)
 {
 	// Skip node if it is not part of the portal zones we have seen so far
-	if ((node->ZoneMask & ViewZoneMask) == 0)
-		return;
+	//if ((node->ZoneMask & ViewZoneMask) == 0)
+	//	return;
 
 	// Skip node if its AABB is not visible
 	if (node->RenderBound != -1 && !Clipper.IsAABBVisible(engine->Level->Model->Bounds[node->RenderBound]))
@@ -119,7 +119,7 @@ void VisibleFrame::ProcessNode(BspNode* node)
 
 void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 {
-	if (node->NumVertices <= 0 || node->Surf < 0)
+	if (node->NumVertices < 3 || node->Surf < 0)
 		return;
 
 	UModel* model = engine->Level->Model;
@@ -180,8 +180,8 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 					portal.SkyZone = skyZone;
 					portal.Spans = std::move(spans);
 					Portals.push_back(std::move(portal));
-					return;
 				}
+				return;
 			}
 		}
 	}
@@ -210,8 +210,8 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 					portal.WarpZone = warpZone;
 					portal.Spans = std::move(spans);
 					Portals.push_back(std::move(portal));
-					return;
 				}
+				return;
 			}
 		}
 	}
@@ -237,18 +237,18 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 			portal.Nodes.push_back(info);
 			portal.Spans = std::move(spans);
 			Portals.push_back(std::move(portal));
-			return;
 		}
+		return;
 	}
 
 	if (!Clipper.CheckSurface(points, numverts, (PolyFlags & PF_NoOcclude) == 0))
 		return;
 
-	if (PolyFlags & PF_Portal)
+	/*if (PolyFlags & PF_Portal)
 	{
 		ViewZoneMask |= 1ULL << node->Zone0;
 		ViewZoneMask |= 1ULL << node->Zone1;
-	}
+	}*/
 
 	if (PolyFlags & PF_Invisible)
 		return;

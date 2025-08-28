@@ -28,7 +28,7 @@ public:
 	vec4 ViewLocation = vec4(0.0f);
 	Coords ViewRotation = {};
 	int ViewZone = 0;
-	uint64_t ViewZoneMask = 0;
+	//uint64_t ViewZoneMask = 0;
 	int FrameCounter = 0;
 	bool MirrorFlag = false;
 	int PortalDepth = 0;

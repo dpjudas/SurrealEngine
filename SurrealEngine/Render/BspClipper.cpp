@@ -351,7 +351,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 			args[0] = &clippedvert[numclipvert - 1];
 			args[1] = &clippedvert[i - 1];
 			args[2] = &clippedvert[i - 2];
-			//if (IsFrontfacing(args) == ccw)
+			if (IsFrontfacing(args))
 			{
 				result |= DrawClippedTriangle(args, solid);
 			}
@@ -365,7 +365,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 			args[0] = &clippedvert[0];
 			args[1] = &clippedvert[i - 1];
 			args[2] = &clippedvert[i];
-			//if (IsFrontfacing(args) != ccw)
+			if (IsFrontfacing(args))
 			{
 				result |= DrawClippedTriangle(args, solid);
 			}

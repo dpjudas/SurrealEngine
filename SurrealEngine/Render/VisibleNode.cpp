@@ -56,9 +56,19 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	vec3* points = engine->render->GetTempVertexBuffer(numverts);
 
 	BspVert* v = &model->Vertices[Node->VertPool];
-	for (int j = 0; j < numverts; j++)
+	if (frame->MirrorFlag)
 	{
-		points[j] = model->Points[v[j].Vertex];
+		for (int j = 0; j < numverts; j++)
+		{
+			points[numverts - 1 - j] = model->Points[v[j].Vertex];
+		}
+	}
+	else
+	{
+		for (int j = 0; j < numverts; j++)
+		{
+			points[j] = model->Points[v[j].Vertex];
+		}
 	}
 
 	FSurfaceFacet facet;
