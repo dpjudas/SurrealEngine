@@ -17,7 +17,7 @@
 class VisibleFrame
 {
 public:
-	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0);
+	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0, const Array<PortalSpan>& portalSpans = {});
 	void Draw();
 	void DrawCoronas();
 

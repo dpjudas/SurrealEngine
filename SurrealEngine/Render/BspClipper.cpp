@@ -16,7 +16,7 @@ BspClipper::~BspClipper()
 {
 }
 
-void BspClipper::Setup(const mat4& world_to_projection)
+void BspClipper::Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans)
 {
 	WorldToProjection = world_to_projection;
 	FrustumClip = FrustumPlanes(world_to_projection);
@@ -29,6 +29,34 @@ void BspClipper::Setup(const mat4& world_to_projection)
 		line.push_back(left);
 		line.push_back(right);
 	}
+	
+	if (!portalSpans.empty())
+	{
+		// Fill bsp clipper so only portal area is visible
+		int width = ViewportWidth;
+		int height = ViewportHeight;
+		auto it = portalSpans.begin();
+		for (int y = 0; y < height; y++)
+		{
+			int x = 0;
+			while (it != portalSpans.end() && it->y == y)
+			{
+				DrawSpan(y, x, it->x0, true);
+				x = it->x1;
+				++it;
+			}
+			DrawSpan(y, x, width, true);
+		}
+	}
+}
+
+Array<PortalSpan> BspClipper::CheckPortal(const vec3* vertices, uint32_t count)
+{
+	VisibleSpans.clear();
+	CollectSpans = true;
+	CheckSurface(vertices, count, true);
+	CollectSpans = false;
+	return VisibleSpans;
 }
 
 bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
@@ -167,6 +195,7 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 
 	auto& line = Viewport[y];
 
+	bool collect = CollectSpans;
 	bool visible = false;
 	for (size_t pos = 0; pos < line.size(); pos++)
 	{
@@ -183,6 +212,16 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 		if (left < right)
 		{
 			visible = true;
+
+			if (collect)
+			{
+				PortalSpan portalSpan;
+				portalSpan.x0 = left;
+				portalSpan.x1 = right;
+				portalSpan.y = y;
+				VisibleSpans.push_back(portalSpan);
+			}
+
 			if (left == span.x1)
 			{
 				span.x1 = right;

@@ -12,16 +12,26 @@ public:
 	int16_t x1;
 };
 
+class PortalSpan
+{
+public:
+	int64_t y;
+	int16_t x0;
+	int16_t x1;
+};
+
 class BspClipper
 {
 public:
 	BspClipper();
 	~BspClipper();
 
-	void Setup(const mat4& world_to_projection);
+	void Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans);
 
 	bool CheckSurface(const vec3* vertices, uint32_t count, bool solid);
 	bool IsAABBVisible(const BBox& bbox);
+
+	Array<PortalSpan> CheckPortal(const vec3* vertices, uint32_t count);
 
 	int numDrawSpans;
 	int numSurfs;
@@ -43,6 +53,9 @@ private:
 	Array<Array<ClipSpan>> Viewport;
 	FrustumPlanes FrustumClip;
 	mat4 WorldToProjection;
+
+	Array<PortalSpan> VisibleSpans;
+	bool CollectSpans = false;
 
 	enum { max_additional_vertices = 16 };
 	float weightsbuffer[max_additional_vertices * 3 * 2];

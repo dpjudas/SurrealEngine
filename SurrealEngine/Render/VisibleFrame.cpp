@@ -5,7 +5,7 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 
-void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth)
+void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans)
 {
 	Device = engine->render->Device;
 	FrameCounter = engine->render->FrameCounter++;
@@ -17,7 +17,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 	Clipper.numDrawSpans = 0;
 	Clipper.numSurfs = 0;
 	Clipper.numTris = 0;
-	Clipper.Setup(Frame.Projection * Frame.WorldToView * Frame.ObjectToWorld);
+	Clipper.Setup(Frame.Projection * Frame.WorldToView * Frame.ObjectToWorld, portalSpans);
 
 	ViewLocation = vec4(location, 1.0f);
 	ViewZone = FindZoneAt(location);
@@ -162,7 +162,8 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 		{
 			if (zoneInfo->SkyZone())
 			{
-				if (Clipper.CheckSurface(points, numverts, true))
+				Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+				if (!spans.empty())
 				{
 					USkyZoneInfo* skyZone = zoneInfo->SkyZone();
 					for (auto& p : Portals)
@@ -170,13 +171,15 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 						if (p.SkyZone == skyZone)
 						{
 							p.Nodes.push_back(info);
+							p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
 							return;
 						}
 					}
 					VisiblePortal portal;
 					portal.Nodes.push_back(info);
 					portal.SkyZone = skyZone;
-					Portals.push_back(portal);
+					portal.Spans = std::move(spans);
+					Portals.push_back(std::move(portal));
 					return;
 				}
 			}
@@ -190,20 +193,23 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 			UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(model->Zones[portalZone].ZoneActor);
 			if (warpZone)
 			{
-				if (Clipper.CheckSurface(points, numverts, true))
+				Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+				if (!spans.empty())
 				{
 					for (auto& p : Portals)
 					{
 						if (p.WarpZone == warpZone)
 						{
 							p.Nodes.push_back(info);
+							p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
 							return;
 						}
 					}
 					VisiblePortal portal;
 					portal.Nodes.push_back(info);
 					portal.WarpZone = warpZone;
-					Portals.push_back(portal);
+					portal.Spans = std::move(spans);
+					Portals.push_back(std::move(portal));
 					return;
 				}
 			}
@@ -214,11 +220,23 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 		if (PortalDepth > 0) // To do: cull backfacing surfaces so we don't need this hack
 			return;
 
-		if (Clipper.CheckSurface(points, numverts, true))
+		Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+		if (!spans.empty())
 		{
+			for (auto& p : Portals)
+			{
+				if (!p.WarpZone && !p.SkyZone) // To do: how do we best merge mirrors using the same plane?
+				{
+					p.Nodes.push_back(info);
+					p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
+					return;
+				}
+			}
+
 			VisiblePortal portal;
 			portal.Nodes.push_back(info);
-			Portals.push_back(portal);
+			portal.Spans = std::move(spans);
+			Portals.push_back(std::move(portal));
 			return;
 		}
 	}
@@ -325,6 +343,9 @@ void VisibleFrame::DrawPortals()
 {
 	for (VisiblePortal& portal : Portals)
 	{
+		// BspClipper requires the visible spans list to be sorted
+		std::sort(portal.Spans.begin(), portal.Spans.end(), [](const PortalSpan& a, const PortalSpan& b) { return a.y != b.y ? a.y < b.y: a.x0 < b.x0; });
+
 		if (portal.SkyZone)
 		{
 			mat4 skyToView =
@@ -334,7 +355,7 @@ void VisibleFrame::DrawPortals()
 				Coords::Location(portal.SkyZone->Location()).ToMatrix();
 
 			VisibleFrame skyframe;
-			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1);
+			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1, portal.Spans);
 			Device->SetSceneNode(&skyframe.Frame);
 			skyframe.Draw();
 			Device->ClearZ();
@@ -344,21 +365,18 @@ void VisibleFrame::DrawPortals()
 		}
 		else // Mirror
 		{
-			if (PortalDepth == 0)
-			{
-				UModel* model = engine->Level->Model;
-				const BspSurface& surface = model->Surfaces[portal.Nodes.front().Node->Surf];
-				vec3 v = model->Points[surface.pBase];
-				vec3 n = model->Vectors[surface.vNormal];
-				mat4 mirrorRotation = mat4::mirror(n);
-				mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
+			UModel* model = engine->Level->Model;
+			const BspSurface& surface = model->Surfaces[portal.Nodes.front().Node->Surf];
+			vec3 v = model->Points[surface.pBase];
+			vec3 n = model->Vectors[surface.vNormal];
+			mat4 mirrorRotation = mat4::mirror(n);
+			mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
 
-				VisibleFrame mirrorframe;
-				mirrorframe.Process(ViewLocation.xyz(), mirrorToView, Coords::FromMatrix(mirrorRotation) * ViewRotation, !MirrorFlag, PortalDepth + 1);
-				Device->SetSceneNode(&mirrorframe.Frame);
-				mirrorframe.Draw();
-				Device->ClearZ();
-			}
+			VisibleFrame mirrorframe;
+			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans);
+			Device->SetSceneNode(&mirrorframe.Frame);
+			mirrorframe.Draw();
+			Device->ClearZ();
 		}
 	}
 
