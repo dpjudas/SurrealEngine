@@ -34,6 +34,7 @@ struct mat4
 	static mat4 perspective(float fovy, float aspect, float z_near, float z_far, handedness handedness, clipzrange clipz);
 	static mat4 frustum(float left, float right, float bottom, float top, float z_near, float z_far, handedness handedness, clipzrange clipz);
 	static mat4 look_at(vec3 eye, vec3 center, vec3 up);
+	static mat4 mirror(vec3 normal);
 
 	vec4 operator*(const vec4 &v) const;
 	mat4 operator*(const mat4 &m) const;

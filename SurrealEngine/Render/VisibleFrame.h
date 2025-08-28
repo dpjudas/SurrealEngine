@@ -17,7 +17,7 @@
 class VisibleFrame
 {
 public:
-	void Process(const vec3& location, const mat4& worldToView);
+	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0);
 	void Draw();
 	void DrawCoronas();
 
@@ -30,6 +30,8 @@ public:
 	int ViewZone = 0;
 	uint64_t ViewZoneMask = 0;
 	int FrameCounter = 0;
+	bool MirrorFlag = false;
+	int PortalDepth = 0;
 
 	Array<VisibleNode> OpaqueNodes;
 	Array<VisibleActor> Actors;

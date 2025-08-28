@@ -180,6 +180,22 @@ mat4 mat4::look_at(vec3 eye, vec3 center, vec3 up)
 	return m * translate(-eye.x, -eye.y, -eye.z);
 }
 
+mat4 mat4::mirror(vec3 normal)
+{
+	mat4 m = null();
+	m.matrix[0 + 0 * 4] = 1.0f - 2.0f * normal.x * normal.x;
+	m.matrix[0 + 1 * 4] = -2.0f * normal.x * normal.y;
+	m.matrix[0 + 2 * 4] = -2.0f * normal.x * normal.z;
+	m.matrix[1 + 0 * 4] = -2.0f * normal.x * normal.x;
+	m.matrix[1 + 1 * 4] = 1.0f - 2.0f * normal.y * normal.y;
+	m.matrix[1 + 2 * 4] = -2.0f * normal.y * normal.z;
+	m.matrix[2 + 0 * 4] = -2.0f * normal.x * normal.z;
+	m.matrix[2 + 1 * 4] = -2.0f * normal.y * normal.z;
+	m.matrix[2 + 2 * 4] = 1.0f - 2.0f * normal.z * normal.z;
+	m.matrix[3 + 3 * 4] = 1.0f;
+	return m;
+}
+
 mat4 mat4::operator*(const mat4 &mult) const
 {
 	mat4 result;

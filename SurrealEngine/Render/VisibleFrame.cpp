@@ -5,10 +5,12 @@
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
 
-void VisibleFrame::Process(const vec3& location, const mat4& worldToView)
+void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth)
 {
 	Device = engine->render->Device;
 	FrameCounter = engine->render->FrameCounter++;
+	MirrorFlag = mirrorFlag;
+	PortalDepth = portalDepth;
 
 	SetupSceneFrame(worldToView);
 
@@ -20,7 +22,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView)
 	ViewLocation = vec4(location, 1.0f);
 	ViewZone = FindZoneAt(location);
 	ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
-	ViewRotation = Coords::Rotation(engine->CameraRotation);
+	ViewRotation = viewRotation;
 
 	OpaqueNodes.clear();
 	Actors.clear();
@@ -126,9 +128,19 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	int numverts = node->NumVertices;
 	vec3* points = engine->render->GetTempVertexBuffer(numverts);
 	BspVert* v = &model->Vertices[node->VertPool];
-	for (int j = 0; j < numverts; j++)
+	if (MirrorFlag)
 	{
-		points[j] = model->Points[v[j].Vertex];
+		for (int j = 0; j < numverts; j++)
+		{
+			points[numverts - 1 - j] = model->Points[v[j].Vertex];
+		}
+	}
+	else
+	{
+		for (int j = 0; j < numverts; j++)
+		{
+			points[j] = model->Points[v[j].Vertex];
+		}
 	}
 
 	uint32_t PolyFlags = surface.PolyFlags;
@@ -143,7 +155,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	info.Node = node;
 	info.PolyFlags = PolyFlags;
 
-	if (PolyFlags & PF_FakeBackdrop)
+	if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
 	{
 		int zone = front ? node->Zone0 : node->Zone1;
 		if (UZoneInfo* zoneInfo = UObject::TryCast<UZoneInfo>(model->Zones[zone].ZoneActor))
@@ -199,9 +211,11 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	}
 	else if (PolyFlags & PF_Mirrored)
 	{
+		if (PortalDepth > 0) // To do: cull backfacing surfaces so we don't need this hack
+			return;
+
 		if (Clipper.CheckSurface(points, numverts, true))
 		{
-			// To do: how to merge mirror surfaces? Use the plane?
 			VisiblePortal portal;
 			portal.Nodes.push_back(info);
 			Portals.push_back(portal);
@@ -315,12 +329,12 @@ void VisibleFrame::DrawPortals()
 		{
 			mat4 skyToView =
 				Coords::ViewToRenderDev().ToMatrix() *
-				Coords::Rotation(engine->CameraRotation).Inverse().ToMatrix() *
+				ViewRotation.Inverse().ToMatrix() *
 				Coords::Rotation(portal.SkyZone->Rotation()).ToMatrix() *
 				Coords::Location(portal.SkyZone->Location()).ToMatrix();
 
 			VisibleFrame skyframe;
-			skyframe.Process(portal.SkyZone->Location(), skyToView);
+			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1);
 			Device->SetSceneNode(&skyframe.Frame);
 			skyframe.Draw();
 			Device->ClearZ();
@@ -330,6 +344,21 @@ void VisibleFrame::DrawPortals()
 		}
 		else // Mirror
 		{
+			if (PortalDepth == 0)
+			{
+				UModel* model = engine->Level->Model;
+				const BspSurface& surface = model->Surfaces[portal.Nodes.front().Node->Surf];
+				vec3 v = model->Points[surface.pBase];
+				vec3 n = model->Vectors[surface.vNormal];
+				mat4 mirrorRotation = mat4::mirror(n);
+				mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
+
+				VisibleFrame mirrorframe;
+				mirrorframe.Process(ViewLocation.xyz(), mirrorToView, Coords::FromMatrix(mirrorRotation) * ViewRotation, !MirrorFlag, PortalDepth + 1);
+				Device->SetSceneNode(&mirrorframe.Frame);
+				mirrorframe.Draw();
+				Device->ClearZ();
+			}
 		}
 	}
 
@@ -337,20 +366,25 @@ void VisibleFrame::DrawPortals()
 	Device->SetSceneNode(&Frame);
 	for (VisiblePortal& portal : Portals)
 	{
-		for (auto info : portal.Nodes)
+		for (const auto& info : portal.Nodes)
 		{
-			info.PolyFlags = PF_Occlude | PF_Invisible;
+			VisibleNode visnode(info);
+			visnode.PolyFlags |= PF_Occlude | PF_Invisible;
+			visnode.Draw(this);
 
-			if ((info.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
+			if (info.PolyFlags & PF_NoOcclude)
 			{
-				OpaqueNodes.push_back(info);
-			}
-			else
-			{
-				UModel* model = engine->Level->Model;
-				const BspSurface& surface = model->Surfaces[info.Node->Surf];
-				vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
-				Translucents.emplace_back(info, dot(v, v));
+				if ((info.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
+				{
+					OpaqueNodes.push_back(info);
+				}
+				else
+				{
+					UModel* model = engine->Level->Model;
+					const BspSurface& surface = model->Surfaces[info.Node->Surf];
+					vec3 v = model->Points[surface.pBase] - ViewLocation.xyz();
+					Translucents.emplace_back(info, dot(v, v));
+				}
 			}
 		}
 	}
