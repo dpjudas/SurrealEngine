@@ -168,7 +168,7 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	DrawTile(texinfo, dest, src, clipBox, Z, color, fog, flags);
 }
 
-void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t flags, bool center, float spaceX, float spaceY)
+void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t polyflags, bool center, float spaceX, float spaceY)
 {
 	float centerX = 0;
 	if (center)
@@ -207,7 +207,7 @@ void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, 
 			float USize = (float)glyph.USize;
 			float VSize = (float)glyph.VSize;
 
-			Device->DrawTile(&Canvas.Frame, texinfo, (orgX + curX + centerX) * Canvas.uiscale, (float)(orgY + curY) * Canvas.uiscale, (float)width * Canvas.uiscale, (float)height * Canvas.uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
+			Device->DrawTile(&Canvas.Frame, texinfo, (orgX + curX + centerX) * Canvas.uiscale, (float)(orgY + curY) * Canvas.uiscale, (float)width * Canvas.uiscale, (float)height * Canvas.uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), polyflags);
 
 			curX += width + spaceX;
 			curYL = std::max(curYL, (float)glyph.VSize + spaceY);
@@ -224,7 +224,7 @@ void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, 
 	}
 }
 
-void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t flags, bool checkHotKey, float clipX, float clipY, bool center)
+void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t polyflags, bool checkHotKey, float clipX, float clipY, bool center)
 {
 	FontGlyph uglyph = font->GetGlyph('_');
 	int uwidth = uglyph.USize;
@@ -269,14 +269,14 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
-			DrawTile(texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
+			DrawTile(texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), polyflags);
 
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)uglyph.Texture;
 			texinfo.Texture = uglyph.Texture;
 
 			dest = Rectf::xywh(orgX + curX + (glyph.USize - uwidth) / 2, orgY + curY, (float)uwidth, (float)uheight);
 			src = Rectf::xywh(uStartU, uStartV, uUSize, uVSize);
-			DrawTile(texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), PF_Highlighted | PF_NoSmooth | PF_Masked);
+			DrawTile(texinfo, dest, src, clipBox, 1.0f, color, vec4(0.0f), polyflags);
 
 			curX += glyph.USize;
 			maxY = std::max(maxY, glyph.VSize);
