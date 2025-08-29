@@ -144,6 +144,50 @@ std::string Frame::GetCallstack()
 
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
 {
+#if 0 // To do: create a commandlet that lets us do this
+	static NameString TraceActorClass = "TarydiumBarrel";
+	if (instance->Class->Name == TraceActorClass)
+	{
+		std::string traceMessage = "Called " + func->Name.ToString() + "(";
+		bool first = true;
+		for (auto& arg : args)
+		{
+			if (first)
+				first = false;
+			else
+				traceMessage += ", ";
+			if (arg.GetType() == ExpressionValueType::ValueString)
+			{
+				traceMessage += "\"";
+				traceMessage += arg.ToString();
+				traceMessage += "\"";
+			}
+			else if (arg.GetType() == ExpressionValueType::ValueName)
+			{
+				traceMessage += "'";
+				traceMessage += arg.ToName().ToString();
+				traceMessage += "'";
+			}
+			else if (arg.GetType() == ExpressionValueType::ValueBool)
+			{
+				traceMessage += "'";
+				traceMessage += arg.ToBool() ? "true" : "false";
+				traceMessage += "'";
+			}
+			else if (arg.GetType() == ExpressionValueType::Nothing)
+			{
+				traceMessage += "None";
+			}
+			else
+			{
+				traceMessage += "?";
+			}
+		}
+		traceMessage += ")";
+		LogMessage(traceMessage);
+	}
+#endif
+
 	if (!instance->IsEventEnabled(func->Name))
 	{
 		return ExpressionValue::NothingValue();

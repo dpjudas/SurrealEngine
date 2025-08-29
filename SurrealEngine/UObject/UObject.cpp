@@ -379,7 +379,8 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 {
 	if (stateName == "Auto")
 	{
-		for (UClass* cls = Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+		bool foundState = false;
+		for (UClass* cls = Class; cls != nullptr && !foundState; cls = static_cast<UClass*>(cls->BaseStruct))
 		{
 			for (auto& it : cls->States)
 			{
@@ -387,6 +388,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 				if ((state->StateFlags & ScriptStateFlags::Auto) == ScriptStateFlags::Auto)
 				{
 					stateName = state->Name;
+					foundState = true;
 					break;
 				}
 			}

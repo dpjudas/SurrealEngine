@@ -24,30 +24,27 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 
 	CollisionHitList hits;
 
-	if (traceActors)
-	{
-		double dradius = radius;
-		double dheight = height;
-		vec3 extents = { radius, radius, height };
+	double dradius = radius;
+	double dheight = height;
+	vec3 extents = { radius, radius, height };
 
-		int checkCounter = NextCheckCounter();
-		ivec3 start = GetSweepStartExtents(from, to, extents);
-		ivec3 end = GetSweepEndExtents(from, to, extents);
-		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	int checkCounter = NextCheckCounter();
+	ivec3 start = GetSweepStartExtents(from, to, extents);
+	ivec3 end = GetSweepEndExtents(from, to, extents);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
 		{
-			for (int z = start.z; z < end.z; z++)
+			for (int y = start.y; y < end.y; y++)
 			{
-				for (int y = start.y; y < end.y; y++)
+				for (int x = start.x; x < end.x; x++)
 				{
-					for (int x = start.x; x < end.x; x++)
+					for (UActor* actor : GetActors(x, y, z))
 					{
-						for (UActor* actor : GetActors(x, y, z))
+						if (actor->Collision.CollisionCheckCounter != checkCounter)
 						{
-							if (actor->Collision.CollisionCheckCounter != checkCounter)
-							{
-								actor->Collision.CollisionCheckCounter = checkCounter;
-								TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, hits);
-							}
+							actor->Collision.CollisionCheckCounter = checkCounter;
+							TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, traceActors, traceWorld, hits);
 						}
 					}
 				}
@@ -120,32 +117,29 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	float margin = 1.0f;
 	tmax += margin;
 
-	if (traceActors)
-	{
-		CollisionHitList hits;
+	CollisionHitList hits;
 
-		int checkCounter = NextCheckCounter();
-		ivec3 start = GetRayStartExtents(from, to);
-		ivec3 end = GetRayEndExtents(from, to);
-		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	int checkCounter = NextCheckCounter();
+	ivec3 start = GetRayStartExtents(from, to);
+	ivec3 end = GetRayEndExtents(from, to);
+	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
+	{
+		for (int z = start.z; z < end.z; z++)
 		{
-			for (int z = start.z; z < end.z; z++)
+			for (int y = start.y; y < end.y; y++)
 			{
-				for (int y = start.y; y < end.y; y++)
+				for (int x = start.x; x < end.x; x++)
 				{
-					for (int x = start.x; x < end.x; x++)
+					for (UActor* actor : GetActors(x, y, z))
 					{
-						for (UActor* actor : GetActors(x, y, z))
+						if (actor->Collision.CollisionCheckCounter != checkCounter)
 						{
-							if (actor->Collision.CollisionCheckCounter != checkCounter)
+							actor->Collision.CollisionCheckCounter = checkCounter;
+							if (actor != tracingActor && actor->bBlockActors())
 							{
-								actor->Collision.CollisionCheckCounter = checkCounter;
-								if (actor != tracingActor && actor->bBlockActors())
-								{
-									TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, hits);
-									if (!hits.empty())
-										return true;
-								}
+								TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, traceActors, traceWorld, hits);
+								if (!hits.empty())
+									return true;
 							}
 						}
 					}
@@ -163,10 +157,13 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	return false;
 }
 
-void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, CollisionHitList& hits)
+void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, bool traceActors, bool traceWorld, CollisionHitList& hits)
 {
 	if (UMover* mover = UObject::TryCast<UMover>(actor))
 	{
+		if (!traceWorld)
+			return;
+
 		CollisionHitList brushHits;
 
 		mat4 rotateObjToWorld = Coords::Rotation(mover->Rotation()).ToMatrix();
@@ -201,7 +198,9 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 	}
 	else
 	{
-		// Default cylinder
+		if (!traceActors)
+			return;
+
 		double t = CylinderActorTrace(origin, tmin, dirNormalized, tmax, height, radius, actor);
 		if (t < tmax)
 		{
