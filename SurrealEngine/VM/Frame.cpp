@@ -189,21 +189,18 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 			if (callback)
 			{
 				Frame frame(instance, func);
-				Callstack.push_back(&frame);
+				ActiveCallStackFrame activeFrame(&frame);
 				try
 				{
 					callback(instance, args.data());
-					Callstack.pop_back();
 				}
 				catch (const std::exception& e)
 				{
-					Callstack.pop_back();
 					LogMessage(std::string("Script error: ") + e.what());
 					return ExpressionValue::NothingValue();
 				}
 				catch (...)
 				{
-					Callstack.pop_back();
 					LogMessage("Script error: Unknown error");
 					return ExpressionValue::NothingValue();
 				}
@@ -219,21 +216,18 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 			if (callback)
 			{
 				Frame frame(instance, func);
-				Callstack.push_back(&frame);
+				ActiveCallStackFrame activeFrame(&frame);
 				try
 				{
 					callback(instance, args.data());
-					Callstack.pop_back();
 				}
 				catch (const std::exception& e)
 				{
-					Callstack.pop_back();
 					LogMessage(std::string("Script error: ") + e.what());
 					return ExpressionValue::NothingValue();
 				}
 				catch (...)
 				{
-					Callstack.pop_back();
 					LogMessage("Script error: Unknown error");
 					return ExpressionValue::NothingValue();
 				}
@@ -348,7 +342,7 @@ ExpressionEvalResult Frame::Run()
 	if (!Func)
 		return {};
 
-	Callstack.push_back(this);
+	ActiveCallStackFrame activeFrame(this);
 
 	if (!Func->Code->Statements.empty())
 		StepExpression = Func->Code->Statements[StatementIndex];
@@ -400,7 +394,6 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::Stop:
 			LatentState = LatentRunState::Stop;
-			Callstack.pop_back();
 			return result;
 		case StatementResult::Return:
 			// Package 61 and earlier transfered the return value in an out parameter
@@ -417,7 +410,6 @@ ExpressionEvalResult Frame::Run()
 					}
 				}
 			}
-			Callstack.pop_back();
 			return result;
 		case StatementResult::Iterator:
 			if (!result.Iter)
@@ -450,7 +442,6 @@ ExpressionEvalResult Frame::Run()
 
 		if (Object->StateFrame.get() == this && LatentState != LatentRunState::Continue)
 		{
-			Callstack.pop_back();
 			return result;
 		}
 

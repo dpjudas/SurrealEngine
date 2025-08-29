@@ -88,4 +88,10 @@ public:
 private:
 	ExpressionEvalResult Run();
 	void ProcessSwitch(const ExpressionValue& condition);
+
+	struct ActiveCallStackFrame
+	{
+		ActiveCallStackFrame(Frame* frame) { Frame::Callstack.push_back(frame); }
+		~ActiveCallStackFrame() { Frame::Callstack.pop_back(); }
+	};
 };
