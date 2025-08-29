@@ -99,7 +99,7 @@ void VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
 		lightmap = engine->render->GetBrushLightmap(mover, poly, zoneActor, model);
-		//fogmap = engine->render->GetSurfaceFogmap(poly, engine->CameraActor->Region().Zone, model);
+		fogmap = engine->render->GetBrushFogmap(mover, poly, zoneActor, model);
 	}
 
 	surfaceinfo.PolyFlags = PolyFlags;

@@ -10,9 +10,9 @@
 #include <immintrin.h>
 #endif
 
-void FogmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo* zoneActor)
+void FogmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
 {
-	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
+	const LightMapIndex& lmindex = model->LightMap[lightMap];
 
 	width = lmindex.UClamp;
 	height = lmindex.VClamp;
@@ -25,7 +25,7 @@ void FogmapBuilder::Setup(UModel* model, const BspSurface& surface, UZoneInfo* z
 	if (fogcolors.size() < size)
 		fogcolors.resize(size);
 
-	CalcWorldLocations(model, surface, lmindex);
+	CalcWorldLocations(mapCoords, lmindex);
 
 	// Initialize fogmap with full transparency
 
@@ -112,7 +112,7 @@ float FogmapBuilder::SphereDensity(const vec3& rayOrigin, const vec3& rayDirecti
 	return (i2 - i1) * (3.0f / 4.0f);
 }
 
-void FogmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex)
+void FogmapBuilder::CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex)
 {
 	// Note: this could be simplified a lot for better performance
 
@@ -120,13 +120,8 @@ void FogmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface,
 	int width = this->width;
 	int height = this->height;
 
-	FSurfaceFacet facet;
-	facet.MapCoords.Origin = model->Points[surface.pBase];
-	facet.MapCoords.XAxis = model->Vectors[surface.vTextureU];
-	facet.MapCoords.YAxis = model->Vectors[surface.vTextureV];
-
-	float UDot = dot(facet.MapCoords.XAxis, facet.MapCoords.Origin);
-	float VDot = dot(facet.MapCoords.YAxis, facet.MapCoords.Origin);
+	float UDot = dot(MapCoords.XAxis, MapCoords.Origin);
+	float VDot = dot(MapCoords.YAxis, MapCoords.Origin);
 	float LMUPan = UDot + lmindex.PanX - 0.5f * lmindex.UScale;
 	float LMVPan = VDot + lmindex.PanY - 0.5f * lmindex.VScale;
 	float LMUMult = 1.0f / lmindex.UScale;
@@ -134,9 +129,9 @@ void FogmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface,
 
 	vec3 p[3] =
 	{
-		facet.MapCoords.Origin,
-		facet.MapCoords.Origin + facet.MapCoords.XAxis,
-		facet.MapCoords.Origin + facet.MapCoords.YAxis
+		MapCoords.Origin,
+		MapCoords.Origin + MapCoords.XAxis,
+		MapCoords.Origin + MapCoords.YAxis
 	};
 
 	vec2 uv[3];
@@ -144,8 +139,8 @@ void FogmapBuilder::CalcWorldLocations(UModel* model, const BspSurface& surface,
 	{
 		uv[j] =
 		{
-			(dot(facet.MapCoords.XAxis, p[j]) - LMUPan) * LMUMult,
-			(dot(facet.MapCoords.YAxis, p[j]) - LMVPan) * LMVMult
+			(dot(MapCoords.XAxis, p[j]) - LMUPan) * LMUMult,
+			(dot(MapCoords.YAxis, p[j]) - LMVPan) * LMVMult
 		};
 	}
 

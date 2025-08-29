@@ -2,6 +2,7 @@
 
 #include "Math/vec.h"
 
+class Coords;
 class BspSurface;
 class LightMapIndex;
 class UModel;
@@ -11,7 +12,7 @@ class UActor;
 class FogmapBuilder
 {
 public:
-	void Setup(UModel* model, const BspSurface& surface, UZoneInfo* zoneActor);
+	void Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
 	void AddLight(UActor* light, vec3 view);
 
 	int Width() const { return width; }
@@ -23,7 +24,7 @@ public:
 private:
 	const vec3* WorldLocations() const { return points.data(); }
 
-	void CalcWorldLocations(UModel* model, const BspSurface& surface, const LightMapIndex& lmindex);
+	void CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex);
 
 	int width = 0;
 	int height = 0;

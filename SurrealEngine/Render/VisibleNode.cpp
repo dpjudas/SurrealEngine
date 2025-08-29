@@ -71,13 +71,6 @@ void VisibleNode::Draw(VisibleFrame* frame)
 		}
 	}
 
-	FSurfaceFacet facet;
-	facet.MapCoords.Origin = Base;
-	facet.MapCoords.XAxis = UVec;
-	facet.MapCoords.YAxis = VVec;
-	facet.Vertices = points;
-	facet.VertexCount = numverts;
-
 	FTextureInfo lightmap;
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
@@ -85,8 +78,8 @@ void VisibleNode::Draw(VisibleFrame* frame)
 		UZoneInfo* zoneActor = !model->Zones.empty() ? UObject::TryCast<UZoneInfo>(model->Zones[Node->Zone1].ZoneActor) : nullptr;
 		if (!zoneActor)
 			zoneActor = engine->LevelInfo;
-		lightmap = engine->render->GetSurfaceLightmap(surface, facet, zoneActor, model);
-		fogmap = engine->render->GetSurfaceFogmap(surface, facet, engine->CameraActor->Region().Zone, model);
+		lightmap = engine->render->GetSurfaceLightmap(surface, zoneActor, model);
+		fogmap = engine->render->GetSurfaceFogmap(surface, engine->CameraActor->Region().Zone, model);
 	}
 
 	FSurfaceInfo surfaceinfo;
@@ -96,6 +89,13 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture() ? &detailtex : nullptr;
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
+
+	FSurfaceFacet facet;
+	facet.MapCoords.Origin = Base;
+	facet.MapCoords.XAxis = UVec;
+	facet.MapCoords.YAxis = VVec;
+	facet.Vertices = points;
+	facet.VertexCount = numverts;
 
 	frame->Device->DrawComplexSurface(&frame->Frame, surfaceinfo, facet);
 

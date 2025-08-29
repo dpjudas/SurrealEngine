@@ -9,76 +9,48 @@ FTextureInfo RenderSubsystem::GetBrushLightmap(UMover* mover, const Poly& poly, 
 {
 	// To do: implement mover->bDynamicLightMover()
 
-	int lightmapIndex = poly.BrushPolyIndex;
+	Coords localCoords;
+	localCoords.Origin = -poly.Base;
+	localCoords.XAxis = poly.TextureU;
+	localCoords.YAxis = poly.TextureV;
+	localCoords.ZAxis = poly.Normal;
+
+	vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
+	Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
+	mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+	Coords worldCoords = Coords::FromMatrix(objectToWorld);
+
+	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
+}
+
+FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+{
+	Coords mapCoords;
+	mapCoords.Origin = model->Points[surface.pBase];
+	mapCoords.XAxis = model->Vectors[surface.vTextureU];
+	mapCoords.YAxis = model->Vectors[surface.vTextureV];
+	mapCoords.ZAxis = model->Vectors[surface.vNormal];
+	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor);
+}
+
+FTextureInfo RenderSubsystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
+{
 	if (lightmapIndex < 0)
 		return {};
 
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
-
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
-	auto level = engine->Level;
 	auto& lmtexture = Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
-		Coords localCoords;
-		localCoords.Origin = -poly.Base;
-		localCoords.XAxis = poly.TextureU;
-		localCoords.YAxis = poly.TextureV;
-		localCoords.ZAxis = poly.Normal;
-
-		vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
-		Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
-		mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
-		Coords worldCoords = Coords::FromMatrix(objectToWorld);
-
-		Light.Builder.Setup(model, worldCoords, lightmapIndex, zoneActor);
+		Light.Builder.Setup(model, coords, lightmapIndex, zoneActor);
 		Light.Builder.AddStaticLights(model, lightmapIndex);
 
 		lmtexture = CreateLightmapTexture();
 	}
 
 	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
-
-	FTextureInfo texinfo;
-	texinfo.CacheID = cacheID;
-	texinfo.Format = lmtexture->Format;
-	texinfo.Mips = &lmtexture->Mip;
-	texinfo.NumMips = 1;
-	texinfo.USize = texinfo.Mips[0].Width;
-	texinfo.VSize = texinfo.Mips[0].Height;
-	texinfo.Pan = { lmindex.PanX, lmindex.PanY };
-	texinfo.UScale = lmindex.UScale;
-	texinfo.VScale = lmindex.VScale;
-	return texinfo;
-}
-
-FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
-{
-	if (surface.LightMap < 0)
-		return {};
-
-	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
-
-	uint64_t cacheID = (((uint64_t)model->LightMap[surface.LightMap].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
-
-	auto level = engine->Level;
-	auto& lmtexture = Light.lmtextures[cacheID];
-	if (!lmtexture)
-	{
-		Coords mapCoords;
-		mapCoords.Origin = model->Points[surface.pBase];
-		mapCoords.XAxis = model->Vectors[surface.vTextureU];
-		mapCoords.YAxis = model->Vectors[surface.vTextureV];
-		mapCoords.ZAxis = model->Vectors[surface.vNormal];
-
-		Light.Builder.Setup(model, mapCoords, surface.LightMap, zoneActor);
-		Light.Builder.AddStaticLights(model, surface.LightMap);
-
-		lmtexture = CreateLightmapTexture();
-	}
-
-	const LightMapIndex& lmindex = model->LightMap[surface.LightMap];
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = cacheID;

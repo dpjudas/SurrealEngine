@@ -11,20 +11,43 @@
 #define NOFOG
 #endif
 
-FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfaceFacet& facet, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo RenderSubsystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+{
+	Coords localCoords;
+	localCoords.Origin = -poly.Base;
+	localCoords.XAxis = poly.TextureU;
+	localCoords.YAxis = poly.TextureV;
+	localCoords.ZAxis = poly.Normal;
+
+	vec3 moverLocation = mover->Location();// mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
+	Rotator moverRotation = mover->Rotation();// mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
+	mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+	Coords worldCoords = Coords::FromMatrix(objectToWorld);
+	return GetFogmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
+}
+
+FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+{
+	Coords mapCoords;
+	mapCoords.Origin = model->Points[surface.pBase];
+	mapCoords.XAxis = model->Vectors[surface.vTextureU];
+	mapCoords.YAxis = model->Vectors[surface.vTextureV];
+	mapCoords.ZAxis = model->Vectors[surface.vNormal];
+	return GetFogmap(model, surface.LightMap, mapCoords, zoneActor);
+}
+
+FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
 {
 #ifdef NOFOG
 	return {};
 #else
-	if (!zoneActor || !zoneActor->bFogZone() || surface.LightMap < 0)
+	if (!zoneActor || !zoneActor->bFogZone() || lightmapIndex < 0)
 		return {};
 
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
+	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 2;
 
-	uint64_t cacheID = (((uint64_t)surface.LightMap) << 32) | (((uint64_t)ambientID) << 8) | 2;
-
-	auto level = engine->Level;
-	const LightMapIndex& lmindex = level->Model->LightMap[surface.LightMap];
+	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
 	auto& fogtex = Light.fogtextures[cacheID];
 	std::unique_ptr<LightmapTexture>& fogtexture = fogtex.second;
 	if (!fogtexture)
@@ -58,7 +81,9 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfa
 	}
 
 	if (firstDrawThisScene)
-		UpdateFogmapTexture(lmindex, (uint32_t*)fogtexture->Mip.Data.data(), surface, zoneActor, model);
+	{
+		UpdateFogmapTexture((uint32_t*)fogtexture->Mip.Data.data(), model, coords, lightmapIndex, zoneActor);
+	}
 
 	FTextureInfo texinfo;
 	texinfo.CacheID = cacheID;
@@ -75,10 +100,10 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, const FSurfa
 #endif
 }
 
-void RenderSubsystem::UpdateFogmapTexture(const LightMapIndex& lmindex, uint32_t* dest, const BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+void RenderSubsystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
 {
 	FogmapBuilder builder;
-	builder.Setup(model, surface, zoneActor);
+	builder.Setup(model, mapCoords, lightMap, zoneActor);
 
 	for (UActor* light : Light.Lights)
 	{
