@@ -387,9 +387,32 @@ ExpressionEvalResult Frame::Run()
 		case StatementResult::GotoLabel:
 			{
 				int index = Func->Code->FindLabelIndex(result.Label);
-				if (index == -1)
-					ThrowException("Could not find label: " + result.Label.ToString());
-				StatementIndex = index;
+				if (index != -1)
+				{
+					StatementIndex = index;
+				}
+				else
+				{
+					// State gotos can jump to a parent state block!
+					bool found = false;
+					for (UClass* cls = Object->Class; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+					{
+						UState* state = cls->GetState(Func->Name);
+						if (state)
+						{
+							int labelIndex = state->Code->FindLabelIndex(result.Label);
+							if (labelIndex != -1)
+							{
+								Func = state;
+								StatementIndex = labelIndex;
+								found = true;
+								break;
+							}
+						}
+					}
+					if (!found)
+						ThrowException("Could not find label: " + result.Label.ToString());
+				}
 			}
 			break;
 		case StatementResult::Stop:
