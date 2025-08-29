@@ -30,6 +30,7 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 		double dheight = height;
 		vec3 extents = { radius, radius, height };
 
+		int checkCounter = NextCheckCounter();
 		ivec3 start = GetSweepStartExtents(from, to, extents);
 		ivec3 end = GetSweepEndExtents(from, to, extents);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -42,7 +43,11 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 					{
 						for (UActor* actor : GetActors(x, y, z))
 						{
-							TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, hits);
+							if (actor->Collision.CollisionCheckCounter != checkCounter)
+							{
+								actor->Collision.CollisionCheckCounter = checkCounter;
+								TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, hits);
+							}
 						}
 					}
 				}
@@ -119,6 +124,7 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	{
 		CollisionHitList hits;
 
+		int checkCounter = NextCheckCounter();
 		ivec3 start = GetRayStartExtents(from, to);
 		ivec3 end = GetRayEndExtents(from, to);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -131,11 +137,15 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 					{
 						for (UActor* actor : GetActors(x, y, z))
 						{
-							if (actor != tracingActor && actor->bBlockActors())
+							if (actor->Collision.CollisionCheckCounter != checkCounter)
 							{
-								TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, hits);
-								if (!hits.empty())
-									return true;
+								actor->Collision.CollisionCheckCounter = checkCounter;
+								if (actor != tracingActor && actor->bBlockActors())
+								{
+									TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, hits);
+									if (!hits.empty())
+										return true;
+								}
 							}
 						}
 					}

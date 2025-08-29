@@ -234,6 +234,7 @@ public:
 		bool Inserted = false;
 		vec3 Location = { 0.0f };
 		vec3 Extents = { 0.0f };
+		int CollisionCheckCounter = -1;
 	} Collision;
 
 	// Lights touching this actor

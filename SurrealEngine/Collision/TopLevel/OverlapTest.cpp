@@ -19,6 +19,7 @@ CollisionHitList OverlapTester::TestOverlap(const vec3& location, float height, 
 		double dheight = height;
 		dvec3 dlocation = to_dvec3(location);
 
+		int checkCounter = NextCheckCounter();
 		ivec3 start = GetStartExtents(location, extents);
 		ivec3 end = GetEndExtents(location, extents);
 		if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -31,10 +32,14 @@ CollisionHitList OverlapTester::TestOverlap(const vec3& location, float height, 
 					{
 						for (UActor* actor : GetActors(x, y, z))
 						{
-							if (CylinderActorOverlap(dlocation, dheight, dradius, actor))
+							if (actor->Collision.CollisionCheckCounter != checkCounter)
 							{
-								vec3 normal(0.0f); // To do: do we need the normal for contact tests?
-								hits.push_back({ 0.0f, normal, actor, nullptr, nullptr });
+								actor->Collision.CollisionCheckCounter = checkCounter;
+								if (CylinderActorOverlap(dlocation, dheight, dradius, actor))
+								{
+									vec3 normal(0.0f); // To do: do we need the normal for contact tests?
+									hits.push_back({ 0.0f, normal, actor, nullptr, nullptr });
+								}
 							}
 						}
 					}
@@ -86,6 +91,7 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float radius)
 
 	Array<UActor*> hits;
 
+	int checkCounter = NextCheckCounter();
 	ivec3 start = GetStartExtents(origin, extents);
 	ivec3 end = GetEndExtents(origin, extents);
 	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -98,8 +104,12 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float radius)
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (SphereActorOverlap(dorigin, dradius, actor))
-							hits.push_back(actor);
+						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						{
+							actor->Collision.CollisionCheckCounter = checkCounter;
+							if (SphereActorOverlap(dorigin, dradius, actor))
+								hits.push_back(actor);
+						}
 					}
 				}
 			}
@@ -137,6 +147,7 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float height, 
 
 	Array<UActor*> hits;
 
+	int checkCounter = NextCheckCounter();
 	ivec3 start = GetStartExtents(origin, extents);
 	ivec3 end = GetEndExtents(origin, extents);
 	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -149,8 +160,12 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float height, 
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
-							hits.push_back(actor);
+						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						{
+							actor->Collision.CollisionCheckCounter = checkCounter;
+							if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
+								hits.push_back(actor);
+						}
 					}
 				}
 			}
@@ -204,6 +219,7 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 
 	Array<UActor*> hits;
 
+	int checkCounter = NextCheckCounter();
 	ivec3 start = GetStartExtents(origin, extents);
 	ivec3 end = GetEndExtents(origin, extents);
 	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
@@ -216,20 +232,24 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 				{
 					for (UActor* testActor : GetActors(x, y, z))
 					{
-						if (testActor == actor || testActor->Brush())
-							continue;
+						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						{
+							actor->Collision.CollisionCheckCounter = checkCounter;
+							if (testActor == actor || testActor->Brush())
+								continue;
 
-						vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
+							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
 
-						float testHeight = testActor->CollisionHeight();
-						float testRadius = testActor->CollisionRadius();
-						vec3 testExtents = { testRadius, testRadius, testHeight };
-						testExtents /= mainScale;
+							float testHeight = testActor->CollisionHeight();
+							float testRadius = testActor->CollisionRadius();
+							vec3 testExtents = { testRadius, testRadius, testHeight };
+							testExtents /= mainScale;
 
-						OverlapAABBModel test;
-						auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
-						if (!modelHits.empty())
-							hits.push_back(testActor);
+							OverlapAABBModel test;
+							auto modelHits = test.TestOverlap(brush, localOrigin, testExtents, false);
+							if (!modelHits.empty())
+								hits.push_back(testActor);
+						}
 					}
 				}
 			}

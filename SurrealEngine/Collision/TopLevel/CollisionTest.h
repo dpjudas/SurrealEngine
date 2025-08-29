@@ -8,6 +8,8 @@ class CollisionTester
 public:
 	CollisionTester(CollisionSystem* collision) : Collision(collision) {}
 
+	static int NextCheckCounter() { return CheckCounter++; }
+
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents) { return CollisionSystem::GetStartExtents(location, extents); }
 	static ivec3 GetRayStartExtents(const vec3& from, const vec3& to) { return CollisionSystem::GetRayStartExtents(from, to); }
 	static ivec3 GetSweepStartExtents(const vec3& from, const vec3& to, const vec3& extents) { return CollisionSystem::GetSweepStartExtents(from, to, extents); }
@@ -30,4 +32,5 @@ public:
 private:
 	CollisionSystem* Collision = nullptr;
 	inline static std::list<UActor*> emptyList;
+	inline static int CheckCounter = 0;
 };
