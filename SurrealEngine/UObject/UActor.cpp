@@ -10,8 +10,6 @@
 #include "Package/IniProperty.h"
 #include "Engine.h"
 
-static std::string tickEventName = "Tick";
-
 // TODO: Compare behavior more closely with original engine. Might differ depending on game.
 static constexpr float stepDownDeltaFactor = 1.3f;
 
@@ -2234,6 +2232,7 @@ void UPawn::ClearPaths()
 UObject* UPawn::FindRandomDest()
 {
 	std::vector<UNavigationPoint*> reachablePoints;
+	/* Note: this is waaaaay too slow. Causes huge freezes
 	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
 	{
 		if (ActorReachable(navPoint))
@@ -2241,6 +2240,7 @@ UObject* UPawn::FindRandomDest()
 			reachablePoints.push_back(navPoint);
 		}
 	}
+	*/
 	if (reachablePoints.empty())
 		return nullptr;
 
