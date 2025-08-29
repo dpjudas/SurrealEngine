@@ -138,7 +138,7 @@ TouchingActorsIterator::TouchingActorsIterator(UActor* Caller, UObject* BaseClas
 	for (auto& hit : hitList)
 	{
 		// Only allow the Actors of type BaseClass
-		if (hit.Actor->IsA(BaseClass->Name))
+		if (hit.Actor && hit.Actor->IsA(BaseClass->Name))
 			TouchingActors.push_back(hit.Actor);
 	}
 
