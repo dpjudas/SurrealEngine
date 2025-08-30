@@ -10,7 +10,10 @@
 
 void RenderSubsystem::ResetCanvas()
 {
-	Canvas.uiscale = std::max((engine->ViewportHeight + 540) / 1080, 1);
+	// Scale the UI so it matches what you saw on a 1024x768 CRT monitor for Unreal and other older games.
+	// Assume 1280x960 for UT and newer.
+	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
+	Canvas.uiscale = std::max((engine->ViewportHeight + vertResolution / 2) / vertResolution, 1);
 
 	FSceneNode frame;
 	Canvas.Frame.XB = 0;
@@ -168,24 +171,39 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	DrawTile(texinfo, dest, src, clipBox, Z, color, fog, flags);
 }
 
-void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t polyflags, bool center, float spaceX, float spaceY)
+Array<std::string> RenderSubsystem::FindTextBlocks(const std::string& text)
 {
-	float centerX = 0;
-	if (center)
-		centerX = std::round((engine->canvas->SizeX() - GetTextSize(font, text).x) * 0.5f);
-
-	for (char c : text)
+	// Split text into words, whitespace or newline
+	Array<std::string> textBlocks;
+	size_t pos = 0;
+	while (pos < text.size())
 	{
-		// To do: word wrap
-		// To do: SpaceX and SpaceY also affects DrawText
-
-		if (c == '\n')
+		if (text[pos] == '\n')
 		{
-			curX = 0;
-			curY += curYL;
-			curYL = 0;
+			textBlocks.push_back("\n");
+			pos++;
+		}
+		else if (text[pos] == ' ')
+		{
+			size_t end = std::min(text.find_first_not_of(' ', pos + 1), text.size());
+			textBlocks.push_back(text.substr(pos, end - pos));
+			pos = end;
 		}
 		else
+		{
+			size_t end = std::min(text.find_first_of(" \n", pos + 1), text.size());
+			textBlocks.push_back(text.substr(pos, end - pos));
+			pos = end;
+		}
+	}
+	return textBlocks;
+}
+
+void RenderSubsystem::DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, vec4 color, uint32_t polyflags, float spaceX)
+{
+	for (size_t i = start; i < end; i++)
+	{
+		for (char c : textBlocks[i])
 		{
 			FontGlyph glyph = font->GetGlyph(c);
 
@@ -207,19 +225,102 @@ void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, 
 			float USize = (float)glyph.USize;
 			float VSize = (float)glyph.VSize;
 
-			Device->DrawTile(&Canvas.Frame, texinfo, (orgX + curX + centerX) * Canvas.uiscale, (float)(orgY + curY) * Canvas.uiscale, (float)width * Canvas.uiscale, (float)height * Canvas.uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), polyflags);
+			Device->DrawTile(&Canvas.Frame, texinfo, x * Canvas.uiscale, y * Canvas.uiscale, (float)width * Canvas.uiscale, (float)height * Canvas.uiscale, StartU, StartV, USize, VSize, 1.0f, color, vec4(0.0f), polyflags);
 
-			curX += width + spaceX;
-			curYL = std::max(curYL, (float)glyph.VSize + spaceY);
+			x += width + spaceX;
+		}
+	}
+}
+
+void RenderSubsystem::DrawText(UFont* font, vec4 color, float orgX, float orgY, float& curX, float& curY, float& curXL, float& curYL, bool newlineAtEnd, const std::string& text, uint32_t polyflags, bool center, float spaceX, float spaceY, float clipX, float clipY, bool noDraw)
+{
+	float totalWidth = 0.0f;
+	float totalHeight = 0.0f;
+
+	Array<std::string> textBlocks = FindTextBlocks(text);
+	size_t lineBegin = 0;
+	float lineWidth = 0.0f;
+	float lineHeight = 0.0f;
+	for (size_t pos = 0; pos < textBlocks.size(); pos++)
+	{
+		if (textBlocks[pos].front() == '\n')
+		{
+			if (pos != lineBegin)
+			{
+				float centerX = 0;
+				if (center)
+					centerX = std::round((clipX - lineWidth) * 0.5f);
+				if (!noDraw)
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags, spaceX);
+				curY += lineHeight;
+				totalHeight += lineHeight;
+				totalWidth = std::max(totalWidth, lineWidth);
+			}
+
+			curX = 0;
+			lineBegin = pos + 1;
+			lineWidth = 0.0f;
+			lineHeight = 0.0f;
+		}
+		else
+		{
+			vec2 blockSize = GetTextSize(font, textBlocks[pos], spaceX, spaceY);
+			if (lineWidth + blockSize.x > clipX)
+			{
+				float centerX = 0;
+				if (center)
+					centerX = std::round((clipX - lineWidth) * 0.5f);
+				if (!noDraw)
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags, spaceX);
+
+				curX = 0;
+				curY += lineHeight;
+				totalHeight += lineHeight;
+				totalWidth = std::max(totalWidth, lineWidth);
+
+				if (textBlocks[pos].front() == ' ')
+				{
+					// Ignore whitespace at the beginning of a word wrapped line
+					lineBegin = pos + 1;
+					lineWidth = 0.0f;
+					lineHeight = 0.0f;
+				}
+				else
+				{
+					lineBegin = pos;
+					lineWidth = blockSize.x;
+					lineHeight = blockSize.y;
+				}
+			}
+			else
+			{
+				lineWidth += blockSize.x;
+				lineHeight = std::max(lineHeight, blockSize.y);
+			}
 		}
 	}
 
-	curY += curYL;
+	if (lineBegin < textBlocks.size())
+	{
+		float centerX = 0;
+		if (center)
+			centerX = std::round((clipX - lineWidth) * 0.5f);
+		if (!noDraw)
+			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, color, polyflags, spaceX);
+		curX += centerX + lineWidth;
+		curY += lineHeight;
+		totalHeight += lineHeight;
+		totalWidth = std::max(totalWidth, lineWidth);
+	}
+
+	curXL = std::max(curXL, totalWidth);
+	curYL = std::max(curYL, totalHeight);
 
 	if (newlineAtEnd)
 	{
 		curX = 0;
 		curY += curYL;
+		curXL = 0;
 		curYL = 0;
 	}
 }
@@ -353,30 +454,15 @@ void RenderSubsystem::DrawTile(FTextureInfo& texinfo, const Rectf& dest, const R
 	}
 }
 
-ivec2 RenderSubsystem::GetTextSize(UFont* font, const std::string& text)
+vec2 RenderSubsystem::GetTextSize(UFont* font, const std::string& text, float spaceX, float spaceY)
 {
-	int x = 0;
-	int y = 0;
+	float x = 0.0f;
+	float y = 0.0f;
 	for (char c : text)
 	{
 		FontGlyph glyph = font->GetGlyph(c);
-		x += glyph.USize;
-		y = std::max(y, glyph.VSize);
-	}
-	return { x, y };
-}
-
-ivec2 RenderSubsystem::GetTextClippedSize(UFont* font, const std::string& text, float clipX)
-{
-	int x = 0;
-	int y = 0;
-	for (char c : text)
-	{
-		FontGlyph glyph = font->GetGlyph(c);
-		if (x + glyph.USize > (int)clipX)
-			break;
-		x += glyph.USize;
-		y = std::max(y, glyph.VSize);
+		x += (float)glyph.USize + spaceX;
+		y = std::max(y, (float)glyph.VSize + spaceY);
 	}
 	return { x, y };
 }
@@ -413,8 +499,9 @@ void RenderSubsystem::DrawTimedemoStats()
 			for (const std::string& text : lines)
 			{
 				float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+				float curXL = 0.0f;
 				float curYL = 0.0f;
-				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 				curY += curYL;
 			}
 
@@ -425,8 +512,9 @@ void RenderSubsystem::DrawTimedemoStats()
 			for (const std::string& text : leftlines)
 			{
 				float curX = 16.0f;
+				float curXL = 0.0f;
 				float curYL = 0.0f;
-				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 				curY += curYL;
 			}
 			*/
@@ -459,8 +547,9 @@ void RenderSubsystem::DrawTimedemoStats()
 			for (const std::string& text : lines)
 			{
 				float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+				float curXL = 0.0f;
 				float curYL = 0.0f;
-				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+				DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 				curY += curYL;
 			}
 		}
@@ -523,8 +612,9 @@ void RenderSubsystem::DrawCollisionDebug()
 		for (const std::string& text : lines)
 		{
 			float curX = engine->ViewportWidth / (float)Canvas.uiscale - GetTextSize(font, text).x - 16;
+			float curXL = 0.0f;
 			float curYL = 0.0f;
-			DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curYL, false, text, PF_NoSmooth | PF_Masked, false);
+			DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 			curY += curYL;
 		}
 	}

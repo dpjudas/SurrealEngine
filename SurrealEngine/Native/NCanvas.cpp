@@ -46,6 +46,8 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, BitfieldBool* CR)
 	float& orgY = SelfCanvas->OrgY();
 	float& curX = SelfCanvas->CurX();
 	float& curY = SelfCanvas->CurY();
+	float& clipX = SelfCanvas->ClipX();
+	float& clipY = SelfCanvas->ClipY();
 	UFont*& font = SelfCanvas->Font();
 	Color& color = SelfCanvas->DrawColor();
 	float& curYL = SelfCanvas->CurYL();
@@ -64,7 +66,17 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, BitfieldBool* CR)
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 
-		engine->render->DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curYL, newline, Text, renderflags, center, spaceX, spaceY);
+		float curXL = 0.0f;
+		engine->render->DrawText(font, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, orgX, orgY, curX, curY, curXL, curYL, newline, Text, renderflags, center, spaceX, spaceY, clipX, clipY);
+	}
+	else
+	{
+		if (newline)
+		{
+			curX = 0;
+			curY += curYL;
+			curYL = 0;
+		}
 	}
 }
 
@@ -175,12 +187,31 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float& YL)
 {
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
-	UFont*& font = SelfCanvas->Font();
+	float& orgX = SelfCanvas->OrgX();
+	float& orgY = SelfCanvas->OrgY();
 	float& clipX = SelfCanvas->ClipX();
+	float& clipY = SelfCanvas->ClipY();
+	UFont*& font = SelfCanvas->Font();
+	bool center = SelfCanvas->bCenter();
+	float& spaceX = SelfCanvas->SpaceX();
+	float& spaceY = SelfCanvas->SpaceY();
+	uint8_t& style = SelfCanvas->Style();
 
-	ivec2 size = engine->render->GetTextClippedSize(font, String, clipX);
-	XL = size.x;
-	YL = size.y;
+	if (style != 0)
+	{
+		float curX = 0.0f;
+		float curY = 0.0f;
+		float curXL = 0.0f;
+		float curYL = 0.0f;
+		engine->render->DrawText(font, vec4(1.0f), orgX, orgY, curX, curY, curXL, curYL, false, String, 0, center, spaceX, spaceY, clipX, clipY, true);
+		XL = curXL;
+		YL = curYL;
+	}
+	else
+	{
+		XL = 0.0f;
+		YL = 0.0f;
+	}
 }
 
 void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, float& YL)
@@ -188,7 +219,7 @@ void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, floa
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	UFont*& font = SelfCanvas->Font();
 
-	ivec2 size = engine->render->GetTextSize(font, String);
+	vec2 size = engine->render->GetTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
 }
