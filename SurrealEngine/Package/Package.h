@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GC/GC.h"
 #include "PackageFlags.h"
 #include "ObjectFlags.h"
 #include "NameString.h"
@@ -39,7 +40,7 @@ public:
 	int32_t ObjOffset;
 };
 
-class Package
+class Package : public GCObject
 {
 public:
 	Package(PackageManager* packageManager, const NameString& name, const std::string& filename);
@@ -66,6 +67,8 @@ public:
 	template<class T> Array<T*> GetAllObjects();
 
 private:
+	GCAllocation* Mark(GCAllocation* marklist) override;
+
 	void ReadTables();
 	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const NameString& name, UClass* base);
 	void LoadExportObject(int index);
@@ -85,7 +88,7 @@ private:
 
 	std::map<NameString, int> NameHash;
 
-	Array<std::unique_ptr<UObject>> Objects;
+	Array<UObject*> Objects;
 
 	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 
@@ -107,7 +110,7 @@ void Package::RegisterNativeClass(bool registerInPackage, const NameString& clas
 {
 	NativeClasses[className] = [](const NameString& name, UClass* cls, ObjectFlags flags) -> UObject*
 		{
-			return new T(name, cls, flags);
+			return GC::Alloc<T>(name, cls, flags);
 		};
 
 	if (registerInPackage)

@@ -14,6 +14,10 @@ UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), 
 {
 }
 
+UObject::~UObject()
+{
+}
+
 void UObject::LoadNow()
 {
 	if (DelayLoad)
@@ -426,6 +430,19 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 	if (newState && oldState != newState)
 		CallEvent(this, EventName::BeginState);
+}
+
+GCAllocation* UObject::Mark(GCAllocation* marklist)
+{
+	// To do: call "marklist = GC::MarkObject(marklist, ptr)" for all UObject property fields
+	/*
+	for (auto& it : Class->Properties)
+	{
+		UProperty* prop = it.second;
+		marklist = prop->Mark(marklist, PropertyData.Ptr(prop));
+	}
+	*/
+	return marklist;
 }
 
 /////////////////////////////////////////////////////////////////////////////

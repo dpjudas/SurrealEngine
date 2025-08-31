@@ -2,64 +2,115 @@
 
 #include <vector>
 #include <list>
+#include <memory>
 
-struct GCTypeMember
-{
-	size_t offset;
-};
+struct GCAllocation;
 
-struct GCType
+class GCObject
 {
-	size_t size;
-	Array<GCTypeMember> members;
+protected:
+	virtual ~GCObject() = default;
+	virtual GCAllocation* Mark(GCAllocation* marklist) = 0;
+
+	GCAllocation* Allocation();
+	friend class GC;
 };
 
 struct GCAllocation
 {
-	union
-	{
-		GCType* type;
-		size_t flags;
-	};
-	size_t count;
+	GCObject* object() { return reinterpret_cast<GCObject*>(this + 1); }
+	uint64_t unreferencedFlag : 1;
+	uint64_t memsize : 63;
 	GCAllocation* marklistNext;
 	GCAllocation* allocklistNext;
 };
 
 struct GCStats
 {
-	size_t numObjects;
-	size_t memoryUsage;
+	size_t numObjects = 0;
+	size_t memoryUsage = 0;
 };
 
+class GCRootNode
+{
+public:
+	GCRootNode();
+	~GCRootNode();
+
+	void set(GCObject* value) { obj = value; }
+	GCObject* get() const { return obj; }
+
+private:
+	GCObject* obj = nullptr;
+	GCRootNode* prev = nullptr;
+	GCRootNode* next = nullptr;
+
+	GCRootNode(const GCRootNode&) = delete;
+	GCRootNode& operator=(const GCRootNode&) = delete;
+	friend class GC;
+};
+
+template<typename T>
 class GCRoot
 {
 public:
-	GCRoot();
-	~GCRoot();
+	GCRoot() : node(std::make_unique<GCRootNode>()) {}
+	GCRoot(T* value) : GCRoot() { set(value); }
 
-	void set(void* value) { obj = value; }
-	void* get() const { return obj; }
+	void set(T* value) { node->set(value); }
+	T* get() const { return static_cast<T*>(node->get()); }
+
+	explicit operator bool() const { return get(); }
+	T* operator->() { return get(); }
+	const T* operator->() const { return get(); }
 
 private:
-	void* obj = nullptr;
-	GCRoot* prev = nullptr;
-	GCRoot* next = nullptr;
-
-	GCRoot(const GCRoot&) = delete;
-	GCRoot& operator=(const GCRoot&) = delete;
-	friend class GC;
+	std::unique_ptr<GCRootNode> node;
 };
 
 class GC
 {
 public:
-	static void* Alloc(GCType* type, size_t count = 1);
+	template<typename T, typename... Args>
+	static T* Alloc(Args&&... args)
+	{
+		GCAllocation* alloc = AllocMemory(sizeof(T));
+		try
+		{
+			return new((unsigned char*)alloc->object()) T(std::forward<Args>(args)...);
+		}
+		catch (...)
+		{
+			FreeMemory(alloc);
+			throw;
+		}
+	}
+
 	static void Collect();
 	static GCStats GetStats();
 
+	static GCAllocation* MarkObject(GCAllocation* marklist, GCObject* obj);
+
 private:
-	static GCAllocation* MarkData(GCAllocation* marklist, void* data);
+	static GCAllocation* AllocMemory(size_t size);
+	static void FreeMemory(GCAllocation* allocation);
 	static GCAllocation* Mark(GCAllocation* allocation);
 	static void Sweep();
 };
+
+inline GCAllocation* GC::MarkObject(GCAllocation* marklist, GCObject* obj)
+{
+	if (obj)
+	{
+		GCAllocation* allocation = ((GCAllocation*)obj) - 1;
+		if (allocation->unreferencedFlag)
+		{
+			allocation->unreferencedFlag = false;
+			allocation->marklistNext = marklist;
+			marklist = allocation;
+		}
+	}
+	return marklist;
+}
+
+inline GCAllocation* GCObject::Allocation() { return reinterpret_cast<GCAllocation*>(this) - 1; }

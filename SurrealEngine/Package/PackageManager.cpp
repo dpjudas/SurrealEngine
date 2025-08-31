@@ -62,7 +62,7 @@ Package* PackageManager::GetPackage(const NameString& name)
 	auto it = packageFilenames.find(name);
 	if (it != packageFilenames.end())
 	{
-		package = std::make_unique<Package>(this, name, it->second);
+		package.set(GC::Alloc<Package>(this, name, it->second));
 	}
 	else
 	{
@@ -72,7 +72,7 @@ Package* PackageManager::GetPackage(const NameString& name)
 	return package.get();
 }
 
-std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
+Package* PackageManager::LoadMap(const std::string& path)
 {
 	std::string map = FilePath::last_component(path);
 
@@ -93,7 +93,7 @@ std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
 
 		if (FilePath::exists(finalPath))
 		{
-			return std::make_unique<Package>(this, FilePath::remove_extension(map), finalPath);
+			return GC::Alloc<Package>(this, FilePath::remove_extension(map), finalPath);
 		}
 	}
 
@@ -106,16 +106,16 @@ std::unique_ptr<Package> PackageManager::LoadMap(const std::string& path)
 	// Add the file extension if it is missing
 	if (!FilePath::has_extension(absolute_path, GetMapExtension().c_str()))
 		absolute_path += "." + GetMapExtension();
-	return std::make_unique<Package>(this, FilePath::remove_extension(map), absolute_path);
+	return GC::Alloc<Package>(this, FilePath::remove_extension(map), absolute_path);
 }
 
-void PackageManager::UnloadMap(std::unique_ptr<Package> package)
+void PackageManager::UnloadMap(Package* package)
 {
 	// Remove package from open streams cache:
 	auto streamit = openStreams.begin();
 	while (streamit != openStreams.end())
 	{
-		if (streamit->Pkg == package.get())
+		if (streamit->Pkg == package)
 		{
 			streamit = openStreams.erase(streamit);
 		}

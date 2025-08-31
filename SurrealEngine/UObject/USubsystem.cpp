@@ -243,6 +243,9 @@ void USurrealAudioDevice::Update(const mat4& listener)
 
 void USurrealAudioDevice::StartAmbience()
 {
+	if (!m_Viewport->Actor())
+		return;
+
 	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
 	if (Realtime)
 	{
@@ -272,6 +275,9 @@ void USurrealAudioDevice::StartAmbience()
 
 void USurrealAudioDevice::UpdateAmbience()
 {
+	if (!m_Viewport->Actor())
+		return;
+
 	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
 	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
@@ -297,6 +303,9 @@ void USurrealAudioDevice::UpdateAmbience()
 
 void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 {
+	if (!m_Viewport->Actor())
+		return;
+
 	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
 	{

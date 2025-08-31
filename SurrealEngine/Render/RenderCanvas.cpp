@@ -54,19 +54,22 @@ void RenderSubsystem::PreRender()
 {
 	Device->SetSceneNode(&Canvas.Frame);
 	CallEvent(engine->console, EventName::PreRender, { ExpressionValue::ObjectValue(engine->canvas) });
-	CallEvent(engine->viewport->Actor(), EventName::PreRender, { ExpressionValue::ObjectValue(engine->canvas) });
+	if (engine->viewport->Actor())
+		CallEvent(engine->viewport->Actor(), EventName::PreRender, { ExpressionValue::ObjectValue(engine->canvas) });
 }
 
 void RenderSubsystem::RenderOverlays()
 {
 	Device->SetSceneNode(&Canvas.Frame);
-	CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
+	if (engine->viewport->Actor())
+		CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
 }
 
 void RenderSubsystem::PostRender()
 {
 	Device->SetSceneNode(&Canvas.Frame);
-	CallEvent(engine->viewport->Actor(), EventName::PostRender, { ExpressionValue::ObjectValue(engine->canvas) });
+	if (engine->viewport->Actor())
+		CallEvent(engine->viewport->Actor(), EventName::PostRender, { ExpressionValue::ObjectValue(engine->canvas) });
 	CallEvent(engine->console, EventName::PostRender, { ExpressionValue::ObjectValue(engine->canvas) });
 	DrawTimedemoStats();
 	
@@ -482,6 +485,8 @@ void RenderSubsystem::DrawTimedemoStats()
 		Array<std::string> lines;
 		lines.push_back(std::to_string(Canvas.fps) + " FPS");
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
+		lines.push_back(std::to_string(GC::GetStats().numObjects) + " GC objects");
+		lines.push_back(std::to_string(GC::GetStats().memoryUsage / (1024 * 1024)) + " mb memory used");
 
 		/*size_t numCollisionActors = 0;
 		for (auto& it : engine->Level->Hash.CollisionActors)
@@ -526,6 +531,8 @@ void RenderSubsystem::DrawTimedemoStats()
 		Array<std::string> lines;
 		lines.push_back(std::to_string(Canvas.fps) + " FPS");
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
+		lines.push_back(std::to_string(GC::GetStats().numObjects) + " GC objects");
+		lines.push_back(std::to_string(GC::GetStats().memoryUsage / (1024 * 1024)) + " mb memory used");
 
 		/*size_t numCollisionActors = 0;
 		for (auto& it : engine->Level->Hash.CollisionActors)

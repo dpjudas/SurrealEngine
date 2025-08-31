@@ -183,6 +183,13 @@ Package::~Package()
 {
 }
 
+GCAllocation* Package::Mark(GCAllocation* marklist)
+{
+	for (UObject* obj : Objects)
+		marklist = GC::MarkObject(marklist, obj);
+	return marklist;
+}
+
 UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
 {
 	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
@@ -222,19 +229,19 @@ void Package::LoadExportObject(int index)
 			Exception::Throw("Could not find the object class for " + objname.ToString());
 		}
 
-		Objects[index].reset(NewObject(objname, objclass, ExportTable[index].ObjFlags, false));
+		Objects[index] = NewObject(objname, objclass, ExportTable[index].ObjFlags, false);
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
-		Packages->delayLoads.push_back(Objects[index].get());
+		Packages->delayLoads.push_back(Objects[index]);
 	}
 	else
 	{
 		UClass* objbase = UObject::Cast<UClass>(GetUObject(entry->ObjBase));
 		if (!objbase && objname != "Object")
 			objbase = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Object"));
-		auto obj = std::make_unique<UClass>(objname, objbase, ExportTable[index].ObjFlags);
-		Objects[index] = std::move(obj);
+		auto obj = GC::Alloc<UClass>(objname, objbase, ExportTable[index].ObjFlags);
+		Objects[index] = obj;
 		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
-		Packages->delayLoads.push_back(Objects[index].get());
+		Packages->delayLoads.push_back(Objects[index]);
 	}
 }
 
@@ -253,7 +260,7 @@ UObject* Package::GetUObject(int objref)
 		if (Packages->delayLoadActive == 0)
 			Packages->DelayLoadNow();
 
-		UObject* object = Objects[index].get();
+		UObject* object = Objects[index];
 		object->package = this;
 		object->exportIndex = index;
 		return object;

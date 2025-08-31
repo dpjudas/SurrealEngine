@@ -2,13 +2,11 @@
 #include "Precomp.h"
 #include "GC.h"
 
-static GCRoot* roots;
+static GCRootNode* roots;
 static GCAllocation* allocations;
 static GCStats stats;
 
-#define GC_UNREFERENCED_FLAG ((size_t)1)
-
-GCRoot::GCRoot()
+GCRootNode::GCRootNode()
 {
 	if (roots)
 		roots->next = this;
@@ -16,7 +14,7 @@ GCRoot::GCRoot()
 	roots = this;
 }
 
-GCRoot::~GCRoot()
+GCRootNode::~GCRootNode()
 {
 	if (prev)
 	{
@@ -33,27 +31,31 @@ GCRoot::~GCRoot()
 	}
 }
 
-void* GC::Alloc(GCType* type, size_t count)
+GCAllocation* GC::AllocMemory(size_t size)
 {
-	size_t memsize = sizeof(GCAllocation) + type->size * count;
+	size_t memsize = sizeof(GCAllocation) + size;
 	GCAllocation* allocation = (GCAllocation*)calloc(1, memsize);
 	if (allocation == nullptr)
 		throw std::bad_alloc();
 	allocation->allocklistNext = allocations;
-	allocation->type = type;
-	allocation->flags |= GC_UNREFERENCED_FLAG;
-	allocation->count = count;
+	allocation->memsize = memsize;
+	allocation->unreferencedFlag = true;
 	allocations = allocation;
 	stats.numObjects++;
 	stats.memoryUsage += memsize;
-	return allocation + 1;
+	return allocation;
+}
+
+void GC::FreeMemory(GCAllocation* allocation)
+{
+	free(allocation);
 }
 
 void GC::Collect()
 {
 	GCAllocation* marklist = nullptr;
-	for (GCRoot* root = roots; root != nullptr; root = root->next)
-		marklist = MarkData(marklist, root->obj);
+	for (GCRootNode* root = roots; root != nullptr; root = root->next)
+		marklist = GC::MarkObject(marklist, root->obj);
 
 	while (marklist)
 	{
@@ -68,41 +70,12 @@ GCStats GC::GetStats()
 	return stats;
 }
 
-GCAllocation* GC::MarkData(GCAllocation* marklist, void* data)
-{
-	if (data)
-	{
-		GCAllocation* allocation = ((GCAllocation*)data) - 1;
-		if (allocation->flags & GC_UNREFERENCED_FLAG)
-		{
-			allocation->flags &= ~GC_UNREFERENCED_FLAG;
-			allocation->marklistNext = marklist;
-			marklist = allocation;
-		}
-	}
-	return marklist;
-}
-
 GCAllocation* GC::Mark(GCAllocation* marklist)
 {
 	GCAllocation* marklistout = nullptr;
 	for (GCAllocation* allocation = marklist; allocation != nullptr; allocation = allocation->marklistNext)
 	{
-		GCType* type = allocation->type;
-
-		size_t size = type->size;
-		size_t count = allocation->count;
-
-		for (const GCTypeMember& member : type->members)
-		{
-			uint8_t* d = (uint8_t*)(allocation + 1);
-			for (size_t i = 0; i < count; i++)
-			{
-				void* memberptr = *(void**)(d + member.offset);
-				marklistout = MarkData(marklistout, memberptr);
-				d += size;
-			}
-		}
+		allocation->object()->Mark(marklistout);
 	}
 	return marklistout;
 }
@@ -113,10 +86,9 @@ void GC::Sweep()
 	GCAllocation* cur = allocations;
 	while (cur)
 	{
-		if (cur->flags & GC_UNREFERENCED_FLAG)
+		if (cur->unreferencedFlag)
 		{
 			GCAllocation* unreferenced = cur;
-			unreferenced->flags &= ~GC_UNREFERENCED_FLAG;
 
 			cur = cur->allocklistNext;
 			if (prev)
@@ -124,13 +96,15 @@ void GC::Sweep()
 			else
 				allocations = cur;
 
-			stats.memoryUsage -= unreferenced->type->size * unreferenced->count;
+			stats.memoryUsage -= unreferenced->memsize;
 			stats.numObjects--;
+
+			unreferenced->object()->~GCObject();
 			free(unreferenced);
 		}
 		else
 		{
-			cur->flags |= GC_UNREFERENCED_FLAG;
+			cur->unreferencedFlag = true;
 			prev = cur;
 			cur = cur->allocklistNext;
 		}

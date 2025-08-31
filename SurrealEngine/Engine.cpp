@@ -88,9 +88,9 @@ void Engine::Run()
 
 	window->LockCursor();
 
-	UObjectProperty objprop({}, nullptr, ObjectFlags::NoFlags);
-	UStructProperty vecprop({}, nullptr, ObjectFlags::NoFlags);
-	UStructProperty rotprop({}, nullptr, ObjectFlags::NoFlags);
+	auto objprop = GC::Alloc<UObjectProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
+	auto vecprop = GC::Alloc<UStructProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
+	auto rotprop = GC::Alloc<UStructProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
 
 	bool firstCall = true;
 	while (!quit)
@@ -202,19 +202,19 @@ void Engine::Run()
 		}
 
 		// To do: improve CallEvent so parameter passing isn't this painful
-		UFunction* funcPlayerCalcView = FindEventFunction(viewport->Actor(), "PlayerCalcView");
+		UFunction* funcPlayerCalcView = viewport->Actor() ? FindEventFunction(viewport->Actor(), "PlayerCalcView") : nullptr;
 		if (funcPlayerCalcView)
 		{
-			vecprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
-			rotprop.Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
+			vecprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
+			rotprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
 			CameraActor = viewport->Actor();
 			CameraLocation = viewport->Actor()->Location();
 			CameraRotation = viewport->Actor()->Rotation();
 			CameraFovAngle = viewport->Actor()->FovAngle();
 			CallEvent(viewport->Actor(), EventName::PlayerCalcView, {
-				ExpressionValue::Variable(&CameraActor, &objprop),
-				ExpressionValue::Variable(&CameraLocation, &vecprop),
-				ExpressionValue::Variable(&CameraRotation, &rotprop)
+				ExpressionValue::Variable(&CameraActor, objprop),
+				ExpressionValue::Variable(&CameraLocation, vecprop),
+				ExpressionValue::Variable(&CameraRotation, rotprop)
 				});
 		}
 
@@ -303,6 +303,7 @@ void Engine::LoadEntryMap()
 	EntryLevelPackage = std::move(LevelPackage);
 	LevelInfo = nullptr;
 	Level = nullptr;
+	viewport->Actor() = nullptr;
 }
 
 void Engine::UnloadMap()
@@ -312,6 +313,7 @@ void Engine::UnloadMap()
 
 	LevelInfo = nullptr;
 	Level = nullptr;
+	viewport->Actor() = nullptr;
 	packages->UnloadMap(std::move(LevelPackage));
 }
 
@@ -442,11 +444,11 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	std::string options = url.GetOptions();
 
-	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	auto stringProp = GC::Alloc<UStringProperty>("", nullptr, ObjectFlags::NoFlags);
 	std::string error;
 
 	LevelInfo->bStartup() = true;
-	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, &stringProp) });
+	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, stringProp) });
 	if (!error.empty())
 		Exception::Throw("InitGame failed: " + error);
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PreBeginPlay); }
@@ -464,7 +466,7 @@ void Engine::LoginPlayer()
 	UnrealURL url = LevelInfo->URL;
 	std::map<std::string, std::string> travelInfo = Level->TravelInfo;
 
-	UStringProperty stringProp("", nullptr, ObjectFlags::NoFlags);
+	auto stringProp = GC::Alloc<UStringProperty>("", nullptr, ObjectFlags::NoFlags);
 	std::string error, failcode;
 
 	std::string portal = url.GetPortal();
@@ -478,8 +480,8 @@ void Engine::LoginPlayer()
 	// Perform PreLogin check (supposedly, good for early rejection in network games)
 	CallEvent(LevelInfo->Game(), EventName::PreLogin, {
 		ExpressionValue::StringValue(options),
-		ExpressionValue::Variable(&error, &stringProp),
-		ExpressionValue::Variable(&failcode, &stringProp),
+		ExpressionValue::Variable(&error, stringProp),
+		ExpressionValue::Variable(&failcode, stringProp),
 		});
 	if (!error.empty() || !failcode.empty())
 		Exception::Throw("GameInfo prelogin failed: " + error + " (" + failcode + ")");
@@ -489,7 +491,7 @@ void Engine::LoginPlayer()
 	UPlayerPawn* pawn = UObject::Cast<UPlayerPawn>(CallEvent(LevelInfo->Game(), EventName::Login, {
 		ExpressionValue::StringValue(portal),
 		ExpressionValue::StringValue(options),
-		ExpressionValue::Variable(&error, &stringProp),
+		ExpressionValue::Variable(&error, stringProp),
 		ExpressionValue::ObjectValue(pawnClass)
 		}).ToObject());
 	if (!pawn || !error.empty())
@@ -738,8 +740,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
-				LoadMap(url);
-				LoginPlayer();
+				LevelInfo->NextURL() = url.ToString();
+				//We can't call that here
+				//LoadMap(url);
+				//LoginPlayer();
 				return {};
 			}	
 		}
@@ -970,6 +974,10 @@ void Engine::UpdateInput(float timeElapsed)
 	TickWindow();
 	if (tickDebugger)
 		tickDebugger();
+
+	if (!viewport->Actor())
+		return;
+
 	for (auto& it : activeInputButtons)
 		viewport->Actor()->SetBool(it.first, true);
 	for (auto& it : activeInputAxes)

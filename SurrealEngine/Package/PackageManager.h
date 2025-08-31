@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GC/GC.h"
 #include "Package.h"
 #include "IniFile.h"
 #include "GameFolder.h"
@@ -36,8 +37,8 @@ public:
 	Package *GetPackage(const NameString& name);
 	Array<NameString> GetPackageNames() const;
 
-	std::unique_ptr<Package> LoadMap(const std::string& path);
-	void UnloadMap(std::unique_ptr<Package> package);
+	Package* LoadMap(const std::string& path);
+	void UnloadMap(Package* package);
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
@@ -82,7 +83,7 @@ private:
 	int delayLoadActive = 0;
 
 	std::map<NameString, std::string> packageFilenames;
-	std::map<NameString, std::unique_ptr<Package>> packages;
+	std::map<NameString, GCRoot<Package>> packages;
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
 	std::map<std::string, std::string> packageRemaps;

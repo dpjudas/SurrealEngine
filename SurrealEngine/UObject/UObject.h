@@ -7,6 +7,7 @@
 #include "Math/scale.h"
 #include "Math/coords.h"
 #include "PropertyOffsets.h"
+#include "GC/GC.h"
 #include <set>
 
 class UObject;
@@ -160,11 +161,11 @@ private:
 	PropertyDataBlock& operator=(const PropertyDataBlock&) = delete;
 };
 
-class UObject
+class UObject : public GCObject
 {
 public:
 	UObject(NameString name, UClass* base, ObjectFlags flags);
-	virtual ~UObject() = default;
+	virtual ~UObject();
 
 	void LoadNow();
 	virtual void Load(ObjectStream* stream);
@@ -296,6 +297,9 @@ public:
 	int& uc_ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
 	int& uc_ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
 	UObject*& Outer() { return Value<UObject*>(PropOffsets_Object.Outer); } // native
+
+private:
+	GCAllocation* Mark(GCAllocation* marklist) override;
 };
 
 template<typename T>
