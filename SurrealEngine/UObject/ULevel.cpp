@@ -1,6 +1,8 @@
 
 #include "Precomp.h"
 #include "ULevel.h"
+
+#include "Engine.h"
 #include "UActor.h"
 #include "UTexture.h"
 #include "UClass.h"
@@ -121,9 +123,17 @@ void ULevel::TickActor(float elapsed, UActor* actor)
 
 void ULevel::Tick(float elapsed)
 {
-	for (size_t i = 0; i < Actors.size(); i++)
+	if (!engine->LevelInfo->bPlayersOnly())
 	{
-		TickActor(elapsed, Actors[i]);
+		for (size_t i = 0; i < Actors.size(); i++)
+			if (Actors[i])
+				TickActor(elapsed, Actors[i]);
+	}
+	else
+	{
+		for (size_t i = 0; i < Actors.size(); i++)
+			if (auto player = UObject::TryCast<UPlayerPawn>(Actors[i]))
+				TickActor(elapsed, player);
 	}
 
 	Array<UActor*> newActorList;
