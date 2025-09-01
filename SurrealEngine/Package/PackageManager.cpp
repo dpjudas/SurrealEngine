@@ -152,7 +152,20 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 
 void PackageManager::ScanPaths()
 {
-	auto paths = GetIniValues("system", "Core.System", "Paths");
+	Array<std::string> paths;
+	if (launchInfo.engineVersion <= 219) // khg with 219 uses old format. unreal uses new in 226
+	{
+		for (int i = 0; i < 16; i++)
+		{
+			std::string value = GetIniValue("system", "Core.System", "Paths[" + std::to_string(i) + "]");
+			if (!value.empty())
+				paths.push_back(std::move(value));
+		}
+	}
+	else
+	{
+		paths = GetIniValues("system", "Core.System", "Paths");
+	}
 	mapExtension = GetIniValue("System", "URL", "MapExt");
 	saveExtension = GetIniValue("System", "URL", "SaveExt");
 

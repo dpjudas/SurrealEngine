@@ -75,7 +75,7 @@ void VisibleFrame::ProcessNode(BspNode* node)
 			if (actor->bCorona())
 				Coronas.push_back(actor);
 
-			if (actor != engine->CameraActor && !actor->bHidden() && (!actor->bOwnerNoSee() || actor->Owner() != engine->CameraActor))
+			if (actor != engine->CameraActor && !actor->bHidden() && ((engine->LaunchInfo.engineVersion <= 219 || !actor->bOwnerNoSee()) || actor->Owner() != engine->CameraActor))
 			{
 				if (Clipper.IsAABBVisible(actor->BspInfo.BoundingBox))
 				{

@@ -287,13 +287,7 @@ public:
 
 	void SetTweenFromAnimFrame();
 
-	UTexture* GetMultiskin(int index)
-	{
-		if (index >= 0 && index < 8)
-			return (&MultiSkins())[index];
-		else
-			return nullptr;
-	}
+	UTexture* GetMultiskin(int index);
 
 	float WorldSoundRadius() { return ((int)SoundRadius() + 1) * 25.0f; }
 	float WorldVolumetricRadius() { return ((int)VolumeRadius() + 1) * 25.0f; }

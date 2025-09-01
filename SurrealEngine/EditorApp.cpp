@@ -24,9 +24,11 @@ int EditorApp::main(Array<std::string> args)
 		CommandLine cmd(args);
 		commandline = &cmd;
 
-		GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(LauncherWindow::ExecModal());
-		if (!info.gameRootFolder.empty())
+		int selectedGameIndex = LauncherWindow::ExecModal();
+		if (selectedGameIndex >= 0)
 		{
+			GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(selectedGameIndex);
+
 			Engine engine(info);
 			engine.setEditorMode(true);
 

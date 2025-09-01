@@ -206,7 +206,16 @@ void EditorMainWindow::OnHelpAbout()
 void EditorMainWindow::LoadMap(std::string& mapName)
 {
 	engine->LevelPackage = engine->packages->LoadMap(mapName);
+
 	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
+	if (engine->packages->GetEngineVersion() < 300) // Unknown when this changed
+	{
+		for (int grr = 1; !engine->LevelInfo && grr < 20; grr++)
+			engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
+	}
+	if (!engine->LevelInfo)
+		Exception::Throw("Could not find the LevelInfo object for this map!");
+
 	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
 	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
 }

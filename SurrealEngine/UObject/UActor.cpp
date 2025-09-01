@@ -2008,6 +2008,14 @@ int UActor::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* no
 		return 0;
 }
 
+UTexture* UActor::GetMultiskin(int index)
+{
+	if (engine->LaunchInfo.engineVersion > 219 && index >= 0 && index < 8)
+		return (&MultiSkins())[index];
+	else
+		return nullptr;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 bool UPawn::ActorReachable(UActor* anActor)

@@ -334,7 +334,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	LevelPackage = packages->LoadMap(url.Map);
 
 	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	if (packages->IsUnreal1())
+	if (packages->GetEngineVersion() < 300) // Unknown when this changed
 	{
 		for (int grr = 1; !LevelInfo && grr < 20; grr++)
 			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
