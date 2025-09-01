@@ -189,7 +189,10 @@ public:
 		return static_cast<T*>(static_cast<UObject*>(this));
 	}
 
-	void SaveToConfig(PackageManager& packageManager);
+	void SaveConfig() override;
+
+	void LoadProperties(PropertyDataBlock* propertyBlock);
+	void SaveProperties(PropertyDataBlock* propertyBlock);
 
 	uint32_t OldClassRecordSize = 0;
 	ClassFlags ClsFlags = {};
@@ -198,7 +201,6 @@ public:
 	Array<int> PackageImports;
 	int ClassWithin = 0;
 	NameString ClassConfigName;
-	NameString PackageName;
 
 	UState* GetState(const NameString& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
 	std::map<NameString, UState*> States;

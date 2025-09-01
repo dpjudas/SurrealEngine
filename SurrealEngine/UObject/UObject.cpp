@@ -145,7 +145,8 @@ void UObject::SetPropertyFromString(const NameString& name, const std::string& v
 
 void UObject::SaveConfig()
 {
-	Class->SaveToConfig(*engine->packages.get());
+	// Saves the instance properties the ini file
+	Class->SaveProperties(&PropertyData);
 }
 
 uint8_t UObject::GetByte(const NameString& name) const
@@ -206,7 +207,7 @@ NameString UObject::GetUClassName(UObject* obj)
 
 NameString UObject::GetUClassFullName(UObject* obj)
 {
-	return obj->Class ? NameString(obj->Class->PackageName.ToString() + "." + obj->Class->Name.ToString()) : NameString();
+	return obj->Class ? NameString(obj->Class->package->GetPackageName().ToString() + "." + obj->Class->Name.ToString()) : NameString();
 }
 
 void UObject::SetByte(const NameString& name, uint8_t value)
@@ -434,14 +435,8 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 GCAllocation* UObject::Mark(GCAllocation* marklist)
 {
-	// To do: call "marklist = GC::MarkObject(marklist, ptr)" for all UObject property fields
-	/*
-	for (auto& it : Class->Properties)
-	{
-		UProperty* prop = it.second;
-		marklist = prop->Mark(marklist, PropertyData.Ptr(prop));
-	}
-	*/
+	//for (UProperty* prop : Class->Properties)
+	//	marklist = prop->MarkProperty(marklist, PropertyData);
 	return marklist;
 }
 

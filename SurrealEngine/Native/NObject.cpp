@@ -928,9 +928,9 @@ void NObject::Square(float A, float& ReturnValue)
 	ReturnValue = A * A;
 }
 
-void NObject::StaticSaveConfig()
+void NObject::StaticSaveConfig(UObject* Class)
 {
-	LogUnimplemented("Object.StaticSaveConfig");
+	Class->SaveConfig();
 }
 
 void NObject::SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)

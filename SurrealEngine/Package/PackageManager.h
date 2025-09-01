@@ -57,7 +57,7 @@ public:
 	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues);
 	void SaveAllIniFiles();
 
-	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName);
+	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName, const int index = 0);
 
 	Array<IntObject>& GetIntObjects(const NameString& metaclass);
 	const Array<std::string>& GetMaps() const { return maps; }

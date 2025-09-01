@@ -7,6 +7,7 @@
 #include "VM/NativeFunc.h"
 #include "VM/ScriptCall.h"
 #include "Package/PackageManager.h"
+#include "Engine.h"
 
 void UField::Load(ObjectStream* stream)
 {
@@ -434,126 +435,7 @@ void UClass::Load(ObjectStream* stream)
 	SetName("Name", Name);
 	SetInt("ObjectFlags", (int)Flags);
 
-	auto packages = stream->GetPackage()->GetPackageManager();
-	PackageName = stream->GetPackage()->GetPackageName();
-	NameString sectionName = PackageName.ToString() + "." + Name.ToString();
-	NameString configName = ClassConfigName;
-	if (configName.IsNone()) configName = "system";
-	for (UProperty* prop : Properties)
-	{
-		bool isConfig = AllFlags(prop->PropFlags, PropertyFlags::Config) || (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig) && prop->Outer() == this);
-		bool isLocalized = AllFlags(prop->PropFlags, PropertyFlags::Localized);
-		if (isConfig || isLocalized)
-		{
-			void* ptr = PropertyData.Ptr(prop);
-			for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
-			{
-				NameString name = prop->Name;
-				if (prop->ArrayDimension > 1)
-					name = NameString(name.ToString() + "[" + std::to_string(arrayIndex) + "]");
-
-				std::string value;
-				if (isConfig)
-				{
-					value = packages->GetIniValue(configName, sectionName, name);
-				}
-				else if (isLocalized)
-				{
-					value = packages->Localize(PackageName, Name, name);
-				}
-
-				if (!value.empty())
-				{
-					if (UObject::IsType<UByteProperty>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
-					else if (UObject::IsType<UIntProperty>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
-					else if (UObject::IsType<UFloatProperty>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
-					else if (UObject::IsType<UNameProperty>(prop)) *static_cast<NameString*>(ptr) = value;
-					else if (UObject::IsType<UStrProperty>(prop)) *static_cast<std::string*>(ptr) = value;
-					else if (UObject::IsType<UStringProperty>(prop)) *static_cast<std::string*>(ptr) = value;
-					else if (auto boolprop = UObject::TryCast<UBoolProperty>(prop))
-					{
-						for (char& c : value)
-							if (c >= 'A' && c <= 'Z')
-								c += 'a' - 'A';
-						boolprop->SetBool(ptr, value == "1" || value == "true" || value == "yes");
-					}
-					else if (UObject::IsType<UClassProperty>(prop))
-					{
-						try
-						{
-							size_t pos = value.find_first_of('.');
-							if (pos != std::string::npos)
-							{
-								NameString packageName = value.substr(0, pos);
-								NameString className = value.substr(pos + 1);
-								Package* pkg = packages->GetPackage(packageName);
-								*static_cast<UObject**>(ptr) = pkg->GetUObject("Class", className);
-							}
-						}
-						catch (...)
-						{
-							// To do: is this actually a fatal error?
-						}
-					}
-					else if (auto structprop = UObject::TryCast<UStructProperty>(prop))
-					{
-						// Yes, this is total spaghetti code at this point. No, I don't care anymore. ;)
-						auto values = ParseStructValue(value);
-						for (UProperty* member : structprop->Struct->Properties)
-						{
-							std::string membervalue = values[member->Name];
-							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset.DataOffset;
-							if (UObject::IsType<UByteProperty>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
-							else if (UObject::IsType<UIntProperty>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
-							else if (UObject::IsType<UFloatProperty>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
-							else if (UObject::IsType<UNameProperty>(member)) *static_cast<NameString*>(memberptr) = membervalue;
-							else if (UObject::IsType<UStrProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
-							else if (UObject::IsType<UStringProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
-							else if (auto boolprop = UObject::TryCast<UBoolProperty>(member))
-							{
-								for (char& c : membervalue)
-									if (c >= 'A' && c <= 'Z')
-										c += 'a' - 'A';
-								boolprop->SetBool(memberptr, membervalue == "1" || membervalue == "true" || membervalue == "yes");
-							}
-							else if (UObject::IsType<UClassProperty>(member))
-							{
-								try
-								{
-									size_t pos = membervalue.find_first_of('.');
-									if (pos != std::string::npos)
-									{
-										NameString packageName = membervalue.substr(0, pos);
-										NameString className = membervalue.substr(pos + 1);
-										Package* pkg = packages->GetPackage(packageName);
-										*static_cast<UObject**>(memberptr) = pkg->GetUObject("Class", className);
-									}
-								}
-								catch (...)
-								{
-									// To do: is this actually a fatal error?
-								}
-							}
-							else if (UObject::IsType<UObjectProperty>(member))
-							{
-								// This happens for Deus Ex
-							}
-							else
-							{
-								Exception::Throw("localize keyword used on unsupported struct member property type");
-							}
-						}
-					}
-					else
-					{
-						Exception::Throw("localize keyword used on unsupported property type");
-					}
-				}
-
-				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
-			}
-		}
-	}
+	LoadProperties(&PropertyData);
 
 	for (UField* child = Children; child; child = child->Next)
 	{
@@ -626,19 +508,200 @@ UProperty* UClass::GetProperty(const NameString& propName)
 	Exception::Throw("Class Property '" + Name.ToString() + "." + propName.ToString() + "' not found");
 }
 
-void UClass::SaveToConfig(PackageManager& packageManager)
+void UClass::SaveConfig()
+{
+	// Saves the default object properties to the ini file
+	SaveProperties(&PropertyData);
+}
+
+void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
+{
+	NameString sectionName = package->GetPackageName().ToString() + "." + Name.ToString();
+	NameString configName = ClassConfigName;
+	if (configName.IsNone()) configName = "system";
+	for (UProperty* prop : Properties)
+	{
+		if (AnyFlags(prop->PropFlags, PropertyFlags::Config | PropertyFlags::GlobalConfig | PropertyFlags::Localized))
+		{
+			void* ptr = propertyBlock->Ptr(prop);
+			for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
+			{
+				NameString name = prop->Name;
+				if (prop->ArrayDimension > 1)
+					name = NameString(name.ToString() + "[" + std::to_string(arrayIndex) + "]");
+
+				std::string value;
+				if (AllFlags(prop->PropFlags, PropertyFlags::Config))
+				{
+					value = package->GetPackageManager()->GetIniValue(configName, sectionName, name);
+				}
+				else if (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
+				{
+					if (UClass* outer = UObject::TryCast<UClass>(prop->Outer()))
+					{
+						NameString outerSectionName = outer->package->GetPackageName().ToString() + "." + outer->Name.ToString();
+						NameString outerConfigName = outer->ClassConfigName;
+						if (outerConfigName.IsNone()) outerConfigName = "system";
+						value = package->GetPackageManager()->GetIniValue(outerConfigName, outerSectionName, prop->Name);
+					}
+				}
+				else if (AllFlags(prop->PropFlags, PropertyFlags::Localized))
+				{
+					value = package->GetPackageManager()->Localize(package->GetPackageName(), Name, name);
+				}
+
+				if (!value.empty())
+				{
+					if (UObject::IsType<UByteProperty>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+					else if (UObject::IsType<UIntProperty>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
+					else if (UObject::IsType<UFloatProperty>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
+					else if (UObject::IsType<UNameProperty>(prop)) *static_cast<NameString*>(ptr) = value;
+					else if (UObject::IsType<UStrProperty>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (UObject::IsType<UStringProperty>(prop)) *static_cast<std::string*>(ptr) = value;
+					else if (auto boolprop = UObject::TryCast<UBoolProperty>(prop))
+					{
+						for (char& c : value)
+							if (c >= 'A' && c <= 'Z')
+								c += 'a' - 'A';
+						boolprop->SetBool(ptr, value == "1" || value == "true" || value == "yes");
+					}
+					else if (UObject::IsType<UClassProperty>(prop))
+					{
+						try
+						{
+							size_t pos = value.find_first_of('.');
+							if (pos != std::string::npos)
+							{
+								NameString packageName = value.substr(0, pos);
+								NameString className = value.substr(pos + 1);
+								Package* pkg = package->GetPackageManager()->GetPackage(packageName);
+								*static_cast<UObject**>(ptr) = pkg->GetUObject("Class", className);
+							}
+						}
+						catch (...)
+						{
+							// To do: is this actually a fatal error?
+						}
+					}
+					else if (auto structprop = UObject::TryCast<UStructProperty>(prop))
+					{
+						// Yes, this is total spaghetti code at this point. No, I don't care anymore. ;)
+						auto values = ParseStructValue(value);
+						for (UProperty* member : structprop->Struct->Properties)
+						{
+							std::string membervalue = values[member->Name];
+							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset.DataOffset;
+							if (UObject::IsType<UByteProperty>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
+							else if (UObject::IsType<UIntProperty>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
+							else if (UObject::IsType<UFloatProperty>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
+							else if (UObject::IsType<UNameProperty>(member)) *static_cast<NameString*>(memberptr) = membervalue;
+							else if (UObject::IsType<UStrProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (UObject::IsType<UStringProperty>(member)) *static_cast<std::string*>(memberptr) = membervalue;
+							else if (auto boolprop = UObject::TryCast<UBoolProperty>(member))
+							{
+								for (char& c : membervalue)
+									if (c >= 'A' && c <= 'Z')
+										c += 'a' - 'A';
+								boolprop->SetBool(memberptr, membervalue == "1" || membervalue == "true" || membervalue == "yes");
+							}
+							else if (UObject::IsType<UClassProperty>(member))
+							{
+								try
+								{
+									size_t pos = membervalue.find_first_of('.');
+									if (pos != std::string::npos)
+									{
+										NameString packageName = membervalue.substr(0, pos);
+										NameString className = membervalue.substr(pos + 1);
+										Package* pkg = package->GetPackageManager()->GetPackage(packageName);
+										*static_cast<UObject**>(memberptr) = pkg->GetUObject("Class", className);
+									}
+								}
+								catch (...)
+								{
+									// To do: is this actually a fatal error?
+								}
+							}
+							else if (UObject::IsType<UObjectProperty>(member))
+							{
+								// This happens for Deus Ex
+							}
+							else
+							{
+								Exception::Throw("localize keyword used on unsupported struct member property type");
+							}
+						}
+					}
+					else
+					{
+						Exception::Throw("localize keyword used on unsupported property type");
+					}
+				}
+
+				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
+			}
+		}
+	}
+}
+
+void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 {
 	if (!(ClsFlags & ClassFlags::Config))
 		return;
 
-	auto ini_file = packageManager.GetIniFile(ClassConfigName);
+	NameString sectionName = package->GetPackageName().ToString() + "." + Name.ToString();
+	NameString configName = ClassConfigName;
+	if (configName.IsNone()) configName = "system";
 
-	// Iterate and save Properties that are marked with Config
-	for (UProperty* prop : PropertyData.Class->Properties)
+	for (UProperty* prop : Properties)
 	{
 		if (AnyFlags(prop->PropFlags, PropertyFlags::Config | PropertyFlags::GlobalConfig))
 		{
-			ini_file->SetValue(this->Name, prop->Name, prop->PrintValue(PropertyData.Ptr(prop)));
+			auto ptr = propertyBlock->Ptr(prop);
+			for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
+			{
+				NameString name = prop->Name;
+				if (prop->ArrayDimension > 1)
+					name = NameString(name.ToString() + "[" + std::to_string(arrayIndex) + "]");
+
+				bool unsupported = false;
+				std::string value;
+				if (UObject::IsType<UByteProperty>(prop)) value = std::to_string(*static_cast<uint8_t*>(ptr));
+				else if (UObject::IsType<UIntProperty>(prop)) value = std::to_string(*static_cast<int32_t*>(ptr));
+				else if (UObject::IsType<UFloatProperty>(prop)) value = std::to_string(*static_cast<float*>(ptr));
+				else if (UObject::IsType<UNameProperty>(prop)) value = (*static_cast<NameString*>(ptr)).ToString();
+				else if (UObject::IsType<UStrProperty>(prop)) value = *static_cast<std::string*>(ptr);
+				else if (UObject::IsType<UStringProperty>(prop)) value = *static_cast<std::string*>(ptr);
+				else if (auto boolprop = UObject::TryCast<UBoolProperty>(prop)) value = boolprop->GetBool(ptr) ? "True" : "False";
+				else unsupported = true;
+
+				if (!unsupported)
+				{
+					if (AnyFlags(prop->PropFlags, PropertyFlags::Config))
+					{
+						package->GetPackageManager()->SetIniValue(configName, sectionName, name, value);
+					}
+					else if (AnyFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
+					{
+						if (UClass* outer = UObject::TryCast<UClass>(prop->Outer()))
+						{
+							NameString outerSectionName = outer->package->GetPackageName().ToString() + "." + outer->Name.ToString();
+							NameString outerConfigName = outer->ClassConfigName;
+							if (outerConfigName.IsNone()) outerConfigName = "system";
+							package->GetPackageManager()->SetIniValue(outerConfigName, outerSectionName, name, value);
+						}
+					}
+				}
+				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
+			}
 		}
 	}
+
+	if (propertyBlock != &PropertyData)
+	{
+		// If its not our own block getting saved we need to load them into our default block
+		LoadProperties(&PropertyData);
+	}
+
+	// To do: we need to call LoadProperties on any derived class as their default block may have changed for any GlobalConfig properties
 }

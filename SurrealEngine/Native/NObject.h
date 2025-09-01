@@ -141,7 +141,7 @@ public:
 	static void Smerp(float Alpha, float A, float B, float& ReturnValue);
 	static void Sqrt(float A, float& ReturnValue);
 	static void Square(float A, float& ReturnValue);
-	static void StaticSaveConfig();
+	static void StaticSaveConfig(UObject* Class);
 	static void SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
 	static void SubtractEqual_FloatFloat(float& A, float B, float& ReturnValue);
 	static void SubtractEqual_IntInt(int& A, int B, int& ReturnValue);

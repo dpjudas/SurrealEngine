@@ -446,7 +446,7 @@ Array<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 		return IntObjects[NameString(metaclass.ToString().substr(pos + 1))];
 }
 
-std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName)
+std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName, const int index)
 {
 	if (packageName == "Engine" && keyName == "ClassCaption")
 	{
@@ -468,7 +468,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		}
 	}
 
-	std::string value = intFile->GetValue(sectionName, keyName);
+	std::string value = intFile->GetValue(sectionName, keyName, {}, index);
 	if (!value.empty() && value.front() == '"' && value.back() == '"')
 	{
 		value.erase(value.begin());

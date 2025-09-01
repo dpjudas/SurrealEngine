@@ -51,9 +51,10 @@ IniFile::IniFile(const std::string& filename)
 
 				if (!name.empty())
 				{
-					size_t bracket = name.find('[');
 					int index = -1;
 					bool indexed = false;
+					/* This doesn't work
+					size_t bracket = name.find('[');
 					if (bracket != std::string::npos)
 					{
 						size_t rightBracket = name.find(']');
@@ -64,6 +65,7 @@ IniFile::IniFile(const std::string& filename)
 						index = Convert::to_int32(name.substr(bracket + 1, rightBracket - bracket - 1));
 						name = name.substr(0, bracket);
 					}
+					*/
 
 					IniSection& section = AddUniqueSection(sectionName);
 					section.SetValue(name, value, index, indexed);
