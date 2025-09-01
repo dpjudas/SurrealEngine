@@ -144,7 +144,7 @@ std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float h
 	// What is a reasonable size for this grid? what did UE1 do?
 	int offset[] = { 0, 1, -1 };
 	bool found = false;
-	float scale = std::max(radius * 0.5f, height * 0.5f);
+	float scale = std::max(radius, height);
 	for (int z = 0; z < 3 && !found; z++)
 	{
 		for (int y = 0; y < 3 && !found; y++)
@@ -214,7 +214,7 @@ PointRegion UActor::FindRegion(const vec3& offset)
 void UActor::InitActorZone()
 {
 	Region() = FindRegion();
-	if (Region().Zone->bWaterZone())
+	if (Region().Zone->bWaterZone() && !this->IsA("Projectile"))
 	{
 		SetPhysics(PHYS_Swimming);
 		SetBase(nullptr, true);
@@ -698,6 +698,7 @@ void UActor::TickSwimming(float elapsed)
 {
 	// Only pawns can swim!
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
+
 	if (!pawn)
 		return;
 
