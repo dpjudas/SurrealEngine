@@ -13,10 +13,6 @@ CommandBufferManager::CommandBufferManager(VulkanRenderDevice* renderer) : rende
 		.DebugName("ImageAvailableSemaphore")
 		.Create(renderer->Device.get());
 
-	RenderFinishedSemaphore = SemaphoreBuilder()
-		.DebugName("RenderFinishedSemaphore")
-		.Create(renderer->Device.get());
-
 	RenderFinishedFence = FenceBuilder()
 		.DebugName("RenderFinishedFence")
 		.Create(renderer->Device.get());
@@ -48,8 +44,12 @@ void CommandBufferManager::WaitForTransfer()
 			.AddCommandBuffer(TransferCommands.get())
 			.Execute(renderer->Device.get(), renderer->Device.get()->GraphicsQueue, RenderFinishedFence.get());
 
-		vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-		vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
+		VkResult result = vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+		if (result != VK_SUCCESS)
+			throw std::runtime_error("vkWaitForFences failed");
+		result = vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
+		if (result != VK_SUCCESS)
+			throw std::runtime_error("vkResetFences failed");
 
 		TransferCommands.reset();
 	}
@@ -68,6 +68,14 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 			renderer->Framebuffers->DestroySwapChainFramebuffers();
 			SwapChain->Create(presentWidth, presentHeight, renderer->UseVSync ? 2 : 3, renderer->UseVSync, renderer->Hdr);
 			renderer->Framebuffers->CreateSwapChainFramebuffers();
+
+			RenderFinishedSemaphores.clear();
+			for (int i = 0; i < SwapChain->ImageCount(); i++)
+			{
+				RenderFinishedSemaphores.push_back(SemaphoreBuilder()
+					.DebugName("RenderFinishedSemaphore")
+					.Create(renderer->Device.get()));
+			}
 		}
 
 		PresentImageIndex = SwapChain->AcquireImage(ImageAvailableSemaphore.get());
@@ -102,17 +110,21 @@ void CommandBufferManager::SubmitCommands(bool present, int presentWidth, int pr
 	if (present && PresentImageIndex != -1)
 	{
 		submit.AddWait(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, ImageAvailableSemaphore.get());
-		submit.AddSignal(RenderFinishedSemaphore.get());
+		submit.AddSignal(RenderFinishedSemaphores[PresentImageIndex].get());
 	}
 	submit.Execute(renderer->Device.get(), renderer->Device.get()->GraphicsQueue, RenderFinishedFence.get());
 
 	if (present && PresentImageIndex != -1)
 	{
-		SwapChain->QueuePresent(PresentImageIndex, RenderFinishedSemaphore.get());
+		SwapChain->QueuePresent(PresentImageIndex, RenderFinishedSemaphores[PresentImageIndex].get());
 	}
 
-	vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-	vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
+	VkResult result = vkWaitForFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence, VK_TRUE, std::numeric_limits<uint64_t>::max());
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("vkWaitForFences failed");
+	result = vkResetFences(renderer->Device.get()->device, 1, &RenderFinishedFence->fence);
+	if (result != VK_SUCCESS)
+		throw std::runtime_error("vkResetFences failed");
 
 	DrawCommands.reset();
 	TransferCommands.reset();

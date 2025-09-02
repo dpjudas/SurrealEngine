@@ -34,7 +34,7 @@ private:
 	VulkanRenderDevice* renderer = nullptr;
 
 	std::unique_ptr<VulkanSemaphore> ImageAvailableSemaphore;
-	std::unique_ptr<VulkanSemaphore> RenderFinishedSemaphore;
+	std::vector<std::unique_ptr<VulkanSemaphore>> RenderFinishedSemaphores;
 	std::unique_ptr<VulkanSemaphore> TransferSemaphore;
 	std::unique_ptr<VulkanFence> RenderFinishedFence;
 	std::unique_ptr<VulkanCommandPool> CommandPool;
