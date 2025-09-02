@@ -112,7 +112,7 @@ RadiusActorsIterator::RadiusActorsIterator(UActor* Caller, UObject* BaseClass, U
 {
 	for (UActor* levelActor : engine->Level->Actors)
 	{
-		if (levelActor->IsA(BaseClass->Name) && length(levelActor->Location() - Location) <= Radius)
+		if (levelActor && levelActor->IsA(BaseClass->Name) && length(levelActor->Location() - Location) <= Radius)
 			RadiusActors.push_back(levelActor);
 	}
 

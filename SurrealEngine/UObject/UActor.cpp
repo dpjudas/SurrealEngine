@@ -2352,7 +2352,7 @@ void UPawn::Tick(float elapsed)
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
 		{
-			if (FaceTarget())
+			if (engine->LaunchInfo.engineVersion > 219 && FaceTarget())
 			{
 				TickRotateTo(Focus());
 				vec3 oldDest = Destination();
@@ -2372,7 +2372,7 @@ void UPawn::Tick(float elapsed)
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnToward)
 		{
-			if (FaceTarget())
+			if (engine->LaunchInfo.engineVersion > 219 && FaceTarget())
 			{
 				if (TickRotateTo(FaceTarget()->Location()))
 					StateFrame->LatentState = LatentRunState::Continue;
@@ -2532,7 +2532,8 @@ void UPawn::StrafeFacing(const vec3& newDestination, UActor* newTarget)
 		return;
 
 	Destination() = newDestination;
-	FaceTarget() = newTarget;
+	if (engine->LaunchInfo.engineVersion > 219)
+		FaceTarget() = newTarget;
 	SetMoveDuration(newDestination - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::StrafeFacing;
@@ -2563,7 +2564,8 @@ void UPawn::TurnToward(UActor* newTarget)
 	if (!newTarget)
 		return;
 
-	FaceTarget() = newTarget;
+	if (engine->LaunchInfo.engineVersion > 219)
+		FaceTarget() = newTarget;
 	Focus() = newTarget->Location();
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::TurnToward;

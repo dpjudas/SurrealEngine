@@ -861,6 +861,28 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		return {};
 	}
+	else if (command == "prsq")
+	{
+		// Klingon Honor Guard: CD check
+		// "mpgameplay"
+		// "mpinstall"
+		return "mpgameplay";
+	}
+	else if (command == "GetSplash")
+	{
+		// Klingon Honor Guard: splash screen status
+		return "false";
+	}
+	else if (command == "SetSplash")
+	{
+		// Klingon Honor Guard: show splash screen?
+		return {};
+	}
+	else if (command == "playavi")
+	{
+		// Klingon Honor Guard: play AVI movie
+		return {};
+	}
 	else
 	{
 		if (!ExecCommand(args))

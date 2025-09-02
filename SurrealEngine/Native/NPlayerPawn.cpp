@@ -16,6 +16,7 @@ void NPlayerPawn::RegisterFunctions()
 	}
 	else
 	{
+		RegisterVMNativeFunc_1("PlayerPawn", "ClientMessage", &NPlayerPawn::ClientMessage_219, 0);
 		RegisterVMNativeFunc_1("PlayerPawn", "ConsoleCommand", &NPlayerPawn::ConsoleCommand_219, 537);
 		RegisterVMNativeFunc_2("PlayerPawn", "ConsoleCommandResult", &NPlayerPawn::ConsoleCommandResult_219, 542);
 	}
@@ -42,6 +43,11 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 	ExpressionValue found = ExpressionValue::BoolValue(false);
 	ReturnValue = engine->ConsoleCommand(Self, Command, found.ToType<BitfieldBool&>());
+}
+
+void NPlayerPawn::ClientMessage_219(UObject* Self, const std::string& S)
+{
+	LogUnimplemented("ClientMessage not implemented");
 }
 
 void NPlayerPawn::ConsoleCommand_219(UObject* Self, const std::string& Command)

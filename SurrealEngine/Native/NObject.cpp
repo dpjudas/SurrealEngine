@@ -32,11 +32,17 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Add_VectorVector", &NObject::Add_VectorVector, 215);
 	RegisterVMNativeFunc_3("Object", "AndAnd_BoolBool", &NObject::AndAnd_BoolBool, 130);
 	RegisterVMNativeFunc_3("Object", "And_IntInt", &NObject::And_IntInt, 156);
-	RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 237);
+	if (engine->LaunchInfo.engineVersion > 219)
+		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 237);
+	else
+		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 0);
 	RegisterVMNativeFunc_3("Object", "At_StrStr", &NObject::At_StrStr, 168);
 	RegisterVMNativeFunc_2("Object", "Atan", &NObject::Atan, 190);
 	RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 235);
-	RegisterVMNativeFunc_2("Object", "Chr", &NObject::Chr, 236);
+	if (engine->LaunchInfo.engineVersion > 219)
+		RegisterVMNativeFunc_2("Object", "Chr", &NObject::Chr, 236);
+	else
+		RegisterVMNativeFunc_2("Object", "Chr", &NObject::Chr, 0);
 	RegisterVMNativeFunc_4("Object", "Clamp", &NObject::Clamp, 251);
 	RegisterVMNativeFunc_3("Object", "ClassIsChildOf", &NObject::ClassIsChildOf, 258);
 	RegisterVMNativeFunc_3("Object", "ComplementEqual_FloatFloat", &NObject::ComplementEqual_FloatFloat, 210);

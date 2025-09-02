@@ -123,16 +123,30 @@ void ExpressionEvaluator::Expr(LetExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-	lvalue.Store(rvalue);
-	Result.Value = std::move(lvalue);
+	if (lvalue.GetType() != ExpressionValueType::Nothing)
+	{
+		lvalue.Store(rvalue);
+		Result.Value = std::move(lvalue);
+	}
+	else
+	{
+		Result.Value = std::move(rvalue);
+	}
 }
 
 void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 {
 	ExpressionValue lvalue = Eval(expr->LeftSide).Value;
 	ExpressionValue rvalue = Eval(expr->RightSide).Value;
-	lvalue.Store(rvalue);
-	Result.Value = std::move(lvalue);
+	if (lvalue.GetType() != ExpressionValueType::Nothing)
+	{
+		lvalue.Store(rvalue);
+		Result.Value = std::move(lvalue);
+	}
+	else
+	{
+		Result.Value = std::move(rvalue);
+	}
 }
 
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
