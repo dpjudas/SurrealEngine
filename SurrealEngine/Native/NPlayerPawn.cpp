@@ -10,14 +10,25 @@
 void NPlayerPawn::RegisterFunctions()
 {
 	RegisterVMNativeFunc_3("PlayerPawn", "ClientTravel", &NPlayerPawn::ClientTravel, 0);
-	RegisterVMNativeFunc_2("PlayerPawn", "ConsoleCommand", &NPlayerPawn::ConsoleCommand, 0);
+	if (engine->LaunchInfo.engineVersion > 251)
+	{
+		RegisterVMNativeFunc_2("PlayerPawn", "ConsoleCommand", &NPlayerPawn::ConsoleCommand, 0);
+	}
+	else
+	{
+		RegisterVMNativeFunc_1("PlayerPawn", "ConsoleCommand", &NPlayerPawn::ConsoleCommand_251, 537);
+		RegisterVMNativeFunc_2("PlayerPawn", "ConsoleCommandResult", &NPlayerPawn::ConsoleCommandResult_251, 542);
+	}
 	RegisterVMNativeFunc_1("PlayerPawn", "CopyToClipboard", &NPlayerPawn::CopyToClipboard, 0);
 	RegisterVMNativeFunc_2("PlayerPawn", "GetDefaultURL", &NPlayerPawn::GetDefaultURL, 0);
 	RegisterVMNativeFunc_1("PlayerPawn", "GetEntryLevel", &NPlayerPawn::GetEntryLevel, 0);
 	RegisterVMNativeFunc_1("PlayerPawn", "GetPlayerNetworkAddress", &NPlayerPawn::GetPlayerNetworkAddress, 0);
 	RegisterVMNativeFunc_1("PlayerPawn", "PasteFromClipboard", &NPlayerPawn::PasteFromClipboard, 0);
 	RegisterVMNativeFunc_0("PlayerPawn", "ResetKeyboard", &NPlayerPawn::ResetKeyboard, 544);
-	RegisterVMNativeFunc_3("PlayerPawn", "UpdateURL", &NPlayerPawn::UpdateURL, 546);
+	if (engine->LaunchInfo.engineVersion > 251)
+		RegisterVMNativeFunc_3("PlayerPawn", "UpdateURL", &NPlayerPawn::UpdateURL, 546);
+	else
+		RegisterVMNativeFunc_1("PlayerPawn", "UpdateURL", &NPlayerPawn::UpdateURL_251, 546);
 }
 
 void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t TravelType, bool bItems)
@@ -31,6 +42,17 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 	ExpressionValue found = ExpressionValue::BoolValue(false);
 	ReturnValue = engine->ConsoleCommand(Self, Command, found.ToType<BitfieldBool&>());
+}
+
+void NPlayerPawn::ConsoleCommand_251(UObject* Self, const std::string& Command)
+{
+	std::string result;
+	ConsoleCommand(Self, Command, result);
+}
+
+void NPlayerPawn::ConsoleCommandResult_251(UObject* Self, const std::string& Command, std::string& ReturnValue)
+{
+	ConsoleCommand(Self, Command, ReturnValue);
 }
 
 void NPlayerPawn::CopyToClipboard(UObject* Self, const std::string& Text)
@@ -70,4 +92,10 @@ void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const s
 	SelfPlayerPawn->Level()->URL.AddOrReplaceOption(NewOption + "=" + NewValue);
 	if (bSaveDefault)
 		LogUnimplemented("PlayerPawn.UpdateURL save default");
+}
+
+void NPlayerPawn::UpdateURL_251(UObject* Self, const std::string& NewOption)
+{
+	UPlayerPawn* SelfPlayerPawn = UObject::Cast<UPlayerPawn>(Self);
+	SelfPlayerPawn->Level()->URL.AddOrReplaceOption(NewOption);
 }

@@ -174,6 +174,10 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 				traceMessage += arg.ToBool() ? "true" : "false";
 				traceMessage += "'";
 			}
+			else if (arg.GetType() == ExpressionValueType::ValueObject)
+			{
+				traceMessage += arg.ToObject() ? UObject::GetUClassName(arg.ToObject()).ToString() : "null";
+			}
 			else if (arg.GetType() == ExpressionValueType::Nothing)
 			{
 				traceMessage += "None";
@@ -471,7 +475,7 @@ ExpressionEvalResult Frame::Run()
 					UProperty* prop = UObject::TryCast<UProperty>(field);
 					if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 					{
-						result.Value = ExpressionValue::PropertyValue(prop);
+						result.Value = ExpressionValue::Variable(Variables.get(), prop);
 						result.Value.Load();
 						break;
 					}

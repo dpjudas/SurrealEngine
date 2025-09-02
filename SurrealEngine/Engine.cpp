@@ -152,7 +152,7 @@ void Engine::Run()
 								ObjectTravelInfo objInfo(item);
 								actorTravelInfo.push_back(std::move(objInfo));
 							}
-							std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+							std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
 							LogMessage("Adding travel data for player '" + playerName + "'");
 							travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
 						}
@@ -191,7 +191,7 @@ void Engine::Run()
 					}
 					// Add the pawn itself last
 					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
-					std::string playerName = pawn->PlayerReplicationInfo()->PlayerName();
+					std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
 					travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
 				}
 			}
@@ -1020,7 +1020,7 @@ void Engine::CloseWindow()
 
 void Engine::TickWindow()
 {
-	if (window)
+	if (window && engine->LaunchInfo.engineVersion > 251)
 	{
 		if (viewport->bShowWindowsMouse() && viewport->bWindowsMouseAvailable())
 			window->UnlockCursor();
@@ -1054,8 +1054,11 @@ void Engine::OnWindowPaint()
 
 void Engine::OnWindowMouseMove(const Point& pos)
 {
-	viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
-	viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
+	if (engine->LaunchInfo.engineVersion > 251)
+	{
+		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
+		viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
+	}
 }
 
 void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)

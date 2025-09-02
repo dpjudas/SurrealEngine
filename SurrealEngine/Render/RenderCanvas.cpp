@@ -37,8 +37,11 @@ void RenderSubsystem::ResetCanvas()
 	int sizeY = (int)(engine->ViewportHeight / (float)Canvas.uiscale);
 	engine->canvas->CurX() = 0.0f;
 	engine->canvas->CurY() = 0.0f;
-	engine->console->FrameX() = (float)sizeX;
-	engine->console->FrameY() = (float)sizeY;
+	if (engine->LaunchInfo.engineVersion > 251)
+	{
+		engine->console->FrameX() = (float)sizeX;
+		engine->console->FrameY() = (float)sizeY;
+	}
 	engine->canvas->ClipX() = (float)sizeX;
 	engine->canvas->ClipY() = (float)sizeY;
 	engine->canvas->SizeX() = sizeX;
@@ -209,6 +212,9 @@ void RenderSubsystem::DrawTextBlockRange(float x, float y, const Array<std::stri
 		for (char c : textBlocks[i])
 		{
 			FontGlyph glyph = font->GetGlyph(c);
+
+			if (!glyph.Texture)
+				continue;
 
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;

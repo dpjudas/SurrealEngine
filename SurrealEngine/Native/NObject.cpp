@@ -56,7 +56,10 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Divide_RotatorFloat", &NObject::Divide_RotatorFloat, 289);
 	RegisterVMNativeFunc_3("Object", "Divide_VectorFloat", &NObject::Divide_VectorFloat, 214);
 	RegisterVMNativeFunc_3("Object", "Dot_VectorVector", &NObject::Dot_VectorVector, 219);
-	RegisterVMNativeFunc_4("Object", "DynamicLoadObject", &NObject::DynamicLoadObject, 0);
+	if (engine->LaunchInfo.engineVersion > 219)
+		RegisterVMNativeFunc_4("Object", "DynamicLoadObject", &NObject::DynamicLoadObject, 0);
+	else
+		RegisterVMNativeFunc_3("Object", "DynamicLoadObject", &NObject::DynamicLoadObject_219, 0);
 	RegisterVMNativeFunc_1("Object", "Enable", &NObject::Enable, 117);
 	RegisterVMNativeFunc_3("Object", "EqualEqual_BoolBool", &NObject::EqualEqual_BoolBool, 242);
 	RegisterVMNativeFunc_3("Object", "EqualEqual_FloatFloat", &NObject::EqualEqual_FloatFloat, 180);
@@ -442,6 +445,34 @@ void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectCl
 	}
 
 	if (!ReturnValue && (!MayFail || *MayFail == false))
+	{
+		LogMessage("Object.DynamicLoadObject: could not load '" + ObjectName + "'");
+	}
+}
+
+void NObject::DynamicLoadObject_219(const std::string& ObjectName, UObject* ObjectClass, UObject*& ReturnValue)
+{
+	ReturnValue = nullptr;
+
+	if (!ObjectName.empty())
+	{
+		auto dotpos = ObjectName.find('.');
+		if (dotpos != 0 && dotpos != std::string::npos)
+		{
+			std::string packageName = ObjectName.substr(0, dotpos);
+			std::string objectName = ObjectName.substr(dotpos + 1);
+
+			try
+			{
+				ReturnValue = engine->packages->GetPackage(packageName)->GetUObject(ObjectClass->Name, objectName);
+			}
+			catch (...)
+			{
+			}
+		}
+	}
+
+	if (!ReturnValue)
 	{
 		LogMessage("Object.DynamicLoadObject: could not load '" + ObjectName + "'");
 	}

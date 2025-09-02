@@ -32,7 +32,10 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_4("Actor", "GetMapName", &NActor::GetMapName, 539);
 	RegisterVMNativeFunc_3("Actor", "GetNextInt", &NActor::GetNextInt, 0);
 	RegisterVMNativeFunc_4("Actor", "GetNextIntDesc", &NActor::GetNextIntDesc, 0);
-	RegisterVMNativeFunc_5("Actor", "GetNextSkin", &NActor::GetNextSkin, 545);
+	if (engine->LaunchInfo.engineVersion > 219)
+		RegisterVMNativeFunc_5("Actor", "GetNextSkin", &NActor::GetNextSkin, 545);
+	else
+		RegisterVMNativeFunc_4("Actor", "GetNextSkin", &NActor::GetNextSkin_219, 545);
 	RegisterVMNativeFunc_2("Actor", "GetSoundDuration", &NActor::GetSoundDuration, 0);
 	RegisterVMNativeFunc_1("Actor", "GetURLMap", &NActor::GetURLMap, 547);
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
@@ -66,7 +69,10 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_7("Actor", "TraceActors", &NActor::TraceActors, 309);
 	RegisterVMNativeFunc_2("Actor", "TweenAnim", &NActor::TweenAnim, 294);
 	RegisterVMNativeFunc_4("Actor", "VisibleActors", &NActor::VisibleActors, 311);
-	RegisterVMNativeFunc_5("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors, 312);
+	if (engine->LaunchInfo.engineVersion > 219)
+		RegisterVMNativeFunc_5("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors, 312);
+	else
+		RegisterVMNativeFunc_4("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors_219, 312);
 	RegisterVMNativeFunc_1("Actor", "GetPlayerPawn", &NActor::GetPlayerPawn, 720);
 	RegisterVMNativeFunc_1("Actor", "AIClearEvent", &NActor::AIClearEvent, 716);
 	RegisterVMNativeFunc_1("Actor", "AIClearEventCallback", &NActor::AIClearEventCallback, 711);
@@ -226,6 +232,12 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 
 	// Grab first map if map wasn't found or none was specified
 	ReturnValue = !maps.empty() ? maps.front() : std::string();
+}
+
+void NActor::GetNextSkin_219(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& ReturnValue)
+{
+	std::string SkinDesc;
+	GetNextSkin(Self, Prefix, CurrentSkin, Dir, ReturnValue, SkinDesc);
 }
 
 void NActor::GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc)
@@ -511,6 +523,16 @@ void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*&
 		Radius ? *Radius : SelfActor->CollisionRadius(),
 		Loc ? *Loc : SelfActor->Location(),
 		bIgnoreHidden ? *bIgnoreHidden : false);
+}
+
+void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	Frame::CreatedIterator = std::make_unique<VisibleCollidingActorsIterator>(
+		BaseClass, &Actor,
+		Radius ? *Radius : SelfActor->CollisionRadius(),
+		Loc ? *Loc : SelfActor->Location(),
+		false);
 }
 
 void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)

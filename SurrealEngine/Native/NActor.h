@@ -25,6 +25,7 @@ public:
 	static void GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue);
 	static void GetNextIntDesc(UObject* Self, const std::string& ClassName, int Num, std::string& Entry, std::string& Description);
 	static void GetNextSkin(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& SkinName, std::string& SkinDesc);
+	static void GetNextSkin_219(UObject* Self, const std::string& Prefix, const std::string& CurrentSkin, int Dir, std::string& ReturnValue);
 	static void GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue);
 	static void GetURLMap(UObject* Self, std::string& ReturnValue);
 	static void HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& ReturnValue);
@@ -59,6 +60,7 @@ public:
 	static void TweenAnim(UObject* Self, const NameString& Sequence, float Time);
 	static void VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc);
 	static void VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, BitfieldBool* bIgnoreHidden);
+	static void VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc);
 	static void GetPlayerPawn(UObject* Self, UObject*& ReturnValue);
 	static void AIClearEvent(UObject* Self, const NameString& eventName);
 	static void AIClearEventCallback(UObject* Self, const NameString& eventName);

@@ -590,7 +590,7 @@ void UActor::TickFalling(float elapsed)
 	if (pawn)
 	{
 		groundSpeed = pawn->GroundSpeed();
-		float maxAccel = pawn->AirControl() * pawn->AccelRate();
+		float maxAccel = engine->LaunchInfo.engineVersion > 251 ? pawn->AirControl() * pawn->AccelRate() : 0.0f;
 		float accel = length(acceleration);
 		if (accel > maxAccel)
 			acceleration = normalize(acceleration) * maxAccel;
@@ -912,14 +912,18 @@ void UActor::TickInterpolating(float elapsed)
 
 		if (auto pawn = UObject::TryCast<UPlayerPawn>(this))
 		{
-			pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
-			pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
-			pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject<UPlayerPawn>()->FovAngle();
-			pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
-			pawn->FlashFog() = pawn->DesiredFlashFog();
+			if (engine->LaunchInfo.engineVersion > 251)
+			{
+				pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
+				pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
+				pawn->FovAngle() = mix(target->FovModifier(), next->FovModifier(), physAlpha) * Class->GetDefaultObject<UPlayerPawn>()->FovAngle();
+				pawn->FlashScale() = vec3(pawn->DesiredFlashScale());
+				pawn->FlashFog() = pawn->DesiredFlashFog();
+			}
 		}
 
-		Level()->TimeDilation() = mix(target->GameSpeedModifier(), next->GameSpeedModifier(), physAlpha);
+		if (engine->LaunchInfo.engineVersion > 251)
+			Level()->TimeDilation() = mix(target->GameSpeedModifier(), next->GameSpeedModifier(), physAlpha);
 
 		float rateModifier = mix(target->RateModifier(), next->RateModifier(), physAlpha);
 		float physRate = PhysRate() * rateModifier;
@@ -980,8 +984,11 @@ void UActor::TickInterpolating(float elapsed)
 			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Next();
-			while (target && target->bSkipNextPath())
-				target = target->Next();
+			if (engine->LaunchInfo.engineVersion > 251)
+			{
+				while (target && target->bSkipNextPath())
+					target = target->Next();
+			}
 
 			Target() = target;
 			PhysAlpha() = 0.0f;
@@ -2148,7 +2155,8 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 	vec3 delta = Location() - source->Location();
 	float dist2 = dot(delta, delta);
 
-	if (!bIsPlayer() || !Level()->Game()->bTeamGame() || !noisePawn->bIsPlayer() || !PlayerReplicationInfo() || !noisePawn->PlayerReplicationInfo() || (PlayerReplicationInfo()->Team() != noisePawn->PlayerReplicationInfo()->Team()))
+	if (!bIsPlayer() || !Level()->Game()->bTeamGame() || !noisePawn->bIsPlayer() ||
+		(engine->LaunchInfo.engineVersion > 219 && (!PlayerReplicationInfo() || !noisePawn->PlayerReplicationInfo() || (PlayerReplicationInfo()->Team() != noisePawn->PlayerReplicationInfo()->Team()))))
 	{
 		if (dist2 > (4000.0f * 4000.0f) * (loudness * loudness))
 			return false;
@@ -2184,7 +2192,7 @@ UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDi
 UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
 {
 	UActor* bestActor = nullptr;
-	auto ourPlayerInfo = PlayerReplicationInfo();
+	UPlayerReplicationInfo* ourPlayerInfo = engine->LaunchInfo.engineVersion > 219 ? PlayerReplicationInfo() : nullptr;
 	bool teamGame = ourPlayerInfo && Level()->Game()->bTeamGame();
 	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
 	{
@@ -2233,6 +2241,9 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 
 void UPawn::ClearPaths()
 {
+	if (engine->LaunchInfo.engineVersion <= 251)
+		return;
+
 	UNavigationPoint** cache = RouteCache();
 	for (int i = 0; i < 16; i++)
 		cache[i] = nullptr;
@@ -2284,7 +2295,7 @@ void UPawn::InitActorZone()
 	FootRegion() = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
 	HeadRegion() = FindRegion({ 0.0f, 0.0f, EyeHeight() });
 
-	if (PlayerReplicationInfo())
+	if (engine->LaunchInfo.engineVersion > 219 && PlayerReplicationInfo())
 		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
 }
 
@@ -2304,7 +2315,7 @@ void UPawn::UpdateActorZone()
 		CallEvent(HeadRegion().Zone, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(this) });
 	HeadRegion() = newheadregion;
 
-	if (PlayerReplicationInfo())
+	if (engine->LaunchInfo.engineVersion > 219 && PlayerReplicationInfo())
 		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
 }
 
@@ -2632,21 +2643,28 @@ void UPlayerPawn::LoadProperties()
 	bSnapToLevel() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bSnapToLevel", false);
 	bAlwaysMouseLook() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bAlwaysMouseLook", true);
 	bKeyboardLook() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bKeyboardLook", false);
-	bMaxMouseSmoothing() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bMaxMouseSmoothing", false);
-	bNoFlash() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bNoFlash", false);
-	bNoVoices() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bNoVoices", false);
-	bMessageBeep() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bMessageBeep", true);
-	// NetSpeed is missing
-	// LanSpeed is missing
-	MouseSmoothThreshold() = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "MouseSmoothThreshold", 0.16f);
-	ngWorldSecret() = IniPropertyConverter<std::string>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "ngWorldSecret", "");
+	if (engine->LaunchInfo.engineVersion > 219)
+	{
+		bMaxMouseSmoothing() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bMaxMouseSmoothing", false);
+		bNoFlash() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bNoFlash", false);
+		bNoVoices() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bNoVoices", false);
+		bMessageBeep() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bMessageBeep", true);
+		// NetSpeed is missing
+		// LanSpeed is missing
+		MouseSmoothThreshold() = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "MouseSmoothThreshold", 0.16f);
+		ngWorldSecret() = IniPropertyConverter<std::string>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "ngWorldSecret", "");
 
-	// SE addition: Store/Load the DefaultFOV setting into/from the user.ini file as well
-	DefaultFOV() = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "MainFOV", 90.0f);
+		// SE addition: Store/Load the DefaultFOV setting into/from the user.ini file as well
+		DefaultFOV() = IniPropertyConverter<float>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "MainFOV", 90.0f);
+	}
 }
 
 void UPlayerPawn::SaveConfig()
 {
+	UPawn::SaveConfig();
+
+	// Note: the code below may no longer be needed. SaveConfig() on UObject saves all unrealscript variables marked as config or globalconfig
+
 	// Not sure why are PlayerPawn's config fields not saved with the base SaveConfig(), but whatever. 
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bInvertMouse", IniPropertyConverter<bool>::ToString(bInvertMouse()));
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "MouseSensitivity", IniPropertyConverter<float>::ToString(MouseSensitivity()));
@@ -2659,17 +2677,20 @@ void UPlayerPawn::SaveConfig()
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bSnapToLevel", IniPropertyConverter<bool>::ToString(bSnapToLevel()));
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bAlwaysMouseLook", IniPropertyConverter<bool>::ToString(bAlwaysMouseLook()));
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bKeyboardLook", IniPropertyConverter<bool>::ToString(bKeyboardLook()));
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bMaxMouseSmoothing", IniPropertyConverter<bool>::ToString(bMaxMouseSmoothing()));
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bNoFlash", IniPropertyConverter<bool>::ToString(bNoFlash()));
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bNoVoices", IniPropertyConverter<bool>::ToString(bNoVoices()));
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bMessageBeep", IniPropertyConverter<bool>::ToString(bMessageBeep()));
-	// NetSpeed is missing
-	// LanSpeed is missing
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "MouseSmoothThreshold", IniPropertyConverter<float>::ToString(MouseSmoothThreshold()));
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "ngWorldSecret", ngWorldSecret());
+	if (engine->LaunchInfo.engineVersion > 219)
+	{
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bMaxMouseSmoothing", IniPropertyConverter<bool>::ToString(bMaxMouseSmoothing()));
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bNoFlash", IniPropertyConverter<bool>::ToString(bNoFlash()));
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bNoVoices", IniPropertyConverter<bool>::ToString(bNoVoices()));
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bMessageBeep", IniPropertyConverter<bool>::ToString(bMessageBeep()));
+		// NetSpeed is missing
+		// LanSpeed is missing
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "MouseSmoothThreshold", IniPropertyConverter<float>::ToString(MouseSmoothThreshold()));
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "ngWorldSecret", ngWorldSecret());
 
-	// SE addition: Store/Load the DefaultFOV setting into/from the user.ini file as well
-	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "MainFOV", IniPropertyConverter<float>::ToString(DefaultFOV()));
+		// SE addition: Store/Load the DefaultFOV setting into/from the user.ini file as well
+		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "MainFOV", IniPropertyConverter<float>::ToString(DefaultFOV()));
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

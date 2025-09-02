@@ -50,6 +50,7 @@ public:
 	static void Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue);
 	static void Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue);
 	static void DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, BitfieldBool* MayFail, UObject*& ReturnValue);
+	static void DynamicLoadObject_219(const std::string& ObjectName, UObject* ObjectClass, UObject*& ReturnValue);
 	static void Enable(UObject* Self, const NameString& ProbeFunc);
 	static void EqualEqual_BoolBool(bool A, bool B, BitfieldBool& ReturnValue);
 	static void EqualEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);

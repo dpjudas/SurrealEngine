@@ -103,6 +103,7 @@ void ExpressionEvaluator::Expr(NothingExpression* expr)
 
 void ExpressionEvaluator::Expr(LabelTableExpression* expr)
 {
+	// Klingon honor guard has this! (UE 251)
 	Frame::ThrowException("Label table expression is not implemented");
 }
 
@@ -195,7 +196,9 @@ void ExpressionEvaluator::Expr(MetaCastExpression* expr)
 
 void ExpressionEvaluator::Expr(Unknown0x15Expression* expr)
 {
-	Frame::ThrowException("Unknown0x15 expression encountered");
+	// Klingon honor guard has this! (UE 251)
+	//Frame::ThrowException("Unknown0x15 expression encountered");
+	Result.Result = StatementResult::Stop;
 }
 
 void ExpressionEvaluator::Expr(SelfExpression* expr)
