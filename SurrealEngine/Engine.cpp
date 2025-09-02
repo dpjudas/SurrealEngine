@@ -73,7 +73,7 @@ void Engine::Run()
 	audiodev->InitDevice();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
 
-	if (!client->StartupFullscreen)
+	if (engine->LaunchInfo.engineVersion > 219 && !client->StartupFullscreen)
 		viewport->bWindowsMouseAvailable() = true;
 
 	if (!LaunchInfo.noEntryMap)

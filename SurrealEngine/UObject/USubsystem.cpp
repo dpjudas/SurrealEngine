@@ -518,7 +518,7 @@ void USurrealClient::LoadProperties(const NameString& from)
 	if (from == "")
 		name_from = NameString(Class);
 
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.engineVersion > 219) // This seems to set WindowedViewportX and WindowedViewportY to zero for KHG!!!!
 	{
 		StartupFullscreen = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "StartupFullscreen", StartupFullscreen);
 		WindowedViewportX = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportX", WindowedViewportX);
