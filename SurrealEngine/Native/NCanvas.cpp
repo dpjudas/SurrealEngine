@@ -14,14 +14,21 @@
 
 void NCanvas::RegisterFunctions()
 {
-	RegisterVMNativeFunc_3("Canvas", "DrawActor", &NCanvas::DrawActor, 467);
 	RegisterVMNativeFunc_7("Canvas", "DrawClippedActor", &NCanvas::DrawClippedActor, 471);
 	RegisterVMNativeFunc_9("Canvas", "DrawPortal", &NCanvas::DrawPortal, 480);
 	RegisterVMNativeFunc_2("Canvas", "DrawText", &NCanvas::DrawText, 465);
 	RegisterVMNativeFunc_2("Canvas", "DrawTextClipped", &NCanvas::DrawTextClipped, 469);
 	RegisterVMNativeFunc_7("Canvas", "DrawTile", &NCanvas::DrawTile, 466);
 	RegisterVMNativeFunc_7("Canvas", "DrawTileClipped", &NCanvas::DrawTileClipped, 468);
-	RegisterVMNativeFunc_3("Canvas", "StrLen", &NCanvas::StrLen, 464);
+	if (engine->LaunchInfo.engineVersion > 251)
+	{
+		RegisterVMNativeFunc_3("Canvas", "DrawActor", &NCanvas::DrawActor, 467);
+		RegisterVMNativeFunc_3("Canvas", "StrLen", &NCanvas::StrLen, 464);
+	}
+	else
+	{
+		RegisterVMNativeFunc_5("Canvas", "StrLen", &NCanvas::StrLen_251, 467); // Maybe only in KHG?
+	}
 	RegisterVMNativeFunc_3("Canvas", "TextSize", &NCanvas::TextSize, 470);
 }
 
@@ -212,6 +219,15 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 		XL = 0.0f;
 		YL = 0.0f;
 	}
+}
+
+void NCanvas::StrLen_251(UObject* Self, const std::string& Text, int NumChars, int StartIndex, int& XL, int& YL)
+{
+	std::string String = Text.substr(StartIndex, NumChars);
+	float width, height;
+	StrLen(Self, String, width, height);
+	XL = (int)std::round(width);
+	YL = (int)std::round(height);
 }
 
 void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, float& YL)
