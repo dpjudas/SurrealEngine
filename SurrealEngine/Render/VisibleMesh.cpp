@@ -110,22 +110,29 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 		for (int i = 0; i < 3; i++)
 		{
-			vec3 vertex = mesh->Verts[tri.Indices[i]];
+			size_t vindex = tri.Indices[i];
+			size_t vindex0 = vindex + vertexOffsets[0];
+			size_t vindex1 = vindex + vertexOffsets[1];
+
+			if (vindex0 >= mesh->Verts.size() || vindex1 >= mesh->Verts.size())
+				return false; // out of bounds
+
+			const vec3& v0 = mesh->Verts[vindex0];
+			const vec3& v1 = mesh->Verts[vindex1];
+			vec3 vertex = mix(v0, v1, t0);
+			if (t1 != 0.0f)
+			{
+				size_t vindex2 = vindex + vertexOffsets[2];
+				if (vindex2 >= mesh->Verts.size())
+					return false; // out of bounds
+
+				const vec3& v2 = mesh->Verts[vindex2];
+				const vec3& n2 = mesh->Normals[vindex2];
+				vertex = mix(vertex, v2, t1);
+			}
+
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { tri.UV[i].x * uscale, tri.UV[i].y * vscale };
-		}
-
-		if (renderflags & PF_Environment)
-		{
-			// To do: this needs to be the smoothed normal
-			vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
-			mat3 rotmat = mat3(frame->Frame.WorldToView * frame->Frame.ObjectToWorld);
-			for (int i = 0; i < 3; i++)
-			{
-				vec3 v = normalize(vertices[i].Point);
-				vec3 p = rotmat * reflect(v, n);
-				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
-			}
 		}
 
 		// To do: this needs to be the smoothed normal
