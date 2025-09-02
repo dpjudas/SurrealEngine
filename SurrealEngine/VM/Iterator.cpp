@@ -202,7 +202,7 @@ VisibleActorsIterator::VisibleActorsIterator(UActor* Caller, UObject* BaseClass,
 		// Our checks:
 		// * Whether the actor we're dealing with is not hidden and is the class of BaseClass
 		// * Then whether the distance of the actor from our given Location is no more than Radius
-		if (!levelActor->bHidden() && levelActor->IsA(BaseClass->Name) && 
+		if (levelActor && !levelActor->bHidden() && levelActor->IsA(BaseClass->Name) &&
 			length(levelActor->Location() - Location) <= Radius && Caller->FastTrace(levelActor->Location(), Location))
 		{
 			VisibleActors.push_back(levelActor);
