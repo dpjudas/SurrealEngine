@@ -5,15 +5,30 @@
 
 void UFont::Load(ObjectStream* stream)
 {
-	UObject::Load(stream);
+	// Note: 63 package and older inherited from UTexture. Newer versions inherit from UObject
+	// We must keep the old relationship intact to load the older games.
+	// If the game is newer then this is not a valid texture and any properties on UTexture do not exist.
+
 	if (stream->GetVersion() <= 63)
 	{
-		pages.resize(1);
+		UTexture::Load(stream);
 
-		// To do: how does the old font format look like?
+		pages.resize(1);
+		FontPage& page = pages.front();
+		page.Texture = this;
+		page.Characters.resize(stream->ReadIndex());
+		for (FontCharacter& character : page.Characters)
+		{
+			character.StartU = stream->ReadInt32();
+			character.StartV = stream->ReadInt32();
+			character.USize = stream->ReadInt32();
+			character.VSize = stream->ReadInt32();
+		}
 	}
 	else
 	{
+		UObject::Load(stream);
+
 		pages.resize(stream->ReadIndex());
 		for (FontPage& page : pages)
 		{

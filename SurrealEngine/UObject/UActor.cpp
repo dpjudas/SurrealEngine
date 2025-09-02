@@ -590,7 +590,7 @@ void UActor::TickFalling(float elapsed)
 	if (pawn)
 	{
 		groundSpeed = pawn->GroundSpeed();
-		float maxAccel = engine->LaunchInfo.engineVersion > 251 ? pawn->AirControl() * pawn->AccelRate() : 0.0f;
+		float maxAccel = engine->LaunchInfo.engineVersion > 219 ? pawn->AirControl() * pawn->AccelRate() : 0.0f;
 		float accel = length(acceleration);
 		if (accel > maxAccel)
 			acceleration = normalize(acceleration) * maxAccel;
@@ -912,7 +912,7 @@ void UActor::TickInterpolating(float elapsed)
 
 		if (auto pawn = UObject::TryCast<UPlayerPawn>(this))
 		{
-			if (engine->LaunchInfo.engineVersion > 251)
+			if (engine->LaunchInfo.engineVersion > 219)
 			{
 				pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
 				pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
@@ -922,7 +922,7 @@ void UActor::TickInterpolating(float elapsed)
 			}
 		}
 
-		if (engine->LaunchInfo.engineVersion > 251)
+		if (engine->LaunchInfo.engineVersion > 219)
 			Level()->TimeDilation() = mix(target->GameSpeedModifier(), next->GameSpeedModifier(), physAlpha);
 
 		float rateModifier = mix(target->RateModifier(), next->RateModifier(), physAlpha);
@@ -984,7 +984,7 @@ void UActor::TickInterpolating(float elapsed)
 			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Next();
-			if (engine->LaunchInfo.engineVersion > 251)
+			if (engine->LaunchInfo.engineVersion > 219)
 			{
 				while (target && target->bSkipNextPath())
 					target = target->Next();
@@ -2241,7 +2241,7 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 
 void UPawn::ClearPaths()
 {
-	if (engine->LaunchInfo.engineVersion <= 251)
+	if (engine->LaunchInfo.engineVersion <= 219)
 		return;
 
 	UNavigationPoint** cache = RouteCache();

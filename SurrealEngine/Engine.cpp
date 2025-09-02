@@ -1020,7 +1020,7 @@ void Engine::CloseWindow()
 
 void Engine::TickWindow()
 {
-	if (window && engine->LaunchInfo.engineVersion > 251)
+	if (window && engine->LaunchInfo.engineVersion > 219)
 	{
 		if (viewport->bShowWindowsMouse() && viewport->bWindowsMouseAvailable())
 			window->UnlockCursor();
@@ -1054,7 +1054,7 @@ void Engine::OnWindowPaint()
 
 void Engine::OnWindowMouseMove(const Point& pos)
 {
-	if (engine->LaunchInfo.engineVersion > 251)
+	if (engine->LaunchInfo.engineVersion > 219)
 	{
 		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
 		viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());

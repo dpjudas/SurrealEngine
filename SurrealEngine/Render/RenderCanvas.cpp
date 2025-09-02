@@ -37,7 +37,7 @@ void RenderSubsystem::ResetCanvas()
 	int sizeY = (int)(engine->ViewportHeight / (float)Canvas.uiscale);
 	engine->canvas->CurX() = 0.0f;
 	engine->canvas->CurY() = 0.0f;
-	if (engine->LaunchInfo.engineVersion > 251)
+	if (engine->LaunchInfo.engineVersion > 219)
 	{
 		engine->console->FrameX() = (float)sizeX;
 		engine->console->FrameY() = (float)sizeY;

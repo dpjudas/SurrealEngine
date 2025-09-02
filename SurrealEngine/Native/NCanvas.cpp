@@ -20,14 +20,14 @@ void NCanvas::RegisterFunctions()
 	RegisterVMNativeFunc_2("Canvas", "DrawTextClipped", &NCanvas::DrawTextClipped, 469);
 	RegisterVMNativeFunc_7("Canvas", "DrawTile", &NCanvas::DrawTile, 466);
 	RegisterVMNativeFunc_7("Canvas", "DrawTileClipped", &NCanvas::DrawTileClipped, 468);
-	if (engine->LaunchInfo.engineVersion > 251)
+	if (engine->LaunchInfo.engineVersion > 219)
 	{
 		RegisterVMNativeFunc_3("Canvas", "DrawActor", &NCanvas::DrawActor, 467);
 		RegisterVMNativeFunc_3("Canvas", "StrLen", &NCanvas::StrLen, 464);
 	}
 	else
 	{
-		RegisterVMNativeFunc_5("Canvas", "StrLen", &NCanvas::StrLen_251, 467); // Maybe only in KHG?
+		RegisterVMNativeFunc_5("Canvas", "StrLen", &NCanvas::StrLen_219, 467); // Maybe only in KHG?
 	}
 	RegisterVMNativeFunc_3("Canvas", "TextSize", &NCanvas::TextSize, 470);
 }
@@ -221,7 +221,7 @@ void NCanvas::StrLen(UObject* Self, const std::string& String, float& XL, float&
 	}
 }
 
-void NCanvas::StrLen_251(UObject* Self, const std::string& Text, int NumChars, int StartIndex, int& XL, int& YL)
+void NCanvas::StrLen_219(UObject* Self, const std::string& Text, int NumChars, int StartIndex, int& XL, int& YL)
 {
 	std::string String = Text.substr(StartIndex, NumChars);
 	float width, height;

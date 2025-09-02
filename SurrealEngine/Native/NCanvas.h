@@ -15,6 +15,6 @@ public:
 	static void DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U, float V, float UL, float VL);
 	static void DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, float U, float V, float UL, float VL);
 	static void StrLen(UObject* Self, const std::string& String, float& XL, float& YL);
-	static void StrLen_251(UObject* Self, const std::string& Text, int NumChars, int StartIndex, int& XL, int& YL);
+	static void StrLen_219(UObject* Self, const std::string& Text, int NumChars, int StartIndex, int& XL, int& YL);
 	static void TextSize(UObject* Self, const std::string& String, float& XL, float& YL);
 };

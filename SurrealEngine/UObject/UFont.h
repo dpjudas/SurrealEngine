@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject.h"
+#include "UTexture.h"
 
 class UTexture;
 
@@ -33,10 +33,10 @@ public:
 	int VSize = 0;
 };
 
-class UFont : public UObject
+class UFont : public UTexture
 {
 public:
-	using UObject::UObject;
+	using UTexture::UTexture;
 	void Load(ObjectStream* stream) override;
 
 	FontGlyph GetGlyph(char c) const;
