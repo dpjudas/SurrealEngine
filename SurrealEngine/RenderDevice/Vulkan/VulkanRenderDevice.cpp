@@ -19,7 +19,7 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport)
 		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
 			.RequireExtensions(Viewport->GetVulkanInstanceExtensions())
 			.OptionalSwapchainColorspace()
-			.DebugLayer(false)
+			.DebugLayer(UseDebugLayer)
 			.Create();
 
 		auto surface = std::make_shared<VulkanSurface>(instance, Viewport->CreateVulkanSurface(instance->Instance));
