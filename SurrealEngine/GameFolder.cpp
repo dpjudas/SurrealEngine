@@ -349,7 +349,7 @@ std::string GameFolderSelection::GetExePath()
 
 Array<std::string> GameFolderSelection::FindGameFolders()
 {
-	return {};
+	return LauncherSettings::Get().Games.SearchList;
 }
 
 #endif
