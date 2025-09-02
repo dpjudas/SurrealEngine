@@ -392,11 +392,27 @@ Array<std::string> Directory::files(const std::string& filename)
 
 void Directory::create(const std::string& dirname)
 {
-	if (mkdir(dirname.c_str(), 0777) < 0)
+	if (mkdir(dirname.c_str(), 0777) == 0)
+		return;
+	if (errno == EEXIST)
+		return;
+	if (errno == ENOENT)
 	{
-		if (errno != EEXIST)
-			Exception::Throw("Could not create directory " + dirname);
+		try
+		{
+			std::string parent = FilePath::remove_last_component(dirname);
+			if (!parent.empty())
+			{
+				Directory::create(parent);
+				if (mkdir(dirname.c_str(), 0777) == 0)
+					return;
+			}
+		}
+		catch (...)
+		{
+		}
 	}
+	Exception::Throw("Could not create directory " + dirname);
 }
 
 std::string Directory::localAppData()
