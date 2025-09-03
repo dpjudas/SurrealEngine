@@ -24,6 +24,7 @@ bool AllObjectsIterator::Next()
 			return true;
 		}
 	}
+	*ReturnValue = nullptr;
 	return false;
 }
 
@@ -50,7 +51,10 @@ AllFilesIterator::AllFilesIterator(const std::string& FileExtension, const std::
 bool AllFilesIterator::Next()
 {
 	if (iterator == FoundFiles.end())
+	{
+		FileName = {};
 		return false;
+	}
 
 	FileName = *iterator;
 	iterator++;
@@ -74,7 +78,10 @@ BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UOb
 bool BasedActorsIterator::Next()
 {
 	if (iterator == BasedActors.end())
+	{
+		*Actor = nullptr;
 		return false;
+	}
 
 	*Actor = *iterator;
 	iterator++;
@@ -98,7 +105,10 @@ ChildActorsIterator::ChildActorsIterator(UActor* Caller, UObject* BaseClass, UOb
 bool ChildActorsIterator::Next()
 {
 	if (iterator == ChildActors.end())
+	{
+		*Actor = nullptr;
 		return false;
+	}
 
 	*Actor = *iterator;
 	iterator++;
@@ -122,7 +132,10 @@ RadiusActorsIterator::RadiusActorsIterator(UActor* Caller, UObject* BaseClass, U
 bool RadiusActorsIterator::Next()
 {
 	if (iterator == RadiusActors.end())
+	{
+		*Actor = nullptr;
 		return false;
+	}
 
 	*Actor = *iterator;
 	iterator++;
@@ -148,7 +161,10 @@ TouchingActorsIterator::TouchingActorsIterator(UActor* Caller, UObject* BaseClas
 bool TouchingActorsIterator::Next()
 {
 	if (iterator == TouchingActors.end())
+	{
+		*outActor = nullptr;
 		return false;
+	}
 	
 	*outActor = *iterator;
 	iterator++;
@@ -183,7 +199,12 @@ TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, ve
 bool TraceActorsIterator::Next()
 {
 	if (iterator == tracedActors.end())
+	{
+		*Actor = nullptr;
+		*HitLoc = vec3(0.0f);
+		*HitNorm = vec3(0.0f);
 		return false;
+	}
 
 	*Actor = iterator->tracedActor;
 	*HitLoc = iterator->HitLoc;
@@ -215,7 +236,10 @@ VisibleActorsIterator::VisibleActorsIterator(UActor* Caller, UObject* BaseClass,
 bool VisibleActorsIterator::Next()
 {
 	if (iterator == VisibleActors.end())
+	{
+		*Actor = nullptr;
 		return false;
+	}
 
 	*Actor = *iterator;
 	iterator++;
@@ -242,6 +266,7 @@ bool VisibleCollidingActorsIterator::Next()
 			return true;
 		}
 	}
+	*ReturnValue = nullptr;
 	return false;
 }
 
@@ -269,7 +294,10 @@ ZoneActorsIterator::ZoneActorsIterator(UZoneInfo* zone, UObject* BaseClass, UObj
 bool ZoneActorsIterator::Next()
 {
 	if (iterator == ZoneActors.end())
+	{
+		*Actor = nullptr;
 		return false;
+	}
 
 	*Actor = *iterator;
 	iterator++;

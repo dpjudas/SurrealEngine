@@ -949,13 +949,20 @@ void UActor::TickInterpolating(float elapsed)
 			timeLeft = 0.0f;
 		}
 
-		UInterpolationPoint* prev = target->Position() > 0 ? target->Prev() : target;
+		UInterpolationPoint* prev = target->Prev();
 		UInterpolationPoint* nextnext = next->Next();
-		if (!nextnext) nextnext = next;
-		if (next->bEndOfPath()) nextnext = next;
-		if (target->bEndOfPath()) { next = target; nextnext = target; }
-		vec3 location = spline(prev->Location(), target->Location(), next->Location(), nextnext->Location(), physAlpha);
-		Rotator rotation = spline(prev->Rotation(), target->Rotation(), next->Rotation(), nextnext->Rotation(), physAlpha);
+		vec3 location;
+		Rotator rotation;
+		if (prev && nextnext)
+		{
+			location = spline(prev->Location(), target->Location(), next->Location(), nextnext->Location(), physAlpha);
+			rotation = spline(prev->Rotation(), target->Rotation(), next->Rotation(), nextnext->Rotation(), physAlpha);
+		}
+		else
+		{
+			location = mix(target->Location(), next->Location(), physAlpha);
+			rotation = mix(target->Rotation(), next->Rotation(), physAlpha);
+		}
 
 		PhysAlpha() = physAlpha;
 		TryMove(location - Location());
@@ -972,8 +979,11 @@ void UActor::TickInterpolating(float elapsed)
 			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Prev();
-			while (target && target->bSkipNextPath())
-				target = target->Prev();
+			if (engine->LaunchInfo.engineVersion > 219)
+			{
+				while (target && target->bSkipNextPath())
+					target = target->Prev();
+			}
 
 			Target() = target;
 			PhysAlpha() = 1.0f;

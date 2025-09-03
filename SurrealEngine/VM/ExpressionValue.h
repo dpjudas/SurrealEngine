@@ -477,7 +477,7 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	switch (Type)
 	{
 	default:
-	case ExpressionValueType::Nothing: return value.Type == ExpressionValueType::Nothing;
+	case ExpressionValueType::Nothing: return value.Type == ExpressionValueType::Nothing || (value.Type == ExpressionValueType::ValueObject && value.ToObject() == nullptr);
 	case ExpressionValueType::ValueByte:
 	case ExpressionValueType::ValueInt: return ToInt() == value.ToInt();
 	case ExpressionValueType::ValueBool: return ToBool() == value.ToBool();
