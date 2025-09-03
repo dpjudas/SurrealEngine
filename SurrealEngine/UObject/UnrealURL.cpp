@@ -1,4 +1,6 @@
 #include "UnrealURL.h"
+#include "Engine.h"
+#include "Package/PackageManager.h"
 
 #include <sstream>
 
@@ -26,6 +28,8 @@ UnrealURL::UnrealURL(std::string urlString)
 {
 	// Expected url format on a local game:
 	// mapname[#teleporttag][?key1=value1[?key2=value2]...]
+	// Or in case of Klingons Honor Guard
+	// mapname[/teleporttag][?key1=value1[?key2=value2]...]
 
 	// Trim the url string of whitespaces
 	// Fixes the crash during the transition from Temple of Vandora to The Trench in Unreal
@@ -37,7 +41,13 @@ UnrealURL::UnrealURL(std::string urlString)
 	std::string teleportTag = "";
 	std::string options = "";
 
-	size_t teleportTagPos = urlString.find('#');
+	size_t teleportTagPos;
+
+	if (engine && engine->packages->IsKlingonHonorGuard())
+		// Klingon Honor Guard uses / as the teleport tag delimiter for some reason
+		teleportTagPos = urlString.find('/');
+	else
+		teleportTagPos = urlString.find('#');
 
 	if (teleportTagPos != std::string::npos)
 	{
