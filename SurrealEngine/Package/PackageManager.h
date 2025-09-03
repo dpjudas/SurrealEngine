@@ -30,6 +30,7 @@ public:
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
 	bool IsDeusEx() const { return launchInfo.gameExecutableName == "DeusEx"; }
 	bool IsCliveBarkersUndying() const { return launchInfo.gameExecutableName == "Undying"; }
+	bool IsKlingonHonorGuard() const  { return launchInfo.gameExecutableName == "Klingons" || launchInfo.gameExecutableName == "Khg"; }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
@@ -50,9 +51,15 @@ public:
 	std::string GetMapExtension() { return mapExtension; }
 
 	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
+	std::unique_ptr<IniFile> GetUserIniFile();
+	std::unique_ptr<IniFile> GetSystemIniFile();
 	Array<NameString> GetIniKeysFromSection(NameString iniName, const NameString& sectionName);
 	std::string GetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, std::string default_value = "", const int index = 0);
 	Array<std::string> GetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, Array<std::string> default_values = {});
+	std::string GetDefaultIniValue(const NameString& sectionName, const NameString& keyName, std::string default_value = "", const int index = 0);
+	Array<std::string> GetDefaultIniValues(const NameString& sectionName, const NameString& keyName, Array<std::string> default_values = {});
+	std::string GetDefUserIniValue(const NameString& sectionName, const NameString& keyName, std::string default_value = "", const int index = 0);
+	Array<std::string> GetDefUserIniValues(const NameString& sectionName, const NameString& keyName, Array<std::string> default_values = {});
 	void SetIniValue(NameString iniName, const NameString& sectionName, const NameString& keyName, const std::string& newValue, const int index = 0);
 	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues);
 	void SaveAllIniFiles();
@@ -65,7 +72,9 @@ public:
 	bool MissingSESystemIni() const { return missing_se_system_ini; }
 
 private:
-	std::unique_ptr<IniFile>& GetSystemIniFile(NameString iniName);
+	std::unique_ptr<IniFile>& LoadIniFile(NameString iniName);
+	std::unique_ptr<IniFile>& LoadUserIniFile();
+	std::unique_ptr<IniFile>& LoadSystemIniFile();
 	void LoadEngineIniFiles();
 	void LoadIntFiles();
 	void LoadPackageRemaps();
@@ -89,6 +98,9 @@ private:
 	std::map<std::string, std::string> packageRemaps;
 
 	std::map<NameString, Array<IntObject>> IntObjects;
+
+	std::unique_ptr<IniFile> defaultIniFile;  // Holds Default.ini
+	std::unique_ptr<IniFile> defaultUserFile; // Holds DefUser.ini
 
 	Array<std::string> mapFolders;
 	Array<std::string> maps;
