@@ -21,10 +21,17 @@ extern "C"
 
 	extern FFCodec ff_indeo5_decoder;
 
+#ifdef _MSC_VER
 	__declspec(dllexport) FFCodec* GetIndeo5Decoder()
 	{
 		return &ff_indeo5_decoder;
 	}
+#else
+	FFCodec* GetIndeo5Decoder()
+	{
+		return &ff_indeo5_decoder;
+	}
+#endif
 
 	/* The part of mem.c we are actually using
 	void* av_mallocz(size_t size) av_malloc_attrib av_alloc_size(1) { return nullptr; }

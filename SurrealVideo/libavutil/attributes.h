@@ -156,15 +156,15 @@
 #    define av_uninit(x) x
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
+/*#if defined(__GNUC__) || defined(__clang__)
 #    define av_builtin_constant_p __builtin_constant_p
 #    define av_printf_format(fmtpos, attrpos) __attribute__((__format__(__printf__, fmtpos, attrpos)))
 #    define av_scanf_format(fmtpos, attrpos) __attribute__((__format__(__scanf__, fmtpos, attrpos)))
-#else
+#else*/
 #    define av_builtin_constant_p(x) 0
 #    define av_printf_format(fmtpos, attrpos)
 #    define av_scanf_format(fmtpos, attrpos)
-#endif
+/*#endif*/
 
 #if AV_GCC_VERSION_AT_LEAST(2,5) || defined(__clang__)
 #    define av_noreturn __attribute__((noreturn))

@@ -27,6 +27,7 @@
 #define AVCODEC_GET_BITS_H
 
 #include <stdint.h>
+#include <limits.h>
 
 //#include "libavutil/common.h"
 #include "libavutil/intreadwrite.h"
