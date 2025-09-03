@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <stdexcept>
+#include <cstring>
 
 class AVIFileReader
 {
