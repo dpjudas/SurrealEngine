@@ -143,6 +143,9 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Audio/AudioSource.cpp
 	SurrealEngine/Audio/AudioDevice.cpp
 	SurrealEngine/Audio/AudioDevice.h
+	SurrealEngine/Video/VideoPlayer.cpp
+	SurrealEngine/Video/VideoPlayer.h
+	SurrealEngine/Video/AVIFileReader.h
 	SurrealEngine/Native/NStatLog.h
 	SurrealEngine/Native/NZoneInfo.cpp
 	SurrealEngine/Native/NNavigationPoint.cpp
@@ -514,6 +517,45 @@ set(SURREALDEBUGGER_SOURCES
 	SurrealEngine/MainDebugger.cpp
 )
 
+set(SURREALVIDEO_SOURCES
+	SurrealVideo/SurrealVideo.cpp
+	SurrealVideo/SurrealVideo.h
+	SurrealVideo/libavcodec/indeo5.c
+	SurrealVideo/libavcodec/indeo5data.h
+	SurrealVideo/libavcodec/ivi.c
+	SurrealVideo/libavcodec/ivi.h
+	SurrealVideo/libavcodec/ivi_dsp.c
+	SurrealVideo/libavcodec/ivi_dsp.h
+	SurrealVideo/libavcodec/vlc.c
+	SurrealVideo/libavcodec/vlc.h
+	SurrealVideo/libavcodec/codec_internal.h
+	SurrealVideo/libavcodec/decode.h
+	SurrealVideo/libavcodec/defs.h
+	SurrealVideo/libavcodec/get_bits.h
+	SurrealVideo/libavcodec/mathops.h
+	SurrealVideo/libavcodec/packet.h
+	SurrealVideo/libavutil/reverse.c
+	SurrealVideo/libavutil/mem.c
+	SurrealVideo/libavutil/attributes.h
+	SurrealVideo/libavutil/avassert.h
+	SurrealVideo/libavutil/config.h
+	SurrealVideo/libavutil/dynarray.h
+	SurrealVideo/libavutil/error.h
+	SurrealVideo/libavutil/frame.h
+	SurrealVideo/libavutil/imgutils.h
+	SurrealVideo/libavutil/intfloat.h
+	SurrealVideo/libavutil/intmath.h
+	SurrealVideo/libavutil/intreadwrite.h
+	SurrealVideo/libavutil/log.h
+	SurrealVideo/libavutil/macros.h
+	SurrealVideo/libavutil/mem.c
+	SurrealVideo/libavutil/mem.h
+	SurrealVideo/libavutil/pixfmt.h
+	SurrealVideo/libavutil/qsort.h
+	SurrealVideo/libavutil/reverse.h
+	SurrealVideo/libavutil/thread.h
+)
+
 source_group("SurrealEngine" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/.+")
 source_group("SurrealEngine\\Audio" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Audio/.+")
 source_group("SurrealEngine\\Math" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Math/.+")
@@ -540,6 +582,12 @@ source_group("SurrealEngine\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_
 source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Utils/.+")
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
+source_group("SurrealEngine\\Video" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Video/.+")
+
+source_group("SurrealVideo" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/.+")
+source_group("SurrealVideo\\libavcodec" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/libavcodec/.+")
+source_group("SurrealVideo\\libavutil" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/libavutil/.+")
+
 source_group("Thirdparty" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/.+")
 source_group("Thirdparty\\resample" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/resample/.+")
 source_group("Thirdparty\\dumb" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/.+")
@@ -584,8 +632,13 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
 
 	# Ignore warnings in third party code
-	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 -D_CRT_SECURE_NO_WARNINGS")
+	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 -D_CRT_SECURE_NO_WARNINGS")
+	set_source_files_properties(${SURREALVIDEO_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 /wd4146 /wd4334 -D_CRT_SECURE_NO_WARNINGS /std:c11 /experimental:c11atomics")
 endif()
+
+add_library(SurrealVideo SHARED ${SURREALVIDEO_SOURCES})
+target_include_directories(SurrealVideo PRIVATE SurrealVideo)
+set_target_properties(SurrealVideo PROPERTIES CXX_STANDARD 20)
 
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
 set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 20)
