@@ -69,11 +69,11 @@ jobs:
           cp ${{ matrix.config.build_type }}/SurrealEditor-stripped.pdb package/SurrealEditor.pdb
           cp ${{ matrix.config.build_type }}/SurrealDebugger-stripped.pdb package/SurrealDebugger.pdb
         elif [[ "${{ runner.os }}" == 'Linux' ]]; then
-          cp SurrealEngine SurrealEditor SurrealDebugger SurrealEngine.pk3 SurrealVideo.so package
+          cp SurrealEngine SurrealEditor SurrealDebugger SurrealEngine.pk3 libSurrealVideo.so package
           strip package/SurrealEngine
           strip package/SurrealEditor
           strip package/SurrealDebugger
-          strip package/SurrealVideo.so
+          strip package/libSurrealVideo.so
         fi
 
     - name: Upload Package
