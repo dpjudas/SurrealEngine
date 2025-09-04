@@ -188,6 +188,12 @@ void PackageManager::ScanPaths()
 	}
 }
 
+std::string PackageManager::GetVideoFilename(const std::string& name)
+{
+	// To do: this may have case insensibility issues on unix
+	return FilePath::combine(launchInfo.gameRootFolder, "System/" + name);
+}
+
 Array<NameString> PackageManager::GetPackageNames() const
 {
 	Array<NameString> names;

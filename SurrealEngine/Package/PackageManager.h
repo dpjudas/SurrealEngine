@@ -64,6 +64,8 @@ public:
 	void SetIniValues(NameString iniName, const NameString& sectionName, const NameString& keyName, const Array<std::string>& newValues);
 	void SaveAllIniFiles();
 
+	std::string GetVideoFilename(const std::string& name);
+
 	std::string Localize(NameString packageName, const NameString& sectionName, const NameString& keyName, const int index = 0);
 
 	Array<IntObject>& GetIntObjects(const NameString& metaclass);

@@ -23,6 +23,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "VM/Frame.h"
 #include "VM/ScriptCall.h"
+#include "Video/VideoPlayer.h"
 #include <chrono>
 #include <set>
 
@@ -240,6 +241,38 @@ void Engine::Run()
 	packages->SaveAllIniFiles();
 
 	CloseWindow();
+}
+
+void Engine::PlayAVI(const Array<std::string>& args)
+{
+	if (args.size() < 3)
+		return;
+
+	std::string filename = args[1];
+	bool isYes = args[2] == "Y"; // To do: what does this parameter mean? Some texture overlay we need to draw for the briefings?
+
+	try
+	{
+		auto player = VideoPlayer::Create(packages->GetVideoFilename(filename));
+		CalcTimeElapsed(); // Reset so load time doesn't affect playback
+		float timestamp = 0.0f;
+		while (!quit)
+		{
+			timestamp += CalcTimeElapsed();
+
+			if (!player->Decode())
+				break;
+
+			GameWindow::ProcessEvents(); // To do: how to read input here?
+			UpdateAudio(); // To do: we actually just want to stream audio from the video
+			render->DrawGame(0.0f); // To do: we actually want to draw the video
+		}
+	}
+	catch (const std::exception& e)
+	{
+		LogMessage("Error playing " + filename + ": " + e.what());
+	}
+	CalcTimeElapsed(); // Reset so game isn't affected
 }
 
 void Engine::UpdateAudio()
@@ -868,19 +901,18 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		// "mpinstall"
 		return "mpgameplay";
 	}
-	else if (command == "GetSplash")
+	else if (command == "getsplash")
 	{
-		// Klingon Honor Guard: splash screen status
-		return "false";
+		return khgSplashScreen ? "true" : "false";
 	}
-	else if (command == "SetSplash")
+	else if (command == "setsplash")
 	{
-		// Klingon Honor Guard: show splash screen?
+		khgSplashScreen = true;
 		return {};
 	}
 	else if (command == "playavi")
 	{
-		// Klingon Honor Guard: play AVI movie
+		PlayAVI(args);
 		return {};
 	}
 	else

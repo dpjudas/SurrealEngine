@@ -81,6 +81,8 @@ public:
 	Array<std::string> GetArgs(const std::string& commandline);
 	Array<std::string> GetSubcommands(const std::string& commandline);
 
+	void PlayAVI(const Array<std::string>& args);
+
 	void UpdateAudio();
 
 	void OpenWindow();
@@ -191,6 +193,8 @@ public:
 private:
 	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
 	bool m_GamePaused = false;
+
+	bool khgSplashScreen = false;
 };
 
 extern Engine* engine;
