@@ -3,6 +3,7 @@
 #include "VideoPlayer.h"
 #include "AVIFileReader.h"
 #include "Utils/File.h"
+#include "UObject/UTexture.h"
 #include "../../../SurrealVideo/SurrealVideo.h"
 
 struct AVIMainHeader
@@ -232,7 +233,7 @@ public:
 					{
 						DecodeAudio(packetData.data(), packetSize);
 					}
-					else if (type.substr(2) == "dc") // Video frame
+					else if (type.substr(2) == "dc" || type.substr(2) == "db") // Video frame
 					{
 						DecodeVideo(packetData.data(), packetSize);
 					}
@@ -252,7 +253,7 @@ public:
 				{
 					DecodeAudio(packetData.data(), packetSize);
 				}
-				else if (type.substr(2) == "dc") // Video frame
+				else if (type.substr(2) == "dc" || type.substr(2) == "db") // Video frame
 				{
 					DecodeVideo(packetData.data(), packetSize);
 				}
@@ -262,6 +263,17 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	UnrealMipmap* NextVideoFrame()
+	{
+		if (Video.DecodedFrames.empty())
+			return nullptr;
+		if (Video.CurrentFrame)
+			Video.FreeFrames.push_back(std::move(Video.CurrentFrame));
+		Video.CurrentFrame = std::move(Video.DecodedFrames.front());
+		Video.DecodedFrames.erase(Video.DecodedFrames.begin());
+		return Video.CurrentFrame.get();
 	}
 
 	void DecodeAudio(const void* packetData, size_t packetSize)
@@ -282,11 +294,32 @@ public:
 			int height = Decoder->GetHeight();
 			const uint32_t* pixels = Decoder->GetPixels();
 
-			// To do: put this in a texture
+			std::unique_ptr<UnrealMipmap> frame;
+			if (!Video.FreeFrames.empty())
+			{
+				frame = std::move(Video.FreeFrames.back());
+				Video.FreeFrames.pop_back();
+			}
+			else
+			{
+				frame = std::make_unique<UnrealMipmap>();
+			}
+			frame->Width = width;
+			frame->Height = height;
+			frame->Data.resize(width * height * sizeof(uint32_t));
+			memcpy(frame->Data.data(), pixels, width * height * sizeof(uint32_t));
+			Video.DecodedFrames.push_back(std::move(frame));
 		}
 	}
 
 	std::unique_ptr<IVideoDecoder, decltype(&ReleaseVideoDecoder)> Decoder;
+
+	struct
+	{
+		std::unique_ptr<UnrealMipmap> CurrentFrame;
+		std::vector<std::unique_ptr<UnrealMipmap>> DecodedFrames;
+		std::vector<std::unique_ptr<UnrealMipmap>> FreeFrames;
+	} Video;
 
 	std::unique_ptr<AVIFileReader> reader;
 	AVIMainHeader mainHeader;

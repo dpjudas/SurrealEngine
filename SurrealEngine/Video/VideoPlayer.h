@@ -1,6 +1,9 @@
 #pragma once
 
 #include <memory>
+#include "Utils/Array.h"
+
+class UnrealMipmap;
 
 class VideoPlayer
 {
@@ -9,4 +12,5 @@ public:
 
 	virtual ~VideoPlayer() = default;
 	virtual bool Decode() = 0;
+	virtual UnrealMipmap* NextVideoFrame() = 0;
 };

@@ -153,8 +153,8 @@ public:
 				pixels.resize(context.width * context.height);
 				crbuffer.resize(context.width * context.height);
 				cbbuffer.resize(context.width * context.height);
-				Upscale(context.width, context.height, frame.data[1], frame.linesize[1], crbuffer.data());
-				Upscale(context.width, context.height, frame.data[2], frame.linesize[2], cbbuffer.data());
+				Upscale(context.width, context.height, frame.data[1], frame.linesize[1], cbbuffer.data());
+				Upscale(context.width, context.height, frame.data[2], frame.linesize[2], crbuffer.data());
 				YUVToRGBA(context.width, context.height, frame.data[0], frame.linesize[0], cbbuffer.data(), crbuffer.data(), pixels.data());
 			}
 

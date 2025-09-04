@@ -52,6 +52,27 @@ void RenderSubsystem::DrawEditorViewport()
 	DrawScene();
 }
 
+void RenderSubsystem::DrawVideoFrame(FTextureInfo& info)
+{
+	vec3 flashScale = 0.5f;
+	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
+	Device->Brightness = 0.5f;// engine->client->Brightness;
+	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f), nullptr, nullptr);
+	ResetCanvas();
+	Device->SetSceneNode(&Canvas.Frame);
+
+	float sizeX = (float)(int)(engine->ViewportWidth / (float)Canvas.uiscale);
+	float sizeY = (float)(int)(engine->ViewportHeight / (float)Canvas.uiscale);
+
+	Rectf clipBox = Rectf::xywh(0.0f, 0.0f, sizeX, sizeY);
+	Rectf dest = clipBox;
+	Rectf src = Rectf::xywh(0.0f, 0.0f, (float)info.USize, (float)info.VSize);
+	DrawTile(info, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided);
+
+	//Device->EndFlash();
+	Device->Unlock(true);
+}
+
 void RenderSubsystem::UpdateTexture(UTexture* tex)
 {
 	if (tex && tex->FrameCounter != TextureFrameCounter)

@@ -251,6 +251,14 @@ void Engine::PlayAVI(const Array<std::string>& args)
 	std::string filename = args[1];
 	bool isYes = args[2] == "Y"; // To do: what does this parameter mean? Some texture overlay we need to draw for the briefings?
 
+	UnrealMipmap* frame = nullptr;
+	int curframe = 0;
+
+	FTextureInfo texinfo;
+	texinfo.CacheID = 0xffffffff'ffffffffULL;
+	texinfo.Format = TextureFormat::BGRA8;
+	texinfo.NumMips = 1;
+
 	try
 	{
 		auto player = VideoPlayer::Create(packages->GetVideoFilename(filename));
@@ -260,12 +268,41 @@ void Engine::PlayAVI(const Array<std::string>& args)
 		{
 			timestamp += CalcTimeElapsed();
 
-			if (!player->Decode())
+			bool done = false;
+			while (curframe < (int)(timestamp * 24.0f))
+			{
+				while (true)
+				{
+					UnrealMipmap* nextframe = player->NextVideoFrame();
+					if (nextframe)
+					{
+						frame = nextframe;
+						curframe++;
+						texinfo.bRealtimeChanged = true;
+						break;
+					}
+					if (!player->Decode())
+					{
+						done = true;
+						break;
+					}
+				}
+				if (done)
+					break;
+			}
+			if (done)
 				break;
 
 			GameWindow::ProcessEvents(); // To do: how to read input here?
 			UpdateAudio(); // To do: we actually just want to stream audio from the video
-			render->DrawGame(0.0f); // To do: we actually want to draw the video
+
+			if (frame)
+			{
+				texinfo.Mips = frame;
+				texinfo.USize = texinfo.Mips[0].Width;
+				texinfo.VSize = texinfo.Mips[0].Height;
+				render->DrawVideoFrame(texinfo);
+			}
 		}
 	}
 	catch (const std::exception& e)
