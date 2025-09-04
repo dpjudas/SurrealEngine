@@ -65,7 +65,21 @@ void RenderSubsystem::RenderOverlays()
 {
 	Device->SetSceneNode(&Canvas.Frame);
 	if (engine->viewport->Actor())
-		CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
+	{
+		if (engine->LaunchInfo.engineVersion > 219)
+		{
+			CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
+		}
+		else
+		{
+			UWeapon* weapon = engine->viewport->Actor()->Weapon();
+			if (weapon)
+			{
+				CallEvent(weapon, "InvCalcView", {});
+				DrawActor(weapon, false, false);
+			}
+		}
+	}
 }
 
 void RenderSubsystem::PostRender()
