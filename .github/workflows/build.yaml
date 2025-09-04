@@ -63,15 +63,17 @@ jobs:
           cp ${{ matrix.config.build_type }}/SurrealEditor.exe package
           cp ${{ matrix.config.build_type }}/SurrealDebugger.exe package
           cp ${{ matrix.config.build_type }}/SurrealEngine.pk3 package
+          cp ${{ matrix.config.build_type }}/SurrealVideo.dll package
           cp ${{ matrix.config.build_type }}/OpenAL32.dll package
           cp ${{ matrix.config.build_type }}/SurrealEngine-stripped.pdb package/SurrealEngine.pdb
           cp ${{ matrix.config.build_type }}/SurrealEditor-stripped.pdb package/SurrealEditor.pdb
           cp ${{ matrix.config.build_type }}/SurrealDebugger-stripped.pdb package/SurrealDebugger.pdb
         elif [[ "${{ runner.os }}" == 'Linux' ]]; then
-          cp SurrealEngine SurrealEditor SurrealDebugger SurrealEngine.pk3 package
+          cp SurrealEngine SurrealEditor SurrealDebugger SurrealEngine.pk3 SurrealVideo.so package
           strip package/SurrealEngine
           strip package/SurrealEditor
           strip package/SurrealDebugger
+          strip package/SurrealVideo.so
         fi
 
     - name: Upload Package
