@@ -3,6 +3,7 @@
 #include "VideoPlayer.h"
 #include "AVIFileReader.h"
 #include "Utils/File.h"
+#include "../../../SurrealVideo/SurrealVideo.h"
 
 struct AVIMainHeader
 {
@@ -43,8 +44,13 @@ struct AVIStreamHeader
 	} Frame;
 };
 
+static void ReleaseVideoDecoder(IVideoDecoder* decoder) { decoder->Release(); }
+
 void VideoPlayer::Test()
 {
+	auto decoder = std::unique_ptr<IVideoDecoder, decltype(&ReleaseVideoDecoder)>(CreateVideoDecoder(), &ReleaseVideoDecoder);
+	std::vector<uint8_t> packetData;
+
 	AVIMainHeader mainHeader;
 	Array<AVIStreamHeader> streamHeaders;
 
@@ -150,30 +156,41 @@ void VideoPlayer::Test()
 				{
 					type = reader.PushChunk();
 
-					if (type.substr(2) == "wb")
+					size_t packetSize = reader.GetChunkSize();
+					if (packetData.size() < packetSize)
+						packetData.resize(packetSize);
+					reader.Read(packetData.data(), packetSize);
+
+					if (type.substr(2) == "wb") // Audio frame
 					{
-						// Audio frame
-						int size = reader.GetChunkSize();
 					}
-					else if (type.substr(2) == "dc")
+					else if (type.substr(2) == "dc") // Video frame
 					{
-						// Video frame
-						int size = reader.GetChunkSize();
+						VideoDecoderResult result = decoder->Decode(packetData.data(), packetSize);
+						if (result == VideoDecoderResult::Error)
+							throw std::runtime_error("Video decode failed");
 					}
 
 					reader.PopChunk();
 					reader.SkipJunk();
 				}
 			}
-			else if (type.substr(2) == "wb")
+			else
 			{
-				// Audio frame
-				int size = reader.GetChunkSize();
-			}
-			else if (type.substr(2) == "dc")
-			{
-				// Video frame
-				int size = reader.GetChunkSize();
+				size_t packetSize = reader.GetChunkSize();
+				if (packetData.size() < packetSize)
+					packetData.resize(packetSize);
+				reader.Read(packetData.data(), packetSize);
+
+				if (type.substr(2) == "wb") // Audio frame
+				{
+				}
+				else if (type.substr(2) == "dc") // Video frame
+				{
+					VideoDecoderResult result = decoder->Decode(packetData.data(), packetSize);
+					if (result == VideoDecoderResult::Error)
+						throw std::runtime_error("Video decode failed");
+				}
 			}
 			reader.PopChunk();
 			reader.SkipJunk();

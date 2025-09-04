@@ -493,6 +493,7 @@ set(THIRDPARTY_UNIX_SOURCES
 set(SURREALCOMMON_LIBS
 	zvulkan
 	zwidget
+	SurrealVideo
 )
 
 set(SURREALCOMMON_WIN32_LIBS
