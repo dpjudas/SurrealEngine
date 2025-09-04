@@ -4,6 +4,7 @@
 #include "AVIFileReader.h"
 #include "Utils/File.h"
 #include "../../../SurrealVideo/SurrealVideo.h"
+#include <miniz.h>
 
 struct AVIMainHeader
 {
@@ -169,6 +170,27 @@ void VideoPlayer::Test()
 						VideoDecoderResult result = decoder->Decode(packetData.data(), packetSize);
 						if (result == VideoDecoderResult::Error)
 							throw std::runtime_error("Video decode failed");
+
+						if (result == VideoDecoderResult::DecodedFrame)
+						{
+							int width = decoder->GetWidth();
+							int height = decoder->GetHeight();
+							const uint32_t* pixels = decoder->GetPixels();
+
+							static int count = 0;
+							count++;
+							if (count == 1000)
+							{
+								size_t pngSize = 0;
+								void* png = tdefl_write_image_to_png_file_in_memory(pixels, width, height, 4, &pngSize);
+								if (png)
+								{
+									File::write_all_bytes("C:\\Development\\SurrealVideo.png", png, pngSize);
+									mz_free(png);
+									return;
+								}
+							}
+						}
 					}
 
 					reader.PopChunk();

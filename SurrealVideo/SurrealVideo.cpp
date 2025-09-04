@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
 
 extern "C"
 {
@@ -33,14 +34,14 @@ extern "C"
 		if (avctx->pix_fmt != AV_PIX_FMT_YUV410P)
 			return -1;
 
-		// planar YUV 4:1:0,  9bpp, (1 Cr & Cb sample per 4x4 Y samples)
+		// planar YUV 4:1:0,  8bpp, (1 Cr & Cb sample per 4x4 Y samples)
 		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++)
 		{
 			if (i == 0)
 			{
 				int planewidth = avctx->width;
 				int planeheight = avctx->height;
-				int bytes_per_line = (planewidth * 9 + 7) / 8;
+				int bytes_per_line = planewidth;
 				int pitch = (bytes_per_line + 15) / 16 * 16;
 				frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
 				frame->linesize[i] = pitch;
@@ -49,7 +50,7 @@ extern "C"
 			{
 				int planewidth = (avctx->width + 3) / 4;
 				int planeheight = (avctx->height + 3) / 4;
-				int bytes_per_line = (planewidth * 9 + 7) / 8;
+				int bytes_per_line = planewidth;
 				int pitch = (bytes_per_line + 15) / 16 * 16;
 				frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
 				frame->linesize[i] = pitch;
@@ -146,6 +147,17 @@ public:
 			int result = ff_indeo5_decoder.decode(&context, &frame, &got_frame, &packet);
 			if (result < 0)
 				return VideoDecoderResult::Error;
+
+			if (got_frame)
+			{
+				pixels.resize(context.width * context.height);
+				crbuffer.resize(context.width * context.height);
+				cbbuffer.resize(context.width * context.height);
+				Upscale(context.width, context.height, frame.data[1], frame.linesize[1], crbuffer.data());
+				Upscale(context.width, context.height, frame.data[2], frame.linesize[2], cbbuffer.data());
+				YUVToRGBA(context.width, context.height, frame.data[0], frame.linesize[0], cbbuffer.data(), crbuffer.data(), pixels.data());
+			}
+
 			return got_frame ? VideoDecoderResult::DecodedFrame : VideoDecoderResult::Decoded;
 		}
 		catch (...) // Don't float C++ exceptions through this API
@@ -164,14 +176,9 @@ public:
 		return context.height;
 	}
 
-	int GetPitch(int channel) override
+	const uint32_t* GetPixels() override
 	{
-		return frame.linesize[channel];
-	}
-
-	void* GetData(int channel) override
-	{
-		return frame.data[channel];
+		return pixels.data();
 	}
 
 	void Release() override
@@ -179,6 +186,68 @@ public:
 		delete this;
 	}
 
+	static void Upscale(int width, int height, const uint8_t* src, int srcpitch, uint8_t* dest)
+	{
+		int srcxmax = width / 4 - 1;
+		int srcymax = height / 4 - 1;
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				int sx0 = x >> 2;
+				int sy0 = y >> 2;
+				int sx1 = std::min(sx0 + 1, srcxmax);
+				int sy1 = std::min(sy0 + 1, srcymax);
+				float s00 = src[sx0 + sy0 * srcpitch];
+				float s10 = src[sx1 + sy0 * srcpitch];
+				float s01 = src[sx0 + sy1 * srcpitch];
+				float s11 = src[sx1 + sy1 * srcpitch];
+				float u = x * (1.0f / 4.0f);
+				float v = y * (1.0f / 4.0f);
+				float a = u - (int)u;
+				float b = v - (int)v;
+				float inva = 1.0f - a;
+				float invb = 1.0f - b;
+				float value = s00 * (inva * invb) + s10 * (a * invb) + s01 * (inva * b) + s11 * (a * b);
+				dest[x + y * width] = (int)(value + 0.5f);
+			}
+		}
+	}
+
+	static void YUVToRGBA(int width, int height, const uint8_t* ychannel, int ypitch, const uint8_t* cbchannel, const uint8_t* crchannel, uint32_t* pixels)
+	{
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				float Y = ychannel[x + y * ypitch];
+				float Cb = cbchannel[x + y * width];
+				float Cr = crchannel[x + y * width];
+				Cr -= 128.0f;
+				Cb -= 128.0f;
+
+				float R = Y + 1.40200f * Cr;
+				float G = Y - 0.34414f * Cb - 0.71414f * Cr;
+				float B = Y + 1.77200f * Cb;
+
+				R = std::max(R, 0.0f);
+				R = std::min(R, 255.0f);
+				G = std::max(G, 0.0f);
+				G = std::min(G, 255.0f);
+				B = std::max(B, 0.0f);
+				B = std::min(B, 255.0f);
+
+				R += 0.5f;
+				G += 0.5f;
+				B += 0.5f;
+
+				pixels[x + y * width] = 0xff000000 + ((uint8_t)B) + (((uint8_t)G) << 8) + (((uint8_t)R) << 16);
+			}
+		}
+	}
+
+	std::vector<uint8_t> crbuffer, cbbuffer;
+	std::vector<uint32_t> pixels;
 	AVCodecContext context = {};
 	AVFrame frame = {};
 };

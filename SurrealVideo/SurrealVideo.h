@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum class VideoDecoderResult
 {
 	Decoded,
@@ -13,8 +15,7 @@ public:
 	virtual VideoDecoderResult Decode(const void* data, size_t size) = 0;
 	virtual int GetWidth() = 0;
 	virtual int GetHeight() = 0;
-	virtual int GetPitch(int channel) = 0;
-	virtual void* GetData(int channel) = 0;
+	virtual const uint32_t* GetPixels() = 0;
 	virtual void Release() = 0;
 };
 

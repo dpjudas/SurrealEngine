@@ -23,7 +23,7 @@
 
 enum AVPixelFormat {
     AV_PIX_FMT_NONE = -1,
-    AV_PIX_FMT_YUV410P,   ///< planar YUV 4:1:0,  9bpp, (1 Cr & Cb sample per 4x4 Y samples)
+    AV_PIX_FMT_YUV410P,   ///< planar YUV 4:1:0,  8bpp, (1 Cr & Cb sample per 4x4 Y samples)
 };
 
 #endif /* AVUTIL_PIXFMT_H */
