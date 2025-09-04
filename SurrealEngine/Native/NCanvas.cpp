@@ -136,15 +136,14 @@ void NCanvas::DrawTile(UObject* Self, UObject* Tex, float XL, float YL, float U,
 	if (style != 0)
 	{
 		uint32_t renderflags = PF_TwoSided;
-		if (style == 3)
+		if (style == 2)
+			renderflags |= PF_Masked;
+		else if (style == 3)
 			renderflags |= PF_Translucent;
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 		if (noSmooth)
 			renderflags |= PF_NoSmooth;
-
-		if (engine->LaunchInfo.engineVersion <= 219)
-			renderflags |= PF_Masked;
 
 		engine->render->DrawTile((UTexture*)Tex, orgX + curX, orgY + curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags);
 	}
@@ -176,15 +175,14 @@ void NCanvas::DrawTileClipped(UObject* Self, UObject* Tex, float XL, float YL, f
 	if (style != 0)
 	{
 		uint32_t renderflags = PF_TwoSided;
-		if (style == 3)
+		if (style == 2)
+			renderflags |= PF_Masked;
+		else if (style == 3)
 			renderflags |= PF_Translucent;
 		else if (style == 4)
 			renderflags |= PF_Modulated;
 		if (noSmooth)
 			renderflags |= PF_NoSmooth;
-
-		if (engine->LaunchInfo.engineVersion <= 219)
-			renderflags |= PF_Masked;
 
 		engine->render->DrawTileClipped((UTexture*)Tex, orgX, orgY, curX, curY, XL, YL, U, V, UL, VL, 1.0f, { color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f }, { 0.0f }, renderflags, clipX, clipY);
 	}
