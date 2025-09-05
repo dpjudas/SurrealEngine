@@ -67,16 +67,16 @@ void RenderSubsystem::DrawVideoFrame(FTextureInfo* frame, FTextureInfo* backgrou
 	Rectf clipBox = Rectf::xywh(0.0f, 0.0f, sizeX, sizeY);
 	Rectf dest = clipBox;
 
-	if (background)
-	{
-		Rectf src = Rectf::xywh(0.0f, 0.0f, (float)background->USize, (float)background->VSize);
-		DrawTile(*background, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided);
-	}
-
 	if (frame)
 	{
 		Rectf src = Rectf::xywh(0.0f, 0.0f, (float)frame->USize, (float)frame->VSize);
-		DrawTile(*frame, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided | PF_Translucent);
+		DrawTile(*frame, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided);
+	}
+
+	if (background)
+	{
+		Rectf src = Rectf::xywh(0.0f, 0.0f, (float)background->USize, (float)background->VSize);
+		DrawTile(*background, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided | PF_Highlighted);
 	}
 
 	Device->EndFlash();

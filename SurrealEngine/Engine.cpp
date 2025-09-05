@@ -298,6 +298,60 @@ void Engine::PlayAVI(const Array<std::string>& args)
 				CalcTimeElapsed();
 				return;
 			}
+
+			// Cut a hole in the background image
+			uint32_t* pixels = (uint32_t*)background->Data.data();
+			int w = background->Width;
+			int h = background->Height;
+
+			ivec2 v0 = { 232, 125 };
+			ivec2 v1 = { 161, 246 };
+			ivec2 v2 = { 406, 125 };
+			ivec2 v3 = { 475, 246 };
+			ivec2 v4 = { 258, 125 };
+			ivec2 v5 = { 270, 144 };
+			ivec2 v6 = { 380, 125 };
+			ivec2 v7 = { 368, 144 };
+			ivec2 v8 = { 210, 327 };
+			ivec2 v9 = { 427, 327 };
+
+			for (int y = 126; y < 144; y++)
+			{
+				int x0 = (int)(v0.x + 0.5f + (y - v0.y + 0.5f) * (v1.x - v0.x) / (v1.y - v0.y));
+				int x1 = (int)(v4.x + 0.5f + (y - v4.y + 0.5f) * (v5.x - v4.x) / (v5.y - v4.y));
+				int x2 = (int)(v6.x + 0.5f + (y - v6.y + 0.5f) * (v7.x - v6.x) / (v7.y - v6.y));
+				int x3 = (int)(v2.x + 0.5f + (y - v2.y + 0.5f) * (v3.x - v2.x) / (v3.y - v2.y));
+
+				pixels[x0 + y * w] = 0x80000000;
+				pixels[x1 - 1 + y * w] = 0x80000000;
+				for (int x = x0 + 1; x < x1 - 1; x++)
+					pixels[x + y * w] = 0;
+
+				pixels[x2 + y * w] = 0x80000000;
+				pixels[x3 - 1 + y * w] = 0x80000000;
+				for (int x = x2 + 1; x < x3 - 1; x++)
+					pixels[x + y * w] = 0;
+			}
+
+			for (int y = 144; y < 246; y++)
+			{
+				int x0 = (int)(v0.x + 0.5f + (y - v0.y + 0.5f) * (v1.x - v0.x) / (v1.y - v0.y));
+				int x1 = (int)(v2.x + 0.5f + (y - v2.y + 0.5f) * (v3.x - v2.x) / (v3.y - v2.y));
+				pixels[x0 + y * w] = 0x80000000;
+				pixels[x1 - 1 + y * w] = 0x80000000;
+				for (int x = x0 + 1; x < x1 - 1; x++)
+					pixels[x + y * w] = 0;
+			}
+
+			for (int y = 246; y < 325; y++)
+			{
+				int x0 = (int)(v1.x + 0.5f + (y - v1.y + 0.5f) * (v8.x - v1.x) / (v8.y - v1.y));
+				int x1 = (int)(v3.x + 0.5f + (y - v3.y + 0.5f) * (v9.x - v3.x) / (v9.y - v3.y));
+				pixels[x0 + y * w] = 0x80000000;
+				pixels[x1 - 1 + y * w] = 0x80000000;
+				for (int x = x0 + 1; x < x1 - 1; x++)
+					pixels[x + y * w] = 0;
+			}
 		}
 
 		if (videoPlayer)
