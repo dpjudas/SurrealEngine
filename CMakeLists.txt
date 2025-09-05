@@ -539,6 +539,7 @@ set(SURREALVIDEO_SOURCES
 	SurrealVideo/libavutil/mem.c
 	SurrealVideo/libavutil/attributes.h
 	SurrealVideo/libavutil/avassert.h
+	SurrealVideo/libavutil/bswap.h
 	SurrealVideo/libavutil/config.h
 	SurrealVideo/libavutil/dynarray.h
 	SurrealVideo/libavutil/error.h

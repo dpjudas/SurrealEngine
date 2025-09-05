@@ -22,7 +22,7 @@
 #include <stdint.h>
 //#include "libavutil/avconfig.h"
 #include "attributes.h"
-//#include "bswap.h"
+#include "bswap.h"
 
 typedef union {
     uint64_t u64;
