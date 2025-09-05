@@ -146,6 +146,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Video/VideoPlayer.cpp
 	SurrealEngine/Video/VideoPlayer.h
 	SurrealEngine/Video/AVIFileReader.h
+	SurrealEngine/Video/AVIHeaders.h
 	SurrealEngine/Native/NStatLog.h
 	SurrealEngine/Native/NZoneInfo.cpp
 	SurrealEngine/Native/NNavigationPoint.cpp

@@ -48,6 +48,8 @@ class AudioSubsystem;
 class Rotator;
 class ExpressionValue;
 class UnrealURL;
+class VideoPlayer;
+class UnrealMipmap;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -82,6 +84,7 @@ public:
 	Array<std::string> GetSubcommands(const std::string& commandline);
 
 	void PlayAVI(const Array<std::string>& args);
+	UnrealMipmap* PlayVideo(VideoPlayer* video, UnrealMipmap* background);
 
 	void UpdateAudio();
 

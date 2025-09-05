@@ -52,11 +52,11 @@ void RenderSubsystem::DrawEditorViewport()
 	DrawScene();
 }
 
-void RenderSubsystem::DrawVideoFrame(FTextureInfo& info)
+void RenderSubsystem::DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background)
 {
 	vec3 flashScale = 0.5f;
 	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
-	Device->Brightness = 0.5f;// engine->client->Brightness;
+	Device->Brightness = 0.4f;// engine->client->Brightness;
 	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f), nullptr, nullptr);
 	ResetCanvas();
 	Device->SetSceneNode(&Canvas.Frame);
@@ -66,10 +66,20 @@ void RenderSubsystem::DrawVideoFrame(FTextureInfo& info)
 
 	Rectf clipBox = Rectf::xywh(0.0f, 0.0f, sizeX, sizeY);
 	Rectf dest = clipBox;
-	Rectf src = Rectf::xywh(0.0f, 0.0f, (float)info.USize, (float)info.VSize);
-	DrawTile(info, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided);
 
-	//Device->EndFlash();
+	if (background)
+	{
+		Rectf src = Rectf::xywh(0.0f, 0.0f, (float)background->USize, (float)background->VSize);
+		DrawTile(*background, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided);
+	}
+
+	if (frame)
+	{
+		Rectf src = Rectf::xywh(0.0f, 0.0f, (float)frame->USize, (float)frame->VSize);
+		DrawTile(*frame, dest, src, clipBox, 1.0f, vec4(1.0f), vec4(0.0f), PF_TwoSided | PF_Translucent);
+	}
+
+	Device->EndFlash();
 	Device->Unlock(true);
 }
 

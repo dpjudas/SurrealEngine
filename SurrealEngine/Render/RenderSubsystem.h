@@ -17,7 +17,7 @@ public:
 	RenderSubsystem(RenderDevice* renderdevice);
 
 	void DrawEditorViewport();
-	void DrawVideoFrame(FTextureInfo& info);
+	void DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background);
 
 	void DrawGame(float levelTimeElapsed);
 	void OnMapLoaded();

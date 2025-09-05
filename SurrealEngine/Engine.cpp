@@ -248,68 +248,137 @@ void Engine::PlayAVI(const Array<std::string>& args)
 	if (args.size() < 3)
 		return;
 
-	std::string filename = args[1];
-	bool isYes = args[2] == "Y"; // To do: what does this parameter mean? Some texture overlay we need to draw for the briefings?
-
-	UnrealMipmap* frame = nullptr;
-	int curframe = 0;
-
-	FTextureInfo texinfo;
-	texinfo.CacheID = 0xffffffff'ffffffffULL;
-	texinfo.Format = TextureFormat::BGRA8;
-	texinfo.NumMips = 1;
+	// What did KHG request?
+	std::string buildup, breakdown, video;
+	if (args.size() > 4 && args[2] == "C")
+	{
+		buildup = args[1];
+		video = args[3];
+		breakdown = "breakdn.avi";
+	}
+	else if (args.size() > 3 && args[2] == "Y")
+	{
+		buildup = "buildup.avi";
+		video = args[1];
+		breakdown = "breakdn.avi";
+	}
+	else
+	{
+		video = args[1];
+	}
 
 	try
 	{
-		auto player = VideoPlayer::Create(packages->GetVideoFilename(filename));
+		// Load the videos
+
+		std::unique_ptr<VideoPlayer> buildupPlayer, videoPlayer, breakdownPlayer;
+		if (!buildup.empty())
+			buildupPlayer = VideoPlayer::Create(packages->GetVideoFilename(buildup));
+		if (!video.empty())
+			videoPlayer = VideoPlayer::Create(packages->GetVideoFilename(video));
+		if (!breakdown.empty())
+			breakdownPlayer = VideoPlayer::Create(packages->GetVideoFilename(breakdown));
+
 		CalcTimeElapsed(); // Reset so load time doesn't affect playback
-		float timestamp = 0.0f;
-		while (!quit)
+
+		UnrealMipmap* background = nullptr;
+		if (buildupPlayer)
 		{
-			timestamp += CalcTimeElapsed();
-
-			bool done = false;
-			while (curframe < (int)(timestamp * 24.0f))
+			background = PlayVideo(buildupPlayer.get(), nullptr);
+			if (!background)
 			{
-				while (true)
-				{
-					UnrealMipmap* nextframe = player->NextVideoFrame();
-					if (nextframe)
-					{
-						frame = nextframe;
-						curframe++;
-						texinfo.bRealtimeChanged = true;
-						break;
-					}
-					if (!player->Decode())
-					{
-						done = true;
-						break;
-					}
-				}
-				if (done)
-					break;
-			}
-			if (done)
-				break;
-
-			GameWindow::ProcessEvents(); // To do: how to read input here?
-			UpdateAudio(); // To do: we actually just want to stream audio from the video
-
-			if (frame)
-			{
-				texinfo.Mips = frame;
-				texinfo.USize = texinfo.Mips[0].Width;
-				texinfo.VSize = texinfo.Mips[0].Height;
-				render->DrawVideoFrame(texinfo);
+				CalcTimeElapsed();
+				return;
 			}
 		}
+
+		if (videoPlayer)
+		{
+			if (!PlayVideo(videoPlayer.get(), background))
+			{
+				CalcTimeElapsed();
+				return;
+			}
+		}
+
+		if (breakdownPlayer)
+		{
+			PlayVideo(breakdownPlayer.get(), nullptr);
+		}
+
 	}
 	catch (const std::exception& e)
 	{
-		LogMessage("Error playing " + filename + ": " + e.what());
+		LogMessage("Error playing " + video + ": " + e.what());
 	}
 	CalcTimeElapsed(); // Reset so game isn't affected
+}
+
+UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
+{
+	UnrealMipmap* frame = nullptr;
+
+	FTextureInfo texinfo[2];
+	texinfo[0].CacheID = 0xffffffff'ffffffffULL;
+	texinfo[0].Format = TextureFormat::BGRA8;
+	texinfo[0].NumMips = 1;
+
+	if (background)
+	{
+		texinfo[1].CacheID = 0xffffffff'fffffffeULL;
+		texinfo[1].Format = TextureFormat::BGRA8;
+		texinfo[1].NumMips = 1;
+		texinfo[1].Mips = background;
+		texinfo[1].USize = background->Width;
+		texinfo[1].VSize = background->Height;
+		texinfo[1].bRealtimeChanged = true;
+	}
+
+	float timestamp = 0.0f;
+	int curframe = 0;
+	while (!quit)
+	{
+		timestamp += CalcTimeElapsed();
+
+		bool done = false;
+		while (curframe < (int)(timestamp * 24.0f))
+		{
+			while (true)
+			{
+				UnrealMipmap* nextframe = video->NextVideoFrame();
+				if (nextframe)
+				{
+					frame = nextframe;
+					curframe++;
+					texinfo[0].bRealtimeChanged = true;
+					break;
+				}
+				if (!video->Decode())
+				{
+					done = true;
+					break;
+				}
+			}
+			if (done)
+				break;
+		}
+		if (done)
+			break;
+
+		GameWindow::ProcessEvents(); // To do: how to read input here?
+		UpdateAudio(); // To do: we actually just want to stream audio from the video
+
+		if (frame)
+		{
+			texinfo[0].Mips = frame;
+			texinfo[0].USize = frame->Width;
+			texinfo[0].VSize = frame->Height;
+			render->DrawVideoFrame(&texinfo[0], background ? &texinfo[1] : nullptr);
+		}
+	}
+
+	// To do: return nullptr if used pressed escape
+	return frame;
 }
 
 void Engine::UpdateAudio()

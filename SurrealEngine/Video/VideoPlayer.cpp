@@ -2,75 +2,10 @@
 #include "Precomp.h"
 #include "VideoPlayer.h"
 #include "AVIFileReader.h"
+#include "AVIHeaders.h"
 #include "Utils/File.h"
 #include "UObject/UTexture.h"
 #include "../../../SurrealVideo/SurrealVideo.h"
-
-struct AVIMainHeader
-{
-	uint32_t MicroSecPerFrame = 0;
-	uint32_t MaxBytesPerSec = 0;
-	uint32_t PaddingGranularity = 0;
-	uint32_t Flags = 0;
-	uint32_t TotalFrames = 0;
-	uint32_t InitialFrames = 0;
-	uint32_t Streams = 0;
-	uint32_t SuggestedBufferSize = 0;
-	uint32_t Width = 0;
-	uint32_t Height = 0;
-	uint32_t Reserved[4] = {};
-};
-
-struct AVIStreamHeader
-{
-	std::string StreamType; // auds, mids, txts, vids
-	std::string Codec;
-	uint32_t Flags = 0;
-	uint16_t Priority = 0;
-	uint16_t Language = 0;
-	uint32_t InitialFrames = 0;
-	uint32_t Scale = 0;
-	uint32_t Rate = 0;
-	uint32_t Start = 0;
-	uint32_t Length = 0;
-	uint32_t SuggestedBufferSize = 0;
-	uint32_t Quality = 0;
-	uint32_t SampleSize = 0;
-	struct
-	{
-		int32_t Left = 0;
-		int32_t Top = 0;
-		int32_t Right = 0;
-		int32_t Bottom = 0;
-	} Frame;
-	struct
-	{
-		uint32_t Width = 0;
-		uint32_t Height = 0;
-		uint16_t Planes = 0;
-		uint16_t BitCount = 0;
-		uint32_t Compression = 0; // BI_RGB, BI_RLE8, BI_RLE4, BI_BITFIELDS, BI_JPEG, BI_PNG
-		uint32_t ImageSize = 0;
-		uint32_t XPixelsPerMeter = 0;
-		uint32_t YPixelsPerMeter = 0;
-		uint32_t ColorsUsed = 0;
-		uint32_t ColorsImportant = 0;
-	} Video;
-	struct
-	{
-		uint16_t FormatTag = 0;
-		uint16_t Channels = 0;
-		uint32_t SamplesPerSec = 0;
-		uint32_t AvgSamplesPerSec = 0;
-		uint16_t BlockAlign = 0; // Channels * BitsPerSample / 8
-		uint16_t BitsPerSample = 0; // 8 or 16
-		uint16_t SizeExtra = 0;
-		uint16_t SamplesPerBlock = 0;
-		uint32_t ChannelMask = 0;
-		uint8_t ADPCM[32] = {};
-		uint8_t SubFormat[16] = {}; // GUID
-	} Audio;
-};
 
 static void ReleaseVideoDecoder(IVideoDecoder* decoder) { decoder->Release(); }
 
@@ -240,14 +175,14 @@ public:
 		streamHeader.Flags = reader->ReadUint32();
 		streamHeader.Priority = reader->ReadUint16();
 		streamHeader.Language = reader->ReadUint16();
-		streamHeader.InitialFrames = reader->ReadUint32(); // How far ahead the audio compared to the video
+		streamHeader.InitialFrames = reader->ReadUint32();
 		streamHeader.Scale = reader->ReadUint32();
-		streamHeader.Rate = reader->ReadUint32(); // Rate / Scale = samples per second
-		streamHeader.Start = reader->ReadUint32(); // Start time
-		streamHeader.Length = reader->ReadUint32(); // Length of video
+		streamHeader.Rate = reader->ReadUint32();
+		streamHeader.Start = reader->ReadUint32();
+		streamHeader.Length = reader->ReadUint32();
 		streamHeader.SuggestedBufferSize = reader->ReadUint32();
 		streamHeader.Quality = reader->ReadUint32();
-		streamHeader.SampleSize = reader->ReadUint32(); // Block align for audio, zero if varying
+		streamHeader.SampleSize = reader->ReadUint32();
 		streamHeader.Frame.Left = reader->ReadInt16();
 		streamHeader.Frame.Top = reader->ReadInt16();
 		streamHeader.Frame.Right = reader->ReadInt16();
@@ -298,8 +233,7 @@ public:
 		streamHeader.Audio.SizeExtra = reader->ReadUint16();
 		if (streamHeader.Audio.FormatTag == 2 /*WAVE_FORMAT_ADPCM*/ && streamHeader.Audio.SizeExtra == 32)
 		{
-			// This nasty thing:
-			// https://wiki.multimedia.cx/index.php/Microsoft_ADPCM
+			reader->Read(streamHeader.Audio.ADPCM, 32);
 		}
 		else if (streamHeader.Audio.FormatTag == 0xfffe /*WAVE_FORMAT_EXTENSIBLE*/ && streamHeader.Audio.SizeExtra >= 22)
 		{
