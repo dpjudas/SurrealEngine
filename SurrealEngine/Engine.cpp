@@ -77,6 +77,13 @@ void Engine::Run()
 	if (engine->LaunchInfo.engineVersion > 219 && !client->StartupFullscreen)
 		viewport->bWindowsMouseAvailable() = true;
 
+	window->LockCursor();
+
+	if (packages->IsKlingonHonorGuard())
+	{
+		PlayAVI({ "playavi", "INTRO.AVI", "N" });
+	}
+
 	if (!LaunchInfo.noEntryMap)
 		LoadEntryMap();
 
@@ -86,8 +93,6 @@ void Engine::Run()
 		LoadMap(UnrealURL(GetDefaultURL(packages->GetIniValue("system", "URL", "LocalMap")), LaunchInfo.url));
 
 	LoginPlayer();
-
-	window->LockCursor();
 
 	auto objprop = GC::Alloc<UObjectProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
 	auto vecprop = GC::Alloc<UStructProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
@@ -267,6 +272,9 @@ void Engine::PlayAVI(const Array<std::string>& args)
 		video = args[1];
 	}
 
+	playingAvi = true;
+	skipAvi = false;
+
 	try
 	{
 		// Load the videos
@@ -296,6 +304,7 @@ void Engine::PlayAVI(const Array<std::string>& args)
 		{
 			if (!PlayVideo(videoPlayer.get(), background))
 			{
+				playingAvi = false;
 				CalcTimeElapsed();
 				return;
 			}
@@ -305,12 +314,13 @@ void Engine::PlayAVI(const Array<std::string>& args)
 		{
 			PlayVideo(breakdownPlayer.get(), nullptr);
 		}
-
 	}
 	catch (const std::exception& e)
 	{
 		LogMessage("Error playing " + video + ": " + e.what());
 	}
+
+	playingAvi = false;
 	CalcTimeElapsed(); // Reset so game isn't affected
 }
 
@@ -334,9 +344,11 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 		texinfo[1].bRealtimeChanged = true;
 	}
 
+	audiodev->SetViewport(nullptr);
+
 	float timestamp = 0.0f;
 	int curframe = 0;
-	while (!quit)
+	while (!quit && !skipAvi)
 	{
 		timestamp += CalcTimeElapsed();
 
@@ -365,19 +377,26 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 		if (done)
 			break;
 
-		GameWindow::ProcessEvents(); // To do: how to read input here?
-		UpdateAudio(); // To do: we actually just want to stream audio from the video
+		GameWindow::ProcessEvents();
+		audiodev->Update(mat4::identity());
 
 		if (frame)
 		{
 			texinfo[0].Mips = frame;
 			texinfo[0].USize = frame->Width;
 			texinfo[0].VSize = frame->Height;
+
+			ViewportX = 0;
+			ViewportY = 0;
+			ViewportWidth = engine->window->GetPixelWidth();
+			ViewportHeight = engine->window->GetPixelHeight();
 			render->DrawVideoFrame(&texinfo[0], background ? &texinfo[1] : nullptr);
 		}
 	}
 
-	// To do: return nullptr if used pressed escape
+	if (quit || skipAvi)
+		return nullptr;
+
 	return frame;
 }
 
@@ -1214,6 +1233,9 @@ void Engine::OnWindowPaint()
 
 void Engine::OnWindowMouseMove(const Point& pos)
 {
+	if (playingAvi)
+		return;
+
 	if (engine->LaunchInfo.engineVersion > 219)
 	{
 		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
@@ -1223,6 +1245,9 @@ void Engine::OnWindowMouseMove(const Point& pos)
 
 void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
 {
+	if (playingAvi)
+		return;
+
 	InputEvent(key, IST_Press);
 }
 
@@ -1232,33 +1257,55 @@ void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 
 void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
 {
+	if (playingAvi)
+		return;
+
 	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
 {
+	if (playingAvi)
+		return;
+
 	InputEvent(key, IST_Press);
 	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowRawMouseMove(int dx, int dy)
 {
+	if (playingAvi)
+		return;
+
 	MouseMoveX += dx;
 	MouseMoveY += dy;
 }
 
 void Engine::OnWindowKeyChar(std::string chars)
 {
+	if (playingAvi)
+		return;
+
 	Key(chars);
 }
 
 void Engine::OnWindowKeyDown(EInputKey key)
 {
+	if (playingAvi)
+	{
+		if (key == EInputKey::IK_Escape)
+			skipAvi = true;
+		return;
+	}
+
 	InputEvent(key, IST_Press);
 }
 
 void Engine::OnWindowKeyUp(EInputKey key)
 {
+	if (playingAvi)
+		return;
+
 	InputEvent(key, IST_Release);
 }
 
@@ -1299,7 +1346,7 @@ void Engine::UnlockCursor()
 
 void Engine::Key(std::string key)
 {
-	if (Frame::RunState != FrameRunState::Running)
+	if (Frame::RunState != FrameRunState::Running || playingAvi)
 		return;
 
 	for (char c : key)
@@ -1310,7 +1357,7 @@ void Engine::Key(std::string key)
 
 void Engine::InputEvent(EInputKey key, EInputType type, int delta)
 {
-	if (Frame::RunState != FrameRunState::Running)
+	if (Frame::RunState != FrameRunState::Running || playingAvi)
 		return;
 
 	bool handled = CallEvent(console, EventName::KeyEvent, { ExpressionValue::ByteValue(key), ExpressionValue::ByteValue(type), ExpressionValue::FloatValue((float)delta) }).ToBool();

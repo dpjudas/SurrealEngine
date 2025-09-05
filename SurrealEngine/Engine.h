@@ -198,6 +198,8 @@ private:
 	bool m_GamePaused = false;
 
 	bool khgSplashScreen = false;
+	bool playingAvi = false;
+	bool skipAvi = false;
 };
 
 extern Engine* engine;

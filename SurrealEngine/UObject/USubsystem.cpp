@@ -243,7 +243,7 @@ void USurrealAudioDevice::Update(const mat4& listener)
 
 void USurrealAudioDevice::StartAmbience()
 {
-	if (!m_Viewport->Actor())
+	if (!m_Viewport || !m_Viewport->Actor())
 		return;
 
 	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
@@ -275,7 +275,7 @@ void USurrealAudioDevice::StartAmbience()
 
 void USurrealAudioDevice::UpdateAmbience()
 {
-	if (!m_Viewport->Actor())
+	if (!m_Viewport || !m_Viewport->Actor())
 		return;
 
 	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
@@ -303,7 +303,7 @@ void USurrealAudioDevice::UpdateAmbience()
 
 void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 {
-	if (!m_Viewport->Actor())
+	if (!m_Viewport || !m_Viewport->Actor())
 		return;
 
 	UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
@@ -343,7 +343,7 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 
 void USurrealAudioDevice::UpdateMusic()
 {
-	if (m_Viewport->Actor() && m_Viewport->Actor()->Transition() != MTRAN_None)
+	if (m_Viewport && m_Viewport->Actor() && m_Viewport->Actor()->Transition() != MTRAN_None)
 	{
 		// To do: this needs to fade out the old song before switching
 
