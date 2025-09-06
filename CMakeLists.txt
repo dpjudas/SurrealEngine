@@ -530,6 +530,10 @@ set(SURREALVIDEO_SOURCES
 	SurrealVideo/libavcodec/ivi_dsp.h
 	SurrealVideo/libavcodec/vlc.c
 	SurrealVideo/libavcodec/vlc.h
+	SurrealVideo/libavcodec/adpcm.c
+	SurrealVideo/libavcodec/adpcm.h
+	SurrealVideo/libavcodec/adpcm_data.c
+	SurrealVideo/libavcodec/adpcm_data.h
 	SurrealVideo/libavcodec/codec_internal.h
 	SurrealVideo/libavcodec/decode.h
 	SurrealVideo/libavcodec/defs.h
