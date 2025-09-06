@@ -144,6 +144,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 
 	VisibleNode info;
 	info.Node = node;
+	info.Front = front;
 	info.PolyFlags = PolyFlags;
 
 	if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
@@ -377,6 +378,7 @@ void VisibleFrame::DrawPortals()
 		{
 			VisibleNode visnode(info);
 			visnode.PolyFlags |= PF_Occlude | PF_Invisible;
+			visnode.Front = true;
 			visnode.Draw(this);
 
 			if (info.PolyFlags & PF_NoOcclude)

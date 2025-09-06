@@ -17,8 +17,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 
 	engine->render->UpdateTexture(surface.Material);
 
-	// To do: this needs to be Node->Zone0 if its backfacing
-	auto zoneActor = engine->GetZoneActor(Node->Zone1);
+	auto zoneActor = engine->GetZoneActor(Front ? Node->Zone1 : Node->Zone0);
 
 	// If no ZoneInfo is found, use the values from LevelInfo instead.
 	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
