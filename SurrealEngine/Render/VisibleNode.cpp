@@ -17,16 +17,12 @@ void VisibleNode::Draw(VisibleFrame* frame)
 
 	engine->render->UpdateTexture(surface.Material);
 
-	// Try to find the Zone the surface is in using the corresponding node, to obtain its ZoneInfo actor.
-	// Checking for Zone1 first seems to work better, as otherwise the clouds in CTF-LavaGiant remain fast.
-	// Might return NULL if there is no corresponding ZoneInfo actor for the given Zone.
-	auto zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[Node->Zone1].ZoneActor);
-	if (!zoneInfo)
-		zoneInfo = UObject::Cast<UZoneInfo>(model->Zones[Node->Zone0].ZoneActor);
+	// To do: this needs to be Node->Zone0 if its backfacing
+	auto zoneActor = engine->GetZoneActor(Node->Zone1);
 
 	// If no ZoneInfo is found, use the values from LevelInfo instead.
-	float ZoneUPanSpeed = zoneInfo ? zoneInfo->TexUPanSpeed() : engine->LevelInfo->TexUPanSpeed();
-	float ZoneVPanSpeed = zoneInfo ? zoneInfo->TexVPanSpeed() : engine->LevelInfo->TexVPanSpeed();
+	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
+	float ZoneVPanSpeed = zoneActor->TexVPanSpeed();
 
 	FTextureInfo texture;
 	if (surface.Material)
@@ -75,9 +71,6 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		UZoneInfo* zoneActor = !model->Zones.empty() ? UObject::TryCast<UZoneInfo>(model->Zones[Node->Zone1].ZoneActor) : nullptr;
-		if (!zoneActor)
-			zoneActor = engine->LevelInfo;
 		lightmap = engine->render->GetSurfaceLightmap(surface, zoneActor, model);
 		fogmap = engine->render->GetSurfaceFogmap(surface, engine->CameraActor->Region().Zone, model);
 	}

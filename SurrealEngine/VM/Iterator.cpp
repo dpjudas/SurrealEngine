@@ -274,15 +274,9 @@ bool VisibleCollidingActorsIterator::Next()
 
 ZoneActorsIterator::ZoneActorsIterator(UZoneInfo* zone, UObject* BaseClass, UObject** Actor) : Zone(zone), BaseClass(BaseClass), Actor(Actor)
 {
-	int zoneNum = zone->BspInfo.Node->Zone1;
-
-	if (engine->Level->Model->Zones[zoneNum].ZoneActor != zone)
-		zoneNum = zone->BspInfo.Node->Zone0;
-
 	for (UActor* levelActor : engine->Level->Actors)
 	{
-		if ((levelActor->BspInfo.Node->Zone1 == zoneNum || levelActor->BspInfo.Node->Zone0 == zoneNum) 
-			&& levelActor->IsA(BaseClass->Name))
+		if (levelActor && levelActor->Region().Zone == zone && levelActor->IsA(BaseClass->Name))
 		{
 			ZoneActors.push_back(levelActor);
 		}

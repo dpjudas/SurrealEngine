@@ -113,6 +113,8 @@ public:
 
 	void SetPause(bool value);
 
+	UZoneInfo* GetZoneActor(int zoneIndex);
+
 	std::string ParseClassName(std::string className);
 
 	UGameEngine* gameengine = nullptr;

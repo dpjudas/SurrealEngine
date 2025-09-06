@@ -372,10 +372,7 @@ PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
 		}
 	}
 
-	region.Zone = UObject::Cast<UZoneInfo>(Zones[region.ZoneNumber].ZoneActor);
-	if (!region.Zone)
-		region.Zone = levelZoneInfo;
-
+	region.Zone = engine->GetZoneActor(region.ZoneNumber);
 	return region;
 }
 

@@ -148,32 +148,30 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 
 	if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
 	{
-		int zone = front ? node->Zone0 : node->Zone1;
-		if (UZoneInfo* zoneInfo = UObject::TryCast<UZoneInfo>(model->Zones[zone].ZoneActor))
+		int zone = front ? node->Zone1 : node->Zone0;
+		UZoneInfo* zoneInfo = engine->GetZoneActor(zone);
+		if (zoneInfo->SkyZone())
 		{
-			if (zoneInfo->SkyZone())
+			Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+			if (!spans.empty())
 			{
-				Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
-				if (!spans.empty())
+				USkyZoneInfo* skyZone = zoneInfo->SkyZone();
+				for (auto& p : Portals)
 				{
-					USkyZoneInfo* skyZone = zoneInfo->SkyZone();
-					for (auto& p : Portals)
+					if (p.SkyZone == skyZone)
 					{
-						if (p.SkyZone == skyZone)
-						{
-							p.Nodes.push_back(info);
-							p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
-							return;
-						}
+						p.Nodes.push_back(info);
+						p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
+						return;
 					}
-					VisiblePortal portal;
-					portal.Nodes.push_back(info);
-					portal.SkyZone = skyZone;
-					portal.Spans = std::move(spans);
-					Portals.push_back(std::move(portal));
 				}
-				return;
+				VisiblePortal portal;
+				portal.Nodes.push_back(info);
+				portal.SkyZone = skyZone;
+				portal.Spans = std::move(spans);
+				Portals.push_back(std::move(portal));
 			}
+			return;
 		}
 	}
 	else if (PolyFlags & PF_Portal)
@@ -181,7 +179,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 		int portalZone = front ? node->Zone1 : node->Zone0;
 		if (portalZone > 0)
 		{
-			UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(model->Zones[portalZone].ZoneActor);
+			UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(engine->GetZoneActor(portalZone));
 			if (warpZone)
 			{
 				Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);

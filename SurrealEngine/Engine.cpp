@@ -795,6 +795,14 @@ void Engine::LoginPlayer()
 	render->OnMapLoaded();
 }
 
+UZoneInfo* Engine::GetZoneActor(int zoneIndex)
+{
+	if (auto zone = UObject::TryCast<UZoneInfo>(Level->Model->Zones[zoneIndex].ZoneActor))
+		return zone;
+	else
+		return LevelInfo;
+}
+
 UObject* Engine::FindObject(NameString name, NameString className)
 {
 	for (auto actor : Level->Actors)
