@@ -399,6 +399,7 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 	}
 
 	audiodev->SetViewport(nullptr);
+	audiodev->GetDevice()->PlayMusic(video->GetAudio());
 
 	float timestamp = 0.0f;
 	int curframe = 0;
@@ -431,8 +432,8 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 		if (done)
 			break;
 
+		audiodev->GetDevice()->Update();
 		GameWindow::ProcessEvents();
-		audiodev->Update(mat4::identity());
 
 		if (frame)
 		{
@@ -447,6 +448,8 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 			render->DrawVideoFrame(&texinfo[0], background ? &texinfo[1] : nullptr);
 		}
 	}
+
+	audiodev->GetDevice()->PlayMusic(nullptr);
 
 	if (quit || skipAvi)
 		return nullptr;

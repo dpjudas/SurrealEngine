@@ -31,34 +31,65 @@ extern "C"
 
 	int ff_get_buffer(AVCodecContext* avctx, AVFrame* frame, int flags)
 	{
-		if (avctx->pix_fmt != AV_PIX_FMT_YUV410P)
-			return -1;
-
-		// planar YUV 4:1:0,  8bpp, (1 Cr & Cb sample per 4x4 Y samples)
-		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++)
+		if (avctx->codec_id != AV_CODEC_ID_ADPCM_MS)
 		{
-			if (i == 0)
+			if (avctx->pix_fmt != AV_PIX_FMT_YUV410P)
+				return -1;
+
+			// planar YUV 4:1:0,  8bpp, (1 Cr & Cb sample per 4x4 Y samples)
+			for (int i = 0; i < AV_NUM_DATA_POINTERS; i++)
 			{
-				int planewidth = avctx->width;
-				int planeheight = avctx->height;
-				int bytes_per_line = planewidth;
-				int pitch = (bytes_per_line + 15) / 16 * 16;
-				frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
-				frame->linesize[i] = pitch;
+				if (i == 0)
+				{
+					int planewidth = avctx->width;
+					int planeheight = avctx->height;
+					int bytes_per_line = planewidth;
+					int pitch = (bytes_per_line + 15) / 16 * 16;
+					frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
+					frame->linesize[i] = pitch;
+				}
+				else if (i == 1 || i == 2)
+				{
+					int planewidth = (avctx->width + 3) / 4;
+					int planeheight = (avctx->height + 3) / 4;
+					int bytes_per_line = planewidth;
+					int pitch = (bytes_per_line + 15) / 16 * 16;
+					frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
+					frame->linesize[i] = pitch;
+				}
+				else
+				{
+					frame->data[i] = 0;
+					frame->linesize[i] = 0;
+				}
 			}
-			else if (i == 1 || i == 2)
+		}
+		else
+		{
+			int size = frame->nb_samples * sizeof(int16_t);
+			if (avctx->nb_channels > 2)
 			{
-				int planewidth = (avctx->width + 3) / 4;
-				int planeheight = (avctx->height + 3) / 4;
-				int bytes_per_line = planewidth;
-				int pitch = (bytes_per_line + 15) / 16 * 16;
-				frame->data[i] = (uint8_t*)malloc(planeheight * pitch);
-				frame->linesize[i] = pitch;
+				for (int i = 0; i < avctx->nb_channels; i++)
+				{
+					frame->data[i] = (uint8_t*)malloc(size);
+					frame->linesize[i] = size;
+				}
+				for (int i = avctx->nb_channels; i < AV_NUM_DATA_POINTERS; i++)
+				{
+					frame->data[i] = 0;
+					frame->linesize[i] = 0;
+				}
 			}
 			else
 			{
-				frame->data[i] = 0;
-				frame->linesize[i] = 0;
+				size *= 2;
+				frame->data[0] = (uint8_t*)malloc(size);
+				frame->linesize[0] = size;
+				for (int i = 1; i < AV_NUM_DATA_POINTERS; i++)
+				{
+					frame->data[i] = 0;
+					frame->linesize[i] = 0;
+				}
 			}
 		}
 		return 0;
@@ -98,6 +129,7 @@ extern "C"
 	}
 
 	extern FFCodec ff_indeo5_decoder;
+	extern FFCodec ff_adpcm_ms_decoder;
 
 	/* The part of mem.c we are actually using
 	void* av_mallocz(size_t size) av_malloc_attrib av_alloc_size(1) { return nullptr; }
@@ -257,6 +289,86 @@ SURREALVIDEO_API IVideoDecoder* CreateVideoDecoder()
 	try
 	{
 		return new VideoDecoder();
+	}
+	catch (...)
+	{
+		return nullptr;
+	}
+}
+
+class AudioDecoder : public IAudioDecoder
+{
+public:
+	AudioDecoder(int channels, int block_align)
+	{
+		context.nb_channels = channels;
+		context.block_align = block_align;
+		context.codec_id = AV_CODEC_ID_ADPCM_MS;
+		context.priv_data = malloc(ff_adpcm_ms_decoder.priv_data_size);
+		if (!context.priv_data)
+			throw std::runtime_error("malloc(ff_adpcm_ms_decoder.priv_data_size) failed");
+		memset(context.priv_data, 0, ff_adpcm_ms_decoder.priv_data_size);
+		if (ff_adpcm_ms_decoder.init(&context) < 0)
+		{
+			free(context.priv_data);
+			throw std::runtime_error("ff_adpcm_ms_decoder.init failed");
+		}
+	}
+
+	~AudioDecoder()
+	{
+		if (ff_adpcm_ms_decoder.close)
+			ff_adpcm_ms_decoder.close(&context);
+		free(context.priv_data);
+		av_frame_unref(&frame);
+	}
+
+	AudioDecoderResult Decode(const void* data, size_t size) override
+	{
+		try
+		{
+			AVPacket packet =
+			{
+				.data = (uint8_t*)data,
+				.size = (int)size
+			};
+			int got_frame = 0;
+			int result = ff_adpcm_ms_decoder.decode(&context, &frame, &got_frame, &packet);
+			if (result < 0)
+				return AudioDecoderResult::Error;
+			return got_frame ? AudioDecoderResult::DecodedFrame : AudioDecoderResult::Decoded;
+		}
+		catch (...) // Don't float C++ exceptions through this API
+		{
+			return AudioDecoderResult::Error;
+		}
+	}
+
+	const int16_t* GetSamples() override
+	{
+		return (int16_t*)frame.data[0];
+	}
+
+	int GetSampleCount() override
+	{
+		return frame.nb_samples;
+	}
+
+	void Release() override
+	{
+		delete this;
+	}
+
+	std::vector<uint8_t> crbuffer, cbbuffer;
+	AVCodecContext context = {};
+	AVFrame frame = {};
+};
+
+SURREALVIDEO_API IAudioDecoder* CreateAudioDecoder(int channels, int block_align)
+{
+	try
+	{
+		return new AudioDecoder(channels, block_align);
 	}
 	catch (...)
 	{

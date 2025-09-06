@@ -5,17 +5,74 @@
 #include "AVIHeaders.h"
 #include "Utils/File.h"
 #include "UObject/UTexture.h"
+#include "Audio/AudioSource.h"
 #include "../../../SurrealVideo/SurrealVideo.h"
 
-static void ReleaseVideoDecoder(IVideoDecoder* decoder) { decoder->Release(); }
+class VideoAudioSource : public AudioSource
+{
+public:
+	VideoAudioSource(Array<int16_t> samples, int freq, int channels) : Data(std::move(samples)), Frequency(freq), Channels(channels)
+	{
+	}
+
+	int GetFrequency() override
+	{
+		return Frequency;
+	}
+
+	int GetChannels() override
+	{
+		return Channels;
+	}
+
+	int GetSamples() override
+	{
+		return (int)Data.size();
+	}
+
+	void SeekToSample(uint64_t position) override
+	{
+		pos = position;
+	}
+
+	size_t ReadSamples(float* output, size_t samples) override
+	{
+		size_t count = std::min(pos + samples, Data.size()) - pos;
+		int16_t* d = Data.data() + pos;
+		for (size_t i = 0; i < count; i++)
+		{
+			output[i] = d[i] * (float)(1.0 / 32768.0);
+		}
+		pos += count;
+		return count;
+	}
+
+	Array<int16_t> Data;
+	int Frequency = 0;
+	int Channels = 0;
+	uint64_t pos = 0;
+};
 
 class VideoPlayerImpl : public VideoPlayer
 {
 public:
-	VideoPlayerImpl(const std::string& filename) : Decoder(CreateVideoDecoder(), &ReleaseVideoDecoder)
+	VideoPlayerImpl(const std::string& filename)
 	{
 		reader = std::make_unique<AVIFileReader>(File::read_all_bytes(filename));
 		ReadHeaders();
+		if (Video.StreamIndex == -1)
+			throw std::runtime_error("AVI file has no video stream");
+		if (Audio.StreamIndex == -1)
+			throw std::runtime_error("AVI file has no audio stream");
+
+		VideoDecoder = std::shared_ptr<IVideoDecoder>(CreateVideoDecoder(), [](IVideoDecoder* decoder) { decoder->Release(); });
+		AudioDecoder = std::shared_ptr<IAudioDecoder>(CreateAudioDecoder(streamHeaders[Audio.StreamIndex].Audio.Channels, streamHeaders[Audio.StreamIndex].Audio.BlockAlign), [](IAudioDecoder* decoder) { decoder->Release(); });
+		DecodeAudio();
+	}
+
+	std::unique_ptr<AudioSource> GetAudio() override
+	{
+		return std::make_unique<VideoAudioSource>(std::move(Audio.Samples), streamHeaders[Audio.StreamIndex].Audio.SamplesPerSec, streamHeaders[Audio.StreamIndex].Audio.Channels);
 	}
 
 	bool Decode() override
@@ -30,14 +87,14 @@ public:
 				while (!reader->IsEndOfChunk())
 				{
 					type = reader->PushChunk();
-					ReadPacket(type);
+					ReadVideoPacket(type);
 					reader->PopChunk();
 					reader->SkipJunk();
 				}
 			}
 			else
 			{
-				ReadPacket(type);
+				ReadVideoPacket(type);
 			}
 			reader->PopChunk();
 			reader->SkipJunk();
@@ -46,20 +103,61 @@ public:
 		return false;
 	}
 
-	void ReadPacket(const std::string& type)
+	void DecodeAudio()
 	{
-		size_t packetSize = reader->GetChunkSize();
-		if (packetData.size() < packetSize)
-			packetData.resize(packetSize);
-		reader->Read(packetData.data(), packetSize);
+		size_t pos = reader->Tell();
+		while (!reader->IsEndOfChunk())
+		{
+			std::string type = reader->PushChunk();
+			if (type == "LIST")
+			{
+				reader->ReadTag("rec ");
+				reader->SkipJunk();
+				while (!reader->IsEndOfChunk())
+				{
+					type = reader->PushChunk();
+					ReadAudioPacket(type);
+					reader->PopChunk();
+					reader->SkipJunk();
+				}
+			}
+			else
+			{
+				ReadAudioPacket(type);
+			}
+			reader->PopChunk();
+			reader->SkipJunk();
+		}
+		reader->Seek(pos);
+	}
 
+	void ReadVideoPacket(const std::string& type)
+	{
+		if (type.substr(2) == "dc" || type.substr(2) == "db") // Video frame
+		{
+			if (std::atoi(type.substr(0, 2).c_str()) == Video.StreamIndex)
+			{
+				size_t packetSize = reader->GetChunkSize();
+				if (packetData.size() < packetSize)
+					packetData.resize(packetSize);
+				reader->Read(packetData.data(), packetSize);
+				DecodeVideo(packetData.data(), packetSize);
+			}
+		}
+	}
+
+	void ReadAudioPacket(const std::string& type)
+	{
 		if (type.substr(2) == "wb") // Audio frame
 		{
-			DecodeAudio(packetData.data(), packetSize);
-		}
-		else if (type.substr(2) == "dc" || type.substr(2) == "db") // Video frame
-		{
-			DecodeVideo(packetData.data(), packetSize);
+			if (std::atoi(type.substr(0, 2).c_str()) == Audio.StreamIndex)
+			{
+				size_t packetSize = reader->GetChunkSize();
+				if (packetData.size() < packetSize)
+					packetData.resize(packetSize);
+				reader->Read(packetData.data(), packetSize);
+				DecodeAudio(packetData.data(), packetSize);
+			}
 		}
 	}
 
@@ -76,21 +174,30 @@ public:
 
 	void DecodeAudio(const void* packetData, size_t packetSize)
 	{
-		// To do: decode packet
-		// To do: put this in an audio buffer
+		int blockSize = streamHeaders[Audio.StreamIndex].Audio.BlockAlign;
+		for (int i = 0; i < packetSize / blockSize; i++)
+		{
+			if (AudioDecoder->Decode(static_cast<const int8_t*>(packetData) + i * blockSize, blockSize) == AudioDecoderResult::DecodedFrame)
+			{
+				const int16_t* src = AudioDecoder->GetSamples();
+				int samples = AudioDecoder->GetSampleCount();
+				int channels = streamHeaders[Audio.StreamIndex].Audio.Channels;
+				Audio.Samples.insert(Audio.Samples.end(), src, src + samples * channels);
+			}
+		}
 	}
 
 	void DecodeVideo(const void* packetData, size_t packetSize)
 	{
-		VideoDecoderResult result = Decoder->Decode(packetData, packetSize);
+		VideoDecoderResult result = VideoDecoder->Decode(packetData, packetSize);
 		if (result == VideoDecoderResult::Error)
 			throw std::runtime_error("Video decode failed");
 
 		if (result == VideoDecoderResult::DecodedFrame)
 		{
-			int width = Decoder->GetWidth();
-			int height = Decoder->GetHeight();
-			const uint32_t* pixels = Decoder->GetPixels();
+			int width = VideoDecoder->GetWidth();
+			int height = VideoDecoder->GetHeight();
+			const uint32_t* pixels = VideoDecoder->GetPixels();
 
 			std::unique_ptr<UnrealMipmap> frame;
 			if (!Video.FreeFrames.empty())
@@ -192,10 +299,14 @@ public:
 		if (streamHeader.StreamType == "vids")
 		{
 			ReadVideoStreamHeader(streamHeader);
+			if (Video.StreamIndex == -1)
+				Video.StreamIndex = (int)streamHeaders.size();
 		}
 		else if (streamHeader.StreamType == "auds")
 		{
 			ReadAudioStreamHeader(streamHeader);
+			if (Audio.StreamIndex == -1)
+				Audio.StreamIndex = (int)streamHeaders.size();
 		}
 		reader->PopChunk();
 		streamHeaders.push_back(streamHeader);
@@ -243,19 +354,28 @@ public:
 		}
 	}
 
-	std::unique_ptr<IVideoDecoder, decltype(&ReleaseVideoDecoder)> Decoder;
+	std::shared_ptr<IVideoDecoder> VideoDecoder;
+	std::shared_ptr<IAudioDecoder> AudioDecoder;
 
 	struct
 	{
+		int StreamIndex = -1;
 		std::unique_ptr<UnrealMipmap> CurrentFrame;
-		std::vector<std::unique_ptr<UnrealMipmap>> DecodedFrames;
-		std::vector<std::unique_ptr<UnrealMipmap>> FreeFrames;
+		Array<std::unique_ptr<UnrealMipmap>> DecodedFrames;
+		Array<std::unique_ptr<UnrealMipmap>> FreeFrames;
 	} Video;
+
+	struct
+	{
+		int StreamIndex = -1;
+		Array<int16_t> Samples;
+		//Array<int16_t> DecodeBuffer;
+	} Audio;
 
 	std::unique_ptr<AVIFileReader> reader;
 	AVIMainHeader mainHeader;
 	Array<AVIStreamHeader> streamHeaders;
-	std::vector<uint8_t> packetData;
+	Array<uint8_t> packetData;
 };
 
 std::unique_ptr<VideoPlayer> VideoPlayer::Create(const std::string& filename)

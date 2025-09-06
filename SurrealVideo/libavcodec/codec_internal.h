@@ -39,6 +39,8 @@ typedef struct FFCodec {
 
     int (*close)(struct AVCodecContext *);
 
+    void (*flush)(struct AVCodecContext*);
+
 } FFCodec;
 
 #endif /* AVCODEC_CODEC_INTERNAL_H */

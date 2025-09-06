@@ -20,6 +20,22 @@ public:
 	virtual void Release() = 0;
 };
 
+enum class AudioDecoderResult
+{
+	Decoded,
+	DecodedFrame,
+	Error
+};
+
+class IAudioDecoder
+{
+public:
+	virtual AudioDecoderResult Decode(const void* data, size_t size) = 0;
+	virtual const int16_t* GetSamples() = 0;
+	virtual int GetSampleCount() = 0;
+	virtual void Release() = 0;
+};
+
 #ifdef _MSC_VER
 #ifdef BUILDING_SURREALVIDEO
 #define SURREALVIDEO_API __declspec(dllexport)
@@ -31,3 +47,4 @@ public:
 #endif
 
 SURREALVIDEO_API IVideoDecoder* CreateVideoDecoder();
+SURREALVIDEO_API IAudioDecoder* CreateAudioDecoder(int channels, int block_align);

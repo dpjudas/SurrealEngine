@@ -105,6 +105,11 @@ typedef struct AVFrame {
      */
     int linesize[AV_NUM_DATA_POINTERS];
 
+    /**
+     * number of audio samples (per channel) described by this frame
+     */
+    int nb_samples;
+
 } AVFrame;
 
 /**
