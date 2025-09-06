@@ -8,6 +8,27 @@
 
 void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 {
+	if (actor->bCorona())
+		frame->Coronas.push_back(actor);
+
+	if (actor->bHidden())
+		return;
+
+	if (actor->bOnlyOwnerSee() && actor->Owner() != engine->CameraActor)
+		return;
+
+	if (engine->LaunchInfo.engineVersion > 219)
+	{
+		if (actor->bOwnerNoSee() && actor->Owner() == engine->CameraActor)
+			return;
+	}
+
+	if (actor == engine->CameraActor)
+		return;
+
+	if (!frame->Clipper.IsAABBVisible(actor->BspInfo.BoundingBox))
+		return;
+
 	EDrawType dt = (EDrawType)actor->DrawType();
 	if (dt == DT_Mesh && actor->Mesh())
 	{
