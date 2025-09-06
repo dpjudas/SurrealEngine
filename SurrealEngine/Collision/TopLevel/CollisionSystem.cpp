@@ -22,7 +22,7 @@ CollisionHitList CollisionSystem::OverlapTest(UActor* actor)
 CollisionHitList CollisionSystem::OverlapTest(const vec3& location, float height, float radius, bool testActors, bool testWorld, bool visibilityOnly)
 {
 	OverlapTester overlap(this);
-	return overlap.TestOverlap(location, height, radius, false, true, false);
+	return overlap.TestOverlap(location, height, radius, testActors, testWorld, visibilityOnly);
 }
 
 bool CollisionSystem::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool traceActors, bool traceWorld, bool visibilityOnly)

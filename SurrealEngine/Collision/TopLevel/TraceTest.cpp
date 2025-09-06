@@ -44,7 +44,7 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 						if (actor->Collision.CollisionCheckCounter != checkCounter)
 						{
 							actor->Collision.CollisionCheckCounter = checkCounter;
-							TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, traceActors, traceWorld, hits);
+							TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, traceActors, traceWorld, visibilityOnly, hits);
 						}
 					}
 				}
@@ -137,7 +137,7 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 							actor->Collision.CollisionCheckCounter = checkCounter;
 							if (actor != tracingActor && actor->bBlockActors())
 							{
-								TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, traceActors, traceWorld, hits);
+								TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, traceActors, traceWorld, visibilityOnly, hits);
 								if (!hits.empty())
 									return true;
 							}
@@ -157,7 +157,7 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	return false;
 }
 
-void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, bool traceActors, bool traceWorld, CollisionHitList& hits)
+void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, bool traceActors, bool traceWorld, bool visibilityOnly, CollisionHitList& hits)
 {
 	if (UMover* mover = UObject::TryCast<UMover>(actor))
 	{
@@ -179,14 +179,14 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 		{
 			// Line/triangle intersect
 			TraceRayModel tracemodel;
-			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, false);
+			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, visibilityOnly);
 		}
 		else
 		{
 			// AABB/Triangle intersect
 			TraceAABBModel tracemodel;
 			dvec3 extents = { (double)radius, (double)radius, (double)height };
-			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, extents, false);
+			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, extents, visibilityOnly);
 		}
 
 		for (auto& hit : brushHits)
@@ -198,7 +198,7 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 	}
 	else
 	{
-		if (!traceActors)
+		if (!traceActors || visibilityOnly)
 			return;
 
 		double t = CylinderActorTrace(origin, tmin, dirNormalized, tmax, height, radius, actor);

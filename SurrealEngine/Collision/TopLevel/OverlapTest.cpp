@@ -13,7 +13,7 @@ CollisionHitList OverlapTester::TestOverlap(const vec3& location, float height, 
 
 	CollisionHitList hits;
 
-	if (testActors)
+	if (testActors && !visibilityOnly)
 	{
 		double dradius = radius;
 		double dheight = height;
