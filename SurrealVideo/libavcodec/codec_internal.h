@@ -20,6 +20,8 @@
 #define AVCODEC_CODEC_INTERNAL_H
 
 #include <stdint.h>
+#include "decode.h"
+#include "packet.h"
 
 typedef struct FFCodecDefault {
     const char *key;
@@ -34,8 +36,8 @@ typedef struct FFCodec {
 
     int (*init)(struct AVCodecContext *);
 
-    int (*decode)(struct AVCodecContext *avctx, struct AVFrame *frame,
-                  int *got_frame_ptr, struct AVPacket *avpkt);
+    int (*decode)(AVCodecContext *avctx, AVFrame *frame,
+                  int *got_frame_ptr, AVPacket *avpkt);
 
     int (*close)(struct AVCodecContext *);
 
