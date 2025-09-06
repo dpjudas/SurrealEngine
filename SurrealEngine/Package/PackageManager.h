@@ -99,6 +99,8 @@ private:
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
 	std::map<std::string, std::string> packageRemaps;
 
+	std::map<NameString, std::string> aviFilenames;
+
 	std::map<NameString, Array<IntObject>> IntObjects;
 
 	std::unique_ptr<IniFile> defaultIniFile;  // Holds Default.ini

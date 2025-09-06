@@ -186,12 +186,27 @@ void PackageManager::ScanPaths()
 
 		ScanFolder(final_path, filename);
 	}
+
+	if (IsKlingonHonorGuard())
+	{
+		std::string systemFolder = FilePath::combine(launchInfo.gameRootFolder, "System");
+		for (std::string filename : Directory::files(FilePath::combine(systemFolder, "*.*")))
+		{
+			if (FilePath::has_extension(filename, "avi"))
+			{
+				aviFilenames[filename] = FilePath::combine(systemFolder, filename);
+			}
+		}
+	}
 }
 
 std::string PackageManager::GetVideoFilename(const std::string& name)
 {
-	// To do: this may have case insensibility issues on unix
-	return FilePath::combine(launchInfo.gameRootFolder, "System/" + name);
+	NameString filename = name;
+	auto it = aviFilenames.find(name);
+	if (it == aviFilenames.end())
+		return {};
+	return it->second;
 }
 
 Array<NameString> PackageManager::GetPackageNames() const
