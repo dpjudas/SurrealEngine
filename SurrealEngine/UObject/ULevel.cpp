@@ -366,7 +366,7 @@ PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
 		}
 		else
 		{
-			region.ZoneNumber = node->Zone1;
+			region.ZoneNumber = side >= 0.0f ? node->Zone1 : node->Zone0;
 			region.BspLeaf = side >= 0.0f ? node->Leaf0 : node->Leaf1;
 			break;
 		}
