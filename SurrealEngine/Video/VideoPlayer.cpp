@@ -75,6 +75,11 @@ public:
 		return std::make_unique<VideoAudioSource>(std::move(Audio.Samples), streamHeaders[Audio.StreamIndex].Audio.SamplesPerSec, streamHeaders[Audio.StreamIndex].Audio.Channels);
 	}
 
+	int GetFrameIndexForTime(float timestamp)
+	{
+		return (int)std::floor(((double)timestamp) * streamHeaders[Video.StreamIndex].Rate / streamHeaders[Video.StreamIndex].Scale);
+	}
+
 	bool Decode() override
 	{
 		while (!reader->IsEndOfChunk())

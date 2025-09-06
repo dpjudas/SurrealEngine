@@ -13,6 +13,8 @@ public:
 
 	virtual ~VideoPlayer() = default;
 
+	virtual int GetFrameIndexForTime(float timestamp) = 0;
+
 	virtual bool Decode() = 0;
 	virtual UnrealMipmap* NextVideoFrame() = 0;
 

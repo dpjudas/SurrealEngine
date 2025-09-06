@@ -402,13 +402,13 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 	audiodev->GetDevice()->PlayMusic(video->GetAudio());
 
 	float timestamp = 0.0f;
-	int curframe = 0;
+	int curframe = -1;
 	while (!quit && !skipAvi)
 	{
 		timestamp += CalcTimeElapsed();
 
 		bool done = false;
-		while (curframe < (int)(timestamp * 24.0f))
+		while (curframe < video->GetFrameIndexForTime(timestamp))
 		{
 			while (true)
 			{
