@@ -2506,7 +2506,14 @@ bool UPawn::TickMoveTo(const vec3& target)
 	if (Physics() == PHYS_Walking)
 		Acceleration().z = 0.0f;
 
-	return MoveTimer() < 0.0f || length(target - Location()) < length(Velocity()) * 0.02f;
+	if (MoveTimer() < 0.0f)
+		return true;
+
+	// Are we there yet?
+	vec3 delta = target - Location();
+	float distSqr = dot(delta, delta);
+	float velocitySqr = dot(Velocity(), Velocity());
+	return distSqr < 1.0f || distSqr < velocitySqr * 0.05f;
 }
 
 void UPawn::MoveTo(const vec3& newDestination, float speed)
