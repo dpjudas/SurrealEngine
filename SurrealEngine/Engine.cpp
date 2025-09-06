@@ -542,6 +542,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	if (url.HasOption("entry")) // Not sure what the purpose of this kind of travel is - do nothing for now.
 		return;
 
+	audiodev->StopSounds();
 	UnloadMap();
 
 	// Load map objects
@@ -673,7 +674,8 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
 
-	audiodev->StopSounds();
+	if (LevelInfo->Game())
+		CallEvent(LevelInfo->Game(), "DetailChange", {});
 }
 
 void Engine::LoginPlayer()
