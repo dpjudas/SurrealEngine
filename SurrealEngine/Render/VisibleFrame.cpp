@@ -147,48 +147,21 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	info.Front = front;
 	info.PolyFlags = PolyFlags;
 
-	if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
+	if (PortalDepth < 4)
 	{
-		int zone = front ? node->Zone1 : node->Zone0;
-		UZoneInfo* zoneInfo = engine->GetZoneActor(zone);
-		if (zoneInfo->SkyZone())
+		if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
 		{
-			Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
-			if (!spans.empty())
-			{
-				USkyZoneInfo* skyZone = zoneInfo->SkyZone();
-				for (auto& p : Portals)
-				{
-					if (p.SkyZone == skyZone)
-					{
-						p.Nodes.push_back(info);
-						p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
-						return;
-					}
-				}
-				VisiblePortal portal;
-				portal.Nodes.push_back(info);
-				portal.SkyZone = skyZone;
-				portal.Spans = std::move(spans);
-				Portals.push_back(std::move(portal));
-			}
-			return;
-		}
-	}
-	else if (PolyFlags & PF_Portal)
-	{
-		int portalZone = front ? node->Zone1 : node->Zone0;
-		if (portalZone > 0)
-		{
-			UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(engine->GetZoneActor(portalZone));
-			if (warpZone)
+			int zone = front ? node->Zone1 : node->Zone0;
+			UZoneInfo* zoneInfo = engine->GetZoneActor(zone);
+			if (zoneInfo->SkyZone())
 			{
 				Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
 				if (!spans.empty())
 				{
+					USkyZoneInfo* skyZone = zoneInfo->SkyZone();
 					for (auto& p : Portals)
 					{
-						if (p.WarpZone == warpZone)
+						if (p.SkyZone == skyZone)
 						{
 							p.Nodes.push_back(info);
 							p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
@@ -197,38 +170,68 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 					}
 					VisiblePortal portal;
 					portal.Nodes.push_back(info);
-					portal.WarpZone = warpZone;
+					portal.SkyZone = skyZone;
 					portal.Spans = std::move(spans);
 					Portals.push_back(std::move(portal));
 				}
 				return;
 			}
 		}
-	}
-	else if (PolyFlags & PF_Mirrored)
-	{
-		if (PortalDepth > 0) // To do: cull backfacing surfaces so we don't need this hack
-			return;
-
-		Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
-		if (!spans.empty())
+		else if (PolyFlags & PF_Portal)
 		{
-			for (auto& p : Portals)
+			int portalZone = front ? node->Zone1 : node->Zone0;
+			if (portalZone > 0)
 			{
-				if (!p.WarpZone && !p.SkyZone) // To do: how do we best merge mirrors using the same plane?
+				UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(engine->GetZoneActor(portalZone));
+				if (warpZone)
 				{
-					p.Nodes.push_back(info);
-					p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
+					Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+					if (!spans.empty())
+					{
+						for (auto& p : Portals)
+						{
+							if (p.WarpZone == warpZone)
+							{
+								p.Nodes.push_back(info);
+								p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
+								return;
+							}
+						}
+						VisiblePortal portal;
+						portal.Nodes.push_back(info);
+						portal.WarpZone = warpZone;
+						portal.Spans = std::move(spans);
+						Portals.push_back(std::move(portal));
+					}
 					return;
 				}
 			}
-
-			VisiblePortal portal;
-			portal.Nodes.push_back(info);
-			portal.Spans = std::move(spans);
-			Portals.push_back(std::move(portal));
 		}
-		return;
+		else if (PolyFlags & PF_Mirrored)
+		{
+			if (PortalDepth > 0) // To do: cull backfacing surfaces so we don't need this hack
+				return;
+
+			Array<PortalSpan> spans = Clipper.CheckPortal(points, numverts);
+			if (!spans.empty())
+			{
+				for (auto& p : Portals)
+				{
+					if (!p.WarpZone && !p.SkyZone) // To do: how do we best merge mirrors using the same plane?
+					{
+						p.Nodes.push_back(info);
+						p.Spans.insert(p.Spans.end(), spans.begin(), spans.end());
+						return;
+					}
+				}
+
+				VisiblePortal portal;
+				portal.Nodes.push_back(info);
+				portal.Spans = std::move(spans);
+				Portals.push_back(std::move(portal));
+			}
+			return;
+		}
 	}
 
 	if (!Clipper.CheckSurface(points, numverts, (PolyFlags & PF_NoOcclude) == 0))
