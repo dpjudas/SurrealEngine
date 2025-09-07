@@ -222,3 +222,16 @@ std::string UnrealURL::ToString() const
 
 	return result;
 }
+
+bool UnrealURL::Empty() const
+{
+	return Map.empty() && Portal.empty() && Options.empty();
+}
+
+void UnrealURL::Clear()
+{
+	Map.clear();
+	Portal.clear();
+	Options.clear();
+}
+

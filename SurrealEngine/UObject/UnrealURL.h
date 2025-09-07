@@ -18,6 +18,8 @@ public:
 	std::string GetOptions() const;
 	std::string GetPortal() const;
 	std::string ToString() const;
+	bool Empty() const;
+	void Clear();
 
 	std::string Protocol = "unreal";
 	std::string ProtocolDescription = "Unreal Protocol";
