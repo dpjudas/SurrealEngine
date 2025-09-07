@@ -134,7 +134,7 @@ void UObjectProperty::SetValueFromString(void* data, const std::string& valueStr
 
 	UObject** propertyValue = (UObject**)data;
 
-	if (valueString.substr(0, 6) == "Class'")
+	if (valueString.substr(0, 6) == "Class\'" || valueString.substr(0, 6) == "class\'")
 	{
 		*propertyValue = package->GetPackageManager()->FindClass(valueString.substr(6, valueString.length() - 7));
 	}
