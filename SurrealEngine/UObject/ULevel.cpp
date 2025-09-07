@@ -121,13 +121,17 @@ void ULevel::TickActor(float elapsed, UActor* actor)
 	}
 }
 
-void ULevel::Tick(float elapsed)
+void ULevel::Tick(float elapsed, bool gamePaused)
 {
+	// PlayerPawns must always tick.
+	// Actors with bAlwaysTick must also always tick.
 	if (!engine->LevelInfo->bPlayersOnly())
 	{
 		for (size_t i = 0; i < Actors.size(); i++)
-			if (Actors[i])
+		{
+			if (Actors[i] && (!gamePaused || Actors[i]->bAlwaysTick() || UObject::TryCast<UPlayerPawn>(Actors[i])))
 				TickActor(elapsed, Actors[i]);
+		}
 	}
 	else
 	{

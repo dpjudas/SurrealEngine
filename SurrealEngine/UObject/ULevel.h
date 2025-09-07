@@ -267,7 +267,7 @@ public:
 	ULevel(NameString name, UClass* base, ObjectFlags flags);
 	void Load(ObjectStream* stream) override;
 
-	void Tick(float elapsed);
+	void Tick(float elapsed, bool gamePaused);
 
 	Array<LevelReachSpec> ReachSpecs;
 	UModel* Model = nullptr;

@@ -127,12 +127,9 @@ void Engine::Run()
 			LevelInfo->bAggressiveLOD() = false;
 		}
 
-		if (!m_GamePaused)
-		{
-			if (EntryLevel)
-				EntryLevel->Tick(entryLevelElapsed);
-			Level->Tick(levelElapsed);
-		}
+		if (EntryLevel)
+			EntryLevel->Tick(entryLevelElapsed, m_GamePaused);
+		Level->Tick(levelElapsed, m_GamePaused);
 
 		if (!LevelInfo->NextURL().empty())
 		{
