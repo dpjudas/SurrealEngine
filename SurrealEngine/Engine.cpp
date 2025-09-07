@@ -139,7 +139,7 @@ void Engine::Run()
 			LevelInfo->NextSwitchCountdown() -= levelElapsed;
 			if (LevelInfo->NextSwitchCountdown() <= 0.0f)
 			{
-				if (LevelInfo->NextURL() == "?RESTART")
+				if (UnrealURL(LevelInfo->NextURL()).HasOption("restart"))
 				{
 					LoadMap(LevelInfo->URL, Level->TravelInfo);
 					LoginPlayer();
@@ -174,6 +174,12 @@ void Engine::Run()
 			}
 		}
 
+		if (ClientTravelInfo.URL.HasOption("restart"))
+		{
+			LoadMap(LevelInfo->URL, Level->TravelInfo);
+			LoginPlayer();
+		}
+
 		if (!ClientTravelInfo.URL.Map.empty())
 		{
 			// To do: need to do something about that travel type and transfering of items
@@ -181,6 +187,7 @@ void Engine::Run()
 			UnrealURL url(ClientTravelInfo.URL);
 
 			auto travelInfo = Level->TravelInfo;
+
 			for (UActor* actor : Level->Actors)
 			{
 				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
@@ -468,16 +475,18 @@ void Engine::UpdateAudio()
 
 void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, bool transferItems)
 {
+	UnrealURL url(newURL);
+
 	if (travelType == ETravelType::TRAVEL_Absolute)
-		ClientTravelInfo.URL = UnrealURL(newURL);
+		ClientTravelInfo.URL = url;
 	else if (travelType == ETravelType::TRAVEL_Partial)
 	{
 		auto name = ClientTravelInfo.URL.GetOption("name");
-		ClientTravelInfo.URL = UnrealURL(newURL);
+		ClientTravelInfo.URL = url;
 		ClientTravelInfo.URL.AddOrReplaceOption("name=" + name);
 	}
 	else if (travelType == ETravelType::TRAVEL_Relative)
-		ClientTravelInfo.URL = UnrealURL(ClientTravelInfo.URL, newURL);
+		ClientTravelInfo.URL = UnrealURL(ClientTravelInfo.URL, url);
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -534,7 +543,7 @@ void Engine::UnloadMap()
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
 {
-	ClientTravelInfo.URL.Map.clear();
+	ClientTravelInfo.URL.Clear();
 
 	if (Level)
 		CallEvent(console, EventName::NotifyLevelChange);
@@ -727,7 +736,7 @@ void Engine::LoginPlayer()
 	CallEvent(pawn, EventName::TravelPreAccept);
 
 	Array<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
-	if (actorActuallySpawned && ClientTravelInfo.TransferItems)
+	if (actorActuallySpawned && ClientTravelInfo.TravelType == ETravelType::TRAVEL_Relative)
 	{
 		std::string playerName = url.GetOption("Name");
 		if (playerName.empty())
@@ -736,10 +745,40 @@ void Engine::LoginPlayer()
 		auto it = travelInfo.find(playerName);
 		if (!playerName.empty() && it != travelInfo.end())
 		{
+			std::string pawnWeaponClass;
+			std::string selectedItemClass;
+
 			for (const ObjectTravelInfo& objInfo : ObjectTravelInfo::Parse(it->second))
 			{
 				if (objInfo.isPlayerPawn)
 				{
+					auto weaponIter = objInfo.Properties.find("Weapon");
+					auto selectedItemIter = objInfo.Properties.find("SelectedItem");
+
+					if (weaponIter != objInfo.Properties.end())
+					{
+						auto weaponName = ParsePropertiesFromString(weaponIter->second)["class"];
+						for (const auto& [weaponActor, _] : acceptedActors)
+						{
+							if (UObject::GetUClassFullName(weaponActor) == weaponName)
+							{
+								pawnWeaponClass = weaponName;
+							}
+						}
+					}
+
+					if (selectedItemIter != objInfo.Properties.end())
+					{
+						auto selectedItemName = ParsePropertiesFromString(selectedItemIter->second)["class"];
+						for (const auto& [itemActor, _] : acceptedActors)
+						{
+							if (UObject::GetUClassFullName(itemActor) == selectedItemName)
+							{
+								selectedItemClass = selectedItemName;
+							}
+						}
+					}
+
 					acceptedActors.push_back({ pawn, objInfo });
 				}
 				else
@@ -757,16 +796,27 @@ void Engine::LoginPlayer()
 				}
 			}
 
-			for (auto& it : acceptedActors)
+			for (auto& [acceptedActor, objInfo] : acceptedActors)
 			{
-				UActor* acceptedActor = it.first;
-				const ObjectTravelInfo& objInfo = it.second;
-
-				for (auto it = objInfo.Properties.begin(); it != objInfo.Properties.end(); it++)
+				for (auto& [propName, propValue] : objInfo.Properties)
 				{
-					LogMessage("Travelling '" + objInfo.ClassName + "' property '" + it->first + "': " + it->second);
-					UProperty* prop = acceptedActor->GetMemberProperty(it->first);
-					acceptedActor->SetPropertyFromString(it->first, it->second);
+					LogMessage("Travelling '" + objInfo.ClassName + "' property '" + propName + "': " + propValue);
+					UProperty* prop = acceptedActor->GetMemberProperty(propName);
+					acceptedActor->SetPropertyFromString(propName, propValue);
+				}
+			}
+
+			// Assign the weapon and selected item to the player pawn
+			for (auto& [acceptedActor, _] : acceptedActors)
+			{
+				if (UObject::GetUClassFullName(acceptedActor) == pawnWeaponClass)
+				{
+					pawn->Weapon() = UObject::Cast<UWeapon>(acceptedActor);
+				}
+
+				if (UObject::GetUClassFullName(acceptedActor) == selectedItemClass)
+				{
+					pawn->SelectedItem() = UObject::Cast<UInventory>(acceptedActor);
 				}
 			}
 		}
@@ -945,17 +995,17 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "keyname" && args.size() == 2)
 	{
-		int index = std::atoi(args[1].c_str());
-		return keynames[(uint8_t)index];
+		uint8_t index = Convert::to_uint8(args[1]);
+		return keynames[index];
 	}
 	else if (command == "keybinding" && args.size() == 2)
 	{
-		std::string name = args[1];
+		const std::string& name = args[1];
 		return keybindings[name];
 	}
-	else if (command == "open" && args.size() == 2)
+	else if ((command == "open" || command == "start") && args.size() == 2)
 	{
-		std::string maparg = args[1];
+		const std::string& maparg = args[1];
 
 		UnrealURL url(maparg);
 
@@ -965,15 +1015,81 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
-				LevelInfo->NextURL() = url.ToString();
-				//We can't call that here
-				//LoadMap(url);
-				//LoginPlayer();
+				ClientTravelInfo.URL = url.ToString();
+				ClientTravelInfo.TravelType = ETravelType::TRAVEL_Absolute;
+				ClientTravelInfo.TransferItems = false;
 				return {};
 			}	
 		}
 
 		LogMessage("Couldn't find map " + maparg);
+	}
+	else if (command == "switchlevel" && args.size() == 2)
+	{
+		// This works like open/start, but keeps the difficulty level
+		// As well as the game type
+		const std::string& maparg = args[1];
+
+		UnrealURL url(maparg);
+
+		// First check if the provided URL has a difficulty option
+		std::string difficulty = url.GetOption("difficulty");
+
+		// If there isn't, try to get it from the current level's options
+		if (difficulty.empty())
+		{
+			difficulty = LevelInfo->URL.GetOption("difficulty");
+			if (!difficulty.empty())
+				url.AddOrReplaceOption("difficulty=" + difficulty);
+		}
+
+		// If there still isn't, try to figure the current difficulty out using LevelInfo
+		if (difficulty.empty())
+		{
+			if (LevelInfo->bDifficulty0())
+				difficulty = "0";
+			else if (LevelInfo->bDifficulty1())
+				difficulty = "1";
+			else if (LevelInfo->bDifficulty2())
+				difficulty = "2";
+			else if (LevelInfo->bDifficulty3())
+				difficulty = "3";
+			else
+				difficulty = "2"; // Assume "Normal" difficulty
+
+			url.AddOrReplaceOption("difficulty=" + difficulty);
+		}
+
+		for (auto& map : packages->GetMaps())
+		{
+			std::string mapname = FilePath::remove_extension(map);
+
+			if (StrCompare::equals_ignore_case(mapname, url.Map))
+			{
+				LevelInfo->NextURL() = url.ToString();
+				return {};
+			}
+		}
+
+		LogMessage("Couldn't find map " + maparg);
+	}
+	else if (command == "loadgame" && args.size() == 2)
+	{
+		// loadgame <num>: Loads the save from slot <num>
+		// TODO: Implement loading saves
+		uint16_t loadnum = Convert::to_uint16(args[1]);
+
+		LogMessage("loadgame: Game loading not implemented yet!");
+		return {};
+	}
+	else if (command == "savegame" && args.size() == 2)
+	{
+		// savegame <num>: Saves current game to slot <num>
+		// TODO: Implement game saving
+		uint16_t savenum = Convert::to_uint16(args[1]);
+
+		LogMessage("savegame: Game saving not implemented yet!");
+		return {};
 	}
 	else if (command == "get" && args.size() == 3)
 	{
