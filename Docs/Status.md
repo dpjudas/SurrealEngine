@@ -35,7 +35,7 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
 All they currently do is to sometimes retaliate if attacked, and pick up nearby items.
 * Bots literally rotate their entire body (feet off the ground) to look up/down in ways they shouldn't be able to.
 * Waving water textures at the end of waterfalls render broken. Easily observable in NyLeve's Falls (Unreal) or DM-ArcaneTemple (UT)
-* Inventory travelling is a bit buggy: They travel, but get deselected upon the next level load.
+* Underwater collisions are somewhat buggy, especially on Klingon Honor Guard
 * Player-to-decoration and player-to-other-pawns collisions aren't properly implemented. The player usually gets stuck and if they manage to get free
 they end up dying because SE thinks that they've fallen from a great height.
 * If the player currently has a power-up active that tints the screen (like Invisibility or Energy Amplifier), the tint remains
@@ -60,6 +60,7 @@ they end up dying because SE thinks that they've fallen from a great height.
 won't use much memory when run on modern computers. Might need to run SE for a looooong time before it is noticeable.
 * Gibbing on certain maps in Debug mode causes out of bounds vertex access
 * Lightmap rendering is kind of off
+* Inventory travelling might need some testing on other games, due to how weapon/inventory getting deselected is fixed.
 
 ## Unreal (Gold)
 
@@ -68,11 +69,8 @@ won't use much memory when run on modern computers. Might need to run SE for a l
 ### Known Bugs:
 * [227*] Many new native functions/features are not yet implemented.
 * Some UPak native functions are not implemented yet.
-* Fighting Skaarj can sometimes lead to crashes.
-* Firing sounds don't seem to play with Eightball Gun and RazorJack.
-* Zones are extremely broken, especially water zones. Easily observable with DmAriza.
+* Firing sounds of Eightball Gun and RazorJack are immediately "drowned" by their projectiles' sounds.
 * Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
-* Trying to open up Chizra from the console crashes the engine.
 * ASMD tertiary fire rings render wrong.
 
 ## Unreal Tournament
@@ -109,7 +107,6 @@ Known bugs list is quite small right now because this game isn't tested as much 
 
 ### Known bugs:
 * Cannot set keybinds in-game (Modifying the ini file works though).
-* Cannot play AVI files bundled with game yet.
 * Trying to start a botmatch crashes SE.
 
 ## Any other UE1 game not mentioned above
