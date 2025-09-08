@@ -13,6 +13,9 @@ TextEdit::TextEdit(Widget* parent) : Widget(parent)
 {
 	SetStyleClass("textedit");
 
+	selectionBG = GetStyleColor("selection-color");
+	selectionFG = GetStyleColor("color");
+
 	timer = new Timer(this);
 	timer->FuncExpired = [this]() { OnTimerExpired(); };
 
@@ -175,13 +178,13 @@ void TextEdit::SetText(const std::string& text)
 	std::string::size_type end = text.find('\n');
 	while (end != std::string::npos)
 	{
-		TextEdit::Line line;
+		TextEdit::Line line{this};
 		line.text = text.substr(start, end - start);
 		lines.push_back(line);
 		start = end + 1;
 		end = text.find('\n', start);
 	}
-	TextEdit::Line line;
+	TextEdit::Line line{this};
 	line.text = text.substr(start);
 	lines.push_back(line);
 
@@ -197,13 +200,13 @@ void TextEdit::AddText(const std::string& text)
 	std::string::size_type end = text.find('\n');
 	while (end != std::string::npos)
 	{
-		TextEdit::Line line;
+		TextEdit::Line line{this};
 		line.text = text.substr(start, end - start);
 		lines.push_back(line);
 		start = end + 1;
 		end = text.find('\n', start);
 	}
-	TextEdit::Line line;
+	TextEdit::Line line{this};
 	line.text = text.substr(start);
 	lines.push_back(line);
 
@@ -759,7 +762,7 @@ void TextEdit::InsertText(ivec2 pos, const std::string& str)
 
 		pos.x += next_newline - start;
 
-		Line line;
+		Line line{this};
 		line.text = lines[pos.y].text.substr(pos.x);
 		lines.insert(lines.begin() + pos.y + 1, line);
 		lines[pos.y].text = lines[pos.y].text.substr(0, pos.x);

@@ -271,7 +271,7 @@ void Dropdown::OnGeometryChanged()
 		Point pos = MapTo(Window(), Point(0,0));
 
 		double width = GetWidth() + GetNoncontentLeft() + GetNoncontentRight();
-		double innerH = GetDisplayItems() * 25.0 + 10.0;
+		double innerH = GetDisplayItems() * 20.0 + 20;
 		double outerH = GetHeight();
 
 		pos.x -= GetNoncontentLeft();
@@ -319,7 +319,7 @@ bool Dropdown::OpenDropdown()
 		0,
 		0,
 		GetWidth() + GetNoncontentLeft() + GetNoncontentRight(),
-		GetDisplayItems() * 25.0 + 10.0
+		GetDisplayItems() * 20.0 + 20
 	);
 	OnGeometryChanged();
 
