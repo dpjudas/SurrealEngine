@@ -137,7 +137,7 @@ void ULevel::Tick(float elapsed, bool gamePaused)
 	{
 		for (size_t i = 0; i < Actors.size(); i++)
 		{
-			if (UObject::TryCast<UPlayerPawn>(Actors[i]) || Actors[i]->bAlwaysTick()) // Does bAlwaysTick also apply for bPlayersOnly?
+			if (UObject::TryCast<UPlayerPawn>(Actors[i]) || Actors[i]->bAlwaysTick()) 
 				TickActor(elapsed, Actors[i]);
 		}
 	}
