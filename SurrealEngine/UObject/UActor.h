@@ -1583,6 +1583,8 @@ class UPlayerPawn : public UPawn
 public:
 	using UPawn::UPawn;
 
+	void PausedInput(float elapsed);
+
 	void Tick(float elapsed) override;
 	void TickRotating(float elapsed) override;
 

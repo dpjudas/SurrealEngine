@@ -2644,6 +2644,14 @@ float UPawn::GetSpeed()
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UPlayerPawn::PausedInput(float elapsed)
+{
+	if (Role() >= ROLE_SimulatedProxy && Player() && !UObject::TryCast<UCamera>(this))
+	{
+		CallEvent(this, EventName::PlayerInput, { ExpressionValue::FloatValue(elapsed) });
+	}
+}
+
 void UPlayerPawn::Tick(float elapsed)
 {
 	UPawn::Tick(elapsed);
