@@ -210,7 +210,9 @@ public:
 
 	void Touch(UActor* actor);
 	void UnTouch(UActor* actor);
+
 	static const int TouchingArraySize = 4;
+	bool TouchEventSent[TouchingArraySize] = {};
 
 	bool HasAnim(const NameString& sequence);
 	bool IsAnimating();

@@ -1385,7 +1385,14 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 
 		if (hit.Actor && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
 		{
-			Touch(hit.Actor);
+			// We can't touch stuff we are blocked by
+			bool isBlocking;
+			if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
+				isBlocking = hit.Actor->bBlockPlayers() && bBlockPlayers();
+			else
+				isBlocking = hit.Actor->bBlockActors() && bBlockActors();
+			if (!isBlocking)
+				Touch(hit.Actor);
 		}
 	}
 
@@ -1423,6 +1430,10 @@ CollisionHit UActor::TryMoveSmooth(const vec3& delta)
 
 void UActor::Touch(UActor* actor)
 {
+	// Don't setup touch if any object has been destroyed
+	if (bDeleteMe() || actor->bDeleteMe())
+		return;
+
 	UActor** TouchingArray = Touching();
 	UActor** TouchingArray2 = actor->Touching();
 
@@ -1433,38 +1444,37 @@ void UActor::Touch(UActor* actor)
 			return;
 	}
 
-#if 0
-	{
-		UPawn* instigator0 = actor->Instigator();
-		UPawn* instigator1 = Instigator();
-		std::string name0 = actor->Class->FriendlyName.ToString();
-		std::string name1 = Class->FriendlyName.ToString();
-		std::string instname0 = instigator0 ? instigator0->Class->FriendlyName.ToString() : std::string("null");
-		std::string instname1 = instigator1 ? instigator1->Class->FriendlyName.ToString() : std::string("null");
-		std::string state0 = actor->GetStateName().ToString();
-		engine->LogMessage("Touch detected between " + name0 + " (instigator " + instname0 + ", state " + state0 + ") and " + name1 + " (instigator " + instname1 + ")");
-	}
-#endif
-
-	// Only attempt to touch actors if there's a free slot in both
+	// Only setup touch if we have room in both arrays
+	int slot1 = -1, slot2 = -1;
 	for (int i = 0; i < TouchingArraySize; i++)
 	{
-		if (!TouchingArray[i])
-		{
-			for (int j = 0; j < TouchingArraySize; j++)
-			{
-				if (!TouchingArray2[j])
-				{
-					TouchingArray[i] = actor;
-					CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
+		if (slot1 == -1 && TouchingArray[i] == nullptr)
+			slot1 = i;
+		if (slot2 == -1 && TouchingArray2[i] == nullptr)
+			slot2 = i;
+	}
+	if (slot1 == -1 || slot2 == -1)
+		return;
 
-					if (!TouchingArray2[j])
-					{
-						TouchingArray2[j] = this;
-						CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
-					}
-					return;
-				}
+	// Setup links first so Destroy or recursive Touch calls always finds the touch binding
+	TouchingArray[slot1] = actor;
+	TouchEventSent[slot1] = true;
+	TouchingArray2[slot2] = this;
+	actor->TouchEventSent[slot2] = false;
+
+	// Notify unrealscript for first actor
+	CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
+
+	// Notify unrealscript for second actor
+	if (!actor->bDeleteMe())
+	{
+		for (int i = 0; i < TouchingArraySize; i++)
+		{
+			if (TouchingArray2[i] == this && !actor->TouchEventSent[i])
+			{
+				actor->TouchEventSent[i] = true;
+				CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
+				break;
 			}
 		}
 	}
@@ -1475,21 +1485,35 @@ void UActor::UnTouch(UActor* actor)
 	UActor** TouchingArray = Touching();
 	UActor** TouchingArray2 = actor->Touching();
 
-	for (int i = 0; i < TouchingArraySize; i++)
+	if (!bDeleteMe())
 	{
-		if (TouchingArray[i] == actor)
+		for (int i = 0; i < TouchingArraySize; i++)
 		{
-			TouchingArray[i] = nullptr;
-			CallEvent(this, EventName::UnTouch, { ExpressionValue::ObjectValue(actor) });
+			if (TouchingArray[i] == actor)
+			{
+				TouchingArray[i] = nullptr;
+				if (TouchEventSent[i])
+				{
+					TouchEventSent[i] = false;
+					CallEvent(this, EventName::UnTouch, { ExpressionValue::ObjectValue(actor) });
+				}
+			}
 		}
 	}
 
-	for (int i = 0; i < TouchingArraySize; i++)
+	if (!actor->bDeleteMe())
 	{
-		if (TouchingArray2[i] == this)
+		for (int i = 0; i < TouchingArraySize; i++)
 		{
-			TouchingArray2[i] = nullptr;
-			CallEvent(actor, EventName::UnTouch, { ExpressionValue::ObjectValue(this) });
+			if (TouchingArray2[i] == this)
+			{
+				TouchingArray2[i] = nullptr;
+				if (actor->TouchEventSent[i])
+				{
+					actor->TouchEventSent[i] = false;
+					CallEvent(actor, EventName::UnTouch, { ExpressionValue::ObjectValue(this) });
+				}
+			}
 		}
 	}
 }
