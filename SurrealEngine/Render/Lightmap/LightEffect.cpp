@@ -13,14 +13,6 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	float invRadius = 1.0f / radius;
 	float invRadiusSquared = invRadius * invRadius;
 
-	// UE1 uses a single angle attenuation for the entire surface
-//#ifndef NOSSE
-//	__m128d base = _mm_
-//	float angleAttenuation = 
-//#else
-	float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
-//#endif
-
 	// To do: implement all the light effects
 
 	switch (light->LightEffect())
@@ -39,6 +31,10 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	case LE_Disco:
 	case LE_Rotor:
 	case LE_Unused:
+	{
+		// UE1 uses a single angle attenuation for the entire surface
+		float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
+
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
@@ -54,6 +50,7 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 			}
 		}
 		break;
+	}
 
 	case LE_NonIncidence:
 		for (int i = 0; i < size; i++)
@@ -86,6 +83,9 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	case LE_Spotlight:
 	case LE_StaticSpot:
 	{
+		// UE1 uses a single angle attenuation for the entire surface
+		float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
+
 		vec3 tmp0, tmp1, tmp2;
 		Coords::Rotation(light->Rotation()).GetAxes(tmp0, tmp1, tmp2);
 		vec3 spotDir = -tmp0;
@@ -128,8 +128,6 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	float invRadius = 1.0f / radius;
 	float invRadiusSquared = invRadius * invRadius;
 
-	float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
-
 	// To do: implement all the light effects
 
 	switch (light->LightEffect())
@@ -149,6 +147,8 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	case LE_Rotor:
 	case LE_Unused:
 		{
+			float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
+
 			vec3 L = light->Location() - location;
 			float distsqr = dot(L, L) * invRadiusSquared;
 			if (distsqr < 1.0f)
@@ -191,6 +191,8 @@ float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& 
 	case LE_Spotlight:
 	case LE_StaticSpot:
 	{
+		float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
+
 		vec3 tmp0, tmp1, tmp2;
 		Coords::Rotation(light->Rotation()).GetAxes(tmp0, tmp1, tmp2);
 		vec3 spotDir = -tmp0;
