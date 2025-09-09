@@ -782,9 +782,8 @@ InputKey WaylandDisplayBackend::XKBKeySymToInputKey(xkb_keysym_t keySym)
         case XKB_KEY_Scroll_Lock:
             return InputKey::ScrollLock;
         case XKB_KEY_Shift_L:
-            return InputKey::LShift;
         case XKB_KEY_Shift_R:
-            return InputKey::RShift;
+            return InputKey::Shift;
         case XKB_KEY_grave:
             return InputKey::Tilde;
         case XKB_KEY_apostrophe:
