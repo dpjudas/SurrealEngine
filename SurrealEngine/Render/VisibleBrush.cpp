@@ -7,11 +7,13 @@
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 
-void VisibleBrush::Draw(VisibleFrame* frame, UActor* actor)
+bool VisibleBrush::Draw(VisibleFrame* frame, UActor* actor, bool translucentPass)
 {
 	UMover* mover = UActor::TryCast<UMover>(actor);
 	if (!mover)
-		return;
+		return false;
+
+	engine->render->Stats.Actors++;
 
 	UModel* brush = mover->Brush();
 	const vec3& location = mover->Location();
@@ -22,26 +24,36 @@ void VisibleBrush::Draw(VisibleFrame* frame, UActor* actor)
 	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(mover->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot());
 
 	frame->Device->SetSceneNode(&brushframe);
+	bool needTranslucentPass = false;
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(frame, brush, poly, 0, mover);
+		if (DrawBrushPoly(frame, brush, poly, 0, mover, translucentPass))
+			needTranslucentPass = true;
 	}
 
 	for (const Poly& poly : brush->Polys->Polys)
 	{
-		DrawBrushPoly(frame, brush, poly, 1, mover);
+		if (DrawBrushPoly(frame, brush, poly, 1, mover, translucentPass))
+			needTranslucentPass = true;
 	}
 
 	frame->Device->SetSceneNode(&frame->Frame);
+	return needTranslucentPass;
 }
 
-void VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly& poly, int pass, UMover* mover)
+bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly& poly, int pass, UMover* mover, bool translucentPass)
 {
 	uint32_t PolyFlags = poly.PolyFlags;
 
 	if (!engine->getEditorMode() && PolyFlags & PolyFlags::PF_Invisible)
-		return;
+		return false;
+
+	bool isTranslucent = (PolyFlags & (PF_Translucent | PF_Modulated | PF_Highlighted)) != 0;
+	if (isTranslucent && !translucentPass)
+		return true;
+	else if (!isTranslucent && translucentPass)
+		return false;
 
 	//UpdateTexture(poly.Texture);
 
@@ -107,4 +119,5 @@ void VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
 
 	frame->Device->DrawComplexSurface(&frame->Frame, surfaceinfo, facet);
+	return false;
 }

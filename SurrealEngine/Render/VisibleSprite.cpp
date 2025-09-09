@@ -91,4 +91,6 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 	vertices[3].Fog = { 0.0f };
 
 	frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 4, renderflags);
+
+	engine->render->Stats.Actors++;
 }

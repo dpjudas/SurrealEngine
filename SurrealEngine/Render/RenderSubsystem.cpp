@@ -18,6 +18,10 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	AmbientGlowTime = std::fmod(AmbientGlowTime + 0.8f * levelTimeElapsed, 1.0f);
 	AmbientGlowAmount = 0.20f + 0.20f * std::sin(radians(AmbientGlowTime * 360.0f));
 
+	Stats.Frames = 0;
+	Stats.Surfaces = 0;
+	Stats.Actors = 0;
+
 	vec3 flashScale = 0.5f;
 	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
 

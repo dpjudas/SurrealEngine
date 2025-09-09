@@ -507,15 +507,9 @@ void RenderSubsystem::DrawTimedemoStats()
 		lines.push_back(std::to_string(engine->Level->Actors.size()) + " actors");
 		lines.push_back(std::to_string(GC::GetStats().numObjects) + " GC objects");
 		lines.push_back(std::to_string(GC::GetStats().memoryUsage / (1024 * 1024)) + " mb memory used");
-
-		/*size_t numCollisionActors = 0;
-		for (auto& it : engine->Level->Hash.CollisionActors)
-			numCollisionActors += it.second.size();
-		lines.push_back(std::to_string(numCollisionActors) + " collision actors");*/
-
-		//lines.push_back(std::to_string(Scene.OpaqueNodes.size() + Scene.TranslucentNodes.size()) + " visible surfaces");
-		//lines.push_back(std::to_string(Scene.Actors.size()) + " visible actors");
-		//lines.push_back(std::to_string(Scene.Coronas.size()) + " visible coronas");
+		lines.push_back(std::to_string(Stats.Frames) + " visible frames");
+		lines.push_back(std::to_string(Stats.Surfaces) + " visible surfaces");
+		lines.push_back(std::to_string(Stats.Actors) + " visible actors");
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)

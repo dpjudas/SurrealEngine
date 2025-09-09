@@ -90,6 +90,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	facet.VertexCount = numverts;
 
 	frame->Device->DrawComplexSurface(&frame->Frame, surfaceinfo, facet);
+	engine->render->Stats.Surfaces++;
 
 	VisibleDecal decal;
 	decal.DrawDecals(frame, Node);

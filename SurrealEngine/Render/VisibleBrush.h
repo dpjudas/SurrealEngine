@@ -9,8 +9,8 @@ struct Poly;
 class VisibleBrush
 {
 public:
-	void Draw(VisibleFrame* frame, UActor* actor);
+	bool Draw(VisibleFrame* frame, UActor* actor, bool translucentPass);
 
 private:
-	void DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly& poly, int pass, UMover* mover);
+	bool DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly& poly, int pass, UMover* mover, bool translucentPass);
 };

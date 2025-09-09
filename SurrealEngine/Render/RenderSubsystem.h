@@ -78,6 +78,13 @@ public:
 		UTexture* envmap = nullptr;
 	} Mesh;
 
+	struct
+	{
+		int Frames = 0;
+		int Surfaces = 0;
+		int Actors = 0;
+	} Stats;
+
 private:
 	void DrawScene();
 

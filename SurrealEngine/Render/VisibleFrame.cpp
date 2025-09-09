@@ -7,6 +7,8 @@
 
 void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans)
 {
+	engine->render->Stats.Frames++;
+
 	Device = engine->render->Device;
 	FrameCounter = engine->render->FrameCounter++;
 	MirrorFlag = mirrorFlag;
@@ -246,7 +248,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	if (PolyFlags & PF_Invisible)
 		return;
 
-	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0)
+	if ((PolyFlags & (PF_Translucent | PF_Modulated)) == 0 && (PolyFlags & PF_Occlude) != PF_Occlude)
 	{
 		OpaqueNodes.push_back(info);
 	}

@@ -12,6 +12,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 	if (!mesh)
 		return false;
 
+	engine->render->Stats.Actors++;
 	engine->render->UpdateActorLightList(actor);
 
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());

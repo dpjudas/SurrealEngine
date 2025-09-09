@@ -139,7 +139,7 @@ void RenderSubsystem::UpdateActorLightList(UActor* actor)
 			{
 				L.z = 0.0f;
 			}
-			if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, nullptr, false, true, true))
+			if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true))
 			{
 				actor->LightInfo.LightList.push_back(light);
 			}

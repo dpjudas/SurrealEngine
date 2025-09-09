@@ -69,9 +69,12 @@ void VisibleActor::DrawOpaque(VisibleFrame* frame)
 	}
 	else if (Type == DT_Brush)
 	{
-		// Assume brushes are opaque for now
 		VisibleBrush visbrush;
-		visbrush.Draw(frame, Actor);
+		if (visbrush.Draw(frame, Actor, false))
+		{
+			vec3 v = Actor->Location() - frame->ViewLocation.xyz();
+			frame->Translucents.emplace_back(*this, dot(v, v));
+		}
 	}
 }
 
@@ -89,6 +92,7 @@ void VisibleActor::DrawTranslucent(VisibleFrame* frame)
 	}
 	else if (Type == DT_Brush)
 	{
-		// Assume brushes are opaque for now.
+		VisibleBrush visbrush;
+		visbrush.Draw(frame, Actor, true);
 	}
 }
