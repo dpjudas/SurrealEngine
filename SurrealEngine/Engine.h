@@ -195,7 +195,10 @@ public:
 
 	bool getEditorMode() const { return m_EditorMode; }
 	void setEditorMode(const bool value) { m_EditorMode = value; }
+
 private:
+	std::map<std::string, std::string> CreateTravelInfo(bool transferItems);
+
 	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
 	bool m_GamePaused = false;
 

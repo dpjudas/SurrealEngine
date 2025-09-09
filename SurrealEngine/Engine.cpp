@@ -143,24 +143,7 @@ void Engine::Run()
 				}
 				else if (LevelInfo->bNextItems())
 				{
-					auto travelInfo = Level->TravelInfo;
-					for (UActor* actor : Level->Actors)
-					{
-						UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
-						if (pawn && pawn->Player())
-						{
-							Array<ObjectTravelInfo> actorTravelInfo;
-							for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
-							{
-								ObjectTravelInfo objInfo(item);
-								actorTravelInfo.push_back(std::move(objInfo));
-							}
-							std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
-							LogMessage("Adding travel data for player '" + playerName + "'");
-							travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
-						}
-					}
-					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), travelInfo);
+					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), CreateTravelInfo(true));
 					LoginPlayer();
 				}
 				else
@@ -182,32 +165,8 @@ void Engine::Run()
 			// To do: need to do something about that travel type and transfering of items
 
 			UnrealURL url(ClientTravelInfo.URL);
-
-			auto travelInfo = Level->TravelInfo;
-
-			for (UActor* actor : Level->Actors)
-			{
-				UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
-				if (pawn && pawn->Player())
-				{
-					Array<ObjectTravelInfo> actorTravelInfo;
-					if (ClientTravelInfo.TransferItems)
-					{
-						for (UInventory* item = pawn->Inventory(); item != nullptr; item = item->Inventory())
-						{
-							ObjectTravelInfo objInfo(item);
-							actorTravelInfo.push_back(std::move(objInfo));
-						}
-					}
-					// Add the pawn itself last
-					actorTravelInfo.push_back(ObjectTravelInfo(pawn));
-					std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
-					travelInfo[playerName] = ObjectTravelInfo::ToString(actorTravelInfo);
-				}
-			}
-
 			LogMessage("Client travel to " + url.ToString());
-			LoadMap(url, travelInfo);
+			LoadMap(url, CreateTravelInfo(ClientTravelInfo.TransferItems));
 			LoginPlayer();
 		}
 
@@ -684,6 +643,21 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		CallEvent(LevelInfo->Game(), "DetailChange", {});
 }
 
+std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
+{
+	auto travelInfo = Level->TravelInfo;
+	for (UActor* actor : Level->Actors)
+	{
+		UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
+		if (pawn && pawn->Player())
+		{
+			std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
+			travelInfo[playerName] = ActorTravelInfo::Create(pawn, transferItems);
+		}
+	}
+	return travelInfo;
+}
+
 void Engine::LoginPlayer()
 {
 	UnrealURL url = LevelInfo->URL;
@@ -732,7 +706,7 @@ void Engine::LoginPlayer()
 
 	CallEvent(pawn, EventName::TravelPreAccept);
 
-	Array<std::pair<UActor*, ObjectTravelInfo>> acceptedActors;
+	Array<UActor*> acceptedActors;
 	if (actorActuallySpawned && ClientTravelInfo.TravelType == ETravelType::TRAVEL_Relative)
 	{
 		std::string playerName = url.GetOption("Name");
@@ -742,80 +716,7 @@ void Engine::LoginPlayer()
 		auto it = travelInfo.find(playerName);
 		if (!playerName.empty() && it != travelInfo.end())
 		{
-			std::string pawnWeaponClass;
-			std::string selectedItemClass;
-
-			for (const ObjectTravelInfo& objInfo : ObjectTravelInfo::Parse(it->second))
-			{
-				if (objInfo.isPlayerPawn)
-				{
-					auto weaponIter = objInfo.Properties.find("Weapon");
-					auto selectedItemIter = objInfo.Properties.find("SelectedItem");
-
-					if (weaponIter != objInfo.Properties.end())
-					{
-						auto weaponName = ParsePropertiesFromString(weaponIter->second)["class"];
-						for (const auto& [weaponActor, _] : acceptedActors)
-						{
-							if (UObject::GetUClassFullName(weaponActor) == weaponName)
-							{
-								pawnWeaponClass = weaponName;
-							}
-						}
-					}
-
-					if (selectedItemIter != objInfo.Properties.end())
-					{
-						auto selectedItemName = ParsePropertiesFromString(selectedItemIter->second)["class"];
-						for (const auto& [itemActor, _] : acceptedActors)
-						{
-							if (UObject::GetUClassFullName(itemActor) == selectedItemName)
-							{
-								selectedItemClass = selectedItemName;
-							}
-						}
-					}
-
-					acceptedActors.push_back({ pawn, objInfo });
-				}
-				else
-				{
-					UClass* cls = packages->FindClass(objInfo.ClassName);
-					UActor* acceptedActor = nullptr;
-
-					if (cls)
-						acceptedActor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
-
-					if (acceptedActor)
-						acceptedActors.push_back({ acceptedActor, objInfo });
-					else
-						LogMessage("Could not spawn travelling actor " + objInfo.ClassName);
-				}
-			}
-
-			for (auto& [acceptedActor, objInfo] : acceptedActors)
-			{
-				for (auto& [propName, propValue] : objInfo.Properties)
-				{
-					LogMessage("Travelling '" + objInfo.ClassName + "' property '" + propName + "': " + propValue);
-					UProperty* prop = acceptedActor->GetMemberProperty(propName);
-					acceptedActor->SetPropertyFromString(propName, propValue);
-				}
-			}
-
-			// Assign the weapon and selected item to the player pawn
-			for (auto& [acceptedActor, _] : acceptedActors)
-			{
-				if (UObject::GetUClassFullName(acceptedActor) == pawnWeaponClass)
-				{
-					pawn->Weapon() = UObject::Cast<UWeapon>(acceptedActor);
-				}
-
-				if (UObject::GetUClassFullName(acceptedActor) == selectedItemClass)
-				{
-					pawn->SelectedItem() = UObject::Cast<UInventory>(acceptedActor);
-				}
-			}
+			acceptedActors = ActorTravelInfo::Accept(pawn, it->second);
 		}
 		else
 		{
@@ -828,13 +729,13 @@ void Engine::LoginPlayer()
 		}
 	}
 
-	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
-		CallEvent((*it).first, EventName::TravelPreAccept);
+	for (UActor* actor : acceptedActors)
+		CallEvent(actor, EventName::TravelPreAccept);
 
 	CallEvent(LevelInfo->Game(), EventName::AcceptInventory, { ExpressionValue::ObjectValue(pawn) });
 
-	for (auto it = acceptedActors.rbegin(); it != acceptedActors.rend(); ++it)
-		CallEvent((*it).first, EventName::TravelPostAccept);
+	for (UActor* actor : acceptedActors)
+		CallEvent(actor, EventName::TravelPostAccept);
 
 	CallEvent(pawn, EventName::TravelPostAccept);
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
