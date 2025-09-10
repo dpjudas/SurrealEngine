@@ -157,7 +157,7 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 
 	if (unlit)
 	{
-		return ambientColor + actor->ScaleGlow() * 0.5f;
+		return (ambientColor + actor->ScaleGlow() * 0.5f) * 2.0f;
 	}
 	else
 	{
@@ -165,14 +165,16 @@ vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const 
 
 		for (UActor* light : actor->LightInfo.LightList)
 		{
-			float attenuation = LightEffect::VertexLight(light, location, normal);
+			vec3 L = light->Location() - location;
+			float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
 			if (attenuation > 0.0f)
 			{
+				float angleAttenuation = std::abs(dot(normalize(L), normal));
 				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-				color += lightcolor * attenuation;
+				color += lightcolor * (attenuation * angleAttenuation);
 			}
 		}
 
-		return ambientColor + color * (actor->ScaleGlow() * 1.5f);
+		return (ambientColor + color * (actor->ScaleGlow() * 1.5f)) * 2.0f;
 	}
 }

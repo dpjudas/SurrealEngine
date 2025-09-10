@@ -5,6 +5,14 @@
 #include "UObject/UActor.h"
 #include "Math/coords.h"
 
+static float LightDistanceFalloff(float distsqr)
+{
+	float v = std::sqrt(distsqr + 0.0001f);
+	float v2 = v * v;
+	float v3 = v2 * v;
+	return std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
+}
+
 void LightEffect::Run(UActor* light, int width, int height, const vec3* locations, vec3 base, vec3 N, const float* shadowmap, float* result)
 {
 	int size = width * height;
@@ -12,6 +20,11 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	float radius = light->WorldLightRadius();
 	float invRadius = 1.0f / radius;
 	float invRadiusSquared = invRadius * invRadius;
+
+	// UE1 uses a single angle attenuation for the entire surface
+	//float angleAttenuation = std::abs(dot(normalize(light->Location() - base), N));
+
+	N = normalize(N); // the normal isn't normalized!
 
 	// To do: implement all the light effects
 
@@ -32,12 +45,10 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	case LE_Rotor:
 	case LE_Unused:
 	{
-		// UE1 uses a single angle attenuation for the entire surface
-		float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
-
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
+			float angleAttenuation = std::abs(dot(normalize(L), N));
 			float distsqr = dot(L, L) * invRadiusSquared;
 			if (distsqr < 1.0f)
 			{
@@ -52,16 +63,15 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		break;
 	}
 
-	case LE_NonIncidence:
+	case LE_NonIncidence: // linear falloff
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			result[i] = shadowmap[i] * std::max(1.0f - dist, 0.0f);
+			result[i] = shadowmap[i] * std::max(1.0f - length(L) * invRadius, 0.0f);
 		}
 		break;
 
-	case LE_Cylinder:
+	case LE_Cylinder: // squared falloff
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
@@ -74,7 +84,7 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
-			float dist = std::sqrt(dot(L, L)) * invRadius;
+			float dist = length(L) * invRadius;
 			float attenuation = (dist > 0.8f && dist < 1.0f) ? 1.0f - 10.0f * std::abs(dist - 0.9f) : 0.0f;
 			result[i] = shadowmap[i] * attenuation;
 		}
@@ -83,9 +93,6 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	case LE_Spotlight:
 	case LE_StaticSpot:
 	{
-		// UE1 uses a single angle attenuation for the entire surface
-		float angleAttenuation = std::abs(dot(light->Location() - base, N) * invRadius);
-
 		vec3 tmp0, tmp1, tmp2;
 		Coords::Rotation(light->Rotation()).GetAxes(tmp0, tmp1, tmp2);
 		vec3 spotDir = -tmp0;
@@ -94,6 +101,7 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		for (int i = 0; i < size; i++)
 		{
 			vec3 L = light->Location() - locations[i];
+			float angleAttenuation = std::abs(dot(normalize(L), N));
 
 			float distsqr = dot(L, L) * invRadiusSquared;
 			if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
@@ -119,107 +127,5 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 			result[i] = 0.0f;
 		}
 		break;
-	}
-}
-
-float LightEffect::VertexLight(UActor* light, const vec3& location, const vec3& N)
-{
-	float radius = light->WorldLightRadius();
-	float invRadius = 1.0f / radius;
-	float invRadiusSquared = invRadius * invRadius;
-
-	// To do: implement all the light effects
-
-	switch (light->LightEffect())
-	{
-	case LE_None:
-	case LE_TorchWaver:
-	case LE_FireWaver:
-	case LE_WateryShimmer:
-	case LE_Warp:
-	case LE_OmniBumpMap:
-	case LE_Interference:
-	case LE_SlowWave:
-	case LE_FastWave:
-	case LE_CloudCast:
-	case LE_Shock:
-	case LE_Disco:
-	case LE_Rotor:
-	case LE_Unused:
-		{
-			float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
-
-			vec3 L = light->Location() - location;
-			float distsqr = dot(L, L) * invRadiusSquared;
-			if (distsqr < 1.0f)
-			{
-				float distanceAttenuation = LightDistanceFalloff(distsqr);
-				return distanceAttenuation * angleAttenuation;
-			}
-			else
-			{
-				return 0.0f;
-			}
-		}
-		break;
-
-	case LE_NonIncidence:
-		{
-			vec3 L = light->Location() - location;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			return std::max(1.0f - dist, 0.0f);
-		}
-		break;
-
-	case LE_Cylinder:
-		{
-			vec3 L = light->Location() - location;
-			float distsqr = (L.x * L.x + L.y * L.y) * invRadiusSquared;
-			return std::max(1.0f - distsqr, 0.0f);
-		}
-		break;
-
-	case LE_Shell:
-		{
-			vec3 L = light->Location() - location;
-			float dist = std::sqrt(dot(L, L)) * invRadius;
-			float attenuation = (dist > 0.8f && dist < 1.0f) ? 1.0f - 10.0f * std::abs(dist - 0.9f) : 0.0f;
-			return attenuation;
-		}
-		break;
-
-	case LE_Spotlight:
-	case LE_StaticSpot:
-	{
-		float angleAttenuation = std::abs(dot(light->Location() - location, N) * invRadius);
-
-		vec3 tmp0, tmp1, tmp2;
-		Coords::Rotation(light->Rotation()).GetAxes(tmp0, tmp1, tmp2);
-		vec3 spotDir = -tmp0;
-		float lightCosOuterAngle = 1.0f - light->LightCone() * (1.0f / 255.0f);
-		float lightCosInnerAngle = 1.0f;
-		{
-			vec3 L = light->Location() - location;
-
-			float distsqr = dot(L, L) * invRadiusSquared;
-			if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
-			{
-				float distanceAttenuation = LightDistanceFalloff(distsqr);
-				float cosDir = dot(normalize(L), spotDir);
-				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
-				spotAttenuation = spotAttenuation * spotAttenuation;
-				return distanceAttenuation * angleAttenuation * spotAttenuation;
-			}
-			else
-			{
-				return 0.0f;
-			}
-		}
-		break;
-	}
-
-	case LE_Searchlight:
-	default:
-		return 0.0f;
 	}
 }
