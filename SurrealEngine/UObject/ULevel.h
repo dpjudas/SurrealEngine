@@ -174,6 +174,9 @@ enum PolyFlags
 
 inline uint32_t ApplyPrecedenceRules(uint32_t PolyFlags)
 {
+	if (PolyFlags == PF_SubpixelFont)
+		return PolyFlags;
+
 	// Adjust PolyFlags according to Unreal's precedence rules.
 	if (!(PolyFlags & (PF_Translucent | PF_Modulated)))
 		PolyFlags |= PF_Occlude;
