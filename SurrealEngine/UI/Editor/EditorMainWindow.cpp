@@ -42,7 +42,7 @@ EditorMainWindow::EditorMainWindow(RenderAPI renderAPI) : MainWindow(renderAPI)
 	Workspace = new EditorWorkspace(this);
 	SetCentralWidget(Workspace);
 
-	SetWindowTitle("Surreal Editor: " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - [Untitled Map]");
+	SetWindowTitle("[Untitled Map] - " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - Surreal Editor");
 }
 
 EditorMainWindow::~EditorMainWindow()
@@ -120,7 +120,7 @@ void EditorMainWindow::OnFileOpen()
 
 		LoadMap(mapName);
 
-		this->SetWindowTitle("Surreal Editor: " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - " + mapFile);
+		this->SetWindowTitle(mapFile + " - " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - Surreal Editor");
 		// Refresh the viewports after loading the level
 		Update();
 	}

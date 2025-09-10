@@ -1264,7 +1264,7 @@ void Engine::OpenWindow()
 
 	std::string versionString = !LaunchInfo.gameVersionString.empty() ? " (v" + LaunchInfo.gameVersionString + ")" : "";
 
-	window->SetWindowTitle("Surreal Engine: " + LaunchInfo.gameName + versionString);
+	window->SetWindowTitle(LaunchInfo.gameName + versionString + " - Surreal Engine");
 	window->SetFrameGeometry(Rect::xywh(0.0, 0.0, width, height));
 
 	if (fullscreen)
