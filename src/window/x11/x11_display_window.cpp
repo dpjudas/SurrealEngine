@@ -254,6 +254,10 @@ void X11DisplayWindow::SetWindowTitle(const std::string& text)
 	XSetStandardProperties(display, window, text.c_str(), text.c_str(), None, nullptr, 0, nullptr);
 }
 
+void X11DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
+{
+}
+
 void X11DisplayWindow::SetWindowFrame(const Rect& box)
 {
 	// To do: this requires cooperation with the window manager

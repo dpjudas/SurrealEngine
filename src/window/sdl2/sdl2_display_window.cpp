@@ -83,6 +83,12 @@ void SDL2DisplayWindow::SetWindowTitle(const std::string& text)
 	SDL_SetWindowTitle(Handle.window, text.c_str());
 }
 
+void SDL2DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
+{
+	// To do: call SDL_SetWindowIcon for the highest resolution image (or maybe the first 32x32 or higher? not sure what is best here)
+	// To do: when this is upgraded to SDL3, call SDL_AddSurfaceAlternateImage for all the images
+}
+
 void SDL2DisplayWindow::SetWindowFrame(const Rect& box)
 {
 	// SDL2 doesn't really seem to have an API for this.
