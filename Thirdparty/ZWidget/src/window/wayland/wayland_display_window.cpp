@@ -3,6 +3,8 @@
 #include <cstring>
 #include <dlfcn.h>
 
+#include "core/image.h"
+
 WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner, RenderAPI renderAPI)
 	: backend(backend), m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow), m_renderAPI(renderAPI)
 {
@@ -125,6 +127,25 @@ void WaylandDisplayWindow::SetWindowTitle(const std::string& text)
 
 void WaylandDisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
 {
+	if (backend->m_XDGToplevelIconManager)
+	{
+		if (images.empty())
+		{
+			backend->m_XDGToplevelIconManager.set_icon(m_XDGToplevel, nullptr);
+			return;
+		}
+
+		m_XDGToplevelIcon = backend->m_XDGToplevelIconManager.create_icon();
+
+		CreateAppIconBuffers(images);
+
+		for (auto& icon_buffer : appIconBuffers)
+		{
+			m_XDGToplevelIcon.add_buffer(icon_buffer, 1);
+		}
+
+		backend->m_XDGToplevelIconManager.set_icon(m_XDGToplevel, m_XDGToplevelIcon);
+	}
 }
 
 void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
@@ -377,6 +398,34 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 
 	m_WindowSize = Size(scaled_width, scaled_height);
 }
+
+void WaylandDisplayWindow::CreateAppIconBuffers(const std::vector<std::shared_ptr<Image>>& images)
+{
+	if (images.empty())
+		return;
+
+	appIconBuffers.clear();
+	appIconSharedMems.clear();
+
+	for (auto& image: images)
+	{
+		const int image_size = image->GetWidth() * image->GetHeight() * 4;
+		const int stride = image->GetWidth() * 4;
+
+		auto new_shared_mem = std::make_shared<SharedMemHelper>(image_size);
+
+		auto pool = backend->m_waylandSHM.create_pool(new_shared_mem->get_fd(), image_size);
+
+		auto new_buffer = pool.create_buffer(0, image->GetWidth(), image->GetHeight(), stride, wayland::shm_format::argb8888);
+
+		// Fill the buffer with the icon data
+		std::memcpy(new_shared_mem->get_mem(), image->GetData(), image_size);
+
+		appIconSharedMems.push_back(new_shared_mem);
+		appIconBuffers.push_back(new_buffer);
+	}
+}
+
 
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {

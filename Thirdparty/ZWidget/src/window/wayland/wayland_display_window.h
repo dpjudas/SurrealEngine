@@ -182,6 +182,8 @@ private:
 	wayland::zwp_locked_pointer_v1_t m_LockedPointer;
 	wayland::zwp_confined_pointer_v1_t m_ConfinedPointer;
 
+	wayland::xdg_toplevel_icon_v1_t m_XDGToplevelIcon;
+
 	wayland::callback_t m_FrameCallback;
 
 	std::string m_windowID;
@@ -189,10 +191,15 @@ private:
 
 	std::shared_ptr<SharedMemHelper> shared_mem;
 
+	std::vector<std::shared_ptr<SharedMemHelper>> appIconSharedMems;
+	std::vector<wayland::buffer_t> appIconBuffers;
+
 	bool isFullscreen = false;
 
 	// Helper functions
 	void CreateBuffers(int32_t width, int32_t height);
+
+	void CreateAppIconBuffers(const std::vector<std::shared_ptr<Image>>& images);
 	std::string GetWaylandWindowID();
 
 	friend WaylandDisplayBackend;
