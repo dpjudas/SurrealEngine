@@ -41,6 +41,10 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 			s_waylandRegistry.bind(name, m_FractionalScaleManager, 1);
 		if (interface == wayland::zwp_relative_pointer_manager_v1_t::interface_name)
 			s_waylandRegistry.bind(name, m_RelativePointerManager, 1);
+		if (interface == wayland::xdg_toplevel_icon_manager_v1_t::interface_name)
+			s_waylandRegistry.bind(name, m_XDGToplevelIconManager, 1);
+		if (interface == wayland::cursor_shape_manager_v1_t::interface_name)
+			s_waylandRegistry.bind(name, m_CursorShapeManager, 2);
 	};
 
 	s_waylandDisplay.roundtrip();
@@ -106,6 +110,12 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 	m_waylandKeyboard = m_waylandSeat.get_keyboard();
 	m_waylandPointer = m_waylandSeat.get_pointer();
 	m_RelativePointer = m_RelativePointerManager.get_relative_pointer(m_waylandPointer);
+
+	if (m_CursorShapeManager && m_waylandPointer)
+	{
+		// Opt to Cursor Shape Protocol instead
+		m_CursorShapeDevice = m_CursorShapeManager.get_pointer(m_waylandPointer);
+	}
 
 	ConnectDeviceEvents();
 
@@ -245,6 +255,9 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 	};
 
 	m_waylandPointer.on_enter() = [this](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
+		// Keep track of the mouse serial for using it in Cursor Shape protocol
+		m_MouseSerial = serial;
+
 		// Find the window to focus on by checking the surface window owns.
 		if (!m_MouseFocusWindow || m_MouseFocusWindow->GetWindowSurface() != surfaceEntered)
 		{
@@ -496,13 +509,22 @@ void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
 
 void WaylandDisplayBackend::SetCursor(StandardCursor cursor)
 {
-	std::string cursorName = GetWaylandCursorName(cursor);
+	if (m_CursorShapeDevice)
+	{
+		// Use cursor shapes protocol
+		m_CursorShapeDevice.set_shape(m_MouseSerial, GetWaylandCursorShape(cursor));
+	}
+	else
+	{
+		// Use the older cursor buffer approach
+		std::string cursorName = GetWaylandCursorName(cursor);
 
-	// Perhaps the cursor size can be inferred from the user prefs as well?
-	wayland::cursor_theme_t cursorTheme = wayland::cursor_theme_t("default", 16, m_waylandSHM);
-	wayland::cursor_t obtainedCursor = cursorTheme.get_cursor(cursorName);
-	m_cursorImage = obtainedCursor.image(0);
-	m_cursorBuffer = m_cursorImage.get_buffer();
+		// Perhaps the cursor size can be inferred from the user prefs as well?
+		wayland::cursor_theme_t cursorTheme = wayland::cursor_theme_t("default", 16, m_waylandSHM);
+		wayland::cursor_t obtainedCursor = cursorTheme.get_cursor(cursorName);
+		m_cursorImage = obtainedCursor.image(0);
+		m_cursorBuffer = m_cursorImage.get_buffer();
+	}
 }
 
 void WaylandDisplayBackend::ShowCursor(bool enable)
@@ -1147,4 +1169,41 @@ std::string WaylandDisplayBackend::GetWaylandCursorName(StandardCursor cursor)
 			return "default";
 	}
 }
+
+wayland::cursor_shape_device_v1_shape WaylandDisplayBackend::GetWaylandCursorShape(StandardCursor cursor)
+{
+	switch (cursor)
+	{
+	case StandardCursor::arrow:
+		return wayland::cursor_shape_device_v1_shape::_default;
+	case StandardCursor::appstarting:
+		return wayland::cursor_shape_device_v1_shape::progress;
+	case StandardCursor::cross:
+		return wayland::cursor_shape_device_v1_shape::crosshair;
+	case StandardCursor::hand:
+		return wayland::cursor_shape_device_v1_shape::pointer;
+	case StandardCursor::ibeam:
+		return wayland::cursor_shape_device_v1_shape::text;
+	case StandardCursor::no:
+		return wayland::cursor_shape_device_v1_shape::not_allowed;
+	case StandardCursor::size_all:
+		return wayland::cursor_shape_device_v1_shape::all_resize;
+	case StandardCursor::size_nesw:
+		return wayland::cursor_shape_device_v1_shape::nesw_resize;
+	case StandardCursor::size_ns:
+		return wayland::cursor_shape_device_v1_shape::ns_resize;
+	case StandardCursor::size_nwse:
+		return wayland::cursor_shape_device_v1_shape::nwse_resize;
+	case StandardCursor::size_we:
+		return wayland::cursor_shape_device_v1_shape::ew_resize;
+	case StandardCursor::uparrow:
+		// Up arrow cursor doesn't seem to be defined in the shapes, so _default it is
+		return wayland::cursor_shape_device_v1_shape::_default;
+	case StandardCursor::wait:
+		return wayland::cursor_shape_device_v1_shape::wait;
+	default:
+		return wayland::cursor_shape_device_v1_shape::_default;
+	}
+}
+
 

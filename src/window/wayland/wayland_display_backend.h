@@ -9,10 +9,13 @@
 #include <wayland-client-protocol-unstable.hpp>
 #include <wayland-cursor.hpp>
 #include "wl_fractional_scaling_protocol.hpp"
+#include "wl_xdg_toplevel_icon.hpp"
 #include <linux/input.h>
 #include <poll.h>
 #include <map>
 #include <xkbcommon/xkbcommon.h>
+
+#include "wl_cursor_shape.hpp"
 
 static short poll_single(int fd, short events, int timeout)
 {
@@ -118,6 +121,11 @@ public:
 	wayland::zwp_relative_pointer_manager_v1_t m_RelativePointerManager;
 	wayland::zwp_relative_pointer_v1_t m_RelativePointer;
 
+	wayland::xdg_toplevel_icon_manager_v1_t m_XDGToplevelIconManager;
+
+	wayland::cursor_shape_manager_v1_t m_CursorShapeManager;
+	wayland::cursor_shape_device_v1_t m_CursorShapeDevice;
+
 	wayland::cursor_image_t m_cursorImage;
 	wayland::surface_t m_cursorSurface;
 	wayland::buffer_t m_cursorBuffer;
@@ -146,6 +154,7 @@ private:
 	InputKey XKBKeySymToInputKey(xkb_keysym_t keySym);
 	InputKey LinuxInputEventCodeToInputKey(uint32_t inputCode);
 
+	wayland::cursor_shape_device_v1_shape GetWaylandCursorShape(StandardCursor cursor);
 	std::string GetWaylandCursorName(StandardCursor cursor);
 
 	bool hasKeyboard = false;
@@ -162,6 +171,7 @@ private:
 	std::string previousChars;
 
 	uint32_t m_KeyboardSerial = 0;
+	uint32_t m_MouseSerial = 0;
 
 	xkb_context* m_KeymapContext = nullptr;
 	xkb_keymap* m_Keymap = nullptr;

@@ -155,6 +155,10 @@ set(ZWIDGET_WAYLAND_SOURCES
 	src/window/wayland/wayland_display_window.h
 	src/window/wayland/wl_fractional_scaling_protocol.cpp
 	src/window/wayland/wl_fractional_scaling_protocol.hpp
+	src/window/wayland/wl_cursor_shape.cpp
+	src/window/wayland/wl_cursor_shape.hpp
+	src/window/wayland/wl_xdg_toplevel_icon.cpp
+	src/window/wayland/wl_xdg_toplevel_icon.hpp
 )
 
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
