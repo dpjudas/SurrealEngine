@@ -1,5 +1,6 @@
 
 #include "x11_display_window.h"
+#include <zwidget/core/image.h>
 #include <stdexcept>
 #include <vector>
 #include <cmath>
@@ -256,6 +257,83 @@ void X11DisplayWindow::SetWindowTitle(const std::string& text)
 
 void X11DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
 {
+	if (images.empty())
+		return;
+
+	double dpiscale = GetDpiScale();
+	int desiredSize = (int)std::round(32 * dpiscale);
+
+	Image* image = images.front().get();
+	for (const auto& i : images)
+	{
+		int curdist = std::abs(image->GetWidth() - desiredSize);
+		int dist = std::abs(i->GetWidth() - desiredSize);
+		if (dist < curdist)
+			image = i.get();
+	}
+
+	int width = image->GetWidth();
+	int height = image->GetHeight();
+	const uint32_t* s = (const uint32_t*)image->GetData();
+
+	unsigned int size = (width * height) + 2; // header is 2 ints
+	unsigned long* data = (unsigned long*)malloc(size * sizeof(unsigned long));
+
+	// set header
+	data[0] = width;
+	data[1] = height;
+
+	// on 64bit systems, the destination buffer is 64 bit per pixel
+	// thus, we have to copy each pixel individually (no memcpy)
+
+	// icon data is expected as ARGB
+
+	if (image->GetFormat() == ImageFormat::R8G8B8A8)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			const uint32_t* src = s + y * width;
+			unsigned long* dst = &data[2 + (y * width)];
+			for (int x = 0; x < width; ++x)
+			{
+				uint32_t r = src[x] & 0xff;
+				uint32_t g = (src[x] >> 8) & 0xff;
+				uint32_t b = (src[x] >> 16) & 0xff;
+				uint32_t a = (src[x] >> 24) & 0xff;
+				dst[x] = (a << 24) | (r << 16) | (g << 8) | b;
+			}
+		}
+	}
+	else if (image->GetFormat() == ImageFormat::B8G8R8A8)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			const uint32_t* src = s + y * width;
+			unsigned long* dst = &data[2 + (y * width)];
+			for (int x = 0; x < width; ++x)
+			{
+				dst[x] = src[x];
+			}
+		}
+	}
+	else
+	{
+		free(data);
+		return;
+	}
+
+	// set icon geometry
+	unsigned long* geom = (unsigned long*)malloc(4 * sizeof(unsigned long));
+	geom[0] = geom[1] = 0; // x, y
+	geom[2] = width;
+	geom[3] = height;
+
+	Atom propertyGeom = XInternAtom(display, "_NET_WM_ICON_GEOMETRY", 0);
+	XChangeProperty(display, window, propertyGeom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)geom, 4);
+
+	// set icon data
+	Atom property = XInternAtom(display, "_NET_WM_ICON", 0);
+	XChangeProperty(display, window, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data, size);
 }
 
 void X11DisplayWindow::SetWindowFrame(const Rect& box)
