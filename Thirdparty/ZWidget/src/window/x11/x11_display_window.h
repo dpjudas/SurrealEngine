@@ -17,6 +17,7 @@ public:
 	~X11DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
+	void SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images) override;
 	void SetWindowFrame(const Rect& box) override;
 	void SetClientFrame(const Rect& box) override;
 	void Show() override;
