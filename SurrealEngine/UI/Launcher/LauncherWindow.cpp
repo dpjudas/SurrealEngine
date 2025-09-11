@@ -27,6 +27,15 @@ int LauncherWindow::ExecModal()
 LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 {
 	SetWindowTitle("Surreal Engine");
+	SetWindowIcon({
+		Image::LoadResource("surreal-engine-icon-16.png"),
+		Image::LoadResource("surreal-engine-icon-24.png"),
+		Image::LoadResource("surreal-engine-icon-32.png"),
+		Image::LoadResource("surreal-engine-icon-48.png"),
+		Image::LoadResource("surreal-engine-icon-64.png"),
+		Image::LoadResource("surreal-engine-icon-128.png"),
+		Image::LoadResource("surreal-engine-icon-256.png")
+		});
 
 	Banner = new LauncherBanner(this);
 	Pages = new TabWidget(this);

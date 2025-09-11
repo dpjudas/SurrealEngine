@@ -76,6 +76,15 @@ ErrorWindow::ErrorWindow(Array<uint8_t> initminidump) : Widget(nullptr, WidgetTy
 	SetWindowBorderColor(Colorf::fromRgba8(51, 51, 51));
 	SetWindowCaptionColor(Colorf::fromRgba8(33, 33, 33));
 	SetWindowCaptionTextColor(Colorf::fromRgba8(226, 223, 219));
+	SetWindowIcon({
+		Image::LoadResource("surreal-engine-icon-16.png"),
+		Image::LoadResource("surreal-engine-icon-24.png"),
+		Image::LoadResource("surreal-engine-icon-32.png"),
+		Image::LoadResource("surreal-engine-icon-48.png"),
+		Image::LoadResource("surreal-engine-icon-64.png"),
+		Image::LoadResource("surreal-engine-icon-128.png"),
+		Image::LoadResource("surreal-engine-icon-256.png")
+		});
 
 	LogView = new LogViewer(this);
 	ClipboardButton = new PushButton(this);
