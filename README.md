@@ -1,18 +1,18 @@
 ![SEBANNER](Resources/surreal-engine-banner.png)
 
-The goal of this project is to reimplement enough of the original Unreal Engine to make the Unreal Tournament (UT99) maps playable, and more UE1 games in the future.
+# Welcome to Surreal Engine!
 
-![facingworlds](https://user-images.githubusercontent.com/5136903/125014285-afc65580-e06d-11eb-80c0-0a1992a7d0ff.jpg)
-
-## Requirements
-
-* Original copies of the UE1 games you want to run
-* Windows 10+ or a modern Linux distro
-* A DirectX 11 or Vulkan capable graphics card
+Surreal Engine is a project that aims to reimplement the original Unreal Engine; currently focused on making Unreal (Gold) and Unreal Tournament (UT99) playable. The scope of this project might expand to cover more UE1 games in the future.
 
 ## Current status
 
 Please refer to [Status.md](Docs/Status.md) for the current status of Surreal Engine!
+
+## System requirements
+
+* Original copies of the UE1 games you want to run
+* Windows 10+ or a modern Linux distro
+* A Direct3D 11 or Vulkan capable graphics card
 
 ## Downloads
 
@@ -41,7 +41,7 @@ If no game folder is specified, and the executable isn't in a System folder, the
 
 If no URL is specified it will use the default URL in the ini file (per default the intro map).
 
-The --engineversion argument overrides the internal version detected by the engine and should only be used for debugging purposes.
+The `--engineversion` argument overrides the internal version detected by the engine and should only be used for debugging purposes.
 
 
 ## Building Surreal Engine
@@ -88,7 +88,7 @@ Use CMake to build the project. You're gonna need the development versions of th
 
 #### After installing prerequisites
 
-Once you've installed all of the prerequisites, enter these commands in the given order from the folder you want to clone the repo to:
+Once you've installed all prerequisites, enter these commands in the given order from the folder you want to clone the repo to:
 
     git clone https://github.com/dpjudas/SurrealEngine.git
     cd SurrealEngine
