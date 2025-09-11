@@ -1,4 +1,4 @@
-# Surreal Engine
+![SEBANNER](Resources/surreal-engine-banner.png)
 
 The goal of this project is to reimplement enough of the original Unreal Engine to make the Unreal Tournament (UT99) maps playable, and more UE1 games in the future.
 
