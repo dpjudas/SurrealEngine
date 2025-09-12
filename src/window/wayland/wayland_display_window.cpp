@@ -426,7 +426,6 @@ void WaylandDisplayWindow::CreateAppIconBuffers(const std::vector<std::shared_pt
 	}
 }
 
-
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {
 	return m_windowID;

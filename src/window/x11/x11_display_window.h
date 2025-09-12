@@ -61,13 +61,6 @@ public:
 	std::vector<std::string> GetVulkanInstanceExtensions() override;
 	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 
-	static void ProcessEvents();
-	static void RunLoop();
-	static void ExitLoop();
-	static Size GetScreenSize();
-	static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
-	static void StopTimer(void* timerID);
-
 private:
 	void UpdateCursor();
 
@@ -94,11 +87,6 @@ private:
 
 	InputKey GetInputKey(XEvent* event);
 	Point GetMousePos(XEvent* event);
-
-	static bool WaitForEvents(int timeout);
-	static void DispatchEvent(XEvent* event);
-
-	static void CheckNeedsUpdate();
 
 	std::vector<uint8_t> GetWindowProperty(Atom property, Atom &actual_type, int &actual_format, unsigned long &item_count);
 
@@ -146,5 +134,6 @@ private:
 
 	bool needsUpdate = false;
 
+	friend class X11Connection;
 	friend class X11DisplayBackend;
 };

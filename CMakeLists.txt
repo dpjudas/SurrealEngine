@@ -146,6 +146,8 @@ set(ZWIDGET_X11_SOURCES
 	src/window/x11/x11_display_backend.h
 	src/window/x11/x11_display_window.cpp
 	src/window/x11/x11_display_window.h
+	src/window/x11/x11_connection.cpp
+	src/window/x11/x11_connection.h
 )
 
 set(ZWIDGET_WAYLAND_SOURCES
