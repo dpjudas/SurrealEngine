@@ -3,6 +3,7 @@
 #include "window/window.h"
 #include <string>
 #include <map>
+#include <memory>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
@@ -58,7 +59,7 @@ private:
 	void CheckTimers();
 	int GetTimerTimeout();
 
-	std::vector<std::unique_ptr<X11Timer>> timers;
+	std::vector<std::shared_ptr<X11Timer>> timers;
 };
 
 X11Connection* GetX11Connection();
