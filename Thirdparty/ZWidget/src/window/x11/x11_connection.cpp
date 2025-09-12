@@ -166,7 +166,8 @@ void X11Connection::DispatchEvent(XEvent* event)
 			for (auto& it : windows)
 			{
 				X11DisplayWindow* window = it.second;
-				window->OnXInputEvent(event);
+				if (window->OnXInputEvent(event))
+					break;
 			}
 			XFreeEventData(display, &event->xcookie);
 		}
