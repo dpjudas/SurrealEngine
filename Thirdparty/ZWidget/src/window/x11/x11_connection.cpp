@@ -202,7 +202,7 @@ static int64_t GetTimePoint()
 void* X11Connection::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
 {
 	timeoutMilliseconds = std::max(timeoutMilliseconds, 1);
-	timers.push_back(std::make_unique<X11Timer>(timeoutMilliseconds, onTimer, GetTimePoint() + timeoutMilliseconds));
+	timers.push_back(std::make_shared<X11Timer>(timeoutMilliseconds, onTimer, GetTimePoint() + timeoutMilliseconds));
 	return timers.back().get();
 }
 
@@ -225,21 +225,22 @@ void X11Connection::CheckTimers()
 	// The callback may stop timers. Iterators might invalidate.
 	while (true)
 	{
-		bool foundOne = false;
+		std::shared_ptr<X11Timer> foundTimer;
 		for (auto& timer : timers)
 		{
 			if (timer->nextTime < now)
 			{
-				// Not very precise, but these aren't high precision timers
-				timer->nextTime = now + timer->timeoutMilliseconds;
-				timer->onTimer();
-				foundOne = true;
+				foundTimer = timer;
 				break;
 			}
 		}
 
-		if (!foundOne)
+		if (!foundTimer)
 			break;
+
+		// Not very precise, but these aren't high precision timers
+		foundTimer->nextTime = now + foundTimer->timeoutMilliseconds;
+		foundTimer->onTimer();
 	}
 }
 
