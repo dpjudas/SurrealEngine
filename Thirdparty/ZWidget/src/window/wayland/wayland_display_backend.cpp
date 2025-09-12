@@ -224,7 +224,6 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 			}
 		}
 
-
 		for (auto key: keysVec)
 		{
 			// keys parameter represents the keys pressed when entering the surface
@@ -429,7 +428,6 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
 		m_keyboardDelayTimer.Stop();
 		m_keyboardRepeatTimer.Stop();
 	}
-
 }
 
 void WaylandDisplayBackend::OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state)
@@ -458,11 +456,17 @@ void WaylandDisplayBackend::OnKeyboardRepeat()
 
 void WaylandDisplayBackend::OnMouseEnterEvent(uint32_t serial)
 {
-	m_cursorSurface.attach(!hasMouseLock ? m_cursorBuffer : nullptr, 0, 0);
-	if (!hasMouseLock)
-		m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
-	m_cursorSurface.commit();
-	m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
+	if (!m_CursorShapeDevice)
+	{
+		m_cursorSurface.attach(!hasMouseLock ? m_cursorBuffer : nullptr, 0, 0);
+		if (!hasMouseLock)
+		{
+			m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
+		}
+
+		m_cursorSurface.commit();
+	}
+	m_waylandPointer.set_cursor(serial, !hasMouseLock ? m_cursorSurface : nullptr, 0, 0);
 }
 
 void WaylandDisplayBackend::OnMouseLeaveEvent()
@@ -529,8 +533,7 @@ void WaylandDisplayBackend::SetCursor(StandardCursor cursor)
 
 void WaylandDisplayBackend::ShowCursor(bool enable)
 {
-	m_cursorSurface.attach(enable ? m_cursorBuffer : nullptr, 0, 0);
-	m_cursorSurface.commit();
+	m_waylandPointer.set_cursor(m_MouseSerial, enable ? m_cursorSurface : nullptr, 0, 0);
 }
 
 std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
