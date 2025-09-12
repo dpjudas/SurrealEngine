@@ -377,7 +377,7 @@ void Widget::Repaint()
 	Widget* w = Window();
 	if (w->DispCanvas)
 	{
-		w->DispCanvas->begin(WindowBackground);
+		w->DispCanvas->begin(w->WindowBackground);
 		w->Paint(w->DispCanvas.get());
 		w->DispCanvas->end();
 	}
