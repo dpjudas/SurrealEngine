@@ -977,14 +977,14 @@ void X11DisplayWindow::OnMotionNotify(XEvent* event)
 	}
 }
 
-void X11DisplayWindow::OnXInputEvent(XEvent* event)
+bool X11DisplayWindow::OnXInputEvent(XEvent* event)
 {
 	// This API is so horrible it makes Win32 look attractive!
 	if (event->xcookie.evtype == XI_ButtonPress || event->xcookie.evtype == XI_ButtonRelease)
 	{
 		auto deviceEvent = (XIDeviceEvent*)event->xcookie.data;
 		if (deviceEvent->event != window)
-			return;
+			return false;
 
 		InputKey key = {};
 		switch (deviceEvent->detail)
@@ -996,7 +996,7 @@ void X11DisplayWindow::OnXInputEvent(XEvent* event)
 		case 5: key = InputKey::MouseWheelDown; break;
 		// case 6: key = InputKey::XButton1; break;
 		// case 7: key = InputKey::XButton2; break;
-		default: return;
+		default: return false;
 		}
 
 		double dpiScale = GetDpiScale();
@@ -1022,12 +1022,14 @@ void X11DisplayWindow::OnXInputEvent(XEvent* event)
 			keyState[key] = false;
 			windowHost->OnWindowMouseUp(mousePos, key);
 		}
+
+		return true;
 	}
 	else if (event->xcookie.evtype == XI_Motion)
 	{
 		auto deviceEvent = (XIDeviceEvent*)event->xcookie.data;
 		if (deviceEvent->event != window)
-			return;
+			return false;
 
 		if (isCursorEnabled)
 		{
@@ -1050,6 +1052,8 @@ void X11DisplayWindow::OnXInputEvent(XEvent* event)
 				XWarpPointer(display, window, window, 0, 0, ClientSizeX, ClientSizeY, centerX, centerY);
 			}
 		}
+
+		return true;
 	}
 	else if (!isCursorEnabled && RawInput.Focused && event->xcookie.evtype == XI_RawMotion)
 	{
@@ -1075,7 +1079,10 @@ void X11DisplayWindow::OnXInputEvent(XEvent* event)
 			if (dx != 0 || dy != 0)
 				windowHost->OnWindowRawMouseMove(dx, dy);
 		}
+
+		return true;
 	}
+	return false;
 }
 
 void X11DisplayWindow::OnLeaveNotify(XEvent* event)

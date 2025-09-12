@@ -80,7 +80,7 @@ private:
 	void OnSelectionClear(XEvent* event);
 	void OnSelectionNotify(XEvent* event);
 	void OnSelectionRequest(XEvent* event);
-	void OnXInputEvent(XEvent* event);
+	bool OnXInputEvent(XEvent* event);
 
 	void CreateBackbuffer(int width, int height);
 	void DestroyBackbuffer();
