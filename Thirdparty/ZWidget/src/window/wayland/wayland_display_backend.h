@@ -60,6 +60,16 @@ struct WaylandPointerEvent
 	wayland::pointer_axis_source axis_source;
 };
 
+class WaylandTimer
+{
+public:
+	WaylandTimer(int timeoutMilliseconds, std::function<void()> onTimer, int64_t nextTime) : timeoutMilliseconds(timeoutMilliseconds), onTimer(onTimer), nextTime(nextTime) {}
+
+	int timeoutMilliseconds = 0;
+	std::function<void()> onTimer;
+	int64_t nextTime = 0;
+};
+
 class WaylandDisplayWindow;
 
 class WaylandDisplayBackend : public DisplayBackend
@@ -138,6 +148,8 @@ public:
 private:
 	void CheckNeedsUpdate();
 	void UpdateTimers();
+	void WaitForEvents(int timeout);
+	int GetTimerTimeout();
 	void ConnectDeviceEvents();
 	void OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::keyboard_key_state state);
 	void OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state);
@@ -178,4 +190,6 @@ private:
 	xkb_state* m_KeyboardState = nullptr;
 
 	WaylandPointerEvent currentPointerEvent = {0};
+
+	std::vector<std::shared_ptr<WaylandTimer>> m_timers;
 };
