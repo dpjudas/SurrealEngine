@@ -44,13 +44,13 @@ EditorMainWindow::EditorMainWindow(RenderAPI renderAPI) : MainWindow(renderAPI)
 
 	SetWindowTitle("[Untitled Map] - " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - Surreal Editor");
 	SetWindowIcon({
-		Image::LoadResource("surreal-engine-icon-16.png"),
-		Image::LoadResource("surreal-engine-icon-24.png"),
-		Image::LoadResource("surreal-engine-icon-32.png"),
-		Image::LoadResource("surreal-engine-icon-48.png"),
-		Image::LoadResource("surreal-engine-icon-64.png"),
-		Image::LoadResource("surreal-engine-icon-128.png"),
-		Image::LoadResource("surreal-engine-icon-256.png")
+		Image::LoadResource("surreal-editor-icon-16.png"),
+		Image::LoadResource("surreal-editor-icon-24.png"),
+		Image::LoadResource("surreal-editor-icon-32.png"),
+		Image::LoadResource("surreal-editor-icon-48.png"),
+		Image::LoadResource("surreal-editor-icon-64.png"),
+		Image::LoadResource("surreal-editor-icon-128.png"),
+		Image::LoadResource("surreal-editor-icon-256.png")
 		});
 }
 
