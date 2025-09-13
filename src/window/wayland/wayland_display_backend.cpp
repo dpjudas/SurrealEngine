@@ -1,5 +1,6 @@
 #include "wayland_display_backend.h"
 #include "wayland_display_window.h"
+#include <chrono>
 
 #ifdef USE_DBUS
 #include "window/dbus/dbus_open_file_dialog.h"
@@ -567,6 +568,8 @@ void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
 
 void WaylandDisplayBackend::ProcessEvents()
 {
+	CheckNeedsUpdate();
+
 	while (wl_display_prepare_read(s_waylandDisplay))
 		s_waylandDisplay.dispatch_pending();
 
@@ -583,19 +586,45 @@ void WaylandDisplayBackend::ProcessEvents()
 
 	if (s_waylandDisplay.get_error())
 		throw std::runtime_error("Wayland Protocol Error");
+
+	UpdateTimers();
 }
 
 void WaylandDisplayBackend::RunLoop()
 {
 	exitRunLoop = false;
 
-	while (!exitRunLoop)
+	while (!exitRunLoop && !s_Windows.empty())
 	{
-		CheckNeedsUpdate();
-		UpdateTimers();
-
 		ProcessEvents();
+		WaitForEvents(GetTimerTimeout());
 	}
+}
+
+void WaylandDisplayBackend::WaitForEvents(int timeout)
+{
+	poll_single(s_waylandDisplay.get_fd(), POLLIN, -1);
+}
+
+static int64_t GetTimePoint()
+{
+	using namespace std::chrono;
+	return (int64_t)(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+}
+
+int WaylandDisplayBackend::GetTimerTimeout()
+{
+	if (m_timers.empty())
+		return 0;
+
+	int64_t nextTime = m_timers.front()->nextTime;
+	for (auto& timer : m_timers)
+	{
+		nextTime = std::min(nextTime, timer->nextTime);
+	}
+
+	int64_t now = GetTimePoint();
+	return (int)std::max(nextTime - now, (int64_t)1);
 }
 
 void WaylandDisplayBackend::UpdateTimers()
@@ -606,6 +635,29 @@ void WaylandDisplayBackend::UpdateTimers()
 	m_keyboardRepeatTimer.Update(m_currentTime - m_previousTime);
 
 	m_previousTime = m_currentTime;
+
+	int64_t now = GetTimePoint();
+
+	// The callback may stop timers. Iterators might invalidate.
+	while (true)
+	{
+		std::shared_ptr<WaylandTimer> foundTimer;
+		for (auto& timer : m_timers)
+		{
+			if (timer->nextTime < now)
+			{
+				foundTimer = timer;
+				break;
+			}
+		}
+
+		if (!foundTimer)
+			break;
+
+		// Not very precise, but these aren't high precision timers
+		foundTimer->nextTime = now + foundTimer->timeoutMilliseconds;
+		foundTimer->onTimer();
+	}
 }
 
 void WaylandDisplayBackend::CheckNeedsUpdate()
@@ -620,6 +672,25 @@ void WaylandDisplayBackend::CheckNeedsUpdate()
 	}
 }
 
+void* WaylandDisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
+{
+	timeoutMilliseconds = std::max(timeoutMilliseconds, 1);
+	m_timers.push_back(std::make_shared<WaylandTimer>(timeoutMilliseconds, onTimer, GetTimePoint() + timeoutMilliseconds));
+	return m_timers.back().get();
+}
+
+void WaylandDisplayBackend::StopTimer(void* timerID)
+{
+	for (auto it = m_timers.begin(); it != m_timers.end(); ++it)
+	{
+		if (it->get() == timerID)
+		{
+			m_timers.erase(it);
+			return;
+		}
+	}
+}
+
 void WaylandDisplayBackend::ExitLoop()
 {
 	exitRunLoop = true;
@@ -628,16 +699,6 @@ void WaylandDisplayBackend::ExitLoop()
 Size WaylandDisplayBackend::GetScreenSize()
 {
 	return s_ScreenSize;
-}
-
-void* WaylandDisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
-{
-	throw std::logic_error("unimplemented: WaylandDisplayBackend::StartTimer");
-}
-
-void WaylandDisplayBackend::StopTimer(void* timerID)
-{
-	throw std::logic_error("unimplemented: WaylandDisplayBackend::StopTimer");
 }
 
 #ifdef USE_DBUS
@@ -1208,5 +1269,3 @@ wayland::cursor_shape_device_v1_shape WaylandDisplayBackend::GetWaylandCursorSha
 		return wayland::cursor_shape_device_v1_shape::_default;
 	}
 }
-
-
