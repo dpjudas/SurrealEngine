@@ -643,12 +643,13 @@ if(MSVC)
 
 	# Ignore warnings in third party code
 	set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 -D_CRT_SECURE_NO_WARNINGS")
-	set_source_files_properties(${SURREALVIDEO_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 /wd4146 /wd4334 -D_CRT_SECURE_NO_WARNINGS /std:c11 /experimental:c11atomics")
+	set_source_files_properties(${SURREALVIDEO_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 /wd4146 /wd4334 -D_CRT_SECURE_NO_WARNINGS /experimental:c11atomics")
 endif()
 
 add_library(SurrealVideo SHARED ${SURREALVIDEO_SOURCES})
 target_include_directories(SurrealVideo PRIVATE SurrealVideo)
 set_target_properties(SurrealVideo PROPERTIES CXX_STANDARD 20)
+set_target_properties(SurrealVideo PROPERTIES C_STANDARD 17)
 
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
 set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 20)
