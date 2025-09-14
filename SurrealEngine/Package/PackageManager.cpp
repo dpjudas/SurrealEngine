@@ -468,6 +468,7 @@ void PackageManager::LoadEngineIniFiles()
 {
 	// Load SE-[GameName].ini and SE-User.ini from the appropriate places
 	// If they do not exist, import the appropriate [GameName].ini and User.ini files
+	// If those also do not exist, import Default.ini and DefUser.ini files
 	std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
 	std::string user_ini_name = "SE-User.ini";
 
@@ -477,6 +478,8 @@ void PackageManager::LoadEngineIniFiles()
 	{
 		missing_se_system_ini = true;
 		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
+		if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
+			engine_ini_name = "Default.ini"; // use the default ini as a last resort
 	}
 
 	// Also load Default.ini, so that we can reset values.
@@ -490,7 +493,11 @@ void PackageManager::LoadEngineIniFiles()
 	if (launchInfo.engineVersion > 219)
 	{
 		if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+		{
 			user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
+			if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+				user_ini_name = "DefUser.ini";
+		}
 
 		iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
 		defaultUserFile = std::make_unique<IniFile>(FilePath::combine(system_folder, "DefUser.ini"));
