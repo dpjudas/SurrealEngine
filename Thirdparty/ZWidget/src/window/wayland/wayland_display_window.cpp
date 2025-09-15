@@ -329,12 +329,21 @@ void WaylandDisplayWindow::SetCaptionTextColor(uint32_t bgra8)
 
 std::string WaylandDisplayWindow::GetClipboardText()
 {
-	return m_ClipboardContents;
+	return backend->GetClipboardText();
 }
 
 void WaylandDisplayWindow::SetClipboardText(const std::string& text)
 {
-	m_ClipboardContents = text;
+	m_DataSource = backend->m_DataDeviceManager.create_data_source();
+
+	m_DataSource.on_send() = [text] (const std::string& mime_type, const int fd)
+	{
+		write(fd, text.c_str(), text.size());
+		close(fd);
+	};
+
+	m_DataSource.offer("text/plain");
+	backend->GetDataDevice().set_selection(m_DataSource, backend->GetKeyboardSerial());
 }
 
 Point WaylandDisplayWindow::MapFromGlobal(const Point& pos) const

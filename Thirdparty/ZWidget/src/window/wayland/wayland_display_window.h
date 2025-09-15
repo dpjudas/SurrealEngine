@@ -163,7 +163,6 @@ private:
 	WaylandNativeHandle m_NativeHandle;
 	RenderAPI m_renderAPI;
 
-	wayland::data_device_t m_DataDevice;
 	wayland::data_source_t m_DataSource;
 
 	wayland::zxdg_toplevel_decoration_v1_t m_XDGToplevelDecoration;
@@ -187,7 +186,6 @@ private:
 	wayland::callback_t m_FrameCallback;
 
 	std::string m_windowID;
-	std::string m_ClipboardContents;
 
 	std::shared_ptr<SharedMemHelper> shared_mem;
 
