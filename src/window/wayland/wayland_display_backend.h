@@ -13,9 +13,13 @@
 #include <linux/input.h>
 #include <poll.h>
 #include <map>
+#include <set>
 #include <xkbcommon/xkbcommon.h>
 
 #include "wl_cursor_shape.hpp"
+
+inline auto hash_proxy = [](wayland::proxy_t const& proxy) { return reinterpret_cast<size_t>(proxy.c_ptr()); };
+using hash_proxy_t = decltype(hash_proxy);
 
 static short poll_single(int fd, short events, int timeout)
 {
@@ -96,6 +100,10 @@ public:
 	void SetCursor(StandardCursor cursor);
 	void ShowCursor(bool enable);
 	bool GetKeyState(InputKey key);
+
+	std::string GetClipboardText() { return m_ClipboardContents; }
+	wayland::data_device_t& GetDataDevice() { return m_DataDevice; }
+	uint32_t GetKeyboardSerial() const { return m_KeyboardSerial; }
 
 #ifdef USE_DBUS
 	std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(DisplayWindow* owner) override;
@@ -190,6 +198,11 @@ private:
 	xkb_state* m_KeyboardState = nullptr;
 
 	WaylandPointerEvent currentPointerEvent = {0};
+
+	wayland::data_device_t m_DataDevice;
+	std::unordered_map<wayland::data_offer_t, std::set<std::string>, hash_proxy_t> m_DataOfferMimeTypes;
+
+	std::string m_ClipboardContents;
 
 	std::vector<std::shared_ptr<WaylandTimer>> m_timers;
 };
