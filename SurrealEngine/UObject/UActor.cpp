@@ -466,7 +466,7 @@ void UActor::TickWalking(float elapsed)
 
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
-	vec3 vel = Velocity();
+	vec3 vel = Velocity() + zone->ZoneVelocity();
 	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
 	if (isMoving)
 	{
@@ -526,8 +526,10 @@ void UActor::TickWalking(float elapsed)
 							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 						}
 					}
-
-					timeLeft = 0.0f;
+					else
+					{
+						timeLeft = 0.0f;
+					}
 				}
 			}
 
@@ -801,15 +803,97 @@ void UActor::TickSwimming(float elapsed)
 
 void UActor::TickFlying(float elapsed)
 {
-	CollisionHit hit = TryMove(Velocity() * elapsed);
-	if (hit.Fraction < 1.0f)
+	// Only pawns can fly!
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+	if (!pawn)
+		return;
+
+	if (Region().ZoneNumber == 0)
 	{
-		// is this correct?
-		if (bBounce())
+		CallEvent(this, EventName::FellOutOfWorld);
+		return;
+	}
+
+	// Save our starting point and state
+
+	OldLocation() = Location();
+	bJustTeleported() = false;
+
+	// Update the actor velocity based on the acceleration and zone
+
+	UZoneInfo* zone = Region().Zone;
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+
+	if (dot(Acceleration(), Acceleration()) > 0.0001f)
+	{
+		float accelRate = pawn->AccelRate();
+
+		// Acceleration must never exceed the acceleration rate
+		float accelSpeed = length(Acceleration());
+		vec3 accelDir = Acceleration() * (1.0f / accelSpeed);
+		if (accelSpeed > accelRate)
+			Acceleration() = accelDir * accelRate;
+
+		float speed = length(Velocity());
+		Velocity() = Velocity() - (Velocity() - accelDir * speed) * (zone->ZoneFluidFriction() * elapsed);
+	}
+	else
+	{
+		float speed = length(Velocity());
+		if (speed > 0.0f)
 		{
-			CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			float newSpeed = std::max(speed - speed * zone->ZoneFluidFriction() * 2.0f * elapsed, 0.0f);
+			Velocity() = Velocity() * (newSpeed / speed);
 		}
 	}
+
+	Velocity() = Velocity() + Acceleration() * elapsed;
+
+	float maxSpeed = player ? player->AirSpeed() : pawn->AirSpeed() * pawn->DesiredSpeed();
+
+	float speed = length(Velocity());
+	if (speed > 0.0f && speed > maxSpeed)
+		Velocity() = Velocity() * (maxSpeed / speed);
+
+	float timeLeft = elapsed;
+	vec3 vel = Velocity() + zone->ZoneVelocity();
+	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	if (isMoving)
+	{
+		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
+		{
+			vec3 moveDelta = vel * timeLeft;
+
+			CollisionHit hit = TryMove(moveDelta);
+			timeLeft -= timeLeft * hit.Fraction;
+			moveDelta = vel * timeLeft;
+
+			if (hit.Fraction < 1.0f)
+			{
+				// We hit a wall
+				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+
+				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				{
+					hit = TryMove(alignedDelta);
+					timeLeft -= timeLeft * hit.Fraction;
+					if (hit.Fraction < 1.0f)
+					{
+						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					}
+				}
+				else
+				{
+					timeLeft = 0.0f;
+				}
+			}
+		}
+	}
+
+	if (!bJustTeleported())
+		Velocity() = (Location() - OldLocation()) / elapsed;
+	Velocity().z = 0.0f;
 }
 
 void UActor::TickRotating(float elapsed)
