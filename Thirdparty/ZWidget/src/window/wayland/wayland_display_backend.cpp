@@ -336,6 +336,8 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		currentPointerEvent.time = utime_lo;
 		currentPointerEvent.dx = dx;
 		currentPointerEvent.dy = dy;
+		currentPointerEvent.dx_unaccel = dx_unaccel;
+		currentPointerEvent.dy_unaccel = dy_unaccel;
 	};
 
 	m_waylandPointer.on_frame() = [this] () {
@@ -353,7 +355,7 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		if (currentPointerEvent.event_mask & POINTER_EVENT_RELATIVE_MOTION)
 		{
 			if (hasMouseLock)
-				OnMouseMoveRawEvent(int(currentPointerEvent.dx), int(currentPointerEvent.dy));
+				OnMouseMoveRawEvent(int(currentPointerEvent.dx_unaccel), int(currentPointerEvent.dy_unaccel));
 		}
 
 		if (currentPointerEvent.event_mask & POINTER_EVENT_BUTTON)
