@@ -374,9 +374,8 @@ void UActor::TickPhysics(float elapsed)
 			case PHYS_Spider: TickSpider(physTimeElapsed); break;
 			case PHYS_Trailer: TickTrailer(physTimeElapsed); break;
 			}
+			TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 		}
-
-		TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 
 		if (engine->LaunchInfo.engineVersion >= 400)
 		{
@@ -903,10 +902,6 @@ void UActor::TickFlying(float elapsed)
 
 void UActor::TickRotating(float elapsed)
 {
-	// Does this apply to more than just those two modes?
-	if (Physics() != PHYS_Rotating && Physics() != PHYS_Projectile)
-		return;
-
 	if (bRotateToDesired())
 	{
 		if (Rotation() != DesiredRotation())
