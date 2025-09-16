@@ -50,7 +50,7 @@ struct WaylandPointerEvent
 {
 	uint32_t event_mask;
 	double surfaceX, surfaceY;
-	double dx, dy;
+	double dx, dy, dx_unaccel, dy_unaccel;
 	uint32_t button;
 	wayland::pointer_button_state state;
 	uint32_t time;
