@@ -751,48 +751,53 @@ void UActor::TickSwimming(float elapsed)
 	if (speed > 0.0f && speed > maxSpeed)
 		Velocity() = Velocity() * (maxSpeed / speed);
 
-	// The classic step up, move and step down algorithm:
+	//float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 
-	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
-
-	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
-	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
+	vec3 vel = Velocity() + zone->ZoneVelocity();
+	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	if (isMoving)
 	{
-		vec3 moveDelta = Velocity() * timeLeft;
-
-		CollisionHit hit = TryMove(moveDelta);
-		timeLeft -= timeLeft * hit.Fraction;
-
-		if (hit.Fraction < 1.0f)
+		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
-			if (player && UObject::IsType<UDecoration>(hit.Actor) && UObject::Cast<UDecoration>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
+			vec3 moveDelta = vel * timeLeft;
+
+			CollisionHit hit = TryMove(moveDelta);
+			timeLeft -= timeLeft * hit.Fraction;
+			moveDelta = vel * timeLeft;
+
+			if (hit.Fraction < 1.0f)
 			{
-				// We hit a pushable decoration that is facing our movement direction
-
-				bJustTeleported() = true;
-				Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-				timeLeft = 0.0f;
-			}
-			else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
-			{
-				// We hit a wall
-
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
-
-				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
-				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				if (player && UObject::IsType<UDecoration>(hit.Actor) && UObject::Cast<UDecoration>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
 				{
-					hit = TryMove(alignedDelta);
-					timeLeft -= timeLeft * hit.Fraction;
-					if (hit.Fraction < 1.0f)
+					// We hit a pushable decoration that is facing our movement direction
+
+					bJustTeleported() = true;
+					Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					timeLeft = 0.0f;
+				}
+				else
+				{
+					// We hit a wall
+
+					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+
+					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+					if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
 					{
-						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						hit = TryMove(alignedDelta);
+						timeLeft -= timeLeft * hit.Fraction;
+						if (hit.Fraction < 1.0f)
+						{
+							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						}
+					}
+					else
+					{
+						timeLeft = 0.0f;
 					}
 				}
-
-				timeLeft = 0.0f;
 			}
 		}
 	}
