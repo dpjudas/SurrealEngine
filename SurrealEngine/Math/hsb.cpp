@@ -2,62 +2,58 @@
 #include "Precomp.h"
 #include "hsb.h"
 
-vec3 hsbtorgb(double hue, double saturation, double brightness)
+float hsbtorgb_v_table[256] =
 {
-	double red, green, blue;
+	0.000000f, 6.512735f, 9.210398f, 11.280388f, 13.025470f, 14.562918f, 15.952878f, 17.231077f,
+	18.420796f, 19.538205f, 20.595076f, 21.600298f, 22.560776f, 23.482000f, 24.368423f, 25.223714f,
+	26.050940f, 26.852694f, 27.631194f, 28.388354f, 29.125836f, 29.845101f, 30.547435f, 31.233980f,
+	31.905755f, 32.563675f, 33.208563f, 33.841164f, 34.462154f, 35.072151f, 35.671719f, 36.261374f,
+	36.841593f, 37.412814f, 37.975444f, 38.529860f, 39.076410f, 39.615420f, 40.147195f, 40.672017f,
+	41.190153f, 41.701851f, 42.207347f, 42.706859f, 43.200597f, 43.688755f, 44.171518f, 44.649062f,
+	45.121552f, 45.589145f, 46.051991f, 46.510231f, 46.964000f, 47.413426f, 47.858633f, 48.299735f,
+	48.736846f, 49.170071f, 49.599512f, 50.025267f, 50.447428f, 50.866086f, 51.281327f, 51.693231f,
+	52.101880f, 52.507348f, 52.909709f, 53.309033f, 53.705389f, 54.098840f, 54.489450f, 54.877281f,
+	55.262389f, 55.644832f, 56.024665f, 56.401940f, 56.776707f, 57.149018f, 57.518918f, 57.886455f,
+	58.251673f, 58.614615f, 58.975324f, 59.333840f, 59.690202f, 60.044450f, 60.396620f, 60.746748f,
+	61.094870f, 61.441019f, 61.785229f, 62.127532f, 62.467960f, 62.806542f, 63.143309f, 63.478289f,
+	63.811510f, 64.143001f, 64.472787f, 64.800895f, 65.127350f, 65.452177f, 65.775399f, 66.097041f,
+	66.417126f, 66.735675f, 67.052711f, 67.368255f, 67.682327f, 67.994950f, 68.306141f, 68.615921f,
+	68.924309f, 69.231323f, 69.536981f, 69.841302f, 70.144303f, 70.446000f, 70.746411f, 71.045551f,
+	71.343437f, 71.640085f, 71.935509f, 72.229725f, 72.522748f, 72.814591f, 73.105269f, 73.394796f,
+	73.683185f, 73.970450f, 74.256604f, 74.541659f, 74.825628f, 75.108524f, 75.390358f, 75.671143f,
+	75.950889f, 76.229609f, 76.507313f, 76.784013f, 77.059720f, 77.334443f, 77.608194f, 77.880983f,
+	78.152820f, 78.423714f, 78.693676f, 78.962715f, 79.230841f, 79.498062f, 79.764388f, 80.029828f,
+	80.294390f, 80.558083f, 80.820916f, 81.082897f, 81.344034f, 81.604336f, 81.863810f, 82.122464f,
+	82.380306f, 82.637343f, 82.893583f, 83.149034f, 83.403703f, 83.657596f, 83.910721f, 84.163084f,
+	84.414694f, 84.665555f, 84.915675f, 85.165061f, 85.413719f, 85.661655f, 85.908875f, 86.155386f,
+	86.401193f, 86.646304f, 86.890723f, 87.134456f, 87.377509f, 87.619888f, 87.861599f, 88.102646f,
+	88.343036f, 88.582773f, 88.821863f, 89.060312f, 89.298123f, 89.535303f, 89.771857f, 90.007788f,
+	90.243103f, 90.477806f, 90.711902f, 90.945395f, 91.178290f, 91.410592f, 91.642305f, 91.873433f,
+	92.103982f, 92.333954f, 92.563356f, 92.792190f, 93.020462f, 93.248174f, 93.475332f, 93.701939f,
+	93.928000f, 94.153518f, 94.378497f, 94.602940f, 94.826853f, 95.050238f, 95.273099f, 95.495441f,
+	95.717265f, 95.938577f, 96.159380f, 96.379677f, 96.599471f, 96.818766f, 97.037566f, 97.255874f,
+	97.473692f, 97.691025f, 97.907875f, 98.124247f, 98.340142f, 98.555564f, 98.770517f, 98.985002f,
+	99.199024f, 99.412585f, 99.625689f, 99.838337f, 100.050534f, 100.262281f, 100.473582f, 100.684440f,
+	100.894857f, 101.104836f, 101.314380f, 101.523491f, 101.732173f, 101.940427f, 102.148257f, 102.355665f,
+	102.562653f, 102.769225f, 102.975382f, 103.181127f, 103.386463f, 103.591392f, 103.795916f, 104.000038f,
+};
 
-	if (saturation == 0)
+#if 0
+void create_hsb_tables()
+{
+	printf("float hsbtorgb_v_table[256] =\r\n{\r\n");
+	for (int brightness = 0; brightness < 256; brightness += 8)
 	{
-		red = green = blue = brightness;
+		printf("\t%ff, %ff, %ff, %ff, %ff, %ff, %ff, %ff,\r\n",
+			6.512735 * std::sqrt((double)brightness),
+			6.512735 * std::sqrt((double)brightness + 1),
+			6.512735 * std::sqrt((double)brightness + 2),
+			6.512735 * std::sqrt((double)brightness + 3),
+			6.512735 * std::sqrt((double)brightness + 4),
+			6.512735 * std::sqrt((double)brightness + 5),
+			6.512735 * std::sqrt((double)brightness + 6),
+			6.512735 * std::sqrt((double)brightness + 7));
 	}
-	else
-	{
-		// the color wheel consists of 6 sectors. Figure out which sector you're in.
-		double sectorPos = hue / 60.0;
-		int sectorNumber = (int)(floor(sectorPos));
-		// get the fractional part of the sector
-		double fractionalSector = sectorPos - sectorNumber;
-
-		// calculate values for the three axes of the color. 
-		double p = brightness * (1.0 - saturation);
-		double q = brightness * (1.0 - (saturation * fractionalSector));
-		double t = brightness * (1.0 - (saturation * (1 - fractionalSector)));
-
-		// assign the fractional colors to r, g, and b based on the sector the angle is in.
-		switch (sectorNumber)
-		{
-		case 0:
-			red = brightness;
-			green = t;
-			blue = p;
-			break;
-		case 1:
-			red = q;
-			green = brightness;
-			blue = p;
-			break;
-		case 2:
-			red = p;
-			green = brightness;
-			blue = t;
-			break;
-		case 3:
-			red = p;
-			green = q;
-			blue = brightness;
-			break;
-		case 4:
-			red = t;
-			green = p;
-			blue = brightness;
-			break;
-		case 5:
-			red = brightness;
-			green = p;
-			blue = q;
-			break;
-		}
-	}
-
-	return vec3((float)red, (float)green, (float)blue);
+	printf("};\r\n");
 }
+#endif

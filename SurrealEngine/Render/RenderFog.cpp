@@ -6,6 +6,10 @@
 #include "Engine.h"
 #include "Math/hsb.h"
 
+#ifndef NOSSE
+#include <immintrin.h>
+#endif
+
 // Don't render the fog in debug builds as we'd rather have a higher frame rate
 #if defined(DEBUG) || defined(_DEBUG)
 #define NOFOG
@@ -137,7 +141,11 @@ vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
 #ifndef NOFOG
 	vec3 view = engine->CameraLocation;
 	vec3 rayDirection = location - view;
+#ifndef NOSSE
+	float depth = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(dot(rayDirection, rayDirection))));
+#else
 	float depth = std::sqrt(dot(rayDirection, rayDirection));
+#endif
 	rayDirection *= (1.0f / depth);
 
 	for (UActor* light : Light.FogBalls)
@@ -151,11 +159,11 @@ vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
 			light->FogInfo.location = light->Location();
 		}
 
-		vec3 fogcolor = light->FogInfo.fogcolor;
+		const vec3& fogcolor = light->FogInfo.fogcolor;
 		float brightness = light->FogInfo.brightness * 5.0f;
 		float fog = light->FogInfo.fog;
 		float radius = light->FogInfo.radius;
-		vec3 lightpos = light->FogInfo.location;
+		const vec3& lightpos = light->FogInfo.location;
 
 		float fogamount = FogmapBuilder::SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
 

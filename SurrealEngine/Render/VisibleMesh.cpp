@@ -78,6 +78,8 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 	bool needTranslucentPass = false;
 
+	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
+
 	GouraudVertex vertices[3];
 	for (const MeshTri& tri : mesh->Tris)
 	{
@@ -152,7 +154,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit));
+			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
 			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
 		}
 
@@ -339,6 +341,8 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bUnlit() || actor->Region().ZoneNumber == 0) polyFlags |= PF_Unlit;
 
+	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
+
 	bool needTranslucentPass = false;
 
 	GouraudVertex vertices[3];
@@ -425,7 +429,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit));
+			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
 			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
 		}
 

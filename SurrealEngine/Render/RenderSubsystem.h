@@ -61,7 +61,7 @@ public:
 	FTextureInfo GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
 
-	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit);
+	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor);
 	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
