@@ -2657,7 +2657,10 @@ void UPawn::MoveToward(UActor* newTarget, float speed)
 	Focus() = newTarget->Location();
 	bReducedSpeed() = false;
 	DesiredSpeed() = clamp(speed, 0.0f, MaxDesiredSpeed());
-	SetMoveDuration(newTarget->Location() - Location());
+	if (UObject::TryCast<UPawn>(newTarget))
+		MoveTimer() = 1.0f;
+	else
+		SetMoveDuration(newTarget->Location() - Location());
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::MoveToward;
 }
@@ -2716,7 +2719,7 @@ void UPawn::WaitForLanding()
 void UPawn::SetMoveDuration(const vec3& deltaMove)
 {
 	float scale = DesiredSpeed() * GetSpeed();
-	MoveTimer() = scale != 0.0f ? 1.0f + 1.3f * length(deltaMove) / scale : 0.5f;
+	MoveTimer() = scale > 0.0f ? 1.0f + 1.3f * length(deltaMove) / scale : 0.5f;
 }
 
 float UPawn::GetSpeed()
