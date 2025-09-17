@@ -23,18 +23,20 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
 	float ZoneVPanSpeed = zoneActor->TexVPanSpeed();
 
-	FTextureInfo texture;
+	UTexture* tex;
 	if (surface.Material)
-	{
-		UTexture* tex = surface.Material->GetAnimTexture();
-		engine->render->UpdateTexture(tex);
-		engine->render->UpdateTextureInfo(texture, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
-	}
+		tex = surface.Material->GetAnimTexture();
+	else
+		tex = engine->LevelInfo->DefaultTexture();
+
+	FTextureInfo texture;
+	engine->render->UpdateTexture(tex);
+	engine->render->UpdateTextureInfo(texture, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 
 	FTextureInfo detailtex;
 	if (surface.Material && surface.Material->DetailTexture())
 	{
-		UTexture* tex = surface.Material->DetailTexture()->GetAnimTexture();
+		tex = surface.Material->DetailTexture()->GetAnimTexture();
 		engine->render->UpdateTexture(tex);
 		engine->render->UpdateTextureInfo(detailtex, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
@@ -42,7 +44,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	FTextureInfo macrotex;
 	if (surface.Material && surface.Material->MacroTexture())
 	{
-		UTexture* tex = surface.Material->MacroTexture()->GetAnimTexture();
+		tex = surface.Material->MacroTexture()->GetAnimTexture();
 		engine->render->UpdateTexture(tex);
 		engine->render->UpdateTextureInfo(macrotex, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
@@ -76,7 +78,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 
 	FSurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = PolyFlags;
-	surfaceinfo.Texture = surface.Material ? &texture : nullptr;
+	surfaceinfo.Texture = &texture;
 	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture() ? &macrotex : nullptr;
 	surfaceinfo.DetailTexture = surface.Material && surface.Material->DetailTexture() ? &detailtex : nullptr;
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;
