@@ -105,12 +105,9 @@ void RenderSubsystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const C
 	FogmapBuilder builder;
 	builder.Setup(model, mapCoords, lightMap, zoneActor);
 
-	for (UActor* light : Light.Lights)
+	for (UActor* light : Light.FogBalls)
 	{
-		if (light && light->VolumeRadius() != 0)
-		{
-			builder.AddLight(light, engine->CameraLocation);
-		}
+		builder.AddLight(light, engine->CameraLocation);
 	}
 
 #if 1 // Float high quality lightmaps
@@ -143,33 +140,31 @@ vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
 	float depth = std::sqrt(dot(rayDirection, rayDirection));
 	rayDirection *= (1.0f / depth);
 
-	for (UActor* light : Light.Lights)
+	for (UActor* light : Light.FogBalls)
 	{
-		if (light && light->VolumeRadius() != 0)
+		if (light->FogInfo.brightness < 0.0f)
 		{
-			if (light->FogInfo.brightness < 0.0f)
-			{
-				light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-				light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
-				light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
-				light->FogInfo.radius = light->WorldVolumetricRadius();
-			}
-
-			vec3 fogcolor = light->FogInfo.fogcolor;
-			float brightness = light->FogInfo.brightness * 5.0f;
-			float fog = light->FogInfo.fog;
-			float radius = light->FogInfo.radius;
-			vec3 lightpos = light->Location();
-
-			float fogamount = FogmapBuilder::SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
-
-			float alpha = std::min(fogamount * fog, 1.0f);
-			float invalpha = 1.0f - alpha;
-			color.r = fogcolor.r * fogamount + color.r * invalpha;
-			color.g = fogcolor.g * fogamount + color.g * invalpha;
-			color.b = fogcolor.b * fogamount + color.b * invalpha;
-			color.a = std::min(color.a + alpha, 1.0f);
+			light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+			light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
+			light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
+			light->FogInfo.radius = light->WorldVolumetricRadius();
+			light->FogInfo.location = light->Location();
 		}
+
+		vec3 fogcolor = light->FogInfo.fogcolor;
+		float brightness = light->FogInfo.brightness * 5.0f;
+		float fog = light->FogInfo.fog;
+		float radius = light->FogInfo.radius;
+		vec3 lightpos = light->FogInfo.location;
+
+		float fogamount = FogmapBuilder::SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
+
+		float alpha = std::min(fogamount * fog, 1.0f);
+		float invalpha = 1.0f - alpha;
+		color.r = fogcolor.r * fogamount + color.r * invalpha;
+		color.g = fogcolor.g * fogamount + color.g * invalpha;
+		color.b = fogcolor.b * fogamount + color.b * invalpha;
+		color.a = std::min(color.a + alpha, 1.0f);
 	}
 #endif
 	return color;

@@ -254,6 +254,7 @@ public:
 		float brightness = -1.0f;
 		float fog = -1.0f;
 		float radius = -1.0f;
+		vec3 location = { 0.0f };
 	} FogInfo;
 
 	// Location in the BSP tree

@@ -42,14 +42,14 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 		light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
 		light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
 		light->FogInfo.radius = light->WorldVolumetricRadius();
+		light->FogInfo.location = light->Location();
 	}
 
 	vec3 fogcolor = light->FogInfo.fogcolor;
 	float brightness = light->FogInfo.brightness * 5.0f;
 	float fog = light->FogInfo.fog;
 	float radius = light->FogInfo.radius;
-
-	vec3 lightpos = light->Location();
+	vec3 lightpos = light->FogInfo.location;
 
 	size_t size = (size_t)width * height;
 	const vec3* locations = WorldLocations();
@@ -57,7 +57,11 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 	for (size_t i = 0; i < size; i++)
 	{
 		vec3 rayDirection = locations[i] - view;
+#ifndef NOSSE
+		float depth = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(dot(rayDirection, rayDirection))));
+#else
 		float depth = std::sqrt(dot(rayDirection, rayDirection));
+#endif
 		rayDirection *= (1.0f / depth);
 		float fogamount = SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
 
@@ -81,18 +85,26 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 float FogmapBuilder::SphereDensity(const vec3& rayOrigin, const vec3& rayDirection, const vec3& sphereCenter, float sphereRadius, float dbuffer)
 {
 	// normalize the problem to the canonical sphere
-	float ndbuffer = dbuffer / sphereRadius;
-	vec3 rc = (rayOrigin - sphereCenter) / sphereRadius;
+	float rcp_radius = 1.0f / sphereRadius;
+	float ndbuffer = dbuffer * rcp_radius;
+	//vec3 rc = (rayOrigin - sphereCenter) * rcp_radius;
+	float rc_x = (rayOrigin.x - sphereCenter.x) * rcp_radius;
+	float rc_y = (rayOrigin.y - sphereCenter.y) * rcp_radius;
+	float rc_z = (rayOrigin.z - sphereCenter.z) * rcp_radius;
 
 	// find intersection with sphere
-	float b = dot(rayDirection, rc);
-	float c = dot(rc, rc) - 1.0f;
+	float b = rayDirection.x * rc_x + rayDirection.y * rc_y + rayDirection.z * rc_z; // dot(rayDirection, rc)
+	float c = rc_x * rc_x + rc_y * rc_y + rc_z * rc_z - 1.0f; // dot(rc, rc) - 1.0f
 	float h = b * b - c;
 
 	// not intersecting
 	if (h < 0.0f) return 0.0f;
 
+#ifndef NOSSE
+	h = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(h)));
+#else
 	h = std::sqrt(h);
+#endif
 
 	//return h*h*h;
 
