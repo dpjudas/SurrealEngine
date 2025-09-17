@@ -2463,6 +2463,7 @@ void UPawn::Tick(float elapsed)
 		{
 			if (MoveTarget())
 			{
+				Focus() = MoveTarget()->Location();
 				TickRotateTo(Focus());
 				if (TickMoveTo(MoveTarget()->Location()))
 					StateFrame->LatentState = LatentRunState::Continue;
