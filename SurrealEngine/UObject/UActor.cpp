@@ -2667,6 +2667,11 @@ void UPlayerPawn::Tick(float elapsed)
 
 	// TODO: is this the correct place to set this?
 	aForward() = 0.0f;
+
+	// XXX: we reset this here to prevent infinite runaway, which eventually breaks mouselook
+	// however, this might break looking with the controller?
+	aTurn() = 0.0f;
+	aLookUp() = 0.0f;
 }
 
 void UPlayerPawn::TickRotating(float elapsed)
