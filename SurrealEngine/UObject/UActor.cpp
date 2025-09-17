@@ -2618,21 +2618,31 @@ bool UPawn::TickRotateTo(const vec3& target)
 
 bool UPawn::TickMoveTo(const vec3& target)
 {
-	// To do: there is probably more to it than this!
-
-	Acceleration() = normalize(target - Location()) * AccelRate();
-
-	if (Physics() == PHYS_Walking)
-		Acceleration().z = 0.0f;
-
 	if (MoveTimer() < 0.0f)
 		return true;
 
-	// Are we there yet?
-	vec3 delta = target - Location();
-	float distSqr = dot(delta, delta);
-	float velocitySqr = dot(Velocity(), Velocity());
-	return distSqr < 1.0f || distSqr < velocitySqr * 0.05f;
+	if (Physics() == PHYS_Walking)
+	{
+		vec2 delta = target.xy() - Location().xy();
+		float distSqr = dot(delta, delta);
+		float velocitySqr = dot(Velocity(), Velocity());
+		if (distSqr < 1.0f || distSqr < velocitySqr * 0.05f)
+			return true;
+
+		Acceleration() = vec3(normalize(delta) * AccelRate(), 0.0f);
+	}
+	else
+	{
+		vec3 delta = target - Location();
+		float distSqr = dot(delta, delta);
+		float velocitySqr = dot(Velocity(), Velocity());
+		if (distSqr < 1.0f || distSqr < velocitySqr * 0.05f)
+			return true;
+
+		Acceleration() = normalize(delta) * AccelRate();
+	}
+
+	return false;
 }
 
 void UPawn::MoveTo(const vec3& newDestination, float speed)
