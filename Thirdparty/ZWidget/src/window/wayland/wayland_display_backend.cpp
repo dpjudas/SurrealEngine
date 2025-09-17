@@ -9,6 +9,7 @@
 #endif
 
 WaylandDisplayBackend::WaylandDisplayBackend()
+	:m_DataOfferMimeTypes(0, hash_proxy)
 {
 	if (!s_waylandDisplay)
 		throw std::runtime_error("Wayland Display initialization failed!");
@@ -100,6 +101,61 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 		};
 	}
 
+	// Data Device for receiving contents
+	m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
+
+	m_DataDevice.on_data_offer() = [&] (wayland::data_offer_t offer)
+	{
+		m_DataOfferMimeTypes[offer] = {};
+
+		offer.on_offer() = [this, offer] (std::string const& mime_type)
+		{
+			m_DataOfferMimeTypes[offer].insert(mime_type);
+		};
+	};
+
+	m_DataDevice.on_selection() = [&] (wayland::data_offer_t offer)
+	{
+		// Clipboard is empty
+		if (!offer)
+			return;
+
+		// There shouldn't be any previous data_offer events
+		if (!m_DataOfferMimeTypes.count(offer))
+			return;
+
+		// Reject anything that's not text/plain
+		if (!m_DataOfferMimeTypes[offer].count("text/plain"))
+		{
+			m_DataOfferMimeTypes.erase(offer);
+			return;
+		}
+
+		int fds[2];
+		pipe(fds);
+		offer.receive("text/plain", fds[1]);
+		close(fds[1]);
+
+		s_waylandDisplay.roundtrip();
+
+		m_ClipboardContents.clear();
+
+		// Assign the read data to m_ClipboardContents
+		while (true)
+		{
+			std::string buf(1024, 0);
+			auto n = read(fds[0], const_cast<char*>(buf.c_str()), buf.size());
+			if (n <= 0)
+				break;
+
+			buf.resize(n);
+			m_ClipboardContents += buf;
+		}
+		close(fds[0]);
+
+		m_DataOfferMimeTypes.erase(offer);
+	};
+
 	s_waylandDisplay.roundtrip();
 
 	// To do: this shouldn't really be fatal. The user might have forgotten to plug in their keyboard or mouse.
@@ -122,54 +178,6 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 
 	m_cursorSurface = m_waylandCompositor.create_surface();
 	SetCursor(StandardCursor::arrow);
-
-/*
-	m_DataDevice = m_DataDeviceManager.get_data_device(m_waylandSeat);
-
-	m_DataSource = m_DataDeviceManager.create_data_source();
-	m_DataSource.offer("text/plain");
-
-	m_DataSource.on_send() = [&] (std::string mime_type, int fd) {
-		if (mime_type != "text/plain")
-			return;
-
-		if (!m_ClipboardContents.empty())
-			write(fd, m_ClipboardContents.data(), m_ClipboardContents.size());
-		close(fd);
-	};
-
-	m_DataDevice.on_selection() = [&] (wayland::data_offer_t dataOffer) {
-		m_ClipboardContents.clear();
-
-		if (!dataOffer)
-			// Clipboard is empty
-			return;
-
-		int fds[2];
-		pipe(fds);
-
-		dataOffer.receive("text/plain", fds[1]);
-		close(fds[1]);
-
-		m_waylandDisplay.roundtrip();
-
-		while (true)
-		{
-			char buf[1024];
-
-			ssize_t n = read(fds[0], buf, sizeof(buf));
-
-			if (n <= 0)
-				break;
-
-			m_ClipboardContents += buf;
-		}
-
-		close(fds[0]);
-
-		dataOffer.proxy_release();
-	};
-*/
 }
 
 WaylandDisplayBackend::~WaylandDisplayBackend()
@@ -328,6 +336,8 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		currentPointerEvent.time = utime_lo;
 		currentPointerEvent.dx = dx;
 		currentPointerEvent.dy = dy;
+		currentPointerEvent.dx_unaccel = dx_unaccel;
+		currentPointerEvent.dy_unaccel = dy_unaccel;
 	};
 
 	m_waylandPointer.on_frame() = [this] () {
@@ -345,7 +355,7 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 		if (currentPointerEvent.event_mask & POINTER_EVENT_RELATIVE_MOTION)
 		{
 			if (hasMouseLock)
-				OnMouseMoveRawEvent(int(currentPointerEvent.dx), int(currentPointerEvent.dy));
+				OnMouseMoveRawEvent(int(currentPointerEvent.dx_unaccel), int(currentPointerEvent.dy_unaccel));
 		}
 
 		if (currentPointerEvent.event_mask & POINTER_EVENT_BUTTON)
