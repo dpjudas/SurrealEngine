@@ -803,6 +803,16 @@ void UActor::TickSwimming(float elapsed)
 
 	if (!bJustTeleported())
 		Velocity() = (Location() - OldLocation()) / elapsed;
+
+	if (!Region().Zone->bWaterZone())
+	{
+		// We moved out of water.
+		// Give the player a push
+		if (Velocity().z > 0.0f)
+			Velocity().z = std::max(Velocity().z, (100.0f + length(Velocity().xy())) * 0.5f);
+		if (Physics() == PHYS_Swimming)
+			SetPhysics(PHYS_Falling);
+	}
 }
 
 void UActor::TickFlying(float elapsed)
@@ -1405,12 +1415,12 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	}
 
 	// Notify actor of encroachment
-	if (Brush() || bBlockPlayers() || bBlockActors() || bCollideActors())
+	if (Brush() && (bBlockPlayers() || bBlockActors() || bCollideActors()))
 	{
 		Array<UActor*> encroachingActors = XLevel()->Collision.EncroachingActors(this);
 		for (UActor* actor : encroachingActors)
 		{
-			if (actor == this)
+			if (actor == this || actor->Brush())
 				continue;
 
 			bool isBlocking;
