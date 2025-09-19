@@ -22,17 +22,24 @@ void NPawn::RegisterFunctions()
 	RegisterVMNativeFunc_2("Pawn", "FindStairRotation", &NPawn::FindStairRotation, 524);
 	RegisterVMNativeFunc_2("Pawn", "LineOfSightTo", &NPawn::LineOfSightTo, 514);
 	RegisterVMNativeFunc_2("Pawn", "MoveTo", &NPawn::MoveTo, 500);
+	RegisterLatentAction(501, LatentRunState::MoveTo);
 	RegisterVMNativeFunc_2("Pawn", "MoveToward", &NPawn::MoveToward, 502);
+	RegisterLatentAction(502, LatentRunState::MoveToward);
 	RegisterVMNativeFunc_5("Pawn", "PickAnyTarget", &NPawn::PickAnyTarget, 534);
 	RegisterVMNativeFunc_5("Pawn", "PickTarget", &NPawn::PickTarget, 531);
 	RegisterVMNativeFunc_1("Pawn", "PickWallAdjust", &NPawn::PickWallAdjust, 526);
 	RegisterVMNativeFunc_0("Pawn", "RemovePawn", &NPawn::RemovePawn, 530);
 	RegisterVMNativeFunc_0("Pawn", "StopWaiting", &NPawn::StopWaiting, 0);
 	RegisterVMNativeFunc_2("Pawn", "StrafeFacing", &NPawn::StrafeFacing, 506);
+	RegisterLatentAction(507, LatentRunState::StrafeFacing);
 	RegisterVMNativeFunc_2("Pawn", "StrafeTo", &NPawn::StrafeTo, 504);
+	RegisterLatentAction(505, LatentRunState::StrafeTo);
 	RegisterVMNativeFunc_1("Pawn", "TurnTo", &NPawn::TurnTo, 508);
+	RegisterLatentAction(509, LatentRunState::TurnTo);
 	RegisterVMNativeFunc_1("Pawn", "TurnToward", &NPawn::TurnToward, 510);
+	RegisterLatentAction(511, LatentRunState::TurnToward);
 	RegisterVMNativeFunc_0("Pawn", "WaitForLanding", &NPawn::WaitForLanding, 527);
+	RegisterLatentAction(528, LatentRunState::WaitForLanding);
 	RegisterVMNativeFunc_2("Pawn", "actorReachable", &NPawn::actorReachable, 520);
 	RegisterVMNativeFunc_2("Pawn", "pointReachable", &NPawn::pointReachable, 521);
 }

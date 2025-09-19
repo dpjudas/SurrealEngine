@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExpressionValue.h"
+#include "Frame.h"
 #include <functional>
 
 class UObject;
@@ -15,10 +16,13 @@ public:
 	static Array<UFunction*> FuncByIndex;
 	static Array<NativeFuncHandler> NativeByIndex;
 	static std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeByName;
+	static Array<LatentRunState> LatentActionByIndex;
 
 	static void RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler);
 	static void RegisterNativeFunc(UFunction* func);
 };
+
+void RegisterLatentAction(int nativeIndex, LatentRunState latentAction);
 
 // Static native functions:
 

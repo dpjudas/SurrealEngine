@@ -5,6 +5,7 @@
 Array<UFunction*> NativeFunctions::FuncByIndex;
 Array<NativeFuncHandler> NativeFunctions::NativeByIndex;
 std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeFunctions::NativeByName;
+Array<LatentRunState> NativeFunctions::LatentActionByIndex;
 
 void NativeFunctions::RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler)
 {
@@ -27,4 +28,10 @@ void NativeFunctions::RegisterNativeFunc(UFunction* func)
 		if (FuncByIndex.size() <= (size_t)nativeIndex) FuncByIndex.resize((size_t)nativeIndex + 1);
 		FuncByIndex[nativeIndex] = func;
 	}
+}
+
+void RegisterLatentAction(int nativeIndex, LatentRunState latentAction)
+{
+	if (NativeFunctions::LatentActionByIndex.size() <= (size_t)nativeIndex) NativeFunctions::LatentActionByIndex.resize((size_t)nativeIndex + 1);
+	NativeFunctions::LatentActionByIndex[nativeIndex] = latentAction;
 }

@@ -7,6 +7,8 @@
 #include "Package/PackageManager.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
+#include "VM/Bytecode.h"
+#include "VM/NativeFunc.h"
 #include "Engine.h"
 #include "Utils/Exception.h"
 
@@ -58,13 +60,35 @@ void UObject::Load(ObjectStream* stream)
 
 	if (AllFlags(stream->GetFlags(), ObjectFlags::HasStack))
 	{
-		int32_t node = stream->ReadIndex();
-		int32_t stateNode = stream->ReadIndex();
+		UStruct* func = stream->ReadObject<UStruct>();
+		UState* state = stream->ReadObject<UState>();
 		int64_t probeMask = stream->ReadInt64();
 		int32_t latentAction = stream->ReadInt32();
-		if (node != 0)
+
+		for (int i = 0; i < 64; i++)
 		{
+			if (((1ULL >> (uint64_t)i) & 1) == 0)
+			{
+				DisableEvent(ToNameString((EventName)i));
+			}
+		}
+
+		if (func && state)
+		{
+			func->LoadNow();
+			state->LoadNow();
 			int offset = stream->ReadIndex();
+			if (offset != -1)
+			{
+				int index = state->Code->FindStatementIndex(offset);
+				if (index != -1)
+				{
+					StateFrame = std::make_shared<Frame>(this, nullptr);
+					StateFrame->SetState(func);
+					StateFrame->StatementIndex = index;
+					StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+				}
+			}
 		}
 	}
 

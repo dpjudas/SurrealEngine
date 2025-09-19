@@ -26,7 +26,9 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "Error", &NActor::Error, 233);
 	RegisterVMNativeFunc_3("Actor", "FastTrace", &NActor::FastTrace, 548);
 	RegisterVMNativeFunc_0("Actor", "FinishAnim", &NActor::FinishAnim, 261);
+	RegisterLatentAction(262, LatentRunState::FinishAnim);
 	RegisterVMNativeFunc_0("Actor", "FinishInterpolation", &NActor::FinishInterpolation, 301);
+	RegisterLatentAction(302, LatentRunState::FinishInterpolation);
 	RegisterVMNativeFunc_2("Actor", "GetAnimGroup", &NActor::GetAnimGroup, 293);
 	RegisterVMNativeFunc_4("Actor", "GetCacheEntry", &NActor::GetCacheEntry, 0);
 	RegisterVMNativeFunc_4("Actor", "GetMapName", &NActor::GetMapName, 539);
@@ -62,6 +64,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "SetRotation", &NActor::SetRotation, 299);
 	RegisterVMNativeFunc_2("Actor", "SetTimer", &NActor::SetTimer, 280);
 	RegisterVMNativeFunc_1("Actor", "Sleep", &NActor::Sleep, 256);
+	RegisterLatentAction(257, LatentRunState::Sleep);
 	RegisterVMNativeFunc_6("Actor", "Spawn", &NActor::Spawn, 278);
 	RegisterVMNativeFunc_3("Actor", "Subtract_ColorColor", &NActor::Subtract_ColorColor, 549);
 	RegisterVMNativeFunc_2("Actor", "TouchingActors", &NActor::TouchingActors, 307);
