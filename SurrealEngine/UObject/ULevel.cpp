@@ -40,9 +40,8 @@ void ULevelBase::Load(ObjectStream* stream)
 
 	Protocol = stream->ReadString();
 	Host = stream->ReadString();
-	if (!Host.empty())
-		Port = stream->ReadInt32();
 	Map = stream->ReadString();
+	Portal = stream->ReadString();
 
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
@@ -50,9 +49,8 @@ void ULevelBase::Load(ObjectStream* stream)
 		Options.push_back(stream->ReadString());
 	}
 
-	Portal = stream->ReadString();
-
-	stream->Skip(7);
+	Port = stream->ReadInt32();
+	int unknown = stream->ReadUInt32();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -66,6 +64,13 @@ void ULevel::Load(ObjectStream* stream)
 {
 	ULevelBase::Load(stream);
 
+	Model = stream->ReadObject<UModel>();
+
+	if (Model)
+	{
+		Model->LoadNow();
+	}
+
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
 	{
@@ -78,13 +83,6 @@ void ULevel::Load(ObjectStream* stream)
 		spec.reachFlags = stream->ReadInt32();
 		spec.bPruned = stream->ReadInt8();
 		ReachSpecs.push_back(spec);
-	}
-
-	Model = stream->ReadObject<UModel>();
-
-	if (Model)
-	{
-		Model->LoadNow();
 	}
 }
 
