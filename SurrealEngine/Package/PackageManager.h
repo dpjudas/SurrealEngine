@@ -41,6 +41,9 @@ public:
 	Package* LoadMap(const std::string& path);
 	void UnloadMap(Package* package);
 
+	Package* LoadSaveFile(const std::string& path);
+	Package* LoadSaveSlot(const uint32_t slotNum);
+
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
 	UObject* NewObject(const NameString& name, const NameString& package, const NameString& className);
