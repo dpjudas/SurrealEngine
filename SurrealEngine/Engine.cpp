@@ -35,6 +35,10 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 
 	packages = std::make_unique<PackageManager>(LaunchInfo);
 
+	//auto savegame = GC::Alloc<Package>(packages.get(), "Save0", "C:\\Games\\Unreal Gold\\Save\\Save0.usa");
+	//auto savegame = GC::Alloc<Package>(packages.get(), "Save0", "C:\\Games\\UnrealTournament436\\Save\\Save0.usa");
+	//auto savedlevelinfo = UObject::Cast<ULevelInfo>(savegame->GetUObject("LevelInfo", "LevelInfo0"));
+
 	std::srand((unsigned int)std::time(nullptr));
 
 	gameengine = UObject::Cast<UGameEngine>(packages->NewObject("gameengine", "Engine", "GameEngine"));

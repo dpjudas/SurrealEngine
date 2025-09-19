@@ -514,16 +514,6 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		if (name == "None")
 			break;
 
-		UProperty* prop = nullptr;
-		for (auto it = Class->Properties.rbegin(); it != Class->Properties.rend(); ++it)
-		{
-			if ((*it)->Name == name)
-			{
-				prop = *it;
-				break;
-			}
-		}
-
 		uint8_t info = stream->ReadInt8();
 		bool infoBit = info & 0x80;
 
@@ -572,6 +562,22 @@ void PropertyDataBlock::ReadProperties(ObjectStream* stream)
 		else if (header.type == UPT_Bool)
 		{
 			header.boolValue = infoBit;
+		}
+
+		UProperty* prop = nullptr;
+		for (auto it = Class->Properties.rbegin(); it != Class->Properties.rend(); ++it)
+		{
+			if ((*it)->Name == name)
+			{
+				// This is a hack. GameReplicationInfo and its base class Actor both have a "Region" property.
+				// How is the property loading code supposed to know is being targeted?
+				// Only other information we have is the property type.
+				if (header.type != UPT_Struct || UObject::TryCast<UStructProperty>(*it))
+				{
+					prop = *it;
+					break;
+				}
+			}
 		}
 
 		if (!prop)

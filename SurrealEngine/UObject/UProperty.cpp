@@ -234,7 +234,19 @@ void UArrayProperty::Load(ObjectStream* stream)
 void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Array);
-	Exception::Throw("Array properties not implemented");
+
+	int arraySize = stream->ReadIndex();
+
+	size_t s = (Inner->Size() + 7) / 8;
+
+	Array<void*>& vec = static_cast<Array<void*>*>(data)[header.arrayIndex];
+	for (int i = 0; i < arraySize; i++)
+	{
+		int64_t* d = new int64_t[s];
+		Inner->Construct(d);
+		Inner->LoadStructMemberValue(d, stream);
+		vec.push_back(d);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -277,6 +289,26 @@ void UStructProperty::Load(ObjectStream* stream)
 		ValueType = ExpressionValueType::ValueColor;
 }
 
+static void* LoadStruct(void* data, ObjectStream* stream, UStruct* Struct)
+{
+	if (auto base = UObject::TryCast<UStruct>(Struct->BaseField))
+	{
+		data = LoadStruct(data, stream, base);
+	}
+
+	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
+		if (fieldprop)
+		{
+			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
+			fieldprop->LoadStructMemberValue(fielddata, stream);
+		}
+	}
+
+	return static_cast<uint8_t*>(data) + Struct->StructSize;
+}
+
 void UStructProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Struct);
@@ -284,26 +316,10 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	if (Struct->Name != header.structName)
 		Exception::Throw("Encountered struct '" + header.structName.ToString() + "' does not match expected struct property '" + Struct->Name.ToString() + "'");
 
-	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-		if (fieldprop)
-		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
-			fieldprop->LoadStructMemberValue(fielddata, stream);
-		}
-	}
+	LoadStruct(data, stream, Struct);
 }
 
 void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-		if (fieldprop)
-		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
-			fieldprop->LoadStructMemberValue(fielddata, stream);
-		}
-	}
+	LoadStruct(data, stream, Struct);
 }
