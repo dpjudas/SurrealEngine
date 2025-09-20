@@ -437,6 +437,26 @@ void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, boo
 {
 	UnrealURL url(newURL);
 
+	// If the URL doesn't contain the player info, add them here.
+	// As they have to persist somehow
+	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
+	{
+		if (engine->packages->GetEngineVersion() > 219)
+		{
+			if (url.HasOption(optionKey))
+				engine->packages->SetIniValue("User", "DefaultPlayer", optionKey, url.GetOption(optionKey));
+			else
+				url.AddOrReplaceOption(optionKey + "=" + packages->GetIniValue("user", "DefaultPlayer", optionKey));
+		}
+		else
+		{
+			if (url.HasOption(optionKey))
+				engine->packages->SetIniValue("System", "URL", optionKey, url.GetOption(optionKey));
+			else
+				url.AddOrReplaceOption(optionKey + "=" + packages->GetIniValue("System", "URL", optionKey));
+		}
+	}
+
 	if (travelType == ETravelType::TRAVEL_Absolute)
 		ClientTravelInfo.URL = url;
 	else if (travelType == ETravelType::TRAVEL_Partial)
@@ -1406,11 +1426,13 @@ void Engine::OnWindowClose()
 void Engine::OnWindowActivated()
 {
 	//SetPause(false);
+	LockCursor();
 }
 
 void Engine::OnWindowDeactivated()
 {
 	//SetPause(true);
+	UnlockCursor();
 }
 
 void Engine::OnWindowDpiScaleChanged()
