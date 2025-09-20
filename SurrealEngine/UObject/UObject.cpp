@@ -67,19 +67,19 @@ void UObject::Load(ObjectStream* stream)
 
 		for (int i = 0; i < 64; i++)
 		{
-			if (((1ULL >> (uint64_t)i) & 1) == 0)
+			if (((1ULL >> (uint64_t)i) & 1) == 1)
 			{
 				DisableEvent(ToNameString((EventName)i));
 			}
 		}
 
-		if (func && state)
+		if (func)
 		{
-			func->LoadNow();
-			state->LoadNow();
 			int offset = stream->ReadIndex();
-			if (offset != -1)
+			if (offset != -1 && state)
 			{
+				func->LoadNow();
+				state->LoadNow();
 				int index = state->Code->FindStatementIndex(offset);
 				if (index != -1)
 				{
