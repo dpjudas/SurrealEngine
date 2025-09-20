@@ -73,14 +73,16 @@ void UObject::Load(ObjectStream* stream)
 			}
 		}
 
+		int offset = -1;
 		if (func)
+			offset = stream->ReadIndex();
+
+		if (func && state)
 		{
-			int offset = stream->ReadIndex();
-			if (offset != -1 && state)
+			if (offset != -1)
 			{
 				func->LoadNow();
-				state->LoadNow();
-				int index = state->Code->FindStatementIndex(offset);
+				int index = func->Code->FindStatementIndex(offset);
 				if (index != -1)
 				{
 					StateFrame = std::make_shared<Frame>(this, nullptr);
@@ -88,7 +90,22 @@ void UObject::Load(ObjectStream* stream)
 					StateFrame->StatementIndex = index;
 					StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
 				}
+				else
+				{
+					LogMessage("UObject::Load could not find statement index");
+				}
 			}
+			else
+			{
+				state->LoadNow();
+				StateFrame = std::make_shared<Frame>(this, nullptr);
+				StateFrame->SetState(state);
+				StateFrame->LatentState = LatentRunState::Stop;
+			}
+		}
+		else if (state)
+		{
+			LogMessage("UObject::Load encountered object with a state object but no function");
 		}
 	}
 
