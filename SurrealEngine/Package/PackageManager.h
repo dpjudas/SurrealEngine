@@ -51,7 +51,8 @@ public:
 
 	UClass* FindClass(const NameString& name);
 
-	std::string GetMapExtension() { return mapExtension; }
+	std::string GetMapExtension() const { return mapExtension; }
+	std::string GetSaveExtension() const { return saveExtension; }
 
 	std::unique_ptr<IniFile> GetIniFile(NameString iniName);
 	std::unique_ptr<IniFile> GetUserIniFile();
