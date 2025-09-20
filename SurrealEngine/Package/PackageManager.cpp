@@ -131,8 +131,8 @@ Package* PackageManager::LoadSaveFile(const std::string& path)
 	auto saveFolder = FilePath::combine(launchInfo.gameRootFolder, "Save");
 	auto fullPath = FilePath::combine(saveFolder, path);
 
-	if (!FilePath::has_extension(fullPath, GetMapExtension().c_str()))
-		fullPath += "." + GetMapExtension();
+	if (!FilePath::has_extension(fullPath, GetSaveExtension().c_str()))
+		fullPath += "." + GetSaveExtension();
 
 	if (FilePath::exists(fullPath))
 		return GC::Alloc<Package>(this, FilePath::remove_extension(FilePath::last_component(fullPath)), fullPath);
@@ -142,7 +142,7 @@ Package* PackageManager::LoadSaveFile(const std::string& path)
 
 Package* PackageManager::LoadSaveSlot(const uint32_t slotNum)
 {
-	return LoadSaveFile("save" + std::to_string(slotNum) + "." + GetMapExtension());
+	return LoadSaveFile("Save" + std::to_string(slotNum) + "." + GetSaveExtension());
 }
 
 void PackageManager::ScanForMaps()
