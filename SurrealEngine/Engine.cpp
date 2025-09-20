@@ -1426,13 +1426,11 @@ void Engine::OnWindowClose()
 void Engine::OnWindowActivated()
 {
 	//SetPause(false);
-	LockCursor();
 }
 
 void Engine::OnWindowDeactivated()
 {
 	//SetPause(true);
-	UnlockCursor();
 }
 
 void Engine::OnWindowDpiScaleChanged()
