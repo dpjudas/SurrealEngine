@@ -120,7 +120,6 @@ void Engine::Run()
 
 		SetPause(!LevelInfo->Pauser().empty());
 
-
 		// Do NOT pause this Tick event otherwise some messages will stay on screen forever.
 		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
@@ -161,6 +160,13 @@ void Engine::Run()
 		if (ClientTravelInfo.URL.HasOption("restart"))
 		{
 			LoadMap(LevelInfo->URL, Level->TravelInfo);
+			LoginPlayer();
+		}
+
+		if (ClientTravelInfo.URL.HasOption("load"))
+		{
+			UnrealURL url(ClientTravelInfo.URL);
+			LoadFromSaveFile(url);
 			LoginPlayer();
 		}
 
@@ -656,16 +662,80 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, stringProp) });
 	if (!error.empty())
 		Exception::Throw("InitGame failed: " + error);
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PreBeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::BeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::PostBeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) CallEvent(actor, EventName::SetInitialState); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { UActor* actor = Level->Actors[i]; if (actor) actor->InitBase(); }
+	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::PreBeginPlay); }
+	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::BeginPlay); }
+	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::PostBeginPlay); }
+	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::SetInitialState); }
+	for (UActor* actor : Level->Actors) { if (actor) actor->InitBase(); }
 	LevelInfo->bStartup() = false;
 
 	if (LevelInfo->Game())
 		CallEvent(LevelInfo->Game(), "DetailChange", {});
 }
+
+void Engine::LoadFromSaveFile(const UnrealURL& url)
+{
+	ClientTravelInfo.URL.Clear();
+
+	if (Level)
+		CallEvent(console, EventName::NotifyLevelChange);
+
+	if (url.HasOption("entry")) // Not sure what the purpose of this kind of travel is - do nothing for now.
+		return;
+
+	Package* savefilePackage = nullptr;
+
+	if (url.HasOption("load"))
+	{
+		uint32_t slotNum = Convert::to_uint32(url.GetOption("load"));
+		savefilePackage = packages->LoadSaveSlot(slotNum);
+	}
+
+	if (!savefilePackage)
+		return;
+
+	audiodev->StopSounds();
+	UnloadMap();
+
+	LevelPackage = savefilePackage;
+
+	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
+	if (packages->GetEngineVersion() < 300) // Unknown when this changed
+	{
+		for (int grr = 1; !LevelInfo && grr < 20; grr++)
+			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
+	}
+	if (!LevelInfo)
+		Exception::Throw("Could not find the LevelInfo object for this map!");
+
+	/*
+	LevelInfo->ComputerName() = "MyComputer";
+	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
+	*/
+	LevelInfo->EngineVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+	if (packages->GetEngineVersion() > 219)
+		LevelInfo->MinNetVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+	LevelInfo->bHighDetailMode() = true;
+	/*
+	LevelInfo->NetMode() = 0; // NM_StandAlone
+	LevelInfo->DefaultTexture() = engine->DefaultTexture;
+	*/
+
+	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
+	if (!Level)
+		Exception::Throw("Could not find the Level object for this map!");
+
+	// Link actors to the level
+	for (UActor* actor : Level->Actors)
+	{
+		if (actor)
+		{
+			actor->XLevel() = Level;
+			Level->Collision.AddToCollision(actor);
+		}
+	}
+}
+
 
 std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
 {
@@ -937,9 +1007,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
-				ClientTravelInfo.URL = url.ToString();
-				ClientTravelInfo.TravelType = ETravelType::TRAVEL_Absolute;
-				ClientTravelInfo.TransferItems = false;
+				ClientTravel(url.ToString(), ETravelType::TRAVEL_Absolute, false);
 				return {};
 			}	
 		}
@@ -994,24 +1062,6 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		}
 
 		LogMessage("Couldn't find map " + maparg);
-	}
-	else if (command == "loadgame" && args.size() == 2)
-	{
-		// loadgame <num>: Loads the save from slot <num>
-		// TODO: Implement loading saves
-		uint16_t loadnum = Convert::to_uint16(args[1]);
-
-		LogMessage("loadgame: Game loading not implemented yet!");
-		return {};
-	}
-	else if (command == "savegame" && args.size() == 2)
-	{
-		// savegame <num>: Saves current game to slot <num>
-		// TODO: Implement game saving
-		uint16_t savenum = Convert::to_uint16(args[1]);
-
-		LogMessage("savegame: Game saving not implemented yet!");
-		return {};
 	}
 	else if (command == "get" && args.size() == 3)
 	{

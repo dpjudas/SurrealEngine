@@ -66,6 +66,7 @@ public:
 	UnrealURL GetDefaultURL(const std::string& map);
 	void LoadEntryMap();
 	void LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo = {});
+	void LoadFromSaveFile(const UnrealURL& url);
 	void UnloadMap();
 	void LoginPlayer();
 
