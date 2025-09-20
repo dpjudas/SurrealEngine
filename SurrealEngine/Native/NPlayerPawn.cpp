@@ -97,7 +97,10 @@ void NPlayerPawn::UpdateURL(UObject* Self, const std::string& NewOption, const s
 	UPlayerPawn* SelfPlayerPawn = UObject::Cast<UPlayerPawn>(Self);
 	SelfPlayerPawn->Level()->URL.AddOrReplaceOption(NewOption + "=" + NewValue);
 	if (bSaveDefault)
-		LogUnimplemented("PlayerPawn.UpdateURL save default");
+	{
+		// Save the setting to DefaultUser section in User.ini
+		engine->packages->SetIniValue("User", "DefaultPlayer", NewOption, NewValue);
+	}
 }
 
 void NPlayerPawn::UpdateURL_219(UObject* Self, const std::string& NewOption)
