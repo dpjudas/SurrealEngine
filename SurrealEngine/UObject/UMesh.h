@@ -61,7 +61,9 @@ class UPrimitive : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	BBox BoundingBox;
 	vec4 BoundingSphere = { 0.0f };
@@ -71,7 +73,9 @@ class UMesh : public UPrimitive
 {
 public:
 	using UPrimitive::UPrimitive;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	MeshAnimSeq* GetSequence(const NameString& name)
 	{
@@ -108,7 +112,9 @@ class ULodMesh : public UMesh
 {
 public:
 	using UMesh::UMesh;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<uint16_t> CollapsePointThus;
 	Array<uint16_t> FaceLevel;
@@ -167,7 +173,9 @@ class USkeletalMesh : public ULodMesh
 {
 public:
 	using ULodMesh::ULodMesh;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<ExtMeshWedge> ExtWedges;
 	Array<vec3> Points;
@@ -218,7 +226,9 @@ class UAnimation : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<RefBone> RefBones;
 	Array<AnimMove> Moves;

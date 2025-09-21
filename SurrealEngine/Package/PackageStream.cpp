@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "PackageStream.h"
 #include "Package.h"
+#include "PackageWriter.h"
 #include "Utils/File.h"
 
 PackageStream::PackageStream(Package* package, std::shared_ptr<File> file) : package(package), file(file)
@@ -134,6 +135,110 @@ Package* PackageStream::GetPackage() const
 }
 
 int PackageStream::GetVersion() const
+{
+	return package->GetVersion();
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+PackageStreamWriter::PackageStreamWriter(PackageWriter* package, std::shared_ptr<File> file) : package(package), file(file)
+{
+}
+
+void PackageStreamWriter::WriteBytes(const void* d, uint32_t s)
+{
+	file->write(d, s);
+}
+
+void PackageStreamWriter::WriteInt8(int8_t v)
+{
+	WriteBytes(&v, 1);
+}
+
+void PackageStreamWriter::WriteInt16(int16_t v)
+{
+	WriteBytes(&v, 2);
+}
+
+void PackageStreamWriter::WriteInt32(int32_t v)
+{
+	WriteBytes(&v, 4);
+}
+
+void PackageStreamWriter::WriteInt64(int64_t v)
+{
+	WriteBytes(&v, 8);
+}
+
+void PackageStreamWriter::WriteFloat(float v)
+{
+	WriteBytes(&v, 4);
+}
+
+void PackageStreamWriter::WriteUInt8(uint8_t v)
+{
+	WriteBytes(&v, 1);
+}
+
+void PackageStreamWriter::WriteUInt16(uint16_t v)
+{
+	WriteBytes(&v, 2);
+}
+
+void PackageStreamWriter::WriteUInt32(uint32_t v)
+{
+	WriteBytes(&v, 4);
+}
+
+void PackageStreamWriter::WriteUInt64(uint64_t v)
+{
+	WriteBytes(&v, 8);
+}
+
+void PackageStreamWriter::WriteIndex(int32_t v)
+{
+}
+
+void PackageStreamWriter::WriteString(const std::string& v)
+{
+}
+
+void PackageStreamWriter::WriteAsciiZ(const std::string& v)
+{
+	WriteBytes(v.c_str(), (uint32_t)(v.size() + 1));
+}
+
+void PackageStreamWriter::WriteUnicodeZ(const std::wstring& v)
+{
+	WriteBytes(v.c_str(), (uint32_t)((v.size() + 1) * 2));
+}
+
+void PackageStreamWriter::WriteName(NameString name)
+{
+	WriteIndex(package->GetNameIndex(name));
+}
+
+void PackageStreamWriter::WriteObject(UObject* obj)
+{
+	WriteIndex(package->GetObjectReference(obj));
+}
+
+void PackageStreamWriter::Seek(uint32_t offset)
+{
+	file->seek(offset);
+}
+
+uint32_t PackageStreamWriter::Tell()
+{
+	return (uint32_t)file->tell();
+}
+
+PackageWriter* PackageStreamWriter::GetPackage() const
+{
+	return package;
+}
+
+int PackageStreamWriter::GetVersion() const
 {
 	return package->GetVersion();
 }

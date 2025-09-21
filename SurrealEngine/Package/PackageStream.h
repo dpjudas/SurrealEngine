@@ -2,6 +2,9 @@
 
 class File;
 class Package;
+class PackageWriter;
+class UObject;
+class NameString;
 
 class PackageStream
 {
@@ -31,5 +34,39 @@ public:
 
 private:
 	Package* package;
+	std::shared_ptr<File> file;
+};
+
+class PackageStreamWriter
+{
+public:
+	PackageStreamWriter(PackageWriter* package, std::shared_ptr<File> file);
+
+	void WriteBytes(const void* d, uint32_t s);
+
+	void WriteInt8(int8_t v);
+	void WriteInt16(int16_t v);
+	void WriteInt32(int32_t v);
+	void WriteInt64(int64_t v);
+	void WriteFloat(float v);
+	void WriteUInt8(uint8_t v);
+	void WriteUInt16(uint16_t v);
+	void WriteUInt32(uint32_t v);
+	void WriteUInt64(uint64_t v);
+	void WriteIndex(int32_t v);
+	void WriteString(const std::string& v);
+	void WriteAsciiZ(const std::string& v);
+	void WriteUnicodeZ(const std::wstring& v);
+	void WriteName(NameString name);
+	void WriteObject(UObject* obj);
+
+	void Seek(uint32_t offset);
+	uint32_t Tell();
+
+	PackageWriter* GetPackage() const;
+	int GetVersion() const;
+
+private:
+	PackageWriter* package;
 	std::shared_ptr<File> file;
 };

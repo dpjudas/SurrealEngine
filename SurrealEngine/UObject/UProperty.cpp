@@ -16,6 +16,12 @@ void UProperty::Load(ObjectStream* stream)
 		PropFlags = (PropertyFlags)((uint32_t)PropFlags & ~0x00080040);
 }
 
+void UProperty::Save(PackageStreamWriter* stream)
+{
+	UField::Save(stream);
+	Exception::Throw("UProperty::Save not implemented");
+}
+
 void UProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Invalid);
@@ -39,6 +45,11 @@ void UPointerProperty::Load(ObjectStream* stream)
 	UProperty::Load(stream);
 }
 
+void UPointerProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+}
+
 void UPointerProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Int);
@@ -56,6 +67,12 @@ void UByteProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	EnumType = stream->ReadObject<UEnum>();
+}
+
+void UByteProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UByteProperty::Save not implemented");
 }
 
 void UByteProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -114,6 +131,12 @@ void UObjectProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	ObjectClass = stream->ReadObject<UClass>();
+}
+
+void UObjectProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UObjectProperty::Save not implemented");
 }
 
 void UObjectProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -217,6 +240,12 @@ void UFixedArrayProperty::Load(ObjectStream* stream)
 	Count = stream->ReadInt32();
 }
 
+void UFixedArrayProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UFixedArrayProperty::Save not implemented");
+}
+
 void UFixedArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_FixedArray);
@@ -229,6 +258,12 @@ void UArrayProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	Inner = stream->ReadObject<UProperty>();
+}
+
+void UArrayProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UArrayProperty::Save not implemented");
 }
 
 void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -258,6 +293,12 @@ void UMapProperty::Load(ObjectStream* stream)
 	Value = stream->ReadObject<UProperty>();
 }
 
+void UMapProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UMapProperty::Save not implemented");
+}
+
 void UMapProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Map);
@@ -272,14 +313,19 @@ void UClassProperty::Load(ObjectStream* stream)
 	MetaClass = stream->ReadObject<UClass>();
 }
 
+void UClassProperty::Save(PackageStreamWriter* stream)
+{
+	UObjectProperty::Save(stream);
+	Exception::Throw("UClassProperty::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UStructProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);
 	Struct = stream->ReadObject<UStruct>();
-	if (Struct)
-		Struct->LoadNow();
+	Struct->LoadNow();
 
 	if (Struct->Name == "Vector")
 		ValueType = ExpressionValueType::ValueVector;
@@ -287,6 +333,12 @@ void UStructProperty::Load(ObjectStream* stream)
 		ValueType = ExpressionValueType::ValueRotator;
 	else if (Struct->Name == "Color")
 		ValueType = ExpressionValueType::ValueColor;
+}
+
+void UStructProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	Exception::Throw("UStructProperty::Save not implemented");
 }
 
 static void* LoadStruct(void* data, ObjectStream* stream, UStruct* Struct)

@@ -17,3 +17,9 @@ void UTextBuffer::Load(ObjectStream* stream)
 		if (!Text.empty() && Text.back() == 0) Text.pop_back();
 	}
 }
+
+void UTextBuffer::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UTextBuffer::Save not implemented");
+}

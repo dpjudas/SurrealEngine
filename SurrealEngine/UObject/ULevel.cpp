@@ -53,6 +53,12 @@ void ULevelBase::Load(ObjectStream* stream)
 	int unknown = stream->ReadUInt32();
 }
 
+void ULevelBase::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("ULevelBase::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 ULevel::ULevel(NameString name, UClass* base, ObjectFlags flags) : ULevelBase(name, base, flags)
@@ -84,6 +90,12 @@ void ULevel::Load(ObjectStream* stream)
 		spec.bPruned = stream->ReadInt8();
 		ReachSpecs.push_back(spec);
 	}
+}
+
+void ULevel::Save(PackageStreamWriter* stream)
+{
+	ULevelBase::Save(stream);
+	Exception::Throw("ULevel::Save not implemented");
 }
 
 void ULevel::TickActor(float elapsed, UActor* actor)
@@ -353,6 +365,12 @@ void UModel::Load(ObjectStream* stream)
 	Linked = stream->ReadInt32();
 }
 
+void UModel::Save(PackageStreamWriter* stream)
+{
+	UPrimitive::Save(stream);
+	Exception::Throw("UModel::Save not implemented");
+}
+
 PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
 {
 	PointRegion region;
@@ -431,6 +449,12 @@ void UPolys::Load(ObjectStream* stream)
 	}
 }
 
+void UPolys::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UPolys::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UBspNodes::Load(ObjectStream* stream)
@@ -473,6 +497,12 @@ void UBspNodes::Load(ObjectStream* stream)
 	}
 }
 
+void UBspNodes::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UBspNodes::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UBspSurfs::Load(ObjectStream* stream)
@@ -498,6 +528,12 @@ void UBspSurfs::Load(ObjectStream* stream)
 	}
 }
 
+void UBspSurfs::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UBspSurfs::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UVectors::Load(ObjectStream* stream)
@@ -513,6 +549,12 @@ void UVectors::Load(ObjectStream* stream)
 		v.z = stream->ReadFloat();
 		Vectors.push_back(v);
 	}
+}
+
+void UVectors::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UVectors::Save not implemented");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -531,4 +573,10 @@ void UVerts::Load(ObjectStream* stream)
 	}
 
 	NumSharedSides = stream->ReadIndex();
+}
+
+void UVerts::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UVerts::Save not implemented");
 }

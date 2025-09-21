@@ -13,3 +13,9 @@ void UMusic::Load(ObjectStream* stream)
 	Data.resize(size);
 	stream->ReadBytes(Data.data(), size);
 }
+
+void UMusic::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UMusic::Save not implemented");
+}

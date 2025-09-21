@@ -195,8 +195,9 @@ class UModel : public UPrimitive
 {
 public:
 	using UPrimitive::UPrimitive;
+	
 	void Load(ObjectStream* stream) override;
-
+	void Save(PackageStreamWriter* stream) override;
 
 	PointRegion FindRegion(const vec3& point, UZoneInfo* levelZoneInfo);
 
@@ -252,7 +253,9 @@ class ULevelBase : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<UActor*> Actors;
 
@@ -268,7 +271,9 @@ class ULevel : public ULevelBase
 {
 public:
 	ULevel(NameString name, UClass* base, ObjectFlags flags);
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	void Tick(float elapsed, bool gamePaused);
 
@@ -318,7 +323,9 @@ class UPolys : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<Poly> Polys;
 };
@@ -327,7 +334,9 @@ class UBspNodes : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<BspNode> Nodes;
 	Array<ZoneProperties> Zones;
@@ -337,7 +346,9 @@ class UBspSurfs : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<BspSurface> Surfaces;
 };
@@ -346,7 +357,9 @@ class UVectors : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<vec3> Vectors;
 };
@@ -355,7 +368,9 @@ class UVerts : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<BspVert> Vertices;
 	int32_t NumSharedSides;

@@ -23,6 +23,12 @@ void UPrimitive::Load(ObjectStream* stream)
 	BoundingSphere.w = (stream->GetVersion() > 61) ? stream->ReadFloat() : 0.0f;
 }
 
+void UPrimitive::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UPrimitive::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UMesh::Load(ObjectStream* stream)
@@ -212,6 +218,12 @@ void UMesh::Load(ObjectStream* stream)
 	// To do: build normals from mesh faces (maybe using the Connects array?)
 }
 
+void UMesh::Save(PackageStreamWriter* stream)
+{
+	UPrimitive::Save(stream);
+	Exception::Throw("UMesh::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void ULodMesh::Load(ObjectStream* stream)
@@ -320,6 +332,12 @@ void ULodMesh::Load(ObjectStream* stream)
 	}
 }
 
+void ULodMesh::Save(PackageStreamWriter* stream)
+{
+	UMesh::Save(stream);
+	Exception::Throw("ULodMesh::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void USkeletalMesh::Load(ObjectStream* stream)
@@ -417,6 +435,12 @@ void USkeletalMesh::Load(ObjectStream* stream)
 	WeaponAdjust.ZAxis.y = stream->ReadFloat();
 }
 
+void USkeletalMesh::Save(PackageStreamWriter* stream)
+{
+	ULodMesh::Save(stream);
+	Exception::Throw("USkeletalMesh::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UAnimation::Load(ObjectStream* stream)
@@ -512,4 +536,10 @@ void UAnimation::Load(ObjectStream* stream)
 
 		Moves.push_back(move);
 	}
+}
+
+void UAnimation::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("UAnimation::Save not implemented");
 }

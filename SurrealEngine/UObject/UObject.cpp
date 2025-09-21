@@ -122,6 +122,10 @@ void UObject::Load(ObjectStream* stream)
 	}
 }
 
+void UObject::Save(PackageStreamWriter* stream)
+{
+}
+
 PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const
 {
 	for (UProperty* prop : PropertyData.Class->Properties)

@@ -16,12 +16,25 @@ void UField::Load(ObjectStream* stream)
 	Next = stream->ReadObject<UField>();
 }
 
+void UField::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	stream->WriteObject(BaseField);
+	stream->WriteObject(Next);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UConst::Load(ObjectStream* stream)
 {
 	UField::Load(stream);
 	Constant = stream->ReadString();
+}
+
+void UConst::Save(PackageStreamWriter* stream)
+{
+	UField::Save(stream);
+	stream->WriteString(Constant);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +45,14 @@ void UEnum::Load(ObjectStream* stream)
 	int size = stream->ReadIndex();
 	for (int i = 0; i < size; i++)
 		ElementNames.push_back(stream->ReadName());
+}
+
+void UEnum::Save(PackageStreamWriter* stream)
+{
+	UField::Save(stream);
+	stream->WriteIndex((int)ElementNames.size());
+	for (auto& name : ElementNames)
+		stream->WriteName(name);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -146,6 +167,12 @@ void UStruct::Load(ObjectStream* stream)
 		size_t alignment = sizeof(void*);
 		StructSize = (offset + alignment - 1) / alignment * alignment;
 	}
+}
+
+void UStruct::Save(PackageStreamWriter* stream)
+{
+	UField::Save(stream);
+	Exception::Throw("UStruct::Save not implemented");
 }
 
 #ifdef _DEBUG
@@ -367,6 +394,12 @@ void UFunction::Load(ObjectStream* stream)
 		ReplicationOffset = stream->ReadUInt16();
 }
 
+void UFunction::Save(PackageStreamWriter* stream)
+{
+	UStruct::Save(stream);
+	Exception::Throw("UFunction::Save not implemented");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UState::Load(ObjectStream* stream)
@@ -384,6 +417,12 @@ void UState::Load(ObjectStream* stream)
 			Functions[child->Name] = func;
 		}
 	}
+}
+
+void UState::Save(PackageStreamWriter* stream)
+{
+	UStruct::Save(stream);
+	Exception::Throw("UState::Save not implemented");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -444,6 +483,12 @@ void UClass::Load(ObjectStream* stream)
 			States[child->Name] = state;
 		}
 	}
+}
+
+void UClass::Save(PackageStreamWriter* stream)
+{
+	UState::Save(stream);
+	Exception::Throw("UClass::Save not implemented");
 }
 
 std::map<NameString, std::string> UClass::ParseStructValue(const std::string& text)

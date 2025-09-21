@@ -13,6 +13,7 @@ class UField : public UObject
 public:
 	using UObject::UObject;
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	UField* BaseField = nullptr;
 	UField* Next = nullptr;
@@ -23,6 +24,7 @@ class UConst : public UField
 public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	std::string Constant;
 };
@@ -32,6 +34,7 @@ class UEnum : public UField
 public:
 	using UField::UField;
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<NameString> ElementNames;
 };
@@ -41,7 +44,9 @@ class UStruct : public UField
 public:
 	UStruct(NameString name, UClass* cls, ObjectFlags flags);
 	UStruct(NameString name, UClass* cls, ObjectFlags flags, UStruct* base);
+
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	UStruct* BaseStruct = nullptr;
 
@@ -102,7 +107,9 @@ class UFunction : public UStruct
 {
 public:
 	using UStruct::UStruct;
+
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	int ParmsSize = 0;
 	int NativeFuncIndex = 0;
@@ -131,7 +138,9 @@ class UState : public UStruct
 {
 public:
 	using UStruct::UStruct;
+
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	uint64_t ProbeMask = 0;
 	uint64_t IgnoreMask = 0;
@@ -178,7 +187,9 @@ class UClass : public UState
 {
 public:
 	UClass(NameString name, UClass* base, ObjectFlags flags);
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	UProperty* GetProperty(const NameString& name);
 

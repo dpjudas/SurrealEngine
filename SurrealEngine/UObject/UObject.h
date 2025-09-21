@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Package/ObjectStream.h"
+#include "Package/PackageStream.h"
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "Math/rotator.h"
@@ -169,6 +170,7 @@ public:
 
 	void LoadNow();
 	virtual void Load(ObjectStream* stream);
+	virtual void Save(PackageStreamWriter* stream);
 
 	bool HasProperty(const NameString& name) const;
 	void* GetProperty(const NameString& name);

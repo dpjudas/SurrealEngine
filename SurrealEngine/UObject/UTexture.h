@@ -172,7 +172,9 @@ class UTexture : public UBitmap
 {
 public:
 	using UBitmap::UBitmap;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	UTexture* GetAnimTexture() { return AnimCurrent() ? AnimCurrent() : this; }
 
@@ -271,7 +273,9 @@ class UFractalTexture : public UTexture
 {
 public:
 	using UTexture::UTexture;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	uint8_t& AuxPhase() { return Value<uint8_t>(PropOffsets_FractalTexture.AuxPhase); }
 	uint8_t& DrawPhase() { return Value<uint8_t>(PropOffsets_FractalTexture.DrawPhase); }
@@ -363,6 +367,8 @@ public:
 	using UFractalTexture::UFractalTexture;
 
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void UpdateFrame() override;
 
 	const Array<Spark>& GetSparks() const { return Sparks; }
@@ -531,7 +537,9 @@ class UScriptedTexture : public UTexture
 {
 public:
 	using UTexture::UTexture;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	int& Junk1() { return Value<int>(PropOffsets_ScriptedTexture.Junk1); }
 	int& Junk2() { return Value<int>(PropOffsets_ScriptedTexture.Junk2); }
@@ -560,7 +568,9 @@ class UPalette : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	Array<uint32_t> Colors;
 

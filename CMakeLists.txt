@@ -241,6 +241,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Package/PackageManager.h
 	SurrealEngine/Package/PackageStream.h
 	SurrealEngine/Package/PackageStream.cpp
+	SurrealEngine/Package/PackageWriter.cpp
+	SurrealEngine/Package/PackageWriter.h
 	SurrealEngine/Package/IniFile.h
 	SurrealEngine/Package/IniFile.cpp
 	SurrealEngine/Package/IniProperty.cpp

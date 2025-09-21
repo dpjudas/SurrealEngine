@@ -21,7 +21,9 @@ class USound : public UObject
 {
 public:
 	using UObject::UObject;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	void GetSound();
 	float GetDuration();

@@ -47,6 +47,19 @@ void UFont::Load(ObjectStream* stream)
 	}
 }
 
+void UFont::Save(PackageStreamWriter* stream)
+{
+	if (stream->GetVersion() <= 63)
+	{
+		UTexture::Save(stream);
+	}
+	else
+	{
+		UObject::Save(stream);
+	}
+	Exception::Throw("UFont::Save not implemented");
+}
+
 FontGlyph UFont::GetGlyph(char c) const
 {
 	FontGlyph glyph = FindGlyph(c);

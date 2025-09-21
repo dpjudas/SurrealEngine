@@ -110,7 +110,9 @@ class UProperty : public UField
 {
 public:
 	using UField::UField;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	virtual void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header);
 	virtual void LoadStructMemberValue(void* data, ObjectStream* stream);
@@ -195,7 +197,10 @@ class UPointerProperty : public UProperty // 469 extension?
 {
 public:
 	using UProperty::UProperty;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
@@ -207,7 +212,10 @@ class UByteProperty : public UProperty
 {
 public:
 	UByteProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueByte; }
+
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return 1; }
@@ -238,7 +246,10 @@ class UObjectProperty : public UProperty
 {
 public:
 	UObjectProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueObject; }
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 	size_t Alignment() override { return sizeof(void*); }
@@ -271,7 +282,10 @@ class UFixedArrayProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return Inner->Alignment(); }
 	size_t ElementSize() override { return Inner->Size() * Count; }
@@ -324,7 +338,10 @@ class UArrayProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(Array<void*>); }
@@ -398,7 +415,10 @@ class UMapProperty : public UProperty
 {
 public:
 	using UProperty::UProperty;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::map<void*,void*>); }
@@ -457,7 +477,9 @@ class UClassProperty : public UObjectProperty
 {
 public:
 	using UObjectProperty::UObjectProperty;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	std::string PrintValue(const void* data) override
 	{
@@ -477,6 +499,8 @@ public:
 	UStructProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueStruct; }
 
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 

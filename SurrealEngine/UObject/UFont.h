@@ -37,7 +37,9 @@ class UFont : public UTexture
 {
 public:
 	using UTexture::UTexture;
+	
 	void Load(ObjectStream* stream) override;
+	void Save(PackageStreamWriter* stream) override;
 
 	FontGlyph GetGlyph(char c) const;
 

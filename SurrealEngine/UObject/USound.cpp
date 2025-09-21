@@ -18,6 +18,12 @@ void USound::Load(ObjectStream* stream)
 	stream->ReadBytes(Data.data(), size);
 }
 
+void USound::Save(PackageStreamWriter* stream)
+{
+	UObject::Save(stream);
+	Exception::Throw("USound::Save not implemented");
+}
+
 void USound::GetSound()
 {
 	if (samples.size() > 0)
