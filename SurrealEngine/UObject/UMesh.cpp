@@ -307,9 +307,7 @@ void ULodMesh::Load(ObjectStream* stream)
 
 	int NumReMapAnimVerts = stream->ReadIndex();
 	for (int i = 0; i < NumReMapAnimVerts; i++)
-	{
 		ReMapAnimVerts.push_back(stream->ReadUInt16());
-	}
 
 	OldFrameVerts = stream->ReadUInt32();
 
@@ -348,7 +346,66 @@ void ULodMesh::Load(ObjectStream* stream)
 void ULodMesh::Save(PackageStreamWriter* stream)
 {
 	UMesh::Save(stream);
-	Exception::Throw("ULodMesh::Save not implemented");
+
+	stream->WriteIndex((int)CollapsePointThus.size());
+	for (uint16_t v : CollapsePointThus)
+		stream->WriteUInt16(v);
+
+	stream->WriteIndex((int)FaceLevel.size());
+	for (uint16_t v : FaceLevel)
+		stream->WriteUInt16(v);
+
+	stream->WriteIndex((int)Faces.size());
+	for (const MeshFace& face : Faces)
+	{
+		stream->WriteUInt16(face.Indices[0]);
+		stream->WriteUInt16(face.Indices[1]);
+		stream->WriteUInt16(face.Indices[2]);
+		stream->WriteUInt16(face.MaterialIndex);
+	}
+
+	stream->WriteIndex((int)CollapseWedgeThus.size());
+	for (uint16_t v : CollapseWedgeThus)
+		stream->WriteUInt16(v);
+
+	stream->WriteIndex((int)Wedges.size());
+	for (const MeshWedge& wedge : Wedges)
+	{
+		stream->WriteUInt16(wedge.Vertex);
+		stream->WriteUInt8(wedge.U);
+		stream->WriteUInt8(wedge.V);
+	}
+
+	stream->WriteIndex((int)Materials.size());
+	for (const MeshMaterial& material : Materials)
+	{
+		stream->WriteUInt32(material.PolyFlags);
+		stream->WriteInt32(material.TextureIndex);
+	}
+
+	stream->WriteIndex((int)SpecialFaces.size());
+	for (const MeshFace& face : SpecialFaces)
+	{
+		stream->WriteUInt16(face.Indices[0]);
+		stream->WriteUInt16(face.Indices[1]);
+		stream->WriteUInt16(face.Indices[2]);
+		stream->WriteUInt16(face.MaterialIndex);
+	}
+
+	stream->WriteUInt32(ModelVerts);
+	stream->WriteUInt32(SpecialVerts);
+	stream->WriteFloat(MeshScaleMax);
+	stream->WriteFloat(LODHysteresis);
+	stream->WriteFloat(LODStrength);
+	stream->WriteUInt32(LODMinVerts);
+	stream->WriteFloat(LODMorph);
+	stream->WriteFloat(LODZDisplace);
+
+	stream->WriteIndex((int)ReMapAnimVerts.size());
+	for (uint16_t v : ReMapAnimVerts)
+		stream->WriteUInt16(v);
+
+	stream->WriteUInt32(OldFrameVerts);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -436,22 +493,99 @@ void USkeletalMesh::Load(ObjectStream* stream)
 
 	WeaponAdjust.Origin.x = stream->ReadFloat();
 	WeaponAdjust.Origin.y = stream->ReadFloat();
-	WeaponAdjust.Origin.y = stream->ReadFloat();
+	WeaponAdjust.Origin.z = stream->ReadFloat();
 	WeaponAdjust.XAxis.x = stream->ReadFloat();
 	WeaponAdjust.XAxis.y = stream->ReadFloat();
-	WeaponAdjust.XAxis.y = stream->ReadFloat();
+	WeaponAdjust.XAxis.z = stream->ReadFloat();
 	WeaponAdjust.YAxis.x = stream->ReadFloat();
 	WeaponAdjust.YAxis.y = stream->ReadFloat();
-	WeaponAdjust.YAxis.y = stream->ReadFloat();
+	WeaponAdjust.YAxis.z = stream->ReadFloat();
 	WeaponAdjust.ZAxis.x = stream->ReadFloat();
 	WeaponAdjust.ZAxis.y = stream->ReadFloat();
-	WeaponAdjust.ZAxis.y = stream->ReadFloat();
+	WeaponAdjust.ZAxis.z = stream->ReadFloat();
 }
 
 void USkeletalMesh::Save(PackageStreamWriter* stream)
 {
 	ULodMesh::Save(stream);
-	Exception::Throw("USkeletalMesh::Save not implemented");
+
+	stream->WriteIndex((int)ExtWedges.size());
+	for (const ExtMeshWedge& wedge : ExtWedges)
+	{
+		stream->WriteUInt16(wedge.Vertex);
+		stream->WriteUInt16(wedge.Flags);
+		stream->WriteFloat(wedge.U);
+		stream->WriteFloat(wedge.V);
+	}
+
+	stream->WriteIndex((int)Points.size());
+	for (const vec3& p : Points)
+	{
+		stream->WriteFloat(p.x);
+		stream->WriteFloat(p.y);
+		stream->WriteFloat(p.z);
+	}
+
+	stream->WriteIndex((int)RefSkeleton.size());
+	for (const RefSkeletonBone& bone : RefSkeleton)
+	{
+		stream->WriteName(bone.Name);
+		stream->WriteUInt32(bone.Flags);
+		stream->WriteFloat(bone.Orientation.x);
+		stream->WriteFloat(bone.Orientation.y);
+		stream->WriteFloat(bone.Orientation.z);
+		stream->WriteFloat(bone.Orientation.w);
+		stream->WriteFloat(bone.Position.x);
+		stream->WriteFloat(bone.Position.y);
+		stream->WriteFloat(bone.Position.z);
+		stream->WriteFloat(bone.Length);
+		stream->WriteFloat(bone.Size.x);
+		stream->WriteFloat(bone.Size.y);
+		stream->WriteFloat(bone.Size.z);
+		stream->WriteUInt32(bone.NumChildren);
+		stream->WriteUInt32(bone.ParentIndex);
+	}
+
+	stream->WriteIndex((int)BoneWeightIndices.size());
+	for (const BoneWeightIndex& index : BoneWeightIndices)
+	{
+		stream->WriteUInt16(index.WeightIndex);
+		stream->WriteUInt16(index.Number);
+		stream->WriteUInt16(index.DetailA);
+		stream->WriteUInt16(index.DetailB);
+	}
+
+	stream->WriteIndex((int)BoneWeights.size());
+	for (const BoneWeight& weight : BoneWeights)
+	{
+		stream->WriteUInt16(weight.PointIndex);
+		stream->WriteUInt16(weight.BoneWeight);
+	}
+
+	stream->WriteIndex((int)LocalPoints.size());
+	for (const vec3& p : LocalPoints)
+	{
+		stream->WriteFloat(p.x);
+		stream->WriteFloat(p.y);
+		stream->WriteFloat(p.z);
+	}
+
+	stream->WriteUInt32(SkeletalDepth);
+	stream->WriteObject(DefaultAnimation);
+	stream->WriteUInt32(WeaponBoneIndex);
+
+	stream->WriteFloat(WeaponAdjust.Origin.x);
+	stream->WriteFloat(WeaponAdjust.Origin.y);
+	stream->WriteFloat(WeaponAdjust.Origin.z);
+	stream->WriteFloat(WeaponAdjust.XAxis.x);
+	stream->WriteFloat(WeaponAdjust.XAxis.y);
+	stream->WriteFloat(WeaponAdjust.XAxis.z);
+	stream->WriteFloat(WeaponAdjust.YAxis.x);
+	stream->WriteFloat(WeaponAdjust.YAxis.y);
+	stream->WriteFloat(WeaponAdjust.YAxis.z);
+	stream->WriteFloat(WeaponAdjust.ZAxis.x);
+	stream->WriteFloat(WeaponAdjust.ZAxis.y);
+	stream->WriteFloat(WeaponAdjust.ZAxis.z);
 }
 
 /////////////////////////////////////////////////////////////////////////////
