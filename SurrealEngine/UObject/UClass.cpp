@@ -397,8 +397,6 @@ void UFunction::Load(ObjectStream* stream)
 void UFunction::Save(PackageStreamWriter* stream)
 {
 	UStruct::Save(stream);
-	Exception::Throw("UFunction::Save not implemented");
-
 	if (stream->GetVersion() <= 63)
 		stream->WriteUInt16(ParmsSize);
 	stream->WriteUInt16(NativeFuncIndex);

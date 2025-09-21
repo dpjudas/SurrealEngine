@@ -91,6 +91,8 @@ public:
 	Array<MeshVertConnect> Connects;
 	Array<BBox> BoundingBoxes;
 	Array<vec4> BoundingSpheres;
+	BBox MeshBoundingBox;
+	vec4 MeshBoundingSphere;
 	Array<int> VertLinks;
 	Array<UTexture*> Textures;
 	Array<float> TextureLOD;

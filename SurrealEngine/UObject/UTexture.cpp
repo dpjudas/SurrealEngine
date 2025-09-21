@@ -107,7 +107,6 @@ void UFractalTexture::Load(ObjectStream* stream)
 void UFractalTexture::Save(PackageStreamWriter* stream)
 {
 	UTexture::Save(stream);
-	Exception::Throw("UFractalTexture::Save not implemented");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -135,7 +134,19 @@ void UFireTexture::Load(ObjectStream* stream)
 void UFireTexture::Save(PackageStreamWriter* stream)
 {
 	UFractalTexture::Save(stream);
-	Exception::Throw("UFireTexture::Save not implemented");
+
+	stream->WriteIndex((int)Sparks.size());
+	for (const Spark& spark : Sparks)
+	{
+		stream->WriteUInt8((uint8_t)spark.Type);
+		stream->WriteUInt8(spark.Heat);
+		stream->WriteUInt8(spark.X);
+		stream->WriteUInt8(spark.Y);
+		stream->WriteUInt8(spark.ByteA);
+		stream->WriteUInt8(spark.ByteB);
+		stream->WriteUInt8(spark.ByteC);
+		stream->WriteUInt8(spark.ByteD);
+	}
 }
 
 static void SetPixel(uint8_t* pixels, int x, int y, int width, int height, uint8_t value)
@@ -645,7 +656,8 @@ void UPalette::Load(ObjectStream* stream)
 void UPalette::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UPalette::Save not implemented");
+	stream->WriteIndex((int)Colors.size());
+	stream->WriteBytes(Colors.data(), (uint32_t)Colors.size() * 4);
 }
 
 uint8_t UPalette::FindBestColor(const Color& color) const
@@ -701,7 +713,6 @@ void UScriptedTexture::Load(ObjectStream* stream)
 void UScriptedTexture::Save(PackageStreamWriter* stream)
 {
 	UTexture::Save(stream);
-	Exception::Throw("UScriptedTexture::Save not implemented");
 }
 
 void UScriptedTexture::UpdateFrame()
