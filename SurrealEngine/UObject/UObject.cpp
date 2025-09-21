@@ -124,6 +124,7 @@ void UObject::Load(ObjectStream* stream)
 
 void UObject::Save(PackageStreamWriter* stream)
 {
+	Exception::Throw("UObject::Save not implemented");
 }
 
 PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const

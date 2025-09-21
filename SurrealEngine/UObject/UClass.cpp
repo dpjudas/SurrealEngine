@@ -398,6 +398,18 @@ void UFunction::Save(PackageStreamWriter* stream)
 {
 	UStruct::Save(stream);
 	Exception::Throw("UFunction::Save not implemented");
+
+	if (stream->GetVersion() <= 63)
+		stream->WriteUInt16(ParmsSize);
+	stream->WriteUInt16(NativeFuncIndex);
+	if (stream->GetVersion() <= 63)
+		stream->WriteUInt8(NumParms);
+	stream->WriteUInt8(OperatorPrecedence);
+	if (stream->GetVersion() <= 63)
+		stream->WriteUInt16(ReturnValueOffset);
+	stream->WriteUInt32((uint32_t)FuncFlags);
+	if (AllFlags(FuncFlags, FunctionFlags::Net))
+		stream->WriteUInt16(ReplicationOffset);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -422,7 +434,10 @@ void UState::Load(ObjectStream* stream)
 void UState::Save(PackageStreamWriter* stream)
 {
 	UStruct::Save(stream);
-	Exception::Throw("UState::Save not implemented");
+	stream->WriteUInt64(ProbeMask);
+	stream->WriteUInt64(IgnoreMask);
+	stream->WriteUInt16(LabelTableOffset);
+	stream->WriteUInt32((uint32_t)StateFlags);
 }
 
 /////////////////////////////////////////////////////////////////////////////

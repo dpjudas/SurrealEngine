@@ -144,7 +144,7 @@ void UObjectProperty::Load(ObjectStream* stream)
 void UObjectProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UObjectProperty::Save not implemented");
+	stream->WriteObject(ObjectClass);
 }
 
 void UObjectProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -326,7 +326,7 @@ void UClassProperty::Load(ObjectStream* stream)
 void UClassProperty::Save(PackageStreamWriter* stream)
 {
 	UObjectProperty::Save(stream);
-	Exception::Throw("UClassProperty::Save not implemented");
+	stream->WriteObject(MetaClass);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -348,7 +348,7 @@ void UStructProperty::Load(ObjectStream* stream)
 void UStructProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UStructProperty::Save not implemented");
+	stream->WriteObject(Struct);
 }
 
 static void* LoadStruct(void* data, ObjectStream* stream, UStruct* Struct)

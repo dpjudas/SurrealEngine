@@ -220,6 +220,7 @@ struct AnimMove
 	uint32_t Flags = 0;
 	Array<uint32_t> BoneIndices;
 	Array<AnimTrack> AnimTracks;
+	AnimTrack RootTrack;
 };
 
 class UAnimation : public UObject

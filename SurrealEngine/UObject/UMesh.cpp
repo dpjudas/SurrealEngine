@@ -26,7 +26,20 @@ void UPrimitive::Load(ObjectStream* stream)
 void UPrimitive::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UPrimitive::Save not implemented");
+
+	stream->WriteFloat(BoundingBox.min.x);
+	stream->WriteFloat(BoundingBox.min.y);
+	stream->WriteFloat(BoundingBox.min.z);
+	stream->WriteFloat(BoundingBox.max.x);
+	stream->WriteFloat(BoundingBox.max.y);
+	stream->WriteFloat(BoundingBox.max.z);
+	stream->WriteUInt8(BoundingBox.IsValid ? 1 : 0);
+
+	stream->WriteFloat(BoundingSphere.x);
+	stream->WriteFloat(BoundingSphere.y);
+	stream->WriteFloat(BoundingSphere.z);
+	if (stream->GetVersion() > 61)
+		stream->WriteFloat(BoundingSphere.w);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -506,8 +519,7 @@ void UAnimation::Load(ObjectStream* stream)
 			move.AnimTracks.push_back(track);
 		}
 
-		AnimTrack rootTrack;
-		rootTrack.Flags = stream->ReadUInt32();
+		move.RootTrack.Flags = stream->ReadUInt32();
 
 		int NumKeyQuat = stream->ReadIndex();
 		for (int k = 0; k < NumKeyQuat; k++)
@@ -517,7 +529,7 @@ void UAnimation::Load(ObjectStream* stream)
 			q.y = stream->ReadFloat();
 			q.z = stream->ReadFloat();
 			q.w = stream->ReadFloat();
-			rootTrack.KeyQuat.push_back(q);
+			move.RootTrack.KeyQuat.push_back(q);
 		}
 
 		int NumKeyPos = stream->ReadIndex();
@@ -527,12 +539,12 @@ void UAnimation::Load(ObjectStream* stream)
 			pos.x = stream->ReadFloat();
 			pos.y = stream->ReadFloat();
 			pos.z = stream->ReadFloat();
-			rootTrack.KeyPos.push_back(pos);
+			move.RootTrack.KeyPos.push_back(pos);
 		}
 
 		int NumKeyTime = stream->ReadIndex();
 		for (int k = 0; k < NumKeyTime; k++)
-			rootTrack.KeyTime.push_back(stream->ReadFloat());
+			move.RootTrack.KeyTime.push_back(stream->ReadFloat());
 
 		Moves.push_back(move);
 	}
@@ -541,5 +553,79 @@ void UAnimation::Load(ObjectStream* stream)
 void UAnimation::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UAnimation::Save not implemented");
+
+	stream->WriteIndex((int)RefBones.size());
+	for (const RefBone& refbone : RefBones)
+	{
+		stream->WriteName(refbone.Name);
+		stream->WriteUInt32(refbone.Flags);
+		stream->WriteUInt32(refbone.ParentIndex);
+	}
+
+	stream->WriteIndex((int)Moves.size());
+	for (const AnimMove& move : Moves)
+	{
+		stream->WriteFloat(move.RootSpeed3D.x);
+		stream->WriteFloat(move.RootSpeed3D.y);
+		stream->WriteFloat(move.RootSpeed3D.z);
+		stream->WriteFloat(move.TrackTime);
+		stream->WriteUInt32(move.StartBone);
+		stream->WriteUInt32(move.Flags);
+
+		stream->WriteIndex((int)move.BoneIndices.size());
+		for (uint32_t index : move.BoneIndices)
+			stream->WriteUInt32(index);
+
+		stream->WriteIndex((int)move.AnimTracks.size());
+		for (const AnimTrack& track : move.AnimTracks)
+		{
+			stream->WriteUInt32(track.Flags);
+
+			stream->WriteIndex((int)track.KeyQuat.size());
+			for (const quaternion& q : track.KeyQuat)
+			{
+				stream->WriteFloat(q.x);
+				stream->WriteFloat(q.y);
+				stream->WriteFloat(q.z);
+				stream->WriteFloat(q.w);
+			}
+
+			stream->WriteIndex((int)track.KeyPos.size());
+			for (const vec3& pos : track.KeyPos)
+			{
+				stream->WriteFloat(pos.x);
+				stream->WriteFloat(pos.y);
+				stream->WriteFloat(pos.z);
+			}
+
+			stream->WriteIndex((int)track.KeyTime.size());
+			for (float v : track.KeyTime)
+				stream->WriteFloat(v);
+		}
+
+		stream->WriteUInt32(move.RootTrack.Flags);
+
+		stream->WriteIndex((int)move.RootTrack.KeyQuat.size());
+		for (const quaternion& q : move.RootTrack.KeyQuat)
+		{
+			stream->WriteFloat(q.x);
+			stream->WriteFloat(q.y);
+			stream->WriteFloat(q.z);
+			stream->WriteFloat(q.w);
+		}
+
+		stream->WriteIndex((int)move.RootTrack.KeyPos.size());
+		for (const vec3& pos : move.RootTrack.KeyPos)
+		{
+			stream->WriteFloat(pos.x);
+			stream->WriteFloat(pos.y);
+			stream->WriteFloat(pos.z);
+		}
+
+		stream->WriteIndex((int)move.RootTrack.KeyTime.size());
+		for (float v : move.RootTrack.KeyTime)
+			stream->WriteFloat(v);
+
+		Moves.push_back(move);
+	}
 }

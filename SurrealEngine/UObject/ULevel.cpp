@@ -28,9 +28,9 @@ void ULevelBase::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
 
-	int32_t dbnum = stream->ReadInt32();
-	int32_t dbmax = stream->ReadInt32();
-	for (int32_t i = 0; i < dbnum; i++)
+	int32_t count = stream->ReadInt32();
+	int32_t maxcount = stream->ReadInt32();
+	for (int32_t i = 0; i < count; i++)
 	{
 		auto actor = stream->ReadObject<UActor>();
 		if (actor)
@@ -43,20 +43,36 @@ void ULevelBase::Load(ObjectStream* stream)
 	Map = stream->ReadString();
 	Portal = stream->ReadString();
 
-	int count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
-	{
+	int optcount = stream->ReadIndex();
+	for (int i = 0; i < optcount; i++)
 		Options.push_back(stream->ReadString());
-	}
 
 	Port = stream->ReadInt32();
-	int unknown = stream->ReadUInt32();
+	Unknown = stream->ReadUInt32();
 }
 
 void ULevelBase::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("ULevelBase::Save not implemented");
+
+	int32_t count = (int32_t)Actors.size();
+	int32_t maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (UActor* actor : Actors)
+		stream->WriteObject(actor);
+
+	stream->WriteString(Protocol);
+	stream->WriteString(Host);
+	stream->WriteString(Map);
+	stream->WriteString(Portal);
+
+	stream->WriteIndex((int)Options.size());
+	for (const auto& option : Options)
+		stream->WriteString(option);
+
+	stream->WriteInt32(Port);
+	stream->WriteInt32(Unknown);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -73,9 +89,7 @@ void ULevel::Load(ObjectStream* stream)
 	Model = stream->ReadObject<UModel>();
 
 	if (Model)
-	{
 		Model->LoadNow();
-	}
 
 	int count = stream->ReadIndex();
 	for (int i = 0; i < count; i++)
@@ -95,7 +109,18 @@ void ULevel::Load(ObjectStream* stream)
 void ULevel::Save(PackageStreamWriter* stream)
 {
 	ULevelBase::Save(stream);
-	Exception::Throw("ULevel::Save not implemented");
+	stream->WriteObject(Model);
+	stream->WriteIndex((int)ReachSpecs.size());
+	for (const LevelReachSpec& spec : ReachSpecs)
+	{
+		stream->WriteInt32(spec.distance);
+		stream->WriteIndex(spec.startActor);
+		stream->WriteIndex(spec.endActor);
+		stream->WriteInt32(spec.collisionRadius);
+		stream->WriteInt32(spec.collisionHeight);
+		stream->WriteInt32(spec.reachFlags);
+		stream->WriteInt8(spec.bPruned);
+	}
 }
 
 void ULevel::TickActor(float elapsed, UActor* actor)
@@ -266,7 +291,7 @@ void UModel::Load(ObjectStream* stream)
 			surface.BrushPoly = stream->ReadIndex();
 			surface.PanU = stream->ReadInt16();
 			surface.PanV = stream->ReadInt16();
-			surface.BrushActor = stream->ReadIndex();
+			surface.BrushActor = stream->ReadObject<UActor>();
 			Surfaces.push_back(surface);
 		}
 
@@ -452,7 +477,40 @@ void UPolys::Load(ObjectStream* stream)
 void UPolys::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UPolys::Save not implemented");
+	int count = (int)Polys.size();
+	int maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (const Poly& poly : Polys)
+	{
+		stream->WriteIndex((int)poly.Vertices.size());
+		stream->WriteFloat(poly.Base.x);
+		stream->WriteFloat(poly.Base.y);
+		stream->WriteFloat(poly.Base.z);
+		stream->WriteFloat(poly.Normal.x);
+		stream->WriteFloat(poly.Normal.y);
+		stream->WriteFloat(poly.Normal.z);
+		stream->WriteFloat(poly.TextureU.x);
+		stream->WriteFloat(poly.TextureU.y);
+		stream->WriteFloat(poly.TextureU.z);
+		stream->WriteFloat(poly.TextureV.x);
+		stream->WriteFloat(poly.TextureV.y);
+		stream->WriteFloat(poly.TextureV.z);
+		for (const vec3& v : poly.Vertices)
+		{
+			stream->WriteFloat(v.x);
+			stream->WriteFloat(v.y);
+			stream->WriteFloat(v.z);
+		}
+		stream->WriteUInt32(poly.PolyFlags);
+		stream->WriteObject(poly.Actor);
+		stream->WriteObject(poly.Texture);
+		stream->WriteName(poly.ItemName);
+		stream->WriteIndex(poly.LinkIndex);
+		stream->WriteIndex(poly.BrushPolyIndex);
+		stream->WriteInt16(poly.PanU);
+		stream->WriteInt16(poly.PanV);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -500,7 +558,39 @@ void UBspNodes::Load(ObjectStream* stream)
 void UBspNodes::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UBspNodes::Save not implemented");
+	int count = (int)Nodes.size();
+	int maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (const BspNode& node : Nodes)
+	{
+		stream->WriteFloat(node.PlaneX);
+		stream->WriteFloat(node.PlaneY);
+		stream->WriteFloat(node.PlaneZ);
+		stream->WriteFloat(node.PlaneW);
+		stream->WriteUInt64(node.ZoneMask);
+		stream->WriteUInt8(node.NodeFlags);
+		stream->WriteIndex(node.VertPool);
+		stream->WriteIndex(node.Surf);
+		stream->WriteIndex(node.Back);
+		stream->WriteIndex(node.Front);
+		stream->WriteIndex(node.Plane);
+		stream->WriteIndex(node.CollisionBound);
+		stream->WriteIndex(node.RenderBound);
+		stream->WriteIndex(node.Zone0);
+		stream->WriteIndex(node.Zone1);
+		stream->WriteUInt8(node.NumVertices);
+		stream->WriteInt32(node.Leaf0);
+		stream->WriteInt32(node.Leaf1);
+	}
+
+	stream->WriteIndex((int)Zones.size());
+	for (const ZoneProperties& zone : Zones)
+	{
+		stream->WriteObject(zone.ZoneActor);
+		stream->WriteUInt64(zone.Connectivity);
+		stream->WriteUInt64(zone.Visibility);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -523,7 +613,7 @@ void UBspSurfs::Load(ObjectStream* stream)
 		surface.BrushPoly = stream->ReadIndex();
 		surface.PanU = stream->ReadInt16();
 		surface.PanV = stream->ReadInt16();
-		surface.BrushActor = stream->ReadIndex();
+		surface.BrushActor = stream->ReadObject<UActor>();
 		Surfaces.push_back(surface);
 	}
 }
@@ -531,7 +621,24 @@ void UBspSurfs::Load(ObjectStream* stream)
 void UBspSurfs::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UBspSurfs::Save not implemented");
+	int count = (int)Surfaces.size();
+	int maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (const BspSurface& surface : Surfaces)
+	{
+		stream->WriteObject(surface.Material);
+		stream->WriteUInt32(surface.PolyFlags);
+		stream->WriteIndex(surface.pBase);
+		stream->WriteIndex(surface.vNormal);
+		stream->WriteIndex(surface.vTextureU);
+		stream->WriteIndex(surface.vTextureV);
+		stream->WriteIndex(surface.LightMap);
+		stream->WriteIndex(surface.BrushPoly);
+		stream->WriteInt16(surface.PanU);
+		stream->WriteInt16(surface.PanV);
+		stream->WriteObject(surface.BrushActor);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -554,7 +661,16 @@ void UVectors::Load(ObjectStream* stream)
 void UVectors::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UVectors::Save not implemented");
+	int count = (int)Vectors.size();
+	int maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (const vec3& v : Vectors)
+	{
+		stream->WriteFloat(v.x);
+		stream->WriteFloat(v.y);
+		stream->WriteFloat(v.z);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -578,5 +694,14 @@ void UVerts::Load(ObjectStream* stream)
 void UVerts::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UVerts::Save not implemented");
+	int count = (int)Vertices.size();
+	int maxcount = count;
+	stream->WriteInt32(count);
+	stream->WriteInt32(maxcount);
+	for (const BspVert& vert : Vertices)
+	{
+		stream->WriteIndex(vert.Vertex);
+		stream->WriteIndex(vert.Side);
+	}
+	stream->WriteIndex(NumSharedSides);
 }

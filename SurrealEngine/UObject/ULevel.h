@@ -71,7 +71,7 @@ public:
 	int BrushPoly;
 	int16_t PanU;
 	int16_t PanV;
-	int BrushActor;
+	UActor* BrushActor = nullptr;
 };
 
 class BspVert
@@ -262,6 +262,7 @@ public:
 	std::string Protocol;
 	std::string Host;
 	int Port = 0;
+	int Unknown = 0;
 	std::string Map;
 	Array<std::string> Options;
 	std::string Portal;
