@@ -75,7 +75,7 @@ void PackageStream::Seek(uint32_t offset)
 
 void PackageStream::Skip(uint32_t bytes)
 {
-	file->seek(file->tell());
+	file->seek(file->tell() + bytes);
 }
 
 uint32_t PackageStream::Tell()
