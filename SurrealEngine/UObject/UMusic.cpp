@@ -17,5 +17,12 @@ void UMusic::Load(ObjectStream* stream)
 void UMusic::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UMusic::Save not implemented");
+
+	stream->WriteName(Format);
+	if (stream->GetVersion() > 61)
+		stream->BeginSkipOffset();
+	stream->WriteIndex((int)Data.size());
+	stream->WriteBytes(Data.data(), (uint32_t)Data.size());
+	if (stream->GetVersion() > 61)
+		stream->EndSkipOffset();
 }

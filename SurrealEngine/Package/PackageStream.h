@@ -60,6 +60,9 @@ public:
 	void WriteName(NameString name);
 	void WriteObject(UObject* obj);
 
+	void BeginSkipOffset();
+	void EndSkipOffset();
+
 	void Seek(uint32_t offset);
 	uint32_t Tell();
 
@@ -69,4 +72,5 @@ public:
 private:
 	PackageWriter* package;
 	std::shared_ptr<File> file;
+	uint32_t skipOffsetLocation = 0;
 };

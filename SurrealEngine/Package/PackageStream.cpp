@@ -223,6 +223,20 @@ void PackageStreamWriter::WriteObject(UObject* obj)
 	WriteIndex(package->GetObjectReference(obj));
 }
 
+void PackageStreamWriter::BeginSkipOffset()
+{
+	skipOffsetLocation = Tell();
+	WriteUInt32(0xffffffff);
+}
+
+void PackageStreamWriter::EndSkipOffset()
+{
+	uint32_t cur = Tell();
+	Seek(skipOffsetLocation);
+	WriteUInt32(cur);
+	Seek(cur);
+}
+
 void PackageStreamWriter::Seek(uint32_t offset)
 {
 	file->seek(offset);

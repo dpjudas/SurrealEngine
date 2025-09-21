@@ -19,7 +19,15 @@ void UProperty::Load(ObjectStream* stream)
 void UProperty::Save(PackageStreamWriter* stream)
 {
 	UField::Save(stream);
-	Exception::Throw("UProperty::Save not implemented");
+
+	// To do: we clear some old PropFlags during load.
+	// Maybe store a copy of the original PropFlags in Load so we can save them here?
+
+	stream->WriteInt32(ArrayDimension);
+	stream->WriteUInt32((uint32_t)PropFlags);
+	stream->WriteName(Category);
+	if (AllFlags(PropFlags, PropertyFlags::Net))
+		stream->WriteUInt16(ReplicationOffset);
 }
 
 void UProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -72,7 +80,7 @@ void UByteProperty::Load(ObjectStream* stream)
 void UByteProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UByteProperty::Save not implemented");
+	stream->WriteObject(EnumType);
 }
 
 void UByteProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -243,7 +251,8 @@ void UFixedArrayProperty::Load(ObjectStream* stream)
 void UFixedArrayProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UFixedArrayProperty::Save not implemented");
+	stream->WriteObject(Inner);
+	stream->WriteInt32(Count);
 }
 
 void UFixedArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -263,7 +272,7 @@ void UArrayProperty::Load(ObjectStream* stream)
 void UArrayProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UArrayProperty::Save not implemented");
+	stream->WriteObject(Inner);
 }
 
 void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -296,7 +305,8 @@ void UMapProperty::Load(ObjectStream* stream)
 void UMapProperty::Save(PackageStreamWriter* stream)
 {
 	UProperty::Save(stream);
-	Exception::Throw("UMapProperty::Save not implemented");
+	stream->WriteObject(Key);
+	stream->WriteObject(Value);
 }
 
 void UMapProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)

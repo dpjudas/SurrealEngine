@@ -52,12 +52,37 @@ void UFont::Save(PackageStreamWriter* stream)
 	if (stream->GetVersion() <= 63)
 	{
 		UTexture::Save(stream);
+
+		FontPage& page = pages.front();
+		stream->WriteIndex((int)page.Characters.size());
+		for (FontCharacter& character : page.Characters)
+		{
+			stream->WriteInt32(character.StartU);
+			stream->WriteInt32(character.StartV);
+			stream->WriteInt32(character.USize);
+			stream->WriteInt32(character.VSize);
+		}
 	}
 	else
 	{
 		UObject::Save(stream);
+
+		stream->WriteIndex((int)pages.size());
+		for (FontPage& page : pages)
+		{
+			stream->WriteObject(page.Texture);
+			stream->WriteIndex((int)page.Characters.size());
+			for (FontCharacter& character : page.Characters)
+			{
+				stream->WriteInt32(character.StartU);
+				stream->WriteInt32(character.StartV);
+				stream->WriteInt32(character.USize);
+				stream->WriteInt32(character.VSize);
+			}
+		}
+
+		stream->WriteUInt32(charactersPerPage);
 	}
-	Exception::Throw("UFont::Save not implemented");
 }
 
 FontGlyph UFont::GetGlyph(char c) const

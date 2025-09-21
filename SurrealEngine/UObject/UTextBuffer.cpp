@@ -21,5 +21,8 @@ void UTextBuffer::Load(ObjectStream* stream)
 void UTextBuffer::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("UTextBuffer::Save not implemented");
+	stream->WriteUInt32(Pos);
+	stream->WriteUInt32(Top);
+	stream->WriteIndex((int)Text.size() + 1);
+	stream->WriteBytes(Text.c_str(), (uint32_t)Text.size() + 1);
 }

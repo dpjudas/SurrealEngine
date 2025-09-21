@@ -21,7 +21,14 @@ void USound::Load(ObjectStream* stream)
 void USound::Save(PackageStreamWriter* stream)
 {
 	UObject::Save(stream);
-	Exception::Throw("USound::Save not implemented");
+
+	stream->WriteName(Format);
+	if (stream->GetVersion() >= 63)
+		stream->BeginSkipOffset();
+	stream->WriteIndex((int)Data.size());
+	stream->WriteBytes(Data.data(), (uint32_t)Data.size());
+	if (stream->GetVersion() >= 63)
+		stream->EndSkipOffset();
 }
 
 void USound::GetSound()
