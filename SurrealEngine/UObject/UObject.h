@@ -141,7 +141,8 @@ public:
 	~PropertyDataBlock() { Reset(); }
 
 	void Init(UClass* cls);
-	void ReadProperties(ObjectStream* stream);
+	void Load(ObjectStream* stream);
+	void Save(PackageStreamWriter* stream);
 
 	inline void* Ptr(const UProperty* prop);
 	inline void* Ptr(size_t offset);

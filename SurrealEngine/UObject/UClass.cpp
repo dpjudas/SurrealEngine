@@ -480,7 +480,7 @@ void UClass::Load(ObjectStream* stream)
 	}
 
 	PropertyData.Init(this);
-	PropertyData.ReadProperties(stream);
+	PropertyData.Load(stream);
 
 	// Copy native UObject properties into the VM
 	SetObject("Class", this);
