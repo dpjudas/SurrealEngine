@@ -492,11 +492,11 @@ std::unique_ptr<ObjectStream> Package::OpenObjectStream(int index, const NameStr
 		auto stream = Packages->GetStream(this);
 		stream->Seek(entry.ObjOffset);
 		stream->ReadBytes(buffer.get(), entry.ObjSize);
-		return std::make_unique<ObjectStream>(this, std::move(buffer), entry.ObjOffset, entry.ObjSize, entry.ObjFlags, name, base);
+		return std::make_unique<ObjectStream>(this, std::move(buffer), entry.ObjOffset, entry.ObjSize, name, base);
 	}
 	else
 	{
-		return std::make_unique<ObjectStream>(this, std::unique_ptr<uint64_t[]>(), 0, 0, entry.ObjFlags, name, base);
+		return std::make_unique<ObjectStream>(this, std::unique_ptr<uint64_t[]>(), 0, 0, name, base);
 	}
 }
 

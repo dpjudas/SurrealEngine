@@ -116,6 +116,8 @@ public:
 
 	virtual void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header);
 	virtual void LoadStructMemberValue(void* data, ObjectStream* stream);
+	virtual void SaveHeader(void* data, PropertyHeader& header);
+	virtual void SaveValue(void* data, PackageStreamWriter* stream);
 
 	virtual size_t Alignment() { return 4; }
 	size_t Size() { return ElementSize() * ArrayDimension; }
@@ -203,6 +205,10 @@ public:
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
 	std::string PrintValue(const void* data) override { return "pointer"; }
@@ -218,6 +224,10 @@ public:
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
 
@@ -252,6 +262,10 @@ public:
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
 	bool Compare(void* v1, void* v2) override
@@ -287,6 +301,10 @@ public:
 	void Save(PackageStreamWriter* stream) override;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return Inner->Alignment(); }
 	size_t ElementSize() override { return Inner->Size() * Count; }
 
@@ -343,6 +361,10 @@ public:
 	void Save(PackageStreamWriter* stream) override;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(Array<void*>); }
 
@@ -420,6 +442,10 @@ public:
 	void Save(PackageStreamWriter* stream) override;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::map<void*,void*>); }
 
@@ -503,6 +529,9 @@ public:
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
@@ -619,8 +648,13 @@ class UIntProperty : public UProperty
 {
 public:
 	UIntProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueInt; }
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
 	bool IsDefaultValue(void* val)
 	{
@@ -637,8 +671,12 @@ class UBoolProperty : public UProperty
 {
 public:
 	UBoolProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
 	bool Compare(void* v1, void* v2) override
 	{
@@ -695,8 +733,13 @@ class UFloatProperty : public UProperty
 {
 public:
 	UFloatProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueFloat; }
+
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
 
 	bool IsDefaultValue(void* val)
@@ -717,6 +760,9 @@ public:
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(NameString); }
@@ -771,6 +817,9 @@ public:
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
 
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
+
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::string); }
 
@@ -815,6 +864,9 @@ public:
 	UStringProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
+
+	void SaveHeader(void* data, PropertyHeader& header) override;
+	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
 	size_t Alignment() override { return sizeof(void*); }
 	size_t ElementSize() override { return sizeof(std::string); }

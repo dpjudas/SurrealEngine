@@ -58,7 +58,7 @@ void UObject::Load(ObjectStream* stream)
 	if (Class)
 		Class->LoadNow();
 
-	if (AllFlags(stream->GetFlags(), ObjectFlags::HasStack))
+	if (AllFlags(Flags, ObjectFlags::HasStack))
 	{
 		UStruct* func = stream->ReadObject<UStruct>();
 		UState* state = stream->ReadObject<UState>();
@@ -124,7 +124,45 @@ void UObject::Load(ObjectStream* stream)
 
 void UObject::Save(PackageStreamWriter* stream)
 {
-	Exception::Throw("UObject::Save not implemented");
+	if (AllFlags(Flags, ObjectFlags::HasStack))
+	{
+#if 1
+		Exception::Throw("Saving objects with a stack not implemented");
+#else
+		// To do: state and func may not always be the same
+		UStruct* func = StateFrame ? StateFrame->Func : nullptr;
+		UState* state = StateFrame ? UObject::TryCast<UState>(StateFrame->Func) : nullptr;
+		int32_t latentAction = 0;
+		int offset = -1;
+
+		int64_t probeMask = 0;
+		for (int i = 0; i < 64; i++)
+		{
+			if (IsEventDisabled(ToNameString((EventName)i)))
+			{
+				probeMask |= 1ULL << (uint64_t)i;
+			}
+		}
+
+		if (StateFrame && StateFrame->LatentState != LatentRunState::Stop)
+		{
+			latentAction = NativeFunctions::IndexForLatentAction[StateFrame->LatentState];
+			offset = StateFrame->Func->Code->FindOffset(StateFrame->StatementIndex);
+		}
+
+		stream->WriteObject(func);
+		stream->WriteObject(state);
+		stream->WriteInt64(probeMask);
+		stream->WriteInt32(latentAction);
+		if (func)
+			stream->WriteIndex(offset);
+#endif
+	}
+
+	if (!UObject::TryCast<UClass>(this))
+	{
+		PropertyData.Save(stream);
+	}
 }
 
 PropertyDataOffset UObject::GetPropertyDataOffset(const NameString& name) const
@@ -630,14 +668,21 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 	{
 		for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 		{
-			// To do: skip property if it has the default block value
+			void* data = static_cast<uint8_t*>(Ptr(prop)) + prop->ElementSize() * arrayIndex;
 
-			stream->WriteName(prop->Name);
+			// To do: skip property if its value matches the default block value
 
-			PropertyHeader header;
+			PropertyHeader header = {};
 			header.arrayIndex = arrayIndex;
 			header.size = (int)prop->ElementSize();
-			// To do: init the header from prop
+			prop->SaveHeader(data, header);
+			if (header.type == UPT_Invalid)
+			{
+				LogMessage("Skipping saving invalid property " + prop->Name.ToString());
+				continue;
+			}
+
+			stream->WriteName(prop->Name);
 
 			uint8_t info = (uint8_t)header.type;
 
@@ -700,9 +745,7 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 				}
 			}
 
-			// To do: implement SaveValue
-			//void* data = Ptr(prop);
-			//prop->SaveValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream);
+			prop->SaveValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream);
 		}
 	}
 }

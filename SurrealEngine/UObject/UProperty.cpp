@@ -40,6 +40,15 @@ void UProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	Exception::Throw("Unsupported struct member type");
 }
 
+void UProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Invalid;
+}
+
+void UProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+}
+
 void UProperty::ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type)
 {
 	if (header.type != type)
@@ -69,6 +78,16 @@ void UPointerProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
+void UPointerProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Int;
+}
+
+void UPointerProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteInt32(*reinterpret_cast<int32_t*>(data));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UByteProperty::Load(ObjectStream* stream)
@@ -86,12 +105,22 @@ void UByteProperty::Save(PackageStreamWriter* stream)
 void UByteProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Byte);
-	*reinterpret_cast<uint8_t*>(data) = stream->ReadInt8();
+	*reinterpret_cast<uint8_t*>(data) = stream->ReadUInt8();
 }
 
 void UByteProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<uint8_t*>(data) = stream->ReadInt8();
+	*reinterpret_cast<uint8_t*>(data) = stream->ReadUInt8();
+}
+
+void UByteProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Byte;
+}
+
+void UByteProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteUInt8(*reinterpret_cast<uint8_t*>(data));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -107,6 +136,16 @@ void UIntProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
+void UIntProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Int;
+}
+
+void UIntProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteInt32(*reinterpret_cast<int32_t*>(data));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UFloatProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -120,6 +159,16 @@ void UFloatProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<float*>(data) = stream->ReadFloat();
 }
 
+void UFloatProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Float;
+}
+
+void UFloatProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteFloat(*reinterpret_cast<float*>(data));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UBoolProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -131,6 +180,16 @@ void UBoolProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHe
 void UBoolProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
 	SetBool(data, stream->ReadUInt8() == 1); // Is this always a byte? Is it aligned? Bitfield stuff?
+}
+
+void UBoolProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Bool;
+	header.boolValue = GetBool(data);
+}
+
+void UBoolProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -156,6 +215,16 @@ void UObjectProperty::LoadValue(void* data, ObjectStream* stream, const Property
 void UObjectProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
 	*reinterpret_cast<UObject**>(data) = stream->ReadObject<UObject>();
+}
+
+void UObjectProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Object;
+}
+
+void UObjectProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteObject(*reinterpret_cast<UObject**>(data));
 }
 
 void UObjectProperty::SetValueFromString(void* data, const std::string& valueString)
@@ -198,6 +267,16 @@ void UNameProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<NameString*>(data) = stream->ReadName();
 }
 
+void UNameProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Name;
+}
+
+void UNameProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteName(*reinterpret_cast<NameString*>(data));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UStringProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
@@ -209,6 +288,18 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	stream->ReadBytes(s.data(), (int)s.size());
 	s.push_back(0);
 	*reinterpret_cast<std::string*>(data) = s.data();
+}
+
+void UStringProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_String;
+	header.size = (int)reinterpret_cast<std::string*>(data)->size();
+}
+
+void UStringProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	const std::string& value = *reinterpret_cast<std::string*>(data);
+	stream->WriteBytes(value.data(), (uint32_t)value.size());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -239,6 +330,16 @@ void UStrProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 	*reinterpret_cast<std::string*>(data) = stream->ReadString();
 }
 
+void UStrProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Str;
+}
+
+void UStrProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteString(*reinterpret_cast<std::string*>(data));
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UFixedArrayProperty::Load(ObjectStream* stream)
@@ -259,6 +360,25 @@ void UFixedArrayProperty::LoadValue(void* data, ObjectStream* stream, const Prop
 {
 	ThrowIfTypeMismatch(header, UPT_FixedArray);
 	stream->Skip(header.size);
+}
+
+void UFixedArrayProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_FixedArray;
+	header.size = (int)(Inner->Size() * Count);
+}
+
+void UFixedArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	uint8_t* p = static_cast<uint8_t*>(data);
+	for (int i = 0; i < Count; i++)
+	{
+		for (int arrayIndex = 0; arrayIndex < Inner->ArrayDimension; arrayIndex++)
+		{
+			Inner->SaveValue(p, stream);
+			p += Inner->ElementSize();
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -293,6 +413,26 @@ void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyH
 	}
 }
 
+void UArrayProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	header.type = UPT_Array;
+	header.size = 5; // sizeof(Array) from UE1 
+}
+
+void UArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+#if 1
+	Exception::Throw("UArrayProperty::SaveValue not implemented");
+#else
+	Array<void*>& vec = static_cast<Array<void*>*>(data)[arrayIndex];
+	stream->WriteIndex((int)vec.size());
+	for (void* item : vec)
+	{
+		Inner->SaveValue(item, stream);
+	}
+#endif
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UMapProperty::Load(ObjectStream* stream)
@@ -313,6 +453,16 @@ void UMapProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 {
 	ThrowIfTypeMismatch(header, UPT_Map);
 	stream->Skip(header.size);
+}
+
+void UMapProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	Exception::Throw("UMapProperty::SaveHeader not implemented");
+}
+
+void UMapProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	Exception::Throw("UMapProperty::SaveValue not implemented");
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -384,4 +534,14 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
 	LoadStruct(data, stream, Struct);
+}
+
+void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
+{
+	Exception::Throw("UStructProperty::SaveHeader not implemented");
+}
+
+void UStructProperty::SaveValue(void* data, PackageStreamWriter* stream)
+{
+	Exception::Throw("UStructProperty::SaveValue not implemented");
 }
