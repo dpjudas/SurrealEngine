@@ -414,7 +414,7 @@ void Package::ReadTables()
 		Exception::Throw("Not an unreal package file: " + Name.ToString());
 
 	Version = stream->ReadInt16();
-	uint16_t licenseeMode = stream->ReadInt16();
+	LicenseeMode = stream->ReadInt16();
 
 	if (Version < 60 || Version >= 100)
 		Exception::Throw("Unsupported unreal package version: " + Name.ToString());
@@ -437,8 +437,7 @@ void Package::ReadTables()
 	}
 	else
 	{
-		uint8_t guid[16];
-		stream->ReadBytes(guid, 16);
+		stream->ReadBytes(Guid, 16);
 		uint32_t generationCount = stream->ReadInt32();
 		for (uint32_t i = 0; i < generationCount; i++)
 		{

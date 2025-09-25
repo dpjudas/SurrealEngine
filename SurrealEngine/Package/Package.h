@@ -81,10 +81,12 @@ private:
 	std::string Filename;
 
 	int Version = 0;
+	int LicenseeMode = 0;
 	PackageFlags Flags = PackageFlags::NoFlags;
 	Array<NameTableEntry> NameTable;
 	Array<ExportTableEntry> ExportTable;
 	Array<ImportTableEntry> ImportTable;
+	uint8_t Guid[16] = {};
 
 	std::map<NameString, int> NameHash;
 
@@ -97,6 +99,7 @@ private:
 
 	friend class PackageManager;
 	friend class UObject;
+	friend class PackageWriter;
 };
 
 inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
