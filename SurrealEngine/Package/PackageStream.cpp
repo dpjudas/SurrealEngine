@@ -197,10 +197,39 @@ void PackageStreamWriter::WriteUInt64(uint64_t v)
 
 void PackageStreamWriter::WriteIndex(int32_t v)
 {
+	uint8_t byte = 0;
+	if (v < 0)
+	{
+		byte |= (1 << 7);
+		v = -v;
+	}
+	byte |= (uint8_t)(v & 0x3f);
+	v >>= 6;
+	if (v != 0)
+		byte |= (1 << 6);
+	WriteUInt8(byte);
+
+	while (v != 0)
+	{
+		byte = v & 0x7f;
+		v >>= 7;
+		if (v != 0)
+			byte |= (1 << 7);
+		WriteUInt8(byte);
+	}
 }
 
 void PackageStreamWriter::WriteString(const std::string& v)
 {
+	if (GetVersion() >= 64)
+	{
+		WriteIndex((int)v.size());
+		WriteBytes(v.data(), (int)v.size());
+	}
+	else
+	{
+		WriteBytes(v.c_str(), (int)v.size() + 1);
+	}
 }
 
 void PackageStreamWriter::WriteAsciiZ(const std::string& v)
