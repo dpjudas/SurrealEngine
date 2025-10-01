@@ -4,6 +4,7 @@
 #include "Package.h"
 #include "PackageStream.h"
 #include "IniFile.h"
+#include "PackageWriter.h"
 #include "Utils/File.h"
 #include "Utils/StrCompare.h"
 #include "UObject/UObject.h"
@@ -143,6 +144,12 @@ Package* PackageManager::LoadSaveFile(const std::string& path)
 Package* PackageManager::LoadSaveSlot(const uint32_t slotNum)
 {
 	return LoadSaveFile("Save" + std::to_string(slotNum) + "." + GetSaveExtension());
+}
+
+void PackageManager::SavePackageToFile(Package* package, std::string& filePath)
+{
+	PackageWriter writer(package);
+	writer.Save(filePath);
 }
 
 void PackageManager::ScanForMaps()
