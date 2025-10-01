@@ -5,6 +5,7 @@
 #include "Utils/StrCompare.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
+#include "Package/PackageWriter.h"
 #include "Package/ObjectStream.h"
 #include "UObject/ULevel.h"
 #include "UObject/UFont.h"
@@ -34,10 +35,6 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 	engine = this;
 
 	packages = std::make_unique<PackageManager>(LaunchInfo);
-
-	//auto savegame = GC::Alloc<Package>(packages.get(), "Save0", "C:\\Games\\Unreal Gold\\Save\\Save0.usa");
-	//auto savegame = GC::Alloc<Package>(packages.get(), "Save0", "C:\\Games\\UnrealTournament436\\Save\\Save0.usa");
-	//auto savedlevelinfo = UObject::Cast<ULevelInfo>(savegame->GetUObject("LevelInfo", "LevelInfo0"));
 
 	std::srand((unsigned int)std::time(nullptr));
 
@@ -736,6 +733,27 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	}
 }
 
+void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription) const
+{
+	if (slotNum < -1 || (!packages->IsDeusEx() && slotNum <= 0))
+		Exception::Throw("Invalid save slot: " + std::to_string(slotNum));
+
+	if (packages->IsDeusEx())
+	{
+		// Handle Deus Ex separately, as saving a game there creates several files
+	}
+	else
+	{
+		auto saveFolderPath = FilePath::combine(LaunchInfo.gameRootFolder, "Save");
+		auto saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
+
+		auto saveFileFullPath = FilePath::combine(saveFolderPath, saveFileName);
+
+		PackageWriter writer(this->LevelPackage);
+		writer.Save(saveFileFullPath);
+	}
+}
+
 
 std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
 {
@@ -1062,6 +1080,25 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		}
 
 		LogMessage("Couldn't find map " + maparg);
+	}
+	else if (command == "savegame" && args.size() == 2)
+	{
+		/*
+		int32_t slotNum;
+		// slotNum not being parsable shouldn't cause a crash
+		try
+		{
+			slotNum = Convert::to_int32(args[1]);
+		}
+		catch (...)
+		{
+			return {};
+		}
+
+		SaveGameToSlot(slotNum, "");
+		*/
+		LogMessage("SaveGame command not fully implemented yet!");
+		return {};
 	}
 	else if (command == "get" && args.size() == 3)
 	{
