@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <filesystem>
 
 enum class SeekPoint
 {
@@ -27,6 +28,8 @@ public:
 			return {};
 		}
 	}
+
+	static void rename(const std::string& sourceName, const std::string& destinationName);
 
 	static void write_all_bytes(const std::string& filename, const void* data, size_t size);
 	static void write_all_text(const std::string& filename, const std::string& text);

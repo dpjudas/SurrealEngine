@@ -132,6 +132,11 @@ void File::delete_always(const std::string& filename)
 		throw std::runtime_error("Could not delete " + filename);
 }
 
+void File::rename(const std::string& sourceName, const std::string& destinationName)
+{
+	std::filesystem::rename(sourceName, destinationName);
+}
+
 #else
 
 class FileImpl : public File
@@ -212,6 +217,11 @@ void File::delete_always(const std::string& filename)
 {
 	if (!try_delete(filename))
 		throw std::runtime_error("Could not delete " + filename);
+}
+
+void File::rename(const std::string& sourceName, const std::string& destinationName)
+{
+	std::filesystem::rename(sourceName, destinationName);
 }
 
 #endif
