@@ -43,8 +43,9 @@ they end up dying because SE thinks that they've fallen from a great height.
 * viewclass command crashes with null deref.
 * Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
 * Third person views don't work properly as the player character is not rendered.
-* Zones don't apply velocity to the players when they should (Like the conveyor belt in DM-Conveyor)
 * Zones don't hurt the player when they should (Drowning in water/getting burned in lava, etc.)
+* Inventory from loaded saves do NOT transfer to the next map.
+* Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
 * There is no OpenGL renderer.
 * There is no networking support at all.
 * By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
@@ -53,7 +54,6 @@ they end up dying because SE thinks that they've fallen from a great height.
   - Sometimes menus remain persistent (due to rapidly switching?)
   - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
   because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
-  - No clipboard support yet
 
 ## General Engine bugs that might need further testing
 * There seem to be a memory leak due to Garbage Collection not being implemented. This is probably extremely hard to notice as UE1 games 
@@ -95,7 +95,7 @@ won't use much memory when run on modern computers. Might need to run SE for a l
 ## Tactical-Ops: Assault on Terror
 
 ### Known bugs:
-* Currently crashes immediately due to SE being unable to find "TO_Replacer.ini".
+* Currently, game crashes immediately due to SE being unable to find "TO_Replacer.ini".
 * Attempting to bring up the menus crashes the engine.
 * Opening up any map crashes the engine.
 
