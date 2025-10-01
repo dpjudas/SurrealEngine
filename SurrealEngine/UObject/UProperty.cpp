@@ -421,16 +421,12 @@ void UArrayProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-#if 1
-	Exception::Throw("UArrayProperty::SaveValue not implemented");
-#else
-	Array<void*>& vec = static_cast<Array<void*>*>(data)[arrayIndex];
+	Array<void*>& vec = *static_cast<Array<void*>*>(data);
 	stream->WriteIndex((int)vec.size());
 	for (void* item : vec)
 	{
 		Inner->SaveValue(item, stream);
 	}
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -538,10 +534,31 @@ void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 
 void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
 {
-	Exception::Throw("UStructProperty::SaveHeader not implemented");
+	header.type = UPT_Struct;
+	header.size = (int)ElementSize();
+}
+
+static void* SaveStruct(void* data, PackageStreamWriter* stream, UStruct* Struct)
+{
+	if (auto base = UObject::TryCast<UStruct>(Struct->BaseField))
+	{
+		data = SaveStruct(data, stream, base);
+	}
+
+	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
+		if (fieldprop)
+		{
+			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
+			fieldprop->SaveValue(fielddata, stream);
+		}
+	}
+
+	return static_cast<uint8_t*>(data) + Struct->StructSize;
 }
 
 void UStructProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	Exception::Throw("UStructProperty::SaveValue not implemented");
+	SaveStruct(data, stream, Struct);
 }
