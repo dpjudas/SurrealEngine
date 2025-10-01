@@ -3,6 +3,7 @@
 #include "PackageWriter.h"
 #include "PackageStream.h"
 #include "NameString.h"
+#include "PackageManager.h"
 #include "Utils/File.h"
 
 PackageWriter::PackageWriter(Package* package) : Source(package)
@@ -10,13 +11,16 @@ PackageWriter::PackageWriter(Package* package) : Source(package)
 
 }
 
-void PackageWriter::Save()
+void PackageWriter::Save(std::string savePath = "")
 {
-	std::string outputFilename = FilePath::remove_extension(Source->GetPackageFilename()) + ".tmp";
+	if (savePath.empty())
+		savePath = Source->GetPackageFilename();
+
+	std::string tempFilename = FilePath::remove_extension(savePath) + ".tmp";
 
 	try
 	{
-		auto stream = std::make_unique<PackageStreamWriter>(this, File::create_always(outputFilename));
+		auto stream = std::make_unique<PackageStreamWriter>(this, File::create_always(tempFilename));
 		WriteHeader(stream.get());
 		WriteObjects(stream.get());
 		WriteNameTable(stream.get());
@@ -26,12 +30,22 @@ void PackageWriter::Save()
 		WriteHeader(stream.get());
 		stream.reset();
 
-		//File::delete_always(Source->GetPackageFilename());
-		//File::rename(outputFilename, Source->GetPackageFilename());
+		try
+		{
+			File::rename(savePath, savePath + ".old");
+		}
+		catch (...)
+		{
+			// No file to rename?
+		}
+
+		File::rename(tempFilename, savePath);
+
+		// TODO: Probably refresh the packages if saving is successful.
 	}
 	catch (...)
 	{
-		File::try_delete(outputFilename);
+		File::try_delete(tempFilename);
 		throw;
 	}
 }

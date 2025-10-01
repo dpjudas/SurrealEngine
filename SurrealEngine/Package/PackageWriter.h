@@ -10,7 +10,7 @@ class PackageWriter
 {
 public:
 	PackageWriter(Package* package);
-	void Save();
+	void Save(std::string savePath);
 
 private:
 	void WriteHeader(PackageStreamWriter* stream);
