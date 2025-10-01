@@ -194,7 +194,8 @@ int PackageWriter::GetObjectReference(UObject* obj)
 	if (obj == nullptr)
 		return 0;
 
-	GetObjectReference(obj->Class);
+	if (obj != obj->Class)
+		GetObjectReference(obj->Class);
 
 	auto it = ObjRefHash.find(obj);
 	if (it != ObjRefHash.end())
@@ -205,7 +206,7 @@ int PackageWriter::GetObjectReference(UObject* obj)
 	{
 		ExportTableEntry entry = {};
 		if (isClass)
-			entry.ObjBase = ObjRefHash[obj->Class];
+			entry.ObjBase = (obj != obj->Class) ? ObjRefHash[obj->Class] : 0;
 		else
 			entry.ObjClass = ObjRefHash[obj->Class];
 		entry.ObjPackage = GetNameIndex(obj->package->Name);
