@@ -127,6 +127,11 @@ void PackageManager::UnloadMap(Package* package)
 	}
 }
 
+void PackageManager::CloseStreams()
+{
+	openStreams.clear();
+}
+
 Package* PackageManager::LoadSaveFile(const std::string& path)
 {
 	auto saveFolder = FilePath::combine(launchInfo.gameRootFolder, "Save");
@@ -144,12 +149,6 @@ Package* PackageManager::LoadSaveFile(const std::string& path)
 Package* PackageManager::LoadSaveSlot(const uint32_t slotNum)
 {
 	return LoadSaveFile("Save" + std::to_string(slotNum) + "." + GetSaveExtension());
-}
-
-void PackageManager::SavePackageToFile(Package* package, std::string& filePath)
-{
-	PackageWriter writer(package);
-	writer.Save(filePath);
 }
 
 void PackageManager::ScanForMaps()

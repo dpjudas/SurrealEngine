@@ -41,9 +41,10 @@ public:
 	Package* LoadMap(const std::string& path);
 	void UnloadMap(Package* package);
 
+	void CloseStreams();
+
 	Package* LoadSaveFile(const std::string& path);
 	Package* LoadSaveSlot(const uint32_t slotNum);
-	void SavePackageToFile(Package* mapPackage, std::string& filePath);
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 

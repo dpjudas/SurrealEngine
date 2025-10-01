@@ -31,6 +31,11 @@ GCRootNode::~GCRootNode()
 	}
 }
 
+GCAllocation* GC::GetAllocations()
+{
+	return allocations;
+}
+
 GCAllocation* GC::AllocMemory(size_t size)
 {
 	size_t memsize = sizeof(GCAllocation) + size;

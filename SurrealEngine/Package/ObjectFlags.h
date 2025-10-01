@@ -42,3 +42,9 @@ enum class ObjectFlags : uint32_t
 	Keep = Native | Marked, // Flags to persist across loads
 	ScriptMask = Transactional | Public | Transient | NotForClient | NotForServer | NotForEdit // Script-accessible flags
 };
+
+inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
+inline ObjectFlags operator|=(ObjectFlags& a, ObjectFlags b) { a = (ObjectFlags)((uint32_t)a | (uint32_t)b); return a; }
+inline ObjectFlags operator&(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a & (uint32_t)b); }
+inline bool AllFlags(ObjectFlags value, ObjectFlags flags) { return (value & flags) == flags; }
+inline bool AnyFlags(ObjectFlags value, ObjectFlags flags) { return (uint32_t)(value & flags) != 0; }

@@ -5,6 +5,7 @@
 #include <memory>
 
 struct GCAllocation;
+class GCObjectList;
 
 class GCObject
 {
@@ -88,15 +89,42 @@ public:
 
 	static void Collect();
 	static GCStats GetStats();
+	static GCObjectList GetObjects();
 
 	static GCAllocation* MarkObject(GCAllocation* marklist, GCObject* obj);
 
 private:
+	static GCAllocation* GetAllocations();
 	static GCAllocation* AllocMemory(size_t size);
 	static void FreeMemory(GCAllocation* allocation);
 	static GCAllocation* Mark(GCAllocation* allocation);
 	static void Sweep();
+
+	friend class GCObjectList;
 };
+
+class GCObjectList
+{
+public:
+	class iterator
+	{
+	public:
+		iterator(GCAllocation* item) : item(item) {}
+
+		GCObject* operator*() const { return item->object(); }
+		iterator operator++() { return item->allocklistNext; }
+
+		bool operator==(const iterator& other) const { return item == other.item; }
+
+	private:
+		GCAllocation* item;
+	};
+
+	iterator begin() { return GC::GetAllocations(); }
+	iterator end() { return nullptr; }
+};
+
+inline GCObjectList GC::GetObjects() { return {}; }
 
 inline GCAllocation* GC::MarkObject(GCAllocation* marklist, GCObject* obj)
 {

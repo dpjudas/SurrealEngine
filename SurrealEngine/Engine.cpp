@@ -5,7 +5,6 @@
 #include "Utils/StrCompare.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
-#include "Package/PackageWriter.h"
 #include "Package/ObjectStream.h"
 #include "UObject/ULevel.h"
 #include "UObject/UFont.h"
@@ -744,16 +743,12 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 	}
 	else
 	{
-		auto saveFolderPath = FilePath::combine(LaunchInfo.gameRootFolder, "Save");
-		auto saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
-
-		auto saveFileFullPath = FilePath::combine(saveFolderPath, saveFileName);
-
-		PackageWriter writer(this->LevelPackage);
-		writer.Save(saveFileFullPath);
+		std::string saveFolderPath = FilePath::combine(LaunchInfo.gameRootFolder, "Save");
+		std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
+		std::string saveFileFullPath = FilePath::combine(saveFolderPath, saveFileName);
+		LevelPackage->Save(Level, saveFileFullPath);
 	}
 }
-
 
 std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
 {
@@ -786,7 +781,7 @@ void Engine::LoginPlayer()
 		playerPawnClass = packages->GetIniValue("system", "URL", "Class");
 	UClass* pawnClass = packages->FindClass(playerPawnClass);
 
-	// Perform PreLogin check (supposedly, good for early rejection in network games)
+	// Perform PreLogin check (used for early rejection in network games)
 	CallEvent(LevelInfo->Game(), EventName::PreLogin, {
 		ExpressionValue::StringValue(options),
 		ExpressionValue::Variable(&error, stringProp),

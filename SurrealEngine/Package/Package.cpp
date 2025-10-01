@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Package.h"
+#include "PackageWriter.h"
 #include "PackageStream.h"
 #include "PackageManager.h"
 #include "UObject/UObject.h"
@@ -176,16 +177,33 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	RegisterNativeClass<UTcpLink>(ipdrvPackage, "TcpLink", "InternetLink");
 	RegisterNativeClass<UUdpLink>(ipdrvPackage, "UdpLink", "InternetLink");
 
-	Objects.resize(ExportTable.size());
+	ExportObjects.resize(ExportTable.size());
 }
 
 Package::~Package()
 {
 }
 
+void Package::LoadAll()
+{
+	for (size_t i = 0; i < ExportTable.size(); i++)
+	{
+		GetUObject((int)i + 1);
+	}
+}
+
+void Package::Save(UObject* object, const std::string& filename)
+{
+	if (object && object->package != this)
+		Exception::Throw("Object does not belong to this package");
+
+	PackageWriter writer(this);
+	writer.Save(object, filename);
+}
+
 GCAllocation* Package::Mark(GCAllocation* marklist)
 {
-	for (UObject* obj : Objects)
+	for (UObject* obj : ExportObjects)
 		marklist = GC::MarkObject(marklist, obj);
 	return marklist;
 }
@@ -229,9 +247,9 @@ void Package::LoadExportObject(int index)
 			Exception::Throw("Could not find the object class for " + objname.ToString());
 		}
 
-		Objects[index] = NewObject(objname, objclass, ExportTable[index].ObjFlags, false);
-		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
-		Packages->delayLoads.push_back(Objects[index]);
+		ExportObjects[index] = NewObject(objname, objclass, ExportTable[index].ObjFlags, false);
+		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
+		Packages->delayLoads.push_back(ExportObjects[index]);
 	}
 	else
 	{
@@ -239,9 +257,9 @@ void Package::LoadExportObject(int index)
 		if (!objbase && objname != "Object")
 			objbase = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Object"));
 		auto obj = GC::Alloc<UClass>(objname, objbase, ExportTable[index].ObjFlags);
-		Objects[index] = obj;
-		Objects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
-		Packages->delayLoads.push_back(Objects[index]);
+		ExportObjects[index] = obj;
+		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
+		Packages->delayLoads.push_back(ExportObjects[index]);
 	}
 }
 
@@ -251,16 +269,16 @@ UObject* Package::GetUObject(int objref)
 	{
 		int index = objref - 1;
 
-		if ((size_t)index > Objects.size())
+		if ((size_t)index > ExportObjects.size())
 			Exception::Throw("Invalid object reference");
 
-		if (!Objects[index])
+		if (!ExportObjects[index])
 			LoadExportObject(index);
 
 		if (Packages->delayLoadActive == 0)
 			Packages->DelayLoadNow();
 
-		UObject* object = Objects[index];
+		UObject* object = ExportObjects[index];
 		object->package = this;
 		object->exportIndex = index;
 		return object;

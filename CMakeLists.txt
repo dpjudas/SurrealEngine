@@ -232,17 +232,18 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/RenderDevice/Vulkan/UploadManager.h
 	SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp
 	SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.h
-	SurrealEngine/Package/ObjectFlags.h
-	SurrealEngine/Package/Package.h
-	SurrealEngine/Package/ObjectStream.h
-	SurrealEngine/Package/PackageManager.cpp
-	SurrealEngine/Package/PackageFlags.h
 	SurrealEngine/Package/Package.cpp
+	SurrealEngine/Package/Package.h
+	SurrealEngine/Package/PackageManager.cpp
 	SurrealEngine/Package/PackageManager.h
-	SurrealEngine/Package/PackageStream.h
 	SurrealEngine/Package/PackageStream.cpp
+	SurrealEngine/Package/PackageStream.h
 	SurrealEngine/Package/PackageWriter.cpp
 	SurrealEngine/Package/PackageWriter.h
+	SurrealEngine/Package/PackageFlags.h
+	SurrealEngine/Package/PackageTables.h
+	SurrealEngine/Package/ObjectFlags.h
+	SurrealEngine/Package/ObjectStream.h
 	SurrealEngine/Package/IniFile.h
 	SurrealEngine/Package/IniFile.cpp
 	SurrealEngine/Package/IniProperty.cpp

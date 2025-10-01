@@ -4,25 +4,29 @@
 #include "PackageStream.h"
 #include "NameString.h"
 #include "PackageManager.h"
+#include "UObject/UObject.h"
+#include "UObject/UClass.h"
 #include "Utils/File.h"
 
 PackageWriter::PackageWriter(Package* package) : Source(package)
 {
-
 }
 
-void PackageWriter::Save(std::string savePath = "")
+void PackageWriter::Save(UObject* packageObject, std::string filename)
 {
-	if (savePath.empty())
-		savePath = Source->GetPackageFilename();
+	// Everything must be loaded
+	Source->LoadAll();
 
-	std::string tempFilename = FilePath::remove_extension(savePath) + ".tmp";
+	if (filename.empty())
+		filename = Source->GetPackageFilename();
+
+	std::string tempFilename = FilePath::remove_extension(filename) + ".tmp";
 
 	try
 	{
 		auto stream = std::make_unique<PackageStreamWriter>(this, File::create_always(tempFilename));
 		WriteHeader(stream.get());
-		WriteObjects(stream.get());
+		WriteObjects(packageObject, stream.get());
 		WriteNameTable(stream.get());
 		WriteExportTable(stream.get());
 		WriteImportTable(stream.get());
@@ -30,18 +34,28 @@ void PackageWriter::Save(std::string savePath = "")
 		WriteHeader(stream.get());
 		stream.reset();
 
+		// Close all package file handles
+		Source->GetPackageManager()->CloseStreams();
+
 		try
 		{
-			File::rename(savePath, savePath + ".old");
+			File::rename(filename, filename + ".old");
 		}
 		catch (...)
 		{
 			// No file to rename?
 		}
 
-		File::rename(tempFilename, savePath);
+		File::rename(tempFilename, filename);
 
-		// TODO: Probably refresh the packages if saving is successful.
+		if (filename == Source->GetPackageFilename()) // To do: should we search all open packages?
+		{
+			Source->NameTable = std::move(NameTable);
+			Source->NameHash = std::move(NameHash);
+			Source->ImportTable = std::move(ImportTable);
+			Source->ExportTable = std::move(ExportTable);
+			Source->ExportObjects = std::move(ExportObjects);
+		}
 	}
 	catch (...)
 	{
@@ -85,8 +99,36 @@ void PackageWriter::WriteHeader(PackageStreamWriter* stream)
 	}
 }
 
-void PackageWriter::WriteObjects(PackageStreamWriter* stream)
+void PackageWriter::WriteObjects(UObject* packageObject, PackageStreamWriter* stream)
 {
+	if (packageObject)
+	{
+		// Save a specific object and all its dependencies
+		GetObjectReference(packageObject);
+	}
+	else
+	{
+		// Save all ObjectFlags::Standalone objects and their dependencies
+		for (GCObject* gcobj : GC::GetObjects())
+		{
+			if (auto obj = dynamic_cast<UObject*>(gcobj))
+			{
+				if (obj->package == Source && AllFlags(obj->Flags, ObjectFlags::Standalone))
+				{
+					GetObjectReference(obj);
+				}
+			}
+		}
+	}
+
+	size_t i = 0;
+	while (i < ExportTable.size())
+	{
+		ExportTable[i].ObjOffset = stream->Tell();
+		ExportObjects[i]->Save(stream);
+		ExportTable[i].ObjSize = stream->Tell() - ExportTable[i].ObjOffset;
+		i++;
+	}
 }
 
 void PackageWriter::WriteNameTable(PackageStreamWriter* stream)
@@ -149,5 +191,46 @@ int PackageWriter::GetNameIndex(NameString name)
 
 int PackageWriter::GetObjectReference(UObject* obj)
 {
-	return 0;
+	if (obj == nullptr)
+		return 0;
+
+	GetObjectReference(obj->Class);
+
+	auto it = ObjRefHash.find(obj);
+	if (it != ObjRefHash.end())
+		return it->second;
+
+	bool isClass = UObject::TryCast<UClass>(obj) != nullptr;
+	if (obj->package == Source)
+	{
+		ExportTableEntry entry = {};
+		if (isClass)
+			entry.ObjBase = ObjRefHash[obj->Class];
+		else
+			entry.ObjClass = ObjRefHash[obj->Class];
+		entry.ObjPackage = GetNameIndex(obj->package->Name);
+		entry.ObjName = GetNameIndex(obj->Name);
+		entry.ObjFlags = obj->Flags;
+
+		ExportTable.push_back(entry);
+		ExportObjects.push_back(obj);
+		return (int)ExportTable.size();
+	}
+	else
+	{
+		// This stuff encodes some group info :(
+		// see Package::GetUObject
+
+		// entry.ObjName      <-- name table index
+		// entry.ClassName    <-- name table index
+		// entry.ObjPackage   <-- import table index (group?)
+		// entry.ClassPackage <-- unknown index
+
+		ImportTableEntry entry = {};
+		entry.ObjName = GetNameIndex(obj->Name);
+		entry.ClassName = GetNameIndex(obj->Class->Name);
+
+		ImportTable.push_back(entry);
+		return (int)ImportTable.size();
+	}
 }

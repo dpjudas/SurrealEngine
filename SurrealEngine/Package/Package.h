@@ -2,6 +2,7 @@
 
 #include "GC/GC.h"
 #include "PackageFlags.h"
+#include "PackageTables.h"
 #include "ObjectFlags.h"
 #include "NameString.h"
 #include <functional>
@@ -11,34 +12,6 @@ class PackageStream;
 class ObjectStream;
 class UObject;
 class UClass;
-
-class NameTableEntry
-{
-public:
-	NameString Name;
-	uint32_t Flags;
-};
-
-class ImportTableEntry
-{
-public:
-	int32_t ClassPackage;
-	int32_t ClassName;
-	int32_t ObjPackage;
-	int32_t ObjName;
-};
-
-class ExportTableEntry
-{
-public:
-	int32_t ObjClass;
-	int32_t ObjBase;
-	int32_t ObjPackage;
-	int32_t ObjName;
-	ObjectFlags ObjFlags;
-	int32_t ObjSize;
-	int32_t ObjOffset;
-};
 
 class Package : public GCObject
 {
@@ -50,6 +23,9 @@ public:
 
 	UObject* GetUObject(int objref);
 	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& groupName = {});
+
+	void LoadAll();
+	void Save(UObject* object = nullptr, const std::string& filename = {});
 
 	const NameString& GetName(int index) const;
 	int GetVersion() const { return Version; }
@@ -90,7 +66,7 @@ private:
 
 	std::map<NameString, int> NameHash;
 
-	Array<UObject*> Objects;
+	Array<UObject*> ExportObjects;
 
 	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
 
@@ -101,12 +77,6 @@ private:
 	friend class UObject;
 	friend class PackageWriter;
 };
-
-inline ObjectFlags operator|(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a | (uint32_t)b); }
-inline ObjectFlags operator|=(ObjectFlags& a, ObjectFlags b) { a = (ObjectFlags)((uint32_t)a | (uint32_t)b); return a; }
-inline ObjectFlags operator&(ObjectFlags a, ObjectFlags b) { return (ObjectFlags)((uint32_t)a & (uint32_t)b); }
-inline bool AllFlags(ObjectFlags value, ObjectFlags flags) { return (value & flags) == flags; }
-inline bool AnyFlags(ObjectFlags value, ObjectFlags flags) { return (uint32_t)(value & flags) != 0; }
 
 template<typename T>
 void Package::RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass)
