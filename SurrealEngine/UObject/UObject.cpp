@@ -669,6 +669,11 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 {
 	for (UProperty* prop : Class->Properties)
 	{
+		// Native properties are saved by the objects themselves
+		// Transient properties don't get saved
+		if (AnyFlags(prop->PropFlags, PropertyFlags::Native | PropertyFlags::Transient))
+			continue;
+
 		for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 		{
 			void* data = static_cast<uint8_t*>(Ptr(prop)) + prop->ElementSize() * arrayIndex;
@@ -677,7 +682,6 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 
 			PropertyHeader header = {};
 			header.arrayIndex = arrayIndex;
-			header.size = (int)prop->ElementSize();
 			prop->SaveHeader(data, header);
 			if (header.type == UPT_Invalid)
 			{
@@ -685,70 +689,11 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 				continue;
 			}
 
-			stream->WriteName(prop->Name);
-
-			uint8_t info = (uint8_t)header.type;
-
-			if ((header.type != UPT_Bool && header.arrayIndex > 0) || header.boolValue)
-				info |= 0x80;
-
-			if (header.size == 1)
-				info |= 0 << 4;
-			else if (header.size == 2)
-				info |= 1 << 4;
-			else if (header.size == 4)
-				info |= 2 << 4;
-			else if (header.size == 12)
-				info |= 3 << 4;
-			else if (header.size == 16)
-				info |= 4 << 4;
-			else if (header.size <= 0xff)
-				info |= 5 << 4;
-			else if (header.size <= 0xffff)
-				info |= 6 << 4;
-			else
-				info |= 7 << 4;
-
-			stream->WriteInt8(info);
-
-			if (header.type == UPT_Struct)
-				stream->WriteName(header.structName);
-
-			switch ((info & 0x70) >> 4)
-			{
-			default: break;
-			case 5: stream->WriteUInt8(header.size); break;
-			case 6: stream->WriteUInt16(header.size); break;
-			case 7: stream->WriteUInt32(header.size); break;
-			}
-
-			if (header.type != UPT_Bool && header.arrayIndex > 0)
-			{
-				if (header.arrayIndex < 128)
-				{
-					stream->WriteUInt8((uint8_t)header.arrayIndex);
-				}
-				else if (header.arrayIndex < 32768)
-				{
-					uint8_t byte1 = 0x80 | (header.arrayIndex >> 8);
-					uint8_t byte2 = header.arrayIndex & 0xff;
-					stream->WriteUInt8(byte1);
-					stream->WriteUInt8(byte2);
-				}
-				else
-				{
-					uint8_t byte1 = 0xc0 | (header.arrayIndex >> 24);
-					uint8_t byte2 = (header.arrayIndex >> 16) & 0xff;
-					uint8_t byte3 = (header.arrayIndex >> 8) & 0xff;
-					uint8_t byte4 = header.arrayIndex & 0xff;
-					stream->WriteUInt8(byte1);
-					stream->WriteUInt8(byte2);
-					stream->WriteUInt8(byte3);
-					stream->WriteUInt8(byte4);
-				}
-			}
-
+			stream->BeginProperty(prop->Name);
 			prop->SaveValue(data, stream);
+			stream->EndProperty(header);
 		}
 	}
+
+	stream->WriteName(NameString());
 }

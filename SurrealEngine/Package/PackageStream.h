@@ -5,6 +5,7 @@ class Package;
 class PackageWriter;
 class UObject;
 class NameString;
+struct PropertyHeader;
 
 class PackageStream
 {
@@ -63,6 +64,9 @@ public:
 	void BeginSkipOffset();
 	void EndSkipOffset();
 
+	void BeginProperty(NameString name);
+	void EndProperty(PropertyHeader header);
+
 	void Seek(uint32_t offset);
 	uint32_t Tell();
 
@@ -73,4 +77,7 @@ private:
 	PackageWriter* package;
 	std::shared_ptr<File> file;
 	uint32_t skipOffsetLocation = 0;
+
+	int propertyPos = -1;
+	Array<uint8_t> propertyBuffer;
 };

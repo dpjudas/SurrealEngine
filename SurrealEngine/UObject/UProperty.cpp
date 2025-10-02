@@ -293,13 +293,12 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 void UStringProperty::SaveHeader(void* data, PropertyHeader& header)
 {
 	header.type = UPT_String;
-	header.size = (int)reinterpret_cast<std::string*>(data)->size();
 }
 
 void UStringProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
 	const std::string& value = *reinterpret_cast<std::string*>(data);
-	stream->WriteBytes(value.data(), (uint32_t)value.size());
+	stream->WriteBytes(value.c_str(), (uint32_t)value.size() + 1);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -365,7 +364,6 @@ void UFixedArrayProperty::LoadValue(void* data, ObjectStream* stream, const Prop
 void UFixedArrayProperty::SaveHeader(void* data, PropertyHeader& header)
 {
 	header.type = UPT_FixedArray;
-	header.size = (int)(Inner->Size() * Count);
 }
 
 void UFixedArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
@@ -416,7 +414,6 @@ void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyH
 void UArrayProperty::SaveHeader(void* data, PropertyHeader& header)
 {
 	header.type = UPT_Array;
-	header.size = 5; // sizeof(Array) from UE1 
 }
 
 void UArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
@@ -535,7 +532,7 @@ void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
 {
 	header.type = UPT_Struct;
-	header.size = (int)ElementSize();
+	header.structName = Struct->Name;
 }
 
 static void* SaveStruct(void* data, PackageStreamWriter* stream, UStruct* Struct)

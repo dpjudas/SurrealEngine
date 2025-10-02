@@ -24,6 +24,8 @@ void PackageWriter::Save(UObject* packageObject, std::string filename)
 
 	try
 	{
+		GetNameIndex({}); // Add None as first index to name table
+
 		auto stream = std::make_unique<PackageStreamWriter>(this, File::create_always(tempFilename));
 		WriteHeader(stream.get());
 		WriteObjects(packageObject, stream.get());
