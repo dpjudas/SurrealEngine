@@ -206,11 +206,11 @@ int PackageWriter::GetObjectReference(UObject* obj)
 	{
 		ExportTableEntry entry = {};
 		if (isClass)
-			entry.ObjBase = (obj != obj->Class) ? ObjRefHash[obj->Class] : 0;
+			entry.ObjBase = (obj != obj->Class) ? GetObjectReference(obj->Class) : 0;
 		else
-			entry.ObjClass = ObjRefHash[obj->Class];
-		entry.ObjPackage = GetNameIndex(obj->package->Name);
+			entry.ObjClass = GetObjectReference(obj->Class);
 		entry.ObjName = GetNameIndex(obj->Name);
+		//entry.ObjPackage = GetObjectReference(obj->group);
 		entry.ObjFlags = obj->Flags;
 
 		ExportTable.push_back(entry);
@@ -225,17 +225,14 @@ int PackageWriter::GetObjectReference(UObject* obj)
 		// This stuff encodes some group info :(
 		// see Package::GetUObject
 
-		// entry.ObjName      <-- name table index
-		// entry.ClassName    <-- name table index
-		// entry.ObjPackage   <-- import table index (group?)
-		// entry.ClassPackage <-- unknown index
-
 		ImportTableEntry entry = {};
 		entry.ObjName = GetNameIndex(obj->Name);
 		entry.ClassName = GetNameIndex(obj->Class->Name);
+		//entry.ObjPackage = GetObjectReference(obj->package);
+		//entry.ClassPackage = GetObjectReference(obj->Class->package);
 		ImportTable.push_back(entry);
 
-		int ref = (int)ImportTable.size();
+		int ref = -(int)ImportTable.size();
 		ObjRefHash[obj] = ref;
 		return ref;
 	}
