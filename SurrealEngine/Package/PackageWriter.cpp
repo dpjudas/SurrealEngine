@@ -215,7 +215,10 @@ int PackageWriter::GetObjectReference(UObject* obj)
 
 		ExportTable.push_back(entry);
 		ExportObjects.push_back(obj);
-		return (int)ExportTable.size();
+
+		int ref = (int)ExportTable.size();
+		ObjRefHash[obj] = ref;
+		return ref;
 	}
 	else
 	{
@@ -230,8 +233,10 @@ int PackageWriter::GetObjectReference(UObject* obj)
 		ImportTableEntry entry = {};
 		entry.ObjName = GetNameIndex(obj->Name);
 		entry.ClassName = GetNameIndex(obj->Class->Name);
-
 		ImportTable.push_back(entry);
-		return (int)ImportTable.size();
+
+		int ref = (int)ImportTable.size();
+		ObjRefHash[obj] = ref;
+		return ref;
 	}
 }
