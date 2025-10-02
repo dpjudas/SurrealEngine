@@ -5,6 +5,7 @@
 #include "PackageWriter.h"
 #include "UObject/UObject.h"
 #include "Utils/File.h"
+#include <cstring>
 
 PackageStream::PackageStream(Package* package, std::shared_ptr<File> file) : package(package), file(file)
 {
