@@ -208,27 +208,27 @@ void UModel::Load(ObjectStream* stream)
 
 	if (stream->GetVersion() <= 61)
 	{
-		UVectors* vectors = stream->ReadObject<UVectors>();
-		UVectors* points = stream->ReadObject<UVectors>();
-		UBspNodes* nodes = stream->ReadObject<UBspNodes>();
-		UBspSurfs* surfaces = stream->ReadObject<UBspSurfs>();
-		UVerts* verts = stream->ReadObject<UVerts>();
+		OldFormat.Vectors = stream->ReadObject<UVectors>();
+		OldFormat.Points = stream->ReadObject<UVectors>();
+		OldFormat.Nodes = stream->ReadObject<UBspNodes>();
+		OldFormat.Surfaces = stream->ReadObject<UBspSurfs>();
+		OldFormat.Verts = stream->ReadObject<UVerts>();
 
-		vectors->LoadNow();
-		points->LoadNow();
-		nodes->LoadNow();
-		surfaces->LoadNow();
-		verts->LoadNow();
+		OldFormat.Vectors->LoadNow();
+		OldFormat.Points->LoadNow();
+		OldFormat.Nodes->LoadNow();
+		OldFormat.Surfaces->LoadNow();
+		OldFormat.Verts->LoadNow();
 
-		Vectors = vectors->Vectors;
-		Points = points->Vectors;
-		Nodes = nodes->Nodes;
-		Zones = nodes->Zones;
+		Vectors = OldFormat.Vectors->Vectors;
+		Points = OldFormat.Points->Vectors;
+		Nodes = OldFormat.Nodes->Nodes;
+		Zones = OldFormat.Nodes->Zones;
 		if (Zones.size() < 64)
 			Zones.resize(64);
-		Surfaces = surfaces->Surfaces;
-		Vertices = verts->Vertices;
-		NumSharedSides = verts->NumSharedSides;
+		Surfaces = OldFormat.Surfaces->Surfaces;
+		Vertices = OldFormat.Verts->Vertices;
+		NumSharedSides = OldFormat.Verts->NumSharedSides;
 	}
 	else
 	{
@@ -382,8 +382,8 @@ void UModel::Load(ObjectStream* stream)
 
 	if (stream->GetVersion() <= 61)
 	{
-		UObject* unknown1 = stream->ReadObject<UObject>();
-		UObject* unknown2 = stream->ReadObject<UObject>();
+		OldFormat.Unknown1 = stream->ReadObject<UObject>();
+		OldFormat.Unknown2 = stream->ReadObject<UObject>();
 	}
 
 	RootOutside = stream->ReadInt32();
@@ -393,7 +393,146 @@ void UModel::Load(ObjectStream* stream)
 void UModel::Save(PackageStreamWriter* stream)
 {
 	UPrimitive::Save(stream);
-	Exception::Throw("UModel::Save not implemented");
+
+	if (stream->GetVersion() <= 61)
+	{
+		stream->WriteObject(OldFormat.Vectors);
+		stream->WriteObject(OldFormat.Points);
+		stream->WriteObject(OldFormat.Nodes);
+		stream->WriteObject(OldFormat.Surfaces);
+		stream->WriteObject(OldFormat.Verts);
+	}
+	else
+	{
+		stream->WriteIndex((int)Vectors.size());
+		for (const vec3& v : Vectors)
+		{
+			stream->WriteFloat(v.x);
+			stream->WriteFloat(v.y);
+			stream->WriteFloat(v.z);
+		}
+
+		stream->WriteIndex((int)Points.size());
+		for (const vec3& v : Points)
+		{
+			stream->WriteFloat(v.x);
+			stream->WriteFloat(v.y);
+			stream->WriteFloat(v.z);
+		}
+
+		stream->WriteIndex((int)Nodes.size());
+		for (const BspNode& node : Nodes)
+		{
+			stream->WriteFloat(node.PlaneX);
+			stream->WriteFloat(node.PlaneY);
+			stream->WriteFloat(node.PlaneZ);
+			stream->WriteFloat(node.PlaneW);
+			stream->WriteUInt64(node.ZoneMask);
+			stream->WriteUInt8(node.NodeFlags);
+			stream->WriteIndex(node.VertPool);
+			stream->WriteIndex(node.Surf);
+			stream->WriteIndex(node.Back);
+			stream->WriteIndex(node.Front);
+			stream->WriteIndex(node.Plane);
+			stream->WriteIndex(node.CollisionBound);
+			stream->WriteIndex(node.RenderBound);
+			stream->WriteIndex(node.Zone0);
+			stream->WriteIndex(node.Zone1);
+			stream->WriteUInt8(node.NumVertices);
+			stream->WriteInt32(node.Leaf0);
+			stream->WriteInt32(node.Leaf1);
+		}
+
+		stream->WriteIndex((int)Surfaces.size());
+		for (const BspSurface& surface : Surfaces)
+		{
+			stream->WriteObject(surface.Material);
+			stream->WriteUInt32(surface.PolyFlags);
+			stream->WriteIndex(surface.pBase);
+			stream->WriteIndex(surface.vNormal);
+			stream->WriteIndex(surface.vTextureU);
+			stream->WriteIndex(surface.vTextureV);
+			stream->WriteIndex(surface.LightMap);
+			stream->WriteIndex(surface.BrushPoly);
+			stream->WriteInt16(surface.PanU);
+			stream->WriteInt16(surface.PanV);
+			stream->WriteObject(surface.BrushActor);
+		}
+
+		stream->WriteIndex((int)Vertices.size());
+		for (const BspVert& vert : Vertices)
+		{
+			stream->WriteIndex(vert.Vertex);
+			stream->WriteIndex(vert.Side);
+		}
+
+		stream->WriteInt32(NumSharedSides);
+
+		stream->WriteIndex((int)Zones.size());
+		for (const ZoneProperties& zone : Zones)
+		{
+			stream->WriteObject(zone.ZoneActor);
+			stream->WriteUInt64(zone.Connectivity);
+			stream->WriteUInt64(zone.Visibility);
+		}
+	}
+
+	stream->WriteObject(Polys);
+
+	stream->WriteIndex((int)LightMap.size());
+	for (const LightMapIndex& entry : LightMap)
+	{
+		stream->WriteInt32(entry.DataOffset);
+		stream->WriteFloat(entry.PanX);
+		stream->WriteFloat(entry.PanY);
+		stream->WriteFloat(entry.PanZ);
+		stream->WriteIndex(entry.UClamp);
+		stream->WriteIndex(entry.VClamp);
+		stream->WriteFloat(entry.UScale);
+		stream->WriteFloat(entry.VScale);
+		stream->WriteInt32(entry.LightActors);
+	}
+
+	stream->WriteIndex((int)LightBits.size());
+	stream->WriteBytes(LightBits.data(), (uint32_t)LightBits.size());
+
+	stream->WriteIndex((int)Bounds.size());
+	for (const BBox& boundingBox : Bounds)
+	{
+		stream->WriteFloat(boundingBox.min.x);
+		stream->WriteFloat(boundingBox.min.y);
+		stream->WriteFloat(boundingBox.min.z);
+		stream->WriteFloat(boundingBox.max.x);
+		stream->WriteFloat(boundingBox.max.y);
+		stream->WriteFloat(boundingBox.max.z);
+		stream->WriteInt8(boundingBox.IsValid ? 1 : 0);
+	}
+
+	stream->WriteIndex((int)LeafHulls.size());
+	for (int32_t v : LeafHulls)
+		stream->WriteInt32(v);
+
+	stream->WriteIndex((int)Leaves.size());
+	for (const ConvexVolumeLeaf& leaf : Leaves)
+	{
+		stream->WriteIndex(leaf.Zone);
+		stream->WriteIndex(leaf.Permeating);
+		stream->WriteIndex(leaf.Volumetric);
+		stream->WriteUInt64(leaf.VisibleZones);
+	}
+
+	stream->WriteIndex((int)Lights.size());
+	for (UActor* actor : Lights)
+		stream->WriteObject(actor);
+
+	if (stream->GetVersion() <= 61)
+	{
+		stream->WriteObject(OldFormat.Unknown1);
+		stream->WriteObject(OldFormat.Unknown2);
+	}
+
+	stream->WriteInt32(RootOutside);
+	stream->WriteInt32(Linked);
 }
 
 PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)

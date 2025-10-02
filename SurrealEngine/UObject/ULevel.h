@@ -12,6 +12,10 @@ class UBrush;
 class UDecal;
 class UZoneInfo;
 class UPolys;
+class UVectors;
+class UBspNodes;
+class UBspSurfs;
+class UVerts;
 struct PointRegion;
 
 enum EBspNodeFlags
@@ -206,6 +210,17 @@ public:
 	Array<BspNode> Nodes;
 	Array<BspSurface> Surfaces;
 	Array<BspVert> Vertices;
+
+	struct
+	{
+		UVectors* Vectors = nullptr;
+		UVectors* Points = nullptr;
+		UBspNodes* Nodes = nullptr;
+		UBspSurfs* Surfaces = nullptr;
+		UVerts* Verts = nullptr;
+		UObject* Unknown1 = nullptr;
+		UObject* Unknown2 = nullptr;
+	} OldFormat;
 
 	int32_t NumSharedSides;
 
