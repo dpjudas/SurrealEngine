@@ -127,7 +127,10 @@ void UObject::Save(PackageStreamWriter* stream)
 	if (AllFlags(Flags, ObjectFlags::HasStack))
 	{
 #if 1
-		Exception::Throw("Saving objects with a stack not implemented");
+		stream->WriteIndex(0);
+		stream->WriteIndex(0);
+		stream->WriteInt64(0);
+		stream->WriteInt32(0);
 #else
 		// To do: state and func may not always be the same
 		UStruct* func = StateFrame ? StateFrame->Func : nullptr;
@@ -745,7 +748,7 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 				}
 			}
 
-			prop->SaveValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream);
+			prop->SaveValue(data, stream);
 		}
 	}
 }
