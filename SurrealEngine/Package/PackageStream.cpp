@@ -236,8 +236,8 @@ void PackageStreamWriter::WriteString(const std::string& v)
 {
 	if (GetVersion() >= 64)
 	{
-		WriteIndex((int)v.size());
-		WriteBytes(v.data(), (int)v.size());
+		WriteIndex((int)v.size() + 1);
+		WriteBytes(v.data(), (int)v.size() + 1);
 	}
 	else
 	{

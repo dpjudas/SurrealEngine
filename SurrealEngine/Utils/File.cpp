@@ -146,6 +146,12 @@ public:
 	{
 	}
 
+	~FileImpl()
+	{
+		if (handle)
+			fclose(handle);
+	}
+
 	int64_t size() override
 	{
 		auto pos = ftell(handle);
