@@ -163,6 +163,9 @@ public:
 
 	void read(void *data, size_t size) override
 	{
+		if (size == 0)
+			return;
+
 		size_t result = fread(data, size, 1, handle);
 		if (result != 1)
 			Exception::Throw("fread failed");
@@ -170,6 +173,9 @@ public:
 
 	void write(const void *data, size_t size) override
 	{
+		if (size == 0)
+			return;
+
 		size_t result = fwrite(data, size, 1, handle);
 		if (result != 1)
 			Exception::Throw("fwrite failed");
