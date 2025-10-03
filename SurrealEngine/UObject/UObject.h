@@ -142,7 +142,7 @@ public:
 
 	void Init(UClass* cls);
 	void Load(ObjectStream* stream);
-	void Save(PackageStreamWriter* stream);
+	void Save(PackageStreamWriter* stream, PropertyDataBlock* defaultBlock);
 
 	inline void* Ptr(const UProperty* prop);
 	inline void* Ptr(size_t offset);

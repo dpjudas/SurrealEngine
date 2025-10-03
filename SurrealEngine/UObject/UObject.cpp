@@ -164,7 +164,7 @@ void UObject::Save(PackageStreamWriter* stream)
 
 	if (!UObject::TryCast<UClass>(this))
 	{
-		PropertyData.Save(stream);
+		PropertyData.Save(stream, Class ? &Class->PropertyData : nullptr);
 	}
 }
 
@@ -665,7 +665,7 @@ void PropertyDataBlock::Load(ObjectStream* stream)
 	}
 }
 
-void PropertyDataBlock::Save(PackageStreamWriter* stream)
+void PropertyDataBlock::Save(PackageStreamWriter* stream, PropertyDataBlock* defaultBlock)
 {
 	for (UProperty* prop : Class->Properties)
 	{
@@ -676,9 +676,15 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream)
 
 		for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 		{
-			void* data = static_cast<uint8_t*>(Ptr(prop)) + prop->ElementSize() * arrayIndex;
+			size_t offset = prop->ElementSize() * arrayIndex;
+			void* data = static_cast<uint8_t*>(Ptr(prop)) + offset;
 
-			// To do: skip property if its value matches the default block value
+			if (defaultBlock)
+			{
+				void* defaultdata = static_cast<uint8_t*>(defaultBlock->Ptr(prop)) + offset;
+				if (prop->Compare(data, defaultdata))
+					continue;
+			}
 
 			PropertyHeader header = {};
 			header.arrayIndex = arrayIndex;
