@@ -4,6 +4,8 @@
 #include <string>
 #include <filesystem>
 
+namespace fs = std::filesystem;
+
 enum class SeekPoint
 {
 	begin,
@@ -60,7 +62,6 @@ public:
 class Directory
 {
 public:
-	static Array<std::string> files(const std::string& filename);
 	static void create(const std::string& path);
 	static std::string localAppData();
 };
@@ -73,19 +74,23 @@ public:
 	static std::string find_truetype_font(const std::string& font_name);
 };
 
-class FilePath
+// This is needed because on Linux, path::make_preferred() does NOT convert
+// Windows directory separators to Linux ones on the grounds that they can be denoting a name
+// e.g.: "this\is\a\file.txt"
+// But since we know that we're definitely dealing with directories, we gotta
+// convert the path delimiters into Linux ones.
+inline fs::path convert_path_separators(std::string pathString)
 {
-public:
-	static bool exists(const std::string& filepath);
-	static bool has_extension(const std::string &filename, const char *extension);
-	static std::string extension(const std::string &filename);
-	static std::string remove_extension(const std::string &filename);
-	static std::string first_component(const std::string& path);
-	static std::string remove_first_component(const std::string& path);
-	static std::string last_component(const std::string &path);
-	static std::string remove_last_component(const std::string &path);
-	static std::string combine(const std::string &path1, const std::string &path2);
-	static std::string convert_path_delimiters(const std::string &path);
-	// Converts a relative path to an absolute one, starting from the system path of the current game.
-	static std::string relative_to_absolute_from_system(std::string game_system_path, std::string relative_path);
-};
+#ifdef WIN32
+	return fs::path{pathString}.make_preferred();
+#else
+	auto pos = pathString.find('\\');
+	while (pos != std::string::npos)
+	{
+		pathString.replace(pathString.find('\\'), 1, "/");
+		pos = pathString.find('\\');
+	}
+
+	return fs::path{pathString};
+#endif
+}
