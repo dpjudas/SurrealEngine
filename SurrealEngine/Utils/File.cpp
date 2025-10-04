@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
@@ -24,7 +24,7 @@ extern const char* __progname;
 #endif
 #endif
 #include "Utils/Exception.h"
-#include <string.h>
+#include <cstring>
 #include <sstream>
 #include <cstdio>
 
@@ -292,37 +292,8 @@ Array<std::string> File::read_all_lines(const std::string& filename)
 
 #ifdef WIN32
 
-Array<std::string> Directory::files(const std::string& filename)
-{
-	Array<std::string> files;
-
-	WIN32_FIND_DATA fileinfo;
-	HANDLE handle = FindFirstFile(to_utf16(filename).c_str(), &fileinfo);
-	if (handle == INVALID_HANDLE_VALUE)
-		return {};
-
-	try
-	{
-		do
-		{
-			bool is_directory = !!(fileinfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
-			if (!is_directory)
-				files.push_back(from_utf16(fileinfo.cFileName));
-		} while (FindNextFile(handle, &fileinfo) == TRUE);
-		FindClose(handle);
-	}
-	catch (...)
-	{
-		FindClose(handle);
-		throw;
-	}
-
-	return files;
-}
-
 void Directory::create(const std::string& path)
 {
-#ifdef WIN32
 	BOOL result = CreateDirectory(to_utf16(path).c_str(), nullptr);
 	if (result == FALSE)
 	{
@@ -335,7 +306,7 @@ void Directory::create(const std::string& path)
 		{
 			try
 			{
-				std::string parent = FilePath::remove_last_component(path);
+				std::string parent = fs::path(path).parent_path().string();
 				if (!parent.empty())
 				{
 					Directory::create(parent);
@@ -349,9 +320,6 @@ void Directory::create(const std::string& path)
 		}
 		throw std::runtime_error("Could not create directory for path " + path);
 	}
-#else
-	throw std::runtime_error("Directory::create not implemented");
-#endif
 }
 
 std::string Directory::localAppData()
@@ -374,44 +342,6 @@ std::string Directory::localAppData()
 
 #else
 
-Array<std::string> Directory::files(const std::string& filename)
-{
-	Array<std::string> files;
-
-	std::string filter = FilePath::last_component(filename);
-	std::string path = FilePath::remove_last_component(filename);
-
-	DIR *dir = opendir(path.c_str());
-	if (!dir)
-	{
-		//Exception::Throw("Could not open folder: " + path);
-		//printf("Could not open folder: %s\n", path.c_str());
-		return {};
-	}
-	
-	while (true)
-	{
-		dirent *entry = readdir(dir);
-		if (!entry)
-			break;
-
-		std::string name = entry->d_name;
-		if (fnmatch(filter.c_str(), name.c_str(), FNM_PATHNAME) == 0)
-		{
-			struct stat statbuf;
-			if (stat(FilePath::combine(path, name).c_str(), &statbuf) == -1)
-				memset(&statbuf, 0, sizeof(statbuf));
-
-			bool is_directory = (statbuf.st_mode & S_IFDIR) != 0;
-			if (!is_directory)
-				files.push_back(name);
-		}
-	}
-
-	closedir(dir);
-	return files;
-}
-
 void Directory::create(const std::string& dirname)
 {
 	if (mkdir(dirname.c_str(), 0777) == 0)
@@ -422,10 +352,10 @@ void Directory::create(const std::string& dirname)
 	{
 		try
 		{
-			std::string parent = FilePath::remove_last_component(dirname);
+			fs::path parent = fs::path(dirname).parent_path();
 			if (!parent.empty())
 			{
-				Directory::create(parent);
+				Directory::create(parent.string());
 				if (mkdir(dirname.c_str(), 0777) == 0)
 					return;
 			}
@@ -445,7 +375,7 @@ std::string Directory::localAppData()
 	if (!homeDir)
 		throw std::runtime_error("HOME environment variable is not set... somehow.");
 
-	return FilePath::combine(std::string(homeDir), ".config");
+	return (fs::path(homeDir) / ".config").string();
 }
 
 #endif
@@ -587,184 +517,12 @@ std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 #endif
 
 	for (auto& current_font_folder : possible_fonts_folders) {
-		std::string final_path = FilePath::combine(current_font_folder, font_name_and_extension);
+		auto final_path = fs::path(current_font_folder) / font_name_and_extension;
 
-		if (File::try_open_existing(final_path))
-			return final_path;
+		if (File::try_open_existing(final_path.string()))
+			return final_path.string();
 	}
 
 	// We couldn't find the font in any of the folders, bail out
 	return "";
-}
-
-/////////////////////////////////////////////////////////////////////////////
-
-bool FilePath::exists(const std::string& filepath)
-{
-#ifdef WIN32
-	return PathFileExistsA(filepath.c_str());
-#else
-	return access(filepath.c_str(), F_OK) == 0;
-#endif
-}
-
-bool FilePath::has_extension(const std::string &filename, const char *checkext)
-{
-	auto fileext = extension(filename);
-
-	return StrCompare::equals_ignore_case(fileext, checkext);
-}
-
-std::string FilePath::extension(const std::string &filename)
-{
-	std::string file = last_component(filename);
-	std::string::size_type pos = file.find_last_of('.');
-	if (pos == std::string::npos)
-		return std::string();
-
-#ifndef WIN32
-	// Files beginning with a dot is not a filename extension in Unix.
-	// This is different from Windows where it is considered the extension.
-	if (pos == 0)
-		return std::string();
-#endif
-
-	return file.substr(pos + 1);
-
-}
-
-std::string FilePath::remove_extension(const std::string &filename)
-{
-	std::string file = last_component(filename);
-	std::string::size_type pos = file.find_last_of('.');
-	if (pos == std::string::npos)
-		return filename;
-	else
-		return filename.substr(0, filename.length() - file.length() + pos);
-}
-
-std::string FilePath::first_component(const std::string& path)
-{
-	auto path_conv = convert_path_delimiters(path);
-#ifdef WIN32
-	auto first_slash = path_conv.find_first_of("/\\");
-#else
-	auto first_slash = path_conv.find_first_of('/');
-#endif
-	if (first_slash != std::string::npos)
-		return path_conv.substr(0, first_slash);
-	else
-		return path_conv;
-}
-
-std::string FilePath::remove_first_component(const std::string& path)
-{
-	auto path_conv = convert_path_delimiters(path);
-#ifdef WIN32
-	auto first_slash = path_conv.find_first_of("/\\");
-#else
-	auto first_slash = path_conv.find_first_of('/');
-#endif
-	if (first_slash != std::string::npos)
-		return path_conv.substr(first_slash + 1);
-	else
-		return std::string();
-}
-
-std::string FilePath::last_component(const std::string &path)
-{
-	auto path_conv = convert_path_delimiters(path);
-#ifdef WIN32
-	auto last_slash = path_conv.find_last_of("/\\");
-#else
-	auto last_slash = path_conv.find_last_of('/');
-#endif
-	if (last_slash != std::string::npos)
-		return path_conv.substr(last_slash + 1);
-	else
-		return path_conv;
-}
-
-std::string FilePath::remove_last_component(const std::string &path)
-{
-	auto path_conv = convert_path_delimiters(path);
-#ifdef WIN32
-	auto last_slash = path_conv.find_last_of("/\\");
-#else
-	auto last_slash = path_conv.find_last_of('/');
-#endif
-	if (last_slash != std::string::npos)
-		return path_conv.substr(0, last_slash);
-	else
-		return std::string();
-}
-
-std::string FilePath::combine(const std::string &path1, const std::string &path2)
-{
-	auto path1_conv = convert_path_delimiters(path1);
-	auto path2_conv = convert_path_delimiters(path2);
-#ifdef WIN32
-	if (path1_conv.empty())
-		return path2_conv;
-	else if (path2_conv.empty())
-		return path1_conv;
-	else if (path2_conv.front() == '/' || path2_conv.front() == '\\')
-		return path2_conv;
-	else if (path1_conv.back() != '/' && path1_conv.back() != '\\')
-		return path1_conv + "\\" + path2_conv;
-	else
-		return path1_conv + path2_conv;
-#else
-	if (path1_conv.empty())
-		return path2_conv;
-	else if (path2_conv.empty())
-		return path1_conv;
-	else if (path2_conv.front() == '/')
-		return path2_conv;
-	else if (path1_conv.back() != '/')
-		return path1_conv + "/" + path2_conv;
-	else
-		return path1_conv + path2_conv;
-#endif
-}
-
-std::string FilePath::convert_path_delimiters(const std::string &path)
-{
-	std::string result = path;
-#ifdef WIN32
-	auto pos = result.find("/");
-	while (pos != std::string::npos)
-	{
-		result.replace(result.find("/"), 1, "\\");
-		pos = result.find("/");
-	}
-#else
-	auto pos = result.find("\\");
-	while (pos != std::string::npos)
-	{
-		result.replace(result.find("\\"), 1, "/");
-		pos = result.find("\\");
-	}
-#endif
-	return result;
-}
-
-std::string FilePath::relative_to_absolute_from_system(std::string game_system_path, std::string relative_path)
-{
-	auto first_component = FilePath::first_component(relative_path);
-
-	while (first_component == ".." || first_component == ".")
-	{
-		if (first_component == "..")
-		{
-			// "Go one directory up" as many as the amount of ".."s in the current_path
-			game_system_path = FilePath::remove_last_component(game_system_path);
-		}
-
-		relative_path = FilePath::remove_first_component(relative_path);
-		first_component = FilePath::first_component(relative_path);
-	}
-
-	// Combine everything
-	return FilePath::combine(game_system_path, relative_path);
 }
