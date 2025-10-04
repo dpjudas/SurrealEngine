@@ -390,7 +390,7 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 		if (!ini)
 		{
 			const auto iniFilePath = gameRootFolder / "System" / (launchInfo.gameExecutableName + ".ini");
-			ini = std::make_unique<IniFile>(iniFilePath);
+			ini = std::make_unique<IniFile>(iniFilePath.string());
 		}
 
 		return ini;
@@ -402,9 +402,9 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 	{
 		// Case sensitivity check
 		if (fs::exists(gameRootFolder / "System/User.ini"))
-			ini = std::make_unique<IniFile>(gameRootFolder / "System/User.ini");
+			ini = std::make_unique<IniFile>((gameRootFolder / "System/User.ini").string());
 		else
-			ini = std::make_unique<IniFile>(gameRootFolder/ "System/user.ini");
+			ini = std::make_unique<IniFile>((gameRootFolder/ "System/user.ini").string());
 	}
 
 	return ini;
@@ -419,29 +419,9 @@ std::unique_ptr<IniFile>& PackageManager::LoadSystemIniFile()
 	auto& ini = iniFiles[iniName];
 
 	if (!ini)
-		ini = std::make_unique<IniFile>(gameRootPath / "System" / (iniName + ".ini"));
+		ini = std::make_unique<IniFile>((gameRootPath / "System" / (iniName + ".ini")).string());
 
 	return ini;
-
-	/*
-	if (IsCliveBarkersUndying())
-	{
-		// Clive Barker's Undying uses System.ini instead of ExeName.ini
-		auto& ini = iniFiles["System"];
-
-		if (!ini)
-			ini = std::make_unique<IniFile>(gameRootPath / "System/System.ini");
-
-		return ini;
-	}
-
-	auto& ini = iniFiles[launchInfo.gameExecutableName];
-
-	if (!ini)
-		ini = std::make_unique<IniFile>(gameRootPath / "System" / (launchInfo.gameExecutableName + ".ini"));
-
-	return ini;
-	*/
 }
 
 
@@ -505,10 +485,10 @@ void PackageManager::SaveAllIniFiles()
 		if (iniFile.first == launchInfo.gameExecutableName || iniFile.first == "System")
 		{
 			const std::string engineIniName = "SE-" + iniFile.first.ToString() + ".ini";
-			iniFile.second->UpdateIfExists(systemFolderPath / engineIniName);
+			iniFile.second->UpdateIfExists((systemFolderPath / engineIniName).string());
 		}
 		else if (iniFile.first == "User")
-			iniFile.second->UpdateIfExists(systemFolderPath / "SE-User.ini");
+			iniFile.second->UpdateIfExists((systemFolderPath / "SE-User.ini").string());
 		else
 			iniFile.second->UpdateFile();
 	}
@@ -546,7 +526,7 @@ void PackageManager::LoadEngineIniFiles()
 	// Also load Default.ini, so that we can reset values.
 	defaultIniFile = std::make_unique<IniFile>((systemFolderPath / "Default.ini").string());
 
-	iniFiles[systemIniName] = std::make_unique<IniFile>(systemFolderPath / systemIniFileName);
+	iniFiles[systemIniName] = std::make_unique<IniFile>((systemFolderPath / systemIniFileName).string());
 
 	if (launchInfo.engineVersion > 219)
 	{
@@ -646,7 +626,7 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		{
 			const auto gameSystemFolder = fs::path(launchInfo.gameRootFolder) / "System";
 			const auto intFileName = fs::path(packageName.ToString() + ".int");
-			intFile = std::make_unique<IniFile>(gameSystemFolder / intFileName);
+			intFile = std::make_unique<IniFile>((gameSystemFolder / intFileName).string());
 		}
 		catch (...)
 		{

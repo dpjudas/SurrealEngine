@@ -63,7 +63,7 @@ class Directory
 {
 public:
 	static void create(const std::string& path);
-	static std::string localAppData();
+	static fs::path localAppData();
 };
 
 class OS

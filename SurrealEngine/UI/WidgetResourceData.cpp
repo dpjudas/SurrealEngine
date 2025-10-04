@@ -10,7 +10,8 @@ static mz_zip_archive widgetResources;
 
 void InitWidgetResources()
 {
-	mz_bool result = mz_zip_reader_init_file(&widgetResources, (fs::path(OS::executable_path()) / "SurrealEngine.pk3").c_str(), 0);
+	const auto pk3PathStr = (fs::path{ OS::executable_path() } / "SurrealEngine.pk3").string();
+	mz_bool result = mz_zip_reader_init_file(&widgetResources, pk3PathStr.c_str(), 0);
 #ifndef WIN32
 	// On Linux, SurrealEngine.pk3 can additionally be put in some other folders given below.
 	if (!result)

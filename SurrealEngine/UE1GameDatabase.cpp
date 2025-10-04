@@ -17,10 +17,10 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 	{
 		auto executablePath = UE1GameSystemPath / executable_name;
 
-		if (File::try_open_existing(executablePath))
+		if (File::try_open_existing(executablePath.string()))
 		{
 			// Such executable exists, let's try to take SHA1Sum of it
-			auto bytes = File::read_all_bytes(executablePath);
+			auto bytes = File::read_all_bytes(executablePath.string());
 
 			sha1::SHA1 s;
 			s.processBytes(bytes.data(), bytes.size());

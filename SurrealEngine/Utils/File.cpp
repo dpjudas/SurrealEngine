@@ -322,7 +322,7 @@ void Directory::create(const std::string& path)
 	}
 }
 
-std::string Directory::localAppData()
+fs::path Directory::localAppData()
 {
 	PWSTR path = nullptr;
 	if (FAILED(SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &path)))
@@ -367,7 +367,7 @@ void Directory::create(const std::string& dirname)
 	Exception::Throw("Could not create directory " + dirname);
 }
 
-std::string Directory::localAppData()
+fs::path Directory::localAppData()
 {
 	// We're trying to find "~/.config" here
 	const char* homeDir = getenv("HOME");
@@ -375,7 +375,7 @@ std::string Directory::localAppData()
 	if (!homeDir)
 		throw std::runtime_error("HOME environment variable is not set... somehow.");
 
-	return (fs::path(homeDir) / ".config").string();
+	return fs::path(homeDir) / ".config";
 }
 
 #endif
