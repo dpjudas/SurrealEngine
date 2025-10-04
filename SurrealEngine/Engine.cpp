@@ -112,6 +112,19 @@ void Engine::Run()
 		LevelInfo->TimeSeconds() += levelElapsed;
 		Logger::Get()->SetTimeSeconds(LevelInfo->TimeSeconds());
 
+		// Update the time fields
+		std::time_t now = std::time(nullptr);
+		std::tm* timedesc = std::localtime(&now);
+
+		LevelInfo->Year() = timedesc->tm_year;
+		LevelInfo->Month() = timedesc->tm_mon;
+		LevelInfo->Day() = timedesc->tm_mday;
+		LevelInfo->DayOfWeek() = timedesc->tm_wday;
+		LevelInfo->Hour() = timedesc->tm_hour;
+		LevelInfo->Minute() = timedesc->tm_min;
+		LevelInfo->Second() = timedesc->tm_sec;
+		LevelInfo->Millisecond() = 0; // No timedesc equivalent for LevelInfo->Millisecond()
+
 		UpdateInput(realTimeElapsed);
 
 		SetPause(!LevelInfo->Pauser().empty());
