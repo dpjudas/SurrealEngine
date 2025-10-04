@@ -48,9 +48,9 @@ bool ErrorWindow::CheckCrashReporter()
 	}
 	else
 	{
-		std::string reportsDirectory = FilePath::combine(Directory::localAppData(), "SurrealEngine/CrashReports");
-		Directory::create(reportsDirectory);
-		CrashReporter::Init(reportsDirectory, [](const std::string& logFilename) { Logger::Get()->SaveLog(logFilename); });
+		const auto reportsDirectory = fs::path(Directory::localAppData()) / "SurrealEngine/CrashReports";
+		Directory::create(reportsDirectory.string());
+		CrashReporter::Init(reportsDirectory.string(), [](const std::string& logFilename) { Logger::Get()->SaveLog(logFilename); });
 		return false;
 	}
 }

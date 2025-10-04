@@ -20,7 +20,7 @@ void PackageWriter::Save(UObject* packageObject, std::string filename)
 	if (filename.empty())
 		filename = Source->GetPackageFilename();
 
-	std::string tempFilename = FilePath::remove_extension(filename) + ".tmp";
+	const std::string tempFilename = fs::path(filename).replace_extension(".tmp").string();
 
 	try
 	{

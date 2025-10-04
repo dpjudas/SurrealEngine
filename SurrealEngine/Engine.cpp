@@ -743,9 +743,9 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 	}
 	else
 	{
-		std::string saveFolderPath = FilePath::combine(LaunchInfo.gameRootFolder, "Save");
-		std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
-		std::string saveFileFullPath = FilePath::combine(saveFolderPath, saveFileName);
+		const auto saveFolderPath = fs::path(LaunchInfo.gameRootFolder) / "Save";
+		const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
+		const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
 		LevelPackage->Save(Level, saveFileFullPath);
 	}
 }
@@ -1016,7 +1016,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		for (auto& map : packages->GetMaps())
 		{
-			std::string mapname = FilePath::remove_extension(map);
+			std::string mapname = fs::path(map).stem().string();
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
@@ -1065,7 +1065,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		for (auto& map : packages->GetMaps())
 		{
-			std::string mapname = FilePath::remove_extension(map);
+			std::string mapname = fs::path(map).stem();
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{
@@ -1078,7 +1078,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}
 	else if (command == "savegame" && args.size() == 2)
 	{
-		/*
+
 		int32_t slotNum;
 		// slotNum not being parsable shouldn't cause a crash
 		try
@@ -1091,8 +1091,8 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		}
 
 		SaveGameToSlot(slotNum, "");
-		*/
-		LogMessage("SaveGame command not fully implemented yet!");
+
+		//LogMessage("SaveGame command not fully implemented yet!");
 		return {};
 	}
 	else if (command == "get" && args.size() == 3)

@@ -75,39 +75,42 @@ Package* PackageManager::GetPackage(const NameString& name)
 
 Package* PackageManager::LoadMap(const std::string& path)
 {
-	std::string map = FilePath::last_component(path);
+	const auto mapPath = convert_path_separators(path);
 
-	if (!FilePath::has_extension(map, GetMapExtension().c_str()))
-		map += "." + GetMapExtension();
+	auto mapFilename = mapPath.filename();
+
+	if (!mapFilename.has_extension())
+		mapFilename.replace_extension(GetMapExtension());
 
 	// Check if the map is in the map list
 	for (auto& mapName : maps)
 	{
-		if (StrCompare::equals_ignore_case(mapName, map))
-			map = mapName; // Workaround against case sensitivity problems under Linux
+		if (StrCompare::equals_ignore_case(mapName, mapFilename.string()))
+			mapFilename.replace_filename(mapName); // Workaround against case sensitivity problems under Linux.
 	}
 
 	// Check the map name against the map folders we know
+	// This should work if path only contains the map name and not any "."s or ".."s
 	for (auto& folder : mapFolders)
 	{
-		std::string finalPath = FilePath::combine(folder, map);
-
-		if (FilePath::exists(finalPath))
-		{
-			return GC::Alloc<Package>(this, FilePath::remove_extension(map), finalPath);
-		}
+		if (auto finalPath = fs::path(folder) / mapFilename ; fs::exists(finalPath))
+			return GC::Alloc<Package>(this, mapFilename.stem().string(), finalPath.string());
 	}
 
 	// Path is relative to the Maps folder?
 	// Or is it relative to the package requesting the map load?
 	// Or is it relative to the previous map?
-	// 
-	// Only one of the above is most likely true. Lets begin with assuming its relative to the Maps folder.
-	std::string absolute_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "Maps"), path);
+	//
+	// Only one of the above is most likely true. Let's begin with assuming its relative to the Maps folder.
+	const auto mapsFolder = fs::path(launchInfo.gameRootFolder) / "Maps";
+
+	auto absolute_path = (mapsFolder / mapPath).lexically_normal();
+
 	// Add the file extension if it is missing
-	if (!FilePath::has_extension(absolute_path, GetMapExtension().c_str()))
-		absolute_path += "." + GetMapExtension();
-	return GC::Alloc<Package>(this, FilePath::remove_extension(map), absolute_path);
+	if (!absolute_path.has_extension())
+		absolute_path.replace_extension(GetMapExtension());
+
+	return GC::Alloc<Package>(this, mapFilename.stem().string(), absolute_path.string());
 }
 
 void PackageManager::UnloadMap(Package* package)
@@ -134,14 +137,14 @@ void PackageManager::CloseStreams()
 
 Package* PackageManager::LoadSaveFile(const std::string& path)
 {
-	auto saveFolder = FilePath::combine(launchInfo.gameRootFolder, "Save");
-	auto fullPath = FilePath::combine(saveFolder, path);
+	const auto saveFolder = fs::path(launchInfo.gameRootFolder) / "Save";
+	auto fullPath = saveFolder / fs::path(path);
 
-	if (!FilePath::has_extension(fullPath, GetSaveExtension().c_str()))
-		fullPath += "." + GetSaveExtension();
+	if (!fullPath.has_extension() || (fullPath.extension().string() != GetSaveExtension()))
+		fullPath.replace_extension(GetSaveExtension());
 
-	if (FilePath::exists(fullPath))
-		return GC::Alloc<Package>(this, FilePath::remove_extension(FilePath::last_component(fullPath)), fullPath);
+	if (fs::exists(fullPath))
+		return GC::Alloc<Package>(this, fullPath.stem().string(), fullPath.string());
 
 	return nullptr;
 }
@@ -155,23 +158,32 @@ void PackageManager::ScanForMaps()
 {
 	for (auto& mapFolderPath : mapFolders)
 	{
-		for (std::string filename : Directory::files(FilePath::combine(mapFolderPath, "*." + mapExtension)))
-		{
-			maps.push_back(filename);
-		}
+		for (const auto& dir_entry: fs::directory_iterator{mapFolderPath})
+			if (dir_entry.is_regular_file())
+				maps.push_back(dir_entry.path().filename().string());
 	}
 }
 
 void PackageManager::ScanFolder(const std::string& packagedir, const std::string& search)
 {
-	for (std::string filename : Directory::files(FilePath::combine(packagedir, search)))
+
+	const auto packageDirPath = fs::path(packagedir);
+	if (fs::exists(packageDirPath))
 	{
-		// Do not add the package again if it exists
-		// This is useful for example when you have HD textures installed in a different folder
-		// And you wish to load them instead of the original ones
-		auto it = packageFilenames.find(NameString(FilePath::remove_extension(filename)));
-		if (it == packageFilenames.end())
-			packageFilenames[NameString(FilePath::remove_extension(filename))] = FilePath::combine(packagedir, filename);
+		const auto searchExt = fs::path(search).extension();
+		for (const auto& dir_entry: fs::directory_iterator{packageDirPath})
+		{
+			// Do not add the package again if it exists
+			// This is useful for example when you have HD textures installed in a different folder
+			// And you wish to load them instead of the original ones
+			if (dir_entry.is_regular_file() && dir_entry.path().extension() == searchExt)
+			{
+				NameString fileNameString(dir_entry.path().stem().string());
+				auto it = packageFilenames.find(fileNameString);
+				if (it == packageFilenames.end())
+					packageFilenames[fileNameString] = (packageDirPath / dir_entry.path().filename()).string();
+			}
+		}
 	}
 }
 
@@ -194,32 +206,33 @@ void PackageManager::ScanPaths()
 	mapExtension = GetIniValue("System", "URL", "MapExt");
 	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
-	for (auto& current_path : paths)
+	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
+
+	for (auto& currentPathStr: paths)
 	{
+		auto currentPath = convert_path_separators(currentPathStr);
+
 		// Get the filename
-		std::string filename = FilePath::last_component(current_path);
+		auto filename = currentPath.filename();
 
 		// Calculate the final, absolute path
-		auto final_path = FilePath::relative_to_absolute_from_system(FilePath::combine(launchInfo.gameRootFolder, "System"), current_path);
-		final_path = FilePath::remove_last_component(final_path);
+		auto finalPath = (systemFolderPath / currentPath).lexically_normal().parent_path();
 
 		// Add map folders in a separate list, so ScanForMaps() can use them
-		if (filename == "*." + mapExtension)
-		{
-			mapFolders.push_back(final_path);
-		}
+		if (filename.string() == "*." + GetMapExtension())
+			mapFolders.push_back(finalPath.string());
 
-		ScanFolder(final_path, filename);
+		ScanFolder(finalPath.string(), filename.string());
 	}
 
 	if (IsKlingonHonorGuard())
 	{
-		std::string systemFolder = FilePath::combine(launchInfo.gameRootFolder, "System");
-		for (std::string filename : Directory::files(FilePath::combine(systemFolder, "*.*")))
+		for (const auto& dir_entry: fs::directory_iterator{systemFolderPath})
 		{
-			if (FilePath::has_extension(filename, "avi"))
+			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == "avi")
 			{
-				aviFilenames[filename] = FilePath::combine(systemFolder, filename);
+				auto fileName = dir_entry.path().filename();
+				aviFilenames[NameString(fileName.string())] = (systemFolderPath / fileName).string();
 			}
 		}
 	}
@@ -356,20 +369,29 @@ std::unique_ptr<IniFile>& PackageManager::LoadIniFile(NameString iniName)
 	
 	auto& ini = iniFiles[iniName];
 	if (!ini)
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + iniName.ToString() + ".ini"));
+	{
+		const auto iniFilePath = fs::path(launchInfo.gameRootFolder) / "System" / (iniName.ToString() + ".ini");
+		ini = std::make_unique<IniFile>(iniFilePath.string());
+	}
+
 
 	return ini;
 }
 
 std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 {
+	const auto gameRootFolder = fs::path(launchInfo.gameRootFolder);
+
 	if (IsKlingonHonorGuard())
 	{
 		// User.ini contents are in the system ini file
 		auto& ini = iniFiles[launchInfo.gameExecutableName];
 
 		if (!ini)
-			ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + launchInfo.gameExecutableName + ".ini"));
+		{
+			const auto iniFilePath = gameRootFolder / "System" / (launchInfo.gameExecutableName + ".ini");
+			ini = std::make_unique<IniFile>(iniFilePath);
+		}
 
 		return ini;
 	}
@@ -379,10 +401,10 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 	if (!ini)
 	{
 		// Case sensitivity check
-		if (FilePath::exists(FilePath::combine(launchInfo.gameRootFolder, "System/User.ini")))
-			ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/User.ini"));
+		if (fs::exists(gameRootFolder / "System/User.ini"))
+			ini = std::make_unique<IniFile>(gameRootFolder / "System/User.ini");
 		else
-			ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/user.ini"));
+			ini = std::make_unique<IniFile>(gameRootFolder/ "System/user.ini");
 	}
 
 	return ini;
@@ -390,13 +412,25 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 
 std::unique_ptr<IniFile>& PackageManager::LoadSystemIniFile()
 {
+	const auto gameRootPath = fs::path(launchInfo.gameRootFolder);
+
+	std::string iniName = IsCliveBarkersUndying() ? "System" : launchInfo.gameExecutableName;
+
+	auto& ini = iniFiles[iniName];
+
+	if (!ini)
+		ini = std::make_unique<IniFile>(gameRootPath / "System" / (iniName + ".ini"));
+
+	return ini;
+
+	/*
 	if (IsCliveBarkersUndying())
 	{
 		// Clive Barker's Undying uses System.ini instead of ExeName.ini
 		auto& ini = iniFiles["System"];
 
 		if (!ini)
-			ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/System.ini"));
+			ini = std::make_unique<IniFile>(gameRootPath / "System/System.ini");
 
 		return ini;
 	}
@@ -404,9 +438,10 @@ std::unique_ptr<IniFile>& PackageManager::LoadSystemIniFile()
 	auto& ini = iniFiles[launchInfo.gameExecutableName];
 
 	if (!ini)
-		ini = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + launchInfo.gameExecutableName + ".ini"));
+		ini = std::make_unique<IniFile>(gameRootPath / "System" / (launchInfo.gameExecutableName + ".ini"));
 
 	return ini;
+	*/
 }
 
 
@@ -463,17 +498,17 @@ void PackageManager::SetIniValues(NameString iniName, const NameString& sectionN
 
 void PackageManager::SaveAllIniFiles()
 {
-	const std::string system_folder = FilePath::combine(launchInfo.gameRootFolder, "System");
+	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
 
-	for (auto& iniFile : iniFiles)
+	for (auto& iniFile: iniFiles)
 	{
-		if (iniFile.first == launchInfo.gameExecutableName)
+		if (iniFile.first == launchInfo.gameExecutableName || iniFile.first == "System")
 		{
-			const std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
-			iniFile.second->UpdateIfExists(FilePath::combine(system_folder, engine_ini_name));
+			const std::string engineIniName = "SE-" + iniFile.first.ToString() + ".ini";
+			iniFile.second->UpdateIfExists(systemFolderPath / engineIniName);
 		}
 		else if (iniFile.first == "User")
-			iniFile.second->UpdateIfExists(FilePath::combine(system_folder, "SE-User.ini"));
+			iniFile.second->UpdateIfExists(systemFolderPath / "SE-User.ini");
 		else
 			iniFile.second->UpdateFile();
 	}
@@ -494,87 +529,91 @@ void PackageManager::LoadEngineIniFiles()
 	// Load SE-[GameName].ini and SE-User.ini from the appropriate places
 	// If they do not exist, import the appropriate [GameName].ini and User.ini files
 	// If those also do not exist, import Default.ini and DefUser.ini files
-	std::string engine_ini_name = "SE-" + launchInfo.gameExecutableName + ".ini";
-	std::string user_ini_name = "SE-User.ini";
+	const auto systemIniName = IsCliveBarkersUndying() ? "System" : launchInfo.gameExecutableName;
+	std::string systemIniFileName = "SE-" + systemIniName + ".ini";
+	std::string userIniName = "SE-User.ini";
 
-	const std::string system_folder = FilePath::combine(launchInfo.gameRootFolder, "System");
+	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
 
-	if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
+	if ( !File::try_open_existing((systemFolderPath / systemIniFileName).string()) )
 	{
 		missing_se_system_ini = true;
-		engine_ini_name = engine_ini_name.substr(3); // Trim off the "SE-" part
-		if (!File::try_open_existing(FilePath::combine(system_folder, engine_ini_name)))
-			engine_ini_name = "Default.ini"; // use the default ini as a last resort
+		systemIniFileName = systemIniFileName.substr(3); // Trim off the "SE-" part
+		if (!File::try_open_existing((systemFolderPath / systemIniFileName).string()))
+			systemIniFileName = "Default.ini"; // use the default ini as a last resort
 	}
 
 	// Also load Default.ini, so that we can reset values.
-	defaultIniFile = std::make_unique<IniFile>(FilePath::combine(system_folder, "Default.ini"));
-	
-	if (IsCliveBarkersUndying())
-		iniFiles["System"] = std::make_unique<IniFile>(FilePath::combine(system_folder, "System.ini"));
-	else
-		iniFiles[launchInfo.gameExecutableName] = std::make_unique<IniFile>(FilePath::combine(system_folder, engine_ini_name));
+	defaultIniFile = std::make_unique<IniFile>((systemFolderPath / "Default.ini").string());
+
+	iniFiles[systemIniName] = std::make_unique<IniFile>(systemFolderPath / systemIniFileName);
 
 	if (launchInfo.engineVersion > 219)
 	{
-		if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
+		if (!File::try_open_existing((systemFolderPath / userIniName).string()))
 		{
-			user_ini_name = user_ini_name.substr(3); // Trim off the "SE-" part
-			if (!File::try_open_existing(FilePath::combine(system_folder, user_ini_name)))
-				user_ini_name = "DefUser.ini";
+			userIniName = userIniName.substr(3); // Trim off the "SE-" part
+			if (!File::try_open_existing((systemFolderPath / userIniName).string()))
+				userIniName = "DefUser.ini";
 		}
 
-		iniFiles["User"] = std::make_unique<IniFile>(FilePath::combine(system_folder, user_ini_name));
-		defaultUserFile = std::make_unique<IniFile>(FilePath::combine(system_folder, "DefUser.ini"));
+		iniFiles["User"] = std::make_unique<IniFile>((systemFolderPath / userIniName).string());
+		defaultUserFile = std::make_unique<IniFile>((systemFolderPath / "DefUser.ini").string());
 	}
 }
 
 void PackageManager::LoadIntFiles()
 {
-	std::string systemdir = FilePath::combine(launchInfo.gameRootFolder, "System");
-	for (std::string filename : Directory::files(FilePath::combine(systemdir, "*.int")))
+	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
+
+	for (const auto& dir_entry: fs::directory_iterator{systemFolderPath})
 	{
 		try
 		{
-			auto intFile = std::make_unique<IniFile>(FilePath::combine(systemdir, filename));
-
-			for (const std::string& value : intFile->GetValues("Public", "Object"))
+			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == ".int")
 			{
-				auto desc = ParseIntPublicValue(value);
-				if (!desc["Name"].empty() && !desc["Class"].empty() && !desc["MetaClass"].empty()) // Used by Actor.GetInt
+				const auto intFileName = dir_entry.path().filename();
+
+				auto intFile = std::make_unique<IniFile>((systemFolderPath / intFileName).string());
+
+				for (const std::string& value: intFile->GetValues("Public", "Object"))
 				{
-					IntObject obj;
-					obj.Name = desc["Name"];
-					obj.Class = desc["Class"];
-					obj.MetaClass = desc["MetaClass"];
-					obj.Description = desc["Description"];
+					auto desc = ParseIntPublicValue(value);
+					if (!desc["Name"].empty() && !desc["Class"].empty() && !desc["MetaClass"].empty()) // Used by Actor.GetInt
+					{
+						IntObject obj;
+						obj.Name = desc["Name"];
+						obj.Class = desc["Class"];
+						obj.MetaClass = desc["MetaClass"];
+						obj.Description = desc["Description"];
 
-					NameString metaClass = obj.MetaClass;
+						NameString metaClass = obj.MetaClass;
 
-					size_t pos = metaClass.ToString().find_last_of('.');
-					if (pos != std::string::npos)
-						metaClass = NameString(metaClass.ToString().substr(pos + 1));
+						size_t pos = metaClass.ToString().find_last_of('.');
+						if (pos != std::string::npos)
+							metaClass = NameString(metaClass.ToString().substr(pos + 1));
 
-					IntObjects[metaClass].push_back(std::move(obj));
+						IntObjects[metaClass].push_back(std::move(obj));
+					}
+					else if (!desc["Name"].empty() && !desc["Class"].empty()) // Used by Actor.GetNextSkin
+					{
+						IntObject obj;
+						obj.Name = desc["Name"];
+						obj.Class = desc["Class"];
+						obj.Description = desc["Description"];
+
+						NameString cls = obj.Class;
+
+						size_t pos = cls.ToString().find_last_of('.');
+						if (pos != std::string::npos)
+							cls = NameString(cls.ToString().substr(pos + 1));
+
+						IntObjects[cls].push_back(std::move(obj));
+					}
 				}
-				else if (!desc["Name"].empty() && !desc["Class"].empty()) // Used by Actor.GetNextSkin
-				{
-					IntObject obj;
-					obj.Name = desc["Name"];
-					obj.Class = desc["Class"];
-					obj.Description = desc["Description"];
 
-					NameString cls = obj.Class;
-
-					size_t pos = cls.ToString().find_last_of('.');
-					if (pos != std::string::npos)
-						cls = NameString(cls.ToString().substr(pos + 1));
-
-					IntObjects[cls].push_back(std::move(obj));
-				}
+				intFiles[intFileName.stem().string()] = std::move(intFile);
 			}
-
-			intFiles[FilePath::remove_extension(filename)] = std::move(intFile);
 		}
 		catch (...)
 		{
@@ -605,7 +644,9 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	{
 		try
 		{
-			intFile = std::make_unique<IniFile>(FilePath::combine(launchInfo.gameRootFolder, "System/" + packageName.ToString() + ".int"));
+			const auto gameSystemFolder = fs::path(launchInfo.gameRootFolder) / "System";
+			const auto intFileName = fs::path(packageName.ToString() + ".int");
+			intFile = std::make_unique<IniFile>(gameSystemFolder / intFileName);
 		}
 		catch (...)
 		{
