@@ -12,7 +12,7 @@ LauncherSettings& LauncherSettings::Get()
 
 static std::string GetSettingsFilename()
 {
-	return fs::path(Directory::localAppData()) / "SurrealEngine/Settings.json";
+	return (Directory::localAppData() / "SurrealEngine/Settings.json").string();
 }
 
 LauncherSettings::LauncherSettings()
@@ -122,6 +122,6 @@ void LauncherSettings::Save()
 	settings["Games"] = std::move(games);
 
 	const std::string filename = GetSettingsFilename();
-	Directory::create(fs::path(filename).parent_path());
+	Directory::create(fs::path(filename).parent_path().string());
 	File::write_all_text(filename, settings.to_json(true));
 }

@@ -119,7 +119,7 @@ void EditorMainWindow::OnFileOpen()
 	openFileDialog = OpenFileDialog::Create(this);
 	openFileDialog->SetTitle("Select Map");
 	openFileDialog->AddFilter("Map files", "*." + mapExtension);
-	openFileDialog->SetInitialDirectory(fs::path(engine->LaunchInfo.gameRootFolder) / "Maps");
+	openFileDialog->SetInitialDirectory((fs::path(engine->LaunchInfo.gameRootFolder) / "Maps").string());
 
 	if (openFileDialog->Show())
 	{

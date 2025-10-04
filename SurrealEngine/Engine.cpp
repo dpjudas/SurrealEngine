@@ -1065,7 +1065,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		for (auto& map : packages->GetMaps())
 		{
-			std::string mapname = fs::path(map).stem();
+			std::string mapname = fs::path(map).stem().string();
 
 			if (StrCompare::equals_ignore_case(mapname, url.Map))
 			{

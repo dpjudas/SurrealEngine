@@ -174,7 +174,7 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, Array<std::string>& p
 			{
 				if (!pkgpathcreated)
 				{
-					Directory::create(pkgpath);
+					Directory::create(pkgpath.string());
 					Directory::create(classespath);
 					pkgpathcreated = true;
 				}
@@ -273,12 +273,12 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, Array<std::string>& 
 			{
 				if (!pkgpathcreated)
 				{
-					Directory::create(pkgpath);
+					Directory::create(pkgpath.string());
 					Directory::create(texturespath);
 					pkgpathcreated = true;
 				}
 
-				std::string filename = fs::path(texturespath) / (tex->Name.ToString() + "." + ext);
+				std::string filename = (fs::path(texturespath) / (tex->Name.ToString() + "." + ext)).string();
 				File::write_all_bytes(filename, stream.Data(), stream.Size());
 			}
 		}
