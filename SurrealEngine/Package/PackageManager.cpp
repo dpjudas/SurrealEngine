@@ -229,7 +229,7 @@ void PackageManager::ScanPaths()
 	{
 		for (const auto& dir_entry: fs::directory_iterator{systemFolderPath})
 		{
-			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == "avi")
+			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == ".avi")
 			{
 				auto fileName = dir_entry.path().filename();
 				aviFilenames[NameString(fileName.string())] = (systemFolderPath / fileName).string();
