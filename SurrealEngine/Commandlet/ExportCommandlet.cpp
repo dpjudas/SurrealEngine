@@ -159,8 +159,8 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, Array<std::string>& p
 		std::string& name = pkgobject.second;
 
 		std::string pkgname = package->GetPackageName().ToString();
-		std::string pkgpath = FilePath::combine(engine->LaunchInfo.gameRootFolder, name);
-		std::string classespath = FilePath::combine(pkgpath, "Classes");
+		auto pkgpath = fs::path(engine->LaunchInfo.gameRootFolder) / name;
+		std::string classespath = (pkgpath / "Classes").string();
 		bool pkgpathcreated = false;
 
 		console->WriteOutput("Exporting scripts from " + ColorEscape(96) + name + ResetEscape() + NewLine());
@@ -178,8 +178,8 @@ void ExportCommandlet::ExportScripts(DebuggerApp* console, Array<std::string>& p
 					Directory::create(classespath);
 					pkgpathcreated = true;
 				}
-				std::string filename = FilePath::combine(classespath, cls->FriendlyName.ToString() + ".uc");
-				File::write_all_bytes(filename, stream.Data(), stream.Size());
+				const auto filename = fs::path(classespath) / (cls->FriendlyName.ToString() + ".uc");
+				File::write_all_bytes(filename.string(), stream.Data(), stream.Size());
 			}
 		}
 	}
@@ -251,8 +251,8 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, Array<std::string>& 
 		std::string& name = pkgobject.second;
 
 		std::string pkgname = package->GetPackageName().ToString();
-		std::string pkgpath = FilePath::combine(engine->LaunchInfo.gameRootFolder, name);
-		std::string texturespath = FilePath::combine(pkgpath, "Textures");
+		auto pkgpath = fs::path(engine->LaunchInfo.gameRootFolder) / name;
+		std::string texturespath = (pkgpath / "Textures").string();
 		bool pkgpathcreated = false;
 
 		console->WriteOutput("Exporting textures from " + ColorEscape(96) + name + ResetEscape() + NewLine());
@@ -278,7 +278,7 @@ void ExportCommandlet::ExportTextures(DebuggerApp* console, Array<std::string>& 
 					pkgpathcreated = true;
 				}
 
-				std::string filename = FilePath::combine(texturespath, tex->Name.ToString() + "." + ext);
+				std::string filename = fs::path(texturespath) / (tex->Name.ToString() + "." + ext);
 				File::write_all_bytes(filename, stream.Data(), stream.Size());
 			}
 		}

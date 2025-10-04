@@ -38,7 +38,7 @@ AllFilesIterator::AllFilesIterator(const std::string& FileExtension, const std::
 	{
 		auto package = engine->packages->GetPackage(packageName);
 
-		if ((FileExtension.empty() || FilePath::extension(package->GetPackageFilename()) == FileExtension) && 
+		if ((FileExtension.empty() || fs::path(package->GetPackageFilename()).extension().string() == FileExtension) &&
 			(FilePrefix.empty() || package->GetPackageFilename().find(FilePrefix) != std::string::npos))
 		{
 			FoundFiles.push_back(packageName.ToString());

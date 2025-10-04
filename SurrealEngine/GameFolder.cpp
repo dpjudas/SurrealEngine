@@ -69,7 +69,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 	if (ue1_game.first != KnownUE1Games::UE1_GAME_NOT_FOUND)
 	{
 		info.gameRootFolder = path;
-		info.gameExecutableName = FilePath::remove_extension(ue1_game.second);
+		info.gameExecutableName = fs::path(ue1_game.second).stem().string();
 
 		switch (ue1_game.first)
 		{
@@ -320,7 +320,7 @@ std::string GameFolderSelection::GetExePath()
 	if (GetModuleFileName(0, buffer.data(), 1024))
 	{
 		buffer.back() = 0;
-		return FilePath::remove_last_component(from_utf16(buffer.data()));
+		return fs::path(from_utf16(buffer.data())).parent_path().string();
 	}
 	return {};
 }

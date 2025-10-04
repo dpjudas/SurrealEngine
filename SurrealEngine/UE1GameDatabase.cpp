@@ -2,26 +2,25 @@
 
 #include "Utils/File.h"
 #include "TinySHA1/TinySHA1.hpp"
-#include <filesystem>
 
 std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_game_root_folder_path)
 {
 	if (ue1_game_root_folder_path.empty())
 		return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
 
-	if (!std::filesystem::exists(ue1_game_root_folder_path) || !std::filesystem::is_directory(ue1_game_root_folder_path))
+	if (!fs::exists(ue1_game_root_folder_path) || !fs::is_directory(ue1_game_root_folder_path))
 		return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
 
-	std::string ue1_game_system_path = FilePath::combine(ue1_game_root_folder_path, "System");
+	const auto UE1GameSystemPath = fs::path(ue1_game_root_folder_path) / "System";
 
 	for (auto& executable_name : knownUE1ExecutableNames)
 	{
-		std::string executable_path = FilePath::combine(ue1_game_system_path, executable_name);
+		auto executablePath = UE1GameSystemPath / executable_name;
 
-		if (File::try_open_existing(executable_path))
+		if (File::try_open_existing(executablePath))
 		{
 			// Such executable exists, let's try to take SHA1Sum of it
-			auto bytes = File::read_all_bytes(executable_path);
+			auto bytes = File::read_all_bytes(executablePath);
 
 			sha1::SHA1 s;
 			s.processBytes(bytes.data(), bytes.size());
@@ -34,7 +33,7 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 			std::string sha1sum(temp);
 
 			// Now check whether there is a match within the database or not
-			auto it = SHA1Database.find(sha1sum);
+			const auto it = SHA1Database.find(sha1sum);
 
 			if (it == SHA1Database.end())
 				return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");

@@ -18,28 +18,33 @@ void NativeCppGenerator::Run()
 	std::string game;
 	std::string version;
 
-	for (std::string file : Directory::files(FilePath::combine(std::filesystem::current_path().string(), "*.json")))
+	for (const auto& dir_entry: fs::directory_iterator{fs::current_path()})
 	{
-		size_t jsonTypePos = file.find("-Natives");
-		bool parseNatives = true;
-		if (jsonTypePos == std::string::npos)
+		if (dir_entry.is_regular_file() && dir_entry.path().extension() == "*.json")
 		{
-			parseNatives = false;
-			jsonTypePos = file.find("-Properties");
+			auto file = dir_entry.path().filename().string();
+
+			size_t jsonTypePos = file.find("-Natives");
+			bool parseNatives = true;
 			if (jsonTypePos == std::string::npos)
-				continue;
+			{
+				parseNatives = false;
+				jsonTypePos = file.find("-Properties");
+				if (jsonTypePos == std::string::npos)
+					continue;
+			}
+
+			size_t dashPos = file.find('-');
+			game = file.substr(0, dashPos);
+			version = file.substr(dashPos + 1, jsonTypePos - dashPos - 1);
+
+			JsonValue json = JsonValue::parse(File::read_all_text(file));
+
+			if (parseNatives)
+				ParseGameNatives(json, version);
+			else
+				ParseGameProperties(json, version);
 		}
-
-		size_t dashPos = file.find("-");
-		game = file.substr(0, dashPos);
-		version = file.substr(dashPos + 1, jsonTypePos - dashPos - 1);
-
-		JsonValue json = JsonValue::parse(File::read_all_text(file));
-
-		if (parseNatives)
-			ParseGameNatives(json, version);
-		else
-			ParseGameProperties(json, version);
 	}
 
 	Directory::create("Cpp");
@@ -138,6 +143,7 @@ void NativeCppGenerator::Run()
 		propertyOffsetsCppText += "}\r\n\r\n";
 		propertyOffsetsHText += "}\r\n\r\nextern " + propOffsetsVarDecl;
 	}
+
 
 	File::write_all_text("Cpp/Package/PackageManager_RegisterFuncs.cpp", packageManagerRegisterFuncsText);
 	File::write_all_text("Cpp/UObject/PropertyOffsets.cpp", propertyOffsetsCppText);

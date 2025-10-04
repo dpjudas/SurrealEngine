@@ -119,17 +119,17 @@ void EditorMainWindow::OnFileOpen()
 	openFileDialog = OpenFileDialog::Create(this);
 	openFileDialog->SetTitle("Select Map");
 	openFileDialog->AddFilter("Map files", "*." + mapExtension);
-	openFileDialog->SetInitialDirectory(FilePath::combine(engine->LaunchInfo.gameRootFolder, "Maps"));
+	openFileDialog->SetInitialDirectory(fs::path(engine->LaunchInfo.gameRootFolder) / "Maps");
 
 	if (openFileDialog->Show())
 	{
 		// Load the map and all that stuff
-		auto mapFile = FilePath::last_component(openFileDialog->Filename());
-		auto mapName = FilePath::remove_extension(mapFile);
+		auto mapFile = fs::path(openFileDialog->Filename()).filename();
+		auto mapName = mapFile.stem().string();
 
 		LoadMap(mapName);
 
-		this->SetWindowTitle(mapFile + " - " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - Surreal Editor");
+		this->SetWindowTitle(mapFile.string() + " - " + engine->LaunchInfo.gameName + " v" + engine->LaunchInfo.gameVersionString + " - Surreal Editor");
 		// Refresh the viewports after loading the level
 		Update();
 	}
