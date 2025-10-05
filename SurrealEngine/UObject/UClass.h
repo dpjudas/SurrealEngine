@@ -59,7 +59,7 @@ public:
 	std::string BytecodePlainText;
 #endif
 	UStruct* StructParent = nullptr;
-	Array<uint8_t> Bytecode;
+	Array<uint8_t> Bytecode, BytecodeRaw;
 	std::shared_ptr<::Bytecode> Code;
 
 	size_t StructSize = 0;

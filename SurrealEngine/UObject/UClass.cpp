@@ -81,13 +81,19 @@ void UStruct::Load(ObjectStream* stream)
 	TextPos = stream->ReadUInt32();
 
 	int ScriptSize = stream->ReadUInt32();
-
+	uint32_t rawStart = stream->Tell();
 	while (Bytecode.size() < ScriptSize)
 	{
 		ReadToken(stream, 0);
 	}
 	if (Bytecode.size() != ScriptSize)
 		Exception::Throw("Bytecode load failed");
+	uint32_t rawEnd = stream->Tell();
+
+	// Keep a copy of the original stream as we can't write it yet for the save function
+	BytecodeRaw.resize(rawEnd - rawStart);
+	stream->Seek(rawStart);
+	stream->ReadBytes(BytecodeRaw.data(), (uint32_t)BytecodeRaw.size());
 
 	Code = std::make_shared<::Bytecode>(Bytecode, stream->GetPackage());
 
@@ -172,7 +178,18 @@ void UStruct::Load(ObjectStream* stream)
 void UStruct::Save(PackageStreamWriter* stream)
 {
 	UField::Save(stream);
-	Exception::Throw("UStruct::Save not implemented");
+
+	stream->WriteObject(ScriptText);
+	stream->WriteObject(Children);
+	stream->WriteName(FriendlyName);
+	stream->WriteUInt32(Line);
+	stream->WriteUInt32(TextPos);
+
+	stream->WriteUInt32((uint32_t)Bytecode.size());
+	stream->WriteBytes(BytecodeRaw.data(), (uint32_t)BytecodeRaw.size());
+	//size_t pos = 0;
+	//while (pos < Bytecode.size())
+	//	pos = WriteToken(stream, pos, 0);
 }
 
 #ifdef _DEBUG
@@ -501,7 +518,32 @@ void UClass::Load(ObjectStream* stream)
 void UClass::Save(PackageStreamWriter* stream)
 {
 	UState::Save(stream);
-	Exception::Throw("UClass::Save not implemented");
+
+	if (stream->GetVersion() <= 61)
+		stream->WriteUInt32(OldClassRecordSize);
+
+	stream->WriteUInt32((uint32_t)ClsFlags);
+	stream->WriteBytes(ClassGuid.Data, 16);
+
+	stream->WriteIndex((int)Dependencies.size());
+	for (const ClassDependency& dep : Dependencies)
+	{
+		stream->WriteObject(dep.Class);
+		stream->WriteUInt32(dep.Deep);
+		stream->WriteUInt32(dep.ScriptTextCRC);
+	}
+
+	stream->WriteIndex((int)PackageImports.size());
+	for (int v : PackageImports)
+		stream->WriteIndex(v);
+
+	if (stream->GetVersion() >= 62)
+	{
+		stream->WriteIndex(ClassWithin);
+		stream->WriteName(ClassConfigName);
+	}
+
+	PropertyData.Save(stream, nullptr);
 }
 
 std::map<NameString, std::string> UClass::ParseStructValue(const std::string& text)
