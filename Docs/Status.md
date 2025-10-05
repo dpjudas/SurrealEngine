@@ -43,7 +43,6 @@ they end up dying because SE thinks that they've fallen from a great height.
 * viewclass command crashes with null deref.
 * Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
 * Third person views don't work properly as the player character is not rendered.
-* Zones don't hurt the player when they should (Drowning in water/getting burned in lava, etc.)
 * Inventory from loaded saves do NOT transfer to the next map.
 * Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
 * There is no OpenGL renderer.
