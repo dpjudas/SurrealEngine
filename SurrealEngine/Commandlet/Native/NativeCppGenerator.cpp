@@ -20,7 +20,7 @@ void NativeCppGenerator::Run()
 
 	for (const auto& dir_entry: fs::directory_iterator{fs::current_path()})
 	{
-		if (dir_entry.is_regular_file() && dir_entry.path().extension() == "*.json")
+		if (dir_entry.is_regular_file() && dir_entry.path().extension() == ".json")
 		{
 			auto file = dir_entry.path().filename().string();
 
