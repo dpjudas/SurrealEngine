@@ -150,7 +150,7 @@ void PackageWriter::WriteExportTable(PackageStreamWriter* stream)
 	{
 		stream->WriteIndex(entry.ObjClass);
 		stream->WriteIndex(entry.ObjBase);
-		stream->WriteInt32(entry.ObjPackage);
+		stream->WriteInt32(entry.ObjOuter);
 		stream->WriteIndex(entry.ObjName);
 		stream->WriteInt32((int)entry.ObjFlags);
 		stream->WriteIndex(entry.ObjSize);
@@ -166,7 +166,7 @@ void PackageWriter::WriteImportTable(PackageStreamWriter* stream)
 	{
 		stream->WriteIndex(entry.ClassPackage);
 		stream->WriteIndex(entry.ClassName);
-		stream->WriteInt32(entry.ObjPackage);
+		stream->WriteInt32(entry.ObjOuter);
 		stream->WriteIndex(entry.ObjName);
 	}
 }
@@ -212,8 +212,8 @@ int PackageWriter::GetObjectReference(UObject* obj)
 		else
 			entry.ObjClass = GetObjectReference(obj->Class);
 		entry.ObjName = GetNameIndex(obj->Name);
-		//entry.ObjPackage = GetObjectReference(obj->group);
 		entry.ObjFlags = obj->Flags;
+		entry.ObjOuter = GetObjectReference(obj->Outer());
 
 		ExportTable.push_back(entry);
 		ExportObjects.push_back(obj);
@@ -224,18 +224,36 @@ int PackageWriter::GetObjectReference(UObject* obj)
 	}
 	else
 	{
-		// This stuff encodes some group info :(
-		// see Package::GetUObject
-
 		ImportTableEntry entry = {};
-		entry.ObjName = GetNameIndex(obj->Name);
 		entry.ClassName = GetNameIndex(obj->Class->Name);
-		//entry.ObjPackage = GetObjectReference(obj->package);
-		//entry.ClassPackage = GetObjectReference(obj->Class->package);
+		entry.ClassPackage = GetNameIndex(obj->Class->package->Name);
+		if (obj->Outer())
+			entry.ObjOuter = GetObjectReference(obj->Outer());
+		else
+			entry.ObjOuter = GetPackageReference(obj->package->Name);
+		entry.ObjName = GetNameIndex(obj->Name);
 		ImportTable.push_back(entry);
 
 		int ref = -(int)ImportTable.size();
 		ObjRefHash[obj] = ref;
 		return ref;
 	}
+}
+
+int PackageWriter::GetPackageReference(NameString packageName)
+{
+	auto it = PackageReferences.find(packageName);
+	if (it != PackageReferences.end())
+		return it->second;
+
+	ImportTableEntry entry = {};
+	entry.ClassPackage = GetNameIndex("Core");
+	entry.ClassName = GetNameIndex("Package");
+	entry.ObjOuter = 0;
+	entry.ObjName = GetNameIndex(packageName);
+	ImportTable.push_back(entry);
+
+	int ref = -(int)ImportTable.size();
+	PackageReferences[packageName] = ref;
+	return ref;
 }

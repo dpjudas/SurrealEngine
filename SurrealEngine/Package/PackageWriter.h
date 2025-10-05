@@ -22,6 +22,7 @@ private:
 	int GetVersion() const;
 	int GetNameIndex(NameString name);
 	int GetObjectReference(UObject* obj);
+	int GetPackageReference(NameString packageName);
 
 	Package* Source = nullptr;
 	Array<NameTableEntry> NameTable;
@@ -36,6 +37,7 @@ private:
 
 	std::map<NameString, int> NameHash;
 	std::map<UObject*, int> ObjRefHash;
+	std::map<NameString, int> PackageReferences;
 
 	friend class PackageStreamWriter;
 };

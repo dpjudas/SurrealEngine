@@ -22,7 +22,7 @@ public:
 	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties);
 
 	UObject* GetUObject(int objref);
-	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& groupName = {});
+	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& group = {});
 
 	void LoadAll();
 	void Save(UObject* object = nullptr, const std::string& filename = {});
@@ -36,7 +36,7 @@ public:
 
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
-	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName = {});
+	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group = {});
 
 	std::string GetExportName(int objref);
 
@@ -103,7 +103,7 @@ void Package::RegisterNativeClass(bool registerInPackage, const NameString& clas
 			ExportTableEntry entry;
 			entry.ObjClass = 0;
 			entry.ObjBase = baseClass.IsNone() ? 0 : FindObjectReference("Class", baseClass);
-			entry.ObjPackage = 0;
+			entry.ObjOuter = 0;
 			entry.ObjName = NameHash[className];
 			entry.ObjFlags = ObjectFlags::Native;
 			entry.ObjSize = 0;

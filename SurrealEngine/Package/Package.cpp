@@ -260,6 +260,7 @@ void Package::LoadExportObject(int index)
 		ExportObjects[index] = obj;
 		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
 		Packages->delayLoads.push_back(ExportObjects[index]);
+		obj->Class = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Class"));
 	}
 }
 
@@ -286,28 +287,30 @@ UObject* Package::GetUObject(int objref)
 	else if (objref < 0) // Import table object
 	{
 		ImportTableEntry* entry = GetImportEntry(objref);
-		ImportTableEntry* entrypackage = GetImportEntry(entry->ObjPackage);
-
-		NameString groupName;
-		if (entrypackage->ObjPackage != 0)
-			groupName = GetName(entrypackage->ObjName);
-
-		while (entrypackage->ObjPackage != 0)
-			entrypackage = GetImportEntry(entrypackage->ObjPackage);
-
-		NameString packageName = GetName(entrypackage->ObjName);
 		NameString objectName = GetName(entry->ObjName);
 		NameString className = GetName(entry->ClassName);
-		// NameString classPackage = GetName(entry->ClassPackage);
 
-		UObject* obj = Packages->GetPackage(packageName)->GetUObject(className, objectName, groupName);
+		if (entry->ObjOuter == 0)
+			return nullptr; // This is a root package object. We don't have an UObject for those currently
 
-		// What a garbage engine!
+		// Find the path for the outer object (we can't just grab the object pointer due to UnrealI/UnrealShare)
+		std::string group;
+		ImportTableEntry* outerEntry = GetImportEntry(entry->ObjOuter);
+		while (outerEntry->ObjOuter != 0)
+		{
+			if (!group.empty())
+				group += '.';
+			group += GetName(outerEntry->ObjName).ToString();
+			outerEntry = GetImportEntry(outerEntry->ObjOuter);
+		}
+
+		NameString packageName = GetName(outerEntry->ObjName);
+
+		UObject* obj = Packages->GetPackage(packageName)->GetUObject(className, objectName, group);
 		if (!obj && packageName == "UnrealI")
-			obj = Packages->GetPackage("UnrealShare")->GetUObject(className, objectName, groupName);
+			obj = Packages->GetPackage("UnrealShare")->GetUObject(className, objectName, group);
 		else if (!obj && packageName == "UnrealShare")
-			obj = Packages->GetPackage("UnrealI")->GetUObject(className, objectName, groupName);
-
+			obj = Packages->GetPackage("UnrealI")->GetUObject(className, objectName, group);
 		return obj;
 	}
 	else
@@ -316,12 +319,12 @@ UObject* Package::GetUObject(int objref)
 	}
 }
 
-UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& groupName)
+UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& group)
 {
-	return GetUObject(FindObjectReference(className, objectName, groupName));
+	return GetUObject(FindObjectReference(className, objectName, group));
 }
 
-int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& groupName)
+int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group)
 {
 	bool isClass = className == "Class";
 
@@ -332,25 +335,28 @@ int Package::FindObjectReference(const NameString& className, const NameString& 
 		if (GetName(entry.ObjName) != objectName)
 			continue;
 
-		if (!groupName.IsNone())
+		// Find the path for the outer object
+		std::string entryGroup;
+		int outerRef = entry.ObjOuter;
+		while (outerRef != 0)
 		{
-			if (entry.ObjPackage > 0)
+			if (!entryGroup.empty())
+				entryGroup += '.';
+			if (outerRef > 0)
 			{
-				auto package = GetExportEntry(entry.ObjPackage);
-				if (package && groupName != GetName(package->ObjName))
-					continue;
+				auto outerEntry = GetExportEntry(outerRef);
+				entryGroup += GetName(outerEntry->ObjName).ToString();
+				outerRef = outerEntry->ObjOuter;
 			}
-			else if (entry.ObjPackage < 0)
+			else// if (outerRef < 0)
 			{
-				auto package = GetImportEntry(entry.ObjPackage);
-				if (package && groupName != GetName(package->ObjName))
-					continue;
-			}
-			else
-			{
-				continue;
+				auto outerEntry = GetImportEntry(outerRef);
+				entryGroup += GetName(outerEntry->ObjName).ToString();
+				outerRef = outerEntry->ObjOuter;
 			}
 		}
+		if ((group.IsNone() && !entryGroup.empty()) || (!group.IsNone() && group != entryGroup))
+			continue;
 
 		if (isClass)
 		{
@@ -480,7 +486,7 @@ void Package::ReadTables()
 		ExportTableEntry entry;
 		entry.ObjClass = stream->ReadIndex();
 		entry.ObjBase = stream->ReadIndex();
-		entry.ObjPackage = stream->ReadInt32();
+		entry.ObjOuter = stream->ReadInt32();
 		entry.ObjName = stream->ReadIndex();
 		entry.ObjFlags = (ObjectFlags)stream->ReadInt32();
 		entry.ObjSize = stream->ReadIndex();
@@ -494,7 +500,7 @@ void Package::ReadTables()
 		ImportTableEntry entry;
 		entry.ClassPackage = stream->ReadIndex();
 		entry.ClassName = stream->ReadIndex();
-		entry.ObjPackage = stream->ReadInt32();
+		entry.ObjOuter = stream->ReadInt32();
 		entry.ObjName = stream->ReadIndex();
 		ImportTable.push_back(entry);
 	}
@@ -525,9 +531,9 @@ std::string Package::GetExportName(int objref)
 	ExportTableEntry& entry = ExportTable[objref];
 	std::string objname = NameTable[entry.ObjName].Name.ToString();
 
-	while (entry.ObjPackage != 0)
+	while (entry.ObjOuter != 0)
 	{
-		entry = ExportTable[entry.ObjPackage - 1];
+		entry = ExportTable[entry.ObjOuter - 1];
 		objname = NameTable[entry.ObjName].Name.ToString() + '.' + objname;
 	}
 

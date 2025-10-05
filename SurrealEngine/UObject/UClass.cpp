@@ -440,7 +440,7 @@ void UState::Save(PackageStreamWriter* stream)
 
 /////////////////////////////////////////////////////////////////////////////
 
-UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::move(name), this, flags, base)
+UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::move(name), nullptr, flags, base)
 {
 	if (base)
 		ClsFlags = base->ClsFlags;
