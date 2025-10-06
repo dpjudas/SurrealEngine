@@ -55,6 +55,8 @@ struct FSceneNode;
 struct FSurfaceFacet;
 struct MeshFace;
 
+static constexpr int32_t DONT_SAVE_GAME = -2; // Since -1 might be used as the autosave slot in some UE1 games...
+
 class Engine : public GameWindowHost
 {
 public:
@@ -146,6 +148,12 @@ public:
 		ETravelType TravelType = ETravelType::TRAVEL_Absolute;
 		bool TransferItems = false;
 	} ClientTravelInfo;
+
+	struct
+	{
+		int32_t SaveGameSlot = DONT_SAVE_GAME;
+		std::string SaveGameDescription;
+	} SaveGameInfo;
 
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
