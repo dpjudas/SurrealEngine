@@ -101,6 +101,13 @@ void Engine::Run()
 	bool firstCall = true;
 	while (!quit)
 	{
+		// Main game loop should consist of these 4 steps:
+		// Tick everything
+		// Render the scene
+		// Check if there is a request to save the game: save the game if that's the case
+		// Check if there is a new map to load (next level, saved game etc.): load it if that's the case
+
+		// Tick everything
 		float realTimeElapsed = CalcTimeElapsed();
 		float entryLevelElapsed = EntryLevel ? realTimeElapsed * clamp(EntryLevelInfo->TimeDilation(), 0.0025f, 25.0f) : 0.0f;
 		float levelElapsed = realTimeElapsed * clamp(LevelInfo->TimeDilation(), 0.0025f, 25.0f);
@@ -143,6 +150,41 @@ void Engine::Run()
 			EntryLevel->Tick(entryLevelElapsed, m_GamePaused);
 		Level->Tick(levelElapsed, m_GamePaused);
 
+		// To do: improve CallEvent so parameter passing isn't this painful
+		UFunction* funcPlayerCalcView = viewport->Actor() ? FindEventFunction(viewport->Actor(), "PlayerCalcView") : nullptr;
+		if (funcPlayerCalcView)
+		{
+			vecprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
+			rotprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
+			CameraActor = viewport->Actor();
+			CameraLocation = viewport->Actor()->Location();
+			CameraRotation = viewport->Actor()->Rotation();
+			CameraFovAngle = viewport->Actor()->FovAngle();
+			CallEvent(viewport->Actor(), EventName::PlayerCalcView, {
+				ExpressionValue::Variable(&CameraActor, objprop),
+				ExpressionValue::Variable(&CameraLocation, vecprop),
+				ExpressionValue::Variable(&CameraRotation, rotprop)
+				});
+		}
+
+		UpdateAudio();
+
+		ViewportX = 0;
+		ViewportY = 0;
+		ViewportWidth = engine->window->GetPixelWidth();
+		ViewportHeight = engine->window->GetPixelHeight();
+		render->DrawGame(levelElapsed);
+
+		// Save the game if there is a request for it
+		if (SaveGameInfo.SaveGameSlot != DONT_SAVE_GAME)
+		{
+			SaveGameToSlot(SaveGameInfo.SaveGameSlot, SaveGameInfo.SaveGameDescription);
+
+			SaveGameInfo.SaveGameSlot = DONT_SAVE_GAME;
+			SaveGameInfo.SaveGameDescription.clear();
+		}
+
+		// Check if there is a new map to load
 		if (!LevelInfo->NextURL().empty())
 		{
 			LevelInfo->NextSwitchCountdown() -= levelElapsed;
@@ -188,31 +230,6 @@ void Engine::Run()
 			LoadMap(url, CreateTravelInfo(ClientTravelInfo.TransferItems));
 			LoginPlayer();
 		}
-
-		// To do: improve CallEvent so parameter passing isn't this painful
-		UFunction* funcPlayerCalcView = viewport->Actor() ? FindEventFunction(viewport->Actor(), "PlayerCalcView") : nullptr;
-		if (funcPlayerCalcView)
-		{
-			vecprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[1])->Struct;
-			rotprop->Struct = UObject::Cast<UStructProperty>(funcPlayerCalcView->Properties[2])->Struct;
-			CameraActor = viewport->Actor();
-			CameraLocation = viewport->Actor()->Location();
-			CameraRotation = viewport->Actor()->Rotation();
-			CameraFovAngle = viewport->Actor()->FovAngle();
-			CallEvent(viewport->Actor(), EventName::PlayerCalcView, {
-				ExpressionValue::Variable(&CameraActor, objprop),
-				ExpressionValue::Variable(&CameraLocation, vecprop),
-				ExpressionValue::Variable(&CameraRotation, rotprop)
-				});
-		}
-
-		UpdateAudio();
-
-		ViewportX = 0;
-		ViewportY = 0;
-		ViewportWidth = engine->window->GetPixelWidth();
-		ViewportHeight = engine->window->GetPixelHeight();
-		render->DrawGame(levelElapsed);
 	}
 
 	window->UnlockCursor();
@@ -1089,7 +1106,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		LogMessage("Couldn't find map " + maparg);
 	}
-	else if (command == "savegame" && args.size() == 2)
+	else if (command == "savegame" && (args.size() == 2 || args.size() == 3))
 	{
 
 		int32_t slotNum;
@@ -1103,7 +1120,12 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 			return {};
 		}
 
-		SaveGameToSlot(slotNum, "");
+		SaveGameInfo.SaveGameSlot = slotNum;
+
+		if (args.size() == 3)
+			SaveGameInfo.SaveGameDescription = args[2];
+
+		// SaveGameToSlot(slotNum, "");
 
 		//LogMessage("SaveGame command not fully implemented yet!");
 		return {};
