@@ -86,7 +86,7 @@ MemoryStreamWriter Exporter::ExportTexture(UTexture* tex, const std::string& ext
 		return ExportIceTexture(reinterpret_cast<UIceTexture*>(tex));
 	}
 
-	if (tex->ActualFormat == TextureFormat::P8)
+	if (tex->UsedFormat == TextureFormat::P8)
 	{
 		if (ext.compare("bmp") == 0)
 			return ExportBmpIndexed(tex);
@@ -342,7 +342,7 @@ MemoryStreamWriter Exporter::ExportBmpIndexed(UTexture* tex)
 
 	hdr.pixelOffset = (uint32_t)data.Tell();
 
-	uint8_t *pixels = tex->Mipmaps[0].Data.data();
+	uint8_t *pixels = tex->UsedMipmaps[0].Data.data();
 	for (int y = vsize; y > 0; y--)
 	{
 		for (int x = 0; x < usize; x++)
@@ -372,12 +372,12 @@ MemoryStreamWriter Exporter::ExportPng(UTexture* tex)
 
 MemoryStreamWriter Exporter::GetImage(UTexture* tex)
 {
-	switch (tex->ActualFormat)
+	switch (tex->UsedFormat)
 	{
 	case TextureFormat::P8:
 		return GetImageP8(tex);
 	default:
-		Exception::Throw(tex->Name.ToString() + "Unimplemented for texture type" + std::to_string(static_cast<int>(tex->ActualFormat)));
+		Exception::Throw(tex->Name.ToString() + "Unimplemented for texture type" + std::to_string(static_cast<int>(tex->UsedFormat)));
 	}
 }
 
@@ -385,7 +385,7 @@ MemoryStreamWriter Exporter::GetImageP8(UTexture* tex)
 {
 	MemoryStreamWriter data;
 	UPalette* palette = tex->Palette();
-	uint8_t* pixels = tex->Mipmaps[0].Data.data();
+	uint8_t* pixels = tex->UsedMipmaps[0].Data.data();
 
 	int usize = tex->USize();
 	int vsize = tex->VSize();

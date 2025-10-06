@@ -108,8 +108,8 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 		FTextureInfo texinfo;
 		engine->render->UpdateTextureInfo(texinfo, tex);
 
-		float uscale = (tex ? tex->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
-		float vscale = (tex ? tex->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
+		float uscale = (tex ? tex->UsedMipmaps.front().Width : 256) * (1.0f / 255.0f);
+		float vscale = (tex ? tex->UsedMipmaps.front().Height : 256) * (1.0f / 255.0f);
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -377,8 +377,8 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 		FTextureInfo texinfo;
 		engine->render->UpdateTextureInfo(texinfo, tex);
 
-		float uscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Width : 256) * (1.0f / 255.0f);
-		float vscale = (texinfo.Texture ? texinfo.Texture->Mipmaps.front().Height : 256) * (1.0f / 255.0f);
+		float uscale = (texinfo.Texture ? texinfo.Texture->UsedMipmaps.front().Width : 256) * (1.0f / 255.0f);
+		float vscale = (texinfo.Texture ? texinfo.Texture->UsedMipmaps.front().Height : 256) * (1.0f / 255.0f);
 
 		vec3 normals[3];
 		for (int i = 0; i < 3; i++)

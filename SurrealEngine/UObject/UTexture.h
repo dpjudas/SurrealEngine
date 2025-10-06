@@ -10,8 +10,10 @@ class UFont;
 class UnrealMipmap
 {
 public:
-	int Width;
-	int Height;
+	int Width = 0;
+	int Height = 0;
+	int UBits = 0;
+	int VBits = 0;
 	Array<uint8_t> Data;
 };
 
@@ -193,8 +195,8 @@ public:
 	virtual void Update(float elapsed);
 	virtual void UpdateFrame();
 
-	TextureFormat ActualFormat = TextureFormat::P8;
-	Array<UnrealMipmap> Mipmaps;
+	TextureFormat UsedFormat = TextureFormat::P8;
+	Array<UnrealMipmap> UsedMipmaps, UncompressedMipmaps, CompressedMipmaps;
 	bool TextureModified = false;
 	int RealtimeChangeCount = 0;
 

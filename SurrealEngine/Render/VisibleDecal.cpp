@@ -20,9 +20,9 @@ void VisibleDecal::DrawDecals(VisibleFrame* frame, BspNode* node)
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)texture;
 			texinfo.Texture = texture;
-			texinfo.Format = texinfo.Texture->ActualFormat;
-			texinfo.Mips = texinfo.Texture->Mipmaps.data();
-			texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = texinfo.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)texinfo.Texture->UsedMipmaps.size();
 			texinfo.USize = texinfo.Texture->USize();
 			texinfo.VSize = texinfo.Texture->VSize();
 			if (texinfo.Texture->Palette())

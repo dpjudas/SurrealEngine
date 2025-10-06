@@ -40,16 +40,16 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 	texinfo.bRealtimeChanged = texture->TextureModified;
 	if (texture->TextureModified)
 		texture->TextureModified = false;
-	texinfo.Format = texinfo.Texture->ActualFormat;
-	texinfo.Mips = texinfo.Texture->Mipmaps.data();
-	texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+	texinfo.Format = texinfo.Texture->UsedFormat;
+	texinfo.Mips = texinfo.Texture->UsedMipmaps.data();
+	texinfo.NumMips = (int)texinfo.Texture->UsedMipmaps.size();
 	texinfo.USize = texinfo.Texture->USize();
 	texinfo.VSize = texinfo.Texture->VSize();
 	if (texinfo.Texture->Palette())
 		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
 
-	float texwidth = (float)texture->Mipmaps.front().Width;
-	float texheight = (float)texture->Mipmaps.front().Height;
+	float texwidth = (float)texture->UsedMipmaps.front().Width;
+	float texheight = (float)texture->UsedMipmaps.front().Height;
 
 	uint32_t renderflags = PF_TwoSided;
 	if (style == 3)

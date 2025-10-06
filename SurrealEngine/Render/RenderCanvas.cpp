@@ -151,9 +151,9 @@ void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float 
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
-	texinfo.Format = texinfo.Texture->ActualFormat;
-	texinfo.Mips = Tex->Mipmaps.data();
-	texinfo.NumMips = (int)Tex->Mipmaps.size();
+	texinfo.Format = texinfo.Texture->UsedFormat;
+	texinfo.Mips = Tex->UsedMipmaps.data();
+	texinfo.NumMips = (int)Tex->UsedMipmaps.size();
 	texinfo.USize = Tex->USize();
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
@@ -174,9 +174,9 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	FTextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
-	texinfo.Format = texinfo.Texture->ActualFormat;
-	texinfo.Mips = Tex->Mipmaps.data();
-	texinfo.NumMips = (int)Tex->Mipmaps.size();
+	texinfo.Format = texinfo.Texture->UsedFormat;
+	texinfo.Mips = Tex->UsedMipmaps.data();
+	texinfo.NumMips = (int)Tex->UsedMipmaps.size();
 	texinfo.USize = Tex->USize();
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
@@ -233,9 +233,9 @@ void RenderSubsystem::DrawTextBlockRange(float x, float y, const Array<std::stri
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
-			texinfo.Format = texinfo.Texture->ActualFormat;
-			texinfo.Mips = glyph.Texture->Mipmaps.data();
-			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = glyph.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->UsedMipmaps.size();
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
@@ -383,9 +383,9 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
-			texinfo.Format = texinfo.Texture->ActualFormat;
-			texinfo.Mips = glyph.Texture->Mipmaps.data();
-			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = glyph.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->UsedMipmaps.size();
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
@@ -416,9 +416,9 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
-			texinfo.Format = texinfo.Texture->ActualFormat;
-			texinfo.Mips = glyph.Texture->Mipmaps.data();
-			texinfo.NumMips = (int)glyph.Texture->Mipmaps.size();
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = glyph.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->UsedMipmaps.size();
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())

@@ -9,12 +9,9 @@ void UTexture::Load(ObjectStream* stream)
 {
 	UBitmap::Load(stream);
 
-	ActualFormat = (TextureFormat)GetByte("Format");
-
 	int mipsCount = stream->ReadUInt8();
-	Mipmaps.resize(mipsCount);
-
-	for (UnrealMipmap& mipmap : Mipmaps)
+	UncompressedMipmaps.resize(mipsCount);
+	for (UnrealMipmap& mipmap : UncompressedMipmaps)
 	{
 		uint32_t widthoffset = 0;
 		if (stream->GetVersion() >= 63)
@@ -24,17 +21,15 @@ void UTexture::Load(ObjectStream* stream)
 		stream->ReadBytes(mipmap.Data.data(), bytes);
 		mipmap.Width = stream->ReadUInt32();
 		mipmap.Height = stream->ReadUInt32();
-		uint8_t UBits = stream->ReadUInt8();
-		uint8_t VBits = stream->ReadUInt8();
+		mipmap.UBits = stream->ReadUInt8();
+		mipmap.VBits = stream->ReadUInt8();
 	}
 
 	if (HasProperty("bHasComp") && GetBool("bHasComp"))
 	{
-		ActualFormat = (TextureFormat)GetByte("CompFormat");
-
 		mipsCount = stream->ReadUInt8();
-		Mipmaps.resize(mipsCount);
-		for (UnrealMipmap& mipmap : Mipmaps)
+		CompressedMipmaps.resize(mipsCount);
+		for (UnrealMipmap& mipmap : CompressedMipmaps)
 		{
 			uint32_t widthoffset = 0;
 			if (stream->GetVersion() >= 68)
@@ -44,16 +39,56 @@ void UTexture::Load(ObjectStream* stream)
 			stream->ReadBytes(mipmap.Data.data(), bytes);
 			mipmap.Width = stream->ReadUInt32();
 			mipmap.Height = stream->ReadUInt32();
-			uint8_t UBits = stream->ReadUInt8();
-			uint8_t VBits = stream->ReadUInt8();
+			mipmap.UBits = stream->ReadUInt8();
+			mipmap.VBits = stream->ReadUInt8();
 		}
+
+		UsedFormat = (TextureFormat)GetByte("CompFormat");
+		UsedMipmaps = CompressedMipmaps;
+	}
+	else
+	{
+		UsedFormat = (TextureFormat)GetByte("Format");
+		UsedMipmaps = UncompressedMipmaps;
 	}
 }
 
 void UTexture::Save(PackageStreamWriter* stream)
 {
 	UBitmap::Save(stream);
-	Exception::Throw("UTexture::Save not implemented");
+
+	stream->WriteUInt8((uint8_t)UncompressedMipmaps.size());
+	for (const UnrealMipmap& mipmap : UncompressedMipmaps)
+	{
+		if (stream->GetVersion() >= 63)
+			stream->BeginSkipOffset();
+		stream->WriteIndex((int)mipmap.Data.size());
+		stream->WriteBytes(mipmap.Data.data(), (int)mipmap.Data.size());
+		stream->WriteUInt32(mipmap.Width);
+		stream->WriteUInt32(mipmap.Height);
+		stream->WriteUInt8(mipmap.UBits);
+		stream->WriteUInt8(mipmap.VBits);
+		if (stream->GetVersion() >= 63)
+			stream->EndSkipOffset();
+	}
+
+	if (HasProperty("bHasComp") && GetBool("bHasComp"))
+	{
+		stream->WriteUInt8((uint8_t)CompressedMipmaps.size());
+		for (UnrealMipmap& mipmap : CompressedMipmaps)
+		{
+			if (stream->GetVersion() >= 68)
+				stream->BeginSkipOffset();
+			stream->WriteIndex((int)mipmap.Data.size());
+			stream->WriteBytes(mipmap.Data.data(), (int)mipmap.Data.size());
+			stream->WriteUInt32(mipmap.Width);
+			stream->WriteUInt32(mipmap.Height);
+			stream->WriteUInt8(mipmap.UBits);
+			stream->WriteUInt8(mipmap.VBits);
+			if (stream->GetVersion() >= 68)
+				stream->EndSkipOffset();
+		}
+	}
 }
 
 void UTexture::Update(float elapsed)
@@ -90,13 +125,13 @@ void UFractalTexture::Load(ObjectStream* stream)
 {
 	UTexture::Load(stream);
 
-	ActualFormat = TextureFormat::P8;
-	Mipmaps.resize(1);
+	UsedFormat = TextureFormat::P8;
+	UsedMipmaps.resize(1);
 
 	int width = GetInt("UClamp");
 	int height = GetInt("VClamp");
 
-	UnrealMipmap& mipmap = Mipmaps.front();
+	UnrealMipmap& mipmap = UsedMipmaps.front();
 	mipmap.Width = width;
 	mipmap.Height = height;
 	mipmap.Data.resize((size_t)mipmap.Width * mipmap.Height);
@@ -161,7 +196,7 @@ void UFireTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
-		UnrealMipmap& mipmap = Mipmaps.front();
+		UnrealMipmap& mipmap = UsedMipmaps.front();
 
 		int width = mipmap.Width;
 		int height = mipmap.Height;
@@ -375,7 +410,7 @@ void UIceTexture::UpdateFrame()
 {
 	if (!TextureModified)
 	{
-		UnrealMipmap& mipmap = Mipmaps.front();
+		UnrealMipmap& mipmap = UsedMipmaps.front();
 
 		int width = mipmap.Width;
 		int height = mipmap.Height;
@@ -383,9 +418,9 @@ void UIceTexture::UpdateFrame()
 		int count = width * height;
 
 		UTexture* tex = SourceTexture();
-		if (tex && !tex->Mipmaps.empty() && tex->Mipmaps.front().Width == mipmap.Width && tex->Mipmaps.front().Height == mipmap.Height)
+		if (tex && !tex->UsedMipmaps.empty() && tex->UsedMipmaps.front().Width == mipmap.Width && tex->UsedMipmaps.front().Height == mipmap.Height)
 		{
-			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
+			const uint8_t* srcpixels = (const uint8_t*)tex->UsedMipmaps.front().Data.data();
 			for (int i = 0; i < count; i++)
 			{
 				pixels[i] = srcpixels[i];
@@ -414,7 +449,7 @@ void UWaterTexture::UpdateFrame()
 		// Show the current water in the texture:
 		// To do: this probably shouldn't just show the depth, but rather the slope
 
-		UnrealMipmap& mipmap = Mipmaps.front();
+		UnrealMipmap& mipmap = UsedMipmaps.front();
 
 		int width = mipmap.Width;
 		int height = mipmap.Height;
@@ -439,7 +474,7 @@ void UWaterTexture::UpdateFrame()
 
 void UWaterTexture::UpdateWater()
 {
-	UnrealMipmap& mipmap = Mipmaps.front();
+	UnrealMipmap& mipmap = UsedMipmaps.front();
 
 	int width = mipmap.Width;
 	int height = mipmap.Height;
@@ -608,15 +643,15 @@ void UWetTexture::UpdateFrame()
 	{
 		UpdateWater();
 
-		UnrealMipmap& mipmap = Mipmaps.front();
+		UnrealMipmap& mipmap = UsedMipmaps.front();
 
 		UTexture* tex = SourceTexture();
-		if (tex && !tex->Mipmaps.empty() && tex->Mipmaps.front().Width == mipmap.Width && tex->Mipmaps.front().Height == mipmap.Height)
+		if (tex && !tex->UsedMipmaps.empty() && tex->UsedMipmaps.front().Width == mipmap.Width && tex->UsedMipmaps.front().Height == mipmap.Height)
 		{
 			int width = mipmap.Width;
 			int height = mipmap.Height;
 			uint8_t* pixels = (uint8_t*)mipmap.Data.data();
-			const uint8_t* srcpixels = (const uint8_t*)tex->Mipmaps.front().Data.data();
+			const uint8_t* srcpixels = (const uint8_t*)tex->UsedMipmaps.front().Data.data();
 			for (int y = 0; y < height; y++)
 			{
 				const WaterPixel* waterline = &WaterDepth[CurrentWaterDepth][y * width];
@@ -696,13 +731,13 @@ void UScriptedTexture::Load(ObjectStream* stream)
 {
 	UTexture::Load(stream);
 
-	ActualFormat = TextureFormat::P8;
-	Mipmaps.resize(1);
+	UsedFormat = TextureFormat::P8;
+	UsedMipmaps.resize(1);
 
 	int width = GetInt("UClamp");
 	int height = GetInt("VClamp");
 
-	UnrealMipmap& mipmap = Mipmaps.front();
+	UnrealMipmap& mipmap = UsedMipmaps.front();
 	mipmap.Width = width;
 	mipmap.Height = height;
 	mipmap.Data.resize((size_t)mipmap.Width * mipmap.Height);
@@ -732,7 +767,7 @@ void UScriptedTexture::UpdateFrame()
 	if (sourceTex)
 	{
 		Palette() = sourceTex->Palette();
-		DrawTileP8(sourceTex, 0.0f, 0.0f, (float)Mipmaps.front().Width, (float)Mipmaps.front().Height, 0.0f, 0.0f, (float)sourceTex->Mipmaps.front().Width, (float)sourceTex->Mipmaps.front().Height);
+		DrawTileP8(sourceTex, 0.0f, 0.0f, (float)UsedMipmaps.front().Width, (float)UsedMipmaps.front().Height, 0.0f, 0.0f, (float)sourceTex->UsedMipmaps.front().Width, (float)sourceTex->UsedMipmaps.front().Height);
 	}
 
 	UActor* actor = NotifyActor();
@@ -817,15 +852,15 @@ void UScriptedTexture::TextSize(const std::string& Text, float& XL, float& YL, U
 
 void UScriptedTexture::DrawTileP8(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight)
 {
-	if (!texture || width <= 0.0f || height <= 0.0f || ActualFormat != TextureFormat::P8 || texture->ActualFormat != TextureFormat::P8)
+	if (!texture || width <= 0.0f || height <= 0.0f || UsedFormat != TextureFormat::P8 || texture->UsedFormat != TextureFormat::P8)
 		return;
 
-	int swidth = texture->Mipmaps.front().Width;
-	const uint8_t* src = (const uint8_t*)texture->Mipmaps.front().Data.data();
+	int swidth = texture->UsedMipmaps.front().Width;
+	const uint8_t* src = (const uint8_t*)texture->UsedMipmaps.front().Data.data();
 
-	int dwidth = Mipmaps.front().Width;
-	int dheight = Mipmaps.front().Height;
-	uint8_t* dest = (uint8_t*)Mipmaps.front().Data.data();
+	int dwidth = UsedMipmaps.front().Width;
+	int dheight = UsedMipmaps.front().Height;
+	uint8_t* dest = (uint8_t*)UsedMipmaps.front().Data.data();
 
 	int x0 = std::max((int)left, 0);
 	int x1 = std::min((int)(left + width), dwidth);
@@ -854,15 +889,15 @@ void UScriptedTexture::DrawTileP8(UTexture* texture, float left, float top, floa
 
 void UScriptedTexture::DrawTileP8Masked(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight)
 {
-	if (!texture || width <= 0.0f || height <= 0.0f || ActualFormat != TextureFormat::P8 || texture->ActualFormat != TextureFormat::P8)
+	if (!texture || width <= 0.0f || height <= 0.0f || UsedFormat != TextureFormat::P8 || texture->UsedFormat != TextureFormat::P8)
 		return;
 
-	int swidth = texture->Mipmaps.front().Width;
-	const uint8_t* src = (const uint8_t*)texture->Mipmaps.front().Data.data();
+	int swidth = texture->UsedMipmaps.front().Width;
+	const uint8_t* src = (const uint8_t*)texture->UsedMipmaps.front().Data.data();
 
-	int dwidth = Mipmaps.front().Width;
-	int dheight = Mipmaps.front().Height;
-	uint8_t* dest = (uint8_t*)Mipmaps.front().Data.data();
+	int dwidth = UsedMipmaps.front().Width;
+	int dheight = UsedMipmaps.front().Height;
+	uint8_t* dest = (uint8_t*)UsedMipmaps.front().Data.data();
 
 	int x0 = std::max((int)left, 0);
 	int x1 = std::min((int)(left + width), dwidth);
@@ -892,15 +927,15 @@ void UScriptedTexture::DrawTileP8Masked(UTexture* texture, float left, float top
 
 void UScriptedTexture::DrawTileP8Color(UTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, uint8_t color)
 {
-	if (!texture || width <= 0.0f || height <= 0.0f || ActualFormat != TextureFormat::P8 || texture->ActualFormat != TextureFormat::P8)
+	if (!texture || width <= 0.0f || height <= 0.0f || UsedFormat != TextureFormat::P8 || texture->UsedFormat != TextureFormat::P8)
 		return;
 
-	int swidth = texture->Mipmaps.front().Width;
-	const uint8_t* src = (const uint8_t*)texture->Mipmaps.front().Data.data();
+	int swidth = texture->UsedMipmaps.front().Width;
+	const uint8_t* src = (const uint8_t*)texture->UsedMipmaps.front().Data.data();
 
-	int dwidth = Mipmaps.front().Width;
-	int dheight = Mipmaps.front().Height;
-	uint8_t* dest = (uint8_t*)Mipmaps.front().Data.data();
+	int dwidth = UsedMipmaps.front().Width;
+	int dheight = UsedMipmaps.front().Height;
+	uint8_t* dest = (uint8_t*)UsedMipmaps.front().Data.data();
 
 	int x0 = std::max((int)left, 0);
 	int x1 = std::min((int)(left + width), dwidth);

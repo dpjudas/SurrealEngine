@@ -19,8 +19,8 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 			float y = frame->Frame.FY2 + clip.y / clip.w * frame->Frame.FY2;
 			float z = 2.0f;
 
-			float width = (float)light->Skin()->Mipmaps.front().Width;
-			float height = (float)light->Skin()->Mipmaps.front().Height;
+			float width = (float)light->Skin()->UsedMipmaps.front().Width;
+			float height = (float)light->Skin()->UsedMipmaps.front().Height;
 			float size = light->DrawScale() * frame->Frame.FX * 0.8f;
 
 			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255/*light->LightBrightness()*/);
@@ -30,9 +30,9 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 			FTextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();
 			texinfo.Texture = light->Skin()->GetAnimTexture();
-			texinfo.Format = texinfo.Texture->ActualFormat;
-			texinfo.Mips = texinfo.Texture->Mipmaps.data();
-			texinfo.NumMips = (int)texinfo.Texture->Mipmaps.size();
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = texinfo.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)texinfo.Texture->UsedMipmaps.size();
 			texinfo.USize = texinfo.Texture->USize();
 			texinfo.VSize = texinfo.Texture->VSize();
 			if (texinfo.Texture->Palette())

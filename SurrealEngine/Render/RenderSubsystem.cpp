@@ -126,9 +126,9 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
 
 	info.UScale = texture->DrawScale();
 	info.VScale = texture->DrawScale();
-	info.Format = texture->ActualFormat;
-	info.Mips = texture->Mipmaps.data();
-	info.NumMips = (int)texture->Mipmaps.size();
+	info.Format = texture->UsedFormat;
+	info.Mips = texture->UsedMipmaps.data();
+	info.NumMips = (int)texture->UsedMipmaps.size();
 	info.USize = texture->USize();
 	info.VSize = texture->VSize();
 	if (texture->Palette())
