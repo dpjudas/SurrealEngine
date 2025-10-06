@@ -48,9 +48,6 @@ public:
 
 	std::shared_ptr<PackageStream> GetStream(Package* package);
 
-	UObject* NewObject(const NameString& name, const NameString& package, const NameString& className);
-	UObject* NewObject(const NameString& name, UClass* cls);
-
 	UClass* FindClass(const NameString& name);
 
 	std::string GetMapExtension() const { return mapExtension; }
@@ -79,7 +76,11 @@ public:
 
 	bool MissingSESystemIni() const { return missing_se_system_ini; }
 
+	Package* GetTransientPackage() { return GetPackage("Transient"); }
+
 private:
+	void CreateTransientPackage();
+
 	std::unique_ptr<IniFile>& LoadIniFile(NameString iniName);
 	std::unique_ptr<IniFile>& LoadUserIniFile();
 	std::unique_ptr<IniFile>& LoadSystemIniFile();

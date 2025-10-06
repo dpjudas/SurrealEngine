@@ -19,10 +19,12 @@ public:
 	Package(PackageManager* packageManager, const NameString& name, const std::string& filename);
 	~Package();
 
-	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties);
+	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties = true);
 
 	UObject* GetUObject(int objref);
 	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& group = {});
+
+	UClass* GetClass(const NameString& className);
 
 	void LoadAll();
 	void Save(UObject* object = nullptr, const std::string& filename = {});

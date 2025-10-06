@@ -37,19 +37,21 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 
 	std::srand((unsigned int)std::time(nullptr));
 
-	gameengine = UObject::Cast<UGameEngine>(packages->NewObject("gameengine", "Engine", "GameEngine"));
-	audiodev = UObject::Cast<USurrealAudioDevice>(packages->NewObject("audiodev", "Engine", "SurrealAudioDevice"));
-	renderdev = UObject::Cast<USurrealRenderDevice>(packages->NewObject("renderdev", "Engine", "SurrealRenderDevice"));
-	netdev = UObject::Cast<USurrealNetworkDevice>(packages->NewObject("netdev", "Engine", "SurrealNetworkDevice"));
-	client = UObject::Cast<USurrealClient>(packages->NewObject("client", "Engine", "SurrealClient"));
-	viewport = UObject::Cast<UViewport>(packages->NewObject("viewport", "Engine", "Viewport"));
-	canvas = UObject::Cast<UCanvas>(packages->NewObject("canvas", "Engine", "Canvas"));
+	auto transientpkg = packages->GetTransientPackage();
+	auto enginepkg = packages->GetPackage("Engine");
+	gameengine = UObject::Cast<UGameEngine>(transientpkg->NewObject("gameengine", enginepkg->GetClass("GameEngine"), ObjectFlags::Transient));
+	audiodev = UObject::Cast<USurrealAudioDevice>(transientpkg->NewObject("audiodev", enginepkg->GetClass("SurrealAudioDevice"), ObjectFlags::Transient));
+	renderdev = UObject::Cast<USurrealRenderDevice>(transientpkg->NewObject("renderdev", enginepkg->GetClass("SurrealRenderDevice"), ObjectFlags::Transient));
+	netdev = UObject::Cast<USurrealNetworkDevice>(transientpkg->NewObject("netdev", enginepkg->GetClass("SurrealNetworkDevice"), ObjectFlags::Transient));
+	client = UObject::Cast<USurrealClient>(transientpkg->NewObject("client", enginepkg->GetClass("SurrealClient"), ObjectFlags::Transient));
+	viewport = UObject::Cast<UViewport>(transientpkg->NewObject("viewport", enginepkg->GetClass("Viewport"), ObjectFlags::Transient));
+	canvas = UObject::Cast<UCanvas>(transientpkg->NewObject("canvas", enginepkg->GetClass("Canvas"), ObjectFlags::Transient));
 	DefaultTexture = UObject::Cast<UTexture>(packages->GetPackage("Engine")->GetUObject("Texture", "DefaultTexture"));
 
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
 	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
 	std::string consolecls = consolestr.substr(consolestr.find('.') + 1);
-	console = UObject::Cast<UConsole>(packages->NewObject("console", consolepkg, consolecls));
+	console = UObject::Cast<UConsole>(transientpkg->NewObject("console", packages->GetPackage(consolepkg)->GetClass(consolecls), ObjectFlags::Transient));
 
 	console->Viewport() = viewport;
 	canvas->Viewport() = viewport;
@@ -628,7 +630,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		Exception::Throw("Could not find any gameinfo class!");
 
 	// Spawn GameInfo actor
-	GameInfo = UObject::Cast<UGameInfo>(packages->NewObject("gameinfo", gameInfoClass));
+	GameInfo = UObject::Cast<UGameInfo>(LevelPackage->NewObject("gameinfo", gameInfoClass, ObjectFlags::NoFlags));
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
 	Level->Collision.AddToCollision(GameInfo);

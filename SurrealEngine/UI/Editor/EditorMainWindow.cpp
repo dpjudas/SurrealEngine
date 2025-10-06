@@ -226,5 +226,5 @@ void EditorMainWindow::LoadMap(std::string& mapName)
 		Exception::Throw("Could not find the LevelInfo object for this map!");
 
 	engine->Level = UObject::Cast<ULevel>(engine->LevelPackage->GetUObject("Level", "MyLevel"));
-	engine->CameraActor = UObject::Cast<UActor>(engine->packages->NewObject("camera", "Engine", "Camera"));
+	engine->CameraActor = UObject::Cast<UActor>(engine->packages->GetTransientPackage()->NewObject("camera", engine->packages->GetPackage("Engine")->GetClass("Camera"), ObjectFlags::Transient));
 }

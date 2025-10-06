@@ -41,6 +41,7 @@
 
 PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
+	CreateTransientPackage();
 	RegisterFunctions();
 	LoadEngineIniFiles();
 	LoadIntFiles();
@@ -52,6 +53,11 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 
 	// File::write_all_text("C:\\Development\\UTNativeProps.txt", NativeObjExtractor::Run(this));
 	// File::write_all_text("C:\\Development\\UTNativeFuncs.txt", NativeFuncExtractor::Run(this));
+}
+
+void PackageManager::CreateTransientPackage()
+{
+	packages["Transient"].set(GC::Alloc<Package>(this, "Transient", ""));
 }
 
 Package* PackageManager::GetPackage(const NameString& name)
@@ -296,21 +302,6 @@ void PackageManager::DelayLoadNow()
 		delayLoads.pop_back();
 		obj->LoadNow();
 	}
-}
-
-UObject* PackageManager::NewObject(const NameString& name, const NameString& package, const NameString& className)
-{
-	Package* pkg = GetPackage(package);
-	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", className));
-	if (!cls)
-		Exception::Throw("Could not find class " + className.ToString());
-	return pkg->NewObject(name, cls, ObjectFlags::NoFlags, true);
-}
-
-UObject* PackageManager::NewObject(const NameString& name, UClass* cls)
-{
-	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
-	return GetPackage("Engine")->NewObject(name, cls, ObjectFlags::NoFlags, true);
 }
 
 UClass* PackageManager::FindClass(const NameString& name)

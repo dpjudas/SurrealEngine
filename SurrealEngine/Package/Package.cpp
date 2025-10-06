@@ -22,7 +22,8 @@
 
 Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
 {
-	ReadTables();
+	if (!filename.empty())
+		ReadTables();
 
 	bool corePackage = name == "Core";
 	bool enginePackage = name == "Engine";
@@ -322,6 +323,11 @@ UObject* Package::GetUObject(int objref)
 UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& group)
 {
 	return GetUObject(FindObjectReference(className, objectName, group));
+}
+
+UClass* Package::GetClass(const NameString& className)
+{
+	return UObject::Cast<UClass>(GetUObject("Class", className));
 }
 
 int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group)
