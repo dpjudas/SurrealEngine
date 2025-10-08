@@ -9,13 +9,14 @@
 #include "Utils/Exception.h"
 
 #ifdef WIN32
+#define WINVER 0x0A00 // Windows 10
+#define _WIN32_WINNT 0x0A00
 #define WIN32_MEAN_AND_LEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define NOMINMAX
 #include <WinSock2.h>
 #include <Windows.h>
 #include <gdiplus.h>
-#undef min
-#undef max
 #undef PlaySound
 #undef DrawText
 #endif
