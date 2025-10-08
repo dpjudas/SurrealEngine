@@ -240,7 +240,7 @@ if(MSVC)
     if(HAVE_PERMISSIVE_SWITCH)
         set(C_FLAGS ${C_FLAGS} $<$<COMPILE_LANGUAGE:CXX>:/permissive->)
     endif()
-    set(C_FLAGS ${C_FLAGS} /W4 /w14640 /wd4065 /wd4127 /wd4268 /wd4324 /wd5030 /wd5051)
+    set(C_FLAGS ${C_FLAGS} /W4 /w14640 /wd4065 /wd4127 /wd4268 /wd4324 /wd5030 /wd5051 /wd4244 /wd4267)
 
     if(NOT DXSDK_DIR)
         string(REGEX REPLACE "\\\\" "/" DXSDK_DIR "$ENV{DXSDK_DIR}")
@@ -1308,6 +1308,10 @@ configure_file(
     "${OpenAL_BINARY_DIR}/openal.pc"
     @ONLY)
 
+if(MSVC)
+	# Use all cores for compilation
+	set(CMAKE_CXX_FLAGS "/MP ${CMAKE_CXX_FLAGS}")
+endif()
 
 add_library(common STATIC EXCLUDE_FROM_ALL ${COMMON_OBJS})
 target_include_directories(common PRIVATE ${OpenAL_BINARY_DIR} ${OpenAL_SOURCE_DIR}/include)
