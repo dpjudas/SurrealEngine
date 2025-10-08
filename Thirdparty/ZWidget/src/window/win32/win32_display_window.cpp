@@ -119,9 +119,9 @@ Win32DisplayWindow::~Win32DisplayWindow()
 	}
 
 	if (SmallIcon)
-		DestroyCursor(SmallIcon);
+		DestroyIcon(SmallIcon);
 	if (LargeIcon)
-		DestroyCursor(LargeIcon);
+		DestroyIcon(LargeIcon);
 
 	Windows.erase(WindowsIterator);
 }
@@ -209,12 +209,12 @@ void Win32DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>
 
 	if (SmallIcon)
 	{
-		DestroyCursor(SmallIcon);
+		DestroyIcon(SmallIcon);
 		SmallIcon = {};
 	}
 	if (LargeIcon)
 	{
-		DestroyCursor(LargeIcon);
+		DestroyIcon(LargeIcon);
 		LargeIcon = {};
 	}
 
@@ -698,6 +698,22 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 		if (MouseLocked)
 		{
 			::ShowCursor(TRUE);
+		}
+	}
+	else if (msg == WM_GETICON)
+	{
+		// Windows 11 2025H2 Disaster Edition broke DefWindowProc's implementation of WM_GETICON
+		// The icon doesn't always get set, so we return the icon ourselves now.
+		// Note that we still call WM_SETICON when changing the icons as that will put it in the caption bar.
+
+		// int dpi = lparam;
+		if (wparam == ICON_BIG)
+		{
+			return (LRESULT)LargeIcon;
+		}
+		else if (wparam == ICON_SMALL || wparam == ICON_SMALL2)
+		{
+			return (LRESULT)SmallIcon;
 		}
 	}
 	else if (msg == WM_CLOSE)
