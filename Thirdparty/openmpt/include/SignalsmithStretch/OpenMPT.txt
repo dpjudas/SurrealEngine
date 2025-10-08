@@ -1,0 +1,7 @@
+Signalsmith Stretch: C++ pitch shift / time stretch library, commit c78aacf6389fb862978d4ead01cfc71a3d5f8ca8 (2025-05-01)
+https://github.com/Signalsmith-Audio/signalsmith-stretch
+Unneeded files have been removed.
+
+Signalsmith Linear: C++ audio utilities, commit 94d677be71a50789eb7a33b8927947046c0c2fa2 (2025-04-09)
+https://github.com/Signalsmith-Audio/linear
+Unneeded files have been removed.

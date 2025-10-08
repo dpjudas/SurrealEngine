@@ -359,7 +359,7 @@ void USurrealAudioDevice::UpdateMusic()
 		if (CurrentSong && UseDigitalMusic)
 		{
 			int subsong = CurrentSection != 255 ? CurrentSection : 0;
-			m_Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, 0, subsong));
+			m_Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, subsong));
 		}
 
 		m_Viewport->Actor()->Transition() = MTRAN_None;

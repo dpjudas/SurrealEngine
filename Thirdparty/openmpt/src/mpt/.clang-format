@@ -1,0 +1,169 @@
+# clang-format 14
+
+Language: Cpp
+Standard: c++20
+
+AccessModifierOffset: -4 #?
+AlignAfterOpenBracket: AlwaysBreak
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: false
+AlignConsecutiveBitFields: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: DontAlign
+AlignOperands: AlignAfterOperator
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: Yes
+AttributeMacros: []
+BinPackArguments: true
+BinPackParameters: false
+BitFieldColonSpacing: Both
+BraceWrapping:
+ AfterCaseLabel: false
+ AfterClass: false
+ AfterControlStatement: MultiLine
+ AfterEnum: false
+ AfterFunction: false
+ AfterNamespace: false
+ #AfterObjCDeclaration
+ AfterStruct: false
+ AfterUnion: false
+ AfterExternBlock: false
+ BeforeCatch: false
+ BeforeElse: false
+ BeforeLambdaBody: false
+ BeforeWhile: false
+ IndentBraces: false
+ SplitEmptyFunction: true
+ SplitEmptyRecord: false
+ SplitEmptyNamespace: true
+#BreakAfterJavaFieldAnnotations
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakBeforeConceptDeclarations: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+BreakStringLiterals: false
+ColumnLimit: 0
+CommentPragmas: '' #?
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4 #?
+ContinuationIndentWidth: 4 #?
+Cpp11BracedListStyle: true
+DeriveLineEnding: true
+DerivePointerAlignment: false
+EmptyLineAfterAccessModifier: Leave
+EmptyLineBeforeAccessModifier: Leave
+FixNamespaceComments: true
+ForEachMacros: []
+IfMacros: ['MPT_MAYBE_CONSTANT_IF']
+IncludeBlocks: Preserve
+IncludeCategories: [] #?
+IncludeIsMainRegex: '' #?
+IncludeIsMainSourceRegex: '' #?
+IndentAccessModifiers: false
+IndentCaseLabels: true
+IndentCaseBlocks: true
+IndentExternBlock: NoIndent
+IndentGotoLabels: false
+IndentPPDirectives: None
+#IndentRequiresClause: true
+InsertTrailingCommas: None
+#BeforeHash
+IndentWidth: 4
+IndentWrappedFunctionNames: true
+#JavaImportGroups
+#JavaScriptQuotes
+#JavaScriptWrapImports
+KeepEmptyLinesAtTheStartOfBlocks: true
+LambdaBodyIndentation: OuterScope
+MacroBlockBegin: '^MPT_TEST_GROUP_BEGIN$' #?
+MacroBlockEnd: '^MPT_TEST_GROUP_END$' #?
+MaxEmptyLinesToKeep: 5
+NamespaceIndentation: None
+NamespaceMacros: [] #?
+#ObjCBinPackProtocolList
+#ObjCBlockIndentWidth
+#ObjCBreakBeforeNestedBlockParam
+#ObjCSpaceAfterProperty
+#ObjCSpaceBeforeProtocolList
+PackConstructorInitializers: Never
+#PenaltyBreakAssignment
+#PenaltyBreakBeforeFirstCallParameter
+#PenaltyBreakComment
+#PenaltyBreakFirstLessLess
+#PenaltyBreakOpenParenthesis
+#PenaltyBreakString
+#PenaltyBreakTemplateDeclaration
+#PenaltyExcessCharacter
+#PenaltyIndentedWhitespace
+#PenaltyReturnTypeOnItsOwnLine
+PointerAlignment: Middle
+PPIndentWidth: -1
+#RawStringFormats
+QualifierAlignment: Leave
+#QualifierOrder: ['static', 'inline', 'constexpr', 'volatile', 'const', 'restrict', 'type']
+ReferenceAlignment: Pointer
+ReflowComments: false
+RemoveBracesLLVM: false
+SeparateDefinitionBlocks: Leave
+ShortNamespaceLines: 1
+SortIncludes: false
+#SortJavaStaticImport
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterFunctionDeclarationName: false
+  AfterFunctionDefinitionName: false
+  AfterIfMacros: true
+  AfterOverloadedOperator: false
+  #AfterRequiresInClause: false
+  #AfterRequiresInExpression: false
+  BeforeNonEmptyParentheses: false
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: true
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: -1
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+StatementAttributeLikeMacros: []
+StatementMacros: [ '_Pragma', '__pragma', 'MPT_WARNING', 'MPT_TEST_GROUP_INLINE_IDENTIFIER', 'MPT_TEST_GROUP_INLINE', 'MPT_TEST_GROUP_STATIC' ] #?
+TabWidth: 4
+TypenameMacros: [] #?
+UseCRLF: false
+UseTab: ForContinuationAndIndentation
+WhitespaceSensitiveMacros:
+  - MPT_PP_STRINGIFY
