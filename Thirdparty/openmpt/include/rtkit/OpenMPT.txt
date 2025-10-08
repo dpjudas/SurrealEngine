@@ -1,0 +1,5 @@
+RealtimeKit 0.11 <http://git.0pointer.net/rtkit.git/>
+(commit 8c902327f91616af5e87fd2a6d4b7ea38bb3aa32) as of 2013-09-26
+BSD-licensed reference client only.
+
+OpenMPT additions have been marked with /* OpenMPT */

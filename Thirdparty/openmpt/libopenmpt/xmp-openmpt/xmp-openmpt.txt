@@ -1,0 +1,16 @@
+
+xmp-openmpt
+===========
+
+xmp-openmpt is a module file (https://en.wikipedia.org/wiki/Module_file) input
+plugin for XMPlay >= 3.8.0.0. xmp-openmpt is based on libopenmpt.
+
+
+Installation
+------------
+
+"xmp-openmpt.dll" and "openmpt-mpg123.dll" must both be placed into the XMPlay
+plugins directory.
+
+
+See https://lib.openmpt.org/ for documentation, FAQ and other details.

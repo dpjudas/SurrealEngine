@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "AudioSource.h"
+#include "Math/vec.h"
 #include "resample/CDSPResampler.h"
 #include "Utils/Exception.h"
 #include <functional>
@@ -26,7 +27,7 @@
 
 #include "stb_vorbis.h"
 
-#include "dumb.h"
+#include "libopenmpt/libopenmpt.hpp"
 
 class Mp3AudioSource : public AudioSource
 {
@@ -419,7 +420,7 @@ public:
 	int pcm_position = 0;
 	int pcm_samples = 0;
 };
-
+/*
 class DumbAudioSource : public AudioSource
 {
 public:
@@ -562,6 +563,67 @@ public:
 	DUMBFILE* handle = nullptr;
 	DUH* duh = nullptr;
 	DUH_SIGRENDERER* renderer = nullptr;
+};*/
+
+class OpenMPTAudioSource : public AudioSource
+{
+public:
+	OpenMPTAudioSource(Array<uint8_t> initfiledata, bool loop, int subsong)
+	{
+		uint8_t* data = initfiledata.begin();
+		size_t size = initfiledata.size();
+		int probe_result = openmpt::probe_file_header(openmpt::probe_file_header_flags_default2, data, size);
+
+		// TODO: should we handle probe_file_header_result_wantmoredata?
+		if (probe_result != openmpt::probe_file_header_result_success)
+			Exception::Throw("Module file unsupported by OpenMPT");
+
+		// TODO: log param defaults to std::clog, do we want to keep it that way?
+		module = new openmpt::module(data, size);
+
+		subsong = clamp(subsong, 0, module->get_num_subsongs() - 1);
+		if (subsong != 0)
+			module->select_subsong(subsong);
+
+		// TODO: mimic galaxy and look for the next non-empty pattern
+
+		module->set_repeat_count(-1);
+	}
+
+	~OpenMPTAudioSource()
+	{
+		if (module)
+			delete module;
+	}
+
+	int GetFrequency() override
+	{
+		return 44100;
+	}
+
+	int GetChannels() override
+	{
+		return 2;
+	}
+
+	int GetSamples() override
+	{
+		return -1;
+	}
+
+	void SeekToSample(uint64_t position) override
+	{
+	}
+
+	size_t ReadSamples(float* output, size_t samples) override
+	{
+		if (!module)
+			return 0;
+
+		return module->read_interleaved_stereo(GetFrequency(), samples / GetChannels(), output);
+	}
+
+	openmpt::module* module;
 };
 
 std::unique_ptr<AudioSource> AudioSource::CreateMp3(Array<uint8_t> filedata)
@@ -584,9 +646,9 @@ std::unique_ptr<AudioSource> AudioSource::CreateOgg(Array<uint8_t> filedata)
 	return std::make_unique<OggAudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateMod(Array<uint8_t> filedata, bool loop, int restrict_, int subsong)
+std::unique_ptr<AudioSource> AudioSource::CreateMod(Array<uint8_t> filedata, bool loop, int subsong)
 {
-	return std::make_unique<DumbAudioSource>(std::move(filedata), loop, [=](auto handle) { return dumb_read_any(handle, restrict_, subsong); });
+	return std::make_unique<OpenMPTAudioSource>(filedata, loop, subsong);
 }
 
 class ResampleAudioSource : public AudioSource

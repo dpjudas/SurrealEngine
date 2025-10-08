@@ -1,0 +1,6 @@
+r8brain-free resampling library from https://github.com/avaneev/r8brain-free-src
+version 6.2.
+The example program, DLL and "other" folder, PFFFT sources and logo file have been removed.
+No further local changes have been made.
+For building, premake is used to generate Visual Studio project files.
+See ../build/premake/ for details.
