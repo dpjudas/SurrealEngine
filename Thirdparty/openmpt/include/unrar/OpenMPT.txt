@@ -1,0 +1,19 @@
+This folder is based on https://rarlab.com/rar/unrarsrc-7.1.10.tar.gz
+
+All modifications to existing files have been done in a manner so that no
+existing lines were edited; only new lines were added.
+os.hpp has been modified to support Clang/LLVM for Windows.
+Work-arounds for tiny problems with Clang/C2 have been implemented.
+Work-arounds for ARM64EC compiler bugs have been implemented.
+Added lines can be found by looking for "// OPENMPT ADDITION" comments.
+
+Optimizations have been done to elimiate effectively dead code that would
+never be used in OpenMPT's context.
+
+The following files have been modified:
+extract.cpp, filcreat.cpp, file.cpp, filefn.cpp, find.cpp, largepage.hpp,
+match.cpp, os.hpp, pathfn.cpp, rardefs.hpp, rdwrfn.cpp, secpassword.cpp,
+volume.cpp, win32acl.cpp, win32lnk.cpp
+
+For building, premake is used to generate Visual Studio project files.
+See ../build/premake/ for details.

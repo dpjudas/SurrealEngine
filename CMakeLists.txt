@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project(SurrealEngine)
 
+add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(Thirdparty/ZVulkan)
 add_subdirectory(Thirdparty/ZWidget)
 
@@ -366,103 +367,6 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/dr_wav.h
 	Thirdparty/minimp3_ex.h
 	Thirdparty/minimp3.h
-	Thirdparty/dumb/src/core/duhtag.c
-	Thirdparty/dumb/src/core/rawsig.c
-	Thirdparty/dumb/src/core/atexit.c
-	Thirdparty/dumb/src/core/dumbfile.c
-	Thirdparty/dumb/src/core/loadduh.c
-	Thirdparty/dumb/src/core/unload.c
-	Thirdparty/dumb/src/core/makeduh.c
-	Thirdparty/dumb/src/core/readduh.c
-	Thirdparty/dumb/src/core/rendsig.c
-	Thirdparty/dumb/src/core/rendduh.c
-	Thirdparty/dumb/src/core/register.c
-	Thirdparty/dumb/src/core/duhlen.c
-	Thirdparty/dumb/src/helpers/lpc.c
-	Thirdparty/dumb/src/helpers/clickrem.c
-	Thirdparty/dumb/src/helpers/memfile.c
-	Thirdparty/dumb/src/helpers/silence.c
-	Thirdparty/dumb/src/helpers/tarray.c
-	Thirdparty/dumb/src/helpers/sampbuf.c
-	Thirdparty/dumb/src/helpers/riff.c
-	Thirdparty/dumb/src/helpers/barray.c
-	Thirdparty/dumb/src/helpers/resample.c
-	Thirdparty/dumb/src/helpers/resampler.c
-	Thirdparty/dumb/src/helpers/stdfile.c
-	Thirdparty/dumb/src/it/readoldpsm.c
-	Thirdparty/dumb/src/it/readdsmf.c
-	Thirdparty/dumb/src/it/loadokt.c
-	Thirdparty/dumb/src/it/loadamf.c
-	Thirdparty/dumb/src/it/itorder.c
-	Thirdparty/dumb/src/it/loadxm2.c
-	Thirdparty/dumb/src/it/xmeffect.c
-	Thirdparty/dumb/src/it/loadxm.c
-	Thirdparty/dumb/src/it/readmod.c
-	Thirdparty/dumb/src/it/readxm2.c
-	Thirdparty/dumb/src/it/reads3m2.c
-	Thirdparty/dumb/src/it/loadokt2.c
-	Thirdparty/dumb/src/it/read669.c
-	Thirdparty/dumb/src/it/readokt2.c
-	Thirdparty/dumb/src/it/loadany.c
-	Thirdparty/dumb/src/it/ptmeffect.c
-	Thirdparty/dumb/src/it/readstm2.c
-	Thirdparty/dumb/src/it/loadoldpsm2.c
-	Thirdparty/dumb/src/it/read6692.c
-	Thirdparty/dumb/src/it/loads3m.c
-	Thirdparty/dumb/src/it/loadmod.c
-	Thirdparty/dumb/src/it/readriff.c
-	Thirdparty/dumb/src/it/readam.c
-	Thirdparty/dumb/src/it/loadmtm.c
-	Thirdparty/dumb/src/it/itunload.c
-	Thirdparty/dumb/src/it/loadpsm.c
-	Thirdparty/dumb/src/it/itrender.c
-	Thirdparty/dumb/src/it/readxm.c
-	Thirdparty/dumb/src/it/readstm.c
-	Thirdparty/dumb/src/it/itmisc.c
-	Thirdparty/dumb/src/it/itload.c
-	Thirdparty/dumb/src/it/loadasy2.c
-	Thirdparty/dumb/src/it/loadriff.c
-	Thirdparty/dumb/src/it/load669.c
-	Thirdparty/dumb/src/it/loads3m2.c
-	Thirdparty/dumb/src/it/loadpsm2.c
-	Thirdparty/dumb/src/it/readany2.c
-	Thirdparty/dumb/src/it/readamf.c
-	Thirdparty/dumb/src/it/itload2.c
-	Thirdparty/dumb/src/it/itread2.c
-	Thirdparty/dumb/src/it/loadriff2.c
-	Thirdparty/dumb/src/it/loadasy.c
-	Thirdparty/dumb/src/it/loadany2.c
-	Thirdparty/dumb/src/it/readany.c
-	Thirdparty/dumb/src/it/readpsm.c
-	Thirdparty/dumb/src/it/readamf2.c
-	Thirdparty/dumb/src/it/loadamf2.c
-	Thirdparty/dumb/src/it/loadptm.c
-	Thirdparty/dumb/src/it/load6692.c
-	Thirdparty/dumb/src/it/readptm.c
-	Thirdparty/dumb/src/it/loadoldpsm.c
-	Thirdparty/dumb/src/it/readmtm.c
-	Thirdparty/dumb/src/it/loadmtm2.c
-	Thirdparty/dumb/src/it/loadstm.c
-	Thirdparty/dumb/src/it/readasy.c
-	Thirdparty/dumb/src/it/loadptm2.c
-	Thirdparty/dumb/src/it/reads3m.c
-	Thirdparty/dumb/src/it/itread.c
-	Thirdparty/dumb/src/it/readmod2.c
-	Thirdparty/dumb/src/it/readokt.c
-	Thirdparty/dumb/src/it/loadmod2.c
-	Thirdparty/dumb/src/it/loadstm2.c
-	Thirdparty/dumb/include/aldumb.h
-	Thirdparty/dumb/include/internal/stack_alloc.h
-	Thirdparty/dumb/include/internal/dumbfile.h
-	Thirdparty/dumb/include/internal/resampler.h
-	Thirdparty/dumb/include/internal/aldumb.h
-	Thirdparty/dumb/include/internal/dumb.h
-	Thirdparty/dumb/include/internal/barray.h
-	Thirdparty/dumb/include/internal/tarray.h
-	Thirdparty/dumb/include/internal/lpc.h
-	Thirdparty/dumb/include/internal/it.h
-	Thirdparty/dumb/include/internal/riff.h
-	Thirdparty/dumb/include/dumb.h
 	Thirdparty/MurmurHash3/MurmurHash3.cpp
 	Thirdparty/MurmurHash3/MurmurHash3.h
 	Thirdparty/resample/CDSPSincFilterGen.h
@@ -498,6 +402,7 @@ set(SURREALCOMMON_LIBS
 	zvulkan
 	zwidget
 	SurrealVideo
+	libopenmpt
 )
 
 set(SURREALCOMMON_WIN32_LIBS
@@ -609,7 +514,7 @@ source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
 source_group("Thirdparty\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/miniz/.+")
 
-include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/ZWidget/include Thirdparty/dumb/include Thirdparty/openal-soft/include Thirdparty/miniz)
+include_directories(SurrealEngine Thirdparty Thirdparty/ZVulkan/include Thirdparty/ZWidget/include Thirdparty/openmpt Thirdparty/openal-soft/include Thirdparty/miniz)
 
 if(NOT APPLE AND SDL2_FOUND)
 	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})

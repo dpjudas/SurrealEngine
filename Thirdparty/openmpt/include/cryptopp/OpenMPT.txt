@@ -1,0 +1,7 @@
+cryptp++ library version 8.9.0 (2023-10-01).
+The following changes have been made:
+ *  Commit <https://github.com/weidai11/cryptopp/commit/121014baf0e8> has been
+    applied to fix <https://github.com/weidai11/cryptopp/issues/1240>.
+ *  Obviously, unnecessary folders and files have been removed.
+ *  For building, premake is used to generate Visual Studio project files.
+    See ../build/premake/ for details.

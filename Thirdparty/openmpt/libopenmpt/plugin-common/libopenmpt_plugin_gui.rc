@@ -1,0 +1,147 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGS DIALOGEX 0, 0, 201, 200
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,78,180,54,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,138,180,54,14
+    LTEXT           "&Samplerate",IDC_STATIC,6,6,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_SAMPLERATE,72,6,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "C&hannels",IDC_STATIC,6,24,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_CHANNELS,72,24,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Gain",IDC_STATIC,6,42,60,12,SS_CENTERIMAGE
+    CONTROL         "",IDC_SLIDER_GAIN,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,72,42,120,15
+    LTEXT           "&Interpolation",IDC_STATIC,6,60,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_INTERPOLATION,72,60,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Use &Amiga resampler for Amiga modules",IDC_CHECK_AMIGA_RESAMPLER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,78,186,12
+    LTEXT           "Amiga &Filter Type:",IDC_STATIC,6,96,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_AMIGA_FILTER,72,96,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Repeat",IDC_STATIC,6,114,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_REPEAT,72,114,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "S&tereo Separation",IDC_STATIC,6,132,60,12,SS_CENTERIMAGE
+    CONTROL         "",IDC_SLIDER_STEREOSEPARATION,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,72,132,126,15
+    LTEXT           "&Volume Ramping",IDC_STATIC,6,151,60,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_COMBO_RAMPING,72,151,120,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,6,175,186,1
+END
+
+IDD_FILEINFO DIALOGEX 0, 0, 310, 174
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,258,156,48,12
+    EDITTEXT        IDC_FILEINFO,6,6,300,144,ES_MULTILINE | ES_READONLY | WS_VSCROLL | WS_HSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+
+    IDD_FILEINFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 303
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 167
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_SETTINGS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_FILEINFO AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    100, 100, 0, 0,
+    0, 0, 100, 100
+END
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

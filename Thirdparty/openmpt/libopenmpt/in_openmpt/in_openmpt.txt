@@ -1,0 +1,17 @@
+
+in_openmpt
+==========
+
+in_openmpt is a module file (https://en.wikipedia.org/wiki/Module_file) input
+plugin for Winamp >= 2.0 (or compatible players). in_openmpt is based on
+libopenmpt.
+
+
+Installation
+------------
+
+"in_openmpt.dll" must be placed into the Winamp "Plugins" directory, and
+"openmpt-mpg123.dll" must be placed into the Winamp directory.
+
+
+See https://lib.openmpt.org/ for documentation, FAQ and other details.
