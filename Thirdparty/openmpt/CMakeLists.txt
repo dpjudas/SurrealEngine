@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(libopenmpt)
+project(openmpt)
 
 set(LIBOPENMPT_SOURCES
 	common/BuildSettings.h
@@ -527,7 +527,7 @@ source_group("src\\mpt\\test" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/sr
 source_group("src\\mpt\\uuid" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/mpt/uuid/.+")
 source_group("src\\mpt\\uuid_namespace" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/mpt/uuid_namespace/.+")
 
-include_directories(libopenmpt ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ common src)
+include_directories(openmpt ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ common src)
 
 # TODO: MPT_WITH_FLAC but using dr_flac.h
 add_definitions(-DLIBOPENMPT_BUILD -DMPT_WITH_MINIZ -DMPT_WITH_MINIMP3 -DMPT_WITH_STBVORBIS)
@@ -548,5 +548,5 @@ if(WIN32)
     endif()
 endif()
 
-add_library(libopenmpt STATIC ${LIBOPENMPT_SOURCES})
-set_target_properties(libopenmpt PROPERTIES CXX_STANDARD 20)
+add_library(openmpt STATIC ${LIBOPENMPT_SOURCES})
+set_target_properties(openmpt PROPERTIES CXX_STANDARD 20)

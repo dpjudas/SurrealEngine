@@ -402,7 +402,7 @@ set(SURREALCOMMON_LIBS
 	zvulkan
 	zwidget
 	SurrealVideo
-	libopenmpt
+	openmpt
 )
 
 set(SURREALCOMMON_WIN32_LIBS
