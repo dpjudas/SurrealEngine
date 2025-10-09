@@ -64,7 +64,7 @@ Engine::~Engine()
 	if (audiodev)
 		audiodev->ShutdownDevice();
 
-	Logger::Get()->SaveLogAsPlaintext(Directory::localAppData() / "SurrealEngine/SE-Log-LastRun.txt");
+	Logger::Get()->SaveLogAsPlaintext((Directory::localAppData() / "SurrealEngine/SE-Log-LastRun.txt").string());
 
 	engine = nullptr;
 }
