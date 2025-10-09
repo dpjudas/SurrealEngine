@@ -43,6 +43,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/Logger.h
 	SurrealEngine/Utils/JsonValue.cpp
 	SurrealEngine/Utils/JsonValue.h
+	SurrealEngine/Utils/SHA1Sum.cpp
+	SurrealEngine/Utils/SHA1Sum.h
 	SurrealEngine/Utils/StrCompare.cpp
 	SurrealEngine/Utils/StrCompare.h
 	SurrealEngine/Utils/UTF16.cpp
