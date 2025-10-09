@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "Utils/File.h"
 #include "Utils/StrCompare.h"
+#include "Utils/SHA1Sum.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 #include "Package/ObjectStream.h"
@@ -63,13 +64,19 @@ Engine::~Engine()
 	if (audiodev)
 		audiodev->ShutdownDevice();
 
+	Logger::Get()->SaveLogAsPlaintext(Directory::localAppData() / "SurrealEngine/SE-Log-LastRun.txt");
+
 	engine = nullptr;
 }
 
 void Engine::Run()
 {
+	LogMessage("Game: " + LaunchInfo.gameName + " (Version: " + LaunchInfo.gameVersionString + ")");
 	LoadEngineSettings();
+	LogMessage("Loaded Engine settings");
 	LoadKeybindings();
+	LogMessage("Loaded key bindings");
+	LogGamePackageSHA1Sums();
 
 	OpenWindow();
 
@@ -234,8 +241,10 @@ void Engine::Run()
 		}
 	}
 
+	LogMessage("Shutting down...");
 	window->UnlockCursor();
 
+	LogMessage("Saving configurations...");
 	if (packages->MissingSESystemIni())
 	{
 		// Add the missing Subsystem entries
@@ -246,6 +255,7 @@ void Engine::Run()
 	packages->SetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", windowingSystemName);
 	packages->SaveAllIniFiles();
 
+	LogMessage("Closing window...");
 	CloseWindow();
 }
 
@@ -1715,6 +1725,31 @@ void Engine::InputCommand(const std::string& commands, EInputKey key, int delta)
 void Engine::SetPause(bool value)
 {
 	m_GamePaused = value;
+}
+
+void Engine::LogGamePackageSHA1Sums() const
+{
+	auto systemPath = packages->GetSystemFolderPath();
+
+	LogMessage("SHA1Sums of some system files:");
+	LogMessage("Core.u: " + SHA1Sum::of_file(systemPath / "Core.u"));
+	LogMessage("Engine.u: " + SHA1Sum::of_file(systemPath / "Engine.u"));
+
+	if (packages->IsUnrealTournament())
+	{
+		LogMessage("Botpack.u: " + SHA1Sum::of_file(systemPath / "Botpack.u"));
+		LogMessage("UnrealI.u: " + SHA1Sum::of_file(systemPath / "UnrealI.u"));
+		LogMessage("UnrealShare.u: " + SHA1Sum::of_file(systemPath / "UnrealShare.u"));
+	}
+	else if (packages->IsUnreal1())
+	{
+		LogMessage("UnrealI.u: " + SHA1Sum::of_file(systemPath / "UnrealI.u"));
+		LogMessage("UnrealShare.u: " + SHA1Sum::of_file(systemPath / "UnrealShare.u"));
+	}
+	else if (packages->IsKlingonHonorGuard())
+	{
+		LogMessage("Klingons.u: " + SHA1Sum::of_file(systemPath / "Klingons.u"));
+	}
 }
 
 const char* Engine::keynames[256] =
