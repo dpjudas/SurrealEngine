@@ -1,7 +1,6 @@
 #include "UE1GameDatabase.h"
 
-#include "Utils/File.h"
-#include "TinySHA1/TinySHA1.hpp"
+#include "Utils/SHA1Sum.h"
 
 std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_game_root_folder_path)
 {
@@ -17,33 +16,23 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 	{
 		auto executablePath = UE1GameSystemPath / executable_name;
 
-		if (File::try_open_existing(executablePath.string()))
-		{
-			// Such executable exists, let's try to take SHA1Sum of it
-			auto bytes = File::read_all_bytes(executablePath.string());
+		std::string sha1sum = SHA1Sum::of_file(executablePath);
 
-			sha1::SHA1 s;
-			s.processBytes(bytes.data(), bytes.size());
-			uint32_t digest[5];
-			s.getDigest(digest);
+		// If sha1sum is empty this means that the file doesn't exist
+		if (sha1sum.empty())
+			continue;
 
-			char temp[41];
-			snprintf(temp, 41, "%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
+		// Now check whether there is a match within the database or not
+		const auto it = SHA1Database.find(sha1sum);
 
-			std::string sha1sum(temp);
+		if (it == SHA1Database.end())
+			return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
 
-			// Now check whether there is a match within the database or not
-			const auto it = SHA1Database.find(sha1sum);
+		// Hack: Tactical-Ops has a version that contains the exact same UTv469d executable. Handle that here
+		if (it->second == KnownUE1Games::UT99_469d && executable_name == "TacticalOps.exe")
+			return std::make_pair(KnownUE1Games::TACTICAL_OPS_469, executable_name);
 
-			if (it == SHA1Database.end())
-				return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
-
-			// Hack: Tactical-Ops has a version that contains the exact same UTv469d executable. Handle that here
-			if (it->second == KnownUE1Games::UT99_469d && executable_name == "TacticalOps.exe")
-				return std::make_pair(KnownUE1Games::TACTICAL_OPS_469, executable_name);
-
-			return std::make_pair(it->second, executable_name);
-		}
+		return std::make_pair(it->second, executable_name);
 	}
 
 	// We got nothing here
