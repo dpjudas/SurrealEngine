@@ -5,6 +5,9 @@
 #include "IniFile.h"
 #include "GameFolder.h"
 #include <list>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 class PackageStream;
 class UObject;
@@ -34,6 +37,9 @@ public:
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
+
+	fs::path GetRootFolderPath() const { return gameRootFolderPath; }
+	fs::path GetSystemFolderPath() const { return gameSystemFolderPath; }
 
 	Package *GetPackage(const NameString& name);
 	Array<NameString> GetPackageNames() const;
@@ -115,6 +121,10 @@ private:
 
 	Array<std::string> mapFolders;
 	Array<std::string> maps;
+
+	// So that we don't have to build fs::path()s all over the place
+	fs::path gameRootFolderPath;
+	fs::path gameSystemFolderPath;
 
 	std::string mapExtension;
 	std::string saveExtension;
