@@ -41,6 +41,9 @@
 
 PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
+	gameRootFolderPath = fs::path(launchInfo.gameRootFolder);
+	gameSystemFolderPath = gameRootFolderPath / "System";
+
 	CreateTransientPackage();
 	RegisterFunctions();
 	LoadEngineIniFiles();
@@ -108,7 +111,7 @@ Package* PackageManager::LoadMap(const std::string& path)
 	// Or is it relative to the previous map?
 	//
 	// Only one of the above is most likely true. Let's begin with assuming its relative to the Maps folder.
-	const auto mapsFolder = fs::path(launchInfo.gameRootFolder) / "Maps";
+	const auto mapsFolder = gameRootFolderPath / "Maps";
 
 	auto absolute_path = (mapsFolder / mapPath).lexically_normal();
 
@@ -143,7 +146,7 @@ void PackageManager::CloseStreams()
 
 Package* PackageManager::LoadSaveFile(const std::string& path)
 {
-	const auto saveFolder = fs::path(launchInfo.gameRootFolder) / "Save";
+	const auto saveFolder = gameRootFolderPath / "Save";
 	auto fullPath = saveFolder / fs::path(path);
 
 	if (!fullPath.has_extension() || (fullPath.extension().string() != GetSaveExtension()))
@@ -172,7 +175,6 @@ void PackageManager::ScanForMaps()
 
 void PackageManager::ScanFolder(const std::string& packagedir, const std::string& search)
 {
-
 	const auto packageDirPath = fs::path(packagedir);
 	if (fs::exists(packageDirPath))
 	{
@@ -212,8 +214,6 @@ void PackageManager::ScanPaths()
 	mapExtension = GetIniValue("System", "URL", "MapExt");
 	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
-	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
-
 	for (auto& currentPathStr: paths)
 	{
 		auto currentPath = convert_path_separators(currentPathStr);
@@ -222,7 +222,7 @@ void PackageManager::ScanPaths()
 		auto filename = currentPath.filename();
 
 		// Calculate the final, absolute path
-		auto finalPath = (systemFolderPath / currentPath).lexically_normal().parent_path();
+		auto finalPath = (gameSystemFolderPath / currentPath).lexically_normal().parent_path();
 
 		// Add map folders in a separate list, so ScanForMaps() can use them
 		if (filename.string() == "*." + GetMapExtension())
@@ -233,12 +233,12 @@ void PackageManager::ScanPaths()
 
 	if (IsKlingonHonorGuard())
 	{
-		for (const auto& dir_entry: fs::directory_iterator{systemFolderPath})
+		for (const auto& dir_entry: fs::directory_iterator{gameSystemFolderPath})
 		{
 			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == ".avi")
 			{
 				auto fileName = dir_entry.path().filename();
-				aviFilenames[NameString(fileName.string())] = (systemFolderPath / fileName).string();
+				aviFilenames[NameString(fileName.string())] = (gameSystemFolderPath / fileName).string();
 			}
 		}
 	}
@@ -306,7 +306,7 @@ void PackageManager::DelayLoadNow()
 
 UClass* PackageManager::FindClass(const NameString& name)
 {
-	std::string value = name.ToString();
+	const std::string& value = name.ToString();
 	size_t pos = value.find('.');
 	if (pos == 0 || pos == std::string::npos || pos + 1 == value.size())
 		return nullptr;
@@ -361,18 +361,15 @@ std::unique_ptr<IniFile>& PackageManager::LoadIniFile(NameString iniName)
 	auto& ini = iniFiles[iniName];
 	if (!ini)
 	{
-		const auto iniFilePath = fs::path(launchInfo.gameRootFolder) / "System" / (iniName.ToString() + ".ini");
+		const auto iniFilePath = gameSystemFolderPath / (iniName.ToString() + ".ini");
 		ini = std::make_unique<IniFile>(iniFilePath.string());
 	}
-
 
 	return ini;
 }
 
 std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 {
-	const auto gameRootFolder = fs::path(launchInfo.gameRootFolder);
-
 	if (IsKlingonHonorGuard())
 	{
 		// User.ini contents are in the system ini file
@@ -380,7 +377,7 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 
 		if (!ini)
 		{
-			const auto iniFilePath = gameRootFolder / "System" / (launchInfo.gameExecutableName + ".ini");
+			const auto iniFilePath = gameSystemFolderPath / (launchInfo.gameExecutableName + ".ini");
 			ini = std::make_unique<IniFile>(iniFilePath.string());
 		}
 
@@ -392,10 +389,10 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 	if (!ini)
 	{
 		// Case sensitivity check
-		if (fs::exists(gameRootFolder / "System/User.ini"))
-			ini = std::make_unique<IniFile>((gameRootFolder / "System/User.ini").string());
+		if (fs::exists(gameSystemFolderPath / "User.ini"))
+			ini = std::make_unique<IniFile>((gameSystemFolderPath / "User.ini").string());
 		else
-			ini = std::make_unique<IniFile>((gameRootFolder/ "System/user.ini").string());
+			ini = std::make_unique<IniFile>((gameSystemFolderPath/ "user.ini").string());
 	}
 
 	return ini;
@@ -403,14 +400,12 @@ std::unique_ptr<IniFile>& PackageManager::LoadUserIniFile()
 
 std::unique_ptr<IniFile>& PackageManager::LoadSystemIniFile()
 {
-	const auto gameRootPath = fs::path(launchInfo.gameRootFolder);
-
-	std::string iniName = IsCliveBarkersUndying() ? "System" : launchInfo.gameExecutableName;
+	const std::string iniName = IsCliveBarkersUndying() ? "System" : launchInfo.gameExecutableName;
 
 	auto& ini = iniFiles[iniName];
 
 	if (!ini)
-		ini = std::make_unique<IniFile>((gameRootPath / "System" / (iniName + ".ini")).string());
+		ini = std::make_unique<IniFile>((gameSystemFolderPath / (iniName + ".ini")).string());
 
 	return ini;
 }
@@ -469,17 +464,15 @@ void PackageManager::SetIniValues(NameString iniName, const NameString& sectionN
 
 void PackageManager::SaveAllIniFiles()
 {
-	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
-
 	for (auto& iniFile: iniFiles)
 	{
 		if (iniFile.first == launchInfo.gameExecutableName || iniFile.first == "System")
 		{
 			const std::string engineIniName = "SE-" + iniFile.first.ToString() + ".ini";
-			iniFile.second->UpdateIfExists((systemFolderPath / engineIniName).string());
+			iniFile.second->UpdateIfExists((gameSystemFolderPath / engineIniName).string());
 		}
 		else if (iniFile.first == "User")
-			iniFile.second->UpdateIfExists((systemFolderPath / "SE-User.ini").string());
+			iniFile.second->UpdateIfExists((gameSystemFolderPath / "SE-User.ini").string());
 		else
 			iniFile.second->UpdateFile();
 	}
@@ -504,40 +497,36 @@ void PackageManager::LoadEngineIniFiles()
 	std::string systemIniFileName = "SE-" + systemIniName + ".ini";
 	std::string userIniName = "SE-User.ini";
 
-	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
-
-	if ( !File::try_open_existing((systemFolderPath / systemIniFileName).string()) )
+	if ( !File::try_open_existing((gameSystemFolderPath / systemIniFileName).string()) )
 	{
 		missing_se_system_ini = true;
 		systemIniFileName = systemIniFileName.substr(3); // Trim off the "SE-" part
-		if (!File::try_open_existing((systemFolderPath / systemIniFileName).string()))
+		if (!File::try_open_existing((gameSystemFolderPath / systemIniFileName).string()))
 			systemIniFileName = "Default.ini"; // use the default ini as a last resort
 	}
 
 	// Also load Default.ini, so that we can reset values.
-	defaultIniFile = std::make_unique<IniFile>((systemFolderPath / "Default.ini").string());
+	defaultIniFile = std::make_unique<IniFile>((gameSystemFolderPath / "Default.ini").string());
 
-	iniFiles[systemIniName] = std::make_unique<IniFile>((systemFolderPath / systemIniFileName).string());
+	iniFiles[systemIniName] = std::make_unique<IniFile>((gameSystemFolderPath / systemIniFileName).string());
 
 	if (launchInfo.engineVersion > 219)
 	{
-		if (!File::try_open_existing((systemFolderPath / userIniName).string()))
+		if (!File::try_open_existing((gameSystemFolderPath / userIniName).string()))
 		{
 			userIniName = userIniName.substr(3); // Trim off the "SE-" part
-			if (!File::try_open_existing((systemFolderPath / userIniName).string()))
+			if (!File::try_open_existing((gameSystemFolderPath / userIniName).string()))
 				userIniName = "DefUser.ini";
 		}
 
-		iniFiles["User"] = std::make_unique<IniFile>((systemFolderPath / userIniName).string());
-		defaultUserFile = std::make_unique<IniFile>((systemFolderPath / "DefUser.ini").string());
+		iniFiles["User"] = std::make_unique<IniFile>((gameSystemFolderPath / userIniName).string());
+		defaultUserFile = std::make_unique<IniFile>((gameSystemFolderPath / "DefUser.ini").string());
 	}
 }
 
 void PackageManager::LoadIntFiles()
 {
-	const auto systemFolderPath = fs::path(launchInfo.gameRootFolder) / "System";
-
-	for (const auto& dir_entry: fs::directory_iterator{systemFolderPath})
+	for (const auto& dir_entry: fs::directory_iterator{gameSystemFolderPath})
 	{
 		try
 		{
@@ -545,7 +534,7 @@ void PackageManager::LoadIntFiles()
 			{
 				const auto intFileName = dir_entry.path().filename();
 
-				auto intFile = std::make_unique<IniFile>((systemFolderPath / intFileName).string());
+				auto intFile = std::make_unique<IniFile>((gameSystemFolderPath / intFileName).string());
 
 				for (const std::string& value: intFile->GetValues("Public", "Object"))
 				{
@@ -615,9 +604,8 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 	{
 		try
 		{
-			const auto gameSystemFolder = fs::path(launchInfo.gameRootFolder) / "System";
 			const auto intFileName = fs::path(packageName.ToString() + ".int");
-			intFile = std::make_unique<IniFile>((gameSystemFolder / intFileName).string());
+			intFile = std::make_unique<IniFile>((gameSystemFolderPath / intFileName).string());
 		}
 		catch (...)
 		{
