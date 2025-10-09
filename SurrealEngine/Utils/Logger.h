@@ -26,6 +26,7 @@ public:
 	const std::list<LogMessageLine>& GetLog() const { return Log; }
 
 	void SaveLog(const std::string& filename);
+	void SaveLogAsPlaintext(const std::string& filename) const;
 	static std::list<LogMessageLine> LoadLog(const std::string& filename);
 
 private:

@@ -79,6 +79,20 @@ void Logger::SaveLog(const std::string& filename)
 	File::write_all_text(filename, json);
 }
 
+void Logger::SaveLogAsPlaintext(const std::string& filename) const
+{
+	std::string finalLog;
+
+	for (const LogMessageLine& line : Log)
+	{
+		const auto source = line.Source.empty() ? "<Surreal Engine>" : line.Source;
+		finalLog += "[" + std::to_string(line.Time) + "] " + source + ": " + line.Text + "\n";
+	}
+
+	File::write_all_text(filename, finalLog);
+}
+
+
 std::list<LogMessageLine> Logger::LoadLog(const std::string& filename)
 {
 	std::list<LogMessageLine> log;
