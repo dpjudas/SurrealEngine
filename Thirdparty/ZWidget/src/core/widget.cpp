@@ -571,7 +571,19 @@ Canvas* Widget::GetCanvas() const
 		if (w->DispCanvas)
 			return w->DispCanvas.get();
 	}
-	return nullptr;
+
+	struct DummyCanvas
+	{
+		DummyCanvas()
+		{
+			canvas = Canvas::create();
+			canvas->attach(nullptr);
+		}
+		std::unique_ptr<Canvas> canvas;
+	};
+
+	static DummyCanvas dummy;
+	return dummy.canvas.get();
 }
 
 bool Widget::IsParent(const Widget* w) const
