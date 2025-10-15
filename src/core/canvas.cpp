@@ -195,7 +195,7 @@ Canvas::~Canvas()
 void Canvas::attach(DisplayWindow* newWindow)
 {
 	window = newWindow;
-	uiscale = window->GetDpiScale();
+	uiscale = window ? window->GetDpiScale() : 1.0f;
 	uint32_t white = 0xffffffff;
 	whiteTexture = createTexture(1, 1, &white);
 	font = std::make_unique<CanvasFontGroup>("NotoSans", 13.0 * uiscale);
@@ -207,9 +207,18 @@ void Canvas::detach()
 
 void Canvas::begin(const Colorf& color)
 {
-	uiscale = window->GetDpiScale();
-	width = window->GetPixelWidth();
-	height = window->GetPixelHeight();
+	if (window)
+	{
+		uiscale = window->GetDpiScale();
+		width = window->GetPixelWidth();
+		height = window->GetPixelHeight();
+	}
+	else
+	{
+		uiscale = 1.0f;
+		width = 32;
+		height = 32;
+	}
 }
 
 Point Canvas::getOrigin()
@@ -1066,7 +1075,8 @@ void BitmapCanvas::begin(const Colorf& color)
 
 void BitmapCanvas::end()
 {
-	window->PresentBitmap(width, height, pixels.data());
+	if (window)
+		window->PresentBitmap(width, height, pixels.data());
 }
 
 /////////////////////////////////////////////////////////////////////////////
