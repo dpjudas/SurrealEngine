@@ -13,6 +13,7 @@
 class Canvas;
 class Timer;
 class Dropdown;
+class Layout;
 
 enum class WidgetType
 {
@@ -35,6 +36,7 @@ public:
 	virtual ~Widget();
 
 	void SetParent(Widget* parent);
+	void SetLayout(Layout* layout);
 	void MoveBefore(Widget* sibling);
 
 	std::string GetWindowTitle() const;
@@ -47,6 +49,9 @@ public:
 	Size GetSize() const;
 	double GetWidth() const { return GetSize().width; }
 	double GetHeight() const { return GetSize().height; }
+
+	virtual double GetPreferredWidth() const { return /*LayoutWidget ? LayoutWidget->GetPreferredWidth() :*/ 0.0; }
+	virtual double GetPreferredHeight() const { return /*LayoutWidget ? LayoutWidget->GetPreferredHeight() :*/ 0.0; }
 
 	// Widget noncontent area
 	void SetNoncontentSizes(double left, double top, double right, double bottom);
@@ -152,6 +157,8 @@ public:
 	Widget* FirstChild() const { return FirstChildObj; }
 	Widget* LastChild() const { return LastChildObj; }
 
+	virtual bool IsStretch() const { return false; }
+
 	Point MapFrom(const Widget* parent, const Point& pos) const;
 	Point MapFromGlobal(const Point& pos) const;
 	Point MapFromParent(const Point& pos) const { return MapFrom(Parent(), pos); }
@@ -253,6 +260,8 @@ private:
 
 	std::unordered_set<Widget*> Subscribers;
 	std::unordered_set<Widget*> Subscriptions;
+
+	Layout* LayoutWidget = nullptr;
 
 	friend class Timer;
 	friend class OpenFileDialog;

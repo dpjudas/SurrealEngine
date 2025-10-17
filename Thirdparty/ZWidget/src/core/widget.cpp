@@ -2,6 +2,7 @@
 #include "core/timer.h"
 #include "core/colorf.h"
 #include "core/theme.h"
+#include "core/layout.h"
 #include <stdexcept>
 #include <cmath>
 #include <algorithm>
@@ -97,6 +98,17 @@ void Widget::SetParent(Widget* newParent)
 		}
 	}
 }
+
+void Widget::SetLayout(Layout* layout)
+{
+	LayoutWidget = layout;
+
+	LayoutWidget->SetParent(this);
+
+	// Layout Widget should cover the entire parent widget
+	LayoutWidget->SetFrameGeometry(Rect::ltrb(GetNoncontentLeft(), GetNoncontentTop(), GetNoncontentRight(), GetNoncontentBottom()));
+}
+
 
 void Widget::MoveBefore(Widget* sibling)
 {
@@ -228,6 +240,10 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 		right = GridFitPoint(right);
 		bottom = GridFitPoint(bottom);
 		ContentGeometry = Rect::ltrb(left, top, right, bottom);
+
+		if (LayoutWidget)
+			LayoutWidget->SetFrameGeometry(ContentGeometry);
+
 		OnGeometryChanged();
 	}
 	else
@@ -857,6 +873,9 @@ void Widget::OnWindowGeometryChanged()
 	right = std::max(right, FrameGeometry.left());
 	bottom = std::max(bottom, FrameGeometry.top());
 	ContentGeometry = Rect::ltrb(left, top, right, bottom);
+
+	if (LayoutWidget)
+		LayoutWidget->OnGeometryChanged();
 
 	OnGeometryChanged();
 }
