@@ -7,6 +7,7 @@
 #include <zwidget/widgets/dropdown/dropdown.h>
 #include <zwidget/widgets/textedit/textedit.h>
 #include <zwidget/widgets/mainwindow/mainwindow.h>
+#include <zwidget/widgets/layout/vboxlayout.h>
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/imagebox/imagebox.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
@@ -207,10 +208,28 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
 	LightsCheckbox->SetText("Lights");
 	BrightmapsCheckbox->SetText("Brightmaps");
 	WidescreenCheckbox->SetText("Widescreen");
+
+	auto layout = new VBoxLayout(this);
+	layout->AddWidget(WelcomeLabel);
+	layout->AddWidget(VersionLabel);
+	layout->AddWidget(SelectLabel);
+	layout->AddWidget(GamesList);
+
+	layout->AddWidget(ExtrasLabel);
+	layout->AddWidget(FullscreenCheckbox);
+	layout->AddWidget(DisableAutoloadCheckbox);
+	layout->AddWidget(DontAskAgainCheckbox);
+	layout->AddWidget(LightsCheckbox);
+	layout->AddWidget(BrightmapsCheckbox);
+	layout->AddWidget(WidescreenCheckbox);
+	layout->AddStretch();
+
+	SetLayout(layout);
 }
 
 void LauncherWindowTab2::OnGeometryChanged()
 {
+	/*
 	double y = 0, h;
 
 	h = WelcomeLabel->GetPreferredHeight();
@@ -251,6 +270,7 @@ void LauncherWindowTab2::OnGeometryChanged()
 
 	listViewBottom = y - 10;
 	GamesList->SetFrameGeometry(20, listViewTop, GetWidth() - 40, std::max<double>(listViewBottom - listViewTop, 0));
+	*/
 }
 
 LauncherWindowTab3::LauncherWindowTab3(Widget parent): Widget(nullptr)

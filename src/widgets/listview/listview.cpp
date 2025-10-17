@@ -284,7 +284,7 @@ void ListView::OnKeyDown(InputKey key)
 	}
 }
 
-double ListView::GetPreferredWidth()
+double ListView::GetPreferredWidth() const
 {
 	double total = 0.0;
 
@@ -311,7 +311,7 @@ double ListView::GetPreferredWidth()
 	return total + 10.0*2 + scrollbar->GetPreferredWidth();
 }
 
-double ListView::GetPreferredHeight()
+double ListView::GetPreferredHeight() const
 {
 	return items.size()*20.0 + 10.0*2; // Items plus top/bottom padding
 }
