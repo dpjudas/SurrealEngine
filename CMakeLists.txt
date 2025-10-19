@@ -343,8 +343,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/LauncherWindow.h
 	SurrealEngine/UI/Launcher/PlayGamePage.cpp
 	SurrealEngine/UI/Launcher/PlayGamePage.h
-	SurrealEngine/UI/Launcher/SettingsPage.cpp
-	SurrealEngine/UI/Launcher/SettingsPage.h
+	SurrealEngine/UI/Launcher/VideoSettingsPage.cpp
+	SurrealEngine/UI/Launcher/VideoSettingsPage.h
 	SurrealEngine/UI/Launcher/GameFoldersPage.cpp
 	SurrealEngine/UI/Launcher/GameFoldersPage.h
 )
