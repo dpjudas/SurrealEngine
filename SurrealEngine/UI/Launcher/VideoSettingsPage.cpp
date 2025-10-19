@@ -1,5 +1,4 @@
-
-#include "SettingsPage.h"
+#include "VideoSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
@@ -8,11 +7,11 @@
 #include <zwidget/widgets/lineedit/lineedit.h>
 #include <zwidget/widgets/dropdown/dropdown.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/systemdialogs/open_folder_dialog.h>
 
-SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
+VideoSettingsPage::VideoSettingsPage(Widget* parent)
+    : Widget(parent)
 {
-	RenderDeviceLabel = new TextLabel(this);
+    RenderDeviceLabel = new TextLabel(this);
 	Vulkan = new CheckboxLabel(this);
 	Vulkan->SetRadioStyle(true);
 #ifdef WIN32
@@ -99,7 +98,7 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
 }
 
-void SettingsPage::Save()
+void VideoSettingsPage::Save()
 {
 	auto& settings = LauncherSettings::Get();
 
@@ -141,7 +140,7 @@ void SettingsPage::Save()
 	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
 }
 
-void SettingsPage::OnResetButtonClicked()
+void VideoSettingsPage::OnResetButtonClicked()
 {
 	Vulkan->SetChecked(true);
 #ifdef WIN32
@@ -159,7 +158,7 @@ void SettingsPage::OnResetButtonClicked()
 	UseDebugLayer->SetChecked(false);
 }
 
-void SettingsPage::OnGeometryChanged()
+void VideoSettingsPage::OnGeometryChanged()
 {
 	double y = 10.0;
 	double gap = 2.0;
