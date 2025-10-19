@@ -2,7 +2,8 @@
 #include "LauncherBanner.h"
 #include "LauncherButtonbar.h"
 #include "PlayGamePage.h"
-#include "SettingsPage.h"
+#include "VideoSettingsPage.h"
+// #include "AudioSettingsPage.h"
 #include "GameFoldersPage.h"
 #include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
@@ -42,12 +43,14 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 	Buttonbar = new LauncherButtonbar(this);
 
 	PlayGame = new PlayGamePage(this);
-	Settings = new SettingsPage(this);
+	GraphicsSettings = new VideoSettingsPage(this);
+	// AudioSettings = new AudioSettingsPage(this);
 	GameFolders = new GameFoldersPage(this);
 
-	Pages->AddTab(PlayGame, "Play");
-	Pages->AddTab(Settings, "Settings");
-	Pages->AddTab(GameFolders, "Games");
+	Pages->AddTab(PlayGame, "Games");
+	Pages->AddTab(GameFolders, "Folders");
+	Pages->AddTab(GraphicsSettings, "Video Settings");
+	// Pages->AddTab(AudioSettings, "Audio Settings");
 
 	Pages->SetCurrentWidget(PlayGame);
 	PlayGame->SetFocus();
@@ -56,7 +59,8 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 void LauncherWindow::Save()
 {
 	PlayGame->Save();
-	Settings->Save();
+	GraphicsSettings->Save();
+	// AudioSettings->Save();
 	GameFolders->Save();
 	LauncherSettings::Get().Save();
 }

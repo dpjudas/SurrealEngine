@@ -2,6 +2,8 @@
 
 #include <zwidget/core/widget.h>
 
+// class AudioSettingsPage;
+class VideoSettingsPage;
 class TabWidget;
 class LauncherBanner;
 class LauncherButtonbar;
@@ -31,7 +33,8 @@ private:
 	LauncherButtonbar* Buttonbar = nullptr;
 
 	PlayGamePage* PlayGame = nullptr;
-	SettingsPage* Settings = nullptr;
+	VideoSettingsPage* GraphicsSettings = nullptr;
+	// AudioSettingsPage* AudioSettings = nullptr;
 	GameFoldersPage* GameFolders = nullptr;
 
 	int ExecResult = -1;
