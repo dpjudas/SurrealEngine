@@ -51,3 +51,23 @@ void VBoxLayout::OnGeometryChanged()
         top += frameHeight;
     }
 }
+
+double VBoxLayout::GetPreferredWidth()
+{
+    double w = 0.0;
+    for (const auto& widget : m_Widgets)
+    {
+        w = std::max(w, widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight());
+    }
+    return w;
+}
+
+double VBoxLayout::GetPreferredHeight()
+{
+    double h = 0.0;
+    for (const auto& widget : m_Widgets)
+    {
+        h += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
+    }
+    return h;
+}

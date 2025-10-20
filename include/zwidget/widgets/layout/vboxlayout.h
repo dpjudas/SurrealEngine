@@ -8,4 +8,7 @@ public:
     VBoxLayout(Widget* parent);
 
     void OnGeometryChanged() override;
+
+    double GetPreferredWidth() override;
+    double GetPreferredHeight() override;
 };
