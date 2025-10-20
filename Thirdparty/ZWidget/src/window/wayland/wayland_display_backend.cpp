@@ -527,7 +527,7 @@ void WaylandDisplayBackend::OnMouseWheelEvent(InputKey button)
 		m_MouseFocusWindow->windowHost->OnWindowMouseWheel(m_MouseFocusWindow->m_SurfaceMousePos, button);
 }
 
-void WaylandDisplayBackend::SetCursor(StandardCursor cursor)
+void WaylandDisplayBackend::SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom)
 {
 	if (m_CursorShapeDevice)
 	{

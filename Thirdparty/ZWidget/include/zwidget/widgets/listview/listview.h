@@ -23,9 +23,9 @@ public:
 	void SetSelectedItem(int index);
 	void ScrollToItem(int index);
 
-	double GetPreferredWidth() const override;
-	double GetPreferredHeight() const override;
-	double GetMinimumHeight() const;
+	double GetPreferredWidth() override;
+	double GetPreferredHeight() override;
+	double GetMinimumHeight();
 
 	void Activate();
 

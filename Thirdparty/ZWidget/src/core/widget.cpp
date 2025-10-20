@@ -145,8 +145,10 @@ void Widget::DetachFromParent()
 	{
 		if (cur->FocusWidget == this)
 			cur->FocusWidget = nullptr;
-		if (cur->CaptureWidget == this)
-			cur->CaptureWidget = nullptr;
+		if (cur->KeyboardLockWidget == this)
+			cur->KeyboardLockWidget = nullptr;
+		if (cur->CursorLockWidget == this)
+			cur->CursorLockWidget = nullptr;
 		if (cur->HoverWidget == this)
 			cur->HoverWidget = nullptr;
 
@@ -195,6 +197,16 @@ void Widget::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
 	WindowIcon = images;
 	if (DispWindow)
 		DispWindow->SetWindowIcon(WindowIcon);
+}
+
+double Widget::GetPreferredWidth()
+{
+	return LayoutWidget ? LayoutWidget->GetPreferredWidth() : 0.0;
+}
+
+double Widget::GetPreferredHeight()
+{
+	return LayoutWidget ? LayoutWidget->GetPreferredHeight() : 0.0;
 }
 
 Size Widget::GetSize() const
@@ -480,12 +492,32 @@ void Widget::SetEnabled(bool value)
 {
 }
 
+void Widget::LockKeyboard()
+{
+	Widget* w = Window();
+	if (w && w->KeyboardLockWidget != this)
+	{
+		w->KeyboardLockWidget = this;
+		w->DispWindow->LockKeyboard();
+	}
+}
+
+void Widget::UnlockKeyboard()
+{
+	Widget* w = Window();
+	if (w && w->KeyboardLockWidget != nullptr)
+	{
+		w->KeyboardLockWidget = nullptr;
+		w->DispWindow->UnlockKeyboard();
+	}
+}
+
 void Widget::LockCursor()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != this)
+	if (w && w->CursorLockWidget != this)
 	{
-		w->CaptureWidget = this;
+		w->CursorLockWidget = this;
 		w->DispWindow->LockCursor();
 	}
 }
@@ -493,9 +525,9 @@ void Widget::LockCursor()
 void Widget::UnlockCursor()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != nullptr)
+	if (w && w->CursorLockWidget != nullptr)
 	{
-		w->CaptureWidget = nullptr;
+		w->CursorLockWidget = nullptr;
 		w->DispWindow->UnlockCursor();
 	}
 }
@@ -505,12 +537,28 @@ void Widget::SetCursor(StandardCursor cursor)
 	if (CurrentCursor != cursor)
 	{
 		CurrentCursor = cursor;
-		if (HoverWidget == this || CaptureWidget == this)
+		if (HoverWidget == this || CursorLockWidget == this)
 		{
 			Widget* w = Window();
 			if (w)
 			{
-				w->DispWindow->SetCursor(CurrentCursor);
+				w->DispWindow->SetCursor(CurrentCursor, CurrentCustomCursor);
+			}
+		}
+	}
+}
+
+void Widget::SetCursor(std::shared_ptr<CustomCursor> cursor)
+{
+	if (CurrentCustomCursor != cursor)
+	{
+		CurrentCustomCursor = cursor;
+		if (HoverWidget == this || CursorLockWidget == this)
+		{
+			Widget* w = Window();
+			if (w)
+			{
+				w->DispWindow->SetCursor(CurrentCursor, CurrentCustomCursor);
 			}
 		}
 	}
@@ -519,9 +567,9 @@ void Widget::SetCursor(StandardCursor cursor)
 void Widget::SetPointerCapture()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != this)
+	if (w && w->CursorLockWidget != this)
 	{
-		w->CaptureWidget = this;
+		w->CursorLockWidget = this;
 		w->DispWindow->CaptureMouse();
 	}
 }
@@ -529,9 +577,9 @@ void Widget::SetPointerCapture()
 void Widget::ReleasePointerCapture()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != nullptr)
+	if (w && w->CursorLockWidget != nullptr)
 	{
-		w->CaptureWidget = nullptr;
+		w->CursorLockWidget = nullptr;
 		w->DispWindow->ReleaseMouseCapture();
 	}
 }
@@ -539,18 +587,18 @@ void Widget::ReleasePointerCapture()
 void Widget::SetModalCapture()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != this)
+	if (w && w->CursorLockWidget != this)
 	{
-		w->CaptureWidget = this;
+		w->CursorLockWidget = this;
 	}
 }
 
 void Widget::ReleaseModalCapture()
 {
 	Widget* w = Window();
-	if (w && w->CaptureWidget != nullptr)
+	if (w && w->CursorLockWidget != nullptr)
 	{
-		w->CaptureWidget = nullptr;
+		w->CursorLockWidget = nullptr;
 	}
 }
 
@@ -692,10 +740,10 @@ void Widget::OnWindowPaint()
 
 void Widget::OnWindowMouseMove(const Point& pos)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		DispWindow->SetCursor(CaptureWidget->CurrentCursor);
-		CaptureWidget->OnMouseMove(CaptureWidget->MapFrom(this, pos));
+		DispWindow->SetCursor(CursorLockWidget->CurrentCursor, CursorLockWidget->CurrentCustomCursor);
+		CursorLockWidget->OnMouseMove(CursorLockWidget->MapFrom(this, pos));
 	}
 	else
 	{
@@ -719,7 +767,7 @@ void Widget::OnWindowMouseMove(const Point& pos)
 			HoverWidget = widget;
 		}
 
-		DispWindow->SetCursor(widget->CurrentCursor);
+		DispWindow->SetCursor(widget->CurrentCursor, widget->CurrentCustomCursor);
 
 		do
 		{
@@ -745,9 +793,9 @@ void Widget::OnWindowMouseLeave()
 
 void Widget::OnWindowMouseDown(const Point& pos, InputKey key)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		CaptureWidget->OnMouseDown(CaptureWidget->MapFrom(this, pos), key);
+		CursorLockWidget->OnMouseDown(CursorLockWidget->MapFrom(this, pos), key);
 	}
 	else
 	{
@@ -766,9 +814,9 @@ void Widget::OnWindowMouseDown(const Point& pos, InputKey key)
 
 void Widget::OnWindowMouseDoubleclick(const Point& pos, InputKey key)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		CaptureWidget->OnMouseDoubleclick(CaptureWidget->MapFrom(this, pos), key);
+		CursorLockWidget->OnMouseDoubleclick(CursorLockWidget->MapFrom(this, pos), key);
 	}
 	else
 	{
@@ -787,9 +835,9 @@ void Widget::OnWindowMouseDoubleclick(const Point& pos, InputKey key)
 
 void Widget::OnWindowMouseUp(const Point& pos, InputKey key)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		CaptureWidget->OnMouseUp(CaptureWidget->MapFrom(this, pos), key);
+		CursorLockWidget->OnMouseUp(CursorLockWidget->MapFrom(this, pos), key);
 	}
 	else
 	{
@@ -808,9 +856,9 @@ void Widget::OnWindowMouseUp(const Point& pos, InputKey key)
 
 void Widget::OnWindowMouseWheel(const Point& pos, InputKey key)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		CaptureWidget->OnMouseWheel(CaptureWidget->MapFrom(this, pos), key);
+		CursorLockWidget->OnMouseWheel(CursorLockWidget->MapFrom(this, pos), key);
 	}
 	else
 	{
@@ -827,15 +875,19 @@ void Widget::OnWindowMouseWheel(const Point& pos, InputKey key)
 	}
 }
 
+void Widget::OnWindowRawKey(RawKeycode keycode, bool down)
+{
+	if (KeyboardLockWidget)
+	{
+		KeyboardLockWidget->OnRawKey(keycode, down);
+	}
+}
+
 void Widget::OnWindowRawMouseMove(int dx, int dy)
 {
-	if (CaptureWidget)
+	if (CursorLockWidget)
 	{
-		CaptureWidget->OnRawMouseMove(dx, dy);
-	}
-	else if (FocusWidget)
-	{
-		FocusWidget->OnRawMouseMove(dx, dy);
+		CursorLockWidget->OnRawMouseMove(dx, dy);
 	}
 }
 

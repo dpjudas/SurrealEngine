@@ -97,7 +97,7 @@ public:
 	void OnWindowCreated(WaylandDisplayWindow* window);
 	void OnWindowDestroyed(WaylandDisplayWindow* window);
 
-	void SetCursor(StandardCursor cursor);
+	void SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom);
 	void ShowCursor(bool enable);
 	bool GetKeyState(InputKey key);
 

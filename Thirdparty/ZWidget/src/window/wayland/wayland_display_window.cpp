@@ -236,6 +236,16 @@ void WaylandDisplayWindow::ShowCursor(bool enable)
 	backend->ShowCursor(enable);
 }
 
+void WaylandDisplayWindow::LockKeyboard()
+{
+	// Enables raw keyboard scancode events (OnRawKeyboard should be called for keyboard input)
+}
+
+void WaylandDisplayWindow::UnlockKeyboard()
+{
+	// Disable raw keyboard scancode events (OnKeyDown/OnKeyUp/OnKeyChar should be called for keyboard input)
+}
+
 void WaylandDisplayWindow::LockCursor()
 {
 	m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
@@ -274,7 +284,7 @@ bool WaylandDisplayWindow::GetKeyState(InputKey key)
 	return backend->GetKeyState(key);
 }
 
-void WaylandDisplayWindow::SetCursor(StandardCursor cursor)
+void WaylandDisplayWindow::SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom)
 {
 	backend->SetCursor(cursor);
 }

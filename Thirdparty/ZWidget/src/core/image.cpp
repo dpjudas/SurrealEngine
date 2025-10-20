@@ -108,3 +108,31 @@ std::shared_ptr<Image> Image::LoadResource(const std::string& resourcename, doub
 		throw std::runtime_error("Unsupported image format");
 	}
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+class CustomCursorImpl : public CustomCursor
+{
+public:
+	CustomCursorImpl(std::vector<CustomCursorFrame> frames, const Point& hotspot) : Frames(std::move(frames)), Hotspot(hotspot)
+	{
+	}
+
+	const std::vector<CustomCursorFrame>& GetFrames() const override
+	{
+		return Frames;
+	}
+
+	Point GetHotspot() const override
+	{
+		return Hotspot;
+	}
+
+	std::vector<CustomCursorFrame> Frames;
+	Point Hotspot;
+};
+
+std::shared_ptr<CustomCursor> CustomCursor::Create(std::vector<CustomCursorFrame> frames, const Point& hotspot)
+{
+	return std::make_shared<CustomCursorImpl>(std::move(frames), hotspot);
+}

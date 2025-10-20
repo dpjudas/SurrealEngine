@@ -105,8 +105,9 @@ void ListView::SetSelectedItem(int index)
 	if (selectedItem != index && index >= 0 && index < (int)items.size())
 	{
 		selectedItem = index;
-		if (OnChanged) OnChanged(selectedItem);
 		Update();
+		if (OnChanged)
+			OnChanged(selectedItem);
 	}
 }
 
@@ -284,7 +285,7 @@ void ListView::OnKeyDown(InputKey key)
 	}
 }
 
-double ListView::GetPreferredWidth() const
+double ListView::GetPreferredWidth()
 {
 	double total = 0.0;
 
@@ -311,12 +312,12 @@ double ListView::GetPreferredWidth() const
 	return total + 10.0*2 + scrollbar->GetPreferredWidth();
 }
 
-double ListView::GetPreferredHeight() const
+double ListView::GetPreferredHeight()
 {
 	return items.size()*20.0 + 10.0*2; // Items plus top/bottom padding
 }
 
-double ListView::GetMinimumHeight() const
+double ListView::GetMinimumHeight()
 {
 	return 20.0 + 10.0*2; // One item plus top/bottom padding
 }
