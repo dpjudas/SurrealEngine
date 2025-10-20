@@ -7,6 +7,8 @@
 #include <zwidget/widgets/lineedit/lineedit.h>
 #include <zwidget/widgets/dropdown/dropdown.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
+#include <zwidget/widgets/layout/vboxlayout.h>
+#include <zwidget/widgets/layout/hboxlayout.h>
 
 VideoSettingsPage::VideoSettingsPage(Widget* parent)
     : Widget(parent)
@@ -96,6 +98,74 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
+
+	auto renderDeviceLayout = new HBoxLayout(this);
+
+	renderDeviceLayout->AddWidget(Vulkan);
+#ifdef WIN32
+	renderDeviceLayout->AddWidget(D3D11);
+	// renderDeviceLayout->AddWidget(D3D12);
+#endif
+	renderDeviceLayout->AddStretch();
+
+	auto antialiasModesLayout = new HBoxLayout();
+	antialiasModesLayout->AddWidget(AntialiasModesLabel);
+	antialiasModesLayout->AddWidget(AntialiasModes);
+	antialiasModesLayout->AddStretch();
+
+	auto lightModesLayout = new HBoxLayout();
+	lightModesLayout->AddWidget(LightModesLabel);
+	lightModesLayout->AddWidget(LightModes);
+	lightModesLayout->AddStretch();
+
+	auto gammaModesLayout = new HBoxLayout();
+	gammaModesLayout->AddWidget(GammaModesLabel);
+	gammaModesLayout->AddWidget(GammaModes);
+	gammaModesLayout->AddStretch();
+
+	auto hdrScaleLayout = new HBoxLayout();
+	hdrScaleLayout->AddWidget(HdrScaleLabel);
+	hdrScaleLayout->AddWidget(HdrScale);
+	hdrScaleLayout->AddStretch();
+
+	auto bloomAmountLayout = new HBoxLayout();
+	bloomAmountLayout->AddWidget(BloomAmountLabel);
+	bloomAmountLayout->AddWidget(BloomAmount);
+	bloomAmountLayout->AddStretch();
+
+	auto resetButtonLayout = new HBoxLayout();
+	resetButtonLayout->AddWidget(ResetButton);
+	resetButtonLayout->AddStretch();
+
+	auto mainLayout = new VBoxLayout();
+
+	mainLayout->AddWidget(RenderDeviceLabel);
+	mainLayout->AddLayout(renderDeviceLayout);
+
+	mainLayout->AddWidget(AdvancedLabel);
+	mainLayout->AddWidget(UseVSync);
+
+	mainLayout->AddLayout(antialiasModesLayout);
+
+	mainLayout->AddLayout(lightModesLayout);
+
+	mainLayout->AddLayout(gammaModesLayout);
+
+	mainLayout->AddWidget(GammaCorrectScreenshots);
+
+	mainLayout->AddWidget(Hdr);
+	mainLayout->AddLayout(hdrScaleLayout);
+
+	mainLayout->AddWidget(Bloom);
+	mainLayout->AddLayout(bloomAmountLayout);
+
+	mainLayout->AddWidget(UseDebugLayer);
+
+	mainLayout->AddLayout(resetButtonLayout);
+
+	mainLayout->AddStretch();
+
+	SetLayout(mainLayout);
 }
 
 void VideoSettingsPage::Save()
@@ -160,6 +230,7 @@ void VideoSettingsPage::OnResetButtonClicked()
 
 void VideoSettingsPage::OnGeometryChanged()
 {
+	/*
 	double y = 10.0;
 	double gap = 2.0;
 	double groupEndGap = 7.0;
@@ -220,4 +291,5 @@ void VideoSettingsPage::OnGeometryChanged()
 
 	ResetButton->SetFrameGeometry(0.0, y, 150.0, ResetButton->GetPreferredHeight());
 	y += ResetButton->GetPreferredHeight() + gap;
+	*/
 }
