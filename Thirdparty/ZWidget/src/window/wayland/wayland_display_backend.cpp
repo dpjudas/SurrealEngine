@@ -177,7 +177,7 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 	ConnectDeviceEvents();
 
 	m_cursorSurface = m_waylandCompositor.create_surface();
-	SetCursor(StandardCursor::arrow);
+	SetCursor(StandardCursor::arrow, nullptr);
 }
 
 WaylandDisplayBackend::~WaylandDisplayBackend()
