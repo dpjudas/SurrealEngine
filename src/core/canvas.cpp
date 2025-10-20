@@ -439,6 +439,11 @@ Rect Canvas::measureText(const std::string& text)
 	return Rect::xywh(0.0, 0.0, x / uiscale, y / uiscale);
 }
 
+FontMetrics Canvas::getFontMetrics()
+{
+	return getFontMetrics({}); // To do: properly deal with a default UI font and make getFontMetrics actually use its font
+}
+
 FontMetrics Canvas::getFontMetrics(const std::shared_ptr<Font>& font)
 {
 	VerticalTextPosition vtp = verticalTextAlign();

@@ -56,5 +56,6 @@ void TextLabel::OnPaint(Canvas* canvas)
 		x = GetWidth() - canvas->measureText(text).width;
 	}
 
-	canvas->drawText(Point(x, GetHeight() - 5.0), GetStyleColor("color"), text);
+	FontMetrics metrics = canvas->getFontMetrics();
+	canvas->drawText(Point(x, (GetHeight() - metrics.height) * 0.5 + metrics.ascent), GetStyleColor("color"), text);
 }

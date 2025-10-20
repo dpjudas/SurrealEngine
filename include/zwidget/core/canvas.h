@@ -68,6 +68,7 @@ public:
 	void drawText(const Point& pos, const Colorf& color, const std::string& text);
 	Rect measureText(const std::string& text);
 	VerticalTextPosition verticalTextAlign();
+	FontMetrics getFontMetrics();
 
 	void drawText(const std::shared_ptr<Font>& font, const Point& pos, const std::string& text, const Colorf& color);
 	void drawTextEllipsis(const std::shared_ptr<Font>& font, const Point& pos, const Rect& clipBox, const std::string& text, const Colorf& color);
