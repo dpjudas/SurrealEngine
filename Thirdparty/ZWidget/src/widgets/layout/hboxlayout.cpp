@@ -53,3 +53,22 @@ void HBoxLayout::OnGeometryChanged()
     }
 }
 
+double HBoxLayout::GetPreferredWidth()
+{
+    double w = 0.0;
+    for (const auto& widget : m_Widgets)
+    {
+        w += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
+    }
+    return w;
+}
+
+double HBoxLayout::GetPreferredHeight()
+{
+    double h = 0.0;
+    for (const auto& widget : m_Widgets)
+    {
+        h = std::max(h, widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom());
+    }
+    return h;
+}
