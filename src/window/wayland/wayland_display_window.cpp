@@ -286,7 +286,7 @@ bool WaylandDisplayWindow::GetKeyState(InputKey key)
 
 void WaylandDisplayWindow::SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom)
 {
-	backend->SetCursor(cursor);
+	backend->SetCursor(cursor, custom);
 }
 
 Rect WaylandDisplayWindow::GetWindowFrame() const
