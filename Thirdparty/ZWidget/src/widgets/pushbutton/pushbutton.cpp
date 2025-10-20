@@ -27,8 +27,9 @@ double PushButton::GetPreferredHeight()
 
 void PushButton::OnPaint(Canvas* canvas)
 {
+	FontMetrics metrics = canvas->getFontMetrics();
 	Rect box = canvas->measureText(text);
-	canvas->drawText(Point((GetWidth() - box.width) * 0.5, GetHeight() - 5.0), GetStyleColor("color"), text);
+	canvas->drawText(Point((GetWidth() - box.width) * 0.5, (GetHeight() - metrics.height) * 0.5 + metrics.ascent), GetStyleColor("color"), text);
 }
 
 void PushButton::OnMouseMove(const Point& pos)
