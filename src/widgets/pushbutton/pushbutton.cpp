@@ -20,7 +20,7 @@ const std::string& PushButton::GetText() const
 	return text;
 }
 
-double PushButton::GetPreferredHeight() const
+double PushButton::GetPreferredHeight()
 {
 	return 30.0;
 }

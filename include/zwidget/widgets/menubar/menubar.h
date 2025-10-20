@@ -49,7 +49,7 @@ public:
 	void SetOpenCallback(std::function<void(Menu* menu)> callback) { onOpen = std::move(callback); }
 	const std::function<void(Menu* menu)>& GetOpenCallback() const { return onOpen; }
 
-	double GetPreferredWidth() const override;
+	double GetPreferredWidth() override;
 
 	bool AlignRight = false;
 
@@ -76,8 +76,8 @@ public:
 	MenuItem* AddItem(std::shared_ptr<Image> icon, std::string text, std::function<void()> onClick = {});
 	MenuItemSeparator* AddSeparator();
 
-	double GetPreferredWidth() const override;
-	double GetPreferredHeight() const override;
+	double GetPreferredWidth() override;
+	double GetPreferredHeight() override;
 
 	void SetSelected(MenuItem* item);
 

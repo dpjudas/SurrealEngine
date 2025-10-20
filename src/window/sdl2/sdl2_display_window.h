@@ -24,13 +24,15 @@ public:
 	void Hide() override;
 	void Activate() override;
 	void ShowCursor(bool enable) override;
+	void LockKeyboard() override;
+	void UnlockKeyboard() override;
 	void LockCursor() override;
 	void UnlockCursor() override;
 	void CaptureMouse() override;
 	void ReleaseMouseCapture() override;
 	void Update() override;
 	bool GetKeyState(InputKey key) override;
-	void SetCursor(StandardCursor cursor) override;
+	void SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom) override;
 
 	Rect GetWindowFrame() const override;
 	Size GetClientSize() const override;

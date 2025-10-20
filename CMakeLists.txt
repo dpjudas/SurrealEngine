@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 project(zwidget)
+message(STATUS "HAVE_METAL is ${HAVE_METAL}")
 
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
@@ -79,7 +80,6 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/core/colorf.h
 	include/zwidget/core/font.h
 	include/zwidget/core/image.h
-	include/zwidget/core/layout.h
 	include/zwidget/core/rect.h
 	include/zwidget/core/pathfill.h
 	include/zwidget/core/span_layout.h
@@ -138,6 +138,11 @@ set(ZWIDGET_DBUS_SOURCES
 )
 
 set(ZWIDGET_COCOA_SOURCES
+	src/window/cocoa/cocoa_open_file_dialog.mm
+	src/window/cocoa/cocoa_save_file_dialog.mm
+	src/window/cocoa/cocoa_open_folder_dialog.mm
+	src/window/cocoa/cocoa_display_backend.mm
+	src/window/cocoa/cocoa_display_window.mm
 )
 
 set(ZWIDGET_SDL2_SOURCES
@@ -241,11 +246,36 @@ if(WIN32)
 		#set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_CRT_SECURE_NO_WARNINGS)
 	endif()
 elseif(APPLE)
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_COCOA_SOURCES})
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES}
+		${ZWIDGET_COCOA_SOURCES}
+		
+	)
+	set_source_files_properties(src/window/cocoa/cocoa_display_backend.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+	set_source_files_properties(src/window/cocoa/cocoa_open_file_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+	set_source_files_properties(src/window/cocoa/cocoa_save_file_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+	set_source_files_properties(src/window/cocoa/cocoa_open_folder_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+	set_source_files_properties(src/window/cocoa/cocoa_display_window.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
-else()
+
+	find_library(COCOA_FRAMEWORK Cocoa)
+	if (NOT COCOA_FRAMEWORK)
+		message(FATAL_ERROR "Cocoa framework not found")
+	endif()
+
+	find_library(METAL_FRAMEWORK Metal)
+
+	    find_library(OPENGL_FRAMEWORK OpenGL)
+		if (NOT OPENGL_FRAMEWORK)
+			message(FATAL_ERROR "OpenGL framework not found")
+		endif()
+	
+		find_library(UNIFORMTYPEIDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
+		if (NOT UNIFORMTYPEIDENTIFIERS_FRAMEWORK)
+			message(FATAL_ERROR "UniformTypeIdentifiers framework not found")
+		endif()
+	else()
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_X11_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -lX11 -lXi)
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_X11)
@@ -267,7 +297,6 @@ endif()
 
 if(SDL2_FOUND AND NOT WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
-	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${SDL2_LIBRARIES} -lSDL2)
 	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL2)
 endif()
 
@@ -282,12 +311,22 @@ target_compile_options(zwidget PRIVATE ${ZWIDGET_COMPILE_OPTIONS})
 target_compile_definitions(zwidget PRIVATE ${ZWIDGET_DEFINES})
 target_include_directories(zwidget PRIVATE ${ZWIDGET_INCLUDE_DIRS})
 target_link_options(zwidget PRIVATE ${ZWIDGET_LINK_OPTIONS})
-target_link_libraries(zwidget ${ZWIDGET_LIBS})
-set_target_properties(zwidget PROPERTIES CXX_STANDARD 20)
-target_compile_options(zwidget PRIVATE ${CXX_WARNING_FLAGS})
+target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS} ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${UNIFORMTYPEIDENTIFIERS_FRAMEWORK})
+    target_compile_definitions(zwidget PRIVATE HAVE_OPENGL)
+if (METAL_FRAMEWORK)
+    target_link_libraries(zwidget PRIVATE ${METAL_FRAMEWORK})
+    target_compile_definitions(zwidget PRIVATE HAVE_METAL)
+endif()
 if(SDL2_FOUND)
 	target_include_directories(zwidget PRIVATE ${SDL2_INCLUDE_DIRS})
+	if(TARGET SDL2::SDL2)
+		target_link_libraries(zwidget PRIVATE SDL2::SDL2)
+	else() # needed for gzdoom compat for now
+		target_link_libraries(zwidget PRIVATE ${SDL2_LIBRARY})
+	endif()
 endif()
+set_target_properties(zwidget PROPERTIES CXX_STANDARD 20)
+target_compile_options(zwidget PRIVATE ${CXX_WARNING_FLAGS})
 
 if(MSVC)
 	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -323,6 +362,10 @@ if(ZWIDGET_BUILD_EXAMPLE)
 		target_link_libraries(zwidget_example PRIVATE "-framework Cocoa -framework OpenGL")
 	else()
 		target_link_libraries(zwidget_example PRIVATE ${ZWIDGET_LIBS})
+	endif()
+
+	if(SDL2_FOUND)
+		target_link_libraries(zwidget_example PRIVATE SDL2::SDL2)
 	endif()
 
 	set_target_properties(zwidget_example PROPERTIES CXX_STANDARD 20)

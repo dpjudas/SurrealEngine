@@ -199,3 +199,12 @@ std::unique_ptr<DisplayBackend> DisplayBackend::TryCreateWayland()
 }
 
 #endif
+
+#ifndef __APPLE__
+
+std::unique_ptr<DisplayBackend> TryCreateCocoa()
+{
+	return nullptr;
+}
+
+#endif

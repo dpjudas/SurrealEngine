@@ -77,6 +77,8 @@ private:
 	LauncherWindowTab1* Tab1 = nullptr;
 	LauncherWindowTab2* Tab2 = nullptr;
 	LauncherWindowTab3* Tab3 = nullptr;
+
+	std::shared_ptr<CustomCursor> Cursor;
 };
 
 // ************************************************************
@@ -98,6 +100,23 @@ LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 			Image::LoadResource("surreal-engine-icon-128.png"),
 			Image::LoadResource("surreal-engine-icon-256.png")
 			});
+
+		Cursor = CustomCursor::Create({
+			CustomCursorFrame(Image::LoadResource("Pentagram01.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram02.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram03.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram04.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram05.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram06.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram07.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram08.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram09.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram10.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram11.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram12.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram13.png"), 0.2),
+			CustomCursorFrame(Image::LoadResource("Pentagram14.png"), 0.2)
+			}, Point(16, 16));
 	}
 	catch (...)
 	{
@@ -106,6 +125,8 @@ LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 	Logo = new ImageBox(this);
 	ExitButton = new PushButton(this);
 	Pages = new TabWidget(this);
+
+	Logo->SetCursor(Cursor);
 
 	Tab1 = new LauncherWindowTab1(this);
 	Tab2 = new LauncherWindowTab2(this);
