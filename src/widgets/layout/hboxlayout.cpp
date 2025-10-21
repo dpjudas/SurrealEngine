@@ -16,7 +16,10 @@ void HBoxLayout::OnGeometryChanged()
     if (m_Widgets.empty())
         return;
 
-    const double totalWidth = GetWidth();
+    if (!m_ParentWidget)
+        return;
+
+    const double totalWidth = m_ParentWidget->GetWidth();
 
     double nonStretchWidgetsTotalWidth = 0.0;
 
@@ -29,6 +32,7 @@ void HBoxLayout::OnGeometryChanged()
         if (!widget->IsStretch())
         {
             nonStretchWidgetsTotalWidth += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
+            nonStretchWidgetsTotalWidth += m_gapWidth;
         }
         else
             stretchCount++;
@@ -48,8 +52,8 @@ void HBoxLayout::OnGeometryChanged()
         else
             frameWidth = stretchWidths;
 
-        widget->SetFrameGeometry(Rect::xywh(left, 0, frameWidth, GetHeight()));
-        left += widget->GetPreferredHeight();
+        widget->SetFrameGeometry(Rect::xywh(left, 0, frameWidth, m_ParentWidget->GetHeight()));
+        left += frameWidth + m_gapWidth;
     }
 }
 
@@ -71,4 +75,9 @@ double HBoxLayout::GetPreferredHeight()
         h = std::max(h, widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom());
     }
     return h;
+}
+
+void HBoxLayout::SetGapWidth(const double newGapWidth)
+{
+    m_gapWidth = newGapWidth;
 }

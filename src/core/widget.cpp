@@ -101,14 +101,9 @@ void Widget::SetParent(Widget* newParent)
 
 void Widget::SetLayout(Layout* layout)
 {
-	LayoutWidget = layout;
-
-	LayoutWidget->SetParent(this);
-
-	// Layout Widget should cover the entire parent widget
-	LayoutWidget->SetFrameGeometry(Rect::ltrb(GetNoncontentLeft(), GetNoncontentTop(), GetNoncontentRight(), GetNoncontentBottom()));
+	m_Layout = layout;
+	m_Layout->SetParent(this);
 }
-
 
 void Widget::MoveBefore(Widget* sibling)
 {
@@ -201,12 +196,12 @@ void Widget::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images)
 
 double Widget::GetPreferredWidth()
 {
-	return LayoutWidget ? LayoutWidget->GetPreferredWidth() : 0.0;
+	return m_Layout ? m_Layout->GetPreferredWidth() : 0.0;
 }
 
 double Widget::GetPreferredHeight()
 {
-	return LayoutWidget ? LayoutWidget->GetPreferredHeight() : 0.0;
+	return m_Layout ? m_Layout->GetPreferredHeight() : 0.0;
 }
 
 Size Widget::GetSize() const
@@ -253,8 +248,8 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 		bottom = GridFitPoint(bottom);
 		ContentGeometry = Rect::ltrb(left, top, right, bottom);
 
-		if (LayoutWidget)
-			LayoutWidget->SetFrameGeometry(ContentGeometry);
+		if (m_Layout)
+			m_Layout->OnGeometryChanged();
 
 		OnGeometryChanged();
 	}
@@ -926,8 +921,8 @@ void Widget::OnWindowGeometryChanged()
 	bottom = std::max(bottom, FrameGeometry.top());
 	ContentGeometry = Rect::ltrb(left, top, right, bottom);
 
-	if (LayoutWidget)
-		LayoutWidget->OnGeometryChanged();
+	if (m_Layout)
+		m_Layout->OnGeometryChanged();
 
 	OnGeometryChanged();
 }
