@@ -268,7 +268,7 @@ private:
 	std::unordered_set<Widget*> Subscribers;
 	std::unordered_set<Widget*> Subscriptions;
 
-	Layout* LayoutWidget = nullptr;
+	Layout* m_Layout = nullptr;
 
 	friend class Timer;
 	friend class OpenFileDialog;

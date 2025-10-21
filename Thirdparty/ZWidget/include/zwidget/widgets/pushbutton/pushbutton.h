@@ -12,6 +12,7 @@ public:
 	void SetText(const std::string& value);
 	const std::string& GetText() const;
 
+	double GetPreferredWidth() override;
 	double GetPreferredHeight() override;
 
 	void Click();

@@ -95,6 +95,8 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 	classdesc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
 	classdesc.lpszClassName = L"ZWidgetWindow";
 	classdesc.lpfnWndProc = &Win32DisplayWindow::WndProc;
+	if (renderAPI == RenderAPI::Unspecified || renderAPI == RenderAPI::Bitmap)
+		classdesc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); // Use a black initial color for the window if not using GDI bitmap painting
 	RegisterClassEx(&classdesc);
 
 	// Microsoft logic at its finest:

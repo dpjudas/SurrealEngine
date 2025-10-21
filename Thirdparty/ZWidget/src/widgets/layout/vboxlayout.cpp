@@ -16,7 +16,10 @@ void VBoxLayout::OnGeometryChanged()
     if (m_Widgets.empty())
         return;
 
-    const double totalHeight = GetHeight();
+    if (!m_ParentWidget)
+        return;
+
+    const double totalHeight = m_ParentWidget->GetHeight();
 
     double nonStretchWidgetsTotalHeight = 0.0;
 
@@ -28,7 +31,8 @@ void VBoxLayout::OnGeometryChanged()
     {
         if (!widget->IsStretch())
         {
-            nonStretchWidgetsTotalHeight += widget->GetNoncontentTop() + widget->GetPreferredHeight() + GetNoncontentBottom();
+            nonStretchWidgetsTotalHeight += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
+            nonStretchWidgetsTotalHeight += m_gapHeight;
         }
         else
             stretchCount++;
@@ -43,12 +47,12 @@ void VBoxLayout::OnGeometryChanged()
     {
         double frameHeight = 0.0;
         if (!widget->IsStretch())
-            frameHeight = widget->GetNoncontentTop() + widget->GetPreferredHeight() + GetNoncontentBottom();
+            frameHeight = widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
         else
             frameHeight = stretchHeights;
 
-        widget->SetFrameGeometry(Rect::xywh(0, top, GetWidth(), frameHeight));
-        top += frameHeight;
+        widget->SetFrameGeometry(Rect::xywh(0, top, m_ParentWidget->GetWidth(), frameHeight));
+        top += frameHeight + m_gapHeight;
     }
 }
 
@@ -70,4 +74,9 @@ double VBoxLayout::GetPreferredHeight()
         h += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
     }
     return h;
+}
+
+void VBoxLayout::SetGapHeight(const double newGapHeight)
+{
+    m_gapHeight = newGapHeight;
 }
