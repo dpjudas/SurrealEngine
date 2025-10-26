@@ -9,9 +9,6 @@ class Layout;
 // Only Layout classes can create them.
 class Stretch : public Widget
 {
-public:
-    bool IsStretch() const override;
-private:
     Stretch();
     friend class Layout;
 };

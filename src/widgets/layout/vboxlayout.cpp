@@ -21,32 +21,32 @@ void VBoxLayout::OnGeometryChanged()
 
     const double totalHeight = m_ParentWidget->GetHeight();
 
-    double nonStretchWidgetsTotalHeight = 0.0;
+    double nonStretchingWidgetsTotalHeight = 0.0;
 
-    int stretchCount = 0;
+    int stretchingWidgetsCount = 0;
 
     double stretchHeights = 0.0;
 
     for (const auto& widget : m_Widgets)
     {
-        if (!widget->IsStretch())
+        if (!widget->GetStretching())
         {
-            nonStretchWidgetsTotalHeight += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
-            nonStretchWidgetsTotalHeight += m_gapHeight;
+            nonStretchingWidgetsTotalHeight += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
+            nonStretchingWidgetsTotalHeight += m_gapHeight;
         }
         else
-            stretchCount++;
+            stretchingWidgetsCount++;
     }
 
-    if (stretchCount > 0)
-        stretchHeights = (totalHeight - nonStretchWidgetsTotalHeight) / stretchCount;
+    if (stretchingWidgetsCount > 0)
+        stretchHeights = (totalHeight - nonStretchingWidgetsTotalHeight) / stretchingWidgetsCount;
 
     double top = 0.0;
 
     for (const auto& widget: m_Widgets)
     {
         double frameHeight = 0.0;
-        if (!widget->IsStretch())
+        if (!widget->GetStretching())
             frameHeight = widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
         else
             frameHeight = stretchHeights;

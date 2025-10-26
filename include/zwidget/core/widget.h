@@ -128,6 +128,9 @@ public:
 	void SetDisabled(bool value) { SetEnabled(!value); }
 	void SetHidden(bool value) { if (value) Hide(); else Show(); }
 
+	bool GetStretching() const { return m_Stretching; }
+	void SetStretching(const bool value) { m_Stretching = value; }
+
 	void LockKeyboard();
 	void UnlockKeyboard();
 	void LockCursor();
@@ -159,8 +162,6 @@ public:
 	Widget* NextSibling() const { return NextSiblingObj; }
 	Widget* FirstChild() const { return FirstChildObj; }
 	Widget* LastChild() const { return LastChildObj; }
-
-	virtual bool IsStretch() const { return false; }
 
 	Point MapFrom(const Widget* parent, const Point& pos) const;
 	Point MapFromGlobal(const Point& pos) const;
@@ -253,6 +254,7 @@ private:
 	Widget* CursorLockWidget = nullptr;
 	Widget* HoverWidget = nullptr;
 	bool HiddenFlag = false;
+	bool m_Stretching = false; // Should this Widget expand itself to the remaining empty space?
 
 	StandardCursor CurrentCursor = StandardCursor::arrow;
 	std::shared_ptr<CustomCursor> CurrentCustomCursor;

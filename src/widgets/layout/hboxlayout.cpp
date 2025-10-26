@@ -21,25 +21,25 @@ void HBoxLayout::OnGeometryChanged()
 
     const double totalWidth = m_ParentWidget->GetWidth();
 
-    double nonStretchWidgetsTotalWidth = 0.0;
+    double nonStretchingWidgetsTotalWidth = 0.0;
 
-    int stretchCount = 0;
+    int stretchingWidgetsCount = 0;
 
     double stretchWidths = 0.0;
 
     for (const auto& widget : m_Widgets)
     {
-        if (!widget->IsStretch())
+        if (!widget->GetStretching())
         {
-            nonStretchWidgetsTotalWidth += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
-            nonStretchWidgetsTotalWidth += m_gapWidth;
+            nonStretchingWidgetsTotalWidth += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
+            nonStretchingWidgetsTotalWidth += m_gapWidth;
         }
         else
-            stretchCount++;
+            stretchingWidgetsCount++;
     }
 
-    if (stretchCount > 0)
-        stretchWidths = (totalWidth - nonStretchWidgetsTotalWidth) / stretchCount;
+    if (stretchingWidgetsCount > 0)
+        stretchWidths = (totalWidth - nonStretchingWidgetsTotalWidth) / stretchingWidgetsCount;
 
     double left = 0.0;
 
@@ -47,7 +47,7 @@ void HBoxLayout::OnGeometryChanged()
     {
         double frameWidth = 0.0;
 
-        if (!widget->IsStretch())
+        if (!widget->GetStretching())
             frameWidth = widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
         else
             frameWidth = stretchWidths;

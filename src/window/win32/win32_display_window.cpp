@@ -95,7 +95,7 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 	classdesc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
 	classdesc.lpszClassName = L"ZWidgetWindow";
 	classdesc.lpfnWndProc = &Win32DisplayWindow::WndProc;
-	if (renderAPI == RenderAPI::Unspecified || renderAPI == RenderAPI::Bitmap)
+	if (renderAPI != RenderAPI::Unspecified && renderAPI != RenderAPI::Bitmap)
 		classdesc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); // Use a black initial color for the window if not using GDI bitmap painting
 	RegisterClassEx(&classdesc);
 
@@ -370,7 +370,8 @@ void Win32DisplayWindow::LockCursor()
 	{
 		MouseLocked = true;
 		GetCursorPos(&MouseLockPos);
-		::ShowCursor(FALSE);
+		if (GetFocus() == WindowHandle.hwnd)
+			::ShowCursor(FALSE);
 
 		RAWINPUTDEVICE rid = {};
 		rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -393,8 +394,11 @@ void Win32DisplayWindow::UnlockCursor()
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
 		MouseLocked = false;
-		SetCursorPos(MouseLockPos.x, MouseLockPos.y);
-		::ShowCursor(TRUE);
+		if (GetFocus() == WindowHandle.hwnd)
+		{
+			SetCursorPos(MouseLockPos.x, MouseLockPos.y);
+			::ShowCursor(TRUE);
+		}
 	}
 }
 
@@ -684,7 +688,7 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 
 	if (msg == WM_INPUT)
 	{
-		bool hasFocus = GetFocus() != 0;
+		bool hasFocus = GetFocus() == WindowHandle.hwnd;
 
 		HRAWINPUT handle = (HRAWINPUT)lparam;
 		UINT size = 0;
@@ -694,13 +698,12 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 			size *= 2;
 			std::vector<uint8_t*> buffer(size);
 			result = GetRawInputData(handle, RID_INPUT, buffer.data(), &size, sizeof(RAWINPUTHEADER));
-			if (result >= 0)
+			if (result >= 0 && hasFocus)
 			{
 				RAWINPUT* rawinput = (RAWINPUT*)buffer.data();
 				if (rawinput->header.dwType == RIM_TYPEMOUSE)
 				{
-					if (hasFocus)
-						WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
+					WindowHost->OnWindowRawMouseMove(rawinput->data.mouse.lLastX, rawinput->data.mouse.lLastY);
 				}
 				else if (rawinput->header.dwType == RIM_TYPEKEYBOARD)
 				{
