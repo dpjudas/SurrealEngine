@@ -3,11 +3,7 @@
 Stretch::Stretch()
     : Widget(nullptr)
 {
-}
-
-bool Stretch::IsStretch() const
-{
-    return true;
+    SetStretching(true);
 }
 
 Layout::Layout(Widget* parent)

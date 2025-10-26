@@ -30,6 +30,8 @@ public:
 	int GetCurrentIndex() const;
 	Widget* GetCurrentWidget() const;
 
+	double GetPreferredHeight() override;
+
 	int GetPageIndex(Widget* pageWidget) const;
 
 	void SetCurrentIndex(int pageIndex);
