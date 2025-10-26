@@ -14,10 +14,16 @@ LauncherBanner::LauncherBanner(Widget* parent) : Widget(parent)
 	Logo->SetImage(Image::LoadResource("banner.png"));
 }
 
-double LauncherBanner::GetPreferredHeight() const
+double LauncherBanner::GetPreferredHeight()
 {
 	return Logo->GetPreferredHeight();
 }
+
+double LauncherBanner::GetPreferredWidth()
+{
+	return Logo->GetPreferredWidth();
+}
+
 
 void LauncherBanner::OnGeometryChanged()
 {
