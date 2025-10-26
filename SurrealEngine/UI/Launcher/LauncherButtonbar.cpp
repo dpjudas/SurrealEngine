@@ -14,9 +14,14 @@ LauncherButtonbar::LauncherButtonbar(LauncherWindow* parent) : Widget(parent)
 	ExitButton->OnClick = [this]() { OnExitButtonClicked(); };
 }
 
-double LauncherButtonbar::GetPreferredHeight() const
+double LauncherButtonbar::GetPreferredHeight()
 {
 	return 20.0 + std::max(PlayButton->GetPreferredHeight(), ExitButton->GetPreferredHeight());
+}
+
+double LauncherButtonbar::GetPreferredWidth()
+{
+	return GetWidth(); // We'd like to get the whole width for ourselves
 }
 
 void LauncherButtonbar::OnGeometryChanged()
