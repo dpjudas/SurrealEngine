@@ -9,6 +9,7 @@
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/window/window.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
+#include <zwidget/widgets/layout/vboxlayout.h>
 
 int LauncherWindow::ExecModal()
 {
@@ -54,6 +55,16 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 
 	Pages->SetCurrentWidget(PlayGame);
 	PlayGame->SetFocus();
+
+	auto mainLayout = new VBoxLayout();
+
+	mainLayout->AddWidget(Banner);
+	mainLayout->AddWidget(Pages);
+	mainLayout->AddWidget(Buttonbar);
+
+	mainLayout->SetGapHeight(0);
+
+	SetLayout(mainLayout);
 }
 
 void LauncherWindow::Save()
@@ -91,6 +102,7 @@ void LauncherWindow::OnClose()
 
 void LauncherWindow::OnGeometryChanged()
 {
+	/*
 	double top = 0.0;
 	double bottom = GetHeight();
 
@@ -101,4 +113,5 @@ void LauncherWindow::OnGeometryChanged()
 	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());
 
 	Pages->SetFrameGeometry(0.0, top, GetWidth(), std::max(bottom - top, 0.0));
+	*/
 }

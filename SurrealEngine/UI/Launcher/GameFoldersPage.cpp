@@ -8,6 +8,9 @@
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 #include <zwidget/systemdialogs/open_folder_dialog.h>
 
+#include "zwidget/widgets/layout/hboxlayout.h"
+#include "zwidget/widgets/layout/vboxlayout.h"
+
 GameFoldersPage::GameFoldersPage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {
 	Label = new TextLabel(this);
@@ -27,6 +30,19 @@ GameFoldersPage::GameFoldersPage(LauncherWindow* launcher) : Widget(nullptr), La
 	{
 		SearchList->AddItem(game);
 	}
+
+	auto buttonsLayout = new HBoxLayout();
+	buttonsLayout->AddWidget(AddButton);
+	buttonsLayout->AddWidget(RemoveButton);
+	buttonsLayout->AddStretch();
+
+	auto mainLayout = new VBoxLayout();
+
+	mainLayout->AddWidget(Label);
+	mainLayout->AddWidget(SearchList);
+	mainLayout->AddLayout(buttonsLayout);
+
+	SetLayout(mainLayout);
 }
 
 void GameFoldersPage::Save()
@@ -61,6 +77,7 @@ void GameFoldersPage::OnRemoveButtonClicked()
 
 void GameFoldersPage::OnGeometryChanged()
 {
+	/*
 	double y = 10.0;
 
 	Label->SetFrameGeometry(0.0, y, GetWidth(), Label->GetPreferredHeight());
@@ -75,4 +92,5 @@ void GameFoldersPage::OnGeometryChanged()
 
 	double listViewBottom = y - 10.0;
 	SearchList->SetFrameGeometry(0.0, listViewTop, GetWidth(), std::max(listViewBottom - listViewTop, 0.0));
+	*/
 }
