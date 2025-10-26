@@ -10,7 +10,8 @@ class LauncherButtonbar : public Widget
 public:
 	LauncherButtonbar(LauncherWindow* parent);
 
-	double GetPreferredHeight() const;
+	double GetPreferredHeight() override;
+	double GetPreferredWidth() override;
 
 private:
 	void OnGeometryChanged() override;
