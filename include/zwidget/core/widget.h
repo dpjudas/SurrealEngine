@@ -5,6 +5,7 @@
 #include <variant>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 #include "canvas.h"
 #include "rect.h"
 #include "colorf.h"
@@ -128,8 +129,15 @@ public:
 	void SetDisabled(bool value) { SetEnabled(!value); }
 	void SetHidden(bool value) { if (value) Hide(); else Show(); }
 
-	bool GetStretching() const { return m_Stretching; }
-	void SetStretching(const bool value) { m_Stretching = value; }
+	bool GetStretching() const { return Stretching; }
+	void SetStretching(const bool value) { Stretching = value; }
+
+	const std::optional<double>& GetFixedWidth() const { return FixedWidth; }
+	const std::optional<double>& GetFixedHeight() const { return FixedHeight; }
+	void SetFixedWidth(double value) { FixedWidth = value; }
+	void SetFixedHeight(double value) { FixedHeight = value; }
+	void SetFixedSize(double width, double height) { FixedWidth = width; FixedHeight = height; }
+	void SetFixedSize(const Size& size) { FixedWidth = size.width; FixedHeight = size.height; }
 
 	void LockKeyboard();
 	void UnlockKeyboard();
@@ -254,7 +262,9 @@ private:
 	Widget* CursorLockWidget = nullptr;
 	Widget* HoverWidget = nullptr;
 	bool HiddenFlag = false;
-	bool m_Stretching = false; // Should this Widget expand itself to the remaining empty space?
+	bool Stretching = false; // Should this Widget expand itself to the remaining empty space?
+	std::optional<double> FixedWidth;
+	std::optional<double> FixedHeight;
 
 	StandardCursor CurrentCursor = StandardCursor::arrow;
 	std::shared_ptr<CustomCursor> CurrentCustomCursor;

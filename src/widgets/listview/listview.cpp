@@ -3,6 +3,7 @@
 
 ListView::ListView(Widget* parent) : Widget(parent)
 {
+	SetStretching(true);
 	SetStyleClass("listview");
 
 	scrollbar = new Scrollbar(this);

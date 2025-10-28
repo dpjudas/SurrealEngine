@@ -87,6 +87,22 @@ int LineEdit::GetCursorPos() const
 	return cursor_pos;
 }
 
+double LineEdit::GetPreferredWidth()
+{
+	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return 0.0;
+	return canvas->measureText("X").width * IntrinsicSize;
+}
+
+double LineEdit::GetPreferredHeight()
+{
+	Canvas* canvas = GetCanvas();
+	if (!canvas)
+		return 0.0;
+	return canvas->getFontMetrics().height;
+}
+
 Size LineEdit::GetTextSize()
 {
 	Canvas* canvas = GetCanvas();
@@ -101,16 +117,6 @@ Size LineEdit::GetTextSize(const std::string& str)
 	if (!canvas)
 		return Size(0.0, 0.0);
 	return canvas->measureText(str).size();
-}
-
-double LineEdit::GetPreferredContentWidth()
-{
-	return GetTextSize().width;
-}
-
-double LineEdit::GetPreferredContentHeight(double width)
-{
-	return GetTextSize().height;
 }
 
 void LineEdit::SelectAll()

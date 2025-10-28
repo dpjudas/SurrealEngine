@@ -1,83 +1,92 @@
 #include "zwidget/widgets/layout/hboxlayout.h"
 
-HBoxLayout::HBoxLayout(Widget* parent)
-    : Layout(parent)
+HBoxLayout::HBoxLayout(Widget* parent) : Layout(parent)
 {
 }
 
 void HBoxLayout::OnGeometryChanged()
 {
-    // The idea is this:
-    // Calculate all elements' preferred widths
-    // Then subtract it from the parent widget's own width
-    // Then distribute that remaining width evenly among all Stretches
+	// The idea is this:
+	// Calculate all elements' preferred widths
+	// Then subtract it from the parent widget's own width
+	// Then distribute that remaining width evenly among all Stretches
 
-    // Do nothing if there are no widgets added to layout
-    if (m_Widgets.empty())
-        return;
+	// Do nothing if there are no widgets added to layout
+	if (Widgets.empty())
+		return;
 
-    if (!m_ParentWidget)
-        return;
+	if (!ParentWidget)
+		return;
 
-    const double totalWidth = m_ParentWidget->GetWidth();
+	const double totalWidth = ParentWidget->GetWidth();
+	double nonStretchingWidgetsTotalWidth = 0.0;
+	int stretchingWidgetsCount = 0;
+	double stretchWidths = 0.0;
 
-    double nonStretchingWidgetsTotalWidth = 0.0;
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			nonStretchingWidgetsTotalWidth += GapWidth;
+		else
+			first = false;
 
-    int stretchingWidgetsCount = 0;
+		if (!widget->GetStretching())
+		{
+			nonStretchingWidgetsTotalWidth += GetFrameWidth(widget);
+		}
+		else
+		{
+			stretchingWidgetsCount++;
+		}
+	}
 
-    double stretchWidths = 0.0;
+	if (stretchingWidgetsCount > 0)
+		stretchWidths = (totalWidth - nonStretchingWidgetsTotalWidth) / stretchingWidgetsCount;
 
-    for (const auto& widget : m_Widgets)
-    {
-        if (!widget->GetStretching())
-        {
-            nonStretchingWidgetsTotalWidth += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
-            nonStretchingWidgetsTotalWidth += m_gapWidth;
-        }
-        else
-            stretchingWidgetsCount++;
-    }
+	double left = 0.0;
 
-    if (stretchingWidgetsCount > 0)
-        stretchWidths = (totalWidth - nonStretchingWidgetsTotalWidth) / stretchingWidgetsCount;
+	for (const auto& widget: Widgets)
+	{
+		double frameWidth = 0.0;
 
-    double left = 0.0;
+		if (!widget->GetStretching())
+			frameWidth = GetFrameWidth(widget);
+		else
+			frameWidth = stretchWidths;
 
-    for (const auto& widget: m_Widgets)
-    {
-        double frameWidth = 0.0;
-
-        if (!widget->GetStretching())
-            frameWidth = widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
-        else
-            frameWidth = stretchWidths;
-
-        widget->SetFrameGeometry(Rect::xywh(left, 0, frameWidth, m_ParentWidget->GetHeight()));
-        left += frameWidth + m_gapWidth;
-    }
+		widget->SetFrameGeometry(Rect::xywh(left, 0, frameWidth, ParentWidget->GetHeight()));
+		left += frameWidth + GapWidth;
+	}
 }
 
 double HBoxLayout::GetPreferredWidth()
 {
-    double w = 0.0;
-    for (const auto& widget : m_Widgets)
-    {
-        w += widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
-    }
-    return w;
+	double w = 0.0;
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			w += GapWidth;
+		else
+			first = false;
+
+		w += GetFrameWidth(widget);
+	}
+	return w;
 }
 
 double HBoxLayout::GetPreferredHeight()
 {
-    double h = 0.0;
-    for (const auto& widget : m_Widgets)
-    {
-        h = std::max(h, widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom());
-    }
-    return h;
+	double h = 0.0;
+	for (const auto& widget : Widgets)
+	{
+		h = std::max(h, GetFrameHeight(widget));
+	}
+	return h;
 }
 
 void HBoxLayout::SetGapWidth(const double newGapWidth)
 {
-    m_gapWidth = newGapWidth;
+	GapWidth = newGapWidth;
 }

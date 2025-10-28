@@ -1,57 +1,79 @@
 #include "zwidget/core/layout.h"
 
 Stretch::Stretch()
-    : Widget(nullptr)
 {
-    SetStretching(true);
+	SetStretching(true);
 }
 
-Layout::Layout(Widget* parent)
-    : m_ParentWidget(parent)
+Layout::Layout(Widget* parent) : ParentWidget(parent)
 {
-    if (m_ParentWidget)
-        SetParent(m_ParentWidget);
+	if (ParentWidget)
+		SetParent(ParentWidget);
 }
 
 void Layout::AddWidget(Widget* widget)
 {
-    if (!widget)
-        return;
+	if (!widget)
+		return;
 
-    m_Widgets.push_back(widget);
-    if (m_ParentWidget)
-        widget->SetParent(m_ParentWidget);
+	Widgets.push_back(widget);
+	if (ParentWidget)
+		widget->SetParent(ParentWidget);
 }
 
 void Layout::AddLayout(Layout* layout)
 {
-    if (!layout)
-        return;
+	if (!layout)
+		return;
 
-    const auto widget = new Widget();
+	const auto widget = new Widget();
 
-    widget->SetLayout(layout);
-    widget->SetParent(m_ParentWidget);
+	widget->SetLayout(layout);
+	widget->SetParent(ParentWidget);
 
-    m_Widgets.push_back(widget);
+	Widgets.push_back(widget);
 }
 
 void Layout::AddStretch()
 {
-    m_Widgets.push_back(new Stretch());
+	Widgets.push_back(new Stretch());
 }
 
 Widget* Layout::Parent() const
 {
-    return m_ParentWidget;
+	return ParentWidget;
 }
 
 void Layout::SetParent(Widget* parent)
 {
-    m_ParentWidget = parent;
+	ParentWidget = parent;
 
-    for (const auto widget : m_Widgets)
-    {
-        widget->SetParent(m_ParentWidget);
-    }
+	for (const auto widget : Widgets)
+	{
+		widget->SetParent(ParentWidget);
+	}
+}
+
+double Layout::GetFrameWidth(Widget* widget)
+{
+	if (widget->GetFixedWidth().has_value())
+	{
+		return widget->GetNoncontentLeft() + widget->GetFixedWidth().value() + widget->GetNoncontentRight();
+	}
+	else
+	{
+		return widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight();
+	}
+}
+
+double Layout::GetFrameHeight(Widget* widget)
+{
+	if (widget->GetFixedHeight().has_value())
+	{
+		return widget->GetNoncontentTop() + widget->GetFixedHeight().value() + widget->GetNoncontentBottom();
+	}
+	else
+	{
+		return widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
+	}
 }
