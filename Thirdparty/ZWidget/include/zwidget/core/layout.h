@@ -9,8 +9,8 @@ class Layout;
 // Only Layout classes can create them.
 class Stretch : public Widget
 {
-    Stretch();
-    friend class Layout;
+	Stretch();
+	friend class Layout;
 };
 
 // The Base Layout class. Shouldn't be used by itself.
@@ -18,23 +18,24 @@ class Stretch : public Widget
 class Layout
 {
 public:
-    explicit Layout(Widget* parent = nullptr);
-    virtual ~Layout() = default;
+	explicit Layout(Widget* parent = nullptr);
+	virtual ~Layout() = default;
 
-    void AddWidget(Widget* widget); // Add an already existing Widget to layout
-    void AddLayout(Layout* layout); // Add a sub-Layout by making it reside in a new Widget
-    void AddStretch();              // Add a special Stretch widget to use the remaining available space
+	void AddWidget(Widget* widget); // Add an already existing Widget to layout
+	void AddLayout(Layout* layout); // Add a sub-Layout by making it reside in a new Widget
+	void AddStretch();              // Add a special Stretch widget to use the remaining available space
 
-    Widget* Parent() const;
-    void SetParent(Widget* parent);
+	Widget* Parent() const;
+	void SetParent(Widget* parent);
 
-    virtual double GetPreferredWidth() = 0;
-    virtual double GetPreferredHeight() = 0;
-    virtual void   OnGeometryChanged() = 0; // Override in subclasses
+	virtual double GetPreferredWidth() = 0;
+	virtual double GetPreferredHeight() = 0;
+	virtual void OnGeometryChanged() = 0;
 
 protected:
-    std::vector<Widget*> m_Widgets;
+	static double GetFrameWidth(Widget* widget);
+	static double GetFrameHeight(Widget* widget);
 
-    Widget* m_ParentWidget;
+	std::vector<Widget*> Widgets;
+	Widget* ParentWidget = nullptr;
 };
-

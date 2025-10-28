@@ -1,82 +1,89 @@
 #include "zwidget/widgets/layout/vboxlayout.h"
 
-VBoxLayout::VBoxLayout(Widget* parent)
-    : Layout(parent)
+VBoxLayout::VBoxLayout(Widget* parent) : Layout(parent)
 {
 }
 
 void VBoxLayout::OnGeometryChanged()
 {
-    // The idea is this:
-    // Calculate all elements' preferred heights
-    // Then subtract it from the parent widget's own height
-    // Then distribute that remaining height evenly among all Stretches
+	// The idea is this:
+	// Calculate all elements' preferred heights
+	// Then subtract it from the parent widget's own height
+	// Then distribute that remaining height evenly among all Stretches
 
-    // Do nothing if there are no widgets added to layout
-    if (m_Widgets.empty())
-        return;
+	// Do nothing if there are no widgets added to layout
+	if (Widgets.empty())
+		return;
 
-    if (!m_ParentWidget)
-        return;
+	if (!ParentWidget)
+		return;
 
-    const double totalHeight = m_ParentWidget->GetHeight();
+	const double totalHeight = ParentWidget->GetHeight();
+	double nonStretchingWidgetsTotalHeight = 0.0;
+	int stretchingWidgetsCount = 0;
+	double stretchHeights = 0.0;
 
-    double nonStretchingWidgetsTotalHeight = 0.0;
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			nonStretchingWidgetsTotalHeight += GapHeight;
+		else
+			first = false;
 
-    int stretchingWidgetsCount = 0;
+		if (!widget->GetStretching())
+		{
+			nonStretchingWidgetsTotalHeight += GetFrameHeight(widget);
+			nonStretchingWidgetsTotalHeight += GapHeight;
+		}
+		else
+			stretchingWidgetsCount++;
+	}
 
-    double stretchHeights = 0.0;
+	if (stretchingWidgetsCount > 0)
+		stretchHeights = (totalHeight - nonStretchingWidgetsTotalHeight) / stretchingWidgetsCount;
 
-    for (const auto& widget : m_Widgets)
-    {
-        if (!widget->GetStretching())
-        {
-            nonStretchingWidgetsTotalHeight += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
-            nonStretchingWidgetsTotalHeight += m_gapHeight;
-        }
-        else
-            stretchingWidgetsCount++;
-    }
+	double top = 0.0;
 
-    if (stretchingWidgetsCount > 0)
-        stretchHeights = (totalHeight - nonStretchingWidgetsTotalHeight) / stretchingWidgetsCount;
+	for (const auto& widget: Widgets)
+	{
+		double frameHeight = 0.0;
+		if (!widget->GetStretching())
+			frameHeight = GetFrameHeight(widget);
+		else
+			frameHeight = stretchHeights;
 
-    double top = 0.0;
-
-    for (const auto& widget: m_Widgets)
-    {
-        double frameHeight = 0.0;
-        if (!widget->GetStretching())
-            frameHeight = widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
-        else
-            frameHeight = stretchHeights;
-
-        widget->SetFrameGeometry(Rect::xywh(0, top, m_ParentWidget->GetWidth(), frameHeight));
-        top += frameHeight + m_gapHeight;
-    }
+		widget->SetFrameGeometry(Rect::xywh(0, top, ParentWidget->GetWidth(), frameHeight));
+		top += frameHeight + GapHeight;
+	}
 }
 
 double VBoxLayout::GetPreferredWidth()
 {
-    double w = 0.0;
-    for (const auto& widget : m_Widgets)
-    {
-        w = std::max(w, widget->GetNoncontentLeft() + widget->GetPreferredWidth() + widget->GetNoncontentRight());
-    }
-    return w;
+	double w = 0.0;
+	for (const auto& widget : Widgets)
+	{
+		w = std::max(w, GetFrameWidth(widget));
+	}
+	return w;
 }
 
 double VBoxLayout::GetPreferredHeight()
 {
-    double h = 0.0;
-    for (const auto& widget : m_Widgets)
-    {
-        h += widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
-    }
-    return h;
+	double h = 0.0;
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			h += GapHeight;
+		else
+			first = false;
+		h += GetFrameHeight(widget);
+	}
+	return h;
 }
 
 void VBoxLayout::SetGapHeight(const double newGapHeight)
 {
-    m_gapHeight = newGapHeight;
+	GapHeight = newGapHeight;
 }

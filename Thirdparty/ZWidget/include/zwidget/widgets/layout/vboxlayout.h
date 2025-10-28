@@ -5,15 +5,15 @@
 class VBoxLayout final : public Layout
 {
 public:
-    VBoxLayout(Widget* parent = nullptr);
+	VBoxLayout(Widget* parent = nullptr);
 
-    void OnGeometryChanged() override;
+	void OnGeometryChanged() override;
 
-    double GetPreferredWidth() override;
-    double GetPreferredHeight() override;
+	double GetPreferredWidth() override;
+	double GetPreferredHeight() override;
 
-    void SetGapHeight(double newGapHeight);
+	void SetGapHeight(double newGapHeight);
 
 private:
-    double m_gapHeight = 4.0;
+	double GapHeight = 4.0;
 };

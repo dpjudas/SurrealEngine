@@ -8,11 +8,13 @@
 #include <zwidget/widgets/textedit/textedit.h>
 #include <zwidget/widgets/mainwindow/mainwindow.h>
 #include <zwidget/widgets/layout/vboxlayout.h>
+#include <zwidget/widgets/layout/hboxlayout.h>
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/imagebox/imagebox.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 #include <zwidget/widgets/checkboxlabel/checkboxlabel.h>
+#include <zwidget/widgets/lineedit/lineedit.h>
 #include "picopng.h"
 #include <zwidget/widgets/tabwidget/tabwidget.h>
 
@@ -209,6 +211,11 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
 	WidescreenCheckbox = new CheckboxLabel(this);
 	GamesList = new ListView(this);
 
+	auto label = new TextLabel();
+	label->SetText("Label:");
+	label->SetFixedWidth(100.0);
+	auto lineedit = new LineEdit(nullptr);
+
 	WelcomeLabel->SetText("Welcome to VKDoom");
 	VersionLabel->SetText("Version 0xdeadbabe.");
 	SelectLabel->SetText("Select which game file (IWAD) to run.");
@@ -236,14 +243,29 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
 	layout->AddWidget(SelectLabel);
 	layout->AddWidget(GamesList);
 
+	auto line = new HBoxLayout();
+	line->AddWidget(label);
+	line->AddWidget(lineedit);
+	layout->AddLayout(line);
+
+	auto leftPanel = new VBoxLayout();
+	leftPanel->AddWidget(FullscreenCheckbox);
+	leftPanel->AddWidget(DisableAutoloadCheckbox);
+	leftPanel->AddWidget(DontAskAgainCheckbox);
+
+	auto rightPanel = new VBoxLayout();
+	rightPanel->AddWidget(LightsCheckbox);
+	rightPanel->AddWidget(BrightmapsCheckbox);
+	rightPanel->AddWidget(WidescreenCheckbox);
+
+	auto panelLine = new HBoxLayout();
+	panelLine->AddLayout(leftPanel);
+	panelLine->AddLayout(rightPanel);
+
 	layout->AddWidget(ExtrasLabel);
-	layout->AddWidget(FullscreenCheckbox);
-	layout->AddWidget(DisableAutoloadCheckbox);
-	layout->AddWidget(DontAskAgainCheckbox);
-	layout->AddWidget(LightsCheckbox);
-	layout->AddWidget(BrightmapsCheckbox);
-	layout->AddWidget(WidescreenCheckbox);
-	layout->AddStretch();
+	layout->AddLayout(panelLine);
+
+	//layout->AddStretch();
 
 	SetLayout(layout);
 }
