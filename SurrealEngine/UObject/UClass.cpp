@@ -70,8 +70,6 @@ void UStruct::Load(ObjectStream* stream)
 {
 	UField::Load(stream);
 	ScriptText = stream->ReadObject<UTextBuffer>();
-	if (ScriptText)
-		ScriptText->LoadNow();
 	Children = stream->ReadObject<UField>();
 	FriendlyName = stream->ReadName();
 	if (FriendlyName == "None")
@@ -173,6 +171,9 @@ void UStruct::Load(ObjectStream* stream)
 		size_t alignment = sizeof(void*);
 		StructSize = (offset + alignment - 1) / alignment * alignment;
 	}
+
+	if (ScriptText)
+		ScriptText->LoadNow();
 }
 
 void UStruct::Save(PackageStreamWriter* stream)
@@ -803,5 +804,19 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 		LoadProperties(&PropertyData);
 	}
 
-	// To do: we need to call LoadProperties on any derived class as their default block may have changed for any GlobalConfig properties
+	// GlobalConfig properties needs to be propagated to all derived classes
+	for (GCObject* gcObj : GC::GetObjects())
+	{
+		if (UClass* cls = dynamic_cast<UClass*>(gcObj))
+		{
+			for (UClass* base = UObject::TryCast<UClass>(cls->BaseStruct); base; base = UObject::TryCast<UClass>(base->BaseStruct))
+			{
+				if (base->Name == Name)
+				{
+					base->LoadProperties(&PropertyData);
+					break;
+				}
+			}
+		}
+	}
 }

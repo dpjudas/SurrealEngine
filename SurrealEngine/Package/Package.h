@@ -51,9 +51,6 @@ private:
 	std::unique_ptr<ObjectStream> OpenObjectStream(int index, const NameString& name, UClass* base);
 	void LoadExportObject(int index);
 
-	template<typename T>
-	void RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass = {});
-
 	PackageManager* Packages = nullptr;
 	NameString Name;
 	std::string Filename;
@@ -70,8 +67,6 @@ private:
 
 	Array<UObject*> ExportObjects;
 
-	std::map<NameString, std::function<UObject*(const NameString& name, UClass* cls, ObjectFlags flags)>> NativeClasses;
-
 	Package(const Package&) = delete;
 	Package& operator=(const Package&) = delete;
 
@@ -79,38 +74,3 @@ private:
 	friend class UObject;
 	friend class PackageWriter;
 };
-
-template<typename T>
-void Package::RegisterNativeClass(bool registerInPackage, const NameString& className, const NameString& baseClass)
-{
-	NativeClasses[className] = [](const NameString& name, UClass* cls, ObjectFlags flags) -> UObject*
-		{
-			return GC::Alloc<T>(name, cls, flags);
-		};
-
-	if (registerInPackage)
-	{
-		int objref = FindObjectReference("Class", className);
-		if (objref == 0)
-		{
-			if (NameHash.find(className) == NameHash.end())
-			{
-				NameTableEntry nameentry;
-				nameentry.Flags = 0;
-				nameentry.Name = className;
-				NameTable.push_back(nameentry);
-				NameHash[className] = (int)NameTable.size() - 1;
-			}
-
-			ExportTableEntry entry;
-			entry.ObjClass = 0;
-			entry.ObjBase = baseClass.IsNone() ? 0 : FindObjectReference("Class", baseClass);
-			entry.ObjOuter = 0;
-			entry.ObjName = NameHash[className];
-			entry.ObjFlags = ObjectFlags::Native;
-			entry.ObjSize = 0;
-			entry.ObjOffset = 0;
-			ExportTable.push_back(entry);
-		}
-	}
-}

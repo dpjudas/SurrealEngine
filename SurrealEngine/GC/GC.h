@@ -112,7 +112,7 @@ public:
 		iterator(GCAllocation* item) : item(item) {}
 
 		GCObject* operator*() const { return item->object(); }
-		iterator operator++() { return item->allocklistNext; }
+		iterator& operator++() { item = item->allocklistNext; return *this; }
 
 		bool operator==(const iterator& other) const { return item == other.item; }
 

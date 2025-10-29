@@ -144,6 +144,8 @@ void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int
 
 void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags)
 {
+	if (!Tex)
+		return;
 	UpdateTexture(Tex);
 	Tex = Tex->GetAnimTexture();
 	UpdateTexture(Tex);
@@ -167,6 +169,8 @@ void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float 
 
 void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, float curX, float curY, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 color, vec4 fog, uint32_t flags, float clipX, float clipY)
 {
+	if (!Tex)
+		return;
 	UpdateTexture(Tex);
 	Tex = Tex->GetAnimTexture();
 	UpdateTexture(Tex);

@@ -21,6 +21,14 @@ struct IntObject
 	std::string Description;
 };
 
+struct NativeClass
+{
+	NameString Package;
+	NameString Name;
+	NameString Base;
+	std::function<UObject* (const NameString& name, UClass* cls, ObjectFlags flags)> CreateFunc;
+};
+
 class PackageManager
 {
 public:
@@ -102,6 +110,13 @@ private:
 
 	void DelayLoadNow();
 	void RegisterFunctions();
+
+	void RegisterNativeClasses();
+
+	template<typename T>
+	void RegisterNativeClass(const NameString& packageName, const NameString& className, const NameString& baseClass = {});
+
+	std::map<NameString, NativeClass> NativeClasses;
 
 	Array<UObject*> delayLoads;
 	int delayLoadActive = 0;

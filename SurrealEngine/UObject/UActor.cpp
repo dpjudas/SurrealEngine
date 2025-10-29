@@ -237,13 +237,20 @@ void UActor::UpdateActorZone()
 		CallEvent(newregion.Zone, EventName::ActorEntered, { ExpressionValue::ObjectValue(this) });
 	}
 
-	// If the actor is a Carcass and the zone is marked as bDestructive, destroy it.
-	if (IsA("Carcass") && Region().Zone->bDestructive())
-		Destroy();
+	if (Region().Zone)
+	{
+		bool destroy = false;
+		// If the actor is a Carcass and the zone is marked as bDestructive, destroy it.
+		if (IsA("Carcass") && Region().Zone->bDestructive())
+			destroy = true;
 
-	// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
-	if (IsA("Inventory") && Owner() == nullptr && Region().Zone->bNoInventory())
-		Destroy();
+		// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
+		if (IsA("Inventory") && Owner() == nullptr && Region().Zone->bNoInventory())
+			destroy = true;
+
+		if (destroy)
+			Destroy();
+	}
 }
 
 void UActor::SetOwner(UActor* newOwner)
