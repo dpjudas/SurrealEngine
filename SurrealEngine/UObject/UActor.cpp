@@ -226,12 +226,12 @@ void UActor::UpdateActorZone()
 	PointRegion oldregion = Region();
 	PointRegion newregion = FindRegion();
 
-	if (Region().Zone && oldregion.Zone != newregion.Zone)
+	if (oldregion.Zone && oldregion.Zone != newregion.Zone)
 		CallEvent(oldregion.Zone, EventName::ActorLeaving, { ExpressionValue::ObjectValue(this) });
 
 	Region() = newregion;
 
-	if (Region().Zone && oldregion.Zone != newregion.Zone)
+	if (newregion.Zone && oldregion.Zone != newregion.Zone)
 	{
 		CallEvent(this, EventName::ZoneChange, { ExpressionValue::ObjectValue(newregion.Zone) });
 		CallEvent(newregion.Zone, EventName::ActorEntered, { ExpressionValue::ObjectValue(this) });
@@ -239,17 +239,16 @@ void UActor::UpdateActorZone()
 
 	if (Region().Zone)
 	{
-		bool destroy = false;
-		// If the actor is a Carcass and the zone is marked as bDestructive, destroy it.
-		if (IsA("Carcass") && Region().Zone->bDestructive())
-			destroy = true;
-
-		// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
-		if (engine->LaunchInfo.engineVersion > 219 && IsA("Inventory") && Owner() == nullptr && Region().Zone->bNoInventory())
-			destroy = true;
-
-		if (destroy)
+		if (Region().Zone->bDestructive() && IsA("Carcass"))
+		{
+			// If the actor is a Carcass and the zone is marked as bDestructive, destroy it.
 			Destroy();
+		}
+		else if (engine->LaunchInfo.engineVersion > 219 && Owner() == nullptr && Region().Zone->bNoInventory() && IsA("Inventory"))
+		{
+			// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
+			Destroy();
+		}
 	}
 }
 
@@ -2448,27 +2447,32 @@ void UPawn::UpdateActorZone()
 
 	PointRegion oldfootregion = FootRegion();
 	PointRegion newfootregion = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
-	if (FootRegion().Zone && oldfootregion.Zone != newfootregion.Zone)
+	if (oldfootregion.Zone && oldfootregion.Zone != newfootregion.Zone)
 	{
-		CallEvent(FootRegion().Zone, EventName::FootZoneChange, { ExpressionValue::ObjectValue(this) });
-		if (newfootregion.Zone->bPainZone())
+		CallEvent(oldfootregion.Zone, EventName::FootZoneChange, { ExpressionValue::ObjectValue(this) });
+		if (newfootregion.Zone && newfootregion.Zone->bPainZone())
+		{
 			// Pain zones, such as lava and slime, should immediately start hurting the pawn upon entering,
 			// so set the pawn's PainTime to something quite low.
 			// After that, they'll get DamagePerSec damage each second.
 			PainTime() = 0.1f;
+		}
 	}
 
 	FootRegion() = newfootregion;
 
 	PointRegion oldheadregion = HeadRegion();
 	PointRegion newheadregion = FindRegion({ 0.0f, 0.0f, EyeHeight() });
-	if (HeadRegion().Zone && oldheadregion.Zone != newheadregion.Zone)
+	if (oldheadregion.Zone && oldheadregion.Zone != newheadregion.Zone)
 	{
-		CallEvent(HeadRegion().Zone, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(this) });
-		// If the new zone is also a pain zone, like lava or slime, then by this point PainTime is already set,
-		// so don't set it again. Otherwise, cause the pawn to start drowning in UnderWaterTime seconds.
-		if (newheadregion.Zone->bWaterZone() && !newheadregion.Zone->bPainZone())
+		CallEvent(oldheadregion.Zone, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(this) });
+
+		if (newheadregion.Zone && newheadregion.Zone->bWaterZone() && !newheadregion.Zone->bPainZone())
+		{
+			// If the new zone is also a pain zone, like lava or slime, then by this point PainTime is already set,
+			// so don't set it again. Otherwise, cause the pawn to start drowning in UnderWaterTime seconds.
 			PainTime() = UnderWaterTime();
+		}
 	}
 
 	HeadRegion() = newheadregion;
