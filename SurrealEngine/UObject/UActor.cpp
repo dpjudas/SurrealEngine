@@ -245,7 +245,7 @@ void UActor::UpdateActorZone()
 			destroy = true;
 
 		// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
-		if (IsA("Inventory") && Owner() == nullptr && Region().Zone->bNoInventory())
+		if (engine->LaunchInfo.engineVersion > 219 && IsA("Inventory") && Owner() == nullptr && Region().Zone->bNoInventory())
 			destroy = true;
 
 		if (destroy)
