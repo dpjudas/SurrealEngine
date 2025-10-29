@@ -34,6 +34,8 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
+	if (!seq)
+		return false;
 	float animFrame = animSource->AnimFrame() * seq->NumFrames;
 
 	int vertexOffsets[3];
@@ -172,6 +174,8 @@ bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
+	if (!seq)
+		return false;
 	float animFrame = animSource->AnimFrame() * seq->NumFrames;
 
 	int vertexOffsets[3];

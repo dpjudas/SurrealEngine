@@ -82,7 +82,7 @@ public:
 		for (MeshAnimSeq& seq : AnimSeqs)
 			if (seq.Name == name)
 				return &seq;
-		return AnimSeqs.data();
+		return !AnimSeqs.empty() ? AnimSeqs.data() : nullptr;
 	}
 
 	Array<vec3> Verts;
