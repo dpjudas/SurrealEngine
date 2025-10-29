@@ -19,7 +19,7 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 		const NativeClass& nativeClass = it.second;
 		if (nativeClass.Package == name)
 		{
-			int objref = FindObjectReference("Class", nativeClass.Name);
+			int objref = FindObjectReference("Class", nativeClass.Name, {});
 			if (objref == 0)
 			{
 				if (NameHash.find(nativeClass.Name) == NameHash.end())
@@ -33,7 +33,7 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 
 				ExportTableEntry entry;
 				entry.ObjClass = 0;
-				entry.ObjBase = nativeClass.Base.IsNone() ? 0 : FindObjectReference("Class", nativeClass.Base);
+				entry.ObjBase = nativeClass.Base.IsNone() ? 0 : FindObjectReference("Class", nativeClass.Base, {});
 				entry.ObjOuter = 0;
 				entry.ObjName = NameHash[nativeClass.Name];
 				entry.ObjFlags = ObjectFlags::Native;
@@ -186,9 +186,9 @@ UObject* Package::GetUObject(int objref)
 	}
 }
 
-UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& group)
+UObject* Package::GetUObject(const NameString& className, const NameString& objectName, const NameString& group, bool ignoreGroup)
 {
-	return GetUObject(FindObjectReference(className, objectName, group));
+	return GetUObject(FindObjectReference(className, objectName, group, ignoreGroup));
 }
 
 UClass* Package::GetClass(const NameString& className)
@@ -196,7 +196,7 @@ UClass* Package::GetClass(const NameString& className)
 	return UObject::Cast<UClass>(GetUObject("Class", className));
 }
 
-int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group)
+int Package::FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group, bool ignoreGroup)
 {
 	bool isClass = className == "Class";
 
@@ -207,28 +207,31 @@ int Package::FindObjectReference(const NameString& className, const NameString& 
 		if (GetName(entry.ObjName) != objectName)
 			continue;
 
-		// Find the path for the outer object
-		std::string entryGroup;
-		int outerRef = entry.ObjOuter;
-		while (outerRef != 0)
+		if (!ignoreGroup)
 		{
-			if (!entryGroup.empty())
-				entryGroup += '.';
-			if (outerRef > 0)
+			// Find the path for the outer object
+			std::string entryGroup;
+			int outerRef = entry.ObjOuter;
+			while (outerRef != 0)
 			{
-				auto outerEntry = GetExportEntry(outerRef);
-				entryGroup += GetName(outerEntry->ObjName).ToString();
-				outerRef = outerEntry->ObjOuter;
+				if (!entryGroup.empty())
+					entryGroup += '.';
+				if (outerRef > 0)
+				{
+					auto outerEntry = GetExportEntry(outerRef);
+					entryGroup += GetName(outerEntry->ObjName).ToString();
+					outerRef = outerEntry->ObjOuter;
+				}
+				else// if (outerRef < 0)
+				{
+					auto outerEntry = GetImportEntry(outerRef);
+					entryGroup += GetName(outerEntry->ObjName).ToString();
+					outerRef = outerEntry->ObjOuter;
+				}
 			}
-			else// if (outerRef < 0)
-			{
-				auto outerEntry = GetImportEntry(outerRef);
-				entryGroup += GetName(outerEntry->ObjName).ToString();
-				outerRef = outerEntry->ObjOuter;
-			}
+			if ((group.IsNone() && !entryGroup.empty()) || (!group.IsNone() && group != entryGroup))
+				continue;
 		}
-		if ((group.IsNone() && !entryGroup.empty()) || (!group.IsNone() && group != entryGroup))
-			continue;
 
 		if (isClass)
 		{

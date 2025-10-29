@@ -22,7 +22,8 @@ public:
 	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties = true);
 
 	UObject* GetUObject(int objref);
-	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& group = {});
+	UObject* GetUObject(const NameString& className, const NameString& objectName) { return GetUObject(className, objectName, {}, true); }
+	UObject* GetUObject(const NameString& className, const NameString& objectName, const NameString& group, bool ignoreGroup = false);
 
 	UClass* GetClass(const NameString& className);
 
@@ -38,7 +39,7 @@ public:
 
 	ExportTableEntry* GetExportEntry(int objref);
 	ImportTableEntry* GetImportEntry(int objref);
-	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group = {});
+	int FindObjectReference(const NameString& className, const NameString& objectName, const NameString& group, bool ignoreGroup = false);
 
 	std::string GetExportName(int objref);
 
