@@ -141,7 +141,7 @@ void Dropdown::SetSelectedItem(int index)
 
 double Dropdown::GetPreferredHeight()
 {
-	return 20.0 + 2*5.0; // Text plus top/bottom padding
+	return 20.0 + 2 * 1.0; // Text plus top/bottom padding
 }
 
 double Dropdown::GetPreferredWidth()
@@ -158,7 +158,7 @@ double Dropdown::GetPreferredWidth()
 		}
 	}
 
-	return maxWidth + 2*10.0 + 16.0; // content, pad l/r, scrollbar from dropdown
+	return maxWidth + 2 * 5.0 + 16.0; // content, pad l/r, scrollbar from dropdown
 }
 
 void Dropdown::OnPaint(Canvas* canvas)

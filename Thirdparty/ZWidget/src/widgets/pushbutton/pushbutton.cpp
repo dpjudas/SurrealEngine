@@ -23,13 +23,13 @@ const std::string& PushButton::GetText() const
 double PushButton::GetPreferredWidth()
 {
 	const auto canvas = GetCanvas();
-	return std::max(30.0, canvas->measureText(text).width);
+	return std::max(100.0, canvas->measureText(text).width);
 }
 
 double PushButton::GetPreferredHeight()
 {
 	const auto canvas = GetCanvas();
-	return std::max(30.0, canvas->measureText(text).height);
+	return std::max(20.0, canvas->measureText(text).height);
 }
 
 void PushButton::OnPaint(Canvas* canvas)
