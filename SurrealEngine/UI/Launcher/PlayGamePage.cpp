@@ -7,6 +7,8 @@
 #include <zwidget/widgets/listview/listview.h>
 #include <zwidget/widgets/lineedit/lineedit.h>
 
+#include "zwidget/widgets/layout/vboxlayout.h"
+
 PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {
 	WelcomeLabel = new TextLabel(this);
@@ -33,6 +35,19 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	}
 
 	GamesList->OnActivated = [this]() { OnGamesListActivated(); };
+
+	auto mainLayout = new VBoxLayout();
+	mainLayout->AddWidget(WelcomeLabel);
+	mainLayout->AddWidget(SelectLabel);
+#if defined(EXTRAARGS)
+	mainLayout->AddWidget(ParametersLabel);
+#endif
+	mainLayout->AddWidget(GamesList);
+#if defined(EXTRAARGS)
+	mainLayout->AddWidget(ParametersEdit);
+#endif
+
+	SetLayout(mainLayout);
 }
 
 void PlayGamePage::UpdateList()
@@ -73,6 +88,7 @@ void PlayGamePage::OnSetFocus()
 
 void PlayGamePage::OnGeometryChanged()
 {
+	/*
 	double y = 10.0;
 
 	WelcomeLabel->SetFrameGeometry(0.0, y, GetWidth(), WelcomeLabel->GetPreferredHeight());
@@ -101,4 +117,5 @@ void PlayGamePage::OnGeometryChanged()
 
 	double listViewBottom = y - 10.0;
 	GamesList->SetFrameGeometry(0.0, listViewTop, GetWidth(), std::max(listViewBottom - listViewTop, 0.0));
+	*/
 }

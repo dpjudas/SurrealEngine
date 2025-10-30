@@ -2,12 +2,14 @@
 #include "LauncherBanner.h"
 #include "LauncherButtonbar.h"
 #include "PlayGamePage.h"
-#include "SettingsPage.h"
+#include "VideoSettingsPage.h"
+// #include "AudioSettingsPage.h"
 #include "GameFoldersPage.h"
 #include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/window/window.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
+#include <zwidget/widgets/layout/vboxlayout.h>
 
 int LauncherWindow::ExecModal()
 {
@@ -42,21 +44,34 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 	Buttonbar = new LauncherButtonbar(this);
 
 	PlayGame = new PlayGamePage(this);
-	Settings = new SettingsPage(this);
+	GraphicsSettings = new VideoSettingsPage(this);
+	// AudioSettings = new AudioSettingsPage(this);
 	GameFolders = new GameFoldersPage(this);
 
-	Pages->AddTab(PlayGame, "Play");
-	Pages->AddTab(Settings, "Settings");
-	Pages->AddTab(GameFolders, "Games");
+	Pages->AddTab(PlayGame, "Games");
+	Pages->AddTab(GameFolders, "Folders");
+	Pages->AddTab(GraphicsSettings, "Video Settings");
+	// Pages->AddTab(AudioSettings, "Audio Settings");
 
 	Pages->SetCurrentWidget(PlayGame);
 	PlayGame->SetFocus();
+
+	auto mainLayout = new VBoxLayout();
+
+	mainLayout->AddWidget(Banner);
+	mainLayout->AddWidget(Pages);
+	mainLayout->AddWidget(Buttonbar);
+
+	mainLayout->SetGapHeight(0);
+
+	SetLayout(mainLayout);
 }
 
 void LauncherWindow::Save()
 {
 	PlayGame->Save();
-	Settings->Save();
+	GraphicsSettings->Save();
+	// AudioSettings->Save();
 	GameFolders->Save();
 	LauncherSettings::Get().Save();
 }
@@ -87,6 +102,7 @@ void LauncherWindow::OnClose()
 
 void LauncherWindow::OnGeometryChanged()
 {
+	/*
 	double top = 0.0;
 	double bottom = GetHeight();
 
@@ -97,4 +113,5 @@ void LauncherWindow::OnGeometryChanged()
 	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());
 
 	Pages->SetFrameGeometry(0.0, top, GetWidth(), std::max(bottom - top, 0.0));
+	*/
 }

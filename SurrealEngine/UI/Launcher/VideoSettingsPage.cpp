@@ -1,5 +1,4 @@
-
-#include "SettingsPage.h"
+#include "VideoSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
 #include <zwidget/core/resourcedata.h>
@@ -8,11 +7,13 @@
 #include <zwidget/widgets/lineedit/lineedit.h>
 #include <zwidget/widgets/dropdown/dropdown.h>
 #include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/systemdialogs/open_folder_dialog.h>
+#include <zwidget/widgets/layout/vboxlayout.h>
+#include <zwidget/widgets/layout/hboxlayout.h>
 
-SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
+VideoSettingsPage::VideoSettingsPage(Widget* parent)
+    : Widget(parent)
 {
-	RenderDeviceLabel = new TextLabel(this);
+    RenderDeviceLabel = new TextLabel(this);
 	Vulkan = new CheckboxLabel(this);
 	Vulkan->SetRadioStyle(true);
 #ifdef WIN32
@@ -59,6 +60,9 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	UseDebugLayer->SetText("Enable debug layer (slow)");
 	ResetButton->SetText("Reset to defaults");
 
+	HdrScale->SetIntrinsicSize(3);
+	BloomAmount->SetIntrinsicSize(3);
+
 	AntialiasModes->AddItem("Off");
 	AntialiasModes->AddItem("MSAA 2x");
 	AntialiasModes->AddItem("MSAA 4x");
@@ -97,9 +101,77 @@ SettingsPage::SettingsPage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
+
+	auto renderDeviceLayout = new HBoxLayout(this);
+
+	renderDeviceLayout->AddWidget(Vulkan);
+#ifdef WIN32
+	renderDeviceLayout->AddWidget(D3D11);
+	// renderDeviceLayout->AddWidget(D3D12);
+#endif
+	renderDeviceLayout->AddStretch();
+
+	auto antialiasModesLayout = new HBoxLayout();
+	antialiasModesLayout->AddWidget(AntialiasModesLabel);
+	antialiasModesLayout->AddWidget(AntialiasModes);
+	antialiasModesLayout->AddStretch();
+
+	auto lightModesLayout = new HBoxLayout();
+	lightModesLayout->AddWidget(LightModesLabel);
+	lightModesLayout->AddWidget(LightModes);
+	lightModesLayout->AddStretch();
+
+	auto gammaModesLayout = new HBoxLayout();
+	gammaModesLayout->AddWidget(GammaModesLabel);
+	gammaModesLayout->AddWidget(GammaModes);
+	gammaModesLayout->AddStretch();
+
+	auto hdrScaleLayout = new HBoxLayout();
+	hdrScaleLayout->AddWidget(HdrScaleLabel);
+	hdrScaleLayout->AddWidget(HdrScale);
+	hdrScaleLayout->AddStretch();
+
+	auto bloomAmountLayout = new HBoxLayout();
+	bloomAmountLayout->AddWidget(BloomAmountLabel);
+	bloomAmountLayout->AddWidget(BloomAmount);
+	bloomAmountLayout->AddStretch();
+
+	auto resetButtonLayout = new HBoxLayout();
+	resetButtonLayout->AddWidget(ResetButton);
+	resetButtonLayout->AddStretch();
+
+	auto mainLayout = new VBoxLayout();
+
+	mainLayout->AddWidget(RenderDeviceLabel);
+	mainLayout->AddLayout(renderDeviceLayout);
+
+	mainLayout->AddWidget(AdvancedLabel);
+	mainLayout->AddWidget(UseVSync);
+
+	mainLayout->AddLayout(antialiasModesLayout);
+
+	mainLayout->AddLayout(lightModesLayout);
+
+	mainLayout->AddLayout(gammaModesLayout);
+
+	mainLayout->AddWidget(GammaCorrectScreenshots);
+
+	mainLayout->AddWidget(Hdr);
+	mainLayout->AddLayout(hdrScaleLayout);
+
+	mainLayout->AddWidget(Bloom);
+	mainLayout->AddLayout(bloomAmountLayout);
+
+	mainLayout->AddWidget(UseDebugLayer);
+
+	mainLayout->AddLayout(resetButtonLayout);
+
+	mainLayout->AddStretch();
+
+	SetLayout(mainLayout);
 }
 
-void SettingsPage::Save()
+void VideoSettingsPage::Save()
 {
 	auto& settings = LauncherSettings::Get();
 
@@ -141,7 +213,7 @@ void SettingsPage::Save()
 	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
 }
 
-void SettingsPage::OnResetButtonClicked()
+void VideoSettingsPage::OnResetButtonClicked()
 {
 	Vulkan->SetChecked(true);
 #ifdef WIN32
@@ -159,8 +231,9 @@ void SettingsPage::OnResetButtonClicked()
 	UseDebugLayer->SetChecked(false);
 }
 
-void SettingsPage::OnGeometryChanged()
+void VideoSettingsPage::OnGeometryChanged()
 {
+	/*
 	double y = 10.0;
 	double gap = 2.0;
 	double groupEndGap = 7.0;
@@ -221,4 +294,5 @@ void SettingsPage::OnGeometryChanged()
 
 	ResetButton->SetFrameGeometry(0.0, y, 150.0, ResetButton->GetPreferredHeight());
 	y += ResetButton->GetPreferredHeight() + gap;
+	*/
 }
