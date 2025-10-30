@@ -776,7 +776,7 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 
 void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription) const
 {
-	if (slotNum < -1 || (!packages->IsDeusEx() && slotNum <= 0))
+	if (slotNum < -1 || (!packages->IsDeusEx() && slotNum < 0))
 		Exception::Throw("Invalid save slot: " + std::to_string(slotNum));
 
 	if (packages->IsDeusEx())
@@ -786,6 +786,8 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 	else
 	{
 		const auto saveFolderPath = fs::path(LaunchInfo.gameRootFolder) / "Save";
+		if (!fs::exists(saveFolderPath))
+			fs::create_directory(saveFolderPath);
 		const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
 		const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
 		LevelPackage->Save(Level, saveFileFullPath);
