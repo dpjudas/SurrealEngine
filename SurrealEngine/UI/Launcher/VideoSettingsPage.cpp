@@ -60,6 +60,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	UseDebugLayer->SetText("Enable debug layer (slow)");
 	ResetButton->SetText("Reset to defaults");
 
+	HdrScale->SetIntrinsicSize(3);
+	BloomAmount->SetIntrinsicSize(3);
+
 	AntialiasModes->AddItem("Off");
 	AntialiasModes->AddItem("MSAA 2x");
 	AntialiasModes->AddItem("MSAA 4x");
