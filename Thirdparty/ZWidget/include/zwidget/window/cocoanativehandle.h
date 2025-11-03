@@ -14,6 +14,6 @@ class CAMetalLayer;
 struct CocoaNativeHandle
 {
 	NSWindow* nsWindow = nullptr;
-        NSView* nsView = nullptr;
-        CAMetalLayer* metalLayer = nullptr;
+	NSView* nsView = nullptr;
+	CAMetalLayer* metalLayer = nullptr;
 };

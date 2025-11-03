@@ -53,7 +53,7 @@ enum class InputKey : uint32_t
 	Backspace, Tab, Unknown0A, Unknown0B,
 	Unknown0C, Enter, Unknown0E, Unknown0F,
 	Shift, Ctrl, Alt, Pause,
-	CapsLock, Unknown15, Unknown16, Unknown17,
+	CapsLock, LCommand, RCommand, Unknown17,
 	Unknown18, Unknown19, Unknown1A, Escape,
 	Unknown1C, Unknown1D, Unknown1E, Unknown1F,
 	Space, PageUp, PageDown, End,

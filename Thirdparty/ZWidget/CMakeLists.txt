@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.11)
 project(zwidget)
-message(STATUS "HAVE_METAL is ${HAVE_METAL}")
+
+option(ENABLE_METAL "Enable Metal support for application rendering" ON)
+option(ENABLE_OPENGL "Enable OpenGL support for application rendering" ON)
 
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
@@ -16,6 +18,8 @@ if (UNIX AND NOT APPLE)
 		wayland-cursor++
 		xkbcommon>=0.5.0
 	)
+	pkg_check_modules(GLIB glib-2.0)
+	pkg_check_modules(FONTCONFIG fontconfig)
 endif()
 
 # SDL2 finding stuff
@@ -126,6 +130,7 @@ set(ZWIDGET_WIN32_SOURCES
 	src/window/win32/win32_save_file_dialog.cpp
 	src/window/win32/win32_save_file_dialog.h
 	src/window/win32/win32_util.h
+	src/core/resourcedata_win.cpp
 )
 
 set(ZWIDGET_DBUS_SOURCES
@@ -137,7 +142,15 @@ set(ZWIDGET_DBUS_SOURCES
 	src/window/dbus/dbus_save_file_dialog.h
 )
 
+set(ZWIDGET_UNIX_SOURCES
+	src/core/resourcedata_unix.cpp
+)
+
 set(ZWIDGET_COCOA_SOURCES
+	src/core/resourcedata_mac.mm
+)
+
+set(ZWIDGET_COCOA_ARC_SOURCES
 	src/window/cocoa/cocoa_open_file_dialog.mm
 	src/window/cocoa/cocoa_save_file_dialog.mm
 	src/window/cocoa/cocoa_open_folder_dialog.mm
@@ -229,7 +242,7 @@ set(ZWIDGET_INCLUDE_DIRS include/zwidget src)
 set(ZWIDGET_COMPILE_OPTIONS)
 
 if(WIN32)
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WIN32_SOURCES})
+	list(APPEND ZWIDGET_SOURCES ${ZWIDGET_WIN32_SOURCES})
 	set(ZWIDGET_DEFINES -DUNICODE -D_UNICODE)
 	set(ZWIDGET_LINK_OPTIONS)
 	if(MSVC)
@@ -246,12 +259,8 @@ if(WIN32)
 		#set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -D_CRT_SECURE_NO_WARNINGS)
 	endif()
 elseif(APPLE)
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_COCOA_SOURCES})
-	set_source_files_properties(src/window/cocoa/cocoa_display_backend.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
-	set_source_files_properties(src/window/cocoa/cocoa_open_file_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
-	set_source_files_properties(src/window/cocoa/cocoa_save_file_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
-	set_source_files_properties(src/window/cocoa/cocoa_open_folder_dialog.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
-	set_source_files_properties(src/window/cocoa/cocoa_display_window.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
+	list(APPEND ZWIDGET_SOURCES ${ZWIDGET_COCOA_SOURCES} ${ZWIDGET_COCOA_ARC_SOURCES})
+	set_source_files_properties(${ZWIDGET_COCOA_ARC_SOURCES} PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc")
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
@@ -261,11 +270,15 @@ elseif(APPLE)
 		message(FATAL_ERROR "Cocoa framework not found")
 	endif()
 
-	find_library(METAL_FRAMEWORK Metal)
+	if(ENABLE_METAL)
+		find_library(METAL_FRAMEWORK Metal)
+	endif()
 
-	find_library(OPENGL_FRAMEWORK OpenGL)
-	if (NOT OPENGL_FRAMEWORK)
-		message(FATAL_ERROR "OpenGL framework not found")
+	if(ENABLE_OPENGL)
+		find_library(OPENGL_FRAMEWORK OpenGL)
+		if (NOT OPENGL_FRAMEWORK)
+			message(FATAL_ERROR "OpenGL framework not found")
+		endif()
 	endif()
 	
 	find_library(UNIFORMTYPEIDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
@@ -273,10 +286,12 @@ elseif(APPLE)
 		message(FATAL_ERROR "UniformTypeIdentifiers framework not found")
 	endif()
 elseif(HAIKU)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_UNIX_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS})
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX)
 	set(ZWIDGET_LINK_OPTIONS -pthread)
 else()
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_UNIX_SOURCES})
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_X11_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -lX11 -lXi)
 	set(ZWIDGET_DEFINES -DUNIX -D_UNIX -DUSE_X11)
@@ -294,6 +309,12 @@ else()
 		set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${WAYLANDPP_LDFLAGS})
 		set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_WAYLAND)
 	endif()
+
+	set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS})
+	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${GLIB_LDFLAGS} -lgio-2.0)
+
+	set(ZWIDGET_INCLUDE_DIRS ${ZWIDGET_INCLUDE_DIRS} ${FONTCONFIG_INCLUDE_DIRS})
+	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${FONTCONFIG_LDFLAGS})
 endif()
 
 if(SDL2_FOUND AND NOT WIN32)
@@ -312,11 +333,18 @@ target_compile_options(zwidget PRIVATE ${ZWIDGET_COMPILE_OPTIONS})
 target_compile_definitions(zwidget PRIVATE ${ZWIDGET_DEFINES})
 target_include_directories(zwidget PRIVATE ${ZWIDGET_INCLUDE_DIRS})
 target_link_options(zwidget PRIVATE ${ZWIDGET_LINK_OPTIONS})
-target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS} ${COCOA_FRAMEWORK} ${OPENGL_FRAMEWORK} ${UNIFORMTYPEIDENTIFIERS_FRAMEWORK})
-    target_compile_definitions(zwidget PRIVATE HAVE_OPENGL)
-if (METAL_FRAMEWORK)
-    target_link_libraries(zwidget PRIVATE ${METAL_FRAMEWORK})
-    target_compile_definitions(zwidget PRIVATE HAVE_METAL)
+if(APPLE)
+	target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS} ${COCOA_FRAMEWORK} ${UNIFORMTYPEIDENTIFIERS_FRAMEWORK})
+	if(ENABLE_OPENGL AND OPENGL_FRAMEWORK)
+		target_link_libraries(zwidget PRIVATE ${OPENGL_FRAMEWORK})
+		target_compile_definitions(zwidget PRIVATE HAVE_OPENGL)
+	endif()
+	if(ENABLE_METAL AND METAL_FRAMEWORK)
+		target_link_libraries(zwidget PRIVATE ${METAL_FRAMEWORK})
+		target_compile_definitions(zwidget PRIVATE HAVE_METAL)
+	endif()
+else()
+	target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS})
 endif()
 if(SDL2_FOUND)
 	target_include_directories(zwidget PRIVATE ${SDL2_INCLUDE_DIRS})

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../window/window.h"
 #include <string>
 #include <memory>
 #include <variant>
@@ -9,7 +10,6 @@
 #include "canvas.h"
 #include "rect.h"
 #include "colorf.h"
-#include "../window/window.h"
 
 class Canvas;
 class Timer;
@@ -212,11 +212,6 @@ protected:
 
 	virtual void Notify(Widget* source, const WidgetEvent type) { };
 
-private:
-	void DetachFromParent();
-
-	void Paint(Canvas* canvas);
-
 	// DisplayWindowHost
 	void OnWindowPaint() override;
 	void OnWindowMouseMove(const Point& pos) override;
@@ -225,8 +220,8 @@ private:
 	void OnWindowMouseDoubleclick(const Point& pos, InputKey key) override;
 	void OnWindowMouseUp(const Point& pos, InputKey key) override;
 	void OnWindowMouseWheel(const Point& pos, InputKey key) override;
-	void OnWindowRawKey(RawKeycode keycode, bool down) override;
 	void OnWindowRawMouseMove(int dx, int dy) override;
+	void OnWindowRawKey(RawKeycode keycode, bool down) override;
 	void OnWindowKeyChar(std::string chars) override;
 	void OnWindowKeyDown(InputKey key) override;
 	void OnWindowKeyUp(InputKey key) override;
@@ -235,8 +230,11 @@ private:
 	void OnWindowActivated() override;
 	void OnWindowDeactivated() override;
 	void OnWindowDpiScaleChanged() override;
-
+	
+private:
 	void NotifySubscribers(const WidgetEvent type);
+	void Paint(Canvas* canvas);
+	void DetachFromParent();
 
 	WidgetType Type = {};
 

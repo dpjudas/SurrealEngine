@@ -55,7 +55,24 @@ public:
 
 class WidgetTheme
 {
-	struct SimpleTheme {
+public:
+	virtual ~WidgetTheme() = default;
+	
+	WidgetStyle* RegisterStyle(std::unique_ptr<WidgetStyle> widgetStyle, const std::string& widgetClass);
+	WidgetStyle* GetStyle(const std::string& widgetClass);
+
+	static void SetTheme(std::unique_ptr<WidgetTheme> theme);
+	static WidgetTheme* GetTheme();
+
+private:
+	std::unordered_map<std::string, std::unique_ptr<WidgetStyle>> Styles;
+};
+
+class SimpleTheme : public WidgetTheme
+{
+public:
+	struct ThemeColors
+	{
 		const Colorf bgMain;   // background
 		const Colorf fgMain;   //
 		const Colorf bgLight;  // headers / inputs
@@ -69,28 +86,17 @@ class WidgetTheme
 		const Colorf border;   // around elements
 		const Colorf divider;  // between elements
 	};
-public:
-	WidgetTheme() {}
-	WidgetTheme(const struct SimpleTheme &theme);
-	virtual ~WidgetTheme() = default;
-	
-	WidgetStyle* RegisterStyle(std::unique_ptr<WidgetStyle> widgetStyle, const std::string& widgetClass);
-	WidgetStyle* GetStyle(const std::string& widgetClass);
 
-	static void SetTheme(std::unique_ptr<WidgetTheme> theme);
-	static WidgetTheme* GetTheme();
-
-private:
-	std::unordered_map<std::string, std::unique_ptr<WidgetStyle>> Styles;
+	SimpleTheme(const ThemeColors& colors);
 };
 
-class DarkWidgetTheme : public WidgetTheme
+class DarkWidgetTheme : public SimpleTheme
 {
 public:
 	DarkWidgetTheme();
 };
 
-class LightWidgetTheme : public WidgetTheme
+class LightWidgetTheme : public SimpleTheme
 {
 public:
 	LightWidgetTheme();

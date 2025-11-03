@@ -9,18 +9,24 @@ CocoaSaveFileDialog::CocoaSaveFileDialog(DisplayWindow* owner)
 
 void CocoaSaveFileDialog::AddFilter(const std::string &filter_description, const std::string &filter_extension)
 {
-    NSArray* fileTypeStrings = [[NSString stringWithUTF8String:filter_extension.c_str()] componentsSeparatedByString:@";"];
-    NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
-    for (NSString* typeString in fileTypeStrings) {
-        UTType* utType = [UTType typeWithFilenameExtension:typeString];
-        if (utType) {
-            [utTypes addObject:utType];
+    if (@available(macOS 11.0, *)) {
+        NSArray* fileTypeStrings = [[NSString stringWithUTF8String:filter_extension.c_str()] componentsSeparatedByString:@";"];
+        NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
+        for (NSString* typeString in fileTypeStrings) {
+            UTType* utType = [UTType typeWithFilenameExtension:typeString];
+            if (utType) {
+                [utTypes addObject:utType];
+            }
         }
-    }
-    if ([utTypes count] > 0) {
-        [((__bridge NSSavePanel*)panel) setAllowedContentTypes:utTypes];
+        if ([utTypes count] > 0) {
+            [((__bridge NSSavePanel*)panel) setAllowedContentTypes:utTypes];
+        } else {
+            // Fallback if no valid UTTypes could be created
+            [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[]];
+        }
     } else {
-        // Fallback if no valid UTTypes could be created
+        // Fallback for older macOS versions (e.g., use file extensions directly)
+        NSArray* fileTypeStrings = [[NSString stringWithUTF8String:filter_extension.c_str()] componentsSeparatedByString:@";"];
         [((__bridge NSSavePanel*)panel) setAllowedFileTypes:fileTypeStrings];
     }
 }
@@ -34,12 +40,17 @@ void CocoaSaveFileDialog::SetInitialDirectory(const std::string& path)
 
 void CocoaSaveFileDialog::SetDefaultExtension(const std::string& extension)
 {
-    NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
-    UTType* utType = [UTType typeWithFilenameExtension:extensionString];
-    if (utType) {
-        [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[utType]];
+    if (@available(macOS 11.0, *)) {
+        NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
+        UTType* utType = [UTType typeWithFilenameExtension:extensionString];
+        if (utType) {
+            [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[utType]];
+        } else {
+            // Fallback for unknown extensions
+            [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[]];
+        }
     } else {
-        // Fallback for unknown extensions or older macOS versions if UTType is not available
+        NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
         [((__bridge NSSavePanel*)panel) setAllowedFileTypes:@[extensionString]];
     }
 }
@@ -66,7 +77,11 @@ void CocoaSaveFileDialog::SetFilename(const std::string &filename)
 
 void CocoaSaveFileDialog::ClearFilters()
 {
-    [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[]];
+    if (@available(macOS 11.0, *)) {
+        [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[]];
+    } else {
+        [((__bridge NSSavePanel*)panel) setAllowedFileTypes:@[]];
+    }
 }
 
 void CocoaSaveFileDialog::SetFilterIndex(int filter_index)

@@ -141,9 +141,10 @@ WidgetTheme* WidgetTheme::GetTheme()
 	return CurrentTheme.get();
 }
 
-WidgetTheme::WidgetTheme(const struct SimpleTheme &theme)
-{
+/////////////////////////////////////////////////////////////////////////////
 
+SimpleTheme::SimpleTheme(const ThemeColors& theme)
+{
 	auto bgMain   = theme.bgMain;   // background
 	auto fgMain   = theme.fgMain;   //
 	auto bgLight  = theme.bgLight;  // headers / inputs
@@ -180,7 +181,7 @@ WidgetTheme::WidgetTheme(const struct SimpleTheme &theme)
 	auto toolbarbutton = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "toolbarbutton");
 	auto statusbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "statusbar");
 
-	widget->SetString("font-family", "NotoSans");
+	widget->SetString("font-family", "system");
 	widget->SetColor("color", fgMain);
 	widget->SetColor("window-background", bgMain);
 	widget->SetColor("window-border", bgMain);
@@ -324,24 +325,26 @@ WidgetTheme::WidgetTheme(const struct SimpleTheme &theme)
 
 /////////////////////////////////////////////////////////////////////////////
 
-DarkWidgetTheme::DarkWidgetTheme(): WidgetTheme({
+DarkWidgetTheme::DarkWidgetTheme() : SimpleTheme({
 	Colorf::fromRgb(0x2A2A2A), // background
 	Colorf::fromRgb(0xE2DFDB), //
 	Colorf::fromRgb(0x212121), // headers / inputs
 	Colorf::fromRgb(0xE2DFDB), //
 	Colorf::fromRgb(0x444444), // interactive elements
 	Colorf::fromRgb(0xFFFFFF), //
-	Colorf::fromRgb(0xC83C00), // hover / highlight
+	Colorf::fromRgb(0x003C88), // hover / highlight
 	Colorf::fromRgb(0xFFFFFF), //
 	Colorf::fromRgb(0xBBBBBB), // click
 	Colorf::fromRgb(0x000000), //
 	Colorf::fromRgb(0x646464), // around elements
 	Colorf::fromRgb(0x555555)  // between elements
-}) {};
+	})
+{
+}
 
 /////////////////////////////////////////////////////////////////////////////
 
-LightWidgetTheme::LightWidgetTheme(): WidgetTheme({
+LightWidgetTheme::LightWidgetTheme() : SimpleTheme({
 	Colorf::fromRgb(0xF0F0F0), // background
 	Colorf::fromRgb(0x191919), //
 	Colorf::fromRgb(0xFAFAFA), // headers / inputs
@@ -354,4 +357,6 @@ LightWidgetTheme::LightWidgetTheme(): WidgetTheme({
 	Colorf::fromRgb(0x000000), //
 	Colorf::fromRgb(0xA0A0A0), // around elements
 	Colorf::fromRgb(0xB9B9B9)  // between elements
-}) {};
+	})
+{
+}

@@ -437,8 +437,8 @@ public:
 class TrueTypeTextMetrics
 {
 public:
-	double ascender = 0.0;
-	double descender = 0.0;
+	double ascent = 0.0;
+	double descent = 0.0;
 	double lineGap = 0.0;
 };
 
