@@ -30,12 +30,17 @@ void CocoaOpenFileDialog::SetFilename(const std::string &filename)
 
 void CocoaOpenFileDialog::SetDefaultExtension(const std::string& extension)
 {
-    NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
-    UTType* utType = [UTType typeWithFilenameExtension:extensionString];
-    if (utType) {
-        [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[utType]];
+    if (@available(macOS 11.0, *)) {
+        NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
+        UTType* utType = [UTType typeWithFilenameExtension:extensionString];
+        if (utType) {
+            [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[utType]];
+        } else {
+            // Fallback for unknown extensions
+            [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[]];
+        }
     } else {
-        // Fallback for unknown extensions or older macOS versions if UTType is not available
+        NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
         [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:@[extensionString]];
     }
 }
@@ -65,26 +70,38 @@ void CocoaOpenFileDialog::SetTitle(const std::string &title)
 
 bool CocoaOpenFileDialog::Show()
 {
-    if (!_filters.empty())
-    {
-        NSArray* fileTypeStrings = [[NSString stringWithUTF8String:_filters[_filterIndex].second.c_str()] componentsSeparatedByString:@";"];
-        NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
-        for (NSString* typeString in fileTypeStrings) {
-            UTType* utType = [UTType typeWithFilenameExtension:typeString];
-            if (utType) {
-                [utTypes addObject:utType];
+    if (@available(macOS 11.0, *)) {
+        if (!_filters.empty())
+        {
+            NSArray* fileTypeStrings = [[NSString stringWithUTF8String:_filters[_filterIndex].second.c_str()] componentsSeparatedByString:@";"];
+            NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
+            for (NSString* typeString in fileTypeStrings) {
+                UTType* utType = [UTType typeWithFilenameExtension:typeString];
+                if (utType) {
+                    [utTypes addObject:utType];
+                }
+            }
+            if ([utTypes count] > 0) {
+                [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:utTypes];
+            } else {
+                // Fallback if no valid UTTypes could be created
+                [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[]];
             }
         }
-        if ([utTypes count] > 0) {
-            [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:utTypes];
-        } else {
-            // Fallback if no valid UTTypes could be created
+        else
+        {
+            [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[]]; // No filters
+        }
+    } else {
+        if (!_filters.empty())
+        {
+            NSArray* fileTypeStrings = [[NSString stringWithUTF8String:_filters[_filterIndex].second.c_str()] componentsSeparatedByString:@";"];
             [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:fileTypeStrings];
         }
-    }
-    else
-    {
-        [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:nil]; // No filters
+        else
+        {
+            [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:@[]]; // No filters
+        }
     }
 
     if ([((__bridge NSOpenPanel*)panel) runModal] == NSModalResponseOK)

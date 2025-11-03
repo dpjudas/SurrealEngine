@@ -71,10 +71,9 @@ public:
     std::vector<std::string> GetVulkanInstanceExtensions() override;
     VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 
-#ifdef HAVE_METAL
-    // Placeholder for Metal-specific methods
-    // virtual void* GetMetalLayer() = 0;
-#endif
+    // Metal API access for 3D rendering integration
+    void* GetMetalDevice();
+    void* GetMetalLayer();
 
 #ifdef HAVE_OPENGL
     // Placeholder for OpenGL-specific methods

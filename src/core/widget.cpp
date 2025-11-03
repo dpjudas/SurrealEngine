@@ -398,12 +398,13 @@ void Widget::Update()
 void Widget::Repaint()
 {
 	Widget* w = Window();
-	if (w->DispCanvas)
-	{
-		w->DispCanvas->begin(w->WindowBackground);
-		w->Paint(w->DispCanvas.get());
-		w->DispCanvas->end();
-	}
+	if (!w || !w->DispCanvas)
+		return;
+
+	Canvas* canvas = w->DispCanvas.get();
+	canvas->begin(w->WindowBackground);
+	w->Paint(canvas);
+	canvas->end();
 }
 
 void Widget::Paint(Canvas* canvas)

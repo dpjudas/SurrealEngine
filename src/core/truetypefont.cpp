@@ -72,11 +72,15 @@ TrueTypeFont::TrueTypeFont(std::shared_ptr<TrueTypeFontFileData> initdata, int t
 
 TrueTypeTextMetrics TrueTypeFont::GetTextMetrics(double height) const
 {
+	// TBD: Should we use os2.usWinAscent and os2.usWinDescent instead? Why are there two?
+	// Note: os2.sTypoDescender is negative, os2.usWinDescent is not. We use positive in our metrics
+
 	double scale = height / head.unitsPerEm;
+	double internalLeading = height - os2.sTypoAscender * scale + os2.sTypoDescender * scale;
 
 	TrueTypeTextMetrics metrics;
-	metrics.ascender = os2.sTypoAscender * scale;
-	metrics.descender = os2.sTypoDescender * scale;
+	metrics.ascent = os2.sTypoAscender * scale + internalLeading;
+	metrics.descent = -(os2.sTypoDescender * scale);
 	metrics.lineGap = os2.sTypoLineGap * scale;
 	return metrics;
 }

@@ -49,9 +49,12 @@ void CheckboxLabel::OnPaint(Canvas* canvas)
 {
 	// To do: add and use GetStyleImage for the checkbox
 
-	double center = GridFitPoint(GetHeight() * 0.5);
+	FontMetrics metrics = canvas->getFontMetrics();
+	double baseline = (GetHeight() - metrics.height) * 0.5 + metrics.ascent;
+
 	double borderwidth = GridFitSize(1.0);
 	double outerboxsize = GridFitSize(10.0);
+	double center = GridFitPoint(baseline - outerboxsize * 0.5);
 	double innerboxsize = outerboxsize - 2.0 * borderwidth;
 	double checkedsize = innerboxsize - 2.0 * borderwidth;
 
@@ -67,8 +70,7 @@ void CheckboxLabel::OnPaint(Canvas* canvas)
 		canvas->fillRect(Rect::xywh(1.0 * borderwidth, center - 5.0 * borderwidth, innerboxsize, innerboxsize), GetStyleColor("unchecked-inner-border-color"));
 	}
 
-	FontMetrics metrics = canvas->getFontMetrics();
-	canvas->drawText(Point(14.0, (GetHeight() - metrics.height) * 0.5 + metrics.ascent), GetStyleColor("color"), text);
+	canvas->drawText(Point(14.0, baseline), GetStyleColor("color"), text);
 }
 
 bool CheckboxLabel::OnMouseDown(const Point& pos, InputKey key)

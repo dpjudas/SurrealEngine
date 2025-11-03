@@ -191,8 +191,8 @@ bool ListView::OnMouseDown(const Point& pos, InputKey key)
 		int index = (int)((pos.y - 5.0 + scrollbar->GetPosition()) / getItemHeight());
 		if (index >= 0 && (size_t)index < items.size())
 		{
+			ScrollToItem(index);
 			SetSelectedItem(index);
-			ScrollToItem(selectedItem);
 		}
 	}
 	return true;
