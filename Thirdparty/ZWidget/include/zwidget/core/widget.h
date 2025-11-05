@@ -15,6 +15,8 @@ class Canvas;
 class Timer;
 class Dropdown;
 class Layout;
+class Font;
+class Image;
 
 enum class WidgetType
 {
@@ -79,6 +81,9 @@ public:
 	void SetFrameGeometry(const Rect& geometry);
 	void SetFrameGeometry(double x, double y, double width, double height) { SetFrameGeometry(Rect::xywh(x, y, width, height)); }
 
+	// Get the UI font for this widget
+	std::shared_ptr<Font> GetFont() const;
+
 	// Style properties
 	void SetStyleClass(const std::string& styleClass);
 	const std::string& GetStyleClass() const { return StyleClass; }
@@ -89,11 +94,13 @@ public:
 	void SetStyleDouble(const std::string& propertyName, double value);
 	void SetStyleString(const std::string& propertyName, const std::string& value);
 	void SetStyleColor(const std::string& propertyName, const Colorf& value);
+	void SetStyleImage(const std::string& propertyName, const std::shared_ptr<Image>& value);
 	bool GetStyleBool(const std::string& propertyName) const;
 	int GetStyleInt(const std::string& propertyName) const;
 	double GetStyleDouble(const std::string& propertyName) const;
 	std::string GetStyleString(const std::string& propertyName) const;
 	Colorf GetStyleColor(const std::string& propertyName) const;
+	std::shared_ptr<Image> GetStyleImage(const std::string& propertyName) const;
 
 	void SetWindowBackground(const Colorf& color);
 	void SetWindowBorderColor(const Colorf& color);
@@ -250,7 +257,6 @@ private:
 	Rect ContentGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
 
 	Colorf WindowBackground = Colorf::fromRgba8(240, 240, 240);
-
 	std::string WindowTitle;
 	std::vector<std::shared_ptr<Image>> WindowIcon;
 	std::unique_ptr<DisplayWindow> DispWindow;
@@ -269,7 +275,7 @@ private:
 
 	std::string StyleClass = "widget";
 	std::string StyleState;
-	typedef std::variant<bool, int, double, std::string, Colorf> PropertyVariant;
+	typedef std::variant<bool, int, double, std::string, Colorf, std::shared_ptr<Image>> PropertyVariant;
 	std::unordered_map<std::string, PropertyVariant> StyleProperties;
 
 	Widget(const Widget&) = delete;

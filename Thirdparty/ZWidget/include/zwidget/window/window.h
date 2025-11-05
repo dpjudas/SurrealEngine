@@ -371,6 +371,7 @@ public:
 
 	static std::unique_ptr<DisplayBackend> TryCreateWin32();
 	static std::unique_ptr<DisplayBackend> TryCreateSDL2();
+	static std::unique_ptr<DisplayBackend> TryCreateSDL3();
 	static std::unique_ptr<DisplayBackend> TryCreateX11();
 	static std::unique_ptr<DisplayBackend> TryCreateWayland();
 	static std::unique_ptr<DisplayBackend> TryCreateCocoa();
@@ -381,6 +382,7 @@ public:
 
 	virtual bool IsWin32() { return false; }
 	virtual bool IsSDL2() { return false; }
+	virtual bool IsSDL3() { return false; }
 	virtual bool IsX11() { return false; }
 	virtual bool IsWayland() { return false; }
 	virtual bool IsCocoa() { return false; }

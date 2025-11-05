@@ -22,6 +22,15 @@ if (UNIX AND NOT APPLE)
 	pkg_check_modules(FONTCONFIG fontconfig)
 endif()
 
+# SDL3 finding stuff
+# Optional on all platforms
+# If both SDL3 and SDL2 are available, only SDL3 support will be enabled.
+find_package(SDL3 QUIET)
+if(NOT ${SDL3_FOUND})
+	include(FindPkgConfig)
+	pkg_search_module(SDL3 sdl3)
+endif()
+
 # SDL2 finding stuff
 # Optional on all platforms
 find_package(SDL2 QUIET)
@@ -33,6 +42,7 @@ endif()
 set(ZWIDGET_SOURCES
 	src/core/canvas.cpp
 	src/core/font.cpp
+	src/core/font_impl.h
 	src/core/image.cpp
 	src/core/layout.cpp
 	src/core/span_layout.cpp
@@ -112,7 +122,7 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/window/x11nativehandle.h
 	include/zwidget/window/waylandnativehandle.h
 	include/zwidget/window/win32nativehandle.h
-	include/zwidget/window/sdl2nativehandle.h
+	include/zwidget/window/sdlnativehandle.h
 	include/zwidget/systemdialogs/open_folder_dialog.h
 	include/zwidget/systemdialogs/open_file_dialog.h
 	include/zwidget/systemdialogs/save_file_dialog.h
@@ -165,6 +175,13 @@ set(ZWIDGET_SDL2_SOURCES
 	src/window/sdl2/sdl2_display_window.h
 )
 
+set(ZWIDGET_SDL3_SOURCES
+		src/window/sdl3/sdl3_display_backend.cpp
+		src/window/sdl3/sdl3_display_backend.h
+		src/window/sdl3/sdl3_display_window.cpp
+		src/window/sdl3/sdl3_display_window.h
+)
+
 set(ZWIDGET_X11_SOURCES
 	src/window/x11/x11_display_backend.cpp
 	src/window/x11/x11_display_backend.h
@@ -210,6 +227,7 @@ source_group("src\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/w
 source_group("src\\window\\stub" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/stub/.+")
 source_group("src\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/win32/.+")
 source_group("src\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/sdl2/.+")
+source_group("src\\window\\sdl3" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/sdl3/.+")
 source_group("src\\window\\x11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/x11/.+")
 source_group("src\\window\\wayland" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/wayland/.+")
 source_group("src\\window\\dbus" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/dbus/.+")
@@ -317,7 +335,12 @@ else()
 	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${FONTCONFIG_LDFLAGS})
 endif()
 
-if(SDL2_FOUND AND NOT WIN32)
+if(SDL3_FOUND AND NOT WIN32)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL3_SOURCES})
+	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL3)
+endif()
+
+if(SDL2_FOUND AND NOT SDL3_FOUND AND NOT WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
 	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL2)
 endif()
@@ -346,7 +369,15 @@ if(APPLE)
 else()
 	target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS})
 endif()
-if(SDL2_FOUND)
+if(SDL3_FOUND)
+	target_include_directories(zwidget PRIVATE ${SDL3_INCLUDE_DIRS})
+	if(TARGET SDL3::SDL3)
+		target_link_libraries(zwidget PRIVATE SDL3::SDL3)
+	else() # needed for gzdoom compat for now
+		target_link_libraries(zwidget PRIVATE ${SDL3_LIBRARY})
+	endif()
+endif()
+if(SDL2_FOUND AND NOT SDL3_FOUND)
 	target_include_directories(zwidget PRIVATE ${SDL2_INCLUDE_DIRS})
 	if(TARGET SDL2::SDL2)
 		target_link_libraries(zwidget PRIVATE SDL2::SDL2)

@@ -2,6 +2,7 @@
 #include "core/theme.h"
 #include "core/widget.h"
 #include "core/canvas.h"
+#include "core/font.h"
 
 void WidgetStyle::SetBool(const std::string& state, const std::string& propertyName, bool value)
 {
@@ -24,6 +25,11 @@ void WidgetStyle::SetString(const std::string& state, const std::string& propert
 }
 
 void WidgetStyle::SetColor(const std::string& state, const std::string& propertyName, const Colorf& value)
+{
+	StyleProperties[state][propertyName] = value;
+}
+
+void WidgetStyle::SetImage(const std::string& state, const std::string& propertyName, const std::shared_ptr<Image>& value)
 {
 	StyleProperties[state][propertyName] = value;
 }
@@ -59,6 +65,18 @@ const WidgetStyle::PropertyVariant* WidgetStyle::FindProperty(const std::string&
 	return nullptr;
 }
 
+std::shared_ptr<Font> WidgetStyle::GetFont(const std::string& state)
+{
+	auto& font = Fonts[state];
+	if (!font)
+	{
+		std::string fontName = GetString(state, "font-family");
+		double size = GetDouble(state, "font-size");
+		font = Font::Create(fontName, size);
+	}
+	return font;
+}
+
 bool WidgetStyle::GetBool(const std::string& state, const std::string& propertyName) const
 {
 	const PropertyVariant* prop = FindProperty(state, propertyName);
@@ -87,6 +105,12 @@ Colorf WidgetStyle::GetColor(const std::string& state, const std::string& proper
 {
 	const PropertyVariant* prop = FindProperty(state, propertyName);
 	return prop ? std::get<Colorf>(*prop) : Colorf::transparent();
+}
+
+std::shared_ptr<Image> WidgetStyle::GetImage(const std::string& state, const std::string& propertyName) const
+{
+	const PropertyVariant* prop = FindProperty(state, propertyName);
+	return prop ? std::get<std::shared_ptr<Image>>(*prop) : std::shared_ptr<Image>();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -182,6 +206,7 @@ SimpleTheme::SimpleTheme(const ThemeColors& theme)
 	auto statusbar = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), "statusbar");
 
 	widget->SetString("font-family", "system");
+	widget->SetDouble("font-size", 13.0);
 	widget->SetColor("color", fgMain);
 	widget->SetColor("window-background", bgMain);
 	widget->SetColor("window-border", bgMain);
@@ -216,6 +241,7 @@ SimpleTheme::SimpleTheme(const ThemeColors& theme)
 	lineedit->SetColor("selection-color", bgHover);
 	lineedit->SetColor("no-focus-selection-color", bgHover);
 
+	textedit->SetString("font-family", "monospace");
 	textedit->SetDouble("noncontent-left", 8.0);
 	textedit->SetDouble("noncontent-top", 8.0);
 	textedit->SetDouble("noncontent-right", 8.0);
