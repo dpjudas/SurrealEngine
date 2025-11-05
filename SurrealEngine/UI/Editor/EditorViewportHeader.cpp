@@ -19,5 +19,5 @@ void EditorViewportHeader::SetTitle(const std::string& title)
 
 void EditorViewportHeader::OnPaint(Canvas* canvas)
 {
-	canvas->drawText({ 7.0, 17.0 }, Colorf::fromRgba8(226, 223, 219), Title);
+	canvas->drawText(GetFont(), { 7.0, 17.0 }, Title, Colorf::fromRgba8(226, 223, 219));
 }

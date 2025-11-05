@@ -8,7 +8,7 @@
 #include "Math/halffloat.h"
 #include <zwidget/core/widget.h>
 #include <zwidget/window/win32nativehandle.h>
-#include <zwidget/window/sdl2nativehandle.h>
+#include <zwidget/window/sdlnativehandle.h>
 #include <comdef.h>
 
 #pragma comment(lib, "d3d11.lib")
