@@ -9,25 +9,32 @@
 
 class Widget;
 class Canvas;
+class Font;
+class Image;
 
 class WidgetStyle
 {
 public:
 	WidgetStyle(WidgetStyle* parentStyle = nullptr) : ParentStyle(parentStyle) { }
+
 	virtual ~WidgetStyle() = default;
 	virtual void Paint(Widget* widget, Canvas* canvas, Size size) = 0;
+
+	std::shared_ptr<Font> GetFont(const std::string& state);
 
 	void SetBool(const std::string& state, const std::string& propertyName, bool value);
 	void SetInt(const std::string& state, const std::string& propertyName, int value);
 	void SetDouble(const std::string& state, const std::string& propertyName, double value);
 	void SetString(const std::string& state, const std::string& propertyName, const std::string& value);
 	void SetColor(const std::string& state, const std::string& propertyName, const Colorf& value);
+	void SetImage(const std::string& state, const std::string& propertyName, const std::shared_ptr<Image>& value);
 
 	void SetBool(const std::string& propertyName, bool value) { SetBool(std::string(), propertyName, value); }
 	void SetInt(const std::string& propertyName, int value) { SetInt(std::string(), propertyName, value); }
 	void SetDouble(const std::string& propertyName, double value) { SetDouble(std::string(), propertyName, value); }
 	void SetString(const std::string& propertyName, const std::string& value) { SetString(std::string(), propertyName, value); }
 	void SetColor(const std::string& propertyName, const Colorf& value) { SetColor(std::string(), propertyName, value); }
+	void SetImage(const std::string& propertyName, const std::shared_ptr<Image>& value) { SetImage(std::string(), propertyName, value); }
 
 private:
 	// Note: do not call these directly. Use widget->GetStyleXX instead since a widget may explicitly override a class style
@@ -36,10 +43,12 @@ private:
 	double GetDouble(const std::string& state, const std::string& propertyName) const;
 	std::string GetString(const std::string& state, const std::string& propertyName) const;
 	Colorf GetColor(const std::string& state, const std::string& propertyName) const;
+	std::shared_ptr<Image> GetImage(const std::string& state, const std::string& propertyName) const;
 
 	WidgetStyle* ParentStyle = nullptr;
-	typedef std::variant<bool, int, double, std::string, Colorf> PropertyVariant;
+	typedef std::variant<bool, int, double, std::string, Colorf, std::shared_ptr<Font>, std::shared_ptr<Image>> PropertyVariant;
 	std::unordered_map<std::string, std::unordered_map<std::string, PropertyVariant>> StyleProperties;
+	std::unordered_map<std::string, std::shared_ptr<Font>> Fonts;
 
 	const PropertyVariant* FindProperty(const std::string& state, const std::string& propertyName) const;
 

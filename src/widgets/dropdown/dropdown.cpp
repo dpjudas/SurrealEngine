@@ -151,7 +151,7 @@ double Dropdown::GetPreferredWidth()
 	double maxWidth = 0.0;
 	for (const auto& item : items)
 	{
-		auto width = canvas->measureText(item).width;
+		auto width = canvas->measureText(GetFont(), item).width;
 		if (width > maxWidth)
 		{
 			maxWidth = width;
@@ -169,9 +169,9 @@ void Dropdown::OnPaint(Canvas* canvas)
 	double w = GetWidth();
 	double h = GetHeight();
 
-	auto vtp = canvas->verticalTextAlign();
+	auto vtp = canvas->verticalTextAlign(GetFont());
 	double textY = (h-(vtp.bottom-vtp.top))/2.0 + vtp.baseline;
-	canvas->drawText(Point(7.0, textY), textColor, text);
+	canvas->drawText(GetFont(), Point(7.0, textY), text, textColor);
 
 	double arrowS = 8.0;
 	double arrowX = w - 3.0; // rightmost point, aligned with scrollbar

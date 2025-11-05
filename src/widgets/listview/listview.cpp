@@ -171,7 +171,7 @@ void ListView::OnPaint(Canvas* canvas)
 			double cx = x;
 			for (size_t entry = 0u; entry < item.size(); ++entry)
 			{
-				canvas->drawText(Point(cx, y + 15.0), textColor, item[entry]);
+				canvas->drawText(GetFont(), Point(cx, y + 15.0), item[entry], textColor);
 				cx += columnwidths[entry];
 			}
 		}
@@ -304,7 +304,7 @@ double ListView::GetPreferredWidth()
 			double wRow = 0.0;
 			for (const auto& cell : row)
 			{
-				wRow += canvas->measureText(cell).width;
+				wRow += canvas->measureText(GetFont(), cell).width;
 			}
 			if (wRow > total) total = wRow;
 		}

@@ -1031,6 +1031,11 @@ void Widget::SetStyleColor(const std::string& propertyName, const Colorf& value)
 	StyleProperties[propertyName] = value;
 }
 
+void Widget::SetStyleImage(const std::string& propertyName, const std::shared_ptr<Image>& value)
+{
+	StyleProperties[propertyName] = value;
+}
+
 bool Widget::GetStyleBool(const std::string& propertyName) const
 {
 	auto it = StyleProperties.find(propertyName);
@@ -1074,4 +1079,19 @@ Colorf Widget::GetStyleColor(const std::string& propertyName) const
 		return std::get<Colorf>(it->second);
 	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
 	return style ? style->GetColor(StyleState, propertyName) : Colorf::transparent();
+}
+
+std::shared_ptr<Image> Widget::GetStyleImage(const std::string& propertyName) const
+{
+	auto it = StyleProperties.find(propertyName);
+	if (it != StyleProperties.end())
+		return std::get<std::shared_ptr<Image>>(it->second);
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetImage(StyleState, propertyName) : std::shared_ptr<Image>();
+}
+
+std::shared_ptr<Font> Widget::GetFont() const
+{
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
+	return style ? style->GetFont(StyleState) : std::shared_ptr<Font>();
 }

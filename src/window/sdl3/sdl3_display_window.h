@@ -3,13 +3,15 @@
 #include <unordered_map>
 #include <zwidget/window/window.h>
 #include <zwidget/window/sdlnativehandle.h>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
-class SDL2DisplayWindow : public DisplayWindow
+#include "zwidget/core/image.h"
+
+class SDL3DisplayWindow : public DisplayWindow
 {
 public:
-	SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner, RenderAPI renderAPI, double uiscale);
-	~SDL2DisplayWindow();
+	SDL3DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL3DisplayWindow* owner, RenderAPI renderAPI, double uiscale);
+	~SDL3DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
 	void SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images) override;
@@ -58,7 +60,7 @@ public:
 	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 
 	static void DispatchEvent(const SDL_Event& event);
-	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
+	static SDL3DisplayWindow* FindEventWindow(const SDL_Event& event);
 
 	void OnWindowEvent(const SDL_WindowEvent& event);
 	void OnTextInput(const SDL_TextInputEvent& event);
@@ -68,16 +70,18 @@ public:
 	void OnMouseButtonDown(const SDL_MouseButtonEvent& event);
 	void OnMouseWheel(const SDL_MouseWheelEvent& event);
 	void OnMouseMotion(const SDL_MouseMotionEvent& event);
-	void OnJoyButtonUp(const SDL_ControllerButtonEvent& event);
-	void OnJoyButtonDown(const SDL_ControllerButtonEvent& event);
+	void OnJoyButtonUp(const SDL_GamepadButtonEvent& event);
+	void OnJoyButtonDown(const SDL_GamepadButtonEvent& event);
 	void OnPaintEvent();
 	static void OnTimerEvent(const SDL_UserEvent& event);
 
 	InputKey GetMouseButtonKey(const SDL_MouseButtonEvent& event);
 
 	static InputKey ScancodeToInputKey(SDL_Scancode keycode);
-	static InputKey GameControllerButtonToInputKey(SDL_GameControllerButton button);
+	static InputKey GameControllerButtonToInputKey(SDL_GamepadButton button);
 	static SDL_Scancode InputKeyToScancode(InputKey inputkey);
+
+	static SDL_PixelFormat ImageFormatToSDLPixelFormat(const ImageFormat& format);
 
 	template<typename T>
 	Point GetMousePos(const T& event)
@@ -92,7 +96,7 @@ public:
 
 	static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
 	static void StopTimer(void* timerID);
-	static Uint32 ExecTimer(Uint32 interval, void* id);
+	static Uint32 ExecTimer(void* id, SDL_TimerID timerID, Uint32 interval);
 
 	DisplayWindowHost* WindowHost = nullptr;
 	SDLNativeHandle Handle;
@@ -101,6 +105,8 @@ public:
 	int BackBufferWidth = 0;
 	int BackBufferHeight = 0;
 
+	SDL_Surface* windowIconSurface = nullptr;
+
 	double UIScale = 1.0;
 
 	bool CursorLocked = false;
@@ -108,9 +114,9 @@ public:
 
 	static bool ExitRunLoop;
 	static Uint32 PaintEventNumber;
-	static std::unordered_map<int, SDL2DisplayWindow*> WindowList;
+	static std::unordered_map<unsigned int, SDL3DisplayWindow*> WindowList;
 
-	static std::unordered_map<void *, void *> TimerHandles;
+	static std::unordered_map<SDL_TimerID, void *> TimerHandles;
 	static std::unordered_map<void *, std::function<void()>> Timers;
 	static unsigned long TimerIDs;
 	static Uint32 TimerEventNumber;
