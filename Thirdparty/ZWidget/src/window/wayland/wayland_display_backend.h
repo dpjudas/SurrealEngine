@@ -151,8 +151,8 @@ public:
 
 	std::map<InputKey, bool> inputKeyStates; // True when the key is pressed, false when isn't
 
-	bool IsMouseLocked() { return hasMouseLock; }
-	void SetMouseLocked(bool val) { hasMouseLock = val; }
+	void SetMouseLockOwnerWindow(WaylandDisplayWindow* owner) { m_MouseLockOwnerWindow = owner; }
+	WaylandDisplayWindow* GetMouseLockOwnerWindow() const { return m_MouseLockOwnerWindow; }
 
 private:
 	void CheckNeedsUpdate();
@@ -180,7 +180,8 @@ private:
 
 	bool hasKeyboard = false;
 	bool hasPointer = false;
-	bool hasMouseLock = false;
+
+	WaylandDisplayWindow* m_MouseLockOwnerWindow = nullptr;
 
 	ZTimer::TimePoint m_previousTime;
 	ZTimer::TimePoint m_currentTime;

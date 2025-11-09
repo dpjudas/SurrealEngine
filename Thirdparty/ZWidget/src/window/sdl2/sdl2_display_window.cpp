@@ -1,5 +1,7 @@
 #include "sdl2_display_window.h"
 #include <stdexcept>
+#include <vector>
+#include <string>
 #include <SDL2/SDL_vulkan.h>
 
 Uint32 SDL2DisplayWindow::PaintEventNumber = 0xffffffff;
