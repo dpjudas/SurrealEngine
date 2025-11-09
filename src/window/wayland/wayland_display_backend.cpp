@@ -28,7 +28,7 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 		if (interface == wayland::data_device_manager_t::interface_name)
 			s_waylandRegistry.bind(name, m_DataDeviceManager, 3);
 		if (interface == wayland::xdg_wm_base_t::interface_name)
-			s_waylandRegistry.bind(name, m_XDGWMBase, 4);
+			s_waylandRegistry.bind(name, m_XDGWMBase, version);
 		if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
 			s_waylandRegistry.bind(name, m_XDGOutputManager, version);
 		if (interface == wayland::zxdg_exporter_v2_t::interface_name)
@@ -354,7 +354,7 @@ void WaylandDisplayBackend::ConnectDeviceEvents()
 
 		if (currentPointerEvent.event_mask & POINTER_EVENT_RELATIVE_MOTION)
 		{
-			if (hasMouseLock)
+			if (GetMouseLockOwnerWindow() == m_MouseFocusWindow)
 				OnMouseMoveRawEvent(int(currentPointerEvent.dx_unaccel), int(currentPointerEvent.dy_unaccel));
 		}
 
@@ -469,15 +469,11 @@ void WaylandDisplayBackend::OnMouseEnterEvent(uint32_t serial)
 {
 	if (!m_CursorShapeDevice)
 	{
-		m_cursorSurface.attach(!hasMouseLock ? m_cursorBuffer : nullptr, 0, 0);
-		if (!hasMouseLock)
-		{
-			m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
-		}
-
+		m_cursorSurface.attach( m_cursorBuffer, 0, 0);
+		m_cursorSurface.damage(0, 0, m_cursorImage.width(), m_cursorImage.height());
 		m_cursorSurface.commit();
 	}
-	m_waylandPointer.set_cursor(serial, !hasMouseLock ? m_cursorSurface : nullptr, 0, 0);
+	m_waylandPointer.set_cursor(serial, m_cursorSurface, 0, 0);
 }
 
 void WaylandDisplayBackend::OnMouseLeaveEvent()
@@ -486,18 +482,13 @@ void WaylandDisplayBackend::OnMouseLeaveEvent()
 	{
 		m_MouseFocusWindow->windowHost->OnWindowMouseLeave();
 		//m_MouseFocusWindow = nullptr; // Borks up the menus
-		ShowCursor(!m_MouseFocusWindow->m_LockedPointer);
 	}
 }
 
 void WaylandDisplayBackend::OnMousePressEvent(InputKey button)
 {
 	if (m_MouseFocusWindow)
-	{
 		m_MouseFocusWindow->windowHost->OnWindowMouseDown(m_MouseFocusWindow->m_SurfaceMousePos, button);
-		ShowCursor(m_MouseFocusWindow->m_LockedPointer);
-	}
-
 }
 
 void WaylandDisplayBackend::OnMouseReleaseEvent(InputKey button)
@@ -565,7 +556,6 @@ void WaylandDisplayBackend::OnWindowCreated(WaylandDisplayWindow* window)
 		m_FocusWindow = window;
 		m_MouseFocusWindow = window;
 	}
-
 }
 
 void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)

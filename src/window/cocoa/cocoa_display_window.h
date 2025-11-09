@@ -6,12 +6,6 @@
 #include <string>
 #include <vector>
 
-#ifdef HAVE_VULKAN
-struct VkInstance_T;
-typedef struct VkInstance_T* VkInstance;
-#endif
-
-
 struct CocoaDisplayWindowImpl;
 
 class CocoaDisplayWindow : public DisplayWindow

@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <stdexcept>
+#include <vector>
 #include <zwidget/core/widget.h>
 #include <zwidget/core/resourcedata.h>
 #include <zwidget/core/image.h>
@@ -318,8 +321,46 @@ enum class Theme
 	Default, Light, Dark
 };
 
+class ExampleResourceLoader : public ResourceLoader
+{
+public:
+	std::vector<SingleFontData> LoadFont(const std::string& name) override
+	{
+		if (name == "system" || name == "monospace")
+		{
+			SingleFontData fontdata;
+			fontdata.fontdata = ReadAllBytes("OpenSans.ttf");
+			return { std::move(fontdata) };
+		}
+		else
+		{
+			SingleFontData fontdata;
+			fontdata.fontdata = ReadAllBytes(name + ".ttf");
+			return { std::move(fontdata) };
+		}
+	}
+	
+	std::vector<uint8_t> ReadAllBytes(const std::string& filename) override
+	{
+		std::ifstream file(filename, std::ios::binary | std::ios::ate);
+		if (!file)
+			throw std::runtime_error("Could not open: " + filename);
+
+		std::streamsize size = file.tellg();
+		file.seekg(0, std::ios::beg);
+
+		std::vector<uint8_t> buffer(size);
+		if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
+			throw std::runtime_error("Could not read: " + filename);
+
+		return buffer;
+	}
+};
+
 int example(Backend backend = Backend::Default, Theme theme = Theme::Default)
 {
+	ResourceLoader::Set(std::make_unique<ExampleResourceLoader>());
+
 	// just for testing themes
 	switch (theme)
 	{

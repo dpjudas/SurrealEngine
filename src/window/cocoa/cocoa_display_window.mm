@@ -5,10 +5,42 @@
 #include <map>
 #include <dlfcn.h>
 #include <cmath>
-#ifdef HAVE_VULKAN
-#define VK_USE_PLATFORM_METAL_EXT
-#include <vulkan/vulkan.h>
-#include <vulkan/vulkan_metal.h>
+// Minimal Vulkan type definitions (no headers required)
+#ifndef VK_VERSION_1_0
+
+#define VKAPI_CALL
+#define VKAPI_PTR VKAPI_CALL
+
+typedef uint32_t VkFlags;
+typedef enum VkStructureType {
+	VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT = 1000217000,
+	VK_OBJECT_TYPE_MAX_ENUM = 0x7FFFFFFF
+} VkStructureType;
+typedef enum VkResult {
+	VK_SUCCESS = 0,
+	VK_RESULT_MAX_ENUM = 0x7FFFFFFF
+} VkResult;
+typedef struct VkAllocationCallbacks VkAllocationCallbacks;
+
+typedef void (VKAPI_PTR* PFN_vkVoidFunction)(void);
+typedef PFN_vkVoidFunction(VKAPI_PTR* PFN_vkGetInstanceProcAddr)(VkInstance instance, const char* pName);
+
+#ifndef VK_EXT_metal_surface
+typedef VkFlags VkMetalSurfaceCreateFlagsEXT;
+typedef struct VkMetalSurfaceCreateInfoEXT {
+	VkStructureType                sType;
+	const void*                    pNext;
+	VkMetalSurfaceCreateFlagsEXT   flags;
+	const void*                    pLayer;  // CAMetalLayer*
+} VkMetalSurfaceCreateInfoEXT;
+
+typedef VkResult(VKAPI_PTR* PFN_vkCreateMetalSurfaceEXT)(
+	VkInstance instance,
+	const VkMetalSurfaceCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+	VkSurfaceKHR* pSurface);
+#endif
+
 #endif
 #include <zwidget/core/image.h>
 #include "zwidget/window/cocoanativehandle.h"
@@ -1053,7 +1085,7 @@ void* CocoaDisplayWindow::GetNativeHandle()
         handle->nsWindow = impl->window;
         handle->nsView = [impl->window contentView];
 #ifdef HAVE_METAL
-        handle->metalLayer = impl->metalLayer;
+        handle->metalLayer = (__bridge void*)impl->metalLayer;
 #endif
     }
     return handle;
@@ -1063,15 +1095,12 @@ void* CocoaDisplayWindow::GetNativeHandle()
 std::vector<std::string> CocoaDisplayWindow::GetVulkanInstanceExtensions()
 {
     std::vector<std::string> extensions;
-#ifdef HAVE_VULKAN
     extensions.push_back("VK_KHR_surface");
     extensions.push_back("VK_EXT_metal_surface");
-#endif
     return extensions;
 }
 VkSurfaceKHR CocoaDisplayWindow::CreateVulkanSurface(VkInstance instance)
 {
-#ifdef HAVE_VULKAN
     if (impl->window && impl->metalLayer)
     {
         // Dynamically load vkCreateMetalSurfaceEXT
@@ -1089,7 +1118,7 @@ VkSurfaceKHR CocoaDisplayWindow::CreateVulkanSurface(VkInstance instance)
         {
             VkMetalSurfaceCreateInfoEXT surfaceInfo = {};
             surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
-            surfaceInfo.pLayer = impl->metalLayer;
+            surfaceInfo.pLayer = (__bridge void*)impl->metalLayer;
 
             VkSurfaceKHR surface = nullptr;
             VkResult err = vkCreateMetalSurfaceEXT(instance, &surfaceInfo, nullptr, &surface);
@@ -1099,9 +1128,6 @@ VkSurfaceKHR CocoaDisplayWindow::CreateVulkanSurface(VkInstance instance)
         }
     }
     throw std::runtime_error("Could not create vulkan surface: no metal layer");
-#else
-    throw std::runtime_error("Vulkan support not compiled into zwidget");
-#endif
 }
 
 void* CocoaDisplayWindow::GetMetalDevice()
