@@ -159,7 +159,8 @@ private:
 	void UpdateTimers();
 	void WaitForEvents(int timeout);
 	int GetTimerTimeout();
-	void ConnectDeviceEvents();
+	void ConnectKeyboardEvents();
+	void ConnectMouseEvents();
 	void OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::keyboard_key_state state);
 	void OnKeyboardCharEvent(const char* ch, wayland::keyboard_key_state state);
 	void OnKeyboardDelayEnd();
@@ -171,6 +172,7 @@ private:
 	void OnMouseMoveEvent(Point surfacePos);
 	void OnMouseMoveRawEvent(int surfaceX, int surfaceY);
 	void OnMouseWheelEvent(InputKey button);
+	void OnCapabilitiesEvent(uint32_t capabilities);
 
 	InputKey XKBKeySymToInputKey(xkb_keysym_t keySym);
 	InputKey LinuxInputEventCodeToInputKey(uint32_t inputCode);
