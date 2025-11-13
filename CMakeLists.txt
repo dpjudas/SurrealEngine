@@ -206,6 +206,10 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NParticleIterator.h
 	SurrealEngine/Native/NPlayerPawnExt.cpp
 	SurrealEngine/Native/NPlayerPawnExt.h
+	SurrealEngine/Native/NUPakPathNodeIterator.cpp
+	SurrealEngine/Native/NUPakPathNodeIterator.h
+	SurrealEngine/Native/NUPakPawnPathNodeIterator.cpp
+	SurrealEngine/Native/NUPakPawnPathNodeIterator.h
 	SurrealEngine/RenderDevice/RenderDevice.cpp
 	SurrealEngine/RenderDevice/RenderDevice.h
 	SurrealEngine/RenderDevice/Vulkan/BufferManager.cpp
