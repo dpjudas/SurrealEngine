@@ -650,64 +650,38 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	GameInfo->Index = (int)Level->Actors.size();
 	Level->Actors.push_back(GameInfo);
 
-	// Note: this is never true. But maybe it will be once map loading or level hubs are implemented? If not, delete it!
-	if (LevelInfo->bBegunPlay())
-	{
-		CallEvent(GameInfo, EventName::Spawned);
-		CallEvent(GameInfo, EventName::PreBeginPlay);
-		CallEvent(GameInfo, EventName::BeginPlay);
-		CallEvent(GameInfo, EventName::PostBeginPlay);
-		CallEvent(GameInfo, EventName::SetInitialState);
-
-		if (packages->GetEngineVersion() > 219)
-		{
-			NameString attachTag = GameInfo->AttachTag();
-			if (!attachTag.IsNone())
-			{
-				for (UActor* actor : Level->Actors)
-				{
-					if (actor && actor->Tag() == attachTag)
-					{
-						actor->SetBase(GameInfo, false);
-					}
-				}
-			}
-		}
-		if (packages->GetEngineVersion() >= 400)
-		{
-			for (USpawnNotify* notifyObj = LevelInfo->SpawnNotify(); notifyObj != nullptr; notifyObj = notifyObj->Next())
-			{
-				UClass* cls = notifyObj->ActorClass();
-				if (cls && GameInfo->IsA(cls->Name))
-					GameInfo = UObject::Cast<UGameInfo>(CallEvent(notifyObj, EventName::SpawnNotification, { ExpressionValue::ObjectValue(GameInfo) }).ToObject());
-			}
-		}
-	}
 	LevelInfo->Game() = GameInfo;
 
 	if (!LevelInfo->bBegunPlay())
 	{
 		LevelInfo->TimeSeconds() = 0.0f;
 		LevelInfo->bBegunPlay() = true;
+
+		std::string options = url.GetOptions();
+
+		auto stringProp = GC::Alloc<UStringProperty>("", nullptr, ObjectFlags::NoFlags);
+		std::string error;
+
+		// Only call PreBegin/Begin/PostBegin/SetInitialState for loaded objects. Spawned objects are added at the end of the Actors array.
+		size_t loadActorCount = Level->Actors.size();
+
+		LevelInfo->bStartup() = true;
+		CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, stringProp) });
+		if (!error.empty())
+			Exception::Throw("InitGame failed: " + error);
+
+		// Note: the events may spawn actors. We can't use iterators here.
+		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PreBeginPlay); }
+		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::BeginPlay); }
+		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PostBeginPlay); }
+		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::SetInitialState); }
+		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) Level->Actors[i]->InitBase(); }
+		LevelInfo->bStartup() = false;
 	}
-
-	std::string options = url.GetOptions();
-
-	auto stringProp = GC::Alloc<UStringProperty>("", nullptr, ObjectFlags::NoFlags);
-	std::string error;
-
-	LevelInfo->bStartup() = true;
-	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, stringProp) });
-	if (!error.empty())
-		Exception::Throw("InitGame failed: " + error);
-
-	// Note: the events may spawn actors. We can't use iterators here.
-	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PreBeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::BeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PostBeginPlay); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::SetInitialState); }
-	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) Level->Actors[i]->InitBase(); }
-	LevelInfo->bStartup() = false;
+	else
+	{
+		LevelInfo->TimeSeconds() = LevelInfo->TimeSeconds();
+	}
 
 	if (LevelInfo->Game())
 		CallEvent(LevelInfo->Game(), "DetailChange", {});

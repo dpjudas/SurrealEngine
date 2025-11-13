@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "ScriptCall.h"
 #include "Frame.h"
+#include "UObject/UActor.h"
 #include <unordered_map>
 
 NameString ToNameString(EventName name)
@@ -65,6 +66,12 @@ ExpressionValue CallEvent(UObject* Context, EventName eventname, Array<Expressio
 	if (!Context->IsEventEnabled(eventname))
 		return ExpressionValue::NothingValue();
 
+	if (auto actor = UObject::TryCast<UActor>(Context))
+	{
+		if (!actor->Level()->bBegunPlay())
+			return ExpressionValue::NothingValue();
+	}
+
 	UFunction* func = FindEventFunction(Context, ToNameString(eventname));
 	if (func)
 		return Frame::Call(func, Context, std::move(args));
@@ -76,6 +83,12 @@ ExpressionValue CallEvent(UObject* Context, const NameString& name, Array<Expres
 {
 	if (!Context->IsEventEnabled(name))
 		return ExpressionValue::NothingValue();
+
+	if (auto actor = UObject::TryCast<UActor>(Context))
+	{
+		if (!actor->Level()->bBegunPlay())
+			return ExpressionValue::NothingValue();
+	}
 
 	UFunction* func = FindEventFunction(Context, name);
 	if (func)

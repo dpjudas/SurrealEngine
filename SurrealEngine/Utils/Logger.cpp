@@ -21,17 +21,21 @@ void Logger::LogMessage(const std::string& message)
 	{
 		std::string name;
 
-		name = UObject::GetUClassFullName(Frame::Callstack.front()->Object).ToString();
-		/*
-		UStruct* func = Frame::Callstack.back()->Func;
-		for (UStruct* s = func; s != nullptr; s = s->StructParent)
+		if (Frame::Callstack.size() > 1)
 		{
-			if (name.empty())
-				name = s->Name.ToString();
-			else
-				name = s->Name.ToString() + "." + name;
+			UStruct* func = Frame::Callstack[Frame::Callstack.size() - 1]->Func;
+			for (UStruct* s = func; s != nullptr; s = s->StructParent)
+			{
+				if (name.empty())
+					name = s->Name.ToString();
+				else
+					name = s->Name.ToString() + "." + name;
+			}
 		}
-		*/
+		else
+		{
+			name = UObject::GetUClassFullName(Frame::Callstack.front()->Object).ToString();
+		}
 
 		LogMessageLine line;
 		line.Time = time;
