@@ -4,6 +4,7 @@
 #include "Utils/JsonValue.h"
 #include "Utils/File.h"
 #include "VM/Frame.h"
+#include <unordered_set>
 
 void LogMessage(const std::string& message)
 {
@@ -23,7 +24,7 @@ void Logger::LogMessage(const std::string& message)
 
 		if (Frame::Callstack.size() > 1)
 		{
-			UStruct* func = Frame::Callstack[Frame::Callstack.size() - 1]->Func;
+			UStruct* func = Frame::Callstack[Frame::Callstack.size() - 2]->Func;
 			for (UStruct* s = func; s != nullptr; s = s->StructParent)
 			{
 				if (name.empty())
@@ -57,7 +58,11 @@ void Logger::LogMessage(const std::string& message)
 
 void Logger::LogUnimplemented(const std::string& message)
 {
-	LogMessage("Unimplemented: " + message);
+	static std::unordered_set<std::string> seenMessages;
+	if (seenMessages.insert(message).second)
+	{
+		LogMessage("Unimplemented: " + message);
+	}
 }
 
 Logger* Logger::Get()
