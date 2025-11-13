@@ -50,6 +50,8 @@
 #include "Native/NParticleIterator.h"
 #include "Native/NScriptedPawn.h"
 #include "Native/NPlayerPawnExt.h"
+#include "Native/NUPakPathNodeIterator.h"
+#include "Native/NUPakPawnPathNodeIterator.h"
 
 PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
@@ -724,6 +726,11 @@ void PackageManager::RegisterFunctions()
 	NInternetLink::RegisterFunctions();
 	NTcpLink::RegisterFunctions();
 	NUdpLink::RegisterFunctions();
+	if (IsUnreal1())
+	{
+		NUPakPathNodeIterator::RegisterFunctions();
+		NUPakPawnPathNodeIterator::RegisterFunctions();
+	}
 	if (IsDeusEx())
 	{
 		NDebugInfo::RegisterFunctions();
