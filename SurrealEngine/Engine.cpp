@@ -700,11 +700,13 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	CallEvent(GameInfo, EventName::InitGame, { ExpressionValue::StringValue(options), ExpressionValue::Variable(&error, stringProp) });
 	if (!error.empty())
 		Exception::Throw("InitGame failed: " + error);
-	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::PreBeginPlay); }
-	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::BeginPlay); }
-	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::PostBeginPlay); }
-	for (UActor* actor : Level->Actors) { if (actor) CallEvent(actor, EventName::SetInitialState); }
-	for (UActor* actor : Level->Actors) { if (actor) actor->InitBase(); }
+
+	// Note: the events may spawn actors. We can't use iterators here.
+	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PreBeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::BeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PostBeginPlay); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::SetInitialState); }
+	for (size_t i = 0; i < Level->Actors.size(); i++) { if (Level->Actors[i]) Level->Actors[i]->InitBase(); }
 	LevelInfo->bStartup() = false;
 
 	if (LevelInfo->Game())

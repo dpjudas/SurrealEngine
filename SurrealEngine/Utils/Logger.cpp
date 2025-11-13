@@ -19,8 +19,11 @@ void Logger::LogMessage(const std::string& message)
 {
 	if (!Frame::Callstack.empty() && Frame::Callstack.back()->Func)
 	{
-		UStruct* func = Frame::Callstack.back()->Func;
 		std::string name;
+
+		name = UObject::GetUClassFullName(Frame::Callstack.front()->Object).ToString();
+		/*
+		UStruct* func = Frame::Callstack.back()->Func;
 		for (UStruct* s = func; s != nullptr; s = s->StructParent)
 		{
 			if (name.empty())
@@ -28,6 +31,7 @@ void Logger::LogMessage(const std::string& message)
 			else
 				name = s->Name.ToString() + "." + name;
 		}
+		*/
 
 		LogMessageLine line;
 		line.Time = time;
