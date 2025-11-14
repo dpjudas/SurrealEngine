@@ -46,8 +46,10 @@ void SDL3DisplayBackend::ExitLoop()
 Size SDL3DisplayBackend::GetScreenSize()
 {
 	SDL_Rect rect = {};
-	if (!SDL_GetDisplayBounds(0, &rect))
+	SDL_DisplayID *displays = SDL_GetDisplays(nullptr);
+	if (!displays || !SDL_GetDisplayBounds(displays[0], &rect))
 		throw std::runtime_error(std::string("Unable to get screen size:") + SDL_GetError());
+	SDL_free(displays);
 
 	return {rect.w / UIScale, rect.h / UIScale};
 }
