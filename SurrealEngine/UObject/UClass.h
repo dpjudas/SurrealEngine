@@ -202,6 +202,7 @@ public:
 
 	void SaveConfig() override;
 
+	static void LoadProperties(UClass* structToLoad, PropertyDataBlock* propertyBlock);
 	void LoadProperties(PropertyDataBlock* propertyBlock);
 	void SaveProperties(PropertyDataBlock* propertyBlock);
 

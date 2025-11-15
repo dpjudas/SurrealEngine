@@ -145,9 +145,12 @@ std::string Frame::GetCallstack()
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
 {
 #if 0 // To do: create a commandlet that lets us do this
-	static NameString TraceActorClass = "TarydiumBarrel";
-	if (instance->Class->Name == TraceActorClass)
+	static NameString TraceActorClass = "CTFGame";
+	static NameString TraceActorFunc = "PostBeginPlay";
+	if (instance->Class->Name == TraceActorClass && func->Name == TraceActorFunc)
 	{
+		LogMessage("RemainingBots=" + std::to_string(instance->GetInt("RemainingBots")));
+		LogMessage("InitialBots=" + std::to_string(instance->GetInt("InitialBots")));
 		std::string traceMessage = "Called " + func->Name.ToString() + "(";
 		bool first = true;
 		for (auto& arg : args)

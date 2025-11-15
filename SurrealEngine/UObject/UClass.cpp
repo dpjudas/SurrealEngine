@@ -809,11 +809,11 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 	{
 		if (UClass* cls = dynamic_cast<UClass*>(gcObj))
 		{
-			for (UClass* base = UObject::TryCast<UClass>(cls->BaseStruct); base; base = UObject::TryCast<UClass>(base->BaseStruct))
+			for (UStruct* base = cls->BaseStruct; base; base = base->BaseStruct)
 			{
-				if (base->Name == Name)
+				if (base == this)
 				{
-					base->LoadProperties(&PropertyData);
+					LoadProperties(&cls->PropertyData);
 					break;
 				}
 			}
