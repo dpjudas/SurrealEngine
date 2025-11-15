@@ -34,7 +34,8 @@ void UObject::LoadNow()
 		{
 			if (s->BaseStruct)
 			{
-				s->BaseStruct->LoadNow();
+				if (s->BaseStruct->Properties.empty())
+					s->BaseStruct->LoadNow();
 				s->Properties = s->BaseStruct->Properties;
 				s->StructSize = s->BaseStruct->StructSize;
 			}
@@ -42,12 +43,9 @@ void UObject::LoadNow()
 			if (auto c = UObject::TryCast<UClass>(this))
 			{
 				PropertyData.Init(c);
-				if (!c->Properties.empty())
-				{
-					SetObject("Class", Class);
-					SetName("Name", Name);
-					SetInt("ObjectFlags", (int)Flags);
-				}
+				SetObject("Class", Class);
+				SetName("Name", Name);
+				SetInt("ObjectFlags", (int)Flags);
 			}
 		}
 	}

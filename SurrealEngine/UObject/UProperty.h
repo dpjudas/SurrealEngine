@@ -186,7 +186,7 @@ public:
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
-	int ArrayDimension = 0;
+	int ArrayDimension = 1;
 	PropertyFlags PropFlags = {};
 	NameString Category;
 	uint16_t ReplicationOffset = 0;

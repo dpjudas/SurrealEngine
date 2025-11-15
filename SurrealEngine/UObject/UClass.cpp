@@ -95,11 +95,13 @@ void UStruct::Load(ObjectStream* stream)
 
 	Code = std::make_shared<::Bytecode>(Bytecode, stream->GetPackage());
 
+	Array<UProperty*> properties;
+
 	size_t offset = 0;
 	if (BaseStruct)
 	{
 		BaseStruct->LoadNow();
-		Properties = BaseStruct->Properties;
+		properties = BaseStruct->Properties;
 		offset = BaseStruct->StructSize;
 	}
 
@@ -113,7 +115,7 @@ void UStruct::Load(ObjectStream* stream)
 		if (UProperty* prop = UObject::TryCast<UBoolProperty>(child))
 		{
 			// Pack bool properties into 32 bit bitfields
-			Properties.push_back(prop);
+			properties.push_back(prop);
 			if (bitfieldMask == 1 || bitfieldMask == (1ULL << 32))
 			{
 				size_t alignment = prop->Alignment();
@@ -132,7 +134,7 @@ void UStruct::Load(ObjectStream* stream)
 		}
 		else if (UProperty* prop = UObject::TryCast<UProperty>(child))
 		{
-			Properties.push_back(prop);
+			properties.push_back(prop);
 			bitfieldMask = 1;
 
 			size_t alignment = prop->Alignment();
@@ -148,6 +150,8 @@ void UStruct::Load(ObjectStream* stream)
 
 		child = child->Next;
 	}
+
+	Properties = std::move(properties);
 
 	child = Children;
 	while (child)
@@ -462,6 +466,30 @@ UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::m
 {
 	if (base)
 		ClsFlags = base->ClsFlags;
+
+	if (name == "Object")
+	{
+		// Object is special as its the base class for everything. Described in Core.u with circular references.
+		// This creates just enough of the properties to resolve it, hopefully.
+
+		auto objInternal = GC::Alloc<UPointerProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
+		auto objOuter = GC::Alloc<UPointerProperty>("Outer", nullptr, ObjectFlags::Native);
+		auto objFlags = GC::Alloc<UIntProperty>("ObjectFlags", nullptr, ObjectFlags::Native);
+		auto objName = GC::Alloc<UStringProperty>("Name", nullptr, ObjectFlags::Native);
+		auto objClass = GC::Alloc<UClassProperty>("Class", nullptr, ObjectFlags::Native);
+		objInternal->ArrayDimension = 6;
+		Properties = { objInternal, objOuter, objFlags, objName, objClass };
+		size_t offset = 0;
+		for (UProperty* prop : Properties)
+		{
+			size_t alignment = prop->Alignment();
+			size_t size = prop->Size();
+			prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
+			offset = prop->DataOffset.DataOffset + size;
+		}
+		size_t alignment = sizeof(void*);
+		StructSize = (offset + alignment - 1) / alignment * alignment;
+	}
 }
 
 void UClass::Load(ObjectStream* stream)
@@ -632,11 +660,7 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 					name = NameString(name.ToString() + "[" + std::to_string(arrayIndex) + "]");
 
 				std::string value;
-				if (AllFlags(prop->PropFlags, PropertyFlags::Config))
-				{
-					value = package->GetPackageManager()->GetIniValue(configName, sectionName, name);
-				}
-				else if (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
+				if (AllFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
 				{
 					if (UClass* outer = UObject::TryCast<UClass>(prop->Outer()))
 					{
@@ -645,6 +669,10 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 						if (outerConfigName.IsNone()) outerConfigName = "system";
 						value = package->GetPackageManager()->GetIniValue(outerConfigName, outerSectionName, prop->Name);
 					}
+				}
+				else if (AllFlags(prop->PropFlags, PropertyFlags::Config))
+				{
+					value = package->GetPackageManager()->GetIniValue(configName, sectionName, name);
 				}
 				else if (AllFlags(prop->PropFlags, PropertyFlags::Localized))
 				{
@@ -778,11 +806,7 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 
 				if (!unsupported)
 				{
-					if (AnyFlags(prop->PropFlags, PropertyFlags::Config))
-					{
-						package->GetPackageManager()->SetIniValue(configName, sectionName, name, value);
-					}
-					else if (AnyFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
+					if (AnyFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
 					{
 						if (UClass* outer = UObject::TryCast<UClass>(prop->Outer()))
 						{
@@ -791,6 +815,10 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 							if (outerConfigName.IsNone()) outerConfigName = "system";
 							package->GetPackageManager()->SetIniValue(outerConfigName, outerSectionName, name, value);
 						}
+					}
+					else if (AnyFlags(prop->PropFlags, PropertyFlags::Config))
+					{
+						package->GetPackageManager()->SetIniValue(configName, sectionName, name, value);
 					}
 				}
 				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
