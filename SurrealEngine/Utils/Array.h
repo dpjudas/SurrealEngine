@@ -136,6 +136,7 @@ public:
 	Array& operator=(std::initializer_list<value_type> ilist)
 	{
 		clear();
+		reserve(ilist.size());
 		for (auto& v : ilist)
 		{
 			new ((char*)(_data + _size)) T(std::move(v));
@@ -163,6 +164,7 @@ public:
 	void assign(std::initializer_list<T> ilist)
 	{
 		clear();
+		reserve(ilist.size());
 		for (auto& v : ilist)
 		{
 			new ((char*)(_data + _size)) T(std::move(v));
