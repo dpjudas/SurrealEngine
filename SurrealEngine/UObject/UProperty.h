@@ -209,7 +209,7 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(void*); }
 	size_t ElementSize() override { return sizeof(void*); }
 	std::string PrintValue(const void* data) override { return "pointer"; }
 };
@@ -266,8 +266,8 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
-	size_t ElementSize() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(UObject*); }
+	size_t ElementSize() override { return sizeof(UObject*); }
 	bool Compare(void* v1, void* v2) override
 	{
 		UObject* o1 = *(UObject**)v1;
@@ -365,7 +365,7 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(Array<void*>); }
 	size_t ElementSize() override { return sizeof(Array<void*>); }
 
 	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
@@ -392,7 +392,7 @@ public:
 	{
 		auto vec = static_cast<Array<void*>*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(vec + i) Array<void*>();
+			new((unsigned char*)(vec + i)) Array<void*>();
 	}
 
 	void CopyConstruct(void* data, void* src) override
@@ -402,7 +402,7 @@ public:
 
 		for (int i = 0; i < ArrayDimension; i++)
 		{
-			new(vec + i) Array<void*>();
+			new((unsigned char*)(vec + i)) Array<void*>();
 
 			size_t s = (Inner->Size() + 7) / 8;
 			for (auto& sp : srcvec[i])
@@ -446,14 +446,14 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(std::map<void*, void*>); }
 	size_t ElementSize() override { return sizeof(std::map<void*,void*>); }
 
 	void Construct(void* data) override
 	{
 		auto map = static_cast<std::map<void*, void*>*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(map + i) std::map<void*, void*>();
+			new((unsigned char*)(map + i)) std::map<void*, void*>();
 	}
 
 	void CopyConstruct(void* data, void* src) override
@@ -462,7 +462,7 @@ public:
 		auto srcmap = static_cast<std::map<void*, void*>*>(src);
 		for (int i = 0; i < ArrayDimension; i++)
 		{
-			new(map + i) std::map<void*, void*>();
+			new((unsigned char*)(map + i)) std::map<void*, void*>();
 
 			size_t sk = (Key->Size() + 7) / 8;
 			size_t sv = (Value->Size() + 7) / 8;
@@ -533,7 +533,7 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(void*); }
 	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
 
 	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i) override
@@ -764,7 +764,7 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(NameString); }
 	size_t ElementSize() override { return sizeof(NameString); }
 	
 	bool Compare(void* v1, void* v2) override
@@ -778,7 +778,7 @@ public:
 	{
 		auto str = static_cast<NameString*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) NameString();
+			new((unsigned char*)(str + i)) NameString();
 	}
 
 	void CopyConstruct(void* data, void* src) override
@@ -786,7 +786,7 @@ public:
 		auto str = static_cast<NameString*>(data);
 		auto srcstr = static_cast<NameString*>(src);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) NameString(srcstr[i]);
+			new((unsigned char*)(str + i)) NameString(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
@@ -820,14 +820,14 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(std::string); }
 	size_t ElementSize() override { return sizeof(std::string); }
 
 	void Construct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string();
+			new((unsigned char*)(str + i)) std::string();
 	}
 
 	void CopyConstruct(void* data, void* src) override
@@ -835,7 +835,7 @@ public:
 		auto str = static_cast<std::string*>(data);
 		auto srcstr = static_cast<std::string*>(src);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string(srcstr[i]);
+			new((unsigned char*)(str + i)) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
@@ -868,14 +868,14 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return sizeof(void*); }
+	size_t Alignment() override { return alignof(std::string); }
 	size_t ElementSize() override { return sizeof(std::string); }
 
 	void Construct(void* data) override
 	{
 		auto str = static_cast<std::string*>(data);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string();
+			new((unsigned char*)(str + i)) std::string();
 	}
 
 	void CopyConstruct(void* data, void* src) override
@@ -883,7 +883,7 @@ public:
 		auto str = static_cast<std::string*>(data);
 		auto srcstr = static_cast<std::string*>(src);
 		for (int i = 0; i < ArrayDimension; i++)
-			new(str + i) std::string(srcstr[i]);
+			new((unsigned char*)(str + i)) std::string(srcstr[i]);
 	}
 
 	void Destruct(void* data) override
