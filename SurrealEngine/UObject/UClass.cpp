@@ -767,7 +767,7 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 					}
 				}
 
-				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
+				ptr = static_cast<uint8_t*>(ptr) + prop->ElementPitch();
 			}
 		}
 	}
@@ -821,7 +821,7 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 						package->GetPackageManager()->SetIniValue(configName, sectionName, name, value);
 					}
 				}
-				ptr = static_cast<uint8_t*>(ptr) + prop->ElementSize();
+				ptr = static_cast<uint8_t*>(ptr) + prop->ElementPitch();
 			}
 		}
 	}

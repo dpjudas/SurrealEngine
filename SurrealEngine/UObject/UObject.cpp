@@ -554,7 +554,7 @@ void PropertyDataBlock::Init(UClass* cls)
 	for (UProperty* prop : cls->Properties)
 	{
 #ifdef _DEBUG
-		if (prop->DataOffset.DataOffset + prop->Size() > cls->StructSize)
+		if (prop->DataOffset.DataOffset + prop->ArraySize() > cls->StructSize)
 			Exception::Throw("Memory corruption detected!");
 #endif
 
@@ -659,7 +659,7 @@ void PropertyDataBlock::Load(ObjectStream* stream)
 			Exception::Throw("Array property is out of bounds!");
 
 		prop->Flags |= ObjectFlags::TagExp;
-		prop->LoadValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementSize(), stream, header);
+		prop->LoadValue(static_cast<uint8_t*>(data) + header.arrayIndex * prop->ElementPitch(), stream, header);
 	}
 }
 

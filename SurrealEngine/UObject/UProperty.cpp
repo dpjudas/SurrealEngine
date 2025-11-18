@@ -751,7 +751,7 @@ void UFixedArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
 		for (int arrayIndex = 0; arrayIndex < Inner->ArrayDimension; arrayIndex++)
 		{
 			Inner->SaveValue(p, stream);
-			p += Inner->ElementSize();
+			p += Inner->ElementPitch();
 		}
 	}
 }
@@ -1080,26 +1080,6 @@ void UStructProperty::Save(PackageStreamWriter* stream)
 	stream->WriteObject(Struct);
 }
 
-static void* LoadStruct(void* data, ObjectStream* stream, UStruct* Struct)
-{
-	if (auto base = UObject::TryCast<UStruct>(Struct->BaseField))
-	{
-		data = LoadStruct(data, stream, base);
-	}
-
-	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-		if (fieldprop)
-		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
-			fieldprop->LoadStructMemberValue(fielddata, stream);
-		}
-	}
-
-	return static_cast<uint8_t*>(data) + Struct->StructSize;
-}
-
 void UStructProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Struct);
@@ -1107,12 +1087,19 @@ void UStructProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	if (Struct->Name != header.structName)
 		Exception::Throw("Encountered struct '" + header.structName.ToString() + "' does not match expected struct property '" + Struct->Name.ToString() + "'");
 
-	LoadStruct(data, stream, Struct);
+	LoadStructMemberValue(data, stream);
 }
 
 void UStructProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	LoadStruct(data, stream, Struct);
+	if (Struct->Properties.empty())
+		throw std::runtime_error("Struct has no properties");
+
+	for (UProperty* fieldprop : Struct->Properties)
+	{
+		void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
+		fieldprop->LoadStructMemberValue(fielddata, stream);
+	}
 }
 
 void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -1121,29 +1108,13 @@ void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
 	header.structName = Struct->Name;
 }
 
-static void* SaveStruct(void* data, PackageStreamWriter* stream, UStruct* Struct)
-{
-	if (auto base = UObject::TryCast<UStruct>(Struct->BaseField))
-	{
-		data = SaveStruct(data, stream, base);
-	}
-
-	for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-		if (fieldprop)
-		{
-			void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
-			fieldprop->SaveValue(fielddata, stream);
-		}
-	}
-
-	return static_cast<uint8_t*>(data) + Struct->StructSize;
-}
-
 void UStructProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	SaveStruct(data, stream, Struct);
+	for (UProperty* fieldprop : Struct->Properties)
+	{
+		void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
+		fieldprop->SaveValue(fielddata, stream);
+	}
 }
 
 size_t UStructProperty::ElementAlignment()
@@ -1249,12 +1220,12 @@ void UStructProperty::GetExportText(std::string& buf, const std::string& whitesp
 	if (i >= ArrayDimension)
 		Exception::Throw("UStructProperty::GetExportText index out of bounds");
 
-	uint8_t* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + (i * ElementSize());
+	uint8_t* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + (i * ElementPitch());
 	uint8_t* defval = nullptr;
 	try
 	{
 		if (defobj)
-			defval = static_cast<uint8_t*>(defobj->GetProperty(Name)) + (i * ElementSize());
+			defval = static_cast<uint8_t*>(defobj->GetProperty(Name)) + (i * ElementPitch());
 	}
 	catch (...)
 	{

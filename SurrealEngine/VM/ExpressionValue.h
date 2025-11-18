@@ -219,7 +219,7 @@ public:
 	ExpressionValue ItemAt(int index)
 	{
 		index = clamp(index, 0, (int)VariableProperty->ArrayDimension - 1);
-		return ExpressionValue(PtrByte + VariableProperty->ElementSize() * index, VariableProperty);
+		return ExpressionValue(PtrByte + VariableProperty->ElementPitch() * index, VariableProperty);
 	}
 
 	ExpressionValue Member(UProperty* field)
