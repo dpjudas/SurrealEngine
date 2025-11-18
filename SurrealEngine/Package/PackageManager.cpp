@@ -759,7 +759,7 @@ void PackageManager::RegisterNativeClasses()
 	RegisterNativeClass<UFunction>(corePackage, "Function", "Struct");
 	RegisterNativeClass<UState>(corePackage, "State", "Struct");
 	RegisterNativeClass<UClass>(corePackage, "Class", "State");
-	RegisterNativeClass<UProperty>(corePackage, "Property", "Field");
+	RegisterNativeClass<UAbstractProperty>(corePackage, "Property", "Field");
 	RegisterNativeClass<UPointerProperty>(corePackage, "PointerProperty", "Property");
 	RegisterNativeClass<UByteProperty>(corePackage, "ByteProperty", "Property");
 	RegisterNativeClass<UObjectProperty>(corePackage, "ObjectProperty", "Property");

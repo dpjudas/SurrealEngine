@@ -62,6 +62,7 @@ public:
 	Array<uint8_t> Bytecode, BytecodeRaw;
 	std::shared_ptr<::Bytecode> Code;
 
+	size_t StructAlignment = 1;
 	size_t StructSize = 0;
 	Array<UProperty*> Properties;
 

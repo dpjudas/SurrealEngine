@@ -98,11 +98,13 @@ void UStruct::Load(ObjectStream* stream)
 	Array<UProperty*> properties;
 
 	size_t offset = 0;
+	size_t structAlignment = 1;
 	if (BaseStruct)
 	{
 		BaseStruct->LoadNow();
 		properties = BaseStruct->Properties;
 		offset = BaseStruct->StructSize;
+		structAlignment = std::max(structAlignment, BaseStruct->StructAlignment);
 	}
 
 	uint64_t bitfieldMask = 1;
@@ -114,20 +116,24 @@ void UStruct::Load(ObjectStream* stream)
 
 		if (UProperty* prop = UObject::TryCast<UBoolProperty>(child))
 		{
+			if (prop->ArrayDimension > 1)
+				throw std::runtime_error("Bool properties with ArrayDimension larger than 1 not supported");
+
 			// Pack bool properties into 32 bit bitfields
 			properties.push_back(prop);
 			if (bitfieldMask == 1 || bitfieldMask == (1ULL << 32))
 			{
-				size_t alignment = prop->Alignment();
-				size_t size = prop->Size();
+				size_t alignment = prop->ElementAlignment();
+				size_t size = prop->ElementSize();
 				prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
 				prop->DataOffset.BitfieldMask = 1;
 				bitfieldMask = 2;
 				offset = prop->DataOffset.DataOffset + size;
+				structAlignment = std::max(structAlignment, alignment);
 			}
 			else
 			{
-				prop->DataOffset.DataOffset = offset - prop->Size();
+				prop->DataOffset.DataOffset = offset - prop->ElementSize();
 				prop->DataOffset.BitfieldMask = (uint32_t)bitfieldMask;
 				bitfieldMask <<= 1;
 			}
@@ -137,10 +143,11 @@ void UStruct::Load(ObjectStream* stream)
 			properties.push_back(prop);
 			bitfieldMask = 1;
 
-			size_t alignment = prop->Alignment();
-			size_t size = prop->Size();
+			size_t alignment = prop->ArrayAlignment();
+			size_t size = prop->ArraySize();
 			prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
 			offset = prop->DataOffset.DataOffset + size;
+			structAlignment = std::max(structAlignment, alignment);
 		}
 		else if (UStruct* childstruct = UObject::TryCast<UStruct>(child))
 		{
@@ -152,6 +159,8 @@ void UStruct::Load(ObjectStream* stream)
 	}
 
 	Properties = std::move(properties);
+	StructAlignment = structAlignment;
+	StructSize = offset;
 
 	child = Children;
 	while (child)
@@ -163,17 +172,6 @@ void UStruct::Load(ObjectStream* stream)
 			NativeFunctions::RegisterNativeFunc(func);
 		}
 		child = child->Next;
-	}
-
-	if (FriendlyName == "Vector" || FriendlyName == "Rotator")
-	{
-		size_t alignment = sizeof(uint32_t);
-		StructSize = (offset + alignment - 1) / alignment * alignment;
-	}
-	else
-	{
-		size_t alignment = sizeof(void*);
-		StructSize = (offset + alignment - 1) / alignment * alignment;
 	}
 
 	if (ScriptText)
@@ -480,15 +478,17 @@ UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::m
 		objInternal->ArrayDimension = 6;
 		Properties = { objInternal, objOuter, objFlags, objName, objClass };
 		size_t offset = 0;
+		size_t structAlignment = 1;
 		for (UProperty* prop : Properties)
 		{
-			size_t alignment = prop->Alignment();
-			size_t size = prop->Size();
+			size_t alignment = prop->ArrayAlignment();
+			size_t size = prop->ArraySize();
 			prop->DataOffset.DataOffset = (offset + alignment - 1) / alignment * alignment;
 			offset = prop->DataOffset.DataOffset + size;
+			structAlignment = std::max(structAlignment, alignment);
 		}
-		size_t alignment = sizeof(void*);
-		StructSize = (offset + alignment - 1) / alignment * alignment;
+		StructAlignment = structAlignment;
+		StructSize = offset;
 	}
 }
 

@@ -30,7 +30,7 @@ public:
 		if (Struct)
 		{
 			for (UProperty* prop : Struct->Properties)
-				prop->CopyValue(
+				prop->CopyArray(
 					static_cast<uint8_t*>(dest) + prop->DataOffset.DataOffset,
 					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
 		}
@@ -44,7 +44,7 @@ public:
 		{
 			Ptr = new uint64_t[(Struct->StructSize + 7) / 8];
 			for (UProperty* prop : Struct->Properties)
-				prop->CopyConstruct(
+				prop->CopyConstructArray(
 					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
 					static_cast<uint8_t*>(src) + prop->DataOffset.DataOffset);
 		}
@@ -55,7 +55,7 @@ public:
 		if (Struct)
 		{
 			for (UProperty* prop : Struct->Properties)
-				prop->Destruct(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
+				prop->DestructArray(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
 			delete[](uint64_t*)Ptr;
 			Struct = nullptr;
 		}
@@ -229,12 +229,12 @@ public:
 
 	void ConstructVariable()
 	{
-		VariableProperty->Construct(Ptr);
+		VariableProperty->ConstructArray(Ptr);
 	}
 
 	void DestructVariable()
 	{
-		VariableProperty->Destruct(Ptr);
+		VariableProperty->DestructArray(Ptr);
 	}
 
 	void CheckType(ExpressionValueType type)
@@ -431,7 +431,7 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 			if (Struct)
 			{
 				for (UProperty* prop : Struct->Properties)
-					prop->CopyValue(
+					prop->CopyArray(
 						static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
 						static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
 			}

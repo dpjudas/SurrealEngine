@@ -559,11 +559,11 @@ void PropertyDataBlock::Init(UClass* cls)
 #endif
 
 		if (&cls->PropertyData != this)
-			prop->CopyConstruct(Ptr(prop), cls->PropertyData.Ptr(prop));
+			prop->CopyConstructArray(Ptr(prop), cls->PropertyData.Ptr(prop));
 		else if (cls->BaseStruct && prop->DataOffset.DataOffset < cls->BaseStruct->PropertyData.Size) // inherit from base default object
-			prop->CopyConstruct(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
+			prop->CopyConstructArray(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
 		else
-			prop->Construct(Ptr(prop));
+			prop->ConstructArray(Ptr(prop));
 	}
 }
 
@@ -674,13 +674,13 @@ void PropertyDataBlock::Save(PackageStreamWriter* stream, PropertyDataBlock* def
 
 		for (int arrayIndex = 0; arrayIndex < prop->ArrayDimension; arrayIndex++)
 		{
-			size_t offset = prop->ElementSize() * arrayIndex;
+			size_t offset = prop->ElementPitch() * arrayIndex;
 			void* data = static_cast<uint8_t*>(Ptr(prop)) + offset;
 
 			if (defaultBlock)
 			{
 				void* defaultdata = static_cast<uint8_t*>(defaultBlock->Ptr(prop)) + offset;
-				if (prop->Compare(data, defaultdata))
+				if (prop->CompareElement(data, defaultdata))
 					continue;
 			}
 

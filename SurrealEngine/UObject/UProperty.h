@@ -1,10 +1,7 @@
 #pragma once
 
 #include "UClass.h"
-
 #include "Utils/Convert.h"
-
-#include <sstream>
 
 struct PropertyHeader;
 
@@ -55,57 +52,6 @@ enum class ExpressionValueType
 	ValueStruct
 };
 
-// Helper functions for parsing property strings with multiple values
-
-// Parses a single property
-static std::pair<NameString, std::string> ParseSingleProperty(std::string& propString)
-{
-	propString.erase(propString.find_last_not_of(' ') + 1);
-	propString.erase(0, propString.find_first_not_of(' '));
-
-	auto equalsPos = propString.find('=');
-
-	if (equalsPos == std::string::npos)
-		Exception::Throw("No = found in the property string: " + propString);
-
-	std::string name = propString.substr(0, equalsPos);
-	std::string value = propString.substr(equalsPos + 1);
-
-	return std::make_pair(name, value);
-}
-
-// Parses all properties given in the string
-static std::map<NameString, std::string> ParsePropertiesFromString(std::string propertiesString)
-{
-	std::map<NameString, std::string> properties;
-
-	if (propertiesString.empty())
-		return {};
-
-	// Also check for the string being "null", "null struct" or "None"
-	if (propertiesString == "null" || propertiesString == "null struct" || propertiesString == "None")
-		return {};
-
-	if (propertiesString[0] != '{')
-		Exception::Throw("{ not found in the property string: " + propertiesString);
-
-	if (propertiesString[propertiesString.size() - 1] != '}')
-		Exception::Throw("} not found in the property string: " + propertiesString);
-
-	std::string propsString = propertiesString.substr(1, propertiesString.find('}') - 1);
-
-	std::stringstream propsStream(propsString);
-	std::string prop;
-
-	while (getline(propsStream, prop, ','))
-	{
-		auto currProp = ParseSingleProperty(prop);
-		properties[currProp.first] = currProp.second;
-	}
-
-	return properties;
-}
-
 class UProperty : public UField
 {
 public:
@@ -119,70 +65,36 @@ public:
 	virtual void SaveHeader(void* data, PropertyHeader& header);
 	virtual void SaveValue(void* data, PackageStreamWriter* stream);
 
-	virtual size_t Alignment() { return 4; }
-	size_t Size() { return ElementSize() * ArrayDimension; }
-	virtual size_t ElementSize() { return 4; }
-	virtual void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
-	{
-		if (i >= ArrayDimension)
-			Exception::Throw("UProperty::GetExportText index out of bounds");
+	virtual size_t ElementAlignment() = 0;
+	virtual size_t ElementSize() = 0;
+	size_t ElementPitch() { size_t align = ElementAlignment(); return (ElementSize() + align - 1) / align * align; }
 
-		size_t elementSize = ElementSize();
-		int offset = i * (int)elementSize;
+	void* GetElement(void* data, size_t index) { return static_cast<char*>(data) + index * ElementPitch(); }
+	const void* GetElement(const void* data, size_t index) { return static_cast<const char*>(data) + index * ElementPitch(); }
 
-		void* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + offset;
-		void* defval = nullptr;
-		try
-		{
-			defval = (defobj) ? static_cast<uint8_t*>(defobj->GetProperty(Name)) + offset : nullptr;
-		}
-		catch (...) 
-		{
-			// ignore exceptions, its ok if GetProperty fails here
-		}
+	virtual void ConstructElement(void* data) = 0;
+	virtual void CopyConstructElement(void* data, const void* src) = 0;
+	virtual void CopyElement(void* data, const void* src) = 0;
+	virtual void DestructElement(void* data) = 0;
+	virtual bool CompareElement(const void* v1, const void* v2) = 0;
+	virtual bool CompareLessElement(const void* v1, const void* v2) = 0;
 
-		std::string innerbuf;
-		GetExportText(innerbuf, whitespace, objval, defval, i);
-		if (innerbuf.size() > 0)
-			innerbuf += "\r\n";
+	size_t ArrayAlignment() { return ElementAlignment(); }
+	size_t ArraySize() { return ElementPitch() * (ArrayDimension - 1) + ElementSize(); }
+	size_t ArrayPitch() { return ElementPitch() * ArrayDimension; }
 
-		buf += innerbuf;
-	}
-	virtual void GetExportText(std::string& buf, const std::string& whitespace, void* objval, void* defval, int i)
-	{
-		if (!defval && IsDefaultValue(objval))
-			return;
-		else if (defval && Compare(objval, defval))
-			return;
+	void ConstructArray(void* data);
+	void CopyConstructArray(void* data, const void* src);
+	void DestructArray(void* data);
+	void CopyArray(void* data, const void* src);
+	bool CompareArray(const void* v1, const void* v2);
+	bool CompareLessArray(const void* v1, const void* v2);
 
-		buf += whitespace + Name.ToString();
-		if (ArrayDimension > 1)
-			buf += '(' + std::to_string(i) + ')';
-		buf += '=' + PrintValue(objval);
-	}
-	virtual bool Compare(void* v1, void* v2)
-	{
-		return memcmp(v1, v2, ElementSize()) == 0;
-	}
-	virtual void Construct(void* data) { memset(data, 0, Size()); }
-	virtual void CopyConstruct(void* data, void* src) { memcpy(data, src, Size()); }
-	virtual void CopyValue(void* data, void* src)
-	{
-		if (data != src)
-		{
-			Destruct(data);
-			CopyConstruct(data, src);
-		}
-	}
-	virtual void Destruct(void* data) { }
+	virtual void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i);
+	virtual void GetExportText(std::string& buf, const std::string& whitespace, void* objval, void* defval, int i);
 	virtual bool IsDefaultValue(void* val) { return false; }
-
 	virtual std::string PrintValue(const void* data) { return "?"; }
-
-	virtual void SetValueFromString(void* data, const std::string& valueString) 
-	{ 
-		//Exception::Throw("SetValueFromString() is unimplemented on this Property type!");
-	}
+	virtual void SetValueFromString(void* data, const std::string& valueString);
 
 	static void ThrowIfTypeMismatch(const PropertyHeader& header, UnrealPropertyType type);
 
@@ -193,12 +105,60 @@ public:
 
 	PropertyDataOffset DataOffset = { 0, 1 };
 	ExpressionValueType ValueType = ExpressionValueType::Nothing;
+
+protected:
+	static std::pair<NameString, std::string> ParseSingleProperty(std::string& propString);
+	static std::map<NameString, std::string> ParsePropertiesFromString(std::string propertiesString);
 };
 
-class UPointerProperty : public UProperty // 469 extension?
+class PropertyValue
+{
+public:
+	PropertyValue() = default;
+	PropertyValue(const PropertyValue& other);
+	PropertyValue(UProperty* prop, const void* data = nullptr);
+	~PropertyValue();
+
+	PropertyValue& operator=(const PropertyValue& other);
+
+	bool operator==(const PropertyValue& other) const;
+	bool operator<(const PropertyValue& other) const;
+
+	UProperty* Property = nullptr;
+	void* Data = nullptr;
+
+private:
+	void Create(const PropertyValue& other);
+	void Create(UProperty* prop, const void* data);
+	void Destroy();
+};
+
+template<typename T>
+class UPropertyT : public UProperty
 {
 public:
 	using UProperty::UProperty;
+
+	size_t ElementAlignment() override { return alignof(T); }
+	size_t ElementSize() override { return sizeof(T); }
+
+	void ConstructElement(void* data) override { new ((char*)data) T(); }
+	void CopyConstructElement(void* data, const void* src) override { new ((char*)data) T(*static_cast<const T*>(src)); }
+	void DestructElement(void* data) override { static_cast<T*>(data)->~T(); }
+
+	void CopyElement(void* data, const void* src) override { *static_cast<T*>(data) = *static_cast<const T*>(src); }
+
+	bool CompareElement(const void* v1, const void* v2) override { return *static_cast<const T*>(v1) == *static_cast<const T*>(v2); }
+	bool CompareLessElement(const void* v1, const void* v2) override { return *static_cast<const T*>(v1) < *static_cast<const T*>(v2); }
+};
+
+// Dummy property class so we can keep the virtual functions in UProperty abstract
+typedef UPropertyT<int> UAbstractProperty;
+
+class UPointerProperty : public UPropertyT<void*>
+{
+public:
+	using UPropertyT<void*>::UPropertyT;
 	
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
@@ -209,15 +169,13 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(void*); }
-	size_t ElementSize() override { return sizeof(void*); }
 	std::string PrintValue(const void* data) override { return "pointer"; }
 };
 
-class UByteProperty : public UProperty
+class UByteProperty : public UPropertyT<uint8_t>
 {
 public:
-	UByteProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueByte; }
+	UByteProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
@@ -228,35 +186,18 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return 1; }
-	size_t ElementSize() override { return 1; }
-
-	std::string PrintValue(const void* data) override 
-	{ 
-		uint8_t val = *(uint8_t*)data;
-		if (EnumType && val < EnumType->ElementNames.size())
-			return EnumType->ElementNames[val].ToString();
-		
-		return std::to_string(*(uint8_t*)data); 
-	}
-	bool IsDefaultValue(void* val) override
-	{
-		return *(uint8_t*)val == 0;
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(uint8_t*)data = Convert::to_uint8(valueString);
-	}
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
+	void SetValueFromString(void* data, const std::string& valueString) override;
 
 	UEnum* EnumType = nullptr; // null if it is a normal byte, otherwise it is an enum type
 };
 
-class UObjectProperty : public UProperty
+class UObjectProperty : public UPropertyT<UObject*>
 {
 public:
-	UObjectProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueObject; }
-	
+	UObjectProperty(NameString name, UClass* base, ObjectFlags flags);
+
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
@@ -266,27 +207,8 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(UObject*); }
-	size_t ElementSize() override { return sizeof(UObject*); }
-	bool Compare(void* v1, void* v2) override
-	{
-		UObject* o1 = *(UObject**)v1;
-		UObject* o2 = *(UObject**)v2;
-		return o1 == o2;
-	}
-	std::string PrintValue(const void* data) override
-	{
-		UObject* obj = *(UObject**)data;
-		if (obj)
-			return obj->Class->Name.ToString() + '\'' + obj->package->GetExportName(obj->exportIndex) + '\'';
-		else
-			return "None";
-	}
-	bool IsDefaultValue(void* val) override
-	{
-		return *(UObject**)val == nullptr;
-	}
-
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
 	void SetValueFromString(void* data, const std::string& valueString) override;
 
 	UClass* ObjectClass = nullptr;
@@ -305,48 +227,17 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return Inner->Alignment(); }
-	size_t ElementSize() override { return Inner->Size() * Count; }
+	size_t ElementAlignment() override;
+	size_t ElementSize() override;
 
-	void Construct(void* data) override
-	{
-		uint8_t* p = static_cast<uint8_t*>(data);
-		size_t s = Inner->Size();
-		int totalcount = Count * ArrayDimension;
-		for (int i = 0; i < totalcount; i++)
-		{
-			Inner->Construct(p);
-			p += s;
-		}
-	}
+	void ConstructElement(void* data) override;
+	void CopyConstructElement(void* data, const void* src) override;
+	void DestructElement(void* data) override;
+	void CopyElement(void* data, const void* src) override;
+	bool CompareElement(const void* v1, const void* v2) override;
+	bool CompareLessElement(const void* v1, const void* v2) override;
 
-	void CopyConstruct(void* data, void* src) override
-	{
-		uint8_t* p = static_cast<uint8_t*>(data);
-		uint8_t* sp = static_cast<uint8_t*>(src);
-		size_t s = Inner->Size();
-		int totalcount = Count * ArrayDimension;
-		for (int i = 0; i < totalcount; i++)
-		{
-			Inner->CopyConstruct(p, sp);
-			p += s;
-			sp += s;
-		}
-	}
-
-	void Destruct(void* data) override
-	{
-		uint8_t* p = static_cast<uint8_t*>(data);
-		size_t s = Inner->Size();
-		int totalcount = Count * ArrayDimension;
-		for (int i = 0; i < totalcount; i++)
-		{
-			Inner->Destruct(p);
-			p += s;
-		}
-	}
-
-	std::string PrintValue(const void* data) override { return "fixed array"; }
+	std::string PrintValue(const void* data) override;
 
 	UProperty* Inner = nullptr;
 	int Count = 0;
@@ -365,70 +256,18 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(Array<void*>); }
-	size_t ElementSize() override { return sizeof(Array<void*>); }
+	size_t ElementAlignment() override;
+	size_t ElementSize() override;
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
-	{
-		if (i >= ArrayDimension)
-			Exception::Throw("UArrayProperty::GetExportText index out of bounds");
+	void ConstructElement(void* data) override;
+	void CopyConstructElement(void* data, const void* src) override;
+	void DestructElement(void* data) override;
+	void CopyElement(void* data, const void* src) override;
+	bool CompareElement(const void* v1, const void* v2) override;
+	bool CompareLessElement(const void* v1, const void* v2) override;
 
-		size_t elementSize = ElementSize();
-		int offset = i * (int)elementSize;
-
-		Array<void*>* objarray = static_cast<Array<void*>*>(obj->GetProperty(Name)) + offset;
-		Array<void*>* defarray = (defobj) ? static_cast<Array<void*>*>(defobj->GetProperty(Name)) + offset : nullptr;
-
-		for (int k = 0; k < objarray->size(); k++)
-		{
-			void* objval = objarray->at(k);
-			void* defval = (defarray && k < defarray->size()) ? defarray->at(k) : nullptr;
-
-			Inner->GetExportText(buf, whitespace, objval, defval, i);
-		}
-	}
-
-	void Construct(void* data) override
-	{
-		auto vec = static_cast<Array<void*>*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(vec + i)) Array<void*>();
-	}
-
-	void CopyConstruct(void* data, void* src) override
-	{
-		auto vec = static_cast<Array<void*>*>(data);
-		auto srcvec = static_cast<Array<void*>*>(src);
-
-		for (int i = 0; i < ArrayDimension; i++)
-		{
-			new((unsigned char*)(vec + i)) Array<void*>();
-
-			size_t s = (Inner->Size() + 7) / 8;
-			for (auto& sp : srcvec[i])
-			{
-				int64_t* d = new int64_t[s];
-				Inner->CopyConstruct(d, sp);
-				vec[i].push_back(d);
-			}
-		}
-	}
-
-	void Destruct(void* data) override
-	{
-		auto vec = static_cast<Array<void*>*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-		{
-			for (void* d : vec[i])
-			{
-				Inner->Destruct(d);
-				delete[](int64_t*)d;
-			}
-			vec[i].~Array();
-		}
-	}
-
-	std::string PrintValue(const void* data) override { return "array"; }
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i);
+	std::string PrintValue(const void* data) override;
 
 	UProperty* Inner = nullptr;
 };
@@ -446,54 +285,19 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(std::map<void*, void*>); }
-	size_t ElementSize() override { return sizeof(std::map<void*,void*>); }
+	typedef std::map<PropertyValue, PropertyValue> Map;
 
-	void Construct(void* data) override
-	{
-		auto map = static_cast<std::map<void*, void*>*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(map + i)) std::map<void*, void*>();
-	}
+	size_t ElementAlignment() override;
+	size_t ElementSize() override;
 
-	void CopyConstruct(void* data, void* src) override
-	{
-		auto map = static_cast<std::map<void*, void*>*>(data);
-		auto srcmap = static_cast<std::map<void*, void*>*>(src);
-		for (int i = 0; i < ArrayDimension; i++)
-		{
-			new((unsigned char*)(map + i)) std::map<void*, void*>();
+	void ConstructElement(void* data) override;
+	void CopyConstructElement(void* data, const void* src) override;
+	void DestructElement(void* data) override;
+	void CopyElement(void* data, const void* src) override;
+	bool CompareElement(const void* a, const void* b) override;
+	bool CompareLessElement(const void* a, const void* b) override;
 
-			size_t sk = (Key->Size() + 7) / 8;
-			size_t sv = (Value->Size() + 7) / 8;
-			for (auto& sp : srcmap[i])
-			{
-				int64_t* dk = new int64_t[sk];
-				int64_t* dv = new int64_t[sv];
-				Key->CopyConstruct(dk, sp.first);
-				Key->CopyConstruct(dv, sp.second);
-				map[i][dk] = dv;
-			}
-		}
-	}
-
-	void Destruct(void* data) override
-	{
-		auto map = static_cast<std::map<void*, void*>*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-		{
-			for (auto& it : map[i])
-			{
-				Key->Destruct(it.first);
-				Key->Destruct(it.second);
-				delete[](int64_t*)it.first;
-				delete[](int64_t*)it.second;
-			}
-			map[i].~map();
-		}
-	}
-
-	std::string PrintValue(const void* data) override { return "map"; }
+	std::string PrintValue(const void* data) override;
 
 	UProperty* Key = nullptr;
 	UProperty* Value = nullptr;
@@ -507,14 +311,7 @@ public:
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
-	std::string PrintValue(const void* data) override
-	{
-		UObject* obj = *(UObject**)data;
-		if (obj)
-			return "Class'" + obj->package->GetPackageName().ToString() + '.' + obj->Name.ToString() + '\'';
-		else
-			return "None";
-	}
+	std::string PrintValue(const void* data) override;
 
 	UClass* MetaClass = nullptr;
 };
@@ -522,7 +319,7 @@ public:
 class UStructProperty : public UProperty
 {
 public:
-	UStructProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueStruct; }
+	UStructProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
@@ -533,121 +330,27 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(void*); }
-	size_t ElementSize() override { return Struct ? Struct->StructSize : 0; }
+	size_t ElementAlignment() override;
+	size_t ElementSize() override;
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i) override
-	{
-		if (!Struct)
-		{
-			buf += whitespace + Name.ToString() + '=' + "null struct";
-			return;
-		}
+	void ConstructElement(void* data) override;
+	void CopyConstructElement(void* data, const void* src) override;
+	void CopyElement(void* data, const void* src) override;
+	void DestructElement(void* data) override;
+	bool CompareElement(const void* v1, const void* v2) override;
+	bool CompareLessElement(const void* v1, const void* v2) override;
 
-		if (i >= ArrayDimension)
-			Exception::Throw("UStructProperty::GetExportText index out of bounds");
-
-		uint8_t* objval = static_cast<uint8_t*>(obj->PropertyData.Ptr(this)) + (i * ElementSize());
-		uint8_t* defval = nullptr;
-		try
-		{
-			if (defobj)
-				defval = static_cast<uint8_t*>(defobj->GetProperty(Name)) + (i * ElementSize());
-		}
-		catch (...)
-		{
-		}
-
-		std::string structbuf = "(";
-		std::string innerbuf;
-
-		for (UField* field = Struct->Children; field != nullptr; field = field->Next) 
-		{
-			UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-
-			if (fieldprop == nullptr)
-				continue;
-
-			size_t offset = fieldprop->DataOffset.DataOffset;
-
-			for (int k = 0; k < fieldprop->ArrayDimension; k++)
-			{
-				uint8_t* objsubval = objval + offset;
-				uint8_t* defsubval = (defval) ? defval + offset : nullptr;
-				fieldprop->GetExportText(innerbuf, "", objsubval, defsubval, k);
-
-				if (innerbuf.length() > 0)
-				{
-					structbuf += innerbuf + ',';
-					innerbuf.clear();
-				}
-			}
-		}
-
-		if (structbuf.length() > 1)
-		{
-			structbuf.pop_back();
-			buf += whitespace + Name.ToString() + "=" + structbuf + ")\r\n";
-		}
-	}
-
-	std::string PrintValue(const void* data) override
-	{
-		if (Struct)
-		{
-			std::string print;
-			uint8_t* d = (uint8_t*)data;
-			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-			{
-				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-				if (fieldprop)
-				{
-					print += print.empty() ? " " : ", ";
-					print += fieldprop->Name.ToString();
-					print += "=";
-					print += fieldprop->PrintValue(d + fieldprop->DataOffset.DataOffset);
-				}
-			}
-			return "(" + print + ")";
-		}
-		else
-		{
-			return "null struct";
-		}
-	}
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i) override;
+	std::string PrintValue(const void* data) override;
+	void SetValueFromString(void* data, const std::string& valueString) override;
 
 	UStruct* Struct = nullptr;
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		if (valueString.empty())
-			return;
-		
-		auto properties = ParsePropertiesFromString(valueString);
-
-		if (Struct)
-		{
-			for (UField* field = Struct->Children; field != nullptr; field = field->Next)
-			{
-				UProperty* fieldprop = UObject::TryCast<UProperty>(field);
-				if (fieldprop)
-				{
-					auto it = properties.find(fieldprop->Name);
-
-					if (it != properties.end())
-					{
-						fieldprop->SetValueFromString(data, it->second);
-					}
-				}
-			}
-		}
-	}
 };
 
-class UIntProperty : public UProperty
+class UIntProperty : public UPropertyT<int32_t>
 {
 public:
-	UIntProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueInt; }
+	UIntProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -655,22 +358,15 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	std::string PrintValue(const void* data) override { return std::to_string(*(int32_t*)data); }
-	bool IsDefaultValue(void* val)
-	{
-		return *(int*)val == 0;
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(int32_t*)data = Convert::to_int32(valueString);
-	}
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val);
+	void SetValueFromString(void* data, const std::string& valueString) override;
 };
 
 class UBoolProperty : public UProperty
 {
 public:
-	UBoolProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueBool; }
+	UBoolProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -678,61 +374,28 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	bool Compare(void* v1, void* v2) override
-	{
-		bool b1 = GetBool(v1);
-		bool b2 = GetBool(v2);
-		return b1 == b2;
-	}
-	void Construct(void* data) override
-	{
-		SetBool(data, false);
-	}
+	size_t ElementAlignment() override;
+	size_t ElementSize() override;
 
-	void CopyConstruct(void* data, void* src) override
-	{
-		SetBool(data, GetBool(src));
-	}
+	void ConstructElement(void* data) override;
+	void CopyConstructElement(void* data, const void* src) override;
+	void DestructElement(void* data) override;
+	void CopyElement(void* data, const void* src) override;
+	bool CompareElement(const void* v1, const void* v2) override;
+	bool CompareLessElement(const void* v1, const void* v2) override;
 
-	bool GetBool(const void* data) const
-	{
-		uint32_t v = *reinterpret_cast<const uint32_t*>(data);
-		return (v & DataOffset.BitfieldMask) != 0;
-	}
+	void SetValueFromString(void* data, const std::string& valueString) override;
+	bool IsDefaultValue(void* val) override;
+	std::string PrintValue(const void* data) override;
 
-	void SetBool(void* data, bool value)
-	{
-		uint32_t& v = *reinterpret_cast<uint32_t*>(data);
-		if (value)
-			v = v | DataOffset.BitfieldMask;
-		else
-			v = v & ~DataOffset.BitfieldMask;
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		NameString valueName(valueString);
-
-		if (valueName != "true" && valueName != "false" && valueName != "0" && valueName != "1")
-			Exception::Throw("Invalid bool value given to SetValueFromString(): " + valueString);
-
-		bool value = (valueName == "true" || valueName == "1") ? true : false;
-
-		SetBool(data, value);
-	}
-
-	bool IsDefaultValue(void* val) override
-	{
-		return GetBool(val) == false;
-	}
-
-	std::string PrintValue(const void* data) override { return GetBool(data) ? "True" : "False"; }
+	bool GetBool(const void* data) const;
+	void SetBool(void* data, bool value);
 };
 
-class UFloatProperty : public UProperty
+class UFloatProperty : public UPropertyT<float>
 {
 public:
-	UFloatProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueFloat; }
+	UFloatProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -740,23 +403,15 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	std::string PrintValue(const void* data) override { return std::to_string(*(float*)data); }
-
-	bool IsDefaultValue(void* val)
-	{
-		return *(float*)val == 0.0f;
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(float*)data = Convert::to_float(valueString);
-	}
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
+	void SetValueFromString(void* data, const std::string& valueString) override;
 };
 
-class UNameProperty : public UProperty
+class UNameProperty : public UPropertyT<NameString>
 {
 public:
-	UNameProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueName; }
+	UNameProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -764,55 +419,15 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(NameString); }
-	size_t ElementSize() override { return sizeof(NameString); }
-	
-	bool Compare(void* v1, void* v2) override
-	{
-		NameString* n1 = static_cast<NameString*>(v1);
-		NameString* n2 = static_cast<NameString*>(v2);
-		return *n1 == *n2;
-	}
-
-	void Construct(void* data) override
-	{
-		auto str = static_cast<NameString*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) NameString();
-	}
-
-	void CopyConstruct(void* data, void* src) override
-	{
-		auto str = static_cast<NameString*>(data);
-		auto srcstr = static_cast<NameString*>(src);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) NameString(srcstr[i]);
-	}
-
-	void Destruct(void* data) override
-	{
-		auto str = static_cast<NameString*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			str[i].~NameString();
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(NameString*)data = NameString(valueString);
-	}
-
-	std::string PrintValue(const void* data) override { return ((NameString*)data)->ToString(); }
-
-	bool IsDefaultValue(void* val) override
-	{
-		return static_cast<NameString*>(val)->IsNone();
-	}
+	void SetValueFromString(void* data, const std::string& valueString) override;
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
 };
 
-class UStrProperty : public UProperty
+class UStrProperty : public UPropertyT<std::string>
 {
 public:
-	UStrProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
+	UStrProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 	void LoadStructMemberValue(void* data, ObjectStream* stream) override;
@@ -820,90 +435,24 @@ public:
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(std::string); }
-	size_t ElementSize() override { return sizeof(std::string); }
-
-	void Construct(void* data) override
-	{
-		auto str = static_cast<std::string*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) std::string();
-	}
-
-	void CopyConstruct(void* data, void* src) override
-	{
-		auto str = static_cast<std::string*>(data);
-		auto srcstr = static_cast<std::string*>(src);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) std::string(srcstr[i]);
-	}
-
-	void Destruct(void* data) override
-	{
-		auto str = static_cast<std::string*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			str[i].~basic_string();
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(std::string*)data = valueString;
-	}
-
-	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
-
-	bool IsDefaultValue(void* val) override
-	{
-		return ((std::string*)val)->length() == 0;
-	}
+	void SetValueFromString(void* data, const std::string& valueString) override;
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
 };
 
-class UStringProperty : public UProperty
+class UStringProperty : public UPropertyT<std::string>
 {
 public:
-	UStringProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags) { ValueType = ExpressionValueType::ValueString; }
+	UStringProperty(NameString name, UClass* base, ObjectFlags flags);
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
 
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
-	size_t Alignment() override { return alignof(std::string); }
-	size_t ElementSize() override { return sizeof(std::string); }
-
-	void Construct(void* data) override
-	{
-		auto str = static_cast<std::string*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) std::string();
-	}
-
-	void CopyConstruct(void* data, void* src) override
-	{
-		auto str = static_cast<std::string*>(data);
-		auto srcstr = static_cast<std::string*>(src);
-		for (int i = 0; i < ArrayDimension; i++)
-			new((unsigned char*)(str + i)) std::string(srcstr[i]);
-	}
-
-	void Destruct(void* data) override
-	{
-		auto str = static_cast<std::string*>(data);
-		for (int i = 0; i < ArrayDimension; i++)
-			str[i].~basic_string();
-	}
-
-	void SetValueFromString(void* data, const std::string& valueString) override
-	{
-		*(std::string*)data = valueString;
-	}
-
-	std::string PrintValue(const void* data) override { return '"' + *(std::string*)data + '"'; }
-
-	bool IsDefaultValue(void* val) override
-	{
-		return ((std::string*)val)->length() == 0;
-	}
+	void SetValueFromString(void* data, const std::string& valueString) override;
+	std::string PrintValue(const void* data) override;
+	bool IsDefaultValue(void* val) override;
 };
 
 inline void* PropertyDataBlock::Ptr(const UProperty* prop)
