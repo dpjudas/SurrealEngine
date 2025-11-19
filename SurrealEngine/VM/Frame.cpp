@@ -559,5 +559,13 @@ LocalVariables::LocalVariables(UStruct* func) : Func(func)
 
 LocalVariables::~LocalVariables()
 {
+	if (Func && Data)
+	{
+		for (UProperty* prop : Func->Properties)
+		{
+			prop->DestructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+		}
+	}
+
 	AlignedFree(Data);
 }
