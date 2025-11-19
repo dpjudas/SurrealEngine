@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "UProperty.h"
 #include "Package/PackageManager.h"
+#include "Utils/AlignedAlloc.h"
 #include <sstream>
-#include <cstdlib>
 
 void UProperty::Load(ObjectStream* stream)
 {
@@ -1375,11 +1375,7 @@ void PropertyValue::Create(UProperty* prop, const void* data)
 	Property = prop;
 	if (prop)
 	{
-#ifdef _MSC_VER
-		Data = _aligned_malloc(prop->ElementSize(), prop->ElementAlignment());
-#else
-		Data = std::aligned_alloc(prop->ElementAlignment(), prop->ElementSize());
-#endif
+		Data = AlignedAlloc(prop->ElementAlignment(), prop->ElementSize());
 		if (data)
 			prop->CopyConstructElement(Data, data);
 		else
@@ -1392,11 +1388,7 @@ void PropertyValue::Destroy()
 	if (Data)
 	{
 		Property->DestructElement(Data);
-#ifdef _MSC_VER
-		_aligned_free(Data);
-#else
-		std::free(Data);
-#endif
+		AlignedFree(Data);
 		Property = nullptr;
 		Data = nullptr;
 	}

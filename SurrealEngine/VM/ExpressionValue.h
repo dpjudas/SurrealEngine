@@ -2,6 +2,7 @@
 
 #include "UObject/UObject.h"
 #include "UObject/UProperty.h"
+#include "Utils/AlignedAlloc.h"
 
 class UProperty;
 
@@ -42,7 +43,7 @@ public:
 		Struct = type;
 		if (Struct)
 		{
-			Ptr = new uint64_t[(Struct->StructSize + 7) / 8];
+			Ptr = AlignedAlloc(Struct->StructAlignment, Struct->StructSize);
 			for (UProperty* prop : Struct->Properties)
 				prop->CopyConstructArray(
 					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
@@ -56,7 +57,7 @@ public:
 		{
 			for (UProperty* prop : Struct->Properties)
 				prop->DestructArray(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
-			delete[](uint64_t*)Ptr;
+			AlignedFree(Ptr);
 			Struct = nullptr;
 		}
 	}
@@ -225,16 +226,6 @@ public:
 	ExpressionValue Member(UProperty* field)
 	{
 		return ExpressionValue::Variable(Ptr, field);
-	}
-
-	void ConstructVariable()
-	{
-		VariableProperty->ConstructArray(Ptr);
-	}
-
-	void DestructVariable()
-	{
-		VariableProperty->DestructArray(Ptr);
 	}
 
 	void CheckType(ExpressionValueType type)

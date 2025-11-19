@@ -46,6 +46,16 @@ struct Breakpoint
 	bool Enabled = true;
 };
 
+class LocalVariables
+{
+public:
+	LocalVariables(UStruct* func);
+	~LocalVariables();
+
+	UStruct* Func = nullptr;
+	void* Data = nullptr;
+};
+
 class Frame
 {
 public:
@@ -79,7 +89,7 @@ public:
 
 	LatentRunState LatentState = LatentRunState::Continue;
 
-	std::unique_ptr<uint64_t[]> Variables;
+	std::unique_ptr<LocalVariables> Variables;
 	UObject* Object = nullptr;
 	UStruct* Func = nullptr;
 	size_t StatementIndex = 0;

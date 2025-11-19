@@ -8,6 +8,7 @@
 #include "UObject/USubsystem.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
+#include "Utils/AlignedAlloc.h"
 
 std::function<void()> Frame::RunDebugger;
 Array<Breakpoint> Frame::Breakpoints;
@@ -301,8 +302,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 			UProperty* prop = UObject::TryCast<UProperty>(field);
 			if (prop)
 			{
-				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
-				lvalue.ConstructVariable();
+				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 				{
 					if (argindex < args.size())
@@ -324,7 +324,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 			UProperty* prop = UObject::TryCast<UProperty>(field);
 			if (prop)
 			{
-				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables.get(), prop);
+				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
 
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OutParm) && argindex < args.size())
 				{
@@ -338,8 +338,6 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 
 				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 					argindex++;
-
-				lvalue.DestructVariable();
 			}
 		}
 
@@ -356,10 +354,7 @@ Frame::Frame(UObject* instance, UStruct* func)
 void Frame::SetState(UStruct* func)
 {
 	Func = func;
-	if (func)
-		Variables.reset(new uint64_t[(func->StructSize + 7) / 8]);
-	else
-		Variables.reset();
+	Variables = std::make_unique<LocalVariables>(func);
 }
 
 void Frame::GotoLabel(const NameString& label)
@@ -422,7 +417,7 @@ ExpressionEvalResult Frame::Run()
 		}
 
 		Expression* statement = Func->Code->Statements[curStatementIndex];
-		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables.get());
+		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
 		if (!Func)
 			return result;
 		switch (result.Result)
@@ -478,7 +473,7 @@ ExpressionEvalResult Frame::Run()
 					UProperty* prop = UObject::TryCast<UProperty>(field);
 					if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 					{
-						result.Value = ExpressionValue::Variable(Variables.get(), prop);
+						result.Value = ExpressionValue::Variable(Variables->Data, prop);
 						result.Value.Load();
 						break;
 					}
@@ -534,7 +529,7 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Func->Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
 		{
-			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables.get()).Value;
+			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
@@ -545,4 +540,24 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 			break;
 		}
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+LocalVariables::LocalVariables(UStruct* func) : Func(func)
+{
+	if (func)
+	{
+		Data = AlignedAlloc(func->StructAlignment, func->StructSize);
+
+		for (UProperty* prop : func->Properties)
+		{
+			prop->ConstructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+		}
+	}
+}
+
+LocalVariables::~LocalVariables()
+{
+	AlignedFree(Data);
 }

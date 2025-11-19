@@ -56,6 +56,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/Array.h
 	SurrealEngine/Utils/CrashReporter.cpp
 	SurrealEngine/Utils/CrashReporter.h
+	SurrealEngine/Utils/AlignedAlloc.h
 	SurrealEngine/Commandlet/Commandlet.cpp
 	SurrealEngine/Commandlet/Commandlet.h
 	SurrealEngine/Commandlet/Native/NativeCommandlet.cpp
