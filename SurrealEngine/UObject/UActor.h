@@ -1421,6 +1421,10 @@ public:
 	bool ActorReachable(UActor* anActor);
 	bool PointReachable(vec3 aPoint);
 
+	// If the obstruction is jumpable, start jumping and keep the destination
+	// Otherwise try rotating destination 90 degrees to left and right
+	bool PickWallAdjust();
+
 	UActor* PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
