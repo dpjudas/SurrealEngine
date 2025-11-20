@@ -2229,6 +2229,55 @@ bool UPawn::PointReachable(vec3 aPoint)
 	return TryMove(delta, true).Fraction == 1.0f;
 }
 
+bool UPawn::PickWallAdjust()
+{
+	auto kneeHeight = CollisionHeight() * 0.45f;
+
+	auto forwards = normalize(Acceleration().xy());
+
+	auto afterJumpCollisionHit = TryMove(vec3(forwards, kneeHeight), true);
+
+	if (afterJumpCollisionHit.Fraction == 1)
+	{
+		// Obstacle can be jumped over. Attempt jumping.
+		bFromWall() = false;
+		Velocity().z = JumpZ();
+		SetPhysics(PHYS_Falling);
+		Destination() = Location() + vec3(forwards, kneeHeight);
+
+		return true;
+	}
+
+	// Obstacle cannot be jumped over. Try another direction
+	auto direction = Focus() - Location();
+	auto rightSideVec = normalize(cross(direction, vec3(0, 0, 1)));
+	auto rightSideTest = TryMove(rightSideVec, true);
+	if (rightSideTest.Fraction == 1)
+	{
+		// We can move to right instead
+		bFromWall() = true;
+		Destination() = Location() + rightSideVec;
+		// Focus() = Location() + rightSideVec;
+
+		return true;
+	}
+
+	auto leftSideVec = -rightSideVec;
+	auto leftSideTest = TryMove(leftSideVec, true);
+	if (leftSideTest.Fraction >= 1)
+	{
+		// We can move to left instead
+		bFromWall() = true;
+		Destination() = Location() + leftSideVec;
+		// Focus() = Location() + leftSideVec;
+
+		return true;
+	}
+
+	// Cannot go anywhere from here
+	return false;
+}
+
 bool UPawn::LineOfSightTo(UActor* other)
 {
 	if (!other)
