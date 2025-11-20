@@ -153,13 +153,14 @@ void DebuggerApp::Tick()
 		if (endpos != text.size())
 		{
 			EndPrompt();
-			WriteOutput(NewLine());
 			cmdline = promptline;
 			promptline.clear();
 
 			if (!InCommandlet)
 			{
 				OnCommandEntered();
+				if (!ResumeProgram)
+					WriteOutput(NewLine());
 				WritePrompt();
 			}
 		}
@@ -250,9 +251,8 @@ void DebuggerApp::OnCommandEntered()
 					}
 				}
 			}
-			WriteOutput(NewLine());
 		}
-		else
+		else if (!command.empty())
 		{
 			bool found = false;
 			for (auto& cmdlet : Commandlets)
@@ -282,6 +282,7 @@ void DebuggerApp::OnCommandEntered()
 
 void DebuggerApp::RunGame()
 {
+	InCommandlet = false;
 	if (GameRunning)
 	{
 		WriteOutput(ColorEscape(91) + "Game is already running!" + ResetEscape() + NewLine());
@@ -340,13 +341,14 @@ void DebuggerApp::FrameDebugBreak()
 
 	if (!Frame::ExceptionText.empty())
 	{
-		WriteOutput(NewLine() + ColorEscape(91) + Frame::ExceptionText + ResetEscape() + NewLine() + NewLine());
+		WriteOutput(ColorEscape(91) + Frame::ExceptionText + ResetEscape() + NewLine());
 	}
 	else
 	{
-		WriteOutput(NewLine() + "Debugger breakpoint encountered" + NewLine() + NewLine());
+		WriteOutput("Breakpoint encountered" + NewLine());
 	}
 
+	WriteOutput(NewLine());
 	WritePrompt();
 	while (!ExitRequested && !ResumeProgram)
 	{

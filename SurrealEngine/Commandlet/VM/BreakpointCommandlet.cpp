@@ -17,9 +17,9 @@ void ListBreakpointsCommandlet::OnCommand(DebuggerApp* console, const std::strin
 	for (const Breakpoint& bp : Frame::Breakpoints)
 	{
 		if (bp.Enabled)
-			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + NewLine());
+			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + NewLine());
 		else
-			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Package.ToString() + " " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + " [disabled]" + NewLine());
+			console->WriteOutput("#" + std::to_string(index) + ": " + bp.Class.ToString() + " " + bp.Function.ToString() + " " + bp.State.ToString() + " [disabled]" + NewLine());
 		index++;
 	}
 }
@@ -46,9 +46,9 @@ void BreakpointCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 	}
 
 	Array<std::string> params = SplitString(args);
-	if (params.size() == 3)
+	if (params.size() == 2)
 	{
-		if (Frame::AddBreakpoint(params[0], params[1], params[2]))
+		if (Frame::AddBreakpoint(params[0], params[1]))
 		{
 			int index = (int)Frame::Breakpoints.size();
 			console->WriteOutput("Added breakpoint #" + std::to_string(index) + NewLine());
@@ -58,23 +58,36 @@ void BreakpointCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 			console->WriteOutput("Could not add breakpoint: package/class/function not found" + NewLine());
 		}
 	}
-	else if (params.size() == 4)
+	else if (params.size() == 3)
 	{
-		if (Frame::AddBreakpoint(params[0], params[1], params[2], params[3]))
+		if (Frame::AddBreakpoint(params[0], params[1], params[2]))
 		{
 			int index = (int)Frame::Breakpoints.size();
 			console->WriteOutput("Added breakpoint #" + std::to_string(index) + NewLine());
 		}
 		else
 		{
-			console->WriteOutput("Could not add breakpoint: package/class/function/state not found" + NewLine());
+			console->WriteOutput("Could not add breakpoint: location not found" + NewLine());
+		}
+	}
+	else if (params.size() == 4)
+	{
+		if (Frame::AddBreakpoint(params[0], params[1], params[2], std::atoi(params[3].c_str())))
+		{
+			int index = (int)Frame::Breakpoints.size();
+			console->WriteOutput("Added breakpoint #" + std::to_string(index) + NewLine());
+		}
+		else
+		{
+			console->WriteOutput("Could not add breakpoint: location not found" + NewLine());
 		}
 	}
 }
 
 void BreakpointCommandlet::OnPrintHelp(DebuggerApp* console)
 {
-	console->WriteOutput("Syntax: break <package> <class> <function> [state]" + NewLine());
+	console->WriteOutput("Syntax: break <package.class> <function> [state] [statement]" + NewLine());
+	console->WriteOutput("Example: break Botpack.TeamGamePlus FindPlayerStart None 18" + NewLine());
 }
 
 /////////////////////////////////////////////////////////////////////////////

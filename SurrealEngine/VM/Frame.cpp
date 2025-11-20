@@ -19,16 +19,17 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
-bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsName, const NameString& funcName, const NameString& stateName)
+bool Frame::AddBreakpoint(const NameString& clsName, const NameString& funcName, const NameString& stateName, int statementIndex)
 {
 	Breakpoint bp;
-	bp.Package = packageName;
 	bp.Class = clsName;
 	bp.Function = funcName;
 	bp.State = stateName;
 
-	Package* pkg = engine->packages->GetPackage(packageName);
-	UClass* cls = UObject::Cast<UClass>(pkg->GetUObject("Class", clsName));
+	UClass* cls = engine->packages->FindClass(clsName);
+	if (!cls)
+		return false;
+
 	if (stateName.IsNone())
 	{
 		for (UField* child = cls->Children; child; child = child->Next)
@@ -36,7 +37,9 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 			if (child->Name == funcName && UObject::IsType<UFunction>(child))
 			{
 				UFunction* func = UObject::Cast<UFunction>(child);
-				bp.Expr = func->Code->Statements.front();
+				if (statementIndex < 0 || (size_t)statementIndex >= func->Code->Statements.size())
+					return false;
+				bp.Expr = func->Code->Statements[statementIndex];
 				Breakpoints.push_back(bp);
 				return true;
 			}
@@ -54,7 +57,9 @@ bool Frame::AddBreakpoint(const NameString& packageName, const NameString& clsNa
 					if (child->Name == funcName && UObject::IsType<UFunction>(child))
 					{
 						UFunction* func = UObject::Cast<UFunction>(child);
-						bp.Expr = func->Code->Statements.front();
+						if (statementIndex < 0 || (size_t)statementIndex >= func->Code->Statements.size())
+							return false;
+						bp.Expr = func->Code->Statements[statementIndex];
 						Breakpoints.push_back(bp);
 						return true;
 					}

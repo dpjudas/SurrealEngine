@@ -36,7 +36,6 @@ void CallstackCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		}
 		index++;
 	}
-	console->WriteOutput(NewLine());
 }
 
 void CallstackCommandlet::OnPrintHelp(DebuggerApp* console)

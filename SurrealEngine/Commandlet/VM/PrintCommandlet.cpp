@@ -13,6 +13,9 @@ PrintCommandlet::PrintCommandlet()
 
 void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
+	if (args.empty())
+		return;
+
 	Frame* frame = console->GetCurrentFrame();
 
 	UObject* obj = nullptr;
@@ -20,7 +23,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 	Array<std::string> chunks = SplitString(args, '.');
 
-	if (NameString("self") == chunks[0])
+	if (chunks[0] == "this")
 	{
 		obj = frame->Object;
 	}
@@ -28,12 +31,74 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		for (UProperty* prop : frame->Func->Properties)
 		{
-			if (prop->Name == chunks[0] && (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop)))
+			if (prop->Name == chunks[0])
 			{
-				void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset.DataOffset;
-				obj = *(UObject**)ptr;
-				bFoundObj = true;
-				break;
+				void* ptr = (uint8_t*)frame->Variables->Data + prop->DataOffset.DataOffset;
+				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+				{
+					obj = *(UObject**)ptr;
+					bFoundObj = true;
+					break;
+				}
+				else
+				{
+					for (int i = 0; i < prop->ArrayDimension; i++)
+					{
+						std::string name = prop->Name.ToString();
+						if (prop->ArrayDimension > 1)
+						{
+							name += '[';
+							name += std::to_string(i);
+							name += ']';
+						}
+
+						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
+
+						if (name.size() < 40)
+							name.resize(40, ' ');
+
+						console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	if (!obj)
+	{
+		for (UProperty* prop : frame->Object->PropertyData.Class->Properties)
+		{
+			if (prop->Name == chunks[0])
+			{
+				void* ptr = ((uint8_t*)frame->Object->PropertyData.Data) + prop->DataOffset.DataOffset;
+				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+				{
+					obj = *(UObject**)ptr;
+					bFoundObj = true;
+					break;
+				}
+				else
+				{
+					for (int i = 0; i < prop->ArrayDimension; i++)
+					{
+						std::string name = prop->Name.ToString();
+						if (prop->ArrayDimension > 1)
+						{
+							name += '[';
+							name += std::to_string(i);
+							name += ']';
+						}
+
+						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
+
+						if (name.size() < 40)
+							name.resize(40, ' ');
+
+						console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+						return;
+					}
+				}
 			}
 		}
 	}
@@ -103,7 +168,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	}
 
 	auto props = obj->PropertyData.Class->Properties;
-	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name < b->Name; });
+	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name.ToString() < b->Name.ToString(); });
 	for (UProperty* prop : props)
 	{
 		void* ptr = obj->PropertyData.Ptr(prop);

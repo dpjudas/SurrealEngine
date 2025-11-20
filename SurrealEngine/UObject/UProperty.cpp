@@ -218,12 +218,12 @@ void UPointerProperty::Save(PackageStreamWriter* stream)
 void UPointerProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Int);
-	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
+	*static_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
 void UPointerProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
+	*static_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
 void UPointerProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -233,7 +233,7 @@ void UPointerProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UPointerProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteInt32(*reinterpret_cast<int32_t*>(data));
+	stream->WriteInt32(*static_cast<int32_t*>(data));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -258,12 +258,12 @@ void UByteProperty::Save(PackageStreamWriter* stream)
 void UByteProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Byte);
-	*reinterpret_cast<uint8_t*>(data) = stream->ReadUInt8();
+	*static_cast<uint8_t*>(data) = stream->ReadUInt8();
 }
 
 void UByteProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<uint8_t*>(data) = stream->ReadUInt8();
+	*static_cast<uint8_t*>(data) = stream->ReadUInt8();
 }
 
 void UByteProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -273,7 +273,7 @@ void UByteProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UByteProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteUInt8(*reinterpret_cast<uint8_t*>(data));
+	stream->WriteUInt8(*static_cast<uint8_t*>(data));
 }
 
 std::string UByteProperty::PrintValue(const void* data)
@@ -305,12 +305,12 @@ UIntProperty::UIntProperty(NameString name, UClass* base, ObjectFlags flags) : U
 void UIntProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Int);
-	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
+	*static_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
 void UIntProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<int32_t*>(data) = stream->ReadInt32();
+	*static_cast<int32_t*>(data) = stream->ReadInt32();
 }
 
 void UIntProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -320,7 +320,7 @@ void UIntProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UIntProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteInt32(*reinterpret_cast<int32_t*>(data));
+	stream->WriteInt32(*static_cast<int32_t*>(data));
 }
 
 std::string UIntProperty::PrintValue(const void* data)
@@ -348,12 +348,12 @@ UFloatProperty::UFloatProperty(NameString name, UClass* base, ObjectFlags flags)
 void UFloatProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Float);
-	*reinterpret_cast<float*>(data) = stream->ReadFloat();
+	*static_cast<float*>(data) = stream->ReadFloat();
 }
 
 void UFloatProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<float*>(data) = stream->ReadFloat();
+	*static_cast<float*>(data) = stream->ReadFloat();
 }
 
 void UFloatProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -363,7 +363,7 @@ void UFloatProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UFloatProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteFloat(*reinterpret_cast<float*>(data));
+	stream->WriteFloat(*static_cast<float*>(data));
 }
 
 std::string UFloatProperty::PrintValue(const void* data) 
@@ -455,13 +455,13 @@ bool UBoolProperty::CompareLessElement(const void* v1, const void* v2)
 
 bool UBoolProperty::GetBool(const void* data) const
 {
-	uint32_t v = *reinterpret_cast<const uint32_t*>(data);
+	uint32_t v = *static_cast<const uint32_t*>(data);
 	return (v & DataOffset.BitfieldMask) != 0;
 }
 
 void UBoolProperty::SetBool(void* data, bool value)
 {
-	uint32_t& v = *reinterpret_cast<uint32_t*>(data);
+	uint32_t& v = *static_cast<uint32_t*>(data);
 	if (value)
 		v = v | DataOffset.BitfieldMask;
 	else
@@ -512,12 +512,12 @@ void UObjectProperty::Save(PackageStreamWriter* stream)
 void UObjectProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Object);
-	*reinterpret_cast<UObject**>(data) = stream->ReadObject<UObject>();
+	*static_cast<UObject**>(data) = stream->ReadObject<UObject>();
 }
 
 void UObjectProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<UObject**>(data) = stream->ReadObject<UObject>();
+	*static_cast<UObject**>(data) = stream->ReadObject<UObject>();
 }
 
 void UObjectProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -527,7 +527,7 @@ void UObjectProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UObjectProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteObject(*reinterpret_cast<UObject**>(data));
+	stream->WriteObject(*static_cast<UObject**>(data));
 }
 
 std::string UObjectProperty::PrintValue(const void* data)
@@ -581,12 +581,12 @@ UNameProperty::UNameProperty(NameString name, UClass* base, ObjectFlags flags) :
 void UNameProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header)
 {
 	ThrowIfTypeMismatch(header, UPT_Name);
-	*reinterpret_cast<NameString*>(data) = stream->ReadName();
+	*static_cast<NameString*>(data) = stream->ReadName();
 }
 
 void UNameProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<NameString*>(data) = stream->ReadName();
+	*static_cast<NameString*>(data) = stream->ReadName();
 }
 
 void UNameProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -596,7 +596,7 @@ void UNameProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UNameProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteName(*reinterpret_cast<NameString*>(data));
+	stream->WriteName(*static_cast<NameString*>(data));
 }
 
 void UNameProperty::SetValueFromString(void* data, const std::string& valueString)
@@ -629,7 +629,7 @@ void UStringProperty::LoadValue(void* data, ObjectStream* stream, const Property
 	s.resize(len);
 	stream->ReadBytes(s.data(), (int)s.size());
 	s.push_back(0);
-	*reinterpret_cast<std::string*>(data) = s.data();
+	*static_cast<std::string*>(data) = s.data();
 }
 
 void UStringProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -639,7 +639,7 @@ void UStringProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UStringProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	const std::string& value = *reinterpret_cast<std::string*>(data);
+	const std::string& value = *static_cast<std::string*>(data);
 	stream->WriteBytes(value.c_str(), (uint32_t)value.size() + 1);
 }
 
@@ -669,7 +669,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 {
 	if (header.type == UPT_Str)
 	{
-		*reinterpret_cast<std::string*>(data) = stream->ReadString();
+		*static_cast<std::string*>(data) = stream->ReadString();
 	}
 	else if (header.type == UPT_String)
 	{
@@ -678,7 +678,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 		s.resize(len);
 		stream->ReadBytes(s.data(), (int)s.size());
 		s.push_back(0);
-		*reinterpret_cast<std::string*>(data) = s.data();
+		*static_cast<std::string*>(data) = s.data();
 	}
 	else
 	{
@@ -688,7 +688,7 @@ void UStrProperty::LoadValue(void* data, ObjectStream* stream, const PropertyHea
 
 void UStrProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
 {
-	*reinterpret_cast<std::string*>(data) = stream->ReadString();
+	*static_cast<std::string*>(data) = stream->ReadString();
 }
 
 void UStrProperty::SaveHeader(void* data, PropertyHeader& header)
@@ -698,7 +698,7 @@ void UStrProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UStrProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	stream->WriteString(*reinterpret_cast<std::string*>(data));
+	stream->WriteString(*static_cast<std::string*>(data));
 }
 
 void UStrProperty::SetValueFromString(void* data, const std::string& valueString)

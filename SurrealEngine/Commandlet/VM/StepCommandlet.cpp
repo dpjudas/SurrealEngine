@@ -66,6 +66,7 @@ void StepOutCommandlet::OnPrintHelp(DebuggerApp* console)
 ContinueCommandlet::ContinueCommandlet()
 {
 	SetLongFormName("continue");
+	SetShortFormName("c");
 	SetShortDescription("Continue normal execution");
 }
 

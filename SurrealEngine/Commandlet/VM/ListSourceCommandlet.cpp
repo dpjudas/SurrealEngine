@@ -68,8 +68,6 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 			}
 
 			console->ListSourceLineOffset += linesToDisplay;
-
-			console->WriteOutput(NewLine());
 		}
 	}
 }

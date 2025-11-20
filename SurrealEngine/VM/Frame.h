@@ -37,7 +37,6 @@ enum class LatentRunState
 
 struct Breakpoint
 {
-	NameString Package;
 	NameString Class;
 	NameString Function;
 	NameString State;
@@ -62,7 +61,7 @@ public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, Array<ExpressionValue> args);
 	static std::string GetCallstack();
 
-	static bool AddBreakpoint(const NameString& package, const NameString& cls, const NameString& func, const NameString& state = {});
+	static bool AddBreakpoint(const NameString& cls, const NameString& func, const NameString& state = {}, int statementIndex = 0);
 
 	static std::function<void()> RunDebugger;
 	static Array<Breakpoint> Breakpoints;

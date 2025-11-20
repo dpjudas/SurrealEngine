@@ -10,7 +10,7 @@
 
 DisassemblyCommandlet::DisassemblyCommandlet()
 {
-	SetShortFormName("disasm");
+	SetShortFormName("d");
 	SetLongFormName("disassembly");
 	SetShortDescription("Print disassembly for function");
 }
@@ -23,7 +23,8 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		int index = 0;
 		for (Expression* expr : frame->Func->Code->Statements)
 		{
-			PrintExpression::Print(console, "Statement[" + std::to_string(index) + "]", expr);
+			if (expr == Frame::StepExpression)
+				PrintExpression::Print(console, "Statement[" + std::to_string(index) + "]", expr);
 			index++;
 		}
 	}

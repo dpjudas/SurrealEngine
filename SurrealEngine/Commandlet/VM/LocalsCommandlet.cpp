@@ -17,18 +17,26 @@ void LocalsCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		for (UProperty* prop : frame->Func->Properties)
 		{
-			void* ptr = ((uint8_t*)frame->Variables.get()) + prop->DataOffset.DataOffset;
+			void* ptr = (uint8_t*)frame->Variables->Data + prop->DataOffset.DataOffset;
+			for (int i = 0; i < prop->ArrayDimension; i++)
+			{
+				std::string name = prop->Name.ToString();
+				if (prop->ArrayDimension > 1)
+				{
+					name += '[';
+					name += std::to_string(i);
+					name += ']';
+				}
 
-			std::string name = prop->Name.ToString();
-			std::string value = prop->PrintValue(ptr);
+				std::string value = prop->PrintValue(prop->GetElement(ptr, i));
 
-			if (name.size() < 40)
-				name.resize(40, ' ');
+				if (name.size() < 40)
+					name.resize(40, ' ');
 
-			console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+				console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+			}
 		}
 	}
-	console->WriteOutput(NewLine());
 }
 
 void LocalsCommandlet::OnPrintHelp(DebuggerApp* console)
