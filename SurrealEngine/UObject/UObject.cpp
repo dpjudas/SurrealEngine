@@ -11,6 +11,7 @@
 #include "VM/NativeFunc.h"
 #include "Engine.h"
 #include "Utils/Exception.h"
+#include "Utils/AlignedAlloc.h"
 
 UObject::UObject(NameString name, UClass* cls, ObjectFlags flags) : Name(name), Class(cls), Flags(flags)
 {
@@ -538,7 +539,7 @@ void PropertyDataBlock::Reset()
 			prop->Destruct(Ptr(prop));
 		}
 	}*/
-	delete[](int64_t*)Data;
+	AlignedFree(Data);
 	Data = nullptr;
 	Class = nullptr;
 }
@@ -547,10 +548,12 @@ void PropertyDataBlock::Init(UClass* cls)
 {
 	Reset();
 
+	bool isDefaultBlock = (&cls->PropertyData == this);
+
 	Class = cls;
-	Size = (cls->StructSize + 7) / 8;
-	Data = new int64_t[Size];
-	Size *= 8;
+	Size = cls->StructSize;
+	Data = AlignedAlloc(cls->StructAlignment, cls->StructSize);
+
 	for (UProperty* prop : cls->Properties)
 	{
 #ifdef _DEBUG
@@ -558,12 +561,22 @@ void PropertyDataBlock::Init(UClass* cls)
 			Exception::Throw("Memory corruption detected!");
 #endif
 
-		if (&cls->PropertyData != this)
+		if (!isDefaultBlock)
+		{
+			// This is an object instance.
+			// Copy all properties over from the class default block.
 			prop->CopyConstructArray(Ptr(prop), cls->PropertyData.Ptr(prop));
-		else if (cls->BaseStruct && prop->DataOffset.DataOffset < cls->BaseStruct->PropertyData.Size) // inherit from base default object
-			prop->CopyConstructArray(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
+		}
 		else
-			prop->ConstructArray(Ptr(prop));
+		{
+			// This is a default block.
+			// If the property comes from the base class, copy its value over from its default block.
+			// Otherwise this is a new property for this class, which we default (zero) initialize.
+			if (cls->BaseStruct && prop->DataOffset.DataOffset < cls->BaseStruct->PropertyData.Size)
+				prop->CopyConstructArray(Ptr(prop), cls->BaseStruct->PropertyData.Ptr(prop));
+			else
+				prop->ConstructArray(Ptr(prop));
+		}
 	}
 }
 
