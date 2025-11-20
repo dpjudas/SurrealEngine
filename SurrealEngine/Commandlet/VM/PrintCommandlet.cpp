@@ -3,6 +3,8 @@
 #include "PrintCommandlet.h"
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
+#include "Engine.h"
+#include "UObject/ULevel.h"
 
 PrintCommandlet::PrintCommandlet()
 {
@@ -23,12 +25,13 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 	Array<std::string> chunks = SplitString(args, '.');
 
-	if (chunks[0] == "this")
+	if (frame && chunks[0] == "this")
 	{
 		obj = frame->Object;
 	}
-	else
+	else if (frame)
 	{
+		// Search local variables
 		for (UProperty* prop : frame->Func->Properties)
 		{
 			if (prop->Name == chunks[0])
@@ -65,7 +68,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		}
 	}
 
-	if (!obj)
+	if (!obj && frame)
 	{
 		for (UProperty* prop : frame->Object->PropertyData.Class->Properties)
 		{
@@ -105,6 +108,20 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 	if (!obj)
 	{
+		// Search named level actors
+		for (UObject* actor : engine->Level->Actors)
+		{
+			if (actor && actor->Name == chunks[0])
+			{
+				obj = actor;
+				bFoundObj = true;
+				break;
+			}
+		}
+	}
+
+	if (!obj)
+	{
 		if (!bFoundObj)
 			console->WriteOutput("Unknown variable " + chunks[0] + ResetEscape() + NewLine());
 		else
@@ -127,7 +144,6 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		{
 			if (prop->Name == (*chunk))
 			{
-				void* ptr = ((uint8_t*)obj) + prop->DataOffset.DataOffset;
 				void* val = obj->PropertyData.Ptr(prop);
 
 				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))

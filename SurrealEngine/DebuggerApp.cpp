@@ -363,6 +363,8 @@ void DebuggerApp::FrameDebugBreak()
 
 Frame* DebuggerApp::GetCurrentFrame()
 {
+	if (Frame::Callstack.size() <= (size_t)CallstackIndex)
+		return nullptr;
 	return Frame::Callstack[Frame::Callstack.size() - 1 - CallstackIndex];
 }
 
