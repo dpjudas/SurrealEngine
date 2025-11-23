@@ -150,6 +150,7 @@ void UFireTexture::Load(ObjectStream* stream)
 {
 	UFractalTexture::Load(stream);
 
+	auto& sparks = Sparks();
 	int size = stream->ReadIndex();
 	for (int i = 0; i < size; i++)
 	{
@@ -162,7 +163,7 @@ void UFireTexture::Load(ObjectStream* stream)
 		spark.ByteB = stream->ReadUInt8();
 		spark.ByteC = stream->ReadUInt8();
 		spark.ByteD = stream->ReadUInt8();
-		Sparks.push_back(spark);
+		sparks.push_back(spark);
 	}
 }
 
@@ -170,8 +171,9 @@ void UFireTexture::Save(PackageStreamWriter* stream)
 {
 	UFractalTexture::Save(stream);
 
-	stream->WriteIndex((int)Sparks.size());
-	for (const Spark& spark : Sparks)
+	auto& sparks = Sparks();
+	stream->WriteIndex((int)sparks.size());
+	for (const Spark& spark : sparks)
 	{
 		stream->WriteUInt8((uint8_t)spark.Type);
 		stream->WriteUInt8(spark.Heat);
@@ -202,10 +204,11 @@ void UFireTexture::UpdateFrame()
 		int height = mipmap.Height;
 		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 
-		for (size_t i = 0; i < Sparks.size(); i++)
+		auto& sparks = Sparks();
+		for (size_t i = 0; i < sparks.size(); i++)
 		{
-			Spark& spark = Sparks[i];
-			bool canEmit = Sparks.size() + Particles.size() < (size_t)SparksLimit();
+			Spark& spark = sparks[i];
+			bool canEmit = sparks.size() + Particles.size() < (size_t)SparksLimit();
 			switch (spark.Type)
 			{
 			default: // Always create some output as otherwise textures might completely disappear

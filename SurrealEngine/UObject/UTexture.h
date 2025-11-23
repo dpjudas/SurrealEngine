@@ -373,8 +373,6 @@ public:
 
 	void UpdateFrame() override;
 
-	const Array<Spark>& GetSparks() const { return Sparks; }
-
 	FireDrawMode& DrawMode() { return Value<FireDrawMode>(PropOffsets_FireTexture.DrawMode); }
 	uint8_t& FX_Area() { return Value<uint8_t>(PropOffsets_FireTexture.FX_Area); }
 	uint8_t& FX_AuxSize() { return Value<uint8_t>(PropOffsets_FireTexture.FX_AuxSize); }
@@ -391,7 +389,7 @@ public:
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
 	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
-	//Array<Spark*>& Sparks() { return Value<Array<Spark*>>(PropOffsets_FireTexture.Sparks); }
+	Array<Spark>& Sparks() { return Value<Array<Spark>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
 	BitfieldBool bRising() { return BoolValue(PropOffsets_FireTexture.bRising); }
@@ -402,7 +400,6 @@ private:
 	Array<uint8_t> WorkBuffer;
 	uint8_t FadeTable[4 * 256];
 	int CurrentRenderHeat = -1;
-	Array<Spark> Sparks;
 	Array<SparkParticle> Particles;
 };
 

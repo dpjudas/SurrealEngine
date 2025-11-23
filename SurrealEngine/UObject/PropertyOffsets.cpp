@@ -2491,6 +2491,12 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_Effects(packages);
 	InitPropertyOffsets_StatLogFile(packages);
 	InitPropertyOffsets_LevelSummary(packages);
+	InitPropertyOffsets_FractalTexture(packages);
+	InitPropertyOffsets_WaterTexture(packages);
+	InitPropertyOffsets_WaveTexture(packages);
+	InitPropertyOffsets_FireTexture(packages);
+	InitPropertyOffsets_WetTexture(packages);
+	InitPropertyOffsets_IceTexture(packages);
 	InitPropertyOffsets_ScriptedTexture(packages);
 	InitPropertyOffsets_Engine(packages);
 	InitPropertyOffsets_TriggerLight(packages);
@@ -2505,12 +2511,6 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_WarpZoneMarker(packages);
 	InitPropertyOffsets_LiftCenter(packages);
 	InitPropertyOffsets_RenderIterator(packages);
-	InitPropertyOffsets_FractalTexture(packages);
-	InitPropertyOffsets_WaterTexture(packages);
-	InitPropertyOffsets_WaveTexture(packages);
-	InitPropertyOffsets_FireTexture(packages);
-	InitPropertyOffsets_WetTexture(packages);
-	InitPropertyOffsets_IceTexture(packages);
 	InitPropertyOffsets_InternetLink(packages);
 	InitPropertyOffsets_UdpLink(packages);
 	InitPropertyOffsets_TcpLink(packages);
