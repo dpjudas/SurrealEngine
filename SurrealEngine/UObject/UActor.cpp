@@ -2193,7 +2193,7 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 				if (std::abs(cur->Location().z - Location().z) >= CollisionHeight())
 					continue;
 
-				if (FastTrace(cur->Location(), eyePos) && TryMove(delta, true).Fraction < 1.0f)
+				if (!FastTrace(cur->Location(), eyePos))
 					continue;
 
 				if (CheckLocation(cur->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first)
