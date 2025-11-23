@@ -96,8 +96,8 @@ void ULevel::Load(ObjectStream* stream)
 	{
 		LevelReachSpec spec;
 		spec.distance = stream->ReadInt32();
-		spec.startActor = stream->ReadIndex();
-		spec.endActor = stream->ReadIndex();
+		spec.startActor = stream->ReadObject<UNavigationPoint>();
+		spec.endActor = stream->ReadObject<UNavigationPoint>();
 		spec.collisionRadius = stream->ReadInt32();
 		spec.collisionHeight = stream->ReadInt32();
 		spec.reachFlags = stream->ReadInt32();
@@ -114,8 +114,8 @@ void ULevel::Save(PackageStreamWriter* stream)
 	for (const LevelReachSpec& spec : ReachSpecs)
 	{
 		stream->WriteInt32(spec.distance);
-		stream->WriteIndex(spec.startActor);
-		stream->WriteIndex(spec.endActor);
+		stream->WriteObject(spec.startActor);
+		stream->WriteObject(spec.endActor);
 		stream->WriteInt32(spec.collisionRadius);
 		stream->WriteInt32(spec.collisionHeight);
 		stream->WriteInt32(spec.reachFlags);

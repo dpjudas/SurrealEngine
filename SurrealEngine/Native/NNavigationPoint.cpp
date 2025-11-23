@@ -17,8 +17,8 @@ void NNavigationPoint::describeSpec(UObject* Self, int iSpec, UObject*& Start, U
 	if (iSpec >= 0 && (size_t)iSpec < level->ReachSpecs.size())
 	{
 		auto& spec = level->ReachSpecs[iSpec];
-		Start = (spec.startActor >= 0 && (size_t)spec.startActor < level->Actors.size()) ? level->Actors[spec.startActor] : nullptr;
-		End = (spec.endActor >= 0 && (size_t)spec.endActor < level->Actors.size()) ? level->Actors[spec.endActor] : nullptr;
+		Start = spec.startActor;
+		End = spec.endActor;
 		ReachFlags = spec.reachFlags;
 		Distance = spec.distance;
 	}

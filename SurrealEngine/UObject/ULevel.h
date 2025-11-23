@@ -5,6 +5,7 @@
 #include "Collision/TopLevel/CollisionSystem.h"
 #include "Collision/TopLevel/CollisionHit.h"
 
+class UNavigationPoint;
 class UTexture;
 class UActor;
 class UPawn;
@@ -255,13 +256,13 @@ enum EReachSpecFlags
 class LevelReachSpec
 {
 public:
-	int32_t distance;
-	int32_t startActor;
-	int32_t endActor;
-	int32_t collisionRadius;
-	int32_t collisionHeight;
-	int32_t reachFlags;
-	int8_t bPruned;
+	int32_t distance = 0;
+	UNavigationPoint* startActor = nullptr;
+	UNavigationPoint* endActor = nullptr;
+	int32_t collisionRadius = 0;
+	int32_t collisionHeight = 0;
+	int32_t reachFlags = 0;
+	int8_t bPruned = 0;
 };
 
 class ULevelBase : public UObject

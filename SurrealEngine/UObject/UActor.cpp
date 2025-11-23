@@ -9,6 +9,7 @@
 #include "Package/PackageManager.h"
 #include "Package/IniProperty.h"
 #include "Engine.h"
+#include <set>
 
 // TODO: Compare behavior more closely with original engine. Might differ depending on game.
 static constexpr float stepDownDeltaFactor = 1.3f;
@@ -2167,29 +2168,35 @@ UTexture* UActor::GetMultiskin(int index)
 
 /////////////////////////////////////////////////////////////////////////////
 
-bool UPawn::ActorReachable(UActor* anActor)
+bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 {
 	if (!anActor)
 		return false;
-
-	// Check if we are trying to reach a navigation point. They can also be hiding in an inventory for patent-pending spaghetti reasons.
-	UNavigationPoint* navPoint = UObject::TryCast<UNavigationPoint>(anActor);
-	if (UInventory* inventory = UObject::TryCast<UInventory>(anActor))
-		navPoint = inventory->myMarker();
 
 	vec3 eyePos = Location();
 	eyePos.z += BaseEyeHeight();
 
 	vec3 delta = anActor->Location() - Location();
 
-	// If we can reach any navigation point in the map then we can also reach the navigation point asked for
-	if (navPoint)
+	if (checkNavpoint)
 	{
-		for (UNavigationPoint* cur = Level()->NavigationPointList(); cur != nullptr; cur = cur->nextNavigationPoint())
+		// Check if we are trying to reach a navigation point. They can also be hiding in an inventory for patent-pending spaghetti reasons.
+		UNavigationPoint* navPoint = UObject::TryCast<UNavigationPoint>(anActor);
+		if (UInventory* inventory = UObject::TryCast<UInventory>(anActor))
+			navPoint = inventory->myMarker();
+
+		// If we can reach any navigation point in the map then we can also reach the navigation point asked for
+		if (navPoint)
 		{
-			if (std::abs(cur->Location().z - Location().z) < CollisionHeight())
+			for (UNavigationPoint* cur = Level()->NavigationPointList(); cur != nullptr; cur = cur->nextNavigationPoint())
 			{
-				if (FastTrace(cur->Location(), eyePos) && TryMove(delta, true).Fraction == 1.0f)
+				if (std::abs(cur->Location().z - Location().z) >= CollisionHeight())
+					continue;
+
+				if (FastTrace(cur->Location(), eyePos) && TryMove(delta, true).Fraction < 1.0f)
+					continue;
+
+				if (CheckLocation(cur->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first)
 					return true;
 			}
 		}
@@ -2213,7 +2220,10 @@ bool UPawn::ActorReachable(UActor* anActor)
 	if (anActor->Region().Zone->bWaterZone() && !bCanSwim())
 		return false;
 
-	return FastTrace(anActor->Location(), eyePos) && TryMove(delta, true).Fraction == 1.0f;
+	if (!FastTrace(anActor->Location(), eyePos))
+		return false;
+
+	return CheckLocation(anActor->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first;
 }
 
 bool UPawn::PointReachable(vec3 aPoint)
@@ -2225,8 +2235,12 @@ bool UPawn::PointReachable(vec3 aPoint)
 	if (!FootRegion().Zone->bPainZone() && pointRegion.Zone->bPainZone() && pointRegion.Zone->DamageType() != ReducedDamageType())
 		return false;
 
-	vec3 delta = aPoint - Location();
-	return TryMove(delta, true).Fraction == 1.0f;
+	vec3 eyePos = Location();
+	eyePos.z += BaseEyeHeight();
+	if (!FastTrace(aPoint, eyePos))
+		return false;
+
+	return CheckLocation(aPoint, CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first;
 }
 
 bool UPawn::PickWallAdjust()
@@ -2430,31 +2444,166 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 	return true;
 }
 
+UNavigationPoint* UPawn::SetRouteCache(const Array<UNavigationPoint*>& points)
+{
+	if (engine->LaunchInfo.engineVersion > 219)
+	{
+		UNavigationPoint** cache = RouteCache();
+		for (size_t i = 0; i < 16; i++)
+			cache[i] = (i < points.size()) ? points[i] : nullptr;
+	}
+	return !points.empty() ? points.front() : nullptr;
+}
+
+Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int maxDepth)
+{
+	if ((start->bPlayerOnly() && !bIsPlayer()))
+		return {};
+
+	std::set<UNavigationPoint*> visited;
+	Array<const LevelReachSpec*> steps;
+	Array<int> stepDepths;
+	const Array<LevelReachSpec>& reachSpecs = XLevel()->ReachSpecs;
+	
+	visited.insert(start);
+
+	int radius = (int)CollisionRadius();
+	int height = (int)CollisionHeight();
+
+	// Search through the nav node links until we find an end point
+	// To do: add navpoint.cost calculations into this and pick the cheapest path based on that
+
+	int nextStep = 0;
+	UNavigationPoint* current = start;
+	int currentDepth = 0;
+	while (!current->bEndPoint() && currentDepth < maxDepth)
+	{
+		bool foundEnd = false;
+		for (const LevelReachSpec& reachSpec : reachSpecs)
+		{
+			if (reachSpec.startActor == current)
+			{
+				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+					continue; // Skip nav node links that we can't pass through
+
+				if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+					continue; // Skip nav nodes only for the player if we aren't one
+
+				// To do: check reachFlags
+
+				if (visited.insert(reachSpec.endActor).second)
+				{
+					steps.push_back(&reachSpec);
+					stepDepths.push_back(currentDepth + 1);
+
+					if (reachSpec.endActor->bEndPoint())
+					{
+						foundEnd = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (foundEnd || nextStep == steps.size())
+			break;
+
+		current = steps[nextStep]->endActor;
+		currentDepth = stepDepths[nextStep];
+		nextStep++;
+	}
+
+	if (steps.empty())
+		return {};
+
+	// Extract the final path:
+	Array<UNavigationPoint*> path;
+	path.resize(stepDepths.back());
+	int currentStep = (int)steps.size() - 1;
+	while (currentStep >= 0)
+	{
+		const LevelReachSpec* step = steps[currentStep];
+
+		path[stepDepths[currentStep] - 1] = step->endActor;
+
+		currentStep--;
+		while (currentStep >= 0 && steps[currentStep]->endActor != step->startActor)
+		{
+			currentStep--;
+		}
+	}
+	std::reverse(path.begin(), path.end());
+	return path;
+}
+
 void UPawn::ClearPaths()
 {
-	if (engine->LaunchInfo.engineVersion <= 219)
-		return;
-
-	UNavigationPoint** cache = RouteCache();
-	for (int i = 0; i < 16; i++)
-		cache[i] = nullptr;
+	for (UNavigationPoint* cur = Level()->NavigationPointList(); cur; cur = cur->nextNavigationPoint())
+	{
+		cur->bEndPoint() = false;
+		if (cur->bSpecialCost())
+			cur->cost() = CallEvent(cur, "SpecialCost", { ExpressionValue::ObjectValue(this) }).ToInt();
+		else
+			cur->cost() = cur->ExtraCost();
+	}
 }
 
 UObject* UPawn::FindRandomDest()
 {
+	// Find initial navpoints reachable from our location
+	int maxActorReachableCalls = 4; // upper bound for how expensive this can get
+	vec3 eyePos = Location();
+	eyePos.z += BaseEyeHeight();
 	std::vector<UNavigationPoint*> reachablePoints;
-	/* Note: this is waaaaay too slow. Causes huge freezes
-	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
+	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint && reachablePoints.size() < maxActorReachableCalls; navPoint = navPoint->nextNavigationPoint())
 	{
-		if (ActorReachable(navPoint))
-		{
-			reachablePoints.push_back(navPoint);
-		}
+		if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+			continue; // Skip nav nodes only for the player if we aren't one
+
+		float maxDist = 500;
+		vec3 d = navPoint->Location() - Location();
+		if (dot(d, d) > maxDist * maxDist)
+			continue; // Ignore things too far away
+
+		if (!ActorReachable(navPoint))
+			continue;
+
+		navPoint->bEndPoint() = true;
+		reachablePoints.push_back(navPoint);
 	}
-	*/
+
 	if (reachablePoints.empty())
 		return nullptr;
 
+	// Add all navpoints reachable via reachspecs from what we can already reached
+	const Array<LevelReachSpec>& reachSpecs = XLevel()->ReachSpecs;
+	int radius = (int)CollisionRadius();
+	int height = (int)CollisionHeight();
+	for (size_t i = 0; i < reachablePoints.size(); i++)
+	{
+		UNavigationPoint* navPoint = reachablePoints[i];
+		for (const LevelReachSpec& reachSpec : reachSpecs)
+		{
+			if (reachSpec.startActor == navPoint)
+			{
+				if (reachSpec.endActor->bEndPoint())
+					continue; // Already processed
+
+				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+					continue; // Skip nav node links that we can't pass through
+
+				if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+					continue; // Skip nav nodes only for the player if we aren't one
+
+				// To do: check reachFlags
+
+				reachSpec.endActor->bEndPoint() = true;
+				reachablePoints.push_back(reachSpec.endActor);
+			}
+		}
+	}
+
+	// Pick a random point from our candidates
 	float randomValue = rand() / (float)RAND_MAX;
 	int index = (int)std::round(randomValue * (float)(reachablePoints.size() - 1));
 	return reachablePoints[index];
@@ -2463,20 +2612,52 @@ UObject* UPawn::FindRandomDest()
 UObject* UPawn::FindPathTo(const vec3& aPoint, bool bSinglePath)
 {
 	LogUnimplemented("Pawn.FindPathTo");
-	return nullptr;
+	return SetRouteCache({});
 }
 
 UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 {
-	LogUnimplemented("Pawn.FindPathToward");
-	return nullptr;
+	if (auto navpoint = UObject::TryCast<UNavigationPoint>(anActor))
+	{
+		int maxActorReachableCalls = 4; // upper bound for how expensive this can get
+		vec3 eyePos = Location();
+		eyePos.z += BaseEyeHeight();
+		std::vector<UNavigationPoint*> reachablePoints;
+		for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint && reachablePoints.size() < maxActorReachableCalls; navPoint = navPoint->nextNavigationPoint())
+		{
+			if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+				continue; // Skip nav nodes only for the player if we aren't one
+
+			float maxDist = 500;
+			vec3 d = navPoint->Location() - Location();
+			if (dot(d, d) > maxDist * maxDist)
+				continue; // Ignore things too far away
+
+			if (!ActorReachable(navPoint))
+				continue;
+
+			navPoint->bEndPoint() = true;
+			reachablePoints.push_back(navPoint);
+		}
+
+		if (reachablePoints.empty())
+			return nullptr;
+
+		return SetRouteCache(FindPathToEndPoint(navpoint, 1000));
+	}
+	else
+	{
+		LogUnimplemented("Pawn.FindPathToward");
+		// To do: if anActor is not a navpoint we need to find the closest navpoint first
+		return SetRouteCache({});
+	}
 }
 
 UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
 {
 	LogUnimplemented("Pawn.FindBestInventoryPath");
 	outMinWeight = 0.0f;
-	return nullptr;
+	return SetRouteCache({});
 }
 
 void UPawn::InitActorZone()

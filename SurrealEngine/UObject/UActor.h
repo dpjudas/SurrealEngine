@@ -1418,7 +1418,7 @@ public:
 	// Similar to LineOfSightTo() but takes the Pawn's peripheral vision into account (SightRadius and PeripheralVision)
 	bool CanSee(UActor* other);
 	bool CanHearNoise(UActor* source, float loudness);
-	bool ActorReachable(UActor* anActor);
+	bool ActorReachable(UActor* anActor, bool checkNavpoint = false);
 	bool PointReachable(vec3 aPoint);
 
 	// If the obstruction is jumpable, start jumping and keep the destination
@@ -1428,6 +1428,9 @@ public:
 	UActor* PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
+
+	UNavigationPoint* SetRouteCache(const Array<UNavigationPoint*>& points);
+	Array<UNavigationPoint*> FindPathToEndPoint(UNavigationPoint* start, int maxDepth);
 
 	void ClearPaths();
 	UObject* FindRandomDest();
