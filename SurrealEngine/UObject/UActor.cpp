@@ -480,7 +480,7 @@ void UActor::TickWalking(float elapsed)
 
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
-	vec3 vel = Velocity() + zone->ZoneVelocity();
+	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
 	if (isMoving)
 	{
@@ -655,7 +655,7 @@ void UActor::TickFalling(float elapsed)
 			newVelocity = velocity;
 		}
 
-		vec3 moveDelta = (newVelocity + zone->ZoneVelocity()) * timeLeft;
+		vec3 moveDelta = (newVelocity + zone->ZoneVelocity() * elapsed * 25.0f) * timeLeft;
 		vec3 dirNormal = normalize(newVelocity);
 
 		CollisionHit hit = TryMove(moveDelta);
@@ -768,7 +768,7 @@ void UActor::TickSwimming(float elapsed)
 	//float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 
 	float timeLeft = elapsed;
-	vec3 vel = Velocity() + zone->ZoneVelocity();
+	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
 	if (isMoving)
 	{
@@ -885,7 +885,7 @@ void UActor::TickFlying(float elapsed)
 		Velocity() = Velocity() * (maxSpeed / speed);
 
 	float timeLeft = elapsed;
-	vec3 vel = Velocity() + zone->ZoneVelocity();
+	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
 	if (isMoving)
 	{
