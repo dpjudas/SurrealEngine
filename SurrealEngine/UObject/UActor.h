@@ -1437,6 +1437,7 @@ public:
 	UObject* FindPathTo(const vec3& aPoint, bool bSinglePath);
 	UObject* FindPathToward(UObject* anActor, bool singlePath);
 	UObject* FindBestInventoryPath(bool predictRespawns, float& outMinWeight);
+	UNavigationPoint* FindClosestNavPoint(vec3 location);
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }

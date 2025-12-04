@@ -2611,8 +2611,7 @@ UObject* UPawn::FindRandomDest()
 
 UObject* UPawn::FindPathTo(const vec3& aPoint, bool bSinglePath)
 {
-	LogUnimplemented("Pawn.FindPathTo");
-	return SetRouteCache({});
+	return FindPathToward(FindClosestNavPoint(aPoint), bSinglePath);
 }
 
 UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
@@ -2645,12 +2644,48 @@ UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 
 		return SetRouteCache(FindPathToEndPoint(navpoint, 1000));
 	}
+	else if (auto actor = UObject::TryCast<UActor>(anActor))
+	{
+		return FindPathToward(FindClosestNavPoint(actor->Location()), singlePath);
+	}
 	else
 	{
-		LogUnimplemented("Pawn.FindPathToward");
-		// To do: if anActor is not a navpoint we need to find the closest navpoint first
 		return SetRouteCache({});
 	}
+}
+
+UNavigationPoint* UPawn::FindClosestNavPoint(vec3 location)
+{
+	// Order nav points by distance
+	std::vector<std::pair<UNavigationPoint*, float>> navPoints;
+	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
+	{
+		if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+			continue; // Skip nav nodes only for the player if we aren't one
+
+		float maxDist = 500;
+		vec3 d = navPoint->Location() - location;
+		float distsqr = dot(d, d);
+		if (distsqr > maxDist * maxDist)
+			continue; // Ignore things too far away
+
+		navPoints.push_back({ navPoint, distsqr });
+	}
+
+	std::sort(navPoints.begin(), navPoints.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+
+	size_t maxTraces = 4; // upper bound for how expensive this can get
+	navPoints.resize(std::min(navPoints.size(), maxTraces));
+
+	// Find the first reachable nav point
+	for (auto& p : navPoints)
+	{
+		vec3 eyePos = p.first->Location();
+		eyePos.z += BaseEyeHeight();
+		if (FastTrace(location, eyePos))
+			return p.first;
+	}
+	return nullptr;
 }
 
 UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
