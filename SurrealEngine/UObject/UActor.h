@@ -1430,7 +1430,7 @@ public:
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 
 	UNavigationPoint* SetRouteCache(const Array<UNavigationPoint*>& points);
-	Array<UNavigationPoint*> FindPathToEndPoint(UNavigationPoint* start, int maxDepth);
+	Array<UNavigationPoint*> FindPathToEndPoint(UNavigationPoint* start, int maxNodes);
 
 	void ClearPaths();
 	UObject* FindRandomDest();
