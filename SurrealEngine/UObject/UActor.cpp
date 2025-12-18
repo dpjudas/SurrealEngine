@@ -2381,6 +2381,11 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 	return !XLevel()->Collision.TraceAnyHit(source->Location(), Location(), source, false, true, false);
 }
 
+void UPawn::ClientHearSound(UActor* actor, int id, USound* sound, const vec3& soundLocation, const vec3& parameters)
+{
+	LogUnimplemented("UPawn.ClientHearSound()");
+}
+
 UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
 {
 	UActor* bestActor = nullptr;
@@ -3332,4 +3337,65 @@ void UDecal::DetachDecal()
 		}
 	}
 	Nodes.clear();
+}
+
+void UPakPathNodeIterator::BuildPath(vec3& start, vec3& end)
+{
+	LogUnimplemented("PathNodeIterator.BuildPath()");
+	NodeIndex() = 0;
+}
+
+void UPakPathNodeIterator::CheckUPak()
+{
+	// What does this even check?
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetFirst()
+{
+	LogUnimplemented("PathNodeIterator.GetFirst()");
+	//return NodePath().front();
+	return nullptr;
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetPrevious()
+{
+	LogUnimplemented("PathNodeIterator.GetPrevious()");
+	// if (NodeIndex() > 0)
+	// 	NodeIndex()--;
+	// return NodePath()[NodeIndex()];
+	return nullptr;
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetCurrent()
+{
+	LogUnimplemented("PathNodeIterator.GetCurrent()");
+	//return NodePath()[NodeIndex()];
+	return nullptr;
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetNext()
+{
+	LogUnimplemented("PathNodeIterator.GetNext()");
+	// if (NodeIndex() < NodeCount() - 1)
+	// 	NodeIndex()++;
+	// return NodePath()[NodeIndex()];
+	return nullptr;
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetLast()
+{
+	LogUnimplemented("PathNodeIterator.GetLast()");
+	//return NodePath().back();
+	return nullptr;
+}
+
+UNavigationPoint* UPakPathNodeIterator::GetLastVisible()
+{
+	LogUnimplemented("PathNodeIterator.GetLastVisible()");
+	return nullptr;
+}
+
+void UPakPawnPathNodeIterator::SetPawn(UPawn* P)
+{
+	Pawn() = P;
 }

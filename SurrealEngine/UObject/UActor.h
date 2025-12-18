@@ -1421,6 +1421,8 @@ public:
 	bool ActorReachable(UActor* anActor, bool checkNavpoint = false);
 	bool PointReachable(vec3 aPoint);
 
+	void ClientHearSound(UActor* actor, int id, USound* sound, const vec3& soundLocation, const vec3& parameters);
+
 	// If the obstruction is jumpable, start jumping and keep the destination
 	// Otherwise try rotating destination 90 degrees to left and right
 	bool PickWallAdjust();
@@ -1746,4 +1748,35 @@ class UCamera : public UPlayerPawn
 {
 public:
 	using UPlayerPawn::UPlayerPawn;
+};
+
+class UPakPathNodeIterator : public UActor
+{
+public:
+	using UActor::UActor;
+
+	void BuildPath(vec3& start, vec3& end);
+	void CheckUPak();
+	UNavigationPoint* GetFirst();
+	UNavigationPoint* GetPrevious();
+	UNavigationPoint* GetCurrent();
+	UNavigationPoint* GetNext();
+	UNavigationPoint* GetLast();
+	UNavigationPoint* GetLastVisible();
+
+	Array<UNavigationPoint*>& NodePath() { return Value<Array<UNavigationPoint*>>(PropOffsets_UPakPathNodeIterator.NodePath); }
+	int& NodeCount() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeCount); }
+	int& NodeIndex() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeIndex); }
+	int& NodeCost() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeCost); }
+	vec3& NodeStart() { return Value<vec3>(PropOffsets_UPakPathNodeIterator.NodeStart); }
+};
+
+class UPakPawnPathNodeIterator : public UPakPathNodeIterator
+{
+public:
+	using UPakPathNodeIterator::UPakPathNodeIterator;
+
+	void SetPawn(UPawn* P);
+
+	UPawn*& Pawn() { return Value<UPawn*>(PropOffsets_UPakPawnPathNodeIterator.Pawn); }
 };
