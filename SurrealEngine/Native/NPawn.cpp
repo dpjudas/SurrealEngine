@@ -5,6 +5,7 @@
 #include "VM/Frame.h"
 #include "UObject/UActor.h"
 #include "UObject/ULevel.h"
+#include "UObject/USound.h"
 #include "Engine.h"
 
 void NPawn::RegisterFunctions()
@@ -71,7 +72,11 @@ void NPawn::ClearPaths(UObject* Self)
 
 void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, const vec3& SoundLocation, const vec3& Parameters)
 {
-	LogUnimplemented("Pawn.ClientHearSound");
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	UActor* AActor = UObject::Cast<UActor>(Actor);
+	USound* Sound = UObject::Cast<USound>(S);
+
+	SelfPawn->ClientHearSound(AActor, Id, Sound, SoundLocation, Parameters);
 }
 
 void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
