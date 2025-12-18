@@ -10,5 +10,7 @@ void NUPakPawnPathNodeIterator::RegisterFunctions()
 
 void NUPakPawnPathNodeIterator::SetPawn(UObject* Self, UObject*& Pawn)
 {
-    LogUnimplemented("PawnPathNodeIterator.SetPawn()");
+    auto PPNISelf = UObject::Cast<UPakPawnPathNodeIterator>(Self);
+    auto PPawn = UObject::Cast<UPawn>(Pawn);
+    PPNISelf->SetPawn(PPawn);
 }
