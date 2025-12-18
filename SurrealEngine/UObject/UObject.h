@@ -259,6 +259,9 @@ public:
 	T* FixedArray(PropertyDataOffset offset) { return static_cast<T*>(PropertyData.Ptr(offset.DataOffset)); }
 
 	template<typename T>
+	Array<T>& DynamicArray(PropertyDataOffset offset) { return *static_cast<Array<T>*>(PropertyData.Ptr(offset.DataOffset)); }
+
+	template<typename T>
 	static T* Cast(UObject* obj)
 	{
 		T* target = TryCast<T>(obj);
