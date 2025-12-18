@@ -15,42 +15,50 @@ void NUPakPathNodeIterator::RegisterFunctions()
     RegisterVMNativeFunc_1("PathNodeIterator", "GetLastVisible", &NUPakPathNodeIterator::GetLastVisible, 0);
 }
 
-void NUPakPathNodeIterator::BuildPath(UObject* Self, vec3* Start, vec3* End)
+void NUPakPathNodeIterator::BuildPath(UObject* Self, vec3& Start, vec3& End)
 {
-    LogUnimplemented("PathNodeIterator.BuildPath()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    PNISelf->BuildPath(Start, End);
 }
 
 void NUPakPathNodeIterator::CheckUPak(UObject* Self)
 {
-    LogUnimplemented("PathNodeIterator.CheckUPak()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    PNISelf->CheckUPak();
 }
 
 void NUPakPathNodeIterator::GetFirst(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetFirst()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetFirst();
 }
 
 void NUPakPathNodeIterator::GetPrevious(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetPrevious()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetPrevious();
 }
 
 void NUPakPathNodeIterator::GetCurrent(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetCurrent()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetCurrent();
 }
 
 void NUPakPathNodeIterator::GetNext(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetNext()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetNext();
 }
 
 void NUPakPathNodeIterator::GetLast(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetLast()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetLast();
 }
 
 void NUPakPathNodeIterator::GetLastVisible(UObject* Self, UObject*& ReturnValue)
 {
-    LogUnimplemented("PathNodeIterator.GetLastVisible()");
+    UPakPathNodeIterator* PNISelf = UObject::Cast<UPakPathNodeIterator>(Self);
+    ReturnValue = PNISelf->GetLastVisible();
 }
