@@ -2434,6 +2434,36 @@ static void InitPropertyOffsets_TcpLink(PackageManager* packages)
 	PropOffsets_TcpLink.SendFIFO = cls->GetPropertyDataOffset("SendFIFO");
 }
 
+PropertyOffsets_UPakPathNodeIterator PropOffsets_UPakPathNodeIterator;
+
+static void InitPropertyOffsets_UPakPathNodeIterator(PackageManager* packages)
+{
+	UClass* cls = UObject::TryCast<UClass>(packages->GetPackage("UPak")->GetUObject("Class", "PathNodeIterator"));
+	if (!cls)
+	{
+		memset(&PropOffsets_UPakPathNodeIterator, 0xff, sizeof(PropOffsets_UPakPathNodeIterator));
+		return;
+	}
+	PropOffsets_UPakPathNodeIterator.NodeCost = cls->GetPropertyDataOffset("NodeCost");
+	PropOffsets_UPakPathNodeIterator.NodeCount = cls->GetPropertyDataOffset("NodeCount");
+	PropOffsets_UPakPathNodeIterator.NodeIndex = cls->GetPropertyDataOffset("NodeIndex");
+	PropOffsets_UPakPathNodeIterator.NodePath = cls->GetPropertyDataOffset("NodePath");
+	PropOffsets_UPakPathNodeIterator.NodeStart = cls->GetPropertyDataOffset("NodeStart");
+}
+
+PropertyOffsets_UPakPawnPathNodeIterator PropOffsets_UPakPawnPathNodeIterator;
+
+static void InitPropertyOffsets_UPakPawnPathNodeIterator(PackageManager* packages)
+{
+	UClass* cls = UObject::TryCast<UClass>(packages->GetPackage("UPak")->GetUObject("Class", "PawnPathNodeIterator"));
+	if (!cls)
+	{
+		memset(&PropOffsets_UPakPathNodeIterator, 0xff, sizeof(PropOffsets_UPakPathNodeIterator));
+		return;
+	}
+	PropOffsets_UPakPawnPathNodeIterator.Pawn = cls->GetPropertyDataOffset("Pawn");
+}
+
 void InitPropertyOffsets(PackageManager* packages)
 {
 	InitPropertyOffsets_Object(packages);
@@ -2514,4 +2544,9 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_InternetLink(packages);
 	InitPropertyOffsets_UdpLink(packages);
 	InitPropertyOffsets_TcpLink(packages);
+	if (packages->IsUnreal1())
+	{
+		InitPropertyOffsets_UPakPathNodeIterator(packages);
+		InitPropertyOffsets_UPakPawnPathNodeIterator(packages);
+	}
 }

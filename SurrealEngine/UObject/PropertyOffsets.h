@@ -1970,3 +1970,21 @@ struct PropertyOffsets_TcpLink
 };
 
 extern PropertyOffsets_TcpLink PropOffsets_TcpLink;
+
+struct PropertyOffsets_UPakPathNodeIterator
+{
+	PropertyDataOffset NodePath;
+	PropertyDataOffset NodeCount;
+	PropertyDataOffset NodeIndex;
+	PropertyDataOffset NodeCost;
+	PropertyDataOffset NodeStart;
+};
+
+extern PropertyOffsets_UPakPathNodeIterator PropOffsets_UPakPathNodeIterator;
+
+struct PropertyOffsets_UPakPawnPathNodeIterator
+{
+	PropertyDataOffset Pawn;
+};
+
+extern PropertyOffsets_UPakPawnPathNodeIterator PropOffsets_UPakPawnPathNodeIterator;
