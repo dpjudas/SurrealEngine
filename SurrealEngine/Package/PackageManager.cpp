@@ -750,6 +750,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString corePackage = "Core";
 	NameString enginePackage = "Engine";
 	NameString ipdrvPackage = "IpDrv";
+	NameString upakPackage = "UPak";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
@@ -899,6 +900,13 @@ void PackageManager::RegisterNativeClasses()
 	RegisterNativeClass<UInternetLink>(ipdrvPackage, "InternetLink", "InternetInfo");
 	RegisterNativeClass<UTcpLink>(ipdrvPackage, "TcpLink", "InternetLink");
 	RegisterNativeClass<UUdpLink>(ipdrvPackage, "UdpLink", "InternetLink");
+
+	if (IsUnreal1())
+	{
+		RegisterNativeClass<UPakPathNodeIterator>(upakPackage, "PathNodeIterator", "Actor");
+		RegisterNativeClass<UPakPawnPathNodeIterator>(upakPackage, "PawnPathNodeIterator", "PathNodeIterator");
+	}
+
 }
 
 template<typename T>
