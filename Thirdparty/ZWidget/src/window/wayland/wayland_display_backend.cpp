@@ -33,6 +33,8 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 			 * Presumably referring to wm_capabilities event.
 			 */
 			s_waylandRegistry.bind(name, m_XDGWMBase, 4);
+		if (interface == wayland::xdg_wm_dialog_v1_t::interface_name)
+			s_waylandRegistry.bind(name, m_XDGWMDialog, version);
 		if (interface == wayland::zxdg_output_manager_v1_t::interface_name)
 			s_waylandRegistry.bind(name, m_XDGOutputManager, version);
 		if (interface == wayland::zxdg_exporter_v2_t::interface_name)
@@ -558,15 +560,15 @@ void WaylandDisplayBackend::ShowCursor(bool enable)
 	m_waylandPointer.set_cursor(m_MouseSerial, enable ? m_cursorSurface : nullptr, 0, 0);
 }
 
-std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
+std::unique_ptr<DisplayWindow> WaylandDisplayBackend::Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI)
 {
-	return std::make_unique<WaylandDisplayWindow>(this, windowHost, popupWindow, static_cast<WaylandDisplayWindow*>(owner), renderAPI);
+	return std::make_unique<WaylandDisplayWindow>(this, windowHost, type, static_cast<WaylandDisplayWindow*>(owner), renderAPI);
 }
 
 void WaylandDisplayBackend::OnWindowCreated(WaylandDisplayWindow* window)
 {
 	s_Windows.push_back(window);
-	if (!window->m_PopupWindow)
+	if (!window->IsPopupWindow())
 	{
 		m_FocusWindow = window;
 		m_MouseFocusWindow = window;
@@ -612,13 +614,13 @@ void WaylandDisplayBackend::ProcessEvents()
 
 void WaylandDisplayBackend::RunLoop()
 {
-	exitRunLoop = false;
-
 	while (!exitRunLoop && !s_Windows.empty())
 	{
 		ProcessEvents();
 		WaitForEvents(GetTimerTimeout());
 	}
+
+	exitRunLoop = false; // So that closing a dialog doesn't close everything else
 }
 
 void WaylandDisplayBackend::WaitForEvents(int timeout)

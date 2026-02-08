@@ -15,6 +15,7 @@ public:
 	static std::shared_ptr<TTFDataBuffer> create(size_t size);
 	static std::shared_ptr<TTFDataBuffer> create(std::vector<uint8_t> buffer);
 
+	virtual ~TTFDataBuffer() = default;
 	virtual char* data() = 0;
 	virtual const char* data() const = 0;
 	virtual size_t size() const = 0;

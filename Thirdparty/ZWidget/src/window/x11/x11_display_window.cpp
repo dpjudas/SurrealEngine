@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <iostream>
 
-X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, X11DisplayWindow* owner, RenderAPI renderAPI) : windowHost(windowHost), owner(owner)
+X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, WidgetType windowType, X11DisplayWindow* owner, RenderAPI renderAPI) : windowHost(windowHost), owner(owner)
 {
 	auto connection = GetX11Connection();
 	display = connection->display;
@@ -33,8 +33,8 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 
 	XSetWindowAttributes attributes = {};
 	attributes.backing_store = Always;
-	attributes.override_redirect = popupWindow ? True : False;
-	attributes.save_under = popupWindow ? True : False;
+	attributes.override_redirect = (windowType == WidgetType::Popup) ? True : False;
+	attributes.save_under = (windowType == WidgetType::Popup) ? True : False;
 	attributes.colormap = colormap;
 	attributes.event_mask =
 		KeyPressMask | KeyReleaseMask | 
@@ -101,7 +101,7 @@ X11DisplayWindow::X11DisplayWindow(DisplayWindowHost* windowHost, bool popupWind
 	if (connection->GetAtom("_NET_WM_WINDOW_TYPE") != None)
 	{
 		Atom type = None;
-		if (popupWindow)
+		if (windowType == WidgetType::Popup)
 		{
 			type = connection->GetAtom("_NET_WM_WINDOW_TYPE_DROPDOWN_MENU");
 			if (type == None)
@@ -229,13 +229,6 @@ void X11DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>& 
 	Atom property = XInternAtom(display, "_NET_WM_ICON", 0);
 	XChangeProperty(display, window, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)data, size);
 }
-
-void X11DisplayWindow::SetWindowFrame(const Rect& box)
-{
-	// To do: this requires cooperation with the window manager
-
-	SetClientFrame(box);
-}	
 
 void X11DisplayWindow::SetClientFrame(const Rect& box)
 {
@@ -418,10 +411,8 @@ void X11DisplayWindow::UpdateCursor()
 	}
 }
 
-Rect X11DisplayWindow::GetWindowFrame() const
+Rect X11DisplayWindow::GetClientFrame() const
 {
-	// To do: this needs to include the window manager frame
-
 	double dpiscale = GetDpiScale();
 
 	Window root = {};

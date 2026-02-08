@@ -4,6 +4,14 @@ project(zwidget)
 option(ENABLE_METAL "Enable Metal support for application rendering" ON)
 option(ENABLE_OPENGL "Enable OpenGL support for application rendering" ON)
 
+if(WIN32)
+	option(ENABLE_SDL3 "Enable SDL3 backend. Optional on all platforms" OFF)
+	option(ENABLE_SDL2 "Enable SDL2 backend. Optional on all platforms" OFF)
+else()
+	option(ENABLE_SDL3 "Enable SDL3 backend. Optional on all platforms" ON)
+	option(ENABLE_SDL2 "Enable SDL2 backend. Optional on all platforms" ON)
+endif()
+
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
 	pkg_check_modules(DBUS dbus-1)
@@ -25,18 +33,22 @@ endif()
 # SDL3 finding stuff
 # Optional on all platforms
 # If both SDL3 and SDL2 are available, only SDL3 support will be enabled.
-find_package(SDL3 QUIET)
-if(NOT ${SDL3_FOUND})
-	include(FindPkgConfig)
-	pkg_search_module(SDL3 sdl3)
+if(ENABLE_SDL3)
+	find_package(SDL3 QUIET)
+	if(NOT ${SDL3_FOUND})
+		include(FindPkgConfig)
+		pkg_search_module(SDL3 sdl3)
+	endif()
 endif()
 
 # SDL2 finding stuff
 # Optional on all platforms
-find_package(SDL2 QUIET)
-if(NOT ${SDL2_FOUND})
-	include(FindPkgConfig)
-	pkg_search_module(SDL2 sdl2)
+if(ENABLE_SDL2)
+	find_package(SDL2 QUIET)
+	if(NOT ${SDL2_FOUND})
+		include(FindPkgConfig)
+		pkg_search_module(SDL2 sdl2)
+	endif()
 endif()
 
 set(ZWIDGET_SOURCES
@@ -49,6 +61,8 @@ set(ZWIDGET_SOURCES
 	src/core/timer.cpp
 	src/core/widget.cpp
 	src/core/theme.cpp
+	src/core/theme_style_tokenizer.cpp
+	src/core/theme_style_tokenizer.h
 	src/core/utf8reader.cpp
 	src/core/pathfill.cpp
 	src/core/truetypefont.cpp
@@ -58,6 +72,9 @@ set(ZWIDGET_SOURCES
 	src/core/nanosvg/nanosvg.cpp
 	src/core/nanosvg/nanosvg.h
 	src/core/nanosvg/nanosvgrast.h
+	src/widgets/dialog/dialog.cpp
+	src/widgets/dialog/messagebox.cpp
+	src/widgets/dialog/textinputdialog.cpp
 	src/widgets/lineedit/lineedit.cpp
 	src/widgets/mainwindow/mainwindow.cpp
 	src/widgets/menubar/menubar.cpp
@@ -102,6 +119,9 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/core/theme.h
 	include/zwidget/core/utf8reader.h
 	include/zwidget/core/resourcedata.h
+	include/zwidget/widgets/dialog/dialog.h
+	include/zwidget/widgets/dialog/messagebox.h
+	include/zwidget/widgets/dialog/textinputdialog.h
 	include/zwidget/widgets/lineedit/lineedit.h
 	include/zwidget/widgets/mainwindow/mainwindow.h
 	include/zwidget/widgets/menubar/menubar.h
@@ -200,6 +220,8 @@ set(ZWIDGET_WAYLAND_SOURCES
 	src/window/wayland/wl_fractional_scaling_protocol.hpp
 	src/window/wayland/wl_cursor_shape.cpp
 	src/window/wayland/wl_cursor_shape.hpp
+	src/window/wayland/wl_xdg_dialog_v1.cpp
+	src/window/wayland/wl_xdg_dialog_v1.hpp
 	src/window/wayland/wl_xdg_toplevel_icon.cpp
 	src/window/wayland/wl_xdg_toplevel_icon.hpp
 )
@@ -209,6 +231,7 @@ source_group("src\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/cor
 source_group("src\\core\\picopng" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/picopng/.+")
 source_group("src\\core\\nanosvg" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/core/nanosvg/.+")
 source_group("src\\widgets" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/.+")
+source_group("src\\widgets\\dialog" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/dialog/.+")
 source_group("src\\widgets\\lineedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/lineedit/.+")
 source_group("src\\widgets\\mainwindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/mainwindow/.+")
 source_group("src\\widgets\\menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/menubar/.+")
@@ -288,8 +311,17 @@ elseif(APPLE)
 		message(FATAL_ERROR "Cocoa framework not found")
 	endif()
 
+	find_library(COREVIDEO_FRAMEWORK CoreVideo)
+	if (NOT COREVIDEO_FRAMEWORK)
+		message(FATAL_ERROR "CoreVideo framework not found")
+	endif()
+
 	if(ENABLE_METAL)
 		find_library(METAL_FRAMEWORK Metal)
+		find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+		if (NOT QUARTZCORE_FRAMEWORK)
+			message(FATAL_ERROR "QuartzCore framework not found")
+		endif()
 	endif()
 
 	if(ENABLE_OPENGL)
@@ -298,7 +330,7 @@ elseif(APPLE)
 			message(FATAL_ERROR "OpenGL framework not found")
 		endif()
 	endif()
-	
+
 	find_library(UNIFORMTYPEIDENTIFIERS_FRAMEWORK UniformTypeIdentifiers)
 	if (NOT UNIFORMTYPEIDENTIFIERS_FRAMEWORK)
 		message(FATAL_ERROR "UniformTypeIdentifiers framework not found")
@@ -335,12 +367,12 @@ else()
 	set(ZWIDGET_LIBS ${ZWIDGET_LIBS} ${FONTCONFIG_LDFLAGS})
 endif()
 
-if(SDL3_FOUND AND NOT WIN32)
+if(SDL3_FOUND)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL3_SOURCES})
 	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL3)
 endif()
 
-if(SDL2_FOUND AND NOT SDL3_FOUND AND NOT WIN32)
+if(SDL2_FOUND AND NOT SDL3_FOUND)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
 	set(ZWIDGET_DEFINES ${ZWIDGET_DEFINES} -DUSE_SDL2)
 endif()
@@ -357,13 +389,13 @@ target_compile_definitions(zwidget PRIVATE ${ZWIDGET_DEFINES})
 target_include_directories(zwidget PRIVATE ${ZWIDGET_INCLUDE_DIRS})
 target_link_options(zwidget PRIVATE ${ZWIDGET_LINK_OPTIONS})
 if(APPLE)
-	target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS} ${COCOA_FRAMEWORK} ${UNIFORMTYPEIDENTIFIERS_FRAMEWORK})
+	target_link_libraries(zwidget PRIVATE ${ZWIDGET_LIBS} ${COCOA_FRAMEWORK} ${COREVIDEO_FRAMEWORK} ${UNIFORMTYPEIDENTIFIERS_FRAMEWORK} ${QUARTZCORE_FRAMEWORK})
 	if(ENABLE_OPENGL AND OPENGL_FRAMEWORK)
 		target_link_libraries(zwidget PRIVATE ${OPENGL_FRAMEWORK})
 		target_compile_definitions(zwidget PRIVATE HAVE_OPENGL)
 	endif()
 	if(ENABLE_METAL AND METAL_FRAMEWORK)
-		target_link_libraries(zwidget PRIVATE ${METAL_FRAMEWORK})
+		target_link_libraries(zwidget PRIVATE ${METAL_FRAMEWORK} ${QUARTZCORE_FRAMEWORK})
 		target_compile_definitions(zwidget PRIVATE HAVE_METAL)
 	endif()
 else()
@@ -373,7 +405,7 @@ if(SDL3_FOUND)
 	target_include_directories(zwidget PRIVATE ${SDL3_INCLUDE_DIRS})
 	if(TARGET SDL3::SDL3)
 		target_link_libraries(zwidget PRIVATE SDL3::SDL3)
-	else() # needed for gzdoom compat for now
+	else()
 		target_link_libraries(zwidget PRIVATE ${SDL3_LIBRARY})
 	endif()
 endif()
@@ -381,7 +413,7 @@ if(SDL2_FOUND AND NOT SDL3_FOUND)
 	target_include_directories(zwidget PRIVATE ${SDL2_INCLUDE_DIRS})
 	if(TARGET SDL2::SDL2)
 		target_link_libraries(zwidget PRIVATE SDL2::SDL2)
-	else() # needed for gzdoom compat for now
+	else()
 		target_link_libraries(zwidget PRIVATE ${SDL2_LIBRARY})
 	endif()
 endif()

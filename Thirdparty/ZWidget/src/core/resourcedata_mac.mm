@@ -49,7 +49,6 @@ std::vector<SingleFontData> ResourceData::LoadSystemFont()
 		}
 
 		CFRelease(fontURL);
-		// fontPath is __bridge_transfer, so it's autoreleased(ARC)
 	}
 	return { fontData };
 }
@@ -59,8 +58,19 @@ std::vector<SingleFontData> ResourceData::LoadMonospaceSystemFont()
 	SingleFontData fontData;
 	@autoreleasepool
 	{
-		NSFont* systemFont = [NSFont monospacedSystemFontOfSize:13.0 weight:NSFontWeightRegular]; // Use a default size
-		if (!systemFont)
+		NSFont* systemFont = nil;
+		if (@available(macOS 10.15, *)) {
+			systemFont = [NSFont monospacedSystemFontOfSize:13.0 weight:NSFontWeightRegular]; // Use a default size
+		}
+
+
+		if (!systemFont) {
+			// Fallback for older macOS versions
+			systemFont = [NSFont systemFontOfSize:13.0];
+		}
+
+		if (!systemFont) 
+			// Double check after fallback
 			throw std::runtime_error("Failed to get system font");
 
 		CTFontRef ctFont = (__bridge CTFontRef)systemFont;
@@ -68,7 +78,6 @@ std::vector<SingleFontData> ResourceData::LoadMonospaceSystemFont()
 		if (!fontURL)
 			throw std::runtime_error("Failed to get font URL from system font");
 
-		// __bridge_transfer transfers ownership to ARC, so no manual CFRelease is needed
 		NSString* fontPath = (NSString*)CFURLCopyFileSystemPath(fontURL, kCFURLPOSIXPathStyle);
 		if (!fontPath)
 			throw std::runtime_error("Failed to convert font URL to file path");
@@ -90,7 +99,6 @@ std::vector<SingleFontData> ResourceData::LoadMonospaceSystemFont()
 		}
 
 		CFRelease(fontURL);
-		// fontPath is __bridge_transfer, so it's autoreleased(ARC)
 	}
 	return { std::move(fontData) };
 }

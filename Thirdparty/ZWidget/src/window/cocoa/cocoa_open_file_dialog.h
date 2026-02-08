@@ -35,4 +35,7 @@ private:
     std::string _title;
     std::vector<std::string> _filenames;
     void* panel = nullptr;
+
+    // Helper method to run modal and collect results
+    bool runModalAndGetResults();
 };

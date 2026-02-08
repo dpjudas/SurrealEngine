@@ -10,6 +10,7 @@
 #include <wayland-cursor.hpp>
 #include "wl_fractional_scaling_protocol.hpp"
 #include "wl_xdg_toplevel_icon.hpp"
+#include "wl_xdg_dialog_v1.hpp"
 #include <linux/input.h>
 #include <poll.h>
 #include <map>
@@ -82,7 +83,7 @@ public:
 	WaylandDisplayBackend();
 	~WaylandDisplayBackend();
 
-	std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI) override;
+	std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI) override;
 	void ProcessEvents() override;
 	void RunLoop() override;
 	void ExitLoop() override;
@@ -125,6 +126,7 @@ public:
 	wayland::output_t m_waylandOutput;
 	wayland::data_device_manager_t m_DataDeviceManager;
 	wayland::xdg_wm_base_t m_XDGWMBase;
+	wayland::xdg_wm_dialog_v1_t m_XDGWMDialog;
 	wayland::zwp_pointer_constraints_v1_t m_PointerConstraints;
 	// TODO: XDG_Activation seems to be for activating OTHER XDG_Toplevels. Do we need this?
 	wayland::xdg_activation_v1_t m_XDGActivation;

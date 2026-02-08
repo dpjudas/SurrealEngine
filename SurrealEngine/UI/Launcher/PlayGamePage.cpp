@@ -28,7 +28,7 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 
 	auto& settings = LauncherSettings::Get();
 
-	if (settings.Games.LastSelected >= 0 && settings.Games.LastSelected < (int)GamesList->GetItemAmount())
+	if (settings.Games.LastSelected >= 0 && settings.Games.LastSelected < (int)GamesList->GetItemCount())
 	{
 		GamesList->SetSelectedItem(settings.Games.LastSelected);
 		GamesList->ScrollToItem(settings.Games.LastSelected);
@@ -55,8 +55,8 @@ void PlayGamePage::UpdateList()
 	GameFolderSelection::UpdateList();
 
 	// GamesList->Clear(); // To do: add this to zwidget
-	while (GamesList->GetItemAmount() != 0)
-		GamesList->RemoveItem((int)GamesList->GetItemAmount() - 1);
+	while (GamesList->GetItemCount() != 0)
+		GamesList->RemoveItem((int)GamesList->GetItemCount() - 1);
 
 	for (const GameLaunchInfo& info : GameFolderSelection::Games)
 	{

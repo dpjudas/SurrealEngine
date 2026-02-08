@@ -8,7 +8,7 @@ Uint32 SDL2DisplayWindow::PaintEventNumber = 0xffffffff;
 bool SDL2DisplayWindow::ExitRunLoop;
 std::unordered_map<int, SDL2DisplayWindow*> SDL2DisplayWindow::WindowList;
 
-SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL2DisplayWindow* owner, RenderAPI renderAPI, double uiscale) : WindowHost(windowHost), UIScale(uiscale)
+SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, WidgetType type, SDL2DisplayWindow* owner, RenderAPI renderAPI, double uiscale) : WindowHost(windowHost), UIScale(uiscale)
 {
 	unsigned int flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE /*| SDL_WINDOW_ALLOW_HIGHDPI*/;
 	if (renderAPI == RenderAPI::Vulkan)
@@ -19,7 +19,7 @@ SDL2DisplayWindow::SDL2DisplayWindow(DisplayWindowHost* windowHost, bool popupWi
 	else if (renderAPI == RenderAPI::Metal)
 		flags |= SDL_WINDOW_METAL;
 #endif
-	if (popupWindow)
+	if (type == WidgetType::Popup)
 		flags |= SDL_WINDOW_BORDERLESS;
 
 	if (renderAPI == RenderAPI::Vulkan || renderAPI == RenderAPI::OpenGL || renderAPI == RenderAPI::Metal)
@@ -88,13 +88,6 @@ void SDL2DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>&
 {
 	// To do: call SDL_SetWindowIcon for the highest resolution image (or maybe the first 32x32 or higher? not sure what is best here)
 	// To do: when this is upgraded to SDL3, call SDL_AddSurfaceAlternateImage for all the images
-}
-
-void SDL2DisplayWindow::SetWindowFrame(const Rect& box)
-{
-	// SDL2 doesn't really seem to have an API for this.
-	// The docs aren't clear what you're setting when calling SDL_SetWindowSize.
-	SetClientFrame(box);
 }
 
 void SDL2DisplayWindow::SetClientFrame(const Rect& box)
@@ -220,7 +213,7 @@ bool SDL2DisplayWindow::GetKeyState(InputKey key)
 	return (index < numkeys) ? state[index] != 0 : false;
 }
 
-Rect SDL2DisplayWindow::GetWindowFrame() const
+Rect SDL2DisplayWindow::GetClientFrame() const
 {
 	int x = 0;
 	int y = 0;

@@ -89,7 +89,6 @@ TTCFontName TrueTypeFont::GetFontName() const
 TrueTypeTextMetrics TrueTypeFont::GetTextMetrics(double height) const
 {
 	double scale = height / head.unitsPerEm;
-	double internalLeading = height - os2.sTypoAscender * scale + os2.sTypoDescender * scale;
 
 	TrueTypeTextMetrics metrics;
 	if (os2.usWinAscent != 0 || os2.usWinDescent != 0)
@@ -1013,9 +1012,9 @@ void TTF_TableDirectory::Load(TrueTypeFileReader& reader)
 	numTables = reader.ReadUInt16();
 
 	// opentype spec says we can't use these for security reasons, so we pretend they never was part of the header
-	ttf_uint16 searchRange = reader.ReadUInt16();
-	ttf_uint16 entrySelector = reader.ReadUInt16();
-	ttf_uint16 rangeShift = reader.ReadUInt16();
+	/*ttf_uint16 searchRange =*/ reader.ReadUInt16();
+	/*ttf_uint16 entrySelector =*/ reader.ReadUInt16();
+	/*ttf_uint16 rangeShift =*/ reader.ReadUInt16();
 
 	for (ttf_uint16 i = 0; i < numTables; i++)
 	{
@@ -2025,16 +2024,16 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 	double scaleY = -1.0;
 
 	ttf_uint16 advanceWidth = 0;
-	ttf_int16 lsb = 0;
+	//ttf_int16 lsb = 0;
 	if (glyphIndex >= hhea.numberOfHMetrics)
 	{
 		advanceWidth = hmtx.hMetrics[hhea.numberOfHMetrics - 1].advanceWidth;
-		lsb = hmtx.leftSideBearings[glyphIndex - hhea.numberOfHMetrics];
+		//lsb = hmtx.leftSideBearings[glyphIndex - hhea.numberOfHMetrics];
 	}
 	else
 	{
 		advanceWidth = hmtx.hMetrics[glyphIndex].advanceWidth;
-		lsb = hmtx.hMetrics[glyphIndex].lsb;
+		//lsb = hmtx.hMetrics[glyphIndex].lsb;
 	}
 
 	if (glyphIndex >= cff.CharStrings.size())
@@ -2056,7 +2055,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 
 	bool endchar = false;
 	bool widthArg = true;
-	double widthValue = cff.PrivateDict.defaultWidthX;
+	//double widthValue = cff.PrivateDict.defaultWidthX;
 	PathPoint cur, cp1, cp2, flex1start;
 	while (!endchar)
 	{
@@ -2097,7 +2096,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 			if (oper == 12)
 				oper = 1200 + (int)reader.ReadCard8();
 
-			double tmp, fd;
+			double tmp/*, fd*/;
 			switch (oper)
 			{
 			// Path construction:
@@ -2106,7 +2105,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() > 2)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2122,7 +2121,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() > 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2137,7 +2136,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() > 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2461,7 +2460,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				break;
 			case 1235: // flex
 				// To do: collapse to line when the flex depth is less than fd/100 device pixels
-				fd = operands.get(12);
+				/*fd =*/ operands.get(12);
 				cur.x += operands.get(0);
 				cur.y += operands.get(1);
 				cp1 = cur;
@@ -2556,7 +2555,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() % 2 == 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2570,7 +2569,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() % 2 == 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2591,7 +2590,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() % 2 == 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2612,7 +2611,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() % 2 == 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;
@@ -2633,7 +2632,7 @@ TrueTypeGlyph TrueTypeFont::LoadCFFGlyph(uint32_t glyphIndex, double height) con
 				{
 					if (operands.size() % 2 == 1)
 					{
-						widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
+						//widthValue = cff.PrivateDict.norminalWidthX + operands.get(0);
 						operands.pop_front();
 					}
 					widthArg = false;

@@ -61,9 +61,9 @@ SDL2DisplayBackend::SDL2DisplayBackend()
 	}
 }
 
-std::unique_ptr<DisplayWindow> SDL2DisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
+std::unique_ptr<DisplayWindow> SDL2DisplayBackend::Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI)
 {
-	return std::make_unique<SDL2DisplayWindow>(windowHost, popupWindow, static_cast<SDL2DisplayWindow*>(owner), renderAPI, UIScale);
+	return std::make_unique<SDL2DisplayWindow>(windowHost, type, static_cast<SDL2DisplayWindow*>(owner), renderAPI, UIScale);
 }
 
 void SDL2DisplayBackend::ProcessEvents()

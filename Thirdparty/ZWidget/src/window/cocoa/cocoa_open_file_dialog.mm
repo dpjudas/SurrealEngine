@@ -30,7 +30,7 @@ void CocoaOpenFileDialog::SetFilename(const std::string &filename)
 
 void CocoaOpenFileDialog::SetDefaultExtension(const std::string& extension)
 {
-    if (@available(macOS 11.0, *)) {
+    if (@available(macOS 12.0, *)) {
         NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
         UTType* utType = [UTType typeWithFilenameExtension:extensionString];
         if (utType) {
@@ -68,23 +68,57 @@ void CocoaOpenFileDialog::SetTitle(const std::string &title)
     [((__bridge NSOpenPanel*)panel) setTitle:[NSString stringWithUTF8String:title.c_str()]];
 }
 
+// Helper to run modal and collect results
+bool CocoaOpenFileDialog::runModalAndGetResults()
+{
+    if ([((__bridge NSOpenPanel*)panel) runModal] == NSModalResponseOK)
+    {
+        _filenames.clear();
+        for (NSURL* url in [((__bridge NSOpenPanel*)panel) URLs])
+        {
+            _filenames.push_back([[url path] UTF8String]);
+        }
+        return true;
+    }
+    return false;
+}
+
 bool CocoaOpenFileDialog::Show()
 {
-    if (@available(macOS 11.0, *)) {
+    // IMPORTANT: Allow selection of files that may not match the exact content type
+    [((__bridge NSOpenPanel*)panel) setAllowsOtherFileTypes:YES];
+
+    if (@available(macOS 12.0, *)) {
         if (!_filters.empty())
         {
             NSArray* fileTypeStrings = [[NSString stringWithUTF8String:_filters[_filterIndex].second.c_str()] componentsSeparatedByString:@";"];
             NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
             for (NSString* typeString in fileTypeStrings) {
-                UTType* utType = [UTType typeWithFilenameExtension:typeString];
+                // Strip wildcard prefix (*.ext -> ext)
+                NSString* extension = typeString;
+                if ([extension hasPrefix:@"*."]) {
+                    extension = [extension substringFromIndex:2];
+                } else if ([extension hasPrefix:@"*"]) {
+                    extension = [extension substringFromIndex:1];
+                }
+
+                // Handle special case for *.*
+                if ([extension isEqualToString:@".*"] || [extension isEqualToString:@"*"]) {
+                    // Allow all file types - set empty array
+                    [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[]];
+                    return runModalAndGetResults();
+                }
+
+                UTType* utType = [UTType typeWithFilenameExtension:extension];
                 if (utType) {
                     [utTypes addObject:utType];
                 }
+                // If UTType doesn't exist (like .wad), allowsOtherFileTypes will handle it
             }
             if ([utTypes count] > 0) {
                 [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:utTypes];
             } else {
-                // Fallback if no valid UTTypes could be created
+                // Fallback if no valid UTTypes could be created - allow all files
                 [((__bridge NSOpenPanel*)panel) setAllowedContentTypes:@[]];
             }
         }
@@ -96,25 +130,34 @@ bool CocoaOpenFileDialog::Show()
         if (!_filters.empty())
         {
             NSArray* fileTypeStrings = [[NSString stringWithUTF8String:_filters[_filterIndex].second.c_str()] componentsSeparatedByString:@";"];
-            [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:fileTypeStrings];
+            NSMutableArray<NSString*>* cleanExtensions = [NSMutableArray array];
+            for (NSString* typeString in fileTypeStrings) {
+                // Strip wildcard prefix (*.ext -> ext)
+                NSString* extension = typeString;
+                if ([extension hasPrefix:@"*."]) {
+                    extension = [extension substringFromIndex:2];
+                } else if ([extension hasPrefix:@"*"]) {
+                    extension = [extension substringFromIndex:1];
+                }
+
+                // Handle special case for *.*
+                if ([extension isEqualToString:@".*"] || [extension isEqualToString:@"*"]) {
+                    // Allow all file types - set nil
+                    [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:nil];
+                    return runModalAndGetResults();
+                }
+
+                [cleanExtensions addObject:extension];
+            }
+            [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:cleanExtensions];
         }
         else
         {
-            [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:@[]]; // No filters
+            [((__bridge NSOpenPanel*)panel) setAllowedFileTypes:nil]; // No filters - allow all
         }
     }
 
-    if ([((__bridge NSOpenPanel*)panel) runModal] == NSModalResponseOK)
-    {
-        _filenames.clear();
-
-        for (NSURL* url in [((__bridge NSOpenPanel*)panel) URLs])
-        {
-            _filenames.push_back([[url path] UTF8String]);
-        }
-        return true;
-    }
-    return false;
+    return runModalAndGetResults();
 }
 
 std::string CocoaOpenFileDialog::Filename() const

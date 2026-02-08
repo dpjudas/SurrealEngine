@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 
-#define WIN32_MEAN_AND_LEAN
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
 #include <ShlObj.h>
@@ -87,7 +87,7 @@ public:
 
 	std::vector<uint8_t> ReadAllBytes(const std::string& filename)
 	{
-		HANDLE handle = CreateFile((ResourcePath + to_utf16(filename)).c_str(), FILE_READ_ACCESS, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+		HANDLE handle = CreateFile((ResourcePath + to_utf16(filename)).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 		if (handle == INVALID_HANDLE_VALUE)
 			throw std::runtime_error("Could not open " + filename);
 

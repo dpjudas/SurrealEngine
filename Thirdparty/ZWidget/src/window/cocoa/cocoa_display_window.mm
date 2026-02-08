@@ -205,17 +205,14 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 
 @interface ZWidgetView : NSView
 {
+@public
     CocoaDisplayWindowImpl* impl;
+    NSTrackingArea* trackingArea;
 }
 - (id)initWithImpl:(CocoaDisplayWindowImpl*)impl;
 @end
 
 @implementation ZWidgetView
-
-+ (Class)layerClass
-{
-    return [CAMetalLayer class];
-}
 
 - (id)initWithImpl:(CocoaDisplayWindowImpl*)d
 {
@@ -223,11 +220,26 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     if (self)
     {
         impl = d;
-        self.wantsLayer = YES;
-        self.layer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
-        [self addTrackingArea:[[NSTrackingArea alloc] initWithRect:self.bounds options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow owner:self userInfo:nil]];
+        // Only use layer-backing for Metal/OpenGL, not for Bitmap rendering
+        // For Bitmap rendering, we need drawRect: to be called
+        if (impl->renderAPI == RenderAPI::Metal || impl->renderAPI == RenderAPI::OpenGL)
+        {
+            self.wantsLayer = YES;
+            self.layer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
+        }
+        // CRITICAL: Don't access self.layer for Bitmap rendering - accessing it creates a layer!
+        // Don't create tracking area here - it will be created in updateTrackingAreas
+        trackingArea = nil;
     }
     return self;
+}
+
+- (void)dealloc
+{
+    if (trackingArea) {
+        [self removeTrackingArea:trackingArea];
+        trackingArea = nil;
+    }
 }
 
 - (BOOL)isOpaque
@@ -235,9 +247,30 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     return YES;
 }
 
+- (void)updateTrackingAreas
+{
+    if (trackingArea) {
+        [self removeTrackingArea:trackingArea];
+        trackingArea = nil;
+    }
+
+    trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds
+                                                options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
+                                                  owner:self
+                                               userInfo:nil];
+    [self addTrackingArea:trackingArea];
+    [super updateTrackingAreas];
+}
+
 - (CALayer *)makeBackingLayer
 {
-    return [[self.class layerClass] layer];
+    // This is only called for layer-backed views (Metal/OpenGL)
+    // Create appropriate layer based on render API
+    if (impl && impl->renderAPI == RenderAPI::Metal)
+    {
+        return [CAMetalLayer layer];
+    }
+    return [CALayer layer];  // For OpenGL
 }
 - (BOOL)canBecomeKeyView
 {
@@ -247,33 +280,57 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 - (void)setFrame:(NSRect)frame
 {
     [super setFrame:frame];
-    impl->updateDrawableSize(frame.size);
+#ifdef HAVE_METAL
+    if (impl && impl->renderAPI == RenderAPI::Metal)
+    {
+        impl->updateDrawableSize(frame.size);
+    }
+#endif
 }
+- (NSView *)hitTest:(NSPoint)point
+{
+    return [super hitTest:point];
+}
+
 - (BOOL)acceptsFirstResponder
 {
     return YES;
 }
 
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+    return YES;  // Allow mouse events even if window isn't key
+}
+
+- (BOOL)becomeFirstResponder
+{
+    return [super becomeFirstResponder];
+}
+
+- (BOOL)resignFirstResponder
+{
+    return [super resignFirstResponder];
+}
+
+- (void)setNeedsDisplay:(BOOL)flag
+{
+    [super setNeedsDisplay:flag];
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
-    NSLog(@"ZWidgetView: drawRect called");
     if (!impl) return;
 
-    if (impl->renderAPI == RenderAPI::Bitmap)
+    if (impl->renderAPI == RenderAPI::Bitmap || impl->renderAPI == RenderAPI::Unspecified)
     {
+        // Just draw the existing bitmap (Update() handles regeneration asynchronously)
         if (impl->cgImage)
         {
-            NSLog(@"drawRect: impl->cgImage is NOT null. Drawing image.");
             CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-            CGContextSaveGState(context);
-            CGContextTranslateCTM(context, 0, self.bounds.size.height);
-            CGContextScaleCTM(context, 1.0, -1.0);
+            if (!context) {
+                return;
+            }
             CGContextDrawImage(context, NSRectToCGRect(self.bounds), impl->cgImage);
-            CGContextRestoreGState(context);
-        }
-        else
-        {
-            NSLog(@"drawRect: impl->cgImage IS null. Not drawing image.");
         }
     }
     else if (impl->renderAPI == RenderAPI::OpenGL)
@@ -299,9 +356,16 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 {
     if ([self window])
     {
-        NSLog(@"ZWidgetView: viewDidMoveToWindow with windowHost: %p", (void*)impl->windowHost);
+        // Make this view the first responder to receive mouse/keyboard events
+        [[self window] makeFirstResponder:self];
+
         impl->windowHost->OnWindowPaint();
-        impl->startDisplayLink();
+        // Only start displayLink for OpenGL/Metal rendering (continuous refresh needed)
+        // Bitmap rendering is event-driven, no continuous refresh needed
+        if (impl->renderAPI == RenderAPI::OpenGL || impl->renderAPI == RenderAPI::Metal)
+        {
+            impl->startDisplayLink();
+        }
     }
 }
 
@@ -345,6 +409,8 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     if (impl && impl->windowHost)
     {
         NSPoint p = [theEvent locationInWindow];
+        double flippedY = [self frame].size.height - p.y;
+
         InputKey mouseKey = InputKey::None;
         if ([theEvent buttonNumber] == 0) mouseKey = InputKey::LeftMouse;
         else if ([theEvent buttonNumber] == 1) mouseKey = InputKey::RightMouse;
@@ -352,7 +418,7 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 
         if (mouseKey != InputKey::None)
         {
-            impl->windowHost->OnWindowMouseDown(Point(p.x, [self frame].size.height - p.y), mouseKey);
+            impl->windowHost->OnWindowMouseDown(Point(p.x, flippedY), mouseKey);
         }
     }
 }
@@ -362,6 +428,8 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     if (impl && impl->windowHost)
     {
         NSPoint p = [theEvent locationInWindow];
+        double flippedY = [self frame].size.height - p.y;
+
         InputKey mouseKey = InputKey::None;
         if ([theEvent buttonNumber] == 0) mouseKey = InputKey::LeftMouse;
         else if ([theEvent buttonNumber] == 1) mouseKey = InputKey::RightMouse;
@@ -369,7 +437,7 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 
         if (mouseKey != InputKey::None)
         {
-            impl->windowHost->OnWindowMouseUp(Point(p.x, [self frame].size.height - p.y), mouseKey);
+            impl->windowHost->OnWindowMouseUp(Point(p.x, flippedY), mouseKey);
         }
     }
 }
@@ -431,15 +499,28 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     {
         InputKey key = keycode_to_inputkey([theEvent keyCode]);
         impl->keyState[key] = true;
-        impl->windowHost->OnWindowKeyDown(key); // Removed isARepeat as it's not in the ZWidget API
-        
-        NSString* characters = [theEvent characters];
-        if ([characters length] > 0)
-        {
-            impl->windowHost->OnWindowKeyChar([characters UTF8String]);
-        }
+        impl->windowHost->OnWindowKeyDown(key);
     }
 
+    // Call interpretKeyEvents to trigger insertText: for text input
+    [self interpretKeyEvents:@[theEvent]];
+}
+
+// Text input protocol methods - required for keyboard input on macOS
+- (void)insertText:(id)string
+{
+    if (impl && impl->windowHost)
+    {
+        NSString* str = [string isKindOfClass:[NSAttributedString class]] ?
+                        [(NSAttributedString*)string string] : (NSString*)string;
+        impl->windowHost->OnWindowKeyChar([str UTF8String]);
+    }
+}
+
+- (void)doCommandBySelector:(SEL)selector
+{
+    // This handles special keys like Enter, Tab, etc.
+    // They're already handled by keyDown, so we can ignore them here
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -528,6 +609,29 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     }
     return self;
 }
+
+- (void)windowDidResize:(NSNotification *)notification
+{
+    // Throttle resize events to prevent excessive calls that can cause crashes
+    static int resizeCount = 0;
+    static NSTimeInterval lastResizeTime = 0;
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+
+    if (now - lastResizeTime < 0.01) {
+        resizeCount++;
+        if (resizeCount > 5) {
+            return;  // Throttle: too many rapid calls
+        }
+    } else {
+        resizeCount = 0;
+    }
+    lastResizeTime = now;
+
+    if (impl && impl->windowHost)
+    {
+        impl->windowHost->OnWindowGeometryChanged();
+    }
+}
 @end
 
 void CocoaDisplayWindowImpl::initOpenGL(ZWidgetView* view)
@@ -563,7 +667,8 @@ void CocoaDisplayWindowImpl::updateDrawableSize(CGSize size)
 
 CVReturn CocoaDisplayWindowImpl::displayLinkOutputCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* inNow, const CVTimeStamp* inOutputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
 {
-    NSLog(@"displayLinkOutputCallback called");
+    // Note: displayLink is only started for OpenGL/Metal rendering
+    // Bitmap rendering is event-driven and doesn't use displayLink
     if (renderAPI == RenderAPI::Metal)
     {
 #ifdef HAVE_METAL
@@ -584,18 +689,10 @@ CVReturn CocoaDisplayWindowImpl::displayLinkOutputCallback(CVDisplayLinkRef disp
         }
 #endif
     }
-    else if (renderAPI == RenderAPI::Bitmap)
-    {
-        NSLog(@"displayLinkOutputCallback: RenderAPI::Bitmap branch executed. Dispatching OnWindowPaint() to main thread.");
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"dispatch_async block executed. Calling OnWindowPaint().");
-            if (windowHost) windowHost->OnWindowPaint();
-        });
-    }
     return kCVReturnSuccess;
 }
 
-CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
+CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI)
 {
     impl = std::make_unique<CocoaDisplayWindowImpl>();
     impl->windowHost = windowHost;
@@ -603,7 +700,7 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, bool popup
 
     NSRect contentRect = NSMakeRect(0, 0, 640, 480);
     NSWindowStyleMask style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable;
-    if (popupWindow)
+    if (type == WidgetType::Popup)
         style = NSWindowStyleMaskBorderless;
 
     impl->window = [[NSWindow alloc] initWithContentRect:contentRect styleMask:style backing:NSBackingStoreBuffered defer:NO];
@@ -624,22 +721,27 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, bool popup
     }
 
 #ifdef HAVE_METAL
-    // Create Metal device and layer for application rendering (not ZWidget rendering)
-    // Applications can access these via GetMetalDevice() and GetMetalLayer()
-    impl->metalDevice = MTLCreateSystemDefaultDevice();
-    if (impl->metalDevice)
+    // Only create Metal layer if actually using Metal rendering
+    // Accessing view.layer forces layer-backing which breaks Bitmap rendering
+    if (renderAPI == RenderAPI::Metal)
     {
-        impl->metalLayer = [CAMetalLayer layer];
-        impl->metalLayer.device = impl->metalDevice;
-        impl->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-        impl->metalLayer.framebufferOnly = NO;  // Allow reading for screenshots, etc.
-        impl->metalLayer.presentsWithTransaction = NO;
-        impl->metalLayer.displaySyncEnabled = YES;
-        impl->metalLayer.maximumDrawableCount = 3;
-        impl->metalLayer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
-        impl->metalLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
-        impl->metalLayer.frame = view.layer.frame;
-        [view.layer addSublayer:impl->metalLayer];
+        // Create Metal device and layer for application rendering
+        // Applications can access these via GetMetalDevice() and GetMetalLayer()
+        impl->metalDevice = MTLCreateSystemDefaultDevice();
+        if (impl->metalDevice)
+        {
+            impl->metalLayer = [CAMetalLayer layer];
+            impl->metalLayer.device = impl->metalDevice;
+            impl->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+            impl->metalLayer.framebufferOnly = NO;  // Allow reading for screenshots, etc.
+            impl->metalLayer.presentsWithTransaction = NO;
+            impl->metalLayer.displaySyncEnabled = YES;
+            impl->metalLayer.maximumDrawableCount = 3;
+            impl->metalLayer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+            impl->metalLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+            impl->metalLayer.frame = view.layer.frame;
+            [view.layer addSublayer:impl->metalLayer];
+        }
     }
 #endif
 #ifdef HAVE_OPENGL
@@ -656,7 +758,6 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, bool popup
 
 CocoaDisplayWindow::~CocoaDisplayWindow()
 {
-    NSLog(@"CocoaDisplayWindow: Destructor entered, this = %p", (void*)this);
 }
 
 void CocoaDisplayWindow::SetWindowTitle(const std::string& text)
@@ -695,6 +796,7 @@ void CocoaDisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>
     }
 }
 
+/*
 void CocoaDisplayWindow::SetWindowFrame(const Rect& box)
 {
     if (impl->window)
@@ -703,23 +805,57 @@ void CocoaDisplayWindow::SetWindowFrame(const Rect& box)
         [impl->window setFrame:frame display:YES animate:NO];
     }
 }
+*/
 
 void CocoaDisplayWindow::SetClientFrame(const Rect& box)
 {
     if (impl->window)
     {
+	// Tbd: should this be done using frameRectForContentRect? Using the method below is not atomic
+
         NSRect contentRect = NSMakeRect(box.x, [[NSScreen mainScreen] frame].size.height - box.y - box.height, box.width, box.height);
         [impl->window setContentSize:contentRect.size];
         [impl->window setFrameOrigin:contentRect.origin];
     }
 }
 
+Rect CocoaDisplayWindow::GetClientFrame() const
+{
+    if (impl->window)
+    {
+        NSRect frame = [impl->window contentRectForFrameRect:[impl->window frame]];
+        return Rect(frame.origin.x, [[NSScreen mainScreen] frame].size.height - frame.origin.y - frame.size.height, frame.size.width, frame.size.height);
+    }
+    return {};
+}
+
+Size CocoaDisplayWindow::GetClientSize() const
+{
+    if (impl->window)
+    {
+        NSRect contentRect = [[impl->window contentView] frame];
+        return Size(contentRect.size.width, contentRect.size.height);
+    }
+    return {};
+}
+
 void CocoaDisplayWindow::Show()
 {
     if (impl->window)
     {
+        // CRITICAL: Activate the application so it can receive keyboard events
+        [NSApp activateIgnoringOtherApps:YES];
         [impl->window makeKeyAndOrderFront:nil];
-        Update();
+
+        // Trigger initial layout
+        if (impl->windowHost)
+        {
+            impl->windowHost->OnWindowGeometryChanged();
+            // Paint to create CGImage before any drawRect calls
+            impl->windowHost->OnWindowPaint();
+        }
+        // Just trigger a redraw without regenerating (bitmap already created above)
+        [[impl->window contentView] setNeedsDisplay:YES];
     }
 }
 
@@ -837,10 +973,25 @@ void CocoaDisplayWindow::ReleaseMouseCapture()
 
 void CocoaDisplayWindow::Update()
 {
-    if (impl->window)
-    {
-        [[impl->window contentView] setNeedsDisplay:YES];
-    }
+    if (!impl->window || !impl->windowHost)
+        return;
+
+    // Queue paint asynchronously to avoid interfering with event processing
+    // Use weak reference to window to avoid dangling pointer issues
+    __weak NSWindow* weakWindow = impl->window;
+    DisplayWindowHost* hostPtr = impl->windowHost;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSWindow* strongWindow = weakWindow;
+        if (!strongWindow)
+            return;
+
+        // Regenerate the bitmap
+        hostPtr->OnWindowPaint();
+
+        // Trigger redraw
+        [[strongWindow contentView] setNeedsDisplay:YES];
+    });
 }
 
 bool CocoaDisplayWindow::GetKeyState(InputKey key)
@@ -912,26 +1063,6 @@ void CocoaDisplayWindow::SetCursor(StandardCursor cursor, std::shared_ptr<Custom
     {
         [nsCursor set];
     }
-}
-
-Rect CocoaDisplayWindow::GetWindowFrame() const
-{
-    if (impl->window)
-    {
-        NSRect frame = [impl->window frame];
-        return Rect(frame.origin.x, [[NSScreen mainScreen] frame].size.height - frame.origin.y - frame.size.height, frame.size.width, frame.size.height);
-    }
-    return {};
-}
-
-Size CocoaDisplayWindow::GetClientSize() const
-{
-    if (impl->window)
-    {
-        NSRect contentRect = [[impl->window contentView] frame];
-        return Size(contentRect.size.width, contentRect.size.height);
-    }
-    return {};
 }
 
 int CocoaDisplayWindow::GetPixelWidth() const
@@ -1014,9 +1145,8 @@ void CocoaDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pi
         }
 #endif
     }
-    else if (impl->renderAPI == RenderAPI::Bitmap)
+    else if (impl->renderAPI == RenderAPI::Bitmap || impl->renderAPI == RenderAPI::Unspecified)
     {
-        NSLog(@"PresentBitmap: RenderAPI::Bitmap path executed.");
         if (impl->cgImage) CGImageRelease(impl->cgImage);
         impl->cgImage = nullptr;
 
@@ -1033,26 +1163,16 @@ void CocoaDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pi
         if (context)
         {
             impl->cgImage = CGBitmapContextCreateImage(context);
-            if (impl->cgImage)
-            {
-                NSLog(@"PresentBitmap: CGImageRef created successfully.");
-            }
-            else
-            {
-                NSLog(@"PresentBitmap: Failed to create CGImageRef.");
-            }
             CGContextRelease(context);
-        }
-        else
-        {
-            NSLog(@"PresentBitmap: Failed to create CGBitmapContext.");
         }
         CGColorSpaceRelease(colorSpace);
 
         if (impl->window)
         {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [[impl->window contentView] setNeedsDisplay:YES];
+                NSView* contentView = [impl->window contentView];
+                [contentView setNeedsDisplay:YES];
+                [contentView displayIfNeeded];
             });
         }
     }

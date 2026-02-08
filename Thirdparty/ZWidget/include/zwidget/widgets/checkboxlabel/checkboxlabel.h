@@ -28,6 +28,8 @@ protected:
 	void OnKeyUp(InputKey key) override;
 
 private:
+	Size GetCheckboxSize();
+
 	std::string text;
 	bool checked = false;
 	bool radiostyle = false;
