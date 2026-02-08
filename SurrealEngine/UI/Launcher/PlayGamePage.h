@@ -20,7 +20,6 @@ public:
 	void Save();
 
 private:
-	void OnGeometryChanged() override;
 	void OnSetFocus() override;
 	void OnGamesListActivated();
 
