@@ -23,9 +23,9 @@ SDL3DisplayBackend::SDL3DisplayBackend()
 	}
 }
 
-std::unique_ptr<DisplayWindow> SDL3DisplayBackend::Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI)
+std::unique_ptr<DisplayWindow> SDL3DisplayBackend::Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI)
 {
-	return std::make_unique<SDL3DisplayWindow>(windowHost, popupWindow, static_cast<SDL3DisplayWindow*>(owner), renderAPI, UIScale);
+	return std::make_unique<SDL3DisplayWindow>(windowHost, type, static_cast<SDL3DisplayWindow*>(owner), renderAPI, UIScale);
 }
 
 void SDL3DisplayBackend::ProcessEvents()

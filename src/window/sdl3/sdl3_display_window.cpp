@@ -12,7 +12,7 @@ Uint32 SDL3DisplayWindow::PaintEventNumber = 0xffffffff;
 bool SDL3DisplayWindow::ExitRunLoop;
 std::unordered_map<unsigned int, SDL3DisplayWindow*> SDL3DisplayWindow::WindowList;
 
-SDL3DisplayWindow::SDL3DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, SDL3DisplayWindow* owner, RenderAPI renderAPI, double uiscale) : WindowHost(windowHost), UIScale(uiscale)
+SDL3DisplayWindow::SDL3DisplayWindow(DisplayWindowHost* windowHost, WidgetType type, SDL3DisplayWindow* owner, RenderAPI renderAPI, double uiscale) : WindowHost(windowHost), UIScale(uiscale)
 {
 	unsigned int flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	if (renderAPI == RenderAPI::Vulkan)
@@ -23,7 +23,7 @@ SDL3DisplayWindow::SDL3DisplayWindow(DisplayWindowHost* windowHost, bool popupWi
 	else if (renderAPI == RenderAPI::Metal)
 		flags |= SDL_WINDOW_METAL;
 #endif
-	if (popupWindow)
+	if (type == WidgetType::Popup)
 		flags |= SDL_WINDOW_BORDERLESS;
 
 	if (renderAPI == RenderAPI::Vulkan || renderAPI == RenderAPI::OpenGL || renderAPI == RenderAPI::Metal)
@@ -118,13 +118,6 @@ void SDL3DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>&
 	}
 
 	SDL_SetWindowIcon(Handle.window, iconSurface);
-}
-
-void SDL3DisplayWindow::SetWindowFrame(const Rect& box)
-{
-	// Does SDL have a function to set this?
-	// Will just call SetClientFrame() for the time being.
-	SetClientFrame(box);
 }
 
 void SDL3DisplayWindow::SetClientFrame(const Rect& box)
@@ -250,7 +243,7 @@ bool SDL3DisplayWindow::GetKeyState(InputKey key)
 	return (index < numkeys) ? state[index] != 0 : false;
 }
 
-Rect SDL3DisplayWindow::GetWindowFrame() const
+Rect SDL3DisplayWindow::GetClientFrame() const
 {
 	int x = 0;
 	int y = 0;

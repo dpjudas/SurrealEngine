@@ -18,13 +18,6 @@ class Layout;
 class Font;
 class Image;
 
-enum class WidgetType
-{
-	Child,
-	Window,
-	Popup
-};
-
 enum class WidgetEvent
 {
 	VisibilityChange,
@@ -186,6 +179,8 @@ public:
 	Point MapToGlobal(const Point& pos) const;
 	Point MapToParent(const Point& pos) const { return MapTo(Parent(), pos); }
 
+	static Widget* CommonAncestor(Widget* a, Widget* b);
+
 	static Size GetScreenSize();
 
 	void SetCanvas(std::unique_ptr<Canvas> canvas);
@@ -242,6 +237,7 @@ private:
 	void NotifySubscribers(const WidgetEvent type);
 	void Paint(Canvas* canvas);
 	void DetachFromParent();
+	void CheckInitialShow();
 
 	WidgetType Type = {};
 
@@ -261,6 +257,7 @@ private:
 	std::vector<std::shared_ptr<Image>> WindowIcon;
 	std::unique_ptr<DisplayWindow> DispWindow;
 	std::unique_ptr<Canvas> DispCanvas;
+	bool DispGeometrySet = false;
 	Widget* FocusWidget = nullptr;
 	Widget* KeyboardLockWidget = nullptr;
 	Widget* CursorLockWidget = nullptr;

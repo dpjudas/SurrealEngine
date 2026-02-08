@@ -12,12 +12,11 @@ class Win32CustomCursor;
 class Win32DisplayWindow : public DisplayWindow
 {
 public:
-	Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner, RenderAPI renderAPI);
+	Win32DisplayWindow(DisplayWindowHost* windowHost, WidgetType type, Win32DisplayWindow* owner, RenderAPI renderAPI);
 	~Win32DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
 	void SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images) override;
-	void SetWindowFrame(const Rect& box) override;
 	void SetClientFrame(const Rect& box) override;
 	void Show() override;
 	void ShowFullscreen() override;
@@ -40,7 +39,7 @@ public:
 	void SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom) override;
 	void UpdateCursor();
 
-	Rect GetWindowFrame() const override;
+	Rect GetClientFrame() const override;
 	Size GetClientSize() const override;
 	int GetPixelWidth() const override;
 	int GetPixelHeight() const override;

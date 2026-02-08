@@ -134,7 +134,11 @@ void Dropdown::SetSelectedItem(int index)
 
 	if (OnChanged) OnChanged(selectedItem);
 
-	if (dropdownOpen) listView->ScrollToItem(listView->selectedItem = selectedItem);
+	if (dropdownOpen)
+	{
+		listView->ScrollToItem(selectedItem);
+		listView->SetSelectedItem(selectedItem, false);
+	}
 
 	Update();
 }

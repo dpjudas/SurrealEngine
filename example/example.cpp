@@ -10,6 +10,7 @@
 #include <zwidget/widgets/dropdown/dropdown.h>
 #include <zwidget/widgets/textedit/textedit.h>
 #include <zwidget/widgets/mainwindow/mainwindow.h>
+#include <zwidget/widgets/dialog/messagebox.h>
 #include <zwidget/widgets/layout/vboxlayout.h>
 #include <zwidget/widgets/layout/hboxlayout.h>
 #include <zwidget/widgets/listview/listview.h>
@@ -19,6 +20,8 @@
 #include <zwidget/widgets/checkboxlabel/checkboxlabel.h>
 #include <zwidget/widgets/lineedit/lineedit.h>
 #include <zwidget/widgets/tabwidget/tabwidget.h>
+#include <zwidget/widgets/dialog/textinputdialog.h>
+#include "stylesheet.h"
 
 // ************************************************************
 // Prototypes
@@ -28,7 +31,6 @@ class LauncherWindowTab1 : public Widget
 {
 public:
 	LauncherWindowTab1(Widget parent);
-	void OnGeometryChanged() override;
 private:
 	TextEdit* Text = nullptr;
 };
@@ -56,11 +58,12 @@ class LauncherWindowTab3 : public Widget
 {
 public:
 	LauncherWindowTab3(Widget parent);
-	void OnGeometryChanged() override;
 private:
 	TextLabel* Label = nullptr;
 	Dropdown* Choices = nullptr;
 	PushButton* Popup = nullptr;
+	PushButton* QuestionPopup = nullptr;
+	PushButton* TextInputPopup = nullptr;
 };
 
 class LauncherWindow : public Widget
@@ -69,7 +72,6 @@ public:
 	LauncherWindow();
 private:
 	void OnClose() override;
-	void OnGeometryChanged() override;
 
 	ImageBox* Logo = nullptr;
 	TabWidget* Pages = nullptr;
@@ -143,6 +145,21 @@ LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 		DisplayWindow::ExitLoop();
 	};
 
+	auto mainLayout = new VBoxLayout();
+
+	auto buttonBar = new Widget(this);
+	auto buttonAreaLayout = new HBoxLayout();
+	buttonAreaLayout->AddStretch();
+	buttonAreaLayout->AddWidget(ExitButton);
+	buttonBar->SetLayout(buttonAreaLayout);
+	buttonBar->SetNoncontentSizes(20, 0, 20, 10);
+
+	mainLayout->AddWidget(Logo);
+	mainLayout->AddWidget(Pages);
+	mainLayout->AddWidget(buttonBar);
+
+	SetLayout(mainLayout);
+
 	try
 	{
 		Logo->SetImage(Image::LoadResource("banner.png"));
@@ -150,21 +167,6 @@ LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 	catch (...)
 	{
 	}
-}
-
-void LauncherWindow::OnGeometryChanged()
-{
-	double y = 0, h;
-
-	h = Logo->GetPreferredHeight();
-	Logo->SetFrameGeometry(0, y, GetWidth(), h);
-	y += h;
-
-	h = GetHeight() - y - ExitButton->GetPreferredHeight() - 40;
-	Pages->SetFrameGeometry(0, y, GetWidth(), h);
-	y += h + 20;
-
-	ExitButton->SetFrameGeometry(GetWidth() - 20 - 120, y, 120, ExitButton->GetPreferredHeight());
 }
 
 void LauncherWindow::OnClose()
@@ -181,11 +183,14 @@ LauncherWindowTab1::LauncherWindowTab1(Widget parent): Widget(nullptr)
 		"Click the tabs to look at other widgets\n\n"
 		"Also, this text is editable\n"
 	);
-}
 
-void LauncherWindowTab1::OnGeometryChanged()
-{
-	Text->SetFrameGeometry(0, 10, GetWidth(), GetHeight() - 20);
+	Text->SetStretching(true);
+
+	auto layout = new VBoxLayout();
+
+	layout->AddWidget(Text);
+
+	SetLayout(layout);
 }
 
 LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
@@ -212,13 +217,17 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
 	VersionLabel->SetText("Version 0xdeadbabe.");
 	SelectLabel->SetText("Select which game file (IWAD) to run.");
 
-	GamesList->AddItem("Doom");
-	GamesList->AddItem("Doom 2: Electric Boogaloo");
-	GamesList->AddItem("Doom 3D");
-	GamesList->AddItem("Doom 4: The Quest for Peace");
-	GamesList->AddItem("Doom on Ice");
-	GamesList->AddItem("The Doom");
-	GamesList->AddItem("Doom 2");
+	GamesList->AddItem({ "Doom", "The OG game" });
+	GamesList->AddItem({ "Doom 2: Electric Boogaloo", "For musicians" });
+	GamesList->AddItem({ "Doom 3D", "Not just 2.5D anymore!" });
+	GamesList->AddItem({ "Doom 4: The Quest for Peace", "Did they find it?"});
+	GamesList->AddItem({ "Doom on Ice", "Ice ice baby!" });
+	GamesList->AddItem({ "The Doom", "The one and only" });
+	GamesList->AddItem({ "Doom 2", "Moar monsters" });
+
+	GamesList->ShowHeader(true);
+	GamesList->SetColumn(0, "Game", 250.0);
+	GamesList->SetColumn(1, "Description", 500.0);
 
 	GeneralLabel->SetText("General");
 	ExtrasLabel->SetText("Extra Graphics");
@@ -229,7 +238,7 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent): Widget(nullptr)
 	BrightmapsCheckbox->SetText("Brightmaps");
 	WidescreenCheckbox->SetText("Widescreen");
 
-	auto layout = new VBoxLayout(this);
+	auto layout = new VBoxLayout();
 	layout->AddWidget(WelcomeLabel);
 	layout->AddWidget(VersionLabel);
 	layout->AddWidget(SelectLabel);
@@ -267,11 +276,15 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent): Widget(nullptr)
 	Label = new TextLabel(this);
 	Choices = new Dropdown(this);
 	Popup = new PushButton(this);
+	QuestionPopup = new PushButton(this);
+	TextInputPopup = new PushButton(this);
 
 	Label->SetText("Oh my, even more widgets");
 	Popup->SetText("Click me.");
+	QuestionPopup->SetText("Pop up a question...");
+	TextInputPopup->SetText("Pop up a Text Input Dialog");
 
-	Choices->SetMaxDisplayItems(2);
+	Choices->SetMaxDisplayItems(3);
 	Choices->AddItem("First");
 	Choices->AddItem("Second");
 	Choices->AddItem("Third");
@@ -283,28 +296,38 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent): Widget(nullptr)
 		std::cout << "Selected " << index << ":" << Choices->GetItem(index) << std::endl;
 	};
 
-	Popup->OnClick = []{
-		std::cout << "TODO: open popup" << std::endl;
+	Popup->OnClick = [this]{
+		auto result = MessageBox::Information(this, "This is an Information MessageBox. You selected " + Choices->GetItem(Choices->GetSelectedItem()) + ".");
+		std::cout << "Dialog returned: " << static_cast<uint32_t>(result) << std::endl;
 	};
-}
 
-void LauncherWindowTab3::OnGeometryChanged()
-{
-	double y = 0, h;
+	QuestionPopup->OnClick = [this]{
+		auto result = MessageBox::Question(this, "Choose one and choose wisely.");
+		if (result == DialogButton::Yes)
+		{
+			std::cout << "The user choosed wisely." << std::endl;
+		}
+		else
+		{
+			std::cout << "No regrets..." << std::endl;
+		}
+	};
 
-	y += 10;
+	TextInputPopup->OnClick = [this]
+	{
+		const auto text = TextInputDialog::TextInput(this);
 
-	h = Label->GetPreferredHeight();
-	Label->SetFrameGeometry(20, y, GetWidth() - 40, h);
-	y += h + 10;
+		std::cout << "Text Input Result = " + text << std::endl;
+	};
 
-	h = Choices->GetPreferredHeight();
-	Choices->SetFrameGeometry(20, y, Choices->GetPreferredWidth(), h);
-	y += h + 10;
+	auto layout = new VBoxLayout();
+	layout->AddWidget(Label);
+	layout->AddWidget(Choices);
+	layout->AddWidget(Popup);
+	layout->AddWidget(QuestionPopup);
+	layout->AddWidget(TextInputPopup);
 
-	h = Popup->GetPreferredHeight();
-	Popup->SetFrameGeometry(20, y, 120, h);
-	y += h;
+	SetLayout(layout);
 }
 
 // ************************************************************
@@ -361,6 +384,14 @@ int example(Backend backend = Backend::Default, Theme theme = Theme::Default)
 {
 	ResourceLoader::Set(std::make_unique<ExampleResourceLoader>());
 
+#if 1
+	switch (theme)
+	{
+	case Theme::Default: WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "dark")); break;
+	case Theme::Dark:    WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "dark")); break;
+	case Theme::Light:   WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "light")); break;
+	}
+#else
 	// just for testing themes
 	switch (theme)
 	{
@@ -368,6 +399,7 @@ int example(Backend backend = Backend::Default, Theme theme = Theme::Default)
 		case Theme::Dark:    WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>()); break;
 		case Theme::Light:   WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>()); break;
 	}
+#endif
 
 	// just for testing backends
 	switch (backend)
@@ -380,7 +412,7 @@ int example(Backend backend = Backend::Default, Theme theme = Theme::Default)
 	}
 
 	auto launcher = new LauncherWindow();
-	launcher->SetFrameGeometry(100.0, 100.0, 615.0, 668.0);
+	launcher->SetFrameGeometry((Widget::GetScreenSize().width - 615.0) * 0.5, (Widget::GetScreenSize().height - 668.0) * 0.5, 615.0, 668.0);
 	launcher->Show();
 
 	DisplayWindow::RunLoop();

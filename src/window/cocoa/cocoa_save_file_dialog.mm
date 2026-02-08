@@ -9,7 +9,7 @@ CocoaSaveFileDialog::CocoaSaveFileDialog(DisplayWindow* owner)
 
 void CocoaSaveFileDialog::AddFilter(const std::string &filter_description, const std::string &filter_extension)
 {
-    if (@available(macOS 11.0, *)) {
+    if (@available(macOS 12.0, *)) {
         NSArray* fileTypeStrings = [[NSString stringWithUTF8String:filter_extension.c_str()] componentsSeparatedByString:@";"];
         NSMutableArray<UTType*>* utTypes = [NSMutableArray array];
         for (NSString* typeString in fileTypeStrings) {
@@ -40,7 +40,7 @@ void CocoaSaveFileDialog::SetInitialDirectory(const std::string& path)
 
 void CocoaSaveFileDialog::SetDefaultExtension(const std::string& extension)
 {
-    if (@available(macOS 11.0, *)) {
+    if (@available(macOS 12.0, *)) {
         NSString* extensionString = [NSString stringWithUTF8String:extension.c_str()];
         UTType* utType = [UTType typeWithFilenameExtension:extensionString];
         if (utType) {
@@ -77,7 +77,7 @@ void CocoaSaveFileDialog::SetFilename(const std::string &filename)
 
 void CocoaSaveFileDialog::ClearFilters()
 {
-    if (@available(macOS 11.0, *)) {
+    if (@available(macOS 12.0, *)) {
         [((__bridge NSSavePanel*)panel) setAllowedContentTypes:@[]];
     } else {
         [((__bridge NSSavePanel*)panel) setAllowedFileTypes:@[]];

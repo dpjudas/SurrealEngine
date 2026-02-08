@@ -5,17 +5,17 @@
 
 #include "core/image.h"
 
-WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, DisplayWindowHost* windowHost, bool popupWindow, WaylandDisplayWindow* owner, RenderAPI renderAPI)
-	: backend(backend), m_owner(owner), windowHost(windowHost), m_PopupWindow(popupWindow), m_renderAPI(renderAPI)
+WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, DisplayWindowHost* windowHost, WidgetType type, WaylandDisplayWindow* owner, RenderAPI renderAPI)
+	: backend(backend), m_owner(owner), windowHost(windowHost), m_WidgetType(type), m_renderAPI(renderAPI)
 {
-	m_AppSurface = backend->m_waylandCompositor.create_surface();
+	m_WindowSurface = backend->m_waylandCompositor.create_surface();
 
 	m_NativeHandle.display = backend->s_waylandDisplay;
-	m_NativeHandle.surface = m_AppSurface;
+	m_NativeHandle.surface = m_WindowSurface;
 
 	if (backend->m_FractionalScaleManager)
 	{
-		m_FractionalScale = backend->m_FractionalScaleManager.get_fractional_scale(m_AppSurface);
+		m_FractionalScale = backend->m_FractionalScaleManager.get_fractional_scale(m_WindowSurface);
 
 		m_FractionalScale.on_preferred_scale() = [&](uint32_t scale_numerator) {
 			// parameter is the numerator of a fraction with the denominator of 120
@@ -26,7 +26,7 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 		};
 	}
 
-	m_XDGSurface = backend->m_XDGWMBase.get_xdg_surface(m_AppSurface);
+	m_XDGSurface = backend->m_XDGWMBase.get_xdg_surface(m_WindowSurface);
 	m_XDGSurface.on_configure() = [&] (uint32_t serial) {
 		m_XDGSurface.ack_configure(serial);
 	};
@@ -37,9 +37,9 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 		m_ActivationTokenString = newActivationToken;
 	};
 
-	m_WindowActivationToken.set_surface(m_AppSurface);
+	m_WindowActivationToken.set_surface(m_WindowSurface);
 
-	if (popupWindow)
+	if (m_WidgetType == WidgetType::Popup)
 	{
 		InitializePopup();
 	}
@@ -63,6 +63,9 @@ void WaylandDisplayWindow::InitializeToplevel()
 	m_XDGToplevel = m_XDGSurface.get_toplevel();
 	m_XDGToplevel.set_title("ZWidget Window");
 
+	if (m_WidgetType == WidgetType::Dialog)
+		m_XDGDialog = backend->m_XDGWMDialog.get_xdg_dialog(m_XDGToplevel);
+
 	if (m_owner)
 		m_XDGToplevel.set_parent(m_owner->m_XDGToplevel);
 
@@ -73,7 +76,7 @@ void WaylandDisplayWindow::InitializeToplevel()
 		m_XDGToplevelDecoration.set_mode(wayland::zxdg_toplevel_decoration_v1_mode::server_side);
 	}
 
-	m_AppSurface.commit();
+	m_WindowSurface.commit();
 
 	backend->s_waylandDisplay.roundtrip();
 
@@ -91,7 +94,7 @@ void WaylandDisplayWindow::InitializeToplevel()
 
 	};
 
-	m_XDGExported = backend->m_XDGExporter.export_toplevel(m_AppSurface);
+	m_XDGExported = backend->m_XDGExporter.export_toplevel(m_WindowSurface);
 
 	m_XDGExported.on_handle() = [&] (std::string handleStr) {
 		OnExportHandleEvent(handleStr);
@@ -123,7 +126,7 @@ void WaylandDisplayWindow::InitializePopup()
 		OnExitEvent();
 	};
 
-	m_AppSurface.commit();
+	m_WindowSurface.commit();
 
 	backend->s_waylandDisplay.roundtrip();
 }
@@ -158,25 +161,20 @@ void WaylandDisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image
 	}
 }
 
-void WaylandDisplayWindow::SetWindowFrame(const Rect& box)
+void WaylandDisplayWindow::SetClientFrame(const Rect& box)
 {
 	// Resizing will be shown on the next commit
 	CreateBuffers(box.width, box.height);
 	windowHost->OnWindowGeometryChanged();
 	m_NeedsUpdate = true;
-	m_AppSurface.commit();
-}
-
-void WaylandDisplayWindow::SetClientFrame(const Rect& box)
-{
-	SetWindowFrame(box);
+	m_WindowSurface.commit();
 }
 
 void WaylandDisplayWindow::Show()
 {
-	m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-	m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
-	m_AppSurface.commit();
+	m_WindowSurface.attach(m_WindowSurfaceBuffer, 0, 0);
+	m_WindowSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
+	m_WindowSurface.commit();
 }
 
 void WaylandDisplayWindow::ShowFullscreen()
@@ -216,8 +214,8 @@ void WaylandDisplayWindow::Hide()
 	// Apparently this is how hiding a window works
 	// By attaching a null buffer to the surface
 	// See: https://lists.freedesktop.org/archives/wayland-devel/2017-November/035963.html
-	m_AppSurface.attach(nullptr, 0, 0);
-	m_AppSurface.commit();
+	m_WindowSurface.attach(nullptr, 0, 0);
+	m_WindowSurface.commit();
 }
 
 void WaylandDisplayWindow::Activate()
@@ -225,7 +223,7 @@ void WaylandDisplayWindow::Activate()
 	m_WindowActivationToken.set_serial(backend->GetKeyboardSerial(), backend->m_waylandSeat);
 	m_WindowActivationToken.commit(); // This will set our token string
 
-	backend->m_XDGActivation.activate(m_ActivationTokenString, m_AppSurface);
+	backend->m_XDGActivation.activate(m_ActivationTokenString, m_WindowSurface);
 	backend->m_FocusWindow = this;
 	backend->m_MouseFocusWindow = this;
 	windowHost->OnWindowActivated();
@@ -248,7 +246,7 @@ void WaylandDisplayWindow::UnlockKeyboard()
 
 void WaylandDisplayWindow::LockCursor()
 {
-	m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_AppSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
+	m_LockedPointer = backend->m_PointerConstraints.lock_pointer(m_WindowSurface, backend->m_waylandPointer, nullptr, wayland::zwp_pointer_constraints_v1_lifetime::persistent);
 	backend->SetMouseLockOwnerWindow(this);
 	// ShowCursor(false);
 }
@@ -291,7 +289,7 @@ void WaylandDisplayWindow::SetCursor(StandardCursor cursor, std::shared_ptr<Cust
 	backend->SetCursor(cursor, custom);
 }
 
-Rect WaylandDisplayWindow::GetWindowFrame() const
+Rect WaylandDisplayWindow::GetClientFrame() const
 {
 	return Rect(m_WindowGlobalPos.x, m_WindowGlobalPos.y, m_WindowSize.width, m_WindowSize.height);
 }
@@ -390,10 +388,10 @@ void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t he
 				 state == wayland::xdg_toplevel_state::tiled_right ||
 				 state == wayland::xdg_toplevel_state::tiled_top)
 		{
-			Rect rect = GetWindowFrame();
+			Rect rect = GetClientFrame();
 			rect.width = width / m_ScaleFactor;
 			rect.height = height / m_ScaleFactor;
-			SetWindowFrame(rect);
+			SetClientFrame(rect);
 			windowHost->OnWindowGeometryChanged();
 		}
 	}
@@ -411,16 +409,16 @@ void WaylandDisplayWindow::OnExitEvent()
 
 void WaylandDisplayWindow::DrawSurface(uint32_t serial)
 {
-	m_AppSurface.attach(m_AppSurfaceBuffer, 0, 0);
-	m_AppSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
+	m_WindowSurface.attach(m_WindowSurfaceBuffer, 0, 0);
+	m_WindowSurface.damage(0, 0, m_WindowSize.width, m_WindowSize.height);
 
 	if (m_renderAPI == RenderAPI::Unspecified || m_renderAPI == RenderAPI::Bitmap)
 	{
-		m_FrameCallback = m_AppSurface.frame();
+		m_FrameCallback = m_WindowSurface.frame();
 
 		m_FrameCallback.on_done() = bind_mem_fn(&WaylandDisplayWindow::DrawSurface, this);
 	}
-	m_AppSurface.commit();
+	m_WindowSurface.commit();
 }
 
 void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
@@ -437,7 +435,7 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 	shared_mem = std::make_shared<SharedMemHelper>(scaled_width * scaled_height * 4);
 	auto pool = backend->m_waylandSHM.create_pool(shared_mem->get_fd(), scaled_width * scaled_height * 4);
 
-	m_AppSurfaceBuffer = pool.create_buffer(0, scaled_width, scaled_height, scaled_width * 4, wayland::shm_format::xrgb8888);
+	m_WindowSurfaceBuffer = pool.create_buffer(0, scaled_width, scaled_height, scaled_width * 4, wayland::shm_format::xrgb8888);
 
 	m_WindowSize = Size(scaled_width, scaled_height);
 }

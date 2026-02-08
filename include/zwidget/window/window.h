@@ -275,6 +275,14 @@ enum class RenderAPI
 	Metal
 };
 
+enum class WidgetType
+{
+	Child,
+	Window,
+	Popup,
+	Dialog
+};
+
 class DisplayWindow;
 
 class DisplayWindowHost
@@ -302,7 +310,7 @@ public:
 class DisplayWindow
 {
 public:
-	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI);
+	static std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI);
 
 	static void ProcessEvents();
 	static void RunLoop();
@@ -317,8 +325,6 @@ public:
 
 	virtual void SetWindowTitle(const std::string& text) = 0;
 	virtual void SetWindowIcon(const std::vector<std::shared_ptr<Image>>& images) = 0;
-	virtual void SetWindowFrame(const Rect& box) = 0;
-	virtual void SetClientFrame(const Rect& box) = 0;
 	virtual void Show() = 0;
 	virtual void ShowFullscreen() = 0;
 	virtual void ShowMaximized() = 0;
@@ -337,9 +343,12 @@ public:
 	virtual void Update() = 0;
 	virtual bool GetKeyState(InputKey key) = 0;
 
+	// The geometry of a top level widget is always its client area due to Linux limitations
+	virtual void SetClientFrame(const Rect& box) = 0;
+	virtual Rect GetClientFrame() const = 0;
+
 	virtual void SetCursor(StandardCursor cursor, std::shared_ptr<CustomCursor> custom) = 0;
 
-	virtual Rect GetWindowFrame() const = 0;
 	virtual Size GetClientSize() const = 0;
 	virtual int GetPixelWidth() const = 0;
 	virtual int GetPixelHeight() const = 0;
@@ -387,7 +396,7 @@ public:
 	virtual bool IsWayland() { return false; }
 	virtual bool IsCocoa() { return false; }
 
-	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, bool popupWindow, DisplayWindow* owner, RenderAPI renderAPI) = 0;
+	virtual std::unique_ptr<DisplayWindow> Create(DisplayWindowHost* windowHost, WidgetType type, DisplayWindow* owner, RenderAPI renderAPI) = 0;
 	virtual void ProcessEvents() = 0;
 	virtual void RunLoop() = 0;
 	virtual void ExitLoop() = 0;

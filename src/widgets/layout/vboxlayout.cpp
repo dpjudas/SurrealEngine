@@ -34,7 +34,6 @@ void VBoxLayout::OnGeometryChanged()
 		if (!widget->GetStretching())
 		{
 			nonStretchingWidgetsTotalHeight += GetFrameHeight(widget);
-			nonStretchingWidgetsTotalHeight += GapHeight;
 		}
 		else
 			stretchingWidgetsCount++;
