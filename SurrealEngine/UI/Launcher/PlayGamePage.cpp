@@ -21,6 +21,11 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 	ParametersEdit = new LineEdit(this);
 #endif
 
+	GamesList->ShowHeader(true);
+	GamesList->SetColumn(0, "Game", 200.0);
+	GamesList->SetColumn(1, "Version", 75.0);
+	GamesList->SetColumn(2, "Path", 400.0);
+
 	WelcomeLabel->SetText("Welcome to Surreal Engine!");
 	SelectLabel->SetText("Please select a game to play:");
 
@@ -58,10 +63,8 @@ void PlayGamePage::UpdateList()
 	while (GamesList->GetItemCount() != 0)
 		GamesList->RemoveItem((int)GamesList->GetItemCount() - 1);
 
-	for (const GameLaunchInfo& info : GameFolderSelection::Games)
-	{
-		GamesList->AddItem(info.gameName + " (" + info.gameVersionString + ")");
-	}
+	for (auto& info : GameFolderSelection::Games)
+		GamesList->AddItem({info.gameName, info.gameVersionString, info.gameRootFolder});
 }
 
 void PlayGamePage::Save()
@@ -84,38 +87,4 @@ void PlayGamePage::OnGamesListActivated()
 void PlayGamePage::OnSetFocus()
 {
 	GamesList->SetFocus();
-}
-
-void PlayGamePage::OnGeometryChanged()
-{
-	/*
-	double y = 10.0;
-
-	WelcomeLabel->SetFrameGeometry(0.0, y, GetWidth(), WelcomeLabel->GetPreferredHeight());
-	y += WelcomeLabel->GetPreferredHeight();
-
-	y += 10.0;
-
-	SelectLabel->SetFrameGeometry(0.0, y, GetWidth(), SelectLabel->GetPreferredHeight());
-	y += SelectLabel->GetPreferredHeight();
-
-	double listViewTop = y;
-
-	y = GetHeight() - 10.0;
-
-#if defined(EXTRAARGS)
-	double editHeight = 24.0;
-	y -= editHeight;
-	ParametersEdit->SetFrameGeometry(0.0, y, GetWidth(), editHeight);
-	y -= 5.0;
-
-	double labelHeight = ParametersLabel->GetPreferredHeight();
-	y -= labelHeight;
-	ParametersLabel->SetFrameGeometry(0.0, y, GetWidth(), labelHeight);
-	y -= 10.0;
-#endif
-
-	double listViewBottom = y - 10.0;
-	GamesList->SetFrameGeometry(0.0, listViewTop, GetWidth(), std::max(listViewBottom - listViewTop, 0.0));
-	*/
 }
