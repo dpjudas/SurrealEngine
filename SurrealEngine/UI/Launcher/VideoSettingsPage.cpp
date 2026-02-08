@@ -102,7 +102,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
 
-	auto renderDeviceLayout = new HBoxLayout(this);
+	auto renderDeviceLayout = new HBoxLayout();
 
 	renderDeviceLayout->AddWidget(Vulkan);
 #ifdef WIN32
@@ -229,70 +229,4 @@ void VideoSettingsPage::OnResetButtonClicked()
 	Bloom->SetChecked(false);
 	BloomAmount->SetTextInt(128);
 	UseDebugLayer->SetChecked(false);
-}
-
-void VideoSettingsPage::OnGeometryChanged()
-{
-	/*
-	double y = 10.0;
-	double gap = 2.0;
-	double groupEndGap = 7.0;
-	double width = GetWidth();
-	double labelWidth = 150.0;
-	double lineHeight = 23.0;
-	double dropdownWidth = 140.0;
-	double byteLineEditWidth = 50.0;
-	double rendevWidth = 100.0;
-
-	RenderDeviceLabel->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	Vulkan->SetFrameGeometry(0.0, y, rendevWidth, lineHeight);
-#ifdef WIN32
-	D3D11->SetFrameGeometry(rendevWidth, y, rendevWidth, lineHeight);
-	//D3D12->SetFrameGeometry(rendevWidth * 2.0, y, rendevWidth, lineHeight);
-#endif
-	y += lineHeight + groupEndGap;
-
-	AdvancedLabel->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	UseVSync->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	AntialiasModesLabel->SetFrameGeometry(0.0, y, labelWidth, lineHeight);
-	AntialiasModes->SetFrameGeometry(labelWidth, y, dropdownWidth, lineHeight);
-	y += lineHeight + gap;
-
-	LightModesLabel->SetFrameGeometry(0.0, y, labelWidth, lineHeight);
-	LightModes->SetFrameGeometry(labelWidth, y, dropdownWidth, lineHeight);
-	y += lineHeight + gap;
-
-	GammaModesLabel->SetFrameGeometry(0.0, y, labelWidth, lineHeight);
-	GammaModes->SetFrameGeometry(labelWidth, y, dropdownWidth, lineHeight);
-	y += lineHeight + gap;
-
-	GammaCorrectScreenshots->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	Hdr->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	HdrScaleLabel->SetFrameGeometry(0.0, y, labelWidth, lineHeight);
-	HdrScale->SetFrameGeometry(labelWidth, y, byteLineEditWidth, lineHeight);
-	y += lineHeight + gap;
-
-	Bloom->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + gap;
-
-	BloomAmountLabel->SetFrameGeometry(0.0, y, labelWidth, lineHeight);
-	BloomAmount->SetFrameGeometry(labelWidth, y, byteLineEditWidth, lineHeight);
-	y += lineHeight + groupEndGap;
-
-	UseDebugLayer->SetFrameGeometry(0.0, y, width, lineHeight);
-	y += lineHeight + groupEndGap;
-
-	ResetButton->SetFrameGeometry(0.0, y, 150.0, ResetButton->GetPreferredHeight());
-	y += ResetButton->GetPreferredHeight() + gap;
-	*/
 }
