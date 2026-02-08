@@ -18,8 +18,6 @@ public:
     void Save();
 
 private:
-    void OnGeometryChanged() override;
-
     void OnResetButtonClicked();
 
     LauncherWindow* Launcher = nullptr;
