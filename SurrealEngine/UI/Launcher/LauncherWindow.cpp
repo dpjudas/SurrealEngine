@@ -14,8 +14,8 @@
 int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
-	double windowWidth = 650.0;
-	double windowHeight = 770.0;
+	double windowWidth = 640.0;
+	double windowHeight = 750.0;
 
 	auto launcher = std::make_unique<LauncherWindow>();
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
@@ -98,20 +98,4 @@ void LauncherWindow::Exit()
 void LauncherWindow::OnClose()
 {
 	Exit();
-}
-
-void LauncherWindow::OnGeometryChanged()
-{
-	/*
-	double top = 0.0;
-	double bottom = GetHeight();
-
-	Banner->SetFrameGeometry(0.0, top, GetWidth(), Banner->GetPreferredHeight());
-	top += Banner->GetPreferredHeight();
-
-	bottom -= Buttonbar->GetPreferredHeight();
-	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());
-
-	Pages->SetFrameGeometry(0.0, top, GetWidth(), std::max(bottom - top, 0.0));
-	*/
 }
