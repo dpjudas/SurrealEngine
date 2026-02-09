@@ -405,7 +405,7 @@ void Canvas::drawText(const std::shared_ptr<Font>& font, const Point& pos, const
 		{
 			double gx = std::round(x + glyph->metrics.leftSideBearing);
 			double gy = std::round(y + glyph->metrics.yOffset);
-			drawGlyph(glyph->texture.get(), (float)std::round(gx), (float)std::round(gy), (float)glyph->uvwidth, (float)glyph->uvheight, (float)glyph->u, (float)glyph->v, (float)glyph->uvwidth, (float)glyph->uvheight, color);
+			drawGlyph(glyph->texture.get(), (float)gx, (float)gy, (float)glyph->uvwidth, (float)glyph->uvheight, (float)glyph->u, (float)glyph->v, (float)glyph->uvwidth, (float)glyph->uvheight, color);
 		}
 
 		x += std::round(glyph->metrics.advanceWidth);

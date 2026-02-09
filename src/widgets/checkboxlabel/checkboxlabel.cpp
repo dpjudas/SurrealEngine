@@ -49,7 +49,7 @@ bool CheckboxLabel::GetChecked() const
 double CheckboxLabel::GetPreferredWidth()
 {
 	const auto canvas = GetCanvas();
-	return GetCheckboxSize().width + canvas->measureText(GetFont(), text).width;
+	return GetCheckboxSize().width + canvas->measureText(GetFont(), text).width + 1.0;
 }
 
 double CheckboxLabel::GetPreferredHeight()
