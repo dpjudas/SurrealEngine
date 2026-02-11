@@ -240,7 +240,7 @@ int CrashReporterWin32::CaptureStackTrace(PCONTEXT initcontext, int max_frames, 
 {
 	memset(out_frames, 0, sizeof(void*) * max_frames);
 
-#ifdef _WIN64
+#if defined(_WIN64) && (defined(_M_X64) || defined(__x86_64__))
 	// RtlCaptureStackBackTrace doesn't support RtlAddFunctionTable..
 
 	CONTEXT context;

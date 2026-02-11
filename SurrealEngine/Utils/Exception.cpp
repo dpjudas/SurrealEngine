@@ -52,7 +52,7 @@ std::mutex Exception::mutex;
 int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 {
 /////////////////////////////////////////////////////////////////////
-#if defined _WIN64
+#if defined(_WIN64) && (defined(_M_X64) || defined(__x86_64__))
 
 	static InitDbgHelp dbgHelp;
 
@@ -129,7 +129,7 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 
 /////////////////////////////////////////////////////////////////////
-#elif defined __linux__
+#else
 
 	return 0;
 
