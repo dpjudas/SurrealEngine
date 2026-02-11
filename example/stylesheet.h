@@ -17,7 +17,7 @@ static const char* stylesheet = R"xxxx(
 	--divider:  #555555; /* between elements */
 }
 
-.light {
+.light, .aero {
 	--bgMain:   #F0F0F0; /* background */
 	--fgMain:   #191919;
 	--bgLight:  #FAFAFA; /* headers / inputs  */
@@ -56,7 +56,9 @@ pushbutton {
 	border-top-color: var(--border);
 	border-right-color: var(--border);
 	border-bottom-color: var(--border);
-/*
+}
+
+pushbutton.aero {
 	border-image-source: url("button_normal.png");
 	border-top-width: 6;
 	border-bottom-width: 6;
@@ -71,15 +73,15 @@ pushbutton {
 	border-left-image-width: 5;
 	border-right-image-width: 5;
 	border-center-image-slice: true;
-*/
 }
 
 pushbutton:hover {
 	color: var(--fgHover);
 	background-color: var(--bgHover);
-/*
+}
+
+pushbutton.aero:hover {
 	border-image-source: url("button_hot.png");
-*/
 }
 
 pushbutton:down {
@@ -210,17 +212,18 @@ tabwidget-stack {
 }
 
 checkbox-label {
-/*
-	checked-image: url("checkbox_checked_normal.png");
-	checked-align: -3;
-	unchecked-image: url("checkbox_unchecked_normal.png");
-	unchecked-align: -3;
-*/
 	checked-outer-border-color: var(--border);
 	checked-inner-border-color: var(--bgMain);
 	checked-color: var(--fgMain);
 	unchecked-outer-border-color: var(--border);
 	unchecked-inner-border-color: var(--bgMain);
+}
+
+checkbox-label.aero {
+	checked-image: url("checkbox_checked_normal.png");
+	checked-align: -3;
+	unchecked-image: url("checkbox_unchecked_normal.png");
+	unchecked-align: -3;
 }
 
 menubar {
