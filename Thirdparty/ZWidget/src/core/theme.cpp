@@ -179,7 +179,11 @@ WidgetStyle* WidgetTheme::RegisterStyle(std::unique_ptr<WidgetStyle> widgetStyle
 WidgetStyle* WidgetTheme::GetStyle(const std::string& widgetClass)
 {
 	auto it = Styles.find(widgetClass);
-	return it != Styles.end() ? it->second.get() : nullptr;
+	if (it != Styles.end())
+		return it->second.get();
+	if (widgetClass != "widget")
+		return GetStyle("widget");
+	return nullptr;
 }
 
 void WidgetTheme::SetTheme(std::unique_ptr<WidgetTheme> theme)
@@ -680,65 +684,167 @@ static bool parse_color(const std::vector<ThemeStyleToken>& tokens, size_t& in_o
 	return false;
 }
 
-StylesheetTheme::StylesheetTheme(const std::string& stylesheet, const std::string& usedThemeClass)
+class ThemeStyleSelector // css selector link
 {
-	std::unordered_map<std::string, WidgetStyle*> classes;
-	std::unordered_map<std::string, std::vector<ThemeStyleToken>> variables;
-	auto widget = RegisterStyle(std::make_unique<BasicWidgetStyle>(), "widget");
-	classes["widget"] = widget;
-	ThemeStyleTokenizer tokenizer(stylesheet);
-	ThemeStyleToken token;
-	while (true)
-	{
-		tokenizer.read(token, true);
-		if (token.type == ThemeStyleTokenType::null)
-			break;
+public:
+	std::string widget; // css element
+	std::string theme; // css class
+	std::string state; // css pseudo class
+};
 
-		// To do: really should parse a full selector chain with properties
-		if (token.type == ThemeStyleTokenType::delim && token.value == ".")
+class ThemeStyleProperty
+{
+public:
+	std::string name;
+	std::vector<ThemeStyleToken> value;
+	bool importantFlag = false;
+};
+
+class ThemeStyleRuleset
+{
+public:
+	std::vector<ThemeStyleSelector> selectors;
+	std::vector<ThemeStyleProperty> properties;
+};
+
+class ThemeSortedSelector
+{
+public:
+	size_t specificity = 0;
+	ThemeStyleSelector* selector = nullptr;
+	ThemeStyleRuleset* ruleset = nullptr;
+
+	bool operator<(const ThemeSortedSelector& other) const { return specificity < other.specificity; }
+};
+
+class ThemeStyleDocument
+{
+public:
+	ThemeStyleDocument(const std::string& stylesheet)
+	{
+		read_stylesheet(stylesheet);
+		create_sorted_selectors();
+	}
+
+	void create_sorted_selectors()
+	{
+		size_t a = 0;
+		for (ThemeStyleRuleset& ruleset : rulesets)
+		{
+			for (ThemeStyleSelector& selector : ruleset.selectors)
+			{
+				size_t b = 0; // #id, not used
+				size_t c = 0;
+				size_t d = (selector.widget != "*") ? 1 : 0;
+				if (selector.theme.empty())
+					c++;
+				if (selector.state.empty())
+					c++;
+
+				ThemeSortedSelector s;
+				s.selector = &selector;
+				s.ruleset = &ruleset;
+				s.specificity = (a << 32) | (b << 24) | (c << 8) | d;
+				selectors.push_back(std::move(s));
+			}
+			a++;
+		}
+		std::stable_sort(selectors.begin(), selectors.end());
+	}
+
+	void read_stylesheet(const std::string& stylesheet)
+	{
+		ThemeStyleTokenizer tokenizer(stylesheet);
+		ThemeStyleToken token;
+
+		while (true)
 		{
 			tokenizer.read(token, true);
-			if (token.type != ThemeStyleTokenType::ident)
-				continue;
-			std::string themeClass = token.value;
-			tokenizer.read(token, true);
-
-			if (token.type != ThemeStyleTokenType::curly_brace_begin)
+			if (token.type == ThemeStyleTokenType::null)
+			{
 				break;
+			}
+			else if (token.type == ThemeStyleTokenType::atkeyword)
+			{
+				read_at_rule(tokenizer, token);
+			}
+			else if (token.type != ThemeStyleTokenType::whitespace)
+			{
+				read_statement(tokenizer, token);
+			}
+		}
+	}
 
+	void read_statement(ThemeStyleTokenizer& tokenizer, ThemeStyleToken& token)
+	{
+		ThemeStyleRuleset ruleset;
+		while (true)
+		{
+			ThemeStyleSelector selector;
+			if (read_selector(tokenizer, token, selector))
+			{
+				ruleset.selectors.push_back(std::move(selector));
+				if (token.type == ThemeStyleTokenType::delim && token.value == ",")
+				{
+					tokenizer.read(token, true);
+				}
+				else if (token.type == ThemeStyleTokenType::curly_brace_begin)
+				{
+					break;
+				}
+				else
+				{
+					read_end_of_statement(tokenizer, token);
+					return;
+				}
+			}
+			else
+			{
+				read_end_of_statement(tokenizer, token);
+				return;
+			}
+		}
+
+		if (token.type == ThemeStyleTokenType::curly_brace_begin)
+		{
 			while (true)
 			{
 				tokenizer.read(token, true);
-				if (token.type == ThemeStyleTokenType::null || token.type == ThemeStyleTokenType::curly_brace_end)
-					break;
 
-				std::string name;
+				ThemeStyleProperty prop;
 				if (token.type == ThemeStyleTokenType::delim && token.value == "-")
 				{
 					tokenizer.read(token, true);
 					if (token.type == ThemeStyleTokenType::ident)
 					{
-						name = "-" + token.value;
+						prop.name = "-" + token.value;
 						tokenizer.read(token, true);
+					}
+					else
+					{
+						bool important_flag = false;
+						tokenizer.read_property_value(token, important_flag);
 					}
 				}
 				else if (token.type == ThemeStyleTokenType::ident)
 				{
-					name = token.value;
+					prop.name = token.value;
 					tokenizer.read(token, true);
 				}
+				else if (token.type == ThemeStyleTokenType::curly_brace_end)
+				{
+					break;
+				}
+				else if (token.type == ThemeStyleTokenType::null)
+				{
+					return;
+				}
 
-				if (!name.empty() && token.type == ThemeStyleTokenType::colon)
+				if (token.type == ThemeStyleTokenType::colon)
 				{
 					tokenizer.read(token, true);
-					bool importantFlag = false;
-					std::vector<ThemeStyleToken> value = tokenizer.read_property_value(token, importantFlag);
-
-					if (themeClass == usedThemeClass)
-					{
-						if (name.size() > 2 && name.substr(0, 2) == "--")
-							variables[name] = std::move(value);
-					}
+					prop.value = tokenizer.read_property_value(token, prop.importantFlag);
+					ruleset.properties.push_back(std::move(prop));
 				}
 				else
 				{
@@ -746,135 +852,277 @@ StylesheetTheme::StylesheetTheme(const std::string& stylesheet, const std::strin
 					tokenizer.read_property_value(token, important_flag);
 				}
 			}
+			rulesets.push_back(std::move(ruleset));
 		}
-
-		if (token.type != ThemeStyleTokenType::ident)
-			continue;
-
-		std::string className, partName;
-
-		className = token.value;
-		tokenizer.read(token, true);
-
-		if (token.type == ThemeStyleTokenType::colon)
+		else
 		{
-			tokenizer.read(token, true);
-			if (token.type != ThemeStyleTokenType::ident)
-				break;
-			partName = token.value;
-			tokenizer.read(token, true);
+			read_end_of_statement(tokenizer, token);
 		}
+	}
 
-		if (token.type != ThemeStyleTokenType::curly_brace_begin)
-			break;
+	bool read_selector(ThemeStyleTokenizer& tokenizer, ThemeStyleToken& token, ThemeStyleSelector& out_selector)
+	{
+		while (token.type == ThemeStyleTokenType::whitespace)
+			tokenizer.read(token, true);
 
-		WidgetStyle* style = classes[className];
-		if (!style)
+		ThemeStyleSelector selector_link;
+		if (token.type == ThemeStyleTokenType::ident)
 		{
-			style = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), className);
-			classes[className] = style;
+			// Simple Selector
+			selector_link.widget = token.value;
+			tokenizer.read(token, false);
+		}
+		else if (token.type == ThemeStyleTokenType::delim && token.value == "*")
+		{
+			// Universal Selector
+			selector_link.widget = "*";
+			tokenizer.read(token, false);
+		}
+		else if (token.type == ThemeStyleTokenType::hash ||
+			token.type == ThemeStyleTokenType::colon ||
+			token.type == ThemeStyleTokenType::square_bracket_begin ||
+			(token.type == ThemeStyleTokenType::delim && token.value == "."))
+		{
+			// Implicit Universal Selector
+			selector_link.widget = "*";
+		}
+		else
+		{
+			return false;
 		}
 
 		while (true)
 		{
-			tokenizer.read(token, true);
-			if (token.type == ThemeStyleTokenType::null || token.type == ThemeStyleTokenType::curly_brace_end)
-				break;
-			
-			if (token.type == ThemeStyleTokenType::ident)
+			if (token.type == ThemeStyleTokenType::colon)
 			{
-				std::string name = token.value;
-				tokenizer.read(token, true);
-				if (token.type == ThemeStyleTokenType::colon)
+				tokenizer.read(token, false);
+				if (token.type == ThemeStyleTokenType::ident)
 				{
-					// Grab property value tokens
-					tokenizer.read(token, true);
-					bool importantFlag = false;
-					std::vector<ThemeStyleToken> origtokens = tokenizer.read_property_value(token, importantFlag);
-
-					// Insert variables (to do: move to function and clean this up!)
-					std::vector<ThemeStyleToken> tokens;
-					for (auto it = origtokens.begin(); it != origtokens.end(); ++it)
-					{
-						const ThemeStyleToken& t = *it;
-						if (t.type == ThemeStyleTokenType::function && t.value == "var")
-						{
-							++it;
-							if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::delim || (*it).value != "-")
-							{
-								tokens.clear();
-								break;
-							}
-
-							++it;
-							if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::ident)
-							{
-								tokens.clear();
-								break;
-							}
-							const auto& variable = variables["-" + (*it).value];
-							tokens.insert(tokens.end(), variable.begin(), variable.end());
-							++it;
-							if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::bracket_end)
-							{
-								tokens.clear();
-								break;
-							}
-						}
-						else
-						{
-							tokens.push_back(t);
-						}
-					}
-
-					if (tokens.empty())
-						continue;
-
-					// Parse the tokens:
-					// To do: maybe use property parsers like ClanLib and UICore does?
-					// That would allow for short form properties
-
-					if (tokens[0].type == ThemeStyleTokenType::ident && (tokens[0].value == "true" || tokens[0].value == "false"))
-					{
-						if (tokens[0].value == "true")
-						{
-							style->SetBool(partName, name, true);
-						}
-						else if (tokens[0].value == "false")
-						{
-							style->SetBool(partName, name, false);
-						}
-					}
-					else if (tokens[0].type == ThemeStyleTokenType::number)
-					{
-						style->SetDouble(partName, name, std::atof(tokens[0].value.c_str()));
-					}
-					else if (tokens.size() == 2 && tokens[0].type == ThemeStyleTokenType::delim && tokens[0].value == "-" && tokens[1].type == ThemeStyleTokenType::number)
-					{
-						style->SetDouble(partName, name, -std::atof(tokens[1].value.c_str()));
-					}
-					else if (tokens[0].type == ThemeStyleTokenType::string)
-					{
-						style->SetString(partName, name, tokens[0].value);
-					}
-					else if (tokens[0].type == ThemeStyleTokenType::uri)
-					{
-						style->SetImage(partName, name, Image::LoadResource(tokens[0].value));
-					}
-					else
-					{
-						size_t pos = 0;
-						Colorf color;
-						if (parse_color(tokens, pos, color))
-						{
-							style->SetColor(partName, name, color);
-						}
-					}
+					if (!selector_link.state.empty())
+						return false;
+					selector_link.state = token.value;
+				}
+			}
+			else if (token.type == ThemeStyleTokenType::delim && token.value == ".")
+			{
+				tokenizer.read(token, false);
+				if (token.type == ThemeStyleTokenType::ident)
+				{
+					if (!selector_link.theme.empty())
+						return false;
+					selector_link.theme = token.value;
 				}
 				else
 				{
-					bool important_flag = false;
-					tokenizer.read_property_value(token, important_flag);
+					return false;
+				}
+			}
+			else
+			{
+				break;
+			}
+
+			tokenizer.read(token, false);
+		}
+
+		while (token.type == ThemeStyleTokenType::whitespace)
+			tokenizer.read(token, true);
+
+		out_selector = selector_link;
+		return true;
+	}
+
+	bool read_end_of_statement(ThemeStyleTokenizer& tokenizer, ThemeStyleToken& token)
+	{
+		int curly_count = 0;
+		while (true)
+		{
+			if (token.type == ThemeStyleTokenType::null)
+			{
+				break;
+			}
+			else if (token.type == ThemeStyleTokenType::curly_brace_begin)
+			{
+				curly_count++;
+			}
+			else if (token.type == ThemeStyleTokenType::curly_brace_end)
+			{
+				curly_count--;
+				if (curly_count <= 0)
+					break;
+			}
+			else if (token.type == ThemeStyleTokenType::semi_colon)
+			{
+				if (curly_count == 0)
+					break;
+			}
+			tokenizer.read(token, true);
+		}
+
+		return curly_count < 0;
+	}
+
+	void read_at_rule(ThemeStyleTokenizer& tokenizer, ThemeStyleToken& token)
+	{
+		// We have no at rules currently - skip it
+		read_end_of_at_rule(tokenizer, token);
+	}
+
+	void read_end_of_at_rule(ThemeStyleTokenizer& tokenizer, ThemeStyleToken& token)
+	{
+		int curly_count = 0;
+		while (true)
+		{
+			if (token.type == ThemeStyleTokenType::null)
+			{
+				break;
+			}
+			else if (token.type == ThemeStyleTokenType::semi_colon && curly_count == 0)
+			{
+				break;
+			}
+			else if (token.type == ThemeStyleTokenType::curly_brace_begin)
+			{
+				curly_count++;
+			}
+			else if (token.type == ThemeStyleTokenType::curly_brace_end)
+			{
+				curly_count--;
+				if (curly_count == 0)
+					break;
+			}
+			tokenizer.read(token, false);
+		}
+	}
+
+	std::vector<ThemeStyleRuleset> rulesets;
+	std::vector<ThemeSortedSelector> selectors;
+};
+
+StylesheetTheme::StylesheetTheme(const std::string& stylesheet, const std::string& usedThemeClass)
+{
+	ThemeStyleDocument doc(stylesheet);
+
+	std::unordered_map<std::string, WidgetStyle*> styles;
+	std::unordered_map<std::string, std::vector<ThemeStyleToken>> variables;
+	auto widget = RegisterStyle(std::make_unique<BasicWidgetStyle>(), "widget");
+	styles["widget"] = widget;
+
+	for (const ThemeSortedSelector& s : doc.selectors)
+	{
+		if (!s.selector->theme.empty() && s.selector->theme != usedThemeClass)
+			continue; // Not this theme
+
+		if (s.selector->widget == "*")
+		{
+			// Only support variable declarations in universal selectors for now
+			for (const ThemeStyleProperty& prop : s.ruleset->properties)
+			{
+				if (prop.name.size() > 2 && prop.name.substr(0, 2) == "--")
+				{
+					variables[prop.name] = prop.value;
+				}
+			}
+		}
+		else
+		{
+			std::string widgetName = s.selector->widget;
+			std::string partName = s.selector->state;
+
+			WidgetStyle* style = styles[widgetName];
+			if (!style)
+			{
+				style = RegisterStyle(std::make_unique<BasicWidgetStyle>(widget), widgetName);
+				styles[widgetName] = style;
+			}
+
+			for (const ThemeStyleProperty& prop : s.ruleset->properties)
+			{
+				if (prop.name.size() > 2 && prop.name.substr(0, 2) == "--")
+					continue; // skip variable declarations
+
+				const std::string& name = prop.name;
+
+				// Grab property value tokens
+				std::vector<ThemeStyleToken> origtokens = prop.value;
+
+				// Insert variables (to do: move to function and clean this up!)
+				std::vector<ThemeStyleToken> tokens;
+				for (auto it = origtokens.begin(); it != origtokens.end(); ++it)
+				{
+					const ThemeStyleToken& t = *it;
+					if (t.type == ThemeStyleTokenType::function && t.value == "var")
+					{
+						++it;
+						if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::delim || (*it).value != "-")
+						{
+							tokens.clear();
+							break;
+						}
+
+						++it;
+						if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::ident)
+						{
+							tokens.clear();
+							break;
+						}
+						const auto& variable = variables["-" + (*it).value];
+						tokens.insert(tokens.end(), variable.begin(), variable.end());
+						++it;
+						if (it == origtokens.end() || (*it).type != ThemeStyleTokenType::bracket_end)
+						{
+							tokens.clear();
+							break;
+						}
+					}
+					else
+					{
+						tokens.push_back(t);
+					}
+				}
+
+				if (tokens.empty())
+					continue;
+
+				// Parse the tokens:
+				// To do: maybe use property parsers like ClanLib and UICore does?
+				// That would allow for short form properties
+
+				if (tokens[0].type == ThemeStyleTokenType::ident && (tokens[0].value == "true" || tokens[0].value == "false"))
+				{
+					if (tokens[0].value == "true")
+					{
+						style->SetBool(partName, name, true);
+					}
+					else if (tokens[0].value == "false")
+					{
+						style->SetBool(partName, name, false);
+					}
+				}
+				else if (tokens[0].type == ThemeStyleTokenType::number)
+				{
+					style->SetDouble(partName, name, std::atof(tokens[0].value.c_str()));
+				}
+				else if (tokens.size() == 2 && tokens[0].type == ThemeStyleTokenType::delim && tokens[0].value == "-" && tokens[1].type == ThemeStyleTokenType::number)
+				{
+					style->SetDouble(partName, name, -std::atof(tokens[1].value.c_str()));
+				}
+				else if (tokens[0].type == ThemeStyleTokenType::string)
+				{
+					style->SetString(partName, name, tokens[0].value);
+				}
+				else if (tokens[0].type == ThemeStyleTokenType::uri)
+				{
+					style->SetImage(partName, name, Image::LoadResource(tokens[0].value));
+				}
+				else
+				{
+					size_t pos = 0;
+					Colorf color;
+					if (parse_color(tokens, pos, color))
+					{
+						style->SetColor(partName, name, color);
+					}
 				}
 			}
 		}

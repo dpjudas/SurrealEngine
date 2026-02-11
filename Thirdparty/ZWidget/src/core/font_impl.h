@@ -2,8 +2,6 @@
 
 #include "core/font.h"
 
-class CanvasFontGroup;
-
 class FontImpl : public Font
 {
 public:
@@ -23,6 +21,4 @@ public:
 
 	std::string Name;
 	double Height = 0.0;
-
-	std::shared_ptr<CanvasFontGroup> FontGroup;
 };

@@ -488,13 +488,10 @@ VerticalTextPosition Canvas::verticalTextAlign(const std::shared_ptr<Font>& font
 CanvasFontGroup* Canvas::GetFontGroup(const std::shared_ptr<Font>& font)
 {
 	FontImpl* fontImpl = static_cast<FontImpl*>(const_cast<Font*>(font.get()));
-	if (fontImpl->FontGroup)
-		return fontImpl->FontGroup.get();
 
 	std::shared_ptr<CanvasFontGroup>& group = fontCache[{fontImpl->Name, fontImpl->Height}];
 	if (!group)
 		group = std::make_unique<CanvasFontGroup>(fontImpl->Name, std::round(fontImpl->Height * uiscale));
-	fontImpl->FontGroup = group;
 	return group.get();
 }
 
