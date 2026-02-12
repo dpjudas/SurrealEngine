@@ -21,10 +21,24 @@ protected:
 	void OnKeyUp(InputKey key) override;
 
 private:
+	void UpdateMovement();
 	void MoveCamera(float x, float y, float z);
+	float CalcTimeElapsed();
 
 	bool MouseIsMoving = false;
 	bool MouseIsPanning = false;
 	vec3 Location = vec3(0.0f);
 	Rotator Rotation = Rotator(0, 0, 0);
+
+	vec3 LastLocation = vec3(0.0f);
+	Rotator LastRotation = Rotator(0, 0, 0);
+
+	bool moveLeft = false;
+	bool moveRight = false;
+	bool moveUp = false;
+	bool moveDown = false;
+	bool moveForwards = false;
+	bool moveBackwards = false;
+
+	uint64_t lastTime = 0;
 };
