@@ -590,6 +590,11 @@ void WaylandDisplayBackend::OnWindowDestroyed(WaylandDisplayWindow* window)
 
 void WaylandDisplayBackend::ProcessEvents()
 {
+	ProcessEvents(0);
+}
+
+void WaylandDisplayBackend::ProcessEvents(int timeout)
+{
 	CheckNeedsUpdate();
 
 	while (wl_display_prepare_read(s_waylandDisplay))
@@ -598,7 +603,7 @@ void WaylandDisplayBackend::ProcessEvents()
 	while (wl_display_flush(s_waylandDisplay) < 0 && errno == EAGAIN)
 		poll_single(s_waylandDisplay.get_fd(), POLLOUT, -1);
 
-	if (poll_single(s_waylandDisplay.get_fd(), POLLIN, 0) & POLLIN)
+	if (poll_single(s_waylandDisplay.get_fd(), POLLIN, timeout) & POLLIN)
 	{
 		wl_display_read_events(s_waylandDisplay);
 		s_waylandDisplay.dispatch_pending();
@@ -616,16 +621,10 @@ void WaylandDisplayBackend::RunLoop()
 {
 	while (!exitRunLoop && !s_Windows.empty())
 	{
-		ProcessEvents();
-		WaitForEvents(GetTimerTimeout());
+		ProcessEvents(GetTimerTimeout());
 	}
 
 	exitRunLoop = false; // So that closing a dialog doesn't close everything else
-}
-
-void WaylandDisplayBackend::WaitForEvents(int timeout)
-{
-	poll_single(s_waylandDisplay.get_fd(), POLLIN, -1);
 }
 
 static int64_t GetTimePoint()
