@@ -159,7 +159,7 @@ public:
 private:
 	void CheckNeedsUpdate();
 	void UpdateTimers();
-	void WaitForEvents(int timeout);
+	void ProcessEvents(int timeout);
 	int GetTimerTimeout();
 	void ConnectKeyboardEvents();
 	void ConnectMouseEvents();
