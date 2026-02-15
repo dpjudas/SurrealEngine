@@ -480,7 +480,7 @@ UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::m
 		// Object is special as its the base class for everything. Described in Core.u with circular references.
 		// This creates just enough of the properties to resolve it, hopefully.
 
-		if (engine->LaunchInfo.engineVersion < 469)
+		if (engine->LaunchInfo.engineVersion != 469)
 		{
 			auto objInternal = GC::Alloc<UIntProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
 			objInternal->ArrayDimension = 6;
