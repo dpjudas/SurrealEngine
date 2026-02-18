@@ -21,6 +21,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "BasedActors", &NActor::BasedActors, 306);
 	RegisterVMNativeFunc_2("Actor", "ChildActors", &NActor::ChildActors, 305);
 	RegisterVMNativeFunc_2("Actor", "ConsoleCommand", &NActor::ConsoleCommand, 0);
+	RegisterVMNativeFunc_3("Actor", "CycleActors", &NActor::CycleActors, 1002);
 	RegisterVMNativeFunc_6("Actor", "DemoPlaySound", &NActor::DemoPlaySound, 0);
 	RegisterVMNativeFunc_1("Actor", "Destroy", &NActor::Destroy, 279);
 	RegisterVMNativeFunc_1("Actor", "Error", &NActor::Error, 233);
@@ -30,8 +31,10 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_0("Actor", "FinishInterpolation", &NActor::FinishInterpolation, 301);
 	RegisterLatentAction(302, LatentRunState::FinishInterpolation);
 	RegisterVMNativeFunc_2("Actor", "GetAnimGroup", &NActor::GetAnimGroup, 293);
+	RegisterVMNativeFunc_6("Actor", "GetBoundingBox", &NActor::GetBoundingBox, 724);
 	RegisterVMNativeFunc_4("Actor", "GetCacheEntry", &NActor::GetCacheEntry, 0);
 	RegisterVMNativeFunc_4("Actor", "GetMapName", &NActor::GetMapName, 539);
+	RegisterVMNativeFunc_2("Actor", "GetMeshTexture", &NActor::GetMeshTexture, 1013);
 	RegisterVMNativeFunc_3("Actor", "GetNextInt", &NActor::GetNextInt, 0);
 	RegisterVMNativeFunc_4("Actor", "GetNextIntDesc", &NActor::GetNextIntDesc, 0);
 	if (engine->LaunchInfo.engineVersion > 219)
@@ -42,6 +45,8 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "GetURLMap", &NActor::GetURLMap, 547);
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
 	RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
+	RegisterVMNativeFunc_2("Actor", "IsOverlapping", &NActor::IsOverlapping, 718);
+	RegisterVMNativeFunc_1("Actor", "LastRendered", &NActor::LastRendered, 723);
 	RegisterVMNativeFunc_1("Actor", "LinkSkelAnim", &NActor::LinkSkelAnim, 0);
 	RegisterVMNativeFunc_4("Actor", "LoopAnim", &NActor::LoopAnim, 260);
 	RegisterVMNativeFunc_1("Actor", "MakeNoise", &NActor::MakeNoise, 512);
@@ -51,6 +56,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_3("Actor", "Multiply_ColorFloat", &NActor::Multiply_ColorFloat, 552);
 	RegisterVMNativeFunc_3("Actor", "Multiply_FloatColor", &NActor::Multiply_FloatColor, 550);
 	RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
+	RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 	RegisterVMNativeFunc_6("Actor", "PlayOwnedSound", &NActor::PlayOwnedSound, 0);
 	RegisterVMNativeFunc_6("Actor", "PlaySound", &NActor::PlaySound, 264);
 	RegisterVMNativeFunc_1("Actor", "PlayerCanSeeMe", &NActor::PlayerCanSeeMe, 532);
@@ -120,6 +126,11 @@ void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 	Frame::CreatedIterator = std::make_unique<ChildActorsIterator>(UObject::Cast<UActor>(Self), BaseClass, &Actor);
 }
 
+void NActor::CycleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, int& index)  
+{  
+    Frame::CreatedIterator = std::make_unique<CycleActorsIterator>(BaseClass, &Actor, &index);  
+}
+
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
 {
 	// "Execute a console command in the context of the current level and game engine"
@@ -174,6 +185,32 @@ void NActor::FinishInterpolation(UObject* Self)
 void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
+}
+
+void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, BitfieldBool* bExact, vec3* testLocation, Rotator* testRotation, BitfieldBool& ReturnValue)
+{
+    UActor* actor = UObject::Cast<UActor>(Self);  
+    if (!actor) { ReturnValue = false; return; }  
+  
+    bool bExactVal = bExact ? *bExact : false;  
+    if (bExactVal || testLocation || testRotation)  
+    {  
+        actor->UpdateBspInfo(); 
+    }  
+  
+    BBox bbox = actor->BspInfo.BoundingBox;  
+  
+    if (testLocation || testRotation)  
+    {  
+        vec3 loc = testLocation ? *testLocation : actor->Location();  
+        Rotator rot = testRotation ? *testRotation : actor->Rotation();  
+        mat4 objectToWorld = mat4::translate(loc) * Coords::Rotation(rot).ToMatrix();  
+        bbox = bbox.transform(objectToWorld);  
+    }  
+  
+    MinVect = bbox.min;  
+    MaxVect = bbox.max;  
+    ReturnValue = true;  
 }
 
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
@@ -316,6 +353,25 @@ void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = UObject::Cast<UActor>(Self)->IsAnimating();
 }
 
+void NActor::IsOverlapping(UObject* Self, UObject* checkActor, BitfieldBool& ReturnValue)
+{
+	UActor* selfActor = UObject::Cast<UActor>(Self);  
+    UActor* otherActor = UObject::Cast<UActor>(checkActor);  
+    ReturnValue = selfActor && otherActor && selfActor->IsOverlapping(otherActor); 
+}
+
+void NActor::LastRendered(UObject *Self, float &ReturnValue)
+{
+	if (UDecal* decal = UObject::TryCast<UDecal>(Self))  
+    {  
+        ReturnValue = decal->LastRenderedTime();  
+    }  
+    else  
+    {  
+        ReturnValue = 0.0f; // UActor no tiene LastRenderedTime  
+    }  
+}
+
 void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 {
 	Exception::Throw("Actor.LinkSkelAnim not implemented");
@@ -369,6 +425,12 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime)
 {
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
+}
+
+void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, int* BlendSlot)
+{
+	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
+	LogMessage("Blend logic not implemented just yet!");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
@@ -538,10 +600,54 @@ void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObje
 		false);
 }
 
-void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
-{
-	LogUnimplemented("Actor.GetPlayerPawn");
-	ReturnValue = nullptr;
+
+
+void NActor::GetMeshTexture(UObject* Self, int* texnum, UObject*& ReturnValue)  
+{  
+    UActor* actor = UObject::Cast<UActor>(Self);  
+    UMesh* mesh = actor ? actor->Mesh() : nullptr;  
+    int index = texnum ? *texnum : 0;  
+    if (!mesh || index < 0 || index >= (int)mesh->Textures.size())  
+    {  
+        ReturnValue = engine->DefaultTexture;  
+        return;  
+    }  
+  
+    UTexture* tex = actor->GetMultiskin(index);  
+    if (!tex)  
+    {  
+        if (!mesh->Textures[index] || index == 0)  
+            tex = actor->Skin();  
+        if (!tex)  
+            tex = mesh->Textures[index];  
+        if (!tex)  
+            tex = actor->Texture();  
+    }  
+    ReturnValue = tex ? tex : engine->DefaultTexture;  
+}
+
+void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)  
+{  
+    if (engine && engine->viewport && engine->viewport->Actor())  
+    {  
+        ReturnValue = engine->viewport->Actor();  
+        return;  
+    }  
+  
+    if (engine && engine->Level)  
+    {  
+        for (UActor* actor : engine->Level->Actors)  
+        {  
+            UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);  
+            if (pawn && pawn->Player())  
+            {  
+                ReturnValue = pawn;  
+                return;  
+            }  
+        }  
+    }  
+  
+    ReturnValue = nullptr;  
 }
 
 void NActor::AIClearEvent(UObject* Self, const NameString& eventName)

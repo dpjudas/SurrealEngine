@@ -8,6 +8,7 @@ public:
 	static void RegisterFunctions();
 
 	static void AddPawn(UObject* Self);
+	static void AIPickRandomDestination(UObject* Self, float minDist, float maxDist, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, int tries, float multiplier, vec3& dest);
 	static void CanSee(UObject* Self, UObject* Other, BitfieldBool& ReturnValue);
 	static void CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, BitfieldBool& ReturnValue);
 	static void ClearPaths(UObject* Self);

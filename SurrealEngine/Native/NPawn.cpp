@@ -11,6 +11,7 @@
 void NPawn::RegisterFunctions()
 {
 	RegisterVMNativeFunc_0("Pawn", "AddPawn", &NPawn::AddPawn, 529);
+	RegisterVMNativeFunc_9("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination, 709);
 	RegisterVMNativeFunc_2("Pawn", "CanSee", &NPawn::CanSee, 533);
 	RegisterVMNativeFunc_3("Pawn", "CheckValidSkinPackage", &NPawn::CheckValidSkinPackage, 0);
 	RegisterVMNativeFunc_0("Pawn", "ClearPaths", &NPawn::ClearPaths, 522);
@@ -143,6 +144,37 @@ void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const 
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
 	ReturnValue = SelfPawn->PickAnyTarget(bestAim, bestDist, FireDir, projStart);
+}
+
+void NPawn::AIPickRandomDestination(UObject* Self, float minDist, float maxDist, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, int tries, float multiplier, vec3& dest)  
+{  
+    UPawn* selfPawn = UObject::Cast<UPawn>(Self);  
+    if (!selfPawn) { dest = {}; return; }  
+  
+    selfPawn->ClearPaths();  
+  
+    Array<UNavigationPoint*> candidates;  
+    for (UNavigationPoint* nav = selfPawn->Level()->NavigationPointList(); nav; nav = nav->nextNavigationPoint())  
+    {  
+        if (!selfPawn->ActorReachable(nav)) continue;  
+        vec3 toPoint = nav->Location() - selfPawn->Location();  
+        float dist = length(toPoint);  
+        if (dist < minDist || dist > maxDist * multiplier) continue;  
+  
+        Rotator dir = Rotator::FromVector(normalize(toPoint));  
+        int yawDiff = std::abs(dir.Yaw - centralYaw);  
+        int pitchDiff = std::abs(dir.Pitch - centralPitch);  
+        if (yawDiff > yawDistribution * 65536.0f / 360.0f) continue;  
+        if (pitchDiff > pitchDistribution * 65536.0f / 360.0f) continue;  
+  
+        candidates.push_back(nav);  
+    }  
+  
+    if (candidates.empty()) { dest = {}; return; }  
+  
+    float r = static_cast<float>(std::rand()) / RAND_MAX;  
+    size_t idx = static_cast<size_t>(r * candidates.size());  
+    dest = candidates[idx]->Location();  
 }
 
 void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)

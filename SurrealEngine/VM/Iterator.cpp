@@ -68,8 +68,12 @@ BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UOb
 {
 	for (UActor* levelActor : engine->Level->Actors)
 	{
+		if (!levelActor || !levelActor->Class) continue;
 		if (levelActor->IsA(BaseClass->Name) && levelActor->IsBasedOn(Caller))
+		{
+			LogMessage("Checking actor: " + std::to_string((ptrdiff_t)levelActor) + " class: " + (levelActor->Class ? levelActor->Class->Name.ToString() : "NULL"));
 			BasedActors.push_back(levelActor);
+		}
 	}
 
 	iterator = BasedActors.begin();
@@ -114,6 +118,30 @@ bool ChildActorsIterator::Next()
 	iterator++;
 
 	return *Actor;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+CycleActorsIterator::CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex)  : BaseClass(BaseClass), Actor(Actor), outIndex(outIndex)  
+{  
+    for (UActor* levelActor : engine->Level->Actors)  
+    {  
+        if (levelActor && levelActor->IsA(BaseClass->Name))  
+            matchedActors.push_back(levelActor); 
+    }  
+    totalActors = matchedActors.size();  
+}  
+
+bool CycleActorsIterator::Next()  
+{  
+    if (matchedActors.empty()) return false;  
+    if (currentIndex >= matchedActors.size())  
+    {  
+        return false;  
+    }  
+    *Actor = matchedActors[currentIndex];  
+    if (outIndex) *outIndex = static_cast<int>(currentIndex);  
+    ++currentIndex;  
+    return true;  
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -177,13 +205,17 @@ bool TouchingActorsIterator::Next()
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
 	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-
+	if(!BaseActor) return; 
 	vec3 startPoint = Start;
 
 	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
 
-	do {		
-		if (tracedActor)
+	do {
+		if(!tracedActor || !tracedActor->Class)
+		{
+			continue;
+		}	
+		else
 		{
 			// Only allow the Actors of type BaseClass
 			if (tracedActor->IsA(BaseClass->Name))
@@ -198,7 +230,7 @@ TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, ve
 
 bool TraceActorsIterator::Next()
 {
-	if (iterator == tracedActors.end())
+	if (iterator == tracedActors.end() || tracedActors.empty())
 	{
 		*Actor = nullptr;
 		*HitLoc = vec3(0.0f);
