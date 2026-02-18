@@ -347,6 +347,8 @@ bool UObject::IsA(const NameString& className) const
 	UStruct* cls = Class;
 	while (cls)
 	{
+		if (!Class)
+			return false;
 		if (cls->Name == className)
 			return true;
 		cls = cls->BaseStruct;

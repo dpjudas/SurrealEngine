@@ -73,6 +73,20 @@ public:
 	Array<UActor*>::iterator iterator;
 };
 
+class CycleActorsIterator : public Iterator
+{
+public:
+	CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex);
+	bool Next() override;
+private:  
+    UObject* BaseClass = nullptr;  
+    UObject** Actor = nullptr;  
+    int* outIndex = nullptr;  
+    size_t currentIndex = 0;  
+    size_t totalActors = 0;  
+    Array<UActor*> matchedActors; 
+};
+
 class RadiusActorsIterator : public Iterator
 {
 public:

@@ -68,8 +68,12 @@ BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UOb
 {
 	for (UActor* levelActor : engine->Level->Actors)
 	{
+		if (!levelActor || !levelActor->Class) continue;
 		if (levelActor->IsA(BaseClass->Name) && levelActor->IsBasedOn(Caller))
+		{
+			LogMessage("Checking actor: " + std::to_string((ptrdiff_t)levelActor) + " class: " + (levelActor->Class ? levelActor->Class->Name.ToString() : "NULL"));
 			BasedActors.push_back(levelActor);
+		}
 	}
 
 	iterator = BasedActors.begin();
@@ -114,6 +118,31 @@ bool ChildActorsIterator::Next()
 	iterator++;
 
 	return *Actor;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+CycleActorsIterator::CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex)  : BaseClass(BaseClass), Actor(Actor), outIndex(outIndex)  
+{  
+    for (UActor* levelActor : engine->Level->Actors)  
+    {  
+        if (levelActor && levelActor->IsA(BaseClass->Name))  
+            matchedActors.push_back(levelActor); 
+    }  
+    totalActors = matchedActors.size();  
+}  
+
+bool CycleActorsIterator::Next()  
+{  
+    if (matchedActors.empty()) return false;  
+    if (currentIndex >= matchedActors.size())  
+    {  
+        // Ya recorrimos todo; terminar el foreach  
+        return false;  
+    }  
+    *Actor = matchedActors[currentIndex];  
+    if (outIndex) *outIndex = static_cast<int>(currentIndex);  
+    ++currentIndex;  
+    return true;  
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -182,8 +211,12 @@ TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, ve
 
 	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
 
-	do {		
-		if (tracedActor)
+	do {
+		if(!tracedActor || !tracedActor->Class)
+		{
+			continue;
+		}	
+		else
 		{
 			// Only allow the Actors of type BaseClass
 			if (tracedActor->IsA(BaseClass->Name))
