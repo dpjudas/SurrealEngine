@@ -206,7 +206,7 @@ bool TouchingActorsIterator::Next()
 TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
 	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-
+	if(!BaseActor) return; 
 	vec3 startPoint = Start;
 
 	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
@@ -231,7 +231,7 @@ TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, ve
 
 bool TraceActorsIterator::Next()
 {
-	if (iterator == tracedActors.end())
+	if (iterator == tracedActors.end() || tracedActors.empty())
 	{
 		*Actor = nullptr;
 		*HitLoc = vec3(0.0f);
