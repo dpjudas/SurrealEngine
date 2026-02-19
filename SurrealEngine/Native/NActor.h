@@ -21,6 +21,7 @@ public:
 	static void FinishAnim(UObject* Self);
 	static void FinishInterpolation(UObject* Self);
 	static void GetAnimGroup(UObject* Self, const NameString& Sequence, NameString& ReturnValue);
+	static void GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, BitfieldBool* bExact, vec3* testLocation, Rotator* testRotation, BitfieldBool& ReturnValue);
 	static void GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue);
 	static void GetMapName(UObject* Self, const std::string& NameEnding, const std::string& MapName, int Dir, std::string& ReturnValue);
 	static void GetMeshTexture(UObject* Self, int* texnum, UObject*& ReturnValue);
@@ -32,6 +33,7 @@ public:
 	static void GetURLMap(UObject* Self, std::string& ReturnValue);
 	static void HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& ReturnValue);
 	static void IsAnimating(UObject* Self, BitfieldBool& ReturnValue);
+	static void IsOverlapping(UObject* Self, UObject* checkActor, BitfieldBool& ReturnValue);
 	static void LastRendered(UObject* Self, float& ReturnValue);
 	static void LinkSkelAnim(UObject* Self, UObject* Anim);
 	static void LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, float* MinRate);

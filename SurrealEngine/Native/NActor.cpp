@@ -31,6 +31,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_0("Actor", "FinishInterpolation", &NActor::FinishInterpolation, 301);
 	RegisterLatentAction(302, LatentRunState::FinishInterpolation);
 	RegisterVMNativeFunc_2("Actor", "GetAnimGroup", &NActor::GetAnimGroup, 293);
+	RegisterVMNativeFunc_6("Actor", "GetBoundingBox", &NActor::GetBoundingBox, 724);
 	RegisterVMNativeFunc_4("Actor", "GetCacheEntry", &NActor::GetCacheEntry, 0);
 	RegisterVMNativeFunc_4("Actor", "GetMapName", &NActor::GetMapName, 539);
 	RegisterVMNativeFunc_2("Actor", "GetMeshTexture", &NActor::GetMeshTexture, 1013);
@@ -44,6 +45,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "GetURLMap", &NActor::GetURLMap, 547);
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
 	RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
+	RegisterVMNativeFunc_2("Actor", "IsOverlapping", &NActor::IsOverlapping, 718);
 	RegisterVMNativeFunc_1("Actor", "LastRendered", &NActor::LastRendered, 723);
 	RegisterVMNativeFunc_1("Actor", "LinkSkelAnim", &NActor::LinkSkelAnim, 0);
 	RegisterVMNativeFunc_4("Actor", "LoopAnim", &NActor::LoopAnim, 260);
@@ -185,6 +187,32 @@ void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString&
 	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
 }
 
+void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, BitfieldBool* bExact, vec3* testLocation, Rotator* testRotation, BitfieldBool& ReturnValue)
+{
+    UActor* actor = UObject::Cast<UActor>(Self);  
+    if (!actor) { ReturnValue = false; return; }  
+  
+    bool bExactVal = bExact ? *bExact : false;  
+    if (bExactVal || testLocation || testRotation)  
+    {  
+        actor->UpdateBspInfo(); // Recalcula BspInfo.BoundingBox  
+    }  
+  
+    BBox bbox = actor->BspInfo.BoundingBox;  
+  
+    if (testLocation || testRotation)  
+    {  
+        vec3 loc = testLocation ? *testLocation : actor->Location();  
+        Rotator rot = testRotation ? *testRotation : actor->Rotation();  
+        mat4 objectToWorld = mat4::translate(loc) * Coords::Rotation(rot).ToMatrix();  
+        bbox = bbox.transform(objectToWorld);  
+    }  
+  
+    MinVect = bbox.min;  
+    MaxVect = bbox.max;  
+    ReturnValue = true;  
+}
+
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
 {
 	Exception::Throw("Actor.GetCacheEntry not implemented");
@@ -323,6 +351,13 @@ void NActor::HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& Re
 void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->IsAnimating();
+}
+
+void NActor::IsOverlapping(UObject* Self, UObject* checkActor, BitfieldBool& ReturnValue)
+{
+	UActor* selfActor = UObject::Cast<UActor>(Self);  
+    UActor* otherActor = UObject::Cast<UActor>(checkActor);  
+    ReturnValue = selfActor && otherActor && selfActor->IsOverlapping(otherActor); 
 }
 
 void NActor::LastRendered(UObject *Self, float &ReturnValue)
