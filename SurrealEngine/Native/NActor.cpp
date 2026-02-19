@@ -195,7 +195,7 @@ void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, Bitfiel
     bool bExactVal = bExact ? *bExact : false;  
     if (bExactVal || testLocation || testRotation)  
     {  
-        actor->UpdateBspInfo(); // Recalcula BspInfo.BoundingBox  
+        actor->UpdateBspInfo(); 
     }  
   
     BBox bbox = actor->BspInfo.BoundingBox;  
@@ -613,7 +613,6 @@ void NActor::GetMeshTexture(UObject* Self, int* texnum, UObject*& ReturnValue)
         return;  
     }  
   
-    // Prioridad: multiskin > skin > mesh texture > actor texture  
     UTexture* tex = actor->GetMultiskin(index);  
     if (!tex)  
     {  

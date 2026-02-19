@@ -136,7 +136,6 @@ bool CycleActorsIterator::Next()
     if (matchedActors.empty()) return false;  
     if (currentIndex >= matchedActors.size())  
     {  
-        // Ya recorrimos todo; terminar el foreach  
         return false;  
     }  
     *Actor = matchedActors[currentIndex];  
