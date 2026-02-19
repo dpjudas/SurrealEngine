@@ -58,7 +58,10 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
 	RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 	RegisterVMNativeFunc_6("Actor", "PlayOwnedSound", &NActor::PlayOwnedSound, 0);
-	RegisterVMNativeFunc_6("Actor", "PlaySound", &NActor::PlaySound, 264);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_6("Actor", "PlaySound", &NActor::PlaySound, 264);
+	else
+		RegisterVMNativeFunc_7("Actor", "PlaySound", &NActor::PlaySound_Deus, 264);
 	RegisterVMNativeFunc_1("Actor", "PlayerCanSeeMe", &NActor::PlayerCanSeeMe, 532);
 	RegisterVMNativeFunc_4("Actor", "RadiusActors", &NActor::RadiusActors, 310);
 	RegisterVMNativeFunc_1("Actor", "SetBase", &NActor::SetBase, 298);
@@ -66,7 +69,10 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_3("Actor", "SetCollisionSize", &NActor::SetCollisionSize, 283);
 	RegisterVMNativeFunc_2("Actor", "SetLocation", &NActor::SetLocation, 267);
 	RegisterVMNativeFunc_1("Actor", "SetOwner", &NActor::SetOwner, 272);
-	RegisterVMNativeFunc_1("Actor", "SetPhysics", &NActor::SetPhysics, 3970);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_1("Actor", "SetPhysics", &NActor::SetPhysics, 3970);
+	else
+		RegisterVMNativeFunc_2("Actor", "SetPhysics", &NActor::SetPhysics_Deus, 3970);
 	RegisterVMNativeFunc_2("Actor", "SetRotation", &NActor::SetRotation, 299);
 	RegisterVMNativeFunc_2("Actor", "SetTimer", &NActor::SetTimer, 280);
 	RegisterVMNativeFunc_1("Actor", "Sleep", &NActor::Sleep, 256);
@@ -93,6 +99,18 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "AIVisibility", &NActor::AIVisibility, 701);
 	RegisterVMNativeFunc_10("Actor", "TraceTexture", &NActor::TraceTexture, 1000);
 	RegisterVMNativeFunc_7("Actor", "TraceVisibleActors", &NActor::TraceVisibleActors, 1003);
+
+	if (engine->LaunchInfo.IsDeusEx())
+	{
+		RegisterVMNativeFunc_1("Actor", "InStasis", &NActor::InStasis, 721);
+		RegisterVMNativeFunc_11("Actor", "ParabolicTrace", &NActor::ParabolicTrace, 722);
+		RegisterVMNativeFunc_5("Actor", "RandomBiasedRotation", &NActor::RandomBiasedRotation, 717);
+		RegisterVMNativeFunc_1("Actor", "SetInstantMusicVolume", &NActor::SetInstantMusicVolume, 270);
+		RegisterVMNativeFunc_1("Actor", "SetInstantSoundVolume", &NActor::SetInstantSoundVolume, 268);
+		RegisterVMNativeFunc_1("Actor", "SetInstantSpeechVolume", &NActor::SetInstantSpeechVolume, 269);
+		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound, 265);
+		RegisterVMNativeFunc_3("Actor", "TweenBlendAnim", &NActor::TweenBlendAnim, 1012);
+	}
 }
 
 void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
@@ -461,6 +479,21 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	}
 }
 
+void NActor::PlaySound_Deus(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch, int& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	USound* s = UObject::Cast<USound>(Sound);
+	if (s)
+	{
+		int slot = Slot ? *Slot : SLOT_Misc;
+		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
+		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+	}
+	ReturnValue = 0; // To do: must now return the sound id so it can be stopped again
+}
+
+
 void NActor::PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
@@ -506,6 +539,13 @@ void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 {
 	UObject::Cast<UActor>(Self)->SetPhysics(newPhysics);
 	// We are calling Self->SetBase() for all other calls to SetPhysics. Do we need to do it here as well?
+}
+
+void NActor::SetPhysics_Deus(UObject* Self, uint8_t newPhysics, UObject** newFloor)
+{
+	// To do: do something with that optional new floor
+	// We are calling Self->SetBase() for all other calls to SetPhysics. Do we need to do it here as well?
+	UObject::Cast<UActor>(Self)->SetPhysics(newPhysics);
 }
 
 void NActor::SetRotation(UObject* Self, const Rotator& NewRotation, BitfieldBool& ReturnValue)
@@ -716,4 +756,47 @@ void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Act
 		BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
 		Extent ? *Extent : vec3(0, 0, 0));
+}
+
+void NActor::InStasis(UObject* Self, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->bStasis() || SelfActor->bForceStasis();
+}
+
+void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVelocity, vec3* startLocation, BitfieldBool* bCheckActors, vec3* Cylinder, float* maxTime, float* elasticity, BitfieldBool* bBounce, float* landingSpeed, float* granularity, float& ReturnValue)
+{
+	LogUnimplemented("Actor.ParabolicTrace");
+	ReturnValue = 0.0f;
+}
+
+void NActor::RandomBiasedRotation(UObject* Self, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, Rotator& ReturnValue)
+{
+	LogUnimplemented("Actor.RandomBiasedRotation");
+	ReturnValue = {};
+}
+
+void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
+{
+	LogUnimplemented("Actor.SetInstantMusicVolume");
+}
+
+void NActor::SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume)
+{
+	LogUnimplemented("Actor.SetInstantSoundVolume");
+}
+
+void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
+{
+	LogUnimplemented("Actor.SetInstantSpeechVolume");
+}
+
+void NActor::StopSound(UObject* Self, int Id)
+{
+	LogUnimplemented("Actor.StopSound");
+}
+
+void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, int* BlendSlot)
+{
+	LogUnimplemented("Actor.TweenBlendAnim");
 }

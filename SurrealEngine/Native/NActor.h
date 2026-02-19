@@ -78,4 +78,15 @@ public:
 	static void AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& ReturnValue);
 	static void TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent);
 	static void TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent);
+
+	static void InStasis(UObject* Self, BitfieldBool& ReturnValue);
+	static void ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVelocity, vec3* startLocation, BitfieldBool* bCheckActors, vec3* Cylinder, float* maxTime, float* elasticity, BitfieldBool* bBounce, float* landingSpeed, float* granularity, float& ReturnValue);
+	static void PlaySound_Deus(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch, int& ReturnValue);
+	static void RandomBiasedRotation(UObject* Self, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, Rotator& ReturnValue);
+	static void SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume);
+	static void SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume);
+	static void SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume);
+	static void SetPhysics_Deus(UObject* Self, uint8_t newPhysics, UObject** newFloor);
+	static void StopSound(UObject* Self, int Id);
+	static void TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, int* BlendSlot);
 };

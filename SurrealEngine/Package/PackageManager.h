@@ -34,14 +34,14 @@ class PackageManager
 public:
 	PackageManager(const GameLaunchInfo& launchInfo);
 
-	bool IsUnreal1() const { return launchInfo.gameExecutableName == "Unreal"; }
-	bool IsUnreal1_226() const { return IsUnreal1() && launchInfo.engineVersion == 226; }
-	bool IsUnreal1_227() const { return IsUnreal1() && launchInfo.engineVersion == 227; }
-	bool IsUnrealTournament() const { return launchInfo.gameExecutableName == "UnrealTournament"; }
-	bool IsUnrealTournament_469() const { return IsUnrealTournament() && launchInfo.engineVersion == 469; }
-	bool IsDeusEx() const { return launchInfo.gameExecutableName == "DeusEx"; }
-	bool IsCliveBarkersUndying() const { return launchInfo.gameExecutableName == "Undying"; }
-	bool IsKlingonHonorGuard() const  { return launchInfo.gameExecutableName == "Klingons" || launchInfo.gameExecutableName == "Khg"; }
+	bool IsUnreal1() const { return launchInfo.IsUnreal1(); }
+	bool IsUnreal1_226() const { return launchInfo.IsUnreal1_226(); }
+	bool IsUnreal1_227() const { return launchInfo.IsUnreal1_227(); }
+	bool IsUnrealTournament() const { return launchInfo.IsUnrealTournament(); }
+	bool IsUnrealTournament_469() const { return launchInfo.IsUnrealTournament_469(); }
+	bool IsDeusEx() const { return launchInfo.IsDeusEx(); }
+	bool IsCliveBarkersUndying() const { return launchInfo.IsCliveBarkersUndying(); }
+	bool IsKlingonHonorGuard() const  { return launchInfo.IsKlingonHonorGuard(); }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }

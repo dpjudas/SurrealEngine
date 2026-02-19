@@ -10,6 +10,15 @@ struct GameLaunchInfo
 	std::string gameExecutableName = "";	// Name of the game executable (e.g. "UnrealTournament")
 	std::string gameVersionString = "";		// Version (+ sub version) info as a string (e.g. "469d")
 	std::string url = "";					// The UnrealURL to launch upon startup
+
+	bool IsUnreal1() const { return gameExecutableName == "Unreal"; }
+	bool IsUnreal1_226() const { return IsUnreal1() && engineVersion == 226; }
+	bool IsUnreal1_227() const { return IsUnreal1() && engineVersion == 227; }
+	bool IsUnrealTournament() const { return gameExecutableName == "UnrealTournament"; }
+	bool IsUnrealTournament_469() const { return IsUnrealTournament() && engineVersion == 469; }
+	bool IsDeusEx() const { return gameExecutableName == "DeusEx"; }
+	bool IsCliveBarkersUndying() const { return gameExecutableName == "Undying"; }
+	bool IsKlingonHonorGuard() const { return gameExecutableName == "Klingons" || gameExecutableName == "Khg"; }
 };
 
 class GameFolderSelection
