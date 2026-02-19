@@ -90,7 +90,7 @@ void NativeCppGenerator::Run()
 			nClassCppText += "#include \"VM/NativeFunc.h\"\r\n";
 			nClassCppText += "#include \"Engine.h\"\r\n\r\n";
 
-			nClassCppText += "void N" + cls.name + "::RegisterFunctions(const std::map<std::string, int>& funcIndexMap)\r\n{\r\n";
+			nClassCppText += "void N" + cls.name + "::RegisterFunctions()\r\n{\r\n";
 
 			for (auto func : cls.funcs)
 			{
@@ -104,9 +104,12 @@ void NativeCppGenerator::Run()
 					std::string cppFuncName = "N" + cls.name + "::" + funcName;
 					std::string cppFuncDecl = "void " + cppFuncName + "(" + decl.args + ")";
 
-					nClassCppRegisterFunctionsText += "\tRegisterVMNativeFunc_" + std::to_string(decl.argCount) + "(\"" + cls.name + "\", \"" + func.name + "\", &" + cppFuncName + ", funcIndexMap[\"" + cppFuncName + "\"]);\r\n";
-					nClassCppFunctionImplsText += "\r\n" + cppFuncDecl + "\r\n{\r\n\tException::Throw(\"" + cppFuncName + " not implemented\");\r\n}\r\n";
-					nClassHText += "static void " + funcName + "(" + decl.args + ")" + ";\r\n";
+					for (const auto& versionIndex : func.versionIndex)
+					{
+						nClassCppRegisterFunctionsText += "\tRegisterVMNativeFunc_" + std::to_string(decl.argCount) + "(\"" + cls.name + "\", \"" + func.name + "\", &" + cppFuncName + ", " + std::to_string(versionIndex.second) + ");\r\n";
+						nClassCppFunctionImplsText += "\r\n" + cppFuncDecl + "\r\n{\r\n\tException::Throw(\"" + cppFuncName + " not implemented\");\r\n}\r\n";
+						nClassHText += "static void " + funcName + "(" + decl.args + ")" + ";\r\n";
+					}
 				}
 			}
 

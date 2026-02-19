@@ -211,6 +211,72 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NUPakPathNodeIterator.h
 	SurrealEngine/Native/NUPakPawnPathNodeIterator.cpp
 	SurrealEngine/Native/NUPakPawnPathNodeIterator.h
+	SurrealEngine/Native/NBorderWindow.cpp
+	SurrealEngine/Native/NBorderWindow.h
+	SurrealEngine/Native/NButtonWindow.cpp
+	SurrealEngine/Native/NButtonWindow.h
+	SurrealEngine/Native/NCheckboxWindow.cpp
+	SurrealEngine/Native/NCheckboxWindow.h
+	SurrealEngine/Native/NClipWindow.cpp
+	SurrealEngine/Native/NClipWindow.h
+	SurrealEngine/Native/NComputerWindow.cpp
+	SurrealEngine/Native/NComputerWindow.h
+	SurrealEngine/Native/NConEvent.cpp
+	SurrealEngine/Native/NConEvent.h
+	SurrealEngine/Native/NConEventRandomLabel.cpp
+	SurrealEngine/Native/NConEventRandomLabel.h
+	SurrealEngine/Native/NConversation.cpp
+	SurrealEngine/Native/NConversation.h
+	SurrealEngine/Native/NDeusExTextParser.cpp
+	SurrealEngine/Native/NDeusExTextParser.h
+	SurrealEngine/Native/NEditWindow.cpp
+	SurrealEngine/Native/NEditWindow.h
+	SurrealEngine/Native/NExtensionObject.cpp
+	SurrealEngine/Native/NExtensionObject.h
+	SurrealEngine/Native/NExtString.cpp
+	SurrealEngine/Native/NExtString.h
+	SurrealEngine/Native/NFlagBase.cpp
+	SurrealEngine/Native/NFlagBase.h
+	SurrealEngine/Native/NGC.cpp
+	SurrealEngine/Native/NGC.h
+	SurrealEngine/Native/NLargeTextWindow.cpp
+	SurrealEngine/Native/NLargeTextWindow.h
+	SurrealEngine/Native/NListWindow.cpp
+	SurrealEngine/Native/NListWindow.h
+	SurrealEngine/Native/NModalWindow.cpp
+	SurrealEngine/Native/NModalWindow.h
+	SurrealEngine/Native/NPathNodeIterator.cpp
+	SurrealEngine/Native/NPathNodeIterator.h
+	SurrealEngine/Native/NPawnPathNodeIterator.cpp
+	SurrealEngine/Native/NPawnPathNodeIterator.h
+	SurrealEngine/Native/NRadioBoxWindow.cpp
+	SurrealEngine/Native/NRadioBoxWindow.h
+	SurrealEngine/Native/NRootWindow.cpp
+	SurrealEngine/Native/NRootWindow.h
+	SurrealEngine/Native/NScaleManagerWindow.cpp
+	SurrealEngine/Native/NScaleManagerWindow.h
+	SurrealEngine/Native/NScaleWindow.cpp
+	SurrealEngine/Native/NScaleWindow.h
+	SurrealEngine/Native/NScrollAreaWindow.cpp
+	SurrealEngine/Native/NScrollAreaWindow.h
+	SurrealEngine/Native/NTextLogWindow.cpp
+	SurrealEngine/Native/NTextLogWindow.h
+	SurrealEngine/Native/NTextWindow.cpp
+	SurrealEngine/Native/NTextWindow.h
+	SurrealEngine/Native/NTileWindow.cpp
+	SurrealEngine/Native/NTileWindow.h
+	SurrealEngine/Native/NTimeDemo.cpp
+	SurrealEngine/Native/NTimeDemo.h
+	SurrealEngine/Native/NToggleWindow.cpp
+	SurrealEngine/Native/NToggleWindow.h
+	SurrealEngine/Native/NViewportWindow.cpp
+	SurrealEngine/Native/NViewportWindow.h
+	SurrealEngine/Native/NWebRequest.cpp
+	SurrealEngine/Native/NWebRequest.h
+	SurrealEngine/Native/NWebResponse.cpp
+	SurrealEngine/Native/NWebResponse.h
+	SurrealEngine/Native/NWindow.cpp
+	SurrealEngine/Native/NWindow.h
 	SurrealEngine/RenderDevice/RenderDevice.cpp
 	SurrealEngine/RenderDevice/RenderDevice.h
 	SurrealEngine/RenderDevice/Vulkan/BufferManager.cpp

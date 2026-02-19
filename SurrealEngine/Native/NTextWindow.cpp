@@ -1,0 +1,98 @@
+#include "Precomp.h"
+#include "NTextWindow.h"
+#include "VM/NativeFunc.h"
+#include "Engine.h"
+
+void NTextWindow::RegisterFunctions()
+{
+	RegisterVMNativeFunc_1("TextWindow", "AppendText", &NTextWindow::AppendText, 1551);
+	RegisterVMNativeFunc_1("TextWindow", "EnableTextAsAccelerator", &NTextWindow::EnableTextAsAccelerator, 1564);
+	RegisterVMNativeFunc_1("TextWindow", "GetText", &NTextWindow::GetText, 1552);
+	RegisterVMNativeFunc_1("TextWindow", "GetTextLength", &NTextWindow::GetTextLength, 1553);
+	RegisterVMNativeFunc_4("TextWindow", "GetTextPart", &NTextWindow::GetTextPart, 1554);
+	RegisterVMNativeFunc_0("TextWindow", "ResetLines", &NTextWindow::ResetLines, 1561);
+	RegisterVMNativeFunc_0("TextWindow", "ResetMinWidth", &NTextWindow::ResetMinWidth, 1563);
+	RegisterVMNativeFunc_2("TextWindow", "SetLines", &NTextWindow::SetLines, 1558);
+	RegisterVMNativeFunc_1("TextWindow", "SetMaxLines", &NTextWindow::SetMaxLines, 1560);
+	RegisterVMNativeFunc_1("TextWindow", "SetMinLines", &NTextWindow::SetMinLines, 1559);
+	RegisterVMNativeFunc_1("TextWindow", "SetMinWidth", &NTextWindow::SetMinWidth, 1562);
+	RegisterVMNativeFunc_1("TextWindow", "SetText", &NTextWindow::SetText, 1550);
+	RegisterVMNativeFunc_2("TextWindow", "SetTextAlignments", &NTextWindow::SetTextAlignments, 1556);
+	RegisterVMNativeFunc_2("TextWindow", "SetTextMargins", &NTextWindow::SetTextMargins, 1557);
+	RegisterVMNativeFunc_1("TextWindow", "SetWordWrap", &NTextWindow::SetWordWrap, 1555);
+}
+
+void NTextWindow::AppendText(UObject* Self, const std::string& NewText)
+{
+	Exception::Throw("NTextWindow::AppendText not implemented");
+}
+
+void NTextWindow::EnableTextAsAccelerator(UObject* Self, BitfieldBool* bEnable)
+{
+	Exception::Throw("NTextWindow::EnableTextAsAccelerator not implemented");
+}
+
+void NTextWindow::GetText(UObject* Self, std::string& ReturnValue)
+{
+	Exception::Throw("NTextWindow::GetText not implemented");
+}
+
+void NTextWindow::GetTextLength(UObject* Self, int& ReturnValue)
+{
+	Exception::Throw("NTextWindow::GetTextLength not implemented");
+}
+
+void NTextWindow::GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue)
+{
+	Exception::Throw("NTextWindow::GetTextPart not implemented");
+}
+
+void NTextWindow::ResetLines(UObject* Self)
+{
+	Exception::Throw("NTextWindow::ResetLines not implemented");
+}
+
+void NTextWindow::ResetMinWidth(UObject* Self)
+{
+	Exception::Throw("NTextWindow::ResetMinWidth not implemented");
+}
+
+void NTextWindow::SetLines(UObject* Self, int newMinLines, int newMaxLines)
+{
+	Exception::Throw("NTextWindow::SetLines not implemented");
+}
+
+void NTextWindow::SetMaxLines(UObject* Self, int newMaxLines)
+{
+	Exception::Throw("NTextWindow::SetMaxLines not implemented");
+}
+
+void NTextWindow::SetMinLines(UObject* Self, int newMinLines)
+{
+	Exception::Throw("NTextWindow::SetMinLines not implemented");
+}
+
+void NTextWindow::SetMinWidth(UObject* Self, float newMinWidth)
+{
+	Exception::Throw("NTextWindow::SetMinWidth not implemented");
+}
+
+void NTextWindow::SetText(UObject* Self, const std::string& NewText)
+{
+	Exception::Throw("NTextWindow::SetText not implemented");
+}
+
+void NTextWindow::SetTextAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
+{
+	Exception::Throw("NTextWindow::SetTextAlignments not implemented");
+}
+
+void NTextWindow::SetTextMargins(UObject* Self, float newHMargin, float newVMargin)
+{
+	Exception::Throw("NTextWindow::SetTextMargins not implemented");
+}
+
+void NTextWindow::SetWordWrap(UObject* Self, bool bNewWordWrap)
+{
+	Exception::Throw("NTextWindow::SetWordWrap not implemented");
+}

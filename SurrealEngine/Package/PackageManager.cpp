@@ -52,6 +52,39 @@
 #include "Native/NPlayerPawnExt.h"
 #include "Native/NUPakPathNodeIterator.h"
 #include "Native/NUPakPawnPathNodeIterator.h"
+#include "Native/NBorderWindow.h"
+#include "Native/NButtonWindow.h"
+#include "Native/NCheckboxWindow.h"
+#include "Native/NClipWindow.h"
+#include "Native/NComputerWindow.h"
+#include "Native/NConEvent.h"
+#include "Native/NConEventRandomLabel.h"
+#include "Native/NConversation.h"
+#include "Native/NDeusExTextParser.h"
+#include "Native/NEditWindow.h"
+#include "Native/NExtensionObject.h"
+#include "Native/NExtString.h"
+#include "Native/NFlagBase.h"
+#include "Native/NGC.h"
+#include "Native/NLargeTextWindow.h"
+#include "Native/NListWindow.h"
+#include "Native/NModalWindow.h"
+#include "Native/NPathNodeIterator.h"
+#include "Native/NPawnPathNodeIterator.h"
+#include "Native/NRadioBoxWindow.h"
+#include "Native/NRootWindow.h"
+#include "Native/NScaleManagerWindow.h"
+#include "Native/NScaleWindow.h"
+#include "Native/NScrollAreaWindow.h"
+#include "Native/NTextLogWindow.h"
+#include "Native/NTextWindow.h"
+#include "Native/NTileWindow.h"
+#include "Native/NTimeDemo.h"
+#include "Native/NToggleWindow.h"
+#include "Native/NViewportWindow.h"
+#include "Native/NWebRequest.h"
+#include "Native/NWebResponse.h"
+#include "Native/NWindow.h"
 
 PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(launchInfo)
 {
@@ -742,6 +775,39 @@ void PackageManager::RegisterFunctions()
 		NParticleIterator::RegisterFunctions();
 		NScriptedPawn::RegisterFunctions();
 		NPlayerPawnExt::RegisterFunctions();
+		NBorderWindow::RegisterFunctions();
+		NButtonWindow::RegisterFunctions();
+		NCheckboxWindow::RegisterFunctions();
+		NClipWindow::RegisterFunctions();
+		NComputerWindow::RegisterFunctions();
+		NConEvent::RegisterFunctions();
+		NConEventRandomLabel::RegisterFunctions();
+		NConversation::RegisterFunctions();
+		NDeusExTextParser::RegisterFunctions();
+		NEditWindow::RegisterFunctions();
+		NExtensionObject::RegisterFunctions();
+		NExtString::RegisterFunctions();
+		NFlagBase::RegisterFunctions();
+		NGC::RegisterFunctions();
+		NLargeTextWindow::RegisterFunctions();
+		NListWindow::RegisterFunctions();
+		NModalWindow::RegisterFunctions();
+		NPathNodeIterator::RegisterFunctions();
+		NPawnPathNodeIterator::RegisterFunctions();
+		NRadioBoxWindow::RegisterFunctions();
+		NRootWindow::RegisterFunctions();
+		NScaleManagerWindow::RegisterFunctions();
+		NScaleWindow::RegisterFunctions();
+		NScrollAreaWindow::RegisterFunctions();
+		NTextLogWindow::RegisterFunctions();
+		NTextWindow::RegisterFunctions();
+		NTileWindow::RegisterFunctions();
+		NTimeDemo::RegisterFunctions();
+		NToggleWindow::RegisterFunctions();
+		NViewportWindow::RegisterFunctions();
+		NWebRequest::RegisterFunctions();
+		NWebResponse::RegisterFunctions();
+		NWindow::RegisterFunctions();
 	}
 }
 
