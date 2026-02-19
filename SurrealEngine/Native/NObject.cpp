@@ -345,8 +345,7 @@ void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, BitfieldB
 
 void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("Object.ComplementEqual_FloatFloat");
-	ReturnValue = false;
+	ReturnValue = std::abs(A - B) < 0.0001;
 }
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
