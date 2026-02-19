@@ -1,0 +1,212 @@
+#include "Precomp.h"
+#include "NScaleWindow.h"
+#include "VM/NativeFunc.h"
+#include "Engine.h"
+
+void NScaleWindow::RegisterFunctions()
+{
+	RegisterVMNativeFunc_0("ScaleWindow", "ClearAllEnumerations", &NScaleWindow::ClearAllEnumerations, 1649);
+	RegisterVMNativeFunc_1("ScaleWindow", "EnableStretchedScale", &NScaleWindow::EnableStretchedScale, 1625);
+	RegisterVMNativeFunc_1("ScaleWindow", "GetNumTicks", &NScaleWindow::GetNumTicks, 1637);
+	RegisterVMNativeFunc_1("ScaleWindow", "GetThumbSpan", &NScaleWindow::GetThumbSpan, 1639);
+	RegisterVMNativeFunc_1("ScaleWindow", "GetTickPosition", &NScaleWindow::GetTickPosition, 1641);
+	RegisterVMNativeFunc_1("ScaleWindow", "GetValue", &NScaleWindow::GetValue, 1644);
+	RegisterVMNativeFunc_1("ScaleWindow", "GetValueString", &NScaleWindow::GetValueString, 1647);
+	RegisterVMNativeFunc_2("ScaleWindow", "GetValues", &NScaleWindow::GetValues, 1645);
+	RegisterVMNativeFunc_1("ScaleWindow", "MoveThumb", &NScaleWindow::MoveThumb, 1650);
+	RegisterVMNativeFunc_3("ScaleWindow", "PlayScaleSound", &NScaleWindow::PlayScaleSound, 1653);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetBorderPattern", &NScaleWindow::SetBorderPattern, 1626);
+	RegisterVMNativeFunc_2("ScaleWindow", "SetEnumeration", &NScaleWindow::SetEnumeration, 1648);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetNumTicks", &NScaleWindow::SetNumTicks, 1636);
+	RegisterVMNativeFunc_2("ScaleWindow", "SetScaleBorder", &NScaleWindow::SetScaleBorder, 1627);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetScaleColor", &NScaleWindow::SetScaleColor, 1632);
+	RegisterVMNativeFunc_2("ScaleWindow", "SetScaleMargins", &NScaleWindow::SetScaleMargins, 1635);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetScaleOrientation", &NScaleWindow::SetScaleOrientation, 1620);
+	RegisterVMNativeFunc_3("ScaleWindow", "SetScaleSounds", &NScaleWindow::SetScaleSounds, 1652);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetScaleStyle", &NScaleWindow::SetScaleStyle, 1629);
+	RegisterVMNativeFunc_5("ScaleWindow", "SetScaleTexture", &NScaleWindow::SetScaleTexture, 1621);
+	RegisterVMNativeFunc_2("ScaleWindow", "SetThumbBorder", &NScaleWindow::SetThumbBorder, 1628);
+	RegisterVMNativeFunc_6("ScaleWindow", "SetThumbCaps", &NScaleWindow::SetThumbCaps, 1624);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetThumbColor", &NScaleWindow::SetThumbColor, 1633);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetThumbSpan", &NScaleWindow::SetThumbSpan, 1638);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetThumbStep", &NScaleWindow::SetThumbStep, 1651);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetThumbStyle", &NScaleWindow::SetThumbStyle, 1630);
+	RegisterVMNativeFunc_3("ScaleWindow", "SetThumbTexture", &NScaleWindow::SetThumbTexture, 1622);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetTickColor", &NScaleWindow::SetTickColor, 1634);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetTickPosition", &NScaleWindow::SetTickPosition, 1640);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetTickStyle", &NScaleWindow::SetTickStyle, 1631);
+	RegisterVMNativeFunc_4("ScaleWindow", "SetTickTexture", &NScaleWindow::SetTickTexture, 1623);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetValue", &NScaleWindow::SetValue, 1643);
+	RegisterVMNativeFunc_1("ScaleWindow", "SetValueFormat", &NScaleWindow::SetValueFormat, 1646);
+	RegisterVMNativeFunc_2("ScaleWindow", "SetValueRange", &NScaleWindow::SetValueRange, 1642);
+}
+
+void NScaleWindow::ClearAllEnumerations(UObject* Self)
+{
+	Exception::Throw("NScaleWindow::ClearAllEnumerations not implemented");
+}
+
+void NScaleWindow::EnableStretchedScale(UObject* Self, BitfieldBool* bNewStretch)
+{
+	Exception::Throw("NScaleWindow::EnableStretchedScale not implemented");
+}
+
+void NScaleWindow::GetNumTicks(UObject* Self, int& ReturnValue)
+{
+	Exception::Throw("NScaleWindow::GetNumTicks not implemented");
+}
+
+void NScaleWindow::GetThumbSpan(UObject* Self, int& ReturnValue)
+{
+	Exception::Throw("NScaleWindow::GetThumbSpan not implemented");
+}
+
+void NScaleWindow::GetTickPosition(UObject* Self, int& ReturnValue)
+{
+	Exception::Throw("NScaleWindow::GetTickPosition not implemented");
+}
+
+void NScaleWindow::GetValue(UObject* Self, float& ReturnValue)
+{
+	Exception::Throw("NScaleWindow::GetValue not implemented");
+}
+
+void NScaleWindow::GetValueString(UObject* Self, std::string& ReturnValue)
+{
+	Exception::Throw("NScaleWindow::GetValueString not implemented");
+}
+
+void NScaleWindow::GetValues(UObject* Self, float& fromValue, float& toValue)
+{
+	Exception::Throw("NScaleWindow::GetValues not implemented");
+}
+
+void NScaleWindow::MoveThumb(UObject* Self, uint8_t MoveThumb)
+{
+	Exception::Throw("NScaleWindow::MoveThumb not implemented");
+}
+
+void NScaleWindow::PlayScaleSound(UObject* Self, UObject* newsound, float* Volume, float* Pitch)
+{
+	Exception::Throw("NScaleWindow::PlayScaleSound not implemented");
+}
+
+void NScaleWindow::SetBorderPattern(UObject* Self, UObject* NewTexture)
+{
+	Exception::Throw("NScaleWindow::SetBorderPattern not implemented");
+}
+
+void NScaleWindow::SetEnumeration(UObject* Self, int tickPos, const std::string& newStr)
+{
+	Exception::Throw("NScaleWindow::SetEnumeration not implemented");
+}
+
+void NScaleWindow::SetNumTicks(UObject* Self, int newNumTicks)
+{
+	Exception::Throw("NScaleWindow::SetNumTicks not implemented");
+}
+
+void NScaleWindow::SetScaleBorder(UObject* Self, float* newBorderSize, Color* NewColor)
+{
+	Exception::Throw("NScaleWindow::SetScaleBorder not implemented");
+}
+
+void NScaleWindow::SetScaleColor(UObject* Self, const Color& NewColor)
+{
+	Exception::Throw("NScaleWindow::SetScaleColor not implemented");
+}
+
+void NScaleWindow::SetScaleMargins(UObject* Self, float* marginWidth, float* marginHeight)
+{
+	Exception::Throw("NScaleWindow::SetScaleMargins not implemented");
+}
+
+void NScaleWindow::SetScaleOrientation(UObject* Self, uint8_t newOrientation)
+{
+	Exception::Throw("NScaleWindow::SetScaleOrientation not implemented");
+}
+
+void NScaleWindow::SetScaleSounds(UObject* Self, UObject** setSound, UObject** clickSound, UObject** dragSound)
+{
+	Exception::Throw("NScaleWindow::SetScaleSounds not implemented");
+}
+
+void NScaleWindow::SetScaleStyle(UObject* Self, uint8_t NewStyle)
+{
+	Exception::Throw("NScaleWindow::SetScaleStyle not implemented");
+}
+
+void NScaleWindow::SetScaleTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd)
+{
+	Exception::Throw("NScaleWindow::SetScaleTexture not implemented");
+}
+
+void NScaleWindow::SetThumbBorder(UObject* Self, float* newBorderSize, Color* NewColor)
+{
+	Exception::Throw("NScaleWindow::SetThumbBorder not implemented");
+}
+
+void NScaleWindow::SetThumbCaps(UObject* Self, UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight)
+{
+	Exception::Throw("NScaleWindow::SetThumbCaps not implemented");
+}
+
+void NScaleWindow::SetThumbColor(UObject* Self, const Color& NewColor)
+{
+	Exception::Throw("NScaleWindow::SetThumbColor not implemented");
+}
+
+void NScaleWindow::SetThumbSpan(UObject* Self, int* newRange)
+{
+	Exception::Throw("NScaleWindow::SetThumbSpan not implemented");
+}
+
+void NScaleWindow::SetThumbStep(UObject* Self, int NewStep)
+{
+	Exception::Throw("NScaleWindow::SetThumbStep not implemented");
+}
+
+void NScaleWindow::SetThumbStyle(UObject* Self, uint8_t NewStyle)
+{
+	Exception::Throw("NScaleWindow::SetThumbStyle not implemented");
+}
+
+void NScaleWindow::SetThumbTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight)
+{
+	Exception::Throw("NScaleWindow::SetThumbTexture not implemented");
+}
+
+void NScaleWindow::SetTickColor(UObject* Self, const Color& NewColor)
+{
+	Exception::Throw("NScaleWindow::SetTickColor not implemented");
+}
+
+void NScaleWindow::SetTickPosition(UObject* Self, int newPosition)
+{
+	Exception::Throw("NScaleWindow::SetTickPosition not implemented");
+}
+
+void NScaleWindow::SetTickStyle(UObject* Self, uint8_t NewStyle)
+{
+	Exception::Throw("NScaleWindow::SetTickStyle not implemented");
+}
+
+void NScaleWindow::SetTickTexture(UObject* Self, UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
+{
+	Exception::Throw("NScaleWindow::SetTickTexture not implemented");
+}
+
+void NScaleWindow::SetValue(UObject* Self, float NewValue)
+{
+	Exception::Throw("NScaleWindow::SetValue not implemented");
+}
+
+void NScaleWindow::SetValueFormat(UObject* Self, const std::string& newFmt)
+{
+	Exception::Throw("NScaleWindow::SetValueFormat not implemented");
+}
+
+void NScaleWindow::SetValueRange(UObject* Self, float newFrom, float newTo)
+{
+	Exception::Throw("NScaleWindow::SetValueRange not implemented");
+}

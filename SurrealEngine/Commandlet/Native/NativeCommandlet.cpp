@@ -6,6 +6,7 @@
 #include "NativeCppUpdater.h"
 #include "NativeObjExtractor.h"
 #include "NativeFuncExtractor.h"
+#include "NativeCppGenerator.h"
 #include "Utils/File.h"
 
 NativeCommandlet::NativeCommandlet()
@@ -38,6 +39,10 @@ void NativeCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		NativeCppUpdater updater(console);
 		updater.Run();
+	}
+	else if (args == "oldgenerator")
+	{
+		NativeCppGenerator::Run();
 	}
 	else
 	{
