@@ -13,20 +13,20 @@ void NScrollAreaWindow::RegisterFunctions()
 
 void NScrollAreaWindow::AutoHideScrollbars(UObject* Self, BitfieldBool* bHide)
 {
-	Exception::Throw("NScrollAreaWindow::AutoHideScrollbars not implemented");
+	LogUnimplemented("NScrollAreaWindow::AutoHideScrollbars not implemented");
 }
 
 void NScrollAreaWindow::EnableScrolling(UObject* Self, BitfieldBool* bHScrolling, BitfieldBool* bVScrolling)
 {
-	Exception::Throw("NScrollAreaWindow::EnableScrolling not implemented");
+	LogUnimplemented("NScrollAreaWindow::EnableScrolling not implemented");
 }
 
 void NScrollAreaWindow::SetAreaMargins(UObject* Self, float newMarginWidth, float newMarginHeight)
 {
-	Exception::Throw("NScrollAreaWindow::SetAreaMargins not implemented");
+	LogUnimplemented("NScrollAreaWindow::SetAreaMargins not implemented");
 }
 
 void NScrollAreaWindow::SetScrollbarDistance(UObject* Self, float newDistance)
 {
-	Exception::Throw("NScrollAreaWindow::SetScrollbarDistance not implemented");
+	LogUnimplemented("NScrollAreaWindow::SetScrollbarDistance not implemented");
 }

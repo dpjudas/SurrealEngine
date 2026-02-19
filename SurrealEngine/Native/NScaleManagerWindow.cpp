@@ -18,45 +18,45 @@ void NScaleManagerWindow::RegisterFunctions()
 
 void NScaleManagerWindow::SetManagerAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	Exception::Throw("NScaleManagerWindow::SetManagerAlignments not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetManagerAlignments not implemented");
 }
 
 void NScaleManagerWindow::SetManagerMargins(UObject* Self, float* newMarginWidth, float* newMarginHeight)
 {
-	Exception::Throw("NScaleManagerWindow::SetManagerMargins not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetManagerMargins not implemented");
 }
 
 void NScaleManagerWindow::SetManagerOrientation(UObject* Self, uint8_t newOrientation)
 {
-	Exception::Throw("NScaleManagerWindow::SetManagerOrientation not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetManagerOrientation not implemented");
 }
 
 void NScaleManagerWindow::SetMarginSpacing(UObject* Self, float* newSpacing)
 {
-	Exception::Throw("NScaleManagerWindow::SetMarginSpacing not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetMarginSpacing not implemented");
 }
 
 void NScaleManagerWindow::SetScale(UObject* Self, UObject* NewScale)
 {
-	Exception::Throw("NScaleManagerWindow::SetScale not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetScale not implemented");
 }
 
 void NScaleManagerWindow::SetScaleButtons(UObject* Self, UObject* newDecButton, UObject* newIncButton)
 {
-	Exception::Throw("NScaleManagerWindow::SetScaleButtons not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetScaleButtons not implemented");
 }
 
 void NScaleManagerWindow::SetValueField(UObject* Self, UObject* newValueField)
 {
-	Exception::Throw("NScaleManagerWindow::SetValueField not implemented");
+	LogUnimplemented("NScaleManagerWindow::SetValueField not implemented");
 }
 
 void NScaleManagerWindow::StretchScaleField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	Exception::Throw("NScaleManagerWindow::StretchScaleField not implemented");
+	LogUnimplemented("NScaleManagerWindow::StretchScaleField not implemented");
 }
 
 void NScaleManagerWindow::StretchValueField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	Exception::Throw("NScaleManagerWindow::StretchValueField not implemented");
+	LogUnimplemented("NScaleManagerWindow::StretchValueField not implemented");
 }

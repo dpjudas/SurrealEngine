@@ -34,125 +34,145 @@ void NFlagBase::RegisterFunctions()
 
 void NFlagBase::CheckFlag(UObject* Self, const NameString& FlagName, uint8_t flagType, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::CheckFlag not implemented");
+	LogUnimplemented("NFlagBase::CheckFlag not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::CreateIterator(UObject* Self, uint8_t* flagType, int& ReturnValue)
 {
-	Exception::Throw("NFlagBase::CreateIterator not implemented");
+	LogUnimplemented("NFlagBase::CreateIterator not implemented");
+	ReturnValue = 0;
 }
 
 void NFlagBase::DeleteAllFlags(UObject* Self)
 {
-	Exception::Throw("NFlagBase::DeleteAllFlags not implemented");
+	LogUnimplemented("NFlagBase::DeleteAllFlags not implemented");
 }
 
 void NFlagBase::DeleteExpiredFlags(UObject* Self, int criteria)
 {
-	Exception::Throw("NFlagBase::DeleteExpiredFlags not implemented");
+	LogUnimplemented("NFlagBase::DeleteExpiredFlags not implemented");
 }
 
 void NFlagBase::DeleteFlag(UObject* Self, const NameString& FlagName, uint8_t flagType, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::DeleteFlag not implemented");
+	LogUnimplemented("NFlagBase::DeleteFlag not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::DestroyIterator(UObject* Self, int Iterator)
 {
-	Exception::Throw("NFlagBase::DestroyIterator not implemented");
+	LogUnimplemented("NFlagBase::DestroyIterator not implemented");
 }
 
 void NFlagBase::GetBool(UObject* Self, const NameString& FlagName, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetBool not implemented");
+	LogUnimplemented("NFlagBase::GetBool not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::GetByte(UObject* Self, const NameString& FlagName, uint8_t& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetByte not implemented");
+	LogUnimplemented("NFlagBase::GetByte not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::GetExpiration(UObject* Self, const NameString& FlagName, uint8_t flagType, int& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetExpiration not implemented");
+	LogUnimplemented("NFlagBase::GetExpiration not implemented");
+	ReturnValue = 0;
 }
 
 void NFlagBase::GetFloat(UObject* Self, const NameString& FlagName, float& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetFloat not implemented");
+	LogUnimplemented("NFlagBase::GetFloat not implemented");
+	ReturnValue = 0.0f;
 }
 
 void NFlagBase::GetInt(UObject* Self, const NameString& FlagName, int& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetInt not implemented");
+	LogUnimplemented("NFlagBase::GetInt not implemented");
+	ReturnValue = 0;
 }
 
 void NFlagBase::GetName(UObject* Self, const NameString& FlagName, NameString& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetName not implemented");
+	LogUnimplemented("NFlagBase::GetName not implemented");
+	ReturnValue = {};
 }
 
 void NFlagBase::GetNextFlag(UObject* Self, int Iterator, NameString& FlagName, uint8_t& flagType, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetNextFlag not implemented");
+	LogUnimplemented("NFlagBase::GetNextFlag not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::GetNextFlagName(UObject* Self, int Iterator, NameString& FlagName, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetNextFlagName not implemented");
+	LogUnimplemented("NFlagBase::GetNextFlagName not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::GetRotator(UObject* Self, const NameString& FlagName, Rotator& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetRotator not implemented");
+	LogUnimplemented("NFlagBase::GetRotator not implemented");
+	ReturnValue = {};
 }
 
 void NFlagBase::GetVector(UObject* Self, const NameString& FlagName, vec3& ReturnValue)
 {
-	Exception::Throw("NFlagBase::GetVector not implemented");
+	LogUnimplemented("NFlagBase::GetVector not implemented");
+	ReturnValue = {};
 }
 
 void NFlagBase::SetBool(UObject* Self, const NameString& FlagName, bool NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetBool not implemented");
+	LogUnimplemented("NFlagBase::SetBool not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetByte(UObject* Self, const NameString& FlagName, uint8_t NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetByte not implemented");
+	LogUnimplemented("NFlagBase::SetByte not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetDefaultExpiration(UObject* Self, int expiration)
 {
-	Exception::Throw("NFlagBase::SetDefaultExpiration not implemented");
+	LogUnimplemented("NFlagBase::SetDefaultExpiration not implemented");
 }
 
 void NFlagBase::SetExpiration(UObject* Self, const NameString& FlagName, uint8_t flagType, int expiration)
 {
-	Exception::Throw("NFlagBase::SetExpiration not implemented");
+	LogUnimplemented("NFlagBase::SetExpiration not implemented");
 }
 
 void NFlagBase::SetFloat(UObject* Self, const NameString& FlagName, float NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetFloat not implemented");
+	LogUnimplemented("NFlagBase::SetFloat not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetInt(UObject* Self, const NameString& FlagName, int NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetInt not implemented");
+	LogUnimplemented("NFlagBase::SetInt not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetName(UObject* Self, const NameString& FlagName, const NameString& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetName not implemented");
+	LogUnimplemented("NFlagBase::SetName not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetRotator(UObject* Self, const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetRotator not implemented");
+	LogUnimplemented("NFlagBase::SetRotator not implemented");
+	ReturnValue = false;
 }
 
 void NFlagBase::SetVector(UObject* Self, const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NFlagBase::SetVector not implemented");
+	LogUnimplemented("NFlagBase::SetVector not implemented");
+	ReturnValue = false;
 }

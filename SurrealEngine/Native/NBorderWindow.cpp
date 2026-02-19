@@ -14,25 +14,25 @@ void NBorderWindow::RegisterFunctions()
 
 void NBorderWindow::BaseMarginsFromBorder(UObject* Self, BitfieldBool* bBorder)
 {
-	Exception::Throw("NBorderWindow::BaseMarginsFromBorder not implemented");
+	LogUnimplemented("NBorderWindow::BaseMarginsFromBorder not implemented");
 }
 
 void NBorderWindow::EnableResizing(UObject* Self, BitfieldBool* bResize)
 {
-	Exception::Throw("NBorderWindow::EnableResizing not implemented");
+	LogUnimplemented("NBorderWindow::EnableResizing not implemented");
 }
 
 void NBorderWindow::SetBorderMargins(UObject* Self, float* NewLeft, float* NewRight, float* newTop, float* newBottom)
 {
-	Exception::Throw("NBorderWindow::SetBorderMargins not implemented");
+	LogUnimplemented("NBorderWindow::SetBorderMargins not implemented");
 }
 
 void NBorderWindow::SetBorders(UObject* Self, UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
 {
-	Exception::Throw("NBorderWindow::SetBorders not implemented");
+	LogUnimplemented("NBorderWindow::SetBorders not implemented");
 }
 
 void NBorderWindow::SetMoveCursors(UObject* Self, UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
 {
-	Exception::Throw("NBorderWindow::SetMoveCursors not implemented");
+	LogUnimplemented("NBorderWindow::SetMoveCursors not implemented");
 }

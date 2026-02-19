@@ -40,155 +40,160 @@ void NEditWindow::RegisterFunctions()
 
 void NEditWindow::ClearTextChangedFlag(UObject* Self)
 {
-	Exception::Throw("NEditWindow::ClearTextChangedFlag not implemented");
+	LogUnimplemented("NEditWindow::ClearTextChangedFlag not implemented");
 }
 
 void NEditWindow::ClearUndo(UObject* Self)
 {
-	Exception::Throw("NEditWindow::ClearUndo not implemented");
+	LogUnimplemented("NEditWindow::ClearUndo not implemented");
 }
 
 void NEditWindow::Copy(UObject* Self)
 {
-	Exception::Throw("NEditWindow::Copy not implemented");
+	LogUnimplemented("NEditWindow::Copy not implemented");
 }
 
 void NEditWindow::Cut(UObject* Self)
 {
-	Exception::Throw("NEditWindow::Cut not implemented");
+	LogUnimplemented("NEditWindow::Cut not implemented");
 }
 
 void NEditWindow::DeleteChar(UObject* Self, BitfieldBool* bBefore, BitfieldBool* bUndo)
 {
-	Exception::Throw("NEditWindow::DeleteChar not implemented");
+	LogUnimplemented("NEditWindow::DeleteChar not implemented");
 }
 
 void NEditWindow::EnableEditing(UObject* Self, BitfieldBool* bEdit)
 {
-	Exception::Throw("NEditWindow::EnableEditing not implemented");
+	LogUnimplemented("NEditWindow::EnableEditing not implemented");
 }
 
 void NEditWindow::EnableSingleLineEditing(UObject* Self, BitfieldBool* bSingle)
 {
-	Exception::Throw("NEditWindow::EnableSingleLineEditing not implemented");
+	LogUnimplemented("NEditWindow::EnableSingleLineEditing not implemented");
 }
 
 void NEditWindow::EnableUppercaseOnly(UObject* Self, BitfieldBool* bUppercase)
 {
-	Exception::Throw("NEditWindow::EnableUppercaseOnly not implemented");
+	LogUnimplemented("NEditWindow::EnableUppercaseOnly not implemented");
 }
 
 void NEditWindow::GetInsertionPoint(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("NEditWindow::GetInsertionPoint not implemented");
+	LogUnimplemented("NEditWindow::GetInsertionPoint not implemented");
+	ReturnValue = 0;
 }
 
 void NEditWindow::GetSelectedArea(UObject* Self, int& startPos, int& Count)
 {
-	Exception::Throw("NEditWindow::GetSelectedArea not implemented");
+	LogUnimplemented("NEditWindow::GetSelectedArea not implemented");
 }
 
 void NEditWindow::HasTextChanged(UObject* Self, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NEditWindow::HasTextChanged not implemented");
+	LogUnimplemented("NEditWindow::HasTextChanged not implemented");
+	ReturnValue = false;
 }
 
 void NEditWindow::InsertText(UObject* Self, std::string* InsertText, BitfieldBool* bUndo, BitfieldBool* bSelect, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NEditWindow::InsertText not implemented");
+	LogUnimplemented("NEditWindow::InsertText not implemented");
+	ReturnValue = false;
 }
 
 void NEditWindow::IsEditingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NEditWindow::IsEditingEnabled not implemented");
+	LogUnimplemented("NEditWindow::IsEditingEnabled not implemented");
+	ReturnValue = false;
 }
 
 void NEditWindow::IsSingleLineEditingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NEditWindow::IsSingleLineEditingEnabled not implemented");
+	LogUnimplemented("NEditWindow::IsSingleLineEditingEnabled not implemented");
+	ReturnValue = false;
 }
 
 void NEditWindow::MoveInsertionPoint(UObject* Self, uint8_t moveInsert, BitfieldBool* bDrag)
 {
-	Exception::Throw("NEditWindow::MoveInsertionPoint not implemented");
+	LogUnimplemented("NEditWindow::MoveInsertionPoint not implemented");
 }
 
 void NEditWindow::Paste(UObject* Self)
 {
-	Exception::Throw("NEditWindow::Paste not implemented");
+	LogUnimplemented("NEditWindow::Paste not implemented");
 }
 
 void NEditWindow::PlayEditSound(UObject* Self, UObject* PlaySound, float* Volume, float* Pitch)
 {
-	Exception::Throw("NEditWindow::PlayEditSound not implemented");
+	LogUnimplemented("NEditWindow::PlayEditSound not implemented");
 }
 
 void NEditWindow::Redo(UObject* Self)
 {
-	Exception::Throw("NEditWindow::Redo not implemented");
+	LogUnimplemented("NEditWindow::Redo not implemented");
 }
 
 void NEditWindow::SetEditCursor(UObject* Self, UObject** newCursor, UObject** newCursorShadow, Color* NewColor)
 {
-	Exception::Throw("NEditWindow::SetEditCursor not implemented");
+	LogUnimplemented("NEditWindow::SetEditCursor not implemented");
 }
 
 void NEditWindow::SetEditSounds(UObject* Self, UObject** typeSound, UObject** deleteSound, UObject** enterSound, UObject** moveSound)
 {
-	Exception::Throw("NEditWindow::SetEditSounds not implemented");
+	LogUnimplemented("NEditWindow::SetEditSounds not implemented");
 }
 
 void NEditWindow::SetInsertionPoint(UObject* Self, int NewPos, BitfieldBool* bDrag)
 {
-	Exception::Throw("NEditWindow::SetInsertionPoint not implemented");
+	LogUnimplemented("NEditWindow::SetInsertionPoint not implemented");
 }
 
 void NEditWindow::SetInsertionPointBlinkRate(UObject* Self, float* blinkStart, float* blinkPeriod)
 {
-	Exception::Throw("NEditWindow::SetInsertionPointBlinkRate not implemented");
+	LogUnimplemented("NEditWindow::SetInsertionPointBlinkRate not implemented");
 }
 
 void NEditWindow::SetInsertionPointTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	Exception::Throw("NEditWindow::SetInsertionPointTexture not implemented");
+	LogUnimplemented("NEditWindow::SetInsertionPointTexture not implemented");
 }
 
 void NEditWindow::SetInsertionPointType(UObject* Self, uint8_t newType, float* prefWidth, float* prefHeight)
 {
-	Exception::Throw("NEditWindow::SetInsertionPointType not implemented");
+	LogUnimplemented("NEditWindow::SetInsertionPointType not implemented");
 }
 
 void NEditWindow::SetMaxSize(UObject* Self, int newMaxSize)
 {
-	Exception::Throw("NEditWindow::SetMaxSize not implemented");
+	LogUnimplemented("NEditWindow::SetMaxSize not implemented");
 }
 
 void NEditWindow::SetMaxUndos(UObject* Self, int newMaxUndos)
 {
-	Exception::Throw("NEditWindow::SetMaxUndos not implemented");
+	LogUnimplemented("NEditWindow::SetMaxUndos not implemented");
 }
 
 void NEditWindow::SetSelectedArea(UObject* Self, int startPos, int Count)
 {
-	Exception::Throw("NEditWindow::SetSelectedArea not implemented");
+	LogUnimplemented("NEditWindow::SetSelectedArea not implemented");
 }
 
 void NEditWindow::SetSelectedAreaTextColor(UObject* Self, Color* NewColor)
 {
-	Exception::Throw("NEditWindow::SetSelectedAreaTextColor not implemented");
+	LogUnimplemented("NEditWindow::SetSelectedAreaTextColor not implemented");
 }
 
 void NEditWindow::SetSelectedAreaTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	Exception::Throw("NEditWindow::SetSelectedAreaTexture not implemented");
+	LogUnimplemented("NEditWindow::SetSelectedAreaTexture not implemented");
 }
 
 void NEditWindow::SetTextChangedFlag(UObject* Self, BitfieldBool* bSet)
 {
-	Exception::Throw("NEditWindow::SetTextChangedFlag not implemented");
+	LogUnimplemented("NEditWindow::SetTextChangedFlag not implemented");
 }
 
 void NEditWindow::Undo(UObject* Self)
 {
-	Exception::Throw("NEditWindow::Undo not implemented");
+	LogUnimplemented("NEditWindow::Undo not implemented");
 }

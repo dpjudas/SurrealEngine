@@ -12,15 +12,18 @@ void NConEventRandomLabel::RegisterFunctions()
 
 void NConEventRandomLabel::GetLabel(UObject* Self, int labelIndex, std::string& ReturnValue)
 {
-	Exception::Throw("NConEventRandomLabel::GetLabel not implemented");
+	LogUnimplemented("NConEventRandomLabel::GetLabel not implemented");
+	ReturnValue = "";
 }
 
 void NConEventRandomLabel::GetLabelCount(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("NConEventRandomLabel::GetLabelCount not implemented");
+	LogUnimplemented("NConEventRandomLabel::GetLabelCount not implemented");
+	ReturnValue = 0;
 }
 
 void NConEventRandomLabel::GetRandomLabel(UObject* Self, std::string& ReturnValue)
 {
-	Exception::Throw("NConEventRandomLabel::GetRandomLabel not implemented");
+	LogUnimplemented("NConEventRandomLabel::GetRandomLabel not implemented");
+	ReturnValue = "";
 }

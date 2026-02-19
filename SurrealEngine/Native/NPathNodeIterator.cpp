@@ -16,35 +16,41 @@ void NPathNodeIterator::RegisterFunctions()
 
 void NPathNodeIterator::BuildPath(UObject* Self, const vec3& Start, const vec3& End)
 {
-	Exception::Throw("NPathNodeIterator::BuildPath not implemented");
+	LogUnimplemented("NPathNodeIterator::BuildPath not implemented");
 }
 
 void NPathNodeIterator::GetCurrent(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetCurrent not implemented");
+	LogUnimplemented("NPathNodeIterator::GetCurrent not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetFirst(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetFirst not implemented");
+	LogUnimplemented("NPathNodeIterator::GetFirst not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetLast(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetLast not implemented");
+	LogUnimplemented("NPathNodeIterator::GetLast not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetLastVisible(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetLastVisible not implemented");
+	LogUnimplemented("NPathNodeIterator::GetLastVisible not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetNext(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetNext not implemented");
+	LogUnimplemented("NPathNodeIterator::GetNext not implemented");
+	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetPrevious(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NPathNodeIterator::GetPrevious not implemented");
+	LogUnimplemented("NPathNodeIterator::GetPrevious not implemented");
+	ReturnValue = nullptr;
 }

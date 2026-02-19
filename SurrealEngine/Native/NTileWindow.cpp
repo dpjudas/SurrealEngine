@@ -20,55 +20,55 @@ void NTileWindow::RegisterFunctions()
 
 void NTileWindow::EnableWrapping(UObject* Self, bool bWrapOn)
 {
-	Exception::Throw("NTileWindow::EnableWrapping not implemented");
+	LogUnimplemented("NTileWindow::EnableWrapping not implemented");
 }
 
 void NTileWindow::FillParent(UObject* Self, bool FillParent)
 {
-	Exception::Throw("NTileWindow::FillParent not implemented");
+	LogUnimplemented("NTileWindow::FillParent not implemented");
 }
 
 void NTileWindow::MakeHeightsEqual(UObject* Self, bool bEqual)
 {
-	Exception::Throw("NTileWindow::MakeHeightsEqual not implemented");
+	LogUnimplemented("NTileWindow::MakeHeightsEqual not implemented");
 }
 
 void NTileWindow::MakeWidthsEqual(UObject* Self, bool bEqual)
 {
-	Exception::Throw("NTileWindow::MakeWidthsEqual not implemented");
+	LogUnimplemented("NTileWindow::MakeWidthsEqual not implemented");
 }
 
 void NTileWindow::SetChildAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	Exception::Throw("NTileWindow::SetChildAlignments not implemented");
+	LogUnimplemented("NTileWindow::SetChildAlignments not implemented");
 }
 
 void NTileWindow::SetDirections(UObject* Self, uint8_t newHDir, uint8_t newVDir)
 {
-	Exception::Throw("NTileWindow::SetDirections not implemented");
+	LogUnimplemented("NTileWindow::SetDirections not implemented");
 }
 
 void NTileWindow::SetMajorSpacing(UObject* Self, float newSpacing)
 {
-	Exception::Throw("NTileWindow::SetMajorSpacing not implemented");
+	LogUnimplemented("NTileWindow::SetMajorSpacing not implemented");
 }
 
 void NTileWindow::SetMargins(UObject* Self, float newHMargin, float newVMargin)
 {
-	Exception::Throw("NTileWindow::SetMargins not implemented");
+	LogUnimplemented("NTileWindow::SetMargins not implemented");
 }
 
 void NTileWindow::SetMinorSpacing(UObject* Self, float newSpacing)
 {
-	Exception::Throw("NTileWindow::SetMinorSpacing not implemented");
+	LogUnimplemented("NTileWindow::SetMinorSpacing not implemented");
 }
 
 void NTileWindow::SetOrder(UObject* Self, uint8_t newOrder)
 {
-	Exception::Throw("NTileWindow::SetOrder not implemented");
+	LogUnimplemented("NTileWindow::SetOrder not implemented");
 }
 
 void NTileWindow::SetOrientation(UObject* Self, uint8_t newOrientation)
 {
-	Exception::Throw("NTileWindow::SetOrientation not implemented");
+	LogUnimplemented("NTileWindow::SetOrientation not implemented");
 }

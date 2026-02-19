@@ -43,170 +43,175 @@ void NScaleWindow::RegisterFunctions()
 
 void NScaleWindow::ClearAllEnumerations(UObject* Self)
 {
-	Exception::Throw("NScaleWindow::ClearAllEnumerations not implemented");
+	LogUnimplemented("NScaleWindow::ClearAllEnumerations not implemented");
 }
 
 void NScaleWindow::EnableStretchedScale(UObject* Self, BitfieldBool* bNewStretch)
 {
-	Exception::Throw("NScaleWindow::EnableStretchedScale not implemented");
+	LogUnimplemented("NScaleWindow::EnableStretchedScale not implemented");
 }
 
 void NScaleWindow::GetNumTicks(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("NScaleWindow::GetNumTicks not implemented");
+	LogUnimplemented("NScaleWindow::GetNumTicks not implemented");
+	ReturnValue = 0;
 }
 
 void NScaleWindow::GetThumbSpan(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("NScaleWindow::GetThumbSpan not implemented");
+	LogUnimplemented("NScaleWindow::GetThumbSpan not implemented");
+	ReturnValue = 0;
 }
 
 void NScaleWindow::GetTickPosition(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("NScaleWindow::GetTickPosition not implemented");
+	LogUnimplemented("NScaleWindow::GetTickPosition not implemented");
+	ReturnValue = 0;
 }
 
 void NScaleWindow::GetValue(UObject* Self, float& ReturnValue)
 {
-	Exception::Throw("NScaleWindow::GetValue not implemented");
+	LogUnimplemented("NScaleWindow::GetValue not implemented");
+	ReturnValue = 0.0f;
 }
 
 void NScaleWindow::GetValueString(UObject* Self, std::string& ReturnValue)
 {
-	Exception::Throw("NScaleWindow::GetValueString not implemented");
+	LogUnimplemented("NScaleWindow::GetValueString not implemented");
+	ReturnValue = "";
 }
 
 void NScaleWindow::GetValues(UObject* Self, float& fromValue, float& toValue)
 {
-	Exception::Throw("NScaleWindow::GetValues not implemented");
+	LogUnimplemented("NScaleWindow::GetValues not implemented");
 }
 
 void NScaleWindow::MoveThumb(UObject* Self, uint8_t MoveThumb)
 {
-	Exception::Throw("NScaleWindow::MoveThumb not implemented");
+	LogUnimplemented("NScaleWindow::MoveThumb not implemented");
 }
 
 void NScaleWindow::PlayScaleSound(UObject* Self, UObject* newsound, float* Volume, float* Pitch)
 {
-	Exception::Throw("NScaleWindow::PlayScaleSound not implemented");
+	LogUnimplemented("NScaleWindow::PlayScaleSound not implemented");
 }
 
 void NScaleWindow::SetBorderPattern(UObject* Self, UObject* NewTexture)
 {
-	Exception::Throw("NScaleWindow::SetBorderPattern not implemented");
+	LogUnimplemented("NScaleWindow::SetBorderPattern not implemented");
 }
 
 void NScaleWindow::SetEnumeration(UObject* Self, int tickPos, const std::string& newStr)
 {
-	Exception::Throw("NScaleWindow::SetEnumeration not implemented");
+	LogUnimplemented("NScaleWindow::SetEnumeration not implemented");
 }
 
 void NScaleWindow::SetNumTicks(UObject* Self, int newNumTicks)
 {
-	Exception::Throw("NScaleWindow::SetNumTicks not implemented");
+	LogUnimplemented("NScaleWindow::SetNumTicks not implemented");
 }
 
 void NScaleWindow::SetScaleBorder(UObject* Self, float* newBorderSize, Color* NewColor)
 {
-	Exception::Throw("NScaleWindow::SetScaleBorder not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleBorder not implemented");
 }
 
 void NScaleWindow::SetScaleColor(UObject* Self, const Color& NewColor)
 {
-	Exception::Throw("NScaleWindow::SetScaleColor not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleColor not implemented");
 }
 
 void NScaleWindow::SetScaleMargins(UObject* Self, float* marginWidth, float* marginHeight)
 {
-	Exception::Throw("NScaleWindow::SetScaleMargins not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleMargins not implemented");
 }
 
 void NScaleWindow::SetScaleOrientation(UObject* Self, uint8_t newOrientation)
 {
-	Exception::Throw("NScaleWindow::SetScaleOrientation not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleOrientation not implemented");
 }
 
 void NScaleWindow::SetScaleSounds(UObject* Self, UObject** setSound, UObject** clickSound, UObject** dragSound)
 {
-	Exception::Throw("NScaleWindow::SetScaleSounds not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleSounds not implemented");
 }
 
 void NScaleWindow::SetScaleStyle(UObject* Self, uint8_t NewStyle)
 {
-	Exception::Throw("NScaleWindow::SetScaleStyle not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleStyle not implemented");
 }
 
 void NScaleWindow::SetScaleTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd)
 {
-	Exception::Throw("NScaleWindow::SetScaleTexture not implemented");
+	LogUnimplemented("NScaleWindow::SetScaleTexture not implemented");
 }
 
 void NScaleWindow::SetThumbBorder(UObject* Self, float* newBorderSize, Color* NewColor)
 {
-	Exception::Throw("NScaleWindow::SetThumbBorder not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbBorder not implemented");
 }
 
 void NScaleWindow::SetThumbCaps(UObject* Self, UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight)
 {
-	Exception::Throw("NScaleWindow::SetThumbCaps not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbCaps not implemented");
 }
 
 void NScaleWindow::SetThumbColor(UObject* Self, const Color& NewColor)
 {
-	Exception::Throw("NScaleWindow::SetThumbColor not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbColor not implemented");
 }
 
 void NScaleWindow::SetThumbSpan(UObject* Self, int* newRange)
 {
-	Exception::Throw("NScaleWindow::SetThumbSpan not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbSpan not implemented");
 }
 
 void NScaleWindow::SetThumbStep(UObject* Self, int NewStep)
 {
-	Exception::Throw("NScaleWindow::SetThumbStep not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbStep not implemented");
 }
 
 void NScaleWindow::SetThumbStyle(UObject* Self, uint8_t NewStyle)
 {
-	Exception::Throw("NScaleWindow::SetThumbStyle not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbStyle not implemented");
 }
 
 void NScaleWindow::SetThumbTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight)
 {
-	Exception::Throw("NScaleWindow::SetThumbTexture not implemented");
+	LogUnimplemented("NScaleWindow::SetThumbTexture not implemented");
 }
 
 void NScaleWindow::SetTickColor(UObject* Self, const Color& NewColor)
 {
-	Exception::Throw("NScaleWindow::SetTickColor not implemented");
+	LogUnimplemented("NScaleWindow::SetTickColor not implemented");
 }
 
 void NScaleWindow::SetTickPosition(UObject* Self, int newPosition)
 {
-	Exception::Throw("NScaleWindow::SetTickPosition not implemented");
+	LogUnimplemented("NScaleWindow::SetTickPosition not implemented");
 }
 
 void NScaleWindow::SetTickStyle(UObject* Self, uint8_t NewStyle)
 {
-	Exception::Throw("NScaleWindow::SetTickStyle not implemented");
+	LogUnimplemented("NScaleWindow::SetTickStyle not implemented");
 }
 
 void NScaleWindow::SetTickTexture(UObject* Self, UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
 {
-	Exception::Throw("NScaleWindow::SetTickTexture not implemented");
+	LogUnimplemented("NScaleWindow::SetTickTexture not implemented");
 }
 
 void NScaleWindow::SetValue(UObject* Self, float NewValue)
 {
-	Exception::Throw("NScaleWindow::SetValue not implemented");
+	LogUnimplemented("NScaleWindow::SetValue not implemented");
 }
 
 void NScaleWindow::SetValueFormat(UObject* Self, const std::string& newFmt)
 {
-	Exception::Throw("NScaleWindow::SetValueFormat not implemented");
+	LogUnimplemented("NScaleWindow::SetValueFormat not implemented");
 }
 
 void NScaleWindow::SetValueRange(UObject* Self, float newFrom, float newTo)
 {
-	Exception::Throw("NScaleWindow::SetValueRange not implemented");
+	LogUnimplemented("NScaleWindow::SetValueRange not implemented");
 }

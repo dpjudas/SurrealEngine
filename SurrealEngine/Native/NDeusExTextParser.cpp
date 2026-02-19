@@ -21,60 +21,67 @@ void NDeusExTextParser::RegisterFunctions()
 
 void NDeusExTextParser::CloseText(UObject* Self)
 {
-	Exception::Throw("NDeusExTextParser::CloseText not implemented");
+	LogUnimplemented("NDeusExTextParser::CloseText not implemented");
 }
 
 void NDeusExTextParser::GetColor(UObject* Self, Color& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::GetColor not implemented");
+	LogUnimplemented("NDeusExTextParser::GetColor not implemented");
+	ReturnValue = { 0, 0, 0, 0 };
 }
 
 void NDeusExTextParser::GetEmailInfo(UObject* Self, std::string& emailName, std::string& emailSubject, std::string& emailFrom, std::string& emailTo, std::string& emailCC)
 {
-	Exception::Throw("NDeusExTextParser::GetEmailInfo not implemented");
+	LogUnimplemented("NDeusExTextParser::GetEmailInfo not implemented");
 }
 
 void NDeusExTextParser::GetFileInfo(UObject* Self, std::string& FileName, std::string& fileDescription)
 {
-	Exception::Throw("NDeusExTextParser::GetFileInfo not implemented");
+	LogUnimplemented("NDeusExTextParser::GetFileInfo not implemented");
 }
 
 void NDeusExTextParser::GetName(UObject* Self, NameString& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::GetName not implemented");
+	LogUnimplemented("NDeusExTextParser::GetName not implemented");
+	ReturnValue = {};
 }
 
 void NDeusExTextParser::GetTag(UObject* Self, uint8_t& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::GetTag not implemented");
+	LogUnimplemented("NDeusExTextParser::GetTag not implemented");
+	ReturnValue = 0;
 }
 
 void NDeusExTextParser::GetText(UObject* Self, std::string& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::GetText not implemented");
+	LogUnimplemented("NDeusExTextParser::GetText not implemented");
+	ReturnValue = "";
 }
 
 void NDeusExTextParser::GotoLabel(UObject* Self, const std::string& Label)
 {
-	Exception::Throw("NDeusExTextParser::GotoLabel not implemented");
+	LogUnimplemented("NDeusExTextParser::GotoLabel not implemented");
 }
 
 void NDeusExTextParser::IsEOF(UObject* Self, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::IsEOF not implemented");
+	LogUnimplemented("NDeusExTextParser::IsEOF not implemented");
+	ReturnValue = false;
 }
 
 void NDeusExTextParser::OpenText(UObject* Self, const NameString& textName, std::string* TextPackage, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::OpenText not implemented");
+	LogUnimplemented("NDeusExTextParser::OpenText not implemented");
+	ReturnValue = false;
 }
 
 void NDeusExTextParser::ProcessText(UObject* Self, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("NDeusExTextParser::ProcessText not implemented");
+	LogUnimplemented("NDeusExTextParser::ProcessText not implemented");
+	ReturnValue = false;
 }
 
 void NDeusExTextParser::SetPlayerName(UObject* Self, const std::string& newPlayerName)
 {
-	Exception::Throw("NDeusExTextParser::SetPlayerName not implemented");
+	LogUnimplemented("NDeusExTextParser::SetPlayerName not implemented");
 }

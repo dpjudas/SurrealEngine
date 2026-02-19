@@ -10,5 +10,6 @@ void NRadioBoxWindow::RegisterFunctions()
 
 void NRadioBoxWindow::GetEnabledToggle(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("NRadioBoxWindow::GetEnabledToggle not implemented");
+	LogUnimplemented("NRadioBoxWindow::GetEnabledToggle not implemented");
+	ReturnValue = nullptr;
 }

@@ -10,5 +10,6 @@ void NConEvent::RegisterFunctions()
 
 void NConEvent::GetSoundLength(UObject* Self, UObject* ASound, float& ReturnValue)
 {
-	Exception::Throw("NConEvent::GetSoundLength not implemented");
+	LogUnimplemented("NConEvent::GetSoundLength not implemented");
+	ReturnValue = 0.0f;
 }

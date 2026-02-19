@@ -10,5 +10,5 @@ void NLargeTextWindow::RegisterFunctions()
 
 void NLargeTextWindow::SetVerticalSpacing(UObject* Self, float* newVSpace)
 {
-	Exception::Throw("NLargeTextWindow::SetVerticalSpacing not implemented");
+	LogUnimplemented("NLargeTextWindow::SetVerticalSpacing not implemented");
 }

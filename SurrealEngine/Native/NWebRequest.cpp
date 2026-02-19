@@ -14,25 +14,29 @@ void NWebRequest::RegisterFunctions()
 
 void NWebRequest::AddVariable(UObject* Self, const std::string& VariableName, const std::string& Value)
 {
-	Exception::Throw("NWebRequest::AddVariable not implemented");
+	LogUnimplemented("NWebRequest::AddVariable not implemented");
 }
 
 void NWebRequest::DecodeBase64(UObject* Self, const std::string& Encoded, std::string& ReturnValue)
 {
-	Exception::Throw("NWebRequest::DecodeBase64 not implemented");
+	LogUnimplemented("NWebRequest::DecodeBase64 not implemented");
+	ReturnValue = "";
 }
 
 void NWebRequest::GetVariable(UObject* Self, const std::string& VariableName, std::string* DefaultValue, std::string& ReturnValue)
 {
-	Exception::Throw("NWebRequest::GetVariable not implemented");
+	LogUnimplemented("NWebRequest::GetVariable not implemented");
+	ReturnValue = "";
 }
 
 void NWebRequest::GetVariableCount(UObject* Self, const std::string& VariableName, int& ReturnValue)
 {
-	Exception::Throw("NWebRequest::GetVariableCount not implemented");
+	LogUnimplemented("NWebRequest::GetVariableCount not implemented");
+	ReturnValue = 0;
 }
 
 void NWebRequest::GetVariableNumber(UObject* Self, const std::string& VariableName, int Number, std::string* DefaultValue, std::string& ReturnValue)
 {
-	Exception::Throw("NWebRequest::GetVariableNumber not implemented");
+	LogUnimplemented("NWebRequest::GetVariableNumber not implemented");
+	ReturnValue = "";
 }

@@ -18,45 +18,45 @@ void NButtonWindow::RegisterFunctions()
 
 void NButtonWindow::ActivateButton(UObject* Self, uint8_t Key)
 {
-	Exception::Throw("NButtonWindow::ActivateButton not implemented");
+	LogUnimplemented("NButtonWindow::ActivateButton not implemented");
 }
 
 void NButtonWindow::EnableAutoRepeat(UObject* Self, BitfieldBool* bEnable, float* initialDelay, float* repeatRate)
 {
-	Exception::Throw("NButtonWindow::EnableAutoRepeat not implemented");
+	LogUnimplemented("NButtonWindow::EnableAutoRepeat not implemented");
 }
 
 void NButtonWindow::EnableRightMouseClick(UObject* Self, BitfieldBool* bEnable)
 {
-	Exception::Throw("NButtonWindow::EnableRightMouseClick not implemented");
+	LogUnimplemented("NButtonWindow::EnableRightMouseClick not implemented");
 }
 
 void NButtonWindow::PressButton(UObject* Self, uint8_t* Key)
 {
-	Exception::Throw("NButtonWindow::PressButton not implemented");
+	LogUnimplemented("NButtonWindow::PressButton not implemented");
 }
 
 void NButtonWindow::SetActivateDelay(UObject* Self, float* newDelay)
 {
-	Exception::Throw("NButtonWindow::SetActivateDelay not implemented");
+	LogUnimplemented("NButtonWindow::SetActivateDelay not implemented");
 }
 
 void NButtonWindow::SetButtonColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	Exception::Throw("NButtonWindow::SetButtonColors not implemented");
+	LogUnimplemented("NButtonWindow::SetButtonColors not implemented");
 }
 
 void NButtonWindow::SetButtonSounds(UObject* Self, UObject** pressSound, UObject** clickSound)
 {
-	Exception::Throw("NButtonWindow::SetButtonSounds not implemented");
+	LogUnimplemented("NButtonWindow::SetButtonSounds not implemented");
 }
 
 void NButtonWindow::SetButtonTextures(UObject* Self, UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
 {
-	Exception::Throw("NButtonWindow::SetButtonTextures not implemented");
+	LogUnimplemented("NButtonWindow::SetButtonTextures not implemented");
 }
 
 void NButtonWindow::SetTextColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	Exception::Throw("NButtonWindow::SetTextColors not implemented");
+	LogUnimplemented("NButtonWindow::SetTextColors not implemented");
 }

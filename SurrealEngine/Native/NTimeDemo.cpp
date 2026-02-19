@@ -12,15 +12,15 @@ void NTimeDemo::RegisterFunctions()
 
 void NTimeDemo::CloseFile(UObject* Self)
 {
-	Exception::Throw("NTimeDemo::CloseFile not implemented");
+	LogUnimplemented("NTimeDemo::CloseFile not implemented");
 }
 
 void NTimeDemo::OpenFile(UObject* Self)
 {
-	Exception::Throw("NTimeDemo::OpenFile not implemented");
+	LogUnimplemented("NTimeDemo::OpenFile not implemented");
 }
 
 void NTimeDemo::WriteToFile(UObject* Self, const std::string& Text)
 {
-	Exception::Throw("NTimeDemo::WriteToFile not implemented");
+	LogUnimplemented("NTimeDemo::WriteToFile not implemented");
 }

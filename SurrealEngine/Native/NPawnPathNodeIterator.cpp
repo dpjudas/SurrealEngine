@@ -10,5 +10,5 @@ void NPawnPathNodeIterator::RegisterFunctions()
 
 void NPawnPathNodeIterator::SetPawn(UObject* Self, UObject* P)
 {
-	Exception::Throw("NPawnPathNodeIterator::SetPawn not implemented");
+	LogUnimplemented("NPawnPathNodeIterator::SetPawn not implemented");
 }

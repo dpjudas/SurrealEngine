@@ -13,20 +13,20 @@ void NWebResponse::RegisterFunctions()
 
 void NWebResponse::ClearSubst(UObject* Self)
 {
-	Exception::Throw("NWebResponse::ClearSubst not implemented");
+	LogUnimplemented("NWebResponse::ClearSubst not implemented");
 }
 
 void NWebResponse::IncludeBinaryFile(UObject* Self, const std::string& Filename)
 {
-	Exception::Throw("NWebResponse::IncludeBinaryFile not implemented");
+	LogUnimplemented("NWebResponse::IncludeBinaryFile not implemented");
 }
 
 void NWebResponse::IncludeUHTM(UObject* Self, const std::string& Filename)
 {
-	Exception::Throw("NWebResponse::IncludeUHTM not implemented");
+	LogUnimplemented("NWebResponse::IncludeUHTM not implemented");
 }
 
 void NWebResponse::Subst(UObject* Self, const std::string& Variable, const std::string& Value, BitfieldBool* bClear)
 {
-	Exception::Throw("NWebResponse::Subst not implemented");
+	LogUnimplemented("NWebResponse::Subst not implemented");
 }
