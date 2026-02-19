@@ -22,7 +22,10 @@ void NPawn::RegisterFunctions()
 	RegisterVMNativeFunc_4("Pawn", "FindPathToward", &NPawn::FindPathToward, 517);
 	RegisterVMNativeFunc_2("Pawn", "FindRandomDest", &NPawn::FindRandomDest, 525);
 	RegisterVMNativeFunc_2("Pawn", "FindStairRotation", &NPawn::FindStairRotation, 524);
-	RegisterVMNativeFunc_2("Pawn", "LineOfSightTo", &NPawn::LineOfSightTo, 514);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_2("Pawn", "LineOfSightTo", &NPawn::LineOfSightTo, 514);
+	else
+		RegisterVMNativeFunc_3("Pawn", "LineOfSightTo", &NPawn::LineOfSightTo_Deus, 514);
 	RegisterVMNativeFunc_2("Pawn", "MoveTo", &NPawn::MoveTo, 500);
 	RegisterLatentAction(501, LatentRunState::MoveTo);
 	RegisterVMNativeFunc_2("Pawn", "MoveToward", &NPawn::MoveToward, 502);
@@ -32,9 +35,15 @@ void NPawn::RegisterFunctions()
 	RegisterVMNativeFunc_1("Pawn", "PickWallAdjust", &NPawn::PickWallAdjust, 526);
 	RegisterVMNativeFunc_0("Pawn", "RemovePawn", &NPawn::RemovePawn, 530);
 	RegisterVMNativeFunc_0("Pawn", "StopWaiting", &NPawn::StopWaiting, 0);
-	RegisterVMNativeFunc_2("Pawn", "StrafeFacing", &NPawn::StrafeFacing, 506);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_2("Pawn", "StrafeFacing", &NPawn::StrafeFacing, 506);
+	else
+		RegisterVMNativeFunc_3("Pawn", "StrafeFacing", &NPawn::StrafeFacing_Deus, 506);
 	RegisterLatentAction(507, LatentRunState::StrafeFacing);
-	RegisterVMNativeFunc_2("Pawn", "StrafeTo", &NPawn::StrafeTo, 504);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_2("Pawn", "StrafeTo", &NPawn::StrafeTo, 504);
+	else
+		RegisterVMNativeFunc_3("Pawn", "StrafeTo", &NPawn::StrafeTo_Deus, 504);
 	RegisterLatentAction(505, LatentRunState::StrafeTo);
 	RegisterVMNativeFunc_1("Pawn", "TurnTo", &NPawn::TurnTo, 508);
 	RegisterLatentAction(509, LatentRunState::TurnTo);
@@ -44,6 +53,17 @@ void NPawn::RegisterFunctions()
 	RegisterLatentAction(528, LatentRunState::WaitForLanding);
 	RegisterVMNativeFunc_2("Pawn", "actorReachable", &NPawn::actorReachable, 520);
 	RegisterVMNativeFunc_2("Pawn", "pointReachable", &NPawn::pointReachable, 521);
+
+	if (engine->LaunchInfo.IsDeusEx())
+	{
+		RegisterVMNativeFunc_4("Pawn", "AICanHear", &NPawn::AICanHear, 706);
+		RegisterVMNativeFunc_7("Pawn", "AICanSee", &NPawn::AICanSee, 705);
+		RegisterVMNativeFunc_3("Pawn", "AICanSmell", &NPawn::AICanSmell, 707);
+		RegisterVMNativeFunc_7("Pawn", "AIDirectionReachable", &NPawn::AIDirectionReachable, 708);
+		RegisterVMNativeFunc_10("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination, 709);
+		RegisterVMNativeFunc_1("Pawn", "ComputePathnodeDistances", &NPawn::ComputePathnodeDistances, 1020);
+		RegisterVMNativeFunc_5("Pawn", "ReachablePathnodes", &NPawn::ReachablePathnodes, 1004);
+	}
 }
 
 void NPawn::AddPawn(UObject* Self)
@@ -260,4 +280,60 @@ void NPawn::pointReachable(UObject* Self, const vec3& aPoint, BitfieldBool& Retu
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
 	ReturnValue = SelfPawn->PointReachable(aPoint);
+}
+
+void NPawn::AICanHear(UObject* Self, UObject* Other, float* Volume, float* Radius, float& ReturnValue)
+{
+	LogUnimplemented("Pawn.AICanHear");
+	ReturnValue = 0.0f;
+}
+
+void NPawn::AICanSee(UObject* Self, UObject* Other, float* Visibility, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS, float& ReturnValue)
+{
+	LogUnimplemented("Pawn.AICanSee");
+	ReturnValue = 0.0f;
+}
+
+void NPawn::AICanSmell(UObject* Self, UObject* Other, float* Smell, float& ReturnValue)
+{
+	LogUnimplemented("Pawn.AICanSmell");
+	ReturnValue = 0.0f;
+}
+
+void NPawn::AIDirectionReachable(UObject* Self, const vec3& Focus, int Yaw, int Pitch, float minDist, float maxDist, vec3& bestDest, BitfieldBool& ReturnValue)
+{
+	LogUnimplemented("Pawn.AIDirectionReachable");
+	ReturnValue = false;
+}
+
+void NPawn::AIPickRandomDestination_Deus(UObject* Self, float minDist, float maxDist, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, int tries, float multiplier, vec3& dest, BitfieldBool& ReturnValue)
+{
+	LogUnimplemented("Pawn.AIPickRandomDestination_Deus");
+	ReturnValue = false;
+}
+
+void NPawn::ComputePathnodeDistances(UObject* Self, UObject** startActor)
+{
+	LogUnimplemented("Pawn.ComputePathnodeDistances");
+}
+
+void NPawn::LineOfSightTo_Deus(UObject* Self, UObject* Other, BitfieldBool* bIgnoreDistance, BitfieldBool& ReturnValue)
+{
+	LogUnimplemented("Pawn.LineOfSightTo_Deus");
+	ReturnValue = false;
+}
+
+void NPawn::ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavPoint, UObject* FromPoint, float& distance, BitfieldBool* bUsePrunedPaths)
+{
+	LogUnimplemented("Pawn.ReachablePathnodes");
+}
+
+void NPawn::StrafeFacing_Deus(UObject* Self, const vec3& NewDestination, UObject* NewTarget, float* speed)
+{
+	LogUnimplemented("Pawn.StrafeFacing_Deus");
+}
+
+void NPawn::StrafeTo_Deus(UObject* Self, const vec3& NewDestination, const vec3& NewFocus, float* speed)
+{
+	LogUnimplemented("Pawn.StrafeTo_Deus");
 }

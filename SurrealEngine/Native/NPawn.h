@@ -34,4 +34,15 @@ public:
 	static void WaitForLanding(UObject* Self);
 	static void actorReachable(UObject* Self, UObject* anActor, BitfieldBool& ReturnValue);
 	static void pointReachable(UObject* Self, const vec3& aPoint, BitfieldBool& ReturnValue);
+
+	static void AICanHear(UObject* Self, UObject* Other, float* Volume, float* Radius, float& ReturnValue);
+	static void AICanSee(UObject* Self, UObject* Other, float* Visibility, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS, float& ReturnValue);
+	static void AICanSmell(UObject* Self, UObject* Other, float* Smell, float& ReturnValue);
+	static void AIDirectionReachable(UObject* Self, const vec3& Focus, int Yaw, int Pitch, float minDist, float maxDist, vec3& bestDest, BitfieldBool& ReturnValue);
+	static void AIPickRandomDestination_Deus(UObject* Self, float minDist, float maxDist, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, int tries, float multiplier, vec3& dest, BitfieldBool& ReturnValue);
+	static void ComputePathnodeDistances(UObject* Self, UObject** startActor);
+	static void LineOfSightTo_Deus(UObject* Self, UObject* Other, BitfieldBool* bIgnoreDistance, BitfieldBool& ReturnValue);
+	static void ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavPoint, UObject* FromPoint, float& distance, BitfieldBool* bUsePrunedPaths);
+	static void StrafeFacing_Deus(UObject* Self, const vec3& NewDestination, UObject* NewTarget, float* speed);
+	static void StrafeTo_Deus(UObject* Self, const vec3& NewDestination, const vec3& NewFocus, float* speed);
 };
