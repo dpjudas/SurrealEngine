@@ -16,39 +16,39 @@ void NConversation::RegisterFunctions()
 
 void NConversation::BindActorEvents(UObject* Self, UObject* actorToBind)
 {
-	LogUnimplemented("NConversation::BindActorEvents not implemented");
+	LogUnimplemented("Conversation.BindActorEvents");
 }
 
 void NConversation::BindEvents(UObject* Self, UObject* conBoundActors, UObject* invokeActor)
 {
-	LogUnimplemented("NConversation::BindEvents not implemented");
+	LogUnimplemented("Conversation.BindEvents");
 }
 
 void NConversation::ClearBindEvents(UObject* Self)
 {
-	LogUnimplemented("NConversation::ClearBindEvents not implemented");
+	LogUnimplemented("Conversation.ClearBindEvents");
 }
 
 void NConversation::CreateConCamera(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NConversation::CreateConCamera not implemented");
+	LogUnimplemented("Conversation.CreateConCamera");
 	ReturnValue = nullptr;
 }
 
 void NConversation::CreateFlagRef(UObject* Self, const NameString& FlagName, bool flagValue, UObject*& ReturnValue)
 {
-	LogUnimplemented("NConversation::CreateFlagRef not implemented");
+	LogUnimplemented("Conversation.CreateFlagRef");
 	ReturnValue = nullptr;
 }
 
 void NConversation::GetSpeechAudio(UObject* Self, int soundID, UObject*& ReturnValue)
 {
-	LogUnimplemented("NConversation::GetSpeechAudio not implemented");
+	LogUnimplemented("Conversation.GetSpeechAudio");
 	ReturnValue = nullptr;
 }
 
 void NConversation::GetSpeechLength(UObject* Self, int soundID, float& ReturnValue)
 {
-	LogUnimplemented("NConversation::GetSpeechLength not implemented");
+	LogUnimplemented("Conversation.GetSpeechLength");
 	ReturnValue = 0.0f;
 }

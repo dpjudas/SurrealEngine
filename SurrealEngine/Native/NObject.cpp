@@ -345,7 +345,8 @@ void NObject::ClassIsChildOf(UObject* TestClass, UObject* ParentClass, BitfieldB
 
 void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("Object.ComplementEqual_FloatFloat not implemented");
+	Exception::Throw("Object.ComplementEqual_FloatFloat");
+	ReturnValue = false;
 }
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
@@ -561,7 +562,8 @@ void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 
 void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
 {
-	Exception::Throw("Object.GetEnum not implemented");
+	Exception::Throw("Object.GetEnum");
+	ReturnValue = {};
 }
 
 void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue)
@@ -896,7 +898,8 @@ void NObject::Or_IntInt(int A, int B, int& ReturnValue)
 
 void NObject::OrthoRotation(const vec3& X, const vec3& Y, const vec3& Z, Rotator& ReturnValue)
 {
-	Exception::Throw("Object.OrthoRotation not implemented");
+	Exception::Throw("Object.OrthoRotation");
+	ReturnValue = {};
 }
 
 void NObject::Percent_FloatFloat(float A, float B, float& ReturnValue)

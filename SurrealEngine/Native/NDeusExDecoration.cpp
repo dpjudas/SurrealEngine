@@ -12,5 +12,5 @@ void NDeusExDecoration::RegisterFunctions()
 
 void NDeusExDecoration::ConBindEvents(UObject* Self)
 {
-	Exception::Throw("DeusExDecoration.ConBindEvents not implemented");
+	LogUnimplemented("DeusExDecoration.ConBindEvents");
 }

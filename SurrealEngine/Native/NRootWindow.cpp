@@ -24,78 +24,78 @@ void NRootWindow::RegisterFunctions()
 
 void NRootWindow::EnablePositionalSound(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NRootWindow::EnablePositionalSound not implemented");
+	LogUnimplemented("RootWindow.EnablePositionalSound");
 }
 
 void NRootWindow::EnableRendering(UObject* Self, BitfieldBool* bRender)
 {
-	LogUnimplemented("NRootWindow::EnableRendering not implemented");
+	LogUnimplemented("RootWindow.EnableRendering");
 }
 
 void NRootWindow::GenerateSnapshot(UObject* Self, BitfieldBool* bFilter, UObject*& ReturnValue)
 {
-	LogUnimplemented("NRootWindow::GenerateSnapshot not implemented");
+	LogUnimplemented("RootWindow.GenerateSnapshot");
 	ReturnValue = nullptr;
 }
 
 void NRootWindow::IsPositionalSoundEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NRootWindow::IsPositionalSoundEnabled not implemented");
+	LogUnimplemented("RootWindow.IsPositionalSoundEnabled");
 	ReturnValue = false;
 }
 
 void NRootWindow::IsRenderingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NRootWindow::IsRenderingEnabled not implemented");
+	LogUnimplemented("RootWindow.IsRenderingEnabled");
 	ReturnValue = false;
 }
 
 void NRootWindow::LockMouse(UObject* Self, BitfieldBool* bLockMove, BitfieldBool* bLockButton)
 {
-	LogUnimplemented("NRootWindow::LockMouse not implemented");
+	LogUnimplemented("RootWindow.LockMouse");
 }
 
 void NRootWindow::ResetRenderViewport(UObject* Self)
 {
-	LogUnimplemented("NRootWindow::ResetRenderViewport not implemented");
+	LogUnimplemented("RootWindow.ResetRenderViewport");
 }
 
 void NRootWindow::SetDefaultEditCursor(UObject* Self, UObject** newEditCursor)
 {
-	LogUnimplemented("NRootWindow::SetDefaultEditCursor not implemented");
+	LogUnimplemented("RootWindow.SetDefaultEditCursor");
 }
 
 void NRootWindow::SetDefaultMovementCursors(UObject* Self, UObject** newMovementCursor, UObject** newHorizontalMovementCursor, UObject** newVerticalMovementCursor, UObject** newTopLeftMovementCursor, UObject** newTopRightMovementCursor)
 {
-	LogUnimplemented("NRootWindow::SetDefaultMovementCursors not implemented");
+	LogUnimplemented("RootWindow.SetDefaultMovementCursors");
 }
 
 void NRootWindow::SetRawBackground(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("NRootWindow::SetRawBackground not implemented");
+	LogUnimplemented("RootWindow.SetRawBackground");
 }
 
 void NRootWindow::SetRawBackgroundSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NRootWindow::SetRawBackgroundSize not implemented");
+	LogUnimplemented("RootWindow.SetRawBackgroundSize");
 }
 
 void NRootWindow::SetRenderViewport(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NRootWindow::SetRenderViewport not implemented");
+	LogUnimplemented("RootWindow.SetRenderViewport");
 }
 
 void NRootWindow::SetSnapshotSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NRootWindow::SetSnapshotSize not implemented");
+	LogUnimplemented("RootWindow.SetSnapshotSize");
 }
 
 void NRootWindow::ShowCursor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("NRootWindow::ShowCursor not implemented");
+	LogUnimplemented("RootWindow.ShowCursor");
 }
 
 void NRootWindow::StretchRawBackground(UObject* Self, BitfieldBool* bStretch)
 {
-	LogUnimplemented("NRootWindow::StretchRawBackground not implemented");
+	LogUnimplemented("RootWindow.StretchRawBackground");
 }

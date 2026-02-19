@@ -16,40 +16,40 @@ void NExtString::RegisterFunctions()
 
 void NExtString::AppendText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("NExtString::AppendText not implemented");
+	LogUnimplemented("ExtString.AppendText");
 }
 
 void NExtString::GetFirstTextPart(UObject* Self, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("NExtString::GetFirstTextPart not implemented");
+	LogUnimplemented("ExtString.GetFirstTextPart");
 	ReturnValue = 0;
 }
 
 void NExtString::GetNextTextPart(UObject* Self, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("NExtString::GetNextTextPart not implemented");
+	LogUnimplemented("ExtString.GetNextTextPart");
 	ReturnValue = 0;
 }
 
 void NExtString::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("NExtString::GetText not implemented");
+	LogUnimplemented("ExtString.GetText");
 	ReturnValue = "";
 }
 
 void NExtString::GetTextLength(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NExtString::GetTextLength not implemented");
+	LogUnimplemented("ExtString.GetTextLength");
 	ReturnValue = 0;
 }
 
 void NExtString::GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("NExtString::GetTextPart not implemented");
+	LogUnimplemented("ExtString.GetTextPart");
 	ReturnValue = 0;
 }
 
 void NExtString::SetText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("NExtString::SetText not implemented");
+	LogUnimplemented("ExtString.SetText");
 }

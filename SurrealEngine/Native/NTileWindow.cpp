@@ -20,55 +20,55 @@ void NTileWindow::RegisterFunctions()
 
 void NTileWindow::EnableWrapping(UObject* Self, bool bWrapOn)
 {
-	LogUnimplemented("NTileWindow::EnableWrapping not implemented");
+	LogUnimplemented("TileWindow.EnableWrapping");
 }
 
 void NTileWindow::FillParent(UObject* Self, bool FillParent)
 {
-	LogUnimplemented("NTileWindow::FillParent not implemented");
+	LogUnimplemented("TileWindow.FillParent");
 }
 
 void NTileWindow::MakeHeightsEqual(UObject* Self, bool bEqual)
 {
-	LogUnimplemented("NTileWindow::MakeHeightsEqual not implemented");
+	LogUnimplemented("TileWindow.MakeHeightsEqual");
 }
 
 void NTileWindow::MakeWidthsEqual(UObject* Self, bool bEqual)
 {
-	LogUnimplemented("NTileWindow::MakeWidthsEqual not implemented");
+	LogUnimplemented("TileWindow.MakeWidthsEqual");
 }
 
 void NTileWindow::SetChildAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("NTileWindow::SetChildAlignments not implemented");
+	LogUnimplemented("TileWindow.SetChildAlignments");
 }
 
 void NTileWindow::SetDirections(UObject* Self, uint8_t newHDir, uint8_t newVDir)
 {
-	LogUnimplemented("NTileWindow::SetDirections not implemented");
+	LogUnimplemented("TileWindow.SetDirections");
 }
 
 void NTileWindow::SetMajorSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("NTileWindow::SetMajorSpacing not implemented");
+	LogUnimplemented("TileWindow.SetMajorSpacing");
 }
 
 void NTileWindow::SetMargins(UObject* Self, float newHMargin, float newVMargin)
 {
-	LogUnimplemented("NTileWindow::SetMargins not implemented");
+	LogUnimplemented("TileWindow.SetMargins");
 }
 
 void NTileWindow::SetMinorSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("NTileWindow::SetMinorSpacing not implemented");
+	LogUnimplemented("TileWindow.SetMinorSpacing");
 }
 
 void NTileWindow::SetOrder(UObject* Self, uint8_t newOrder)
 {
-	LogUnimplemented("NTileWindow::SetOrder not implemented");
+	LogUnimplemented("TileWindow.SetOrder");
 }
 
 void NTileWindow::SetOrientation(UObject* Self, uint8_t newOrientation)
 {
-	LogUnimplemented("NTileWindow::SetOrientation not implemented");
+	LogUnimplemented("TileWindow.SetOrientation");
 }

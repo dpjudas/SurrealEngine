@@ -47,7 +47,7 @@ void NPlayerPawn::ConsoleCommand(UObject* Self, const std::string& Command, std:
 
 void NPlayerPawn::ClientMessage_219(UObject* Self, const std::string& S)
 {
-	LogUnimplemented("ClientMessage not implemented");
+	LogUnimplemented("Playerawn.ClientMessage");
 }
 
 void NPlayerPawn::ConsoleCommand_219(UObject* Self, const std::string& Command)

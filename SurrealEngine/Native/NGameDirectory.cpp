@@ -26,75 +26,85 @@ void NGameDirectory::RegisterFunctions()
 
 void NGameDirectory::DeleteSaveInfo(UObject* Self, UObject* saveInfo)
 {
-	Exception::Throw("GameDirectory.DeleteSaveInfo not implemented");
+	LogUnimplemented("GameDirectory.DeleteSaveInfo");
 }
 
 void NGameDirectory::GenerateNewSaveFilename(UObject* Self, int* newIndex, std::string& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GenerateNewSaveFilename not implemented");
+	LogUnimplemented("GameDirectory.GenerateNewSaveFilename");
+	ReturnValue = "";
 }
 
 void NGameDirectory::GenerateSaveFilename(UObject* Self, int saveIndex, std::string& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GenerateSaveFilename not implemented");
+	LogUnimplemented("GameDirectory.GenerateSaveFilename");
+	ReturnValue = "";
 }
 
 void NGameDirectory::GetDirCount(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetDirCount not implemented");
+	LogUnimplemented("GameDirectory.GetDirCount");
+	ReturnValue = 0;
 }
 
 void NGameDirectory::GetDirFilename(UObject* Self, int fileIndex, std::string& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetDirFilename not implemented");
+	LogUnimplemented("GameDirectory.GetDirFilename");
+	ReturnValue = "";
 }
 
 void NGameDirectory::GetGameDirectory(UObject* Self)
 {
-	Exception::Throw("GameDirectory.GetGameDirectory not implemented");
+	LogUnimplemented("GameDirectory.GetGameDirectory");
 }
 
 void NGameDirectory::GetNewSaveFileIndex(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetNewSaveFileIndex not implemented");
+	LogUnimplemented("GameDirectory.GetNewSaveFileIndex");
+	ReturnValue = 0;
 }
 
 void NGameDirectory::GetSaveDirectorySize(UObject* Self, int saveIndex, int& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetSaveDirectorySize not implemented");
+	LogUnimplemented("GameDirectory.GetSaveDirectorySize");
+	ReturnValue = 0;
 }
 
 void NGameDirectory::GetSaveFreeSpace(UObject* Self, int& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetSaveFreeSpace not implemented");
+	LogUnimplemented("GameDirectory.GetSaveFreeSpace");
+	ReturnValue = 0;
 }
 
 void NGameDirectory::GetSaveInfo(UObject* Self, int fileIndex, UObject*& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetSaveInfo not implemented");
+	LogUnimplemented("GameDirectory.GetSaveInfo");
+	ReturnValue = nullptr;
 }
 
 void NGameDirectory::GetSaveInfoFromDirectoryIndex(UObject* Self, int DirectoryIndex, UObject*& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetSaveInfoFromDirectoryIndex not implemented");
+	LogUnimplemented("GameDirectory.GetSaveInfoFromDirectoryIndex");
+	ReturnValue = nullptr;
 }
 
 void NGameDirectory::GetTempSaveInfo(UObject* Self, UObject*& ReturnValue)
 {
-	Exception::Throw("GameDirectory.GetTempSaveInfo not implemented");
+	LogUnimplemented("GameDirectory.GetTempSaveInfo");
+	ReturnValue = nullptr;
 }
 
 void NGameDirectory::PurgeAllSaveInfo(UObject* Self)
 {
-	Exception::Throw("GameDirectory.PurgeAllSaveInfo not implemented");
+	LogUnimplemented("GameDirectory.PurgeAllSaveInfo");
 }
 
 void NGameDirectory::SetDirFilter(UObject* Self, const std::string& strFilter)
 {
-	Exception::Throw("GameDirectory.SetDirFilter not implemented");
+	LogUnimplemented("GameDirectory.SetDirFilter");
 }
 
 void NGameDirectory::SetDirType(UObject* Self, uint8_t newDirType)
 {
-	Exception::Throw("GameDirectory.SetDirType not implemented");
+	LogUnimplemented("GameDirectory.SetDirType");
 }

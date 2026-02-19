@@ -14,25 +14,25 @@ void NBorderWindow::RegisterFunctions()
 
 void NBorderWindow::BaseMarginsFromBorder(UObject* Self, BitfieldBool* bBorder)
 {
-	LogUnimplemented("NBorderWindow::BaseMarginsFromBorder not implemented");
+	LogUnimplemented("BorderWindow.BaseMarginsFromBorder");
 }
 
 void NBorderWindow::EnableResizing(UObject* Self, BitfieldBool* bResize)
 {
-	LogUnimplemented("NBorderWindow::EnableResizing not implemented");
+	LogUnimplemented("BorderWindow.EnableResizing");
 }
 
 void NBorderWindow::SetBorderMargins(UObject* Self, float* NewLeft, float* NewRight, float* newTop, float* newBottom)
 {
-	LogUnimplemented("NBorderWindow::SetBorderMargins not implemented");
+	LogUnimplemented("BorderWindow.SetBorderMargins");
 }
 
 void NBorderWindow::SetBorders(UObject* Self, UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
 {
-	LogUnimplemented("NBorderWindow::SetBorders not implemented");
+	LogUnimplemented("BorderWindow.SetBorders");
 }
 
 void NBorderWindow::SetMoveCursors(UObject* Self, UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
 {
-	LogUnimplemented("NBorderWindow::SetMoveCursors not implemented");
+	LogUnimplemented("BorderWindow.SetMoveCursors");
 }

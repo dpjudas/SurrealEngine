@@ -12,10 +12,10 @@ void NWarpZoneInfo::RegisterFunctions()
 
 void NWarpZoneInfo::UnWarp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	LogUnimplemented("WarpZoneInfo.UnWarp not implemented");
+	LogUnimplemented("WarpZoneInfo.UnWarp");
 }
 
 void NWarpZoneInfo::Warp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
-	LogUnimplemented("WarpZoneInfo.Warp not implemented");
+	LogUnimplemented("WarpZoneInfo.Warp");
 }

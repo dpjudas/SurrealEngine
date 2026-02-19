@@ -21,67 +21,67 @@ void NDeusExTextParser::RegisterFunctions()
 
 void NDeusExTextParser::CloseText(UObject* Self)
 {
-	LogUnimplemented("NDeusExTextParser::CloseText not implemented");
+	LogUnimplemented("DeusExTextParser.CloseText");
 }
 
 void NDeusExTextParser::GetColor(UObject* Self, Color& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::GetColor not implemented");
+	LogUnimplemented("DeusExTextParser.GetColor");
 	ReturnValue = { 0, 0, 0, 0 };
 }
 
 void NDeusExTextParser::GetEmailInfo(UObject* Self, std::string& emailName, std::string& emailSubject, std::string& emailFrom, std::string& emailTo, std::string& emailCC)
 {
-	LogUnimplemented("NDeusExTextParser::GetEmailInfo not implemented");
+	LogUnimplemented("DeusExTextParser.GetEmailInfo");
 }
 
 void NDeusExTextParser::GetFileInfo(UObject* Self, std::string& FileName, std::string& fileDescription)
 {
-	LogUnimplemented("NDeusExTextParser::GetFileInfo not implemented");
+	LogUnimplemented("DeusExTextParser.GetFileInfo");
 }
 
 void NDeusExTextParser::GetName(UObject* Self, NameString& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::GetName not implemented");
+	LogUnimplemented("DeusExTextParser.GetName");
 	ReturnValue = {};
 }
 
 void NDeusExTextParser::GetTag(UObject* Self, uint8_t& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::GetTag not implemented");
+	LogUnimplemented("DeusExTextParser.GetTag");
 	ReturnValue = 0;
 }
 
 void NDeusExTextParser::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::GetText not implemented");
+	LogUnimplemented("DeusExTextParser.GetText");
 	ReturnValue = "";
 }
 
 void NDeusExTextParser::GotoLabel(UObject* Self, const std::string& Label)
 {
-	LogUnimplemented("NDeusExTextParser::GotoLabel not implemented");
+	LogUnimplemented("DeusExTextParser.GotoLabel");
 }
 
 void NDeusExTextParser::IsEOF(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::IsEOF not implemented");
+	LogUnimplemented("DeusExTextParser.IsEOF");
 	ReturnValue = false;
 }
 
 void NDeusExTextParser::OpenText(UObject* Self, const NameString& textName, std::string* TextPackage, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::OpenText not implemented");
+	LogUnimplemented("DeusExTextParser.OpenText");
 	ReturnValue = false;
 }
 
 void NDeusExTextParser::ProcessText(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NDeusExTextParser::ProcessText not implemented");
+	LogUnimplemented("DeusExTextParser.ProcessText");
 	ReturnValue = false;
 }
 
 void NDeusExTextParser::SetPlayerName(UObject* Self, const std::string& newPlayerName)
 {
-	LogUnimplemented("NDeusExTextParser::SetPlayerName not implemented");
+	LogUnimplemented("DeusExTextParser.SetPlayerName");
 }

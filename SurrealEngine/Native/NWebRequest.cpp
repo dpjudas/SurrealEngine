@@ -14,29 +14,29 @@ void NWebRequest::RegisterFunctions()
 
 void NWebRequest::AddVariable(UObject* Self, const std::string& VariableName, const std::string& Value)
 {
-	LogUnimplemented("NWebRequest::AddVariable not implemented");
+	LogUnimplemented("WebRequest.AddVariable");
 }
 
 void NWebRequest::DecodeBase64(UObject* Self, const std::string& Encoded, std::string& ReturnValue)
 {
-	LogUnimplemented("NWebRequest::DecodeBase64 not implemented");
+	LogUnimplemented("WebRequest.DecodeBase64");
 	ReturnValue = "";
 }
 
 void NWebRequest::GetVariable(UObject* Self, const std::string& VariableName, std::string* DefaultValue, std::string& ReturnValue)
 {
-	LogUnimplemented("NWebRequest::GetVariable not implemented");
+	LogUnimplemented("WebRequest.GetVariable");
 	ReturnValue = "";
 }
 
 void NWebRequest::GetVariableCount(UObject* Self, const std::string& VariableName, int& ReturnValue)
 {
-	LogUnimplemented("NWebRequest::GetVariableCount not implemented");
+	LogUnimplemented("WebRequest.GetVariableCount");
 	ReturnValue = 0;
 }
 
 void NWebRequest::GetVariableNumber(UObject* Self, const std::string& VariableName, int Number, std::string* DefaultValue, std::string& ReturnValue)
 {
-	LogUnimplemented("NWebRequest::GetVariableNumber not implemented");
+	LogUnimplemented("WebRequest.GetVariableNumber");
 	ReturnValue = "";
 }

@@ -12,5 +12,5 @@ void NDeusExSaveInfo::RegisterFunctions()
 
 void NDeusExSaveInfo::UpdateTimeStamp(UObject* Self)
 {
-	Exception::Throw("DeusExSaveInfo.UpdateTimeStamp not implemented");
+	LogUnimplemented("DeusExSaveInfo.UpdateTimeStamp");
 }

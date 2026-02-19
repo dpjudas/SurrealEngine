@@ -12,5 +12,5 @@ void NParticleIterator::RegisterFunctions()
 
 void NParticleIterator::UpdateParticles(UObject* Self, float DeltaTime)
 {
-	Exception::Throw("ParticleIterator.UpdateParticles not implemented");
+	LogUnimplemented("ParticleIterator.UpdateParticles");
 }

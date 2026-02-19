@@ -10,6 +10,6 @@ void NExtensionObject::RegisterFunctions()
 
 void NExtensionObject::StringToName(UObject* Self, const std::string& str, NameString& ReturnValue)
 {
-	LogUnimplemented("NExtensionObject::StringToName not implemented");
+	LogUnimplemented("ExtensionObject.StringToName");
 	ReturnValue = {};
 }

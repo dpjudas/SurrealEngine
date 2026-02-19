@@ -16,41 +16,41 @@ void NPathNodeIterator::RegisterFunctions()
 
 void NPathNodeIterator::BuildPath(UObject* Self, const vec3& Start, const vec3& End)
 {
-	LogUnimplemented("NPathNodeIterator::BuildPath not implemented");
+	LogUnimplemented("PathNodeIterator.BuildPath");
 }
 
 void NPathNodeIterator::GetCurrent(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetCurrent not implemented");
+	LogUnimplemented("PathNodeIterator.GetCurrent");
 	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetFirst(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetFirst not implemented");
+	LogUnimplemented("PathNodeIterator.GetFirst");
 	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetLast(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetLast not implemented");
+	LogUnimplemented("PathNodeIterator.GetLast");
 	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetLastVisible(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetLastVisible not implemented");
+	LogUnimplemented("PathNodeIterator.GetLastVisible");
 	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetNext(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetNext not implemented");
+	LogUnimplemented("PathNodeIterator.GetNext");
 	ReturnValue = nullptr;
 }
 
 void NPathNodeIterator::GetPrevious(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NPathNodeIterator::GetPrevious not implemented");
+	LogUnimplemented("PathNodeIterator.GetPrevious");
 	ReturnValue = nullptr;
 }

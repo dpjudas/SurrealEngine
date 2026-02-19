@@ -14,25 +14,25 @@ void NCheckboxWindow::RegisterFunctions()
 
 void NCheckboxWindow::SetCheckboxColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NCheckboxWindow::SetCheckboxColor not implemented");
+	LogUnimplemented("CheckboxWindow.SetCheckboxColor");
 }
 
 void NCheckboxWindow::SetCheckboxSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("NCheckboxWindow::SetCheckboxSpacing not implemented");
+	LogUnimplemented("CheckboxWindow.SetCheckboxSpacing");
 }
 
 void NCheckboxWindow::SetCheckboxStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("NCheckboxWindow::SetCheckboxStyle not implemented");
+	LogUnimplemented("CheckboxWindow.SetCheckboxStyle");
 }
 
 void NCheckboxWindow::SetCheckboxTextures(UObject* Self, UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight)
 {
-	LogUnimplemented("NCheckboxWindow::SetCheckboxTextures not implemented");
+	LogUnimplemented("CheckboxWindow.SetCheckboxTextures");
 }
 
 void NCheckboxWindow::ShowCheckboxOnRightSide(UObject* Self, BitfieldBool* bRight)
 {
-	LogUnimplemented("NCheckboxWindow::ShowCheckboxOnRightSide not implemented");
+	LogUnimplemented("CheckboxWindow.ShowCheckboxOnRightSide");
 }

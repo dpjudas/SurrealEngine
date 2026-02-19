@@ -24,78 +24,78 @@ void NTextWindow::RegisterFunctions()
 
 void NTextWindow::AppendText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("NTextWindow::AppendText not implemented");
+	LogUnimplemented("TextWindow.AppendText");
 }
 
 void NTextWindow::EnableTextAsAccelerator(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NTextWindow::EnableTextAsAccelerator not implemented");
+	LogUnimplemented("TextWindow.EnableTextAsAccelerator");
 }
 
 void NTextWindow::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("NTextWindow::GetText not implemented");
+	LogUnimplemented("TextWindow.GetText");
 	ReturnValue = "";
 }
 
 void NTextWindow::GetTextLength(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NTextWindow::GetTextLength not implemented");
+	LogUnimplemented("TextWindow.GetTextLength");
 	ReturnValue = 0;
 }
 
 void NTextWindow::GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("NTextWindow::GetTextPart not implemented");
+	LogUnimplemented("TextWindow.GetTextPart");
 	ReturnValue = 0;
 }
 
 void NTextWindow::ResetLines(UObject* Self)
 {
-	LogUnimplemented("NTextWindow::ResetLines not implemented");
+	LogUnimplemented("TextWindow.ResetLines");
 }
 
 void NTextWindow::ResetMinWidth(UObject* Self)
 {
-	LogUnimplemented("NTextWindow::ResetMinWidth not implemented");
+	LogUnimplemented("TextWindow.ResetMinWidth");
 }
 
 void NTextWindow::SetLines(UObject* Self, int newMinLines, int newMaxLines)
 {
-	LogUnimplemented("NTextWindow::SetLines not implemented");
+	LogUnimplemented("TextWindow.SetLines");
 }
 
 void NTextWindow::SetMaxLines(UObject* Self, int newMaxLines)
 {
-	LogUnimplemented("NTextWindow::SetMaxLines not implemented");
+	LogUnimplemented("TextWindow.SetMaxLines");
 }
 
 void NTextWindow::SetMinLines(UObject* Self, int newMinLines)
 {
-	LogUnimplemented("NTextWindow::SetMinLines not implemented");
+	LogUnimplemented("TextWindow.SetMinLines");
 }
 
 void NTextWindow::SetMinWidth(UObject* Self, float newMinWidth)
 {
-	LogUnimplemented("NTextWindow::SetMinWidth not implemented");
+	LogUnimplemented("TextWindow.SetMinWidth");
 }
 
 void NTextWindow::SetText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("NTextWindow::SetText not implemented");
+	LogUnimplemented("TextWindow.SetText");
 }
 
 void NTextWindow::SetTextAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("NTextWindow::SetTextAlignments not implemented");
+	LogUnimplemented("TextWindow.SetTextAlignments");
 }
 
 void NTextWindow::SetTextMargins(UObject* Self, float newHMargin, float newVMargin)
 {
-	LogUnimplemented("NTextWindow::SetTextMargins not implemented");
+	LogUnimplemented("TextWindow.SetTextMargins");
 }
 
 void NTextWindow::SetWordWrap(UObject* Self, bool bNewWordWrap)
 {
-	LogUnimplemented("NTextWindow::SetWordWrap not implemented");
+	LogUnimplemented("TextWindow.SetWordWrap");
 }

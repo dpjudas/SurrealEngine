@@ -13,21 +13,21 @@ void NToggleWindow::RegisterFunctions()
 
 void NToggleWindow::ChangeToggle(UObject* Self)
 {
-	LogUnimplemented("NToggleWindow::ChangeToggle not implemented");
+	LogUnimplemented("ToggleWindow.ChangeToggle");
 }
 
 void NToggleWindow::GetToggle(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NToggleWindow::GetToggle not implemented");
+	LogUnimplemented("ToggleWindow.GetToggle");
 	ReturnValue = false;
 }
 
 void NToggleWindow::SetToggle(UObject* Self, bool bNewToggle)
 {
-	LogUnimplemented("NToggleWindow::SetToggle not implemented");
+	LogUnimplemented("ToggleWindow.SetToggle");
 }
 
 void NToggleWindow::SetToggleSounds(UObject* Self, UObject** enableSound, UObject** disableSound)
 {
-	LogUnimplemented("NToggleWindow::SetToggleSounds not implemented");
+	LogUnimplemented("ToggleWindow.SetToggleSounds");
 }

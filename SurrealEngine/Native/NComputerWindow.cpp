@@ -42,168 +42,168 @@ void NComputerWindow::RegisterFunctions()
 
 void NComputerWindow::ClearLine(UObject* Self, int rowToClear)
 {
-	LogUnimplemented("NComputerWindow::ClearLine not implemented");
+	LogUnimplemented("ComputerWindow.ClearLine");
 }
 
 void NComputerWindow::ClearScreen(UObject* Self)
 {
-	LogUnimplemented("NComputerWindow::ClearScreen not implemented");
+	LogUnimplemented("ComputerWindow.ClearScreen");
 }
 
 void NComputerWindow::EnableWordWrap(UObject* Self, BitfieldBool* bNewWordWrap)
 {
-	LogUnimplemented("NComputerWindow::EnableWordWrap not implemented");
+	LogUnimplemented("ComputerWindow.EnableWordWrap");
 }
 
 void NComputerWindow::FadeOutText(UObject* Self, float* fadeDuration)
 {
-	LogUnimplemented("NComputerWindow::FadeOutText not implemented");
+	LogUnimplemented("ComputerWindow.FadeOutText");
 }
 
 void NComputerWindow::GetChar(UObject* Self, const std::string& inputKey, BitfieldBool* bEcho)
 {
-	LogUnimplemented("NComputerWindow::GetChar not implemented");
+	LogUnimplemented("ComputerWindow.GetChar");
 }
 
 void NComputerWindow::GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask)
 {
-	LogUnimplemented("NComputerWindow::GetInput not implemented");
+	LogUnimplemented("ComputerWindow.GetInput");
 }
 
 void NComputerWindow::GetThrottle(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("NComputerWindow::GetThrottle not implemented");
+	LogUnimplemented("ComputerWindow.GetThrottle");
 	ReturnValue = 0.0f;
 }
 
 void NComputerWindow::IsBufferFlushed(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NComputerWindow::IsBufferFlushed not implemented");
+	LogUnimplemented("ComputerWindow.IsBufferFlushed");
 	ReturnValue = false;
 }
 
 void NComputerWindow::IsPaused(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NComputerWindow::IsPaused not implemented");
+	LogUnimplemented("ComputerWindow.IsPaused");
 	ReturnValue = false;
 }
 
 void NComputerWindow::Pause(UObject* Self, float* pauseLength)
 {
-	LogUnimplemented("NComputerWindow::Pause not implemented");
+	LogUnimplemented("ComputerWindow.Pause");
 }
 
 void NComputerWindow::PlaySoundLater(UObject* Self, UObject* newsound)
 {
-	LogUnimplemented("NComputerWindow::PlaySoundLater not implemented");
+	LogUnimplemented("ComputerWindow.PlaySoundLater");
 }
 
 void NComputerWindow::Print(UObject* Self, const std::string& printText, BitfieldBool* bNewLine)
 {
-	LogUnimplemented("NComputerWindow::Print not implemented");
+	LogUnimplemented("ComputerWindow.Print");
 }
 
 void NComputerWindow::PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos)
 {
-	LogUnimplemented("NComputerWindow::PrintGraphic not implemented");
+	LogUnimplemented("ComputerWindow.PrintGraphic");
 }
 
 void NComputerWindow::PrintLn(UObject* Self)
 {
-	LogUnimplemented("NComputerWindow::PrintLn not implemented");
+	LogUnimplemented("ComputerWindow.PrintLn");
 }
 
 void NComputerWindow::ResetThrottle(UObject* Self)
 {
-	LogUnimplemented("NComputerWindow::ResetThrottle not implemented");
+	LogUnimplemented("ComputerWindow.ResetThrottle");
 }
 
 void NComputerWindow::Resume(UObject* Self)
 {
-	LogUnimplemented("NComputerWindow::Resume not implemented");
+	LogUnimplemented("ComputerWindow.Resume");
 }
 
 void NComputerWindow::SetBackgroundTextures(UObject* Self, UObject* backTexture1, UObject* backTexture2, UObject* backTexture3, UObject* backTexture4, UObject* backTexture5, UObject* backTexture6)
 {
-	LogUnimplemented("NComputerWindow::SetBackgroundTextures not implemented");
+	LogUnimplemented("ComputerWindow.SetBackgroundTextures");
 }
 
 void NComputerWindow::SetComputerSoundVolume(UObject* Self, float newSoundVolume)
 {
-	LogUnimplemented("NComputerWindow::SetComputerSoundVolume not implemented");
+	LogUnimplemented("ComputerWindow.SetComputerSoundVolume");
 }
 
 void NComputerWindow::SetCursorBlinkSpeed(UObject* Self, float newBlinkSpeed)
 {
-	LogUnimplemented("NComputerWindow::SetCursorBlinkSpeed not implemented");
+	LogUnimplemented("ComputerWindow.SetCursorBlinkSpeed");
 }
 
 void NComputerWindow::SetCursorColor(UObject* Self, const Color& newCursorColor)
 {
-	LogUnimplemented("NComputerWindow::SetCursorColor not implemented");
+	LogUnimplemented("ComputerWindow.SetCursorColor");
 }
 
 void NComputerWindow::SetCursorTexture(UObject* Self, UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight)
 {
-	LogUnimplemented("NComputerWindow::SetCursorTexture not implemented");
+	LogUnimplemented("ComputerWindow.SetCursorTexture");
 }
 
 void NComputerWindow::SetFadeSpeed(UObject* Self, float fadeSpeed)
 {
-	LogUnimplemented("NComputerWindow::SetFadeSpeed not implemented");
+	LogUnimplemented("ComputerWindow.SetFadeSpeed");
 }
 
 void NComputerWindow::SetFontColor(UObject* Self, const Color& newFontColor)
 {
-	LogUnimplemented("NComputerWindow::SetFontColor not implemented");
+	LogUnimplemented("ComputerWindow.SetFontColor");
 }
 
 void NComputerWindow::SetTextFont(UObject* Self, UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
 {
-	LogUnimplemented("NComputerWindow::SetTextFont not implemented");
+	LogUnimplemented("ComputerWindow.SetTextFont");
 }
 
 void NComputerWindow::SetTextPosition(UObject* Self, int posX, int posY)
 {
-	LogUnimplemented("NComputerWindow::SetTextPosition not implemented");
+	LogUnimplemented("ComputerWindow.SetTextPosition");
 }
 
 void NComputerWindow::SetTextSize(UObject* Self, int newCols, int newRows)
 {
-	LogUnimplemented("NComputerWindow::SetTextSize not implemented");
+	LogUnimplemented("ComputerWindow.SetTextSize");
 }
 
 void NComputerWindow::SetTextSound(UObject* Self, UObject* newTextSound)
 {
-	LogUnimplemented("NComputerWindow::SetTextSound not implemented");
+	LogUnimplemented("ComputerWindow.SetTextSound");
 }
 
 void NComputerWindow::SetTextTiming(UObject* Self, float newTiming)
 {
-	LogUnimplemented("NComputerWindow::SetTextTiming not implemented");
+	LogUnimplemented("ComputerWindow.SetTextTiming");
 }
 
 void NComputerWindow::SetTextWindowPosition(UObject* Self, int newX, int newY)
 {
-	LogUnimplemented("NComputerWindow::SetTextWindowPosition not implemented");
+	LogUnimplemented("ComputerWindow.SetTextWindowPosition");
 }
 
 void NComputerWindow::SetThrottle(UObject* Self, float throttleModifier)
 {
-	LogUnimplemented("NComputerWindow::SetThrottle not implemented");
+	LogUnimplemented("ComputerWindow.SetThrottle");
 }
 
 void NComputerWindow::SetTypingSound(UObject* Self, UObject* newTypingSound)
 {
-	LogUnimplemented("NComputerWindow::SetTypingSound not implemented");
+	LogUnimplemented("ComputerWindow.SetTypingSound");
 }
 
 void NComputerWindow::SetTypingSoundVolume(UObject* Self, float newSoundVolume)
 {
-	LogUnimplemented("NComputerWindow::SetTypingSoundVolume not implemented");
+	LogUnimplemented("ComputerWindow.SetTypingSoundVolume");
 }
 
 void NComputerWindow::ShowTextCursor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("NComputerWindow::ShowTextCursor not implemented");
+	LogUnimplemented("ComputerWindow.ShowTextCursor");
 }

@@ -13,20 +13,20 @@ void NTextLogWindow::RegisterFunctions()
 
 void NTextLogWindow::AddLog(UObject* Self, const std::string& NewText, const Color& linecol)
 {
-	LogUnimplemented("NTextLogWindow::AddLog not implemented");
+	LogUnimplemented("TextLogWindow.AddLog");
 }
 
 void NTextLogWindow::ClearLog(UObject* Self)
 {
-	LogUnimplemented("NTextLogWindow::ClearLog not implemented");
+	LogUnimplemented("TextLogWindow.ClearLog");
 }
 
 void NTextLogWindow::PauseLog(UObject* Self, bool bNewPauseState)
 {
-	LogUnimplemented("NTextLogWindow::PauseLog not implemented");
+	LogUnimplemented("TextLogWindow.PauseLog");
 }
 
 void NTextLogWindow::SetTextTimeout(UObject* Self, float newTimeout)
 {
-	LogUnimplemented("NTextLogWindow::SetTextTimeout not implemented");
+	LogUnimplemented("TextLogWindow.SetTextTimeout");
 }

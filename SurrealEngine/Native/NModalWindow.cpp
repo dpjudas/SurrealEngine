@@ -11,11 +11,11 @@ void NModalWindow::RegisterFunctions()
 
 void NModalWindow::IsCurrentModal(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NModalWindow::IsCurrentModal not implemented");
+	LogUnimplemented("ModalWindow.IsCurrentModal");
 	ReturnValue = false;
 }
 
 void NModalWindow::SetMouseFocusMode(UObject* Self, uint8_t newFocusMode)
 {
-	LogUnimplemented("NModalWindow::SetMouseFocusMode not implemented");
+	LogUnimplemented("ModalWindow.SetMouseFocusMode");
 }

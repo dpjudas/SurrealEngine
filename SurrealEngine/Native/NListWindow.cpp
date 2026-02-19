@@ -78,368 +78,368 @@ void NListWindow::RegisterFunctions()
 
 void NListWindow::AddRow(UObject* Self, const std::string& rowStr, int* clientData, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::AddRow not implemented");
+	LogUnimplemented("ListWindow.AddRow");
 	ReturnValue = 0;
 }
 
 void NListWindow::AddSortColumn(UObject* Self, int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
 {
-	LogUnimplemented("NListWindow::AddSortColumn not implemented");
+	LogUnimplemented("ListWindow.AddSortColumn");
 }
 
 void NListWindow::DeleteAllRows(UObject* Self)
 {
-	LogUnimplemented("NListWindow::DeleteAllRows not implemented");
+	LogUnimplemented("ListWindow.DeleteAllRows");
 }
 
 void NListWindow::DeleteRow(UObject* Self, int rowId)
 {
-	LogUnimplemented("NListWindow::DeleteRow not implemented");
+	LogUnimplemented("ListWindow.DeleteRow");
 }
 
 void NListWindow::EnableAutoExpandColumns(UObject* Self, BitfieldBool* bAutoExpand)
 {
-	LogUnimplemented("NListWindow::EnableAutoExpandColumns not implemented");
+	LogUnimplemented("ListWindow.EnableAutoExpandColumns");
 }
 
 void NListWindow::EnableAutoSort(UObject* Self, BitfieldBool* bAutoSort)
 {
-	LogUnimplemented("NListWindow::EnableAutoSort not implemented");
+	LogUnimplemented("ListWindow.EnableAutoSort");
 }
 
 void NListWindow::EnableHotKeys(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NListWindow::EnableHotKeys not implemented");
+	LogUnimplemented("ListWindow.EnableHotKeys");
 }
 
 void NListWindow::EnableMultiSelect(UObject* Self, BitfieldBool* bEnableMultiSelect)
 {
-	LogUnimplemented("NListWindow::EnableMultiSelect not implemented");
+	LogUnimplemented("ListWindow.EnableMultiSelect");
 }
 
 void NListWindow::GetColumnAlignment(UObject* Self, int colIndex, uint8_t& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetColumnAlignment not implemented");
+	LogUnimplemented("ListWindow.GetColumnAlignment");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetColumnColor(UObject* Self, int colIndex, Color& colColor)
 {
-	LogUnimplemented("NListWindow::GetColumnColor not implemented");
+	LogUnimplemented("ListWindow.GetColumnColor");
 }
 
 void NListWindow::GetColumnFont(UObject* Self, int colIndex, UObject*& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetColumnFont not implemented");
+	LogUnimplemented("ListWindow.GetColumnFont");
 	ReturnValue = nullptr;
 }
 
 void NListWindow::GetColumnTitle(UObject* Self, int colIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetColumnTitle not implemented");
+	LogUnimplemented("ListWindow.GetColumnTitle");
 	ReturnValue = "";
 }
 
 void NListWindow::GetColumnType(UObject* Self, int colIndex, uint8_t& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetColumnType not implemented");
+	LogUnimplemented("ListWindow.GetColumnType");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetColumnWidth(UObject* Self, int colIndex, float& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetColumnWidth not implemented");
+	LogUnimplemented("ListWindow.GetColumnWidth");
 	ReturnValue = 0.0f;
 }
 
 void NListWindow::GetField(UObject* Self, int rowId, int colIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetField not implemented");
+	LogUnimplemented("ListWindow.GetField");
 	ReturnValue = "";
 }
 
 void NListWindow::GetFieldMargins(UObject* Self, float& marginWidth, float& marginHeight)
 {
-	LogUnimplemented("NListWindow::GetFieldMargins not implemented");
+	LogUnimplemented("ListWindow.GetFieldMargins");
 }
 
 void NListWindow::GetFieldValue(UObject* Self, int rowId, int colIndex, float& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetFieldValue not implemented");
+	LogUnimplemented("ListWindow.GetFieldValue");
 	ReturnValue = 0.0f;
 }
 
 void NListWindow::GetFocusRow(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetFocusRow not implemented");
+	LogUnimplemented("ListWindow.GetFocusRow");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetNumColumns(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetNumColumns not implemented");
+	LogUnimplemented("ListWindow.GetNumColumns");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetNumRows(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetNumRows not implemented");
+	LogUnimplemented("ListWindow.GetNumRows");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetNumSelectedRows(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetNumSelectedRows not implemented");
+	LogUnimplemented("ListWindow.GetNumSelectedRows");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetPageSize(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetPageSize not implemented");
+	LogUnimplemented("ListWindow.GetPageSize");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetRowClientInt(UObject* Self, int rowId, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetRowClientInt not implemented");
+	LogUnimplemented("ListWindow.GetRowClientInt");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetRowClientObject(UObject* Self, int rowId, UObject*& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetRowClientObject not implemented");
+	LogUnimplemented("ListWindow.GetRowClientObject");
 	ReturnValue = 0;
 }
 
 void NListWindow::GetSelectedRow(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::GetSelectedRow not implemented");
+	LogUnimplemented("ListWindow.GetSelectedRow");
 	ReturnValue = 0;
 }
 
 void NListWindow::HideColumn(UObject* Self, int colIndex, BitfieldBool* bHide)
 {
-	LogUnimplemented("NListWindow::HideColumn not implemented");
+	LogUnimplemented("ListWindow.HideColumn");
 }
 
 void NListWindow::IndexToRowId(UObject* Self, int index, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IndexToRowId not implemented");
+	LogUnimplemented("ListWindow.IndexToRowId");
 	ReturnValue = 0;
 }
 
 void NListWindow::IsAutoExpandColumnsEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IsAutoExpandColumnsEnabled not implemented");
+	LogUnimplemented("ListWindow.IsAutoExpandColumnsEnabled");
 	ReturnValue = false;
 }
 
 void NListWindow::IsAutoSortEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IsAutoSortEnabled not implemented");
+	LogUnimplemented("ListWindow.IsAutoSortEnabled");
 	ReturnValue = false;
 }
 
 void NListWindow::IsColumnHidden(UObject* Self, int colIndex, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IsColumnHidden not implemented");
+	LogUnimplemented("ListWindow.IsColumnHidden");
 	ReturnValue = false;
 }
 
 void NListWindow::IsMultiSelectEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IsMultiSelectEnabled not implemented");
+	LogUnimplemented("ListWindow.IsMultiSelectEnabled");
 	ReturnValue = false;
 }
 
 void NListWindow::IsRowSelected(UObject* Self, int rowId, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NListWindow::IsRowSelected not implemented");
+	LogUnimplemented("ListWindow.IsRowSelected");
 	ReturnValue = false;
 }
 
 void NListWindow::ModifyRow(UObject* Self, int rowId, const std::string& rowStr)
 {
-	LogUnimplemented("NListWindow::ModifyRow not implemented");
+	LogUnimplemented("ListWindow.ModifyRow");
 }
 
 void NListWindow::MoveRow(UObject* Self, uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
 {
-	LogUnimplemented("NListWindow::MoveRow not implemented");
+	LogUnimplemented("ListWindow.MoveRow");
 }
 
 void NListWindow::PlayListSound(UObject* Self, UObject* listSound, float* Volume, float* Pitch)
 {
-	LogUnimplemented("NListWindow::PlayListSound not implemented");
+	LogUnimplemented("ListWindow.PlayListSound");
 }
 
 void NListWindow::RemoveSortColumn(UObject* Self, int colIndex)
 {
-	LogUnimplemented("NListWindow::RemoveSortColumn not implemented");
+	LogUnimplemented("ListWindow.RemoveSortColumn");
 }
 
 void NListWindow::ResetSortColumns(UObject* Self, BitfieldBool* bSort)
 {
-	LogUnimplemented("NListWindow::ResetSortColumns not implemented");
+	LogUnimplemented("ListWindow.ResetSortColumns");
 }
 
 void NListWindow::ResizeColumns(UObject* Self, BitfieldBool* bExpandOnly)
 {
-	LogUnimplemented("NListWindow::ResizeColumns not implemented");
+	LogUnimplemented("ListWindow.ResizeColumns");
 }
 
 void NListWindow::RowIdToIndex(UObject* Self, int rowId, int& ReturnValue)
 {
-	LogUnimplemented("NListWindow::RowIdToIndex not implemented");
+	LogUnimplemented("ListWindow.RowIdToIndex");
 	ReturnValue = 0;
 }
 
 void NListWindow::SelectAllRows(UObject* Self, BitfieldBool* bSelect)
 {
-	LogUnimplemented("NListWindow::SelectAllRows not implemented");
+	LogUnimplemented("ListWindow.SelectAllRows");
 }
 
 void NListWindow::SelectRow(UObject* Self, int rowId, BitfieldBool* bSelect)
 {
-	LogUnimplemented("NListWindow::SelectRow not implemented");
+	LogUnimplemented("ListWindow.SelectRow");
 }
 
 void NListWindow::SelectToRow(UObject* Self, int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows)
 {
-	LogUnimplemented("NListWindow::SelectToRow not implemented");
+	LogUnimplemented("ListWindow.SelectToRow");
 }
 
 void NListWindow::SetColumnAlignment(UObject* Self, int colIndex, uint8_t newAlign)
 {
-	LogUnimplemented("NListWindow::SetColumnAlignment not implemented");
+	LogUnimplemented("ListWindow.SetColumnAlignment");
 }
 
 void NListWindow::SetColumnColor(UObject* Self, int colIndex, const Color& NewColor)
 {
-	LogUnimplemented("NListWindow::SetColumnColor not implemented");
+	LogUnimplemented("ListWindow.SetColumnColor");
 }
 
 void NListWindow::SetColumnFont(UObject* Self, int colIndex, UObject* NewFont)
 {
-	LogUnimplemented("NListWindow::SetColumnFont not implemented");
+	LogUnimplemented("ListWindow.SetColumnFont");
 }
 
 void NListWindow::SetColumnTitle(UObject* Self, int colIndex, const std::string& Title)
 {
-	LogUnimplemented("NListWindow::SetColumnTitle not implemented");
+	LogUnimplemented("ListWindow.SetColumnTitle");
 }
 
 void NListWindow::SetColumnType(UObject* Self, int colIndex, uint8_t newType, std::string* newFmt)
 {
-	LogUnimplemented("NListWindow::SetColumnType not implemented");
+	LogUnimplemented("ListWindow.SetColumnType");
 }
 
 void NListWindow::SetColumnWidth(UObject* Self, int colIndex, float newWidth)
 {
-	LogUnimplemented("NListWindow::SetColumnWidth not implemented");
+	LogUnimplemented("ListWindow.SetColumnWidth");
 }
 
 void NListWindow::SetDelimiter(UObject* Self, const std::string& newDelimiter)
 {
-	LogUnimplemented("NListWindow::SetDelimiter not implemented");
+	LogUnimplemented("ListWindow.SetDelimiter");
 }
 
 void NListWindow::SetField(UObject* Self, int rowId, int colIndex, const std::string& fieldStr)
 {
-	LogUnimplemented("NListWindow::SetField not implemented");
+	LogUnimplemented("ListWindow.SetField");
 }
 
 void NListWindow::SetFieldMargins(UObject* Self, float newMarginWidth, float newMarginHeight)
 {
-	LogUnimplemented("NListWindow::SetFieldMargins not implemented");
+	LogUnimplemented("ListWindow.SetFieldMargins");
 }
 
 void NListWindow::SetFieldValue(UObject* Self, int rowId, int colIndex, float NewValue)
 {
-	LogUnimplemented("NListWindow::SetFieldValue not implemented");
+	LogUnimplemented("ListWindow.SetFieldValue");
 }
 
 void NListWindow::SetFocusColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NListWindow::SetFocusColor not implemented");
+	LogUnimplemented("ListWindow.SetFocusColor");
 }
 
 void NListWindow::SetFocusRow(UObject* Self, int rowId, BitfieldBool* bMoveTo, BitfieldBool* bAnchor)
 {
-	LogUnimplemented("NListWindow::SetFocusRow not implemented");
+	LogUnimplemented("ListWindow.SetFocusRow");
 }
 
 void NListWindow::SetFocusTexture(UObject* Self, UObject* NewTexture)
 {
-	LogUnimplemented("NListWindow::SetFocusTexture not implemented");
+	LogUnimplemented("ListWindow.SetFocusTexture");
 }
 
 void NListWindow::SetFocusThickness(UObject* Self, float newThickness)
 {
-	LogUnimplemented("NListWindow::SetFocusThickness not implemented");
+	LogUnimplemented("ListWindow.SetFocusThickness");
 }
 
 void NListWindow::SetHighlightColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NListWindow::SetHighlightColor not implemented");
+	LogUnimplemented("ListWindow.SetHighlightColor");
 }
 
 void NListWindow::SetHighlightTextColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NListWindow::SetHighlightTextColor not implemented");
+	LogUnimplemented("ListWindow.SetHighlightTextColor");
 }
 
 void NListWindow::SetHighlightTexture(UObject* Self, UObject* NewTexture)
 {
-	LogUnimplemented("NListWindow::SetHighlightTexture not implemented");
+	LogUnimplemented("ListWindow.SetHighlightTexture");
 }
 
 void NListWindow::SetHotKeyColumn(UObject* Self, int colIndex)
 {
-	LogUnimplemented("NListWindow::SetHotKeyColumn not implemented");
+	LogUnimplemented("ListWindow.SetHotKeyColumn");
 }
 
 void NListWindow::SetListSounds(UObject* Self, UObject** ActivateSound, UObject** moveSound)
 {
-	LogUnimplemented("NListWindow::SetListSounds not implemented");
+	LogUnimplemented("ListWindow.SetListSounds");
 }
 
 void NListWindow::SetNumColumns(UObject* Self, int newCols)
 {
-	LogUnimplemented("NListWindow::SetNumColumns not implemented");
+	LogUnimplemented("ListWindow.SetNumColumns");
 }
 
 void NListWindow::SetRow(UObject* Self, int rowId, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
 {
-	LogUnimplemented("NListWindow::SetRow not implemented");
+	LogUnimplemented("ListWindow.SetRow");
 }
 
 void NListWindow::SetRowClientInt(UObject* Self, int rowId, int clientInt)
 {
-	LogUnimplemented("NListWindow::SetRowClientInt not implemented");
+	LogUnimplemented("ListWindow.SetRowClientInt");
 }
 
 void NListWindow::SetRowClientObject(UObject* Self, int rowId, UObject* clientObj)
 {
-	LogUnimplemented("NListWindow::SetRowClientObject not implemented");
+	LogUnimplemented("ListWindow.SetRowClientObject");
 }
 
 void NListWindow::SetSortColumn(UObject* Self, int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
 {
-	LogUnimplemented("NListWindow::SetSortColumn not implemented");
+	LogUnimplemented("ListWindow.SetSortColumn");
 }
 
 void NListWindow::ShowFocusRow(UObject* Self)
 {
-	LogUnimplemented("NListWindow::ShowFocusRow not implemented");
+	LogUnimplemented("ListWindow.ShowFocusRow");
 }
 
 void NListWindow::Sort(UObject* Self)
 {
-	LogUnimplemented("NListWindow::Sort not implemented");
+	LogUnimplemented("ListWindow.Sort");
 }
 
 void NListWindow::ToggleRowSelection(UObject* Self, int rowId)
 {
-	LogUnimplemented("NListWindow::ToggleRowSelection not implemented");
+	LogUnimplemented("ListWindow.ToggleRowSelection");
 }

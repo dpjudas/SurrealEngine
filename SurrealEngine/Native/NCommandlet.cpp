@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NCommandlet.h"
 #include "VM/NativeFunc.h"
+#include "Engine.h"
 
 void NCommandlet::RegisterFunctions()
 {
@@ -10,5 +11,6 @@ void NCommandlet::RegisterFunctions()
 
 void NCommandlet::Main(UObject* Self, const std::string& Parms, int& ReturnValue)
 {
-	Exception::Throw("Commandlet.Main not implemented");
+	LogUnimplemented("Commandlet.Main");
+	ReturnValue = 0;
 }

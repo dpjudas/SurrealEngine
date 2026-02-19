@@ -15,20 +15,21 @@ void NDebugInfo::RegisterFunctions()
 
 void NDebugInfo::AddTimingData(UObject* Self, const std::string& obj, const std::string& objName, int Time)
 {
-	Exception::Throw("DebugInfo.AddTimingData not implemented");
+	LogUnimplemented("DebugInfo.AddTimingData");
 }
 
 void NDebugInfo::Command(UObject* Self, const std::string& Cmd)
 {
-	Exception::Throw("DebugInfo.Command not implemented");
+	LogUnimplemented("DebugInfo.Command");
 }
 
 void NDebugInfo::GetString(UObject* Self, const std::string& Hash, std::string& ReturnValue)
 {
-	Exception::Throw("DebugInfo.GetString not implemented");
+	LogUnimplemented("DebugInfo.GetString");
+	ReturnValue = "";
 }
 
 void NDebugInfo::SetString(UObject* Self, const std::string& Hash, const std::string& Value)
 {
-	Exception::Throw("DebugInfo.SetString not implemented");
+	LogUnimplemented("DebugInfo.SetString");
 }

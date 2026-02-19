@@ -99,484 +99,484 @@ void NWindow::RegisterFunctions()
 
 void NWindow::AddActorRef(UObject* Self, UObject* refActor)
 {
-	LogUnimplemented("NWindow::AddActorRef not implemented");
+	LogUnimplemented("Window.AddActorRef");
 }
 
 void NWindow::AddTimer(UObject* Self, float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName, int& ReturnValue)
 {
-	LogUnimplemented("NWindow::AddTimer not implemented");
+	LogUnimplemented("Window.AddTimer");
 	ReturnValue = 0;
 }
 
 void NWindow::AskParentForReconfigure(UObject* Self)
 {
-	LogUnimplemented("NWindow::AskParentForReconfigure not implemented");
+	LogUnimplemented("Window.AskParentForReconfigure");
 }
 
 void NWindow::AskParentToShowArea(UObject* Self, float* areaX, float* areaY, float* areaWidth, float* areaHeight)
 {
-	LogUnimplemented("NWindow::AskParentToShowArea not implemented");
+	LogUnimplemented("Window.AskParentToShowArea");
 }
 
 void NWindow::CarriageReturn(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("NWindow::CarriageReturn not implemented");
+	LogUnimplemented("Window.CarriageReturn");
 	ReturnValue = "";
 }
 
 void NWindow::ChangeStyle(UObject* Self)
 {
-	LogUnimplemented("NWindow::ChangeStyle not implemented");
+	LogUnimplemented("Window.ChangeStyle");
 }
 
 void NWindow::ConfigureChild(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NWindow::ConfigureChild not implemented");
+	LogUnimplemented("Window.ConfigureChild");
 }
 
 void NWindow::ConvertCoordinates(UObject* Self, UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
 {
-	LogUnimplemented("NWindow::ConvertCoordinates not implemented");
+	LogUnimplemented("Window.ConvertCoordinates");
 }
 
 void NWindow::ConvertScriptString(UObject* Self, const std::string& oldStr, std::string& ReturnValue)
 {
-	LogUnimplemented("NWindow::ConvertScriptString not implemented");
+	LogUnimplemented("Window.ConvertScriptString");
 	ReturnValue = "";
 }
 
 void NWindow::ConvertVectorToCoordinates(UObject* Self, const vec3& Location, float& relativeX, float& relativeY, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::ConvertVectorToCoordinates not implemented");
+	LogUnimplemented("Window.ConvertVectorToCoordinates");
 	ReturnValue = false;
 }
 
 void NWindow::Destroy(UObject* Self)
 {
-	LogUnimplemented("NWindow::Destroy not implemented");
+	LogUnimplemented("Window.Destroy");
 }
 
 void NWindow::DestroyAllChildren(UObject* Self)
 {
-	LogUnimplemented("NWindow::DestroyAllChildren not implemented");
+	LogUnimplemented("Window.DestroyAllChildren");
 }
 
 void NWindow::DisableWindow(UObject* Self)
 {
-	LogUnimplemented("NWindow::DisableWindow not implemented");
+	LogUnimplemented("Window.DisableWindow");
 }
 
 void NWindow::EnableSpecialText(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NWindow::EnableSpecialText not implemented");
+	LogUnimplemented("Window.EnableSpecialText");
 }
 
 void NWindow::EnableTranslucentText(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NWindow::EnableTranslucentText not implemented");
+	LogUnimplemented("Window.EnableTranslucentText");
 }
 
 void NWindow::EnableWindow(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NWindow::EnableWindow not implemented");
+	LogUnimplemented("Window.EnableWindow");
 }
 
 void NWindow::FindWindow(UObject* Self, float pointX, float pointY, float& relativeX, float& relativeY, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::FindWindow not implemented");
+	LogUnimplemented("Window.FindWindow");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetBottomChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetBottomChild not implemented");
+	LogUnimplemented("Window.GetBottomChild");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetClientObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetClientObject not implemented");
+	LogUnimplemented("Window.GetClientObject");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetCursorPos(UObject* Self, float& MouseX, float& MouseY)
 {
-	LogUnimplemented("NWindow::GetCursorPos not implemented");
+	LogUnimplemented("Window.GetCursorPos");
 }
 
 void NWindow::GetFocusWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetFocusWindow not implemented");
+	LogUnimplemented("Window.GetFocusWindow");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetGC(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetGC not implemented");
+	LogUnimplemented("Window.GetGC");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetHigherSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetHigherSibling not implemented");
+	LogUnimplemented("Window.GetHigherSibling");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetLowerSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetLowerSibling not implemented");
+	LogUnimplemented("Window.GetLowerSibling");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetModalWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetModalWindow not implemented");
+	LogUnimplemented("Window.GetModalWindow");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetParent(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetParent not implemented");
+	LogUnimplemented("Window.GetParent");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetPlayerPawn not implemented");
+	LogUnimplemented("Window.GetPlayerPawn");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetRootWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetRootWindow not implemented");
+	LogUnimplemented("Window.GetRootWindow");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetTabGroupWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetTabGroupWindow not implemented");
+	LogUnimplemented("Window.GetTabGroupWindow");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GetTickOffset(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetTickOffset not implemented");
+	LogUnimplemented("Window.GetTickOffset");
 	ReturnValue = 0.0f;
 }
 
 void NWindow::GetTopChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::GetTopChild not implemented");
+	LogUnimplemented("Window.GetTopChild");
 	ReturnValue = nullptr;
 }
 
 void NWindow::GrabMouse(UObject* Self)
 {
-	LogUnimplemented("NWindow::GrabMouse not implemented");
+	LogUnimplemented("Window.GrabMouse");
 }
 
 void NWindow::Hide(UObject* Self)
 {
-	LogUnimplemented("NWindow::Hide not implemented");
+	LogUnimplemented("Window.Hide");
 }
 
 void NWindow::IsActorValid(UObject* Self, UObject* refActor, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsActorValid not implemented");
+	LogUnimplemented("Window.IsActorValid");
 	ReturnValue = false;
 }
 
 void NWindow::IsFocusWindow(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsFocusWindow not implemented");
+	LogUnimplemented("Window.IsFocusWindow");
 	ReturnValue = false;
 }
 
 void NWindow::IsKeyDown(UObject* Self, uint8_t Key, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsKeyDown not implemented");
+	LogUnimplemented("Window.IsKeyDown");
 	ReturnValue = false;
 }
 
 void NWindow::IsPointInWindow(UObject* Self, float pointX, float pointY, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsPointInWindow not implemented");
+	LogUnimplemented("Window.IsPointInWindow");
 	ReturnValue = false;
 }
 
 void NWindow::IsSensitive(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsSensitive not implemented");
+	LogUnimplemented("Window.IsSensitive");
 	ReturnValue = false;
 }
 
 void NWindow::IsVisible(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::IsVisible not implemented");
+	LogUnimplemented("Window.IsVisible");
 	ReturnValue = false;
 }
 
 void NWindow::Lower(UObject* Self)
 {
-	LogUnimplemented("NWindow::Lower not implemented");
+	LogUnimplemented("Window.Lower");
 }
 
 void NWindow::MoveFocusDown(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveFocusDown not implemented");
+	LogUnimplemented("Window.MoveFocusDown");
 	ReturnValue = nullptr;
 }
 
 void NWindow::MoveFocusLeft(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveFocusLeft not implemented");
+	LogUnimplemented("Window.MoveFocusLeft");
 	ReturnValue = nullptr;
 }
 
 void NWindow::MoveFocusRight(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveFocusRight not implemented");
+	LogUnimplemented("Window.MoveFocusRight");
 	ReturnValue = nullptr;
 }
 
 void NWindow::MoveFocusUp(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveFocusUp not implemented");
+	LogUnimplemented("Window.MoveFocusUp");
 	ReturnValue = nullptr;
 }
 
 void NWindow::MoveTabGroupNext(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveTabGroupNext not implemented");
+	LogUnimplemented("Window.MoveTabGroupNext");
 	ReturnValue = nullptr;
 }
 
 void NWindow::MoveTabGroupPrev(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::MoveTabGroupPrev not implemented");
+	LogUnimplemented("Window.MoveTabGroupPrev");
 	ReturnValue = nullptr;
 }
 
 void NWindow::NewChild(UObject* Self, UObject* NewClass, BitfieldBool* bShow, UObject*& ReturnValue)
 {
-	LogUnimplemented("NWindow::NewChild not implemented");
+	LogUnimplemented("Window.NewChild");
 	ReturnValue = nullptr;
 }
 
 void NWindow::PlaySound(UObject* Self, UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
 {
-	LogUnimplemented("NWindow::PlaySound not implemented");
+	LogUnimplemented("Window.PlaySound");
 }
 
 void NWindow::QueryGranularity(UObject* Self, float& hGranularity, float& vGranularity)
 {
-	LogUnimplemented("NWindow::QueryGranularity not implemented");
+	LogUnimplemented("Window.QueryGranularity");
 }
 
 void NWindow::QueryPreferredHeight(UObject* Self, float queryWidth, float& ReturnValue)
 {
-	LogUnimplemented("NWindow::QueryPreferredHeight not implemented");
+	LogUnimplemented("Window.QueryPreferredHeight");
 	ReturnValue = 0.0f;
 }
 
 void NWindow::QueryPreferredSize(UObject* Self, float& preferredWidth, float& preferredHeight)
 {
-	LogUnimplemented("NWindow::QueryPreferredSize not implemented");
+	LogUnimplemented("Window.QueryPreferredSize");
 }
 
 void NWindow::QueryPreferredWidth(UObject* Self, float queryHeight, float& ReturnValue)
 {
-	LogUnimplemented("NWindow::QueryPreferredWidth not implemented");
+	LogUnimplemented("Window.QueryPreferredWidth");
 	ReturnValue = 0.0f;
 }
 
 void NWindow::Raise(UObject* Self)
 {
-	LogUnimplemented("NWindow::Raise not implemented");
+	LogUnimplemented("Window.Raise");
 }
 
 void NWindow::ReleaseGC(UObject* Self, UObject* GC)
 {
-	LogUnimplemented("NWindow::ReleaseGC not implemented");
+	LogUnimplemented("Window.ReleaseGC");
 }
 
 void NWindow::RemoveActorRef(UObject* Self, UObject* refActor)
 {
-	LogUnimplemented("NWindow::RemoveActorRef not implemented");
+	LogUnimplemented("Window.RemoveActorRef");
 }
 
 void NWindow::RemoveTimer(UObject* Self, int timerId)
 {
-	LogUnimplemented("NWindow::RemoveTimer not implemented");
+	LogUnimplemented("Window.RemoveTimer");
 }
 
 void NWindow::ResetHeight(UObject* Self)
 {
-	LogUnimplemented("NWindow::ResetHeight not implemented");
+	LogUnimplemented("Window.ResetHeight");
 }
 
 void NWindow::ResetSize(UObject* Self)
 {
-	LogUnimplemented("NWindow::ResetSize not implemented");
+	LogUnimplemented("Window.ResetSize");
 }
 
 void NWindow::ResetWidth(UObject* Self)
 {
-	LogUnimplemented("NWindow::ResetWidth not implemented");
+	LogUnimplemented("Window.ResetWidth");
 }
 
 void NWindow::ResizeChild(UObject* Self)
 {
-	LogUnimplemented("NWindow::ResizeChild not implemented");
+	LogUnimplemented("Window.ResizeChild");
 }
 
 void NWindow::SetAcceleratorText(UObject* Self, const std::string& newStr)
 {
-	LogUnimplemented("NWindow::SetAcceleratorText not implemented");
+	LogUnimplemented("Window.SetAcceleratorText");
 }
 
 void NWindow::SetBackground(UObject* Self, UObject* newBackground)
 {
-	LogUnimplemented("NWindow::SetBackground not implemented");
+	LogUnimplemented("Window.SetBackground");
 }
 
 void NWindow::SetBackgroundSmoothing(UObject* Self, bool newSmoothing)
 {
-	LogUnimplemented("NWindow::SetBackgroundSmoothing not implemented");
+	LogUnimplemented("Window.SetBackgroundSmoothing");
 }
 
 void NWindow::SetBackgroundStretching(UObject* Self, bool newStretching)
 {
-	LogUnimplemented("NWindow::SetBackgroundStretching not implemented");
+	LogUnimplemented("Window.SetBackgroundStretching");
 }
 
 void NWindow::SetBackgroundStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("NWindow::SetBackgroundStyle not implemented");
+	LogUnimplemented("Window.SetBackgroundStyle");
 }
 
 void NWindow::SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("NWindow::SetBaselineData not implemented");
+	LogUnimplemented("Window.SetBaselineData");
 }
 
 void NWindow::SetBoldFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("NWindow::SetBoldFont not implemented");
+	LogUnimplemented("Window.SetBoldFont");
 }
 
 void NWindow::SetChildVisibility(UObject* Self, bool bNewVisibility)
 {
-	LogUnimplemented("NWindow::SetChildVisibility not implemented");
+	LogUnimplemented("Window.SetChildVisibility");
 }
 
 void NWindow::SetClientObject(UObject* Self, UObject* newClientObject)
 {
-	LogUnimplemented("NWindow::SetClientObject not implemented");
+	LogUnimplemented("Window.SetClientObject");
 }
 
 void NWindow::SetConfiguration(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NWindow::SetConfiguration not implemented");
+	LogUnimplemented("Window.SetConfiguration");
 }
 
 void NWindow::SetCursorPos(UObject* Self, float newMouseX, float newMouseY)
 {
-	LogUnimplemented("NWindow::SetCursorPos not implemented");
+	LogUnimplemented("Window.SetCursorPos");
 }
 
 void NWindow::SetDefaultCursor(UObject* Self, UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor)
 {
-	LogUnimplemented("NWindow::SetDefaultCursor not implemented");
+	LogUnimplemented("Window.SetDefaultCursor");
 }
 
 void NWindow::SetFocusSounds(UObject* Self, UObject** focusSound, UObject** unfocusSound)
 {
-	LogUnimplemented("NWindow::SetFocusSounds not implemented");
+	LogUnimplemented("Window.SetFocusSounds");
 }
 
 void NWindow::SetFocusWindow(UObject* Self, UObject* NewFocusWindow, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("NWindow::SetFocusWindow not implemented");
+	LogUnimplemented("Window.SetFocusWindow");
 	ReturnValue = false;
 }
 
 void NWindow::SetFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("NWindow::SetFont not implemented");
+	LogUnimplemented("Window.SetFont");
 }
 
 void NWindow::SetFonts(UObject* Self, UObject* nFont, UObject* bFont)
 {
-	LogUnimplemented("NWindow::SetFonts not implemented");
+	LogUnimplemented("Window.SetFonts");
 }
 
 void NWindow::SetHeight(UObject* Self, float NewHeight)
 {
-	LogUnimplemented("NWindow::SetHeight not implemented");
+	LogUnimplemented("Window.SetHeight");
 }
 
 void NWindow::SetNormalFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("NWindow::SetNormalFont not implemented");
+	LogUnimplemented("Window.SetNormalFont");
 }
 
 void NWindow::SetPos(UObject* Self, float newX, float newY)
 {
-	LogUnimplemented("NWindow::SetPos not implemented");
+	LogUnimplemented("Window.SetPos");
 }
 
 void NWindow::SetSelectability(UObject* Self, bool newSelectability)
 {
-	LogUnimplemented("NWindow::SetSelectability not implemented");
+	LogUnimplemented("Window.SetSelectability");
 }
 
 void NWindow::SetSensitivity(UObject* Self, bool newSensitivity)
 {
-	LogUnimplemented("NWindow::SetSensitivity not implemented");
+	LogUnimplemented("Window.SetSensitivity");
 }
 
 void NWindow::SetSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("NWindow::SetSize not implemented");
+	LogUnimplemented("Window.SetSize");
 }
 
 void NWindow::SetSoundVolume(UObject* Self, float newVolume)
 {
-	LogUnimplemented("NWindow::SetSoundVolume not implemented");
+	LogUnimplemented("Window.SetSoundVolume");
 }
 
 void NWindow::SetTextColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NWindow::SetTextColor not implemented");
+	LogUnimplemented("Window.SetTextColor");
 }
 
 void NWindow::SetTileColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("NWindow::SetTileColor not implemented");
+	LogUnimplemented("Window.SetTileColor");
 }
 
 void NWindow::SetVisibilitySounds(UObject* Self, UObject** visSound, UObject** invisSound)
 {
-	LogUnimplemented("NWindow::SetVisibilitySounds not implemented");
+	LogUnimplemented("Window.SetVisibilitySounds");
 }
 
 void NWindow::SetWidth(UObject* Self, float newWidth)
 {
-	LogUnimplemented("NWindow::SetWidth not implemented");
+	LogUnimplemented("Window.SetWidth");
 }
 
 void NWindow::SetWindowAlignments(UObject* Self, uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
 {
-	LogUnimplemented("NWindow::SetWindowAlignments not implemented");
+	LogUnimplemented("Window.SetWindowAlignments");
 }
 
 void NWindow::Show(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("NWindow::Show not implemented");
+	LogUnimplemented("Window.Show");
 }
 
 void NWindow::UngrabMouse(UObject* Self)
 {
-	LogUnimplemented("NWindow::UngrabMouse not implemented");
+	LogUnimplemented("Window.UngrabMouse");
 }

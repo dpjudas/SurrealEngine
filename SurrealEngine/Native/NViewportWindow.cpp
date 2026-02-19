@@ -21,60 +21,60 @@ void NViewportWindow::RegisterFunctions()
 
 void NViewportWindow::ClearZBuffer(UObject* Self, BitfieldBool* bClear)
 {
-	LogUnimplemented("NViewportWindow::ClearZBuffer not implemented");
+	LogUnimplemented("ViewportWindow.ClearZBuffer");
 }
 
 void NViewportWindow::EnableViewport(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NViewportWindow::EnableViewport not implemented");
+	LogUnimplemented("ViewportWindow.EnableViewport");
 }
 
 void NViewportWindow::SetDefaultTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("NViewportWindow::SetDefaultTexture not implemented");
+	LogUnimplemented("ViewportWindow.SetDefaultTexture");
 }
 
 void NViewportWindow::SetFOVAngle(UObject* Self, float* newAngle)
 {
-	LogUnimplemented("NViewportWindow::SetFOVAngle not implemented");
+	LogUnimplemented("ViewportWindow.SetFOVAngle");
 }
 
 void NViewportWindow::SetRelativeLocation(UObject* Self, vec3* relLoc)
 {
-	LogUnimplemented("NViewportWindow::SetRelativeLocation not implemented");
+	LogUnimplemented("ViewportWindow.SetRelativeLocation");
 }
 
 void NViewportWindow::SetRelativeRotation(UObject* Self, Rotator* relRot)
 {
-	LogUnimplemented("NViewportWindow::SetRelativeRotation not implemented");
+	LogUnimplemented("ViewportWindow.SetRelativeRotation");
 }
 
 void NViewportWindow::SetRotation(UObject* Self, Rotator* NewRotation)
 {
-	LogUnimplemented("NViewportWindow::SetRotation not implemented");
+	LogUnimplemented("ViewportWindow.SetRotation");
 }
 
 void NViewportWindow::SetViewportActor(UObject* Self, UObject** newOriginActor, BitfieldBool* bEyeLevel, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NViewportWindow::SetViewportActor not implemented");
+	LogUnimplemented("ViewportWindow.SetViewportActor");
 }
 
 void NViewportWindow::SetViewportLocation(UObject* Self, const vec3& NewLocation, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NViewportWindow::SetViewportLocation not implemented");
+	LogUnimplemented("ViewportWindow.SetViewportLocation");
 }
 
 void NViewportWindow::SetWatchActor(UObject* Self, UObject** newWatchActor, BitfieldBool* bEyeLevel)
 {
-	LogUnimplemented("NViewportWindow::SetWatchActor not implemented");
+	LogUnimplemented("ViewportWindow.SetWatchActor");
 }
 
 void NViewportWindow::ShowViewportActor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("NViewportWindow::ShowViewportActor not implemented");
+	LogUnimplemented("ViewportWindow.ShowViewportActor");
 }
 
 void NViewportWindow::ShowWeapons(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("NViewportWindow::ShowWeapons not implemented");
+	LogUnimplemented("ViewportWindow.ShowWeapons");
 }

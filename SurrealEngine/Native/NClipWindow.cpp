@@ -21,61 +21,61 @@ void NClipWindow::RegisterFunctions()
 
 void NClipWindow::EnableSnapToUnits(UObject* Self, BitfieldBool* bNewSnapToUnits)
 {
-	LogUnimplemented("NClipWindow::EnableSnapToUnits not implemented");
+	LogUnimplemented("ClipWindow.EnableSnapToUnits");
 }
 
 void NClipWindow::ForceChildSize(UObject* Self, BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight)
 {
-	LogUnimplemented("NClipWindow::ForceChildSize not implemented");
+	LogUnimplemented("ClipWindow.ForceChildSize");
 }
 
 void NClipWindow::GetChild(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("NClipWindow::GetChild not implemented");
+	LogUnimplemented("ClipWindow.GetChild");
 	ReturnValue = nullptr;
 }
 
 void NClipWindow::GetChildPosition(UObject* Self, int& pNewX, int& pNewY)
 {
-	LogUnimplemented("NClipWindow::GetChildPosition not implemented");
+	LogUnimplemented("ClipWindow.GetChildPosition");
 }
 
 void NClipWindow::GetUnitSize(UObject* Self, int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize)
 {
-	LogUnimplemented("NClipWindow::GetUnitSize not implemented");
+	LogUnimplemented("ClipWindow.GetUnitSize");
 }
 
 void NClipWindow::ResetUnitHeight(UObject* Self)
 {
-	LogUnimplemented("NClipWindow::ResetUnitHeight not implemented");
+	LogUnimplemented("ClipWindow.ResetUnitHeight");
 }
 
 void NClipWindow::ResetUnitSize(UObject* Self)
 {
-	LogUnimplemented("NClipWindow::ResetUnitSize not implemented");
+	LogUnimplemented("ClipWindow.ResetUnitSize");
 }
 
 void NClipWindow::ResetUnitWidth(UObject* Self)
 {
-	LogUnimplemented("NClipWindow::ResetUnitWidth not implemented");
+	LogUnimplemented("ClipWindow.ResetUnitWidth");
 }
 
 void NClipWindow::SetChildPosition(UObject* Self, int newX, int newY)
 {
-	LogUnimplemented("NClipWindow::SetChildPosition not implemented");
+	LogUnimplemented("ClipWindow.SetChildPosition");
 }
 
 void NClipWindow::SetUnitHeight(UObject* Self, int vUnits)
 {
-	LogUnimplemented("NClipWindow::SetUnitHeight not implemented");
+	LogUnimplemented("ClipWindow.SetUnitHeight");
 }
 
 void NClipWindow::SetUnitSize(UObject* Self, int hUnits, int vUnits)
 {
-	LogUnimplemented("NClipWindow::SetUnitSize not implemented");
+	LogUnimplemented("ClipWindow.SetUnitSize");
 }
 
 void NClipWindow::SetUnitWidth(UObject* Self, int hUnits)
 {
-	LogUnimplemented("NClipWindow::SetUnitWidth not implemented");
+	LogUnimplemented("ClipWindow.SetUnitWidth");
 }

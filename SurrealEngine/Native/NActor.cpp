@@ -215,7 +215,8 @@ void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, Bitfiel
 
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("Actor.GetCacheEntry not implemented");
+	LogUnimplemented("Actor.GetCacheEntry");
+	ReturnValue = false;
 }
 
 void NActor::GetNextInt(UObject* Self, const std::string& ClassName, int Num, std::string& ReturnValue)
@@ -374,7 +375,7 @@ void NActor::LastRendered(UObject *Self, float &ReturnValue)
 
 void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 {
-	Exception::Throw("Actor.LinkSkelAnim not implemented");
+	LogUnimplemented("Actor.LinkSkelAnim");
 }
 
 void NActor::LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, float* MinRate)
@@ -394,7 +395,8 @@ void NActor::Move(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
 
 void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("Actor.MoveCacheEntry not implemented");
+	LogUnimplemented("Actor.MoveCacheEntry");
+	ReturnValue = false;
 }
 
 void NActor::MoveSmooth(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
@@ -430,7 +432,7 @@ void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, fl
 void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, int* BlendSlot)
 {
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
-	LogMessage("Blend logic not implemented just yet!");
+	LogUnimplemented("Actor.PlayBlendAnim");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)

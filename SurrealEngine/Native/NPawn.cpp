@@ -62,7 +62,8 @@ void NPawn::CanSee(UObject* Self, UObject* Other, BitfieldBool& ReturnValue)
 
 void NPawn::CheckValidSkinPackage(const std::string& SkinPack, const std::string& MeshName, BitfieldBool& ReturnValue)
 {
-	Exception::Throw("Pawn.CheckValidSkinPackage not implemented");
+	LogUnimplemented("Pawn.CheckValidSkinPackage");
+	ReturnValue = false;
 }
 
 void NPawn::ClearPaths(UObject* Self)

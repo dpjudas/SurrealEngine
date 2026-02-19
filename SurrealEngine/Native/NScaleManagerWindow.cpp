@@ -18,45 +18,45 @@ void NScaleManagerWindow::RegisterFunctions()
 
 void NScaleManagerWindow::SetManagerAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("NScaleManagerWindow::SetManagerAlignments not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetManagerAlignments");
 }
 
 void NScaleManagerWindow::SetManagerMargins(UObject* Self, float* newMarginWidth, float* newMarginHeight)
 {
-	LogUnimplemented("NScaleManagerWindow::SetManagerMargins not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetManagerMargins");
 }
 
 void NScaleManagerWindow::SetManagerOrientation(UObject* Self, uint8_t newOrientation)
 {
-	LogUnimplemented("NScaleManagerWindow::SetManagerOrientation not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetManagerOrientation");
 }
 
 void NScaleManagerWindow::SetMarginSpacing(UObject* Self, float* newSpacing)
 {
-	LogUnimplemented("NScaleManagerWindow::SetMarginSpacing not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetMarginSpacing");
 }
 
 void NScaleManagerWindow::SetScale(UObject* Self, UObject* NewScale)
 {
-	LogUnimplemented("NScaleManagerWindow::SetScale not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetScale");
 }
 
 void NScaleManagerWindow::SetScaleButtons(UObject* Self, UObject* newDecButton, UObject* newIncButton)
 {
-	LogUnimplemented("NScaleManagerWindow::SetScaleButtons not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetScaleButtons");
 }
 
 void NScaleManagerWindow::SetValueField(UObject* Self, UObject* newValueField)
 {
-	LogUnimplemented("NScaleManagerWindow::SetValueField not implemented");
+	LogUnimplemented("ScaleManagerWindow.SetValueField");
 }
 
 void NScaleManagerWindow::StretchScaleField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("NScaleManagerWindow::StretchScaleField not implemented");
+	LogUnimplemented("ScaleManagerWindow.StretchScaleField");
 }
 
 void NScaleManagerWindow::StretchValueField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("NScaleManagerWindow::StretchValueField not implemented");
+	LogUnimplemented("ScaleManagerWindow.StretchValueField");
 }
