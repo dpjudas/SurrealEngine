@@ -28,6 +28,7 @@ class UMover;
 class UTrigger;
 class UWarpZoneInfo;
 class UZoneInfo;
+class URootWindow;
 class PackageManager;
 class CollisionHit;
 class BspNode;
@@ -1748,6 +1749,11 @@ class UPlayerPawnExt : public UPlayerPawn
 {
 public:
 	using UPlayerPawn::UPlayerPawn;
+
+	// UFlagBase*& FlagBase() { return Value<UFlagBase*>(PropOffsets_PlayerPawnExt.FlagBase); }
+	URootWindow*& RootWindow() { return Value<URootWindow*>(PropOffsets_PlayerPawnExt.RootWindow); }
+	int& actorCount() { return Value<int>(PropOffsets_PlayerPawnExt.actorCount); }
+	// ActorRef& actorList() { return Value<ActorRef>(PropOffsets_PlayerPawnExt.actorList); }
 };
 
 class UCamera : public UPlayerPawn

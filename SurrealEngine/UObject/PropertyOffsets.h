@@ -1988,3 +1988,1787 @@ struct PropertyOffsets_UPakPawnPathNodeIterator
 };
 
 extern PropertyOffsets_UPakPawnPathNodeIterator PropOffsets_UPakPawnPathNodeIterator;
+
+/////////////////////////////////////////////////////////////////////////////
+// Deus Ex
+
+struct PropertyOffsets_ConEvent
+{
+	PropertyDataOffset Conversation;
+	PropertyDataOffset Label;
+	PropertyDataOffset eventType;
+	PropertyDataOffset nextEvent;
+};
+
+extern PropertyOffsets_ConEvent PropOffsets_ConEvent;
+
+struct PropertyOffsets_ConEventRandomLabel
+{
+	PropertyDataOffset bCycleEvents;
+	PropertyDataOffset bCycleOnce;
+	PropertyDataOffset bCycleRandom;
+	PropertyDataOffset bLabelsCycled;
+	PropertyDataOffset cycleIndex;
+	PropertyDataOffset labels;
+};
+
+extern PropertyOffsets_ConEventRandomLabel PropOffsets_ConEventRandomLabel;
+
+struct PropertyOffsets_Conversation
+{
+	PropertyDataOffset CreatedBy;
+	PropertyDataOffset Description;
+	PropertyDataOffset audioPackageName;
+	PropertyDataOffset bCanBeInterrupted;
+	PropertyDataOffset bCannotBeInterrupted;
+	PropertyDataOffset bDataLinkCon;
+	PropertyDataOffset bDisplayOnce;
+	PropertyDataOffset bFirstPerson;
+	PropertyDataOffset bGenerateAudioNames;
+	PropertyDataOffset bInvokeBump;
+	PropertyDataOffset bInvokeFrob;
+	PropertyDataOffset bInvokeRadius;
+	PropertyDataOffset bInvokeSight;
+	PropertyDataOffset bNonInteractive;
+	PropertyDataOffset bRandomCamera;
+	PropertyDataOffset conName;
+	PropertyDataOffset conOwnerName;
+	PropertyDataOffset conversationID;
+	PropertyDataOffset eventList;
+	PropertyDataOffset flagRefList;
+	PropertyDataOffset lastPlayedTime;
+	PropertyDataOffset ownerRefCount;
+	PropertyDataOffset radiusDistance;
+};
+
+extern PropertyOffsets_Conversation PropOffsets_Conversation;
+
+struct PropertyOffsets_DeusExDecoration
+{
+	PropertyDataOffset Flammability;
+	PropertyDataOffset FragType;
+	PropertyDataOffset HitPoints;
+	PropertyDataOffset ItemArticle;
+	PropertyDataOffset ItemName;
+	PropertyDataOffset NextLabel;
+	PropertyDataOffset NextState;
+	PropertyDataOffset bCanBeBase;
+	PropertyDataOffset bExplosive;
+	PropertyDataOffset bFlammable;
+	PropertyDataOffset bFloating;
+	PropertyDataOffset bGenerateFlies;
+	PropertyDataOffset bHighlight;
+	PropertyDataOffset bInvincible;
+	PropertyDataOffset explosionDamage;
+	PropertyDataOffset explosionRadius;
+	PropertyDataOffset flyGen;
+	PropertyDataOffset gradualHurtCounter;
+	PropertyDataOffset gradualHurtSteps;
+	PropertyDataOffset minDamageThreshold;
+	PropertyDataOffset moverTag;
+	PropertyDataOffset origRot;
+	PropertyDataOffset pushSoundId;
+};
+
+extern PropertyOffsets_DeusExDecoration PropOffsets_DeusExDecoration;
+
+struct PropertyOffsets_DeusExPlayer
+{
+	PropertyDataOffset ActiveComputer;
+	PropertyDataOffset AddedNanoKey;
+	PropertyDataOffset AugPrefs;
+	PropertyDataOffset AugmentationSystem;
+	PropertyDataOffset BarkManager;
+	PropertyDataOffset BleedRate;
+	PropertyDataOffset BurnString;
+	PropertyDataOffset CanCarryOnlyOne;
+	PropertyDataOffset CannotDropHere;
+	PropertyDataOffset CannotLift;
+	PropertyDataOffset ClientinHandPending;
+	PropertyDataOffset ClotPeriod;
+	PropertyDataOffset CombatDifficulty;
+	PropertyDataOffset ConHistory;
+	PropertyDataOffset ConPlay;
+	PropertyDataOffset ConversationActor;
+	PropertyDataOffset Credits;
+	PropertyDataOffset DXGame;
+	PropertyDataOffset DamageShield;
+	PropertyDataOffset DataLinkPlay;
+	PropertyDataOffset DropCounter;
+	PropertyDataOffset Energy;
+	PropertyDataOffset EnergyDepleted;
+	PropertyDataOffset EnergyDrain;
+	PropertyDataOffset EnergyDrainTotal;
+	PropertyDataOffset EnergyMax;
+	PropertyDataOffset FirstGoal;
+	PropertyDataOffset FirstImage;
+	PropertyDataOffset FirstLog;
+	PropertyDataOffset FirstNote;
+	PropertyDataOffset FlashTimer;
+	PropertyDataOffset FloorMaterial;
+	PropertyDataOffset FrobTarget;
+	PropertyDataOffset FrobTime;
+	PropertyDataOffset GlobalDebugObj;
+	PropertyDataOffset GoalAdded;
+	PropertyDataOffset HUDThemeName;
+	PropertyDataOffset HandsFull;
+	PropertyDataOffset HeadString;
+	PropertyDataOffset HealedPointLabel;
+	PropertyDataOffset HealedPointsLabel;
+	PropertyDataOffset InventoryFull;
+	PropertyDataOffset JoltMagnitude;
+	PropertyDataOffset KeyList;
+	PropertyDataOffset KeyRing;
+	PropertyDataOffset LastGoal;
+	PropertyDataOffset LastLog;
+	PropertyDataOffset LastNote;
+	PropertyDataOffset LastRefreshTime;
+	PropertyDataOffset LastinHand;
+	PropertyDataOffset LegsString;
+	PropertyDataOffset MPDamageMult;
+	PropertyDataOffset MaxFrobDistance;
+	PropertyDataOffset MaxRegenPoint;
+	PropertyDataOffset MenuThemeName;
+	PropertyDataOffset NextMap;
+	PropertyDataOffset NintendoImmunityTime;
+	PropertyDataOffset NintendoImmunityTimeLeft;
+	PropertyDataOffset NoRoomToLift;
+	PropertyDataOffset NoneString;
+	PropertyDataOffset NoteAdded;
+	PropertyDataOffset PlayerSkin;
+	PropertyDataOffset PoisonString;
+	PropertyDataOffset PrimaryGoalCompleted;
+	PropertyDataOffset QuickSaveGameTitle;
+	PropertyDataOffset RegenRate;
+	PropertyDataOffset RunSilentValue;
+	PropertyDataOffset SecondaryGoalCompleted;
+	PropertyDataOffset ServerTimeDiff;
+	PropertyDataOffset ServerTimeLastRefresh;
+	PropertyDataOffset ShieldStatus;
+	PropertyDataOffset ShieldTimer;
+	PropertyDataOffset SkillPointsAvail;
+	PropertyDataOffset SkillPointsAward;
+	PropertyDataOffset SkillPointsTotal;
+	PropertyDataOffset SkillSystem;
+	PropertyDataOffset TakenOverString;
+	PropertyDataOffset ThemeManager;
+	PropertyDataOffset TooHeavyToLift;
+	PropertyDataOffset TooMuchAmmo;
+	PropertyDataOffset TorsoString;
+	PropertyDataOffset TruePlayerName;
+	PropertyDataOffset UIBackground;
+	PropertyDataOffset ViewModelActor;
+	PropertyDataOffset WallMaterial;
+	PropertyDataOffset WallNormal;
+	PropertyDataOffset WarrenSlot;
+	PropertyDataOffset WarrenTimer;
+	PropertyDataOffset WeaponUnCloak;
+	PropertyDataOffset WithString;
+	PropertyDataOffset WithTheString;
+	PropertyDataOffset aDrone;
+	PropertyDataOffset bAlwaysRun;
+	PropertyDataOffset bAmmoDisplayVisible;
+	PropertyDataOffset bAskedToTrain;
+	PropertyDataOffset bAugDisplayVisible;
+	PropertyDataOffset bAutoReload;
+	PropertyDataOffset bBeltIsMPInventory;
+	PropertyDataOffset bBuySkills;
+	PropertyDataOffset bCanLean;
+	PropertyDataOffset bCompassVisible;
+	PropertyDataOffset bConfirmNoteDeletes;
+	PropertyDataOffset bConfirmSaveDeletes;
+	PropertyDataOffset bCrosshairVisible;
+	PropertyDataOffset bCrouchOn;
+	PropertyDataOffset bDisplayAllGoals;
+	PropertyDataOffset bDisplayAmmoByClip;
+	PropertyDataOffset bDisplayCompletedGoals;
+	PropertyDataOffset bFirstOptionsSynced;
+	PropertyDataOffset bForceDuck;
+	PropertyDataOffset bHUDBackgroundTranslucent;
+	PropertyDataOffset bHUDBordersTranslucent;
+	PropertyDataOffset bHUDBordersVisible;
+	PropertyDataOffset bHUDShowAllAugs;
+	PropertyDataOffset bHelpMessages;
+	PropertyDataOffset bHitDisplayVisible;
+	PropertyDataOffset bIgnoreNextShowMenu;
+	PropertyDataOffset bInHandTransition;
+	PropertyDataOffset bKillerProfile;
+	PropertyDataOffset bMenusTranslucent;
+	PropertyDataOffset bNPCHighlighting;
+	PropertyDataOffset bNintendoImmunity;
+	PropertyDataOffset bObjectBeltVisible;
+	PropertyDataOffset bObjectNames;
+	PropertyDataOffset bQuotesEnabled;
+	PropertyDataOffset bSavingSkillsAugs;
+	PropertyDataOffset bSecondOptionsSynced;
+	PropertyDataOffset bShowAmmoDescriptions;
+	PropertyDataOffset bSpyDroneActive;
+	PropertyDataOffset bStartNewGameAfterIntro;
+	PropertyDataOffset bStartingNewGame;
+	PropertyDataOffset bSubtitles;
+	PropertyDataOffset bToggleCrouch;
+	PropertyDataOffset bToggleWalk;
+	PropertyDataOffset bWarrenEMPField;
+	PropertyDataOffset bWasCrouchOn;
+	PropertyDataOffset curLeanDist;
+	PropertyDataOffset drugEffectTimer;
+	PropertyDataOffset inHand;
+	PropertyDataOffset inHandPending;
+	PropertyDataOffset invSlots;
+	PropertyDataOffset invulnSph;
+	PropertyDataOffset killProfile;
+	PropertyDataOffset lastFirstPersonConvoActor;
+	PropertyDataOffset lastFirstPersonConvoTime;
+	PropertyDataOffset lastThirdPersonConvoActor;
+	PropertyDataOffset lastThirdPersonConvoTime;
+	PropertyDataOffset lastbDuck;
+	PropertyDataOffset logTimeout;
+	PropertyDataOffset maxInvCols;
+	PropertyDataOffset maxInvRows;
+	PropertyDataOffset maxLogLines;
+	PropertyDataOffset mpMsgCode;
+	PropertyDataOffset mpMsgFlags;
+	PropertyDataOffset mpMsgOptionalParam;
+	PropertyDataOffset mpMsgOptionalString;
+	PropertyDataOffset mpMsgServerFlags;
+	PropertyDataOffset mpMsgTime;
+	PropertyDataOffset musicChangeTimer;
+	PropertyDataOffset musicCheckTimer;
+	PropertyDataOffset musicMode;
+	PropertyDataOffset myBurner;
+	PropertyDataOffset myKiller;
+	PropertyDataOffset myPoisoner;
+	PropertyDataOffset myProjKiller;
+	PropertyDataOffset myTurretKiller;
+	PropertyDataOffset poisonCounter;
+	PropertyDataOffset poisonDamage;
+	PropertyDataOffset poisonTimer;
+	PropertyDataOffset prevLeanDist;
+	PropertyDataOffset saveCount;
+	PropertyDataOffset saveTime;
+	PropertyDataOffset savedSection;
+	PropertyDataOffset spyDroneLevel;
+	PropertyDataOffset spyDroneLevelValue;
+	PropertyDataOffset strStartMap;
+	PropertyDataOffset swimBubbleTimer;
+	PropertyDataOffset swimDuration;
+	PropertyDataOffset swimTimer;
+	PropertyDataOffset translucencyLevel;
+};
+
+extern PropertyOffsets_DeusExPlayer PropOffsets_DeusExPlayer;
+
+struct PropertyOffsets_DeusExSaveInfo
+{
+	PropertyDataOffset Day;
+	PropertyDataOffset Description;
+	PropertyDataOffset DirectoryIndex;
+	PropertyDataOffset Hour;
+	PropertyDataOffset MapName;
+	PropertyDataOffset Minute;
+	PropertyDataOffset MissionLocation;
+	PropertyDataOffset Month;
+	PropertyDataOffset Second;
+	PropertyDataOffset Snapshot;
+	PropertyDataOffset Year;
+	PropertyDataOffset bCheatsEnabled;
+	PropertyDataOffset saveCount;
+	PropertyDataOffset saveTime;
+};
+
+extern PropertyOffsets_DeusExSaveInfo PropOffsets_DeusExSaveInfo;
+
+struct PropertyOffsets_DumpLocation
+{
+	PropertyDataOffset Player;
+	PropertyDataOffset currentDumpFileIndex;
+	PropertyDataOffset currentDumpFileLocation;
+	PropertyDataOffset currentDumpLocation;
+	PropertyDataOffset currentDumpLocationIndex;
+	PropertyDataOffset currentUser;
+	PropertyDataOffset dumpFile;
+	PropertyDataOffset dumpFileDirectory;
+	PropertyDataOffset dumpLocationCount;
+};
+
+extern PropertyOffsets_DumpLocation PropOffsets_DumpLocation;
+
+struct PropertyOffsets_GameDirectory
+{
+	PropertyDataOffset currentFilter;
+	PropertyDataOffset directoryList;
+	PropertyDataOffset gameDirectoryType;
+	PropertyDataOffset loadedSaveInfoPointers;
+	PropertyDataOffset tempSaveInfo;
+};
+
+extern PropertyOffsets_GameDirectory PropOffsets_GameDirectory;
+
+struct PropertyOffsets_ParticleIterator
+{
+	PropertyDataOffset OwnerDrawScale;
+	PropertyDataOffset OwnerLifeSpan;
+	PropertyDataOffset OwnerRiseRate;
+	PropertyDataOffset OwnerZoneGravity;
+	PropertyDataOffset Particles;
+	PropertyDataOffset bOwnerFades;
+	PropertyDataOffset bOwnerScales;
+	PropertyDataOffset bOwnerUsesGravity;
+	PropertyDataOffset nextFreeParticle;
+	PropertyDataOffset proxy;
+};
+
+extern PropertyOffsets_ParticleIterator PropOffsets_ParticleIterator;
+
+struct PropertyOffsets_ScriptedPawn
+{
+	PropertyDataOffset ActorAvoiding;
+	PropertyDataOffset AgitationCheckTimer;
+	PropertyDataOffset AgitationDecayRate;
+	PropertyDataOffset AgitationSustainTime;
+	PropertyDataOffset AgitationTimer;
+	PropertyDataOffset AlarmActor;
+	PropertyDataOffset AlarmTimer;
+	PropertyDataOffset AlliancesEx;
+	PropertyDataOffset AvoidAccuracy;
+	PropertyDataOffset AvoidBumpTimer;
+	PropertyDataOffset AvoidWallTimer;
+	PropertyDataOffset BackpedalTimer;
+	PropertyDataOffset BaseAccuracy;
+	PropertyDataOffset BaseAssHeight;
+	PropertyDataOffset BeamCheckTimer;
+	PropertyDataOffset BleedRate;
+	PropertyDataOffset BodyIndex;
+	PropertyDataOffset BurnPeriod;
+	PropertyDataOffset CarcassCheckTimer;
+	PropertyDataOffset CarcassHateTimer;
+	PropertyDataOffset CarcassTimer;
+	PropertyDataOffset CarcassType;
+	PropertyDataOffset Carcasses;
+	PropertyDataOffset CheckPeriod;
+	PropertyDataOffset CloakEMPTimer;
+	PropertyDataOffset CloakThreshold;
+	PropertyDataOffset CloseCombatMult;
+	PropertyDataOffset ClotPeriod;
+	PropertyDataOffset ConvOrderTag;
+	PropertyDataOffset ConvOrders;
+	PropertyDataOffset ConversationActor;
+	PropertyDataOffset Cowardice;
+	PropertyDataOffset CrouchRate;
+	PropertyDataOffset CrouchTimer;
+	PropertyDataOffset CycleCandidate;
+	PropertyDataOffset CycleCumulative;
+	PropertyDataOffset CycleDistance;
+	PropertyDataOffset CyclePeriod;
+	PropertyDataOffset CycleTimer;
+	PropertyDataOffset DeathTimer;
+	PropertyDataOffset DesiredPrePivot;
+	PropertyDataOffset DestAttempts;
+	PropertyDataOffset DistressTimer;
+	PropertyDataOffset DropCounter;
+	PropertyDataOffset EnemyLastSeen;
+	PropertyDataOffset EnemyReadiness;
+	PropertyDataOffset EnemyTimeout;
+	PropertyDataOffset EnemyTimer;
+	PropertyDataOffset FearDecayRate;
+	PropertyDataOffset FearLevel;
+	PropertyDataOffset FearSustainTime;
+	PropertyDataOffset FearTimer;
+	PropertyDataOffset FireAngle;
+	PropertyDataOffset FireElevation;
+	PropertyDataOffset FireTimer;
+	PropertyDataOffset FutzTimer;
+	PropertyDataOffset HarmAccuracy;
+	PropertyDataOffset HomeActor;
+	PropertyDataOffset HomeExtent;
+	PropertyDataOffset HomeLoc;
+	PropertyDataOffset HomeRot;
+	PropertyDataOffset HomeTag;
+	PropertyDataOffset InitialAlliances;
+	PropertyDataOffset InitialInventory;
+	PropertyDataOffset LastDestLoc;
+	PropertyDataOffset LastDestPoint;
+	PropertyDataOffset LastPainAnim;
+	PropertyDataOffset LastPainTime;
+	PropertyDataOffset MaxProvocations;
+	PropertyDataOffset MinHealth;
+	PropertyDataOffset MinRange;
+	PropertyDataOffset NextAnim;
+	PropertyDataOffset NextDirection;
+	PropertyDataOffset NumCarcasses;
+	PropertyDataOffset ObstacleTimer;
+	PropertyDataOffset OrderActor;
+	PropertyDataOffset OrderTag;
+	PropertyDataOffset Orders;
+	PropertyDataOffset PlayerAgitationTimer;
+	PropertyDataOffset PotentialEnemyAlliance;
+	PropertyDataOffset PotentialEnemyTimer;
+	PropertyDataOffset PrePivotOffset;
+	PropertyDataOffset PrePivotTime;
+	PropertyDataOffset ProjectileSpeed;
+	PropertyDataOffset RaiseAlarm;
+	PropertyDataOffset RandomWandering;
+	PropertyDataOffset ReactionLevel;
+	PropertyDataOffset ReloadTimer;
+	PropertyDataOffset Restlessness;
+	PropertyDataOffset SeatActor;
+	PropertyDataOffset SeatHack;
+	PropertyDataOffset SeatLocation;
+	PropertyDataOffset SeatSlot;
+	PropertyDataOffset SeekLevel;
+	PropertyDataOffset SeekPawn;
+	PropertyDataOffset SeekType;
+	PropertyDataOffset ShadowScale;
+	PropertyDataOffset SightPercentage;
+	PropertyDataOffset SpecialTimer;
+	PropertyDataOffset SprintRate;
+	PropertyDataOffset StandRate;
+	PropertyDataOffset SurprisePeriod;
+	PropertyDataOffset TakeHitTimer;
+	PropertyDataOffset TurnDirection;
+	PropertyDataOffset WalkSound;
+	PropertyDataOffset WalkingSpeed;
+	PropertyDataOffset Wanderlust;
+	PropertyDataOffset WeaponTimer;
+	PropertyDataOffset WorldPosition;
+	PropertyDataOffset bAcceptBump;
+	PropertyDataOffset bAimForHead;
+	PropertyDataOffset bAlliancesChanged;
+	PropertyDataOffset bAlwaysPatrol;
+	PropertyDataOffset bAttacking;
+	PropertyDataOffset bAvoidAim;
+	PropertyDataOffset bAvoidHarm;
+	PropertyDataOffset bBurnedToDeath;
+	PropertyDataOffset bCanBleed;
+	PropertyDataOffset bCanConverse;
+	PropertyDataOffset bCanCrouch;
+	PropertyDataOffset bCanFire;
+	PropertyDataOffset bCanSit;
+	PropertyDataOffset bCanTurnHead;
+	PropertyDataOffset bClearedObstacle;
+	PropertyDataOffset bCloakOn;
+	PropertyDataOffset bConvEndState;
+	PropertyDataOffset bConversationEndedNormally;
+	PropertyDataOffset bCower;
+	PropertyDataOffset bCrouching;
+	PropertyDataOffset bDancing;
+	PropertyDataOffset bDefendHome;
+	PropertyDataOffset bDisappear;
+	PropertyDataOffset bDistressed;
+	PropertyDataOffset bEmitDistress;
+	PropertyDataOffset bEnableCheckDest;
+	PropertyDataOffset bFacingTarget;
+	PropertyDataOffset bFearAlarm;
+	PropertyDataOffset bFearCarcass;
+	PropertyDataOffset bFearDistress;
+	PropertyDataOffset bFearHacking;
+	PropertyDataOffset bFearIndirectInjury;
+	PropertyDataOffset bFearInjury;
+	PropertyDataOffset bFearProjectiles;
+	PropertyDataOffset bFearShot;
+	PropertyDataOffset bFearWeapon;
+	PropertyDataOffset bHasCloak;
+	PropertyDataOffset bHasShadow;
+	PropertyDataOffset bHateCarcass;
+	PropertyDataOffset bHateDistress;
+	PropertyDataOffset bHateHacking;
+	PropertyDataOffset bHateIndirectInjury;
+	PropertyDataOffset bHateInjury;
+	PropertyDataOffset bHateShot;
+	PropertyDataOffset bHateWeapon;
+	PropertyDataOffset bHighlight;
+	PropertyDataOffset bHokeyPokey;
+	PropertyDataOffset bImportant;
+	PropertyDataOffset bInConversation;
+	PropertyDataOffset bInTransientState;
+	PropertyDataOffset bInWorld;
+	PropertyDataOffset bInitialized;
+	PropertyDataOffset bInterruptSeek;
+	PropertyDataOffset bInterruptState;
+	PropertyDataOffset bInvincible;
+	PropertyDataOffset bKeepWeaponDrawn;
+	PropertyDataOffset bLeaveAfterFleeing;
+	PropertyDataOffset bLikesNeutral;
+	PropertyDataOffset bLookingForAlarm;
+	PropertyDataOffset bLookingForCarcass;
+	PropertyDataOffset bLookingForDistress;
+	PropertyDataOffset bLookingForEnemy;
+	PropertyDataOffset bLookingForFutz;
+	PropertyDataOffset bLookingForHacking;
+	PropertyDataOffset bLookingForIndirectInjury;
+	PropertyDataOffset bLookingForInjury;
+	PropertyDataOffset bLookingForLoudNoise;
+	PropertyDataOffset bLookingForProjectiles;
+	PropertyDataOffset bLookingForShot;
+	PropertyDataOffset bLookingForWeapon;
+	PropertyDataOffset bMustFaceTarget;
+	PropertyDataOffset bNoNegativeAlliances;
+	PropertyDataOffset bPausing;
+	PropertyDataOffset bPlayIdle;
+	PropertyDataOffset bReactAlarm;
+	PropertyDataOffset bReactCarcass;
+	PropertyDataOffset bReactDistress;
+	PropertyDataOffset bReactFutz;
+	PropertyDataOffset bReactLoudNoise;
+	PropertyDataOffset bReactPresence;
+	PropertyDataOffset bReactProjectiles;
+	PropertyDataOffset bReactShot;
+	PropertyDataOffset bReadyToReload;
+	PropertyDataOffset bReverseAlliances;
+	PropertyDataOffset bRunningStealthy;
+	PropertyDataOffset bSeatHackUsed;
+	PropertyDataOffset bSeatLocationValid;
+	PropertyDataOffset bSeekCover;
+	PropertyDataOffset bSeekLocation;
+	PropertyDataOffset bSeekPostCombat;
+	PropertyDataOffset bShowPain;
+	PropertyDataOffset bSitAnywhere;
+	PropertyDataOffset bSitInterpolation;
+	PropertyDataOffset bSitting;
+	PropertyDataOffset bSpawnBubbles;
+	PropertyDataOffset bSprint;
+	PropertyDataOffset bStandInterpolation;
+	PropertyDataOffset bStaring;
+	PropertyDataOffset bStunned;
+	PropertyDataOffset bTickVisibleOnly;
+	PropertyDataOffset bUseFallbackWeapons;
+	PropertyDataOffset bUseFirstSeatOnly;
+	PropertyDataOffset bUseHome;
+	PropertyDataOffset bUseSecondaryAttack;
+	PropertyDataOffset bWalkAround;
+	PropertyDataOffset bWorldBlockActors;
+	PropertyDataOffset bWorldBlockPlayers;
+	PropertyDataOffset bWorldCollideActors;
+	PropertyDataOffset cycleIndex;
+	PropertyDataOffset destLoc;
+	PropertyDataOffset destPoint;
+	PropertyDataOffset lastPoints;
+	PropertyDataOffset maxRange;
+	PropertyDataOffset poisonCounter;
+	PropertyDataOffset poisonDamage;
+	PropertyDataOffset poisonTimer;
+	PropertyDataOffset poisoner;
+	PropertyDataOffset remainingSitTime;
+	PropertyDataOffset remainingStandTime;
+	PropertyDataOffset runAnimMult;
+	PropertyDataOffset seekDistance;
+	PropertyDataOffset sleepTime;
+	PropertyDataOffset swimBubbleTimer;
+	PropertyDataOffset useLoc;
+	PropertyDataOffset useRot;
+	PropertyDataOffset walkAnimMult;
+};
+
+extern PropertyOffsets_ScriptedPawn PropOffsets_ScriptedPawn;
+
+struct PropertyOffsets_DeusExTextParser
+{
+	PropertyDataOffset DefaultColor;
+	PropertyDataOffset PlayerName;
+	PropertyDataOffset Text;
+	PropertyDataOffset bParagraphStarted;
+	PropertyDataOffset lastColor;
+	PropertyDataOffset lastEmailCC;
+	PropertyDataOffset lastEmailFrom;
+	PropertyDataOffset lastEmailName;
+	PropertyDataOffset lastEmailSubject;
+	PropertyDataOffset lastEmailTo;
+	PropertyDataOffset lastFileDescription;
+	PropertyDataOffset lastFileName;
+	PropertyDataOffset lastName;
+	PropertyDataOffset lastTag;
+	PropertyDataOffset lastText;
+	PropertyDataOffset playerFirstName;
+	PropertyDataOffset tagEndPos;
+	PropertyDataOffset textPos;
+};
+
+extern PropertyOffsets_DeusExTextParser PropOffsets_DeusExTextParser;
+
+struct PropertyOffsets_BorderWindow
+{
+	PropertyDataOffset BottomMargin;
+	PropertyDataOffset DragX;
+	PropertyDataOffset DragY;
+	PropertyDataOffset MoveCursor;
+	PropertyDataOffset TopMargin;
+	PropertyDataOffset bDownDrag;
+	PropertyDataOffset bLeftDrag;
+	PropertyDataOffset bMarginsFromBorder;
+	PropertyDataOffset bResizeable;
+	PropertyDataOffset bRightDrag;
+	PropertyDataOffset bSmoothBorder;
+	PropertyDataOffset bStretchBorder;
+	PropertyDataOffset bUpDrag;
+	PropertyDataOffset borderBottom;
+	PropertyDataOffset borderBottomLeft;
+	PropertyDataOffset borderBottomRight;
+	PropertyDataOffset borderLeft;
+	PropertyDataOffset borderRight;
+	PropertyDataOffset borderStyle;
+	PropertyDataOffset borderTop;
+	PropertyDataOffset borderTopLeft;
+	PropertyDataOffset borderTopRight;
+	PropertyDataOffset center;
+	PropertyDataOffset childBottomMargin;
+	PropertyDataOffset childLeftMargin;
+	PropertyDataOffset childRightMargin;
+	PropertyDataOffset childTopMargin;
+	PropertyDataOffset dragHeight;
+	PropertyDataOffset dragWidth;
+	PropertyDataOffset hMoveCursor;
+	PropertyDataOffset lastMouseX;
+	PropertyDataOffset lastMouseY;
+	PropertyDataOffset leftMargin;
+	PropertyDataOffset rightMargin;
+	PropertyDataOffset tlMoveCursor;
+	PropertyDataOffset trMoveCursor;
+	PropertyDataOffset vMoveCursor;
+};
+
+extern PropertyOffsets_BorderWindow PropOffsets_BorderWindow;
+
+struct PropertyOffsets_ButtonWindow
+{
+	PropertyDataOffset Info;
+	PropertyDataOffset activateDelay;
+	PropertyDataOffset activateTimer;
+	PropertyDataOffset bAutoRepeat;
+	PropertyDataOffset bButtonPressed;
+	PropertyDataOffset bEnableRightMouseClick;
+	PropertyDataOffset bMousePressed;
+	PropertyDataOffset clickSound;
+	PropertyDataOffset curTextColor;
+	PropertyDataOffset curTexture;
+	PropertyDataOffset curTileColor;
+	PropertyDataOffset initialDelay;
+	PropertyDataOffset lastInputKey;
+	PropertyDataOffset pressSound;
+	PropertyDataOffset repeatRate;
+	PropertyDataOffset repeatTime;
+};
+
+extern PropertyOffsets_ButtonWindow PropOffsets_ButtonWindow;
+
+struct PropertyOffsets_CheckboxWindow
+{
+	PropertyDataOffset bRightSide;
+	PropertyDataOffset checkboxColor;
+	PropertyDataOffset checkboxSpacing;
+	PropertyDataOffset checkboxStyle;
+	PropertyDataOffset textureHeight;
+	PropertyDataOffset textureWidth;
+	PropertyDataOffset toggleOff;
+	PropertyDataOffset toggleOn;
+};
+
+extern PropertyOffsets_CheckboxWindow PropOffsets_CheckboxWindow;
+
+struct PropertyOffsets_ClipWindow
+{
+	PropertyDataOffset areaHSize;
+	PropertyDataOffset areaVSize;
+	PropertyDataOffset bFillWindow;
+	PropertyDataOffset bForceChildHeight;
+	PropertyDataOffset bForceChildWidth;
+	PropertyDataOffset bSnapToUnits;
+	PropertyDataOffset childH;
+	PropertyDataOffset childHSize;
+	PropertyDataOffset childV;
+	PropertyDataOffset childVSize;
+	PropertyDataOffset hMult;
+	PropertyDataOffset prefHUnits;
+	PropertyDataOffset prefVUnits;
+	PropertyDataOffset vMult;
+};
+
+extern PropertyOffsets_ClipWindow PropOffsets_ClipWindow;
+
+struct PropertyOffsets_ComputerWindow
+{
+	PropertyDataOffset FontColor;
+	PropertyDataOffset Player;
+	PropertyDataOffset TextWindow;
+	PropertyDataOffset TextX;
+	PropertyDataOffset TextY;
+	PropertyDataOffset bComputerStartInvoked;
+	PropertyDataOffset bCursorVisible;
+	PropertyDataOffset bEchoKey;
+	PropertyDataOffset bFirstTick;
+	PropertyDataOffset bGamePaused;
+	PropertyDataOffset bIgnoreGamePaused;
+	PropertyDataOffset bIgnoreTick;
+	PropertyDataOffset bInvokeComputerStart;
+	PropertyDataOffset bLastLineWrapped;
+	PropertyDataOffset bPauseProcessing;
+	PropertyDataOffset bShowCursor;
+	PropertyDataOffset bWaitingForKey;
+	PropertyDataOffset bWordWrap;
+	PropertyDataOffset backgroundTextures;
+	PropertyDataOffset colGraphicTile;
+	PropertyDataOffset computerSoundVolume;
+	PropertyDataOffset cursorBlinkSpeed;
+	PropertyDataOffset cursorColor;
+	PropertyDataOffset cursorHeight;
+	PropertyDataOffset cursorNextEvent;
+	PropertyDataOffset cursorTexture;
+	PropertyDataOffset cursorWidth;
+	PropertyDataOffset displayBuffer;
+	PropertyDataOffset eventTimeInterval;
+	PropertyDataOffset fadeOutStart;
+	PropertyDataOffset fadeOutTimer;
+	PropertyDataOffset fadeSpeed;
+	PropertyDataOffset fontHeight;
+	PropertyDataOffset fontWidth;
+	PropertyDataOffset inputKey;
+	PropertyDataOffset inputMask;
+	PropertyDataOffset inputWindow;
+	PropertyDataOffset queuedBuffer;
+	PropertyDataOffset queuedBufferStart;
+	PropertyDataOffset textCols;
+	PropertyDataOffset textFont;
+	PropertyDataOffset textRows;
+	PropertyDataOffset textSound;
+	PropertyDataOffset throttle;
+	PropertyDataOffset timeCurrent;
+	PropertyDataOffset timeLastEvent;
+	PropertyDataOffset timeNextEvent;
+	PropertyDataOffset typingSound;
+};
+
+extern PropertyOffsets_ComputerWindow PropOffsets_ComputerWindow;
+
+struct PropertyOffsets_EditWindow
+{
+	PropertyDataOffset bCursorShowing;
+	PropertyDataOffset bDragging;
+	PropertyDataOffset bEditable;
+	PropertyDataOffset bSelectWords;
+	PropertyDataOffset bSingleLine;
+	PropertyDataOffset bUppercaseOnly;
+	PropertyDataOffset blinkDelay;
+	PropertyDataOffset blinkPeriod;
+	PropertyDataOffset blinkStart;
+	PropertyDataOffset bufferList;
+	PropertyDataOffset currentUndo;
+	PropertyDataOffset deleteSound;
+	PropertyDataOffset dragDelay;
+	PropertyDataOffset editCursor;
+	PropertyDataOffset editCursorColor;
+	PropertyDataOffset editCursorShadow;
+	PropertyDataOffset enterSound;
+	PropertyDataOffset insertColor;
+	PropertyDataOffset insertHeight;
+	PropertyDataOffset insertHookPos;
+	PropertyDataOffset insertPos;
+	PropertyDataOffset insertPrefHeight;
+	PropertyDataOffset insertPrefWidth;
+	PropertyDataOffset insertPreferredCol;
+	PropertyDataOffset insertTexture;
+	PropertyDataOffset insertType;
+	PropertyDataOffset insertWidth;
+	PropertyDataOffset insertX;
+	PropertyDataOffset insertY;
+	PropertyDataOffset inverseColor;
+	PropertyDataOffset lastConfigHeight;
+	PropertyDataOffset lastConfigWidth;
+	PropertyDataOffset maxSize;
+	PropertyDataOffset maxUndos;
+	PropertyDataOffset moveSound;
+	PropertyDataOffset selectColor;
+	PropertyDataOffset selectEnd;
+	PropertyDataOffset selectEndRow;
+	PropertyDataOffset selectEndX;
+	PropertyDataOffset selectStart;
+	PropertyDataOffset selectStartRow;
+	PropertyDataOffset selectStartX;
+	PropertyDataOffset selectTexture;
+	PropertyDataOffset showAreaHeight;
+	PropertyDataOffset showAreaWidth;
+	PropertyDataOffset showAreaX;
+	PropertyDataOffset showAreaY;
+	PropertyDataOffset typeSound;
+	PropertyDataOffset unchangedUndo;
+};
+
+extern PropertyOffsets_EditWindow PropOffsets_EditWindow;
+
+struct PropertyOffsets_ExtString
+{
+	PropertyDataOffset Text;
+	PropertyDataOffset speechPage;
+};
+
+extern PropertyOffsets_ExtString PropOffsets_ExtString;
+
+struct PropertyOffsets_ExtensionObject
+{
+};
+
+extern PropertyOffsets_ExtensionObject PropOffsets_ExtensionObject;
+
+struct PropertyOffsets_FlagBase
+{
+	PropertyDataOffset defaultFlagExpiration;
+	PropertyDataOffset hashTable;
+};
+
+extern PropertyOffsets_FlagBase PropOffsets_FlagBase;
+
+struct PropertyOffsets_GC
+{
+	PropertyDataOffset Canvas;
+	PropertyDataOffset HAlign;
+	PropertyDataOffset PolyFlags;
+	PropertyDataOffset Style;
+	PropertyDataOffset TextColor;
+	PropertyDataOffset VAlign;
+	PropertyDataOffset bDrawEnabled;
+	PropertyDataOffset bFree;
+	PropertyDataOffset bMasked;
+	PropertyDataOffset bModulated;
+	PropertyDataOffset bParseMetachars;
+	PropertyDataOffset bSmoothed;
+	PropertyDataOffset bTextTranslucent;
+	PropertyDataOffset bTranslucent;
+	PropertyDataOffset bWordWrap;
+	PropertyDataOffset baselineOffset;
+	PropertyDataOffset boldFont;
+	PropertyDataOffset gcClipRect;
+	PropertyDataOffset gcCount;
+	PropertyDataOffset gcFree;
+	PropertyDataOffset gcOwner;
+	PropertyDataOffset gcStack;
+	PropertyDataOffset hMultiplier;
+	PropertyDataOffset normalFont;
+	PropertyDataOffset textPlane;
+	PropertyDataOffset textPolyFlags;
+	PropertyDataOffset textVSpacing;
+	PropertyDataOffset tileColor;
+	PropertyDataOffset tilePlane;
+	PropertyDataOffset underlineHeight;
+	PropertyDataOffset underlineTexture;
+	PropertyDataOffset vMultiplier;
+};
+
+extern PropertyOffsets_GC PropOffsets_GC;
+
+struct PropertyOffsets_LargeTextWindow
+{
+	PropertyDataOffset lineHeight;
+	PropertyDataOffset queryRowData;
+	PropertyDataOffset queryTextParams;
+	PropertyDataOffset rowData;
+	PropertyDataOffset tempRowData;
+	PropertyDataOffset textParams;
+	PropertyDataOffset vSpace;
+};
+
+extern PropertyOffsets_LargeTextWindow PropOffsets_LargeTextWindow;
+
+struct PropertyOffsets_ListWindow
+{
+	PropertyDataOffset ActivateSound;
+	PropertyDataOffset Delimiter;
+	PropertyDataOffset anchorLine;
+	PropertyDataOffset bAutoExpandColumns;
+	PropertyDataOffset bAutoSort;
+	PropertyDataOffset bDragging;
+	PropertyDataOffset bHotKeys;
+	PropertyDataOffset bMultiSelect;
+	PropertyDataOffset colMargin;
+	PropertyDataOffset cols;
+	PropertyDataOffset focusColor;
+	PropertyDataOffset focusLine;
+	PropertyDataOffset focusTexture;
+	PropertyDataOffset focusThickness;
+	PropertyDataOffset highlightColor;
+	PropertyDataOffset highlightTexture;
+	PropertyDataOffset hotKeyCol;
+	PropertyDataOffset hotKeyString;
+	PropertyDataOffset hotKeyTimer;
+	PropertyDataOffset inverseColor;
+	PropertyDataOffset lastIndex;
+	PropertyDataOffset lineSize;
+	PropertyDataOffset moveSound;
+	PropertyDataOffset numSelected;
+	PropertyDataOffset remainingDelay;
+	PropertyDataOffset rowMargin;
+	PropertyDataOffset rows;
+};
+
+extern PropertyOffsets_ListWindow PropOffsets_ListWindow;
+
+struct PropertyOffsets_ModalWindow
+{
+	PropertyDataOffset acceleratorTable;
+	PropertyDataOffset bDirtyAccelerators;
+	PropertyDataOffset focusMode;
+	PropertyDataOffset preferredFocus;
+	PropertyDataOffset tabGroupWindowList;
+};
+
+extern PropertyOffsets_ModalWindow PropOffsets_ModalWindow;
+
+struct PropertyOffsets_PlayerPawnExt
+{
+	PropertyDataOffset FlagBase;
+	PropertyDataOffset RootWindow;
+	PropertyDataOffset actorCount;
+	PropertyDataOffset actorList;
+};
+
+extern PropertyOffsets_PlayerPawnExt PropOffsets_PlayerPawnExt;
+
+struct PropertyOffsets_RadioBoxWindow
+{
+	PropertyDataOffset bOneCheck;
+	PropertyDataOffset currentSelection;
+	PropertyDataOffset toggleButtons;
+};
+
+extern PropertyOffsets_RadioBoxWindow PropOffsets_RadioBoxWindow;
+
+struct PropertyOffsets_RootWindow
+{
+	PropertyDataOffset DefaultMoveCursor;
+	PropertyDataOffset FocusWindow;
+	PropertyDataOffset MouseX;
+	PropertyDataOffset MouseY;
+	PropertyDataOffset TickCycles;
+	PropertyDataOffset bClipRender;
+	PropertyDataOffset bCursorVisible;
+	PropertyDataOffset bMouseButtonLocked;
+	PropertyDataOffset bMouseMoveLocked;
+	PropertyDataOffset bMouseMoved;
+	PropertyDataOffset bPositionalSound;
+	PropertyDataOffset bRender;
+	PropertyDataOffset bShowFrames;
+	PropertyDataOffset bShowStats;
+	PropertyDataOffset bStretchRawBackground;
+	PropertyDataOffset clickCount;
+	PropertyDataOffset debugTexture;
+	PropertyDataOffset defaultEditCursor;
+	PropertyDataOffset defaultHorizontalMoveCursor;
+	PropertyDataOffset defaultTopLeftMoveCursor;
+	PropertyDataOffset defaultTopRightMoveCursor;
+	PropertyDataOffset defaultVerticalMoveCursor;
+	PropertyDataOffset firstButtonMouseX;
+	PropertyDataOffset firstButtonMouseY;
+	PropertyDataOffset frameTimer;
+	PropertyDataOffset grabbedWindow;
+	PropertyDataOffset hMultiplier;
+	PropertyDataOffset handleKeyboardRef;
+	PropertyDataOffset handleMouseRef;
+	PropertyDataOffset initCount;
+	PropertyDataOffset keyDownMap;
+	PropertyDataOffset lastButtonPress;
+	PropertyDataOffset lastButtonType;
+	PropertyDataOffset lastButtonWindow;
+	PropertyDataOffset lastMouseWindow;
+	PropertyDataOffset maxMouseDist;
+	PropertyDataOffset multiClickTimeout;
+	PropertyDataOffset nextRootWindow;
+	PropertyDataOffset paintCycles;
+	PropertyDataOffset parentPawn;
+	PropertyDataOffset prevMouseX;
+	PropertyDataOffset prevMouseY;
+	PropertyDataOffset rawBackground;
+	PropertyDataOffset rawBackgroundHeight;
+	PropertyDataOffset rawBackgroundWidth;
+	PropertyDataOffset rawColor;
+	PropertyDataOffset renderHeight;
+	PropertyDataOffset renderWidth;
+	PropertyDataOffset renderX;
+	PropertyDataOffset renderY;
+	PropertyDataOffset rootFrame;
+	PropertyDataOffset snapshotHeight;
+	PropertyDataOffset snapshotWidth;
+	PropertyDataOffset vMultiplier;
+};
+
+extern PropertyOffsets_RootWindow PropOffsets_RootWindow;
+
+struct PropertyOffsets_ScaleManagerWindow
+{
+	PropertyDataOffset Scale;
+	PropertyDataOffset Spacing;
+	PropertyDataOffset bStretchScaleField;
+	PropertyDataOffset bStretchValueField;
+	PropertyDataOffset childHAlign;
+	PropertyDataOffset childVAlign;
+	PropertyDataOffset decButton;
+	PropertyDataOffset incButton;
+	PropertyDataOffset marginHeight;
+	PropertyDataOffset marginWidth;
+	PropertyDataOffset orientation;
+	PropertyDataOffset valueField;
+};
+
+extern PropertyOffsets_ScaleManagerWindow PropOffsets_ScaleManagerWindow;
+
+struct PropertyOffsets_ScaleWindow
+{
+	PropertyDataOffset RemainingTime;
+	PropertyDataOffset ThumbHeight;
+	PropertyDataOffset ThumbWidth;
+	PropertyDataOffset absEndScale;
+	PropertyDataOffset absStartScale;
+	PropertyDataOffset bDraggingThumb;
+	PropertyDataOffset bDrawEndTicks;
+	PropertyDataOffset bRepeatScaleTexture;
+	PropertyDataOffset bRepeatThumbTexture;
+	PropertyDataOffset bSpanThumb;
+	PropertyDataOffset bStretchScale;
+	PropertyDataOffset borderPattern;
+	PropertyDataOffset clickSound;
+	PropertyDataOffset currentPos;
+	PropertyDataOffset dragSound;
+	PropertyDataOffset endOffset;
+	PropertyDataOffset enumStrings;
+	PropertyDataOffset fromValue;
+	PropertyDataOffset initialDelay;
+	PropertyDataOffset initialPos;
+	PropertyDataOffset marginHeight;
+	PropertyDataOffset marginWidth;
+	PropertyDataOffset mousePos;
+	PropertyDataOffset numPositions;
+	PropertyDataOffset orientation;
+	PropertyDataOffset postCapH;
+	PropertyDataOffset postCapHeight;
+	PropertyDataOffset postCapTexture;
+	PropertyDataOffset postCapW;
+	PropertyDataOffset postCapWidth;
+	PropertyDataOffset postCapXOff;
+	PropertyDataOffset postCapYOff;
+	PropertyDataOffset preCapH;
+	PropertyDataOffset preCapHeight;
+	PropertyDataOffset preCapTexture;
+	PropertyDataOffset preCapW;
+	PropertyDataOffset preCapWidth;
+	PropertyDataOffset preCapXOff;
+	PropertyDataOffset preCapYOff;
+	PropertyDataOffset repeatDir;
+	PropertyDataOffset repeatRate;
+	PropertyDataOffset scaleBorderColor;
+	PropertyDataOffset scaleBorderSize;
+	PropertyDataOffset scaleColor;
+	PropertyDataOffset scaleH;
+	PropertyDataOffset scaleHeight;
+	PropertyDataOffset scaleStyle;
+	PropertyDataOffset scaleTexture;
+	PropertyDataOffset scaleW;
+	PropertyDataOffset scaleWidth;
+	PropertyDataOffset scaleX;
+	PropertyDataOffset scaleY;
+	PropertyDataOffset setSound;
+	PropertyDataOffset spanRange;
+	PropertyDataOffset startOffset;
+	PropertyDataOffset thumbBorderColor;
+	PropertyDataOffset thumbBorderSize;
+	PropertyDataOffset thumbColor;
+	PropertyDataOffset thumbH;
+	PropertyDataOffset thumbStep;
+	PropertyDataOffset thumbStyle;
+	PropertyDataOffset thumbTexture;
+	PropertyDataOffset thumbW;
+	PropertyDataOffset thumbX;
+	PropertyDataOffset thumbY;
+	PropertyDataOffset tickColor;
+	PropertyDataOffset tickH;
+	PropertyDataOffset tickHeight;
+	PropertyDataOffset tickStyle;
+	PropertyDataOffset tickTexture;
+	PropertyDataOffset tickW;
+	PropertyDataOffset tickWidth;
+	PropertyDataOffset tickX;
+	PropertyDataOffset tickY;
+	PropertyDataOffset toValue;
+	PropertyDataOffset valueFmt;
+};
+
+extern PropertyOffsets_ScaleWindow PropOffsets_ScaleWindow;
+
+struct PropertyOffsets_ScrollAreaWindow
+{
+	PropertyDataOffset ClipWindow;
+	PropertyDataOffset DownButton;
+	PropertyDataOffset LeftButton;
+	PropertyDataOffset RightButton;
+	PropertyDataOffset UpButton;
+	PropertyDataOffset bHLastShow;
+	PropertyDataOffset bHideScrollbars;
+	PropertyDataOffset bVLastShow;
+	PropertyDataOffset hScale;
+	PropertyDataOffset hScaleMgr;
+	PropertyDataOffset marginHeight;
+	PropertyDataOffset marginWidth;
+	PropertyDataOffset scrollbarDistance;
+	PropertyDataOffset vScale;
+	PropertyDataOffset vScaleMgr;
+};
+
+extern PropertyOffsets_ScrollAreaWindow PropOffsets_ScrollAreaWindow;
+
+struct PropertyOffsets_TextLogWindow
+{
+	PropertyDataOffset Lines;
+	PropertyDataOffset bPaused;
+	PropertyDataOffset bTooTall;
+	PropertyDataOffset textTimeout;
+};
+
+extern PropertyOffsets_TextLogWindow PropOffsets_TextLogWindow;
+
+struct PropertyOffsets_TextWindow
+{
+	PropertyDataOffset HAlign;
+	PropertyDataOffset MaxLines;
+	PropertyDataOffset MinWidth;
+	PropertyDataOffset Text;
+	PropertyDataOffset VAlign;
+	PropertyDataOffset bTextIsAccelerator;
+	PropertyDataOffset bWordWrap;
+	PropertyDataOffset hMargin;
+	PropertyDataOffset minLines;
+	PropertyDataOffset vMargin;
+};
+
+extern PropertyOffsets_TextWindow PropOffsets_TextWindow;
+
+struct PropertyOffsets_TileWindow
+{
+	PropertyDataOffset bEqualHeight;
+	PropertyDataOffset bEqualWidth;
+	PropertyDataOffset bFillParent;
+	PropertyDataOffset bWrap;
+	PropertyDataOffset hChildAlign;
+	PropertyDataOffset hDirection;
+	PropertyDataOffset hMargin;
+	PropertyDataOffset majorSpacing;
+	PropertyDataOffset minorSpacing;
+	PropertyDataOffset orientation;
+	PropertyDataOffset rowArray;
+	PropertyDataOffset vChildAlign;
+	PropertyDataOffset vDirection;
+	PropertyDataOffset vMargin;
+};
+
+extern PropertyOffsets_TileWindow PropOffsets_TileWindow;
+
+struct PropertyOffsets_ToggleWindow
+{
+	PropertyDataOffset disableSound;
+	PropertyDataOffset enableSound;
+};
+
+extern PropertyOffsets_ToggleWindow PropOffsets_ToggleWindow;
+
+struct PropertyOffsets_ViewportWindow
+{
+	PropertyDataOffset DefaultColor;
+	PropertyDataOffset DefaultTexture;
+	PropertyDataOffset FOV;
+	PropertyDataOffset Location;
+	PropertyDataOffset Rotation;
+	PropertyDataOffset bClearZ;
+	PropertyDataOffset bEnableViewport;
+	PropertyDataOffset bOriginActorDestroyed;
+	PropertyDataOffset bShowActor;
+	PropertyDataOffset bShowWeapons;
+	PropertyDataOffset bUseEyeHeight;
+	PropertyDataOffset bUseViewRotation;
+	PropertyDataOffset bWatchEyeHeight;
+	PropertyDataOffset lastLocation;
+	PropertyDataOffset lastRotation;
+	PropertyDataOffset originActor;
+	PropertyDataOffset relLocation;
+	PropertyDataOffset relRotation;
+	PropertyDataOffset viewportFrame;
+	PropertyDataOffset watchActor;
+};
+
+extern PropertyOffsets_ViewportWindow PropOffsets_ViewportWindow;
+
+struct PropertyOffsets_Window
+{
+	PropertyDataOffset Background;
+	PropertyDataOffset Height;
+	PropertyDataOffset SoundVolume;
+	PropertyDataOffset TextColor;
+	PropertyDataOffset Width;
+	PropertyDataOffset X;
+	PropertyDataOffset Y;
+	PropertyDataOffset acceleratorKey;
+	PropertyDataOffset att;
+	PropertyDataOffset bBeingDestroyed;
+	PropertyDataOffset bConfigured;
+	PropertyDataOffset bDrawRawBackground;
+	PropertyDataOffset bIsInitialized;
+	PropertyDataOffset bIsSelectable;
+	PropertyDataOffset bIsSensitive;
+	PropertyDataOffset bIsVisible;
+	PropertyDataOffset bLastHeightSpecified;
+	PropertyDataOffset bLastWidthSpecified;
+	PropertyDataOffset bNeedsQuery;
+	PropertyDataOffset bNeedsReconfigure;
+	PropertyDataOffset bSmoothBackground;
+	PropertyDataOffset bSpecialText;
+	PropertyDataOffset bStretchBackground;
+	PropertyDataOffset bTextTranslucent;
+	PropertyDataOffset bTickEnabled;
+	PropertyDataOffset backgroundStyle;
+	PropertyDataOffset boldFont;
+	PropertyDataOffset clientObject;
+	PropertyDataOffset colMajorIndex;
+	PropertyDataOffset defaultCursor;
+	PropertyDataOffset defaultCursorColor;
+	PropertyDataOffset defaultCursorShadow;
+	PropertyDataOffset defaultHotX;
+	PropertyDataOffset defaultHotY;
+	PropertyDataOffset firstChild;
+	PropertyDataOffset firstTimer;
+	PropertyDataOffset focusSound;
+	PropertyDataOffset freeTimer;
+	PropertyDataOffset gGc;
+	PropertyDataOffset hMargin0;
+	PropertyDataOffset hMargin1;
+	PropertyDataOffset hardcodedHeight;
+	PropertyDataOffset hardcodedWidth;
+	PropertyDataOffset holdHeight;
+	PropertyDataOffset holdWidth;
+	PropertyDataOffset holdX;
+	PropertyDataOffset holdY;
+	PropertyDataOffset invisibleSound;
+	PropertyDataOffset lastChild;
+	PropertyDataOffset lastQueryHeight;
+	PropertyDataOffset lastQueryWidth;
+	PropertyDataOffset lastSpecifiedHeight;
+	PropertyDataOffset lastSpecifiedWidth;
+	PropertyDataOffset lockCount;
+	PropertyDataOffset maxClicks;
+	PropertyDataOffset nextSibling;
+	PropertyDataOffset normalFont;
+	PropertyDataOffset parentOwner;
+	PropertyDataOffset prevSibling;
+	PropertyDataOffset rowMajorIndex;
+	PropertyDataOffset textPlane;
+	PropertyDataOffset textVSpacing;
+	PropertyDataOffset tileColor;
+	PropertyDataOffset tilePlane;
+	PropertyDataOffset unfocusSound;
+	PropertyDataOffset vMargin0;
+	PropertyDataOffset vMargin1;
+	PropertyDataOffset visibleSound;
+	PropertyDataOffset wGc;
+	PropertyDataOffset winClipRect;
+	PropertyDataOffset winHAlign;
+	PropertyDataOffset winParent;
+	PropertyDataOffset winVAlign;
+	PropertyDataOffset windowType;
+};
+
+extern PropertyOffsets_Window PropOffsets_Window;
+
+struct PropertyOffsets_ConAudioList
+{
+	PropertyDataOffset ConAudioList;
+	PropertyDataOffset audioCount;
+};
+
+extern PropertyOffsets_ConAudioList PropOffsets_ConAudioList;
+
+struct PropertyOffsets_ConCamera
+{
+	PropertyDataOffset Rotation;
+	PropertyDataOffset bCameraLocationSaved;
+	PropertyDataOffset bDebug;
+	PropertyDataOffset bInteractiveCamera;
+	PropertyDataOffset bUsingFallback;
+	PropertyDataOffset cameraActor;
+	PropertyDataOffset cameraFallbackPositions;
+	PropertyDataOffset cameraHeightPositions;
+	PropertyDataOffset cameraMode;
+	PropertyDataOffset cameraOffset;
+	PropertyDataOffset cameraPosition;
+	PropertyDataOffset cameraType;
+	PropertyDataOffset centerModifier;
+	PropertyDataOffset conLightSpeaker;
+	PropertyDataOffset conLightSpeakingTo;
+	PropertyDataOffset cosAngle;
+	PropertyDataOffset currentFallback;
+	PropertyDataOffset distanceMultiplier;
+	PropertyDataOffset firstActor;
+	PropertyDataOffset firstActorRotation;
+	PropertyDataOffset heightFallbackTrigger;
+	PropertyDataOffset heightModifier;
+	PropertyDataOffset ignoreSetActors;
+	PropertyDataOffset lastFirstActor;
+	PropertyDataOffset lastLocation;
+	PropertyDataOffset lastRotation;
+	PropertyDataOffset lastSecondActor;
+	PropertyDataOffset secondActor;
+	PropertyDataOffset setActorCount;
+};
+
+extern PropertyOffsets_ConCamera PropOffsets_ConCamera;
+
+struct PropertyOffsets_ConChoice
+{
+	PropertyDataOffset bDisplayAsSpeech;
+	PropertyDataOffset choiceLabel;
+	PropertyDataOffset choiceText;
+	PropertyDataOffset flagRef;
+	PropertyDataOffset nextChoice;
+	PropertyDataOffset skillLevelNeeded;
+	PropertyDataOffset skillNeeded;
+	PropertyDataOffset soundID;
+};
+
+extern PropertyOffsets_ConChoice PropOffsets_ConChoice;
+
+struct PropertyOffsets_ConEventAddCredits
+{
+	PropertyDataOffset creditsToAdd;
+};
+
+extern PropertyOffsets_ConEventAddCredits PropOffsets_ConEventAddCredits;
+
+struct PropertyOffsets_ConEventAddGoal
+{
+	PropertyDataOffset bGoalCompleted;
+	PropertyDataOffset bPrimaryGoal;
+	PropertyDataOffset goalName;
+	PropertyDataOffset goalText;
+};
+
+extern PropertyOffsets_ConEventAddGoal PropOffsets_ConEventAddGoal;
+
+struct PropertyOffsets_ConEventAddNote
+{
+	PropertyDataOffset bNoteAdded;
+	PropertyDataOffset noteText;
+};
+
+extern PropertyOffsets_ConEventAddNote PropOffsets_ConEventAddNote;
+
+struct PropertyOffsets_ConEventAddSkillPoints
+{
+	PropertyDataOffset awardMessage;
+	PropertyDataOffset pointsToAdd;
+};
+
+extern PropertyOffsets_ConEventAddSkillPoints PropOffsets_ConEventAddSkillPoints;
+
+struct PropertyOffsets_ConEventAnimation
+{
+	PropertyDataOffset Sequence;
+	PropertyDataOffset bFinishAnim;
+	PropertyDataOffset bLoopAnim;
+	PropertyDataOffset eventOwner;
+	PropertyDataOffset eventOwnerName;
+};
+
+extern PropertyOffsets_ConEventAnimation PropOffsets_ConEventAnimation;
+
+struct PropertyOffsets_ConEventCheckFlag
+{
+	PropertyDataOffset flagRef;
+	PropertyDataOffset setLabel;
+};
+
+extern PropertyOffsets_ConEventCheckFlag PropOffsets_ConEventCheckFlag;
+
+struct PropertyOffsets_ConEventCheckObject
+{
+	PropertyDataOffset ObjectName;
+	PropertyDataOffset checkObject;
+	PropertyDataOffset failLabel;
+};
+
+extern PropertyOffsets_ConEventCheckObject PropOffsets_ConEventCheckObject;
+
+struct PropertyOffsets_ConEventCheckPersona
+{
+	PropertyDataOffset Value;
+	PropertyDataOffset condition;
+	PropertyDataOffset jumpLabel;
+	PropertyDataOffset personaType;
+};
+
+extern PropertyOffsets_ConEventCheckPersona PropOffsets_ConEventCheckPersona;
+
+struct PropertyOffsets_ConEventChoice
+{
+	PropertyDataOffset ChoiceList;
+	PropertyDataOffset bClearScreen;
+};
+
+extern PropertyOffsets_ConEventChoice PropOffsets_ConEventChoice;
+
+struct PropertyOffsets_ConEventComment
+{
+	PropertyDataOffset commentText;
+};
+
+extern PropertyOffsets_ConEventComment PropOffsets_ConEventComment;
+
+struct PropertyOffsets_ConEventJump
+{
+	PropertyDataOffset conID;
+	PropertyDataOffset jumpCon;
+	PropertyDataOffset jumpLabel;
+};
+
+extern PropertyOffsets_ConEventJump PropOffsets_ConEventJump;
+
+struct PropertyOffsets_ConEventMoveCamera
+{
+	PropertyDataOffset Rotation;
+	PropertyDataOffset cameraActor;
+	PropertyDataOffset cameraActorName;
+	PropertyDataOffset cameraOffset;
+	PropertyDataOffset cameraPosition;
+	PropertyDataOffset cameraTransition;
+	PropertyDataOffset cameraType;
+	PropertyDataOffset centerModifier;
+	PropertyDataOffset distanceMultiplier;
+	PropertyDataOffset heightModifier;
+};
+
+extern PropertyOffsets_ConEventMoveCamera PropOffsets_ConEventMoveCamera;
+
+struct PropertyOffsets_ConEventSetFlag
+{
+	PropertyDataOffset flagRef;
+};
+
+extern PropertyOffsets_ConEventSetFlag PropOffsets_ConEventSetFlag;
+
+struct PropertyOffsets_ConEventSpeech
+{
+	PropertyDataOffset ConSpeech;
+	PropertyDataOffset bBold;
+	PropertyDataOffset bContinued;
+	PropertyDataOffset speaker;
+	PropertyDataOffset speakerName;
+	PropertyDataOffset speakingTo;
+	PropertyDataOffset speakingToName;
+	PropertyDataOffset speechFont;
+};
+
+extern PropertyOffsets_ConEventSpeech PropOffsets_ConEventSpeech;
+
+struct PropertyOffsets_ConEventTrade
+{
+	PropertyDataOffset eventOwner;
+	PropertyDataOffset eventOwnerName;
+};
+
+extern PropertyOffsets_ConEventTrade PropOffsets_ConEventTrade;
+
+struct PropertyOffsets_ConEventTransferObject
+{
+	PropertyDataOffset ObjectName;
+	PropertyDataOffset failLabel;
+	PropertyDataOffset fromActor;
+	PropertyDataOffset fromName;
+	PropertyDataOffset giveObject;
+	PropertyDataOffset toActor;
+	PropertyDataOffset toName;
+	PropertyDataOffset transferCount;
+};
+
+extern PropertyOffsets_ConEventTransferObject PropOffsets_ConEventTransferObject;
+
+struct PropertyOffsets_ConEventTrigger
+{
+	PropertyDataOffset triggerTag;
+};
+
+extern PropertyOffsets_ConEventTrigger PropOffsets_ConEventTrigger;
+
+struct PropertyOffsets_ConFlagRef
+{
+	PropertyDataOffset FlagName;
+	PropertyDataOffset Value;
+	PropertyDataOffset expiration;
+	PropertyDataOffset nextFlagRef;
+};
+
+extern PropertyOffsets_ConFlagRef PropOffsets_ConFlagRef;
+
+struct PropertyOffsets_ConHistory
+{
+	PropertyDataOffset Next;
+	PropertyDataOffset bInfoLink;
+	PropertyDataOffset conOwnerName;
+	PropertyDataOffset firstEvent;
+	PropertyDataOffset lastEvent;
+	PropertyDataOffset strDescription;
+	PropertyDataOffset strLocation;
+};
+
+extern PropertyOffsets_ConHistory PropOffsets_ConHistory;
+
+struct PropertyOffsets_ConHistoryEvent
+{
+	PropertyDataOffset Next;
+	PropertyDataOffset Speech;
+	PropertyDataOffset conSpeaker;
+	PropertyDataOffset soundID;
+};
+
+extern PropertyOffsets_ConHistoryEvent PropOffsets_ConHistoryEvent;
+
+struct PropertyOffsets_ConItem
+{
+	PropertyDataOffset ConObject;
+	PropertyDataOffset Next;
+};
+
+extern PropertyOffsets_ConItem PropOffsets_ConItem;
+
+struct PropertyOffsets_ConListItem
+{
+	PropertyDataOffset Next;
+	PropertyDataOffset con;
+};
+
+extern PropertyOffsets_ConListItem PropOffsets_ConListItem;
+
+struct PropertyOffsets_ConSpeech
+{
+	PropertyDataOffset Speech;
+	PropertyDataOffset soundID;
+};
+
+extern PropertyOffsets_ConSpeech PropOffsets_ConSpeech;
+
+struct PropertyOffsets_ConversationList
+{
+	PropertyDataOffset conversations;
+	PropertyDataOffset missionDescription;
+	PropertyDataOffset missionNumber;
+};
+
+extern PropertyOffsets_ConversationList PropOffsets_ConversationList;
+
+struct PropertyOffsets_ConversationMissionList
+{
+	PropertyDataOffset missions;
+};
+
+extern PropertyOffsets_ConversationMissionList PropOffsets_ConversationMissionList;
+
+struct PropertyOffsets_Augmentation
+{
+	PropertyDataOffset ActivateSound;
+	PropertyDataOffset AlwaysActiveLabel;
+	PropertyDataOffset AugActivated;
+	PropertyDataOffset AugAlreadyHave;
+	PropertyDataOffset AugDeactivated;
+	PropertyDataOffset AugLocsText;
+	PropertyDataOffset AugNowHave;
+	PropertyDataOffset AugNowHaveAtLevel;
+	PropertyDataOffset AugmentationLocation;
+	PropertyDataOffset AugmentationName;
+	PropertyDataOffset CanUpgradeLabel;
+	PropertyDataOffset CurrentLevel;
+	PropertyDataOffset CurrentLevelLabel;
+	PropertyDataOffset DeActivateSound;
+	PropertyDataOffset Description;
+	PropertyDataOffset EnergyRate;
+	PropertyDataOffset EnergyRateLabel;
+	PropertyDataOffset HotKeyNum;
+	PropertyDataOffset Icon;
+	PropertyDataOffset IconHeight;
+	PropertyDataOffset IconWidth;
+	PropertyDataOffset LevelValues;
+	PropertyDataOffset LoopSound;
+	PropertyDataOffset MPConflictSlot;
+	PropertyDataOffset MPInfo;
+	PropertyDataOffset MaxLevel;
+	PropertyDataOffset MaximumLabel;
+	PropertyDataOffset Next;
+	PropertyDataOffset OccupiesSlotLabel;
+	PropertyDataOffset Player;
+	PropertyDataOffset bAlwaysActive;
+	PropertyDataOffset bAutomatic;
+	PropertyDataOffset bBoosted;
+	PropertyDataOffset bHasIt;
+	PropertyDataOffset bIsActive;
+	PropertyDataOffset bUsingMedbot;
+	PropertyDataOffset smallIcon;
+};
+
+extern PropertyOffsets_Augmentation PropOffsets_Augmentation;
+
+struct PropertyOffsets_AugmentationManager
+{
+	PropertyDataOffset AugLocationFull;
+	PropertyDataOffset AugLocs;
+	PropertyDataOffset FirstAug;
+	PropertyDataOffset NoAugInSlot;
+	PropertyDataOffset Player;
+	PropertyDataOffset augClasses;
+	PropertyDataOffset defaultAugs;
+};
+
+extern PropertyOffsets_AugmentationManager PropOffsets_AugmentationManager;
+
+struct PropertyOffsets_DataVaultImageNote
+{
+	PropertyDataOffset bExpanded;
+	PropertyDataOffset nextNote;
+	PropertyDataOffset noteText;
+	PropertyDataOffset posX;
+	PropertyDataOffset posY;
+};
+
+extern PropertyOffsets_DataVaultImageNote PropOffsets_DataVaultImageNote;
+
+struct PropertyOffsets_DeusExLevelInfo
+{
+	PropertyDataOffset ConversationPackage;
+	PropertyDataOffset MapAuthor;
+	PropertyDataOffset MapName;
+	PropertyDataOffset MissionLocation;
+	PropertyDataOffset Script;
+	PropertyDataOffset TrueNorth;
+	PropertyDataOffset bMultiPlayerMap;
+	PropertyDataOffset missionNumber;
+	PropertyDataOffset startupMessage;
+};
+
+extern PropertyOffsets_DeusExLevelInfo PropOffsets_DeusExLevelInfo;
+
+struct PropertyOffsets_DeusExLog
+{
+	PropertyDataOffset Next;
+	PropertyDataOffset Text;
+};
+
+extern PropertyOffsets_DeusExLog PropOffsets_DeusExLog;
+
+struct PropertyOffsets_LaserIterator
+{
+	PropertyDataOffset Beams;
+	PropertyDataOffset NextItem;
+	PropertyDataOffset SavedRot;
+	PropertyDataOffset bRandomBeam;
+	PropertyDataOffset prevRand;
+	PropertyDataOffset prevloc;
+	PropertyDataOffset proxy;
+	PropertyDataOffset savedLoc;
+};
+
+extern PropertyOffsets_LaserIterator PropOffsets_LaserIterator;
+
+struct PropertyOffsets_Skill
+{
+	PropertyDataOffset CurrentLevel;
+	PropertyDataOffset Description;
+	PropertyDataOffset LevelValues;
+	PropertyDataOffset Next;
+	PropertyDataOffset Player;
+	PropertyDataOffset SkillAtMaximum;
+	PropertyDataOffset SkillIcon;
+	PropertyDataOffset SkillName;
+	PropertyDataOffset bAutomatic;
+	PropertyDataOffset bConversationBased;
+	PropertyDataOffset cost;
+	PropertyDataOffset itemNeeded;
+	PropertyDataOffset skillLevelStrings;
+};
+
+extern PropertyOffsets_Skill PropOffsets_Skill;
+
+struct PropertyOffsets_SkillManager
+{
+	PropertyDataOffset FirstSkill;
+	PropertyDataOffset NoSkillMessage;
+	PropertyDataOffset NoToolMessage;
+	PropertyDataOffset Player;
+	PropertyDataOffset SuccessMessage;
+	PropertyDataOffset YourSkillLevelAt;
+	PropertyDataOffset skillClasses;
+};
+
+extern PropertyOffsets_SkillManager PropOffsets_SkillManager;
+
+struct PropertyOffsets_Flag
+{
+	PropertyDataOffset FlagBase;
+	PropertyDataOffset FlagName;
+	PropertyDataOffset expiration;
+	PropertyDataOffset flagHash;
+	PropertyDataOffset flagType;
+	PropertyDataOffset nextFlag;
+};
+
+extern PropertyOffsets_Flag PropOffsets_Flag;
+
+struct PropertyOffsets_FlagBool
+{
+	PropertyDataOffset bValue;
+};
+
+extern PropertyOffsets_FlagBool PropOffsets_FlagBool;
+
+struct PropertyOffsets_FlagByte
+{
+	PropertyDataOffset byteValue;
+};
+
+extern PropertyOffsets_FlagByte PropOffsets_FlagByte;
+
+struct PropertyOffsets_FlagFloat
+{
+	PropertyDataOffset floatValue;
+};
+
+extern PropertyOffsets_FlagFloat PropOffsets_FlagFloat;
+
+struct PropertyOffsets_FlagInt
+{
+	PropertyDataOffset intValue;
+};
+
+extern PropertyOffsets_FlagInt PropOffsets_FlagInt;
+
+struct PropertyOffsets_FlagName
+{
+	PropertyDataOffset nameValue;
+};
+
+extern PropertyOffsets_FlagName PropOffsets_FlagName;
+
+struct PropertyOffsets_FlagRotator
+{
+	PropertyDataOffset rotatorValue;
+};
+
+extern PropertyOffsets_FlagRotator PropOffsets_FlagRotator;
+
+struct PropertyOffsets_FlagVector
+{
+	PropertyDataOffset vectorValue;
+};
+
+extern PropertyOffsets_FlagVector PropOffsets_FlagVector;
+
+struct PropertyOffsets_TabGroupWindow
+{
+	PropertyDataOffset bSizeChildrenToParent;
+	PropertyDataOffset bSizeParentToChildren;
+	PropertyDataOffset colMajorWindowList;
+	PropertyDataOffset firstAbsX;
+	PropertyDataOffset firstAbsY;
+	PropertyDataOffset rowMajorWindowList;
+	PropertyDataOffset tabGroupIndex;
+};
+
+extern PropertyOffsets_TabGroupWindow PropOffsets_TabGroupWindow;
+
+/////////////////////////////////////////////////////////////////////////////

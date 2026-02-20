@@ -21,12 +21,14 @@ void NPlayerPawnExt::InitRootWindow(UObject* Self)
 
 void NPlayerPawnExt::ConstructRootWindow(UObject* Self)
 {
+    UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
     auto dxIni = engine->packages->GetIniFile("System");
     NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
     UClass* cls = engine->packages->FindClass(dxRootClassName);
     if (cls)
     {
         engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+        SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
     }
 }
 

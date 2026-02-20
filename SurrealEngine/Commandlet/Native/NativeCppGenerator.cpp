@@ -55,6 +55,7 @@ void NativeCppGenerator::Run()
 	std::string packageManagerRegisterFuncsText;
 	std::string propertyOffsetsHText;
 	std::string propertyOffsetsCppText;
+	std::string propertyAccessors;
 
 	packageManagerRegisterFuncsText += "\t// Copy/paste this into the PackageManager constructor\r\n";
 
@@ -136,21 +137,35 @@ void NativeCppGenerator::Run()
 		propertyOffsetsCppText += "\t\treturn;\r\n\t}\r\n";
 
 		propertyOffsetsHText += "struct " + propOffsetsStructName + "\r\n{\r\n";
+		propertyAccessors += "class U" + cls.name + "\r\n{\r\n";
 
 		for (auto prop : cls.props)
 		{
 			propertyOffsetsCppText += "\t" + propOffsetsVarName + "." + prop.name + " = cls->GetPropertyDataOffset(\"" + prop.name + "\");\r\n";
 			propertyOffsetsHText += "\tPropertyDataOffset " + prop.name + ";\r\n";
+
+			// float& aStrafe() { return Value<float>(PropOffsets_PlayerPawn.aStrafe); }
+			// BitfieldBool bReducedVis() { return BoolValue(PropOffsets_PlayerPawn.bReducedVis); }
+			if (prop.type == "BitfieldBool")
+			{
+				propertyAccessors += "\t BitfieldBool " + prop.name + "() { return BoolValue(PropOffsets_" + cls.name + "." + prop.name + "); }\r\n";
+			}
+			else
+			{
+				propertyAccessors += "\t " + prop.type + "& " + prop.name + "() { return Value<" + prop.type + ">(PropOffsets_" + cls.name + "." + prop.name + "); }\r\n";
+			}
 		}
 
 		propertyOffsetsCppText += "}\r\n\r\n";
-		propertyOffsetsHText += "}\r\n\r\nextern " + propOffsetsVarDecl;
+		propertyOffsetsHText += "};\r\n\r\nextern " + propOffsetsVarDecl;
+		propertyAccessors += "};\r\n\r\n";
 	}
 
 
 	File::write_all_text("Cpp/Package/PackageManager_RegisterFuncs.cpp", packageManagerRegisterFuncsText);
 	File::write_all_text("Cpp/UObject/PropertyOffsets.cpp", propertyOffsetsCppText);
 	File::write_all_text("Cpp/UObject/PropertyOffsets.h", propertyOffsetsHText);
+	File::write_all_text("Cpp/UObject/PropertyAccessors.h", propertyAccessors);
 }
 
 void NativeCppGenerator::ParseGameNatives(const JsonValue& json, const std::string& version)
