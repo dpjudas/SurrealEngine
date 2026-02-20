@@ -3,3 +3,4 @@
 /build
 *.user
 .vscode
+*.internal
