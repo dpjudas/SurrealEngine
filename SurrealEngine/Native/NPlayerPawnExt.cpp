@@ -1,8 +1,10 @@
 
 #include "Precomp.h"
+#include "Package/PackageManager.h"
 #include "NPlayerPawnExt.h"
 #include "VM/NativeFunc.h"
 #include "UObject/UActor.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NPlayerPawnExt::RegisterFunctions()
@@ -14,7 +16,18 @@ void NPlayerPawnExt::RegisterFunctions()
 
 void NPlayerPawnExt::InitRootWindow(UObject* Self)
 {
-	LogUnimplemented("PlayerPawnExt.InitRootWindow");
+    NPlayerPawnExt::ConstructRootWindow(Self);
+}
+
+void NPlayerPawnExt::ConstructRootWindow(UObject* Self)
+{
+    auto dxIni = engine->packages->GetIniFile("System");
+    NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
+    UClass* cls = engine->packages->FindClass(dxRootClassName);
+    if (cls)
+    {
+        URootWindow* dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+    }
 }
 
 void NPlayerPawnExt::PostRenderWindows(UObject* Self, UObject* Canvas)
