@@ -19,6 +19,7 @@
 #include <gdiplus.h>
 #undef PlaySound
 #undef DrawText
+#undef FindWindow
 #endif
 
 // TODO: if we eventually support big endian platforms, these need to be implemented properly

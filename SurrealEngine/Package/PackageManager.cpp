@@ -21,6 +21,7 @@
 #include "UObject/UClient.h"
 #include "UObject/UInternetLink.h"
 #include "UObject/USubsystem.h"
+#include "UObject/UWindow.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/NCanvas.h"
@@ -817,6 +818,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString enginePackage = "Engine";
 	NameString ipdrvPackage = "IpDrv";
 	NameString upakPackage = "UPak";
+	NameString extensionPackage = "Extension";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
@@ -972,7 +974,31 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UPakPathNodeIterator>(upakPackage, "PathNodeIterator", "Actor");
 		RegisterNativeClass<UPakPawnPathNodeIterator>(upakPackage, "PawnPathNodeIterator", "PathNodeIterator");
 	}
-
+	
+	if (IsDeusEx())
+	{
+		RegisterNativeClass<UWindow>(extensionPackage, "Window", "Object");
+		RegisterNativeClass<UViewportWindow>(extensionPackage, "ViewportWindow", "Window");
+		RegisterNativeClass<UToggleWindow>(extensionPackage, "ToggleWindow", "ButtonWindow");
+		RegisterNativeClass<UCheckboxWindow>(extensionPackage, "CheckboxWindow", "ToggleWindow");
+		RegisterNativeClass<UTileWindow>(extensionPackage, "TileWindow", "Window");
+		RegisterNativeClass<UTextWindow>(extensionPackage, "TextWindow", "Window");
+		RegisterNativeClass<UButtonWindow>(extensionPackage, "ButtonWindow", "TextWindow");
+		RegisterNativeClass<UTextLogWindow>(extensionPackage, "TextLogWindow", "TextWindow");
+		RegisterNativeClass<ULargeTextWindow>(extensionPackage, "LargeTextWindow", "TextWindow");
+		RegisterNativeClass<UEditWindow>(extensionPackage, "EditWindow", "LargeTextWindow");
+		RegisterNativeClass<UTabGroupWindow>(extensionPackage, "TabGroupWindow", "Window");
+		RegisterNativeClass<UModalWindow>(extensionPackage, "ModalWindow", "TabGroupWindow");
+		RegisterNativeClass<URootWindow>(extensionPackage, "RootWindow", "ModalWindow");
+		RegisterNativeClass<URadioBoxWindow>(extensionPackage, "RadioBoxWindow", "TabGroupWindow");
+		RegisterNativeClass<UClipWindow>(extensionPackage, "ClipWindow", "TabGroupWindow");
+		RegisterNativeClass<UScrollAreaWindow>(extensionPackage, "ScrollAreaWindow", "Window");
+		RegisterNativeClass<UScaleWindow>(extensionPackage, "ScaleWindow", "Window");
+		RegisterNativeClass<UScaleManagerWindow>(extensionPackage, "ScaleManagerWindow", "Window");
+		RegisterNativeClass<UListWindow>(extensionPackage, "ListWindow", "Window");
+		RegisterNativeClass<UComputerWindow>(extensionPackage, "ComputerWindow", "Window");
+		RegisterNativeClass<UBorderWindow>(extensionPackage, "BorderWindow", "Window");
+	}
 }
 
 template<typename T>

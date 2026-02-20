@@ -374,6 +374,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/ObjectTravelInfo.h
 	SurrealEngine/UObject/UnrealURL.cpp
 	SurrealEngine/UObject/UnrealURL.h
+	SurrealEngine/UObject/UWindow.cpp
+	SurrealEngine/UObject/UWindow.h
 	SurrealEngine/Collision/TopLevel/CollisionSystem.cpp
 	SurrealEngine/Collision/TopLevel/CollisionSystem.h
 	SurrealEngine/Collision/TopLevel/CollisionHit.h

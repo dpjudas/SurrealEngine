@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NWindow::RegisterFunctions()
@@ -99,484 +100,540 @@ void NWindow::RegisterFunctions()
 
 void NWindow::AddActorRef(UObject* Self, UObject* refActor)
 {
-	LogUnimplemented("Window.AddActorRef");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->AddActorRef(refActor);
 }
 
 void NWindow::AddTimer(UObject* Self, float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName, int& ReturnValue)
 {
-	LogUnimplemented("Window.AddTimer");
-	ReturnValue = 0;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->AddTimer(TimeOut, bLoop, clientData, functionName);
 }
 
 void NWindow::AskParentForReconfigure(UObject* Self)
 {
-	LogUnimplemented("Window.AskParentForReconfigure");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->AskParentForReconfigure();
 }
 
 void NWindow::AskParentToShowArea(UObject* Self, float* areaX, float* areaY, float* areaWidth, float* areaHeight)
 {
-	LogUnimplemented("Window.AskParentToShowArea");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->AskParentToShowArea(areaX, areaY, areaWidth, areaHeight);
 }
 
 void NWindow::CarriageReturn(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("Window.CarriageReturn");
-	ReturnValue = "";
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->CarriageReturn();
 }
 
 void NWindow::ChangeStyle(UObject* Self)
 {
-	LogUnimplemented("Window.ChangeStyle");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ChangeStyle();
 }
 
 void NWindow::ConfigureChild(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.ConfigureChild");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ConfigureChild(newX, newY, newWidth, NewHeight);
 }
 
 void NWindow::ConvertCoordinates(UObject* Self, UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
 {
-	LogUnimplemented("Window.ConvertCoordinates");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ConvertCoordinates(fromWin, fromX, fromY, toWin, toX, toY);
 }
 
 void NWindow::ConvertScriptString(UObject* Self, const std::string& oldStr, std::string& ReturnValue)
 {
-	LogUnimplemented("Window.ConvertScriptString");
-	ReturnValue = "";
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->ConvertScriptString(oldStr);
 }
 
 void NWindow::ConvertVectorToCoordinates(UObject* Self, const vec3& Location, float& relativeX, float& relativeY, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.ConvertVectorToCoordinates");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->ConvertVectorToCoordinates(Location, relativeX, relativeY);
 }
 
 void NWindow::Destroy(UObject* Self)
 {
-	LogUnimplemented("Window.Destroy");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->Destroy();
 }
 
 void NWindow::DestroyAllChildren(UObject* Self)
 {
-	LogUnimplemented("Window.DestroyAllChildren");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->DestroyAllChildren();
 }
 
 void NWindow::DisableWindow(UObject* Self)
 {
-	LogUnimplemented("Window.DisableWindow");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->DisableWindow();
 }
 
 void NWindow::EnableSpecialText(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableSpecialText");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->EnableSpecialText(bEnable);
 }
 
 void NWindow::EnableTranslucentText(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableTranslucentText");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->EnableTranslucentText(bEnable);
 }
 
 void NWindow::EnableWindow(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableWindow");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->EnableWindow(bEnable);
 }
 
 void NWindow::FindWindow(UObject* Self, float pointX, float pointY, float& relativeX, float& relativeY, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.FindWindow");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->FindWindow(pointX, pointY, relativeX, relativeY);
 }
 
 void NWindow::GetBottomChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetBottomChild");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetBottomChild(bVisibleOnly);
 }
 
 void NWindow::GetClientObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetClientObject");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetClientObject();
 }
 
 void NWindow::GetCursorPos(UObject* Self, float& MouseX, float& MouseY)
 {
-	LogUnimplemented("Window.GetCursorPos");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->GetCursorPos(MouseX, MouseY);
 }
 
 void NWindow::GetFocusWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetFocusWindow");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetFocusWindow();
 }
 
 void NWindow::GetGC(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetGC");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetGC();
 }
 
 void NWindow::GetHigherSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetHigherSibling");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetHigherSibling(bVisibleOnly);
 }
 
 void NWindow::GetLowerSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetLowerSibling");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetLowerSibling(bVisibleOnly);
 }
 
 void NWindow::GetModalWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetModalWindow");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetModalWindow();
 }
 
 void NWindow::GetParent(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetParent");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetParent();
 }
 
 void NWindow::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetPlayerPawn");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetPlayerPawn();
 }
 
 void NWindow::GetRootWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetRootWindow");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetRootWindow();
 }
 
 void NWindow::GetTabGroupWindow(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetTabGroupWindow");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetTabGroupWindow();
 }
 
 void NWindow::GetTickOffset(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("Window.GetTickOffset");
-	ReturnValue = 0.0f;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetTickOffset();
 }
 
 void NWindow::GetTopChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.GetTopChild");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->GetTopChild(bVisibleOnly);
 }
 
 void NWindow::GrabMouse(UObject* Self)
 {
-	LogUnimplemented("Window.GrabMouse");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->GrabMouse();
 }
 
 void NWindow::Hide(UObject* Self)
 {
-	LogUnimplemented("Window.Hide");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->Hide();
 }
 
 void NWindow::IsActorValid(UObject* Self, UObject* refActor, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsActorValid");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsActorValid(refActor);
 }
 
 void NWindow::IsFocusWindow(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsFocusWindow");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsFocusWindow();
 }
 
 void NWindow::IsKeyDown(UObject* Self, uint8_t Key, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsKeyDown");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsKeyDown(Key);
 }
 
 void NWindow::IsPointInWindow(UObject* Self, float pointX, float pointY, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsPointInWindow");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsPointInWindow(pointX, pointY);
 }
 
 void NWindow::IsSensitive(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsSensitive");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsSensitive(bRecurse);
 }
 
 void NWindow::IsVisible(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.IsVisible");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->IsVisible(bRecurse);
 }
 
 void NWindow::Lower(UObject* Self)
 {
-	LogUnimplemented("Window.Lower");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->Lower();
 }
 
 void NWindow::MoveFocusDown(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveFocusDown");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveFocusDown();
 }
 
 void NWindow::MoveFocusLeft(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveFocusLeft");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveFocusLeft();
 }
 
 void NWindow::MoveFocusRight(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveFocusRight");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveFocusRight();
 }
 
 void NWindow::MoveFocusUp(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveFocusUp");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveFocusUp();
 }
 
 void NWindow::MoveTabGroupNext(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveTabGroupNext");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveTabGroupNext();
 }
 
 void NWindow::MoveTabGroupPrev(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.MoveTabGroupPrev");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->MoveTabGroupPrev();
 }
 
 void NWindow::NewChild(UObject* Self, UObject* NewClass, BitfieldBool* bShow, UObject*& ReturnValue)
 {
-	LogUnimplemented("Window.NewChild");
-	ReturnValue = nullptr;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->NewChild(NewClass, bShow);
 }
 
 void NWindow::PlaySound(UObject* Self, UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
 {
-	LogUnimplemented("Window.PlaySound");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->PlaySound(newsound, Volume, Pitch, posX, posY);
 }
 
 void NWindow::QueryGranularity(UObject* Self, float& hGranularity, float& vGranularity)
 {
-	LogUnimplemented("Window.QueryGranularity");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->QueryGranularity(hGranularity, vGranularity);
 }
 
 void NWindow::QueryPreferredHeight(UObject* Self, float queryWidth, float& ReturnValue)
 {
-	LogUnimplemented("Window.QueryPreferredHeight");
-	ReturnValue = 0.0f;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->QueryPreferredHeight(queryWidth);
 }
 
 void NWindow::QueryPreferredSize(UObject* Self, float& preferredWidth, float& preferredHeight)
 {
-	LogUnimplemented("Window.QueryPreferredSize");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->QueryPreferredSize(preferredWidth, preferredHeight);
 }
 
 void NWindow::QueryPreferredWidth(UObject* Self, float queryHeight, float& ReturnValue)
 {
-	LogUnimplemented("Window.QueryPreferredWidth");
-	ReturnValue = 0.0f;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->QueryPreferredWidth(queryHeight);
 }
 
 void NWindow::Raise(UObject* Self)
 {
-	LogUnimplemented("Window.Raise");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->Raise();
 }
 
 void NWindow::ReleaseGC(UObject* Self, UObject* GC)
 {
-	LogUnimplemented("Window.ReleaseGC");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ReleaseGC(GC);
 }
 
 void NWindow::RemoveActorRef(UObject* Self, UObject* refActor)
 {
-	LogUnimplemented("Window.RemoveActorRef");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->RemoveActorRef(refActor);
 }
 
 void NWindow::RemoveTimer(UObject* Self, int timerId)
 {
-	LogUnimplemented("Window.RemoveTimer");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->RemoveTimer(timerId);
 }
 
 void NWindow::ResetHeight(UObject* Self)
 {
-	LogUnimplemented("Window.ResetHeight");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ResetHeight();
 }
 
 void NWindow::ResetSize(UObject* Self)
 {
-	LogUnimplemented("Window.ResetSize");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ResetSize();
 }
 
 void NWindow::ResetWidth(UObject* Self)
 {
-	LogUnimplemented("Window.ResetWidth");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ResetWidth();
 }
 
 void NWindow::ResizeChild(UObject* Self)
 {
-	LogUnimplemented("Window.ResizeChild");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->ResizeChild();
 }
 
 void NWindow::SetAcceleratorText(UObject* Self, const std::string& newStr)
 {
-	LogUnimplemented("Window.SetAcceleratorText");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetAcceleratorText(newStr);
 }
 
 void NWindow::SetBackground(UObject* Self, UObject* newBackground)
 {
-	LogUnimplemented("Window.SetBackground");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBackground(newBackground);
 }
 
 void NWindow::SetBackgroundSmoothing(UObject* Self, bool newSmoothing)
 {
-	LogUnimplemented("Window.SetBackgroundSmoothing");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBackgroundSmoothing(newSmoothing);
 }
 
 void NWindow::SetBackgroundStretching(UObject* Self, bool newStretching)
 {
-	LogUnimplemented("Window.SetBackgroundStretching");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBackgroundStretching(newStretching);
 }
 
 void NWindow::SetBackgroundStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("Window.SetBackgroundStyle");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBackgroundStyle(NewStyle);
 }
 
 void NWindow::SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("Window.SetBaselineData");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBaselineData(newBaselineOffset, newUnderlineHeight);
 }
 
 void NWindow::SetBoldFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("Window.SetBoldFont");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetBoldFont(fn);
 }
 
 void NWindow::SetChildVisibility(UObject* Self, bool bNewVisibility)
 {
-	LogUnimplemented("Window.SetChildVisibility");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetChildVisibility(bNewVisibility);
 }
 
 void NWindow::SetClientObject(UObject* Self, UObject* newClientObject)
 {
-	LogUnimplemented("Window.SetClientObject");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetClientObject(newClientObject);
 }
 
 void NWindow::SetConfiguration(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.SetConfiguration");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetConfiguration(newX, newY, newWidth, NewHeight);
 }
 
 void NWindow::SetCursorPos(UObject* Self, float newMouseX, float newMouseY)
 {
-	LogUnimplemented("Window.SetCursorPos");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetCursorPos(newMouseX, newMouseY);
 }
 
 void NWindow::SetDefaultCursor(UObject* Self, UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor)
 {
-	LogUnimplemented("Window.SetDefaultCursor");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetDefaultCursor(tX, shadowTexture, HotX, HotY, cursorColor);
 }
 
 void NWindow::SetFocusSounds(UObject* Self, UObject** focusSound, UObject** unfocusSound)
 {
-	LogUnimplemented("Window.SetFocusSounds");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetFocusSounds(focusSound, unfocusSound);
 }
 
 void NWindow::SetFocusWindow(UObject* Self, UObject* NewFocusWindow, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Window.SetFocusWindow");
-	ReturnValue = false;
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	ReturnValue = selfWindow->SetFocusWindow(NewFocusWindow);
 }
 
 void NWindow::SetFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("Window.SetFont");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetFont(fn);
 }
 
 void NWindow::SetFonts(UObject* Self, UObject* nFont, UObject* bFont)
 {
-	LogUnimplemented("Window.SetFonts");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetFonts(nFont, bFont);
 }
 
 void NWindow::SetHeight(UObject* Self, float NewHeight)
 {
-	LogUnimplemented("Window.SetHeight");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetHeight(NewHeight);
 }
 
 void NWindow::SetNormalFont(UObject* Self, UObject* fn)
 {
-	LogUnimplemented("Window.SetNormalFont");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetNormalFont(fn);
 }
 
 void NWindow::SetPos(UObject* Self, float newX, float newY)
 {
-	LogUnimplemented("Window.SetPos");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetPos(newX, newY);
 }
 
 void NWindow::SetSelectability(UObject* Self, bool newSelectability)
 {
-	LogUnimplemented("Window.SetSelectability");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetSelectability(newSelectability);
 }
 
 void NWindow::SetSensitivity(UObject* Self, bool newSensitivity)
 {
-	LogUnimplemented("Window.SetSensitivity");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetSensitivity(newSensitivity);
 }
 
 void NWindow::SetSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.SetSize");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetSize(newWidth, NewHeight);
 }
 
 void NWindow::SetSoundVolume(UObject* Self, float newVolume)
 {
-	LogUnimplemented("Window.SetSoundVolume");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetSoundVolume(newVolume);
 }
 
 void NWindow::SetTextColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("Window.SetTextColor");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetTextColor(NewColor);
 }
 
 void NWindow::SetTileColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("Window.SetTileColor");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetTileColor(NewColor);
 }
 
 void NWindow::SetVisibilitySounds(UObject* Self, UObject** visSound, UObject** invisSound)
 {
-	LogUnimplemented("Window.SetVisibilitySounds");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetVisibilitySounds(visSound, invisSound);
 }
 
 void NWindow::SetWidth(UObject* Self, float newWidth)
 {
-	LogUnimplemented("Window.SetWidth");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetWidth(newWidth);
 }
 
 void NWindow::SetWindowAlignments(UObject* Self, uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
 {
-	LogUnimplemented("Window.SetWindowAlignments");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->SetWindowAlignments(HAlign, VAlign, hMargin0, vMargin0, hMargin1, vMargin1);
 }
 
 void NWindow::Show(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("Window.Show");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->Show(bShow);
 }
 
 void NWindow::UngrabMouse(UObject* Self)
 {
-	LogUnimplemented("Window.UngrabMouse");
+	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
+	selfWindow->UngrabMouse();
 }
