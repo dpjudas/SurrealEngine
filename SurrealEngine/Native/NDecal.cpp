@@ -21,9 +21,8 @@ void NDecal::AttachDecal(UObject* Self, float TraceDistance, vec3* DecalDir, UOb
 
 void NDecal::AttachDecal_Deus(UObject* Self, float TraceDistance, vec3* DecalDir, BitfieldBool& ReturnValue)
 {
-	// Why does Deus Ex not need the decal object? Decals are no longer actors?
-	LogUnimplemented("Decal.AttachDecal(Deus)");
-	ReturnValue = true;
+	UObject* Decal = UObject::TryCast<UDecal>(Self)->AttachDecal(TraceDistance, DecalDir ? *DecalDir : vec3(0.0f));
+	ReturnValue = Decal != nullptr;
 }
 
 void NDecal::DetachDecal(UObject* Self)
