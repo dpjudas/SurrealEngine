@@ -16,6 +16,8 @@ class RenderSubsystem
 public:
 	RenderSubsystem(RenderDevice* renderdevice);
 
+	void DrawRootWindow();
+
 	void DrawEditorViewport();
 	void DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background);
 

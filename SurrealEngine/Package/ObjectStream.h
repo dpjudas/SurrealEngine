@@ -88,6 +88,8 @@ public:
 		if (GetVersion() >= 64)
 		{
 			int len = ReadIndex();
+			if (len < 0 || len > 1024 * 1024)
+				Exception::Throw("ObjectStream::ReadString: Invalid size in " + package->GetPackageName().ToString());
 			Array<char> s;
 			s.resize(len);
 			ReadBytes(s.data(), (int)s.size());

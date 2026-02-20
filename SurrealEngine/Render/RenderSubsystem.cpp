@@ -45,6 +45,11 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 		Device->EndFlash();
 	}
 
+	if (engine->dxRootWindow)
+	{
+		DrawRootWindow();
+	}
+
 	PostRender();
 
 	Device->Unlock(true);

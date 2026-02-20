@@ -8,6 +8,7 @@
 #include "GameWindow.h"
 #include "UObject/UActor.h"
 #include "UObject/UnrealURL.h"
+#include "UObject/UWindow.h"
 #include "GameFolder.h"
 #include <set>
 #include <list>
@@ -129,6 +130,7 @@ public:
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
 	UConsole* console = nullptr;
+	URootWindow* dxRootWindow = nullptr;
 
 	ULevelInfo* EntryLevelInfo = nullptr;
 	ULevel* EntryLevel = nullptr;
