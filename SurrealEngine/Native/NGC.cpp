@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NGC.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NGC::RegisterFunctions()
@@ -60,269 +61,306 @@ void NGC::RegisterFunctions()
 
 void NGC::ClearZ(UObject* Self)
 {
-	LogUnimplemented("GC.ClearZ");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->ClearZ();
 }
 
 void NGC::CopyGC(UObject* Self, UObject* Copy)
 {
-	LogUnimplemented("GC.CopyGC");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->CopyGC(Copy);
 }
 
 void NGC::DrawActor(UObject* Self, UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin)
 {
-	LogUnimplemented("GC.DrawActor");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawActor(Actor, bClearZ, bConstrain, bUnlit, DrawScale, ScaleGlow, Skin);
 }
 
 void NGC::DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
 {
-	LogUnimplemented("GC.DrawBorders");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawBorders(DestX, DestY, destWidth, destHeight, leftMargin, rightMargin, TopMargin, BottomMargin, borders, bStretchHorizontally, bStretchVertically);
 }
 
 void NGC::DrawBox(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX)
 {
-	LogUnimplemented("GC.DrawBox");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawBox(DestX, DestY, destWidth, destHeight, OrgX, OrgY, boxThickness, tX);
 }
 
 void NGC::DrawIcon(UObject* Self, float DestX, float DestY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawIcon");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawIcon(DestX, DestY, tX);
 }
 
 void NGC::DrawPattern(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawPattern");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawPattern(DestX, DestY, destWidth, destHeight, OrgX, OrgY, tX);
 }
 
 void NGC::DrawStretchedTexture(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, float srcWidth, float srcHeight, UObject* tX)
 {
-	LogUnimplemented("GC.DrawStretchedTexture");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawStretchedTexture(DestX, DestY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, tX);
 }
 
 void NGC::DrawText(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr)
 {
-	LogUnimplemented("GC.DrawText");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawText(DestX, DestY, destWidth, destHeight, textStr);
 }
 
 void NGC::DrawTexture(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawTexture");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->DrawTexture(DestX, DestY, destWidth, destHeight, srcX, srcY, tX);
 }
 
 void NGC::EnableDrawing(UObject* Self, bool bDrawEnabled)
 {
-	LogUnimplemented("GC.EnableDrawing");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableDrawing(bDrawEnabled);
 }
 
 void NGC::EnableMasking(UObject* Self, bool bNewMasking)
 {
-	LogUnimplemented("GC.EnableMasking");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableMasking(bNewMasking);
 }
 
 void NGC::EnableModulation(UObject* Self, bool bNewModulation)
 {
-	LogUnimplemented("GC.EnableModulation");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableModulation(bNewModulation);
 }
 
 void NGC::EnableSmoothing(UObject* Self, bool bNewSmoothing)
 {
-	LogUnimplemented("GC.EnableSmoothing");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableSmoothing(bNewSmoothing);
 }
 
 void NGC::EnableSpecialText(UObject* Self, bool bNewSpecialText)
 {
-	LogUnimplemented("GC.EnableSpecialText");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableSpecialText(bNewSpecialText);
 }
 
 void NGC::EnableTranslucency(UObject* Self, bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucency");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableTranslucency(bNewTranslucency);
 }
 
 void NGC::EnableTranslucentText(UObject* Self, bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucentText");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableTranslucentText(bNewTranslucency);
 }
 
 void NGC::EnableWordWrap(UObject* Self, bool bNewWordWrap)
 {
-	LogUnimplemented("GC.EnableWordWrap");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->EnableWordWrap(bNewWordWrap);
 }
 
 void NGC::GetAlignments(UObject* Self, uint8_t& HAlign, uint8_t& VAlign)
 {
-	LogUnimplemented("GC.GetAlignments");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->GetAlignments(HAlign, VAlign);
 }
 
 void NGC::GetFontHeight(UObject* Self, BitfieldBool* bIncludeSpace, float& ReturnValue)
 {
-	LogUnimplemented("GC.GetFontHeight");
-	ReturnValue = 0.0f;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->GetFontHeight(bIncludeSpace);
 }
 
 void NGC::GetFonts(UObject* Self, UObject*& normalFont, UObject*& boldFont)
 {
-	LogUnimplemented("GC.GetFonts");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->GetFonts(normalFont, boldFont);
 }
 
 void NGC::GetHorizontalAlignment(UObject* Self, uint8_t& ReturnValue)
 {
-	LogUnimplemented("GC.GetHorizontalAlignment");
-	ReturnValue = 0;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->GetHorizontalAlignment();
 }
 
 void NGC::GetStyle(UObject* Self, uint8_t& ReturnValue)
 {
-	LogUnimplemented("GC.GetStyle");
-	ReturnValue = 0;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->GetStyle();
 }
 
 void NGC::GetTextColor(UObject* Self, Color& TextColor)
 {
-	LogUnimplemented("GC.GetTextColor");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->GetTextColor(TextColor);
 }
 
 void NGC::GetTextExtent(UObject* Self, float destWidth, float& xExtent, float& yExtent, const std::string& textStr)
 {
-	LogUnimplemented("GC.GetTextExtent");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->GetTextExtent(destWidth, xExtent, yExtent, textStr);
 }
 
 void NGC::GetTextVSpacing(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("GC.GetTextVSpacing");
-	ReturnValue = 0.0f;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->GetTextVSpacing();
 }
 
 void NGC::GetTileColor(UObject* Self, Color& tileColor)
 {
-	LogUnimplemented("GC.GetTileColor");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->GetTileColor(tileColor);
 }
 
 void NGC::GetVerticalAlignment(UObject* Self, uint8_t& ReturnValue)
 {
-	LogUnimplemented("GC.GetVerticalAlignment");
-	ReturnValue = 0;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->GetVerticalAlignment();
 }
 
 void NGC::Intersect(UObject* Self, float ClipX, float ClipY, float clipWidth, float clipHeight)
 {
-	LogUnimplemented("GC.Intersect");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->Intersect(ClipX, ClipY, clipWidth, clipHeight);
 }
 
 void NGC::IsDrawingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsDrawingEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsDrawingEnabled();
 }
 
 void NGC::IsMaskingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsMaskingEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsMaskingEnabled();
 }
 
 void NGC::IsModulationEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsModulationEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsModulationEnabled();
 }
 
 void NGC::IsSmoothingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsSmoothingEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsSmoothingEnabled();
 }
 
 void NGC::IsSpecialTextEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsSpecialTextEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsSpecialTextEnabled();
 }
 
 void NGC::IsTranslucencyEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsTranslucencyEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsTranslucencyEnabled();
 }
 
 void NGC::IsTranslucentTextEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsTranslucentTextEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsTranslucentTextEnabled();
 }
 
 void NGC::IsWordWrapEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("GC.IsWordWrapEnabled");
-	ReturnValue = false;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->IsWordWrapEnabled();
 }
 
 void NGC::PopGC(UObject* Self, int* gcNum)
 {
-	LogUnimplemented("GC.PopGC");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->PopGC(gcNum);
 }
 
 void NGC::PushGC(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("GC.PushGC");
-	ReturnValue = 0;
+	UGC* gc = UObject::Cast<UGC>(Self);
+	ReturnValue = gc->PushGC();
 }
 
 void NGC::SetAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetAlignments");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetAlignments(newHAlign, newVAlign);
 }
 
 void NGC::SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("GC.SetBaselineData");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetBaselineData(newBaselineOffset, newUnderlineHeight);
 }
 
 void NGC::SetBoldFont(UObject* Self, UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetBoldFont");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetBoldFont(newBoldFont);
 }
 
 void NGC::SetFont(UObject* Self, UObject* NewFont)
 {
-	LogUnimplemented("GC.SetFont");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetFont(NewFont);
 }
 
 void NGC::SetFonts(UObject* Self, UObject* newNormalFont, UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetFonts");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetFonts(newNormalFont, newBoldFont);
 }
 
 void NGC::SetHorizontalAlignment(UObject* Self, uint8_t newHAlign)
 {
-	LogUnimplemented("GC.SetHorizontalAlignment");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetHorizontalAlignment(newHAlign);
 }
 
 void NGC::SetNormalFont(UObject* Self, UObject* newNormalFont)
 {
-	LogUnimplemented("GC.SetNormalFont");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetNormalFont(newNormalFont);
 }
 
 void NGC::SetStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("GC.SetStyle");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetStyle(NewStyle);
 }
 
 void NGC::SetTextColor(UObject* Self, const Color& newTextColor)
 {
-	LogUnimplemented("GC.SetTextColor");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetTextColor(newTextColor);
 }
 
 void NGC::SetTextVSpacing(UObject* Self, float newVSpacing)
 {
-	LogUnimplemented("GC.SetTextVSpacing");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetTextVSpacing(newVSpacing);
 }
 
 void NGC::SetTileColor(UObject* Self, const Color& newTileColor)
 {
-	LogUnimplemented("GC.SetTileColor");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetTileColor(newTileColor);
 }
 
 void NGC::SetVerticalAlignment(UObject* Self, uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetVerticalAlignment");
+	UGC* gc = UObject::Cast<UGC>(Self);
+	gc->SetVerticalAlignment(newVAlign);
 }

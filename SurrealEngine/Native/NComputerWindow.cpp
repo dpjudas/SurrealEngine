@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NComputerWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NComputerWindow::RegisterFunctions()
@@ -42,168 +43,198 @@ void NComputerWindow::RegisterFunctions()
 
 void NComputerWindow::ClearLine(UObject* Self, int rowToClear)
 {
-	LogUnimplemented("ComputerWindow.ClearLine");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->ClearLine(rowToClear);
 }
 
 void NComputerWindow::ClearScreen(UObject* Self)
 {
-	LogUnimplemented("ComputerWindow.ClearScreen");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->ClearScreen();
 }
 
 void NComputerWindow::EnableWordWrap(UObject* Self, BitfieldBool* bNewWordWrap)
 {
-	LogUnimplemented("ComputerWindow.EnableWordWrap");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->EnableWordWrap(bNewWordWrap);
 }
 
 void NComputerWindow::FadeOutText(UObject* Self, float* fadeDuration)
 {
-	LogUnimplemented("ComputerWindow.FadeOutText");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->FadeOutText(fadeDuration);
 }
 
 void NComputerWindow::GetChar(UObject* Self, const std::string& inputKey, BitfieldBool* bEcho)
 {
-	LogUnimplemented("ComputerWindow.GetChar");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->GetChar(inputKey, bEcho);
 }
 
 void NComputerWindow::GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask)
 {
-	LogUnimplemented("ComputerWindow.GetInput");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->GetInput(MaxLength, inputKey, defaultInputString, inputMask);
 }
 
 void NComputerWindow::GetThrottle(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("ComputerWindow.GetThrottle");
-	ReturnValue = 0.0f;
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	ReturnValue = window->GetThrottle();
 }
 
 void NComputerWindow::IsBufferFlushed(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ComputerWindow.IsBufferFlushed");
-	ReturnValue = false;
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	ReturnValue = window->IsBufferFlushed();
 }
 
 void NComputerWindow::IsPaused(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ComputerWindow.IsPaused");
-	ReturnValue = false;
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	ReturnValue = window->IsPaused();
 }
 
 void NComputerWindow::Pause(UObject* Self, float* pauseLength)
 {
-	LogUnimplemented("ComputerWindow.Pause");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->Pause(pauseLength);
 }
 
 void NComputerWindow::PlaySoundLater(UObject* Self, UObject* newsound)
 {
-	LogUnimplemented("ComputerWindow.PlaySoundLater");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->PlaySoundLater(newsound);
 }
 
 void NComputerWindow::Print(UObject* Self, const std::string& printText, BitfieldBool* bNewLine)
 {
-	LogUnimplemented("ComputerWindow.Print");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->Print(printText, bNewLine);
 }
 
 void NComputerWindow::PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos)
 {
-	LogUnimplemented("ComputerWindow.PrintGraphic");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->PrintGraphic(Graphic, Width, Height, posX, posY, bStatic, bPixelPos);
 }
 
 void NComputerWindow::PrintLn(UObject* Self)
 {
-	LogUnimplemented("ComputerWindow.PrintLn");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->PrintLn();
 }
 
 void NComputerWindow::ResetThrottle(UObject* Self)
 {
-	LogUnimplemented("ComputerWindow.ResetThrottle");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->ResetThrottle();
 }
 
 void NComputerWindow::Resume(UObject* Self)
 {
-	LogUnimplemented("ComputerWindow.Resume");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->Resume();
 }
 
 void NComputerWindow::SetBackgroundTextures(UObject* Self, UObject* backTexture1, UObject* backTexture2, UObject* backTexture3, UObject* backTexture4, UObject* backTexture5, UObject* backTexture6)
 {
-	LogUnimplemented("ComputerWindow.SetBackgroundTextures");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetBackgroundTextures(backTexture1, backTexture2, backTexture3, backTexture4, backTexture5, backTexture6);
 }
 
 void NComputerWindow::SetComputerSoundVolume(UObject* Self, float newSoundVolume)
 {
-	LogUnimplemented("ComputerWindow.SetComputerSoundVolume");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetComputerSoundVolume(newSoundVolume);
 }
 
 void NComputerWindow::SetCursorBlinkSpeed(UObject* Self, float newBlinkSpeed)
 {
-	LogUnimplemented("ComputerWindow.SetCursorBlinkSpeed");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetCursorBlinkSpeed(newBlinkSpeed);
 }
 
 void NComputerWindow::SetCursorColor(UObject* Self, const Color& newCursorColor)
 {
-	LogUnimplemented("ComputerWindow.SetCursorColor");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetCursorColor(newCursorColor);
 }
 
 void NComputerWindow::SetCursorTexture(UObject* Self, UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight)
 {
-	LogUnimplemented("ComputerWindow.SetCursorTexture");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetCursorTexture(newCursorTexture, newCursorWidth, newCursorHeight);
 }
 
 void NComputerWindow::SetFadeSpeed(UObject* Self, float fadeSpeed)
 {
-	LogUnimplemented("ComputerWindow.SetFadeSpeed");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetFadeSpeed(fadeSpeed);
 }
 
 void NComputerWindow::SetFontColor(UObject* Self, const Color& newFontColor)
 {
-	LogUnimplemented("ComputerWindow.SetFontColor");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetFontColor(newFontColor);
 }
 
 void NComputerWindow::SetTextFont(UObject* Self, UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
 {
-	LogUnimplemented("ComputerWindow.SetTextFont");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextFont(NewFont, newFontWidth, newFontHeight, newFontColor);
 }
 
 void NComputerWindow::SetTextPosition(UObject* Self, int posX, int posY)
 {
-	LogUnimplemented("ComputerWindow.SetTextPosition");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextPosition(posX, posY);
 }
 
 void NComputerWindow::SetTextSize(UObject* Self, int newCols, int newRows)
 {
-	LogUnimplemented("ComputerWindow.SetTextSize");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextSize(newCols, newRows);
 }
 
 void NComputerWindow::SetTextSound(UObject* Self, UObject* newTextSound)
 {
-	LogUnimplemented("ComputerWindow.SetTextSound");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextSound(newTextSound);
 }
 
 void NComputerWindow::SetTextTiming(UObject* Self, float newTiming)
 {
-	LogUnimplemented("ComputerWindow.SetTextTiming");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextTiming(newTiming);
 }
 
 void NComputerWindow::SetTextWindowPosition(UObject* Self, int newX, int newY)
 {
-	LogUnimplemented("ComputerWindow.SetTextWindowPosition");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTextWindowPosition(newX, newY);
 }
 
 void NComputerWindow::SetThrottle(UObject* Self, float throttleModifier)
 {
-	LogUnimplemented("ComputerWindow.SetThrottle");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetThrottle(throttleModifier);
 }
 
 void NComputerWindow::SetTypingSound(UObject* Self, UObject* newTypingSound)
 {
-	LogUnimplemented("ComputerWindow.SetTypingSound");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTypingSound(newTypingSound);
 }
 
 void NComputerWindow::SetTypingSoundVolume(UObject* Self, float newSoundVolume)
 {
-	LogUnimplemented("ComputerWindow.SetTypingSoundVolume");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->SetTypingSoundVolume(newSoundVolume);
 }
 
 void NComputerWindow::ShowTextCursor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("ComputerWindow.ShowTextCursor");
+	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
+	window->ShowTextCursor(bShow);
 }

@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NScaleManagerWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NScaleManagerWindow::RegisterFunctions()
@@ -18,45 +19,54 @@ void NScaleManagerWindow::RegisterFunctions()
 
 void NScaleManagerWindow::SetManagerAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerAlignments");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetManagerAlignments(newHAlign, newVAlign);
 }
 
 void NScaleManagerWindow::SetManagerMargins(UObject* Self, float* newMarginWidth, float* newMarginHeight)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerMargins");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetManagerMargins(newMarginWidth, newMarginHeight);
 }
 
 void NScaleManagerWindow::SetManagerOrientation(UObject* Self, uint8_t newOrientation)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerOrientation");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetManagerOrientation(newOrientation);
 }
 
 void NScaleManagerWindow::SetMarginSpacing(UObject* Self, float* newSpacing)
 {
-	LogUnimplemented("ScaleManagerWindow.SetMarginSpacing");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetMarginSpacing(newSpacing);
 }
 
 void NScaleManagerWindow::SetScale(UObject* Self, UObject* NewScale)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScale");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetScale(NewScale);
 }
 
 void NScaleManagerWindow::SetScaleButtons(UObject* Self, UObject* newDecButton, UObject* newIncButton)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScaleButtons");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetScaleButtons(newDecButton, newIncButton);
 }
 
 void NScaleManagerWindow::SetValueField(UObject* Self, UObject* newValueField)
 {
-	LogUnimplemented("ScaleManagerWindow.SetValueField");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->SetValueField(newValueField);
 }
 
 void NScaleManagerWindow::StretchScaleField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchScaleField");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->StretchScaleField(bNewStretch);
 }
 
 void NScaleManagerWindow::StretchValueField(UObject* Self, BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchValueField");
+	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
+	window->StretchValueField(bNewStretch);
 }

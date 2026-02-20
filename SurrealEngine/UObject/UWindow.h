@@ -333,24 +333,173 @@ class UScaleWindow : public UWindow
 {
 public:
     using UWindow::UWindow;
+
+	void ClearAllEnumerations();
+	void EnableStretchedScale(BitfieldBool* bNewStretch);
+	int GetNumTicks();
+	int GetThumbSpan();
+	int GetTickPosition();
+	float GetValue();
+	std::string GetValueString();
+	void GetValues(float& fromValue, float& toValue);
+	void MoveThumb(uint8_t MoveThumb);
+	void PlayScaleSound(UObject* newsound, float* Volume, float* Pitch);
+	void SetBorderPattern(UObject* NewTexture);
+	void SetEnumeration(int tickPos, const std::string& newStr);
+	void SetNumTicks(int newNumTicks);
+	void SetScaleBorder(float* newBorderSize, Color* NewColor);
+	void SetScaleColor(const Color& NewColor);
+	void SetScaleMargins(float* marginWidth, float* marginHeight);
+	void SetScaleOrientation(uint8_t newOrientation);
+	void SetScaleSounds(UObject** setSound, UObject** clickSound, UObject** dragSound);
+	void SetScaleStyle(uint8_t NewStyle);
+	void SetScaleTexture(UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd);
+	void SetThumbBorder(float* newBorderSize, Color* NewColor);
+	void SetThumbCaps(UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight);
+	void SetThumbColor(const Color& NewColor);
+	void SetThumbSpan(int* newRange);
+	void SetThumbStep(int NewStep);
+	void SetThumbStyle(uint8_t NewStyle);
+	void SetThumbTexture(UObject* NewTexture, float* newWidth, float* NewHeight);
+	void SetTickColor(const Color& NewColor);
+	void SetTickPosition(int newPosition);
+	void SetTickStyle(uint8_t NewStyle);
+	void SetTickTexture(UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight);
+	void SetValue(float NewValue);
+	void SetValueFormat(const std::string& newFmt);
+	void SetValueRange(float newFrom, float newTo);
 };
 
 class UScaleManagerWindow : public UWindow
 {
 public:
     using UWindow::UWindow;
+
+	void SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign);
+	void SetManagerMargins(float* newMarginWidth, float* newMarginHeight);
+	void SetManagerOrientation(uint8_t newOrientation);
+	void SetMarginSpacing(float* newSpacing);
+	void SetScale(UObject* NewScale);
+	void SetScaleButtons(UObject* newDecButton, UObject* newIncButton);
+	void SetValueField(UObject* newValueField);
+	void StretchScaleField(BitfieldBool* bNewStretch);
+	void StretchValueField(BitfieldBool* bNewStretch);
 };
 
 class UListWindow : public UWindow
 {
 public:
     using UWindow::UWindow;
+
+	int AddRow(const std::string& rowStr, int* clientData);
+	void AddSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive);
+	void DeleteAllRows();
+	void DeleteRow(int rowId);
+	void EnableAutoExpandColumns(BitfieldBool* bAutoExpand);
+	void EnableAutoSort(BitfieldBool* bAutoSort);
+	void EnableHotKeys(BitfieldBool* bEnable);
+	void EnableMultiSelect(BitfieldBool* bEnableMultiSelect);
+	uint8_t GetColumnAlignment(int colIndex);
+	void GetColumnColor(int colIndex, Color& colColor);
+	UObject* GetColumnFont(int colIndex);
+	std::string GetColumnTitle(int colIndex);
+	uint8_t GetColumnType(int colIndex);
+	float GetColumnWidth(int colIndex);
+	std::string GetField(int rowId, int colIndex);
+	void GetFieldMargins(float& marginWidth, float& marginHeight);
+	float GetFieldValue(int rowId, int colIndex);
+	int GetFocusRow();
+	int GetNumColumns();
+	int GetNumRows();
+	int GetNumSelectedRows();
+	int GetPageSize();
+	int GetRowClientInt(int rowId);
+	UObject* GetRowClientObject(int rowId);
+	int GetSelectedRow();
+	void HideColumn(int colIndex, BitfieldBool* bHide);
+	int IndexToRowId(int index);
+	bool IsAutoExpandColumnsEnabled();
+	bool IsAutoSortEnabled();
+	bool IsColumnHidden(int colIndex);
+	bool IsMultiSelectEnabled();
+	bool IsRowSelected(int rowId);
+	void ModifyRow(int rowId, const std::string& rowStr);
+	void MoveRow(uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag);
+	void PlayListSound(UObject* listSound, float* Volume, float* Pitch);
+	void RemoveSortColumn(int colIndex);
+	void ResetSortColumns(BitfieldBool* bSort);
+	void ResizeColumns(BitfieldBool* bExpandOnly);
+	int RowIdToIndex(int rowId);
+	void SelectAllRows(BitfieldBool* bSelect);
+	void SelectRow(int rowId, BitfieldBool* bSelect);
+	void SelectToRow(int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows);
+	void SetColumnAlignment(int colIndex, uint8_t newAlign);
+	void SetColumnColor(int colIndex, const Color& NewColor);
+	void SetColumnFont(int colIndex, UObject* NewFont);
+	void SetColumnTitle(int colIndex, const std::string& Title);
+	void SetColumnType(int colIndex, uint8_t newType, std::string* newFmt);
+	void SetColumnWidth(int colIndex, float newWidth);
+	void SetDelimiter(const std::string& newDelimiter);
+	void SetField(int rowId, int colIndex, const std::string& fieldStr);
+	void SetFieldMargins(float newMarginWidth, float newMarginHeight);
+	void SetFieldValue(int rowId, int colIndex, float NewValue);
+	void SetFocusColor(const Color& NewColor);
+	void SetFocusRow(int rowId, BitfieldBool* bMoveTo, BitfieldBool* bAnchor);
+	void SetFocusTexture(UObject* NewTexture);
+	void SetFocusThickness(float newThickness);
+	void SetHighlightColor(const Color& NewColor);
+	void SetHighlightTextColor(const Color& NewColor);
+	void SetHighlightTexture(UObject* NewTexture);
+	void SetHotKeyColumn(int colIndex);
+	void SetListSounds(UObject** ActivateSound, UObject** moveSound);
+	void SetNumColumns(int newCols);
+	void SetRow(int rowId, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag);
+	void SetRowClientInt(int rowId, int clientInt);
+	void SetRowClientObject(int rowId, UObject* clientObj);
+	void SetSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive);
+	void ShowFocusRow();
+	void Sort();
+	void ToggleRowSelection(int rowId);
 };
 
 class UComputerWindow : public UWindow
 {
 public:
     using UWindow::UWindow;
+
+	void ClearLine(int rowToClear);
+	void ClearScreen();
+	void EnableWordWrap(BitfieldBool* bNewWordWrap);
+	void FadeOutText(float* fadeDuration);
+	void GetChar(const std::string& inputKey, BitfieldBool* bEcho);
+	void GetInput(int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask);
+	float GetThrottle();
+	bool IsBufferFlushed();
+	bool IsPaused();
+	void Pause(float* pauseLength);
+	void PlaySoundLater(UObject* newsound);
+	void Print(const std::string& printText, BitfieldBool* bNewLine);
+	void PrintGraphic(UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos);
+	void PrintLn();
+	void ResetThrottle();
+	void Resume();
+	void SetBackgroundTextures(UObject* backTexture1, UObject* backTexture2, UObject* backTexture3, UObject* backTexture4, UObject* backTexture5, UObject* backTexture6);
+	void SetComputerSoundVolume(float newSoundVolume);
+	void SetCursorBlinkSpeed(float newBlinkSpeed);
+	void SetCursorColor(const Color& newCursorColor);
+	void SetCursorTexture(UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight);
+	void SetFadeSpeed(float fadeSpeed);
+	void SetFontColor(const Color& newFontColor);
+	void SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor);
+	void SetTextPosition(int posX, int posY);
+	void SetTextSize(int newCols, int newRows);
+	void SetTextSound(UObject* newTextSound);
+	void SetTextTiming(float newTiming);
+	void SetTextWindowPosition(int newX, int newY);
+	void SetThrottle(float throttleModifier);
+	void SetTypingSound(UObject* newTypingSound);
+	void SetTypingSoundVolume(float newSoundVolume);
+	void ShowTextCursor(BitfieldBool* bShow);
 };
 
 class UBorderWindow : public UWindow
@@ -369,4 +518,56 @@ class UGC : public UObject
 {
 public:
 	using UObject::UObject;
+
+	void ClearZ();
+	void CopyGC(UObject* Copy);
+	void DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin);
+	void DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically);
+	void DrawBox(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX);
+	void DrawIcon(float DestX, float DestY, UObject* tX);
+	void DrawPattern(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX);
+	void DrawStretchedTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, float srcWidth, float srcHeight, UObject* tX);
+	void DrawText(float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr);
+	void DrawTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, UObject* tX);
+	void EnableDrawing(bool bDrawEnabled);
+	void EnableMasking(bool bNewMasking);
+	void EnableModulation(bool bNewModulation);
+	void EnableSmoothing(bool bNewSmoothing);
+	void EnableSpecialText(bool bNewSpecialText);
+	void EnableTranslucency(bool bNewTranslucency);
+	void EnableTranslucentText(bool bNewTranslucency);
+	void EnableWordWrap(bool bNewWordWrap);
+	void GetAlignments(uint8_t& HAlign, uint8_t& VAlign);
+	float GetFontHeight(BitfieldBool* bIncludeSpace);
+	void GetFonts(UObject*& normalFont, UObject*& boldFont);
+	uint8_t GetHorizontalAlignment();
+	uint8_t GetStyle();
+	void GetTextColor(Color& TextColor);
+	void GetTextExtent(float destWidth, float& xExtent, float& yExtent, const std::string& textStr);
+	float GetTextVSpacing();
+	void GetTileColor(Color& tileColor);
+	uint8_t GetVerticalAlignment();
+	void Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight);
+	bool IsDrawingEnabled();
+	bool IsMaskingEnabled();
+	bool IsModulationEnabled();
+	bool IsSmoothingEnabled();
+	bool IsSpecialTextEnabled();
+	bool IsTranslucencyEnabled();
+	bool IsTranslucentTextEnabled();
+	bool IsWordWrapEnabled();
+	void PopGC(int* gcNum);
+	int PushGC();
+	void SetAlignments(uint8_t newHAlign, uint8_t newVAlign);
+	void SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight);
+	void SetBoldFont(UObject* newBoldFont);
+	void SetFont(UObject* NewFont);
+	void SetFonts(UObject* newNormalFont, UObject* newBoldFont);
+	void SetHorizontalAlignment(uint8_t newHAlign);
+	void SetNormalFont(UObject* newNormalFont);
+	void SetStyle(uint8_t NewStyle);
+	void SetTextColor(const Color& newTextColor);
+	void SetTextVSpacing(float newVSpacing);
+	void SetTileColor(const Color& newTileColor);
+	void SetVerticalAlignment(uint8_t newVAlign);
 };

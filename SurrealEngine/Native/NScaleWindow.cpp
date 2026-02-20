@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NScaleWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NScaleWindow::RegisterFunctions()
@@ -43,175 +44,204 @@ void NScaleWindow::RegisterFunctions()
 
 void NScaleWindow::ClearAllEnumerations(UObject* Self)
 {
-	LogUnimplemented("ScaleWindow.ClearAllEnumerations");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->ClearAllEnumerations();
 }
 
 void NScaleWindow::EnableStretchedScale(UObject* Self, BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleWindow.EnableStretchedScale");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->EnableStretchedScale(bNewStretch);
 }
 
 void NScaleWindow::GetNumTicks(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("ScaleWindow.GetNumTicks");
-	ReturnValue = 0;
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	ReturnValue = scalewindow->GetNumTicks();
 }
 
 void NScaleWindow::GetThumbSpan(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("ScaleWindow.GetThumbSpan");
-	ReturnValue = 0;
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	ReturnValue = scalewindow->GetThumbSpan();
 }
 
 void NScaleWindow::GetTickPosition(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("ScaleWindow.GetTickPosition");
-	ReturnValue = 0;
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	ReturnValue = scalewindow->GetTickPosition();
 }
 
 void NScaleWindow::GetValue(UObject* Self, float& ReturnValue)
 {
-	LogUnimplemented("ScaleWindow.GetValue");
-	ReturnValue = 0.0f;
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	ReturnValue = scalewindow->GetValue();
 }
 
 void NScaleWindow::GetValueString(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("ScaleWindow.GetValueString");
-	ReturnValue = "";
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	ReturnValue = scalewindow->GetValueString();
 }
 
 void NScaleWindow::GetValues(UObject* Self, float& fromValue, float& toValue)
 {
-	LogUnimplemented("ScaleWindow.GetValues");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->GetValues(fromValue, toValue);
 }
 
 void NScaleWindow::MoveThumb(UObject* Self, uint8_t MoveThumb)
 {
-	LogUnimplemented("ScaleWindow.MoveThumb");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->MoveThumb(MoveThumb);
 }
 
 void NScaleWindow::PlayScaleSound(UObject* Self, UObject* newsound, float* Volume, float* Pitch)
 {
-	LogUnimplemented("ScaleWindow.PlayScaleSound");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->PlayScaleSound(newsound, Volume, Pitch);
 }
 
 void NScaleWindow::SetBorderPattern(UObject* Self, UObject* NewTexture)
 {
-	LogUnimplemented("ScaleWindow.SetBorderPattern");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetBorderPattern(NewTexture);
 }
 
 void NScaleWindow::SetEnumeration(UObject* Self, int tickPos, const std::string& newStr)
 {
-	LogUnimplemented("ScaleWindow.SetEnumeration");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetEnumeration(tickPos, newStr);
 }
 
 void NScaleWindow::SetNumTicks(UObject* Self, int newNumTicks)
 {
-	LogUnimplemented("ScaleWindow.SetNumTicks");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetNumTicks(newNumTicks);
 }
 
 void NScaleWindow::SetScaleBorder(UObject* Self, float* newBorderSize, Color* NewColor)
 {
-	LogUnimplemented("ScaleWindow.SetScaleBorder");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleBorder(newBorderSize, NewColor);
 }
 
 void NScaleWindow::SetScaleColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("ScaleWindow.SetScaleColor");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleColor(NewColor);
 }
 
 void NScaleWindow::SetScaleMargins(UObject* Self, float* marginWidth, float* marginHeight)
 {
-	LogUnimplemented("ScaleWindow.SetScaleMargins");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleMargins(marginWidth, marginHeight);
 }
 
 void NScaleWindow::SetScaleOrientation(UObject* Self, uint8_t newOrientation)
 {
-	LogUnimplemented("ScaleWindow.SetScaleOrientation");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleOrientation(newOrientation);
 }
 
 void NScaleWindow::SetScaleSounds(UObject* Self, UObject** setSound, UObject** clickSound, UObject** dragSound)
 {
-	LogUnimplemented("ScaleWindow.SetScaleSounds");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleSounds(setSound, clickSound, dragSound);
 }
 
 void NScaleWindow::SetScaleStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("ScaleWindow.SetScaleStyle");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleStyle(NewStyle);
 }
 
 void NScaleWindow::SetScaleTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd)
 {
-	LogUnimplemented("ScaleWindow.SetScaleTexture");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetScaleTexture(NewTexture, newWidth, NewHeight, newStart, newEnd);
 }
 
 void NScaleWindow::SetThumbBorder(UObject* Self, float* newBorderSize, Color* NewColor)
 {
-	LogUnimplemented("ScaleWindow.SetThumbBorder");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbBorder(newBorderSize, NewColor);
 }
 
 void NScaleWindow::SetThumbCaps(UObject* Self, UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight)
 {
-	LogUnimplemented("ScaleWindow.SetThumbCaps");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbCaps(preCap, postCap, preCapWidth, preCapHeight, postCapWidth, postCapHeight);
 }
 
 void NScaleWindow::SetThumbColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("ScaleWindow.SetThumbColor");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbColor(NewColor);
 }
 
 void NScaleWindow::SetThumbSpan(UObject* Self, int* newRange)
 {
-	LogUnimplemented("ScaleWindow.SetThumbSpan");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbSpan(newRange);
 }
 
 void NScaleWindow::SetThumbStep(UObject* Self, int NewStep)
 {
-	LogUnimplemented("ScaleWindow.SetThumbStep");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbStep(NewStep);
 }
 
 void NScaleWindow::SetThumbStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("ScaleWindow.SetThumbStyle");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbStyle(NewStyle);
 }
 
 void NScaleWindow::SetThumbTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight)
 {
-	LogUnimplemented("ScaleWindow.SetThumbTexture");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetThumbTexture(NewTexture, newWidth, NewHeight);
 }
 
 void NScaleWindow::SetTickColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("ScaleWindow.SetTickColor");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetTickColor(NewColor);
 }
 
 void NScaleWindow::SetTickPosition(UObject* Self, int newPosition)
 {
-	LogUnimplemented("ScaleWindow.SetTickPosition");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetTickPosition(newPosition);
 }
 
 void NScaleWindow::SetTickStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("ScaleWindow.SetTickStyle");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetTickStyle(NewStyle);
 }
 
 void NScaleWindow::SetTickTexture(UObject* Self, UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
 {
-	LogUnimplemented("ScaleWindow.SetTickTexture");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetTickTexture(tickTexture, bDrawEndTicks, newWidth, NewHeight);
 }
 
 void NScaleWindow::SetValue(UObject* Self, float NewValue)
 {
-	LogUnimplemented("ScaleWindow.SetValue");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetValue(NewValue);
 }
 
 void NScaleWindow::SetValueFormat(UObject* Self, const std::string& newFmt)
 {
-	LogUnimplemented("ScaleWindow.SetValueFormat");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetValueFormat(newFmt);
 }
 
 void NScaleWindow::SetValueRange(UObject* Self, float newFrom, float newTo)
 {
-	LogUnimplemented("ScaleWindow.SetValueRange");
+	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
+	scalewindow->SetValueRange(newFrom, newTo);
 }
