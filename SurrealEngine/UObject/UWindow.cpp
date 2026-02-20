@@ -1186,3 +1186,1038 @@ void UBorderWindow::SetMoveCursors(UObject** Move, UObject** hMove, UObject** vM
 {
 	LogUnimplemented("BorderWindow.SetMoveCursors");
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UScaleWindow::ClearAllEnumerations()
+{
+	LogUnimplemented("ScaleWindow.ClearAllEnumerations");
+}
+
+void UScaleWindow::EnableStretchedScale(BitfieldBool* bNewStretch)
+{
+	LogUnimplemented("ScaleWindow.EnableStretchedScale");
+}
+
+int UScaleWindow::GetNumTicks()
+{
+	LogUnimplemented("ScaleWindow.GetNumTicks");
+	return 0;
+}
+
+int UScaleWindow::GetThumbSpan()
+{
+	LogUnimplemented("ScaleWindow.GetThumbSpan");
+	return 0;
+}
+
+int UScaleWindow::GetTickPosition()
+{
+	LogUnimplemented("ScaleWindow.GetTickPosition");
+	return 0;
+}
+
+float UScaleWindow::GetValue()
+{
+	LogUnimplemented("ScaleWindow.GetValue");
+	return 0.0f;
+}
+
+std::string UScaleWindow::GetValueString()
+{
+	LogUnimplemented("ScaleWindow.GetValueString");
+	return "";
+}
+
+void UScaleWindow::GetValues(float& fromValue, float& toValue)
+{
+	LogUnimplemented("ScaleWindow.GetValues");
+}
+
+void UScaleWindow::MoveThumb(uint8_t MoveThumb)
+{
+	LogUnimplemented("ScaleWindow.MoveThumb");
+}
+
+void UScaleWindow::PlayScaleSound(UObject* newsound, float* Volume, float* Pitch)
+{
+	LogUnimplemented("ScaleWindow.PlayScaleSound");
+}
+
+void UScaleWindow::SetBorderPattern(UObject* NewTexture)
+{
+	LogUnimplemented("ScaleWindow.SetBorderPattern");
+}
+
+void UScaleWindow::SetEnumeration(int tickPos, const std::string& newStr)
+{
+	LogUnimplemented("ScaleWindow.SetEnumeration");
+}
+
+void UScaleWindow::SetNumTicks(int newNumTicks)
+{
+	LogUnimplemented("ScaleWindow.SetNumTicks");
+}
+
+void UScaleWindow::SetScaleBorder(float* newBorderSize, Color* NewColor)
+{
+	LogUnimplemented("ScaleWindow.SetScaleBorder");
+}
+
+void UScaleWindow::SetScaleColor(const Color& NewColor)
+{
+	LogUnimplemented("ScaleWindow.SetScaleColor");
+}
+
+void UScaleWindow::SetScaleMargins(float* marginWidth, float* marginHeight)
+{
+	LogUnimplemented("ScaleWindow.SetScaleMargins");
+}
+
+void UScaleWindow::SetScaleOrientation(uint8_t newOrientation)
+{
+	LogUnimplemented("ScaleWindow.SetScaleOrientation");
+}
+
+void UScaleWindow::SetScaleSounds(UObject** setSound, UObject** clickSound, UObject** dragSound)
+{
+	LogUnimplemented("ScaleWindow.SetScaleSounds");
+}
+
+void UScaleWindow::SetScaleStyle(uint8_t NewStyle)
+{
+	LogUnimplemented("ScaleWindow.SetScaleStyle");
+}
+
+void UScaleWindow::SetScaleTexture(UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd)
+{
+	LogUnimplemented("ScaleWindow.SetScaleTexture");
+}
+
+void UScaleWindow::SetThumbBorder(float* newBorderSize, Color* NewColor)
+{
+	LogUnimplemented("ScaleWindow.SetThumbBorder");
+}
+
+void UScaleWindow::SetThumbCaps(UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight)
+{
+	LogUnimplemented("ScaleWindow.SetThumbCaps");
+}
+
+void UScaleWindow::SetThumbColor(const Color& NewColor)
+{
+	LogUnimplemented("ScaleWindow.SetThumbColor");
+}
+
+void UScaleWindow::SetThumbSpan(int* newRange)
+{
+	LogUnimplemented("ScaleWindow.SetThumbSpan");
+}
+
+void UScaleWindow::SetThumbStep(int NewStep)
+{
+	LogUnimplemented("ScaleWindow.SetThumbStep");
+}
+
+void UScaleWindow::SetThumbStyle(uint8_t NewStyle)
+{
+	LogUnimplemented("ScaleWindow.SetThumbStyle");
+}
+
+void UScaleWindow::SetThumbTexture(UObject* NewTexture, float* newWidth, float* NewHeight)
+{
+	LogUnimplemented("ScaleWindow.SetThumbTexture");
+}
+
+void UScaleWindow::SetTickColor(const Color& NewColor)
+{
+	LogUnimplemented("ScaleWindow.SetTickColor");
+}
+
+void UScaleWindow::SetTickPosition(int newPosition)
+{
+	LogUnimplemented("ScaleWindow.SetTickPosition");
+}
+
+void UScaleWindow::SetTickStyle(uint8_t NewStyle)
+{
+	LogUnimplemented("ScaleWindow.SetTickStyle");
+}
+
+void UScaleWindow::SetTickTexture(UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
+{
+	LogUnimplemented("ScaleWindow.SetTickTexture");
+}
+
+void UScaleWindow::SetValue(float NewValue)
+{
+	LogUnimplemented("ScaleWindow.SetValue");
+}
+
+void UScaleWindow::SetValueFormat(const std::string& newFmt)
+{
+	LogUnimplemented("ScaleWindow.SetValueFormat");
+}
+
+void UScaleWindow::SetValueRange(float newFrom, float newTo)
+{
+	LogUnimplemented("ScaleWindow.SetValueRange");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UScaleManagerWindow::SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign)
+{
+	LogUnimplemented("ScaleManagerWindow.SetManagerAlignments");
+}
+
+void UScaleManagerWindow::SetManagerMargins(float* newMarginWidth, float* newMarginHeight)
+{
+	LogUnimplemented("ScaleManagerWindow.SetManagerMargins");
+}
+
+void UScaleManagerWindow::SetManagerOrientation(uint8_t newOrientation)
+{
+	LogUnimplemented("ScaleManagerWindow.SetManagerOrientation");
+}
+
+void UScaleManagerWindow::SetMarginSpacing(float* newSpacing)
+{
+	LogUnimplemented("ScaleManagerWindow.SetMarginSpacing");
+}
+
+void UScaleManagerWindow::SetScale(UObject* NewScale)
+{
+	LogUnimplemented("ScaleManagerWindow.SetScale");
+}
+
+void UScaleManagerWindow::SetScaleButtons(UObject* newDecButton, UObject* newIncButton)
+{
+	LogUnimplemented("ScaleManagerWindow.SetScaleButtons");
+}
+
+void UScaleManagerWindow::SetValueField(UObject* newValueField)
+{
+	LogUnimplemented("ScaleManagerWindow.SetValueField");
+}
+
+void UScaleManagerWindow::StretchScaleField(BitfieldBool* bNewStretch)
+{
+	LogUnimplemented("ScaleManagerWindow.StretchScaleField");
+}
+
+void UScaleManagerWindow::StretchValueField(BitfieldBool* bNewStretch)
+{
+	LogUnimplemented("ScaleManagerWindow.StretchValueField");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+int UListWindow::AddRow(const std::string& rowStr, int* clientData)
+{
+	LogUnimplemented("ListWindow.AddRow");
+	return 0;
+}
+
+void UListWindow::AddSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
+{
+	LogUnimplemented("ListWindow.AddSortColumn");
+}
+
+void UListWindow::DeleteAllRows()
+{
+	LogUnimplemented("ListWindow.DeleteAllRows");
+}
+
+void UListWindow::DeleteRow(int rowId)
+{
+	LogUnimplemented("ListWindow.DeleteRow");
+}
+
+void UListWindow::EnableAutoExpandColumns(BitfieldBool* bAutoExpand)
+{
+	LogUnimplemented("ListWindow.EnableAutoExpandColumns");
+}
+
+void UListWindow::EnableAutoSort(BitfieldBool* bAutoSort)
+{
+	LogUnimplemented("ListWindow.EnableAutoSort");
+}
+
+void UListWindow::EnableHotKeys(BitfieldBool* bEnable)
+{
+	LogUnimplemented("ListWindow.EnableHotKeys");
+}
+
+void UListWindow::EnableMultiSelect(BitfieldBool* bEnableMultiSelect)
+{
+	LogUnimplemented("ListWindow.EnableMultiSelect");
+}
+
+uint8_t UListWindow::GetColumnAlignment(int colIndex)
+{
+	LogUnimplemented("ListWindow.GetColumnAlignment");
+	return 0;
+}
+
+void UListWindow::GetColumnColor(int colIndex, Color& colColor)
+{
+	LogUnimplemented("ListWindow.GetColumnColor");
+}
+
+UObject* UListWindow::GetColumnFont(int colIndex)
+{
+	LogUnimplemented("ListWindow.GetColumnFont");
+	return nullptr;
+}
+
+std::string UListWindow::GetColumnTitle(int colIndex)
+{
+	LogUnimplemented("ListWindow.GetColumnTitle");
+	return "";
+}
+
+uint8_t UListWindow::GetColumnType(int colIndex)
+{
+	LogUnimplemented("ListWindow.GetColumnType");
+	return 0;
+}
+
+float UListWindow::GetColumnWidth(int colIndex)
+{
+	LogUnimplemented("ListWindow.GetColumnWidth");
+	return 0.0f;
+}
+
+std::string UListWindow::GetField(int rowId, int colIndex)
+{
+	LogUnimplemented("ListWindow.GetField");
+	return "";
+}
+
+void UListWindow::GetFieldMargins(float& marginWidth, float& marginHeight)
+{
+	LogUnimplemented("ListWindow.GetFieldMargins");
+}
+
+float UListWindow::GetFieldValue(int rowId, int colIndex)
+{
+	LogUnimplemented("ListWindow.GetFieldValue");
+	return 0.0f;
+}
+
+int UListWindow::GetFocusRow()
+{
+	LogUnimplemented("ListWindow.GetFocusRow");
+	return 0;
+}
+
+int UListWindow::GetNumColumns()
+{
+	LogUnimplemented("ListWindow.GetNumColumns");
+	return 0;
+}
+
+int UListWindow::GetNumRows()
+{
+	LogUnimplemented("ListWindow.GetNumRows");
+	return 0;
+}
+
+int UListWindow::GetNumSelectedRows()
+{
+	LogUnimplemented("ListWindow.GetNumSelectedRows");
+	return 0;
+}
+
+int UListWindow::GetPageSize()
+{
+	LogUnimplemented("ListWindow.GetPageSize");
+	return 0;
+}
+
+int UListWindow::GetRowClientInt(int rowId)
+{
+	LogUnimplemented("ListWindow.GetRowClientInt");
+	return 0;
+}
+
+UObject* UListWindow::GetRowClientObject(int rowId)
+{
+	LogUnimplemented("ListWindow.GetRowClientObject");
+	return nullptr;
+}
+
+int UListWindow::GetSelectedRow()
+{
+	LogUnimplemented("ListWindow.GetSelectedRow");
+	return 0;
+}
+
+void UListWindow::HideColumn(int colIndex, BitfieldBool* bHide)
+{
+	LogUnimplemented("ListWindow.HideColumn");
+}
+
+int UListWindow::IndexToRowId(int index)
+{
+	LogUnimplemented("ListWindow.IndexToRowId");
+	return 0;
+}
+
+bool UListWindow::IsAutoExpandColumnsEnabled()
+{
+	LogUnimplemented("ListWindow.IsAutoExpandColumnsEnabled");
+	return false;
+}
+
+bool UListWindow::IsAutoSortEnabled()
+{
+	LogUnimplemented("ListWindow.IsAutoSortEnabled");
+	return false;
+}
+
+bool UListWindow::IsColumnHidden(int colIndex)
+{
+	LogUnimplemented("ListWindow.IsColumnHidden");
+	return false;
+}
+
+bool UListWindow::IsMultiSelectEnabled()
+{
+	LogUnimplemented("ListWindow.IsMultiSelectEnabled");
+	return false;
+}
+
+bool UListWindow::IsRowSelected(int rowId)
+{
+	LogUnimplemented("ListWindow.IsRowSelected");
+	return false;
+}
+
+void UListWindow::ModifyRow(int rowId, const std::string& rowStr)
+{
+	LogUnimplemented("ListWindow.ModifyRow");
+}
+
+void UListWindow::MoveRow(uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
+{
+	LogUnimplemented("ListWindow.MoveRow");
+}
+
+void UListWindow::PlayListSound(UObject* listSound, float* Volume, float* Pitch)
+{
+	LogUnimplemented("ListWindow.PlayListSound");
+}
+
+void UListWindow::RemoveSortColumn(int colIndex)
+{
+	LogUnimplemented("ListWindow.RemoveSortColumn");
+}
+
+void UListWindow::ResetSortColumns(BitfieldBool* bSort)
+{
+	LogUnimplemented("ListWindow.ResetSortColumns");
+}
+
+void UListWindow::ResizeColumns(BitfieldBool* bExpandOnly)
+{
+	LogUnimplemented("ListWindow.ResizeColumns");
+}
+
+int UListWindow::RowIdToIndex(int rowId)
+{
+	LogUnimplemented("ListWindow.RowIdToIndex");
+	return 0;
+}
+
+void UListWindow::SelectAllRows(BitfieldBool* bSelect)
+{
+	LogUnimplemented("ListWindow.SelectAllRows");
+}
+
+void UListWindow::SelectRow(int rowId, BitfieldBool* bSelect)
+{
+	LogUnimplemented("ListWindow.SelectRow");
+}
+
+void UListWindow::SelectToRow(int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows)
+{
+	LogUnimplemented("ListWindow.SelectToRow");
+}
+
+void UListWindow::SetColumnAlignment(int colIndex, uint8_t newAlign)
+{
+	LogUnimplemented("ListWindow.SetColumnAlignment");
+}
+
+void UListWindow::SetColumnColor(int colIndex, const Color& NewColor)
+{
+	LogUnimplemented("ListWindow.SetColumnColor");
+}
+
+void UListWindow::SetColumnFont(int colIndex, UObject* NewFont)
+{
+	LogUnimplemented("ListWindow.SetColumnFont");
+}
+
+void UListWindow::SetColumnTitle(int colIndex, const std::string& Title)
+{
+	LogUnimplemented("ListWindow.SetColumnTitle");
+}
+
+void UListWindow::SetColumnType(int colIndex, uint8_t newType, std::string* newFmt)
+{
+	LogUnimplemented("ListWindow.SetColumnType");
+}
+
+void UListWindow::SetColumnWidth(int colIndex, float newWidth)
+{
+	LogUnimplemented("ListWindow.SetColumnWidth");
+}
+
+void UListWindow::SetDelimiter(const std::string& newDelimiter)
+{
+	LogUnimplemented("ListWindow.SetDelimiter");
+}
+
+void UListWindow::SetField(int rowId, int colIndex, const std::string& fieldStr)
+{
+	LogUnimplemented("ListWindow.SetField");
+}
+
+void UListWindow::SetFieldMargins(float newMarginWidth, float newMarginHeight)
+{
+	LogUnimplemented("ListWindow.SetFieldMargins");
+}
+
+void UListWindow::SetFieldValue(int rowId, int colIndex, float NewValue)
+{
+	LogUnimplemented("ListWindow.SetFieldValue");
+}
+
+void UListWindow::SetFocusColor(const Color& NewColor)
+{
+	LogUnimplemented("ListWindow.SetFocusColor");
+}
+
+void UListWindow::SetFocusRow(int rowId, BitfieldBool* bMoveTo, BitfieldBool* bAnchor)
+{
+	LogUnimplemented("ListWindow.SetFocusRow");
+}
+
+void UListWindow::SetFocusTexture(UObject* NewTexture)
+{
+	LogUnimplemented("ListWindow.SetFocusTexture");
+}
+
+void UListWindow::SetFocusThickness(float newThickness)
+{
+	LogUnimplemented("ListWindow.SetFocusThickness");
+}
+
+void UListWindow::SetHighlightColor(const Color& NewColor)
+{
+	LogUnimplemented("ListWindow.SetHighlightColor");
+}
+
+void UListWindow::SetHighlightTextColor(const Color& NewColor)
+{
+	LogUnimplemented("ListWindow.SetHighlightTextColor");
+}
+
+void UListWindow::SetHighlightTexture(UObject* NewTexture)
+{
+	LogUnimplemented("ListWindow.SetHighlightTexture");
+}
+
+void UListWindow::SetHotKeyColumn(int colIndex)
+{
+	LogUnimplemented("ListWindow.SetHotKeyColumn");
+}
+
+void UListWindow::SetListSounds(UObject** ActivateSound, UObject** moveSound)
+{
+	LogUnimplemented("ListWindow.SetListSounds");
+}
+
+void UListWindow::SetNumColumns(int newCols)
+{
+	LogUnimplemented("ListWindow.SetNumColumns");
+}
+
+void UListWindow::SetRow(int rowId, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
+{
+	LogUnimplemented("ListWindow.SetRow");
+}
+
+void UListWindow::SetRowClientInt(int rowId, int clientInt)
+{
+	LogUnimplemented("ListWindow.SetRowClientInt");
+}
+
+void UListWindow::SetRowClientObject(int rowId, UObject* clientObj)
+{
+	LogUnimplemented("ListWindow.SetRowClientObject");
+}
+
+void UListWindow::SetSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
+{
+	LogUnimplemented("ListWindow.SetSortColumn");
+}
+
+void UListWindow::ShowFocusRow()
+{
+	LogUnimplemented("ListWindow.ShowFocusRow");
+}
+
+void UListWindow::Sort()
+{
+	LogUnimplemented("ListWindow.Sort");
+}
+
+void UListWindow::ToggleRowSelection(int rowId)
+{
+	LogUnimplemented("ListWindow.ToggleRowSelection");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UComputerWindow::ClearLine(int rowToClear)
+{
+	LogUnimplemented("ComputerWindow.ClearLine");
+}
+
+void UComputerWindow::ClearScreen()
+{
+	LogUnimplemented("ComputerWindow.ClearScreen");
+}
+
+void UComputerWindow::EnableWordWrap(BitfieldBool* bNewWordWrap)
+{
+	LogUnimplemented("ComputerWindow.EnableWordWrap");
+}
+
+void UComputerWindow::FadeOutText(float* fadeDuration)
+{
+	LogUnimplemented("ComputerWindow.FadeOutText");
+}
+
+void UComputerWindow::GetChar(const std::string& inputKey, BitfieldBool* bEcho)
+{
+	LogUnimplemented("ComputerWindow.GetChar");
+}
+
+void UComputerWindow::GetInput(int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask)
+{
+	LogUnimplemented("ComputerWindow.GetInput");
+}
+
+float UComputerWindow::GetThrottle()
+{
+	LogUnimplemented("ComputerWindow.GetThrottle");
+	return 0.0f;
+}
+
+bool UComputerWindow::IsBufferFlushed()
+{
+	LogUnimplemented("ComputerWindow.IsBufferFlushed");
+	return false;
+}
+
+bool UComputerWindow::IsPaused()
+{
+	LogUnimplemented("ComputerWindow.IsPaused");
+	return false;
+}
+
+void UComputerWindow::Pause(float* pauseLength)
+{
+	LogUnimplemented("ComputerWindow.Pause");
+}
+
+void UComputerWindow::PlaySoundLater(UObject* newsound)
+{
+	LogUnimplemented("ComputerWindow.PlaySoundLater");
+}
+
+void UComputerWindow::Print(const std::string& printText, BitfieldBool* bNewLine)
+{
+	LogUnimplemented("ComputerWindow.Print");
+}
+
+void UComputerWindow::PrintGraphic(UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos)
+{
+	LogUnimplemented("ComputerWindow.PrintGraphic");
+}
+
+void UComputerWindow::PrintLn()
+{
+	LogUnimplemented("ComputerWindow.PrintLn");
+}
+
+void UComputerWindow::ResetThrottle()
+{
+	LogUnimplemented("ComputerWindow.ResetThrottle");
+}
+
+void UComputerWindow::Resume()
+{
+	LogUnimplemented("ComputerWindow.Resume");
+}
+
+void UComputerWindow::SetBackgroundTextures(UObject* backTexture1, UObject* backTexture2, UObject* backTexture3, UObject* backTexture4, UObject* backTexture5, UObject* backTexture6)
+{
+	LogUnimplemented("ComputerWindow.SetBackgroundTextures");
+}
+
+void UComputerWindow::SetComputerSoundVolume(float newSoundVolume)
+{
+	LogUnimplemented("ComputerWindow.SetComputerSoundVolume");
+}
+
+void UComputerWindow::SetCursorBlinkSpeed(float newBlinkSpeed)
+{
+	LogUnimplemented("ComputerWindow.SetCursorBlinkSpeed");
+}
+
+void UComputerWindow::SetCursorColor(const Color& newCursorColor)
+{
+	LogUnimplemented("ComputerWindow.SetCursorColor");
+}
+
+void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight)
+{
+	LogUnimplemented("ComputerWindow.SetCursorTexture");
+}
+
+void UComputerWindow::SetFadeSpeed(float fadeSpeed)
+{
+	LogUnimplemented("ComputerWindow.SetFadeSpeed");
+}
+
+void UComputerWindow::SetFontColor(const Color& newFontColor)
+{
+	LogUnimplemented("ComputerWindow.SetFontColor");
+}
+
+void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
+{
+	LogUnimplemented("ComputerWindow.SetTextFont");
+}
+
+void UComputerWindow::SetTextPosition(int posX, int posY)
+{
+	LogUnimplemented("ComputerWindow.SetTextPosition");
+}
+
+void UComputerWindow::SetTextSize(int newCols, int newRows)
+{
+	LogUnimplemented("ComputerWindow.SetTextSize");
+}
+
+void UComputerWindow::SetTextSound(UObject* newTextSound)
+{
+	LogUnimplemented("ComputerWindow.SetTextSound");
+}
+
+void UComputerWindow::SetTextTiming(float newTiming)
+{
+	LogUnimplemented("ComputerWindow.SetTextTiming");
+}
+
+void UComputerWindow::SetTextWindowPosition(int newX, int newY)
+{
+	LogUnimplemented("ComputerWindow.SetTextWindowPosition");
+}
+
+void UComputerWindow::SetThrottle(float throttleModifier)
+{
+	LogUnimplemented("ComputerWindow.SetThrottle");
+}
+
+void UComputerWindow::SetTypingSound(UObject* newTypingSound)
+{
+	LogUnimplemented("ComputerWindow.SetTypingSound");
+}
+
+void UComputerWindow::SetTypingSoundVolume(float newSoundVolume)
+{
+	LogUnimplemented("ComputerWindow.SetTypingSoundVolume");
+}
+
+void UComputerWindow::ShowTextCursor(BitfieldBool* bShow)
+{
+	LogUnimplemented("ComputerWindow.ShowTextCursor");
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UGC::ClearZ()
+{
+	LogUnimplemented("GC.ClearZ");
+}
+
+void UGC::CopyGC(UObject* Copy)
+{
+	LogUnimplemented("GC.CopyGC");
+}
+
+void UGC::DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin)
+{
+	LogUnimplemented("GC.DrawActor");
+}
+
+void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
+{
+	LogUnimplemented("GC.DrawBorders");
+}
+
+void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX)
+{
+	LogUnimplemented("GC.DrawBox");
+}
+
+void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
+{
+	LogUnimplemented("GC.DrawIcon");
+}
+
+void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX)
+{
+	LogUnimplemented("GC.DrawPattern");
+}
+
+void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, float srcWidth, float srcHeight, UObject* tX)
+{
+	LogUnimplemented("GC.DrawStretchedTexture");
+}
+
+void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr)
+{
+	LogUnimplemented("GC.DrawText");
+}
+
+void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, UObject* tX)
+{
+	LogUnimplemented("GC.DrawTexture");
+}
+
+void UGC::EnableDrawing(bool bDrawEnabled)
+{
+	LogUnimplemented("GC.EnableDrawing");
+}
+
+void UGC::EnableMasking(bool bNewMasking)
+{
+	LogUnimplemented("GC.EnableMasking");
+}
+
+void UGC::EnableModulation(bool bNewModulation)
+{
+	LogUnimplemented("GC.EnableModulation");
+}
+
+void UGC::EnableSmoothing(bool bNewSmoothing)
+{
+	LogUnimplemented("GC.EnableSmoothing");
+}
+
+void UGC::EnableSpecialText(bool bNewSpecialText)
+{
+	LogUnimplemented("GC.EnableSpecialText");
+}
+
+void UGC::EnableTranslucency(bool bNewTranslucency)
+{
+	LogUnimplemented("GC.EnableTranslucency");
+}
+
+void UGC::EnableTranslucentText(bool bNewTranslucency)
+{
+	LogUnimplemented("GC.EnableTranslucentText");
+}
+
+void UGC::EnableWordWrap(bool bNewWordWrap)
+{
+	LogUnimplemented("GC.EnableWordWrap");
+}
+
+void UGC::GetAlignments(uint8_t& HAlign, uint8_t& VAlign)
+{
+	LogUnimplemented("GC.GetAlignments");
+}
+
+float UGC::GetFontHeight(BitfieldBool* bIncludeSpace)
+{
+	LogUnimplemented("GC.GetFontHeight");
+	return 0.0f;
+}
+
+void UGC::GetFonts(UObject*& normalFont, UObject*& boldFont)
+{
+	LogUnimplemented("GC.GetFonts");
+}
+
+uint8_t UGC::GetHorizontalAlignment()
+{
+	LogUnimplemented("GC.GetHorizontalAlignment");
+	return 0;
+}
+
+uint8_t UGC::GetStyle()
+{
+	LogUnimplemented("GC.GetStyle");
+	return 0;
+}
+
+void UGC::GetTextColor(Color& TextColor)
+{
+	LogUnimplemented("GC.GetTextColor");
+}
+
+void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const std::string& textStr)
+{
+	LogUnimplemented("GC.GetTextExtent");
+}
+
+float UGC::GetTextVSpacing()
+{
+	LogUnimplemented("GC.GetTextVSpacing");
+	return 0.0f;
+}
+
+void UGC::GetTileColor(Color& tileColor)
+{
+	LogUnimplemented("GC.GetTileColor");
+}
+
+uint8_t UGC::GetVerticalAlignment()
+{
+	LogUnimplemented("GC.GetVerticalAlignment");
+	return 0;
+}
+
+void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
+{
+	LogUnimplemented("GC.Intersect");
+}
+
+bool UGC::IsDrawingEnabled()
+{
+	LogUnimplemented("GC.IsDrawingEnabled");
+	return false;
+}
+
+bool UGC::IsMaskingEnabled()
+{
+	LogUnimplemented("GC.IsMaskingEnabled");
+	return false;
+}
+
+bool UGC::IsModulationEnabled()
+{
+	LogUnimplemented("GC.IsModulationEnabled");
+	return false;
+}
+
+bool UGC::IsSmoothingEnabled()
+{
+	LogUnimplemented("GC.IsSmoothingEnabled");
+	return false;
+}
+
+bool UGC::IsSpecialTextEnabled()
+{
+	LogUnimplemented("GC.IsSpecialTextEnabled");
+	return false;
+}
+
+bool UGC::IsTranslucencyEnabled()
+{
+	LogUnimplemented("GC.IsTranslucencyEnabled");
+	return false;
+}
+
+bool UGC::IsTranslucentTextEnabled()
+{
+	LogUnimplemented("GC.IsTranslucentTextEnabled");
+	return false;
+}
+
+bool UGC::IsWordWrapEnabled()
+{
+	LogUnimplemented("GC.IsWordWrapEnabled");
+	return false;
+}
+
+void UGC::PopGC(int* gcNum)
+{
+	LogUnimplemented("GC.PopGC");
+}
+
+int UGC::PushGC()
+{
+	LogUnimplemented("GC.PushGC");
+	return 0;
+}
+
+void UGC::SetAlignments(uint8_t newHAlign, uint8_t newVAlign)
+{
+	LogUnimplemented("GC.SetAlignments");
+}
+
+void UGC::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight)
+{
+	LogUnimplemented("GC.SetBaselineData");
+}
+
+void UGC::SetBoldFont(UObject* newBoldFont)
+{
+	LogUnimplemented("GC.SetBoldFont");
+}
+
+void UGC::SetFont(UObject* NewFont)
+{
+	LogUnimplemented("GC.SetFont");
+}
+
+void UGC::SetFonts(UObject* newNormalFont, UObject* newBoldFont)
+{
+	LogUnimplemented("GC.SetFonts");
+}
+
+void UGC::SetHorizontalAlignment(uint8_t newHAlign)
+{
+	LogUnimplemented("GC.SetHorizontalAlignment");
+}
+
+void UGC::SetNormalFont(UObject* newNormalFont)
+{
+	LogUnimplemented("GC.SetNormalFont");
+}
+
+void UGC::SetStyle(uint8_t NewStyle)
+{
+	LogUnimplemented("GC.SetStyle");
+}
+
+void UGC::SetTextColor(const Color& newTextColor)
+{
+	LogUnimplemented("GC.SetTextColor");
+}
+
+void UGC::SetTextVSpacing(float newVSpacing)
+{
+	LogUnimplemented("GC.SetTextVSpacing");
+}
+
+void UGC::SetTileColor(const Color& newTileColor)
+{
+	LogUnimplemented("GC.SetTileColor");
+}
+
+void UGC::SetVerticalAlignment(uint8_t newVAlign)
+{
+	LogUnimplemented("GC.SetVerticalAlignment");
+}
