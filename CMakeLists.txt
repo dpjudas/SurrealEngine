@@ -118,6 +118,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Render/RenderScene.cpp
 	SurrealEngine/Render/RenderLight.cpp
 	SurrealEngine/Render/RenderFog.cpp
+	SurrealEngine/Render/RenderWindow.cpp
 	SurrealEngine/Render/BspClipper.cpp
 	SurrealEngine/Render/BspClipper.h
 	SurrealEngine/Render/Lightmap/LightEffect.cpp

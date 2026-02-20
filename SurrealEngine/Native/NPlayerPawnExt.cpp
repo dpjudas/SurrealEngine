@@ -26,7 +26,7 @@ void NPlayerPawnExt::ConstructRootWindow(UObject* Self)
     UClass* cls = engine->packages->FindClass(dxRootClassName);
     if (cls)
     {
-        URootWindow* dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+        engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
     }
 }
 

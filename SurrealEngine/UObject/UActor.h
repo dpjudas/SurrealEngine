@@ -1744,6 +1744,12 @@ public:
 	void SaveConfig() override;
 };
 
+class UPlayerPawnExt : public UPlayerPawn
+{
+public:
+	using UPlayerPawn::UPlayerPawn;
+};
+
 class UCamera : public UPlayerPawn
 {
 public:

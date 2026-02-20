@@ -977,6 +977,7 @@ void PackageManager::RegisterNativeClasses()
 	
 	if (IsDeusEx())
 	{
+		RegisterNativeClass<UPlayerPawnExt>(enginePackage, "PlayerPawnExt", "PlayerPawn");
 		RegisterNativeClass<UWindow>(extensionPackage, "Window", "Object");
 		RegisterNativeClass<UViewportWindow>(extensionPackage, "ViewportWindow", "Window");
 		RegisterNativeClass<UToggleWindow>(extensionPackage, "ToggleWindow", "ButtonWindow");
