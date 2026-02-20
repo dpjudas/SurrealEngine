@@ -21,8 +21,14 @@ void RenderSubsystem::DrawRootWindow()
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)
 {
+	std::string text = UObject::GetUClassFullName(window).ToString();
+	text += " - ";
+	text += typeid(*window).name();
+
+	vec4 color = vec4(window->bIsVisible() ? 1.0f : 0.5f);
+
 	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
-	DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, UObject::GetUClassFullName(window).ToString(), PF_NoSmooth | PF_Masked, false);
+	DrawText(font, color, 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 	for (UWindow* child : window->Children)
 	{
 		DrawWindowInfo(font, child, depth + 1, curY);
