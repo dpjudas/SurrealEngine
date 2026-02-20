@@ -56,7 +56,6 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_3("Actor", "Multiply_ColorFloat", &NActor::Multiply_ColorFloat, 552);
 	RegisterVMNativeFunc_3("Actor", "Multiply_FloatColor", &NActor::Multiply_FloatColor, 550);
 	RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
-	RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 	RegisterVMNativeFunc_6("Actor", "PlayOwnedSound", &NActor::PlayOwnedSound, 0);
 	if (!engine->LaunchInfo.IsDeusEx())
 		RegisterVMNativeFunc_6("Actor", "PlaySound", &NActor::PlaySound, 264);
@@ -109,6 +108,7 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_1("Actor", "SetInstantSoundVolume", &NActor::SetInstantSoundVolume, 268);
 		RegisterVMNativeFunc_1("Actor", "SetInstantSpeechVolume", &NActor::SetInstantSpeechVolume, 269);
 		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound, 265);
+		RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 		RegisterVMNativeFunc_3("Actor", "TweenBlendAnim", &NActor::TweenBlendAnim, 1012);
 	}
 }
