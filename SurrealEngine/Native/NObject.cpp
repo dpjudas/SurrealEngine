@@ -561,8 +561,11 @@ void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 
 void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
 {
-	Exception::Throw("Object.GetEnum");
-	ReturnValue = {};
+	UEnum* type = UObject::Cast<UEnum>(E);
+	if (i > 0 && i < (int)type->ElementNames.size())
+		ReturnValue = type->ElementNames[i];
+	else
+		ReturnValue = {};
 }
 
 void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue)
