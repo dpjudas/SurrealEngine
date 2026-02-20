@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NEditWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NEditWindow::RegisterFunctions()
@@ -40,160 +41,186 @@ void NEditWindow::RegisterFunctions()
 
 void NEditWindow::ClearTextChangedFlag(UObject* Self)
 {
-	LogUnimplemented("EditWindow.ClearTextChangedFlag");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->ClearTextChangedFlag();
 }
 
 void NEditWindow::ClearUndo(UObject* Self)
 {
-	LogUnimplemented("EditWindow.ClearUndo");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->ClearUndo();
 }
 
 void NEditWindow::Copy(UObject* Self)
 {
-	LogUnimplemented("EditWindow.Copy");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->Copy();
 }
 
 void NEditWindow::Cut(UObject* Self)
 {
-	LogUnimplemented("EditWindow.Cut");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->Cut();
 }
 
 void NEditWindow::DeleteChar(UObject* Self, BitfieldBool* bBefore, BitfieldBool* bUndo)
 {
-	LogUnimplemented("EditWindow.DeleteChar");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->DeleteChar(bBefore, bUndo);
 }
 
 void NEditWindow::EnableEditing(UObject* Self, BitfieldBool* bEdit)
 {
-	LogUnimplemented("EditWindow.EnableEditing");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->EnableEditing(bEdit);
 }
 
 void NEditWindow::EnableSingleLineEditing(UObject* Self, BitfieldBool* bSingle)
 {
-	LogUnimplemented("EditWindow.EnableSingleLineEditing");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->EnableSingleLineEditing(bSingle);
 }
 
 void NEditWindow::EnableUppercaseOnly(UObject* Self, BitfieldBool* bUppercase)
 {
-	LogUnimplemented("EditWindow.EnableUppercaseOnly");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->EnableUppercaseOnly(bUppercase);
 }
 
 void NEditWindow::GetInsertionPoint(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("EditWindow.GetInsertionPoint");
-	ReturnValue = 0;
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	ReturnValue = editwindow->GetInsertionPoint();
 }
 
 void NEditWindow::GetSelectedArea(UObject* Self, int& startPos, int& Count)
 {
-	LogUnimplemented("EditWindow.GetSelectedArea");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->GetSelectedArea(startPos, Count);
 }
 
 void NEditWindow::HasTextChanged(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("EditWindow.HasTextChanged");
-	ReturnValue = false;
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	ReturnValue = editwindow->HasTextChanged();
 }
 
 void NEditWindow::InsertText(UObject* Self, std::string* InsertText, BitfieldBool* bUndo, BitfieldBool* bSelect, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("EditWindow.InsertText");
-	ReturnValue = false;
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	ReturnValue = editwindow->InsertText(InsertText, bUndo, bSelect);
 }
 
 void NEditWindow::IsEditingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("EditWindow.IsEditingEnabled");
-	ReturnValue = false;
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	ReturnValue = editwindow->IsEditingEnabled();
 }
 
 void NEditWindow::IsSingleLineEditingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("EditWindow.IsSingleLineEditingEnabled");
-	ReturnValue = false;
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	ReturnValue = editwindow->IsSingleLineEditingEnabled();
 }
 
 void NEditWindow::MoveInsertionPoint(UObject* Self, uint8_t moveInsert, BitfieldBool* bDrag)
 {
-	LogUnimplemented("EditWindow.MoveInsertionPoint");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->MoveInsertionPoint(moveInsert, bDrag);
 }
 
 void NEditWindow::Paste(UObject* Self)
 {
-	LogUnimplemented("EditWindow.Paste");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->Paste();
 }
 
 void NEditWindow::PlayEditSound(UObject* Self, UObject* PlaySound, float* Volume, float* Pitch)
 {
-	LogUnimplemented("EditWindow.PlayEditSound");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->PlayEditSound(PlaySound, Volume, Pitch);
 }
 
 void NEditWindow::Redo(UObject* Self)
 {
-	LogUnimplemented("EditWindow.Redo");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->Redo();
 }
 
 void NEditWindow::SetEditCursor(UObject* Self, UObject** newCursor, UObject** newCursorShadow, Color* NewColor)
 {
-	LogUnimplemented("EditWindow.SetEditCursor");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetEditCursor(newCursor, newCursorShadow, NewColor);
 }
 
 void NEditWindow::SetEditSounds(UObject* Self, UObject** typeSound, UObject** deleteSound, UObject** enterSound, UObject** moveSound)
 {
-	LogUnimplemented("EditWindow.SetEditSounds");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetEditSounds(typeSound, deleteSound, enterSound, moveSound);
 }
 
 void NEditWindow::SetInsertionPoint(UObject* Self, int NewPos, BitfieldBool* bDrag)
 {
-	LogUnimplemented("EditWindow.SetInsertionPoint");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetInsertionPoint(NewPos, bDrag);
 }
 
 void NEditWindow::SetInsertionPointBlinkRate(UObject* Self, float* blinkStart, float* blinkPeriod)
 {
-	LogUnimplemented("EditWindow.SetInsertionPointBlinkRate");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetInsertionPointBlinkRate(blinkStart, blinkPeriod);
 }
 
 void NEditWindow::SetInsertionPointTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("EditWindow.SetInsertionPointTexture");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetInsertionPointTexture(NewTexture, NewColor);
 }
 
 void NEditWindow::SetInsertionPointType(UObject* Self, uint8_t newType, float* prefWidth, float* prefHeight)
 {
-	LogUnimplemented("EditWindow.SetInsertionPointType");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetInsertionPointType(newType, prefWidth, prefHeight);
 }
 
 void NEditWindow::SetMaxSize(UObject* Self, int newMaxSize)
 {
-	LogUnimplemented("EditWindow.SetMaxSize");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetMaxSize(newMaxSize);
 }
 
 void NEditWindow::SetMaxUndos(UObject* Self, int newMaxUndos)
 {
-	LogUnimplemented("EditWindow.SetMaxUndos");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetMaxUndos(newMaxUndos);
 }
 
 void NEditWindow::SetSelectedArea(UObject* Self, int startPos, int Count)
 {
-	LogUnimplemented("EditWindow.SetSelectedArea");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetSelectedArea(startPos, Count);
 }
 
 void NEditWindow::SetSelectedAreaTextColor(UObject* Self, Color* NewColor)
 {
-	LogUnimplemented("EditWindow.SetSelectedAreaTextColor");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetSelectedAreaTextColor(NewColor);
 }
 
 void NEditWindow::SetSelectedAreaTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("EditWindow.SetSelectedAreaTexture");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetSelectedAreaTexture(NewTexture, NewColor);
 }
 
 void NEditWindow::SetTextChangedFlag(UObject* Self, BitfieldBool* bSet)
 {
-	LogUnimplemented("EditWindow.SetTextChangedFlag");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->SetTextChangedFlag(bSet);
 }
 
 void NEditWindow::Undo(UObject* Self)
 {
-	LogUnimplemented("EditWindow.Undo");
+	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
+	editwindow->Undo();
 }

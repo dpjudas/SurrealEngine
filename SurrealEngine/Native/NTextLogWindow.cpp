@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NTextLogWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NTextLogWindow::RegisterFunctions()
@@ -13,20 +14,24 @@ void NTextLogWindow::RegisterFunctions()
 
 void NTextLogWindow::AddLog(UObject* Self, const std::string& NewText, const Color& linecol)
 {
-	LogUnimplemented("TextLogWindow.AddLog");
+	UTextLogWindow* textlog = UObject::Cast<UTextLogWindow>(Self);
+	textlog->AddLog(NewText, linecol);
 }
 
 void NTextLogWindow::ClearLog(UObject* Self)
 {
-	LogUnimplemented("TextLogWindow.ClearLog");
+	UTextLogWindow* textlog = UObject::Cast<UTextLogWindow>(Self);
+	textlog->ClearLog();
 }
 
 void NTextLogWindow::PauseLog(UObject* Self, bool bNewPauseState)
 {
-	LogUnimplemented("TextLogWindow.PauseLog");
+	UTextLogWindow* textlog = UObject::Cast<UTextLogWindow>(Self);
+	textlog->PauseLog(bNewPauseState);
 }
 
 void NTextLogWindow::SetTextTimeout(UObject* Self, float newTimeout)
 {
-	LogUnimplemented("TextLogWindow.SetTextTimeout");
+	UTextLogWindow* textlog = UObject::Cast<UTextLogWindow>(Self);
+	textlog->SetTextTimeout(newTimeout);
 }

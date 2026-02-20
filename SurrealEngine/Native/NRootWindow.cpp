@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NRootWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NRootWindow::RegisterFunctions()
@@ -24,78 +25,90 @@ void NRootWindow::RegisterFunctions()
 
 void NRootWindow::EnablePositionalSound(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("RootWindow.EnablePositionalSound");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->EnablePositionalSound(bEnable);
 }
 
 void NRootWindow::EnableRendering(UObject* Self, BitfieldBool* bRender)
 {
-	LogUnimplemented("RootWindow.EnableRendering");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->EnableRendering(bRender);
 }
 
 void NRootWindow::GenerateSnapshot(UObject* Self, BitfieldBool* bFilter, UObject*& ReturnValue)
 {
-	LogUnimplemented("RootWindow.GenerateSnapshot");
-	ReturnValue = nullptr;
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	ReturnValue = root->GenerateSnapshot(bFilter);
 }
 
 void NRootWindow::IsPositionalSoundEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("RootWindow.IsPositionalSoundEnabled");
-	ReturnValue = false;
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	ReturnValue = root->IsPositionalSoundEnabled();
 }
 
 void NRootWindow::IsRenderingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("RootWindow.IsRenderingEnabled");
-	ReturnValue = false;
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	ReturnValue = root->IsRenderingEnabled();
 }
 
 void NRootWindow::LockMouse(UObject* Self, BitfieldBool* bLockMove, BitfieldBool* bLockButton)
 {
-	LogUnimplemented("RootWindow.LockMouse");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->LockMouse(bLockMove, bLockButton);
 }
 
 void NRootWindow::ResetRenderViewport(UObject* Self)
 {
-	LogUnimplemented("RootWindow.ResetRenderViewport");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->ResetRenderViewport();
 }
 
 void NRootWindow::SetDefaultEditCursor(UObject* Self, UObject** newEditCursor)
 {
-	LogUnimplemented("RootWindow.SetDefaultEditCursor");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetDefaultEditCursor(newEditCursor);
 }
 
 void NRootWindow::SetDefaultMovementCursors(UObject* Self, UObject** newMovementCursor, UObject** newHorizontalMovementCursor, UObject** newVerticalMovementCursor, UObject** newTopLeftMovementCursor, UObject** newTopRightMovementCursor)
 {
-	LogUnimplemented("RootWindow.SetDefaultMovementCursors");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetDefaultMovementCursors(newMovementCursor, newHorizontalMovementCursor, newVerticalMovementCursor, newTopLeftMovementCursor, newTopRightMovementCursor);
 }
 
 void NRootWindow::SetRawBackground(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("RootWindow.SetRawBackground");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetRawBackground(NewTexture, NewColor);
 }
 
 void NRootWindow::SetRawBackgroundSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("RootWindow.SetRawBackgroundSize");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetRawBackgroundSize(newWidth, NewHeight);
 }
 
 void NRootWindow::SetRenderViewport(UObject* Self, float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("RootWindow.SetRenderViewport");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetRenderViewport(newX, newY, newWidth, NewHeight);
 }
 
 void NRootWindow::SetSnapshotSize(UObject* Self, float newWidth, float NewHeight)
 {
-	LogUnimplemented("RootWindow.SetSnapshotSize");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->SetSnapshotSize(newWidth, NewHeight);
 }
 
 void NRootWindow::ShowCursor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("RootWindow.ShowCursor");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->ShowCursor(bShow);
 }
 
 void NRootWindow::StretchRawBackground(UObject* Self, BitfieldBool* bStretch)
 {
-	LogUnimplemented("RootWindow.StretchRawBackground");
+	URootWindow* root = UObject::Cast<URootWindow>(Self);
+	root->StretchRawBackground(bStretch);
 }

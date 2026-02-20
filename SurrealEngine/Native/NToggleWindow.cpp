@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NToggleWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NToggleWindow::RegisterFunctions()
@@ -13,21 +14,24 @@ void NToggleWindow::RegisterFunctions()
 
 void NToggleWindow::ChangeToggle(UObject* Self)
 {
-	LogUnimplemented("ToggleWindow.ChangeToggle");
+	UToggleWindow* toggle = UObject::Cast<UToggleWindow>(Self);
+	toggle->ChangeToggle();
 }
 
 void NToggleWindow::GetToggle(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ToggleWindow.GetToggle");
-	ReturnValue = false;
+	UToggleWindow* toggle = UObject::Cast<UToggleWindow>(Self);
+	ReturnValue = toggle->GetToggle();
 }
 
 void NToggleWindow::SetToggle(UObject* Self, bool bNewToggle)
 {
-	LogUnimplemented("ToggleWindow.SetToggle");
+	UToggleWindow* toggle = UObject::Cast<UToggleWindow>(Self);
+	toggle->SetToggle(bNewToggle);
 }
 
 void NToggleWindow::SetToggleSounds(UObject* Self, UObject** enableSound, UObject** disableSound)
 {
-	LogUnimplemented("ToggleWindow.SetToggleSounds");
+	UToggleWindow* toggle = UObject::Cast<UToggleWindow>(Self);
+	toggle->SetToggleSounds(enableSound, disableSound);
 }

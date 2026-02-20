@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NButtonWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NButtonWindow::RegisterFunctions()
@@ -18,45 +19,54 @@ void NButtonWindow::RegisterFunctions()
 
 void NButtonWindow::ActivateButton(UObject* Self, uint8_t Key)
 {
-	LogUnimplemented("NButtonWindow::ActivateButton not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->ActivateButton(Key);
 }
 
 void NButtonWindow::EnableAutoRepeat(UObject* Self, BitfieldBool* bEnable, float* initialDelay, float* repeatRate)
 {
-	LogUnimplemented("NButtonWindow::EnableAutoRepeat not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->EnableAutoRepeat(bEnable, initialDelay, repeatRate);
 }
 
 void NButtonWindow::EnableRightMouseClick(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("NButtonWindow::EnableRightMouseClick not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->EnableRightMouseClick(bEnable);
 }
 
 void NButtonWindow::PressButton(UObject* Self, uint8_t* Key)
 {
-	LogUnimplemented("NButtonWindow::PressButton not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->PressButton(Key);
 }
 
 void NButtonWindow::SetActivateDelay(UObject* Self, float* newDelay)
 {
-	LogUnimplemented("NButtonWindow::SetActivateDelay not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->SetActivateDelay(newDelay);
 }
 
 void NButtonWindow::SetButtonColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	LogUnimplemented("NButtonWindow::SetButtonColors not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->SetButtonColors(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);
 }
 
 void NButtonWindow::SetButtonSounds(UObject* Self, UObject** pressSound, UObject** clickSound)
 {
-	LogUnimplemented("NButtonWindow::SetButtonSounds not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->SetButtonSounds(pressSound, clickSound);
 }
 
 void NButtonWindow::SetButtonTextures(UObject* Self, UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
 {
-	LogUnimplemented("NButtonWindow::SetButtonTextures not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->SetButtonTextures(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);
 }
 
 void NButtonWindow::SetTextColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	LogUnimplemented("NButtonWindow::SetTextColors not implemented");
+	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
+	button->SetTextColors(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);
 }

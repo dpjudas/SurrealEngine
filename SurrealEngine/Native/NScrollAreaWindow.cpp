@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NScrollAreaWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NScrollAreaWindow::RegisterFunctions()
@@ -13,20 +14,24 @@ void NScrollAreaWindow::RegisterFunctions()
 
 void NScrollAreaWindow::AutoHideScrollbars(UObject* Self, BitfieldBool* bHide)
 {
-	LogUnimplemented("ScrollAreaWindow.AutoHideScrollbars");
+	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
+	scrollarea->AutoHideScrollbars(bHide);
 }
 
 void NScrollAreaWindow::EnableScrolling(UObject* Self, BitfieldBool* bHScrolling, BitfieldBool* bVScrolling)
 {
-	LogUnimplemented("ScrollAreaWindow.EnableScrolling");
+	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
+	scrollarea->EnableScrolling(bHScrolling, bVScrolling);
 }
 
 void NScrollAreaWindow::SetAreaMargins(UObject* Self, float newMarginWidth, float newMarginHeight)
 {
-	LogUnimplemented("ScrollAreaWindow.SetAreaMargins");
+	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
+	scrollarea->SetAreaMargins(newMarginWidth, newMarginHeight);
 }
 
 void NScrollAreaWindow::SetScrollbarDistance(UObject* Self, float newDistance)
 {
-	LogUnimplemented("ScrollAreaWindow.SetScrollbarDistance");
+	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
+	scrollarea->SetScrollbarDistance(newDistance);
 }

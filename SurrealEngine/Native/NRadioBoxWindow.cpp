@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NRadioBoxWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NRadioBoxWindow::RegisterFunctions()
@@ -10,6 +11,6 @@ void NRadioBoxWindow::RegisterFunctions()
 
 void NRadioBoxWindow::GetEnabledToggle(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("RadioBoxWindow.GetEnabledToggle");
-	ReturnValue = nullptr;
+	URadioBoxWindow* radiobox = UObject::Cast<URadioBoxWindow>(Self);
+	ReturnValue = radiobox->GetEnabledToggle();
 }

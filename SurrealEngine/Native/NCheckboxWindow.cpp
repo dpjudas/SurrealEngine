@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NCheckboxWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NCheckboxWindow::RegisterFunctions()
@@ -14,25 +15,30 @@ void NCheckboxWindow::RegisterFunctions()
 
 void NCheckboxWindow::SetCheckboxColor(UObject* Self, const Color& NewColor)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxColor");
+	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
+	checkbox->SetCheckboxColor(NewColor);
 }
 
 void NCheckboxWindow::SetCheckboxSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxSpacing");
+	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
+	checkbox->SetCheckboxSpacing(newSpacing);
 }
 
 void NCheckboxWindow::SetCheckboxStyle(UObject* Self, uint8_t NewStyle)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxStyle");
+	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
+	checkbox->SetCheckboxStyle(NewStyle);
 }
 
 void NCheckboxWindow::SetCheckboxTextures(UObject* Self, UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxTextures");
+	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
+	checkbox->SetCheckboxTextures(toggleOff, toggleOn, textureWidth, textureHeight);
 }
 
 void NCheckboxWindow::ShowCheckboxOnRightSide(UObject* Self, BitfieldBool* bRight)
 {
-	LogUnimplemented("CheckboxWindow.ShowCheckboxOnRightSide");
+	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
+	checkbox->ShowCheckboxOnRightSide(bRight);
 }

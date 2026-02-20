@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NTextWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NTextWindow::RegisterFunctions()
@@ -24,78 +25,90 @@ void NTextWindow::RegisterFunctions()
 
 void NTextWindow::AppendText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("TextWindow.AppendText");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->AppendText(NewText);
 }
 
 void NTextWindow::EnableTextAsAccelerator(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("TextWindow.EnableTextAsAccelerator");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->EnableTextAsAccelerator(bEnable);
 }
 
 void NTextWindow::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("TextWindow.GetText");
-	ReturnValue = "";
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	ReturnValue = textWindow->GetText();
 }
 
 void NTextWindow::GetTextLength(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("TextWindow.GetTextLength");
-	ReturnValue = 0;
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	ReturnValue = textWindow->GetTextLength();
 }
 
 void NTextWindow::GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("TextWindow.GetTextPart");
-	ReturnValue = 0;
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	ReturnValue = textWindow->GetTextPart(startPos, Count, OutText);
 }
 
 void NTextWindow::ResetLines(UObject* Self)
 {
-	LogUnimplemented("TextWindow.ResetLines");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->ResetLines();
 }
 
 void NTextWindow::ResetMinWidth(UObject* Self)
 {
-	LogUnimplemented("TextWindow.ResetMinWidth");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->ResetMinWidth();
 }
 
 void NTextWindow::SetLines(UObject* Self, int newMinLines, int newMaxLines)
 {
-	LogUnimplemented("TextWindow.SetLines");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetLines(newMinLines, newMaxLines);
 }
 
 void NTextWindow::SetMaxLines(UObject* Self, int newMaxLines)
 {
-	LogUnimplemented("TextWindow.SetMaxLines");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetMaxLines(newMaxLines);
 }
 
 void NTextWindow::SetMinLines(UObject* Self, int newMinLines)
 {
-	LogUnimplemented("TextWindow.SetMinLines");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetMinLines(newMinLines);
 }
 
 void NTextWindow::SetMinWidth(UObject* Self, float newMinWidth)
 {
-	LogUnimplemented("TextWindow.SetMinWidth");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetMinWidth(newMinWidth);
 }
 
 void NTextWindow::SetText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("TextWindow.SetText");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetText(NewText);
 }
 
 void NTextWindow::SetTextAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("TextWindow.SetTextAlignments");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetTextAlignments(newHAlign, newVAlign);
 }
 
 void NTextWindow::SetTextMargins(UObject* Self, float newHMargin, float newVMargin)
 {
-	LogUnimplemented("TextWindow.SetTextMargins");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetTextMargins(newHMargin, newVMargin);
 }
 
 void NTextWindow::SetWordWrap(UObject* Self, bool bNewWordWrap)
 {
-	LogUnimplemented("TextWindow.SetWordWrap");
+	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
+	textWindow->SetWordWrap(bNewWordWrap);
 }

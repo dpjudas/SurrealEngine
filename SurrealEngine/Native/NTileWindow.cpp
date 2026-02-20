@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NTileWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NTileWindow::RegisterFunctions()
@@ -20,55 +21,66 @@ void NTileWindow::RegisterFunctions()
 
 void NTileWindow::EnableWrapping(UObject* Self, bool bWrapOn)
 {
-	LogUnimplemented("TileWindow.EnableWrapping");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->EnableWrapping(bWrapOn);
 }
 
 void NTileWindow::FillParent(UObject* Self, bool FillParent)
 {
-	LogUnimplemented("TileWindow.FillParent");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->FillParent(FillParent);
 }
 
 void NTileWindow::MakeHeightsEqual(UObject* Self, bool bEqual)
 {
-	LogUnimplemented("TileWindow.MakeHeightsEqual");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->MakeHeightsEqual(bEqual);
 }
 
 void NTileWindow::MakeWidthsEqual(UObject* Self, bool bEqual)
 {
-	LogUnimplemented("TileWindow.MakeWidthsEqual");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->MakeWidthsEqual(bEqual);
 }
 
 void NTileWindow::SetChildAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("TileWindow.SetChildAlignments");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetChildAlignments(newHAlign, newVAlign);
 }
 
 void NTileWindow::SetDirections(UObject* Self, uint8_t newHDir, uint8_t newVDir)
 {
-	LogUnimplemented("TileWindow.SetDirections");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetDirections(newHDir, newVDir);
 }
 
 void NTileWindow::SetMajorSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("TileWindow.SetMajorSpacing");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetMajorSpacing(newSpacing);
 }
 
 void NTileWindow::SetMargins(UObject* Self, float newHMargin, float newVMargin)
 {
-	LogUnimplemented("TileWindow.SetMargins");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetMargins(newHMargin, newVMargin);
 }
 
 void NTileWindow::SetMinorSpacing(UObject* Self, float newSpacing)
 {
-	LogUnimplemented("TileWindow.SetMinorSpacing");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetMinorSpacing(newSpacing);
 }
 
 void NTileWindow::SetOrder(UObject* Self, uint8_t newOrder)
 {
-	LogUnimplemented("TileWindow.SetOrder");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetOrder(newOrder);
 }
 
 void NTileWindow::SetOrientation(UObject* Self, uint8_t newOrientation)
 {
-	LogUnimplemented("TileWindow.SetOrientation");
+	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
+	tile->SetOrientation(newOrientation);
 }

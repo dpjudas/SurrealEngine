@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NModalWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NModalWindow::RegisterFunctions()
@@ -11,11 +12,12 @@ void NModalWindow::RegisterFunctions()
 
 void NModalWindow::IsCurrentModal(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ModalWindow.IsCurrentModal");
-	ReturnValue = false;
+	UModalWindow* modal = UObject::Cast<UModalWindow>(Self);
+	ReturnValue = modal->IsCurrentModal();
 }
 
 void NModalWindow::SetMouseFocusMode(UObject* Self, uint8_t newFocusMode)
 {
-	LogUnimplemented("ModalWindow.SetMouseFocusMode");
+	UModalWindow* modal = UObject::Cast<UModalWindow>(Self);
+	modal->SetMouseFocusMode(newFocusMode);
 }

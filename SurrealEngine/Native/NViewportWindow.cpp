@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NViewportWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NViewportWindow::RegisterFunctions()
@@ -21,60 +22,72 @@ void NViewportWindow::RegisterFunctions()
 
 void NViewportWindow::ClearZBuffer(UObject* Self, BitfieldBool* bClear)
 {
-	LogUnimplemented("ViewportWindow.ClearZBuffer");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->ClearZBuffer(bClear);
 }
 
 void NViewportWindow::EnableViewport(UObject* Self, BitfieldBool* bEnable)
 {
-	LogUnimplemented("ViewportWindow.EnableViewport");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->EnableViewport(bEnable);
 }
 
 void NViewportWindow::SetDefaultTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("ViewportWindow.SetDefaultTexture");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetDefaultTexture(NewTexture, NewColor);
 }
 
 void NViewportWindow::SetFOVAngle(UObject* Self, float* newAngle)
 {
-	LogUnimplemented("ViewportWindow.SetFOVAngle");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetFOVAngle(newAngle);
 }
 
 void NViewportWindow::SetRelativeLocation(UObject* Self, vec3* relLoc)
 {
-	LogUnimplemented("ViewportWindow.SetRelativeLocation");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetRelativeLocation(relLoc);
 }
 
 void NViewportWindow::SetRelativeRotation(UObject* Self, Rotator* relRot)
 {
-	LogUnimplemented("ViewportWindow.SetRelativeRotation");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetRelativeRotation(relRot);
 }
 
 void NViewportWindow::SetRotation(UObject* Self, Rotator* NewRotation)
 {
-	LogUnimplemented("ViewportWindow.SetRotation");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetRotation(NewRotation);
 }
 
 void NViewportWindow::SetViewportActor(UObject* Self, UObject** newOriginActor, BitfieldBool* bEyeLevel, BitfieldBool* bEnable)
 {
-	LogUnimplemented("ViewportWindow.SetViewportActor");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetViewportActor(newOriginActor, bEyeLevel, bEnable);
 }
 
 void NViewportWindow::SetViewportLocation(UObject* Self, const vec3& NewLocation, BitfieldBool* bEnable)
 {
-	LogUnimplemented("ViewportWindow.SetViewportLocation");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetViewportLocation(NewLocation, bEnable);
 }
 
 void NViewportWindow::SetWatchActor(UObject* Self, UObject** newWatchActor, BitfieldBool* bEyeLevel)
 {
-	LogUnimplemented("ViewportWindow.SetWatchActor");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->SetWatchActor(newWatchActor, bEyeLevel);
 }
 
 void NViewportWindow::ShowViewportActor(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("ViewportWindow.ShowViewportActor");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->ShowViewportActor(bShow);
 }
 
 void NViewportWindow::ShowWeapons(UObject* Self, BitfieldBool* bShow)
 {
-	LogUnimplemented("ViewportWindow.ShowWeapons");
+	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
+	selfViewport->ShowWeapons(bShow);
 }

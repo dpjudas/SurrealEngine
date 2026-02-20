@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NBorderWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NBorderWindow::RegisterFunctions()
@@ -14,25 +15,30 @@ void NBorderWindow::RegisterFunctions()
 
 void NBorderWindow::BaseMarginsFromBorder(UObject* Self, BitfieldBool* bBorder)
 {
-	LogUnimplemented("BorderWindow.BaseMarginsFromBorder");
+	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
+	border->BaseMarginsFromBorder(bBorder);
 }
 
 void NBorderWindow::EnableResizing(UObject* Self, BitfieldBool* bResize)
 {
-	LogUnimplemented("BorderWindow.EnableResizing");
+	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
+	border->EnableResizing(bResize);
 }
 
 void NBorderWindow::SetBorderMargins(UObject* Self, float* NewLeft, float* NewRight, float* newTop, float* newBottom)
 {
-	LogUnimplemented("BorderWindow.SetBorderMargins");
+	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
+	border->SetBorderMargins(NewLeft, NewRight, newTop, newBottom);
 }
 
 void NBorderWindow::SetBorders(UObject* Self, UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
 {
-	LogUnimplemented("BorderWindow.SetBorders");
+	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
+	border->SetBorders(bordTL, bordTR, bordBL, bordBR, bordL, bordR, bordT, bordB, center);
 }
 
 void NBorderWindow::SetMoveCursors(UObject* Self, UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
 {
-	LogUnimplemented("BorderWindow.SetMoveCursors");
+	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
+	border->SetMoveCursors(Move, hMove, vMove, tlMove, trMove);
 }

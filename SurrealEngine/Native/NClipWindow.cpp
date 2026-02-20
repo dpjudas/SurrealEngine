@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NClipWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NClipWindow::RegisterFunctions()
@@ -21,61 +22,72 @@ void NClipWindow::RegisterFunctions()
 
 void NClipWindow::EnableSnapToUnits(UObject* Self, BitfieldBool* bNewSnapToUnits)
 {
-	LogUnimplemented("ClipWindow.EnableSnapToUnits");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->EnableSnapToUnits(bNewSnapToUnits);
 }
 
 void NClipWindow::ForceChildSize(UObject* Self, BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight)
 {
-	LogUnimplemented("ClipWindow.ForceChildSize");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->ForceChildSize(bNewForceChildWidth, bNewForceChildHeight);
 }
 
 void NClipWindow::GetChild(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("ClipWindow.GetChild");
-	ReturnValue = nullptr;
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	ReturnValue = clip->GetChild();
 }
 
 void NClipWindow::GetChildPosition(UObject* Self, int& pNewX, int& pNewY)
 {
-	LogUnimplemented("ClipWindow.GetChildPosition");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->GetChildPosition(pNewX, pNewY);
 }
 
 void NClipWindow::GetUnitSize(UObject* Self, int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize)
 {
-	LogUnimplemented("ClipWindow.GetUnitSize");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->GetUnitSize(pAreaHSize, pAreaVSize, pChildHSize, childVSize);
 }
 
 void NClipWindow::ResetUnitHeight(UObject* Self)
 {
-	LogUnimplemented("ClipWindow.ResetUnitHeight");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->ResetUnitHeight();
 }
 
 void NClipWindow::ResetUnitSize(UObject* Self)
 {
-	LogUnimplemented("ClipWindow.ResetUnitSize");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->ResetUnitSize();
 }
 
 void NClipWindow::ResetUnitWidth(UObject* Self)
 {
-	LogUnimplemented("ClipWindow.ResetUnitWidth");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->ResetUnitWidth();
 }
 
 void NClipWindow::SetChildPosition(UObject* Self, int newX, int newY)
 {
-	LogUnimplemented("ClipWindow.SetChildPosition");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->SetChildPosition(newX, newY);
 }
 
 void NClipWindow::SetUnitHeight(UObject* Self, int vUnits)
 {
-	LogUnimplemented("ClipWindow.SetUnitHeight");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->SetUnitHeight(vUnits);
 }
 
 void NClipWindow::SetUnitSize(UObject* Self, int hUnits, int vUnits)
 {
-	LogUnimplemented("ClipWindow.SetUnitSize");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->SetUnitSize(hUnits, vUnits);
 }
 
 void NClipWindow::SetUnitWidth(UObject* Self, int hUnits)
 {
-	LogUnimplemented("ClipWindow.SetUnitWidth");
+	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
+	clip->SetUnitWidth(hUnits);
 }

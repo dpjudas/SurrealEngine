@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NLargeTextWindow.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UWindow.h"
 #include "Engine.h"
 
 void NLargeTextWindow::RegisterFunctions()
@@ -10,5 +11,6 @@ void NLargeTextWindow::RegisterFunctions()
 
 void NLargeTextWindow::SetVerticalSpacing(UObject* Self, float* newVSpace)
 {
-	LogUnimplemented("LargeTextWindow.SetVerticalSpacing");
+	ULargeTextWindow* textwindow = UObject::Cast<ULargeTextWindow>(Self);
+	textwindow->SetVerticalSpacing(newVSpace);
 }
