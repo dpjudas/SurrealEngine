@@ -1,7 +1,15 @@
 
 #include "Precomp.h"
 #include "UWindow.h"
+#include "UObject/UClass.h"
+#include "UObject/UActor.h"
+#include "UObject/UTexture.h"
+#include "UObject/UFont.h"
+#include "UObject/USound.h"
+#include "UObject/UClient.h"
+#include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 void UWindow::AddActorRef(UObject* refActor)
 {
@@ -265,8 +273,13 @@ UObject* UWindow::MoveTabGroupPrev()
 
 UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 {
-	LogUnimplemented("Window.NewChild");
-	return nullptr;
+	bool show = !bShow || *bShow;
+	LogMessage("Window.NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
+	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
+	child->bIsVisible() = show;
+	Children.push_back(child);
+	CallEvent(child, "InitWindow");
+	return child;
 }
 
 void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)

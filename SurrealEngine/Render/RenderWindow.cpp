@@ -15,9 +15,16 @@ void RenderSubsystem::DrawRootWindow()
 	Device->SetSceneNode(&Canvas.Frame);
 
 	UFont* font = engine->canvas->SmallFont();
+	float curY = 100.0f;
+	DrawWindowInfo(font, engine->dxRootWindow, 0, curY);
+}
 
-	float curX = 0.0f, curY = 100.0f, curXL = 0.0f, curYL = 0.0f;
-	DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, "DXRootWindow", PF_NoSmooth | PF_Masked, false);
-	curX = 0.0f;
-	DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, "DXRootWindow2", PF_NoSmooth | PF_Masked, false);
+void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)
+{
+	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
+	DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, UObject::GetUClassFullName(window).ToString(), PF_NoSmooth | PF_Masked, false);
+	for (UWindow* child : window->Children)
+	{
+		DrawWindowInfo(font, child, depth + 1, curY);
+	}
 }

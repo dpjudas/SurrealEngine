@@ -487,7 +487,7 @@ ExpressionEvalResult Frame::Run()
 			return result;
 		case StatementResult::Iterator:
 			if (!result.Iter)
-				ThrowException("Iterator statement without an iterator!");
+				ThrowException("Iterator statement without an iterator in " + Object->Name.ToString() + "." + Func->Name.ToString());
 			Iterators.push_back(std::move(result.Iter));
 			Iterators.back()->StartStatementIndex = curStatementIndex + 1;
 			Iterators.back()->EndStatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
@@ -498,7 +498,7 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::IteratorNext:
 			if (Iterators.empty())
-				ThrowException("Iterator next statement without an iterator!");
+				ThrowException("Iterator next statement without an iterator in " + Object->Name.ToString() + "." + Func->Name.ToString());
 			if (Iterators.back()->Next())
 				StatementIndex = Iterators.back()->StartStatementIndex;
 			else
@@ -506,7 +506,7 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::IteratorPop:
 			if (Iterators.empty())
-				ThrowException("Iterator pop statement without an iterator!");
+				ThrowException("Iterator pop statement without an iterator in " + Object->Name.ToString() + "." + Func->Name.ToString());
 			Iterators.pop_back();
 			break;
 		case StatementResult::AccessedNone:

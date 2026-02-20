@@ -6,6 +6,7 @@
 #include "UObject/UActor.h"
 #include "UObject/UWindow.h"
 #include "Engine.h"
+#include "VM/ScriptCall.h"
 
 void NPlayerPawnExt::RegisterFunctions()
 {
@@ -16,11 +17,6 @@ void NPlayerPawnExt::RegisterFunctions()
 
 void NPlayerPawnExt::InitRootWindow(UObject* Self)
 {
-    NPlayerPawnExt::ConstructRootWindow(Self);
-}
-
-void NPlayerPawnExt::ConstructRootWindow(UObject* Self)
-{
     UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
     auto dxIni = engine->packages->GetIniFile("System");
     NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
@@ -28,6 +24,9 @@ void NPlayerPawnExt::ConstructRootWindow(UObject* Self)
     if (cls)
     {
         engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+        engine->dxRootWindow->parentPawn() = SelfPawn;
+        engine->dxRootWindow->bIsVisible() = true;
+        CallEvent(engine->dxRootWindow, "InitWindow");
         SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
     }
 }
