@@ -11,7 +11,10 @@
 void NPawn::RegisterFunctions()
 {
 	RegisterVMNativeFunc_0("Pawn", "AddPawn", &NPawn::AddPawn, 529);
-	RegisterVMNativeFunc_9("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination, 709);
+	if (!engine->LaunchInfo.IsDeusEx())
+		RegisterVMNativeFunc_9("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination, 709);
+	else
+		RegisterVMNativeFunc_10("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination_Deus, 709);
 	RegisterVMNativeFunc_2("Pawn", "CanSee", &NPawn::CanSee, 533);
 	RegisterVMNativeFunc_3("Pawn", "CheckValidSkinPackage", &NPawn::CheckValidSkinPackage, 0);
 	RegisterVMNativeFunc_0("Pawn", "ClearPaths", &NPawn::ClearPaths, 522);
@@ -60,7 +63,6 @@ void NPawn::RegisterFunctions()
 		RegisterVMNativeFunc_7("Pawn", "AICanSee", &NPawn::AICanSee, 705);
 		RegisterVMNativeFunc_3("Pawn", "AICanSmell", &NPawn::AICanSmell, 707);
 		RegisterVMNativeFunc_7("Pawn", "AIDirectionReachable", &NPawn::AIDirectionReachable, 708);
-		RegisterVMNativeFunc_10("Pawn", "AIPickRandomDestination", &NPawn::AIPickRandomDestination, 709);
 		RegisterVMNativeFunc_1("Pawn", "ComputePathnodeDistances", &NPawn::ComputePathnodeDistances, 1020);
 		RegisterVMNativeFunc_5("Pawn", "ReachablePathnodes", &NPawn::ReachablePathnodes, 1004);
 	}
