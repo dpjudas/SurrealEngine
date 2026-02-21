@@ -28,33 +28,22 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	if (!window->bIsVisible())
 		return;
 
-	// To do: CallEvent(window, "DrawWindow", { gc });
-
-	float x = window->X() * 2.0f;
-	float y = window->Y() * 2.0f;
+	float x = window->X() * 2.0f + offsetX;
+	float y = window->Y() * 2.0f + offsetY;
 	float w = window->Width() * 2.0f;
 	float h = window->Height() * 2.0f;
-
-	x += offsetX;
-	y += offsetY;
-
-	UTexture* tex = window->Background();
-	if (tex)
-	{
-		DrawTile(tex, x, y, w, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), 1.0f, vec4(1.0f), vec4(0.0f), PF_NoSmooth);
-	}
-
 	if (h == 0.0f)
 		h = 40.0f;
-
-	if (auto button = UObject::TryCast<UButtonWindow>(window))
-	{
-		tex = button->curTexture();
-		if (tex)
-			DrawTile(tex, x, y, w, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), 1.0f, vec4(1.0f), vec4(0.0f), PF_NoSmooth);
-	}
-
 	vec3 scale((float)Canvas.uiscale, (float)Canvas.uiscale, 1.0f);
+
+	// To do: should we reset everything here? Since the unrealscript code never seems to set things back it may be needed
+	// Could also be that it needs to be initialized to the values on UWindow
+	engine->dxgc->bDrawEnabled() = true;
+	engine->dxgc->offsetX = x;
+	engine->dxgc->offsetY = y;
+	engine->dxgc->scale = scale;
+
+	CallEvent(window, "DrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
 
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x, y, 1.0f) * scale, vec3(x + w, y, 1.0f) * scale);
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x, y, 1.0f) * scale, vec3(x, y + h, 1.0f) * scale);
