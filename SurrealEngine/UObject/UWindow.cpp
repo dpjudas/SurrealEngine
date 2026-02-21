@@ -1311,27 +1311,60 @@ void UScrollAreaWindow::SetScrollbarDistance(float newDistance)
 
 void UBorderWindow::BaseMarginsFromBorder(BitfieldBool* bBorder)
 {
-	LogUnimplemented("BorderWindow.BaseMarginsFromBorder");
+	bMarginsFromBorder() = !bBorder || *bBorder;
 }
 
 void UBorderWindow::EnableResizing(BitfieldBool* bResize)
 {
-	LogUnimplemented("BorderWindow.EnableResizing");
+	bResizeable() = !bResize || *bResize;
 }
 
 void UBorderWindow::SetBorderMargins(float* NewLeft, float* NewRight, float* newTop, float* newBottom)
 {
-	LogUnimplemented("BorderWindow.SetBorderMargins");
+	if (NewLeft)
+		childLeftMargin() = *NewLeft;
+	if (NewRight)
+		childRightMargin() = *NewRight;
+	if (newTop)
+		childTopMargin() = *newTop;
+	if (newBottom)
+		childBottomMargin() = *newBottom;
 }
 
-void UBorderWindow::SetBorders(UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
+void UBorderWindow::SetBorders(UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** newCenter)
 {
-	LogUnimplemented("BorderWindow.SetBorders");
+	if (bordTL)
+		borderTopLeft() = UObject::Cast<UTexture>(*bordTL);
+	if (bordTR)
+		borderTopRight() = UObject::Cast<UTexture>(*bordTR);
+	if (bordBL)
+		borderBottomLeft() = UObject::Cast<UTexture>(*bordBL);
+	if (bordBR)
+		borderBottomRight() = UObject::Cast<UTexture>(*bordBR);
+	if (bordL)
+		borderLeft() = UObject::Cast<UTexture>(*bordL);
+	if (bordR)
+		borderRight() = UObject::Cast<UTexture>(*bordR);
+	if (bordT)
+		borderTop() = UObject::Cast<UTexture>(*bordT);
+	if (bordB)
+		borderBottom() = UObject::Cast<UTexture>(*bordB);
+	if (newCenter)
+		center() = UObject::Cast<UTexture>(*newCenter);
 }
 
 void UBorderWindow::SetMoveCursors(UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
 {
-	LogUnimplemented("BorderWindow.SetMoveCursors");
+	if (Move)
+		MoveCursor() = UObject::Cast<UTexture>(*Move);
+	if (hMove)
+		hMoveCursor() = UObject::Cast<UTexture>(*hMove);
+	if (vMove)
+		vMoveCursor() = UObject::Cast<UTexture>(*vMove);
+	if (tlMove)
+		tlMoveCursor() = UObject::Cast<UTexture>(*tlMove);
+	if (trMove)
+		trMoveCursor() = UObject::Cast<UTexture>(*trMove);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1515,47 +1548,55 @@ void UScaleWindow::SetValueRange(float newFrom, float newTo)
 
 void UScaleManagerWindow::SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerAlignments");
+	childHAlign() = newHAlign;
+	childVAlign() = newVAlign;
 }
 
 void UScaleManagerWindow::SetManagerMargins(float* newMarginWidth, float* newMarginHeight)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerMargins");
+	if (newMarginWidth)
+		marginWidth() = *newMarginWidth;
+	if (newMarginHeight)
+		marginHeight() = *newMarginHeight;
 }
 
 void UScaleManagerWindow::SetManagerOrientation(uint8_t newOrientation)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerOrientation");
+	orientation() = newOrientation;
 }
 
 void UScaleManagerWindow::SetMarginSpacing(float* newSpacing)
 {
-	LogUnimplemented("ScaleManagerWindow.SetMarginSpacing");
+	if (newSpacing)
+		Spacing() = *newSpacing;
 }
 
 void UScaleManagerWindow::SetScale(UObject* NewScale)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScale");
+	Scale() = UObject::Cast<UScaleWindow>(NewScale);
 }
 
 void UScaleManagerWindow::SetScaleButtons(UObject* newDecButton, UObject* newIncButton)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScaleButtons");
+	if (newDecButton)
+		decButton() = UObject::Cast<UButtonWindow>(newDecButton);
+	if (newIncButton)
+		incButton() = UObject::Cast<UButtonWindow>(newIncButton);
 }
 
 void UScaleManagerWindow::SetValueField(UObject* newValueField)
 {
-	LogUnimplemented("ScaleManagerWindow.SetValueField");
+	valueField() = UObject::Cast<UTextWindow>(newValueField);
 }
 
 void UScaleManagerWindow::StretchScaleField(BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchScaleField");
+	bStretchScaleField() = !bNewStretch || *bNewStretch;
 }
 
 void UScaleManagerWindow::StretchValueField(BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchValueField");
+	bStretchValueField() = !bNewStretch || *bNewStretch;
 }
 
 /////////////////////////////////////////////////////////////////////////////
