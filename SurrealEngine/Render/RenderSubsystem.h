@@ -4,6 +4,8 @@
 #include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
+class UWindow;
+class UFont;
 
 struct LightmapTexture
 {
@@ -17,6 +19,8 @@ public:
 	RenderSubsystem(RenderDevice* renderdevice);
 
 	void DrawRootWindow();
+	void DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY);
+	void DrawWindow(UWindow* window, float offsetX, float offsetY);
 
 	void DrawEditorViewport();
 	void DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background);

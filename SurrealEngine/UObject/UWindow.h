@@ -108,6 +108,8 @@ public:
 	void Show(BitfieldBool* bShow);
 	void UngrabMouse();
 
+	void DetachFromParent();
+
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
 	float& Height() { return Value<float>(PropOffsets_Window.Height); }
 	float& SoundVolume() { return Value<float>(PropOffsets_Window.SoundVolume); }
@@ -790,21 +792,18 @@ public:
 	void StretchScaleField(BitfieldBool* bNewStretch);
 	void StretchValueField(BitfieldBool* bNewStretch);
 
-	UClipWindow*& ClipWindow() { return Value<UClipWindow*>(PropOffsets_ScrollAreaWindow.ClipWindow); }
-	UButtonWindow*& DownButton() { return Value<UButtonWindow*>(PropOffsets_ScrollAreaWindow.DownButton); }
-	UButtonWindow*& LeftButton() { return Value<UButtonWindow*>(PropOffsets_ScrollAreaWindow.LeftButton); }
-	UButtonWindow*& RightButton() { return Value<UButtonWindow*>(PropOffsets_ScrollAreaWindow.RightButton); }
-	UButtonWindow*& UpButton() { return Value<UButtonWindow*>(PropOffsets_ScrollAreaWindow.UpButton); }
-	BitfieldBool bHLastShow() { return BoolValue(PropOffsets_ScrollAreaWindow.bHLastShow); }
-	BitfieldBool bHideScrollbars() { return BoolValue(PropOffsets_ScrollAreaWindow.bHideScrollbars); }
-	BitfieldBool bVLastShow() { return BoolValue(PropOffsets_ScrollAreaWindow.bVLastShow); }
-	UScaleWindow*& hScale() { return Value<UScaleWindow*>(PropOffsets_ScrollAreaWindow.hScale); }
-	UScaleManagerWindow*& hScaleMgr() { return Value<UScaleManagerWindow*>(PropOffsets_ScrollAreaWindow.hScaleMgr); }
-	float& marginHeight() { return Value<float>(PropOffsets_ScrollAreaWindow.marginHeight); }
-	float& marginWidth() { return Value<float>(PropOffsets_ScrollAreaWindow.marginWidth); }
-	float& scrollbarDistance() { return Value<float>(PropOffsets_ScrollAreaWindow.scrollbarDistance); }
-	UScaleWindow*& vScale() { return Value<UScaleWindow*>(PropOffsets_ScrollAreaWindow.vScale); }
-	UScaleManagerWindow*& vScaleMgr() { return Value<UScaleManagerWindow*>(PropOffsets_ScrollAreaWindow.vScaleMgr); }
+	UScaleWindow*& Scale() { return Value<UScaleWindow*>(PropOffsets_ScaleManagerWindow.Scale); }
+	float& Spacing() { return Value<float>(PropOffsets_ScaleManagerWindow.Spacing); }
+	BitfieldBool bStretchScaleField() { return BoolValue(PropOffsets_ScaleManagerWindow.bStretchScaleField); }
+	BitfieldBool bStretchValueField() { return BoolValue(PropOffsets_ScaleManagerWindow.bStretchValueField); }
+	uint8_t& childHAlign() { return Value<uint8_t>(PropOffsets_ScaleManagerWindow.childHAlign); }
+	uint8_t& childVAlign() { return Value<uint8_t>(PropOffsets_ScaleManagerWindow.childVAlign); }
+	UButtonWindow*& decButton() { return Value<UButtonWindow*>(PropOffsets_ScaleManagerWindow.decButton); }
+	UButtonWindow*& incButton() { return Value<UButtonWindow*>(PropOffsets_ScaleManagerWindow.incButton); }
+	float& marginHeight() { return Value<float>(PropOffsets_ScaleManagerWindow.marginHeight); }
+	float& marginWidth() { return Value<float>(PropOffsets_ScaleManagerWindow.marginWidth); }
+	uint8_t& orientation() { return Value<uint8_t>(PropOffsets_ScaleManagerWindow.orientation); }
+	UTextWindow*& valueField() { return Value<UTextWindow*>(PropOffsets_ScaleManagerWindow.valueField); }
 };
 
 class UListWindow : public UWindow

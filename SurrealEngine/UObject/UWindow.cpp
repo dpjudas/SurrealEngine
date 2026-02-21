@@ -1,7 +1,15 @@
 
 #include "Precomp.h"
 #include "UWindow.h"
+#include "UObject/UClass.h"
+#include "UObject/UActor.h"
+#include "UObject/UTexture.h"
+#include "UObject/UFont.h"
+#include "UObject/USound.h"
+#include "UObject/UClient.h"
+#include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 void UWindow::AddActorRef(UObject* refActor)
 {
@@ -59,12 +67,31 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 
 void UWindow::Destroy()
 {
-	LogUnimplemented("Window.Destroy");
+	DetachFromParent();
+}
+
+void UWindow::DetachFromParent()
+{
+	if (prevSibling())
+		prevSibling()->nextSibling() = nextSibling();
+	if (nextSibling())
+		nextSibling()->prevSibling() = prevSibling();
+	if (parentOwner())
+	{
+		if (parentOwner()->firstChild() == this)
+			parentOwner()->firstChild() = nextSibling();
+		if (parentOwner()->lastChild() == this)
+			parentOwner()->lastChild() = prevSibling();
+	}
+	prevSibling() = nullptr;
+	nextSibling() = nullptr;
+	parentOwner() = nullptr;
 }
 
 void UWindow::DestroyAllChildren()
 {
-	LogUnimplemented("Window.DestroyAllChildren");
+	while (firstChild())
+		firstChild()->Destroy();
 }
 
 void UWindow::DisableWindow()
@@ -101,8 +128,7 @@ UObject* UWindow::GetBottomChild(BitfieldBool* bVisibleOnly)
 
 UObject* UWindow::GetClientObject()
 {
-	LogUnimplemented("Window.GetClientObject");
-	return nullptr;
+	return clientObject();
 }
 
 void UWindow::GetCursorPos(float& MouseX, float& MouseY)
@@ -142,20 +168,24 @@ UObject* UWindow::GetModalWindow()
 
 UObject* UWindow::GetParent()
 {
-	LogUnimplemented("Window.GetParent");
-	return nullptr;
+	return parentOwner();
 }
 
 UObject* UWindow::GetPlayerPawn()
 {
-	LogUnimplemented("Window.GetPlayerPawn");
-	return nullptr;
+	UWindow* cur = this;
+	while (cur->parentOwner())
+		cur = cur->parentOwner();
+	URootWindow* root = UObject::TryCast<URootWindow>(cur);
+	return root ? root->parentPawn() : nullptr;
 }
 
 UObject* UWindow::GetRootWindow()
 {
-	LogUnimplemented("Window.GetRootWindow");
-	return nullptr;
+	UWindow* cur = this;
+	while (cur->parentOwner())
+		cur = cur->parentOwner();
+	return UObject::TryCast<URootWindow>(cur);
 }
 
 UObject* UWindow::GetTabGroupWindow()
@@ -183,7 +213,7 @@ void UWindow::GrabMouse()
 
 void UWindow::Hide()
 {
-	LogUnimplemented("Window.Hide");
+	bIsVisible() = false;
 }
 
 bool UWindow::IsActorValid(UObject* refActor)
@@ -212,19 +242,52 @@ bool UWindow::IsPointInWindow(float pointX, float pointY)
 
 bool UWindow::IsSensitive(BitfieldBool* bRecurse)
 {
-	LogUnimplemented("Window.IsSensitive");
+	if (bIsSensitive())
+		return true;
+	if (bRecurse && *bRecurse)
+	{
+		for (UWindow* cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			if (cur->IsSensitive(bRecurse))
+				return true;
+		}
+	}
 	return false;
 }
 
 bool UWindow::IsVisible(BitfieldBool* bRecurse)
 {
-	LogUnimplemented("Window.IsVisible");
+	if (bIsVisible())
+		return true;
+	if (bRecurse && *bRecurse)
+	{
+		for (UWindow* cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			if (cur->IsVisible(bRecurse))
+				return true;
+		}
+	}
 	return false;
 }
 
 void UWindow::Lower()
 {
-	LogUnimplemented("Window.Lower");
+	if (!parentOwner())
+		return;
+	UWindow* owner = parentOwner();
+	DetachFromParent();
+	parentOwner() = owner;
+	if (owner->firstChild())
+	{
+		nextSibling() = owner->firstChild();
+		owner->firstChild()->prevSibling() = this;
+		owner->firstChild() = this;
+	}
+	else
+	{
+		owner->firstChild() = this;
+		owner->lastChild() = this;
+	}
 }
 
 UObject* UWindow::MoveFocusDown()
@@ -265,8 +328,22 @@ UObject* UWindow::MoveTabGroupPrev()
 
 UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 {
-	LogUnimplemented("Window.NewChild");
-	return nullptr;
+	bool show = !bShow || *bShow;
+	//LogMessage("Window.NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
+	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
+	child->parentOwner() = this;
+	child->prevSibling() = lastChild();
+	child->nextSibling() = nullptr;
+	child->firstChild() = nullptr;
+	child->lastChild() = nullptr;
+	child->bIsVisible() = show;
+	if (lastChild())
+		lastChild()->nextSibling() = child;
+	lastChild() = child;
+	if (!firstChild())
+		firstChild() = child;
+	CallEvent(child, "InitWindow");
+	return child;
 }
 
 void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
@@ -298,7 +375,22 @@ float UWindow::QueryPreferredWidth(float queryHeight)
 
 void UWindow::Raise()
 {
-	LogUnimplemented("Window.Raise");
+	if (!parentOwner())
+		return;
+	UWindow* owner = parentOwner();
+	DetachFromParent();
+	parentOwner() = owner;
+	if (owner->lastChild())
+	{
+		prevSibling() = owner->lastChild();
+		owner->lastChild()->nextSibling() = this;
+		owner->lastChild() = this;
+	}
+	else
+	{
+		owner->firstChild() = this;
+		owner->lastChild() = this;
+	}
 }
 
 void UWindow::ReleaseGC(UObject* GC)
@@ -343,22 +435,22 @@ void UWindow::SetAcceleratorText(const std::string& newStr)
 
 void UWindow::SetBackground(UObject* newBackground)
 {
-	LogUnimplemented("Window.SetBackground");
+	Background() = UObject::Cast<UTexture>(newBackground);
 }
 
 void UWindow::SetBackgroundSmoothing(bool newSmoothing)
 {
-	LogUnimplemented("Window.SetBackgroundSmoothing");
+	bSmoothBackground() = newSmoothing;
 }
 
 void UWindow::SetBackgroundStretching(bool newStretching)
 {
-	LogUnimplemented("Window.SetBackgroundStretching");
+	bStretchBackground() = newStretching;
 }
 
 void UWindow::SetBackgroundStyle(uint8_t NewStyle)
 {
-	LogUnimplemented("Window.SetBackgroundStyle");
+	backgroundStyle() = NewStyle;
 }
 
 void UWindow::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight)
@@ -368,7 +460,7 @@ void UWindow::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeigh
 
 void UWindow::SetBoldFont(UObject* fn)
 {
-	LogUnimplemented("Window.SetBoldFont");
+	boldFont() = UObject::Cast<UFont>(fn);
 }
 
 void UWindow::SetChildVisibility(bool bNewVisibility)
@@ -378,12 +470,15 @@ void UWindow::SetChildVisibility(bool bNewVisibility)
 
 void UWindow::SetClientObject(UObject* newClientObject)
 {
-	LogUnimplemented("Window.SetClientObject");
+	clientObject() = newClientObject;
 }
 
 void UWindow::SetConfiguration(float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.SetConfiguration");
+	X() = newX;
+	Y() = newY;
+	Width() = newWidth;
+	Height() = NewHeight;
 }
 
 void UWindow::SetCursorPos(float newMouseX, float newMouseY)
@@ -393,12 +488,23 @@ void UWindow::SetCursorPos(float newMouseX, float newMouseY)
 
 void UWindow::SetDefaultCursor(UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor)
 {
-	LogUnimplemented("Window.SetDefaultCursor");
+	defaultCursor() = UObject::Cast<UTexture>(tX);
+	if (shadowTexture)
+		defaultCursorShadow() = UObject::Cast<UTexture>(*shadowTexture);
+	if (HotX)
+		defaultHotX() = *HotX;
+	if (HotY)
+		defaultHotY() = *HotY;
+	if (cursorColor)
+		defaultCursorColor() = *cursorColor;
 }
 
-void UWindow::SetFocusSounds(UObject** focusSound, UObject** unfocusSound)
+void UWindow::SetFocusSounds(UObject** newFocusSound, UObject** newUnfocusSound)
 {
-	LogUnimplemented("Window.SetFocusSounds");
+	if (newFocusSound)
+		focusSound() = UObject::Cast<USound>(*newFocusSound);
+	if (newUnfocusSound)
+		unfocusSound() = UObject::Cast<USound>(*newUnfocusSound);
 }
 
 bool UWindow::SetFocusWindow(UObject* NewFocusWindow)
@@ -409,67 +515,74 @@ bool UWindow::SetFocusWindow(UObject* NewFocusWindow)
 
 void UWindow::SetFont(UObject* fn)
 {
-	LogUnimplemented("Window.SetFont");
+	normalFont() = UObject::Cast<UFont>(fn);
+	boldFont() = UObject::Cast<UFont>(fn);
 }
 
 void UWindow::SetFonts(UObject* nFont, UObject* bFont)
 {
-	LogUnimplemented("Window.SetFonts");
+	normalFont() = UObject::Cast<UFont>(nFont);
+	boldFont() = UObject::Cast<UFont>(bFont);
 }
 
 void UWindow::SetHeight(float NewHeight)
 {
-	LogUnimplemented("Window.SetHeight");
+	Height() = NewHeight;
 }
 
 void UWindow::SetNormalFont(UObject* fn)
 {
-	LogUnimplemented("Window.SetNormalFont");
+	normalFont() = UObject::Cast<UFont>(fn);
 }
 
 void UWindow::SetPos(float newX, float newY)
 {
-	LogUnimplemented("Window.SetPos");
+	X() = newX;
+	Y() = newY;
 }
 
 void UWindow::SetSelectability(bool newSelectability)
 {
-	LogUnimplemented("Window.SetSelectability");
+	bIsSelectable() = newSelectability;
 }
 
 void UWindow::SetSensitivity(bool newSensitivity)
 {
-	LogUnimplemented("Window.SetSensitivity");
+	bIsSensitive() = newSensitivity;
 }
 
 void UWindow::SetSize(float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.SetSize");
+	Width() = newWidth;
+	Height() = NewHeight;
 }
 
 void UWindow::SetSoundVolume(float newVolume)
 {
-	LogUnimplemented("Window.SetSoundVolume");
+	SoundVolume() = newVolume;
 }
 
 void UWindow::SetTextColor(const Color& NewColor)
 {
-	LogUnimplemented("Window.SetTextColor");
+	TextColor() = NewColor;
 }
 
 void UWindow::SetTileColor(const Color& NewColor)
 {
-	LogUnimplemented("Window.SetTileColor");
+	tileColor() = NewColor;
 }
 
 void UWindow::SetVisibilitySounds(UObject** visSound, UObject** invisSound)
 {
-	LogUnimplemented("Window.SetVisibilitySounds");
+	if (visSound)
+		visibleSound() = UObject::Cast<USound>(*visSound);
+	if (invisSound)
+		invisibleSound() = UObject::Cast<USound>(*invisSound);
 }
 
 void UWindow::SetWidth(float newWidth)
 {
-	LogUnimplemented("Window.SetWidth");
+	Width() = newWidth;
 }
 
 void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
@@ -479,7 +592,8 @@ void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* hMargin
 
 void UWindow::Show(BitfieldBool* bShow)
 {
-	LogUnimplemented("Window.Show");
+	bool show = !bShow || *bShow;
+	bIsVisible() = show;
 }
 
 void UWindow::UngrabMouse()
@@ -501,7 +615,10 @@ void UViewportWindow::EnableViewport(BitfieldBool* bEnable)
 
 void UViewportWindow::SetDefaultTexture(UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("ViewportWindow.SetDefaultTexture");
+	if (NewTexture)
+		DefaultTexture() = UObject::Cast<UTexture>(*NewTexture);
+	if (NewColor)
+		DefaultColor() = *NewColor;
 }
 
 void UViewportWindow::SetFOVAngle(float* newAngle)
@@ -536,64 +653,70 @@ void UViewportWindow::SetViewportLocation(const vec3& NewLocation, BitfieldBool*
 
 void UViewportWindow::SetWatchActor(UObject** newWatchActor, BitfieldBool* bEyeLevel)
 {
-	LogUnimplemented("ViewportWindow.SetWatchActor");
+	if (newWatchActor)
+		watchActor() = UObject::Cast<UActor>(*newWatchActor);
+	if (bEyeLevel)
+		bWatchEyeHeight() = *bEyeLevel;
 }
 
 void UViewportWindow::ShowViewportActor(BitfieldBool* bShow)
 {
-	LogUnimplemented("ViewportWindow.ShowViewportActor");
+	bShowActor() = !bShow || *bShow;
 }
 
 void UViewportWindow::ShowWeapons(BitfieldBool* bShow)
 {
-	LogUnimplemented("ViewportWindow.ShowWeapons");
+	bShowWeapons() = !bShow || *bShow;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void UTileWindow::EnableWrapping(bool bWrapOn)
 {
-	LogUnimplemented("TileWindow.EnableWrapping");
+	bWrap() = bWrapOn;
 }
 
 void UTileWindow::FillParent(bool FillParent)
 {
-	LogUnimplemented("TileWindow.FillParent");
+	bFillParent() = FillParent;
 }
 
 void UTileWindow::MakeHeightsEqual(bool bEqual)
 {
-	LogUnimplemented("TileWindow.MakeHeightsEqual");
+	bEqualHeight() = bEqual;
 }
 
 void UTileWindow::MakeWidthsEqual(bool bEqual)
 {
-	LogUnimplemented("TileWindow.MakeWidthsEqual");
+	bEqualWidth() = bEqual;
 }
 
 void UTileWindow::SetChildAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("TileWindow.SetChildAlignments");
+	hChildAlign() = newHAlign;
+	vChildAlign() = newVAlign;
 }
 
 void UTileWindow::SetDirections(uint8_t newHDir, uint8_t newVDir)
 {
-	LogUnimplemented("TileWindow.SetDirections");
+	hDirection() = newHDir;
+	vDirection() = newVDir;
 }
 
 void UTileWindow::SetMajorSpacing(float newSpacing)
 {
-	LogUnimplemented("TileWindow.SetMajorSpacing");
+	majorSpacing() = newSpacing;
 }
 
 void UTileWindow::SetMargins(float newHMargin, float newVMargin)
 {
-	LogUnimplemented("TileWindow.SetMargins");
+	hMargin() = newHMargin;
+	vMargin() = newVMargin;
 }
 
 void UTileWindow::SetMinorSpacing(float newSpacing)
 {
-	LogUnimplemented("TileWindow.SetMinorSpacing");
+	minorSpacing() = newSpacing;
 }
 
 void UTileWindow::SetOrder(uint8_t newOrder)
@@ -603,14 +726,14 @@ void UTileWindow::SetOrder(uint8_t newOrder)
 
 void UTileWindow::SetOrientation(uint8_t newOrientation)
 {
-	LogUnimplemented("TileWindow.SetOrientation");
+	orientation() = newOrientation;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void UTextWindow::AppendText(const std::string& NewText)
 {
-	LogUnimplemented("TextWindow.AppendText");
+	Text() += NewText;
 }
 
 void UTextWindow::EnableTextAsAccelerator(BitfieldBool* bEnable)
@@ -620,20 +743,20 @@ void UTextWindow::EnableTextAsAccelerator(BitfieldBool* bEnable)
 
 std::string UTextWindow::GetText()
 {
-	LogUnimplemented("TextWindow.GetText");
-	return "";
+	return Text();
 }
 
 int UTextWindow::GetTextLength()
 {
-	LogUnimplemented("TextWindow.GetTextLength");
-	return 0;
+	return (int)Text().size();
 }
 
 int UTextWindow::GetTextPart(int startPos, int Count, std::string& OutText)
 {
-	LogUnimplemented("TextWindow.GetTextPart");
-	return 0;
+	int start = std::max(startPos, 0);
+	int end = std::min(startPos + Count, (int)Text().size());
+	OutText = Text().substr(start, end - start);
+	return (int)OutText.size();
 }
 
 void UTextWindow::ResetLines()
@@ -648,42 +771,45 @@ void UTextWindow::ResetMinWidth()
 
 void UTextWindow::SetLines(int newMinLines, int newMaxLines)
 {
-	LogUnimplemented("TextWindow.SetLines");
+	minLines() = newMinLines;
+	MaxLines() = newMaxLines;
 }
 
 void UTextWindow::SetMaxLines(int newMaxLines)
 {
-	LogUnimplemented("TextWindow.SetMaxLines");
+	MaxLines() = newMaxLines;
 }
 
 void UTextWindow::SetMinLines(int newMinLines)
 {
-	LogUnimplemented("TextWindow.SetMinLines");
+	minLines() = newMinLines;
 }
 
 void UTextWindow::SetMinWidth(float newMinWidth)
 {
-	LogUnimplemented("TextWindow.SetMinWidth");
+	MinWidth() = newMinWidth;
 }
 
 void UTextWindow::SetText(const std::string& NewText)
 {
-	LogUnimplemented("TextWindow.SetText");
+	Text() = NewText;
 }
 
 void UTextWindow::SetTextAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("TextWindow.SetTextAlignments");
+	HAlign() = newHAlign;
+	VAlign() = newVAlign;
 }
 
 void UTextWindow::SetTextMargins(float newHMargin, float newVMargin)
 {
-	LogUnimplemented("TextWindow.SetTextMargins");
+	hMargin() = newHMargin;
+	vMargin() = newVMargin;
 }
 
 void UTextWindow::SetWordWrap(bool bNewWordWrap)
 {
-	LogUnimplemented("TextWindow.SetWordWrap");
+	bWordWrap() = bNewWordWrap;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -726,6 +852,8 @@ void UButtonWindow::SetButtonSounds(UObject** pressSound, UObject** clickSound)
 void UButtonWindow::SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
 {
 	LogUnimplemented("ButtonWindow.SetButtonTextures");
+	if (Normal)
+		curTexture() = UObject::Cast<UTexture>(*Normal);
 }
 
 void UButtonWindow::SetTextColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
@@ -751,36 +879,46 @@ void UToggleWindow::SetToggle(bool bNewToggle)
 	LogUnimplemented("ToggleWindow.SetToggle");
 }
 
-void UToggleWindow::SetToggleSounds(UObject** enableSound, UObject** disableSound)
+void UToggleWindow::SetToggleSounds(UObject** newEnableSound, UObject** newDisableSound)
 {
-	LogUnimplemented("ToggleWindow.SetToggleSounds");
+	if (newEnableSound)
+		enableSound() = UObject::Cast<USound>(*newEnableSound);
+	if (newDisableSound)
+		disableSound() = UObject::Cast<USound>(*newDisableSound);
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void UCheckboxWindow::SetCheckboxColor(const Color& NewColor)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxColor");
+	checkboxColor() = NewColor;
 }
 
 void UCheckboxWindow::SetCheckboxSpacing(float newSpacing)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxSpacing");
+	checkboxSpacing() = newSpacing;
 }
 
 void UCheckboxWindow::SetCheckboxStyle(uint8_t NewStyle)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxStyle");
+	checkboxStyle() = NewStyle;
 }
 
-void UCheckboxWindow::SetCheckboxTextures(UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight)
+void UCheckboxWindow::SetCheckboxTextures(UObject** newToggleOff, UObject** newToggleOn, float* newTextureWidth, float* newTextureHeight)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxTextures");
+	if (newToggleOff)
+		toggleOff() = UObject::Cast<UTexture>(*newToggleOff);
+	if (newToggleOn)
+		toggleOn() = UObject::Cast<UTexture>(*newToggleOn);
+	if (newTextureWidth)
+		textureWidth() = *newTextureWidth;
+	if (newTextureHeight)
+		textureHeight() = *newTextureHeight;
 }
 
 void UCheckboxWindow::ShowCheckboxOnRightSide(BitfieldBool* bRight)
 {
-	LogUnimplemented("CheckboxWindow.ShowCheckboxOnRightSide");
+	bRightSide() = !bRight || *bRight;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1055,19 +1193,19 @@ bool UModalWindow::IsCurrentModal()
 
 void UModalWindow::SetMouseFocusMode(uint8_t newFocusMode)
 {
-	LogUnimplemented("ModalWindow.SetMouseFocusMode");
+	focusMode() = newFocusMode;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void URootWindow::EnablePositionalSound(BitfieldBool* bEnable)
 {
-	LogUnimplemented("RootWindow.EnablePositionalSound");
+	bPositionalSound() = !bEnable || *bEnable;
 }
 
-void URootWindow::EnableRendering(BitfieldBool* bRender)
+void URootWindow::EnableRendering(BitfieldBool* newRender)
 {
-	LogUnimplemented("RootWindow.EnableRendering");
+	bRender() = !newRender || *newRender;
 }
 
 UObject* URootWindow::GenerateSnapshot(BitfieldBool* bFilter)
@@ -1078,14 +1216,12 @@ UObject* URootWindow::GenerateSnapshot(BitfieldBool* bFilter)
 
 bool URootWindow::IsPositionalSoundEnabled()
 {
-	LogUnimplemented("RootWindow.IsPositionalSoundEnabled");
-	return false;
+	return bPositionalSound();
 }
 
 bool URootWindow::IsRenderingEnabled()
 {
-	LogUnimplemented("RootWindow.IsRenderingEnabled");
-	return false;
+	return bRender();
 }
 
 void URootWindow::LockMouse(BitfieldBool* bLockMove, BitfieldBool* bLockButton)
@@ -1100,27 +1236,44 @@ void URootWindow::ResetRenderViewport()
 
 void URootWindow::SetDefaultEditCursor(UObject** newEditCursor)
 {
-	LogUnimplemented("RootWindow.SetDefaultEditCursor");
+	if (newEditCursor)
+		defaultEditCursor() = UObject::Cast<UTexture>(*newEditCursor);
 }
 
 void URootWindow::SetDefaultMovementCursors(UObject** newMovementCursor, UObject** newHorizontalMovementCursor, UObject** newVerticalMovementCursor, UObject** newTopLeftMovementCursor, UObject** newTopRightMovementCursor)
 {
-	LogUnimplemented("RootWindow.SetDefaultMovementCursors");
+	if (newMovementCursor)
+		DefaultMoveCursor() = UObject::Cast<UTexture>(*newMovementCursor);
+	if (newHorizontalMovementCursor)
+		defaultHorizontalMoveCursor() = UObject::Cast<UTexture>(*newHorizontalMovementCursor);
+	if (newVerticalMovementCursor)
+		defaultVerticalMoveCursor() = UObject::Cast<UTexture>(*newVerticalMovementCursor);
+	if (newTopLeftMovementCursor)
+		defaultTopLeftMoveCursor() = UObject::Cast<UTexture>(*newTopLeftMovementCursor);
+	if (newTopRightMovementCursor)
+		defaultTopRightMoveCursor() = UObject::Cast<UTexture>(*newTopRightMovementCursor);
 }
 
 void URootWindow::SetRawBackground(UObject** NewTexture, Color* NewColor)
 {
-	LogUnimplemented("RootWindow.SetRawBackground");
+	if (NewTexture)
+		rawBackground() = UObject::Cast<UTexture>(*NewTexture);
+	if (NewColor)
+		rawColor() = *NewColor;
 }
 
 void URootWindow::SetRawBackgroundSize(float newWidth, float NewHeight)
 {
-	LogUnimplemented("RootWindow.SetRawBackgroundSize");
+	rawBackgroundWidth() = newWidth;
+	rawBackgroundHeight() = NewHeight;
 }
 
 void URootWindow::SetRenderViewport(float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("RootWindow.SetRenderViewport");
+	renderX() = newX;
+	renderY() = newY;
+	renderWidth() = newWidth;
+	renderHeight() = NewHeight;
 }
 
 void URootWindow::SetSnapshotSize(float newWidth, float NewHeight)
@@ -1130,12 +1283,12 @@ void URootWindow::SetSnapshotSize(float newWidth, float NewHeight)
 
 void URootWindow::ShowCursor(BitfieldBool* bShow)
 {
-	LogUnimplemented("RootWindow.ShowCursor");
+	bCursorVisible() = !bShow || *bShow;
 }
 
 void URootWindow::StretchRawBackground(BitfieldBool* bStretch)
 {
-	LogUnimplemented("RootWindow.StretchRawBackground");
+	bStretchRawBackground() = !bStretch || *bStretch;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1152,39 +1305,73 @@ void UScrollAreaWindow::EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool*
 
 void UScrollAreaWindow::SetAreaMargins(float newMarginWidth, float newMarginHeight)
 {
-	LogUnimplemented("ScrollAreaWindow.SetAreaMargins");
+	marginWidth() = newMarginWidth;
+	marginHeight() = newMarginHeight;
 }
 
 void UScrollAreaWindow::SetScrollbarDistance(float newDistance)
 {
-	LogUnimplemented("ScrollAreaWindow.SetScrollbarDistance");
+	scrollbarDistance() = newDistance;
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void UBorderWindow::BaseMarginsFromBorder(BitfieldBool* bBorder)
 {
-	LogUnimplemented("BorderWindow.BaseMarginsFromBorder");
+	bMarginsFromBorder() = !bBorder || *bBorder;
 }
 
 void UBorderWindow::EnableResizing(BitfieldBool* bResize)
 {
-	LogUnimplemented("BorderWindow.EnableResizing");
+	bResizeable() = !bResize || *bResize;
 }
 
 void UBorderWindow::SetBorderMargins(float* NewLeft, float* NewRight, float* newTop, float* newBottom)
 {
-	LogUnimplemented("BorderWindow.SetBorderMargins");
+	if (NewLeft)
+		childLeftMargin() = *NewLeft;
+	if (NewRight)
+		childRightMargin() = *NewRight;
+	if (newTop)
+		childTopMargin() = *newTop;
+	if (newBottom)
+		childBottomMargin() = *newBottom;
 }
 
-void UBorderWindow::SetBorders(UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
+void UBorderWindow::SetBorders(UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** newCenter)
 {
-	LogUnimplemented("BorderWindow.SetBorders");
+	if (bordTL)
+		borderTopLeft() = UObject::Cast<UTexture>(*bordTL);
+	if (bordTR)
+		borderTopRight() = UObject::Cast<UTexture>(*bordTR);
+	if (bordBL)
+		borderBottomLeft() = UObject::Cast<UTexture>(*bordBL);
+	if (bordBR)
+		borderBottomRight() = UObject::Cast<UTexture>(*bordBR);
+	if (bordL)
+		borderLeft() = UObject::Cast<UTexture>(*bordL);
+	if (bordR)
+		borderRight() = UObject::Cast<UTexture>(*bordR);
+	if (bordT)
+		borderTop() = UObject::Cast<UTexture>(*bordT);
+	if (bordB)
+		borderBottom() = UObject::Cast<UTexture>(*bordB);
+	if (newCenter)
+		center() = UObject::Cast<UTexture>(*newCenter);
 }
 
 void UBorderWindow::SetMoveCursors(UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
 {
-	LogUnimplemented("BorderWindow.SetMoveCursors");
+	if (Move)
+		MoveCursor() = UObject::Cast<UTexture>(*Move);
+	if (hMove)
+		hMoveCursor() = UObject::Cast<UTexture>(*hMove);
+	if (vMove)
+		vMoveCursor() = UObject::Cast<UTexture>(*vMove);
+	if (tlMove)
+		tlMoveCursor() = UObject::Cast<UTexture>(*tlMove);
+	if (trMove)
+		trMoveCursor() = UObject::Cast<UTexture>(*trMove);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1368,47 +1555,55 @@ void UScaleWindow::SetValueRange(float newFrom, float newTo)
 
 void UScaleManagerWindow::SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerAlignments");
+	childHAlign() = newHAlign;
+	childVAlign() = newVAlign;
 }
 
 void UScaleManagerWindow::SetManagerMargins(float* newMarginWidth, float* newMarginHeight)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerMargins");
+	if (newMarginWidth)
+		marginWidth() = *newMarginWidth;
+	if (newMarginHeight)
+		marginHeight() = *newMarginHeight;
 }
 
 void UScaleManagerWindow::SetManagerOrientation(uint8_t newOrientation)
 {
-	LogUnimplemented("ScaleManagerWindow.SetManagerOrientation");
+	orientation() = newOrientation;
 }
 
 void UScaleManagerWindow::SetMarginSpacing(float* newSpacing)
 {
-	LogUnimplemented("ScaleManagerWindow.SetMarginSpacing");
+	if (newSpacing)
+		Spacing() = *newSpacing;
 }
 
 void UScaleManagerWindow::SetScale(UObject* NewScale)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScale");
+	Scale() = UObject::Cast<UScaleWindow>(NewScale);
 }
 
 void UScaleManagerWindow::SetScaleButtons(UObject* newDecButton, UObject* newIncButton)
 {
-	LogUnimplemented("ScaleManagerWindow.SetScaleButtons");
+	if (newDecButton)
+		decButton() = UObject::Cast<UButtonWindow>(newDecButton);
+	if (newIncButton)
+		incButton() = UObject::Cast<UButtonWindow>(newIncButton);
 }
 
 void UScaleManagerWindow::SetValueField(UObject* newValueField)
 {
-	LogUnimplemented("ScaleManagerWindow.SetValueField");
+	valueField() = UObject::Cast<UTextWindow>(newValueField);
 }
 
 void UScaleManagerWindow::StretchScaleField(BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchScaleField");
+	bStretchScaleField() = !bNewStretch || *bNewStretch;
 }
 
 void UScaleManagerWindow::StretchValueField(BitfieldBool* bNewStretch)
 {
-	LogUnimplemented("ScaleManagerWindow.StretchValueField");
+	bStretchValueField() = !bNewStretch || *bNewStretch;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1955,16 +2150,19 @@ void UComputerWindow::ShowTextCursor(BitfieldBool* bShow)
 
 void UGC::ClearZ()
 {
+	// Only used by ActorDisplayWindow.DrawWindow
 	LogUnimplemented("GC.ClearZ");
 }
 
 void UGC::CopyGC(UObject* Copy)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.CopyGC");
 }
 
 void UGC::DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin)
 {
+	// Only used by ActorDisplayWindow.DrawWindow, AugmentationDisplayWindow.DrawWindow
 	LogUnimplemented("GC.DrawActor");
 }
 
@@ -2003,77 +2201,80 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 	LogUnimplemented("GC.DrawTexture");
 }
 
-void UGC::EnableDrawing(bool bDrawEnabled)
+void UGC::EnableDrawing(bool newDrawEnabled)
 {
-	LogUnimplemented("GC.EnableDrawing");
+	// Only set by ActorDisplayWindow.DrawWindow and always set to true.
+	bDrawEnabled() = newDrawEnabled;
 }
 
 void UGC::EnableMasking(bool bNewMasking)
 {
-	LogUnimplemented("GC.EnableMasking");
+	bMasked() = bNewMasking;
 }
 
 void UGC::EnableModulation(bool bNewModulation)
 {
-	LogUnimplemented("GC.EnableModulation");
+	bModulated() = bNewModulation;
 }
 
 void UGC::EnableSmoothing(bool bNewSmoothing)
 {
-	LogUnimplemented("GC.EnableSmoothing");
+	bSmoothed() = bNewSmoothing;
 }
 
 void UGC::EnableSpecialText(bool bNewSpecialText)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.EnableSpecialText");
 }
 
 void UGC::EnableTranslucency(bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucency");
+	bTranslucent() = bNewTranslucency;
 }
 
 void UGC::EnableTranslucentText(bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucentText");
+	bTextTranslucent() = bNewTranslucency;
 }
 
 void UGC::EnableWordWrap(bool bNewWordWrap)
 {
-	LogUnimplemented("GC.EnableWordWrap");
+	bWordWrap() = bNewWordWrap;
 }
 
-void UGC::GetAlignments(uint8_t& HAlign, uint8_t& VAlign)
+void UGC::GetAlignments(uint8_t& outHAlign, uint8_t& outVAlign)
 {
-	LogUnimplemented("GC.GetAlignments");
+	outHAlign = HAlign();
+	outVAlign = VAlign();
 }
 
 float UGC::GetFontHeight(BitfieldBool* bIncludeSpace)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.GetFontHeight");
 	return 0.0f;
 }
 
-void UGC::GetFonts(UObject*& normalFont, UObject*& boldFont)
+void UGC::GetFonts(UObject*& outNormalFont, UObject*& outBoldFont)
 {
-	LogUnimplemented("GC.GetFonts");
+	outNormalFont = normalFont();
+	outBoldFont = boldFont();
 }
 
 uint8_t UGC::GetHorizontalAlignment()
 {
-	LogUnimplemented("GC.GetHorizontalAlignment");
-	return 0;
+	return HAlign();
 }
 
 uint8_t UGC::GetStyle()
 {
-	LogUnimplemented("GC.GetStyle");
-	return 0;
+	return Style();
 }
 
-void UGC::GetTextColor(Color& TextColor)
+void UGC::GetTextColor(Color& outTextColor)
 {
-	LogUnimplemented("GC.GetTextColor");
+	outTextColor = TextColor();
 }
 
 void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const std::string& textStr)
@@ -2083,19 +2284,17 @@ void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const s
 
 float UGC::GetTextVSpacing()
 {
-	LogUnimplemented("GC.GetTextVSpacing");
-	return 0.0f;
+	return textVSpacing();
 }
 
-void UGC::GetTileColor(Color& tileColor)
+void UGC::GetTileColor(Color& outTileColor)
 {
-	LogUnimplemented("GC.GetTileColor");
+	outTileColor = tileColor();
 }
 
 uint8_t UGC::GetVerticalAlignment()
 {
-	LogUnimplemented("GC.GetVerticalAlignment");
-	return 0;
+	return VAlign();
 }
 
 void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
@@ -2105,119 +2304,121 @@ void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
 
 bool UGC::IsDrawingEnabled()
 {
-	LogUnimplemented("GC.IsDrawingEnabled");
-	return false;
+	return bDrawEnabled();
 }
 
 bool UGC::IsMaskingEnabled()
 {
-	LogUnimplemented("GC.IsMaskingEnabled");
-	return false;
+	return bMasked();
 }
 
 bool UGC::IsModulationEnabled()
 {
-	LogUnimplemented("GC.IsModulationEnabled");
-	return false;
+	return bModulated();
 }
 
 bool UGC::IsSmoothingEnabled()
 {
-	LogUnimplemented("GC.IsSmoothingEnabled");
-	return false;
+	return bSmoothed();
 }
 
 bool UGC::IsSpecialTextEnabled()
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.IsSpecialTextEnabled");
 	return false;
 }
 
 bool UGC::IsTranslucencyEnabled()
 {
-	LogUnimplemented("GC.IsTranslucencyEnabled");
-	return false;
+	return bTranslucent();
 }
 
 bool UGC::IsTranslucentTextEnabled()
 {
-	LogUnimplemented("GC.IsTranslucentTextEnabled");
-	return false;
+	return bTextTranslucent();
 }
 
 bool UGC::IsWordWrapEnabled()
 {
-	LogUnimplemented("GC.IsWordWrapEnabled");
-	return false;
+	return bWordWrap();
 }
 
 void UGC::PopGC(int* gcNum)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.PopGC");
 }
 
 int UGC::PushGC()
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.PushGC");
 	return 0;
 }
 
 void UGC::SetAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetAlignments");
+	HAlign() = newHAlign;
+	VAlign() = newVAlign;
 }
 
 void UGC::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("GC.SetBaselineData");
+	if (newBaselineOffset)
+		baselineOffset() = *newBaselineOffset;
+	if (newUnderlineHeight)
+		underlineHeight() = *newUnderlineHeight;
 }
 
 void UGC::SetBoldFont(UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetBoldFont");
+	boldFont() = UObject::Cast<UFont>(newBoldFont);
 }
 
 void UGC::SetFont(UObject* NewFont)
 {
-	LogUnimplemented("GC.SetFont");
+	normalFont() = UObject::Cast<UFont>(NewFont);
+	boldFont() = UObject::Cast<UFont>(NewFont);
 }
 
 void UGC::SetFonts(UObject* newNormalFont, UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetFonts");
+	normalFont() = UObject::Cast<UFont>(newNormalFont);
+	boldFont() = UObject::Cast<UFont>(newBoldFont);
 }
 
 void UGC::SetHorizontalAlignment(uint8_t newHAlign)
 {
-	LogUnimplemented("GC.SetHorizontalAlignment");
+	HAlign() = newHAlign;
 }
 
 void UGC::SetNormalFont(UObject* newNormalFont)
 {
-	LogUnimplemented("GC.SetNormalFont");
+	normalFont() = UObject::Cast<UFont>(newNormalFont);
 }
 
 void UGC::SetStyle(uint8_t NewStyle)
 {
-	LogUnimplemented("GC.SetStyle");
+	Style() = NewStyle;
 }
 
 void UGC::SetTextColor(const Color& newTextColor)
 {
-	LogUnimplemented("GC.SetTextColor");
+	TextColor() = newTextColor;
 }
 
 void UGC::SetTextVSpacing(float newVSpacing)
 {
-	LogUnimplemented("GC.SetTextVSpacing");
+	textVSpacing() = newVSpacing;
 }
 
 void UGC::SetTileColor(const Color& newTileColor)
 {
-	LogUnimplemented("GC.SetTileColor");
+	tileColor() = newTileColor;
 }
 
 void UGC::SetVerticalAlignment(uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetVerticalAlignment");
+	VAlign() = newVAlign;
 }
