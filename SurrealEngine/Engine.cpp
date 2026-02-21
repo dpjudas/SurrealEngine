@@ -1252,6 +1252,11 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		PlayAVI(args);
 		return {};
 	}
+	else if (command == "FLUSH")
+	{
+		engine->render->Device->Flush(1);
+		return {};
+	}
 	else
 	{
 		if (!ExecCommand(args))
