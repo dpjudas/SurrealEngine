@@ -1,12 +1,14 @@
 
 #include "Precomp.h"
 #include "UWindow.h"
+#include "Audio/AudioDevice.h"
 #include "UObject/UClass.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
 #include "UObject/UFont.h"
 #include "UObject/USound.h"
 #include "UObject/UClient.h"
+#include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 #include "USubsystem.h"
@@ -15,6 +17,12 @@
 
 void UWindow::AddActorRef(UObject* refActor)
 {
+	UObject* playerPawn = GetPlayerPawn();
+	if (!playerPawn) return;
+
+	// TODO: actual meat of the code. AddActorRef seems to be an unexposed NPlayerPawnExt function.
+	//RingQueue<ActorRef> ActorRefs{32};  
+	
 	LogUnimplemented("Window.AddActorRef");
 }
 
@@ -282,8 +290,10 @@ bool UWindow::IsFocusWindow()
 
 bool UWindow::IsKeyDown(uint8_t Key)
 {
-	LogUnimplemented("Window.IsKeyDown");
-	return false;
+	if (engine && engine->window)
+		return engine->window->GetKeyState(static_cast<EInputKey>(Key));
+	else
+	 	return false;
 }
 
 bool UWindow::IsPointInWindow(float pointX, float pointY)
