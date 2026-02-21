@@ -10,6 +10,8 @@
 #include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "USubsystem.h"
+#include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 
 void UWindow::AddActorRef(UObject* refActor)
@@ -349,11 +351,27 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 
 void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
 {
+<<<<<<< HEAD
 	// Stub that should work but doesn't seem to.
 	USound* sound = UObject::Cast<USound>(newsound);
 	float posZ = 0;
 	vec3 position = vec3(posX ? *posX : 0, posY ? *posY : 0, posZ);
 	engine->audiodev->GetDevice()->PlaySound(0, sound, position, Volume ? *Volume : 0, 0, Pitch ? *Pitch : 0);
+=======
+	USound* s = UObject::Cast<USound>(newsound);
+	UPlayerPawnExt* player = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
+	if (s && player)
+	{
+		int slot = SLOT_Misc;
+		int id = ((((int)(ptrdiff_t)this) & 0xffffff) << 4) + (slot << 1);
+		vec3 location = player->Location();
+		if (posX)
+			location.x = *posX;
+		if (posY)
+			location.y = *posY;
+		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f);
+	}
+>>>>>>> ab40389959fb3ba6796de18f21f39d641966268f
 }
 
 void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)
@@ -2156,7 +2174,7 @@ void UComputerWindow::ShowTextCursor(BitfieldBool* bShow)
 void UGC::ClearZ()
 {
 	// Only used by ActorDisplayWindow.DrawWindow
-	LogUnimplemented("GC.ClearZ");
+	engine->render->Device->ClearZ();
 }
 
 void UGC::CopyGC(UObject* Copy)
@@ -2183,27 +2201,100 @@ void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, f
 
 void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawIcon");
+	if (!bDrawEnabled())
+		return;
+
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
+	{
+		vec4 color(1.0f);
+		uint32_t polyflags = 0;
+		if (bMasked())
+			polyflags |= PF_Masked;
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		if (!bSmoothed())
+			polyflags |= PF_NoSmooth;
+
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, swidth * scale.x, sheight * scale.y, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
+	}
 }
 
 void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawPattern");
+	if (!bDrawEnabled())
+		return;
+
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
+	{
+		vec4 color(1.0f);
+		uint32_t polyflags = 0;
+		if (bMasked())
+			polyflags |= PF_Masked;
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		if (!bSmoothed())
+			polyflags |= PF_NoSmooth;
+
+		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, OrgX, OrgY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+	}
 }
 
 void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, float srcWidth, float srcHeight, UObject* tX)
 {
-	LogUnimplemented("GC.DrawStretchedTexture");
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
+	{
+		vec4 color(1.0f);
+		uint32_t polyflags = 0;
+		if (bMasked())
+			polyflags |= PF_Masked;
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		if (!bSmoothed())
+			polyflags |= PF_NoSmooth;
+
+		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, srcX, srcY, srcWidth, srcHeight, 1.0f, color, vec4(0.0), polyflags);
+	}
 }
 
 void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr)
 {
-	LogUnimplemented("GC.DrawText");
+	if (!bDrawEnabled())
+		return;
+
+	UFont* font = normalFont();
+	if (font)
+	{
+		vec4 color(1.0f);
+		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
+		uint32_t polyflags = PF_Masked | PF_NoSmooth;
+		engine->render->DrawText(font, color, offsetX + DestX * scale.x, offsetY + DestY * scale.y, curX, curY, curXL, curYL, false, textStr, polyflags, false, 0.0f, 0.0f, 10000.0f, 10000.0f, false);
+	}
 }
 
 void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, UObject* tX)
 {
-	LogUnimplemented("GC.DrawTexture");
+	if (!bDrawEnabled())
+		return;
+
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
+	{
+		vec4 color(1.0f);
+		uint32_t polyflags = 0;
+		if (bMasked())
+			polyflags |= PF_Masked;
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		if (!bSmoothed())
+			polyflags |= PF_NoSmooth;
+
+		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, srcX, srcY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+	}
 }
 
 void UGC::EnableDrawing(bool newDrawEnabled)

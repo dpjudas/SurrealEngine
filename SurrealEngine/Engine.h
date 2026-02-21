@@ -129,6 +129,7 @@ public:
 	USurrealClient* client = nullptr;
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
+	UGC* dxgc = nullptr;
 	UConsole* console = nullptr;
 	URootWindow* dxRootWindow = nullptr;
 

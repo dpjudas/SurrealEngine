@@ -12,10 +12,16 @@ class UScaleWindow;
 class UScaleManagerWindow;
 class UActor;
 
-class UWindow : public UObject
+class UExtensionObject : public UObject
 {
 public:
 	using UObject::UObject;
+};
+
+class UWindow : public UExtensionObject
+{
+public:
+	using UExtensionObject::UExtensionObject;
 
 	void AddActorRef(UObject* refActor);
 	int AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName);
@@ -1138,4 +1144,9 @@ public:
 	float& underlineHeight() { return Value<float>(PropOffsets_GC.underlineHeight); }
 	UTexture*& underlineTexture() { return Value<UTexture*>(PropOffsets_GC.underlineTexture); }
 	int& vMultiplier() { return Value<int>(PropOffsets_GC.vMultiplier); }
+
+	// To do: apply cliprect?
+	float offsetX = 0.0f;
+	float offsetY = 0.0f;
+	vec3 scale = vec3(1.0f);
 };

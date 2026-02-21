@@ -69,8 +69,7 @@ void NDeusExPlayer::DeleteSaveGameFiles(UObject* Self, std::string* saveDirector
 
 void NDeusExPlayer::GetDeusExVersion(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.GetDeusExVersion");
-	ReturnValue = "";
+	ReturnValue = "Surreal Engine Edition!";
 }
 
 void NDeusExPlayer::SaveGame(UObject* Self, int saveIndex, std::string* saveDesc)

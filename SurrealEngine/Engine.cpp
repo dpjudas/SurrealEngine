@@ -49,6 +49,13 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 	canvas = UObject::Cast<UCanvas>(transientpkg->NewObject("canvas", enginepkg->GetClass("Canvas"), ObjectFlags::Transient));
 	DefaultTexture = UObject::Cast<UTexture>(packages->GetPackage("Engine")->GetUObject("Texture", "DefaultTexture"));
 
+	if (LaunchInfo.IsDeusEx())
+	{
+		auto extpkg = packages->GetPackage("Extension");
+		dxgc = UObject::Cast<UGC>(transientpkg->NewObject("gc", extpkg->GetClass("GC"), ObjectFlags::Transient));
+		dxgc->Canvas() = canvas;
+	}
+
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
 	std::string consolepkg = consolestr.substr(0, consolestr.find('.'));
 	std::string consolecls = consolestr.substr(consolestr.find('.') + 1);
