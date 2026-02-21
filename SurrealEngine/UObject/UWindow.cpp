@@ -2102,16 +2102,19 @@ void UComputerWindow::ShowTextCursor(BitfieldBool* bShow)
 
 void UGC::ClearZ()
 {
+	// Only used by ActorDisplayWindow.DrawWindow
 	LogUnimplemented("GC.ClearZ");
 }
 
 void UGC::CopyGC(UObject* Copy)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.CopyGC");
 }
 
 void UGC::DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin)
 {
+	// Only used by ActorDisplayWindow.DrawWindow, AugmentationDisplayWindow.DrawWindow
 	LogUnimplemented("GC.DrawActor");
 }
 
@@ -2150,77 +2153,80 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 	LogUnimplemented("GC.DrawTexture");
 }
 
-void UGC::EnableDrawing(bool bDrawEnabled)
+void UGC::EnableDrawing(bool newDrawEnabled)
 {
-	LogUnimplemented("GC.EnableDrawing");
+	// Only set by ActorDisplayWindow.DrawWindow and always set to true.
+	bDrawEnabled() = newDrawEnabled;
 }
 
 void UGC::EnableMasking(bool bNewMasking)
 {
-	LogUnimplemented("GC.EnableMasking");
+	bMasked() = bNewMasking;
 }
 
 void UGC::EnableModulation(bool bNewModulation)
 {
-	LogUnimplemented("GC.EnableModulation");
+	bModulated() = bNewModulation;
 }
 
 void UGC::EnableSmoothing(bool bNewSmoothing)
 {
-	LogUnimplemented("GC.EnableSmoothing");
+	bSmoothed() = bNewSmoothing;
 }
 
 void UGC::EnableSpecialText(bool bNewSpecialText)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.EnableSpecialText");
 }
 
 void UGC::EnableTranslucency(bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucency");
+	bTranslucent() = bNewTranslucency;
 }
 
 void UGC::EnableTranslucentText(bool bNewTranslucency)
 {
-	LogUnimplemented("GC.EnableTranslucentText");
+	bTextTranslucent() = bNewTranslucency;
 }
 
 void UGC::EnableWordWrap(bool bNewWordWrap)
 {
-	LogUnimplemented("GC.EnableWordWrap");
+	bWordWrap() = bNewWordWrap;
 }
 
-void UGC::GetAlignments(uint8_t& HAlign, uint8_t& VAlign)
+void UGC::GetAlignments(uint8_t& outHAlign, uint8_t& outVAlign)
 {
-	LogUnimplemented("GC.GetAlignments");
+	outHAlign = HAlign();
+	outVAlign = VAlign();
 }
 
 float UGC::GetFontHeight(BitfieldBool* bIncludeSpace)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.GetFontHeight");
 	return 0.0f;
 }
 
-void UGC::GetFonts(UObject*& normalFont, UObject*& boldFont)
+void UGC::GetFonts(UObject*& outNormalFont, UObject*& outBoldFont)
 {
-	LogUnimplemented("GC.GetFonts");
+	outNormalFont = normalFont();
+	outBoldFont = boldFont();
 }
 
 uint8_t UGC::GetHorizontalAlignment()
 {
-	LogUnimplemented("GC.GetHorizontalAlignment");
-	return 0;
+	return HAlign();
 }
 
 uint8_t UGC::GetStyle()
 {
-	LogUnimplemented("GC.GetStyle");
-	return 0;
+	return Style();
 }
 
-void UGC::GetTextColor(Color& TextColor)
+void UGC::GetTextColor(Color& outTextColor)
 {
-	LogUnimplemented("GC.GetTextColor");
+	outTextColor = TextColor();
 }
 
 void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const std::string& textStr)
@@ -2230,19 +2236,17 @@ void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const s
 
 float UGC::GetTextVSpacing()
 {
-	LogUnimplemented("GC.GetTextVSpacing");
-	return 0.0f;
+	return textVSpacing();
 }
 
-void UGC::GetTileColor(Color& tileColor)
+void UGC::GetTileColor(Color& outTileColor)
 {
-	LogUnimplemented("GC.GetTileColor");
+	outTileColor = tileColor();
 }
 
 uint8_t UGC::GetVerticalAlignment()
 {
-	LogUnimplemented("GC.GetVerticalAlignment");
-	return 0;
+	return VAlign();
 }
 
 void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
@@ -2252,119 +2256,121 @@ void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
 
 bool UGC::IsDrawingEnabled()
 {
-	LogUnimplemented("GC.IsDrawingEnabled");
-	return false;
+	return bDrawEnabled();
 }
 
 bool UGC::IsMaskingEnabled()
 {
-	LogUnimplemented("GC.IsMaskingEnabled");
-	return false;
+	return bMasked();
 }
 
 bool UGC::IsModulationEnabled()
 {
-	LogUnimplemented("GC.IsModulationEnabled");
-	return false;
+	return bModulated();
 }
 
 bool UGC::IsSmoothingEnabled()
 {
-	LogUnimplemented("GC.IsSmoothingEnabled");
-	return false;
+	return bSmoothed();
 }
 
 bool UGC::IsSpecialTextEnabled()
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.IsSpecialTextEnabled");
 	return false;
 }
 
 bool UGC::IsTranslucencyEnabled()
 {
-	LogUnimplemented("GC.IsTranslucencyEnabled");
-	return false;
+	return bTranslucent();
 }
 
 bool UGC::IsTranslucentTextEnabled()
 {
-	LogUnimplemented("GC.IsTranslucentTextEnabled");
-	return false;
+	return bTextTranslucent();
 }
 
 bool UGC::IsWordWrapEnabled()
 {
-	LogUnimplemented("GC.IsWordWrapEnabled");
-	return false;
+	return bWordWrap();
 }
 
 void UGC::PopGC(int* gcNum)
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.PopGC");
 }
 
 int UGC::PushGC()
 {
+	// Not used directly by scripts
 	LogUnimplemented("GC.PushGC");
 	return 0;
 }
 
 void UGC::SetAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetAlignments");
+	HAlign() = newHAlign;
+	VAlign() = newVAlign;
 }
 
 void UGC::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("GC.SetBaselineData");
+	if (newBaselineOffset)
+		baselineOffset() = *newBaselineOffset;
+	if (newUnderlineHeight)
+		underlineHeight() = *newUnderlineHeight;
 }
 
 void UGC::SetBoldFont(UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetBoldFont");
+	boldFont() = UObject::Cast<UFont>(newBoldFont);
 }
 
 void UGC::SetFont(UObject* NewFont)
 {
-	LogUnimplemented("GC.SetFont");
+	normalFont() = UObject::Cast<UFont>(NewFont);
+	boldFont() = UObject::Cast<UFont>(NewFont);
 }
 
 void UGC::SetFonts(UObject* newNormalFont, UObject* newBoldFont)
 {
-	LogUnimplemented("GC.SetFonts");
+	normalFont() = UObject::Cast<UFont>(newNormalFont);
+	boldFont() = UObject::Cast<UFont>(newBoldFont);
 }
 
 void UGC::SetHorizontalAlignment(uint8_t newHAlign)
 {
-	LogUnimplemented("GC.SetHorizontalAlignment");
+	HAlign() = newHAlign;
 }
 
 void UGC::SetNormalFont(UObject* newNormalFont)
 {
-	LogUnimplemented("GC.SetNormalFont");
+	normalFont() = UObject::Cast<UFont>(newNormalFont);
 }
 
 void UGC::SetStyle(uint8_t NewStyle)
 {
-	LogUnimplemented("GC.SetStyle");
+	Style() = NewStyle;
 }
 
 void UGC::SetTextColor(const Color& newTextColor)
 {
-	LogUnimplemented("GC.SetTextColor");
+	TextColor() = newTextColor;
 }
 
 void UGC::SetTextVSpacing(float newVSpacing)
 {
-	LogUnimplemented("GC.SetTextVSpacing");
+	textVSpacing() = newVSpacing;
 }
 
 void UGC::SetTileColor(const Color& newTileColor)
 {
-	LogUnimplemented("GC.SetTileColor");
+	tileColor() = newTileColor;
 }
 
 void UGC::SetVerticalAlignment(uint8_t newVAlign)
 {
-	LogUnimplemented("GC.SetVerticalAlignment");
+	VAlign() = newVAlign;
 }
