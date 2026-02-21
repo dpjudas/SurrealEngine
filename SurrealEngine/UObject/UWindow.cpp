@@ -351,13 +351,6 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 
 void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
 {
-<<<<<<< HEAD
-	// Stub that should work but doesn't seem to.
-	USound* sound = UObject::Cast<USound>(newsound);
-	float posZ = 0;
-	vec3 position = vec3(posX ? *posX : 0, posY ? *posY : 0, posZ);
-	engine->audiodev->GetDevice()->PlaySound(0, sound, position, Volume ? *Volume : 0, 0, Pitch ? *Pitch : 0);
-=======
 	USound* s = UObject::Cast<USound>(newsound);
 	UPlayerPawnExt* player = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
 	if (s && player)
@@ -371,7 +364,6 @@ void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* p
 			location.y = *posY;
 		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f);
 	}
->>>>>>> ab40389959fb3ba6796de18f21f39d641966268f
 }
 
 void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)
