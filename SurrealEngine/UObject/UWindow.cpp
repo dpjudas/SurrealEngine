@@ -7,6 +7,7 @@
 #include "UObject/UFont.h"
 #include "UObject/USound.h"
 #include "UObject/UClient.h"
+#include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
@@ -348,7 +349,11 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 
 void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
 {
-	LogUnimplemented("Window.PlaySound");
+	// Stub that should work but doesn't seem to.
+	USound* sound = UObject::Cast<USound>(newsound);
+	float posZ = 0;
+	vec3 position = vec3(posX ? *posX : 0, posY ? *posY : 0, posZ);
+	engine->audiodev->GetDevice()->PlaySound(0, sound, position, Volume ? *Volume : 0, 0, Pitch ? *Pitch : 0);
 }
 
 void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)

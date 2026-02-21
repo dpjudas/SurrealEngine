@@ -25,10 +25,6 @@ public:
 	static Coords Rotation(const Rotator& rotator);
 	static Coords InverseRotation(const Rotator& rotator);
 
-	// Converts a global vector to be represented with Coord's axes
-	vec3 LocalizeVector(const vec3& globalVector) const;
-	vec3 GlobalizeVector(const vec3& localVector) const;
-
 	static Coords ViewToRenderDev();
 	static Coords ViewToAudioDev();
 
@@ -159,24 +155,6 @@ inline Coords Coords::Rotation(const Rotator& rotator)
 inline Coords Coords::InverseRotation(const Rotator& rotator)
 {
 	return YawRotation(-rotator.YawRadians()) * PitchRotation(-rotator.PitchRadians()) * RollRotation(-rotator.RollRadians());
-}
-
-inline vec3 Coords::LocalizeVector(const vec3& globalVector) const
-{
-	auto xAxis = dot(globalVector, XAxis);
-	auto yAxis = dot(globalVector, YAxis);
-	auto zAxis = dot(globalVector, ZAxis);
-
-	return {xAxis, yAxis, zAxis};
-}
-
-inline vec3 Coords::GlobalizeVector(const vec3& localVector) const
-{
-	auto xAxis = dot(localVector, {1, 0, 0});
-	auto yAxis = dot(localVector, {0, 1, 0});
-	auto zAxis = dot(localVector, {0, 0, 1});
-
-	return {xAxis, yAxis, zAxis};
 }
 
 inline void Coords::GetAxes(vec3& X, vec3& Y, vec3& Z) const

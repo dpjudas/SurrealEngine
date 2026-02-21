@@ -1189,9 +1189,6 @@ class UWarpZoneInfo : public UZoneInfo
 public:
 	using UZoneInfo::UZoneInfo;
 
-	void Warp(vec3& Loc, vec3& Vel, Rotator& R);
-	void UnWarp(vec3& Loc, vec3& Vel, Rotator& R); // Warp but in reverse?
-
 	std::string& Destinations() { return Value<std::string>(PropOffsets_WarpZoneInfo.Destinations); }
 	UWarpZoneInfo*& OtherSideActor() { return Value<UWarpZoneInfo*>(PropOffsets_WarpZoneInfo.OtherSideActor); }
 	UObject*& OtherSideLevel() { return Value<UObject*>(PropOffsets_WarpZoneInfo.OtherSideLevel); }
