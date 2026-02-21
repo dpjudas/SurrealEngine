@@ -29,7 +29,10 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
   - Projectiles pass through some movers
   - It is possible to get stuck on some movers when approached from certain angles
 * Mirrors/reflections rendering is a bit buggy.
-* Portals aren't implemented. They do not render or "teleport" the player, and crash the engine under certain conditions.
+* Portals:
+  - They somewhat work, but might end up "pushing" players/projectiles in unexpected directions.
+  - No portal rendering yet.
+* Semisolid brushes are finicky. Usually you'll fall through them as if they weren't there.
 * No dynamic lighting support (Dispersion Pistol projectiles/Flares don't illuminate their surroundings)
 * Bot and Scripted Pawn AI isn't fully functional due to the related native functions not being implemented.
 All they currently do is to sometimes retaliate if attacked, and pick up nearby items.
@@ -54,12 +57,12 @@ they end up dying because SE thinks that they've fallen from a great height.
   - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
   because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
 
-## General Engine bugs that might need further testing
+## General Engine bugs that are not confirmed yet
+
 * There seem to be a memory leak due to Garbage Collection not being implemented. This is probably extremely hard to notice as UE1 games 
 won't use much memory when run on modern computers. Might need to run SE for a looooong time before it is noticeable.
 * Gibbing on certain maps in Debug mode causes out of bounds vertex access
 * Lightmap rendering is kind of off
-* Inventory travelling might need some testing on other games, due to how weapon/inventory getting deselected is fixed.
 
 ## Unreal (Gold)
 
@@ -79,17 +82,16 @@ won't use much memory when run on modern computers. Might need to run SE for a l
 ### Known bugs:
 
 * [469*] Many new native functions/features are not yet implemented.
-* When compiled with GCC or Clang, the engine can crash after running for a second. This doesn't happen with MSVC.
 * Shock Rifle beams render glitchy.
 * Player can slide through on some of the catwalks in the room with lava in DM-Conveyor
 
 ## Deus Ex
 
-1112fm version of the game currently crashes immediately. Sadly, even if the game boots up, atm only the intro flyby works.
+1112fm version of the game boots to title screen but you'll get stuck because the menus don't work yet. You can load maps with `--url` command and play them, e.g. `SurrealEngine --url=00_Training.dx /path/to/deusex` but expect crashes.
 
 ### Known bugs:
-* Keyboard (and mouse?) input doesn't work. No keys are recognized, preventing us from testing literally everything else.
-  - Might be because input stuff is moved to native Extension package, which isn't implemented?
+* Keyboard and mouse inputs do not work on menus. If you accidentally opened one of those you'll get stuck.
+* Attempting to initiate a dialog will crash the game.
 
 ## Tactical-Ops: Assault on Terror
 
