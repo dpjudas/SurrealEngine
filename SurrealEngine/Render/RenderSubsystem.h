@@ -20,6 +20,7 @@ public:
 
 	void DrawRootWindow();
 	void DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY);
+	void DrawWindow(UWindow* window, float offsetX, float offsetY);
 
 	void DrawEditorViewport();
 	void DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background);
