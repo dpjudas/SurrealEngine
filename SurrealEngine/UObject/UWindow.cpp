@@ -891,27 +891,34 @@ void UToggleWindow::SetToggleSounds(UObject** newEnableSound, UObject** newDisab
 
 void UCheckboxWindow::SetCheckboxColor(const Color& NewColor)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxColor");
+	checkboxColor() = NewColor;
 }
 
 void UCheckboxWindow::SetCheckboxSpacing(float newSpacing)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxSpacing");
+	checkboxSpacing() = newSpacing;
 }
 
 void UCheckboxWindow::SetCheckboxStyle(uint8_t NewStyle)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxStyle");
+	checkboxStyle() = NewStyle;
 }
 
-void UCheckboxWindow::SetCheckboxTextures(UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight)
+void UCheckboxWindow::SetCheckboxTextures(UObject** newToggleOff, UObject** newToggleOn, float* newTextureWidth, float* newTextureHeight)
 {
-	LogUnimplemented("CheckboxWindow.SetCheckboxTextures");
+	if (newToggleOff)
+		toggleOff() = UObject::Cast<UTexture>(*newToggleOff);
+	if (newToggleOn)
+		toggleOn() = UObject::Cast<UTexture>(*newToggleOn);
+	if (newTextureWidth)
+		textureWidth() = *newTextureWidth;
+	if (newTextureHeight)
+		textureHeight() = *newTextureHeight;
 }
 
 void UCheckboxWindow::ShowCheckboxOnRightSide(BitfieldBool* bRight)
 {
-	LogUnimplemented("CheckboxWindow.ShowCheckboxOnRightSide");
+	bRightSide() = !bRight || *bRight;
 }
 
 /////////////////////////////////////////////////////////////////////////////
