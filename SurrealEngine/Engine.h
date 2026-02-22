@@ -51,6 +51,7 @@ class ExpressionValue;
 class UnrealURL;
 class VideoPlayer;
 class UnrealMipmap;
+class UFloatProperty;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -132,6 +133,8 @@ public:
 	UGC* dxgc = nullptr;
 	UConsole* console = nullptr;
 	URootWindow* dxRootWindow = nullptr;
+
+	UFloatProperty* floatprop = nullptr;
 
 	ULevelInfo* EntryLevelInfo = nullptr;
 	ULevel* EntryLevel = nullptr;

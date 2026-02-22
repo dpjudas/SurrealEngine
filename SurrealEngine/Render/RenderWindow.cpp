@@ -28,6 +28,12 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	if (!window->bIsVisible())
 		return;
 
+	if (window->FirstDraw)
+	{
+		window->FirstDraw = false;
+		CallEvent(window, "WindowReady");
+	}
+
 	float x = window->X() * 2.0f + offsetX;
 	float y = window->Y() * 2.0f + offsetY;
 	float w = window->Width() * 2.0f;
@@ -54,6 +60,13 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	{
 		DrawWindow(child, x, y);
 	}
+
+	engine->dxgc->bDrawEnabled() = true;
+	engine->dxgc->offsetX = x;
+	engine->dxgc->offsetY = y;
+	engine->dxgc->scale = scale;
+
+	CallEvent(window, "PostDrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
 }
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)

@@ -27,12 +27,30 @@ int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameS
 
 void UWindow::AskParentForReconfigure()
 {
-	LogUnimplemented("Window.AskParentForReconfigure");
+	UWindow* parent = parentOwner();
+	if (parent)
+	{
+		CallEvent(parent, "ChildRequestedReconfiguration", { ExpressionValue::ObjectValue(this) });
+	}
 }
 
 void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, float* areaHeight)
 {
-	LogUnimplemented("Window.AskParentToShowArea");
+	UWindow* parent = parentOwner();
+	if (parent)
+	{
+		float showX = areaX ? *areaX : X();
+		float showY = areaY ? *areaY : Y();
+		float showWidth = areaWidth ? *areaWidth : Width();
+		float showHeight = areaHeight ? *areaHeight : Height();
+		CallEvent(parent, "ChildRequestedShowArea", {
+			ExpressionValue::ObjectValue(this),
+			ExpressionValue::FloatValue(showX),
+			ExpressionValue::FloatValue(showY),
+			ExpressionValue::FloatValue(showWidth),
+			ExpressionValue::FloatValue(showHeight)
+			});
+	}
 }
 
 std::string UWindow::CarriageReturn()
@@ -48,7 +66,12 @@ void UWindow::ChangeStyle()
 
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
 {
-	LogUnimplemented("Window.ConfigureChild");
+	X() = newX;
+	Y() = newY;
+	Width() = newWidth;
+	Height() = NewHeight;
+
+	CallEvent(this, "ConfigurationChanged");
 }
 
 void UWindow::ConvertCoordinates(UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
@@ -59,7 +82,7 @@ void UWindow::ConvertCoordinates(UObject* fromWin, float fromX, float fromY, UOb
 std::string UWindow::ConvertScriptString(const std::string& oldStr)
 {
 	LogUnimplemented("Window.ConvertScriptString");
-	return "";
+	return oldStr;
 }
 
 bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX, float& relativeY)
@@ -70,7 +93,15 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 
 void UWindow::Destroy()
 {
+	UWindow* parent = parentOwner();
 	DetachFromParent();
+
+	if (parent)
+	{
+		CallEvent(parent, "ChildRemoved", { ExpressionValue::ObjectValue(this) });
+		for (UWindow* ancestor = parent->parentOwner(); ancestor; ancestor = ancestor->parentOwner())
+			CallEvent(ancestor, "DescendantRemoved", { ExpressionValue::ObjectValue(this) });
+	}
 }
 
 void UWindow::DetachFromParent()
@@ -125,7 +156,12 @@ UObject* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float
 
 UObject* UWindow::GetBottomChild(BitfieldBool* bVisibleOnly)
 {
-	LogUnimplemented("Window.GetBottomChild");
+	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	for (UWindow* child = firstChild(); child; child = child->nextSibling())
+	{
+		if (!visibleOnly || bIsVisible())
+			return child;
+	}
 	return nullptr;
 }
 
@@ -147,19 +183,28 @@ UObject* UWindow::GetFocusWindow()
 
 UObject* UWindow::GetGC()
 {
-	LogUnimplemented("Window.GetGC");
-	return nullptr;
+	return engine->dxgc;
 }
 
 UObject* UWindow::GetHigherSibling(BitfieldBool* bVisibleOnly)
 {
-	LogUnimplemented("Window.GetHigherSibling");
+	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	for (UWindow* cur = nextSibling(); cur; cur = cur->nextSibling())
+	{
+		if (!visibleOnly || bIsVisible())
+			return cur;
+	}
 	return nullptr;
 }
 
 UObject* UWindow::GetLowerSibling(BitfieldBool* bVisibleOnly)
 {
-	LogUnimplemented("Window.GetLowerSibling");
+	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	for (UWindow* cur = prevSibling(); cur; cur = cur->prevSibling())
+	{
+		if (!visibleOnly || bIsVisible())
+			return cur;
+	}
 	return nullptr;
 }
 
@@ -205,7 +250,12 @@ float UWindow::GetTickOffset()
 
 UObject* UWindow::GetTopChild(BitfieldBool* bVisibleOnly)
 {
-	LogUnimplemented("Window.GetTopChild");
+	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	for (UWindow* child = lastChild(); child; child = child->prevSibling())
+	{
+		if (!visibleOnly || bIsVisible())
+			return child;
+	}
 	return nullptr;
 }
 
@@ -346,6 +396,9 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 	if (!firstChild())
 		firstChild() = child;
 	CallEvent(child, "InitWindow");
+	CallEvent(this, "ChildAdded", { ExpressionValue::ObjectValue(child) });
+	for (UWindow* ancestor = parentOwner(); ancestor; ancestor = ancestor->parentOwner())
+		CallEvent(ancestor, "DescendantAdded", { ExpressionValue::ObjectValue(child) });
 	return child;
 }
 
@@ -373,19 +426,36 @@ void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)
 
 float UWindow::QueryPreferredHeight(float queryWidth)
 {
-	LogUnimplemented("Window.QueryPreferredHeight");
-	return 0.0f;
+	float height = 0.0f;
+	CallEvent(this, "ParentRequestedPreferredSize", {
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&queryWidth, engine->floatprop),
+		ExpressionValue::BoolValue(false),
+		ExpressionValue::Variable(&height, engine->floatprop)
+		});
+	return height;
 }
 
 void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 {
-	LogUnimplemented("Window.QueryPreferredSize");
+	CallEvent(this, "ParentRequestedPreferredSize", {
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&preferredWidth, engine->floatprop),
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&preferredHeight, engine->floatprop)
+		});
 }
 
 float UWindow::QueryPreferredWidth(float queryHeight)
 {
-	LogUnimplemented("Window.QueryPreferredWidth");
-	return 0.0f;
+	float width = 0.0f;
+	CallEvent(this, "ParentRequestedPreferredSize", {
+		ExpressionValue::BoolValue(false),
+		ExpressionValue::Variable(&width, engine->floatprop),
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&queryHeight, engine->floatprop)
+		});
+	return width;
 }
 
 void UWindow::Raise()
@@ -410,7 +480,7 @@ void UWindow::Raise()
 
 void UWindow::ReleaseGC(UObject* GC)
 {
-	LogUnimplemented("Window.ReleaseGC");
+	// Do nothing here for now.
 }
 
 void UWindow::RemoveActorRef(UObject* refActor)
@@ -2367,7 +2437,20 @@ void UGC::GetTextColor(Color& outTextColor)
 
 void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const std::string& textStr)
 {
-	LogUnimplemented("GC.GetTextExtent");
+	UFont* font = normalFont();
+	if (font)
+	{
+		vec4 color(1.0f);
+		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
+		engine->render->DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, textStr, PF_Masked | PF_NoSmooth, false, 0.0f, 0.0f, destWidth, 10000.0f, true);
+		xExtent = curXL;
+		yExtent = curYL;
+	}
+	else
+	{
+		xExtent = 0.0f;
+		yExtent = 0.0f;
+	}
 }
 
 float UGC::GetTextVSpacing()

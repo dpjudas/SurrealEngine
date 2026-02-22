@@ -190,6 +190,8 @@ public:
 	UWindow*& winParent() { return Value<UWindow*>(PropOffsets_Window.winParent); }
 	uint8_t& winVAlign() { return Value<uint8_t>(PropOffsets_Window.winVAlign); }
 	uint8_t& windowType() { return Value<uint8_t>(PropOffsets_Window.windowType); }
+
+	bool FirstDraw = true;
 };
 
 class UViewportWindow : public UWindow
