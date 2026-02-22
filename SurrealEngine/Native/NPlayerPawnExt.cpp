@@ -24,10 +24,11 @@ void NPlayerPawnExt::InitRootWindow(UObject* Self)
     if (cls)
     {
         engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+        SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
         engine->dxRootWindow->parentPawn() = SelfPawn;
         engine->dxRootWindow->bIsVisible() = true;
         CallEvent(engine->dxRootWindow, "InitWindow");
-        SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
+        engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, 1024.0f, 768.0f);
     }
 }
 
