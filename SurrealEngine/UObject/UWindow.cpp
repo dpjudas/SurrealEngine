@@ -16,6 +16,9 @@
 
 void UWindow::AddActorRef(UObject* refActor)
 {
+	UObject* playerPawn = UWindow::GetPlayerPawn();
+	// TODO: actual meat of the code. AddActorRef seems to be an unexposed NPlayerPawnExt function.
+	
 	LogUnimplemented("Window.AddActorRef");
 }
 
@@ -283,8 +286,10 @@ bool UWindow::IsFocusWindow()
 
 bool UWindow::IsKeyDown(uint8_t Key)
 {
-	LogUnimplemented("Window.IsKeyDown");
-	return false;
+	if (engine && engine->window)
+		return engine->window->GetKeyState(static_cast<EInputKey>(Key));
+	else
+	 	return false;
 }
 
 bool UWindow::IsPointInWindow(float pointX, float pointY)
