@@ -17,11 +17,8 @@
 
 void UWindow::AddActorRef(UObject* refActor)
 {
-	UObject* playerPawn = GetPlayerPawn();
-	if (!playerPawn) return;
-
+	UObject* playerPawn = UWindow::GetPlayerPawn();
 	// TODO: actual meat of the code. AddActorRef seems to be an unexposed NPlayerPawnExt function.
-	//RingQueue<ActorRef> ActorRefs{32};  
 	
 	LogUnimplemented("Window.AddActorRef");
 }
