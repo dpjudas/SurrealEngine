@@ -13,9 +13,15 @@ void NWarpZoneInfo::RegisterFunctions()
 void NWarpZoneInfo::UnWarp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
 	LogUnimplemented("WarpZoneInfo.UnWarp");
+	auto WZISelf = UObject::Cast<UWarpZoneInfo>(Self);
+
+	WZISelf->UnWarp(Loc, Vel, R);
 }
 
 void NWarpZoneInfo::Warp(UObject* Self, vec3& Loc, vec3& Vel, Rotator& R)
 {
 	LogUnimplemented("WarpZoneInfo.Warp");
+	auto WZISelf = UObject::Cast<UWarpZoneInfo>(Self);
+
+	WZISelf->Warp(Loc, Vel, R);
 }

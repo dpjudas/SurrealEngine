@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "UWindow.h"
+#include "Audio/AudioDevice.h"
 #include "UObject/UClass.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
@@ -17,7 +18,9 @@
 void UWindow::AddActorRef(UObject* refActor)
 {
 	UObject* playerPawn = UWindow::GetPlayerPawn();
+	if (!playerPawn) return;
 	// TODO: actual meat of the code. AddActorRef seems to be an unexposed NPlayerPawnExt function.
+	RingQueue<ActorRef> ActorRefs{32};  
 	
 	LogUnimplemented("Window.AddActorRef");
 }

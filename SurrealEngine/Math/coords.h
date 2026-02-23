@@ -25,6 +25,10 @@ public:
 	static Coords Rotation(const Rotator& rotator);
 	static Coords InverseRotation(const Rotator& rotator);
 
+	// Converts a global vector to be represented with Coord's axes
+	vec3 LocalizeVector(const vec3& globalVector) const;
+	vec3 GlobalizeVector(const vec3& localVector) const;
+
 	static Coords ViewToRenderDev();
 	static Coords ViewToAudioDev();
 

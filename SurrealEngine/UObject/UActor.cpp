@@ -3339,6 +3339,27 @@ void UDecal::DetachDecal()
 	Nodes.clear();
 }
 
+/////////////////////////////////////////////////////////////////////////////
+
+void UWarpZoneInfo::Warp(vec3& Loc, vec3& Vel, Rotator& R)
+{
+	auto newLoc = Loc + WarpCoords().Origin;
+	Loc = (WarpCoords() * Coords::Rotation(R)).GlobalizeVector(newLoc);
+	Vel = (WarpCoords() * Coords::Rotation(R)).GlobalizeVector(Vel);
+	// Transform to local space
+	// Grab the relative position
+	// Use that in the inverse calc to transform back out
+}
+
+void UWarpZoneInfo::UnWarp(vec3& Loc, vec3& Vel, Rotator& R)
+{
+	auto newLoc = Loc - WarpCoords().Origin;
+	Loc = (WarpCoords() * Coords::InverseRotation(R)).LocalizeVector(newLoc);
+	Vel = (WarpCoords() * Coords::InverseRotation(R)).LocalizeVector(Vel);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 void UPakPathNodeIterator::BuildPath(vec3& start, vec3& end)
 {
 	LogUnimplemented("PathNodeIterator.BuildPath()");
