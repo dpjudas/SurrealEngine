@@ -62,15 +62,6 @@ int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameS
 	return 0;
 }
 
-void UWindow::AskParentForReconfigure()
-{
-	UWindow* parent = parentOwner();
-	if (parent)
-	{
-		CallEvent(parent, "ChildRequestedReconfiguration", { ExpressionValue::ObjectValue(this) });
-	}
-}
-
 void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, float* areaHeight)
 {
 	UWindow* parent = parentOwner();
@@ -99,16 +90,6 @@ std::string UWindow::CarriageReturn()
 void UWindow::ChangeStyle()
 {
 	LogUnimplemented("Window.ChangeStyle");
-}
-
-void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
-{
-	X() = newX;
-	Y() = newY;
-	Width() = newWidth;
-	Height() = NewHeight;
-
-	CallEvent(this, "ConfigurationChanged");
 }
 
 void UWindow::ConvertCoordinates(UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
@@ -463,40 +444,6 @@ void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)
 	LogUnimplemented("Window.QueryGranularity");
 }
 
-float UWindow::QueryPreferredHeight(float queryWidth)
-{
-	float height = 0.0f;
-	CallEvent(this, "ParentRequestedPreferredSize", {
-		ExpressionValue::BoolValue(true),
-		ExpressionValue::Variable(&queryWidth, engine->floatprop),
-		ExpressionValue::BoolValue(false),
-		ExpressionValue::Variable(&height, engine->floatprop)
-		});
-	return height;
-}
-
-void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
-{
-	CallEvent(this, "ParentRequestedPreferredSize", {
-		ExpressionValue::BoolValue(true),
-		ExpressionValue::Variable(&preferredWidth, engine->floatprop),
-		ExpressionValue::BoolValue(true),
-		ExpressionValue::Variable(&preferredHeight, engine->floatprop)
-		});
-}
-
-float UWindow::QueryPreferredWidth(float queryHeight)
-{
-	float width = 0.0f;
-	CallEvent(this, "ParentRequestedPreferredSize", {
-		ExpressionValue::BoolValue(false),
-		ExpressionValue::Variable(&width, engine->floatprop),
-		ExpressionValue::BoolValue(true),
-		ExpressionValue::Variable(&queryHeight, engine->floatprop)
-		});
-	return width;
-}
-
 void UWindow::Raise()
 {
 	if (!parentOwner())
@@ -530,26 +477,6 @@ void UWindow::RemoveActorRef(UObject* refActor)
 void UWindow::RemoveTimer(int timerId)
 {
 	LogUnimplemented("Window.RemoveTimer");
-}
-
-void UWindow::ResetHeight()
-{
-	LogUnimplemented("Window.ResetHeight");
-}
-
-void UWindow::ResetSize()
-{
-	LogUnimplemented("Window.ResetSize");
-}
-
-void UWindow::ResetWidth()
-{
-	LogUnimplemented("Window.ResetWidth");
-}
-
-void UWindow::ResizeChild()
-{
-	LogUnimplemented("Window.ResizeChild");
 }
 
 void UWindow::SetAcceleratorText(const std::string& newStr)
@@ -597,14 +524,6 @@ void UWindow::SetClientObject(UObject* newClientObject)
 	clientObject() = newClientObject;
 }
 
-void UWindow::SetConfiguration(float newX, float newY, float newWidth, float NewHeight)
-{
-	X() = newX;
-	Y() = newY;
-	Width() = newWidth;
-	Height() = NewHeight;
-}
-
 void UWindow::SetCursorPos(float newMouseX, float newMouseY)
 {
 	LogUnimplemented("Window.SetCursorPos");
@@ -649,20 +568,9 @@ void UWindow::SetFonts(UObject* nFont, UObject* bFont)
 	boldFont() = UObject::Cast<UFont>(bFont);
 }
 
-void UWindow::SetHeight(float NewHeight)
-{
-	Height() = NewHeight;
-}
-
 void UWindow::SetNormalFont(UObject* fn)
 {
 	normalFont() = UObject::Cast<UFont>(fn);
-}
-
-void UWindow::SetPos(float newX, float newY)
-{
-	X() = newX;
-	Y() = newY;
 }
 
 void UWindow::SetSelectability(bool newSelectability)
@@ -673,12 +581,6 @@ void UWindow::SetSelectability(bool newSelectability)
 void UWindow::SetSensitivity(bool newSensitivity)
 {
 	bIsSensitive() = newSensitivity;
-}
-
-void UWindow::SetSize(float newWidth, float NewHeight)
-{
-	Width() = newWidth;
-	Height() = NewHeight;
 }
 
 void UWindow::SetSoundVolume(float newVolume)
@@ -704,11 +606,6 @@ void UWindow::SetVisibilitySounds(UObject** visSound, UObject** invisSound)
 		invisibleSound() = UObject::Cast<USound>(*invisSound);
 }
 
-void UWindow::SetWidth(float newWidth)
-{
-	Width() = newWidth;
-}
-
 void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
 {
 	LogUnimplemented("Window.SetWindowAlignments");
@@ -723,6 +620,151 @@ void UWindow::Show(BitfieldBool* bShow)
 void UWindow::UngrabMouse()
 {
 	LogUnimplemented("Window.UngrabMouse");
+}
+
+void UWindow::ResetSize()
+{
+	// Not called from script
+	ResetWidth();
+	ResetHeight();
+}
+
+void UWindow::ResetWidth()
+{
+	// Not called from script
+	FixedWidth = false;
+}
+
+void UWindow::ResetHeight()
+{
+	// Not called from script
+	FixedHeight = false;
+}
+
+void UWindow::SetSize(float newWidth, float NewHeight)
+{
+	SetWidth(newWidth);
+	SetHeight(NewHeight);
+}
+
+void UWindow::SetWidth(float newWidth)
+{
+	Width() = newWidth;
+	hardcodedWidth() = newWidth;
+	FixedWidth = true;
+}
+
+void UWindow::SetHeight(float NewHeight)
+{
+	Height() = NewHeight;
+	hardcodedHeight() = NewHeight;
+	FixedHeight = true;
+}
+
+void UWindow::SetConfiguration(float newX, float newY, float newWidth, float NewHeight)
+{
+	SetPos(newX, newY);
+	SetSize(newWidth, NewHeight);
+}
+
+void UWindow::SetPos(float newX, float newY)
+{
+	X() = newX;
+	Y() = newY;
+}
+
+void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
+{
+	if (FixedWidth && FixedHeight)
+	{
+		preferredWidth = hardcodedWidth();
+		preferredHeight = hardcodedHeight();
+	}
+	else if (FixedWidth)
+	{
+		preferredWidth = hardcodedWidth();
+	}
+	else if (FixedHeight)
+	{
+		preferredHeight = hardcodedHeight();
+	}
+	else
+	{
+		CallEvent(this, "ParentRequestedPreferredSize", {
+			ExpressionValue::BoolValue(true),
+			ExpressionValue::Variable(&preferredWidth, engine->floatprop),
+			ExpressionValue::BoolValue(true),
+			ExpressionValue::Variable(&preferredHeight, engine->floatprop)
+			});
+	}
+	lastQueryWidth() = preferredWidth;
+	lastQueryHeight() = preferredHeight;
+}
+
+float UWindow::QueryPreferredWidth(float queryHeight)
+{
+	if (FixedWidth)
+	{
+		return hardcodedWidth();
+	}
+	else
+	{
+		float width = 0.0f;
+		CallEvent(this, "ParentRequestedPreferredSize", {
+			ExpressionValue::BoolValue(false),
+			ExpressionValue::Variable(&width, engine->floatprop),
+			ExpressionValue::BoolValue(true),
+			ExpressionValue::Variable(&queryHeight, engine->floatprop)
+			});
+		lastQueryWidth() = width;
+		return width;
+	}
+}
+
+float UWindow::QueryPreferredHeight(float queryWidth)
+{
+	if (FixedHeight)
+	{
+		return hardcodedHeight();
+	}
+	else
+	{
+		float height = 0.0f;
+		CallEvent(this, "ParentRequestedPreferredSize", {
+			ExpressionValue::BoolValue(true),
+			ExpressionValue::Variable(&queryWidth, engine->floatprop),
+			ExpressionValue::BoolValue(false),
+			ExpressionValue::Variable(&height, engine->floatprop)
+			});
+		lastQueryHeight() = height;
+		return height;
+	}
+}
+
+void UWindow::AskParentForReconfigure()
+{
+	UWindow* parent = parentOwner();
+	if (parent)
+	{
+		CallEvent(parent, "ChildRequestedReconfiguration", { ExpressionValue::ObjectValue(this) });
+	}
+}
+
+void UWindow::ResizeChild()
+{
+	float width = 0.0f;
+	float height = 0.0f;
+	QueryPreferredSize(width, height);
+	ConfigureChild(X(), Y(), width, height);
+}
+
+void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
+{
+	X() = newX;
+	Y() = newY;
+	Width() = newWidth;
+	Height() = NewHeight;
+	CallEvent(this, "ConfigurationChanged");
 }
 
 /////////////////////////////////////////////////////////////////////////////

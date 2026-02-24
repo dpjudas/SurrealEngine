@@ -192,6 +192,8 @@ public:
 	uint8_t& windowType() { return Value<uint8_t>(PropOffsets_Window.windowType); }
 
 	bool FirstDraw = true;
+	bool FixedWidth = false;
+	bool FixedHeight = false;
 };
 
 class UViewportWindow : public UWindow

@@ -38,8 +38,6 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	float y = window->Y() * 2.0f + offsetY;
 	float w = window->Width() * 2.0f;
 	float h = window->Height() * 2.0f;
-	if (h == 0.0f)
-		h = 40.0f;
 	vec3 scale((float)Canvas.uiscale, (float)Canvas.uiscale, 1.0f);
 
 	// To do: should we reset everything here? Since the unrealscript code never seems to set things back it may be needed
