@@ -16,40 +16,42 @@ void NExtString::RegisterFunctions()
 
 void NExtString::AppendText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("ExtString.AppendText");
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ESSelf->AppendText(NewText);
 }
 
 void NExtString::GetFirstTextPart(UObject* Self, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("ExtString.GetFirstTextPart");
-	ReturnValue = 0;
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ReturnValue = ESSelf->GetFirstTextPart(OutText);
 }
 
 void NExtString::GetNextTextPart(UObject* Self, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("ExtString.GetNextTextPart");
-	ReturnValue = 0;
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ReturnValue = ESSelf->GetNextTextPart(OutText);
 }
 
 void NExtString::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("ExtString.GetText");
-	ReturnValue = "";
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ReturnValue = ESSelf->GetText();
 }
 
 void NExtString::GetTextLength(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("ExtString.GetTextLength");
-	ReturnValue = 0;
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ReturnValue = ESSelf->GetTextLength();
 }
 
 void NExtString::GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue)
 {
-	LogUnimplemented("ExtString.GetTextPart");
-	ReturnValue = 0;
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ReturnValue = ESSelf->GetTextPart(startPos, Count, OutText);
 }
 
 void NExtString::SetText(UObject* Self, const std::string& NewText)
 {
-	LogUnimplemented("ExtString.SetText");
+	auto ESSelf = UObject::Cast<UDXExtString>(Self);
+	ESSelf->SetText(NewText);
 }
