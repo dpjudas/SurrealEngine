@@ -186,24 +186,6 @@ inline void Coords::GetAxes(vec3& X, vec3& Y, vec3& Z) const
 	Z = ZAxis;
 }
 
-inline vec3 Coords::LocalizeVector(const vec3& globalVector) const
-{
-	auto xAxis = dot(globalVector, XAxis);
-	auto yAxis = dot(globalVector, YAxis);
-	auto zAxis = dot(globalVector, ZAxis);
-
-	return {xAxis, yAxis, zAxis};
-}
-
-inline vec3 Coords::GlobalizeVector(const vec3& localVector) const
-{
-	auto xAxis = dot(localVector, {1, 0, 0});
-	auto yAxis = dot(localVector, {0, 1, 0});
-	auto zAxis = dot(localVector, {0, 0, 1});
-
-	return {xAxis, yAxis, zAxis};
-}
-
 inline void Coords::GetUnAxes(vec3& X, vec3& Y, vec3& Z) const
 {
 	Coords coords = Inverse();
