@@ -17,10 +17,42 @@
 
 void UWindow::AddActorRef(UObject* refActor)
 {
-	UObject* playerPawn = UWindow::GetPlayerPawn();
-	// TODO: actual meat of the code. AddActorRef seems to be an unexposed NPlayerPawnExt function.
-	
-	LogUnimplemented("Window.AddActorRef");
+	UPlayerPawnExt* playerPawn = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
+	if (!playerPawn) return;
+	UActor* target = UObject::Cast<UActor>(refActor);  
+    if (!target) return;  
+  
+    PropertyDataOffset offRefCount = PropOffsets_PlayerPawnExt.actorCount;  
+    PropertyDataOffset offRefs = PropOffsets_PlayerPawnExt.actorList;  
+    if (offRefCount.DataOffset == ~(size_t)0 || offRefs.DataOffset == ~(size_t)0) { LogMessage("PlayerPawnExt offsets not initialized"); return; }  
+  
+    int& count = playerPawn->Value<int>(offRefCount);  
+    Array<ActorRef>& refs = playerPawn->Value<Array<ActorRef>>(offRefs);  
+  
+    int foundIndex = -1;  
+    for (int i = 0; i < count; ++i)  
+    {  
+        UActor* actor = refs[i].Actor;  
+        if (actor && actor->bDeleteMe()) actor = nullptr;  
+        if (actor == target) { foundIndex = i; break; }  
+    }  
+  
+    if (foundIndex >= 0)  
+    {  
+        ++refs[foundIndex].RefCount;  
+        return;  
+    }  
+  
+    if (count >= 32)  
+    {  
+        for (int i = 1; i < count; ++i)  
+            refs[i - 1] = refs[i];  
+        --count;  
+    }  
+  
+    refs[count].Actor = target;  
+    refs[count].RefCount = 1;  
+    ++count; 
 }
 
 int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName)
