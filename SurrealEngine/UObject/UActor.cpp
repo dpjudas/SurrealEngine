@@ -2294,6 +2294,42 @@ bool UPawn::PickWallAdjust()
 	return false;
 }
 
+vec3 UPawn::EAdjustJump()
+{
+	UZoneInfo* zone = FootRegion().Zone;
+	vec3 gravity = zone ? zone->ZoneGravity() : vec3(0.0f, 0.0f, -980.0f);
+
+	const float dt = 0.05f;
+	const float jumpZ = JumpZ();
+	vec3 pos = Location();
+	vec3 vel = vec3(0.0f, 0.0f, jumpZ);
+	float time = 0.0f;
+	const float maxSimTime = 5.0f;
+	const float targetZ = Location().z;
+	while (time < maxSimTime && pos.z < targetZ)
+	{
+		vel.z += gravity.z * dt;
+		pos.z += vel.z * dt;
+		time += dt;
+		if (pos.z >= targetZ) break;
+	}
+
+	vec3 target = Focus();
+	if (dot(target - Location(), target - Location()) < 0.001f)
+		target = Destination();
+	vec3 horizontalDir = normalize(target - Location());
+	horizontalDir.z = 0.0f;
+
+	vec3 horizontalVel = horizontalDir * (length(target - Location()) / std::max(time, 0.001f));
+
+	float groundSpeed = GroundSpeed();
+	float horizSpeed = length(horizontalVel);
+	if (horizSpeed > groundSpeed)
+		horizontalVel = horizontalVel * (groundSpeed / horizSpeed);
+
+	return horizontalVel + vec3(0.0f, 0.0f, jumpZ);
+}
+
 bool UPawn::LineOfSightTo(UActor* other)
 {
 	if (!other)
