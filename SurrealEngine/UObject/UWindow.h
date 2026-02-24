@@ -1152,3 +1152,9 @@ public:
 	float offsetY = 0.0f;
 	vec3 scale = vec3(1.0f);
 };
+
+struct ActorRef  
+{  
+    UActor* Actor = nullptr;  
+    int RefCount = 0;  
+};  
