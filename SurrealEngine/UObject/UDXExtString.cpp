@@ -31,14 +31,14 @@ std::string& UDXExtString::GetText()
 int UDXExtString::GetTextLength()
 {
     LogUnimplemented("Usage check: ExtString.GetTextLength");
-    return Text().length();
+    return (int)Text().length();
 }
 
 int UDXExtString::GetTextPart(int startPos, int count, std::string& outText)
 {
     LogUnimplemented("Usage check: ExtString.GetTextPart");
     outText = Text().substr(startPos, count);
-    return outText.length();
+    return (int)outText.length();
 }
 
 void UDXExtString::SetText(const std::string& newText)
