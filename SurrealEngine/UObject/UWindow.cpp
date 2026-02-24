@@ -606,11 +606,6 @@ void UWindow::SetVisibilitySounds(UObject** visSound, UObject** invisSound)
 		invisibleSound() = UObject::Cast<USound>(*invisSound);
 }
 
-void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
-{
-	LogUnimplemented("Window.SetWindowAlignments");
-}
-
 void UWindow::Show(BitfieldBool* bShow)
 {
 	bool show = !bShow || *bShow;
@@ -765,6 +760,20 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHe
 	Width() = newWidth;
 	Height() = NewHeight;
 	CallEvent(this, "ConfigurationChanged");
+}
+
+void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMargin0, float* newVMargin0, float* newHMargin1, float* newVMargin1)
+{
+	winHAlign() = HAlign;
+	winVAlign() = VAlign;
+	if (newHMargin0)
+		hMargin0() = *newHMargin0;
+	if (newVMargin0)
+		vMargin0() = *newVMargin0;
+	if (newHMargin1)
+		hMargin1() = *newHMargin1;
+	if (newVMargin1)
+		vMargin1() = *newVMargin1;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2259,7 +2268,7 @@ void UComputerWindow::SetFadeSpeed(float fadeSpeed)
 
 void UComputerWindow::SetFontColor(const Color& newFontColor)
 {
-	LogUnimplemented("ComputerWindow.SetFontColor");
+	FontColor() = newFontColor;
 }
 
 void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
@@ -2361,7 +2370,7 @@ void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
-		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, swidth * scale.x, sheight * scale.y, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
+		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, swidth, sheight, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
 	}
 }
 
@@ -2382,7 +2391,7 @@ void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeigh
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
 
-		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, OrgX, OrgY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, OrgX, OrgY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
 }
 
@@ -2400,7 +2409,7 @@ void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float 
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
 
-		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, srcX, srcY, srcWidth, srcHeight, 1.0f, color, vec4(0.0), polyflags);
+		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
 }
 
@@ -2412,10 +2421,39 @@ void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, 
 	UFont* font = normalFont();
 	if (font)
 	{
-		vec4 color(1.0f);
+		auto halign = (EHAlign)HAlign();
+		auto valign = (EVAlign)VAlign();
+
+		if (halign != EHAlign::Left && halign != EHAlign::Center)
+			LogUnimplemented("GC.DrawText does not support this horizontal alignment type yet");
+		if (valign == EVAlign::Full)
+			LogUnimplemented("GC.DrawText does not support this vertical alignment type yet");
+
+		float x = offsetX + DestX;
+		float y = offsetY + DestY;
+		float clipX = destWidth;
+		float clipY = destHeight;
+
+		Color c = TextColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
 		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
 		uint32_t polyflags = PF_Masked | PF_NoSmooth;
-		engine->render->DrawText(font, color, offsetX + DestX * scale.x, offsetY + DestY * scale.y, curX, curY, curXL, curYL, false, textStr, polyflags, false, 0.0f, 0.0f, 10000.0f, 10000.0f, false);
+		if (valign == EVAlign::Top)
+		{
+			engine->render->DrawText(font, color, x, y, curX, curY, curXL, curYL, false, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, clipX, clipY);
+		}
+		else
+		{
+			engine->render->DrawText(font, color, x, y, curX, curY, curXL, curYL, valign == EVAlign::Center, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, clipX, clipY, true);
+
+			if (valign == EVAlign::Center)
+				curX = (clipY - curYL) * 0.5f;
+			else if (valign == EVAlign::Bottom)
+				curX = curYL;
+
+			curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
+			engine->render->DrawText(font, color, offsetX + DestX, offsetY + DestY, curX, curY, curXL, curYL, false, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, destWidth, destHeight);
+		}
 	}
 }
 
@@ -2436,7 +2474,7 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
 
-		engine->render->DrawTile(tex, offsetX + DestX * scale.x, offsetY + DestY * scale.y, destWidth * scale.x, destHeight * scale.y, srcX, srcY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
 }
 

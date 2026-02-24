@@ -28,7 +28,7 @@ void NPlayerPawnExt::InitRootWindow(UObject* Self)
         engine->dxRootWindow->parentPawn() = SelfPawn;
         engine->dxRootWindow->bIsVisible() = true;
         CallEvent(engine->dxRootWindow, "InitWindow");
-        engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, 1024.0f, 768.0f);
+        engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, 640.0f, 480.0f);
     }
 }
 

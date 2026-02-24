@@ -12,6 +12,153 @@ class UScaleWindow;
 class UScaleManagerWindow;
 class UActor;
 
+enum class EFlagType : uint8_t
+{
+	Bool,
+	Byte,
+	Int,
+	Float,
+	Name,
+	Vector,
+	Rotator,
+};
+
+enum class EHAlign : uint8_t
+{
+	Left,
+	Center,
+	Right,
+	Full
+};
+
+enum class EVAlign : uint8_t
+{
+	Top,
+	Center,
+	Bottom,
+	Full
+};
+
+enum class EHDirection : uint8_t
+{
+	LeftToRight,
+	RightToLeft
+};
+
+enum class EVDirection : uint8_t
+{
+	VDIR_TopToBottom,
+	VDIR_BottomToTop
+};
+
+enum class EOrder : uint8_t
+{
+	Right,
+	Left,
+	Down,
+	Up,
+	RightThenDown,
+	RightThenUp,
+	LeftThenDown,
+	LeftThenUp,
+	DownThenRight,
+	DownThenLeft,
+	UpThenRight,
+	UpThenLeft
+};
+
+enum class EMouseFocusMode : uint8_t
+{
+	None,
+	Click,
+	Enter,
+	EnterLeave
+};
+
+enum class EMove : uint8_t
+{
+	Left,
+	Right,
+	Up,
+	Down
+};
+
+enum class EOrientation : uint8_t
+{
+	Horizontal,
+	Vertical
+};
+
+enum class EMoveList : uint8_t
+{
+	Up,
+	Down,
+	PageUp,
+	PageDown,
+	Home,
+	End
+};
+
+enum class EMoveInsert : uint8_t
+{
+	Up,
+	Down,
+	Left,
+	Right,
+	WordLeft,
+	WordRight,
+	StartOfLine,
+	EndOfLine,
+	PageUp,
+	PageDown,
+	Home,
+	End
+};
+
+enum class EInsertionPointType : uint8_t
+{
+	Insert,
+	Underscore,
+	Block,
+	RawInsert,
+	RawOverlay
+};
+
+enum class EColumnType : uint8_t
+{
+	String,
+	Float,
+	Time
+};
+
+enum class EMoveThumb : uint8_t
+{
+	Home,
+	End,
+	Prev,
+	Next,
+	StepUp,
+	StepDown,
+	PageUp,
+	PageDown
+};
+
+enum class EDrawStyle : uint8_t
+{
+	None,
+	Normal,
+	Masked,
+	Translucent,
+	Modulated
+};
+
+struct ClipRect
+{
+	float originX, originY;
+	float clipX, clipY;
+	float clipWidth, clipHeight;
+};
+
 class UExtensionObject : public UObject
 {
 public:
@@ -185,7 +332,7 @@ public:
 	float& vMargin1() { return Value<float>(PropOffsets_Window.vMargin1); }
 	USound*& visibleSound() { return Value<USound*>(PropOffsets_Window.visibleSound); }
 	UGC*& wGc() { return Value<UGC*>(PropOffsets_Window.wGc); }
-	//ClipRect& winClipRect() { return Value<ClipRect>(PropOffsets_Window.winClipRect); }
+	ClipRect& winClipRect() { return Value<ClipRect>(PropOffsets_Window.winClipRect); }
 	uint8_t& winHAlign() { return Value<uint8_t>(PropOffsets_Window.winHAlign); }
 	UWindow*& winParent() { return Value<UWindow*>(PropOffsets_Window.winParent); }
 	uint8_t& winVAlign() { return Value<uint8_t>(PropOffsets_Window.winVAlign); }
@@ -1133,7 +1280,7 @@ public:
 	BitfieldBool bWordWrap() { return BoolValue(PropOffsets_GC.bWordWrap); }
 	float& baselineOffset() { return Value<float>(PropOffsets_GC.baselineOffset); }
 	UFont*& boldFont() { return Value<UFont*>(PropOffsets_GC.boldFont); }
-	//ClipRect& gcClipRect() { return Value<ClipRect>(PropOffsets_GC.gcClipRect); }
+	ClipRect& gcClipRect() { return Value<ClipRect>(PropOffsets_GC.gcClipRect); }
 	int& gcCount() { return Value<int>(PropOffsets_GC.gcCount); }
 	UGC*& gcFree() { return Value<UGC*>(PropOffsets_GC.gcFree); }
 	UGC*& gcOwner() { return Value<UGC*>(PropOffsets_GC.gcOwner); }
@@ -1152,7 +1299,6 @@ public:
 	// To do: apply cliprect?
 	float offsetX = 0.0f;
 	float offsetY = 0.0f;
-	vec3 scale = vec3(1.0f);
 };
 
 struct ActorRef  

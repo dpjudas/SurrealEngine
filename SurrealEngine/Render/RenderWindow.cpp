@@ -16,7 +16,39 @@ void RenderSubsystem::DrawRootWindow()
 	Device->SetSceneNode(&Canvas.Frame);
 	Device->ClearZ();
 
-	DrawWindow(engine->dxRootWindow, 600.0f, 0.0f);
+	for (UWindow* child = engine->dxRootWindow->firstChild(); child; child = child->nextSibling())
+	{
+		if (child->FirstDraw && child->bIsVisible())
+		{
+			auto halign = (EHAlign)child->winHAlign();
+			auto valign = (EVAlign)child->winVAlign();
+
+			float x = 0.0f, y = 0.0f, width = 0.0f, height = 0.0f;
+			child->QueryPreferredSize(width, height);
+
+			if (halign == EHAlign::Left)
+				x = 0.0f;
+			else if (halign == EHAlign::Center)
+				x = (640.0f - width) * 0.5f;
+			else if (halign == EHAlign::Right)
+				x = 640.0f - width;
+			else if (halign == EHAlign::Full)
+				width = 640.0f;
+
+			if (valign == EVAlign::Top)
+				y = 0.0f;
+			else if (valign == EVAlign::Center)
+				y = (480.0f - height) * 0.5f;
+			else if (valign == EVAlign::Bottom)
+				y = 480.0f - height;
+			else if (valign == EVAlign::Full)
+				height = 480.0f;
+
+			child->ConfigureChild(x, y, width, height);
+		}
+	}
+
+	DrawWindow(engine->dxRootWindow, 600.0f, 100.0f);
 
 	UFont* font = engine->canvas->SmallFont();
 	float curY = 100.0f;
@@ -34,35 +66,32 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 		CallEvent(window, "WindowReady");
 	}
 
-	float x = window->X() * 2.0f + offsetX;
-	float y = window->Y() * 2.0f + offsetY;
-	float w = window->Width() * 2.0f;
-	float h = window->Height() * 2.0f;
-	vec3 scale((float)Canvas.uiscale, (float)Canvas.uiscale, 1.0f);
+	float x0 = window->X() + offsetX;
+	float y0 = window->Y() + offsetY;
+	float x1 = x0 + window->Width();
+	float y1 = y0 + window->Height();
 
 	// To do: should we reset everything here? Since the unrealscript code never seems to set things back it may be needed
 	// Could also be that it needs to be initialized to the values on UWindow
 	engine->dxgc->bDrawEnabled() = true;
-	engine->dxgc->offsetX = x;
-	engine->dxgc->offsetY = y;
-	engine->dxgc->scale = scale;
+	engine->dxgc->offsetX = x0;
+	engine->dxgc->offsetY = y0;
 
 	CallEvent(window, "DrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
 
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x, y, 1.0f) * scale, vec3(x + w, y, 1.0f) * scale);
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x, y, 1.0f) * scale, vec3(x, y + h, 1.0f) * scale);
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x + w, y, 1.0f) * scale, vec3(x + w, y + h, 1.0f) * scale);
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x, y + h, 1.0f) * scale, vec3(x + w, y + h, 1.0f) * scale);
+	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f));
+	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
+	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
+	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
 
 	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
 	{
-		DrawWindow(child, x, y);
+		DrawWindow(child, x0, y0);
 	}
 
 	engine->dxgc->bDrawEnabled() = true;
-	engine->dxgc->offsetX = x;
-	engine->dxgc->offsetY = y;
-	engine->dxgc->scale = scale;
+	engine->dxgc->offsetX = x0;
+	engine->dxgc->offsetY = y0;
 
 	CallEvent(window, "PostDrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
 }
