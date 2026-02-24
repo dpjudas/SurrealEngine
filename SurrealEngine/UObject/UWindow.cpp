@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UWindow.h"
 #include "Audio/AudioDevice.h"
+#include "UActor.h"
 #include "UObject/UClass.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
