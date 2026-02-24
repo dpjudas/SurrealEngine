@@ -55,6 +55,28 @@ void RenderSubsystem::DrawRootWindow()
 	DrawWindowInfo(font, engine->dxRootWindow, 0, curY);
 }
 
+void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offsetY)
+{
+	engine->dxgc->EnableDrawing(true);
+	engine->dxgc->EnableMasking(false);
+	engine->dxgc->EnableModulation(false);
+	engine->dxgc->EnableSmoothing(window->bSmoothBackground());
+	engine->dxgc->EnableSpecialText(window->bSpecialText());
+	engine->dxgc->EnableTranslucency(true);
+	engine->dxgc->EnableTranslucentText(window->bTextTranslucent());
+	engine->dxgc->EnableWordWrap(true);
+	engine->dxgc->SetBaselineData(&window->BaselineOffset, &window->UnderlineHeight);
+	engine->dxgc->SetFonts(window->normalFont(), window->boldFont());
+	engine->dxgc->SetHorizontalAlignment((uint8_t)EHAlign::Left);
+	engine->dxgc->SetStyle(window->backgroundStyle());
+	engine->dxgc->SetTextColor(window->TextColor());
+	engine->dxgc->SetTextVSpacing(window->textVSpacing());
+	engine->dxgc->SetTileColor(window->tileColor());
+	engine->dxgc->SetVerticalAlignment((uint8_t)EVAlign::Top);
+	engine->dxgc->offsetX = offsetX;
+	engine->dxgc->offsetY = offsetY;
+}
+
 void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 {
 	if (!window->bIsVisible())
@@ -66,33 +88,29 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 		CallEvent(window, "WindowReady");
 	}
 
+	offsetX += window->X();
+	offsetY += window->Y();
+
+	ResetWindowGC(window, offsetX, offsetY);
+	CallEvent(window, "DrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
+
+#if 0
 	float x0 = window->X() + offsetX;
 	float y0 = window->Y() + offsetY;
 	float x1 = x0 + window->Width();
 	float y1 = y0 + window->Height();
-
-	// To do: should we reset everything here? Since the unrealscript code never seems to set things back it may be needed
-	// Could also be that it needs to be initialized to the values on UWindow
-	engine->dxgc->bDrawEnabled() = true;
-	engine->dxgc->offsetX = x0;
-	engine->dxgc->offsetY = y0;
-
-	CallEvent(window, "DrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
-
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f));
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
+#endif
 
 	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
 	{
-		DrawWindow(child, x0, y0);
+		DrawWindow(child, offsetX, offsetY);
 	}
 
-	engine->dxgc->bDrawEnabled() = true;
-	engine->dxgc->offsetX = x0;
-	engine->dxgc->offsetY = y0;
-
+	ResetWindowGC(window, offsetX, offsetY);
 	CallEvent(window, "PostDrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
 }
 

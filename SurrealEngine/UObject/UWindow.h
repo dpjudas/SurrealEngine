@@ -341,6 +341,8 @@ public:
 	bool FirstDraw = true;
 	bool FixedWidth = false;
 	bool FixedHeight = false;
+	float BaselineOffset = 0.0f;
+	float UnderlineHeight = 0.0f;
 };
 
 class UViewportWindow : public UWindow
@@ -1295,6 +1297,8 @@ public:
 	float& underlineHeight() { return Value<float>(PropOffsets_GC.underlineHeight); }
 	UTexture*& underlineTexture() { return Value<UTexture*>(PropOffsets_GC.underlineTexture); }
 	int& vMultiplier() { return Value<int>(PropOffsets_GC.vMultiplier); }
+
+	bool SpecialTextEnabled = false;
 
 	// To do: apply cliprect?
 	float offsetX = 0.0f;

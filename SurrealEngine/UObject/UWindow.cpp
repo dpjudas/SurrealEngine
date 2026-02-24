@@ -83,12 +83,12 @@ void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, 
 
 std::string UWindow::CarriageReturn()
 {
-	LogUnimplemented("Window.CarriageReturn");
-	return "";
+	return "\n"; // Can't be doing this, can it?
 }
 
 void UWindow::ChangeStyle()
 {
+	// To do: this needs to fire StyleChanged() events for all windows
 	LogUnimplemented("Window.ChangeStyle");
 }
 
@@ -153,12 +153,12 @@ void UWindow::DisableWindow()
 
 void UWindow::EnableSpecialText(BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableSpecialText");
+	bSpecialText() = !bEnable || *bEnable;
 }
 
 void UWindow::EnableTranslucentText(BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableTranslucentText");
+	bTextTranslucent() = !bEnable || *bEnable;
 }
 
 void UWindow::EnableWindow(BitfieldBool* bEnable)
@@ -180,6 +180,7 @@ UObject* UWindow::GetBottomChild(BitfieldBool* bVisibleOnly)
 		if (!visibleOnly || bIsVisible())
 			return child;
 	}
+	LogMessage("Warning: GetBottomChild returned None");
 	return nullptr;
 }
 
@@ -228,7 +229,13 @@ UObject* UWindow::GetLowerSibling(BitfieldBool* bVisibleOnly)
 
 UObject* UWindow::GetModalWindow()
 {
-	LogUnimplemented("Window.GetModalWindow");
+	UWindow* cur = this;
+	do
+	{
+		if (UObject::TryCast<UModalWindow>(cur))
+			return cur;
+		cur = cur->parentOwner();
+	} while (cur);
 	return nullptr;
 }
 
@@ -274,6 +281,7 @@ UObject* UWindow::GetTopChild(BitfieldBool* bVisibleOnly)
 		if (!visibleOnly || bIsVisible())
 			return child;
 	}
+	LogMessage("Warning: GetTopChild returned None");
 	return nullptr;
 }
 
@@ -506,7 +514,10 @@ void UWindow::SetBackgroundStyle(uint8_t NewStyle)
 
 void UWindow::SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight)
 {
-	LogUnimplemented("Window.SetBaselineData");
+	if (newBaselineOffset)
+		BaselineOffset = *newBaselineOffset;
+	if (newUnderlineHeight)
+		UnderlineHeight = *newUnderlineHeight;
 }
 
 void UWindow::SetBoldFont(UObject* fn)
@@ -1309,6 +1320,7 @@ void UClipWindow::ForceChildSize(BitfieldBool* bNewForceChildWidth, BitfieldBool
 
 UObject* UClipWindow::GetChild()
 {
+	// Not called by script
 	LogUnimplemented("ClipWindow.GetChild");
 	return nullptr;
 }
@@ -2343,7 +2355,31 @@ void UGC::DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstr
 
 void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
 {
-	LogUnimplemented("GC.DrawBorders");
+	if (leftMargin != 0.0f || rightMargin != 0.0f || TopMargin != 0.0f || BottomMargin != 0.0f || bStretchHorizontally || bStretchVertically)
+	{
+		// margins are always zero from script. Was this supposed to be a CSS border-image style draw function?
+		LogUnimplemented("GC.DrawBorders");
+	}
+	else
+	{
+		UTexture* tex = UObject::Cast<UTexture>(borders);
+
+		Color c = tileColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+		uint32_t polyflags = PolyFlags();
+		if (bMasked())
+			polyflags |= PF_Masked;
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		if (!bSmoothed())
+			polyflags |= PF_NoSmooth;
+		if (bTranslucent())
+			polyflags |= PF_Translucent;
+
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, swidth, sheight, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
+	}
 }
 
 void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX)
@@ -2359,14 +2395,17 @@ void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		vec4 color(1.0f);
-		uint32_t polyflags = 0;
+		Color c = tileColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+		uint32_t polyflags = PolyFlags();
 		if (bMasked())
 			polyflags |= PF_Masked;
 		if (bModulated())
 			polyflags |= PF_Modulated;
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
+		if (bTranslucent())
+			polyflags |= PF_Translucent;
 
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
@@ -2382,14 +2421,17 @@ void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeigh
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		vec4 color(1.0f);
-		uint32_t polyflags = 0;
+		Color c = tileColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+		uint32_t polyflags = PolyFlags();
 		if (bMasked())
 			polyflags |= PF_Masked;
 		if (bModulated())
 			polyflags |= PF_Modulated;
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
+		if (bTranslucent())
+			polyflags |= PF_Translucent;
 
 		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, OrgX, OrgY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
@@ -2400,14 +2442,17 @@ void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float 
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		vec4 color(1.0f);
-		uint32_t polyflags = 0;
+		Color c = tileColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+		uint32_t polyflags = PolyFlags();
 		if (bMasked())
 			polyflags |= PF_Masked;
 		if (bModulated())
 			polyflags |= PF_Modulated;
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
+		if (bTranslucent())
+			polyflags |= PF_Translucent;
 
 		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
@@ -2437,7 +2482,13 @@ void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, 
 		Color c = TextColor();
 		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
 		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
-		uint32_t polyflags = PF_Masked | PF_NoSmooth;
+
+		uint32_t polyflags = textPolyFlags();
+		if (bTextTranslucent())
+			polyflags |= PF_Translucent;
+		else
+			polyflags |= PF_Masked | PF_NoSmooth;
+
 		if (valign == EVAlign::Top)
 		{
 			engine->render->DrawText(font, color, x, y, curX, curY, curXL, curYL, false, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, clipX, clipY);
@@ -2465,14 +2516,18 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		vec4 color(1.0f);
-		uint32_t polyflags = 0;
+		Color c = tileColor();
+		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+
+		uint32_t polyflags = PolyFlags();
 		if (bMasked())
 			polyflags |= PF_Masked;
 		if (bModulated())
 			polyflags |= PF_Modulated;
 		if (!bSmoothed())
 			polyflags |= PF_NoSmooth;
+		if (bTranslucent())
+			polyflags |= PF_Translucent;
 
 		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
 	}
@@ -2501,8 +2556,7 @@ void UGC::EnableSmoothing(bool bNewSmoothing)
 
 void UGC::EnableSpecialText(bool bNewSpecialText)
 {
-	// Not used directly by scripts
-	LogUnimplemented("GC.EnableSpecialText");
+	SpecialTextEnabled = bNewSpecialText;
 }
 
 void UGC::EnableTranslucency(bool bNewTranslucency)
@@ -2614,9 +2668,7 @@ bool UGC::IsSmoothingEnabled()
 
 bool UGC::IsSpecialTextEnabled()
 {
-	// Not used directly by scripts
-	LogUnimplemented("GC.IsSpecialTextEnabled");
-	return false;
+	return SpecialTextEnabled;
 }
 
 bool UGC::IsTranslucencyEnabled()
@@ -2691,6 +2743,52 @@ void UGC::SetNormalFont(UObject* newNormalFont)
 void UGC::SetStyle(uint8_t NewStyle)
 {
 	Style() = NewStyle;
+
+	// Is this what it is doing? So stupid to have the same states 3 times!
+	switch ((EDrawStyle)NewStyle)
+	{
+	case EDrawStyle::None:
+		bDrawEnabled() = false;
+		PolyFlags() = 0;
+		textPolyFlags() = 0;
+		break;
+	case EDrawStyle::Normal:
+		PolyFlags() = 0;
+		textPolyFlags() = 0;
+		bDrawEnabled() = true;
+		bMasked() = false;
+		bTranslucent() = false;
+		bModulated() = false;
+		bTextTranslucent() = false;
+		break;
+	case EDrawStyle::Masked:
+		PolyFlags() = 0;
+		textPolyFlags() = 0;
+		bDrawEnabled() = true;
+		bMasked() = true;
+		bTranslucent() = false;
+		bModulated() = false;
+		bTextTranslucent() = false;
+		break;
+	case EDrawStyle::Translucent:
+		PolyFlags() = 0;
+		textPolyFlags() = 0;
+		bDrawEnabled() = true;
+		bMasked() = false;
+		bTranslucent() = true;
+		bModulated() = false;
+		bTextTranslucent() = true;
+		break;
+	case EDrawStyle::Modulated:
+		PolyFlags() = 0;
+		textPolyFlags() = PF_Modulated;
+		bDrawEnabled() = true;
+		bMasked() = false;
+		bTranslucent() = false;
+		bModulated() = true;
+		bTextTranslucent() = false;
+		break;
+	}
 }
 
 void UGC::SetTextColor(const Color& newTextColor)
