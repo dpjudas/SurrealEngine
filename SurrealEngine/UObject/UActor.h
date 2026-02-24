@@ -1431,6 +1431,8 @@ public:
 	// Otherwise try rotating destination 90 degrees to left and right
 	bool PickWallAdjust();
 
+	vec3 EAdjustJump();
+
 	UActor* PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);

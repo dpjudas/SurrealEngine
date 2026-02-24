@@ -105,42 +105,8 @@ void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, c
 
 void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
 {
-	
-    UPawn* pawn = UObject::TryCast<UPawn>(Self);  
-    if (!pawn) { ReturnValue = vec3(0.0f); return; }  
-  
-    UZoneInfo* zone = pawn->FootRegion().Zone;  
-    vec3 gravity = zone ? zone->ZoneGravity() : vec3(0.0f, 0.0f, -980.0f);  
-  
-    const float dt = 0.05f;  
-    const float jumpZ = pawn->JumpZ();  
-    vec3 pos = pawn->Location();  
-    vec3 vel = vec3(0.0f, 0.0f, jumpZ);  
-    float time = 0.0f;  
-    const float maxSimTime = 5.0f;  
-    const float targetZ = pawn->Location().z; 
-    while (time < maxSimTime && pos.z < targetZ)  
-    {  
-        vel.z += gravity.z * dt;  
-        pos.z += vel.z * dt;  
-        time += dt;  
-        if (pos.z >= targetZ) break;  
-    }  
-  
-    vec3 target = pawn->Focus();  
-    if (dot(target - pawn->Location(), target - pawn->Location()) < 0.001f)  
-        target = pawn->Destination();  
-    vec3 horizontalDir = normalize(target - pawn->Location());  
-    horizontalDir.z = 0.0f;  
-  
-	vec3 horizontalVel = horizontalDir * (length(target - pawn->Location()) / std::max(time, 0.001f));  
-  
-    float groundSpeed = pawn->GroundSpeed();  
-    float horizSpeed = length(horizontalVel);  
-    if (horizSpeed > groundSpeed)  
-        horizontalVel = horizontalVel * (groundSpeed / horizSpeed);  
-  
-    ReturnValue = horizontalVel + vec3(0.0f, 0.0f, jumpZ); 
+    UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+    ReturnValue = selfPawn->EAdjustJump();
 }
 
 void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredictRespawns, UObject*& ReturnValue)
