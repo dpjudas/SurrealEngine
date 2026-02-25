@@ -39,20 +39,20 @@ void RenderSubsystem::DrawRootWindow()
 			if (halign == EHAlign::Left)
 				x = 0.0f;
 			else if (halign == EHAlign::Center)
-				x = (640.0f - width) * 0.5f;
+				x = (virtualWidth - width) * 0.5f;
 			else if (halign == EHAlign::Right)
-				x = 640.0f - width;
+				x = virtualWidth - width;
 			else if (halign == EHAlign::Full)
-				width = 640.0f;
+				width = virtualWidth;
 
 			if (valign == EVAlign::Top)
 				y = 0.0f;
 			else if (valign == EVAlign::Center)
-				y = (480.0f - height) * 0.5f;
+				y = (virtualHeight - height) * 0.5f;
 			else if (valign == EVAlign::Bottom)
-				y = 480.0f - height;
+				y = virtualHeight - height;
 			else if (valign == EVAlign::Full)
-				height = 480.0f;
+				height = virtualHeight;
 
 			child->ConfigureChild(x, y, width, height);
 		}
