@@ -16,6 +16,16 @@ void RenderSubsystem::DrawRootWindow()
 	Device->SetSceneNode(&Canvas.Frame);
 	Device->ClearZ();
 
+	// Rescale UI with the assumption it was originally designed for 800x600
+	float virtualHeight = 600.0f;
+	float virtualScale = engine->ViewportHeight != 0 ? engine->ViewportHeight / virtualHeight : 1.0f;
+	float virtualWidth = engine->ViewportWidth / virtualScale;
+
+	if (engine->dxRootWindow->Width() != virtualWidth || engine->dxRootWindow->Height() != virtualHeight)
+	{
+		engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
+	}
+
 	for (UWindow* child = engine->dxRootWindow->firstChild(); child; child = child->nextSibling())
 	{
 		if (child->FirstDraw && child->bIsVisible())

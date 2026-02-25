@@ -17,19 +17,18 @@ void NPlayerPawnExt::RegisterFunctions()
 
 void NPlayerPawnExt::InitRootWindow(UObject* Self)
 {
-    UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
-    auto dxIni = engine->packages->GetIniFile("System");
-    NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
-    UClass* cls = engine->packages->FindClass(dxRootClassName);
-    if (cls)
-    {
-        engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
-        SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
-        engine->dxRootWindow->parentPawn() = SelfPawn;
-        engine->dxRootWindow->bIsVisible() = true;
-        CallEvent(engine->dxRootWindow, "InitWindow");
-        engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, 640.0f, 480.0f);
-    }
+	UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
+	auto dxIni = engine->packages->GetIniFile("System");
+	NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
+	UClass* cls = engine->packages->FindClass(dxRootClassName);
+	if (cls)
+	{
+		engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+		SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
+		engine->dxRootWindow->parentPawn() = SelfPawn;
+		engine->dxRootWindow->bIsVisible() = true;
+		CallEvent(engine->dxRootWindow, "InitWindow");
+	}
 }
 
 void NPlayerPawnExt::PostRenderWindows(UObject* Self, UObject* Canvas)

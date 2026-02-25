@@ -2500,7 +2500,7 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 
 Rectf UGC::ScaleRect(const Rectf& box)
 {
-	float scale = engine->ViewportHeight / 480.0f;
+	float scale = engine->ViewportHeight / 600.0f;
 	return Rectf(box.left * scale, box.top * scale, box.right * scale, box.bottom * scale);
 }
 
