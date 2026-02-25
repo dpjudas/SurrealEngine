@@ -771,6 +771,7 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHe
 	Y() = newY;
 	Width() = newWidth;
 	Height() = NewHeight;
+	NativeConfigurationChanged();
 	CallEvent(this, "ConfigurationChanged");
 }
 
@@ -1492,6 +1493,23 @@ void UScrollAreaWindow::InitWindowNative()
 	LeftButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
 	RightButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
 	UpButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
+
+	ClipWindow()->bIsVisible() = true;
+	hScale()->bIsVisible() = false;
+	vScale()->bIsVisible() = false;
+	hScaleMgr()->bIsVisible() = false;
+	vScaleMgr()->bIsVisible() = false;
+	DownButton()->bIsVisible() = false;
+	LeftButton()->bIsVisible() = false;
+	RightButton()->bIsVisible() = false;
+	UpButton()->bIsVisible() = false;
+}
+
+void UScrollAreaWindow::NativeConfigurationChanged()
+{
+	// To do: position the scrollbars (is that scalemgr or scale?), the scroll buttons and clip window properly
+	// To do: how is the size of the clip window determined?
+	//ClipWindow()->ConfigureChild(0.0f, 0.0f, Width(), Height());
 }
 
 void UScrollAreaWindow::AutoHideScrollbars(BitfieldBool* bHide)

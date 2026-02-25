@@ -264,6 +264,7 @@ public:
 	void DetachFromParent();
 
 	virtual void InitWindowNative() {}
+	virtual void NativeConfigurationChanged() {}
 
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
 	float& Height() { return Value<float>(PropOffsets_Window.Height); }
@@ -799,6 +800,7 @@ public:
 	using UWindow::UWindow;
 
 	void InitWindowNative() override;
+	void NativeConfigurationChanged() override;
 
 	void AutoHideScrollbars(BitfieldBool* bHide);
 	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);
