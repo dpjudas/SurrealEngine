@@ -21,39 +21,39 @@ void UWindow::AddActorRef(UObject* refActor)
 	UPlayerPawnExt* playerPawn = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
 	if (!playerPawn) return;
 	UActor* target = UObject::Cast<UActor>(refActor);  
-    if (!target) return;  
+	if (!target) return;  
   
-    PropertyDataOffset offRefCount = PropOffsets_PlayerPawnExt.actorCount;  
-    PropertyDataOffset offRefs = PropOffsets_PlayerPawnExt.actorList;  
-    if (offRefCount.DataOffset == ~(size_t)0 || offRefs.DataOffset == ~(size_t)0) { LogMessage("PlayerPawnExt offsets not initialized"); return; }  
+	PropertyDataOffset offRefCount = PropOffsets_PlayerPawnExt.actorCount;  
+	PropertyDataOffset offRefs = PropOffsets_PlayerPawnExt.actorList;  
+	if (offRefCount.DataOffset == ~(size_t)0 || offRefs.DataOffset == ~(size_t)0) { LogMessage("PlayerPawnExt offsets not initialized"); return; }  
   
-    int& count = playerPawn->Value<int>(offRefCount);  
-    Array<ActorRef>& refs = playerPawn->Value<Array<ActorRef>>(offRefs);  
+	int& count = playerPawn->Value<int>(offRefCount);  
+	Array<ActorRef>& refs = playerPawn->Value<Array<ActorRef>>(offRefs);  
   
-    int foundIndex = -1;  
-    for (int i = 0; i < count; ++i)  
-    {  
-        UActor* actor = refs[i].Actor;  
-        if (actor && actor->bDeleteMe()) actor = nullptr;  
-        if (actor == target) { foundIndex = i; break; }  
-    }  
+	int foundIndex = -1;  
+	for (int i = 0; i < count; ++i)  
+	{  
+		UActor* actor = refs[i].Actor;  
+		if (actor && actor->bDeleteMe()) actor = nullptr;  
+		if (actor == target) { foundIndex = i; break; }  
+	}  
   
-    if (foundIndex >= 0)  
-    {  
-        ++refs[foundIndex].RefCount;  
-        return;  
-    }  
+	if (foundIndex >= 0)  
+	{  
+		++refs[foundIndex].RefCount;  
+		return;  
+	}  
   
-    if (count >= 32)  
-    {  
-        for (int i = 1; i < count; ++i)  
-            refs[i - 1] = refs[i];  
-        --count;  
-    }  
+	if (count >= 32)  
+	{  
+		for (int i = 1; i < count; ++i)  
+			refs[i - 1] = refs[i];  
+		--count;  
+	}  
   
-    refs[count].Actor = target;  
-    refs[count].RefCount = 1;  
-    ++count; 
+	refs[count].Actor = target;  
+	refs[count].RefCount = 1;  
+	++count; 
 }
 
 int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName)
@@ -312,7 +312,7 @@ bool UWindow::IsKeyDown(uint8_t Key)
 	if (engine && engine->window)
 		return engine->window->GetKeyState(static_cast<EInputKey>(Key));
 	else
-	 	return false;
+		return false;
 }
 
 bool UWindow::IsPointInWindow(float pointX, float pointY)

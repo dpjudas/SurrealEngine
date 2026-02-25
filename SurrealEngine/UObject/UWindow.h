@@ -348,7 +348,7 @@ public:
 class UViewportWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void ClearZBuffer(BitfieldBool* bClear);
 	void EnableViewport(BitfieldBool* bEnable);
@@ -388,7 +388,7 @@ public:
 class UTileWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void EnableWrapping(bool bWrapOn);
 	void FillParent(bool FillParent);
@@ -421,7 +421,7 @@ public:
 class UTextWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void AppendText(const std::string& NewText);
 	void EnableTextAsAccelerator(BitfieldBool* bEnable);
@@ -454,7 +454,7 @@ public:
 class UButtonWindow : public UTextWindow
 {
 public:
-    using UTextWindow::UTextWindow;
+	using UTextWindow::UTextWindow;
 
 	void ActivateButton(uint8_t Key);
 	void EnableAutoRepeat(BitfieldBool* bEnable, float* initialDelay, float* repeatRate);
@@ -487,7 +487,7 @@ public:
 class UToggleWindow : public UButtonWindow
 {
 public:
-    using UButtonWindow::UButtonWindow;
+	using UButtonWindow::UButtonWindow;
 
 	void ChangeToggle();
 	bool GetToggle();
@@ -501,7 +501,7 @@ public:
 class UCheckboxWindow : public UToggleWindow
 {
 public:
-    using UToggleWindow::UToggleWindow;
+	using UToggleWindow::UToggleWindow;
 
 	void SetCheckboxColor(const Color& NewColor);
 	void SetCheckboxSpacing(float newSpacing);
@@ -522,7 +522,7 @@ public:
 class UTextLogWindow : public UTextWindow
 {
 public:
-    using UTextWindow::UTextWindow;
+	using UTextWindow::UTextWindow;
 
 	void AddLog(const std::string& NewText, const Color& linecol);
 	void ClearLog();
@@ -538,7 +538,7 @@ public:
 class ULargeTextWindow : public UTextWindow
 {
 public:
-    using UTextWindow::UTextWindow;
+	using UTextWindow::UTextWindow;
 
 	void SetVerticalSpacing(float* newVSpace);
 
@@ -554,7 +554,7 @@ public:
 class UEditWindow : public ULargeTextWindow
 {
 public:
-    using ULargeTextWindow::ULargeTextWindow;
+	using ULargeTextWindow::ULargeTextWindow;
 
 	void ClearTextChangedFlag();
 	void ClearUndo();
@@ -642,7 +642,7 @@ public:
 class UTabGroupWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	BitfieldBool bSizeChildrenToParent() { return BoolValue(PropOffsets_TabGroupWindow.bSizeChildrenToParent); }
 	BitfieldBool bSizeParentToChildren() { return BoolValue(PropOffsets_TabGroupWindow.bSizeParentToChildren); }
@@ -656,7 +656,7 @@ public:
 class URadioBoxWindow : public UTabGroupWindow
 {
 public:
-    using UTabGroupWindow::UTabGroupWindow;
+	using UTabGroupWindow::UTabGroupWindow;
 
 	UObject* GetEnabledToggle();
 
@@ -668,7 +668,7 @@ public:
 class UClipWindow : public UTabGroupWindow
 {
 public:
-    using UTabGroupWindow::UTabGroupWindow;
+	using UTabGroupWindow::UTabGroupWindow;
 
 	void EnableSnapToUnits(BitfieldBool* bNewSnapToUnits);
 	void ForceChildSize(BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight);
@@ -702,7 +702,7 @@ public:
 class UModalWindow : public UTabGroupWindow
 {
 public:
-    using UTabGroupWindow::UTabGroupWindow;
+	using UTabGroupWindow::UTabGroupWindow;
 
 	bool IsCurrentModal();
 	void SetMouseFocusMode(uint8_t newFocusMode);
@@ -717,7 +717,7 @@ public:
 class URootWindow : public UModalWindow
 {
 public:
-    using UModalWindow::UModalWindow;
+	using UModalWindow::UModalWindow;
 
 	void EnablePositionalSound(BitfieldBool* bEnable);
 	void EnableRendering(BitfieldBool* bRender);
@@ -794,7 +794,7 @@ public:
 class UScrollAreaWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void AutoHideScrollbars(BitfieldBool* bHide);
 	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);
@@ -821,7 +821,7 @@ public:
 class UScaleWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void ClearAllEnumerations();
 	void EnableStretchedScale(BitfieldBool* bNewStretch);
@@ -939,7 +939,7 @@ public:
 class UScaleManagerWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign);
 	void SetManagerMargins(float* newMarginWidth, float* newMarginHeight);
@@ -968,7 +968,7 @@ public:
 class UListWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	int AddRow(const std::string& rowStr, int* clientData);
 	void AddSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive);
@@ -1072,7 +1072,7 @@ public:
 class UComputerWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void ClearLine(int rowToClear);
 	void ClearScreen();
@@ -1161,7 +1161,7 @@ public:
 class UBorderWindow : public UWindow
 {
 public:
-    using UWindow::UWindow;
+	using UWindow::UWindow;
 
 	void BaseMarginsFromBorder(BitfieldBool* bBorder);
 	void EnableResizing(BitfieldBool* bResize);
@@ -1307,6 +1307,6 @@ public:
 
 struct ActorRef  
 {  
-    UActor* Actor = nullptr;  
-    int RefCount = 0;  
+	UActor* Actor = nullptr;  
+	int RefCount = 0;  
 };  
