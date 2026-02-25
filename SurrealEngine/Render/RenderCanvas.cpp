@@ -481,6 +481,11 @@ void RenderSubsystem::DrawTile(FTextureInfo& texinfo, const Rectf& dest, const R
 	}
 }
 
+void RenderSubsystem::DrawTile(FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+{
+	Device->DrawTile(&Canvas.Frame, Info, X, Y, XL, YL, U, V, UL, VL, Z, Color, Fog, PolyFlags);
+}
+
 vec2 RenderSubsystem::GetTextSize(UFont* font, const std::string& text, float spaceX, float spaceY)
 {
 	float x = 0.0f;

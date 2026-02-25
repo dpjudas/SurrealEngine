@@ -2353,8 +2353,42 @@ void UGC::DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstr
 	LogUnimplemented("GC.DrawActor");
 }
 
+void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr)
+{
+	if (!bDrawEnabled())
+		return;
+
+	UFont* font = normalFont();
+	if (font)
+	{
+		float x = offsetX + DestX;
+		float y = offsetY + DestY;
+		uint32_t polyflags = EffectiveTextPolyFlags();
+		Rectf clip = Rectf::xywh(x, y, destWidth, destHeight);
+
+		auto valign = (EVAlign)VAlign();
+		if (valign == EVAlign::Top)
+		{
+			DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags);
+		}
+		else if (valign == EVAlign::Center || valign == EVAlign::Full)
+		{
+			Sizef extents = DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags, true);
+			DrawText(font, x, y + (destHeight - extents.height) * 0.5f, destWidth, textStr, clip, TextColor(), polyflags);
+		}
+		else if (valign == EVAlign::Bottom)
+		{
+			Sizef extents = DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags, true);
+			DrawText(font, x, y + destHeight - extents.height, destWidth, textStr, clip, TextColor(), polyflags);
+		}
+	}
+}
+
 void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
 {
+	if (!bDrawEnabled())
+		return;
+
 	if (leftMargin != 0.0f || rightMargin != 0.0f || TopMargin != 0.0f || BottomMargin != 0.0f || bStretchHorizontally || bStretchVertically)
 	{
 		// margins are always zero from script. Was this supposed to be a CSS border-image style draw function?
@@ -2363,28 +2397,43 @@ void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeigh
 	else
 	{
 		UTexture* tex = UObject::Cast<UTexture>(borders);
-
-		Color c = tileColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-		uint32_t polyflags = PolyFlags();
-		if (bMasked())
-			polyflags |= PF_Masked;
-		if (bModulated())
-			polyflags |= PF_Modulated;
-		if (!bSmoothed())
-			polyflags |= PF_NoSmooth;
-		if (bTranslucent())
-			polyflags |= PF_Translucent;
-
-		float swidth = (float)tex->USize();
-		float sheight = (float)tex->VSize();
-		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, swidth, sheight, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
+		if (tex)
+		{
+			float swidth = (float)tex->USize();
+			float sheight = (float)tex->VSize();
+			Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
+			Rectf clip = dest;
+			Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
+			DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+		}
 	}
 }
 
 void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX)
 {
-	LogUnimplemented("GC.DrawBox");
+	if (!bDrawEnabled())
+		return;
+
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf clip = ScaleRect(Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight));
+		Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
+		uint32_t polyflags = EffectivePolyFlags();
+		Color color = tileColor();
+
+		Rectf top = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, boxThickness);
+		Rectf bottom = Rectf::xywh(offsetX + DestX, offsetY + DestY - boxThickness, destWidth, boxThickness);
+		Rectf left = Rectf::xywh(offsetX + DestX, offsetY + DestY, boxThickness, destHeight);
+		Rectf right = Rectf::xywh(offsetX + DestX - boxThickness, offsetY + DestY, boxThickness, destHeight);
+
+		DrawTile(tex, ScaleRect(top), src, clip, color, polyflags);
+		DrawTile(tex, ScaleRect(bottom), src, clip, color, polyflags);
+		DrawTile(tex, ScaleRect(left), src, clip, color, polyflags);
+		DrawTile(tex, ScaleRect(right), src, clip, color, polyflags);
+	}
 }
 
 void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
@@ -2395,21 +2444,12 @@ void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		Color c = tileColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-		uint32_t polyflags = PolyFlags();
-		if (bMasked())
-			polyflags |= PF_Masked;
-		if (bModulated())
-			polyflags |= PF_Modulated;
-		if (!bSmoothed())
-			polyflags |= PF_NoSmooth;
-		if (bTranslucent())
-			polyflags |= PF_Translucent;
-
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
-		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, swidth, sheight, 0.0f, 0.0f, swidth, sheight, 1.0f, color, vec4(0.0), polyflags);
+		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, swidth, sheight);
+		Rectf clip = dest;
+		Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
+		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -2421,90 +2461,25 @@ void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeigh
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		Color c = tileColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-		uint32_t polyflags = PolyFlags();
-		if (bMasked())
-			polyflags |= PF_Masked;
-		if (bModulated())
-			polyflags |= PF_Modulated;
-		if (!bSmoothed())
-			polyflags |= PF_NoSmooth;
-		if (bTranslucent())
-			polyflags |= PF_Translucent;
-
-		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, OrgX, OrgY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
+		Rectf clip = dest;
+		Rectf src = Rectf::xywh(OrgX, OrgY, destWidth, destHeight);
+		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
 	}
 }
 
 void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float destHeight, float srcX, float srcY, float srcWidth, float srcHeight, UObject* tX)
 {
-	UTexture* tex = UObject::Cast<UTexture>(tX);
-	if (tex)
-	{
-		Color c = tileColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-		uint32_t polyflags = PolyFlags();
-		if (bMasked())
-			polyflags |= PF_Masked;
-		if (bModulated())
-			polyflags |= PF_Modulated;
-		if (!bSmoothed())
-			polyflags |= PF_NoSmooth;
-		if (bTranslucent())
-			polyflags |= PF_Translucent;
-
-		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight, 1.0f, color, vec4(0.0), polyflags);
-	}
-}
-
-void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, const std::string& textStr)
-{
 	if (!bDrawEnabled())
 		return;
 
-	UFont* font = normalFont();
-	if (font)
+	UTexture* tex = UObject::Cast<UTexture>(tX);
+	if (tex)
 	{
-		auto halign = (EHAlign)HAlign();
-		auto valign = (EVAlign)VAlign();
-
-		if (halign != EHAlign::Left && halign != EHAlign::Center)
-			LogUnimplemented("GC.DrawText does not support this horizontal alignment type yet");
-		if (valign == EVAlign::Full)
-			LogUnimplemented("GC.DrawText does not support this vertical alignment type yet");
-
-		float x = offsetX + DestX;
-		float y = offsetY + DestY;
-		float clipX = destWidth;
-		float clipY = destHeight;
-
-		Color c = TextColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
-
-		uint32_t polyflags = textPolyFlags();
-		if (bTextTranslucent())
-			polyflags |= PF_Translucent;
-		else
-			polyflags |= PF_Masked | PF_NoSmooth;
-
-		if (valign == EVAlign::Top)
-		{
-			engine->render->DrawText(font, color, x, y, curX, curY, curXL, curYL, false, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, clipX, clipY);
-		}
-		else
-		{
-			engine->render->DrawText(font, color, x, y, curX, curY, curXL, curYL, valign == EVAlign::Center, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, clipX, clipY, true);
-
-			if (valign == EVAlign::Center)
-				curX = (clipY - curYL) * 0.5f;
-			else if (valign == EVAlign::Bottom)
-				curX = curYL;
-
-			curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
-			engine->render->DrawText(font, color, offsetX + DestX, offsetY + DestY, curX, curY, curXL, curYL, false, textStr, polyflags, halign == EHAlign::Center, 0.0f, 0.0f, destWidth, destHeight);
-		}
+		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
+		Rectf clip = dest;
+		Rectf src = Rectf::xywh(srcX, srcY, srcWidth, srcHeight);
+		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -2516,21 +2491,41 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 	UTexture* tex = UObject::Cast<UTexture>(tX);
 	if (tex)
 	{
-		Color c = tileColor();
-		vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
-
-		uint32_t polyflags = PolyFlags();
-		if (bMasked())
-			polyflags |= PF_Masked;
-		if (bModulated())
-			polyflags |= PF_Modulated;
-		if (!bSmoothed())
-			polyflags |= PF_NoSmooth;
-		if (bTranslucent())
-			polyflags |= PF_Translucent;
-
-		engine->render->DrawTile(tex, offsetX + DestX, offsetY + DestY, destWidth, destHeight, srcX, srcY, destWidth, destHeight, 1.0f, color, vec4(0.0), polyflags);
+		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
+		Rectf clip = dest;
+		Rectf src = Rectf::xywh(srcX, srcY, destWidth, destHeight);
+		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
 	}
+}
+
+Rectf UGC::ScaleRect(const Rectf& box)
+{
+	float scale = engine->ViewportHeight / 480.0f;
+	return Rectf(box.left * scale, box.top * scale, box.right * scale, box.bottom * scale);
+}
+
+uint32_t UGC::EffectivePolyFlags()
+{
+	uint32_t polyflags = PolyFlags();
+	if (bMasked())
+		polyflags |= PF_Masked;
+	if (bModulated())
+		polyflags |= PF_Modulated;
+	if (!bSmoothed())
+		polyflags |= PF_NoSmooth;
+	if (bTranslucent())
+		polyflags |= PF_Translucent;
+	return polyflags;
+}
+
+uint32_t UGC::EffectiveTextPolyFlags()
+{
+	uint32_t polyflags = textPolyFlags();
+	if (bTextTranslucent())
+		polyflags |= PF_Translucent;
+	else
+		polyflags |= PF_Masked | PF_NoSmooth;
+	return polyflags;
 }
 
 void UGC::EnableDrawing(bool newDrawEnabled)
@@ -2583,8 +2578,10 @@ void UGC::GetAlignments(uint8_t& outHAlign, uint8_t& outVAlign)
 float UGC::GetFontHeight(BitfieldBool* bIncludeSpace)
 {
 	// Not used directly by scripts
-	LogUnimplemented("GC.GetFontHeight");
-	return 0.0f;
+	if (!normalFont())
+		return 0.0f;
+	FontGlyph glyph = normalFont()->GetGlyph('X');
+	return glyph.VSize;
 }
 
 void UGC::GetFonts(UObject*& outNormalFont, UObject*& outBoldFont)
@@ -2613,11 +2610,9 @@ void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const s
 	UFont* font = normalFont();
 	if (font)
 	{
-		vec4 color(1.0f);
-		float curX = 0.0f, curY = 0.0f, curXL = 0.0f, curYL = 0.0f;
-		engine->render->DrawText(font, vec4(1.0f), 0.0f, 0.0f, curX, curY, curXL, curYL, false, textStr, PF_Masked | PF_NoSmooth, false, 0.0f, 0.0f, destWidth, 10000.0f, true);
-		xExtent = curXL;
-		yExtent = curYL;
+		Sizef extents = DrawText(font, 0.0f, 0.0f, destWidth, textStr, Rectf(), TextColor(), 0, true);
+		xExtent = extents.width;
+		yExtent = extents.height;
 	}
 	else
 	{
@@ -2643,6 +2638,7 @@ uint8_t UGC::GetVerticalAlignment()
 
 void UGC::Intersect(float ClipX, float ClipY, float clipWidth, float clipHeight)
 {
+	// Not called directly by script. Seems we only clip by window then?
 	LogUnimplemented("GC.Intersect");
 }
 
@@ -2809,4 +2805,237 @@ void UGC::SetTileColor(const Color& newTileColor)
 void UGC::SetVerticalAlignment(uint8_t newVAlign)
 {
 	VAlign() = newVAlign;
+}
+
+void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rectf& clipBox, const Color& c, uint32_t flags)
+{
+	vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+	float Z = 1.0f;
+	vec4 fog(0.0f);
+
+	FTextureInfo texinfo;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)tex;
+	texinfo.Texture = tex;
+	texinfo.Format = texinfo.Texture->UsedFormat;
+	texinfo.Mips = tex->UsedMipmaps.data();
+	texinfo.NumMips = (int)tex->UsedMipmaps.size();
+	texinfo.USize = tex->USize();
+	texinfo.VSize = tex->VSize();
+	if (tex->Palette())
+		texinfo.Palette = (FColor*)tex->Palette()->Colors.data();
+
+	if (dest.left > dest.right || dest.top > dest.bottom)
+		return;
+
+	if (dest.left >= clipBox.left && dest.top >= clipBox.top && dest.right <= clipBox.right && dest.bottom <= clipBox.bottom)
+	{
+		engine->render->DrawTile(texinfo, dest.left, dest.top, dest.right - dest.left, dest.bottom - dest.top, src.left, src.top, src.right - src.left, src.bottom - src.top, Z, color, fog, flags);
+	}
+	else
+	{
+		Rectf d = dest;
+		Rectf s = src;
+
+		float scaleX = (s.right - s.left) / (d.right - d.left);
+		float scaleY = (s.bottom - s.top) / (d.bottom - d.top);
+
+		if (d.left < clipBox.left)
+		{
+			s.left += scaleX * (clipBox.left - d.left);
+			d.left = clipBox.left;
+		}
+		if (d.right > clipBox.right)
+		{
+			s.right += scaleX * (clipBox.right - d.right);
+			d.right = clipBox.right;
+		}
+		if (d.top < clipBox.top)
+		{
+			s.top += scaleY * (clipBox.top - d.top);
+			d.top = clipBox.top;
+		}
+		if (d.bottom > clipBox.bottom)
+		{
+			s.bottom += scaleY * (clipBox.bottom - d.bottom);
+			d.bottom = clipBox.bottom;
+		}
+
+		if (d.left < d.right && d.top < d.bottom)
+			engine->render->DrawTile(texinfo, d.left, d.top, d.right - d.left, d.bottom - d.top, s.left, s.top, s.right - s.left, s.bottom - s.top, Z, color, fog, flags);
+	}
+}
+
+Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& text, const Rectf& clipBox, const Color& color, uint32_t polyflags, bool noDraw)
+{
+	if (!bWordWrap())
+		destWidth = 100000.0f;
+
+	auto halign = (EHAlign)HAlign();
+
+	float totalWidth = 0.0f;
+	float totalHeight = 0.0f;
+	float curX = 0.0f;
+	float curY = 0.0f;
+
+	Array<std::string> textBlocks = FindTextBlocks(text);
+	size_t lineBegin = 0;
+	float lineWidth = 0.0f;
+	float lineHeight = 0.0f;
+	for (size_t pos = 0; pos < textBlocks.size(); pos++)
+	{
+		if (textBlocks[pos].front() == '\n')
+		{
+			if (pos != lineBegin)
+			{
+				float centerX = 0;
+				if (halign == EHAlign::Center || halign == EHAlign::Full)
+					centerX = std::round((destWidth - lineWidth) * 0.5f);
+				else if (halign == EHAlign::Right)
+					centerX = destWidth - lineWidth;
+
+				if (!noDraw)
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
+
+				curY += lineHeight;
+				totalHeight += lineHeight;
+				totalWidth = std::max(totalWidth, lineWidth);
+			}
+
+			curX = 0;
+			lineBegin = pos + 1;
+			lineWidth = 0.0f;
+			lineHeight = 0.0f;
+		}
+		else
+		{
+			vec2 blockSize = GetTextSize(font, textBlocks[pos]);
+			if (lineWidth + blockSize.x > destWidth)
+			{
+				float centerX = 0;
+				if (halign == EHAlign::Center || halign == EHAlign::Full)
+					centerX = std::round((destWidth - lineWidth) * 0.5f);
+				else if (halign == EHAlign::Right)
+					centerX = destWidth - lineWidth;
+
+				if (!noDraw)
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
+
+				curX = 0;
+				curY += lineHeight;
+				totalHeight += lineHeight;
+				totalWidth = std::max(totalWidth, lineWidth);
+
+				if (textBlocks[pos].front() == ' ')
+				{
+					// Ignore whitespace at the beginning of a word wrapped line
+					lineBegin = pos + 1;
+					lineWidth = 0.0f;
+					lineHeight = 0.0f;
+				}
+				else
+				{
+					lineBegin = pos;
+					lineWidth = blockSize.x;
+					lineHeight = blockSize.y;
+				}
+			}
+			else
+			{
+				lineWidth += blockSize.x;
+				lineHeight = std::max(lineHeight, blockSize.y);
+			}
+		}
+	}
+
+	if (lineBegin < textBlocks.size())
+	{
+		float centerX = 0;
+		if (halign == EHAlign::Center || halign == EHAlign::Full)
+			centerX = std::round((destWidth - lineWidth) * 0.5f);
+		else if (halign == EHAlign::Right)
+			centerX = destWidth - lineWidth;
+
+		if (!noDraw)
+			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, clipBox, color, polyflags);
+
+		curX += centerX + lineWidth;
+		curY += lineHeight;
+		totalHeight += lineHeight;
+		totalWidth = std::max(totalWidth, lineWidth);
+	}
+
+	return Sizef(totalWidth, totalHeight);
+}
+
+vec2 UGC::GetTextSize(UFont* font, const std::string& text)
+{
+	float x = 0.0f;
+	float y = 0.0f;
+	for (char c : text)
+	{
+		FontGlyph glyph = font->GetGlyph(c);
+		x += (float)glyph.USize;
+		y = std::max(y, (float)glyph.VSize);
+	}
+	return { x, y };
+}
+
+Array<std::string> UGC::FindTextBlocks(const std::string& text)
+{
+	// Split text into words, whitespace or newline
+	Array<std::string> textBlocks;
+	size_t pos = 0;
+	while (pos < text.size())
+	{
+		if (text[pos] == '\n')
+		{
+			textBlocks.push_back("\n");
+			pos++;
+		}
+		else if (text[pos] == ' ')
+		{
+			size_t end = std::min(text.find_first_not_of(' ', pos + 1), text.size());
+			textBlocks.push_back(text.substr(pos, end - pos));
+			pos = end;
+		}
+		else
+		{
+			size_t end = std::min(text.find_first_of(" \n", pos + 1), text.size());
+			textBlocks.push_back(text.substr(pos, end - pos));
+			pos = end;
+		}
+	}
+	return textBlocks;
+}
+
+void UGC::DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clip, const Color& color, uint32_t polyflags)
+{
+	for (size_t i = start; i < end; i++)
+	{
+		for (char c : textBlocks[i])
+		{
+			FontGlyph glyph = font->GetGlyph(c);
+
+			if (!glyph.Texture)
+				continue;
+
+			FTextureInfo texinfo;
+			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
+			texinfo.Texture = glyph.Texture;
+			texinfo.Format = texinfo.Texture->UsedFormat;
+			texinfo.Mips = glyph.Texture->UsedMipmaps.data();
+			texinfo.NumMips = (int)glyph.Texture->UsedMipmaps.size();
+			texinfo.USize = glyph.Texture->USize();
+			texinfo.VSize = glyph.Texture->VSize();
+			if (glyph.Texture->Palette())
+				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
+
+			Rectf dest = Rectf::xywh(x, y, (float)glyph.USize, (float)glyph.VSize);
+			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
+
+			DrawTile(glyph.Texture, ScaleRect(dest), src, ScaleRect(clip), color, polyflags);
+
+			x += (float)glyph.USize;
+		}
+	}
 }

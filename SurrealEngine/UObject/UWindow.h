@@ -1298,6 +1298,15 @@ public:
 	UTexture*& underlineTexture() { return Value<UTexture*>(PropOffsets_GC.underlineTexture); }
 	int& vMultiplier() { return Value<int>(PropOffsets_GC.vMultiplier); }
 
+	Rectf ScaleRect(const Rectf& box);
+	uint32_t EffectivePolyFlags();
+	uint32_t EffectiveTextPolyFlags();
+	void DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rectf& clipBox, const Color& c, uint32_t flags);
+	Sizef DrawText(UFont* font, float x, float y, float destWidth, const std::string& text, const Rectf& clipBox, const Color& c, uint32_t polyflags, bool noDraw = false);
+	Array<std::string> FindTextBlocks(const std::string& text);
+	void DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clipBox, const Color& color, uint32_t polyflags);
+	vec2 GetTextSize(UFont* font, const std::string& text);
+
 	bool SpecialTextEnabled = false;
 
 	// To do: apply cliprect?
