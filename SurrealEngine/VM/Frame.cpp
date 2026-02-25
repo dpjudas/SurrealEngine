@@ -510,7 +510,7 @@ ExpressionEvalResult Frame::Run()
 			Iterators.pop_back();
 			break;
 		case StatementResult::AccessedNone:
-			LogMessage("Accessed None in function " + Object->Name.ToString() + "." + Func->Name.ToString());
+			LogMessage("Accessed None");
 			LogMessage(Frame::GetCallstack());
 			break;
 		}

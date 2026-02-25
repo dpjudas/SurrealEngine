@@ -411,7 +411,8 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 {
 	bool show = !bShow || *bShow;
 	//LogMessage("Window.NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
-	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
+	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject(NewClass->Name.ToString(), UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
+	child->InitWindowNative();
 	child->parentOwner() = this;
 	child->prevSibling() = lastChild();
 	child->nextSibling() = nullptr;
@@ -1479,6 +1480,19 @@ void URootWindow::StretchRawBackground(BitfieldBool* bStretch)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+void UScrollAreaWindow::InitWindowNative()
+{
+	ClipWindow() = UObject::Cast<UClipWindow>(NewChild(engine->packages->FindClass("Extension.ClipWindow"), nullptr));
+	hScale() = UObject::Cast<UScaleWindow>(NewChild(engine->packages->FindClass("Extension.ScaleWindow"), nullptr));
+	vScale() = UObject::Cast<UScaleWindow>(NewChild(engine->packages->FindClass("Extension.ScaleWindow"), nullptr));
+	hScaleMgr() = UObject::Cast<UScaleManagerWindow>(NewChild(engine->packages->FindClass("Extension.ScaleManagerWindow"), nullptr));
+	vScaleMgr() = UObject::Cast<UScaleManagerWindow>(NewChild(engine->packages->FindClass("Extension.ScaleManagerWindow"), nullptr));
+	DownButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
+	LeftButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
+	RightButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
+	UpButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow"), nullptr));
+}
 
 void UScrollAreaWindow::AutoHideScrollbars(BitfieldBool* bHide)
 {

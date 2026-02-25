@@ -263,6 +263,8 @@ public:
 
 	void DetachFromParent();
 
+	virtual void InitWindowNative() {}
+
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
 	float& Height() { return Value<float>(PropOffsets_Window.Height); }
 	float& SoundVolume() { return Value<float>(PropOffsets_Window.SoundVolume); }
@@ -795,6 +797,8 @@ class UScrollAreaWindow : public UWindow
 {
 public:
 	using UWindow::UWindow;
+
+	void InitWindowNative() override;
 
 	void AutoHideScrollbars(BitfieldBool* bHide);
 	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);

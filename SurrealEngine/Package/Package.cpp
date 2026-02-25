@@ -77,6 +77,9 @@ GCAllocation* Package::Mark(GCAllocation* marklist)
 
 UObject* Package::NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties)
 {
+	if (!objclass)
+		Exception::Throw("Package.NewObject called with a null objclass!");
+
 	for (UClass* cur = objclass; cur != nullptr; cur = static_cast<UClass*>(cur->BaseStruct))
 	{
 		auto it = Packages->NativeClasses.find(cur->Name);
