@@ -38,22 +38,29 @@ void Logger::LogMessage(const std::string& message)
 			name = UObject::GetUClassFullName(Frame::Callstack.front()->Object).ToString();
 		}
 
-		LogMessageLine line;
-		line.Time = time;
-		line.Source = name;
-		line.Text = message;
-		Log.push_back(std::move(line));
+		for (const std::string& text : SplitNewlines(message))
+		{
+			LogMessageLine line;
+			line.Time = time;
+			line.Source = name;
+			line.Text = text;
+			Log.push_back(std::move(line));
+			if (printLogDebugger)
+				printLogDebugger(Log.back());
+		}
 	}
 	else
 	{
-		LogMessageLine line;
-		line.Time = time;
-		line.Text = message;
-		Log.push_back(std::move(line));
+		for (const std::string& text : SplitNewlines(message))
+		{
+			LogMessageLine line;
+			line.Time = time;
+			line.Text = text;
+			Log.push_back(std::move(line));
+			if (printLogDebugger)
+				printLogDebugger(Log.back());
+		}
 	}
-
-	if (printLogDebugger)
-		printLogDebugger(Log.back());
 }
 
 void Logger::LogUnimplemented(const std::string& message)
@@ -63,6 +70,26 @@ void Logger::LogUnimplemented(const std::string& message)
 	{
 		LogMessage("Unimplemented: " + message);
 	}
+}
+
+std::vector<std::string> Logger::SplitNewlines(const std::string& str)
+{
+	std::vector<std::string> lines;
+	size_t pos = 0;
+	for (size_t i = 0, count = str.size(); i < count; i++)
+	{
+		if (str[i] == '\n')
+		{
+			lines.push_back(str.substr(pos, i - pos));
+			if (!lines.back().empty() && lines.back().back() == '\r')
+				lines.back().pop_back();
+			pos = i + 1;
+		}
+	}
+	lines.push_back(str.substr(pos));
+	if (!lines.back().empty() && lines.back().back() == '\r')
+		lines.back().pop_back();
+	return lines;
 }
 
 Logger* Logger::Get()

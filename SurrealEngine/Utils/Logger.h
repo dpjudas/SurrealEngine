@@ -33,6 +33,7 @@ private:
 	float time = 0.0f;
 	std::list<LogMessageLine> Log;
 	std::function<void(const LogMessageLine& line)> printLogDebugger;
+	static std::vector<std::string> SplitNewlines(const std::string& str);
 
 	Logger() = default;
 	Logger(const Logger&) = delete;

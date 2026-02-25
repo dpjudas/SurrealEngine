@@ -511,6 +511,7 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::AccessedNone:
 			LogMessage("Accessed None in function " + Object->Name.ToString() + "." + Func->Name.ToString());
+			LogMessage(Frame::GetCallstack());
 			break;
 		}
 
