@@ -18,7 +18,8 @@ class RenderSubsystem
 public:
 	RenderSubsystem(RenderDevice* renderdevice);
 
-	void DrawRootWindow();
+	void PreRenderWindows(UCanvas* canvas);
+	void PostRenderWindows(UCanvas* canvas);
 	void DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY);
 	void DrawWindow(UWindow* window, float offsetX, float offsetY);
 	void ResetWindowGC(UWindow* window, float offsetX, float offsetY);
@@ -104,6 +105,7 @@ private:
 	void PreRender();
 	void RenderOverlays();
 	void PostRender();
+	void PostRenderFlash();
 	void DrawTimedemoStats();
 	void DrawCollisionDebug();
 	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);

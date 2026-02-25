@@ -29,6 +29,7 @@ class UTrigger;
 class UWarpZoneInfo;
 class UZoneInfo;
 class URootWindow;
+class UCanvas;
 class PackageManager;
 class CollisionHit;
 class BspNode;
@@ -1754,6 +1755,10 @@ class UPlayerPawnExt : public UPlayerPawn
 {
 public:
 	using UPlayerPawn::UPlayerPawn;
+
+	void InitRootWindow();
+	void PreRenderWindows(UCanvas* canvas);
+	void PostRenderWindows(UCanvas* canvas);
 
 	// UFlagBase*& FlagBase() { return Value<UFlagBase*>(PropOffsets_PlayerPawnExt.FlagBase); }
 	URootWindow*& RootWindow() { return Value<URootWindow*>(PropOffsets_PlayerPawnExt.RootWindow); }

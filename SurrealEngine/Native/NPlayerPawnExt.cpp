@@ -4,9 +4,7 @@
 #include "NPlayerPawnExt.h"
 #include "VM/NativeFunc.h"
 #include "UObject/UActor.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
-#include "VM/ScriptCall.h"
+#include "UObject/UClient.h"
 
 void NPlayerPawnExt::RegisterFunctions()
 {
@@ -18,25 +16,17 @@ void NPlayerPawnExt::RegisterFunctions()
 void NPlayerPawnExt::InitRootWindow(UObject* Self)
 {
 	UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
-	auto dxIni = engine->packages->GetIniFile("System");
-	NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
-	UClass* cls = engine->packages->FindClass(dxRootClassName);
-	if (cls)
-	{
-		engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
-		SelfPawn->RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
-		engine->dxRootWindow->parentPawn() = SelfPawn;
-		engine->dxRootWindow->bIsVisible() = true;
-		CallEvent(engine->dxRootWindow, "InitWindow");
-	}
+	SelfPawn->InitRootWindow();
 }
 
 void NPlayerPawnExt::PostRenderWindows(UObject* Self, UObject* Canvas)
 {
-	LogUnimplemented("PlayerPawnExt.PostRenderWindows");
+	UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
+	SelfPawn->PostRenderWindows(UObject::Cast<UCanvas>(Canvas));
 }
 
 void NPlayerPawnExt::PreRenderWindows(UObject* Self, UObject* Canvas)
 {
-	LogUnimplemented("PlayerPawnExt.PreRenderWindows");
+	UPlayerPawnExt* SelfPawn = UObject::Cast<UPlayerPawnExt>(Self);
+	SelfPawn->PreRenderWindows(UObject::Cast<UCanvas>(Canvas));
 }

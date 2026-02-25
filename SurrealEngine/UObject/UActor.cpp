@@ -9,6 +9,7 @@
 #include "Package/PackageManager.h"
 #include "Package/IniProperty.h"
 #include "Engine.h"
+#include "Render/RenderSubsystem.h"
 #include <set>
 
 // TODO: Compare behavior more closely with original engine. Might differ depending on game.
@@ -3455,4 +3456,31 @@ UNavigationPoint* UPakPathNodeIterator::GetLastVisible()
 void UPakPawnPathNodeIterator::SetPawn(UPawn* P)
 {
 	Pawn() = P;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UPlayerPawnExt::InitRootWindow()
+{
+	auto dxIni = engine->packages->GetIniFile("System");
+	NameString dxRootClassName = dxIni->GetValue("Engine.Engine", "Root", "");
+	UClass* cls = engine->packages->FindClass(dxRootClassName);
+	if (cls)
+	{
+		engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
+		RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
+		engine->dxRootWindow->parentPawn() = this;
+		engine->dxRootWindow->bIsVisible() = true;
+		CallEvent(engine->dxRootWindow, "InitWindow");
+	}
+}
+
+void UPlayerPawnExt::PreRenderWindows(UCanvas* canvas)
+{
+	engine->render->PreRenderWindows(canvas);
+}
+
+void UPlayerPawnExt::PostRenderWindows(UCanvas* canvas)
+{
+	engine->render->PostRenderWindows(canvas);
 }

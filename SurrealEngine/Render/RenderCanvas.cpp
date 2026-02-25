@@ -94,6 +94,13 @@ void RenderSubsystem::PostRender()
 		DrawCollisionDebug();
 }
 
+void RenderSubsystem::PostRenderFlash()
+{
+	Device->SetSceneNode(&Canvas.Frame);
+	if (engine->viewport->Actor())
+		CallEvent(engine->viewport->Actor(), "PostRenderFlash", {ExpressionValue::ObjectValue(engine->canvas)});
+}
+
 void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 {
 	Device->SetSceneNode(&MainFrame.Frame);

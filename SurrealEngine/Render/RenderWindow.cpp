@@ -7,12 +7,16 @@
 #include "Engine.h"
 #include "UObject/UWindow.h"
 
-void RenderSubsystem::DrawRootWindow()
+void RenderSubsystem::PreRenderWindows(UCanvas* canvas)
+{
+	// What needs to be done here?
+}
+
+void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 {
 	if (!engine->dxRootWindow)
 		return;
 
-	ResetCanvas();
 	Device->SetSceneNode(&Canvas.Frame);
 	Device->ClearZ();
 

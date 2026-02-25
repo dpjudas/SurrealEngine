@@ -42,12 +42,9 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	{
 		DrawScene();
 		RenderOverlays();
+		if (engine->LaunchInfo.IsDeusEx())
+			PostRenderFlash();
 		Device->EndFlash();
-	}
-
-	if (engine->dxRootWindow)
-	{
-		DrawRootWindow();
 	}
 
 	PostRender();
