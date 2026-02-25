@@ -2581,7 +2581,7 @@ float UGC::GetFontHeight(BitfieldBool* bIncludeSpace)
 	if (!normalFont())
 		return 0.0f;
 	FontGlyph glyph = normalFont()->GetGlyph('X');
-	return glyph.VSize;
+	return (float)glyph.VSize;
 }
 
 void UGC::GetFonts(UObject*& outNormalFont, UObject*& outBoldFont)

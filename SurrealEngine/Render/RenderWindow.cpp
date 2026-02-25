@@ -48,7 +48,7 @@ void RenderSubsystem::DrawRootWindow()
 		}
 	}
 
-	DrawWindow(engine->dxRootWindow, 600.0f, 100.0f);
+	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
 	UFont* font = engine->canvas->SmallFont();
 	float curY = 100.0f;
@@ -129,20 +129,14 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 	text += " w = " + std::to_string((int)w);
 	text += " h = " + std::to_string((int)h);
 
-	if (window->Background())
-		text += " background";
-
-	if (auto button = UObject::TryCast<UButtonWindow>(window))
-	{
-		if (button->curTexture())
-			text += " curtexture";
-	}
-
 	vec4 color = vec4(window->bIsVisible() ? 1.0f : 0.5f);
 	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
 	DrawText(font, color, 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
-	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
+	if (window->bIsVisible())
 	{
-		DrawWindowInfo(font, child, depth + 1, curY);
+		for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
+		{
+			DrawWindowInfo(font, child, depth + 1, curY);
+		}
 	}
 }
