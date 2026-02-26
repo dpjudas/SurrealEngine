@@ -914,8 +914,8 @@ void UTileWindow::SetOrder(EOrder newOrder)
 	uint8_t vertical = (uint8_t)EOrientation::Vertical;
 	uint8_t leftToRight = (uint8_t)EHDirection::LeftToRight;
 	uint8_t rightToLeft = (uint8_t)EHDirection::RightToLeft;
-	uint8_t topToBottom = (uint8_t)EVDirection::VDIR_TopToBottom;
-	uint8_t bottomToTop = (uint8_t)EVDirection::VDIR_BottomToTop;
+	uint8_t topToBottom = (uint8_t)EVDirection::TopToBottom;
+	uint8_t bottomToTop = (uint8_t)EVDirection::BottomToTop;
 	switch (newOrder)
 	{
 		//Offsetreminder:orientation,hdirection,vdirection,bwrap
