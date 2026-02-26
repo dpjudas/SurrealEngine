@@ -76,7 +76,7 @@ void NTileWindow::SetMinorSpacing(UObject* Self, float newSpacing)
 void NTileWindow::SetOrder(UObject* Self, uint8_t newOrder)
 {
 	UTileWindow* tile = UObject::Cast<UTileWindow>(Self);
-	tile->SetOrder(newOrder);
+	tile->SetOrder(static_cast<EOrder>(newOrder));
 }
 
 void NTileWindow::SetOrientation(UObject* Self, uint8_t newOrientation)

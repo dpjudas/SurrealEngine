@@ -907,9 +907,84 @@ void UTileWindow::SetMinorSpacing(float newSpacing)
 	minorSpacing() = newSpacing;
 }
 
-void UTileWindow::SetOrder(uint8_t newOrder)
+void UTileWindow::SetOrder(EOrder newOrder)
 {
-	LogUnimplemented("TileWindow.SetOrder");
+	bWrap() = true;
+	uint8_t horizontal = (uint8_t)EOrientation::Horizontal;
+	uint8_t vertical = (uint8_t)EOrientation::Vertical;
+	uint8_t leftToRight = (uint8_t)EHDirection::LeftToRight;
+	uint8_t rightToLeft = (uint8_t)EHDirection::RightToLeft;
+	uint8_t topToBottom = (uint8_t)EVDirection::VDIR_TopToBottom;
+	uint8_t bottomToTop = (uint8_t)EVDirection::VDIR_BottomToTop;
+	switch (newOrder)
+	{
+		//Offsetreminder:orientation,hdirection,vdirection,bwrap
+		case EOrder::Right:
+			orientation() = horizontal;
+			hDirection() = leftToRight;
+			vDirection() = topToBottom;
+			bWrap() = false;
+			break;
+		case EOrder::Left:
+			orientation() = horizontal;
+			hDirection() = rightToLeft;
+			vDirection() = topToBottom;
+			bWrap() = false;
+			break;
+		case EOrder::Down:
+			orientation() = vertical;
+			hDirection() = leftToRight;
+			vDirection() = topToBottom;
+			bWrap() = false;
+			break;
+		case EOrder::Up:
+			orientation() = vertical;
+			hDirection() = leftToRight;
+			vDirection() = topToBottom;
+			bWrap() = false;
+			break;
+		case EOrder::RightThenDown:
+			orientation() = horizontal;
+			hDirection() = leftToRight;
+			vDirection() = topToBottom;
+			break;
+		case EOrder::RightThenUp:
+			orientation() = horizontal;
+			hDirection() = leftToRight;
+			vDirection() = bottomToTop;
+			break;
+		case EOrder::LeftThenDown:
+			orientation() = horizontal;
+			hDirection() = rightToLeft;
+			vDirection() = topToBottom;
+			break;
+		case EOrder::LeftThenUp:
+			orientation() = horizontal;
+			hDirection() = rightToLeft;
+			vDirection() = bottomToTop;
+			break;
+		case EOrder::DownThenRight:
+			orientation() = vertical;
+			hDirection() = leftToRight;
+			vDirection() = topToBottom;
+			break;
+		case EOrder::DownThenLeft:
+			orientation() = vertical;
+			hDirection() = rightToLeft;
+			vDirection() = topToBottom;
+			break;
+		case EOrder::UpThenRight:
+			orientation() = vertical;
+			hDirection() = leftToRight;
+			vDirection() = bottomToTop;
+			break;
+		case EOrder::UpThenLeft:
+			orientation() = vertical;
+			hDirection() = rightToLeft;
+			vDirection() = topToBottom;
+			break;
+	}
+	AskParentForReconfigure();
 }
 
 void UTileWindow::SetOrientation(uint8_t newOrientation)

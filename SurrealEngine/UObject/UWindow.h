@@ -402,7 +402,7 @@ public:
 	void SetMajorSpacing(float newSpacing);
 	void SetMargins(float newHMargin, float newVMargin);
 	void SetMinorSpacing(float newSpacing);
-	void SetOrder(uint8_t newOrder);
+	void SetOrder(EOrder newOrder);
 	void SetOrientation(uint8_t newOrientation);
 
 	BitfieldBool bEqualHeight() { return BoolValue(PropOffsets_TileWindow.bEqualHeight); }
