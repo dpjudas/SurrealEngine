@@ -47,8 +47,8 @@ enum class EHDirection : uint8_t
 
 enum class EVDirection : uint8_t
 {
-	VDIR_TopToBottom,
-	VDIR_BottomToTop
+	TopToBottom,
+	BottomToTop
 };
 
 enum class EOrder : uint8_t
