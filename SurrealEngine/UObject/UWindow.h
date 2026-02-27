@@ -1370,9 +1370,3 @@ public:
 	float offsetX = 0.0f;
 	float offsetY = 0.0f;
 };
-
-struct ActorRef  
-{  
-	UActor* Actor = nullptr;  
-	int RefCount = 0;  
-};  

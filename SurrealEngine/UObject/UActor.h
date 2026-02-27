@@ -1752,6 +1752,12 @@ public:
 	void SaveConfig() override;
 };
 
+struct ActorRef
+{
+	UActor* Actor = nullptr;
+	int RefCount = 0;
+};
+
 class UPlayerPawnExt : public UPlayerPawn
 {
 public:
@@ -1764,7 +1770,7 @@ public:
 	// UFlagBase*& FlagBase() { return Value<UFlagBase*>(PropOffsets_PlayerPawnExt.FlagBase); }
 	URootWindow*& RootWindow() { return Value<URootWindow*>(PropOffsets_PlayerPawnExt.RootWindow); }
 	int& actorCount() { return Value<int>(PropOffsets_PlayerPawnExt.actorCount); }
-	// ActorRef& actorList() { return Value<ActorRef>(PropOffsets_PlayerPawnExt.actorList); }
+	ActorRef* actorList() { return FixedArray<ActorRef>(PropOffsets_PlayerPawnExt.actorList); }
 };
 
 class UCamera : public UPlayerPawn

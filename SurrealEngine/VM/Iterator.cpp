@@ -71,7 +71,7 @@ BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UOb
 		if (!levelActor || !levelActor->Class) continue;
 		if (levelActor->IsA(BaseClass->Name) && levelActor->IsBasedOn(Caller))
 		{
-			LogMessage("Checking actor: " + std::to_string((ptrdiff_t)levelActor) + " class: " + (levelActor->Class ? levelActor->Class->Name.ToString() : "NULL"));
+			//LogMessage("Checking actor: " + std::to_string((ptrdiff_t)levelActor) + " class: " + (levelActor->Class ? levelActor->Class->Name.ToString() : "NULL"));
 			BasedActors.push_back(levelActor);
 		}
 	}
