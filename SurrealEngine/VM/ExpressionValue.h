@@ -236,6 +236,12 @@ public:
 			Exception::Throw("Accessed mismatched value type");
 	}
 
+	void CheckOptionalType(ExpressionValueType type)
+	{
+		if (Type != ExpressionValueType::Nothing && Type != type)
+			Exception::Throw("Accessed mismatched optional value type");
+	}
+
 private:
 	ExpressionValue(ExpressionValueType type) : Type(type)
 	{
@@ -351,17 +357,17 @@ template<> inline Color& ExpressionValue::ToType() { CheckType(ExpressionValueTy
 template<> inline IpAddr& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueStruct); return *PtrIpAddr; }
 
 // Optional arguments
-template<> inline uint8_t* ExpressionValue::ToType() { return PtrByte; }
-template<> inline int32_t* ExpressionValue::ToType() { return PtrInt; }
-template<> inline BitfieldBool* ExpressionValue::ToType() { return BoolInfo.Ptr ? &BoolInfo : nullptr; }
-template<> inline float* ExpressionValue::ToType() { return PtrFloat; }
-template<> inline UObject** ExpressionValue::ToType() { return PtrObject; }
-template<> inline vec3* ExpressionValue::ToType() { return PtrVector; }
-template<> inline Rotator* ExpressionValue::ToType() { return PtrRotator; }
-template<> inline std::string* ExpressionValue::ToType() { return PtrString; }
-template<> inline NameString* ExpressionValue::ToType() { return PtrName; }
-template<> inline Color* ExpressionValue::ToType() { return PtrColor; }
-template<> inline IpAddr* ExpressionValue::ToType() { return PtrIpAddr; }
+template<> inline uint8_t* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueByte); return PtrByte; }
+template<> inline int32_t* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueInt); return PtrInt; }
+template<> inline BitfieldBool* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueBool); return BoolInfo.Ptr ? &BoolInfo : nullptr; }
+template<> inline float* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueFloat); return PtrFloat; }
+template<> inline UObject** ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueObject); return PtrObject; }
+template<> inline vec3* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueVector); return PtrVector; }
+template<> inline Rotator* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueRotator); return PtrRotator; }
+template<> inline std::string* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueString); return PtrString; }
+template<> inline NameString* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueName); return PtrName; }
+template<> inline Color* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueColor); return PtrColor; }
+template<> inline IpAddr* ExpressionValue::ToType() { CheckOptionalType(ExpressionValueType::ValueStruct); return PtrIpAddr; }
 
 inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 {

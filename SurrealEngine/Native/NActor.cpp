@@ -447,10 +447,9 @@ void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, fl
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
 }
 
-void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, int* BlendSlot)
+void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, uint8_t* BlendSlot)
 {
 	UObject::Cast<UActor>(Self)->PlayBlendAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, BlendSlot ? *BlendSlot : 0);
-	LogUnimplemented("Actor.PlayBlendAnim");
 }
 
 void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)

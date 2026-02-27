@@ -44,7 +44,7 @@ public:
 	static void Multiply_ColorFloat(const Color& A, float B, Color& ReturnValue);
 	static void Multiply_FloatColor(float A, const Color& B, Color& ReturnValue);
 	static void PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime);
-	static void PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, int* BlendSlot);
+	static void PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, uint8_t* BlendSlot);
 	static void PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch);
 	static void PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch);
 	static void PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue);
