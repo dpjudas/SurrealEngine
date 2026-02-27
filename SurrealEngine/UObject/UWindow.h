@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UObject.h"
+#include "../GameWindow.h"
 
 class UCanvas;
 class UTexture;
