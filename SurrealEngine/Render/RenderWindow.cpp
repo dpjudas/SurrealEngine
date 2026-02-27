@@ -30,38 +30,6 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 		engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
 	}
 
-	for (UWindow* child = engine->dxRootWindow->firstChild(); child; child = child->nextSibling())
-	{
-		if (child->FirstDraw && child->bIsVisible())
-		{
-			auto halign = (EHAlign)child->winHAlign();
-			auto valign = (EVAlign)child->winVAlign();
-
-			float x = 0.0f, y = 0.0f, width = 0.0f, height = 0.0f;
-			child->QueryPreferredSize(width, height);
-
-			if (halign == EHAlign::Left)
-				x = 0.0f;
-			else if (halign == EHAlign::Center)
-				x = (virtualWidth - width) * 0.5f;
-			else if (halign == EHAlign::Right)
-				x = virtualWidth - width;
-			else if (halign == EHAlign::Full)
-				width = virtualWidth;
-
-			if (valign == EVAlign::Top)
-				y = 0.0f;
-			else if (valign == EVAlign::Center)
-				y = (virtualHeight - height) * 0.5f;
-			else if (valign == EVAlign::Bottom)
-				y = virtualHeight - height;
-			else if (valign == EVAlign::Full)
-				height = virtualHeight;
-
-			child->ConfigureChild(x, y, width, height);
-		}
-	}
-
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
 	UFont* font = engine->canvas->SmallFont();
@@ -96,21 +64,55 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	if (!window->bIsVisible())
 		return;
 
+	if (!window->bConfigured())
+		window->AskParentForReconfigure();
+
+	UWindow* parent = window->parentOwner();
+	if (parent)
+	{
+		EHAlign halign = (EHAlign)window->winHAlign();
+		EVAlign valign = (EVAlign)window->winVAlign();
+		float leftMargin = window->hMargin0();
+		float rightMargin = window->hMargin1();
+		float topMargin = window->vMargin0();
+		float bottomMargin = window->vMargin1();
+
+		float pWidth = parent->Width();
+		float pHeight = parent->Height();
+		float width = window->Width();
+		float height = window->Height();
+
+		float x = 0.0f, y = 0.0f;
+		if (halign == EHAlign::Left)
+			x = window->X();
+		else if (halign == EHAlign::Center)
+			x = (pWidth - width) * 0.5f + window->X();
+		else if (halign == EHAlign::Right)
+			x = pWidth - width - window->X();
+
+		if (valign == EVAlign::Top)
+			y = window->Y();
+		else if (valign == EVAlign::Center)
+			y = (pHeight - height) * 0.5f + window->Y();
+		else if (valign == EVAlign::Bottom)
+			y = pHeight - height - window->Y();
+
+		offsetX += x;
+		offsetY += y;
+	}
+
 	if (window->FirstDraw)
 	{
 		window->FirstDraw = false;
 		window->WindowReady();
 	}
 
-	offsetX += window->X();
-	offsetY += window->Y();
-
 	ResetWindowGC(window, offsetX, offsetY);
 	window->DrawWindow(engine->dxgc);
 
 #if 0
-	float x0 = window->X() + offsetX;
-	float y0 = window->Y() + offsetY;
+	float x0 = offsetX;
+	float y0 = offsetY;
 	float x1 = x0 + window->Width();
 	float y1 = y0 + window->Height();
 	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f));

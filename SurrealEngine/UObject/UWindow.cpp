@@ -165,10 +165,9 @@ UObject* UWindow::GetBottomChild(BitfieldBool* bVisibleOnly)
 	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
 	for (UWindow* child = firstChild(); child; child = child->nextSibling())
 	{
-		if (!visibleOnly || bIsVisible())
+		if (!visibleOnly || child->bIsVisible())
 			return child;
 	}
-	LogMessage("Warning: GetBottomChild returned None");
 	return nullptr;
 }
 
@@ -198,7 +197,7 @@ UObject* UWindow::GetHigherSibling(BitfieldBool* bVisibleOnly)
 	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
 	for (UWindow* cur = nextSibling(); cur; cur = cur->nextSibling())
 	{
-		if (!visibleOnly || bIsVisible())
+		if (!visibleOnly || cur->bIsVisible())
 			return cur;
 	}
 	return nullptr;
@@ -209,7 +208,7 @@ UObject* UWindow::GetLowerSibling(BitfieldBool* bVisibleOnly)
 	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
 	for (UWindow* cur = prevSibling(); cur; cur = cur->prevSibling())
 	{
-		if (!visibleOnly || bIsVisible())
+		if (!visibleOnly || cur->bIsVisible())
 			return cur;
 	}
 	return nullptr;
@@ -251,6 +250,7 @@ UObject* UWindow::GetRootWindow()
 
 UObject* UWindow::GetTabGroupWindow()
 {
+	// Not called directly by script
 	LogUnimplemented("Window.GetTabGroupWindow");
 	return nullptr;
 }
@@ -266,10 +266,9 @@ UObject* UWindow::GetTopChild(BitfieldBool* bVisibleOnly)
 	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
 	for (UWindow* child = lastChild(); child; child = child->prevSibling())
 	{
-		if (!visibleOnly || bIsVisible())
+		if (!visibleOnly || child->bIsVisible())
 			return child;
 	}
-	LogMessage("Warning: GetTopChild returned None");
 	return nullptr;
 }
 
@@ -663,12 +662,14 @@ void UWindow::ResetWidth()
 {
 	// Not called from script
 	FixedWidth = false;
+	bConfigured() = false;
 }
 
 void UWindow::ResetHeight()
 {
 	// Not called from script
 	FixedHeight = false;
+	bConfigured() = false;
 }
 
 void UWindow::SetSize(float newWidth, float NewHeight)
@@ -695,6 +696,7 @@ void UWindow::SetConfiguration(float newX, float newY, float newWidth, float New
 {
 	SetPos(newX, newY);
 	SetSize(newWidth, NewHeight);
+	bConfigured() = true;
 }
 
 void UWindow::SetPos(float newX, float newY)
@@ -758,6 +760,7 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 
 void UWindow::AskParentForReconfigure()
 {
+	bConfigured() = false;
 	UWindow* parent = parentOwner();
 	if (parent)
 	{
@@ -767,10 +770,27 @@ void UWindow::AskParentForReconfigure()
 
 void UWindow::ResizeChild()
 {
-	float width = 0.0f;
-	float height = 0.0f;
-	QueryPreferredSize(width, height);
-	ConfigureChild(X(), Y(), width, height);
+	if (!FixedWidth && !FixedHeight)
+	{
+		float width = 0.0f;
+		float height = 0.0f;
+		QueryPreferredSize(width, height);
+		ConfigureChild(X(), Y(), width, height);
+	}
+	else if (FixedWidth && FixedHeight)
+	{
+		ConfigureChild(X(), Y(), Width(), Height());
+	}
+	else if (FixedWidth)
+	{
+		float height = QueryPreferredHeight(Width());
+		ConfigureChild(X(), Y(), Width(), height);
+	}
+	else if (FixedHeight)
+	{
+		float width = QueryPreferredWidth(Height());
+		ConfigureChild(X(), Y(), width, Height());
+	}
 }
 
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
@@ -779,6 +799,7 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHe
 	Y() = newY;
 	Width() = newWidth;
 	Height() = NewHeight;
+	bConfigured() = true;
 	ConfigurationChanged();
 }
 
@@ -1427,6 +1448,14 @@ void UTextWindow::SetMinWidth(float newMinWidth)
 void UTextWindow::SetText(const std::string& NewText)
 {
 	Text() = NewText;
+
+	if (normalFont()) // How does TextWindow get its intrinsic size!?
+	{
+		float xExtent = 0.0f, yExtent = 0.0f;
+		engine->dxgc->SetFont(normalFont());
+		engine->dxgc->GetTextExtent(100000.0f, xExtent, yExtent, Text());
+		SetSize(xExtent, yExtent);
+	}
 }
 
 void UTextWindow::SetTextAlignments(uint8_t newHAlign, uint8_t newVAlign)
@@ -1444,6 +1473,27 @@ void UTextWindow::SetTextMargins(float newHMargin, float newVMargin)
 void UTextWindow::SetWordWrap(bool bNewWordWrap)
 {
 	bWordWrap() = bNewWordWrap;
+}
+
+void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	/*
+	float xExtent = 0.0f, yExtent = 0.0f;
+	engine->dxgc->GetTextExtent(bWidthSpecified ? preferredWidth : 100000.0f, xExtent, yExtent, Text());
+	if (!bWidthSpecified)
+		preferredWidth = xExtent;
+	if (!bHeightSpecified)
+		preferredHeight = yExtent;
+	*/
+
+	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+}
+
+void UTextWindow::DrawWindow(UGC* gc)
+{
+	if (normalFont()) // When should text windows draw their text? They are used for buttons, which sometimes draw themselves via UI
+		gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
+	UWindow::DrawWindow(gc);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1765,6 +1815,11 @@ void UClipWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 void UClipWindow::ConfigurationChanged()
 {
 	// To do: how does this work?
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		cur->ConfigureChild(0.0f, 0.0f, Width(), Height());
+	}
+
 	UTabGroupWindow::ConfigurationChanged();
 }
 
@@ -3377,10 +3432,19 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rec
 	}
 }
 
-Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& text, const Rectf& clipBox, const Color& color, uint32_t polyflags, bool noDraw)
+Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& textStr, const Rectf& clipBox, const Color& color, uint32_t polyflags, bool noDraw)
 {
 	if (!bWordWrap())
 		destWidth = 100000.0f;
+
+	// Remove the | and & escapes for now
+	std::string text;
+	text.reserve(textStr.size());
+	for (char c : textStr)
+	{
+		if (c != '|' && c != '&')
+			text += c;
+	}
 
 	auto halign = (EHAlign)HAlign();
 

@@ -489,6 +489,9 @@ public:
 	void SetTextMargins(float newHMargin, float newVMargin);
 	void SetWordWrap(bool bNewWordWrap);
 
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void DrawWindow(UGC* gc) override;
+
 	uint8_t& HAlign() { return Value<uint8_t>(PropOffsets_TextWindow.HAlign); }
 	int& MaxLines() { return Value<int>(PropOffsets_TextWindow.MaxLines); }
 	float& MinWidth() { return Value<float>(PropOffsets_TextWindow.MinWidth); }
