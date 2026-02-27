@@ -449,7 +449,7 @@ void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, fl
 
 void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, int* BlendSlot)
 {
-	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
+	UObject::Cast<UActor>(Self)->PlayBlendAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, BlendSlot ? *BlendSlot : 0);
 	LogUnimplemented("Actor.PlayBlendAnim");
 }
 
