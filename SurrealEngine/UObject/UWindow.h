@@ -719,6 +719,9 @@ class UClipWindow : public UTabGroupWindow
 public:
 	using UTabGroupWindow::UTabGroupWindow;
 
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void ConfigurationChanged() override;
+
 	void EnableSnapToUnits(BitfieldBool* bNewSnapToUnits);
 	void ForceChildSize(BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight);
 	UObject* GetChild();
@@ -847,6 +850,7 @@ public:
 
 	void InitWindow() override;
 	void ConfigurationChanged() override;
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 
 	void AutoHideScrollbars(BitfieldBool* bHide);
 	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);

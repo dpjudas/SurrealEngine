@@ -1268,16 +1268,31 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 	EVDirection vdir = (EVDirection)vDirection();
 	bool wrap = bWrap();
 
-	// To do: use flexbox style layout algorithm to calculate preferred size based on children sizes
-	// vbox example:
-	preferredWidth = 0.0f;
-	preferredHeight = 0.0f;
-	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	// To do: implement more of this
+
+	if (orient == EOrientation::Horizontal)
 	{
-		float w = 0.0f, h = 0.0f;
-		cur->QueryPreferredSize(w, h);
-		preferredWidth = std::max(preferredWidth, w);
-		preferredHeight += h;
+		preferredWidth = 0.0f;
+		preferredHeight = 0.0f;
+		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			float w = 0.0f, h = 0.0f;
+			cur->QueryPreferredSize(w, h);
+			preferredHeight = std::max(preferredHeight, h);
+			preferredWidth += h;
+		}
+	}
+	else
+	{
+		preferredWidth = 0.0f;
+		preferredHeight = 0.0f;
+		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			float w = 0.0f, h = 0.0f;
+			cur->QueryPreferredSize(w, h);
+			preferredWidth = std::max(preferredWidth, w);
+			preferredHeight += h;
+		}
 	}
 }
 
@@ -1288,15 +1303,29 @@ void UTileWindow::ConfigurationChanged()
 	EVDirection vdir = (EVDirection)vDirection();
 	bool wrap = bWrap();
 
-	// To do: use flexbox style layout algorithm to set configuration for children
-	// vbox example:
-	float y = 0.0f;
-	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	// To do: implement more of this
+
+	if (orient == EOrientation::Horizontal)
 	{
-		float w = 0.0f, h = 0.0f;
-		cur->QueryPreferredSize(w, h);
-		cur->ConfigureChild(0.0f, y, w, h);
-		y += h;
+		float x = 0.0f;
+		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			float w = 0.0f, h = 0.0f;
+			cur->QueryPreferredSize(w, h);
+			cur->ConfigureChild(x, 0.0f, w, h);
+			x += w;
+		}
+	}
+	else
+	{
+		float y = 0.0f;
+		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		{
+			float w = 0.0f, h = 0.0f;
+			cur->QueryPreferredSize(w, h);
+			cur->ConfigureChild(0.0f, y, w, h);
+			y += h;
+		}
 	}
 
 	UWindow::ConfigurationChanged();
@@ -1695,6 +1724,18 @@ UObject* URadioBoxWindow::GetEnabledToggle()
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UClipWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	// To do: how does this work?
+	UTabGroupWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+}
+
+void UClipWindow::ConfigurationChanged()
+{
+	// To do: how does this work?
+	UTabGroupWindow::ConfigurationChanged();
+}
+
 void UClipWindow::EnableSnapToUnits(BitfieldBool* bNewSnapToUnits)
 {
 	LogUnimplemented("ClipWindow.EnableSnapToUnits");
@@ -1896,9 +1937,27 @@ void UScrollAreaWindow::ConfigurationChanged()
 {
 	// To do: position the scrollbars (is that scalemgr or scale?), the scroll buttons and clip window properly
 	// To do: how is the size of the clip window determined?
-	//ClipWindow()->ConfigureChild(0.0f, 0.0f, Width(), Height());
 
+	ClipWindow()->ConfigureChild(0.0f, 0.0f, Width(), Height());
 	UWindow::ConfigurationChanged();
+}
+
+void UScrollAreaWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	// To do: have to take the scrollbars into account
+
+	if (!bWidthSpecified && !bHeightSpecified)
+	{
+		ClipWindow()->QueryPreferredSize(preferredWidth, preferredHeight);
+	}
+	else if (!bWidthSpecified)
+	{
+		ClipWindow()->QueryPreferredWidth(preferredHeight);
+	}
+	else // if (!bHeightSpecified)
+	{
+		ClipWindow()->QueryPreferredHeight(preferredWidth);
+	}
 }
 
 void UScrollAreaWindow::AutoHideScrollbars(BitfieldBool* bHide)
