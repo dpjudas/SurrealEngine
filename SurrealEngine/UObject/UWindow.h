@@ -448,6 +448,9 @@ public:
 	void SetOrder(EOrder newOrder);
 	void SetOrientation(uint8_t newOrientation);
 
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void ConfigurationChanged() override;
+
 	BitfieldBool bEqualHeight() { return BoolValue(PropOffsets_TileWindow.bEqualHeight); }
 	BitfieldBool bEqualWidth() { return BoolValue(PropOffsets_TileWindow.bEqualWidth); }
 	BitfieldBool bFillParent() { return BoolValue(PropOffsets_TileWindow.bFillParent); }

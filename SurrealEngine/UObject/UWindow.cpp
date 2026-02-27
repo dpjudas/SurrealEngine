@@ -1261,6 +1261,28 @@ void UTileWindow::SetOrientation(uint8_t newOrientation)
 	orientation() = newOrientation;
 }
 
+void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	EOrientation orient = (EOrientation)orientation();
+	EHDirection hdir = (EHDirection)hDirection();
+	EVDirection vdir = (EVDirection)vDirection();
+	bool wrap = bWrap();
+
+	// To do: use flexbox style layout algorithm to calculate preferred size based on children sizes
+	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+}
+
+void UTileWindow::ConfigurationChanged()
+{
+	EOrientation orient = (EOrientation)orientation();
+	EHDirection hdir = (EHDirection)hDirection();
+	EVDirection vdir = (EVDirection)vDirection();
+	bool wrap = bWrap();
+
+	// To do: use flexbox style layout algorithm to set configuration for children
+	UWindow::ConfigurationChanged();
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UTextWindow::AppendText(const std::string& NewText)
