@@ -1727,6 +1727,118 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 	}
 }
 
+void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float tweenTime, int blendSlot)
+{
+	LogMessage("What blend slot:" + std::to_string(blendSlot));
+	// FIXME!!! PlayTurnHead makes this return an invalid channel because sometimes it sends a garbage int!!!
+	if (blendSlot < 0 || blendSlot > 3)
+	{
+		LogMessage("Invalid channel for PlayBlendAnim!");
+		return;
+	}
+	if (!Mesh())
+	{
+		LogMessage("No mesh for PlayBlendAnim");
+		return;
+	}
+
+	MeshAnimSeq* sequence = Mesh()->GetSequence(sequenceName);
+	if (!sequence)
+	{
+		LogMessage("Sequence not found for PlayBlendAnim");
+		return;
+	}
+
+	static BlendAnimChannel AnimSlots[4];
+	BlendAnimChannel& ch = AnimSlots[blendSlot];
+
+	ch.Sequence = sequence;
+	int numFrames = sequence->NumFrames;
+	float sequenceRate = sequence->Rate;
+
+	ch.AnimRate = (rate * sequenceRate) / numFrames;
+	ch.AnimProgressLimit = 1.0f - (1.0f / numFrames);
+
+	if (ch.AnimProgressLimit == 0.0f)  
+    {  
+        ch.BlendAlpha = 0.0f;  
+        ch.BlendRate = 0.0f;  
+  
+        if (tweenTime <= 0.0f)  
+            ch.TweenSpeed = 10.0f;  
+        else  
+            ch.TweenSpeed = 1.0f / tweenTime;  
+  
+        ch.FrameStep = -1.0f / numFrames;  
+        ch.AnimRate = 0.0f;  
+    }  
+    else if (tweenTime <= 0.0f)  
+    {  
+        if (tweenTime == -1.0f)  
+        {  
+            ch.FrameStep = -1.0f / numFrames;  
+  
+            if (ch.PreviousRate <= 0.0f)  
+            {  
+                if (ch.PreviousRate == 0.0f)  
+                    ch.TweenSpeed = 1.0f / (numFrames * 0.025f);  
+                else  
+                {  
+                    float actorSpeed = length(Velocity());  
+                    float dynamicSpeed = actorSpeed * std::abs(ch.PreviousRate);  
+                    ch.TweenSpeed = std::max(dynamicSpeed, ch.AnimRate * 0.5f);  
+                }  
+            }  
+            else  
+            {  
+                ch.TweenSpeed = ch.PreviousRate;  
+            }  
+        }  
+        else  
+        {  
+            ch.TweenSpeed = 0.0f;  
+            ch.FrameStep = 0.001f; 
+        }  
+    }  
+    else  
+    {  
+        ch.TweenSpeed = 1.0f / (numFrames * tweenTime);  
+        ch.FrameStep = -1.0f / numFrames;  
+    }  
+  
+    ch.InternalRate = (int)(ch.FrameStep * 10000.0f);  
+    ch.InternalAnimRate = (int)(ch.AnimRate * 10000.0f);  
+    ch.InternalTween = (int)(ch.TweenSpeed * 1000.0f);  
+    ch.InternalProgressLimit = (int)(ch.AnimProgressLimit * 10000.0f);  
+  
+    static int lastInternalRate[4] = {0};  
+    static int lastInternalAnimRate[4] = {0};  
+    static int lastInternalTween[4] = {0};  
+      
+    if (lastInternalRate[blendSlot] == ch.InternalRate &&  
+        lastInternalAnimRate[blendSlot] == ch.InternalAnimRate &&  
+        lastInternalTween[blendSlot] == ch.InternalTween)  
+    {  
+        ch.InternalProgressLimit += 1;  
+    }  
+  
+    lastInternalRate[blendSlot] = ch.InternalRate;  
+    lastInternalAnimRate[blendSlot] = ch.InternalAnimRate;  
+    lastInternalTween[blendSlot] = ch.InternalTween;  
+  
+    ch.PreviousRate = ch.AnimRate;  
+  
+    if (blendSlot == 0)  
+    {  
+        AnimSequence() = sequenceName;  
+        AnimRate() = ch.AnimRate;  
+        TweenRate() = ch.TweenSpeed;  
+        AnimFrame() = tweenTime > 0.0f ? -1.0f / numFrames : 0.0f;  
+        AnimLast() = ch.AnimProgressLimit;  
+    }  
+}
+
+
 void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate)
 {
 	if (Mesh())

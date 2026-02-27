@@ -221,6 +221,7 @@ public:
 	void FinishAnim();
 	NameString GetAnimGroup(const NameString& sequence);
 	void PlayAnim(const NameString& sequence, float rate, float tweenTime);
+	void PlayBlendAnim(const NameString& sequence, float rate, float tweenTime, int blendSlot);
 	void LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate);
 	void TweenAnim(const NameString& sequence, float tweenTime);
 
@@ -1802,3 +1803,22 @@ public:
 
 	UPawn*& Pawn() { return Value<UPawn*>(PropOffsets_UPakPawnPathNodeIterator.Pawn); }
 };
+
+
+struct BlendAnimChannel  
+{  
+    MeshAnimSeq* Sequence = nullptr;  
+    float AnimRate = 0.0f;  
+    float AnimProgressLimit = 0.0f;  
+    float BlendAlpha = 0.0f;  
+    float BlendRate = 0.0f;  
+    float TweenSpeed = 0.0f;  
+    float FrameStep = 0.0f;  
+    float PreviousRate = 0.0f;  
+      
+    // Valores internos (formato fijo)  
+    int InternalRate = 0;  
+    int InternalAnimRate = 0;  
+    int InternalTween = 0;  
+    int InternalProgressLimit = 0;  
+};  
