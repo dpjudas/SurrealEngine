@@ -99,14 +99,14 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	if (window->FirstDraw)
 	{
 		window->FirstDraw = false;
-		CallEvent(window, "WindowReady");
+		window->WindowReady();
 	}
 
 	offsetX += window->X();
 	offsetY += window->Y();
 
 	ResetWindowGC(window, offsetX, offsetY);
-	CallEvent(window, "DrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
+	window->DrawWindow(engine->dxgc);
 
 #if 0
 	float x0 = window->X() + offsetX;
@@ -125,7 +125,7 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	}
 
 	ResetWindowGC(window, offsetX, offsetY);
-	CallEvent(window, "PostDrawWindow", { ExpressionValue::ObjectValue(engine->dxgc) });
+	window->PostDrawWindow(engine->dxgc);
 }
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)

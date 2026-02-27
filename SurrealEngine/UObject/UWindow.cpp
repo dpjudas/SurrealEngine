@@ -2,7 +2,6 @@
 #include "Precomp.h"
 #include "UWindow.h"
 #include "Audio/AudioDevice.h"
-#include "UActor.h"
 #include "UObject/UClass.h"
 #include "UObject/UActor.h"
 #include "UObject/UTexture.h"
@@ -12,7 +11,6 @@
 #include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
-#include "USubsystem.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 
@@ -71,13 +69,7 @@ void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, 
 		float showY = areaY ? *areaY : Y();
 		float showWidth = areaWidth ? *areaWidth : Width();
 		float showHeight = areaHeight ? *areaHeight : Height();
-		CallEvent(parent, "ChildRequestedShowArea", {
-			ExpressionValue::ObjectValue(this),
-			ExpressionValue::FloatValue(showX),
-			ExpressionValue::FloatValue(showY),
-			ExpressionValue::FloatValue(showWidth),
-			ExpressionValue::FloatValue(showHeight)
-			});
+		parent->ChildRequestedShowArea(this, showX, showY, showWidth, showHeight);
 	}
 }
 
@@ -113,13 +105,13 @@ void UWindow::Destroy()
 {
 	UWindow* parent = parentOwner();
 	DetachFromParent();
-
 	if (parent)
 	{
-		CallEvent(parent, "ChildRemoved", { ExpressionValue::ObjectValue(this) });
+		parent->ChildRemoved(this);
 		for (UWindow* ancestor = parent->parentOwner(); ancestor; ancestor = ancestor->parentOwner())
-			CallEvent(ancestor, "DescendantRemoved", { ExpressionValue::ObjectValue(this) });
+			ancestor->DescendantRemoved(this);
 	}
+	DestroyWindow();
 }
 
 void UWindow::DetachFromParent()
@@ -412,7 +404,6 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 	bool show = !bShow || *bShow;
 	//LogMessage("Window.NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
 	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject(NewClass->Name.ToString(), UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
-	child->InitWindowNative();
 	child->parentOwner() = this;
 	child->prevSibling() = lastChild();
 	child->nextSibling() = nullptr;
@@ -424,10 +415,10 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 	lastChild() = child;
 	if (!firstChild())
 		firstChild() = child;
-	CallEvent(child, "InitWindow");
-	CallEvent(this, "ChildAdded", { ExpressionValue::ObjectValue(child) });
+	child->InitWindow();
+	ChildAdded(child);
 	for (UWindow* ancestor = parentOwner(); ancestor; ancestor = ancestor->parentOwner())
-		CallEvent(ancestor, "DescendantAdded", { ExpressionValue::ObjectValue(child) });
+		ancestor->DescendantAdded(child);
 	return child;
 }
 
@@ -697,12 +688,7 @@ void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 	}
 	else
 	{
-		CallEvent(this, "ParentRequestedPreferredSize", {
-			ExpressionValue::BoolValue(true),
-			ExpressionValue::Variable(&preferredWidth, engine->floatprop),
-			ExpressionValue::BoolValue(true),
-			ExpressionValue::Variable(&preferredHeight, engine->floatprop)
-			});
+		ParentRequestedPreferredSize(true, preferredWidth, true, preferredHeight);
 	}
 	lastQueryWidth() = preferredWidth;
 	lastQueryHeight() = preferredHeight;
@@ -717,12 +703,7 @@ float UWindow::QueryPreferredWidth(float queryHeight)
 	else
 	{
 		float width = 0.0f;
-		CallEvent(this, "ParentRequestedPreferredSize", {
-			ExpressionValue::BoolValue(false),
-			ExpressionValue::Variable(&width, engine->floatprop),
-			ExpressionValue::BoolValue(true),
-			ExpressionValue::Variable(&queryHeight, engine->floatprop)
-			});
+		ParentRequestedPreferredSize(false, width, true, queryHeight);
 		lastQueryWidth() = width;
 		return width;
 	}
@@ -737,12 +718,7 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 	else
 	{
 		float height = 0.0f;
-		CallEvent(this, "ParentRequestedPreferredSize", {
-			ExpressionValue::BoolValue(true),
-			ExpressionValue::Variable(&queryWidth, engine->floatprop),
-			ExpressionValue::BoolValue(false),
-			ExpressionValue::Variable(&height, engine->floatprop)
-			});
+		ParentRequestedPreferredSize(true, queryWidth, false, height);
 		lastQueryHeight() = height;
 		return height;
 	}
@@ -753,7 +729,7 @@ void UWindow::AskParentForReconfigure()
 	UWindow* parent = parentOwner();
 	if (parent)
 	{
-		CallEvent(parent, "ChildRequestedReconfiguration", { ExpressionValue::ObjectValue(this) });
+		parent->ChildRequestedReconfiguration(this);
 	}
 }
 
@@ -771,8 +747,7 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHe
 	Y() = newY;
 	Width() = newWidth;
 	Height() = NewHeight;
-	NativeConfigurationChanged();
-	CallEvent(this, "ConfigurationChanged");
+	ConfigurationChanged();
 }
 
 void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMargin0, float* newVMargin0, float* newHMargin1, float* newVMargin1)
@@ -787,6 +762,300 @@ void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMar
 		hMargin1() = *newHMargin1;
 	if (newVMargin1)
 		vMargin1() = *newVMargin1;
+}
+
+void UWindow::InitWindow()
+{
+	CallEvent(this, "InitWindow");
+}
+
+void UWindow::DestroyWindow()
+{
+	CallEvent(this, "DestroyWindow");
+}
+
+void UWindow::WindowReady()
+{
+	CallEvent(this, "WindowReady");
+}
+
+void UWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	CallEvent(this, "ParentRequestedPreferredSize", {
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&preferredWidth, engine->floatprop),
+		ExpressionValue::BoolValue(true),
+		ExpressionValue::Variable(&preferredHeight, engine->floatprop)
+		});
+}
+
+void UWindow::ParentRequestedGranularity(float& hGranularity, float& vGranularity)
+{
+	CallEvent(this, "ParentRequestedGranularity", {
+		ExpressionValue::Variable(&hGranularity, engine->floatprop),
+		ExpressionValue::Variable(&vGranularity, engine->floatprop)
+		});
+}
+
+void UWindow::ChildRequestedVisibilityChange(UWindow* childWin, bool bNewVisibility)
+{
+	CallEvent(this, "ChildRequestedVisibilityChange", {
+		ExpressionValue::ObjectValue(childWin),
+		ExpressionValue::BoolValue(bNewVisibility)
+		});
+}
+
+bool UWindow::ChildRequestedReconfiguration(UWindow* childWin)
+{
+	return CallEvent(this, "ChildRequestedReconfiguration", { ExpressionValue::ObjectValue(childWin) }).ToBool();
+}
+
+void UWindow::ChildRequestedShowArea(UWindow* child, float showX, float showY, float showWidth, float showHeight)
+{
+	CallEvent(this, "ChildRequestedShowArea", {
+		ExpressionValue::ObjectValue(child),
+		ExpressionValue::FloatValue(showX),
+		ExpressionValue::FloatValue(showY),
+		ExpressionValue::FloatValue(showWidth),
+		ExpressionValue::FloatValue(showHeight)
+		});
+}
+
+void UWindow::ConfigurationChanged()
+{
+	CallEvent(this, "ConfigurationChanged");
+}
+
+void UWindow::VisibilityChanged(bool bNewVisibility)
+{
+	CallEvent(this, "VisibilityChanged", { ExpressionValue::BoolValue(bNewVisibility) });
+}
+
+void UWindow::SensitivityChanged(bool bNewSensitivity)
+{
+	CallEvent(this, "SensitivityChanged", { ExpressionValue::BoolValue(bNewSensitivity) });
+}
+
+void UWindow::MouseMoved(float newX, float newY)
+{
+	CallEvent(this, "MouseMoved", {
+		ExpressionValue::FloatValue(newX),
+		ExpressionValue::FloatValue(newY)
+		});
+}
+
+bool UWindow::RawMouseButtonPressed(float pointX, float pointY, EInputKey button, EInputType iState)
+{
+	return CallEvent(this, "RawMouseButtonPressed", {
+		ExpressionValue::FloatValue(pointX),
+		ExpressionValue::FloatValue(pointY),
+		ExpressionValue::ByteValue(button),
+		ExpressionValue::ByteValue(iState)
+		}).ToBool();
+}
+
+bool UWindow::RawKeyPressed(EInputKey key, EInputType iState, bool bRepeat)
+{
+	return CallEvent(this, "RawKeyPressed", {
+		ExpressionValue::ByteValue(key),
+		ExpressionValue::ByteValue(iState),
+		ExpressionValue::BoolValue(bRepeat)
+		}).ToBool();
+}
+
+bool UWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	return CallEvent(this, "MouseButtonPressed", {
+		ExpressionValue::FloatValue(pointX),
+		ExpressionValue::FloatValue(pointY),
+		ExpressionValue::ByteValue(button),
+		ExpressionValue::IntValue(numClicks)
+		}).ToBool();
+}
+
+bool UWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	return CallEvent(this, "MouseButtonReleased", {
+		ExpressionValue::FloatValue(pointX),
+		ExpressionValue::FloatValue(pointY),
+		ExpressionValue::ByteValue(button),
+		ExpressionValue::IntValue(numClicks)
+		}).ToBool();
+}
+
+bool UWindow::KeyPressed(std::string key)
+{
+	return CallEvent(this, "KeyPressed", { ExpressionValue::StringValue(key) }).ToBool();
+}
+
+bool UWindow::AcceleratorKeyPressed(std::string key)
+{
+	return CallEvent(this, "AcceleratorKeyPressed", { ExpressionValue::StringValue(key) }).ToBool();
+}
+
+bool UWindow::VirtualKeyPressed(EInputKey key, bool bRepeat)
+{
+	return CallEvent(this, "VirtualKeyPressed", {
+		ExpressionValue::ByteValue(key),
+		ExpressionValue::BoolValue(bRepeat)
+		}).ToBool();
+}
+
+void UWindow::MouseEnteredWindow()
+{
+	CallEvent(this, "MouseEnteredWindow");
+}
+
+void UWindow::MouseLeftWindow()
+{
+	CallEvent(this, "MouseLeftWindow");
+}
+
+void UWindow::FocusEnteredWindow()
+{
+	CallEvent(this, "FocusEnteredWindow");
+}
+
+void UWindow::FocusLeftWindow()
+{
+	CallEvent(this, "FocusLeftWindow");
+}
+
+void UWindow::FocusEnteredDescendant(UWindow* enterWindow)
+{
+	CallEvent(this, "FocusEnteredDescendant", { ExpressionValue::ObjectValue(enterWindow) });
+}
+
+void UWindow::FocusLeftDescendant(UWindow* leaveWindow)
+{
+	CallEvent(this, "FocusLeftDescendant", { ExpressionValue::ObjectValue(leaveWindow) });
+}
+
+bool UWindow::ButtonActivated(UWindow* button)
+{
+	return CallEvent(this, "ButtonActivated", { ExpressionValue::ObjectValue(button) }).ToBool();
+}
+
+bool UWindow::ToggleChanged(UWindow* button, bool bNewToggle)
+{
+	return CallEvent(this, "ToggleChanged", {
+		ExpressionValue::ObjectValue(button),
+		ExpressionValue::BoolValue(bNewToggle)
+		}).ToBool();
+}
+
+bool UWindow::BoxOptionSelected(UWindow* box, int buttonNumber)
+{
+	return CallEvent(this, "BoxOptionSelected", {
+		ExpressionValue::ObjectValue(box),
+		ExpressionValue::IntValue(buttonNumber)
+		}).ToBool();
+}
+
+bool UWindow::ScalePositionChanged(UWindow* scale, int newTickPosition, float newValue, bool bFinal)
+{
+	return CallEvent(this, "ScalePositionChanged", {
+		ExpressionValue::ObjectValue(scale),
+		ExpressionValue::IntValue(newTickPosition),
+		ExpressionValue::FloatValue(newValue),
+		ExpressionValue::BoolValue(bFinal)
+		}).ToBool();
+}
+
+bool UWindow::ScaleRangeChanged(UWindow* scale, int fromTick, int toTick, float fromValue, float toValue, bool bFinal)
+{
+	return CallEvent(this, "ScaleRangeChanged", {
+		ExpressionValue::ObjectValue(scale),
+		ExpressionValue::IntValue(fromTick),
+		ExpressionValue::IntValue(toTick),
+		ExpressionValue::FloatValue(fromValue),
+		ExpressionValue::FloatValue(toValue),
+		ExpressionValue::BoolValue(bFinal)
+		}).ToBool();
+}
+
+bool UWindow::ScaleAttributesChanged(UWindow* scale, int tickPosition, int tickSpan, int numTicks)
+{
+	return CallEvent(this, "ScaleRangeChanged", {
+		ExpressionValue::ObjectValue(scale),
+		ExpressionValue::IntValue(tickPosition),
+		ExpressionValue::IntValue(tickSpan),
+		ExpressionValue::IntValue(numTicks)
+		}).ToBool();
+}
+
+bool UWindow::ClipAttributesChanged(UWindow* scale, int newClipWidth, int newClipHeight, int newChildWidth, int newChildHeight)
+{
+	return CallEvent(this, "ClipAttributesChanged", {
+		ExpressionValue::ObjectValue(scale),
+		ExpressionValue::IntValue(newClipWidth),
+		ExpressionValue::IntValue(newClipHeight),
+		ExpressionValue::IntValue(newChildWidth),
+		ExpressionValue::IntValue(newChildHeight)
+		}).ToBool();
+}
+
+bool UWindow::ListRowActivated(UWindow* list, int rowId)
+{
+	return CallEvent(this, "ListRowActivated", {
+		ExpressionValue::ObjectValue(list),
+		ExpressionValue::IntValue(rowId)
+		}).ToBool();
+}
+
+bool UWindow::ListSelectionChanged(UWindow* list, int numSelections, int focusRowId)
+{
+	return CallEvent(this, "ListSelectionChanged", {
+		ExpressionValue::ObjectValue(list),
+		ExpressionValue::IntValue(numSelections),
+		ExpressionValue::IntValue(focusRowId)
+		}).ToBool();
+}
+
+bool UWindow::TextChanged(UWindow* edit, bool bModified)
+{
+	return CallEvent(this, "TextChanged", {
+		ExpressionValue::ObjectValue(edit),
+		ExpressionValue::BoolValue(bModified)
+		}).ToBool();
+}
+
+bool UWindow::EditActivated(UWindow* edit, bool bModified)
+{
+	return CallEvent(this, "EditActivated", {
+		ExpressionValue::ObjectValue(edit),
+		ExpressionValue::BoolValue(bModified)
+		}).ToBool();
+}
+
+void UWindow::DrawWindow(UGC* gc)
+{
+	CallEvent(this, "DrawWindow", { ExpressionValue::ObjectValue(gc) });
+}
+
+void UWindow::PostDrawWindow(UGC* gc)
+{
+	CallEvent(this, "PostDrawWindow", { ExpressionValue::ObjectValue(gc) });
+}
+
+void UWindow::ChildAdded(UWindow* child)
+{
+	CallEvent(this, "ChildAdded", { ExpressionValue::ObjectValue(child) });
+}
+
+void UWindow::ChildRemoved(UWindow* child)
+{
+	CallEvent(this, "ChildRemoved", { ExpressionValue::ObjectValue(child) });
+}
+
+void UWindow::DescendantAdded(UWindow* descendant)
+{
+	CallEvent(this, "DescendantAdded", { ExpressionValue::ObjectValue(descendant) });
+}
+
+void UWindow::DescendantRemoved(UWindow* descendant)
+{
+	CallEvent(this, "DescendantRemoved", { ExpressionValue::ObjectValue(descendant) });
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1557,7 +1826,7 @@ void URootWindow::StretchRawBackground(BitfieldBool* bStretch)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UScrollAreaWindow::InitWindowNative()
+void UScrollAreaWindow::InitWindow()
 {
 	ClipWindow() = UObject::Cast<UClipWindow>(NewChild(engine->packages->FindClass("Extension.ClipWindow"), nullptr));
 	hScale() = UObject::Cast<UScaleWindow>(NewChild(engine->packages->FindClass("Extension.ScaleWindow"), nullptr));
@@ -1578,13 +1847,17 @@ void UScrollAreaWindow::InitWindowNative()
 	LeftButton()->bIsVisible() = false;
 	RightButton()->bIsVisible() = false;
 	UpButton()->bIsVisible() = false;
+
+	UWindow::InitWindow();
 }
 
-void UScrollAreaWindow::NativeConfigurationChanged()
+void UScrollAreaWindow::ConfigurationChanged()
 {
 	// To do: position the scrollbars (is that scalemgr or scale?), the scroll buttons and clip window properly
 	// To do: how is the size of the clip window determined?
 	//ClipWindow()->ConfigureChild(0.0f, 0.0f, Width(), Height());
+
+	UWindow::ConfigurationChanged();
 }
 
 void UScrollAreaWindow::AutoHideScrollbars(BitfieldBool* bHide)

@@ -11,6 +11,8 @@ class UPlayerPawnExt;
 class UScaleWindow;
 class UScaleManagerWindow;
 class UActor;
+enum EInputKey;
+enum EInputType;
 
 enum class EFlagType : uint8_t
 {
@@ -263,8 +265,49 @@ public:
 
 	void DetachFromParent();
 
-	virtual void InitWindowNative() {}
-	virtual void NativeConfigurationChanged() {}
+	// Events (sent to unrealscript, can be overriden by native windows)
+	virtual void InitWindow();
+	virtual void DestroyWindow();
+	virtual void WindowReady();
+	virtual void ParentRequestedPreferredSize(bool bWidthSpecified, float &preferredWidth, bool bHeightSpecified, float &preferredHeight);
+	virtual void ParentRequestedGranularity(float& hGranularity, float& vGranularity);
+	virtual void ChildRequestedVisibilityChange(UWindow* childWin, bool bNewVisibility);
+	virtual bool ChildRequestedReconfiguration(UWindow* childWin);
+	virtual void ChildRequestedShowArea(UWindow* child, float showX, float showY, float showWidth, float showHeight);
+	virtual void ConfigurationChanged();
+	virtual void VisibilityChanged(bool bNewVisibility);
+	virtual void SensitivityChanged(bool bNewSensitivity);
+	virtual void MouseMoved(float newX, float newY);
+	virtual bool RawMouseButtonPressed(float pointX, float pointY, EInputKey button, EInputType iState);
+	virtual bool RawKeyPressed(EInputKey key, EInputType iState, bool bRepeat);
+	virtual bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks);
+	virtual bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks);
+	virtual bool KeyPressed(std::string key);
+	virtual bool AcceleratorKeyPressed(std::string key);
+	virtual bool VirtualKeyPressed(EInputKey key, bool bRepeat);
+	virtual void MouseEnteredWindow();
+	virtual void MouseLeftWindow();
+	virtual void FocusEnteredWindow();
+	virtual void FocusLeftWindow();
+	virtual void FocusEnteredDescendant(UWindow* enterWindow);
+	virtual void FocusLeftDescendant(UWindow* leaveWindow);
+	virtual bool ButtonActivated(UWindow* button);
+	virtual bool ToggleChanged(UWindow* button, bool bNewToggle);
+	virtual bool BoxOptionSelected(UWindow* box, int buttonNumber);
+	virtual bool ScalePositionChanged(UWindow* scale, int newTickPosition, float newValue, bool bFinal);
+	virtual bool ScaleRangeChanged(UWindow* scale, int fromTick, int toTick, float fromValue, float toValue, bool bFinal);
+	virtual bool ScaleAttributesChanged(UWindow* scale, int tickPosition, int tickSpan, int numTicks);
+	virtual bool ClipAttributesChanged(UWindow* scale, int newClipWidth, int newClipHeight, int newChildWidth, int newChildHeight);
+	virtual bool ListRowActivated(UWindow* list, int rowId);
+	virtual bool ListSelectionChanged(UWindow* list, int numSelections, int focusRowId);
+	virtual bool TextChanged(UWindow* edit, bool bModified);
+	virtual bool EditActivated(UWindow* edit, bool bModified);
+	virtual void DrawWindow(UGC* gc);
+	virtual void PostDrawWindow(UGC* gc);
+	virtual void ChildAdded(UWindow* child);
+	virtual void ChildRemoved(UWindow* child);
+	virtual void DescendantAdded(UWindow* descendant);
+	virtual void DescendantRemoved(UWindow* descendant);
 
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
 	float& Height() { return Value<float>(PropOffsets_Window.Height); }
@@ -799,8 +842,8 @@ class UScrollAreaWindow : public UWindow
 public:
 	using UWindow::UWindow;
 
-	void InitWindowNative() override;
-	void NativeConfigurationChanged() override;
+	void InitWindow() override;
+	void ConfigurationChanged() override;
 
 	void AutoHideScrollbars(BitfieldBool* bHide);
 	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);

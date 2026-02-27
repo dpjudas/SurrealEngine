@@ -3468,10 +3468,10 @@ void UPlayerPawnExt::InitRootWindow()
 	if (cls)
 	{
 		engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
-		RootWindow() = engine->dxRootWindow; // To do: do we need engine->dxRootWindow at all?
+		RootWindow() = engine->dxRootWindow;
 		engine->dxRootWindow->parentPawn() = this;
 		engine->dxRootWindow->bIsVisible() = true;
-		CallEvent(engine->dxRootWindow, "InitWindow");
+		engine->dxRootWindow->InitWindow();
 	}
 }
 
