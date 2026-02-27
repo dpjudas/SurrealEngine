@@ -1269,7 +1269,16 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 	bool wrap = bWrap();
 
 	// To do: use flexbox style layout algorithm to calculate preferred size based on children sizes
-	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+	// vbox example:
+	preferredWidth = 0.0f;
+	preferredHeight = 0.0f;
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		float w = 0.0f, h = 0.0f;
+		cur->QueryPreferredSize(w, h);
+		preferredWidth = std::max(preferredWidth, w);
+		preferredHeight += h;
+	}
 }
 
 void UTileWindow::ConfigurationChanged()
@@ -1280,6 +1289,16 @@ void UTileWindow::ConfigurationChanged()
 	bool wrap = bWrap();
 
 	// To do: use flexbox style layout algorithm to set configuration for children
+	// vbox example:
+	float y = 0.0f;
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		float w = 0.0f, h = 0.0f;
+		cur->QueryPreferredSize(w, h);
+		cur->ConfigureChild(0.0f, y, w, h);
+		y += h;
+	}
+
 	UWindow::ConfigurationChanged();
 }
 
