@@ -1729,7 +1729,6 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 
 void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float tweenTime, int blendSlot)
 {
-	LogMessage("What blend slot:" + std::to_string(blendSlot));
 	// FIXME!!! PlayTurnHead makes this return an invalid channel because sometimes it sends a garbage int!!!
 	if (blendSlot < 0 || blendSlot > 3)
 	{
