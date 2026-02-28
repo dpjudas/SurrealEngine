@@ -71,7 +71,7 @@ void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, 
 
 std::string UWindow::CarriageReturn()
 {
-	return "\n"; // Can't be doing this, can it?
+	return "\r\n"; // Can't be doing this, can it?
 }
 
 void UWindow::ChangeStyle()
@@ -3521,7 +3521,29 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float lineHeight = 0.0f;
 	for (size_t pos = 0; pos < textBlocks.size(); pos++)
 	{
-		if (textBlocks[pos].front() == '\n')
+		if (textBlocks[pos] == "\r")
+        {
+            if (pos != lineBegin)
+            {
+                float centerX = 0;
+                if (halign == EHAlign::Center || halign == EHAlign::Full)
+                    centerX = std::round((destWidth - lineWidth) * 0.5f);
+                else if (halign == EHAlign::Right)
+                    centerX = destWidth - lineWidth;
+
+                if (!noDraw)
+                    DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
+
+                totalHeight += lineHeight;
+                totalWidth = std::max(totalWidth, lineWidth);
+            }
+
+            curX = 0;
+            lineBegin = pos + 1;
+            lineWidth = 0.0f;
+            lineHeight = 0.0f;
+        }
+		else if (textBlocks[pos].front() == '\n')
 		{
 			if (pos != lineBegin)
 			{
@@ -3625,7 +3647,12 @@ Array<std::string> UGC::FindTextBlocks(const std::string& text)
 	size_t pos = 0;
 	while (pos < text.size())
 	{
-		if (text[pos] == '\n')
+		if (text[pos] == '\r')
+        {
+            textBlocks.push_back("\r"); 
+            pos++;
+        }
+		else if (text[pos] == '\n')
 		{
 			textBlocks.push_back("\n");
 			pos++;
