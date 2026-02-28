@@ -3499,7 +3499,9 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	if (!bWordWrap())
 		destWidth = 100000.0f;
 
+
 	// Remove the | and & escapes for now
+	/*
 	std::string text;
 	text.reserve(textStr.size());
 	for (char c : textStr)
@@ -3507,6 +3509,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 		if (c != '|' && c != '&')
 			text += c;
 	}
+	*/
 
 	auto halign = (EHAlign)HAlign();
 
@@ -3515,35 +3518,14 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float curX = 0.0f;
 	float curY = 0.0f;
 
-	Array<std::string> textBlocks = FindTextBlocks(text);
+	Array<TextBlock> textBlocks = FindTextBlocks(textStr);
 	size_t lineBegin = 0;
 	float lineWidth = 0.0f;
 	float lineHeight = 0.0f;
+
 	for (size_t pos = 0; pos < textBlocks.size(); pos++)
 	{
-		if (textBlocks[pos] == "\r")
-        {
-            if (pos != lineBegin)
-            {
-                float centerX = 0;
-                if (halign == EHAlign::Center || halign == EHAlign::Full)
-                    centerX = std::round((destWidth - lineWidth) * 0.5f);
-                else if (halign == EHAlign::Right)
-                    centerX = destWidth - lineWidth;
-
-                if (!noDraw)
-                    DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
-
-                totalHeight += lineHeight;
-                totalWidth = std::max(totalWidth, lineWidth);
-            }
-
-            curX = 0;
-            lineBegin = pos + 1;
-            lineWidth = 0.0f;
-            lineHeight = 0.0f;
-        }
-		else if (textBlocks[pos].front() == '\n')
+		if (textBlocks[pos].text.front() == '\n')
 		{
 			if (pos != lineBegin)
 			{
@@ -3568,7 +3550,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 		}
 		else
 		{
-			vec2 blockSize = GetTextSize(font, textBlocks[pos]);
+			vec2 blockSize = GetTextSize(font, textBlocks[pos].text);
 			if (lineWidth + blockSize.x > destWidth)
 			{
 				float centerX = 0;
@@ -3585,7 +3567,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 				totalHeight += lineHeight;
 				totalWidth = std::max(totalWidth, lineWidth);
 
-				if (textBlocks[pos].front() == ' ')
+				if (textBlocks[pos].text.front() == ' ')
 				{
 					// Ignore whitespace at the beginning of a word wrapped line
 					lineBegin = pos + 1;
@@ -3640,44 +3622,83 @@ vec2 UGC::GetTextSize(UFont* font, const std::string& text)
 	return { x, y };
 }
 
-Array<std::string> UGC::FindTextBlocks(const std::string& text)
+Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 {
 	// Split text into words, whitespace or newline
-	Array<std::string> textBlocks;
+	Array<TextBlock> textBlocks;
 	size_t pos = 0;
+
 	while (pos < text.size())
 	{
 		if (text[pos] == '\r')
         {
-            textBlocks.push_back("\r"); 
+            textBlocks.push_back({"\r", Color{255,255,255, 255}, 0});
             pos++;
         }
-		else if (text[pos] == '\n')
+		if (text[pos] == '\n')
 		{
-			textBlocks.push_back("\n");
+			textBlocks.push_back({"\n", Color{255,255,255, 255}, 0});
 			pos++;
 		}
 		else if (text[pos] == ' ')
 		{
+			// Arbitrary-length whitespace
 			size_t end = std::min(text.find_first_not_of(' ', pos + 1), text.size());
-			textBlocks.push_back(text.substr(pos, end - pos));
+
+			std::string whitespaceText = text.substr(pos, end - pos);
+
+			textBlocks.push_back({whitespaceText, Color{255, 255, 255, 255}, 0});
 			pos = end;
 		}
 		else
 		{
 			size_t end = std::min(text.find_first_of(" \n", pos + 1), text.size());
-			textBlocks.push_back(text.substr(pos, end - pos));
+
+			std::string foundText = text.substr(pos, end - pos);
+			Color textColor = {255, 255, 255, 255};
+			size_t accelPos = 0;
+
+			if (foundText.starts_with("|p"))
+			{
+				try
+				{
+					int pColorIdx = std::stoi(foundText.substr(2, 1));
+					textColor = s_PColors[pColorIdx];
+					foundText = foundText.substr(3); // Strip |p and num out
+				}
+				catch (...)
+				{
+					foundText = foundText.substr(2); // Strip |p out
+				}
+			}
+
+			auto accelFind = foundText.find("|&");
+
+			if (accelFind != std::string::npos)
+			{
+				accelPos = accelFind;
+				foundText = foundText.erase(accelFind, 2);
+			}
+
+			TextBlock block = {
+				.text = foundText,
+				.textColor = textColor,
+				.accelPos = accelPos
+			};
+
+			textBlocks.push_back(block);
 			pos = end;
 		}
 	}
+
 	return textBlocks;
 }
 
-void UGC::DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clip, const Color& color, uint32_t polyflags)
+void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clip, const Color& color, uint32_t polyflags)
 {
 	for (size_t i = start; i < end; i++)
 	{
-		for (char c : textBlocks[i])
+		for (char c : textBlocks[i].text)
 		{
 			FontGlyph glyph = font->GetGlyph(c);
 
@@ -3698,7 +3719,7 @@ void UGC::DrawTextBlockRange(float x, float y, const Array<std::string>& textBlo
 			Rectf dest = Rectf::xywh(x, y, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
 
-			DrawTile(glyph.Texture, ScaleRect(dest), src, ScaleRect(clip), color, polyflags);
+			DrawTile(glyph.Texture, ScaleRect(dest), src, ScaleRect(clip), textBlocks[i].textColor, polyflags);
 
 			x += (float)glyph.USize;
 		}
