@@ -489,6 +489,7 @@ public:
 	void SetTextMargins(float newHMargin, float newVMargin);
 	void SetWordWrap(bool bNewWordWrap);
 
+	void InitWindow() override;
 	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 	void DrawWindow(UGC* gc) override;
 
@@ -712,6 +713,9 @@ public:
 	using UTabGroupWindow::UTabGroupWindow;
 
 	UObject* GetEnabledToggle();
+
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void ConfigurationChanged() override;
 
 	BitfieldBool bOneCheck() { return BoolValue(PropOffsets_RadioBoxWindow.bOneCheck); }
 	UToggleWindow*& currentSelection() { return Value<UToggleWindow*>(PropOffsets_RadioBoxWindow.currentSelection); }

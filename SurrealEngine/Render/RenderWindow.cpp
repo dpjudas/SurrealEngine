@@ -9,16 +9,8 @@
 
 void RenderSubsystem::PreRenderWindows(UCanvas* canvas)
 {
-	// What needs to be done here?
-}
-
-void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
-{
 	if (!engine->dxRootWindow)
 		return;
-
-	Device->SetSceneNode(&Canvas.Frame);
-	Device->ClearZ();
 
 	// Rescale UI with the assumption it was originally designed for 800x600
 	float virtualHeight = 600.0f;
@@ -29,12 +21,22 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 	{
 		engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
 	}
+}
+
+void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
+{
+	if (!engine->dxRootWindow)
+		return;
+
+	Device->SetSceneNode(&Canvas.Frame);
+	Device->ClearZ();
 
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
-	UFont* font = engine->canvas->SmallFont();
+	/*
 	float curY = 100.0f;
-	DrawWindowInfo(font, engine->dxRootWindow, 0, curY);
+	DrawWindowInfo(engine->canvas->SmallFont(), engine->dxRootWindow, 0, curY);
+	*/
 }
 
 void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offsetY)
@@ -42,7 +44,7 @@ void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offset
 	engine->dxgc->EnableDrawing(true);
 	engine->dxgc->EnableMasking(false);
 	engine->dxgc->EnableModulation(false);
-	engine->dxgc->EnableSmoothing(window->bSmoothBackground());
+	engine->dxgc->EnableSmoothing(true);
 	engine->dxgc->EnableSpecialText(window->bSpecialText());
 	engine->dxgc->EnableTranslucency(true);
 	engine->dxgc->EnableTranslucentText(window->bTextTranslucent());
@@ -50,7 +52,6 @@ void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offset
 	engine->dxgc->SetBaselineData(&window->BaselineOffset, &window->UnderlineHeight);
 	engine->dxgc->SetFonts(window->normalFont(), window->boldFont());
 	engine->dxgc->SetHorizontalAlignment((uint8_t)EHAlign::Left);
-	engine->dxgc->SetStyle(window->backgroundStyle());
 	engine->dxgc->SetTextColor(window->TextColor());
 	engine->dxgc->SetTextVSpacing(window->textVSpacing());
 	engine->dxgc->SetTileColor(window->tileColor());
