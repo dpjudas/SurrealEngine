@@ -1630,6 +1630,7 @@ void UTextLogWindow::PauseLog(bool bNewPauseState)
 
 void UTextLogWindow::SetTextTimeout(float newTimeout)
 {
+	textTimeout() = newTimeout;
 	LogUnimplemented("TextLogWindow.SetTextTimeout");
 }
 
