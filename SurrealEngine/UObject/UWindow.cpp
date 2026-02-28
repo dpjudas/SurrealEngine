@@ -3499,7 +3499,9 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	if (!bWordWrap())
 		destWidth = 100000.0f;
 
+
 	// Remove the | and & escapes for now
+	/*
 	std::string text;
 	text.reserve(textStr.size());
 	for (char c : textStr)
@@ -3507,6 +3509,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 		if (c != '|' && c != '&')
 			text += c;
 	}
+	*/
 
 	auto halign = (EHAlign)HAlign();
 
@@ -3515,7 +3518,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float curX = 0.0f;
 	float curY = 0.0f;
 
-	Array<std::string> textBlocks = FindTextBlocks(text);
+	Array<TextBlock> textBlocks = FindTextBlocks(textStr);
 	size_t lineBegin = 0;
 	float lineWidth = 0.0f;
 	float lineHeight = 0.0f;
@@ -3544,6 +3547,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
             lineHeight = 0.0f;
         }
 		else if (textBlocks[pos].front() == '\n')
+		if (textBlocks[pos].text.front() == '\n')
 		{
 			if (pos != lineBegin)
 			{
@@ -3649,7 +3653,7 @@ Array<std::string> UGC::FindTextBlocks(const std::string& text)
 	{
 		if (text[pos] == '\r')
         {
-            textBlocks.push_back("\r"); 
+            textBlocks.push_back("\r");
             pos++;
         }
 		else if (text[pos] == '\n')

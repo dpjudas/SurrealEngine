@@ -162,6 +162,29 @@ struct ClipRect
 	float clipWidth, clipHeight;
 };
 
+// Represents a drawable text portion
+struct TextBlock
+{
+	std::string text; // Text stripped of any control codes
+	Color textColor;  // Text color extracted from a |p or |c control code
+	size_t accelPos;  // Accelerator position acquired from the |& control code
+};
+
+// Hardcoded |p colors
+// Perhaps corresponding to CSS color names?
+// TODO: Figure out the rest
+static Color s_PColors[] = {
+	Color{  0,   0,   0, 255}, // p0 = ???
+	Color{255, 255, 255, 255}, // p1 = ??? (White maybe?)
+	Color{255, 255, 255, 255}, // p2 = ???
+	Color{255, 255, 255, 255}, // p3 = ???
+	Color{255, 255,   0, 255}, // p4 = Yellow
+	Color{  0,   0, 139, 255}, // p5 = Dark Blue
+	Color{255, 255, 255, 255}, // p6 = ???
+	Color{  0, 255, 255, 255}  // p7 = Cyan
+	// Are there more colors???
+};
+
 class UExtensionObject : public UObject
 {
 public:
@@ -1367,8 +1390,8 @@ public:
 	uint32_t EffectiveTextPolyFlags();
 	void DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rectf& clipBox, const Color& c, uint32_t flags);
 	Sizef DrawText(UFont* font, float x, float y, float destWidth, const std::string& text, const Rectf& clipBox, const Color& c, uint32_t polyflags, bool noDraw = false);
-	Array<std::string> FindTextBlocks(const std::string& text);
-	void DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clipBox, const Color& color, uint32_t polyflags);
+	Array<TextBlock> FindTextBlocks(const std::string& text);
+	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clipBox, const Color& color, uint32_t polyflags);
 	vec2 GetTextSize(UFont* font, const std::string& text);
 
 	bool SpecialTextEnabled = false;
