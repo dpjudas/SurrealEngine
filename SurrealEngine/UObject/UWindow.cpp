@@ -248,10 +248,43 @@ void UWindow::EnableWindow(BitfieldBool* bEnable)
 
 UWindow* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float& relativeY)
 {
-	relativeX = pointX;
-	relativeY = pointY;
-	LogUnimplemented("Window.FindWindow");
-	return nullptr;
+	// Convert to global coordinates and find root:
+	float x = pointX;
+	float y = pointY;
+	UWindow* cur = this;
+	while (cur->parentOwner())
+	{
+		x += cur->UsedX;
+		y += cur->UsedY;
+		cur = cur->parentOwner();
+	}
+
+	// Search the tree
+	while (true)
+	{
+		UWindow* foundChild = nullptr;
+		for (UWindow* child = cur->lastChild(); child; child = child->prevSibling())
+		{
+			if (child->bIsVisible() &&
+				child->UsedX <= x &&
+				child->UsedY <= y &&
+				child->UsedX + child->Width() > x &&
+				child->UsedY + child->Height() > y)
+			{
+				foundChild = child;
+				break;
+			}
+		}
+		if (!foundChild)
+			break;
+		cur = foundChild;
+		x -= cur->UsedX;
+		y -= cur->UsedY;
+	}
+
+	relativeX = x;
+	relativeY = y;
+	return cur;
 }
 
 UObject* UWindow::GetBottomChild(BitfieldBool* bVisibleOnly)
@@ -2209,8 +2242,9 @@ void URootWindow::PostDrawWindow(UGC* gc)
 	UModalWindow::PostDrawWindow(gc);
 	if (IsCursorVisible())
 	{
+		// To do: how is current cursor picked?
 		float relativeX = 0.0f, relativeY = 0.0f;
-		if (UWindow* focus = GetCursorFocus(relativeX, relativeY))
+		if (UWindow* focus = this/*GetCursorFocus(relativeX, relativeY)*/)
 		{
 			if (UTexture* cursor = UObject::Cast<UTexture>(focus->defaultCursor()))
 			{
