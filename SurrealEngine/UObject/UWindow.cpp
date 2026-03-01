@@ -2225,6 +2225,43 @@ void URootWindow::PostDrawWindow(UGC* gc)
 	}
 }
 
+static UWindow* CommonAncestor(UWindow* a, UWindow* b)
+{
+	if (a == b)
+		return a;
+
+	std::vector<UWindow*> list1;
+	std::vector<UWindow*> list2;
+	list1.reserve(16);
+	list2.reserve(16);
+	for (UWindow* w = a; w != nullptr; w = w->parentOwner())
+		list1.push_back(w);
+	for (UWindow* w = b; w != nullptr; w = w->parentOwner())
+		list2.push_back(w);
+
+	if (list1.empty() || list2.empty() || list1.back() != list2.back())
+		return nullptr;
+
+	auto it1 = list1.rbegin();
+	auto it2 = list2.rbegin();
+	while (it1 != list1.rend() && it2 != list2.rend())
+	{
+		if (*it1 != *it2)
+		{
+			return *(--it1);
+		}
+		++it1;
+		++it2;
+	}
+
+	if (it1 == list1.rend())
+		return *(--it1);
+	else if (it2 == list2.rend())
+		return *(--it2);
+
+	return nullptr;
+}
+
 void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)
 {
 	newMouseX = std::max(newMouseX, 0.0f);
@@ -2239,11 +2276,25 @@ void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)
 
 	float relativeX = 0.0f, relativeY = 0.0f;
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
-	focus->MouseMoved(relativeX, relativeY);
 
-	// To do: fire these
-	// event MouseEnteredWindow()
-	// event MouseLeftWindow()
+	auto lastFocus = UObject::Cast<UWindow>(lastMouseWindow());
+	if (lastFocus != focus)
+	{
+		if (lastFocus)
+		{
+			if (UWindow* ancestor = CommonAncestor(lastFocus, focus))
+			{
+				for (UWindow* w = lastFocus; w != ancestor; w = w->parentOwner())
+				{
+					w->MouseLeftWindow();
+				}
+			}
+		}
+		lastMouseWindow() = focus;
+		focus->MouseEnteredWindow();
+	}
+
+	focus->MouseMoved(relativeX, relativeY);
 }
 
 UWindow* URootWindow::GetCursorFocus(float& relativeX, float& relativeY)
