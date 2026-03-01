@@ -539,7 +539,7 @@ public:
 	void PressButton(uint8_t* Key);
 	void SetActivateDelay(float* newDelay);
 	void SetButtonColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive);
-	void SetButtonSounds(UObject** pressSound, UObject** clickSound);
+	void SetButtonSounds(UObject** newPressSound, UObject** newClickSound);
 	void SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive);
 	void SetTextColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive);
 

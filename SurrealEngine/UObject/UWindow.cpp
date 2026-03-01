@@ -512,7 +512,20 @@ void UWindow::RemoveTimer(int timerId)
 
 void UWindow::SetAcceleratorText(const std::string& newStr)
 {
-	LogUnimplemented("Window.SetAcceleratorText");
+	char accelerator;
+	size_t pos = newStr.find("|&");
+	if (pos != std::string::npos && pos + 2 < newStr.size())
+	{
+		accelerator = newStr[pos + 2];
+	}
+	int previousKey = acceleratorKey();
+	int newKey = static_cast<int>(accelerator);
+	acceleratorKey() = newKey;
+	if (previousKey != newKey)
+	{
+		UModalWindow* modal = UObject::Cast<UModalWindow>(GetModalWindow());
+		modal->bDirtyAccelerators() = true;
+	}
 }
 
 void UWindow::SetBackground(UObject* newBackground)
@@ -1393,7 +1406,8 @@ void UTextWindow::AppendText(const std::string& NewText)
 
 void UTextWindow::EnableTextAsAccelerator(BitfieldBool* bEnable)
 {
-	LogUnimplemented("TextWindow.EnableTextAsAccelerator");
+	std::string accelText = bEnable ? Text() : "";
+	SetAcceleratorText(accelText.length() > 0 ? accelText : "");
 }
 
 std::string UTextWindow::GetText()
@@ -1534,9 +1548,10 @@ void UButtonWindow::SetButtonColors(Color* Normal, Color* pressed, Color* normal
 	LogUnimplemented("ButtonWindow.SetButtonColors");
 }
 
-void UButtonWindow::SetButtonSounds(UObject** pressSound, UObject** clickSound)
+void UButtonWindow::SetButtonSounds(UObject** newPressSound, UObject** newClickSound)
 {
-	LogUnimplemented("ButtonWindow.SetButtonSounds");
+	pressSound() = UObject::Cast<USound>(*newPressSound);
+	clickSound() = UObject::Cast<USound>(*newClickSound);
 }
 
 void UButtonWindow::SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
