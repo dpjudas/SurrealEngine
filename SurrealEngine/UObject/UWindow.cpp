@@ -14,6 +14,83 @@
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 
+void UWindow::UpdateLayout()
+{
+	if (!bIsVisible())
+		return;
+
+	UWindow* parent = parentOwner();
+	if (parent)
+	{
+		if (!bConfigured())
+			AskParentForReconfigure();
+
+		UWindow* parent = parentOwner();
+		if (parent)
+		{
+			EHAlign halign = (EHAlign)winHAlign();
+			EVAlign valign = (EVAlign)winVAlign();
+			float leftMargin = hMargin0();
+			float rightMargin = hMargin1();
+			float topMargin = vMargin0();
+			float bottomMargin = vMargin1();
+
+			float pWidth = parent->Width();
+			float pHeight = parent->Height();
+			float width = Width();
+			float height = Height();
+
+			float x = 0.0f, y = 0.0f;
+			if (halign == EHAlign::Left)
+				x = X();
+			else if (halign == EHAlign::Center)
+				x = (pWidth - width) * 0.5f + X();
+			else if (halign == EHAlign::Right)
+				x = pWidth - width - X();
+
+			if (valign == EVAlign::Top)
+				y = Y();
+			else if (valign == EVAlign::Center)
+				y = (pHeight - height) * 0.5f + Y();
+			else if (valign == EVAlign::Bottom)
+				y = pHeight - height - Y();
+
+			UsedX = x;
+			UsedY = y;
+		}
+	}
+	else
+	{
+		float virtualWidth = GetVirtualWidth();
+		float virtualHeight = GetVirtualHeight();
+		if (Width() != virtualWidth || Height() != virtualHeight)
+		{
+			ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
+		}
+	}
+
+	for (UWindow* child = firstChild(); child; child = child->nextSibling())
+	{
+		child->UpdateLayout();
+	}
+
+	if (FirstDraw)
+	{
+		FirstDraw = false;
+		WindowReady();
+	}
+}
+
+float UWindow::GetVirtualWidth()
+{
+	return engine->ViewportWidth / GetVirtualScale();
+}
+
+float UWindow::GetVirtualScale()
+{
+	return engine->ViewportHeight != 0 ? engine->ViewportHeight / GetVirtualHeight() : 1.0f;
+}
+
 void UWindow::AddActorRef(UObject* refActor)
 {
 	UPlayerPawnExt* playerPawn = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
@@ -80,9 +157,24 @@ void UWindow::ChangeStyle()
 	LogUnimplemented("Window.ChangeStyle");
 }
 
-void UWindow::ConvertCoordinates(UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
+void UWindow::ConvertCoordinates(UWindow* fromWin, float fromX, float fromY, UWindow* toWin, float& toX, float& toY)
 {
-	LogUnimplemented("Window.ConvertCoordinates");
+	// Convert to global coordinates:
+	float x = fromX;
+	float y = fromY;
+	for (UWindow* cur = fromWin; cur->parentOwner(); cur = cur->parentOwner())
+	{
+		x += cur->UsedX;
+		y += cur->UsedY;
+	}
+	// Convert to local coordinates:
+	for (UWindow* cur = toWin; cur->parentOwner(); cur = cur->parentOwner())
+	{
+		x -= cur->UsedX;
+		y -= cur->UsedY;
+	}
+	toX = x;
+	toY = y;
 }
 
 std::string UWindow::ConvertScriptString(const std::string& oldStr)
@@ -154,8 +246,10 @@ void UWindow::EnableWindow(BitfieldBool* bEnable)
 	LogUnimplemented("Window.EnableWindow");
 }
 
-UObject* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float& relativeY)
+UWindow* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float& relativeY)
 {
+	relativeX = pointX;
+	relativeY = pointY;
 	LogUnimplemented("Window.FindWindow");
 	return nullptr;
 }
@@ -178,13 +272,27 @@ UObject* UWindow::GetClientObject()
 
 void UWindow::GetCursorPos(float& MouseX, float& MouseY)
 {
-	LogUnimplemented("Window.GetCursorPos");
+	if (URootWindow* root = GetRootWindow())
+	{
+		ConvertCoordinates(root, root->MouseX(), root->MouseY(), this, MouseX, MouseY);
+	}
+	else
+	{
+		MouseX = 0.0f;
+		MouseY = 0.0f;
+	}
 }
 
 UObject* UWindow::GetFocusWindow()
 {
-	LogUnimplemented("Window.GetFocusWindow");
-	return nullptr;
+	if (URootWindow* root = GetRootWindow())
+	{
+		return root->FocusWindow();
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 UObject* UWindow::GetGC()
@@ -240,7 +348,7 @@ UObject* UWindow::GetPlayerPawn()
 	return root ? root->parentPawn() : nullptr;
 }
 
-UObject* UWindow::GetRootWindow()
+URootWindow* UWindow::GetRootWindow()
 {
 	UWindow* cur = this;
 	while (cur->parentOwner())
@@ -274,7 +382,8 @@ UObject* UWindow::GetTopChild(BitfieldBool* bVisibleOnly)
 
 void UWindow::GrabMouse()
 {
-	LogUnimplemented("Window.GrabMouse");
+	if (URootWindow* root = GetRootWindow())
+		root->grabbedWindow() = this;
 }
 
 void UWindow::Hide()
@@ -573,7 +682,12 @@ void UWindow::SetClientObject(UObject* newClientObject)
 
 void UWindow::SetCursorPos(float newMouseX, float newMouseY)
 {
-	LogUnimplemented("Window.SetCursorPos");
+	if (URootWindow* root = GetRootWindow())
+	{
+		float x = 0.0f, y = 0.0f;
+		ConvertCoordinates(this, newMouseX, newMouseY, root, x, y);
+		root->SetRootCursorPos(x, y);
+	}
 }
 
 void UWindow::SetDefaultCursor(UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor)
@@ -661,7 +775,8 @@ void UWindow::Show(BitfieldBool* bShow)
 
 void UWindow::UngrabMouse()
 {
-	LogUnimplemented("Window.UngrabMouse");
+	if (URootWindow* root = GetRootWindow())
+		root->grabbedWindow() = nullptr;
 }
 
 void UWindow::ResetSize()
@@ -2070,6 +2185,185 @@ void URootWindow::StretchRawBackground(BitfieldBool* bStretch)
 	bStretchRawBackground() = !bStretch || *bStretch;
 }
 
+void URootWindow::WindowReady()
+{
+	SetRootCursorPos(GetVirtualWidth() * 0.5f, GetVirtualHeight() * 0.5f);
+	UModalWindow::WindowReady();
+}
+
+bool URootWindow::IsCursorVisible()
+{
+	// To do: is this correct? There is also URootWindow::ShowCursor - it isn't called by unrealscript when a modal is shown
+	for (UWindow* cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		if (UObject::TryCast<UModalWindow>(cur))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void URootWindow::PostDrawWindow(UGC* gc)
+{
+	UModalWindow::PostDrawWindow(gc);
+	if (IsCursorVisible())
+	{
+		float relativeX = 0.0f, relativeY = 0.0f;
+		if (UWindow* focus = GetCursorFocus(relativeX, relativeY))
+		{
+			if (UTexture* cursor = UObject::Cast<UTexture>(focus->defaultCursor()))
+			{
+				Color white = { 255, 255, 255, 255 };
+				gc->SetStyle(EDrawStyle::Masked);
+				gc->SetTileColor(white);
+				float hotspotX = cursor->USize() * 0.5f;
+				float hotspotY = cursor->VSize() * 0.5f;
+				gc->DrawIcon(MouseX() - hotspotX, MouseY() - hotspotY, cursor);
+			}
+		}
+	}
+}
+
+void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)
+{
+	newMouseX = std::max(newMouseX, 0.0f);
+	newMouseY = std::max(newMouseY, 0.0f);
+	newMouseX = std::min(newMouseX, GetVirtualWidth());
+	newMouseY = std::min(newMouseY, GetVirtualHeight());
+
+	prevMouseX() = MouseX();
+	prevMouseY() = MouseY();
+	MouseX() = newMouseX;
+	MouseY() = newMouseY;
+
+	float relativeX = 0.0f, relativeY = 0.0f;
+	UWindow* focus = GetCursorFocus(relativeX, relativeY);
+	focus->MouseMoved(relativeX, relativeY);
+
+	// To do: fire these
+	// event MouseEnteredWindow()
+	// event MouseLeftWindow()
+}
+
+UWindow* URootWindow::GetCursorFocus(float& relativeX, float& relativeY)
+{
+	if (UWindow* grab = grabbedWindow())
+	{
+		ConvertCoordinates(this, MouseX(), MouseY(), grab, relativeX, relativeY);
+		return grab;
+	}
+
+	if (UWindow* cursor = FindWindow(MouseX(), MouseY(), relativeX, relativeY))
+		return cursor;
+
+	relativeX = MouseX();
+	relativeY = MouseY();
+	return this;
+}
+
+void URootWindow::OnWindowMouseMove(const Point& pos)
+{
+#if 0 // We currently handle this in OnWindowRawMouseMove
+	if (IsCursorVisible())
+		SetRootCursorPos((float)pos.x / scale, (float)pos.y / scale);
+#endif
+}
+
+void URootWindow::OnWindowMouseDown(const Point& pos, EInputKey key)
+{
+	float relativeX = 0.0f, relativeY = 0.0f;
+	UWindow* focus = GetCursorFocus(relativeX, relativeY);
+
+	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Press))
+		return;
+
+	int numClicks = 1; // What is this?
+	if (focus->MouseButtonPressed(relativeX, relativeY, key, numClicks))
+		return;
+}
+
+void URootWindow::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
+{
+	// Is this numClicks = 2?
+}
+
+void URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
+{
+	float relativeX = 0.0f, relativeY = 0.0f;
+	UWindow* focus = GetCursorFocus(relativeX, relativeY);
+
+	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Release))
+		return;
+
+	int numClicks = 1; // What is this?
+	if (focus->MouseButtonReleased(relativeX, relativeY, key, numClicks))
+		return;
+}
+
+void URootWindow::OnWindowMouseWheel(const Point& pos, EInputKey key)
+{
+	// How does Deus handle the mouse wheel?
+}
+
+void URootWindow::OnWindowRawMouseMove(int dx, int dy)
+{
+	if (IsCursorVisible())
+	{
+		float mouseSpeed = 1.0f / GetVirtualScale();
+		SetRootCursorPos(MouseX() + dx * mouseSpeed, MouseY() + dy * mouseSpeed);
+	}
+}
+
+void URootWindow::OnWindowKeyChar(std::string chars)
+{
+	UWindow* focus = FocusWindow();
+	if (!focus)
+		return;
+
+	if (focus->AcceleratorKeyPressed(chars))
+		return;
+
+	if (focus->KeyPressed(chars))
+		return;
+
+	// To do: fire these for edit windows
+	// event bool TextChanged(window edit, bool bModified)
+	// event bool EditActivated(window edit, bool bModified)
+}
+
+void URootWindow::OnWindowKeyDown(EInputKey key)
+{
+	UWindow* focus = FocusWindow();
+	if (!focus)
+		return;
+
+	bool repeat = false; // To do: can zwidget tell us this?
+
+	if (focus->RawKeyPressed(key, EInputType::IST_Press, repeat))
+		return;
+
+	if (focus->VirtualKeyPressed(key, repeat))
+		return;
+}
+
+void URootWindow::OnWindowKeyUp(EInputKey key)
+{
+	UWindow* focus = FocusWindow();
+	if (!focus)
+		return;
+
+	if (focus->RawKeyPressed(key, EInputType::IST_Release, false))
+		return;
+
+	// To do: fire these for specific window types
+	// event bool ButtonActivated(Window button)
+	// event bool ToggleChanged(Window button, bool bNewToggle)
+	// event bool BoxOptionSelected(Window box, int buttonNumber)
+	// event bool ListRowActivated(window list, int rowId)
+	// event bool ListSelectionChanged(window list, int numSelections, int focusRowId)
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UScrollAreaWindow::InitWindow()
@@ -3144,7 +3438,7 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 
 Rectf UGC::ScaleRect(const Rectf& box)
 {
-	float scale = engine->ViewportHeight / 600.0f;
+	float scale = UWindow::GetVirtualScale();
 	return Rectf(box.left * scale, box.top * scale, box.right * scale, box.bottom * scale);
 }
 
@@ -3380,12 +3674,12 @@ void UGC::SetNormalFont(UObject* newNormalFont)
 	normalFont() = UObject::Cast<UFont>(newNormalFont);
 }
 
-void UGC::SetStyle(uint8_t NewStyle)
+void UGC::SetStyle(EDrawStyle NewStyle)
 {
-	Style() = NewStyle;
+	Style() = (uint8_t)NewStyle;
 
 	// Is this what it is doing? So stupid to have the same states 3 times!
-	switch ((EDrawStyle)NewStyle)
+	switch (NewStyle)
 	{
 	case EDrawStyle::None:
 		bDrawEnabled() = false;

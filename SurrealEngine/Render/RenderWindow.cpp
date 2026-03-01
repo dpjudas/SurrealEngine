@@ -12,15 +12,7 @@ void RenderSubsystem::PreRenderWindows(UCanvas* canvas)
 	if (!engine->dxRootWindow)
 		return;
 
-	// Rescale UI with the assumption it was originally designed for 800x600
-	float virtualHeight = 600.0f;
-	float virtualScale = engine->ViewportHeight != 0 ? engine->ViewportHeight / virtualHeight : 1.0f;
-	float virtualWidth = engine->ViewportWidth / virtualScale;
-
-	if (engine->dxRootWindow->Width() != virtualWidth || engine->dxRootWindow->Height() != virtualHeight)
-	{
-		engine->dxRootWindow->ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
-	}
+	engine->dxRootWindow->UpdateLayout();
 }
 
 void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
@@ -65,48 +57,8 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	if (!window->bIsVisible())
 		return;
 
-	if (!window->bConfigured())
-		window->AskParentForReconfigure();
-
-	UWindow* parent = window->parentOwner();
-	if (parent)
-	{
-		EHAlign halign = (EHAlign)window->winHAlign();
-		EVAlign valign = (EVAlign)window->winVAlign();
-		float leftMargin = window->hMargin0();
-		float rightMargin = window->hMargin1();
-		float topMargin = window->vMargin0();
-		float bottomMargin = window->vMargin1();
-
-		float pWidth = parent->Width();
-		float pHeight = parent->Height();
-		float width = window->Width();
-		float height = window->Height();
-
-		float x = 0.0f, y = 0.0f;
-		if (halign == EHAlign::Left)
-			x = window->X();
-		else if (halign == EHAlign::Center)
-			x = (pWidth - width) * 0.5f + window->X();
-		else if (halign == EHAlign::Right)
-			x = pWidth - width - window->X();
-
-		if (valign == EVAlign::Top)
-			y = window->Y();
-		else if (valign == EVAlign::Center)
-			y = (pHeight - height) * 0.5f + window->Y();
-		else if (valign == EVAlign::Bottom)
-			y = pHeight - height - window->Y();
-
-		offsetX += x;
-		offsetY += y;
-	}
-
-	if (window->FirstDraw)
-	{
-		window->FirstDraw = false;
-		window->WindowReady();
-	}
+	offsetX += window->UsedX;
+	offsetY += window->UsedY;
 
 	ResetWindowGC(window, offsetX, offsetY);
 	window->DrawWindow(engine->dxgc);

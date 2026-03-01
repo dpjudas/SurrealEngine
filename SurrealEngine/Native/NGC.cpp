@@ -338,7 +338,7 @@ void NGC::SetNormalFont(UObject* Self, UObject* newNormalFont)
 void NGC::SetStyle(UObject* Self, uint8_t NewStyle)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
-	gc->SetStyle(NewStyle);
+	gc->SetStyle((EDrawStyle)NewStyle);
 }
 
 void NGC::SetTextColor(UObject* Self, const Color& newTextColor)

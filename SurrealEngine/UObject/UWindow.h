@@ -12,6 +12,7 @@ class UPlayerPawnExt;
 class UScaleWindow;
 class UScaleManagerWindow;
 class UActor;
+class URootWindow;
 enum EInputKey;
 enum EInputType;
 
@@ -203,7 +204,7 @@ public:
 	std::string CarriageReturn();
 	void ChangeStyle();
 	void ConfigureChild(float newX, float newY, float newWidth, float NewHeight);
-	void ConvertCoordinates(UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY);
+	void ConvertCoordinates(UWindow* fromWin, float fromX, float fromY, UWindow* toWin, float& toX, float& toY);
 	std::string ConvertScriptString(const std::string& oldStr);
 	bool ConvertVectorToCoordinates(const vec3& Location, float& relativeX, float& relativeY);
 	void Destroy();
@@ -212,7 +213,7 @@ public:
 	void EnableSpecialText(BitfieldBool* bEnable);
 	void EnableTranslucentText(BitfieldBool* bEnable);
 	void EnableWindow(BitfieldBool* bEnable);
-	UObject* FindWindow(float pointX, float pointY, float& relativeX, float& relativeY);
+	UWindow* FindWindow(float pointX, float pointY, float& relativeX, float& relativeY);
 	UObject* GetBottomChild(BitfieldBool* bVisibleOnly);
 	UObject* GetClientObject();
 	void GetCursorPos(float& MouseX, float& MouseY);
@@ -223,7 +224,7 @@ public:
 	UObject* GetModalWindow();
 	UObject* GetParent();
 	UObject* GetPlayerPawn();
-	UObject* GetRootWindow();
+	URootWindow* GetRootWindow();
 	UObject* GetTabGroupWindow();
 	float GetTickOffset();
 	UObject* GetTopChild(BitfieldBool* bVisibleOnly);
@@ -288,6 +289,7 @@ public:
 	void UngrabMouse();
 
 	void DetachFromParent();
+	void UpdateLayout();
 
 	// Events (sent to unrealscript, can be overriden by native windows)
 	virtual void InitWindow();
@@ -332,6 +334,10 @@ public:
 	virtual void ChildRemoved(UWindow* child);
 	virtual void DescendantAdded(UWindow* descendant);
 	virtual void DescendantRemoved(UWindow* descendant);
+
+	static float GetVirtualWidth();
+	static float GetVirtualHeight() { return 600.0f; } // Assume it was originally designed for 800x600
+	static float GetVirtualScale();
 
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
 	float& Height() { return Value<float>(PropOffsets_Window.Height); }
@@ -413,6 +419,8 @@ public:
 	bool FixedHeight = false;
 	float BaselineOffset = 0.0f;
 	float UnderlineHeight = 0.0f;
+	float UsedX = 0.0f;
+	float UsedY = 0.0f;
 };
 
 class UViewportWindow : public UWindow
@@ -817,6 +825,23 @@ public:
 	void SetSnapshotSize(float newWidth, float NewHeight);
 	void ShowCursor(BitfieldBool* bShow);
 	void StretchRawBackground(BitfieldBool* bStretch);
+
+	void WindowReady() override;
+	void PostDrawWindow(UGC* gc) override;
+
+	void SetRootCursorPos(float newMouseX, float newMouseY);
+	UWindow* GetCursorFocus(float& relativeX, float& relativeY);
+	void OnWindowMouseMove(const Point& pos);
+	void OnWindowMouseDown(const Point& pos, EInputKey key);
+	void OnWindowMouseDoubleclick(const Point& pos, EInputKey key);
+	void OnWindowMouseUp(const Point& pos, EInputKey key);
+	void OnWindowMouseWheel(const Point& pos, EInputKey key);
+	void OnWindowRawMouseMove(int dx, int dy);
+	void OnWindowKeyChar(std::string chars);
+	void OnWindowKeyDown(EInputKey key);
+	void OnWindowKeyUp(EInputKey key);
+
+	bool IsCursorVisible();
 
 	UTexture*& DefaultMoveCursor() { return Value<UTexture*>(PropOffsets_RootWindow.DefaultMoveCursor); }
 	UWindow*& FocusWindow() { return Value<UWindow*>(PropOffsets_RootWindow.FocusWindow); }
@@ -1346,7 +1371,7 @@ public:
 	void SetFonts(UObject* newNormalFont, UObject* newBoldFont);
 	void SetHorizontalAlignment(uint8_t newHAlign);
 	void SetNormalFont(UObject* newNormalFont);
-	void SetStyle(uint8_t NewStyle);
+	void SetStyle(EDrawStyle NewStyle);
 	void SetTextColor(const Color& newTextColor);
 	void SetTextVSpacing(float newVSpacing);
 	void SetTileColor(const Color& newTileColor);

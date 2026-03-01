@@ -143,7 +143,7 @@ void NWindow::ConfigureChild(UObject* Self, float newX, float newY, float newWid
 void NWindow::ConvertCoordinates(UObject* Self, UObject* fromWin, float fromX, float fromY, UObject* toWin, float& toX, float& toY)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
-	selfWindow->ConvertCoordinates(fromWin, fromX, fromY, toWin, toX, toY);
+	selfWindow->ConvertCoordinates(UObject::Cast<UWindow>(fromWin), fromX, fromY, UObject::Cast<UWindow>(toWin), toX, toY);
 }
 
 void NWindow::ConvertScriptString(UObject* Self, const std::string& oldStr, std::string& ReturnValue)

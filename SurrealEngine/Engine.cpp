@@ -1467,6 +1467,9 @@ void Engine::OnWindowMouseMove(const Point& pos)
 		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
 		viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
 	}
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowMouseMove(pos);
 }
 
 void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
@@ -1475,10 +1478,15 @@ void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
 		return;
 
 	InputEvent(key, IST_Press);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowMouseDown(pos, key);
 }
 
 void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 {
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowMouseDoubleclick(pos, key);
 }
 
 void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
@@ -1487,6 +1495,9 @@ void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
 		return;
 
 	InputEvent(key, IST_Release);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowMouseUp(pos, key);
 }
 
 void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
@@ -1496,6 +1507,9 @@ void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
 
 	InputEvent(key, IST_Press);
 	InputEvent(key, IST_Release);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowMouseWheel(pos, key);
 }
 
 void Engine::OnWindowRawMouseMove(int dx, int dy)
@@ -1505,6 +1519,9 @@ void Engine::OnWindowRawMouseMove(int dx, int dy)
 
 	MouseMoveX += dx;
 	MouseMoveY += dy;
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowRawMouseMove(dx, dy);
 }
 
 void Engine::OnWindowKeyChar(std::string chars)
@@ -1513,6 +1530,9 @@ void Engine::OnWindowKeyChar(std::string chars)
 		return;
 
 	Key(chars);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowKeyChar(chars);
 }
 
 void Engine::OnWindowKeyDown(EInputKey key)
@@ -1525,6 +1545,9 @@ void Engine::OnWindowKeyDown(EInputKey key)
 	}
 
 	InputEvent(key, IST_Press);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowKeyDown(key);
 }
 
 void Engine::OnWindowKeyUp(EInputKey key)
@@ -1533,6 +1556,9 @@ void Engine::OnWindowKeyUp(EInputKey key)
 		return;
 
 	InputEvent(key, IST_Release);
+
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->OnWindowKeyUp(key);
 }
 
 void Engine::OnWindowGeometryChanged()
