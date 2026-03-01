@@ -25,10 +25,8 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
-	/*
 	float curY = 100.0f;
 	DrawWindowInfo(engine->canvas->SmallFont(), engine->dxRootWindow, 0, curY);
-	*/
 }
 
 void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offsetY)
@@ -101,6 +99,10 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 	vec4 color = vec4(window->bIsVisible() ? 1.0f : 0.5f);
 	if (window->bIsVisible() && (window->Width() <= 0.5f || window->Height() <= 0.5f))
 		color = vec4(1.0f, 0.2f, 0.2f, 1.0f);
+	if (window == engine->dxRootWindow->FocusWindow())
+		color = vec4(0.5f, 1.0f, 0.5f, 1.0f);
+	if (window == engine->dxRootWindow->lastMouseWindow())
+		color = vec4(0.5f, 0.5f, 1.0f, 1.0f);
 	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
 	DrawText(font, color, 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
 	if (window->bIsVisible())
