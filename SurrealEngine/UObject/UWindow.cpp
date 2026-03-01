@@ -621,7 +621,7 @@ void UWindow::RemoveTimer(int timerId)
 
 void UWindow::SetAcceleratorText(const std::string& newStr)
 {
-	char accelerator;
+	char accelerator = 0;
 	size_t pos = newStr.find("|&");
 	if (pos != std::string::npos && pos + 2 < newStr.size())
 	{
@@ -2321,9 +2321,6 @@ void URootWindow::OnWindowKeyChar(std::string chars)
 	if (!focus)
 		return;
 
-	if (focus->AcceleratorKeyPressed(chars))
-		return;
-
 	if (focus->KeyPressed(chars))
 		return;
 
@@ -2337,6 +2334,15 @@ void URootWindow::OnWindowKeyDown(EInputKey key)
 	UWindow* focus = FocusWindow();
 	if (!focus)
 		return;
+
+	// To do: this shouldn't just check the focus window. It needs to build an accelerator table for all windows
+	if (engine->window->GetKeyState(IK_Alt) && focus->acceleratorKey() != 0)
+	{
+		std::string chars(1, (char)focus->acceleratorKey());
+		EInputKey accelKey = (EInputKey)(uint8_t)chars.front();
+		if (focus->AcceleratorKeyPressed(chars))
+			return;
+	}
 
 	bool repeat = false; // To do: can zwidget tell us this?
 
