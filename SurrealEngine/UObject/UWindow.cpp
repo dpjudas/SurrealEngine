@@ -2417,8 +2417,14 @@ void URootWindow::OnWindowMouseDown(const Point& pos, EInputKey key)
 	float relativeX = 0.0f, relativeY = 0.0f;
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
 
+	if (!focus->bIsSensitive())
+		return;
+
 	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Press))
 		return;
+
+	if (focus->bIsSelectable())
+		SetRootFocusWindow(focus);
 
 	int numClicks = 1; // What is this?
 	if (focus->MouseButtonPressed(relativeX, relativeY, key, numClicks))
@@ -2436,6 +2442,9 @@ void URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
 
 	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Release))
+		return;
+
+	if (!focus->bIsSensitive())
 		return;
 
 	int numClicks = 1; // What is this?
