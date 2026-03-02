@@ -601,7 +601,7 @@ void UWindow::PlaySound(UObject* newsound, float* Volume, float* Pitch, float* p
 
 void UWindow::QueryGranularity(float& hGranularity, float& vGranularity)
 {
-	LogUnimplemented("Window.QueryGranularity");
+	ParentRequestedGranularity(hGranularity, vGranularity);
 }
 
 void UWindow::Raise()
