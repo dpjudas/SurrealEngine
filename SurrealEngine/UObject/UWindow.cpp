@@ -469,8 +469,7 @@ bool UWindow::IsKeyDown(uint8_t Key)
 
 bool UWindow::IsPointInWindow(float pointX, float pointY)
 {
-	LogUnimplemented("Window.IsPointInWindow");
-	return false;
+	return pointX >= 0.0f && pointX < Width() && pointY >= 0.0f && pointY < Height();
 }
 
 bool UWindow::IsSensitive(BitfieldBool* bRecurse)
