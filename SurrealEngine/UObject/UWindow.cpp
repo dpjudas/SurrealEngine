@@ -407,6 +407,7 @@ UObject* UWindow::GetTabGroupWindow()
 
 float UWindow::GetTickOffset()
 {
+	// Not called directly by script
 	LogUnimplemented("Window.GetTickOffset");
 	return 0.0f;
 }
@@ -1703,29 +1704,38 @@ void UButtonWindow::ActivateButton(EInputKey key)
 {
 	for (UWindow* cur = this; cur; cur = cur->parentOwner())
 	{
-		cur->ButtonActivated(this);
+		if (cur->ButtonActivated(this))
+			break;
 	}
 }
 
-void UButtonWindow::EnableAutoRepeat(BitfieldBool* bEnable, float* initialDelay, float* repeatRate)
+void UButtonWindow::EnableAutoRepeat(BitfieldBool* bEnable, float* newInitialDelay, float* newRepeatRate)
 {
-	LogUnimplemented("ButtonWindow.EnableAutoRepeat");
+	if (bEnable)
+		bAutoRepeat() = *bEnable;
+	if (newInitialDelay)
+		initialDelay() = *newInitialDelay;
+	if (newRepeatRate)
+		repeatRate() = *newRepeatRate;
+
+	repeatTime() = 0.0f; // To do: this field is probably used to figure out when its time to repeat
 }
 
 void UButtonWindow::EnableRightMouseClick(BitfieldBool* bEnable)
 {
-	LogUnimplemented("ButtonWindow.EnableRightMouseClick");
+	bEnableRightMouseClick() = !bEnable || *bEnable;
 }
 
 void UButtonWindow::PressButton(uint8_t* Key)
 {
-	// How does this differ from activate? It animates first maybe?
+	// How does this differ from activate? It animates first maybe? use activateTimer() for that?
 	ActivateButton(Key ? (EInputKey)(*Key) : IK_LeftMouse);
 }
 
 void UButtonWindow::SetActivateDelay(float* newDelay)
 {
-	LogUnimplemented("ButtonWindow.SetActivateDelay");
+	if (newDelay)
+		activateDelay() = *newDelay;
 }
 
 void UButtonWindow::SetButtonColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
@@ -1826,18 +1836,25 @@ bool UButtonWindow::MouseButtonReleased(float pointX, float pointY, EInputKey bu
 
 void UToggleWindow::ChangeToggle()
 {
-	LogUnimplemented("ToggleWindow.ChangeToggle");
+	SetToggle(!GetToggle());
 }
 
 bool UToggleWindow::GetToggle()
 {
-	LogUnimplemented("ToggleWindow.GetToggle");
-	return false;
+	return isToggled;
 }
 
 void UToggleWindow::SetToggle(bool bNewToggle)
 {
-	LogUnimplemented("ToggleWindow.SetToggle");
+	if (isToggled != bNewToggle)
+	{
+		isToggled = bNewToggle;
+		for (UWindow* cur = this; cur; cur = cur->parentOwner())
+		{
+			if (cur->ToggleChanged(this, bNewToggle))
+				break;
+		}
+	}
 }
 
 void UToggleWindow::SetToggleSounds(UObject** newEnableSound, UObject** newDisableSound)

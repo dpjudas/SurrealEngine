@@ -607,6 +607,8 @@ public:
 
 	USound*& disableSound() { return Value<USound*>(PropOffsets_ToggleWindow.disableSound); }
 	USound*& enableSound() { return Value<USound*>(PropOffsets_ToggleWindow.enableSound); }
+
+	bool isToggled = false;
 };
 
 class UCheckboxWindow : public UToggleWindow
