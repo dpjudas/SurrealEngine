@@ -421,7 +421,11 @@ void UWindow::GrabMouse()
 
 void UWindow::Hide()
 {
-	bIsVisible() = false;
+	if (bIsVisible())
+	{
+		bIsVisible() = false;
+		VisibilityChanged(false);
+	}
 }
 
 bool UWindow::IsActorValid(UObject* refActor)
@@ -746,7 +750,8 @@ void UWindow::SetFocusSounds(UObject** newFocusSound, UObject** newUnfocusSound)
 
 bool UWindow::SetFocusWindow(UObject* NewFocusWindow)
 {
-	LogUnimplemented("Window.SetFocusWindow");
+	if (auto root = GetRootWindow())
+		return root->SetRootFocusWindow(UObject::Cast<UWindow>(NewFocusWindow));
 	return false;
 }
 
@@ -774,7 +779,11 @@ void UWindow::SetSelectability(bool newSelectability)
 
 void UWindow::SetSensitivity(bool newSensitivity)
 {
-	bIsSensitive() = newSensitivity;
+	if (bIsSensitive() != newSensitivity)
+	{
+		bIsSensitive() = newSensitivity;
+		SensitivityChanged(newSensitivity);
+	}
 }
 
 void UWindow::SetSoundVolume(float newVolume)
@@ -803,7 +812,11 @@ void UWindow::SetVisibilitySounds(UObject** visSound, UObject** invisSound)
 void UWindow::Show(BitfieldBool* bShow)
 {
 	bool show = !bShow || *bShow;
-	bIsVisible() = show;
+	if (bIsVisible() != show)
+	{
+		bIsVisible() = show;
+		VisibilityChanged(show);
+	}
 }
 
 void UWindow::UngrabMouse()
@@ -2294,6 +2307,40 @@ static UWindow* CommonAncestor(UWindow* a, UWindow* b)
 		return *(--it2);
 
 	return nullptr;
+}
+
+bool URootWindow::SetRootFocusWindow(UWindow* newFocusWindow)
+{
+	UWindow* oldFocusWindow = FocusWindow();
+	if (oldFocusWindow != newFocusWindow)
+	{
+		UWindow* ancestor = CommonAncestor(oldFocusWindow, newFocusWindow);
+		if (oldFocusWindow)
+		{
+			if (oldFocusWindow->unfocusSound())
+				PlaySound(oldFocusWindow->unfocusSound(), nullptr, nullptr, nullptr, nullptr);
+
+			oldFocusWindow->FocusLeftWindow();
+			for (UWindow* w = oldFocusWindow->parentOwner(); w != ancestor; w = w->parentOwner())
+			{
+				w->FocusLeftDescendant(oldFocusWindow);
+			}
+		}
+		FocusWindow() = newFocusWindow;
+		if (newFocusWindow)
+		{
+			// Note: this order is in reverse. Hopefully it doesn't matter.
+			newFocusWindow->FocusEnteredWindow();
+			for (UWindow* w = newFocusWindow->parentOwner(); w != ancestor; w = w->parentOwner())
+			{
+				w->FocusEnteredDescendant(newFocusWindow);
+			}
+
+			if (newFocusWindow->focusSound())
+				PlaySound(newFocusWindow->focusSound(), nullptr, nullptr, nullptr, nullptr);
+		}
+	}
+	return true;
 }
 
 void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)

@@ -829,6 +829,7 @@ public:
 	void WindowReady() override;
 	void PostDrawWindow(UGC* gc) override;
 
+	bool SetRootFocusWindow(UWindow* NewFocusWindow);
 	void SetRootCursorPos(float newMouseX, float newMouseY);
 	UWindow* GetCursorFocus(float& relativeX, float& relativeY);
 	void OnWindowMouseMove(const Point& pos);
