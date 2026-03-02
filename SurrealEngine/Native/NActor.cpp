@@ -16,7 +16,10 @@
 void NActor::RegisterFunctions()
 {
 	RegisterVMNativeFunc_3("Actor", "Add_ColorColor", &NActor::Add_ColorColor, 551);
-	RegisterVMNativeFunc_3("Actor", "AllActors", &NActor::AllActors, 304);
+	if (engine->LaunchInfo.IsUnreal1_227())
+		RegisterVMNativeFunc_5("Actor", "AllActors", &NActor::AllActors_U227, 304);
+	else
+		RegisterVMNativeFunc_3("Actor", "AllActors", &NActor::AllActors, 304);
 	RegisterVMNativeFunc_1("Actor", "AutonomousPhysics", &NActor::AutonomousPhysics, 3971);
 	RegisterVMNativeFunc_2("Actor", "BasedActors", &NActor::BasedActors, 306);
 	RegisterVMNativeFunc_2("Actor", "ChildActors", &NActor::ChildActors, 305);
@@ -125,7 +128,12 @@ void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 
 void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString* MatchTag)
 {
-	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string());
+	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string());
+}
+
+void NActor::AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString* MatchTag, NameString* MatchEvent, bool bAllLevels)
+{
+	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string(), MatchEvent ? *MatchEvent : std::string(), bAllLevels);
 }
 
 void NActor::AutonomousPhysics(UObject* Self, float DeltaSeconds)
