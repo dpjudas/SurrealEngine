@@ -335,6 +335,8 @@ public:
 	virtual void DescendantAdded(UWindow* descendant);
 	virtual void DescendantRemoved(UWindow* descendant);
 
+	virtual void Tick(float timeElapsed);
+
 	static float GetVirtualWidth();
 	static float GetVirtualHeight() { return 600.0f; } // Assume it was originally designed for 800x600
 	static float GetVirtualScale();

@@ -1285,6 +1285,16 @@ void UWindow::DescendantRemoved(UWindow* descendant)
 	CallEvent(this, "DescendantRemoved", { ExpressionValue::ObjectValue(descendant) });
 }
 
+void UWindow::Tick(float timeElapsed)
+{
+	if (bTickEnabled())
+		CallEvent(this, "Tick", { ExpressionValue::FloatValue(timeElapsed) });
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		cur->Tick(timeElapsed);
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UViewportWindow::ClearZBuffer(BitfieldBool* bClear)
