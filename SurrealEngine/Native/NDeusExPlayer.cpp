@@ -85,5 +85,6 @@ void NDeusExPlayer::SetBoolFlagFromString(UObject* Self, const std::string& flag
 
 void NDeusExPlayer::UnloadTexture(UObject* Self, UObject* Texture)
 {
-	LogUnimplemented("DeusExPlayer.UnloadTexture");
+	UDeusExPlayer* player = UObject::Cast<UDeusExPlayer>(Self);
+	player->UnloadTexture(Texture);
 }

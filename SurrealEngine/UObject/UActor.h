@@ -1822,9 +1822,25 @@ struct BlendAnimChannel
     float FrameStep = 0.0f;  
     float PreviousRate = 0.0f;  
       
-    // Valores internos (formato fijo)  
     int InternalRate = 0;  
     int InternalAnimRate = 0;  
     int InternalTween = 0;  
     int InternalProgressLimit = 0;  
 };  
+
+class UDeusExPlayer
+{
+public:
+	void ConBindEvents();
+	void CreateDataVaultImageNoteObject();
+	void CreateDumpLocationObject();
+	void CreateGameDirectoryObject();
+	void CreateHistoryEvent();
+	void CreateHistoryObject();
+	void CreateLogObject();
+	void DeleteSaveGameFiles(std::string* saveDirectory);
+	std::string GetDeusExVersion();
+	void SaveGame(int saveIndex, std::string* saveDesc);
+	void SetBoolFlagFromString(const std::string& flagNameString, bool bValue);
+	void UnloadTexture(UObject* Texture);
+};
