@@ -977,6 +977,7 @@ void PackageManager::RegisterNativeClasses()
 	
 	if (IsDeusEx())
 	{
+		RegisterNativeClass<UDeusExPlayer>(enginePackage, "DeusExPlayer", "PlayerPawnExt");
 		RegisterNativeClass<UPlayerPawnExt>(enginePackage, "PlayerPawnExt", "PlayerPawn");
 		RegisterNativeClass<UExtensionObject>(enginePackage, "ExtensionObject", "Object");
 		RegisterNativeClass<UGC>(enginePackage, "GC", "ExtensionObject");

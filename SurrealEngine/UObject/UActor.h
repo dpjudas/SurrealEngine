@@ -1828,9 +1828,11 @@ struct BlendAnimChannel
     int InternalProgressLimit = 0;  
 };  
 
-class UDeusExPlayer
+class UDeusExPlayer : public UPlayerPawnExt
 {
 public:
+	using UPlayerPawnExt::UPlayerPawnExt;
+
 	void ConBindEvents();
 	void CreateDataVaultImageNoteObject();
 	void CreateDumpLocationObject();
