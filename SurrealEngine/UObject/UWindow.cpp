@@ -151,10 +151,19 @@ std::string UWindow::CarriageReturn()
 	return "\r\n"; // Can't be doing this, can it?
 }
 
+static void ApplyStyleChange(UWindow* window)
+{
+	CallEvent(window, "StyleChanged", {});
+	for (auto cur = window->firstChild(); cur; cur = cur->nextSibling())
+		ApplyStyleChange(cur);
+}
+
 void UWindow::ChangeStyle()
 {
-	// To do: this needs to fire StyleChanged() events for all windows
-	LogUnimplemented("Window.ChangeStyle");
+	UWindow* cur = this;
+	while (cur->parentOwner())
+		cur = cur->parentOwner();
+	ApplyStyleChange(cur);
 }
 
 void UWindow::ConvertCoordinates(UWindow* fromWin, float fromX, float fromY, UWindow* toWin, float& toX, float& toY)
