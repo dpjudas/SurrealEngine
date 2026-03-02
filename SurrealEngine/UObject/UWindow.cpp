@@ -445,7 +445,8 @@ bool UWindow::IsActorValid(UObject* refActor)
 
 bool UWindow::IsFocusWindow()
 {
-	LogUnimplemented("Window.IsFocusWindow");
+	if (auto root = GetRootWindow())
+		return root->FocusWindow() == this;
 	return false;
 }
 
