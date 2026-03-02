@@ -228,7 +228,7 @@ void UWindow::DestroyAllChildren()
 
 void UWindow::DisableWindow()
 {
-	LogUnimplemented("Window.DisableWindow");
+	SetSensitivity(false);
 }
 
 void UWindow::EnableSpecialText(BitfieldBool* bEnable)
@@ -243,7 +243,7 @@ void UWindow::EnableTranslucentText(BitfieldBool* bEnable)
 
 void UWindow::EnableWindow(BitfieldBool* bEnable)
 {
-	LogUnimplemented("Window.EnableWindow");
+	SetSensitivity(bEnable ? *bEnable : true);
 }
 
 UWindow* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float& relativeY)
