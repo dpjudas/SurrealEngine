@@ -182,9 +182,15 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Xor_IntInt", &NObject::Xor_IntInt, 157);
 
 	// Unreal Gold 227 exclusive functions
-	if (engine->LaunchInfo.gameExecutableName == "Unreal" && engine->LaunchInfo.engineVersion == 227)
+	if (engine->LaunchInfo.IsUnreal1_227())
 	{
+		RegisterVMNativeFunc_3("Object", "AllObjects", &NObject::AllObjects_U227, 304);
 		RegisterVMNativeFunc_3("Object", "AllFiles", &NObject::AllFiles, 603);
+	}
+
+	if (engine->LaunchInfo.IsDeusEx())
+	{
+		RegisterVMNativeFunc_2("Object", "AllObjects", &NObject::AllObjects_DeusEx, 1001);
 	}
 
 	// Package 61 stuff
@@ -1091,4 +1097,14 @@ void NObject::XorXor_BoolBool(bool A, bool B, BitfieldBool& ReturnValue)
 void NObject::Xor_IntInt(int A, int B, int& ReturnValue)
 {
 	ReturnValue = A ^ B;
+}
+
+void NObject::AllObjects_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, UObject* InOuter)
+{
+	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, InOuter);
+}
+
+void NObject::AllObjects_DeusEx(UObject* Self, UObject* BaseClass, UObject*& Actor)
+{
+	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, nullptr);
 }
