@@ -3596,3 +3596,72 @@ void UPlayerPawnExt::PostRenderWindows(UCanvas* canvas)
 {
 	engine->render->PostRenderWindows(canvas);
 }
+////////////////////////////////////////////////////////
+void UDeusExPlayer::ConBindEvents()
+{
+	LogUnimplemented("DeusExPlayer.ConBindEvents");
+}
+
+void UDeusExPlayer::CreateDataVaultImageNoteObject()
+{
+	LogUnimplemented("DeusExPlayer.CreateDataVaultImageNoteObject");
+}
+
+void UDeusExPlayer::CreateDumpLocationObject()
+{
+	LogUnimplemented("DeusExPlayer.CreateDumpLocationObject");
+}
+
+void UDeusExPlayer::CreateGameDirectoryObject()
+{
+	LogUnimplemented("DeusExPlayer.CreateGameDirectoryObject");
+}
+
+void UDeusExPlayer::CreateHistoryEvent()
+{
+	LogUnimplemented("DeusExPlayer.CreateHistoryEvent");
+}
+
+void UDeusExPlayer::CreateHistoryObject()
+{
+	LogUnimplemented("DeusExPlayer.CreateHistoryObject");
+}
+
+void UDeusExPlayer::CreateLogObject()
+{
+	LogUnimplemented("DeusExPlayer.CreateLogObject");
+}
+
+void UDeusExPlayer::DeleteSaveGameFiles(std::string* saveDirectory)
+{
+	LogUnimplemented("DeusExPlayer.DeleteSaveGameFiles");
+}
+
+std::string UDeusExPlayer::GetDeusExVersion()
+{
+	return "1.112fm. Surreal Engine Edition!";
+}
+
+void UDeusExPlayer::SaveGame(int saveIndex, std::string* saveDesc)
+{
+	LogUnimplemented("DeusExPlayer.SaveGame");
+}
+
+void UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameString, bool bValue)
+{
+	LogUnimplemented("DeusExPlayer.SetBoolFlagFromString");
+}
+
+void UDeusExPlayer::UnloadTexture(UObject* Texture)
+{
+    UTexture* tex = UObject::Cast<UTexture>(Texture);
+    if (tex && !tex->UsedMipmaps.empty())
+	{
+		for (UnrealMipmap& mipmap : tex->UsedMipmaps)
+		{
+			mipmap.Data.clear();
+		}
+		tex->UsedMipmaps.clear();
+		tex->TextureModified = true;
+	}
+}
