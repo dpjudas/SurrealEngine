@@ -560,6 +560,7 @@ UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 	child->firstChild() = nullptr;
 	child->lastChild() = nullptr;
 	child->bIsVisible() = show;
+	child->bIsSensitive() = true;
 	if (lastChild())
 		lastChild()->nextSibling() = child;
 	lastChild() = child;
@@ -1689,9 +1690,12 @@ void UTextWindow::DrawWindow(UGC* gc)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void UButtonWindow::ActivateButton(uint8_t Key)
+void UButtonWindow::ActivateButton(EInputKey key)
 {
-	LogUnimplemented("ButtonWindow.ActivateButton");
+	for (UWindow* cur = this; cur; cur = cur->parentOwner())
+	{
+		cur->ButtonActivated(this);
+	}
 }
 
 void UButtonWindow::EnableAutoRepeat(BitfieldBool* bEnable, float* initialDelay, float* repeatRate)
@@ -1706,7 +1710,8 @@ void UButtonWindow::EnableRightMouseClick(BitfieldBool* bEnable)
 
 void UButtonWindow::PressButton(uint8_t* Key)
 {
-	LogUnimplemented("ButtonWindow.PressButton");
+	// How does this differ from activate? It animates first maybe?
+	ActivateButton(Key ? (EInputKey)(*Key) : IK_LeftMouse);
 }
 
 void UButtonWindow::SetActivateDelay(float* newDelay)
@@ -1716,25 +1721,96 @@ void UButtonWindow::SetActivateDelay(float* newDelay)
 
 void UButtonWindow::SetButtonColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	LogUnimplemented("ButtonWindow.SetButtonColors");
+	if (Normal)
+		ButtonColors.Normal = *Normal;
+	if (pressed)
+		ButtonColors.Pressed = *pressed;
+	if (normalFocus)
+		ButtonColors.NormalFocus = *normalFocus;
+	if (pressedFocus)
+		ButtonColors.PressedFocus = *pressedFocus;
+	if (normalInsensitive)
+		ButtonColors.NormalInsensitive = *normalInsensitive;
+	if (pressedInsensitive)
+		ButtonColors.PressedInsensitive = *pressedInsensitive;
 }
 
 void UButtonWindow::SetButtonSounds(UObject** newPressSound, UObject** newClickSound)
 {
-	pressSound() = UObject::Cast<USound>(*newPressSound);
-	clickSound() = UObject::Cast<USound>(*newClickSound);
+	if (newPressSound)
+		pressSound() = UObject::Cast<USound>(*newPressSound);
+	if (newClickSound)
+		clickSound() = UObject::Cast<USound>(*newClickSound);
 }
 
 void UButtonWindow::SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
 {
-	LogUnimplemented("ButtonWindow.SetButtonTextures");
 	if (Normal)
-		curTexture() = UObject::Cast<UTexture>(*Normal);
+		ButtonTextures.Normal = UObject::Cast<UTexture>(*Normal);
+	if (pressed)
+		ButtonTextures.Pressed = UObject::Cast<UTexture>(*pressed);
+	if (normalFocus)
+		ButtonTextures.NormalFocus = UObject::Cast<UTexture>(*normalFocus);
+	if (pressedFocus)
+		ButtonTextures.PressedFocus = UObject::Cast<UTexture>(*pressedFocus);
+	if (normalInsensitive)
+		ButtonTextures.NormalInsensitive = UObject::Cast<UTexture>(*normalInsensitive);
+	if (pressedInsensitive)
+		ButtonTextures.PressedInsensitive = UObject::Cast<UTexture>(*pressedInsensitive);
 }
 
 void UButtonWindow::SetTextColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
 {
-	LogUnimplemented("ButtonWindow.SetTextColors");
+	if (Normal)
+		TextColors.Normal = *Normal;
+	if (pressed)
+		TextColors.Pressed = *pressed;
+	if (normalFocus)
+		TextColors.NormalFocus = *normalFocus;
+	if (pressedFocus)
+		TextColors.PressedFocus = *pressedFocus;
+	if (normalInsensitive)
+		TextColors.NormalInsensitive = *normalInsensitive;
+	if (pressedInsensitive)
+		TextColors.PressedInsensitive = *pressedInsensitive;
+}
+
+void UButtonWindow::MouseMoved(float newX, float newY)
+{
+	if (bMousePressed())
+	{
+		bButtonPressed() = newX >= 0.0f && newX < Width() && newY >= 0.0f && newY < Height();
+	}
+	else
+	{
+		UTextWindow::MouseMoved(newX, newY);
+	}
+}
+
+bool UButtonWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	if (UTextWindow::MouseButtonPressed(pointX, pointY, button, numClicks))
+		return true;
+
+	bMousePressed() = true;
+	bButtonPressed() = true;
+	GrabMouse();
+	return true;
+}
+
+bool UButtonWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	if (bMousePressed())
+	{
+		UngrabMouse();
+		bMousePressed() = false;
+		bButtonPressed() = false;
+		if (pointX >= 0.0f && pointX < Width() && pointY >= 0.0f && pointY < Height())
+			ActivateButton(button);
+		return true;
+	}
+
+	return UTextWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
 }
 
 /////////////////////////////////////////////////////////////////////////////

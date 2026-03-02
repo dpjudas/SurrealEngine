@@ -20,7 +20,7 @@ void NButtonWindow::RegisterFunctions()
 void NButtonWindow::ActivateButton(UObject* Self, uint8_t Key)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
-	button->ActivateButton(Key);
+	button->ActivateButton((EInputKey)Key);
 }
 
 void NButtonWindow::EnableAutoRepeat(UObject* Self, BitfieldBool* bEnable, float* initialDelay, float* repeatRate)

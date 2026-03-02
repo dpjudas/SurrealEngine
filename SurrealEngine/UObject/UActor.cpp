@@ -3582,6 +3582,7 @@ void UPlayerPawnExt::InitRootWindow()
 		RootWindow() = engine->dxRootWindow;
 		engine->dxRootWindow->parentPawn() = this;
 		engine->dxRootWindow->bIsVisible() = true;
+		engine->dxRootWindow->bIsSensitive() = true;
 		engine->dxRootWindow->InitWindow();
 	}
 }

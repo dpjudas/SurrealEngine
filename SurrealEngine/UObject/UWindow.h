@@ -543,7 +543,7 @@ class UButtonWindow : public UTextWindow
 public:
 	using UTextWindow::UTextWindow;
 
-	void ActivateButton(uint8_t Key);
+	void ActivateButton(EInputKey key);
 	void EnableAutoRepeat(BitfieldBool* bEnable, float* initialDelay, float* repeatRate);
 	void EnableRightMouseClick(BitfieldBool* bEnable);
 	void PressButton(uint8_t* Key);
@@ -552,6 +552,10 @@ public:
 	void SetButtonSounds(UObject** newPressSound, UObject** newClickSound);
 	void SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive);
 	void SetTextColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive);
+
+	void MouseMoved(float newX, float newY) override;
+	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
+	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
 
 	//ButtonDisplayInfo& Info() { return Value<ButtonDisplayInfo>(PropOffsets_ButtonWindow.Info); }
 	float& activateDelay() { return Value<float>(PropOffsets_ButtonWindow.activateDelay); }
@@ -569,6 +573,26 @@ public:
 	USound*& pressSound() { return Value<USound*>(PropOffsets_ButtonWindow.pressSound); }
 	float& repeatRate() { return Value<float>(PropOffsets_ButtonWindow.repeatRate); }
 	float& repeatTime() { return Value<float>(PropOffsets_ButtonWindow.repeatTime); }
+
+	struct
+	{
+		Color Normal = { 255, 255, 255, 255 };
+		Color Pressed = { 255, 255, 255, 255 };
+		Color NormalFocus = { 255, 255, 255, 255 };
+		Color PressedFocus = { 255, 255, 255, 255 };
+		Color NormalInsensitive = { 255, 255, 255, 255 };
+		Color PressedInsensitive = { 255, 255, 255, 255 };
+	} ButtonColors, TextColors;
+
+	struct
+	{
+		UTexture* Normal = nullptr;
+		UTexture* Pressed = nullptr;
+		UTexture* NormalFocus = nullptr;
+		UTexture* PressedFocus = nullptr;
+		UTexture* NormalInsensitive = nullptr;
+		UTexture* PressedInsensitive = nullptr;
+	} ButtonTextures;
 };
 
 class UToggleWindow : public UButtonWindow
