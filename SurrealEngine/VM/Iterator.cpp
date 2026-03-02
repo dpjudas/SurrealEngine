@@ -7,18 +7,49 @@
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 
-AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag) : BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
+AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, UObject* InOuter)
+	: BaseClass(BaseClass), ReturnValue(ReturnValue), InOuter(InOuter)
 {
 }
 
 bool AllObjectsIterator::Next()
 {
-	bool matchTag = !MatchTag.IsNone();
 	size_t size = engine->Level->Actors.size();
 	while (index < size)
 	{
 		UActor* actor = engine->Level->Actors[index++];
-		if (actor && actor->IsA(BaseClass->Name) && (!matchTag || actor->Tag() == MatchTag))
+		if (actor && actor->IsA(BaseClass->Name))
+		{
+			*ReturnValue = actor;
+			return true;
+		}
+	}
+	*ReturnValue = nullptr;
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+AllActorsIterator::AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag)
+	: BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag), bAllLevels(false)
+{
+}
+
+AllActorsIterator::AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag, NameString MatchEvent, bool bAllLevels)
+	: BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag), MatchEvent(MatchEvent), bAllLevels(bAllLevels)
+{
+}
+
+bool AllActorsIterator::Next()
+{
+	bool matchTag = !MatchTag.IsNone();
+	bool matchEvent = !MatchEvent.IsNone();
+
+	size_t size = engine->Level->Actors.size();
+	while (index < size)
+	{
+		UActor* actor = engine->Level->Actors[index++];
+		if (actor && actor->IsA(BaseClass->Name) && (!matchTag || actor->Tag() == MatchTag) && (!matchEvent || actor->Event() == MatchEvent))
 		{
 			*ReturnValue = actor;
 			return true;

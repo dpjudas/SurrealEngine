@@ -15,16 +15,37 @@ public:
 	size_t EndStatementIndex = 0;
 };
 
+// Added in Deus Ex and Unreal 227
 class AllObjectsIterator : public Iterator
 {
 public:
-	AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag);
+	// InOuter is a 227-exclusive parameter
+	// TODO: Handle InOuter
+	AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, UObject* InOuter = nullptr);
+	bool Next() override;
+private:
+	UObject* BaseClass = nullptr;
+	UObject** ReturnValue = nullptr;
+	UObject* InOuter = nullptr;
+	size_t index = 0;
+};
+
+
+class AllActorsIterator : public Iterator
+{
+public:
+	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag);
+	// Unreal 227 version of AllActors
+	// TODO: Handle bAllLevels parameter
+	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag, NameString MatchEvent, bool bAllLevels = false);
 	bool Next() override;
 
 private:
 	UObject* BaseClass = nullptr;
 	UObject** ReturnValue = nullptr;
 	NameString MatchTag;
+	NameString MatchEvent;
+	bool bAllLevels;
 	size_t index = 0;
 };
 
