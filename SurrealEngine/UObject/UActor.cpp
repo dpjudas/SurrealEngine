@@ -3654,14 +3654,5 @@ void UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameString, boo
 
 void UDeusExPlayer::UnloadTexture(UObject* Texture)
 {
-    UTexture* tex = UObject::Cast<UTexture>(Texture);
-    if (tex && !tex->UsedMipmaps.empty())
-	{
-		for (UnrealMipmap& mipmap : tex->UsedMipmaps)
-		{
-			mipmap.Data.clear();
-		}
-		tex->UsedMipmaps.clear();
-		tex->TextureModified = true;
-	}
+    // Nothing going on here because SE never unloads textures atm. This is just here so it doesn't throw LogUnimplemented.
 }
