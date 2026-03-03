@@ -610,7 +610,7 @@ void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
-		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		SelfActor, BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
 		Extent ? *Extent : vec3(0, 0, 0)); // CHECK ME: is this correct?
 }
@@ -748,7 +748,7 @@ void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, Na
 	// Note: this is not correct, but it will give unrealscript an iterator
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
-		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		SelfActor, BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
 		Extent ? *Extent : vec3(0, 0, 0));
 }
@@ -760,7 +760,7 @@ void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Act
 	// Note: this is not correct, but it will give unrealscript an iterator
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
-		BaseClass, &Actor, &HitLoc, &HitNorm, End,
+		SelfActor, BaseClass, &Actor, &HitLoc, &HitNorm, End,
 		Start ? *Start : SelfActor->Location(),
 		Extent ? *Extent : vec3(0, 0, 0));
 }

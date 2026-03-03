@@ -141,9 +141,10 @@ public:
 class TraceActorsIterator : public Iterator
 {
 public:
-	TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent);
+	TraceActorsIterator(UActor* SelfActor, UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent);
 	bool Next() override;
 
+	UActor* SelfActor = nullptr;
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	vec3* HitLoc = nullptr;

@@ -61,17 +61,6 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	ResetWindowGC(window, offsetX, offsetY);
 	window->DrawWindow(engine->dxgc);
 
-#if 0
-	float x0 = offsetX;
-	float y0 = offsetY;
-	float x1 = x0 + window->Width();
-	float y1 = y0 + window->Height();
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f));
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x1 * Canvas.uiscale, y0 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
-	Device->Draw2DLine(&Canvas.Frame, vec4(1.0f), 0, vec3(x0 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f), vec3(x1 * Canvas.uiscale, y1 * Canvas.uiscale, 1.0f));
-#endif
-
 	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
 	{
 		DrawWindow(child, offsetX, offsetY);

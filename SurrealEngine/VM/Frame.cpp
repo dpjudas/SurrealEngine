@@ -119,6 +119,13 @@ void Frame::ThrowException(const std::string& text)
 	Break();
 }
 
+std::string debugCallstack;
+const char* GetCallStack()
+{
+	debugCallstack = Frame::GetCallstack();
+	return debugCallstack.c_str();
+}
+
 std::string Frame::GetCallstack()
 {
 	std::string result;

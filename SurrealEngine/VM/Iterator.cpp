@@ -233,28 +233,28 @@ bool TouchingActorsIterator::Next()
 
 /////////////////////////////////////////////////////////////////////////////
 
-TraceActorsIterator::TraceActorsIterator(UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
+TraceActorsIterator::TraceActorsIterator(UActor* SelfActor, UObject* BaseClass, UObject** Actor, vec3* HitLoc, vec3* HitNorm, const vec3& End, const vec3& Start, const vec3& Extent) : SelfActor(SelfActor), BaseClass(BaseClass), Actor(Actor), HitLoc(HitLoc), HitNorm(HitNorm), End(End), Start(Start), Extent(Extent)
 {
-	UActor* BaseActor = UObject::TryCast<UActor>(BaseClass);
-	if(!BaseActor) return; 
-	vec3 startPoint = Start;
+	TraceFlags flags;
+	flags.movers = true;
+	flags.world = true;
+	flags.pawns = true;
+	flags.others = true;
+	flags.onlyProjectiles = false; // Should this be true or false?
 
-	UActor* tracedActor = UObject::TryCast<UActor>(BaseActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
+	// Why is this tracing backwards? Is that correct?
+	vec3 traceStart = End;
+	vec3 traceEnd = Start;
 
-	do {
-		if(!tracedActor || !tracedActor->Class)
+	for (auto& hit : SelfActor->XLevel()->Collision.Trace(traceStart, traceEnd, Extent.z, Extent.x, flags.traceActors(), flags.traceWorld(), false))
+	{
+		if (hit.Actor && hit.Actor != SelfActor && hit.Actor->IsA(BaseClass->Name))
 		{
-			continue;
-		}	
-		else
-		{
-			// Only allow the Actors of type BaseClass
-			if (tracedActor->IsA(BaseClass->Name))
-				tracedActors.push_back({ tracedActor, *HitLoc, *HitNorm });
-			startPoint = *HitLoc;	// Make hit location the start point for the next trace
-			tracedActor = UObject::TryCast<UActor>(tracedActor->Trace(*HitLoc, *HitNorm, End, startPoint, true, Extent));
+			vec3 hitNormal = hit.Normal;
+			vec3 hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+			tracedActors.push_back({ hit.Actor, *HitLoc, *HitNorm });
 		}
-	} while (tracedActor);
+	}
 
 	iterator = tracedActors.begin();
 }
