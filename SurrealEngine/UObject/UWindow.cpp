@@ -207,22 +207,23 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 	projLocation.z *= rcpW;
 
 	// Scale to viewport
-	vec2 screenLocation = vec2(
+	vec2 viewportLocation = vec2(
 		(projLocation.x + 1.0f) * engine->ViewportWidth * 0.5f,
 		(1.0f - projLocation.y) * engine->ViewportHeight * 0.5f);
 
 	// Convert to virtual coordinates
-	vec2 globalLocation = vec2(
-		screenLocation.x * GetVirtualWidth() / engine->ViewportWidth,
-		screenLocation.y * GetVirtualHeight() / engine->ViewportHeight);
+	vec2 rootLocation = vec2(
+		viewportLocation.x * GetVirtualWidth() / engine->ViewportWidth,
+		viewportLocation.y * GetVirtualHeight() / engine->ViewportHeight);
 
+	// Convert from root window to our window
 	UWindow* root = GetRootWindow();
 	if (!root)
 		return false;
+	ConvertCoordinates(root, rootLocation.x, rootLocation.y, this, relativeX, relativeY);
 
-	ConvertCoordinates(root, globalLocation.x, globalLocation.y, this, relativeX, relativeY);
-
-	return relativeX >= 0.0f && relativeX < Width() && relativeY >= 0.0f && relativeY < Height(); // Is this correct?
+	// Return true if the point is still inside the window
+	return relativeX >= 0.0f && relativeX < Width() && relativeY >= 0.0f && relativeY < Height();
 }
 
 void UWindow::Destroy()
