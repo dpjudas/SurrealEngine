@@ -21,67 +21,72 @@ void NDeusExTextParser::RegisterFunctions()
 
 void NDeusExTextParser::CloseText(UObject* Self)
 {
-	LogUnimplemented("DeusExTextParser.CloseText");
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	DXTPSelf->CloseText();
 }
 
 void NDeusExTextParser::GetColor(UObject* Self, Color& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.GetColor");
-	ReturnValue = { 0, 0, 0, 0 };
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->GetColor();
 }
 
 void NDeusExTextParser::GetEmailInfo(UObject* Self, std::string& emailName, std::string& emailSubject, std::string& emailFrom, std::string& emailTo, std::string& emailCC)
 {
-	LogUnimplemented("DeusExTextParser.GetEmailInfo");
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	DXTPSelf->GetEmailInfo(emailName, emailSubject, emailFrom, emailTo, emailCC);
 }
 
 void NDeusExTextParser::GetFileInfo(UObject* Self, std::string& FileName, std::string& fileDescription)
 {
-	LogUnimplemented("DeusExTextParser.GetFileInfo");
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	DXTPSelf->GetFileInfo(FileName, fileDescription);
 }
 
 void NDeusExTextParser::GetName(UObject* Self, NameString& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.GetName");
-	ReturnValue = {};
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->GetName();
 }
 
 void NDeusExTextParser::GetTag(UObject* Self, uint8_t& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.GetTag");
-	ReturnValue = 0;
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->GetTag();
 }
 
 void NDeusExTextParser::GetText(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.GetText");
-	ReturnValue = "";
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->GetText();
 }
 
 void NDeusExTextParser::GotoLabel(UObject* Self, const std::string& Label)
 {
-	LogUnimplemented("DeusExTextParser.GotoLabel");
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	DXTPSelf->GotoLabel(Label);
 }
 
 void NDeusExTextParser::IsEOF(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.IsEOF");
-	ReturnValue = false;
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->IsEOF();
 }
 
 void NDeusExTextParser::OpenText(UObject* Self, const NameString& textName, std::string* TextPackage, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.OpenText");
-	ReturnValue = false;
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->OpenText(textName, TextPackage ? *TextPackage : "");
 }
 
 void NDeusExTextParser::ProcessText(UObject* Self, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("DeusExTextParser.ProcessText");
-	ReturnValue = false;
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	ReturnValue = DXTPSelf->ProcessText();
 }
 
 void NDeusExTextParser::SetPlayerName(UObject* Self, const std::string& newPlayerName)
 {
-	LogUnimplemented("DeusExTextParser.SetPlayerName");
+	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
+	DXTPSelf->SetPlayerName(newPlayerName);
 }
