@@ -24,10 +24,9 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 	Device->ClearZ();
 
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
-	/*
+
 	float curY = 100.0f;
 	DrawWindowInfo(engine->canvas->SmallFont(), engine->dxRootWindow, 0, curY);
-	*/
 }
 
 void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offsetY)

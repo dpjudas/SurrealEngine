@@ -41,14 +41,14 @@ void UWindow::UpdateLayout()
 			float height = Height();
 
 			float x = 0.0f, y = 0.0f;
-			if (halign == EHAlign::Left)
+			if (halign == EHAlign::Left || halign == EHAlign::Full)
 				x = X();
 			else if (halign == EHAlign::Center)
 				x = (pWidth - width) * 0.5f + X();
 			else if (halign == EHAlign::Right)
 				x = pWidth - width - X();
 
-			if (valign == EVAlign::Top)
+			if (valign == EVAlign::Top || valign == EVAlign::Full)
 				y = Y();
 			else if (valign == EVAlign::Center)
 				y = (pHeight - height) * 0.5f + Y();
@@ -955,37 +955,74 @@ void UWindow::AskParentForReconfigure()
 
 void UWindow::ResizeChild()
 {
-	if (!FixedWidth && !FixedHeight)
+	UWindow* owner = parentOwner();
+	float width = 0.0f, height = 0.0f;
+	bool widthSet = false, heightSet = false;
+
+	// If the window uses a fixed size:
+
+	if (FixedWidth)
 	{
-		float width = 0.0f;
-		float height = 0.0f;
+		widthSet = true;
+		width = Width();
+	}
+	if (FixedHeight)
+	{
+		heightSet = true;
+		height = Height();
+	}
+
+	// If the window has full window alignments:
+
+	if (!widthSet && owner && (EHAlign)winHAlign() == EHAlign::Full)
+	{
+		widthSet = true;
+		width = owner->Width();
+	}
+	if (!heightSet && owner && (EVAlign)winVAlign() == EVAlign::Full)
+	{
+		heightSet = true;
+		height = owner->Height();
+	}
+
+	// If we still don't know a size, ask the window:
+
+	if (!widthSet && !heightSet)
+	{
 		QueryPreferredSize(width, height);
-		ConfigureChild(X(), Y(), width, height);
 	}
-	else if (FixedWidth && FixedHeight)
+	else if (widthSet && !heightSet)
 	{
-		ConfigureChild(X(), Y(), Width(), Height());
+		height = QueryPreferredHeight(width);
 	}
-	else if (FixedWidth)
+	else if (!widthSet && heightSet)
 	{
-		float height = QueryPreferredHeight(Width());
-		ConfigureChild(X(), Y(), Width(), height);
+		width = QueryPreferredWidth(height);
 	}
-	else if (FixedHeight)
-	{
-		float width = QueryPreferredWidth(Height());
-		ConfigureChild(X(), Y(), width, Height());
-	}
+
+	ConfigureChild(X(), Y(), width, height);
 }
 
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
 {
-	X() = newX;
-	Y() = newY;
-	Width() = newWidth;
-	Height() = NewHeight;
-	bConfigured() = true;
-	ConfigurationChanged();
+	if (!bConfigured() || X() != newX || Y() != newY || Width() != newWidth || Height() != NewHeight)
+	{
+		X() = newX;
+		Y() = newY;
+		Width() = newWidth;
+		Height() = NewHeight;
+		bConfigured() = true;
+		ConfigurationChanged();
+
+		// Grr, this layout system is garbage. Why not just resize all on the unrealscript side...
+		for (UWindow* child = firstChild(); child; child = child->nextSibling())
+		{
+			if ((EHAlign)child->winHAlign() == EHAlign::Full || (EVAlign)winHAlign() == EVAlign::Full)
+			{
+				child->ResizeChild();
+			}
+		}
+	}
 }
 
 void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMargin0, float* newVMargin0, float* newHMargin1, float* newVMargin1)
