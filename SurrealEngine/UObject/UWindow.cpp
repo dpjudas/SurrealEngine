@@ -194,8 +194,35 @@ std::string UWindow::ConvertScriptString(const std::string& oldStr)
 
 bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX, float& relativeY)
 {
-	LogUnimplemented("Window.ConvertVectorToCoordinates");
-	return false;
+	// Convert to view space
+	vec4 viewSpaceLocation = engine->render->MainFrame.Frame.WorldToView * vec4(Location, 1.0f);
+//	if (viewSpaceLocation.z < 1.0f) // To do: should this be < 1.0 or > -1.0? (OpenGL vs Vulkan/D3D - what did we use?)
+//		return false;
+
+	// Perform perspective projection
+	vec4 projLocation = engine->render->MainFrame.Frame.Projection * viewSpaceLocation;
+	float rcpW = 1.0f / projLocation.w;
+	projLocation.x *= rcpW;
+	projLocation.y *= rcpW;
+	projLocation.z *= rcpW;
+
+	// Scale to viewport
+	vec2 screenLocation = vec2(
+		(projLocation.x - 1.0f) * engine->ViewportWidth * 0.5f,
+		(projLocation.y - 1.0f) * engine->ViewportHeight * 0.5f);
+
+	// Convert to virtual coordinates
+	vec2 globalLocation = vec2(
+		screenLocation.x * GetVirtualWidth() / engine->ViewportWidth,
+		screenLocation.y * GetVirtualHeight() / engine->ViewportHeight);
+
+	UWindow* root = GetRootWindow();
+	if (!root)
+		return false;
+
+	ConvertCoordinates(root, globalLocation.x, globalLocation.y, this, relativeX, relativeY);
+
+	return relativeX >= 0.0f && relativeX < Width() && relativeY >= 0.0f && relativeY < Height(); // Is this correct?
 }
 
 void UWindow::Destroy()

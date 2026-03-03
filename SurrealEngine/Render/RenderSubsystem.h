@@ -94,6 +94,8 @@ public:
 		int Actors = 0;
 	} Stats;
 
+	VisibleFrame MainFrame;
+
 private:
 	void DrawScene();
 
@@ -117,8 +119,6 @@ private:
 	float AutoUV = 0.0f;
 	float AmbientGlowTime = 0.0f;
 	float AmbientGlowAmount = 0.0f;
-
-	VisibleFrame MainFrame;
 
 	struct
 	{
