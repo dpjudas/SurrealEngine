@@ -208,8 +208,8 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 
 	// Scale to viewport
 	vec2 screenLocation = vec2(
-		(projLocation.x - 1.0f) * engine->ViewportWidth * 0.5f,
-		(projLocation.y - 1.0f) * engine->ViewportHeight * 0.5f);
+		(projLocation.x + 1.0f) * engine->ViewportWidth * 0.5f,
+		(1.0f - projLocation.y) * engine->ViewportHeight * 0.5f);
 
 	// Convert to virtual coordinates
 	vec2 globalLocation = vec2(
