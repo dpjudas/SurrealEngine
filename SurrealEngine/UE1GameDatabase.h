@@ -18,6 +18,7 @@ enum class KnownUE1Games
 	UNREALGOLD_227i,
 	UNREALGOLD_227j,
 	UNREALGOLD_227k_11,
+	UNREALGOLD_227k_14,
 	UT99_400,
 	UT99_436,
 	UT99_451,
@@ -25,6 +26,7 @@ enum class KnownUE1Games
 	UT99_469b,
 	UT99_469c,
 	UT99_469d,
+	UT99_469e,
 	DEUS_EX_1002f,
 	DEUS_EX_1112fm,
 	KLINGON_219,
@@ -81,6 +83,16 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux 64 bit
 	{"60425d1dc310e49f1aa0d05c81abc3195f0b03d9", KnownUE1Games::UNREALGOLD_227k_11},
 
+	// Unreal Gold, 227k_14, Windows + Linux versions (32 + 64 bit)
+	// Windows 32 bit
+	{"857bd2c5117229001b7669311fd5fa3aaf0845b3", KnownUE1Games::UNREALGOLD_227k_14},
+	// Windows 64 bit
+	{"cdd5e29d4e3fef90792837377af1cc266c2d688c", KnownUE1Games::UNREALGOLD_227k_14},
+	// Linux 32 bit (unreal-bin-x86)
+	{"7ae324464aa22ec0cf922bb752be88b46cf6fed4", KnownUE1Games::UNREALGOLD_227k_14},
+	// Linux 64 bit (unreal-bin-amd64)
+	{"9353fc6ef23a669a3920f936de7a9d1090aa7b2f", KnownUE1Games::UNREALGOLD_227k_14},
+
 	// Unreal Tournament, v436, Windows version
 	// (TODO: get sha1sum of the Linux version)
 	{"38e7c23e17b4acbc745d955f234726bad730d3e2", KnownUE1Games::UT99_436},
@@ -120,6 +132,14 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469d},
 	// Linux, 64 bit
 	{"e117d883e3d0c480e9c56b01932b161c6c6f1315", KnownUE1Games::UT99_469d},
+
+	// Unreal Tournament, v469e, Windows + Linux versions (32 + 64 bit)
+	// Windows
+	{"0bf87fa4530ec9ecb0a144c95fb435ff3464ce15", KnownUE1Games::UT99_469e},
+	// Linux 32 bit (ut-bin-x86)
+	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469e},
+	// Linux 64 bit (ut-bin-amd64)
+	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469e},
 
 	// Deus Ex, v1002f
 	{"9f923d667a396e8243028c14dc3f5e0a6db13d84", KnownUE1Games::DEUS_EX_1002f},
