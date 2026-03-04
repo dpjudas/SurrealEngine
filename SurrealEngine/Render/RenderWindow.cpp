@@ -31,21 +31,50 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 
 void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offsetY)
 {
-	engine->dxgc->EnableDrawing(true);
-	engine->dxgc->EnableMasking(false);
-	engine->dxgc->EnableModulation(false);
-	engine->dxgc->EnableSmoothing(true);
+	// Reset everything first
+	engine->dxgc->HAlign() = (uint8_t)EHAlign::Left;
+	engine->dxgc->PolyFlags() = 0;
+	engine->dxgc->Style() = 0;
+	engine->dxgc->TextColor() = { 255, 255, 255, 255 };
+	engine->dxgc->VAlign() = (uint8_t)EVAlign::Top;
+	engine->dxgc->bDrawEnabled() = true;
+	engine->dxgc->bFree() = false;
+	engine->dxgc->bMasked() = false;
+	engine->dxgc->bModulated() = false;
+	engine->dxgc->bParseMetachars() = false;
+	engine->dxgc->bSmoothed() = false;
+	engine->dxgc->bTextTranslucent() = false;
+	engine->dxgc->bTranslucent() = false;
+	engine->dxgc->bWordWrap() = true;
+	engine->dxgc->baselineOffset() = 0.0f;
+	engine->dxgc->boldFont() = nullptr;
+	engine->dxgc->gcClipRect() = {};
+	engine->dxgc->gcCount() = 0;
+	engine->dxgc->gcFree() = nullptr;
+	engine->dxgc->gcOwner() = nullptr;
+	engine->dxgc->gcStack() = nullptr;
+	engine->dxgc->hMultiplier() = 0;
+	engine->dxgc->normalFont() = nullptr;
+	//engine->dxgc->textPlane() = {}
+	engine->dxgc->textPolyFlags() = 0;
+	engine->dxgc->textVSpacing() = 0.0f;
+	engine->dxgc->tileColor() = { 255, 255, 255, 255 };
+	//engine->dxgc->tilePlane() = {};
+	engine->dxgc->underlineHeight() = 0.0f;
+	engine->dxgc->underlineTexture() = nullptr;
+	engine->dxgc->vMultiplier() = 0;
+	engine->dxgc->SpecialTextEnabled = false;
+
+	// Copy state from window
 	engine->dxgc->EnableSpecialText(window->bSpecialText());
-	engine->dxgc->EnableTranslucency(true);
 	engine->dxgc->EnableTranslucentText(window->bTextTranslucent());
-	engine->dxgc->EnableWordWrap(true);
 	engine->dxgc->SetBaselineData(&window->BaselineOffset, &window->UnderlineHeight);
 	engine->dxgc->SetFonts(window->normalFont(), window->boldFont());
-	engine->dxgc->SetHorizontalAlignment((uint8_t)EHAlign::Left);
 	engine->dxgc->SetTextColor(window->TextColor());
 	engine->dxgc->SetTextVSpacing(window->textVSpacing());
 	engine->dxgc->SetTileColor(window->tileColor());
-	engine->dxgc->SetVerticalAlignment((uint8_t)EVAlign::Top);
+
+	// Setup origin and clipping for the window
 	engine->dxgc->offsetX = offsetX;
 	engine->dxgc->offsetY = offsetY;
 	engine->dxgc->clipBox = engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height()));

@@ -1028,6 +1028,11 @@ void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMar
 
 void UWindow::InitWindow()
 {
+	TextColor() = { 255, 255, 255, 255 };
+	//textPlane() = vec4(1.0f);
+	tileColor() = { 255, 255, 255, 255 };
+	//tilePlane() = vec4(1.0f);
+
 	CallEvent(this, "InitWindow");
 }
 
