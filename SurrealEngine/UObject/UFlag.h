@@ -35,8 +35,27 @@ public:
 	bool SetRotator(const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration);
 	bool SetVector(const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration);
 
+	UFlag* GetFlag(const NameString& flagName, uint8_t flagType);
+
+	template<typename T>
+	T* GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, int* expiration, EFlagType flagType, const char* flagClassName);
+
 	int& defaultFlagExpiration() { return Value<int>(PropOffsets_FlagBase.defaultFlagExpiration); }
 	UFlag** hashTable() { return FixedArray<UFlag*>(PropOffsets_FlagBase.hashTable); }
+
+	struct FlagIterator
+	{
+		int HashPos = 0;
+		uint8_t FlagType = 0;
+		bool FlagTypeSet = false;
+	};
+
+	std::unordered_map<int, FlagIterator> FlagIterators;
+	int NextIterator = 1;
+
+	std::vector<UClass*> FlagClasses;
+
+	static const int HashTableSize = 64;
 };
 
 class UFlag : public UExtensionObject
