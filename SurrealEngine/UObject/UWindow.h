@@ -337,8 +337,9 @@ public:
 
 	virtual void Tick(float timeElapsed);
 
-	static float GetVirtualWidth();
-	static float GetVirtualHeight() { return 600.0f; } // Assume it was originally designed for 800x600
+	// Assume it was originally designed for 800x600
+	static float GetVirtualWidth() { return 800.0f; }
+	static float GetVirtualHeight() { return 600.0f; }
 	static float GetVirtualScale();
 
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }
@@ -1444,15 +1445,15 @@ public:
 	Rectf ScaleRect(const Rectf& box);
 	uint32_t EffectivePolyFlags();
 	uint32_t EffectiveTextPolyFlags();
-	void DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rectf& clipBox, const Color& c, uint32_t flags);
-	Sizef DrawText(UFont* font, float x, float y, float destWidth, const std::string& text, const Rectf& clipBox, const Color& c, uint32_t polyflags, bool noDraw = false);
+	void DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Color& c, uint32_t flags);
+	Sizef DrawText(UFont* font, float x, float y, float destWidth, const std::string& text, const Color& c, uint32_t polyflags, bool noDraw = false);
 	Array<TextBlock> FindTextBlocks(const std::string& text);
-	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clipBox, const Color& color, uint32_t polyflags);
+	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Color& color, uint32_t polyflags);
 	vec2 GetTextSize(UFont* font, const std::string& text);
 
 	bool SpecialTextEnabled = false;
 
-	// To do: apply cliprect?
 	float offsetX = 0.0f;
 	float offsetY = 0.0f;
+	Rectf clipBox;
 };

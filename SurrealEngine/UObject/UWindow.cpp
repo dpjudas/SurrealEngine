@@ -23,41 +23,37 @@ void UWindow::UpdateLayout()
 	if (parent)
 	{
 		if (!bConfigured())
-			AskParentForReconfigure();
+			ResizeChild();
 
-		UWindow* parent = parentOwner();
-		if (parent)
-		{
-			EHAlign halign = (EHAlign)winHAlign();
-			EVAlign valign = (EVAlign)winVAlign();
-			float leftMargin = hMargin0();
-			float rightMargin = hMargin1();
-			float topMargin = vMargin0();
-			float bottomMargin = vMargin1();
+		EHAlign halign = (EHAlign)winHAlign();
+		EVAlign valign = (EVAlign)winVAlign();
+		float leftMargin = hMargin0();
+		float rightMargin = hMargin1();
+		float topMargin = vMargin0();
+		float bottomMargin = vMargin1();
 
-			float pWidth = parent->Width();
-			float pHeight = parent->Height();
-			float width = Width();
-			float height = Height();
+		float pWidth = parent->Width();
+		float pHeight = parent->Height();
+		float width = Width();
+		float height = Height();
 
-			float x = 0.0f, y = 0.0f;
-			if (halign == EHAlign::Left || halign == EHAlign::Full)
-				x = X();
-			else if (halign == EHAlign::Center)
-				x = (pWidth - width) * 0.5f + X();
-			else if (halign == EHAlign::Right)
-				x = pWidth - width - X();
+		float x = 0.0f, y = 0.0f;
+		if (halign == EHAlign::Left || halign == EHAlign::Full)
+			x = X();
+		else if (halign == EHAlign::Center)
+			x = (pWidth - width) * 0.5f + X();
+		else if (halign == EHAlign::Right)
+			x = pWidth - width - X();
 
-			if (valign == EVAlign::Top || valign == EVAlign::Full)
-				y = Y();
-			else if (valign == EVAlign::Center)
-				y = (pHeight - height) * 0.5f + Y();
-			else if (valign == EVAlign::Bottom)
-				y = pHeight - height - Y();
+		if (valign == EVAlign::Top || valign == EVAlign::Full)
+			y = Y();
+		else if (valign == EVAlign::Center)
+			y = (pHeight - height) * 0.5f + Y();
+		else if (valign == EVAlign::Bottom)
+			y = pHeight - height - Y();
 
-			UsedX = x;
-			UsedY = y;
-		}
+		UsedX = x;
+		UsedY = y;
 	}
 	else
 	{
@@ -84,11 +80,6 @@ void UWindow::UpdateLayout()
 		FirstDraw = false;
 		WindowReady();
 	}
-}
-
-float UWindow::GetVirtualWidth()
-{
-	return 800.0f;// engine->ViewportWidth / GetVirtualScale();
 }
 
 float UWindow::GetVirtualScale()
@@ -898,23 +889,22 @@ void UWindow::SetSize(float newWidth, float NewHeight)
 
 void UWindow::SetWidth(float newWidth)
 {
-	Width() = newWidth;
 	hardcodedWidth() = newWidth;
 	FixedWidth = true;
+	bConfigured() = false;
 }
 
 void UWindow::SetHeight(float NewHeight)
 {
-	Height() = NewHeight;
 	hardcodedHeight() = NewHeight;
 	FixedHeight = true;
+	bConfigured() = false;
 }
 
 void UWindow::SetConfiguration(float newX, float newY, float newWidth, float NewHeight)
 {
 	SetPos(newX, newY);
 	SetSize(newWidth, NewHeight);
-	bConfigured() = true;
 }
 
 void UWindow::SetPos(float newX, float newY)
@@ -925,60 +915,66 @@ void UWindow::SetPos(float newX, float newY)
 
 void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 {
-	if (FixedWidth && FixedHeight)
+	bool widthSet = false;
+	bool heightSet = false;
+
+	if (FixedWidth)
 	{
 		preferredWidth = hardcodedWidth();
-		preferredHeight = hardcodedHeight();
+		widthSet = true;
 	}
-	else if (FixedWidth)
-	{
-		preferredWidth = hardcodedWidth();
-	}
-	else if (FixedHeight)
+
+	if (FixedHeight)
 	{
 		preferredHeight = hardcodedHeight();
+		heightSet = true;
 	}
-	else
+
+	if (!widthSet || !heightSet)
 	{
-		ParentRequestedPreferredSize(true, preferredWidth, true, preferredHeight);
+		ParentRequestedPreferredSize(widthSet, preferredWidth, heightSet, preferredHeight);
 	}
+
 	lastQueryWidth() = preferredWidth;
 	lastQueryHeight() = preferredHeight;
 }
 
 float UWindow::QueryPreferredWidth(float queryHeight)
 {
+	float width = 0.0f;
+
 	if (FixedWidth)
 	{
-		return hardcodedWidth();
+		width = hardcodedWidth();
 	}
 	else
 	{
-		float width = 0.0f;
 		ParentRequestedPreferredSize(false, width, true, queryHeight);
-		lastQueryWidth() = width;
-		return width;
 	}
+
+	lastQueryWidth() = width;
+	return width;
 }
 
 float UWindow::QueryPreferredHeight(float queryWidth)
 {
+	float height = 0.0f;
+
 	if (FixedHeight)
 	{
-		return hardcodedHeight();
+		height = hardcodedHeight();
 	}
 	else
 	{
-		float height = 0.0f;
 		ParentRequestedPreferredSize(true, queryWidth, false, height);
-		lastQueryHeight() = height;
-		return height;
 	}
+
+	lastQueryWidth() = height;
+	return height;
 }
 
 void UWindow::AskParentForReconfigure()
 {
-	bConfigured() = false;
 	UWindow* parent = parentOwner();
 	if (parent)
 	{
@@ -988,73 +984,31 @@ void UWindow::AskParentForReconfigure()
 
 void UWindow::ResizeChild()
 {
-	UWindow* owner = parentOwner();
 	float width = 0.0f, height = 0.0f;
-	bool widthSet = false, heightSet = false;
-
-	// If the window uses a fixed size:
-
-	if (FixedWidth)
-	{
-		widthSet = true;
-		width = Width();
-	}
-	if (FixedHeight)
-	{
-		heightSet = true;
-		height = Height();
-	}
-
-	// If the window has full window alignments:
-
-	if (!widthSet && owner && (EHAlign)winHAlign() == EHAlign::Full)
-	{
-		widthSet = true;
-		width = owner->Width();
-	}
-	if (!heightSet && owner && (EVAlign)winVAlign() == EVAlign::Full)
-	{
-		heightSet = true;
-		height = owner->Height();
-	}
-
-	// If we still don't know a size, ask the window:
-
-	if (!widthSet && !heightSet)
-	{
-		QueryPreferredSize(width, height);
-	}
-	else if (widthSet && !heightSet)
-	{
-		height = QueryPreferredHeight(width);
-	}
-	else if (!widthSet && heightSet)
-	{
-		width = QueryPreferredWidth(height);
-	}
-
+	QueryPreferredSize(width, height);
 	ConfigureChild(X(), Y(), width, height);
 }
 
-void UWindow::ConfigureChild(float newX, float newY, float newWidth, float NewHeight)
+void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHeight)
 {
-	if (!bConfigured() || X() != newX || Y() != newY || Width() != newWidth || Height() != NewHeight)
+	if (UWindow* owner = parentOwner())
+	{
+		if ((EHAlign)winHAlign() == EHAlign::Full)
+			newWidth = owner->Width();
+		if ((EVAlign)winVAlign() == EVAlign::Full)
+			newHeight = owner->Height();
+	}
+
+	if (!bConfigured() || X() != newX || Y() != newY || Width() != newWidth || Height() != newHeight)
 	{
 		X() = newX;
 		Y() = newY;
 		Width() = newWidth;
-		Height() = NewHeight;
+		Height() = newHeight;
 		bConfigured() = true;
-		ConfigurationChanged();
-
-		// Grr, this layout system is garbage. Why not just resize all on the unrealscript side...
 		for (UWindow* child = firstChild(); child; child = child->nextSibling())
-		{
-			if ((EHAlign)child->winHAlign() == EHAlign::Full || (EVAlign)winHAlign() == EVAlign::Full)
-			{
-				child->ResizeChild();
-			}
-		}
+			child->bConfigured() = false;
+		ConfigurationChanged();
 	}
 }
 
@@ -1628,9 +1582,9 @@ void UTileWindow::ConfigurationChanged()
 		float x = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
-			float w = 0.0f, h = 0.0f;
-			cur->QueryPreferredSize(w, h);
-			cur->ConfigureChild(x, 0.0f, w, h);
+			float w = cur->QueryPreferredWidth(Height());
+			float h = cur->QueryPreferredHeight(w);
+			cur->ConfigureChild(x, 0.0f, w, std::min(h, Height()));
 			x += w;
 		}
 	}
@@ -1639,9 +1593,9 @@ void UTileWindow::ConfigurationChanged()
 		float y = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
-			float w = 0.0f, h = 0.0f;
-			cur->QueryPreferredSize(w, h);
-			cur->ConfigureChild(0.0f, y, w, h);
+			float h = cur->QueryPreferredHeight(Width());
+			float w = cur->QueryPreferredWidth(h);
+			cur->ConfigureChild(0.0f, y, std::min(w, Width()), h);
 			y += h;
 		}
 	}
@@ -1749,14 +1703,15 @@ void UTextWindow::InitWindow()
 
 void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
-	/*
-	float xExtent = 0.0f, yExtent = 0.0f;
-	engine->dxgc->GetTextExtent(bWidthSpecified ? preferredWidth : 100000.0f, xExtent, yExtent, Text());
-	if (!bWidthSpecified)
-		preferredWidth = xExtent;
-	if (!bHeightSpecified)
-		preferredHeight = yExtent;
-	*/
+	if (!Text().empty()) // Is this needed?
+	{
+		float xExtent = 0.0f, yExtent = 0.0f;
+		engine->dxgc->GetTextExtent(bWidthSpecified ? preferredWidth : 100000.0f, xExtent, yExtent, Text());
+		if (!bWidthSpecified)
+			preferredWidth = xExtent;
+		if (!bHeightSpecified)
+			preferredHeight = yExtent;
+	}
 
 	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
 }
@@ -1764,7 +1719,9 @@ void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 void UTextWindow::DrawWindow(UGC* gc)
 {
 	if (normalFont()) // When should text windows draw their text? They are used for buttons, which sometimes draw themselves via UI
+	{
 		gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
+	}
 	UWindow::DrawWindow(gc);
 }
 
@@ -3632,22 +3589,21 @@ void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, 
 		float x = offsetX + DestX;
 		float y = offsetY + DestY;
 		uint32_t polyflags = EffectiveTextPolyFlags();
-		Rectf clip = Rectf::xywh(x, y, destWidth, destHeight);
 
 		auto valign = (EVAlign)VAlign();
 		if (valign == EVAlign::Top)
 		{
-			DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags);
+			DrawText(font, x, y, destWidth, textStr, TextColor(), polyflags);
 		}
 		else if (valign == EVAlign::Center || valign == EVAlign::Full)
 		{
-			Sizef extents = DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags, true);
-			DrawText(font, x, y + (destHeight - extents.height) * 0.5f, destWidth, textStr, clip, TextColor(), polyflags);
+			Sizef extents = DrawText(font, x, y, destWidth, textStr, TextColor(), polyflags, true);
+			DrawText(font, x, y + (destHeight - extents.height) * 0.5f, destWidth, textStr, TextColor(), polyflags);
 		}
 		else if (valign == EVAlign::Bottom)
 		{
-			Sizef extents = DrawText(font, x, y, destWidth, textStr, clip, TextColor(), polyflags, true);
-			DrawText(font, x, y + destHeight - extents.height, destWidth, textStr, clip, TextColor(), polyflags);
+			Sizef extents = DrawText(font, x, y, destWidth, textStr, TextColor(), polyflags, true);
+			DrawText(font, x, y + destHeight - extents.height, destWidth, textStr, TextColor(), polyflags);
 		}
 	}
 }
@@ -3670,9 +3626,8 @@ void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeigh
 			float swidth = (float)tex->USize();
 			float sheight = (float)tex->VSize();
 			Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
-			Rectf clip = dest;
 			Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
-			DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+			DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 		}
 	}
 }
@@ -3687,7 +3642,6 @@ void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, f
 	{
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
-		Rectf clip = ScaleRect(Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight));
 		Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
 		uint32_t polyflags = EffectivePolyFlags();
 		Color color = tileColor();
@@ -3697,10 +3651,10 @@ void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, f
 		Rectf left = Rectf::xywh(offsetX + DestX, offsetY + DestY, boxThickness, destHeight);
 		Rectf right = Rectf::xywh(offsetX + DestX - boxThickness, offsetY + DestY, boxThickness, destHeight);
 
-		DrawTile(tex, ScaleRect(top), src, clip, color, polyflags);
-		DrawTile(tex, ScaleRect(bottom), src, clip, color, polyflags);
-		DrawTile(tex, ScaleRect(left), src, clip, color, polyflags);
-		DrawTile(tex, ScaleRect(right), src, clip, color, polyflags);
+		DrawTile(tex, ScaleRect(top), src, color, polyflags);
+		DrawTile(tex, ScaleRect(bottom), src, color, polyflags);
+		DrawTile(tex, ScaleRect(left), src, color, polyflags);
+		DrawTile(tex, ScaleRect(right), src, color, polyflags);
 	}
 }
 
@@ -3717,7 +3671,7 @@ void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, swidth, sheight);
 		Rectf clip = dest;
 		Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
-		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -3732,7 +3686,7 @@ void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeigh
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
 		Rectf clip = dest;
 		Rectf src = Rectf::xywh(OrgX, OrgY, destWidth, destHeight);
-		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -3747,7 +3701,7 @@ void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float 
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
 		Rectf clip = dest;
 		Rectf src = Rectf::xywh(srcX, srcY, srcWidth, srcHeight);
-		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -3762,7 +3716,7 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
 		Rectf clip = dest;
 		Rectf src = Rectf::xywh(srcX, srcY, destWidth, destHeight);
-		DrawTile(tex, ScaleRect(dest), src, ScaleRect(clip), tileColor(), EffectivePolyFlags());
+		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -3878,7 +3832,7 @@ void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const s
 	UFont* font = normalFont();
 	if (font)
 	{
-		Sizef extents = DrawText(font, 0.0f, 0.0f, destWidth, textStr, Rectf(), TextColor(), 0, true);
+		Sizef extents = DrawText(font, 0.0f, 0.0f, destWidth, textStr, TextColor(), 0, true);
 		xExtent = extents.width;
 		yExtent = extents.height;
 	}
@@ -4075,7 +4029,7 @@ void UGC::SetVerticalAlignment(uint8_t newVAlign)
 	VAlign() = newVAlign;
 }
 
-void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rectf& clipBox, const Color& c, uint32_t flags)
+void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Color& c, uint32_t flags)
 {
 	vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
 	float Z = 1.0f;
@@ -4133,7 +4087,7 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Rec
 	}
 }
 
-Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& textStr, const Rectf& clipBox, const Color& color, uint32_t polyflags, bool noDraw)
+Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& textStr, const Color& color, uint32_t polyflags, bool noDraw)
 {
 	if (!bWordWrap())
 		destWidth = 100000.0f;
@@ -4175,7 +4129,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 					centerX = destWidth - lineWidth;
 
 				if (!noDraw)
-					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags);
 
 				curY += lineHeight;
 				totalHeight += lineHeight;
@@ -4199,7 +4153,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 					centerX = destWidth - lineWidth;
 
 				if (!noDraw)
-					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, clipBox, color, polyflags);
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags);
 
 				curX = 0;
 				curY += lineHeight;
@@ -4237,7 +4191,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 			centerX = destWidth - lineWidth;
 
 		if (!noDraw)
-			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, clipBox, color, polyflags);
+			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, color, polyflags);
 
 		curX += centerX + lineWidth;
 		curY += lineHeight;
@@ -4333,7 +4287,7 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 	return textBlocks;
 }
 
-void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Rectf& clip, const Color& color, uint32_t polyflags)
+void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Color& color, uint32_t polyflags)
 {
 	for (size_t i = start; i < end; i++)
 	{
@@ -4358,7 +4312,7 @@ void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlock
 			Rectf dest = Rectf::xywh(x, y, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
 
-			DrawTile(glyph.Texture, ScaleRect(dest), src, ScaleRect(clip), textBlocks[i].textColor, polyflags);
+			DrawTile(glyph.Texture, ScaleRect(dest), src, textBlocks[i].textColor, polyflags);
 
 			x += (float)glyph.USize;
 		}

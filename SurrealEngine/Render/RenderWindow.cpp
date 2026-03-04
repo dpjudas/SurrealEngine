@@ -48,6 +48,7 @@ void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offset
 	engine->dxgc->SetVerticalAlignment((uint8_t)EVAlign::Top);
 	engine->dxgc->offsetX = offsetX;
 	engine->dxgc->offsetY = offsetY;
+	engine->dxgc->clipBox = engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height()));
 }
 
 void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
@@ -72,6 +73,9 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)
 {
+	if (!window->bIsVisible())
+		return;
+
 	std::string text = UObject::GetUClassFullName(window).ToString();
 	text += " - ";
 	text += typeid(*window).name();
@@ -85,8 +89,8 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 	text += " w = " + std::to_string((int)w);
 	text += " h = " + std::to_string((int)h);
 
-	vec4 color = vec4(window->bIsVisible() ? 1.0f : 0.5f);
-	if (window->bIsVisible() && (window->Width() <= 0.5f || window->Height() <= 0.5f))
+	vec4 color = vec4(window->bConfigured() ? 1.0f : 0.5f);
+	if (window->bConfigured() && (window->Width() <= 0.5f || window->Height() <= 0.5f))
 		color = vec4(1.0f, 0.2f, 0.2f, 1.0f);
 	if (window == engine->dxRootWindow->FocusWindow())
 		color = vec4(0.5f, 1.0f, 0.5f, 1.0f);
@@ -94,11 +98,8 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 		color = vec4(0.5f, 0.5f, 1.0f, 1.0f);
 	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
 	DrawText(font, color, 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
-	if (window->bIsVisible())
+	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
 	{
-		for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
-		{
-			DrawWindowInfo(font, child, depth + 1, curY);
-		}
+		DrawWindowInfo(font, child, depth + 1, curY);
 	}
 }
