@@ -4,6 +4,7 @@
 #include "VisibleCorona.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
+#include "UObject/UWindow.h"
 
 void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans)
 {
@@ -43,6 +44,24 @@ void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
 	Frame.Y = engine->ViewportHeight;
 	Frame.FX = (float)engine->ViewportWidth;
 	Frame.FY = (float)engine->ViewportHeight;
+
+	if (engine->dxRootWindow && engine->dxRootWindow->RenderViewportSet)
+	{
+		// DeusEX expected a 4:3 monitor.
+		// The unrealscript code assumes that certain aspect ratio calculations would produce cinematic black bars.
+		// Unfortunately modern monitors are 16:9 (plus ultrawides), so we lie to the unrealscript code by boxing
+		// our window tree in a 4:3 area in the center of the screen.
+		// The code below calculates how the black bars would then lie within this area.
+
+		float virtualScale = engine->dxRootWindow->GetVirtualScale();
+		Frame.XB = (int)std::round((engine->dxRootWindow->UsedX + engine->dxRootWindow->renderX()) * virtualScale);
+		Frame.YB = (int)std::round((engine->dxRootWindow->UsedY + engine->dxRootWindow->renderY()) * virtualScale);
+		Frame.FX = engine->dxRootWindow->renderWidth() * virtualScale;
+		Frame.FY = engine->dxRootWindow->renderHeight() * virtualScale;
+		Frame.X = (int)std::round(Frame.FX);
+		Frame.Y = (int)std::round(Frame.FY);
+	}
+
 	Frame.FX2 = Frame.FX * 0.5f;
 	Frame.FY2 = Frame.FY * 0.5f;
 	Frame.ObjectToWorld = mat4::identity();

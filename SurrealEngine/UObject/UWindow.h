@@ -926,6 +926,8 @@ public:
 	int& snapshotHeight() { return Value<int>(PropOffsets_RootWindow.snapshotHeight); }
 	int& snapshotWidth() { return Value<int>(PropOffsets_RootWindow.snapshotWidth); }
 	int& vMultiplier() { return Value<int>(PropOffsets_RootWindow.vMultiplier); }
+
+	bool RenderViewportSet = false;
 };
 
 class UScrollAreaWindow : public UWindow

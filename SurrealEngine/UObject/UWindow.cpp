@@ -63,10 +63,15 @@ void UWindow::UpdateLayout()
 	{
 		float virtualWidth = GetVirtualWidth();
 		float virtualHeight = GetVirtualHeight();
+		float virtualScale = GetVirtualScale();
 		if (Width() != virtualWidth || Height() != virtualHeight)
 		{
 			ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
 		}
+
+		// Center the virtual viewbox
+		UsedX = std::round((engine->ViewportWidth - virtualWidth * virtualScale) * 0.5f) / virtualScale;
+		UsedY = 0.0f;
 	}
 
 	for (UWindow* child = firstChild(); child; child = child->nextSibling())
@@ -83,7 +88,7 @@ void UWindow::UpdateLayout()
 
 float UWindow::GetVirtualWidth()
 {
-	return engine->ViewportWidth / GetVirtualScale();
+	return 800.0f;// engine->ViewportWidth / GetVirtualScale();
 }
 
 float UWindow::GetVirtualScale()
@@ -196,8 +201,8 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 {
 	// Convert to view space
 	vec4 viewSpaceLocation = engine->render->MainFrame.Frame.WorldToView * vec4(Location, 1.0f);
-//	if (viewSpaceLocation.z < 1.0f) // To do: should this be < 1.0 or > -1.0? (OpenGL vs Vulkan/D3D - what did we use?)
-//		return false;
+	if (viewSpaceLocation.z < 1.0f) // To do: should this be < 1.0 or > -1.0? (OpenGL vs Vulkan/D3D - what did we use?)
+		return false;
 
 	// Perform perspective projection
 	vec4 projLocation = engine->render->MainFrame.Frame.Projection * viewSpaceLocation;
@@ -2348,7 +2353,7 @@ void URootWindow::LockMouse(BitfieldBool* bLockMove, BitfieldBool* bLockButton)
 
 void URootWindow::ResetRenderViewport()
 {
-	LogUnimplemented("RootWindow.ResetRenderViewport");
+	RenderViewportSet = false;
 }
 
 void URootWindow::SetDefaultEditCursor(UObject** newEditCursor)
@@ -2391,6 +2396,7 @@ void URootWindow::SetRenderViewport(float newX, float newY, float newWidth, floa
 	renderY() = newY;
 	renderWidth() = newWidth;
 	renderHeight() = NewHeight;
+	RenderViewportSet = true;
 }
 
 void URootWindow::SetSnapshotSize(float newWidth, float NewHeight)
