@@ -192,7 +192,7 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 {
 	// Convert to view space
 	vec4 viewSpaceLocation = engine->render->MainFrame.Frame.WorldToView * vec4(Location, 1.0f);
-	if (viewSpaceLocation.z < 1.0f) // To do: should this be < 1.0 or > -1.0? (OpenGL vs Vulkan/D3D - what did we use?)
+	if (viewSpaceLocation.z < 1.0f)
 		return false;
 
 	// Perform perspective projection
@@ -205,7 +205,7 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 	// Scale to viewport
 	vec2 viewportLocation = vec2(
 		(projLocation.x + 1.0f) * engine->ViewportWidth * 0.5f,
-		(1.0f - projLocation.y) * engine->ViewportHeight * 0.5f);
+		(projLocation.y + 1.0f) * engine->ViewportHeight * 0.5f);
 
 	// Convert to virtual coordinates
 	vec2 rootLocation = vec2(

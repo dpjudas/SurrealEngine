@@ -201,9 +201,9 @@ T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, in
 			{
 				flag->flagHash() = i; // Lets pretend until we have a proper hash
 				table[i] = flag;
+				return flag;
 			}
 		}
-		return flag;
 	}
 
 	return nullptr;
