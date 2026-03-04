@@ -21,6 +21,8 @@
 #include "UObject/UClient.h"
 #include "UObject/UInternetLink.h"
 #include "UObject/USubsystem.h"
+#include "UObject/UDXExtString.h"
+#include "UObject/UDXTextParser.h"
 #include "UObject/UWindow.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
@@ -819,6 +821,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString ipdrvPackage = "IpDrv";
 	NameString upakPackage = "UPak";
 	NameString extensionPackage = "Extension";
+	NameString deusExTextPackage = "DeusExText";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
@@ -980,6 +983,8 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UDeusExPlayer>(enginePackage, "DeusExPlayer", "PlayerPawnExt");
 		RegisterNativeClass<UPlayerPawnExt>(enginePackage, "PlayerPawnExt", "PlayerPawn");
 		RegisterNativeClass<UExtensionObject>(enginePackage, "ExtensionObject", "Object");
+		RegisterNativeClass<UDXExtString>(extensionPackage, "ExtString", "Object");
+		RegisterNativeClass<UDXTextParser>(deusExTextPackage, "DeusExTextParser", "Object");
 		RegisterNativeClass<UGC>(enginePackage, "GC", "ExtensionObject");
 		RegisterNativeClass<UWindow>(extensionPackage, "Window", "ExtensionObject");
 		RegisterNativeClass<UViewportWindow>(extensionPackage, "ViewportWindow", "Window");
