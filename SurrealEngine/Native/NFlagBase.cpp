@@ -2,6 +2,7 @@
 #include "NFlagBase.h"
 #include "VM/NativeFunc.h"
 #include "Engine.h"
+#include "UObject/UFlag.h"
 
 void NFlagBase::RegisterFunctions()
 {
@@ -34,145 +35,150 @@ void NFlagBase::RegisterFunctions()
 
 void NFlagBase::CheckFlag(UObject* Self, const NameString& FlagName, uint8_t flagType, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.CheckFlag");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->CheckFlag(FlagName, flagType);
 }
 
 void NFlagBase::CreateIterator(UObject* Self, uint8_t* flagType, int& ReturnValue)
 {
-	LogUnimplemented("FlagBase.CreateIterator");
-	ReturnValue = 0;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->CreateIterator(flagType);
 }
 
 void NFlagBase::DeleteAllFlags(UObject* Self)
 {
-	LogUnimplemented("FlagBase.DeleteAllFlags");
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	FlagBaseSelf->DeleteAllFlags();
 }
 
 void NFlagBase::DeleteExpiredFlags(UObject* Self, int criteria)
 {
-	LogUnimplemented("FlagBase.DeleteExpiredFlags");
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	FlagBaseSelf->DeleteExpiredFlags(criteria);
 }
 
 void NFlagBase::DeleteFlag(UObject* Self, const NameString& FlagName, uint8_t flagType, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.DeleteFlag");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->DeleteFlag(FlagName, flagType);
 }
 
 void NFlagBase::DestroyIterator(UObject* Self, int Iterator)
 {
-	LogUnimplemented("FlagBase.DestroyIterator");
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	FlagBaseSelf->DestroyIterator(Iterator);
 }
 
 void NFlagBase::GetBool(UObject* Self, const NameString& FlagName, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetBool");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetBool(FlagName);
 }
 
 void NFlagBase::GetByte(UObject* Self, const NameString& FlagName, uint8_t& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetByte");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetByte(FlagName);
 }
 
 void NFlagBase::GetExpiration(UObject* Self, const NameString& FlagName, uint8_t flagType, int& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetExpiration");
-	ReturnValue = 0;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetExpiration(FlagName, flagType);
 }
 
 void NFlagBase::GetFloat(UObject* Self, const NameString& FlagName, float& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetFloat");
-	ReturnValue = 0.0f;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetFloat(FlagName);
 }
 
 void NFlagBase::GetInt(UObject* Self, const NameString& FlagName, int& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetInt");
-	ReturnValue = 0;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetInt(FlagName);
 }
 
 void NFlagBase::GetName(UObject* Self, const NameString& FlagName, NameString& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetName");
-	ReturnValue = {};
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetName(FlagName);
 }
 
 void NFlagBase::GetNextFlag(UObject* Self, int Iterator, NameString& FlagName, uint8_t& flagType, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetNextFlag");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetNextFlag(Iterator, FlagName, flagType);
 }
 
 void NFlagBase::GetNextFlagName(UObject* Self, int Iterator, NameString& FlagName, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetNextFlagName");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetNextFlagName(Iterator, FlagName);
 }
 
 void NFlagBase::GetRotator(UObject* Self, const NameString& FlagName, Rotator& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetRotator");
-	ReturnValue = {};
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetRotator(FlagName);
 }
 
 void NFlagBase::GetVector(UObject* Self, const NameString& FlagName, vec3& ReturnValue)
 {
-	LogUnimplemented("FlagBase.GetVector");
-	ReturnValue = {};
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->GetVector(FlagName);
 }
 
 void NFlagBase::SetBool(UObject* Self, const NameString& FlagName, bool NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetBool");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetBool(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetByte(UObject* Self, const NameString& FlagName, uint8_t NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetByte");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetByte(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetDefaultExpiration(UObject* Self, int expiration)
 {
-	LogUnimplemented("FlagBase.SetDefaultExpiration");
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	FlagBaseSelf->SetDefaultExpiration(expiration);
 }
 
 void NFlagBase::SetExpiration(UObject* Self, const NameString& FlagName, uint8_t flagType, int expiration)
 {
-	LogUnimplemented("FlagBase.SetExpiration");
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	FlagBaseSelf->SetExpiration(FlagName, flagType, expiration);
 }
 
 void NFlagBase::SetFloat(UObject* Self, const NameString& FlagName, float NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetFloat");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetFloat(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetInt(UObject* Self, const NameString& FlagName, int NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetInt");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetInt(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetName(UObject* Self, const NameString& FlagName, const NameString& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetName");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetName(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetRotator(UObject* Self, const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetRotator");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetRotator(FlagName, NewValue, bAdd, expiration);
 }
 
 void NFlagBase::SetVector(UObject* Self, const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("FlagBase.SetVector");
-	ReturnValue = false;
+	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
+	ReturnValue = FlagBaseSelf->SetVector(FlagName, NewValue, bAdd, expiration);
 }

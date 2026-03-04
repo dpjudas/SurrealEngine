@@ -24,6 +24,7 @@
 #include "UObject/UDXExtString.h"
 #include "UObject/UDXTextParser.h"
 #include "UObject/UWindow.h"
+#include "UObject/UFlag.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/NCanvas.h"
@@ -821,6 +822,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString ipdrvPackage = "IpDrv";
 	NameString upakPackage = "UPak";
 	NameString extensionPackage = "Extension";
+	NameString deusExPackage = "DeusEx";
 	NameString deusExTextPackage = "DeusExText";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
@@ -980,9 +982,17 @@ void PackageManager::RegisterNativeClasses()
 	
 	if (IsDeusEx())
 	{
-		RegisterNativeClass<UDeusExPlayer>(enginePackage, "DeusExPlayer", "PlayerPawnExt");
-		RegisterNativeClass<UPlayerPawnExt>(enginePackage, "PlayerPawnExt", "PlayerPawn");
-		RegisterNativeClass<UExtensionObject>(enginePackage, "ExtensionObject", "Object");
+		RegisterNativeClass<UPlayerPawnExt>(extensionPackage, "PlayerPawnExt", "PlayerPawn");
+		RegisterNativeClass<UExtensionObject>(extensionPackage, "ExtensionObject", "Object");
+		RegisterNativeClass<UFlagBase>(extensionPackage, "FlagBase", "ExtensionObject");
+		RegisterNativeClass<UFlag>(extensionPackage, "Flag", "ExtensionObject");
+		RegisterNativeClass<UFlagBool>(extensionPackage, "FlagBool", "Flag");
+		RegisterNativeClass<UFlagByte>(extensionPackage, "FlagByte", "Flag");
+		RegisterNativeClass<UFlagFloat>(extensionPackage, "FlagFloat", "Flag");
+		RegisterNativeClass<UFlagInt>(extensionPackage, "FlagInt", "Flag");
+		RegisterNativeClass<UFlagName>(extensionPackage, "FlagName", "Flag");
+		RegisterNativeClass<UFlagRotator>(extensionPackage, "FlagRotator", "Flag");
+		RegisterNativeClass<UFlagVector>(extensionPackage, "FlagVector", "Flag");
 		RegisterNativeClass<UDXExtString>(extensionPackage, "ExtString", "Object");
 		RegisterNativeClass<UDXTextParser>(deusExTextPackage, "DeusExTextParser", "Object");
 		RegisterNativeClass<UGC>(enginePackage, "GC", "ExtensionObject");
@@ -1007,6 +1017,8 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UListWindow>(extensionPackage, "ListWindow", "Window");
 		RegisterNativeClass<UComputerWindow>(extensionPackage, "ComputerWindow", "Window");
 		RegisterNativeClass<UBorderWindow>(extensionPackage, "BorderWindow", "Window");
+
+		RegisterNativeClass<UDeusExPlayer>(deusExPackage, "DeusExPlayer", "PlayerPawnExt");
 	}
 }
 
