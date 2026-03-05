@@ -842,8 +842,8 @@ void Engine::LoginPlayer()
 		// Unclear if this is how DeusEx spawned this object
 		if (!pawnExt->FlagBase())
 		{
-			auto flagBaseCls = packages->GetTransientPackage()->NewObject("FlagBase", packages->FindClass("Extension.FlagBase"), ObjectFlags::Transient);
-			pawnExt->FlagBase() = UObject::Cast<UFlagBase>(flagBaseCls);
+			auto flagBaseCls = packages->FindClass("Extension.FlagBase");
+			pawnExt->FlagBase() = UObject::Cast<UFlagBase>(packages->GetTransientPackage()->NewObject("FlagBase", flagBaseCls, ObjectFlags::Transient));
 		}
 	}
 

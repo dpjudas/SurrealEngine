@@ -23,68 +23,72 @@ void NDeusExPlayer::RegisterFunctions()
 
 void NDeusExPlayer::ConBindEvents(UObject* Self)
 {
-	LogUnimplemented("DeusExPlayer.ConBindEvents");
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	PlayerSelf->ConBindEvents();
 }
 
 void NDeusExPlayer::CreateDataVaultImageNoteObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateDataVaultImageNoteObject");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateDataVaultImageNoteObject();
 }
 
 void NDeusExPlayer::CreateDumpLocationObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateDumpLocationObject");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateDumpLocationObject();
 }
 
 void NDeusExPlayer::CreateGameDirectoryObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateGameDirectoryObject");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateGameDirectoryObject();
 }
 
 void NDeusExPlayer::CreateHistoryEvent(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateHistoryEvent");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateHistoryEvent();
 }
 
 void NDeusExPlayer::CreateHistoryObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateHistoryObject");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateHistoryEvent();
 }
 
 void NDeusExPlayer::CreateLogObject(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.CreateLogObject");
-	ReturnValue = nullptr;
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->CreateLogObject();
 }
 
 void NDeusExPlayer::DeleteSaveGameFiles(UObject* Self, std::string* saveDirectory)
 {
-	LogUnimplemented("DeusExPlayer.DeleteSaveGameFiles");
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	PlayerSelf->DeleteSaveGameFiles(saveDirectory);
 }
 
 void NDeusExPlayer::GetDeusExVersion(UObject* Self, std::string& ReturnValue)
 {
-	ReturnValue = "1.112fm. Surreal Engine Edition!";
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->GetDeusExVersion();
 }
 
 void NDeusExPlayer::SaveGame(UObject* Self, int saveIndex, std::string* saveDesc)
 {
-	LogUnimplemented("DeusExPlayer.SaveGame");
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	PlayerSelf->SaveGame(saveIndex, saveDesc);
 }
 
 void NDeusExPlayer::SetBoolFlagFromString(UObject* Self, const std::string& flagNameString, bool bValue, NameString& ReturnValue)
 {
-	LogUnimplemented("DeusExPlayer.SetBoolFlagFromString");
-	ReturnValue = {};
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	ReturnValue = PlayerSelf->SetBoolFlagFromString(flagNameString, bValue);
 }
 
 void NDeusExPlayer::UnloadTexture(UObject* Self, UObject* Texture)
 {
-	UDeusExPlayer* player = UObject::Cast<UDeusExPlayer>(Self);
-	player->UnloadTexture(Texture);
+	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
+	PlayerSelf->UnloadTexture(Texture);
 }

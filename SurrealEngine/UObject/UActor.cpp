@@ -3596,40 +3596,48 @@ void UPlayerPawnExt::PostRenderWindows(UCanvas* canvas)
 {
 	engine->render->PostRenderWindows(canvas);
 }
+
 ////////////////////////////////////////////////////////
+
 void UDeusExPlayer::ConBindEvents()
 {
 	LogUnimplemented("DeusExPlayer.ConBindEvents");
 }
 
-void UDeusExPlayer::CreateDataVaultImageNoteObject()
+UObject* UDeusExPlayer::CreateDataVaultImageNoteObject()
 {
-	LogUnimplemented("DeusExPlayer.CreateDataVaultImageNoteObject");
+	auto cls = engine->packages->FindClass("DeusEx.DataVaultImageNote");
+	return engine->packages->GetTransientPackage()->NewObject("DataVaultImageNote", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::CreateDumpLocationObject()
+UObject* UDeusExPlayer::CreateDumpLocationObject()
 {
-	LogUnimplemented("DeusExPlayer.CreateDumpLocationObject");
+	auto cls = engine->packages->FindClass("DeusEx.DumpLocation");
+	return engine->packages->GetTransientPackage()->NewObject("DumpLocation", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::CreateGameDirectoryObject()
+UObject* UDeusExPlayer::CreateGameDirectoryObject()
 {
-	LogUnimplemented("DeusExPlayer.CreateGameDirectoryObject");
+	auto cls = engine->packages->FindClass("DeusEx.GameDirectory");
+	return engine->packages->GetTransientPackage()->NewObject("GameDirectory", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::CreateHistoryEvent()
+UObject* UDeusExPlayer::CreateHistoryEvent()
 {
-	LogUnimplemented("DeusExPlayer.CreateHistoryEvent");
+	auto cls = engine->packages->FindClass("DeusEx.ConHistoryEvent");
+	return engine->packages->GetTransientPackage()->NewObject("ConHistoryEvent", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::CreateHistoryObject()
+UObject* UDeusExPlayer::CreateHistoryObject()
 {
-	LogUnimplemented("DeusExPlayer.CreateHistoryObject");
+	auto cls = engine->packages->FindClass("DeusEx.ConHistory");
+	return engine->packages->GetTransientPackage()->NewObject("ConHistory", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::CreateLogObject()
+UObject* UDeusExPlayer::CreateLogObject()
 {
-	LogUnimplemented("DeusExPlayer.CreateLogObject");
+	auto cls = engine->packages->FindClass("DeusEx.DeusExLog");
+	return engine->packages->GetTransientPackage()->NewObject("DeusExLog", cls, ObjectFlags::Transient);
 }
 
 void UDeusExPlayer::DeleteSaveGameFiles(std::string* saveDirectory)
@@ -3647,9 +3655,11 @@ void UDeusExPlayer::SaveGame(int saveIndex, std::string* saveDesc)
 	LogUnimplemented("DeusExPlayer.SaveGame");
 }
 
-void UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameString, bool bValue)
+NameString UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameString, bool bValue)
 {
+	// Not called directly from script
 	LogUnimplemented("DeusExPlayer.SetBoolFlagFromString");
+	return {};
 }
 
 void UDeusExPlayer::UnloadTexture(UObject* Texture)

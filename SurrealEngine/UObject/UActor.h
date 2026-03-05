@@ -1835,16 +1835,16 @@ public:
 	using UPlayerPawnExt::UPlayerPawnExt;
 
 	void ConBindEvents();
-	void CreateDataVaultImageNoteObject();
-	void CreateDumpLocationObject();
-	void CreateGameDirectoryObject();
-	void CreateHistoryEvent();
-	void CreateHistoryObject();
-	void CreateLogObject();
+	UObject* CreateDataVaultImageNoteObject();
+	UObject* CreateDumpLocationObject();
+	UObject* CreateGameDirectoryObject();
+	UObject* CreateHistoryEvent();
+	UObject* CreateHistoryObject();
+	UObject* CreateLogObject();
 	void DeleteSaveGameFiles(std::string* saveDirectory);
 	std::string GetDeusExVersion();
 	void SaveGame(int saveIndex, std::string* saveDesc);
-	void SetBoolFlagFromString(const std::string& flagNameString, bool bValue);
+	NameString SetBoolFlagFromString(const std::string& flagNameString, bool bValue);
 	void UnloadTexture(UObject* Texture);
 
 	//UComputers*& ActiveComputer() { return Value<UComputers*>(PropOffsets_DeusExPlayer.ActiveComputer); }
