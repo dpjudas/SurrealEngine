@@ -37,6 +37,7 @@ public:
 	static void Complement_PreInt(int A, int& ReturnValue);
 	static void Concat_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
 	static void Cos(float A, float& ReturnValue);
+	static void CriticalDelete(UObject* Self, UObject* myObject);
 	static void Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
 	static void Disable(UObject* Self, const NameString& ProbeFunc);
 	static void DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
