@@ -712,6 +712,7 @@ void UWindow::SetAcceleratorText(const std::string& newStr)
 void UWindow::SetBackground(UObject* newBackground)
 {
 	Background() = UObject::Cast<UTexture>(newBackground);
+	bDrawRawBackground() = true;
 }
 
 void UWindow::SetBackgroundSmoothing(bool newSmoothing)
@@ -1297,6 +1298,17 @@ bool UWindow::EditActivated(UWindow* edit, bool bModified)
 
 void UWindow::DrawWindow(UGC* gc)
 {
+	if (bDrawRawBackground())
+	{
+		gc->SetStyle((EDrawStyle)backgroundStyle());
+		gc->EnableSmoothing(bSmoothBackground());
+		gc->SetTileColor(tileColor());
+		if (bStretchBackground())
+			gc->DrawBorders(0.0f, 0.0f, Width(), Height(), 0.0f, 0.0f, 0.0f, 0.0f, Background(), nullptr, nullptr);
+		else
+			gc->DrawIcon(0.0f, 0.0f, Background());
+	}
+
 	CallEvent(this, "DrawWindow", { ExpressionValue::ObjectValue(gc) });
 }
 
@@ -4032,7 +4044,7 @@ void UGC::SetVerticalAlignment(uint8_t newVAlign)
 
 void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Color& c, uint32_t flags)
 {
-	vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, c.A / 255.0f);
+	vec4 color(c.R / 255.0f, c.G / 255.0f, c.B / 255.0f, 1.0f/*c.A / 255.0f*/);
 	float Z = 1.0f;
 	vec4 fog(0.0f);
 
