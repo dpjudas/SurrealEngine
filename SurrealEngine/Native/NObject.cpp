@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "Math/quaternion.h"
 #include "Utils/StrCompare.h"
+#include "../Package/ObjectFlags.h"
 #include <cmath>
 
 #ifdef _MSC_VER
@@ -191,6 +192,7 @@ void NObject::RegisterFunctions()
 	if (engine->LaunchInfo.IsDeusEx())
 	{
 		RegisterVMNativeFunc_2("Object", "AllObjects", &NObject::AllObjects_DeusEx, 1001);
+		RegisterVMNativeFunc_1("Object", "CriticalDelete", &NObject::CriticalDelete, 751);
 	}
 
 	// Package 61 stuff
@@ -382,6 +384,11 @@ void NObject::Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue
 void NObject::Disable(UObject* Self, const NameString& ProbeFunc)
 {
 	Self->DisableEvent(ProbeFunc);
+}
+
+void NObject::CriticalDelete(UObject* Self, UObject* myObject)
+{
+	LogUnimplemented("Object.CriticalDelete");
 }
 
 void NObject::DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue)

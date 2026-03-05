@@ -123,9 +123,19 @@ void UWindow::AddActorRef(UObject* refActor)
 	++count;
 }
 
+// Doesn't really seem to be working but at least doesn't crash.
 int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName)
 {
-	LogUnimplemented("Window.AddTimer");
+    int timeoutMs = (int)(TimeOut * 1000.0f);  
+      
+    WTimer info;  
+    info.clientData = clientData ? *clientData : 0;  
+    info.functionName = functionName ? *functionName : NameString(); 
+	info.timeoutMs = timeoutMs; 
+    info.bLoop = bLoop ? *bLoop : false;  
+      
+    activeTimers.push_back(info);  
+      
 	return 0;
 }
 
@@ -1329,6 +1339,14 @@ void UWindow::Tick(float timeElapsed)
 {
 	if (bTickEnabled())
 		CallEvent(this, "Tick", { ExpressionValue::FloatValue(timeElapsed) });
+	for (WTimer& timer : activeTimers)
+	{
+		timer.timeoutMs -= timeElapsed;
+		if (timer.timeoutMs == 0)
+		{
+			CallEvent(this, timer.functionName, timer.clientData);
+		}
+	}
 	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 	{
 		cur->Tick(timeElapsed);
