@@ -16,7 +16,14 @@ PrintCommandlet::PrintCommandlet()
 void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
 	if (args.empty())
+	{
+		for (UObject* actor : engine->Level->Actors)
+		{
+			if (actor)
+				console->WriteOutput(ResetEscape() + actor->Name.ToString() + " - " + ColorEscape(96) + actor->Class->Name.ToString() + ResetEscape() + NewLine());
+		}
 		return;
+	}
 
 	Frame* frame = console->GetCurrentFrame();
 
