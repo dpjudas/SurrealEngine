@@ -18,6 +18,7 @@
 #include "UObject/UClass.h"
 #include "UObject/UClient.h"
 #include "UObject/USubsystem.h"
+#include "UObject/UFlag.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "GameWindow.h"
@@ -835,6 +836,16 @@ void Engine::LoginPlayer()
 	bool actorActuallySpawned = Level->Actors.size() != numActors;
 
 	pawn->LoadProperties();
+
+	if (auto pawnExt = UObject::TryCast<UPlayerPawnExt>(pawn))
+	{
+		// Unclear if this is how DeusEx spawned this object
+		if (!pawnExt->FlagBase())
+		{
+			auto flagBaseCls = packages->GetTransientPackage()->NewObject("FlagBase", packages->FindClass("Extension.FlagBase"), ObjectFlags::Transient);
+			pawnExt->FlagBase() = UObject::Cast<UFlagBase>(flagBaseCls);
+		}
+	}
 
 	// Assign the pawn to the viewport
 	viewport->Actor() = pawn;

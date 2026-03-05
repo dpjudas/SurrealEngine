@@ -30,6 +30,7 @@ class UWarpZoneInfo;
 class UZoneInfo;
 class URootWindow;
 class UCanvas;
+class UFlagBase;
 class PackageManager;
 class CollisionHit;
 class BspNode;
@@ -1767,7 +1768,7 @@ public:
 	void PreRenderWindows(UCanvas* canvas);
 	void PostRenderWindows(UCanvas* canvas);
 
-	// UFlagBase*& FlagBase() { return Value<UFlagBase*>(PropOffsets_PlayerPawnExt.FlagBase); }
+	UFlagBase*& FlagBase() { return Value<UFlagBase*>(PropOffsets_PlayerPawnExt.FlagBase); }
 	URootWindow*& RootWindow() { return Value<URootWindow*>(PropOffsets_PlayerPawnExt.RootWindow); }
 	int& actorCount() { return Value<int>(PropOffsets_PlayerPawnExt.actorCount); }
 	ActorRef* actorList() { return FixedArray<ActorRef>(PropOffsets_PlayerPawnExt.actorList); }
