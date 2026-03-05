@@ -3674,7 +3674,6 @@ void UGC::DrawIcon(float DestX, float DestY, UObject* tX)
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, swidth, sheight);
-		Rectf clip = dest;
 		Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
 		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
@@ -3689,7 +3688,6 @@ void UGC::DrawPattern(float DestX, float DestY, float destWidth, float destHeigh
 	if (tex)
 	{
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
-		Rectf clip = dest;
 		Rectf src = Rectf::xywh(OrgX, OrgY, destWidth, destHeight);
 		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
@@ -3704,7 +3702,6 @@ void UGC::DrawStretchedTexture(float DestX, float DestY, float destWidth, float 
 	if (tex)
 	{
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
-		Rectf clip = dest;
 		Rectf src = Rectf::xywh(srcX, srcY, srcWidth, srcHeight);
 		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
@@ -3719,7 +3716,6 @@ void UGC::DrawTexture(float DestX, float DestY, float destWidth, float destHeigh
 	if (tex)
 	{
 		Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
-		Rectf clip = dest;
 		Rectf src = Rectf::xywh(srcX, srcY, destWidth, destHeight);
 		DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
 	}
