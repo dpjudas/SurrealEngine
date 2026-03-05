@@ -70,6 +70,8 @@ void UFlagBase::DestroyIterator(int Iterator)
 
 bool UFlagBase::GetNextFlag(int Iterator, NameString& FlagName, uint8_t& flagType)
 {
+	FlagName = {}; // ResetFlags() expects this to be set to '' if no more flags were found
+
 	auto it = FlagIterators.find(Iterator);
 	if (it == FlagIterators.end() || it->second.HashPos == HashTableSize)
 		return false;
