@@ -22,8 +22,23 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 			if (actor)
 				console->WriteOutput(ResetEscape() + actor->Name.ToString() + " - " + ColorEscape(96) + actor->Class->Name.ToString() + ResetEscape() + NewLine());
 		}
-		return;
 	}
+	else
+	{
+		auto results = FindProperties(console, args);
+		if (!results.empty())
+		{
+			for (size_t i = 0, count = results.size(); i < count; i++)
+			{
+				PrintColumn(console, results[i].first, results[i].second, (i % 2 == 1) || (i + 1 == count));
+			}
+		}
+	}
+}
+
+std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties(DebuggerApp* console, const std::string& args)
+{
+	std::vector<std::pair<std::string, std::string>> results;
 
 	Frame* frame = console->GetCurrentFrame();
 
@@ -63,12 +78,8 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 						}
 
 						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
-
-						if (name.size() < 40)
-							name.resize(40, ' ');
-
-						console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
-						return;
+						results.push_back({ name, value });
+						return results;
 					}
 				}
 			}
@@ -101,12 +112,8 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 						}
 
 						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
-
-						if (name.size() < 40)
-							name.resize(40, ' ');
-
-						console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
-						return;
+						results.push_back({ name, value });
+						return results;
 					}
 				}
 			}
@@ -133,7 +140,7 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 			console->WriteOutput("Unknown variable " + chunks[0] + ResetEscape() + NewLine());
 		else
 			console->WriteOutput("None" + ResetEscape() + NewLine());
-		return;
+		return results;
 	}
 
 	std::string name;
@@ -142,8 +149,8 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	{
 		if (!obj)
 		{
-			console->WriteOutput(*chunk + ResetEscape() + " " + ColorEscape(96) + "None" + ResetEscape() + NewLine());
-			return;
+			results.push_back({ *chunk, "None" });
+			return results;
 		}
 
 		bFoundObj = false;
@@ -163,12 +170,8 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 				{
 					name = prop->Name.ToString();
 					value = prop->PrintValue(val);
-
-					if (name.size() < 40)
-						name.resize(40, ' ');
-
-					console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
-					return;
+					results.push_back({ name, value });
+					return results;
 				}
 			}
 		}
@@ -176,18 +179,15 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		if (!bFoundObj)
 		{
 			console->WriteOutput("Unknown variable " + *chunk + ResetEscape() + NewLine());
-			return;
+			return results;
 		}
 	}
 
 	if (!obj)
 	{
 		std::string name = *(chunks.end() - 1);
-		if (name.size() < 40)
-			name.resize(40, ' ');
-
-		console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + "None" + ResetEscape() + NewLine());
-		return;
+		results.push_back({ name, "None" });
+		return results;
 	}
 
 	auto props = obj->PropertyData.Class->Properties;
@@ -198,12 +198,21 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 		std::string name = prop->Name.ToString();
 		std::string value = prop->PrintValue(ptr);
-
-		if (name.size() < 40)
-			name.resize(40, ' ');
-
-		console->WriteOutput(name + ResetEscape() + " " + ColorEscape(96) + value + ResetEscape() + NewLine());
+		results.push_back({ name, value });
 	}
+	return results;
+}
+
+void PrintCommandlet::PrintColumn(DebuggerApp* console, const std::string& name, const std::string& value, bool lastColumn)
+{
+	std::string space1, space2;
+	space1.resize(std::max(32 - (int)name.size(), 1), ' ');
+	if (!lastColumn)
+		space2.resize(std::max(56 - (int)value.size(), 1), ' ');
+
+	console->WriteOutput(name + ResetEscape() + space1 + ColorEscape(96) + value + space2 + ResetEscape());
+	if (lastColumn)
+		console->WriteOutput(NewLine());
 }
 
 void PrintCommandlet::OnPrintHelp(DebuggerApp* console)
