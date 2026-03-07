@@ -213,6 +213,7 @@ public:
 	Array<UActor*>::iterator iterator;
 };
 
+// Added in Deus Ex
 class TraceTextureIterator : public Iterator
 {
 public:
@@ -224,6 +225,28 @@ public:
 	NameString* TexName = nullptr;
 	NameString* TexGroup = nullptr;
 	int* flags = nullptr;
+	vec3 HitLoc = vec3(0, 0, 0);
+	vec3 HitNorm = vec3(0, 0, 0);
+	vec3 End = vec3(0,0, 0);
+	vec3* Start = nullptr;
+	vec3* m_Extent = nullptr;
+
+private:
+	vec3 StartPoint = vec3(0, 0, 0);
+
+	CollisionHitList m_CollList;
+	CollisionHitList::const_iterator m_Iterator;
+};
+
+// Added in Deus Ex
+class TraceVisibleActorsIterator : public Iterator
+{
+public:
+	TraceVisibleActorsIterator(UObject* BaseClass, UObject** OutActor, vec3& HitLoc, vec3& HitNorm, vec3 End, vec3* Start, vec3* Extent);
+	bool Next() override;
+
+	UObject* BaseClass = nullptr;
+	UObject** OutActor = nullptr;
 	vec3 HitLoc = vec3(0, 0, 0);
 	vec3 HitNorm = vec3(0, 0, 0);
 	vec3 End = vec3(0,0, 0);

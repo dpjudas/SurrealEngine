@@ -743,19 +743,14 @@ void NActor::AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& 
 
 void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
+	// Deus Ex
 	Frame::CreatedIterator = std::make_unique<TraceTextureIterator>(BaseClass, &Actor, &texName, &texGroup, &flags, HitLoc, HitNorm, End, Start, Extent);
 }
 
 void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
-	LogUnimplemented("Actor.TraceVisibleActors");
 	// Deus Ex
-	// Note: this is not correct, but it will give unrealscript an iterator
-	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
-		SelfActor, BaseClass, &Actor, &HitLoc, &HitNorm, End,
-		Start ? *Start : SelfActor->Location(),
-		Extent ? *Extent : vec3(0, 0, 0));
+	Frame::CreatedIterator = std::make_unique<TraceVisibleActorsIterator>(BaseClass, &Actor, HitLoc, HitNorm, End, Start, Extent);
 }
 
 void NActor::InStasis(UObject* Self, BitfieldBool& ReturnValue)

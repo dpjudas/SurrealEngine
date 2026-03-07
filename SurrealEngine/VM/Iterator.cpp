@@ -413,3 +413,40 @@ bool TraceTextureIterator::Next()
 	flags = nullptr;
 	return false;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+TraceVisibleActorsIterator::TraceVisibleActorsIterator(UObject* BaseClass, UObject** OutActor, vec3& HitLoc, vec3& HitNorm, vec3 End, vec3* Start, vec3* Extent)
+	: BaseClass(BaseClass), OutActor(OutActor), HitLoc(HitLoc), HitNorm(HitNorm),  End(End), Start(Start), m_Extent(Extent)
+{
+	StartPoint = Start ? *Start : HitLoc;
+
+	auto radius = m_Extent ? length(m_Extent->xy()) : 0;
+	auto height = m_Extent ? ( m_Extent->z < 0 ? -m_Extent->z : m_Extent->z ) : 0;
+
+	m_CollList = engine->Level->Collision.Trace(StartPoint, End, height, radius, true, true, false);
+
+	m_Iterator = m_CollList.begin();
+}
+
+bool TraceVisibleActorsIterator::Next()
+{
+	while (m_Iterator != m_CollList.end())
+	{
+		auto foundActor = m_Iterator->Actor;
+
+		HitLoc = mix(StartPoint, End, m_Iterator->Fraction);
+		HitNorm = m_Iterator->Normal;
+
+		++m_Iterator;
+
+		if (foundActor && foundActor->IsA(BaseClass->Name) && !foundActor->bHidden())
+		{
+			*OutActor = foundActor;
+			return true;
+		}
+	}
+
+	*OutActor = nullptr;
+	return false;
+}
