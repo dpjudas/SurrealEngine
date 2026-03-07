@@ -361,3 +361,55 @@ bool ZoneActorsIterator::Next()
 
 	return *Actor;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+TraceTextureIterator::TraceTextureIterator(UObject* BaseClass, UObject** OutActor, NameString* TexName, NameString* TexGroup, int* Flags, vec3& HitLoc, vec3& HitNorm, vec3 End, vec3* Start, vec3* Extent)
+	: BaseClass(BaseClass), OutActor(OutActor), TexName(TexName), TexGroup(TexGroup), flags(Flags), HitLoc(HitLoc), HitNorm(HitNorm),
+	End(End), Start(Start), m_Extent(Extent)
+{
+	StartPoint = Start ? *Start : HitLoc;
+
+	auto radius = m_Extent ? length(m_Extent->xy()) : 0;
+	auto height = m_Extent ? ( m_Extent->z < 0 ? -m_Extent->z : m_Extent->z ) : 0;
+
+	m_CollList = engine->Level->Collision.Trace(StartPoint, End, height, radius, true, true, false);
+
+	m_Iterator = m_CollList.begin();
+}
+
+bool TraceTextureIterator::Next()
+{
+	while (m_Iterator != m_CollList.end())
+	{
+		UTexture* foundTexture = nullptr;
+
+		*OutActor = m_Iterator->Actor;
+		const auto node = m_Iterator->Node;
+
+		HitLoc = mix(StartPoint, End, m_Iterator->Fraction);
+
+		HitNorm = m_Iterator->Normal;
+
+		if (node)
+			foundTexture = engine->Level->Model->Surfaces[node->Surf].Material;
+		else if (*OutActor && (*OutActor)->IsA(BaseClass->Name))
+			foundTexture = UObject::Cast<UActor>(*OutActor)->Skin();
+
+		++m_Iterator;
+
+		if (foundTexture)
+		{
+			*TexName = foundTexture->Name;
+			*TexGroup = foundTexture->Outer() ? foundTexture->Outer()->Name : "";
+			*flags = foundTexture->PolyFlags();
+			return true;
+		}
+	}
+
+	*OutActor = nullptr;
+	TexName = nullptr;
+	TexGroup = nullptr;
+	flags = nullptr;
+	return false;
+}
