@@ -39,14 +39,13 @@ void UDXTextParser::GotoLabel(const std::string& label)
 
 uint8_t UDXTextParser::GetTag()
 {
-    LogUnimplemented("DeusExTextParser.GetTag()");
     return static_cast<uint8_t>(LastTag());
 }
 
 NameString UDXTextParser::GetName()
 {
+    NameString nameToReturn("");
     if (LastTag() == DeusExTextTags::TT_Font)
-        NameString nameToReturn("");
         return nameToReturn;
     return LastName();
 }
