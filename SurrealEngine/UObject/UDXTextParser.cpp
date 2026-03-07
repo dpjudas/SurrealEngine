@@ -1,11 +1,28 @@
 #include "UDXTextParser.h"
+#include "UDXExtString.h"
 #include "UObject.h"
+#include "../Package/Package.h"
+#include "../Package/PackageManager.h"
+#include "../Engine.h"
 #include "Utils/Logger.h"
 
 bool UDXTextParser::OpenText(NameString textName, std::string textPackage)
 {
+    // Unfinished and probably won't work.
     LogUnimplemented("DeusExTextParser.OpenText()");
-    return false;
+    CloseText();
+    if (textName.IsNone())
+        textName = NameString("DeusExQuotes"); // Not correct, but it handles empty strings just fine.
+    NameString fullPath(textPackage + textName.ToString());
+    UDXExtString* textObject = UObject::Cast<UDXExtString>(engine->packages->GetPackage(textPackage)->GetUObject(NameString("ExtString"), textName));
+    if (textObject)
+    {
+        const std::string sourceText = (textObject->Text() == "") ? "BOTTOM TEXT" : textObject->Text();
+        LastText() = sourceText;
+        TextPos() = 0;
+        Text() = 1;
+    }
+    return textObject != nullptr;
 }
 
 void UDXTextParser::CloseText()
