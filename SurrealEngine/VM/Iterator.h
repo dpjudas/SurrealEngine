@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ExpressionValue.h"
+#include "Collision/TopLevel/CollisionHit.h"
 
 class UZoneInfo;
 class UActor;
@@ -99,13 +100,13 @@ class CycleActorsIterator : public Iterator
 public:
 	CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex);
 	bool Next() override;
-private:  
-    UObject* BaseClass = nullptr;  
-    UObject** Actor = nullptr;  
-    int* outIndex = nullptr;  
-    size_t currentIndex = 0;  
-    size_t totalActors = 0;  
-    Array<UActor*> matchedActors; 
+private:
+    UObject* BaseClass = nullptr;
+    UObject** Actor = nullptr;
+    int* outIndex = nullptr;
+    size_t currentIndex = 0;
+    size_t totalActors = 0;
+    Array<UActor*> matchedActors;
 };
 
 class RadiusActorsIterator : public Iterator
@@ -210,4 +211,28 @@ public:
 
 	Array<UActor*> ZoneActors;
 	Array<UActor*>::iterator iterator;
+};
+
+class TraceTextureIterator : public Iterator
+{
+public:
+	TraceTextureIterator(UObject* BaseClass, UObject** OutActor, NameString* TexName, NameString* TexGroup, int* Flags, vec3& HitLoc, vec3& HitNorm, vec3 End, vec3* Start, vec3* Extent);
+	bool Next() override;
+
+	UObject* BaseClass = nullptr;
+	UObject** OutActor = nullptr;
+	NameString* TexName = nullptr;
+	NameString* TexGroup = nullptr;
+	int* flags = nullptr;
+	vec3 HitLoc = vec3(0, 0, 0);
+	vec3 HitNorm = vec3(0, 0, 0);
+	vec3 End = vec3(0,0, 0);
+	vec3* Start = nullptr;
+	vec3* m_Extent = nullptr;
+
+private:
+	vec3 StartPoint = vec3(0, 0, 0);
+
+	CollisionHitList m_CollList;
+	CollisionHitList::const_iterator m_Iterator;
 };
