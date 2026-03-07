@@ -1,5 +1,4 @@
 #include "UDXTextParser.h"
-
 #include "UObject.h"
 #include "Utils/Logger.h"
 
@@ -11,7 +10,8 @@ bool UDXTextParser::OpenText(NameString textName, std::string textPackage)
 
 void UDXTextParser::CloseText()
 {
-    LogUnimplemented("DeusExTextParser.CloseText()");
+    Text() = 0;
+    TextPos() = 0;
 }
 
 bool UDXTextParser::ProcessText()
@@ -22,8 +22,9 @@ bool UDXTextParser::ProcessText()
 
 bool UDXTextParser::IsEOF()
 {
-    LogUnimplemented("DeusExTextParser.IsEOF()");
-    return false;
+    if (Text() != 0 && TextPos() != 0)
+        return false;
+    return true;
 }
 
 std::string UDXTextParser::GetText()
@@ -44,10 +45,10 @@ uint8_t UDXTextParser::GetTag()
 
 NameString UDXTextParser::GetName()
 {
-    if (LastTag() != DeusExTextTags::TT_PlayerName && (LastTag() < DeusExTextTags::TT_Label || LastTag() > DeusExTextTags::TT_CloseBracket))
-        return LastName();
-    NameString nameToReturn("");
-    return nameToReturn;
+    if (LastTag() == DeusExTextTags::TT_Font)
+        NameString nameToReturn("");
+        return nameToReturn;
+    return LastName();
 }
 
 Color UDXTextParser::GetColor()
@@ -64,7 +65,7 @@ Color UDXTextParser::GetColor()
 
     else if (LastTag() > DeusExTextTags::TT_TextColor) {
         if (LastTag() == DeusExTextTags::TT_RevertColor) {
-            return LastColor();
+            return DefaultColor();
         }
         int weirdFallbackColor = ((int)(ptrdiff_t)this) & 0xff000000;
         Color color;  
@@ -75,7 +76,7 @@ Color UDXTextParser::GetColor()
         return color;
     }
     else {
-        return DefaultColor();
+        return LastColor();
     }
 }
 
