@@ -1,5 +1,6 @@
 #include "UDXTextParser.h"
 
+#include "UObject.h"
 #include "Utils/Logger.h"
 
 bool UDXTextParser::OpenText(NameString textName, std::string textPackage)
@@ -27,7 +28,6 @@ bool UDXTextParser::IsEOF()
 
 std::string UDXTextParser::GetText()
 {
-    LogUnimplemented("DeusExTextParser.GetText()");
     return LastText();
 }
 
@@ -44,30 +44,67 @@ uint8_t UDXTextParser::GetTag()
 
 NameString UDXTextParser::GetName()
 {
-    return LastName();
+    if (LastTag() != DeusExTextTags::TT_PlayerName && (LastTag() < DeusExTextTags::TT_Label || LastTag() > DeusExTextTags::TT_CloseBracket))
+        return LastName();
+    NameString nameToReturn("");
+    return nameToReturn;
 }
 
 Color UDXTextParser::GetColor()
 {
-    LogUnimplemented("DeusExTextParser.GetColor()");
-    return LastColor();
+    if (LastTag() < DeusExTextTags::TT_DefaultColor) {
+        int weirdFallbackColor = ((int)(ptrdiff_t)this) & 0xff000000;
+        Color color;  
+        color.A = (weirdFallbackColor >> 24) & 0xff;  // 255  
+        color.R = (weirdFallbackColor >> 16) & 0xff;  // 0    
+        color.G = (weirdFallbackColor >> 8) & 0xff;   // 0  
+        color.B = weirdFallbackColor & 0xff; 
+        return color;
+    }
+
+    else if (LastTag() > DeusExTextTags::TT_TextColor) {
+        if (LastTag() == DeusExTextTags::TT_RevertColor) {
+            return LastColor();
+        }
+        int weirdFallbackColor = ((int)(ptrdiff_t)this) & 0xff000000;
+        Color color;  
+        color.A = (weirdFallbackColor >> 24) & 0xff;  // 255  
+        color.R = (weirdFallbackColor >> 16) & 0xff;  // 0    
+        color.G = (weirdFallbackColor >> 8) & 0xff;   // 0  
+        color.B = weirdFallbackColor & 0xff; 
+        return color;
+    }
+    else {
+        return DefaultColor();
+    }
 }
 
 void UDXTextParser::GetEmailInfo(std::string& name, std::string& subject, std::string& from, std::string& to, std::string& cc)
 {
-    LogUnimplemented("DeusExTextParser.GetEmailInfo()");
-    name = LastEmailName();
-    subject = LastEmailSubject();
-    from = LastEmailFrom();
-    to = LastEmailTo();
-    cc = LastEmailCC();
+    name = "";
+    subject = "";
+    from = "";
+    to = "";
+    cc = "";
+    if (LastTag() == DeusExTextTags::TT_Email)
+    {
+        name = LastEmailName();
+        subject = LastEmailSubject();
+        from = LastEmailFrom();
+        to = LastEmailTo();
+        cc = LastEmailCC();
+    }
 }
 
 void UDXTextParser::GetFileInfo(std::string& fileName, std::string& fileDescription)
 {
-    LogUnimplemented("DeusExTextParser.GetFileInfo()");
-    fileName = LastFileName();
-    fileDescription = LastFileDescription();
+    fileName = "";
+    fileDescription = "";
+    if (LastTag() == DeusExTextTags::TT_File)
+    {
+        fileName = LastFileName();
+        fileDescription = LastFileDescription();
+    }
 }
 
 void UDXTextParser::SetPlayerName(const std::string& newPlayerName)
