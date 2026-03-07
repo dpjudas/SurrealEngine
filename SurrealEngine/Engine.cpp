@@ -575,6 +575,7 @@ void Engine::UnloadMap()
 	LevelInfo = nullptr;
 	Level = nullptr;
 	viewport->Actor() = nullptr;
+	dxRootWindow = nullptr;
 	packages->UnloadMap(std::move(LevelPackage));
 }
 
@@ -688,6 +689,12 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::BeginPlay); }
 		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::PostBeginPlay); }
 		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], EventName::SetInitialState); }
+
+		if (engine->LaunchInfo.IsDeusEx())
+		{
+			for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) CallEvent(Level->Actors[i], "PostPostBeginPlay"); }
+		}
+
 		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) Level->Actors[i]->InitBase(); }
 		LevelInfo->bStartup() = false;
 	}

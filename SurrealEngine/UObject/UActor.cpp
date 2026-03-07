@@ -74,6 +74,8 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 
 		CallEvent(actor, EventName::PostBeginPlay);
 		CallEvent(actor, EventName::SetInitialState);
+		if (engine->LaunchInfo.IsDeusEx())
+			CallEvent(actor, "PostPostBeginPlay");
 
 		actor->InitBase();
 

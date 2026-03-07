@@ -131,7 +131,7 @@ int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameS
     WTimer info;  
     info.clientData = clientData ? *clientData : 0;  
     info.functionName = functionName ? *functionName : NameString(); 
-	info.timeoutMs = timeoutMs; 
+	info.timeoutMs = (float)timeoutMs; 
     info.bLoop = bLoop ? *bLoop : false;  
       
     activeTimers.push_back(info);  
