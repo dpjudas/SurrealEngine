@@ -14,6 +14,21 @@
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
 
+// Hardcoded |p colors
+// Perhaps corresponding to CSS color names?
+// TODO: Figure out the rest
+static Color s_PColors[] = {
+	Color{  0,   0,   0, 255}, // p0 = ???
+	Color{255, 255, 255, 255}, // p1 = ??? (White maybe?)
+	Color{255, 255, 255, 255}, // p2 = ???
+	Color{255, 255, 255, 255}, // p3 = ???
+	Color{255, 255,   0, 255}, // p4 = Yellow
+	Color{  0,   0, 139, 255}, // p5 = Dark Blue
+	Color{255, 255, 255, 255}, // p6 = ???
+	Color{  0, 255, 255, 255}  // p7 = Cyan
+	// Are there more colors???
+};
+
 void UWindow::UpdateLayout()
 {
 	if (!bIsVisible())
@@ -4290,7 +4305,7 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 			size_t end = std::min(editedText.find_first_of(" \n", pos + 1), editedText.size());
 
 			std::string foundText = editedText.substr(pos, end - pos);
-			Color textColor = {198, 198, 198, 255};
+			Color textColor = {255, 255, 255, 255};
 			size_t accelPos = 0;
 
 			if (foundText.starts_with("|p"))
