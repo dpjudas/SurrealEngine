@@ -773,12 +773,14 @@ void NActor::RandomBiasedRotation(UObject* Self, int centralYaw, float yawDistri
 
 void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
 {
-	LogUnimplemented("Actor.SetInstantMusicVolume");
+	// Deus Ex
+	engine->audiodev->GetDevice()->SetMusicVolume(static_cast<float>(newMusicVolume) / 255.f);
 }
 
 void NActor::SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume)
 {
-	LogUnimplemented("Actor.SetInstantSoundVolume");
+	// Deus Ex
+	engine->audiodev->GetDevice()->SetSoundVolume(static_cast<float>(newSoundVolume) / 255.f);
 }
 
 void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
