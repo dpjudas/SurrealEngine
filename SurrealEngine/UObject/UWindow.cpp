@@ -4246,55 +4246,51 @@ vec2 UGC::GetTextSize(UFont* font, const std::string& text)
 	return { x, y };
 }
 
-// Hardcoded |p colors
-// Perhaps corresponding to CSS color names?
-// TODO: Figure out the rest
-static Color s_PColors[] = {
-	Color{  0,   0,   0, 255}, // p0 = ???
-	Color{255, 255, 255, 255}, // p1 = ??? (White maybe?)
-	Color{255, 255, 255, 255}, // p2 = ???
-	Color{255, 255, 255, 255}, // p3 = ???
-	Color{255, 255,   0, 255}, // p4 = Yellow
-	Color{  0,   0, 139, 255}, // p5 = Dark Blue
-	Color{255, 255, 255, 255}, // p6 = ???
-	Color{  0, 255, 255, 255}  // p7 = Cyan
-	// Are there more colors???
-};
-
 Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 {
 	// Split text into words, whitespace or newline
 	Array<TextBlock> textBlocks;
 	size_t pos = 0;
 
-	while (pos < text.size())
+	// Find all |n tokens and convert them into '\n's
+	std::string editedText = text;
+
+	auto newLinePos = editedText.find("|n");
+
+	while (newLinePos != std::string::npos)
 	{
-		if (text[pos] == '\r')
+		editedText.replace(newLinePos, 2, "\n");
+		newLinePos = editedText.find("|n");
+	}
+
+	while (pos < editedText.size())
+	{
+		if (editedText[pos] == '\r')
         {
             textBlocks.push_back({"\r", Color{255,255,255, 255}, 0});
             pos++;
         }
-		if (text[pos] == '\n')
+		if (editedText[pos] == '\n')
 		{
 			textBlocks.push_back({"\n", Color{255,255,255, 255}, 0});
 			pos++;
 		}
-		else if (text[pos] == ' ')
+		else if (editedText[pos] == ' ')
 		{
 			// Arbitrary-length whitespace
-			size_t end = std::min(text.find_first_not_of(' ', pos + 1), text.size());
+			size_t end = std::min(editedText.find_first_not_of(' ', pos + 1), editedText.size());
 
-			std::string whitespaceText = text.substr(pos, end - pos);
+			std::string whitespaceText = editedText.substr(pos, end - pos);
 
 			textBlocks.push_back({whitespaceText, Color{255, 255, 255, 255}, 0});
 			pos = end;
 		}
 		else
 		{
-			size_t end = std::min(text.find_first_of(" \n", pos + 1), text.size());
+			size_t end = std::min(editedText.find_first_of(" \n", pos + 1), editedText.size());
 
-			std::string foundText = text.substr(pos, end - pos);
-			Color textColor = {255, 255, 255, 255};
+			std::string foundText = editedText.substr(pos, end - pos);
+			Color textColor = {198, 198, 198, 255};
 			size_t accelPos = 0;
 
 			if (foundText.starts_with("|p"))

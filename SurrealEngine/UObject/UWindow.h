@@ -171,6 +171,21 @@ struct TextBlock
 	size_t accelPos;  // Accelerator position acquired from the |& control code
 };
 
+// Hardcoded |p colors
+// Perhaps corresponding to CSS color names?
+// TODO: Figure out the rest
+static Color s_PColors[] = {
+	Color{  0,   0,   0, 255}, // p0 = ???
+	Color{255, 255, 255, 255}, // p1 = ??? (White maybe?)
+	Color{255, 255, 255, 255}, // p2 = ???
+	Color{255, 255, 255, 255}, // p3 = ???
+	Color{255, 255,   0, 255}, // p4 = Yellow
+	Color{  0,   0, 139, 255}, // p5 = Dark Blue
+	Color{255, 255, 255, 255}, // p6 = ???
+	Color{  0, 255, 255, 255}  // p7 = Cyan
+	// Are there more colors???
+};
+
 class UExtensionObject : public UObject
 {
 public:
