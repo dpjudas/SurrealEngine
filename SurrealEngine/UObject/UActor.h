@@ -36,6 +36,7 @@ class CollisionHit;
 class BspNode;
 class CollisionHitList;
 struct MeshAnimSeq;
+struct XAIParams; // Deus Ex
 
 struct PointRegion
 {
@@ -153,6 +154,59 @@ enum class ETravelType : uint8_t
 	TRAVEL_Absolute, // Absolute URL
 	TRAVEL_Partial,  // Partial (Carry name, reset server)
 	TRAVEL_Relative  // Relative URL
+};
+
+// Deus Ex
+enum class EAIEventState : uint8_t
+{
+	EAISTATE_Begin,
+	EAISTATE_End,
+	EAISTATE_Pulse,
+	EAISTATE_ChangeBest
+};
+
+// Deus Ex
+enum class EAIEventType : uint8_t
+{
+	EAITYPE_Visual,
+	EAITYPE_Audio,
+	EAITYPE_Olifactory
+};
+
+// Deus Ex
+enum class EBarkModes : uint8_t
+{
+	BM_Idle,
+	BM_CriticalDamage,
+	BM_AreaSecure,
+	BM_TargetAcquired,
+	BM_TargetLost,
+	BM_GoingForAlarm,
+	BM_OutOfAmmo,
+	BM_Scanning,
+	BM_Futz,
+	BM_OnFire,
+	BM_TearGas,
+	BM_Gore,
+	BM_Surprise,
+	BM_PreAttackSearching,
+	BM_PreAttackSighting,
+	BM_PostAttackSearching,
+	BM_SearchGiveUp,
+	BM_AllianceHostile,
+	BM_AllianceFriendly
+};
+
+// Deus Ex (?)
+enum class EDodgeDir : uint8_t
+{
+	DODGE_None,
+	DODGE_Left,
+	DODGE_Right,
+	DODGE_Forward,
+	DODGE_Back,
+	DODGE_Active,
+	DODGE_Done
 };
 
 class UActor : public UObject
@@ -2027,4 +2081,14 @@ public:
 	float& swimDuration() { return Value<float>(PropOffsets_DeusExPlayer.swimDuration); }
 	float& swimTimer() { return Value<float>(PropOffsets_DeusExPlayer.swimTimer); }
 	uint8_t& translucencyLevel() { return Value<uint8_t>(PropOffsets_DeusExPlayer.translucencyLevel); }
+};
+
+// Deus Ex
+struct XAIParams
+{
+	UActor* BestActor;
+	float Score;
+	float Visibility;
+	float Volume;
+	float Smell;
 };
