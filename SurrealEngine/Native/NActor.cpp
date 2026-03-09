@@ -744,13 +744,21 @@ void NActor::AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& 
 void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
 	// Deus Ex
-	Frame::CreatedIterator = std::make_unique<TraceTextureIterator>(BaseClass, &Actor, &texName, &texGroup, &flags, HitLoc, HitNorm, End, Start, Extent);
+	auto SelfActor = UObject::Cast<UActor>(Self);
+	vec3 realStart = Start ? *Start : SelfActor->Location();
+	vec3 realExtent = Extent ? *Extent : vec3(0, 0, 0);
+
+	Frame::CreatedIterator = std::make_unique<TraceTextureIterator>(BaseClass, &Actor, &texName, &texGroup, &flags, HitLoc, HitNorm, End, &realStart, &realExtent);
 }
 
 void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
 {
 	// Deus Ex
-	Frame::CreatedIterator = std::make_unique<TraceVisibleActorsIterator>(BaseClass, &Actor, HitLoc, HitNorm, End, Start, Extent);
+	auto SelfActor = UObject::Cast<UActor>(Self);
+	vec3 realStart = Start ? *Start : SelfActor->Location();
+	vec3 realExtent = Extent ? *Extent : vec3(0, 0, 0);
+
+	Frame::CreatedIterator = std::make_unique<TraceVisibleActorsIterator>(BaseClass, &Actor, HitLoc, HitNorm, End, &realStart, &realExtent);
 }
 
 void NActor::InStasis(UObject* Self, BitfieldBool& ReturnValue)

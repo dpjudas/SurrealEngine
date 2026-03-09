@@ -8,19 +8,21 @@
 #include "UObject/UActor.h"
 
 AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, UObject* InOuter)
-	: BaseClass(BaseClass), ReturnValue(ReturnValue), InOuter(InOuter)
+	: BaseClass(BaseClass), ReturnValue(ReturnValue), InOuter(InOuter), m_Objects(GC::GetObjects()), m_Iterator(m_Objects.begin())
 {
 }
 
 bool AllObjectsIterator::Next()
 {
-	size_t size = engine->Level->Actors.size();
-	while (index < size)
+	while (m_Iterator != m_Objects.end())
 	{
-		UActor* actor = engine->Level->Actors[index++];
-		if (actor && actor->IsA(BaseClass->Name))
+		auto currentObject = dynamic_cast<UObject*>(*m_Iterator);
+
+		++m_Iterator;
+
+		if (currentObject && currentObject->IsA(BaseClass->Name) && (!InOuter || InOuter == currentObject->Outer()))
 		{
-			*ReturnValue = actor;
+			*ReturnValue = currentObject;
 			return true;
 		}
 	}
@@ -368,12 +370,10 @@ TraceTextureIterator::TraceTextureIterator(UObject* BaseClass, UObject** OutActo
 	: BaseClass(BaseClass), OutActor(OutActor), TexName(TexName), TexGroup(TexGroup), flags(Flags), HitLoc(HitLoc), HitNorm(HitNorm),
 	End(End), Start(Start), m_Extent(Extent)
 {
-	StartPoint = Start ? *Start : HitLoc;
-
 	auto radius = m_Extent ? length(m_Extent->xy()) : 0;
 	auto height = m_Extent ? ( m_Extent->z < 0 ? -m_Extent->z : m_Extent->z ) : 0;
 
-	m_CollList = engine->Level->Collision.Trace(StartPoint, End, height, radius, true, true, false);
+	m_CollList = engine->Level->Collision.Trace(*Start, End, height, radius, true, true, false);
 
 	m_Iterator = m_CollList.begin();
 }
@@ -387,7 +387,7 @@ bool TraceTextureIterator::Next()
 		*OutActor = m_Iterator->Actor;
 		const auto node = m_Iterator->Node;
 
-		HitLoc = mix(StartPoint, End, m_Iterator->Fraction);
+		HitLoc = mix(*Start, End, m_Iterator->Fraction);
 
 		HitNorm = m_Iterator->Normal;
 
@@ -419,12 +419,10 @@ bool TraceTextureIterator::Next()
 TraceVisibleActorsIterator::TraceVisibleActorsIterator(UObject* BaseClass, UObject** OutActor, vec3& HitLoc, vec3& HitNorm, vec3 End, vec3* Start, vec3* Extent)
 	: BaseClass(BaseClass), OutActor(OutActor), HitLoc(HitLoc), HitNorm(HitNorm),  End(End), Start(Start), m_Extent(Extent)
 {
-	StartPoint = Start ? *Start : HitLoc;
-
 	auto radius = m_Extent ? length(m_Extent->xy()) : 0;
 	auto height = m_Extent ? ( m_Extent->z < 0 ? -m_Extent->z : m_Extent->z ) : 0;
 
-	m_CollList = engine->Level->Collision.Trace(StartPoint, End, height, radius, true, true, false);
+	m_CollList = engine->Level->Collision.Trace(*Start, End, height, radius, true, true, false);
 
 	m_Iterator = m_CollList.begin();
 }
@@ -435,7 +433,7 @@ bool TraceVisibleActorsIterator::Next()
 	{
 		auto foundActor = m_Iterator->Actor;
 
-		HitLoc = mix(StartPoint, End, m_Iterator->Fraction);
+		HitLoc = mix(*Start, End, m_Iterator->Fraction);
 		HitNorm = m_Iterator->Normal;
 
 		++m_Iterator;
