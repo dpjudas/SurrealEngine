@@ -21,14 +21,15 @@ class AllObjectsIterator : public Iterator
 {
 public:
 	// InOuter is a 227-exclusive parameter
-	// TODO: Handle InOuter
 	AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, UObject* InOuter = nullptr);
 	bool Next() override;
+
 private:
 	UObject* BaseClass = nullptr;
 	UObject** ReturnValue = nullptr;
 	UObject* InOuter = nullptr;
-	size_t index = 0;
+	GCObjectList m_Objects;
+	GCObjectList::iterator m_Iterator;
 };
 
 
@@ -232,8 +233,6 @@ public:
 	vec3* m_Extent = nullptr;
 
 private:
-	vec3 StartPoint = vec3(0, 0, 0);
-
 	CollisionHitList m_CollList;
 	CollisionHitList::const_iterator m_Iterator;
 };
@@ -254,8 +253,6 @@ public:
 	vec3* m_Extent = nullptr;
 
 private:
-	vec3 StartPoint = vec3(0, 0, 0);
-
 	CollisionHitList m_CollList;
 	CollisionHitList::const_iterator m_Iterator;
 };
