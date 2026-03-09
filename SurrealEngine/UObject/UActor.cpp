@@ -2168,7 +2168,10 @@ void UActor::UpdateBspInfo()
 	else if ((dt == DT_Sprite || dt == DT_SpriteAnimOnce) && (Texture()))
 	{
 		vec3 location = Location();
-		vec3 extents = vec3(100.0f); // To do: this is wrong. We need the size of a sprite
+		auto texWidth = Texture()->UsedMipmaps[0].Width;
+		auto texHeight = Texture()->UsedMipmaps[0].Height;
+		// vec3 extents = vec3(100.0f); // To do: this is wrong. We need the size of a sprite
+		vec3 extents = vec3(std::max(texWidth, texHeight) * 0.5f * DrawScale());
 		bbox.min = location - extents;
 		bbox.max = location + extents;
 	}
@@ -2854,6 +2857,42 @@ UNavigationPoint* UPawn::FindClosestNavPoint(vec3 location)
 
 UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
 {
+	/*
+	auto invSpotList = Level()->GetInventorySpotList();
+	std::vector<int> costs;
+
+	int32_t minCost = INT32_MAX;
+
+	// auto closestNavPoint = FindClosestNavPoint(Location());
+	// float maxDist = 1000.f;
+
+	for (auto invSpot : invSpotList)
+	{
+		auto path = FindPathToEndPoint(invSpot, 1000);
+
+		int cost = 0;
+		for (auto nav : path)
+			cost += nav->cost();
+
+		costs.push_back(cost);
+		minCost = std::min(minCost, cost);
+
+		if (minCost == 0)
+		{
+			outMinWeight = 0.0f;
+			return SetRouteCache(path);
+		}
+	}
+
+	for (int idx = 0 ; idx < costs.size() ; idx++)
+	{
+		if (costs[idx] == minCost)
+		{
+			outMinWeight = (float)minCost;
+			return SetRouteCache(FindPathToEndPoint(invSpotList[idx], 1000));
+		}
+	}*/
+	
 	LogUnimplemented("Pawn.FindBestInventoryPath");
 	outMinWeight = 0.0f;
 	return SetRouteCache({});
