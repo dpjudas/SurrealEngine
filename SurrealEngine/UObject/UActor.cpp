@@ -1504,21 +1504,8 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 
 	// Untouch everything we aren't overlapping anymore
 	for (const auto actor : Touching())
-	{
 		if (actor && !IsOverlapping(actor))
 			UnTouch(actor);
-	}
-
-	/*
-	UActor** TouchingArray = Touching();
-	for (int i = 0; i < TouchingArraySize; i++)
-	{
-		if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
-		{
-			UnTouch(TouchingArray[i]);
-		}
-	}
-	*/
 
 	UpdateActorZone();
 
