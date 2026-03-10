@@ -122,16 +122,20 @@ struct BitfieldBool
 	BitfieldBool& operator=(bool v) { Set(v); return *this; }
 };
 
-class PropertyDataView
+// Provides a view for fixed-size array properties
+template <typename T, size_t n>
+class FixedArrayView
 {
 public:
-	PropertyDataView() = default;
-	PropertyDataView(void* data, size_t size) : d(data), s(size) {}
-	void* data() const { return d; }
-	size_t size() const { return s; }
+	FixedArrayView(T* data) : m_Data(data) {}
+	T* data() { return m_Data; }
+	size_t size() const { return n; }
+	T* begin() { return m_Data; }
+	T* end() { return m_Data + n; }
+	T& operator[](size_t index) { return m_Data[index]; }
+
 private:
-	void* d = nullptr;
-	size_t s = 0;
+	T* m_Data;
 };
 
 class PropertyDataBlock
@@ -251,12 +255,16 @@ public:
 #ifdef _MSC_VER
 	// MSVC has a non-standard extension that makes this possible
 	template<> bool& Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+	template<> BitfieldBool& Value(PropertyDataOffset offset) = delete; // BitfieldBools must use BoolValue
 #endif
 
 	BitfieldBool BoolValue(PropertyDataOffset offset) { BitfieldBool b; b.Ptr = static_cast<uint32_t*>(PropertyData.Ptr(offset.DataOffset)); b.Mask = offset.BitfieldMask; return b; }
 
-	template<typename T>
-	T* FixedArray(PropertyDataOffset offset) { return static_cast<T*>(PropertyData.Ptr(offset.DataOffset)); }
+	template<typename T, size_t n>
+	FixedArrayView<T, n> FixedArray(PropertyDataOffset offset)
+	{
+		return FixedArrayView<T, n>(static_cast<T*>(PropertyData.Ptr(offset.DataOffset)));
+	}
 
 	template<typename T>
 	Array<T>& DynamicArray(PropertyDataOffset offset) { return *static_cast<Array<T>*>(PropertyData.Ptr(offset.DataOffset)); }
@@ -317,6 +325,7 @@ T* ObjectStream::ReadObject()
 #ifndef _MSC_VER
 // Same deal with above, but for non-MSVC compilers
 template<> bool& UObject::Value(PropertyDataOffset offset) = delete; // Booleans must use BoolValue
+template<> BitfieldBool& UObject::Value(PropertyDataOffset offset) = delete; // BitfieldBools must use BoolValue
 #endif
 
 template<class T>
