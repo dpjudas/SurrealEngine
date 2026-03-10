@@ -51,7 +51,7 @@ public:
     NameString& LastName() { return Value<NameString>(PropOffsets_DeusExTextParser.lastName); }
     Color& LastColor() { return Value<Color>(PropOffsets_DeusExTextParser.lastColor); }
     Color& DefaultColor() { return Value<Color>(PropOffsets_DeusExTextParser.DefaultColor); }
-    BitfieldBool& bParagraphStarted() { return Value<BitfieldBool>(PropOffsets_DeusExTextParser.bParagraphStarted); }
+    BitfieldBool bParagraphStarted() { return BoolValue(PropOffsets_DeusExTextParser.bParagraphStarted); }
     std::string& PlayerName() { return Value<std::string>(PropOffsets_DeusExTextParser.PlayerName); }
     std::string& PlayerFirstName() { return Value<std::string>(PropOffsets_DeusExTextParser.playerFirstName); }
 
