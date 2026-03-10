@@ -158,7 +158,7 @@ public:
 	using UObject::UObject;
 
 	uint8_t& Format() { return Value<uint8_t>(PropOffsets_Bitmap.Format); }
-	int& InternalTime() { return Value<int>(PropOffsets_Bitmap.InternalTime); }
+	FixedArrayView<int, 2> InternalTime() { return FixedArray<int, 2>(PropOffsets_Bitmap.InternalTime); }
 	Color& MaxColor() { return Value<Color>(PropOffsets_Bitmap.MaxColor); }
 	Color& MipZero() { return Value<Color>(PropOffsets_Bitmap.MipZero); }
 	UPalette*& Palette() { return Value<UPalette*>(PropOffsets_Bitmap.Palette); }
@@ -387,7 +387,7 @@ public:
 	uint8_t& PenDownX() { return Value<uint8_t>(PropOffsets_FireTexture.PenDownX); }
 	uint8_t& PenDownY() { return Value<uint8_t>(PropOffsets_FireTexture.PenDownY); }
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
-	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_FireTexture.RenderTable); }
+	FixedArrayView<uint8_t, 1028> RenderTable() { return FixedArray<uint8_t, 1028>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
 	Array<Spark>& Sparks() { return Value<Array<Spark>>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
@@ -482,7 +482,7 @@ public:
 	void UpdateFrame() override;
 
 	uint8_t& DropType() { return Value<uint8_t>(PropOffsets_WaterTexture.DropType); }
-	ADrop* Drops() { return FixedArray<ADrop>(PropOffsets_WaterTexture.Drops); }
+	FixedArrayView<ADrop, 256> Drops() { return FixedArray<ADrop, 256>(PropOffsets_WaterTexture.Drops); }
 	// ADrop& Drops() { return Value<ADrop>(PropOffsets_WaterTexture.Drops); }
 	uint8_t& FX_Amplitude() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Amplitude); }
 	uint8_t& FX_Depth() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Depth); }
@@ -494,10 +494,10 @@ public:
 	uint8_t& FX_Time() { return Value<uint8_t>(PropOffsets_WaterTexture.FX_Time); }
 	int& NumDrops() { return Value<int>(PropOffsets_WaterTexture.NumDrops); }
 	int& OldWaveAmp() { return Value<int>(PropOffsets_WaterTexture.OldWaveAmp); }
-	uint8_t& RenderTable() { return Value<uint8_t>(PropOffsets_WaterTexture.RenderTable); }
+	FixedArrayView<uint8_t, 1028> RenderTable() { return FixedArray<uint8_t, 1028>(PropOffsets_WaterTexture.RenderTable); }
 	int& SourceFields() { return Value<int>(PropOffsets_WaterTexture.SourceFields); }
 	uint8_t& WaterParity() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterParity); }
-	uint8_t& WaterTable() { return Value<uint8_t>(PropOffsets_WaterTexture.WaterTable); }
+	FixedArrayView<uint8_t, 1536> WaterTable() { return FixedArray<uint8_t, 1536>(PropOffsets_WaterTexture.WaterTable); }
 	uint8_t& WaveAmp() { return Value<uint8_t>(PropOffsets_WaterTexture.WaveAmp); }
 
 protected:

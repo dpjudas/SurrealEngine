@@ -110,7 +110,7 @@ void UWindow::AddActorRef(UObject* refActor)
 	if (!target) return;
 
 	int& count = playerPawn->actorCount();
-	ActorRef* refs = playerPawn->actorList();
+	auto refs = playerPawn->actorList();
 
 	int foundIndex = -1;
 	for (int i = 0; i < count; ++i)
@@ -493,7 +493,7 @@ bool UWindow::IsActorValid(UObject* refActor)
 	if (!playerPawn) return false;
 	UActor* target = UObject::Cast<UActor>(refActor);
 	if (!target) return false;
-	ActorRef* refs = playerPawn->actorList();
+	auto refs = playerPawn->actorList();
 	for (int i = 0, count = playerPawn->actorCount(); i < count; i++)
 	{
 		if (refs[i].Actor == refActor)
@@ -687,7 +687,7 @@ void UWindow::RemoveActorRef(UObject* refActor)
 	if (!target) return;
 
 	int& count = playerPawn->actorCount();
-	ActorRef* refs = playerPawn->actorList();
+	auto refs = playerPawn->actorList();
 
 	int foundIndex = -1;
 	for (int i = 0; i < count; ++i)

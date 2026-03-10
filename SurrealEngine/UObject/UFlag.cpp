@@ -8,21 +8,19 @@ UFlag* UFlagBase::GetFlag(const NameString& flagName, uint8_t flagType)
 {
 	// To do: calculate a proper hash and use it
 
-	UFlag** table = hashTable();
-	for (int i = 0; i < HashTableSize; i++)
+	auto table = hashTable();
+	for (const auto flag : hashTable())
 	{
-		if (table[i] && table[i]->FlagName() == flagName && table[i]->flagType() == flagType)
-		{
-			return table[i];
-		}
+		if (flag && flag->FlagName() == flagName && flag->flagType() == flagType)
+			return flag;
 	}
 	return nullptr;
 }
 
 bool UFlagBase::DeleteFlag(const NameString& FlagName, uint8_t flagType)
 {
-	UFlag** table = hashTable();
-	for (int i = 0; i < HashTableSize; i++)
+	auto table = hashTable();
+	for (int i = 0; i < table.size(); i++)
 	{
 		if (table[i] && table[i]->FlagName() == FlagName && table[i]->flagType() == flagType)
 		{
@@ -35,8 +33,8 @@ bool UFlagBase::DeleteFlag(const NameString& FlagName, uint8_t flagType)
 
 void UFlagBase::DeleteAllFlags()
 {
-	UFlag** table = hashTable();
-	for (int i = 0; i < HashTableSize; i++)
+	auto table = hashTable();
+	for (int i = 0; i < table.size(); i++)
 		table[i] = nullptr;
 }
 
@@ -76,7 +74,7 @@ bool UFlagBase::GetNextFlag(int Iterator, NameString& FlagName, uint8_t& flagTyp
 	if (it == FlagIterators.end() || it->second.HashPos == HashTableSize)
 		return false;
 
-	UFlag** table = hashTable();
+	auto table = hashTable();
 	FlagIterator& flagIt = it->second;
 
 	for (int i = flagIt.HashPos; i < HashTableSize; i++)
@@ -196,8 +194,8 @@ T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, in
 
 		auto flag = UObject::Cast<T>(engine->packages->GetTransientPackage()->NewObject(FlagName, cls, ObjectFlags::Transient));
 
-		UFlag** table = hashTable();
-		for (int i = 0; i < HashTableSize; i++)
+		auto table = hashTable();
+		for (int i = 0; i < table.size(); i++)
 		{
 			if (!table[i])
 			{

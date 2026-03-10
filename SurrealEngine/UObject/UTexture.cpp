@@ -486,7 +486,7 @@ void UWaterTexture::UpdateWater()
 	WaterDepth[0].resize(width * height);
 	WaterDepth[1].resize(width * height);
 
-	ADrop* drops = Drops();
+	auto drops = Drops();
 	for (int i = 0, count = NumDrops(); i < count; i++)
 	{
 		ADrop& drop = drops[i];
