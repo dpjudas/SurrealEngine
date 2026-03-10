@@ -41,7 +41,7 @@ public:
 	T* GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, int* expiration, EFlagType flagType, const char* flagClassName);
 
 	int& defaultFlagExpiration() { return Value<int>(PropOffsets_FlagBase.defaultFlagExpiration); }
-	UFlag** hashTable() { return FixedArray<UFlag*>(PropOffsets_FlagBase.hashTable); }
+	FixedArrayView<UFlag*, 64> hashTable() { return FixedArray<UFlag*, 64>(PropOffsets_FlagBase.hashTable); }
 
 	struct FlagIterator
 	{

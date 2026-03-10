@@ -189,12 +189,9 @@ bool UActor::Destroy()
 
 	CallEvent(this, EventName::Destroyed);
 
-	UActor** TouchingArray = Touching();
-	for (int i = 0; i < TouchingArraySize; i++)
-	{
-		if (TouchingArray[i])
-			UnTouch(TouchingArray[i]);
-	}
+	for (const auto actor : Touching())
+		if (actor)
+			UnTouch(actor);
 
 	SetOwner(nullptr);
 
@@ -1269,13 +1266,10 @@ bool UActor::SetLocation(const vec3& newLocation)
 		}
 
 		// Untouch everything we aren't overlapping anymore
-		UActor** TouchingArray = Touching();
-		for (int i = 0; i < TouchingArraySize; i++)
+		for (const auto actor : Touching())
 		{
-			if (TouchingArray[i] && !IsOverlapping(TouchingArray[i]))
-			{
-				UnTouch(TouchingArray[i]);
-			}
+			if (actor && !IsOverlapping(actor))
+				UnTouch(actor);
 		}
 	}
 
@@ -1509,6 +1503,13 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	}
 
 	// Untouch everything we aren't overlapping anymore
+	for (const auto actor : Touching())
+	{
+		if (actor && !IsOverlapping(actor))
+			UnTouch(actor);
+	}
+
+	/*
 	UActor** TouchingArray = Touching();
 	for (int i = 0; i < TouchingArraySize; i++)
 	{
@@ -1517,6 +1518,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 			UnTouch(TouchingArray[i]);
 		}
 	}
+	*/
 
 	UpdateActorZone();
 
@@ -1546,8 +1548,8 @@ void UActor::Touch(UActor* actor)
 	if (bDeleteMe() || actor->bDeleteMe())
 		return;
 
-	UActor** TouchingArray = Touching();
-	UActor** TouchingArray2 = actor->Touching();
+	auto TouchingArray = Touching();
+	auto TouchingArray2 = actor->Touching();
 
 	// Do nothing if actors are already touching
 	for (int i = 0; i < TouchingArraySize; i++)
@@ -1594,8 +1596,8 @@ void UActor::Touch(UActor* actor)
 
 void UActor::UnTouch(UActor* actor)
 {
-	UActor** TouchingArray = Touching();
-	UActor** TouchingArray2 = actor->Touching();
+	auto TouchingArray = Touching();
+	auto TouchingArray2 = actor->Touching();
 
 	if (!bDeleteMe())
 	{
@@ -2278,7 +2280,7 @@ int UActor::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* no
 UTexture* UActor::GetMultiskin(int index)
 {
 	if (engine->LaunchInfo.engineVersion > 219 && index >= 0 && index < 8)
-		return (&MultiSkins())[index];
+		return MultiSkins()[index];
 	else
 		return nullptr;
 }
@@ -2608,8 +2610,8 @@ UNavigationPoint* UPawn::SetRouteCache(const Array<UNavigationPoint*>& points)
 {
 	if (engine->LaunchInfo.engineVersion > 219)
 	{
-		UNavigationPoint** cache = RouteCache();
-		for (size_t i = 0; i < 16; i++)
+		auto cache = RouteCache();
+		for (size_t i = 0; i < cache.size(); i++)
 			cache[i] = (i < points.size()) ? points[i] : nullptr;
 	}
 	return !points.empty() ? points.front() : nullptr;
