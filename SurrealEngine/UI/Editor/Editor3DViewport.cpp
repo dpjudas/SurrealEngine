@@ -67,10 +67,11 @@ void Editor3DViewport::OnPaint(Canvas* canvas)
 
 	engine->CameraLocation = Location;
 	engine->CameraRotation = Rotation;
-	engine->ViewportX = (int)std::round(topLeft.x * GetDpiScale());
-	engine->ViewportY = (int)std::round(topLeft.y * GetDpiScale());
-	engine->ViewportWidth = (int)std::round(GetWidth() * GetDpiScale());
-	engine->ViewportHeight = (int)std::round(GetHeight() * GetDpiScale());
+	auto x = (int)std::round(topLeft.x * GetDpiScale());
+	auto y = (int)std::round(topLeft.y * GetDpiScale());
+	auto width = (int)std::round(GetWidth() * GetDpiScale());
+	auto height = (int)std::round(GetHeight() * GetDpiScale());
+	engine->viewport->SetViewportRect(x, y, width, height);
 	engine->render->DrawEditorViewport();
 
 	canvas->end3d();

@@ -171,10 +171,6 @@ public:
 
 	float CalcTimeElapsed();
 
-	int ViewportX = 0;
-	int ViewportY = 0;
-	int ViewportWidth = 0;
-	int ViewportHeight = 0;
 	UActor* CameraActor = nullptr;
 	vec3 CameraLocation = vec3(0.0f);
 	Rotator CameraRotation = Rotator(0,0,0);
