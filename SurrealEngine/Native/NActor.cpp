@@ -834,8 +834,9 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVeloc
 
 void NActor::RandomBiasedRotation(UObject* Self, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, Rotator& ReturnValue)
 {
-	LogUnimplemented("Actor.RandomBiasedRotation");
-	ReturnValue = {};
+	ReturnValue.Yaw = (int)(std::rand() * 0xffffLL / RAND_MAX) + centralYaw;  
+    ReturnValue.Pitch = (int)(std::rand() * 0xffffLL / RAND_MAX) + centralPitch;  
+    ReturnValue.Roll = 0;  
 }
 
 void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
