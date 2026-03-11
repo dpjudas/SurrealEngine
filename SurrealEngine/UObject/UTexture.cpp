@@ -93,19 +93,21 @@ void UTexture::Save(PackageStreamWriter* stream)
 
 void UTexture::Update(float elapsed)
 {
-	float animationSpeed = 0.0f;
-	if (MaxFrameRate() != 0.0f)
-		animationSpeed = 1.0f / MaxFrameRate();
-
-	if (animationSpeed > 0.0f)
-		Accumulator() += elapsed;
-
-	while (animationSpeed <= 0.0f || Accumulator() > animationSpeed)
+	if (MaxFrameRate() <= 0.0f)
 	{
 		UpdateFrame();
-		if (animationSpeed <= 0.0f)
-			break;
-		Accumulator() -= animationSpeed;
+	}
+	else
+	{
+		Accumulator() += elapsed;
+
+		float animationSpeed = 1.0f / MaxFrameRate();
+		const int max_iterations = 10;
+		for (int iteration = 0; iteration < max_iterations && Accumulator() > animationSpeed; iteration++)
+		{
+			UpdateFrame();
+			Accumulator() -= animationSpeed;
+		}
 	}
 }
 
