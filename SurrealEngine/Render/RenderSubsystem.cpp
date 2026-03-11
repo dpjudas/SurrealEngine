@@ -67,8 +67,8 @@ void RenderSubsystem::DrawVideoFrame(FTextureInfo* frame, FTextureInfo* backgrou
 	ResetCanvas();
 	Device->SetSceneNode(&Canvas.Frame);
 
-	float sizeX = (float)(int)(engine->ViewportWidth / (float)Canvas.uiscale);
-	float sizeY = (float)(int)(engine->ViewportHeight / (float)Canvas.uiscale);
+	float sizeX = (float)(int)(engine->viewport->ViewportWidth() / (float)Canvas.uiscale);
+	float sizeY = (float)(int)(engine->viewport->ViewportHeight() / (float)Canvas.uiscale);
 
 	Rectf clipBox = Rectf::xywh(0.0f, 0.0f, sizeX, sizeY);
 	Rectf dest = clipBox;

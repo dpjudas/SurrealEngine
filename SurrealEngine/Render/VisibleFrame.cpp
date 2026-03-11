@@ -38,12 +38,12 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 
 void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
 {
-	Frame.XB = engine->ViewportX;
-	Frame.YB = engine->ViewportY;
-	Frame.X = engine->ViewportWidth;
-	Frame.Y = engine->ViewportHeight;
-	Frame.FX = (float)engine->ViewportWidth;
-	Frame.FY = (float)engine->ViewportHeight;
+	Frame.XB = engine->viewport->ViewportX();
+	Frame.YB = engine->viewport->ViewportY();
+	Frame.X = engine->viewport->ViewportWidth();
+	Frame.Y = engine->viewport->ViewportHeight();
+	Frame.FX = (float)engine->viewport->ViewportWidth();
+	Frame.FY = (float)engine->viewport->ViewportHeight();
 
 	if (engine->dxRootWindow && engine->dxRootWindow->RenderViewportSet)
 	{

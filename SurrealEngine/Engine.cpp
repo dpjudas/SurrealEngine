@@ -191,10 +191,7 @@ void Engine::Run()
 
 		UpdateAudio();
 
-		ViewportX = 0;
-		ViewportY = 0;
-		ViewportWidth = engine->window->GetPixelWidth();
-		ViewportHeight = engine->window->GetPixelHeight();
+		viewport->SetViewportRect(0, 0, engine->window->GetPixelWidth(), engine->window->GetPixelHeight());
 		render->DrawGame(levelElapsed);
 
 		// Save the game if there is a request for it
@@ -465,10 +462,7 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 			texinfo[0].USize = frame->Width;
 			texinfo[0].VSize = frame->Height;
 
-			ViewportX = 0;
-			ViewportY = 0;
-			ViewportWidth = engine->window->GetPixelWidth();
-			ViewportHeight = engine->window->GetPixelHeight();
+			viewport->SetViewportRect(0, 0, engine->window->GetPixelWidth(), engine->window->GetPixelHeight());
 			render->DrawVideoFrame(&texinfo[0], background ? &texinfo[1] : nullptr);
 		}
 	}
@@ -1258,6 +1252,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		resolution.height = height;
 
 		window->ToggleWindowFullscreen(resolution);
+		viewport->SetViewportRect(0, 0, width, height);
 
 		return {};
 	}
@@ -1432,6 +1427,7 @@ void Engine::OpenWindow()
 
 	window->SetWindowTitle(LaunchInfo.gameName + versionString + " - Surreal Engine");
 	window->SetFrameGeometry(Rect::xywh(0.0, 0.0, width, height));
+	viewport->SetViewportRect(0, 0, width, height);
 
 	if (fullscreen)
 		window->ShowFullscreen();

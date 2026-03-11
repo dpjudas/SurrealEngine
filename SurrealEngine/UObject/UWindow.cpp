@@ -81,7 +81,7 @@ void UWindow::UpdateLayout()
 		}
 
 		// Center the virtual viewbox
-		UsedX = std::round((engine->ViewportWidth - virtualWidth * virtualScale) * 0.5f) / virtualScale;
+		UsedX = std::round((engine->viewport->ViewportWidth() - virtualWidth * virtualScale) * 0.5f) / virtualScale;
 		UsedY = 0.0f;
 	}
 
@@ -99,7 +99,7 @@ void UWindow::UpdateLayout()
 
 float UWindow::GetVirtualScale()
 {
-	return engine->ViewportHeight != 0 ? engine->ViewportHeight / GetVirtualHeight() : 1.0f;
+	return engine->viewport->ViewportHeight() != 0 ? engine->viewport->ViewportHeight() / GetVirtualHeight() : 1.0f;
 }
 
 void UWindow::AddActorRef(UObject* refActor)
@@ -229,13 +229,13 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 
 	// Scale to viewport
 	vec2 viewportLocation = vec2(
-		(projLocation.x + 1.0f) * engine->ViewportWidth * 0.5f,
-		(projLocation.y + 1.0f) * engine->ViewportHeight * 0.5f);
+		(projLocation.x + 1.0f) * engine->viewport->ViewportWidth() * 0.5f,
+		(projLocation.y + 1.0f) * engine->viewport->ViewportHeight() * 0.5f);
 
 	// Convert to virtual coordinates
 	vec2 rootLocation = vec2(
-		viewportLocation.x * GetVirtualWidth() / engine->ViewportWidth,
-		viewportLocation.y * GetVirtualHeight() / engine->ViewportHeight);
+		viewportLocation.x * GetVirtualWidth() / engine->viewport->ViewportWidth(),
+		viewportLocation.y * GetVirtualHeight() / engine->viewport->ViewportHeight());
 
 	// Convert from root window to our window
 	UWindow* root = GetRootWindow();
