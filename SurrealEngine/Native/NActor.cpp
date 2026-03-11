@@ -776,7 +776,7 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVeloc
 	float timeElapsed = 0.0f;  
 	vec3 hitLocation;  
 	vec3 hitNormal;  
-	vec3 previousNormal = vec3(0, 0, 0); // Guardar normal anterior  
+	vec3 previousNormal = vec3(0, 0, 0);  
 	  
 	while(!bHit && timeElapsed < *maxTime)  
 	{  
@@ -787,14 +787,11 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVeloc
 		{  
 			if (*bBounce && *elasticity > 0.0f)  
 			{  
-				// Lógica de TwoWallAdjust  
 				if (dot(previousNormal, hitNormal) > 0.0f)  
 				{  
-					// Colisión simple: proyectar sobre la normal  
 					float f = dot(velocity, hitNormal);  
 					velocity = (velocity - f * hitNormal) * (1.0f - *elasticity);  
 					  
-					// Evitar movimiento inverso  
 					if (dot(velocity, hitNormal) <= 0.0f)  
 					{  
 						velocity = vec3(0, 0, 0);  
@@ -803,21 +800,19 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVeloc
 				}  
 				else  
 				{  
-					// Colisión en esquina: usar producto cruz  
 					vec3 crossProduct = cross(previousNormal, hitNormal);  
 					vec3 edgeNormal = normalize(crossProduct);  
 					float scale = (1.0f - *elasticity) * dot(edgeNormal, velocity);  
 					velocity = edgeNormal * scale;  
 					  
-					// Corregir dirección si es inversa  
 					if (dot(velocity, previousNormal) < 0.0f)  
 					{  
 						velocity = velocity * -1.0f;  
 					}  
 				}  
 				  
-				pos = hitLocation; // Mover al punto de impacto  
-				previousNormal = hitNormal; // Actualizar normal anterior  
+				pos = hitLocation;   
+				previousNormal = hitNormal; 
 			}  
 			else {  
 				bHit = true;  
