@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "NLevelInfo.h"
+#include "Engine.h"
 #include "VM/NativeFunc.h"
 #include "UObject/UActor.h"
 
@@ -23,5 +24,6 @@ void NLevelInfo::GetLocalURL(UObject* Self, std::string& ReturnValue)
 
 void NLevelInfo::InitEventManager(UObject* Self)
 {
+	LogUnimplemented("LevelInfo.InitEventManager");
 	// Deus Ex
 }
