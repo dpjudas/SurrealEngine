@@ -995,6 +995,7 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UFlagVector>(extensionPackage, "FlagVector", "Flag");
 		RegisterNativeClass<UDXExtString>(extensionPackage, "ExtString", "Object");
 		RegisterNativeClass<UDXTextParser>(deusExTextPackage, "DeusExTextParser", "Object");
+		RegisterNativeClass<UDXSaveInfo>(deusExPackage, "DeusExSaveInfo", "Object");
 		RegisterNativeClass<UGC>(enginePackage, "GC", "ExtensionObject");
 		RegisterNativeClass<UWindow>(extensionPackage, "Window", "ExtensionObject");
 		RegisterNativeClass<UViewportWindow>(extensionPackage, "ViewportWindow", "Window");
