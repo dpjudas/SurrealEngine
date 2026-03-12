@@ -832,11 +832,41 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVeloc
 	ReturnValue = timeElapsed;  
 }
 
-void NActor::RandomBiasedRotation(UObject* Self, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, Rotator& ReturnValue)
+void NActor::RandomBiasedRotation(
+    UObject* Self,
+    int centralYaw,
+    float yawDistribution,
+    int centralPitch,
+    float pitchDistribution,
+    Rotator& ReturnValue)
 {
-	ReturnValue.Yaw = (int)(std::rand() * 0xffffLL / RAND_MAX) + centralYaw;  
-    ReturnValue.Pitch = (int)(std::rand() * 0xffffLL / RAND_MAX) + centralPitch;  
-    ReturnValue.Roll = 0;  
+    if (yawDistribution < 0.0f) yawDistribution = 0.0f;
+    if (yawDistribution > 1.0f) yawDistribution = 1.0f;
+
+    if (pitchDistribution < 0.0f) pitchDistribution = 0.0f;
+    if (pitchDistribution > 1.0f) pitchDistribution = 1.0f;
+
+    float rYaw = (float)std::rand() * 3.051851e-05f;
+    rYaw = rYaw * 2.0f - 1.0f;
+
+    float rPitch = (float)std::rand() * 3.051851e-05f;
+    rPitch = rPitch * 2.0f - 1.0f;
+
+    float signYaw = (rYaw < 0.f) ? -1.f : 1.f;
+    float absYaw = std::fabs(rYaw);
+    float kYaw = 1.0f - yawDistribution;
+    float biasedYaw = absYaw / (kYaw + (1.0f - kYaw) * absYaw);
+    biasedYaw *= signYaw;
+
+    float signPitch = (rPitch < 0.f) ? -1.f : 1.f;
+    float absPitch = std::fabs(rPitch);
+    float kPitch = 1.0f - pitchDistribution;
+    float biasedPitch = absPitch / (kPitch + (1.0f - kPitch) * absPitch);
+    biasedPitch *= signPitch;
+
+    ReturnValue.Yaw   = centralYaw + (int)biasedYaw;
+    ReturnValue.Pitch = centralPitch + (int)biasedPitch;
+    ReturnValue.Roll  = 0;
 }
 
 void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
