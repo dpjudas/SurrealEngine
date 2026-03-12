@@ -357,6 +357,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/USound.h
 	SurrealEngine/UObject/UDXExtString.cpp
 	SurrealEngine/UObject/UDXExtString.h
+	SurrealEngine/UObject/UDXSaveInfo.cpp
+	SurrealEngine/UObject/UDXSaveInfo.h
 	SurrealEngine/UObject/UDXTextParser.cpp
 	SurrealEngine/UObject/UDXTextParser.h
 	SurrealEngine/UObject/UClient.h
