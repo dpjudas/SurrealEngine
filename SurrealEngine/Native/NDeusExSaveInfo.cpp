@@ -12,5 +12,6 @@ void NDeusExSaveInfo::RegisterFunctions()
 
 void NDeusExSaveInfo::UpdateTimeStamp(UObject* Self)
 {
-	LogUnimplemented("DeusExSaveInfo.UpdateTimeStamp");
+	auto DXSISelf = UObject::Cast<UDXSaveInfo>(Self);
+	DXSISelf->UpdateTimeStamp();
 }
