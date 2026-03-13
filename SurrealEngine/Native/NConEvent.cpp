@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NConEvent.h"
 #include "VM/NativeFunc.h"
+#include "UObject/USound.h"
 #include "Engine.h"
 
 void NConEvent::RegisterFunctions()
@@ -10,6 +11,6 @@ void NConEvent::RegisterFunctions()
 
 void NConEvent::GetSoundLength(UObject* Self, UObject* ASound, float& ReturnValue)
 {
-	LogUnimplemented("ConEvent.GetSoundLength");
-	ReturnValue = 0.0f;
+	USound* sound = UObject::Cast<USound>(ASound);
+	ReturnValue = sound->GetDuration();
 }
