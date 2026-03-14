@@ -3648,8 +3648,13 @@ UObject* UDeusExPlayer::CreateDumpLocationObject()
 
 UObject* UDeusExPlayer::CreateGameDirectoryObject()
 {
-	auto cls = engine->packages->FindClass("DeusEx.GameDirectory");
-	return engine->packages->GetTransientPackage()->NewObject("GameDirectory", cls, ObjectFlags::Transient);
+	if (!m_GameDirectory)
+	{
+		auto cls = engine->packages->FindClass("DeusEx.GameDirectory");
+		m_GameDirectory = Cast<UDXGameDirectory>(engine->packages->GetTransientPackage()->NewObject("GameDirectory", cls, ObjectFlags::Transient));
+	}
+
+	return m_GameDirectory;
 }
 
 UObject* UDeusExPlayer::CreateHistoryEvent()
@@ -3682,7 +3687,8 @@ std::string UDeusExPlayer::GetDeusExVersion()
 
 void UDeusExPlayer::SaveGame(int saveIndex, std::string* saveDesc)
 {
-	LogUnimplemented("DeusExPlayer.SaveGame");
+	engine->SaveGameInfo.SaveGameSlot = saveIndex;
+	engine->SaveGameInfo.SaveGameDescription = *saveDesc;
 }
 
 NameString UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameString, bool bValue)
