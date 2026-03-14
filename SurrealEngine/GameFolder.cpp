@@ -81,6 +81,22 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "200";
 			}
 			break;
+			case KnownUE1Games::UNREAL_209:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 209;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "209";
+			}
+			break;
+			case KnownUE1Games::UNREAL_216:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 216;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "216";
+			}
+			break;
 			case KnownUE1Games::UNREAL_220:
 			{
 				info.gameName = "Unreal";
@@ -289,6 +305,9 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.engineSubVersion = 0;
 				info.gameVersionString = "333";
 			}
+			break;
+			case KnownUE1Games::UE1_GAME_NOT_FOUND:
+				// Do nothing, we want the fields to be empty.
 			break;
 		}
 	}
