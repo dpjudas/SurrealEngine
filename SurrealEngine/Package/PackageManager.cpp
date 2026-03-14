@@ -22,6 +22,8 @@
 #include "UObject/UInternetLink.h"
 #include "UObject/USubsystem.h"
 #include "UObject/UDXExtString.h"
+#include "UObject/UDXGameDirectory.h"
+#include "UObject/UDeusExLevelInfo.h"
 #include "UObject/UDXTextParser.h"
 #include "UObject/UWindow.h"
 #include "UObject/UFlag.h"
@@ -996,6 +998,8 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UFlagRotator>(extensionPackage, "FlagRotator", "Flag");
 		RegisterNativeClass<UFlagVector>(extensionPackage, "FlagVector", "Flag");
 		RegisterNativeClass<UDXExtString>(extensionPackage, "ExtString", "Object");
+		RegisterNativeClass<UDXGameDirectory>(deusExPackage, "GameDirectory", "Object");
+		RegisterNativeClass<UDeusExLevelInfo>(deusExPackage, "DeusExLevelInfo", "Info");
 		RegisterNativeClass<UDXTextParser>(deusExTextPackage, "DeusExTextParser", "Object");
 		RegisterNativeClass<UDXSaveInfo>(deusExPackage, "DeusExSaveInfo", "Object");
 		RegisterNativeClass<UGC>(enginePackage, "GC", "ExtensionObject");
