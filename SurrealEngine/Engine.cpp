@@ -55,8 +55,10 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 	if (LaunchInfo.IsDeusEx())
 	{
 		auto extpkg = packages->GetPackage("Extension");
+		deusExPackage = packages->GetPackage("DeusEx");
 		dxgc = UObject::Cast<UGC>(transientpkg->NewObject("gc", extpkg->GetClass("GC"), ObjectFlags::Transient));
 		dxgc->Canvas() = canvas;
+		dxSaveInfo = UObject::Cast<UDXSaveInfo>(transientpkg->NewObject("DeusExSaveInfo", deusExPackage->GetClass("DeusExSaveInfo"), ObjectFlags::Transient));
 	}
 
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
@@ -597,7 +599,19 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
 	}
 	if (!LevelInfo)
-		Exception::Throw("Could not find the LevelInfo object for this map!");
+		Exception::Throw("Could not find the LevelInfo object for " + url.Map + "!");
+
+	if (LaunchInfo.IsDeusEx())
+	{
+		// Also try to find DeusExLevelInfo
+		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
+
+		// Entry.dx does not have a DeusExLevelInfo
+		/*
+		if (!DeusExLevelInfo)
+			Exception::Throw("Could not find the DeusExLevelInfo object for " + url.Map + "!");
+		*/
+	}
 
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
@@ -769,15 +783,41 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 	if (slotNum < -1 || (!packages->IsDeusEx() && slotNum < 0))
 		Exception::Throw("Invalid save slot: " + std::to_string(slotNum));
 
+	// First and foremost ensure the Save folder exists
+	const auto saveFolderPath = fs::path(LaunchInfo.gameRootFolder) / "Save";
+	if (!fs::exists(saveFolderPath))
+		fs::create_directory(saveFolderPath);
+
 	if (packages->IsDeusEx())
 	{
-		// Handle Deus Ex separately, as saving a game there creates several files
+		// Saving a game on Deus Ex does the following:
+		// - Create a folder using the slotNum (e.g. 1 -> "Save0001")
+		// - Save the level package using the name [MapName].dxs
+		// - Save the associated DeusExSaveInfo class as SaveInfo.dxs within that same folder,
+		// in which saveDescription parameter will be used in DeusExSaveInfo.Description
+		auto slotNumStr = std::to_string(slotNum);
+		slotNumStr.insert(0, 4 - slotNumStr.length(), '0'); // Pad it with 0s
+		auto saveFolder = "Save" + slotNumStr;
+
+		auto saveSlotFolder = saveFolderPath / saveFolder;
+		if (!fs::exists(saveSlotFolder) || !fs::is_directory(saveSlotFolder))
+			fs::create_directory(saveSlotFolder);
+
+		auto levelName = Level->package->GetPackageName().ToString() + "." + packages->GetSaveExtension();
+		auto saveInfoName = "SaveInfo." + packages->GetSaveExtension();
+		auto saveFileFullPath = (saveSlotFolder / levelName).string();
+		auto saveInfoFullPath = (saveSlotFolder / saveInfoName).string();
+		LevelPackage->Save(Level, saveFileFullPath);
+
+		dxSaveInfo->DirectoryIndex() = slotNum;
+		dxSaveInfo->Description() = saveDescription;
+		dxSaveInfo->MissionLocation() = DeusExLevelInfo ? DeusExLevelInfo->MissionLocation() : "";
+		dxSaveInfo->MapName() = Level->package->GetPackageName().ToString();
+		dxSaveInfo->UpdateTimeStamp();
+		deusExPackage->Save(dxSaveInfo, saveInfoFullPath);
 	}
 	else
 	{
-		const auto saveFolderPath = fs::path(LaunchInfo.gameRootFolder) / "Save";
-		if (!fs::exists(saveFolderPath))
-			fs::create_directory(saveFolderPath);
 		const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
 		const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
 		LevelPackage->Save(Level, saveFileFullPath);

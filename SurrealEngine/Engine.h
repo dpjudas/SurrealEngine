@@ -9,6 +9,8 @@
 #include "UObject/UActor.h"
 #include "UObject/UnrealURL.h"
 #include "UObject/UWindow.h"
+#include "UObject/UDXSaveInfo.h"
+#include "UObject/UDeusExLevelInfo.h"
 #include "GameFolder.h"
 #include <set>
 #include <list>
@@ -131,6 +133,7 @@ public:
 	UViewport* viewport = nullptr;
 	UCanvas* canvas = nullptr;
 	UGC* dxgc = nullptr;
+	UDXSaveInfo* dxSaveInfo = nullptr;
 	UConsole* console = nullptr;
 	URootWindow* dxRootWindow = nullptr;
 
@@ -148,6 +151,9 @@ public:
 	Package* LevelPackage;
 	UGameInfo* GameInfo = nullptr;
 	UTexture* DefaultTexture = nullptr;
+
+	Package* deusExPackage = nullptr;
+	UDeusExLevelInfo* DeusExLevelInfo = nullptr;
 	struct
 	{
 		UnrealURL URL;
