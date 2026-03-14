@@ -1,5 +1,6 @@
 #pragma once
 
+#include "UDXGameDirectory.h"
 #include "UObject.h"
 #include "UnrealURL.h"
 #include "Math/bbox.h"
@@ -2081,6 +2082,9 @@ public:
 	float& swimDuration() { return Value<float>(PropOffsets_DeusExPlayer.swimDuration); }
 	float& swimTimer() { return Value<float>(PropOffsets_DeusExPlayer.swimTimer); }
 	uint8_t& translucencyLevel() { return Value<uint8_t>(PropOffsets_DeusExPlayer.translucencyLevel); }
+
+private:
+	UDXGameDirectory* m_GameDirectory = nullptr;
 };
 
 // Deus Ex
