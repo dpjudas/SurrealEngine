@@ -152,7 +152,7 @@ double TraceAABBModel::TriangleAABBIntersect(const dvec3& from, const dvec3& to,
 		p[0] = dot(v[0], a[i]);
 		p[1] = dot(v[1], a[i]);
 		p[2] = dot(v[2], a[i]);
-		r = extents.x * abs(a[i].x) + extents.y * abs(a[i].y) + extents.z * abs(a[i].z);
+		r = extents.x * std::abs(a[i].x) + extents.y * std::abs(a[i].y) + extents.z * std::abs(a[i].z);
 	
 		double m[2];
 		m[0] = std::max(std::max(p[0], p[1]), p[2]);
@@ -174,9 +174,9 @@ double TraceAABBModel::TriangleAABBIntersect(const dvec3& from, const dvec3& to,
 
 	// Test separating axis corresponding to triangle face normal (category 2)
 	dvec3 pn = cross(f[0], f[1]);
-	double pd = abs(dot(pn, v[0]));
+	double pd = std::abs(dot(pn, v[0]));
 
-	r = extents.x * abs(pn.x) + extents.y * abs(pn.y) + extents.z * abs(pn.z);
+	r = extents.x * std::abs(pn.x) + extents.y * std::abs(pn.y) + extents.z * std::abs(pn.z);
 	if (pd > r)
 		return 1.0;
 

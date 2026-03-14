@@ -75,7 +75,7 @@ public:
 		return std::make_unique<VideoAudioSource>(std::move(Audio.Samples), streamHeaders[Audio.StreamIndex].Audio.SamplesPerSec, streamHeaders[Audio.StreamIndex].Audio.Channels);
 	}
 
-	int GetFrameIndexForTime(float timestamp)
+	int GetFrameIndexForTime(float timestamp) override
 	{
 		return (int)std::floor(((double)timestamp) * streamHeaders[Video.StreamIndex].Rate / streamHeaders[Video.StreamIndex].Scale);
 	}
@@ -166,7 +166,7 @@ public:
 		}
 	}
 
-	UnrealMipmap* NextVideoFrame()
+	UnrealMipmap* NextVideoFrame() override
 	{
 		if (Video.DecodedFrames.empty())
 			return nullptr;
