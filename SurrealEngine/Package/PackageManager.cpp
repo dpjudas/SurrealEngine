@@ -25,6 +25,7 @@
 #include "UObject/UDXTextParser.h"
 #include "UObject/UWindow.h"
 #include "UObject/UFlag.h"
+#include "UObject/UConSys.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/NCanvas.h"
@@ -822,6 +823,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString ipdrvPackage = "IpDrv";
 	NameString upakPackage = "UPak";
 	NameString extensionPackage = "Extension";
+	NameString conSysPackage = "ConSys";
 	NameString deusExPackage = "DeusEx";
 	NameString deusExTextPackage = "DeusExText";
 
@@ -1018,8 +1020,41 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UListWindow>(extensionPackage, "ListWindow", "Window");
 		RegisterNativeClass<UComputerWindow>(extensionPackage, "ComputerWindow", "Window");
 		RegisterNativeClass<UBorderWindow>(extensionPackage, "BorderWindow", "Window");
-
 		RegisterNativeClass<UDeusExPlayer>(deusExPackage, "DeusExPlayer", "PlayerPawnExt");
+		RegisterNativeClass<UConLight>(conSysPackage, "ConLight", "Light");
+		RegisterNativeClass<UConObject>(conSysPackage, "ConObject", "Object");
+		RegisterNativeClass<UConAudioList>(conSysPackage, "ConAudioList", "ConObject");
+		RegisterNativeClass<UConCamera>(conSysPackage, "ConCamera", "ConObject");
+		RegisterNativeClass<UConChoice>(conSysPackage, "ConChoice", "ConObject");
+		RegisterNativeClass<UConEvent>(conSysPackage, "ConEvent", "ConObject");
+		RegisterNativeClass<UConEventAddCredits>(conSysPackage, "ConEventAddCredits", "ConEvent");
+		RegisterNativeClass<UConEventAddGoal>(conSysPackage, "ConEventAddGoal", "ConEvent");
+		RegisterNativeClass<UConEventAddNote>(conSysPackage, "ConEventAddNote", "ConEvent");
+		RegisterNativeClass<UConEventAddSkillPoints>(conSysPackage, "ConEventAddSkillPoints", "ConEvent");
+		RegisterNativeClass<UConEventAnimation>(conSysPackage, "ConEventAnimation", "ConEvent");
+		RegisterNativeClass<UConEventCheckFlag>(conSysPackage, "ConEventCheckFlag", "ConEvent");
+		RegisterNativeClass<UConEventCheckObject>(conSysPackage, "ConEventCheckObject", "ConEvent");
+		RegisterNativeClass<UConEventCheckPersona>(conSysPackage, "ConEventCheckPersona", "ConEvent");
+		RegisterNativeClass<UConEventChoice>(conSysPackage, "ConEventChoice", "ConEvent");
+		RegisterNativeClass<UConEventComment>(conSysPackage, "ConEventComment", "ConEvent");
+		RegisterNativeClass<UConEventEnd>(conSysPackage, "ConEventEnd", "ConEvent");
+		RegisterNativeClass<UConEventJump>(conSysPackage, "ConEventJump", "ConEvent");
+		RegisterNativeClass<UConEventMoveCamera>(conSysPackage, "ConEventMoveCamera", "ConEvent");
+		RegisterNativeClass<UConEventRandomLabel>(conSysPackage, "ConEventRandomLabel", "ConEvent");
+		RegisterNativeClass<UConEventSetFlag>(conSysPackage, "ConEventSetFlag", "ConEvent");
+		RegisterNativeClass<UConEventSpeech>(conSysPackage, "ConEventSpeech", "ConEvent");
+		RegisterNativeClass<UConEventTrade>(conSysPackage, "ConEventTrade", "ConEvent");
+		RegisterNativeClass<UConEventTransferObject>(conSysPackage, "ConEventTransferObject", "ConEvent");
+		RegisterNativeClass<UConEventTrigger>(conSysPackage, "ConEventTrigger", "ConEvent");
+		RegisterNativeClass<UConFlagRef>(conSysPackage, "ConFlagRef", "ConObject");
+		RegisterNativeClass<UConHistory>(conSysPackage, "ConHistory", "ConObject");
+		RegisterNativeClass<UConHistoryEvent>(conSysPackage, "ConHistoryEvent", "ConObject");
+		RegisterNativeClass<UConItem>(conSysPackage, "ConItem", "ConObject");
+		RegisterNativeClass<UConListItem>(conSysPackage, "ConListItem", "ConObject");
+		RegisterNativeClass<UConSpeech>(conSysPackage, "ConSpeech", "ConObject");
+		RegisterNativeClass<UConversation>(conSysPackage, "Conversation", "ConObject");
+		RegisterNativeClass<UConversationList>(conSysPackage, "ConversationList", "ConObject");
+		RegisterNativeClass<UConversationMissionList>(conSysPackage, "ConversationMissionList", "ConObject");
 	}
 }
 

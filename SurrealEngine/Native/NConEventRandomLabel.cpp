@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NConEventRandomLabel.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UConSys.h"
 #include "Engine.h"
 
 void NConEventRandomLabel::RegisterFunctions()
@@ -12,18 +13,18 @@ void NConEventRandomLabel::RegisterFunctions()
 
 void NConEventRandomLabel::GetLabel(UObject* Self, int labelIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("NConEventRandomLabel.GetLabel");
-	ReturnValue = "";
+	auto SelfLabel = UObject::Cast<UConEventRandomLabel>(Self);
+	ReturnValue = SelfLabel->GetLabel(labelIndex);
 }
 
 void NConEventRandomLabel::GetLabelCount(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("NConEventRandomLabel.GetLabelCount");
-	ReturnValue = 0;
+	auto SelfLabel = UObject::Cast<UConEventRandomLabel>(Self);
+	ReturnValue = SelfLabel->GetLabelCount();
 }
 
 void NConEventRandomLabel::GetRandomLabel(UObject* Self, std::string& ReturnValue)
 {
-	LogUnimplemented("NConEventRandomLabel.GetRandomLabel");
-	ReturnValue = "";
+	auto SelfLabel = UObject::Cast<UConEventRandomLabel>(Self);
+	ReturnValue = SelfLabel->GetRandomLabel();
 }

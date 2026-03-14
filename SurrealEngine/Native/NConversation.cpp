@@ -1,6 +1,7 @@
 #include "Precomp.h"
 #include "NConversation.h"
 #include "VM/NativeFunc.h"
+#include "UObject/UConSys.h"
 #include "Engine.h"
 
 void NConversation::RegisterFunctions()
@@ -16,39 +17,42 @@ void NConversation::RegisterFunctions()
 
 void NConversation::BindActorEvents(UObject* Self, UObject* actorToBind)
 {
-	LogUnimplemented("Conversation.BindActorEvents");
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	SelfConversation->BindActorEvents(actorToBind);
 }
 
 void NConversation::BindEvents(UObject* Self, UObject* conBoundActors, UObject* invokeActor)
 {
-	LogUnimplemented("Conversation.BindEvents");
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	SelfConversation->BindEvents(conBoundActors, invokeActor);
 }
 
 void NConversation::ClearBindEvents(UObject* Self)
 {
-	LogUnimplemented("Conversation.ClearBindEvents");
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	SelfConversation->ClearBindEvents();
 }
 
 void NConversation::CreateConCamera(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("Conversation.CreateConCamera");
-	ReturnValue = nullptr;
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	ReturnValue = SelfConversation->CreateConCamera();
 }
 
 void NConversation::CreateFlagRef(UObject* Self, const NameString& FlagName, bool flagValue, UObject*& ReturnValue)
 {
-	LogUnimplemented("Conversation.CreateFlagRef");
-	ReturnValue = nullptr;
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	ReturnValue = SelfConversation->CreateFlagRef(FlagName, flagValue);
 }
 
 void NConversation::GetSpeechAudio(UObject* Self, int soundID, UObject*& ReturnValue)
 {
-	LogUnimplemented("Conversation.GetSpeechAudio");
-	ReturnValue = nullptr;
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	ReturnValue = SelfConversation->GetSpeechAudio(soundID);
 }
 
 void NConversation::GetSpeechLength(UObject* Self, int soundID, float& ReturnValue)
 {
-	LogUnimplemented("Conversation.GetSpeechLength");
-	ReturnValue = 0.0f;
+	auto SelfConversation = UObject::Cast<UConversation>(Self);
+	ReturnValue = SelfConversation->GetSpeechLength(soundID);
 }
