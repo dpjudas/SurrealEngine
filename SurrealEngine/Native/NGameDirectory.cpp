@@ -26,85 +26,91 @@ void NGameDirectory::RegisterFunctions()
 
 void NGameDirectory::DeleteSaveInfo(UObject* Self, UObject* saveInfo)
 {
-	LogUnimplemented("GameDirectory.DeleteSaveInfo");
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	auto dxSaveInfo = UObject::Cast<UDXSaveInfo>(saveInfo);
+	DXGDSelf->DeleteSaveInfo(*dxSaveInfo);
 }
 
 void NGameDirectory::GenerateNewSaveFilename(UObject* Self, int* newIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GenerateNewSaveFilename");
-	ReturnValue = "";
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GenerateNewSaveFileName(newIndex);
 }
 
 void NGameDirectory::GenerateSaveFilename(UObject* Self, int saveIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GenerateSaveFilename");
-	ReturnValue = "";
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GenerateSaveFilename(saveIndex);
 }
 
 void NGameDirectory::GetDirCount(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetDirCount");
-	ReturnValue = 0;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetDirCount();
 }
 
 void NGameDirectory::GetDirFilename(UObject* Self, int fileIndex, std::string& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetDirFilename");
-	ReturnValue = "";
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetDirFilename(fileIndex);
 }
 
 void NGameDirectory::GetGameDirectory(UObject* Self)
 {
-	LogUnimplemented("GameDirectory.GetGameDirectory");
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	DXGDSelf->GetGameDirectory();
 }
 
 void NGameDirectory::GetNewSaveFileIndex(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetNewSaveFileIndex");
-	ReturnValue = 0;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetNewSaveFileIndex();
 }
 
 void NGameDirectory::GetSaveDirectorySize(UObject* Self, int saveIndex, int& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetSaveDirectorySize");
-	ReturnValue = 0;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetSaveDirectorySize(saveIndex);
 }
 
 void NGameDirectory::GetSaveFreeSpace(UObject* Self, int& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetSaveFreeSpace");
-	ReturnValue = 0;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetSaveFreeSpace();
 }
 
 void NGameDirectory::GetSaveInfo(UObject* Self, int fileIndex, UObject*& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetSaveInfo");
-	ReturnValue = nullptr;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetSaveInfo(fileIndex);
 }
 
 void NGameDirectory::GetSaveInfoFromDirectoryIndex(UObject* Self, int DirectoryIndex, UObject*& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetSaveInfoFromDirectoryIndex");
-	ReturnValue = nullptr;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetSaveInfoFromDirectoryIndex(DirectoryIndex);
 }
 
 void NGameDirectory::GetTempSaveInfo(UObject* Self, UObject*& ReturnValue)
 {
-	LogUnimplemented("GameDirectory.GetTempSaveInfo");
-	ReturnValue = nullptr;
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	ReturnValue = DXGDSelf->GetTempSaveInfo();
 }
 
 void NGameDirectory::PurgeAllSaveInfo(UObject* Self)
 {
-	LogUnimplemented("GameDirectory.PurgeAllSaveInfo");
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	DXGDSelf->PurgeAllSaveInfo();
 }
 
 void NGameDirectory::SetDirFilter(UObject* Self, const std::string& strFilter)
 {
-	LogUnimplemented("GameDirectory.SetDirFilter");
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	DXGDSelf->SetDirFilter(strFilter);
 }
 
 void NGameDirectory::SetDirType(UObject* Self, uint8_t newDirType)
 {
-	LogUnimplemented("GameDirectory.SetDirType");
+	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
+	DXGDSelf->SetDirType(static_cast<EGameDirectoryTypes>(newDirType));
 }
