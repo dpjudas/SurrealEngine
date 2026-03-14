@@ -1686,11 +1686,13 @@ int UTextWindow::GetTextPart(int startPos, int Count, std::string& OutText)
 
 void UTextWindow::ResetLines()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("TextWindow.ResetLines");
 }
 
 void UTextWindow::ResetMinWidth()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("TextWindow.ResetMinWidth");
 }
 
@@ -2002,6 +2004,7 @@ void UTextLogWindow::SetTextTimeout(float newTimeout)
 
 void ULargeTextWindow::SetVerticalSpacing(float* newVSpace)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("LargeTextWindow.SetVerticalSpacing");
 }
 
@@ -2014,6 +2017,7 @@ void UEditWindow::ClearTextChangedFlag()
 
 void UEditWindow::ClearUndo()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.ClearUndo");
 }
 
@@ -2044,11 +2048,13 @@ void UEditWindow::EnableSingleLineEditing(BitfieldBool* bSingle)
 
 void UEditWindow::EnableUppercaseOnly(BitfieldBool* bUppercase)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.EnableUppercaseOnly");
 }
 
 int UEditWindow::GetInsertionPoint()
 {
+
 	LogUnimplemented("EditWindow.GetInsertionPoint");
 	return 0;
 }
@@ -2072,12 +2078,14 @@ bool UEditWindow::InsertText(std::string* InsertText, BitfieldBool* bUndo, Bitfi
 
 bool UEditWindow::IsEditingEnabled()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.IsEditingEnabled");
 	return false;
 }
 
 bool UEditWindow::IsSingleLineEditingEnabled()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.IsSingleLineEditingEnabled");
 	return false;
 }
@@ -2109,6 +2117,7 @@ void UEditWindow::SetEditCursor(UObject** newCursor, UObject** newCursorShadow, 
 
 void UEditWindow::SetEditSounds(UObject** typeSound, UObject** deleteSound, UObject** enterSound, UObject** moveSound)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.SetEditSounds");
 }
 
@@ -2119,6 +2128,7 @@ void UEditWindow::SetInsertionPoint(int NewPos, BitfieldBool* bDrag)
 
 void UEditWindow::SetInsertionPointBlinkRate(float* blinkStart, float* blinkPeriod)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.SetInsertionPointBlinkRate");
 }
 
@@ -2139,6 +2149,7 @@ void UEditWindow::SetMaxSize(int newMaxSize)
 
 void UEditWindow::SetMaxUndos(int newMaxUndos)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.SetMaxUndos");
 }
 
@@ -2159,6 +2170,7 @@ void UEditWindow::SetSelectedAreaTexture(UObject** NewTexture, Color* NewColor)
 
 void UEditWindow::SetTextChangedFlag(BitfieldBool* bSet)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("EditWindow.SetTextChangedFlag");
 }
 
@@ -2171,6 +2183,7 @@ void UEditWindow::Undo()
 
 UObject* URadioBoxWindow::GetEnabledToggle()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("RadioBoxWindow.GetEnabledToggle");
 	return nullptr;
 }
@@ -2252,6 +2265,7 @@ void UClipWindow::ConfigurationChanged()
 
 void UClipWindow::EnableSnapToUnits(BitfieldBool* bNewSnapToUnits)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ClipWindow.EnableSnapToUnits");
 }
 
@@ -2279,16 +2293,19 @@ void UClipWindow::GetUnitSize(int& pAreaHSize, int& pAreaVSize, int& pChildHSize
 
 void UClipWindow::ResetUnitHeight()
 {
+	// UNUSED by scripts.
 	LogUnimplemented("ClipWindow.ResetUnitHeight");
 }
 
 void UClipWindow::ResetUnitSize()
 {
+	// UNUSED by scripts.
 	LogUnimplemented("ClipWindow.ResetUnitSize");
 }
 
 void UClipWindow::ResetUnitWidth()
 {
+	// UNUSED by scripts.
 	LogUnimplemented("ClipWindow.ResetUnitWidth");
 }
 
@@ -2299,16 +2316,19 @@ void UClipWindow::SetChildPosition(int newX, int newY)
 
 void UClipWindow::SetUnitHeight(int vUnits)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ClipWindow.SetUnitHeight");
 }
 
 void UClipWindow::SetUnitSize(int hUnits, int vUnits)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ClipWindow.SetUnitSize");
 }
 
 void UClipWindow::SetUnitWidth(int hUnits)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ClipWindow.SetUnitWidth");
 }
 
@@ -2757,6 +2777,7 @@ void UScrollAreaWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float
 
 void UScrollAreaWindow::AutoHideScrollbars(BitfieldBool* bHide)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScrollAreaWindow.AutoHideScrollbars");
 }
 
@@ -2840,11 +2861,13 @@ void UBorderWindow::SetMoveCursors(UObject** Move, UObject** hMove, UObject** vM
 
 void UScaleWindow::ClearAllEnumerations()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.ClearAllEnumerations");
 }
 
 void UScaleWindow::EnableStretchedScale(BitfieldBool* bNewStretch)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.EnableStretchedScale");
 }
 
@@ -2856,6 +2879,7 @@ int UScaleWindow::GetNumTicks()
 
 int UScaleWindow::GetThumbSpan()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.GetThumbSpan");
 	return 0;
 }
@@ -2880,6 +2904,7 @@ std::string UScaleWindow::GetValueString()
 
 void UScaleWindow::GetValues(float& fromValue, float& toValue)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.GetValues");
 }
 
@@ -2895,6 +2920,7 @@ void UScaleWindow::PlayScaleSound(UObject* newsound, float* Volume, float* Pitch
 
 void UScaleWindow::SetBorderPattern(UObject* NewTexture)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.SetBorderPattern");
 }
 
@@ -2990,11 +3016,13 @@ void UScaleWindow::SetTickPosition(int newPosition)
 
 void UScaleWindow::SetTickStyle(uint8_t NewStyle)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.SetTickStyle");
 }
 
 void UScaleWindow::SetTickTexture(UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ScaleWindow.SetTickTexture");
 }
 
@@ -3113,35 +3141,41 @@ void UListWindow::EnableMultiSelect(BitfieldBool* bEnableMultiSelect)
 
 uint8_t UListWindow::GetColumnAlignment(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnAlignment");
 	return 0;
 }
 
 void UListWindow::GetColumnColor(int colIndex, Color& colColor)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnColor");
 }
 
 UObject* UListWindow::GetColumnFont(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnFont");
 	return nullptr;
 }
 
 std::string UListWindow::GetColumnTitle(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnTitle");
 	return "";
 }
 
 uint8_t UListWindow::GetColumnType(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnType");
 	return 0;
 }
 
 float UListWindow::GetColumnWidth(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetColumnWidth");
 	return 0.0f;
 }
@@ -3154,6 +3188,7 @@ std::string UListWindow::GetField(int rowId, int colIndex)
 
 void UListWindow::GetFieldMargins(float& marginWidth, float& marginHeight)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetFieldMargins");
 }
 
@@ -3189,12 +3224,14 @@ int UListWindow::GetNumSelectedRows()
 
 int UListWindow::GetPageSize()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetPageSize");
 	return 0;
 }
 
 int UListWindow::GetRowClientInt(int rowId)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.GetRowClientInt");
 	return 0;
 }
@@ -3224,18 +3261,21 @@ int UListWindow::IndexToRowId(int index)
 
 bool UListWindow::IsAutoExpandColumnsEnabled()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.IsAutoExpandColumnsEnabled");
 	return false;
 }
 
 bool UListWindow::IsAutoSortEnabled()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.IsAutoSortEnabled");
 	return false;
 }
 
 bool UListWindow::IsColumnHidden(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.IsColumnHidden");
 	return false;
 }
@@ -3264,11 +3304,13 @@ void UListWindow::MoveRow(uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bCl
 
 void UListWindow::PlayListSound(UObject* listSound, float* Volume, float* Pitch)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.PlayListSound");
 }
 
 void UListWindow::RemoveSortColumn(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.RemoveSortColumn");
 }
 
@@ -3279,6 +3321,7 @@ void UListWindow::ResetSortColumns(BitfieldBool* bSort)
 
 void UListWindow::ResizeColumns(BitfieldBool* bExpandOnly)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.ResizeColumns");
 }
 
@@ -3290,6 +3333,7 @@ int UListWindow::RowIdToIndex(int rowId)
 
 void UListWindow::SelectAllRows(BitfieldBool* bSelect)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SelectAllRows");
 }
 
@@ -3300,6 +3344,7 @@ void UListWindow::SelectRow(int rowId, BitfieldBool* bSelect)
 
 void UListWindow::SelectToRow(int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SelectToRow");
 }
 
@@ -3335,6 +3380,7 @@ void UListWindow::SetColumnWidth(int colIndex, float newWidth)
 
 void UListWindow::SetDelimiter(const std::string& newDelimiter)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SetDelimiter");
 }
 
@@ -3345,6 +3391,7 @@ void UListWindow::SetField(int rowId, int colIndex, const std::string& fieldStr)
 
 void UListWindow::SetFieldMargins(float newMarginWidth, float newMarginHeight)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SetFieldMargins");
 }
 
@@ -3370,6 +3417,7 @@ void UListWindow::SetFocusTexture(UObject* NewTexture)
 
 void UListWindow::SetFocusThickness(float newThickness)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SetFocusThickness");
 }
 
@@ -3390,6 +3438,7 @@ void UListWindow::SetHighlightTexture(UObject* NewTexture)
 
 void UListWindow::SetHotKeyColumn(int colIndex)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SetHotKeyColumn");
 }
 
@@ -3410,6 +3459,7 @@ void UListWindow::SetRow(int rowId, BitfieldBool* bSelect, BitfieldBool* bClearR
 
 void UListWindow::SetRowClientInt(int rowId, int clientInt)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.SetRowClientInt");
 }
 
@@ -3425,6 +3475,7 @@ void UListWindow::SetSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBo
 
 void UListWindow::ShowFocusRow()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ListWindow.ShowFocusRow");
 }
 
@@ -3442,6 +3493,7 @@ void UListWindow::ToggleRowSelection(int rowId)
 
 void UComputerWindow::ClearLine(int rowToClear)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.ClearLine");
 }
 
@@ -3457,84 +3509,100 @@ void UComputerWindow::EnableWordWrap(BitfieldBool* bNewWordWrap)
 
 void UComputerWindow::FadeOutText(float* fadeDuration)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.FadeOutText");
 }
 
 void UComputerWindow::GetChar(const std::string& inputKey, BitfieldBool* bEcho)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.GetChar");
 }
 
 void UComputerWindow::GetInput(int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.GetInput");
 }
 
 float UComputerWindow::GetThrottle()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.GetThrottle");
 	return 0.0f;
 }
 
 bool UComputerWindow::IsBufferFlushed()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.IsBufferFlushed");
 	return false;
 }
 
 bool UComputerWindow::IsPaused()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.IsPaused");
 	return false;
 }
 
 void UComputerWindow::Pause(float* pauseLength)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.Pause");
 }
 
 void UComputerWindow::PlaySoundLater(UObject* newsound)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.PlaySoundLater");
 }
 
 void UComputerWindow::Print(const std::string& printText, BitfieldBool* bNewLine)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.Print");
 }
 
 void UComputerWindow::PrintGraphic(UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.PrintGraphic");
 }
 
 void UComputerWindow::PrintLn()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.PrintLn");
 }
 
 void UComputerWindow::ResetThrottle()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.ResetThrottle");
 }
 
 void UComputerWindow::Resume()
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.Resume");
 }
 
 void UComputerWindow::SetBackgroundTextures(UObject* backTexture1, UObject* backTexture2, UObject* backTexture3, UObject* backTexture4, UObject* backTexture5, UObject* backTexture6)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetBackgroundTextures");
 }
 
 void UComputerWindow::SetComputerSoundVolume(float newSoundVolume)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetComputerSoundVolume");
 }
 
 void UComputerWindow::SetCursorBlinkSpeed(float newBlinkSpeed)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetCursorBlinkSpeed");
 }
 
@@ -3545,6 +3613,7 @@ void UComputerWindow::SetCursorColor(const Color& newCursorColor)
 
 void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetCursorTexture");
 }
 
@@ -3555,6 +3624,7 @@ void UComputerWindow::SetFadeSpeed(float fadeSpeed)
 
 void UComputerWindow::SetFontColor(const Color& newFontColor)
 {
+	// UNUSED from scripts.
 	FontColor() = newFontColor;
 }
 
@@ -3565,6 +3635,7 @@ void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFon
 
 void UComputerWindow::SetTextPosition(int posX, int posY)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTextPosition");
 }
 
@@ -3575,6 +3646,7 @@ void UComputerWindow::SetTextSize(int newCols, int newRows)
 
 void UComputerWindow::SetTextSound(UObject* newTextSound)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTextSound");
 }
 
@@ -3585,21 +3657,25 @@ void UComputerWindow::SetTextTiming(float newTiming)
 
 void UComputerWindow::SetTextWindowPosition(int newX, int newY)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTextWindowPosition");
 }
 
 void UComputerWindow::SetThrottle(float throttleModifier)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetThrottle");
 }
 
 void UComputerWindow::SetTypingSound(UObject* newTypingSound)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTypingSound");
 }
 
 void UComputerWindow::SetTypingSoundVolume(float newSoundVolume)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTypingSoundVolume");
 }
 
