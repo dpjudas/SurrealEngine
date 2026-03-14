@@ -138,7 +138,7 @@ void UDXGameDirectory::PopulateDirectoryList()
 
     for (auto& p : fs::directory_iterator(currentDirectory))
         if (p.is_regular_file())
-            newList.push_back(p.path().filename());
+            newList.push_back(p.path().filename().string());
 
     DirectoryList() = newList;
 }
