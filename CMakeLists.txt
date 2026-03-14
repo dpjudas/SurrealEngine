@@ -355,8 +355,11 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UMusic.h
 	SurrealEngine/UObject/UTexture.h
 	SurrealEngine/UObject/USound.h
+	SurrealEngine/UObject/UDeusExLevelInfo.h
 	SurrealEngine/UObject/UDXExtString.cpp
 	SurrealEngine/UObject/UDXExtString.h
+	SurrealEngine/UObject/UDXGameDirectory.cpp
+	SurrealEngine/UObject/UDXGameDirectory.h
 	SurrealEngine/UObject/UDXSaveInfo.cpp
 	SurrealEngine/UObject/UDXSaveInfo.h
 	SurrealEngine/UObject/UDXTextParser.cpp
