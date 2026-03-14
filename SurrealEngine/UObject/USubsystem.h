@@ -173,7 +173,7 @@ public:
 	std::string Class = "Engine.SurrealNetworkDevice";
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
-	void SetPropertyFromString(const NameString& propertyName, const std::string& value);
+	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
 };
 
 class USurrealClient : public UClient

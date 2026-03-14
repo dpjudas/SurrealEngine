@@ -266,7 +266,7 @@ public:
 	bool CompareElement(const void* v1, const void* v2) override;
 	bool CompareLessElement(const void* v1, const void* v2) override;
 
-	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i);
+	void GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i) override;
 	std::string PrintValue(const void* data) override;
 
 	UProperty* Inner = nullptr;
@@ -359,7 +359,7 @@ public:
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
 	std::string PrintValue(const void* data) override;
-	bool IsDefaultValue(void* val);
+	bool IsDefaultValue(void* val) override;
 	void SetValueFromString(void* data, const std::string& valueString) override;
 };
 

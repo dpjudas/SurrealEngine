@@ -2482,7 +2482,7 @@ bool UPawn::CanSee(UActor* other)
 	// This can be a negative value too, which is probably set to not take it into account
 	float peripheralVision = PeripheralVision();
 
-	if (peripheralVision > 0.0f && abs(cosine) > peripheralVision)
+	if (peripheralVision > 0.0f && std::abs(cosine) > peripheralVision)
 		return false;
 
 	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);

@@ -256,13 +256,13 @@ Size GameWindow::GetClosestResolution(Size resolution) const
 		return resolutions[0];
 
 	int index = 0;
-	double minDist = abs(pow(resolutions[0].width - resolution.width, 2) + pow(resolutions[0].height - resolution.height, 2));
+	double minDist = std::abs(pow(resolutions[0].width - resolution.width, 2) + pow(resolutions[0].height - resolution.height, 2));
 
 	for (int i = 1; i < resolutions.size(); i++)
 	{
 		auto& currRes = resolutions[i];
 
-		double dist = abs(pow(currRes.width - resolution.width, 2) + pow(currRes.height - resolution.height, 2));
+		double dist = std::abs(pow(currRes.width - resolution.width, 2) + pow(currRes.height - resolution.height, 2));
 
 		if (currRes == resolution)
 			return resolutions[i];
