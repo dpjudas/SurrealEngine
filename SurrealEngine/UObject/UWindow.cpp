@@ -1020,6 +1020,7 @@ void UWindow::ResizeChild()
 	//LogMessage(GetUClassFullName(this).ToString() + ": ResizeChild");
 
 	float width = 0.0f, height = 0.0f;
+
 	QueryPreferredSize(width, height);
 	ConfigureChild(X(), Y(), width, height);
 }
@@ -1692,6 +1693,22 @@ void UTileWindow::ConfigurationChanged()
 	UWindow::ConfigurationChanged();
 }
 
+bool UTileWindow::ChildRequestedReconfiguration(UWindow* childWin)
+{
+	AskParentForReconfigure();
+	return false;
+}
+
+void UTileWindow::ChildAdded(UWindow* child)
+{
+	bConfigured() = false;
+}
+
+void UTileWindow::ChildRemoved(UWindow* child)
+{
+	bConfigured() = false;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UTextWindow::AppendText(const std::string& NewText)
@@ -1759,14 +1776,6 @@ void UTextWindow::SetMinWidth(float newMinWidth)
 void UTextWindow::SetText(const std::string& NewText)
 {
 	Text() = NewText;
-
-	if (normalFont()) // How does TextWindow get its intrinsic size!?
-	{
-		float xExtent = 0.0f, yExtent = 0.0f;
-		engine->dxgc->SetFont(normalFont());
-		engine->dxgc->GetTextExtent(100000.0f, xExtent, yExtent, Text());
-		SetSize(xExtent, yExtent);
-	}
 }
 
 void UTextWindow::SetTextAlignments(uint8_t newHAlign, uint8_t newVAlign)
@@ -1811,7 +1820,16 @@ void UTextWindow::DrawWindow(UGC* gc)
 {
 	if (normalFont()) // When should text windows draw their text? They are used for buttons, which sometimes draw themselves via UI
 	{
-		gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
+		float xMargin = hMargin();
+		float yMargin = vMargin();
+		float w = Width() - 2.0f * xMargin;
+		float h = Height() - 2.0f * yMargin;
+		if (w > 0.0f && h > 0.0f)
+		{
+			gc->SetAlignments(HAlign(), VAlign());
+			gc->DrawText(xMargin, yMargin, w, h, Text());
+		}
+		// DrawDebugBox(gc);
 	}
 	UWindow::DrawWindow(gc);
 }
@@ -2678,8 +2696,11 @@ bool URootWindow::OnWindowMouseDown(const Point& pos, EInputKey key)
 		SetRootFocusWindow(focus);
 
 	int numClicks = 1; // What is this?
-	if (focus->MouseButtonPressed(relativeX, relativeY, key, numClicks))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->MouseButtonPressed(relativeX, relativeY, key, numClicks))
+			return true;
+	}
 
 	return IsModalOpen();
 }
@@ -2702,8 +2723,11 @@ bool URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
 		return IsModalOpen();
 
 	int numClicks = 1; // What is this?
-	if (focus->MouseButtonReleased(relativeX, relativeY, key, numClicks))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->MouseButtonReleased(relativeX, relativeY, key, numClicks))
+			return true;
+	}
 
 	return IsModalOpen();
 }
@@ -4398,7 +4422,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 		totalWidth = std::max(totalWidth, lineWidth);
 	}
 
-	return Sizef(totalWidth, totalHeight);
+	return Sizef(totalWidth + 1.0f, totalHeight); // Add 1.0f to avoid rounding issues
 }
 
 vec2 UGC::GetTextSize(UFont* font, const std::string& text)

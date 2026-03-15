@@ -481,6 +481,9 @@ public:
 
 	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 	void ConfigurationChanged() override;
+	bool ChildRequestedReconfiguration(UWindow* childWin) override;
+	void ChildAdded(UWindow* child) override;
+	void ChildRemoved(UWindow* child) override;
 
 	BitfieldBool bEqualHeight() { return BoolValue(PropOffsets_TileWindow.bEqualHeight); }
 	BitfieldBool bEqualWidth() { return BoolValue(PropOffsets_TileWindow.bEqualWidth); }
