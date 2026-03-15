@@ -38,7 +38,10 @@ void UWindow::UpdateLayout()
 	if (parent)
 	{
 		if (!bConfigured())
+		{
+			//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
 			ResizeChild();
+		}
 
 		EHAlign halign = (EHAlign)winHAlign();
 		EVAlign valign = (EVAlign)winVAlign();
@@ -77,6 +80,7 @@ void UWindow::UpdateLayout()
 		float virtualScale = GetVirtualScale();
 		if (Width() != virtualWidth || Height() != virtualHeight)
 		{
+			//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
 			ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
 		}
 
@@ -611,7 +615,7 @@ UObject* UWindow::MoveTabGroupPrev()
 UObject* UWindow::NewChild(UObject* NewClass, BitfieldBool* bShow)
 {
 	bool show = !bShow || *bShow;
-	//LogMessage("Window.NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
+	//LogMessage(GetUClassFullName(this).ToString() + ": NewChild(" + NewClass->Name.ToString() + ", " + (show ? "true" : "false") + ")");
 	auto child = UObject::Cast<UWindow>(engine->packages->GetTransientPackage()->NewObject(NewClass->Name.ToString(), UObject::Cast<UClass>(NewClass), ObjectFlags::Transient));
 	child->parentOwner() = this;
 	child->prevSibling() = lastChild();
@@ -1001,15 +1005,20 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 
 void UWindow::AskParentForReconfigure()
 {
+	//LogMessage(GetUClassFullName(this).ToString() + ": AskParentForReconfigure");
 	UWindow* parent = parentOwner();
 	if (parent)
 	{
-		parent->ChildRequestedReconfiguration(this);
+		bool result = parent->ChildRequestedReconfiguration(this);
+		if (!result)
+			parent->bConfigured() = false;
 	}
 }
 
 void UWindow::ResizeChild()
 {
+	//LogMessage(GetUClassFullName(this).ToString() + ": ResizeChild");
+
 	float width = 0.0f, height = 0.0f;
 	QueryPreferredSize(width, height);
 	ConfigureChild(X(), Y(), width, height);
@@ -1017,6 +1026,8 @@ void UWindow::ResizeChild()
 
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHeight)
 {
+	//LogMessage(GetUClassFullName(this).ToString() + ": ConfigureChild(" + std::to_string(newX) + ", " + std::to_string(newY) + ", " + std::to_string(newWidth) + ", " + std::to_string(newHeight) + ")");
+
 	if (UWindow* owner = parentOwner())
 	{
 		if ((EHAlign)winHAlign() == EHAlign::Full)
@@ -1054,6 +1065,8 @@ void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMar
 
 void UWindow::InitWindow()
 {
+	//LogMessage(GetUClassFullName(this).ToString() + ": InitWindow");
+
 	TextColor() = { 255, 255, 255, 255 };
 	//textPlane() = vec4(1.0f);
 	tileColor() = { 255, 255, 255, 255 };

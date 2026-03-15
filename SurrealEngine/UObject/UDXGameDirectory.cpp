@@ -120,7 +120,7 @@ int UDXGameDirectory::GetSaveDirectorySize(int saveIndex)
     int size = 0;
 
     for (auto& p : fs::directory_iterator(currentDirectory / GetSaveIndexFolderName(saveIndex)))
-        size += p.file_size();
+        size += (int)p.file_size();
 
     return size;
 }
