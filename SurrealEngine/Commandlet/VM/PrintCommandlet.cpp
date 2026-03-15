@@ -79,8 +79,8 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 
 						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
 						results.push_back({ name, value });
-						return results;
 					}
+					return results;
 				}
 			}
 		}
@@ -113,8 +113,8 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 
 						std::string value = prop->PrintValue(prop->GetElement(ptr, i));
 						results.push_back({ name, value });
-						return results;
 					}
+					return results;
 				}
 			}
 		}
