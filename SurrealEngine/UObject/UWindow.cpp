@@ -1101,6 +1101,7 @@ void UWindow::InitWindow()
 	//textPlane() = vec4(1.0f);
 	tileColor() = { 255, 255, 255, 255 };
 	//tilePlane() = vec4(1.0f);
+	backgroundStyle() = (uint8_t)EDrawStyle::Translucent;
 
 	CallEvent(this, "InitWindow");
 }
