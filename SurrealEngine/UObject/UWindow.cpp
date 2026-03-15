@@ -103,13 +103,15 @@ void UWindow::UpdateLayout()
 
 float UWindow::GetVirtualWidth()
 {
-	return std::round(GetVirtualHeight() * 4 / 3);
+	//return std::round(GetVirtualHeight() * 4 / 3);
+	float scale = GetVirtualScale();
+	return std::ceil(engine->viewport->ViewportWidth() / scale);
 }
 
 float UWindow::GetVirtualHeight()
 {
 	float scale = GetVirtualScale();
-	return std::round(engine->viewport->ViewportHeight() / scale);
+	return std::ceil(engine->viewport->ViewportHeight() / scale);
 }
 
 float UWindow::GetVirtualScale()
@@ -1102,6 +1104,7 @@ void UWindow::InitWindow()
 	tileColor() = { 255, 255, 255, 255 };
 	//tilePlane() = vec4(1.0f);
 	backgroundStyle() = (uint8_t)EDrawStyle::Translucent;
+	bStretchBackground() = true;
 
 	CallEvent(this, "InitWindow");
 }
