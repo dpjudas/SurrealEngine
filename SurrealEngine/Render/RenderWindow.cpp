@@ -129,7 +129,7 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 		color = vec4(0.5f, 0.5f, 1.0f, 1.0f);
 	float curX = depth * 20.0f, curXL = 0.0f, curYL = 0.0f;
 	DrawText(font, color, 0.0f, 0.0f, curX, curY, curXL, curYL, false, text, PF_NoSmooth | PF_Masked, false);
-	for (UWindow* child = window->firstChild(); child; child = child->nextSibling())
+	for (UWindow* child = window->lastChild(); child; child = child->prevSibling())
 	{
 		DrawWindowInfo(font, child, depth + 1, curY);
 	}

@@ -2349,7 +2349,18 @@ void UClipWindow::SetUnitWidth(int hUnits)
 
 bool UModalWindow::IsCurrentModal()
 {
-	LogUnimplemented("ModalWindow.IsCurrentModal");
+	URootWindow* root = GetRootWindow();
+	if (root)
+	{
+		for (UWindow* child = root->lastChild(); child; child = child->prevSibling())
+		{
+			if (child->bIsVisible())
+			{
+				if (auto modal = UObject::TryCast<UModalWindow>(child))
+					return modal == this;
+			}
+		}
+	}
 	return false;
 }
 
@@ -2617,87 +2628,100 @@ UWindow* URootWindow::GetCursorFocus(float& relativeX, float& relativeY)
 	return this;
 }
 
-void URootWindow::OnWindowMouseMove(const Point& pos)
+bool URootWindow::OnWindowMouseMove(const Point& pos)
 {
 #if 0 // We currently handle this in OnWindowRawMouseMove
 	if (IsCursorVisible())
 		SetRootCursorPos((float)pos.x / scale, (float)pos.y / scale);
 #endif
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowMouseDown(const Point& pos, EInputKey key)
+bool URootWindow::OnWindowMouseDown(const Point& pos, EInputKey key)
 {
 	float relativeX = 0.0f, relativeY = 0.0f;
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
 
 	if (!focus->bIsSensitive())
-		return;
+		return IsModalOpen();
 
 	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Press))
-		return;
+		return true;
 
 	if (focus->bIsSelectable())
 		SetRootFocusWindow(focus);
 
 	int numClicks = 1; // What is this?
 	if (focus->MouseButtonPressed(relativeX, relativeY, key, numClicks))
-		return;
+		return true;
+
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
+bool URootWindow::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 {
 	// Is this numClicks = 2?
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
+bool URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
 {
 	float relativeX = 0.0f, relativeY = 0.0f;
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
 
 	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Release))
-		return;
+		return true;
 
 	if (!focus->bIsSensitive())
-		return;
+		return IsModalOpen();
 
 	int numClicks = 1; // What is this?
 	if (focus->MouseButtonReleased(relativeX, relativeY, key, numClicks))
-		return;
+		return true;
+
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowMouseWheel(const Point& pos, EInputKey key)
+bool URootWindow::OnWindowMouseWheel(const Point& pos, EInputKey key)
 {
-	// How does Deus handle the mouse wheel?
+	if (!OnWindowMouseDown(pos, key))
+		return false;
+
+	OnWindowMouseUp(pos, key);
+	return true;
 }
 
-void URootWindow::OnWindowRawMouseMove(int dx, int dy)
+bool URootWindow::OnWindowRawMouseMove(int dx, int dy)
 {
 	if (IsCursorVisible())
 	{
 		float mouseSpeed = 1.0f / GetVirtualScale();
 		SetRootCursorPos(MouseX() + dx * mouseSpeed, MouseY() + dy * mouseSpeed);
 	}
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowKeyChar(std::string chars)
+bool URootWindow::OnWindowKeyChar(std::string chars)
 {
 	UWindow* focus = FocusWindow();
 	if (!focus)
-		return;
+		return IsModalOpen();
 
 	if (focus->KeyPressed(chars))
-		return;
+		return true;
 
 	// To do: fire these for edit windows
 	// event bool TextChanged(window edit, bool bModified)
 	// event bool EditActivated(window edit, bool bModified)
+
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowKeyDown(EInputKey key)
+bool URootWindow::OnWindowKeyDown(EInputKey key)
 {
 	UWindow* focus = FocusWindow();
 	if (!focus)
-		return;
+		return IsModalOpen();
 
 	// To do: this shouldn't just check the focus window. It needs to build an accelerator table for all windows
 	if (engine->window->GetKeyState(IK_Alt) && focus->acceleratorKey() != 0)
@@ -2705,26 +2729,28 @@ void URootWindow::OnWindowKeyDown(EInputKey key)
 		std::string chars(1, (char)focus->acceleratorKey());
 		EInputKey accelKey = (EInputKey)(uint8_t)chars.front();
 		if (focus->AcceleratorKeyPressed(chars))
-			return;
+			return true;
 	}
 
 	bool repeat = false; // To do: can zwidget tell us this?
 
 	if (focus->RawKeyPressed(key, EInputType::IST_Press, repeat))
-		return;
+		return true;
 
 	if (focus->VirtualKeyPressed(key, repeat))
-		return;
+		return true;
+
+	return IsModalOpen();
 }
 
-void URootWindow::OnWindowKeyUp(EInputKey key)
+bool URootWindow::OnWindowKeyUp(EInputKey key)
 {
 	UWindow* focus = FocusWindow();
 	if (!focus)
-		return;
+		return IsModalOpen();
 
 	if (focus->RawKeyPressed(key, EInputType::IST_Release, false))
-		return;
+		return true;
 
 	// To do: fire these for specific window types
 	// event bool ButtonActivated(Window button)
@@ -2732,6 +2758,18 @@ void URootWindow::OnWindowKeyUp(EInputKey key)
 	// event bool BoxOptionSelected(Window box, int buttonNumber)
 	// event bool ListRowActivated(window list, int rowId)
 	// event bool ListSelectionChanged(window list, int numSelections, int focusRowId)
+
+	return IsModalOpen();
+}
+
+bool URootWindow::IsModalOpen()
+{
+	for (UWindow* child = lastChild(); child; child = child->prevSibling())
+	{
+		if (UObject::TryCast<UModalWindow>(child))
+			return true;
+	}
+	return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////

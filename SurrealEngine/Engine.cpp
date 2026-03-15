@@ -1519,14 +1519,14 @@ void Engine::OnWindowMouseMove(const Point& pos)
 	if (playingAvi)
 		return;
 
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseMove(pos))
+		return;
+
 	if (engine->LaunchInfo.engineVersion > 219)
 	{
 		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
 		viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
 	}
-
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowMouseMove(pos);
 }
 
 void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
@@ -1534,16 +1534,16 @@ void Engine::OnWindowMouseDown(const Point& pos, EInputKey key)
 	if (playingAvi)
 		return;
 
-	InputEvent(key, IST_Press);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseDown(pos, key))
+		return;
 
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowMouseDown(pos, key);
+	InputEvent(key, IST_Press);
 }
 
 void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 {
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowMouseDoubleclick(pos, key);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseDoubleclick(pos, key))
+		return;
 }
 
 void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
@@ -1551,10 +1551,10 @@ void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
 	if (playingAvi)
 		return;
 
-	InputEvent(key, IST_Release);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseUp(pos, key))
+		return;
 
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowMouseUp(pos, key);
+	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
@@ -1562,11 +1562,11 @@ void Engine::OnWindowMouseWheel(const Point& pos, EInputKey key)
 	if (playingAvi)
 		return;
 
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseWheel(pos, key))
+		return;
+
 	InputEvent(key, IST_Press);
 	InputEvent(key, IST_Release);
-
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowMouseWheel(pos, key);
 }
 
 void Engine::OnWindowRawMouseMove(int dx, int dy)
@@ -1574,11 +1574,11 @@ void Engine::OnWindowRawMouseMove(int dx, int dy)
 	if (playingAvi)
 		return;
 
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowRawMouseMove(dx, dy))
+		return;
+
 	MouseMoveX += dx;
 	MouseMoveY += dy;
-
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowRawMouseMove(dx, dy);
 }
 
 void Engine::OnWindowKeyChar(std::string chars)
@@ -1586,10 +1586,10 @@ void Engine::OnWindowKeyChar(std::string chars)
 	if (playingAvi)
 		return;
 
-	Key(chars);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowKeyChar(chars))
+		return;
 
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowKeyChar(chars);
+	Key(chars);
 }
 
 void Engine::OnWindowKeyDown(EInputKey key)
@@ -1601,10 +1601,10 @@ void Engine::OnWindowKeyDown(EInputKey key)
 		return;
 	}
 
-	InputEvent(key, IST_Press);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowKeyDown(key))
+		return;
 
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowKeyDown(key);
+	InputEvent(key, IST_Press);
 }
 
 void Engine::OnWindowKeyUp(EInputKey key)
@@ -1612,10 +1612,10 @@ void Engine::OnWindowKeyUp(EInputKey key)
 	if (playingAvi)
 		return;
 
-	InputEvent(key, IST_Release);
+	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowKeyUp(key))
+		return;
 
-	if (engine->dxRootWindow)
-		engine->dxRootWindow->OnWindowKeyUp(key);
+	InputEvent(key, IST_Release);
 }
 
 void Engine::OnWindowGeometryChanged()

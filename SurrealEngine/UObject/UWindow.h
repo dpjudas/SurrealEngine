@@ -855,17 +855,18 @@ public:
 	bool SetRootFocusWindow(UWindow* NewFocusWindow);
 	void SetRootCursorPos(float newMouseX, float newMouseY);
 	UWindow* GetCursorFocus(float& relativeX, float& relativeY);
-	void OnWindowMouseMove(const Point& pos);
-	void OnWindowMouseDown(const Point& pos, EInputKey key);
-	void OnWindowMouseDoubleclick(const Point& pos, EInputKey key);
-	void OnWindowMouseUp(const Point& pos, EInputKey key);
-	void OnWindowMouseWheel(const Point& pos, EInputKey key);
-	void OnWindowRawMouseMove(int dx, int dy);
-	void OnWindowKeyChar(std::string chars);
-	void OnWindowKeyDown(EInputKey key);
-	void OnWindowKeyUp(EInputKey key);
+	bool OnWindowMouseMove(const Point& pos);
+	bool OnWindowMouseDown(const Point& pos, EInputKey key);
+	bool OnWindowMouseDoubleclick(const Point& pos, EInputKey key);
+	bool OnWindowMouseUp(const Point& pos, EInputKey key);
+	bool OnWindowMouseWheel(const Point& pos, EInputKey key);
+	bool OnWindowRawMouseMove(int dx, int dy);
+	bool OnWindowKeyChar(std::string chars);
+	bool OnWindowKeyDown(EInputKey key);
+	bool OnWindowKeyUp(EInputKey key);
 
 	bool IsCursorVisible();
+	bool IsModalOpen();
 
 	UTexture*& DefaultMoveCursor() { return Value<UTexture*>(PropOffsets_RootWindow.DefaultMoveCursor); }
 	UWindow*& FocusWindow() { return Value<UWindow*>(PropOffsets_RootWindow.FocusWindow); }
