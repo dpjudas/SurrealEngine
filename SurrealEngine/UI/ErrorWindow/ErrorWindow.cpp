@@ -301,9 +301,9 @@ void LogViewer::OnPaint(Canvas* canvas)
 		{
 			LogLine& line = loglines[i - 1];
 
-			line.text.Layout(canvas, width - 400.0);
+			line.text.Layout(canvas, width - 500.0);
 			line.time.Layout(canvas, 100.0);
-			line.source.Layout(canvas, 300.0);
+			line.source.Layout(canvas, 400.0);
 
 			double lineheight = line.time.GetSize().height;
 			lineheight = std::max(lineheight, line.source.GetSize().height);
@@ -312,7 +312,7 @@ void LogViewer::OnPaint(Canvas* canvas)
 
 			line.time.SetPosition(Point(0.0, y));
 			line.source.SetPosition(Point(100.0, y));
-			line.text.SetPosition(Point(400.0, y));
+			line.text.SetPosition(Point(500.0, y));
 
 			line.time.DrawLayout(canvas);
 			line.source.DrawLayout(canvas);
