@@ -194,12 +194,13 @@ void ErrorWindow::OnGeometryChanged()
 	double w = GetWidth();
 	double h = GetHeight();
 
-	double y = GetHeight() - 15.0 - ClipboardButton->GetPreferredHeight();
-	ClipboardButton->SetFrameGeometry(20.0, y, 170.0, ClipboardButton->GetPreferredHeight());
+	double buttonheight = ClipboardButton->GetPreferredHeight() + ClipboardButton->GetNoncontentTop() + ClipboardButton->GetNoncontentBottom();
+	double y = GetHeight() - 15.0 - buttonheight;
+	ClipboardButton->SetFrameGeometry(20.0, y, 170.0, buttonheight);
 	if (CloseButton)
-		CloseButton->SetFrameGeometry(GetWidth() - 20.0 - 100.0, y, 100.0, CloseButton->GetPreferredHeight());
+		CloseButton->SetFrameGeometry(GetWidth() - 20.0 - 100.0, y, 100.0, buttonheight);
 	else if (SaveReportButton)
-		SaveReportButton->SetFrameGeometry(GetWidth() - 20.0 - 100.0, y, 100.0, SaveReportButton->GetPreferredHeight());
+		SaveReportButton->SetFrameGeometry(GetWidth() - 20.0 - 100.0, y, 100.0, buttonheight);
 	y -= 20.0;
 
 	LogView->SetFrameGeometry(Rect::xywh(0.0, 0.0, w, y));
@@ -250,7 +251,7 @@ void LogViewer::SetText(const std::string& text, const std::list<LogMessageLine>
 			line.push_back(' ');
 
 		layout.Clear();
-		layout.AddText(line, largefont, Colorf::fromRgba8(255, 255, 170));
+		layout.AddText(line, font, Colorf::fromRgba8(255, 255, 170));
 		errorlines.push_back(layout);
 	}
 

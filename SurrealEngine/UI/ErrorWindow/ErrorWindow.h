@@ -69,8 +69,8 @@ private:
 
 	Scrollbar* scrollbar = nullptr;
 
-	std::shared_ptr<Font> largefont = Font::Create("Poppins", 16.0);
-	std::shared_ptr<Font> font = Font::Create("Poppins", 12.0);
+	std::shared_ptr<Font> largefont = Font::Create("Poppins", 17.0);
+	std::shared_ptr<Font> font = Font::Create("Poppins", 13.0);
 	Array<LogLine> loglines;
 	Array<SpanLayout> errorlines;
 };
