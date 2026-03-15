@@ -57,18 +57,18 @@ void UWindow::UpdateLayout()
 
 		float x = 0.0f, y = 0.0f;
 		if (halign == EHAlign::Left || halign == EHAlign::Full)
-			x = X();
+			x = X() + leftMargin;
 		else if (halign == EHAlign::Center)
 			x = (pWidth - width) * 0.5f + X();
 		else if (halign == EHAlign::Right)
-			x = pWidth - width - X();
+			x = pWidth - rightMargin - width - X();
 
 		if (valign == EVAlign::Top || valign == EVAlign::Full)
-			y = Y();
+			y = Y() + topMargin;
 		else if (valign == EVAlign::Center)
 			y = (pHeight - height) * 0.5f + Y();
 		else if (valign == EVAlign::Bottom)
-			y = pHeight - height - Y();
+			y = pHeight - bottomMargin - height - Y();
 
 		UsedX = x;
 		UsedY = y;
@@ -1031,9 +1031,19 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHe
 	if (UWindow* owner = parentOwner())
 	{
 		if ((EHAlign)winHAlign() == EHAlign::Full)
-			newWidth = owner->Width();
+		{
+			float leftMargin = hMargin0();
+			float rightMargin = hMargin1();
+			newX = 0.0f;
+			newWidth = std::max(owner->Width() - leftMargin - rightMargin, 0.0f);
+		}
 		if ((EVAlign)winVAlign() == EVAlign::Full)
-			newHeight = owner->Height();
+		{
+			float topMargin = vMargin0();
+			float bottomMargin = vMargin1();
+			newY = 0.0f;
+			newHeight = std::max(owner->Height() - topMargin - bottomMargin, 0.0f);
+		}
 	}
 
 	if (!bConfigured() || X() != newX || Y() != newY || Width() != newWidth || Height() != newHeight)
@@ -1053,14 +1063,21 @@ void UWindow::SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* newHMar
 {
 	winHAlign() = HAlign;
 	winVAlign() = VAlign;
+
 	if (newHMargin0)
 		hMargin0() = *newHMargin0;
 	if (newVMargin0)
 		vMargin0() = *newVMargin0;
+
 	if (newHMargin1)
 		hMargin1() = *newHMargin1;
+	else if (newHMargin0)
+		hMargin1() = *newHMargin0;
+
 	if (newVMargin1)
 		vMargin1() = *newVMargin1;
+	else if (newVMargin0)
+		vMargin1() = *newVMargin0;
 }
 
 void UWindow::InitWindow()
@@ -1391,6 +1408,15 @@ void UWindow::Tick(float timeElapsed)
 	{
 		cur->Tick(timeElapsed);
 	}
+}
+
+void UWindow::DrawDebugBox(UGC* gc)
+{
+	Rectf dest = gc->ScaleRect(Rectf::xywh(gc->offsetX, gc->offsetY, Width(), Height()));
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.right, dest.top, 1.0f));
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.bottom, 1.0f), vec3(dest.right, dest.bottom, 1.0f));
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.left, dest.bottom, 1.0f));
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.right, dest.top, 1.0f), vec3(dest.right, dest.bottom, 1.0f));
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -284,6 +284,8 @@ public:
 	void DetachFromParent();
 	void UpdateLayout();
 
+	void DrawDebugBox(UGC* gc);
+
 	// Events (sent to unrealscript, can be overriden by native windows)
 	virtual void InitWindow();
 	virtual void DestroyWindow();
