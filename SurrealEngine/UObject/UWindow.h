@@ -332,9 +332,8 @@ public:
 
 	virtual void Tick(float timeElapsed);
 
-	// Assume it was originally designed for 800x600
-	static float GetVirtualWidth() { return 800.0f; }
-	static float GetVirtualHeight() { return 600.0f; }
+	static float GetVirtualWidth();
+	static float GetVirtualHeight();
 	static float GetVirtualScale();
 
 	UTexture*& Background() { return Value<UTexture*>(PropOffsets_Window.Background); }

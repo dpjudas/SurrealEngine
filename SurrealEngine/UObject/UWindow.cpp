@@ -101,9 +101,21 @@ void UWindow::UpdateLayout()
 	}
 }
 
+float UWindow::GetVirtualWidth()
+{
+	return std::round(GetVirtualHeight() * 4 / 3);
+}
+
+float UWindow::GetVirtualHeight()
+{
+	float scale = GetVirtualScale();
+	return std::round(engine->viewport->ViewportHeight() / scale);
+}
+
 float UWindow::GetVirtualScale()
 {
-	return engine->viewport->ViewportHeight() != 0 ? engine->viewport->ViewportHeight() / GetVirtualHeight() : 1.0f;
+	// Assume it was originally designed for 800x600. Find the closest clean integer scale factor.
+	return std::max(std::round(engine->viewport->ViewportHeight() / 600.0f), 1.0f);
 }
 
 void UWindow::AddActorRef(UObject* refActor)
@@ -3965,11 +3977,11 @@ uint32_t UGC::EffectivePolyFlags()
 
 uint32_t UGC::EffectiveTextPolyFlags()
 {
-	uint32_t polyflags = textPolyFlags();
+	uint32_t polyflags = textPolyFlags() | PF_NoSmooth;
 	if (bTextTranslucent())
 		polyflags |= PF_Translucent;
 	else
-		polyflags |= PF_Masked | PF_NoSmooth;
+		polyflags |= PF_Masked;
 	return polyflags;
 }
 
