@@ -177,14 +177,6 @@ public:
 	using UObject::UObject;
 };
 
-struct WTimer
-{
-	NameString functionName;
-	float timeoutMs;
-	bool bLoop;
-	int clientData;
-};
-
 class UWindow : public UExtensionObject
 {
 public:
@@ -418,7 +410,19 @@ public:
 	float UnderlineHeight = 0.0f;
 	float UsedX = 0.0f;
 	float UsedY = 0.0f;
-	std::vector<WTimer> activeTimers;
+
+	class WTimer
+	{
+	public:
+		NameString FunctionName;
+		float Timeout = 0.0f;
+		bool Loop = false;
+		int ClientData = 0;
+		float TimeLeft = 0.0f;
+	};
+
+	std::map<int, WTimer> ActiveTimers;
+	int NextTimerId = 0;
 };
 
 class UViewportWindow : public UWindow

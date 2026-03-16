@@ -156,20 +156,30 @@ void UWindow::AddActorRef(UObject* refActor)
 	++count;
 }
 
-// Doesn't really seem to be working but at least doesn't crash.
 int UWindow::AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName)
 {
-    int timeoutMs = (int)(TimeOut * 1000.0f);  
-      
-    WTimer info;  
-    info.clientData = clientData ? *clientData : 0;  
-    info.functionName = functionName ? *functionName : NameString(); 
-	info.timeoutMs = (float)timeoutMs; 
-    info.bLoop = bLoop ? *bLoop : false;  
-      
-    activeTimers.push_back(info);  
-      
-	return 0;
+	if (!functionName) // Script always specifies a function name
+	{
+		LogUnimplemented("Window.AddTimer");
+		return -1;
+	}
+
+	int id = NextTimerId++;
+	WTimer info;  
+	info.ClientData = clientData ? *clientData : 0;  
+	info.FunctionName = *functionName; 
+	info.Timeout = TimeOut;
+	info.Loop = bLoop ? *bLoop : false;  
+	info.TimeLeft = info.Timeout;
+	ActiveTimers[id] = info;
+	return id;
+}
+
+void UWindow::RemoveTimer(int timerId)
+{
+	auto it = ActiveTimers.find(timerId);
+	if (it != ActiveTimers.end())
+		ActiveTimers.erase(it);
 }
 
 void UWindow::AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, float* areaHeight)
@@ -729,11 +739,6 @@ void UWindow::RemoveActorRef(UObject* refActor)
 	}
 }
 
-void UWindow::RemoveTimer(int timerId)
-{
-	LogUnimplemented("Window.RemoveTimer");
-}
-
 void UWindow::SetAcceleratorText(const std::string& newStr)
 {
 	char accelerator = 0;
@@ -1042,6 +1047,11 @@ void UWindow::ResizeChild()
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHeight)
 {
 	//LogMessage(GetUClassFullName(this).ToString() + ": ConfigureChild(" + std::to_string(newX) + ", " + std::to_string(newY) + ", " + std::to_string(newWidth) + ", " + std::to_string(newHeight) + ")");
+
+	if (FixedWidth)
+		newWidth = hardcodedWidth();
+	if (FixedHeight)
+		newHeight = hardcodedHeight();
 
 	if (UWindow* owner = parentOwner())
 	{
@@ -1425,14 +1435,47 @@ void UWindow::Tick(float timeElapsed)
 {
 	if (bTickEnabled())
 		CallEvent(this, "Tick", { ExpressionValue::FloatValue(timeElapsed) });
-	for (WTimer& timer : activeTimers)
+
+	std::vector<int> expiredList;
+	for (auto& it : ActiveTimers)
 	{
-		timer.timeoutMs -= timeElapsed;
-		if (timer.timeoutMs == 0)
+		it.second.TimeLeft -= timeElapsed;
+		if (it.second.TimeLeft <= 0.0f)
+			expiredList.push_back(it.first);
+	}
+
+	for (int timerId : expiredList)
+	{
+		// Keep calling the timer if its looping until we've called it the number of times total time elapsed
+		while (true)
 		{
-			CallEvent(this, timer.functionName, timer.clientData);
+			auto it = ActiveTimers.find(timerId);
+			if (it == ActiveTimers.end())
+				break; // script removed it via Window.RemoveTimer(id)
+
+			NameString functionName = it->second.FunctionName;
+			int clientData = it->second.ClientData;
+			bool loop = it->second.Loop;
+
+			if (loop)
+			{
+				it->second.TimeLeft += it->second.Timeout;
+				if (it->second.TimeLeft > 0.0f || it->second.Timeout <= 0.00001f)
+					loop = false;
+			}
+			else
+			{
+				// Single fire. Remove it.
+				ActiveTimers.erase(it);
+			}
+
+			CallEvent(this, functionName, { ExpressionValue::IntValue(clientData) });
+
+			if (!loop)
+				break;
 		}
 	}
+
 	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 	{
 		cur->Tick(timeElapsed);
@@ -4606,10 +4649,10 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 	while (pos < editedText.size())
 	{
 		if (editedText[pos] == '\r')
-        {
-            textBlocks.push_back({"\r", Color{255,255,255, 255}, 0});
-            pos++;
-        }
+		{
+			textBlocks.push_back({"\r", Color{255,255,255, 255}, 0});
+			pos++;
+		}
 		if (editedText[pos] == '\n')
 		{
 			textBlocks.push_back({"\n", Color{255,255,255, 255}, 0});
