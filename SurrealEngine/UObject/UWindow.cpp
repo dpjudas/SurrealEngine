@@ -4479,6 +4479,8 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float lineWidth = 0.0f;
 	float lineHeight = 0.0f;
 
+	float emptyLineHeight = GetTextSize(font, " ").y;
+
 	for (size_t pos = 0; pos < textBlocks.size(); pos++)
 	{
 		if (textBlocks[pos].text.front() == '\n')
@@ -4497,6 +4499,12 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 				curY += lineHeight;
 				totalHeight += lineHeight;
 				totalWidth = std::max(totalWidth, lineWidth);
+			}
+			else
+			{
+				lineHeight = std::max(lineHeight, emptyLineHeight);
+				curY += lineHeight;
+				totalHeight += lineHeight;
 			}
 
 			curX = 0;
