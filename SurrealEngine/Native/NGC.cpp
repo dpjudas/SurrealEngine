@@ -77,10 +77,10 @@ void NGC::DrawActor(UObject* Self, UObject* Actor, BitfieldBool* bClearZ, Bitfie
 	gc->DrawActor(Actor, bClearZ, bConstrain, bUnlit, DrawScale, ScaleGlow, Skin);
 }
 
-void NGC::DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
+void NGC::DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject*& borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
-	gc->DrawBorders(DestX, DestY, destWidth, destHeight, leftMargin, rightMargin, TopMargin, BottomMargin, borders, bStretchHorizontally, bStretchVertically);
+	gc->DrawBorders(DestX, DestY, destWidth, destHeight, leftMargin, rightMargin, TopMargin, BottomMargin, &borders, bStretchHorizontally, bStretchVertically);
 }
 
 void NGC::DrawBox(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX)

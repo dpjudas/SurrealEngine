@@ -1376,9 +1376,21 @@ void UWindow::DrawWindow(UGC* gc)
 		gc->EnableSmoothing(bSmoothBackground());
 		gc->SetTileColor(tileColor());
 		if (bStretchBackground())
-			gc->DrawBorders(0.0f, 0.0f, Width(), Height(), 0.0f, 0.0f, 0.0f, 0.0f, Background(), nullptr, nullptr);
+		{
+			if (UTexture* tex = UObject::Cast<UTexture>(Background()))
+			{
+				float swidth = (float)tex->USize();
+				float sheight = (float)tex->VSize();
+				Rectf dest = Rectf::xywh(gc->offsetX, gc->offsetY, Width(), Height());
+				Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
+				gc->DrawTile(tex, gc->ScaleRect(dest), src, tileColor(), gc->EffectivePolyFlags());
+			}
+		}
 		else
+		{
 			gc->DrawIcon(0.0f, 0.0f, Background());
+		}
+		// DrawDebugBox(gc);
 	}
 
 	CallEvent(this, "DrawWindow", { ExpressionValue::ObjectValue(gc) });
@@ -3885,27 +3897,105 @@ void UGC::DrawText(float DestX, float DestY, float destWidth, float destHeight, 
 	}
 }
 
-void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject* borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
+void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject** borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
 {
 	if (!bDrawEnabled())
 		return;
 
 	if (leftMargin != 0.0f || rightMargin != 0.0f || TopMargin != 0.0f || BottomMargin != 0.0f || bStretchHorizontally || bStretchVertically)
 	{
-		// margins are always zero from script. Was this supposed to be a CSS border-image style draw function?
+		// margins are always zero from script. bStretchHorizontally and bStretchVertically are never specified.
 		LogUnimplemented("GC.DrawBorders");
 	}
-	else
+
+	UTexture* tl = UObject::Cast<UTexture>(borders[0]);
+	UTexture* tr = UObject::Cast<UTexture>(borders[1]);
+	UTexture* bl = UObject::Cast<UTexture>(borders[2]);
+	UTexture* left = UObject::Cast<UTexture>(borders[4]);
+	UTexture* br = UObject::Cast<UTexture>(borders[3]);
+	UTexture* right = UObject::Cast<UTexture>(borders[5]);
+	UTexture* top = UObject::Cast<UTexture>(borders[6]);
+	UTexture* bottom = UObject::Cast<UTexture>(borders[7]);
+	UTexture* center = UObject::Cast<UTexture>(borders[8]);
+
+	DestX += offsetX;
+	DestY += offsetY;
+
+	float tlX = 0.0f, trX = 0.0f;
+	float tlY = 0.0f, trY = 0.0f;
+	float blX = destWidth, brX = destWidth;
+	float blY = destHeight, brY = destHeight;
+
+	if (auto tex = center) // To do: maybe draw this only in the inner box?
 	{
-		UTexture* tex = UObject::Cast<UTexture>(borders);
-		if (tex)
-		{
-			float swidth = (float)tex->USize();
-			float sheight = (float)tex->VSize();
-			Rectf dest = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, destHeight);
-			Rectf src = Rectf::xywh(0.0f, 0.0f, swidth, sheight);
-			DrawTile(tex, ScaleRect(dest), src, tileColor(), EffectivePolyFlags());
-		}
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX, DestY, destWidth, destHeight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+	}
+	if (auto tex = tl) // top left corner
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX, DestY, swidth, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+		tlX = dest.right;
+		tlY = dest.bottom;
+	}
+	if (auto tex = tr) // top right corner
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX + destWidth - swidth, DestY, swidth, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+		trX = dest.left;
+		trY = dest.bottom;
+	}
+	if (auto tex = bl) // bottom left corner
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX, DestY + destHeight - sheight, swidth, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+		blX = dest.right;
+		blY = dest.top;
+	}
+	if (auto tex = br) // bottom right corner
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX + destWidth - swidth, DestY + destHeight - sheight, swidth, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+		brX = dest.left;
+		brY = dest.top;
+	}
+	if (auto tex = left) // left side
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX, tlY, swidth, blY - tlY);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+	}
+	if (auto tex = right) // right side
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(DestX + destWidth - swidth, trY, swidth, brY - trY);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+	}
+	if (auto tex = top) // top side
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(tlX, DestY, trX - tlX, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
+	}
+	if (auto tex = bottom) // bottom side
+	{
+		float swidth = (float)tex->USize();
+		float sheight = (float)tex->VSize();
+		Rectf dest = Rectf::xywh(tlX, DestY + destHeight - sheight, brX - blX, sheight);
+		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
 	}
 }
 
@@ -3924,9 +4014,9 @@ void UGC::DrawBox(float DestX, float DestY, float destWidth, float destHeight, f
 		Color color = tileColor();
 
 		Rectf top = Rectf::xywh(offsetX + DestX, offsetY + DestY, destWidth, boxThickness);
-		Rectf bottom = Rectf::xywh(offsetX + DestX, offsetY + DestY - boxThickness, destWidth, boxThickness);
+		Rectf bottom = Rectf::xywh(offsetX + DestX, offsetY + DestY + destHeight - boxThickness, destWidth, boxThickness);
 		Rectf left = Rectf::xywh(offsetX + DestX, offsetY + DestY, boxThickness, destHeight);
-		Rectf right = Rectf::xywh(offsetX + DestX - boxThickness, offsetY + DestY, boxThickness, destHeight);
+		Rectf right = Rectf::xywh(offsetX + DestX + destWidth - boxThickness, offsetY + DestY, boxThickness, destHeight);
 
 		DrawTile(tex, ScaleRect(top), src, color, polyflags);
 		DrawTile(tex, ScaleRect(bottom), src, color, polyflags);
