@@ -483,6 +483,7 @@ public:
 	bool ChildRequestedReconfiguration(UWindow* childWin) override;
 	void ChildAdded(UWindow* child) override;
 	void ChildRemoved(UWindow* child) override;
+	void DrawWindow(UGC* gc) override;
 
 	BitfieldBool bEqualHeight() { return BoolValue(PropOffsets_TileWindow.bEqualHeight); }
 	BitfieldBool bEqualWidth() { return BoolValue(PropOffsets_TileWindow.bEqualWidth); }

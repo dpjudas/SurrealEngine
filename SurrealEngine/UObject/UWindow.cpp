@@ -1657,7 +1657,7 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 			float w = 0.0f, h = 0.0f;
 			cur->QueryPreferredSize(w, h);
 			preferredHeight = std::max(preferredHeight, h);
-			preferredWidth += h;
+			preferredWidth += w;
 		}
 	}
 	else
@@ -1685,28 +1685,62 @@ void UTileWindow::ConfigurationChanged()
 
 	if (orient == EOrientation::Horizontal)
 	{
-		float x = 0.0f;
-		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		if (hdir == EHDirection::LeftToRight)
 		{
-			float w = cur->QueryPreferredWidth(Height());
-			float h = cur->QueryPreferredHeight(w);
-			cur->ConfigureChild(x, 0.0f, w, std::min(h, Height()));
-			x += w;
+			float x = 0.0f;
+			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+			{
+				float w = cur->QueryPreferredWidth(Height());
+				float h = cur->QueryPreferredHeight(w);
+				cur->ConfigureChild(x, 0.0f, w, std::min(h, Height()));
+				x += w;
+			}
+		}
+		else // if (hdir == EHDirection::RightToLeft)
+		{
+			float x = Width();
+			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+			{
+				float w = cur->QueryPreferredWidth(Height());
+				float h = cur->QueryPreferredHeight(w);
+				x -= w;
+				cur->ConfigureChild(x, 0.0f, w, std::min(h, Height()));
+			}
 		}
 	}
 	else
 	{
-		float y = 0.0f;
-		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+		if (vdir == EVDirection::TopToBottom)
 		{
-			float h = cur->QueryPreferredHeight(Width());
-			float w = cur->QueryPreferredWidth(h);
-			cur->ConfigureChild(0.0f, y, std::min(w, Width()), h);
-			y += h;
+			float y = 0.0f;
+			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+			{
+				float h = cur->QueryPreferredHeight(Width());
+				float w = cur->QueryPreferredWidth(h);
+				cur->ConfigureChild(0.0f, y, std::min(w, Width()), h);
+				y += h;
+			}
+		}
+		else // if (vdir == EVDirection::BottomToTop)
+		{
+			float y = Height();
+			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+			{
+				float h = cur->QueryPreferredHeight(Width());
+				float w = cur->QueryPreferredWidth(h);
+				y -= h;
+				cur->ConfigureChild(0.0f, y, std::min(w, Width()), h);
+			}
 		}
 	}
 
 	UWindow::ConfigurationChanged();
+}
+
+void UTileWindow::DrawWindow(UGC* gc)
+{
+	UWindow::DrawWindow(gc);
+	// DrawDebugBox(gc);
 }
 
 bool UTileWindow::ChildRequestedReconfiguration(UWindow* childWin)
