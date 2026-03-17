@@ -6,6 +6,7 @@
 #include "UObject/UActor.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
+#include "VM/ScriptCall.h"
 
 void NPlayerPawn::RegisterFunctions()
 {
@@ -34,6 +35,8 @@ void NPlayerPawn::RegisterFunctions()
 
 void NPlayerPawn::ClientTravel(UObject* Self, const std::string& URL, uint8_t TravelType, bool bItems)
 {
+	if (engine->LaunchInfo.IsDeusEx())
+		CallEvent(Self, "PreTravel", {});
 	engine->ClientTravel(URL, static_cast<ETravelType>(TravelType), bItems);
 }
 
