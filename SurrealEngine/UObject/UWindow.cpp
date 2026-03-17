@@ -3841,7 +3841,7 @@ void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, int* newCursor
 
 void UComputerWindow::SetFadeSpeed(float newFadeSpeed)
 {
-	fadeSpeed() = fadeSpeed;
+	fadeSpeed() = newFadeSpeed;
 }
 
 void UComputerWindow::SetFontColor(const Color& newFontColor)
