@@ -3630,6 +3630,7 @@ void UListWindow::SetFocusRow(int rowId, BitfieldBool* bMoveTo, BitfieldBool* bA
 
 void UListWindow::SetFocusTexture(UObject* NewTexture)
 {
+	focusTexture() = UObject::Cast<UTexture>(NewTexture);
 	LogUnimplemented("ListWindow.SetFocusTexture");
 }
 
@@ -3641,6 +3642,7 @@ void UListWindow::SetFocusThickness(float newThickness)
 
 void UListWindow::SetHighlightColor(const Color& NewColor)
 {
+	highlightColor() = NewColor;
 	LogUnimplemented("ListWindow.SetHighlightColor");
 }
 
@@ -3651,6 +3653,7 @@ void UListWindow::SetHighlightTextColor(const Color& NewColor)
 
 void UListWindow::SetHighlightTexture(UObject* NewTexture)
 {
+	highlightTexture() = UObject::Cast<UTexture>(NewTexture);
 	LogUnimplemented("ListWindow.SetHighlightTexture");
 }
 
@@ -3826,6 +3829,7 @@ void UComputerWindow::SetCursorBlinkSpeed(float newBlinkSpeed)
 
 void UComputerWindow::SetCursorColor(const Color& newCursorColor)
 {
+	cursorColor() = newCursorColor;
 	LogUnimplemented("ComputerWindow.SetCursorColor");
 }
 
@@ -3835,9 +3839,9 @@ void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, int* newCursor
 	LogUnimplemented("ComputerWindow.SetCursorTexture");
 }
 
-void UComputerWindow::SetFadeSpeed(float fadeSpeed)
+void UComputerWindow::SetFadeSpeed(float newFadeSpeed)
 {
-	LogUnimplemented("ComputerWindow.SetFadeSpeed");
+	fadeSpeed() = fadeSpeed;
 }
 
 void UComputerWindow::SetFontColor(const Color& newFontColor)
@@ -3848,7 +3852,7 @@ void UComputerWindow::SetFontColor(const Color& newFontColor)
 
 void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
 {
-	LogUnimplemented("ComputerWindow.SetTextFont");
+	textFont() = UObject::Cast<UFont>(NewFont);
 }
 
 void UComputerWindow::SetTextPosition(int posX, int posY)
@@ -3859,7 +3863,8 @@ void UComputerWindow::SetTextPosition(int posX, int posY)
 
 void UComputerWindow::SetTextSize(int newCols, int newRows)
 {
-	LogUnimplemented("ComputerWindow.SetTextSize");
+	textCols() = newCols;
+	textRows() = newRows;
 }
 
 void UComputerWindow::SetTextSound(UObject* newTextSound)
