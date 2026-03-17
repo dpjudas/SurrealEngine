@@ -534,7 +534,7 @@ std::string UObjectProperty::PrintValue(const void* data)
 {
 	UObject* obj = *(UObject**)data;
 	if (obj)
-		return obj->Class->Name.ToString() + '\'' + obj->package->GetExportName(obj->exportIndex) + '\'';
+		return obj->Class->Name.ToString() + '\'' + obj->Name.ToString()/*obj->package->GetExportName(obj->exportIndex)*/+ '\'';
 	else
 		return "None";
 }

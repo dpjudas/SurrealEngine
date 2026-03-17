@@ -39,7 +39,8 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 
 	// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
 	// To do: find unique new name in the package
-	NameString name = SpawnClass->Name.ToString() + "0";
+	static std::map<NameString, int> nextIndex;
+	NameString name = SpawnClass->Name.ToString() + std::to_string(nextIndex[SpawnClass->Name]++);
 	UActor* actor = UObject::Cast<UActor>(engine->LevelPackage->NewObject(name, UObject::Cast<UClass>(SpawnClass), ObjectFlags::Transient, true));
 
 	actor->Outer() = XLevel()->Outer();
