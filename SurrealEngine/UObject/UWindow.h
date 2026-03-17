@@ -1243,7 +1243,7 @@ public:
 	void SetCursorBlinkSpeed(float newBlinkSpeed);
 	void SetCursorColor(const Color& newCursorColor);
 	void SetCursorTexture(UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight);
-	void SetFadeSpeed(float fadeSpeed);
+	void SetFadeSpeed(float newFadeSpeed);
 	void SetFontColor(const Color& newFontColor);
 	void SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor);
 	void SetTextPosition(int posX, int posY);
