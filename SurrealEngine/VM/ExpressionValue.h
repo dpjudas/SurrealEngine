@@ -408,7 +408,7 @@ inline ExpressionValue ExpressionValue::Variable(void* data, UProperty* prop)
 
 inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 {
-	switch (rvalue.Type)
+	switch (Type)
 	{
 	case ExpressionValueType::Nothing: break;
 	case ExpressionValueType::ValueByte: *PtrByte = rvalue.ToByte(); break;
@@ -422,20 +422,12 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 	case ExpressionValueType::ValueName: *PtrName = rvalue.ToName(); break;
 	case ExpressionValueType::ValueColor: *PtrColor = rvalue.ToColor(); break;
 	case ExpressionValueType::ValueStruct:
-		if (rvalue.VariableProperty)
+		if (UStruct* Struct = VariableProperty ? static_cast<UStructProperty*>(VariableProperty)->Struct : GetStructValue()->Struct)
 		{
-			UStruct* Struct = static_cast<UStructProperty*>(rvalue.VariableProperty)->Struct;
-			if (Struct)
-			{
-				for (UProperty* prop : Struct->Properties)
-					prop->CopyArray(
-						static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
-						static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
-			}
-		}
-		else
-		{
-			rvalue.GetStructValue()->Store(Ptr);
+			for (UProperty* prop : Struct->Properties)
+				prop->CopyArray(
+					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
+					static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
 		}
 		break;
 	}
@@ -553,7 +545,7 @@ inline UObject* ExpressionValue::ToObject() const
 
 inline const vec3& ExpressionValue::ToVector() const
 {
-	if (Type == ExpressionValueType::ValueVector)
+	if (Type == ExpressionValueType::ValueVector || Type == ExpressionValueType::ValueStruct)
 	{
 		return *PtrVector;
 	}
@@ -570,7 +562,7 @@ inline const vec3& ExpressionValue::ToVector() const
 
 inline const Rotator& ExpressionValue::ToRotator() const
 {
-	if (Type == ExpressionValueType::ValueRotator)
+	if (Type == ExpressionValueType::ValueRotator || Type == ExpressionValueType::ValueStruct)
 	{
 		return *PtrRotator;
 	}
