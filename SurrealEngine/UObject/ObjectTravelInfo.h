@@ -12,28 +12,24 @@ class ActorTravelInfo
 public:
 	static std::string Create(UPlayerPawn* pawn, bool transferItems);
 	static Array<UActor*> Accept(UPlayerPawn* pawn, const std::string& travelInfo);
-};
-
-// Travel info parser for UInventory and UPlayerPawn-derived classes
-class ObjectTravelInfo
-{
-public:
-	ObjectTravelInfo() = default;
-	ObjectTravelInfo(UActor* travelActor);
-
-	static Array<ObjectTravelInfo> Parse(const std::string& text);
-	static std::string ToString(const Array<ObjectTravelInfo>& objects);
-
-	// Full class name of the traveling actor
-	// [PackageName].[ClassName]
-	std::string ClassName;
-
-	// true = Actor is a PlayerPawn, false = Actor is an Inventory
-	bool IsPlayerPawn = false;
-
-	// Properties to travel
-	std::map<std::string, std::string> Properties;
 
 private:
-	static ObjectTravelInfo ParseSingleObject(const std::string& singleObjectText);
+	// Each object in the travel info string
+	struct TravelObject
+	{
+		// Full class name of the traveling actor
+		// [PackageName].[ClassName]
+		std::string ClassName;
+
+		// "player" if it is the PlayerPawn, otherwise it needs to be spawned
+		std::string Name;
+
+		// Properties to travel
+		std::map<std::string, std::string> Properties;
+	};
+
+	static TravelObject CreateObject(UActor* travelActor, const std::string& name, const std::map<UActor*, std::string>& travelActors);
+	static std::string ToString(const Array<TravelObject>& travelActors);
+	static Array<TravelObject> Parse(const std::string& text);
+	static TravelObject ParseSingleObject(const std::string& singleObjectText);
 };

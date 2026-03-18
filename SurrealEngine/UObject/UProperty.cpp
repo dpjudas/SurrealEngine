@@ -292,7 +292,23 @@ bool UByteProperty::IsDefaultValue(void* val)
 
 void UByteProperty::SetValueFromString(void* data, const std::string& valueString)
 {
-	*(uint8_t*)data = Convert::to_uint8(valueString);
+	if (!valueString.empty() && valueString.front() >= '0' && valueString.front() <= '9')
+	{
+		*(uint8_t*)data = Convert::to_uint8(valueString);
+	}
+	else if (EnumType)
+	{
+		int index = 0;
+		for (const NameString& elementName : EnumType->ElementNames)
+		{
+			if (elementName == valueString)
+			{
+				*(uint8_t*)data = index;
+				break;
+			}
+			index++;
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
