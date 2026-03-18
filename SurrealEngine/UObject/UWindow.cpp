@@ -59,14 +59,14 @@ void UWindow::UpdateLayout()
 		if (halign == EHAlign::Left || halign == EHAlign::Full)
 			x = X() + leftMargin;
 		else if (halign == EHAlign::Center)
-			x = (pWidth - width) * 0.5f + X();
+			x = (pWidth - width) * 0.5f;
 		else if (halign == EHAlign::Right)
 			x = pWidth - rightMargin - width - X();
 
 		if (valign == EVAlign::Top || valign == EVAlign::Full)
 			y = Y() + topMargin;
 		else if (valign == EVAlign::Center)
-			y = (pHeight - height) * 0.5f + Y();
+			y = (pHeight - height) * 0.5f;
 		else if (valign == EVAlign::Bottom)
 			y = pHeight - bottomMargin - height - Y();
 
