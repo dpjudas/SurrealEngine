@@ -183,13 +183,13 @@ std::map<NameString, std::string> UProperty::ParsePropertiesFromString(std::stri
 	if (propertiesString == "null" || propertiesString == "null struct" || propertiesString == "None")
 		return {};
 
-	if (propertiesString[0] != '{')
-		Exception::Throw("{ not found in the property string: " + propertiesString);
+	if (propertiesString[0] != '(')
+		Exception::Throw("( not found in the property string: " + propertiesString);
 
-	if (propertiesString[propertiesString.size() - 1] != '}')
-		Exception::Throw("} not found in the property string: " + propertiesString);
+	if (propertiesString[propertiesString.size() - 1] != ')')
+		Exception::Throw(") not found in the property string: " + propertiesString);
 
-	std::string propsString = propertiesString.substr(1, propertiesString.find('}') - 1);
+	std::string propsString = propertiesString.substr(1, propertiesString.find(')') - 1);
 
 	std::stringstream propsStream(propsString);
 	std::string prop;
@@ -1291,7 +1291,8 @@ std::string UStructProperty::PrintValue(const void* data)
 			UProperty* fieldprop = UObject::TryCast<UProperty>(field);
 			if (fieldprop)
 			{
-				print += print.empty() ? " " : ", ";
+				if (!print.empty())
+					print += ", ";
 				print += fieldprop->Name.ToString();
 				print += "=";
 				print += fieldprop->PrintValue(d + fieldprop->DataOffset.DataOffset);
