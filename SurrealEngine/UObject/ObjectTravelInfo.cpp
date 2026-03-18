@@ -95,7 +95,11 @@ ActorTravelInfo::TravelObject ActorTravelInfo::CreateObject(UActor* travelActor,
 			}
 			else
 			{
-				name = "None";
+				// Seems we are not supposed to travel object properties set to None?
+				// 
+				// For Deus Ex, AugmentationSystem can be set to none and then is reinitialized in PostBeginPlay.
+				// Travel happens after PostBeginPlay, so if we set it back to None Deus Ex breaks.
+				// name = "None";
 			}
 			if (!name.empty())
 				info.Properties[property->Name.ToString()] = name;

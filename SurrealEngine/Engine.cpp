@@ -706,10 +706,6 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		for (size_t i = 0; i < loadActorCount; i++) { if (Level->Actors[i]) Level->Actors[i]->InitBase(); }
 		LevelInfo->bStartup() = false;
 	}
-	else
-	{
-		LevelInfo->TimeSeconds() = LevelInfo->TimeSeconds();
-	}
 
 	if (LevelInfo->Game())
 		CallEvent(LevelInfo->Game(), "DetailChange", {});
