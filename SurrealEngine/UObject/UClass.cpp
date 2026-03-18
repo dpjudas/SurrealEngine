@@ -701,7 +701,26 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 
 				if (!value.empty())
 				{
-					if (UObject::IsType<UByteProperty>(prop)) *static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+					if (auto byteprop = UObject::TryCast<UByteProperty>(prop))
+					{
+						if (value.front() >= '0' && value.front() <= '9')
+						{
+							*static_cast<uint8_t*>(ptr) = (uint8_t)std::atoi(value.c_str());
+						}
+						else if (byteprop->EnumType)
+						{
+							int index = 0;
+							for (const NameString& elementName : byteprop->EnumType->ElementNames)
+							{
+								if (elementName == value)
+								{
+									*static_cast<uint8_t*>(ptr) = (uint8_t)index;
+									break;
+								}
+								index++;
+							}
+						}
+					}
 					else if (UObject::IsType<UIntProperty>(prop)) *static_cast<int32_t*>(ptr) = (int32_t)std::atoi(value.c_str());
 					else if (UObject::IsType<UFloatProperty>(prop)) *static_cast<float*>(ptr) = (float)std::atof(value.c_str());
 					else if (UObject::IsType<UNameProperty>(prop)) *static_cast<NameString*>(ptr) = value;
@@ -740,7 +759,26 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 						{
 							std::string membervalue = values[member->Name];
 							void* memberptr = static_cast<uint8_t*>(ptr) + member->DataOffset.DataOffset;
-							if (UObject::IsType<UByteProperty>(member)) *static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
+							if (auto byteprop = UObject::TryCast<UByteProperty>(member))
+							{
+								if (!membervalue.empty() && membervalue.front() >= '0' && membervalue.front() <= '9')
+								{
+									*static_cast<uint8_t*>(memberptr) = (uint8_t)std::atoi(membervalue.c_str());
+								}
+								else if (byteprop->EnumType)
+								{
+									int index = 0;
+									for (const NameString& elementName : byteprop->EnumType->ElementNames)
+									{
+										if (elementName == membervalue)
+										{
+											*static_cast<uint8_t*>(memberptr) = (uint8_t)index;
+											break;
+										}
+										index++;
+									}
+								}
+							}
 							else if (UObject::IsType<UIntProperty>(member)) *static_cast<int32_t*>(memberptr) = (int32_t)std::atoi(membervalue.c_str());
 							else if (UObject::IsType<UFloatProperty>(member)) *static_cast<float*>(memberptr) = (float)std::atof(membervalue.c_str());
 							else if (UObject::IsType<UNameProperty>(member)) *static_cast<NameString*>(memberptr) = membervalue;
