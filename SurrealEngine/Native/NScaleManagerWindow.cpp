@@ -23,7 +23,7 @@ void NScaleManagerWindow::SetManagerAlignments(UObject* Self, uint8_t newHAlign,
 	window->SetManagerAlignments(newHAlign, newVAlign);
 }
 
-void NScaleManagerWindow::SetManagerMargins(UObject* Self, float* newMarginWidth, float* newMarginHeight)
+void NScaleManagerWindow::SetManagerMargins(UObject* Self, std::optional<float> newMarginWidth, std::optional<float> newMarginHeight)
 {
 	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
 	window->SetManagerMargins(newMarginWidth, newMarginHeight);
@@ -35,7 +35,7 @@ void NScaleManagerWindow::SetManagerOrientation(UObject* Self, uint8_t newOrient
 	window->SetManagerOrientation(newOrientation);
 }
 
-void NScaleManagerWindow::SetMarginSpacing(UObject* Self, float* newSpacing)
+void NScaleManagerWindow::SetMarginSpacing(UObject* Self, std::optional<float> newSpacing)
 {
 	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
 	window->SetMarginSpacing(newSpacing);
@@ -59,13 +59,13 @@ void NScaleManagerWindow::SetValueField(UObject* Self, UObject* newValueField)
 	window->SetValueField(newValueField);
 }
 
-void NScaleManagerWindow::StretchScaleField(UObject* Self, BitfieldBool* bNewStretch)
+void NScaleManagerWindow::StretchScaleField(UObject* Self, std::optional<bool> bNewStretch)
 {
 	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
 	window->StretchScaleField(bNewStretch);
 }
 
-void NScaleManagerWindow::StretchValueField(UObject* Self, BitfieldBool* bNewStretch)
+void NScaleManagerWindow::StretchValueField(UObject* Self, std::optional<bool> bNewStretch)
 {
 	UScaleManagerWindow* window = UObject::Cast<UScaleManagerWindow>(Self);
 	window->StretchValueField(bNewStretch);

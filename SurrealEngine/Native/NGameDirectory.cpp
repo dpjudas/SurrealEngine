@@ -31,7 +31,7 @@ void NGameDirectory::DeleteSaveInfo(UObject* Self, UObject* saveInfo)
 	DXGDSelf->DeleteSaveInfo(*dxSaveInfo);
 }
 
-void NGameDirectory::GenerateNewSaveFilename(UObject* Self, int* newIndex, std::string& ReturnValue)
+void NGameDirectory::GenerateNewSaveFilename(UObject* Self, std::optional<int> newIndex, std::string& ReturnValue)
 {
 	auto DXGDSelf = UObject::Cast<UDXGameDirectory>(Self);
 	ReturnValue = DXGDSelf->GenerateNewSaveFileName(newIndex);

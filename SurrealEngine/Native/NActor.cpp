@@ -126,12 +126,12 @@ void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
 	ReturnValue = c;
 }
 
-void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString* MatchTag)
+void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag)
 {
 	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string());
 }
 
-void NActor::AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString* MatchTag, NameString* MatchEvent, bool bAllLevels)
+void NActor::AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent, bool bAllLevels)
 {
 	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string(), MatchEvent ? *MatchEvent : std::string(), bAllLevels);
 }
@@ -165,7 +165,7 @@ void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::stri
 	ReturnValue = engine->ConsoleCommand(Self, Command, found.ToType<BitfieldBool&>());
 }
 
-void NActor::DemoPlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
+void NActor::DemoPlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slot, std::optional<float> Volume, std::optional<bool> bNoOverride, std::optional<float> Radius, std::optional<float> Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -189,7 +189,7 @@ void NActor::Error(UObject* Self, const std::string& S)
 	UObject::Cast<UActor>(Self)->Destroy();
 }
 
-void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, vec3* TraceStart, BitfieldBool& ReturnValue)
+void NActor::FastTrace(UObject* Self, const vec3& TraceEnd, std::optional<vec3> TraceStart, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	vec3 start = TraceStart ? *TraceStart : SelfActor->Location();
@@ -213,7 +213,7 @@ void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString&
 	ReturnValue = UObject::Cast<UActor>(Self)->GetAnimGroup(Sequence);
 }
 
-void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, BitfieldBool* bExact, vec3* testLocation, Rotator* testRotation, BitfieldBool& ReturnValue)
+void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, std::optional<bool> bExact, std::optional<vec3> testLocation, std::optional<Rotator> testRotation, BitfieldBool& ReturnValue)
 {
     UActor* actor = UObject::Cast<UActor>(Self);  
     if (!actor) { ReturnValue = false; return; }  
@@ -404,7 +404,7 @@ void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
 	LogUnimplemented("Actor.LinkSkelAnim");
 }
 
-void NActor::LoopAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, float* MinRate)
+void NActor::LoopAnim(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate)
 {
 	UObject::Cast<UActor>(Self)->LoopAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, MinRate ? *MinRate : 0.0f);
 }
@@ -419,7 +419,7 @@ void NActor::Move(UObject* Self, const vec3& Delta, BitfieldBool& ReturnValue)
 	ReturnValue = UObject::Cast<UActor>(Self)->Move(Delta);
 }
 
-void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::string* NewFilename, BitfieldBool& ReturnValue)
+void NActor::MoveCacheEntry(UObject* Self, const std::string& Guid, std::optional<std::string> NewFilename, BitfieldBool& ReturnValue)
 {
 	LogUnimplemented("Actor.MoveCacheEntry");
 	ReturnValue = false;
@@ -450,17 +450,17 @@ void NActor::Multiply_FloatColor(float A, const Color& B, Color& ReturnValue)
 	ReturnValue = c;
 }
 
-void NActor::PlayAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime)
+void NActor::PlayAnim(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime)
 {
 	UObject::Cast<UActor>(Self)->PlayAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f);
 }
 
-void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, float* Rate, float* TweenTime, uint8_t* BlendSlot)
+void NActor::PlayBlendAnim(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> BlendSlot)
 {
 	UObject::Cast<UActor>(Self)->PlayBlendAnim(Sequence, Rate ? *Rate : 1.0f, TweenTime ? *TweenTime : 0.0f, BlendSlot ? *BlendSlot : 0);
 }
 
-void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
+void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slot, std::optional<float> Volume, std::optional<bool> bNoOverride, std::optional<float> Radius, std::optional<float> Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -473,7 +473,7 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, uint8_t* Slot, float*
 	}
 }
 
-void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch)
+void NActor::PlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slot, std::optional<float> Volume, std::optional<bool> bNoOverride, std::optional<float> Radius, std::optional<float> Pitch)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -486,7 +486,7 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volu
 	}
 }
 
-void NActor::PlaySound_Deus(UObject* Self, UObject* Sound, uint8_t* Slot, float* Volume, BitfieldBool* bNoOverride, float* Radius, float* Pitch, int& ReturnValue)
+void NActor::PlaySound_Deus(UObject* Self, UObject* Sound, std::optional<uint8_t> Slot, std::optional<float> Volume, std::optional<bool> bNoOverride, std::optional<float> Radius, std::optional<float> Pitch, int& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	USound* s = UObject::Cast<USound>(Sound);
@@ -507,7 +507,7 @@ void NActor::PlayerCanSeeMe(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = SelfActor->PlayerCanSeeMe();
 }
 
-void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, vec3* Loc)
+void NActor::RadiusActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float Radius, std::optional<vec3> Loc)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<RadiusActorsIterator>(SelfActor, BaseClass, &Actor, Radius, Loc ? *Loc : SelfActor->Location());
@@ -518,7 +518,7 @@ void NActor::SetBase(UObject* Self, UObject* NewBase)
 	UObject::Cast<UActor>(Self)->SetBase(UObject::Cast<UActor>(NewBase), true);
 }
 
-void NActor::SetCollision(UObject* Self, BitfieldBool* NewColActors, BitfieldBool* NewBlockActors, BitfieldBool* NewBlockPlayers)
+void NActor::SetCollision(UObject* Self, std::optional<bool> NewColActors, std::optional<bool> NewBlockActors, std::optional<bool> NewBlockPlayers)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	SelfActor->SetCollision(
@@ -548,7 +548,7 @@ void NActor::SetPhysics(UObject* Self, uint8_t newPhysics)
 	// We are calling Self->SetBase() for all other calls to SetPhysics. Do we need to do it here as well?
 }
 
-void NActor::SetPhysics_Deus(UObject* Self, uint8_t newPhysics, UObject** newFloor)
+void NActor::SetPhysics_Deus(UObject* Self, uint8_t newPhysics, std::optional<UObject*> newFloor)
 {
 	// To do: do something with that optional new floor
 	// We are calling Self->SetBase() for all other calls to SetPhysics. Do we need to do it here as well?
@@ -576,9 +576,14 @@ void NActor::Sleep(UObject* Self, float Seconds)
 		Self->StateFrame->LatentState = LatentRunState::Sleep;
 }
 
-void NActor::Spawn(UObject* Self, UObject* SpawnClass, UObject** SpawnOwner, NameString* SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation, UObject*& ReturnValue)
+void NActor::Spawn(UObject* Self, UObject* SpawnClass, std::optional<UObject*> SpawnOwner, std::optional<NameString> SpawnTag, std::optional<vec3> SpawnLocation, std::optional<Rotator> SpawnRotation, UObject*& ReturnValue)
 {
-	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(UObject::Cast<UClass>(SpawnClass), SpawnOwner ? UObject::Cast<UActor>(*SpawnOwner) : nullptr, SpawnTag ? *SpawnTag : NameString(), SpawnLocation, SpawnRotation);
+	ReturnValue = UObject::Cast<UActor>(Self)->Spawn(
+		UObject::Cast<UClass>(SpawnClass),
+		SpawnOwner ? std::optional<UActor*>(UObject::Cast<UActor>(*SpawnOwner)) : std::optional<UActor*>(),
+		SpawnTag,
+		SpawnLocation,
+		SpawnRotation);
 }
 
 void NActor::Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
@@ -596,7 +601,7 @@ void NActor::TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 	Frame::CreatedIterator = std::make_unique<TouchingActorsIterator>(UObject::TryCast<UActor>(Self), BaseClass, &Actor);
 }
 
-void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, vec3* TraceStart, BitfieldBool* bTraceActors, vec3* Extent, UObject*& ReturnValue)
+void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, std::optional<vec3> TraceStart, std::optional<bool> bTraceActors, std::optional<vec3> Extent, UObject*& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->Trace(
@@ -606,7 +611,7 @@ void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3
 		Extent ? *Extent : vec3(0, 0, 0));
 }
 
-void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
+void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, std::optional<vec3> Start, std::optional<vec3> Extent)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<TraceActorsIterator>(
@@ -620,7 +625,7 @@ void NActor::TweenAnim(UObject* Self, const NameString& Sequence, float Time)
 	UObject::Cast<UActor>(Self)->TweenAnim(Sequence, Time);
 }
 
-void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc)
+void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<float> Radius, std::optional<vec3> Loc)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<VisibleActorsIterator>(
@@ -629,7 +634,7 @@ void NActor::VisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, f
 		Loc ? *Loc : SelfActor->Location());
 }
 
-void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc, BitfieldBool* bIgnoreHidden)
+void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<float> Radius, std::optional<vec3> Loc, std::optional<bool> bIgnoreHidden)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<VisibleCollidingActorsIterator>(
@@ -639,7 +644,7 @@ void NActor::VisibleCollidingActors(UObject* Self, UObject* BaseClass, UObject*&
 		bIgnoreHidden ? *bIgnoreHidden : false);
 }
 
-void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObject*& Actor, float* Radius, vec3* Loc)
+void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<float> Radius, std::optional<vec3> Loc)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	Frame::CreatedIterator = std::make_unique<VisibleCollidingActorsIterator>(
@@ -651,7 +656,7 @@ void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObje
 
 
 
-void NActor::GetMeshTexture(UObject* Self, int* texnum, UObject*& ReturnValue)  
+void NActor::GetMeshTexture(UObject* Self, std::optional<int> texnum, UObject*& ReturnValue)  
 {  
     UActor* actor = UObject::Cast<UActor>(Self);  
     UMesh* mesh = actor ? actor->Mesh() : nullptr;  
@@ -720,28 +725,28 @@ void NActor::AIGetLightLevel(UObject* Self, const vec3& Location, float& ReturnV
 	ReturnValue = 1.0f;
 }
 
-void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
+void NActor::AISendEvent(UObject* Self, const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
 {
 	LogUnimplemented("Actor.AISendEvent");
 }
 
-void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, NameString* scoreCallback, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS)
+void NActor::AISetEventCallback(UObject* Self, const NameString& eventName, const NameString& callback, std::optional<NameString> scoreCallback, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS)
 {
 	LogUnimplemented("Actor.AISetEventCallback");
 }
 
-void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, float* Value, float* Radius)
+void NActor::AIStartEvent(UObject* Self, const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
 {
 	LogUnimplemented("Actor.AIStartEvent");
 }
 
-void NActor::AIVisibility(UObject* Self, BitfieldBool* bIncludeVelocity, float& ReturnValue)
+void NActor::AIVisibility(UObject* Self, std::optional<bool> bIncludeVelocity, float& ReturnValue)
 {
 	LogUnimplemented("Actor.AIVisibility");
 	ReturnValue = 0.0f;
 }
 
-void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
+void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, NameString& texName, NameString& texGroup, int& flags, vec3& HitLoc, vec3& HitNorm, const vec3& End, std::optional<vec3> Start, std::optional<vec3> Extent)
 {
 	// Deus Ex
 	auto SelfActor = UObject::Cast<UActor>(Self);
@@ -751,7 +756,7 @@ void NActor::TraceTexture(UObject* Self, UObject* BaseClass, UObject*& Actor, Na
 	Frame::CreatedIterator = std::make_unique<TraceTextureIterator>(BaseClass, &Actor, &texName, &texGroup, &flags, HitLoc, HitNorm, End, &realStart, &realExtent);
 }
 
-void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, vec3* Start, vec3* Extent)
+void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, std::optional<vec3> Start, std::optional<vec3> Extent)
 {
 	// Deus Ex
 	auto SelfActor = UObject::Cast<UActor>(Self);
@@ -767,7 +772,7 @@ void NActor::InStasis(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = SelfActor->bStasis() || SelfActor->bForceStasis();
 }
 
-void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, vec3* startVelocity, vec3* startLocation, BitfieldBool* bCheckActors, vec3* Cylinder, float* maxTime, float* elasticity, BitfieldBool* bBounce, float* landingSpeed, float* granularity, float& ReturnValue)  
+void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, std::optional<vec3> startVelocity, std::optional<vec3> startLocation, std::optional<bool> bCheckActors, std::optional<vec3> Cylinder, std::optional<float> maxTime, std::optional<float> elasticity, std::optional<bool> bBounce, std::optional<float> landingSpeed, std::optional<float> granularity, float& ReturnValue)  
 {  
 	UActor* SelfActor = UObject::Cast<UActor>(Self);  
 	vec3 pos = *startLocation;  
@@ -891,7 +896,7 @@ void NActor::StopSound(UObject* Self, int Id)
 	LogUnimplemented("Actor.StopSound");
 }
 
-void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, int* BlendSlot)
+void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot)
 {
 	LogUnimplemented("Actor.TweenBlendAnim");
 }

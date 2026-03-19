@@ -215,7 +215,7 @@ class UActor : public UObject
 public:
 	using UObject::UObject;
 
-	UActor* Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation);
+	UActor* Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std::optional<NameString> SpawnTag, std::optional<vec3> SpawnLocation, std::optional<Rotator> SpawnRotation);
 	bool Destroy();
 	void InitBase();
 
@@ -963,10 +963,10 @@ public:
 	std::string& CenterString() { return Value<std::string>(PropOffsets_Menu.CenterString); }
 	std::string& DisabledString() { return Value<std::string>(PropOffsets_Menu.DisabledString); }
 	std::string& EnabledString() { return Value<std::string>(PropOffsets_Menu.EnabledString); }
-	FixedArrayView<std::string*, 24> HelpMessage() { return FixedArray<std::string*, 24>(PropOffsets_Menu.HelpMessage); }
+	FixedArrayView<std::optional<std::string>, 24> HelpMessage() { return FixedArray<std::optional<std::string>, 24>(PropOffsets_Menu.HelpMessage); }
 	std::string& LeftString() { return Value<std::string>(PropOffsets_Menu.LeftString); }
 	int& MenuLength() { return Value<int>(PropOffsets_Menu.MenuLength); }
-	FixedArrayView<std::string*, 24> MenuList() { return FixedArray<std::string*, 24>(PropOffsets_Menu.MenuList); }
+	FixedArrayView<std::optional<std::string>, 24> MenuList() { return FixedArray<std::optional<std::string>, 24>(PropOffsets_Menu.MenuList); }
 	std::string& MenuTitle() { return Value<std::string>(PropOffsets_Menu.MenuTitle); }
 	std::string& NoString() { return Value<std::string>(PropOffsets_Menu.NoString); }
 	UMenu*& ParentMenu() { return Value<UMenu*>(PropOffsets_Menu.ParentMenu); }
@@ -1709,7 +1709,7 @@ public:
 	USavedMove*& PendingMove() { return Value<USavedMove*>(PropOffsets_PlayerPawn.PendingMove); }
 	UPlayer*& Player() { return Value<UPlayer*>(PropOffsets_PlayerPawn.Player); }
 	FixedArrayView<Color*, 5> ProgressColor() { return FixedArray<Color*, 5>(PropOffsets_PlayerPawn.ProgressColor); }
-	FixedArrayView<std::string*, 5> ProgressMessage() { return FixedArray<std::string*, 5>(PropOffsets_PlayerPawn.ProgressMessage); }
+	FixedArrayView<std::optional<std::string>, 5> ProgressMessage() { return FixedArray<std::optional<std::string>, 5>(PropOffsets_PlayerPawn.ProgressMessage); }
 	float& ProgressTimeOut() { return Value<float>(PropOffsets_PlayerPawn.ProgressTimeOut); }
 	std::string& QuickSaveString() { return Value<std::string>(PropOffsets_PlayerPawn.QuickSaveString); }
 	BitfieldBool ReceivedSecretChecksum() { return BoolValue(PropOffsets_PlayerPawn.ReceivedSecretChecksum); }
@@ -1896,9 +1896,9 @@ public:
 	UObject* CreateHistoryEvent();
 	UObject* CreateHistoryObject();
 	UObject* CreateLogObject();
-	void DeleteSaveGameFiles(std::string* saveDirectory);
+	void DeleteSaveGameFiles(std::optional<std::string> saveDirectory);
 	std::string GetDeusExVersion();
-	void SaveGame(int saveIndex, std::string* saveDesc);
+	void SaveGame(int saveIndex, std::optional<std::string> saveDesc);
 	NameString SetBoolFlagFromString(const std::string& flagNameString, bool bValue);
 	void UnloadTexture(UObject* Texture);
 

@@ -115,7 +115,7 @@ void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredict
 	ReturnValue = selfPawn->FindBestInventoryPath(bPredictRespawns, MinWeight);
 }
 
-void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, std::optional<bool> bSinglePath, std::optional<bool> bClearPaths, UObject*& ReturnValue)
 {
 	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
 	if (!bClearPaths || *bClearPaths)
@@ -123,7 +123,7 @@ void NPawn::FindPathTo(UObject* Self, const vec3& aPoint, BitfieldBool* bSingleP
 	ReturnValue = selfPawn->FindPathTo(aPoint, bSinglePath ? *bSinglePath : false);
 }
 
-void NPawn::FindPathToward(UObject* Self, UObject* anActor, BitfieldBool* bSinglePath, BitfieldBool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindPathToward(UObject* Self, UObject* anActor, std::optional<bool> bSinglePath, std::optional<bool> bClearPaths, UObject*& ReturnValue)
 {
 	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
 	if (!bClearPaths || *bClearPaths)
@@ -131,7 +131,7 @@ void NPawn::FindPathToward(UObject* Self, UObject* anActor, BitfieldBool* bSingl
 	ReturnValue = selfPawn->FindPathToward(anActor, bSinglePath ? *bSinglePath : false);
 }
 
-void NPawn::FindRandomDest(UObject* Self, BitfieldBool* bClearPaths, UObject*& ReturnValue)
+void NPawn::FindRandomDest(UObject* Self, std::optional<bool> bClearPaths, UObject*& ReturnValue)
 {
 	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
 	if (!bClearPaths || *bClearPaths)
@@ -152,13 +152,13 @@ void NPawn::LineOfSightTo(UObject* Self, UObject* Other, BitfieldBool& ReturnVal
 	ReturnValue = selfPawn->LineOfSightTo(otherActor);
 }
 
-void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, float* speed)
+void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, std::optional<float> speed)
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
 	SelfPawn->MoveTo(NewDestination, speed ? *speed : 1.0f);
 }
 
-void NPawn::MoveToward(UObject* Self, UObject* NewTarget, float* speed)
+void NPawn::MoveToward(UObject* Self, UObject* NewTarget, std::optional<float> speed)
 {
 	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
 	SelfPawn->MoveToward(UObject::Cast<UActor>(NewTarget), speed ? *speed : 1.0f);
@@ -285,19 +285,19 @@ void NPawn::pointReachable(UObject* Self, const vec3& aPoint, BitfieldBool& Retu
 	ReturnValue = SelfPawn->PointReachable(aPoint);
 }
 
-void NPawn::AICanHear(UObject* Self, UObject* Other, float* Volume, float* Radius, float& ReturnValue)
+void NPawn::AICanHear(UObject* Self, UObject* Other, std::optional<float> Volume, std::optional<float> Radius, float& ReturnValue)
 {
 	LogUnimplemented("Pawn.AICanHear");
 	ReturnValue = 0.0f;
 }
 
-void NPawn::AICanSee(UObject* Self, UObject* Other, float* Visibility, BitfieldBool* bCheckVisibility, BitfieldBool* bCheckDir, BitfieldBool* bCheckCylinder, BitfieldBool* bCheckLOS, float& ReturnValue)
+void NPawn::AICanSee(UObject* Self, UObject* Other, std::optional<float> Visibility, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS, float& ReturnValue)
 {
 	LogUnimplemented("Pawn.AICanSee");
 	ReturnValue = 0.0f;
 }
 
-void NPawn::AICanSmell(UObject* Self, UObject* Other, float* Smell, float& ReturnValue)
+void NPawn::AICanSmell(UObject* Self, UObject* Other, std::optional<float> Smell, float& ReturnValue)
 {
 	LogUnimplemented("Pawn.AICanSmell");
 	ReturnValue = 0.0f;
@@ -315,28 +315,28 @@ void NPawn::AIPickRandomDestination_Deus(UObject* Self, float minDist, float max
 	ReturnValue = false;
 }
 
-void NPawn::ComputePathnodeDistances(UObject* Self, UObject** startActor)
+void NPawn::ComputePathnodeDistances(UObject* Self, std::optional<UObject*> startActor)
 {
 	LogUnimplemented("Pawn.ComputePathnodeDistances");
 }
 
-void NPawn::LineOfSightTo_Deus(UObject* Self, UObject* Other, BitfieldBool* bIgnoreDistance, BitfieldBool& ReturnValue)
+void NPawn::LineOfSightTo_Deus(UObject* Self, UObject* Other, std::optional<bool> bIgnoreDistance, BitfieldBool& ReturnValue)
 {
 	LogUnimplemented("Pawn.LineOfSightTo_Deus");
 	ReturnValue = false;
 }
 
-void NPawn::ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavPoint, UObject* FromPoint, float& distance, BitfieldBool* bUsePrunedPaths)
+void NPawn::ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavPoint, UObject* FromPoint, float& distance, std::optional<bool> bUsePrunedPaths)
 {
 	LogUnimplemented("Pawn.ReachablePathnodes");
 }
 
-void NPawn::StrafeFacing_Deus(UObject* Self, const vec3& NewDestination, UObject* NewTarget, float* speed)
+void NPawn::StrafeFacing_Deus(UObject* Self, const vec3& NewDestination, UObject* NewTarget, std::optional<float> speed)
 {
 	LogUnimplemented("Pawn.StrafeFacing_Deus");
 }
 
-void NPawn::StrafeTo_Deus(UObject* Self, const vec3& NewDestination, const vec3& NewFocus, float* speed)
+void NPawn::StrafeTo_Deus(UObject* Self, const vec3& NewDestination, const vec3& NewFocus, std::optional<float> speed)
 {
 	LogUnimplemented("Pawn.StrafeTo_Deus");
 }

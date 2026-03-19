@@ -7,5 +7,5 @@ class NLargeTextWindow
 public:
 	static void RegisterFunctions();
 
-	static void SetVerticalSpacing(UObject* Self, float* newVSpace);
+	static void SetVerticalSpacing(UObject* Self, std::optional<float> newVSpace);
 };

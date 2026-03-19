@@ -63,7 +63,7 @@ void NDeusExPlayer::CreateLogObject(UObject* Self, UObject*& ReturnValue)
 	ReturnValue = PlayerSelf->CreateLogObject();
 }
 
-void NDeusExPlayer::DeleteSaveGameFiles(UObject* Self, std::string* saveDirectory)
+void NDeusExPlayer::DeleteSaveGameFiles(UObject* Self, std::optional<std::string> saveDirectory)
 {
 	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
 	PlayerSelf->DeleteSaveGameFiles(saveDirectory);
@@ -75,7 +75,7 @@ void NDeusExPlayer::GetDeusExVersion(UObject* Self, std::string& ReturnValue)
 	ReturnValue = PlayerSelf->GetDeusExVersion();
 }
 
-void NDeusExPlayer::SaveGame(UObject* Self, int saveIndex, std::string* saveDesc)
+void NDeusExPlayer::SaveGame(UObject* Self, int saveIndex, std::optional<std::string> saveDesc)
 {
 	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
 	PlayerSelf->SaveGame(saveIndex, saveDesc);

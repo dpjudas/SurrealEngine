@@ -71,13 +71,13 @@ void NGC::CopyGC(UObject* Self, UObject* Copy)
 	gc->CopyGC(Copy);
 }
 
-void NGC::DrawActor(UObject* Self, UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin)
+void NGC::DrawActor(UObject* Self, UObject* Actor, std::optional<bool> bClearZ, std::optional<bool> bConstrain, std::optional<bool> bUnlit, std::optional<float> DrawScale, std::optional<float> ScaleGlow, std::optional<UObject*> Skin)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
 	gc->DrawActor(Actor, bClearZ, bConstrain, bUnlit, DrawScale, ScaleGlow, Skin);
 }
 
-void NGC::DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject*& borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically)
+void NGC::DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject*& borders, std::optional<bool> bStretchHorizontally, std::optional<bool> bStretchVertically)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
 	gc->DrawBorders(DestX, DestY, destWidth, destHeight, leftMargin, rightMargin, TopMargin, BottomMargin, &borders, bStretchHorizontally, bStretchVertically);
@@ -173,7 +173,7 @@ void NGC::GetAlignments(UObject* Self, uint8_t& HAlign, uint8_t& VAlign)
 	gc->GetAlignments(HAlign, VAlign);
 }
 
-void NGC::GetFontHeight(UObject* Self, BitfieldBool* bIncludeSpace, float& ReturnValue)
+void NGC::GetFontHeight(UObject* Self, std::optional<bool> bIncludeSpace, float& ReturnValue)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
 	ReturnValue = gc->GetFontHeight(bIncludeSpace);
@@ -281,7 +281,7 @@ void NGC::IsWordWrapEnabled(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = gc->IsWordWrapEnabled();
 }
 
-void NGC::PopGC(UObject* Self, int* gcNum)
+void NGC::PopGC(UObject* Self, std::optional<int> gcNum)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
 	gc->PopGC(gcNum);
@@ -299,7 +299,7 @@ void NGC::SetAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign)
 	gc->SetAlignments(newHAlign, newVAlign);
 }
 
-void NGC::SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight)
+void NGC::SetBaselineData(UObject* Self, std::optional<float> newBaselineOffset, std::optional<float> newUnderlineHeight)
 {
 	UGC* gc = UObject::Cast<UGC>(Self);
 	gc->SetBaselineData(newBaselineOffset, newUnderlineHeight);

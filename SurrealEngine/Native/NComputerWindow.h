@@ -9,17 +9,17 @@ public:
 
 	static void ClearLine(UObject* Self, int rowToClear);
 	static void ClearScreen(UObject* Self);
-	static void EnableWordWrap(UObject* Self, BitfieldBool* bNewWordWrap);
-	static void FadeOutText(UObject* Self, float* fadeDuration);
-	static void GetChar(UObject* Self, const std::string& inputKey, BitfieldBool* bEcho);
-	static void GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask);
+	static void EnableWordWrap(UObject* Self, std::optional<bool> bNewWordWrap);
+	static void FadeOutText(UObject* Self, std::optional<float> fadeDuration);
+	static void GetChar(UObject* Self, const std::string& inputKey, std::optional<bool> bEcho);
+	static void GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::optional<std::string> defaultInputString, std::optional<std::string> inputMask);
 	static void GetThrottle(UObject* Self, float& ReturnValue);
 	static void IsBufferFlushed(UObject* Self, BitfieldBool& ReturnValue);
 	static void IsPaused(UObject* Self, BitfieldBool& ReturnValue);
-	static void Pause(UObject* Self, float* pauseLength);
+	static void Pause(UObject* Self, std::optional<float> pauseLength);
 	static void PlaySoundLater(UObject* Self, UObject* newsound);
-	static void Print(UObject* Self, const std::string& printText, BitfieldBool* bNewLine);
-	static void PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos);
+	static void Print(UObject* Self, const std::string& printText, std::optional<bool> bNewLine);
+	static void PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, std::optional<int> posX, std::optional<int> posY, std::optional<bool> bStatic, std::optional<bool> bPixelPos);
 	static void PrintLn(UObject* Self);
 	static void ResetThrottle(UObject* Self);
 	static void Resume(UObject* Self);
@@ -27,7 +27,7 @@ public:
 	static void SetComputerSoundVolume(UObject* Self, float newSoundVolume);
 	static void SetCursorBlinkSpeed(UObject* Self, float newBlinkSpeed);
 	static void SetCursorColor(UObject* Self, const Color& newCursorColor);
-	static void SetCursorTexture(UObject* Self, UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight);
+	static void SetCursorTexture(UObject* Self, UObject* newCursorTexture, std::optional<int> newCursorWidth, std::optional<int> newCursorHeight);
 	static void SetFadeSpeed(UObject* Self, float fadeSpeed);
 	static void SetFontColor(UObject* Self, const Color& newFontColor);
 	static void SetTextFont(UObject* Self, UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor);
@@ -39,5 +39,5 @@ public:
 	static void SetThrottle(UObject* Self, float throttleModifier);
 	static void SetTypingSound(UObject* Self, UObject* newTypingSound);
 	static void SetTypingSoundVolume(UObject* Self, float newSoundVolume);
-	static void ShowTextCursor(UObject* Self, BitfieldBool* bShow);
+	static void ShowTextCursor(UObject* Self, std::optional<bool> bShow);
 };

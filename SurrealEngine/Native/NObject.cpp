@@ -285,12 +285,12 @@ void NObject::Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue)
 	ReturnValue = A + B;
 }
 
-void NObject::OrOr_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue)
+void NObject::OrOr_BoolBool(bool A, std::optional<bool> B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A || *B;
 }
 
-void NObject::AndAnd_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue)
+void NObject::AndAnd_BoolBool(bool A, std::optional<bool> B, BitfieldBool& ReturnValue)
 {
 	ReturnValue = A && *B;
 }
@@ -441,7 +441,7 @@ void NObject::Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue)
 	ReturnValue = dot(A, B);
 }
 
-void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, BitfieldBool* MayFail, UObject*& ReturnValue)
+void NObject::DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, std::optional<bool> MayFail, UObject*& ReturnValue)
 {
 	ReturnValue = nullptr;
 
@@ -605,7 +605,7 @@ void NObject::GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
 	Coords::Rotation(A).GetUnAxes(X, Y, Z);
 }
 
-void NObject::GotoState(UObject* Self, NameString* NewState, NameString* Label)
+void NObject::GotoState(UObject* Self, std::optional<NameString> NewState, std::optional<NameString> Label)
 {
 	Self->GotoState(NewState ? *NewState : Self->GetStateName(), Label ? *Label : std::string());
 }
@@ -743,7 +743,7 @@ void NObject::Localize(const std::string& SectionName, const std::string& KeyNam
 	ReturnValue = engine->packages->Localize(PackageName, SectionName, KeyName);
 }
 
-void NObject::Log(const std::string& S, NameString* Tag)
+void NObject::Log(const std::string& S, std::optional<NameString> Tag)
 {
 	if (Tag)
 		LogMessage("[" + Tag->ToString() + "] " + S);
@@ -761,7 +761,7 @@ void NObject::Max(int A, int B, int& ReturnValue)
 	ReturnValue = std::max(A, B);
 }
 
-void NObject::Mid(const std::string& S, int i, int* j, std::string& ReturnValue)
+void NObject::Mid(const std::string& S, int i, std::optional<int> j, std::string& ReturnValue)
 {
 	int size = (int)S.size();
 	int start = i;
@@ -946,7 +946,7 @@ void NObject::Right(const std::string& S, int i, std::string& ReturnValue)
 	ReturnValue = S.substr(S.size() - count);
 }
 
-void NObject::RotRand(BitfieldBool* bRoll, Rotator& ReturnValue)
+void NObject::RotRand(std::optional<bool> bRoll, Rotator& ReturnValue)
 {
 	ReturnValue.Yaw = (int)(std::rand() * 0xffffLL / RAND_MAX);
 	ReturnValue.Pitch = (int)(std::rand() * 0xffffLL / RAND_MAX);

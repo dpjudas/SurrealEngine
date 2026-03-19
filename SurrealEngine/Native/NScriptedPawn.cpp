@@ -43,7 +43,7 @@ void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName
 	ReturnValue = false;
 }
 
-void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, BitfieldBool* bCheckAlliance, BitfieldBool& ReturnValue)
+void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance, BitfieldBool& ReturnValue)
 {
 	LogUnimplemented("ScriptedPawn.IsValidEnemy");
 	ReturnValue = false;

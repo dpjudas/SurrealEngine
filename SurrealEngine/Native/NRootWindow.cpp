@@ -23,19 +23,19 @@ void NRootWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("RootWindow", "StretchRawBackground", &NRootWindow::StretchRawBackground, 1518);
 }
 
-void NRootWindow::EnablePositionalSound(UObject* Self, BitfieldBool* bEnable)
+void NRootWindow::EnablePositionalSound(UObject* Self, std::optional<bool> bEnable)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->EnablePositionalSound(bEnable);
 }
 
-void NRootWindow::EnableRendering(UObject* Self, BitfieldBool* bRender)
+void NRootWindow::EnableRendering(UObject* Self, std::optional<bool> bRender)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->EnableRendering(bRender);
 }
 
-void NRootWindow::GenerateSnapshot(UObject* Self, BitfieldBool* bFilter, UObject*& ReturnValue)
+void NRootWindow::GenerateSnapshot(UObject* Self, std::optional<bool> bFilter, UObject*& ReturnValue)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	ReturnValue = root->GenerateSnapshot(bFilter);
@@ -53,7 +53,7 @@ void NRootWindow::IsRenderingEnabled(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = root->IsRenderingEnabled();
 }
 
-void NRootWindow::LockMouse(UObject* Self, BitfieldBool* bLockMove, BitfieldBool* bLockButton)
+void NRootWindow::LockMouse(UObject* Self, std::optional<bool> bLockMove, std::optional<bool> bLockButton)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->LockMouse(bLockMove, bLockButton);
@@ -65,19 +65,19 @@ void NRootWindow::ResetRenderViewport(UObject* Self)
 	root->ResetRenderViewport();
 }
 
-void NRootWindow::SetDefaultEditCursor(UObject* Self, UObject** newEditCursor)
+void NRootWindow::SetDefaultEditCursor(UObject* Self, std::optional<UObject*> newEditCursor)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->SetDefaultEditCursor(newEditCursor);
 }
 
-void NRootWindow::SetDefaultMovementCursors(UObject* Self, UObject** newMovementCursor, UObject** newHorizontalMovementCursor, UObject** newVerticalMovementCursor, UObject** newTopLeftMovementCursor, UObject** newTopRightMovementCursor)
+void NRootWindow::SetDefaultMovementCursors(UObject* Self, std::optional<UObject*> newMovementCursor, std::optional<UObject*> newHorizontalMovementCursor, std::optional<UObject*> newVerticalMovementCursor, std::optional<UObject*> newTopLeftMovementCursor, std::optional<UObject*> newTopRightMovementCursor)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->SetDefaultMovementCursors(newMovementCursor, newHorizontalMovementCursor, newVerticalMovementCursor, newTopLeftMovementCursor, newTopRightMovementCursor);
 }
 
-void NRootWindow::SetRawBackground(UObject* Self, UObject** NewTexture, Color* NewColor)
+void NRootWindow::SetRawBackground(UObject* Self, std::optional<UObject*> NewTexture, std::optional<Color> NewColor)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->SetRawBackground(NewTexture, NewColor);
@@ -101,13 +101,13 @@ void NRootWindow::SetSnapshotSize(UObject* Self, float newWidth, float NewHeight
 	root->SetSnapshotSize(newWidth, NewHeight);
 }
 
-void NRootWindow::ShowCursor(UObject* Self, BitfieldBool* bShow)
+void NRootWindow::ShowCursor(UObject* Self, std::optional<bool> bShow)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->ShowCursor(bShow);
 }
 
-void NRootWindow::StretchRawBackground(UObject* Self, BitfieldBool* bStretch)
+void NRootWindow::StretchRawBackground(UObject* Self, std::optional<bool> bStretch)
 {
 	URootWindow* root = UObject::Cast<URootWindow>(Self);
 	root->StretchRawBackground(bStretch);

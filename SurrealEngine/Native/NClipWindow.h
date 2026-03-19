@@ -7,8 +7,8 @@ class NClipWindow
 public:
 	static void RegisterFunctions();
 
-	static void EnableSnapToUnits(UObject* Self, BitfieldBool* bNewSnapToUnits);
-	static void ForceChildSize(UObject* Self, BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight);
+	static void EnableSnapToUnits(UObject* Self, std::optional<bool> bNewSnapToUnits);
+	static void ForceChildSize(UObject* Self, std::optional<bool> bNewForceChildWidth, std::optional<bool> bNewForceChildHeight);
 	static void GetChild(UObject* Self, UObject*& ReturnValue);
 	static void GetChildPosition(UObject* Self, int& pNewX, int& pNewY);
 	static void GetUnitSize(UObject* Self, int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize);

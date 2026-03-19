@@ -10,5 +10,5 @@ public:
 	static void ChangeToggle(UObject* Self);
 	static void GetToggle(UObject* Self, BitfieldBool& ReturnValue);
 	static void SetToggle(UObject* Self, bool bNewToggle);
-	static void SetToggleSounds(UObject* Self, UObject** enableSound, UObject** disableSound);
+	static void SetToggleSounds(UObject* Self, std::optional<UObject*> enableSound, std::optional<UObject*> disableSound);
 };

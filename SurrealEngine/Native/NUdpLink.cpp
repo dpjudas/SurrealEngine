@@ -12,7 +12,7 @@ void NUdpLink::RegisterFunctions()
 	RegisterVMNativeFunc_3("UdpLink", "SendText", &NUdpLink::SendText, 0);
 }
 
-void NUdpLink::BindPort(UObject* Self, int* Port, BitfieldBool* bUseNextAvailable, int& ReturnValue)
+void NUdpLink::BindPort(UObject* Self, std::optional<int> Port, std::optional<bool> bUseNextAvailable, int& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UUdpLink>(Self)->BindPort(Port ? *Port : 7777, bUseNextAvailable ? *bUseNextAvailable : false);
 }

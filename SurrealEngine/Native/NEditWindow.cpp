@@ -63,25 +63,25 @@ void NEditWindow::Cut(UObject* Self)
 	editwindow->Cut();
 }
 
-void NEditWindow::DeleteChar(UObject* Self, BitfieldBool* bBefore, BitfieldBool* bUndo)
+void NEditWindow::DeleteChar(UObject* Self, std::optional<bool> bBefore, std::optional<bool> bUndo)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->DeleteChar(bBefore, bUndo);
 }
 
-void NEditWindow::EnableEditing(UObject* Self, BitfieldBool* bEdit)
+void NEditWindow::EnableEditing(UObject* Self, std::optional<bool> bEdit)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->EnableEditing(bEdit);
 }
 
-void NEditWindow::EnableSingleLineEditing(UObject* Self, BitfieldBool* bSingle)
+void NEditWindow::EnableSingleLineEditing(UObject* Self, std::optional<bool> bSingle)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->EnableSingleLineEditing(bSingle);
 }
 
-void NEditWindow::EnableUppercaseOnly(UObject* Self, BitfieldBool* bUppercase)
+void NEditWindow::EnableUppercaseOnly(UObject* Self, std::optional<bool> bUppercase)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->EnableUppercaseOnly(bUppercase);
@@ -105,7 +105,7 @@ void NEditWindow::HasTextChanged(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = editwindow->HasTextChanged();
 }
 
-void NEditWindow::InsertText(UObject* Self, std::string* InsertText, BitfieldBool* bUndo, BitfieldBool* bSelect, BitfieldBool& ReturnValue)
+void NEditWindow::InsertText(UObject* Self, std::optional<std::string> InsertText, std::optional<bool> bUndo, std::optional<bool> bSelect, BitfieldBool& ReturnValue)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	ReturnValue = editwindow->InsertText(InsertText, bUndo, bSelect);
@@ -123,7 +123,7 @@ void NEditWindow::IsSingleLineEditingEnabled(UObject* Self, BitfieldBool& Return
 	ReturnValue = editwindow->IsSingleLineEditingEnabled();
 }
 
-void NEditWindow::MoveInsertionPoint(UObject* Self, uint8_t moveInsert, BitfieldBool* bDrag)
+void NEditWindow::MoveInsertionPoint(UObject* Self, uint8_t moveInsert, std::optional<bool> bDrag)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->MoveInsertionPoint(moveInsert, bDrag);
@@ -135,7 +135,7 @@ void NEditWindow::Paste(UObject* Self)
 	editwindow->Paste();
 }
 
-void NEditWindow::PlayEditSound(UObject* Self, UObject* PlaySound, float* Volume, float* Pitch)
+void NEditWindow::PlayEditSound(UObject* Self, UObject* PlaySound, std::optional<float> Volume, std::optional<float> Pitch)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->PlayEditSound(PlaySound, Volume, Pitch);
@@ -147,37 +147,37 @@ void NEditWindow::Redo(UObject* Self)
 	editwindow->Redo();
 }
 
-void NEditWindow::SetEditCursor(UObject* Self, UObject** newCursor, UObject** newCursorShadow, Color* NewColor)
+void NEditWindow::SetEditCursor(UObject* Self, std::optional<UObject*> newCursor, std::optional<UObject*> newCursorShadow, std::optional<Color> NewColor)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetEditCursor(newCursor, newCursorShadow, NewColor);
 }
 
-void NEditWindow::SetEditSounds(UObject* Self, UObject** typeSound, UObject** deleteSound, UObject** enterSound, UObject** moveSound)
+void NEditWindow::SetEditSounds(UObject* Self, std::optional<UObject*> typeSound, std::optional<UObject*> deleteSound, std::optional<UObject*> enterSound, std::optional<UObject*> moveSound)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetEditSounds(typeSound, deleteSound, enterSound, moveSound);
 }
 
-void NEditWindow::SetInsertionPoint(UObject* Self, int NewPos, BitfieldBool* bDrag)
+void NEditWindow::SetInsertionPoint(UObject* Self, int NewPos, std::optional<bool> bDrag)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetInsertionPoint(NewPos, bDrag);
 }
 
-void NEditWindow::SetInsertionPointBlinkRate(UObject* Self, float* blinkStart, float* blinkPeriod)
+void NEditWindow::SetInsertionPointBlinkRate(UObject* Self, std::optional<float> blinkStart, std::optional<float> blinkPeriod)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetInsertionPointBlinkRate(blinkStart, blinkPeriod);
 }
 
-void NEditWindow::SetInsertionPointTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
+void NEditWindow::SetInsertionPointTexture(UObject* Self, std::optional<UObject*> NewTexture, std::optional<Color> NewColor)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetInsertionPointTexture(NewTexture, NewColor);
 }
 
-void NEditWindow::SetInsertionPointType(UObject* Self, uint8_t newType, float* prefWidth, float* prefHeight)
+void NEditWindow::SetInsertionPointType(UObject* Self, uint8_t newType, std::optional<float> prefWidth, std::optional<float> prefHeight)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetInsertionPointType(newType, prefWidth, prefHeight);
@@ -201,19 +201,19 @@ void NEditWindow::SetSelectedArea(UObject* Self, int startPos, int Count)
 	editwindow->SetSelectedArea(startPos, Count);
 }
 
-void NEditWindow::SetSelectedAreaTextColor(UObject* Self, Color* NewColor)
+void NEditWindow::SetSelectedAreaTextColor(UObject* Self, std::optional<Color> NewColor)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetSelectedAreaTextColor(NewColor);
 }
 
-void NEditWindow::SetSelectedAreaTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
+void NEditWindow::SetSelectedAreaTexture(UObject* Self, std::optional<UObject*> NewTexture, std::optional<Color> NewColor)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetSelectedAreaTexture(NewTexture, NewColor);
 }
 
-void NEditWindow::SetTextChangedFlag(UObject* Self, BitfieldBool* bSet)
+void NEditWindow::SetTextChangedFlag(UObject* Self, std::optional<bool> bSet)
 {
 	UEditWindow* editwindow = UObject::Cast<UEditWindow>(Self);
 	editwindow->SetTextChangedFlag(bSet);

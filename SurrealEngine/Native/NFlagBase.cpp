@@ -39,7 +39,7 @@ void NFlagBase::CheckFlag(UObject* Self, const NameString& FlagName, uint8_t fla
 	ReturnValue = FlagBaseSelf->CheckFlag(FlagName, flagType);
 }
 
-void NFlagBase::CreateIterator(UObject* Self, uint8_t* flagType, int& ReturnValue)
+void NFlagBase::CreateIterator(UObject* Self, std::optional<uint8_t> flagType, int& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->CreateIterator(flagType);
@@ -129,13 +129,13 @@ void NFlagBase::GetVector(UObject* Self, const NameString& FlagName, vec3& Retur
 	ReturnValue = FlagBaseSelf->GetVector(FlagName);
 }
 
-void NFlagBase::SetBool(UObject* Self, const NameString& FlagName, bool NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetBool(UObject* Self, const NameString& FlagName, bool NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetBool(FlagName, NewValue, bAdd, expiration);
 }
 
-void NFlagBase::SetByte(UObject* Self, const NameString& FlagName, uint8_t NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetByte(UObject* Self, const NameString& FlagName, uint8_t NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetByte(FlagName, NewValue, bAdd, expiration);
@@ -153,31 +153,31 @@ void NFlagBase::SetExpiration(UObject* Self, const NameString& FlagName, uint8_t
 	FlagBaseSelf->SetExpiration(FlagName, flagType, expiration);
 }
 
-void NFlagBase::SetFloat(UObject* Self, const NameString& FlagName, float NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetFloat(UObject* Self, const NameString& FlagName, float NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetFloat(FlagName, NewValue, bAdd, expiration);
 }
 
-void NFlagBase::SetInt(UObject* Self, const NameString& FlagName, int NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetInt(UObject* Self, const NameString& FlagName, int NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetInt(FlagName, NewValue, bAdd, expiration);
 }
 
-void NFlagBase::SetName(UObject* Self, const NameString& FlagName, const NameString& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetName(UObject* Self, const NameString& FlagName, const NameString& NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetName(FlagName, NewValue, bAdd, expiration);
 }
 
-void NFlagBase::SetRotator(UObject* Self, const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetRotator(UObject* Self, const NameString& FlagName, const Rotator& NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetRotator(FlagName, NewValue, bAdd, expiration);
 }
 
-void NFlagBase::SetVector(UObject* Self, const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration, BitfieldBool& ReturnValue)
+void NFlagBase::SetVector(UObject* Self, const NameString& FlagName, const vec3& NewValue, std::optional<bool> bAdd, std::optional<int> expiration, BitfieldBool& ReturnValue)
 {
 	auto FlagBaseSelf = UObject::Cast<UFlagBase>(Self);
 	ReturnValue = FlagBaseSelf->SetVector(FlagName, NewValue, bAdd, expiration);

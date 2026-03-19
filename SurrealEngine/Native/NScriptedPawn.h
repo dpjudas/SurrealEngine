@@ -12,5 +12,5 @@ public:
 	static void GetAllianceType(UObject* Self, const NameString& AllianceName, uint8_t& ReturnValue);
 	static void GetPawnAllianceType(UObject* Self, UObject* QueryPawn, uint8_t& ReturnValue);
 	static void HaveSeenCarcass(UObject* Self, const NameString& CarcassName, BitfieldBool& ReturnValue);
-	static void IsValidEnemy(UObject* Self, UObject* TestEnemy, BitfieldBool* bCheckAlliance, BitfieldBool& ReturnValue);
+	static void IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance, BitfieldBool& ReturnValue);
 };

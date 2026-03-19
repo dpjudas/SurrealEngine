@@ -13,31 +13,31 @@ void NBorderWindow::RegisterFunctions()
 	RegisterVMNativeFunc_5("BorderWindow", "SetMoveCursors", &NBorderWindow::SetMoveCursors, 1534);
 }
 
-void NBorderWindow::BaseMarginsFromBorder(UObject* Self, BitfieldBool* bBorder)
+void NBorderWindow::BaseMarginsFromBorder(UObject* Self, std::optional<bool> bBorder)
 {
 	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
 	border->BaseMarginsFromBorder(bBorder);
 }
 
-void NBorderWindow::EnableResizing(UObject* Self, BitfieldBool* bResize)
+void NBorderWindow::EnableResizing(UObject* Self, std::optional<bool> bResize)
 {
 	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
 	border->EnableResizing(bResize);
 }
 
-void NBorderWindow::SetBorderMargins(UObject* Self, float* NewLeft, float* NewRight, float* newTop, float* newBottom)
+void NBorderWindow::SetBorderMargins(UObject* Self, std::optional<float> NewLeft, std::optional<float> NewRight, std::optional<float> newTop, std::optional<float> newBottom)
 {
 	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
 	border->SetBorderMargins(NewLeft, NewRight, newTop, newBottom);
 }
 
-void NBorderWindow::SetBorders(UObject* Self, UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center)
+void NBorderWindow::SetBorders(UObject* Self, std::optional<UObject*> bordTL, std::optional<UObject*> bordTR, std::optional<UObject*> bordBL, std::optional<UObject*> bordBR, std::optional<UObject*> bordL, std::optional<UObject*> bordR, std::optional<UObject*> bordT, std::optional<UObject*> bordB, std::optional<UObject*> center)
 {
 	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
 	border->SetBorders(bordTL, bordTR, bordBL, bordBR, bordL, bordR, bordT, bordB, center);
 }
 
-void NBorderWindow::SetMoveCursors(UObject* Self, UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove)
+void NBorderWindow::SetMoveCursors(UObject* Self, std::optional<UObject*> Move, std::optional<UObject*> hMove, std::optional<UObject*> vMove, std::optional<UObject*> tlMove, std::optional<UObject*> trMove)
 {
 	UBorderWindow* border = UObject::Cast<UBorderWindow>(Self);
 	border->SetMoveCursors(Move, hMove, vMove, tlMove, trMove);

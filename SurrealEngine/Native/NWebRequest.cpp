@@ -23,7 +23,7 @@ void NWebRequest::DecodeBase64(UObject* Self, const std::string& Encoded, std::s
 	ReturnValue = "";
 }
 
-void NWebRequest::GetVariable(UObject* Self, const std::string& VariableName, std::string* DefaultValue, std::string& ReturnValue)
+void NWebRequest::GetVariable(UObject* Self, const std::string& VariableName, std::optional<std::string> DefaultValue, std::string& ReturnValue)
 {
 	LogUnimplemented("WebRequest.GetVariable");
 	ReturnValue = "";
@@ -35,7 +35,7 @@ void NWebRequest::GetVariableCount(UObject* Self, const std::string& VariableNam
 	ReturnValue = 0;
 }
 
-void NWebRequest::GetVariableNumber(UObject* Self, const std::string& VariableName, int Number, std::string* DefaultValue, std::string& ReturnValue)
+void NWebRequest::GetVariableNumber(UObject* Self, const std::string& VariableName, int Number, std::optional<std::string> DefaultValue, std::string& ReturnValue)
 {
 	LogUnimplemented("WebRequest.GetVariableNumber");
 	ReturnValue = "";

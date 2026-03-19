@@ -23,7 +23,7 @@ std::string UDXGameDirectory::GenerateSaveFilename(int saveIndex)
     return "";
 }
 
-std::string UDXGameDirectory::GenerateNewSaveFileName(int* newIndex)
+std::string UDXGameDirectory::GenerateNewSaveFileName(std::optional<int> newIndex)
 {
     LogUnimplemented("GameDirectory.GenerateNewSaveFileName()");
     return "";

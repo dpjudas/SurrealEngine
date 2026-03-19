@@ -20,73 +20,73 @@ void NViewportWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("ViewportWindow", "ShowWeapons", &NViewportWindow::ShowWeapons, 1948);
 }
 
-void NViewportWindow::ClearZBuffer(UObject* Self, BitfieldBool* bClear)
+void NViewportWindow::ClearZBuffer(UObject* Self, std::optional<bool> bClear)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->ClearZBuffer(bClear);
 }
 
-void NViewportWindow::EnableViewport(UObject* Self, BitfieldBool* bEnable)
+void NViewportWindow::EnableViewport(UObject* Self, std::optional<bool> bEnable)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->EnableViewport(bEnable);
 }
 
-void NViewportWindow::SetDefaultTexture(UObject* Self, UObject** NewTexture, Color* NewColor)
+void NViewportWindow::SetDefaultTexture(UObject* Self, std::optional<UObject*> NewTexture, std::optional<Color> NewColor)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetDefaultTexture(NewTexture, NewColor);
 }
 
-void NViewportWindow::SetFOVAngle(UObject* Self, float* newAngle)
+void NViewportWindow::SetFOVAngle(UObject* Self, std::optional<float> newAngle)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetFOVAngle(newAngle);
 }
 
-void NViewportWindow::SetRelativeLocation(UObject* Self, vec3* relLoc)
+void NViewportWindow::SetRelativeLocation(UObject* Self, std::optional<vec3> relLoc)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetRelativeLocation(relLoc);
 }
 
-void NViewportWindow::SetRelativeRotation(UObject* Self, Rotator* relRot)
+void NViewportWindow::SetRelativeRotation(UObject* Self, std::optional<Rotator> relRot)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetRelativeRotation(relRot);
 }
 
-void NViewportWindow::SetRotation(UObject* Self, Rotator* NewRotation)
+void NViewportWindow::SetRotation(UObject* Self, std::optional<Rotator> NewRotation)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetRotation(NewRotation);
 }
 
-void NViewportWindow::SetViewportActor(UObject* Self, UObject** newOriginActor, BitfieldBool* bEyeLevel, BitfieldBool* bEnable)
+void NViewportWindow::SetViewportActor(UObject* Self, std::optional<UObject*> newOriginActor, std::optional<bool> bEyeLevel, std::optional<bool> bEnable)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetViewportActor(newOriginActor, bEyeLevel, bEnable);
 }
 
-void NViewportWindow::SetViewportLocation(UObject* Self, const vec3& NewLocation, BitfieldBool* bEnable)
+void NViewportWindow::SetViewportLocation(UObject* Self, const vec3& NewLocation, std::optional<bool> bEnable)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetViewportLocation(NewLocation, bEnable);
 }
 
-void NViewportWindow::SetWatchActor(UObject* Self, UObject** newWatchActor, BitfieldBool* bEyeLevel)
+void NViewportWindow::SetWatchActor(UObject* Self, std::optional<UObject*> newWatchActor, std::optional<bool> bEyeLevel)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->SetWatchActor(newWatchActor, bEyeLevel);
 }
 
-void NViewportWindow::ShowViewportActor(UObject* Self, BitfieldBool* bShow)
+void NViewportWindow::ShowViewportActor(UObject* Self, std::optional<bool> bShow)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->ShowViewportActor(bShow);
 }
 
-void NViewportWindow::ShowWeapons(UObject* Self, BitfieldBool* bShow)
+void NViewportWindow::ShowWeapons(UObject* Self, std::optional<bool> bShow)
 {
 	UViewportWindow* selfViewport = UObject::Cast<UViewportWindow>(Self);
 	selfViewport->ShowWeapons(bShow);

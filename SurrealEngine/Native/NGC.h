@@ -9,8 +9,8 @@ public:
 
 	static void ClearZ(UObject* Self);
 	static void CopyGC(UObject* Self, UObject* Copy);
-	static void DrawActor(UObject* Self, UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin);
-	static void DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject*& borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically);
+	static void DrawActor(UObject* Self, UObject* Actor, std::optional<bool> bClearZ, std::optional<bool> bConstrain, std::optional<bool> bUnlit, std::optional<float> DrawScale, std::optional<float> ScaleGlow, std::optional<UObject*> Skin);
+	static void DrawBorders(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject*& borders, std::optional<bool> bStretchHorizontally, std::optional<bool> bStretchVertically);
 	static void DrawBox(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX);
 	static void DrawIcon(UObject* Self, float DestX, float DestY, UObject* tX);
 	static void DrawPattern(UObject* Self, float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX);
@@ -26,7 +26,7 @@ public:
 	static void EnableTranslucentText(UObject* Self, bool bNewTranslucency);
 	static void EnableWordWrap(UObject* Self, bool bNewWordWrap);
 	static void GetAlignments(UObject* Self, uint8_t& HAlign, uint8_t& VAlign);
-	static void GetFontHeight(UObject* Self, BitfieldBool* bIncludeSpace, float& ReturnValue);
+	static void GetFontHeight(UObject* Self, std::optional<bool> bIncludeSpace, float& ReturnValue);
 	static void GetFonts(UObject* Self, UObject*& normalFont, UObject*& boldFont);
 	static void GetHorizontalAlignment(UObject* Self, uint8_t& ReturnValue);
 	static void GetStyle(UObject* Self, uint8_t& ReturnValue);
@@ -44,10 +44,10 @@ public:
 	static void IsTranslucencyEnabled(UObject* Self, BitfieldBool& ReturnValue);
 	static void IsTranslucentTextEnabled(UObject* Self, BitfieldBool& ReturnValue);
 	static void IsWordWrapEnabled(UObject* Self, BitfieldBool& ReturnValue);
-	static void PopGC(UObject* Self, int* gcNum);
+	static void PopGC(UObject* Self, std::optional<int> gcNum);
 	static void PushGC(UObject* Self, int& ReturnValue);
 	static void SetAlignments(UObject* Self, uint8_t newHAlign, uint8_t newVAlign);
-	static void SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight);
+	static void SetBaselineData(UObject* Self, std::optional<float> newBaselineOffset, std::optional<float> newUnderlineHeight);
 	static void SetBoldFont(UObject* Self, UObject* newBoldFont);
 	static void SetFont(UObject* Self, UObject* NewFont);
 	static void SetFonts(UObject* Self, UObject* newNormalFont, UObject* newBoldFont);

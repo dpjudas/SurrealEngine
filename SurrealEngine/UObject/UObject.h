@@ -10,6 +10,7 @@
 #include "PropertyOffsets.h"
 #include "GC/GC.h"
 #include <set>
+#include <optional>
 
 class UObject;
 class UClass;

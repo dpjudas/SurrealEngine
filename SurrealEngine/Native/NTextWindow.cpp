@@ -29,7 +29,7 @@ void NTextWindow::AppendText(UObject* Self, const std::string& NewText)
 	textWindow->AppendText(NewText);
 }
 
-void NTextWindow::EnableTextAsAccelerator(UObject* Self, BitfieldBool* bEnable)
+void NTextWindow::EnableTextAsAccelerator(UObject* Self, std::optional<bool> bEnable)
 {
 	UTextWindow* textWindow = UObject::Cast<UTextWindow>(Self);
 	textWindow->EnableTextAsAccelerator(bEnable);

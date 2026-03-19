@@ -48,7 +48,7 @@ void NScaleWindow::ClearAllEnumerations(UObject* Self)
 	scalewindow->ClearAllEnumerations();
 }
 
-void NScaleWindow::EnableStretchedScale(UObject* Self, BitfieldBool* bNewStretch)
+void NScaleWindow::EnableStretchedScale(UObject* Self, std::optional<bool> bNewStretch)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->EnableStretchedScale(bNewStretch);
@@ -96,7 +96,7 @@ void NScaleWindow::MoveThumb(UObject* Self, uint8_t MoveThumb)
 	scalewindow->MoveThumb(MoveThumb);
 }
 
-void NScaleWindow::PlayScaleSound(UObject* Self, UObject* newsound, float* Volume, float* Pitch)
+void NScaleWindow::PlayScaleSound(UObject* Self, UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->PlayScaleSound(newsound, Volume, Pitch);
@@ -120,7 +120,7 @@ void NScaleWindow::SetNumTicks(UObject* Self, int newNumTicks)
 	scalewindow->SetNumTicks(newNumTicks);
 }
 
-void NScaleWindow::SetScaleBorder(UObject* Self, float* newBorderSize, Color* NewColor)
+void NScaleWindow::SetScaleBorder(UObject* Self, std::optional<float> newBorderSize, std::optional<Color> NewColor)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetScaleBorder(newBorderSize, NewColor);
@@ -132,7 +132,7 @@ void NScaleWindow::SetScaleColor(UObject* Self, const Color& NewColor)
 	scalewindow->SetScaleColor(NewColor);
 }
 
-void NScaleWindow::SetScaleMargins(UObject* Self, float* marginWidth, float* marginHeight)
+void NScaleWindow::SetScaleMargins(UObject* Self, std::optional<float> marginWidth, std::optional<float> marginHeight)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetScaleMargins(marginWidth, marginHeight);
@@ -144,7 +144,7 @@ void NScaleWindow::SetScaleOrientation(UObject* Self, uint8_t newOrientation)
 	scalewindow->SetScaleOrientation(newOrientation);
 }
 
-void NScaleWindow::SetScaleSounds(UObject* Self, UObject** setSound, UObject** clickSound, UObject** dragSound)
+void NScaleWindow::SetScaleSounds(UObject* Self, std::optional<UObject*> setSound, std::optional<UObject*> clickSound, std::optional<UObject*> dragSound)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetScaleSounds(setSound, clickSound, dragSound);
@@ -156,19 +156,19 @@ void NScaleWindow::SetScaleStyle(UObject* Self, uint8_t NewStyle)
 	scalewindow->SetScaleStyle(NewStyle);
 }
 
-void NScaleWindow::SetScaleTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd)
+void NScaleWindow::SetScaleTexture(UObject* Self, UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight, std::optional<float> newStart, std::optional<float> newEnd)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetScaleTexture(NewTexture, newWidth, NewHeight, newStart, newEnd);
 }
 
-void NScaleWindow::SetThumbBorder(UObject* Self, float* newBorderSize, Color* NewColor)
+void NScaleWindow::SetThumbBorder(UObject* Self, std::optional<float> newBorderSize, std::optional<Color> NewColor)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetThumbBorder(newBorderSize, NewColor);
 }
 
-void NScaleWindow::SetThumbCaps(UObject* Self, UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight)
+void NScaleWindow::SetThumbCaps(UObject* Self, UObject* preCap, UObject* postCap, std::optional<float> preCapWidth, std::optional<float> preCapHeight, std::optional<float> postCapWidth, std::optional<float> postCapHeight)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetThumbCaps(preCap, postCap, preCapWidth, preCapHeight, postCapWidth, postCapHeight);
@@ -180,7 +180,7 @@ void NScaleWindow::SetThumbColor(UObject* Self, const Color& NewColor)
 	scalewindow->SetThumbColor(NewColor);
 }
 
-void NScaleWindow::SetThumbSpan(UObject* Self, int* newRange)
+void NScaleWindow::SetThumbSpan(UObject* Self, std::optional<int> newRange)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetThumbSpan(newRange);
@@ -198,7 +198,7 @@ void NScaleWindow::SetThumbStyle(UObject* Self, uint8_t NewStyle)
 	scalewindow->SetThumbStyle(NewStyle);
 }
 
-void NScaleWindow::SetThumbTexture(UObject* Self, UObject* NewTexture, float* newWidth, float* NewHeight)
+void NScaleWindow::SetThumbTexture(UObject* Self, UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetThumbTexture(NewTexture, newWidth, NewHeight);
@@ -222,7 +222,7 @@ void NScaleWindow::SetTickStyle(UObject* Self, uint8_t NewStyle)
 	scalewindow->SetTickStyle(NewStyle);
 }
 
-void NScaleWindow::SetTickTexture(UObject* Self, UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight)
+void NScaleWindow::SetTickTexture(UObject* Self, UObject* tickTexture, std::optional<bool> bDrawEndTicks, std::optional<float> newWidth, std::optional<float> NewHeight)
 {
 	UScaleWindow* scalewindow = UObject::Cast<UScaleWindow>(Self);
 	scalewindow->SetTickTexture(tickTexture, bDrawEndTicks, newWidth, NewHeight);

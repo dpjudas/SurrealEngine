@@ -20,13 +20,13 @@ void NClipWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("ClipWindow", "SetUnitWidth", &NClipWindow::SetUnitWidth, 1683);
 }
 
-void NClipWindow::EnableSnapToUnits(UObject* Self, BitfieldBool* bNewSnapToUnits)
+void NClipWindow::EnableSnapToUnits(UObject* Self, std::optional<bool> bNewSnapToUnits)
 {
 	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
 	clip->EnableSnapToUnits(bNewSnapToUnits);
 }
 
-void NClipWindow::ForceChildSize(UObject* Self, BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight)
+void NClipWindow::ForceChildSize(UObject* Self, std::optional<bool> bNewForceChildWidth, std::optional<bool> bNewForceChildHeight)
 {
 	UClipWindow* clip = UObject::Cast<UClipWindow>(Self);
 	clip->ForceChildSize(bNewForceChildWidth, bNewForceChildHeight);

@@ -30,7 +30,7 @@ void NToggleWindow::SetToggle(UObject* Self, bool bNewToggle)
 	toggle->SetToggle(bNewToggle);
 }
 
-void NToggleWindow::SetToggleSounds(UObject* Self, UObject** enableSound, UObject** disableSound)
+void NToggleWindow::SetToggleSounds(UObject* Self, std::optional<UObject*> enableSound, std::optional<UObject*> disableSound)
 {
 	UToggleWindow* toggle = UObject::Cast<UToggleWindow>(Self);
 	toggle->SetToggleSounds(enableSound, disableSound);

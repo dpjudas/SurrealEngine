@@ -16,7 +16,7 @@ public:
 	static void GetText(UObject* Self, std::string& ReturnValue);
 	static void GotoLabel(UObject* Self, const std::string& Label);
 	static void IsEOF(UObject* Self, BitfieldBool& ReturnValue);
-	static void OpenText(UObject* Self, const NameString& textName, std::string* TextPackage, BitfieldBool& ReturnValue);
+	static void OpenText(UObject* Self, const NameString& textName, std::optional<std::string> TextPackage, BitfieldBool& ReturnValue);
 	static void ProcessText(UObject* Self, BitfieldBool& ReturnValue);
 	static void SetPlayerName(UObject* Self, const std::string& newPlayerName);
 };

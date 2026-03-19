@@ -8,7 +8,7 @@ public:
 	static void RegisterFunctions();
 
 	static void DeleteSaveInfo(UObject* Self, UObject* saveInfo);
-	static void GenerateNewSaveFilename(UObject* Self, int* newIndex, std::string& ReturnValue);
+	static void GenerateNewSaveFilename(UObject* Self, std::optional<int> newIndex, std::string& ReturnValue);
 	static void GenerateSaveFilename(UObject* Self, int saveIndex, std::string& ReturnValue);
 	static void GetDirCount(UObject* Self, int& ReturnValue);
 	static void GetDirFilename(UObject* Self, int fileIndex, std::string& ReturnValue);

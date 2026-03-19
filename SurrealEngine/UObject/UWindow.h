@@ -183,9 +183,9 @@ public:
 	using UExtensionObject::UExtensionObject;
 
 	void AddActorRef(UObject* refActor);
-	int AddTimer(float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName);
+	int AddTimer(float TimeOut, std::optional<bool> bLoop, std::optional<int> clientData, std::optional<NameString> functionName);
 	void AskParentForReconfigure();
-	void AskParentToShowArea(float* areaX, float* areaY, float* areaWidth, float* areaHeight);
+	void AskParentToShowArea(std::optional<float> areaX, std::optional<float> areaY, std::optional<float> areaWidth, std::optional<float> areaHeight);
 	std::string CarriageReturn();
 	void ChangeStyle();
 	void ConfigureChild(float newX, float newY, float newWidth, float NewHeight);
@@ -195,32 +195,32 @@ public:
 	void Destroy();
 	void DestroyAllChildren();
 	void DisableWindow();
-	void EnableSpecialText(BitfieldBool* bEnable);
-	void EnableTranslucentText(BitfieldBool* bEnable);
-	void EnableWindow(BitfieldBool* bEnable);
+	void EnableSpecialText(std::optional<bool> bEnable);
+	void EnableTranslucentText(std::optional<bool> bEnable);
+	void EnableWindow(std::optional<bool> bEnable);
 	UWindow* FindWindow(float pointX, float pointY, float& relativeX, float& relativeY);
-	UObject* GetBottomChild(BitfieldBool* bVisibleOnly);
+	UObject* GetBottomChild(std::optional<bool> bVisibleOnly);
 	UObject* GetClientObject();
 	void GetCursorPos(float& MouseX, float& MouseY);
 	UObject* GetFocusWindow();
 	UObject* GetGC();
-	UObject* GetHigherSibling(BitfieldBool* bVisibleOnly);
-	UObject* GetLowerSibling(BitfieldBool* bVisibleOnly);
+	UObject* GetHigherSibling(std::optional<bool> bVisibleOnly);
+	UObject* GetLowerSibling(std::optional<bool> bVisibleOnly);
 	UObject* GetModalWindow();
 	UObject* GetParent();
 	UObject* GetPlayerPawn();
 	URootWindow* GetRootWindow();
 	UObject* GetTabGroupWindow();
 	float GetTickOffset();
-	UObject* GetTopChild(BitfieldBool* bVisibleOnly);
+	UObject* GetTopChild(std::optional<bool> bVisibleOnly);
 	void GrabMouse();
 	void Hide();
 	bool IsActorValid(UObject* refActor);
 	bool IsFocusWindow();
 	bool IsKeyDown(uint8_t Key);
 	bool IsPointInWindow(float pointX, float pointY);
-	bool IsSensitive(BitfieldBool* bRecurse);
-	bool IsVisible(BitfieldBool* bRecurse);
+	bool IsSensitive(std::optional<bool> bRecurse);
+	bool IsVisible(std::optional<bool> bRecurse);
 	void Lower();
 	UObject* MoveFocusDown();
 	UObject* MoveFocusLeft();
@@ -228,8 +228,8 @@ public:
 	UObject* MoveFocusUp();
 	UObject* MoveTabGroupNext();
 	UObject* MoveTabGroupPrev();
-	UObject* NewChild(UObject* NewClass, BitfieldBool* bShow);
-	void PlaySound(UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY);
+	UObject* NewChild(UObject* NewClass, std::optional<bool> bShow = {});
+	void PlaySound(UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch, std::optional<float> posX, std::optional<float> posY);
 	void QueryGranularity(float& hGranularity, float& vGranularity);
 	float QueryPreferredHeight(float queryWidth);
 	void QueryPreferredSize(float& preferredWidth, float& preferredHeight);
@@ -247,14 +247,14 @@ public:
 	void SetBackgroundSmoothing(bool newSmoothing);
 	void SetBackgroundStretching(bool newStretching);
 	void SetBackgroundStyle(uint8_t NewStyle);
-	void SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight);
+	void SetBaselineData(std::optional<float> newBaselineOffset, std::optional<float> newUnderlineHeight);
 	void SetBoldFont(UObject* fn);
 	void SetChildVisibility(bool bNewVisibility);
 	void SetClientObject(UObject* newClientObject);
 	void SetConfiguration(float newX, float newY, float newWidth, float NewHeight);
 	void SetCursorPos(float newMouseX, float newMouseY);
-	void SetDefaultCursor(UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor);
-	void SetFocusSounds(UObject** focusSound, UObject** unfocusSound);
+	void SetDefaultCursor(UObject* tX, std::optional<UObject*> shadowTexture, std::optional<float> HotX, std::optional<float> HotY, std::optional<Color> cursorColor);
+	void SetFocusSounds(std::optional<UObject*> focusSound, std::optional<UObject*> unfocusSound);
 	bool SetFocusWindow(UObject* NewFocusWindow);
 	void SetFont(UObject* fn);
 	void SetFonts(UObject* nFont, UObject* bFont);
@@ -267,10 +267,10 @@ public:
 	void SetSoundVolume(float newVolume);
 	void SetTextColor(const Color& NewColor);
 	void SetTileColor(const Color& NewColor);
-	void SetVisibilitySounds(UObject** visSound, UObject** invisSound);
+	void SetVisibilitySounds(std::optional<UObject*> visSound, std::optional<UObject*> invisSound);
 	void SetWidth(float newWidth);
-	void SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1);
-	void Show(BitfieldBool* bShow);
+	void SetWindowAlignments(uint8_t HAlign, uint8_t VAlign, std::optional<float> hMargin0, std::optional<float> vMargin0, std::optional<float> hMargin1, std::optional<float> vMargin1);
+	void Show(std::optional<bool> bShow);
 	void UngrabMouse();
 
 	void DetachFromParent();
@@ -430,18 +430,18 @@ class UViewportWindow : public UWindow
 public:
 	using UWindow::UWindow;
 
-	void ClearZBuffer(BitfieldBool* bClear);
-	void EnableViewport(BitfieldBool* bEnable);
-	void SetDefaultTexture(UObject** NewTexture, Color* NewColor);
-	void SetFOVAngle(float* newAngle);
-	void SetRelativeLocation(vec3* relLoc);
-	void SetRelativeRotation(Rotator* relRot);
-	void SetRotation(Rotator* NewRotation);
-	void SetViewportActor(UObject** newOriginActor, BitfieldBool* bEyeLevel, BitfieldBool* bEnable);
-	void SetViewportLocation(const vec3& NewLocation, BitfieldBool* bEnable);
-	void SetWatchActor(UObject** newWatchActor, BitfieldBool* bEyeLevel);
-	void ShowViewportActor(BitfieldBool* bShow);
-	void ShowWeapons(BitfieldBool* bShow);
+	void ClearZBuffer(std::optional<bool> bClear);
+	void EnableViewport(std::optional<bool> bEnable);
+	void SetDefaultTexture(std::optional<UObject*> NewTexture, std::optional<Color> NewColor);
+	void SetFOVAngle(std::optional<float> newAngle);
+	void SetRelativeLocation(std::optional<vec3> relLoc);
+	void SetRelativeRotation(std::optional<Rotator> relRot);
+	void SetRotation(std::optional<Rotator> NewRotation);
+	void SetViewportActor(std::optional<UObject*> newOriginActor, std::optional<bool> bEyeLevel, std::optional<bool> bEnable);
+	void SetViewportLocation(const vec3& NewLocation, std::optional<bool> bEnable);
+	void SetWatchActor(std::optional<UObject*> newWatchActor, std::optional<bool> bEyeLevel);
+	void ShowViewportActor(std::optional<bool> bShow);
+	void ShowWeapons(std::optional<bool> bShow);
 
 	Color& DefaultColor() { return Value<Color>(PropOffsets_ViewportWindow.DefaultColor); }
 	UTexture*& DefaultTexture() { return Value<UTexture*>(PropOffsets_ViewportWindow.DefaultTexture); }
@@ -511,7 +511,7 @@ public:
 	using UWindow::UWindow;
 
 	void AppendText(const std::string& NewText);
-	void EnableTextAsAccelerator(BitfieldBool* bEnable);
+	void EnableTextAsAccelerator(std::optional<bool> bEnable);
 	std::string GetText();
 	int GetTextLength();
 	int GetTextPart(int startPos, int Count, std::string& OutText);
@@ -548,14 +548,14 @@ public:
 	using UTextWindow::UTextWindow;
 
 	void ActivateButton(EInputKey key);
-	void EnableAutoRepeat(BitfieldBool* bEnable, float* initialDelay, float* repeatRate);
-	void EnableRightMouseClick(BitfieldBool* bEnable);
-	void PressButton(uint8_t* Key);
-	void SetActivateDelay(float* newDelay);
-	void SetButtonColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive);
-	void SetButtonSounds(UObject** newPressSound, UObject** newClickSound);
-	void SetButtonTextures(UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive);
-	void SetTextColors(Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive);
+	void EnableAutoRepeat(std::optional<bool> bEnable, std::optional<float> initialDelay, std::optional<float> repeatRate);
+	void EnableRightMouseClick(std::optional<bool> bEnable);
+	void PressButton(std::optional<uint8_t> Key);
+	void SetActivateDelay(std::optional<float> newDelay);
+	void SetButtonColors(std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive);
+	void SetButtonSounds(std::optional<UObject*> newPressSound, std::optional<UObject*> newClickSound);
+	void SetButtonTextures(std::optional<UObject*> Normal, std::optional<UObject*> pressed, std::optional<UObject*> normalFocus, std::optional<UObject*> pressedFocus, std::optional<UObject*> normalInsensitive, std::optional<UObject*> pressedInsensitive);
+	void SetTextColors(std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive);
 
 	void MouseMoved(float newX, float newY) override;
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
@@ -607,7 +607,7 @@ public:
 	void ChangeToggle();
 	bool GetToggle();
 	void SetToggle(bool bNewToggle);
-	void SetToggleSounds(UObject** enableSound, UObject** disableSound);
+	void SetToggleSounds(std::optional<UObject*> enableSound, std::optional<UObject*> disableSound);
 
 	USound*& disableSound() { return Value<USound*>(PropOffsets_ToggleWindow.disableSound); }
 	USound*& enableSound() { return Value<USound*>(PropOffsets_ToggleWindow.enableSound); }
@@ -623,8 +623,8 @@ public:
 	void SetCheckboxColor(const Color& NewColor);
 	void SetCheckboxSpacing(float newSpacing);
 	void SetCheckboxStyle(uint8_t NewStyle);
-	void SetCheckboxTextures(UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight);
-	void ShowCheckboxOnRightSide(BitfieldBool* bRight);
+	void SetCheckboxTextures(std::optional<UObject*> toggleOff, std::optional<UObject*> toggleOn, std::optional<float> textureWidth, std::optional<float> textureHeight);
+	void ShowCheckboxOnRightSide(std::optional<bool> bRight);
 
 	BitfieldBool bRightSide() { return BoolValue(PropOffsets_CheckboxWindow.bRightSide); }
 	Color& checkboxColor() { return Value<Color>(PropOffsets_CheckboxWindow.checkboxColor); }
@@ -657,7 +657,7 @@ class ULargeTextWindow : public UTextWindow
 public:
 	using UTextWindow::UTextWindow;
 
-	void SetVerticalSpacing(float* newVSpace);
+	void SetVerticalSpacing(std::optional<float> newVSpace);
 
 	float& lineHeight() { return Value<float>(PropOffsets_LargeTextWindow.lineHeight); }
 	//DynamicArray& queryRowData() { return Value<DynamicArray>(PropOffsets_LargeTextWindow.queryRowData); }
@@ -677,32 +677,32 @@ public:
 	void ClearUndo();
 	void Copy();
 	void Cut();
-	void DeleteChar(BitfieldBool* bBefore, BitfieldBool* bUndo);
-	void EnableEditing(BitfieldBool* bEdit);
-	void EnableSingleLineEditing(BitfieldBool* bSingle);
-	void EnableUppercaseOnly(BitfieldBool* bUppercase);
+	void DeleteChar(std::optional<bool> bBefore, std::optional<bool> bUndo);
+	void EnableEditing(std::optional<bool> bEdit);
+	void EnableSingleLineEditing(std::optional<bool> bSingle);
+	void EnableUppercaseOnly(std::optional<bool> bUppercase);
 	int GetInsertionPoint();
 	void GetSelectedArea(int& startPos, int& Count);
 	bool HasTextChanged();
-	bool InsertText(std::string* InsertText, BitfieldBool* bUndo, BitfieldBool* bSelect);
+	bool InsertText(std::optional<std::string> InsertText, std::optional<bool> bUndo, std::optional<bool> bSelect);
 	bool IsEditingEnabled();
 	bool IsSingleLineEditingEnabled();
-	void MoveInsertionPoint(uint8_t moveInsert, BitfieldBool* bDrag);
+	void MoveInsertionPoint(uint8_t moveInsert, std::optional<bool> bDrag);
 	void Paste();
-	void PlayEditSound(UObject* PlaySound, float* Volume, float* Pitch);
+	void PlayEditSound(UObject* PlaySound, std::optional<float> Volume, std::optional<float> Pitch);
 	void Redo();
-	void SetEditCursor(UObject** newCursor, UObject** newCursorShadow, Color* NewColor);
-	void SetEditSounds(UObject** typeSound, UObject** deleteSound, UObject** enterSound, UObject** moveSound);
-	void SetInsertionPoint(int NewPos, BitfieldBool* bDrag);
-	void SetInsertionPointBlinkRate(float* blinkStart, float* blinkPeriod);
-	void SetInsertionPointTexture(UObject** NewTexture, Color* NewColor);
-	void SetInsertionPointType(uint8_t newType, float* prefWidth, float* prefHeight);
+	void SetEditCursor(std::optional<UObject*> newCursor, std::optional<UObject*> newCursorShadow, std::optional<Color> NewColor);
+	void SetEditSounds(std::optional<UObject*> typeSound, std::optional<UObject*> deleteSound, std::optional<UObject*> enterSound, std::optional<UObject*> moveSound);
+	void SetInsertionPoint(int NewPos, std::optional<bool> bDrag);
+	void SetInsertionPointBlinkRate(std::optional<float> blinkStart, std::optional<float> blinkPeriod);
+	void SetInsertionPointTexture(std::optional<UObject*> NewTexture, std::optional<Color> NewColor);
+	void SetInsertionPointType(uint8_t newType, std::optional<float> prefWidth, std::optional<float> prefHeight);
 	void SetMaxSize(int newMaxSize);
 	void SetMaxUndos(int newMaxUndos);
 	void SetSelectedArea(int startPos, int Count);
-	void SetSelectedAreaTextColor(Color* NewColor);
-	void SetSelectedAreaTexture(UObject** NewTexture, Color* NewColor);
-	void SetTextChangedFlag(BitfieldBool* bSet);
+	void SetSelectedAreaTextColor(std::optional<Color> NewColor);
+	void SetSelectedAreaTexture(std::optional<UObject*> NewTexture, std::optional<Color> NewColor);
+	void SetTextChangedFlag(std::optional<bool> bSet);
 	void Undo();
 
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
@@ -793,8 +793,8 @@ public:
 	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 	void ConfigurationChanged() override;
 
-	void EnableSnapToUnits(BitfieldBool* bNewSnapToUnits);
-	void ForceChildSize(BitfieldBool* bNewForceChildWidth, BitfieldBool* bNewForceChildHeight);
+	void EnableSnapToUnits(std::optional<bool> bNewSnapToUnits);
+	void ForceChildSize(std::optional<bool> bNewForceChildWidth, std::optional<bool> bNewForceChildHeight);
 	UObject* GetChild();
 	void GetChildPosition(int& pNewX, int& pNewY);
 	void GetUnitSize(int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize);
@@ -842,21 +842,21 @@ class URootWindow : public UModalWindow
 public:
 	using UModalWindow::UModalWindow;
 
-	void EnablePositionalSound(BitfieldBool* bEnable);
-	void EnableRendering(BitfieldBool* bRender);
-	UObject* GenerateSnapshot(BitfieldBool* bFilter);
+	void EnablePositionalSound(std::optional<bool> bEnable);
+	void EnableRendering(std::optional<bool> bRender);
+	UObject* GenerateSnapshot(std::optional<bool> bFilter);
 	bool IsPositionalSoundEnabled();
 	bool IsRenderingEnabled();
-	void LockMouse(BitfieldBool* bLockMove, BitfieldBool* bLockButton);
+	void LockMouse(std::optional<bool> bLockMove, std::optional<bool> bLockButton);
 	void ResetRenderViewport();
-	void SetDefaultEditCursor(UObject** newEditCursor);
-	void SetDefaultMovementCursors(UObject** newMovementCursor, UObject** newHorizontalMovementCursor, UObject** newVerticalMovementCursor, UObject** newTopLeftMovementCursor, UObject** newTopRightMovementCursor);
-	void SetRawBackground(UObject** NewTexture, Color* NewColor);
+	void SetDefaultEditCursor(std::optional<UObject*> newEditCursor);
+	void SetDefaultMovementCursors(std::optional<UObject*> newMovementCursor, std::optional<UObject*> newHorizontalMovementCursor, std::optional<UObject*> newVerticalMovementCursor, std::optional<UObject*> newTopLeftMovementCursor, std::optional<UObject*> newTopRightMovementCursor);
+	void SetRawBackground(std::optional<UObject*> NewTexture, std::optional<Color> NewColor);
 	void SetRawBackgroundSize(float newWidth, float NewHeight);
 	void SetRenderViewport(float newX, float newY, float newWidth, float NewHeight);
 	void SetSnapshotSize(float newWidth, float NewHeight);
-	void ShowCursor(BitfieldBool* bShow);
-	void StretchRawBackground(BitfieldBool* bStretch);
+	void ShowCursor(std::optional<bool> bShow);
+	void StretchRawBackground(std::optional<bool> bStretch);
 
 	void WindowReady() override;
 	void PostDrawWindow(UGC* gc) override;
@@ -944,8 +944,8 @@ public:
 	void ConfigurationChanged() override;
 	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 
-	void AutoHideScrollbars(BitfieldBool* bHide);
-	void EnableScrolling(BitfieldBool* bHScrolling, BitfieldBool* bVScrolling);
+	void AutoHideScrollbars(std::optional<bool> bHide);
+	void EnableScrolling(std::optional<bool> bHScrolling, std::optional<bool> bVScrolling);
 	void SetAreaMargins(float newMarginWidth, float newMarginHeight);
 	void SetScrollbarDistance(float newDistance);
 
@@ -972,7 +972,7 @@ public:
 	using UWindow::UWindow;
 
 	void ClearAllEnumerations();
-	void EnableStretchedScale(BitfieldBool* bNewStretch);
+	void EnableStretchedScale(std::optional<bool> bNewStretch);
 	int GetNumTicks();
 	int GetThumbSpan();
 	int GetTickPosition();
@@ -980,28 +980,28 @@ public:
 	std::string GetValueString();
 	void GetValues(float& fromValue, float& toValue);
 	void MoveThumb(uint8_t MoveThumb);
-	void PlayScaleSound(UObject* newsound, float* Volume, float* Pitch);
+	void PlayScaleSound(UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch);
 	void SetBorderPattern(UObject* NewTexture);
 	void SetEnumeration(int tickPos, const std::string& newStr);
 	void SetNumTicks(int newNumTicks);
-	void SetScaleBorder(float* newBorderSize, Color* NewColor);
+	void SetScaleBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor);
 	void SetScaleColor(const Color& NewColor);
-	void SetScaleMargins(float* marginWidth, float* marginHeight);
+	void SetScaleMargins(std::optional<float> marginWidth, std::optional<float> marginHeight);
 	void SetScaleOrientation(uint8_t newOrientation);
-	void SetScaleSounds(UObject** setSound, UObject** clickSound, UObject** dragSound);
+	void SetScaleSounds(std::optional<UObject*> setSound, std::optional<UObject*> clickSound, std::optional<UObject*> dragSound);
 	void SetScaleStyle(uint8_t NewStyle);
-	void SetScaleTexture(UObject* NewTexture, float* newWidth, float* NewHeight, float* newStart, float* newEnd);
-	void SetThumbBorder(float* newBorderSize, Color* NewColor);
-	void SetThumbCaps(UObject* preCap, UObject* postCap, float* preCapWidth, float* preCapHeight, float* postCapWidth, float* postCapHeight);
+	void SetScaleTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight, std::optional<float> newStart, std::optional<float> newEnd);
+	void SetThumbBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor);
+	void SetThumbCaps(UObject* preCap, UObject* postCap, std::optional<float> preCapWidth, std::optional<float> preCapHeight, std::optional<float> postCapWidth, std::optional<float> postCapHeight);
 	void SetThumbColor(const Color& NewColor);
-	void SetThumbSpan(int* newRange);
+	void SetThumbSpan(std::optional<int> newRange);
 	void SetThumbStep(int NewStep);
 	void SetThumbStyle(uint8_t NewStyle);
-	void SetThumbTexture(UObject* NewTexture, float* newWidth, float* NewHeight);
+	void SetThumbTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight);
 	void SetTickColor(const Color& NewColor);
 	void SetTickPosition(int newPosition);
 	void SetTickStyle(uint8_t NewStyle);
-	void SetTickTexture(UObject* tickTexture, BitfieldBool* bDrawEndTicks, float* newWidth, float* NewHeight);
+	void SetTickTexture(UObject* tickTexture, std::optional<bool> bDrawEndTicks, std::optional<float> newWidth, std::optional<float> NewHeight);
 	void SetValue(float NewValue);
 	void SetValueFormat(const std::string& newFmt);
 	void SetValueRange(float newFrom, float newTo);
@@ -1090,14 +1090,14 @@ public:
 	using UWindow::UWindow;
 
 	void SetManagerAlignments(uint8_t newHAlign, uint8_t newVAlign);
-	void SetManagerMargins(float* newMarginWidth, float* newMarginHeight);
+	void SetManagerMargins(std::optional<float> newMarginWidth, std::optional<float> newMarginHeight);
 	void SetManagerOrientation(uint8_t newOrientation);
-	void SetMarginSpacing(float* newSpacing);
+	void SetMarginSpacing(std::optional<float> newSpacing);
 	void SetScale(UObject* NewScale);
 	void SetScaleButtons(UObject* newDecButton, UObject* newIncButton);
 	void SetValueField(UObject* newValueField);
-	void StretchScaleField(BitfieldBool* bNewStretch);
-	void StretchValueField(BitfieldBool* bNewStretch);
+	void StretchScaleField(std::optional<bool> bNewStretch);
+	void StretchValueField(std::optional<bool> bNewStretch);
 
 	UScaleWindow*& Scale() { return Value<UScaleWindow*>(PropOffsets_ScaleManagerWindow.Scale); }
 	float& Spacing() { return Value<float>(PropOffsets_ScaleManagerWindow.Spacing); }
@@ -1118,14 +1118,14 @@ class UListWindow : public UWindow
 public:
 	using UWindow::UWindow;
 
-	int AddRow(const std::string& rowStr, int* clientData);
-	void AddSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive);
+	int AddRow(const std::string& rowStr, std::optional<int> clientData);
+	void AddSortColumn(int colIndex, std::optional<bool> bReverse, std::optional<bool> bCaseSensitive);
 	void DeleteAllRows();
 	void DeleteRow(int rowId);
-	void EnableAutoExpandColumns(BitfieldBool* bAutoExpand);
-	void EnableAutoSort(BitfieldBool* bAutoSort);
-	void EnableHotKeys(BitfieldBool* bEnable);
-	void EnableMultiSelect(BitfieldBool* bEnableMultiSelect);
+	void EnableAutoExpandColumns(std::optional<bool> bAutoExpand);
+	void EnableAutoSort(std::optional<bool> bAutoSort);
+	void EnableHotKeys(std::optional<bool> bEnable);
+	void EnableMultiSelect(std::optional<bool> bEnableMultiSelect);
 	uint8_t GetColumnAlignment(int colIndex);
 	void GetColumnColor(int colIndex, Color& colColor);
 	UObject* GetColumnFont(int colIndex);
@@ -1143,7 +1143,7 @@ public:
 	int GetRowClientInt(int rowId);
 	UObject* GetRowClientObject(int rowId);
 	int GetSelectedRow();
-	void HideColumn(int colIndex, BitfieldBool* bHide);
+	void HideColumn(int colIndex, std::optional<bool> bHide);
 	int IndexToRowId(int index);
 	bool IsAutoExpandColumnsEnabled();
 	bool IsAutoSortEnabled();
@@ -1151,39 +1151,39 @@ public:
 	bool IsMultiSelectEnabled();
 	bool IsRowSelected(int rowId);
 	void ModifyRow(int rowId, const std::string& rowStr);
-	void MoveRow(uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag);
-	void PlayListSound(UObject* listSound, float* Volume, float* Pitch);
+	void MoveRow(uint8_t Move, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag);
+	void PlayListSound(UObject* listSound, std::optional<float> Volume, std::optional<float> Pitch);
 	void RemoveSortColumn(int colIndex);
-	void ResetSortColumns(BitfieldBool* bSort);
-	void ResizeColumns(BitfieldBool* bExpandOnly);
+	void ResetSortColumns(std::optional<bool> bSort);
+	void ResizeColumns(std::optional<bool> bExpandOnly);
 	int RowIdToIndex(int rowId);
-	void SelectAllRows(BitfieldBool* bSelect);
-	void SelectRow(int rowId, BitfieldBool* bSelect);
-	void SelectToRow(int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows);
+	void SelectAllRows(std::optional<bool> bSelect);
+	void SelectRow(int rowId, std::optional<bool> bSelect);
+	void SelectToRow(int rowId, std::optional<bool> bClearRows, std::optional<bool> bInvert, std::optional<bool> bSpanRows);
 	void SetColumnAlignment(int colIndex, uint8_t newAlign);
 	void SetColumnColor(int colIndex, const Color& NewColor);
 	void SetColumnFont(int colIndex, UObject* NewFont);
 	void SetColumnTitle(int colIndex, const std::string& Title);
-	void SetColumnType(int colIndex, uint8_t newType, std::string* newFmt);
+	void SetColumnType(int colIndex, uint8_t newType, std::optional<std::string> newFmt);
 	void SetColumnWidth(int colIndex, float newWidth);
 	void SetDelimiter(const std::string& newDelimiter);
 	void SetField(int rowId, int colIndex, const std::string& fieldStr);
 	void SetFieldMargins(float newMarginWidth, float newMarginHeight);
 	void SetFieldValue(int rowId, int colIndex, float NewValue);
 	void SetFocusColor(const Color& NewColor);
-	void SetFocusRow(int rowId, BitfieldBool* bMoveTo, BitfieldBool* bAnchor);
+	void SetFocusRow(int rowId, std::optional<bool> bMoveTo, std::optional<bool> bAnchor);
 	void SetFocusTexture(UObject* NewTexture);
 	void SetFocusThickness(float newThickness);
 	void SetHighlightColor(const Color& NewColor);
 	void SetHighlightTextColor(const Color& NewColor);
 	void SetHighlightTexture(UObject* NewTexture);
 	void SetHotKeyColumn(int colIndex);
-	void SetListSounds(UObject** ActivateSound, UObject** moveSound);
+	void SetListSounds(std::optional<UObject*> ActivateSound, std::optional<UObject*> moveSound);
 	void SetNumColumns(int newCols);
-	void SetRow(int rowId, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag);
+	void SetRow(int rowId, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag);
 	void SetRowClientInt(int rowId, int clientInt);
 	void SetRowClientObject(int rowId, UObject* clientObj);
-	void SetSortColumn(int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive);
+	void SetSortColumn(int colIndex, std::optional<bool> bReverse, std::optional<bool> bCaseSensitive);
 	void ShowFocusRow();
 	void Sort();
 	void ToggleRowSelection(int rowId);
@@ -1224,17 +1224,17 @@ public:
 
 	void ClearLine(int rowToClear);
 	void ClearScreen();
-	void EnableWordWrap(BitfieldBool* bNewWordWrap);
-	void FadeOutText(float* fadeDuration);
-	void GetChar(const std::string& inputKey, BitfieldBool* bEcho);
-	void GetInput(int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask);
+	void EnableWordWrap(std::optional<bool> bNewWordWrap);
+	void FadeOutText(std::optional<float> fadeDuration);
+	void GetChar(const std::string& inputKey, std::optional<bool> bEcho);
+	void GetInput(int MaxLength, const std::string& inputKey, std::optional<std::string> defaultInputString, std::optional<std::string> inputMask);
 	float GetThrottle();
 	bool IsBufferFlushed();
 	bool IsPaused();
-	void Pause(float* pauseLength);
+	void Pause(std::optional<float> pauseLength);
 	void PlaySoundLater(UObject* newsound);
-	void Print(const std::string& printText, BitfieldBool* bNewLine);
-	void PrintGraphic(UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos);
+	void Print(const std::string& printText, std::optional<bool> bNewLine);
+	void PrintGraphic(UObject* Graphic, int Width, int Height, std::optional<int> posX, std::optional<int> posY, std::optional<bool> bStatic, std::optional<bool> bPixelPos);
 	void PrintLn();
 	void ResetThrottle();
 	void Resume();
@@ -1242,7 +1242,7 @@ public:
 	void SetComputerSoundVolume(float newSoundVolume);
 	void SetCursorBlinkSpeed(float newBlinkSpeed);
 	void SetCursorColor(const Color& newCursorColor);
-	void SetCursorTexture(UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight);
+	void SetCursorTexture(UObject* newCursorTexture, std::optional<int> newCursorWidth, std::optional<int> newCursorHeight);
 	void SetFadeSpeed(float newFadeSpeed);
 	void SetFontColor(const Color& newFontColor);
 	void SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor);
@@ -1254,7 +1254,7 @@ public:
 	void SetThrottle(float throttleModifier);
 	void SetTypingSound(UObject* newTypingSound);
 	void SetTypingSoundVolume(float newSoundVolume);
-	void ShowTextCursor(BitfieldBool* bShow);
+	void ShowTextCursor(std::optional<bool> bShow);
 
 	Color& FontColor() { return Value<Color>(PropOffsets_ComputerWindow.FontColor); }
 	UPlayerPawnExt*& Player() { return Value<UPlayerPawnExt*>(PropOffsets_ComputerWindow.Player); }
@@ -1311,11 +1311,11 @@ class UBorderWindow : public UWindow
 public:
 	using UWindow::UWindow;
 
-	void BaseMarginsFromBorder(BitfieldBool* bBorder);
-	void EnableResizing(BitfieldBool* bResize);
-	void SetBorderMargins(float* NewLeft, float* NewRight, float* newTop, float* newBottom);
-	void SetBorders(UObject** bordTL, UObject** bordTR, UObject** bordBL, UObject** bordBR, UObject** bordL, UObject** bordR, UObject** bordT, UObject** bordB, UObject** center);
-	void SetMoveCursors(UObject** Move, UObject** hMove, UObject** vMove, UObject** tlMove, UObject** trMove);
+	void BaseMarginsFromBorder(std::optional<bool> bBorder);
+	void EnableResizing(std::optional<bool> bResize);
+	void SetBorderMargins(std::optional<float> NewLeft, std::optional<float> NewRight, std::optional<float> newTop, std::optional<float> newBottom);
+	void SetBorders(std::optional<UObject*> bordTL, std::optional<UObject*> bordTR, std::optional<UObject*> bordBL, std::optional<UObject*> bordBR, std::optional<UObject*> bordL, std::optional<UObject*> bordR, std::optional<UObject*> bordT, std::optional<UObject*> bordB, std::optional<UObject*> center);
+	void SetMoveCursors(std::optional<UObject*> Move, std::optional<UObject*> hMove, std::optional<UObject*> vMove, std::optional<UObject*> tlMove, std::optional<UObject*> trMove);
 
 	float& BottomMargin() { return Value<float>(PropOffsets_BorderWindow.BottomMargin); }
 	float& DragX() { return Value<float>(PropOffsets_BorderWindow.DragX); }
@@ -1363,8 +1363,8 @@ public:
 
 	void ClearZ();
 	void CopyGC(UObject* Copy);
-	void DrawActor(UObject* Actor, BitfieldBool* bClearZ, BitfieldBool* bConstrain, BitfieldBool* bUnlit, float* DrawScale, float* ScaleGlow, UObject** Skin);
-	void DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject** borders, BitfieldBool* bStretchHorizontally, BitfieldBool* bStretchVertically);
+	void DrawActor(UObject* Actor, std::optional<bool> bClearZ, std::optional<bool> bConstrain, std::optional<bool> bUnlit, std::optional<float> DrawScale, std::optional<float> ScaleGlow, std::optional<UObject*> Skin);
+	void DrawBorders(float DestX, float DestY, float destWidth, float destHeight, float leftMargin, float rightMargin, float TopMargin, float BottomMargin, UObject** borders, std::optional<bool> bStretchHorizontally, std::optional<bool> bStretchVertically);
 	void DrawBox(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, float boxThickness, UObject* tX);
 	void DrawIcon(float DestX, float DestY, UObject* tX);
 	void DrawPattern(float DestX, float DestY, float destWidth, float destHeight, float OrgX, float OrgY, UObject* tX);
@@ -1380,7 +1380,7 @@ public:
 	void EnableTranslucentText(bool bNewTranslucency);
 	void EnableWordWrap(bool bNewWordWrap);
 	void GetAlignments(uint8_t& HAlign, uint8_t& VAlign);
-	float GetFontHeight(BitfieldBool* bIncludeSpace);
+	float GetFontHeight(std::optional<bool> bIncludeSpace);
 	void GetFonts(UObject*& normalFont, UObject*& boldFont);
 	uint8_t GetHorizontalAlignment();
 	uint8_t GetStyle();
@@ -1398,10 +1398,10 @@ public:
 	bool IsTranslucencyEnabled();
 	bool IsTranslucentTextEnabled();
 	bool IsWordWrapEnabled();
-	void PopGC(int* gcNum);
+	void PopGC(std::optional<int> gcNum);
 	int PushGC();
 	void SetAlignments(uint8_t newHAlign, uint8_t newVAlign);
-	void SetBaselineData(float* newBaselineOffset, float* newUnderlineHeight);
+	void SetBaselineData(std::optional<float> newBaselineOffset, std::optional<float> newUnderlineHeight);
 	void SetBoldFont(UObject* newBoldFont);
 	void SetFont(UObject* NewFont);
 	void SetFonts(UObject* newNormalFont, UObject* newBoldFont);

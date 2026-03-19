@@ -12,13 +12,13 @@ void NScrollAreaWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("ScrollAreaWindow", "SetScrollbarDistance", &NScrollAreaWindow::SetScrollbarDistance, 1701);
 }
 
-void NScrollAreaWindow::AutoHideScrollbars(UObject* Self, BitfieldBool* bHide)
+void NScrollAreaWindow::AutoHideScrollbars(UObject* Self, std::optional<bool> bHide)
 {
 	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
 	scrollarea->AutoHideScrollbars(bHide);
 }
 
-void NScrollAreaWindow::EnableScrolling(UObject* Self, BitfieldBool* bHScrolling, BitfieldBool* bVScrolling)
+void NScrollAreaWindow::EnableScrolling(UObject* Self, std::optional<bool> bHScrolling, std::optional<bool> bVScrolling)
 {
 	UScrollAreaWindow* scrollarea = UObject::Cast<UScrollAreaWindow>(Self);
 	scrollarea->EnableScrolling(bHScrolling, bVScrolling);

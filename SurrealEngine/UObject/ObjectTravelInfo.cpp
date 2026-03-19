@@ -129,7 +129,7 @@ Array<UActor*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& tra
 			UClass* cls = engine->packages->FindClass(objInfo.ClassName);
 			if (cls)
 			{
-				actor = pawn->Spawn(cls, nullptr, NameString(), nullptr, nullptr);
+				actor = pawn->Spawn(cls, nullptr, NameString(), {}, {});
 			}
 			else
 			{

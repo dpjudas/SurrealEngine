@@ -10,6 +10,6 @@ public:
 	static void SetCheckboxColor(UObject* Self, const Color& NewColor);
 	static void SetCheckboxSpacing(UObject* Self, float newSpacing);
 	static void SetCheckboxStyle(UObject* Self, uint8_t NewStyle);
-	static void SetCheckboxTextures(UObject* Self, UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight);
-	static void ShowCheckboxOnRightSide(UObject* Self, BitfieldBool* bRight);
+	static void SetCheckboxTextures(UObject* Self, std::optional<UObject*> toggleOff, std::optional<UObject*> toggleOn, std::optional<float> textureWidth, std::optional<float> textureHeight);
+	static void ShowCheckboxOnRightSide(UObject* Self, std::optional<bool> bRight);
 };

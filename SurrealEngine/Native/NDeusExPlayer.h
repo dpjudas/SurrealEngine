@@ -14,9 +14,9 @@ public:
 	static void CreateHistoryEvent(UObject* Self, UObject*& ReturnValue);
 	static void CreateHistoryObject(UObject* Self, UObject*& ReturnValue);
 	static void CreateLogObject(UObject* Self, UObject*& ReturnValue);
-	static void DeleteSaveGameFiles(UObject* Self, std::string* saveDirectory);
+	static void DeleteSaveGameFiles(UObject* Self, std::optional<std::string> saveDirectory);
 	static void GetDeusExVersion(UObject* Self, std::string& ReturnValue);
-	static void SaveGame(UObject* Self, int saveIndex, std::string* saveDesc);
+	static void SaveGame(UObject* Self, int saveIndex, std::optional<std::string> saveDesc);
 	static void SetBoolFlagFromString(UObject* Self, const std::string& flagNameString, bool bValue, NameString& ReturnValue);
 	static void UnloadTexture(UObject* Self, UObject* Texture);
 };

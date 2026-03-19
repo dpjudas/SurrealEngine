@@ -16,7 +16,7 @@ void NTcpLink::RegisterFunctions()
 	RegisterVMNativeFunc_2("TcpLink", "SendText", &NTcpLink::SendText, 0);
 }
 
-void NTcpLink::BindPort(UObject* Self, int* Port, BitfieldBool* bUseNextAvailable, int& ReturnValue)
+void NTcpLink::BindPort(UObject* Self, std::optional<int> Port, std::optional<bool> bUseNextAvailable, int& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UTcpLink>(Self)->BindPort(Port ? *Port : 7777, bUseNextAvailable ? *bUseNextAvailable : false);
 }

@@ -26,7 +26,7 @@ void NWebResponse::IncludeUHTM(UObject* Self, const std::string& Filename)
 	LogUnimplemented("WebResponse.IncludeUHTM");
 }
 
-void NWebResponse::Subst(UObject* Self, const std::string& Variable, const std::string& Value, BitfieldBool* bClear)
+void NWebResponse::Subst(UObject* Self, const std::string& Variable, const std::string& Value, std::optional<bool> bClear)
 {
 	LogUnimplemented("WebResponse.Subst");
 }

@@ -70,7 +70,7 @@ void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offset
 	// Copy state from window
 	engine->dxgc->EnableSpecialText(window->bSpecialText());
 	engine->dxgc->EnableTranslucentText(window->bTextTranslucent());
-	engine->dxgc->SetBaselineData(&window->BaselineOffset, &window->UnderlineHeight);
+	engine->dxgc->SetBaselineData(window->BaselineOffset, window->UnderlineHeight);
 	engine->dxgc->SetFonts(window->normalFont(), window->boldFont());
 	engine->dxgc->SetTextColor(window->TextColor());
 	engine->dxgc->SetTextVSpacing(window->textVSpacing());

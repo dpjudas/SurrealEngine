@@ -32,21 +32,21 @@ void NCanvas::RegisterFunctions()
 	RegisterVMNativeFunc_3("Canvas", "TextSize", &NCanvas::TextSize, 470);
 }
 
-void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, BitfieldBool* ClearZ)
+void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, std::optional<bool> ClearZ)
 {
 	engine->render->DrawActor(UObject::Cast<UActor>(A), WireFrame, ClearZ ? *ClearZ : false);
 }
 
-void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, BitfieldBool* ClearZ)
+void NCanvas::DrawClippedActor(UObject* Self, UObject* A, bool WireFrame, int X, int Y, int XB, int YB, std::optional<bool> ClearZ)
 {
 	engine->render->DrawClippedActor(UObject::Cast<UActor>(A), WireFrame, X, Y, XB, YB, ClearZ ? *ClearZ : false);
 }
 
-void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, int* FOV, BitfieldBool* ClearZ)
+void NCanvas::DrawPortal(UObject* Self, int X, int Y, int Width, int Height, UObject* CamActor, const vec3& CamLocation, const Rotator& CamRotation, std::optional<int> FOV, std::optional<bool> ClearZ)
 {
 }
 
-void NCanvas::DrawText(UObject* Self, const std::string& Text, BitfieldBool* CR)
+void NCanvas::DrawText(UObject* Self, const std::string& Text, std::optional<bool> CR)
 {
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	float& orgX = SelfCanvas->OrgX();
@@ -87,7 +87,7 @@ void NCanvas::DrawText(UObject* Self, const std::string& Text, BitfieldBool* CR)
 	}
 }
 
-void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, BitfieldBool* bCheckHotKey)
+void NCanvas::DrawTextClipped(UObject* Self, const std::string& Text, std::optional<bool> bCheckHotKey)
 {
 	UCanvas* SelfCanvas = UObject::Cast<UCanvas>(Self);
 	float& orgX = SelfCanvas->OrgX();

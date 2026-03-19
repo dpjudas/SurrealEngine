@@ -27,7 +27,7 @@ public:
     void GetGameDirectory(); // Depends on what GameDirectoryType is set
     int GetNewSaveFileIndex();
     std::string GenerateSaveFilename(int saveIndex);
-    std::string GenerateNewSaveFileName(int* newIndex);
+    std::string GenerateNewSaveFileName(std::optional<int> newIndex);
     int GetDirCount();
     std::string GetDirFilename(int fileIndex);
     void SetDirType(EGameDirectoryTypes newDirType);

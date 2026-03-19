@@ -15,7 +15,7 @@
 // TODO: Compare behavior more closely with original engine. Might differ depending on game.
 static constexpr float stepDownDeltaFactor = 1.3f;
 
-UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTag, vec3* SpawnLocation, Rotator* SpawnRotation)
+UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std::optional<NameString> SpawnTag, std::optional<vec3> SpawnLocation, std::optional<Rotator> SpawnRotation)
 {
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
 	{
@@ -46,7 +46,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	actor->Outer() = XLevel()->Outer();
 	actor->XLevel() = XLevel();
 	actor->Level() = Level();
-	actor->Tag() = (!SpawnTag.IsNone()) ? SpawnTag : SpawnClass->Name;
+	actor->Tag() = (SpawnTag && !SpawnTag->IsNone()) ? *SpawnTag : SpawnClass->Name;
 	actor->bTicked() = bTicked(); // To do: should it tick in the same world tick it was spawned in or wait until the next one?
 	actor->Instigator() = Instigator();
 	actor->Brush() = nullptr;
@@ -58,7 +58,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, UActor* SpawnOwner, NameString SpawnTa
 	XLevel()->Actors.push_back(actor);
 	XLevel()->Collision.AddToCollision(actor);
 
-	actor->SetOwner(SpawnOwner ? SpawnOwner : this);
+	actor->SetOwner(SpawnOwner ? *SpawnOwner : this);
 
 	if (Level()->bBegunPlay())
 	{
@@ -3676,7 +3676,7 @@ UObject* UDeusExPlayer::CreateLogObject()
 	return engine->packages->GetTransientPackage()->NewObject("DeusExLog", cls, ObjectFlags::Transient);
 }
 
-void UDeusExPlayer::DeleteSaveGameFiles(std::string* saveDirectory)
+void UDeusExPlayer::DeleteSaveGameFiles(std::optional<std::string> saveDirectory)
 {
 	LogUnimplemented("DeusExPlayer.DeleteSaveGameFiles");
 }
@@ -3686,7 +3686,7 @@ std::string UDeusExPlayer::GetDeusExVersion()
 	return "1.112fm. Surreal Engine Edition!";
 }
 
-void UDeusExPlayer::SaveGame(int saveIndex, std::string* saveDesc)
+void UDeusExPlayer::SaveGame(int saveIndex, std::optional<std::string> saveDesc)
 {
 	engine->SaveGameInfo.SaveGameSlot = saveIndex;
 	engine->SaveGameInfo.SaveGameDescription = *saveDesc;

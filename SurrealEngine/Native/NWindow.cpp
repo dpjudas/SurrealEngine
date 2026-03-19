@@ -104,7 +104,7 @@ void NWindow::AddActorRef(UObject* Self, UObject* refActor)
 	selfWindow->AddActorRef(refActor);
 }
 
-void NWindow::AddTimer(UObject* Self, float TimeOut, BitfieldBool* bLoop, int* clientData, NameString* functionName, int& ReturnValue)
+void NWindow::AddTimer(UObject* Self, float TimeOut, std::optional<bool> bLoop, std::optional<int> clientData, std::optional<NameString> functionName, int& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->AddTimer(TimeOut, bLoop, clientData, functionName);
@@ -116,7 +116,7 @@ void NWindow::AskParentForReconfigure(UObject* Self)
 	selfWindow->AskParentForReconfigure();
 }
 
-void NWindow::AskParentToShowArea(UObject* Self, float* areaX, float* areaY, float* areaWidth, float* areaHeight)
+void NWindow::AskParentToShowArea(UObject* Self, std::optional<float> areaX, std::optional<float> areaY, std::optional<float> areaWidth, std::optional<float> areaHeight)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->AskParentToShowArea(areaX, areaY, areaWidth, areaHeight);
@@ -176,19 +176,19 @@ void NWindow::DisableWindow(UObject* Self)
 	selfWindow->DisableWindow();
 }
 
-void NWindow::EnableSpecialText(UObject* Self, BitfieldBool* bEnable)
+void NWindow::EnableSpecialText(UObject* Self, std::optional<bool> bEnable)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->EnableSpecialText(bEnable);
 }
 
-void NWindow::EnableTranslucentText(UObject* Self, BitfieldBool* bEnable)
+void NWindow::EnableTranslucentText(UObject* Self, std::optional<bool> bEnable)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->EnableTranslucentText(bEnable);
 }
 
-void NWindow::EnableWindow(UObject* Self, BitfieldBool* bEnable)
+void NWindow::EnableWindow(UObject* Self, std::optional<bool> bEnable)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->EnableWindow(bEnable);
@@ -200,7 +200,7 @@ void NWindow::FindWindow(UObject* Self, float pointX, float pointY, float& relat
 	ReturnValue = selfWindow->FindWindow(pointX, pointY, relativeX, relativeY);
 }
 
-void NWindow::GetBottomChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
+void NWindow::GetBottomChild(UObject* Self, std::optional<bool> bVisibleOnly, UObject*& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->GetBottomChild(bVisibleOnly);
@@ -230,13 +230,13 @@ void NWindow::GetGC(UObject* Self, UObject*& ReturnValue)
 	ReturnValue = selfWindow->GetGC();
 }
 
-void NWindow::GetHigherSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
+void NWindow::GetHigherSibling(UObject* Self, std::optional<bool> bVisibleOnly, UObject*& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->GetHigherSibling(bVisibleOnly);
 }
 
-void NWindow::GetLowerSibling(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
+void NWindow::GetLowerSibling(UObject* Self, std::optional<bool> bVisibleOnly, UObject*& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->GetLowerSibling(bVisibleOnly);
@@ -278,7 +278,7 @@ void NWindow::GetTickOffset(UObject* Self, float& ReturnValue)
 	ReturnValue = selfWindow->GetTickOffset();
 }
 
-void NWindow::GetTopChild(UObject* Self, BitfieldBool* bVisibleOnly, UObject*& ReturnValue)
+void NWindow::GetTopChild(UObject* Self, std::optional<bool> bVisibleOnly, UObject*& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->GetTopChild(bVisibleOnly);
@@ -320,13 +320,13 @@ void NWindow::IsPointInWindow(UObject* Self, float pointX, float pointY, Bitfiel
 	ReturnValue = selfWindow->IsPointInWindow(pointX, pointY);
 }
 
-void NWindow::IsSensitive(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
+void NWindow::IsSensitive(UObject* Self, std::optional<bool> bRecurse, BitfieldBool& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->IsSensitive(bRecurse);
 }
 
-void NWindow::IsVisible(UObject* Self, BitfieldBool* bRecurse, BitfieldBool& ReturnValue)
+void NWindow::IsVisible(UObject* Self, std::optional<bool> bRecurse, BitfieldBool& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->IsVisible(bRecurse);
@@ -374,13 +374,13 @@ void NWindow::MoveTabGroupPrev(UObject* Self, UObject*& ReturnValue)
 	ReturnValue = selfWindow->MoveTabGroupPrev();
 }
 
-void NWindow::NewChild(UObject* Self, UObject* NewClass, BitfieldBool* bShow, UObject*& ReturnValue)
+void NWindow::NewChild(UObject* Self, UObject* NewClass, std::optional<bool> bShow, UObject*& ReturnValue)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	ReturnValue = selfWindow->NewChild(NewClass, bShow);
 }
 
-void NWindow::PlaySound(UObject* Self, UObject* newsound, float* Volume, float* Pitch, float* posX, float* posY)
+void NWindow::PlaySound(UObject* Self, UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch, std::optional<float> posX, std::optional<float> posY)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->PlaySound(newsound, Volume, Pitch, posX, posY);
@@ -488,7 +488,7 @@ void NWindow::SetBackgroundStyle(UObject* Self, uint8_t NewStyle)
 	selfWindow->SetBackgroundStyle(NewStyle);
 }
 
-void NWindow::SetBaselineData(UObject* Self, float* newBaselineOffset, float* newUnderlineHeight)
+void NWindow::SetBaselineData(UObject* Self, std::optional<float> newBaselineOffset, std::optional<float> newUnderlineHeight)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->SetBaselineData(newBaselineOffset, newUnderlineHeight);
@@ -524,13 +524,13 @@ void NWindow::SetCursorPos(UObject* Self, float newMouseX, float newMouseY)
 	selfWindow->SetCursorPos(newMouseX, newMouseY);
 }
 
-void NWindow::SetDefaultCursor(UObject* Self, UObject* tX, UObject** shadowTexture, float* HotX, float* HotY, Color* cursorColor)
+void NWindow::SetDefaultCursor(UObject* Self, UObject* tX, std::optional<UObject*> shadowTexture, std::optional<float> HotX, std::optional<float> HotY, std::optional<Color> cursorColor)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->SetDefaultCursor(tX, shadowTexture, HotX, HotY, cursorColor);
 }
 
-void NWindow::SetFocusSounds(UObject* Self, UObject** focusSound, UObject** unfocusSound)
+void NWindow::SetFocusSounds(UObject* Self, std::optional<UObject*> focusSound, std::optional<UObject*> unfocusSound)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->SetFocusSounds(focusSound, unfocusSound);
@@ -608,7 +608,7 @@ void NWindow::SetTileColor(UObject* Self, const Color& NewColor)
 	selfWindow->SetTileColor(NewColor);
 }
 
-void NWindow::SetVisibilitySounds(UObject* Self, UObject** visSound, UObject** invisSound)
+void NWindow::SetVisibilitySounds(UObject* Self, std::optional<UObject*> visSound, std::optional<UObject*> invisSound)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->SetVisibilitySounds(visSound, invisSound);
@@ -620,13 +620,13 @@ void NWindow::SetWidth(UObject* Self, float newWidth)
 	selfWindow->SetWidth(newWidth);
 }
 
-void NWindow::SetWindowAlignments(UObject* Self, uint8_t HAlign, uint8_t VAlign, float* hMargin0, float* vMargin0, float* hMargin1, float* vMargin1)
+void NWindow::SetWindowAlignments(UObject* Self, uint8_t HAlign, uint8_t VAlign, std::optional<float> hMargin0, std::optional<float> vMargin0, std::optional<float> hMargin1, std::optional<float> vMargin1)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->SetWindowAlignments(HAlign, VAlign, hMargin0, vMargin0, hMargin1, vMargin1);
 }
 
-void NWindow::Show(UObject* Self, BitfieldBool* bShow)
+void NWindow::Show(UObject* Self, std::optional<bool> bShow)
 {
 	UWindow* selfWindow = UObject::Cast<UWindow>(Self);
 	selfWindow->Show(bShow);

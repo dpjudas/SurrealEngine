@@ -10,7 +10,7 @@ public:
 	using UExtensionObject::UExtensionObject;
 
 	bool CheckFlag(const NameString& FlagName, uint8_t flagType);
-	int CreateIterator(uint8_t* flagType);
+	int CreateIterator(std::optional<uint8_t> flagType);
 	void DeleteAllFlags();
 	void DeleteExpiredFlags(int criteria);
 	bool DeleteFlag(const NameString& FlagName, uint8_t flagType);
@@ -25,20 +25,20 @@ public:
 	bool GetNextFlagName(int Iterator, NameString& FlagName);
 	Rotator GetRotator(const NameString& FlagName);
 	vec3 GetVector(const NameString& FlagName);
-	bool SetBool(const NameString& FlagName, bool NewValue, BitfieldBool* bAdd, int* expiration);
-	bool SetByte(const NameString& FlagName, uint8_t NewValue, BitfieldBool* bAdd, int* expiration);
+	bool SetBool(const NameString& FlagName, bool NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
+	bool SetByte(const NameString& FlagName, uint8_t NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
 	void SetDefaultExpiration(int expiration);
 	void SetExpiration(const NameString& FlagName, uint8_t flagType, int expiration);
-	bool SetFloat(const NameString& FlagName, float NewValue, BitfieldBool* bAdd, int* expiration);
-	bool SetInt(const NameString& FlagName, int NewValue, BitfieldBool* bAdd, int* expiration);
-	bool SetName(const NameString& FlagName, const NameString& NewValue, BitfieldBool* bAdd, int* expiration);
-	bool SetRotator(const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration);
-	bool SetVector(const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration);
+	bool SetFloat(const NameString& FlagName, float NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
+	bool SetInt(const NameString& FlagName, int NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
+	bool SetName(const NameString& FlagName, const NameString& NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
+	bool SetRotator(const NameString& FlagName, const Rotator& NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
+	bool SetVector(const NameString& FlagName, const vec3& NewValue, std::optional<bool> bAdd, std::optional<int> expiration);
 
 	UFlag* GetFlag(const NameString& flagName, uint8_t flagType);
 
 	template<typename T>
-	T* GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, int* expiration, EFlagType flagType, const char* flagClassName);
+	T* GetOrCreateFlag(const NameString& FlagName, std::optional<bool> bAdd, std::optional<int> expiration, EFlagType flagType, const char* flagClassName);
 
 	int& defaultFlagExpiration() { return Value<int>(PropOffsets_FlagBase.defaultFlagExpiration); }
 	FixedArrayView<UFlag*, 64> hashTable() { return FixedArray<UFlag*, 64>(PropOffsets_FlagBase.hashTable); }

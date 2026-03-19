@@ -53,25 +53,25 @@ void NComputerWindow::ClearScreen(UObject* Self)
 	window->ClearScreen();
 }
 
-void NComputerWindow::EnableWordWrap(UObject* Self, BitfieldBool* bNewWordWrap)
+void NComputerWindow::EnableWordWrap(UObject* Self, std::optional<bool> bNewWordWrap)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->EnableWordWrap(bNewWordWrap);
 }
 
-void NComputerWindow::FadeOutText(UObject* Self, float* fadeDuration)
+void NComputerWindow::FadeOutText(UObject* Self, std::optional<float> fadeDuration)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->FadeOutText(fadeDuration);
 }
 
-void NComputerWindow::GetChar(UObject* Self, const std::string& inputKey, BitfieldBool* bEcho)
+void NComputerWindow::GetChar(UObject* Self, const std::string& inputKey, std::optional<bool> bEcho)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->GetChar(inputKey, bEcho);
 }
 
-void NComputerWindow::GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::string* defaultInputString, std::string* inputMask)
+void NComputerWindow::GetInput(UObject* Self, int MaxLength, const std::string& inputKey, std::optional<std::string> defaultInputString, std::optional<std::string> inputMask)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->GetInput(MaxLength, inputKey, defaultInputString, inputMask);
@@ -95,7 +95,7 @@ void NComputerWindow::IsPaused(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = window->IsPaused();
 }
 
-void NComputerWindow::Pause(UObject* Self, float* pauseLength)
+void NComputerWindow::Pause(UObject* Self, std::optional<float> pauseLength)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->Pause(pauseLength);
@@ -107,13 +107,13 @@ void NComputerWindow::PlaySoundLater(UObject* Self, UObject* newsound)
 	window->PlaySoundLater(newsound);
 }
 
-void NComputerWindow::Print(UObject* Self, const std::string& printText, BitfieldBool* bNewLine)
+void NComputerWindow::Print(UObject* Self, const std::string& printText, std::optional<bool> bNewLine)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->Print(printText, bNewLine);
 }
 
-void NComputerWindow::PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, int* posX, int* posY, BitfieldBool* bStatic, BitfieldBool* bPixelPos)
+void NComputerWindow::PrintGraphic(UObject* Self, UObject* Graphic, int Width, int Height, std::optional<int> posX, std::optional<int> posY, std::optional<bool> bStatic, std::optional<bool> bPixelPos)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->PrintGraphic(Graphic, Width, Height, posX, posY, bStatic, bPixelPos);
@@ -161,7 +161,7 @@ void NComputerWindow::SetCursorColor(UObject* Self, const Color& newCursorColor)
 	window->SetCursorColor(newCursorColor);
 }
 
-void NComputerWindow::SetCursorTexture(UObject* Self, UObject* newCursorTexture, int* newCursorWidth, int* newCursorHeight)
+void NComputerWindow::SetCursorTexture(UObject* Self, UObject* newCursorTexture, std::optional<int> newCursorWidth, std::optional<int> newCursorHeight)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->SetCursorTexture(newCursorTexture, newCursorWidth, newCursorHeight);
@@ -233,7 +233,7 @@ void NComputerWindow::SetTypingSoundVolume(UObject* Self, float newSoundVolume)
 	window->SetTypingSoundVolume(newSoundVolume);
 }
 
-void NComputerWindow::ShowTextCursor(UObject* Self, BitfieldBool* bShow)
+void NComputerWindow::ShowTextCursor(UObject* Self, std::optional<bool> bShow)
 {
 	UComputerWindow* window = UObject::Cast<UComputerWindow>(Self);
 	window->ShowTextCursor(bShow);

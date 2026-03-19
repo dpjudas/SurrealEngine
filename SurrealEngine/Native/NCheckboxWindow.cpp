@@ -31,13 +31,13 @@ void NCheckboxWindow::SetCheckboxStyle(UObject* Self, uint8_t NewStyle)
 	checkbox->SetCheckboxStyle(NewStyle);
 }
 
-void NCheckboxWindow::SetCheckboxTextures(UObject* Self, UObject** toggleOff, UObject** toggleOn, float* textureWidth, float* textureHeight)
+void NCheckboxWindow::SetCheckboxTextures(UObject* Self, std::optional<UObject*> toggleOff, std::optional<UObject*> toggleOn, std::optional<float> textureWidth, std::optional<float> textureHeight)
 {
 	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
 	checkbox->SetCheckboxTextures(toggleOff, toggleOn, textureWidth, textureHeight);
 }
 
-void NCheckboxWindow::ShowCheckboxOnRightSide(UObject* Self, BitfieldBool* bRight)
+void NCheckboxWindow::ShowCheckboxOnRightSide(UObject* Self, std::optional<bool> bRight)
 {
 	UCheckboxWindow* checkbox = UObject::Cast<UCheckboxWindow>(Self);
 	checkbox->ShowCheckboxOnRightSide(bRight);

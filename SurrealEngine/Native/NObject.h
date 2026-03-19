@@ -23,7 +23,7 @@ public:
 	static void Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
 	static void AllFiles(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName);
-	static void AndAnd_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue);
+	static void AndAnd_BoolBool(bool A, std::optional<bool> B, BitfieldBool& ReturnValue);
 	static void And_IntInt(int A, int B, int& ReturnValue);
 	static void Asc(const std::string& S, int& ReturnValue);
 	static void At_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
@@ -50,7 +50,7 @@ public:
 	static void Divide_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue);
 	static void Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue);
 	static void Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue);
-	static void DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, BitfieldBool* MayFail, UObject*& ReturnValue);
+	static void DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, std::optional<bool> MayFail, UObject*& ReturnValue);
 	static void DynamicLoadObject_219(const std::string& ObjectName, UObject* ObjectClass, UObject*& ReturnValue);
 	static void Enable(UObject* Self, const NameString& ProbeFunc);
 	static void EqualEqual_BoolBool(bool A, bool B, BitfieldBool& ReturnValue);
@@ -71,7 +71,7 @@ public:
 	static void GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue);
 	static void GetStateName(UObject* Self, NameString& ReturnValue);
 	static void GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
-	static void GotoState(UObject* Self, NameString* NewState, NameString* Label);
+	static void GotoState(UObject* Self, std::optional<NameString> NewState, std::optional<NameString> Label);
 	static void GreaterEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void GreaterEqual_IntInt(int A, int B, BitfieldBool& ReturnValue);
 	static void GreaterEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
@@ -97,10 +97,10 @@ public:
 	static void Less_IntInt(int A, int B, BitfieldBool& ReturnValue);
 	static void Less_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
 	static void Localize(const std::string& SectionName, const std::string& KeyName, const std::string& PackageName, std::string& ReturnValue);
-	static void Log(const std::string& S, NameString* Tag);
+	static void Log(const std::string& S, std::optional<NameString> Tag);
 	static void Loge(float A, float& ReturnValue);
 	static void Max(int A, int B, int& ReturnValue);
-	static void Mid(const std::string& S, int i, int* j, std::string& ReturnValue);
+	static void Mid(const std::string& S, int i, std::optional<int> j, std::string& ReturnValue);
 	static void Min(int A, int B, int& ReturnValue);
 	static void MirrorVectorByNormal(const vec3& Vect, const vec3& Normal, vec3& ReturnValue);
 	static void MultiplyEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
@@ -128,7 +128,7 @@ public:
 	static void NotEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
 	static void NotEqual_VectorVector(const vec3& A, const vec3& B, BitfieldBool& ReturnValue);
 	static void Not_PreBool(bool A, BitfieldBool& ReturnValue);
-	static void OrOr_BoolBool(bool A, BitfieldBool* B, BitfieldBool& ReturnValue);
+	static void OrOr_BoolBool(bool A, std::optional<bool> B, BitfieldBool& ReturnValue);
 	static void Or_IntInt(int A, int B, int& ReturnValue);
 	static void OrthoRotation(const vec3& X, const vec3& Y, const vec3& Z, Rotator& ReturnValue);
 	static void Percent_FloatFloat(float A, float B, float& ReturnValue);
@@ -136,7 +136,7 @@ public:
 	static void RandRange(UObject* Self, float Min, float Max, float& ReturnValue);
 	static void ResetConfig();
 	static void Right(const std::string& S, int i, std::string& ReturnValue);
-	static void RotRand(BitfieldBool* bRoll, Rotator& ReturnValue);
+	static void RotRand(std::optional<bool> bRoll, Rotator& ReturnValue);
 	static void SaveConfig(UObject* Self);
 	static void SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue);
 	static void Sin(float A, float& ReturnValue);

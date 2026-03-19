@@ -77,13 +77,13 @@ void NListWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("ListWindow", "ToggleRowSelection", &NListWindow::ToggleRowSelection, 1745);
 }
 
-void NListWindow::AddRow(UObject* Self, const std::string& rowStr, int* clientData, int& ReturnValue)
+void NListWindow::AddRow(UObject* Self, const std::string& rowStr, std::optional<int> clientData, int& ReturnValue)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	ReturnValue = window->AddRow(rowStr, clientData);
 }
 
-void NListWindow::AddSortColumn(UObject* Self, int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
+void NListWindow::AddSortColumn(UObject* Self, int colIndex, std::optional<bool> bReverse, std::optional<bool> bCaseSensitive)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->AddSortColumn(colIndex, bReverse, bCaseSensitive);
@@ -101,25 +101,25 @@ void NListWindow::DeleteRow(UObject* Self, int rowId)
 	window->DeleteRow(rowId);
 }
 
-void NListWindow::EnableAutoExpandColumns(UObject* Self, BitfieldBool* bAutoExpand)
+void NListWindow::EnableAutoExpandColumns(UObject* Self, std::optional<bool> bAutoExpand)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->EnableAutoExpandColumns(bAutoExpand);
 }
 
-void NListWindow::EnableAutoSort(UObject* Self, BitfieldBool* bAutoSort)
+void NListWindow::EnableAutoSort(UObject* Self, std::optional<bool> bAutoSort)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->EnableAutoSort(bAutoSort);
 }
 
-void NListWindow::EnableHotKeys(UObject* Self, BitfieldBool* bEnable)
+void NListWindow::EnableHotKeys(UObject* Self, std::optional<bool> bEnable)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->EnableHotKeys(bEnable);
 }
 
-void NListWindow::EnableMultiSelect(UObject* Self, BitfieldBool* bEnableMultiSelect)
+void NListWindow::EnableMultiSelect(UObject* Self, std::optional<bool> bEnableMultiSelect)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->EnableMultiSelect(bEnableMultiSelect);
@@ -227,7 +227,7 @@ void NListWindow::GetSelectedRow(UObject* Self, int& ReturnValue)
 	ReturnValue = window->GetSelectedRow();
 }
 
-void NListWindow::HideColumn(UObject* Self, int colIndex, BitfieldBool* bHide)
+void NListWindow::HideColumn(UObject* Self, int colIndex, std::optional<bool> bHide)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->HideColumn(colIndex, bHide);
@@ -275,13 +275,13 @@ void NListWindow::ModifyRow(UObject* Self, int rowId, const std::string& rowStr)
 	window->ModifyRow(rowId, rowStr);
 }
 
-void NListWindow::MoveRow(UObject* Self, uint8_t Move, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
+void NListWindow::MoveRow(UObject* Self, uint8_t Move, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->MoveRow(Move, bSelect, bClearRows, bDrag);
 }
 
-void NListWindow::PlayListSound(UObject* Self, UObject* listSound, float* Volume, float* Pitch)
+void NListWindow::PlayListSound(UObject* Self, UObject* listSound, std::optional<float> Volume, std::optional<float> Pitch)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->PlayListSound(listSound, Volume, Pitch);
@@ -293,13 +293,13 @@ void NListWindow::RemoveSortColumn(UObject* Self, int colIndex)
 	window->RemoveSortColumn(colIndex);
 }
 
-void NListWindow::ResetSortColumns(UObject* Self, BitfieldBool* bSort)
+void NListWindow::ResetSortColumns(UObject* Self, std::optional<bool> bSort)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->ResetSortColumns(bSort);
 }
 
-void NListWindow::ResizeColumns(UObject* Self, BitfieldBool* bExpandOnly)
+void NListWindow::ResizeColumns(UObject* Self, std::optional<bool> bExpandOnly)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->ResizeColumns(bExpandOnly);
@@ -311,19 +311,19 @@ void NListWindow::RowIdToIndex(UObject* Self, int rowId, int& ReturnValue)
 	ReturnValue = window->RowIdToIndex(rowId);
 }
 
-void NListWindow::SelectAllRows(UObject* Self, BitfieldBool* bSelect)
+void NListWindow::SelectAllRows(UObject* Self, std::optional<bool> bSelect)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SelectAllRows(bSelect);
 }
 
-void NListWindow::SelectRow(UObject* Self, int rowId, BitfieldBool* bSelect)
+void NListWindow::SelectRow(UObject* Self, int rowId, std::optional<bool> bSelect)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SelectRow(rowId, bSelect);
 }
 
-void NListWindow::SelectToRow(UObject* Self, int rowId, BitfieldBool* bClearRows, BitfieldBool* bInvert, BitfieldBool* bSpanRows)
+void NListWindow::SelectToRow(UObject* Self, int rowId, std::optional<bool> bClearRows, std::optional<bool> bInvert, std::optional<bool> bSpanRows)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SelectToRow(rowId, bClearRows, bInvert, bSpanRows);
@@ -353,7 +353,7 @@ void NListWindow::SetColumnTitle(UObject* Self, int colIndex, const std::string&
 	window->SetColumnTitle(colIndex, Title);
 }
 
-void NListWindow::SetColumnType(UObject* Self, int colIndex, uint8_t newType, std::string* newFmt)
+void NListWindow::SetColumnType(UObject* Self, int colIndex, uint8_t newType, std::optional<std::string> newFmt)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SetColumnType(colIndex, newType, newFmt);
@@ -395,7 +395,7 @@ void NListWindow::SetFocusColor(UObject* Self, const Color& NewColor)
 	window->SetFocusColor(NewColor);
 }
 
-void NListWindow::SetFocusRow(UObject* Self, int rowId, BitfieldBool* bMoveTo, BitfieldBool* bAnchor)
+void NListWindow::SetFocusRow(UObject* Self, int rowId, std::optional<bool> bMoveTo, std::optional<bool> bAnchor)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SetFocusRow(rowId, bMoveTo, bAnchor);
@@ -437,7 +437,7 @@ void NListWindow::SetHotKeyColumn(UObject* Self, int colIndex)
 	window->SetHotKeyColumn(colIndex);
 }
 
-void NListWindow::SetListSounds(UObject* Self, UObject** ActivateSound, UObject** moveSound)
+void NListWindow::SetListSounds(UObject* Self, std::optional<UObject*> ActivateSound, std::optional<UObject*> moveSound)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SetListSounds(ActivateSound, moveSound);
@@ -449,7 +449,7 @@ void NListWindow::SetNumColumns(UObject* Self, int newCols)
 	window->SetNumColumns(newCols);
 }
 
-void NListWindow::SetRow(UObject* Self, int rowId, BitfieldBool* bSelect, BitfieldBool* bClearRows, BitfieldBool* bDrag)
+void NListWindow::SetRow(UObject* Self, int rowId, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SetRow(rowId, bSelect, bClearRows, bDrag);
@@ -467,7 +467,7 @@ void NListWindow::SetRowClientObject(UObject* Self, int rowId, UObject* clientOb
 	window->SetRowClientObject(rowId, clientObj);
 }
 
-void NListWindow::SetSortColumn(UObject* Self, int colIndex, BitfieldBool* bReverse, BitfieldBool* bCaseSensitive)
+void NListWindow::SetSortColumn(UObject* Self, int colIndex, std::optional<bool> bReverse, std::optional<bool> bCaseSensitive)
 {
 	UListWindow* window = UObject::Cast<UListWindow>(Self);
 	window->SetSortColumn(colIndex, bReverse, bCaseSensitive);

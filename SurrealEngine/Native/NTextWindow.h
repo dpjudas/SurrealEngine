@@ -8,7 +8,7 @@ public:
 	static void RegisterFunctions();
 
 	static void AppendText(UObject* Self, const std::string& NewText);
-	static void EnableTextAsAccelerator(UObject* Self, BitfieldBool* bEnable);
+	static void EnableTextAsAccelerator(UObject* Self, std::optional<bool> bEnable);
 	static void GetText(UObject* Self, std::string& ReturnValue);
 	static void GetTextLength(UObject* Self, int& ReturnValue);
 	static void GetTextPart(UObject* Self, int startPos, int Count, std::string& OutText, int& ReturnValue);

@@ -23,49 +23,49 @@ void NButtonWindow::ActivateButton(UObject* Self, uint8_t Key)
 	button->ActivateButton((EInputKey)Key);
 }
 
-void NButtonWindow::EnableAutoRepeat(UObject* Self, BitfieldBool* bEnable, float* initialDelay, float* repeatRate)
+void NButtonWindow::EnableAutoRepeat(UObject* Self, std::optional<bool> bEnable, std::optional<float> initialDelay, std::optional<float> repeatRate)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->EnableAutoRepeat(bEnable, initialDelay, repeatRate);
 }
 
-void NButtonWindow::EnableRightMouseClick(UObject* Self, BitfieldBool* bEnable)
+void NButtonWindow::EnableRightMouseClick(UObject* Self, std::optional<bool> bEnable)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->EnableRightMouseClick(bEnable);
 }
 
-void NButtonWindow::PressButton(UObject* Self, uint8_t* Key)
+void NButtonWindow::PressButton(UObject* Self, std::optional<uint8_t> Key)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->PressButton(Key);
 }
 
-void NButtonWindow::SetActivateDelay(UObject* Self, float* newDelay)
+void NButtonWindow::SetActivateDelay(UObject* Self, std::optional<float> newDelay)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->SetActivateDelay(newDelay);
 }
 
-void NButtonWindow::SetButtonColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
+void NButtonWindow::SetButtonColors(UObject* Self, std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->SetButtonColors(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);
 }
 
-void NButtonWindow::SetButtonSounds(UObject* Self, UObject** pressSound, UObject** clickSound)
+void NButtonWindow::SetButtonSounds(UObject* Self, std::optional<UObject*> pressSound, std::optional<UObject*> clickSound)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->SetButtonSounds(pressSound, clickSound);
 }
 
-void NButtonWindow::SetButtonTextures(UObject* Self, UObject** Normal, UObject** pressed, UObject** normalFocus, UObject** pressedFocus, UObject** normalInsensitive, UObject** pressedInsensitive)
+void NButtonWindow::SetButtonTextures(UObject* Self, std::optional<UObject*> Normal, std::optional<UObject*> pressed, std::optional<UObject*> normalFocus, std::optional<UObject*> pressedFocus, std::optional<UObject*> normalInsensitive, std::optional<UObject*> pressedInsensitive)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->SetButtonTextures(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);
 }
 
-void NButtonWindow::SetTextColors(UObject* Self, Color* Normal, Color* pressed, Color* normalFocus, Color* pressedFocus, Color* normalInsensitive, Color* pressedInsensitive)
+void NButtonWindow::SetTextColors(UObject* Self, std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive)
 {
 	UButtonWindow* button = UObject::Cast<UButtonWindow>(Self);
 	button->SetTextColors(Normal, pressed, normalFocus, pressedFocus, normalInsensitive, pressedInsensitive);

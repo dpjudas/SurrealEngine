@@ -7,7 +7,7 @@ class NTcpLink
 public:
 	static void RegisterFunctions();
 
-	static void BindPort(UObject* Self, int* Port, BitfieldBool* bUseNextAvailable, int& ReturnValue);
+	static void BindPort(UObject* Self, std::optional<int> Port, std::optional<bool> bUseNextAvailable, int& ReturnValue);
 	static void Close(UObject* Self, BitfieldBool& ReturnValue);
 	static void IsConnected(UObject* Self, BitfieldBool& ReturnValue);
 	static void Listen(UObject* Self, BitfieldBool& ReturnValue);

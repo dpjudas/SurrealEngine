@@ -73,7 +73,7 @@ void NDeusExTextParser::IsEOF(UObject* Self, BitfieldBool& ReturnValue)
 	ReturnValue = DXTPSelf->IsEOF();
 }
 
-void NDeusExTextParser::OpenText(UObject* Self, const NameString& textName, std::string* TextPackage, BitfieldBool& ReturnValue)
+void NDeusExTextParser::OpenText(UObject* Self, const NameString& textName, std::optional<std::string> TextPackage, BitfieldBool& ReturnValue)
 {
 	auto DXTPSelf = UObject::Cast<UDXTextParser>(Self);
 	ReturnValue = DXTPSelf->OpenText(textName, TextPackage ? *TextPackage : "");

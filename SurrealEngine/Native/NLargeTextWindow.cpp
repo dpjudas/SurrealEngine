@@ -9,7 +9,7 @@ void NLargeTextWindow::RegisterFunctions()
 	RegisterVMNativeFunc_1("LargeTextWindow", "SetVerticalSpacing", &NLargeTextWindow::SetVerticalSpacing, 1860);
 }
 
-void NLargeTextWindow::SetVerticalSpacing(UObject* Self, float* newVSpace)
+void NLargeTextWindow::SetVerticalSpacing(UObject* Self, std::optional<float> newVSpace)
 {
 	ULargeTextWindow* textwindow = UObject::Cast<ULargeTextWindow>(Self);
 	textwindow->SetVerticalSpacing(newVSpace);

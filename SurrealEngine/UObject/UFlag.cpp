@@ -48,7 +48,7 @@ bool UFlagBase::CheckFlag(const NameString& FlagName, uint8_t flagType)
 	return GetFlag(FlagName, flagType) != nullptr;
 }
 
-int UFlagBase::CreateIterator(uint8_t* flagType)
+int UFlagBase::CreateIterator(std::optional<uint8_t> flagType)
 {
 	int handle = NextIterator++;
 	FlagIterator flagIt;
@@ -166,7 +166,7 @@ void UFlagBase::SetExpiration(const NameString& FlagName, uint8_t flagType, int 
 }
 
 template<typename T>
-T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, int* expiration, EFlagType flagType, const char* flagClassName)
+T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, std::optional<bool> bAdd, std::optional<int> expiration, EFlagType flagType, const char* flagClassName)
 {
 	int newExpiration = expiration ? *expiration : defaultFlagExpiration();
 
@@ -209,7 +209,7 @@ T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, BitfieldBool* bAdd, in
 	return nullptr;
 }
 
-bool UFlagBase::SetBool(const NameString& FlagName, bool NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetBool(const NameString& FlagName, bool NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagBool>(FlagName, bAdd, expiration, EFlagType::Bool, "Extension.FlagBool"))
 	{
@@ -219,7 +219,7 @@ bool UFlagBase::SetBool(const NameString& FlagName, bool NewValue, BitfieldBool*
 	return false;
 }
 
-bool UFlagBase::SetByte(const NameString& FlagName, uint8_t NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetByte(const NameString& FlagName, uint8_t NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagByte>(FlagName, bAdd, expiration, EFlagType::Byte, "Extension.FlagByte"))
 	{
@@ -229,7 +229,7 @@ bool UFlagBase::SetByte(const NameString& FlagName, uint8_t NewValue, BitfieldBo
 	return false;
 }
 
-bool UFlagBase::SetFloat(const NameString& FlagName, float NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetFloat(const NameString& FlagName, float NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagFloat>(FlagName, bAdd, expiration, EFlagType::Float, "Extension.FlagFloat"))
 	{
@@ -239,7 +239,7 @@ bool UFlagBase::SetFloat(const NameString& FlagName, float NewValue, BitfieldBoo
 	return false;
 }
 
-bool UFlagBase::SetInt(const NameString& FlagName, int NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetInt(const NameString& FlagName, int NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagInt>(FlagName, bAdd, expiration, EFlagType::Int, "Extension.FlagInt"))
 	{
@@ -249,7 +249,7 @@ bool UFlagBase::SetInt(const NameString& FlagName, int NewValue, BitfieldBool* b
 	return false;
 }
 
-bool UFlagBase::SetName(const NameString& FlagName, const NameString& NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetName(const NameString& FlagName, const NameString& NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagName>(FlagName, bAdd, expiration, EFlagType::Name, "Extension.FlagName"))
 	{
@@ -259,7 +259,7 @@ bool UFlagBase::SetName(const NameString& FlagName, const NameString& NewValue, 
 	return false;
 }
 
-bool UFlagBase::SetRotator(const NameString& FlagName, const Rotator& NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetRotator(const NameString& FlagName, const Rotator& NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagRotator>(FlagName, bAdd, expiration, EFlagType::Rotator, "Extension.FlagRotator"))
 	{
@@ -269,7 +269,7 @@ bool UFlagBase::SetRotator(const NameString& FlagName, const Rotator& NewValue, 
 	return false;
 }
 
-bool UFlagBase::SetVector(const NameString& FlagName, const vec3& NewValue, BitfieldBool* bAdd, int* expiration)
+bool UFlagBase::SetVector(const NameString& FlagName, const vec3& NewValue, std::optional<bool> bAdd, std::optional<int> expiration)
 {
 	if (auto flag = GetOrCreateFlag<UFlagVector>(FlagName, bAdd, expiration, EFlagType::Vector, "Extension.FlagVector"))
 	{
