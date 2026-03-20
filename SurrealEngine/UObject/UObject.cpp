@@ -452,14 +452,14 @@ Array<UProperty*> UObject::GetAllUserEditableProperties()
 
 Array<UProperty*> UObject::GetAllTravelProperties()
 {
-	Array<UProperty*> result;
+	// Only DeusEx marks Inventory as a travel property.
 
+	Array<UProperty*> result;
 	for (UProperty* prop : PropertyData.Class->Properties)
 	{
-		if (bool(prop->PropFlags & PropertyFlags::Travel))
+		if (AllFlags(prop->PropFlags, PropertyFlags::Travel) || prop->Name == "Inventory")
 			result.push_back(prop);
 	}
-
 	return result;
 }
 
