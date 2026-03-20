@@ -2,31 +2,45 @@
 
 #include "Utils/Logger.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 void UDXGameDirectory::GetGameDirectory()
 {
     if (GameDirectoryType() == EGameDirectoryTypes::GD_Maps)
+    {
         currentDirectory = fs::path(engine->LaunchInfo.gameRootFolder) / "Maps";
+        PopulateDirectoryList();
+    }
     else
-        currentDirectory = fs::path(engine->LaunchInfo.gameRootFolder) / "Save";
+    {
+        currentDirectory = engine->packages->GetSaveFolderPath();
+        PopulateSaveInfoPointers();
+    }
 }
 
 int UDXGameDirectory::GetNewSaveFileIndex()
 {
-    LogUnimplemented("GameDirectory.GetNewSaveFileIndex()");
+    const auto saveFolder = engine->packages->GetSaveFolderPath();
+
+    // Save folders being formatted like Save0001 implies that the number can go up to 9999
+    for (int i = 1 ; i < 10000 ; i++)
+    {
+        auto folderPath = saveFolder / GetSaveIndexFolderName(i);
+        if (!fs::exists(folderPath) || (fs::exists(folderPath) && !fs::is_directory(folderPath)))
+            return i;
+    }
+
     return 0;
 }
 
 std::string UDXGameDirectory::GenerateSaveFilename(int saveIndex)
 {
-    LogUnimplemented("GameDirectory.GenerateSaveFilename()");
-    return "";
+    return GetSaveIndexFolderName(saveIndex);
 }
 
 std::string UDXGameDirectory::GenerateNewSaveFileName(std::optional<int> newIndex)
 {
-    LogUnimplemented("GameDirectory.GenerateNewSaveFileName()");
-    return "";
+    return GenerateSaveFilename(newIndex ? *newIndex : GetNewSaveFileIndex());
 }
 
 int UDXGameDirectory::GetDirCount()
@@ -57,23 +71,20 @@ void UDXGameDirectory::SetDirFilter(const std::string& strFilter)
 
 UDXSaveInfo* UDXGameDirectory::GetSaveInfo(int fileIndex)
 {
-    LogUnimplemented("GameDirectory.GetSaveInfo()");
-
     if (GameDirectoryType() != EGameDirectoryTypes::GD_SaveGames)
         // We're not in the Save folder
         return nullptr;
 
-    // TODO: Need to load SaveInfo.dxs from currentFolder / saveFolderName, then return it.
-    // auto saveFolderName = GetSaveIndexFolderName(fileIndex);
+    auto pkg = engine->packages->GetSaveInfoPackage(GetSaveIndexFolderName(fileIndex));
 
-    return nullptr;
+    if (!pkg)
+        return nullptr;
+
+    return Cast<UDXSaveInfo>(pkg->GetUObject("DeusExSaveInfo", "MyDeusExSaveInfo"));
 }
 
 UDXSaveInfo* UDXGameDirectory::GetSaveInfoFromDirectoryIndex(int DirectoryIndex)
 {
-    // This one won't work yet as we aren't populating the LoadedSaveInfoPointers array.
-    LogUnimplemented("GameDirectory.GetSaveInfoFromDirectoryIndex()");
-
     for (const auto& dxSaveInfo : LoadedSaveInfoPointers())
         if (dxSaveInfo->DirectoryIndex() == DirectoryIndex)
             return dxSaveInfo;
@@ -88,7 +99,18 @@ UDXSaveInfo* UDXGameDirectory::GetTempSaveInfo()
 
 void UDXGameDirectory::DeleteSaveInfo(UDXSaveInfo& saveInfo)
 {
-    LogUnimplemented("GameDirectory.DeleteSaveInfo()");
+    const auto saveFolderName = GetSaveIndexFolderName(saveInfo.DirectoryIndex());
+
+    for (auto it = LoadedSaveInfoPointers().cbegin() ; it != LoadedSaveInfoPointers().cend() ; it++)
+    {
+        if (*it == &saveInfo)
+        {
+            LoadedSaveInfoPointers().erase(it);
+            engine->packages->RemoveSaveInfoPackage(saveFolderName);
+            fs::remove_all(engine->packages->GetSaveFolderPath() / saveFolderName); // Also delete the folder
+            return;
+        }
+    }
 }
 
 void UDXGameDirectory::PurgeAllSaveInfo()
@@ -141,4 +163,16 @@ void UDXGameDirectory::PopulateDirectoryList()
             newList.push_back(p.path().filename().string());
 
     DirectoryList() = newList;
+}
+
+void UDXGameDirectory::PopulateSaveInfoPointers()
+{
+    Array<UDXSaveInfo*> saveInfos;
+
+    for (const auto& saveInfoPackage : engine->packages->GetSaveInfoPackages())
+    {
+        saveInfos.push_back(Cast<UDXSaveInfo>(saveInfoPackage.second->GetUObject("DeusExSaveInfo", "MyDeusExSaveInfo")));
+    }
+
+    LoadedSaveInfoPointers() = saveInfos;
 }
