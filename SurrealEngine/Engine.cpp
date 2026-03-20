@@ -569,6 +569,8 @@ void Engine::UnloadMap()
 		return;
 
 	LevelInfo = nullptr;
+	if (packages->IsDeusEx())
+		DeusExLevelInfo = nullptr;
 	Level = nullptr;
 	viewport->Actor() = nullptr;
 	dxRootWindow = nullptr;
@@ -592,26 +594,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LevelPackage = packages->LoadMap(url.Map);
 
-	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	if (packages->GetEngineVersion() < 300) // Unknown when this changed
-	{
-		for (int grr = 1; !LevelInfo && grr < 20; grr++)
-			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
-	}
-	if (!LevelInfo)
-		Exception::Throw("Could not find the LevelInfo object for " + url.Map + "!");
-
-	if (LaunchInfo.IsDeusEx())
-	{
-		// Also try to find DeusExLevelInfo
-		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
-
-		// Entry.dx does not have a DeusExLevelInfo
-		/*
-		if (!DeusExLevelInfo)
-			Exception::Throw("Could not find the DeusExLevelInfo object for " + url.Map + "!");
-		*/
-	}
+	GetLevelInfoObject();
 
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
@@ -624,9 +607,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LevelInfo->URL = url;
 
-	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
-	if (!Level)
-		Exception::Throw("Could not find the Level object for this map!");
+	GetLevelObject();
 
 	Level->TravelInfo = travelInfo; // Initially used travel info for level restart
 
@@ -640,15 +621,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 		}
 	}
 
-	// Link actors to the level
-	for (UActor* actor : Level->Actors)
-	{
-		if (actor)
-		{
-			actor->XLevel() = Level;
-			Level->Collision.AddToCollision(actor);
-		}
-	}
+	LinkActorsToLevel();
 
 	// Find the game info class
 	UClass* gameInfoClass = packages->FindClass(LevelInfo->URL.GetOption("game"));
@@ -737,14 +710,7 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 
 	LevelPackage = savefilePackage;
 
-	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	if (packages->GetEngineVersion() < 300) // Unknown when this changed
-	{
-		for (int grr = 1; !LevelInfo && grr < 20; grr++)
-			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
-	}
-	if (!LevelInfo)
-		Exception::Throw("Could not find the LevelInfo object for this map!");
+	GetLevelInfoObject();
 
 	/*
 	LevelInfo->ComputerName() = "MyComputer";
@@ -759,19 +725,9 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	LevelInfo->DefaultTexture() = engine->DefaultTexture;
 	*/
 
-	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
-	if (!Level)
-		Exception::Throw("Could not find the Level object for this map!");
+	GetLevelObject();
 
-	// Link actors to the level
-	for (UActor* actor : Level->Actors)
-	{
-		if (actor)
-		{
-			actor->XLevel() = Level;
-			Level->Collision.AddToCollision(actor);
-		}
-	}
+	LinkActorsToLevel();
 }
 
 void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription) const
@@ -780,7 +736,7 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 		Exception::Throw("Invalid save slot: " + std::to_string(slotNum));
 
 	// First and foremost ensure the Save folder exists
-	const auto saveFolderPath = fs::path(LaunchInfo.gameRootFolder) / "Save";
+	const auto saveFolderPath = packages->GetSaveFolderPath();
 	if (!fs::exists(saveFolderPath))
 		fs::create_directory(saveFolderPath);
 
@@ -1820,6 +1776,50 @@ void Engine::LogGamePackageSHA1Sums() const
 	else if (packages->IsKlingonHonorGuard())
 	{
 		LogMessage("Klingons.u: " + SHA1Sum::of_file(systemPath / "Klingons.u"));
+	}
+}
+
+void Engine::GetLevelInfoObject()
+{
+	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
+	if (packages->GetEngineVersion() < 300) // Unknown when this changed
+	{
+		for (int grr = 1; !LevelInfo && grr < 20; grr++)
+			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
+	}
+	if (!LevelInfo)
+		Exception::Throw("Could not find the LevelInfo object for " + LevelPackage->GetPackageName().ToString() + "!");
+}
+
+void Engine::GetLevelObject()
+{
+	Level = UObject::Cast<ULevel>(LevelPackage->GetUObject("Level", "MyLevel"));
+	if (!Level)
+		Exception::Throw("Could not find the Level object for" + LevelPackage->GetPackageName().ToString() + "!");
+
+	if (LaunchInfo.IsDeusEx())
+	{
+		// Also try to find DeusExLevelInfo
+		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
+
+		// Entry.dx does not have a DeusExLevelInfo
+		/*
+		if (!DeusExLevelInfo)
+			Exception::Throw("Could not find the DeusExLevelInfo object for " + url.Map + "!");
+		*/
+	}
+}
+
+void Engine::LinkActorsToLevel()
+{
+	// Link actors to the level
+	for (UActor* actor : Level->Actors)
+	{
+		if (actor)
+		{
+			actor->XLevel() = Level;
+			Level->Collision.AddToCollision(actor);
+		}
 	}
 }
 
