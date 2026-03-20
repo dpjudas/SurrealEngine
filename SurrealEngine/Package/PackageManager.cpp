@@ -107,6 +107,9 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 	ScanPaths();
 	ScanForMaps();
 
+	if (launchInfo.IsDeusEx())
+		ScanSaveInfos();
+
 	InitPropertyOffsets(this);
 
 	// File::write_all_text("C:\\Development\\UTNativeProps.txt", NativeObjExtractor::Run(this));
@@ -201,8 +204,7 @@ void PackageManager::CloseStreams()
 
 Package* PackageManager::LoadSaveFile(const std::string& path)
 {
-	const auto saveFolder = gameRootFolderPath / "Save";
-	auto fullPath = saveFolder / fs::path(path);
+	auto fullPath = gameSaveFolderPath / fs::path(path);
 
 	if (!fullPath.has_extension() || (fullPath.extension().string() != GetSaveExtension()))
 		fullPath.replace_extension(GetSaveExtension());
@@ -269,6 +271,13 @@ void PackageManager::ScanPaths()
 	mapExtension = GetIniValue("System", "URL", "MapExt");
 	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
+	// Handle SavePath and CachePath
+	const auto savePath = convert_path_separators(GetIniValue("System", "Core.System", "SavePath"));
+	gameSaveFolderPath = (gameSystemFolderPath / savePath).lexically_normal();
+
+	const auto cachePath = convert_path_separators(GetIniValue("System", "Core.System", "CachePath"));
+	gameCacheFolderPath = (gameSystemFolderPath / cachePath).lexically_normal();
+
 	for (auto& currentPathStr: paths)
 	{
 		auto currentPath = convert_path_separators(currentPathStr);
@@ -299,6 +308,24 @@ void PackageManager::ScanPaths()
 	}
 }
 
+void PackageManager::ScanSaveInfos()
+{
+	for (const auto& entry : fs::directory_iterator{gameSaveFolderPath})
+	{
+		if (!entry.is_directory())
+			continue;
+
+		const auto save = entry.path() / ("SaveInfo." + saveExtension);
+
+		if (!fs::exists(save) || !fs::is_regular_file(save))
+			continue;
+
+		auto saveFolderName = entry.path().filename().string();
+
+		saveInfos[saveFolderName] = GC::Alloc<Package>(this, saveFolderName, save.string());
+	}
+}
+
 std::string PackageManager::GetVideoFilename(const std::string& name)
 {
 	NameString filename = name;
@@ -316,6 +343,24 @@ Array<NameString> PackageManager::GetPackageNames() const
 		names.push_back(it.first);
 	}
 	return names;
+}
+
+Package* PackageManager::GetSaveInfoPackage(const NameString& saveFolderName)
+{
+	auto idx = saveInfos.find(saveFolderName);
+
+	if (idx != saveInfos.end())
+		return idx->second;
+
+	return nullptr;
+}
+
+void PackageManager::RemoveSaveInfoPackage(const NameString& saveFolderName)
+{
+	auto idx = saveInfos.find(saveFolderName);
+
+	if (idx != saveInfos.end())
+		saveInfos.erase(idx);
 }
 
 std::shared_ptr<PackageStream> PackageManager::GetStream(Package* package)

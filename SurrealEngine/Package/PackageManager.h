@@ -48,9 +48,14 @@ public:
 
 	fs::path GetRootFolderPath() const { return gameRootFolderPath; }
 	fs::path GetSystemFolderPath() const { return gameSystemFolderPath; }
+	fs::path GetSaveFolderPath() const { return gameSaveFolderPath; }
+	fs::path GetCacheFolderPath() const { return gameCacheFolderPath; }
 
-	Package *GetPackage(const NameString& name);
+	Package* GetPackage(const NameString& name);
 	Array<NameString> GetPackageNames() const;
+	Package* GetSaveInfoPackage(const NameString& saveFolderName);
+	void RemoveSaveInfoPackage(const NameString& saveFolderName);
+	std::map<NameString, Package*> GetSaveInfoPackages() const { return saveInfos; };
 
 	Package* LoadMap(const std::string& path);
 	void UnloadMap(Package* package);
@@ -107,6 +112,7 @@ private:
 
 	void ScanFolder(const std::string& packagedir, const std::string& search);
 	void ScanPaths();
+	void ScanSaveInfos();
 
 	void DelayLoadNow();
 	void RegisterFunctions();
@@ -126,6 +132,7 @@ private:
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
 	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
 	std::map<std::string, std::string> packageRemaps;
+	std::map<NameString, Package*> saveInfos;
 
 	std::map<NameString, std::string> aviFilenames;
 
@@ -140,6 +147,8 @@ private:
 	// So that we don't have to build fs::path()s all over the place
 	fs::path gameRootFolderPath;
 	fs::path gameSystemFolderPath;
+	fs::path gameSaveFolderPath;
+	fs::path gameCacheFolderPath;
 
 	std::string mapExtension;
 	std::string saveExtension;
