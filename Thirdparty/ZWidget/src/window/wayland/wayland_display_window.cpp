@@ -13,17 +13,22 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 	m_NativeHandle.display = backend->s_waylandDisplay;
 	m_NativeHandle.surface = m_WindowSurface;
 
-	if (backend->m_FractionalScaleManager)
+	if (backend->m_Viewporter)
 	{
-		m_FractionalScale = backend->m_FractionalScaleManager.get_fractional_scale(m_WindowSurface);
+		m_Viewport = backend->m_Viewporter.get_viewport(m_WindowSurface);
 
-		m_FractionalScale.on_preferred_scale() = [&](uint32_t scale_numerator) {
-			// parameter is the numerator of a fraction with the denominator of 120
-			m_ScaleFactor = scale_numerator / 120.0;
+		if (backend->m_FractionalScaleManager)
+		{
+			m_FractionalScale = backend->m_FractionalScaleManager.get_fractional_scale(m_WindowSurface);
 
-			m_NeedsUpdate = true;
-			windowHost->OnWindowDpiScaleChanged();
-		};
+			m_FractionalScale.on_preferred_scale() = [&](uint32_t scale_numerator) {
+				// parameter is the numerator of a fraction with the denominator of 120
+				m_ScaleFactor = scale_numerator / 120.0;
+
+				m_NeedsUpdate = true;
+				windowHost->OnWindowDpiScaleChanged();
+			};
+		}
 	}
 
 	m_XDGSurface = backend->m_XDGWMBase.get_xdg_surface(m_WindowSurface);
@@ -389,8 +394,8 @@ void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t he
 				 state == wayland::xdg_toplevel_state::tiled_top)
 		{
 			Rect rect = GetClientFrame();
-			rect.width = width / m_ScaleFactor;
-			rect.height = height / m_ScaleFactor;
+			rect.width = width;
+			rect.height = height;
 			SetClientFrame(rect);
 			windowHost->OnWindowGeometryChanged();
 		}
@@ -429,14 +434,16 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 	if (shared_mem)
 		shared_mem.reset();
 
-	int scaled_width = width * m_ScaleFactor;
-	int scaled_height  = height * m_ScaleFactor;
+	const int scaled_width = std::round(width * m_ScaleFactor);
+	const int scaled_height  = std::round(height * m_ScaleFactor);
 
 	shared_mem = std::make_shared<SharedMemHelper>(scaled_width * scaled_height * 4);
 	auto pool = backend->m_waylandSHM.create_pool(shared_mem->get_fd(), scaled_width * scaled_height * 4);
 
 	m_WindowSurfaceBuffer = pool.create_buffer(0, scaled_width, scaled_height, scaled_width * 4, wayland::shm_format::xrgb8888);
 
+	if (m_Viewport)
+		m_Viewport.set_destination(width, height);
 	m_WindowSize = Size(scaled_width, scaled_height);
 }
 
