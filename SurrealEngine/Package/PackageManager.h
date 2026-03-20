@@ -58,7 +58,7 @@ public:
 	std::map<NameString, Package*> GetSaveInfoPackages() const { return saveInfos; };
 
 	Package* LoadMap(const std::string& path);
-	void UnloadMap(Package* package);
+	void UnloadPackage(Package* package);
 
 	void CloseStreams();
 
