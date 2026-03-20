@@ -54,6 +54,7 @@ class UnrealURL;
 class VideoPlayer;
 class UnrealMipmap;
 class UFloatProperty;
+class UConversationMissionList;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -134,6 +135,7 @@ public:
 	UCanvas* canvas = nullptr;
 	UGC* dxgc = nullptr;
 	UDXSaveInfo* dxSaveInfo = nullptr;
+	UConversationMissionList* dxConMissionList = nullptr;
 	UConsole* console = nullptr;
 	URootWindow* dxRootWindow = nullptr;
 

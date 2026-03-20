@@ -4,6 +4,17 @@
 
 class UFlag;
 
+enum class EFlagType : uint8_t
+{
+	Bool,
+	Byte,
+	Int,
+	Float,
+	Name,
+	Vector,
+	Rotator,
+};
+
 class UFlagBase : public UExtensionObject
 {
 public:

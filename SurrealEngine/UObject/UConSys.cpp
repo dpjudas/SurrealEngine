@@ -54,7 +54,7 @@ UObject* UConversation::CreateConCamera()
 
 UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue)
 {
-	LogUnimplemented("Conversation.CreateFlagRef");
+	LogUnimplemented("Conversation.CreateFlagRef(" + FlagName.ToString() + ", " + (flagValue ? "true" : "false") + ")");
 	return nullptr;
 }
 

@@ -19,6 +19,7 @@
 #include "UObject/UClient.h"
 #include "UObject/USubsystem.h"
 #include "UObject/UFlag.h"
+#include "UObject/UConSys.h"
 #include "Math/quaternion.h"
 #include "Math/FrustumPlanes.h"
 #include "GameWindow.h"
@@ -59,6 +60,33 @@ Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 		dxgc = UObject::Cast<UGC>(transientpkg->NewObject("gc", extpkg->GetClass("GC"), ObjectFlags::Transient));
 		dxgc->Canvas() = canvas;
 		dxSaveInfo = UObject::Cast<UDXSaveInfo>(transientpkg->NewObject("DeusExSaveInfo", deusExPackage->GetClass("DeusExSaveInfo"), ObjectFlags::Transient));
+		dxConMissionList = UObject::Cast<UConversationMissionList>(packages->GetPackage("DeusExConText")->GetUObject("ConversationMissionList", "ConMissionList"));
+
+		auto mission = UObject::Cast<UConversationList>(dxConMissionList->missions()->ConObject());
+		auto conversation = UObject::Cast<UConversation>(mission->conversations()->ConObject());
+		NameString conName = conversation->conName();
+		NameString conOwnerName = conversation->conOwnerName();
+		std::string audioPackageName = "DeusExConAudio" + conversation->audioPackageName();
+		int conversationID = conversation->conversationID();
+		UConEvent* event = conversation->eventList();
+		std::string eventLabel = event->Label();
+		//UConFlagRef* flagref = conversation->flagRefList();
+		//NameString flagName = flagref->FlagName();
+
+		/*
+			Native functions binding this to actors:
+
+			DeusExDecoration.ConBindEvents
+			DeusExPlayer.ConBindEvents
+			ScriptedPawn.ConBindEvents
+		*/
+
+		/*
+			Native functions starting conversations
+
+			Conversation.BindEvents(actors in conversation, start actor)
+			Conversation.ClearBindEvents <-- called just before BindEvents to "clean up stuff"
+		*/
 	}
 
 	std::string consolestr = packages->GetIniValue("system", "Engine.Engine", "Console");
@@ -605,6 +633,11 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	{
 		// Also try to find DeusExLevelInfo
 		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
+
+		if (DeusExLevelInfo)
+		{
+			LogMessage("Conversation package for this map is: " + DeusExLevelInfo->ConversationPackage());
+		}
 
 		// Entry.dx does not have a DeusExLevelInfo
 		/*

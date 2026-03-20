@@ -16,17 +16,6 @@ class URootWindow;
 enum EInputKey;
 enum EInputType;
 
-enum class EFlagType : uint8_t
-{
-	Bool,
-	Byte,
-	Int,
-	Float,
-	Name,
-	Vector,
-	Rotator,
-};
-
 enum class EHAlign : uint8_t
 {
 	Left,
