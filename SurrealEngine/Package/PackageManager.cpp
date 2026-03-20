@@ -180,7 +180,7 @@ Package* PackageManager::LoadMap(const std::string& path)
 	return GC::Alloc<Package>(this, mapFilename.stem().string(), absolute_path.string());
 }
 
-void PackageManager::UnloadMap(Package* package)
+void PackageManager::UnloadPackage(Package* package)
 {
 	// Remove package from open streams cache:
 	auto streamit = openStreams.begin();
