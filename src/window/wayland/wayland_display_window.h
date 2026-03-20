@@ -174,6 +174,7 @@ private:
 
 	wayland::surface_t m_WindowSurface;
 	wayland::buffer_t m_WindowSurfaceBuffer;
+	wayland::viewport_t m_Viewport;
 
 	wayland::xdg_surface_t m_XDGSurface;
 	wayland::xdg_toplevel_t m_XDGToplevel;

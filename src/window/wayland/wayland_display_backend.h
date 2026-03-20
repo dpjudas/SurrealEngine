@@ -125,6 +125,7 @@ public:
 	wayland::seat_t m_waylandSeat;
 	wayland::output_t m_waylandOutput;
 	wayland::data_device_manager_t m_DataDeviceManager;
+	wayland::viewporter_t m_Viewporter;
 	wayland::xdg_wm_base_t m_XDGWMBase;
 	wayland::xdg_wm_dialog_v1_t m_XDGWMDialog;
 	wayland::zwp_pointer_constraints_v1_t m_PointerConstraints;

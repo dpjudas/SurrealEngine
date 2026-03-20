@@ -27,6 +27,8 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 			s_waylandRegistry.bind(name, m_waylandSeat, 8);
 		if (interface == wayland::data_device_manager_t::interface_name)
 			s_waylandRegistry.bind(name, m_DataDeviceManager, 3);
+		if (interface == wayland::viewporter_t::interface_name)
+			s_waylandRegistry.bind(name, m_Viewporter, version);
 		if (interface == wayland::xdg_wm_base_t::interface_name)
 			/* Setting the version to anything higher than 4 will cause an
 			 * "interface 'xdg_toplevel' has no event 3" error.
@@ -491,7 +493,7 @@ void WaylandDisplayBackend::OnMouseMoveEvent(Point surfacePos)
 {
 	if (m_MouseFocusWindow)
 	{
-		m_MouseFocusWindow->m_SurfaceMousePos = surfacePos / m_MouseFocusWindow->m_ScaleFactor;
+		m_MouseFocusWindow->m_SurfaceMousePos = surfacePos;
 		m_MouseFocusWindow->windowHost->OnWindowMouseMove(m_MouseFocusWindow->m_SurfaceMousePos);
 	}
 }
