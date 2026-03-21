@@ -14,16 +14,16 @@ void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 	if (actor->bHidden())
 		return;
 
-	if (actor->bOnlyOwnerSee() && actor->Owner() != engine->CameraActor)
+	if (actor->bOnlyOwnerSee() && actor->Owner() != engine->CameraActor && !frame->MirrorFlag)
 		return;
 
 	if (engine->LaunchInfo.engineVersion > 219)
 	{
-		if (actor->bOwnerNoSee() && actor->Owner() == engine->CameraActor)
+		if (actor->bOwnerNoSee() && (actor->Owner() == engine->CameraActor || frame->MirrorFlag))
 			return;
 	}
 
-	if (actor == engine->CameraActor)
+	if (actor == engine->CameraActor && !frame->MirrorFlag)
 		return;
 
 	if (!frame->Clipper.IsAABBVisible(actor->BspInfo.BoundingBox))
