@@ -2276,19 +2276,6 @@ UTexture* UActor::GetMultiskin(int index)
 
 void UActor::DeusExConBindEvents()
 {
-	NameString bindName = BindName();
-	NameString barkBindName = BarkBindName();
-
-	if (bindName.IsNone() && barkBindName.IsNone())
-		return;
-
-	if (!bindName.IsNone() && !barkBindName.IsNone())
-		LogMessage("ConBindEvents called with BindName = " + BindName() + " and BarkBindName = " + BarkBindName());
-	else if (!bindName.IsNone())
-		LogMessage("ConBindEvents called with BindName = " + BindName());
-	else
-		LogMessage("ConBindEvents called with BarkBindName = " + BarkBindName());
-
 	auto mission = UObject::Cast<UConversationList>(engine->GetDeusExMission());
 	if (!mission)
 		return;
@@ -2296,18 +2283,39 @@ void UActor::DeusExConBindEvents()
 	UClass* clsConListItem = engine->packages->FindClass("ConSys.ConListItem");
 	UConListItem* conListItem = nullptr;
 
-	for (UConItem* item = mission->conversations(); item; item = item->Next())
+	NameString bindName = BindName();
+	if (!bindName.IsNone())
 	{
-		auto conversation = UObject::Cast<UConversation>(item->ConObject());
-		// NameString conName = conversation->conName();
-		NameString conOwnerName = conversation->conOwnerName();
-		if (conOwnerName == bindName)
+		for (UConItem* item = mission->conversations(); item; item = item->Next())
 		{
-			NameString name;
-			UConListItem* newItem = UObject::Cast<UConListItem>(engine->LevelPackage->NewObject(name, clsConListItem, ObjectFlags::Transient, true));
-			newItem->con() = conversation;
-			newItem->Next() = conListItem;
-			conListItem = newItem;
+			auto conversation = UObject::Cast<UConversation>(item->ConObject());
+			NameString conOwnerName = conversation->conOwnerName();
+			if (conOwnerName == bindName)
+			{
+				NameString name;
+				UConListItem* newItem = UObject::Cast<UConListItem>(engine->LevelPackage->NewObject(name, clsConListItem, ObjectFlags::Transient, true));
+				newItem->con() = conversation;
+				newItem->Next() = conListItem;
+				conListItem = newItem;
+			}
+		}
+	}
+
+	NameString barkBindName = BarkBindName();
+	if (!barkBindName.IsNone())
+	{
+		for (UConItem* item = mission->conversations(); item; item = item->Next())
+		{
+			auto conversation = UObject::Cast<UConversation>(item->ConObject());
+			NameString conOwnerName = conversation->conOwnerName();
+			if (conOwnerName == barkBindName)
+			{
+				NameString name;
+				UConListItem* newItem = UObject::Cast<UConListItem>(engine->LevelPackage->NewObject(name, clsConListItem, ObjectFlags::Transient, true));
+				newItem->con() = conversation;
+				newItem->Next() = conListItem;
+				conListItem = newItem;
+			}
 		}
 	}
 
