@@ -8,7 +8,7 @@ public:
 	static void RegisterFunctions();
 
 	static void BindActorEvents(UObject* Self, UObject* actorToBind);
-	static void BindEvents(UObject* Self, UObject* conBoundActors, UObject* invokeActor);
+	static void BindEvents(UObject* Self, UObject*& conBoundActors, UObject* invokeActor);
 	static void ClearBindEvents(UObject* Self);
 	static void CreateConCamera(UObject* Self, UObject*& ReturnValue);
 	static void CreateFlagRef(UObject* Self, const NameString& FlagName, bool flagValue, UObject*& ReturnValue);

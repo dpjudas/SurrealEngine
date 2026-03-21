@@ -9,6 +9,29 @@ class UConversation;
 class UConSpeech;
 class UConHistoryEvent;
 
+enum class EEventType
+{
+	Speech,
+	Choice,
+	SetFlag,
+	CheckFlag,
+	CheckObject,
+	TransferObject,
+	MoveCamera,
+	Animation,
+	Trade,
+	Jump,
+	Random,
+	Trigger,
+	AddGoal,
+	AddNote,
+	AddSkillPoints,
+	AddCredits,
+	CheckPersona,
+	Comment,
+	End
+};
+
 class UConLight : public ULight
 {
 public:
@@ -364,7 +387,7 @@ public:
 	using UConObject::UConObject;
 
 	void BindActorEvents(UObject* actorToBind);
-	void BindEvents(UObject* conBoundActors, UObject* invokeActor);
+	void BindEvents(UObject** conBoundActors, UObject* invokeActor);
 	void ClearBindEvents();
 	UObject* CreateConCamera();
 	UObject* CreateFlagRef(const NameString& FlagName, bool flagValue);

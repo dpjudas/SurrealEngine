@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UConSys.h"
 #include "USound.h"
+#include "ULevel.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
 
@@ -44,19 +45,154 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 	LogUnimplemented("Conversation.BindActorEvents");
 }
 
-void UConversation::BindEvents(UObject* conBoundActors, UObject* invokeActor)
+void UConversation::BindEvents(UObject** conBoundActors, UObject* invokeActor)
 {
-	// Used when starting conversations.
-	// Conversation.BindEvents(actors in conversation, start actor)
+	// Note: conBoundActors seems to be an output parameter to be filled with actors we found in the events?
+	// Not sure what invokeActor is used for. Also unclear how conOwnerName() and ownerRefCount() works.
 
-	LogUnimplemented("Conversation.BindEvents");
+	std::map<NameString, UActor*> nameToActor;
+
+	for (UActor *actor : engine->Level->Actors)
+	{
+		if (actor)
+		{
+			NameString name = actor->BindName();
+			if (!name.IsNone())
+				nameToActor[name] = actor;
+		}
+	}
+
+	if (auto actor = UObject::Cast<UActor>(invokeActor))
+	{
+		NameString name = actor->BindName();
+		if (!name.IsNone())
+			nameToActor[name] = actor;
+	}
+
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		default:
+		case EEventType::Choice:
+		case EEventType::SetFlag:
+		case EEventType::CheckFlag:
+		case EEventType::CheckObject:
+		case EEventType::Random:
+		case EEventType::Trigger:
+		case EEventType::AddGoal:
+		case EEventType::AddNote:
+		case EEventType::AddSkillPoints:
+		case EEventType::AddCredits:
+		case EEventType::CheckPersona:
+		case EEventType::Comment:
+		case EEventType::End:
+			break;
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				speech->speaker() = nameToActor[speech->speakerName()];
+				speech->speakingTo() = nameToActor[speech->speakingToName()];
+			}
+			break;
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				transfer->fromActor() = nameToActor[transfer->fromName()];
+				transfer->toActor() = nameToActor[transfer->toName()];
+			}
+			break;
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				moveCamera->cameraActor() = nameToActor[moveCamera->cameraActorName()];
+			}
+			break;
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
+				animation->eventOwner() = nameToActor[animation->eventOwnerName()];
+			}
+			break;
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				trade->eventOwner() = nameToActor[trade->eventOwnerName()];
+			}
+			break;
+		case EEventType::Jump:
+			if (auto jump = UObject::Cast<UConEventJump>(e))
+			{
+				// Do we need to do this?
+				// jump->jumpCon() = jump->conID();
+			}
+			break;
+		}
+	}
 }
 
 void UConversation::ClearBindEvents()
 {
-	// Called just before BindEvents to "clean up stuff"
-
-	LogUnimplemented("Conversation.ClearBindEvents");
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		default:
+		case EEventType::Choice:
+		case EEventType::SetFlag:
+		case EEventType::CheckFlag:
+		case EEventType::CheckObject:
+		case EEventType::Random:
+		case EEventType::Trigger:
+		case EEventType::AddGoal:
+		case EEventType::AddNote:
+		case EEventType::AddSkillPoints:
+		case EEventType::AddCredits:
+		case EEventType::CheckPersona:
+		case EEventType::Comment:
+		case EEventType::End:
+			break;
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				speech->speaker() = nullptr;
+				speech->speakingTo() = nullptr;
+			}
+			break;
+			break;
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				transfer->fromActor() = nullptr;
+				transfer->toActor() = nullptr;
+			}
+			break;
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				moveCamera->cameraActor() = nullptr;
+			}
+			break;
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
+				animation->eventOwner() = nullptr;
+			}
+			break;
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				trade->eventOwner() = nullptr;
+			}
+			break;
+		case EEventType::Jump:
+			if (auto jump = UObject::Cast<UConEventJump>(e))
+			{
+				// jump->jumpCon() = nullptr;
+			}
+			break;
+		}
+	}
 }
 
 UObject* UConversation::CreateConCamera()

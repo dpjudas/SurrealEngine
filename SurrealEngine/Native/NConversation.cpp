@@ -21,10 +21,10 @@ void NConversation::BindActorEvents(UObject* Self, UObject* actorToBind)
 	SelfConversation->BindActorEvents(actorToBind);
 }
 
-void NConversation::BindEvents(UObject* Self, UObject* conBoundActors, UObject* invokeActor)
+void NConversation::BindEvents(UObject* Self, UObject*& conBoundActors, UObject* invokeActor)
 {
 	auto SelfConversation = UObject::Cast<UConversation>(Self);
-	SelfConversation->BindEvents(conBoundActors, invokeActor);
+	SelfConversation->BindEvents(&conBoundActors, invokeActor);
 }
 
 void NConversation::ClearBindEvents(UObject* Self)
