@@ -398,6 +398,9 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset bTrailerSameRotation;
 	PropertyDataOffset bTravel;
 	PropertyDataOffset bUnlit;
+	PropertyDataOffset ConListItems;
+	PropertyDataOffset BindName;
+	PropertyDataOffset BarkBindName;
 };
 
 extern PropertyOffsets_Actor PropOffsets_Actor;

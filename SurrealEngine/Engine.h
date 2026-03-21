@@ -55,6 +55,7 @@ class VideoPlayer;
 class UnrealMipmap;
 class UFloatProperty;
 class UConversationMissionList;
+class UConversationList;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;
@@ -94,6 +95,8 @@ public:
 
 	void PlayAVI(const Array<std::string>& args);
 	UnrealMipmap* PlayVideo(VideoPlayer* video, UnrealMipmap* background);
+
+	UConversationList* GetDeusExMission();
 
 	void UpdateAudio();
 

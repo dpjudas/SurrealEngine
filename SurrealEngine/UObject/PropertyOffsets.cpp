@@ -437,6 +437,9 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.bTrailerSameRotation = cls->GetPropertyDataOffset("bTrailerSameRotation");
 	PropOffsets_Actor.bTravel = cls->GetPropertyDataOffset("bTravel");
 	PropOffsets_Actor.bUnlit = cls->GetPropertyDataOffset("bUnlit");
+	PropOffsets_Actor.ConListItems = cls->GetPropertyDataOffset("ConListItems");
+	PropOffsets_Actor.BindName = cls->GetPropertyDataOffset("BindName");
+	PropOffsets_Actor.BarkBindName = cls->GetPropertyDataOffset("BarkBindName");
 }
 
 PropertyOffsets_LevelInfo PropOffsets_LevelInfo;

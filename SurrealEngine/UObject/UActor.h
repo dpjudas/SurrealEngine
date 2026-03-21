@@ -351,6 +351,8 @@ public:
 
 	UTexture* GetMultiskin(int index);
 
+	void DeusExConBindEvents();
+
 	float WorldSoundRadius() { return ((int)SoundRadius() + 1) * 25.0f; }
 	float WorldVolumetricRadius() { return ((int)VolumeRadius() + 1) * 25.0f; }
 	float WorldLightRadius() { return ((int)LightRadius() + 1) * 25.0f; }
@@ -543,6 +545,10 @@ public:
 	BitfieldBool bTrailerSameRotation() { return BoolValue(PropOffsets_Actor.bTrailerSameRotation); }
 	BitfieldBool bTravel() { return BoolValue(PropOffsets_Actor.bTravel); }
 	BitfieldBool bUnlit() { return BoolValue(PropOffsets_Actor.bUnlit); }
+
+	UObject*& ConListItems() { return Value<UObject*>(PropOffsets_Actor.ConListItems); }
+	std::string& BindName() { return Value<std::string>(PropOffsets_Actor.BindName); }
+	std::string& BarkBindName() { return Value<std::string>(PropOffsets_Actor.BarkBindName); }
 };
 
 class ULight : public UActor

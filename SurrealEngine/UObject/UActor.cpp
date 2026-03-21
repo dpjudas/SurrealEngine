@@ -4,6 +4,7 @@
 #include "ULevel.h"
 #include "UMesh.h"
 #include "UTexture.h"
+#include "UConSys.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
@@ -2273,6 +2274,46 @@ UTexture* UActor::GetMultiskin(int index)
 		return nullptr;
 }
 
+void UActor::DeusExConBindEvents()
+{
+	NameString bindName = BindName();
+	NameString barkBindName = BarkBindName();
+
+	if (bindName.IsNone() && barkBindName.IsNone())
+		return;
+
+	if (!bindName.IsNone() && !barkBindName.IsNone())
+		LogMessage("ConBindEvents called with BindName = " + BindName() + " and BarkBindName = " + BarkBindName());
+	else if (!bindName.IsNone())
+		LogMessage("ConBindEvents called with BindName = " + BindName());
+	else
+		LogMessage("ConBindEvents called with BarkBindName = " + BarkBindName());
+
+	auto mission = UObject::Cast<UConversationList>(engine->GetDeusExMission());
+	if (!mission)
+		return;
+
+	UClass* clsConListItem = engine->packages->FindClass("ConSys.ConListItem");
+	UConListItem* conListItem = nullptr;
+
+	for (UConItem* item = mission->conversations(); item; item = item->Next())
+	{
+		auto conversation = UObject::Cast<UConversation>(item->ConObject());
+		// NameString conName = conversation->conName();
+		NameString conOwnerName = conversation->conOwnerName();
+		if (conOwnerName == bindName)
+		{
+			NameString name;
+			UConListItem* newItem = UObject::Cast<UConListItem>(engine->LevelPackage->NewObject(name, clsConListItem, ObjectFlags::Transient, true));
+			newItem->con() = conversation;
+			newItem->Next() = conListItem;
+			conListItem = newItem;
+		}
+	}
+
+	ConListItems() = conListItem;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
@@ -3632,7 +3673,7 @@ void UPlayerPawnExt::PostRenderWindows(UCanvas* canvas)
 
 void UDeusExPlayer::ConBindEvents()
 {
-	LogUnimplemented("DeusExPlayer.ConBindEvents");
+	DeusExConBindEvents();
 }
 
 UObject* UDeusExPlayer::CreateDataVaultImageNoteObject()
@@ -3713,7 +3754,7 @@ void UScriptedPawn::AddCarcass(const NameString& CarcassName)
 
 void UScriptedPawn::ConBindEvents()
 {
-	LogUnimplemented("ScriptedPawn.ConBindEvents");
+	DeusExConBindEvents();
 }
 
 uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
@@ -3744,5 +3785,5 @@ bool UScriptedPawn::IsValidEnemy(UObject* TestEnemy, std::optional<bool> bCheckA
 
 void UDeusExDecoration::ConBindEvents()
 {
-	LogUnimplemented("DeusExDecoration.ConBindEvents");
+	DeusExConBindEvents();
 }
