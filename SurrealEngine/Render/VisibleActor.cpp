@@ -14,16 +14,22 @@ void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 	if (actor->bHidden())
 		return;
 
-	if (actor->bOnlyOwnerSee() && actor->Owner() != engine->CameraActor && !frame->MirrorFlag)
+	UActor* viewportActor = engine->viewport->Actor();
+	bool thirdPersonView = frame->MirrorFlag;
+
+	if (UPawn* pawn = UObject::TryCast<UPawn>(viewportActor))
+		thirdPersonView |= pawn->bBehindView();
+
+	if (actor->bOnlyOwnerSee() && (actor->Owner() != viewportActor || thirdPersonView))
 		return;
 
 	if (engine->LaunchInfo.engineVersion > 219)
 	{
-		if (actor->bOwnerNoSee() && (actor->Owner() == engine->CameraActor || frame->MirrorFlag))
+		if (actor->bOwnerNoSee() && actor->Owner() == viewportActor && !thirdPersonView)
 			return;
 	}
 
-	if (actor == engine->CameraActor && !frame->MirrorFlag)
+	if (actor == viewportActor && !thirdPersonView)
 		return;
 
 	if (!frame->Clipper.IsAABBVisible(actor->BspInfo.BoundingBox))

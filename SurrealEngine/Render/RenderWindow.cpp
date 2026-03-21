@@ -111,8 +111,8 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 	text += " - ";
 	text += typeid(*window).name();
 
-	float x = window->X();
-	float y = window->Y();
+	float x = window->UsedX;
+	float y = window->UsedY;
 	float w = window->Width();
 	float h = window->Height();
 	text += " x = " + std::to_string((int)x);
