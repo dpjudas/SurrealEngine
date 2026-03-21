@@ -3701,14 +3701,14 @@ UObject* UDeusExPlayer::CreateGameDirectoryObject()
 
 UObject* UDeusExPlayer::CreateHistoryEvent()
 {
-	auto cls = engine->packages->FindClass("DeusEx.ConHistoryEvent");
+	auto cls = engine->packages->FindClass("ConSys.ConHistoryEvent");
 	return engine->packages->GetTransientPackage()->NewObject("ConHistoryEvent", cls, ObjectFlags::Transient);
 }
 
 UObject* UDeusExPlayer::CreateHistoryObject()
 {
-	auto cls = engine->packages->FindClass("DeusEx.ConHistory");
-	return engine->packages->GetTransientPackage()->NewObject("ConHistory", cls, ObjectFlags::Transient);
+	auto cls = engine->packages->FindClass("ConSys.ConHistory");
+	return Cast<UConHistory>(engine->packages->GetTransientPackage()->NewObject("ConHistory", cls, ObjectFlags::Transient));
 }
 
 UObject* UDeusExPlayer::CreateLogObject()

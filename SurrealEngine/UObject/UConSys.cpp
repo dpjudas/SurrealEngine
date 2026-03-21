@@ -3,10 +3,11 @@
 #include "UConSys.h"
 #include "USound.h"
 #include "Engine.h"
+#include "Package/PackageManager.h"
 
 float UConEvent::GetSoundLength(USound* sound)
 {
-	return sound ? sound->GetDuration() : 0.0f;
+	return sound ? sound->GetDuration() : 1.0f;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -60,8 +61,9 @@ void UConversation::ClearBindEvents()
 
 UObject* UConversation::CreateConCamera()
 {
-	LogUnimplemented("Conversation.CreateConCamera");
-	return nullptr;
+	UClass* cls = engine->packages->FindClass("ConSys.ConCamera");
+	NameString name;
+	return engine->LevelPackage->NewObject(name, cls, ObjectFlags::Transient, true);
 }
 
 UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue)
@@ -72,13 +74,24 @@ UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue
 
 UObject* UConversation::GetSpeechAudio(int soundID)
 {
-	LogUnimplemented("Conversation.GetSpeechAudio");
-	//auto package = engine->packages->GetPackage("DeusExConAudio" + audioPackageName());
-	return nullptr;
+	auto package = engine->packages->GetPackage("DeusExConAudio" + audioPackageName());
+	std::string missionStr = std::to_string(engine->DeusExLevelInfo->MissionNumber());
+	if (missionStr.size() == 1)
+		missionStr = "0" + missionStr;
+	missionStr = "Mission" + missionStr;
+
+	std::string audiolistName = "ConAudioList_" + missionStr;
+	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", audiolistName));
+
+	// To do: use the audio list to find the sound index?
+
+	std::string soundName = "ConAudio" + missionStr + "_" + std::to_string(soundID);
+	auto sound = UObject::Cast<USound>(package->GetUObject("Sound", soundName));
+	return sound;
 }
 
 float UConversation::GetSpeechLength(int soundID)
 {
-	LogUnimplemented("Conversation.GetSpeechLength");
-	return 0.0f;
+	USound* sound = UObject::Cast<USound>(GetSpeechAudio(soundID));
+	return sound ? sound->GetDuration() : 1.0f;
 }

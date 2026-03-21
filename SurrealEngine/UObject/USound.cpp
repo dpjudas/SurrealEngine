@@ -36,7 +36,20 @@ void USound::GetSound()
 	if (samples.size() > 0)
 		return;
 
-	std::unique_ptr<AudioSource> source = AudioSource::CreateWav(Data);
+	std::unique_ptr<AudioSource> source;
+	
+	if (Format == "wav")
+	{
+		source = AudioSource::CreateWav(Data);
+	}
+	else if (Format == "mp3")
+	{
+		source = AudioSource::CreateMp3(Data);
+	}
+	else
+	{
+		Exception::Throw("Unsupported sound format: " + Format.ToString());
+	}
 
 	#define ALIGN(x, a) ((x & ~(a-1)) + a)
 	samples.resize(ALIGN(source->GetSamples(), 4));

@@ -54,7 +54,7 @@ void NDeusExPlayer::CreateHistoryEvent(UObject* Self, UObject*& ReturnValue)
 void NDeusExPlayer::CreateHistoryObject(UObject* Self, UObject*& ReturnValue)
 {
 	auto PlayerSelf = UObject::Cast<UDeusExPlayer>(Self);
-	ReturnValue = PlayerSelf->CreateHistoryEvent();
+	ReturnValue = PlayerSelf->CreateHistoryObject();
 }
 
 void NDeusExPlayer::CreateLogObject(UObject* Self, UObject*& ReturnValue)
