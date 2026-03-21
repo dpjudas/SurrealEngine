@@ -2087,6 +2087,27 @@ private:
 	UDXGameDirectory* m_GameDirectory = nullptr;
 };
 
+class UScriptedPawn : public UPawn
+{
+public:
+	using UPawn::UPawn;
+
+	void AddCarcass(const NameString& CarcassName);
+	void ConBindEvents();
+	uint8_t GetAllianceType(const NameString& AllianceName);
+	uint8_t GetPawnAllianceType(UObject* QueryPawn);
+	bool HaveSeenCarcass(const NameString& CarcassName);
+	bool IsValidEnemy(UObject* TestEnemy, std::optional<bool> bCheckAlliance);
+};
+
+class UDeusExDecoration : public UDecoration
+{
+public:
+	using UDecoration::UDecoration;
+
+	void ConBindEvents();
+};
+
 // Deus Ex
 struct XAIParams
 {

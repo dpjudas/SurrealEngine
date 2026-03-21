@@ -17,34 +17,36 @@ void NScriptedPawn::RegisterFunctions()
 
 void NScriptedPawn::AddCarcass(UObject* Self, const NameString& CarcassName)
 {
-	LogUnimplemented("ScriptedPawn.AddCarcass");
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	SelfPawn->AddCarcass(CarcassName);
 }
 
 void NScriptedPawn::ConBindEvents(UObject* Self)
 {
-	LogUnimplemented("ScriptedPawn.ConBindEvents");
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	SelfPawn->ConBindEvents();
 }
 
 void NScriptedPawn::GetAllianceType(UObject* Self, const NameString& AllianceName, uint8_t& ReturnValue)
 {
-	LogUnimplemented("ScriptedPawn.GetAllianceType");
-	ReturnValue = 0;
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	ReturnValue = SelfPawn->GetAllianceType(AllianceName);
 }
 
 void NScriptedPawn::GetPawnAllianceType(UObject* Self, UObject* QueryPawn, uint8_t& ReturnValue)
 {
-	LogUnimplemented("ScriptedPawn.GetPawnAllianceType");
-	ReturnValue = 0;
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	ReturnValue = SelfPawn->GetPawnAllianceType(QueryPawn);
 }
 
 void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ScriptedPawn.HaveSeenCarcass");
-	ReturnValue = false;
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	ReturnValue = SelfPawn->HaveSeenCarcass(CarcassName);
 }
 
 void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("ScriptedPawn.IsValidEnemy");
-	ReturnValue = false;
+	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
+	ReturnValue = SelfPawn->IsValidEnemy(TestEnemy, bCheckAlliance);
 }

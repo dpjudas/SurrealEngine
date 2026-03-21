@@ -3703,3 +3703,46 @@ void UDeusExPlayer::UnloadTexture(UObject* Texture)
 {
     // Nothing going on here because SE never unloads textures atm. This is just here so it doesn't throw LogUnimplemented.
 }
+
+////////////////////////////////////////////////////////
+
+void UScriptedPawn::AddCarcass(const NameString& CarcassName)
+{
+	LogUnimplemented("ScriptedPawn.AddCarcass");
+}
+
+void UScriptedPawn::ConBindEvents()
+{
+	LogUnimplemented("ScriptedPawn.ConBindEvents");
+}
+
+uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
+{
+	LogUnimplemented("ScriptedPawn.GetAllianceType");
+	return 0;
+}
+
+uint8_t UScriptedPawn::GetPawnAllianceType(UObject* QueryPawn)
+{
+	LogUnimplemented("ScriptedPawn.GetPawnAllianceType");
+	return 0;
+}
+
+bool UScriptedPawn::HaveSeenCarcass(const NameString& CarcassName)
+{
+	LogUnimplemented("ScriptedPawn.HaveSeenCarcass");
+	return false;
+}
+
+bool UScriptedPawn::IsValidEnemy(UObject* TestEnemy, std::optional<bool> bCheckAlliance)
+{
+	LogUnimplemented("ScriptedPawn.IsValidEnemy");
+	return false;
+}
+
+////////////////////////////////////////////////////////
+
+void UDeusExDecoration::ConBindEvents()
+{
+	LogUnimplemented("DeusExDecoration.ConBindEvents");
+}

@@ -1070,6 +1070,8 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UComputerWindow>(extensionPackage, "ComputerWindow", "Window");
 		RegisterNativeClass<UBorderWindow>(extensionPackage, "BorderWindow", "Window");
 		RegisterNativeClass<UDeusExPlayer>(deusExPackage, "DeusExPlayer", "PlayerPawnExt");
+		RegisterNativeClass<UScriptedPawn>(deusExPackage, "ScriptedPawn", "Pawn");
+		RegisterNativeClass<UDeusExDecoration>(deusExPackage, "DeusExDecoration", "Decoration");
 		RegisterNativeClass<UConLight>(conSysPackage, "ConLight", "Light");
 		RegisterNativeClass<UConObject>(conSysPackage, "ConObject", "Object");
 		RegisterNativeClass<UConAudioList>(conSysPackage, "ConAudioList", "ConObject");
