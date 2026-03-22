@@ -149,7 +149,7 @@ void NPawn::LineOfSightTo(UObject* Self, UObject* Other, BitfieldBool& ReturnVal
 {
 	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
 	UActor* otherActor = UObject::Cast<UActor>(Other);
-	ReturnValue = selfPawn->LineOfSightTo(otherActor);
+	ReturnValue = selfPawn->LineOfSightTo(otherActor, false);
 }
 
 void NPawn::MoveTo(UObject* Self, const vec3& NewDestination, std::optional<float> speed)
@@ -322,8 +322,9 @@ void NPawn::ComputePathnodeDistances(UObject* Self, std::optional<UObject*> star
 
 void NPawn::LineOfSightTo_Deus(UObject* Self, UObject* Other, std::optional<bool> bIgnoreDistance, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Pawn.LineOfSightTo_Deus");
-	ReturnValue = false;
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	UActor* otherActor = UObject::Cast<UActor>(Other);
+	ReturnValue = selfPawn->LineOfSightTo(otherActor, bIgnoreDistance ? *bIgnoreDistance : false);
 }
 
 void NPawn::ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavPoint, UObject* FromPoint, float& distance, std::optional<bool> bUsePrunedPaths)
