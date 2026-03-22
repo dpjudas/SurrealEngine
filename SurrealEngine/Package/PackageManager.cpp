@@ -76,8 +76,6 @@
 #include "Native/NLargeTextWindow.h"
 #include "Native/NListWindow.h"
 #include "Native/NModalWindow.h"
-#include "Native/NPathNodeIterator.h"
-#include "Native/NPawnPathNodeIterator.h"
 #include "Native/NRadioBoxWindow.h"
 #include "Native/NRootWindow.h"
 #include "Native/NScaleManagerWindow.h"
