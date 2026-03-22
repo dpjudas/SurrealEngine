@@ -842,8 +842,6 @@ void PackageManager::RegisterFunctions()
 		NLargeTextWindow::RegisterFunctions();
 		NListWindow::RegisterFunctions();
 		NModalWindow::RegisterFunctions();
-		NPathNodeIterator::RegisterFunctions();
-		NPawnPathNodeIterator::RegisterFunctions();
 		NRadioBoxWindow::RegisterFunctions();
 		NRootWindow::RegisterFunctions();
 		NScaleManagerWindow::RegisterFunctions();
