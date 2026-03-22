@@ -1,6 +1,6 @@
 # License information
 
-## License for the SurrealEngine
+## License for SurrealEngine
 
 	//  SurrealEngine
 	//  Copyright (c) 2021 Magnus Norddahl
@@ -21,99 +21,9 @@
 	//     misrepresented as being the original software.
 	//  3. This notice may not be removed or altered from any source distribution.
 
-## License for the SurrealVideo
+## License for SurrealVideo
 
 	This uses the GNU LGPL 2.1 or later. Please see SurrealVideo/README.md
-
-## License for Thirdparty/dumb
-
-	/*  _______         ____    __         ___    ___
-	 * \    _  \       \    /  \  /       \   \  /   /       '   '  '
-	 *  |  | \  \       |  |    ||         |   \/   |         .      .
-	 *  |  |  |  |      |  |    ||         ||\  /|  |
-	 *  |  |  |  |      |  |    ||         || \/ |  |         '  '  '
-	 *  |  |  |  |      |  |    ||         ||    |  |         .      .
-	 *  |  |_/  /        \  \__//          ||    |  |
-	 * /_______/ynamic    \____/niversal  /__\  /____\usic   /|  .  . ibliotheque
-	 *                                                      /  \
-	 *                                                     / .  \
-	 * licence.txt - Conditions for use of DUMB.          / / \  \
-	 *                                                   | <  /   \_
-	 * If you do not agree to these terms, please        |  \/ /\   /
-	 * do not use DUMB.                                   \_  /  > /
-	 *                                                      | \ / /
-	 * Information in [brackets] is provided to aid         |  ' /
-	 * interpretation of the licence.                        \__/
-	 */
-	
-	
-	Dynamic Universal Music Bibliotheque, Version 0.9.3
-	
-	Copyright (C) 2001-2005 Ben Davis, Robert J Ohannessian and Julien Cugniere
-	
-	This software is provided 'as-is', without any express or implied warranty.
-	In no event shall the authors be held liable for any damages arising from the
-	use of this software.
-	
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-	
-	1. The origin of this software must not be misrepresented; you must not claim
-	   that you wrote the original software. If you use this software in a
-	   product, you are requested to acknowledge its use in the product
-	   documentation, along with details on where to get an unmodified version of
-	   this software, but this is not a strict requirement.
-	
-	   [Note that the above point asks for a link to DUMB, not just a mention.
-	   Googling for DUMB doesn't help much! The URL is "http://dumb.sf.net/".]
-	
-	   [The link was originally strictly required. This was changed for two
-	   reasons. Firstly, if many projects request an acknowledgement, the list of
-	   acknowledgements can become quite unmanageable. Secondly, DUMB was placing
-	   a restriction on the code using it, preventing people from using the GNU
-	   General Public Licence which disallows any such restrictions. See
-	   http://www.gnu.org/philosophy/bsd.html for more information on this
-	   subject. However, if DUMB plays a significant part in your project, we do
-	   urge you to acknowledge its use.]
-	
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	
-	3. This notice may not be removed from or altered in any source distribution.
-	
-	4. If you are using the Program in someone else's bedroom on any Monday at
-	   3:05 pm, you are not allowed to modify the Program for ten minutes. [This
-	   clause provided by Inphernic; every licence should contain at least one
-	   clause, the reasoning behind which is far from obvious.]
-	
-	5. Users who wish to use DUMB for the specific purpose of playing music are
-	   required to feed their dog on every full moon (if deemed appropriate).
-	   [This clause provided by Allefant, who couldn't remember what Inphernic's
-	   clause was.]
-	
-	6. No clause in this licence shall prevent this software from being depended
-	   upon by a product licensed under the GNU General Public Licence. If such a
-	   clause is deemed to exist, Debian, then it shall be respected in spirit as
-	   far as possible and all other clauses shall continue to apply in full
-	   force.
-	
-	8. Take the number stated as introducing this clause. Multiply it by two,
-	   then subtract four. Now insert a '+' between the two digits and evaluate
-	   the resulting sum. Call the result 'x'. If you have not yet concluded that
-	   every numbered clause in this licence whose ordinal number is strictly
-	   greater than 'x' (with the exception of the present clause) is null and
-	   void, Debian, then you are hereby informed that laughter is good for one's
-	   health and you are warmly suggested to do it. By the way, Clauses 4, 5 and
-	   6 are null and void. Incidentally, I like Kubuntu. The work you guys do is
-	   awesome. (Lawyers, on the other hand ...)
-	
-	We regret that we cannot provide any warranty, not even the implied warranty
-	of merchantability or fitness for a particular purpose.
-	
-	Some files generated or copied by automake, autoconf and friends are
-	available in an extra download. These fall under separate licences but are
-	all free to distribute. Please check their licences as necessary.
 
 ## License for Thirdparty/resample
 
@@ -333,3 +243,61 @@
 	WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 	ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 	OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+## License for Thirdparty/OpenMPT
+
+    Copyright (c) 2004-2025, OpenMPT Project Developers and Contributors
+    Copyright (c) 1997-2003, Olivier Lapicque
+    All rights reserved.
+    
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+    * Neither the name of the OpenMPT project nor the
+    names of its contributors may be used to endorse or promote products
+    derived from this software without specific prior written permission.
+    
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## License for Thirdparty/MurmurHash3
+
+    // MurmurHash3 was written by Austin Appleby, and is placed in the public
+    // domain. The author hereby disclaims copyright to this source code.
+
+## License for Thirdparty/miniz
+
+    Copyright 2013-2014 RAD Game Tools and Valve Software
+    Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
+
+    All Rights Reserved.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
