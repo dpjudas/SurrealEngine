@@ -406,6 +406,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.h
 	SurrealEngine/UI/WidgetResourceData.cpp
 	SurrealEngine/UI/WidgetResourceData.h
+	SurrealEngine/UI/Editor/AboutDialog.cpp
+	SurrealEngine/UI/Editor/AboutDialog.h
 	SurrealEngine/UI/ErrorWindow/ErrorWindow.cpp
 	SurrealEngine/UI/ErrorWindow/ErrorWindow.h
 	SurrealEngine/UI/Editor/EditorMainWindow.cpp
