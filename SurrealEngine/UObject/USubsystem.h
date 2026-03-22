@@ -139,6 +139,7 @@ public:
 	void Update(const mat4& listener);
 
 	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch);
+	void StopSound(UActor* Actor, int Id);
 	void NoteDestroy(UActor* Actor);
 	void StopSounds();
 

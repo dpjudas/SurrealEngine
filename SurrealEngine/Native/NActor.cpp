@@ -173,8 +173,8 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t>
 	{
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		if (bNoOverride && *bNoOverride) id |= 1;
+		engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 	}
 }
 
@@ -468,8 +468,8 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, std::optional<uint8_t
 	{
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		if (bNoOverride && *bNoOverride) id |= 1;
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 	}
 }
 
@@ -481,8 +481,8 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slo
 	{
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		if (bNoOverride && *bNoOverride) id |= 1;
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 	}
 }
 
@@ -494,10 +494,14 @@ void NActor::PlaySound_Deus(UObject* Self, UObject* Sound, std::optional<uint8_t
 	{
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		//if (SelfActor->bNoOverride()) id |= 1; // Hmm, why didn't the property export find this property?
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->SoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->WorldSoundRadius(), Pitch ? *Pitch : SelfActor->SoundPitch() / 64.0f);
+		if (bNoOverride && *bNoOverride) id |= 1;
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume() / 255.0f, Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		ReturnValue = id;
 	}
-	ReturnValue = 0; // To do: must now return the sound id so it can be stopped again
+	else
+	{
+		ReturnValue = 0;
+	}
 }
 
 
@@ -893,7 +897,8 @@ void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
 
 void NActor::StopSound(UObject* Self, int Id)
 {
-	LogUnimplemented("Actor.StopSound");
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	engine->audiodev->StopSound(SelfActor, Id);
 }
 
 void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot)

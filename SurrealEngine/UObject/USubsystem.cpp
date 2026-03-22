@@ -327,13 +327,15 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			// Update the priority
 			Playing.Priority = SoundPriority(m_Viewport, Playing.Location, Playing.Volume, Playing.Radius);
 
+			float volumeScale = SoundVolume * 0.5f;
+
 			// Update the sound.
 			Playing.CurrentVolume = SoundVolume;
 			if (Playing.Channel)
 			{
 				if (m_Device->IsPlaying(Playing.Channel))
 				{
-					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, SoundVolume * Playing.Volume, Playing.Radius, Playing.Pitch);
+					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, Playing.Volume * volumeScale, Playing.Radius, Playing.Pitch);
 				}
 				else
 				{
@@ -342,7 +344,7 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			}
 			else
 			{
-				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, SoundVolume * Playing.Volume, Playing.Radius, Playing.Pitch);
+				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, Playing.Volume * volumeScale, Playing.Radius, Playing.Pitch);
 			}
 		}
 	}
@@ -436,6 +438,18 @@ void USurrealAudioDevice::NoteDestroy(UActor* Actor)
 				// Unbind regular sounds from actors
 				PlayingSounds[i].Actor = nullptr;
 			}
+		}
+	}
+}
+
+void USurrealAudioDevice::StopSound(UActor* Actor, int Id)
+{
+	for (size_t i = 0; i < PlayingSounds.size(); i++)
+	{
+		if (PlayingSounds[i].Actor == Actor && PlayingSounds[i].Id == Id)
+		{
+			StopSound(i);
+			break;
 		}
 	}
 }
