@@ -58,6 +58,7 @@ MemoryStreamWriter Exporter::ExportClass(UClass* cls)
 	text << cls->ScriptText->Text;
 	text << "\r\ndefaultproperties\r\n{\r\n";
 	text << ExportObject(cls->GetDefaultObject<UObject>(), 1, false);
+	text << "}\r\n";
 	return text;
 }
 
