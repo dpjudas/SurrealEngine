@@ -6,9 +6,9 @@ It will attempt to load all level actors and initialize the map. However, while 
 
 At the time of this writing, SurrealEngine can **detect** the following UE1 games:
 
-* Unreal Tournament (v436, v451b, v469(a, b, c, d))
+* Unreal Tournament (v436, v451b, v469(a, b, c, d, e))
 * Unreal (v200, v209, v220, v224v, v225f, v226f)
-* Unreal Gold (v226b, v227(i, j, k_11))
+* Unreal Gold (v226b, v227(i, j, k_11, k_14))
 * Deus Ex (v1002f, v1112fm)
 * Klingon Honor Guard (219)
 * NERF Arena Blast (v300)
@@ -28,7 +28,7 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
   You just need to pass under it while in the original you'd have to bump into it
   - Projectiles pass through some movers
   - It is possible to get stuck on some movers when approached from certain angles
-* Mirrors/reflections rendering is a bit buggy.
+* Mirrors/reflections rendering is a bit buggy, especially around the edges of world geometry.
 * Portals:
   - They somewhat work, but might end up "pushing" players/projectiles in unexpected directions.
   - No portal rendering yet.
@@ -45,7 +45,7 @@ they end up dying because SE thinks that they've fallen from a great height.
 (and accumulates if a new power-up of the same type is picked up and activated) until the player switches to a different map.
 * viewclass command crashes with null deref.
 * Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
-* Third person views don't work properly as the player character is not rendered.
+* Third person weapon meshes do not get rendered.
 * Inventory from loaded saves do NOT transfer to the next map.
 * Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
 * There is no OpenGL renderer.
@@ -57,13 +57,6 @@ they end up dying because SE thinks that they've fallen from a great height.
   - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
   because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
 
-## General Engine bugs that are not confirmed yet
-
-* There seem to be a memory leak due to Garbage Collection not being implemented. This is probably extremely hard to notice as UE1 games 
-won't use much memory when run on modern computers. Might need to run SE for a looooong time before it is noticeable.
-* Gibbing on certain maps in Debug mode causes out of bounds vertex access
-* Lightmap rendering is kind of off
-
 ## Unreal (Gold)
 
 226 version of the game launches. Menu options works most of the time. Single player maps can be played, as well as botmatches. The AI will behave more or less the same as how they behave in UT.
@@ -71,7 +64,6 @@ won't use much memory when run on modern computers. Might need to run SE for a l
 ### Known Bugs:
 * [227*] Many new native functions/features are not yet implemented.
 * Some UPak native functions are not implemented yet.
-* Firing sounds of Eightball Gun and RazorJack are immediately "drowned" by their projectiles' sounds.
 * Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
 * ASMD tertiary fire rings render wrong.
 
@@ -80,18 +72,20 @@ won't use much memory when run on modern computers. Might need to run SE for a l
 436 version of the game launches. Menu options will work and botmatches can be played, however the bots will barely have any AI (they move around sometimes and retaliate upon being attacked), and some maps might have some functionality missing.
 
 ### Known bugs:
-
 * [469*] Many new native functions/features are not yet implemented.
 * Shock Rifle beams render glitchy.
 * Player can slide through on some of the catwalks in the room with lava in DM-Conveyor
 
 ## Deus Ex
 
-1112fm version of the game boots to title screen but you'll get stuck because the menus don't work yet. You can load maps with `--url` command and play them, e.g. `SurrealEngine --url=00_Training.dx /path/to/deusex` but expect crashes.
+1112fm version of the game boots to title screen and the beginning sections of the training map can be played. Nothing much else has been tested, so expect crashes.
 
 ### Known bugs:
-* Keyboard and mouse inputs do not work on menus. If you accidentally opened one of those you'll get stuck.
-* Attempting to initiate a dialog will crash the game.
+* Some native functions are still not implemented.
+* Conversation system is not fully implemented yet.
+* If you click on the area where the saves should be in the Load Game menu the buttons below stop working so you cannot go back.
+* In-game HUD is mostly invisible except for the Incoming Transmission part.
+* DataCubes and books cannot be read yet.
 
 ## Tactical-Ops: Assault on Terror
 
