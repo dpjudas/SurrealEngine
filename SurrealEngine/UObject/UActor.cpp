@@ -2489,9 +2489,19 @@ vec3 UPawn::EAdjustJump()
 	return horizontalVel + vec3(0.0f, 0.0f, jumpZ);
 }
 
-bool UPawn::LineOfSightTo(UActor* other)
+bool UPawn::LineOfSightTo(UActor* other, bool ignoreDistance)
 {
 	if (!other)
+		return false;
+
+	// Additional 227 checks because of Pawn.SightCheckType being a variable there
+	// Since we don't have any 227-only fields added yet, this part remains as a proof of concept
+	// if (engine->packages->IsUnreal1_227() &&
+	// 	(SightCheckType() == EPawnSightCheck::SEE_None ||
+	// 	(SightCheckType() == EPawnSightCheck::SEE_PlayersOnly && !Cast<UPawn>(other)->bIsPlayer())))
+	// 	return false;
+
+	if (!ignoreDistance && length(Location() - other->Location()) > SightRadius())
 		return false;
 
 	vec3 eye_pos = Location();
@@ -2637,7 +2647,7 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 		return false;
 
 	// Skip if we can't see the target
-	if (!LineOfSightTo(actor))
+	if (!LineOfSightTo(actor, false))
 		return false;
 
 	// OK, this is better than what we have
