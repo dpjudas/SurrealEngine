@@ -13,6 +13,8 @@
 #include <zwidget/widgets/menubar/menubar.h>
 #include <zwidget/widgets/toolbar/toolbar.h>
 
+#include "AboutDialog.h"
+
 #ifdef WIN32
 #define USE_D3D11
 #endif
@@ -210,6 +212,9 @@ void EditorMainWindow::OnHelpHome()
 
 void EditorMainWindow::OnHelpAbout()
 {
+	auto aboutDialog = new AboutDialog(this);
+	aboutDialog->Exec();
+	delete aboutDialog;
 }
 
 void EditorMainWindow::LoadMap(std::string& mapName)
