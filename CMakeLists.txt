@@ -246,10 +246,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NListWindow.h
 	SurrealEngine/Native/NModalWindow.cpp
 	SurrealEngine/Native/NModalWindow.h
-	SurrealEngine/Native/NPathNodeIterator.cpp
-	SurrealEngine/Native/NPathNodeIterator.h
-	SurrealEngine/Native/NPawnPathNodeIterator.cpp
-	SurrealEngine/Native/NPawnPathNodeIterator.h
 	SurrealEngine/Native/NRadioBoxWindow.cpp
 	SurrealEngine/Native/NRadioBoxWindow.h
 	SurrealEngine/Native/NRootWindow.cpp
