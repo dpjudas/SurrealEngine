@@ -157,6 +157,15 @@ enum class ETravelType : uint8_t
 	TRAVEL_Relative  // Relative URL
 };
 
+// Unreal 227 only
+// 227's Pawn class has a SightCheckType variable that will affect LineOfSightTo() function
+enum class EPawnSightCheck : uint8_t
+{
+	SEE_PlayersOnly, // See bIsPlayer pawns only
+	SEE_All,		 // See all pawns
+	SEE_None		 // Do not do sight checks
+};
+
 // Deus Ex
 enum class EAIEventState : uint8_t
 {
@@ -1482,7 +1491,8 @@ public:
 	bool TickMoveTo(const vec3& target);
 
 	// Returns true if any of the several points of other is visible (origin, top, bottom)
-	bool LineOfSightTo(UActor* other);
+	// ignoreDistance is a Deus Ex only parameter, it is always false on Unreal.
+	bool LineOfSightTo(UActor* other, bool ignoreDistance);
 	// Similar to LineOfSightTo() but takes the Pawn's peripheral vision into account (SightRadius and PeripheralVision)
 	bool CanSee(UActor* other);
 	bool CanHearNoise(UActor* source, float loudness);
