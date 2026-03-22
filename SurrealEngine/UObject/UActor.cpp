@@ -2744,10 +2744,13 @@ void UPawn::ClearPaths()
 	for (UNavigationPoint* cur = Level()->NavigationPointList(); cur; cur = cur->nextNavigationPoint())
 	{
 		cur->bEndPoint() = false;
-		if (cur->bSpecialCost())
-			cur->cost() = CallEvent(cur, "SpecialCost", { ExpressionValue::ObjectValue(this) }).ToInt();
-		else
-			cur->cost() = cur->ExtraCost();
+		if (!engine->LaunchInfo.IsKlingonHonorGuard())
+		{
+			if (cur->bSpecialCost())
+				cur->cost() = CallEvent(cur, "SpecialCost", { ExpressionValue::ObjectValue(this) }).ToInt();
+			else
+				cur->cost() = cur->ExtraCost();
+		}
 	}
 }
 

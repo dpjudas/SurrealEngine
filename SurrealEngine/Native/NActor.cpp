@@ -174,7 +174,15 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t>
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		if (bNoOverride && *bNoOverride) id |= 1;
-		engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+
+		if (engine->LaunchInfo.IsKlingonHonorGuard())
+		{
+			engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
+		else
+		{
+			engine->audiodev->PlaySound(SelfActor, Slot ? *Slot : SLOT_Misc, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
 	}
 }
 
@@ -469,7 +477,14 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, std::optional<uint8_t
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		if (bNoOverride && *bNoOverride) id |= 1;
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		if (engine->LaunchInfo.IsKlingonHonorGuard())
+		{
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
+		else
+		{
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
 	}
 }
 
@@ -482,7 +497,14 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slo
 		int slot = Slot ? *Slot : SLOT_Misc;
 		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
 		if (bNoOverride && *bNoOverride) id |= 1;
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		if (engine->LaunchInfo.IsKlingonHonorGuard())
+		{
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
+		else
+		{
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
+		}
 	}
 }
 
