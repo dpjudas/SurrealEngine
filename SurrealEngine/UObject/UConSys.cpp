@@ -35,12 +35,64 @@ std::string UConEventRandomLabel::GetRandomLabel()
 
 void UConversation::BindActorEvents(UObject* actorToBind)
 {
-	// Called by ConPlayBase.StartConversation after it called BindEvents
-	// It is only called if ownerRefCount() > 1 and there is an invoke actor
-	// 
-	// "Check to see if the conversation has multiple owners, in which case we
-	// want to rebind all the events with this owner.  This allows conversations
-	// to be shared by more than one owner."
+    UActor* actorToBindAct = UObject::Cast<UActor>(actorToBind);
+    if (!actorToBindAct)
+        return;
+
+    for (UConEvent* e = eventList(); e; e = e->nextEvent())
+    {
+        switch ((EEventType)e->eventType())
+        {
+        case EEventType::Speech:
+            if (auto speech = UObject::Cast<UConEventSpeech>(e))
+            {
+                if (speech->speakerName() == actorToBindAct->BindName())
+                    speech->speaker() = actorToBindAct;
+
+                if (speech->speakingToName() == actorToBindAct->BindName())
+                    speech->speakingTo() = actorToBindAct;
+            }
+            break;
+
+        case EEventType::TransferObject:
+            if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+            {
+                if (transfer->fromName() == actorToBindAct->BindName())
+                    transfer->fromActor() = actorToBindAct;
+
+                if (transfer->toName() == actorToBindAct->BindName())
+                    transfer->toActor() = actorToBindAct;
+            }
+            break;
+
+        case EEventType::MoveCamera:
+            if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+            {
+                if (moveCamera->cameraActorName() == actorToBindAct->BindName())
+                    moveCamera->cameraActor() = actorToBindAct;
+            }
+            break;
+
+        case EEventType::Animation:
+            if (auto animation = UObject::Cast<UConEventAnimation>(e))
+            {
+                if (animation->eventOwnerName() == actorToBindAct->BindName())
+                    animation->eventOwner() = actorToBindAct;
+            }
+            break;
+
+        case EEventType::Trade:
+            if (auto trade = UObject::Cast<UConEventTrade>(e))
+            {
+                if (trade->eventOwnerName() == actorToBindAct->BindName())
+                    trade->eventOwner() = actorToBindAct;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
 
 	LogUnimplemented("Conversation.BindActorEvents");
 }
