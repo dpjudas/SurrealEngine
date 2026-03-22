@@ -20,7 +20,8 @@ public:
 	virtual void AddSound(USound* sound) = 0;
 	virtual void RemoveSound(USound* sound) = 0;
 	virtual bool IsPlaying(int channel) = 0;
-	virtual int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) = 0;
+	virtual int GetTotalChannels() = 0;
+	virtual void PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) = 0;
 	virtual void PlayMusic(std::unique_ptr<AudioSource> source) = 0;
 	virtual void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) = 0;
 	virtual void StopSound(int channel) = 0;

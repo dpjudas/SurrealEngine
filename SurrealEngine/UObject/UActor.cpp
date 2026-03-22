@@ -5,6 +5,7 @@
 #include "UMesh.h"
 #include "UTexture.h"
 #include "UConSys.h"
+#include "USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 #include "Package/PackageManager.h"
@@ -183,6 +184,8 @@ bool UActor::Destroy()
 
 	//GotoState({}, {}); // What should happen to function calls after Destroy() has been called? Razor2 calls SetRoll afterwards!
 	SetBase(nullptr, true);
+
+	engine->audiodev->ActorDestroyed(this);
 
 	ULevel* level = XLevel();
 

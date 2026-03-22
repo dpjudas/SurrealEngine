@@ -14,7 +14,7 @@ struct PlayingSound
 	PlayingSound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, float Priority) : Actor(Actor), Id(Id), Sound(Sound), Location(Location), Volume(Volume), Radius(Radius), Pitch(Pitch), Priority(Priority) {}
 
 	int Id = 0;
-	int Channel = 0;
+	bool IsActive = false;
 	float Priority = 0.0f;
 	UActor* Actor = nullptr;
 	USound* Sound = nullptr;
@@ -22,7 +22,6 @@ struct PlayingSound
 	float Volume = 1.0f;
 	float Radius = 1.0f;
 	float Pitch = 1.0f;
-	float CurrentVolume = 0.0f;
 };
 
 class USubsystem : public UObject
@@ -140,7 +139,7 @@ public:
 
 	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch);
 	void StopSound(UActor* Actor, int Id);
-	void NoteDestroy(UActor* Actor);
+	void ActorDestroyed(UActor* Actor);
 	void StopSounds();
 
 	void BreakpointTriggered();

@@ -273,6 +273,11 @@ public:
 		alcCloseDevice(alDevice);
 	}
 
+	int GetTotalChannels() override
+	{
+		return (int)sources.size();
+	}
+
 	void AddSound(USound* sound) override
 	{
 		sounds.push_back(sound);
@@ -319,7 +324,7 @@ public:
 		musicThreadData.musicUpdate = true;
 	}
 
-	int PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override
+	void PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override
 	{
 		if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 			Exception::Throw("Invalid PlaySound arguments");
@@ -327,22 +332,18 @@ public:
 		ALSoundSource& source = sources[channel];
 		if (source.IsPlaying())
 		{
-			//LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
-			return 0;
+			LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
+			return;
 		}
 
-		vec3 dummy = { 0.0f,0.0f,0.0f };
-
 		source.SetSound(sound);
-		source.SetPosition(dummy);
-		source.SetVolume(volume / 255.0f);
-		source.SetGlobalVolume(globalSoundVolume / 255.0f);
+		source.SetPosition(location);
+		source.SetVolume(volume);
+		source.SetGlobalVolume(globalSoundVolume);
 		source.SetRadius(radius);
 		source.SetPitch(pitch);
 		source.SetSpatial(true);
 		source.Play();
-
-		return channel;
 	}
 
 	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override
@@ -353,8 +354,8 @@ public:
 		ALSoundSource& source = sources[channel];
 
 		source.SetPosition(location);
-		source.SetVolume(volume / 255.0f);
-		source.SetGlobalVolume(globalSoundVolume / 255.0f);
+		source.SetVolume(volume);
+		source.SetGlobalVolume(globalSoundVolume);
 		source.SetRadius(radius);
 		source.SetPitch(pitch);
 

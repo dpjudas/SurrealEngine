@@ -231,7 +231,7 @@ void USurrealAudioDevice::SetViewport(UViewport* InViewport)
 			if (m_Viewport->Actor()->Song() && m_Viewport->Actor()->Transition() == MTRAN_None)
 				m_Viewport->Actor()->Transition() = MTRAN_Instant;
 
-			PlayingSounds.resize(Channels);
+			PlayingSounds.resize(std::min(Channels, m_Device->GetTotalChannels()));
 		}
 	}
 }
@@ -244,7 +244,7 @@ void USurrealAudioDevice::Update(const mat4& listener)
 	UpdateMusic();
 
 	m_Device->SetMusicVolume(MusicVolume / 255.0f);
-	m_Device->SetSoundVolume(SoundVolume / 255.0f);
+	m_Device->SetSoundVolume(SoundVolume / 255.0f * 0.5f);
 	m_Device->Update();
 }
 
@@ -327,15 +327,12 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			// Update the priority
 			Playing.Priority = SoundPriority(m_Viewport, Playing.Location, Playing.Volume, Playing.Radius);
 
-			float volumeScale = SoundVolume * 0.5f;
-
 			// Update the sound.
-			Playing.CurrentVolume = SoundVolume;
-			if (Playing.Channel)
+			if (Playing.IsActive)
 			{
-				if (m_Device->IsPlaying(Playing.Channel))
+				if (m_Device->IsPlaying((int)i))
 				{
-					m_Device->UpdateSound(Playing.Channel, Playing.Sound, Playing.Location, Playing.Volume * volumeScale, Playing.Radius, Playing.Pitch);
+					m_Device->UpdateSound((int)i, Playing.Sound, Playing.Location, Playing.Volume, Playing.Radius, Playing.Pitch);
 				}
 				else
 				{
@@ -344,7 +341,8 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			}
 			else
 			{
-				Playing.Channel = m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, Playing.Volume * volumeScale, Playing.Radius, Playing.Pitch);
+				m_Device->PlaySound((int)i, Playing.Sound, Playing.Location, Playing.Volume, Playing.Radius, Playing.Pitch);
+				Playing.IsActive = true;
 			}
 		}
 	}
@@ -377,6 +375,15 @@ void USurrealAudioDevice::UpdateMusic()
 
 bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch)
 {
+	if (Radius <= 0.0) // Seems we have zero radius values. Lovely.
+		Radius = 1500.0f;
+
+	// Attempt to normalize volume around 1.0 as the values used by the original games are just really broken in general.
+	if (Volume >= 8.0f)
+		Volume = 0.8f; // Special check for announcer garbage
+	else
+		Volume = (Volume - 1.0f) * 0.25f + 1.0f;
+
 	if (!m_Viewport || !Sound)
 		return false;
 
@@ -422,7 +429,7 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 	return true;
 }
 
-void USurrealAudioDevice::NoteDestroy(UActor* Actor)
+void USurrealAudioDevice::ActorDestroyed(UActor* Actor)
 {
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
 	{
@@ -458,9 +465,10 @@ void USurrealAudioDevice::StopSound(size_t index)
 {
 	PlayingSound& Playing = PlayingSounds[index];
 
-	if (Playing.Channel)
+	if (Playing.IsActive)
 	{
-		m_Device->StopSound(Playing.Channel);
+		m_Device->StopSound((int)index);
+		Playing.IsActive = false;
 	}
 
 	PlayingSounds[index] = {};
@@ -488,9 +496,9 @@ void USurrealAudioDevice::AddStats(Array<std::string>& lines)
 	int index = 0;
 	for (const PlayingSound& sound : PlayingSounds)
 	{
-		if (sound.Channel)
+		if (sound.IsActive)
 		{
-			std::snprintf(buffer, bufsize - 1, "Channel %2i: Vol: %05.2f %s", index, sound.CurrentVolume, sound.Sound->Name.ToString().c_str());
+			std::snprintf(buffer, bufsize - 1, "Channel %2i: Vol: %05.2f %s", index, sound.Volume, sound.Sound->Name.ToString().c_str());
 		}
 		else
 		{
