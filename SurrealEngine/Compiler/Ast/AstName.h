@@ -28,6 +28,12 @@ public:
 	std::string name;
 };
 
+class AstObjectName : public AstName // type'name'
+{
+public:
+	std::string name;
+};
+
 class AstKeywordType : public AstName // bool, decimal, sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double
 {
 public:

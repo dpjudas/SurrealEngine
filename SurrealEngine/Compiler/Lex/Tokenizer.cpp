@@ -155,12 +155,13 @@ bool Tokenizer::read_token(Token &token)
 {
 	return
 		read_bool_literal(token) ||
-		read_null_literal(token) ||
+		read_none_literal(token) ||
 		read_real_literal(token) ||
 		read_integer_literal(token) ||
 		read_character_literal(token) ||
 		read_string_literal(token) ||
 		read_operator_or_punctuator(token) ||
+		read_object_name_literal(token) ||
 		read_keyword(token) ||
 		read_identifier(token);
 }
@@ -199,11 +200,55 @@ bool Tokenizer::read_newline()
 	}
 }
 
+bool Tokenizer::read_object_name_literal(Token& token)
+{
+	size_t start_pos = pos;
+
+	std::u32string::value_type character = 0;
+	if (read_identifier_start_character(character))
+	{
+		std::u32string identifier;
+		identifier.push_back(character);
+
+		while (read_identifier_part_character(character))
+			identifier.push_back(character);
+
+		if (pos == data.size() || data[pos] != '\'')
+		{
+			pos = start_pos;
+			return false;
+		}
+		identifier.push_back('\'');
+		pos++;
+
+		while (read_identifier_part_character(character))
+			identifier.push_back(character);
+
+		if (pos == data.size() || data[pos] != '\'')
+		{
+			pos = start_pos;
+			return false;
+		}
+		identifier.push_back('\'');
+		pos++;
+
+		token.line = line_number;
+		token.column = start_pos - line_start_pos;
+		token.type = Token::type_object_name;
+		token.value = TextUtil::utf32_to_utf8(identifier);
+
+		return true;
+	}
+	else
+	{
+		pos = start_pos;
+		return false;
+	}
+}
+
 bool Tokenizer::read_identifier(Token &token)
 {
 	size_t start_pos = pos;
-	if (data[pos] == '@')
-		pos++;
 
 	std::u32string::value_type character = 0;
 	if (read_identifier_start_character(character))
@@ -241,11 +286,6 @@ bool Tokenizer::read_identifier_start_character(std::u32string::value_type &char
 		pos++;
 		return true;
 	}
-
-	// To do: add support for this unicode literals:
-
-	// A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl
-	// A unicode-escape-sequence representing a character of classes Lu, Ll, Lt, Lm, Lo, or Nl
 
 	return false;
 }
@@ -743,19 +783,22 @@ bool Tokenizer::read_literal_character(std::u32string::value_type &character, st
 	}
 }
 
-bool Tokenizer::read_null_literal(Token &token)
+bool Tokenizer::read_none_literal(Token &token)
 {
-	if (data[pos] == 'n' && pos + 4 <= data.size())
+	if ((data[pos] == 'n' || data[pos] == 'N') && pos + 4 <= data.size())
 	{
-		const char *keyword = "null";
+		const char *keyword = "none";
 		for (int i = 0; i < 4; i++)
 		{
-			if (data[pos + i] != keyword[i])
+			std::u32string::value_type c = data[pos + i];
+			if (c >= 'A' && c <= 'Z')
+				c = c - 'A' + 'a';
+			if (c != keyword[i])
 				return false;
 		}
 		token.line = line_number;
 		token.column = pos - line_start_pos;
-		token.type = Token::type_null;
+		token.type = Token::type_none;
 		token.value = keyword;
 		pos += 4;
 		return true;
@@ -821,11 +864,12 @@ const std::set<std::string> Tokenizer::keywords =
 	"int",
 	"intrinsic",
 	"is",
+	"local",
 	"localized",
 	"long",
 	"native",
 	"new",
-	"null",
+	"none",
 	"noexport",
 	"object",
 	"operator",
@@ -886,6 +930,7 @@ const char *Tokenizer::operators[] =
 	",",
 	":",
 	";",
+	"$",
 	"+",
 	"-",
 	"*",

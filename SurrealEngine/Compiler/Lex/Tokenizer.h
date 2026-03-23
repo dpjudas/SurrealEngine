@@ -44,6 +44,7 @@ private:
 	bool read_comment();
 	bool read_token(Token &token);
 
+	bool read_object_name_literal(Token& token);
 	bool read_identifier(Token &token);
 	bool read_keyword(Token &token);
 	bool read_bool_literal(Token &token);
@@ -51,7 +52,7 @@ private:
 	bool read_real_literal(Token &token);
 	bool read_character_literal(Token &token);
 	bool read_string_literal(Token &token);
-	bool read_null_literal(Token &token);
+	bool read_none_literal(Token &token);
 	bool read_operator_or_punctuator(Token &token);
 
 	bool read_identifier_start_character(std::u32string::value_type &character);

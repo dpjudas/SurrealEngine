@@ -4,6 +4,7 @@
 class AstArrayCreationExpression;
 class AstLiteral;
 class AstSimpleName;
+class AstNamedObject;
 class AstInvocationExpression;
 class AstElementAccess;
 class AstThisAccess;
@@ -30,6 +31,7 @@ class AstMultiplicationExpression;
 class AstDivisionExpression;
 class AstRemainderExpression;
 class AstAdditionExpression;
+class AstStringConcatExpression;
 class AstSubtractionExpression;
 class AstShiftLeftExpression;
 class AstShiftRightExpression;
@@ -56,6 +58,7 @@ public:
 	virtual void expression(AstArrayCreationExpression *node) = 0;
 	virtual void expression(AstLiteral *node) = 0;
 	virtual void expression(AstSimpleName *node) = 0;
+	virtual void expression(AstNamedObject* node) = 0;
 	virtual void expression(AstInvocationExpression *node) = 0;
 	virtual void expression(AstElementAccess *node) = 0;
 	virtual void expression(AstThisAccess *node) = 0;
@@ -83,6 +86,7 @@ public:
 	virtual void expression(AstRemainderExpression *node) = 0;
 	virtual void expression(AstAdditionExpression *node) = 0;
 	virtual void expression(AstSubtractionExpression *node) = 0;
+	virtual void expression(AstStringConcatExpression* node) = 0;
 	virtual void expression(AstShiftLeftExpression *node) = 0;
 	virtual void expression(AstShiftRightExpression *node) = 0;
 	virtual void expression(AstLessExpression *node) = 0;

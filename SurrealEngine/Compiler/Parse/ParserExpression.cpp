@@ -55,9 +55,16 @@ AstExpression *Parser::parse_primary()
 		std::string identifier = token.value;
 		next();
 
-		// To do: add support for type arguments <A,B,C>
-
 		AstSimpleName *name = newNode<AstSimpleName>();
+		name->identifier = identifier;
+		expression = name;
+	}
+	else if (is_object_name())
+	{
+		std::string identifier = token.value;
+		next();
+
+		AstNamedObject* name = newNode<AstNamedObject>();
 		name->identifier = identifier;
 		expression = name;
 	}
@@ -155,40 +162,6 @@ AstExpression *Parser::parse_primary()
 
 		expression = typeof_expression;
 	}
-	else if (is_keyword("checked"))
-	{
-		next();
-
-		if (!is_operator("("))
-			throw_parse_exception("( expected");
-		next();
-
-		AstCheckedExpression *checked_expression = newNode<AstCheckedExpression>();
-		checked_expression->expression = parse_expression(paranthesis_end);
-
-		if (!is_operator(")"))
-			throw_parse_exception(") expected");
-		next();
-
-		expression = checked_expression;
-	}
-	else if (is_keyword("unchecked"))
-	{
-		next();
-
-		if (!is_operator("("))
-			throw_parse_exception("( expected");
-		next();
-
-		AstUncheckedExpression *unchecked_expression = newNode<AstUncheckedExpression>();
-		unchecked_expression->expression = parse_expression(paranthesis_end);
-
-		if (!is_operator(")"))
-			throw_parse_exception(") expected");
-		next();
-
-		expression = unchecked_expression;
-	}
 	else if (is_keyword("default"))
 	{
 		next();
@@ -263,11 +236,11 @@ AstExpression *Parser::parse_primary()
 		expression = literal;
 		next();
 	}
-	else if (token.type == Token::type_null)
+	else if (token.type == Token::type_none)
 	{
 		AstLiteral *literal = newNode<AstLiteral>();
-		literal->type = AstLiteralType::null;
-		literal->value = "null";
+		literal->type = AstLiteralType::none;
+		literal->value = "none";
 		expression = literal;
 		next();
 	}
@@ -446,7 +419,7 @@ AstExpression *Parser::parse_unary()
 				dynamic_cast<AstKeywordType*>(type) ||
 				is_operator("~") || is_operator("!") || is_operator("(") || is_identifier() ||
 				token.type == Token::type_bool || token.type == Token::type_integer || token.type == Token::type_real ||
-				token.type == Token::type_character || token.type == Token::type_string || token.type == Token::type_null ||
+				token.type == Token::type_character || token.type == Token::type_string || token.type == Token::type_none ||
 				(is_keyword() && !is_keyword("as") && !is_keyword("is"));
 		}
 		catch (...)
@@ -510,7 +483,7 @@ int Parser::get_token_precedence()
 	{
 		return 13; // highest
 	}
-	else if (is_operator("+") || is_operator("-"))
+	else if (is_operator("+") || is_operator("-") || is_operator("$"))
 	{
 		return 12;
 	}
@@ -574,9 +547,11 @@ AstBinaryExpression *Parser::create_token_expression()
 	else if (is_operator("%"))
 		return newNode<AstRemainderExpression>();
 	else if (is_operator("+"))
-		return newNode < AstAdditionExpression>();
+		return newNode<AstAdditionExpression>();
 	else if (is_operator("-"))
 		return newNode<AstSubtractionExpression>();
+	else if (is_operator("$"))
+		return newNode<AstStringConcatExpression>();
 	else if (is_operator("<<"))
 		return newNode<AstShiftLeftExpression>();
 	else if (is_operator(">>")) // To do: operator >> is split into two > tokens

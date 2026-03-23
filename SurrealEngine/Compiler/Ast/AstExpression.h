@@ -44,7 +44,7 @@ enum class AstLiteralType
 	real,
 	character,
 	string,
-	null,
+	none,
 };
 
 class AstLiteral : public AstExpression
@@ -52,7 +52,7 @@ class AstLiteral : public AstExpression
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 
-	AstLiteralType type = AstLiteralType::null;
+	AstLiteralType type = AstLiteralType::none;
 	std::string value;
 };
 
@@ -62,7 +62,14 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 
 	std::string identifier;
-	//AstTypeArgumentList *type_args;
+};
+
+class AstNamedObject : public AstExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+
+	std::string identifier;
 };
 
 class AstInvocationArgument : public AstNode
@@ -157,22 +164,6 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 
 	AstName *type = nullptr;
-};
-
-class AstCheckedExpression : public AstExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstExpression *expression = nullptr;
-};
-
-class AstUncheckedExpression : public AstExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstExpression *expression = nullptr;
 };
 
 class AstDefaultValueExpression : public AstExpression
@@ -303,6 +294,12 @@ class AstSubtractionExpression : public AstBinaryExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
+};
+
+class AstStringConcatExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
 };
 
 class AstShiftLeftExpression : public AstBinaryExpression

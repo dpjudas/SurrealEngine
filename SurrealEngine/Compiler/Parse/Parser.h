@@ -122,6 +122,7 @@ private:
 	bool is_type_keyword() const;
 	bool is_keyword() const;
 	bool is_keyword(const char *keyword) const;
+	bool is_object_name() const;
 	bool is_identifier() const;
 	bool is_identifier(const char *identifier) const;
 	bool is_operator(const char *oper) const;

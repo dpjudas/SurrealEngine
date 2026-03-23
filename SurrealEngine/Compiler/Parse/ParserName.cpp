@@ -37,6 +37,16 @@ AstName *Parser::parse_name()
 
 			next();
 		}
+
+		name = type;
+	}
+	else if (is_object_name())
+	{
+		AstObjectName* objname = newNode<AstObjectName>();
+		objname->name = token.value;
+		next();
+
+		name = objname;
 	}
 	else
 	{

@@ -17,8 +17,9 @@ public:
 		type_real,
 		type_character,
 		type_string,
-		type_null,
-		type_operator
+		type_none,
+		type_operator,
+		type_object_name,
 	};
 
 	Token() = default;

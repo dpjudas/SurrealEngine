@@ -56,6 +56,12 @@ AstStatement *Parser::parse_statement()
 	{
 		return parse_return_statement();
 	}
+	else if (is_keyword("local"))
+	{
+		next();
+		AstName* type = parse_name();
+		return parse_variable_declaration_statement(type);
+	}
 	else
 	{
 		auto save = save_position();
@@ -77,6 +83,7 @@ AstStatement *Parser::parse_statement()
 
 		restore_position(save);
 
+#if 0 // to do: remove this once local variable declaration above has been tested
 		if (is_identifier() || is_type_keyword())
 		{
 			AstName *type = parse_name();
@@ -87,6 +94,7 @@ AstStatement *Parser::parse_statement()
 		}
 
 		restore_position(save);
+#endif
 
 		return parse_expression_statement();
 	}

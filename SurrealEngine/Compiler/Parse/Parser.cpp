@@ -82,6 +82,11 @@ bool Parser::is_keyword(const char *keyword) const
 	return token.type == Token::type_keyword && token.value == keyword;
 }
 
+bool Parser::is_object_name() const
+{
+	return token.type == Token::type_object_name;
+}
+
 bool Parser::is_identifier() const
 {
 	return token.type == Token::type_identifier;
