@@ -18,18 +18,25 @@ AstName *Parser::parse_name()
 		AstClassName* type = newNode<AstClassName>();
 		next();
 
-		if (!is_operator("<"))
-			throw_parse_exception("< expected");
-		next();
+		if (is_operator("<"))
+		{
+			next();
 
-		if (!is_identifier())
-			throw_parse_exception("identifier expected");
-		type->name = token.value;
-		next();
+			if (is_identifier())
+			{
+				type->name = token.value;
+				next();
 
-		if (!is_operator(">"))
-			throw_parse_exception("> expected");
-		next();
+				if (!is_operator(">"))
+					throw_parse_exception("> expected");
+			}
+			else if (!is_operator(">"))
+			{
+				throw_parse_exception("identifier or > expected");
+			}
+
+			next();
+		}
 	}
 	else
 	{

@@ -52,6 +52,8 @@ public:
 	bool is_static = false;
 	bool is_const = false;
 	bool is_localized = false;
+	bool is_native = false;
+	bool is_travel = false;
 	AstAccessType access_type = {};
 	AstName *type = nullptr;
 	std::vector<AstVariableDeclarator *> declarators;

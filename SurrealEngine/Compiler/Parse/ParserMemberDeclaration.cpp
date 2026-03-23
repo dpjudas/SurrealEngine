@@ -308,6 +308,18 @@ AstNode *Parser::parse_field_declaration()
 				throw_parse_exception("localized already specified");
 			field_decl->is_localized = true;
 		}
+		else if (is_keyword("native") || is_keyword("intrinsic"))
+		{
+			if (field_decl->is_native)
+				throw_parse_exception("intrinsic already specified");
+			field_decl->is_native = true;
+		}
+		else if (is_keyword("travel"))
+		{
+			if (field_decl->is_travel)
+				throw_parse_exception("travel already specified");
+			field_decl->is_travel = true;
+		}
 		else
 		{
 			break;
