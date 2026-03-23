@@ -35,6 +35,15 @@ public:
 	void GetAxes(vec3& X, vec3& Y, vec3& Z) const;
 	void GetUnAxes(vec3& X, vec3& Y, vec3& Z) const;
 
+	Coords& operator *=(const Coords& rhs)
+	{
+		Origin *= rhs.Origin;
+		XAxis = { dot(XAxis, rhs.XAxis), dot(XAxis, rhs.YAxis), dot(XAxis, rhs.ZAxis) };
+		YAxis = { dot(YAxis, rhs.XAxis), dot(YAxis, rhs.YAxis), dot(YAxis, rhs.ZAxis) };
+		ZAxis = { dot(ZAxis, rhs.XAxis), dot(ZAxis, rhs.YAxis), dot(ZAxis, rhs.ZAxis) };
+		return *this;
+	}
+
 	mat4 ToMatrix() const;
 	static Coords FromMatrix(const mat4& m);
 };
