@@ -42,7 +42,7 @@ enum class AstLiteralType
 	boolean,
 	integer,
 	real,
-	character,
+	name,
 	string,
 	none,
 };
@@ -288,6 +288,18 @@ class AstAdditionExpression : public AstBinaryExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
+};
+
+class AstDotProductExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+};
+
+class AstCrossProductExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
 };
 
 class AstSubtractionExpression : public AstBinaryExpression

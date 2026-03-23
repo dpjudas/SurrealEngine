@@ -72,14 +72,29 @@ bool Parser::is_type_keyword() const
 		is_keyword("void");
 }
 
-bool Parser::is_keyword() const
-{
-	return token.type == Token::type_keyword;
-}
-
 bool Parser::is_keyword(const char *keyword) const
 {
-	return token.type == Token::type_keyword && token.value == keyword;
+	if (token.type != Token::type_identifier)
+		return false;
+
+	if (token.value.size() > 50)
+		return false;
+
+	int size = (int)token.value.size();
+	int i;
+	for (i = 0; keyword[i] != 0; i++)
+	{
+		if (i == size)
+			return false;
+
+		char c = token.value[i];
+		if (c >= 'A' && c <= 'Z')
+			c = c - 'A' + 'a';
+
+		if (c != keyword[i])
+			return false;
+	}
+	return i == size;
 }
 
 bool Parser::is_object_name() const

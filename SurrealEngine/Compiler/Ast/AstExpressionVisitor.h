@@ -31,6 +31,8 @@ class AstMultiplicationExpression;
 class AstDivisionExpression;
 class AstRemainderExpression;
 class AstAdditionExpression;
+class AstDotProductExpression;
+class AstCrossProductExpression;
 class AstStringConcatExpression;
 class AstSubtractionExpression;
 class AstShiftLeftExpression;
@@ -87,6 +89,8 @@ public:
 	virtual void expression(AstAdditionExpression *node) = 0;
 	virtual void expression(AstSubtractionExpression *node) = 0;
 	virtual void expression(AstStringConcatExpression* node) = 0;
+	virtual void expression(AstDotProductExpression* node) = 0;
+	virtual void expression(AstCrossProductExpression* node) = 0;
 	virtual void expression(AstShiftLeftExpression *node) = 0;
 	virtual void expression(AstShiftRightExpression *node) = 0;
 	virtual void expression(AstLessExpression *node) = 0;

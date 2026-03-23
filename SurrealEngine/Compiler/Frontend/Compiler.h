@@ -29,6 +29,8 @@ public:
 	const std::vector<CompilerMessage> &get_messages() const { return messages; }
 
 private:
+	void logInfo(const std::string& text);
+
 	std::vector<SourceFile> sources;
 	TypeSystem type_system;
 	//std::unique_ptr<CodeGen> codegen;

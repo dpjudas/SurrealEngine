@@ -93,7 +93,8 @@ private:
 		bracket_end      = 0x04, // ]
 		colon_end        = 0x08, // :
 		comma_end        = 0x10, // ,
-		brace_end        = 0x20  // }
+		brace_end        = 0x20, // }
+		brace_begin      = 0x40, // {
 	};
 
 	typedef int ExpressionEndCondition;
@@ -120,7 +121,6 @@ private:
 
 	void next();
 	bool is_type_keyword() const;
-	bool is_keyword() const;
 	bool is_keyword(const char *keyword) const;
 	bool is_object_name() const;
 	bool is_identifier() const;

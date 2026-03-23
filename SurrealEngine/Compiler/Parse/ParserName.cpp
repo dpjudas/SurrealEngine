@@ -53,30 +53,6 @@ AstName *Parser::parse_name()
 		name = parse_identifier_name();
 	}
 
-	while (is_operator("["))
-	{
-		auto save = save_position();
-		next();
-		if (!is_operator("]") && !is_operator(","))
-		{
-			restore_position(save);
-			break;
-		}
-
-		int rank = 1;
-		while (is_operator(","))
-		{
-			rank++;
-			next();
-		}
-
-		if (!is_operator("]"))
-			throw_parse_exception("] expected");
-		next();
-
-		name->array_rank_specifiers.push_back(rank);
-	}
-
 	return name;
 }
 

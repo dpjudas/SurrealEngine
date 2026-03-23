@@ -15,7 +15,7 @@ AstTypeParameterList *Parser::try_parse_type_parameter_list()
 	{
 		AstTypeParameter *parameter = newNode<AstTypeParameter>();
 
-		if (!is_identifier() && !is_type_keyword())
+		if (!is_type_keyword() && !is_identifier())
 		{
 			restore_position(save);
 			return 0;

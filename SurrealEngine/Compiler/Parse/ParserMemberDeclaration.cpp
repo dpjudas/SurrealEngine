@@ -27,69 +27,6 @@ AstNode *Parser::parse_class_member()
 	{
 		return parse_method_declaration();
 	}
-
-#if 0
-	TypeModifierPreparseData preparse = preparse_type();
-
-	if (is_keyword("const"))
-	{
-		return parse_const_declaration(preparse);
-	}
-	else if (is_identifier() || is_type_keyword())
-	{
-		AstName *type = parse_name();
-		
-		if (is_identifier() || is_keyword("this"))
-		{
-			std::string value1 = token.value;
-			std::string value2;
-			next();
-
-			if (is_operator("."))
-			{
-				next();
-				if (is_identifier() || is_keyword("this"))
-				{
-					value2 = token.value;
-					next();
-				}
-				else
-				{
-					throw_parse_exception("identifier or this expected");
-				}
-			}
-
-			if (is_operator("(")) // Method
-			{
-				return parse_method_declaration(preparse, type, value1, value2);
-			}
-			else // Field
-			{
-				return parse_field_declaration(preparse, type, value1, value2);
-			}
-		}
-		else if (is_keyword("operator")) // unary and binary operators
-		{
-			return parse_operator_declaration(preparse, type);
-		}
-		else
-		{
-			throw_parse_exception("syntax error");
-		}
-	}
-	else if (is_keyword("struct"))
-	{
-		return parse_struct_declaration(preparse);
-	}
-	else if (is_keyword("enum"))
-	{
-		return parse_enum_declaration(preparse);
-	}
-	else
-	{
-		throw_parse_exception("syntax error");
-	}
-#endif
 }
 
 AstNode* Parser::parse_state_declaration()
@@ -304,16 +241,16 @@ AstNode *Parser::parse_method_declaration()
 
 	bool returnValueFound = false;
 	SavedParserPos pos = save_position();
-	if (is_identifier())
+	if (is_keyword("class") || is_type_keyword())
+	{
+		returnValueFound = true;
+	}
+	else if (is_identifier())
 	{
 		next();
 		if (is_identifier())
 			returnValueFound = true;
 		restore_position(pos);
-	}
-	else if (is_keyword("class") || is_type_keyword())
-	{
-		returnValueFound = true;
 	}
 
 	if (returnValueFound)
@@ -432,6 +369,21 @@ AstNode *Parser::parse_field_declaration()
 
 	while (true)
 	{
+		if (is_operator("["))
+		{
+			next();
+
+			if (token.type != Token::type_integer)
+				throw_parse_exception("integer expected");
+
+			var_decl->array_dimension = std::stoi(token.value);
+			next();
+
+			if (!is_operator("]"))
+				throw_parse_exception("] expected");
+			next();
+		}
+
 		if (is_operator("="))
 		{
 			next();

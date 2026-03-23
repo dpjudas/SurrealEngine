@@ -158,11 +158,10 @@ bool Tokenizer::read_token(Token &token)
 		read_none_literal(token) ||
 		read_real_literal(token) ||
 		read_integer_literal(token) ||
-		read_character_literal(token) ||
+		read_name_literal(token) ||
 		read_string_literal(token) ||
 		read_operator_or_punctuator(token) ||
 		read_object_name_literal(token) ||
-		read_keyword(token) ||
 		read_identifier(token);
 }
 
@@ -302,38 +301,6 @@ bool Tokenizer::read_identifier_part_character(std::u32string::value_type &chara
 	{
 		character = data[pos];
 		pos++;
-		return true;
-	}
-
-	return false;
-}
-
-bool Tokenizer::read_keyword(Token &token)
-{
-	if ((data[pos] < 'a' || data[pos] > 'z') && (data[pos] < 'A' || data[pos] > 'Z'))
-		return false;
-
-	size_t endpos = pos;
-	while (endpos < data.size() && ((data[endpos] >= 'a' && data[endpos] <= 'z') || (data[endpos] >= 'A' && data[endpos] <= 'Z')))
-		endpos++;
-
-	std::string lc;
-	for (size_t i = pos; i < endpos; i++)
-	{
-		if (data[i] >= 'A' && data[i] <= 'Z')
-			lc.push_back((char)data[i] - 'A' + 'a');
-		else
-			lc.push_back((char)data[i]);
-	}
-
-	auto it = keywords.find(lc);
-	if (it != keywords.end())
-	{
-		token.line = line_number;
-		token.column = pos - line_start_pos;
-		token.type = Token::type_keyword;
-		token.value = lc;
-		pos = endpos;
 		return true;
 	}
 
@@ -530,64 +497,25 @@ bool Tokenizer::read_real_literal(Token &token)
 	return true;
 }
 
-bool Tokenizer::read_character_literal(Token &token)
-{
-	if (data[pos] != '\'')
-		return false;
-
-	pos++;
-
-	std::u32string::value_type character = 0;
-	std::string error;
-	if (read_literal_character(character, error))
-	{
-		if (pos == data.size() || data[pos] != '\'')
-		{
-			token.line = line_number;
-			token.column = pos - line_start_pos;
-			token.type = Token::type_error;
-			token.value = "Missing end quote in character literal";
-		}
-		else
-		{
-			token.line = line_number;
-			token.column = pos - line_start_pos;
-			token.type = Token::type_character;
-			token.value = TextUtil::utf32_to_utf8(std::u32string(1, character));
-			pos++;
-		}
-		return true;
-	}
-	else
-	{
-		token.line = line_number;
-		token.column = pos - line_start_pos;
-		token.type = Token::type_error;
-		token.value = error;
-		return true;
-	}
-}
-
-bool Tokenizer::read_string_literal(Token &token)
+bool Tokenizer::read_name_literal(Token &token)
 {
 	size_t start_pos = pos;
-
-	if (pos + 2 <= data.size() && data[pos] == '@' && data[pos + 1] == '"') // verbatim string
+	if (data[pos] == '\'')
 	{
-		pos += 2;
+		pos++;
 
 		std::u32string str_literal;
 
 		while (pos != data.size())
 		{
-			if (data[pos] != '"')
+			if (data[pos] != '\'')
 			{
 				str_literal.push_back(data[pos]);
 				pos++;
 			}
-			else if (pos + 2 <= data.size() && data[pos + 1] == '"')
+			else if (pos + 2 <= data.size() && data[pos + 1] == '\'')
 			{
-				str_literal.push_back('"');
+				str_literal.push_back('\'');
 				pos += 2;
 			}
 			else
@@ -609,12 +537,20 @@ bool Tokenizer::read_string_literal(Token &token)
 
 		token.line = line_number;
 		token.column = start_pos - line_start_pos;
-		token.type = Token::type_string;
+		token.type = Token::type_name;
 		token.value = TextUtil::utf32_to_utf8(str_literal);
 
 		return true;
 	}
-	else if (data[pos] == '"')
+
+	return false;
+}
+
+bool Tokenizer::read_string_literal(Token &token)
+{
+	size_t start_pos = pos;
+
+	if (data[pos] == '"')
 	{
 		pos++;
 
@@ -661,11 +597,6 @@ bool Tokenizer::read_string_literal(Token &token)
 bool Tokenizer::read_literal_character(std::u32string::value_type &character, std::string &error)
 {
 	error.clear();
-
-	// To do: add support for unicode escapes:
-	//
-	// \u hex-digit hex-digit hex-digit hex-digit
-	// \U hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit hex-digit
 
 	if (read_newline())
 	{
@@ -831,71 +762,6 @@ bool Tokenizer::read_operator_or_punctuator(Token &token)
 
 	return false;
 }
-
-const std::set<std::string> Tokenizer::keywords = 
-{
-	"abstract",
-	"bool",
-	"break",
-	"byte",
-	"case",
-	"char",
-	"class",
-	"const",
-	"continue",
-	"default",
-	"defaultproperties",
-	"_defaultproperties",
-	"do",
-	"double",
-	"else",
-	"enum",
-	"event",
-	"extends",
-	"false",
-	"final",
-	"float",
-	"for",
-	"foreach",
-	"function",
-	"goto",
-	"if",
-	"in",
-	"int",
-	"intrinsic",
-	"is",
-	"local",
-	"localized",
-	"long",
-	"native",
-	"new",
-	"none",
-	"noexport",
-	"object",
-	"operator",
-	"out",
-	"private",
-	"public",
-	"ref",
-	"return",
-	"sbyte",
-	"short",
-	"sizeof",
-	"state",
-	"static",
-	"string",
-	"struct",
-	"switch",
-	"this",
-	"travel",
-	"true",
-	"uint",
-	"ulong",
-	"ushort",
-	"var",
-	"void",
-	"while",
-};
 
 const char *Tokenizer::operators[] = 
 {

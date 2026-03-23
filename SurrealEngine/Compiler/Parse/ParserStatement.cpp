@@ -83,19 +83,6 @@ AstStatement *Parser::parse_statement()
 
 		restore_position(save);
 
-#if 0 // to do: remove this once local variable declaration above has been tested
-		if (is_identifier() || is_type_keyword())
-		{
-			AstName *type = parse_name();
-			if (is_identifier())
-			{
-				return parse_variable_declaration_statement(type);
-			}
-		}
-
-		restore_position(save);
-#endif
-
 		return parse_expression_statement();
 	}
 }
@@ -340,7 +327,7 @@ AstForStatement *Parser::parse_for_statement()
 
 	if (!is_operator(";"))
 	{
-		if (is_identifier() || is_type_keyword())
+		if (is_type_keyword() || is_identifier())
 		{
 			auto save = save_position();
 			AstName *type = parse_name();
@@ -423,27 +410,7 @@ AstForeachStatement *Parser::parse_foreach_statement()
 
 	AstForeachStatement *statement = newNode<AstForeachStatement>();
 
-	if (!is_operator("("))
-		throw_parse_exception("( expected");
-	next();
-
-	statement->type = parse_name();
-
-	if (!is_identifier())
-		throw_parse_exception("identifier expected");
-	statement->identifier = token.value;
-	next();
-
-	if (!is_keyword("in"))
-		throw_parse_exception("in expected");
-	next();
-
-	statement->expression = parse_expression(paranthesis_end);
-
-	if (!is_operator(")"))
-		throw_parse_exception(") expected");
-	next();
-
+	statement->expression = parse_expression(brace_begin | semicolon_end);
 	statement->statement = parse_statement();
 
 	return statement;

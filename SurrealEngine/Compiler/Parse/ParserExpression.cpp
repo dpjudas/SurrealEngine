@@ -43,21 +43,12 @@ AstExpression *Parser::parse_primary()
 		AstThisAccess *this_access = newNode<AstThisAccess>();
 		expression = this_access;
 	}
-	else if (is_keyword("base"))
+	else if (is_keyword("super"))
 	{
 		next();
 
 		AstBaseAccess *base_access = newNode<AstBaseAccess>();
 		expression = base_access;
-	}
-	else if (is_identifier())
-	{
-		std::string identifier = token.value;
-		next();
-
-		AstSimpleName *name = newNode<AstSimpleName>();
-		name->identifier = identifier;
-		expression = name;
 	}
 	else if (is_object_name())
 	{
@@ -196,6 +187,15 @@ AstExpression *Parser::parse_primary()
 
 		expression = sizeof_expression;
 	}
+	else if (is_identifier())
+	{
+		std::string identifier = token.value;
+		next();
+
+		AstSimpleName* name = newNode<AstSimpleName>();
+		name->identifier = identifier;
+		expression = name;
+	}
 	else if (token.type == Token::type_bool)
 	{
 		AstLiteral *literal = newNode<AstLiteral>();
@@ -220,10 +220,10 @@ AstExpression *Parser::parse_primary()
 		expression = literal;
 		next();
 	}
-	else if (token.type == Token::type_character)
+	else if (token.type == Token::type_name)
 	{
 		AstLiteral *literal = newNode<AstLiteral>();
-		literal->type = AstLiteralType::character;
+		literal->type = AstLiteralType::name;
 		literal->value = token.value;
 		expression = literal;
 		next();
@@ -308,8 +308,6 @@ AstExpression *Parser::parse_primary()
 
 			std::string identifier = token.value;
 			next();
-
-			// To do: add support for type arguments <A,B,C>
 
 			AstMemberAccess *access = newNode<AstMemberAccess>();
 			access->expression = expression;
@@ -400,53 +398,6 @@ AstExpression *Parser::parse_unary()
 		expression->operand = parse_unary();
 		return expression;
 	}
-	else if (is_operator("("))
-	{
-		AstName *type = nullptr;
-		bool always_cast = false;
-
-		SavedParserPos save = save_position();
-		try
-		{
-			next();
-			type = parse_name();
-
-			if (!is_operator(")"))
-				throw_parse_exception(") expected");
-			next();
-
-			always_cast =
-				dynamic_cast<AstKeywordType*>(type) ||
-				is_operator("~") || is_operator("!") || is_operator("(") || is_identifier() ||
-				token.type == Token::type_bool || token.type == Token::type_integer || token.type == Token::type_real ||
-				token.type == Token::type_character || token.type == Token::type_string || token.type == Token::type_none ||
-				(is_keyword() && !is_keyword("as") && !is_keyword("is"));
-		}
-		catch (...)
-		{
-			restore_position(save);
-			return parse_primary();
-		}
-
-		if (!always_cast)
-		{
-			SavedParserPos castend = save_position();
-			try
-			{
-				restore_position(save);
-				return parse_primary();
-			}
-			catch (...)
-			{
-				restore_position(castend);
-			}
-		}
-
-		AstCastExpression *cast = newNode<AstCastExpression>();
-		cast->type = type;
-		cast->operand = parse_unary();
-		return cast;
-	}
 	else
 	{
 		return parse_primary();
@@ -483,7 +434,7 @@ int Parser::get_token_precedence()
 	{
 		return 13; // highest
 	}
-	else if (is_operator("+") || is_operator("-") || is_operator("$"))
+	else if (is_operator("+") || is_operator("-") || is_operator("$") || is_keyword("dot") || is_keyword("cross"))
 	{
 		return 12;
 	}
@@ -554,12 +505,27 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstStringConcatExpression>();
 	else if (is_operator("<<"))
 		return newNode<AstShiftLeftExpression>();
-	else if (is_operator(">>")) // To do: operator >> is split into two > tokens
-		return newNode<AstShiftRightExpression>();
 	else if (is_operator("<"))
 		return newNode<AstLessExpression>();
 	else if (is_operator(">"))
-		return newNode<AstGreaterExpression>();
+	{
+		// operator >> and >>= are split into two > tokens
+		auto pos = save_position();
+		next();
+		if (is_operator(">"))
+		{
+			return newNode<AstShiftRightExpression>();
+		}
+		else if (is_operator(">="))
+		{
+			return newNode<AstAssignmentExpression>(">>=");
+		}
+		else
+		{
+			restore_position(pos);
+			return newNode<AstGreaterExpression>();
+		}
+	}
 	else if (is_operator("<="))
 		return newNode<AstLessEqualExpression>();
 	else if (is_operator(">="))
@@ -598,14 +564,16 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstAssignmentExpression>("-=");
 	else if (is_operator("<<="))
 		return newNode<AstAssignmentExpression>("<<=");
-	else if (is_operator(">>=")) // To do: operator >>= is split into two > tokens
-		return newNode<AstAssignmentExpression>(">>=");
 	else if (is_operator("&="))
 		return newNode<AstAssignmentExpression>("&=");
 	else if (is_operator("^="))
 		return newNode<AstAssignmentExpression>("^=");
 	else if (is_operator("|="))
 		return newNode<AstAssignmentExpression>("|=");
+	else if (is_keyword("dot"))
+		return newNode<AstDotProductExpression>();
+	else if (is_keyword("cross"))
+		return newNode<AstCrossProductExpression>();
 
 	throw_parse_exception("syntax error");
 }
@@ -618,5 +586,6 @@ bool Parser::is_end_condition(ExpressionEndCondition end_condition) const
 		((end_condition & bracket_end) && is_operator("]")) ||
 		((end_condition & colon_end) && is_operator(":")) ||
 		((end_condition & comma_end) && is_operator(",")) ||
-		((end_condition & brace_end) && is_operator("}"));
+		((end_condition & brace_end) && is_operator("}")) ||
+		((end_condition & brace_begin) && is_operator("{"));
 }

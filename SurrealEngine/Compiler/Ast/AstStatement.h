@@ -180,8 +180,6 @@ class AstForeachStatement : public AstIterationStatement
 public:
 	void visit(AstStatementVisitor *visitor) { visitor->statement(this); }
 
-	AstName *type = nullptr;
-	std::string identifier;
 	AstExpression *expression = nullptr;
 	AstStatement *statement = nullptr; // embedded-statement only
 };

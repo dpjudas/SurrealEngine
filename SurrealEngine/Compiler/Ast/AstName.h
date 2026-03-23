@@ -10,7 +10,6 @@ class AstTypeParameterList;
 class AstName : public AstNode
 {
 public:
-	std::vector<int> array_rank_specifiers;
 };
 
 class AstIdentifierName : public AstName // N.I<A,B>

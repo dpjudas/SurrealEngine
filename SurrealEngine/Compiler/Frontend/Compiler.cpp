@@ -44,6 +44,24 @@ bool Compiler::compile()
 		if (encountered_errors)
 			return false;
 
+		for (auto& unit : parsed_files)
+		{
+			for (AstNode* member : unit->class_decl->members)
+			{
+				if (auto method = dynamic_cast<AstMethodDeclaration*>(member))
+				{
+					logInfo("Function: " + method->identifier);
+				}
+				else if (auto field = dynamic_cast<AstFieldDeclaration*>(member))
+				{
+					for (AstVariableDeclarator* var : field->declarators)
+					{
+						logInfo("Property: " + var->identifier);
+					}
+				}
+			}
+		}
+
 #if 0
 		SemanticAnalysis sema(type_system);
 		sema.analyze(parsed_files);
@@ -59,4 +77,9 @@ bool Compiler::compile()
 		messages.push_back(CompilerMessage(CompilerMessage::error, exception.message()));
 		return false;
 	}
+}
+
+void Compiler::logInfo(const std::string& text)
+{
+	messages.push_back(CompilerMessage(CompilerMessage::info, text));
 }

@@ -16,9 +16,9 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 {
 	std::string filename = args;
 
-#if 0
+#if 1
 	if (filename.empty())
-		filename = "C:\\Games\\DeusEx-1112fm-Scripts\\ConSys\\Classes\\ConEventComment.uc";
+		filename = "C:\\Games\\DeusEx-1112fm-Scripts\\ConSys\\Classes\\ConCamera.uc";
 #endif
 
 	if (filename.empty())

@@ -46,11 +46,10 @@ private:
 
 	bool read_object_name_literal(Token& token);
 	bool read_identifier(Token &token);
-	bool read_keyword(Token &token);
 	bool read_bool_literal(Token &token);
 	bool read_integer_literal(Token &token);
 	bool read_real_literal(Token &token);
-	bool read_character_literal(Token &token);
+	bool read_name_literal(Token &token);
 	bool read_string_literal(Token &token);
 	bool read_none_literal(Token &token);
 	bool read_operator_or_punctuator(Token &token);
@@ -79,6 +78,5 @@ private:
 	size_t line_start_pos = 0;
 	size_t line_number = 1;
 
-	static const std::set<std::string> keywords;
 	static const char *operators[];
 };
