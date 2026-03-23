@@ -98,7 +98,6 @@ public:
 		}
 	}
 
-	AstAccessType access_type = {};
 	std::string identifier;
 	std::vector<AstEnumValueDeclaration *> members;
 };

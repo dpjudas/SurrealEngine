@@ -3,6 +3,7 @@
 
 #include "Token.h"
 #include <string>
+#include <set>
 
 class SavedTokenizerPos
 {
@@ -77,6 +78,6 @@ private:
 	size_t line_start_pos = 0;
 	size_t line_number = 1;
 
-	static const char *keywords[];
+	static const std::set<std::string> keywords;
 	static const char *operators[];
 };

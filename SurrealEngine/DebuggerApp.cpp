@@ -8,6 +8,7 @@
 #include "Commandlet/ExportCommandlet.h"
 #include "Commandlet/QuitCommandlet.h"
 #include "Commandlet/RunCommandlet.h"
+#include "Commandlet/CompilerCommandlet.h"
 #include "Commandlet/Debug/CollisionCommandlet.h"
 #include "Commandlet/VM/BreakpointCommandlet.h"
 #include "Commandlet/VM/CallstackCommandlet.h"
@@ -94,6 +95,7 @@ int DebuggerApp::Main(Array<std::string> args)
 void DebuggerApp::CreateCommandlets()
 {
 	Commandlets.push_back(std::make_unique<RunCommandlet>());
+	Commandlets.push_back(std::make_unique<CompilerCommandlet>());
 	Commandlets.push_back(std::make_unique<NativeCommandlet>());
 	Commandlets.push_back(std::make_unique<ExportCommandlet>());
 	Commandlets.push_back(std::make_unique<ListBreakpointsCommandlet>());

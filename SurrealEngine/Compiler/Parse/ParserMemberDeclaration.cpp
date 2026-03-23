@@ -3,6 +3,36 @@
 
 AstNode *Parser::parse_class_member()
 {
+	if (is_keyword("var"))
+	{
+		return parse_field_declaration();
+	}
+	else if (is_keyword("function") || is_keyword("event") || is_keyword("singular") || is_keyword("simulated"))
+	{
+		return parse_method_declaration();
+	}
+	else if (is_keyword("state"))
+	{
+		return parse_state_declaration();
+	}
+	else if (is_keyword("const"))
+	{
+		return parse_const_declaration();
+	}
+	else if (is_keyword("struct"))
+	{
+		return parse_struct_declaration();
+	}
+	else if (is_keyword("enum"))
+	{
+		return parse_enum_declaration();
+	}
+	else
+	{
+		throw_parse_exception("syntax error");
+	}
+
+#if 0
 	TypeModifierPreparseData preparse = preparse_type();
 
 	if (is_keyword("const"))
@@ -63,9 +93,21 @@ AstNode *Parser::parse_class_member()
 	{
 		throw_parse_exception("syntax error");
 	}
+#endif
 }
 
-AstNode *Parser::parse_const_declaration(const TypeModifierPreparseData &preparse)
+AstNode* Parser::parse_state_declaration()
+{
+	if (!is_keyword("state"))
+		throw_parse_exception("state expected");
+
+	throw_parse_exception("parse_state_declaration not implemented");
+
+	//AstStateDeclaration* state_decl = newNode<AstStateDeclaration>();
+	//return state_decl;
+}
+
+AstNode *Parser::parse_const_declaration()
 {
 	if (!is_keyword("const"))
 		throw_parse_exception("const expected");
@@ -74,7 +116,6 @@ AstNode *Parser::parse_const_declaration(const TypeModifierPreparseData &prepars
 	AstName *type = parse_name();
 
 	AstConstantDeclaration *const_decl = newNode<AstConstantDeclaration>();
-	const_decl->access_type = preparse.access_type;
 	const_decl->type = type;
 
 	while (true)
@@ -174,11 +215,18 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 	return parameters;
 }
 
-AstNode *Parser::parse_method_declaration(const TypeModifierPreparseData &preparse, AstName *return_type, const std::string &identifier1, const std::string &identifier2)
+AstNode *Parser::parse_method_declaration()
 {
+	if (!is_keyword("function") && !is_keyword("event") && !is_keyword("singular") && !is_keyword("simulated"))
+		throw_parse_exception("function, event, singular or simulated expected");
+
+	AstMethodDeclaration* method_decl = newNode<AstMethodDeclaration>();
+
+	throw_parse_exception("parse_method_declaration not implemented");
+/*
+
 	std::string member_name = identifier1;
 
-	AstMethodDeclaration *method_decl = newNode<AstMethodDeclaration>();
 	method_decl->is_static = preparse.is_static;
 	method_decl->is_event = preparse.is_event;
 	method_decl->return_type = return_type;
@@ -204,20 +252,78 @@ AstNode *Parser::parse_method_declaration(const TypeModifierPreparseData &prepar
 	{
 		throw_parse_exception("{ or ; expected");
 	}
-
+*/
 	return method_decl;
 }
 
-AstNode *Parser::parse_field_declaration(const TypeModifierPreparseData &preparse, AstName *type, const std::string &identifier1, const std::string &identifier2)
+AstNode *Parser::parse_field_declaration()
 {
+	if (!is_keyword("var"))
+		throw_parse_exception("var expected");
+	next();
+
 	AstFieldDeclaration *field_decl = newNode<AstFieldDeclaration>();
-	field_decl->is_static = preparse.is_static;
-	field_decl->is_const = preparse.is_const;
-	field_decl->access_type = preparse.access_type;
-	field_decl->type = type;
+
+	if (is_operator("("))
+	{
+		next();
+
+		if (is_identifier())
+		{
+			field_decl->group = token.value;
+			next();
+		}
+
+		if (!is_operator(")"))
+			throw_parse_exception(") expected");
+		next();
+	}
+
+	bool is_access_type_set = false;
+	while (true)
+	{
+		if (is_keyword("public"))
+		{
+			if (is_access_type_set)
+				throw_parse_exception("public already specified");
+			is_access_type_set = true;
+			field_decl->access_type = access_public;
+		}
+		else if (is_keyword("private"))
+		{
+			if (is_access_type_set)
+				throw_parse_exception("private already specified");
+			is_access_type_set = true;
+			field_decl->access_type = access_private;
+		}
+		else if (is_keyword("const"))
+		{
+			if (field_decl->is_const)
+				throw_parse_exception("const already specified");
+			field_decl->is_const = true;
+		}
+		else if (is_keyword("localized"))
+		{
+			if (field_decl->is_localized)
+				throw_parse_exception("localized already specified");
+			field_decl->is_localized = true;
+		}
+		else
+		{
+			break;
+		}
+		next();
+	}
+
+	field_decl->type = parse_name();
 
 	AstVariableDeclarator *var_decl = newNode<AstVariableDeclarator>();
-	var_decl->identifier = identifier1;
+
+	if (!is_identifier())
+		throw_parse_exception("identifier expected");
+	var_decl->identifier = token.value;
+	next();
+
 	field_decl->declarators.push_back(var_decl);
 
 	while (true)

@@ -25,14 +25,17 @@ AstClassDeclaration *Parser::parse_class_declaration()
 		}
 		else if (is_keyword("native") || is_keyword("intrinsic"))
 		{
+			next();
 			class_decl->is_native = true;
 		}
 		else if (is_keyword("abstract"))
 		{
+			next();
 			class_decl->is_abstract = true;
 		}
 		else if (is_keyword("noexport"))
 		{
+			next();
 			class_decl->no_export = true;
 		}
 		else
@@ -44,14 +47,23 @@ AstClassDeclaration *Parser::parse_class_declaration()
 
 	while (token.type != Token::type_eof)
 	{
+		if (is_keyword("defaultproperties") || is_keyword("_defaultproperties"))
+			break;
 		class_decl->members.push_back(parse_class_member());
 	}
 	next();
 
+	if (is_keyword("defaultproperties") || is_keyword("_defaultproperties"))
+	{
+		// To do: parse default properties
+		while (token.type != Token::type_eof)
+			next();
+	}
+
 	return class_decl;
 }
 
-AstStructDeclaration *Parser::parse_struct_declaration(const TypeModifierPreparseData &preparse)
+AstStructDeclaration *Parser::parse_struct_declaration()
 {
 	if (!is_keyword("struct"))
 		throw_parse_exception("struct expected");
@@ -77,15 +89,13 @@ AstStructDeclaration *Parser::parse_struct_declaration(const TypeModifierPrepars
 	return struct_decl;
 }
 
-AstEnumDeclaration *Parser::parse_enum_declaration(const TypeModifierPreparseData &preparse)
+AstEnumDeclaration *Parser::parse_enum_declaration()
 {
 	if (!is_keyword("enum"))
 		throw_parse_exception("enum expected");
 	next();
 
 	AstEnumDeclaration *enum_decl = newNode<AstEnumDeclaration>();
-
-	enum_decl->access_type = preparse.access_type;
 
 	if (!is_identifier())
 		throw_parse_exception("identifier expected");

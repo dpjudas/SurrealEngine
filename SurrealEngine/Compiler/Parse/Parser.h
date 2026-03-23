@@ -54,13 +54,14 @@ private:
 	TypeModifierPreparseData preparse_type();
 
 	AstClassDeclaration *parse_class_declaration();
-	AstStructDeclaration *parse_struct_declaration(const TypeModifierPreparseData &preparse);
-	AstEnumDeclaration *parse_enum_declaration(const TypeModifierPreparseData &preparse);
+	AstStructDeclaration *parse_struct_declaration();
+	AstEnumDeclaration *parse_enum_declaration();
 
 	AstNode *parse_class_member();
-	AstNode *parse_const_declaration(const TypeModifierPreparseData &preparse);
-	AstNode *parse_method_declaration(const TypeModifierPreparseData &preparse, AstName *return_type, const std::string &identifier1, const std::string &identifier2);
-	AstNode *parse_field_declaration(const TypeModifierPreparseData &preparse, AstName *type, const std::string &identifier1, const std::string &identifier2);
+	AstNode* parse_state_declaration();
+	AstNode *parse_const_declaration();
+	AstNode *parse_method_declaration();
+	AstNode *parse_field_declaration();
 	AstNode *parse_operator_declaration(const TypeModifierPreparseData &preparse, AstName *return_type);
 
 	std::vector<AstMethodParameter *> parse_formal_parameter_list(const char *end_operator);

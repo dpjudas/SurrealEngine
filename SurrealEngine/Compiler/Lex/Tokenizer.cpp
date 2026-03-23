@@ -265,54 +265,36 @@ bool Tokenizer::read_identifier_part_character(std::u32string::value_type &chara
 		return true;
 	}
 
-	// To do: add support for this unicode literals:
-
-	// A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl
-	// A Unicode character of classes Mn or Mc
-	// A Unicode character of the class Nd
-	// A Unicode character of the class Pc
-	// A Unicode character of the class Cf
-
-	// A unicode-escape-sequence representing a character of classes Lu, Ll, Lt, Lm, Lo, or Nl
-	// A unicode-escape-sequence representing a character of classes Mn or Mc
-	// A unicode-escape-sequence representing a character of the class Nd
-	// A unicode-escape-sequence representing a character of the class Pc
-	// A unicode-escape-sequence representing a character of the class Cf
-
 	return false;
 }
 
 bool Tokenizer::read_keyword(Token &token)
 {
-	if (data[pos] < 'a' || data[pos] > 'z')
+	if ((data[pos] < 'a' || data[pos] > 'z') && (data[pos] < 'A' || data[pos] > 'Z'))
 		return false;
 
-	// The keywords list is sorted alphabetically, which means we need to check in reverse order to avoid matching "in" before "int" and so on
-	// Yes, this code is all very silly. Feel free to improve it to something better and faster. :)
-	int i;
-	for (i = 0; keywords[i] != 0; i++);
+	size_t endpos = pos;
+	while (endpos < data.size() && ((data[endpos] >= 'a' && data[endpos] <= 'z') || (data[endpos] >= 'A' && data[endpos] <= 'Z')))
+		endpos++;
 
-	for (--i; i >= 0; i--)
+	std::string lc;
+	for (size_t i = pos; i < endpos; i++)
 	{
-		size_t j;
-		for (j = 0; keywords[i][j] != 0; j++)
-		{
-			if (pos + j == data.size() || data[pos + j] != keywords[i][j])
-				break;
-		}
+		if (data[i] >= 'A' && data[i] <= 'Z')
+			lc.push_back((char)data[i] - 'A' + 'a');
+		else
+			lc.push_back((char)data[i]);
+	}
 
-		if (keywords[i][j] == 0)
-		{
-			if (pos + j == data.size() || data[pos + j] < 'a' || data[pos + j] > 'z') // check if we matched a whole word (otherwise it might be a different keyword or identifier)
-			{
-				token.line = line_number;
-				token.column = pos - line_start_pos;
-				token.type = Token::type_keyword;
-				token.value = keywords[i];
-				pos += j;
-				return true;
-			}
-		}
+	auto it = keywords.find(lc);
+	if (it != keywords.end())
+	{
+		token.line = line_number;
+		token.column = pos - line_start_pos;
+		token.type = Token::type_keyword;
+		token.value = lc;
+		pos = endpos;
+		return true;
 	}
 
 	return false;
@@ -807,86 +789,64 @@ bool Tokenizer::read_operator_or_punctuator(Token &token)
 	return false;
 }
 
-const char *Tokenizer::keywords[] = 
+const std::set<std::string> Tokenizer::keywords = 
 {
 	"abstract",
-	"as",
-	"base",
 	"bool",
 	"break",
 	"byte",
 	"case",
-	"catch",
 	"char",
-	"checked",
 	"class",
 	"const",
 	"continue",
-	"decimal",
 	"default",
-	"delegate",
+	"defaultproperties",
+	"_defaultproperties",
 	"do",
 	"double",
 	"else",
 	"enum",
 	"event",
-	"explicit",
-	"extern",
+	"extends",
 	"false",
-	"finally",
-	"fixed",
 	"float",
 	"for",
 	"foreach",
 	"goto",
 	"if",
-	"implicit",
 	"in",
 	"int",
-	"interface",
-	"internal",
 	"is",
-	"lock",
+	"localized",
 	"long",
-	"namespace",
+	"native",
 	"new",
 	"null",
+	"noexport",
 	"object",
 	"operator",
 	"out",
-	"override",
-	"params",
 	"private",
-	"protected",
 	"public",
-	"readonly",
 	"ref",
 	"return",
 	"sbyte",
-	"sealed",
 	"short",
 	"sizeof",
-	"stackalloc",
+	"state",
 	"static",
 	"string",
 	"struct",
 	"switch",
 	"this",
-	"throw",
 	"true",
-	"try",
-	"typeof",
 	"uint",
 	"ulong",
-	"unchecked",
-	"unsafe",
 	"ushort",
-	"using",
-	"virtual",
+	"var",
 	"void",
-	"volatile",
 	"while",
-	0
 };
 
 const char *Tokenizer::operators[] = 

@@ -75,6 +75,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/RunCommandlet.h
 	SurrealEngine/Commandlet/ExportCommandlet.cpp
 	SurrealEngine/Commandlet/ExportCommandlet.h
+	SurrealEngine/Commandlet/CompilerCommandlet.cpp
+	SurrealEngine/Commandlet/CompilerCommandlet.h
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.cpp
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.h
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.cpp

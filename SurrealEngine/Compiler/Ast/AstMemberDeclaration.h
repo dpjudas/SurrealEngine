@@ -24,7 +24,6 @@ public:
 		visitor->name(this);
 	}
 
-	AstAccessType access_type = {};
 	AstName *type = nullptr;
 	std::vector<AstConstantDeclarator *> declarators;
 };
@@ -49,8 +48,10 @@ public:
 		visitor->name(this);
 	}
 
+	std::string group;
 	bool is_static = false;
 	bool is_const = false;
+	bool is_localized = false;
 	AstAccessType access_type = {};
 	AstName *type = nullptr;
 	std::vector<AstVariableDeclarator *> declarators;
