@@ -49,7 +49,9 @@ enum class ExpressionValueType
 	ValueString,
 	ValueName,
 	ValueColor,
-	ValueStruct
+	ValueStruct,
+	ValueCoords,
+	ValueQuat
 };
 
 class UProperty : public UField
