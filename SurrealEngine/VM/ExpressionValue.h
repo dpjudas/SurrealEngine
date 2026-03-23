@@ -3,6 +3,8 @@
 #include "UObject/UObject.h"
 #include "UObject/UProperty.h"
 #include "Utils/AlignedAlloc.h"
+#include "Math/quaternion.h"
+#include "Math/coords.h"
 #include <optional>
 
 class UProperty;
@@ -107,6 +109,8 @@ public:
 			case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
 			case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
 			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+			case ExpressionValueType::ValueCoords: new(PtrByte) Coords(*v.PtrCoords); break;
+			case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(*v.PtrQuat); break;
 			}
 		}
 		else
@@ -132,6 +136,8 @@ public:
 			case ExpressionValueType::ValueName: new(PtrByte) NameString(std::move(*v.PtrName)); break;
 			case ExpressionValueType::ValueColor: new(PtrByte) Color(std::move(*v.PtrColor)); break;
 			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(std::move(*v.GetStructValue())); Ptr = GetStructValue()->Ptr; break;
+			case ExpressionValueType::ValueCoords: new(PtrByte) Coords(std::move(*v.PtrCoords)); break;
+			case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(std::move(*v.PtrQuat)); break;
 			}
 		}
 		else
@@ -162,6 +168,8 @@ public:
 				case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
 				case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
 				case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+				case ExpressionValueType::ValueCoords: new(PtrByte) Coords(*v.PtrCoords); break;
+				case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(*v.PtrQuat); break;
 				}
 			}
 			else
@@ -191,8 +199,10 @@ public:
 	const NameString& ToName() const;
 	const Color& ToColor() const;
 	const IpAddr& ToIpAddr() const;
+	const Coords& ToCoords() const;
+	const quaternion& ToQuat() const;
 
-	template<typename T> T ToType();
+	template<typename T> T ToType() = delete;
 
 	void Store(const ExpressionValue& rvalue);
 	void Load();
@@ -210,6 +220,8 @@ public:
 	static ExpressionValue StringValue(std::string value) { ExpressionValue v(ExpressionValueType::ValueString); *v.PtrString = value; return v; }
 	static ExpressionValue NameValue(NameString value) { ExpressionValue v(ExpressionValueType::ValueName); *v.PtrName = value; return v; }
 	static ExpressionValue ColorValue(Color value) { ExpressionValue v(ExpressionValueType::ValueColor); *v.PtrColor = value; return v; }
+	static ExpressionValue CoordsValue(Coords value) { ExpressionValue v(ExpressionValueType::ValueCoords); *v.PtrCoords = value; return v; }
+	static ExpressionValue QuatValue(quaternion value) { ExpressionValue v(ExpressionValueType::ValueQuat); *v.PtrQuat = value; return v; }
 
 	static ExpressionValue DefaultValue(UProperty* prop);
 	static ExpressionValue PropertyValue(UProperty* prop);
@@ -250,6 +262,8 @@ private:
 		case ExpressionValueType::ValueName: new(PtrByte) NameString(); break;
 		case ExpressionValueType::ValueColor: new(PtrByte) Color(); break;
 		case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(); Ptr = GetStructValue()->Ptr; break;
+		case ExpressionValueType::ValueCoords: new(PtrByte) Coords(); break;
+		case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(); break;
 		}
 		BoolInfo.Ptr = (uint32_t*)Ptr;
 		BoolInfo.Mask = 1;
@@ -276,6 +290,8 @@ private:
 			case ExpressionValueType::ValueName: PtrName->~NameString(); break;
 			case ExpressionValueType::ValueColor: PtrColor->~Color(); break;
 			case ExpressionValueType::ValueStruct: GetStructValue()->~StructValue(); break;
+			case ExpressionValueType::ValueCoords: PtrCoords->~Coords(); break;
+			case ExpressionValueType::ValueQuat: PtrQuat->~quaternion(); break;
 			}
 			Type = ExpressionValueType::Nothing;
 		}
@@ -301,6 +317,8 @@ private:
 		uint8_t Name[sizeof(NameString)];
 		uint8_t Color_[sizeof(Color)];
 		uint8_t Struct[sizeof(StructValue)];
+		uint8_t Coords_[sizeof(Coords)];
+		uint8_t Quat[sizeof(quaternion)];
 	} Buffer;
 
 	ExpressionValueType Type = ExpressionValueType::Nothing;
@@ -319,6 +337,8 @@ private:
 		NameString* PtrName;
 		Color* PtrColor;
 		IpAddr* PtrIpAddr;
+		Coords* PtrCoords;
+		quaternion* PtrQuat;
 	};
 
 	UProperty* VariableProperty = nullptr;
@@ -337,6 +357,8 @@ template<> inline const std::string& ExpressionValue::ToType() { return ToString
 template<> inline const NameString& ExpressionValue::ToType() { return ToName(); }
 template<> inline const Color& ExpressionValue::ToType() { return ToColor(); }
 template<> inline const IpAddr& ExpressionValue::ToType() { return ToIpAddr(); }
+template<> inline Coords ExpressionValue::ToType() { return ToCoords(); }
+template<> inline quaternion ExpressionValue::ToType() { return ToQuat(); }
 
 // Pass by reference
 template<> inline uint8_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueByte); return *PtrByte; }
@@ -350,6 +372,8 @@ template<> inline std::string& ExpressionValue::ToType() { CheckType(ExpressionV
 template<> inline NameString& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueName); return *PtrName; }
 template<> inline Color& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueColor); return *PtrColor; }
 template<> inline IpAddr& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueStruct); return *PtrIpAddr; }
+template<> inline Coords& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueCoords); return *PtrCoords; }
+template<> inline quaternion& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueQuat); return *PtrQuat; }
 
 // Optional arguments
 template<> inline std::optional<uint8_t> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToByte(); else return {}; }
@@ -363,6 +387,8 @@ template<> inline std::optional<std::string> ExpressionValue::ToType() { if (Typ
 template<> inline std::optional<NameString> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToName(); else return {}; }
 template<> inline std::optional<Color> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToColor(); else return {}; }
 template<> inline std::optional<IpAddr> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToIpAddr(); else return {}; }
+template<> inline std::optional<Coords> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToCoords(); else return std::nullopt; }
+template<> inline std::optional<quaternion> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToQuat(); else return std::nullopt; }
 
 inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 {
@@ -382,6 +408,8 @@ inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 	case ExpressionValueType::ValueName: return NameValue({});
 	case ExpressionValueType::ValueColor: { Color c; c.R = c.G = c.B = c.A = 0; return ColorValue(c); }
 	case ExpressionValueType::ValueStruct: Exception::Throw("Default value for a struct type is not implemented");
+	case ExpressionValueType::ValueCoords: return CoordsValue({});
+	case ExpressionValueType::ValueQuat: return QuatValue({});
 	}
 }
 
@@ -425,6 +453,8 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 					static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
 		}
 		break;
+	case ExpressionValueType::ValueCoords: *PtrCoords = rvalue.ToCoords(); break;
+	case ExpressionValueType::ValueQuat: *PtrQuat = rvalue.ToQuat(); break;
 	}
 }
 
@@ -451,6 +481,8 @@ inline void ExpressionValue::Load()
 			value.GetStructValue()->Load(UObject::Cast<UStructProperty>(VariableProperty)->Struct, Ptr);
 			value.Ptr = value.GetStructValue()->Ptr;
 			break;
+		case ExpressionValueType::ValueCoords: *value.PtrCoords = *PtrCoords; break;
+		case ExpressionValueType::ValueQuat: *value.PtrQuat = *PtrQuat; break;
 		}
 		*this = std::move(value);
 	}
@@ -473,6 +505,8 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	case ExpressionValueType::ValueName: return ToName() == value.ToName();
 	case ExpressionValueType::ValueColor: return ToColor() == value.ToColor();
 	case ExpressionValueType::ValueStruct: Exception::Throw("IsEqual not implemented for complex structs");
+	case ExpressionValueType::ValueCoords: Exception::Throw("IsEqual not implemented for Coords");
+	case ExpressionValueType::ValueQuat: return ToQuat() == value.ToQuat();
 	}
 }
 
@@ -640,4 +674,30 @@ inline const IpAddr& ExpressionValue::ToIpAddr() const
 	{
 		Exception::Throw("Not a ipaddr/struct value");
 	}
+}
+
+inline const Coords& ExpressionValue::ToCoords() const
+{
+	if (Type == ExpressionValueType::Nothing)
+	{
+		static Coords nothing;
+		return nothing;
+	}
+	if (Type == ExpressionValueType::ValueCoords)
+		return *PtrCoords;
+
+	Exception::Throw("Not a Coords value");
+}
+
+inline const quaternion& ExpressionValue::ToQuat() const
+{
+	if (Type == ExpressionValueType::Nothing)
+	{
+		static quaternion nothing;
+		return nothing;
+	}
+	if (Type == ExpressionValueType::ValueQuat)
+		return *PtrQuat;
+
+	Exception::Throw("Not a quaternion value");
 }
