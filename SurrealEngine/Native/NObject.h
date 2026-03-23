@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Math/quaternion.h"
+#include "Math/coords.h"
 #include "UObject/UObject.h"
 
 class NObject
@@ -18,38 +20,56 @@ public:
 	static void AddEqual_IntInt(int& A, int B, int& ReturnValue);
 	static void AddEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void AddEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue);
+	static void AddEqual_QuatQuat_U227(quaternion& A, quaternion& B, quaternion& ReturnValue);
 	static void Add_FloatFloat(float A, float B, float& ReturnValue);
 	static void Add_IntInt(int A, int B, int& ReturnValue);
 	static void Add_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void Add_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
-	static void AllFiles(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName);
+	static void Add_QuatQuat_U227(quaternion& A, quaternion& B, quaternion& ReturnValue);
+	static void AlignQuatWith_U227(quaternion& A, quaternion& B, quaternion& ReturnValue); // Ensure A points to the same side of the hypersphere as B
+	static void AllFiles_U227(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName);
+	static void AllLinkers_U227(NameString& PackageName, std::string& FileName, std::string& GUID, int& NameCount, int& ImportCount, int& ExportCount, int& FileSize);
 	static void AndAnd_BoolBool(bool A, std::optional<bool> B, BitfieldBool& ReturnValue);
 	static void And_IntInt(int A, int B, int& ReturnValue);
+	static void And_RotatorRotator_U227(Rotator& R1, Rotator& R2, Rotator& ReturnValue); // Add a Rotator relative to the first one. Note that R1 & R2 != R2 & R1.
+	static void AppSeconds_U227(float& ReturnValue);
+	static void AppInEditor_U227(BitfieldBool& ReturnValue);
+	// static void Array_Size_U227(Array<uint8_t>& Ar, std::optional<int> SetSize, int& ReturnValue);
+	// static void Array_Insert_U227(Array<uint8_t>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Insert space into a dynamic array. Returns false if it fails (bad parameters, const/private/inaccessible array)
+	// static void Array_Remove_U227(Array<uint8_t>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Remove space from a dynamic array. Returns false if fails.
 	static void Asc(const std::string& S, int& ReturnValue);
 	static void At_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
 	static void Atan(float A, float& ReturnValue);
 	static void Caps(const std::string& S, std::string& ReturnValue);
+	static void Ceil_U227(float f, float& ReturnValue);
 	static void Chr(int i, std::string& ReturnValue);
 	static void Clamp(int V, int A, int B, int& ReturnValue);
 	static void ClassIsChildOf(UObject* TestClass, UObject* ParentClass, BitfieldBool& ReturnValue);
+	static void ClearConfig_U227(UObject* Class, std::optional<std::string> PropName); // If PropName isn't specified, clears all properties
 	static void ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
 	static void Complement_PreInt(int A, int& ReturnValue);
+	static void Complement_PreQuat_U227(quaternion A, quaternion& ReturnValue); // Get conjugate of A
 	static void Concat_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
+	static void CoordsToQuat_U227(Coords& C, quaternion& ReturnValue);
 	static void Cos(float A, float& ReturnValue);
 	static void CriticalDelete(UObject* Self, UObject* myObject);
 	static void Cross_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
 	static void Disable(UObject* Self, const NameString& ProbeFunc);
+	static void Divide_U227(std::string& Src, std::string& Divider, std::string& LeftPart, std::string& RightPart, BitfieldBool& ReturnValue); // Returns true if the string can be divided into two.
 	static void DivideEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
+	static void DivideEqual_CoordsRotator_U227(Coords& A, Rotator& B, Coords& ReturnValue); // Inverse rotate Coords by Rotator
 	static void DivideEqual_FloatFloat(float& A, float B, float& ReturnValue);
 	static void DivideEqual_IntFloat(int& A, float B, int& ReturnValue);
 	static void DivideEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue);
 	static void DivideEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue);
+	static void DivideEqual_QuatFloat_U227(quaternion& A, float B, quaternion& ReturnValue);
 	static void Divide_FloatFloat(float A, float B, float& ReturnValue);
 	static void Divide_IntInt(int A, int B, int& ReturnValue);
 	static void Divide_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue);
 	static void Divide_VectorFloat(const vec3& A, float B, vec3& ReturnValue);
 	static void Dot_VectorVector(const vec3& A, const vec3& B, float& ReturnValue);
+	static void Dot_QuatQuat_U227(quaternion& A, quaternion& B, float& ReturnValue);
 	static void DynamicLoadObject(const std::string& ObjectName, UObject* ObjectClass, std::optional<bool> MayFail, UObject*& ReturnValue);
 	static void DynamicLoadObject_219(const std::string& ObjectName, UObject* ObjectClass, UObject*& ReturnValue);
 	static void Enable(UObject* Self, const NameString& ProbeFunc);
@@ -61,16 +81,28 @@ public:
 	static void EqualEqual_RotatorRotator(const Rotator& A, const Rotator& B, BitfieldBool& ReturnValue);
 	static void EqualEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
 	static void EqualEqual_VectorVector(const vec3& A, const vec3& B, BitfieldBool& ReturnValue);
+	static void ExecFunctionStr_U227(const NameString& FuncName, const std::string& Params, std::optional<std::string> ReturnVal);
 	static void Exp(float A, float& ReturnValue);
+	static void ExportFullProperties_U227(std::optional<bool> bDelta, std::string& ReturnValue); // Exports a list of properties (private variables are skipped, and export objects are not exported). Properties are separated with /r/n linebreaks.
+	static void ExtractString_U227(std::string& Src, std::string& LeftDivider, std::string& RightDivider, std::string& MidString, std::optional<bool> bAdvanced, BitfieldBool& ReturnValue);
 	static void FClamp(float V, float A, float B, float& ReturnValue);
+	static void FindFunction_U227(NameString& FuncName, std::optional<NameString> TestState, UObject* ReturnValue);
+	static void FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObject* ReturnValue); // Find an object based on ObjectName (and outer name). E.g. FindObject(Class'Texture',"Engine.P_Pawn")
+	static void FindObjectIndex_U227(int Index, UObject* ReturnValue); // Find an object by its ObjectIndex (227-exclusive property of Object)
 	static void FMax(float A, float B, float& ReturnValue);
 	static void FMin(float A, float B, float& ReturnValue);
 	static void FRand(float& ReturnValue);
 	static void GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
+	// static void GetCallStack_U227(Array<USScriptCallPair>& Stack); // USScriptCallPair is a pair of an UObject and UFunction
+	static void GetClassFlags_U227(UObject* Class, int& ReturnValue);
+	static void GetDefaultObject_U227(UObject* ObjClass, UObject* ReturnValue); // Return the default object from a desired class. Acts like Class'SomeClass'.Default.SomeVar
 	static void GetEnum(UObject* E, int i, NameString& ReturnValue);
+	static void GetParentClass_U227(std::optional<UObject*> ObjClass, UObject* ReturnValue); // If ObjClass is specified then return the parent class of it, otherwise return the parent of the current class.
+	// static void GetPerObjectNames_U227(std::string& ININame, std::optional<std::string> ObjectClass, std::optional<int> MaxResults, Array<std::string> ReturnValue); // If MaxResults isn't specified, then it is unlimited
 	static void GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue);
 	static void GetStateName(UObject* Self, NameString& ReturnValue);
 	static void GetUnAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
+	static void GetUnitCoords_U227(Coords& ReturnValue); // Get default forward direction coords
 	static void GotoState(UObject* Self, std::optional<NameString> NewState, std::optional<NameString> Label);
 	static void GreaterEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void GreaterEqual_IntInt(int A, int B, BitfieldBool& ReturnValue);
@@ -81,13 +113,18 @@ public:
 	static void Greater_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void Greater_IntInt(int A, int B, BitfieldBool& ReturnValue);
 	static void Greater_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
+	static void ImportFullProperties_U227(const std::string& S); // Import a list of properties found in S (skipping private and const variables)
 	static void InStr(const std::string& S, const std::string& t, int& ReturnValue);
+	// static void InterpCurveEval_U227(InterpCurve& curve, float input, float& ReturnValue); // InterpCurve operator, which is a dynamic array of InVal and OutVal groups
+	static void IntToStr_U227(int value, int minWidth, std::string& ReturnValue); // Convert value to string, pad the result with 0s if width < minWidth
 	static void Invert(vec3& X, vec3& Y, vec3& Z);
 	static void IsA(UObject* Self, const NameString& ClassName, BitfieldBool& ReturnValue);
 	static void IsInState(UObject* Self, const NameString& TestState, BitfieldBool& ReturnValue);
 	static void Left(const std::string& S, int i, std::string& ReturnValue);
 	static void Len(const std::string& S, int& ReturnValue);
 	static void Lerp(float Alpha, float A, float B, float& ReturnValue);
+	static void LerpRotation_U227(Rotator& Dest, Rotator& Src, float Alpha, Rotator& ReturnValue); // Uses shortest rotation
+	static void LerpVector_U227(vec3& Dest, vec3& Src, float Alpha, vec3& ReturnValue); // Dest * Alpha + Src * (1-Alpha)
 	static void LessEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void LessEqual_IntInt(int A, int B, BitfieldBool& ReturnValue);
 	static void LessEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
@@ -96,28 +133,41 @@ public:
 	static void Less_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
 	static void Less_IntInt(int A, int B, BitfieldBool& ReturnValue);
 	static void Less_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
+	// static void LoadPackageContents_U227(const std::string& PackageName, std::optional<UObject*> ListType, std::optional<Array<UObject*>&> PckContents, BitfieldBool& ReturnValue); // Load an entire package to memory. Found objects can be queried in PckContents and can be filtered with ListType class.
 	static void Localize(const std::string& SectionName, const std::string& KeyName, const std::string& PackageName, std::string& ReturnValue);
+	static void Locs_U227(const std::string& S, std::string& ReturnValue); // Make S lowercase
 	static void Log(const std::string& S, std::optional<NameString> Tag);
 	static void Loge(float A, float& ReturnValue);
+	static void MakeColor_U227(uint8_t R, uint8_t G, uint8_t B, std::optional<uint8_t> A, Color& ReturnValue);
+	static void MakeQuat_U227(float X, float Y, float Z, float W, quaternion& ReturnValue);
 	static void Max(int A, int B, int& ReturnValue);
 	static void Mid(const std::string& S, int i, std::optional<int> j, std::string& ReturnValue);
 	static void Min(int A, int B, int& ReturnValue);
 	static void MirrorVectorByNormal(const vec3& Vect, const vec3& Normal, vec3& ReturnValue);
 	static void MultiplyEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
+	static void MultiplyEqual_CoordsCoords_U227(Coords& A, Coords& B, Coords& ReturnValue);
+	static void MultiplyEqual_CoordsRotator_U227(Coords& A, Rotator& B, Coords& ReturnValue); // Rotate Coords by Rotator
 	static void MultiplyEqual_FloatFloat(float& A, float B, float& ReturnValue);
 	static void MultiplyEqual_IntFloat(int& A, float B, int& ReturnValue);
 	static void MultiplyEqual_RotatorFloat(Rotator& A, float B, Rotator& ReturnValue);
+	static void MultiplyEqual_VectorCoords_U227(vec3& A, Coords& B, vec3& ReturnValue); // Rotate Vector by Coords
 	static void MultiplyEqual_VectorFloat(vec3& A, float B, vec3& ReturnValue);
 	static void MultiplyEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue);
+	static void MultiplyEqual_QuatFloat_U227(quaternion& A, float B, quaternion& ReturnValue);
 	static void MultiplyMultiply_FloatFloat(float A, float B, float& ReturnValue);
+	static void Multiply_CoordsCoords_U227(Coords& A, Coords& B, Coords& ReturnValue); // Rotate A by B
 	static void Multiply_FloatFloat(float A, float B, float& ReturnValue);
 	static void Multiply_FloatRotator(float A, const Rotator& B, Rotator& ReturnValue);
 	static void Multiply_FloatVector(float A, const vec3& B, vec3& ReturnValue);
+	static void Multiply_FloatQuat_U227(float A, quaternion& B, quaternion& ReturnValue);
 	static void Multiply_IntInt(int A, int B, int& ReturnValue);
 	static void Multiply_RotatorFloat(const Rotator& A, float B, Rotator& ReturnValue);
 	static void Multiply_VectorFloat(const vec3& A, float B, vec3& ReturnValue);
 	static void Multiply_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
+	static void Multiply_QuatFloat_U227(quaternion& A, float B, quaternion& ReturnValue);
+	static void Multiply_QuatQuat_U227(quaternion& A, quaternion& B, quaternion& ReturnValue);
 	static void Normal(const vec3& A, vec3& ReturnValue);
+	static void Normal2D_U227(const vec3& A, vec3& ReturnValue); // Normalize a vector where Z axis is ignored
 	static void Normalize(const Rotator& Rot, Rotator& ReturnValue);
 	static void NotEqual_BoolBool(bool A, bool B, BitfieldBool& ReturnValue);
 	static void NotEqual_FloatFloat(float A, float B, BitfieldBool& ReturnValue);
@@ -132,23 +182,45 @@ public:
 	static void Or_IntInt(int A, int B, int& ReturnValue);
 	static void OrthoRotation(const vec3& X, const vec3& Y, const vec3& Z, Rotator& ReturnValue);
 	static void Percent_FloatFloat(float A, float B, float& ReturnValue);
-	static void Rand(int Max, int& ReturnValue);
+	static void QuatError_U227(quaternion& A, quaternion& B, float& ReturnValue); // Error measure (angle) between two Quats, ranged [0..1]
+	static void QuatFromAxisAndAngle_U227(const vec3& axis, float angle, quaternion& ReturnValue);
+	static void QuatGetAngle_U227(quaternion& A, float& ReturnValue); // Get angle about quad vector axis
+	static void QuatGetAxis_U227(quaternion& A, vec3& ReturnValue); // Get Unit Vector along rot
+	static void QuatGetVect_U227(quaternion& A, vec3& ReturnValue); // Get Unit Vector part
+	static void QuatRotate_U227(quaternion& A, quaternion& B, quaternion& ReturnValue); // Rotate A by B
+	static void QuatSizeSquared_U227(quaternion& A, float& ReturnValue); // Get square of size (magnitude) of quaternion A
+	static void QuatSize_U227(quaternion& A, float& ReturnValue); // Get size (magnitude) of quaternion A
+	static void QuatSlerp_U227(quaternion& A, quaternion& B, float C, std::optional<bool> bAlign, quaternion& ReturnValue); // Output is not normalized. Assumes quats are aligned unless bAlign=true, then normalizes and aligns both of them beforehand.
+	static void QuatToCoords_U227(quaternion& Q, std::optional<vec3> Origin, Coords& ReturnValue);
+	static void QuatToRotation_U227(quaternion& Q, Rotator& ReturnValue);
+	static void QuatVRotate_U227(quaternion& A, vec3& B, vec3& ReturnValue); // Rotate Vector B by Quat A
+	static void Rand(int Max, int& ReturnValue); // Upper limit of Max is 32,767
+	static void RandIntRange_U227(UObject* Self, int Min, int Max, int& ReturnValue); // Upper limit of Max is 1,073,741,823
 	static void RandRange(UObject* Self, float Min, float Max, float& ReturnValue);
+	static void ReplaceStr_U227(std::string& text, std::string& findStr, std::string& replaceWith, std::optional<bool> bCaseInsensitive, std::string& ReturnValue);
 	static void ResetConfig();
 	static void Right(const std::string& S, int i, std::string& ReturnValue);
+	static void RotationToQuat_U227(Rotator& R, quaternion& ReturnValue);
 	static void RotRand(std::optional<bool> bRoll, Rotator& ReturnValue);
 	static void SaveConfig(UObject* Self);
+	static void SaveConfig_U227(UObject* Self, std::optional<bool> bNoWriteINI); // bNoWriteINI is false by default. If it is true, don't write the config to ini, and wait for the next SaveConfig() call.
 	static void SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue);
 	static void Sin(float A, float& ReturnValue);
+	static void SlerpRotation_U227(Rotator& Dest, Rotator& Src, float Alpha, Rotator& ReturnValue); // Will use quaternion for actual shortest rotation
 	static void Smerp(float Alpha, float A, float B, float& ReturnValue);
+	static void SortArray_U227(UObject* ArrayProperty, UObject* SortCode, BitfieldBool& ReturnValue); // Sort a dynamic array property using a bool UFunction SortCode, if SortCode is NOT a bool UFunction then return false without doing anything.
+	static void SortStaticArray_U227(UObject* Prop, UObject* SortCode, std::optional<int> SortSize, BitfieldBool& ReturnValue); // Sort the first SortSize elements of a static array property Prop using a bool UFunction SortCode. If SortSize isn't specified then the entire array will be sorted.
 	static void Sqrt(float A, float& ReturnValue);
 	static void Square(float A, float& ReturnValue);
+	static void StartsWith_U227(const std::string& Str, const std::string& SubStr, std::optional<bool> bCaseInsensitive, BitfieldBool& ReturnValue);
 	static void StaticSaveConfig(UObject* Class);
+	static void StringToName_U227(const std::string& S, std::optional<bool> bFind, NameString& ReturnValue); // Convert S to name (63 chars max). If bFind = true then return None if S isn't a registered name.
 	static void SubtractEqual_ByteByte(uint8_t& A, uint8_t B, uint8_t& ReturnValue);
 	static void SubtractEqual_FloatFloat(float& A, float B, float& ReturnValue);
 	static void SubtractEqual_IntInt(int& A, int B, int& ReturnValue);
 	static void SubtractEqual_RotatorRotator(Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void SubtractEqual_VectorVector(vec3& A, const vec3& B, vec3& ReturnValue);
+	static void SubtractEqual_QuatQuat_U227(quaternion& A, quaternion& B, quaternion& ReturnValue);
 	static void SubtractSubtract_Byte(uint8_t& A, uint8_t& ReturnValue);
 	static void SubtractSubtract_Int(int& A, int& ReturnValue);
 	static void SubtractSubtract_PreByte(uint8_t& A, uint8_t& ReturnValue);
@@ -160,9 +232,15 @@ public:
 	static void Subtract_PreVector(const vec3& A, vec3& ReturnValue);
 	static void Subtract_RotatorRotator(const Rotator& A, const Rotator& B, Rotator& ReturnValue);
 	static void Subtract_VectorVector(const vec3& A, const vec3& B, vec3& ReturnValue);
+	static void Subtract_QuatQuat_U227(quaternion& A, quaternion& B, quaternion& ReturnValue);
 	static void Tan(float A, float& ReturnValue);
+	static void TransformCoordsByNormal_U227(Coords& C, vec3& FloorNormal, Coords& ReturnValue); // Like TransformRotatorByNormal() but for Coords
+	static void TransformRotatorByNormal_U227(Rotator& R, vec3& FloorNormal, Rotator& ReturnValue); // Transform a rotator R by some specific floor normal (using rotator Yaw/Pitch components from incoming rotator).
 	static void VRand(vec3& ReturnValue);
 	static void VSize(const vec3& A, float& ReturnValue);
+	static void VSizeSq_U227(const vec3& A, float& ReturnValue); // Length-squared of a 3D Vector
+	static void VSize2D_U227(const vec3& A, float& ReturnValue); // Length of a 2D Vector (3D Vector with ignored Z axis)
+	static void VSize2DSq_U227(const vec3& A, float& ReturnValue); // Length-squared of a 2D Vector (3D Vector with ignored Z axis)
 	static void Warn(const std::string& S);
 	static void XorXor_BoolBool(bool A, bool B, BitfieldBool& ReturnValue);
 	static void Xor_IntInt(int A, int B, int& ReturnValue);
