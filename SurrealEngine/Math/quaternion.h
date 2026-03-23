@@ -28,8 +28,31 @@ struct quaternionT
 
 	operator vec4T<T>() const { return vec4T<T>(x, y, z, w); }
 
+	quaternionT& operator +=(const quaternionT& b) { x += b.x; y += b.y; z += b.z; w += b.w; return *this; }
+	quaternionT& operator -=(const quaternionT& b) { x -= b.x; y -= b.y; z -= b.z; w -= b.w; return *this; }
+	quaternionT& operator *=(const quaternionT& b) {
+		x = x * b.x - y * b.y - z * b.z - w * b.w,
+		y = x * b.y + y * b.x + z * b.w - w * b.z,
+		z = x * b.z - y * b.w + z * b.x + w * b.y,
+		w = x * b.w + y * b.z - z * b.y + w * b.x;
+		return *this;
+	}
+	quaternionT& operator *=(T b) { x *= b; y *= b; z *= b; w *= b; return *this; }
+	quaternionT& operator /=(T b) { x /= b; y /= b; z /= b; w /= b; return *this; }
+
+	bool operator ==(const quaternionT& b) const { return x == b.x && y == b.y && z == b.z && w == b.w; }
+
 	T x, y, z, w;
 };
+
+template<typename T> quaternionT<T> operator +(const quaternionT<T> a, const quaternionT<T> b) { return {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w}; }
+template<typename T> quaternionT<T> operator -(const quaternionT<T> a, const quaternionT<T> b) { return {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w}; }
+// Scalar multiplication
+template<typename T> quaternionT<T> operator *(const quaternionT<T>& a, T b) { return {a.x * b, a.y * b, a.z * b, a.w * b}; }
+template<typename T> quaternionT<T> operator *(T a, const quaternionT<T> b) { return {b.x * a, b.y * a, b.z * a, b.w * a}; }
+template<typename T> quaternionT<T> operator *=(T a, quaternionT<T> b) { b.x *= a; b.y *= a; b.z *= a; b.w *= a; return b; }
+// Scalar division
+template<typename T> quaternionT<T> operator /(const quaternionT<T>& a, T b) { return {a.x / b, a.y / b, a.z / b, a.w / b}; }
 
 /// Linear Quaternion Interpolation
 template<typename T>
@@ -91,6 +114,12 @@ template<typename T>
 T magnitude(const quaternionT<T> &q)
 {
 	return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+}
+
+template<typename T>
+T magnitude_squared(const quaternionT<T> &q)
+{
+	return q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
 }
 
 template<typename T>
