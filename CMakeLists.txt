@@ -436,6 +436,48 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/VideoSettingsPage.h
 	SurrealEngine/UI/Launcher/GameFoldersPage.cpp
 	SurrealEngine/UI/Launcher/GameFoldersPage.h
+	SurrealEngine/Compiler/Ast/Ast.h
+	SurrealEngine/Compiler/Ast/AstAccessType.h
+	SurrealEngine/Compiler/Ast/AstArray.h
+	SurrealEngine/Compiler/Ast/AstCompilationUnit.h
+	SurrealEngine/Compiler/Ast/AstExpression.h
+	SurrealEngine/Compiler/Ast/AstExpressionVisitor.h
+	SurrealEngine/Compiler/Ast/AstGenerics.h
+	SurrealEngine/Compiler/Ast/AstMemberDeclaration.h
+	SurrealEngine/Compiler/Ast/AstName.h
+	SurrealEngine/Compiler/Ast/AstNameVisitor.h
+	SurrealEngine/Compiler/Ast/AstNode.h
+	SurrealEngine/Compiler/Ast/AstStatement.h
+	SurrealEngine/Compiler/Ast/AstStatementVisitor.h
+	SurrealEngine/Compiler/Ast/AstTypeDeclaration.h
+	SurrealEngine/Compiler/Frontend/Compiler.cpp
+	SurrealEngine/Compiler/Frontend/Compiler.h
+	SurrealEngine/Compiler/Frontend/CompilerException.h
+	SurrealEngine/Compiler/Frontend/CompilerMessage.h
+	SurrealEngine/Compiler/Lex/Tokenizer.cpp
+	SurrealEngine/Compiler/Lex/Tokenizer.h
+	SurrealEngine/Compiler/Lex/Token.h
+	SurrealEngine/Compiler/Lex/TextUtil.cpp
+	SurrealEngine/Compiler/Lex/TextUtil.h
+	SurrealEngine/Compiler/Parse/Parser.cpp
+	SurrealEngine/Compiler/Parse/Parser.h
+	SurrealEngine/Compiler/Parse/ParserArray.cpp
+	SurrealEngine/Compiler/Parse/ParserExpression.cpp
+	SurrealEngine/Compiler/Parse/ParserGenerics.cpp
+	SurrealEngine/Compiler/Parse/ParserMemberDeclaration.cpp
+	SurrealEngine/Compiler/Parse/ParserName.cpp
+	SurrealEngine/Compiler/Parse/ParserStatement.cpp
+	SurrealEngine/Compiler/Parse/ParserTypeDeclaration.cpp
+	SurrealEngine/Compiler/Typesystem/ReferenceType.h
+	SurrealEngine/Compiler/Typesystem/Type.h
+	SurrealEngine/Compiler/Typesystem/TypeExpression.h
+	SurrealEngine/Compiler/Typesystem/TypeExpressionVisitor.h
+	SurrealEngine/Compiler/Typesystem/TypeMember.h
+	SurrealEngine/Compiler/Typesystem/TypeMemberVisitor.h
+	SurrealEngine/Compiler/Typesystem/TypeSystem.cpp
+	SurrealEngine/Compiler/Typesystem/TypeSystem.h
+	SurrealEngine/Compiler/Typesystem/TypeVisitor.h
+	SurrealEngine/Compiler/Typesystem/ValueType.h
 )
 
 set(SURREALCOMMON_WIN32_SOURCES
@@ -589,6 +631,12 @@ source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_D
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Video" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Video/.+")
+source_group("SurrealEngine\\Compiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/.+")
+source_group("SurrealEngine\\Compiler\\Ast" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Ast/.+")
+source_group("SurrealEngine\\Compiler\\Frontend" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Frontend/.+")
+source_group("SurrealEngine\\Compiler\\Lex" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Lex/.+")
+source_group("SurrealEngine\\Compiler\\Parse" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Parse/.+")
+source_group("SurrealEngine\\Compiler\\Typesystem" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Typesystem/.+")
 
 source_group("SurrealVideo" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/.+")
 source_group("SurrealVideo\\libavcodec" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/libavcodec/.+")
