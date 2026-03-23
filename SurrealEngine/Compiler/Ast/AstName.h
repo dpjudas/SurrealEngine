@@ -22,6 +22,12 @@ public:
 	AstTypeParameterList *parameter_list = nullptr;
 };
 
+class AstClassName : public AstName // class<I>
+{
+public:
+	std::string name;
+};
+
 class AstKeywordType : public AstName // bool, decimal, sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double
 {
 public:

@@ -13,6 +13,24 @@ AstName *Parser::parse_name()
 
 		name = type;
 	}
+	else if (is_keyword("class"))
+	{
+		AstClassName* type = newNode<AstClassName>();
+		next();
+
+		if (!is_operator("<"))
+			throw_parse_exception("< expected");
+		next();
+
+		if (!is_identifier())
+			throw_parse_exception("identifier expected");
+		type->name = token.value;
+		next();
+
+		if (!is_operator(">"))
+			throw_parse_exception("> expected");
+		next();
+	}
 	else
 	{
 		name = parse_identifier_name();
