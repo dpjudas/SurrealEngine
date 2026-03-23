@@ -7,10 +7,6 @@ AstNode *Parser::parse_class_member()
 	{
 		return parse_field_declaration();
 	}
-	else if (is_keyword("function") || is_keyword("event") || is_keyword("singular") || is_keyword("simulated"))
-	{
-		return parse_method_declaration();
-	}
 	else if (is_keyword("state"))
 	{
 		return parse_state_declaration();
@@ -29,7 +25,7 @@ AstNode *Parser::parse_class_member()
 	}
 	else
 	{
-		throw_parse_exception("syntax error");
+		return parse_method_declaration();
 	}
 
 #if 0
@@ -217,28 +213,124 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 
 AstNode *Parser::parse_method_declaration()
 {
-	if (!is_keyword("function") && !is_keyword("event") && !is_keyword("singular") && !is_keyword("simulated"))
-		throw_parse_exception("function, event, singular or simulated expected");
-
 	AstMethodDeclaration* method_decl = newNode<AstMethodDeclaration>();
 
-	throw_parse_exception("parse_method_declaration not implemented");
-/*
+	bool is_access_type_set = false;
+	while (true)
+	{
+		if (is_keyword("public"))
+		{
+			if (is_access_type_set)
+				throw_parse_exception("public already specified");
+			next();
+			is_access_type_set = true;
+			method_decl->access_type = access_public;
+		}
+		else if (is_keyword("private"))
+		{
+			if (is_access_type_set)
+				throw_parse_exception("private already specified");
+			next();
+			is_access_type_set = true;
+			method_decl->access_type = access_private;
+		}
+		else if (is_keyword("singular"))
+		{
+			if (method_decl->is_singular)
+				throw_parse_exception("singular already specified");
+			next();
+			method_decl->is_singular = true;
+		}
+		else if (is_keyword("simulated"))
+		{
+			if (method_decl->is_simulated)
+				throw_parse_exception("simulated already specified");
+			next();
+			method_decl->is_simulated = true;
+		}
+		else if (is_keyword("native") || is_keyword("intrinsic"))
+		{
+			if (method_decl->is_native)
+				throw_parse_exception("intrinsic already specified");
+			next();
+			method_decl->is_native = true;
 
-	std::string member_name = identifier1;
+			if (is_operator("("))
+			{
+				next();
 
-	method_decl->is_static = preparse.is_static;
-	method_decl->is_event = preparse.is_event;
-	method_decl->return_type = return_type;
-	method_decl->identifier = member_name;
+				if (token.type == Token::type_integer)
+				{
+					method_decl->native_index = std::stoi(token.value);
+					next();
+				}
+
+				if (!is_operator(")"))
+					throw_parse_exception(") specified");
+				next();
+			}
+		}
+		else if (is_keyword("final"))
+		{
+			if (method_decl->is_final)
+				throw_parse_exception("final already specified");
+			next();
+			method_decl->is_final = true;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (is_keyword("event"))
+	{
+		method_decl->is_event = true;
+		next();
+	}
+	else if (is_keyword("function"))
+	{
+		next();
+	}
+	/*else if (is_keyword("operator"))
+	{
+		method_decl->is_operator = true;
+		next();
+	}*/
+	else
+	{
+		throw_parse_exception("function, event or operator expected");
+	}
+
+	bool returnValueFound = false;
+	SavedParserPos pos = save_position();
+	if (is_identifier())
+	{
+		next();
+		if (is_identifier())
+			returnValueFound = true;
+		restore_position(pos);
+	}
+	else if (is_keyword("class") || is_type_keyword())
+	{
+		returnValueFound = true;
+	}
+
+	if (returnValueFound)
+	{
+		method_decl->return_type = parse_name();
+	}
+
+	if (!is_identifier())
+		throw_parse_exception("identifier expected");
+	method_decl->identifier = token.value;
+	next();
 
 	if (!is_operator("("))
 		throw_parse_exception("( expected");
 	next();
 
 	method_decl->parameters = parse_formal_parameter_list(")");
-
-	// type-parameter-constraints-clauses <- generics
 
 	if (is_operator("{"))
 	{
@@ -252,7 +344,7 @@ AstNode *Parser::parse_method_declaration()
 	{
 		throw_parse_exception("{ or ; expected");
 	}
-*/
+
 	return method_decl;
 }
 

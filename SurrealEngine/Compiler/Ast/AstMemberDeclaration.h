@@ -104,6 +104,11 @@ public:
 
 	bool is_static = false;
 	bool is_event = false;
+	bool is_native = false;
+	bool is_singular = false;
+	bool is_simulated = false;
+	bool is_final = false;
+	int native_index = 0;
 	AstAccessType access_type = {};
 	AstName *return_type = nullptr;
 	std::string identifier;
