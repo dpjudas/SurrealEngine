@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "Math/quaternion.h"
 #include "Utils/StrCompare.h"
+#include "Utils/Random.h"
 #include "../Package/ObjectFlags.h"
 #include <cmath>
 
@@ -765,7 +766,8 @@ void NObject::FMin(float A, float B, float& ReturnValue)
 
 void NObject::FRand(float& ReturnValue)
 {
-	ReturnValue = (float)(std::rand() / (double)RAND_MAX);
+	// ReturnValue = (float)(std::rand() / (double)RAND_MAX);
+	ReturnValue = ::FRand();
 }
 
 void NObject::GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z)
@@ -1317,21 +1319,17 @@ void NObject::QuatVRotate_U227(quaternion& A, vec3& B, vec3& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
-	Max--; // Returns a random number from 0 to Max-1
-	float t = (float)(std::rand() / (double)RAND_MAX);
-	ReturnValue = (int)std::round(Max * t);
+	ReturnValue = RandInt(std::min(Max, 32767));
 }
 
 void NObject::RandIntRange_U227(UObject* Self, int Min, int Max, int& ReturnValue)
 {
-	LogUnimplemented("Object.RandIntRange() [U227]");
-	ReturnValue = 0;
+	ReturnValue = RandInt(Min, Max);
 }
 
 void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 {
-	float t = (float)(std::rand() / (double)RAND_MAX);
-	ReturnValue = mix(Min, Max, t);
+	ReturnValue = FRandRange(Min, Max);
 }
 
 void NObject::ReplaceStr_U227(std::string& text, std::string& findStr, std::string& replaceWith, std::optional<bool> bCaseInsensitive, std::string& ReturnValue)
@@ -1546,7 +1544,7 @@ void NObject::VRand(vec3& ReturnValue)
 {
 	while (true)
 	{
-		vec3 randomVector = vec3((float)(std::rand() / (double)RAND_MAX), (float)(std::rand() / (double)RAND_MAX), (float)(std::rand() / (double)RAND_MAX)) * 2.0f - 1.0f;
+		vec3 randomVector = vec3(FRandRange(-1.0f, 1.0f), FRandRange(-1.0f, 1.0f), FRandRange(-1.0f, 1.0f));
 		if (dot(randomVector, randomVector) >= 1.0f)
 		{
 			ReturnValue = normalize(randomVector);
