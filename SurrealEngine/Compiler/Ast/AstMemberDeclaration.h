@@ -65,7 +65,6 @@ public:
 class AstStatement;
 class AstBlockStatement;
 class AstMethodFixedParameter;
-class AstMethodParameterArray;
 
 class AstMethodParameter : public AstNode
 {
@@ -76,15 +75,11 @@ class AstMethodFixedParameter : public AstMethodParameter
 public:
 	bool is_ref = false;
 	bool is_out = false;
+	bool is_optional = false;
+	bool is_coerce = false;
 	AstName *type = nullptr;
 	std::string identifier;
-};
-
-class AstMethodParameterArray : public AstMethodParameter
-{
-public:
-	AstName *array_type = nullptr;
-	std::string identifier;
+	int array_dimension = 0;
 };
 
 class NameScope

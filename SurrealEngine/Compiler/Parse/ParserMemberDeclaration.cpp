@@ -93,27 +93,10 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 
 	while (!is_operator(end_operator))
 	{
-		if (is_keyword("params"))
+		AstMethodFixedParameter *parameter = newNode<AstMethodFixedParameter>();
+
+		while (true)
 		{
-			next();
-
-			AstMethodParameterArray *params = newNode<AstMethodParameterArray>();
-			params->array_type = parse_name();
-
-			if (!is_identifier())
-				throw_parse_exception("identifier expected");
-			params->identifier = token.value;
-			next();
-
-			if (!is_operator(")"))
-				throw_parse_exception(") expected");
-
-			parameters.push_back(params);
-		}
-		else
-		{
-			AstMethodFixedParameter *parameter = newNode<AstMethodFixedParameter>();
-
 			if (is_keyword("ref"))
 			{
 				parameter->is_ref = true;
@@ -124,17 +107,45 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 				parameter->is_out = true;
 				next();
 			}
-
-			parameter->type = parse_name();
-
-			if (is_identifier())
+			else if (is_keyword("optional"))
 			{
-				parameter->identifier = token.value;
+				parameter->is_optional = true;
 				next();
 			}
-
-			parameters.push_back(parameter);
+			else if (is_keyword("coerce"))
+			{
+				parameter->is_coerce = true;
+				next();
+			}
+			else
+			{
+				break;
+			}
 		}
+
+		parameter->type = parse_name();
+
+		if (is_identifier())
+		{
+			parameter->identifier = token.value;
+			next();
+		}
+
+		if (is_operator("["))
+		{
+			next();
+
+			if (token.type != Token::type_integer)
+				throw_parse_exception("integer expected");
+			parameter->array_dimension = std::stoi(token.value);
+			next();
+
+			if (!is_operator("]"))
+				throw_parse_exception("] expected");
+			next();
+		}
+
+		parameters.push_back(parameter);
 
 		if (!is_operator(end_operator))
 		{

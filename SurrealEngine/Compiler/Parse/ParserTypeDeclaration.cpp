@@ -86,6 +86,12 @@ AstStructDeclaration *Parser::parse_struct_declaration()
 	}
 	next();
 
+	// To do: variable declaration
+
+	if (!is_operator(";"))
+		throw_parse_exception("; expected");
+	next();
+
 	return struct_decl;
 }
 
@@ -128,6 +134,12 @@ AstEnumDeclaration *Parser::parse_enum_declaration()
 
 		enum_decl->members.push_back(value);
 	}
+	next();
+
+	// To do: variable declaration
+
+	if (!is_operator(";"))
+		throw_parse_exception("; expected");
 	next();
 
 	return enum_decl;

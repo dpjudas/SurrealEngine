@@ -59,6 +59,14 @@ bool Compiler::compile()
 						logInfo("Property: " + var->identifier);
 					}
 				}
+				if (auto struct_decl = dynamic_cast<AstStructDeclaration*>(member))
+				{
+					logInfo("Struct: " + struct_decl->identifier);
+				}
+				if (auto enum_decl = dynamic_cast<AstEnumDeclaration*>(member))
+				{
+					logInfo("Enum: " + enum_decl->identifier);
+				}
 			}
 		}
 
