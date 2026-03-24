@@ -47,6 +47,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Utils/SHA1Sum.h
 	SurrealEngine/Utils/StrCompare.cpp
 	SurrealEngine/Utils/StrCompare.h
+	SurrealEngine/Utils/Random.cpp
+	SurrealEngine/Utils/Random.h
 	SurrealEngine/Utils/UTF16.cpp
 	SurrealEngine/Utils/UTF16.h
 	SurrealEngine/Utils/UTF8Reader.cpp
