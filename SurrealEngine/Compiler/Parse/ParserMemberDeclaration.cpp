@@ -7,7 +7,7 @@ AstNode *Parser::parse_class_member()
 	{
 		return parse_field_declaration();
 	}
-	else if (is_keyword("state"))
+	else if (is_keyword("state") || is_keyword("auto"))
 	{
 		return parse_state_declaration();
 	}
@@ -31,13 +31,40 @@ AstNode *Parser::parse_class_member()
 
 AstNode* Parser::parse_state_declaration()
 {
+	bool is_auto = false;
+	if (is_keyword("auto"))
+	{
+		is_auto = true;
+		next();
+	}
+
 	if (!is_keyword("state"))
 		throw_parse_exception("state expected");
+	next();
 
-	throw_parse_exception("parse_state_declaration not implemented");
+	AstStateDeclaration* state_decl = newNode<AstStateDeclaration>();
 
-	//AstStateDeclaration* state_decl = newNode<AstStateDeclaration>();
-	//return state_decl;
+	state_decl->is_auto = is_auto;
+
+	if (!is_identifier())
+		throw_parse_exception("identifier expected");
+	state_decl->identifier = token.value;
+	next();
+
+	if (is_operator("{"))
+	{
+		state_decl->block = parse_block_statement(true);
+	}
+	else if (is_operator(";"))
+	{
+		next();
+	}
+	else
+	{
+		throw_parse_exception("{ or ; expected");
+	}
+
+	return state_decl;
 }
 
 AstNode *Parser::parse_const_declaration()
@@ -159,7 +186,7 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 	return parameters;
 }
 
-AstNode *Parser::parse_method_declaration()
+AstMethodDeclaration* Parser::parse_method_declaration()
 {
 	AstMethodDeclaration* method_decl = newNode<AstMethodDeclaration>();
 
@@ -282,7 +309,7 @@ AstNode *Parser::parse_method_declaration()
 
 	if (is_operator("{"))
 	{
-		method_decl->block = parse_block_statement();
+		method_decl->block = parse_block_statement(false);
 	}
 	else if (is_operator(";"))
 	{
@@ -433,117 +460,4 @@ AstNode *Parser::parse_field_declaration()
 	}
 
 	return field_decl;
-}
-
-AstNode *Parser::parse_operator_declaration(const TypeModifierPreparseData &preparse, AstName *return_type)
-{
-	if (!is_keyword("operator"))
-		throw_parse_exception("operator expected");
-	next();
-
-	if (token.type != Token::type_operator && token.type != Token::type_bool)
-		throw_parse_exception("operator, true or false expected");
-
-	std::string operator_type = token.value;
-	if (is_operator(">"))
-	{
-		next();
-		if (is_operator(">"))
-		{
-			operator_type = ">>";
-			next();
-		}
-	}
-	else
-	{
-		next();
-	}
-
-	if (!is_operator("("))
-		throw_parse_exception("( expected");
-	next();
-
-	AstName *param_type1 = parse_name();
-	AstName *param_name1 = parse_name();
-	AstName *param_type2 = 0;
-	AstName *param_name2 = 0;
-
-	if (is_operator(","))
-	{
-		next();
-		param_type2 = parse_name();
-		param_name2 = parse_name();
-	}
-
-	if (!is_operator(")"))
-		throw_parse_exception(") expected");
-	next();
-
-	AstOperatorDeclaration *operator_decl = newNode<AstOperatorDeclaration>();
-
-	if (is_operator("{"))
-	{
-		operator_decl->block = parse_block_statement();
-	}
-	else if (!is_operator(";"))
-	{
-		throw_parse_exception("{ or ; expected");
-	}
-
-	return operator_decl;
-}
-
-Parser::TypeModifierPreparseData Parser::preparse_type()
-{
-	TypeModifierPreparseData preparse;
-	bool is_access_type_set = false;
-	while (true)
-	{
-		if (is_keyword("public"))
-		{
-			if (is_access_type_set)
-				throw_parse_exception("public already specified");
-			is_access_type_set = true;
-			preparse.access_type = access_public;
-		}
-		else if (is_keyword("private"))
-		{
-			if (is_access_type_set)
-				throw_parse_exception("private already specified");
-			is_access_type_set = true;
-			preparse.access_type = access_private;
-		}
-		else if (is_keyword("abstract"))
-		{
-			if (preparse.is_abstract)
-				throw_parse_exception("abstract already specified");
-			preparse.is_abstract = true;
-		}
-		else if (is_keyword("static"))
-		{
-			if (preparse.is_static)
-				throw_parse_exception("static already specified");
-			preparse.is_static = true;
-		}
-		else if (is_keyword("const"))
-		{
-			if (preparse.is_const)
-				throw_parse_exception("const already specified");
-			preparse.is_const = true;
-		}
-		else if (is_keyword("event"))
-		{
-			if (preparse.is_event)
-				throw_parse_exception("event already specified");
-			preparse.is_event = true;
-		}
-		else
-		{
-			break;
-		}
-
-		next();
-	}
-
-	return preparse;
 }

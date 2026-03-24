@@ -41,7 +41,7 @@ public:
 
 	// allowed members types:
 	// AstConstantDeclaration, AstFieldDeclaration, AstMethodDeclaration, AstOperatorDeclaration
-	// AstNameDeclaration, AstStructDeclaration
+	// AstNameDeclaration, AstStructDeclaration, AstStateDeclaration
 	std::vector<AstNode *> members;
 };
 

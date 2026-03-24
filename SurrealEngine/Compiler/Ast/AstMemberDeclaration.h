@@ -138,3 +138,16 @@ public:
 	OperatorTypeMember *sema_type = nullptr;
 	NameScope name_scope;
 };
+
+class AstStateDeclaration : public AstNode
+{
+public:
+	void visit(AstNameVisitor* visitor)
+	{
+		visitor->name(this);
+	}
+
+	bool is_auto = false;
+	std::string identifier;
+	AstBlockStatement* block = nullptr;
+};

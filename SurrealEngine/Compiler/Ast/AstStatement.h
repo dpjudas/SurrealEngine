@@ -79,6 +79,7 @@ public:
 	void visit_children(AstStatementVisitor *visitor) { for (size_t i = 0; i < statements.size(); i++) statements[i]->visit(visitor); }
 
 	std::vector<AstStatement *> statements;
+	std::vector<AstMethodDeclaration*> methods;
 };
 
 class AstEmptyStatement : public AstEmbeddedStatement

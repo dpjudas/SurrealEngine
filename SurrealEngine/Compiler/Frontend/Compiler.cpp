@@ -67,6 +67,10 @@ bool Compiler::compile()
 				{
 					logInfo("Enum: " + enum_decl->identifier);
 				}
+				if (auto state_decl = dynamic_cast<AstStateDeclaration*>(member))
+				{
+					logInfo("State: " + state_decl->identifier);
+				}
 			}
 		}
 

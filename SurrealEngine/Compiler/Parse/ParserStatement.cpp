@@ -5,7 +5,7 @@ AstStatement *Parser::parse_statement()
 {
 	if (is_operator("{"))
 	{
-		return parse_block_statement();
+		return parse_block_statement(false);
 	}
 	else if (is_operator(";"))
 	{
@@ -87,7 +87,7 @@ AstStatement *Parser::parse_statement()
 	}
 }
 
-AstBlockStatement *Parser::parse_block_statement()
+AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 {
 	if (!is_operator("{"))
 		throw_parse_exception("{ expected");
@@ -97,7 +97,14 @@ AstBlockStatement *Parser::parse_block_statement()
 
 	while (!is_operator("}"))
 	{
-		block->statements.push_back(parse_statement());
+		if (isStateBlock && (is_keyword("function") || is_keyword("event")))
+		{
+			block->methods.push_back(parse_method_declaration());
+		}
+		else
+		{
+			block->statements.push_back(parse_statement());
+		}
 	}
 
 	next();

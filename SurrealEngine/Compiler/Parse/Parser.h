@@ -51,8 +51,6 @@ private:
 		return node;
 	}
 
-	TypeModifierPreparseData preparse_type();
-
 	AstClassDeclaration *parse_class_declaration();
 	AstStructDeclaration *parse_struct_declaration();
 	AstEnumDeclaration *parse_enum_declaration();
@@ -60,14 +58,13 @@ private:
 	AstNode *parse_class_member();
 	AstNode* parse_state_declaration();
 	AstNode *parse_const_declaration();
-	AstNode *parse_method_declaration();
+	AstMethodDeclaration*parse_method_declaration();
 	AstNode *parse_field_declaration();
-	AstNode *parse_operator_declaration(const TypeModifierPreparseData &preparse, AstName *return_type);
 
 	std::vector<AstMethodParameter *> parse_formal_parameter_list(const char *end_operator);
 
 	AstStatement *parse_statement();
-	AstBlockStatement *parse_block_statement();
+	AstBlockStatement *parse_block_statement(bool isStateBlock);
 	AstConstantDeclarationStatement *parse_constant_declaration_statement();
 	AstVariableDeclarationStatement *parse_variable_declaration_statement(AstName *type);
 	AstIfStatement *parse_if_statement();
