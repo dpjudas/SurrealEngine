@@ -97,12 +97,44 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "216";
 			}
 			break;
+			case KnownUE1Games::UNREAL_217:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 217;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "217";
+			}
+			break;
+			case KnownUE1Games::UNREAL_218:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 218;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "218";
+			}
+			break;
+			case KnownUE1Games::UNREAL_219:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 219;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "219";
+			}
+			break;
 			case KnownUE1Games::UNREAL_220:
 			{
 				info.gameName = "Unreal";
 				info.engineVersion = 220;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "220";
+			}
+			break;
+			case KnownUE1Games::UNREAL_221:
+			{
+				info.gameName = "Unreal";
+				info.engineVersion = 221;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "221";
 			}
 			break;
 			case KnownUE1Games::UNREAL_224v:
@@ -167,6 +199,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.engineVersion = 227;
 				info.engineSubVersion = 11;
 				info.gameVersionString = "227k_14";
+			}
+			break;
+			case KnownUE1Games::UT99_400:
+			{
+				info.gameName = "Unreal Tournament";
+				info.engineVersion = 400;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "400";
 			}
 			break;
 			case KnownUE1Games::UT99_436:
