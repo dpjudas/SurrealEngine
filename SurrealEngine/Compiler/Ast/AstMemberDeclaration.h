@@ -55,6 +55,7 @@ public:
 	bool is_localized = false;
 	bool is_native = false;
 	bool is_travel = false;
+	bool is_transient = false;
 	AstAccessType access_type = {};
 	AstName *type = nullptr;
 	std::vector<AstVariableDeclarator *> declarators;
@@ -150,4 +151,19 @@ public:
 	bool is_auto = false;
 	std::string identifier;
 	AstBlockStatement* block = nullptr;
+};
+
+class AstReplicationRule : public AstNode
+{
+public:
+	bool if_reliable = false;
+	bool if_unreliable = false;
+	AstExpression* boolean_expression = nullptr;
+	std::vector<std::string> properties;
+};
+
+class AstReplicationDeclaration : public AstNode
+{
+public:
+	std::vector<AstReplicationRule*> rules;
 };

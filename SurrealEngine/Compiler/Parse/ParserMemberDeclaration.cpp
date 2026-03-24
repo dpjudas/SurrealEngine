@@ -23,6 +23,10 @@ AstNode *Parser::parse_class_member()
 	{
 		return parse_enum_declaration();
 	}
+	else if (is_keyword("replication"))
+	{
+		return parse_replication_declaration();
+	}
 	else
 	{
 		return parse_method_declaration();
@@ -387,6 +391,12 @@ AstNode *Parser::parse_field_declaration()
 				throw_parse_exception("travel already specified");
 			field_decl->is_travel = true;
 		}
+		else if (is_keyword("transient"))
+		{
+			if (field_decl->is_transient)
+				throw_parse_exception("transient already specified");
+			field_decl->is_transient = true;
+		}
 		else
 		{
 			break;
@@ -460,4 +470,70 @@ AstNode *Parser::parse_field_declaration()
 	}
 
 	return field_decl;
+}
+
+AstNode* Parser::parse_replication_declaration()
+{
+	if (!is_keyword("replication"))
+		throw_parse_exception("replication expected");
+	next();
+
+	AstReplicationDeclaration* repl_decl = newNode<AstReplicationDeclaration>();
+
+	if (!is_operator("{"))
+		throw_parse_exception("{ expected");
+	next();
+
+	while (!is_operator("}"))
+	{
+		bool if_reliable = is_keyword("reliable");
+		bool if_unreliable = is_keyword("unreliable");
+		if (if_reliable || if_unreliable)
+		{
+			next();
+
+			if (!is_keyword("if"))
+				throw_parse_exception("if expected");
+			next();
+
+			AstReplicationRule* rule = newNode<AstReplicationRule>();
+
+			rule->if_reliable = if_reliable;
+			rule->if_unreliable = if_unreliable;
+
+			if (!is_operator("("))
+				throw_parse_exception("( expected");
+			next();
+
+			rule->boolean_expression = parse_expression(paranthesis_end);
+
+			if (!is_operator(")"))
+				throw_parse_exception(") expected");
+			next();
+
+			while (true)
+			{
+				if (!is_identifier())
+					throw_parse_exception("identifier expected");
+				rule->properties.push_back(token.value);
+				next();
+
+				if (is_operator(";"))
+					break;
+				else if (!is_operator(","))
+					throw_parse_exception(", or ; expected");
+				next();
+			}
+			next();
+
+			repl_decl->rules.push_back(rule);
+		}
+		else
+		{
+			throw_parse_exception("reliable or unreliable expected");
+		}
+	}
+	next();
+
+	return repl_decl;
 }

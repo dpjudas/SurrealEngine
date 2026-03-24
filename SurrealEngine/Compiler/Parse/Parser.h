@@ -60,6 +60,7 @@ private:
 	AstNode *parse_const_declaration();
 	AstMethodDeclaration*parse_method_declaration();
 	AstNode *parse_field_declaration();
+	AstNode* parse_replication_declaration();
 
 	std::vector<AstMethodParameter *> parse_formal_parameter_list(const char *end_operator);
 

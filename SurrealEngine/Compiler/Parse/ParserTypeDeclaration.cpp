@@ -28,6 +28,11 @@ AstClassDeclaration *Parser::parse_class_declaration()
 			next();
 			class_decl->is_native = true;
 		}
+		else if (is_keyword("nativereplication"))
+		{
+			next();
+			class_decl->nativereplication = true;
+		}
 		else if (is_keyword("abstract"))
 		{
 			next();

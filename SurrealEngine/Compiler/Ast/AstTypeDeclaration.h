@@ -34,6 +34,7 @@ public:
 
 	bool is_abstract = false;
 	bool is_native = false;
+	bool nativereplication = false;
 	bool no_export = false;
 
 	std::string identifier;
