@@ -1015,7 +1015,8 @@ void NObject::Loge(float A, float& ReturnValue)
 
 void NObject::MakeColor_U227(uint8_t R, uint8_t G, uint8_t B, std::optional<uint8_t> A, Color& ReturnValue)
 {
-	ReturnValue = Color(R, G, B, A ? *A : 255);
+	const uint8_t alpha = A ? *A : 255;
+	ReturnValue = Color{R, G, B, alpha};
 }
 
 void NObject::MakeQuat_U227(float X, float Y, float Z, float W, quaternion& ReturnValue)
