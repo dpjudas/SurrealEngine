@@ -44,7 +44,6 @@ private:
 	bool read_comment();
 	bool read_token(Token &token);
 
-	bool read_object_name_literal(Token& token);
 	bool read_identifier(Token &token);
 	bool read_bool_literal(Token &token);
 	bool read_integer_literal(Token &token);
@@ -72,6 +71,8 @@ private:
 	bool read_pp_conditional_symbol();
 	void read_pp_message();
 	bool read_pp_comment();
+
+	static std::string preprocess(const std::string& data);
 
 	std::u32string data;
 	size_t pos = 0;

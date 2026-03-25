@@ -97,7 +97,11 @@ AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 
 	while (!is_operator("}"))
 	{
-		if (isStateBlock && (is_keyword("function") || is_keyword("event")))
+		if (isStateBlock && is_keyword("ignores"))
+		{
+			block->ignores.push_back(parse_ignore_events_declaration());
+		}
+		else if (isStateBlock && (is_keyword("function") || is_keyword("event")))
 		{
 			block->methods.push_back(parse_method_declaration());
 		}
@@ -110,6 +114,34 @@ AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 	next();
 
 	return block;
+}
+
+AstIgnoreEventsDeclaration* Parser::parse_ignore_events_declaration()
+{
+	if (!is_keyword("ignores"))
+		throw_parse_exception("ignores expected");
+	next();
+
+	AstIgnoreEventsDeclaration* decl = newNode<AstIgnoreEventsDeclaration>();
+
+	while (true)
+	{
+		if (!is_identifier())
+			throw_parse_exception("identifier expected");
+
+		decl->events.push_back(token.value);
+		next();
+
+		if (!is_operator(","))
+			break;
+		next();
+	}
+
+	if (!is_operator(";"))
+		throw_parse_exception("; expected");
+	next();
+
+	return decl;
 }
 
 AstConstantDeclarationStatement *Parser::parse_constant_declaration_statement()
@@ -299,8 +331,9 @@ AstDoStatement *Parser::parse_do_statement()
 
 	statement->statement = parse_statement();
 
-	if (!is_keyword("while"))
-		throw_parse_exception("while expected");
+	if (!is_keyword("while") && !is_keyword("until"))
+		throw_parse_exception("while or until expected");
+	statement->is_until = is_keyword("until");
 	next();
 
 	if (!is_operator("("))

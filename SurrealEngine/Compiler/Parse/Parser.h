@@ -62,6 +62,8 @@ private:
 	AstNode *parse_field_declaration();
 	AstNode* parse_replication_declaration();
 
+	AstIgnoreEventsDeclaration* parse_ignore_events_declaration();
+
 	std::vector<AstMethodParameter *> parse_formal_parameter_list(const char *end_operator);
 
 	AstStatement *parse_statement();
@@ -120,7 +122,7 @@ private:
 	void next();
 	bool is_type_keyword() const;
 	bool is_keyword(const char *keyword) const;
-	bool is_object_name() const;
+	bool is_name() const;
 	bool is_identifier() const;
 	bool is_identifier(const char *identifier) const;
 	bool is_operator(const char *oper) const;

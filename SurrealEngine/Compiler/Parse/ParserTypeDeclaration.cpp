@@ -43,6 +43,11 @@ AstClassDeclaration *Parser::parse_class_declaration()
 			next();
 			class_decl->no_export = true;
 		}
+		else if (is_keyword("safereplace"))
+		{
+			next();
+			class_decl->safe_replace = true;
+		}
 		else
 		{
 			throw_parse_exception("; expected");
@@ -91,12 +96,6 @@ AstStructDeclaration *Parser::parse_struct_declaration()
 	}
 	next();
 
-	// To do: variable declaration
-
-	if (!is_operator(";"))
-		throw_parse_exception("; expected");
-	next();
-
 	return struct_decl;
 }
 
@@ -108,13 +107,17 @@ AstEnumDeclaration *Parser::parse_enum_declaration()
 
 	AstEnumDeclaration *enum_decl = newNode<AstEnumDeclaration>();
 
-	if (!is_identifier())
-		throw_parse_exception("identifier expected");
-	enum_decl->identifier = token.value;
-	next();
-
-	if (!is_operator("{"))
-		throw_parse_exception("{ expected");
+	if (is_identifier())
+	{
+		enum_decl->identifier = token.value;
+		next();
+		if (!is_operator("{"))
+			throw_parse_exception("{ expected");
+	}
+	else if (!is_operator("{"))
+	{
+		throw_parse_exception("identifier or { expected");
+	}
 	next();
 
 	while (!is_operator("}"))
@@ -139,12 +142,6 @@ AstEnumDeclaration *Parser::parse_enum_declaration()
 
 		enum_decl->members.push_back(value);
 	}
-	next();
-
-	// To do: variable declaration
-
-	if (!is_operator(";"))
-		throw_parse_exception("; expected");
 	next();
 
 	return enum_decl;

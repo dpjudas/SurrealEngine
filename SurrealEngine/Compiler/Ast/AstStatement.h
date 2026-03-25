@@ -72,6 +72,12 @@ class AstEmbeddedStatement : public AstStatement
 public:
 };
 
+class AstIgnoreEventsDeclaration : public AstNode
+{
+public:
+	std::vector<std::string> events;
+};
+
 class AstBlockStatement : public AstEmbeddedStatement
 {
 public:
@@ -80,6 +86,7 @@ public:
 
 	std::vector<AstStatement *> statements;
 	std::vector<AstMethodDeclaration*> methods;
+	std::vector<AstIgnoreEventsDeclaration*> ignores;
 };
 
 class AstEmptyStatement : public AstEmbeddedStatement
@@ -162,6 +169,7 @@ public:
 
 	AstStatement *statement = nullptr; // embedded-statement only
 	AstExpression *boolean_expression = nullptr;
+	bool is_until = false;
 };
 
 class AstForStatement : public AstIterationStatement

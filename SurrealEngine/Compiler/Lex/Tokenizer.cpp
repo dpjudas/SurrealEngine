@@ -6,7 +6,7 @@
 #pragma warning(disable: 4267) // warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 #endif
 
-Tokenizer::Tokenizer(const std::string &data) : data(TextUtil::utf8_to_utf32(data))
+Tokenizer::Tokenizer(const std::string &data) : data(TextUtil::utf8_to_utf32(preprocess(data)))
 {
 }
 
@@ -161,7 +161,6 @@ bool Tokenizer::read_token(Token &token)
 		read_name_literal(token) ||
 		read_string_literal(token) ||
 		read_operator_or_punctuator(token) ||
-		read_object_name_literal(token) ||
 		read_identifier(token);
 }
 
@@ -196,52 +195,6 @@ bool Tokenizer::read_newline()
 	case 0x2029:
 		pos++;
 		return true;
-	}
-}
-
-bool Tokenizer::read_object_name_literal(Token& token)
-{
-	size_t start_pos = pos;
-
-	std::u32string::value_type character = 0;
-	if (read_identifier_start_character(character))
-	{
-		std::u32string identifier;
-		identifier.push_back(character);
-
-		while (read_identifier_part_character(character))
-			identifier.push_back(character);
-
-		if (pos == data.size() || data[pos] != '\'')
-		{
-			pos = start_pos;
-			return false;
-		}
-		identifier.push_back('\'');
-		pos++;
-
-		while (read_identifier_part_character(character))
-			identifier.push_back(character);
-
-		if (pos == data.size() || data[pos] != '\'')
-		{
-			pos = start_pos;
-			return false;
-		}
-		identifier.push_back('\'');
-		pos++;
-
-		token.line = line_number;
-		token.column = start_pos - line_start_pos;
-		token.type = Token::type_object_name;
-		token.value = TextUtil::utf32_to_utf8(identifier);
-
-		return true;
-	}
-	else
-	{
-		pos = start_pos;
-		return false;
 	}
 }
 
@@ -765,7 +718,6 @@ bool Tokenizer::read_operator_or_punctuator(Token &token)
 
 const char *Tokenizer::operators[] = 
 {
-	"??",
 	"::",
 	"++",
 	"--",
@@ -774,6 +726,7 @@ const char *Tokenizer::operators[] =
 	"->",
 	"==",
 	"!=",
+	"~=",
 	"<=",
 	">=",
 	"+=",
@@ -786,6 +739,7 @@ const char *Tokenizer::operators[] =
 	"^=",
 	"<<=",
 	"<<",
+	"**",
 	"{",
 	"}",
 	"[",
@@ -1029,4 +983,53 @@ bool Tokenizer::read_pp_comment()
 	{
 		return false;
 	}
+}
+
+std::string Tokenizer::preprocess(const std::string& data)
+{
+	// Removes all #exec statements from script so the parser doesn't see them.
+
+	std::string result = data;
+
+	bool after_newline = true;
+	bool in_exec = false;
+	
+	for (char& c : result)
+	{
+		if (!in_exec)
+		{
+			switch (c)
+			{
+			case '\r':
+			case '\n':
+				after_newline = true;
+				break;
+			case ' ':
+			case '\t':
+				break;
+			case '#':
+				if (after_newline)
+				{
+					c = ' ';
+					in_exec = true;
+				}
+				break;
+			default:
+				after_newline = false;
+			}
+		}
+		else
+		{
+			if (c != '\r' && c != '\n')
+			{
+				c = ' ';
+			}
+			else
+			{
+				in_exec = false;
+			}
+		}
+	}
+
+	return result;
 }

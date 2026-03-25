@@ -69,17 +69,14 @@ class AstNamedObject : public AstExpression
 public:
 	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
 
-	std::string identifier;
+	std::string class_name;
+	std::string object_name;
 };
 
 class AstInvocationArgument : public AstNode
 {
 public:
-	AstInvocationArgument() : is_ref(), is_out(), expression() { }
-
-	bool is_ref;
-	bool is_out;
-	AstExpression *expression;
+	AstExpression *expression = nullptr;
 };
 
 class AstInvocationExpression : public AstExpression
@@ -98,12 +95,6 @@ public:
 
 	AstExpression *expression = nullptr;
 	std::vector<AstExpression *> args;
-};
-
-class AstThisAccess : public AstExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
 class AstBaseAccess : public AstExpression
@@ -159,14 +150,6 @@ public:
 };
 
 class AstSizeofExpression : public AstExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstName *type = nullptr;
-};
-
-class AstDefaultValueExpression : public AstExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
@@ -258,18 +241,16 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
-class AstCastExpression : public AstUnaryExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstName *type = nullptr;
-};
-
 class AstMultiplicationExpression : public AstBinaryExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
+};
+
+class AstExponentiationExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
 };
 
 class AstDivisionExpression : public AstBinaryExpression
@@ -374,6 +355,12 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
+class AstCaseInsensitiveEqualExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+};
+
 class AstLogicalAndExpression : public AstBinaryExpression
 {
 public:
@@ -399,12 +386,6 @@ public:
 };
 
 class AstConditionalOrExpression : public AstBinaryExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-};
-
-class AstNullCoalescingExpression : public AstBinaryExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }

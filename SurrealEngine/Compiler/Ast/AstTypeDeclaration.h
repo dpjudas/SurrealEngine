@@ -36,6 +36,7 @@ public:
 	bool is_native = false;
 	bool nativereplication = false;
 	bool no_export = false;
+	bool safe_replace = false;
 
 	std::string identifier;
 	AstIdentifierName* base_type = nullptr;

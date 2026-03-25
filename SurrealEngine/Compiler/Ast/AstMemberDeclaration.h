@@ -24,7 +24,6 @@ public:
 		visitor->name(this);
 	}
 
-	AstName *type = nullptr;
 	std::vector<AstConstantDeclarator *> declarators;
 };
 
@@ -56,7 +55,10 @@ public:
 	bool is_native = false;
 	bool is_travel = false;
 	bool is_transient = false;
+	bool editconst = false;
 	AstAccessType access_type = {};
+	AstEnumDeclaration* enum_decl = nullptr;
+	AstStructDeclaration* struct_decl = nullptr;
 	AstName *type = nullptr;
 	std::vector<AstVariableDeclarator *> declarators;
 
@@ -105,6 +107,7 @@ public:
 	bool is_singular = false;
 	bool is_simulated = false;
 	bool is_final = false;
+	bool is_iterator = false;
 	int native_index = 0;
 	AstAccessType access_type = {};
 	AstName *return_type = nullptr;
@@ -148,6 +151,7 @@ public:
 		visitor->name(this);
 	}
 
+	AstIdentifierName* base_state = nullptr; // Note: only seen in TestInfo.uc
 	bool is_auto = false;
 	std::string identifier;
 	AstBlockStatement* block = nullptr;

@@ -3,7 +3,7 @@
 
 AstNode *Parser::parse_class_member()
 {
-	if (is_keyword("var"))
+	if (is_keyword("var") || is_keyword("enum") || is_keyword("struct"))
 	{
 		return parse_field_declaration();
 	}
@@ -14,14 +14,6 @@ AstNode *Parser::parse_class_member()
 	else if (is_keyword("const"))
 	{
 		return parse_const_declaration();
-	}
-	else if (is_keyword("struct"))
-	{
-		return parse_struct_declaration();
-	}
-	else if (is_keyword("enum"))
-	{
-		return parse_enum_declaration();
 	}
 	else if (is_keyword("replication"))
 	{
@@ -48,12 +40,26 @@ AstNode* Parser::parse_state_declaration()
 
 	AstStateDeclaration* state_decl = newNode<AstStateDeclaration>();
 
+	if (is_operator("("))
+	{
+		next();
+		if (!is_operator(")"))
+			throw_parse_exception(") expected");
+		next();
+	}
+
 	state_decl->is_auto = is_auto;
 
 	if (!is_identifier())
 		throw_parse_exception("identifier expected");
 	state_decl->identifier = token.value;
 	next();
+
+	if (is_keyword("extends"))
+	{
+		next();
+		state_decl->base_state = parse_identifier_name();
+	}
 
 	if (is_operator("{"))
 	{
@@ -77,10 +83,7 @@ AstNode *Parser::parse_const_declaration()
 		throw_parse_exception("const expected");
 	next();
 
-	AstName *type = parse_name();
-
 	AstConstantDeclaration *const_decl = newNode<AstConstantDeclaration>();
-	const_decl->type = type;
 
 	while (true)
 	{
@@ -256,6 +259,20 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 			next();
 			method_decl->is_final = true;
 		}
+		else if (is_keyword("iterator"))
+		{
+			if (method_decl->is_iterator)
+				throw_parse_exception("iterator already specified");
+			next();
+			method_decl->is_iterator = true;
+		}
+		else if (is_keyword("static"))
+		{
+			if (method_decl->is_static)
+				throw_parse_exception("static already specified");
+			next();
+			method_decl->is_static = true;
+		}
 		else
 		{
 			break;
@@ -329,26 +346,32 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 
 AstNode *Parser::parse_field_declaration()
 {
-	if (!is_keyword("var"))
-		throw_parse_exception("var expected");
-	next();
-
-	AstFieldDeclaration *field_decl = newNode<AstFieldDeclaration>();
-
-	if (is_operator("("))
+	std::string group;
+	if (is_keyword("var"))
 	{
 		next();
-
-		if (is_identifier())
+		if (is_operator("("))
 		{
-			field_decl->group = token.value;
+			next();
+
+			if (is_identifier())
+			{
+				group = token.value;
+				next();
+			}
+
+			if (!is_operator(")"))
+				throw_parse_exception(") expected");
 			next();
 		}
-
-		if (!is_operator(")"))
-			throw_parse_exception(") expected");
-		next();
 	}
+	else if (!is_keyword("enum") && !is_keyword("struct"))
+	{
+		throw_parse_exception("var, struct or enum expected");
+	}
+
+	AstFieldDeclaration *field_decl = newNode<AstFieldDeclaration>();
+	field_decl->group = group;
 
 	bool is_access_type_set = false;
 	while (true)
@@ -397,6 +420,12 @@ AstNode *Parser::parse_field_declaration()
 				throw_parse_exception("transient already specified");
 			field_decl->is_transient = true;
 		}
+		else if (is_keyword("editconst"))
+		{
+			if (field_decl->editconst)
+				throw_parse_exception("editconst already specified");
+			field_decl->editconst = true;
+		}
 		else
 		{
 			break;
@@ -404,7 +433,18 @@ AstNode *Parser::parse_field_declaration()
 		next();
 	}
 
-	field_decl->type = parse_name();
+	if (is_keyword("enum"))
+	{
+		field_decl->enum_decl = parse_enum_declaration();
+	}
+	else if (is_keyword("struct"))
+	{
+		field_decl->struct_decl = parse_struct_declaration();
+	}
+	else
+	{
+		field_decl->type = parse_name();
+	}
 
 	AstVariableDeclarator *var_decl = newNode<AstVariableDeclarator>();
 

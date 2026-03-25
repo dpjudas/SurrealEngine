@@ -18,7 +18,15 @@ AstName *Parser::parse_name()
 		AstClassName* type = newNode<AstClassName>();
 		next();
 
-		if (is_operator("<"))
+		if (is_name())
+		{
+			AstObjectName* obj_name = newNode<AstObjectName>();
+			obj_name->class_name = "class";
+			obj_name->object_name = token.value;
+			name = obj_name;
+			next();
+		}
+		else if (is_operator("<"))
 		{
 			next();
 
@@ -40,17 +48,29 @@ AstName *Parser::parse_name()
 
 		name = type;
 	}
-	else if (is_object_name())
+	else if (is_identifier())
 	{
-		AstObjectName* objname = newNode<AstObjectName>();
-		objname->name = token.value;
+		auto pos = save_position();
+		std::string identifier = token.value;
 		next();
 
-		name = objname;
+		if (is_name())
+		{
+			AstObjectName* obj_name = newNode<AstObjectName>();
+			obj_name->class_name = identifier;
+			obj_name->object_name = token.value;
+			name = obj_name;
+			next();
+		}
+		else
+		{
+			restore_position(pos);
+			name = parse_identifier_name();
+		}
 	}
 	else
 	{
-		name = parse_identifier_name();
+		throw_parse_exception("name expected");
 	}
 
 	return name;

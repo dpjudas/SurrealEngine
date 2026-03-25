@@ -12,69 +12,26 @@ AstExpression *Parser::parse_primary()
 {
 	AstExpression *expression = 0;
 
-	if (is_type_keyword())
-	{
-		AstKeywordType *type = newNode<AstKeywordType>();
-		type->type = token.value;
-		next();
-
-		if (!is_operator("."))
-			throw_parse_exception(". expected");
-		next();
-
-		if (!is_identifier())
-			throw_parse_exception("identifier expected");
-
-		std::string identifier = token.value;
-		next();
-
-		// To do: add support for type arguments <A,B,C>
-
-		AstMemberAccess *access = newNode<AstMemberAccess>();
-		access->predefined_type = type;
-		access->identifier = identifier;
-
-		expression = access;
-	}
-	else if (is_keyword("this"))
-	{
-		next();
-
-		AstThisAccess *this_access = newNode<AstThisAccess>();
-		expression = this_access;
-	}
-	else if (is_keyword("super"))
+	if (is_keyword("super"))
 	{
 		next();
 
 		AstBaseAccess *base_access = newNode<AstBaseAccess>();
 		expression = base_access;
 	}
-	else if (is_object_name())
-	{
-		std::string identifier = token.value;
-		next();
-
-		AstNamedObject* name = newNode<AstNamedObject>();
-		name->identifier = identifier;
-		expression = name;
-	}
 	else if (is_keyword("new"))
 	{
 		next();
 
-		AstName *type = parse_name();
-
-		if (is_operator("(")) // Object creation or delegate creation
+		AstNewExpression* new_expression = newNode<AstNewExpression>();
+		if (is_operator("("))
 		{
 			next();
-
-			AstNewExpression *new_expression = newNode<AstNewExpression>();
-			new_expression->type = type;
 			
 			while (!is_operator(")"))
 			{
-				new_expression->args.push_back(parse_expression(comma_end | paranthesis_end));
+				if (!is_operator(",") && !is_operator(")"))
+					new_expression->args.push_back(parse_expression(comma_end | paranthesis_end));
 
 				if (is_operator(","))
 					next();
@@ -82,59 +39,11 @@ AstExpression *Parser::parse_primary()
 					throw_parse_exception(", or ) expected");
 			}
 			next();
-
-			expression = new_expression;
 		}
-		else // Array creation
-		{
-			AstArrayCreationExpression *new_expression = newNode<AstArrayCreationExpression>();
 
-			if (is_operator("["))
-			{
-				next();
-				new_expression->has_expression_list = true;
-
-				while (true)
-				{
-					new_expression->expression_list.push_back(parse_expression(comma_end|bracket_end));
-					if (is_operator(","))
-					{
-						next();
-					}
-					else if (is_operator("]"))
-					{
-						next();
-						break;
-					}
-					else
-					{
-						throw_parse_exception(", or ] expected");
-					}
-				}
-			}
-
-			while (is_operator("["))
-			{
-				next();
-
-				int rank = 1;
-				while (is_operator(","))
-				{
-					rank++;
-					next();
-				}
-
-				if (!is_operator("]"))
-					throw_parse_exception("] expected");
-
-				new_expression->rank_specifiers.push_back(rank);
-			}
-
-			if (is_operator("{"))
-				new_expression->initializer = parse_array_initializer();
-
-			expression = new_expression;
-		}
+		AstName* type = parse_name();
+		new_expression->type = type;
+		expression = new_expression;
 	}
 	else if (is_keyword("typeof"))
 	{
@@ -152,23 +61,6 @@ AstExpression *Parser::parse_primary()
 		next();
 
 		expression = typeof_expression;
-	}
-	else if (is_keyword("default"))
-	{
-		next();
-
-		if (!is_operator("("))
-			throw_parse_exception("( expected");
-		next();
-
-		AstDefaultValueExpression *default_expression = newNode<AstDefaultValueExpression>();
-		default_expression->type = parse_name();
-
-		if (!is_operator(")"))
-			throw_parse_exception(") expected");
-		next();
-
-		expression = default_expression;
 	}
 	else if (is_keyword("sizeof"))
 	{
@@ -192,9 +84,22 @@ AstExpression *Parser::parse_primary()
 		std::string identifier = token.value;
 		next();
 
-		AstSimpleName* name = newNode<AstSimpleName>();
-		name->identifier = identifier;
-		expression = name;
+		if (is_name())
+		{
+			std::string obj_name = token.value;
+			next();
+
+			AstNamedObject* name = newNode<AstNamedObject>();
+			name->class_name = identifier;
+			name->object_name = obj_name;
+			expression = name;
+		}
+		else
+		{
+			AstSimpleName* name = newNode<AstSimpleName>();
+			name->identifier = identifier;
+			expression = name;
+		}
 	}
 	else if (token.type == Token::type_bool)
 	{
@@ -326,7 +231,10 @@ AstExpression *Parser::parse_primary()
 			{
 				AstInvocationArgument *arg = newNode<AstInvocationArgument>();
 
-				arg->expression = parse_expression(comma_end | paranthesis_end);
+				if (!is_operator(",") && !is_operator(")"))
+				{
+					arg->expression = parse_expression(comma_end | paranthesis_end);
+				}
 
 				invocation->args.push_back(arg);
 
@@ -446,7 +354,7 @@ int Parser::get_token_precedence()
 	{
 		return 10;
 	}
-	else if (is_operator("==") || is_operator("!="))
+	else if (is_operator("==") || is_operator("!=") || is_operator("~="))
 	{
 		return 9;
 	}
@@ -469,10 +377,6 @@ int Parser::get_token_precedence()
 	else if (is_operator("||"))
 	{
 		return 4;
-	}
-	else if (is_operator("??"))
-	{
-		return 3;
 	}
 	else if (is_operator("?"))
 	{
@@ -538,6 +442,8 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstEqualExpression>();
 	else if (is_operator("!="))
 		return newNode<AstNotEqualExpression>();
+	else if (is_operator("~="))
+		return newNode<AstCaseInsensitiveEqualExpression>();
 	else if (is_operator("&"))
 		return newNode<AstLogicalAndExpression>();
 	else if (is_operator("^"))
@@ -548,8 +454,6 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstConditionalAndExpression>();
 	else if (is_operator("||"))
 		return newNode<AstConditionalOrExpression>();
-	else if (is_operator("??"))
-		return newNode<AstNullCoalescingExpression>();
 	else if (is_operator("="))
 		return newNode<AstAssignmentExpression>("=");
 	else if (is_operator("*="))
@@ -574,6 +478,8 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstDotProductExpression>();
 	else if (is_keyword("cross"))
 		return newNode<AstCrossProductExpression>();
+	else if (is_operator("**"))
+		return newNode<AstExponentiationExpression>();
 
 	throw_parse_exception("syntax error");
 }

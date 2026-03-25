@@ -30,7 +30,8 @@ public:
 class AstObjectName : public AstName // type'name'
 {
 public:
-	std::string name;
+	std::string class_name;
+	std::string object_name;
 };
 
 class AstKeywordType : public AstName // bool, byte, int, float

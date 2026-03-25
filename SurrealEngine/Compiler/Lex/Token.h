@@ -18,7 +18,6 @@ public:
 		type_string,
 		type_none,
 		type_operator,
-		type_object_name,
 	};
 
 	Token() = default;

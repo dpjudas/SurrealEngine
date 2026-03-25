@@ -97,9 +97,9 @@ bool Parser::is_keyword(const char *keyword) const
 	return i == size;
 }
 
-bool Parser::is_object_name() const
+bool Parser::is_name() const
 {
-	return token.type == Token::type_object_name;
+	return token.type == Token::type_name;
 }
 
 bool Parser::is_identifier() const
