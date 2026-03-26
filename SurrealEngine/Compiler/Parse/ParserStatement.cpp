@@ -101,7 +101,7 @@ AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 		{
 			block->ignores.push_back(parse_ignore_events_declaration());
 		}
-		else if (isStateBlock && (is_keyword("function") || is_keyword("event") || is_keyword("simulated") || is_keyword("exec")))
+		else if (isStateBlock && (is_keyword("function") || is_keyword("event") || is_keyword("singular") || is_keyword("simulated") || is_keyword("exec")))
 		{
 			block->methods.push_back(parse_method_declaration());
 		}
@@ -344,10 +344,6 @@ AstDoStatement *Parser::parse_do_statement()
 
 	if (!is_operator(")"))
 		throw_parse_exception(") expected");
-	next();
-
-	if (!is_operator(";"))
-		throw_parse_exception("; expected");
 	next();
 
 	return statement;

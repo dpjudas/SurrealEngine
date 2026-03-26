@@ -583,15 +583,10 @@ bool Tokenizer::read_literal_character(std::u32string::value_type &character, st
 		error = "Unexpected end of file";
 		return false;
 	}
-	else if (data[pos] == 0x005c)
-	{
-		error = "Unexpected character";
-		return false;
-	}
 	else if (data[pos] == '\\')
 	{
 		pos++;
-		if (pos + 1 < data.size())
+		if (pos + 1 >= data.size())
 		{
 			error = "Unexpected end of file";
 			return false;
@@ -674,9 +669,8 @@ bool Tokenizer::read_literal_character(std::u32string::value_type &character, st
 		}
 		else
 		{
-			pos++;
-			error = "Unrecognized escape character";
-			return false;
+			character = '\\';
+			return true;
 		}
 		pos++;
 		return true;
