@@ -376,32 +376,19 @@ void VisibleFrame::DrawPortals()
 		}
 		else if (portal.WarpZone)
 		{
+			// Warp camera
 			vec3 newLocation = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz());
 			Coords rotation = WarpRotationToOtherSide(portal.WarpZone, ViewRotation);
-			/*Coords rotation;
-			rotation.Origin = vec3(0.0f);
-			rotation.XAxis = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz() + ViewRotation.XAxis) - newLocation;
-			rotation.YAxis = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz() + ViewRotation.YAxis) - newLocation;
-			rotation.ZAxis = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz() + ViewRotation.ZAxis) - newLocation;*/
-
 			mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotation.Inverse().ToMatrix() * mat4::translate(-newLocation);
 
-			// Find clipping plane for portal
+			// Find clipping plane for portal and warp it
 			auto node = portal.Nodes.front().Node;
-
 			vec4 plane = { node->PlaneX, node->PlaneY, node->PlaneZ, -node->PlaneW };
-			bool isBackfacing = dot(ViewLocation, plane) < 0.0f;
-
-			// To do: can we warp the plane instead? requires warping a normal (inverse rotation?) and a point
-			UModel* model = engine->Level->Model;
-			vec3 points[3];
-			BspVert* v = &model->Vertices[node->VertPool];
-			for (int j = 0; j < 3; j++)
-				points[j] = WarpLocationToOtherSide(portal.WarpZone, model->Points[v[j].Vertex]);
-			vec3 normal = cross(points[1] - points[0], points[2] - points[0]);
-			float d = dot(normal, points[0]);
-			vec4 portalPlane(normal, -d);
-			if (!isBackfacing)
+			bool isFrontfacing = dot(ViewLocation, plane) < 0.0f;
+			vec3 p = WarpLocationToOtherSide(portal.WarpZone, plane.xyz() * -plane.w);
+			vec3 n = WarpNormalToOtherSide(portal.WarpZone, vec3(node->PlaneX, node->PlaneY, node->PlaneZ));
+			vec4 portalPlane(n, -dot(p,n));
+			if (!isFrontfacing)
 				portalPlane = -portalPlane;
 
 			VisibleFrame portalframe;
@@ -475,6 +462,25 @@ vec3 VisibleFrame::WarpLocationToOtherSide(UWarpZoneInfo* warpZone, vec3 p)
 	}
 
 	return p;
+}
+
+vec3 VisibleFrame::WarpNormalToOtherSide(UWarpZoneInfo* warpZone, vec3 n)
+{
+	// Transform to warp space:
+	{
+		mat3 rotate = warpZone->WarpCoords().ToMatrix();
+		mat3 invrotate = mat3::transpose(rotate);
+		n = invrotate * n;
+	}
+
+	// Transform from warp space:
+	{
+		mat3 rotate = warpZone->OtherSideActor()->WarpCoords().ToMatrix();
+		//mat3 invrotate = mat3::transpose(rotate);
+		n = rotate * n;
+	}
+
+	return n;
 }
 
 Coords VisibleFrame::WarpRotationToOtherSide(UWarpZoneInfo* warpZone, Coords rotation)

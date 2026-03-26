@@ -54,5 +54,6 @@ private:
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
 
 	vec3 WarpLocationToOtherSide(UWarpZoneInfo* warpZone, vec3 p);
+	vec3 WarpNormalToOtherSide(UWarpZoneInfo* warpZone, vec3 n);
 	Coords WarpRotationToOtherSide(UWarpZoneInfo* warpZone, Coords rotation);
 };
