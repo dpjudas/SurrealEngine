@@ -16,10 +16,11 @@ BspClipper::~BspClipper()
 {
 }
 
-void BspClipper::Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans)
+void BspClipper::Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans, const vec4& portalPlane)
 {
 	WorldToProjection = world_to_projection;
 	FrustumClip = FrustumPlanes(world_to_projection);
+	PortalPlane = portalPlane;
 
 	ClipSpan left = { (int16_t)0x8000, 0 };
 	ClipSpan right = { (int16_t)ViewportWidth, (int16_t)0x7fff };
@@ -66,15 +67,18 @@ bool BspClipper::CheckSurface(const vec3* vertices, uint32_t count, bool solid)
 
 	numSurfs++;
 
-	vec4 buffer[3];
-	vec4* triverts[3] = { &buffer[0], &buffer[1], &buffer[2] };
+	ShadedVertex buffer[3];
+	ShadedVertex* triverts[3] = { &buffer[0], &buffer[1], &buffer[2] };
 
 	bool result = false;
-	*triverts[0] = WorldToProjection * vec4(vertices[0], 1.0f);
-	*triverts[1] = WorldToProjection * vec4(vertices[1], 1.0f);
+	triverts[0]->position = WorldToProjection * vec4(vertices[0], 1.0f);
+	triverts[0]->clipDistance = dot(PortalPlane, vec4(vertices[0], 1.0f));
+	triverts[1]->position = WorldToProjection * vec4(vertices[1], 1.0f);
+	triverts[1]->clipDistance = dot(PortalPlane, vec4(vertices[1], 1.0f));
 	for (uint32_t i = 2; i < count; i++)
 	{
-		*triverts[2] = WorldToProjection * vec4(vertices[i], 1.0f);
+		triverts[2]->position = WorldToProjection * vec4(vertices[i], 1.0f);
+		triverts[2]->clipDistance = dot(PortalPlane, vec4(vertices[i], 1.0f));
 		result |= DrawTriangle(triverts, solid, false);
 		std::swap(triverts[1], triverts[2]);
 	}
@@ -253,7 +257,7 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 	return visible;
 }
 
-bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
+bool BspClipper::DrawTriangle(const ShadedVertex* const* vert, bool solid, bool ccw)
 {
 	// Reject triangle if degenerate
 	//if (IsDegenerate(vert))
@@ -273,10 +277,10 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 		for (int w = 0; w < 3; w++)
 		{
 			float weight = weights[i * 3 + w];
-			v.x += vert[w]->x * weight;
-			v.y += vert[w]->y * weight;
-			v.z += vert[w]->z * weight;
-			v.w += vert[w]->w * weight;
+			v.x += vert[w]->position.x * weight;
+			v.y += vert[w]->position.y * weight;
+			v.z += vert[w]->position.z * weight;
+			v.w += vert[w]->position.w * weight;
 		}
 	}
 
@@ -374,7 +378,7 @@ bool BspClipper::DrawTriangle(const vec4* const* vert, bool solid, bool ccw)
 	return result;
 }
 
-int BspClipper::ClipEdge(const vec4* const* verts)
+int BspClipper::ClipEdge(const ShadedVertex* const* verts)
 {
 	bool DepthClamp = false;
 
@@ -401,7 +405,7 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 	float* clipd = clipdistance;
 	for (int i = 0; i < 3; i++)
 	{
-		const auto& v = *verts[i];
+		const auto& v = verts[i]->position;
 		clipd[0] = v.x + v.w;
 		clipd[1] = v.w - v.x;
 		clipd[2] = v.y + v.w;
@@ -409,13 +413,14 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 		if (DepthClamp)
 		{
 			clipd[4] = 1.0f;
-			clipd[5] = 1.0f;
+			//clipd[5] = 1.0f;
 		}
 		else
 		{
 			clipd[4] = v.z + v.w;
-			clipd[5] = v.w - v.z;
+			//clipd[5] = v.w - v.z;
 		}
+		clipd[5] = verts[i]->clipDistance;
 		//clipd[6] = v.gl_ClipDistance[0];
 		//clipd[7] = v.gl_ClipDistance[1];
 		//clipd[8] = v.gl_ClipDistance[2];
@@ -430,9 +435,9 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 		return 3;
 	}
 #else
-	__m128 mx = _mm_loadu_ps(&verts[0]->x);
-	__m128 my = _mm_loadu_ps(&verts[1]->x);
-	__m128 mz = _mm_loadu_ps(&verts[2]->x);
+	__m128 mx = _mm_loadu_ps(&verts[0]->position.x);
+	__m128 my = _mm_loadu_ps(&verts[1]->position.x);
+	__m128 mz = _mm_loadu_ps(&verts[2]->position.x);
 	__m128 mw = _mm_setzero_ps();
 	_MM_TRANSPOSE4_PS(mx, my, mz, mw);
 	__m128 clipd0 = _mm_add_ps(mx, mw);
@@ -440,7 +445,8 @@ int BspClipper::ClipEdge(const vec4* const* verts)
 	__m128 clipd2 = _mm_add_ps(my, mw);
 	__m128 clipd3 = _mm_sub_ps(mw, my);
 	__m128 clipd4 = DepthClamp ? _mm_set1_ps(1.0f) : _mm_add_ps(mz, mw);
-	__m128 clipd5 = DepthClamp ? _mm_set1_ps(1.0f) : _mm_sub_ps(mw, mz);
+	//__m128 clipd5 = DepthClamp ? _mm_set1_ps(1.0f) : _mm_sub_ps(mw, mz);
+	__m128 clipd5 = _mm_setr_ps(verts[0]->clipDistance, verts[1]->clipDistance, verts[2]->clipDistance, 0.0f);
 	//__m128 clipd6 = _mm_setr_ps(verts[0]->gl_ClipDistance[0], verts[1]->gl_ClipDistance[0], verts[2]->gl_ClipDistance[0], 0.0f);
 	//__m128 clipd7 = _mm_setr_ps(verts[0]->gl_ClipDistance[1], verts[1]->gl_ClipDistance[1], verts[2]->gl_ClipDistance[1], 0.0f);
 	//__m128 clipd8 = _mm_setr_ps(verts[0]->gl_ClipDistance[2], verts[1]->gl_ClipDistance[2], verts[2]->gl_ClipDistance[2], 0.0f);

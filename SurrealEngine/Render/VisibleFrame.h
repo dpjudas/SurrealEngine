@@ -17,7 +17,7 @@
 class VisibleFrame
 {
 public:
-	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0, const Array<PortalSpan>& portalSpans = {});
+	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0, const Array<PortalSpan>& portalSpans = {}, const vec4& portalPlane = vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	void Draw();
 	void DrawCoronas();
 
@@ -52,4 +52,7 @@ private:
 
 	int FindZoneAt(const vec3& location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);
+
+	vec3 WarpLocationToOtherSide(UWarpZoneInfo* warpZone, vec3 p);
+	Coords WarpRotationToOtherSide(UWarpZoneInfo* warpZone, Coords rotation);
 };

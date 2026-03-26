@@ -26,7 +26,7 @@ public:
 	BspClipper();
 	~BspClipper();
 
-	void Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans);
+	void Setup(const mat4& world_to_projection, const Array<PortalSpan>& portalSpans, const vec4& portalPlane);
 
 	bool CheckSurface(const vec3* vertices, uint32_t count, bool solid);
 	bool IsAABBVisible(const BBox& bbox);
@@ -40,8 +40,14 @@ public:
 private:
 	bool IsVisible(int16_t y, int16_t x0, int16_t x1);
 
-	bool DrawTriangle(const vec4* const* vert, bool solid, bool ccw);
-	int ClipEdge(const vec4* const* verts);
+	struct ShadedVertex
+	{
+		vec4 position;
+		float clipDistance;
+	};
+
+	bool DrawTriangle(const ShadedVertex* const* vert, bool solid, bool ccw);
+	int ClipEdge(const ShadedVertex* const* verts);
 
 	bool DrawClippedTriangle(const vec4* const* vertices, bool solid);
 	bool DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid);
@@ -53,6 +59,7 @@ private:
 	Array<Array<ClipSpan>> Viewport;
 	FrustumPlanes FrustumClip;
 	mat4 WorldToProjection;
+	vec4 PortalPlane = vec4(0.0f);
 
 	Array<PortalSpan> VisibleSpans;
 	bool CollectSpans = false;
