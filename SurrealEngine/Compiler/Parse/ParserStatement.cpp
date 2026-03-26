@@ -565,6 +565,20 @@ AstLocalVariableDeclaration *Parser::parse_local_variable_declaration(AstName *t
 		decl->identifier = token.value;
 		next();
 
+		if (is_operator("["))
+		{
+			next();
+
+			if (token.type != Token::type_integer)
+				throw_parse_exception("integer expected");
+			decl->array_dimension = std::stoi(token.value);
+			next();
+
+			if (!is_operator("]"))
+				throw_parse_exception("] expected");
+			next();
+		}
+
 		if (is_operator("="))
 		{
 			next();

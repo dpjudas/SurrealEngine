@@ -751,6 +751,7 @@ const char *Tokenizer::operators[] =
 	":",
 	";",
 	"$",
+	"@",
 	"+",
 	"-",
 	"*",
@@ -765,7 +766,7 @@ const char *Tokenizer::operators[] =
 	"<",
 	">",
 	"?",
-	0
+	nullptr
 };
 
 

@@ -48,6 +48,7 @@ class AstLocalVariableDeclarator : public AstNode
 {
 public:
 	std::string identifier;
+	int array_dimension = 0;
 	AstExpression *expression = nullptr;
 	AstArrayInitializer *array_initializer = nullptr;
 };

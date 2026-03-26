@@ -56,6 +56,8 @@ public:
 	bool is_travel = false;
 	bool is_transient = false;
 	bool editconst = false;
+	bool is_export = false;
+	bool is_config = false;
 	AstAccessType access_type = {};
 	AstEnumDeclaration* enum_decl = nullptr;
 	AstStructDeclaration* struct_decl = nullptr;
@@ -79,7 +81,8 @@ public:
 	bool is_ref = false;
 	bool is_out = false;
 	bool is_optional = false;
-	bool is_coerce = false;
+	bool coerce = false;
+	bool skip = false;
 	AstName *type = nullptr;
 	std::string identifier;
 	int array_dimension = 0;
@@ -107,7 +110,12 @@ public:
 	bool is_singular = false;
 	bool is_simulated = false;
 	bool is_final = false;
+	bool is_latent = false;
 	bool is_iterator = false;
+	bool is_operator = false;
+	bool is_preoperator = false;
+	bool is_postoperator = false;
+	int operator_precedence = 0;
 	int native_index = 0;
 	AstAccessType access_type = {};
 	AstName *return_type = nullptr;

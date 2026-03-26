@@ -148,7 +148,12 @@ std::vector<AstMethodParameter *> Parser::parse_formal_parameter_list(const char
 			}
 			else if (is_keyword("coerce"))
 			{
-				parameter->is_coerce = true;
+				parameter->coerce = true;
+				next();
+			}
+			else if (is_keyword("skip"))
+			{
+				parameter->skip = true;
 				next();
 			}
 			else
@@ -259,6 +264,13 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 			next();
 			method_decl->is_final = true;
 		}
+		else if (is_keyword("latent"))
+		{
+			if (method_decl->is_latent)
+				throw_parse_exception("latent already specified");
+			next();
+			method_decl->is_latent = true;
+		}
 		else if (is_keyword("iterator"))
 		{
 			if (method_decl->is_iterator)
@@ -288,39 +300,90 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 	{
 		next();
 	}
-	/*else if (is_keyword("operator"))
+	else if (is_keyword("operator"))
 	{
 		method_decl->is_operator = true;
 		next();
-	}*/
+
+		if (!is_operator("("))
+			throw_parse_exception("( specified");
+		next();
+
+		if (token.type == Token::type_integer)
+		{
+			method_decl->operator_precedence = std::stoi(token.value);
+			next();
+		}
+
+		if (!is_operator(")"))
+			throw_parse_exception(") specified");
+		next();
+	}
+	else if (is_keyword("preoperator"))
+	{
+		method_decl->is_preoperator = true;
+		next();
+	}
+	else if (is_keyword("postoperator"))
+	{
+		method_decl->is_postoperator = true;
+		next();
+	}
 	else
 	{
 		throw_parse_exception("function, event or operator expected");
 	}
 
-	bool returnValueFound = false;
-	SavedParserPos pos = save_position();
-	if (is_keyword("class") || is_type_keyword())
-	{
-		returnValueFound = true;
-	}
-	else if (is_identifier())
-	{
-		next();
-		if (is_identifier())
-			returnValueFound = true;
-		restore_position(pos);
-	}
-
-	if (returnValueFound)
+	if (method_decl->is_operator || method_decl->is_preoperator || method_decl->is_postoperator)
 	{
 		method_decl->return_type = parse_name();
-	}
 
-	if (!is_identifier())
-		throw_parse_exception("identifier expected");
-	method_decl->identifier = token.value;
-	next();
+		std::string op;
+		if (is_identifier())
+		{
+			op = token.value;
+			next();
+		}
+		else if (token.type == Token::type_operator)
+		{
+			do
+			{
+				if (is_operator("("))
+					break;
+				op += token.value;
+				next();
+			} while (token.type == Token::type_operator);
+		}
+		if (op.empty())
+			throw_parse_exception("operator name expected");
+		method_decl->identifier = op;
+	}
+	else
+	{
+		bool returnValueFound = false;
+		SavedParserPos pos = save_position();
+		if (is_keyword("class") || is_type_keyword())
+		{
+			returnValueFound = true;
+		}
+		else if (is_identifier())
+		{
+			next();
+			if (is_identifier())
+				returnValueFound = true;
+			restore_position(pos);
+		}
+
+		if (returnValueFound)
+		{
+			method_decl->return_type = parse_name();
+		}
+
+		if (!is_identifier())
+			throw_parse_exception("identifier expected");
+		method_decl->identifier = token.value;
+		next();
+	}
 
 	if (!is_operator("("))
 		throw_parse_exception("( expected");
@@ -426,6 +489,18 @@ AstNode *Parser::parse_field_declaration()
 				throw_parse_exception("editconst already specified");
 			field_decl->editconst = true;
 		}
+		else if (is_keyword("export"))
+		{
+			if (field_decl->is_export)
+				throw_parse_exception("export already specified");
+			field_decl->is_export = true;
+		}
+		else if (is_keyword("config"))
+		{
+			if (field_decl->is_config)
+				throw_parse_exception("config already specified");
+			field_decl->is_config = true;
+		}
 		else
 		{
 			break;
@@ -436,10 +511,20 @@ AstNode *Parser::parse_field_declaration()
 	if (is_keyword("enum"))
 	{
 		field_decl->enum_decl = parse_enum_declaration();
+		if (is_operator(";"))
+		{
+			next();
+			return field_decl;
+		}
 	}
 	else if (is_keyword("struct"))
 	{
 		field_decl->struct_decl = parse_struct_declaration();
+		if (is_operator(";"))
+		{
+			next();
+			return field_decl;
+		}
 	}
 	else
 	{

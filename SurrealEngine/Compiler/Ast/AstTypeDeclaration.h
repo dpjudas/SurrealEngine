@@ -65,6 +65,7 @@ public:
 
 	AstAccessType access_type = {};
 	std::string identifier;
+	AstIdentifierName* base = nullptr;
 	std::vector<AstNode *> members;
 };
 

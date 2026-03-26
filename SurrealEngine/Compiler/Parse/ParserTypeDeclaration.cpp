@@ -86,13 +86,19 @@ AstStructDeclaration *Parser::parse_struct_declaration()
 	struct_decl->identifier = token.value;
 	next();
 
+	if (is_keyword("extends"))
+	{
+		next();
+		struct_decl->base = parse_identifier_name();
+	}
+
 	if (!is_operator("{"))
 		throw_parse_exception("{ expected");
 	next();
 
 	while (!is_operator("}"))
 	{
-		struct_decl->members.push_back(parse_class_member());
+		struct_decl->members.push_back(parse_field_declaration());
 	}
 	next();
 
