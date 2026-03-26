@@ -16,7 +16,7 @@ AstClassDeclaration *Parser::parse_class_declaration()
 
 	while (!is_operator(";"))
 	{
-		if (is_keyword("extends"))
+		if (is_keyword("extends") || is_keyword("expands"))
 		{
 			next();
 			if (class_decl->base_type)
@@ -47,6 +47,35 @@ AstClassDeclaration *Parser::parse_class_declaration()
 		{
 			next();
 			class_decl->safe_replace = true;
+		}
+		else if (is_keyword("transient"))
+		{
+			next();
+			class_decl->is_transient = true;
+		}
+		else if (is_keyword("config"))
+		{
+			next();
+			class_decl->is_config = true;
+
+			if (is_operator("("))
+			{
+				next();
+
+				if (!is_identifier())
+					throw_parse_exception("identifer expected");
+				class_decl->config = token.value;
+				next();
+
+				if (!is_operator(")"))
+					throw_parse_exception("identifer expected");
+				next();
+			}
+		}
+		else if (is_keyword("perobjectconfig"))
+		{
+			next();
+			class_decl->per_object_config = true;
 		}
 		else
 		{

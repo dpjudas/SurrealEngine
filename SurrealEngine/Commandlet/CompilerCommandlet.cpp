@@ -14,26 +14,33 @@ CompilerCommandlet::CompilerCommandlet()
 
 void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
-	std::string filename = args;
+	std::string folder = args;
 
-#if 1
-	if (filename.empty())
-		filename = "C:\\Games\\DeusEx-1112fm-Scripts\\ConSys\\Classes\\ConCamera.uc";
+#if 0
+	if (folder.empty())
+		folder = "C:\\Games\\DeusEx-1112fm-Scripts";
 #endif
 
-	if (filename.empty())
+	if (folder.empty())
 	{
-		console->WriteOutput("Compile command expects a filename argument" + NewLine());
+		console->WriteOutput("Compile command expects a path to a folder with unrealscript files" + NewLine());
 		return;
 	}
 
-	Compiler cc;
-	cc.add_code(File::read_all_text(filename), fs::path(filename).filename().string());
-	cc.compile();
-
-	for (const CompilerMessage& msg : cc.get_messages())
+	for (const auto& entry : fs::recursive_directory_iterator("C:\\Games\\DeusEx-1112fm-Scripts"))
 	{
-		console->WriteOutput(msg.to_string() + NewLine());
+		if (entry.is_regular_file() && entry.path().extension() == ".uc")
+		{
+			// console->WriteOutput(entry.path().filename().string() + NewLine());
+			Compiler cc;
+			cc.add_code(File::read_all_text(entry.path().string()), entry.path().filename().string());
+			cc.compile();
+
+			for (const CompilerMessage& msg : cc.get_messages())
+			{
+				console->WriteOutput(msg.to_string() + NewLine());
+			}
+		}
 	}
 }
 

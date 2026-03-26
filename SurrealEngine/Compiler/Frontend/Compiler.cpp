@@ -44,6 +44,7 @@ bool Compiler::compile()
 		if (encountered_errors)
 			return false;
 
+		/*
 		for (auto& unit : parsed_files)
 		{
 			for (AstNode* member : unit->class_decl->members)
@@ -73,6 +74,7 @@ bool Compiler::compile()
 				}
 			}
 		}
+		*/
 
 #if 0
 		SemanticAnalysis sema(type_system);

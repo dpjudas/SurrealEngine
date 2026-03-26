@@ -295,6 +295,12 @@ public:
 	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
 };
 
+class AstStringSpaceConcatExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+};
+
 class AstShiftLeftExpression : public AstBinaryExpression
 {
 public:

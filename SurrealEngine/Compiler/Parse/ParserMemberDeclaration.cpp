@@ -28,9 +28,16 @@ AstNode *Parser::parse_class_member()
 AstNode* Parser::parse_state_declaration()
 {
 	bool is_auto = false;
+	bool is_simulated = false;
 	if (is_keyword("auto"))
 	{
 		is_auto = true;
+		next();
+	}
+
+	if (is_keyword("simulated"))
+	{
+		is_simulated = true;
 		next();
 	}
 
@@ -49,6 +56,7 @@ AstNode* Parser::parse_state_declaration()
 	}
 
 	state_decl->is_auto = is_auto;
+	state_decl->is_simulated = is_simulated;
 
 	if (!is_identifier())
 		throw_parse_exception("identifier expected");
@@ -285,6 +293,13 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 			next();
 			method_decl->is_static = true;
 		}
+		else if (is_keyword("exec"))
+		{
+			if (method_decl->is_exec)
+				throw_parse_exception("exec already specified");
+			next();
+			method_decl->is_exec = true;
+		}
 		else
 		{
 			break;
@@ -500,6 +515,18 @@ AstNode *Parser::parse_field_declaration()
 			if (field_decl->is_config)
 				throw_parse_exception("config already specified");
 			field_decl->is_config = true;
+		}
+		else if (is_keyword("globalconfig"))
+		{
+			if (field_decl->is_globalconfig)
+				throw_parse_exception("globalconfig already specified");
+			field_decl->is_globalconfig = true;
+		}
+		else if (is_keyword("input"))
+		{
+			if (field_decl->is_input)
+				throw_parse_exception("input already specified");
+			field_decl->is_input = true;
 		}
 		else
 		{

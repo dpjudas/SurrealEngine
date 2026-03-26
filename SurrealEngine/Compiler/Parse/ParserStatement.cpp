@@ -76,7 +76,7 @@ AstStatement *Parser::parse_statement()
 
 				AstLabeledStatement *labeled = newNode<AstLabeledStatement>();
 				labeled->identifier = identifier;
-				labeled->statement = parse_statement();
+				//labeled->statement = parse_statement();
 				return labeled;
 			}
 		}
@@ -101,7 +101,7 @@ AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 		{
 			block->ignores.push_back(parse_ignore_events_declaration());
 		}
-		else if (isStateBlock && (is_keyword("function") || is_keyword("event")))
+		else if (isStateBlock && (is_keyword("function") || is_keyword("event") || is_keyword("simulated") || is_keyword("exec")))
 		{
 			block->methods.push_back(parse_method_declaration());
 		}
@@ -492,23 +492,25 @@ AstGotoStatement *Parser::parse_goto_statement()
 
 	AstGotoStatement *statement = newNode<AstGotoStatement>();
 
-	if (is_keyword("default"))
+	if (is_operator("("))
 	{
 		next();
-	}
-	else if (is_keyword("case"))
-	{
+
+		if (!is_name())
+			throw_parse_exception("name expected");
+		statement->name = token.value;
 		next();
-		statement->expression = parse_expression(semicolon_end);
-	}
-	else if (is_identifier())
-	{
-		statement->identifier = token.value;
+
+		if (!is_operator(")"))
+			throw_parse_exception(") expected");
 		next();
 	}
 	else
 	{
-		throw_parse_exception("default, case or identifier expected");
+		if (!is_name())
+			throw_parse_exception("name expected");
+		statement->name = token.value;
+		next();
 	}
 
 	if (!is_operator(";"))

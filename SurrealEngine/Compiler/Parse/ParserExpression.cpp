@@ -342,7 +342,7 @@ int Parser::get_token_precedence()
 	{
 		return 13; // highest
 	}
-	else if (is_operator("+") || is_operator("-") || is_operator("$") || is_keyword("dot") || is_keyword("cross"))
+	else if (is_operator("+") || is_operator("-") || is_operator("$") || is_operator("@") || is_keyword("dot") || is_keyword("cross"))
 	{
 		return 12;
 	}
@@ -407,6 +407,8 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstSubtractionExpression>();
 	else if (is_operator("$"))
 		return newNode<AstStringConcatExpression>();
+	else if (is_operator("@"))
+		return newNode<AstStringSpaceConcatExpression>();
 	else if (is_operator("<<"))
 		return newNode<AstShiftLeftExpression>();
 	else if (is_operator("<"))

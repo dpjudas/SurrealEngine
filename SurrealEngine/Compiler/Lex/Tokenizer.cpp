@@ -270,6 +270,17 @@ bool Tokenizer::read_bool_literal(Token &token)
 			if (data[pos + i] != keyword[i])
 				return false;
 		}
+		size_t endpos = pos + 4;
+		if (endpos != data.size())
+		{
+			if (data[endpos] == '_' ||
+				(data[endpos] >= 'a' && data[endpos] <= 'z') ||
+				(data[endpos] >= 'A' && data[pos] <= 'Z') ||
+				(data[endpos] >= '0' && data[endpos] <= '9'))
+			{
+				return false;
+			}
+		}
 		token.line = line_number;
 		token.column = pos - line_start_pos;
 		token.type = Token::type_bool;
@@ -284,6 +295,17 @@ bool Tokenizer::read_bool_literal(Token &token)
 		{
 			if (data[pos + i] != keyword[i])
 				return false;
+		}
+		size_t endpos = pos + 5;
+		if (endpos != data.size())
+		{
+			if (data[endpos] == '_' ||
+				(data[endpos] >= 'a' && data[endpos] <= 'z') ||
+				(data[endpos] >= 'A' && data[pos] <= 'Z') ||
+				(data[endpos] >= '0' && data[endpos] <= '9'))
+			{
+				return false;
+			}
 		}
 		token.line = line_number;
 		token.column = pos - line_start_pos;
@@ -679,6 +701,17 @@ bool Tokenizer::read_none_literal(Token &token)
 				c = c - 'A' + 'a';
 			if (c != keyword[i])
 				return false;
+		}
+		size_t endpos = pos + 4;
+		if (endpos != data.size())
+		{
+			if (data[endpos] == '_' ||
+				(data[endpos] >= 'a' && data[endpos] <= 'z') ||
+				(data[endpos] >= 'A' && data[pos] <= 'Z') ||
+				(data[endpos] >= '0' && data[endpos] <= '9'))
+			{
+				return false;
+			}
 		}
 		token.line = line_number;
 		token.column = pos - line_start_pos;

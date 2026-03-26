@@ -58,6 +58,8 @@ public:
 	bool editconst = false;
 	bool is_export = false;
 	bool is_config = false;
+	bool is_globalconfig = false;
+	bool is_input = false;
 	AstAccessType access_type = {};
 	AstEnumDeclaration* enum_decl = nullptr;
 	AstStructDeclaration* struct_decl = nullptr;
@@ -107,6 +109,7 @@ public:
 	bool is_static = false;
 	bool is_event = false;
 	bool is_native = false;
+	bool is_exec = false;
 	bool is_singular = false;
 	bool is_simulated = false;
 	bool is_final = false;
@@ -161,6 +164,7 @@ public:
 
 	AstIdentifierName* base_state = nullptr; // Note: only seen in TestInfo.uc
 	bool is_auto = false;
+	bool is_simulated = false;
 	std::string identifier;
 	AstBlockStatement* block = nullptr;
 };

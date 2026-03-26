@@ -34,6 +34,10 @@ public:
 
 	bool is_abstract = false;
 	bool is_native = false;
+	bool is_transient = false;
+	bool is_config = false;
+	std::string config;
+	bool per_object_config = false;
 	bool nativereplication = false;
 	bool no_export = false;
 	bool safe_replace = false;

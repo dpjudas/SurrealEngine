@@ -20,7 +20,7 @@ public:
 	void visit(AstStatementVisitor *visitor) { visitor->statement(this); }
 
 	std::string identifier;
-	AstStatement *statement = nullptr;
+	//AstStatement *statement = nullptr;
 };
 
 class AstDeclarationStatement : public AstStatement
@@ -216,9 +216,7 @@ class AstGotoStatement : public AstJumpStatement
 public:
 	void visit(AstStatementVisitor *visitor) { visitor->statement(this); }
 
-	std::string identifier; // goto <identifier>
-	AstExpression *expression = nullptr; // goto case <expression>, constant-expression only
-	// if both are empty/null: goto default
+	std::string name;
 };
 
 class AstReturnStatement : public AstJumpStatement
