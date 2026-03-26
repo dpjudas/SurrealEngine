@@ -376,6 +376,40 @@ void VisibleFrame::DrawPortals()
 		}
 		else if (portal.WarpZone)
 		{
+			vec3 newLocation = ViewLocation.xyz();
+			mat3 newRotation = ViewRotation.ToMatrix();
+
+			// Transform to warp space:
+			{
+				vec3 origin = portal.WarpZone->WarpCoords().Origin;
+				mat3 rotate = portal.WarpZone->WarpCoords().ToMatrix();
+				mat3 invrotate = mat3::transpose(rotate);
+				newLocation = rotate * (newLocation - origin);
+				newRotation = rotate * newRotation;
+			}
+
+			// Transform from warp space:
+			{
+				vec3 origin = portal.WarpZone->OtherSideActor()->WarpCoords().Origin;
+				mat3 rotate = portal.WarpZone->OtherSideActor()->WarpCoords().ToMatrix();
+				mat3 invrotate = mat3::transpose(rotate);
+				newLocation = (invrotate * newLocation) + origin;
+				newRotation = invrotate * newRotation;
+			}
+
+			Coords rotation;
+			rotation.Origin = vec3(0.0f);
+			rotation.XAxis = vec3(newRotation[0], newRotation[1], newRotation[2]);
+			rotation.YAxis = vec3(newRotation[3], newRotation[4], newRotation[5]);
+			rotation.ZAxis = vec3(newRotation[6], newRotation[7], newRotation[8]);
+
+			mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotation.ToMatrix() * mat4::translate(-newLocation);
+
+			VisibleFrame portalframe;
+			portalframe.Process(newLocation, worldToView, rotation, MirrorFlag, PortalDepth + 1, portal.Spans);
+			Device->SetSceneNode(&portalframe.Frame);
+			portalframe.Draw();
+			Device->ClearZ();
 		}
 		else // Mirror
 		{
