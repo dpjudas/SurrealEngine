@@ -30,6 +30,29 @@ void NCanvas::RegisterFunctions()
 		RegisterVMNativeFunc_5("Canvas", "StrLen", &NCanvas::StrLen_219, 467); // Maybe only in KHG?
 	}
 	RegisterVMNativeFunc_3("Canvas", "TextSize", &NCanvas::TextSize, 470);
+	if (engine->LaunchInfo.IsUnreal1_227())
+	{
+		RegisterVMNativeFunc_3("Canvas", "Draw2DLine", &NCanvas::Draw2DLine_U227, 1750);
+		RegisterVMNativeFunc_3("Canvas", "Draw3DLine", &NCanvas::Draw3DLine_U227, 1751);
+		RegisterVMNativeFunc_4("Canvas", "WorldToScreen", &NCanvas::WorldToScreen_U227, 1752);
+		RegisterVMNativeFunc_3("Canvas", "ScreenToWorld", &NCanvas::ScreenToWorld_U227, 1753);
+		RegisterVMNativeFunc_3("Canvas", "DrawPathNetwork", &NCanvas::DrawPathNetwork_U227, 1754);
+		RegisterVMNativeFunc_5("Canvas", "DrawCircle", &NCanvas::DrawCircle_U227, 1755);
+		RegisterVMNativeFunc_5("Canvas", "DrawBox", &NCanvas::DrawBox_U227, 1756);
+		RegisterVMNativeFunc_2("Canvas", "GetCameraCoords", &NCanvas::GetCameraCoords_U227, 1757);
+		RegisterVMNativeFunc_6("Canvas", "SetTile3DOffset", &NCanvas::SetTile3DOffset_U227, 1758);
+		// RegisterVMNativeFunc_5("Canvas", "DrawTris", &NCanvas::DrawTris_U227, 1746);
+		RegisterVMNativeFunc_13("Canvas", "DrawRotatedTile", &NCanvas::DrawRotatedTile_U227, 1747);
+		RegisterVMNativeFunc_4("Canvas", "PushClipPlane", &NCanvas::PushClipPlane_U227, 1748);
+		RegisterVMNativeFunc_1("Canvas", "PopClipPlane", &NCanvas::PopClipPlane_U227, 1749);
+		RegisterVMNativeFunc_3("Canvas", "SetZTest", &NCanvas::SetZTest_U227, 1759);
+		RegisterVMNativeFunc_3("Canvas", "PushCanvasScale", &NCanvas::PushCanvasScale_U227, 1762);
+		RegisterVMNativeFunc_1("Canvas", "PopCanvasScale", &NCanvas::PopCanvasScale_U227, 1763);
+		RegisterVMNativeFunc_3("Canvas", "SetCustomLighting", &NCanvas::SetCustomLighting_U227, 1774);
+		RegisterVMNativeFunc_4("Canvas", "AddCustomLightSource", &NCanvas::AddCustomLightSource_U227, 1775);
+		RegisterVMNativeFunc_1("Canvas", "ClearCustomLightSources", &NCanvas::ClearCustomLightSources_U227, 1776);
+		RegisterVMNativeFunc_1("Canvas", "Reset", &NCanvas::Reset_U227, 0);
+	}
 }
 
 void NCanvas::DrawActor(UObject* Self, UObject* A, bool WireFrame, std::optional<bool> ClearZ)
@@ -244,4 +267,103 @@ void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, floa
 	vec2 size = engine->render->GetTextSize(font, String);
 	XL = size.x;
 	YL = size.y;
+}
+
+void NCanvas::Draw2DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)
+{
+	LogUnimplemented("Canvas.Draw2DLine() [U227]");
+}
+
+void NCanvas::Draw3DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)
+{
+	LogUnimplemented("Canvas.Draw3DLine() [U227]");
+}
+
+void NCanvas::WorldToScreen_U227(UObject* Self, vec3& WorldPos, std::optional<float> ZDistance, vec3& ReturnValue)
+{
+	LogUnimplemented("Canvas.WorldToScreen() [U227]");
+	ReturnValue = vec3();
+}
+
+void NCanvas::ScreenToWorld_U227(UObject* Self, vec3& ScreenPos, vec3& ReturnValue)
+{
+	LogUnimplemented("Canvas.ScreenToWorld() [U227]");
+	ReturnValue = vec3();
+}
+
+void NCanvas::DrawPathNetwork_U227(UObject* Self, BitfieldBool& bOnlyWalkable, std::optional<float> MaxDistance)
+{
+	LogUnimplemented("Canvas.DrawPathNetwork() [U227]");
+}
+
+void NCanvas::DrawCircle_U227(UObject* Self, Color& Col, int LineFlags, vec3& WorldPosition, float Radius)
+{
+	LogUnimplemented("Canvas.DrawCircle() [U227]");
+}
+
+void NCanvas::DrawBox_U227(UObject* Self, Color& Col, int LineFlags, vec3& Start, vec3& End)
+{
+	LogUnimplemented("Canvas.DrawBox() [U227]");
+}
+
+void NCanvas::GetCameraCoords_U227(UObject* Self, Coords& ReturnValue)
+{
+	LogUnimplemented("Canvas.GetCameraCoords() [U227]");
+	ReturnValue = Coords();
+}
+
+void NCanvas::SetTile3DOffset_U227(UObject* Self, BitfieldBool& bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset)
+{
+	LogUnimplemented("Canvas.SetTile3DOffset() [U227]");
+}
+
+void NCanvas::DrawRotatedTile_U227(UObject* Self, UObject*& Tex, float Roll, float XL, float YL, float U, float V, float UL, float VL, float PivotX, float PivotY, std::optional<bool> bRotateUV, std::optional<int> PolyFlags)
+{
+	LogUnimplemented("Canvas.DrawRotatedTile() [U227]");
+}
+
+void NCanvas::PushClipPlane_U227(UObject* Self, vec3& Dir, float W, std::optional<bool> bLocal, BitfieldBool& ReturnValue)
+{
+	LogUnimplemented("Canvas.PushClipPlane() [U227]");
+}
+
+void NCanvas::PopClipPlane_U227(UObject* Self)
+{
+	LogUnimplemented("Canvas.PopClipPlane() [U227]");
+}
+
+void NCanvas::SetZTest_U227(UObject* Self, uint8_t& ZTest, uint8_t& ReturnValue)
+{
+	LogUnimplemented("Canvas.SetZTest() [U227]");
+	ReturnValue = static_cast<uint8_t>(ERenderZTest::ZTEST_NotEqual);
+}
+
+void NCanvas::PushCanvasScale_U227(UObject* Self, float Scale, std::optional<bool> bAbsolute)
+{
+	LogUnimplemented("Canvas.PushCanvasScale() [U227]");
+}
+
+void NCanvas::PopCanvasScale_U227(UObject* Self)
+{
+	LogUnimplemented("Canvas.PopCanvasScale() [U227]");
+}
+
+void NCanvas::SetCustomLighting_U227(UObject* Self, std::optional<bool> bDisableEngineLighting, std::optional<vec3> customAmbientLight)
+{
+	LogUnimplemented("Canvas.SetCustomLighting() [U227]");
+}
+
+void NCanvas::AddCustomLightSource_U227(UObject* Self, vec3& Pos, std::optional<Rotator> Dir, std::optional<bool> bDefault)
+{
+	LogUnimplemented("Canvas.AddCustomLightSource() [U227]");
+}
+
+void NCanvas::ClearCustomLightSources_U227(UObject* Self)
+{
+	LogUnimplemented("Canvas.ClearCustomLightSources() [U227]");
+}
+
+void NCanvas::Reset_U227(UObject* Self)
+{
+	LogUnimplemented("Canvas.Reset() [U227]");
 }
