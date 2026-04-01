@@ -1653,7 +1653,7 @@ void UActor::FinishAnim()
 		bAnimFinished() = false;
 	}
 
-	if (IsAnimating() && AnimFrame() < AnimLast() && StateFrame)
+	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::FinishAnim;
 }
 
@@ -1910,6 +1910,12 @@ void UActor::TweenAnim(const NameString& sequence, float tweenTime)
 
 void UActor::TickAnimation(float elapsed)
 {
+	if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+	{
+		if (!IsAnimating() || AnimFrame() >= AnimLast())
+			StateFrame->LatentState = LatentRunState::Continue;
+	}
+
 	for (int i = 0; elapsed > 0.0f && i < 10; i++)
 	{
 		// If AnimFrame is positive we are doing a normal animation. If it is negative we are doing a tween animation.
@@ -3279,7 +3285,7 @@ void UPawn::TurnToward(UActor* newTarget)
 
 void UPawn::WaitForLanding()
 {
-	if (Physics() == PHYS_Falling && StateFrame)
+	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::WaitForLanding;
 }
 

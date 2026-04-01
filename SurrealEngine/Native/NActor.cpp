@@ -212,7 +212,7 @@ void NActor::FinishAnim(UObject* Self)
 void NActor::FinishInterpolation(UObject* Self)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
-	if (Self->StateFrame && SelfActor->bInterpolating())
+	if (Self->StateFrame)
 		Self->StateFrame->LatentState = LatentRunState::FinishInterpolation;
 }
 
