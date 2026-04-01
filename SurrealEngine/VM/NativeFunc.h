@@ -133,6 +133,42 @@ void RegisterVMNativeFunc_11(const std::string& className, const std::string& fu
 		});
 }
 
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12>
+void RegisterVMNativeFunc_12(const std::string& className, const std::string& funcName, void(*func)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13>
+void RegisterVMNativeFunc_13(const std::string& className, const std::string& funcName, void(*func)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13, typename Arg14>
+void RegisterVMNativeFunc_14(const std::string& className, const std::string& funcName, void(*func)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13, Arg14 arg14), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>(), Args[13].ToType<Arg14>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13, typename Arg14, typename Arg15>
+void RegisterVMNativeFunc_15(const std::string& className, const std::string& funcName, void(*func)(Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13, Arg14 arg14, Arg15 arg15), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>(), Args[13].ToType<Arg14>(), Args[14].ToType<Arg15>());
+		});
+}
+
 // Instance native functions:
 
 inline void RegisterVMNativeFunc_0(const std::string& className, const std::string& funcName, void(*func)(UObject* self), int nativeIndex)
@@ -239,5 +275,41 @@ void RegisterVMNativeFunc_11(const std::string& className, const std::string& fu
 	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
 		{
 			func(self, Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12>
+void RegisterVMNativeFunc_12(const std::string& className, const std::string& funcName, void(*func)(UObject* Self, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(self, Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13>
+void RegisterVMNativeFunc_13(const std::string& className, const std::string& funcName, void(*func)(UObject* Self, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(self, Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13, typename Arg14>
+void RegisterVMNativeFunc_14(const std::string& className, const std::string& funcName, void(*func)(UObject* Self, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13, Arg14 arg14), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(self, Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>(), Args[13].ToType<Arg14>());
+		});
+}
+
+template<typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, typename Arg10, typename Arg11, typename Arg12, typename Arg13, typename Arg14, typename Arg15>
+void RegisterVMNativeFunc_15(const std::string& className, const std::string& funcName, void(*func)(UObject* Self, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7, Arg8 arg8, Arg9 arg9, Arg10 arg10, Arg11 arg11, Arg12 arg12, Arg13 arg13, Arg14 arg14, Arg15 arg15), int nativeIndex)
+{
+	NativeFunctions::RegisterHandler(className, funcName, nativeIndex, [=](UObject* self, ExpressionValue* Args)
+		{
+			func(self, Args[0].ToType<Arg1>(), Args[1].ToType<Arg2>(), Args[2].ToType<Arg3>(), Args[3].ToType<Arg4>(), Args[4].ToType<Arg5>(), Args[5].ToType<Arg6>(), Args[6].ToType<Arg7>(), Args[7].ToType<Arg8>(), Args[8].ToType<Arg9>(), Args[9].ToType<Arg10>(), Args[10].ToType<Arg11>(), Args[11].ToType<Arg12>(), Args[12].ToType<Arg13>(), Args[13].ToType<Arg14>(), Args[14].ToType<Arg15>());
 		});
 }
