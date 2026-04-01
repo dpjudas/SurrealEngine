@@ -736,19 +736,18 @@ void NObject::FClamp(float V, float A, float B, float& ReturnValue)
 	ReturnValue = clamp(V, A, B);
 }
 
-void NObject::FindFunction_U227(NameString& FuncName, std::optional<NameString> TestState, UObject* ReturnValue)
+void NObject::FindFunction_U227(NameString& FuncName, std::optional<NameString> TestState, UObject*& ReturnValue)
 {
 	LogUnimplemented("Object.FindFunction() [U227]");
 	ReturnValue = nullptr;
 }
 
-void NObject::FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObject* ReturnValue)
+void NObject::FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObject*& ReturnValue)
 {
-	LogUnimplemented("Object.FindObject() [U227]");
-	ReturnValue = nullptr;
+	ReturnValue = engine->FindObject(ObjClass->Class->Name, ObjectName);
 }
 
-void NObject::FindObjectIndex_U227(int Index, UObject* ReturnValue)
+void NObject::FindObjectIndex_U227(int Index, UObject*& ReturnValue)
 {
 	LogUnimplemented("Object.FindObjectIndex() [U227]");
 	ReturnValue = nullptr;
@@ -780,7 +779,7 @@ void NObject::GetClassFlags_U227(UObject* Class, int& ReturnValue)
 	ReturnValue = static_cast<int>(Class->Class->ClsFlags);
 }
 
-void NObject::GetDefaultObject_U227(UObject* ObjClass, UObject* ReturnValue)
+void NObject::GetDefaultObject_U227(UObject* ObjClass, UObject*& ReturnValue)
 {
 	LogUnimplemented("Object.GetDefaultObject() [U227]");
 	ReturnValue = nullptr;
@@ -795,10 +794,10 @@ void NObject::GetEnum(UObject* E, int i, NameString& ReturnValue)
 		ReturnValue = {};
 }
 
-void NObject::GetParentClass_U227(std::optional<UObject*> ObjClass, UObject* ReturnValue)
+void NObject::GetParentClass_U227(UObject* SelfClass, std::optional<UObject*> ObjClass, UObject*& ReturnValue)
 {
-	LogUnimplemented("Object.GetParentClass() [U227]");
-	ReturnValue = nullptr;
+	UStruct* clsStruct = ObjClass ? (*ObjClass)->Class : SelfClass->Class;
+	ReturnValue = clsStruct->BaseStruct;
 }
 
 void NObject::GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue)
