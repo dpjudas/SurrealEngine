@@ -8,6 +8,25 @@ class UTexture;
 class UPlayerReplicationInfo;
 class UPlayerPawn;
 
+// Unreal 227
+enum class ERenderZTest : uint8_t
+{
+	ZTEST_Less,
+	ZTEST_Equal,
+	ZTEST_LessEqual,
+	ZTest_Greater,
+	ZTEST_GreaterEqual,
+	ZTEST_NotEqual,
+	ZTEST_Always
+};
+
+struct CanvasPoly_U227
+{
+	vec3 Points[3];
+	vec2 UV[3];
+	vec4 Colors[3], Fog[3];
+};
+
 class UClient : public UObject { using UObject::UObject; };
 
 class UCanvas : public UObject
