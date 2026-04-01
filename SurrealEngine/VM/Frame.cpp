@@ -412,7 +412,7 @@ ExpressionEvalResult Frame::Run()
 
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
-	while (instructionsRetired < maxInstructions)
+	while (true)
 	{
 		if (StatementIndex >= Func->Code->Statements.size())
 			ThrowException("Unexpected end of code statements");
@@ -423,7 +423,12 @@ ExpressionEvalResult Frame::Run()
 
 		StepExpression = Func->Code->Statements[curStatementIndex];
 
-		if (RunState == FrameRunState::StepOver && StepFrame == this)
+		if (instructionsRetired >= maxInstructions)
+		{
+			LogMessage("Too many VM instructions executed in a single tick");
+			Break();
+		}
+		else if (RunState == FrameRunState::StepOver && StepFrame == this)
 		{
 			Break();
 		}
@@ -529,9 +534,6 @@ ExpressionEvalResult Frame::Run()
 
 		instructionsRetired++;
 	}
-
-	ThrowException("Unreal script code ran for too long!");
-	return {};
 }
 
 void Frame::ProcessSwitch(const ExpressionValue& condition)
