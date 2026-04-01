@@ -86,18 +86,18 @@ public:
 	static void ExportFullProperties_U227(std::optional<bool> bDelta, std::string& ReturnValue); // Exports a list of properties (private variables are skipped, and export objects are not exported). Properties are separated with /r/n linebreaks.
 	static void ExtractString_U227(std::string& Src, std::string& LeftDivider, std::string& RightDivider, std::string& MidString, std::optional<bool> bAdvanced, BitfieldBool& ReturnValue);
 	static void FClamp(float V, float A, float B, float& ReturnValue);
-	static void FindFunction_U227(NameString& FuncName, std::optional<NameString> TestState, UObject* ReturnValue);
-	static void FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObject* ReturnValue); // Find an object based on ObjectName (and outer name). E.g. FindObject(Class'Texture',"Engine.P_Pawn")
-	static void FindObjectIndex_U227(int Index, UObject* ReturnValue); // Find an object by its ObjectIndex (227-exclusive property of Object)
+	static void FindFunction_U227(NameString& FuncName, std::optional<NameString> TestState, UObject*& ReturnValue);
+	static void FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObject*& ReturnValue); // Find an object based on ObjectName (and outer name). E.g. FindObject(Class'Texture',"Engine.P_Pawn")
+	static void FindObjectIndex_U227(int Index, UObject*& ReturnValue); // Find an object by its ObjectIndex (227-exclusive property of Object)
 	static void FMax(float A, float B, float& ReturnValue);
 	static void FMin(float A, float B, float& ReturnValue);
 	static void FRand(float& ReturnValue);
 	static void GetAxes(const Rotator& A, vec3& X, vec3& Y, vec3& Z);
 	// static void GetCallStack_U227(Array<USScriptCallPair>& Stack); // USScriptCallPair is a pair of an UObject and UFunction
 	static void GetClassFlags_U227(UObject* Class, int& ReturnValue);
-	static void GetDefaultObject_U227(UObject* ObjClass, UObject* ReturnValue); // Return the default object from a desired class. Acts like Class'SomeClass'.Default.SomeVar
+	static void GetDefaultObject_U227(UObject* ObjClass, UObject*& ReturnValue); // Return the default object from a desired class. Acts like Class'SomeClass'.Default.SomeVar
 	static void GetEnum(UObject* E, int i, NameString& ReturnValue);
-	static void GetParentClass_U227(std::optional<UObject*> ObjClass, UObject* ReturnValue); // If ObjClass is specified then return the parent class of it, otherwise return the parent of the current class.
+	static void GetParentClass_U227(UObject* SelfClass, std::optional<UObject*> ObjClass, UObject*& ReturnValue); // If ObjClass is specified then return the parent class of it, otherwise return the parent of the current class.
 	// static void GetPerObjectNames_U227(std::string& ININame, std::optional<std::string> ObjectClass, std::optional<int> MaxResults, Array<std::string> ReturnValue); // If MaxResults isn't specified, then it is unlimited
 	static void GetPropertyText(UObject* Self, const std::string& PropName, std::string& ReturnValue);
 	static void GetStateName(UObject* Self, NameString& ReturnValue);
