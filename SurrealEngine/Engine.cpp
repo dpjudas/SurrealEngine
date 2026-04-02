@@ -1629,6 +1629,12 @@ void Engine::Key(std::string key)
 	if (Frame::RunState != FrameRunState::Running || playingAvi)
 		return;
 
+	if (LaunchInfo.IsDeusEx() && key == "~" && window->GetKeyState(IK_Shift))
+	{
+		// Did they REALLY hack UE1 to do something as lame as this??
+		console->GotoState("Typing", {});
+	}
+
 	for (char c : key)
 	{
 		CallEvent(console, EventName::KeyType, { ExpressionValue::ByteValue(c) });
