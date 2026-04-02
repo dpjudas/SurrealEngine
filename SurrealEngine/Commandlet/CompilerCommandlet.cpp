@@ -16,7 +16,7 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 {
 	std::string folder = args;
 
-#if 0
+#if 1
 	if (folder.empty())
 		folder = "C:\\Games\\DeusEx-1112fm-Scripts";
 #endif

@@ -419,7 +419,7 @@ void NObject::AllFiles_U227(const std::string& FileExtension, const std::string&
 
 void NObject::Asc(const std::string& S, int& ReturnValue)
 {
-	ReturnValue = !S.empty() ? S.front() : '\0';
+	ReturnValue = !S.empty() ? static_cast<uint8_t>(S.front()) : static_cast<uint8_t>(0);
 }
 
 void NObject::At_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue)
