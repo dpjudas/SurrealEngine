@@ -1,7 +1,6 @@
 #pragma once
 
 #include "wayland_display_backend.h"
-#include "wayland_timer.h"
 
 #include <stdexcept>
 #include <array>
