@@ -2,14 +2,14 @@
 #include "GameFoldersPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
-#include <zwidget/core/resourcedata.h>
-#include <zwidget/widgets/textlabel/textlabel.h>
-#include <zwidget/widgets/listview/listview.h>
-#include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/systemdialogs/open_folder_dialog.h>
+#include <surrealwidgets/core/resourcedata.h>
+#include <surrealwidgets/widgets/textlabel/textlabel.h>
+#include <surrealwidgets/widgets/listview/listview.h>
+#include <surrealwidgets/widgets/pushbutton/pushbutton.h>
+#include <surrealwidgets/systemdialogs/open_folder_dialog.h>
 
-#include "zwidget/widgets/layout/hboxlayout.h"
-#include "zwidget/widgets/layout/vboxlayout.h"
+#include "surrealwidgets/widgets/layout/hboxlayout.h"
+#include "surrealwidgets/widgets/layout/vboxlayout.h"
 
 GameFoldersPage::GameFoldersPage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {

@@ -1,8 +1,8 @@
 
 #include "LauncherButtonbar.h"
 #include "LauncherWindow.h"
-#include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/widgets/layout/hboxlayout.h>
+#include <surrealwidgets/widgets/pushbutton/pushbutton.h>
+#include <surrealwidgets/widgets/layout/hboxlayout.h>
 
 LauncherButtonbar::LauncherButtonbar(LauncherWindow* parent) : Widget(parent)
 {

@@ -10,8 +10,8 @@
 #include "RenderDevice/RenderDevice.h"
 #include <zvulkan/vulkansurface.h>
 #include <zvulkan/vulkanbuilders.h>
-#include <zwidget/widgets/menubar/menubar.h>
-#include <zwidget/widgets/toolbar/toolbar.h>
+#include <surrealwidgets/widgets/menubar/menubar.h>
+#include <surrealwidgets/widgets/toolbar/toolbar.h>
 
 #include "AboutDialog.h"
 

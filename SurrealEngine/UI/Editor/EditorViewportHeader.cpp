@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
 #include "EditorViewportHeader.h"
-#include <zwidget/core/canvas.h>
-#include <zwidget/core/colorf.h>
+#include <surrealwidgets/core/canvas.h>
+#include <surrealwidgets/core/colorf.h>
 
 EditorViewportHeader::EditorViewportHeader(Widget* parent) : Widget(parent)
 {

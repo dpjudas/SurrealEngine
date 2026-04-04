@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <zwidget/core/widget.h>
+#include <surrealwidgets/core/widget.h>
 #include "Math/rotator.h"
 
 class EditorViewport;

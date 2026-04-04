@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zwidget/core/resourcedata.h>
+#include <surrealwidgets/core/resourcedata.h>
 
 void InitWidgetResources();
 void DeinitWidgetResources();

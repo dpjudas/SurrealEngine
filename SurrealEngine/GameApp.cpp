@@ -11,8 +11,8 @@
 #include "UI/Launcher/LauncherWindow.h"
 #include "Utils/File.h"
 #include <stdexcept>
-#include <zwidget/core/theme.h>
-#include <zwidget/window/window.h>
+#include <surrealwidgets/core/theme.h>
+#include <surrealwidgets/window/window.h>
 #include <iostream>
 
 int GameApp::main(Array<std::string> args)

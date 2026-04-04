@@ -4,10 +4,10 @@
 #include "Utils/CrashReporter.h"
 #include "Utils/CommandLine.h"
 #include "Engine.h"
-#include <zwidget/core/image.h>
-#include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/widgets/scrollbar/scrollbar.h>
-#include <zwidget/systemdialogs/save_file_dialog.h>
+#include <surrealwidgets/core/image.h>
+#include <surrealwidgets/widgets/pushbutton/pushbutton.h>
+#include <surrealwidgets/widgets/scrollbar/scrollbar.h>
+#include <surrealwidgets/systemdialogs/save_file_dialog.h>
 #include <miniz.h>
 
 bool ErrorWindow::CheckCrashReporter()

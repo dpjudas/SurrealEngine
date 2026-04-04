@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zwidget/core/widget.h>
+#include <surrealwidgets/core/widget.h>
 
 // class AudioSettingsPage;
 class VideoSettingsPage;

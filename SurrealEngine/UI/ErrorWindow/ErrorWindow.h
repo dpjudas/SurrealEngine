@@ -1,7 +1,7 @@
 #pragma once
 
-#include <zwidget/core/widget.h>
-#include <zwidget/core/span_layout.h>
+#include <surrealwidgets/core/widget.h>
+#include <surrealwidgets/core/span_layout.h>
 #include <list>
 
 class LogViewer;

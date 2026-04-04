@@ -21,8 +21,8 @@
 #include "UI/Launcher/LauncherWindow.h"
 #include "VM/Frame.h"
 #include "Utils/UTF16.h"
-#include <zwidget/core/theme.h>
-#include <zwidget/window/window.h>
+#include <surrealwidgets/core/theme.h>
+#include <surrealwidgets/window/window.h>
 #include <iostream>
 
 #ifndef WIN32

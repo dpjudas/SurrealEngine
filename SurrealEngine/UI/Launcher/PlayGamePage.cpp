@@ -3,11 +3,11 @@
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
 #include "GameFolder.h"
-#include <zwidget/widgets/textlabel/textlabel.h>
-#include <zwidget/widgets/listview/listview.h>
-#include <zwidget/widgets/lineedit/lineedit.h>
+#include <surrealwidgets/widgets/textlabel/textlabel.h>
+#include <surrealwidgets/widgets/listview/listview.h>
+#include <surrealwidgets/widgets/lineedit/lineedit.h>
 
-#include "zwidget/widgets/layout/vboxlayout.h"
+#include "surrealwidgets/widgets/layout/vboxlayout.h"
 
 PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher(launcher)
 {
@@ -59,7 +59,7 @@ void PlayGamePage::UpdateList()
 {
 	GameFolderSelection::UpdateList();
 
-	// GamesList->Clear(); // To do: add this to zwidget
+	// GamesList->Clear(); // To do: add this to surrealwidgets
 	while (GamesList->GetItemCount() != 0)
 		GamesList->RemoveItem((int)GamesList->GetItemCount() - 1);
 

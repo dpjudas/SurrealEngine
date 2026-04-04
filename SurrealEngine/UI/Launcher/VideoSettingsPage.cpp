@@ -1,14 +1,14 @@
 #include "VideoSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
-#include <zwidget/core/resourcedata.h>
-#include <zwidget/widgets/textlabel/textlabel.h>
-#include <zwidget/widgets/checkboxlabel/checkboxlabel.h>
-#include <zwidget/widgets/lineedit/lineedit.h>
-#include <zwidget/widgets/dropdown/dropdown.h>
-#include <zwidget/widgets/pushbutton/pushbutton.h>
-#include <zwidget/widgets/layout/vboxlayout.h>
-#include <zwidget/widgets/layout/hboxlayout.h>
+#include <surrealwidgets/core/resourcedata.h>
+#include <surrealwidgets/widgets/textlabel/textlabel.h>
+#include <surrealwidgets/widgets/checkboxlabel/checkboxlabel.h>
+#include <surrealwidgets/widgets/lineedit/lineedit.h>
+#include <surrealwidgets/widgets/dropdown/dropdown.h>
+#include <surrealwidgets/widgets/pushbutton/pushbutton.h>
+#include <surrealwidgets/widgets/layout/vboxlayout.h>
+#include <surrealwidgets/widgets/layout/hboxlayout.h>
 
 VideoSettingsPage::VideoSettingsPage(Widget* parent)
     : Widget(parent)

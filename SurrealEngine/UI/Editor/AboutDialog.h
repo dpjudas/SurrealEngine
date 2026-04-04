@@ -1,7 +1,7 @@
-#include "zwidget/widgets/dialog/dialog.h"
-#include "zwidget/widgets/textlabel/textlabel.h"
-#include "zwidget/widgets/pushbutton/pushbutton.h"
-#include "zwidget/widgets/imagebox/imagebox.h"
+#include "surrealwidgets/widgets/dialog/dialog.h"
+#include "surrealwidgets/widgets/textlabel/textlabel.h"
+#include "surrealwidgets/widgets/pushbutton/pushbutton.h"
+#include "surrealwidgets/widgets/imagebox/imagebox.h"
 
 class AboutDialog : public Dialog
 {

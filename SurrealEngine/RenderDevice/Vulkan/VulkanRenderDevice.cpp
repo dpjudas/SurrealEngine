@@ -6,7 +6,7 @@
 #include <zvulkan/vulkanbuilders.h>
 #include <zvulkan/vulkanswapchain.h>
 #include <zvulkan/vulkansurface.h>
-#include <zwidget/core/widget.h>
+#include <surrealwidgets/core/widget.h>
 #include <cmath>
 #include <stdexcept>
 

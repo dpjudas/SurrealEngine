@@ -9,8 +9,8 @@
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
 #include "UI/WidgetResourceData.h"
-#include <zwidget/core/theme.h>
-#include <zwidget/window/window.h>
+#include <surrealwidgets/core/theme.h>
+#include <surrealwidgets/window/window.h>
 
 int EditorApp::main(Array<std::string> args)
 {

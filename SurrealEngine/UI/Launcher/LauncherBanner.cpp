@@ -1,8 +1,8 @@
 
 #include "LauncherBanner.h"
-#include <zwidget/widgets/imagebox/imagebox.h>
-#include <zwidget/widgets/textlabel/textlabel.h>
-#include <zwidget/core/image.h>
+#include <surrealwidgets/widgets/imagebox/imagebox.h>
+#include <surrealwidgets/widgets/textlabel/textlabel.h>
+#include <surrealwidgets/core/image.h>
 
 LauncherBanner::LauncherBanner(Widget* parent) : Widget(parent)
 {

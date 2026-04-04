@@ -1,7 +1,7 @@
 #include "AboutDialog.h"
 
-#include "zwidget/widgets/layout/hboxlayout.h"
-#include "zwidget/widgets/layout/vboxlayout.h"
+#include "surrealwidgets/widgets/layout/hboxlayout.h"
+#include "surrealwidgets/widgets/layout/vboxlayout.h"
 
 AboutDialog::AboutDialog(Widget* parent)
     : Dialog(parent)

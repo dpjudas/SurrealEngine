@@ -2899,7 +2899,7 @@ bool URootWindow::OnWindowKeyDown(EInputKey key)
 			return true;
 	}
 
-	bool repeat = false; // To do: can zwidget tell us this?
+	bool repeat = false; // To do: can surrealwidgets tell us this?
 
 	if (focus->RawKeyPressed(key, EInputType::IST_Press, repeat))
 		return true;

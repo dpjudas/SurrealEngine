@@ -4,7 +4,7 @@
 #include "EditorViewportHeader.h"
 #include "Editor2DViewport.h"
 #include "Editor3DViewport.h"
-#include <zwidget/core/colorf.h>
+#include <surrealwidgets/core/colorf.h>
 
 EditorViewportFrame::EditorViewportFrame(Widget* parent) : Widget(parent)
 {

@@ -6,9 +6,9 @@
 #include "Utils/UTF16.h"
 #include "Utils/Logger.h"
 #include "Math/halffloat.h"
-#include <zwidget/core/widget.h>
-#include <zwidget/window/win32nativehandle.h>
-#include <zwidget/window/sdlnativehandle.h>
+#include <surrealwidgets/core/widget.h>
+#include <surrealwidgets/window/win32nativehandle.h>
+#include <surrealwidgets/window/sdlnativehandle.h>
 #include <comdef.h>
 
 #pragma comment(lib, "d3d11.lib")

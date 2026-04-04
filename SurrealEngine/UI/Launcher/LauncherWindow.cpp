@@ -6,10 +6,10 @@
 // #include "AudioSettingsPage.h"
 #include "GameFoldersPage.h"
 #include "LauncherSettings.h"
-#include <zwidget/core/resourcedata.h>
-#include <zwidget/window/window.h>
-#include <zwidget/widgets/tabwidget/tabwidget.h>
-#include <zwidget/widgets/layout/vboxlayout.h>
+#include <surrealwidgets/core/resourcedata.h>
+#include <surrealwidgets/window/window.h>
+#include <surrealwidgets/widgets/tabwidget/tabwidget.h>
+#include <surrealwidgets/widgets/layout/vboxlayout.h>
 
 int LauncherWindow::ExecModal()
 {

@@ -6,8 +6,8 @@
 
 #include "UObject/UTexture.h"
 
-#include <zwidget/core/canvas.h>
-#include <zwidget/core/rect.h>
+#include <surrealwidgets/core/canvas.h>
+#include <surrealwidgets/core/rect.h>
 
 class UTexture;
 class UActor;

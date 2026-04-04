@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <zwidget/widgets/mainwindow/mainwindow.h>
-#include <zwidget/systemdialogs/open_file_dialog.h>
+#include <surrealwidgets/widgets/mainwindow/mainwindow.h>
+#include <surrealwidgets/systemdialogs/open_file_dialog.h>
 
 class EditorWorkspace;
 class Menu;

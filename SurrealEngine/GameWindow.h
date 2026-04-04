@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Math/vec.h"
-#include <zwidget/core/rect.h>
-#include <zwidget/core/widget.h>
+#include <surrealwidgets/core/rect.h>
+#include <surrealwidgets/core/widget.h>
 
 class Engine;
 class RenderDevice;
