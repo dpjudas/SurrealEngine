@@ -3,9 +3,7 @@
 #include <chrono>
 #include <functional>
 
-// ZTimer: A small, independent timer
-// Useful for implementing timed events on your backends
-class ZTimer
+class WaylandTimer
 {
 public:
     using Duration = std::chrono::duration<double, std::milli>;
@@ -13,11 +11,11 @@ public:
     using TimePoint = std::chrono::time_point<Clock, Duration>;
     using CallbackFunc = std::function<void()>;
 
-    ZTimer();
-    ZTimer(Duration duration_ms);
-    ZTimer(Duration duration_ms, CallbackFunc callback);
+    WaylandTimer();
+    WaylandTimer(Duration duration_ms);
+    WaylandTimer(Duration duration_ms, CallbackFunc callback);
 
-    ~ZTimer();
+    ~WaylandTimer();
 
     void Start();
     void Stop();

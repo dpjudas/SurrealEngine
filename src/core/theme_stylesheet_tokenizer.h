@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-enum class ThemeStyleTokenType
+enum class ThemeStylesheetTokenType
 {
 	null,                 /// No more tokens
 	ident,                /// Identifier
@@ -35,42 +35,42 @@ enum class ThemeStyleTokenType
 	delim                 /// Any other character
 };
 
-class ThemeStyleToken
+class ThemeStylesheetToken
 {
 public:
-	ThemeStyleTokenType type = ThemeStyleTokenType::null;
+	ThemeStylesheetTokenType type = ThemeStylesheetTokenType::null;
 	std::string value;
 	std::string dimension;
 	size_t offset = 0; // Offset where token began
 };
 
-class ThemeStyleTokenizer
+class ThemeStylesheetTokenizer
 {
 public:
-	static void parse(const std::string& properties, std::function<void(std::string name, std::vector<ThemeStyleToken> tokens, bool important_flag)> parse_property);
+	static void parse(const std::string& properties, std::function<void(std::string name, std::vector<ThemeStylesheetToken> tokens, bool important_flag)> parse_property);
 
-	ThemeStyleTokenizer(const std::string& text);
+	ThemeStylesheetTokenizer(const std::string& text);
 
-	void read(ThemeStyleToken& out_token, bool eat_whitespace, bool eat_comments = true);
-	std::vector<ThemeStyleToken> read_property_value(ThemeStyleToken& token, bool& out_important_flag);
+	void read(ThemeStylesheetToken& out_token, bool eat_whitespace, bool eat_comments = true);
+	std::vector<ThemeStylesheetToken> read_property_value(ThemeStylesheetToken& token, bool& out_important_flag);
 
 	static bool compare_case_insensitive(const std::string& a, const std::string& b);
 
 private:
-	void read(ThemeStyleToken& out_token);
-	void peek(ThemeStyleToken& out_token);
+	void read(ThemeStylesheetToken& out_token);
+	void peek(ThemeStylesheetToken& out_token);
 
-	void read_atkeyword(ThemeStyleToken& out_token);
-	void read_hash(ThemeStyleToken& out_token);
-	void read_cdo(ThemeStyleToken& out_token);
-	void read_cdc(ThemeStyleToken& out_token);
-	void read_comment(ThemeStyleToken& out_token);
-	void read_uri(ThemeStyleToken& out_token);
-	void read_function(ThemeStyleToken& out_token);
-	void read_whitespace(ThemeStyleToken& out_token);
-	void read_includes(ThemeStyleToken& out_token);
-	void read_dashmatch(ThemeStyleToken& out_token);
-	void read_number_type(ThemeStyleToken& out_token);
+	void read_atkeyword(ThemeStylesheetToken& out_token);
+	void read_hash(ThemeStylesheetToken& out_token);
+	void read_cdo(ThemeStylesheetToken& out_token);
+	void read_cdc(ThemeStylesheetToken& out_token);
+	void read_comment(ThemeStylesheetToken& out_token);
+	void read_uri(ThemeStylesheetToken& out_token);
+	void read_function(ThemeStylesheetToken& out_token);
+	void read_whitespace(ThemeStylesheetToken& out_token);
+	void read_includes(ThemeStylesheetToken& out_token);
+	void read_dashmatch(ThemeStylesheetToken& out_token);
+	void read_number_type(ThemeStylesheetToken& out_token);
 	size_t read_ident(size_t p, std::string& out_ident);
 	size_t read_name(size_t p, std::string& out_ident);
 	inline size_t read_nmstart(size_t p, std::string::value_type& out_c);

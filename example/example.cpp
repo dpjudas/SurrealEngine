@@ -2,7 +2,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <vector>
-#include "stylesheet.h"
 #include "example.h"
 
 LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
@@ -54,7 +53,7 @@ LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 
 	Pages->AddTab(Tab1, "Welcome");
 	Pages->AddTab(Tab2, "VKDoom");
-	Pages->AddTab(Tab3, "ZWidgets");
+	Pages->AddTab(Tab3, "Widgets");
 
 	ExitButton->SetText("Exit");
 
@@ -293,14 +292,6 @@ int example(Backend backend, Theme theme)
 {
 	ResourceLoader::Set(std::make_unique<ExampleResourceLoader>());
 
-#if 1
-	switch (theme)
-	{
-	case Theme::Default: WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "dark")); break;
-	case Theme::Dark:    WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "dark")); break;
-	case Theme::Light:   WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, "light")); break;
-	}
-#else
 	// just for testing themes
 	switch (theme)
 	{
@@ -308,7 +299,6 @@ int example(Backend backend, Theme theme)
 		case Theme::Dark:    WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>()); break;
 		case Theme::Light:   WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>()); break;
 	}
-#endif
 
 	// just for testing backends
 	switch (backend)

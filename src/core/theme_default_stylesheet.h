@@ -1,6 +1,6 @@
 #pragma once
 
-static const char* stylesheet = R"xxxx(
+static const char* theme_default_stylesheet = R"xxxx(
 
 .dark {
 	--bgMain:   #2A2A2A; /* background */
