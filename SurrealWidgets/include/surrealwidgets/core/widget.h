@@ -13,17 +13,9 @@
 
 class Canvas;
 class Timer;
-class Dropdown;
 class Layout;
 class Font;
 class Image;
-
-enum class WidgetEvent
-{
-	VisibilityChange,
-
-	// TODO: add more events
-};
 
 class Widget : DisplayWindowHost
 {
@@ -107,9 +99,6 @@ public:
 	void ShowMinimized();
 	void ShowNormal();
 	void Hide();
-
-	void Subscribe(Widget* subscriber);
-	void Unsubscribe(Widget* subscriber);
 
 	void ActivateWindow();
 
@@ -212,8 +201,6 @@ protected:
 	virtual void OnLostFocus() { }
 	virtual void OnEnableChanged() { }
 
-	virtual void Notify(Widget* source, const WidgetEvent type) { };
-
 	// DisplayWindowHost
 	void OnWindowPaint() override;
 	void OnWindowMouseMove(const Point& pos) override;
@@ -234,7 +221,6 @@ protected:
 	void OnWindowDpiScaleChanged() override;
 	
 private:
-	void NotifySubscribers(const WidgetEvent type);
 	void Paint(Canvas* canvas);
 	void DetachFromParent();
 	void CheckInitialShow();
@@ -277,9 +263,6 @@ private:
 
 	Widget(const Widget&) = delete;
 	Widget& operator=(const Widget&) = delete;
-
-	std::unordered_set<Widget*> Subscribers;
-	std::unordered_set<Widget*> Subscriptions;
 
 	Layout* m_Layout = nullptr;
 

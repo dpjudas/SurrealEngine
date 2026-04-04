@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wayland_display_backend.h"
-#include "window/ztimer/ztimer.h"
+#include "wayland_timer.h"
 
 #include <stdexcept>
 #include <array>

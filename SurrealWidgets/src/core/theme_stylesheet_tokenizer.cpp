@@ -1,28 +1,28 @@
 
-#include "theme_style_tokenizer.h"
+#include "theme_stylesheet_tokenizer.h"
 #ifdef WIN32
 #include <string.h>
 #else
 #include <strings.h>
 #endif
 
-void ThemeStyleTokenizer::parse(const std::string& properties, std::function<void(std::string name, std::vector<ThemeStyleToken> tokens, bool important_flag)> parse_property)
+void ThemeStylesheetTokenizer::parse(const std::string& properties, std::function<void(std::string name, std::vector<ThemeStylesheetToken> tokens, bool important_flag)> parse_property)
 {
-	ThemeStyleTokenizer tokenizer(properties);
-	ThemeStyleToken token;
+	ThemeStylesheetTokenizer tokenizer(properties);
+	ThemeStylesheetToken token;
 	while (true)
 	{
 		tokenizer.read(token, true);
-		if (token.type == ThemeStyleTokenType::ident)
+		if (token.type == ThemeStylesheetTokenType::ident)
 		{
 			std::string name = token.value;
 
 			tokenizer.read(token, true);
-			if (token.type == ThemeStyleTokenType::colon)
+			if (token.type == ThemeStylesheetTokenType::colon)
 			{
 				tokenizer.read(token, true);
 				bool important_flag = false;
-				std::vector<ThemeStyleToken> tokens = tokenizer.read_property_value(token, important_flag);
+				std::vector<ThemeStylesheetToken> tokens = tokenizer.read_property_value(token, important_flag);
 				parse_property(name, std::move(tokens), important_flag);
 			}
 			else
@@ -31,80 +31,80 @@ void ThemeStyleTokenizer::parse(const std::string& properties, std::function<voi
 				tokenizer.read_property_value(token, important_flag);
 			}
 		}
-		else if (token.type == ThemeStyleTokenType::null)
+		else if (token.type == ThemeStylesheetTokenType::null)
 		{
 			break;
 		}
 	}
 }
 
-ThemeStyleTokenizer::ThemeStyleTokenizer(const std::string& text) : doc(text)
+ThemeStylesheetTokenizer::ThemeStylesheetTokenizer(const std::string& text) : doc(text)
 {
 }
 
-void ThemeStyleTokenizer::read(ThemeStyleToken& token, bool eat_whitespace, bool eat_comments)
+void ThemeStylesheetTokenizer::read(ThemeStylesheetToken& token, bool eat_whitespace, bool eat_comments)
 {
 	do
 	{
 		read(token);
-		if (eat_comments && (token.type == ThemeStyleTokenType::whitespace || token.type == ThemeStyleTokenType::comment))
+		if (eat_comments && (token.type == ThemeStylesheetTokenType::whitespace || token.type == ThemeStylesheetTokenType::comment))
 		{
-			if (token.type == ThemeStyleTokenType::comment)
+			if (token.type == ThemeStylesheetTokenType::comment)
 			{
-				token.type = ThemeStyleTokenType::whitespace;
+				token.type = ThemeStylesheetTokenType::whitespace;
 				token.value = " ";
 			}
-			ThemeStyleToken next_token;
+			ThemeStylesheetToken next_token;
 			while (true)
 			{
 				peek(next_token);
-				if (next_token.type != ThemeStyleTokenType::whitespace && next_token.type != ThemeStyleTokenType::comment)
+				if (next_token.type != ThemeStylesheetTokenType::whitespace && next_token.type != ThemeStylesheetTokenType::comment)
 					break;
 				read(next_token);
-				if (next_token.type == ThemeStyleTokenType::comment)
+				if (next_token.type == ThemeStylesheetTokenType::comment)
 				{
-					next_token.type = ThemeStyleTokenType::whitespace;
+					next_token.type = ThemeStylesheetTokenType::whitespace;
 					next_token.value = " ";
 				}
 				token.value += next_token.value;
 			}
 		}
-	} while ((eat_whitespace && token.type == ThemeStyleTokenType::whitespace));
+	} while ((eat_whitespace && token.type == ThemeStylesheetTokenType::whitespace));
 }
 
-std::vector<ThemeStyleToken> ThemeStyleTokenizer::read_property_value(ThemeStyleToken& token, bool& important_flag)
+std::vector<ThemeStylesheetToken> ThemeStylesheetTokenizer::read_property_value(ThemeStylesheetToken& token, bool& important_flag)
 {
-	std::vector<ThemeStyleToken> value_tokens;
+	std::vector<ThemeStylesheetToken> value_tokens;
 	important_flag = false;
 
 	// Remove any possible whitespace at the beginning of the property value:
-	if (token.type == ThemeStyleTokenType::whitespace)
+	if (token.type == ThemeStylesheetTokenType::whitespace)
 		read(token, true);
 
 	int curly_count = 0;
 	while (true)
 	{
-		if (token.type == ThemeStyleTokenType::null)
+		if (token.type == ThemeStylesheetTokenType::null)
 		{
 			break;
 		}
-		else if (token.type == ThemeStyleTokenType::curly_brace_begin)
+		else if (token.type == ThemeStylesheetTokenType::curly_brace_begin)
 		{
 			curly_count++;
 		}
-		else if (token.type == ThemeStyleTokenType::curly_brace_end)
+		else if (token.type == ThemeStylesheetTokenType::curly_brace_end)
 		{
 			curly_count--;
 			if (curly_count <= 0)
 				break;
 		}
-		else if (token.type == ThemeStyleTokenType::semi_colon)
+		else if (token.type == ThemeStylesheetTokenType::semi_colon)
 		{
 			if (curly_count == 0)
 				break;
 		}
 
-		//if (token.type == ThemeStyleTokenType::uri)
+		//if (token.type == ThemeStylesheetTokenType::uri)
 		//	token.value = make_absolute_uri(token.value, base_uri);
 
 		value_tokens.push_back(token);
@@ -112,23 +112,23 @@ std::vector<ThemeStyleToken> ThemeStyleTokenizer::read_property_value(ThemeStyle
 	}
 
 	// Remove any possible whitespace at the end of the property:
-	while (!value_tokens.empty() && value_tokens.back().type == ThemeStyleTokenType::whitespace)
+	while (!value_tokens.empty() && value_tokens.back().type == ThemeStylesheetTokenType::whitespace)
 		value_tokens.pop_back();
 
 	// Remove the !important flag if found:
 	size_t tokens_size = value_tokens.size();
 	if (tokens_size >= 2 &&
-		value_tokens[tokens_size - 2].type == ThemeStyleTokenType::delim && value_tokens[tokens_size - 2].value == "!" &&
-		value_tokens[tokens_size - 1].type == ThemeStyleTokenType::ident && compare_case_insensitive(value_tokens[tokens_size - 1].value, "important"))
+		value_tokens[tokens_size - 2].type == ThemeStylesheetTokenType::delim && value_tokens[tokens_size - 2].value == "!" &&
+		value_tokens[tokens_size - 1].type == ThemeStylesheetTokenType::ident && compare_case_insensitive(value_tokens[tokens_size - 1].value, "important"))
 	{
 		important_flag = true;
 		value_tokens.pop_back();
 		value_tokens.pop_back();
 	}
 	else if (tokens_size >= 3 &&
-		value_tokens[tokens_size - 3].type == ThemeStyleTokenType::delim && value_tokens[tokens_size - 3].value == "!" &&
-		value_tokens[tokens_size - 2].type == ThemeStyleTokenType::whitespace &&
-		value_tokens[tokens_size - 1].type == ThemeStyleTokenType::ident && compare_case_insensitive(value_tokens[tokens_size - 1].value, "important"))
+		value_tokens[tokens_size - 3].type == ThemeStylesheetTokenType::delim && value_tokens[tokens_size - 3].value == "!" &&
+		value_tokens[tokens_size - 2].type == ThemeStylesheetTokenType::whitespace &&
+		value_tokens[tokens_size - 1].type == ThemeStylesheetTokenType::ident && compare_case_insensitive(value_tokens[tokens_size - 1].value, "important"))
 	{
 		important_flag = true;
 		value_tokens.pop_back();
@@ -139,23 +139,23 @@ std::vector<ThemeStyleToken> ThemeStyleTokenizer::read_property_value(ThemeStyle
 	if (important_flag)
 	{
 		// Remove any possible whitespace at the end of the property:
-		while (!value_tokens.empty() && value_tokens.back().type == ThemeStyleTokenType::whitespace)
+		while (!value_tokens.empty() && value_tokens.back().type == ThemeStylesheetTokenType::whitespace)
 			value_tokens.pop_back();
 	}
 
 	return value_tokens;
 }
 
-void ThemeStyleTokenizer::peek(ThemeStyleToken& out_token)
+void ThemeStylesheetTokenizer::peek(ThemeStylesheetToken& out_token)
 {
 	size_t cur_pos = pos;
 	read(out_token);
 	pos = cur_pos;
 }
 
-void ThemeStyleTokenizer::read(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read(ThemeStylesheetToken& token)
 {
-	token.type = ThemeStyleTokenType::null;
+	token.type = ThemeStylesheetTokenType::null;
 	token.dimension.clear();
 	token.value.clear();
 	token.offset = pos;
@@ -176,35 +176,35 @@ void ThemeStyleTokenizer::read(ThemeStyleToken& token)
 		read_cdc(token);
 		break;
 	case ':':
-		token.type = ThemeStyleTokenType::colon;
+		token.type = ThemeStylesheetTokenType::colon;
 		pos++;
 		break;
 	case ';':
-		token.type = ThemeStyleTokenType::semi_colon;
+		token.type = ThemeStylesheetTokenType::semi_colon;
 		pos++;
 		break;
 	case '{':
-		token.type = ThemeStyleTokenType::curly_brace_begin;
+		token.type = ThemeStylesheetTokenType::curly_brace_begin;
 		pos++;
 		break;
 	case '}':
-		token.type = ThemeStyleTokenType::curly_brace_end;
+		token.type = ThemeStylesheetTokenType::curly_brace_end;
 		pos++;
 		break;
 	case '(':
-		token.type = ThemeStyleTokenType::bracket_begin;
+		token.type = ThemeStylesheetTokenType::bracket_begin;
 		pos++;
 		break;
 	case ')':
-		token.type = ThemeStyleTokenType::bracket_end;
+		token.type = ThemeStylesheetTokenType::bracket_end;
 		pos++;
 		break;
 	case '[':
-		token.type = ThemeStyleTokenType::square_bracket_begin;
+		token.type = ThemeStylesheetTokenType::square_bracket_begin;
 		pos++;
 		break;
 	case ']':
-		token.type = ThemeStyleTokenType::square_bracket_end;
+		token.type = ThemeStylesheetTokenType::square_bracket_end;
 		pos++;
 		break;
 	case '/':
@@ -242,17 +242,17 @@ void ThemeStyleTokenizer::read(ThemeStyleToken& token)
 		read_number_type(token);
 		break;
 	}
-	if (token.type != ThemeStyleTokenType::null)
+	if (token.type != ThemeStylesheetTokenType::null)
 		return;
 
 	read_function(token);
-	if (token.type != ThemeStyleTokenType::null)
+	if (token.type != ThemeStylesheetTokenType::null)
 		return;
 
 	pos = read_ident(pos, token.value);
 	if (!token.value.empty())
 	{
-		token.type = ThemeStyleTokenType::ident;
+		token.type = ThemeStylesheetTokenType::ident;
 		return;
 	}
 
@@ -261,13 +261,13 @@ void ThemeStyleTokenizer::read(ThemeStyleToken& token)
 		size_t end_pos = read_string(pos + 1, token.value, '"');
 		if (end_pos != pos + 1)
 		{
-			token.type = ThemeStyleTokenType::string;
+			token.type = ThemeStylesheetTokenType::string;
 			pos = end_pos;
 			return;
 		}
 		else
 		{
-			token.type = ThemeStyleTokenType::invalid;
+			token.type = ThemeStylesheetTokenType::invalid;
 			pos = read_invalid(pos + 1);
 			return;
 		}
@@ -277,26 +277,26 @@ void ThemeStyleTokenizer::read(ThemeStyleToken& token)
 		size_t end_pos = read_string(pos + 1, token.value, '\'');
 		if (end_pos != pos + 1)
 		{
-			token.type = ThemeStyleTokenType::string;
+			token.type = ThemeStylesheetTokenType::string;
 			pos = end_pos;
 			return;
 		}
 		else
 		{
-			token.type = ThemeStyleTokenType::invalid;
+			token.type = ThemeStylesheetTokenType::invalid;
 			pos = read_invalid(pos + 1);
 			return;
 		}
 	}
 	else
 	{
-		token.type = ThemeStyleTokenType::delim;
+		token.type = ThemeStylesheetTokenType::delim;
 		token.value.append(1, doc[pos]);
 		pos++;
 	}
 }
 
-void ThemeStyleTokenizer::read_number_type(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_number_type(ThemeStylesheetToken& token)
 {
 	bool dot_encountered = false;
 	size_t end_pos = pos;
@@ -318,42 +318,42 @@ void ThemeStyleTokenizer::read_number_type(ThemeStyleToken& token)
 		token.value = doc.substr(pos, end_pos - pos);
 		if (end_pos < doc.length() && doc[end_pos] == '%')
 		{
-			token.type = ThemeStyleTokenType::percentage;
+			token.type = ThemeStylesheetTokenType::percentage;
 			pos = end_pos + 1;
 		}
 		else
 		{
 			end_pos = read_ident(end_pos, token.dimension);
 			if (!token.dimension.empty())
-				token.type = ThemeStyleTokenType::dimension;
+				token.type = ThemeStylesheetTokenType::dimension;
 			else
-				token.type = ThemeStyleTokenType::number;
+				token.type = ThemeStylesheetTokenType::number;
 			pos = end_pos;
 		}
 	}
 }
 
-void ThemeStyleTokenizer::read_atkeyword(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_atkeyword(ThemeStylesheetToken& token)
 {
 	if (pos + 2 <= doc.length() && doc[pos] == '@')
 	{
 		pos = read_ident(pos + 1, token.value);
 		if (!token.value.empty())
-			token.type = ThemeStyleTokenType::atkeyword;
+			token.type = ThemeStylesheetTokenType::atkeyword;
 	}
 }
 
-void ThemeStyleTokenizer::read_hash(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_hash(ThemeStylesheetToken& token)
 {
 	if (pos + 2 <= doc.length() && doc[pos] == '#')
 	{
 		pos = read_name(pos + 1, token.value);
 		if (!token.value.empty())
-			token.type = ThemeStyleTokenType::hash;
+			token.type = ThemeStylesheetTokenType::hash;
 	}
 }
 
-size_t ThemeStyleTokenizer::read_ident(size_t p, std::string& out_ident)
+size_t ThemeStylesheetTokenizer::read_ident(size_t p, std::string& out_ident)
 {
 	out_ident.clear();
 	std::string::value_type c = 0;
@@ -388,7 +388,7 @@ size_t ThemeStyleTokenizer::read_ident(size_t p, std::string& out_ident)
 	return p;
 }
 
-size_t ThemeStyleTokenizer::read_name(size_t p, std::string& out_ident)
+size_t ThemeStylesheetTokenizer::read_name(size_t p, std::string& out_ident)
 {
 	out_ident.clear();
 	std::string::value_type c;
@@ -410,27 +410,27 @@ size_t ThemeStyleTokenizer::read_name(size_t p, std::string& out_ident)
 	return p;
 }
 
-void ThemeStyleTokenizer::read_cdo(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_cdo(ThemeStylesheetToken& token)
 {
 	if (pos + 4 <= doc.length() && doc[pos] == '<' && doc[pos + 1] == '!' && doc[pos + 2] == '-' && doc[pos + 3] == '-')
 	{
-		token.type = ThemeStyleTokenType::cdo;
+		token.type = ThemeStylesheetTokenType::cdo;
 		token.value.clear();
 		pos += 4;
 	}
 }
 
-void ThemeStyleTokenizer::read_cdc(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_cdc(ThemeStylesheetToken& token)
 {
 	if (pos + 3 <= doc.length() && doc[pos] == '-' && doc[pos + 1] == '-' && doc[pos + 2] == '>')
 	{
-		token.type = ThemeStyleTokenType::cdc;
+		token.type = ThemeStylesheetTokenType::cdc;
 		token.value.clear();
 		pos += 3;
 	}
 }
 
-void ThemeStyleTokenizer::read_comment(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_comment(ThemeStylesheetToken& token)
 {
 	if (pos + 4 <= doc.length() && doc[pos] == '/' && doc[pos + 1] == '*')
 	{
@@ -439,13 +439,13 @@ void ThemeStyleTokenizer::read_comment(ThemeStyleToken& token)
 			end_pos++;
 		if (end_pos < doc.length())
 		{
-			token.type = ThemeStyleTokenType::comment;
+			token.type = ThemeStylesheetTokenType::comment;
 			pos = end_pos + 1;
 		}
 	}
 }
 
-void ThemeStyleTokenizer::read_uri(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_uri(ThemeStylesheetToken& token)
 {
 	if (pos + 5 <= doc.length() &&
 		(doc[pos] == 'u' || doc[pos] == 'U') &&
@@ -479,13 +479,13 @@ void ThemeStyleTokenizer::read_uri(ThemeStyleToken& token)
 
 		if (end_pos < doc.length() && doc[end_pos] == ')')
 		{
-			token.type = ThemeStyleTokenType::uri;
+			token.type = ThemeStylesheetTokenType::uri;
 			pos = end_pos + 1;
 		}
 	}
 }
 
-void ThemeStyleTokenizer::read_function(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_function(ThemeStylesheetToken& token)
 {
 	size_t end_pos = read_ident(pos, token.value);
 	if (end_pos != pos)
@@ -493,16 +493,16 @@ void ThemeStyleTokenizer::read_function(ThemeStyleToken& token)
 		if (end_pos + 1 <= doc.length() && doc[end_pos] == '(')
 		{
 			pos = end_pos + 1;
-			token.type = ThemeStyleTokenType::function;
+			token.type = ThemeStylesheetTokenType::function;
 		}
 	}
 }
 
-void ThemeStyleTokenizer::read_whitespace(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_whitespace(ThemeStylesheetToken& token)
 {
 	if (pos + 1 <= doc.length() && is_whitespace(doc[pos]))
 	{
-		token.type = ThemeStyleTokenType::whitespace;
+		token.type = ThemeStylesheetTokenType::whitespace;
 		token.value.clear();
 		size_t end_pos = pos + 1;
 		while (end_pos < doc.length() && is_whitespace(doc[end_pos]))
@@ -511,27 +511,27 @@ void ThemeStyleTokenizer::read_whitespace(ThemeStyleToken& token)
 	}
 }
 
-void ThemeStyleTokenizer::read_includes(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_includes(ThemeStylesheetToken& token)
 {
 	if (pos + 2 <= doc.length() && doc[pos] == '~' && doc[pos + 1] == '=')
 	{
-		token.type = ThemeStyleTokenType::includes;
+		token.type = ThemeStylesheetTokenType::includes;
 		token.value.clear();
 		pos += 2;
 	}
 }
 
-void ThemeStyleTokenizer::read_dashmatch(ThemeStyleToken& token)
+void ThemeStylesheetTokenizer::read_dashmatch(ThemeStylesheetToken& token)
 {
 	if (pos + 2 <= doc.length() && doc[pos] == '|' && doc[pos + 1] == '=')
 	{
-		token.type = ThemeStyleTokenType::dashmatch;
+		token.type = ThemeStylesheetTokenType::dashmatch;
 		token.value.clear();
 		pos += 2;
 	}
 }
 
-size_t ThemeStyleTokenizer::read_nmstart(size_t p, std::string::value_type& out_c)
+size_t ThemeStylesheetTokenizer::read_nmstart(size_t p, std::string::value_type& out_c)
 {
 	out_c = '?';
 	if ((p < doc.length()) && (doc[p] == '_' ||
@@ -601,7 +601,7 @@ size_t ThemeStyleTokenizer::read_nmstart(size_t p, std::string::value_type& out_
 	return 0;
 }
 
-size_t ThemeStyleTokenizer::read_nmchar(size_t p, std::string::value_type& out_c)
+size_t ThemeStylesheetTokenizer::read_nmchar(size_t p, std::string::value_type& out_c)
 {
 	if (p + 1 <= doc.length())
 	{
@@ -619,7 +619,7 @@ size_t ThemeStyleTokenizer::read_nmchar(size_t p, std::string::value_type& out_c
 	}
 }
 
-bool ThemeStyleTokenizer::is_whitespace(std::string::value_type c)
+bool ThemeStylesheetTokenizer::is_whitespace(std::string::value_type c)
 {
 	switch (c)
 	{
@@ -634,7 +634,7 @@ bool ThemeStyleTokenizer::is_whitespace(std::string::value_type c)
 	}
 }
 
-size_t ThemeStyleTokenizer::read_string(size_t p, std::string& out_str, std::string::value_type str_char) const
+size_t ThemeStylesheetTokenizer::read_string(size_t p, std::string& out_str, std::string::value_type str_char) const
 {
 	out_str.clear();
 	size_t end_pos = p;
@@ -724,7 +724,7 @@ size_t ThemeStyleTokenizer::read_string(size_t p, std::string& out_str, std::str
 	return end_pos + 1;
 }
 
-size_t ThemeStyleTokenizer::read_invalid(size_t p) const
+size_t ThemeStylesheetTokenizer::read_invalid(size_t p) const
 {
 	size_t end_pos = p;
 	while (end_pos < doc.length() && doc[end_pos] != '\n')
@@ -733,7 +733,7 @@ size_t ThemeStyleTokenizer::read_invalid(size_t p) const
 	return std::min((end_pos + 1), doc_length);
 }
 
-size_t ThemeStyleTokenizer::read_uri_nonquoted_string(size_t p, std::string& out_str) const
+size_t ThemeStylesheetTokenizer::read_uri_nonquoted_string(size_t p, std::string& out_str) const
 {
 	out_str.clear();
 	size_t end_pos = p;
@@ -782,7 +782,7 @@ size_t ThemeStyleTokenizer::read_uri_nonquoted_string(size_t p, std::string& out
 	return end_pos;
 }
 
-bool ThemeStyleTokenizer::compare_case_insensitive(const std::string& a, const std::string& b)
+bool ThemeStylesheetTokenizer::compare_case_insensitive(const std::string& a, const std::string& b)
 {
 #ifdef WIN32
 	return _stricmp(a.c_str(), b.c_str()) == 0;

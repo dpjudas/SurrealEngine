@@ -1,24 +1,24 @@
-#include "ztimer.h"
+#include "wayland_timer.h"
 
-ZTimer::ZTimer()
+WaylandTimer::WaylandTimer()
 {
 }
 
-ZTimer::ZTimer(Duration duration_ms) : m_timerDuration(duration_ms)
+WaylandTimer::WaylandTimer(Duration duration_ms) : m_timerDuration(duration_ms)
 {
 }
 
-ZTimer::ZTimer(Duration duration_ms, CallbackFunc callback)
+WaylandTimer::WaylandTimer(Duration duration_ms, CallbackFunc callback)
             : m_timerDuration(duration_ms), m_callback(callback)
 {
 }
 
-ZTimer::~ZTimer()
+WaylandTimer::~WaylandTimer()
 {
     Stop();
 }
 
-void ZTimer::Start()
+void WaylandTimer::Start()
 {
     m_startTime = Clock::now();
     m_currentTime = m_startTime;
@@ -26,33 +26,33 @@ void ZTimer::Start()
     m_timerFinished = false;
 }
 
-void ZTimer::Stop()
+void WaylandTimer::Stop()
 {
     m_timerStarted = false;
 }
 
-void ZTimer::SetDuration(Duration duration_ms)
+void WaylandTimer::SetDuration(Duration duration_ms)
 {
     if (m_timerStarted)
         return;
     m_timerDuration = duration_ms;
 }
 
-void ZTimer::SetCallback(std::function<void()> callback)
+void WaylandTimer::SetCallback(std::function<void()> callback)
 {
     if (m_timerStarted)
         return;
     m_callback = callback;
 }
 
-void ZTimer::SetRepeating(bool value)
+void WaylandTimer::SetRepeating(bool value)
 {
     if (m_timerStarted)
         return;
     m_repeatingTimer = value;
 }
 
-void ZTimer::Update(Duration deltaTime)
+void WaylandTimer::Update(Duration deltaTime)
 {
     if (!m_timerStarted)
         return;

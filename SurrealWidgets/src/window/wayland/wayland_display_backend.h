@@ -1,7 +1,7 @@
 #pragma once
 
 #include "window/window.h"
-#include "window/ztimer/ztimer.h"
+#include "wayland_timer.h"
 
 #include <wayland-client.h>
 #include <wayland-client.hpp>

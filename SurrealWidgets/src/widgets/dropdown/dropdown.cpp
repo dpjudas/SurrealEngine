@@ -7,10 +7,6 @@ Dropdown::Dropdown(Widget* parent) : Widget(parent)
 {
 	SetStyleClass("dropdown");
 	SetFocus();
-
-	// Subscribe to all parent widgets to receive notifications.
-	for (Widget* p = Parent(); p; p = p->Parent())
-		p->Subscribe(this);
 }
 
 DropdownList::DropdownList(Widget* parent, Dropdown* owner) : ListView(parent), owner(owner)
@@ -20,21 +16,6 @@ DropdownList::DropdownList(Widget* parent, Dropdown* owner) : ListView(parent), 
 void DropdownList::OnKeyDown(InputKey key)
 {
 	owner->OnKeyDown(key);
-}
-
-void Dropdown::Notify(Widget* source, const WidgetEvent type)
-{
-	if (type != WidgetEvent::VisibilityChange) return;
-	if (!dropdownOpen) return;
-
-	for (Widget* p = this; p != nullptr; p = p->Parent())
-	{
-		if (p->IsHidden())
-		{
-			CloseDropdown();
-			return;
-		}
-	}
 }
 
 void Dropdown::ItemsChanged()

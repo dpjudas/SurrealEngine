@@ -61,8 +61,13 @@ set(SURREALWIDGETS_SOURCES
 	src/core/timer.cpp
 	src/core/widget.cpp
 	src/core/theme.cpp
-	src/core/theme_style_tokenizer.cpp
-	src/core/theme_style_tokenizer.h
+	src/core/theme_default_stylesheet.h
+	src/core/theme_stylesheet_document.cpp
+	src/core/theme_stylesheet_document.h
+	src/core/theme_stylesheet_tokenizer.cpp
+	src/core/theme_stylesheet_tokenizer.h
+	src/core/border_image_renderer.cpp
+	src/core/border_image_renderer.h
 	src/core/utf8reader.cpp
 	src/core/pathfill.cpp
 	src/core/truetypefont.cpp
@@ -99,8 +104,6 @@ set(SURREALWIDGETS_SOURCES
 	src/window/stub/stub_open_file_dialog.h
 	src/window/stub/stub_save_file_dialog.cpp
 	src/window/stub/stub_save_file_dialog.h
-	src/window/ztimer/ztimer.h
-	src/window/ztimer/ztimer.cpp
 	src/systemdialogs/open_folder_dialog.cpp
 	src/systemdialogs/open_file_dialog.cpp
 	src/systemdialogs/save_file_dialog.cpp
@@ -216,6 +219,8 @@ set(SURREALWIDGETS_WAYLAND_SOURCES
 	src/window/wayland/wayland_display_backend.h
 	src/window/wayland/wayland_display_window.cpp
 	src/window/wayland/wayland_display_window.h
+	src/window/wayland/wayland_timer.h
+	src/window/wayland/wayland_timer.cpp
 	src/window/wayland/wl_fractional_scaling_protocol.cpp
 	src/window/wayland/wl_fractional_scaling_protocol.hpp
 	src/window/wayland/wl_cursor_shape.cpp
