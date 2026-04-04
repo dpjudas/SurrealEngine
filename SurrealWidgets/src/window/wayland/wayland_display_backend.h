@@ -1,7 +1,6 @@
 #pragma once
 
 #include "window/window.h"
-#include "wayland_timer.h"
 
 #include <wayland-client.h>
 #include <wayland-client.hpp>
@@ -177,6 +176,8 @@ private:
 	void OnMouseWheelEvent(InputKey button);
 	void OnCapabilitiesEvent(uint32_t capabilities);
 
+	void StopKeyboardTimers();
+
 	InputKey XKBKeySymToInputKey(xkb_keysym_t keySym);
 	InputKey LinuxInputEventCodeToInputKey(uint32_t inputCode);
 
@@ -188,14 +189,14 @@ private:
 
 	WaylandDisplayWindow* m_MouseLockOwnerWindow = nullptr;
 
-	ZTimer::TimePoint m_previousTime;
-	ZTimer::TimePoint m_currentTime;
-
-	ZTimer m_keyboardDelayTimer;
-	ZTimer m_keyboardRepeatTimer;
+	WaylandTimer* m_KeyboardDelayTimer;
+	WaylandTimer* m_KeyboardRepeatTimer;
 
 	InputKey previousKey = {};
 	std::string previousChars;
+
+	int32_t m_KeyboardDelayTime;
+	int32_t m_KeyboardRepeatRate;
 
 	uint32_t m_KeyboardSerial = 0;
 	uint32_t m_MouseSerial = 0;

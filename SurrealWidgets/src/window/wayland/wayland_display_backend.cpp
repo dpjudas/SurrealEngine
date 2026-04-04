@@ -74,17 +74,6 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 	if (!m_RelativePointerManager)
 		throw std::runtime_error("WaylandDisplayBackend: relative-pointer-unstable-v1 is required!");
 
-	m_keyboardDelayTimer = ZTimer();
-	m_keyboardRepeatTimer = ZTimer();
-
-	m_keyboardDelayTimer.SetCallback([this] () { OnKeyboardDelayEnd(); });
-	m_keyboardRepeatTimer.SetCallback([this] () { OnKeyboardRepeat(); });
-
-	m_keyboardRepeatTimer.SetRepeating(true);
-
-	m_previousTime = ZTimer::Clock::now();
-	m_currentTime = ZTimer::Clock::now();
-
 	m_waylandOutput.on_mode() = [this] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
 		s_ScreenSize = Size(width, height);
 	};
@@ -262,14 +251,14 @@ void WaylandDisplayBackend::ConnectKeyboardEvents()
 
 	m_waylandKeyboard.on_repeat_info() = [this] (int32_t rate, int32_t delay) {
 		// rate is characters per second, delay is in milliseconds
-		m_keyboardDelayTimer.SetDuration(ZTimer::Duration(delay));
-		m_keyboardRepeatTimer.SetDuration(ZTimer::Duration(1000.0 / rate));
+		m_KeyboardRepeatRate = rate;
+		m_KeyboardDelayTime = delay;
 	};
 }
 
 void WaylandDisplayBackend::ConnectMouseEvents()
 {
-	m_waylandPointer.on_enter() = [this](uint32_t serial, wayland::surface_t surfaceEntered, double surfaceX, double surfaceY) {
+	m_waylandPointer.on_enter() = [this](uint32_t serial, const wayland::surface_t& surfaceEntered, double surfaceX, double surfaceY) {
 		// Keep track of the mouse serial for using it in Cursor Shape protocol
 		m_MouseSerial = serial;
 
@@ -418,18 +407,18 @@ void WaylandDisplayBackend::OnKeyboardKeyEvent(xkb_keysym_t xkbKeySym, wayland::
 		if (inputKey != previousKey)
 		{
 			previousKey = inputKey;
-			m_keyboardDelayTimer.Stop();
-			m_keyboardRepeatTimer.Stop();
+			StopKeyboardTimers();
 		}
-		m_keyboardDelayTimer.Start();
+		m_KeyboardDelayTimer = static_cast<WaylandTimer*>(StartTimer(m_KeyboardDelayTime, [&]() { OnKeyboardDelayEnd(); }));
 	}
 	if (state == wayland::keyboard_key_state::released)
 	{
 		inputKeyStates[inputKey] = false;
 		if (m_FocusWindow)
 			m_FocusWindow->windowHost->OnWindowKeyUp(inputKey);
-		m_keyboardDelayTimer.Stop();
-		m_keyboardRepeatTimer.Stop();
+
+		if (inputKey == previousKey)
+			StopKeyboardTimers();
 	}
 }
 
@@ -444,8 +433,13 @@ void WaylandDisplayBackend::OnKeyboardCharEvent(const char* ch, wayland::keyboar
 
 void WaylandDisplayBackend::OnKeyboardDelayEnd()
 {
-	if (inputKeyStates[previousKey])
-		m_keyboardRepeatTimer.Start();
+	if (inputKeyStates[previousKey] && !m_KeyboardRepeatTimer)
+	{
+		if (m_KeyboardRepeatTimer)
+			StopTimer(m_KeyboardRepeatTimer);
+		m_KeyboardRepeatTimer = static_cast<WaylandTimer*>(StartTimer(1000 / m_KeyboardRepeatRate, [&]() { OnKeyboardRepeat(); }));
+	}
+
 }
 
 void WaylandDisplayBackend::OnKeyboardRepeat()
@@ -534,6 +528,20 @@ void WaylandDisplayBackend::OnCapabilitiesEvent(uint32_t capabilities)
 		}
 
 		ConnectMouseEvents();
+	}
+}
+
+void WaylandDisplayBackend::StopKeyboardTimers()
+{
+	if (m_KeyboardDelayTimer)
+	{
+		StopTimer(m_KeyboardDelayTimer);
+		m_KeyboardDelayTimer = nullptr;
+	}
+	if (m_KeyboardRepeatTimer)
+	{
+		StopTimer(m_KeyboardRepeatTimer);
+		m_KeyboardRepeatTimer = nullptr;
 	}
 }
 
@@ -652,13 +660,6 @@ int WaylandDisplayBackend::GetTimerTimeout()
 
 void WaylandDisplayBackend::UpdateTimers()
 {
-	m_currentTime = ZTimer::Clock::now();
-
-	m_keyboardDelayTimer.Update(m_currentTime - m_previousTime);
-	m_keyboardRepeatTimer.Update(m_currentTime - m_previousTime);
-
-	m_previousTime = m_currentTime;
-
 	int64_t now = GetTimePoint();
 
 	// The callback may stop timers. Iterators might invalidate.
@@ -894,6 +895,7 @@ InputKey WaylandDisplayBackend::XKBKeySymToInputKey(xkb_keysym_t keySym)
 		case XKB_KEY_Shift_R:
 			return InputKey::Shift;
 		case XKB_KEY_grave:
+		case XKB_KEY_quotedbl: // This will allow Surreal Engine to pop up the console window when pressing the key below Esc.
 			return InputKey::Tilde;
 		case XKB_KEY_apostrophe:
 			return InputKey::SingleQuote;
