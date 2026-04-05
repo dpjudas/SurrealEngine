@@ -310,8 +310,10 @@ public:
 	UClass*& uc_Class() { return Value<UClass*>(PropOffsets_Object.Class); } // native
 	NameString& uc_Name() { return Value<NameString>(PropOffsets_Object.Name); } // native
 	int& uc_ObjectFlags() { return Value<int>(PropOffsets_Object.ObjectFlags); } // native
-	int& uc_ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native
+	int& uc_ObjectInternal() { return Value<int>(PropOffsets_Object.ObjectInternal); } // native, not available in 227
 	UObject*& Outer() { return Value<UObject*>(PropOffsets_Object.Outer); } // native
+	int& ObjectIndex() { return Value<int>(PropOffsets_Object.ObjectIndex); }
+	UObject*& ObjectArchetype() { return Value<UObject*>(PropOffsets_Object.ObjectArchetype); }
 
 private:
 	GCAllocation* Mark(GCAllocation* marklist) override;
