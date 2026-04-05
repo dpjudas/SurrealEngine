@@ -749,7 +749,23 @@ void NObject::FindObject_U227(UObject* ObjClass, std::string& ObjectName, UObjec
 
 void NObject::FindObjectIndex_U227(int Index, UObject*& ReturnValue)
 {
-	LogUnimplemented("Object.FindObjectIndex() [U227]");
+	auto allObjects = GC::GetObjects();
+
+	auto objIterator = allObjects.begin();
+
+	while (objIterator != allObjects.end())
+	{
+		auto currObject = dynamic_cast<UObject*>(*objIterator);
+
+		if (currObject->ObjectIndex() == Index)
+		{
+			ReturnValue = currObject;
+			return;
+		}
+
+		++objIterator;
+	}
+
 	ReturnValue = nullptr;
 }
 
