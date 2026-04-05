@@ -18,8 +18,15 @@ static void InitPropertyOffsets_Object(PackageManager* packages)
 	PropOffsets_Object.Class = cls->GetPropertyDataOffset("Class");
 	PropOffsets_Object.Name = cls->GetPropertyDataOffset("Name");
 	PropOffsets_Object.ObjectFlags = cls->GetPropertyDataOffset("ObjectFlags");
-	PropOffsets_Object.ObjectInternal = cls->GetPropertyDataOffset("ObjectInternal");
+	if (!packages->IsUnreal1_227())
+		PropOffsets_Object.ObjectInternal = cls->GetPropertyDataOffset("ObjectInternal");
 	PropOffsets_Object.Outer = cls->GetPropertyDataOffset("Outer");
+
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_Object.ObjectIndex = cls->GetPropertyDataOffset("ObjectIndex");
+		PropOffsets_Object.ObjectArchetype = cls->GetPropertyDataOffset("ObjectArchetype");
+	}
 }
 
 PropertyOffsets_Commandlet PropOffsets_Commandlet;
