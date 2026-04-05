@@ -479,20 +479,25 @@ UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::m
 	{
 		// Object is special as its the base class for everything. Described in Core.u with circular references.
 		// This creates just enough of the properties to resolve it, hopefully.
-
-		if (engine->LaunchInfo.engineVersion != 469)
-		{
-			auto objInternal = GC::Alloc<UIntProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
-			objInternal->ArrayDimension = 6;
-			Properties.push_back(objInternal);
-		}
-		else // 469 changed ObjectInternal from int to pointer
+		
+		if (engine->LaunchInfo.IsUnrealTournament_469()) // 469 changed ObjectInternal from int to pointer
 		{
 			auto objInternal = GC::Alloc<UPointerProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
 			objInternal->ArrayDimension = 6;
 			Properties.push_back(objInternal);
 		}
+		else if (!engine->LaunchInfo.IsUnreal1_227()) // Unreal 227 has removed ObjectInternal entirely
+		{
+			auto objInternal = GC::Alloc<UIntProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
+			objInternal->ArrayDimension = 6;
+			Properties.push_back(objInternal);
+		}
+
+		if (engine->LaunchInfo.IsUnreal1_227())
+			Properties.push_back(GC::Alloc<UIntProperty>("ObjectIndex", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UObjectProperty>("Outer", nullptr, ObjectFlags::Native));
+		if (engine->LaunchInfo.IsUnreal1_227())
+			Properties.push_back(GC::Alloc<UObjectProperty>("ObjectArchetype", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UIntProperty>("ObjectFlags", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UNameProperty>("Name", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UClassProperty>("Class", nullptr, ObjectFlags::Native));
