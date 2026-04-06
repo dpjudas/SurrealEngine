@@ -214,7 +214,7 @@ static const char* tokennames[256] =
 	"Skip", "Context", "ArrayElement", "VirtualFunction", "FinalFunction", "IntConst", "FloatConst", "StringConst",
 	"ObjectConst", "NameConst", "RotationConst", "VectorConst", "ByteConst", "IntZero", "IntOne", "True",
 	"False", "NativeParm", "NoObject", "Unknown0x2b", "IntConstByte", "BoolVariable", "DynamicCast", "Iterator",
-	"IteratorPop", "IteratorNext", "StructCmpEq", "StructCmpNe", "UnicodeStringConst", "0x35", "StructMember", "0x37",
+	"IteratorPop", "IteratorNext", "StructCmpEq", "StructCmpNe", "UnicodeStringConst", "0x35", "StructMember", "Construct",
 	"GlobalFunction", "RotatorToVector", "ByteToInt", "ByteToBool", "ByteToFloat", "IntToByte", "IntToBool", "IntToFloat",
 	"BoolToByte", "BoolToInt", "BoolToFloat", "FloatToByte", "FloatToInt", "FloatToBool", "Unknown0x46", "ObjectToBool",
 	"NameToBool", "StringToByte", "StringToInt", "StringToBool", "StringToFloat", "StringToVector", "StringToRotator", "VectorToBool",
@@ -293,6 +293,17 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		int name = stream->ReadIndex();
 		PushIndex(name);
 		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
+	}
+	else if (token == ExprToken::Construct)
+	{
+		int cls = stream->ReadIndex();
+		PushIndex(cls);
+		int argcount = stream->ReadIndex(); // Or is this a byte?
+		PushIndex(argcount);
+		for (int i = 0; i < argcount; i++)
+		{
+			ReadToken(stream, depth);
+		}
 	}
 	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{

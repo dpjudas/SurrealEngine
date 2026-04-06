@@ -625,6 +625,17 @@ void PrintExpression::Expr(FunctionArgumentsExpression* expr)
 	WriteRow("", name, "Function arguments");
 }
 
+void PrintExpression::Expr(ConstructExpression* expr)
+{
+	WriteRow("Construct call", name, expr->Class->Name.ToString());
+	int index = 0;
+	for (auto arg : expr->Args)
+	{
+		Print(console, "Arg[" + std::to_string(index) + "]", arg, depth + 1);
+		index++;
+	}
+}
+
 std::string PrintExpression::GetFullFuncName(UFunction* func)
 {
 	std::string name;

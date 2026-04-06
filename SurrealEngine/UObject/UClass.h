@@ -281,7 +281,7 @@ enum class ExprToken : uint8_t
 	UnicodeStringConst = 0x34, // Unicode string constant
 	//
 	StructMember = 0x36, // Struct member
-	//
+	Construct = 0x37, // Construct<T>(args) in Unreal 227
 	GlobalFunction = 0x38, // Call non-state version of a function
 
 	// Native conversions.

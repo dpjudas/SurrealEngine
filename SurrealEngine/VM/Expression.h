@@ -747,3 +747,12 @@ public:
 
 	Array<FunctionArgInfo> args;
 };
+
+class ConstructExpression : public Expression
+{
+public:
+	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
+
+	UClass* Class = nullptr;
+	Array<Expression*> Args;
+};

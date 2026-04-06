@@ -656,6 +656,11 @@ void ExpressionEvaluator::Expr(NativeFunctionExpression* expr)
 	Call(NativeFunctions::FuncByIndex[expr->nativeindex], expr->Args);
 }
 
+void ExpressionEvaluator::Expr(ConstructExpression* expr)
+{
+	Frame::ThrowException("Construct expression not implemented");
+}
+
 void ExpressionEvaluator::Call(UFunction* func, const Array<Expression*>& exprArgs)
 {
 	if (func->NativeFuncIndex == 130)

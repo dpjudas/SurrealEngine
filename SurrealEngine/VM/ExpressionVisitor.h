@@ -89,6 +89,7 @@ class FinalFunctionExpression;
 class GlobalFunctionExpression;
 class NativeFunctionExpression;
 class FunctionArgumentsExpression;
+class ConstructExpression;
 
 class ExpressionVisitor
 {
@@ -181,4 +182,5 @@ public:
 	virtual void Expr(GlobalFunctionExpression* expr) = 0;
 	virtual void Expr(NativeFunctionExpression* expr) = 0;
 	virtual void Expr(FunctionArgumentsExpression* expr) = 0;
+	virtual void Expr(ConstructExpression* expr) = 0;
 };

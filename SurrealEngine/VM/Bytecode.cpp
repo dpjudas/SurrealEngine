@@ -77,6 +77,17 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		stream->ReadToken();
 		return expr;
 	}
+	else if (token == ExprToken::Construct)
+	{
+		ConstructExpression* expr = Create<ConstructExpression>(exproffset);
+		expr->Class = stream->ReadObject<UClass>(); // Or this could be ReadName()
+		int argcount = stream->ReadIndex();
+		for (int i = 0; i < argcount; i++)
+		{
+			expr->Args.push_back(ReadToken(stream, depth));
+		}
+		return expr;
+	}
 	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{
 		FunctionArgumentsExpression* expr = Create<FunctionArgumentsExpression>(exproffset);

@@ -109,6 +109,7 @@ private:
 	void Expr(GlobalFunctionExpression* expr) override;
 	void Expr(NativeFunctionExpression* expr) override;
 	void Expr(FunctionArgumentsExpression* expr) override;
+	void Expr(ConstructExpression* expr) override;
 
 	void WriteRow(std::string type, std::string name, std::string value);
 
