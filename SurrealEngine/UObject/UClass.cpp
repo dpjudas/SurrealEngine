@@ -312,6 +312,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::LocalVariable: PushIndex(stream->ReadIndex()); break;
 		case ExprToken::InstanceVariable: PushIndex(stream->ReadIndex()); break;
 		case ExprToken::DefaultVariable: PushIndex(stream->ReadIndex()); break;
+		case ExprToken::Unknown0x03: PushIndex(stream->ReadIndex()); break;
 		case ExprToken::Return: if (stream->GetVersion() > 61) ReadToken(stream, depth); break;
 		case ExprToken::Switch: PushUInt8(stream->ReadUInt8()); ReadToken(stream, depth); break;
 		case ExprToken::Jump: PushUInt16(stream->ReadUInt16()); break;
@@ -360,6 +361,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		case ExprToken::StructCmpNe: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); ReadToken(stream, depth); break;
 		case ExprToken::UnicodeStringConst: PushUnicodeZ(stream->ReadUnicodeZ()); break;
 		case ExprToken::StructMember: PushIndex(stream->ReadIndex()); ReadToken(stream, depth); break;
+		case ExprToken::Unknown0x37: ReadToken(stream, depth); break;
 		default: Exception::Throw("Unknown script bytecode token encountered");
 		}
 	}

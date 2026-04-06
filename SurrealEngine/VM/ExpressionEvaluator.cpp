@@ -48,6 +48,11 @@ void ExpressionEvaluator::Expr(DefaultVariableExpression* expr)
 		Result.Value = ExpressionValue::Variable(Context->Class->GetDefaultObject<UObject>()->PropertyData.Data, expr->Variable);
 }
 
+void ExpressionEvaluator::Expr(Unknown0x03Expression* expr)
+{
+	Result.Value = ExpressionValue::Variable(Context->PropertyData.Data, expr->Variable);
+}
+
 void ExpressionEvaluator::Expr(ReturnExpression* expr)
 {
 	if (expr->Value)
@@ -679,4 +684,10 @@ void ExpressionEvaluator::Call(UFunction* func, const Array<Expression*>& exprAr
 void ExpressionEvaluator::Expr(FunctionArgumentsExpression* expr)
 {
 	Result.Value = ExpressionValue::NothingValue();
+}
+
+void ExpressionEvaluator::Expr(Unknown0x37Expression* expr)
+{
+	const int32_t arrayLength = Eval(expr->Value).Value.ToInt();
+	Result.Value = ExpressionValue::IntValue(arrayLength);
 }

@@ -107,6 +107,12 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 			expr->Variable = stream->ReadObject<UProperty>();
 			return expr;
 		}
+		case ExprToken::Unknown0x03:
+		{
+			auto expr = Create<Unknown0x03Expression>(exproffset);
+			expr->Variable = stream->ReadObject<UProperty>();
+			return expr;
+		}
 		case ExprToken::DefaultVariable:
 		{
 			DefaultVariableExpression* expr = Create<DefaultVariableExpression>(exproffset);
@@ -398,6 +404,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		case ExprToken::FloatToByte: { auto expr = Create<FloatToByteExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::FloatToInt: { auto expr = Create<FloatToIntExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::FloatToBool: { auto expr = Create<FloatToBoolExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
+		case ExprToken::Unknown0x37: { auto expr = Create<Unknown0x37Expression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::Unknown0x46: { auto expr = Create<Unknown0x46Expression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::ObjectToBool: { auto expr = Create<ObjectToBoolExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }
 		case ExprToken::NameToBool: { auto expr = Create<NameToBoolExpression>(exproffset); expr->Value = ReadToken(stream, depth); return expr; }

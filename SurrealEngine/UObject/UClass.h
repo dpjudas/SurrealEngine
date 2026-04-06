@@ -228,7 +228,7 @@ enum class ExprToken : uint8_t
 	LocalVariable = 0x00,	// A local variable
 	InstanceVariable = 0x01,	// An object variable
 	DefaultVariable = 0x02,	// Default variable for a concrete object
-
+	Unknown0x03 = 0x03, // Encountered in U227's Pawn class. StateVariable?
 	// Tokens
 	Return = 0x04,	// Return from function
 	Switch = 0x05,	// Switch
@@ -281,7 +281,7 @@ enum class ExprToken : uint8_t
 	UnicodeStringConst = 0x34, // Unicode string constant
 	//
 	StructMember = 0x36, // Struct member
-	//
+	Unknown0x37 = 0x37, // Encountered in U227's Pawn class. DynamicArrayLength?
 	GlobalFunction = 0x38, // Call non-state version of a function
 
 	// Native conversions.

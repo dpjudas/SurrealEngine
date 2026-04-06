@@ -4,6 +4,7 @@ class Expression;
 class LocalVariableExpression;
 class InstanceVariableExpression;
 class DefaultVariableExpression;
+class Unknown0x03Expression;
 class ReturnExpression;
 class SwitchExpression;
 class JumpExpression;
@@ -89,6 +90,7 @@ class FinalFunctionExpression;
 class GlobalFunctionExpression;
 class NativeFunctionExpression;
 class FunctionArgumentsExpression;
+class Unknown0x37Expression;
 
 class ExpressionVisitor
 {
@@ -96,6 +98,7 @@ public:
 	virtual void Expr(LocalVariableExpression* expr) = 0;
 	virtual void Expr(InstanceVariableExpression* expr) = 0;
 	virtual void Expr(DefaultVariableExpression* expr) = 0;
+	virtual void Expr(Unknown0x03Expression* expr) = 0;
 	virtual void Expr(ReturnExpression* expr) = 0;
 	virtual void Expr(SwitchExpression* expr) = 0;
 	virtual void Expr(JumpExpression* expr) = 0;
@@ -181,4 +184,5 @@ public:
 	virtual void Expr(GlobalFunctionExpression* expr) = 0;
 	virtual void Expr(NativeFunctionExpression* expr) = 0;
 	virtual void Expr(FunctionArgumentsExpression* expr) = 0;
+	virtual void Expr(Unknown0x37Expression* expr) = 0;
 };

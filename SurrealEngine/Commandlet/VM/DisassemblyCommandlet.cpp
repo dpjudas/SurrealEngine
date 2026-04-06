@@ -97,6 +97,14 @@ void PrintExpression::Expr(DefaultVariableExpression* expr)
 		WriteRow("Default variable", name, "(null)");
 }
 
+void PrintExpression::Expr(Unknown0x03Expression* expr)
+{
+	if (expr->Variable)
+		WriteRow("State local variable", name, expr->Variable->Name.ToString());
+	else
+		WriteRow("State local variable", name, "(null)");
+}
+
 void PrintExpression::Expr(ReturnExpression* expr)
 {
 	WriteRow("", name, "Return");
@@ -376,6 +384,12 @@ void PrintExpression::Expr(StructMemberExpression* expr)
 	console->WriteOutput("    ");
 	WriteRow("Property", "Field", expr->Field->Name.ToString());
 	depth--;
+}
+
+void PrintExpression::Expr(Unknown0x37Expression* expr)
+{
+	WriteRow("", name, "0x37 (Dynamic Array Length?)");
+	Print(console, "Length", expr->Value, depth + 1);
 }
 
 void PrintExpression::Expr(RotatorToVectorExpression* expr)

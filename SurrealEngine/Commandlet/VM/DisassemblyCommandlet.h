@@ -3,6 +3,7 @@
 #include "Commandlet/Commandlet.h"
 #include "VM/ExpressionVisitor.h"
 
+class Unknown0x03Expression;
 class TextListViewItem;
 class UFunction;
 
@@ -24,6 +25,7 @@ private:
 	void Expr(LocalVariableExpression* expr) override;
 	void Expr(InstanceVariableExpression* expr) override;
 	void Expr(DefaultVariableExpression* expr) override;
+	void Expr(Unknown0x03Expression* expr) override;
 	void Expr(ReturnExpression* expr) override;
 	void Expr(SwitchExpression* expr) override;
 	void Expr(JumpExpression* expr) override;
@@ -71,6 +73,7 @@ private:
 	void Expr(StructCmpNeExpression* expr) override;
 	void Expr(UnicodeStringConstExpression* expr) override;
 	void Expr(StructMemberExpression* expr) override;
+	void Expr(Unknown0x37Expression* expr) override;
 	void Expr(RotatorToVectorExpression* expr) override;
 	void Expr(ByteToIntExpression* expr) override;
 	void Expr(ByteToBoolExpression* expr) override;

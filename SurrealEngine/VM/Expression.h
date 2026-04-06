@@ -41,6 +41,15 @@ public:
 	UProperty* Variable = nullptr;
 };
 
+// Encountered in Unreal 227's Pawn class (Actor.GetExtent() call?). StateVariable?
+class Unknown0x03Expression : public Expression
+{
+public:
+	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
+
+	UProperty* Variable = nullptr;
+};
+
 class ReturnExpression : public Expression
 {
 public:
@@ -746,4 +755,13 @@ public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
 	Array<FunctionArgInfo> args;
+};
+
+// Encountered in Unreal 227's Pawn class (Actor.GetExtent() call?). DynamicArrayLength?
+class Unknown0x37Expression : public Expression
+{
+public:
+	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
+
+	Expression* Value = nullptr;
 };
