@@ -84,8 +84,15 @@ void UStruct::Load(ObjectStream* stream)
 	{
 		ReadToken(stream, 0);
 	}
+
 	if (Bytecode.size() != ScriptSize)
-		Exception::Throw("Bytecode load failed");
+	{
+		// Not sure what is up with this. Change it to a warning for now for 227
+		if (engine->LaunchInfo.IsUnreal1_227())
+			LogMessage("Unexpected bytecode for function " + Name.ToString() + " - expected = " + std::to_string(ScriptSize) + ", got = " + std::to_string(Bytecode.size()));
+		else
+			Exception::Throw("Bytecode load failed");
+	}
 	uint32_t rawEnd = stream->Tell();
 
 	// Keep a copy of the original stream as we can't write it yet for the save function
