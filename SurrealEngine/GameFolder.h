@@ -14,6 +14,7 @@ struct GameLaunchInfo
 	bool IsUnreal1() const { return gameExecutableName == "Unreal"; }
 	bool IsUnreal1_226() const { return IsUnreal1() && engineVersion == 226; }
 	bool IsUnreal1_227() const { return IsUnreal1() && engineVersion == 227; }
+	bool IsUnreal1_227k() const { return IsUnreal1_227() && engineSubVersion == 11; }
 	bool IsUnrealTournament() const { return gameExecutableName == "UnrealTournament"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && engineVersion == 469; }
 	bool IsDeusEx() const { return gameExecutableName == "DeusEx"; }

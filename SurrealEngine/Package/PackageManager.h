@@ -37,6 +37,7 @@ public:
 	bool IsUnreal1() const { return launchInfo.IsUnreal1(); }
 	bool IsUnreal1_226() const { return launchInfo.IsUnreal1_226(); }
 	bool IsUnreal1_227() const { return launchInfo.IsUnreal1_227(); }
+	bool IsUnreal1_227k() const { return launchInfo.IsUnreal1_227k(); }
 	bool IsUnrealTournament() const { return launchInfo.IsUnrealTournament(); }
 	bool IsUnrealTournament_469() const { return launchInfo.IsUnrealTournament_469(); }
 	bool IsDeusEx() const { return launchInfo.IsDeusEx(); }
