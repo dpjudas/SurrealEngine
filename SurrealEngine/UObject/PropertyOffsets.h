@@ -17,7 +17,7 @@ struct PropertyOffsets_Object
 	PropertyDataOffset ObjectFlags;
 	PropertyDataOffset ObjectInternal;
 	PropertyDataOffset Outer;
-	// 227 additions
+	// 227k additions
 	PropertyDataOffset ObjectIndex;
 	PropertyDataOffset ObjectArchetype;
 };
