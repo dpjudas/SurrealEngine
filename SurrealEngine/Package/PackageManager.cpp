@@ -895,6 +895,11 @@ void PackageManager::RegisterNativeClasses()
 	RegisterNativeClass<UStringProperty>(corePackage, "StringProperty", "Property");
 	RegisterNativeClass<UTextBuffer>(corePackage, "TextBuffer", "Object");
 
+	if (launchInfo.IsUnreal1_227())
+	{
+		RegisterNativeClass<UAnyProperty>(corePackage, "AnyProperty", "Property");
+	}
+
 	if (GetEngineVersion() < 400)
 	{
 		RegisterNativeClass<UObject>(corePackage, "Commandlet", "Object");

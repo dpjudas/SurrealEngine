@@ -3,6 +3,7 @@
 #include "UProperty.h"
 #include "Package/PackageManager.h"
 #include "Utils/AlignedAlloc.h"
+#include "Utils/Logger.h"
 #include <sstream>
 
 void UProperty::Load(ObjectStream* stream)
@@ -201,6 +202,20 @@ std::map<NameString, std::string> UProperty::ParsePropertiesFromString(std::stri
 	}
 
 	return properties;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+void UAnyProperty::Load(ObjectStream* stream)
+{
+	UProperty::Load(stream);
+	LogUnimplemented("AnyProperty.Load");
+}
+
+void UAnyProperty::Save(PackageStreamWriter* stream)
+{
+	UProperty::Save(stream);
+	LogUnimplemented("AnyProperty.Save");
 }
 
 /////////////////////////////////////////////////////////////////////////////
