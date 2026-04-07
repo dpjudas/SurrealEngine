@@ -506,17 +506,17 @@ UClass::UClass(NameString name, UClass* base, ObjectFlags flags) : UState(std::m
 			objInternal->ArrayDimension = 6;
 			Properties.push_back(objInternal);
 		}
-		else if (!engine->LaunchInfo.IsUnreal1_227()) // Unreal 227 has removed ObjectInternal entirely
+		else if (!engine->LaunchInfo.IsUnreal1_227k()) // Unreal 227k has removed ObjectInternal entirely
 		{
 			auto objInternal = GC::Alloc<UIntProperty>("ObjectInternal", nullptr, ObjectFlags::Native);
 			objInternal->ArrayDimension = 6;
 			Properties.push_back(objInternal);
 		}
 
-		if (engine->LaunchInfo.IsUnreal1_227())
+		if (engine->LaunchInfo.IsUnreal1_227k())
 			Properties.push_back(GC::Alloc<UIntProperty>("ObjectIndex", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UObjectProperty>("Outer", nullptr, ObjectFlags::Native));
-		if (engine->LaunchInfo.IsUnreal1_227())
+		if (engine->LaunchInfo.IsUnreal1_227k())
 			Properties.push_back(GC::Alloc<UObjectProperty>("ObjectArchetype", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UIntProperty>("ObjectFlags", nullptr, ObjectFlags::Native));
 		Properties.push_back(GC::Alloc<UNameProperty>("Name", nullptr, ObjectFlags::Native));

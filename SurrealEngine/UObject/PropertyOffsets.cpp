@@ -18,11 +18,11 @@ static void InitPropertyOffsets_Object(PackageManager* packages)
 	PropOffsets_Object.Class = cls->GetPropertyDataOffset("Class");
 	PropOffsets_Object.Name = cls->GetPropertyDataOffset("Name");
 	PropOffsets_Object.ObjectFlags = cls->GetPropertyDataOffset("ObjectFlags");
-	if (!packages->IsUnreal1_227())
+	if (!packages->IsUnreal1_227k())
 		PropOffsets_Object.ObjectInternal = cls->GetPropertyDataOffset("ObjectInternal");
 	PropOffsets_Object.Outer = cls->GetPropertyDataOffset("Outer");
 
-	if (packages->IsUnreal1_227())
+	if (packages->IsUnreal1_227k()) // These got added on 227k (or maybe j?)
 	{
 		PropOffsets_Object.ObjectIndex = cls->GetPropertyDataOffset("ObjectIndex");
 		PropOffsets_Object.ObjectArchetype = cls->GetPropertyDataOffset("ObjectArchetype");
