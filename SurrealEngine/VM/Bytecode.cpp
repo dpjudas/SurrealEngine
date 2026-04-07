@@ -80,11 +80,14 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 	else if (token == ExprToken::Construct)
 	{
 		ConstructExpression* expr = Create<ConstructExpression>(exproffset);
-		expr->Class = stream->ReadObject<UClass>(); // Or this could be ReadName()
+		expr->Struct = stream->ReadObject<UStruct>();
 		int argcount = stream->ReadIndex();
 		for (int i = 0; i < argcount; i++)
 		{
-			expr->Args.push_back(ReadToken(stream, depth));
+			ConstructArgument arg;
+			arg.Name = stream->ReadObject<UProperty>();
+			arg.Value = ReadToken(stream, depth);
+			expr->Args.push_back(arg);
 		}
 		return expr;
 	}

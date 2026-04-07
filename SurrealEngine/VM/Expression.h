@@ -5,6 +5,7 @@
 
 class UObject;
 class UClass;
+class UStruct;
 class UFunction;
 class UProperty;
 
@@ -748,11 +749,17 @@ public:
 	Array<FunctionArgInfo> args;
 };
 
+struct ConstructArgument
+{
+	UProperty* Name = nullptr;
+	Expression* Value = nullptr;
+};
+
 class ConstructExpression : public Expression
 {
 public:
 	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
 
-	UClass* Class = nullptr;
-	Array<Expression*> Args;
+	UStruct* Struct = nullptr;
+	Array<ConstructArgument> Args;
 };

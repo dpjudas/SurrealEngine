@@ -627,11 +627,18 @@ void PrintExpression::Expr(FunctionArgumentsExpression* expr)
 
 void PrintExpression::Expr(ConstructExpression* expr)
 {
-	WriteRow("Construct call", name, expr->Class->Name.ToString());
+	WriteRow("Construct struct", name, expr->Struct->Name.ToString());
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
-		Print(console, "Arg[" + std::to_string(index) + "]", arg, depth + 1);
+		if (arg.Name)
+		{
+			Print(console, "Arg['" + arg.Name->Name.ToString() + "']", arg.Value, depth + 1);
+		}
+		else
+		{
+			Print(console, "Arg[" + std::to_string(index) + "]", arg.Value, depth + 1);
+		}
 		index++;
 	}
 }

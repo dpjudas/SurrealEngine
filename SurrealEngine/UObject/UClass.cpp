@@ -296,12 +296,14 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 	}
 	else if (token == ExprToken::Construct)
 	{
-		int cls = stream->ReadIndex();
-		PushIndex(cls);
-		int argcount = stream->ReadIndex(); // Or is this a byte?
+		int type = stream->ReadIndex();
+		PushIndex(type);
+		int argcount = stream->ReadIndex();
 		PushIndex(argcount);
 		for (int i = 0; i < argcount; i++)
 		{
+			int argName = stream->ReadIndex();
+			PushIndex(argName);
 			ReadToken(stream, depth);
 		}
 	}
