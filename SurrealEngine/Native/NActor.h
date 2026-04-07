@@ -9,7 +9,8 @@ public:
 
 	static void Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue);
 	static void AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag);
-	static void AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent, bool bAllLevels);
+	static void AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent);
+	static void AllActors_U227k(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent, bool bAllLevels);
 	static void AutonomousPhysics(UObject* Self, float DeltaSeconds);
 	static void BasedActors(UObject* Self, UObject* BaseClass, UObject*& Actor);
 	static void ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor);
