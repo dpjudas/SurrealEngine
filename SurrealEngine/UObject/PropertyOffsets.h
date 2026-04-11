@@ -3778,3 +3778,204 @@ struct PropertyOffsets_TabGroupWindow
 extern PropertyOffsets_TabGroupWindow PropOffsets_TabGroupWindow;
 
 /////////////////////////////////////////////////////////////////////////////
+
+struct PropertyOffsets_XParticleEmitter
+{
+	PropertyDataOffset ActiveCount;
+	PropertyDataOffset bHasInitilized; // sic
+	PropertyDataOffset bKillNextTick;
+	PropertyDataOffset bHasSpecialParts;
+	PropertyDataOffset bWasPostDestroyed;
+	PropertyDataOffset bHasInitView;
+	PropertyDataOffset PartCombiners;
+	PropertyDataOffset bUSNotifyParticles;
+	PropertyDataOffset bNotifyNetReceive;
+	PropertyDataOffset bUSModifyParticles;
+	PropertyDataOffset bNotOnPortals;
+};
+
+extern PropertyOffsets_XParticleEmitter PropOffsets_XParticleEmitter;
+
+struct PropertyOffsets_XEmitter
+{
+	PropertyDataOffset NextParticleTime;
+	PropertyDataOffset SpawnInterval;
+	PropertyDataOffset ResetTimer;
+	PropertyDataOffset SpeedScaleCount;
+	PropertyDataOffset DrawScaleCount;
+	PropertyDataOffset ParticleTexCount;
+	PropertyDataOffset ColorScaleCount;
+	PropertyDataOffset CacheRot;
+	PropertyDataOffset OldSpawnPosition;
+	PropertyDataOffset RendBoundingBox;
+	PropertyDataOffset SpawnCombiners;
+	PropertyDataOffset LifeTimeCombiners;
+	PropertyDataOffset DestructCombiners;
+	PropertyDataOffset WallHitCombiners;
+	PropertyDataOffset TSpawnC;
+	PropertyDataOffset TLifeTimeC;
+	PropertyDataOffset TDestructC;
+	PropertyDataOffset TWallHitC;
+	PropertyDataOffset MaxParticles;
+	PropertyDataOffset ParticlesPerSec;
+	PropertyDataOffset LODFactor;
+	PropertyDataOffset LifetimeRange;
+	PropertyDataOffset AutoResetTime;
+	PropertyDataOffset FinishedSpawningTrigger;
+	PropertyDataOffset RevolutionOffset;
+	PropertyDataOffset RevolutionsPerSec;
+	PropertyDataOffset RevolutionTimeScale;
+	PropertyDataOffset RevolutionOffsetUnAxis;
+	PropertyDataOffset ParticleTextures;
+	PropertyDataOffset ParticleStyle;
+	PropertyDataOffset ParticleSpawnTag;
+	PropertyDataOffset ParticleSpawnCClass;
+	PropertyDataOffset ParticleKillTag;
+	PropertyDataOffset ParticleKillCClass;
+	PropertyDataOffset ParticleWallHitTag;
+	PropertyDataOffset ParticleWallHitCClass;
+	PropertyDataOffset CombinedParticleCount;
+	PropertyDataOffset ParticleLifeTimeCClass;
+	PropertyDataOffset ParticleLifeTimeSDelay;
+	PropertyDataOffset FadeInTime;
+	PropertyDataOffset FadeOutTime;
+	PropertyDataOffset FadeInMaxAmount;
+	PropertyDataOffset StartingScale;
+	PropertyDataOffset Scale3DRange;
+	PropertyDataOffset TimeScale;
+	PropertyDataOffset TimeDrawScale3D;
+	PropertyDataOffset SpriteAnimationType;
+	PropertyDataOffset PartSpriteForwardZ;
+	PropertyDataOffset VisibilityBox;
+	PropertyDataOffset CullDistance;
+	PropertyDataOffset CullDistanceFadeDist;
+	PropertyDataOffset BoxLocation;
+	PropertyDataOffset SphereCylinderRange;
+	PropertyDataOffset SpawnPosType;
+	PropertyDataOffset SpawnOffsetMultiplier;
+	PropertyDataOffset UseActorCoords;
+	PropertyDataOffset VertexLimitBBox;
+	PropertyDataOffset SingleIVert;
+	PropertyDataOffset TriggerAction;
+	PropertyDataOffset SpawnParts;
+	PropertyDataOffset SpeedScale;
+	PropertyDataOffset ParticleAcceleration;
+	PropertyDataOffset BoxVelocity;
+	PropertyDataOffset SphereCylVelocity;
+	PropertyDataOffset SpawnVelType;
+	PropertyDataOffset VelocityLossRate;
+	PropertyDataOffset SpeedTimeScale3D;
+	PropertyDataOffset ParticleCollision;
+	PropertyDataOffset WallImpactAction;
+	PropertyDataOffset WaterImpactAction;
+	PropertyDataOffset ParticleExtent;
+	PropertyDataOffset ParticleBounchyness; // Sic
+	PropertyDataOffset HittingActorKickVelScale;
+	PropertyDataOffset MinBounceVelocity;
+	PropertyDataOffset ImpactSound;
+	PropertyDataOffset SpawnSound;
+	PropertyDataOffset DestroySound;
+	PropertyDataOffset MinImpactVelForSnd;
+	PropertyDataOffset ForcesList;
+	PropertyDataOffset ForcesTags;
+	PropertyDataOffset ParticleColor;
+	PropertyDataOffset ParticleColorScale;
+	PropertyDataOffset CoronaColor;
+	PropertyDataOffset CoronaTexture;
+	PropertyDataOffset CoronaFadeTimeScale;
+	PropertyDataOffset CoronaMaxScale;
+	PropertyDataOffset CoronaScaling;
+	PropertyDataOffset MaxCoronaDistance;
+	PropertyDataOffset CoronaOffset;
+	PropertyDataOffset bRevolutionEnabled;
+	PropertyDataOffset bEffectsVelocity;
+	PropertyDataOffset bDisabled; // For the emitter as a whole
+	PropertyDataOffset bRespawnParticles;
+	PropertyDataOffset bAutoDestroy;
+	PropertyDataOffset bAutoReset;
+	PropertyDataOffset bSpawnInitParticles;
+	PropertyDataOffset bDisableRender;
+	PropertyDataOffset bUseRandomTex;
+	PropertyDataOffset bBoxVisibility;
+	PropertyDataOffset bAutoVisibilityBox;
+	PropertyDataOffset bDistanceCulling;
+	PropertyDataOffset bStatisEmitter;
+	PropertyDataOffset bNoUpdateOnInvis;
+	PropertyDataOffset bRelativeToRotation;
+	PropertyDataOffset bUseRelativeLocation;
+	PropertyDataOffset bGradualSpawnCoords;
+	PropertyDataOffset bUseMeshAnim;
+	PropertyDataOffset bVelRelativeToRotation;
+	PropertyDataOffset bCylRangeBasedOnPos;
+	PropertyDataOffset bAccelRelativeToRot;
+	PropertyDataOffset bCheckLineOfSight;
+	PropertyDataOffset bActorsBlockSight;
+	PropertyDataOffset bParticleCoronaEnabled;
+	PropertyDataOffset bCOffsetRelativeToRot;
+	PropertyDataOffset bHasLossVel;
+	PropertyDataOffset bHasAliveParticles;
+	PropertyDataOffset bDestruction;
+	PropertyDataOffset bRotationRequest;
+	PropertyDataOffset BACKUP_Disabled;
+};
+
+extern PropertyOffsets_XEmitter PropOffsets_XEmitter;
+
+struct PropertyOffsets_XParticleForces
+{
+	PropertyDataOffset EffectingRadius;
+	PropertyDataOffset EffectingBox;
+	PropertyDataOffset EffectPartLifeTime;
+	PropertyDataOffset OldTagName;
+	PropertyDataOffset bEnabled;
+	PropertyDataOffset bUseBoxForcePosition;
+};
+
+extern PropertyOffsets_XParticleForces PropOffsets_XParticleForces;
+
+struct PropertyOffsets_VelocityForce
+{
+	PropertyDataOffset VelocityToAdd;
+	PropertyDataOffset bChangeAcceleration;
+	PropertyDataOffset bInstantChange;
+};
+
+extern PropertyOffsets_VelocityForce PropOffsets_VelocityForce;
+
+struct PropertyOffsets_KillParticleForce
+{
+	PropertyDataOffset LifeTimeDrainAmount;
+};
+
+extern PropertyOffsets_KillParticleForce PropOffsets_KillParticleForce;
+
+struct PropertyOffsets_ParticleConcentrateForce
+{
+	PropertyDataOffset CenterPointOffset;
+	PropertyDataOffset DrainSpeed;
+	PropertyDataOffset bSetsAcceleration;
+	PropertyDataOffset bActorDistanceSuckIn;
+	PropertyDataOffset MaxDistance;
+};
+
+extern PropertyOffsets_ParticleConcentrateForce PropOffsets_ParticleConcentrateForce;
+
+struct PropertyOffsets_XBeamEmitter
+{
+	PropertyDataOffset BeamTarget;
+	PropertyDataOffset NoiseTimeScale;
+	PropertyDataOffset NoiseSwapTime;
+	PropertyDataOffset Segments;
+	PropertyDataOffset TextureUV;
+	PropertyDataOffset NoiseRange;
+	PropertyDataOffset TurnRate;
+	PropertyDataOffset BeamPointScaling;
+	PropertyDataOffset StartTexture;
+	PropertyDataOffset EndTexture;
+	PropertyDataOffset RenderDataModel;
+	PropertyDataOffset SegmentScales;
+	PropertyDataOffset bDynamicNoise;
+	PropertyDataOffset bDoBeamNoise;
+};
+
+extern PropertyOffsets_XBeamEmitter PropOffsets_XBeamEmitter;

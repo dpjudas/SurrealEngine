@@ -364,6 +364,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UDXSaveInfo.h
 	SurrealEngine/UObject/UDXTextParser.cpp
 	SurrealEngine/UObject/UDXTextParser.h
+	SurrealEngine/UObject/U227Emitter.cpp
+	SurrealEngine/UObject/U227Emitter.h
 	SurrealEngine/UObject/UClient.h
 	SurrealEngine/UObject/UMesh.cpp
 	SurrealEngine/UObject/UMesh.h
