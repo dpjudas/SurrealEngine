@@ -4744,6 +4744,249 @@ static void InitPropertyOffsets_TabGroupWindow(PackageManager* packages)
 	PropOffsets_TabGroupWindow.tabGroupIndex = cls->GetPropertyDataOffset("tabGroupIndex");
 }
 
+PropertyOffsets_XParticleEmitter PropOffsets_XParticleEmitter;
+
+static void InitPropertyOffsets_XParticleEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XParticleEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XParticleEmitter, 0xff, sizeof(PropOffsets_XParticleEmitter));
+		return;
+	}
+	PropOffsets_XParticleEmitter.ActiveCount = cls->GetPropertyDataOffset("ActiveCount");
+	PropOffsets_XParticleEmitter.bHasInitilized = cls->GetPropertyDataOffset("bHasInitilized"); // sic
+	PropOffsets_XParticleEmitter.bKillNextTick = cls->GetPropertyDataOffset("bKillNextTick");
+	PropOffsets_XParticleEmitter.bHasSpecialParts = cls->GetPropertyDataOffset("bHasSpecialParts");
+	PropOffsets_XParticleEmitter.bWasPostDestroyed = cls->GetPropertyDataOffset("bWasPostDestroyed");
+	PropOffsets_XParticleEmitter.bHasInitView = cls->GetPropertyDataOffset("bHasInitView");
+	PropOffsets_XParticleEmitter.PartCombiners = cls->GetPropertyDataOffset("PartCombiners");
+	PropOffsets_XParticleEmitter.bUSNotifyParticles = cls->GetPropertyDataOffset("bUSNotifyParticles");
+	PropOffsets_XParticleEmitter.bNotifyNetReceive = cls->GetPropertyDataOffset("bNotifyNetReceive");
+	PropOffsets_XParticleEmitter.bUSModifyParticles = cls->GetPropertyDataOffset("bUSModifyParticles");
+	PropOffsets_XParticleEmitter.bNotOnPortals = cls->GetPropertyDataOffset("bNotOnPortals");
+}
+
+PropertyOffsets_XEmitter PropOffsets_XEmitter;
+
+static void InitPropertyOffsets_XEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XEmitter, 0xff, sizeof(PropOffsets_XEmitter));
+		return;
+	}
+	PropOffsets_XEmitter.AutoResetTime = cls->GetPropertyDataOffset("AutoResetTime");
+	PropOffsets_XEmitter.bAccelRelativeToRot = cls->GetPropertyDataOffset("bAccelRelativeToRot");
+	PropOffsets_XEmitter.BACKUP_Disabled = cls->GetPropertyDataOffset("BACKUP_Disabled");
+	PropOffsets_XEmitter.bActorsBlockSight = cls->GetPropertyDataOffset("bActorsBlockSight");
+	PropOffsets_XEmitter.bAutoDestroy = cls->GetPropertyDataOffset("bAutoDestroy");
+	PropOffsets_XEmitter.bAutoReset = cls->GetPropertyDataOffset("bAutoReset");
+	PropOffsets_XEmitter.bAutoVisibilityBox = cls->GetPropertyDataOffset("bAutoVisibilityBox");
+	PropOffsets_XEmitter.bBoxVisibility = cls->GetPropertyDataOffset("bBoxVisibility");
+	PropOffsets_XEmitter.bCheckLineOfSight = cls->GetPropertyDataOffset("bCheckLineOfSight");
+	PropOffsets_XEmitter.bCOffsetRelativeToRot = cls->GetPropertyDataOffset("bCOffsetRelativeToRot");
+	PropOffsets_XEmitter.bCylRangeBasedOnPos = cls->GetPropertyDataOffset("bCylRangeBasedOnPos");
+	PropOffsets_XEmitter.bDestruction = cls->GetPropertyDataOffset("bDestruction");
+	PropOffsets_XEmitter.bDisabled = cls->GetPropertyDataOffset("bDisabled");
+	PropOffsets_XEmitter.bDisableRender = cls->GetPropertyDataOffset("bDisableRender");
+	PropOffsets_XEmitter.bDistanceCulling = cls->GetPropertyDataOffset("bDistanceCulling");
+	PropOffsets_XEmitter.bEffectsVelocity = cls->GetPropertyDataOffset("bEffectsVelocity");
+	PropOffsets_XEmitter.bGradualSpawnCoords = cls->GetPropertyDataOffset("bGradualSpawnCoords");
+	PropOffsets_XEmitter.bHasAliveParticles = cls->GetPropertyDataOffset("bHasAliveParticles");
+	PropOffsets_XEmitter.bHasLossVel = cls->GetPropertyDataOffset("bHasLossVel");
+	PropOffsets_XEmitter.bNoUpdateOnInvis = cls->GetPropertyDataOffset("bNoUpdateOnInvis");
+	PropOffsets_XEmitter.bParticleCoronaEnabled = cls->GetPropertyDataOffset("bParticleCoronaEnabled");
+	PropOffsets_XEmitter.bRelativeToRotation = cls->GetPropertyDataOffset("bRelativeToRotation");
+	PropOffsets_XEmitter.bRespawnParticles = cls->GetPropertyDataOffset("bRespawnParticles");
+	PropOffsets_XEmitter.bRevolutionEnabled = cls->GetPropertyDataOffset("bRevolutionEnabled");
+	PropOffsets_XEmitter.bRotationRequest = cls->GetPropertyDataOffset("bRotationRequest");
+	PropOffsets_XEmitter.bSpawnInitParticles = cls->GetPropertyDataOffset("bSpawnInitParticles");
+	PropOffsets_XEmitter.bStatisEmitter = cls->GetPropertyDataOffset("bStatisEmitter");
+	PropOffsets_XEmitter.bUseMeshAnim = cls->GetPropertyDataOffset("bUseMeshAnim");
+	PropOffsets_XEmitter.bUseRandomTex = cls->GetPropertyDataOffset("bUseRandomTex");
+	PropOffsets_XEmitter.bUseRelativeLocation = cls->GetPropertyDataOffset("bUseRelativeLocation");
+	PropOffsets_XEmitter.bVelRelativeToRotation = cls->GetPropertyDataOffset("bVelRelativeToRotation");
+	PropOffsets_XEmitter.BoxLocation = cls->GetPropertyDataOffset("BoxLocation");
+	PropOffsets_XEmitter.BoxVelocity = cls->GetPropertyDataOffset("BoxVelocity");
+	PropOffsets_XEmitter.CacheRot = cls->GetPropertyDataOffset("CacheRot");
+	PropOffsets_XEmitter.ColorScaleCount = cls->GetPropertyDataOffset("ColorScaleCount");
+	PropOffsets_XEmitter.CombinedParticleCount = cls->GetPropertyDataOffset("CombinedParticleCount");
+	PropOffsets_XEmitter.CoronaColor = cls->GetPropertyDataOffset("CoronaColor");
+	PropOffsets_XEmitter.CoronaFadeTimeScale = cls->GetPropertyDataOffset("CoronaFadeTimeScale");
+	PropOffsets_XEmitter.CoronaMaxScale = cls->GetPropertyDataOffset("CoronaMaxScale");
+	PropOffsets_XEmitter.CoronaOffset = cls->GetPropertyDataOffset("CoronaOffset");
+	PropOffsets_XEmitter.CoronaScaling = cls->GetPropertyDataOffset("CoronaScaling");
+	PropOffsets_XEmitter.CoronaTexture = cls->GetPropertyDataOffset("CoronaTexture");
+	PropOffsets_XEmitter.CullDistance = cls->GetPropertyDataOffset("CullDistance");
+	PropOffsets_XEmitter.CullDistanceFadeDist = cls->GetPropertyDataOffset("CullDistanceFadeDist");
+	PropOffsets_XEmitter.DestroySound = cls->GetPropertyDataOffset("DestroySound");
+	PropOffsets_XEmitter.DestructCombiners = cls->GetPropertyDataOffset("DestructCombiners");
+	PropOffsets_XEmitter.DrawScaleCount = cls->GetPropertyDataOffset("DrawScaleCount");
+	PropOffsets_XEmitter.FadeInMaxAmount = cls->GetPropertyDataOffset("FadeInMaxAmount");
+	PropOffsets_XEmitter.FadeInTime = cls->GetPropertyDataOffset("FadeInTime");
+	PropOffsets_XEmitter.FadeOutTime = cls->GetPropertyDataOffset("FadeOutTime");
+	PropOffsets_XEmitter.FinishedSpawningTrigger = cls->GetPropertyDataOffset("FinishedSpawningTrigger");
+	PropOffsets_XEmitter.ForcesList = cls->GetPropertyDataOffset("ForcesList");
+	PropOffsets_XEmitter.ForcesTags = cls->GetPropertyDataOffset("ForcesTags");
+	PropOffsets_XEmitter.HittingActorKickVelScale = cls->GetPropertyDataOffset("HittingActorKickVelScale");
+	PropOffsets_XEmitter.ImpactSound = cls->GetPropertyDataOffset("ImpactSound");
+	PropOffsets_XEmitter.LifeTimeCombiners = cls->GetPropertyDataOffset("LifeTimeCombiners");
+	PropOffsets_XEmitter.LifetimeRange = cls->GetPropertyDataOffset("LifetimeRange");
+	PropOffsets_XEmitter.LODFactor = cls->GetPropertyDataOffset("LODFactor");
+	PropOffsets_XEmitter.MaxCoronaDistance = cls->GetPropertyDataOffset("MaxCoronaDistance");
+	PropOffsets_XEmitter.MaxParticles = cls->GetPropertyDataOffset("MaxParticles");
+	PropOffsets_XEmitter.MinBounceVelocity = cls->GetPropertyDataOffset("MinBounceVelocity");
+	PropOffsets_XEmitter.MinImpactVelForSnd = cls->GetPropertyDataOffset("MinImpactVelForSnd");
+	PropOffsets_XEmitter.NextParticleTime = cls->GetPropertyDataOffset("NextParticleTime");
+	PropOffsets_XEmitter.OldSpawnPosition = cls->GetPropertyDataOffset("OldSpawnPosition");
+	PropOffsets_XEmitter.ParticleAcceleration = cls->GetPropertyDataOffset("ParticleAcceleration");
+	PropOffsets_XEmitter.ParticleBounchyness = cls->GetPropertyDataOffset("ParticleBounchyness");
+	PropOffsets_XEmitter.ParticleCollision = cls->GetPropertyDataOffset("ParticleCollision");
+	PropOffsets_XEmitter.ParticleColor = cls->GetPropertyDataOffset("ParticleColor");
+	PropOffsets_XEmitter.ParticleColorScale = cls->GetPropertyDataOffset("ParticleColorScale");
+	PropOffsets_XEmitter.ParticleExtent = cls->GetPropertyDataOffset("ParticleExtent");
+	PropOffsets_XEmitter.ParticleKillCClass = cls->GetPropertyDataOffset("ParticleKillCClass");
+	PropOffsets_XEmitter.ParticleKillTag = cls->GetPropertyDataOffset("ParticleKillTag");
+	PropOffsets_XEmitter.ParticleLifeTimeCClass = cls->GetPropertyDataOffset("ParticleLifeTimeCClass");
+	PropOffsets_XEmitter.ParticleLifeTimeSDelay = cls->GetPropertyDataOffset("ParticleLifeTimeSDelay");
+	PropOffsets_XEmitter.ParticleSpawnCClass = cls->GetPropertyDataOffset("ParticleSpawnCClass");
+	PropOffsets_XEmitter.ParticleSpawnTag = cls->GetPropertyDataOffset("ParticleSpawnTag");
+	PropOffsets_XEmitter.ParticlesPerSec = cls->GetPropertyDataOffset("ParticlesPerSec");
+	PropOffsets_XEmitter.ParticleStyle = cls->GetPropertyDataOffset("ParticleStyle");
+	PropOffsets_XEmitter.ParticleTexCount = cls->GetPropertyDataOffset("ParticleTexCount");
+	PropOffsets_XEmitter.ParticleTextures = cls->GetPropertyDataOffset("ParticleTextures");
+	PropOffsets_XEmitter.ParticleWallHitCClass = cls->GetPropertyDataOffset("ParticleWallHitCClass");
+	PropOffsets_XEmitter.ParticleWallHitTag = cls->GetPropertyDataOffset("ParticleWallHitTag");
+	PropOffsets_XEmitter.PartSpriteForwardZ = cls->GetPropertyDataOffset("PartSpriteForwardZ");
+	PropOffsets_XEmitter.RendBoundingBox = cls->GetPropertyDataOffset("RendBoundingBox");
+	PropOffsets_XEmitter.ResetTimer = cls->GetPropertyDataOffset("ResetTimer");
+	PropOffsets_XEmitter.RevolutionOffset = cls->GetPropertyDataOffset("RevolutionOffset");
+	PropOffsets_XEmitter.RevolutionOffsetUnAxis = cls->GetPropertyDataOffset("RevolutionOffsetUnAxis");
+	PropOffsets_XEmitter.RevolutionsPerSec = cls->GetPropertyDataOffset("RevolutionsPerSec");
+	PropOffsets_XEmitter.RevolutionTimeScale = cls->GetPropertyDataOffset("RevolutionTimeScale");
+	PropOffsets_XEmitter.Scale3DRange = cls->GetPropertyDataOffset("Scale3DRange");
+	PropOffsets_XEmitter.SingleIVert = cls->GetPropertyDataOffset("SingleIVert");
+	PropOffsets_XEmitter.SpawnCombiners = cls->GetPropertyDataOffset("SpawnCombiners");
+	PropOffsets_XEmitter.SpawnInterval = cls->GetPropertyDataOffset("SpawnInterval");
+	PropOffsets_XEmitter.SpawnOffsetMultiplier = cls->GetPropertyDataOffset("SpawnOffsetMultiplier");
+	PropOffsets_XEmitter.SpawnParts = cls->GetPropertyDataOffset("SpawnParts");
+	PropOffsets_XEmitter.SpawnPosType = cls->GetPropertyDataOffset("SpawnPosType");
+	PropOffsets_XEmitter.SpawnSound = cls->GetPropertyDataOffset("SpawnSound");
+	PropOffsets_XEmitter.SpawnVelType = cls->GetPropertyDataOffset("SpawnVelType");
+	PropOffsets_XEmitter.SpeedScale = cls->GetPropertyDataOffset("SpeedScale");
+	PropOffsets_XEmitter.SpeedScaleCount = cls->GetPropertyDataOffset("SpeedScaleCount");
+	PropOffsets_XEmitter.SpeedTimeScale3D = cls->GetPropertyDataOffset("SpeedTimeScale3D");
+	PropOffsets_XEmitter.SphereCylinderRange = cls->GetPropertyDataOffset("SphereCylinderRange");
+	PropOffsets_XEmitter.SphereCylVelocity = cls->GetPropertyDataOffset("SphereCylVelocity");
+	PropOffsets_XEmitter.SpriteAnimationType = cls->GetPropertyDataOffset("SpriteAnimationType");
+	PropOffsets_XEmitter.StartingScale = cls->GetPropertyDataOffset("StartingScale");
+	PropOffsets_XEmitter.TDestructC = cls->GetPropertyDataOffset("TDestructC");
+	PropOffsets_XEmitter.TimeDrawScale3D = cls->GetPropertyDataOffset("TimeDrawScale3D");
+	PropOffsets_XEmitter.TimeScale = cls->GetPropertyDataOffset("TimeScale");
+	PropOffsets_XEmitter.TLifeTimeC = cls->GetPropertyDataOffset("TLifeTimeC");
+	PropOffsets_XEmitter.TriggerAction = cls->GetPropertyDataOffset("TriggerAction");
+	PropOffsets_XEmitter.TSpawnC = cls->GetPropertyDataOffset("TSpawnC");
+	PropOffsets_XEmitter.TWallHitC = cls->GetPropertyDataOffset("TWallHitC");
+	PropOffsets_XEmitter.UseActorCoords = cls->GetPropertyDataOffset("UseActorCoords");
+	PropOffsets_XEmitter.VelocityLossRate = cls->GetPropertyDataOffset("VelocityLossRate");
+	PropOffsets_XEmitter.VertexLimitBBox = cls->GetPropertyDataOffset("VertexLimitBBox");
+	PropOffsets_XEmitter.VisibilityBox = cls->GetPropertyDataOffset("VisibilityBox");
+	PropOffsets_XEmitter.WallHitCombiners = cls->GetPropertyDataOffset("WallHitCombiners");
+	PropOffsets_XEmitter.WallImpactAction = cls->GetPropertyDataOffset("WallImpactAction");
+	PropOffsets_XEmitter.WaterImpactAction = cls->GetPropertyDataOffset("WaterImpactAction");
+}
+
+PropertyOffsets_XParticleForces PropOffsets_XParticleForces;
+
+void InitPropertyOffsets_XParticleForces(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XParticleForces"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XParticleForces, 0xff, sizeof(PropOffsets_XParticleForces));
+		return;
+	}
+	PropOffsets_XParticleForces.bEnabled = cls->GetPropertyDataOffset("bEnabled");
+	PropOffsets_XParticleForces.bUseBoxForcePosition = cls->GetPropertyDataOffset("bUseBoxForcePosition");
+	PropOffsets_XParticleForces.EffectingBox = cls->GetPropertyDataOffset("EffectingBox");
+	PropOffsets_XParticleForces.EffectingRadius = cls->GetPropertyDataOffset("EffectingRadius");
+	PropOffsets_XParticleForces.EffectPartLifeTime = cls->GetPropertyDataOffset("EffectPartLifeTime");
+	PropOffsets_XParticleForces.OldTagName = cls->GetPropertyDataOffset("OldTagName");
+}
+
+PropertyOffsets_VelocityForce PropOffsets_VelocityForce;
+
+void InitPropertyOffsets_VelocityForce(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "VelocityForce"));
+	if (!cls)
+	{
+		memset(&PropOffsets_VelocityForce, 0xff, sizeof(PropOffsets_VelocityForce));
+		return;
+	}
+	PropOffsets_VelocityForce.bChangeAcceleration = cls->GetPropertyDataOffset("bChangeAcceleration");
+	PropOffsets_VelocityForce.bInstantChange = cls->GetPropertyDataOffset("bInstantChange");
+	PropOffsets_VelocityForce.VelocityToAdd = cls->GetPropertyDataOffset("VelocityToAdd");
+}
+
+PropertyOffsets_KillParticleForce PropOffsets_KillParticleForce;
+
+void InitPropertyOffsets_KillParticleForce(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "KillParticleForce"));
+	if (!cls)
+	{
+		memset(&PropOffsets_KillParticleForce, 0xff, sizeof(PropOffsets_KillParticleForce));
+		return;
+	}
+	PropOffsets_KillParticleForce.LifeTimeDrainAmount = cls->GetPropertyDataOffset("LifeTimeDrainAmount");
+}
+
+PropertyOffsets_ParticleConcentrateForce PropOffsets_ParticleConcentrateForce;
+
+void InitPropertyOffsets_ParticleConcentrateForce(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "ParticleConcentrateForce"));
+	if (!cls)
+	{
+		memset(&PropOffsets_ParticleConcentrateForce, 0xff, sizeof(PropOffsets_ParticleConcentrateForce));
+		return;
+	}
+	PropOffsets_ParticleConcentrateForce.bActorDistanceSuckIn = cls->GetPropertyDataOffset("bActorDistanceSuckIn");
+	PropOffsets_ParticleConcentrateForce.bSetsAcceleration = cls->GetPropertyDataOffset("bSetsAcceleration");
+	PropOffsets_ParticleConcentrateForce.CenterPointOffset = cls->GetPropertyDataOffset("CenterPointOffset");
+	PropOffsets_ParticleConcentrateForce.DrainSpeed = cls->GetPropertyDataOffset("DrainSpeed");
+	PropOffsets_ParticleConcentrateForce.MaxDistance = cls->GetPropertyDataOffset("MaxDistance");
+}
+
+PropertyOffsets_XBeamEmitter PropOffsets_XBeamEmitter;
+
+void InitPropertyOffsets_XBeamEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XBeamEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XBeamEmitter, 0xff, sizeof(PropOffsets_XBeamEmitter));
+		return;
+	}
+	PropOffsets_XBeamEmitter.bDoBeamNoise = cls->GetPropertyDataOffset("bDoBeamNoise");
+	PropOffsets_XBeamEmitter.bDynamicNoise = cls->GetPropertyDataOffset("bDynamicNoise");
+	PropOffsets_XBeamEmitter.BeamPointScaling = cls->GetPropertyDataOffset("BeamPointScaling");
+	PropOffsets_XBeamEmitter.BeamTarget = cls->GetPropertyDataOffset("BeamTarget");
+	PropOffsets_XBeamEmitter.EndTexture = cls->GetPropertyDataOffset("EndTexture");
+	PropOffsets_XBeamEmitter.NoiseRange = cls->GetPropertyDataOffset("NoiseRange");
+	PropOffsets_XBeamEmitter.NoiseSwapTime = cls->GetPropertyDataOffset("NoiseSwapTime");
+	PropOffsets_XBeamEmitter.NoiseTimeScale = cls->GetPropertyDataOffset("NoiseTimeScale");
+	PropOffsets_XBeamEmitter.RenderDataModel = cls->GetPropertyDataOffset("RenderDataModel");
+	PropOffsets_XBeamEmitter.Segments = cls->GetPropertyDataOffset("Segments");
+	PropOffsets_XBeamEmitter.SegmentScales = cls->GetPropertyDataOffset("SegmentScales");
+	PropOffsets_XBeamEmitter.StartTexture = cls->GetPropertyDataOffset("StartTexture");
+	PropOffsets_XBeamEmitter.TextureUV = cls->GetPropertyDataOffset("TextureUV");
+	PropOffsets_XBeamEmitter.TurnRate = cls->GetPropertyDataOffset("TurnRate");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -4830,6 +5073,16 @@ void InitPropertyOffsets(PackageManager* packages)
 	{
 		InitPropertyOffsets_UPakPathNodeIterator(packages);
 		InitPropertyOffsets_UPakPawnPathNodeIterator(packages);
+	}
+	if (packages->IsUnreal1_227())
+	{
+		InitPropertyOffsets_XParticleEmitter(packages);
+		InitPropertyOffsets_XParticleForces(packages);
+		InitPropertyOffsets_VelocityForce(packages);
+		InitPropertyOffsets_KillParticleForce(packages);
+		InitPropertyOffsets_ParticleConcentrateForce(packages);
+		InitPropertyOffsets_XEmitter(packages);
+		InitPropertyOffsets_XBeamEmitter(packages);
 	}
 	if (packages->IsDeusEx())
 	{

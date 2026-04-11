@@ -28,6 +28,7 @@
 #include "UObject/UWindow.h"
 #include "UObject/UFlag.h"
 #include "UObject/UConSys.h"
+#include "UObject/U227Emitter.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/NCanvas.h"
@@ -862,6 +863,7 @@ void PackageManager::RegisterFunctions()
 void PackageManager::RegisterNativeClasses()
 {
 	NameString corePackage = "Core";
+	NameString emitterPackage = "Emitter";
 	NameString enginePackage = "Engine";
 	NameString ipdrvPackage = "IpDrv";
 	NameString upakPackage = "UPak";
@@ -1028,6 +1030,20 @@ void PackageManager::RegisterNativeClasses()
 	{
 		RegisterNativeClass<UPakPathNodeIterator>(upakPackage, "PathNodeIterator", "Actor");
 		RegisterNativeClass<UPakPawnPathNodeIterator>(upakPackage, "PawnPathNodeIterator", "PathNodeIterator");
+	}
+
+	if (IsUnreal1_227())
+	{
+		RegisterNativeClass<UStaticMesh>(enginePackage, "StaticMesh", "Mesh");
+		RegisterNativeClass<UEmitterRC>(emitterPackage, "EmitterRC", "Actor");
+		RegisterNativeClass<UXParticleEmitter>(emitterPackage, "XParticleEmitter", "Actor");
+		RegisterNativeClass<UXParticleForces>(emitterPackage, "XParticleForces", "Actor");
+		RegisterNativeClass<UVelocityForce>(emitterPackage, "VelocityForce", "XParticleForces");
+		RegisterNativeClass<UKillParticleForce>(emitterPackage, "KillParticleForce", "XParticleForces");
+		RegisterNativeClass<UParticleConcentrateForce>(emitterPackage, "ParticleConcentrateForce", "XParticleForces");
+		RegisterNativeClass<UXEmitter>(emitterPackage, "XEmitter", "XParticleEmitter");
+		RegisterNativeClass<UXTrailParticle>(emitterPackage, "XTrailParticle", "Actor");
+		RegisterNativeClass<UXBeamEmitter>(emitterPackage, "XBeamEmitter", "XEmitter");
 	}
 	
 	if (IsDeusEx())
