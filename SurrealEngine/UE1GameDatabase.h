@@ -139,7 +139,7 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Linux 32 bit (ut-bin-x86)
 	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469e},
 	// Linux 64 bit (ut-bin-amd64)
-	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469e},
+	{"eba30e88bcbff2d778f68865c047c238814dfd9c", KnownUE1Games::UT99_469e},
 
 	// Deus Ex, v1002f
 	{"9f923d667a396e8243028c14dc3f5e0a6db13d84", KnownUE1Games::DEUS_EX_1002f},
@@ -187,6 +187,7 @@ static const Array<std::string> knownUE1ExecutableNames = {
 	"UnrealTournament.exe",
 	"ut-bin",
 	"ut-bin-x86",
+	"ut-bin-amd64",
 	"ut-bin-x64",
 	"DeusEx.exe",
 	"Klingons.exe",
