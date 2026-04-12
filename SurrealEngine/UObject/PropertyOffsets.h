@@ -3921,6 +3921,15 @@ struct PropertyOffsets_XEmitter
 
 extern PropertyOffsets_XEmitter PropOffsets_XEmitter;
 
+struct PropertyOffsets_EmitterGarbageCollector
+{
+	PropertyDataOffset GarbagePtr;
+	PropertyDataOffset bCleanUp;
+	PropertyDataOffset CleanUpTime;
+};
+
+extern PropertyOffsets_EmitterGarbageCollector PropOffsets_EmitterGarbageCollector;
+
 struct PropertyOffsets_XParticleForces
 {
 	PropertyDataOffset EffectingRadius;
@@ -3980,9 +3989,105 @@ struct PropertyOffsets_XBeamEmitter
 
 extern PropertyOffsets_XBeamEmitter PropOffsets_XBeamEmitter;
 
+struct PropertyOffsets_XMeshEmitter
+{
+	PropertyDataOffset ParticleMesh;
+	PropertyDataOffset ParticleFatness;
+	PropertyDataOffset RotationsPerSec;
+	PropertyDataOffset InitialRot;
+	PropertyDataOffset ParticleRotation;
+	PropertyDataOffset ParticleAnim;
+	PropertyDataOffset PartAnimRate;
+	PropertyDataOffset PartAnimFrameStart;
+	PropertyDataOffset AnimateByActor;
+	PropertyDataOffset RandAnims;
+	PropertyDataOffset bRenderParticles;
+	PropertyDataOffset bParticlesRandFrame;
+	PropertyDataOffset bMeshEnvironmentMapping;
+	PropertyDataOffset bRelativeToMoveDir;
+	PropertyDataOffset bPartAnimLoop;
+	PropertyDataOffset bAnimateParticles;
+};
+
+extern PropertyOffsets_XMeshEmitter PropOffsets_XMeshEmitter;
+
+struct PropertyOffsets_XSpriteEmitter
+{
+	PropertyDataOffset RotationsPerSec;
+	PropertyDataOffset InitialRot;
+	PropertyDataOffset RotNormal;
+	PropertyDataOffset ParticleRotation;
+	PropertyDataOffset RotateByVelocityScale;
+};
+
+extern PropertyOffsets_XSpriteEmitter PropOffsets_XSpriteEmitter;
+
+struct PropertyOffsets_XWeatherEmitter
+{
+	PropertyDataOffset NextParticleTime;
+	PropertyDataOffset SpawnInterval;
+	PropertyDataOffset ParticleTexCount;
+	PropertyDataOffset LastCamPosition;
+	PropertyDataOffset VecArea;
+	PropertyDataOffset CachedCoords;
+	PropertyDataOffset TransfrmCoords;
+	PropertyDataOffset NoRainBounds;
+	PropertyDataOffset SheetModel;
+	PropertyDataOffset WallHitEmitters;
+	PropertyDataOffset WaterHitEmitters;
+	PropertyDataOffset WallHitEvent;
+	PropertyDataOffset WallHitEmitter;
+	PropertyDataOffset WallHitMinZ;
+	PropertyDataOffset WaterHitEvent;
+	PropertyDataOffset WaterHitEmitter;
+	PropertyDataOffset PartTextures;
+	PropertyDataOffset Position;
+	PropertyDataOffset AppearArea;
+	PropertyDataOffset ParticlesColor;
+	PropertyDataOffset Lifetime;
+	PropertyDataOffset Speed;
+	PropertyDataOffset Size;
+	PropertyDataOffset AppearAreaType;
+	PropertyDataOffset WeatherType;
+	PropertyDataOffset ParticleCount;
+	PropertyDataOffset PartStyle;
+	PropertyDataOffset FadeOutDistance;
+	PropertyDataOffset bUseAreaSpawns;
+	PropertyDataOffset bParticleColorEnabled;
+	PropertyDataOffset bIsEnabled;
+};
+
+extern PropertyOffsets_XWeatherEmitter PropOffsets_XWeatherEmitter;
+
+struct PropertyOffsets_XTrailEmitter
+{
+	PropertyDataOffset ParticleData;
+	PropertyDataOffset TrailType;
+	PropertyDataOffset TrailThreshold;
+	PropertyDataOffset MaxTrailLength;
+	PropertyDataOffset TextureUV;
+	PropertyDataOffset Trail;
+	PropertyDataOffset OldTrailSport;
+	PropertyDataOffset TexOffset;
+	PropertyDataOffset bSmoothEntryPoint;
+	PropertyDataOffset bDynamicParticleCount;
+	PropertyDataOffset bTexContinous;
+	PropertyDataOffset bSettingTrail;
+};
+
+extern PropertyOffsets_XTrailEmitter PropOffsets_XTrailEmitter;
+
 struct PropertyOffsets_XRainRestrictionVolume
 {
 	PropertyDataOffset BoundsMin, BoundsMax;
 };
 
 extern PropertyOffsets_XRainRestrictionVolume PropOffsets_XRainRestrictionVolume;
+
+// This is in Emitter for some reason
+struct PropertyOffsets_DistantLightActor
+{
+	PropertyDataOffset NewLightRadius;
+};
+
+extern PropertyOffsets_DistantLightActor PropOffsets_DistantLightActor;

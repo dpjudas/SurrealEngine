@@ -4898,6 +4898,21 @@ static void InitPropertyOffsets_XEmitter(PackageManager* packages)
 	PropOffsets_XEmitter.WaterImpactAction = cls->GetPropertyDataOffset("WaterImpactAction");
 }
 
+PropertyOffsets_EmitterGarbageCollector PropOffsets_EmitterGarbageCollector;
+
+void InitPropertyOffsets_EmitterGarbageCollector(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "EmitterGarbageCollector"));
+	if (!cls)
+	{
+		memset(&PropOffsets_EmitterGarbageCollector, 0xff, sizeof(PropOffsets_EmitterGarbageCollector));
+		return;
+	}
+	PropOffsets_EmitterGarbageCollector.bCleanUp = cls->GetPropertyDataOffset("bCleanUp");
+	PropOffsets_EmitterGarbageCollector.CleanUpTime = cls->GetPropertyDataOffset("CleanUpTime");
+	PropOffsets_EmitterGarbageCollector.GarbagePtr = cls->GetPropertyDataOffset("GarbagePtr");
+}
+
 PropertyOffsets_XParticleForces PropOffsets_XParticleForces;
 
 void InitPropertyOffsets_XParticleForces(PackageManager* packages)
@@ -4987,6 +5002,118 @@ void InitPropertyOffsets_XBeamEmitter(PackageManager* packages)
 	PropOffsets_XBeamEmitter.TurnRate = cls->GetPropertyDataOffset("TurnRate");
 }
 
+PropertyOffsets_XMeshEmitter PropOffsets_XMeshEmitter;
+
+void InitPropertyOffsets_XMeshEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XMeshEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XMeshEmitter, 0xff, sizeof(PropOffsets_XMeshEmitter));
+		return;
+	}
+	PropOffsets_XMeshEmitter.AnimateByActor = cls->GetPropertyDataOffset("AnimateByActor");
+	PropOffsets_XMeshEmitter.bAnimateParticles = cls->GetPropertyDataOffset("bAnimateParticles");
+	PropOffsets_XMeshEmitter.bMeshEnvironmentMapping = cls->GetPropertyDataOffset("bMeshEnvironmentMapping");
+	PropOffsets_XMeshEmitter.bPartAnimLoop = cls->GetPropertyDataOffset("bPartAnimLoop");
+	PropOffsets_XMeshEmitter.bParticlesRandFrame = cls->GetPropertyDataOffset("bParticlesRandFrame");
+	PropOffsets_XMeshEmitter.bRelativeToMoveDir = cls->GetPropertyDataOffset("bRelativeToMoveDir");
+	PropOffsets_XMeshEmitter.bRenderParticles = cls->GetPropertyDataOffset("bRenderParticles");
+	PropOffsets_XMeshEmitter.InitialRot = cls->GetPropertyDataOffset("InitialRot");
+	PropOffsets_XMeshEmitter.PartAnimFrameStart = cls->GetPropertyDataOffset("PartAnimFrameStart");
+	PropOffsets_XMeshEmitter.PartAnimRate = cls->GetPropertyDataOffset("PartAnimRate");
+	PropOffsets_XMeshEmitter.ParticleAnim = cls->GetPropertyDataOffset("ParticleAnim");
+	PropOffsets_XMeshEmitter.ParticleFatness = cls->GetPropertyDataOffset("ParticleFatness");
+	PropOffsets_XMeshEmitter.ParticleMesh = cls->GetPropertyDataOffset("ParticleMesh");
+	PropOffsets_XMeshEmitter.ParticleRotation = cls->GetPropertyDataOffset("ParticleRotation");
+	PropOffsets_XMeshEmitter.RandAnims = cls->GetPropertyDataOffset("RandAnims");
+	PropOffsets_XMeshEmitter.RotationsPerSec = cls->GetPropertyDataOffset("RotationsPerSec");
+}
+
+PropertyOffsets_XSpriteEmitter PropOffsets_XSpriteEmitter;
+
+void InitPropertyOffsets_XSpriteEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XSpriteEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XSpriteEmitter, 0xff, sizeof(PropOffsets_XSpriteEmitter));
+		return;
+	}
+	PropOffsets_XSpriteEmitter.InitialRot = cls->GetPropertyDataOffset("InitialRot");
+	PropOffsets_XSpriteEmitter.ParticleRotation = cls->GetPropertyDataOffset("ParticleRotation");
+	PropOffsets_XSpriteEmitter.RotationsPerSec = cls->GetPropertyDataOffset("RotationsPerSec");
+	PropOffsets_XSpriteEmitter.RotateByVelocityScale = cls->GetPropertyDataOffset("RotateByVelocityScale");
+	PropOffsets_XSpriteEmitter.RotNormal = cls->GetPropertyDataOffset("RotNormal");
+}
+
+PropertyOffsets_XWeatherEmitter PropOffsets_XWeatherEmitter;
+
+void InitPropertyOffsets_XWeatherEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XWeatherEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XWeatherEmitter, 0xff, sizeof(PropOffsets_XWeatherEmitter));
+		return;
+	}
+	PropOffsets_XWeatherEmitter.AppearArea = cls->GetPropertyDataOffset("AppearArea");
+	PropOffsets_XWeatherEmitter.AppearAreaType = cls->GetPropertyDataOffset("AppearAreaType");
+	PropOffsets_XWeatherEmitter.bIsEnabled = cls->GetPropertyDataOffset("bIsEnabled");
+	PropOffsets_XWeatherEmitter.bParticleColorEnabled = cls->GetPropertyDataOffset("bParticleColorEnabled");
+	PropOffsets_XWeatherEmitter.bUseAreaSpawns = cls->GetPropertyDataOffset("bUseAreaSpawns");
+	PropOffsets_XWeatherEmitter.CachedCoords = cls->GetPropertyDataOffset("CachedCoords");
+	PropOffsets_XWeatherEmitter.FadeOutDistance = cls->GetPropertyDataOffset("FadeOutDistance");
+	PropOffsets_XWeatherEmitter.LastCamPosition = cls->GetPropertyDataOffset("LastCamPosition");
+	PropOffsets_XWeatherEmitter.Lifetime = cls->GetPropertyDataOffset("Lifetime");
+	PropOffsets_XWeatherEmitter.NextParticleTime = cls->GetPropertyDataOffset("NextParticleTime");
+	PropOffsets_XWeatherEmitter.NoRainBounds = cls->GetPropertyDataOffset("NoRainBounds");
+	PropOffsets_XWeatherEmitter.ParticleCount = cls->GetPropertyDataOffset("ParticleCount");
+	PropOffsets_XWeatherEmitter.ParticlesColor = cls->GetPropertyDataOffset("ParticlesColor");
+	PropOffsets_XWeatherEmitter.ParticleTexCount = cls->GetPropertyDataOffset("ParticleTexCount");
+	PropOffsets_XWeatherEmitter.PartStyle = cls->GetPropertyDataOffset("PartStyle");
+	PropOffsets_XWeatherEmitter.PartTextures = cls->GetPropertyDataOffset("PartTextures");
+	PropOffsets_XWeatherEmitter.Position = cls->GetPropertyDataOffset("Position");
+	PropOffsets_XWeatherEmitter.SheetModel = cls->GetPropertyDataOffset("SheetModel");
+	PropOffsets_XWeatherEmitter.Size = cls->GetPropertyDataOffset("Size");
+	PropOffsets_XWeatherEmitter.SpawnInterval = cls->GetPropertyDataOffset("SpawnInterval");
+	PropOffsets_XWeatherEmitter.Speed = cls->GetPropertyDataOffset("Speed");
+	PropOffsets_XWeatherEmitter.TransfrmCoords = cls->GetPropertyDataOffset("TransfrmCoords");
+	PropOffsets_XWeatherEmitter.VecArea = cls->GetPropertyDataOffset("VecArea");
+	PropOffsets_XWeatherEmitter.WallHitEmitter = cls->GetPropertyDataOffset("WallHitEmitter");
+	PropOffsets_XWeatherEmitter.WallHitEmitters = cls->GetPropertyDataOffset("WallHitEmitters");
+	PropOffsets_XWeatherEmitter.WallHitEvent = cls->GetPropertyDataOffset("WallHitEvent");
+	PropOffsets_XWeatherEmitter.WallHitMinZ = cls->GetPropertyDataOffset("WallHitMinZ");
+	PropOffsets_XWeatherEmitter.WaterHitEmitter = cls->GetPropertyDataOffset("WaterHitEmitter");
+	PropOffsets_XWeatherEmitter.WaterHitEmitters = cls->GetPropertyDataOffset("WaterHitEmitters");
+	PropOffsets_XWeatherEmitter.WaterHitEvent = cls->GetPropertyDataOffset("WaterHitEvent");
+	PropOffsets_XWeatherEmitter.WeatherType = cls->GetPropertyDataOffset("WeatherType");
+}
+
+PropertyOffsets_XTrailEmitter PropOffsets_XTrailEmitter;
+
+void InitPropertyOffsets_XTrailEmitter(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XTrailEmitter"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XTrailEmitter, 0xff, sizeof(PropOffsets_XTrailEmitter));
+		return;
+	}
+	PropOffsets_XTrailEmitter.bDynamicParticleCount = cls->GetPropertyDataOffset("bDynamicParticleCount");
+	PropOffsets_XTrailEmitter.bSettingTrail = cls->GetPropertyDataOffset("bSettingTrail");
+	PropOffsets_XTrailEmitter.bSmoothEntryPoint = cls->GetPropertyDataOffset("bSmoothEntryPoint");
+	PropOffsets_XTrailEmitter.bTexContinous = cls->GetPropertyDataOffset("bTexContinous");
+	PropOffsets_XTrailEmitter.MaxTrailLength = cls->GetPropertyDataOffset("MaxTrailLength");
+	PropOffsets_XTrailEmitter.OldTrailSport = cls->GetPropertyDataOffset("OldTrailSport");
+	PropOffsets_XTrailEmitter.ParticleData = cls->GetPropertyDataOffset("ParticleData");
+	PropOffsets_XTrailEmitter.TexOffset = cls->GetPropertyDataOffset("TexOffset");
+	PropOffsets_XTrailEmitter.TextureUV = cls->GetPropertyDataOffset("TextureUV");
+	PropOffsets_XTrailEmitter.Trail = cls->GetPropertyDataOffset("Trail");
+	PropOffsets_XTrailEmitter.TrailThreshold = cls->GetPropertyDataOffset("TrailThreshold");
+	PropOffsets_XTrailEmitter.TrailType = cls->GetPropertyDataOffset("TrailType");
+}
+
 PropertyOffsets_XRainRestrictionVolume PropOffsets_XRainRestrictionVolume;
 
 void InitPropertyOffsets_XRainRestrictionVolume(PackageManager* packages)
@@ -4999,6 +5126,19 @@ void InitPropertyOffsets_XRainRestrictionVolume(PackageManager* packages)
 	}
 	PropOffsets_XRainRestrictionVolume.BoundsMax = cls->GetPropertyDataOffset("BoundsMax");
 	PropOffsets_XRainRestrictionVolume.BoundsMin = cls->GetPropertyDataOffset("BoundsMin");
+}
+
+PropertyOffsets_DistantLightActor PropOffsets_DistantLightActor;
+
+void InitPropertyOffsets_DistantLightActor(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "DistantLightActor"));
+	if (!cls)
+	{
+		memset(&PropOffsets_DistantLightActor, 0xff, sizeof(PropOffsets_DistantLightActor));
+		return;
+	}
+	PropOffsets_DistantLightActor.NewLightRadius = cls->GetPropertyDataOffset("NewLightRadius");
 }
 
 //////////////////////////////////////////
@@ -5090,13 +5230,19 @@ void InitPropertyOffsets(PackageManager* packages)
 	}
 	if (packages->IsUnreal1_227())
 	{
+		InitPropertyOffsets_DistantLightActor(packages);
 		InitPropertyOffsets_XParticleEmitter(packages);
 		InitPropertyOffsets_XParticleForces(packages);
 		InitPropertyOffsets_VelocityForce(packages);
 		InitPropertyOffsets_KillParticleForce(packages);
 		InitPropertyOffsets_ParticleConcentrateForce(packages);
 		InitPropertyOffsets_XEmitter(packages);
+		InitPropertyOffsets_EmitterGarbageCollector(packages);
 		InitPropertyOffsets_XBeamEmitter(packages);
+		InitPropertyOffsets_XMeshEmitter(packages);
+		InitPropertyOffsets_XSpriteEmitter(packages);
+		InitPropertyOffsets_XTrailEmitter(packages);
+		InitPropertyOffsets_XWeatherEmitter(packages);
 		InitPropertyOffsets_XRainRestrictionVolume(packages);
 	}
 	if (packages->IsDeusEx())
