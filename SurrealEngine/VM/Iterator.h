@@ -32,6 +32,18 @@ private:
 	GCObjectList::iterator m_Iterator;
 };
 
+// Added in Unreal 227.
+class AllParticlesIterator : public Iterator
+{
+public:
+	// TODO: Implement the iterator
+	// Iterates through all alive particles. Note that these are NOT in level actors.
+	AllParticlesIterator(UObject** ReturnValue);
+	bool Next() override;
+
+private:
+	UObject** ReturnValue = nullptr;
+};
 
 class AllActorsIterator : public Iterator
 {
@@ -47,11 +59,11 @@ private:
 	UObject** ReturnValue = nullptr;
 	NameString MatchTag;
 	NameString MatchEvent;
-	bool bAllLevels;
+	bool bAllLevels = false;
 	size_t index = 0;
 };
 
-// As seen on Unreal Gold 227
+// Added in Unreal Gold 227
 class AllFilesIterator : public Iterator
 {
 public:

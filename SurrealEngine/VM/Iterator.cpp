@@ -33,7 +33,7 @@ bool AllObjectsIterator::Next()
 /////////////////////////////////////////////////////////////////////////////
 
 AllActorsIterator::AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag)
-	: BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag), bAllLevels(false)
+	: BaseClass(BaseClass), ReturnValue(ReturnValue), MatchTag(MatchTag)
 {
 }
 
@@ -93,6 +93,19 @@ bool AllFilesIterator::Next()
 	iterator++;
 
 	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////,
+
+AllParticlesIterator::AllParticlesIterator(UObject** ReturnValue)
+	: ReturnValue(ReturnValue)
+{
+}
+
+bool AllParticlesIterator::Next()
+{
+	ReturnValue = nullptr;
+	return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
