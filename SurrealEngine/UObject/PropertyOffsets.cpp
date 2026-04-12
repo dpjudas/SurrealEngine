@@ -4987,6 +4987,20 @@ void InitPropertyOffsets_XBeamEmitter(PackageManager* packages)
 	PropOffsets_XBeamEmitter.TurnRate = cls->GetPropertyDataOffset("TurnRate");
 }
 
+PropertyOffsets_XRainRestrictionVolume PropOffsets_XRainRestrictionVolume;
+
+void InitPropertyOffsets_XRainRestrictionVolume(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Emitter")->GetUObject("Class", "XRainRestrictionVolume"));
+	if (!cls)
+	{
+		memset(&PropOffsets_XRainRestrictionVolume, 0xff, sizeof(PropOffsets_XRainRestrictionVolume));
+		return;
+	}
+	PropOffsets_XRainRestrictionVolume.BoundsMax = cls->GetPropertyDataOffset("BoundsMax");
+	PropOffsets_XRainRestrictionVolume.BoundsMin = cls->GetPropertyDataOffset("BoundsMin");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -5083,6 +5097,7 @@ void InitPropertyOffsets(PackageManager* packages)
 		InitPropertyOffsets_ParticleConcentrateForce(packages);
 		InitPropertyOffsets_XEmitter(packages);
 		InitPropertyOffsets_XBeamEmitter(packages);
+		InitPropertyOffsets_XRainRestrictionVolume(packages);
 	}
 	if (packages->IsDeusEx())
 	{

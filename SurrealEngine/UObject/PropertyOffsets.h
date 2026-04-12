@@ -3979,3 +3979,10 @@ struct PropertyOffsets_XBeamEmitter
 };
 
 extern PropertyOffsets_XBeamEmitter PropOffsets_XBeamEmitter;
+
+struct PropertyOffsets_XRainRestrictionVolume
+{
+	PropertyDataOffset BoundsMin, BoundsMax;
+};
+
+extern PropertyOffsets_XRainRestrictionVolume PropOffsets_XRainRestrictionVolume;
