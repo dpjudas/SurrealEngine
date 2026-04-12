@@ -150,6 +150,16 @@ enum EDrawType
 	DT_SpriteAnimOnce
 };
 
+enum ERenderStyle
+{
+	STY_None,
+	STY_Normal,
+	STY_Masked,
+	STY_Translucent,
+	STY_Modulated,
+	STY_AlphaBlend
+};
+
 enum class ETravelType : uint8_t
 {
 	TRAVEL_Absolute, // Absolute URL
@@ -448,7 +458,7 @@ public:
 	UTexture*& Sprite() { return Value<UTexture*>(PropOffsets_Actor.Sprite); }
 	float& SpriteProjForward() { return Value<float>(PropOffsets_Actor.SpriteProjForward); }
 	uint8_t& StandingCount() { return Value<uint8_t>(PropOffsets_Actor.StandingCount); }
-	uint8_t& Style() { return Value<uint8_t>(PropOffsets_Actor.Style); }
+	ERenderStyle Style() { return static_cast<ERenderStyle>(Value<uint8_t>(PropOffsets_Actor.Style)); }
 	NameString& Tag() { return Value<NameString>(PropOffsets_Actor.Tag); }
 	UActor*& Target() { return Value<UActor*>(PropOffsets_Actor.Target); }
 	UTexture*& Texture() { return Value<UTexture*>(PropOffsets_Actor.Texture); }
