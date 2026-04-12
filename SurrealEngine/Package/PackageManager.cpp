@@ -31,6 +31,7 @@
 #include "UObject/U227Emitter.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
+#include "Native/N227Emitter.h"
 #include "Native/NCanvas.h"
 #include "Native/NCommandlet.h"
 #include "Native/NConsole.h"
@@ -815,6 +816,11 @@ void PackageManager::RegisterFunctions()
 		NUPakPathNodeIterator::RegisterFunctions();
 		NUPakPawnPathNodeIterator::RegisterFunctions();
 	}
+	if (IsUnreal1_227())
+	{
+		NXParticleEmitter::RegisterFunctions();
+		NXEmitter::RegisterFunctions();
+	}
 	if (IsDeusEx())
 	{
 		NDebugInfo::RegisterFunctions();
@@ -1044,6 +1050,7 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UXEmitter>(emitterPackage, "XEmitter", "XParticleEmitter");
 		RegisterNativeClass<UXTrailParticle>(emitterPackage, "XTrailParticle", "Actor");
 		RegisterNativeClass<UXBeamEmitter>(emitterPackage, "XBeamEmitter", "XEmitter");
+		RegisterNativeClass<UXRainRestrictionVolume>(emitterPackage, "XRainRestrictionVolume", "Actor");
 	}
 	
 	if (IsDeusEx())
