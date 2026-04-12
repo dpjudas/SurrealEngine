@@ -1040,6 +1040,7 @@ void PackageManager::RegisterNativeClasses()
 
 	if (IsUnreal1_227())
 	{
+		RegisterNativeClass<UDistantLightActor>(emitterPackage, "DistantLightActor", "Light");
 		RegisterNativeClass<UStaticMesh>(enginePackage, "StaticMesh", "Mesh");
 		RegisterNativeClass<UEmitterRC>(emitterPackage, "EmitterRC", "Actor");
 		RegisterNativeClass<UXParticleEmitter>(emitterPackage, "XParticleEmitter", "Actor");
@@ -1048,8 +1049,13 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UKillParticleForce>(emitterPackage, "KillParticleForce", "XParticleForces");
 		RegisterNativeClass<UParticleConcentrateForce>(emitterPackage, "ParticleConcentrateForce", "XParticleForces");
 		RegisterNativeClass<UXEmitter>(emitterPackage, "XEmitter", "XParticleEmitter");
+		RegisterNativeClass<UEmitterGarbageCollector>(emitterPackage, "EmitterGarbageCollector", "Info");
 		RegisterNativeClass<UXTrailParticle>(emitterPackage, "XTrailParticle", "Actor");
 		RegisterNativeClass<UXBeamEmitter>(emitterPackage, "XBeamEmitter", "XEmitter");
+		RegisterNativeClass<UXMeshEmitter>(emitterPackage, "XMeshEmitter", "XEmitter");
+		RegisterNativeClass<UXSpriteEmitter>(emitterPackage, "XSpriteEmitter", "XEmitter");
+		RegisterNativeClass<UXWeatherEmitter>(emitterPackage, "XWeatherEmitter", "XParticleEmitter");
+		RegisterNativeClass<UXTrailEmitter>(emitterPackage, "XTrailEmitter", "XEmitter");
 		RegisterNativeClass<UXRainRestrictionVolume>(emitterPackage, "XRainRestrictionVolume", "Actor");
 	}
 	
