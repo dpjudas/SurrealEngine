@@ -159,7 +159,13 @@ struct FBeamTargetPoint
 // Normal Particle Emitter
 class UXEmitter : public UXParticleEmitter
 {
+public:
     using UXParticleEmitter::UXParticleEmitter;
+
+    void SpawnParticles(int Count);
+    void SetMaxParticles(int MaxParts);
+    void Kill(); // Stop spawning particles and destroy self when all the remaining particles are gone
+    void EmTrigger(); // Trigger this emitter
 
     FloatRange*& AutoResetTime() { return Value<FloatRange*>(PropOffsets_XEmitter.AutoResetTime); }
     BitfieldBool bAccelRelativeToRot() { return BoolValue(PropOffsets_XEmitter.bAccelRelativeToRot); }
@@ -358,4 +364,13 @@ public:
     UTexture*& StartTexture() { return Value<UTexture*>(PropOffsets_XBeamEmitter.StartTexture); }
     FixedArrayView<float, 4> TextureUV() { return FixedArray<float, 4>(PropOffsets_XBeamEmitter.TextureUV); }
     float& TurnRate() { return Value<float>(PropOffsets_XBeamEmitter.TurnRate); }
+};
+
+class UXRainRestrictionVolume : public UActor
+{
+public:
+    using UActor::UActor;
+
+    vec3*& BoundsMax() { return Value<vec3*>(PropOffsets_XRainRestrictionVolume.BoundsMax); }
+    vec3*& BoundsMin() { return Value<vec3*>(PropOffsets_XRainRestrictionVolume.BoundsMin); }
 };
