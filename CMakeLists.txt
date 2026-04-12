@@ -169,6 +169,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NScriptedTexture.h
 	SurrealEngine/Native/NObject.h
 	SurrealEngine/Native/NActor.cpp
+	SurrealEngine/Native/N227Emitter.h
+	SurrealEngine/Native/N227Emitter.cpp
 	SurrealEngine/Native/NPlayerPawn.h
 	SurrealEngine/Native/NStatLog.cpp
 	SurrealEngine/Native/NStatLogFile.cpp
