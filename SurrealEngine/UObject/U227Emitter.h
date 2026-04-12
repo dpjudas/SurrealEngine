@@ -5,6 +5,7 @@
 
 class UXEmitter;
 class UXParticleForces;
+class UXRainRestrictionVolume;
 
 // Structs found in XParticleEmitter
 // These are used in subclasses
@@ -156,6 +157,69 @@ struct FBeamTargetPoint
     vec3* Offset;
 };
 
+// Enums found in XMeshEmitter
+
+enum class EEmPartRotType : uint8_t
+{
+    MEP_DesiredRot,
+    MEP_FacingCamera,
+    MEP_YawingToCamera
+};
+
+// Structs found in XMeshEmitter
+
+struct AnimationType
+{
+    NameString AnimSeq;
+    float Frame, Rate;
+    bool bAnimLoop;
+};
+
+// Enums found in XSpriteEmitter
+
+enum class ESprPartRotType : uint8_t
+{
+    SPR_DesiredRot,
+    SPR_RelFacingVelocity,
+    SPR_AbsFacingVelocity,
+    SPR_RelFacingNormal,
+    SPR_AbsFacingNormal
+};
+
+// Enums found in XWeatherEmitter
+
+enum class EWeatherAreaType : uint8_t
+{
+    EWA_Box, // Use Location + AppearArea for rain appearance area
+    EWA_Zone // Use current zone as the appearance area
+};
+
+enum class EFallingType : uint8_t
+{
+    EWF_Rain,
+    EWF_Snow,
+    EWF_Dust,
+    EWF_Neither
+};
+
+// Enums found in XTrailEmitter
+
+enum class ETrailType : uint8_t
+{
+    TRAIL_Sheet,      // Single sheet trailer
+    TRAIL_DoubleSheet // Cross shaped trailer
+};
+
+// Structs found in XTrailEmitter
+
+struct TrailOffsetPart
+{
+    vec3 Location, Velocity, Color, Accel;
+    float LifeSpan[3], Scale, X;
+};
+
+/////////////////////////////////////////////////////////////////
+
 // Normal Particle Emitter
 class UXEmitter : public UXParticleEmitter
 {
@@ -244,7 +308,7 @@ public:
     Array<UClass*> ParticleSpawnCClass() { return DynamicArray<UClass*>(PropOffsets_XEmitter.ParticleSpawnCClass); }
     NameString& ParticleSpawnTag() { return Value<NameString>(PropOffsets_XEmitter.ParticleSpawnTag); }
     float& ParticlesPerSec() { return Value<float>(PropOffsets_XEmitter.ParticlesPerSec); }
-    uint8_t& ParticleStyle() { return Value<uint8_t>(PropOffsets_XEmitter.ParticleStyle); } // ERenderStyle
+    ERenderStyle ParticleStyle() { return static_cast<ERenderStyle>(Value<uint8_t>(PropOffsets_XEmitter.ParticleStyle)); }
     uint8_t& ParticleTexCount() { return Value<uint8_t>(PropOffsets_XEmitter.ParticleTexCount); }
     FixedArrayView<UTexture*, 16> ParticleTextures() { return FixedArray<UTexture*, 16>(PropOffsets_XEmitter.ParticleTextures); }
     Array<UClass*> ParticleWallHitCClass() { return DynamicArray<UClass*>(PropOffsets_XEmitter.ParticleWallHitCClass); }
@@ -366,6 +430,98 @@ public:
     float& TurnRate() { return Value<float>(PropOffsets_XBeamEmitter.TurnRate); }
 };
 
+class UXMeshEmitter : public UXEmitter
+{
+public:
+    using UXEmitter::UXEmitter;
+
+    UActor*& AnimateByActor() { return Value<UActor*>(PropOffsets_XMeshEmitter.AnimateByActor); }
+    BitfieldBool bAnimateParticles() { return BoolValue(PropOffsets_XMeshEmitter.bAnimateParticles); }
+    BitfieldBool bMeshEnvironmentMapping() { return BoolValue(PropOffsets_XMeshEmitter.bMeshEnvironmentMapping); }
+    BitfieldBool bPartAnimLoop() { return BoolValue(PropOffsets_XMeshEmitter.bPartAnimLoop); }
+    BitfieldBool bParticlesRandFrame() { return BoolValue(PropOffsets_XMeshEmitter.bParticlesRandFrame); }
+    BitfieldBool bRelativeToMoveDir() { return BoolValue(PropOffsets_XMeshEmitter.bRelativeToMoveDir); }
+    BitfieldBool bRenderParticles() { return BoolValue(PropOffsets_XMeshEmitter.bRenderParticles); }
+    RangeVector*& InitialRot() { return Value<RangeVector*>(PropOffsets_XMeshEmitter.InitialRot); }
+    float& PartAnimFrameStart() { return Value<float>(PropOffsets_XMeshEmitter.PartAnimFrameStart); }
+    float& PartAnimRate() { return Value<float>(PropOffsets_XMeshEmitter.PartAnimRate); }
+    NameString& ParticleAnim() { return Value<NameString>(PropOffsets_XMeshEmitter.ParticleAnim); }
+    ByteRange*& ParticleFatness() { return Value<ByteRange*>(PropOffsets_XMeshEmitter.ParticleFatness); }
+    UMesh*& ParticleMesh() { return Value<UMesh*>(PropOffsets_XMeshEmitter.ParticleMesh); }
+    EEmPartRotType ParticleRotation() { return static_cast<EEmPartRotType>(Value<uint8_t>(PropOffsets_XMeshEmitter.ParticleRotation)); }
+    Array<AnimationType> RandAnims() { return DynamicArray<AnimationType>(PropOffsets_XMeshEmitter.RandAnims); }
+    RangeVector*& RotationsPerSec() { return Value<RangeVector*>(PropOffsets_XMeshEmitter.RotationsPerSec); }
+};
+
+class UXSpriteEmitter : public UXEmitter
+{
+public:
+    using UXEmitter::UXEmitter;
+
+    RangeVector*& InitialRot() { return Value<RangeVector*>(PropOffsets_XSpriteEmitter.InitialRot); }
+    ESprPartRotType ParticleRotation() { return static_cast<ESprPartRotType>(Value<uint8_t>(PropOffsets_XSpriteEmitter.ParticleRotation)); }
+    RangeVector*& RotationsPerSec() { return Value<RangeVector*>(PropOffsets_XSpriteEmitter.RotationsPerSec); }
+    float& RotateByVelocityScale() { return Value<float>(PropOffsets_XSpriteEmitter.RotateByVelocityScale); }
+    vec3*& RotNormal() { return Value<vec3*>(PropOffsets_XSpriteEmitter.RotNormal); }
+};
+
+class UXWeatherEmitter : public UXParticleEmitter
+{
+public:
+    using UXParticleEmitter::UXParticleEmitter;
+
+    RangeVector*& AppearArea() { return Value<RangeVector*>(PropOffsets_XWeatherEmitter.AppearArea); }
+    EWeatherAreaType AppearAreaType() { return static_cast<EWeatherAreaType>(Value<uint8_t>(PropOffsets_XWeatherEmitter.AppearAreaType)); }
+    BitfieldBool bIsEnabled() { return BoolValue(PropOffsets_XWeatherEmitter.bIsEnabled); }
+    BitfieldBool bParticleColorEnabled() { return BoolValue(PropOffsets_XWeatherEmitter.bParticleColorEnabled); }
+    BitfieldBool bUseAreaSpawns() { return BoolValue(PropOffsets_XWeatherEmitter.bUseAreaSpawns); }
+    Coords*& CachedCoords() { return Value<Coords*>(PropOffsets_XWeatherEmitter.CachedCoords); }
+    FloatRange*& FadeOutDistance() { return Value<FloatRange*>(PropOffsets_XWeatherEmitter.FadeOutDistance); }
+    vec3*& LastCamPosition() { return Value<vec3*>(PropOffsets_XWeatherEmitter.LastCamPosition); }
+    FloatRange*& Lifetime() { return Value<FloatRange*>(PropOffsets_XWeatherEmitter.Lifetime); }
+    float& NextParticleTime() { return Value<float>(PropOffsets_XWeatherEmitter.NextParticleTime); }
+    Array<UXRainRestrictionVolume*> NoRainBounds() { return DynamicArray<UXRainRestrictionVolume*>(PropOffsets_XWeatherEmitter.NoRainBounds); }
+    int& ParticleCount() { return Value<int>(PropOffsets_XWeatherEmitter.ParticleCount); }
+    RangeVector*& ParticlesColor() { return Value<RangeVector*>(PropOffsets_XWeatherEmitter.ParticlesColor); }
+    uint8_t& ParticleTexCount() { return Value<uint8_t>(PropOffsets_XWeatherEmitter.ParticleTexCount); }
+    ERenderStyle PartStyle() { return static_cast<ERenderStyle>(Value<uint8_t>(PropOffsets_XWeatherEmitter.PartStyle)); }
+    FixedArrayView<UTexture*, 8> PartTextures() { return FixedArray<UTexture*, 8>(PropOffsets_XWeatherEmitter.PartTextures); }
+    RangeVector*& Position() { return Value<RangeVector*>(PropOffsets_XWeatherEmitter.Position); }
+    UMesh*& SheetModel() { return Value<UMesh*>(PropOffsets_XWeatherEmitter.SheetModel); }
+    FloatRange*& Size() { return Value<FloatRange*>(PropOffsets_XWeatherEmitter.Size); }
+    float& SpawnInterval() { return Value<float>(PropOffsets_XWeatherEmitter.SpawnInterval); }
+    FloatRange*& Speed() { return Value<FloatRange*>(PropOffsets_XWeatherEmitter.Speed); }
+    Coords*& TransfrmCoords() { return Value<Coords*>(PropOffsets_XWeatherEmitter.TransfrmCoords); }
+    FixedArrayView<vec3*, 2> VecArea() { return FixedArray<vec3*, 2>(PropOffsets_XWeatherEmitter.VecArea); }
+    NameString& WallHitEmitter() { return Value<NameString>(PropOffsets_XWeatherEmitter.WallHitEmitter); }
+    Array<UXEmitter*> WallHitEmitters() { return DynamicArray<UXEmitter*>(PropOffsets_XWeatherEmitter.WallHitEmitters); }
+    EHitEventType WallHitEvent() { return static_cast<EHitEventType>(Value<uint8_t>(PropOffsets_XWeatherEmitter.WallHitEvent)); }
+    float& WallHitMinZ() { return Value<float>(PropOffsets_XWeatherEmitter.WallHitMinZ); }
+    NameString& WaterHitEmitter() { return Value<NameString>(PropOffsets_XWeatherEmitter.WaterHitEmitter); }
+    Array<UXEmitter*> WaterHitEmitters() { return DynamicArray<UXEmitter*>(PropOffsets_XWeatherEmitter.WaterHitEmitters); }
+    EHitEventType WaterHitEvent() { return static_cast<EHitEventType>(Value<uint8_t>(PropOffsets_XWeatherEmitter.WaterHitEvent)); }
+    EFallingType WeatherType() { return static_cast<EFallingType>(Value<uint8_t>(PropOffsets_XWeatherEmitter.WeatherType)); }
+};
+
+class UXTrailEmitter : public UXEmitter
+{
+public:
+    using UXEmitter::UXEmitter;
+
+    BitfieldBool bDynamicParticleCount() { return BoolValue(PropOffsets_XTrailEmitter.bDynamicParticleCount); }
+    BitfieldBool bSettingTrail() { return BoolValue(PropOffsets_XTrailEmitter.bSettingTrail); }
+    BitfieldBool bSmoothEntryPoint() { return BoolValue(PropOffsets_XTrailEmitter.bSmoothEntryPoint); }
+    BitfieldBool bTexContinous() { return BoolValue(PropOffsets_XTrailEmitter.bTexContinous); }
+    float& MaxTrailLength() { return Value<float>(PropOffsets_XTrailEmitter.MaxTrailLength); }
+    vec3*& OldTrailSport() { return Value<vec3*>(PropOffsets_XTrailEmitter.OldTrailSport); }
+    UXTrailParticle*& ParticleData() { return Value<UXTrailParticle*>(PropOffsets_XTrailEmitter.ParticleData); }
+    float& TexOffset() { return Value<float>(PropOffsets_XTrailEmitter.TexOffset); }
+    FixedArrayView<float, 4> TextureUV() { return FixedArray<float, 4>(PropOffsets_XTrailEmitter.TextureUV); }
+    Array<TrailOffsetPart> Trail() { return DynamicArray<TrailOffsetPart>(PropOffsets_XTrailEmitter.Trail); }
+    float& TrailThreshold() { return Value<float>(PropOffsets_XTrailEmitter.TrailThreshold); }
+    ETrailType TrailType() { return static_cast<ETrailType>(Value<uint8_t>(PropOffsets_XTrailEmitter.TrailType)); }
+};
+
 class UXRainRestrictionVolume : public UActor
 {
 public:
@@ -373,4 +529,24 @@ public:
 
     vec3*& BoundsMax() { return Value<vec3*>(PropOffsets_XRainRestrictionVolume.BoundsMax); }
     vec3*& BoundsMin() { return Value<vec3*>(PropOffsets_XRainRestrictionVolume.BoundsMin); }
+};
+
+class UEmitterGarbageCollector : public UInfo
+{
+public:
+    using UInfo::UInfo;
+
+    BitfieldBool bCleanUp() { return BoolValue(PropOffsets_EmitterGarbageCollector.bCleanUp); }
+    float& CleanUpTime() { return Value<float>(PropOffsets_EmitterGarbageCollector.CleanUpTime); }
+    void*& GarbagePtr() { return Value<void*>(PropOffsets_EmitterGarbageCollector.GarbagePtr); }
+};
+
+// This is in Emitter package for some reason.
+// Supports unlimited lighting distance.
+class UDistantLightActor : public ULight
+{
+public:
+    using ULight::ULight;
+
+    float& NewLightRadius() { return Value<float>(PropOffsets_DistantLightActor.NewLightRadius); }
 };
