@@ -17,7 +17,6 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 	{
 		auto executablePath = UE1GameSystemPath / executable_name;
 		auto executablePath64 = UE1GameSystem64Path / executable_name;
-		std::cout << "PATH64: " << executablePath64 << std::endl;
 
 		std::string sha1sum = SHA1Sum::of_file(executablePath);
 		std::string sha1sum64 = SHA1Sum::of_file(executablePath64);
