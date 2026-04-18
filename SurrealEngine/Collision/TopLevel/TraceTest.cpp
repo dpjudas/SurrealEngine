@@ -41,9 +41,9 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						if (actor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CollisionCheckCounter = checkCounter;
+							actor->Collision.CheckCounter = checkCounter;
 							TraceActor(actor, origin, tmin, direction, tmax, dheight, dradius, traceActors, traceWorld, visibilityOnly, hits);
 						}
 					}
@@ -132,9 +132,9 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						if (actor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CollisionCheckCounter = checkCounter;
+							actor->Collision.CheckCounter = checkCounter;
 							if (actor != tracingActor && actor->bBlockActors())
 							{
 								TraceActor(actor, origin, tmin, direction, tmax, 0.0, 0.0, traceActors, traceWorld, visibilityOnly, hits);

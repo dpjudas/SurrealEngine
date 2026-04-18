@@ -145,7 +145,6 @@ void RenderSubsystem::OnMapLoaded()
 {
 	Device->Flush(true);
 
-	Light.Lights.clear();
 	Light.FogBalls.clear();
 	Light.lmtextures.clear();
 	Light.fogtextures.clear();
@@ -161,6 +160,5 @@ void RenderSubsystem::OnMapLoaded()
 	{
 		if (light->VolumeRadius() != 0)
 			Light.FogBalls.push_back(light);
-		Light.Lights.push_back(light);
 	}
 }

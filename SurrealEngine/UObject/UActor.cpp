@@ -59,6 +59,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 	actor->Index = (int)XLevel()->Actors.size();
 	XLevel()->Actors.push_back(actor);
 	XLevel()->Collision.AddToCollision(actor);
+	XLevel()->Light.AddLight(actor);
 
 	actor->SetOwner(SpawnOwner ? *SpawnOwner : this);
 
@@ -191,6 +192,7 @@ bool UActor::Destroy()
 
 	RemoveFromBspNode();
 	level->Collision.RemoveFromCollision(this);
+	level->Light.RemoveLight(this);
 
 	CallEvent(this, EventName::Destroyed);
 
@@ -1256,8 +1258,10 @@ bool UActor::SetLocation(const vec3& newLocation)
 		return false;
 
 	XLevel()->Collision.RemoveFromCollision(this);
+	XLevel()->Light.RemoveLight(this);
 	Location() = result.second;
 	XLevel()->Collision.AddToCollision(this);
+	XLevel()->Light.AddLight(this);
 
 	if (Level()->bBegunPlay())
 	{
@@ -1414,8 +1418,10 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	vec3 OldLocation = Location();
 
 	XLevel()->Collision.RemoveFromCollision(this);
+	XLevel()->Light.RemoveLight(this);
 	Location() += actuallyMoved;
 	XLevel()->Collision.AddToCollision(this);
+	XLevel()->Light.AddLight(this);
 
 	// Based actors needs to move with us
 	if (StandingCount() > 0)
@@ -1452,8 +1458,10 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 				if (stopMovement)
 				{
 					XLevel()->Collision.RemoveFromCollision(this);
+					XLevel()->Light.RemoveLight(this);
 					Location() = OldLocation;
 					XLevel()->Collision.AddToCollision(this);
+					XLevel()->Light.AddLight(this);
 
 					CollisionHit hit;
 					hit.Fraction = 0.0f;

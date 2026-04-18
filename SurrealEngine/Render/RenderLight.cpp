@@ -117,34 +117,7 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 
 void RenderSubsystem::UpdateActorLightList(UActor* actor)
 {
-	vec3 location = actor->Location();
-
-	if (!actor->LightInfo.NeedsUpdate && actor->LightInfo.Location == location)
-		return;
-
-	actor->LightInfo.NeedsUpdate = false;
-	actor->LightInfo.Location = location;
-	actor->LightInfo.LightList.clear();
-
-	if (actor->bUnlit())
-		return;
-
-	for (UActor* light : Light.Lights)
-	{
-		if (light && !light->bCorona() && !light->bSpecialLit())
-		{
-			float radius = light->WorldLightRadius();
-			vec3 L = light->Location() - location;
-			if (light->LightEffect() == LE_Cylinder) // Cylinder lights have infinite Z axis range
-			{
-				L.z = 0.0f;
-			}
-			if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true))
-			{
-				actor->LightInfo.LightList.push_back(light);
-			}
-		}
-	}
+	engine->Level->Light.UpdateLightList(actor);
 }
 
 vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)

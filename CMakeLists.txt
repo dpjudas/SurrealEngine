@@ -408,6 +408,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/BottomLevel/TraceAABBModel.h
 	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.cpp
 	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.h
+	SurrealEngine/Light/LightSystem.cpp
+	SurrealEngine/Light/LightSystem.h
 	SurrealEngine/UI/WidgetResourceData.cpp
 	SurrealEngine/UI/WidgetResourceData.h
 	SurrealEngine/UI/Editor/AboutDialog.cpp
@@ -626,6 +628,7 @@ source_group("SurrealEngine\\UObject" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE
 source_group("SurrealEngine\\Collision" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/.+")
 source_group("SurrealEngine\\Collision\\TopLevel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/TopLevel/.+")
 source_group("SurrealEngine\\Collision\\BottomLevel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Collision/BottomLevel/.+")
+source_group("SurrealEngine\\Light" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Light/.+")
 source_group("SurrealEngine\\Commandlet" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/.+")
 source_group("SurrealEngine\\Commandlet\\Debug" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/Debug/.+")
 source_group("SurrealEngine\\Commandlet\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Commandlet/VM/.+")

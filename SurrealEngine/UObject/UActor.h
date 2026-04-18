@@ -314,8 +314,17 @@ public:
 		bool Inserted = false;
 		vec3 Location = { 0.0f };
 		vec3 Extents = { 0.0f };
-		int CollisionCheckCounter = -1;
+		int CheckCounter = -1;
 	} Collision;
+
+	// The status of the actor in the light hash
+	struct
+	{
+		bool Inserted = false;
+		vec3 Location = { 0.0f };
+		float Radius = 0.0f;
+		int CheckCounter = -1;
+	} Light;
 
 	// Lights touching this actor
 	struct

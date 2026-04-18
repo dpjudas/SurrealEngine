@@ -4,6 +4,7 @@
 #include "Math/bbox.h"
 #include "Collision/TopLevel/CollisionSystem.h"
 #include "Collision/TopLevel/CollisionHit.h"
+#include "Light/LightSystem.h"
 
 class UNavigationPoint;
 class UTexture;
@@ -298,6 +299,7 @@ public:
 	UModel* Model = nullptr;
 
 	CollisionSystem Collision;
+	LightSystem Light;
 	std::map<std::string, std::string> TravelInfo;
 
 private:

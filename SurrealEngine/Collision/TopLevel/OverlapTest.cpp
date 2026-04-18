@@ -32,9 +32,9 @@ CollisionHitList OverlapTester::TestOverlap(const vec3& location, float height, 
 					{
 						for (UActor* actor : GetActors(x, y, z))
 						{
-							if (actor->Collision.CollisionCheckCounter != checkCounter)
+							if (actor->Collision.CheckCounter != checkCounter)
 							{
-								actor->Collision.CollisionCheckCounter = checkCounter;
+								actor->Collision.CheckCounter = checkCounter;
 								if (CylinderActorOverlap(dlocation, dheight, dradius, actor))
 								{
 									vec3 normal(0.0f); // To do: do we need the normal for contact tests?
@@ -104,9 +104,9 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float radius)
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						if (actor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CollisionCheckCounter = checkCounter;
+							actor->Collision.CheckCounter = checkCounter;
 							if (SphereActorOverlap(dorigin, dradius, actor))
 								hits.push_back(actor);
 						}
@@ -160,9 +160,9 @@ Array<UActor*> OverlapTester::CollidingActors(const vec3& origin, float height, 
 				{
 					for (UActor* actor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						if (actor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CollisionCheckCounter = checkCounter;
+							actor->Collision.CheckCounter = checkCounter;
 							if (CylinderActorOverlap(dorigin, dheight, dradius, actor))
 								hits.push_back(actor);
 						}
@@ -232,9 +232,9 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 				{
 					for (UActor* testActor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CollisionCheckCounter != checkCounter)
+						if (actor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CollisionCheckCounter = checkCounter;
+							actor->Collision.CheckCounter = checkCounter;
 							if (testActor == actor || testActor->Brush())
 								continue;
 
