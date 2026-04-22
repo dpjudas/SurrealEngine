@@ -43,6 +43,7 @@ public:
 	bool IsDeusEx() const { return launchInfo.IsDeusEx(); }
 	bool IsCliveBarkersUndying() const { return launchInfo.IsCliveBarkersUndying(); }
 	bool IsKlingonHonorGuard() const  { return launchInfo.IsKlingonHonorGuard(); }
+	bool IsRune() const { return launchInfo.IsRune(); }
 
 	int GetEngineVersion() const { return launchInfo.engineVersion; }
 	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }

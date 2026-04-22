@@ -255,7 +255,7 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 void PackageManager::ScanPaths()
 {
 	Array<std::string> paths;
-	if (launchInfo.engineVersion <= 219) // khg with 219 uses old format. unreal uses new in 226
+	if (!IsRune() && launchInfo.engineVersion <= 219) // khg with 219 uses old format. unreal uses new in 226
 	{
 		for (int i = 0; i < 16; i++)
 		{
