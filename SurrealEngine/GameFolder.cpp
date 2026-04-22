@@ -305,6 +305,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "200";
 			}
 			break;
+			case KnownUE1Games::RUNE_107:
+			{
+				info.gameName = "Rune Gold";
+				info.engineVersion = 107;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "1.07";
+			}
+			break;
 			case KnownUE1Games::RUNE_110:
 			{
 				info.gameName = "Rune Classic";

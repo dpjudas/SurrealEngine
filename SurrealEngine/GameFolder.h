@@ -20,6 +20,7 @@ struct GameLaunchInfo
 	bool IsDeusEx() const { return gameExecutableName == "DeusEx"; }
 	bool IsCliveBarkersUndying() const { return gameExecutableName == "Undying"; }
 	bool IsKlingonHonorGuard() const { return gameExecutableName == "Klingons" || gameExecutableName == "Khg"; }
+	bool IsRune() const { return gameExecutableName == "Rune"; }
 };
 
 class GameFolderSelection
