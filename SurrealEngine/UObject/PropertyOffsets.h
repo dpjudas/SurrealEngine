@@ -922,6 +922,21 @@ struct PropertyOffsets_ZoneInfo
 	PropertyDataOffset bReverbZone;
 	PropertyDataOffset bWaterZone;
 	PropertyDataOffset locationid;
+
+	// 227 Additions
+	PropertyDataOffset ZoneTimeDilation;
+	PropertyDataOffset bDistanceFogClips;
+	PropertyDataOffset bDistanceFog;
+	PropertyDataOffset FogDistanceStart;
+	PropertyDataOffset bZoneBasedFog;
+	PropertyDataOffset FadeTime;
+	PropertyDataOffset EnvironmentUScale, EnvironmentVScale;
+	PropertyDataOffset EnvironmentColor;
+	PropertyDataOffset DirtyShadowLevel;
+	PropertyDataOffset LightMapDetailLevels;
+	PropertyDataOffset EFXAmbients;
+	PropertyDataOffset VisNotify;
+	PropertyDataOffset bRepZoneProperties;
 };
 
 extern PropertyOffsets_ZoneInfo PropOffsets_ZoneInfo;

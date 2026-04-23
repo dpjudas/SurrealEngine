@@ -1007,6 +1007,24 @@ static void InitPropertyOffsets_ZoneInfo(PackageManager* packages)
 	PropOffsets_ZoneInfo.bReverbZone = cls->GetPropertyDataOffset("bReverbZone");
 	PropOffsets_ZoneInfo.bWaterZone = cls->GetPropertyDataOffset("bWaterZone");
 	PropOffsets_ZoneInfo.locationid = cls->GetPropertyDataOffset("locationid");
+
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_ZoneInfo.ZoneTimeDilation = cls->GetPropertyDataOffset("ZoneTimeDilation");
+		PropOffsets_ZoneInfo.bDistanceFogClips = cls->GetPropertyDataOffset("bDistanceFogClips");
+		PropOffsets_ZoneInfo.bDistanceFog = cls->GetPropertyDataOffset("bDistanceFog");
+		PropOffsets_ZoneInfo.FogDistanceStart = cls->GetPropertyDataOffset("FogDistanceStart");
+		PropOffsets_ZoneInfo.bZoneBasedFog = cls->GetPropertyDataOffset("bZoneBasedFog");
+		PropOffsets_ZoneInfo.FadeTime = cls->GetPropertyDataOffset("FadeTime");
+		PropOffsets_ZoneInfo.EnvironmentUScale = cls->GetPropertyDataOffset("EnvironmentUScale");
+		PropOffsets_ZoneInfo.EnvironmentVScale = cls->GetPropertyDataOffset("EnvironmentVScale");
+		PropOffsets_ZoneInfo.EnvironmentColor = cls->GetPropertyDataOffset("EnvironmentColor");
+		PropOffsets_ZoneInfo.DirtyShadowLevel = cls->GetPropertyDataOffset("DirtyShadowLevel");
+		PropOffsets_ZoneInfo.LightMapDetailLevels = cls->GetPropertyDataOffset("LightMapDetailLevels");
+		PropOffsets_ZoneInfo.EFXAmbients = cls->GetPropertyDataOffset("EFXAmbients");
+		PropOffsets_ZoneInfo.VisNotify = cls->GetPropertyDataOffset("VisNotify");
+		PropOffsets_ZoneInfo.bRepZoneProperties = cls->GetPropertyDataOffset("bRepZoneProperties");
+	}
 }
 
 PropertyOffsets_Canvas PropOffsets_Canvas;
