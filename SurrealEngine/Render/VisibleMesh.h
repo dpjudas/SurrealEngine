@@ -11,11 +11,11 @@ class VisibleFrame;
 struct BlendInfo;
 
 struct BlendInfo
-    {
-        int offsets[3];
-        float t0, t1;
-        float weight;
-    };
+	{
+		int offsets[3];
+		float t0, t1;
+		float weight;
+	};
 
 class VisibleMesh
 {

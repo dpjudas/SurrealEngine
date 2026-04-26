@@ -2050,65 +2050,65 @@ void UActor::TickBlendAnimation(float elapsed)
 	for (int i = 0; elapsed > 0.0f && i < 4; i++)
 	{
 		if (BlendAnimSequence()[i].IsNone())
-        continue;
+		continue;
 
-    if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
-        continue;
+	if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+		continue;
 
-    float oldFrame = BlendAnimFrame()[i];
+	float oldFrame = BlendAnimFrame()[i];
 
-    if (BlendAnimFrame()[i] < 0.0f)
-    {
-        BlendAnimFrame()[i] += elapsed * BlendTweenRate()[i];
+	if (BlendAnimFrame()[i] < 0.0f)
+	{
+		BlendAnimFrame()[i] += elapsed * BlendTweenRate()[i];
 
-        if (BlendAnimFrame()[i] < 0.0f)
-            continue;
+		if (BlendAnimFrame()[i] < 0.0f)
+			continue;
 
-        BlendAnimFrame()[i] = 0.0f;
+		BlendAnimFrame()[i] = 0.0f;
 
-        elapsed = (BlendAnimFrame()[i] * elapsed) / (BlendAnimFrame()[i] - oldFrame);
-        continue;
-    }
+		elapsed = (BlendAnimFrame()[i] * elapsed) / (BlendAnimFrame()[i] - oldFrame);
+		continue;
+	}
 
-    if (BlendAnimRate()[i] < 0.0f)
-    {
-        float speed = length(Velocity());
+	if (BlendAnimRate()[i] < 0.0f)
+	{
+		float speed = length(Velocity());
 
-        float adjustedRate = -speed * BlendAnimRate()[i];
+		float adjustedRate = -speed * BlendAnimRate()[i];
 
-        float minRate = BlendAnimLast()[i];
-        if (adjustedRate > minRate)
-            adjustedRate = minRate;
+		float minRate = BlendAnimLast()[i];
+		if (adjustedRate > minRate)
+			adjustedRate = minRate;
 
-        BlendAnimFrame()[i] += adjustedRate * elapsed;
-    }
-    else
-    {
-        BlendAnimFrame()[i] += BlendAnimRate()[i] * elapsed;
-    }
+		BlendAnimFrame()[i] += adjustedRate * elapsed;
+	}
+	else
+	{
+		BlendAnimFrame()[i] += BlendAnimRate()[i] * elapsed;
+	}
 
-    if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
-    {
-        float endFrame = BlendAnimLast()[i];
+	if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+	{
+		float endFrame = BlendAnimLast()[i];
 
-        BlendAnimFrame()[i] = endFrame;
-        BlendAnimRate()[i] = 0.0f;
+		BlendAnimFrame()[i] = endFrame;
+		BlendAnimRate()[i] = 0.0f;
 
-        elapsed = ((BlendAnimFrame()[i] - endFrame) * elapsed) /
-                    (BlendAnimFrame()[i] - oldFrame);
+		elapsed = ((BlendAnimFrame()[i] - endFrame) * elapsed) /
+					(BlendAnimFrame()[i] - oldFrame);
 
 
-        if (RemoteRole() < ENetRole::ROLE_SimulatedProxy)
-        {
-            SimBlendAnim()[i].z = BlendAnimFrame()[i] * 10000.0f;
+		if (RemoteRole() < ENetRole::ROLE_SimulatedProxy)
+		{
+			SimBlendAnim()[i].z = BlendAnimFrame()[i] * 10000.0f;
 
-            float rate = BlendAnimRate()[i] * 5000.0f;
-            if (rate > 32767.0f)
-                rate = 32767.0f;
+			float rate = BlendAnimRate()[i] * 5000.0f;
+			if (rate > 32767.0f)
+				rate = 32767.0f;
 
-            SimBlendAnim()[i].w = rate;
-        }
-    }
+			SimBlendAnim()[i].w = rate;
+		}
+	}
 
 	}
 }
@@ -3854,7 +3854,7 @@ NameString UDeusExPlayer::SetBoolFlagFromString(const std::string& flagNameStrin
 
 void UDeusExPlayer::UnloadTexture(UObject* Texture)
 {
-    // Nothing going on here because SE never unloads textures atm. This is just here so it doesn't throw LogUnimplemented.
+	// Nothing going on here because SE never unloads textures atm. This is just here so it doesn't throw LogUnimplemented.
 }
 
 ////////////////////////////////////////////////////////
