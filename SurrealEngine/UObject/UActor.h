@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PropertyOffsets.h"
 #include "UDXGameDirectory.h"
 #include "UObject.h"
 #include "UnrealURL.h"
@@ -367,6 +368,7 @@ public:
 	virtual void Tick(float elapsed);
 
 	void TickAnimation(float elapsed);
+	void TickBlendAnimation(float elapsed);
 
 	void TickPhysics(float elapsed);
 	void TickWalking(float elapsed);
@@ -697,6 +699,17 @@ public:
 	UObject*& ConListItems() { return Value<UObject*>(PropOffsets_Actor.ConListItems); }
 	std::string& BindName() { return Value<std::string>(PropOffsets_Actor.BindName); }
 	std::string& BarkBindName() { return Value<std::string>(PropOffsets_Actor.BarkBindName); }
+
+	FixedArrayView<float, 4> BlendAnimLast() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimLast);}
+	FixedArrayView<float, 4> BlendAnimMinRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimMinRate);}
+	FixedArrayView<float, 4> OldBlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.OldBlendAnimRate);}
+	FixedArrayView<vec4, 4> SimBlendAnim() {return FixedArray<vec4, 4>(PropOffsets_Actor.SimBlendAnim);}
+
+	FixedArrayView<NameString, 4> BlendAnimSequence() {return FixedArray<NameString, 4>(PropOffsets_Actor.BlendAnimSequence);}
+	FixedArrayView<float, 4> BlendAnimFrame() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimFrame);}
+	FixedArrayView<float, 4> BlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimRate);}
+	FixedArrayView<float, 4> BlendTweenRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendTweenRate);}
+	
 };
 
 class ULight : public UActor
