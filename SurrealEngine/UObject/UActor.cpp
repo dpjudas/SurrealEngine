@@ -333,6 +333,8 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 void UActor::Tick(float elapsed)
 {
 	TickAnimation(elapsed);
+	if (engine->LaunchInfo.IsDeusEx())
+		TickBlendAnimation(elapsed);
 
 	if (Role() >= ROLE_SimulatedProxy && IsEventEnabled(EventName::Tick))
 	{
@@ -1733,7 +1735,8 @@ void UActor::PlayAnim(const NameString& sequence, float rate, float tweenTime)
 
 void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float tweenTime, int blendSlot)
 {
-	// FIXME!!! PlayTurnHead makes this return an invalid channel because sometimes it sends a garbage int!!!
+	LogUnimplemented("Actor.PlayBlendAnim");
+	// FIX THIS ABOMINATION AS SOON AS POSSIBLE!!! - PC413
 	if (blendSlot < 0 || blendSlot > 3)
 	{
 		LogMessage("Invalid channel for PlayBlendAnim!");
@@ -1752,93 +1755,81 @@ void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float twe
 		return;
 	}
 
-	static BlendAnimChannel AnimSlots[4];
-	BlendAnimChannel& ch = AnimSlots[blendSlot];
-
-	ch.Sequence = sequence;
 	int numFrames = sequence->NumFrames;
 	float sequenceRate = sequence->Rate;
 
-	ch.AnimRate = (rate * sequenceRate) / numFrames;
-	ch.AnimProgressLimit = 1.0f - (1.0f / numFrames);
+	if (BlendAnimSequence()[blendSlot].IsNone())
+	{
+		tweenTime = 0.0f;
+	}
 
-	if (ch.AnimProgressLimit == 0.0f)  
-    {  
-        ch.BlendAlpha = 0.0f;  
-        ch.BlendRate = 0.0f;  
-  
-        if (tweenTime <= 0.0f)  
-            ch.TweenSpeed = 10.0f;  
-        else  
-            ch.TweenSpeed = 1.0f / tweenTime;  
-  
-        ch.FrameStep = -1.0f / numFrames;  
-        ch.AnimRate = 0.0f;  
-    }  
-    else if (tweenTime <= 0.0f)  
-    {  
-        if (tweenTime == -1.0f)  
-        {  
-            ch.FrameStep = -1.0f / numFrames;  
-  
-            if (ch.PreviousRate <= 0.0f)  
-            {  
-                if (ch.PreviousRate == 0.0f)  
-                    ch.TweenSpeed = 1.0f / (numFrames * 0.025f);  
-                else  
-                {  
-                    float actorSpeed = length(Velocity());  
-                    float dynamicSpeed = actorSpeed * std::abs(ch.PreviousRate);  
-                    ch.TweenSpeed = std::max(dynamicSpeed, ch.AnimRate * 0.5f);  
-                }  
-            }  
-            else  
-            {  
-                ch.TweenSpeed = ch.PreviousRate;  
-            }  
-        }  
-        else  
-        {  
-            ch.TweenSpeed = 0.0f;  
-            ch.FrameStep = 0.001f; 
-        }  
-    }  
-    else  
-    {  
-        ch.TweenSpeed = 1.0f / (numFrames * tweenTime);  
-        ch.FrameStep = -1.0f / numFrames;  
-    }  
-  
-    ch.InternalRate = (int)(ch.FrameStep * 10000.0f);  
-    ch.InternalAnimRate = (int)(ch.AnimRate * 10000.0f);  
-    ch.InternalTween = (int)(ch.TweenSpeed * 1000.0f);  
-    ch.InternalProgressLimit = (int)(ch.AnimProgressLimit * 10000.0f);  
-  
-    static int lastInternalRate[4] = {0};  
-    static int lastInternalAnimRate[4] = {0};  
-    static int lastInternalTween[4] = {0};  
-      
-    if (lastInternalRate[blendSlot] == ch.InternalRate &&  
-        lastInternalAnimRate[blendSlot] == ch.InternalAnimRate &&  
-        lastInternalTween[blendSlot] == ch.InternalTween)  
-    {  
-        ch.InternalProgressLimit += 1;  
-    }  
-  
-    lastInternalRate[blendSlot] = ch.InternalRate;  
-    lastInternalAnimRate[blendSlot] = ch.InternalAnimRate;  
-    lastInternalTween[blendSlot] = ch.InternalTween;  
-  
-    ch.PreviousRate = ch.AnimRate;  
-  
-    if (blendSlot == 0)  
-    {  
-        AnimSequence() = sequenceName;  
-        AnimRate() = ch.AnimRate;  
-        TweenRate() = ch.TweenSpeed;  
-        AnimFrame() = tweenTime > 0.0f ? -1.0f / numFrames : 0.0f;  
-        AnimLast() = ch.AnimProgressLimit;  
-    }  
+	BlendAnimSequence()[blendSlot] = sequenceName;
+
+	BlendAnimFrame()[blendSlot] = -1.0f / numFrames;
+
+	BlendAnimMinRate()[blendSlot] = (rate * sequenceRate) / numFrames;
+
+	BlendAnimLast()[blendSlot] = 1.0f - (1.0f / numFrames);
+
+	if (BlendAnimLast()[blendSlot] == 0.0f)
+	{
+		BlendAnimRate()[blendSlot] = 0.0f;
+		BlendAnimFrame()[blendSlot] = 0.0f;
+
+		BlendTweenRate()[blendSlot] = (tweenTime <= 0.0f) ? 10.0f : (1.0f / tweenTime);
+	}
+	else if (tweenTime <= 0.0f)
+	{
+		if (tweenTime == -1.0f)
+		{
+			if (BlendAnimMinRate()[blendSlot] <= 0.0f)
+			{
+				if (BlendAnimMinRate()[blendSlot] == 0.0f)
+				{
+					BlendTweenRate()[blendSlot] = 1.0f / (numFrames * 0.025f);
+				}
+				else 
+				{
+					float speed = length(Velocity());
+					float computed = speed * (-BlendAnimMinRate()[blendSlot]);
+					float minVal = BlendAnimRate()[blendSlot] * 0.5f;
+
+					BlendTweenRate()[blendSlot] = std::max(computed, minVal);
+				}
+			}
+			else 
+			{
+				BlendTweenRate()[blendSlot] = BlendAnimMinRate()[blendSlot];
+			}
+		}
+		else 
+		{
+			BlendTweenRate()[blendSlot] = 0.0f;
+			BlendAnimFrame()[blendSlot] = 0.001f;
+		}
+	}
+	else 
+	{
+		BlendTweenRate()[blendSlot] = 1.0f / (numFrames * tweenTime);
+	}
+	
+	float oldX = SimBlendAnim()[blendSlot].x;
+	float oldY = SimBlendAnim()[blendSlot].y;
+	float oldZ = SimBlendAnim()[blendSlot].z;
+	float oldW = SimBlendAnim()[blendSlot].w;
+
+	SimBlendAnim()[blendSlot].z = BlendAnimFrame()[blendSlot] * 10000.0f;
+	SimBlendAnim()[blendSlot].w = BlendAnimRate()[blendSlot] * 10000.0f;
+	SimBlendAnim()[blendSlot].x = BlendTweenRate()[blendSlot] * 1000.0f;
+	SimBlendAnim()[blendSlot].y = BlendAnimLast()[blendSlot] * 10000.0f;
+
+	if (oldZ == SimBlendAnim()[blendSlot].z && oldW == SimBlendAnim()[blendSlot].w && oldX == SimBlendAnim()[blendSlot].x && oldY == SimBlendAnim()[blendSlot].y)
+	{
+		SimBlendAnim()[blendSlot].y += 1.0f;
+	}
+
+	OldBlendAnimRate()[blendSlot] = BlendAnimRate()[blendSlot];
+	BlendAnimMinRate()[blendSlot] = BlendAnimRate()[blendSlot];
 }
 
 
@@ -2051,6 +2042,74 @@ void UActor::TickAnimation(float elapsed)
 				CallEvent(this, EventName::AnimEnd);
 			}
 		}
+	}
+}
+
+void UActor::TickBlendAnimation(float elapsed)
+{
+	for (int i = 0; elapsed > 0.0f && i < 4; i++)
+	{
+		if (BlendAnimSequence()[i].IsNone())
+        continue;
+
+    if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+        continue;
+
+    float oldFrame = BlendAnimFrame()[i];
+
+    if (BlendAnimFrame()[i] < 0.0f)
+    {
+        BlendAnimFrame()[i] += elapsed * BlendTweenRate()[i];
+
+        if (BlendAnimFrame()[i] < 0.0f)
+            continue;
+
+        BlendAnimFrame()[i] = 0.0f;
+
+        elapsed = (BlendAnimFrame()[i] * elapsed) / (BlendAnimFrame()[i] - oldFrame);
+        continue;
+    }
+
+    if (BlendAnimRate()[i] < 0.0f)
+    {
+        float speed = length(Velocity());
+
+        float adjustedRate = -speed * BlendAnimRate()[i];
+
+        float minRate = BlendAnimLast()[i];
+        if (adjustedRate > minRate)
+            adjustedRate = minRate;
+
+        BlendAnimFrame()[i] += adjustedRate * elapsed;
+    }
+    else
+    {
+        BlendAnimFrame()[i] += BlendAnimRate()[i] * elapsed;
+    }
+
+    if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+    {
+        float endFrame = BlendAnimLast()[i];
+
+        BlendAnimFrame()[i] = endFrame;
+        BlendAnimRate()[i] = 0.0f;
+
+        elapsed = ((BlendAnimFrame()[i] - endFrame) * elapsed) /
+                    (BlendAnimFrame()[i] - oldFrame);
+
+
+        if (RemoteRole() < ENetRole::ROLE_SimulatedProxy)
+        {
+            SimBlendAnim()[i].z = BlendAnimFrame()[i] * 10000.0f;
+
+            float rate = BlendAnimRate()[i] * 5000.0f;
+            if (rate > 32767.0f)
+                rate = 32767.0f;
+
+            SimBlendAnim()[i].w = rate;
+        }
+    }
+
 	}
 }
 
