@@ -25,17 +25,17 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
     }
     else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
     {
-        if (engine->LaunchInfo.IsDeusEx())
-            return DrawLodMeshDX(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
-        else
+        //if (engine->LaunchInfo.IsDeusEx())
+            //return DrawLodMeshDX(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
+        //else
             return DrawLodMesh(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 	else
     {
-		if (engine->LaunchInfo.IsDeusEx())
-        	return DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
-		else
-			return DrawMeshDX(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+		//if (engine->LaunchInfo.IsDeusEx())
+        	//return DrawMeshDX(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+		//else
+			return DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 		}
 }
 
