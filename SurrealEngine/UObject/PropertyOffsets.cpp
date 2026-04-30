@@ -264,6 +264,10 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.AnimMinRate = cls->GetPropertyDataOffset("AnimMinRate");
 	PropOffsets_Actor.AnimRate = cls->GetPropertyDataOffset("AnimRate");
 	PropOffsets_Actor.AnimSequence = cls->GetPropertyDataOffset("AnimSequence");
+	PropOffsets_Actor.BlendAnimSequence = cls->GetPropertyDataOffset("BlendAnimSequence");
+	PropOffsets_Actor.BlendAnimFrame = cls->GetPropertyDataOffset("BlendAnimFrame");
+	PropOffsets_Actor.BlendAnimRate = cls->GetPropertyDataOffset("BlendAnimRate");
+	PropOffsets_Actor.BlendTweenRate = cls->GetPropertyDataOffset("BlendTweenRate");
 	PropOffsets_Actor.AttachTag = cls->GetPropertyDataOffset("AttachTag");
 	PropOffsets_Actor.Base = cls->GetPropertyDataOffset("Base");
 	PropOffsets_Actor.Brush = cls->GetPropertyDataOffset("Brush");
@@ -447,6 +451,10 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.ConListItems = cls->GetPropertyDataOffset("ConListItems");
 	PropOffsets_Actor.BindName = cls->GetPropertyDataOffset("BindName");
 	PropOffsets_Actor.BarkBindName = cls->GetPropertyDataOffset("BarkBindName");
+	PropOffsets_Actor.BlendAnimLast = cls->GetPropertyDataOffset("BlendAnimLast");
+	PropOffsets_Actor.BlendAnimMinRate = cls->GetPropertyDataOffset("BlendAnimMinRate");
+	PropOffsets_Actor.OldBlendAnimRate = cls->GetPropertyDataOffset("OldBlendAnimRate");
+	PropOffsets_Actor.SimBlendAnim = cls->GetPropertyDataOffset("SimBlendAnim");
 }
 
 PropertyOffsets_LevelInfo PropOffsets_LevelInfo;

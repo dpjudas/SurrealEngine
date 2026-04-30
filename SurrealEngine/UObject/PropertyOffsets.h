@@ -221,6 +221,10 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset AnimMinRate;
 	PropertyDataOffset AnimRate;
 	PropertyDataOffset AnimSequence;
+	PropertyDataOffset BlendAnimSequence;
+	PropertyDataOffset BlendAnimFrame;
+	PropertyDataOffset BlendAnimRate;
+	PropertyDataOffset BlendTweenRate;
 	PropertyDataOffset AttachTag;
 	PropertyDataOffset Base;
 	PropertyDataOffset Brush;
@@ -404,6 +408,10 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset ConListItems;
 	PropertyDataOffset BindName;
 	PropertyDataOffset BarkBindName;
+	PropertyDataOffset BlendAnimLast;
+	PropertyDataOffset BlendAnimMinRate;
+	PropertyDataOffset OldBlendAnimRate;
+	PropertyDataOffset SimBlendAnim;
 };
 
 extern PropertyOffsets_Actor PropOffsets_Actor;

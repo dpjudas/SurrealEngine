@@ -237,7 +237,6 @@ void UWindow::ConvertCoordinates(UWindow* fromWin, float fromX, float fromY, UWi
 
 std::string UWindow::ConvertScriptString(const std::string& oldStr)
 {
-	LogUnimplemented("Window.ConvertScriptString");
 	return oldStr;
 }
 
