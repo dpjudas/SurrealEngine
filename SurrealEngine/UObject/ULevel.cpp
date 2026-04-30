@@ -80,6 +80,7 @@ void ULevelBase::Save(PackageStreamWriter* stream)
 ULevel::ULevel(NameString name, UClass* base, ObjectFlags flags) : ULevelBase(name, base, flags)
 {
 	Collision.SetLevel(this);
+	Light.SetLevel(this);
 }
 
 void ULevel::Load(ObjectStream* stream)
