@@ -870,6 +870,37 @@ struct PropertyOffsets_GameInfo
 	PropertyDataOffset bTeamGame;
 	PropertyDataOffset bVeryLowGore;
 	PropertyDataOffset bWorldLog;
+
+	// 227 Additions
+	PropertyDataOffset LastPreloginIP;
+	PropertyDataOffset LastLoginPlayerNames;
+	PropertyDataOffset LastPreloginIdentity;
+	PropertyDataOffset LastPreloginIdent;
+	PropertyDataOffset MaleGender;
+	PropertyDataOffset FemaleGender;
+	PropertyDataOffset GameRules;
+	PropertyDataOffset AccessManager;
+	PropertyDataOffset AccessManagerClass;
+	PropertyDataOffset BleedingDamageMin;
+	PropertyDataOffset BleedingDamageMax;
+
+	PropertyDataOffset bBleedingEnabled;
+	PropertyDataOffset bBleedingDamageEnabled;
+	PropertyDataOffset bAllHealthStopsBleeding;
+	PropertyDataOffset bBandagesStopBleeding;
+	PropertyDataOffset bMessageAdminsAliases;
+	PropertyDataOffset bLogNewPlayerAliases;
+	PropertyDataOffset bLogDownloadsToClient;
+	PropertyDataOffset bHandleDownloadMessaging;
+	PropertyDataOffset bShowRecoilAnimations;
+	PropertyDataOffset bCastShadow;
+	PropertyDataOffset bDecoShadows;
+	PropertyDataOffset bCastProjectorShadows;
+	PropertyDataOffset bUseRealtimeShadow;
+	PropertyDataOffset bNoWalkInAir;
+	PropertyDataOffset bProjectorDecals;
+	PropertyDataOffset bIsSavedGame;
+	PropertyDataOffset bAlwaysEnhancedSightCheck;
 };
 
 extern PropertyOffsets_GameInfo PropOffsets_GameInfo;
@@ -932,6 +963,9 @@ struct PropertyOffsets_ZoneInfo
 	PropertyDataOffset locationid;
 
 	// 227 Additions
+	PropertyDataOffset SkyZoneInfoTag;
+	PropertyDataOffset SkyZoneInfoLevelID;
+	PropertyDataOffset MinWalkableZ;
 	PropertyDataOffset ZoneTimeDilation;
 	PropertyDataOffset bDistanceFogClips;
 	PropertyDataOffset bDistanceFog;
