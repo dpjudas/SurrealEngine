@@ -949,6 +949,38 @@ static void InitPropertyOffsets_GameInfo(PackageManager* packages)
 	PropOffsets_GameInfo.bTeamGame = cls->GetPropertyDataOffset("bTeamGame");
 	PropOffsets_GameInfo.bVeryLowGore = cls->GetPropertyDataOffset("bVeryLowGore");
 	PropOffsets_GameInfo.bWorldLog = cls->GetPropertyDataOffset("bWorldLog");
+
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_GameInfo.LastPreloginIP = cls->GetPropertyDataOffset("LastPreloginIP");
+		PropOffsets_GameInfo.LastLoginPlayerNames = cls->GetPropertyDataOffset("LastLoginPlayerNames");
+		PropOffsets_GameInfo.LastPreloginIdentity = cls->GetPropertyDataOffset("LastPreloginIdentity");
+		PropOffsets_GameInfo.LastPreloginIdent = cls->GetPropertyDataOffset("LastPreloginIdent");
+		PropOffsets_GameInfo.MaleGender = cls->GetPropertyDataOffset("MaleGender");
+		PropOffsets_GameInfo.FemaleGender = cls->GetPropertyDataOffset("FemaleGender");
+		PropOffsets_GameInfo.GameRules = cls->GetPropertyDataOffset("GameRules");
+		PropOffsets_GameInfo.AccessManager = cls->GetPropertyDataOffset("AccessManager");
+		PropOffsets_GameInfo.AccessManagerClass = cls->GetPropertyDataOffset("AccessManagerClass");
+		PropOffsets_GameInfo.BleedingDamageMin = cls->GetPropertyDataOffset("BleedingDamageMin");
+		PropOffsets_GameInfo.BleedingDamageMax = cls->GetPropertyDataOffset("BleedingDamageMax");
+		PropOffsets_GameInfo.bBleedingEnabled = cls->GetPropertyDataOffset("bBleedingEnabled");
+		PropOffsets_GameInfo.bBleedingDamageEnabled = cls->GetPropertyDataOffset("bBleedingDamageEnabled");
+		PropOffsets_GameInfo.bAllHealthStopsBleeding = cls->GetPropertyDataOffset("bAllHealthStopsBleeding");
+		PropOffsets_GameInfo.bBandagesStopBleeding = cls->GetPropertyDataOffset("bBandagesStopBleeding");
+		PropOffsets_GameInfo.bMessageAdminsAliases = cls->GetPropertyDataOffset("bMessageAdminsAliases");
+		PropOffsets_GameInfo.bLogNewPlayerAliases = cls->GetPropertyDataOffset("bLogNewPlayerAliases");
+		PropOffsets_GameInfo.bLogDownloadsToClient = cls->GetPropertyDataOffset("bLogDownloadsToClient");
+		PropOffsets_GameInfo.bHandleDownloadMessaging = cls->GetPropertyDataOffset("bHandleDownloadMessaging");
+		PropOffsets_GameInfo.bShowRecoilAnimations = cls->GetPropertyDataOffset("bShowRecoilAnimations");
+		PropOffsets_GameInfo.bCastShadow = cls->GetPropertyDataOffset("bCastShadow");
+		PropOffsets_GameInfo.bDecoShadows = cls->GetPropertyDataOffset("bDecoShadows");
+		PropOffsets_GameInfo.bCastProjectorShadows = cls->GetPropertyDataOffset("bCastProjectorShadows");
+		PropOffsets_GameInfo.bUseRealtimeShadow = cls->GetPropertyDataOffset("bUseRealtimeShadow");
+		PropOffsets_GameInfo.bNoWalkInAir = cls->GetPropertyDataOffset("bNoWalkInAir");
+		PropOffsets_GameInfo.bProjectorDecals = cls->GetPropertyDataOffset("bProjectorDecals");
+		PropOffsets_GameInfo.bIsSavedGame = cls->GetPropertyDataOffset("bIsSavedGame");
+		PropOffsets_GameInfo.bAlwaysEnhancedSightCheck = cls->GetPropertyDataOffset("bAlwaysEnhancedSightCheck");
+	}
 }
 
 PropertyOffsets_ZoneInfo PropOffsets_ZoneInfo;
@@ -1018,6 +1050,9 @@ static void InitPropertyOffsets_ZoneInfo(PackageManager* packages)
 
 	if (packages->IsUnreal1_227())
 	{
+		PropOffsets_ZoneInfo.SkyZoneInfoTag = cls->GetPropertyDataOffset("SkyZoneInfoTag");
+		PropOffsets_ZoneInfo.SkyZoneInfoLevelID = cls->GetPropertyDataOffset("SkyZoneInfoLevelID");
+		PropOffsets_ZoneInfo.MinWalkableZ = cls->GetPropertyDataOffset("MinWalkableZ");
 		PropOffsets_ZoneInfo.ZoneTimeDilation = cls->GetPropertyDataOffset("ZoneTimeDilation");
 		PropOffsets_ZoneInfo.bDistanceFogClips = cls->GetPropertyDataOffset("bDistanceFogClips");
 		PropOffsets_ZoneInfo.bDistanceFog = cls->GetPropertyDataOffset("bDistanceFog");
