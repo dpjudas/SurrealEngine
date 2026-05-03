@@ -19,6 +19,7 @@
 #include <surrealwidgets/widgets/lineedit/lineedit.h>
 #include <surrealwidgets/widgets/tabwidget/tabwidget.h>
 #include <surrealwidgets/widgets/dialog/textinputdialog.h>
+#include <surrealwidgets/widgets/treeview/treeview.h>
 
 class LauncherWindowTab1 : public Widget
 {
@@ -57,6 +58,8 @@ private:
 	PushButton* Popup = nullptr;
 	PushButton* QuestionPopup = nullptr;
 	PushButton* TextInputPopup = nullptr;
+
+	TreeView* m_TreeView = nullptr;
 };
 
 class LauncherWindow : public Widget

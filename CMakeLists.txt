@@ -94,6 +94,7 @@ set(SURREALWIDGETS_SOURCES
 	src/widgets/checkboxlabel/checkboxlabel.cpp
 	src/widgets/dropdown/dropdown.cpp
 	src/widgets/listview/listview.cpp
+	src/widgets/treeview/treeview.cpp
 	src/widgets/tabwidget/tabwidget.cpp
 	src/widgets/layout/hboxlayout.cpp
 	src/widgets/layout/vboxlayout.cpp
@@ -138,6 +139,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/widgets/pushbutton/pushbutton.h
 	include/surrealwidgets/widgets/checkboxlabel/checkboxlabel.h
 	include/surrealwidgets/widgets/listview/listview.h
+	include/surrealwidgets/widgets/treeview/treeview.h
 	include/surrealwidgets/widgets/tabwidget/tabwidget.h
 	include/surrealwidgets/widgets/layout/hboxlayout.h
 	include/surrealwidgets/widgets/layout/vboxlayout.h

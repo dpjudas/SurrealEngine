@@ -360,7 +360,18 @@ void WaylandDisplayBackend::ConnectMouseEvents()
 		{
 			InputKey ikey = LinuxInputEventCodeToInputKey(currentPointerEvent.button);
 			if (currentPointerEvent.state == wayland::pointer_button_state::pressed)
-				OnMousePressEvent(ikey);
+			{
+				if (currentPointerEvent.time - m_LastMouseClickTime <= 400)
+				{
+					OnMouseDoublePressEvent(ikey);
+					m_LastMouseClickTime = 0;
+				}
+				else
+				{
+					OnMousePressEvent(ikey);
+					m_LastMouseClickTime = currentPointerEvent.time;
+				}
+			}
 			else // released
 				OnMouseReleaseEvent(ikey);
 		}
@@ -475,6 +486,12 @@ void WaylandDisplayBackend::OnMousePressEvent(InputKey button)
 {
 	if (m_MouseFocusWindow)
 		m_MouseFocusWindow->windowHost->OnWindowMouseDown(m_MouseFocusWindow->m_SurfaceMousePos, button);
+}
+
+void WaylandDisplayBackend::OnMouseDoublePressEvent(InputKey button)
+{
+	if (m_MouseFocusWindow)
+		m_MouseFocusWindow->windowHost->OnWindowMouseDoubleclick(m_MouseFocusWindow->m_SurfaceMousePos, button);
 }
 
 void WaylandDisplayBackend::OnMouseReleaseEvent(InputKey button)

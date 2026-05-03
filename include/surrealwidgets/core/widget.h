@@ -185,7 +185,7 @@ protected:
 	virtual void OnPaintFrame(Canvas* canvas);
 	virtual void OnPaint(Canvas* canvas) { }
 	virtual bool OnMouseDown(const Point& pos, InputKey key) { return false; }
-	virtual bool OnMouseDoubleclick(const Point& pos, InputKey key) { return false; }
+	virtual bool OnMouseDoubleclick(const Point& pos, InputKey key) { return OnMouseDown(pos, key); }
 	virtual bool OnMouseUp(const Point& pos, InputKey key) { return false; }
 	virtual bool OnMouseWheel(const Point& pos, InputKey key) { return false; }
 	virtual void OnMouseMove(const Point& pos) { }
