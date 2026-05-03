@@ -4,3 +4,5 @@
 *.user
 .vscode
 *.internal
+/.cppbuild
+/*.sln
