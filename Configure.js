@@ -5,6 +5,8 @@ Project.setName("SurrealEngine");
 Project.addConfiguration("Debug");
 Project.addConfiguration("Release");
 
+Project.addSubdirectory("SurrealWidgets");
+
 var commonSources = [
 	"SurrealEngine/Precomp.cpp",
 	"SurrealEngine/Precomp.h",
