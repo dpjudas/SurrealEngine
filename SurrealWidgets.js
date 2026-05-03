@@ -52,6 +52,7 @@ var sources = [
 	"src/widgets/dropdown/dropdown.cpp",
 	"src/widgets/listview/listview.cpp",
 	"src/widgets/tabwidget/tabwidget.cpp",
+	"src/widgets/treeview/treeview.cpp",
 	"src/widgets/layout/hboxlayout.cpp",
 	"src/widgets/layout/vboxlayout.cpp",
 	"src/window/window.cpp",
@@ -96,6 +97,7 @@ var includes = [
 	"include/surrealwidgets/widgets/checkboxlabel/checkboxlabel.h",
 	"include/surrealwidgets/widgets/listview/listview.h",
 	"include/surrealwidgets/widgets/tabwidget/tabwidget.h",
+	"include/surrealwidgets/widgets/treeview/treeview.h",
 	"include/surrealwidgets/widgets/layout/hboxlayout.h",
 	"include/surrealwidgets/widgets/layout/vboxlayout.h",
 	"include/surrealwidgets/window/window.h",
@@ -188,6 +190,7 @@ var waylandSources = [
 
 var surrealwidgets = Target.addStaticLibrary("surrealwidgets");
 surrealwidgets.addFiles(sources);
+surrealwidgets.addFiles(includes);
 surrealwidgets.addIncludePaths(["include", "include/surrealwidgets", "src"]);
 
 if (Environment.isWindows()) {
