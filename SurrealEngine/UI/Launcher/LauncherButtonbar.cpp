@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "LauncherButtonbar.h"
 #include "LauncherWindow.h"
 #include <surrealwidgets/widgets/pushbutton/pushbutton.h>

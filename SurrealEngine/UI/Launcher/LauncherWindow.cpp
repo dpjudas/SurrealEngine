@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "LauncherWindow.h"
 #include "LauncherBanner.h"
 #include "LauncherButtonbar.h"

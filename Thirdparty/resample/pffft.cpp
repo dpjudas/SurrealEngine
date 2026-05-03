@@ -75,6 +75,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <malloc.h>
 
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))

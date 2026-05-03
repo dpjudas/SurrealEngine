@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 Parser::Parser(const std::string &source)

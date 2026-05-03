@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstArrayInitializer *Parser::parse_array_initializer()

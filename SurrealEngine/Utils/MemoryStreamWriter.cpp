@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "MemoryStreamWriter.h"
 
 #define MAX_STREAM_SIZE UINT32_MAX

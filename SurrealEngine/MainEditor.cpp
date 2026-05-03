@@ -6,6 +6,8 @@
 #include <vector>
 #ifdef WIN32
 #include <CommCtrl.h>
+#include <ObjBase.h>
+#include <shellapi.h>
 #endif
 
 #ifdef WIN32

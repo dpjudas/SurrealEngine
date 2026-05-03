@@ -1,5 +1,6 @@
-#include "U227Emitter.h"
 
+#include "Precomp.h"
+#include "U227Emitter.h"
 #include "Utils/Logger.h"
 
 void UXParticleEmitter::SetParticlesProps(std::optional<float> Speed, std::optional<float> Scale)

@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "LauncherBanner.h"
 #include <surrealwidgets/widgets/imagebox/imagebox.h>
 #include <surrealwidgets/widgets/textlabel/textlabel.h>

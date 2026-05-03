@@ -1,5 +1,6 @@
-#include "Random.h"
 
+#include "Precomp.h"
+#include "Random.h"
 #include <random>
 
 static std::default_random_engine s_Generator;

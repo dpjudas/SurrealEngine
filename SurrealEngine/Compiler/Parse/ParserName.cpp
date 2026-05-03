@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstName *Parser::parse_name()

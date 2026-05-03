@@ -1,5 +1,6 @@
-#include "N227Emitter.h"
 
+#include "Precomp.h"
+#include "N227Emitter.h"
 #include "UObject/U227Emitter.h"
 #include "NActor.h"
 #include "VM/NativeFunc.h"

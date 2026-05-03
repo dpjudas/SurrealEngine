@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "VideoSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"

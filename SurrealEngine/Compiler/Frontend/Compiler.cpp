@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Compiler.h"
 #include "CompilerException.h"
 #include "Compiler/Lex/Tokenizer.h"

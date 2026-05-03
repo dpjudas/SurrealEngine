@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstNode *Parser::parse_class_member()

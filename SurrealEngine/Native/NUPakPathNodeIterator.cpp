@@ -1,5 +1,6 @@
-#include "NUPakPathNodeIterator.h"
 
+#include "Precomp.h"
+#include "NUPakPathNodeIterator.h"
 #include "Utils/Logger.h"
 #include "VM/NativeFunc.h"
 

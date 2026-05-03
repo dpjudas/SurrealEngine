@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "TextUtil.h"
 
 std::u32string TextUtil::utf8_to_utf32(const std::string &utf8)

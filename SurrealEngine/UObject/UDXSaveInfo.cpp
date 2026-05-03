@@ -1,5 +1,6 @@
-#include "UDXSaveInfo.h"
 
+#include "Precomp.h"
+#include "UDXSaveInfo.h"
 #include <ctime>
 
 void UDXSaveInfo::UpdateTimeStamp()

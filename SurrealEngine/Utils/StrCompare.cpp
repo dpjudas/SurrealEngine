@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "StrCompare.h"
 
 static const int stricmptable[] =

@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "SHA1Sum.h"
 #include "TinySHA1/TinySHA1.hpp"
 

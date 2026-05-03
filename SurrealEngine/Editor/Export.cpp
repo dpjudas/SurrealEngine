@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "miniz/miniz.h"
 #include "Editor/Export.h"
 #include "UObject/UProperty.h"

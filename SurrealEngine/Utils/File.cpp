@@ -105,7 +105,7 @@ public:
 
 std::shared_ptr<File> File::create_always(const std::string &filename)
 {
-	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_WRITE_ACCESS, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	HANDLE handle = CreateFile(to_utf16(filename).c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
 		Exception::Throw("Could not create " + filename);
 
@@ -114,7 +114,7 @@ std::shared_ptr<File> File::create_always(const std::string &filename)
 
 std::shared_ptr<File> File::open_existing(const std::string &filename)
 {
-	HANDLE handle = CreateFile(to_utf16(filename).c_str(), FILE_READ_ACCESS, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	HANDLE handle = CreateFile(to_utf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 	if (handle == INVALID_HANDLE_VALUE)
 		Exception::Throw("Could not open " + filename);
 

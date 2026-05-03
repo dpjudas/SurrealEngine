@@ -1,7 +1,8 @@
+
+#include "Precomp.h"
 #include "UnrealURL.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
-
 #include <sstream>
 
 UnrealURL::UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL)

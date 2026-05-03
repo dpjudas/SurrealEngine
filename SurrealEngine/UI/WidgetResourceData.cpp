@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "WidgetResourceData.h"
 #include "Utils/File.h"
 #include <miniz.h>

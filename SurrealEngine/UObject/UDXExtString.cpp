@@ -1,5 +1,6 @@
-#include "UDXExtString.h"
 
+#include "Precomp.h"
+#include "UDXExtString.h"
 #include "Utils/Logger.h"
 
 void UDXExtString::AppendText(const std::string& newText)

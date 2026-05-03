@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstStatement *Parser::parse_statement()

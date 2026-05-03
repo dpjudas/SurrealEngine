@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "GameFoldersPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"

@@ -1,9 +1,11 @@
+
+#include "Precomp.h"
+#include "Utils/Exception.h"
+#include "VM/Frame.h"
 #include <ios>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include "Utils/Exception.h"
-#include "VM/Frame.h"
 
 #ifdef WIN32
 

@@ -1,5 +1,20 @@
 #pragma once
 
+#ifdef WIN32
+#ifndef WINVER
+#define WINVER 0x0A00 // Windows 10
+#define _WIN32_WINNT 0x0A00
+#define WIN32_LEAN_AND_MEAN
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define NOMINMAX
+#endif
+#include <WinSock2.h>
+#include <Windows.h>
+#undef PlaySound
+#undef DrawText
+#undef FindWindow
+#endif
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -7,20 +22,6 @@
 #include <memory>
 #include "Utils/Array.h"
 #include "Utils/Exception.h"
-
-#ifdef WIN32
-#define WINVER 0x0A00 // Windows 10
-#define _WIN32_WINNT 0x0A00
-#define WIN32_MEAN_AND_LEAN
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#define NOMINMAX
-#include <WinSock2.h>
-#include <Windows.h>
-#include <gdiplus.h>
-#undef PlaySound
-#undef DrawText
-#undef FindWindow
-#endif
 
 // TODO: if we eventually support big endian platforms, these need to be implemented properly
 #define BSWAP16(i) i

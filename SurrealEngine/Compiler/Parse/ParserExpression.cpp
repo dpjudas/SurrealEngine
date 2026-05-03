@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstExpression *Parser::parse_expression(ExpressionEndCondition end_condition)

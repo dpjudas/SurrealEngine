@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstTypeParameterList *Parser::try_parse_type_parameter_list()

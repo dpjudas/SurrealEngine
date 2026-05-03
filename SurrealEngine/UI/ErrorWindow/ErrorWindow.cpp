@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "ErrorWindow.h"
 #include "Utils/File.h"
 #include "Utils/CrashReporter.h"

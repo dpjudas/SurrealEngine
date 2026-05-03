@@ -1,5 +1,6 @@
-#include "UDXGameDirectory.h"
 
+#include "Precomp.h"
+#include "UDXGameDirectory.h"
 #include "Utils/Logger.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"

@@ -1,4 +1,5 @@
 
+#include "Precomp.h"
 #include "Parser.h"
 
 AstClassDeclaration *Parser::parse_class_declaration()

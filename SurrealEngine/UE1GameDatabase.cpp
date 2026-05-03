@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "UE1GameDatabase.h"
 #include "Utils/SHA1Sum.h"
 #include <iostream>
