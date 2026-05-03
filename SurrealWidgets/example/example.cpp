@@ -6,7 +6,7 @@
 
 LauncherWindow::LauncherWindow(): Widget(nullptr, WidgetType::Window)
 {
-	SetWindowTitle("ZWidget Demo");
+	SetWindowTitle("SurrealWidgets Demo");
 
 	try
 	{
@@ -200,6 +200,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	Popup = new PushButton(this);
 	QuestionPopup = new PushButton(this);
 	TextInputPopup = new PushButton(this);
+	m_TreeView = new TreeView(this);
 
 	Label->SetText("Oh my, even more widgets");
 	Popup->SetText("Click me.");
@@ -235,6 +236,17 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 		}
 	};
 
+	m_TreeView->ShowHeader(true);
+	m_TreeView->SetColumn(0, "Text1", 200.0);
+	m_TreeView->SetColumn(1, "Text2", 75.0);
+	m_TreeView->SetColumn(2, "Text3", 400.0);
+	m_TreeView->AddItem({"Test", "Test", "Test"});
+	m_TreeView->AddItem({"Test2", "Test2", "Test2"});
+	m_TreeView->AddItem({"Test1a", "Test1a", "Test1a"}, 0, true);
+	m_TreeView->AddItem({"Test1b", "Test1b", "Test1b"}, 0, true);
+	m_TreeView->GetChildItem(1)->AddChildNode({"Test2a", "Test2a", "Test2a"});
+	m_TreeView->GetChildItem(1)->AddChildNode({"Test2b", "Test2b", "Test2b"});
+
 	TextInputPopup->OnClick = [this]
 	{
 		const auto text = TextInputDialog::TextInput(this);
@@ -248,6 +260,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	layout->AddWidget(Popup);
 	layout->AddWidget(QuestionPopup);
 	layout->AddWidget(TextInputPopup);
+	layout->AddWidget(m_TreeView);
 
 	SetLayout(layout);
 }

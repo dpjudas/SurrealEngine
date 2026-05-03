@@ -170,6 +170,7 @@ private:
 	void OnMouseEnterEvent(uint32_t serial);
 	void OnMouseLeaveEvent();
 	void OnMousePressEvent(InputKey button);
+	void OnMouseDoublePressEvent(InputKey button);
 	void OnMouseReleaseEvent(InputKey button);
 	void OnMouseMoveEvent(Point surfacePos);
 	void OnMouseMoveRawEvent(int surfaceX, int surfaceY);
@@ -200,6 +201,8 @@ private:
 
 	uint32_t m_KeyboardSerial = 0;
 	uint32_t m_MouseSerial = 0;
+
+	uint32_t m_LastMouseClickTime = 0;
 
 	xkb_context* m_KeymapContext = nullptr;
 	xkb_keymap* m_Keymap = nullptr;
