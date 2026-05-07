@@ -13,22 +13,35 @@ float UConEvent::GetSoundLength(USound* sound)
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UConEventRandomLabel::Load(ObjectStream* stream)
+{
+	UConEvent::Load(stream);
+	int count = stream->ReadIndex();
+	for (int i = 0; i < count; i++)
+	{
+		std::string label = stream->ReadString();
+		labels.push_back(std::move(label));
+	}
+}
+
 std::string UConEventRandomLabel::GetLabel(int labelIndex)
 {
-	LogUnimplemented("ConEventRandomLabel.GetLabel");
-	return {};
+	if (labelIndex >= 0 && labelIndex <= (int)labels.size())
+		return labels[labelIndex];
+	else
+		return {};
 }
 
 int UConEventRandomLabel::GetLabelCount()
 {
-	LogUnimplemented("ConEventRandomLabel.GetLabelCount");
-	return 0;
+	return (int)labels.size();
 }
 
 std::string UConEventRandomLabel::GetRandomLabel()
 {
-	LogUnimplemented("ConEventRandomLabel.GetRandomLabel");
-	return {};
+	float t = rand() / (float)(RAND_MAX + 1);
+	int index = (int)(t * GetLabelCount());
+	return GetLabel(index);
 }
 
 /////////////////////////////////////////////////////////////////////////////
