@@ -40,31 +40,48 @@ void UConEventRandomLabel::Load(ObjectStream* stream)
 
 std::string UConEventRandomLabel::GetLabel(int labelIndex)
 {
-	if (labelIndex >= 0 && labelIndex < (int)labels.size())
-		return labels[labelIndex];
-	else
+	std::string str = labels()[labelIndex];
+	if (!str)
 		return {};
+	return str;
 }
 
 int UConEventRandomLabel::GetLabelCount()
 {
-	return (int)labels.size();
+	return labels().size();
 }
 
 std::string UConEventRandomLabel::GetRandomLabel()
 {
-	if (labels.empty())
+	int count = labels().size()
+	if (labels().size() <= 0)
 		return {};
-	int maxValue = (int)labels.size() - 1;
-	float t = rand() / (float)RAND_MAX;
-	int index = (int)std::round(t * maxValue);
-	return GetLabel(index);
+	int index;
+	if (cycleIndex() == count)
+		bLabelsCycled() = true;
+
+	if (!bCycleEvents() || (bCycleRandom() && bLabelsCycled()))
+		index = std::rand() % count;
+	else if (!bCycleOnce())
+	{
+		index = cycleIndex() % count;
+		cycleIndex()++;
+	}
+	else 
+	{
+		index = cycleIndex() % count;
+		cycleIndex()++;
+	}
+
+	return labels[index];
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 void UConversation::BindActorEvents(UObject* actorToBind)
 {
+	// conevent internally uses invokeactor and actortobind. at least in this call, they're the one in the same.
     UActor* actorToBindAct = UObject::Cast<UActor>(actorToBind);
     if (!actorToBindAct)
         return;
@@ -76,10 +93,10 @@ void UConversation::BindActorEvents(UObject* actorToBind)
         case EEventType::Speech:
             if (auto speech = UObject::Cast<UConEventSpeech>(e))
             {
-                if (speech->speakerName() == actorToBindAct->BindName())
+                if (speech->speakerName() == actorToBindAct->BindName() || speech->speakerName() == actorToBindAct->BarkBindName())
                     speech->speaker() = actorToBindAct;
-
-                if (speech->speakingToName() == actorToBindAct->BindName())
+				// internal note: maybe order of checks should be inverted
+                if (speech->speakingToName() == actorToBindAct->BindName() || speech->speakingToName() == actorToBindAct->BarkBindName())
                     speech->speakingTo() = actorToBindAct;
             }
             break;
@@ -87,14 +104,15 @@ void UConversation::BindActorEvents(UObject* actorToBind)
         case EEventType::TransferObject:
             if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
             {
-                if (transfer->fromName() == actorToBindAct->BindName())
+                if ((transfer->fromName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->fromName() == actorToBindAct->BarkBindName()))
                     transfer->fromActor() = actorToBindAct;
 
-                if (transfer->toName() == actorToBindAct->BindName())
+                if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
                     transfer->toActor() = actorToBindAct;
+				transfer->checkObject() = engine->packages->FindClass(std::format("DeusEx.{}", ObjectName()));
             }
             break;
-
+		/*not in original code*/
         case EEventType::MoveCamera:
             if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
             {
@@ -102,12 +120,14 @@ void UConversation::BindActorEvents(UObject* actorToBind)
                     moveCamera->cameraActor() = actorToBindAct;
             }
             break;
-
+		
         case EEventType::Animation:
             if (auto animation = UObject::Cast<UConEventAnimation>(e))
             {
-                if (animation->eventOwnerName() == actorToBindAct->BindName())
-                    animation->eventOwner() = actorToBindAct;
+				bool bindActor = animation->eventOwnerName() == actorToBindAct->BindName();
+				bool barkBindActor = animation->eventOwnerName() == actorToBindAct->BarkBindName()
+                if ((bindActor && bFirstPerson()) || barkBindActor)
+                    animation->eventOwner() = actorToBindAct;	
             }
             break;
 
@@ -118,13 +138,24 @@ void UConversation::BindActorEvents(UObject* actorToBind)
                     trade->eventOwner() = actorToBindAct;
             }
             break;
+		
+		case EEventType::CheckObject:
+			if (auto eventCheckObject = UObject::Cast<UConEventCheckObject>(e))
+			{
+				if (eventCheckObject->ObjectName().starts_with("NK_"))
+					eventCheckObject->checkObject() = nullptr;
+				else
+				{
+					eventCheckObject->checkObject() = engine->packages->FindClass(std::format("DeusEx.{}", ObjectName()));
+				}
+			}
 
         default:
             break;
         }
     }
 
-	LogUnimplemented("Conversation.BindActorEvents");
+	//LogUnimplemented("Conversation.BindActorEvents");
 }
 
 void UConversation::BindEvents(UObject** conBoundActors, UObject* invokeActor)
@@ -286,8 +317,13 @@ UObject* UConversation::CreateConCamera()
 
 UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue)
 {
-	LogUnimplemented("Conversation.CreateFlagRef(" + FlagName.ToString() + ", " + (flagValue ? "true" : "false") + ")");
-	return nullptr;
+	UClass* cls = engine->packages->FindClass("ConSys.ConFlagRef");
+	NameString name;
+	UObject* obj = engine->LevelPackage->NewObject(name, cls, ObjectFlags::Transient, true);
+	UConFlagRef* flagObj = UObject::Cast<UConFlagRef>(obj);
+	flagObj->FlagName() = FlagName;
+	flagObj->bValue() = flagValue;
+	return obj;
 }
 
 UObject* UConversation::GetSpeechAudio(int soundID)

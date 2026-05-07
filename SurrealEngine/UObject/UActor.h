@@ -195,6 +195,14 @@ enum class EAIEventType : uint8_t
 };
 
 // Deus Ex
+enum class EAllianceType : uint8_t
+{
+	ALLIANCE_Friendly,
+	ALLIANCE_Neutral,
+	ALLIANCE_Hostile
+};
+
+// Deus Ex
 enum class EBarkModes : uint8_t
 {
 	BM_Idle,
@@ -616,6 +624,7 @@ public:
 	BitfieldBool bAssimilated() { return BoolValue(PropOffsets_Actor.bAssimilated); }
 	BitfieldBool bBlockActors() { return BoolValue(PropOffsets_Actor.bBlockActors); }
 	BitfieldBool bBlockPlayers() { return BoolValue(PropOffsets_Actor.bBlockPlayers); }
+	BitfieldBool bBlockSight() { return BoolValue(PropOffsets_Actor.bBlockSight); }
 	BitfieldBool bBounce() { return BoolValue(PropOffsets_Actor.bBounce); }
 	BitfieldBool bCanTeleport() { return BoolValue(PropOffsets_Actor.bCanTeleport); }
 	BitfieldBool bCarriedItem() { return BoolValue(PropOffsets_Actor.bCarriedItem); }
@@ -1372,7 +1381,6 @@ public:
 	BitfieldBool bReverbZone() { return BoolValue(PropOffsets_ZoneInfo.bReverbZone); }
 	BitfieldBool bWaterZone() { return BoolValue(PropOffsets_ZoneInfo.bWaterZone); }
 	Ulocationid*& locationid() { return Value<Ulocationid*>(PropOffsets_ZoneInfo.locationid); }
-
 	// 227 additions
 	NameString& SkyZoneInfoTag() { return Value<NameString>(PropOffsets_ZoneInfo.SkyZoneInfoTag); }
 	NameString& SkyZoneInfoLevelID() { return Value<NameString>(PropOffsets_ZoneInfo.SkyZoneInfoLevelID); }
@@ -1864,6 +1872,7 @@ public:
 	UPawn*& noise2other() { return Value<UPawn*>(PropOffsets_Pawn.noise2other); }
 	vec3& noise2spot() { return Value<vec3>(PropOffsets_Pawn.noise2spot); }
 	float& noise2time() { return Value<float>(PropOffsets_Pawn.noise2time); }
+	NameString Alliance() { return Value<NameString>(PropOffsets_Pawn.Alliance);}
 };
 
 class UScout : public UPawn
@@ -2306,17 +2315,36 @@ private:
 	UDXGameDirectory* m_GameDirectory = nullptr;
 };
 
+struct UDXInitialAllianceInfo
+{
+	NameString AllianceName;
+	float AllianceLevel;
+	BitfieldBool bPermanent;
+};
+
+struct UDXInitialAllianceInfoEx
+{
+	NameString AllianceName;
+	float AllianceLevel;
+	float AllianceAgitation;
+	BitfieldBool bPermanent;
+};
+
 class UScriptedPawn : public UPawn
 {
 public:
 	using UPawn::UPawn;
-
+	FixedArrayView<NameString, 4> Carcasses() { return FixedArrayView<NameString, 4>(PropOffsets_ScriptedPawn.Carcasses);}
+	FixedArrayView<UDXInitialAllianceInfo, 8> InitialAlliances() { return FixedArrayView<UDXInitialAllianceInfo, 8>(PropOffsets_ScriptedPawn.InitialAlliances);}
+	FixedArrayView<UDXInitialAllianceInfoEx, 16> AlliancesEx() { return FixedArrayView<UDXInitialAllianceInfoEx, 16>(PropOffsets_ScriptedPawn.AlliancesEx);}
+	BitfieldBool bLikesNeutral() { return BoolValue(PropOffsets_ScriptedPawn.bLikesNeutral);}
+	BitfieldBool bReverseAlliances() { return BoolValue(PropOffsets_ScriptedPawn.bReverseAlliances);}
 	void AddCarcass(const NameString& CarcassName);
 	void ConBindEvents();
 	uint8_t GetAllianceType(const NameString& AllianceName);
 	uint8_t GetPawnAllianceType(UObject* QueryPawn);
 	bool HaveSeenCarcass(const NameString& CarcassName);
-	bool IsValidEnemy(UObject* TestEnemy, std::optional<bool> bCheckAlliance);
+	bool IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance);
 };
 
 class UDeusExDecoration : public UDecoration

@@ -211,10 +211,12 @@ public:
 	bool IsSensitive(std::optional<bool> bRecurse);
 	bool IsVisible(std::optional<bool> bRecurse);
 	void Lower();
+	//UObject* MoveFocus(EMove direction);
 	UObject* MoveFocusDown();
 	UObject* MoveFocusLeft();
 	UObject* MoveFocusRight();
 	UObject* MoveFocusUp();
+	//UObject* MoveTabGroup(EMove dir);
 	UObject* MoveTabGroupNext();
 	UObject* MoveTabGroupPrev();
 	UObject* NewChild(UObject* NewClass, std::optional<bool> bShow = {});
@@ -1244,7 +1246,7 @@ public:
 	void SetTypingSound(UObject* newTypingSound);
 	void SetTypingSoundVolume(float newSoundVolume);
 	void ShowTextCursor(std::optional<bool> bShow);
-
+	
 	Color& FontColor() { return Value<Color>(PropOffsets_ComputerWindow.FontColor); }
 	UPlayerPawnExt*& Player() { return Value<UPlayerPawnExt*>(PropOffsets_ComputerWindow.Player); }
 	UWindow*& TextWindow() { return Value<UWindow*>(PropOffsets_ComputerWindow.TextWindow); }

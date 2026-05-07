@@ -334,10 +334,14 @@ void NPawn::ReachablePathnodes(UObject* Self, UObject* BaseClass, UObject*& NavP
 
 void NPawn::StrafeFacing_Deus(UObject* Self, const vec3& NewDestination, UObject* NewTarget, std::optional<float> speed)
 {
-	LogUnimplemented("Pawn.StrafeFacing_Deus");
+	// speed is never used
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->StrafeFacing(NewDestination, UObject::Cast<UActor>(NewTarget));
 }
 
 void NPawn::StrafeTo_Deus(UObject* Self, const vec3& NewDestination, const vec3& NewFocus, std::optional<float> speed)
 {
-	LogUnimplemented("Pawn.StrafeTo_Deus");
+	// speed is never used
+	UPawn* SelfPawn = UObject::Cast<UPawn>(Self);
+	SelfPawn->StrafeTo(NewDestination, NewFocus);
 }
