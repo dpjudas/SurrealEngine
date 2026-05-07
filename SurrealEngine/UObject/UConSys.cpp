@@ -43,7 +43,7 @@ void UConEventRandomLabel::Load(ObjectStream* stream)
 
 std::string UConEventRandomLabel::GetLabel(int labelIndex)
 {
-	if (labelIndex >= 0 && labelIndex <= (int)labels.size())
+	if (labelIndex >= 0 && labelIndex < (int)labels.size())
 		return labels[labelIndex];
 	else
 		return {};
@@ -56,8 +56,11 @@ int UConEventRandomLabel::GetLabelCount()
 
 std::string UConEventRandomLabel::GetRandomLabel()
 {
-	float t = rand() / (float)(RAND_MAX + 1);
-	int index = (int)(t * GetLabelCount());
+	if (labels.empty())
+		return {};
+	int maxValue = (int)labels.size() - 1;
+	float t = rand() / (float)RAND_MAX;
+	int index = (int)std::round(t * maxValue);
 	return GetLabel(index);
 }
 
