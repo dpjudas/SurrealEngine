@@ -3019,7 +3019,7 @@ UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
 			return SetRouteCache(FindPathToEndPoint(invSpotList[idx], 1000));
 		}
 	}*/
-	
+	XLevel()->FindPathCycles
 	LogUnimplemented("Pawn.FindBestInventoryPath");
 	outMinWeight = 0.0f;
 	return SetRouteCache({});
@@ -3860,7 +3860,15 @@ void UDeusExPlayer::UnloadTexture(UObject* Texture)
 
 void UScriptedPawn::AddCarcass(const NameString& CarcassName)
 {
-	LogUnimplemented("ScriptedPawn.AddCarcass");
+	if (NumCarcasses() < 4)
+	{
+		bool carcassSeen = HaveSeenCarcass(CarcassName);
+		if (carcassSeen == false)
+		{
+			Carcasses()[NumCarcasses()] = CarcassName;
+			NumCarcasses() += 1;
+		}
+	}
 }
 
 void UScriptedPawn::ConBindEvents()
@@ -3870,26 +3878,82 @@ void UScriptedPawn::ConBindEvents()
 
 uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
 {
-	LogUnimplemented("ScriptedPawn.GetAllianceType");
-	return 0;
+	auto alliex = AlliancesEx();
+	EAllianceType result = EAllianceType::ALLIANCE_Neutral;
+	for (int i = 0; i < 16; i++)
+	{
+		if (alliex[i].AllianceName == AllianceName)
+		{
+			if (alliex[i].AllianceLevel < 0.0) || (alliex[i].AllianceAgitation >= 1.0)
+			{
+				result = EAllianceType::ALLIANCE_Hostile;
+			}
+			else if (alliex[i].AllianceLevel > 0.0)
+			{
+				result = EAllianceType::ALLIANCE_Friendly;
+			}
+			break;
+		}
+	}
+
+	if (bLikesNeutral() && result = EAllianceType::ALLIANCE_Neutral)
+	{
+		result = EAllianceType::ALLIANCE_Friendly;
+	}
+	if (bReverseAlliances())
+	{
+		if (result == EAllianceType::ALLIANCE_Friendly)
+		{
+			return (uint8_t)EAllianceType::ALLIANCE_Hostile;
+		}
+		if (result == EAllianceType::ALLIANCE_Hostile)
+		{
+			return (uint8_t)EAllianceType::ALLIANCE_Friendly;
+		}
+	}
+	return (uint8_t)result;
 }
 
 uint8_t UScriptedPawn::GetPawnAllianceType(UObject* QueryPawn)
 {
-	LogUnimplemented("ScriptedPawn.GetPawnAllianceType");
-	return 0;
+	uint8_t othersAlliance;
+	if (UObject::TryCast<UScriptedPawn>(QueryPawn))
+	{
+		othersAlliance = QueryPawn->GetAllianceType(Alliance());
+	}
+	uint8_t myAlliance = GetAllianceType(UObject::TryCast<UPawn>(QueryPawn)->Alliance());
+	if (othersAlliance == (uint8_t)EAllianceType::ALLIANCE_Hostile)
+	{
+		return (uint8_t)EAllianceType::ALLIANCE_Hostile;
+	}
+	return myAlliance;
 }
 
 bool UScriptedPawn::HaveSeenCarcass(const NameString& CarcassName)
 {
-	LogUnimplemented("ScriptedPawn.HaveSeenCarcass");
+	for (int i = 0; i < NumCarcasses(); i++)
+	{
+		if (Carcasses()[i] == CarcassName)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
-bool UScriptedPawn::IsValidEnemy(UObject* TestEnemy, std::optional<bool> bCheckAlliance)
+bool UScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance)
 {
-	LogUnimplemented("ScriptedPawn.IsValidEnemy");
-	return false;
+	if(!UObject::TryCast<UScriptedPawn>(TestEnemy) || TestEnemy == Self || !bBlockSight() || bDeleteMe() || UObject::TryCast<UScriptedPawn>(TestEnemy)->KillCount < 1)
+		return false;
+	if (bCheckAlliance)
+	{
+		uint8_t retval = GetPawnAllianceType(TestEnemy);
+		if (retval != EAllianceType::ALLIANCE_Hostile)
+		{
+			return false;
+		}
+		return true;
+	}
 }
 
 ////////////////////////////////////////////////////////

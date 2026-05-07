@@ -160,7 +160,6 @@ int UWindow::AddTimer(float TimeOut, std::optional<bool> bLoop, std::optional<in
 {
 	if (!functionName) // Script always specifies a function name
 	{
-		LogUnimplemented("Window.AddTimer");
 		return -1;
 	}
 
@@ -599,30 +598,54 @@ void UWindow::Lower()
 	}
 }
 
+/*
+UObject* UWindow::MoveFocus(EMove direction)
+{
+	auto root = GetRootWindow();
+	if(root)
+	{
+		int hmref = root->handleMouseRef();
+		if (!hmref)
+			MoveTabGroup(dir);
+		else {
+			UTabGroupWindow* tabWindow = UObject::Cast<UTabGroupWindow*>(GetTabGroupWindow());
+			if (tabWindow)
+			{
+				bool wrapFocus = bWrapFocus();
+			}
+		}
+	}
+}
+*/
+
 UObject* UWindow::MoveFocusDown()
 {
-	LogUnimplemented("Window.MoveFocusDown");
+	//MoveFocus(EMove::Down);
 	return nullptr;
 }
 
 UObject* UWindow::MoveFocusLeft()
 {
-	LogUnimplemented("Window.MoveFocusLeft");
+	//MoveFocus(EMove::Left);
 	return nullptr;
 }
 
 UObject* UWindow::MoveFocusRight()
 {
-	LogUnimplemented("Window.MoveFocusRight");
+	//MoveFocus(EMove::Right);
 	return nullptr;
 }
 
 UObject* UWindow::MoveFocusUp()
 {
-	LogUnimplemented("Window.MoveFocusUp");
+	//MoveFocus(EMove::Up);
 	return nullptr;
 }
 
+UObject* UWindow::MoveTabGroup(EMove dir)
+{
+	// tbd
+}
 UObject* UWindow::MoveTabGroupNext()
 {
 	LogUnimplemented("Window.MoveTabGroupNext");

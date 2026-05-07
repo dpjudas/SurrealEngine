@@ -109,6 +109,7 @@ static void InitPropertyOffsets_Pawn(PackageManager* packages)
 	PropOffsets_Pawn.AirSpeed = cls->GetPropertyDataOffset("AirSpeed");
 	PropOffsets_Pawn.AlarmTag = cls->GetPropertyDataOffset("AlarmTag");
 	PropOffsets_Pawn.Alertness = cls->GetPropertyDataOffset("Alertness");
+	PropOffsets_Pawn.Alliance = cls->GetPropertyDataOffset("Alliance");
 	PropOffsets_Pawn.AttitudeToPlayer = cls->GetPropertyDataOffset("AttitudeToPlayer");
 	PropOffsets_Pawn.AvgPhysicsTime = cls->GetPropertyDataOffset("AvgPhysicsTime");
 	PropOffsets_Pawn.BaseEyeHeight = cls->GetPropertyDataOffset("BaseEyeHeight");
@@ -369,6 +370,7 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.bAssimilated = cls->GetPropertyDataOffset("bAssimilated");
 	PropOffsets_Actor.bBlockActors = cls->GetPropertyDataOffset("bBlockActors");
 	PropOffsets_Actor.bBlockPlayers = cls->GetPropertyDataOffset("bBlockPlayers");
+	PropOffsets_Actor.bBlockSight = cls->GetPropertyDataOffset("bBlockSight");
 	PropOffsets_Actor.bBounce = cls->GetPropertyDataOffset("bBounce");
 	PropOffsets_Actor.bCanTeleport = cls->GetPropertyDataOffset("bCanTeleport");
 	PropOffsets_Actor.bCarriedItem = cls->GetPropertyDataOffset("bCarriedItem");

@@ -72,6 +72,7 @@ struct PropertyOffsets_Pawn
 	PropertyDataOffset AirSpeed;
 	PropertyDataOffset AlarmTag;
 	PropertyDataOffset Alertness;
+	PropertyDataOffset Alliance;
 	PropertyDataOffset AttitudeToPlayer;
 	PropertyDataOffset AvgPhysicsTime;
 	PropertyDataOffset BaseEyeHeight;
@@ -326,6 +327,7 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset bAssimilated;
 	PropertyDataOffset bBlockActors;
 	PropertyDataOffset bBlockPlayers;
+	PropertyDataOffset bBlockSight;
 	PropertyDataOffset bBounce;
 	PropertyDataOffset bCanTeleport;
 	PropertyDataOffset bCarriedItem;
