@@ -49,8 +49,12 @@ class UConAudioList : public UConObject
 public:
 	using UConObject::UConObject;
 
+	void Load(ObjectStream* stream) override;
+
 	//DynamicArray& ConAudioList() { return Value<DynamicArray>(PropOffsets_ConAudioList.ConAudioList); }
 	int& audioCount() { return Value<int>(PropOffsets_ConAudioList.audioCount); }
+
+	Array<std::string> conAudioList;
 };
 
 class UConCamera : public UConObject
@@ -264,7 +268,7 @@ public:
 	int& cycleIndex() { return Value<int>(PropOffsets_ConEventRandomLabel.cycleIndex); }
 	//DynamicArray& labels() { return Value<DynamicArray>(PropOffsets_ConEventRandomLabel.labels); }
 
-	std::vector<std::string> labels;
+	Array<std::string> labels;
 };
 
 class UConEventSetFlag : public UConEvent
