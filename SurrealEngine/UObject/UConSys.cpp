@@ -15,17 +15,14 @@ float UConEvent::GetSoundLength(USound* sound)
 
 void UConAudioList::Load(ObjectStream* stream)
 {
-	UConObject::Load(stream);
+    UConObject::Load(stream);
 
-	// Note: this is a guess based on what UConEventRandomLabel did. It could be entirely wrong.
-	// If you get a crash here, don't assume this code is correct.
-
-	int count = stream->ReadIndex();
-	for (int i = 0; i < count; i++)
-	{
-		std::string label = stream->ReadString();
-		conAudioList.push_back(std::move(label));
-	}
+    int count = stream->ReadIndex();
+    for (int i = 0; i < count; i++)
+    {
+        conAudioList.push_back(stream->ReadObject<USound>());
+    }
+    stream->ThrowIfNotEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////
