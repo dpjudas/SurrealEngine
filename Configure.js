@@ -6,6 +6,7 @@ Project.addConfiguration("Debug");
 Project.addConfiguration("Release");
 
 Project.addSubdirectory("SurrealWidgets");
+Project.addSubdirectory("Thirdparty/openal-soft");
 
 var commonSources = [
 	"SurrealEngine/Precomp.cpp",
