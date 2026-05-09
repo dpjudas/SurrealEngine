@@ -80,62 +80,62 @@ std::string UConEventRandomLabel::GetRandomLabel()
 void UConversation::BindActorEvents(UObject* actorToBind)
 {
 	// conevent internally uses invokeactor and actortobind. at least in this call, they're the one in the same.
-    UActor* actorToBindAct = UObject::Cast<UActor>(actorToBind);
-    if (!actorToBindAct)
-        return;
+	UActor* actorToBindAct = UObject::Cast<UActor>(actorToBind);
+	if (!actorToBindAct)
+		return;
 
-    for (UConEvent* e = eventList(); e; e = e->nextEvent())
-    {
-        switch ((EEventType)e->eventType())
-        {
-        case EEventType::Speech:
-            if (auto speech = UObject::Cast<UConEventSpeech>(e))
-            {
-                if (speech->speakerName() == actorToBindAct->BindName() || speech->speakerName() == actorToBindAct->BarkBindName())
-                    speech->speaker() = actorToBindAct;
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				if (speech->speakerName() == actorToBindAct->BindName() || speech->speakerName() == actorToBindAct->BarkBindName())
+					speech->speaker() = actorToBindAct;
 				// internal note: maybe order of checks should be inverted
-                if (speech->speakingToName() == actorToBindAct->BindName() || speech->speakingToName() == actorToBindAct->BarkBindName())
-                    speech->speakingTo() = actorToBindAct;
-            }
-            break;
+				if (speech->speakingToName() == actorToBindAct->BindName() || speech->speakingToName() == actorToBindAct->BarkBindName())
+					speech->speakingTo() = actorToBindAct;
+			}
+			break;
 
-        case EEventType::TransferObject:
-            if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
-            {
-                if ((transfer->fromName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->fromName() == actorToBindAct->BarkBindName()))
-                    transfer->fromActor() = actorToBindAct;
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				if ((transfer->fromName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->fromName() == actorToBindAct->BarkBindName()))
+					transfer->fromActor() = actorToBindAct;
 
-                if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
-                    transfer->toActor() = actorToBindAct;
+				if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
+					transfer->toActor() = actorToBindAct;
 				transfer->giveObject() = engine->packages->FindClass("DeusEx.{}" + transfer->ObjectName());
-            }
-            break;
+			}
+			break;
 		/*not in original code*/
-        case EEventType::MoveCamera:
-            if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
-            {
-                if (moveCamera->cameraActorName() == actorToBindAct->BindName())
-                    moveCamera->cameraActor() = actorToBindAct;
-            }
-            break;
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				if (moveCamera->cameraActorName() == actorToBindAct->BindName())
+					moveCamera->cameraActor() = actorToBindAct;
+			}
+			break;
 		
-        case EEventType::Animation:
-            if (auto animation = UObject::Cast<UConEventAnimation>(e))
-            {
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
 				bool bindActor = animation->eventOwnerName() == actorToBindAct->BindName();
 				bool barkBindActor = animation->eventOwnerName() == actorToBindAct->BarkBindName();
-                if ((bindActor && bFirstPerson()) || barkBindActor)
-                    animation->eventOwner() = actorToBindAct;	
-            }
-            break;
+				if ((bindActor && bFirstPerson()) || barkBindActor)
+					animation->eventOwner() = actorToBindAct;	
+			}
+			break;
 
-        case EEventType::Trade:
-            if (auto trade = UObject::Cast<UConEventTrade>(e))
-            {
-                if (trade->eventOwnerName() == actorToBindAct->BindName())
-                    trade->eventOwner() = actorToBindAct;
-            }
-            break;
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				if (trade->eventOwnerName() == actorToBindAct->BindName())
+					trade->eventOwner() = actorToBindAct;
+			}
+			break;
 		
 		case EEventType::CheckObject:
 			if (auto eventCheckObject = UObject::Cast<UConEventCheckObject>(e))
@@ -148,10 +148,10 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 				}
 			}
 
-        default:
-            break;
-        }
-    }
+		default:
+			break;
+		}
+	}
 
 	//LogUnimplemented("Conversation.BindActorEvents");
 }
