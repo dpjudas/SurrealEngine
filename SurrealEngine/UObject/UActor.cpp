@@ -3019,7 +3019,6 @@ UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
 			return SetRouteCache(FindPathToEndPoint(invSpotList[idx], 1000));
 		}
 	}*/
-	XLevel()->FindPathCycles
 	LogUnimplemented("Pawn.FindBestInventoryPath");
 	outMinWeight = 0.0f;
 	return SetRouteCache({});
@@ -3866,7 +3865,7 @@ void UScriptedPawn::AddCarcass(const NameString& CarcassName)
 		if (carcassSeen == false)
 		{
 			Carcasses()[NumCarcasses()] = CarcassName;
-			NumCarcasses() += 1;
+			NumCarcasses() = NumCarcasses() + 1;
 		}
 	}
 }
@@ -3884,7 +3883,7 @@ uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
 	{
 		if (alliex[i].AllianceName == AllianceName)
 		{
-			if (alliex[i].AllianceLevel < 0.0) || (alliex[i].AllianceAgitation >= 1.0)
+			if ((alliex[i].AllianceLevel < 0.0) || (alliex[i].AllianceAgitation >= 1.0))
 			{
 				result = EAllianceType::ALLIANCE_Hostile;
 			}
@@ -3896,7 +3895,7 @@ uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
 		}
 	}
 
-	if (bLikesNeutral() && result = EAllianceType::ALLIANCE_Neutral)
+	if (bLikesNeutral() && (result == EAllianceType::ALLIANCE_Neutral))
 	{
 		result = EAllianceType::ALLIANCE_Friendly;
 	}
@@ -3917,9 +3916,10 @@ uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
 uint8_t UScriptedPawn::GetPawnAllianceType(UObject* QueryPawn)
 {
 	uint8_t othersAlliance;
-	if (UObject::TryCast<UScriptedPawn>(QueryPawn))
+	UScriptedPawn* qp = UObject::TryCast<UScriptedPawn>(QueryPawn);
+	if (qp)
 	{
-		othersAlliance = QueryPawn->GetAllianceType(Alliance());
+		othersAlliance = qp->GetAllianceType(Alliance());
 	}
 	uint8_t myAlliance = GetAllianceType(UObject::TryCast<UPawn>(QueryPawn)->Alliance());
 	if (othersAlliance == (uint8_t)EAllianceType::ALLIANCE_Hostile)
@@ -3943,12 +3943,12 @@ bool UScriptedPawn::HaveSeenCarcass(const NameString& CarcassName)
 
 bool UScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance)
 {
-	if(!UObject::TryCast<UScriptedPawn>(TestEnemy) || TestEnemy == Self || !bBlockSight() || bDeleteMe() || UObject::TryCast<UScriptedPawn>(TestEnemy)->KillCount < 1)
+	if(!UObject::TryCast<UScriptedPawn>(TestEnemy) || TestEnemy == Self || !bBlockSight() || bDeleteMe() || UObject::TryCast<UScriptedPawn>(TestEnemy)->KillCount() < 1)
 		return false;
 	if (bCheckAlliance)
 	{
 		uint8_t retval = GetPawnAllianceType(TestEnemy);
-		if (retval != EAllianceType::ALLIANCE_Hostile)
+		if (retval != (uint8_t)EAllianceType::ALLIANCE_Hostile)
 		{
 			return false;
 		}

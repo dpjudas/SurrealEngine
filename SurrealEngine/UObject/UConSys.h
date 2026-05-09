@@ -266,7 +266,7 @@ public:
 	BitfieldBool bCycleRandom() { return BoolValue(PropOffsets_ConEventRandomLabel.bCycleRandom); }
 	BitfieldBool bLabelsCycled() { return BoolValue(PropOffsets_ConEventRandomLabel.bLabelsCycled); }
 	int& cycleIndex() { return Value<int>(PropOffsets_ConEventRandomLabel.cycleIndex); }
-	DynamicArray& labels() { return Value<DynamicArray>(PropOffsets_ConEventRandomLabel.labels); }
+	std::vector<std::string> labels;
 };
 
 class UConEventSetFlag : public UConEvent
