@@ -54,7 +54,7 @@ public:
 	//DynamicArray& ConAudioList() { return Value<DynamicArray>(PropOffsets_ConAudioList.ConAudioList); }
 	int& audioCount() { return Value<int>(PropOffsets_ConAudioList.audioCount); }
 
-	Array<std::string> conAudioList;
+	Array<USound*> conAudioList;
 };
 
 class UConCamera : public UConObject
