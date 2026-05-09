@@ -30,10 +30,10 @@ int UDXExtString::GetNextTextPart(std::string& outText)
 
     int start = speechPage() * 239;
     outText = Text().substr(start, 239);
+    */
     LogUnimplemented("ExtString.GetNextTextPart");
     outText = "";
     return 0;
-    */
 }
 
 std::string& UDXExtString::GetText()
@@ -50,7 +50,7 @@ int UDXExtString::GetTextLength()
 
 int UDXExtString::GetTextPart(int startPos, int count, std::string& outText)
 {
-    LogUMessage("Usage check: ExtString.GetTextPart");
+    LogMessage("Usage check: ExtString.GetTextPart");
     outText = Text().substr(startPos, count);
     return (int)outText.length();
 }

@@ -40,21 +40,19 @@ void UConEventRandomLabel::Load(ObjectStream* stream)
 
 std::string UConEventRandomLabel::GetLabel(int labelIndex)
 {
-	std::string str = labels()[labelIndex];
-	if (!str)
-		return {};
+	std::string str = labels[labelIndex];
 	return str;
 }
 
 int UConEventRandomLabel::GetLabelCount()
 {
-	return labels().size();
+	return labels.size();
 }
 
 std::string UConEventRandomLabel::GetRandomLabel()
 {
-	int count = labels().size()
-	if (labels().size() <= 0)
+	int count = labels.size();
+	if (labels.size() <= 0)
 		return {};
 	int index;
 	if (cycleIndex() == count)
@@ -109,7 +107,7 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 
                 if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
                     transfer->toActor() = actorToBindAct;
-				transfer->checkObject() = engine->packages->FindClass(std::format("DeusEx.{}", ObjectName()));
+				transfer->giveObject() = engine->packages->FindClass("DeusEx.{}" + transfer->ObjectName());
             }
             break;
 		/*not in original code*/
@@ -125,7 +123,7 @@ void UConversation::BindActorEvents(UObject* actorToBind)
             if (auto animation = UObject::Cast<UConEventAnimation>(e))
             {
 				bool bindActor = animation->eventOwnerName() == actorToBindAct->BindName();
-				bool barkBindActor = animation->eventOwnerName() == actorToBindAct->BarkBindName()
+				bool barkBindActor = animation->eventOwnerName() == actorToBindAct->BarkBindName();
                 if ((bindActor && bFirstPerson()) || barkBindActor)
                     animation->eventOwner() = actorToBindAct;	
             }
@@ -146,7 +144,7 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 					eventCheckObject->checkObject() = nullptr;
 				else
 				{
-					eventCheckObject->checkObject() = engine->packages->FindClass(std::format("DeusEx.{}", ObjectName()));
+					eventCheckObject->checkObject() = engine->packages->FindClass("DeusEx.{}" + eventCheckObject->ObjectName());
 				}
 			}
 
@@ -322,7 +320,7 @@ UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue
 	UObject* obj = engine->LevelPackage->NewObject(name, cls, ObjectFlags::Transient, true);
 	UConFlagRef* flagObj = UObject::Cast<UConFlagRef>(obj);
 	flagObj->FlagName() = FlagName;
-	flagObj->bValue() = flagValue;
+	flagObj->Value() = flagValue;
 	return obj;
 }
 

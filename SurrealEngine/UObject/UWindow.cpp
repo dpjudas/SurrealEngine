@@ -642,10 +642,11 @@ UObject* UWindow::MoveFocusUp()
 	return nullptr;
 }
 
-UObject* UWindow::MoveTabGroup(EMove dir)
+/*UObject* UWindow::MoveTabGroup(EMove dir)
 {
 	// tbd
-}
+}*/
+
 UObject* UWindow::MoveTabGroupNext()
 {
 	LogUnimplemented("Window.MoveTabGroupNext");
