@@ -6,6 +6,7 @@ Project.addConfiguration("Debug");
 Project.addConfiguration("Release");
 
 Project.addSubdirectory("SurrealWidgets");
+Project.addSubdirectory("SurrealGPU");
 Project.addSubdirectory("Thirdparty/openal-soft");
 
 var commonSources = [
@@ -528,7 +529,7 @@ var thirdPartySources = [
 ];
 
 var commonLibs = [
-	"zvulkan",
+	"surrealgpu",
 	"surrealwidgets",
 	"SurrealVideo",
 	"openmpt",
@@ -602,8 +603,8 @@ var videoSources = [
 var includePaths = [
 	"SurrealEngine",
 	"SurrealWidgets/include",
+	"SurrealGPU/include",
 	"Thirdparty",
-	"Thirdparty/ZVulkan/include",
 	"Thirdparty/openmpt",
 	"Thirdparty/openal-soft/include",
 	"Thirdparty/miniz",

@@ -8,8 +8,8 @@
 #include "UObject/ULevel.h"
 #include "Utils/File.h"
 #include "RenderDevice/RenderDevice.h"
-#include <zvulkan/vulkansurface.h>
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkansurface.h>
+#include <surrealgpu/vulkanbuilders.h>
 #include <surrealwidgets/widgets/menubar/menubar.h>
 #include <surrealwidgets/widgets/toolbar/toolbar.h>
 

@@ -3,9 +3,9 @@
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
 #include "Utils/Logger.h"
-#include <zvulkan/vulkanbuilders.h>
-#include <zvulkan/vulkanswapchain.h>
-#include <zvulkan/vulkansurface.h>
+#include <surrealgpu/vulkanbuilders.h>
+#include <surrealgpu/vulkanswapchain.h>
+#include <surrealgpu/vulkansurface.h>
 #include <surrealwidgets/core/widget.h>
 #include <cmath>
 #include <stdexcept>

@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "CommandBufferManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanswapchain.h>
+#include <surrealgpu/vulkanswapchain.h>
 
 CommandBufferManager::CommandBufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

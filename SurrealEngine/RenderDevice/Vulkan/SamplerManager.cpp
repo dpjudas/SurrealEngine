@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "SamplerManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 SamplerManager::SamplerManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

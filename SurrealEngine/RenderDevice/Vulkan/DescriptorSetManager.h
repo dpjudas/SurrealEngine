@@ -2,7 +2,7 @@
 
 #include "SceneTextures.h"
 #include <unordered_map>
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 class VulkanRenderDevice;
 class CachedTexture;

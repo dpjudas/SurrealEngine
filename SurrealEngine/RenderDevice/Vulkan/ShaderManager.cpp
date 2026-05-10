@@ -3,7 +3,7 @@
 #include "ShaderManager.h"
 #include "FileResource.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 ShaderManager::ShaderManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

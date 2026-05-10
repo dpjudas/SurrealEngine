@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zvulkan/vulkanobjects.h>
+#include <surrealgpu/vulkanobjects.h>
 
 class VulkanRenderDevice;
 

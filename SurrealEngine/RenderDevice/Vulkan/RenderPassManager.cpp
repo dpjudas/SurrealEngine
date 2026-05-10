@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "RenderPassManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
-#include <zvulkan/vulkanswapchain.h>
+#include <surrealgpu/vulkanbuilders.h>
+#include <surrealgpu/vulkanswapchain.h>
 
 RenderPassManager::RenderPassManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

@@ -3,7 +3,7 @@
 #include "UploadManager.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 UploadManager::UploadManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

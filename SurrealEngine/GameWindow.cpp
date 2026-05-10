@@ -3,9 +3,9 @@
 #include "GameWindow.h"
 #include "LauncherSettings.h"
 #include "RenderDevice/RenderDevice.h"
-#include <zvulkan/vulkansurface.h>
-#include <zvulkan/vulkancompatibledevice.h>
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkansurface.h>
+#include <surrealgpu/vulkancompatibledevice.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI) : Widget(nullptr, WidgetType::Window, renderAPI), windowHost(windowHost)
 {

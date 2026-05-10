@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "SceneTextures.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
+#include <surrealgpu/vulkanbuilders.h>
 
 SceneTextures::SceneTextures(VulkanRenderDevice* renderer, int width, int height, int multisample) : Width(width), Height(height), Multisample(multisample)
 {

@@ -2,8 +2,8 @@
 #include "Precomp.h"
 #include "FramebufferManager.h"
 #include "VulkanRenderDevice.h"
-#include <zvulkan/vulkanbuilders.h>
-#include <zvulkan/vulkanswapchain.h>
+#include <surrealgpu/vulkanbuilders.h>
+#include <surrealgpu/vulkanswapchain.h>
 
 FramebufferManager::FramebufferManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {
