@@ -229,11 +229,11 @@ add_library(surrealgpu STATIC ${SURREALGPU_SOURCES} ${SURREALGPU_INCLUDES} ${VUL
 target_link_libraries(surrealgpu ${SURREALGPU_LIBS})
 set_target_properties(surrealgpu PROPERTIES CXX_STANDARD 17)
 
-add_executable(surrealgpu_example WIN32 MACOSX_BUNDLE ${EXAMPLE_SOURCES})
-target_link_libraries(surrealgpu_example surrealgpu)
-set_target_properties(surrealgpu_example PROPERTIES CXX_STANDARD 17)
+# add_executable(surrealgpu_example WIN32 MACOSX_BUNDLE ${EXAMPLE_SOURCES})
+# target_link_libraries(surrealgpu_example surrealgpu)
+# set_target_properties(surrealgpu_example PROPERTIES CXX_STANDARD 17)
 
 if(MSVC)
 	set_property(TARGET surrealgpu PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	set_property(TARGET surrealgpu_example PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+#	set_property(TARGET surrealgpu_example PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

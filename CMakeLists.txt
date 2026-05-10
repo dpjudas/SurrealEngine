@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(SurrealEngine)
 
 add_subdirectory(Thirdparty/openmpt)
-add_subdirectory(Thirdparty/ZVulkan)
+add_subdirectory(SurrealGPU)
 add_subdirectory(SurrealWidgets)
 
 if (WIN32)
@@ -538,7 +538,7 @@ set(THIRDPARTY_UNIX_SOURCES
 )
 
 set(SURREALCOMMON_LIBS
-	zvulkan
+	surrealgpu
 	surrealwidgets
 	SurrealVideo
 	openmpt
@@ -660,7 +660,7 @@ source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
 source_group("Thirdparty\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/miniz/.+")
 
-include_directories(SurrealEngine SurrealWidgets/include Thirdparty Thirdparty/ZVulkan/include Thirdparty/openmpt Thirdparty/openal-soft/include Thirdparty/miniz)
+include_directories(SurrealEngine SurrealWidgets/include Thirdparty SurrealGPU/include Thirdparty/openmpt Thirdparty/openal-soft/include Thirdparty/miniz)
 
 if(NOT APPLE AND SDL2_FOUND)
 	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})
