@@ -4,15 +4,13 @@
 #include "vulkansurface.h"
 #include "vulkanbuilders.h"
 
-#if defined(WIN32)
+#ifdef WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
-#define WIN32_MEAN_AND_LEAN
-#include <Windows.h>
 #endif
-
-#if defined(WIN32)
-#define NOMINMAX
-#define WIN32_MEAN_AND_LEAN
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <Windows.h>
 #endif
 
