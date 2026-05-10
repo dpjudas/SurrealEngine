@@ -3954,6 +3954,7 @@ bool UScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optiona
 		}
 		return true;
 	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////
