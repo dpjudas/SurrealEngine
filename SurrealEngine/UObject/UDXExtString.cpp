@@ -11,11 +11,17 @@ void UDXExtString::AppendText(const std::string& newText)
 
 int UDXExtString::GetFirstTextPart(std::string& outText)
 {
-	int len = Text().size();
-	int N = std::min(len - 1, 239);
-	outText = Text().substr(0, N);
+	if (!Text().empty())
+	{
+		size_t len = Text().size();
+		size_t N = std::min(len - 1, (size_t)239);
+		outText = Text().substr(0, N);
+	}
+	else
+	{
+		outText = {};
+	}
 	SpeechPage() = 0; // seems it does that
-	//LogUnimplemented("ExtString.GetFirstTextPart");
 	return 0;
 }
 

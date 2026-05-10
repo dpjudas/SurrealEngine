@@ -46,12 +46,12 @@ std::string UConEventRandomLabel::GetLabel(int labelIndex)
 
 int UConEventRandomLabel::GetLabelCount()
 {
-	return labels.size();
+	return (int)labels.size();
 }
 
 std::string UConEventRandomLabel::GetRandomLabel()
 {
-	int count = labels.size();
+	int count = (int)labels.size();
 	if (labels.size() <= 0)
 		return {};
 	int index;
@@ -72,7 +72,6 @@ std::string UConEventRandomLabel::GetRandomLabel()
 	}
 
 	return labels[index];
-
 }
 
 /////////////////////////////////////////////////////////////////////////////
