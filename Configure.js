@@ -8,6 +8,7 @@ Project.addConfiguration("Release");
 Project.addSubdirectory("SurrealWidgets");
 Project.addSubdirectory("SurrealGPU");
 Project.addSubdirectory("Thirdparty/openal-soft");
+Project.addSubdirectory("Thirdparty/openmpt");
 
 var commonSources = [
 	"SurrealEngine/Precomp.cpp",
@@ -653,7 +654,7 @@ surrealEditor.addLinkLibraries(commonLibs);
 surrealEditor.addLinkLibraries(["SurrealCommon"]);
 surrealEditor.addIncludePaths(includePaths);
 
-var surrealDebugger = Target.addApplication("SurrealDebugger");
+var surrealDebugger = Target.addConsole("SurrealDebugger");
 surrealDebugger.addFiles(debuggerSources);
 surrealDebugger.addLinkLibraries(commonLibs);
 surrealDebugger.addLinkLibraries(["SurrealCommon"]);
@@ -673,6 +674,10 @@ surrealDebugger.addDefines(["NDEBUG"], { configuration: "Release" });
 if (Environment.isWindows()) {
 	surrealCommon.addFiles(win32Sources);
 
+	surrealEngine.addLinkLibraries(win32Libs);
+	surrealEditor.addLinkLibraries(win32Libs);
+	surrealDebugger.addLinkLibraries(win32Libs);
+
 	surrealVideo.addDefines(win32Defines);
 	surrealCommon.addDefines(win32Defines);
 	surrealEngine.addDefines(win32Defines);
@@ -680,6 +685,10 @@ if (Environment.isWindows()) {
 	surrealDebugger.addDefines(win32Defines);
 }
 else if (Environment.isUnix()) {
+	surrealEngine.addLinkLibraries(unixLibs);
+	surrealEditor.addLinkLibraries(unixLibs);
+	surrealDebugger.addLinkLibraries(unixLibs);
+
 	surrealVideo.addDefines(unixDefines);
 	surrealCommon.addDefines(unixDefines);
 	surrealEngine.addDefines(unixDefines);
