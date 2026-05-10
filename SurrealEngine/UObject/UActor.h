@@ -2097,19 +2097,19 @@ public:
 
 struct BlendAnimChannel  
 {  
-    MeshAnimSeq* Sequence = nullptr;  
-    float AnimRate = 0.0f;  
-    float AnimProgressLimit = 0.0f;  
-    float BlendAlpha = 0.0f;  
-    float BlendRate = 0.0f;  
-    float TweenSpeed = 0.0f;  
-    float FrameStep = 0.0f;  
-    float PreviousRate = 0.0f;  
-      
-    int InternalRate = 0;  
-    int InternalAnimRate = 0;  
-    int InternalTween = 0;  
-    int InternalProgressLimit = 0;  
+	MeshAnimSeq* Sequence = nullptr;  
+	float AnimRate = 0.0f;  
+	float AnimProgressLimit = 0.0f;  
+	float BlendAlpha = 0.0f;  
+	float BlendRate = 0.0f;  
+	float TweenSpeed = 0.0f;  
+	float FrameStep = 0.0f;  
+	float PreviousRate = 0.0f;  
+	  
+	int InternalRate = 0;  
+	int InternalAnimRate = 0;  
+	int InternalTween = 0;  
+	int InternalProgressLimit = 0;  
 };  
 
 class UDeusExPlayer : public UPlayerPawnExt

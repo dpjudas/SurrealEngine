@@ -169,25 +169,25 @@ bool ChildActorsIterator::Next()
 /////////////////////////////////////////////////////////////////////////////
 CycleActorsIterator::CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex)  : BaseClass(BaseClass), Actor(Actor), outIndex(outIndex)  
 {  
-    for (UActor* levelActor : engine->Level->Actors)  
-    {  
-        if (levelActor && levelActor->IsA(BaseClass->Name))  
-            matchedActors.push_back(levelActor); 
-    }  
-    totalActors = matchedActors.size();  
+	for (UActor* levelActor : engine->Level->Actors)  
+	{  
+		if (levelActor && levelActor->IsA(BaseClass->Name))  
+			matchedActors.push_back(levelActor); 
+	}  
+	totalActors = matchedActors.size();  
 }  
 
 bool CycleActorsIterator::Next()  
 {  
-    if (matchedActors.empty()) return false;  
-    if (currentIndex >= matchedActors.size())  
-    {  
-        return false;  
-    }  
-    *Actor = matchedActors[currentIndex];  
-    if (outIndex) *outIndex = static_cast<int>(currentIndex);  
-    ++currentIndex;  
-    return true;  
+	if (matchedActors.empty()) return false;  
+	if (currentIndex >= matchedActors.size())  
+	{  
+		return false;  
+	}  
+	*Actor = matchedActors[currentIndex];  
+	if (outIndex) *outIndex = static_cast<int>(currentIndex);  
+	++currentIndex;  
+	return true;  
 }
 
 /////////////////////////////////////////////////////////////////////////////

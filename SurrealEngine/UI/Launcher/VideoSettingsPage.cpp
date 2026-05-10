@@ -13,9 +13,9 @@
 #include <surrealwidgets/widgets/layout/hboxlayout.h>
 
 VideoSettingsPage::VideoSettingsPage(Widget* parent)
-    : Widget(parent)
+	: Widget(parent)
 {
-    RenderDeviceLabel = new TextLabel(this);
+	RenderDeviceLabel = new TextLabel(this);
 	Vulkan = new CheckboxLabel(this);
 	Vulkan->SetRadioStyle(true);
 #ifdef WIN32

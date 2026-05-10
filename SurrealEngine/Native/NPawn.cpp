@@ -105,8 +105,8 @@ void NPawn::ClientHearSound(UObject* Self, UObject* Actor, int Id, UObject* S, c
 
 void NPawn::EAdjustJump(UObject* Self, vec3& ReturnValue)
 {
-    UPawn* selfPawn = UObject::Cast<UPawn>(Self);
-    ReturnValue = selfPawn->EAdjustJump();
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);
+	ReturnValue = selfPawn->EAdjustJump();
 }
 
 void NPawn::FindBestInventoryPath(UObject* Self, float& MinWeight, bool bPredictRespawns, UObject*& ReturnValue)
@@ -172,33 +172,33 @@ void NPawn::PickAnyTarget(UObject* Self, float& bestAim, float& bestDist, const 
 
 void NPawn::AIPickRandomDestination(UObject* Self, float minDist, float maxDist, int centralYaw, float yawDistribution, int centralPitch, float pitchDistribution, int tries, float multiplier, vec3& dest)  
 {  
-    UPawn* selfPawn = UObject::Cast<UPawn>(Self);  
-    if (!selfPawn) { dest = {}; return; }  
+	UPawn* selfPawn = UObject::Cast<UPawn>(Self);  
+	if (!selfPawn) { dest = {}; return; }  
   
-    selfPawn->ClearPaths();  
+	selfPawn->ClearPaths();  
   
-    Array<UNavigationPoint*> candidates;  
-    for (UNavigationPoint* nav = selfPawn->Level()->NavigationPointList(); nav; nav = nav->nextNavigationPoint())  
-    {  
-        if (!selfPawn->ActorReachable(nav)) continue;  
-        vec3 toPoint = nav->Location() - selfPawn->Location();  
-        float dist = length(toPoint);  
-        if (dist < minDist || dist > maxDist * multiplier) continue;  
+	Array<UNavigationPoint*> candidates;  
+	for (UNavigationPoint* nav = selfPawn->Level()->NavigationPointList(); nav; nav = nav->nextNavigationPoint())  
+	{  
+		if (!selfPawn->ActorReachable(nav)) continue;  
+		vec3 toPoint = nav->Location() - selfPawn->Location();  
+		float dist = length(toPoint);  
+		if (dist < minDist || dist > maxDist * multiplier) continue;  
   
-        Rotator dir = Rotator::FromVector(normalize(toPoint));  
-        int yawDiff = std::abs(dir.Yaw - centralYaw);  
-        int pitchDiff = std::abs(dir.Pitch - centralPitch);  
-        if (yawDiff > yawDistribution * 65536.0f / 360.0f) continue;  
-        if (pitchDiff > pitchDistribution * 65536.0f / 360.0f) continue;  
+		Rotator dir = Rotator::FromVector(normalize(toPoint));  
+		int yawDiff = std::abs(dir.Yaw - centralYaw);  
+		int pitchDiff = std::abs(dir.Pitch - centralPitch);  
+		if (yawDiff > yawDistribution * 65536.0f / 360.0f) continue;  
+		if (pitchDiff > pitchDistribution * 65536.0f / 360.0f) continue;  
   
-        candidates.push_back(nav);  
-    }  
+		candidates.push_back(nav);  
+	}  
   
-    if (candidates.empty()) { dest = {}; return; }  
+	if (candidates.empty()) { dest = {}; return; }  
   
-    float r = static_cast<float>(std::rand()) / RAND_MAX;  
-    size_t idx = static_cast<size_t>(r * candidates.size());  
-    dest = candidates[idx]->Location();  
+	float r = static_cast<float>(std::rand()) / RAND_MAX;  
+	size_t idx = static_cast<size_t>(r * candidates.size());  
+	dest = candidates[idx]->Location();  
 }
 
 void NPawn::PickTarget(UObject* Self, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart, UObject*& ReturnValue)

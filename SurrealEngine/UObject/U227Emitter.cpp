@@ -5,25 +5,25 @@
 
 void UXParticleEmitter::SetParticlesProps(std::optional<float> Speed, std::optional<float> Scale)
 {
-    LogUnimplemented("XParticleEmitter.SetParticlesProps() [U227]");
+	LogUnimplemented("XParticleEmitter.SetParticlesProps() [U227]");
 }
 
 void UXEmitter::EmTrigger()
 {
-    LogUnimplemented("XEmitter.EmTrigger() [U227]");
+	LogUnimplemented("XEmitter.EmTrigger() [U227]");
 }
 
 void UXEmitter::Kill()
 {
-    LogUnimplemented("XEmitter.Kill() [U227]");
+	LogUnimplemented("XEmitter.Kill() [U227]");
 }
 
 void UXEmitter::SetMaxParticles(int MaxParts)
 {
-    LogUnimplemented("XEmitter.SetMaxParticles() [U227]");
+	LogUnimplemented("XEmitter.SetMaxParticles() [U227]");
 }
 
 void UXEmitter::SpawnParticles(int Count)
 {
-    LogUnimplemented("XEmitter.SpawnParticles() [U227]");
+	LogUnimplemented("XEmitter.SpawnParticles() [U227]");
 }

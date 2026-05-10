@@ -6,13 +6,13 @@
 class AboutDialog : public Dialog
 {
 public:
-    AboutDialog(Widget* parent);
+	AboutDialog(Widget* parent);
 
 private:
-    PushButton* m_OkButton = nullptr;
-    TextLabel* m_AboutTextLine1 = nullptr;
-    TextLabel* m_AboutTextLine2 = nullptr;
-    TextLabel* m_AboutTextLine3 = nullptr;
-    ImageBox* m_SEBannerImageBox = nullptr;
-    ImageBox* m_SEIconImageBox = nullptr;
+	PushButton* m_OkButton = nullptr;
+	TextLabel* m_AboutTextLine1 = nullptr;
+	TextLabel* m_AboutTextLine2 = nullptr;
+	TextLabel* m_AboutTextLine3 = nullptr;
+	ImageBox* m_SEBannerImageBox = nullptr;
+	ImageBox* m_SEIconImageBox = nullptr;
 };

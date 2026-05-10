@@ -5,7 +5,7 @@
 class NUPakPawnPathNodeIterator
 {
 public:
-    static void RegisterFunctions();
+	static void RegisterFunctions();
 
-    static void SetPawn(UObject* Self, UObject*& Pawn);
+	static void SetPawn(UObject* Self, UObject*& Pawn);
 };

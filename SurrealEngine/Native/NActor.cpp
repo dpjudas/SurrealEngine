@@ -161,7 +161,7 @@ void NActor::ChildActors(UObject* Self, UObject* BaseClass, UObject*& Actor)
 
 void NActor::CycleActors(UObject* Self, UObject* BaseClass, UObject*& Actor, int& index)  
 {  
-    Frame::CreatedIterator = std::make_unique<CycleActorsIterator>(BaseClass, &Actor, &index);  
+	Frame::CreatedIterator = std::make_unique<CycleActorsIterator>(BaseClass, &Actor, &index);  
 }
 
 void NActor::ConsoleCommand(UObject* Self, const std::string& Command, std::string& ReturnValue)
@@ -230,28 +230,28 @@ void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString&
 
 void NActor::GetBoundingBox(UObject* Self, vec3& MinVect, vec3& MaxVect, std::optional<bool> bExact, std::optional<vec3> testLocation, std::optional<Rotator> testRotation, BitfieldBool& ReturnValue)
 {
-    UActor* actor = UObject::Cast<UActor>(Self);  
-    if (!actor) { ReturnValue = false; return; }  
+	UActor* actor = UObject::Cast<UActor>(Self);  
+	if (!actor) { ReturnValue = false; return; }  
   
-    bool bExactVal = bExact ? *bExact : false;  
-    if (bExactVal || testLocation || testRotation)  
-    {  
-        actor->UpdateBspInfo(); 
-    }  
+	bool bExactVal = bExact ? *bExact : false;  
+	if (bExactVal || testLocation || testRotation)  
+	{  
+		actor->UpdateBspInfo(); 
+	}  
   
-    BBox bbox = actor->BspInfo.BoundingBox;  
+	BBox bbox = actor->BspInfo.BoundingBox;  
   
-    if (testLocation || testRotation)  
-    {  
-        vec3 loc = testLocation ? *testLocation : actor->Location();  
-        Rotator rot = testRotation ? *testRotation : actor->Rotation();  
-        mat4 objectToWorld = mat4::translate(loc) * Coords::Rotation(rot).ToMatrix();  
-        bbox = bbox.transform(objectToWorld);  
-    }  
+	if (testLocation || testRotation)  
+	{  
+		vec3 loc = testLocation ? *testLocation : actor->Location();  
+		Rotator rot = testRotation ? *testRotation : actor->Rotation();  
+		mat4 objectToWorld = mat4::translate(loc) * Coords::Rotation(rot).ToMatrix();  
+		bbox = bbox.transform(objectToWorld);  
+	}  
   
-    MinVect = bbox.min;  
-    MaxVect = bbox.max;  
-    ReturnValue = true;  
+	MinVect = bbox.min;  
+	MaxVect = bbox.max;  
+	ReturnValue = true;  
 }
 
 void NActor::GetCacheEntry(UObject* Self, int Num, std::string& Guid, std::string& Filename, BitfieldBool& ReturnValue)
@@ -398,20 +398,20 @@ void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
 void NActor::IsOverlapping(UObject* Self, UObject* checkActor, BitfieldBool& ReturnValue)
 {
 	UActor* selfActor = UObject::Cast<UActor>(Self);  
-    UActor* otherActor = UObject::Cast<UActor>(checkActor);  
-    ReturnValue = selfActor && otherActor && selfActor->IsOverlapping(otherActor); 
+	UActor* otherActor = UObject::Cast<UActor>(checkActor);  
+	ReturnValue = selfActor && otherActor && selfActor->IsOverlapping(otherActor); 
 }
 
 void NActor::LastRendered(UObject *Self, float &ReturnValue)
 {
 	if (UDecal* decal = UObject::TryCast<UDecal>(Self))  
-    {  
-        ReturnValue = decal->LastRenderedTime();  
-    }  
-    else  
-    {  
-        ReturnValue = 0.0f; // UActor no tiene LastRenderedTime  
-    }  
+	{  
+		ReturnValue = decal->LastRenderedTime();  
+	}  
+	else  
+	{  
+		ReturnValue = 0.0f; // UActor no tiene LastRenderedTime  
+	}  
 }
 
 void NActor::LinkSkelAnim(UObject* Self, UObject* Anim)
@@ -691,50 +691,50 @@ void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObje
 
 void NActor::GetMeshTexture(UObject* Self, std::optional<int> texnum, UObject*& ReturnValue)  
 {  
-    UActor* actor = UObject::Cast<UActor>(Self);  
-    UMesh* mesh = actor ? actor->Mesh() : nullptr;  
-    int index = texnum ? *texnum : 0;  
-    if (!mesh || index < 0 || index >= (int)mesh->Textures.size())  
-    {  
-        ReturnValue = engine->DefaultTexture;  
-        return;  
-    }  
+	UActor* actor = UObject::Cast<UActor>(Self);  
+	UMesh* mesh = actor ? actor->Mesh() : nullptr;  
+	int index = texnum ? *texnum : 0;  
+	if (!mesh || index < 0 || index >= (int)mesh->Textures.size())  
+	{  
+		ReturnValue = engine->DefaultTexture;  
+		return;  
+	}  
   
-    UTexture* tex = actor->GetMultiskin(index);  
-    if (!tex)  
-    {  
-        if (!mesh->Textures[index] || index == 0)  
-            tex = actor->Skin();  
-        if (!tex)  
-            tex = mesh->Textures[index];  
-        if (!tex)  
-            tex = actor->Texture();  
-    }  
-    ReturnValue = tex ? tex : engine->DefaultTexture;  
+	UTexture* tex = actor->GetMultiskin(index);  
+	if (!tex)  
+	{  
+		if (!mesh->Textures[index] || index == 0)  
+			tex = actor->Skin();  
+		if (!tex)  
+			tex = mesh->Textures[index];  
+		if (!tex)  
+			tex = actor->Texture();  
+	}  
+	ReturnValue = tex ? tex : engine->DefaultTexture;  
 }
 
 void NActor::GetPlayerPawn(UObject* Self, UObject*& ReturnValue)  
 {  
-    if (engine && engine->viewport && engine->viewport->Actor())  
-    {  
-        ReturnValue = engine->viewport->Actor();  
-        return;  
-    }  
+	if (engine && engine->viewport && engine->viewport->Actor())  
+	{  
+		ReturnValue = engine->viewport->Actor();  
+		return;  
+	}  
   
-    if (engine && engine->Level)  
-    {  
-        for (UActor* actor : engine->Level->Actors)  
-        {  
-            UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);  
-            if (pawn && pawn->Player())  
-            {  
-                ReturnValue = pawn;  
-                return;  
-            }  
-        }  
-    }  
+	if (engine && engine->Level)  
+	{  
+		for (UActor* actor : engine->Level->Actors)  
+		{  
+			UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);  
+			if (pawn && pawn->Player())  
+			{  
+				ReturnValue = pawn;  
+				return;  
+			}  
+		}  
+	}  
   
-    ReturnValue = nullptr;  
+	ReturnValue = nullptr;  
 }
 
 void NActor::AIClearEvent(UObject* Self, const NameString& eventName)
@@ -871,40 +871,40 @@ void NActor::ParabolicTrace(UObject* Self, vec3& finalLocation, std::optional<ve
 }
 
 void NActor::RandomBiasedRotation(
-    UObject* Self,
-    int centralYaw,
-    float yawDistribution,
-    int centralPitch,
-    float pitchDistribution,
-    Rotator& ReturnValue)
+	UObject* Self,
+	int centralYaw,
+	float yawDistribution,
+	int centralPitch,
+	float pitchDistribution,
+	Rotator& ReturnValue)
 {
-    if (yawDistribution < 0.0f) yawDistribution = 0.0f;
-    if (yawDistribution > 1.0f) yawDistribution = 1.0f;
+	if (yawDistribution < 0.0f) yawDistribution = 0.0f;
+	if (yawDistribution > 1.0f) yawDistribution = 1.0f;
 
-    if (pitchDistribution < 0.0f) pitchDistribution = 0.0f;
-    if (pitchDistribution > 1.0f) pitchDistribution = 1.0f;
+	if (pitchDistribution < 0.0f) pitchDistribution = 0.0f;
+	if (pitchDistribution > 1.0f) pitchDistribution = 1.0f;
 
-    float rYaw = (float)std::rand() * 3.051851e-05f;
-    rYaw = rYaw * 2.0f - 1.0f;
+	float rYaw = (float)std::rand() * 3.051851e-05f;
+	rYaw = rYaw * 2.0f - 1.0f;
 
-    float rPitch = (float)std::rand() * 3.051851e-05f;
-    rPitch = rPitch * 2.0f - 1.0f;
+	float rPitch = (float)std::rand() * 3.051851e-05f;
+	rPitch = rPitch * 2.0f - 1.0f;
 
-    float signYaw = (rYaw < 0.f) ? -1.f : 1.f;
-    float absYaw = std::fabs(rYaw);
-    float kYaw = 1.0f - yawDistribution;
-    float biasedYaw = absYaw / (kYaw + (1.0f - kYaw) * absYaw);
-    biasedYaw *= signYaw;
+	float signYaw = (rYaw < 0.f) ? -1.f : 1.f;
+	float absYaw = std::fabs(rYaw);
+	float kYaw = 1.0f - yawDistribution;
+	float biasedYaw = absYaw / (kYaw + (1.0f - kYaw) * absYaw);
+	biasedYaw *= signYaw;
 
-    float signPitch = (rPitch < 0.f) ? -1.f : 1.f;
-    float absPitch = std::fabs(rPitch);
-    float kPitch = 1.0f - pitchDistribution;
-    float biasedPitch = absPitch / (kPitch + (1.0f - kPitch) * absPitch);
-    biasedPitch *= signPitch;
+	float signPitch = (rPitch < 0.f) ? -1.f : 1.f;
+	float absPitch = std::fabs(rPitch);
+	float kPitch = 1.0f - pitchDistribution;
+	float biasedPitch = absPitch / (kPitch + (1.0f - kPitch) * absPitch);
+	biasedPitch *= signPitch;
 
-    ReturnValue.Yaw   = centralYaw + (int)biasedYaw;
-    ReturnValue.Pitch = centralPitch + (int)biasedPitch;
-    ReturnValue.Roll  = 0;
+	ReturnValue.Yaw   = centralYaw + (int)biasedYaw;
+	ReturnValue.Pitch = centralPitch + (int)biasedPitch;
+	ReturnValue.Roll  = 0;
 }
 
 void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
