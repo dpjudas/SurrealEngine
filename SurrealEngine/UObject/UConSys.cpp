@@ -146,6 +146,7 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 					eventCheckObject->checkObject() = engine->packages->FindClass("DeusEx.{}" + eventCheckObject->ObjectName());
 				}
 			}
+			break;
 
 		default:
 			break;
