@@ -2345,7 +2345,7 @@ public:
 	uint8_t GetAllianceType(const NameString& AllianceName);
 	uint8_t GetPawnAllianceType(UPawn* QueryPawn);
 	bool HaveSeenCarcass(const NameString& CarcassName);
-	bool IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance);
+	bool IsValidEnemy(UPawn* TestEnemy, std::optional<bool> bCheckAlliance);
 };
 
 class UDeusExDecoration : public UDecoration

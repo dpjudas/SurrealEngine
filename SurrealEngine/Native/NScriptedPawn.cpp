@@ -48,5 +48,5 @@ void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName
 void NScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance, BitfieldBool& ReturnValue)
 {
 	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
-	ReturnValue = SelfPawn->IsValidEnemy(Self, TestEnemy, bCheckAlliance);
+	ReturnValue = SelfPawn->IsValidEnemy(UObject::Cast<UPawn>(TestEnemy), bCheckAlliance);
 }

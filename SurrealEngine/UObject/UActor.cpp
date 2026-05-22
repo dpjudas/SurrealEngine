@@ -3935,9 +3935,9 @@ bool UScriptedPawn::HaveSeenCarcass(const NameString& CarcassName)
 	return false;
 }
 
-bool UScriptedPawn::IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance)
+bool UScriptedPawn::IsValidEnemy(UPawn* TestEnemy, std::optional<bool> bCheckAlliance)
 {
-	if(!UObject::TryCast<UScriptedPawn>(TestEnemy) || TestEnemy == Self || !bBlockSight() || bDeleteMe() || UObject::TryCast<UScriptedPawn>(TestEnemy)->KillCount() < 1)
+	if(!UObject::TryCast<UScriptedPawn>(TestEnemy) || TestEnemy == this || !bBlockSight() || bDeleteMe() || UObject::TryCast<UScriptedPawn>(TestEnemy)->KillCount() < 1)
 		return false;
 	if (bCheckAlliance)
 	{
