@@ -2343,7 +2343,7 @@ public:
 	void AddCarcass(const NameString& CarcassName);
 	void ConBindEvents();
 	uint8_t GetAllianceType(const NameString& AllianceName);
-	uint8_t GetPawnAllianceType(UObject* QueryPawn);
+	uint8_t GetPawnAllianceType(UPawn* QueryPawn);
 	bool HaveSeenCarcass(const NameString& CarcassName);
 	bool IsValidEnemy(UObject* Self, UObject* TestEnemy, std::optional<bool> bCheckAlliance);
 };

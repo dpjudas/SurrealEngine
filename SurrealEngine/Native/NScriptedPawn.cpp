@@ -36,7 +36,7 @@ void NScriptedPawn::GetAllianceType(UObject* Self, const NameString& AllianceNam
 void NScriptedPawn::GetPawnAllianceType(UObject* Self, UObject* QueryPawn, uint8_t& ReturnValue)
 {
 	auto SelfPawn = UObject::Cast<UScriptedPawn>(Self);
-	ReturnValue = SelfPawn->GetPawnAllianceType(QueryPawn);
+	ReturnValue = SelfPawn->GetPawnAllianceType(UObject::Cast<UPawn>(QueryPawn));
 }
 
 void NScriptedPawn::HaveSeenCarcass(UObject* Self, const NameString& CarcassName, BitfieldBool& ReturnValue)

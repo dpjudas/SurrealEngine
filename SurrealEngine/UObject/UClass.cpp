@@ -104,6 +104,9 @@ void UStruct::Load(ObjectStream* stream)
 
 	Array<UProperty*> properties;
 
+	if (!BaseStruct && BaseField)
+		BaseStruct = UObject::Cast<UStruct>(BaseField);
+
 	size_t offset = 0;
 	size_t structAlignment = 1;
 	if (BaseStruct)

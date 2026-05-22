@@ -2049,66 +2049,63 @@ void UActor::TickBlendAnimation(float elapsed)
 	for (int i = 0; elapsed > 0.0f && i < 4; i++)
 	{
 		if (BlendAnimSequence()[i].IsNone())
-		continue;
-
-	if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
-		continue;
-
-	float oldFrame = BlendAnimFrame()[i];
-
-	if (BlendAnimFrame()[i] < 0.0f)
-	{
-		BlendAnimFrame()[i] += elapsed * BlendTweenRate()[i];
-
-		if (BlendAnimFrame()[i] < 0.0f)
 			continue;
 
-		BlendAnimFrame()[i] = 0.0f;
+		if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+			continue;
 
-		elapsed = (BlendAnimFrame()[i] * elapsed) / (BlendAnimFrame()[i] - oldFrame);
-		continue;
-	}
+		float oldFrame = BlendAnimFrame()[i];
 
-	if (BlendAnimRate()[i] < 0.0f)
-	{
-		float speed = length(Velocity());
-
-		float adjustedRate = -speed * BlendAnimRate()[i];
-
-		float minRate = BlendAnimLast()[i];
-		if (adjustedRate > minRate)
-			adjustedRate = minRate;
-
-		BlendAnimFrame()[i] += adjustedRate * elapsed;
-	}
-	else
-	{
-		BlendAnimFrame()[i] += BlendAnimRate()[i] * elapsed;
-	}
-
-	if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
-	{
-		float endFrame = BlendAnimLast()[i];
-
-		BlendAnimFrame()[i] = endFrame;
-		BlendAnimRate()[i] = 0.0f;
-
-		elapsed = ((BlendAnimFrame()[i] - endFrame) * elapsed) /
-					(BlendAnimFrame()[i] - oldFrame);
-
-
-		if (RemoteRole() < ENetRole::ROLE_SimulatedProxy)
+		if (BlendAnimFrame()[i] < 0.0f)
 		{
-			SimBlendAnim()[i].z = BlendAnimFrame()[i] * 10000.0f;
+			BlendAnimFrame()[i] += elapsed * BlendTweenRate()[i];
 
-			float rate = BlendAnimRate()[i] * 5000.0f;
-			if (rate > 32767.0f)
-				rate = 32767.0f;
+			if (BlendAnimFrame()[i] < 0.0f)
+				continue;
 
-			SimBlendAnim()[i].w = rate;
+			BlendAnimFrame()[i] = 0.0f;
+
+			elapsed = (BlendAnimFrame()[i] * elapsed) / (BlendAnimFrame()[i] - oldFrame);
+			continue;
 		}
-	}
 
+		if (BlendAnimRate()[i] < 0.0f)
+		{
+			float speed = length(Velocity());
+
+			float adjustedRate = -speed * BlendAnimRate()[i];
+
+			float minRate = BlendAnimLast()[i];
+			if (adjustedRate > minRate)
+				adjustedRate = minRate;
+
+			BlendAnimFrame()[i] += adjustedRate * elapsed;
+		}
+		else
+		{
+			BlendAnimFrame()[i] += BlendAnimRate()[i] * elapsed;
+		}
+
+		if (BlendAnimFrame()[i] >= BlendAnimLast()[i])
+		{
+			float endFrame = BlendAnimLast()[i];
+
+			BlendAnimFrame()[i] = endFrame;
+			BlendAnimRate()[i] = 0.0f;
+
+			elapsed = ((BlendAnimFrame()[i] - endFrame) * elapsed) / (BlendAnimFrame()[i] - oldFrame);
+
+			if (RemoteRole() < ENetRole::ROLE_SimulatedProxy)
+			{
+				SimBlendAnim()[i].z = BlendAnimFrame()[i] * 10000.0f;
+
+				float rate = BlendAnimRate()[i] * 5000.0f;
+				if (rate > 32767.0f)
+					rate = 32767.0f;
+
+				SimBlendAnim()[i].w = rate;
+			}
+		}
 	}
 }
 
@@ -3913,20 +3910,17 @@ uint8_t UScriptedPawn::GetAllianceType(const NameString& AllianceName)
 	return (uint8_t)result;
 }
 
-uint8_t UScriptedPawn::GetPawnAllianceType(UObject* QueryPawn)
+uint8_t UScriptedPawn::GetPawnAllianceType(UPawn* QueryPawn)
 {
-	uint8_t othersAlliance;
-	UScriptedPawn* qp = UObject::TryCast<UScriptedPawn>(QueryPawn);
-	if (qp)
+	if (UScriptedPawn* qp = UObject::TryCast<UScriptedPawn>(QueryPawn))
 	{
-		othersAlliance = qp->GetAllianceType(Alliance());
+		uint8_t othersAlliance = qp->GetAllianceType(Alliance());
+		if (othersAlliance == (uint8_t)EAllianceType::ALLIANCE_Hostile)
+		{
+			return (uint8_t)EAllianceType::ALLIANCE_Hostile;
+		}
 	}
-	uint8_t myAlliance = GetAllianceType(UObject::TryCast<UPawn>(QueryPawn)->Alliance());
-	if (othersAlliance == (uint8_t)EAllianceType::ALLIANCE_Hostile)
-	{
-		return (uint8_t)EAllianceType::ALLIANCE_Hostile;
-	}
-	return myAlliance;
+	return GetAllianceType(QueryPawn->Alliance());
 }
 
 bool UScriptedPawn::HaveSeenCarcass(const NameString& CarcassName)
