@@ -1064,6 +1064,7 @@ void UWindow::ResizeChild()
 	float width = 0.0f, height = 0.0f;
 
 	QueryPreferredSize(width, height);
+	bConfigured() = false; // Seems ResizeChild is supposed to call ConfigurationChanged always, even if nothing resized
 	ConfigureChild(X(), Y(), width, height);
 }
 
