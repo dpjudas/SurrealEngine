@@ -552,6 +552,8 @@ public:
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
 	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
 
+	void DrawWindow(UGC* gc) override;
+
 	//ButtonDisplayInfo& Info() { return Value<ButtonDisplayInfo>(PropOffsets_ButtonWindow.Info); }
 	float& activateDelay() { return Value<float>(PropOffsets_ButtonWindow.activateDelay); }
 	int& activateTimer() { return Value<int>(PropOffsets_ButtonWindow.activateTimer); }

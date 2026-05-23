@@ -1935,11 +1935,18 @@ void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 	if (!Text().empty()) // Is this needed?
 	{
 		float xExtent = 0.0f, yExtent = 0.0f;
+		UObject* oldNormalFont = nullptr;
+		UObject* oldBoldFont = nullptr;
+		engine->dxgc->GetFonts(oldNormalFont, oldBoldFont);
+		engine->dxgc->SetFonts(normalFont(), boldFont());
 		engine->dxgc->GetTextExtent(bWidthSpecified ? preferredWidth : 100000.0f, xExtent, yExtent, Text());
+		engine->dxgc->SetFonts(oldNormalFont, oldBoldFont);
+		float xMargin = hMargin();
+		float yMargin = vMargin();
 		if (!bWidthSpecified)
-			preferredWidth = xExtent;
+			preferredWidth = xExtent + xMargin * 2.0f;
 		if (!bHeightSpecified)
-			preferredHeight = yExtent;
+			preferredHeight = yExtent + yMargin * 2.0f;
 	}
 
 	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
@@ -1964,6 +1971,35 @@ void UTextWindow::DrawWindow(UGC* gc)
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+void UButtonWindow::DrawWindow(UGC* gc)
+{
+	if (ButtonTextures.Normal)
+	{
+		gc->DrawStretchedTexture(
+			0.0f, 0.0f, Width(), Height(),
+			0.0f, 0.0f, (float)ButtonTextures.Normal->USize(), (float)ButtonTextures.Normal->VSize(),
+			ButtonTextures.Normal);
+	}
+
+	if (normalFont())
+	{
+		float xMargin = hMargin();
+		float yMargin = vMargin();
+		float w = Width() - 2.0f * xMargin;
+		float h = Height() - 2.0f * yMargin;
+		if (w > 0.0f && h > 0.0f)
+		{
+			gc->SetTextColor(TextColors.Normal);
+			gc->SetAlignments(HAlign(), VAlign());
+			gc->DrawText(xMargin, yMargin, w, h, Text());
+		}
+		// DrawDebugBox(gc);
+	}
+
+	// Note: we are intentionally not calling UTextWindow::DrawWindow
+	UWindow::DrawWindow(gc);
+}
 
 void UButtonWindow::ActivateButton(EInputKey key)
 {
