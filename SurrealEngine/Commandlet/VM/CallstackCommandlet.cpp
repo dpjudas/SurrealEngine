@@ -63,3 +63,47 @@ void SelectFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 void SelectFrameCommandlet::OnPrintHelp(DebuggerApp* console)
 {
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+UpFrameCommandlet::UpFrameCommandlet()
+{
+	//SetShortFormName("up");
+	SetLongFormName("up");
+	SetShortDescription("Selects the previous (outer) stack frame or one of the frames preceding it");
+}
+
+void UpFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
+{
+	int count = 1;
+	if (!args.empty())
+		count = std::atoi(args.c_str());
+	console->CallstackIndex = std::max(console->CallstackIndex + count, 0);
+	console->ListSourceLineOffset = 0;
+}
+
+void UpFrameCommandlet::OnPrintHelp(DebuggerApp* console)
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+DownFrameCommandlet::DownFrameCommandlet()
+{
+	//SetShortFormName("down");
+	SetLongFormName("down");
+	SetShortDescription("Selects the next (inner) stack frame or one of the frames following it");
+}
+
+void DownFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
+{
+	int count = 1;
+	if (!args.empty())
+		count = std::atoi(args.c_str());
+	console->CallstackIndex = std::max(console->CallstackIndex - count, 0);
+	console->ListSourceLineOffset = 0;
+}
+
+void DownFrameCommandlet::OnPrintHelp(DebuggerApp* console)
+{
+}

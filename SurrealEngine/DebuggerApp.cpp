@@ -107,6 +107,8 @@ void DebuggerApp::CreateCommandlets()
 	Commandlets.push_back(std::make_unique<DisableBreakpointCommandlet>());
 	Commandlets.push_back(std::make_unique<CallstackCommandlet>());
 	Commandlets.push_back(std::make_unique<SelectFrameCommandlet>());
+	Commandlets.push_back(std::make_unique<UpFrameCommandlet>());
+	Commandlets.push_back(std::make_unique<DownFrameCommandlet>());
 	Commandlets.push_back(std::make_unique<DisassemblyCommandlet>());
 	Commandlets.push_back(std::make_unique<ListSourceCommandlet>());
 	Commandlets.push_back(std::make_unique<LocalsCommandlet>());
