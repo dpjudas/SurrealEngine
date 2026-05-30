@@ -1013,6 +1013,10 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	{
 		render->ShowCollisionDebug = args[1] == "1";
 	}
+	else if (command == "dxwindowdebug" && LaunchInfo.IsDeusEx())
+	{
+		m_DrawDebugDXWindowHierarchy = !m_DrawDebugDXWindowHierarchy;
+	}
 	else if (command == "showlog")
 	{
 		//Frame::ShowDebuggerWindow();
