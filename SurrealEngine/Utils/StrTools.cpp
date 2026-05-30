@@ -2,6 +2,9 @@
 #include "Precomp.h"
 #include "StrTools.h"
 
+#include <sstream>
+#include <iomanip>
+
 static const int stricmptable[] =
 {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -79,4 +82,18 @@ std::string StrTools::replace(const std::string& str, const std::string_view& fi
 	}
 
 	return result;
+}
+
+std::string StrTools::int_to_string(const int value, const int minWidth)
+{
+	std::stringstream ss;
+
+	auto teststr = std::to_string(value);
+
+	if (teststr.size() < minWidth)
+		ss << std::setfill('0') << std::setw(minWidth) << value;
+	else
+		ss << value;
+
+	return ss.str();
 }
