@@ -75,6 +75,7 @@ public:
 	static void Resume();
 	static void StepInto();
 	static void StepOver();
+	static void StepOut();
 	static void ThrowException(const std::string& text);
 
 	static std::unique_ptr<Iterator> CreatedIterator;

@@ -109,6 +109,12 @@ void Frame::StepOver()
 	RunState = FrameRunState::StepOver;
 }
 
+void Frame::StepOut()
+{
+	StepFrame = Callstack.back();
+	RunState = FrameRunState::StepOut;
+}
+
 void Frame::ThrowException(const std::string& text)
 {
 #if defined(_DEBUG) && defined(WIN32)
@@ -405,6 +411,12 @@ ExpressionEvalResult Frame::Run()
 	if (!Func->Code->Statements.empty())
 		StepExpression = Func->Code->Statements[StatementIndex];
 
+	if (RunState == FrameRunState::StepInto)
+	{
+		// We entered a new function. Break for step into.
+		Break();
+	}
+
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
 	while (true)
@@ -423,12 +435,14 @@ ExpressionEvalResult Frame::Run()
 			LogMessage("Too many VM instructions executed in a single tick");
 			Break();
 		}
-		else if (RunState == FrameRunState::StepOver && StepFrame == this)
+		else if ((RunState == FrameRunState::StepOver || RunState == FrameRunState::StepInto) && StepFrame == this)
 		{
+			// We are running a new expression. Break on step over, but also step into as there might not been a function to step into.
 			Break();
 		}
-		else if (RunState == FrameRunState::StepInto && (StepFrame == this || (Callstack.size() > 1 && StepFrame == Callstack[Callstack.size() - 2])))
+		else if (RunState == FrameRunState::StepOut && StepFrame == nullptr)
 		{
+			// We found the function exit point. Break the debugger.
 			Break();
 		}
 
@@ -494,6 +508,12 @@ ExpressionEvalResult Frame::Run()
 						break;
 					}
 				}
+			}
+
+			if (RunState == FrameRunState::StepOut && StepFrame == this)
+			{
+				// We are exiting the function. Break on next instruction by requesting a break on next instruction.
+				StepFrame = nullptr;
 			}
 			return result;
 		case StatementResult::Iterator:

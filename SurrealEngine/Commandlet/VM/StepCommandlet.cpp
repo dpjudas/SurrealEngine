@@ -50,10 +50,8 @@ StepOutCommandlet::StepOutCommandlet()
 
 void StepOutCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
-	// Frame::StepOut();
-	// console->ResumeProgram = true;
-
-	console->WriteOutput("Not implemented" + NewLine());
+	Frame::StepOut();
+	console->ResumeProgram = true;
 }
 
 void StepOutCommandlet::OnPrintHelp(DebuggerApp* console)
