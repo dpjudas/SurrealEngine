@@ -909,8 +909,7 @@ void NObject::InStr(const std::string& S, const std::string& t, int& ReturnValue
 
 void NObject::IntToStr_U227(int value, int minWidth, std::string& ReturnValue)
 {
-	LogUnimplemented("Object.IntToStr() [U227]");
-	ReturnValue = "";
+	ReturnValue = StrTools::int_to_string(value, minWidth);
 }
 
 void NObject::Invert(vec3& X, vec3& Y, vec3& Z)
