@@ -109,7 +109,7 @@ void UStruct::Load(ObjectStream* stream)
 
 	size_t offset = 0;
 	size_t structAlignment = 1;
-	if (BaseStruct)
+	if (BaseStruct && !UObject::TryCast<UFunction>(this)) // functions should not inherit properties from the super/base function
 	{
 		BaseStruct->LoadNow();
 		properties = BaseStruct->Properties;
