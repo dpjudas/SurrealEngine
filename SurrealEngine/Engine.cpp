@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "Engine.h"
 #include "Utils/File.h"
-#include "Utils/StrCompare.h"
+#include "Utils/StrTools.h"
 #include "Utils/SHA1Sum.h"
 #include "Render/RenderSubsystem.h"
 #include "Package/PackageManager.h"
@@ -1074,7 +1074,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		{
 			std::string mapname = fs::path(map).stem().string();
 
-			if (StrCompare::equals_ignore_case(mapname, url.Map))
+			if (StrTools::equals_ignore_case(mapname, url.Map))
 			{
 				ClientTravel(url.ToString(), ETravelType::TRAVEL_Absolute, false);
 				return {};
@@ -1123,7 +1123,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		{
 			std::string mapname = fs::path(map).stem().string();
 
-			if (StrCompare::equals_ignore_case(mapname, url.Map))
+			if (StrTools::equals_ignore_case(mapname, url.Map))
 			{
 				LevelInfo->NextURL() = url.ToString();
 				return {};

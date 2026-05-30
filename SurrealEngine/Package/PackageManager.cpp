@@ -6,7 +6,7 @@
 #include "IniFile.h"
 #include "PackageWriter.h"
 #include "Utils/File.h"
-#include "Utils/StrCompare.h"
+#include "Utils/StrTools.h"
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
 #include "UObject/UProperty.h"
@@ -152,7 +152,7 @@ Package* PackageManager::LoadMap(const std::string& path)
 	// Check if the map is in the map list
 	for (auto& mapName : maps)
 	{
-		if (StrCompare::equals_ignore_case(mapName, mapFilename.string()))
+		if (StrTools::equals_ignore_case(mapName, mapFilename.string()))
 			mapFilename.replace_filename(mapName); // Workaround against case sensitivity problems under Linux.
 	}
 
