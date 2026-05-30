@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "Utils/File.h"
 #include "Utils/UTF16.h"
-#include "Utils/StrCompare.h"
+#include "Utils/StrTools.h"
 #ifdef WIN32
 #include <Windows.h>
 #include <Shlwapi.h>

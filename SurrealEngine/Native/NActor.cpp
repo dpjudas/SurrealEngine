@@ -11,7 +11,7 @@
 #include "Engine.h"
 #include "Audio/AudioDevice.h"
 #include "UObject/USubsystem.h"
-#include "Utils/StrCompare.h"
+#include "Utils/StrTools.h"
 
 void NActor::RegisterFunctions()
 {
@@ -292,7 +292,7 @@ void NActor::GetMapName(UObject* Self, const std::string& NameEnding, const std:
 	for (const std::string& name : engine->packages->GetMaps())
 	{
 		// Case insensitive prefix comparison because Unreal Deathmatch maps start with "Dm" instead of "DM"
-		if ( name.size() >= NameEnding.size() && StrCompare::equals_ignore_case(name.substr(0, NameEnding.size()), NameEnding) )
+		if ( name.size() >= NameEnding.size() && StrTools::equals_ignore_case(name.substr(0, NameEnding.size()), NameEnding) )
 			maps.push_back(name);
 	}
 

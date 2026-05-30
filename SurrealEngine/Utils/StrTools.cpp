@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "StrCompare.h"
+#include "StrTools.h"
 
 static const int stricmptable[] =
 {
@@ -22,7 +22,7 @@ static const int stricmptable[] =
 	0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 };
 
-bool StrCompare::equals_ignore_case(const std::string_view& str1, const std::string_view& str2)
+bool StrTools::equals_ignore_case(const std::string_view& str1, const std::string_view& str2)
 {
 	if (str1.size() != str2.size())
 		return false;
@@ -34,12 +34,49 @@ bool StrCompare::equals_ignore_case(const std::string_view& str1, const std::str
 	return true;
 }
 
-bool StrCompare::equals_ignore_case(const std::string& str1, const std::string& str2)
+bool StrTools::startswith(const std::string_view& str, const std::string_view& cmp, bool ignoreCase)
 {
-	return equals_ignore_case(std::string_view(str1), std::string_view(str2));
+	if (str.size() < cmp.size())
+		return false;
+
+	if (ignoreCase)
+		return StrTools::equals_ignore_case(str.substr(0, cmp.size()), cmp);
+
+	return str.starts_with(cmp);
 }
 
-bool StrCompare::equals_ignore_case(const std::string& str1, const char* str2)
+std::string StrTools::replace(const std::string& str, const std::string_view& find, const std::string_view& repl, bool ignoreCase)
 {
-	return equals_ignore_case(std::string_view(str1), std::string_view(str2));
+	auto result = str;
+
+	if (ignoreCase)
+	{
+		auto lowerstr = str;
+		for (char c: lowerstr)
+			c = std::tolower(c);
+
+		auto lowerfind = std::string(find);
+		for (char c: lowerfind)
+			c = std::tolower(c);
+
+		auto pos = lowerstr.find(lowerfind);
+
+		while (pos != std::string::npos)
+		{
+			result.replace(pos, find.size(), repl);
+			pos = lowerstr.find(lowerfind);
+		}
+
+		return result;
+	}
+
+	auto pos = str.find(find);
+
+	while (pos != std::string::npos)
+	{
+		result.replace(pos, find.size(), repl);
+		pos = result.find(find);
+	}
+
+	return result;
 }
