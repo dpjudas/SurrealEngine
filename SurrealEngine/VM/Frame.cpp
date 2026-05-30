@@ -405,11 +405,6 @@ ExpressionEvalResult Frame::Run()
 	if (!Func->Code->Statements.empty())
 		StepExpression = Func->Code->Statements[StatementIndex];
 
-	if (RunState == FrameRunState::StepInto)
-	{
-		Break();
-	}
-
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
 	while (true)
@@ -429,6 +424,10 @@ ExpressionEvalResult Frame::Run()
 			Break();
 		}
 		else if (RunState == FrameRunState::StepOver && StepFrame == this)
+		{
+			Break();
+		}
+		else if (RunState == FrameRunState::StepInto && (StepFrame == this || (Callstack.size() > 1 && StepFrame == Callstack[Callstack.size() - 2])))
 		{
 			Break();
 		}
