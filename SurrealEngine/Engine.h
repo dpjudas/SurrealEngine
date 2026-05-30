@@ -219,6 +219,8 @@ public:
 	bool getEditorMode() const { return m_EditorMode; }
 	void setEditorMode(const bool value) { m_EditorMode = value; }
 
+	bool getDXWindowDebugMode() const { return m_DrawDebugDXWindowHierarchy; }
+
 private:
 	std::map<std::string, std::string> CreateTravelInfo(bool transferItems);
 
@@ -229,6 +231,8 @@ private:
 
 	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
 	bool m_GamePaused = false;
+
+	bool m_DrawDebugDXWindowHierarchy = false; // If set to true, engine will show the Deus Ex window hierarchy
 
 	bool khgSplashScreen = false;
 	bool playingAvi = false;
