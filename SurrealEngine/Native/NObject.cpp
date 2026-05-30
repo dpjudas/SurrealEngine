@@ -6,7 +6,7 @@
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Math/quaternion.h"
-#include "Utils/StrCompare.h"
+#include "Utils/StrTools.h"
 #include "Utils/Random.h"
 #include "../Package/ObjectFlags.h"
 #include <cmath>
@@ -480,7 +480,7 @@ void NObject::ComplementEqual_FloatFloat(float A, float B, BitfieldBool& ReturnV
 
 void NObject::ComplementEqual_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue)
 {
-	ReturnValue = StrCompare::equals_ignore_case(A, B);
+	ReturnValue = StrTools::equals_ignore_case(A, B);
 }
 
 void NObject::Complement_PreInt(int A, int& ReturnValue)
@@ -1350,8 +1350,8 @@ void NObject::RandRange(UObject* Self, float Min, float Max, float& ReturnValue)
 
 void NObject::ReplaceStr_U227(std::string& text, std::string& findStr, std::string& replaceWith, std::optional<bool> bCaseInsensitive, std::string& ReturnValue)
 {
-	LogUnimplemented("Object.ReplaceStr() [U227]");
-	ReturnValue = text;
+	auto ignoreCase = bCaseInsensitive ? *bCaseInsensitive : false;
+	ReturnValue = StrTools::replace(text, findStr, replaceWith, ignoreCase);
 }
 
 void NObject::ResetConfig()
@@ -1385,7 +1385,8 @@ void NObject::SaveConfig(UObject* Self)
 
 void NObject::SaveConfig_U227(UObject* Self, std::optional<bool> bNoWriteINI)
 {
-	LogUnimplemented("Object.SaveConfig() [U227 - bNoWriteINI parameter not implemented]");
+	if (engine->LaunchInfo.IsUnreal1_227())
+		LogUnimplemented("Object.SaveConfig() [U227 - bNoWriteINI parameter not implemented]");
 	Self->SaveConfig();
 }
 
@@ -1434,8 +1435,8 @@ void NObject::Square(float A, float& ReturnValue)
 
 void NObject::StartsWith_U227(const std::string& Str, const std::string& SubStr, std::optional<bool> bCaseInsensitive, BitfieldBool& ReturnValue)
 {
-	LogUnimplemented("Object.StartsWith() [U227]");
-	ReturnValue = false;
+	auto ignoreCase = bCaseInsensitive ? *bCaseInsensitive : false;
+	ReturnValue = StrTools::startswith(Str, SubStr, ignoreCase);
 }
 
 void NObject::StaticSaveConfig(UObject* Class)
