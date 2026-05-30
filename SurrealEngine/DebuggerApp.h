@@ -19,6 +19,7 @@ public:
 	void RunGame();
 
 	Frame* GetCurrentFrame();
+	void PrintCurrentFrame();
 
 	GameLaunchInfo launchinfo;
 	int CallstackIndex = 0;

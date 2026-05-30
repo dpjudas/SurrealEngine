@@ -20,15 +20,7 @@ void CallstackCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		UStruct* func = frame->Func;
 		if (func)
 		{
-			std::string name;
-			for (UStruct* s = func; s != nullptr; s = s->StructParent)
-			{
-				if (name.empty())
-					name = s->Name.ToString();
-				else
-					name = s->Name.ToString() + "." + name;
-			}
-
+			std::string name = frame->GetName();
 			if (name.size() < 40)
 				name.resize(40, ' ');
 
@@ -58,6 +50,7 @@ void SelectFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		console->CallstackIndex = std::atoi(args.c_str());
 		console->ListSourceLineOffset = 0;
 	}
+	console->PrintCurrentFrame();
 }
 
 void SelectFrameCommandlet::OnPrintHelp(DebuggerApp* console)
@@ -80,6 +73,7 @@ void UpFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		count = std::atoi(args.c_str());
 	console->CallstackIndex = std::max(console->CallstackIndex + count, 0);
 	console->ListSourceLineOffset = 0;
+	console->PrintCurrentFrame();
 }
 
 void UpFrameCommandlet::OnPrintHelp(DebuggerApp* console)
@@ -102,6 +96,7 @@ void DownFrameCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		count = std::atoi(args.c_str());
 	console->CallstackIndex = std::max(console->CallstackIndex - count, 0);
 	console->ListSourceLineOffset = 0;
+	console->PrintCurrentFrame();
 }
 
 void DownFrameCommandlet::OnPrintHelp(DebuggerApp* console)

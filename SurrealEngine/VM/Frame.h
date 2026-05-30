@@ -87,6 +87,8 @@ public:
 	void GotoLabel(const NameString& label);
 	void Tick();
 
+	std::string GetName();
+
 	LatentRunState LatentState = LatentRunState::Continue;
 
 	std::unique_ptr<LocalVariables> Variables;

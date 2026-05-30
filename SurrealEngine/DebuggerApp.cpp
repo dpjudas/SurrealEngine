@@ -337,6 +337,17 @@ void DebuggerApp::PrintLog(const LogMessageLine& line)
 	}
 }
 
+void DebuggerApp::PrintCurrentFrame()
+{
+	if (auto frame = GetCurrentFrame())
+	{
+		std::string name = frame->GetName();
+		if (name.size() < 40)
+			name.resize(40, ' ');
+		WriteOutput("#" + std::to_string(CallstackIndex) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(frame->Func->Line) + ResetEscape() + NewLine());
+	}
+}
+
 void DebuggerApp::FrameDebugBreak()
 {
 	EndPrompt();
@@ -350,6 +361,7 @@ void DebuggerApp::FrameDebugBreak()
 	else
 	{
 		WriteOutput("Breakpoint encountered" + NewLine());
+		PrintCurrentFrame();
 	}
 
 	WriteOutput(NewLine());

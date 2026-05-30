@@ -132,6 +132,22 @@ const char* GetCallStack()
 	return debugCallstack.c_str();
 }
 
+std::string Frame::GetName()
+{
+	std::string name;
+	if (Func)
+	{
+		for (UStruct* s = Func; s != nullptr; s = s->StructParent)
+		{
+			if (name.empty())
+				name = s->Name.ToString();
+			else
+				name = s->Name.ToString() + "." + name;
+		}
+	}
+	return name;
+}
+
 std::string Frame::GetCallstack()
 {
 	std::string result;
@@ -145,14 +161,7 @@ std::string Frame::GetCallstack()
 	for (auto it = Callstack.rbegin(); it != Callstack.rend(); ++it)
 	{
 		UStruct* func = (*it)->Func;
-		std::string name;
-		for (UStruct* s = func; s != nullptr; s = s->StructParent)
-		{
-			if (name.empty())
-				name = s->Name.ToString();
-			else
-				name = s->Name.ToString() + "." + name;
-		}
+		std::string name = (*it)->GetName();
 		if (func)
 			name += " line " + std::to_string(func->Line);
 		if (!result.empty()) result += newline;
