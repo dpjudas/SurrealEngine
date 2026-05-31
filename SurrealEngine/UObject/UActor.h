@@ -887,6 +887,11 @@ class UNavigationPoint : public UActor
 public:
 	using UActor::UActor;
 
+	// Paths() is an array of LevelReachSpec indexes to navigation points that can be reached from this one.
+	// upstreamPaths() is the same as Paths(), except this is in reverse order (when searching from a goal back to initially reachable points).
+	// PrunedPaths() are reachable points that have been removed from Paths() as they could already be reached via a different path.
+	// If -1 is encountered in any of those arrays it means the end of the list.
+
 	int& ExtraCost() { return Value<int>(PropOffsets_NavigationPoint.ExtraCost); }
 	FixedArrayView<int, 16> Paths() { return FixedArray<int, 16>(PropOffsets_NavigationPoint.Paths); }
 	FixedArrayView<int, 16> PrunedPaths() { return FixedArray<int, 16>(PropOffsets_NavigationPoint.PrunedPaths); }

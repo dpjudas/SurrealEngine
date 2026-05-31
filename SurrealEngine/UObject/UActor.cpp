@@ -2761,31 +2761,31 @@ Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int 
 	UNavigationPoint* current = start;
 	while (!current->bEndPoint() && steps.size() < (size_t)maxNodes)
 	{
-		for (const LevelReachSpec& reachSpec : reachSpecs)
+		for (int specIndex : current->upstreamPaths())
 		{
-			UNavigationPoint* startActor = reachSpec.startActor;
+			if (specIndex < 0 || (size_t)specIndex >= reachSpecs.size())
+				break;
+			const LevelReachSpec& reachSpec = reachSpecs[specIndex];
+
 			UNavigationPoint* endActor = reachSpec.endActor;
 
-			if (startActor == current)
+			if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+				continue; // Skip nav node links that we can't pass through
+
+			if ((endActor->bPlayerOnly() && !bIsPlayer()) || (endActor->bPlayerOnly() && !bIsPlayer()))
+				continue; // Skip nav nodes only for the player if we aren't one
+
+			// To do: check reachFlags
+
+			if (visited.insert(&reachSpec).second)
 			{
-				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
-					continue; // Skip nav node links that we can't pass through
-
-				if ((endActor->bPlayerOnly() && !bIsPlayer()) || (endActor->bPlayerOnly() && !bIsPlayer()))
-					continue; // Skip nav nodes only for the player if we aren't one
-
-				// To do: check reachFlags
-
-				if (visited.insert(&reachSpec).second)
+				if (endActor->bEndPoint())
 				{
-					if (endActor->bEndPoint())
-					{
-						stepEnds.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
-					}
-					else
-					{
-						steps.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
-					}
+					stepEnds.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
+				}
+				else
+				{
+					steps.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
 				}
 			}
 		}
@@ -2867,24 +2867,26 @@ UObject* UPawn::FindRandomDest()
 	for (size_t i = 0; i < reachablePoints.size(); i++)
 	{
 		UNavigationPoint* navPoint = reachablePoints[i];
-		for (const LevelReachSpec& reachSpec : reachSpecs)
+
+		for (int specIndex : navPoint->Paths())
 		{
-			if (reachSpec.startActor == navPoint)
-			{
-				if (reachSpec.endActor->bEndPoint())
-					continue; // Already processed
+			if (specIndex < 0 || (size_t)specIndex >= reachSpecs.size())
+				break;
+			const LevelReachSpec& reachSpec = reachSpecs[specIndex];
 
-				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
-					continue; // Skip nav node links that we can't pass through
+			if (reachSpec.endActor->bEndPoint())
+				continue; // Already processed
 
-				if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
-					continue; // Skip nav nodes only for the player if we aren't one
+			if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+				continue; // Skip nav node links that we can't pass through
 
-				// To do: check reachFlags
+			if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+				continue; // Skip nav nodes only for the player if we aren't one
 
-				reachSpec.endActor->bEndPoint() = true;
-				reachablePoints.push_back(reachSpec.endActor);
-			}
+			// To do: check reachFlags
+
+			reachSpec.endActor->bEndPoint() = true;
+			reachablePoints.push_back(reachSpec.endActor);
 		}
 	}
 
