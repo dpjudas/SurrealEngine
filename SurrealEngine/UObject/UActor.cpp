@@ -2406,30 +2406,84 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 
 	if (checkNavpoint)
 	{
-		// Check if we are trying to reach a navigation point. They can also be hiding in an inventory for patent-pending spaghetti reasons.
+		// Check if we are trying to reach a navigation point.
+		// They can also be hiding in an inventory as an inventory (pickup item) can be linked to a navigation point.
 		UNavigationPoint* navPoint = UObject::TryCast<UNavigationPoint>(anActor);
 		if (UInventory* inventory = UObject::TryCast<UInventory>(anActor))
 			navPoint = inventory->myMarker();
 
-		// If we can reach any navigation point in the map then we can also reach the navigation point asked for
 		if (navPoint)
 		{
+			// Check if the navigation point is theoretically reachable at all according to reachspecs.
+			bool couldBeReachable = false;
+			float radius = CollisionRadius();
+			float height = CollisionHeight();
 			for (UNavigationPoint* cur = Level()->NavigationPointList(); cur != nullptr; cur = cur->nextNavigationPoint())
 			{
-				if (std::abs(cur->Location().z - Location().z) >= CollisionHeight())
-					continue;
+				const auto& specs = XLevel()->ReachSpecs;
+				for (int index : cur->Paths())
+				{
+					if (index < 0 || (size_t)index >= specs.size())
+						break;
+					const LevelReachSpec& reachSpec = specs[index];
 
-				if (!FastTrace(cur->Location(), eyePos))
-					continue;
+					if (reachSpec.endActor != navPoint)
+						continue; // Not a path to this nav point
 
-				if (CheckLocation(cur->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first)
+					if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+						continue; // Skip nav node links that we can't pass through
+
+					if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+						continue; // Skip nav nodes only for the player if we aren't one
+
+					// To do: check reachFlags
+
+					couldBeReachable = true;
+					break;
+				}
+
+				if (couldBeReachable)
+					break;
+
+				for (int index : cur->PrunedPaths())
+				{
+					if (index < 0 || (size_t)index >= specs.size())
+						break;
+					const LevelReachSpec& reachSpec = specs[index];
+
+					if (reachSpec.endActor != navPoint)
+						continue; // Not a path to this nav point
+
+					if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+						continue; // Skip nav node links that we can't pass through
+
+					if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+						continue; // Skip nav nodes only for the player if we aren't one
+
+					// To do: check reachFlags
+
+					couldBeReachable = true;
+					break;
+				}
+
+				if (couldBeReachable)
+					break;
+			}
+
+			if (couldBeReachable)
+			{
+				if (std::abs(navPoint->Location().z - Location().z) < CollisionHeight() &&
+					FastTrace(navPoint->Location(), eyePos) &&
+					CheckLocation(navPoint->Location(), radius, height, bCollideWorld() || bCollideWhenPlacing()).first)
+				{
 					return true;
+				}
 			}
 		}
 	}
 
-	//if (std::abs(anActor->Location().z - Location().z) >= CollisionHeight())
-	//	return false;
+	if (std::abs(anActor->Location().z - Location().z) >= CollisionHeight())
+		return false;
 
 	UPawn* aPawn = UObject::TryCast<UPawn>(anActor);
 	if (aPawn)
