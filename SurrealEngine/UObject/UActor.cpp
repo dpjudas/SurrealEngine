@@ -2821,7 +2821,8 @@ Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int 
 				break;
 			const LevelReachSpec& reachSpec = reachSpecs[specIndex];
 
-			UNavigationPoint* endActor = reachSpec.endActor;
+			// Note: startActor instead of endActor because upstreamPaths is the reverse travel direction
+			UNavigationPoint* endActor = reachSpec.startActor;
 
 			if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
 				continue; // Skip nav node links that we can't pass through
@@ -2868,6 +2869,7 @@ Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int 
 		path.push_back(step.navpoint);
 		currentStep = step.prev;
 	}
+	path.push_back(start);
 
 	return path;
 }
