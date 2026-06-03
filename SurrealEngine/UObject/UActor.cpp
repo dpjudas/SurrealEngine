@@ -2955,40 +2955,41 @@ UObject* UPawn::FindPathTo(const vec3& aPoint, bool bSinglePath)
 	return FindPathToward(FindClosestNavPoint(aPoint), bSinglePath);
 }
 
+bool UPawn::MarkReachableNavEndPoints()
+{
+	int maxActorReachableCalls = 8; // upper bound for how expensive this can get
+	int endPointsFound = 0;
+	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
+	{
+		navPoint->bEndPoint() = false;
+
+		if (endPointsFound < maxActorReachableCalls)
+		{
+			if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+				continue; // Skip nav nodes only for the player if we aren't one
+
+			float maxDist = 1000.0;
+			vec3 d = navPoint->Location() - Location();
+			if (dot(d, d) > maxDist * maxDist)
+				continue; // Ignore things too far away
+
+			if (!ActorReachable(navPoint))
+				continue;
+
+			navPoint->bEndPoint() = true;
+			endPointsFound++;
+		}
+	}
+
+	return endPointsFound > 0;
+}
+
 UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 {
 	if (auto aNavPoint = UObject::TryCast<UNavigationPoint>(anActor))
 	{
-		vec3 eyePos = Location();
-		eyePos.z += BaseEyeHeight();
-
-		int maxActorReachableCalls = 8; // upper bound for how expensive this can get
-		int endPointsFound = 0;
-		for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
-		{
-			navPoint->bEndPoint() = false;
-
-			if (endPointsFound < maxActorReachableCalls)
-			{
-				if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
-					continue; // Skip nav nodes only for the player if we aren't one
-
-				float maxDist = 1000.0;
-				vec3 d = navPoint->Location() - Location();
-				if (dot(d, d) > maxDist * maxDist)
-					continue; // Ignore things too far away
-
-				if (!ActorReachable(navPoint))
-					continue;
-
-				navPoint->bEndPoint() = true;
-				endPointsFound++;
-			}
-		}
-
-		if (endPointsFound == 0)
+		if (!MarkReachableNavEndPoints())
 			return SetRouteCache({});
-
 		return SetRouteCache(FindPathToEndPoint(aNavPoint, 1000));
 	}
 	else if (auto actor = UObject::TryCast<UActor>(anActor))
@@ -3035,46 +3036,56 @@ UNavigationPoint* UPawn::FindClosestNavPoint(vec3 location)
 	return nullptr;
 }
 
-UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outMinWeight)
+UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outBestWeight)
 {
-	/*
-	auto invSpotList = Level()->GetInventorySpotList();
-	std::vector<int> costs;
-
-	int32_t minCost = INT32_MAX;
-
-	// auto closestNavPoint = FindClosestNavPoint(Location());
-	// float maxDist = 1000.f;
-
-	for (auto invSpot : invSpotList)
+	if (!MarkReachableNavEndPoints())
 	{
+		outBestWeight = 0.0f;
+		return SetRouteCache({});
+	}
+
+	float bestWeight = 0.0f;
+	UInventorySpot* bestSpot = nullptr;
+	Array<UNavigationPoint*> bestPath;
+
+	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
+	{
+		auto invSpot = UObject::TryCast<UInventorySpot>(navPoint);
+		if (!invSpot)
+			continue;
+		auto inv = invSpot->markedItem();
+		if (!inv)
+			continue;
+
 		auto path = FindPathToEndPoint(invSpot, 1000);
 
-		int cost = 0;
-		for (auto nav : path)
-			cost += nav->cost();
+		// To do: how to take path costs into account?
+		//int cost = 0;
+		//for (auto nav : path)
+		//	cost += nav->cost();
 
-		costs.push_back(cost);
-		minCost = std::min(minCost, cost);
+		float desire = CallEvent(inv, "BotDesireability", { ExpressionValue::ObjectValue(this) }).ToFloat();
+		float distance = length(inv->Location() - Location()); // To do: should this be path distance?
+		float weight = desire / distance;
 
-		if (minCost == 0)
+		if (!bestSpot || weight > bestWeight)
 		{
-			outMinWeight = 0.0f;
-			return SetRouteCache(path);
+			bestSpot = invSpot;
+			bestWeight = weight;
+			bestPath = std::move(path);
 		}
 	}
 
-	for (int idx = 0 ; idx < costs.size() ; idx++)
+	if (bestSpot)
 	{
-		if (costs[idx] == minCost)
-		{
-			outMinWeight = (float)minCost;
-			return SetRouteCache(FindPathToEndPoint(invSpotList[idx], 1000));
-		}
-	}*/
-	LogUnimplemented("Pawn.FindBestInventoryPath");
-	outMinWeight = 0.0f;
-	return SetRouteCache({});
+		outBestWeight = bestWeight;
+		return SetRouteCache(bestPath);
+	}
+	else
+	{
+		outBestWeight = 0.0f;
+		return SetRouteCache({});
+	}
 }
 
 void UPawn::InitActorZone()
