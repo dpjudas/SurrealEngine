@@ -2795,6 +2795,10 @@ Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int 
 	if ((start->bPlayerOnly() && !bIsPlayer()))
 		return {};
 
+	// If we can already reach the end point, just go there directly
+	if (start->bEndPoint())
+		return { start };
+
 	struct Step
 	{
 		UNavigationPoint* navpoint;
@@ -2861,7 +2865,13 @@ Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int 
 	// Extract the final path:
 	const Step& endstep = stepEnds.front();
 	Array<UNavigationPoint*> path;
-	path.push_back(endstep.navpoint);
+
+	// Include the end point, unless we are already there
+	float minDist = 20.0;
+	vec3 d = endstep.navpoint->Location() - Location();
+	if (dot(d, d) > minDist * minDist)
+		path.push_back(endstep.navpoint);
+
 	int currentStep = endstep.prev;
 	while (currentStep >= 0)
 	{
