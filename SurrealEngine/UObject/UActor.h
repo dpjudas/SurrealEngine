@@ -1878,7 +1878,29 @@ public:
 	UPawn*& noise2other() { return Value<UPawn*>(PropOffsets_Pawn.noise2other); }
 	vec3& noise2spot() { return Value<vec3>(PropOffsets_Pawn.noise2spot); }
 	float& noise2time() { return Value<float>(PropOffsets_Pawn.noise2time); }
+	// Deus Ex exclusive properties
+	BitfieldBool bCanGlide() { return BoolValue(PropOffsets_Pawn.bCanGlide); }
+	int& HealthHead() { return Value<int>(PropOffsets_Pawn.HealthHead); }
+	int& HealthTorso() { return Value<int>(PropOffsets_Pawn.HealthTorso); }
+	int& HealthLegLeft() { return Value<int>(PropOffsets_Pawn.HealthLegLeft); }
+	int& HealthLegRight() { return Value<int>(PropOffsets_Pawn.HealthLegRight); }
+	int& HealthArmLeft() { return Value<int>(PropOffsets_Pawn.HealthArmLeft); }
+	int& HealthArmRight() { return Value<int>(PropOffsets_Pawn.HealthArmRight); }
+	BitfieldBool bIsSpeaking() { return BoolValue(PropOffsets_Pawn.bIsSpeaking); }
+	BitfieldBool bWasSpeaking() { return BoolValue(PropOffsets_Pawn.bWasSpeaking); }
+	std::string& lastPhoneme() { return Value<std::string>(PropOffsets_Pawn.lastPhoneme); }
+	std::string& nextPhoneme() { return Value<std::string>(PropOffsets_Pawn.nextPhoneme); }
+	FixedArrayView<float, 4> animTimer() { return FixedArray<float, 4>(PropOffsets_Pawn.animTimer); }
+	BitfieldBool bOnFire() { return BoolValue(PropOffsets_Pawn.bOnFire); }
+	float& burnTimer() { return Value<float>(PropOffsets_Pawn.burnTimer); }
+	float& AIHorizontalFov() { return Value<float>(PropOffsets_Pawn.AIHorizontalFov); }
+	float& AspectRatio() { return Value<float>(PropOffsets_Pawn.AspectRatio); }
+	float& AngularResolution() { return Value<float>(PropOffsets_Pawn.AngularResolution); }
+	float& MinAngularSize() { return Value<float>(PropOffsets_Pawn.MinAngularSize); }
+	float& VisibilityThreshold() { return Value<float>(PropOffsets_Pawn.VisibilityThreshold); }
+	float& SmellThreshold() { return Value<float>(PropOffsets_Pawn.SmellThreshold); }
 	NameString Alliance() { return Value<NameString>(PropOffsets_Pawn.Alliance);}
+	Rotator& AIAddViewRotation() { return Value<Rotator>(PropOffsets_Pawn.AIAddViewRotation); }
 };
 
 class UScout : public UPawn
