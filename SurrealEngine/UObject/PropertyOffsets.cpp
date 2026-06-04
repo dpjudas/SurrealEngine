@@ -109,7 +109,6 @@ static void InitPropertyOffsets_Pawn(PackageManager* packages)
 	PropOffsets_Pawn.AirSpeed = cls->GetPropertyDataOffset("AirSpeed");
 	PropOffsets_Pawn.AlarmTag = cls->GetPropertyDataOffset("AlarmTag");
 	PropOffsets_Pawn.Alertness = cls->GetPropertyDataOffset("Alertness");
-	PropOffsets_Pawn.Alliance = cls->GetPropertyDataOffset("Alliance");
 	PropOffsets_Pawn.AttitudeToPlayer = cls->GetPropertyDataOffset("AttitudeToPlayer");
 	PropOffsets_Pawn.AvgPhysicsTime = cls->GetPropertyDataOffset("AvgPhysicsTime");
 	PropOffsets_Pawn.BaseEyeHeight = cls->GetPropertyDataOffset("BaseEyeHeight");
@@ -245,6 +244,32 @@ static void InitPropertyOffsets_Pawn(PackageManager* packages)
 	PropOffsets_Pawn.noise2other = cls->GetPropertyDataOffset("noise2other");
 	PropOffsets_Pawn.noise2spot = cls->GetPropertyDataOffset("noise2spot");
 	PropOffsets_Pawn.noise2time = cls->GetPropertyDataOffset("noise2time");
+
+	if (packages->IsDeusEx())
+	{
+		PropOffsets_Pawn.bCanGlide = cls->GetPropertyDataOffset("bCanGlide");
+		PropOffsets_Pawn.HealthHead = cls->GetPropertyDataOffset("HealthHead");
+		PropOffsets_Pawn.HealthTorso = cls->GetPropertyDataOffset("HealthTorso");
+		PropOffsets_Pawn.HealthLegLeft = cls->GetPropertyDataOffset("HealthLegLeft");
+		PropOffsets_Pawn.HealthLegRight = cls->GetPropertyDataOffset("HealthLegRight");
+		PropOffsets_Pawn.HealthArmLeft = cls->GetPropertyDataOffset("HealthArmLeft");
+		PropOffsets_Pawn.HealthArmRight = cls->GetPropertyDataOffset("HealthArmRight");
+		PropOffsets_Pawn.bIsSpeaking = cls->GetPropertyDataOffset("bIsSpeaking");
+		PropOffsets_Pawn.bWasSpeaking = cls->GetPropertyDataOffset("bWasSpeaking");
+		PropOffsets_Pawn.lastPhoneme = cls->GetPropertyDataOffset("lastPhoneme");
+		PropOffsets_Pawn.nextPhoneme = cls->GetPropertyDataOffset("nextPhoneme");
+		PropOffsets_Pawn.animTimer = cls->GetPropertyDataOffset("animTimer");
+		PropOffsets_Pawn.bOnFire = cls->GetPropertyDataOffset("bOnFire");
+		PropOffsets_Pawn.burnTimer = cls->GetPropertyDataOffset("burnTimer");
+		PropOffsets_Pawn.AIHorizontalFov = cls->GetPropertyDataOffset("AIHorizontalFov");
+		PropOffsets_Pawn.AspectRatio = cls->GetPropertyDataOffset("AspectRatio");
+		PropOffsets_Pawn.AngularResolution = cls->GetPropertyDataOffset("AngularResolution");
+		PropOffsets_Pawn.MinAngularSize = cls->GetPropertyDataOffset("MinAngularSize");
+		PropOffsets_Pawn.VisibilityThreshold = cls->GetPropertyDataOffset("VisibilityThreshold");
+		PropOffsets_Pawn.SmellThreshold = cls->GetPropertyDataOffset("SmellThreshold");
+		PropOffsets_Pawn.Alliance = cls->GetPropertyDataOffset("Alliance");
+		PropOffsets_Pawn.AIAddViewRotation = cls->GetPropertyDataOffset("AIAddViewRotation");
+	}
 }
 
 PropertyOffsets_Actor PropOffsets_Actor;

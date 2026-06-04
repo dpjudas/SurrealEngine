@@ -72,7 +72,6 @@ struct PropertyOffsets_Pawn
 	PropertyDataOffset AirSpeed;
 	PropertyDataOffset AlarmTag;
 	PropertyDataOffset Alertness;
-	PropertyDataOffset Alliance;
 	PropertyDataOffset AttitudeToPlayer;
 	PropertyDataOffset AvgPhysicsTime;
 	PropertyDataOffset BaseEyeHeight;
@@ -208,6 +207,30 @@ struct PropertyOffsets_Pawn
 	PropertyDataOffset noise2other;
 	PropertyDataOffset noise2spot;
 	PropertyDataOffset noise2time;
+
+	// Deus Ex additions
+	PropertyDataOffset bCanGlide;
+	PropertyDataOffset HealthHead;
+	PropertyDataOffset HealthTorso;
+	PropertyDataOffset HealthLegLeft;
+	PropertyDataOffset HealthLegRight;
+	PropertyDataOffset HealthArmLeft;
+	PropertyDataOffset HealthArmRight;
+	PropertyDataOffset bIsSpeaking;
+	PropertyDataOffset bWasSpeaking;
+	PropertyDataOffset lastPhoneme;
+	PropertyDataOffset nextPhoneme;
+	PropertyDataOffset animTimer;
+	PropertyDataOffset bOnFire;
+	PropertyDataOffset burnTimer;
+	PropertyDataOffset AIHorizontalFov;
+	PropertyDataOffset AspectRatio;
+	PropertyDataOffset AngularResolution;
+	PropertyDataOffset MinAngularSize;
+	PropertyDataOffset VisibilityThreshold;
+	PropertyDataOffset SmellThreshold;
+	PropertyDataOffset Alliance;
+	PropertyDataOffset AIAddViewRotation;
 };
 
 extern PropertyOffsets_Pawn PropOffsets_Pawn;
