@@ -1728,7 +1728,7 @@ public:
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 
 	UNavigationPoint* SetRouteCache(const Array<UNavigationPoint*>& points);
-	Array<UNavigationPoint*> FindPathToEndPoint(UNavigationPoint* start, int maxNodes);
+	std::pair<Array<UNavigationPoint*>, int32_t> FindPathToEndPoint(UNavigationPoint* start, int maxNodes);
 
 	void ClearPaths();
 	UObject* FindRandomDest();

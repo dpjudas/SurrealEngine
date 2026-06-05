@@ -2790,98 +2790,105 @@ UNavigationPoint* UPawn::SetRouteCache(const Array<UNavigationPoint*>& points)
 	return !points.empty() ? points.front() : nullptr;
 }
 
-Array<UNavigationPoint*> UPawn::FindPathToEndPoint(UNavigationPoint* start, int maxNodes)
+std::pair<Array<UNavigationPoint*>, int32_t> UPawn::FindPathToEndPoint(UNavigationPoint* start, int maxNodes)
 {
 	if ((start->bPlayerOnly() && !bIsPlayer()))
-		return {};
+		return { {}, 0 };
 
 	// If we can already reach the end point, just go there directly
 	if (start->bEndPoint())
-		return { start };
+		return { { start }, 0 };
 
 	struct Step
 	{
 		UNavigationPoint* navpoint;
 		int prev;
+		int32_t distance;
 	};
 
-	std::set<const LevelReachSpec*> visited;
-	Array<Step> steps, stepEnds;
+	std::unordered_map<UNavigationPoint*, int32_t> shortestDistance;
+	std::set<int> visited;
+	Array<Step> steps;
+	Array<size_t> stepEnds;
 	const Array<LevelReachSpec>& reachSpecs = XLevel()->ReachSpecs;
 	
 	int radius = (int)CollisionRadius();
 	int height = (int)CollisionHeight();
 
 	// Search through the nav node links until we find an end point
-	// To do: add navpoint.cost calculations into this and pick the cheapest path based on that
+	// To do: add navpoint.cost calculations to this?
 
-	int nextStep = 0;
+	int prevStep = -1;
 	UNavigationPoint* current = start;
-	while (!current->bEndPoint() && steps.size() < (size_t)maxNodes)
+	while (steps.size() < (size_t)maxNodes)
 	{
-		for (int specIndex : current->upstreamPaths())
+		if (!current->bEndPoint())
 		{
-			if (specIndex < 0 || (size_t)specIndex >= reachSpecs.size())
-				break;
-			const LevelReachSpec& reachSpec = reachSpecs[specIndex];
-
-			// Note: startActor instead of endActor because upstreamPaths is the reverse travel direction
-			UNavigationPoint* endActor = reachSpec.startActor;
-
-			if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
-				continue; // Skip nav node links that we can't pass through
-
-			if ((endActor->bPlayerOnly() && !bIsPlayer()) || (endActor->bPlayerOnly() && !bIsPlayer()))
-				continue; // Skip nav nodes only for the player if we aren't one
-
-			// To do: check reachFlags
-
-			if (visited.insert(&reachSpec).second)
+			for (int specIndex : current->upstreamPaths())
 			{
-				if (endActor->bEndPoint())
+				if (specIndex < 0 || (size_t)specIndex >= reachSpecs.size())
+					break;
+				const LevelReachSpec& reachSpec = reachSpecs[specIndex];
+
+				// Note: startActor instead of endActor because upstreamPaths is the reverse travel direction
+				UNavigationPoint* endActor = reachSpec.startActor;
+
+				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
+					continue; // Skip nav node links that we can't pass through
+
+				if ((endActor->bPlayerOnly() && !bIsPlayer()) || (endActor->bPlayerOnly() && !bIsPlayer()))
+					continue; // Skip nav nodes only for the player if we aren't one
+
+				// To do: check reachFlags
+
+				// How far have we travelled so far?
+				int32_t distance = reachSpec.distance;
+				if (prevStep >= 0)
+					distance += steps[prevStep].distance;
+
+				// Is this distance shorter than last time we reached this point?
+				int32_t& pointDistance = shortestDistance[endActor];
+				if (pointDistance == 0 || distance < pointDistance)
 				{
-					stepEnds.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
-				}
-				else
-				{
-					steps.push_back({ .navpoint = endActor, .prev = nextStep - 1 });
+					// Yes. Track this path and reject any future paths going through here that are longer.
+					pointDistance = distance;
+					if (endActor->bEndPoint())
+						stepEnds.push_back(steps.size());
+					steps.push_back({ .navpoint = endActor, .prev = prevStep, .distance = distance });
 				}
 			}
 		}
 
-		if (nextStep == steps.size())
+		prevStep++;
+		if (prevStep == steps.size())
 			break;
 
-		if (!stepEnds.empty())
-			break; // To do: remove this and pick the path with the lowest cost
-
-		current = steps[nextStep].navpoint;
-		nextStep++;
+		current = steps[prevStep].navpoint;
 	}
 
 	if (stepEnds.empty())
-		return {};
+		return { {}, 0 };
+
+	std::sort(stepEnds.begin(), stepEnds.end(), [&](size_t a, size_t b) { return steps[a].distance < steps[b].distance; });
 
 	// Extract the final path:
-	const Step& endstep = stepEnds.front();
 	Array<UNavigationPoint*> path;
-
-	// Include the end point, unless we are already there
-	float minDist = 20.0;
-	vec3 d = endstep.navpoint->Location() - Location();
-	if (dot(d, d) > minDist * minDist)
-		path.push_back(endstep.navpoint);
-
-	int currentStep = endstep.prev;
+	int currentStep = (int)stepEnds.front();
 	while (currentStep >= 0)
 	{
 		const Step& step = steps[currentStep];
-		path.push_back(step.navpoint);
+
+		// Skip any point already at our location
+		float minDist = 25.0;
+		vec3 d = step.navpoint->Location() - Location();
+		if (dot(d, d) > minDist * minDist)
+			path.push_back(step.navpoint);
+
 		currentStep = step.prev;
 	}
 	path.push_back(start);
 
-	return path;
+	return { path, steps[stepEnds.front()].distance };
 }
 
 void UPawn::ClearPaths()
@@ -3002,7 +3009,7 @@ UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 	{
 		if (!MarkReachableNavEndPoints())
 			return SetRouteCache({});
-		return SetRouteCache(FindPathToEndPoint(aNavPoint, 1000));
+		return SetRouteCache(FindPathToEndPoint(aNavPoint, 1000).first);
 	}
 	else if (auto actor = UObject::TryCast<UActor>(anActor))
 	{
@@ -3069,22 +3076,28 @@ UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outBestWeight
 		if (!inv)
 			continue;
 
-		auto path = FindPathToEndPoint(invSpot, 1000);
-
-		// To do: how to take path costs into account?
-		//int cost = 0;
-		//for (auto nav : path)
-		//	cost += nav->cost();
+		if (inv->GetStateName() != "PickUp")
+			continue;
 
 		float desire = CallEvent(inv, "BotDesireability", { ExpressionValue::ObjectValue(this) }).ToFloat();
-		float distance = length(inv->Location() - Location()); // To do: should this be path distance?
-		float weight = desire / distance;
-
-		if (!bestSpot || weight > bestWeight)
+		if (desire > 0.0f)
 		{
-			bestSpot = invSpot;
-			bestWeight = weight;
-			bestPath = std::move(path);
+			auto [path, pathDist] = FindPathToEndPoint(invSpot, 1000);
+
+			// To do: how to take path costs into account?
+			//int cost = 0;
+			//for (auto nav : path)
+			//	cost += nav->cost();
+
+			float distance = std::max((float)pathDist, 1.0f);
+			float weight = desire / distance;
+
+			if (!bestSpot || weight > bestWeight)
+			{
+				bestSpot = invSpot;
+				bestWeight = weight;
+				bestPath = std::move(path);
+			}
 		}
 	}
 
