@@ -1334,7 +1334,7 @@ void NObject::QuatVRotate_U227(quaternion& A, vec3& B, vec3& ReturnValue)
 
 void NObject::Rand(int Max, int& ReturnValue)
 {
-	ReturnValue = RandInt(std::min(Max, 32767));
+	ReturnValue = RandInt(std::min(std::max(Max, 0), 32767));
 }
 
 void NObject::RandIntRange_U227(UObject* Self, int Min, int Max, int& ReturnValue)
