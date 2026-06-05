@@ -2816,7 +2816,6 @@ std::pair<Array<UNavigationPoint*>, int32_t> UPawn::FindPathToEndPoint(UNavigati
 	int height = (int)CollisionHeight();
 
 	// Search through the nav node links until we find an end point
-	// To do: add navpoint.cost calculations to this?
 
 	int prevStep = -1;
 	UNavigationPoint* current = start;
@@ -2878,11 +2877,18 @@ std::pair<Array<UNavigationPoint*>, int32_t> UPawn::FindPathToEndPoint(UNavigati
 	{
 		const Step& step = steps[currentStep];
 
-		// Skip any point already at our location
-		float minDist = 25.0;
+		// Skip path parts we already are touching
+		float minDist = (float)radius;
 		vec3 d = step.navpoint->Location() - Location();
-		if (dot(d, d) > minDist * minDist)
+		float heightDiff = step.navpoint->Location().z - Location().z;
+		if (dot(d, d) < minDist * minDist && std::abs(heightDiff) < (float)height)
+		{
+			path.clear();
+		}
+		else
+		{
 			path.push_back(step.navpoint);
+		}
 
 		currentStep = step.prev;
 	}
