@@ -1727,6 +1727,7 @@ public:
 	UActor* PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 	bool CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart);
 
+	UActor* PathSpecialHandling(const Array<UNavigationPoint*>& points);
 	UNavigationPoint* SetRouteCache(const Array<UNavigationPoint*>& points);
 	std::pair<Array<UNavigationPoint*>, int32_t> FindPathToEndPoint(UNavigationPoint* start, int maxNodes);
 

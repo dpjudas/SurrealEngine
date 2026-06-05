@@ -2790,6 +2790,43 @@ UNavigationPoint* UPawn::SetRouteCache(const Array<UNavigationPoint*>& points)
 	return !points.empty() ? points.front() : nullptr;
 }
 
+UActor* UPawn::PathSpecialHandling(const Array<UNavigationPoint*>& bestPath)
+{
+#if 0
+	return SetRouteCache(bestPath);
+#else
+	UActor* oldBestPoint = SetRouteCache(bestPath);
+	if (!oldBestPoint)
+		return nullptr;
+
+	UActor* bestPoint = oldBestPoint;
+
+	if (oldBestPoint->IsEventEnabled(EventName::SpecialHandling))
+	{
+		bestPoint = UObject::Cast<UActor>(CallEvent(oldBestPoint, EventName::SpecialHandling, { ExpressionValue::ObjectValue(this) }).ToObject());
+		if (!bCanDoSpecial())
+			bestPoint = nullptr;
+		SpecialGoal() = bestPoint;
+
+		if (bestPoint && bestPoint != oldBestPoint)
+		{
+			if (!ActorReachable(bestPoint))
+			{
+				bestPoint = UObject::Cast<UActor>(FindPathToward(bestPoint, false));
+			}
+		}
+	}
+	else
+	{
+		if (SpecialGoal() == oldBestPoint)
+			SpecialGoal() = nullptr;
+	}
+
+	return bestPoint;
+#endif
+}
+
+
 std::pair<Array<UNavigationPoint*>, int32_t> UPawn::FindPathToEndPoint(UNavigationPoint* start, int maxNodes)
 {
 	if ((start->bPlayerOnly() && !bIsPlayer()))
@@ -3015,7 +3052,7 @@ UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 	{
 		if (!MarkReachableNavEndPoints())
 			return SetRouteCache({});
-		return SetRouteCache(FindPathToEndPoint(aNavPoint, 1000).first);
+		return PathSpecialHandling(FindPathToEndPoint(aNavPoint, 1000).first);
 	}
 	else if (auto actor = UObject::TryCast<UActor>(anActor))
 	{
@@ -3110,7 +3147,7 @@ UObject* UPawn::FindBestInventoryPath(bool predictRespawns, float& outBestWeight
 	if (bestSpot)
 	{
 		outBestWeight = bestWeight;
-		return SetRouteCache(bestPath);
+		return PathSpecialHandling(bestPath);
 	}
 	else
 	{
