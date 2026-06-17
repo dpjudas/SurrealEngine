@@ -115,6 +115,7 @@ public:
 	static void Greater_StrStr(const std::string& A, const std::string& B, BitfieldBool& ReturnValue);
 	static void ImportFullProperties_U227(const std::string& S); // Import a list of properties found in S (skipping private and const variables)
 	static void InStr(const std::string& S, const std::string& t, int& ReturnValue);
+	static void InStr_U227(const std::string& S, const std::string& t, std::optional<int> Start, int& ReturnValue);
 	// static void InterpCurveEval_U227(InterpCurve& curve, float input, float& ReturnValue); // InterpCurve operator, which is a dynamic array of InVal and OutVal groups
 	static void IntToStr_U227(int value, int minWidth, std::string& ReturnValue); // Convert value to string, pad the result with 0s if width < minWidth
 	static void Invert(vec3& X, vec3& Y, vec3& Z);

@@ -96,8 +96,11 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "GreaterGreater_VectorRotator", &NObject::GreaterGreater_VectorRotator, 276);
 	RegisterVMNativeFunc_3("Object", "Greater_FloatFloat", &NObject::Greater_FloatFloat, 177);
 	RegisterVMNativeFunc_3("Object", "Greater_IntInt", &NObject::Greater_IntInt, 151);
-	RegisterVMNativeFunc_3("Object", "Greater_StrStr", &NObject::Greater_StrStr, 116);
-	RegisterVMNativeFunc_3("Object", "InStr", &NObject::InStr, 126);
+	RegisterVMNativeFunc_3("Object", "Greater_StrStr", &NObject::Greater_StrStr, 1186);
+	if (engine->LaunchInfo.IsUnreal1_227())
+		RegisterVMNativeFunc_4("Object", "InStr", &NObject::InStr_U227, 126);
+	else
+		RegisterVMNativeFunc_3("Object", "InStr", &NObject::InStr, 126);
 	RegisterVMNativeFunc_3("Object", "Invert", &NObject::Invert, 227);
 	RegisterVMNativeFunc_2("Object", "IsA", &NObject::IsA, 303);
 	RegisterVMNativeFunc_2("Object", "IsInState", &NObject::IsInState, 281);
@@ -904,6 +907,14 @@ void NObject::ImportFullProperties_U227(const std::string& S)
 void NObject::InStr(const std::string& S, const std::string& t, int& ReturnValue)
 {
 	auto pos = S.find(t);
+	ReturnValue = (pos != std::string::npos) ? (int)pos : -1;
+}
+
+void NObject::InStr_U227(const std::string& S, const std::string& t, std::optional<int> Start, int& ReturnValue)
+{
+	auto start = Start ? *Start : 0;
+	// Ignore start if it is bigger than the length of S
+	const auto pos = S.find(t, (start > S.length()) ? start : 0);
 	ReturnValue = (pos != std::string::npos) ? (int)pos : -1;
 }
 
