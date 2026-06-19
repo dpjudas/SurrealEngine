@@ -475,13 +475,28 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.bTrailerSameRotation = cls->GetPropertyDataOffset("bTrailerSameRotation");
 	PropOffsets_Actor.bTravel = cls->GetPropertyDataOffset("bTravel");
 	PropOffsets_Actor.bUnlit = cls->GetPropertyDataOffset("bUnlit");
-	PropOffsets_Actor.ConListItems = cls->GetPropertyDataOffset("ConListItems");
-	PropOffsets_Actor.BindName = cls->GetPropertyDataOffset("BindName");
-	PropOffsets_Actor.BarkBindName = cls->GetPropertyDataOffset("BarkBindName");
-	PropOffsets_Actor.BlendAnimLast = cls->GetPropertyDataOffset("BlendAnimLast");
-	PropOffsets_Actor.BlendAnimMinRate = cls->GetPropertyDataOffset("BlendAnimMinRate");
-	PropOffsets_Actor.OldBlendAnimRate = cls->GetPropertyDataOffset("OldBlendAnimRate");
-	PropOffsets_Actor.SimBlendAnim = cls->GetPropertyDataOffset("SimBlendAnim");
+
+	if (packages->IsDeusEx())
+	{
+		PropOffsets_Actor.BlendAnimLast = cls->GetPropertyDataOffset("BlendAnimLast");
+		PropOffsets_Actor.BlendAnimMinRate = cls->GetPropertyDataOffset("BlendAnimMinRate");
+		PropOffsets_Actor.OldBlendAnimRate = cls->GetPropertyDataOffset("OldBlendAnimRate");
+		PropOffsets_Actor.SimBlendAnim = cls->GetPropertyDataOffset("SimBlendAnim");
+		PropOffsets_Actor.BindName = cls->GetPropertyDataOffset("BindName");
+		PropOffsets_Actor.BarkBindName = cls->GetPropertyDataOffset("BarkBindName");
+		PropOffsets_Actor.FamiliarName = cls->GetPropertyDataOffset("FamiliarName");
+		PropOffsets_Actor.UnfamiliarName = cls->GetPropertyDataOffset("UnfamiliarName");
+		PropOffsets_Actor.ConListItems = cls->GetPropertyDataOffset("ConListItems");
+		PropOffsets_Actor.LastConEndTime = cls->GetPropertyDataOffset("LastConEndTime");
+		PropOffsets_Actor.ConStartInterval = cls->GetPropertyDataOffset("ConStartInterval");
+		PropOffsets_Actor.VisUpdateTime = cls->GetPropertyDataOffset("VisUpdateTime");
+		PropOffsets_Actor.CurrentVisibility = cls->GetPropertyDataOffset("CurrentVisibility");
+		PropOffsets_Actor.LastVisibility = cls->GetPropertyDataOffset("LastVisibility");
+		PropOffsets_Actor.SmellClass = cls->GetPropertyDataOffset("SmellClass");
+		PropOffsets_Actor.LastSmellNode = cls->GetPropertyDataOffset("LastSmellNode");
+		PropOffsets_Actor.bOwned = cls->GetPropertyDataOffset("bOwned");
+		PropOffsets_Actor.bVisionImportant = cls->GetPropertyDataOffset("bVisionImportant");
+	}
 }
 
 PropertyOffsets_LevelInfo PropOffsets_LevelInfo;
@@ -550,6 +565,21 @@ static void InitPropertyOffsets_LevelInfo(PackageManager* packages)
 	PropOffsets_LevelInfo.bNoCheating = cls->GetPropertyDataOffset("bNoCheating");
 	PropOffsets_LevelInfo.bPlayersOnly = cls->GetPropertyDataOffset("bPlayersOnly");
 	PropOffsets_LevelInfo.bStartup = cls->GetPropertyDataOffset("bStartup");
+
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_LevelInfo.bSupportsRealCrouching = cls->GetPropertyDataOffset("bSupportsRealCrouching");
+		PropOffsets_LevelInfo.EdBuildOpt = cls->GetPropertyDataOffset("EdBuildOpt");
+		PropOffsets_LevelInfo.backup_Song = cls->GetPropertyDataOffset("backup_Song");
+		PropOffsets_LevelInfo.backup_SongSection = cls->GetPropertyDataOffset("backup_SongSection");
+		PropOffsets_LevelInfo.WhiteTexture = cls->GetPropertyDataOffset("WhiteTexture");
+		PropOffsets_LevelInfo.TemplateLightTex = cls->GetPropertyDataOffset("TemplateLightTex");
+		PropOffsets_LevelInfo.EngineSubVersion = cls->GetPropertyDataOffset("EngineSubVersion");
+		PropOffsets_LevelInfo.FootprintManager = cls->GetPropertyDataOffset("FootprintManager");
+		PropOffsets_LevelInfo.ObjList = cls->GetPropertyDataOffset("ObjList");
+		PropOffsets_LevelInfo.DynamicZonesList = cls->GetPropertyDataOffset("DynamicZonesList");
+		PropOffsets_LevelInfo.ReplicationTarget = cls->GetPropertyDataOffset("ReplicationTarget");
+	}
 }
 
 PropertyOffsets_Inventory PropOffsets_Inventory;
@@ -5229,6 +5259,30 @@ void InitPropertyOffsets_DistantLightActor(PackageManager* packages)
 	PropOffsets_DistantLightActor.NewLightRadius = cls->GetPropertyDataOffset("NewLightRadius");
 }
 
+PropertyDataOffsets_DynamicZoneInfo PropOffsets_DynamicZoneInfo;
+
+void InitPropertyOffsets_DynamicZoneInfo(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "DynamicZoneInfo"));
+	if (!cls)
+	{
+		memset(&PropOffsets_DynamicZoneInfo, 0xff, sizeof(PropOffsets_DynamicZoneInfo));
+		return;
+	}
+
+	PropOffsets_DynamicZoneInfo.NextDynamicZone = cls->GetPropertyDataOffset("NextDynamicZone");
+	PropOffsets_DynamicZoneInfo.ZoneAreaType = cls->GetPropertyDataOffset("ZoneAreaType");
+	PropOffsets_DynamicZoneInfo.BoxMin = cls->GetPropertyDataOffset("BoxMin");
+	PropOffsets_DynamicZoneInfo.BoxMax = cls->GetPropertyDataOffset("BoxMax");
+	PropOffsets_DynamicZoneInfo.CylinderSize = cls->GetPropertyDataOffset("CylinderSize");
+	PropOffsets_DynamicZoneInfo.SphereSize = cls->GetPropertyDataOffset("SphereSize");
+	PropOffsets_DynamicZoneInfo.MatchOnlyZone = cls->GetPropertyDataOffset("MatchOnlyZone");
+	PropOffsets_DynamicZoneInfo.bUseRelativeToRotation = cls->GetPropertyDataOffset("bUseRelativeToRotation");
+	PropOffsets_DynamicZoneInfo.bMovesForceTouchUpdate = cls->GetPropertyDataOffset("bMovesForceTouchUpdate");
+	PropOffsets_DynamicZoneInfo.bUpdateTouchers = cls->GetPropertyDataOffset("bUpdateTouchers");
+	PropOffsets_DynamicZoneInfo.OldPose = cls->GetPropertyDataOffset("OldPose");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -5332,6 +5386,7 @@ void InitPropertyOffsets(PackageManager* packages)
 		InitPropertyOffsets_XTrailEmitter(packages);
 		InitPropertyOffsets_XWeatherEmitter(packages);
 		InitPropertyOffsets_XRainRestrictionVolume(packages);
+		InitPropertyOffsets_DynamicZoneInfo(packages);
 	}
 	if (packages->IsDeusEx())
 	{

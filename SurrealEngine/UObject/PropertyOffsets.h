@@ -430,13 +430,26 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset bTrailerSameRotation;
 	PropertyDataOffset bTravel;
 	PropertyDataOffset bUnlit;
-	PropertyDataOffset ConListItems;
-	PropertyDataOffset BindName;
-	PropertyDataOffset BarkBindName;
+
+	// Deus Ex additions
 	PropertyDataOffset BlendAnimLast;
 	PropertyDataOffset BlendAnimMinRate;
 	PropertyDataOffset OldBlendAnimRate;
 	PropertyDataOffset SimBlendAnim;
+	PropertyDataOffset BindName;
+	PropertyDataOffset BarkBindName;
+	PropertyDataOffset FamiliarName;
+	PropertyDataOffset UnfamiliarName;
+	PropertyDataOffset ConListItems;
+	PropertyDataOffset LastConEndTime;
+	PropertyDataOffset ConStartInterval;
+	PropertyDataOffset VisUpdateTime;
+	PropertyDataOffset CurrentVisibility;
+	PropertyDataOffset LastVisibility;
+	PropertyDataOffset SmellClass;
+	PropertyDataOffset LastSmellNode;
+	PropertyDataOffset bOwned;
+	PropertyDataOffset bVisionImportant;
 };
 
 extern PropertyOffsets_Actor PropOffsets_Actor;
@@ -499,6 +512,19 @@ struct PropertyOffsets_LevelInfo
 	PropertyDataOffset bNoCheating;
 	PropertyDataOffset bPlayersOnly;
 	PropertyDataOffset bStartup;
+
+	// 227 additions
+	PropertyDataOffset bSupportsRealCrouching;
+	PropertyDataOffset EdBuildOpt;
+	PropertyDataOffset backup_Song;
+	PropertyDataOffset backup_SongSection;
+	PropertyDataOffset WhiteTexture;
+	PropertyDataOffset TemplateLightTex;
+	PropertyDataOffset EngineSubVersion;
+	PropertyDataOffset FootprintManager;
+	PropertyDataOffset ObjList;
+	PropertyDataOffset DynamicZonesList;
+	PropertyDataOffset ReplicationTarget;
 };
 
 extern PropertyOffsets_LevelInfo PropOffsets_LevelInfo;
@@ -4173,3 +4199,20 @@ struct PropertyOffsets_DistantLightActor
 };
 
 extern PropertyOffsets_DistantLightActor PropOffsets_DistantLightActor;
+
+struct PropertyDataOffsets_DynamicZoneInfo
+{
+	PropertyDataOffset NextDynamicZone;
+	PropertyDataOffset ZoneAreaType;
+	PropertyDataOffset BoxMin;
+	PropertyDataOffset BoxMax;
+	PropertyDataOffset CylinderSize;
+	PropertyDataOffset SphereSize;
+	PropertyDataOffset MatchOnlyZone;
+	PropertyDataOffset bUseRelativeToRotation;
+	PropertyDataOffset bMovesForceTouchUpdate;
+	PropertyDataOffset bUpdateTouchers;
+	PropertyDataOffset OldPose;
+};
+
+extern PropertyDataOffsets_DynamicZoneInfo PropOffsets_DynamicZoneInfo;
