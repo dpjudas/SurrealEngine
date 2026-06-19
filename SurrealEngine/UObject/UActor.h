@@ -39,6 +39,7 @@ class BspNode;
 class CollisionHitList;
 struct MeshAnimSeq;
 struct XAIParams; // Deus Ex
+class UDynamicZoneInfo; // Unreal 227
 
 struct PointRegion
 {
@@ -356,6 +357,15 @@ enum class EAmbients : uint8_t
 	REVERB_PRESET_SMALLWATERROOM,
 	REVERB_PRESET_UNDERSLIME,
 	REVERB_PRESET_NONE
+};
+
+// Unreal 227
+enum class EDynZoneInfoType : uint8_t
+{
+	DZONE_Cube,
+	DZONE_Sphere,
+	DZONE_Cylinder,
+	DZONE_Script
 };
 
 class UActor : public UObject
@@ -705,20 +715,34 @@ public:
 	BitfieldBool bTravel() { return BoolValue(PropOffsets_Actor.bTravel); }
 	BitfieldBool bUnlit() { return BoolValue(PropOffsets_Actor.bUnlit); }
 
-	UObject*& ConListItems() { return Value<UObject*>(PropOffsets_Actor.ConListItems); }
+	// Deus Ex exclusive properties
 	std::string& BindName() { return Value<std::string>(PropOffsets_Actor.BindName); }
 	std::string& BarkBindName() { return Value<std::string>(PropOffsets_Actor.BarkBindName); }
 
-	FixedArrayView<float, 4> BlendAnimLast() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimLast);}
-	FixedArrayView<float, 4> BlendAnimMinRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimMinRate);}
-	FixedArrayView<float, 4> OldBlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.OldBlendAnimRate);}
-	FixedArrayView<vec4, 4> SimBlendAnim() {return FixedArray<vec4, 4>(PropOffsets_Actor.SimBlendAnim);}
+	FixedArrayView<float, 4> BlendAnimLast() { return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimLast); }
+	FixedArrayView<float, 4> BlendAnimMinRate() { return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimMinRate); }
+	FixedArrayView<float, 4> OldBlendAnimRate() { return FixedArray<float, 4>(PropOffsets_Actor.OldBlendAnimRate); }
+	FixedArrayView<vec4, 4> SimBlendAnim() { return FixedArray<vec4, 4>(PropOffsets_Actor.SimBlendAnim); }
+
+	std::string& FamiliarName() { return Value<std::string>(PropOffsets_Actor.FamiliarName); }
+	std::string& UnfamiliarName() { return Value<std::string>(PropOffsets_Actor.FamiliarName); }
+	UObject*& ConListItems() { return Value<UObject*>(PropOffsets_Actor.ConListItems); }
+	float& LastConEndTime() { return Value<float>(PropOffsets_Actor.LastConEndTime); }
+	float& ConStartInterval() { return Value<float>(PropOffsets_Actor.ConStartInterval); }
+
+	float& VisUpdateTime() { return Value<float>(PropOffsets_Actor.VisUpdateTime); }
+	float& CurrentVisibility() { return Value<float>(PropOffsets_Actor.CurrentVisibility); }
+	float& LastVisibility() { return Value<float>(PropOffsets_Actor.LastVisibility); }
+
+	UClass*& SmellClass() { return Value<UClass*>(PropOffsets_Actor.SmellClass); }
+	// SmellNode*& LastSmellNode() { return Value<SmellNode*>(PropOffsets_Actor.LastSmellNode); } // SmellNode is not a native class
+
+	BitfieldBool bOwned() { return BoolValue(PropOffsets_Actor.bOwned); }
 
 	FixedArrayView<NameString, 4> BlendAnimSequence() {return FixedArray<NameString, 4>(PropOffsets_Actor.BlendAnimSequence);}
 	FixedArrayView<float, 4> BlendAnimFrame() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimFrame);}
 	FixedArrayView<float, 4> BlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimRate);}
 	FixedArrayView<float, 4> BlendTweenRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendTweenRate);}
-	
 };
 
 class ULight : public UActor
@@ -1471,6 +1495,35 @@ public:
 	BitfieldBool bNoCheating() { return BoolValue(PropOffsets_LevelInfo.bNoCheating); }
 	BitfieldBool bPlayersOnly() { return BoolValue(PropOffsets_LevelInfo.bPlayersOnly); }
 	BitfieldBool bStartup() { return BoolValue(PropOffsets_LevelInfo.bStartup); }
+
+	// 227 exclusive properties
+	BitfieldBool bSupportsRealCrouching() { return BoolValue(PropOffsets_LevelInfo.bSupportsRealCrouching); }
+	int& EdBuildOpt() { return Value<int>(PropOffsets_LevelInfo.EdBuildOpt); }
+	UMusic*& backup_Song() { return Value<UMusic*>(PropOffsets_LevelInfo.backup_Song); }
+	uint8_t& backup_SongSection() { return Value<uint8_t>(PropOffsets_LevelInfo.backup_SongSection); }
+	UTexture*& WhiteTexture() { return Value<UTexture*>(PropOffsets_LevelInfo.WhiteTexture); }
+	UTexture*& TemplateLightTex() { return Value<UTexture*>(PropOffsets_LevelInfo.TemplateLightTex); }
+	std::string& EngineSubVersion() { return Value<std::string>(PropOffsets_LevelInfo.EngineSubVersion); }
+	// FootStepManager is not a native class
+	Array<UObject*> ObjList() { return DynamicArray<UObject*>(PropOffsets_LevelInfo.ObjList); }
+	UDynamicZoneInfo*& DynamicZonesList() { return Value<UDynamicZoneInfo*>(PropOffsets_LevelInfo.DynamicZonesList); }
+};
+
+class UDynamicZoneInfo : public UZoneInfo
+{
+	using UZoneInfo::UZoneInfo;
+
+	UDynamicZoneInfo*& NextDynamicZone() { return Value<UDynamicZoneInfo*>(PropOffsets_DynamicZoneInfo.NextDynamicZone); }
+	EDynZoneInfoType ZoneAreaType() { return static_cast<EDynZoneInfoType>(Value<uint8_t>(PropOffsets_DynamicZoneInfo.ZoneAreaType)); }
+	vec3*& BoxMin() { return Value<vec3*>(PropOffsets_DynamicZoneInfo.BoxMin); }
+	vec3*& BoxMax() { return Value<vec3*>(PropOffsets_DynamicZoneInfo.BoxMax); }
+	float& CylinderSize() { return Value<float>(PropOffsets_DynamicZoneInfo.CylinderSize); }
+	float& SphereSize() { return Value<float>(PropOffsets_DynamicZoneInfo.SphereSize); }
+	UZoneInfo*& MatchOnlyZone() { return Value<UZoneInfo*>(PropOffsets_DynamicZoneInfo.MatchOnlyZone); }
+	BitfieldBool bUseRelativeToRotation() { return BoolValue(PropOffsets_DynamicZoneInfo.bUseRelativeToRotation); }
+	BitfieldBool bMovesForceTouchUpdate() { return BoolValue(PropOffsets_DynamicZoneInfo.bMovesForceTouchUpdate); }
+	BitfieldBool bUpdateTouchers() { return BoolValue(PropOffsets_DynamicZoneInfo.bUpdateTouchers); }
+	vec3*& OldPose() { return Value<vec3*>(PropOffsets_DynamicZoneInfo.OldPose); }
 };
 
 class UWarpZoneInfo : public UZoneInfo
@@ -1738,6 +1791,11 @@ public:
 	UObject* FindBestInventoryPath(bool predictRespawns, float& outBestWeight);
 	UNavigationPoint* FindClosestNavPoint(vec3 location);
 	bool MarkReachableNavEndPoints();
+
+	// Deus Ex AI functions
+	float AICanHear(UActor* other, std::optional<float> volume, std::optional<float> radius);
+	float AICanSee(UActor* other, std::optional<float> visibility, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS);
+	float AICanSmell(UActor* other, std::optional<float> smell);
 
 	float& AccelRate() { return Value<float>(PropOffsets_Pawn.AccelRate); }
 	float& AirControl() { return Value<float>(PropOffsets_Pawn.AirControl); }

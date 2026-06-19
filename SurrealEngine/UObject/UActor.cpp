@@ -3046,6 +3046,24 @@ bool UPawn::MarkReachableNavEndPoints()
 	return endPointsFound > 0;
 }
 
+float UPawn::AICanHear(UActor* other, std::optional<float> volume, std::optional<float> radius)
+{
+	LogUnimplemented("Pawn.AICanHear() [Deus Ex]");
+	return 0.0f;
+}
+
+float UPawn::AICanSee(UActor* other, std::optional<float> visibility, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS)
+{
+	LogUnimplemented("Pawn.AICanSee() [Deus Ex]");
+	return 0.0f;
+}
+
+float UPawn::AICanSmell(UActor* other, std::optional<float> smell)
+{
+	LogUnimplemented("Pawn.AICanSmell() [Deus Ex]");
+	return 0.0f;
+}
+
 UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 {
 	if (auto aNavPoint = UObject::TryCast<UNavigationPoint>(anActor))
