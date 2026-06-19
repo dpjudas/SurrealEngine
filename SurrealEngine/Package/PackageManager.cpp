@@ -1040,6 +1040,7 @@ void PackageManager::RegisterNativeClasses()
 
 	if (IsUnreal1_227())
 	{
+		RegisterNativeClass<UDynamicZoneInfo>(enginePackage, "DynamicZoneInfo", "ZoneInfo");
 		RegisterNativeClass<UDistantLightActor>(emitterPackage, "DistantLightActor", "Light");
 		RegisterNativeClass<UStaticMesh>(enginePackage, "StaticMesh", "Mesh");
 		RegisterNativeClass<UEmitterRC>(emitterPackage, "EmitterRC", "Actor");
