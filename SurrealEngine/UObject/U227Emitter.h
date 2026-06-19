@@ -1,6 +1,5 @@
 #pragma once
 
-#include "U227Emitter.h"
 #include "UActor.h"
 
 class UXEmitter;
