@@ -197,7 +197,7 @@ void NObject::RegisterFunctions()
 		RegisterVMNativeFunc_3("Object", "AlignQuatWith", &NObject::AlignQuatWith_U227, 634);
 		RegisterVMNativeFunc_3("Object", "AllFiles", &NObject::AllFiles_U227, 603);
 		RegisterVMNativeFunc_7("Object", "AllLinkers", &NObject::AllLinkers_U227, 636);
-		RegisterVMNativeFunc_3("Object", "AllObjects", &NObject::AllObjects_U227, 304);
+		RegisterVMNativeFunc_3("Object", "AllObjects", &NObject::AllObjects_U227, 602);
 		RegisterVMNativeFunc_3("Object", "And_RotatorRotator", &NObject::And_RotatorRotator_U227, 607);
 		RegisterVMNativeFunc_1("Object", "AppSeconds", &NObject::AppSeconds_U227, 643);
 		RegisterVMNativeFunc_1("Object", "AppInEditor", &NObject::AppInEditor_U227, 645);
