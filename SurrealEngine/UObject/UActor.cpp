@@ -1270,7 +1270,7 @@ bool UActor::SetLocation(const vec3& newLocation)
 		// Send touch notifications for anything at the new location
 		for (UActor* actor : XLevel()->Collision.CollidingActors(Location(), CollisionHeight(), CollisionRadius()))
 		{
-			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor))
+			if (actor != this && !actor->IsBasedOn(this) && !IsBasedOn(actor) && bCollideActors() && actor->bCollideActors())
 			{
 				Touch(actor);
 			}
@@ -1504,7 +1504,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 		if (hit.Fraction >= blockingHit.Fraction)
 			break;
 
-		if (hit.Actor && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor))
+		if (hit.Actor && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor) && bCollideActors() && hit.Actor->bCollideActors())
 		{
 			// We can't touch stuff we are blocked by
 			bool isBlocking;
