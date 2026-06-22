@@ -12,6 +12,12 @@ void NativeFunctions::RegisterHandler(const NameString& className, const NameStr
 	if (nativeIndex != 0)
 	{
 		if (NativeByIndex.size() <= (size_t)nativeIndex) NativeByIndex.resize((size_t)nativeIndex + 1);
+
+		if (NativeByIndex[nativeIndex] != nullptr)
+			Exception::Throw("Attempted to assign native index "
+				+ std::to_string(nativeIndex) + " to " + className.ToString() + "." + funcName.ToString()
+				+ ", which was already assigned to a different native function.");
+
 		NativeByIndex[nativeIndex] = handler;
 	}
 	else
@@ -22,10 +28,17 @@ void NativeFunctions::RegisterHandler(const NameString& className, const NameStr
 
 void NativeFunctions::RegisterNativeFunc(UFunction* func)
 {
-	int nativeIndex = func->NativeFuncIndex;;
+	int nativeIndex = func->NativeFuncIndex;
+	
 	if (nativeIndex != 0)
 	{
 		if (FuncByIndex.size() <= (size_t)nativeIndex) FuncByIndex.resize((size_t)nativeIndex + 1);
+
+		if (FuncByIndex[nativeIndex] != nullptr)
+			Exception::Throw("Attempted to assign native index "
+				+ std::to_string(nativeIndex) + " to " + UObject::GetUClassFullName(func).ToString()
+				+ ", which was already assigned to a different native function.");
+
 		FuncByIndex[nativeIndex] = func;
 	}
 }
