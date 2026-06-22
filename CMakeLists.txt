@@ -173,6 +173,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NActor.cpp
 	SurrealEngine/Native/N227Emitter.h
 	SurrealEngine/Native/N227Emitter.cpp
+	SurrealEngine/Native/N227Projector.h
+	SurrealEngine/Native/N227Projector.cpp
 	SurrealEngine/Native/NPlayerPawn.h
 	SurrealEngine/Native/NStatLog.cpp
 	SurrealEngine/Native/NStatLogFile.cpp
@@ -370,6 +372,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UDXTextParser.h
 	SurrealEngine/UObject/U227Emitter.cpp
 	SurrealEngine/UObject/U227Emitter.h
+	SurrealEngine/UObject/U227Projector.h
 	SurrealEngine/UObject/UClient.h
 	SurrealEngine/UObject/UMesh.cpp
 	SurrealEngine/UObject/UMesh.h
