@@ -573,7 +573,8 @@ UnrealURL Engine::GetDefaultURL(const std::string& map)
 void Engine::LoadEntryMap()
 {
 	// The entry map is the map you see in the game when no other map is playing. For example when disconnected from a server. It is always loaded and running.
-	LoadMap(GetDefaultURL("Entry"));
+	const auto entryMapName = packages->GetIniValue("System", "URL", "EntryMap", "Entry");
+	LoadMap(GetDefaultURL(entryMapName));
 	EntryLevelInfo = LevelInfo;
 	EntryLevel = Level;
 	EntryLevelPackage = std::move(LevelPackage);
@@ -1278,6 +1279,17 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		// "mpgameplay"
 		// "mpinstall"
 		return "mpgameplay";
+	}
+	else if (command == "os")
+	{
+		// 227 Seems to have this command
+#ifdef WIN32
+		return "Windows";
+#elif APPLE
+		return "macOS";
+#else
+		return "Linux"; // With apologies to BSD, Haiku and others...
+#endif
 	}
 	else if (command == "getsplash")
 	{
