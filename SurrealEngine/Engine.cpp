@@ -1285,7 +1285,7 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 		// 227 Seems to have this command
 #ifdef WIN32
 		return "Windows";
-#elif APPLE
+#elif __APPLE__
 		return "macOS";
 #else
 		return "Linux"; // With apologies to BSD, Haiku and others...
