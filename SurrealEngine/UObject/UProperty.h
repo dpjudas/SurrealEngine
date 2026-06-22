@@ -134,44 +134,6 @@ public:
 	bool CompareLessElement(const void* v1, const void* v2) { return false; }
 };
 
-class ScriptArray
-{
-public:
-	ScriptArray(UProperty* type);
-	ScriptArray(const ScriptArray& other);
-	ScriptArray(ScriptArray&& other);
-	~ScriptArray();
-
-	void ShrinkToFit();
-	void Clear();
-
-	void SetValue(size_t index, const void* src);
-	void Insert(size_t index, size_t count);
-	void Remove(size_t index, size_t count);
-
-	void* GetData() { return Data; }
-	const void* GetData() const { return Data; }
-	size_t GetSize() const { return Size; }
-
-	void* GetItem(size_t index);
-
-	void Reserve(size_t new_cap);
-	void Swap(ScriptArray& other) noexcept;
-	void Resize(size_t count);
-
-	ScriptArray& operator=(const ScriptArray& other);
-	ScriptArray& operator=(ScriptArray&& other) noexcept;
-
-	bool operator==(const ScriptArray& rhs) const;
-	bool operator!=(const ScriptArray& rhs) const;
-
-private:
-	UProperty* Type = nullptr;
-	uint8_t* Data = nullptr;
-	size_t Size = 0;
-	size_t Capacity = 0;
-};
-
 class MapPropertyValue
 {
 public:

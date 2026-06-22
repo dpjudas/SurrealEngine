@@ -761,7 +761,7 @@ public:
 
 	float& LastRenderedTime() { return Value<float>(PropOffsets_Decal.LastRenderedTime); }
 	int& MultiDecalLevel() { return Value<int>(PropOffsets_Decal.MultiDecalLevel); }
-	//Array<void*>& SurfList() { return DynamicArray<void*>(PropOffsets_Decal.SurfList); }
+	TypedScriptArray<void*> SurfList() { return DynamicArray<void*>(PropOffsets_Decal.SurfList); }
 
 	Array<BspNode*> Nodes;
 };
@@ -1505,7 +1505,7 @@ public:
 	UTexture*& TemplateLightTex() { return Value<UTexture*>(PropOffsets_LevelInfo.TemplateLightTex); }
 	std::string& EngineSubVersion() { return Value<std::string>(PropOffsets_LevelInfo.EngineSubVersion); }
 	// FootStepManager is not a native class
-	//Array<UObject*> ObjList() { return DynamicArray<UObject*>(PropOffsets_LevelInfo.ObjList); }
+	TypedScriptArray<UObject*> ObjList() { return DynamicArray<UObject*>(PropOffsets_LevelInfo.ObjList); }
 	UDynamicZoneInfo*& DynamicZonesList() { return Value<UDynamicZoneInfo*>(PropOffsets_LevelInfo.DynamicZonesList); }
 };
 
@@ -2164,7 +2164,7 @@ public:
 	UNavigationPoint* GetLast();
 	UNavigationPoint* GetLastVisible();
 
-	//Array<UNavigationPoint*>& NodePath() { return DynamicArray<UNavigationPoint*>(PropOffsets_UPakPathNodeIterator.NodePath); }
+	TypedScriptArray<UNavigationPoint*> NodePath() { return DynamicArray<UNavigationPoint*>(PropOffsets_UPakPathNodeIterator.NodePath); }
 	int& NodeCount() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeCount); }
 	int& NodeIndex() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeIndex); }
 	int& NodeCost() { return Value<int>(PropOffsets_UPakPathNodeIterator.NodeCost); }

@@ -1447,14 +1447,59 @@ void ScriptArray::Clear()
 
 void ScriptArray::SetValue(size_t index, const void* src)
 {
+	auto pitch = Type->ElementPitch();
+	Type->CopyElement(Data + index * pitch, src);
 }
 
-void ScriptArray::Insert(size_t index, size_t count)
+void ScriptArray::Insert(size_t insertPos, size_t insertCount)
 {
+	if (insertPos == Size)
+	{
+		Resize(Size + insertCount);
+	}
+	else
+	{
+		size_t new_cap = Size + insertCount;
+		auto pitch = Type->ElementPitch();
+		ScriptArray copy(Type);
+		copy.Data = (uint8_t*)AlignedAlloc(Type->ElementAlignment(), pitch * new_cap);
+		if (!copy.Data) throw std::bad_alloc();
+		copy.Capacity = new_cap;
+
+		// Copy before insertion block
+		for (size_t i = 0, count = insertPos; i < count; i++)
+		{
+			Type->CopyConstructElement(copy.Data + copy.Size * pitch, Data + i * pitch);
+			copy.Size++;
+		}
+
+		// Default initialize insertion block
+		for (size_t i = 0, count = insertCount; i < count; i++)
+		{
+			Type->ConstructElement(copy.Data + copy.Size * pitch);
+			copy.Size++;
+		}
+
+		// Copy after insertion block
+		for (size_t i = insertPos, count = Size; i < count; i++)
+		{
+			Type->CopyConstructElement(copy.Data + copy.Size * pitch, Data + i * pitch);
+			copy.Size++;
+		}
+
+		Swap(copy);
+
+	}
 }
 
-void ScriptArray::Remove(size_t index, size_t count)
+void ScriptArray::Remove(size_t removePos, size_t removeCount)
 {
+	auto pitch = Type->ElementPitch();
+	for (size_t i = removePos, end = Size - removeCount; i < end; i++)
+	{
+		Type->CopyElement(Data + i * pitch, Data + (i + removeCount) * pitch);
+	}
+	Resize(GetSize() - removeCount);
 }
 
 void* ScriptArray::GetItem(size_t index)

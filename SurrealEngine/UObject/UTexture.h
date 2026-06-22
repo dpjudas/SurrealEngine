@@ -215,7 +215,7 @@ public:
 	UTexture*& AnimNext() { return Value<UTexture*>(PropOffsets_Texture.AnimNext); }
 	UTexture*& BumpMap() { return Value<UTexture*>(PropOffsets_Texture.BumpMap); }
 	uint8_t& CompFormat() { return Value<uint8_t>(PropOffsets_Texture.CompFormat); }
-	//Array<void*>& CompMips() { return DynamicArray<void*>(PropOffsets_Texture.CompMips); } // native
+	TypedScriptArray<void*> CompMips() { return DynamicArray<void*>(PropOffsets_Texture.CompMips); } // native
 	UTexture*& DetailTexture() { return Value<UTexture*>(PropOffsets_Texture.DetailTexture); }
 	float& Diffuse() { return Value<float>(PropOffsets_Texture.Diffuse); }
 	float& DrawScale() { return Value<float>(PropOffsets_Texture.DrawScale); }
@@ -227,7 +227,7 @@ public:
 	float& MaxFrameRate() { return Value<float>(PropOffsets_Texture.MaxFrameRate); }
 	float& MinFrameRate() { return Value<float>(PropOffsets_Texture.MinFrameRate); }
 	float& MipMult() { return Value<float>(PropOffsets_Texture.MipMult); }
-	//Array<void*>& Mips() { return DynamicArray<void*>(PropOffsets_Texture.Mips); } // native
+	TypedScriptArray<void*> Mips() { return DynamicArray<void*>(PropOffsets_Texture.Mips); } // native
 	uint8_t& PrimeCount() { return Value<uint8_t>(PropOffsets_Texture.PrimeCount); }
 	uint8_t& PrimeCurrent() { return Value<uint8_t>(PropOffsets_Texture.PrimeCurrent); }
 	float& Specular() { return Value<float>(PropOffsets_Texture.Specular); }
@@ -389,7 +389,7 @@ public:
 	uint8_t& RenderHeat() { return Value<uint8_t>(PropOffsets_FireTexture.RenderHeat); }
 	FixedArrayView<uint8_t, 1028> RenderTable() { return FixedArray<uint8_t, 1028>(PropOffsets_FireTexture.RenderTable); }
 	uint8_t& SparkType() { return Value<uint8_t>(PropOffsets_FireTexture.SparkType); }
-	//Array<Spark>& Sparks() { return DynamicArray<Spark>(PropOffsets_FireTexture.Sparks); }
+	//TypedScriptArray<Spark> Sparks() { return DynamicArray<Spark>(PropOffsets_FireTexture.Sparks); }
 	int& SparksLimit() { return Value<int>(PropOffsets_FireTexture.SparksLimit); }
 	uint8_t& StarStatus() { return Value<uint8_t>(PropOffsets_FireTexture.StarStatus); }
 	BitfieldBool bRising() { return BoolValue(PropOffsets_FireTexture.bRising); }
@@ -574,7 +574,7 @@ public:
 
 	Array<uint32_t> Colors;
 
-	// Array<void*>& Colors() { return DynamicArray<void*>(PropOffsets_Palette.Colors); } // native
+	//TypedScriptArray<void*> Colors() { return DynamicArray<void*>(PropOffsets_Palette.Colors); } // native
 
 	uint8_t FindBestColor(const Color& color) const;
 };

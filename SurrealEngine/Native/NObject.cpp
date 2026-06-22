@@ -424,14 +424,18 @@ void NObject::Array_Size_U227(ScriptArray& Ar, std::optional<int> SetSize, int& 
 
 void NObject::Array_Insert_U227(ScriptArray& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
 {
-	// Insert space into a dynamic array. Returns false if it fails (bad parameters, const/private/inaccessible array)
-	ReturnValue = false;
+	// To do: return false if Offset and Count is out of bounds
+	// To do: is the Count default correct?
+	Ar.Insert(Offset, Count.has_value() ? Count.value() : 1);
+	ReturnValue = true;
 }
 
 void NObject::Array_Remove_U227(ScriptArray& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
 {
-	// Remove space from a dynamic array. Returns false if fails.
-	ReturnValue = false;
+	// To do: return false if out of bounds
+	// To do: is the Count default correct?
+	Ar.Remove(Offset, Count.has_value() ? Count.value() : 1);
+	ReturnValue = true;
 }
 
 void NObject::AllFiles_U227(const std::string& FileExtension, const std::string& FilePrefix, std::string& outFileName)

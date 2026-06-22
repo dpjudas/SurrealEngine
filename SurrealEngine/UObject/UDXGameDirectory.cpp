@@ -90,11 +90,9 @@ UDXSaveInfo* UDXGameDirectory::GetSaveInfo(int fileIndex)
 
 UDXSaveInfo* UDXGameDirectory::GetSaveInfoFromDirectoryIndex(int DirectoryIndex)
 {
-#if 0
 	for (const auto& dxSaveInfo : LoadedSaveInfoPointers())
 		if (dxSaveInfo->DirectoryIndex() == DirectoryIndex)
 			return dxSaveInfo;
-#endif
 
 	return nullptr;
 }

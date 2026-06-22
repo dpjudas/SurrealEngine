@@ -17,7 +17,6 @@ class UClass;
 class UProperty;
 class Package;
 class Frame;
-class ScriptArray;
 enum class EventName;
 
 enum UnrealPropertyType
@@ -152,6 +151,77 @@ private:
 	T* m_Data;
 };
 
+// Array class for unrealscript array properties
+class ScriptArray
+{
+public:
+	ScriptArray(UProperty* type);
+	ScriptArray(const ScriptArray& other);
+	ScriptArray(ScriptArray&& other);
+	~ScriptArray();
+
+	void ShrinkToFit();
+	void Clear();
+
+	void SetValue(size_t index, const void* src);
+	void Insert(size_t index, size_t count);
+	void Remove(size_t index, size_t count);
+
+	void* GetData() { return Data; }
+	const void* GetData() const { return Data; }
+
+	size_t GetSize() const { return Size; }
+	size_t GetCapacity() const { return Capacity; }
+
+	void* GetItem(size_t index);
+
+	void Reserve(size_t new_cap);
+	void Swap(ScriptArray& other) noexcept;
+	void Resize(size_t count);
+
+	ScriptArray& operator=(const ScriptArray& other);
+	ScriptArray& operator=(ScriptArray&& other) noexcept;
+
+	bool operator==(const ScriptArray& rhs) const;
+	bool operator!=(const ScriptArray& rhs) const;
+
+private:
+	UProperty* Type = nullptr;
+	uint8_t* Data = nullptr;
+	size_t Size = 0;
+	size_t Capacity = 0;
+};
+
+// Helper class for working with ScriptArray with C++ types
+template<typename T>
+class TypedScriptArray
+{
+public:
+	TypedScriptArray(ScriptArray* array) : Array(array) {}
+
+	ScriptArray* Array;
+
+	T* data() { return static_cast<T*>(Array->GetData()); }
+	size_t size() const { return Array->GetSize(); }
+	T* begin() { return data(); }
+	T* end() { return data() + Array->GetSize(); }
+	T& operator[](size_t index) { return data()[index]; }
+
+	void push_back(const T& value)
+	{
+		size_t index = Array->GetSize();
+		if (index == Array->GetCapacity())
+			Array->Reserve((Array->GetCapacity() + 1) << 1);
+		Array->Resize(index + 1);
+		data()[index] = value;
+	}
+
+	void pop_back()
+	{
+		Array->Resize(Array->GetSize() - 1);
+	}
+};
+
 class PropertyDataBlock
 {
 public:
@@ -280,7 +350,8 @@ public:
 		return FixedArrayView<T, n>(static_cast<T*>(PropertyData.Ptr(offset.DataOffset)));
 	}
 
-	ScriptArray& DynamicArray(PropertyDataOffset offset) { return *static_cast<ScriptArray*>(PropertyData.Ptr(offset.DataOffset)); }
+	template<typename T>
+	TypedScriptArray<T> DynamicArray(PropertyDataOffset offset) { return *static_cast<TypedScriptArray<T>*>(PropertyData.Ptr(offset.DataOffset)); }
 
 	template<typename T>
 	static T* Cast(UObject* obj)
