@@ -1,94 +1,7 @@
 #pragma once
 
-#include "UObject/UObject.h"
-#include "UObject/UProperty.h"
-#include "Utils/AlignedAlloc.h"
-#include "Math/quaternion.h"
-#include "Math/coords.h"
-#include <optional>
-
-class UProperty;
-
-class StructValue
-{
-public:
-	StructValue() = default;
-
-	StructValue(const StructValue& other)
-	{
-		Load(other.Struct, other.Ptr);
-	}
-
-	StructValue(StructValue&& other)
-	{
-		*this = std::move(other);
-	}
-
-	~StructValue()
-	{
-		Reset();
-	}
-
-	void Store(void* dest) const
-	{
-		if (Struct)
-		{
-			for (UProperty* prop : Struct->Properties)
-				prop->CopyArray(
-					static_cast<uint8_t*>(dest) + prop->DataOffset.DataOffset,
-					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
-		}
-	}
-
-	void Load(UStruct* type, void* src)
-	{
-		Reset();
-		Struct = type;
-		if (Struct)
-		{
-			Ptr = AlignedAlloc(Struct->StructAlignment, Struct->StructSize);
-			for (UProperty* prop : Struct->Properties)
-				prop->CopyConstructArray(
-					static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset,
-					static_cast<uint8_t*>(src) + prop->DataOffset.DataOffset);
-		}
-	}
-
-	void Reset()
-	{
-		if (Struct)
-		{
-			for (UProperty* prop : Struct->Properties)
-				prop->DestructArray(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
-			AlignedFree(Ptr);
-			Struct = nullptr;
-		}
-	}
-
-	StructValue& operator=(const StructValue& other)
-	{
-		if (this != &other)
-		{
-			Load(other.Struct, other.Ptr);
-		}
-		return *this;
-	}
-
-	StructValue& operator=(StructValue&& other)
-	{
-		if (this != &other)
-		{
-			Struct = other.Struct;
-			Ptr = other.Ptr;
-			other.Struct = nullptr;
-			other.Ptr = nullptr;
-		}
-		return *this;
-	}
-
-	UStruct* Struct = nullptr;
-	void* Ptr = nullptr;
-};
+#include "StructValue.h"
+#include "ArrayValue.h"
 
 class ExpressionValue
 {
@@ -109,6 +22,7 @@ public:
 			case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
 			case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
 			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+			case ExpressionValueType::ValueArray: new(PtrByte) ArrayValue(*v.GetArrayValue()); Ptr = GetArrayValue()->Ptr; break;
 			case ExpressionValueType::ValueCoords: new(PtrByte) Coords(*v.PtrCoords); break;
 			case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(*v.PtrQuat); break;
 			}
@@ -136,6 +50,7 @@ public:
 			case ExpressionValueType::ValueName: new(PtrByte) NameString(std::move(*v.PtrName)); break;
 			case ExpressionValueType::ValueColor: new(PtrByte) Color(std::move(*v.PtrColor)); break;
 			case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(std::move(*v.GetStructValue())); Ptr = GetStructValue()->Ptr; break;
+			case ExpressionValueType::ValueArray: new(PtrByte) ArrayValue(std::move(*v.GetArrayValue())); Ptr = GetArrayValue()->Ptr; break;
 			case ExpressionValueType::ValueCoords: new(PtrByte) Coords(std::move(*v.PtrCoords)); break;
 			case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(std::move(*v.PtrQuat)); break;
 			}
@@ -168,6 +83,7 @@ public:
 				case ExpressionValueType::ValueName: new(PtrByte) NameString(*v.PtrName); break;
 				case ExpressionValueType::ValueColor: new(PtrByte) Color(*v.PtrColor); break;
 				case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(*v.GetStructValue()); Ptr = GetStructValue()->Ptr; break;
+				case ExpressionValueType::ValueArray: new(PtrByte) ArrayValue(*v.GetArrayValue()); Ptr = GetArrayValue()->Ptr; break;
 				case ExpressionValueType::ValueCoords: new(PtrByte) Coords(*v.PtrCoords); break;
 				case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(*v.PtrQuat); break;
 				}
@@ -188,6 +104,7 @@ public:
 		Deinit();
 	}
 
+	Array<::PropertyValue> ToArray() const;
 	uint8_t ToByte() const;
 	int32_t ToInt() const;
 	bool ToBool() const;
@@ -241,7 +158,7 @@ public:
 		return ExpressionValue::Variable(Ptr, field);
 	}
 
-	void CheckType(ExpressionValueType type)
+	void CheckType(ExpressionValueType type) const
 	{
 		if (Type == ExpressionValueType::Nothing)
 			Exception::Throw("Accessed None");
@@ -262,6 +179,7 @@ private:
 		case ExpressionValueType::ValueName: new(PtrByte) NameString(); break;
 		case ExpressionValueType::ValueColor: new(PtrByte) Color(); break;
 		case ExpressionValueType::ValueStruct: new(PtrByte) StructValue(); Ptr = GetStructValue()->Ptr; break;
+		case ExpressionValueType::ValueArray: new(PtrByte) ArrayValue(); Ptr = GetArrayValue()->Ptr; break;
 		case ExpressionValueType::ValueCoords: new(PtrByte) Coords(); break;
 		case ExpressionValueType::ValueQuat: new(PtrByte) quaternion(); break;
 		}
@@ -290,6 +208,7 @@ private:
 			case ExpressionValueType::ValueName: PtrName->~NameString(); break;
 			case ExpressionValueType::ValueColor: PtrColor->~Color(); break;
 			case ExpressionValueType::ValueStruct: GetStructValue()->~StructValue(); break;
+			case ExpressionValueType::ValueArray: GetArrayValue()->~ArrayValue(); break;
 			case ExpressionValueType::ValueCoords: PtrCoords->~Coords(); break;
 			case ExpressionValueType::ValueQuat: PtrQuat->~quaternion(); break;
 			}
@@ -304,6 +223,9 @@ private:
 	const StructValue* GetStructValue() const { return reinterpret_cast<const StructValue*>(Buffer.Struct); }
 	StructValue* GetStructValue() { return reinterpret_cast<StructValue*>(Buffer.Struct); }
 
+	const ArrayValue* GetArrayValue() const { return reinterpret_cast<const ArrayValue*>(Buffer.Array); }
+	ArrayValue* GetArrayValue() { return reinterpret_cast<ArrayValue*>(Buffer.Array); }
+
 	union
 	{
 		uint8_t Byte;
@@ -317,6 +239,7 @@ private:
 		uint8_t Name[sizeof(NameString)];
 		uint8_t Color_[sizeof(Color)];
 		uint8_t Struct[sizeof(StructValue)];
+		uint8_t Array[sizeof(ArrayValue)];
 		uint8_t Coords_[sizeof(Coords)];
 		uint8_t Quat[sizeof(quaternion)];
 	} Buffer;
@@ -346,6 +269,7 @@ private:
 };
 
 // Pass by value
+template<> inline Array<::PropertyValue> ExpressionValue::ToType() { return ToArray(); }
 template<> inline uint8_t ExpressionValue::ToType() { return ToByte(); }
 template<> inline int32_t ExpressionValue::ToType() { return ToInt(); }
 template<> inline bool ExpressionValue::ToType() { return ToBool(); }
@@ -361,6 +285,7 @@ template<> inline Coords ExpressionValue::ToType() { return ToCoords(); }
 template<> inline quaternion ExpressionValue::ToType() { return ToQuat(); }
 
 // Pass by reference
+template<> inline Array<::PropertyValue>& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueArray); return *static_cast<Array<::PropertyValue>*>(Ptr); }
 template<> inline uint8_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueByte); return *PtrByte; }
 template<> inline int32_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueInt); return *PtrInt; }
 template<> inline BitfieldBool& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueBool); return BoolInfo; }
@@ -453,6 +378,12 @@ inline void ExpressionValue::Store(const ExpressionValue& rvalue)
 					static_cast<uint8_t*>(rvalue.Ptr) + prop->DataOffset.DataOffset);
 		}
 		break;
+	case ExpressionValueType::ValueArray:
+		if (UArrayProperty* Array = VariableProperty ? static_cast<UArrayProperty*>(VariableProperty) : GetArrayValue()->Type)
+		{
+			Array->CopyArray(Ptr, rvalue.Ptr);
+		}
+		break;
 	case ExpressionValueType::ValueCoords: *PtrCoords = rvalue.ToCoords(); break;
 	case ExpressionValueType::ValueQuat: *PtrQuat = rvalue.ToQuat(); break;
 	}
@@ -481,6 +412,10 @@ inline void ExpressionValue::Load()
 			value.GetStructValue()->Load(UObject::Cast<UStructProperty>(VariableProperty)->Struct, Ptr);
 			value.Ptr = value.GetStructValue()->Ptr;
 			break;
+		case ExpressionValueType::ValueArray:
+			value.GetArrayValue()->Load(UObject::Cast<UArrayProperty>(VariableProperty), Ptr);
+			value.Ptr = value.GetArrayValue()->Ptr;
+			break;
 		case ExpressionValueType::ValueCoords: *value.PtrCoords = *PtrCoords; break;
 		case ExpressionValueType::ValueQuat: *value.PtrQuat = *PtrQuat; break;
 		}
@@ -508,6 +443,14 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	case ExpressionValueType::ValueCoords: Exception::Throw("IsEqual not implemented for Coords");
 	case ExpressionValueType::ValueQuat: return ToQuat() == value.ToQuat();
 	}
+}
+
+inline Array<::PropertyValue> ExpressionValue::ToArray() const
+{
+	if (Type == ExpressionValueType::ValueArray)
+		return *static_cast<Array<::PropertyValue>*>(Ptr);
+	else
+		Exception::Throw("Not a byte compatible value");
 }
 
 inline uint8_t ExpressionValue::ToByte() const

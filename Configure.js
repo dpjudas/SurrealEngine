@@ -134,6 +134,8 @@ var commonSources = [
 	"SurrealEngine/VM/NativeFunc.cpp",
 	"SurrealEngine/VM/Frame.cpp",
 	"SurrealEngine/VM/ExpressionValue.h",
+	"SurrealEngine/VM/StructValue.h",
+	"SurrealEngine/VM/ArrayValue.h",
 	"SurrealEngine/VM/ScriptCall.cpp",
 	"SurrealEngine/VM/Bytecode.cpp",
 	"SurrealEngine/VM/Bytecode.h",

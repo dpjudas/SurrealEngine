@@ -862,6 +862,11 @@ std::string UFixedArrayProperty::PrintValue(const void* data)
 
 /////////////////////////////////////////////////////////////////////////////
 
+UArrayProperty::UArrayProperty(NameString name, UClass* base, ObjectFlags flags) : UProperty(std::move(name), base, flags)
+{
+	ValueType = ExpressionValueType::ValueArray;
+}
+
 void UArrayProperty::Load(ObjectStream* stream)
 {
 	UProperty::Load(stream);

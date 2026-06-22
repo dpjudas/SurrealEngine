@@ -3,6 +3,7 @@
 #include "Math/quaternion.h"
 #include "Math/coords.h"
 #include "UObject/UObject.h"
+#include "UObject/UProperty.h"
 
 class NObject
 {
@@ -34,9 +35,9 @@ public:
 	static void And_RotatorRotator_U227(Rotator& R1, Rotator& R2, Rotator& ReturnValue); // Add a Rotator relative to the first one. Note that R1 & R2 != R2 & R1.
 	static void AppSeconds_U227(float& ReturnValue);
 	static void AppInEditor_U227(BitfieldBool& ReturnValue);
-	// static void Array_Size_U227(Array<uint8_t>& Ar, std::optional<int> SetSize, int& ReturnValue);
-	// static void Array_Insert_U227(Array<uint8_t>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Insert space into a dynamic array. Returns false if it fails (bad parameters, const/private/inaccessible array)
-	// static void Array_Remove_U227(Array<uint8_t>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Remove space from a dynamic array. Returns false if fails.
+	static void Array_Size_U227(Array<PropertyValue>& Ar, std::optional<int> SetSize, int& ReturnValue);
+	static void Array_Insert_U227(Array<PropertyValue>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Insert space into a dynamic array. Returns false if it fails (bad parameters, const/private/inaccessible array)
+	static void Array_Remove_U227(Array<PropertyValue>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue); // Remove space from a dynamic array. Returns false if fails.
 	static void Asc(const std::string& S, int& ReturnValue);
 	static void At_StrStr(const std::string& A, const std::string& B, std::string& ReturnValue);
 	static void Atan(float A, float& ReturnValue);

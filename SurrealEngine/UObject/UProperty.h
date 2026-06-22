@@ -51,7 +51,8 @@ enum class ExpressionValueType
 	ValueColor,
 	ValueStruct,
 	ValueCoords,
-	ValueQuat
+	ValueQuat,
+	ValueArray
 };
 
 class UProperty : public UField
@@ -268,8 +269,8 @@ public:
 class UArrayProperty : public UProperty
 {
 public:
-	using UProperty::UProperty;
-	
+	UArrayProperty(NameString name, UClass* base, ObjectFlags flags);
+
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
