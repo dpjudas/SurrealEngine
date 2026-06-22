@@ -8,8 +8,8 @@ public:
     using UActor::UActor;
 
     FixedArrayView<vec4*, 6> FrustumPlanes() { return FixedArray<vec4*, 6>(PropOffsets_Projector.FrustumPlanes); }
-    Array<UActor*> DecalActors() { return DynamicArray<UActor*>(PropOffsets_Projector.DecalActors); }
-    Array<int> DecalNodes() { return DynamicArray<int>(PropOffsets_Projector.DecalNodes); }
+    //Array<UActor*> DecalActors() { return DynamicArray<UActor*>(PropOffsets_Projector.DecalActors); }
+    //Array<int> DecalNodes() { return DynamicArray<int>(PropOffsets_Projector.DecalNodes); }
     BoundingBox& Box() { return Value<BoundingBox>(PropOffsets_Projector.Box); }
     FixedArrayView<vec3*, 8> VisBox() { return FixedArray<vec3*, 8>(PropOffsets_Projector.VisBox); }
     // Pointer TexData() { return Value<Pointer>(PropOffsets_Projector.TexData); }

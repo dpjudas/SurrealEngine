@@ -171,6 +171,8 @@ var commonSources = [
 	"SurrealEngine/Native/NActor.cpp",
 	"SurrealEngine/Native/N227Emitter.h",
 	"SurrealEngine/Native/N227Emitter.cpp",
+	"SurrealEngine/Native/N227Projector.h",
+	"SurrealEngine/Native/N227Projector.cpp",
 	"SurrealEngine/Native/NPlayerPawn.h",
 	"SurrealEngine/Native/NStatLog.cpp",
 	"SurrealEngine/Native/NStatLogFile.cpp",
