@@ -19,7 +19,7 @@ void NActor::RegisterFunctions()
 	if (engine->LaunchInfo.IsUnreal1_227k())
 		RegisterVMNativeFunc_5("Actor", "AllActors", &NActor::AllActors_U227k, 304);
 	else if (engine->LaunchInfo.IsUnreal1_227())
-		RegisterVMNativeFunc_5("Actor", "AllActors", &NActor::AllActors_U227, 304);
+		RegisterVMNativeFunc_4("Actor", "AllActors", &NActor::AllActors_U227, 304);
 	else
 		RegisterVMNativeFunc_3("Actor", "AllActors", &NActor::AllActors, 304);
 	RegisterVMNativeFunc_1("Actor", "AutonomousPhysics", &NActor::AutonomousPhysics, 3971);
@@ -135,7 +135,7 @@ void NActor::AllActors(UObject* Self, UObject* BaseClass, UObject*& Actor, std::
 
 void NActor::AllActors_U227(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent)
 {
-	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string(), MatchEvent ? *MatchEvent : std::string(), false);
+	Frame::CreatedIterator = std::make_unique<AllActorsIterator>(BaseClass, &Actor, MatchTag ? *MatchTag : std::string(), MatchEvent ? *MatchEvent : std::string());
 }
 
 void NActor::AllActors_U227k(UObject* Self, UObject* BaseClass, UObject*& Actor, std::optional<NameString> MatchTag, std::optional<NameString> MatchEvent, bool bAllLevels)
