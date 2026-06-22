@@ -152,7 +152,7 @@ void UFireTexture::Load(ObjectStream* stream)
 {
 	UFractalTexture::Load(stream);
 
-	auto& sparks = Sparks();
+	auto& sparks = Sparks;
 	int size = stream->ReadIndex();
 	for (int i = 0; i < size; i++)
 	{
@@ -173,7 +173,7 @@ void UFireTexture::Save(PackageStreamWriter* stream)
 {
 	UFractalTexture::Save(stream);
 
-	auto& sparks = Sparks();
+	auto& sparks = Sparks;
 	stream->WriteIndex((int)sparks.size());
 	for (const Spark& spark : sparks)
 	{
@@ -206,7 +206,7 @@ void UFireTexture::UpdateFrame()
 		int height = mipmap.Height;
 		uint8_t* pixels = (uint8_t*)mipmap.Data.data();
 
-		auto& sparks = Sparks();
+		auto& sparks = Sparks;
 		for (size_t i = 0; i < sparks.size(); i++)
 		{
 			Spark& spark = sparks[i];

@@ -20,8 +20,8 @@ public:
 
 	EGameDirectoryTypes& GameDirectoryType() { return Value<EGameDirectoryTypes>(PropOffsets_GameDirectory.gameDirectoryType); }
 	std::string& CurrentFilter() { return Value<std::string>(PropOffsets_GameDirectory.currentFilter); }
-	Array<std::string>& DirectoryList() { return DynamicArray<std::string>(PropOffsets_GameDirectory.directoryList); }
-	Array<UDXSaveInfo*>& LoadedSaveInfoPointers() { return DynamicArray<UDXSaveInfo*>(PropOffsets_GameDirectory.loadedSaveInfoPointers); }
+	//Array<std::string>& DirectoryList() { return DynamicArray<std::string>(PropOffsets_GameDirectory.directoryList); }
+	//Array<UDXSaveInfo*>& LoadedSaveInfoPointers() { return DynamicArray<UDXSaveInfo*>(PropOffsets_GameDirectory.loadedSaveInfoPointers); }
 	UDXSaveInfo*& TempSaveInfo() { return Value<UDXSaveInfo*>(PropOffsets_GameDirectory.tempSaveInfo); }
 
 	void GetGameDirectory(); // Depends on what GameDirectoryType is set

@@ -884,12 +884,11 @@ void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyH
 	ThrowIfTypeMismatch(header, UPT_Array);
 
 	int arraySize = stream->ReadIndex();
-	Array<PropertyValue>& vec = static_cast<Array<PropertyValue>*>(data)[header.arrayIndex];
+	ScriptArray& vec = static_cast<ScriptArray*>(data)[header.arrayIndex];
+	vec.Resize(arraySize);
 	for (int i = 0; i < arraySize; i++)
 	{
-		PropertyValue v(Inner);
-		Inner->LoadStructMemberValue(v.Data, stream);
-		vec.push_back(std::move(v));
+		Inner->LoadStructMemberValue(vec.GetItem(i), stream);
 	}
 }
 
@@ -900,27 +899,27 @@ void UArrayProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UArrayProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
-	Array<PropertyValue>& vec = *static_cast<Array<PropertyValue>*>(data);
-	stream->WriteIndex((int)vec.size());
-	for (PropertyValue& item : vec)
+	ScriptArray& vec = *static_cast<ScriptArray*>(data);
+	stream->WriteIndex((int)vec.GetSize());
+	for (size_t i = 0, count = vec.GetSize(); i < count; i++)
 	{
-		Inner->SaveValue(item.Data, stream);
+		Inner->SaveValue(vec.GetItem(i), stream);
 	}
 }
 
 size_t UArrayProperty::ElementAlignment()
 {
-	return alignof(Array<PropertyValue>);
+	return alignof(ScriptArray);
 }
 
 size_t UArrayProperty::ElementSize()
 {
-	return sizeof(Array<PropertyValue>);
+	return sizeof(ScriptArray);
 }
 
 void UArrayProperty::ConstructElement(void* data)
 {
-	new ((char*)data) Array<PropertyValue>();
+	new ((char*)data) ScriptArray(Inner);
 }
 
 void UArrayProperty::CopyConstructElement(void* data, const void* src)
@@ -931,29 +930,29 @@ void UArrayProperty::CopyConstructElement(void* data, const void* src)
 
 void UArrayProperty::DestructElement(void* data)
 {
-	auto vec = static_cast<Array<PropertyValue>*>(data);
-	vec->~Array();
+	auto vec = static_cast<ScriptArray*>(data);
+	vec->~ScriptArray();
 }
 
 void UArrayProperty::CopyElement(void* data, const void* src)
 {
-	auto& vec = *static_cast<Array<PropertyValue>*>(data);
-	auto& srcvec = *static_cast<const Array<PropertyValue>*>(src);
+	auto& vec = *static_cast<ScriptArray*>(data);
+	auto& srcvec = *static_cast<const ScriptArray*>(src);
 	vec = srcvec;
 }
 
 bool UArrayProperty::CompareElement(const void* a, const void* b)
 {
-	auto& avec = *static_cast<const Array<PropertyValue>*>(a);
-	auto& bvec = *static_cast<const Array<PropertyValue>*>(b);
+	auto& avec = *static_cast<const ScriptArray*>(a);
+	auto& bvec = *static_cast<const ScriptArray*>(b);
 	return avec == bvec;
 }
 
 bool UArrayProperty::CompareLessElement(const void* a, const void* b)
 {
-	auto& avec = *static_cast<const Array<PropertyValue>*>(a);
-	auto& bvec = *static_cast<const Array<PropertyValue>*>(b);
-	return avec.size() < bvec.size();
+	auto& avec = *static_cast<const ScriptArray*>(a);
+	auto& bvec = *static_cast<const ScriptArray*>(b);
+	return avec.GetSize() < bvec.GetSize();
 }
 
 void UArrayProperty::GetExportText(std::string& buf, const std::string& whitespace, UObject* obj, UObject* defobj, int i)
@@ -964,13 +963,13 @@ void UArrayProperty::GetExportText(std::string& buf, const std::string& whitespa
 	size_t elementPitch = ElementPitch();
 	int offset = i * (int)elementPitch;
 
-	Array<PropertyValue>* objarray = static_cast<Array<PropertyValue>*>(obj->GetProperty(Name)) + offset;
-	Array<PropertyValue>* defarray = (defobj) ? static_cast<Array<PropertyValue>*>(defobj->GetProperty(Name)) + offset : nullptr;
+	ScriptArray* objarray = static_cast<ScriptArray*>(obj->GetProperty(Name)) + offset;
+	ScriptArray* defarray = (defobj) ? static_cast<ScriptArray*>(defobj->GetProperty(Name)) + offset : nullptr;
 
-	for (int k = 0; k < objarray->size(); k++)
+	for (int k = 0; k < objarray->GetSize(); k++)
 	{
-		void* objval = objarray->at(k).Data;
-		void* defval = (defarray && k < defarray->size()) ? defarray->at(k).Data : nullptr;
+		void* objval = objarray->GetItem(k);
+		void* defval = (defarray && k < defarray->GetSize()) ? defarray->GetItem(k) : nullptr;
 
 		Inner->GetExportText(buf, whitespace, objval, defval, i);
 	}
@@ -1353,22 +1352,233 @@ void UStructProperty::SetValueFromString(void* data, const std::string& valueStr
 
 /////////////////////////////////////////////////////////////////////////////
 
-PropertyValue::PropertyValue(const PropertyValue& other)
+ScriptArray::ScriptArray(UProperty* type) : Type(type)
+{
+}
+
+ScriptArray::ScriptArray(const ScriptArray& other)
+{
+	Reserve(other.Size);
+	try
+	{
+		auto pitch = Type->ElementPitch();
+		for (size_t i = 0, count = other.Size; i < count; i++)
+		{
+			Type->CopyConstructElement(Data + Size * pitch, other.Data + i * pitch);
+			Size++;
+		}
+	}
+	catch (...)
+	{
+		Clear();
+		AlignedFree(Data);
+		throw;
+	}
+}
+
+ScriptArray::ScriptArray(ScriptArray&& other)
+{
+	Data = other.Data;
+	Size = other.Size;
+	Capacity = other.Capacity;
+	other.Data = nullptr;
+	other.Size = 0;
+	other.Capacity = 0;
+}
+
+ScriptArray::~ScriptArray()
+{
+	if (Type)
+	{
+		auto pitch = Type->ElementPitch();
+		while (Size > 0)
+		{
+			Size--;
+			Type->DestructElement(Data + pitch * Size);
+		}
+	}
+	AlignedFree(Data);
+	Data = nullptr;
+}
+
+ScriptArray& ScriptArray::operator=(ScriptArray&& other) noexcept
+{
+	if (&other != this)
+	{
+		Clear();
+		ShrinkToFit();
+		Data = other.Data;
+		Size = other.Size;
+		Capacity = other.Capacity;
+		other.Data = nullptr;
+		other.Size = 0;
+		other.Capacity = 0;
+	}
+	return *this;
+}
+
+void ScriptArray::ShrinkToFit()
+{
+	if (Size != Capacity)
+	{
+		ScriptArray copy(Type);
+		copy.Reserve(Size);
+
+		auto pitch = Type->ElementPitch();
+		for (size_t i = 0, count = Size; i < count; i++)
+		{
+			Type->CopyConstructElement(copy.Data + i * pitch, Data + i * pitch);
+			copy.Size++;
+		}
+
+		Swap(copy);
+	}
+}
+
+void ScriptArray::Clear()
+{
+	auto pitch = Type->ElementPitch();
+	while (Size > 0)
+	{
+		Type->DestructElement(Data + pitch * (Size - 1));
+		Size--;
+	}
+}
+
+void ScriptArray::SetValue(size_t index, const void* src)
+{
+}
+
+void ScriptArray::Insert(size_t index, size_t count)
+{
+}
+
+void ScriptArray::Remove(size_t index, size_t count)
+{
+}
+
+void* ScriptArray::GetItem(size_t index)
+{
+	return Data + Type->ElementPitch() * index;
+}
+
+void ScriptArray::Reserve(size_t new_cap)
+{
+	if (new_cap > Capacity)
+	{
+		auto pitch = Type->ElementPitch();
+		ScriptArray copy(Type);
+		copy.Data = (uint8_t*)AlignedAlloc(Type->ElementAlignment(), pitch * new_cap);
+		if (!copy.Data) throw std::bad_alloc();
+		copy.Capacity = new_cap;
+
+		for (size_t i = 0, count = Size; i < count; i++)
+		{
+			Type->CopyConstructElement(copy.Data + i * pitch, Data + i * pitch);
+			copy.Size++;
+		}
+
+		Swap(copy);
+	}
+}
+
+void ScriptArray::Swap(ScriptArray& other) noexcept
+{
+	std::swap(Data, other.Data);
+	std::swap(Size, other.Size);
+	std::swap(Capacity, other.Capacity);
+}
+
+void ScriptArray::Resize(size_t count)
+{
+	if (count > Size)
+	{
+		Reserve(count);
+		auto pitch = Type->ElementPitch();
+		while (Size < count)
+		{
+			Type->ConstructElement(Data + Size * pitch);
+			Size++;
+		}
+	}
+	else if (count < Size)
+	{
+		auto pitch = Type->ElementPitch();
+		while (Size > count)
+		{
+			Type->DestructElement(Data + (Size - 1) * pitch);
+			Size--;
+		}
+	}
+}
+
+ScriptArray& ScriptArray::operator=(const ScriptArray& other)
+{
+	if (&other != this)
+	{
+		Clear();
+		Reserve(other.GetSize());
+		auto pitch = Type->ElementPitch();
+		for (size_t i = 0, count = other.Size; i < count; i++)
+		{
+			Type->CopyConstructElement(Data + Size * pitch, other.Data + i * pitch);
+			Size++;
+		}
+	}
+	return *this;
+}
+
+bool ScriptArray::operator==(const ScriptArray& rhs) const
+{
+	if (GetSize() != rhs.GetSize())
+		return false;
+
+	auto count = GetSize();
+	auto pitch = Type->ElementPitch();
+	for (size_t i = 0; i < count; i++)
+	{
+		uint8_t* lhsitem = Data + pitch * i;
+		uint8_t* rhsitem = rhs.Data + pitch * i;
+		if (!Type->CompareElement(lhsitem, rhsitem))
+			return false;
+	}
+	return true;
+}
+
+bool ScriptArray::operator!=(const ScriptArray& rhs) const
+{
+	if (GetSize() != rhs.GetSize())
+		return true;
+	size_t count = GetSize();
+	auto pitch = Type->ElementPitch();
+	for (size_t i = 0; i < count; i++)
+	{
+		uint8_t* lhsitem = Data + pitch * i;
+		uint8_t* rhsitem = rhs.Data + pitch * i;
+		if (!Type->CompareElement(lhsitem, rhsitem))
+			return true;
+	}
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+MapPropertyValue::MapPropertyValue(const MapPropertyValue& other)
 {
 	Create(other);
 }
 
-PropertyValue::PropertyValue(UProperty* prop, const void* data)
+MapPropertyValue::MapPropertyValue(UProperty* prop, const void* data)
 {
 	Create(prop, data);
 }
 
-PropertyValue::~PropertyValue()
+MapPropertyValue::~MapPropertyValue()
 {
 	Destroy();
 }
 
-PropertyValue& PropertyValue::operator=(const PropertyValue& other)
+MapPropertyValue& MapPropertyValue::operator=(const MapPropertyValue& other)
 {
 	if (&other != this)
 	{
@@ -1378,7 +1588,7 @@ PropertyValue& PropertyValue::operator=(const PropertyValue& other)
 	return *this;
 }
 
-bool PropertyValue::operator==(const PropertyValue& other) const
+bool MapPropertyValue::operator==(const MapPropertyValue& other) const
 {
 	if (Data && other.Data)
 	{
@@ -1390,7 +1600,7 @@ bool PropertyValue::operator==(const PropertyValue& other) const
 	}
 }
 
-bool PropertyValue::operator<(const PropertyValue& other) const
+bool MapPropertyValue::operator<(const MapPropertyValue& other) const
 {
 	if (Data && other.Data)
 	{
@@ -1402,12 +1612,12 @@ bool PropertyValue::operator<(const PropertyValue& other) const
 	}
 }
 
-void PropertyValue::Create(const PropertyValue& other)
+void MapPropertyValue::Create(const MapPropertyValue& other)
 {
 	Create(other.Property, other.Data);
 }
 
-void PropertyValue::Create(UProperty* prop, const void* data)
+void MapPropertyValue::Create(UProperty* prop, const void* data)
 {
 	Property = prop;
 	if (prop)
@@ -1420,7 +1630,7 @@ void PropertyValue::Create(UProperty* prop, const void* data)
 	}
 }
 
-void PropertyValue::Destroy()
+void MapPropertyValue::Destroy()
 {
 	if (Data)
 	{

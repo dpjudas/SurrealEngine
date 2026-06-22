@@ -104,7 +104,7 @@ public:
 		Deinit();
 	}
 
-	Array<::PropertyValue> ToArray() const;
+	ScriptArray ToArray() const;
 	uint8_t ToByte() const;
 	int32_t ToInt() const;
 	bool ToBool() const;
@@ -269,7 +269,7 @@ private:
 };
 
 // Pass by value
-template<> inline Array<::PropertyValue> ExpressionValue::ToType() { return ToArray(); }
+template<> inline ScriptArray ExpressionValue::ToType() { return ToArray(); }
 template<> inline uint8_t ExpressionValue::ToType() { return ToByte(); }
 template<> inline int32_t ExpressionValue::ToType() { return ToInt(); }
 template<> inline bool ExpressionValue::ToType() { return ToBool(); }
@@ -285,7 +285,7 @@ template<> inline Coords ExpressionValue::ToType() { return ToCoords(); }
 template<> inline quaternion ExpressionValue::ToType() { return ToQuat(); }
 
 // Pass by reference
-template<> inline Array<::PropertyValue>& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueArray); return *static_cast<Array<::PropertyValue>*>(Ptr); }
+template<> inline ScriptArray& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueArray); return *static_cast<ScriptArray*>(Ptr); }
 template<> inline uint8_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueByte); return *PtrByte; }
 template<> inline int32_t& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueInt); return *PtrInt; }
 template<> inline BitfieldBool& ExpressionValue::ToType() { CheckType(ExpressionValueType::ValueBool); return BoolInfo; }
@@ -445,10 +445,10 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	}
 }
 
-inline Array<::PropertyValue> ExpressionValue::ToArray() const
+inline ScriptArray ExpressionValue::ToArray() const
 {
 	if (Type == ExpressionValueType::ValueArray)
-		return *static_cast<Array<::PropertyValue>*>(Ptr);
+		return *static_cast<ScriptArray*>(Ptr);
 	else
 		Exception::Throw("Not a byte compatible value");
 }

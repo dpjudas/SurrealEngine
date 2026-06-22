@@ -57,7 +57,11 @@ int UDXGameDirectory::GetDirCount()
 
 std::string UDXGameDirectory::GetDirFilename(int fileIndex)
 {
+#if 0
 	return DirectoryList()[fileIndex];
+#else
+	return {};
+#endif
 }
 
 void UDXGameDirectory::SetDirType(EGameDirectoryTypes newDirType)
@@ -86,9 +90,11 @@ UDXSaveInfo* UDXGameDirectory::GetSaveInfo(int fileIndex)
 
 UDXSaveInfo* UDXGameDirectory::GetSaveInfoFromDirectoryIndex(int DirectoryIndex)
 {
+#if 0
 	for (const auto& dxSaveInfo : LoadedSaveInfoPointers())
 		if (dxSaveInfo->DirectoryIndex() == DirectoryIndex)
 			return dxSaveInfo;
+#endif
 
 	return nullptr;
 }
@@ -102,6 +108,7 @@ void UDXGameDirectory::DeleteSaveInfo(UDXSaveInfo& saveInfo)
 {
 	const auto saveFolderName = GetSaveIndexFolderName(saveInfo.DirectoryIndex());
 
+#if 0
 	for (auto it = LoadedSaveInfoPointers().cbegin() ; it != LoadedSaveInfoPointers().cend() ; it++)
 	{
 		if (*it == &saveInfo)
@@ -112,6 +119,7 @@ void UDXGameDirectory::DeleteSaveInfo(UDXSaveInfo& saveInfo)
 			return;
 		}
 	}
+#endif
 }
 
 void UDXGameDirectory::PurgeAllSaveInfo()
@@ -157,6 +165,7 @@ std::string UDXGameDirectory::GetSaveIndexFolderName(int saveIndex)
 
 void UDXGameDirectory::PopulateDirectoryList()
 {
+#if 0
 	Array<std::string> newList;
 
 	for (auto& p : fs::directory_iterator(currentDirectory))
@@ -164,10 +173,12 @@ void UDXGameDirectory::PopulateDirectoryList()
 			newList.push_back(p.path().filename().string());
 
 	DirectoryList() = newList;
+#endif
 }
 
 void UDXGameDirectory::PopulateSaveInfoPointers()
 {
+#if 0
 	Array<UDXSaveInfo*> saveInfos;
 
 	for (const auto& saveInfoPackage : engine->packages->GetSaveInfoPackages())
@@ -176,4 +187,5 @@ void UDXGameDirectory::PopulateSaveInfoPointers()
 	}
 
 	LoadedSaveInfoPointers() = saveInfos;
+#endif
 }

@@ -415,20 +415,20 @@ void NObject::AppInEditor_U227(BitfieldBool& ReturnValue)
 	ReturnValue = engine->getEditorMode();
 }
 
-void NObject::Array_Size_U227(Array<PropertyValue>& Ar, std::optional<int> SetSize, int& ReturnValue)
+void NObject::Array_Size_U227(ScriptArray& Ar, std::optional<int> SetSize, int& ReturnValue)
 {
 	if (SetSize.has_value() && SetSize.value() >= 0)
-		Ar.resize((size_t)SetSize.value());
-	ReturnValue = (int)Ar.size();
+		Ar.Resize((size_t)SetSize.value());
+	ReturnValue = (int)Ar.GetSize();
 }
 
-void NObject::Array_Insert_U227(Array<PropertyValue>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
+void NObject::Array_Insert_U227(ScriptArray& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
 {
 	// Insert space into a dynamic array. Returns false if it fails (bad parameters, const/private/inaccessible array)
 	ReturnValue = false;
 }
 
-void NObject::Array_Remove_U227(Array<PropertyValue>& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
+void NObject::Array_Remove_U227(ScriptArray& Ar, int Offset, std::optional<int> Count, BitfieldBool& ReturnValue)
 {
 	// Remove space from a dynamic array. Returns false if fails.
 	ReturnValue = false;

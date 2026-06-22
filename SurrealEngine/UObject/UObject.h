@@ -17,6 +17,7 @@ class UClass;
 class UProperty;
 class Package;
 class Frame;
+class ScriptArray;
 enum class EventName;
 
 enum UnrealPropertyType
@@ -279,8 +280,7 @@ public:
 		return FixedArrayView<T, n>(static_cast<T*>(PropertyData.Ptr(offset.DataOffset)));
 	}
 
-	template<typename T>
-	Array<T>& DynamicArray(PropertyDataOffset offset) { return *static_cast<Array<T>*>(PropertyData.Ptr(offset.DataOffset)); }
+	ScriptArray& DynamicArray(PropertyDataOffset offset) { return *static_cast<ScriptArray*>(PropertyData.Ptr(offset.DataOffset)); }
 
 	template<typename T>
 	static T* Cast(UObject* obj)
