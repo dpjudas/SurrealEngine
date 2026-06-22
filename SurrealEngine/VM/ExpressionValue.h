@@ -153,6 +153,13 @@ public:
 		return ExpressionValue(PtrByte + VariableProperty->ElementPitch() * index, VariableProperty);
 	}
 
+	ExpressionValue DynArrayItemAt(int index)
+	{
+		CheckType(ExpressionValueType::ValueArray);
+		ScriptArray* v = static_cast<ScriptArray*>(Ptr);
+		return ExpressionValue(v->GetItem(index), v->GetType());
+	}
+
 	ExpressionValue Member(UProperty* field)
 	{
 		return ExpressionValue::Variable(Ptr, field);

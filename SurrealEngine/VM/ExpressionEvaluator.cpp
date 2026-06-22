@@ -151,7 +151,16 @@ void ExpressionEvaluator::Expr(LetBoolExpression* expr)
 
 void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
 {
-	Frame::ThrowException("Dynamic array element expression is not implemented");
+	int index = Eval(expr->Index).Value.ToInt();
+	auto arrayval = Eval(expr->Array).Value;
+	if (arrayval.IsVariable())
+	{
+		Result.Value = arrayval.DynArrayItemAt(index);
+	}
+	else
+	{
+		Frame::ThrowException("Array is not a variable in DynArrayElementExpression");
+	}
 }
 
 void ExpressionEvaluator::Expr(NewExpression* expr)

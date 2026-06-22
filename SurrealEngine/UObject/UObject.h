@@ -169,6 +169,7 @@ public:
 
 	void* GetData() { return Data; }
 	const void* GetData() const { return Data; }
+	UProperty* GetType() const { return Type; }
 
 	size_t GetSize() const { return Size; }
 	size_t GetCapacity() const { return Capacity; }
