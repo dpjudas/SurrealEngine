@@ -49,16 +49,18 @@ class AllActorsIterator : public Iterator
 {
 public:
 	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag);
-	// Unreal 227 version of AllActors
+	// Unreal 227i version of AllActors
+	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag, NameString MatchEvent);
+	// Unreal 227k version of AllActors
 	// TODO: Handle bAllLevels parameter
-	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag, NameString MatchEvent, bool bAllLevels = false);
+	AllActorsIterator(UObject* BaseClass, UObject** ReturnValue, NameString MatchTag, NameString MatchEvent, bool bAllLevels);
 	bool Next() override;
 
 private:
 	UObject* BaseClass = nullptr;
 	UObject** ReturnValue = nullptr;
-	NameString MatchTag;
-	NameString MatchEvent;
+	NameString MatchTag = "";
+	NameString MatchEvent = "";
 	bool bAllLevels = false;
 	size_t index = 0;
 };
