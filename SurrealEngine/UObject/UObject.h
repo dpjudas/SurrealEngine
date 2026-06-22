@@ -75,6 +75,18 @@ struct PropertyHeader
 	int size = 0;
 };
 
+struct BoundingBox
+{
+	vec3* Min;
+	vec3* Max;
+	uint8_t IsValid;
+};
+
+struct BoundingVolume : BoundingBox
+{
+	vec4* Sphere; // Plane is a vec4
+};
+
 class Color
 {
 public:
