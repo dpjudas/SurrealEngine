@@ -4216,3 +4216,30 @@ struct PropertyDataOffsets_DynamicZoneInfo
 };
 
 extern PropertyDataOffsets_DynamicZoneInfo PropOffsets_DynamicZoneInfo;
+
+struct PropertyDataOffsets_Projector
+{
+	PropertyDataOffset FrustumPlanes;
+	PropertyDataOffset DecalActors;
+	PropertyDataOffset DecalNodes;
+	PropertyDataOffset Box;
+	PropertyDataOffset VisBox;
+	PropertyDataOffset TexData;
+
+	PropertyDataOffset ProjectTexture;
+	PropertyDataOffset FOV;
+	PropertyDataOffset MaxDistance;
+	PropertyDataOffset ProjectorScale;
+	PropertyDataOffset ProjectStyle;
+
+	PropertyDataOffset bProjectActors;
+	PropertyDataOffset bProjectBSPBackfaces;
+	PropertyDataOffset bProjectMeshBackfaces;
+	PropertyDataOffset bProjectBSP;
+	PropertyDataOffset bGradualFade;
+	PropertyDataOffset bUseBetterActorAttach;
+	PropertyDataOffset bHasAttached;
+	PropertyDataOffset bProjecting;
+};
+
+extern PropertyDataOffsets_Projector PropOffsets_Projector;

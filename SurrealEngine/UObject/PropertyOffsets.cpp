@@ -5283,6 +5283,38 @@ void InitPropertyOffsets_DynamicZoneInfo(PackageManager* packages)
 	PropOffsets_DynamicZoneInfo.OldPose = cls->GetPropertyDataOffset("OldPose");
 }
 
+PropertyDataOffsets_Projector PropOffsets_Projector;
+
+void InitPropertyOffsets_Projector(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "Projector"));
+	if (!cls)
+	{
+		memset(&PropOffsets_Projector, 0xff, sizeof(PropOffsets_Projector));
+		return;
+	}
+
+	PropOffsets_Projector.FrustumPlanes = cls->GetPropertyDataOffset("FrustumPlanes");
+	PropOffsets_Projector.DecalActors = cls->GetPropertyDataOffset("DecalActors");
+	PropOffsets_Projector.DecalNodes = cls->GetPropertyDataOffset("DecalNodes");
+	PropOffsets_Projector.Box = cls->GetPropertyDataOffset("Box");
+	PropOffsets_Projector.VisBox = cls->GetPropertyDataOffset("VisBox");
+	PropOffsets_Projector.TexData = cls->GetPropertyDataOffset("TexData");
+	PropOffsets_Projector.ProjectTexture = cls->GetPropertyDataOffset("ProjectTexture");
+	PropOffsets_Projector.FOV = cls->GetPropertyDataOffset("FOV");
+	PropOffsets_Projector.MaxDistance = cls->GetPropertyDataOffset("MaxDistance");
+	PropOffsets_Projector.ProjectorScale = cls->GetPropertyDataOffset("ProjectorScale");
+	PropOffsets_Projector.ProjectStyle = cls->GetPropertyDataOffset("ProjectStyle");
+	PropOffsets_Projector.bProjectActors = cls->GetPropertyDataOffset("bProjectActors");
+	PropOffsets_Projector.bProjectBSPBackfaces = cls->GetPropertyDataOffset("bProjectBSPBackfaces");
+	PropOffsets_Projector.bProjectMeshBackfaces = cls->GetPropertyDataOffset("bProjectMeshBackfaces");
+	PropOffsets_Projector.bProjectBSP = cls->GetPropertyDataOffset("bProjectBSP");
+	PropOffsets_Projector.bGradualFade = cls->GetPropertyDataOffset("bGradualFade");
+	PropOffsets_Projector.bUseBetterActorAttach = cls->GetPropertyDataOffset("bUseBetterActorAttach");
+	PropOffsets_Projector.bHasAttached = cls->GetPropertyDataOffset("bHasAttached");
+	PropOffsets_Projector.bProjecting = cls->GetPropertyDataOffset("bProjecting");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -5387,6 +5419,7 @@ void InitPropertyOffsets(PackageManager* packages)
 		InitPropertyOffsets_XWeatherEmitter(packages);
 		InitPropertyOffsets_XRainRestrictionVolume(packages);
 		InitPropertyOffsets_DynamicZoneInfo(packages);
+		InitPropertyOffsets_Projector(packages);
 	}
 	if (packages->IsDeusEx())
 	{
