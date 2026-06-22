@@ -29,9 +29,11 @@
 #include "UObject/UFlag.h"
 #include "UObject/UConSys.h"
 #include "UObject/U227Emitter.h"
+#include "UObject/U227Projector.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/N227Emitter.h"
+#include "Native/N227Projector.h"
 #include "Native/NCanvas.h"
 #include "Native/NCommandlet.h"
 #include "Native/NConsole.h"
@@ -820,6 +822,7 @@ void PackageManager::RegisterFunctions()
 	{
 		NXParticleEmitter::RegisterFunctions();
 		NXEmitter::RegisterFunctions();
+		N227Projector::RegisterFunctions();
 	}
 	if (IsDeusEx())
 	{
@@ -1040,6 +1043,7 @@ void PackageManager::RegisterNativeClasses()
 
 	if (IsUnreal1_227())
 	{
+		RegisterNativeClass<U227Projector>(enginePackage, "Projector", "Actor");
 		RegisterNativeClass<UDynamicZoneInfo>(enginePackage, "DynamicZoneInfo", "ZoneInfo");
 		RegisterNativeClass<UDistantLightActor>(emitterPackage, "DistantLightActor", "Light");
 		RegisterNativeClass<UStaticMesh>(enginePackage, "StaticMesh", "Mesh");
