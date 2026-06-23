@@ -117,16 +117,12 @@ bool AllParticlesIterator::Next()
 
 BasedActorsIterator::BasedActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor) : BaseClass(BaseClass), Actor(Actor)
 {
-	for (UActor* levelActor : engine->Level->Actors)
+	for (UActor* based : Caller->BasedActors)
 	{
-		if (!levelActor || !levelActor->Class) continue;
-		if (levelActor->IsA(BaseClass->Name) && levelActor->IsBasedOn(Caller))
-		{
-			//LogMessage("Checking actor: " + std::to_string((ptrdiff_t)levelActor) + " class: " + (levelActor->Class ? levelActor->Class->Name.ToString() : "NULL"));
-			BasedActors.push_back(levelActor);
-		}
+		if (!based || !based->Class) continue;
+		if (based->IsA(BaseClass->Name))
+			BasedActors.push_back(based);
 	}
-
 	iterator = BasedActors.begin();
 }
 
