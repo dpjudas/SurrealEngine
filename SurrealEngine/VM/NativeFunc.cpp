@@ -11,6 +11,9 @@ void NativeFunctions::RegisterHandler(const NameString& className, const NameStr
 {
 	if (nativeIndex != 0)
 	{
+		if (nativeIndex == 2054 && funcName == "GetSoundLength") // DeusEx got two native functions with same intrinsic value!
+			return;
+
 		if (NativeByIndex.size() <= (size_t)nativeIndex) NativeByIndex.resize((size_t)nativeIndex + 1);
 
 		if (NativeByIndex[nativeIndex] != nullptr)
@@ -32,6 +35,9 @@ void NativeFunctions::RegisterNativeFunc(UFunction* func)
 	
 	if (nativeIndex != 0)
 	{
+		if (nativeIndex == 2054 && func->Name == "GetSoundLength") // DeusEx got two native functions with same intrinsic value!
+			return;
+
 		if (FuncByIndex.size() <= (size_t)nativeIndex) FuncByIndex.resize((size_t)nativeIndex + 1);
 
 		if (FuncByIndex[nativeIndex] != nullptr)
