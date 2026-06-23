@@ -157,6 +157,8 @@ public:
 	{
 		CheckType(ExpressionValueType::ValueArray);
 		ScriptArray* v = static_cast<ScriptArray*>(Ptr);
+		if (v->GetSize() <= index)
+			v->Resize(index + 1);
 		return ExpressionValue(v->GetItem(index), v->GetType());
 	}
 

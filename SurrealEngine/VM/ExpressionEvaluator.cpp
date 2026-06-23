@@ -155,7 +155,15 @@ void ExpressionEvaluator::Expr(DynArrayElementExpression* expr)
 	auto arrayval = Eval(expr->Array).Value;
 	if (arrayval.IsVariable())
 	{
-		Result.Value = arrayval.DynArrayItemAt(index);
+		if (index < 0)
+		{
+			LogMessage("Negative index used");
+			Result.Value = ExpressionValue::NothingValue();
+		}
+		else
+		{
+			Result.Value = arrayval.DynArrayItemAt(index);
+		}
 	}
 	else
 	{
