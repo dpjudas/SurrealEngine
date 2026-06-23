@@ -1,4 +1,3 @@
-
 #include "Precomp.h"
 #include "UActor.h"
 #include "ULevel.h"
@@ -206,6 +205,10 @@ bool UActor::Destroy()
 	{
 		ChildActors.back()->SetOwner(nullptr);
 	}
+	while (!BasedActors.empty())
+	{
+		BasedActors.back()->SetBase(nullptr, true);
+	}
 
 	if (Index == -1)
 		throw std::runtime_error("Actor index was never set!");
@@ -301,19 +304,41 @@ void UActor::RemoveChildActor(UActor* actor)
 	}
 }
 
+void UActor::AddBasedActor(UActor* actor)
+{
+	if (actor)
+		BasedActors.push_back(actor);
+}
+
+void UActor::RemoveBasedActor(UActor* actor)
+{
+	if (!actor)
+		return;
+
+	auto it = BasedActors.begin();
+
+	while (it != BasedActors.end())
+	{
+		if (*it == actor)
+		{
+			BasedActors.erase(it);
+			return;
+		}
+		it++;
+	}
+}
+
 void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 {
 	if (ActorBase() != newBase)
 	{
-		for (UActor* cur = newBase; cur; cur = cur->ActorBase())
-		{
-			if (cur == this)
-				return;
-		}
+		if (this->IsBasedOn(newBase))
+			return; // don't allow any cycles in the tree
 
 		if (ActorBase() && ActorBase() != Level())
 		{
-			ActorBase()->StandingCount()--;
+			ActorBase()->RemoveBasedActor(this);
+			ActorBase()->StandingCount() = (uint8_t)std::min<size_t>(ActorBase()->BasedActors.size(), 0xff);
 			CallEvent(ActorBase(), EventName::Detach, { ExpressionValue::ObjectValue(this) });
 		}
 
@@ -321,7 +346,9 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 
 		if (ActorBase() && ActorBase() != Level())
 		{
-			ActorBase()->StandingCount()++;
+			ActorBase()->AddBasedActor(this);
+			ActorBase()->StandingCount() = (uint8_t)std::min<size_t>(ActorBase()->BasedActors.size(), 0xff);
+			// Note: in the unlikely case of an actor having > 255 bases, StandingCount() won't be an accurate number.
 			CallEvent(ActorBase(), EventName::Attach, { ExpressionValue::ObjectValue(this) });
 		}
 
@@ -1084,7 +1111,7 @@ void UActor::TickInterpolating(float elapsed)
 
 		PhysAlpha() = physAlpha;
 		TryMove(location - Location());
-		Rotation() = rotation;
+		SetRotation(rotation);
 
 		if (auto pawn = UObject::TryCast<UPawn>(this))
 		{
@@ -1178,7 +1205,7 @@ void UActor::TickMovingBrush(float elapsed)
 
 			if (TryMove(targetPos - Location()).Fraction == 1.0f)
 			{
-				Rotation() = targetRotation;
+				SetRotation(targetRotation);
 				PhysAlpha() = physAlpha;
 
 				if (physAlpha == 1.0f)
@@ -1291,8 +1318,33 @@ bool UActor::SetRotation(const Rotator& newRotation)
 {
 	// To do: return false if there isn't room
 
+	Rotator delta = newRotation - Rotation();
 	Rotation() = newRotation;
+	TurnBasedActors(delta);
 	return true;
+}
+
+// carried items and actors on movers should rotate with the actor their based on
+void UActor::TurnBasedActors(const Rotator& deltaRotation)
+{
+	if ((deltaRotation.Yaw & 0xffff) == 0)
+		return;
+	Coords yawRot = Coords::YawRotation(deltaRotation.YawRadians());
+	vec3 baseLoc = Location();
+	for (size_t i = 0; i < BasedActors.size(); )
+	{
+		UActor* basedActor = BasedActors[i];
+		if (!basedActor) { i++; continue; }
+		vec3 basedLoc = basedActor->Location();
+		vec3 rotatedOffset = yawRot * (basedLoc - baseLoc);
+		basedActor->TryMove((baseLoc + rotatedOffset) - basedLoc, false, false);
+		basedActor->SetRotation(basedActor->Rotation() + deltaRotation);
+		if (UPawn* pawn = UObject::TryCast<UPawn>(basedActor))
+			pawn->ViewRotation().Yaw += deltaRotation.Yaw;
+		// UnrealScript events triggered in TryMove can call methods such as SetBase or Destroy, so need to guard while iterating.
+		if (i < BasedActors.size() && BasedActors[i] == basedActor)
+			i++;
+	}
 }
 
 bool UActor::SetCollisionSize(float newRadius, float newHeight)
@@ -1425,18 +1477,13 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	XLevel()->Collision.AddToCollision(this);
 	XLevel()->Light.AddLight(this);
 
-	// Based actors needs to move with us
-	if (StandingCount() > 0)
+	for (size_t i = 0; i < BasedActors.size(); )
 	{
-		ULevel* level = XLevel();
-		for (size_t i = 0; i < level->Actors.size(); i++)
-		{
-			UActor* actor = level->Actors[i];
-			if (actor && actor->ActorBase() == this)
-			{
-				actor->TryMove(actuallyMoved, false, false);
-			}
-		}
+		UActor* basedActor = BasedActors[i];
+		basedActor->TryMove(actuallyMoved, false, false);
+		// UnrealScript events triggered in TryMove can call methods such as SetBase or Destroy, so need to guard while iterating.
+		if (i < BasedActors.size() && BasedActors[i] == basedActor)
+			i++;
 	}
 
 	// Notify actor of encroachment

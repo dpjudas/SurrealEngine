@@ -511,6 +511,8 @@ public:
 
 	// Child actor tracking
 	Array<UActor*> ChildActors;
+	// Based actor tracking
+	Array<UActor*> BasedActors;
 
 	void AddChildActor(UActor* actor);
 	void RemoveChildActor(UActor* actor);
@@ -743,6 +745,11 @@ public:
 	FixedArrayView<float, 4> BlendAnimFrame() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimFrame);}
 	FixedArrayView<float, 4> BlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimRate);}
 	FixedArrayView<float, 4> BlendTweenRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendTweenRate);}
+
+private:
+	void AddBasedActor(UActor* actor);
+	void RemoveBasedActor(UActor* actor);
+	void TurnBasedActors(const Rotator& deltaRotation);
 };
 
 class ULight : public UActor
