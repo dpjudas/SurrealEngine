@@ -31,7 +31,7 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 				}
 				else
 				{
-					PrintPrettyExpression::Print(console, expr);
+					PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, expr);
 					console->WriteOutput(console->NewLine());
 				}
 			}
@@ -668,10 +668,10 @@ std::string PrintExpression::GetFullFuncName(UFunction* func)
 
 /////////////////////////////////////////////////////////////////////////////
 
-void PrintPrettyExpression::Print(DebuggerApp* console, Expression* expr)
+void PrintPrettyExpression::Print(std::function<void(const std::string&)> writeOutput, Expression* expr)
 {
 	PrintPrettyExpression builder;
-	builder.console = console;
+	builder.writeOutput = writeOutput;
 
 	if (expr)
 	{
@@ -679,637 +679,637 @@ void PrintPrettyExpression::Print(DebuggerApp* console, Expression* expr)
 	}
 	else
 	{
-		console->WriteOutput("Null");
+		writeOutput("Null");
 	}
 }
 
 void PrintPrettyExpression::Expr(LocalVariableExpression* expr)
 {
 	if (expr->Variable)
-		console->WriteOutput(expr->Variable->Name.ToString());
+		writeOutput(expr->Variable->Name.ToString());
 	else
-		console->WriteOutput("(null)");
+		writeOutput("(null)");
 }
 
 void PrintPrettyExpression::Expr(InstanceVariableExpression* expr)
 {
 	if (expr->Variable)
-		console->WriteOutput("" + expr->Variable->Name.ToString());
+		writeOutput("" + expr->Variable->Name.ToString());
 	else
-		console->WriteOutput("(null)");
+		writeOutput("(null)");
 }
 
 void PrintPrettyExpression::Expr(DefaultVariableExpression* expr)
 {
 	if (expr->Variable)
-		console->WriteOutput("default."+ expr->Variable->Name.ToString());
+		writeOutput("default."+ expr->Variable->Name.ToString());
 	else
-		console->WriteOutput("default.(null)");
+		writeOutput("default.(null)");
 }
 
 void PrintPrettyExpression::Expr(ReturnExpression* expr)
 {
-	console->WriteOutput("return");
+	writeOutput("return");
 	if (expr->Value)
 	{
-		console->WriteOutput(" ");
-		Print(console, expr->Value);
+		writeOutput(" ");
+		Print(writeOutput, expr->Value);
 	}
 }
 
 void PrintPrettyExpression::Expr(SwitchExpression* expr)
 {
-	console->WriteOutput("switch (");
-	Print(console, expr->Condition);
-	console->WriteOutput(")");
+	writeOutput("switch (");
+	Print(writeOutput, expr->Condition);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(JumpExpression* expr)
 {
-	console->WriteOutput("jump");
+	writeOutput("jump");
 }
 
 void PrintPrettyExpression::Expr(JumpIfNotExpression* expr)
 {
-	console->WriteOutput("if (");
-	Print(console, expr->Condition);
-	console->WriteOutput(")");
+	writeOutput("if (");
+	Print(writeOutput, expr->Condition);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StopExpression* expr)
 {
-	console->WriteOutput("stop");
+	writeOutput("stop");
 }
 
 void PrintPrettyExpression::Expr(AssertExpression* expr)
 {
-	console->WriteOutput("assert(");
-	Print(console, expr->Condition);
-	console->WriteOutput(")");
+	writeOutput("assert(");
+	Print(writeOutput, expr->Condition);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(CaseExpression* expr)
 {
-	console->WriteOutput("case ");
-	Print(console, expr->Value);
-	console->WriteOutput(":");
+	writeOutput("case ");
+	Print(writeOutput, expr->Value);
+	writeOutput(":");
 }
 
 void PrintPrettyExpression::Expr(NothingExpression* expr)
 {
-	console->WriteOutput("nothing");
+	writeOutput("nothing");
 }
 
 void PrintPrettyExpression::Expr(LabelTableExpression* expr)
 {
-	console->WriteOutput("label table");
+	writeOutput("label table");
 }
 
 void PrintPrettyExpression::Expr(GotoLabelExpression* expr)
 {
-	console->WriteOutput("goto ");
-	Print(console, expr->Value);
+	writeOutput("goto ");
+	Print(writeOutput, expr->Value);
 }
 
 void PrintPrettyExpression::Expr(EatStringExpression* expr)
 {
-	console->WriteOutput("eat string(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("eat string(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(LetExpression* expr)
 {
-	Print(console, expr->LeftSide);
-	console->WriteOutput(" = ");
-	Print(console, expr->RightSide);
+	Print(writeOutput, expr->LeftSide);
+	writeOutput(" = ");
+	Print(writeOutput, expr->RightSide);
 }
 
 void PrintPrettyExpression::Expr(DynArrayElementExpression* expr)
 {
-	Print(console, expr->Array);
-	console->WriteOutput("[");
-	Print(console, expr->Index);
-	console->WriteOutput("]");
+	Print(writeOutput, expr->Array);
+	writeOutput("[");
+	Print(writeOutput, expr->Index);
+	writeOutput("]");
 }
 
 void PrintPrettyExpression::Expr(NewExpression* expr)
 {
-	console->WriteOutput("new(parent: ");
-	Print(console, expr->ParentExpr);
-	console->WriteOutput(", name: ");
-	Print(console, expr->NameExpr);
-	console->WriteOutput(", flags: ");
-	Print(console, expr->FlagsExpr);
-	console->WriteOutput(", class: ");
-	Print(console, expr->ClassExpr);
-	console->WriteOutput(")");
+	writeOutput("new(parent: ");
+	Print(writeOutput, expr->ParentExpr);
+	writeOutput(", name: ");
+	Print(writeOutput, expr->NameExpr);
+	writeOutput(", flags: ");
+	Print(writeOutput, expr->FlagsExpr);
+	writeOutput(", class: ");
+	Print(writeOutput, expr->ClassExpr);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ClassContextExpression* expr)
 {
-	console->WriteOutput("class<");
-	Print(console, expr->ObjectExpr);
-	console->WriteOutput(".");
-	Print(console, expr->ContextExpr);
-	console->WriteOutput(">");
+	writeOutput("class<");
+	Print(writeOutput, expr->ObjectExpr);
+	writeOutput(".");
+	Print(writeOutput, expr->ContextExpr);
+	writeOutput(">");
 }
 
 void PrintPrettyExpression::Expr(MetaCastExpression* expr)
 {
-	console->WriteOutput("meta cast(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("meta cast(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(LetBoolExpression* expr)
 {
-	Print(console, expr->LeftSide);
-	console->WriteOutput(" = ");
-	Print(console, expr->RightSide);
+	Print(writeOutput, expr->LeftSide);
+	writeOutput(" = ");
+	Print(writeOutput, expr->RightSide);
 }
 
 void PrintPrettyExpression::Expr(Unknown0x15Expression* expr)
 {
-	console->WriteOutput("unknown(0x15)");
+	writeOutput("unknown(0x15)");
 }
 
 void PrintPrettyExpression::Expr(SelfExpression* expr)
 {
-	console->WriteOutput("this");
+	writeOutput("this");
 }
 
 void PrintPrettyExpression::Expr(SkipExpression* expr)
 {
-	console->WriteOutput("skip(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("skip(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ContextExpression* expr)
 {
-	Print(console, expr->ObjectExpr);
-	console->WriteOutput(".");
-	Print(console, expr->ContextExpr);
+	Print(writeOutput, expr->ObjectExpr);
+	writeOutput(".");
+	Print(writeOutput, expr->ContextExpr);
 }
 
 void PrintPrettyExpression::Expr(ArrayElementExpression* expr)
 {
-	Print(console, expr->Array);
-	console->WriteOutput("[");
-	Print(console, expr->Index);
-	console->WriteOutput("]");
+	Print(writeOutput, expr->Array);
+	writeOutput("[");
+	Print(writeOutput, expr->Index);
+	writeOutput("]");
 }
 
 void PrintPrettyExpression::Expr(IntConstExpression* expr)
 {
-	console->WriteOutput(std::to_string(expr->Value));
+	writeOutput(std::to_string(expr->Value));
 }
 
 void PrintPrettyExpression::Expr(FloatConstExpression* expr)
 {
-	console->WriteOutput(std::to_string(expr->Value));
+	writeOutput(std::to_string(expr->Value));
 }
 
 void PrintPrettyExpression::Expr(StringConstExpression* expr)
 {
-	console->WriteOutput("\"" + expr->Value + "\"");
+	writeOutput("\"" + expr->Value + "\"");
 }
 
 void PrintPrettyExpression::Expr(ObjectConstExpression* expr)
 {
 	if (expr->Object)
-		console->WriteOutput("{ name=\"" + expr->Object->Name.ToString() + "\", class=" + UObject::GetUClassName(expr->Object).ToString() + " }");
+		writeOutput("{ name=\"" + expr->Object->Name.ToString() + "\", class=" + UObject::GetUClassName(expr->Object).ToString() + " }");
 	else
-		console->WriteOutput("null");
+		writeOutput("null");
 }
 
 void PrintPrettyExpression::Expr(NameConstExpression* expr)
 {
-	console->WriteOutput(expr->Value.ToString());
+	writeOutput(expr->Value.ToString());
 }
 
 void PrintPrettyExpression::Expr(RotationConstExpression* expr)
 {
-	console->WriteOutput("{ " + std::to_string(expr->Pitch) + ", " + std::to_string(expr->Yaw) + ", " + std::to_string(expr->Roll) + " }");
+	writeOutput("{ " + std::to_string(expr->Pitch) + ", " + std::to_string(expr->Yaw) + ", " + std::to_string(expr->Roll) + " }");
 }
 
 void PrintPrettyExpression::Expr(VectorConstExpression* expr)
 {
-	console->WriteOutput("{ " + std::to_string(expr->X) + ", " + std::to_string(expr->Y) + ", " + std::to_string(expr->Z) + " }");
+	writeOutput("{ " + std::to_string(expr->X) + ", " + std::to_string(expr->Y) + ", " + std::to_string(expr->Z) + " }");
 }
 
 void PrintPrettyExpression::Expr(ByteConstExpression* expr)
 {
-	console->WriteOutput(std::to_string(expr->Value));
+	writeOutput(std::to_string(expr->Value));
 }
 
 void PrintPrettyExpression::Expr(IntZeroExpression* expr)
 {
-	console->WriteOutput("0");
+	writeOutput("0");
 }
 
 void PrintPrettyExpression::Expr(IntOneExpression* expr)
 {
-	console->WriteOutput("1");
+	writeOutput("1");
 }
 
 void PrintPrettyExpression::Expr(TrueExpression* expr)
 {
-	console->WriteOutput("true");
+	writeOutput("true");
 }
 
 void PrintPrettyExpression::Expr(FalseExpression* expr)
 {
-	console->WriteOutput("false");
+	writeOutput("false");
 }
 
 void PrintPrettyExpression::Expr(NativeParmExpression* expr)
 {
 	if (expr->Object)
-		console->WriteOutput(expr->Object->Name.ToString());
+		writeOutput(expr->Object->Name.ToString());
 	else
-		console->WriteOutput("(null)");
+		writeOutput("(null)");
 }
 
 void PrintPrettyExpression::Expr(NoObjectExpression* expr)
 {
-	console->WriteOutput("null");
+	writeOutput("null");
 }
 
 void PrintPrettyExpression::Expr(Unknown0x2bExpression* expr)
 {
-	console->WriteOutput("unknown(0x2b, ");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("unknown(0x2b, ");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IntConstByteExpression* expr)
 {
-	console->WriteOutput(std::to_string(expr->Value));
+	writeOutput(std::to_string(expr->Value));
 }
 
 void PrintPrettyExpression::Expr(BoolVariableExpression* expr)
 {
-	Print(console, expr->Variable);
+	Print(writeOutput, expr->Variable);
 }
 
 void PrintPrettyExpression::Expr(DynamicCastExpression* expr)
 {
-	console->WriteOutput("dynamic cast(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("dynamic cast(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IteratorExpression* expr)
 {
-	console->WriteOutput("iterator(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("iterator(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IteratorPopExpression* expr)
 {
-	console->WriteOutput("iterator pop");
+	writeOutput("iterator pop");
 }
 
 void PrintPrettyExpression::Expr(IteratorNextExpression* expr)
 {
-	console->WriteOutput("iterator next");
+	writeOutput("iterator next");
 }
 
 void PrintPrettyExpression::Expr(StructCmpEqExpression* expr)
 {
-	Print(console, expr->Value1);
-	console->WriteOutput(" == ");
-	Print(console, expr->Value2);
+	Print(writeOutput, expr->Value1);
+	writeOutput(" == ");
+	Print(writeOutput, expr->Value2);
 }
 
 void PrintPrettyExpression::Expr(StructCmpNeExpression* expr)
 {
-	Print(console, expr->Value1);
-	console->WriteOutput(" != ");
-	Print(console, expr->Value2);
+	Print(writeOutput, expr->Value1);
+	writeOutput(" != ");
+	Print(writeOutput, expr->Value2);
 }
 
 void PrintPrettyExpression::Expr(UnicodeStringConstExpression* expr)
 {
-	console->WriteOutput("unicode string");
+	writeOutput("unicode string");
 }
 
 void PrintPrettyExpression::Expr(StructMemberExpression* expr)
 {
-	Print(console, expr->Value);
-	console->WriteOutput(".");
-	console->WriteOutput(expr->Field->Name.ToString());
+	Print(writeOutput, expr->Value);
+	writeOutput(".");
+	writeOutput(expr->Field->Name.ToString());
 }
 
 void PrintPrettyExpression::Expr(RotatorToVectorExpression* expr)
 {
-	console->WriteOutput("rotatorToVector(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("rotatorToVector(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ByteToIntExpression* expr)
 {
-	console->WriteOutput("byteToInt(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("byteToInt(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ByteToBoolExpression* expr)
 {
-	console->WriteOutput("byteToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("byteToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ByteToFloatExpression* expr)
 {
-	console->WriteOutput("byteToFloat(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("byteToFloat(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IntToByteExpression* expr)
 {
-	console->WriteOutput("intToByte(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("intToByte(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IntToBoolExpression* expr)
 {
-	console->WriteOutput("intToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("intToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IntToFloatExpression* expr)
 {
-	console->WriteOutput("intToFloat(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("intToFloat(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(BoolToByteExpression* expr)
 {
-	console->WriteOutput("boolToByte(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("boolToByte(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(BoolToIntExpression* expr)
 {
-	console->WriteOutput("boolToInt(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("boolToInt(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(BoolToFloatExpression* expr)
 {
-	console->WriteOutput("boolToFloat(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("boolToFloat(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FloatToByteExpression* expr)
 {
-	console->WriteOutput("floatToByte(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("floatToByte(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FloatToIntExpression* expr)
 {
-	console->WriteOutput("floatToInt(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("floatToInt(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FloatToBoolExpression* expr)
 {
-	console->WriteOutput("floatToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("floatToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(Unknown0x46Expression* expr)
 {
-	console->WriteOutput("unknown(0x46, ");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("unknown(0x46, ");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ObjectToBoolExpression* expr)
 {
-	console->WriteOutput("objectToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("objectToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(NameToBoolExpression* expr)
 {
-	console->WriteOutput("nameToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("nameToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToByteExpression* expr)
 {
-	console->WriteOutput("stringToByte(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToByte(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToIntExpression* expr)
 {
-	console->WriteOutput("stringToInt(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToInt(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToBoolExpression* expr)
 {
-	console->WriteOutput("stringToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToFloatExpression* expr)
 {
-	console->WriteOutput("stringToFloat(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToFloat(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToVectorExpression* expr)
 {
-	console->WriteOutput("stringToVector(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToVector(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(StringToRotatorExpression* expr)
 {
-	console->WriteOutput("stringToRotator(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("stringToRotator(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(VectorToBoolExpression* expr)
 {
-	console->WriteOutput("vectorToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("vectorToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(VectorToRotatorExpression* expr)
 {
-	console->WriteOutput("vectorToRotator(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("vectorToRotator(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(RotatorToBoolExpression* expr)
 {
-	console->WriteOutput("rotatorToBool(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("rotatorToBool(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ByteToStringExpression* expr)
 {
-	console->WriteOutput("byteToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("byteToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(IntToStringExpression* expr)
 {
-	console->WriteOutput("intToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("intToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(BoolToStringExpression* expr)
 {
-	console->WriteOutput("boolToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("boolToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FloatToStringExpression* expr)
 {
-	console->WriteOutput("floatToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("floatToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(ObjectToStringExpression* expr)
 {
-	console->WriteOutput("objectToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("objectToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(NameToStringExpression* expr)
 {
-	console->WriteOutput("nameToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("nameToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(VectorToStringExpression* expr)
 {
-	console->WriteOutput("vectorToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("vectorToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(RotatorToStringExpression* expr)
 {
-	console->WriteOutput("rotatorToString(");
-	Print(console, expr->Value);
-	console->WriteOutput(")");
+	writeOutput("rotatorToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(VirtualFunctionExpression* expr)
 {
-	console->WriteOutput(expr->Name.ToString() + "(");
+	writeOutput(expr->Name.ToString() + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		if (index != 0)
-			console->WriteOutput(", ");
-		Print(console, arg);
+			writeOutput(", ");
+		Print(writeOutput, arg);
 		index++;
 	}
-	console->WriteOutput(")");
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FinalFunctionExpression* expr)
 {
-	console->WriteOutput(GetFullFuncName(expr->Func) + "(");
+	writeOutput(GetFullFuncName(expr->Func) + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		if (index != 0)
-			console->WriteOutput(", ");
-		Print(console, arg);
+			writeOutput(", ");
+		Print(writeOutput, arg);
 		index++;
 	}
-	console->WriteOutput(")");
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(GlobalFunctionExpression* expr)
 {
-	console->WriteOutput(expr->Name.ToString() + "(");
+	writeOutput(expr->Name.ToString() + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		if (index != 0)
-			console->WriteOutput(", ");
-		Print(console, arg);
+			writeOutput(", ");
+		Print(writeOutput, arg);
 		index++;
 	}
-	console->WriteOutput(")");
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(NativeFunctionExpression* expr)
 {
-	console->WriteOutput(GetFullFuncName(NativeFunctions::FuncByIndex[expr->nativeindex]) + "(");
+	writeOutput(GetFullFuncName(NativeFunctions::FuncByIndex[expr->nativeindex]) + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		if (index != 0)
-			console->WriteOutput(", ");
-		Print(console, arg);
+			writeOutput(", ");
+		Print(writeOutput, arg);
 		index++;
 	}
-	console->WriteOutput(")");
+	writeOutput(")");
 }
 
 void PrintPrettyExpression::Expr(FunctionArgumentsExpression* expr)
 {
-	console->WriteOutput("function arguments");
+	writeOutput("function arguments");
 }
 
 void PrintPrettyExpression::Expr(ConstructExpression* expr)
 {
-	console->WriteOutput("construct " + expr->Struct->Name.ToString() + "(");
+	writeOutput("construct " + expr->Struct->Name.ToString() + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
 		if (index != 0)
-			console->WriteOutput(", ");
+			writeOutput(", ");
 		if (arg.Name)
-			console->WriteOutput(arg.Name->Name.ToString() + ": ");
-		Print(console, arg.Value);
+			writeOutput(arg.Name->Name.ToString() + ": ");
+		Print(writeOutput, arg.Value);
 		index++;
 	}
-	console->WriteOutput(")");
+	writeOutput(")");
 }
 
 std::string PrintPrettyExpression::GetFullFuncName(UFunction* func)

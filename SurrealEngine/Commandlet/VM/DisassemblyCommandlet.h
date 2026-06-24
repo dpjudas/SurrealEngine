@@ -2,6 +2,7 @@
 
 #include "Commandlet/Commandlet.h"
 #include "VM/ExpressionVisitor.h"
+#include <functional>
 
 class TextListViewItem;
 class UFunction;
@@ -123,7 +124,7 @@ private:
 class PrintPrettyExpression : public ExpressionVisitor
 {
 public:
-	static void Print(DebuggerApp* console, Expression* expr);
+	static void Print(std::function<void(const std::string&)> writeOutput, Expression* expr);
 
 private:
 	void Expr(LocalVariableExpression* expr) override;
@@ -218,5 +219,5 @@ private:
 
 	static std::string GetFullFuncName(UFunction* func);
 
-	DebuggerApp* console = nullptr;
+	std::function<void(const std::string&)> writeOutput;
 };

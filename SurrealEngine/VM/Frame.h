@@ -60,6 +60,7 @@ class Frame
 public:
 	static ExpressionValue Call(UFunction* func, UObject* instance, Array<ExpressionValue> args);
 	static std::string GetCallstack();
+	static std::string GetDisassembly(Expression* statement);
 
 	static bool AddBreakpoint(const NameString& cls, const NameString& func, const NameString& state = {}, int statementIndex = 0);
 

@@ -9,6 +9,7 @@
 #include "Engine.h"
 #include "Package/PackageManager.h"
 #include "Utils/AlignedAlloc.h"
+#include "Commandlet/VM/DisassemblyCommandlet.h"
 
 std::function<void()> Frame::RunDebugger;
 Array<Breakpoint> Frame::Breakpoints;
@@ -148,6 +149,13 @@ std::string Frame::GetName()
 	return name;
 }
 
+std::string Frame::GetDisassembly(Expression* statement)
+{
+	std::string result;
+	PrintPrettyExpression::Print([&](const std::string& text) { result += text; }, statement);
+	return result;
+}
+
 std::string Frame::GetCallstack()
 {
 	std::string result;
@@ -160,10 +168,18 @@ std::string Frame::GetCallstack()
 
 	for (auto it = Callstack.rbegin(); it != Callstack.rend(); ++it)
 	{
-		UStruct* func = (*it)->Func;
-		std::string name = (*it)->GetName();
-		if (func)
+		Frame* frame = *it;
+		std::string name = frame->GetName();
+		if (UStruct* func = frame->Func)
+		{
 			name += " line " + std::to_string(func->Line);
+
+			if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
+			{
+				name += ": ";
+				name += GetDisassembly(func->Code->Statements[frame->StatementIndex - 1]);
+			}
+		}
 		if (!result.empty()) result += newline;
 		result += "at " + name;
 	}
@@ -172,6 +188,13 @@ std::string Frame::GetCallstack()
 
 ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
 {
+	if (!instance)
+	{
+		LogMessage("Accessed None when calling " + func->Name.ToString());
+		LogMessage(Frame::GetCallstack());
+		return ExpressionValue::NothingValue();
+	}
+
 #if 0 // To do: create a commandlet that lets us do this
 	static NameString TraceActorClass = "CTFGame";
 	static NameString TraceActorFunc = "PostBeginPlay";
