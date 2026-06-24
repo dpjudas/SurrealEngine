@@ -3794,16 +3794,6 @@ void UComputerWindow::ClearLine(int rowToClear)
 	LogUnimplemented("ComputerWindow.ClearLine");
 }
 
-void UComputerWindow::ClearScreen()
-{
-	LogUnimplemented("ComputerWindow.ClearScreen");
-}
-
-void UComputerWindow::EnableWordWrap(std::optional<bool> bNewWordWrap)
-{
-	LogUnimplemented("ComputerWindow.EnableWordWrap");
-}
-
 void UComputerWindow::FadeOutText(std::optional<float> fadeDuration)
 {
 	// UNUSED from scripts.
@@ -3855,12 +3845,6 @@ void UComputerWindow::PlaySoundLater(UObject* newsound)
 	LogUnimplemented("ComputerWindow.PlaySoundLater");
 }
 
-void UComputerWindow::Print(const std::string& printText, std::optional<bool> bNewLine)
-{
-	// UNUSED from scripts.
-	LogUnimplemented("ComputerWindow.Print");
-}
-
 void UComputerWindow::PrintGraphic(UObject* Graphic, int Width, int Height, std::optional<int> posX, std::optional<int> posY, std::optional<bool> bStatic, std::optional<bool> bPixelPos)
 {
 	// UNUSED from scripts.
@@ -3900,13 +3884,7 @@ void UComputerWindow::SetComputerSoundVolume(float newSoundVolume)
 void UComputerWindow::SetCursorBlinkSpeed(float newBlinkSpeed)
 {
 	// UNUSED from scripts.
-	LogUnimplemented("ComputerWindow.SetCursorBlinkSpeed");
-}
-
-void UComputerWindow::SetCursorColor(const Color& newCursorColor)
-{
-	cursorColor() = newCursorColor;
-	LogUnimplemented("ComputerWindow.SetCursorColor");
+	cursorBlinkSpeed() = newBlinkSpeed;
 }
 
 void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, std::optional<int> newCursorWidth, std::optional<int> newCursorHeight)
@@ -3915,20 +3893,10 @@ void UComputerWindow::SetCursorTexture(UObject* newCursorTexture, std::optional<
 	LogUnimplemented("ComputerWindow.SetCursorTexture");
 }
 
-void UComputerWindow::SetFadeSpeed(float newFadeSpeed)
-{
-	fadeSpeed() = newFadeSpeed;
-}
-
 void UComputerWindow::SetFontColor(const Color& newFontColor)
 {
 	// UNUSED from scripts.
 	FontColor() = newFontColor;
-}
-
-void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
-{
-	textFont() = UObject::Cast<UFont>(NewFont);
 }
 
 void UComputerWindow::SetTextPosition(int posX, int posY)
@@ -3937,21 +3905,10 @@ void UComputerWindow::SetTextPosition(int posX, int posY)
 	LogUnimplemented("ComputerWindow.SetTextPosition");
 }
 
-void UComputerWindow::SetTextSize(int newCols, int newRows)
-{
-	textCols() = newCols;
-	textRows() = newRows;
-}
-
 void UComputerWindow::SetTextSound(UObject* newTextSound)
 {
 	// UNUSED from scripts.
 	LogUnimplemented("ComputerWindow.SetTextSound");
-}
-
-void UComputerWindow::SetTextTiming(float newTiming)
-{
-	LogUnimplemented("ComputerWindow.SetTextTiming");
 }
 
 void UComputerWindow::SetTextWindowPosition(int newX, int newY)
@@ -3978,9 +3935,97 @@ void UComputerWindow::SetTypingSoundVolume(float newSoundVolume)
 	LogUnimplemented("ComputerWindow.SetTypingSoundVolume");
 }
 
+void UComputerWindow::ClearScreen()
+{
+	text.clear();
+}
+
+void UComputerWindow::EnableWordWrap(std::optional<bool> bNewWordWrap)
+{
+	// Script always calls this and calls it with wordwrap enabled
+}
+
+void UComputerWindow::Print(const std::string& printText, std::optional<bool> bNewLine)
+{
+	text += printText;
+	if (bNewLine.has_value() && bNewLine.value())
+		text += '\n';
+}
+
+void UComputerWindow::SetCursorColor(const Color& newCursorColor)
+{
+	cursorColor() = newCursorColor;
+}
+
+void UComputerWindow::SetFadeSpeed(float newFadeSpeed)
+{
+	fadeSpeed() = newFadeSpeed;
+}
+
+void UComputerWindow::SetTextFont(UObject* NewFont, int newFontWidth, int newFontHeight, const Color& newFontColor)
+{
+	textFont() = UObject::Cast<UFont>(NewFont);
+}
+
+void UComputerWindow::SetTextSize(int newCols, int newRows)
+{
+	textCols() = newCols;
+	textRows() = newRows;
+}
+
+void UComputerWindow::SetTextTiming(float newTiming)
+{
+	eventTimeInterval() = newTiming;
+}
+
 void UComputerWindow::ShowTextCursor(std::optional<bool> bShow)
 {
-	LogUnimplemented("ComputerWindow.ShowTextCursor");
+	bShowCursor() = !bShow.has_value() ? true : bShow.value();
+}
+
+void UComputerWindow::InitWindow()
+{
+	UWindow::InitWindow();
+}
+
+void UComputerWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	if (UFont* font = textFont())
+	{
+		if (!bWidthSpecified)
+			preferredWidth = (float)font->GetGlyph('X').USize * textCols();
+		if (!bHeightSpecified)
+			preferredHeight = (float)font->GetGlyph('X').VSize * textRows();
+	}
+
+	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+}
+
+void UComputerWindow::DrawWindow(UGC* gc)
+{
+	// How does a computer window look like in DX?
+	// Seems to be some kind of text scrolling effect that scrolls the written text as well
+
+	if (UFont* font = textFont())
+	{
+		float w = Width();
+		float h = Height();
+		if (w > 0.0f && h > 0.0f)
+		{
+			gc->SetFonts(font, font);
+			gc->bWordWrap() = true;
+			gc->DrawText(0.0f, 0.0f, w, h, text);
+		}
+	}
+
+	if (bShowCursor())
+	{
+		// To do: blink the cursor
+	}
+
+	// DrawDebugBox(gc);
+
+	UWindow::DrawWindow(gc);
 }
 
 /////////////////////////////////////////////////////////////////////////////

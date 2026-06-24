@@ -1249,6 +1249,10 @@ public:
 	void SetTypingSoundVolume(float newSoundVolume);
 	void ShowTextCursor(std::optional<bool> bShow);
 	
+	void InitWindow() override;
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void DrawWindow(UGC* gc) override;
+
 	Color& FontColor() { return Value<Color>(PropOffsets_ComputerWindow.FontColor); }
 	UPlayerPawnExt*& Player() { return Value<UPlayerPawnExt*>(PropOffsets_ComputerWindow.Player); }
 	UWindow*& TextWindow() { return Value<UWindow*>(PropOffsets_ComputerWindow.TextWindow); }
@@ -1297,6 +1301,9 @@ public:
 	float& timeLastEvent() { return Value<float>(PropOffsets_ComputerWindow.timeLastEvent); }
 	float& timeNextEvent() { return Value<float>(PropOffsets_ComputerWindow.timeNextEvent); }
 	USound*& typingSound() { return Value<USound*>(PropOffsets_ComputerWindow.typingSound); }
+
+private:
+	std::string text;
 };
 
 class UBorderWindow : public UWindow
