@@ -280,7 +280,7 @@ void UWindow::Destroy()
 	if (parent)
 	{
 		parent->ChildRemoved(this);
-		for (UWindow* ancestor = parent->parentOwner(); ancestor; ancestor = ancestor->parentOwner())
+		for (UWindow* ancestor = parent; ancestor; ancestor = ancestor->parentOwner())
 			ancestor->DescendantRemoved(this);
 	}
 	DestroyWindow();
