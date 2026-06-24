@@ -49,6 +49,8 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "GetSoundDuration", &NActor::GetSoundDuration, 0);
 	RegisterVMNativeFunc_1("Actor", "GetURLMap", &NActor::GetURLMap, 547);
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
+	if (engine->LaunchInfo.IsUnreal1_227())
+		RegisterVMNativeFunc_4("Actor", "IntDescIterator", &NActor::IntDescIterator_U227, 313);
 	RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
 	RegisterVMNativeFunc_2("Actor", "IsOverlapping", &NActor::IsOverlapping, 718);
 	RegisterVMNativeFunc_1("Actor", "LastRendered", &NActor::LastRendered, 723);
@@ -388,6 +390,11 @@ void NActor::GetURLMap(UObject* Self, std::string& ReturnValue)
 void NActor::HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& ReturnValue)
 {
 	ReturnValue = UObject::Cast<UActor>(Self)->HasAnim(Sequence);
+}
+
+void NActor::IntDescIterator_U227(UObject* Self, std::string& ClassName, std::string* EntryName, std::string* Desc, std::optional<bool> bSingleNames)
+{
+	Frame::CreatedIterator = std::make_unique<IntDescIterator>(ClassName, EntryName, Desc, bSingleNames);
 }
 
 void NActor::IsAnimating(UObject* Self, BitfieldBool& ReturnValue)
