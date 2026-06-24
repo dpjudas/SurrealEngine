@@ -1932,15 +1932,27 @@ void UTextWindow::InitWindow()
 
 void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
-	if (!Text().empty()) // Is this needed?
+	//if (!Text().empty()) // Is this needed?
 	{
 		float xExtent = 0.0f, yExtent = 0.0f;
 		UObject* oldNormalFont = nullptr;
 		UObject* oldBoldFont = nullptr;
 		engine->dxgc->GetFonts(oldNormalFont, oldBoldFont);
 		engine->dxgc->SetFonts(normalFont(), boldFont());
-		engine->dxgc->GetTextExtent(bWidthSpecified ? preferredWidth : 100000.0f, xExtent, yExtent, Text());
+		engine->dxgc->GetTextExtent(bWidthSpecified ? std::max(preferredWidth, MinWidth()) : 100000.0f, xExtent, yExtent, Text());
 		engine->dxgc->SetFonts(oldNormalFont, oldBoldFont);
+
+		if (UFont* font = normalFont())
+		{
+			int lineHeight = font->GetGlyph('X').VSize;
+			int minHeight = minLines() * lineHeight;
+			int maxHeight = MaxLines() * lineHeight;
+			if (maxHeight > 0 && minHeight <= maxHeight)
+				yExtent = std::clamp(yExtent, (float)minHeight, (float)maxHeight);
+		}
+
+		xExtent = std::max(xExtent, MinWidth());
+
 		float xMargin = hMargin();
 		float yMargin = vMargin();
 		if (!bWidthSpecified)
@@ -2204,17 +2216,21 @@ void UCheckboxWindow::ShowCheckboxOnRightSide(std::optional<bool> bRight)
 
 void UTextLogWindow::AddLog(const std::string& NewText, const Color& linecol)
 {
-	LogUnimplemented("TextLogWindow.AddLog");
+	if (!bPaused())
+	{
+		Text() += NewText;
+		TextColor() = linecol; // To do: we need more complex colored text drawing it seems.
+	}
 }
 
 void UTextLogWindow::ClearLog()
 {
-	LogUnimplemented("TextLogWindow.ClearLog");
+	Text().clear();
 }
 
 void UTextLogWindow::PauseLog(bool bNewPauseState)
 {
-	LogUnimplemented("TextLogWindow.PauseLog");
+	bPaused() = bNewPauseState;
 }
 
 void UTextLogWindow::SetTextTimeout(float newTimeout)
