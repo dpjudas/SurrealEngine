@@ -7,6 +7,8 @@
 #include "UObject/ULevel.h"
 #include "UObject/UActor.h"
 
+#include <algorithm>
+
 AllObjectsIterator::AllObjectsIterator(UObject* BaseClass, UObject** ReturnValue, UObject* InOuter)
 	: BaseClass(BaseClass), ReturnValue(ReturnValue), InOuter(InOuter), m_Objects(GC::GetObjects()), m_Iterator(m_Objects.begin())
 {
@@ -189,6 +191,41 @@ bool CycleActorsIterator::Next()
 	if (outIndex) *outIndex = static_cast<int>(currentIndex);  
 	++currentIndex;  
 	return true;  
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+IntDescIterator::IntDescIterator(std::string& className, std::string* entryName, std::string* desc, std::optional<bool> bSingleNames)
+	: ClassName(className), EntryName(entryName), Desc(desc), bSingleNames(bSingleNames)
+{
+	IntObjects = engine->packages->GetIntObjects(ClassName);
+
+	if (bSingleNames && *bSingleNames)
+	{
+		// TODO: Remove duplicates
+	}
+
+	it = IntObjects.begin();
+}
+
+bool IntDescIterator::Next()
+{
+	if (it == IntObjects.end())
+	{
+		EntryName = nullptr;
+		Desc = nullptr;
+		return false;
+	}
+
+	if (EntryName)
+		*EntryName = it->Name.ToString();
+
+	if (Desc)
+		*Desc = it->Description;
+
+	it++;
+
+	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////

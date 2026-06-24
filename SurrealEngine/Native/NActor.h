@@ -34,6 +34,7 @@ public:
 	static void GetSoundDuration(UObject* Self, UObject* Sound, float& ReturnValue);
 	static void GetURLMap(UObject* Self, std::string& ReturnValue);
 	static void HasAnim(UObject* Self, const NameString& Sequence, BitfieldBool& ReturnValue);
+	static void IntDescIterator_U227(UObject* Self, std::string& ClassName, std::string* EntryName, std::string* Desc, std::optional<bool> bSingleNames);
 	static void IsAnimating(UObject* Self, BitfieldBool& ReturnValue);
 	static void IsOverlapping(UObject* Self, UObject* checkActor, BitfieldBool& ReturnValue);
 	static void LastRendered(UObject* Self, float& ReturnValue);

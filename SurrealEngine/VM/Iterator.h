@@ -5,6 +5,7 @@
 
 class UZoneInfo;
 class UActor;
+class IntObject;
 
 class Iterator
 {
@@ -122,6 +123,21 @@ private:
 	size_t currentIndex = 0;
 	size_t totalActors = 0;
 	Array<UActor*> matchedActors;
+};
+
+class IntDescIterator : public Iterator
+{
+public:
+	IntDescIterator(std::string& className, std::string* entryName, std::string* desc, std::optional<bool> bSingleNames);
+	bool Next() override;
+private:
+	std::string ClassName;
+	std::string* EntryName;
+	std::string* Desc;
+	std::optional<bool> bSingleNames;
+
+	Array<IntObject> IntObjects;
+	Array<IntObject>::iterator it;
 };
 
 class RadiusActorsIterator : public Iterator
