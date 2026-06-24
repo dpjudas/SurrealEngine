@@ -324,6 +324,22 @@ template<> inline std::optional<IpAddr> ExpressionValue::ToType() { if (Type != 
 template<> inline std::optional<Coords> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToCoords(); else return std::nullopt; }
 template<> inline std::optional<quaternion> ExpressionValue::ToType() { if (Type != ExpressionValueType::Nothing) return ToQuat(); else return std::nullopt; }
 
+// Optional pass by reference
+template<> inline ScriptArray* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueArray); return static_cast<ScriptArray*>(Ptr); }
+template<> inline uint8_t* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueByte); return PtrByte; }
+template<> inline int32_t* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueInt); return PtrInt; }
+template<> inline BitfieldBool ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return { nullptr }; CheckType(ExpressionValueType::ValueBool); return BoolInfo; }
+template<> inline float* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueFloat); return PtrFloat; }
+template<> inline UObject** ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueObject); return PtrObject; }
+template<> inline vec3* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueVector); return PtrVector; }
+template<> inline Rotator* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueRotator); return PtrRotator; }
+template<> inline std::string* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueString); return PtrString; }
+template<> inline NameString* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueName); return PtrName; }
+template<> inline Color* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueColor); return PtrColor; }
+template<> inline IpAddr* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueStruct); return PtrIpAddr; }
+template<> inline Coords* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueCoords); return PtrCoords; }
+template<> inline quaternion* ExpressionValue::ToType() { if (Type == ExpressionValueType::Nothing) return nullptr; CheckType(ExpressionValueType::ValueQuat); return PtrQuat; }
+
 inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 {
 	switch (prop->ValueType)
