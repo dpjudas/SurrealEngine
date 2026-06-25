@@ -64,7 +64,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 	XLevel()->Collision.AddToCollision(actor);
 	XLevel()->Light.AddLight(actor);
 
-	actor->SetOwner(SpawnOwner.has_value() && SpawnOwner.value() ? *SpawnOwner : this);
+	actor->SetOwner(SpawnOwner.has_value() && SpawnOwner.value() ? *SpawnOwner : nullptr);
 
 	if (Level()->bBegunPlay())
 	{
