@@ -38,7 +38,6 @@ void NObject::RegisterFunctions()
 		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 237);
 	else
 		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 0);
-	RegisterVMNativeFunc_3("Object", "At_StrStr", &NObject::At_StrStr, 168);
 	RegisterVMNativeFunc_2("Object", "Atan", &NObject::Atan, 190);
 	RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 235);
 	if (engine->LaunchInfo.engineVersion > 219)
@@ -290,6 +289,10 @@ void NObject::RegisterFunctions()
 		RegisterVMNativeFunc_3("Object", "Left", &NObject::Left, 207);
 		RegisterVMNativeFunc_3("Object", "Right", &NObject::Right, 208);
 		RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 209);
+	}
+	else
+	{
+		RegisterVMNativeFunc_3("Object", "At_StrStr", &NObject::At_StrStr, 168);
 	}
 }
 
