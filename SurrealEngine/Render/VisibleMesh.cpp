@@ -949,18 +949,21 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 		start,
 		end);
 
-	for (UNavigationPoint* p : pawn->RouteCache())
+	if (engine->LaunchInfo.engineVersion > 219)
 	{
-		if (!p)
-			break;
-		end = p->Location();
-		end.z += pawn->BaseEyeHeight();
-		engine->render->Device->Draw3DLine(
-			&frame->Frame,
-			vec4(1.0f, 1.0f, 0.0f, 1.0f),
-			0,
-			start,
-			end);
-		start = end;
+		for (UNavigationPoint* p : pawn->RouteCache())
+		{
+			if (!p)
+				break;
+			end = p->Location();
+			end.z += pawn->BaseEyeHeight();
+			engine->render->Device->Draw3DLine(
+				&frame->Frame,
+				vec4(1.0f, 1.0f, 0.0f, 1.0f),
+				0,
+				start,
+				end);
+			start = end;
+		}
 	}
 }

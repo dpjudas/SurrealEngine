@@ -2795,9 +2795,12 @@ UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, 
 			continue;
 
 		// Skip team mates
-		auto pawnPlayerInfo = pawn->PlayerReplicationInfo();
-		if (teamGame && pawnPlayerInfo && ourPlayerInfo->Team() == pawnPlayerInfo->Team())
-			continue;
+		if (engine->LaunchInfo.engineVersion > 219)
+		{
+			auto pawnPlayerInfo = pawn->PlayerReplicationInfo();
+			if (teamGame && pawnPlayerInfo && ourPlayerInfo->Team() == pawnPlayerInfo->Team())
+				continue;
+		}
 
 		if (CheckIfBestTarget(pawn, bestAim, bestDist, FireDir, projStart))
 			bestActor = pawn;
