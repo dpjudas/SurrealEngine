@@ -20,6 +20,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 {
 	if (!SpawnClass || SpawnClass->ClsFlags & ClassFlags::Abstract)
 	{
+		LogMessage("Could not spawn class: " + (SpawnClass ? SpawnClass->Name.ToString() : std::string("null")));
 		return nullptr;
 	}
 
@@ -34,7 +35,10 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 	{
 		auto result = CheckLocation(location, radius, height, bCollideWorld || bCollideWhenPlacing);
 		if (!result.first)
+		{
+			LogMessage("Could not find usable location when trying to spawn: " + SpawnClass->Name.ToString());
 			return nullptr;
+		}
 		location = result.second;
 	}
 
@@ -60,7 +64,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 	XLevel()->Collision.AddToCollision(actor);
 	XLevel()->Light.AddLight(actor);
 
-	actor->SetOwner(SpawnOwner ? *SpawnOwner : this);
+	actor->SetOwner(SpawnOwner.has_value() && SpawnOwner.value() ? *SpawnOwner : this);
 
 	if (Level()->bBegunPlay())
 	{
@@ -69,7 +73,10 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 		CallEvent(actor, EventName::BeginPlay);
 
 		if (actor->bDeleteMe())
+		{
+			LogMessage("Object deleted itself during Spawn!");
 			return nullptr;
+		}
 
 		// To do: we need to call EventName::EncroachingOn events here?
 

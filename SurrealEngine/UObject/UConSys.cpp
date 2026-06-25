@@ -106,10 +106,9 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 
 				if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
 					transfer->toActor() = actorToBindAct;
-				transfer->giveObject() = engine->packages->FindClass("DeusEx.{}" + transfer->ObjectName());
 			}
 			break;
-		/*not in original code*/
+
 		case EEventType::MoveCamera:
 			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
 			{
@@ -135,25 +134,11 @@ void UConversation::BindActorEvents(UObject* actorToBind)
 					trade->eventOwner() = actorToBindAct;
 			}
 			break;
-		
-		case EEventType::CheckObject:
-			if (auto eventCheckObject = UObject::Cast<UConEventCheckObject>(e))
-			{
-				if (eventCheckObject->ObjectName().starts_with("NK_"))
-					eventCheckObject->checkObject() = nullptr;
-				else
-				{
-					eventCheckObject->checkObject() = engine->packages->FindClass("DeusEx.{}" + eventCheckObject->ObjectName());
-				}
-			}
-			break;
 
 		default:
 			break;
 		}
 	}
-
-	//LogUnimplemented("Conversation.BindActorEvents");
 }
 
 void UConversation::BindEvents(UObject** conBoundActors, UObject* invokeActor)
