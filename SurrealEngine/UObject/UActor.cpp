@@ -706,47 +706,47 @@ void UActor::TickFalling(float elapsed)
 
 		if (hit.Fraction < 1.0f)
 		{
-			if (hit.Actor && !hit.Actor->IsA("Mover"))
+			if (hit.Actor && !hit.Actor->IsA("Pawn"))
 			{
-				// TODO: Hit an actor
+				// So projectiles don't think they hit a wall.
 			}
 			else
 			{
 				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+			}
 
-				// Hit the level
-				if (bBounce())
+			// Hit the level
+			if (bBounce())
+			{
+				vec3 reflectedDelta = reflect(moveDelta, hit.Normal);
+				hit = TryMove(reflectedDelta);
+			}
+			else
+			{
+				if (hit.Normal.z < 0.7071f)
 				{
-					vec3 reflectedDelta = reflect(moveDelta, hit.Normal);
-					hit = TryMove(reflectedDelta);
+					// We hit a slope. Try to follow it.
+					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+					if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+					{
+						hit = TryMove(alignedDelta);
+						if (hit.Fraction < 1.0f && hit.Normal.z > 0.7071f)
+						{
+							PhysLanded(hit.Actor, hit.Normal);
+							return;
+						}
+					}
+
+					// adjust velocity along the slope
+					if (!bBounce() && !bJustTeleported())
+						velocity = (location - oldLocation) / elapsed;
+
+					timeLeft = 0.0f;
 				}
 				else
 				{
-					if (hit.Normal.z < 0.7071f)
-					{
-						// We hit a slope. Try to follow it.
-						vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
-						if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
-						{
-							hit = TryMove(alignedDelta);
-							if (hit.Fraction < 1.0f && hit.Normal.z > 0.7071f)
-							{
-								PhysLanded(hit.Actor, hit.Normal);
-								return;
-							}
-						}
-
-						// adjust velocity along the slope
-						if (!bBounce() && !bJustTeleported())
-							velocity = (location - oldLocation) / elapsed;
-
-						timeLeft = 0.0f;
-					}
-					else
-					{
-						PhysLanded(hit.Actor, hit.Normal);
-						timeLeft = 0.0f;
-					}
+					PhysLanded(hit.Actor, hit.Normal);
+					timeLeft = 0.0f;
 				}
 			}
 		}
