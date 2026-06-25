@@ -5,7 +5,7 @@
 
 class UZoneInfo;
 class UActor;
-class IntObject;
+struct IntObject;
 
 class Iterator
 {
