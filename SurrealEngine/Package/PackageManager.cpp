@@ -882,6 +882,7 @@ void PackageManager::RegisterNativeClasses()
 	NameString deusExTextPackage = "DeusExText";
 
 	RegisterNativeClass<UObject>(corePackage, "Object");
+	RegisterNativeClass<UPackage>(corePackage, "Package");
 	RegisterNativeClass<UField>(corePackage, "Field", "Object");
 	RegisterNativeClass<UConst>(corePackage, "Const", "Field");
 	RegisterNativeClass<UEnum>(corePackage, "Enum", "Field");

@@ -117,8 +117,9 @@ void Package::LoadExportObject(int index)
 			Exception::Throw("Could not find the object class for " + objname.ToString());
 		}
 
+		UObject* outer = entry->ObjOuter != 0 ? GetUObject(entry->ObjOuter) : nullptr;
 		ExportObjects[index] = NewObject(objname, objclass, ExportTable[index].ObjFlags, false);
-		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass));
+		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objclass, outer));
 		Packages->delayLoads.push_back(ExportObjects[index]);
 	}
 	else
@@ -128,7 +129,7 @@ void Package::LoadExportObject(int index)
 			objbase = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Object"));
 		auto obj = GC::Alloc<UClass>(objname, objbase, ExportTable[index].ObjFlags);
 		ExportObjects[index] = obj;
-		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase));
+		ExportObjects[index]->DelayLoad.reset(new ObjectDelayLoad(this, index, objname, objbase, nullptr));
 		Packages->delayLoads.push_back(ExportObjects[index]);
 		obj->Class = UObject::Cast<UClass>(Packages->GetPackage("Core")->GetUObject("Class", "Class"));
 	}

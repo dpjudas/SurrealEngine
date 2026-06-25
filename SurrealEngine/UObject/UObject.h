@@ -105,12 +105,13 @@ struct IpAddr
 class ObjectDelayLoad
 {
 public:
-	ObjectDelayLoad(Package* package, int index, NameString objName, UClass* cls) : package(package), Index(index), ObjName(objName), Class(cls) { }
+	ObjectDelayLoad(Package* package, int index, NameString objName, UClass* cls, UObject* outer) : package(package), Index(index), ObjName(objName), Class(cls), Outer(outer) { }
 
 	Package* package = nullptr;
 	int Index = 0;
 	NameString ObjName;
 	UClass* Class = nullptr;
+	UObject* Outer = nullptr;
 };
 
 struct BitfieldBool
@@ -401,6 +402,12 @@ public:
 
 private:
 	GCAllocation* Mark(GCAllocation* marklist) override;
+};
+
+class UPackage : public UObject
+{
+public:
+	using UObject::UObject;
 };
 
 template<typename T>

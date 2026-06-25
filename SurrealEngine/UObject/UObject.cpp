@@ -30,6 +30,7 @@ void UObject::LoadNow()
 		if (!stream->IsEmptyStream())
 		{
 			Load(stream.get());
+			SetObject("Outer", info->Outer);
 		}
 		else if (auto s = UObject::TryCast<UStruct>(this))
 		{
@@ -44,6 +45,7 @@ void UObject::LoadNow()
 			if (auto c = UObject::TryCast<UClass>(this))
 			{
 				PropertyData.Init(c);
+				SetObject("Outer", info->Outer);
 				SetObject("Class", Class);
 				SetName("Name", Name);
 				SetInt("ObjectFlags", (int)Flags);
