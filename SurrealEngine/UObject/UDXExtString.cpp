@@ -3,6 +3,18 @@
 #include "UDXExtString.h"
 #include "Utils/Logger.h"
 
+void UDXExtString::Load(ObjectStream* stream)
+{
+	UObject::Load(stream);
+
+	std::string text = stream->ReadString();
+	if (!Text().empty())
+		LogMessage("ExtString already has text content in its Text property!");
+	Text() = text;
+	stream->ThrowIfNotEnd();
+}
+
+
 void UDXExtString::AppendText(const std::string& newText)
 {
 	LogMessage("Usage check: ExtString.AppendText");

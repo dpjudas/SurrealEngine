@@ -10,41 +10,55 @@
 
 bool UDXTextParser::OpenText(NameString textName, std::string textPackage)
 {
-	// Unfinished and probably won't work.
-	LogUnimplemented("DeusExTextParser.OpenText('" + textName.ToString() + "', '" + textPackage + "')");
 	CloseText();
 	if (textName.IsNone())
 		textName = "DeusExQuotes"; // Not correct, but it handles empty strings just fine.
 	if (textPackage.empty())
 		textPackage = "DeusExText";
-	UDXExtString* textObject = UObject::Cast<UDXExtString>(engine->packages->GetPackage(textPackage)->GetUObject("ExtString", textName));
-	if (textObject)
-	{
-		const std::string sourceText = (textObject->Text() == "") ? "BOTTOM TEXT" : textObject->Text();
-		LastText() = sourceText;
-		TextPos() = 0;
-		Text() = 1;
-	}
+	textObject = UObject::Cast<UDXExtString>(engine->packages->GetPackage(textPackage)->GetUObject("ExtString", textName));
+	Text() = textObject ? 1 : 0;
 	return textObject;
 }
 
 void UDXTextParser::CloseText()
 {
+	textObject = nullptr;
 	Text() = 0;
 	TextPos() = 0;
+	TagEndPos() = 0;
 }
 
 bool UDXTextParser::ProcessText()
 {
-	LogUnimplemented("DeusExTextParser.ProcessText()");
-	return false;
+	if (!textObject)
+		return false;
+
+	const std::string& sourceText = textObject->Text();
+	if (TextPos() >= (int)sourceText.size())
+		return false;
+
+	// To do: this is a tokenizer function. It reads one tag at a time and sets the LastXX properties to what it found
+
+	/*
+		<DC=255,255,255>
+		<P>We'll make this one easy for you.  To open the door, use the code:
+		<P>
+		<P><JC><B>0012</B>
+		<P>
+		<P>Got it?
+		<P>
+		<P>Jaime
+	*/
+
+	LastTag() = DeusExTextTags::TT_Text;
+	LastText() = sourceText;
+	TextPos() = (int)sourceText.size();
+	return true;
 }
 
 bool UDXTextParser::IsEOF()
 {
-	if (Text() != 0 && TextPos() != 0)
-		return false;
-	return true;
+	return !textObject || TextPos() == textObject->Text().size();
 }
 
 std::string UDXTextParser::GetText()
@@ -129,5 +143,5 @@ void UDXTextParser::GetFileInfo(std::string& fileName, std::string& fileDescript
 
 void UDXTextParser::SetPlayerName(const std::string& newPlayerName)
 {
-	LogUnimplemented("DeusExTextParser.SetPlayerName()");
+	PlayerName() = newPlayerName;
 }

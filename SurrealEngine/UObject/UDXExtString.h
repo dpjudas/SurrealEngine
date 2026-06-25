@@ -5,11 +5,13 @@
 #include "UObject.h"
 
 /// Deus Ex's String extension.
-/// Doesn't seem to be used anywhere.
+/// Used by DeusExTextParser
 class UDXExtString : public UObject
 {
 public:
 	using UObject::UObject;
+
+	void Load(ObjectStream* stream) override;
 
 	std::string& Text() { return Value<std::string>(PropOffsets_ExtString.Text); }
 	int& SpeechPage() { return Value<int>(PropOffsets_ExtString.speechPage); }

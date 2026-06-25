@@ -2,6 +2,8 @@
 
 #include "UObject.h"
 
+class UDXExtString;
+
 enum class DeusExTextTags : uint8_t
 {
 	TT_Text,
@@ -75,4 +77,7 @@ public:
 	void GetEmailInfo(std::string& name, std::string& subject, std::string& from, std::string& to, std::string& cc);
 	void GetFileInfo(std::string& fileName, std::string& fileDescription);
 	void SetPlayerName(const std::string& newPlayerName);
+
+private:
+	UDXExtString* textObject = nullptr;
 };
