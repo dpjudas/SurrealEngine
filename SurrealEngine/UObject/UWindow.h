@@ -1455,9 +1455,14 @@ public:
 	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Color& color, uint32_t polyflags);
 	vec2 GetTextSize(UFont* font, const std::string& text);
 
+	void ResetClip(Rectf box);
+	void PushClip(Rectf box);
+	void PopClip();
+
 	bool SpecialTextEnabled = false;
 
 	float offsetX = 0.0f;
 	float offsetY = 0.0f;
 	Rectf clipBox;
+	std::vector<Rectf> clipStack;
 };

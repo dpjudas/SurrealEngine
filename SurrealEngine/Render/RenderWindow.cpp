@@ -23,6 +23,8 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 	Device->SetSceneNode(&Canvas.Frame);
 	Device->ClearZ();
 
+	engine->dxgc->ResetClip(engine->dxgc->ScaleRect(Rectf::xywh(0.0f, 0.0f, engine->dxRootWindow->Width(), engine->dxRootWindow->Height())));
+
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
 	if (engine->getDXWindowDebugMode())
@@ -77,10 +79,9 @@ void RenderSubsystem::ResetWindowGC(UWindow* window, float offsetX, float offset
 	engine->dxgc->SetTextVSpacing(window->textVSpacing());
 	engine->dxgc->SetTileColor(window->tileColor());
 
-	// Setup origin and clipping for the window
+	// Setup origin
 	engine->dxgc->offsetX = offsetX;
 	engine->dxgc->offsetY = offsetY;
-	engine->dxgc->clipBox = engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height()));
 }
 
 void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
@@ -90,6 +91,8 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 
 	offsetX += window->UsedX;
 	offsetY += window->UsedY;
+
+	engine->dxgc->PushClip(engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height())));
 
 	ResetWindowGC(window, offsetX, offsetY);
 	window->DrawWindow(engine->dxgc);
@@ -101,6 +104,8 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 
 	ResetWindowGC(window, offsetX, offsetY);
 	window->PostDrawWindow(engine->dxgc);
+
+	engine->dxgc->PopClip();
 }
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)

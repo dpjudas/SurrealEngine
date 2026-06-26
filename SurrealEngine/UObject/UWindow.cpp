@@ -4589,12 +4589,25 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Col
 	if (tex->Palette())
 		texinfo.Palette = (FColor*)tex->Palette()->Colors.data();
 
-	if (dest.left > dest.right || dest.top > dest.bottom)
+	if (dest.left >= dest.right || dest.top >= dest.bottom)
 		return;
 
 	if (dest.left >= clipBox.left && dest.top >= clipBox.top && dest.right <= clipBox.right && dest.bottom <= clipBox.bottom)
 	{
-		engine->render->DrawTile(texinfo, dest.left, dest.top, dest.right - dest.left, dest.bottom - dest.top, src.left, src.top, src.right - src.left, src.bottom - src.top, Z, color, fog, flags);
+		engine->render->DrawTile(
+			texinfo,
+			dest.left,
+			dest.top,
+			dest.right - dest.left,
+			dest.bottom - dest.top,
+			src.left,
+			src.top,
+			src.right - src.left,
+			src.bottom - src.top,
+			Z,
+			color,
+			fog,
+			flags);
 	}
 	else
 	{
@@ -4626,7 +4639,17 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Col
 		}
 
 		if (d.left < d.right && d.top < d.bottom)
-			engine->render->DrawTile(texinfo, d.left, d.top, d.right - d.left, d.bottom - d.top, s.left, s.top, s.right - s.left, s.bottom - s.top, Z, color, fog, flags);
+			engine->render->DrawTile(
+				texinfo, 
+				d.left,
+				d.top, 
+				d.right - d.left,
+				d.bottom - d.top,
+				s.left,
+				s.top,
+				s.right - s.left,
+				s.bottom - s.top,
+				Z, color, fog, flags);
 	}
 }
 
@@ -4879,4 +4902,27 @@ void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlock
 			x += (float)glyph.USize;
 		}
 	}
+}
+
+void UGC::ResetClip(Rectf box)
+{
+	clipStack.clear();
+	clipBox = box;
+}
+
+void UGC::PushClip(Rectf box)
+{
+	clipStack.push_back(clipBox);
+	clipBox.left = std::max(clipBox.left, box.left);
+	clipBox.top = std::max(clipBox.top, box.top);
+	clipBox.right = std::min(clipBox.right, box.right);
+	clipBox.bottom = std::min(clipBox.bottom, box.bottom);
+	clipBox.right = std::max(clipBox.right, clipBox.left);
+	clipBox.bottom = std::max(clipBox.bottom, clipBox.top);
+}
+
+void UGC::PopClip()
+{
+	clipBox = clipStack.back();
+	clipStack.pop_back();
 }
