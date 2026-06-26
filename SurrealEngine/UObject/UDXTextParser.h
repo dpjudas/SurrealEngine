@@ -80,4 +80,11 @@ public:
 
 private:
 	UDXExtString* textObject = nullptr;
+
+	static void EatWhitespace(const std::string& text, size_t& pos);
+	static bool ReadChars(const std::string& text, size_t& pos, const std::string& chars);
+	static bool ReadTagName(const std::string& text, size_t& pos, std::string& tagname);
+	static bool ReadTagColor(const std::string& text, size_t& pos, Color& color);
+	static bool ReadInteger(const std::string& text, size_t& pos, int value);
+	static bool ReadText(const std::string& text, size_t& pos, std::string& value);
 };

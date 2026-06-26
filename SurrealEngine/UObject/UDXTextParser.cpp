@@ -30,16 +30,9 @@ void UDXTextParser::CloseText()
 
 bool UDXTextParser::ProcessText()
 {
-	if (!textObject)
-		return false;
-
-	const std::string& sourceText = textObject->Text();
-	if (TextPos() >= (int)sourceText.size())
-		return false;
-
-	// To do: this is a tokenizer function. It reads one tag at a time and sets the LastXX properties to what it found
-
 	/*
+		Tokenizer function reading pseudo HTML text ala this:
+
 		<DC=255,255,255>
 		<P>We'll make this one easy for you.  To open the door, use the code:
 		<P>
@@ -50,9 +43,192 @@ bool UDXTextParser::ProcessText()
 		<P>Jaime
 	*/
 
+	if (!textObject)
+		return false;
+
+	const std::string& text = textObject->Text();
+	size_t pos = (size_t)TextPos();
+	size_t len = text.size();
+
+	// Eat whitespace
+	EatWhitespace(text, pos);
+
+	if (pos >= len) // EOF
+	{
+		TextPos() = (int)pos;
+		return false;
+	}
+
+	size_t tagstart = pos;
+	if (!ReadChars(text, pos, "<"))
+	{
+		if (ReadText(text, pos, LastText()))
+		{
+			LastTag() = DeusExTextTags::TT_Text;
+			TextPos() = (int)pos;
+			return true;
+		}
+	}
+	else
+	{
+		std::string tagname;
+		if (ReadTagName(text, pos, tagname))
+		{
+			if (tagname == "DC" && ReadTagColor(text, pos, DefaultColor()) && ReadChars(text, pos, ">"))
+			{
+				LastColor() = DefaultColor();
+				LastTag() = DeusExTextTags::TT_DefaultColor;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "P" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_NewParagraph;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "B" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_Bold;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "/B" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_EndBold;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "I" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_Italics;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "/I" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_EndItalics;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "U" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_Underline;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "/U" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_EndUnderline;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "JC" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_PlayerName;
+				LastText() = PlayerName();
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "J" && ReadChars(text, pos, ">")) // What is the name of this tag?
+			{
+				LastTag() = DeusExTextTags::TT_PlayerFirstName;
+				LastText() = PlayerFirstName();
+				TextPos() = (int)pos;
+				return true;
+			}
+		}
+	}
+
+	// Parse error. Dump what we got as text for debugging
 	LastTag() = DeusExTextTags::TT_Text;
-	LastText() = sourceText;
-	TextPos() = (int)sourceText.size();
+	LastText() = text.substr(tagstart);
+	TextPos() = (int)len;
+	return true;
+}
+
+void UDXTextParser::EatWhitespace(const std::string& text, size_t& pos)
+{
+	size_t len = text.size();
+	while (pos < len && (text[pos] == ' ' || text[pos] == '\t' || text[pos] == '\r' || text[pos] == '\n'))
+		pos++;
+}
+
+bool UDXTextParser::ReadTagName(const std::string& text, size_t& pos, std::string& tagname)
+{
+	tagname.clear();
+
+	size_t len = text.size();
+	while (pos < len && ((text[pos] >= 'a' && text[pos] <= 'z') || (text[pos] >= 'A' && text[pos] <= 'Z') || text[pos] == '/'))
+	{
+		tagname += text[pos];
+		pos++;
+	}
+
+	if (tagname.empty() || pos == len)
+		return false;
+	return true;
+}
+
+bool UDXTextParser::ReadChars(const std::string& text, size_t& pos, const std::string& chars)
+{
+	if (pos + chars.size() >= text.size() || text.substr(pos, chars.size()) != chars)
+		return false;
+	pos += chars.size();
+	return true;
+}
+
+bool UDXTextParser::ReadTagColor(const std::string& text, size_t& pos, Color& color)
+{
+	if (!ReadChars(text, pos, "="))
+		return false;
+	if (!ReadInteger(text, pos, color.R))
+		return false;
+	if (!ReadChars(text, pos, ","))
+		return false;
+	if (!ReadInteger(text, pos, color.G))
+		return false;
+	if (!ReadChars(text, pos, ","))
+		return false;
+	if (!ReadInteger(text, pos, color.B))
+		return false;
+	color.A = 255;
+	return true;
+}
+
+bool UDXTextParser::ReadInteger(const std::string& text, size_t& pos, int value)
+{
+	std::string v;
+	size_t len = text.size();
+	while (pos < len && text[pos] >= '0' && text[pos] <= '9')
+	{
+		v += text[pos];
+		pos++;
+	}
+	if (v.empty())
+		return false;
+	value = std::atoi(v.c_str());
+	return true;
+}
+
+bool UDXTextParser::ReadText(const std::string& text, size_t& pos, std::string& value)
+{
+	EatWhitespace(text, pos);
+
+	value.clear();
+	size_t len = text.size();
+	while (pos < len && text[pos] != '<')
+	{
+		value += text[pos];
+		pos++;
+	}
+
+	// Eat any whitespace at the end
+	while (!value.empty() && (value.back() == ' ' || value.back() == '\r' || value.back() == '\n'))
+		value.pop_back();
+
+	if (value.empty() || pos == len)
+		return false;
 	return true;
 }
 
