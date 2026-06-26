@@ -1138,7 +1138,6 @@ void UWindow::InitWindow()
 	tileColor() = { 255, 255, 255, 255 };
 	//tilePlane() = vec4(1.0f);
 	backgroundStyle() = (uint8_t)EDrawStyle::Translucent;
-	bStretchBackground() = true;
 
 	CallEvent(this, "InitWindow");
 }
