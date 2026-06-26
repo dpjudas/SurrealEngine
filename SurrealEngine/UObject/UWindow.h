@@ -1451,8 +1451,8 @@ public:
 	uint32_t EffectiveTextPolyFlags();
 	void DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Color& c, uint32_t flags);
 	Sizef DrawText(UFont* font, float x, float y, float destWidth, const std::string& text, const Color& c, uint32_t polyflags, bool noDraw = false);
-	Array<TextBlock> FindTextBlocks(const std::string& text);
-	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Color& color, uint32_t polyflags);
+	Array<TextBlock> FindTextBlocks(const std::string& text, const Color& color);
+	void DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, uint32_t polyflags);
 	vec2 GetTextSize(UFont* font, const std::string& text);
 
 	void ResetClip(Rectf box);

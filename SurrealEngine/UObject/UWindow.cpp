@@ -4677,7 +4677,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float curX = 0.0f;
 	float curY = 0.0f;
 
-	Array<TextBlock> textBlocks = FindTextBlocks(textStr);
+	Array<TextBlock> textBlocks = FindTextBlocks(textStr, color);
 	size_t lineBegin = 0;
 	float lineWidth = 0.0f;
 	float lineHeight = 0.0f;
@@ -4697,7 +4697,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 					centerX = destWidth - lineWidth;
 
 				if (!noDraw)
-					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags);
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, polyflags);
 
 				curY += lineHeight;
 				totalHeight += lineHeight;
@@ -4727,7 +4727,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 					centerX = destWidth - lineWidth;
 
 				if (!noDraw)
-					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, color, polyflags);
+					DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, pos, font, polyflags);
 
 				curX = 0;
 				curY += lineHeight;
@@ -4765,7 +4765,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 			centerX = destWidth - lineWidth;
 
 		if (!noDraw)
-			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, color, polyflags);
+			DrawTextBlockRange(orgX + curX + centerX, orgY + curY, textBlocks, lineBegin, textBlocks.size(), font, polyflags);
 
 		curX += centerX + lineWidth;
 		curY += lineHeight;
@@ -4789,7 +4789,7 @@ vec2 UGC::GetTextSize(UFont* font, const std::string& text)
 	return { x, y };
 }
 
-Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
+Array<TextBlock> UGC::FindTextBlocks(const std::string& text, const Color& color)
 {
 	// Split text into words, whitespace or newline
 	Array<TextBlock> textBlocks;
@@ -4825,7 +4825,7 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 
 			std::string whitespaceText = editedText.substr(pos, end - pos);
 
-			textBlocks.push_back({whitespaceText, Color{255, 255, 255, 255}, 0});
+			textBlocks.push_back({whitespaceText, color, 0});
 			pos = end;
 		}
 		else
@@ -4833,7 +4833,7 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 			size_t end = std::min(editedText.find_first_of(" \n", pos + 1), editedText.size());
 
 			std::string foundText = editedText.substr(pos, end - pos);
-			Color textColor = {255, 255, 255, 255};
+			Color textColor = color;
 			size_t accelPos = 0;
 
 			if (foundText.starts_with("|p"))
@@ -4872,7 +4872,7 @@ Array<TextBlock> UGC::FindTextBlocks(const std::string& text)
 	return textBlocks;
 }
 
-void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, const Color& color, uint32_t polyflags)
+void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlocks, size_t start, size_t end, UFont* font, uint32_t polyflags)
 {
 	for (size_t i = start; i < end; i++)
 	{
