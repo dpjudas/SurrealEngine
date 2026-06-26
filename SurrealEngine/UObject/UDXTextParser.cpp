@@ -125,14 +125,35 @@ bool UDXTextParser::ProcessText()
 			}
 			else if (tagname == "JC" && ReadChars(text, pos, ">"))
 			{
+				LastTag() = DeusExTextTags::TT_None; // What does <JC> mean?
+				LastText() = PlayerName();
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "PLAYERNAME" && ReadChars(text, pos, ">"))
+			{
 				LastTag() = DeusExTextTags::TT_PlayerName;
 				LastText() = PlayerName();
 				TextPos() = (int)pos;
 				return true;
 			}
-			else if (tagname == "J" && ReadChars(text, pos, ">")) // What is the name of this tag?
+			else if (tagname == "PLAYERFIRSTNAME" && ReadChars(text, pos, ">"))
 			{
 				LastTag() = DeusExTextTags::TT_PlayerFirstName;
+				LastText() = PlayerFirstName();
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "COMMENT" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_Comment;
+				LastText() = PlayerFirstName();
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "/COMMENT" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_EndComment;
 				LastText() = PlayerFirstName();
 				TextPos() = (int)pos;
 				return true;
