@@ -197,6 +197,9 @@ void NObject::RegisterFunctions()
 		RegisterVMNativeFunc_3("Object", "AllFiles", &NObject::AllFiles_U227, 603);
 		RegisterVMNativeFunc_7("Object", "AllLinkers", &NObject::AllLinkers_U227, 636);
 		RegisterVMNativeFunc_3("Object", "AllObjects", &NObject::AllObjects_U227, 602);
+		RegisterVMNativeFunc_3("Object", "Array_Size", &NObject::Array_Size_U227, 640);
+		RegisterVMNativeFunc_4("Object", "Array_Insert", &NObject::Array_Insert_U227, 641);
+		RegisterVMNativeFunc_4("Object", "Array_Remove", &NObject::Array_Remove_U227, 642);
 		RegisterVMNativeFunc_3("Object", "And_RotatorRotator", &NObject::And_RotatorRotator_U227, 607);
 		RegisterVMNativeFunc_1("Object", "AppSeconds", &NObject::AppSeconds_U227, 643);
 		RegisterVMNativeFunc_1("Object", "AppInEditor", &NObject::AppInEditor_U227, 645);
