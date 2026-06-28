@@ -934,7 +934,9 @@ void UStaticMesh::Load(ObjectStream* stream)
 {
 	LogUnimplemented("Static Mesh loading");
 
-	// UMesh::Load(stream);
+	// UMesh::Load() doesn't work for some reason
+	// We use UPrimitive::Load() for now so that we at least get an "Outer".
+	UPrimitive::Load(stream);
 
 	/*
 	FlipNormals = stream->ReadUInt8();
