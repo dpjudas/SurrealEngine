@@ -618,9 +618,9 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
-	LevelInfo->EngineVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+	LevelInfo->EngineVersion() = LaunchInfo.gameVersionString + " SE";
 	if (packages->GetEngineVersion() > 219)
-		LevelInfo->MinNetVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+		LevelInfo->MinNetVersion() = LaunchInfo.gameVersionString + " SE";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
 	LevelInfo->DefaultTexture() = engine->DefaultTexture;
@@ -737,9 +737,9 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	*/
-	LevelInfo->EngineVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+	LevelInfo->EngineVersion() = LaunchInfo.gameVersionString + " SE";
 	if (packages->GetEngineVersion() > 219)
-		LevelInfo->MinNetVersion() = std::to_string(LaunchInfo.engineVersion) + " SE";
+		LevelInfo->MinNetVersion() = LaunchInfo.gameVersionString + " SE";
 	LevelInfo->bHighDetailMode() = true;
 	/*
 	LevelInfo->NetMode() = 0; // NM_StandAlone
