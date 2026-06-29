@@ -102,6 +102,10 @@ private:
 	ExpressionEvalResult Run();
 	void ProcessSwitch(const ExpressionValue& condition);
 
+	static ExpressionValue CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args);
+	static ExpressionValue CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args);
+	static void TraceCall(UFunction* func, UObject* instance, const Array<ExpressionValue>& args);
+
 	struct ActiveCallStackFrame
 	{
 		ActiveCallStackFrame(Frame* frame) { Frame::Callstack.push_back(frame); }

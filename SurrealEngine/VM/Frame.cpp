@@ -20,6 +20,18 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
+Frame::Frame(UObject* instance, UStruct* func)
+{
+	Object = instance;
+	SetState(func);
+}
+
+void Frame::SetState(UStruct* func)
+{
+	Func = func;
+	Variables = std::make_unique<LocalVariables>(func);
+}
+
 bool Frame::AddBreakpoint(const NameString& clsName, const NameString& funcName, const NameString& stateName, int statementIndex)
 {
 	Breakpoint bp;
@@ -195,6 +207,176 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 		return ExpressionValue::NothingValue();
 	}
 
+	TraceCall(func, instance, args);
+
+	if (!instance->IsEventEnabled(func->Name))
+	{
+		return ExpressionValue::NothingValue();
+	}
+
+	// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
+	int argindex = 0;
+	for (UField* field = func->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* prop = UObject::TryCast<UProperty>(field);
+		if (prop)
+		{
+			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
+				args.push_back(ExpressionValue::NothingValue());
+
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+				argindex++;
+		}
+	}
+
+	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
+	{
+		return CallNative(func, instance, std::move(args));
+	}
+	else
+	{
+		return CallScript(func, instance, std::move(args));
+	}
+}
+
+ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args)
+{
+	Frame frame(instance, func);
+
+	// Store args in function frame local variables
+	int argindex = 0;
+	for (UField* field = func->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* prop = UObject::TryCast<UProperty>(field);
+		if (prop)
+		{
+			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+			{
+				if (argindex < args.size())
+				{
+					lvalue.Store(args[argindex]);
+				}
+
+				argindex++;
+			}
+		}
+	}
+
+	// Run the function
+	ExpressionValue result = frame.Run().Value;
+
+	// Load the result from the frame local result variable
+	result.Load();
+
+	// Copy out params from frame local variables
+	argindex = 0;
+	for (UField* field = func->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* prop = UObject::TryCast<UProperty>(field);
+		if (prop)
+		{
+			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
+
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OutParm) && argindex < args.size())
+			{
+				args[argindex].Store(lvalue);
+			}
+
+			if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm) && result.GetType() == ExpressionValueType::Nothing)
+			{
+				result = ExpressionValue::DefaultValue(prop);
+			}
+
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+				argindex++;
+		}
+	}
+
+	return result;
+}
+
+ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args)
+{
+	// Native functions expect the last parameter to be the return value
+	bool returnparmfound = false;
+	int argindex = 0;
+	for (UField* field = func->Children; field != nullptr; field = field->Next)
+	{
+		UProperty* prop = UObject::TryCast<UProperty>(field);
+		if (prop)
+		{
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+			{
+				ExpressionValue retval = ExpressionValue::PropertyValue(prop);
+				args.push_back(std::move(retval));
+				returnparmfound = true;
+			}
+			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+				argindex++;
+		}
+	}
+
+	if (func->NativeFuncIndex != 0)
+	{
+		auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
+		if (callback)
+		{
+			Frame frame(instance, func);
+			ActiveCallStackFrame activeFrame(&frame);
+			try
+			{
+				callback(instance, args.data());
+			}
+			catch (const std::exception& e)
+			{
+				LogMessage(std::string("Script error: ") + e.what());
+				return ExpressionValue::NothingValue();
+			}
+			catch (...)
+			{
+				LogMessage("Script error: Unknown error");
+				return ExpressionValue::NothingValue();
+			}
+		}
+		else
+		{
+			Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+		}
+	}
+	else
+	{
+		auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
+		if (callback)
+		{
+			Frame frame(instance, func);
+			ActiveCallStackFrame activeFrame(&frame);
+			try
+			{
+				callback(instance, args.data());
+			}
+			catch (const std::exception& e)
+			{
+				LogMessage(std::string("Script error: ") + e.what());
+				return ExpressionValue::NothingValue();
+			}
+			catch (...)
+			{
+				LogMessage("Script error: Unknown error");
+				return ExpressionValue::NothingValue();
+			}
+		}
+		else
+		{
+			Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+		}
+	}
+
+	return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
+}
+
+void Frame::TraceCall(UFunction* func, UObject* instance, const Array<ExpressionValue>& args)
+{
 #if 0 // To do: create a commandlet that lets us do this
 	static NameString TraceActorClass = "CTFGame";
 	static NameString TraceActorFunc = "PostBeginPlay";
@@ -245,166 +427,6 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 		LogMessage(traceMessage);
 	}
 #endif
-
-	if (!instance->IsEventEnabled(func->Name))
-	{
-		return ExpressionValue::NothingValue();
-	}
-
-	int argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* prop = UObject::TryCast<UProperty>(field);
-		if (prop)
-		{
-			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
-				args.push_back(ExpressionValue::NothingValue());
-
-			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-				argindex++;
-		}
-	}
-
-	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
-	{
-		bool returnparmfound = false;
-		argindex = 0;
-		for (UField* field = func->Children; field != nullptr; field = field->Next)
-		{
-			UProperty* prop = UObject::TryCast<UProperty>(field);
-			if (prop)
-			{
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
-				{
-					ExpressionValue retval = ExpressionValue::PropertyValue(prop);
-					args.push_back(std::move(retval));
-					returnparmfound = true;
-				}
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-					argindex++;
-			}
-		}
-
-		if (func->NativeFuncIndex != 0)
-		{
-			auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
-			if (callback)
-			{
-				Frame frame(instance, func);
-				ActiveCallStackFrame activeFrame(&frame);
-				try
-				{
-					callback(instance, args.data());
-				}
-				catch (const std::exception& e)
-				{
-					LogMessage(std::string("Script error: ") + e.what());
-					return ExpressionValue::NothingValue();
-				}
-				catch (...)
-				{
-					LogMessage("Script error: Unknown error");
-					return ExpressionValue::NothingValue();
-				}
-			}
-			else
-			{
-				Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
-			}
-		}
-		else
-		{
-			auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
-			if (callback)
-			{
-				Frame frame(instance, func);
-				ActiveCallStackFrame activeFrame(&frame);
-				try
-				{
-					callback(instance, args.data());
-				}
-				catch (const std::exception& e)
-				{
-					LogMessage(std::string("Script error: ") + e.what());
-					return ExpressionValue::NothingValue();
-				}
-				catch (...)
-				{
-					LogMessage("Script error: Unknown error");
-					return ExpressionValue::NothingValue();
-				}
-			}
-			else
-			{
-				Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
-			}
-		}
-
-		return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
-	}
-	else
-	{
-		Frame frame(instance, func);
-
-		int argindex = 0;
-		for (UField* field = func->Children; field != nullptr; field = field->Next)
-		{
-			UProperty* prop = UObject::TryCast<UProperty>(field);
-			if (prop)
-			{
-				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-				{
-					if (argindex < args.size())
-					{
-						lvalue.Store(args[argindex]);
-					}
-
-					argindex++;
-				}
-			}
-		}
-
-		ExpressionValue result = frame.Run().Value;
-		result.Load();
-
-		argindex = 0;
-		for (UField* field = func->Children; field != nullptr; field = field->Next)
-		{
-			UProperty* prop = UObject::TryCast<UProperty>(field);
-			if (prop)
-			{
-				ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
-
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OutParm) && argindex < args.size())
-				{
-					args[argindex].Store(lvalue);
-				}
-
-				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm) && result.GetType() == ExpressionValueType::Nothing)
-				{
-					result = ExpressionValue::DefaultValue(prop);
-				}
-
-				if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-					argindex++;
-			}
-		}
-
-		return result;
-	}
-}
-
-Frame::Frame(UObject* instance, UStruct* func)
-{
-	Object = instance;
-	SetState(func);
-}
-
-void Frame::SetState(UStruct* func)
-{
-	Func = func;
-	Variables = std::make_unique<LocalVariables>(func);
 }
 
 void Frame::GotoLabel(const NameString& label)
