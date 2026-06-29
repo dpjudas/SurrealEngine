@@ -217,7 +217,5 @@ private:
 	void Expr(FunctionArgumentsExpression* expr) override;
 	void Expr(ConstructExpression* expr) override;
 
-	static std::string GetFullFuncName(UFunction* func);
-
 	std::function<void(const std::string&)> writeOutput;
 };

@@ -1251,7 +1251,7 @@ void PrintPrettyExpression::Expr(VirtualFunctionExpression* expr)
 
 void PrintPrettyExpression::Expr(FinalFunctionExpression* expr)
 {
-	writeOutput(GetFullFuncName(expr->Func) + "(");
+	writeOutput(expr->Func->Name.ToString() + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -1279,7 +1279,10 @@ void PrintPrettyExpression::Expr(GlobalFunctionExpression* expr)
 
 void PrintPrettyExpression::Expr(NativeFunctionExpression* expr)
 {
-	writeOutput(GetFullFuncName(NativeFunctions::FuncByIndex[expr->nativeindex]) + "(");
+	if (NativeFunctions::FuncByIndex[expr->nativeindex])
+		writeOutput(NativeFunctions::FuncByIndex[expr->nativeindex]->Name.ToString() + "(");
+	else
+		writeOutput("UnknownNative" + std::to_string(expr->nativeindex) + "(");
 	int index = 0;
 	for (auto arg : expr->Args)
 	{
@@ -1310,17 +1313,4 @@ void PrintPrettyExpression::Expr(ConstructExpression* expr)
 		index++;
 	}
 	writeOutput(")");
-}
-
-std::string PrintPrettyExpression::GetFullFuncName(UFunction* func)
-{
-	std::string name;
-	for (UStruct* s = func; s != nullptr; s = s->StructParent)
-	{
-		if (name.empty())
-			name = s->Name.ToString();
-		else
-			name = s->Name.ToString() + "." + name;
-	}
-	return name;
 }
