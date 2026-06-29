@@ -155,8 +155,8 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_0("Object", "ResetConfig", &NObject::ResetConfig, 0);
 	RegisterVMNativeFunc_3("Object", "Right", &NObject::Right, 234);
 	RegisterVMNativeFunc_2("Object", "RotRand", &NObject::RotRand, 320);
-	if (engine->LaunchInfo.IsUnreal1_227())
-		RegisterVMNativeFunc_1("Object", "SaveConfig", &NObject::SaveConfig_U227, 536);
+	if (engine->LaunchInfo.IsUnreal1_227k())
+		RegisterVMNativeFunc_1("Object", "SaveConfig", &NObject::SaveConfig_U227k, 536);
 	else
 		RegisterVMNativeFunc_0("Object", "SaveConfig", &NObject::SaveConfig, 536);
 	RegisterVMNativeFunc_2("Object", "SetPropertyText", &NObject::SetPropertyText, 0);
@@ -1422,10 +1422,9 @@ void NObject::SaveConfig(UObject* Self)
 	Self->SaveConfig();
 }
 
-void NObject::SaveConfig_U227(UObject* Self, std::optional<bool> bNoWriteINI)
+void NObject::SaveConfig_U227k(UObject* Self, std::optional<bool> bNoWriteINI)
 {
-	if (engine->LaunchInfo.IsUnreal1_227())
-		LogUnimplemented("Object.SaveConfig() [U227 - bNoWriteINI parameter not implemented]");
+	LogUnimplemented("Object.SaveConfig() [U227k - bNoWriteINI parameter not implemented]");
 	Self->SaveConfig();
 }
 
