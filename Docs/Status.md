@@ -31,7 +31,6 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
 * Mirrors/reflections rendering is a bit buggy, especially around the edges of world geometry.
 * Portals:
   - They somewhat work, but might end up "pushing" players/projectiles in unexpected directions.
-  - No portal rendering yet.
 * Semisolid brushes are finicky. Usually you'll fall through them as if they weren't there.
 * No dynamic lighting support (Dispersion Pistol projectiles/Flares don't illuminate their surroundings)
 * Bot and Scripted Pawn AI isn't fully functional due to the related native functions not being implemented.
@@ -45,6 +44,7 @@ they end up dying because SE thinks that they've fallen from a great height.
 (and accumulates if a new power-up of the same type is picked up and activated) until the player switches to a different map.
 * viewclass command crashes with null deref.
 * Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
+* Sounds may become too loud (e.g. Pulse Rifle secondary fire, minigun firing sound)
 * Third person weapon meshes do not get rendered.
 * Inventory from loaded saves do NOT transfer to the next map.
 * Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
@@ -59,17 +59,23 @@ they end up dying because SE thinks that they've fallen from a great height.
 
 ## Unreal (Gold)
 
-226 version of the game launches. Menu options works most of the time. Single player maps can be played, as well as botmatches. The AI will behave more or less the same as how they behave in UT.
+226 version of the game launches. Menu options works most of the time. Single player maps can be played, as well as botmatches. Bots can sometimes move around and attack.
+
+227i version of the game also launches. Single player maps can be played, as well as botmatches. Some menu items may not work, and lots of new features (e.g. Emitters, Static Meshes) are not implemented.
+
+227j patch isn't tested, while 227k_14 crashes immediately.
 
 ### Known Bugs:
 * [227*] Many new native functions/features are not yet implemented.
+* [227i] Translator Scale option does not do anything.
+* [227i] Opening up DmExar crashes SE with "Module file unsupported by OpenMPT" error.
 * Some UPak native functions are not implemented yet.
 * Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
 * ASMD tertiary fire rings render wrong.
 
 ## Unreal Tournament
 
-436 version of the game launches. Menu options will work and botmatches can be played, however the bots will barely have any AI (they move around sometimes and retaliate upon being attacked), and some maps might have some functionality missing.
+436 version of the game launches. Menu options will work and botmatches can be played. Bots will behave more or less like they do in Unreal and some maps might have some functionality missing.
 
 ### Known bugs:
 * [469*] Many new native functions/features are not yet implemented.
@@ -84,7 +90,7 @@ they end up dying because SE thinks that they've fallen from a great height.
 * Some native functions are still not implemented.
 * Conversation system is not fully implemented yet.
 * If you click on the area where the saves should be in the Load Game menu the buttons below stop working so you cannot go back.
-* In-game HUD is mostly invisible except for the Incoming Transmission part.
+* In-game HUD has some missing text.
 * DataCubes and books cannot be read yet.
 
 ## Tactical-Ops: Assault on Terror
