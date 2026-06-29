@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Iterator.h"
 #include "Utils/File.h"
+#include "Utils/StrTools.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
 #include "UObject/ULevel.h"
@@ -78,10 +79,10 @@ AllFilesIterator::AllFilesIterator(const std::string& FileExtension, const std::
 	{
 		auto package = engine->packages->GetPackage(packageName);
 
-		if ((FileExtension.empty() || fs::path(package->GetPackageFilename()).extension().string() == FileExtension) &&
-			(FilePrefix.empty() || package->GetPackageFilename().find(FilePrefix) != std::string::npos))
+		if ((FileExtension.empty() || package->GetPackageFileExtension() == "." + FileExtension) &&
+			(FilePrefix.empty() || StrTools::startswith(package->GetPackageFileName(), FilePrefix, true)))
 		{
-			FoundFiles.push_back(packageName.ToString());
+			FoundFiles.push_back(package->GetPackageFileName());
 		}
 	}
 
