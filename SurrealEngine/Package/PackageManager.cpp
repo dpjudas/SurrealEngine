@@ -385,7 +385,7 @@ std::shared_ptr<PackageStream> PackageManager::GetStream(Package* package)
 
 	OpenStream s;
 	s.Pkg = package;
-	s.Stream = std::make_shared<PackageStream>(package, File::open_existing(package->GetPackageFilename()));
+	s.Stream = std::make_shared<PackageStream>(package, File::open_existing(package->GetPackageFilePath()));
 	openStreams.push_front(s);
 
 	if (numStreams == 10)

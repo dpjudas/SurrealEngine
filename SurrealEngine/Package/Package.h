@@ -16,7 +16,7 @@ class UClass;
 class Package : public GCObject
 {
 public:
-	Package(PackageManager* packageManager, const NameString& name, const std::string& filename);
+	Package(PackageManager* packageManager, const NameString& name, const std::string& filepath);
 	~Package();
 
 	UObject* NewObject(const NameString& objname, UClass* objclass, ObjectFlags flags, bool initProperties = true);
@@ -33,7 +33,9 @@ public:
 	const NameString& GetName(int index) const;
 	int GetVersion() const { return Version; }
 	NameString GetPackageName() const { return Name; }
-	std::string GetPackageFilename() const { return Filename; }
+	std::string GetPackageFileName() const { return FileName; }
+	std::string GetPackageFilePath() const { return FilePath; }
+	std::string GetPackageFileExtension() const { return FileExtension; }
 
 	PackageManager* GetPackageManager() { return Packages; }
 
@@ -54,7 +56,9 @@ private:
 
 	PackageManager* Packages = nullptr;
 	NameString Name;
-	std::string Filename;
+	std::string FilePath;
+	std::string FileName;
+	std::string FileExtension;
 
 	int Version = 0;
 	int LicenseeMode = 0;

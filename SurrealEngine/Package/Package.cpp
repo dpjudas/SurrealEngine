@@ -8,10 +8,13 @@
 #include "UObject/UObject.h"
 #include "UObject/UClass.h"
 
-Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filename) : Packages(packageManager), Name(name), Filename(filename)
+Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filepath) : Packages(packageManager), Name(name), FilePath(filepath)
 {
-	if (!filename.empty())
+	if (!filepath.empty())
 		ReadTables();
+
+	FileName = fs::path(FilePath).filename();
+	FileExtension = fs::path(FilePath).extension();
 
 	// Register native classes not listed in the package
 	for (const auto& it : packageManager->NativeClasses)
