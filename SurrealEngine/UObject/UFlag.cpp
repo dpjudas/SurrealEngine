@@ -192,18 +192,19 @@ T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, std::optional<bool> bA
 				throw std::runtime_error(std::string("Could not find class ") + flagClassName);
 		}
 
-		auto flag = UObject::Cast<T>(engine->packages->GetTransientPackage()->NewObject(FlagName, cls, ObjectFlags::Transient));
-
 		auto table = hashTable();
 		for (int i = 0; i < table.size(); i++)
 		{
 			if (!table[i])
 			{
+				auto flag = UObject::Cast<T>(engine->packages->GetTransientPackage()->NewObject(FlagName, cls, ObjectFlags::Transient));
+				flag->FlagName() = FlagName;
 				flag->flagHash() = i; // Lets pretend until we have a proper hash
 				table[i] = flag;
 				return flag;
 			}
 		}
+		LogMessage("Could not create flag " + FlagName.ToString() + ": no room in FlagBase.HashTable");
 	}
 
 	return nullptr;
