@@ -205,7 +205,7 @@ public:
 	static void RotationToQuat_U227(Rotator& R, quaternion& ReturnValue);
 	static void RotRand(std::optional<bool> bRoll, Rotator& ReturnValue);
 	static void SaveConfig(UObject* Self);
-	static void SaveConfig_U227(UObject* Self, std::optional<bool> bNoWriteINI); // bNoWriteINI is false by default. If it is true, don't write the config to ini, and wait for the next SaveConfig() call.
+	static void SaveConfig_U227k(UObject* Self, std::optional<bool> bNoWriteINI); // bNoWriteINI is false by default. If it is true, don't write the config to ini, and wait for the next SaveConfig() call.
 	static void SetPropertyText(UObject* Self, const std::string& PropName, const std::string& PropValue);
 	static void Sin(float A, float& ReturnValue);
 	static void SlerpRotation_U227(Rotator& Dest, Rotator& Src, float Alpha, Rotator& ReturnValue); // Will use quaternion for actual shortest rotation
