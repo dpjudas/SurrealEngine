@@ -1107,6 +1107,10 @@ void UStructProperty::Load(ObjectStream* stream)
 		ValueType = ExpressionValueType::ValueRotator;
 	else if (Struct->Name == "Color")
 		ValueType = ExpressionValueType::ValueColor;
+	else if (Struct->Name == "Coords")
+		ValueType = ExpressionValueType::ValueCoords;
+	else if (Struct->Name == "Quat")
+		ValueType = ExpressionValueType::ValueQuat;
 }
 
 void UStructProperty::Save(PackageStreamWriter* stream)
