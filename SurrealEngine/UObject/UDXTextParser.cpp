@@ -125,8 +125,13 @@ bool UDXTextParser::ProcessText()
 			}
 			else if (tagname == "JC" && ReadChars(text, pos, ">"))
 			{
-				LastTag() = DeusExTextTags::TT_None; // What does <JC> mean?
-				LastText() = PlayerName();
+				LastTag() = DeusExTextTags::TT_None; // What does <JC> mean? Seems to be used for headlines
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "JR" && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_None; // What does <JR> mean? Seems to be used for signatures
 				TextPos() = (int)pos;
 				return true;
 			}
@@ -147,14 +152,24 @@ bool UDXTextParser::ProcessText()
 			else if (tagname == "COMMENT" && ReadChars(text, pos, ">"))
 			{
 				LastTag() = DeusExTextTags::TT_Comment;
-				LastText() = PlayerFirstName();
 				TextPos() = (int)pos;
 				return true;
 			}
 			else if (tagname == "/COMMENT" && ReadChars(text, pos, ">"))
 			{
 				LastTag() = DeusExTextTags::TT_EndComment;
-				LastText() = PlayerFirstName();
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "FILE" && ReadTagFile(text, pos, LastFileName(), LastFileDescription()) && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_File;
+				TextPos() = (int)pos;
+				return true;
+			}
+			else if (tagname == "EMAIL" && ReadTagEmail(text, pos, LastEmailName(), LastEmailSubject(), LastEmailFrom(), LastEmailTo(), LastEmailCC()) && ReadChars(text, pos, ">"))
+			{
+				LastTag() = DeusExTextTags::TT_File;
 				TextPos() = (int)pos;
 				return true;
 			}
@@ -230,6 +245,38 @@ bool UDXTextParser::ReadInteger(const std::string& text, size_t& pos, int value)
 		return false;
 	value = std::atoi(v.c_str());
 	return true;
+}
+
+bool UDXTextParser::ReadTextUntil(const std::string& text, size_t& pos, std::string& value, char endChar)
+{
+	value.clear();
+	size_t len = text.size();
+	while (pos < len && text[pos] != endChar)
+	{
+		value += text[pos];
+		pos++;
+	}
+	return pos != len;
+}
+
+bool UDXTextParser::ReadTagFile(const std::string& text, size_t& pos, std::string& filename, std::string& filedescription)
+{
+	if (!ReadTextUntil(text, pos, filename, ',') || !ReadChars(text, pos, ","))
+		return false;
+	return ReadTextUntil(text, pos, filedescription, '>');
+}
+
+bool UDXTextParser::ReadTagEmail(const std::string& text, size_t& pos, std::string& emailName, std::string& emailSubject, std::string& emailFrom, std::string& emailTo, std::string& emailCC)
+{
+	if (!ReadTextUntil(text, pos, emailName, ',') || !ReadChars(text, pos, ","))
+		return false;
+	if (!ReadTextUntil(text, pos, emailSubject, ',') || !ReadChars(text, pos, ","))
+		return false;
+	if (!ReadTextUntil(text, pos, emailFrom, ',') || !ReadChars(text, pos, ","))
+		return false;
+	if (!ReadTextUntil(text, pos, emailTo, ',') || !ReadChars(text, pos, ","))
+		return false;
+	return ReadTextUntil(text, pos, emailCC, '>');
 }
 
 bool UDXTextParser::ReadText(const std::string& text, size_t& pos, std::string& value)
