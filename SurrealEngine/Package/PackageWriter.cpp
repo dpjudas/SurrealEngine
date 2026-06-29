@@ -18,7 +18,7 @@ void PackageWriter::Save(UObject* packageObject, std::string filename)
 	Source->LoadAll();
 
 	if (filename.empty())
-		filename = Source->GetPackageFilename();
+		filename = Source->GetPackageFilePath();
 
 	const std::string tempFilename = fs::path(filename).replace_extension(".tmp").string();
 
@@ -50,7 +50,7 @@ void PackageWriter::Save(UObject* packageObject, std::string filename)
 
 		File::rename(tempFilename, filename);
 
-		if (filename == Source->GetPackageFilename()) // To do: should we search all open packages?
+		if (filename == Source->GetPackageFilePath()) // To do: should we search all open packages?
 		{
 			Source->NameTable = std::move(NameTable);
 			Source->NameHash = std::move(NameHash);
