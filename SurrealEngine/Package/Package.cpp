@@ -13,8 +13,8 @@ Package::Package(PackageManager* packageManager, const NameString& name, const s
 	if (!filepath.empty())
 		ReadTables();
 
-	FileName = fs::path(FilePath).filename();
-	FileExtension = fs::path(FilePath).extension();
+	FileName = fs::path(FilePath).filename().string();
+	FileExtension = fs::path(FilePath).extension().string();
 
 	// Register native classes not listed in the package
 	for (const auto& it : packageManager->NativeClasses)
