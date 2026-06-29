@@ -106,6 +106,12 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_10("Actor", "TraceTexture", &NActor::TraceTexture, 1000);
 	RegisterVMNativeFunc_7("Actor", "TraceVisibleActors", &NActor::TraceVisibleActors, 1003);
 
+	if (engine->LaunchInfo.IsUnreal1_227())
+	{
+		RegisterVMNativeFunc_7("Actor", "TraceSurfHitInfo", &NActor::TraceSurfHitInfo_U227, 1736);
+		RegisterVMNativeFunc_6("Actor", "TraceThisActor", &NActor::TraceThisActor_U227, 1739);
+	}
+
 	if (engine->LaunchInfo.IsDeusEx())
 	{
 		RegisterVMNativeFunc_1("Actor", "InStasis", &NActor::InStasis, 721);
@@ -804,6 +810,21 @@ void NActor::TraceVisibleActors(UObject* Self, UObject* BaseClass, UObject*& Act
 	vec3 realExtent = Extent ? *Extent : vec3(0, 0, 0);
 
 	Frame::CreatedIterator = std::make_unique<TraceVisibleActorsIterator>(BaseClass, &Actor, HitLoc, HitNorm, End, &realStart, &realExtent);
+}
+
+void NActor::TraceSurfHitInfo_U227(UObject* Self, vec3& Start, vec3& End, vec3* HitLocation, vec3* HitNormal, UObject* HitTex, int* HitFlags, BitfieldBool& ReturnValue)
+{
+	auto SelfActor = UObject::Cast<UActor>(Self);
+	auto Tex = UObject::Cast<UTexture>(HitTex);
+
+	ReturnValue = SelfActor->TraceSurfHitInfo(Start, End, HitLocation, HitNormal, Tex, HitFlags);
+}
+
+void NActor::TraceThisActor_U227(UObject* Self, vec3& TraceEnd, vec3& TraceStart, vec3* HitLocation, vec3* HitNormal, std::optional<vec3> Extent, BitfieldBool& ReturnValue)
+{
+	auto SelfActor = UObject::Cast<UActor>(Self);
+
+	ReturnValue = SelfActor->TraceThisActor(TraceEnd, TraceStart, HitLocation, HitNormal, Extent);
 }
 
 void NActor::InStasis(UObject* Self, BitfieldBool& ReturnValue)
