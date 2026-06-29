@@ -54,6 +54,18 @@ public:
 		}
 	}
 
+	void Init(UStruct* type)
+	{
+		Reset();
+		Struct = type;
+		if (Struct)
+		{
+			Ptr = AlignedAlloc(Struct->StructAlignment, Struct->StructSize);
+			for (UProperty* prop : Struct->Properties)
+				prop->ConstructArray(static_cast<uint8_t*>(Ptr) + prop->DataOffset.DataOffset);
+		}
+	}
+
 	void Reset()
 	{
 		if (Struct)

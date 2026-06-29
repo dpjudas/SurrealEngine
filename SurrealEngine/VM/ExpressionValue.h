@@ -357,7 +357,12 @@ inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 	case ExpressionValueType::ValueString: return StringValue({});
 	case ExpressionValueType::ValueName: return NameValue({});
 	case ExpressionValueType::ValueColor: { Color c; c.R = c.G = c.B = c.A = 0; return ColorValue(c); }
-	case ExpressionValueType::ValueStruct: Exception::Throw("Default value for a struct type is not implemented");
+	case ExpressionValueType::ValueStruct:
+	{
+		ExpressionValue v(prop->ValueType);
+		v.GetStructValue()->Init(static_cast<UStructProperty*>(prop)->Struct);
+		return v;
+	}
 	case ExpressionValueType::ValueCoords: return CoordsValue({});
 	case ExpressionValueType::ValueQuat: return QuatValue({});
 	}
@@ -366,6 +371,8 @@ inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {
 	ExpressionValue v(prop->ValueType);
+	if (prop->ValueType == ExpressionValueType::ValueStruct)
+		v.GetStructValue()->Init(static_cast<UStructProperty*>(prop)->Struct);
 	if (v.Type != ExpressionValueType::Nothing)
 		return v;
 	Exception::Throw("Unsupported expression value property type");
