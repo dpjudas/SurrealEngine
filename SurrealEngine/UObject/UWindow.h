@@ -1185,7 +1185,7 @@ public:
 
 	struct Column
 	{
-		uint8_t align = 0;
+		EHAlign align = EHAlign::Left;
 		Color color;
 		UFont* font = nullptr;
 		std::string title;
@@ -1200,7 +1200,8 @@ public:
 	{
 		int id = 0;
 		std::vector<std::string> cells;
-		std::optional<int> clientData;
+		int clientInt = 0;
+		UObject* clientObj = nullptr;
 		bool selected = false;
 	};
 	std::vector<Item> items;

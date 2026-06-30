@@ -3396,7 +3396,8 @@ int UListWindow::AddRow(const std::string& rowStr, std::optional<int> clientData
 	int id = nextRowId++;
 	Item item;
 	item.id = id;
-	item.clientData = clientData;
+	if (clientData.has_value())
+		item.clientInt = clientData.value();
 	size_t start = 0;
 	for (size_t pos = 0; pos < rowStr.size(); pos++)
 	{
@@ -3432,29 +3433,33 @@ void UListWindow::DeleteRow(int rowId)
 
 void UListWindow::EnableAutoExpandColumns(std::optional<bool> bAutoExpand)
 {
+	bAutoExpandColumns() = bAutoExpand.has_value() ? bAutoExpand.value() : true;
+	// To do: actually expand the columns
 	LogUnimplemented("ListWindow.EnableAutoExpandColumns");
 }
 
-void UListWindow::EnableAutoSort(std::optional<bool> bAutoSort)
+void UListWindow::EnableAutoSort(std::optional<bool> bNewAutoSort)
 {
+	bAutoSort() = bNewAutoSort.has_value() ? bNewAutoSort.value() : true;
+	// To do: actually do the sort
 	LogUnimplemented("ListWindow.EnableAutoSort");
 }
 
 void UListWindow::EnableHotKeys(std::optional<bool> bEnable)
 {
-	LogUnimplemented("ListWindow.EnableHotKeys");
+	bHotKeys() = bEnable.has_value() ? bEnable.value() : true;
 }
 
 void UListWindow::EnableMultiSelect(std::optional<bool> bEnableMultiSelect)
 {
-	LogUnimplemented("ListWindow.EnableMultiSelect");
+	bMultiSelect() = bEnableMultiSelect.has_value() ? bEnableMultiSelect.value() : true;
 }
 
 uint8_t UListWindow::GetColumnAlignment(int colIndex)
 {
 	if (colIndex < 0 || (size_t)colIndex >= columns.size())
 		return 0;
-	return columns[colIndex].align;
+	return (uint8_t)columns[colIndex].align;
 }
 
 void UListWindow::GetColumnColor(int colIndex, Color& colColor)
@@ -3495,8 +3500,12 @@ float UListWindow::GetColumnWidth(int colIndex)
 
 std::string UListWindow::GetField(int rowId, int colIndex)
 {
-	LogUnimplemented("ListWindow.GetField");
-	return "";
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return {};
+	if (colIndex < 0 || items[rowIndex].cells.size() >= (size_t)colIndex)
+		return {};
+	return items[rowIndex].cells[colIndex];
 }
 
 void UListWindow::GetFieldMargins(float& marginWidth, float& marginHeight)
@@ -3507,8 +3516,7 @@ void UListWindow::GetFieldMargins(float& marginWidth, float& marginHeight)
 
 float UListWindow::GetFieldValue(int rowId, int colIndex)
 {
-	LogUnimplemented("ListWindow.GetFieldValue");
-	return 0.0f;
+	return (float)std::atof(GetField(rowId, colIndex).c_str());
 }
 
 int UListWindow::GetFocusRow()
@@ -3542,15 +3550,18 @@ int UListWindow::GetPageSize()
 
 int UListWindow::GetRowClientInt(int rowId)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.GetRowClientInt");
-	return 0;
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return 0;
+	return items[rowIndex].clientInt;
 }
 
 UObject* UListWindow::GetRowClientObject(int rowId)
 {
-	LogUnimplemented("ListWindow.GetRowClientObject");
-	return nullptr;
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return 0;
+	return items[rowIndex].clientObj;
 }
 
 int UListWindow::GetSelectedRow()
@@ -3568,22 +3579,19 @@ void UListWindow::HideColumn(int colIndex, std::optional<bool> bHide)
 
 int UListWindow::IndexToRowId(int index)
 {
-	LogUnimplemented("ListWindow.IndexToRowId");
-	return 0;
+	if (index < 0 || (size_t)index >= items.size())
+		return -1;
+	return items[index].id;
 }
 
 bool UListWindow::IsAutoExpandColumnsEnabled()
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.IsAutoExpandColumnsEnabled");
-	return false;
+	return bAutoExpandColumns();
 }
 
 bool UListWindow::IsAutoSortEnabled()
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.IsAutoSortEnabled");
-	return false;
+	return bAutoSort();
 }
 
 bool UListWindow::IsColumnHidden(int colIndex)
@@ -3595,19 +3603,36 @@ bool UListWindow::IsColumnHidden(int colIndex)
 
 bool UListWindow::IsMultiSelectEnabled()
 {
-	LogUnimplemented("ListWindow.IsMultiSelectEnabled");
-	return false;
+	return bMultiSelect();
 }
 
 bool UListWindow::IsRowSelected(int rowId)
 {
-	LogUnimplemented("ListWindow.IsRowSelected");
-	return false;
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return false;
+	return items[rowIndex].selected;
 }
 
 void UListWindow::ModifyRow(int rowId, const std::string& rowStr)
 {
-	LogUnimplemented("ListWindow.ModifyRow");
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return;
+
+	auto& item = items[rowIndex];
+	item.cells.clear();
+	size_t start = 0;
+	for (size_t pos = 0; pos < rowStr.size(); pos++)
+	{
+		if (rowStr[pos] == ';')
+		{
+			item.cells.push_back(rowStr.substr(start, pos - start));
+			start = pos + 1;
+		}
+	}
+	if (start < rowStr.size())
+		item.cells.push_back(rowStr.substr(start));
 }
 
 void UListWindow::MoveRow(uint8_t Move, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag)
@@ -3679,7 +3704,7 @@ void UListWindow::SetColumnAlignment(int colIndex, uint8_t newAlign)
 {
 	if (colIndex < 0 || (size_t)colIndex >= columns.size())
 		return;
-	columns[colIndex].align = newAlign;
+	columns[colIndex].align = (EHAlign)newAlign;
 }
 
 void UListWindow::SetColumnColor(int colIndex, const Color& NewColor)
@@ -3725,7 +3750,14 @@ void UListWindow::SetDelimiter(const std::string& newDelimiter)
 
 void UListWindow::SetField(int rowId, int colIndex, const std::string& fieldStr)
 {
-	LogUnimplemented("ListWindow.SetField");
+	if (colIndex < 0 || (size_t)colIndex >= columns.size())
+		return;
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return;
+	if (items[rowIndex].cells.size() <= (size_t)colIndex)
+		items[rowIndex].cells.resize(colIndex + 1);
+	items[rowIndex].cells[colIndex] = fieldStr;
 }
 
 void UListWindow::SetFieldMargins(float newMarginWidth, float newMarginHeight)
@@ -3736,12 +3768,12 @@ void UListWindow::SetFieldMargins(float newMarginWidth, float newMarginHeight)
 
 void UListWindow::SetFieldValue(int rowId, int colIndex, float NewValue)
 {
-	LogUnimplemented("ListWindow.SetFieldValue");
+	SetField(rowId, colIndex, std::to_string(NewValue));
 }
 
 void UListWindow::SetFocusColor(const Color& NewColor)
 {
-	LogUnimplemented("ListWindow.SetFocusColor");
+	focusColor() = NewColor;
 }
 
 void UListWindow::SetFocusRow(int rowId, std::optional<bool> bMoveTo, std::optional<bool> bAnchor)
@@ -3777,8 +3809,7 @@ void UListWindow::SetHighlightTexture(UObject* NewTexture)
 
 void UListWindow::SetHotKeyColumn(int colIndex)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.SetHotKeyColumn");
+	hotKeyCol() = colIndex;
 }
 
 void UListWindow::SetListSounds(std::optional<UObject*> newActivateSound, std::optional<UObject*> newMoveSound)
@@ -3801,13 +3832,18 @@ void UListWindow::SetRow(int rowId, std::optional<bool> bSelect, std::optional<b
 
 void UListWindow::SetRowClientInt(int rowId, int clientInt)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.SetRowClientInt");
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return;
+	items[rowIndex].clientInt = clientInt;
 }
 
 void UListWindow::SetRowClientObject(int rowId, UObject* clientObj)
 {
-	LogUnimplemented("ListWindow.SetRowClientObject");
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return;
+	items[rowIndex].clientObj = clientObj;
 }
 
 void UListWindow::SetSortColumn(int colIndex, std::optional<bool> bReverse, std::optional<bool> bCaseSensitive)
@@ -3828,7 +3864,10 @@ void UListWindow::Sort()
 
 void UListWindow::ToggleRowSelection(int rowId)
 {
-	LogUnimplemented("ListWindow.ToggleRowSelection");
+	int rowIndex = RowIdToIndex(rowId);
+	if (rowIndex == -1)
+		return;
+	items[rowIndex].selected = !items[rowIndex].selected;
 }
 
 void UListWindow::DrawWindow(UGC* gc)
@@ -3839,7 +3878,7 @@ void UListWindow::DrawWindow(UGC* gc)
 
 	float w = Width();
 	float h = Height();
-	float lineHeight = (float)font->GetGlyph('X').VSize;
+	float lineHeight = (float)font->GetGlyph('X').VSize + 2;
 
 	float y = 0.0f;
 	for (auto& item : items)
@@ -3848,10 +3887,13 @@ void UListWindow::DrawWindow(UGC* gc)
 		size_t colIndex = 0;
 		for (auto& col : columns)
 		{
-			UFont* colFont = col.font ? col.font : font;
-			gc->SetFont(colFont);
 			if (item.cells.size() > colIndex)
-				gc->DrawText(x, y, w, h, item.cells[colIndex]);
+			{
+				UFont* colFont = col.font ? col.font : font;
+				gc->SetFont(colFont);
+				gc->SetAlignments((uint8_t)col.align, (uint8_t)EVAlign::Center);
+				gc->DrawText(x, y, col.width, lineHeight, item.cells[colIndex]);
+			}
 			x += col.width;
 			colIndex++;
 		}
