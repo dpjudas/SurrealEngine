@@ -1187,7 +1187,7 @@ public:
 	{
 		uint8_t align = 0;
 		Color color;
-		UObject* font = nullptr;
+		UFont* font = nullptr;
 		std::string title;
 		uint8_t type = 0;
 		std::optional<std::string> format;

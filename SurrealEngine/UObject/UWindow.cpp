@@ -3693,7 +3693,7 @@ void UListWindow::SetColumnFont(int colIndex, UObject* NewFont)
 {
 	if (colIndex < 0 || (size_t)colIndex >= columns.size())
 		return;
-	columns[colIndex].font = NewFont;
+	columns[colIndex].font = UObject::Cast<UFont>(NewFont);
 }
 
 void UListWindow::SetColumnTitle(int colIndex, const std::string& Title)
@@ -3848,12 +3848,10 @@ void UListWindow::DrawWindow(UGC* gc)
 		size_t colIndex = 0;
 		for (auto& col : columns)
 		{
-			if (col.font)
-			{
-				gc->SetFont(col.font);
-				if (item.cells.size() > colIndex)
-					gc->DrawText(x, y, w, h, item.cells[colIndex]);
-			}
+			UFont* colFont = col.font ? col.font : font;
+			gc->SetFont(col.font);
+			if (item.cells.size() > colIndex)
+				gc->DrawText(x, y, w, h, item.cells[colIndex]);
 			x += col.width;
 			colIndex++;
 		}
