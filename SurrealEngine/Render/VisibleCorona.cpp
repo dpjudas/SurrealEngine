@@ -21,9 +21,17 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 
 			float width = (float)light->Skin()->UsedMipmaps.front().Width;
 			float height = (float)light->Skin()->UsedMipmaps.front().Height;
-			float size = light->DrawScale() * frame->Frame.FX * 0.8f;
+			float size = light->DrawScale() * frame->Frame.FX;
+
+			if (engine->LaunchInfo.IsDeusEx())
+				size *= 0.2f;
+			else
+				size *= 0.8f;
 
 			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 255/*light->LightBrightness()*/);
+
+			if (engine->LaunchInfo.IsDeusEx())
+				lightcolor *= 2.5f;
 
 			engine->render->UpdateTexture(light->Skin());
 
@@ -40,7 +48,20 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 
 			engine->render->UpdateTexture(texinfo.Texture);
 
-			frame->Device->DrawTile(&frame->Frame, texinfo, x - size * 0.5f, y - size * 0.5f, size, size, 0.0f, 0.0f, width, height, z, vec4(lightcolor, 1.0f), vec4(0.0f), PF_Translucent);
+			frame->Device->DrawTile(
+				&frame->Frame,
+				texinfo, x - size * 0.5f,
+				y - size * 0.5f,
+				size,
+				size,
+				0.0f,
+				0.0f,
+				width,
+				height,
+				z,
+				vec4(lightcolor, 1.0f),
+				vec4(0.0f),
+				PF_Translucent);
 		}
 	}
 }
