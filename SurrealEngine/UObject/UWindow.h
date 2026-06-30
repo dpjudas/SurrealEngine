@@ -1181,6 +1181,33 @@ public:
 	void Sort();
 	void ToggleRowSelection(int rowId);
 
+	void DrawWindow(UGC* gc) override;
+
+	struct Column
+	{
+		uint8_t align = 0;
+		Color color;
+		UObject* font = nullptr;
+		std::string title;
+		uint8_t type = 0;
+		std::optional<std::string> format;
+		float width = 0.0f;
+		bool hidden = false;
+	};
+	std::vector<Column> columns;
+
+	struct Item
+	{
+		int id = 0;
+		std::vector<std::string> cells;
+		std::optional<int> clientData;
+		bool selected = false;
+	};
+	std::vector<Item> items;
+	int nextRowId = 1;
+
+	Color highlightTextColor;
+
 	USound*& ActivateSound() { return Value<USound*>(PropOffsets_ListWindow.ActivateSound); }
 	std::string& Delimiter() { return Value<std::string>(PropOffsets_ListWindow.Delimiter); }
 	int& anchorLine() { return Value<int>(PropOffsets_ListWindow.anchorLine); }
