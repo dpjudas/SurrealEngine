@@ -3849,7 +3849,7 @@ void UListWindow::DrawWindow(UGC* gc)
 		for (auto& col : columns)
 		{
 			UFont* colFont = col.font ? col.font : font;
-			gc->SetFont(col.font);
+			gc->SetFont(colFont);
 			if (item.cells.size() > colIndex)
 				gc->DrawText(x, y, w, h, item.cells[colIndex]);
 			x += col.width;
