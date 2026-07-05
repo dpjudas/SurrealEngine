@@ -230,7 +230,10 @@ void NObject::RegisterFunctions()
 		// RegisterVMNativeFunc_4("Object", "LoadPackageContents", &NObject::LoadPackageContents_U227, 257);
 		RegisterVMNativeFunc_2("Object", "Locs", &NObject::Locs_U227, 238);
 		RegisterVMNativeFunc_5("Object", "MakeColor", &NObject::MakeColor_U227, 198);
-		RegisterVMNativeFunc_5("Object", "MakeQuat", &NObject::MakeQuat_U227, 606);
+		if (engine->LaunchInfo.IsUnreal1_227k())
+			RegisterVMNativeFunc_5("Object", "MakeQuat", &NObject::MakeQuat_U227, 606);
+		else
+			RegisterVMNativeFunc_5("Object", "Quad", &NObject::MakeQuat_U227, 606);
 		RegisterVMNativeFunc_3("Object", "MultiplyEqual_CoordsCoords", &NObject::MultiplyEqual_CoordsCoords_U227, 331);
 		RegisterVMNativeFunc_3("Object", "MultiplyEqual_CoordsRotator", &NObject::MultiplyEqual_CoordsRotator_U227, 332);
 		RegisterVMNativeFunc_3("Object", "MultiplyEqual_QuatFloat", &NObject::MultiplyEqual_QuatFloat_U227, 617);
