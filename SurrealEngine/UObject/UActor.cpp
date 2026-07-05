@@ -3845,8 +3845,7 @@ void ULevelInfo::UpdateActorZone()
 
 PointRegion ULevelInfo::GetLocZone(const vec3& pos)
 {
-	//return XLevel()->Model->FindRegion(pos, Level());
-	return {};
+	return XLevel()->Model->FindRegion(pos, Level());
 }
 
 /////////////////////////////////////////////////////////////////////////////
