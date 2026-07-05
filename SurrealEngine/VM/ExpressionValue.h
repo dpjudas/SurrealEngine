@@ -119,7 +119,21 @@ public:
 	const Coords& ToCoords() const;
 	const quaternion& ToQuat() const;
 
-	template<typename T> T ToType() = delete;
+	template<typename T> T ToType()
+	{
+		if constexpr (std::is_reference_v<T>)
+		{
+			CheckType(ExpressionValueType::ValueStruct);
+			if (!VariableProperty)
+				return *static_cast<std::remove_cvref_t<T>*>(GetStructValue()->Ptr);
+			else
+				return *static_cast<std::remove_cvref_t<T>*>(Ptr);
+		}
+		else
+		{
+			return {};
+		}
+	}
 
 	void Store(const ExpressionValue& rvalue);
 	void Load();
