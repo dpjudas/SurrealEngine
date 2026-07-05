@@ -39,7 +39,7 @@ void NCanvas::RegisterFunctions()
 		RegisterVMNativeFunc_3("Canvas", "DrawPathNetwork", &NCanvas::DrawPathNetwork_U227, 1754);
 		RegisterVMNativeFunc_5("Canvas", "DrawCircle", &NCanvas::DrawCircle_U227, 1755);
 		RegisterVMNativeFunc_5("Canvas", "DrawBox", &NCanvas::DrawBox_U227, 1756);
-		RegisterVMNativeFunc_2("Canvas", "GetCameraCoords", &NCanvas::GetCameraCoords_U227, 1757);
+		RegisterVMNativeFunc_1("Canvas", "GetCameraCoords", &NCanvas::GetCameraCoords_U227, 1757);
 		RegisterVMNativeFunc_6("Canvas", "SetTile3DOffset", &NCanvas::SetTile3DOffset_U227, 1758);
 		// RegisterVMNativeFunc_5("Canvas", "DrawTris", &NCanvas::DrawTris_U227, 1746);
 		RegisterVMNativeFunc_13("Canvas", "DrawRotatedTile", &NCanvas::DrawRotatedTile_U227, 1747);
@@ -308,8 +308,9 @@ void NCanvas::DrawBox_U227(UObject* Self, Color& Col, int LineFlags, vec3& Start
 
 void NCanvas::GetCameraCoords_U227(UObject* Self, Coords& ReturnValue)
 {
-	LogUnimplemented("Canvas.GetCameraCoords() [U227]");
-	ReturnValue = Coords();
+	Coords c = Coords::InverseRotation(engine->CameraRotation);
+	c.Origin = engine->CameraLocation;
+	ReturnValue = c;
 }
 
 void NCanvas::SetTile3DOffset_U227(UObject* Self, BitfieldBool& bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset)
