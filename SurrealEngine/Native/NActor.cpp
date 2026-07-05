@@ -84,9 +84,13 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "Sleep", &NActor::Sleep, 256);
 	RegisterLatentAction(257, LatentRunState::Sleep);
 	RegisterVMNativeFunc_6("Actor", "Spawn", &NActor::Spawn, 278);
-	RegisterVMNativeFunc_3("Actor", "Subtract_ColorColor", &NActor::Subtract_ColorColor, 549);
+	if (!engine->LaunchInfo.IsUnreal1())
+		RegisterVMNativeFunc_3("Actor", "Subtract_ColorColor", &NActor::Subtract_ColorColor, 549); // U227 reserves this slot for PlayerPawn.IsPressing()
 	RegisterVMNativeFunc_2("Actor", "TouchingActors", &NActor::TouchingActors, 307);
-	RegisterVMNativeFunc_7("Actor", "Trace", &NActor::Trace, 277);
+	if (engine->LaunchInfo.IsUnreal1_227())
+		RegisterVMNativeFunc_9("Actor", "Trace", &NActor::Trace_U227, 277);
+	else
+		RegisterVMNativeFunc_7("Actor", "Trace", &NActor::Trace, 277);
 	RegisterVMNativeFunc_7("Actor", "TraceActors", &NActor::TraceActors, 309);
 	RegisterVMNativeFunc_2("Actor", "TweenAnim", &NActor::TweenAnim, 294);
 	RegisterVMNativeFunc_4("Actor", "VisibleActors", &NActor::VisibleActors, 311);
@@ -655,6 +659,18 @@ void NActor::Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3
 		TraceStart ? *TraceStart : SelfActor->Location(),
 		bTraceActors ? *bTraceActors : false,
 		Extent ? *Extent : vec3(0, 0, 0));
+}
+
+void NActor::Trace_U227(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, std::optional<vec3> TraceStart, std::optional<bool> bTraceActors, std::optional<vec3> Extent, std::optional<bool> bTraceBSP, std::optional<uint8_t> BSPTraceFlags, UObject*& ReturnValue)
+{
+	auto SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->Trace(
+		HitLocation, HitNormal, TraceEnd,
+		TraceStart ? *TraceStart : SelfActor->Location(),
+		bTraceActors ? *bTraceActors : false,
+		Extent ? *Extent : vec3(0, 0, 0),
+		bTraceBSP ? *bTraceBSP : true,
+		BSPTraceFlags ? *BSPTraceFlags : 0);
 }
 
 void NActor::TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, std::optional<vec3> Start, std::optional<vec3> Extent)

@@ -16,6 +16,7 @@ public:
 	static void GetDefaultURL(UObject* Self, const std::string& Option, std::string& ReturnValue);
 	static void GetEntryLevel(UObject* Self, UObject*& ReturnValue);
 	static void GetPlayerNetworkAddress(UObject* Self, std::string& ReturnValue);
+	static void IsPressing_U227(UObject* Self, uint8_t& KeyNum, BitfieldBool& ReturnValue);
 	static void PasteFromClipboard(UObject* Self, std::string& ReturnValue);
 	static void ResetKeyboard(UObject* Self);
 	static void UpdateURL(UObject* Self, const std::string& NewOption, const std::string& NewValue, bool bSaveDefault);
