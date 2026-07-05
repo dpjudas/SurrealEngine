@@ -414,6 +414,8 @@ public:
 	bool SetCollisionSize(float newRadius, float newHeight);
 
 	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent);
+	// Unreal 227's version of Actor.Trace()
+	UObject* Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent, bool bTraceBSP, uint8_t	BSPTraceFlags);
 	bool FastTrace(const vec3& traceEnd, const vec3& traceStart);
 	// Unreal 227 - Trace against world and return the wanted information (location, normal, texture and/or polyflags)
 	bool TraceSurfHitInfo(vec3& Start, vec3& End, vec3* HitLocation, vec3* HitNormal, UTexture* HitTex, int* HitFlags);
@@ -1448,6 +1450,9 @@ public:
 
 	void UpdateActorZone() override;
 
+	// Unreal 227 addition
+	PointRegion GetLocZone(const vec3& pos);
+
 	UnrealURL URL;
 
 	FixedArrayView<int, 8> AIProfile() { return FixedArray<int, 8>(PropOffsets_LevelInfo.AIProfile); }
@@ -1988,6 +1993,9 @@ public:
 
 	void Tick(float elapsed) override;
 	void TickRotating(float elapsed) override;
+
+	// Unreal 227 addition
+	bool IsPressing(uint8_t KeyNum);
 
 	float& AppliedBob() { return Value<float>(PropOffsets_PlayerPawn.AppliedBob); }
 	float& Bob() { return Value<float>(PropOffsets_PlayerPawn.Bob); }

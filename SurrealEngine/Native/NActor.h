@@ -65,6 +65,7 @@ public:
 	static void Subtract_ColorColor(const Color& A, const Color& B, Color& ReturnValue);
 	static void TouchingActors(UObject* Self, UObject* BaseClass, UObject*& Actor);
 	static void Trace(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, std::optional<vec3> TraceStart, std::optional<bool> bTraceActors, std::optional<vec3> Extent, UObject*& ReturnValue);
+	static void Trace_U227(UObject* Self, vec3& HitLocation, vec3& HitNormal, const vec3& TraceEnd, std::optional<vec3> TraceStart, std::optional<bool> bTraceActors, std::optional<vec3> Extent, std::optional<bool> bTraceBSP, std::optional<uint8_t> BSPTraceFlags, UObject*& ReturnValue);
 	static void TraceActors(UObject* Self, UObject* BaseClass, UObject*& Actor, vec3& HitLoc, vec3& HitNorm, const vec3& End, std::optional<vec3> Start, std::optional<vec3> Extent);
 	static void TraceSurfHitInfo_U227(UObject* Self, vec3& Start, vec3& End, vec3* HitLocation, vec3* HitNormal, UObject* HitTex, int* HitFlags, BitfieldBool& ReturnValue);
 	static void TraceThisActor_U227(UObject* Self, vec3& TraceEnd, vec3& TraceStart, vec3* HitLocation, vec3* HitNormal, std::optional<vec3> Extent, BitfieldBool& ReturnValue);

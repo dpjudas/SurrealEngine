@@ -1446,6 +1446,31 @@ UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd,
 	return hit.Actor;
 }
 
+UObject* UActor::Trace(vec3& hitLocation, vec3& hitNormal, const vec3& traceEnd, const vec3& traceStart, bool bTraceActors, const vec3& extent, bool bTraceBSP, uint8_t BSPTraceFlags)
+{
+	LogUnimplemented("Actor.Trace() [U227 - BSPTraceFlags parameter isn't implemented");
+	TraceFlags flags;
+	flags.movers = true;
+	flags.world = bTraceBSP;
+	if (bTraceActors)
+	{
+		flags.pawns = true;
+		flags.others = true;
+		flags.onlyProjectiles = true;
+	}
+
+	// hack?
+	if (IsA("ChallengeHUD"))
+	{
+		flags.zoneChanges = true;
+	}
+
+	CollisionHit hit = XLevel()->Collision.TraceFirstHit(traceStart, traceEnd, this, extent, flags);
+	hitNormal = hit.Normal;
+	hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
+	return hit.Actor;
+}
+
 bool UActor::FastTrace(const vec3& traceEnd, const vec3& traceStart)
 {
 	return !XLevel()->Collision.TraceAnyHit(traceStart, traceEnd, this, false, true, false);
@@ -3694,6 +3719,17 @@ float UPawn::GetSpeed()
 
 /////////////////////////////////////////////////////////////////////////////
 
+bool UPlayerPawn::IsPressing(uint8_t KeyNum)
+{
+	for (auto& activeButtons : engine->activeInputButtons)
+	{
+		if (activeButtons.second == KeyNum)
+			return true;
+	}
+
+	return false;
+}
+
 void UPlayerPawn::PausedInput(float elapsed)
 {
 	if (Role() >= ROLE_SimulatedProxy && Player() && !UObject::TryCast<UCamera>(this))
@@ -3805,6 +3841,12 @@ void ULevelInfo::UpdateActorZone()
 {
 	// No zone events are sent by LevelInfo actors
 	Region() = FindRegion();
+}
+
+PointRegion ULevelInfo::GetLocZone(const vec3& pos)
+{
+	//return XLevel()->Model->FindRegion(pos, Level());
+	return {};
 }
 
 /////////////////////////////////////////////////////////////////////////////
