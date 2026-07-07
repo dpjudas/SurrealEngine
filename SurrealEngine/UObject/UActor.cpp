@@ -2587,9 +2587,18 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 	if (!anActor)
 		return false;
 
-	vec3 eyePos = Location();
-	eyePos.z += BaseEyeHeight();
+	UPawn* aPawn = UObject::TryCast<UPawn>(anActor);
 
+	// If actor is not a pawn we assume we can't reach if they are too far away
+	if (!aPawn)
+	{
+		vec3 delta = anActor->Location() - Location();
+		float dist2 = dot(delta, delta);
+		if (dist2 > 1000.0f * 1000.0f)
+			return false;
+	}
+
+	// Navpoints may not be reachable at all according to reachspecs
 	if (checkNavpoint)
 	{
 		// Check if we are trying to reach a navigation point.
@@ -2656,22 +2665,12 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 					break;
 			}
 
-			if (couldBeReachable)
-			{
-				if (std::abs(navPoint->Location().z - Location().z) < CollisionHeight() &&
-					FastTrace(navPoint->Location(), eyePos) &&
-					CheckLocation(navPoint->Location(), radius, height, bCollideWorld() || bCollideWhenPlacing()).first)
-				{
-					return true;
-				}
-			}
+			if (!couldBeReachable)
+				return false;
 		}
 	}
 
-	if (std::abs(anActor->Location().z - Location().z) >= CollisionHeight())
-		return false;
-
-	UPawn* aPawn = UObject::TryCast<UPawn>(anActor);
+	// If the actor is in a pain zone and we don't like pain we can't go there
 	if (aPawn)
 	{
 		if (aPawn->FootRegion().Zone->bPainZone() && aPawn->FootRegion().Zone->DamageType() != ReducedDamageType())
@@ -2679,21 +2678,153 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 	}
 	else
 	{
-		vec3 delta = anActor->Location() - Location();
-		float dist2 = dot(delta, delta);
-		if (dist2 > 1000.0f * 1000.0f)
-			return false;
 		if (anActor->Region().Zone->bPainZone() && anActor->Region().Zone->DamageType() != ReducedDamageType())
 			return false;
 	}
 
+	// If the actor is in the water and we can't swim we can't go there
 	if (anActor->Region().Zone->bWaterZone() && !bCanSwim())
 		return false;
 
+	vec3 eyePos = Location();
+	eyePos.z += BaseEyeHeight();
+
+	// If we can't see the actor we can't go there
 	if (!FastTrace(anActor->Location(), eyePos))
 		return false;
 
-	return CheckLocation(anActor->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first;
+	// If we can't stand at the actor location we can't go there
+	if (!CheckLocation(anActor->Location(), CollisionRadius(), CollisionHeight(), bCollideWorld() || bCollideWhenPlacing()).first)
+		return false;
+
+	// Try simulate movement to see if we can get to the actor
+	int mode = Physics();
+	if (mode == PHYS_Walking)
+	{
+		// To do: take zone changes into account?
+
+		auto zone = Region().Zone;
+		float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
+		vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * MaxStepHeight());
+		vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * MaxStepHeight() * stepDownDeltaFactor);
+
+		vec3 oldLocation = Location();
+		bool reached = false;
+		for (int iteration = 0; iteration < 5; iteration++)
+		{
+			vec3 moveDelta = anActor->Location() - Location();
+			moveDelta.z = 0.0f;
+			float goalDist2 = dot(moveDelta, moveDelta);
+			if (goalDist2 <= 1.0f)
+			{
+				reached = true;
+				break;
+			}
+
+			// step up first so we can get past stairs going up
+			CollisionHit hit = TryMove(stepUpDelta, true);
+			Location() += stepUpDelta * hit.Fraction;
+
+			// move towards goal
+			hit = TryMove(moveDelta, true);
+			vec3 actuallyMoved = moveDelta * hit.Fraction;
+			Location() += actuallyMoved;
+
+			if (hit.Fraction < 1.0f)
+			{
+				moveDelta = anActor->Location() - Location();
+				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				{
+					hit = TryMove(alignedDelta, true);
+					actuallyMoved = moveDelta * hit.Fraction;
+					Location() += actuallyMoved;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			// move back down to original vertical position
+			hit = TryMove(-stepUpDelta, true);
+			Location() -= stepUpDelta * hit.Fraction;
+
+			float moveDist2 = dot(actuallyMoved, actuallyMoved);
+			if (moveDist2 <= 1.0f)
+				break;
+		}
+
+		if (reached)
+		{
+			// Step down + fall to goal
+			vec3 moveDelta = anActor->Location() - Location();
+			moveDelta.x = 0.0f;
+			moveDelta.y = 0.0f;
+			if ((moveDelta.z < -0.1f && gravityDirection == -1.0f) || (moveDelta.z > 0.1f && gravityDirection == 1.0f))
+			{
+				CollisionHit hit = TryMove(moveDelta, true);
+				vec3 actuallyMoved = moveDelta * hit.Fraction;
+				Location() += actuallyMoved;
+			}
+
+			// Did we get there vertically too?
+			reached = std::abs(anActor->Location().z - Location().z) <= CollisionHeight();
+		}
+
+		Location() = oldLocation;
+		return reached;
+	}
+	else if (mode == PHYS_Flying || mode == PHYS_Swimming)
+	{
+		// To do: take zone changes into account?
+
+		vec3 oldLocation = Location();
+		bool reached = false;
+		for (int iteration = 0; iteration < 5; iteration++)
+		{
+			vec3 moveDelta = anActor->Location() - Location();
+			float goalDist2 = dot(moveDelta, moveDelta);
+			if (goalDist2 <= 1.0f)
+			{
+				reached = true;
+				break;
+			}
+
+			CollisionHit hit = TryMove(moveDelta, true);
+			vec3 actuallyMoved = moveDelta * hit.Fraction;
+			Location() += actuallyMoved;
+
+			if (hit.Fraction < 1.0f)
+			{
+				moveDelta = anActor->Location() - Location();
+				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				{
+					hit = TryMove(alignedDelta, true);
+					actuallyMoved = moveDelta * hit.Fraction;
+					Location() += actuallyMoved;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			float moveDist2 = dot(actuallyMoved, actuallyMoved);
+			if (moveDist2 <= 1.0f)
+				break;
+		}
+
+		Location() = oldLocation;
+		return reached;
+	}
+	else
+	{
+		// Hopefully not a physics mode the bots use when calling ActorReachable
+		LogUnimplemented("ActorReachable called for unsupported physics mode");
+		return false;
+	}
 }
 
 bool UPawn::PointReachable(vec3 aPoint)
