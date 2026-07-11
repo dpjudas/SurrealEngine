@@ -11,7 +11,22 @@ void NLevelInfo::RegisterFunctions()
 	RegisterVMNativeFunc_1("LevelInfo", "GetLocalURL", &NLevelInfo::GetLocalURL, 0);
 	RegisterVMNativeFunc_0("LevelInfo", "InitEventManager", &NLevelInfo::InitEventManager, 650);
 	if (engine->LaunchInfo.IsUnreal1_227())
-		RegisterVMNativeFunc_2("LevelInfo", "GetLocZone", &NLevelInfo::GetLocZone_U227, 1709);
+	{
+		RegisterVMNativeFunc_3("LevelInfo", "GetLocZone", &NLevelInfo::GetLocZone_U227, 1709);
+		RegisterVMNativeFunc_3("LevelInfo", "AllocateObj", &NLevelInfo::AllocateObj_U227, 1710);
+		RegisterVMNativeFunc_2("LevelInfo", "FreeObject", &NLevelInfo::FreeObject_U227, 1711);
+	}
+}
+
+void NLevelInfo::AllocateObj_U227(UObject* Self, UObject* ObjClass, UObject*& ReturnValue)
+{
+	LogUnimplemented("LevelInfo.AllocateObj() [U227]");
+	ReturnValue = nullptr;
+}
+
+void NLevelInfo::FreeObject_U227(UObject* Self, UObject* Obj)
+{
+	LogUnimplemented("LevelInfo.FreeObject() [U227]");
 }
 
 void NLevelInfo::GetAddressURL(UObject* Self, std::string& ReturnValue)
