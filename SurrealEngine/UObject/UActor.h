@@ -850,6 +850,13 @@ public:
 	UInventorySpot*& myMarker() { return Value<UInventorySpot*>(PropOffsets_Inventory.myMarker); }
 };
 
+class UInventoryAttachment : public UActor
+{
+public:
+	using UActor::UActor;
+	// Empty base class
+};
+
 class UWeapon : public UInventory
 {
 public:
@@ -917,6 +924,28 @@ public:
 	float& shakemag() { return Value<float>(PropOffsets_Weapon.shakemag); }
 	float& shaketime() { return Value<float>(PropOffsets_Weapon.shaketime); }
 	float& shakevert() { return Value<float>(PropOffsets_Weapon.shakevert); }
+};
+
+class UWeaponMuzzleFlash : public UInventoryAttachment
+{
+public:
+	using UInventoryAttachment::UInventoryAttachment;
+
+	BitfieldBool bConstantMuzzle() { return BoolValue(PropOffsets_WeaponMuzzleFlash.bConstantMuzzle); }
+	BitfieldBool bStrobeMuzzle() { return BoolValue(PropOffsets_WeaponMuzzleFlash.bStrobeMuzzle); }
+	BitfieldBool bFlashTimer() { return BoolValue(PropOffsets_WeaponMuzzleFlash.bFlashTimer); }
+	BitfieldBool bCurrentlyVisible() { return BoolValue(PropOffsets_WeaponMuzzleFlash.bCurrentlyVisible); }
+};
+
+class UWeaponAttachment : public UInventoryAttachment
+{
+public:
+	using UInventoryAttachment::UInventoryAttachment;
+
+	BitfieldBool bCopyDisplay() { return BoolValue(PropOffsets_WeaponAttachment.bCopyDisplay); }
+	float& LastUpdateTime() { return Value<float>(PropOffsets_WeaponAttachment.LastUpdateTime); }
+	UWeaponMuzzleFlash*& MyMuzzleFlash() { return Value<UWeaponMuzzleFlash*>(PropOffsets_WeaponAttachment.MyMuzzleFlash); }
+	UWeapon*& WeaponOwner() { return Value<UWeapon*>(PropOffsets_WeaponAttachment.WeaponOwner); }
 };
 
 class UNavigationPoint : public UActor
