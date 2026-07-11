@@ -84,8 +84,8 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "Sleep", &NActor::Sleep, 256);
 	RegisterLatentAction(257, LatentRunState::Sleep);
 	RegisterVMNativeFunc_6("Actor", "Spawn", &NActor::Spawn, 278);
-	if (!engine->LaunchInfo.IsUnreal1())
-		RegisterVMNativeFunc_3("Actor", "Subtract_ColorColor", &NActor::Subtract_ColorColor, 549); // U227 reserves this slot for PlayerPawn.IsPressing()
+	if (!engine->LaunchInfo.IsUnreal1() || engine->LaunchInfo.IsUnreal1_227k())
+		RegisterVMNativeFunc_3("Actor", "Subtract_ColorColor", &NActor::Subtract_ColorColor, 549); // Pre-j versions of U227 reserves this slot for PlayerPawn.IsPressing()
 	RegisterVMNativeFunc_2("Actor", "TouchingActors", &NActor::TouchingActors, 307);
 	if (engine->LaunchInfo.IsUnreal1_227())
 		RegisterVMNativeFunc_9("Actor", "Trace", &NActor::Trace_U227, 277);
