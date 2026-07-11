@@ -5315,6 +5315,40 @@ void InitPropertyOffsets_Projector(PackageManager* packages)
 	PropOffsets_Projector.bProjecting = cls->GetPropertyDataOffset("bProjecting");
 }
 
+PropertyDataOffsets_WeaponMuzzleFlash PropOffsets_WeaponMuzzleFlash;
+
+static void InitPropertyOffsets_WeaponMuzzleFlash(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "WeaponMuzzleFlash"));
+	if (!cls)
+	{
+		memset(&PropOffsets_WeaponMuzzleFlash, 0xff, sizeof(PropOffsets_WeaponMuzzleFlash));
+		return;
+	}
+
+	PropOffsets_WeaponMuzzleFlash.bConstantMuzzle = cls->GetPropertyDataOffset("bConstantMuzzle");
+	PropOffsets_WeaponMuzzleFlash.bCurrentlyVisible = cls->GetPropertyDataOffset("bCurrentlyVisible");
+	PropOffsets_WeaponMuzzleFlash.bFlashTimer = cls->GetPropertyDataOffset("bFlashTimer");
+	PropOffsets_WeaponMuzzleFlash.bStrobeMuzzle = cls->GetPropertyDataOffset("bStrobeMuzzle");
+}
+
+PropertyDataOffsets_WeaponAttachment PropOffsets_WeaponAttachment;
+
+static void InitPropertyOffsets_WeaponAttachment(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "WeaponAttachment"));
+	if (!cls)
+	{
+		memset(&PropOffsets_WeaponAttachment, 0xff, sizeof(PropOffsets_WeaponAttachment));
+		return;
+	}
+
+	PropOffsets_WeaponAttachment.bCopyDisplay = cls->GetPropertyDataOffset("bCopyDisplay");
+	PropOffsets_WeaponAttachment.LastUpdateTime = cls->GetPropertyDataOffset("LastUpdateTime");
+	PropOffsets_WeaponAttachment.MyMuzzleFlash = cls->GetPropertyDataOffset("MyMuzzleFlash");
+	PropOffsets_WeaponAttachment.WeaponOwner = cls->GetPropertyDataOffset("WeaponOwner");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -5404,6 +5438,8 @@ void InitPropertyOffsets(PackageManager* packages)
 	}
 	if (packages->IsUnreal1_227())
 	{
+		InitPropertyOffsets_WeaponMuzzleFlash(packages);
+		InitPropertyOffsets_WeaponAttachment(packages);
 		InitPropertyOffsets_DistantLightActor(packages);
 		InitPropertyOffsets_XParticleEmitter(packages);
 		InitPropertyOffsets_XParticleForces(packages);

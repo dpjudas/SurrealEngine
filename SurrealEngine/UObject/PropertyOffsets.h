@@ -4243,3 +4243,23 @@ struct PropertyDataOffsets_Projector
 };
 
 extern PropertyDataOffsets_Projector PropOffsets_Projector;
+
+struct PropertyDataOffsets_WeaponMuzzleFlash
+{
+	PropertyDataOffset bConstantMuzzle;
+	PropertyDataOffset bStrobeMuzzle;
+	PropertyDataOffset bFlashTimer;
+	PropertyDataOffset bCurrentlyVisible;
+};
+
+extern PropertyDataOffsets_WeaponMuzzleFlash PropOffsets_WeaponMuzzleFlash;
+
+struct PropertyDataOffsets_WeaponAttachment
+{
+	PropertyDataOffset bCopyDisplay;
+	PropertyDataOffset WeaponOwner;
+	PropertyDataOffset MyMuzzleFlash;
+	PropertyDataOffset LastUpdateTime;
+};
+
+extern PropertyDataOffsets_WeaponAttachment PropOffsets_WeaponAttachment;
