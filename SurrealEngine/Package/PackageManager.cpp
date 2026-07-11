@@ -104,6 +104,7 @@ PackageManager::PackageManager(const GameLaunchInfo& launchInfo) : launchInfo(la
 	CreateTransientPackage();
 	RegisterFunctions();
 	LoadEngineIniFiles();
+	LoadFileExtensions();
 	LoadIntFiles();
 	LoadPackageRemaps();
 	ScanPaths();
@@ -270,8 +271,6 @@ void PackageManager::ScanPaths()
 	{
 		paths = GetIniValues("system", "Core.System", "Paths");
 	}
-	mapExtension = GetIniValue("System", "URL", "MapExt");
-	saveExtension = GetIniValue("System", "URL", "SaveExt");
 
 	// Handle SavePath and CachePath
 	const auto savePath = convert_path_separators(GetIniValue("System", "Core.System", "SavePath"));
@@ -279,6 +278,25 @@ void PackageManager::ScanPaths()
 
 	const auto cachePath = convert_path_separators(GetIniValue("System", "Core.System", "CachePath"));
 	gameCacheFolderPath = (gameSystemFolderPath / cachePath).lexically_normal();
+
+	// Unreal 227j+ and UT 469d+ store localization files in SystemLocalized folder
+	if ((IsUnreal1_227() && launchInfo.engineSubVersion >= 10) || (IsUnrealTournament_469() && launchInfo.engineSubVersion >= 4))
+	{
+		auto langpaths = GetIniValues("System", "Core.System", "LangPaths");
+
+		// Substitute <lang> with the actual language extension
+		for (auto& langpath : langpaths)
+		{
+			auto pos = langpath.find("<lang>");
+			while (pos != std::string::npos)
+			{
+				langpath.replace(pos, 6, languageExtension);
+				pos = langpath.find("<lang>");
+			}
+
+			paths.push_back(langpath);
+		}
+	}
 
 	for (auto& currentPathStr: paths)
 	{
@@ -624,6 +642,15 @@ void PackageManager::LoadEngineIniFiles()
 		iniFiles["User"] = std::make_unique<IniFile>((gameSystemFolderPath / userIniName).string());
 		defaultUserFile = std::make_unique<IniFile>((gameSystemFolderPath / "DefUser.ini").string());
 	}
+}
+
+void PackageManager::LoadFileExtensions()
+{
+	const auto systemIni = GetSystemIniFile();
+
+	mapExtension = systemIni->GetValue("URL", "MapExt", "unr");
+	saveExtension = systemIni->GetValue("URL", "SaveExt", "usa");
+	languageExtension = systemIni->GetValue("Engine.Engine", "Language", "int");
 }
 
 void PackageManager::LoadIntFiles()
@@ -1044,6 +1071,9 @@ void PackageManager::RegisterNativeClasses()
 
 	if (IsUnreal1_227())
 	{
+		RegisterNativeClass<UInventoryAttachment>(enginePackage, "InventoryAttachment", "Actor");
+		RegisterNativeClass<UWeaponAttachment>(enginePackage, "WeaponAttachment", "InventoryAttachment");
+		RegisterNativeClass<UWeaponMuzzleFlash>(enginePackage, "WeaponMuzzleFlash", "InventoryAttachment");
 		RegisterNativeClass<U227Projector>(enginePackage, "Projector", "Actor");
 		RegisterNativeClass<UDynamicZoneInfo>(enginePackage, "DynamicZoneInfo", "ZoneInfo");
 		RegisterNativeClass<UDistantLightActor>(emitterPackage, "DistantLightActor", "Light");

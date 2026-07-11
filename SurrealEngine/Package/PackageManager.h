@@ -106,6 +106,7 @@ private:
 	std::unique_ptr<IniFile>& LoadUserIniFile();
 	std::unique_ptr<IniFile>& LoadSystemIniFile();
 	void LoadEngineIniFiles();
+	void LoadFileExtensions();
 	void LoadIntFiles();
 	void LoadPackageRemaps();
 	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
@@ -154,6 +155,7 @@ private:
 
 	std::string mapExtension;
 	std::string saveExtension;
+	std::string languageExtension;
 
 	bool missing_se_system_ini = false;
 
