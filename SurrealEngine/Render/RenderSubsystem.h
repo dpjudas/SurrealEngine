@@ -40,6 +40,7 @@ public:
 
 	void DrawTile(FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags);
 	void Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2);
+	void Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2);
 	void UpdateTexture(UTexture* tex);
 
 	bool ShowTimedemoStats = false;
