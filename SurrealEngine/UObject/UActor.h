@@ -7,6 +7,7 @@
 #include "Math/bbox.h"
 
 class UTexture;
+class UPrimitive;
 class UMesh;
 class UModel;
 class USound;
@@ -40,6 +41,9 @@ class CollisionHitList;
 struct MeshAnimSeq;
 struct XAIParams; // Deus Ex
 class UDynamicZoneInfo; // Unreal 227
+class U227AnimationNotify;
+class U227Projector;
+class U227SkeletalMeshInstance;
 
 struct PointRegion
 {
@@ -366,6 +370,20 @@ enum class EDynZoneInfoType : uint8_t
 	DZONE_Sphere,
 	DZONE_Cylinder,
 	DZONE_Script
+};
+
+// Unreal 227
+struct sAnimNotify
+{
+	NameString AnimName;
+	NameString FunctionName;
+	int KeyFrame;
+	eAnimNotifyEval NotifyEval;
+	bool bCallOncePerLoop;
+	bool bCalculatedFrame;
+	bool bAlreadyCalled;
+	int NumFrames;
+	float CallKey;
 };
 
 class UActor : public UObject
@@ -752,6 +770,41 @@ public:
 	FixedArrayView<float, 4> BlendAnimRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendAnimRate);}
 	FixedArrayView<float, 4> BlendTweenRate() {return FixedArray<float, 4>(PropOffsets_Actor.BlendTweenRate);}
 
+	// Unreal 227 exclusive Properties
+	BitfieldBool bNetNotify() { return BoolValue(PropOffsets_Actor.bNetNotify); }
+	BitfieldBool bHandleOwnCorona() { return BoolValue(PropOffsets_Actor.bHandleOwnCorona); }
+	BitfieldBool bRenderMultiEnviroMaps() { return BoolValue(PropOffsets_Actor.bRenderMultiEnviroMaps); }
+	BitfieldBool bWorldGeometry() { return BoolValue(PropOffsets_Actor.bWorldGeometry); }
+	BitfieldBool bUseMeshCollision() { return BoolValue(PropOffsets_Actor.bUseMeshCollision); }
+	BitfieldBool bEditorSelectRender() { return BoolValue(PropOffsets_Actor.bEditorSelectRender); }
+	BitfieldBool bNoDynamicShadowCast() { return BoolValue(PropOffsets_Actor.bNoDynamicShadowCast); }
+	BitfieldBool bIsInOctree() { return BoolValue(PropOffsets_Actor.bIsInOctree); }
+	BitfieldBool bProjectorDecal() { return BoolValue(PropOffsets_Actor.bProjectorDecal); }
+	BitfieldBool bUseLitSprite() { return BoolValue(PropOffsets_Actor.bUseLitSprite); }
+	BitfieldBool bAlwaysRender() { return BoolValue(PropOffsets_Actor.bAlwaysRender); }
+
+	float& LastRenderedTime() { return Value<float>(PropOffsets_Actor.LastRenderedTime); }
+	Color& ActorRenderColor() { return Value<Color>(PropOffsets_Actor.ActorRenderColor); }
+	Color& ActorGUnlitColor() { return Value<Color>(PropOffsets_Actor.ActorGUnlitColor); }
+	UPrimitive*& CollisionOverride() { return Value<UPrimitive*>(PropOffsets_Actor.CollisionOverride); }
+	U227SkeletalMeshInstance*& MeshInstance() { return Value<U227SkeletalMeshInstance*>(PropOffsets_Actor.MeshInstance); }
+	vec3*& RelativeLocation() { return Value<vec3*>(PropOffsets_Actor.RelativeLocation); }
+	Rotator*& RelativeRotation() { return Value<Rotator*>(PropOffsets_Actor.RelativeRotation); }
+	// Pointer type LightDataPtr()
+	// Pointer type MeshDataPtr()
+	TypedScriptArray<U227Projector*> ProjectorList() { return DynamicArray<U227Projector*>(PropOffsets_Actor.ProjectorList); }
+	// Pointer type NetInitialProperties()
+	TypedScriptArray<UActor*> RealTouching() { return DynamicArray<UActor*>(PropOffsets_Actor.RealTouching); }
+
+	UClass*& DefaultAnimationNotify() { return Value<UClass*>(PropOffsets_Actor.DefaultAnimationNotify); }
+	U227AnimationNotify*& AnimationNotify() { return Value<U227AnimationNotify*>(PropOffsets_Actor.AnimationNotify); }
+
+	BitfieldBool bSkipActorReplication() { return BoolValue(PropOffsets_Actor.bSkipActorReplication); }
+	BitfieldBool bRepAnimations() { return BoolValue(PropOffsets_Actor.bRepAnimations); }
+	BitfieldBool bRepAmbientSound() { return BoolValue(PropOffsets_Actor.bRepAmbientSound); }
+	BitfieldBool bSimulatedPawnRep() { return BoolValue(PropOffsets_Actor.bSimulatedPawnRep); }
+	BitfieldBool bRepMesh() { return BoolValue(PropOffsets_Actor.bRepMesh); }
+
 private:
 	void AddBasedActor(UActor* actor);
 	void RemoveBasedActor(UActor* actor);
@@ -777,6 +830,18 @@ public:
 	TypedScriptArray<void*> SurfList() { return DynamicArray<void*>(PropOffsets_Decal.SurfList); }
 
 	Array<BspNode*> Nodes;
+};
+
+class U227AnimationNotify : public UObject
+{
+public:
+	using UObject::UObject;
+
+	FixedArrayView<sAnimNotify, 255> AnimationNotify() { return FixedArray<sAnimNotify, 255>(PropOffsets_AnimationNotify.AnimationNotify); }
+	int& NumNotifies() { return Value<int>(PropOffsets_AnimationNotify.NumNotifies); }
+	UActor*& Owner() { return Value<UActor*>(PropOffsets_AnimationNotify.Owner); }
+	BitfieldBool bInitialized() { return BoolValue(PropOffsets_AnimationNotify.bInitialized); }
+	BitfieldBool bErrorOccured() { return BoolValue(PropOffsets_AnimationNotify.bErrorOccured); }
 };
 
 class USpawnNotify : public UActor
