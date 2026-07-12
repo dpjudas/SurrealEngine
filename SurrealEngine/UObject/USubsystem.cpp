@@ -366,7 +366,19 @@ void USurrealAudioDevice::UpdateMusic()
 		if (CurrentSong && UseDigitalMusic)
 		{
 			int subsong = CurrentSection != 255 ? CurrentSection : 0;
-			m_Device->PlayMusic(AudioSource::CreateMod(CurrentSong->Data, true, subsong));
+
+			std::unique_ptr<AudioSource> source;
+			if (CurrentSong->Format == "mp3")
+				source = AudioSource::CreateMp3(CurrentSong->Data);
+			else if (CurrentSong->Format == "ogg" || CurrentSong->Format == "event") // Some ogg files in Unreal 227 have event as format for some reason
+				source = AudioSource::CreateOgg(CurrentSong->Data);
+			else if (CurrentSong->Format == "wav")
+				source = AudioSource::CreateWav(CurrentSong->Data);
+			else
+				source = AudioSource::CreateMod(CurrentSong->Data, true, subsong);
+
+			if (source)
+				m_Device->PlayMusic(std::move(source));
 		}
 
 		m_Viewport->Actor()->Transition() = MTRAN_None;
