@@ -372,6 +372,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UDXTextParser.h
 	SurrealEngine/UObject/U227Emitter.cpp
 	SurrealEngine/UObject/U227Emitter.h
+	SurrealEngine/UObject/U227SkeletalMeshInstance.h
 	SurrealEngine/UObject/U227Projector.h
 	SurrealEngine/UObject/UClient.h
 	SurrealEngine/UObject/UMesh.cpp
