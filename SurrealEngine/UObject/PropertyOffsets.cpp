@@ -497,6 +497,43 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 		PropOffsets_Actor.bOwned = cls->GetPropertyDataOffset("bOwned");
 		PropOffsets_Actor.bVisionImportant = cls->GetPropertyDataOffset("bVisionImportant");
 	}
+
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_Actor.bNetNotify = cls->GetPropertyDataOffset("bNetNotify");
+		PropOffsets_Actor.bHandleOwnCorona = cls->GetPropertyDataOffset("bHandleOwnCorona");
+		PropOffsets_Actor.bRenderMultiEnviroMaps = cls->GetPropertyDataOffset("bRenderMultiEnviroMaps");
+		PropOffsets_Actor.bWorldGeometry = cls->GetPropertyDataOffset("bWorldGeometry");
+		PropOffsets_Actor.bUseMeshCollision = cls->GetPropertyDataOffset("bUseMeshCollision");
+		PropOffsets_Actor.bEditorSelectRender = cls->GetPropertyDataOffset("bEditorSelectRender");
+		PropOffsets_Actor.bNoDynamicShadowCast = cls->GetPropertyDataOffset("bNoDynamicShadowCast");
+		PropOffsets_Actor.bIsInOctree = cls->GetPropertyDataOffset("bIsInOctree");
+		PropOffsets_Actor.bProjectorDecal = cls->GetPropertyDataOffset("bProjectorDecal");
+		PropOffsets_Actor.bUseLitSprite = cls->GetPropertyDataOffset("bUseLitSprite");
+		PropOffsets_Actor.bAlwaysRender = cls->GetPropertyDataOffset("bAlwaysRender");
+
+		PropOffsets_Actor.LastRenderedTime = cls->GetPropertyDataOffset("LastRenderedTime");
+		PropOffsets_Actor.ActorRenderColor = cls->GetPropertyDataOffset("ActorRenderColor");
+		PropOffsets_Actor.ActorGUnlitColor = cls->GetPropertyDataOffset("ActorGUnlitColor");
+		PropOffsets_Actor.CollisionOverride = cls->GetPropertyDataOffset("CollisionOverride");
+		PropOffsets_Actor.MeshInstance = cls->GetPropertyDataOffset("MeshInstance");
+		PropOffsets_Actor.RelativeLocation = cls->GetPropertyDataOffset("RelativeLocation");
+		PropOffsets_Actor.RelativeRotation = cls->GetPropertyDataOffset("RelativeRotation");
+		PropOffsets_Actor.LightDataPtr = cls->GetPropertyDataOffset("LightDataPtr");
+		PropOffsets_Actor.MeshDataPtr = cls->GetPropertyDataOffset("MeshDataPtr");
+		PropOffsets_Actor.ProjectorList = cls->GetPropertyDataOffset("ProjectorList");
+		PropOffsets_Actor.NetInitialProperties = cls->GetPropertyDataOffset("NetInitialProperties");
+		PropOffsets_Actor.RealTouching = cls->GetPropertyDataOffset("RealTouching");
+
+		PropOffsets_Actor.DefaultAnimationNotify = cls->GetPropertyDataOffset("DefaultAnimationNotify");
+		PropOffsets_Actor.AnimationNotify = cls->GetPropertyDataOffset("AnimationNotify");
+
+		PropOffsets_Actor.bSkipActorReplication = cls->GetPropertyDataOffset("bSkipActorReplication");
+		PropOffsets_Actor.bRepAnimations = cls->GetPropertyDataOffset("bRepAnimations");
+		PropOffsets_Actor.bRepAmbientSound = cls->GetPropertyDataOffset("bRepAmbientSound");
+		PropOffsets_Actor.bSimulatedPawnRep = cls->GetPropertyDataOffset("bSimulatedPawnRep");
+		PropOffsets_Actor.bRepMesh = cls->GetPropertyDataOffset("bRepMesh");
+	}
 }
 
 PropertyOffsets_LevelInfo PropOffsets_LevelInfo;
@@ -5349,6 +5386,57 @@ static void InitPropertyOffsets_WeaponAttachment(PackageManager* packages)
 	PropOffsets_WeaponAttachment.WeaponOwner = cls->GetPropertyDataOffset("WeaponOwner");
 }
 
+PropertyDataOffsets_AnimationNotify PropOffsets_AnimationNotify;
+
+static void InitPropertyOffsets_AnimationNotify(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "AnimationNotify"));
+	if (!cls)
+	{
+		memset(&PropOffsets_AnimationNotify, 0xff, sizeof(PropOffsets_AnimationNotify));
+		return;
+	}
+
+	PropOffsets_AnimationNotify.AnimationNotify = cls->GetPropertyDataOffset("AnimationNotify");
+	PropOffsets_AnimationNotify.bErrorOccured = cls->GetPropertyDataOffset("bErrorOccured");
+	PropOffsets_AnimationNotify.bInitialized = cls->GetPropertyDataOffset("bInitialized");
+	PropOffsets_AnimationNotify.NumNotifies = cls->GetPropertyDataOffset("NumNotifies");
+	PropOffsets_AnimationNotify.Owner = cls->GetPropertyDataOffset("Owner");
+}
+
+PropertyDataOffsets_SkeletalMeshInstance PropOffsets_SkeletalMeshInstance;
+
+static void InitPropertyOffsets_SkeletalMeshInstance(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "SkeletalMeshInstance"));
+	if (!cls)
+	{
+		memset(&PropOffsets_SkeletalMeshInstance, 0xff, sizeof(PropOffsets_SkeletalMeshInstance));
+		return;
+	}
+	
+	PropOffsets_SkeletalMeshInstance.SpaceBases = cls->GetPropertyDataOffset("SpaceBases");
+	PropOffsets_SkeletalMeshInstance.CachedLinks = cls->GetPropertyDataOffset("CachedLinks");
+	PropOffsets_SkeletalMeshInstance.bHasUpdated = cls->GetPropertyDataOffset("bHasUpdated");
+	PropOffsets_SkeletalMeshInstance.LastDrawnMesh = cls->GetPropertyDataOffset("LastDrawnMesh");
+	PropOffsets_SkeletalMeshInstance.CachedAnim = cls->GetPropertyDataOffset("CachedAnim");
+	PropOffsets_SkeletalMeshInstance.CachedOrientations = cls->GetPropertyDataOffset("CachedOrientations");
+	PropOffsets_SkeletalMeshInstance.CachedPositions = cls->GetPropertyDataOffset("CachedPositions");
+	PropOffsets_SkeletalMeshInstance.TweenStartFrame = cls->GetPropertyDataOffset("TweenStartFrame");
+	PropOffsets_SkeletalMeshInstance.Base = cls->GetPropertyDataOffset("Base");
+	PropOffsets_SkeletalMeshInstance.bHasCachedFrame = cls->GetPropertyDataOffset("bHasCachedFrame");
+	PropOffsets_SkeletalMeshInstance.bWasTweening = cls->GetPropertyDataOffset("bWasTweening");
+	PropOffsets_SkeletalMeshInstance.CachedTweenSeq = cls->GetPropertyDataOffset("CachedTweenSeq");
+	PropOffsets_SkeletalMeshInstance.Modifiers = cls->GetPropertyDataOffset("Modifiers");
+	PropOffsets_SkeletalMeshInstance.Channels = cls->GetPropertyDataOffset("Channels");
+	PropOffsets_SkeletalMeshInstance.TChannelPtr = cls->GetPropertyDataOffset("TChannelPtr");
+	PropOffsets_SkeletalMeshInstance.AttachedActors = cls->GetPropertyDataOffset("AttachedActors");
+	PropOffsets_SkeletalMeshInstance.AttachedBoneIndex = cls->GetPropertyDataOffset("AttachedBoneIndex");
+	PropOffsets_SkeletalMeshInstance.AttachedBoneName = cls->GetPropertyDataOffset("AttachedBoneName");
+	PropOffsets_SkeletalMeshInstance.MyAttachment = cls->GetPropertyDataOffset("MyAttachment");
+	PropOffsets_SkeletalMeshInstance.HardAttachFlags = cls->GetPropertyDataOffset("HardAttachFlags");
+}
+
 //////////////////////////////////////////
 
 void InitPropertyOffsets(PackageManager* packages)
@@ -5438,6 +5526,7 @@ void InitPropertyOffsets(PackageManager* packages)
 	}
 	if (packages->IsUnreal1_227())
 	{
+		InitPropertyOffsets_AnimationNotify(packages);
 		InitPropertyOffsets_WeaponMuzzleFlash(packages);
 		InitPropertyOffsets_WeaponAttachment(packages);
 		InitPropertyOffsets_DistantLightActor(packages);
