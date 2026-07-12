@@ -24,7 +24,7 @@ public:
 	// 227 Additions
 	static void Draw2DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End);
 	static void Draw3DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End);
-	static void WorldToScreen_U227(UObject* Self, vec3& WorldPos, std::optional<float> ZDistance, vec3& ReturnValue);
+	static void WorldToScreen_U227(UObject* Self, vec3& WorldPos, float& ZDistance, vec3& ReturnValue);
 	static void ScreenToWorld_U227(UObject* Self, vec3& ScreenPos, vec3& ReturnValue);
 	static void DrawPathNetwork_U227(UObject* Self, BitfieldBool& bOnlyWalkable, std::optional<float> MaxDistance); // Def MaxDistance = 2000
 	static void DrawCircle_U227(UObject* Self, Color& Col, int LineFlags, vec3& WorldPosition, float Radius);
