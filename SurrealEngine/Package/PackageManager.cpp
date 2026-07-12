@@ -30,6 +30,7 @@
 #include "UObject/UConSys.h"
 #include "UObject/U227Emitter.h"
 #include "UObject/U227Projector.h"
+#include "UObject/U227SkeletalMeshInstance.h"
 #include "VM/NativeFunc.h"
 #include "Native/NActor.h"
 #include "Native/N227Emitter.h"
@@ -1071,6 +1072,8 @@ void PackageManager::RegisterNativeClasses()
 
 	if (IsUnreal1_227())
 	{
+		RegisterNativeClass<U227SkeletalMeshInstance>(enginePackage, "SkeletalMeshInstance", "Object");
+		RegisterNativeClass<U227AnimationNotify>(enginePackage, "AnimationNotify", "Object");
 		RegisterNativeClass<UInventoryAttachment>(enginePackage, "InventoryAttachment", "Actor");
 		RegisterNativeClass<UWeaponAttachment>(enginePackage, "WeaponAttachment", "InventoryAttachment");
 		RegisterNativeClass<UWeaponMuzzleFlash>(enginePackage, "WeaponMuzzleFlash", "InventoryAttachment");
