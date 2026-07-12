@@ -68,7 +68,6 @@ they end up dying because SE thinks that they've fallen from a great height.
 ### Known Bugs:
 * [227*] Many new native functions/features are not yet implemented.
 * [227i] Translator Scale option does not do anything.
-* [227i] Opening up DmExar crashes SE with "Module file unsupported by OpenMPT" error.
 * Some UPak native functions are not implemented yet.
 * Nali Fruit Seeds and ASMDs in a map don't render, but are pickable.
 * ASMD tertiary fire rings render wrong.
