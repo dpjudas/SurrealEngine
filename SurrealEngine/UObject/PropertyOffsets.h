@@ -450,6 +450,41 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset LastSmellNode;
 	PropertyDataOffset bOwned;
 	PropertyDataOffset bVisionImportant;
+
+	// Unreal 227 Additions
+	PropertyDataOffset bNetNotify;
+	PropertyDataOffset bHandleOwnCorona;
+	PropertyDataOffset bRenderMultiEnviroMaps;
+	PropertyDataOffset bWorldGeometry;
+	PropertyDataOffset bUseMeshCollision;
+	PropertyDataOffset bEditorSelectRender;
+	PropertyDataOffset bNoDynamicShadowCast;
+	PropertyDataOffset bIsInOctree;
+	PropertyDataOffset bProjectorDecal;
+	PropertyDataOffset bUseLitSprite;
+	PropertyDataOffset bAlwaysRender;
+
+	PropertyDataOffset LastRenderedTime;
+	PropertyDataOffset ActorRenderColor;
+	PropertyDataOffset ActorGUnlitColor;
+	PropertyDataOffset CollisionOverride;
+	PropertyDataOffset MeshInstance;
+	PropertyDataOffset RelativeLocation;
+	PropertyDataOffset RelativeRotation;
+	PropertyDataOffset LightDataPtr;
+	PropertyDataOffset MeshDataPtr;
+	PropertyDataOffset ProjectorList;
+	PropertyDataOffset NetInitialProperties;
+	PropertyDataOffset RealTouching;
+
+	PropertyDataOffset DefaultAnimationNotify;
+	PropertyDataOffset AnimationNotify;
+
+	PropertyDataOffset bSkipActorReplication;
+	PropertyDataOffset bRepAnimations;
+	PropertyDataOffset bRepAmbientSound;
+	PropertyDataOffset bSimulatedPawnRep;
+	PropertyDataOffset bRepMesh;
 };
 
 extern PropertyOffsets_Actor PropOffsets_Actor;
@@ -4263,3 +4298,40 @@ struct PropertyDataOffsets_WeaponAttachment
 };
 
 extern PropertyDataOffsets_WeaponAttachment PropOffsets_WeaponAttachment;
+
+struct PropertyDataOffsets_SkeletalMeshInstance
+{
+	PropertyDataOffset SpaceBases;
+	PropertyDataOffset CachedLinks;
+	PropertyDataOffset bHasUpdated;
+	PropertyDataOffset LastDrawnMesh;
+	PropertyDataOffset CachedAnim;
+	PropertyDataOffset CachedOrientations;
+	PropertyDataOffset CachedPositions;
+	PropertyDataOffset TweenStartFrame;
+	PropertyDataOffset Base;
+	PropertyDataOffset bHasCachedFrame;
+	PropertyDataOffset bWasTweening;
+	PropertyDataOffset CachedTweenSeq;
+	PropertyDataOffset Modifiers;
+	PropertyDataOffset Channels;
+	PropertyDataOffset TChannelPtr;
+	PropertyDataOffset AttachedActors;
+	PropertyDataOffset AttachedBoneIndex;
+	PropertyDataOffset AttachedBoneName;
+	PropertyDataOffset MyAttachment;
+	PropertyDataOffset HardAttachFlags;
+};
+
+extern PropertyDataOffsets_SkeletalMeshInstance PropOffsets_SkeletalMeshInstance;
+
+struct PropertyDataOffsets_AnimationNotify
+{
+	PropertyDataOffset AnimationNotify;
+	PropertyDataOffset NumNotifies;
+	PropertyDataOffset Owner;
+	PropertyDataOffset bInitialized;
+	PropertyDataOffset bErrorOccured;
+};
+
+extern PropertyDataOffsets_AnimationNotify PropOffsets_AnimationNotify;
