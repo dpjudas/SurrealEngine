@@ -271,15 +271,17 @@ void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, floa
 
 void NCanvas::Draw2DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)
 {
-	LogUnimplemented("Canvas.Draw2DLine() [U227]");
+	vec4 colVec {static_cast<float>(Col.R / 255.0), static_cast<float>(Col.G / 255.0), static_cast<float>(Col.B / 255.0), static_cast<float>(Col.A / 255.0)};
+	engine->render->Draw2DLine(colVec, 0, Start, End);
 }
 
 void NCanvas::Draw3DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)
 {
-	LogUnimplemented("Canvas.Draw3DLine() [U227]");
+	vec4 colVec {static_cast<float>(Col.R / 255.0), static_cast<float>(Col.G / 255.0), static_cast<float>(Col.B / 255.0), static_cast<float>(Col.A / 255.0)};
+	engine->render->Draw3DLine(colVec, 0, Start, End);
 }
 
-void NCanvas::WorldToScreen_U227(UObject* Self, vec3& WorldPos, std::optional<float> ZDistance, vec3& ReturnValue)
+void NCanvas::WorldToScreen_U227(UObject* Self, vec3& WorldPos, float& ZDistance, vec3& ReturnValue)
 {
 	LogUnimplemented("Canvas.WorldToScreen() [U227]");
 	ReturnValue = vec3();
