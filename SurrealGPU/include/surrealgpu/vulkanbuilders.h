@@ -40,6 +40,7 @@ public:
 	VulkanDeviceBuilder& OptionalDescriptorIndexing();
 	VulkanDeviceBuilder& Surface(std::shared_ptr<VulkanSurface> surface);
 	VulkanDeviceBuilder& SelectDevice(int index);
+	VulkanDeviceBuilder& SelectDevice(VkPhysicalDevice device);
 
 	std::vector<VulkanCompatibleDevice> FindDevices(const std::shared_ptr<VulkanInstance>& instance);
 	std::shared_ptr<VulkanDevice> Create(std::shared_ptr<VulkanInstance> instance);
@@ -49,6 +50,7 @@ private:
 	std::set<std::string> optionalDeviceExtensions;
 	std::shared_ptr<VulkanSurface> surface;
 	int deviceIndex = 0;
+	VkPhysicalDevice requiredPhysicalDevice = VK_NULL_HANDLE;
 };
 
 class VulkanSwapChainBuilder

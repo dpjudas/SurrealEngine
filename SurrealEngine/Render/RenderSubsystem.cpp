@@ -33,7 +33,36 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	}
 
 	Device->Brightness = engine->client->Brightness;
-	Device->Lock(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), vec4(0.0f), nullptr, nullptr);
+
+	VRSubsystem* vr = engine->vr.get();
+	if (vr && vr->IsActive() && vr->WaitFrame())
+	{
+		vr->BeginFrame();
+
+		VRSubsystem::EyeView eyeViews[VRSubsystem::EyeCount];
+		if (vr->LocateViews(eyeViews))
+		{
+			for (int eye = 0; eye < VRSubsystem::EyeCount; eye++)
+			{
+				CurrentVREye = &eyeViews[eye];
+				Device->BeginEyeFrame(eye);
+				DrawGameFrame(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), eye == 0);
+				Device->EndEyeFrame(eye);
+			}
+			CurrentVREye = nullptr;
+		}
+
+		vr->EndFrame(eyeViews);
+	}
+	else
+	{
+		DrawGameFrame(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), true);
+	}
+}
+
+void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop)
+{
+	Device->Lock(flashScale, flashFog, vec4(0.0f), nullptr, nullptr);
 
 	ResetCanvas();
 	PreRender();
@@ -49,7 +78,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 
 	PostRender();
 
-	Device->Unlock(true);
+	Device->Unlock(presentToDesktop);
 }
 
 void RenderSubsystem::DrawEditorViewport()

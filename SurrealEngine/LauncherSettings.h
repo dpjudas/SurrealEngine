@@ -54,6 +54,11 @@ public:
 		int LastSelected = -1;
 	} Games;
 
+	struct
+	{
+		bool Enabled = false;
+	} VR;
+
 private:
 	LauncherSettings();
 };

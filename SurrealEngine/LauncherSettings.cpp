@@ -64,6 +64,8 @@ LauncherSettings::LauncherSettings()
 			Games.SearchList.push_back(jsonItem.to_string());
 		}
 		Games.LastSelected = settings["Games"]["LastSelected"].to_int();
+
+		VR.Enabled = settings["VR"]["Enabled"].to_boolean();
 	}
 	catch (...)
 	{
@@ -117,9 +119,13 @@ void LauncherSettings::Save()
 	games["SearchList"] = JsonValue::array(Games.SearchList);
 	games["LastSelected"] = JsonValue::number(Games.LastSelected);
 
+	JsonValue vr = JsonValue::object();
+	vr["Enabled"] = JsonValue::boolean(VR.Enabled);
+
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);
 	settings["Games"] = std::move(games);
+	settings["VR"] = std::move(vr);
 
 	const std::string filename = GetSettingsFilename();
 	Directory::create(fs::path(filename).parent_path().string());

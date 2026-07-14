@@ -41,6 +41,10 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	BloomAmountLabel = new TextLabel(this);
 	BloomAmount = new LineEdit(this);
 	UseDebugLayer = new CheckboxLabel(this);
+
+	VRLabel = new TextLabel(this);
+	EnableVR = new CheckboxLabel(this);
+
 	ResetButton = new PushButton(this);
 
 	RenderDeviceLabel->SetText("Render device:");
@@ -60,6 +64,15 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	Bloom->SetText("Bloom effect");
 	BloomAmountLabel->SetText("Bloom amount");
 	UseDebugLayer->SetText("Enable debug layer (slow)");
+
+	VRLabel->SetText("Virtual reality:");
+#ifdef USE_OPENXR
+	EnableVR->SetText("Enable VR (experimental, requires Vulkan + a running SteamVR/OpenXR runtime)");
+#else
+	EnableVR->SetText("Enable VR (not available - this build was compiled without OpenXR support)");
+	EnableVR->SetDisabled(true);
+#endif
+
 	ResetButton->SetText("Reset to defaults");
 
 	HdrScale->SetIntrinsicSize(3);
@@ -78,9 +91,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 
 #ifdef WIN32
-	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); }};
+	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ } UpdateVREnabledState(); };
+	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ } UpdateVREnabledState(); };
+	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); } UpdateVREnabledState(); };
 #else
 	Vulkan->FuncChanged = [this](bool on) { /* Add checkbox logic here if an OpenGL renderer ever gets added */ };
 #endif
@@ -101,6 +114,8 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	Bloom->SetChecked(settings.RenderDevice.Bloom);
 	BloomAmount->SetTextInt(settings.RenderDevice.BloomAmount);
 	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
+	EnableVR->SetChecked(settings.VR.Enabled);
+	UpdateVREnabledState();
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
 
@@ -166,6 +181,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 	mainLayout->AddWidget(UseDebugLayer);
 
+	mainLayout->AddWidget(VRLabel);
+	mainLayout->AddWidget(EnableVR);
+
 	mainLayout->AddLayout(resetButtonLayout);
 
 	mainLayout->AddStretch();
@@ -213,6 +231,17 @@ void VideoSettingsPage::Save()
 	settings.RenderDevice.Bloom = Bloom->GetChecked();
 	settings.RenderDevice.BloomAmount = BloomAmount->GetTextInt();
 	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
+	settings.VR.Enabled = EnableVR->GetChecked() && settings.RenderDevice.Type == RenderDeviceType::Vulkan;
+}
+
+void VideoSettingsPage::UpdateVREnabledState()
+{
+#ifdef USE_OPENXR
+	bool vulkanSelected = Vulkan->GetChecked();
+	EnableVR->SetDisabled(!vulkanSelected);
+	if (!vulkanSelected)
+		EnableVR->SetChecked(false);
+#endif
 }
 
 void VideoSettingsPage::OnResetButtonClicked()
@@ -231,4 +260,6 @@ void VideoSettingsPage::OnResetButtonClicked()
 	Bloom->SetChecked(false);
 	BloomAmount->SetTextInt(128);
 	UseDebugLayer->SetChecked(false);
+	EnableVR->SetChecked(false);
+	UpdateVREnabledState();
 }

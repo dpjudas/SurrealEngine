@@ -2,6 +2,7 @@
 
 #include "VisibleFrame.h"
 #include "Lightmap/LightmapBuilder.h"
+#include "VR/VRSubsystem.h"
 
 class RenderDevice;
 class UWindow;
@@ -99,6 +100,7 @@ public:
 	VisibleFrame MainFrame;
 
 private:
+	void DrawGameFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 	void DrawScene();
 
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
@@ -121,6 +123,8 @@ private:
 	float AutoUV = 0.0f;
 	float AmbientGlowTime = 0.0f;
 	float AmbientGlowAmount = 0.0f;
+
+	const VRSubsystem::EyeView* CurrentVREye = nullptr; // Set only while DrawScene() is rendering a VR eye (see DrawGame)
 
 	struct
 	{

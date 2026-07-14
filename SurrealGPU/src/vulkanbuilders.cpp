@@ -1816,6 +1816,12 @@ VulkanDeviceBuilder& VulkanDeviceBuilder::SelectDevice(int index)
 	return *this;
 }
 
+VulkanDeviceBuilder& VulkanDeviceBuilder::SelectDevice(VkPhysicalDevice device)
+{
+	requiredPhysicalDevice = device;
+	return *this;
+}
+
 std::vector<VulkanCompatibleDevice> VulkanDeviceBuilder::FindDevices(const std::shared_ptr<VulkanInstance>& instance)
 {
 	std::vector<VulkanCompatibleDevice> supportedDevices;
@@ -1945,6 +1951,23 @@ std::shared_ptr<VulkanDevice> VulkanDeviceBuilder::Create(std::shared_ptr<Vulkan
 		VulkanError("No Vulkan device found supports the minimum requirements of this application");
 
 	size_t selected = deviceIndex;
+	if (requiredPhysicalDevice != VK_NULL_HANDLE)
+	{
+		selected = supportedDevices.size();
+		for (size_t idx = 0; idx < supportedDevices.size(); idx++)
+		{
+			if (supportedDevices[idx].Device->Device == requiredPhysicalDevice)
+			{
+				selected = idx;
+				break;
+			}
+		}
+		if (selected == supportedDevices.size())
+		{
+			VulkanPrintLog("warning", "The GPU required by the active VR runtime does not meet this application's minimum Vulkan requirements - falling back to the default device selection. VR will not be available.");
+			selected = deviceIndex;
+		}
+	}
 	if (selected >= supportedDevices.size())
 		selected = 0;
 	return std::make_shared<VulkanDevice>(instance, surface, supportedDevices[selected]);

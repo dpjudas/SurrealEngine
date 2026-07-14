@@ -10,18 +10,32 @@
 
 void RenderSubsystem::ResetCanvas()
 {
+	// While rendering a VR eye, the canvas has to be sized to the eye's render target (the headset's
+	// recommended eye resolution), not the desktop window - the two can have very different sizes/aspects.
+	int width, height;
+	if (CurrentVREye && engine->vr)
+	{
+		width = engine->vr->GetRecommendedEyeWidth();
+		height = engine->vr->GetRecommendedEyeHeight();
+	}
+	else
+	{
+		width = engine->viewport->ViewportWidth();
+		height = engine->viewport->ViewportHeight();
+	}
+
 	// Scale the UI so it matches what you saw on a 1024x768 CRT monitor for Unreal and other older games.
 	// Assume 1280x960 for UT and newer.
 	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
-	Canvas.uiscale = std::max((engine->viewport->ViewportHeight() + vertResolution / 2) / vertResolution, 1);
+	Canvas.uiscale = std::max((height + vertResolution / 2) / vertResolution, 1);
 
 	FSceneNode frame;
 	Canvas.Frame.XB = 0;
 	Canvas.Frame.YB = 0;
-	Canvas.Frame.X = engine->viewport->ViewportWidth();
-	Canvas.Frame.Y = engine->viewport->ViewportHeight();
-	Canvas.Frame.FX = (float)engine->viewport->ViewportWidth();
-	Canvas.Frame.FY = (float)engine->viewport->ViewportHeight();
+	Canvas.Frame.X = width;
+	Canvas.Frame.Y = height;
+	Canvas.Frame.FX = (float)width;
+	Canvas.Frame.FY = (float)height;
 	Canvas.Frame.FX2 = Canvas.Frame.FX * 0.5f;
 	Canvas.Frame.FY2 = Canvas.Frame.FY * 0.5f;
 	Canvas.Frame.ObjectToWorld = mat4::identity();
@@ -33,8 +47,8 @@ void RenderSubsystem::ResetCanvas()
 	float RFY2 = 2.0f * RProjZ * Aspect / Canvas.Frame.FY;
 	Canvas.Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
 
-	int sizeX = (int)(engine->viewport->ViewportWidth() / (float)Canvas.uiscale);
-	int sizeY = (int)(engine->viewport->ViewportHeight() / (float)Canvas.uiscale);
+	int sizeX = (int)(width / (float)Canvas.uiscale);
+	int sizeY = (int)(height / (float)Canvas.uiscale);
 	engine->canvas->CurX() = 0.0f;
 	engine->canvas->CurY() = 0.0f;
 	if (engine->LaunchInfo.engineVersion > 219)

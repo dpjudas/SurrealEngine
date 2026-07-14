@@ -24,6 +24,7 @@
 #include "Math/FrustumPlanes.h"
 #include "GameWindow.h"
 #include "RenderDevice/RenderDevice.h"
+#include "LauncherSettings.h"
 #include "VM/Frame.h"
 #include "VM/ScriptCall.h"
 #include "Video/VideoPlayer.h"
@@ -91,6 +92,8 @@ void Engine::Run()
 	LoadKeybindings();
 	LogMessage("Loaded key bindings");
 	LogGamePackageSHA1Sums();
+
+	vr = VRSubsystem::Create(LauncherSettings::Get().VR.Enabled && LauncherSettings::Get().RenderDevice.Type == RenderDeviceType::Vulkan);
 
 	OpenWindow();
 
@@ -1445,7 +1448,7 @@ void Engine::UpdateInput(float timeElapsed)
 void Engine::OpenWindow()
 {
 	if (!window)
-		window = GameWindow::Create(this);
+		window = GameWindow::Create(this, vr.get());
 
 	int width = client->StartupFullscreen ? client->FullscreenViewportX : client->WindowedViewportX;
 	int height = client->StartupFullscreen ? client->FullscreenViewportY : client->WindowedViewportY;

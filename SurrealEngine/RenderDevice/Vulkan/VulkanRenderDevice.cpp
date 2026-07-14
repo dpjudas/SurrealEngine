@@ -10,17 +10,21 @@
 #include <cmath>
 #include <stdexcept>
 
-VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport)
+VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport, VRSubsystem* vr)
 {
 	Viewport = InViewport;
+	VRSys = vr;
 
 	try
 	{
-		std::shared_ptr<VulkanInstance> instance = VulkanInstanceBuilder()
+		Array<std::string> vrInstanceExtensions = VRSys ? VRSys->GetRequiredVulkanInstanceExtensions() : Array<std::string>();
+
+		auto instanceBuilder = VulkanInstanceBuilder()
 			.RequireExtensions(Viewport->GetVulkanInstanceExtensions())
+			.RequireExtensions(std::vector<std::string>(vrInstanceExtensions.begin(), vrInstanceExtensions.end()))
 			.OptionalSwapchainColorspace()
-			.DebugLayer(UseDebugLayer)
-			.Create();
+			.DebugLayer(UseDebugLayer);
+		std::shared_ptr<VulkanInstance> instance = instanceBuilder.Create();
 
 		auto surface = std::make_shared<VulkanSurface>(instance, Viewport->CreateVulkanSurface(instance->Instance));
 		if (!surface)
@@ -32,7 +36,18 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport)
 		deviceBuilder.Surface(surface);
 		deviceBuilder.RequireExtension(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 		deviceBuilder.RequireExtension(VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME);
+		if (VRSys)
+		{
+			for (const std::string& ext : VRSys->GetRequiredVulkanDeviceExtensions(nullptr))
+				deviceBuilder.RequireExtension(ext);
+		}
 		deviceBuilder.SelectDevice(VkDeviceIndex);
+		if (VRSys)
+		{
+			VkPhysicalDevice requiredDevice = VRSys->GetRequiredPhysicalDevice(instance->Instance);
+			if (requiredDevice)
+				deviceBuilder.SelectDevice(requiredDevice);
+		}
 		Device = deviceBuilder.Create(surface->Instance);
 
 		bool supportsBindless =
@@ -72,6 +87,9 @@ VulkanRenderDevice::VulkanRenderDevice(Widget* InViewport)
 		LogMessage(std::string("Vulkan device: ") + props.deviceName);
 		LogMessage("Vulkan device type: " + deviceType);
 		LogMessage("Vulkan version: " + apiVersion + " (api) " + driverVersion + " (driver)");
+
+		if (VRSys && !VRSys->InitSession(instance->Instance, Device->PhysicalDevice.Device, Device->device, Device->GraphicsFamily, 0))
+			LogMessage("VR: could not initialize the OpenXR session (no headset connected or runtime not running?) - continuing without VR");
 	}
 	catch (const std::exception& e)
 	{
@@ -177,12 +195,13 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	pushconstants.hitIndex = 0;
 	ForceHitIndex = -1;
 
-	// If frame textures no longer match the window or user settings, recreate them along with the swap chain
-	if (!Textures->Scene || Textures->Scene->Width != Viewport->GetNativePixelWidth() || Textures->Scene->Height != Viewport->GetNativePixelHeight() ||Textures->Scene->Multisample != GetSettingsMultisample())
+	// If frame textures no longer match the window (or, for a VR eye, the headset's recommended
+	// resolution) or user settings, recreate them along with the swap chain
+	if (!Textures->Scene || Textures->Scene->Width != GetSceneWidth() || Textures->Scene->Height != GetSceneHeight() || Textures->Scene->Multisample != GetSettingsMultisample())
 	{
 		Framebuffers->DestroySceneFramebuffer();
 		Textures->Scene.reset();
-		Textures->Scene.reset(new SceneTextures(this, Viewport->GetNativePixelWidth(), Viewport->GetNativePixelHeight(), GetSettingsMultisample()));
+		Textures->Scene.reset(new SceneTextures(this, GetSceneWidth(), GetSceneHeight(), GetSettingsMultisample()));
 		RenderPasses->CreateRenderPass();
 		RenderPasses->CreatePipelines();
 		Framebuffers->CreateSceneFramebuffer();
@@ -262,7 +281,7 @@ void VulkanRenderDevice::Unlock(bool Blit)
 	Commands->GetDrawCommands()->endRenderPass();
 
 	BlitSceneToPostprocess();
-	if (Bloom)
+	if (Bloom && CurrentEye < 0) // Bloom is not supported for VR eyes yet - they don't have their own bloom framebuffers
 	{
 		RunBloomPass();
 	}
@@ -983,14 +1002,112 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	viewportdesc.maxDepth = 1.0f;
 	commands->setViewport(0, 1, &viewportdesc);
 
-	pushconstants.objectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
-
 	// TBD; do this or do like UE1 does and do the transform on the CPU?
 	// maybe optionally do one or the other? transform on CPU can be super slow --Xaleros
-	pushconstants.objectToProjection = pushconstants.objectToProjection * Frame->WorldToView * Frame->ObjectToWorld;
+	mat4 projection = Frame->UseProvidedProjection ? Frame->Projection
+		: mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	pushconstants.objectToProjection = projection * Frame->WorldToView * Frame->ObjectToWorld;
 
 	pushconstants.objectToView = Frame->WorldToView * Frame->ObjectToWorld;
 	pushconstants.nearClip = Frame->NearClip;
+}
+
+int VulkanRenderDevice::GetSceneWidth() const
+{
+	return CurrentEye >= 0 ? VRSys->GetRecommendedEyeWidth() : Viewport->GetNativePixelWidth();
+}
+
+int VulkanRenderDevice::GetSceneHeight() const
+{
+	return CurrentEye >= 0 ? VRSys->GetRecommendedEyeHeight() : Viewport->GetNativePixelHeight();
+}
+
+void VulkanRenderDevice::BeginEyeFrame(int eyeIndex)
+{
+	if (!VRSys || !VRSys->IsActive())
+		return;
+
+	DesktopResources.Scene = std::move(Textures->Scene);
+	DesktopResources.SceneFramebuffer = std::move(Framebuffers->SceneFramebuffer);
+	for (int i = 0; i < 2; i++)
+		DesktopResources.PPImageFB[i] = std::move(Framebuffers->PPImageFB[i]);
+	for (int level = 0; level < NumBloomLevels; level++)
+	{
+		DesktopResources.BloomBlurLevels[level].VTextureFB = std::move(Framebuffers->BloomBlurLevels[level].VTextureFB);
+		DesktopResources.BloomBlurLevels[level].HTextureFB = std::move(Framebuffers->BloomBlurLevels[level].HTextureFB);
+	}
+
+	VREyeResources& eye = VREye[eyeIndex];
+	Textures->Scene = std::move(eye.Scene);
+	Framebuffers->SceneFramebuffer = std::move(eye.SceneFramebuffer);
+	for (int i = 0; i < 2; i++)
+		Framebuffers->PPImageFB[i] = std::move(eye.PPImageFB[i]);
+	for (int level = 0; level < NumBloomLevels; level++)
+	{
+		Framebuffers->BloomBlurLevels[level].VTextureFB = std::move(eye.BloomBlurLevels[level].VTextureFB);
+		Framebuffers->BloomBlurLevels[level].HTextureFB = std::move(eye.BloomBlurLevels[level].HTextureFB);
+	}
+
+	CurrentEye = eyeIndex;
+}
+
+void VulkanRenderDevice::EndEyeFrame(int eyeIndex)
+{
+	if (!VRSys || !VRSys->IsActive())
+		return;
+
+	VkImage targetImage = VRSys->AcquireSwapchainImage(eyeIndex);
+	if (targetImage)
+	{
+		auto cmdbuffer = Commands->GetDrawCommands();
+		int w = Textures->Scene->Width;
+		int h = Textures->Scene->Height;
+
+		PipelineBarrier()
+			.AddImage(targetImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT)
+			.AddImage(Textures->Scene->PPImage[0].get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+		VkImageBlit region = {};
+		region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		region.srcOffsets[1] = { w, h, 1 };
+		region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		region.dstOffsets[1] = { w, h, 1 };
+		cmdbuffer->blitImage(Textures->Scene->PPImage[0]->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, targetImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region, VK_FILTER_NEAREST);
+
+		PipelineBarrier()
+			.AddImage(targetImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+			.AddImage(Textures->Scene->PPImage[0].get(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT)
+			.Execute(cmdbuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+		// Force this eye's blit to complete on the GPU now, so it is guaranteed done before EndFrame() tells the compositor the image is ready.
+		SubmitAndWait(false, 0, 0, false);
+
+		VRSys->ReleaseSwapchainImage(eyeIndex);
+	}
+
+	VREyeResources& eye = VREye[eyeIndex];
+	eye.Scene = std::move(Textures->Scene);
+	eye.SceneFramebuffer = std::move(Framebuffers->SceneFramebuffer);
+	for (int i = 0; i < 2; i++)
+		eye.PPImageFB[i] = std::move(Framebuffers->PPImageFB[i]);
+	for (int level = 0; level < NumBloomLevels; level++)
+	{
+		eye.BloomBlurLevels[level].VTextureFB = std::move(Framebuffers->BloomBlurLevels[level].VTextureFB);
+		eye.BloomBlurLevels[level].HTextureFB = std::move(Framebuffers->BloomBlurLevels[level].HTextureFB);
+	}
+
+	Textures->Scene = std::move(DesktopResources.Scene);
+	Framebuffers->SceneFramebuffer = std::move(DesktopResources.SceneFramebuffer);
+	for (int i = 0; i < 2; i++)
+		Framebuffers->PPImageFB[i] = std::move(DesktopResources.PPImageFB[i]);
+	for (int level = 0; level < NumBloomLevels; level++)
+	{
+		Framebuffers->BloomBlurLevels[level].VTextureFB = std::move(DesktopResources.BloomBlurLevels[level].VTextureFB);
+		Framebuffers->BloomBlurLevels[level].HTextureFB = std::move(DesktopResources.BloomBlurLevels[level].HTextureFB);
+	}
+
+	CurrentEye = -1;
 }
 
 void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)

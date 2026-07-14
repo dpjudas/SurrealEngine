@@ -14,13 +14,14 @@
 #include "UploadManager.h"
 #include "Math/vec.h"
 #include "Math/mat.h"
+#include "VR/VRSubsystem.h"
 
 class CachedTexture;
 
 class VulkanRenderDevice : public RenderDevice
 {
 public:
-	VulkanRenderDevice(Widget* viewport);
+	VulkanRenderDevice(Widget* viewport, VRSubsystem* vr = nullptr);
 	~VulkanRenderDevice();
 
 	void Flush(bool AllowPrecache) override;
@@ -39,6 +40,10 @@ public:
 	void EndFlash() override;
 	void SetSceneNode(FSceneNode* Frame) override;
 	void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) override;
+
+	bool IsVRActive() const override { return VRSys && VRSys->IsActive(); }
+	void BeginEyeFrame(int eyeIndex) override;
+	void EndEyeFrame(int eyeIndex) override;
 
 	void SetHitLocation();
 
@@ -93,6 +98,32 @@ public:
 private:
 	void ClearTextureCache();
 	void BlitSceneToPostprocess();
+
+	int GetSceneWidth() const;
+	int GetSceneHeight() const;
+
+	VRSubsystem* VRSys = nullptr;
+	int CurrentEye = -1;
+
+	// Textures->Scene and all of Framebuffers' scene-derived framebuffers are swapped between these
+	// persistent per-eye sets and the desktop set in BeginEyeFrame/EndEyeFrame (CreateSceneFramebuffer()
+	// rebuilds all of them from whatever Textures->Scene currently is), so every other draw call in this
+	// file keeps addressing "the current scene" without needing to know about VR at all. VR eyes don't
+	// use bloom, but the framebuffers still need saving/restoring here or CreateSceneFramebuffer() would
+	// otherwise permanently clobber the desktop's with ones pointing at an eye's (later destroyed) images.
+	struct VREyeResources
+	{
+		std::unique_ptr<SceneTextures> Scene;
+		std::unique_ptr<VulkanFramebuffer> SceneFramebuffer;
+		std::unique_ptr<VulkanFramebuffer> PPImageFB[2];
+		struct
+		{
+			std::unique_ptr<VulkanFramebuffer> VTextureFB;
+			std::unique_ptr<VulkanFramebuffer> HTextureFB;
+		} BloomBlurLevels[NumBloomLevels];
+	};
+	VREyeResources VREye[2];
+	VREyeResources DesktopResources;
 
 	struct VertexReserveInfo
 	{

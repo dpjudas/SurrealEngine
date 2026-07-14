@@ -13,8 +13,12 @@ Use CMake to build the project. Development versions of the following packages a
 * pthreads
 * dl
 * alsa (libasound2)
+* libXi (X11 XInput2 extension headers, used on SurrealWidgets X11 backend)
+* glib2 (gio, used on SurrealWidgets for file/resource handling)
+* fontconfig
 * waylandpp (Optional - C++ bindings for Wayland protocols, used on SurrealWidgets Wayland backend)
 * SDL2 or SDL3 (Optional - Used on SurrealWidgets SDL2/SDL3 backends)
+* python3 (Only needed if building with `ENABLE_OPENXR` (on by default) - required to build the fetched OpenXR-SDK)
 
 > [!NOTE]
 > If both SDL2 and SDL3 are present on the system, SDL3 will take precedence.
@@ -26,15 +30,15 @@ Use CMake to build the project. Development versions of the following packages a
 
 #### Ubuntu
 
-    # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl3-dev libxkbcommon-dev waylandpp-dev
+    # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl3-dev libxkbcommon-dev libxi-dev libglib2.0-dev libfontconfig-dev python3 waylandpp-dev
 
 #### Arch Linux
 
-    # pacman -S libx11 gcc git cmake sdl3 alsa-lib waylandpp
+    # pacman -S libx11 gcc git cmake sdl3 alsa-lib libxi glib2 fontconfig python waylandpp
 
 #### Fedora
 
-    # dnf install libX11 libX11-devel libxkbcommon libxkbcommon-devel SDL3-devel openal-soft-devel alsa-lib-devel waylandpp waylandpp-devel
+    # dnf install libX11 libX11-devel libxkbcommon libxkbcommon-devel SDL3-devel openal-soft-devel alsa-lib-devel libXi-devel glib2-devel fontconfig-devel python3 waylandpp waylandpp-devel
 
 ### After installing prerequisites
 

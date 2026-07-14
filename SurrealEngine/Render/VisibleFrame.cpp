@@ -6,7 +6,7 @@
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/UWindow.h"
 
-void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans, const vec4& portalPlane)
+void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans, const vec4& portalPlane, bool useProvidedProjection, const mat4& providedProjection, const Coords& headCoords)
 {
 	engine->render->Stats.Frames++;
 
@@ -15,7 +15,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 	MirrorFlag = mirrorFlag;
 	PortalDepth = portalDepth;
 
-	SetupSceneFrame(worldToView);
+	SetupSceneFrame(worldToView, useProvidedProjection, providedProjection);
 
 	Clipper.numDrawSpans = 0;
 	Clipper.numSurfs = 0;
@@ -26,6 +26,7 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 	ViewZone = FindZoneAt(location);
 	//ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
 	ViewRotation = viewRotation;
+	HeadCoords = headCoords;
 
 	OpaqueNodes.clear();
 	Actors.clear();
@@ -36,30 +37,45 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 }
 
-void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
+void VisibleFrame::SetupSceneFrame(const mat4& worldToView, bool useProvidedProjection, const mat4& providedProjection)
 {
-	Frame.XB = engine->viewport->ViewportX();
-	Frame.YB = engine->viewport->ViewportY();
-	Frame.X = engine->viewport->ViewportWidth();
-	Frame.Y = engine->viewport->ViewportHeight();
-	Frame.FX = (float)engine->viewport->ViewportWidth();
-	Frame.FY = (float)engine->viewport->ViewportHeight();
-
-	if (engine->dxRootWindow && engine->dxRootWindow->RenderViewportSet)
+	// useProvidedProjection is only set when rendering a VR eye (see RenderSubsystem::DrawScene). The eye's
+	// render target is sized to the headset's recommended eye resolution, not the desktop window, so the
+	// viewport bookkeeping below must be based on that instead of engine->viewport.
+	if (useProvidedProjection && engine->vr)
 	{
-		// DeusEX expected a 4:3 monitor.
-		// The unrealscript code assumes that certain aspect ratio calculations would produce cinematic black bars.
-		// Unfortunately modern monitors are 16:9 (plus ultrawides), so we lie to the unrealscript code by boxing
-		// our window tree in a 4:3 area in the center of the screen.
-		// The code below calculates how the black bars would then lie within this area.
+		Frame.XB = 0;
+		Frame.YB = 0;
+		Frame.X = engine->vr->GetRecommendedEyeWidth();
+		Frame.Y = engine->vr->GetRecommendedEyeHeight();
+		Frame.FX = (float)Frame.X;
+		Frame.FY = (float)Frame.Y;
+	}
+	else
+	{
+		Frame.XB = engine->viewport->ViewportX();
+		Frame.YB = engine->viewport->ViewportY();
+		Frame.X = engine->viewport->ViewportWidth();
+		Frame.Y = engine->viewport->ViewportHeight();
+		Frame.FX = (float)engine->viewport->ViewportWidth();
+		Frame.FY = (float)engine->viewport->ViewportHeight();
 
-		float virtualScale = engine->dxRootWindow->GetVirtualScale();
-		Frame.XB = (int)std::round((engine->dxRootWindow->UsedX + engine->dxRootWindow->renderX()) * virtualScale);
-		Frame.YB = (int)std::round((engine->dxRootWindow->UsedY + engine->dxRootWindow->renderY()) * virtualScale);
-		Frame.FX = engine->dxRootWindow->renderWidth() * virtualScale;
-		Frame.FY = engine->dxRootWindow->renderHeight() * virtualScale;
-		Frame.X = (int)std::round(Frame.FX);
-		Frame.Y = (int)std::round(Frame.FY);
+		if (engine->dxRootWindow && engine->dxRootWindow->RenderViewportSet)
+		{
+			// DeusEX expected a 4:3 monitor.
+			// The unrealscript code assumes that certain aspect ratio calculations would produce cinematic black bars.
+			// Unfortunately modern monitors are 16:9 (plus ultrawides), so we lie to the unrealscript code by boxing
+			// our window tree in a 4:3 area in the center of the screen.
+			// The code below calculates how the black bars would then lie within this area.
+
+			float virtualScale = engine->dxRootWindow->GetVirtualScale();
+			Frame.XB = (int)std::round((engine->dxRootWindow->UsedX + engine->dxRootWindow->renderX()) * virtualScale);
+			Frame.YB = (int)std::round((engine->dxRootWindow->UsedY + engine->dxRootWindow->renderY()) * virtualScale);
+			Frame.FX = engine->dxRootWindow->renderWidth() * virtualScale;
+			Frame.FY = engine->dxRootWindow->renderHeight() * virtualScale;
+			Frame.X = (int)std::round(Frame.FX);
+			Frame.Y = (int)std::round(Frame.FY);
+		}
 	}
 
 	Frame.FX2 = Frame.FX * 0.5f;
@@ -67,11 +83,19 @@ void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
 	Frame.ObjectToWorld = mat4::identity();
 	Frame.WorldToView = worldToView;
 	Frame.FovAngle = engine->CameraFovAngle;
-	float Aspect = Frame.FY / Frame.FX;
-	float RProjZ = (float)std::tan(radians(Frame.FovAngle) * 0.5f);
-	float RFX2 = 2.0f * RProjZ / Frame.FX;
-	float RFY2 = 2.0f * RProjZ * Aspect / Frame.FY;
-	Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	Frame.UseProvidedProjection = useProvidedProjection;
+	if (useProvidedProjection)
+	{
+		Frame.Projection = providedProjection;
+	}
+	else
+	{
+		float Aspect = Frame.FY / Frame.FX;
+		float RProjZ = (float)std::tan(radians(Frame.FovAngle) * 0.5f);
+		float RFX2 = 2.0f * RProjZ / Frame.FX;
+		float RFY2 = 2.0f * RProjZ * Aspect / Frame.FY;
+		Frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	}
 }
 
 void VisibleFrame::ProcessNode(BspNode* node)
@@ -326,6 +350,17 @@ void VisibleFrame::DrawCoronas()
 	FSceneNode frame2d = Frame;
 	frame2d.ObjectToWorld = mat4::identity();
 	frame2d.WorldToView = mat4::identity();
+
+	// VisibleCorona::Draw() below already projects the light's world position into screen-space x/y itself,
+	// using the real (possibly asymmetric, in VR) Frame.Projection. It then hands that x/y to DrawTile(),
+	// whose vertex math (RFX2/RFY2 in VulkanRenderDevice::DrawTile) assumes a plain symmetric, screen-centered
+	// projection. Reusing the real asymmetric VR projection here would apply that asymmetry a second time on
+	// top of the already-correct x/y, shifting the corona sprite - by a different amount per eye, since each
+	// eye's asymmetry differs, breaking stereo alignment. Rebuild a symmetric frustum matching what DrawTile expects.
+	float aspect = frame2d.FY / frame2d.FX;
+	float halfFov = (float)std::tan(radians(frame2d.FovAngle) * 0.5);
+	frame2d.Projection = mat4::frustum(-halfFov, halfFov, -aspect * halfFov, aspect * halfFov, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+
 	Device->SetSceneNode(&frame2d);
 
 	for (VisibleCorona &corona : Coronas)
@@ -362,14 +397,24 @@ void VisibleFrame::DrawPortals()
 
 		if (portal.SkyZone)
 		{
+			// ViewRotation never has the VR head pose baked in (see HeadCoords) - insert it here, locally,
+			// as a separate matrix term (mirroring exactly how the main view formula combines head and camera
+			// rotation - see RenderScene.cpp), so the skybox rotates with head movement like the main view does.
+			// Composing HeadCoords into a single Coords with ViewRotation instead would pull the head's
+			// *position* into the result too (Coords multiplication combines origins), which a sky - meant to
+			// be infinitely far away and rotation-only - must never pick up.
+			// The pure ViewRotation (without head) is still what gets passed down for any further nested
+			// portals inside the sky, so the head pose only ever gets combined in once per level instead of
+			// accumulating.
 			mat4 skyToView =
 				Coords::ViewToRenderDev().ToMatrix() *
+				HeadCoords.Inverse().ToMatrix() *
 				ViewRotation.Inverse().ToMatrix() *
 				Coords::Rotation(portal.SkyZone->Rotation()).ToMatrix() *
 				Coords::Location(portal.SkyZone->Location()).ToMatrix();
 
 			VisibleFrame skyframe;
-			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1, portal.Spans);
+			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1, portal.Spans, vec4(0.0f, 0.0f, 0.0f, 1.0f), Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
 			Device->SetSceneNode(&skyframe.Frame);
 			skyframe.Draw();
 			Device->ClearZ();
@@ -379,7 +424,10 @@ void VisibleFrame::DrawPortals()
 			// Warp camera
 			vec3 newLocation = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz());
 			Coords rotation = WarpRotationToOtherSide(portal.WarpZone, ViewRotation);
-			mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * rotation.Inverse().ToMatrix() * mat4::translate(-newLocation);
+			// Same head-pose handling as the sky case above: combine as a separate matrix term for this level's
+			// view matrix (not by composing Coords, which would also pull in the head's position), keeping the
+			// pure (head-free) `rotation` for what gets passed down to nested portals.
+			mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * HeadCoords.Inverse().ToMatrix() * rotation.Inverse().ToMatrix() * mat4::translate(-newLocation);
 
 			// Find clipping plane for portal and warp it
 			auto node = portal.Nodes.front().Node;
@@ -392,7 +440,7 @@ void VisibleFrame::DrawPortals()
 				portalPlane = -portalPlane;
 
 			VisibleFrame portalframe;
-			portalframe.Process(newLocation, worldToView, rotation, MirrorFlag, PortalDepth + 1, portal.Spans, portalPlane);
+			portalframe.Process(newLocation, worldToView, rotation, MirrorFlag, PortalDepth + 1, portal.Spans, portalPlane, Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
 			Device->SetSceneNode(&portalframe.Frame);
 			portalframe.Draw();
 			Device->ClearZ();
@@ -404,10 +452,12 @@ void VisibleFrame::DrawPortals()
 			vec3 v = model->Points[surface.pBase];
 			vec3 n = model->Vectors[surface.vNormal];
 			mat4 mirrorRotation = mat4::mirror(n);
+			// Frame.WorldToView already has the head pose baked in for the current level (it's either the
+			// top-level VR view matrix, or a sky/portal view matrix built above) - no separate head handling needed here.
 			mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
 
 			VisibleFrame mirrorframe;
-			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans);
+			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans, vec4(0.0f, 0.0f, 0.0f, 1.0f), Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
 			Device->SetSceneNode(&mirrorframe.Frame);
 			mirrorframe.Draw();
 			Device->ClearZ();

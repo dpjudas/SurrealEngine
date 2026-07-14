@@ -6,6 +6,7 @@
 #include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
 #include "GameWindow.h"
+#include "VR/VRSubsystem.h"
 #include "UObject/UActor.h"
 #include "UObject/UnrealURL.h"
 #include "UObject/UWindow.h"
@@ -176,6 +177,7 @@ public:
 	std::unique_ptr<PackageManager> packages;
 	std::unique_ptr<GameWindow> window; // TODO: Move into UViewport
 	std::unique_ptr<RenderSubsystem> render;
+	std::unique_ptr<VRSubsystem> vr; // Declared after window/render so it destructs first, while the Vulkan device is still alive
 
 	int MouseMoveX = 0;
 	int MouseMoveY = 0;

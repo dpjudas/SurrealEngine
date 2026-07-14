@@ -12,6 +12,7 @@
 class UTexture;
 class UActor;
 class Widget;
+class VRSubsystem;
 enum class RenderAPI;
 
 struct FSceneNode
@@ -26,6 +27,7 @@ struct FSceneNode
 	mat4 ObjectToWorld;
 	mat4 WorldToView;
 	mat4 Projection;
+	bool UseProvidedProjection = false; // Use Projection as-is instead of rebuilding a symmetric frustum from FovAngle (VR asymmetric eye projections).
 
 	vec4 NearClip = vec4(0.0f, 0.0f, 1.0f, -1.0f);
 	float Zoom = 1.0f;
@@ -97,7 +99,7 @@ public:
 class RenderDevice
 {
 public:
-	static std::unique_ptr<RenderDevice> Create(Widget* viewport, RenderAPI renderAPI);
+	static std::unique_ptr<RenderDevice> Create(Widget* viewport, RenderAPI renderAPI, VRSubsystem* vr = nullptr);
 
 	RenderDevice();
 	virtual ~RenderDevice() = default;
@@ -121,6 +123,12 @@ public:
 	virtual void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) = 0;
 	virtual bool SupportsTextureFormat(TextureFormat Format) = 0;
 	virtual void UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL) = 0;
+
+	// VR only (no-ops unless a VRSubsystem was passed to Create and it is active).
+	// Redirects subsequent draw calls into that eye's render target instead of the desktop backbuffer.
+	virtual bool IsVRActive() const { return false; }
+	virtual void BeginEyeFrame(int eyeIndex) {}
+	virtual void EndEyeFrame(int eyeIndex) {}
 
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 

@@ -6,6 +6,7 @@
 
 class Engine;
 class RenderDevice;
+class VRSubsystem;
 
 enum EInputKey
 {
@@ -107,9 +108,9 @@ public:
 class GameWindow : public Widget
 {
 public:
-	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost);
+	static std::unique_ptr<GameWindow> Create(GameWindowHost* windowHost, VRSubsystem* vr = nullptr);
 
-	GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI);
+	GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI, VRSubsystem* vr = nullptr);
 
 	static void ProcessEvents();
 	static void RunLoop();

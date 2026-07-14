@@ -7,7 +7,7 @@
 #include <surrealgpu/vulkancompatibledevice.h>
 #include <surrealgpu/vulkanbuilders.h>
 
-GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI) : Widget(nullptr, WidgetType::Window, renderAPI), windowHost(windowHost)
+GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI, VRSubsystem* vr) : Widget(nullptr, WidgetType::Window, renderAPI), windowHost(windowHost)
 {
 	SetWindowIcon({
 		Image::LoadResource("surreal-engine-icon-16.png"),
@@ -19,7 +19,7 @@ GameWindow::GameWindow(GameWindowHost* windowHost, RenderAPI renderAPI) : Widget
 		Image::LoadResource("surreal-engine-icon-256.png")
 		});
 
-	device = RenderDevice::Create(this, renderAPI);
+	device = RenderDevice::Create(this, renderAPI, vr);
 	SetCanvas(std::make_unique<RenderDeviceCanvas>(device.get()));
 	SetFocus();
 }
@@ -152,7 +152,7 @@ void GameWindow::OnLostFocus()
 	windowHost->OnWindowDeactivated();
 }
 
-std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
+std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost, VRSubsystem* vr)
 {
 	RenderAPI api;
 	switch (LauncherSettings::Get().RenderDevice.Type)
@@ -162,7 +162,7 @@ std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 	case RenderDeviceType::D3D11: api = RenderAPI::D3D11; break;
 	case RenderDeviceType::D3D12: api = RenderAPI::D3D12; break;
 	}
-	return std::make_unique<GameWindow>(windowHost, api);
+	return std::make_unique<GameWindow>(windowHost, api, vr);
 }
 
 void GameWindow::ProcessEvents()

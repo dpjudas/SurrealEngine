@@ -17,7 +17,7 @@
 class VisibleFrame
 {
 public:
-	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0, const Array<PortalSpan>& portalSpans = {}, const vec4& portalPlane = vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	void Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag = false, int portalDepth = 0, const Array<PortalSpan>& portalSpans = {}, const vec4& portalPlane = vec4(0.0f, 0.0f, 0.0f, 1.0f), bool useProvidedProjection = false, const mat4& providedProjection = mat4::identity(), const Coords& headCoords = Coords::Identity());
 	void Draw();
 	void DrawCoronas();
 
@@ -27,6 +27,10 @@ public:
 	BspClipper Clipper;
 	vec4 ViewLocation = vec4(0.0f);
 	Coords ViewRotation = {};
+	// The VR head pose relative to the camera (identity outside VR). ViewRotation never has this baked
+	// in - it stays the plain camera-derived rotation chain so recursive sky/portal/mirror frames can each
+	// combine it with the head pose exactly once when building their own view matrix (see DrawPortals()).
+	Coords HeadCoords = Coords::Identity();
 	int ViewZone = 0;
 	//uint64_t ViewZoneMask = 0;
 	int FrameCounter = 0;
@@ -40,7 +44,7 @@ public:
 	Array<VisiblePortal> Portals;
 
 private:
-	void SetupSceneFrame(const mat4& worldToView);
+	void SetupSceneFrame(const mat4& worldToView, bool useProvidedProjection = false, const mat4& providedProjection = mat4::identity());
 	void ProcessNode(BspNode* node);
 	void ProcessNodeSurface(BspNode* node, bool front);
 	void SortTranslucent();

@@ -19,6 +19,7 @@ public:
 
 private:
 	void OnResetButtonClicked();
+	void UpdateVREnabledState();
 
 	LauncherWindow* Launcher = nullptr;
 
@@ -54,5 +55,9 @@ private:
 	LineEdit* BloomAmount = nullptr;
 
 	CheckboxLabel* UseDebugLayer = nullptr;
+
+	TextLabel* VRLabel = nullptr;
+	CheckboxLabel* EnableVR = nullptr;
+
 	PushButton* ResetButton = nullptr;
 };

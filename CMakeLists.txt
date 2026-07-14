@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.16)
 
 project(SurrealEngine)
+
+option(ENABLE_OPENXR "Compile in OpenXR support for HMD tracking and stereo rendering (VR itself is still opt-in at runtime via a launcher setting; this only controls whether the code exists in the binary). Requires Python3 to be available at build time." ON)
 
 add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(SurrealGPU)
@@ -8,6 +10,26 @@ add_subdirectory(SurrealWidgets)
 
 if (WIN32)
 	add_subdirectory(Thirdparty/openal-soft)
+endif()
+
+if(ENABLE_OPENXR)
+	include(FetchContent)
+
+	# Only build the loader library - none of the OpenXR-SDK's own tests, samples or API layers.
+	set(BUILD_LOADER ON CACHE BOOL "" FORCE)
+	set(BUILD_ALL_EXTENSIONS OFF CACHE BOOL "" FORCE)
+	set(BUILD_API_LAYERS OFF CACHE BOOL "" FORCE)
+	set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+	set(BUILD_CONFORMANCE_TESTS OFF CACHE BOOL "" FORCE)
+	set(BUILD_SDK_TESTS OFF CACHE BOOL "" FORCE)
+
+	FetchContent_Declare(
+		OpenXR
+		GIT_REPOSITORY https://github.com/KhronosGroup/OpenXR-SDK.git
+		GIT_TAG release-1.1.61
+		GIT_SHALLOW TRUE
+	)
+	FetchContent_MakeAvailable(OpenXR)
 endif()
 
 project(SurrealEngine)
@@ -508,6 +530,16 @@ set(SURREALCOMMON_WIN32_SOURCES
 	SurrealEngine/RenderDevice/D3D11/D3D11CachedTexture.h
 )
 
+set(SURREALCOMMON_VR_SOURCES
+	SurrealEngine/VR/VRSubsystem.cpp
+	SurrealEngine/VR/VRSubsystem.h
+)
+
+set(SURREALCOMMON_OPENXR_SOURCES
+	SurrealEngine/VR/OpenXRSubsystem.cpp
+	SurrealEngine/VR/OpenXRSubsystem.h
+)
+
 set(THIRDPARTY_SOURCES
 	Thirdparty/dr_wav.h
 	Thirdparty/minimp3_ex.h
@@ -644,6 +676,7 @@ source_group("SurrealEngine\\Utils" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_D
 source_group("SurrealEngine\\GC" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/GC/.+")
 source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VM/.+")
 source_group("SurrealEngine\\Video" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Video/.+")
+source_group("SurrealEngine\\VR" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/VR/.+")
 source_group("SurrealEngine\\Compiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/.+")
 source_group("SurrealEngine\\Compiler\\Ast" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Ast/.+")
 source_group("SurrealEngine\\Compiler\\Frontend" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Frontend/.+")
@@ -667,6 +700,11 @@ source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_C
 source_group("Thirdparty\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/miniz/.+")
 
 include_directories(SurrealEngine SurrealWidgets/include Thirdparty SurrealGPU/include Thirdparty/openmpt Thirdparty/openal-soft/include Thirdparty/miniz)
+
+set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_VR_SOURCES})
+if(ENABLE_OPENXR)
+	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_OPENXR_SOURCES})
+endif()
 
 if(NOT APPLE AND SDL2_FOUND)
 	include_directories(SurrealEngine ${SDL2_INCLUDE_DIRS})
@@ -714,6 +752,11 @@ set_target_properties(SurrealVideo PROPERTIES C_STANDARD 17)
 add_library(SurrealCommon STATIC ${SURREALCOMMON_SOURCES} ${THIRDPARTY_SOURCES})
 set_target_properties(SurrealCommon PROPERTIES CXX_STANDARD 20)
 target_precompile_headers(SurrealCommon PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Precomp.h>)
+
+if(ENABLE_OPENXR)
+	target_link_libraries(SurrealCommon PUBLIC openxr_loader)
+	target_compile_definitions(SurrealCommon PUBLIC USE_OPENXR)
+endif()
 
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${SURREALENGINE_SOURCES})
 target_link_libraries(SurrealEngine SurrealCommon ${SURREALCOMMON_LIBS})
