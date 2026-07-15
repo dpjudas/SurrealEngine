@@ -370,6 +370,7 @@ var commonSources = [
 	"SurrealEngine/UObject/UDXTextParser.h",
 	"SurrealEngine/UObject/U227Emitter.cpp",
 	"SurrealEngine/UObject/U227Emitter.h",
+	"SurrealEngine/UObject/U227SkeletalMeshInstance.h",
 	"SurrealEngine/UObject/UClient.h",
 	"SurrealEngine/UObject/UMesh.cpp",
 	"SurrealEngine/UObject/UMesh.h",
@@ -705,9 +706,6 @@ if (Environment.isMSVC()) {
 		"/experimental:c11atomics",
 		"/wd4244", "/wd4267", "/wd4005", "/wd4018", "/wd4101", "/wd4334", "/wd4146"]);
 
-	surrealCommon.addCompileOptions(["/YuPrecomp.h"]);
-	surrealCommon.addCompileOptions(["/YcPrecomp.h"], { files: ["SurrealEngine/Precomp.cpp"], configuration: "Debug" });
-	surrealCommon.addCompileOptions(["/YcPrecomp.h"], { files: ["SurrealEngine/Precomp.cpp"], configuration: "Release" });
-	surrealCommon.addCompileOptions(["/Y-"], { files: thirdPartySources, configuration: "Debug" });
-	surrealCommon.addCompileOptions(["/Y-"], { files: thirdPartySources, configuration: "Release" });
+	surrealCommon.addPrecompiledHeader("SurrealEngine/Precomp.cpp", "Precomp.h");
+	surrealCommon.addPrecompiledHeaderIgnoreList(thirdPartySources);
 }
