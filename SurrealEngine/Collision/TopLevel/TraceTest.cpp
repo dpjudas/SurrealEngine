@@ -169,8 +169,16 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 		mat4 rotateObjToWorld = Coords::Rotation(mover->Rotation()).ToMatrix();
 		mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
 
-		dvec3 localOrigin = dvec3(((rotateWorldToObj * vec4(vec3(origin) - mover->Location(), 1.0f)).xyz() / mover->MainScale().Scale + mover->PrePivot()));
-		dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(dirNormalized), 1.0f)).xyz());
+		vec3 scale = mover->MainScale().Scale;
+
+		dvec3 localOrigin = dvec3((
+			(rotateWorldToObj * vec4(vec3(origin) - mover->Location(), 1.0f)).xyz()
+			/ scale + mover->PrePivot())
+		);
+		/* tmin/tmax are used without scaling (see hit.Fraction math in outer Trace()), so localDirection must be scaled
+		 * to keep local-space t consistent with world-space t.
+		 */
+		dvec3 localDirection = dvec3((rotateWorldToObj * vec4(vec3(dirNormalized), 1.0f)).xyz() / scale);
 
 		double localTMin = tmin;
 		double localTMax = tmax;
@@ -186,13 +194,21 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 			// AABB/Triangle intersect
 			TraceAABBModel tracemodel;
 			dvec3 extents = { (double)radius, (double)radius, (double)height };
+			extents /= dvec3(std::abs(scale.x), std::abs(scale.y), std::abs(scale.z));
 			brushHits = tracemodel.Trace(mover->Brush(), localOrigin, localTMin, localDirection, localTMax, extents, visibilityOnly);
 		}
 
 		for (auto& hit : brushHits)
 		{
 			hit.Actor = actor;
-			hit.Normal = normalize((rotateWorldToObj * vec4(hit.Normal * mover->MainScale().Scale, 1.0f)).xyz());
+            /* hit.Normal is in local coords; callers of TraceActor expect normal in world coords. Normals need special
+			 * handling when doing non-uniform scaling
+			 * (see: https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/transforming-normals.html).
+			 */
+			hit.Normal = normalize((
+				rotateObjToWorld * 
+				vec4(hit.Normal / mover->MainScale().Scale, 1.0f)
+			).xyz());
 			hits.push_back(hit);
 		}
 	}
