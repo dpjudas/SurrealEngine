@@ -2070,6 +2070,9 @@ public:
 	float& SmellThreshold() { return Value<float>(PropOffsets_Pawn.SmellThreshold); }
 	NameString Alliance() { return Value<NameString>(PropOffsets_Pawn.Alliance);}
 	Rotator& AIAddViewRotation() { return Value<Rotator>(PropOffsets_Pawn.AIAddViewRotation); }
+
+private:
+	bool IsInPathSpecialHandling = false;
 };
 
 class UScout : public UPawn

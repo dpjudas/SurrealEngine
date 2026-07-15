@@ -3115,9 +3115,13 @@ UActor* UPawn::PathSpecialHandling(const Array<UNavigationPoint*>& bestPath)
 #if 0
 	return SetRouteCache(bestPath);
 #else
+	IsInPathSpecialHandling = true;
 	UActor* oldBestPoint = SetRouteCache(bestPath);
 	if (!oldBestPoint)
+	{
+		IsInPathSpecialHandling = false;
 		return nullptr;
+	}
 
 	UActor* bestPoint = oldBestPoint;
 
@@ -3142,6 +3146,7 @@ UActor* UPawn::PathSpecialHandling(const Array<UNavigationPoint*>& bestPath)
 			SpecialGoal() = nullptr;
 	}
 
+	IsInPathSpecialHandling = false;
 	return bestPoint;
 #endif
 }
@@ -3390,7 +3395,9 @@ UObject* UPawn::FindPathToward(UObject* anActor, bool singlePath)
 	{
 		if (!MarkReachableNavEndPoints())
 			return SetRouteCache({});
-		return PathSpecialHandling(FindPathToEndPoint(aNavPoint, 1000).first);
+		if (!IsInPathSpecialHandling)
+			return PathSpecialHandling(FindPathToEndPoint(aNavPoint, 1000).first);
+		return SetRouteCache({});
 	}
 	else if (auto actor = UObject::TryCast<UActor>(anActor))
 	{
