@@ -226,8 +226,25 @@ void UMesh::Load(ObjectStream* stream)
 	meshToObject = Coords::Rotation(RotOrigin).ToMatrix() * mat4::scale(Scale) * mat4::translate(-Origin);
 
 	// Build smoothed normals
-	// 
-	// To do: build normals from mesh faces (maybe using the Connects array?)
+	Normals.clear();
+	Normals.resize(Verts.size(), vec3(0.0f));
+	for (int frame = 0; frame < AnimFrames; frame++)
+	{
+		for (const MeshTri& tri : Tris)
+		{
+			int v0 = tri.Indices[0] + frame * FrameVerts;
+			int v1 = tri.Indices[1] + frame * FrameVerts;
+			int v2 = tri.Indices[2] + frame * FrameVerts;
+			vec3 n = normalize(cross(Verts[v1] - Verts[v0], Verts[v2] - Verts[v0]));
+			Normals[v0] += n;
+			Normals[v1] += n;
+			Normals[v2] += n;
+		}
+	}
+	for (vec3& n : Normals)
+	{
+		n = normalize(n);
+	}
 }
 
 void UMesh::Save(PackageStreamWriter* stream)

@@ -128,6 +128,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 		float uscale = (tex ? tex->UsedMipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (tex ? tex->UsedMipmaps.front().Height : 256) * (1.0f / 255.0f);
 
+		vec3 normals[3];
 		for (int i = 0; i < 3; i++)
 		{
 			size_t vindex = tri.Indices[i];
@@ -139,7 +140,10 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 			const vec3& v0 = mesh->Verts[vindex0];
 			const vec3& v1 = mesh->Verts[vindex1];
+			const vec3& n0 = mesh->Normals[vindex0];
+			const vec3& n1 = mesh->Normals[vindex1];
 			vec3 vertex = mix(v0, v1, t0);
+			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
 				size_t vindex2 = vindex + vertexOffsets[2];
@@ -149,14 +153,13 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
 				vertex = mix(vertex, v2, t1);
+				normal = mix(normal, n2, t1);
 			}
 
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { tri.UV[i].x * uscale, tri.UV[i].y * vscale };
+			normals[i] = normalize(ObjectNormalToWorld * normal);
 		}
-
-		// To do: this needs to be the smoothed normal
-		vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
 
 		if (renderflags & PF_Environment)
 		{
@@ -164,14 +167,14 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
-				vec3 p = rotmat * reflect(v, n);
+				vec3 p = rotmat * reflect(v, normals[i]);
 				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
 			}
 		}
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
 			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
 		}
 
