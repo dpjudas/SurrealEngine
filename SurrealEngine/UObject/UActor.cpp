@@ -1303,7 +1303,7 @@ void UActor::TickTrailer(float elapsed)
 
 	SetLocation(newLocation);
 
-	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerSameRotation() && DrawType() != DT_Sprite)
+	if ((engine->LaunchInfo.engineVersion < 400 || bTrailerSameRotation()) && DrawType() != DT_Sprite)
 	{
 		SetRotation(Owner()->Rotation());
 	}

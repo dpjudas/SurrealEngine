@@ -44,6 +44,8 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 
 bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	UActor* animSource = actor;
 	if (engine->LaunchInfo.engineVersion > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
@@ -142,7 +144,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 			const vec3& v1 = mesh->Verts[vindex1];
 			const vec3& n0 = mesh->Normals[vindex0];
 			const vec3& n1 = mesh->Normals[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
 			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
@@ -152,7 +154,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
 				normal = mix(normal, n2, t1);
 			}
 
@@ -349,6 +351,8 @@ void VisibleMesh::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 
 bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
 {
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
 	{
@@ -419,7 +423,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 			const vec3& v1 = mesh->Verts[vindex1];
 			const vec3& n0 = mesh->Normals[vindex0];
 			const vec3& n1 = mesh->Normals[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
 			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
@@ -429,7 +433,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
 				normal = mix(normal, n2, t1);
 			}
 
