@@ -45,7 +45,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.engineVersion > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -188,7 +188,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.engineVersion > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -471,7 +471,7 @@ bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, USkeletal
 bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.engineVersion > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -677,7 +677,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, co
 bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.engineVersion > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
