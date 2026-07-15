@@ -316,8 +316,9 @@ public:
 class OggAudioSource : public AudioSource
 {
 public:
-	OggAudioSource(Array<uint8_t> input) : filedata(std::move(input))
+	OggAudioSource(Array<uint8_t> input, bool loop) : filedata(std::move(input))
 	{
+		bIsLooped = loop;
 		int error = 0;
 		handle = stb_vorbis_open_pushdata(filedata.data(), (int)filedata.size(), &stream_byte_offset, &error, nullptr);
 		if (!handle)
@@ -405,6 +406,9 @@ public:
 			pcm_position += samples;
 			data_left -= samples;
 		}
+
+		if (stream_eof && bIsLooped)
+			SeekToSample(0);
 
 		return (data_requested - data_left) * stream_info.channels;
 	}
@@ -497,9 +501,9 @@ std::unique_ptr<AudioSource> AudioSource::CreateWav(Array<uint8_t> filedata)
 	return std::make_unique<WavAudioSource>(std::move(filedata));
 }
 
-std::unique_ptr<AudioSource> AudioSource::CreateOgg(Array<uint8_t> filedata)
+std::unique_ptr<AudioSource> AudioSource::CreateOgg(Array<uint8_t> filedata, bool loop)
 {
-	return std::make_unique<OggAudioSource>(std::move(filedata));
+	return std::make_unique<OggAudioSource>(std::move(filedata), loop);
 }
 
 std::unique_ptr<AudioSource> AudioSource::CreateMod(Array<uint8_t> filedata, bool loop, int subsong)
