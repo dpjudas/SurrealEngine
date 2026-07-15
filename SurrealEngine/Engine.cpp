@@ -95,6 +95,7 @@ void Engine::Run()
 
 	const LauncherSettings& launcherSettings = LauncherSettings::Get();
 	vr = VRSubsystem::Create(launcherSettings.VR.Enabled && launcherSettings.RenderDevice.Type == RenderDeviceType::Vulkan, launcherSettings.VR.RenderScale);
+	vrInput = std::make_unique<VRPlayerInput>();
 
 	OpenWindow();
 
@@ -1444,6 +1445,11 @@ void Engine::UpdateInput(float timeElapsed)
 			viewport->Actor()->SetFloat(it.first, it.second.Value);
 		}
 	}
+
+	// After the keyboard, not before: the movement axes it writes are absolute, and VR movement has to
+	// be laid on top of the value the keyboard just set rather than be overwritten by it.
+	if (vrInput)
+		vrInput->Tick(timeElapsed);
 }
 
 void Engine::OpenWindow()

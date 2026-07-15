@@ -69,6 +69,59 @@ public:
 
 	static const int EyeCount = 2;
 
+	// Pose of the head itself (midway between the eyes) rather than of one eye, in the same space and
+	// units as EyeView. Refreshed by LocateViews. Movement direction and room-scale walking are both
+	// about where the player's head is, not where either eyeball is, so they want this and not EyeView.
+	struct HeadPose
+	{
+		bool Valid = false;
+		vec3 Position = vec3(0.0f);
+		vec3 Forward = vec3(1.0f, 0.0f, 0.0f);
+		vec3 Right = vec3(0.0f, 1.0f, 0.0f);
+		vec3 Up = vec3(0.0f, 0.0f, 1.0f);
+	};
+
+	// Motion controller buttons, in the order they map onto EInputKey's IK_Joy1..IK_Joy16 (see
+	// VRPlayerInput). Appending here shifts every later key, which silently rebinds anything the player
+	// already has in their ini - so add to the end only.
+	enum Button
+	{
+		Button_Trigger,
+		Button_Grip,
+		Button_A,
+		Button_B,
+		Button_ThumbstickClick,
+		Button_Menu,
+		ButtonCount
+	};
+
+	static const int HandCount = 2;
+	enum { HandLeft = 0, HandRight = 1 };
+
+	struct ControllerState
+	{
+		// False when the controller is off, asleep, or otherwise not being tracked. Position/orientation
+		// are stale rather than meaningful when this is false.
+		bool PoseValid = false;
+		vec3 Position = vec3(0.0f);
+		vec3 Forward = vec3(1.0f, 0.0f, 0.0f);
+		vec3 Right = vec3(0.0f, 1.0f, 0.0f);
+		vec3 Up = vec3(0.0f, 0.0f, 1.0f);
+
+		// x = right, y = forward, each in [-1, 1]. Already deadzoned by the runtime, but not by us.
+		vec2 Thumbstick = vec2(0.0f);
+		bool Buttons[ButtonCount] = {};
+	};
+
+	// Refreshes GetController() from the runtime. Unlike the render sequence below this is independent of
+	// the frame loop, so it's driven from the engine's input tick instead - see VRPlayerInput::Tick.
+	virtual void SyncInput() {}
+
+	// Read back whatever the last SyncInput()/LocateViews() saw. Cheap; call as often as convenient.
+	// Both return inert defaults when VR is off, so callers don't have to branch on IsActive().
+	const ControllerState& GetController(int handIndex) const { return Controllers[handIndex]; }
+	const HeadPose& GetHead() const { return Head; }
+
 	// Per-frame sequence: WaitFrame -> BeginFrame -> LocateViews -> for each eye:
 	// AcquireSwapchainImage, render, ReleaseSwapchainImage -> EndFrame.
 	//
@@ -85,6 +138,12 @@ public:
 	virtual int GetRecommendedEyeWidth() const { return 0; }
 	virtual int GetRecommendedEyeHeight() const { return 0; }
 	virtual uint32_t GetSwapchainFormat() const { return 0; } // VkFormat, as uint32_t to avoid needing vulkan.h here
+
+protected:
+	// Written by SyncInput()/LocateViews() in the derived class, read through the getters above. They
+	// live here so NullVRSubsystem answers with inert defaults for free.
+	ControllerState Controllers[HandCount];
+	HeadPose Head;
 };
 
 class NullVRSubsystem : public VRSubsystem

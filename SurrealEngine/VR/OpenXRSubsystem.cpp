@@ -43,10 +43,32 @@ void OpenXRSubsystem::Destroy()
 		eye.Images.clear();
 	}
 
+	for (XrSpace& aimSpace : AimSpaces)
+	{
+		if (aimSpace != XR_NULL_HANDLE)
+		{
+			xrDestroySpace(aimSpace);
+			aimSpace = XR_NULL_HANDLE;
+		}
+	}
+	ActionsAttached = false;
+
 	if (ViewSpace != XR_NULL_HANDLE)
 	{
 		xrDestroySpace(ViewSpace);
 		ViewSpace = XR_NULL_HANDLE;
+	}
+
+	// Takes every action created on it down with it, so the individual XrActions need no destroy of
+	// their own - but they do become dangling, hence clearing them here.
+	if (ActionSet != XR_NULL_HANDLE)
+	{
+		xrDestroyActionSet(ActionSet);
+		ActionSet = XR_NULL_HANDLE;
+		MoveAction = XR_NULL_HANDLE;
+		AimPoseAction = XR_NULL_HANDLE;
+		for (XrAction& action : ButtonActions)
+			action = XR_NULL_HANDLE;
 	}
 
 	if (Session != XR_NULL_HANDLE)
@@ -107,6 +129,11 @@ bool OpenXRSubsystem::CreateInstance()
 		return false;
 	}
 
+	// Not fatal: without actions the controllers go dead, but head tracking and stereo rendering still
+	// work, which is strictly better than refusing to start VR at all.
+	if (!CreateActions())
+		LogMessage("OpenXR: motion controller input unavailable");
+
 	xrGetInstanceProcAddr(Instance, "xrGetVulkanInstanceExtensionsKHR", (PFN_xrVoidFunction*)&xrGetVulkanInstanceExtensionsKHR_);
 	xrGetInstanceProcAddr(Instance, "xrGetVulkanDeviceExtensionsKHR", (PFN_xrVoidFunction*)&xrGetVulkanDeviceExtensionsKHR_);
 	xrGetInstanceProcAddr(Instance, "xrGetVulkanGraphicsDeviceKHR", (PFN_xrVoidFunction*)&xrGetVulkanGraphicsDeviceKHR_);
@@ -123,6 +150,223 @@ bool OpenXRSubsystem::CreateInstance()
 	xrGetVulkanGraphicsRequirementsKHR_(Instance, SystemId, &requirements);
 
 	return true;
+}
+
+bool OpenXRSubsystem::CreateActions()
+{
+	if (!XR_SUCCEEDED_LOG(xrStringToPath(Instance, "/user/hand/left", &HandPaths[HandLeft]), "xrStringToPath") ||
+		!XR_SUCCEEDED_LOG(xrStringToPath(Instance, "/user/hand/right", &HandPaths[HandRight]), "xrStringToPath"))
+		return false;
+
+	XrActionSetCreateInfo setInfo = { XR_TYPE_ACTION_SET_CREATE_INFO };
+	std::strncpy(setInfo.actionSetName, "gameplay", XR_MAX_ACTION_SET_NAME_SIZE - 1);
+	std::strncpy(setInfo.localizedActionSetName, "Gameplay", XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE - 1);
+	if (!XR_SUCCEEDED_LOG(xrCreateActionSet(Instance, &setInfo, &ActionSet), "xrCreateActionSet"))
+		return false;
+
+	auto createAction = [this](XrAction& action, XrActionType type, const char* name, const char* localized)
+	{
+		XrActionCreateInfo info = { XR_TYPE_ACTION_CREATE_INFO };
+		info.actionType = type;
+		info.countSubactionPaths = HandCount;
+		info.subactionPaths = HandPaths;
+		std::strncpy(info.actionName, name, XR_MAX_ACTION_NAME_SIZE - 1);
+		std::strncpy(info.localizedActionName, localized, XR_MAX_LOCALIZED_ACTION_NAME_SIZE - 1);
+		return XR_SUCCEEDED_LOG(xrCreateAction(ActionSet, &info, &action), "xrCreateAction");
+	};
+
+	if (!createAction(MoveAction, XR_ACTION_TYPE_VECTOR2F_INPUT, "thumbstick", "Thumbstick") ||
+		!createAction(AimPoseAction, XR_ACTION_TYPE_POSE_INPUT, "aim_pose", "Aim pose") ||
+		!createAction(ButtonActions[Button_Trigger], XR_ACTION_TYPE_BOOLEAN_INPUT, "trigger", "Trigger") ||
+		!createAction(ButtonActions[Button_Grip], XR_ACTION_TYPE_BOOLEAN_INPUT, "grip", "Grip") ||
+		!createAction(ButtonActions[Button_A], XR_ACTION_TYPE_BOOLEAN_INPUT, "button_a", "A button") ||
+		!createAction(ButtonActions[Button_B], XR_ACTION_TYPE_BOOLEAN_INPUT, "button_b", "B button") ||
+		!createAction(ButtonActions[Button_ThumbstickClick], XR_ACTION_TYPE_BOOLEAN_INPUT, "thumbstick_click", "Thumbstick click") ||
+		!createAction(ButtonActions[Button_Menu], XR_ACTION_TYPE_BOOLEAN_INPUT, "menu", "Menu button"))
+		return false;
+
+	// Bindings are listed per profile rather than generated, because the profiles genuinely differ: the
+	// Index has no menu button, and Touch's face buttons are X/Y on the left hand but A/B on the right.
+	// A path that a profile doesn't define makes the runtime reject that profile's *whole* suggestion,
+	// so these have to be exact. Grip and trigger bind to float inputs where a profile has no click
+	// variant; OpenXR thresholds float sources for us when the action is boolean.
+
+	SuggestBindings("/interaction_profiles/valve/index_controller", {
+		{ MoveAction, "/user/hand/left/input/thumbstick" },
+		{ MoveAction, "/user/hand/right/input/thumbstick" },
+		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
+		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ ButtonActions[Button_Trigger], "/user/hand/left/input/trigger/click" },
+		{ ButtonActions[Button_Trigger], "/user/hand/right/input/trigger/click" },
+		{ ButtonActions[Button_Grip], "/user/hand/left/input/squeeze/value" },
+		{ ButtonActions[Button_Grip], "/user/hand/right/input/squeeze/value" },
+		{ ButtonActions[Button_A], "/user/hand/left/input/a/click" },
+		{ ButtonActions[Button_A], "/user/hand/right/input/a/click" },
+		{ ButtonActions[Button_B], "/user/hand/left/input/b/click" },
+		{ ButtonActions[Button_B], "/user/hand/right/input/b/click" },
+		{ ButtonActions[Button_ThumbstickClick], "/user/hand/left/input/thumbstick/click" },
+		{ ButtonActions[Button_ThumbstickClick], "/user/hand/right/input/thumbstick/click" },
+		});
+
+	SuggestBindings("/interaction_profiles/oculus/touch_controller", {
+		{ MoveAction, "/user/hand/left/input/thumbstick" },
+		{ MoveAction, "/user/hand/right/input/thumbstick" },
+		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
+		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ ButtonActions[Button_Trigger], "/user/hand/left/input/trigger/value" },
+		{ ButtonActions[Button_Trigger], "/user/hand/right/input/trigger/value" },
+		{ ButtonActions[Button_Grip], "/user/hand/left/input/squeeze/value" },
+		{ ButtonActions[Button_Grip], "/user/hand/right/input/squeeze/value" },
+		{ ButtonActions[Button_A], "/user/hand/left/input/x/click" },
+		{ ButtonActions[Button_A], "/user/hand/right/input/a/click" },
+		{ ButtonActions[Button_B], "/user/hand/left/input/y/click" },
+		{ ButtonActions[Button_B], "/user/hand/right/input/b/click" },
+		{ ButtonActions[Button_ThumbstickClick], "/user/hand/left/input/thumbstick/click" },
+		{ ButtonActions[Button_ThumbstickClick], "/user/hand/right/input/thumbstick/click" },
+		{ ButtonActions[Button_Menu], "/user/hand/left/input/menu/click" },
+		});
+
+	// The fallback every runtime must support. No thumbstick, so no stick movement - but it keeps aim
+	// poses and a fire button alive on controllers we have no specific profile for.
+	SuggestBindings("/interaction_profiles/khr/simple_controller", {
+		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
+		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ ButtonActions[Button_Trigger], "/user/hand/left/input/select/click" },
+		{ ButtonActions[Button_Trigger], "/user/hand/right/input/select/click" },
+		{ ButtonActions[Button_Menu], "/user/hand/left/input/menu/click" },
+		{ ButtonActions[Button_Menu], "/user/hand/right/input/menu/click" },
+		});
+
+	return true;
+}
+
+void OpenXRSubsystem::SuggestBindings(const char* interactionProfile, const std::vector<std::pair<XrAction, std::string>>& bindings)
+{
+	std::vector<XrActionSuggestedBinding> suggested;
+	suggested.reserve(bindings.size());
+	for (const auto& binding : bindings)
+	{
+		XrPath path = XR_NULL_PATH;
+		if (!XR_SUCCEEDED(xrStringToPath(Instance, binding.second.c_str(), &path)))
+		{
+			LogMessage("OpenXR: not a valid input path: " + binding.second);
+			return;
+		}
+		suggested.push_back({ binding.first, path });
+	}
+
+	XrPath profilePath = XR_NULL_PATH;
+	if (!XR_SUCCEEDED(xrStringToPath(Instance, interactionProfile, &profilePath)))
+		return;
+
+	XrInteractionProfileSuggestedBinding info = { XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+	info.interactionProfile = profilePath;
+	info.countSuggestedBindings = (uint32_t)suggested.size();
+	info.suggestedBindings = suggested.data();
+
+	// Only worth a log line, never a failure: a runtime is entitled to reject a profile it doesn't
+	// implement, and the profiles it does implement still bind. This is the normal path on a headset
+	// whose controllers aren't one of the ones listed above.
+	if (XR_FAILED(xrSuggestInteractionProfileBindings(Instance, &info)))
+		LogMessage(std::string("OpenXR: runtime rejected the bindings for ") + interactionProfile);
+}
+
+bool OpenXRSubsystem::AttachActions()
+{
+	if (ActionSet == XR_NULL_HANDLE)
+		return false;
+
+	for (int hand = 0; hand < HandCount; hand++)
+	{
+		XrActionSpaceCreateInfo spaceInfo = { XR_TYPE_ACTION_SPACE_CREATE_INFO };
+		spaceInfo.action = AimPoseAction;
+		spaceInfo.subactionPath = HandPaths[hand];
+		spaceInfo.poseInActionSpace = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
+		if (!XR_SUCCEEDED_LOG(xrCreateActionSpace(Session, &spaceInfo, &AimSpaces[hand]), "xrCreateActionSpace"))
+			return false;
+	}
+
+	// One shot per session: the spec forbids attaching twice, and forbids xrSyncActions before this.
+	XrSessionActionSetsAttachInfo attachInfo = { XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO };
+	attachInfo.countActionSets = 1;
+	attachInfo.actionSets = &ActionSet;
+	if (!XR_SUCCEEDED_LOG(xrAttachSessionActionSets(Session, &attachInfo), "xrAttachSessionActionSets"))
+		return false;
+
+	ActionsAttached = true;
+	return true;
+}
+
+bool OpenXRSubsystem::ReadButton(XrAction action, int handIndex) const
+{
+	if (action == XR_NULL_HANDLE)
+		return false;
+
+	XrActionStateGetInfo getInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
+	getInfo.action = action;
+	getInfo.subactionPath = HandPaths[handIndex];
+
+	XrActionStateBoolean value = { XR_TYPE_ACTION_STATE_BOOLEAN };
+	if (XR_FAILED(xrGetActionStateBoolean(Session, &getInfo, &value)) || !value.isActive)
+		return false;
+	return value.currentState == XR_TRUE;
+}
+
+void OpenXRSubsystem::SyncInput()
+{
+	// Cleared up front so that every early return below - no session, no focus, controller asleep -
+	// reads as "nothing pressed, stick centred" instead of leaving the player running forwards on a
+	// stale stick value.
+	for (ControllerState& controller : Controllers)
+		controller = ControllerState();
+
+	if (!SessionActive || !ActionsAttached)
+		return;
+
+	XrActiveActionSet activeActionSet = { ActionSet, XR_NULL_PATH };
+	XrActionsSyncInfo syncInfo = { XR_TYPE_ACTIONS_SYNC_INFO };
+	syncInfo.countActiveActionSets = 1;
+	syncInfo.activeActionSets = &activeActionSet;
+	// XR_SESSION_NOT_FOCUSED is a success code and an entirely normal one - it is what we get while the
+	// runtime's own dashboard holds input focus. Every action then reports itself inactive, which the
+	// clear above has already turned into neutral input, so it needs no case of its own here.
+	if (XR_FAILED(xrSyncActions(Session, &syncInfo)))
+		return;
+
+	for (int hand = 0; hand < HandCount; hand++)
+	{
+		ControllerState& state = Controllers[hand];
+
+		XrActionStateGetInfo getInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
+		getInfo.action = MoveAction;
+		getInfo.subactionPath = HandPaths[hand];
+
+		XrActionStateVector2f stick = { XR_TYPE_ACTION_STATE_VECTOR2F };
+		if (XR_SUCCEEDED(xrGetActionStateVector2f(Session, &getInfo, &stick)) && stick.isActive)
+			state.Thumbstick = vec2(stick.currentState.x, stick.currentState.y); // OpenXR: +x right, +y away from the player
+
+		for (int button = 0; button < ButtonCount; button++)
+			state.Buttons[button] = ReadButton(ButtonActions[button], hand);
+
+		// Poses are located against the same play space anchor the eyes are, so a controller pose and a
+		// head pose can be compared directly. predictedDisplayTime is only meaningful once a frame has
+		// been waited on, and locating at time 0 is an error, so before the first frame there is no pose.
+		if (AimSpaces[hand] == XR_NULL_HANDLE || FrameState.predictedDisplayTime <= 0)
+			continue;
+
+		XrSpaceLocation location = { XR_TYPE_SPACE_LOCATION };
+		if (XR_FAILED(xrLocateSpace(AimSpaces[hand], ViewSpace, FrameState.predictedDisplayTime, &location)))
+			continue;
+		if (!(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) || !(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
+			continue;
+
+		Pose pose = ConvertPose(location.pose);
+		state.PoseValid = true;
+		state.Position = pose.Position;
+		state.Forward = pose.Forward;
+		state.Right = pose.Right;
+		state.Up = pose.Up;
+	}
 }
 
 Array<std::string> OpenXRSubsystem::GetRequiredVulkanInstanceExtensions()
@@ -196,6 +440,10 @@ bool OpenXRSubsystem::InitSession(VkInstance instance, VkPhysicalDevice physical
 		Destroy();
 		return false;
 	}
+
+	// Same reasoning as CreateActions(): losing the controllers is not a reason to lose the headset too.
+	if (!AttachActions())
+		LogMessage("OpenXR: motion controller input unavailable");
 
 	uint32_t viewCount = 0;
 	xrEnumerateViewConfigurationViews(Instance, SystemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &viewCount, nullptr);
@@ -329,22 +577,32 @@ void OpenXRSubsystem::BeginFrame()
 	xrBeginFrame(Session, &beginInfo);
 }
 
-VRSubsystem::EyeView OpenXRSubsystem::ConvertView(const XrView& view) const
+// OpenXR is right handed, metres, -Z forward / +X right / +Y up. SurrealEngine is Unreal units,
+// X forward / Y right / Z up. Hence (x,y,z) -> (-z, x, y) on both points and axes.
+OpenXRSubsystem::Pose OpenXRSubsystem::ConvertPose(const XrPosef& pose)
 {
-	VRSubsystem::EyeView result;
+	auto convertAxis = [](const vec3& v) { return vec3(-v.z, v.x, v.y); };
 
-	const XrVector3f& p = view.pose.position;
+	Pose result;
+	const XrVector3f& p = pose.position;
 	result.Position = vec3(-p.z, p.x, p.y) * MetersToUnrealUnits;
 
-	quaternion q(view.pose.orientation.x, view.pose.orientation.y, view.pose.orientation.z, view.pose.orientation.w);
-	vec3 forwardXR = q * vec3(0.0f, 0.0f, -1.0f);
-	vec3 rightXR = q * vec3(1.0f, 0.0f, 0.0f);
-	vec3 upXR = q * vec3(0.0f, 1.0f, 0.0f);
+	quaternion q(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+	result.Forward = convertAxis(q * vec3(0.0f, 0.0f, -1.0f));
+	result.Right = convertAxis(q * vec3(1.0f, 0.0f, 0.0f));
+	result.Up = convertAxis(q * vec3(0.0f, 1.0f, 0.0f));
+	return result;
+}
 
-	auto convertAxis = [](const vec3& v) { return vec3(-v.z, v.x, v.y); };
-	result.Forward = convertAxis(forwardXR);
-	result.Right = convertAxis(rightXR);
-	result.Up = convertAxis(upXR);
+VRSubsystem::EyeView OpenXRSubsystem::ConvertView(const XrView& view) const
+{
+	Pose pose = ConvertPose(view.pose);
+
+	VRSubsystem::EyeView result;
+	result.Position = pose.Position;
+	result.Forward = pose.Forward;
+	result.Right = pose.Right;
+	result.Up = pose.Up;
 
 	result.AngleLeft = view.fov.angleLeft;
 	result.AngleRight = view.fov.angleRight;
@@ -364,6 +622,7 @@ bool OpenXRSubsystem::LocateViews(EyeView outViews[EyeCount])
 	uint32_t viewCount = 0;
 	Views[0] = { XR_TYPE_VIEW };
 	Views[1] = { XR_TYPE_VIEW };
+	Head.Valid = false;
 	if (!XR_SUCCEEDED_LOG(xrLocateViews(Session, &locateInfo, &viewState, EyeCount, &viewCount, Views), "xrLocateViews") || viewCount < EyeCount)
 		return false;
 	if (!(viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) || !(viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT))
@@ -371,6 +630,15 @@ bool OpenXRSubsystem::LocateViews(EyeView outViews[EyeCount])
 
 	for (int eye = 0; eye < EyeCount; eye++)
 		outViews[eye] = ConvertView(Views[eye]);
+
+	// The head sits midway between the eyes. Both eyes carry the same orientation (they differ only by
+	// the IPD offset along the head's right axis), so either one's axes are the head's.
+	Head.Valid = true;
+	Head.Position = (outViews[0].Position + outViews[1].Position) * 0.5f;
+	Head.Forward = outViews[0].Forward;
+	Head.Right = outViews[0].Right;
+	Head.Up = outViews[0].Up;
+
 	ViewsLocated = true;
 	return true;
 }

@@ -533,6 +533,8 @@ set(SURREALCOMMON_WIN32_SOURCES
 set(SURREALCOMMON_VR_SOURCES
 	SurrealEngine/VR/VRSubsystem.cpp
 	SurrealEngine/VR/VRSubsystem.h
+	SurrealEngine/VR/VRPlayerInput.cpp
+	SurrealEngine/VR/VRPlayerInput.h
 )
 
 set(SURREALCOMMON_OPENXR_SOURCES

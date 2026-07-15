@@ -28,6 +28,8 @@ public:
 
 	bool InitSession(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex) override;
 
+	void SyncInput() override;
+
 	bool WaitFrame() override;
 	void BeginFrame() override;
 	bool LocateViews(EyeView outViews[EyeCount]) override;
@@ -42,6 +44,17 @@ public:
 private:
 	void Destroy();
 	void PollEvents();
+
+	// Actions live on the XrInstance and their bindings must be suggested before any session is
+	// attached, so this runs from CreateInstance(). The action *spaces* need a session, so those are
+	// made later, by AttachActions().
+	bool CreateActions();
+	void SuggestBindings(const char* interactionProfile, const std::vector<std::pair<XrAction, std::string>>& bindings);
+	bool AttachActions();
+	bool ReadButton(XrAction action, int handIndex) const;
+
+	struct Pose { vec3 Position, Forward, Right, Up; };
+	static Pose ConvertPose(const XrPosef& pose);
 	EyeView ConvertView(const XrView& view) const;
 	static Array<std::string> SplitExtensionString(const std::string& s);
 
@@ -63,6 +76,16 @@ private:
 		std::vector<XrSwapchainImageVulkanKHR> Images;
 	};
 	EyeSwapchain Eyes[EyeCount];
+
+	XrActionSet ActionSet = XR_NULL_HANDLE;
+	XrAction MoveAction = XR_NULL_HANDLE;    // thumbstick, Vector2f
+	XrAction AimPoseAction = XR_NULL_HANDLE; // where the controller points
+	XrAction ButtonActions[ButtonCount] = {};
+	// Every action is declared with both hands as subaction paths, so one action covers both controllers
+	// and the hand is chosen at read time rather than by having two of everything.
+	XrPath HandPaths[HandCount] = {};
+	XrSpace AimSpaces[HandCount] = {};
+	bool ActionsAttached = false;
 
 	XrFrameState FrameState = { XR_TYPE_FRAME_STATE };
 	XrView Views[EyeCount] = { { XR_TYPE_VIEW }, { XR_TYPE_VIEW } };

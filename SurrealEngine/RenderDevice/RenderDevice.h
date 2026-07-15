@@ -133,8 +133,13 @@ public:
 	// Size of the offscreen canvas BeginUICanvasFrame renders into. Both the render device (which creates
 	// the target) and RenderSubsystem (which has to size the 2D canvas to match, and derives the world
 	// -space plane's aspect from it) need these, so they live here rather than in either one.
-	static constexpr int VRMenuCanvasWidth = 1536;
-	static constexpr int VRMenuCanvasHeight = 1152;
+	//
+	// The height is what makes the menu legible, via the uiscale RenderSubsystem::ResetCanvas() derives
+	// from it: 1440 is the first value that reaches uiscale 2 for both Unreal (768) and UT (960), so the
+	// menu is drawn at double size instead of being minified into illegibility when the plane is sampled
+	// down into an eye. Raising it further only adds pixels, not apparent size, until uiscale ticks again.
+	static constexpr int VRMenuCanvasWidth = 1920;
+	static constexpr int VRMenuCanvasHeight = 1440;
 
 	// VR only. Redirects subsequent 2D draw calls (Canvas/console/menu) into a dedicated offscreen
 	// render target instead of an eye's, so the whole menu can be captured once per frame and then

@@ -235,36 +235,38 @@ void RenderSubsystem::CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeVie
 		return levelCameraRotation.XAxis * v.x + levelCameraRotation.YAxis * v.y + levelCameraRotation.ZAxis * v.z;
 	};
 
-	vec3 localPos = (eyeViews[0].Position + eyeViews[1].Position) * 0.5f;
+	// Same room-scale correction BuildVREyeView() applies, and for the same reason: this has to agree
+	// with where the eye actually ends up, or the plane lands off to the side of the player's gaze.
+	vec3 localPos = RemoveRoomScaleOffset((eyeViews[0].Position + eyeViews[1].Position) * 0.5f);
 	vec3 localForward = normalize(eyeViews[0].Forward + eyeViews[1].Forward);
 
+	// Where the head actually is and what it is actually looking at, in world space. This has to agree
+	// with where BuildVREyeView() puts the eye, or the plane lands off to the side of the player's gaze
+	// by however far the head is from the play space anchor.
 	vec3 worldGazeDir = normalize(localToWorldDir(localForward));
 	vec3 worldEyePos = engine->CameraLocation + localToWorldDir(localPos);
-	// engine->CameraLocation already represents eye level for the current camera (that's what every other
-	// VR view in this renderer is built from - see BuildVREyeViewProjection). Adding the headset's own
-	// height-above-its-calibration-point on top of that (via localPos.z above) double-counts height and is
-	// what made the plane spawn noticeably too high; keep the horizontal (X/Y) head offset but not this one.
-	worldEyePos.z = engine->CameraLocation.z;
 
-	// Flatten pitch/roll out of the gaze direction too (in case the player's own head is tilted) and keep
-	// the plane perfectly level/upright, anchored at eye height.
-	vec3 worldForward = vec3(worldGazeDir.x, worldGazeDir.y, 0.0f);
-	if (length(worldForward) < 0.01f) // looking almost straight up/down - fall back to camera facing
-		worldForward = vec3(levelCameraRotation.XAxis.x, levelCameraRotation.XAxis.y, 0.0f);
-	worldForward = normalize(worldForward);
-
+	// Centre the plane on the gaze itself, pitch included - anchoring it at a fixed height in front of a
+	// flattened gaze put the menu above or below where the player was actually looking whenever they
+	// opened it while not looking level.
 	const vec3 worldUpAxis(0.0f, 0.0f, 1.0f);
-	vec3 worldRight = normalize(cross(worldUpAxis, worldForward));
+	vec3 worldRight = cross(worldUpAxis, worldGazeDir);
+	if (length(worldRight) < 0.01f) // looking almost straight up/down - roll is meaningless, use the camera's
+		worldRight = levelCameraRotation.YAxis;
+	worldRight = normalize(worldRight);
+	// Square-on to the gaze, but with roll taken out by construction (worldRight is always horizontal),
+	// so the menu never comes out tilted just because the player's head was.
+	vec3 worldPlaneUp = cross(worldGazeDir, worldRight);
 
 	const float planeDistance = 1.5f * MetersToUnrealUnits;
-	const float planeWidth = 1.6f * MetersToUnrealUnits;
+	const float planeWidth = 2.2f * MetersToUnrealUnits;
 	// Derived from the canvas rather than picked independently, so the menu can't end up stretched if
 	// the canvas resolution is ever changed.
 	const float planeHeight = planeWidth * (float)RenderDevice::VRMenuCanvasHeight / (float)RenderDevice::VRMenuCanvasWidth;
 
-	vec3 center = worldEyePos + worldForward * planeDistance;
+	vec3 center = worldEyePos + worldGazeDir * planeDistance;
 	vec3 halfRight = worldRight * (planeWidth * 0.5f);
-	vec3 halfUp = worldUpAxis * (planeHeight * 0.5f);
+	vec3 halfUp = worldPlaneUp * (planeHeight * 0.5f);
 
 	// Order matches VRMenuPlaneUVs (0,0)/(1,0)/(1,1)/(0,1): top-left, top-right, bottom-right, bottom-left.
 	VRMenuPlaneCorners[0] = center - halfRight + halfUp;
@@ -279,8 +281,9 @@ void RenderSubsystem::DrawVRMenuPlane()
 		return;
 
 	mat4 worldToView, providedProjection;
-	Coords head;
-	BuildVREyeViewProjection(worldToView, providedProjection, head, VRMenuFrozenCameraLocation, VRMenuFrozenCameraRotation);
+	Coords headRotation;
+	vec3 headPosition;
+	BuildVREyeView(worldToView, providedProjection, headRotation, headPosition, VRMenuFrozenCameraLocation, VRMenuFrozenCameraRotation);
 
 	FSceneNode frame;
 	frame.XB = 0;

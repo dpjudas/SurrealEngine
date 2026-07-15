@@ -36,7 +36,11 @@ public:
 		// relative to the camera. Left unset outside VR. See RenderSubsystem::DrawScene().
 		bool UseProvidedProjection = false;
 		mat4 ProvidedProjection = mat4::identity();
+		// Orientation only, with no origin - a sky must pick up the head's rotation but never its
+		// position, and keeping the two apart is also what stops Coords::ToMatrix() from applying the
+		// position with the wrong sign (see RenderSubsystem::BuildVREyeView).
 		Coords HeadCoords = Coords::Identity();
+		vec3 HeadPosition = vec3(0.0f); // the eye's offset from the camera, in camera-local axes
 	};
 
 	void Process(const ViewSetup& setup);
@@ -49,10 +53,12 @@ public:
 	BspClipper Clipper;
 	vec4 ViewLocation = vec4(0.0f);
 	Coords ViewRotation = {};
-	// The VR head pose relative to the camera (identity outside VR). ViewRotation never has this baked
-	// in - it stays the plain camera-derived rotation chain so recursive sky/portal/mirror frames can each
-	// combine it with the head pose exactly once when building their own view matrix (see DrawPortals()).
+	// The VR head orientation relative to the camera (identity outside VR), and the eye's offset from the
+	// camera in camera-local axes. ViewRotation never has these baked in - it stays the plain
+	// camera-derived rotation chain so recursive sky/portal/mirror frames can each combine the head pose
+	// exactly once when building their own view matrix (see DrawPortals()).
 	Coords HeadCoords = Coords::Identity();
+	vec3 HeadPosition = vec3(0.0f);
 	int ViewZone = 0;
 	//uint64_t ViewZoneMask = 0;
 	int FrameCounter = 0;

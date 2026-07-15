@@ -61,5 +61,19 @@ private:
 	TextLabel* VRRenderScaleLabel = nullptr;
 	LineEdit* VRRenderScale = nullptr;
 
+	TextLabel* VRMovementReferenceLabel = nullptr;
+	Dropdown* VRMovementReferences = nullptr;
+	TextLabel* VRMovementHandLabel = nullptr;
+	Dropdown* VRMovementHand = nullptr;
+	TextLabel* VRMovementDirectionHandLabel = nullptr;
+	Dropdown* VRMovementDirectionHand = nullptr;
+	TextLabel* VRTurnModeLabel = nullptr;
+	Dropdown* VRTurnModes = nullptr;
+	TextLabel* VRSnapTurnDegreesLabel = nullptr;
+	LineEdit* VRSnapTurnDegrees = nullptr;
+	TextLabel* VRSmoothTurnSpeedLabel = nullptr;
+	LineEdit* VRSmoothTurnSpeed = nullptr;
+	CheckboxLabel* VRRoomScaleMovement = nullptr;
+
 	PushButton* ResetButton = nullptr;
 };

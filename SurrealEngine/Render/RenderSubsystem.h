@@ -102,8 +102,8 @@ public:
 private:
 	void DrawGameFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 	void DrawScene();
-	void BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head) const;
-	void BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head, const vec3& cameraLocation, const Rotator& cameraRotation) const;
+	void BuildVREyeView(mat4& worldToView, mat4& projection, Coords& headRotation, vec3& headPosition, const vec3& cameraLocation, const Rotator& cameraRotation) const;
+	vec3 RemoveRoomScaleOffset(const vec3& playSpacePosition) const;
 
 	// VR menu: when the console/menu takes over the whole frame (bNoDrawWorld()), the flat 2D canvas is
 	// unreadable/out of the headset lenses' visible range if stretched across an eye's full (very wide)

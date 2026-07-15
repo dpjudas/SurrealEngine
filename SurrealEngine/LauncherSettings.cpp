@@ -71,6 +71,50 @@ LauncherSettings::LauncherSettings()
 		int vrRenderScale = settings["VR"]["RenderScale"].to_int();
 		if (vrRenderScale > 0)
 			VR.RenderScale = vrRenderScale;
+
+		std::string vrMoveRef = settings["VR"]["MovementReference"].to_string();
+		if (vrMoveRef == "Controller")
+			VR.MovementReference = VRMovementReference::Controller;
+		else if (vrMoveRef == "Head")
+			VR.MovementReference = VRMovementReference::Head;
+
+		std::string vrMoveHand = settings["VR"]["MovementHand"].to_string();
+		if (vrMoveHand == "Left")
+			VR.MovementHand = VRHand::Left;
+		else if (vrMoveHand == "Right")
+			VR.MovementHand = VRHand::Right;
+
+		// Defaults to whatever hand the stick is on, so a settings file written before this key existed
+		// keeps behaving the way it did.
+		VR.MovementDirectionHand = VR.MovementHand;
+		std::string vrMoveDirHand = settings["VR"]["MovementDirectionHand"].to_string();
+		if (vrMoveDirHand == "Left")
+			VR.MovementDirectionHand = VRHand::Left;
+		else if (vrMoveDirHand == "Right")
+			VR.MovementDirectionHand = VRHand::Right;
+
+		std::string vrTurnMode = settings["VR"]["TurnMode"].to_string();
+		if (vrTurnMode == "Snap")
+			VR.TurnMode = VRTurnMode::Snap;
+		else if (vrTurnMode == "Smooth")
+			VR.TurnMode = VRTurnMode::Smooth;
+		else if (vrTurnMode == "Off")
+			VR.TurnMode = VRTurnMode::Off;
+
+		// Same missing-key-reads-as-0 caveat as RenderScale: a 0 degree snap or turn rate would silently
+		// disable turning rather than fall back to something usable.
+		int vrSnapTurn = settings["VR"]["SnapTurnDegrees"].to_int();
+		if (vrSnapTurn > 0)
+			VR.SnapTurnDegrees = vrSnapTurn;
+		int vrSmoothTurn = settings["VR"]["SmoothTurnDegreesPerSecond"].to_int();
+		if (vrSmoothTurn > 0)
+			VR.SmoothTurnDegreesPerSecond = vrSmoothTurn;
+
+		// Defaults to true, so an explicit false has to survive a round trip - but so does a settings file
+		// written before this key existed, where a missing key reads back as false. Only take the stored
+		// value when the key is actually present.
+		if (settings["VR"].properties().find("RoomScaleMovement") != settings["VR"].properties().end())
+			VR.RoomScaleMovement = settings["VR"]["RoomScaleMovement"].to_boolean();
 	}
 	catch (...)
 	{
@@ -127,6 +171,39 @@ void LauncherSettings::Save()
 	JsonValue vr = JsonValue::object();
 	vr["Enabled"] = JsonValue::boolean(VR.Enabled);
 	vr["RenderScale"] = JsonValue::number(VR.RenderScale);
+
+	switch (VR.MovementReference)
+	{
+	default:
+	case VRMovementReference::Controller: vr["MovementReference"] = JsonValue::string("Controller"); break;
+	case VRMovementReference::Head: vr["MovementReference"] = JsonValue::string("Head"); break;
+	}
+
+	switch (VR.MovementHand)
+	{
+	default:
+	case VRHand::Left: vr["MovementHand"] = JsonValue::string("Left"); break;
+	case VRHand::Right: vr["MovementHand"] = JsonValue::string("Right"); break;
+	}
+
+	switch (VR.MovementDirectionHand)
+	{
+	default:
+	case VRHand::Left: vr["MovementDirectionHand"] = JsonValue::string("Left"); break;
+	case VRHand::Right: vr["MovementDirectionHand"] = JsonValue::string("Right"); break;
+	}
+
+	switch (VR.TurnMode)
+	{
+	default:
+	case VRTurnMode::Snap: vr["TurnMode"] = JsonValue::string("Snap"); break;
+	case VRTurnMode::Smooth: vr["TurnMode"] = JsonValue::string("Smooth"); break;
+	case VRTurnMode::Off: vr["TurnMode"] = JsonValue::string("Off"); break;
+	}
+
+	vr["SnapTurnDegrees"] = JsonValue::number(VR.SnapTurnDegrees);
+	vr["SmoothTurnDegreesPerSecond"] = JsonValue::number(VR.SmoothTurnDegreesPerSecond);
+	vr["RoomScaleMovement"] = JsonValue::boolean(VR.RoomScaleMovement);
 
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);

@@ -29,6 +29,7 @@ void VisibleFrame::Process(const ViewSetup& setup)
 	//ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
 	ViewRotation = setup.ViewRotation;
 	HeadCoords = setup.HeadCoords;
+	HeadPosition = setup.HeadPosition;
 
 	OpaqueNodes.clear();
 	Actors.clear();
@@ -51,6 +52,7 @@ VisibleFrame::ViewSetup VisibleFrame::NestedViewSetup(const VisiblePortal& porta
 	setup.UseProvidedProjection = Frame.UseProvidedProjection;
 	setup.ProvidedProjection = Frame.Projection;
 	setup.HeadCoords = HeadCoords;
+	setup.HeadPosition = HeadPosition;
 	return setup;
 }
 
@@ -417,9 +419,8 @@ void VisibleFrame::DrawPortals()
 			// ViewRotation never has the VR head pose baked in (see HeadCoords) - insert it here, locally,
 			// as a separate matrix term (mirroring exactly how the main view formula combines head and camera
 			// rotation - see RenderScene.cpp), so the skybox rotates with head movement like the main view does.
-			// Composing HeadCoords into a single Coords with ViewRotation instead would pull the head's
-			// *position* into the result too (Coords multiplication combines origins), which a sky - meant to
-			// be infinitely far away and rotation-only - must never pick up.
+			// HeadPosition is deliberately not applied: a sky is meant to be infinitely far away, so it must
+			// track the head's rotation but never be translated by leaning.
 			// The pure ViewRotation (without head) is still what gets passed down for any further nested
 			// portals inside the sky, so the head pose only ever gets combined in once per level instead of
 			// accumulating.
@@ -446,10 +447,16 @@ void VisibleFrame::DrawPortals()
 			// Warp camera
 			vec3 newLocation = WarpLocationToOtherSide(portal.WarpZone, ViewLocation.xyz());
 			Coords rotation = WarpRotationToOtherSide(portal.WarpZone, ViewRotation);
-			// Same head-pose handling as the sky case above: combine as a separate matrix term for this level's
-			// view matrix (not by composing Coords, which would also pull in the head's position), keeping the
-			// pure (head-free) `rotation` for what gets passed down to nested portals.
-			mat4 worldToView = Coords::ViewToRenderDev().ToMatrix() * HeadCoords.Inverse().ToMatrix() * rotation.Inverse().ToMatrix() * mat4::translate(-newLocation);
+			// Same head-pose handling as the sky case above, keeping the pure (head-free) `rotation` for
+			// what gets passed down to nested portals. Unlike the sky this is a real view into real
+			// geometry, so the head's position applies here too - as its own term, in camera-local axes,
+			// after the warped camera rotation.
+			mat4 worldToView =
+				Coords::ViewToRenderDev().ToMatrix() *
+				HeadCoords.Inverse().ToMatrix() *
+				Coords::Location(HeadPosition).ToMatrix() *
+				rotation.Inverse().ToMatrix() *
+				mat4::translate(-newLocation);
 
 			// Find clipping plane for portal and warp it
 			auto node = portal.Nodes.front().Node;

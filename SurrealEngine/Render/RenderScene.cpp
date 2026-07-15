@@ -31,7 +31,7 @@ void RenderSubsystem::DrawScene()
 
 	if (CurrentVREye)
 	{
-		BuildVREyeViewProjection(setup.WorldToView, setup.ProvidedProjection, setup.HeadCoords);
+		BuildVREyeView(setup.WorldToView, setup.ProvidedProjection, setup.HeadCoords, setup.HeadPosition, engine->CameraLocation, engine->CameraRotation);
 		setup.UseProvidedProjection = true;
 	}
 	else
@@ -44,12 +44,28 @@ void RenderSubsystem::DrawScene()
 	MainFrame.DrawCoronas();
 }
 
-void RenderSubsystem::BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head) const
+vec3 RenderSubsystem::RemoveRoomScaleOffset(const vec3& playSpacePosition) const
 {
-	BuildVREyeViewProjection(worldToView, projection, head, engine->CameraLocation, engine->CameraRotation);
+	// Room-scale walking has already moved the pawn - and with it the camera this offset is applied on
+	// top of - to sit underneath the head, so the head's horizontal offset from the play space anchor
+	// must not be applied a second time here. What is left over is the eye's offset from the head
+	// itself: the IPD, which stereo depends on, plus how far the head is above the camera.
+	//
+	// Note that this subtracts the offset the pawn was actually moved to match, not the one the head
+	// has right this instant. The two are a frame apart (the pawn moves during the input tick, from the
+	// pose the previous frame located), and it is the applied one that the camera's position
+	// corresponds to, so it is the one that cancels exactly.
+	//
+	// Reads back zero when room-scale movement is off, which leaves the whole head offset in place as a
+	// pure view offset - i.e. the pawn stays put and the player's viewpoint moves on its own.
+	if (!engine->vrInput)
+		return playSpacePosition;
+
+	vec2 applied = engine->vrInput->GetAppliedHeadOffset();
+	return vec3(playSpacePosition.x - applied.x, playSpacePosition.y - applied.y, playSpacePosition.z);
 }
 
-void RenderSubsystem::BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head, const vec3& cameraLocation, const Rotator& cameraRotation) const
+void RenderSubsystem::BuildVREyeView(mat4& worldToView, mat4& projection, Coords& headRotation, vec3& headPosition, const vec3& cameraLocation, const Rotator& cameraRotation) const
 {
 	// The head pose is relative to the play space anchor - CameraLocation/CameraRotation (still driven
 	// by PlayerCalcView/mouse yaw as usual) - not a replacement for it. Caller must ensure CurrentVREye
@@ -57,12 +73,24 @@ void RenderSubsystem::BuildVREyeViewProjection(mat4& worldToView, mat4& projecti
 	// in separately (rather than always reading engine->CameraLocation/CameraRotation) so DrawVRMenuPlane()
 	// can render against a frozen camera reference instead of a live one that might still be animating
 	// (e.g. a cinematic) - see VRMenuFrozenCameraLocation/Rotation.
-	head.Origin = CurrentVREye->Position;
-	head.XAxis = CurrentVREye->Forward;
-	head.YAxis = CurrentVREye->Right;
-	head.ZAxis = CurrentVREye->Up;
+	//
+	// The head's orientation and its position must go in as two separate terms. Coords::ToMatrix() emits
+	// the origin as a plain negated translation without rotating it into the axes, which only agrees with
+	// Coords' own operator* when the axes are identity. Coords::Location() is identity-axed so it is fine,
+	// but a Coords carrying the eye's orientation *and* its position is not: folding them together makes
+	// the matrix place the eye at -Position instead of +Position, i.e. head movement comes out inverted.
+	headRotation.Origin = vec3(0.0f);
+	headRotation.XAxis = CurrentVREye->Forward;
+	headRotation.YAxis = CurrentVREye->Right;
+	headRotation.ZAxis = CurrentVREye->Up;
+	headPosition = RemoveRoomScaleOffset(CurrentVREye->Position);
 
-	worldToView = Coords::ViewToRenderDev().ToMatrix() * head.Inverse().ToMatrix() * Coords::Rotation(cameraRotation).Inverse().ToMatrix() * Coords::Location(cameraLocation).ToMatrix();
+	worldToView =
+		Coords::ViewToRenderDev().ToMatrix() *
+		headRotation.Inverse().ToMatrix() *
+		Coords::Location(headPosition).ToMatrix() *
+		Coords::Rotation(cameraRotation).Inverse().ToMatrix() *
+		Coords::Location(cameraLocation).ToMatrix();
 
 	const float n = 1.0f; // matches the near plane used below and by every other Projection in this renderer
 	projection = mat4::frustum(std::tan(CurrentVREye->AngleLeft) * n, std::tan(CurrentVREye->AngleRight) * n, std::tan(CurrentVREye->AngleDown) * n, std::tan(CurrentVREye->AngleUp) * n, n, 32768.0f, handedness::left, clipzrange::zero_positive_w);
