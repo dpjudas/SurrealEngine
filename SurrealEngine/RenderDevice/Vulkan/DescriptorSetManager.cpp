@@ -22,6 +22,7 @@ void DescriptorSetManager::ClearCache()
 {
 	Textures.WriteBindless = WriteDescriptors();
 	Textures.NextBindlessIndex = 0;
+	Textures.ForeignViewIndex.clear();
 }
 
 int DescriptorSetManager::GetTextureArrayIndex(uint32_t PolyFlags, CachedTexture* tex, bool clamp)
@@ -62,6 +63,27 @@ int DescriptorSetManager::GetTextureArrayIndex(uint32_t PolyFlags, CachedTexture
 	Textures.WriteBindless.AddCombinedImageSampler(Textures.BindlessSet.get(), 0, index, tex->imageView.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	tex->BindlessIndex[samplermode] = index;
+	return index;
+}
+
+int DescriptorSetManager::GetOrAddBindlessIndex(VulkanImageView* view, VulkanSampler* sampler)
+{
+	if (Textures.NextBindlessIndex == 0)
+	{
+		Textures.WriteBindless.AddCombinedImageSampler(Textures.BindlessSet.get(), 0, 0, renderer->Textures->NullTextureView.get(), renderer->Samplers->Samplers[0].get(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		Textures.NextBindlessIndex = 1;
+	}
+
+	auto it = Textures.ForeignViewIndex.find(view);
+	if (it != Textures.ForeignViewIndex.end())
+		return it->second;
+
+	if (Textures.NextBindlessIndex == MaxBindlessTextures)
+		return 0; // Out of texture slots
+
+	int index = Textures.NextBindlessIndex++;
+	Textures.WriteBindless.AddCombinedImageSampler(Textures.BindlessSet.get(), 0, index, view, sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	Textures.ForeignViewIndex[view] = index;
 	return index;
 }
 

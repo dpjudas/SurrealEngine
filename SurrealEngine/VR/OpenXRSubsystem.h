@@ -12,6 +12,7 @@
 class OpenXRSubsystem : public VRSubsystem
 {
 public:
+	explicit OpenXRSubsystem(int renderScalePercent);
 	~OpenXRSubsystem() override;
 
 	// Creates the XrInstance and finds a HMD system. Must succeed before any of the
@@ -32,7 +33,7 @@ public:
 	bool LocateViews(EyeView outViews[EyeCount]) override;
 	VkImage AcquireSwapchainImage(int eyeIndex) override;
 	void ReleaseSwapchainImage(int eyeIndex) override;
-	void EndFrame(const EyeView views[EyeCount]) override;
+	void EndFrame() override;
 
 	int GetRecommendedEyeWidth() const override { return EyeWidth; }
 	int GetRecommendedEyeHeight() const override { return EyeHeight; }
@@ -51,6 +52,7 @@ private:
 	XrSessionState CurrentSessionState = XR_SESSION_STATE_UNKNOWN;
 	bool SessionActive = false;
 
+	int RenderScalePercent = 100; // clamped in the constructor; see InitSession
 	int EyeWidth = 0;
 	int EyeHeight = 0;
 	VkFormat SwapchainFormat = VK_FORMAT_UNDEFINED;
@@ -64,6 +66,12 @@ private:
 
 	XrFrameState FrameState = { XR_TYPE_FRAME_STATE };
 	XrView Views[EyeCount] = { { XR_TYPE_VIEW }, { XR_TYPE_VIEW } };
+
+	// Reset by BeginFrame. A projection layer may only be submitted to xrEndFrame if the poses it is
+	// built from are this frame's and every swapchain it names had an image released, so EndFrame() uses
+	// these to decide whether it has a complete frame to show or has to submit an empty one.
+	bool ViewsLocated = false;
+	int EyesReleased = 0;
 
 	PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtensionsKHR_ = nullptr;
 	PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtensionsKHR_ = nullptr;

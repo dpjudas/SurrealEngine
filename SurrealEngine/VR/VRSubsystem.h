@@ -17,6 +17,11 @@ typedef struct VkPhysicalDevice_T* VkPhysicalDevice;
 typedef struct VkDevice_T* VkDevice;
 typedef struct VkImage_T* VkImage;
 
+// 1 Unreal unit = 1.905 cm, a long-standing UE1/UT community reverse-engineered constant. OpenXR works
+// in metres, so everything crossing that boundary - head poses, and anything placed relative to the
+// player in real-world units, like the VR menu plane - has to go through this.
+static constexpr float MetersToUnrealUnits = 52.4934f;
+
 // Optional VR support (head tracking + stereo rendering). Off by default at runtime.
 // See VRSubsystem::Create. All virtuals default to inert/no-op behavior so callers
 // never need to branch on whether VR was compiled in - only on IsActive().
@@ -26,7 +31,10 @@ public:
 	// Returns a NullVRSubsystem when !enabled, when not built with USE_OPENXR, or when
 	// no OpenXR runtime could be reached - VR failing to initialize must never prevent
 	// the desktop game from starting.
-	static std::unique_ptr<VRSubsystem> Create(bool enabled);
+	//
+	// renderScalePercent scales the runtime's recommended per-eye resolution; it is clamped to something
+	// sane, so an unset or nonsense value can't produce an unusable swapchain. See OpenXRSubsystem::InitSession.
+	static std::unique_ptr<VRSubsystem> Create(bool enabled, int renderScalePercent);
 
 	virtual ~VRSubsystem() = default;
 
@@ -63,12 +71,16 @@ public:
 
 	// Per-frame sequence: WaitFrame -> BeginFrame -> LocateViews -> for each eye:
 	// AcquireSwapchainImage, render, ReleaseSwapchainImage -> EndFrame.
+	//
+	// Every BeginFrame must be matched by an EndFrame, including when LocateViews or an eye's
+	// AcquireSwapchainImage failed part way through - EndFrame submits the eyes that were actually
+	// rendered and released this frame, or no image at all if they weren't all there.
 	virtual bool WaitFrame() { return false; }
 	virtual void BeginFrame() {}
 	virtual bool LocateViews(EyeView outViews[EyeCount]) { return false; }
 	virtual VkImage AcquireSwapchainImage(int eyeIndex) { return nullptr; }
 	virtual void ReleaseSwapchainImage(int eyeIndex) {}
-	virtual void EndFrame(const EyeView views[EyeCount]) {}
+	virtual void EndFrame() {}
 
 	virtual int GetRecommendedEyeWidth() const { return 0; }
 	virtual int GetRecommendedEyeHeight() const { return 0; }

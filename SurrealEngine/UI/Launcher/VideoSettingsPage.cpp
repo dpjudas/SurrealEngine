@@ -44,6 +44,8 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 	VRLabel = new TextLabel(this);
 	EnableVR = new CheckboxLabel(this);
+	VRRenderScaleLabel = new TextLabel(this);
+	VRRenderScale = new LineEdit(this);
 
 	ResetButton = new PushButton(this);
 
@@ -72,9 +74,11 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	EnableVR->SetText("Enable VR (not available - this build was compiled without OpenXR support)");
 	EnableVR->SetDisabled(true);
 #endif
+	VRRenderScaleLabel->SetText("VR render scale (% of headset's recommended resolution)");
 
 	ResetButton->SetText("Reset to defaults");
 
+	VRRenderScale->SetIntrinsicSize(3);
 	HdrScale->SetIntrinsicSize(3);
 	BloomAmount->SetIntrinsicSize(3);
 
@@ -115,6 +119,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	BloomAmount->SetTextInt(settings.RenderDevice.BloomAmount);
 	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
 	EnableVR->SetChecked(settings.VR.Enabled);
+	VRRenderScale->SetTextInt(settings.VR.RenderScale);
 	UpdateVREnabledState();
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
@@ -153,6 +158,11 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	bloomAmountLayout->AddWidget(BloomAmount);
 	bloomAmountLayout->AddStretch();
 
+	auto vrRenderScaleLayout = new HBoxLayout();
+	vrRenderScaleLayout->AddWidget(VRRenderScaleLabel);
+	vrRenderScaleLayout->AddWidget(VRRenderScale);
+	vrRenderScaleLayout->AddStretch();
+
 	auto resetButtonLayout = new HBoxLayout();
 	resetButtonLayout->AddWidget(ResetButton);
 	resetButtonLayout->AddStretch();
@@ -183,6 +193,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 	mainLayout->AddWidget(VRLabel);
 	mainLayout->AddWidget(EnableVR);
+	mainLayout->AddLayout(vrRenderScaleLayout);
 
 	mainLayout->AddLayout(resetButtonLayout);
 
@@ -232,6 +243,10 @@ void VideoSettingsPage::Save()
 	settings.RenderDevice.BloomAmount = BloomAmount->GetTextInt();
 	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
 	settings.VR.Enabled = EnableVR->GetChecked() && settings.RenderDevice.Type == RenderDeviceType::Vulkan;
+	// Clamped again on the way into OpenXRSubsystem, but keep the file itself sane.
+	int vrRenderScale = VRRenderScale->GetTextInt();
+	if (vrRenderScale > 0)
+		settings.VR.RenderScale = std::max(std::min(vrRenderScale, 200), 10);
 }
 
 void VideoSettingsPage::UpdateVREnabledState()
@@ -261,5 +276,6 @@ void VideoSettingsPage::OnResetButtonClicked()
 	BloomAmount->SetTextInt(128);
 	UseDebugLayer->SetChecked(false);
 	EnableVR->SetChecked(false);
+	VRRenderScale->SetTextInt(60);
 	UpdateVREnabledState();
 }

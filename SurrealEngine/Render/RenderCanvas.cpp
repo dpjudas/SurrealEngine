@@ -13,7 +13,14 @@ void RenderSubsystem::ResetCanvas()
 	// While rendering a VR eye, the canvas has to be sized to the eye's render target (the headset's
 	// recommended eye resolution), not the desktop window - the two can have very different sizes/aspects.
 	int width, height;
-	if (CurrentVREye && engine->vr)
+	if (DrawingVRMenuCanvas)
+	{
+		// The offscreen canvas the VR menu plane gets rendered to (see DrawUICanvas()), not an eye or
+		// the desktop window.
+		width = RenderDevice::VRMenuCanvasWidth;
+		height = RenderDevice::VRMenuCanvasHeight;
+	}
+	else if (CurrentVREye && engine->vr)
 	{
 		width = engine->vr->GetRecommendedEyeWidth();
 		height = engine->vr->GetRecommendedEyeHeight();

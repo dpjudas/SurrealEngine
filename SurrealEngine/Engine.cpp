@@ -93,7 +93,8 @@ void Engine::Run()
 	LogMessage("Loaded key bindings");
 	LogGamePackageSHA1Sums();
 
-	vr = VRSubsystem::Create(LauncherSettings::Get().VR.Enabled && LauncherSettings::Get().RenderDevice.Type == RenderDeviceType::Vulkan);
+	const LauncherSettings& launcherSettings = LauncherSettings::Get();
+	vr = VRSubsystem::Create(launcherSettings.VR.Enabled && launcherSettings.RenderDevice.Type == RenderDeviceType::Vulkan, launcherSettings.VR.RenderScale);
 
 	OpenWindow();
 

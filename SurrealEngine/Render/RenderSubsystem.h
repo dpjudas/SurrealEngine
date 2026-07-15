@@ -102,6 +102,18 @@ public:
 private:
 	void DrawGameFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 	void DrawScene();
+	void BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head) const;
+	void BuildVREyeViewProjection(mat4& worldToView, mat4& projection, Coords& head, const vec3& cameraLocation, const Rotator& cameraRotation) const;
+
+	// VR menu: when the console/menu takes over the whole frame (bNoDrawWorld()), the flat 2D canvas is
+	// unreadable/out of the headset lenses' visible range if stretched across an eye's full (very wide)
+	// viewport like normal gameplay HUD is. Instead it's rendered once to an offscreen canvas (DrawUICanvas)
+	// and then drawn as a single quad positioned in 3D world space (DrawVRMenuPlane), through the same
+	// per-eye VR projection used for real 3D geometry, so it's fully visible with correct stereo depth.
+	void DrawUICanvas();
+	void CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeViews[2]);
+	void DrawVRMenuPlane();
+	void DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 
@@ -125,6 +137,18 @@ private:
 	float AmbientGlowAmount = 0.0f;
 
 	const VRSubsystem::EyeView* CurrentVREye = nullptr; // Set only while DrawScene() is rendering a VR eye (see DrawGame)
+
+	// See DrawUICanvas() / CaptureVRMenuPlaneAnchor() / DrawVRMenuPlane().
+	bool DrawingVRMenuCanvas = false;
+	bool WasVRMenuOpen = false;
+	vec3 VRMenuPlaneCorners[4] = {};
+	vec2 VRMenuPlaneUVs[4] = { vec2(0.0f, 0.0f), vec2(1.0f, 0.0f), vec2(1.0f, 1.0f), vec2(0.0f, 1.0f) };
+	// The camera transform at the moment the menu opened, frozen for as long as it stays open - a scripted
+	// cinematic camera (e.g. the intro flythrough) keeps ticking/animating even while bNoDrawWorld() is
+	// true, so re-deriving the live camera transform every frame would make the (world-space-fixed) menu
+	// plane appear to drift as the cinematic keeps moving, even though the player's own head hasn't.
+	vec3 VRMenuFrozenCameraLocation = vec3(0.0f);
+	Rotator VRMenuFrozenCameraRotation = Rotator(0, 0, 0);
 
 	struct
 	{

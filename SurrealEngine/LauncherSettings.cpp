@@ -66,6 +66,11 @@ LauncherSettings::LauncherSettings()
 		Games.LastSelected = settings["Games"]["LastSelected"].to_int();
 
 		VR.Enabled = settings["VR"]["Enabled"].to_boolean();
+		// A missing key reads back as 0, which would mean a zero-sized eye swapchain, so keep the
+		// default unless the file actually holds something usable.
+		int vrRenderScale = settings["VR"]["RenderScale"].to_int();
+		if (vrRenderScale > 0)
+			VR.RenderScale = vrRenderScale;
 	}
 	catch (...)
 	{
@@ -121,6 +126,7 @@ void LauncherSettings::Save()
 
 	JsonValue vr = JsonValue::object();
 	vr["Enabled"] = JsonValue::boolean(VR.Enabled);
+	vr["RenderScale"] = JsonValue::number(VR.RenderScale);
 
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);

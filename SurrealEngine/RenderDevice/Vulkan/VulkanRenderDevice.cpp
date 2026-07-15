@@ -205,7 +205,28 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 		RenderPasses->CreateRenderPass();
 		RenderPasses->CreatePipelines();
 		Framebuffers->CreateSceneFramebuffer();
+
+		// Any bindless slot handed out for a view of the scene we just destroyed (see
+		// GetOrAddBindlessIndex, which the VR menu plane uses to sample the UI canvas) now refers to a
+		// dead VulkanImageView, and its cache is keyed on the view pointer - which a new view could be
+		// handed the same address for. Rebuild the whole bindless set rather than try to patch it.
+		DescriptorSets->ClearCache();
+		Textures->ClearAllBindlessIndexes();
+
+		// The new SceneTextures can easily be handed the address the old one just freed, so the pointer
+		// check below would otherwise think the descriptors still match and keep sampling dead views.
+		FrameDescriptorsScene = nullptr;
+	}
+
+	// Present and Bloom sample whatever scene is currently swapped in, so their descriptors have to
+	// follow SwapSceneResources, not just texture (re)creation. Binding them only on creation left them
+	// pointing at whichever target was built last - in VR that is the right eye, while it is the left
+	// eye's Unlock() that presents, so the desktop mirror showed the wrong eye a frame late. The UI
+	// canvas is neither presented nor bloomed, so leave the binding alone while it is current.
+	if (CurrentTarget != RenderTarget::VRMenuCanvas && FrameDescriptorsScene != Textures->Scene.get())
+	{
 		DescriptorSets->UpdateFrameDescriptors();
+		FrameDescriptorsScene = Textures->Scene.get();
 	}
 
 	auto cmdbuffer = Commands->GetDrawCommands();
@@ -281,7 +302,7 @@ void VulkanRenderDevice::Unlock(bool Blit)
 	Commands->GetDrawCommands()->endRenderPass();
 
 	BlitSceneToPostprocess();
-	if (Bloom && CurrentEye < 0) // Bloom is not supported for VR eyes yet - they don't have their own bloom framebuffers
+	if (Bloom && CurrentTarget == RenderTarget::Desktop) // Bloom is not supported for VR eyes or the VR menu canvas yet - they don't have their own bloom framebuffers
 	{
 		RunBloomPass();
 	}
@@ -1002,6 +1023,17 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	viewportdesc.maxDepth = 1.0f;
 	commands->setViewport(0, 1, &viewportdesc);
 
+	// The Scene pipelines bake a static scissor at creation time sized to whatever render target
+	// triggered that (see RenderPassManager::CreatePipelines()), which is now wrong as soon as a
+	// differently-sized target (e.g. an eye vs. the VR menu's UI canvas) gets used afterwards without
+	// a resize in between - scissor needs to track the viewport dynamically too, same as it does already.
+	VkRect2D scissor = {};
+	scissor.offset.x = Frame->XB;
+	scissor.offset.y = Frame->YB;
+	scissor.extent.width = (uint32_t)Frame->X;
+	scissor.extent.height = (uint32_t)Frame->Y;
+	commands->setScissor(0, 1, &scissor);
+
 	// TBD; do this or do like UE1 does and do the transform on the CPU?
 	// maybe optionally do one or the other? transform on CPU can be super slow --Xaleros
 	mat4 projection = Frame->UseProvidedProjection ? Frame->Projection
@@ -1014,12 +1046,41 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 
 int VulkanRenderDevice::GetSceneWidth() const
 {
-	return CurrentEye >= 0 ? VRSys->GetRecommendedEyeWidth() : Viewport->GetNativePixelWidth();
+	switch (CurrentTarget)
+	{
+	case RenderTarget::Eye: return VRSys->GetRecommendedEyeWidth();
+	case RenderTarget::VRMenuCanvas: return VRMenuCanvasWidth;
+	default: return Viewport->GetNativePixelWidth();
+	}
 }
 
 int VulkanRenderDevice::GetSceneHeight() const
 {
-	return CurrentEye >= 0 ? VRSys->GetRecommendedEyeHeight() : Viewport->GetNativePixelHeight();
+	switch (CurrentTarget)
+	{
+	case RenderTarget::Eye: return VRSys->GetRecommendedEyeHeight();
+	case RenderTarget::VRMenuCanvas: return VRMenuCanvasHeight;
+	default: return Viewport->GetNativePixelHeight();
+	}
+}
+
+// Exchanges `resources` with the scene textures and framebuffers currently installed on the managers,
+// leaving the previously installed set in `resources`. CreateSceneFramebuffer() rebuilds every one of
+// these from whatever Textures->Scene happens to be, so they all have to travel together or the ones
+// left behind would point at another target's (later destroyed) images. Because this is a swap rather
+// than a copy, calling it a second time with the same set restores what was there before, which is what
+// makes the Begin/End pairs below symmetric.
+void VulkanRenderDevice::SwapSceneResources(SceneResources& resources)
+{
+	std::swap(resources.Scene, Textures->Scene);
+	std::swap(resources.SceneFramebuffer, Framebuffers->SceneFramebuffer);
+	for (int i = 0; i < 2; i++)
+		std::swap(resources.PPImageFB[i], Framebuffers->PPImageFB[i]);
+	for (int level = 0; level < NumBloomLevels; level++)
+	{
+		std::swap(resources.BloomBlurLevels[level].VTextureFB, Framebuffers->BloomBlurLevels[level].VTextureFB);
+		std::swap(resources.BloomBlurLevels[level].HTextureFB, Framebuffers->BloomBlurLevels[level].HTextureFB);
+	}
 }
 
 void VulkanRenderDevice::BeginEyeFrame(int eyeIndex)
@@ -1027,28 +1088,8 @@ void VulkanRenderDevice::BeginEyeFrame(int eyeIndex)
 	if (!VRSys || !VRSys->IsActive())
 		return;
 
-	DesktopResources.Scene = std::move(Textures->Scene);
-	DesktopResources.SceneFramebuffer = std::move(Framebuffers->SceneFramebuffer);
-	for (int i = 0; i < 2; i++)
-		DesktopResources.PPImageFB[i] = std::move(Framebuffers->PPImageFB[i]);
-	for (int level = 0; level < NumBloomLevels; level++)
-	{
-		DesktopResources.BloomBlurLevels[level].VTextureFB = std::move(Framebuffers->BloomBlurLevels[level].VTextureFB);
-		DesktopResources.BloomBlurLevels[level].HTextureFB = std::move(Framebuffers->BloomBlurLevels[level].HTextureFB);
-	}
-
-	VREyeResources& eye = VREye[eyeIndex];
-	Textures->Scene = std::move(eye.Scene);
-	Framebuffers->SceneFramebuffer = std::move(eye.SceneFramebuffer);
-	for (int i = 0; i < 2; i++)
-		Framebuffers->PPImageFB[i] = std::move(eye.PPImageFB[i]);
-	for (int level = 0; level < NumBloomLevels; level++)
-	{
-		Framebuffers->BloomBlurLevels[level].VTextureFB = std::move(eye.BloomBlurLevels[level].VTextureFB);
-		Framebuffers->BloomBlurLevels[level].HTextureFB = std::move(eye.BloomBlurLevels[level].HTextureFB);
-	}
-
-	CurrentEye = eyeIndex;
+	SwapSceneResources(VREye[eyeIndex]);
+	CurrentTarget = RenderTarget::Eye;
 }
 
 void VulkanRenderDevice::EndEyeFrame(int eyeIndex)
@@ -1086,28 +1127,71 @@ void VulkanRenderDevice::EndEyeFrame(int eyeIndex)
 		VRSys->ReleaseSwapchainImage(eyeIndex);
 	}
 
-	VREyeResources& eye = VREye[eyeIndex];
-	eye.Scene = std::move(Textures->Scene);
-	eye.SceneFramebuffer = std::move(Framebuffers->SceneFramebuffer);
-	for (int i = 0; i < 2; i++)
-		eye.PPImageFB[i] = std::move(Framebuffers->PPImageFB[i]);
-	for (int level = 0; level < NumBloomLevels; level++)
-	{
-		eye.BloomBlurLevels[level].VTextureFB = std::move(Framebuffers->BloomBlurLevels[level].VTextureFB);
-		eye.BloomBlurLevels[level].HTextureFB = std::move(Framebuffers->BloomBlurLevels[level].HTextureFB);
-	}
+	SwapSceneResources(VREye[eyeIndex]);
+	CurrentTarget = RenderTarget::Desktop;
+}
 
-	Textures->Scene = std::move(DesktopResources.Scene);
-	Framebuffers->SceneFramebuffer = std::move(DesktopResources.SceneFramebuffer);
-	for (int i = 0; i < 2; i++)
-		Framebuffers->PPImageFB[i] = std::move(DesktopResources.PPImageFB[i]);
-	for (int level = 0; level < NumBloomLevels; level++)
-	{
-		Framebuffers->BloomBlurLevels[level].VTextureFB = std::move(DesktopResources.BloomBlurLevels[level].VTextureFB);
-		Framebuffers->BloomBlurLevels[level].HTextureFB = std::move(DesktopResources.BloomBlurLevels[level].HTextureFB);
-	}
+void VulkanRenderDevice::BeginUICanvasFrame()
+{
+	if (!VRSys || !VRSys->IsActive())
+		return;
 
-	CurrentEye = -1;
+	SwapSceneResources(UICanvas);
+	CurrentTarget = RenderTarget::VRMenuCanvas;
+}
+
+void VulkanRenderDevice::EndUICanvasFrame()
+{
+	if (!VRSys || !VRSys->IsActive())
+		return;
+
+	// Unlike EndEyeFrame, nothing needs blitting anywhere here - Unlock() already left PPImage[0] in
+	// SHADER_READ_ONLY_OPTIMAL via BlitSceneToPostprocess(), ready to be sampled by DrawVRMenuPlane().
+	SwapSceneResources(UICanvas);
+	CurrentTarget = RenderTarget::Desktop;
+}
+
+void VulkanRenderDevice::DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4])
+{
+	if (!UICanvas.Scene)
+		return;
+
+	SetSceneNode(Frame);
+
+	uint32_t PolyFlags = ApplyPrecedenceRules(0); // opaque, depth-tested (PF_Occlude)
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
+
+	int textureIndex = DescriptorSets->GetOrAddBindlessIndex(UICanvas.Scene->PPImageView[0].get(), Samplers->PPLinearClamp.get());
+	ivec4 textureBinds(textureIndex, 0, 0, 0);
+
+	auto alloc = ReserveVertices(4, 6);
+	if (alloc.vptr)
+	{
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
+
+		for (int i = 0; i < 4; i++)
+		{
+			vptr[i].Flags = 0;
+			vptr[i].Position = Corners[i];
+			vptr[i].TexCoord = UVs[i];
+			vptr[i].TexCoord2 = vec2(0.0f);
+			vptr[i].TexCoord3 = vec2(0.0f);
+			vptr[i].TexCoord4 = vec2(0.0f);
+			vptr[i].Color = vec4(1.0f);
+			vptr[i].TextureBinds = textureBinds;
+		}
+
+		iptr[0] = vpos;
+		iptr[1] = vpos + 1;
+		iptr[2] = vpos + 2;
+		iptr[3] = vpos;
+		iptr[4] = vpos + 2;
+		iptr[5] = vpos + 3;
+
+		UseVertices(4, 6);
+	}
 }
 
 void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)

@@ -3,12 +3,10 @@
 #include "OpenXRSubsystem.h"
 #include "Math/quaternion.h"
 #include "Utils/Logger.h"
+#include <algorithm>
 #include <chrono>
 #include <thread>
 #include <cstring>
-
-// 1 Unreal unit = 1.905 cm, a long-standing UE1/UT community reverse-engineered constant.
-static constexpr float MetersToUnrealUnits = 52.4934f;
 
 namespace
 {
@@ -19,6 +17,13 @@ namespace
 		LogMessage(std::string("OpenXR: ") + what + " failed");
 		return false;
 	}
+}
+
+OpenXRSubsystem::OpenXRSubsystem(int renderScalePercent)
+{
+	// Clamped rather than trusted: this ends up as a swapchain size, so 0 or a wild value would be an
+	// unrecoverable failure much further down.
+	RenderScalePercent = std::max(std::min(renderScalePercent, 200), 10);
 }
 
 OpenXRSubsystem::~OpenXRSubsystem()
@@ -205,13 +210,15 @@ bool OpenXRSubsystem::InitSession(VkInstance instance, VkPhysicalDevice physical
 	// SteamVR's OpenXR runtime can recommend a per-eye size far larger than the headset's native
 	// panel resolution (e.g. 2168x2412 on an Index, whose panels are ~1440x1600) - and its compositor
 	// does not handle a swapchain that large correctly, silently only displaying a fraction of it even
-	// though the image itself renders and uploads fine. Scaling down avoids that. Confirmed on Index/SteamVR;
-	// unclear if this is universal to OpenXR runtimes, so keep an eye out if other headsets hit the same "recommended"
-	// oddity in the other direction (too small for a good picture, in which case this scale should be revisited).
-	EyeWidth = (int)views[0].recommendedImageRectWidth * 6 / 10;
-	EyeHeight = (int)views[0].recommendedImageRectHeight * 6 / 10;
+	// though the image itself renders and uploads fine. Rendering below the recommendation avoids that,
+	// which is why RenderScalePercent defaults to well under 100. Confirmed on Index/SteamVR; unclear if
+	// this is universal to OpenXR runtimes, hence a setting rather than a constant - another headset may
+	// well want 100 here for a sharper picture.
+	EyeWidth = (int)views[0].recommendedImageRectWidth * RenderScalePercent / 100;
+	EyeHeight = (int)views[0].recommendedImageRectHeight * RenderScalePercent / 100;
 	LogMessage("OpenXR: eye size = " + std::to_string(EyeWidth) + "x" + std::to_string(EyeHeight) +
-		" (recommended was " + std::to_string(views[0].recommendedImageRectWidth) + "x" + std::to_string(views[0].recommendedImageRectHeight) + ")");
+		" (recommended was " + std::to_string(views[0].recommendedImageRectWidth) + "x" + std::to_string(views[0].recommendedImageRectHeight) +
+		", render scale " + std::to_string(RenderScalePercent) + "%)");
 
 	uint32_t formatCount = 0;
 	xrEnumerateSwapchainFormats(Session, 0, &formatCount, nullptr);
@@ -315,6 +322,9 @@ bool OpenXRSubsystem::WaitFrame()
 
 void OpenXRSubsystem::BeginFrame()
 {
+	ViewsLocated = false;
+	EyesReleased = 0;
+
 	XrFrameBeginInfo beginInfo = { XR_TYPE_FRAME_BEGIN_INFO };
 	xrBeginFrame(Session, &beginInfo);
 }
@@ -361,6 +371,7 @@ bool OpenXRSubsystem::LocateViews(EyeView outViews[EyeCount])
 
 	for (int eye = 0; eye < EyeCount; eye++)
 		outViews[eye] = ConvertView(Views[eye]);
+	ViewsLocated = true;
 	return true;
 }
 
@@ -384,11 +395,17 @@ VkImage OpenXRSubsystem::AcquireSwapchainImage(int eyeIndex)
 void OpenXRSubsystem::ReleaseSwapchainImage(int eyeIndex)
 {
 	XrSwapchainImageReleaseInfo releaseInfo = { XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
-	xrReleaseSwapchainImage(Eyes[eyeIndex].Swapchain, &releaseInfo);
+	if (XR_SUCCEEDED_LOG(xrReleaseSwapchainImage(Eyes[eyeIndex].Swapchain, &releaseInfo), "xrReleaseSwapchainImage"))
+		EyesReleased++;
 }
 
-void OpenXRSubsystem::EndFrame(const EyeView views[EyeCount])
+void OpenXRSubsystem::EndFrame()
 {
+	// Submitting the projection layer without a fresh pose for every eye and a released image behind it
+	// would have the runtime reject the whole frame (and, since we can't fix it up here, silently drop
+	// it): the poses would be last frame's, and the swapchains would still be checked out to us.
+	bool haveCompleteFrame = FrameState.shouldRender && ViewsLocated && EyesReleased == EyeCount;
+
 	XrCompositionLayerProjectionView projViews[EyeCount] = { { XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW }, { XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW } };
 	for (int eye = 0; eye < EyeCount; eye++)
 	{
@@ -410,7 +427,7 @@ void OpenXRSubsystem::EndFrame(const EyeView views[EyeCount])
 	XrFrameEndInfo endInfo = { XR_TYPE_FRAME_END_INFO };
 	endInfo.displayTime = FrameState.predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-	endInfo.layerCount = FrameState.shouldRender ? 1 : 0;
-	endInfo.layers = FrameState.shouldRender ? layers : nullptr;
-	xrEndFrame(Session, &endInfo);
+	endInfo.layerCount = haveCompleteFrame ? 1 : 0;
+	endInfo.layers = haveCompleteFrame ? layers : nullptr;
+	XR_SUCCEEDED_LOG(xrEndFrame(Session, &endInfo), "xrEndFrame");
 }

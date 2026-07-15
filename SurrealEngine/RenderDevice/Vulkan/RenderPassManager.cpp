@@ -118,6 +118,7 @@ void RenderPassManager::CreatePipelines()
 		builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
 		builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
 		builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR);
 		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
 		builder.Layout(layout);
 		builder.RenderPass(Scene.RenderPass.get());
@@ -204,6 +205,7 @@ void RenderPassManager::CreatePipelines()
 		builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
 		builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
 		builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR);
 		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
 		builder.Layout(layout);
 		builder.RenderPass(Scene.RenderPass.get());
@@ -246,6 +248,7 @@ void RenderPassManager::CreatePipelines()
 		builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
 		builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
 		builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_SCISSOR);
 		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
 		builder.Layout(layout);
 		builder.RenderPass(Scene.RenderPass.get());

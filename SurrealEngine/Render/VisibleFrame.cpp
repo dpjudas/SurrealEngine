@@ -6,27 +6,29 @@
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/UWindow.h"
 
-void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans, const vec4& portalPlane, bool useProvidedProjection, const mat4& providedProjection, const Coords& headCoords)
+void VisibleFrame::Process(const ViewSetup& setup)
 {
 	engine->render->Stats.Frames++;
 
 	Device = engine->render->Device;
 	FrameCounter = engine->render->FrameCounter++;
-	MirrorFlag = mirrorFlag;
-	PortalDepth = portalDepth;
+	MirrorFlag = setup.MirrorFlag;
+	PortalDepth = setup.PortalDepth;
 
-	SetupSceneFrame(worldToView, useProvidedProjection, providedProjection);
+	SetupSceneFrame(setup);
+
+	static const Array<PortalSpan> noPortalSpans;
 
 	Clipper.numDrawSpans = 0;
 	Clipper.numSurfs = 0;
 	Clipper.numTris = 0;
-	Clipper.Setup(Frame.Projection * Frame.WorldToView * Frame.ObjectToWorld, portalSpans, portalPlane);
+	Clipper.Setup(Frame.Projection * Frame.WorldToView * Frame.ObjectToWorld, setup.PortalSpans ? *setup.PortalSpans : noPortalSpans, setup.PortalPlane);
 
-	ViewLocation = vec4(location, 1.0f);
-	ViewZone = FindZoneAt(location);
+	ViewLocation = vec4(setup.Location, 1.0f);
+	ViewZone = FindZoneAt(setup.Location);
 	//ViewZoneMask = ViewZone ? 1ULL << ViewZone : -1;
-	ViewRotation = viewRotation;
-	HeadCoords = headCoords;
+	ViewRotation = setup.ViewRotation;
+	HeadCoords = setup.HeadCoords;
 
 	OpaqueNodes.clear();
 	Actors.clear();
@@ -37,12 +39,27 @@ void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const 
 	ProcessNode(&engine->Level->Model->Nodes[0]);
 }
 
-void VisibleFrame::SetupSceneFrame(const mat4& worldToView, bool useProvidedProjection, const mat4& providedProjection)
+// The parts of a view that any frame seen through `portal` inherits from this one: the spans to clip
+// against, the recursion depth, and - unchanged all the way down - the VR eye's projection and head
+// pose. Callers fill in the rest, which is what actually differs between a sky, a warp zone and a mirror.
+VisibleFrame::ViewSetup VisibleFrame::NestedViewSetup(const VisiblePortal& portal) const
 {
-	// useProvidedProjection is only set when rendering a VR eye (see RenderSubsystem::DrawScene). The eye's
+	ViewSetup setup;
+	setup.MirrorFlag = MirrorFlag;
+	setup.PortalDepth = PortalDepth + 1;
+	setup.PortalSpans = &portal.Spans;
+	setup.UseProvidedProjection = Frame.UseProvidedProjection;
+	setup.ProvidedProjection = Frame.Projection;
+	setup.HeadCoords = HeadCoords;
+	return setup;
+}
+
+void VisibleFrame::SetupSceneFrame(const ViewSetup& setup)
+{
+	// UseProvidedProjection is only set when rendering a VR eye (see RenderSubsystem::DrawScene). The eye's
 	// render target is sized to the headset's recommended eye resolution, not the desktop window, so the
 	// viewport bookkeeping below must be based on that instead of engine->viewport.
-	if (useProvidedProjection && engine->vr)
+	if (setup.UseProvidedProjection && engine->vr)
 	{
 		Frame.XB = 0;
 		Frame.YB = 0;
@@ -81,12 +98,12 @@ void VisibleFrame::SetupSceneFrame(const mat4& worldToView, bool useProvidedProj
 	Frame.FX2 = Frame.FX * 0.5f;
 	Frame.FY2 = Frame.FY * 0.5f;
 	Frame.ObjectToWorld = mat4::identity();
-	Frame.WorldToView = worldToView;
+	Frame.WorldToView = setup.WorldToView;
 	Frame.FovAngle = engine->CameraFovAngle;
-	Frame.UseProvidedProjection = useProvidedProjection;
-	if (useProvidedProjection)
+	Frame.UseProvidedProjection = setup.UseProvidedProjection;
+	if (setup.UseProvidedProjection)
 	{
-		Frame.Projection = providedProjection;
+		Frame.Projection = setup.ProvidedProjection;
 	}
 	else
 	{
@@ -413,8 +430,13 @@ void VisibleFrame::DrawPortals()
 				Coords::Rotation(portal.SkyZone->Rotation()).ToMatrix() *
 				Coords::Location(portal.SkyZone->Location()).ToMatrix();
 
+			ViewSetup setup = NestedViewSetup(portal);
+			setup.Location = portal.SkyZone->Location();
+			setup.WorldToView = skyToView;
+			setup.ViewRotation = ViewRotation * Coords::Rotation(portal.SkyZone->Rotation());
+
 			VisibleFrame skyframe;
-			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1, portal.Spans, vec4(0.0f, 0.0f, 0.0f, 1.0f), Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
+			skyframe.Process(setup);
 			Device->SetSceneNode(&skyframe.Frame);
 			skyframe.Draw();
 			Device->ClearZ();
@@ -439,8 +461,14 @@ void VisibleFrame::DrawPortals()
 			if (!isFrontfacing)
 				portalPlane = -portalPlane;
 
+			ViewSetup setup = NestedViewSetup(portal);
+			setup.Location = newLocation;
+			setup.WorldToView = worldToView;
+			setup.ViewRotation = rotation;
+			setup.PortalPlane = portalPlane;
+
 			VisibleFrame portalframe;
-			portalframe.Process(newLocation, worldToView, rotation, MirrorFlag, PortalDepth + 1, portal.Spans, portalPlane, Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
+			portalframe.Process(setup);
 			Device->SetSceneNode(&portalframe.Frame);
 			portalframe.Draw();
 			Device->ClearZ();
@@ -456,8 +484,14 @@ void VisibleFrame::DrawPortals()
 			// top-level VR view matrix, or a sky/portal view matrix built above) - no separate head handling needed here.
 			mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
 
+			ViewSetup setup = NestedViewSetup(portal);
+			setup.Location = ViewLocation.xyz();
+			setup.WorldToView = mirrorToView;
+			setup.ViewRotation = ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse();
+			setup.MirrorFlag = !MirrorFlag;
+
 			VisibleFrame mirrorframe;
-			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans, vec4(0.0f, 0.0f, 0.0f, 1.0f), Frame.UseProvidedProjection, Frame.Projection, HeadCoords);
+			mirrorframe.Process(setup);
 			Device->SetSceneNode(&mirrorframe.Frame);
 			mirrorframe.Draw();
 			Device->ClearZ();

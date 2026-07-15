@@ -58,6 +58,8 @@ private:
 
 	TextLabel* VRLabel = nullptr;
 	CheckboxLabel* EnableVR = nullptr;
+	TextLabel* VRRenderScaleLabel = nullptr;
+	LineEdit* VRRenderScale = nullptr;
 
 	PushButton* ResetButton = nullptr;
 };

@@ -130,6 +130,23 @@ public:
 	virtual void BeginEyeFrame(int eyeIndex) {}
 	virtual void EndEyeFrame(int eyeIndex) {}
 
+	// Size of the offscreen canvas BeginUICanvasFrame renders into. Both the render device (which creates
+	// the target) and RenderSubsystem (which has to size the 2D canvas to match, and derives the world
+	// -space plane's aspect from it) need these, so they live here rather than in either one.
+	static constexpr int VRMenuCanvasWidth = 1536;
+	static constexpr int VRMenuCanvasHeight = 1152;
+
+	// VR only. Redirects subsequent 2D draw calls (Canvas/console/menu) into a dedicated offscreen
+	// render target instead of an eye's, so the whole menu can be captured once per frame and then
+	// drawn as a single world-space plane per eye (see DrawVRMenuPlane) instead of stretched flat
+	// across the eye's full (very wide) viewport.
+	virtual void BeginUICanvasFrame() {}
+	virtual void EndUICanvasFrame() {}
+	// Draws the texture captured by the last BeginUICanvasFrame/EndUICanvasFrame pair as a textured
+	// quad, projected normally through Frame like any other 3D geometry (so it gets correct per-eye
+	// VR perspective). Corners/UVs go around the quad in the same winding order (e.g. TL,TR,BR,BL).
+	virtual void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4]) {}
+
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 
 	Widget* Viewport = nullptr;

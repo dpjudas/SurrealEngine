@@ -56,6 +56,11 @@ public:
 	bool IsTextureArrayFull() const { return Textures.NextBindlessIndex + 4 > MaxBindlessTextures; }
 	int GetTextureArrayIndex(uint32_t PolyFlags, CachedTexture* tex, bool clamp = false);
 
+	// Same bindless array as GetTextureArrayIndex, but for a view that isn't owned by a CachedTexture
+	// (i.e. one of our own render targets, like the VR menu's offscreen UI canvas) rather than a game
+	// asset texture. Cached by view pointer so repeated calls with the same view are cheap.
+	int GetOrAddBindlessIndex(VulkanImageView* view, VulkanSampler* sampler);
+
 	VulkanDescriptorSet* GetBindlessSet() { return Textures.BindlessSet.get(); }
 	VulkanDescriptorSet* GetPresentSet() { return Present.Set.get(); }
 	VulkanDescriptorSet* GetBloomPPImageSet() { return Bloom.PPImageSet.get(); }
@@ -87,6 +92,7 @@ private:
 		std::unique_ptr<VulkanDescriptorSet> BindlessSet;
 		WriteDescriptors WriteBindless;
 		int NextBindlessIndex = 0;
+		std::unordered_map<VulkanImageView*, int> ForeignViewIndex; // see GetOrAddBindlessIndex
 
 	} Textures;
 

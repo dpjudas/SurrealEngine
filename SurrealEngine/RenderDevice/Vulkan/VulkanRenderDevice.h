@@ -44,6 +44,9 @@ public:
 	bool IsVRActive() const override { return VRSys && VRSys->IsActive(); }
 	void BeginEyeFrame(int eyeIndex) override;
 	void EndEyeFrame(int eyeIndex) override;
+	void BeginUICanvasFrame() override;
+	void EndUICanvasFrame() override;
+	void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4]) override;
 
 	void SetHitLocation();
 
@@ -103,15 +106,24 @@ private:
 	int GetSceneHeight() const;
 
 	VRSubsystem* VRSys = nullptr;
-	int CurrentEye = -1;
 
-	// Textures->Scene and all of Framebuffers' scene-derived framebuffers are swapped between these
-	// persistent per-eye sets and the desktop set in BeginEyeFrame/EndEyeFrame (CreateSceneFramebuffer()
-	// rebuilds all of them from whatever Textures->Scene currently is), so every other draw call in this
-	// file keeps addressing "the current scene" without needing to know about VR at all. VR eyes don't
-	// use bloom, but the framebuffers still need saving/restoring here or CreateSceneFramebuffer() would
-	// otherwise permanently clobber the desktop's with ones pointing at an eye's (later destroyed) images.
-	struct VREyeResources
+	// Which render target the scene draw calls currently go to. These used to be sign-encoded into a
+	// single int, which is what let "is this a VR eye?" quietly also match the menu canvas. Which eye is
+	// current doesn't need tracking - Begin/EndEyeFrame are both handed the index.
+	enum class RenderTarget
+	{
+		Desktop,      // the game window
+		Eye,          // one of the headset's eyes
+		VRMenuCanvas  // the offscreen canvas the VR menu plane samples (see BeginUICanvasFrame)
+	};
+	RenderTarget CurrentTarget = RenderTarget::Desktop;
+
+	// Textures->Scene and all of Framebuffers' scene-derived framebuffers are swapped between the sets
+	// below by SwapSceneResources(), so every other draw call in this file keeps addressing "the current
+	// scene" without needing to know about VR at all. VR eyes and the menu canvas don't use bloom, but
+	// the framebuffers still need swapping or CreateSceneFramebuffer() would permanently clobber the
+	// desktop's with ones pointing at an eye's (later destroyed) images.
+	struct SceneResources
 	{
 		std::unique_ptr<SceneTextures> Scene;
 		std::unique_ptr<VulkanFramebuffer> SceneFramebuffer;
@@ -122,8 +134,14 @@ private:
 			std::unique_ptr<VulkanFramebuffer> HTextureFB;
 		} BloomBlurLevels[NumBloomLevels];
 	};
-	VREyeResources VREye[2];
-	VREyeResources DesktopResources;
+	void SwapSceneResources(SceneResources& resources);
+	SceneResources VREye[2];
+	SceneResources UICanvas; // see BeginUICanvasFrame/EndUICanvasFrame/DrawVRMenuPlane
+
+	// The scene the Present/Bloom descriptor sets are currently bound to. They sample whichever scene
+	// textures are swapped in, so the binding has to follow SwapSceneResources rather than only being
+	// refreshed when a target's textures happen to get (re)created - see Lock().
+	SceneTextures* FrameDescriptorsScene = nullptr;
 
 	struct VertexReserveInfo
 	{

@@ -57,6 +57,9 @@ public:
 	struct
 	{
 		bool Enabled = false;
+		// Percentage of the OpenXR runtime's recommended per-eye resolution to actually render at.
+		// Defaults well below 100 deliberately - see OpenXRSubsystem::InitSession.
+		int RenderScale = 60;
 	} VR;
 
 private:
