@@ -936,19 +936,50 @@ void UClass::SaveProperties(PropertyDataBlock* propertyBlock)
 		LoadProperties(&PropertyData);
 	}
 
-	// GlobalConfig properties needs to be propagated to all derived classes
+	// GlobalConfig properties are shared across the whole class hierarchy that
+	// declares them, so a change must propagate to every class deriving from the
+	// *declaring* class - not just classes deriving from `this`. Otherwise sibling
+	// classes (e.g. UMenuLoadGameClientWindow vs UMenuSaveGameClientWindow, which
+	// both inherit globalconfig SlotNames[] from UMenuSlotClientWindow) keep a stale
+	// default until the next restart re-reads the ini.
+	Array<UStruct*> propagationRoots;
+	propagationRoots.push_back(this);
+	for (UProperty* prop : Properties)
+	{
+		if (AnyFlags(prop->PropFlags, PropertyFlags::GlobalConfig))
+		{
+			if (UClass* declaring = UObject::TryCast<UClass>(prop->Outer()))
+			{
+				bool known = false;
+				for (UStruct* root : propagationRoots)
+					if (root == declaring) { known = true; break; }
+				if (!known)
+					propagationRoots.push_back(declaring);
+			}
+		}
+	}
+
 	for (GCObject* gcObj : GC::GetObjects())
 	{
 		if (UClass* cls = dynamic_cast<UClass*>(gcObj))
 		{
-			for (UStruct* base = cls->BaseStruct; base; base = base->BaseStruct)
+			bool propagate = false;
+			for (UStruct* base = cls; base && !propagate; base = base->BaseStruct)
 			{
-				if (base == this)
+				for (UStruct* root : propagationRoots)
 				{
-					LoadProperties(&cls->PropertyData);
-					break;
+					if (base == root)
+					{
+						propagate = true;
+						break;
+					}
 				}
 			}
+			// Reload through cls's own property list (not this->Properties), so the
+			// property offsets match cls's data block. this->Properties can be a
+			// superset of an ancestor/sibling's layout and would overrun its block.
+			if (propagate && cls != this)
+				cls->LoadProperties(&cls->PropertyData);
 		}
 	}
 }
