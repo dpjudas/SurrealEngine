@@ -2,7 +2,8 @@
 
 struct GameLaunchInfo
 {
-	int engineVersion = 0;					// Engine version (e.g. 226, 227, 436...)
+	int ue1Version = 0;						// Epic UE1 engine version game was forked from. 500 means unknown version newer than UT but before UE2
+	int engineVersion = 0;					// Engine version as named by the game (e.g. 226, 227, 436...)
 	int engineSubVersion = 0;				// Engine sub version displayed as a letter (Note: Isn't always consistent)
 	bool noEntryMap = false;
 	std::string gameName = "";				// Name of the game (e.g. "Unreal Tournament")
@@ -21,6 +22,8 @@ struct GameLaunchInfo
 	bool IsCliveBarkersUndying() const { return gameExecutableName == "Undying"; }
 	bool IsKlingonHonorGuard() const { return gameExecutableName == "Klingons" || gameExecutableName == "Khg"; }
 	bool IsRune() const { return gameExecutableName == "Rune"; }
+	bool IsHarryPotter1() const { return gameExecutableName == "HP"; }
+	bool IsHarryPotter2() const { return gameExecutableName == "Game"; }
 };
 
 class GameFolderSelection

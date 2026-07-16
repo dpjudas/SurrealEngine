@@ -23,7 +23,7 @@ PlayGamePage::PlayGamePage(LauncherWindow* launcher) : Widget(nullptr), Launcher
 #endif
 
 	GamesList->ShowHeader(true);
-	GamesList->SetColumn(0, "Game", 200.0);
+	GamesList->SetColumn(0, "Game", 400.0);
 	GamesList->SetColumn(1, "Version", 75.0);
 	GamesList->SetColumn(2, "Path", 400.0);
 

@@ -16,7 +16,7 @@
 int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
-	double windowWidth = 640.0;
+	double windowWidth = 1024.0;
 	double windowHeight = 750.0;
 
 	auto launcher = std::make_unique<LauncherWindow>();

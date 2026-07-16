@@ -268,6 +268,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::DEUS_EX_1002f:
 			{
 				info.gameName = "Deus Ex";
+				info.ue1Version = 500;
 				info.engineVersion = 1002;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1002";
@@ -276,6 +277,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::DEUS_EX_1112fm:
 			{
 				info.gameName = "Deus Ex";
+				info.ue1Version = 500;
 				info.engineVersion = 1112;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1112fm";
@@ -308,6 +310,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::RUNE_107:
 			{
 				info.gameName = "Rune Gold";
+				info.ue1Version = 500;
 				info.engineVersion = 107;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1.07";
@@ -316,6 +319,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::RUNE_110:
 			{
 				info.gameName = "Rune Classic";
+				info.ue1Version = 500;
 				info.engineVersion = 110;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1.10";
@@ -324,6 +328,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::RUNE_111:
 			{
 				info.gameName = "Rune Classic";
+				info.ue1Version = 500;
 				info.engineVersion = 111;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "1.11";
@@ -332,6 +337,7 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::UNDYING_420:
 			{
 				info.gameName = "Clive Barker's Undying";
+				info.ue1Version = 500;
 				info.engineVersion = 420;
 				info.engineSubVersion = 0;
 				info.gameVersionString = "420";
@@ -362,9 +368,33 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "333";
 			}
 			break;
+			case KnownUE1Games::HARRYPOTTER1_433:
+			{
+				info.gameName = "Harry Potter and the Philosopher's/Sorcerer's Stone (HP1)";
+				info.ue1Version = 500;
+				info.engineVersion = 433;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "433";
+			}
+			break;
+			case KnownUE1Games::HARRYPOTTER2_433:
+			{
+				info.gameName = "Harry Potter and the Chamber of Secrets (HP2)";
+				info.ue1Version = 500;
+				info.engineVersion = 433;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "433";
+			}
+			break;
 			case KnownUE1Games::UE1_GAME_NOT_FOUND:
 				// Do nothing, we want the fields to be empty.
 			break;
+		}
+
+		if (info.ue1Version == 0 && info.engineVersion != 0)
+		{
+			// If the Epic UE1 engine version isn't specified it matches the game version
+			info.ue1Version = info.engineVersion;
 		}
 	}
 	

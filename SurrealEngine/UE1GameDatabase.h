@@ -39,6 +39,8 @@ enum class KnownUE1Games
 	TACTICAL_OPS_436,
 	TACTICAL_OPS_469,
 	WHEELOFTIME_333,
+	HARRYPOTTER1_433,
+	HARRYPOTTER2_433,
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -187,6 +189,18 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 
 	// Wheel of Time, version 333 (GOG)
 	{"102013ab6e4535a515c7c589d0b5cdd484ef8fdd", KnownUE1Games::WHEELOFTIME_333},
+
+	// Harry Potter 1 (UK), post-patched
+	{"18ba5889e3a3aa221be52dda2eae75e53e52351b", KnownUE1Games::HARRYPOTTER1_433},
+
+	// Harry Potter 1 (UK), post-patched, archive.org cracked exe
+	{"7e675aa863f55049f3cf530dfea0b241b112d03a", KnownUE1Games::HARRYPOTTER1_433},
+
+	// Harry Potter 2 (UK)
+	{"3a43d9ec8be7ec441b18a8dc710b4bdd5b29bda3", KnownUE1Games::HARRYPOTTER2_433},
+
+	// Harry Potter 2 (UK), archive.org cracked exe
+	{"28b0e54af165c1ad170d5132e4ac7ca986d06484", KnownUE1Games::HARRYPOTTER2_433},
 };
 
 static const Array<std::string> knownUE1ExecutableNames = {
@@ -206,7 +220,9 @@ static const Array<std::string> knownUE1ExecutableNames = {
 	"Spore.exe",
 	"TnnHunt.exe",
 	"TacticalOps.exe",
-	"WoT.exe"
+	"WoT.exe",
+	"HP.exe",
+	"Game.exe",
 };
 
 // Returns a pair of UE1-Game type and executable name
