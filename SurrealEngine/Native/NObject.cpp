@@ -34,13 +34,13 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Add_VectorVector", &NObject::Add_VectorVector, 215);
 	RegisterVMNativeFunc_3("Object", "AndAnd_BoolBool", &NObject::AndAnd_BoolBool, 130);
 	RegisterVMNativeFunc_3("Object", "And_IntInt", &NObject::And_IntInt, 156);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 237);
 	else
 		RegisterVMNativeFunc_2("Object", "Asc", &NObject::Asc, 0);
 	RegisterVMNativeFunc_2("Object", "Atan", &NObject::Atan, 190);
 	RegisterVMNativeFunc_2("Object", "Caps", &NObject::Caps, 235);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_2("Object", "Chr", &NObject::Chr, 236);
 	else
 		RegisterVMNativeFunc_2("Object", "Chr", &NObject::Chr, 0);
@@ -63,7 +63,7 @@ void NObject::RegisterFunctions()
 	RegisterVMNativeFunc_3("Object", "Divide_RotatorFloat", &NObject::Divide_RotatorFloat, 289);
 	RegisterVMNativeFunc_3("Object", "Divide_VectorFloat", &NObject::Divide_VectorFloat, 214);
 	RegisterVMNativeFunc_3("Object", "Dot_VectorVector", &NObject::Dot_VectorVector, 219);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_4("Object", "DynamicLoadObject", &NObject::DynamicLoadObject, 0);
 	else
 		RegisterVMNativeFunc_3("Object", "DynamicLoadObject", &NObject::DynamicLoadObject_219, 0);
@@ -279,7 +279,7 @@ void NObject::RegisterFunctions()
 	}
 
 	// Package 61 stuff
-	if (engine->LaunchInfo.engineVersion <= 219)
+	if (engine->LaunchInfo.ue1Version <= 219)
 	{
 		RegisterVMNativeFunc_3("Object", "Concat_StrStr", &NObject::Concat_StrStr, 228);
 		RegisterVMNativeFunc_3("Object", "Less_StrStr", &NObject::Less_StrStr, 197);

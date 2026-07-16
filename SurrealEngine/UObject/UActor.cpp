@@ -89,7 +89,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 
 		actor->InitBase();
 
-		if (engine->packages->GetEngineVersion() >= 400)
+		if (engine->LaunchInfo.ue1Version >= 400)
 		{
 			static bool spawnNotificationLocked = false;
 			if (!spawnNotificationLocked)
@@ -115,7 +115,7 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 
 void UActor::InitBase()
 {
-	if (engine->packages->GetEngineVersion() > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		NameString attachTag = AttachTag();
 		if (!attachTag.IsNone())
@@ -142,7 +142,7 @@ void UActor::InitBase()
 		}
 	}
 
-	if (engine->LaunchInfo.engineVersion < 400 && !ActorBase()) // Unreal expects a base to always exist. What about UT? TournamentPlayer seems to indicate not.
+	if (engine->LaunchInfo.ue1Version < 400 && !ActorBase()) // Unreal expects a base to always exist. What about UT? TournamentPlayer seems to indicate not.
 	{
 		SetBase(Level(), false);
 	}
@@ -262,7 +262,7 @@ void UActor::UpdateActorZone()
 			// If the actor is a Carcass and the zone is marked as bDestructive, destroy it.
 			Destroy();
 		}
-		else if (engine->LaunchInfo.engineVersion > 219 && Owner() == nullptr && Region().Zone->bNoInventory() && IsA("Inventory"))
+		else if (engine->LaunchInfo.ue1Version > 219 && Owner() == nullptr && Region().Zone->bNoInventory() && IsA("Inventory"))
 		{
 			// If the new zone is bNoInventory, destroy Inventory that's not owned by anyone (i.e. in pickup state).
 			Destroy();
@@ -435,7 +435,7 @@ void UActor::TickPhysics(float elapsed)
 			TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 		}
 
-		if (engine->LaunchInfo.engineVersion >= 400)
+		if (engine->LaunchInfo.ue1Version >= 400)
 		{
 			if (PendingTouch())
 			{
@@ -649,7 +649,7 @@ void UActor::TickFalling(float elapsed)
 	if (pawn)
 	{
 		groundSpeed = pawn->GroundSpeed();
-		float maxAccel = engine->LaunchInfo.engineVersion > 219 ? pawn->AirControl() * pawn->AccelRate() : 0.0f;
+		float maxAccel = engine->LaunchInfo.ue1Version > 219 ? pawn->AirControl() * pawn->AccelRate() : 0.0f;
 		float accel = length(acceleration);
 		if (accel > maxAccel)
 			acceleration = normalize(acceleration) * maxAccel;
@@ -1121,7 +1121,7 @@ void UActor::TickInterpolating(float elapsed)
 
 		if (auto pawn = UObject::TryCast<UPlayerPawn>(this))
 		{
-			if (engine->LaunchInfo.engineVersion > 219)
+			if (engine->LaunchInfo.ue1Version > 219)
 			{
 				pawn->DesiredFlashScale() = mix(target->ScreenFlashScale(), next->ScreenFlashScale(), physAlpha);
 				pawn->DesiredFlashFog() = mix(target->ScreenFlashFog(), next->ScreenFlashFog(), physAlpha);
@@ -1131,7 +1131,7 @@ void UActor::TickInterpolating(float elapsed)
 			}
 		}
 
-		if (engine->LaunchInfo.engineVersion > 219)
+		if (engine->LaunchInfo.ue1Version > 219)
 			Level()->TimeDilation() = mix(target->GameSpeedModifier(), next->GameSpeedModifier(), physAlpha);
 
 		float rateModifier = mix(target->RateModifier(), next->RateModifier(), physAlpha);
@@ -1188,7 +1188,7 @@ void UActor::TickInterpolating(float elapsed)
 			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Prev();
-			if (engine->LaunchInfo.engineVersion > 219)
+			if (engine->LaunchInfo.ue1Version > 219)
 			{
 				while (target && target->bSkipNextPath())
 					target = target->Prev();
@@ -1203,7 +1203,7 @@ void UActor::TickInterpolating(float elapsed)
 			CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(target) });
 
 			target = target->Next();
-			if (engine->LaunchInfo.engineVersion > 219)
+			if (engine->LaunchInfo.ue1Version > 219)
 			{
 				while (target && target->bSkipNextPath())
 					target = target->Next();
@@ -1296,14 +1296,14 @@ void UActor::TickTrailer(float elapsed)
 
 	vec3 newLocation = Owner()->Location();
 
-	if (engine->LaunchInfo.engineVersion >= 400 && bTrailerPrePivot())
+	if (engine->LaunchInfo.ue1Version >= 400 && bTrailerPrePivot())
 	{
 		newLocation += PrePivot();
 	}
 
 	SetLocation(newLocation);
 
-	if ((engine->LaunchInfo.engineVersion < 400 || bTrailerSameRotation()) && DrawType() != DT_Sprite)
+	if ((engine->LaunchInfo.ue1Version < 400 || bTrailerSameRotation()) && DrawType() != DT_Sprite)
 	{
 		SetRotation(Owner()->Rotation());
 	}
@@ -2526,7 +2526,7 @@ int UActor::NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* no
 
 UTexture* UActor::GetMultiskin(int index)
 {
-	if (engine->LaunchInfo.engineVersion > 219 && index >= 0 && index < 8)
+	if (engine->LaunchInfo.ue1Version > 219 && index >= 0 && index < 8)
 		return MultiSkins()[index];
 	else
 		return nullptr;
@@ -3008,7 +3008,7 @@ bool UPawn::CanHearNoise(UActor* source, float loudness)
 	float dist2 = dot(delta, delta);
 
 	if (!bIsPlayer() || !Level()->Game()->bTeamGame() || !noisePawn->bIsPlayer() ||
-		(engine->LaunchInfo.engineVersion > 219 && (!PlayerReplicationInfo() || !noisePawn->PlayerReplicationInfo() || (PlayerReplicationInfo()->Team() != noisePawn->PlayerReplicationInfo()->Team()))))
+		(engine->LaunchInfo.ue1Version > 219 && (!PlayerReplicationInfo() || !noisePawn->PlayerReplicationInfo() || (PlayerReplicationInfo()->Team() != noisePawn->PlayerReplicationInfo()->Team()))))
 	{
 		if (dist2 > (4000.0f * 4000.0f) * (loudness * loudness))
 			return false;
@@ -3049,7 +3049,7 @@ UActor* UPawn::PickAnyTarget(float& bestAim, float& bestDist, const vec3& FireDi
 UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, const vec3& projStart)
 {
 	UActor* bestActor = nullptr;
-	UPlayerReplicationInfo* ourPlayerInfo = engine->LaunchInfo.engineVersion > 219 ? PlayerReplicationInfo() : nullptr;
+	UPlayerReplicationInfo* ourPlayerInfo = engine->LaunchInfo.ue1Version > 219 ? PlayerReplicationInfo() : nullptr;
 	bool teamGame = ourPlayerInfo && Level()->Game()->bTeamGame();
 	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
 	{
@@ -3058,7 +3058,7 @@ UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, 
 			continue;
 
 		// Skip team mates
-		if (engine->LaunchInfo.engineVersion > 219)
+		if (engine->LaunchInfo.ue1Version > 219)
 		{
 			auto pawnPlayerInfo = pawn->PlayerReplicationInfo();
 			if (teamGame && pawnPlayerInfo && ourPlayerInfo->Team() == pawnPlayerInfo->Team())
@@ -3101,7 +3101,7 @@ bool UPawn::CheckIfBestTarget(UActor* actor, float& bestAim, float& bestDist, co
 
 UNavigationPoint* UPawn::SetRouteCache(const Array<UNavigationPoint*>& points)
 {
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		auto cache = RouteCache();
 		for (size_t i = 0; i < cache.size(); i++)
@@ -3508,7 +3508,7 @@ void UPawn::InitActorZone()
 	FootRegion() = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
 	HeadRegion() = FindRegion({ 0.0f, 0.0f, EyeHeight() });
 
-	if (engine->LaunchInfo.engineVersion > 219 && PlayerReplicationInfo())
+	if (engine->LaunchInfo.ue1Version > 219 && PlayerReplicationInfo())
 		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
 }
 
@@ -3548,7 +3548,7 @@ void UPawn::UpdateActorZone()
 
 	HeadRegion() = newheadregion;
 
-	if (engine->LaunchInfo.engineVersion > 219 && PlayerReplicationInfo())
+	if (engine->LaunchInfo.ue1Version > 219 && PlayerReplicationInfo())
 		PlayerReplicationInfo()->PlayerZone() = Region().Zone;
 }
 
@@ -3586,7 +3586,7 @@ void UPawn::Tick(float elapsed)
 		}
 		else if (StateFrame->LatentState == LatentRunState::StrafeFacing)
 		{
-			if (engine->LaunchInfo.engineVersion > 219 && FaceTarget())
+			if (engine->LaunchInfo.ue1Version > 219 && FaceTarget())
 			{
 				TickRotateTo(Focus());
 				vec3 oldDest = Destination();
@@ -3606,7 +3606,7 @@ void UPawn::Tick(float elapsed)
 		}
 		else if (StateFrame->LatentState == LatentRunState::TurnToward)
 		{
-			if (engine->LaunchInfo.engineVersion > 219 && FaceTarget())
+			if (engine->LaunchInfo.ue1Version > 219 && FaceTarget())
 			{
 				if (TickRotateTo(FaceTarget()->Location()))
 					StateFrame->LatentState = LatentRunState::Continue;
@@ -3633,7 +3633,7 @@ void UPawn::Tick(float elapsed)
 
 	if (bIsPlayer() && Role() >= ROLE_AutonomousProxy)
 	{
-		if (engine->LaunchInfo.engineVersion < 400 || bViewTarget())
+		if (engine->LaunchInfo.ue1Version < 400 || bViewTarget())
 			CallEvent(this, EventName::UpdateEyeHeight, { ExpressionValue::FloatValue(elapsed) });
 		else
 			ViewRotation() = Rotation();
@@ -3659,7 +3659,7 @@ void UPawn::Tick(float elapsed)
 			if (SpeechTime() == 0.0f)
 				CallEvent(this, EventName::SpeechTimer);
 		}
-		if (engine->LaunchInfo.engineVersion >= 436 && bAdvancedTactics())
+		if (engine->LaunchInfo.ue1Version >= 436 && bAdvancedTactics())
 			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
 	}
 }
@@ -3786,7 +3786,7 @@ void UPawn::StrafeFacing(const vec3& newDestination, UActor* newTarget)
 		return;
 
 	Destination() = newDestination;
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		FaceTarget() = newTarget;
 	SetMoveDuration(newDestination - Location());
 	if (StateFrame)
@@ -3818,7 +3818,7 @@ void UPawn::TurnToward(UActor* newTarget)
 	if (!newTarget)
 		return;
 
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		FaceTarget() = newTarget;
 	Focus() = newTarget->Location();
 	if (StateFrame)
@@ -3924,7 +3924,7 @@ void UPlayerPawn::LoadProperties()
 	bSnapToLevel() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bSnapToLevel", false);
 	bAlwaysMouseLook() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bAlwaysMouseLook", true);
 	bKeyboardLook() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bKeyboardLook", false);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		bMaxMouseSmoothing() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bMaxMouseSmoothing", false);
 		bNoFlash() = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("user"), "Engine.PlayerPawn", "bNoFlash", false);
@@ -3958,7 +3958,7 @@ void UPlayerPawn::SaveConfig()
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bSnapToLevel", IniPropertyConverter<bool>::ToString(bSnapToLevel()));
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bAlwaysMouseLook", IniPropertyConverter<bool>::ToString(bAlwaysMouseLook()));
 	engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bKeyboardLook", IniPropertyConverter<bool>::ToString(bKeyboardLook()));
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bMaxMouseSmoothing", IniPropertyConverter<bool>::ToString(bMaxMouseSmoothing()));
 		engine->packages->SetIniValue("user", "Engine.PlayerPawn", "bNoFlash", IniPropertyConverter<bool>::ToString(bNoFlash()));

@@ -40,7 +40,7 @@ void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 	if ((behindView || !isOwnedByViewport) && actor->bOnlyOwnerSee())
 		return;
 
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		if (!behindView && isOwnedByViewport && actor->bOwnerNoSee())
 			return;

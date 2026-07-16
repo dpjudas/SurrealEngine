@@ -222,7 +222,7 @@ void EditorMainWindow::LoadMap(std::string& mapName)
 	engine->LevelPackage = engine->packages->LoadMap(mapName);
 
 	engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	if (engine->packages->GetEngineVersion() < 300) // Unknown when this changed
+	if (engine->LaunchInfo.ue1Version < 300) // Unknown when this changed
 	{
 		for (int grr = 1; !engine->LevelInfo && grr < 20; grr++)
 			engine->LevelInfo = UObject::Cast<ULevelInfo>(engine->LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));

@@ -259,7 +259,7 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 void PackageManager::ScanPaths()
 {
 	Array<std::string> paths;
-	if (!IsRune() && launchInfo.engineVersion <= 219) // khg with 219 uses old format. unreal uses new in 226
+	if (!IsRune() && launchInfo.ue1Version <= 219) // khg with 219 uses old format. unreal uses new in 226
 	{
 		for (int i = 0; i < 16; i++)
 		{
@@ -281,7 +281,7 @@ void PackageManager::ScanPaths()
 	gameCacheFolderPath = (gameSystemFolderPath / cachePath).lexically_normal();
 
 	// Unreal 227j+ and UT 469d+ store localization files in SystemLocalized folder
-	if ((IsUnreal1_227() && launchInfo.engineSubVersion >= 10) || (IsUnrealTournament_469() && launchInfo.engineSubVersion >= 4))
+	if ((IsUnreal1_227() && launchInfo.gameSubVersion >= 10) || (IsUnrealTournament_469() && launchInfo.gameSubVersion >= 4))
 	{
 		auto langpaths = GetIniValues("System", "Core.System", "LangPaths");
 
@@ -457,7 +457,7 @@ std::unique_ptr<IniFile> PackageManager::GetIniFile(NameString iniName)
 
 std::unique_ptr<IniFile> PackageManager::GetUserIniFile()
 {
-	if (IsKlingonHonorGuard() || launchInfo.engineVersion <= 219)
+	if (IsKlingonHonorGuard() || launchInfo.ue1Version <= 219)
 		return std::make_unique<IniFile>(*iniFiles[launchInfo.gameExecutableName]);
 
 	return std::make_unique<IniFile>(*iniFiles["User"]);
@@ -559,7 +559,7 @@ Array<std::string> PackageManager::GetDefaultIniValues(const NameString& section
 
 std::string PackageManager::GetDefUserIniValue(const NameString& sectionName, const NameString& keyName, std::string default_value, const int index)
 {
-	if (IsKlingonHonorGuard() || launchInfo.engineVersion <= 219)
+	if (IsKlingonHonorGuard() || launchInfo.ue1Version <= 219)
 		return defaultIniFile->GetValue(sectionName, keyName, default_value, index);
 
 	return defaultUserFile->GetValue(sectionName, keyName, default_value, index);
@@ -567,7 +567,7 @@ std::string PackageManager::GetDefUserIniValue(const NameString& sectionName, co
 
 Array<std::string> PackageManager::GetDefUserIniValues(const NameString& sectionName, const NameString& keyName, Array<std::string> default_values)
 {
-	if (IsKlingonHonorGuard() || launchInfo.engineVersion <= 219)
+	if (IsKlingonHonorGuard() || launchInfo.ue1Version <= 219)
 		return defaultIniFile->GetValues(sectionName, keyName, default_values);
 
 	return defaultUserFile->GetValues(sectionName, keyName, default_values);
@@ -631,7 +631,7 @@ void PackageManager::LoadEngineIniFiles()
 
 	iniFiles[systemIniName] = std::make_unique<IniFile>((gameSystemFolderPath / systemIniFileName).string());
 
-	if (launchInfo.engineVersion > 219)
+	if (launchInfo.ue1Version > 219)
 	{
 		if (!File::try_open_existing((gameSystemFolderPath / userIniName).string()))
 		{
@@ -940,7 +940,7 @@ void PackageManager::RegisterNativeClasses()
 		RegisterNativeClass<UAnyProperty>(corePackage, "AnyProperty", "Property");
 	}
 
-	if (GetEngineVersion() < 400)
+	if (launchInfo.ue1Version < 400)
 	{
 		RegisterNativeClass<UObject>(corePackage, "Commandlet", "Object");
 		RegisterNativeClass<UObject>(corePackage, "SimpleCommandlet", "Commandlet");
@@ -988,7 +988,7 @@ void PackageManager::RegisterNativeClasses()
 	RegisterNativeClass<UWetTexture>(enginePackage, "WetTexture", "WaterTexture");
 	RegisterNativeClass<UScriptedTexture>(enginePackage, "ScriptedTexture", "Texture");
 
-	if (GetEngineVersion() <= 220)
+	if (launchInfo.ue1Version <= 220)
 		RegisterNativeClass<UFont>(enginePackage, "Font", "Texture");
 	else
 		RegisterNativeClass<UFont>(enginePackage, "Font", "Object");

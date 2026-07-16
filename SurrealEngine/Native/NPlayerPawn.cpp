@@ -11,7 +11,7 @@
 void NPlayerPawn::RegisterFunctions()
 {
 	RegisterVMNativeFunc_3("PlayerPawn", "ClientTravel", &NPlayerPawn::ClientTravel, 0);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		RegisterVMNativeFunc_2("PlayerPawn", "ConsoleCommand", &NPlayerPawn::ConsoleCommand, 0);
 	}
@@ -27,7 +27,7 @@ void NPlayerPawn::RegisterFunctions()
 	RegisterVMNativeFunc_1("PlayerPawn", "GetPlayerNetworkAddress", &NPlayerPawn::GetPlayerNetworkAddress, 0);
 	RegisterVMNativeFunc_1("PlayerPawn", "PasteFromClipboard", &NPlayerPawn::PasteFromClipboard, 0);
 	RegisterVMNativeFunc_0("PlayerPawn", "ResetKeyboard", &NPlayerPawn::ResetKeyboard, 544);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_3("PlayerPawn", "UpdateURL", &NPlayerPawn::UpdateURL, 546);
 	else
 		RegisterVMNativeFunc_1("PlayerPawn", "UpdateURL", &NPlayerPawn::UpdateURL_219, 546);

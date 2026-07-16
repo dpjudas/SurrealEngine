@@ -42,7 +42,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "GetMeshTexture", &NActor::GetMeshTexture, 1013);
 	RegisterVMNativeFunc_3("Actor", "GetNextInt", &NActor::GetNextInt, 0);
 	RegisterVMNativeFunc_4("Actor", "GetNextIntDesc", &NActor::GetNextIntDesc, 0);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_5("Actor", "GetNextSkin", &NActor::GetNextSkin, 545);
 	else
 		RegisterVMNativeFunc_4("Actor", "GetNextSkin", &NActor::GetNextSkin_219, 545);
@@ -94,7 +94,7 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_7("Actor", "TraceActors", &NActor::TraceActors, 309);
 	RegisterVMNativeFunc_2("Actor", "TweenAnim", &NActor::TweenAnim, 294);
 	RegisterVMNativeFunc_4("Actor", "VisibleActors", &NActor::VisibleActors, 311);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 		RegisterVMNativeFunc_5("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors, 312);
 	else
 		RegisterVMNativeFunc_4("Actor", "VisibleCollidingActors", &NActor::VisibleCollidingActors_219, 312);

@@ -50,7 +50,7 @@ GameLaunchInfo GameFolderSelection::GetLaunchInfo(int selectedGame)
 		return {};
 
 	GameLaunchInfo info = Games[selectedGame];
-	info.engineVersion = commandline->GetArgInt("-e", "--engineversion", info.engineVersion);
+	info.ue1Version = commandline->GetArgInt("-e", "--engineversion", info.ue1Version);
 	info.gameName = commandline->GetArg("-g", "--game", info.gameName);
 	info.noEntryMap = commandline->HasArg("-n", "--noentrymap") || info.noEntryMap;
 	info.url = commandline->GetArg("-u", "--url", info.url);
@@ -76,192 +76,192 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			case KnownUE1Games::UNREAL_200:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 200;
-				info.engineSubVersion = 0;
+				info.gameVersion = 200;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "200";
 			}
 			break;
 			case KnownUE1Games::UNREAL_209:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 209;
-				info.engineSubVersion = 0;
+				info.gameVersion = 209;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "209";
 			}
 			break;
 			case KnownUE1Games::UNREAL_216:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 216;
-				info.engineSubVersion = 0;
+				info.gameVersion = 216;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "216";
 			}
 			break;
 			case KnownUE1Games::UNREAL_217:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 217;
-				info.engineSubVersion = 0;
+				info.gameVersion = 217;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "217";
 			}
 			break;
 			case KnownUE1Games::UNREAL_218:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 218;
-				info.engineSubVersion = 0;
+				info.gameVersion = 218;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "218";
 			}
 			break;
 			case KnownUE1Games::UNREAL_219:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 219;
-				info.engineSubVersion = 0;
+				info.gameVersion = 219;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "219";
 			}
 			break;
 			case KnownUE1Games::UNREAL_220:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 220;
-				info.engineSubVersion = 0;
+				info.gameVersion = 220;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "220";
 			}
 			break;
 			case KnownUE1Games::UNREAL_221:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 221;
-				info.engineSubVersion = 0;
+				info.gameVersion = 221;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "221";
 			}
 			break;
 			case KnownUE1Games::UNREAL_224v:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 224;
-				info.engineSubVersion = 22;
+				info.gameVersion = 224;
+				info.gameSubVersion = 22;
 				info.gameVersionString = "224v";
 			}
 			break;
 			case KnownUE1Games::UNREAL_225f:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 225;
-				info.engineSubVersion = 6;
+				info.gameVersion = 225;
+				info.gameSubVersion = 6;
 				info.gameVersionString = "225f";
 			}
 			break;
 			case KnownUE1Games::UNREAL_226f:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 226;
-				info.engineSubVersion = 6;
+				info.gameVersion = 226;
+				info.gameSubVersion = 6;
 				info.gameVersionString = "226f";
 			}
 			break;
 			case KnownUE1Games::UNREALGOLD_226b:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 226;
-				info.engineSubVersion = 2;
+				info.gameVersion = 226;
+				info.gameSubVersion = 2;
 				info.gameVersionString = "226b";
 			}
 			break;
 			case KnownUE1Games::UNREALGOLD_227i:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 227;
-				info.engineSubVersion = 9;
+				info.gameVersion = 227;
+				info.gameSubVersion = 9;
 				info.gameVersionString = "227i";
 			}
 			break;
 			case KnownUE1Games::UNREALGOLD_227j:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 227;
-				info.engineSubVersion = 10;
+				info.gameVersion = 227;
+				info.gameSubVersion = 10;
 				info.gameVersionString = "227j";
 			}
 			break;
 			case KnownUE1Games::UNREALGOLD_227k_11:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 227;
-				info.engineSubVersion = 11;
+				info.gameVersion = 227;
+				info.gameSubVersion = 11;
 				info.gameVersionString = "227k_11";
 			}
 			break;
 			case KnownUE1Games::UNREALGOLD_227k_14:
 			{
 				info.gameName = "Unreal";
-				info.engineVersion = 227;
-				info.engineSubVersion = 11;
+				info.gameVersion = 227;
+				info.gameSubVersion = 11;
 				info.gameVersionString = "227k_14";
 			}
 			break;
 			case KnownUE1Games::UT99_400:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 400;
-				info.engineSubVersion = 0;
+				info.gameVersion = 400;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "400";
 			}
 			break;
 			case KnownUE1Games::UT99_436:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 436;
-				info.engineSubVersion = 0;
+				info.gameVersion = 436;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "436";
 			}
 			break;
 			case KnownUE1Games::UT99_451:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 451;
-				info.engineSubVersion = 0;
+				info.gameVersion = 451;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "451";
 			}
 			break;
 			case KnownUE1Games::UT99_469a:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 469;
-				info.engineSubVersion = 1;
+				info.gameVersion = 469;
+				info.gameSubVersion = 1;
 				info.gameVersionString = "469a";
 			}
 			break;
 			case KnownUE1Games::UT99_469b:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 469;
-				info.engineSubVersion = 2;
+				info.gameVersion = 469;
+				info.gameSubVersion = 2;
 				info.gameVersionString = "469b";
 			}
 			break;
 			case KnownUE1Games::UT99_469c:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 469;
-				info.engineSubVersion = 3;
+				info.gameVersion = 469;
+				info.gameSubVersion = 3;
 				info.gameVersionString = "469c";
 			}
 			break;
 			case KnownUE1Games::UT99_469d:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 469;
-				info.engineSubVersion = 4;
+				info.gameVersion = 469;
+				info.gameSubVersion = 4;
 				info.gameVersionString = "469d";
 			}
 			break;
 			case KnownUE1Games::UT99_469e:
 			{
 				info.gameName = "Unreal Tournament";
-				info.engineVersion = 469;
-				info.engineSubVersion = 5;
+				info.gameVersion = 469;
+				info.gameSubVersion = 5;
 				info.gameVersionString = "469e";
 			}
 			break;
@@ -269,8 +269,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Deus Ex";
 				info.ue1Version = 500;
-				info.engineVersion = 1002;
-				info.engineSubVersion = 0;
+				info.gameVersion = 1002;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "1002";
 			}
 			break;
@@ -278,32 +278,32 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Deus Ex";
 				info.ue1Version = 500;
-				info.engineVersion = 1112;
-				info.engineSubVersion = 0;
+				info.gameVersion = 1112;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "1112fm";
 			}
 			break;
 			case KnownUE1Games::NERF_300:
 			{
 				info.gameName = "Nerf Arena Blast";
-				info.engineVersion = 300;
-				info.engineSubVersion = 0;
+				info.gameVersion = 300;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "300";
 			}
 			break;
 			case KnownUE1Games::KLINGON_219:
 			{
 				info.gameName = "Klingon Honor Guard";
-				info.engineVersion = 219;
-				info.engineSubVersion = 0;
+				info.gameVersion = 219;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "219";
 			}
 			break;
 			case KnownUE1Games::TNN_200:
 			{
 				info.gameName = "TNN";
-				info.engineVersion = 200;
-				info.engineSubVersion = 0;
+				info.gameVersion = 200;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "200";
 			}
 			break;
@@ -311,8 +311,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Rune Gold";
 				info.ue1Version = 500;
-				info.engineVersion = 107;
-				info.engineSubVersion = 0;
+				info.gameVersion = 107;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "1.07";
 			}
 			break;
@@ -320,8 +320,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Rune Classic";
 				info.ue1Version = 500;
-				info.engineVersion = 110;
-				info.engineSubVersion = 0;
+				info.gameVersion = 110;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "1.10";
 			}
 			break;
@@ -329,8 +329,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Rune Classic";
 				info.ue1Version = 500;
-				info.engineVersion = 111;
-				info.engineSubVersion = 0;
+				info.gameVersion = 111;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "1.11";
 			}
 			break;
@@ -338,16 +338,16 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Clive Barker's Undying";
 				info.ue1Version = 500;
-				info.engineVersion = 420;
-				info.engineSubVersion = 0;
+				info.gameVersion = 420;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "420";
 			}
 			break;
 			case KnownUE1Games::TACTICAL_OPS_436:
 			{
 				info.gameName = "Tactical-Ops: Assault on Terror";
-				info.engineVersion = 436;
-				info.engineSubVersion = 0;
+				info.gameVersion = 436;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "436";
 			}
 			break;
@@ -355,16 +355,16 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				// exe is identical to UT v469d
 				info.gameName = "Tactical-Ops: Assault on Terror";
-				info.engineVersion = 469;
-				info.engineSubVersion = 3;
+				info.gameVersion = 469;
+				info.gameSubVersion = 3;
 				info.gameVersionString = "469d";
 			}
 			break;
 			case KnownUE1Games::WHEELOFTIME_333:
 			{
 				info.gameName = "Wheel of Time";
-				info.engineVersion = 333;
-				info.engineSubVersion = 0;
+				info.gameVersion = 333;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "333";
 			}
 			break;
@@ -372,8 +372,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Harry Potter and the Philosopher's/Sorcerer's Stone (HP1)";
 				info.ue1Version = 500;
-				info.engineVersion = 433;
-				info.engineSubVersion = 0;
+				info.gameVersion = 433;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "433";
 			}
 			break;
@@ -381,8 +381,8 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			{
 				info.gameName = "Harry Potter and the Chamber of Secrets (HP2)";
 				info.ue1Version = 500;
-				info.engineVersion = 433;
-				info.engineSubVersion = 0;
+				info.gameVersion = 433;
+				info.gameSubVersion = 0;
 				info.gameVersionString = "433";
 			}
 			break;
@@ -391,10 +391,10 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 			break;
 		}
 
-		if (info.ue1Version == 0 && info.engineVersion != 0)
+		if (info.ue1Version == 0 && info.gameVersion != 0)
 		{
 			// If the Epic UE1 engine version isn't specified it matches the game version
-			info.ue1Version = info.engineVersion;
+			info.ue1Version = info.gameVersion;
 		}
 	}
 	

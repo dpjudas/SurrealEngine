@@ -38,7 +38,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	ResetCanvas();
 	PreRender();
 
-	if (engine->LaunchInfo.engineVersion <= 219 || engine->console->bNoDrawWorld() == false)
+	if (engine->LaunchInfo.ue1Version <= 219 || engine->console->bNoDrawWorld() == false)
 	{
 		DrawScene();
 		RenderOverlays();
