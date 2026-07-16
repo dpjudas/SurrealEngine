@@ -84,6 +84,7 @@ class ObjectToStringExpression;
 class NameToStringExpression;
 class VectorToStringExpression;
 class RotatorToStringExpression;
+class StringToNameExpression;
 class VirtualFunctionExpression;
 class FinalFunctionExpression;
 class GlobalFunctionExpression;
@@ -177,6 +178,7 @@ public:
 	virtual void Expr(NameToStringExpression* expr) = 0;
 	virtual void Expr(VectorToStringExpression* expr) = 0;
 	virtual void Expr(RotatorToStringExpression* expr) = 0;
+	virtual void Expr(StringToNameExpression* expr) = 0;
 	virtual void Expr(VirtualFunctionExpression* expr) = 0;
 	virtual void Expr(FinalFunctionExpression* expr) = 0;
 	virtual void Expr(GlobalFunctionExpression* expr) = 0;

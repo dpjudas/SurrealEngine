@@ -121,6 +121,7 @@ private:
 	void Expr(NameToStringExpression* expr) override;
 	void Expr(VectorToStringExpression* expr) override;
 	void Expr(RotatorToStringExpression* expr) override;
+	void Expr(StringToNameExpression* expr) override;
 	void Expr(VirtualFunctionExpression* expr) override;
 	void Expr(FinalFunctionExpression* expr) override;
 	void Expr(GlobalFunctionExpression* expr) override;

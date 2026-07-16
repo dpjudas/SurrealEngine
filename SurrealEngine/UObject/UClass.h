@@ -319,7 +319,9 @@ enum class ExprToken : uint8_t
 	NameToString = 0x57,
 	VectorToString = 0x58,
 	RotatorToString = 0x59,
+	StringToName = 0x5A, // Added in Harry Potter
 	MaxConversion = 0x60,	// Maximum conversion token
+
 	ExtendedNative = 0x60,
 	FirstNative = 0x70
 };
