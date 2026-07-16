@@ -321,6 +321,14 @@ GameLaunchInfo GameFolderSelection::ExamineFolder(const std::string& path)
 				info.gameVersionString = "1.10";
 			}
 			break;
+			case KnownUE1Games::RUNE_111:
+			{
+				info.gameName = "Rune Classic";
+				info.engineVersion = 111;
+				info.engineSubVersion = 0;
+				info.gameVersionString = "1.11";
+			}
+			break;
 			case KnownUE1Games::UNDYING_420:
 			{
 				info.gameName = "Clive Barker's Undying";

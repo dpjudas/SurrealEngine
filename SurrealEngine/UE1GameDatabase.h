@@ -34,6 +34,7 @@ enum class KnownUE1Games
 	TNN_200,
 	RUNE_107,
 	RUNE_110,
+	RUNE_111,
 	UNDYING_420,
 	TACTICAL_OPS_436,
 	TACTICAL_OPS_469,
@@ -168,6 +169,8 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"2db721aa27f9a13c371de08af2c3fbb7ed0642f3", KnownUE1Games::RUNE_107},
 	// Rune Classic, Version 1.10
 	{"4a517c7f96a27cf7e25534c80d50af8db4065276", KnownUE1Games::RUNE_110},
+	// Rune Classic, Version 1.11
+	{"b644bb7f6ce07e284fb81e1ed496607f77080771", KnownUE1Games::RUNE_111},
 
 	// Clive Barker's Undying, Version 420 (GOG)
 	{"65aa7c5caca6495681c9c2dc919645de5c15b96e", KnownUE1Games::UNDYING_420},
