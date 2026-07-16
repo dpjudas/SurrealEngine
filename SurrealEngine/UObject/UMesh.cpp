@@ -497,16 +497,6 @@ void ULodMesh::Load(ObjectStream* stream)
 	Normals.resize(Verts.size(), vec3(0.0f));
 	for (int frame = 0; frame < AnimFrames; frame++)
 	{
-		for (const MeshFace& face : SpecialFaces)
-		{
-			int v0 = Wedges[face.Indices[0]].Vertex + frame * FrameVerts;
-			int v1 = Wedges[face.Indices[1]].Vertex + frame * FrameVerts;
-			int v2 = Wedges[face.Indices[2]].Vertex + frame * FrameVerts;
-			vec3 n = normalize(cross(Verts[v1] - Verts[v0], Verts[v2] - Verts[v0]));
-			Normals[v0] += n;
-			Normals[v1] += n;
-			Normals[v2] += n;
-		}
 		for (const MeshFace& face : Faces)
 		{
 			int v0 = Wedges[face.Indices[0]].Vertex + SpecialVerts + frame * FrameVerts;

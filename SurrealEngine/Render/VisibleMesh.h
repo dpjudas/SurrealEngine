@@ -23,13 +23,17 @@ public:
 
 private:
 	void DrawDebugInfo(VisibleFrame* frame, UActor* actor);
-	bool DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawLodMeshDX(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
-	bool DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass);
-	bool DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount);
-	bool DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& meshToWorld, const mat3& meshNormalToWorld, bool translucentPass);
+	bool DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawLodMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
+	bool DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass);
+	bool DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount);
+	bool DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass);
 	void SetupMeshTextures(UActor* actor, UMesh* mesh);
 	void SetupLodMeshTextures(UActor* actor, ULodMesh* mesh);
+	void FindAttachmentPoints(ULodMesh* mesh, const mat4& ObjectToWorld, const int* vertexOffsets, float t0, float t1);
+
+	Array<vec3> attachmentTris;
 };
