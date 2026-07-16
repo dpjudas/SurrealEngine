@@ -108,6 +108,12 @@ void VRPlayerInput::UpdateButtons()
 {
 	VRSubsystem* vr = engine->vr.get();
 
+	// The pause/main menu has the screen when the console has taken over the whole frame. While it does,
+	// the pointer hand's trigger stands in for a left mouse click on the VR menu plane (RenderSubsystem
+	// casts the laser and moves the cursor), so the player works the menu by pointing and pulling the
+	// trigger instead of with a mouse they can't see in the headset.
+	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
+
 	// Left hand takes IK_Joy1..IK_Joy6, right hand IK_Joy7..IK_Joy12, in VRSubsystem::Button order.
 	// Nothing binds these by default, so they do nothing until the player puts them in their ini - the
 	// point is that once they do, a controller button is just another key and goes through the same
@@ -123,8 +129,50 @@ void VRPlayerInput::UpdateButtons()
 				continue;
 
 			ButtonWasDown[hand][button] = isDown;
+			EInputType type = isDown ? IST_Press : IST_Release;
+
+			// The pointer hand's B toggles the menu, standing in for the Escape key so it opens and closes
+			// whatever Escape is bound to for this game - and it does so whether or not a menu is already
+			// up. Routed as IK_Escape rather than a Joy key so it needs no ini binding of its own and can't
+			// be accidentally rebound out from under the player.
+			if (hand == VRSubsystem::MenuPointerHand && button == VRSubsystem::Button_B)
+			{
+				engine->InputEvent(IK_Escape, type);
+				continue;
+			}
+
+			// While a menu is up, the pointer hand's trigger is the menu's left mouse button. The routing is
+			// decided at press time and remembered, so a click that closes the menu still gets its matching
+			// mouse-button release - otherwise the button would latch down, or an unpaired Joy release would
+			// fire once the menu was gone.
+			if (hand == VRSubsystem::MenuPointerHand && button == VRSubsystem::Button_Trigger)
+			{
+				if (isDown)
+					PointerTriggerIsMenuClick = menuOpen;
+				if (PointerTriggerIsMenuClick)
+				{
+					// Native URootWindow menus (Deus Ex et al.) take the click through their own window
+					// event path, not the key input path - the same split Engine::OnWindowMouseDown makes for
+					// the desktop mouse. dxRootWindow is null for the UT/Unreal script menus, which do read
+					// IK_LeftMouse. Either way the cursor was already parked by UpdateVRMenuLaser, so the
+					// position passed here is unused (the window reads its own tracked cursor).
+					if (engine->dxRootWindow)
+					{
+						if (isDown)
+							engine->dxRootWindow->OnWindowMouseDown(Point(0.0, 0.0), IK_LeftMouse);
+						else
+							engine->dxRootWindow->OnWindowMouseUp(Point(0.0, 0.0), IK_LeftMouse);
+					}
+					else
+					{
+						engine->InputEvent(IK_LeftMouse, type);
+					}
+					continue;
+				}
+			}
+
 			EInputKey key = (EInputKey)(IK_Joy1 + hand * VRSubsystem::ButtonCount + button);
-			engine->InputEvent(key, isDown ? IST_Press : IST_Release);
+			engine->InputEvent(key, type);
 		}
 	}
 }

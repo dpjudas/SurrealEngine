@@ -98,6 +98,12 @@ public:
 	static const int HandCount = 2;
 	enum { HandLeft = 0, HandRight = 1 };
 
+	// Which hand's laser drives the pause/main menu: VRPlayerInput routes that hand's trigger to a mouse
+	// click while a menu is up, and RenderSubsystem casts the pointing laser and moves the cursor from the
+	// same hand. Kept here so the input and render sides can never disagree about which hand points. The
+	// menu is toggled with that hand's B button (see VRPlayerInput::UpdateButtons).
+	static const int MenuPointerHand = HandRight;
+
 	struct ControllerState
 	{
 		// False when the controller is off, asleep, or otherwise not being tracked. Position/orientation

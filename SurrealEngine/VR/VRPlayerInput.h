@@ -36,6 +36,9 @@ private:
 	bool HasHeadReference = false;
 
 	bool ButtonWasDown[VRSubsystem::HandCount][VRSubsystem::ButtonCount] = {};
+	// Whether the pointer hand's trigger press was routed to a menu mouse click, so its release routes the
+	// same way even if the click closed the menu in between. See UpdateButtons.
+	bool PointerTriggerIsMenuClick = false;
 	// Snap turning fires once per flick, not once per frame the stick is held over.
 	bool SnapTurnArmed = true;
 };

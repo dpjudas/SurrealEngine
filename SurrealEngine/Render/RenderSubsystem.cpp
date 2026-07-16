@@ -51,7 +51,12 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 			{
 				if (!WasVRMenuOpen)
 					CaptureVRMenuPlaneAnchor(eyeViews);
+				UpdateVRMenuLaser();
 				DrawUICanvas();
+			}
+			else
+			{
+				VRMenuLaserValid = false;
 			}
 			WasVRMenuOpen = menuOpen;
 
@@ -275,6 +280,99 @@ void RenderSubsystem::CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeVie
 	VRMenuPlaneCorners[3] = center - halfRight - halfUp;
 }
 
+void RenderSubsystem::UpdateVRMenuLaser()
+{
+	VRMenuLaserValid = false;
+
+	VRSubsystem* vr = engine->vr.get();
+	if (!vr || !vr->IsActive())
+		return;
+
+	const VRSubsystem::ControllerState& controller = vr->GetController(VRSubsystem::MenuPointerHand);
+	if (!controller.PoseValid)
+		return; // pointer controller off or untracked - leave the cursor where it was, draw no beam
+
+	// Put the controller pose into the same world space the menu plane lives in. The plane was frozen
+	// against a leveled (yaw-only) camera reference when it opened, and the eyes are rendered against that
+	// same frozen reference while the menu is up (DrawVRMenuPlane), so the laser has to use it too or it
+	// would point at where the plane isn't. This is the same local-vector -> world-vector mapping
+	// CaptureVRMenuPlaneAnchor uses, against the frozen rotation it stored.
+	Coords frozenRotation = Coords::Rotation(VRMenuFrozenCameraRotation);
+	auto localToWorldDir = [&frozenRotation](const vec3& v)
+	{
+		return frozenRotation.XAxis * v.x + frozenRotation.YAxis * v.y + frozenRotation.ZAxis * v.z;
+	};
+
+	vec3 rayOrigin = VRMenuFrozenCameraLocation + localToWorldDir(RemoveRoomScaleOffset(controller.Position));
+	vec3 rayDir = localToWorldDir(controller.Forward);
+	float rayDirLen = length(rayDir);
+	if (rayDirLen < 0.0001f)
+		return;
+	rayDir = rayDir / rayDirLen;
+
+	// The plane as an origin + two edge vectors, in the corner/UV order CaptureVRMenuPlaneAnchor lays out:
+	// corner[0] is UV (0,0) (top-left), [1] is (1,0), [3] is (0,1). So uEdge runs left->right as u: 0->1
+	// and vEdge runs top->bottom as v: 0->1, which is also how WindowsMouseX/Y are measured.
+	vec3 planeOrigin = VRMenuPlaneCorners[0];
+	vec3 uEdge = VRMenuPlaneCorners[1] - planeOrigin;
+	vec3 vEdge = VRMenuPlaneCorners[3] - planeOrigin;
+	vec3 normal = cross(uEdge, vEdge);
+	float normalLen = length(normal);
+	if (normalLen < 0.0001f)
+		return;
+	normal = normal / normalLen;
+
+	float denom = dot(rayDir, normal);
+	if (std::abs(denom) < 0.0001f)
+		return; // pointing along the plane - no meaningful hit
+
+	float t = dot(planeOrigin - rayOrigin, normal) / denom;
+	if (t <= 0.0f)
+		return; // the plane is behind the hand
+
+	vec3 hit = rayOrigin + rayDir * t;
+	vec3 relative = hit - planeOrigin;
+	float u = dot(relative, uEdge) / dot(uEdge, uEdge);
+	float v = dot(relative, vEdge) / dot(vEdge, vEdge);
+
+	// Draw the beam all the way to wherever the hand actually points, even past the menu's edge, so it
+	// reads as a real laser; the cursor below is clamped onto the menu so edge buttons stay reachable.
+	VRMenuLaserStart = rayOrigin;
+	VRMenuLaserEnd = hit;
+	VRMenuLaserValid = true;
+
+	float cursorU = std::clamp(u, 0.0f, 1.0f);
+	float cursorV = std::clamp(v, 0.0f, 1.0f);
+
+	// The script (UWindow) menus - Unreal's UMenu, UT - read the absolute cursor from WindowsMouseX/Y when
+	// bWindowsMouseAvailable, the same channel the desktop mouse drives them through. The values are in the
+	// menu's *frame* coordinates - the SizeX/SizeY the menu is laid out against - which ResetCanvas sets to
+	// the render surface's pixel size divided by its UI scale. On the desktop that scale is ~1, so frame
+	// coords equal raw pixels; but the VR menu canvas has a UI scale of 2, so feeding raw canvas pixels
+	// (u * canvasWidth) overshot the cursor by exactly that scale. Derive the VR canvas UI scale the same
+	// way ResetCanvas does (not Canvas.uiscale, which is a frame stale here since UpdateVRMenuLaser runs
+	// before DrawUICanvas) and divide it back out.
+	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
+	int menuUiScale = std::max((RenderDevice::VRMenuCanvasHeight + vertResolution / 2) / vertResolution, 1);
+	float frameX = (float)RenderDevice::VRMenuCanvasWidth / (float)menuUiScale;
+	float frameY = (float)RenderDevice::VRMenuCanvasHeight / (float)menuUiScale;
+
+	if (engine->viewport)
+	{
+		engine->viewport->WindowsMouseX() = cursorU * frameX;
+		engine->viewport->WindowsMouseY() = cursorV * frameY;
+		engine->viewport->bWindowsMouseAvailable() = true;
+	}
+
+	// Games whose menu is instead the native URootWindow (Deus Ex and the like) never read WindowsMouseX/Y;
+	// they track their own cursor directly in the window's virtual space (GetVirtualWidth/Height), which is
+	// what ScaleRect then multiplies by GetVirtualScale to reach canvas pixels. dxRootWindow is null for the
+	// script menus above, so this is a no-op there and can't disturb the path that works. Untested (this
+	// machine's game uses the script path) - revisit if a native-window game ever runs in VR.
+	if (engine->dxRootWindow)
+		engine->dxRootWindow->SetRootCursorPos(cursorU * UWindow::GetVirtualWidth(), cursorV * UWindow::GetVirtualHeight());
+}
+
 void RenderSubsystem::DrawVRMenuPlane()
 {
 	if (!CurrentVREye)
@@ -301,6 +399,13 @@ void RenderSubsystem::DrawVRMenuPlane()
 	frame.Projection = providedProjection;
 
 	Device->DrawVRMenuPlane(&frame, VRMenuPlaneCorners, VRMenuPlaneUVs);
+
+	// The pointer laser, in the same world space and eye frame as the plane, so it lands at the
+	// stereo-correct spot the player is aiming at. Not depth-cued (flags 0), so the thin beam always reads
+	// crisply on top of the plane instead of z-fighting the surface it terminates on. Where the beam meets
+	// the plane is the cursor - the menu highlights whatever is under it, so no separate marker is needed.
+	if (VRMenuLaserValid)
+		Device->Draw3DLine(&frame, vec4(0.2f, 0.8f, 1.0f, 1.0f), 0, VRMenuLaserStart, VRMenuLaserEnd);
 }
 
 void RenderSubsystem::DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop)

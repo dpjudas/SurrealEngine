@@ -112,6 +112,10 @@ private:
 	// per-eye VR projection used for real 3D geometry, so it's fully visible with correct stereo depth.
 	void DrawUICanvas();
 	void CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeViews[2]);
+	// Casts the pointer hand's laser at the (already anchored) menu plane, drives the menu cursor from
+	// where it hits, and stores the beam for DrawVRMenuPlane to draw per eye. Call once per frame while the
+	// menu is up, after the plane anchor exists and before the canvas is drawn.
+	void UpdateVRMenuLaser();
 	void DrawVRMenuPlane();
 	void DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 
@@ -149,6 +153,12 @@ private:
 	// plane appear to drift as the cinematic keeps moving, even though the player's own head hasn't.
 	vec3 VRMenuFrozenCameraLocation = vec3(0.0f);
 	Rotator VRMenuFrozenCameraRotation = Rotator(0, 0, 0);
+
+	// The pointer laser for the current frame, in the same world space as VRMenuPlaneCorners. Recomputed by
+	// UpdateVRMenuLaser every frame the menu is open (the hand moves), drawn by DrawVRMenuPlane per eye.
+	bool VRMenuLaserValid = false;
+	vec3 VRMenuLaserStart = vec3(0.0f);
+	vec3 VRMenuLaserEnd = vec3(0.0f);
 
 	struct
 	{
