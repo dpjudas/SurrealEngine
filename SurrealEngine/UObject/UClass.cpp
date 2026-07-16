@@ -733,7 +733,7 @@ void UClass::LoadProperties(PropertyDataBlock* propertyBlock)
 						NameString outerSectionName = outer->package->GetPackageName().ToString() + "." + outer->Name.ToString();
 						NameString outerConfigName = outer->ClassConfigName;
 						if (outerConfigName.IsNone()) outerConfigName = "system";
-						value = package->GetPackageManager()->GetIniValue(outerConfigName, outerSectionName, prop->Name);
+						value = package->GetPackageManager()->GetIniValue(outerConfigName, outerSectionName, name);
 					}
 				}
 				else if (AllFlags(prop->PropFlags, PropertyFlags::Config))
