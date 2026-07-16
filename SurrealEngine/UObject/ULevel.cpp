@@ -538,6 +538,21 @@ void UModel::Save(PackageStreamWriter* stream)
 
 PointRegion UModel::FindRegion(const vec3& point, UZoneInfo* levelZoneInfo)
 {
+	if (Nodes.empty()) // This happens in Harry Potter! Probably a load problem
+	{
+		static bool messageShown = false;
+		if (!messageShown)
+		{
+			LogMessage("Model.FindRegion encountered an empty model: " + Name.ToString());
+			messageShown = true;
+		}
+		PointRegion region;
+		region.BspLeaf = 0;
+		region.ZoneNumber = 0;
+		region.Zone = engine->GetZoneActor(region.ZoneNumber);
+		return region;
+	}
+
 	PointRegion region;
 	region.BspLeaf = 0;
 	region.ZoneNumber = 0;

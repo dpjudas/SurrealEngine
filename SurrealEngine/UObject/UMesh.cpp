@@ -765,6 +765,9 @@ void UAnimation::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
 
+	if (engine->LaunchInfo.IsHarryPotter1() || engine->LaunchInfo.IsHarryPotter2())
+		return; // To do: format changed. Figure out how. Maybe the arrays became skippable?
+
 	int NumRefBones = stream->ReadIndex();
 	for (int i = 0; i < NumRefBones; i++)
 	{
