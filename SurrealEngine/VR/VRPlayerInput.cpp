@@ -22,6 +22,12 @@ namespace
 	const float SnapTurnFireThreshold = 0.7f;
 	const float SnapTurnRearmThreshold = 0.4f;
 
+	// Same idea on the same stick's Y axis, for jump (up) and crouch (down). Higher than the snap-turn
+	// threshold on purpose: this axis shares a stick with turning, and a diagonal flick meant as a turn
+	// should not also jump.
+	const float JumpCrouchFireThreshold = 0.8f;
+	const float JumpCrouchRearmThreshold = 0.5f;
+
 	const float DegreesToRotatorUnits = 65536.0f / 360.0f;
 
 	// Half a metre of head movement inside one frame. Far beyond anything a person does at any sane
@@ -57,6 +63,76 @@ namespace
 		outHeading = flat / std::sqrt(lengthSquared);
 		return true;
 	}
+
+	// The controller buttons land on IK_Joy1..IK_Joy16, laid out hand-major: left takes the first
+	// ButtonCount keys, right the next.
+	EInputKey ButtonToKey(int hand, int button)
+	{
+		return (EInputKey)(IK_Joy1 + hand * VRSubsystem::ButtonCount + button);
+	}
+
+	// Jump and crouch are edge-triggered from the stick rather than being buttons, so they have no Joy
+	// key of their own to be released against - but Engine::InputEvent's release path cleans up
+	// activeInputButtons/activeInputAxes *by key*, so they need one anyway. These are the two keys left
+	// over after the buttons above, which VR claims and binds to nothing, so nothing else can generate
+	// them and their bookkeeping can't collide with a real button's.
+	const EInputKey JumpSyntheticKey = IK_Joy15;
+	const EInputKey CrouchSyntheticKey = IK_Joy16;
+
+	// At 7 buttons per hand the Joy range is exactly full: Joy1..Joy14 for the buttons, Joy15/Joy16 for
+	// the two above. One more button and the right hand's keys would run off the end of IK_Joy16 - which
+	// wouldn't fail, it would quietly deliver presses as IK_Escape and whatever else follows Joy16 in
+	// EInputKey. So it's a build error instead. This is the only bound worth asserting: it is tighter
+	// than "fits in Joy1..Joy16" and fires first.
+	static_assert(VRSubsystem::HandCount * VRSubsystem::ButtonCount <= IK_Joy15 - IK_Joy1,
+		"Too many VR buttons: hand * ButtonCount + button has grown into IK_Joy15/IK_Joy16, which are "
+		"reserved for the synthetic jump/crouch presses. Drop a button, or stop mapping them onto Joy keys.");
+
+	// What VR binds each controller button to, indexed [hand][button] in VRSubsystem::Button order.
+	// Empty means deliberately bound to nothing.
+	//
+	// VR claims the whole Joy range rather than reading it from the player's ini, because the ini is
+	// never neutral: Epic ships Joy1..Joy16 in DefUser.ini and every install inherits them, so a VR
+	// player who has never touched a binding still starts with left grip on Jump, left B on Duck and the
+	// right hand scattered across SwitchWeapon. Those defaults were written for a gamepad and are actively
+	// wrong for hands. The cost is that Joy bindings in the ini no longer do anything while VR is on.
+	const char* const VRButtonCommands[VRSubsystem::HandCount][VRSubsystem::ButtonCount] =
+	{
+		// Left hand: IK_Joy1..IK_Joy7
+		{
+			"Fire",          // Trigger
+			"",              // Grip - freed from the stock Jump; phase 6 wants it for the item wheel
+			"",              // A - reserved for the item wheel (phase 6)
+			"",              // B
+			"NextWeapon",    // ThumbstickClick - keeps weapon switching alive until the wheel exists
+			"",              // Menu - the Index has no menu button
+			"AltFire",       // Trackpad
+		},
+		// Right hand: IK_Joy8..IK_Joy14
+		{
+			"Fire",          // Trigger - also the menu click while a menu is up, see UpdateButtons
+			"",              // Grip
+			"",              // A - reserved for the weapon wheel (phase 6)
+			"",              // B - intercepted as IK_Escape before it reaches a binding, see UpdateButtons
+			"NextWeapon",    // ThumbstickClick
+			"",              // Menu
+			"AltFire",       // Trackpad
+		},
+	};
+}
+
+void VRPlayerInput::ApplyKeybindings()
+{
+	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
+	{
+		for (int button = 0; button < VRSubsystem::ButtonCount; button++)
+			engine->keybindings[Engine::keynames[ButtonToKey(hand, button)]] = VRButtonCommands[hand][button];
+	}
+
+	// Claimed too, so that a stock InventoryNext/InventoryPrevious binding can't fire when the jump and
+	// crouch aliases borrow these keys for their press/release bookkeeping.
+	engine->keybindings[Engine::keynames[JumpSyntheticKey]] = "";
+	engine->keybindings[Engine::keynames[CrouchSyntheticKey]] = "";
 }
 
 void VRPlayerInput::Tick(float timeElapsed)
@@ -86,7 +162,16 @@ void VRPlayerInput::Tick(float timeElapsed)
 	// the stick last said latched into the axis, and the player jogging into a wall behind the menu.
 	UpdateMovement(!menuOpen);
 	if (!menuOpen)
+	{
 		UpdateTurning(timeElapsed);
+		UpdateJumpCrouch();
+	}
+	else
+	{
+		// Same reason the stick stops moving the player behind a menu. A crouch left latched down while
+		// the menu is up would still be held when it closes, and the player has no way to see why.
+		ReleaseStickAction();
+	}
 
 	// Room-scale keeps running even behind the menu, deliberately. Freezing it would let the player
 	// physically walk away from their pawn and then get yanked back the moment they closed the menu,
@@ -114,10 +199,11 @@ void VRPlayerInput::UpdateButtons()
 	// trigger instead of with a mouse they can't see in the headset.
 	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
 
-	// Left hand takes IK_Joy1..IK_Joy6, right hand IK_Joy7..IK_Joy12, in VRSubsystem::Button order.
-	// Nothing binds these by default, so they do nothing until the player puts them in their ini - the
-	// point is that once they do, a controller button is just another key and goes through the same
-	// aliases, console and menu handling as one.
+	// Left hand takes the first ButtonCount Joy keys from IK_Joy1, right hand the next, in
+	// VRSubsystem::Button order. VR has already overwritten what those keys are bound to
+	// (ApplyKeybindings) - the point of going out through a key at all rather than driving the pawn
+	// directly is that a controller button is then just another key, and gets the same aliases, console
+	// and menu handling as one.
 	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 	{
 		const VRSubsystem::ControllerState& controller = vr->GetController(hand);
@@ -171,8 +257,7 @@ void VRPlayerInput::UpdateButtons()
 				}
 			}
 
-			EInputKey key = (EInputKey)(IK_Joy1 + hand * VRSubsystem::ButtonCount + button);
-			engine->InputEvent(key, type);
+			engine->InputEvent(ButtonToKey(hand, button), type);
 		}
 	}
 }
@@ -276,6 +361,66 @@ void VRPlayerInput::UpdateTurning(float timeElapsed)
 	// so writing it here before the level ticks composes with the game's own turning instead of
 	// fighting it. Masked to 16 bits the same way the scripts keep it.
 	player->ViewRotation().Yaw = (player->ViewRotation().Yaw + deltaYaw) & 0xffff;
+}
+
+void VRPlayerInput::ReleaseStickAction()
+{
+	if (StickActionHeld == StickAction::None)
+		return;
+
+	// Released by key, not by command: Engine::InputEvent's IST_Release path walks activeInputButtons and
+	// activeInputAxes looking for entries this key owns and clears exactly those. That is what undoes both
+	// halves of the alias - the button/exec half *and* the aUp axis - without having to know what the
+	// alias expanded into.
+	engine->InputEvent(StickActionHeld == StickAction::Jump ? JumpSyntheticKey : CrouchSyntheticKey, IST_Release);
+	StickActionHeld = StickAction::None;
+}
+
+void VRPlayerInput::UpdateJumpCrouch()
+{
+	// The same stick that turns: its X is the turn axis (UpdateTurning) and its Y was going spare.
+	float stickY = engine->vr->GetController(1 - GetMovementHand()).Thumbstick.y;
+
+	StickAction wanted = StickAction::None;
+	if (std::fabs(stickY) >= JumpCrouchFireThreshold)
+		wanted = stickY > 0.0f ? StickAction::Jump : StickAction::Crouch;
+
+	// Only jump is gated on rearming, and that is the whole difference between the two: a jump is one
+	// action per flick, so holding the stick up must not machine-gun it, whereas a crouch is a hold and
+	// wants to stay down for exactly as long as the stick is. The stick has to come back near centre
+	// before another jump can fire - which also means going straight from a held jump to a crouch and back
+	// up again gives you the crouch but not a second jump, since the stick never passed through centre.
+	if (std::fabs(stickY) <= JumpCrouchRearmThreshold)
+		JumpArmed = true;
+
+	if (wanted == StickActionHeld)
+		return;
+
+	ReleaseStickAction();
+
+	if (wanted == StickAction::None)
+		return;
+	if (wanted == StickAction::Jump && !JumpArmed)
+		return;
+
+	// Drive the alias rather than the pawn. Both aliases are two commands - "Jump | Axis aUp Speed=+300.0"
+	// and "Button bDuck | Axis aUp Speed=-300.0" - and setting only the exec/button half skips aUp, which
+	// is the half that actually moves a Pawn up or down in water, on ladders and when flying. Which half
+	// matters is game-specific, so drive the whole thing the way a key would.
+	//
+	// Delta 20 is what Engine::InputEvent gives a key press, and InputCommand multiplies it by the
+	// binding's Speed=. Passing anything else here would make the VR stick a differently-sized press than
+	// the spacebar.
+	const char* aliasName = wanted == StickAction::Jump ? "Jump" : "Duck";
+	auto alias = engine->inputAliases.find(aliasName);
+	if (alias == engine->inputAliases.end())
+		return; // A game whose ini defines no such alias. Nothing to drive, and nothing to release later.
+
+	engine->InputCommand(alias->second, wanted == StickAction::Jump ? JumpSyntheticKey : CrouchSyntheticKey, 20);
+	StickActionHeld = wanted;
+
+	if (wanted == StickAction::Jump)
+		JumpArmed = false;
 }
 
 void VRPlayerInput::UpdateRoomScale()

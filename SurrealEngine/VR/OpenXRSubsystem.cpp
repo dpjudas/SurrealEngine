@@ -43,12 +43,15 @@ void OpenXRSubsystem::Destroy()
 		eye.Images.clear();
 	}
 
-	for (XrSpace& aimSpace : AimSpaces)
+	for (XrSpace* spaces : { AimSpaces, GripSpaces })
 	{
-		if (aimSpace != XR_NULL_HANDLE)
+		for (int hand = 0; hand < HandCount; hand++)
 		{
-			xrDestroySpace(aimSpace);
-			aimSpace = XR_NULL_HANDLE;
+			if (spaces[hand] != XR_NULL_HANDLE)
+			{
+				xrDestroySpace(spaces[hand]);
+				spaces[hand] = XR_NULL_HANDLE;
+			}
 		}
 	}
 	ActionsAttached = false;
@@ -177,12 +180,15 @@ bool OpenXRSubsystem::CreateActions()
 
 	if (!createAction(MoveAction, XR_ACTION_TYPE_VECTOR2F_INPUT, "thumbstick", "Thumbstick") ||
 		!createAction(AimPoseAction, XR_ACTION_TYPE_POSE_INPUT, "aim_pose", "Aim pose") ||
+		!createAction(GripPoseAction, XR_ACTION_TYPE_POSE_INPUT, "grip_pose", "Grip pose") ||
+		!createAction(HapticAction, XR_ACTION_TYPE_VIBRATION_OUTPUT, "haptic", "Haptic feedback") ||
 		!createAction(ButtonActions[Button_Trigger], XR_ACTION_TYPE_BOOLEAN_INPUT, "trigger", "Trigger") ||
 		!createAction(ButtonActions[Button_Grip], XR_ACTION_TYPE_BOOLEAN_INPUT, "grip", "Grip") ||
 		!createAction(ButtonActions[Button_A], XR_ACTION_TYPE_BOOLEAN_INPUT, "button_a", "A button") ||
 		!createAction(ButtonActions[Button_B], XR_ACTION_TYPE_BOOLEAN_INPUT, "button_b", "B button") ||
 		!createAction(ButtonActions[Button_ThumbstickClick], XR_ACTION_TYPE_BOOLEAN_INPUT, "thumbstick_click", "Thumbstick click") ||
-		!createAction(ButtonActions[Button_Menu], XR_ACTION_TYPE_BOOLEAN_INPUT, "menu", "Menu button"))
+		!createAction(ButtonActions[Button_Menu], XR_ACTION_TYPE_BOOLEAN_INPUT, "menu", "Menu button") ||
+		!createAction(ButtonActions[Button_Trackpad], XR_ACTION_TYPE_BOOLEAN_INPUT, "trackpad", "Trackpad press"))
 		return false;
 
 	// Bindings are listed per profile rather than generated, because the profiles genuinely differ: the
@@ -196,6 +202,10 @@ bool OpenXRSubsystem::CreateActions()
 		{ MoveAction, "/user/hand/right/input/thumbstick" },
 		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
 		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ GripPoseAction, "/user/hand/left/input/grip/pose" },
+		{ GripPoseAction, "/user/hand/right/input/grip/pose" },
+		{ HapticAction, "/user/hand/left/output/haptic" },
+		{ HapticAction, "/user/hand/right/output/haptic" },
 		{ ButtonActions[Button_Trigger], "/user/hand/left/input/trigger/click" },
 		{ ButtonActions[Button_Trigger], "/user/hand/right/input/trigger/click" },
 		{ ButtonActions[Button_Grip], "/user/hand/left/input/squeeze/value" },
@@ -206,6 +216,11 @@ bool OpenXRSubsystem::CreateActions()
 		{ ButtonActions[Button_B], "/user/hand/right/input/b/click" },
 		{ ButtonActions[Button_ThumbstickClick], "/user/hand/left/input/thumbstick/click" },
 		{ ButtonActions[Button_ThumbstickClick], "/user/hand/right/input/thumbstick/click" },
+		// The pill has no trackpad/click on this profile - force is the closest thing to a press, and
+		// OpenXR thresholds the float for us because the action is boolean. trackpad/touch would fire
+		// on a resting thumb, which for an alt-fire is not what anyone wants.
+		{ ButtonActions[Button_Trackpad], "/user/hand/left/input/trackpad/force" },
+		{ ButtonActions[Button_Trackpad], "/user/hand/right/input/trackpad/force" },
 		});
 
 	SuggestBindings("/interaction_profiles/oculus/touch_controller", {
@@ -213,6 +228,11 @@ bool OpenXRSubsystem::CreateActions()
 		{ MoveAction, "/user/hand/right/input/thumbstick" },
 		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
 		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ GripPoseAction, "/user/hand/left/input/grip/pose" },
+		{ GripPoseAction, "/user/hand/right/input/grip/pose" },
+		{ HapticAction, "/user/hand/left/output/haptic" },
+		{ HapticAction, "/user/hand/right/output/haptic" },
+		// No trackpad on Touch, so Button_Trackpad simply stays unbound here and reads as never pressed.
 		{ ButtonActions[Button_Trigger], "/user/hand/left/input/trigger/value" },
 		{ ButtonActions[Button_Trigger], "/user/hand/right/input/trigger/value" },
 		{ ButtonActions[Button_Grip], "/user/hand/left/input/squeeze/value" },
@@ -231,6 +251,10 @@ bool OpenXRSubsystem::CreateActions()
 	SuggestBindings("/interaction_profiles/khr/simple_controller", {
 		{ AimPoseAction, "/user/hand/left/input/aim/pose" },
 		{ AimPoseAction, "/user/hand/right/input/aim/pose" },
+		{ GripPoseAction, "/user/hand/left/input/grip/pose" },
+		{ GripPoseAction, "/user/hand/right/input/grip/pose" },
+		{ HapticAction, "/user/hand/left/output/haptic" },
+		{ HapticAction, "/user/hand/right/output/haptic" },
 		{ ButtonActions[Button_Trigger], "/user/hand/left/input/select/click" },
 		{ ButtonActions[Button_Trigger], "/user/hand/right/input/select/click" },
 		{ ButtonActions[Button_Menu], "/user/hand/left/input/menu/click" },
@@ -279,10 +303,15 @@ bool OpenXRSubsystem::AttachActions()
 	for (int hand = 0; hand < HandCount; hand++)
 	{
 		XrActionSpaceCreateInfo spaceInfo = { XR_TYPE_ACTION_SPACE_CREATE_INFO };
-		spaceInfo.action = AimPoseAction;
 		spaceInfo.subactionPath = HandPaths[hand];
 		spaceInfo.poseInActionSpace = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f } };
+
+		spaceInfo.action = AimPoseAction;
 		if (!XR_SUCCEEDED_LOG(xrCreateActionSpace(Session, &spaceInfo, &AimSpaces[hand]), "xrCreateActionSpace"))
+			return false;
+
+		spaceInfo.action = GripPoseAction;
+		if (!XR_SUCCEEDED_LOG(xrCreateActionSpace(Session, &spaceInfo, &GripSpaces[hand]), "xrCreateActionSpace"))
 			return false;
 	}
 
@@ -348,25 +377,67 @@ void OpenXRSubsystem::SyncInput()
 		for (int button = 0; button < ButtonCount; button++)
 			state.Buttons[button] = ReadButton(ButtonActions[button], hand);
 
-		// Poses are located against the same play space anchor the eyes are, so a controller pose and a
-		// head pose can be compared directly. predictedDisplayTime is only meaningful once a frame has
-		// been waited on, and locating at time 0 is an error, so before the first frame there is no pose.
-		if (AimSpaces[hand] == XR_NULL_HANDLE || FrameState.predictedDisplayTime <= 0)
+		// The two poses are located independently: a runtime is free to have one tracked and not the
+		// other, and a grip that silently fell back to the aim ray would put the weapon somewhere subtly
+		// wrong rather than visibly missing.
+		LocatePose(GripSpaces[hand], state.Grip);
+
+		TrackedPose aim;
+		if (!LocatePose(AimSpaces[hand], aim))
 			continue;
 
-		XrSpaceLocation location = { XR_TYPE_SPACE_LOCATION };
-		if (XR_FAILED(xrLocateSpace(AimSpaces[hand], ViewSpace, FrameState.predictedDisplayTime, &location)))
-			continue;
-		if (!(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) || !(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
-			continue;
-
-		Pose pose = ConvertPose(location.pose);
 		state.PoseValid = true;
-		state.Position = pose.Position;
-		state.Forward = pose.Forward;
-		state.Right = pose.Right;
-		state.Up = pose.Up;
+		state.Position = aim.Position;
+		state.Forward = aim.Forward;
+		state.Right = aim.Right;
+		state.Up = aim.Up;
 	}
+}
+
+bool OpenXRSubsystem::LocatePose(XrSpace space, TrackedPose& outPose) const
+{
+	// Poses are located against the same play space anchor the eyes are, so a controller pose and a head
+	// pose can be compared directly. predictedDisplayTime is only meaningful once a frame has been waited
+	// on, and locating at time 0 is an error, so before the first frame there is no pose.
+	if (space == XR_NULL_HANDLE || FrameState.predictedDisplayTime <= 0)
+		return false;
+
+	XrSpaceLocation location = { XR_TYPE_SPACE_LOCATION };
+	if (XR_FAILED(xrLocateSpace(space, ViewSpace, FrameState.predictedDisplayTime, &location)))
+		return false;
+	if (!(location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) || !(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
+		return false;
+
+	Pose pose = ConvertPose(location.pose);
+	outPose.Valid = true;
+	outPose.Position = pose.Position;
+	outPose.Forward = pose.Forward;
+	outPose.Right = pose.Right;
+	outPose.Up = pose.Up;
+	return true;
+}
+
+void OpenXRSubsystem::Haptic(int handIndex, float amplitude, float duration)
+{
+	if (!SessionActive || !ActionsAttached || HapticAction == XR_NULL_HANDLE)
+		return;
+	if (handIndex < 0 || handIndex >= HandCount)
+		return;
+
+	XrHapticVibration vibration = { XR_TYPE_HAPTIC_VIBRATION };
+	vibration.amplitude = std::min(std::max(amplitude, 0.0f), 1.0f);
+	// XR_MIN_HAPTIC_DURATION asks the runtime for the shortest pulse it can do, which is what a "tick"
+	// wants and is also the only sane answer for a duration nobody specified.
+	vibration.duration = duration > 0.0f ? (XrDuration)(duration * 1e9) : XR_MIN_HAPTIC_DURATION;
+	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+
+	XrHapticActionInfo info = { XR_TYPE_HAPTIC_ACTION_INFO };
+	info.action = HapticAction;
+	info.subactionPath = HandPaths[handIndex];
+
+	// Not worth logging on failure: this is fire-and-forget garnish, and a runtime with no haptics on
+	// that hand returns XR_SESSION_NOT_FOCUSED or an inactive action every single call.
+	xrApplyHapticFeedback(Session, &info, (const XrHapticBaseHeader*)&vibration);
 }
 
 Array<std::string> OpenXRSubsystem::GetRequiredVulkanInstanceExtensions()

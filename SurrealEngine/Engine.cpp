@@ -100,6 +100,17 @@ void Engine::Run()
 
 	OpenWindow();
 
+	// Deliberately after OpenWindow rather than next to LoadKeybindings: VRSubsystem::Create only reaches
+	// the runtime, and the session that IsActive() reports on isn't up until the Vulkan device exists and
+	// VulkanRenderDevice has called InitSession. Asking before this point always answers no.
+	//
+	// This overwrites the Joy bindings the ini supplied - see VRPlayerInput::ApplyKeybindings.
+	if (vr->IsActive())
+	{
+		VRPlayerInput::ApplyKeybindings();
+		LogMessage("Applied VR key bindings");
+	}
+
 	audiodev->InitDevice();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
 

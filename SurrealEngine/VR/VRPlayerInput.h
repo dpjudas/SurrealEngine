@@ -13,6 +13,11 @@
 class VRPlayerInput
 {
 public:
+	// Overwrites the player's Joy1..Joy16 bindings with VR's own. Call once at startup, after
+	// Engine::LoadKeybindings and only when VR is active - see the table in the .cpp for why VR claims
+	// these keys outright instead of leaving them to the ini.
+	static void ApplyKeybindings();
+
 	void Tick(float timeElapsed);
 
 	// The head's horizontal position in play space, as of the last room-scale move. The renderer must
@@ -45,6 +50,9 @@ private:
 	// allowStick false zeroes the stick but still writes the axes - see the call site.
 	void UpdateMovement(bool allowStick);
 	void UpdateTurning(float timeElapsed);
+	void UpdateJumpCrouch();
+	// Releases whichever of the jump/crouch aliases is currently held, if either. Safe to call when none is.
+	void ReleaseStickAction();
 	void UpdateRoomScale();
 
 	int GetMovementHand() const;          // whose stick is pushed
@@ -59,4 +67,12 @@ private:
 	bool PointerTriggerIsMenuClick = false;
 	// Snap turning fires once per flick, not once per frame the stick is held over.
 	bool SnapTurnArmed = true;
+
+	// Jump and crouch on the turn stick's Y axis. JumpArmed works like SnapTurnArmed - one jump per flick,
+	// so holding the stick up doesn't machine-gun them. It gates jump only: a crouch is a hold, not an
+	// edge. StickActionHeld tracks which alias is currently pressed so its release goes out exactly once,
+	// to the matching synthetic key.
+	bool JumpArmed = true;
+	enum class StickAction { None, Jump, Crouch };
+	StickAction StickActionHeld = StickAction::None;
 };

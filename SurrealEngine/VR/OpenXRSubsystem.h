@@ -29,6 +29,7 @@ public:
 	bool InitSession(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex) override;
 
 	void SyncInput() override;
+	void Haptic(int handIndex, float amplitude, float duration) override;
 
 	bool WaitFrame() override;
 	void BeginFrame() override;
@@ -52,6 +53,9 @@ private:
 	void SuggestBindings(const char* interactionProfile, const std::vector<std::pair<XrAction, std::string>>& bindings);
 	bool AttachActions();
 	bool ReadButton(XrAction action, int handIndex) const;
+	// Locates one hand's action space against the play space anchor. Returns false when the pose isn't
+	// tracked this frame, or before the first frame has been waited on (see SyncInput).
+	bool LocatePose(XrSpace space, TrackedPose& outPose) const;
 
 	struct Pose { vec3 Position, Forward, Right, Up; };
 	static Pose ConvertPose(const XrPosef& pose);
@@ -78,13 +82,16 @@ private:
 	EyeSwapchain Eyes[EyeCount];
 
 	XrActionSet ActionSet = XR_NULL_HANDLE;
-	XrAction MoveAction = XR_NULL_HANDLE;    // thumbstick, Vector2f
-	XrAction AimPoseAction = XR_NULL_HANDLE; // where the controller points
+	XrAction MoveAction = XR_NULL_HANDLE;      // thumbstick, Vector2f
+	XrAction AimPoseAction = XR_NULL_HANDLE;   // where the controller points
+	XrAction GripPoseAction = XR_NULL_HANDLE;  // where the hand holds; see ControllerState::Grip
+	XrAction HapticAction = XR_NULL_HANDLE;    // XR_ACTION_TYPE_VIBRATION_OUTPUT
 	XrAction ButtonActions[ButtonCount] = {};
 	// Every action is declared with both hands as subaction paths, so one action covers both controllers
 	// and the hand is chosen at read time rather than by having two of everything.
 	XrPath HandPaths[HandCount] = {};
 	XrSpace AimSpaces[HandCount] = {};
+	XrSpace GripSpaces[HandCount] = {};
 	bool ActionsAttached = false;
 
 	XrFrameState FrameState = { XR_TYPE_FRAME_STATE };
