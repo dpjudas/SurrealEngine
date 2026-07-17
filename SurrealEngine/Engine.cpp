@@ -1733,25 +1733,49 @@ bool Engine::ExecCommand(const Array<std::string>& args)
 			for (UField* field = func->Children; field != nullptr; field = field->Next)
 			{
 				UProperty* prop = UObject::TryCast<UProperty>(field);
-				if (prop)
+				if (!prop)
+					continue;
+
+				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm))
+					continue;
+
+				if (!AllFlags(prop->PropFlags, PropertyFlags::Parm))
+					continue;
+
+				if (argindex + 1 < args.size())
 				{
-					if (AllFlags(prop->PropFlags, PropertyFlags::Parm) && !AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+					const std::string& arg = args[1 + argindex];
+					switch (prop->ValueType)
 					{
-						std::string arg = (1 + argindex < args.size()) ? args[1 + argindex] : std::string("0");
-						switch (prop->ValueType)
-						{
-						case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
-						case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(std::atoi(arg.c_str()))); break;
-						case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(std::atoi(arg.c_str()))); break;
-						case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(arg == "1" || arg == "true")); break;
-						case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue((float)std::atof(arg.c_str()))); break;
-						case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue(arg)); break;
-						case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue(arg)); break;
-						default: break;
-						}
-						argindex++;
+					case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
+					case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(arg == "1" || arg == "true")); break;
+					case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue((float)std::atof(arg.c_str()))); break;
+					case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue(arg)); break;
+					case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue(arg)); break;
+					default: LogMessage("Unsupported value type found in Engine.ExecCommand"); return false;
 					}
 				}
+				else if (AllFlags(prop->PropFlags, PropertyFlags::OptionalParm))
+				{
+					vmArgs.push_back(ExpressionValue::NothingValue());
+				}
+				else
+				{
+					switch (prop->ValueType)
+					{
+					case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
+					case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(0)); break;
+					case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(0)); break;
+					case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(false)); break;
+					case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue(0.0f)); break;
+					case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue({})); break;
+					case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue({})); break;
+					default: LogMessage("Unsupported value type found in Engine.ExecCommand"); return false;
+					}
+				}
+				argindex++;
 			}
 
 			CallEvent(target, func->Name, vmArgs);
