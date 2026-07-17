@@ -202,9 +202,19 @@ bool UActor::Destroy()
 
 	CallEvent(this, EventName::Destroyed);
 
-	for (const auto actor : Touching())
-		if (actor)
-			UnTouch(actor);
+	if (engine->LaunchInfo.IsUnrealTournament_469())
+	{
+		for (const auto actor : Touching_UT469())
+			if (actor)
+				UnTouch(actor);
+	}
+	else
+	{
+		for (const auto actor : Touching())
+			if (actor)
+				UnTouch(actor);
+	}
+
 
 	SetOwner(nullptr);
 
@@ -1368,10 +1378,21 @@ bool UActor::SetLocation(const vec3& newLocation)
 		}
 
 		// Untouch everything we aren't overlapping anymore
-		for (const auto actor : Touching())
+		if (engine->LaunchInfo.IsUnrealTournament_469())
 		{
-			if (actor && !IsOverlapping(actor))
-				UnTouch(actor);
+			for (const auto actor : Touching_UT469())
+			{
+				if (actor && !IsOverlapping(actor))
+					UnTouch(actor);
+			}
+		}
+		else
+		{
+			for (const auto actor : Touching())
+			{
+				if (actor && !IsOverlapping(actor))
+					UnTouch(actor);
+			}
 		}
 	}
 
@@ -1704,9 +1725,18 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	}
 
 	// Untouch everything we aren't overlapping anymore
-	for (const auto actor : Touching())
-		if (actor && !IsOverlapping(actor))
-			UnTouch(actor);
+	if (engine->LaunchInfo.IsUnrealTournament_469())
+	{
+		for (const auto actor : Touching_UT469())
+			if (actor && !IsOverlapping(actor))
+				UnTouch(actor);
+	}
+	else
+	{
+		for (const auto actor : Touching())
+			if (actor && !IsOverlapping(actor))
+				UnTouch(actor);
+	}
 
 	UpdateActorZone();
 
@@ -1736,47 +1766,97 @@ void UActor::Touch(UActor* actor)
 	if (bDeleteMe() || actor->bDeleteMe())
 		return;
 
-	auto TouchingArray = Touching();
-	auto TouchingArray2 = actor->Touching();
-
-	// Do nothing if actors are already touching
-	for (int i = 0; i < TouchingArraySize; i++)
+	if (engine->LaunchInfo.IsUnrealTournament_469())
 	{
-		if (TouchingArray[i] == actor)
+		auto TouchingArray = Touching_UT469();
+		auto TouchingArray2 = actor->Touching_UT469();
+
+		// Do nothing if actors are already touching
+		for (int i = 0; i < TouchingArray.size(); i++)
+		{
+			if (TouchingArray[i] == actor)
+				return;
+		}
+
+		// Only setup touch if we have room in both arrays
+		int slot1 = -1, slot2 = -1;
+		for (int i = 0; i < TouchingArray.size(); i++)
+		{
+			if (slot1 == -1 && TouchingArray[i] == nullptr)
+				slot1 = i;
+			if (slot2 == -1 && TouchingArray2[i] == nullptr)
+				slot2 = i;
+		}
+		if (slot1 == -1 || slot2 == -1)
 			return;
+
+		// Setup links first so Destroy or recursive Touch calls always finds the touch binding
+		TouchingArray[slot1] = actor;
+		TouchEventSent[slot1] = true;
+		TouchingArray2[slot2] = this;
+		actor->TouchEventSent[slot2] = false;
+
+		// Notify unrealscript for first actor
+		CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
+
+		// Notify unrealscript for second actor
+		if (!actor->bDeleteMe())
+		{
+			for (int i = 0; i < TouchingArray.size(); i++)
+			{
+				if (TouchingArray2[i] == this && !actor->TouchEventSent[i])
+				{
+					actor->TouchEventSent[i] = true;
+					CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
+					break;
+				}
+			}
+		}
 	}
-
-	// Only setup touch if we have room in both arrays
-	int slot1 = -1, slot2 = -1;
-	for (int i = 0; i < TouchingArraySize; i++)
+	else
 	{
-		if (slot1 == -1 && TouchingArray[i] == nullptr)
-			slot1 = i;
-		if (slot2 == -1 && TouchingArray2[i] == nullptr)
-			slot2 = i;
-	}
-	if (slot1 == -1 || slot2 == -1)
-		return;
+		auto TouchingArray = Touching();
+		auto TouchingArray2 = actor->Touching();
 
-	// Setup links first so Destroy or recursive Touch calls always finds the touch binding
-	TouchingArray[slot1] = actor;
-	TouchEventSent[slot1] = true;
-	TouchingArray2[slot2] = this;
-	actor->TouchEventSent[slot2] = false;
-
-	// Notify unrealscript for first actor
-	CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
-
-	// Notify unrealscript for second actor
-	if (!actor->bDeleteMe())
-	{
+		// Do nothing if actors are already touching
 		for (int i = 0; i < TouchingArraySize; i++)
 		{
-			if (TouchingArray2[i] == this && !actor->TouchEventSent[i])
+			if (TouchingArray[i] == actor)
+				return;
+		}
+
+		// Only setup touch if we have room in both arrays
+		int slot1 = -1, slot2 = -1;
+		for (int i = 0; i < TouchingArraySize; i++)
+		{
+			if (slot1 == -1 && TouchingArray[i] == nullptr)
+				slot1 = i;
+			if (slot2 == -1 && TouchingArray2[i] == nullptr)
+				slot2 = i;
+		}
+		if (slot1 == -1 || slot2 == -1)
+			return;
+
+		// Setup links first so Destroy or recursive Touch calls always finds the touch binding
+		TouchingArray[slot1] = actor;
+		TouchEventSent[slot1] = true;
+		TouchingArray2[slot2] = this;
+		actor->TouchEventSent[slot2] = false;
+
+		// Notify unrealscript for first actor
+		CallEvent(this, EventName::Touch, { ExpressionValue::ObjectValue(actor) });
+
+		// Notify unrealscript for second actor
+		if (!actor->bDeleteMe())
+		{
+			for (int i = 0; i < TouchingArraySize; i++)
 			{
-				actor->TouchEventSent[i] = true;
-				CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
-				break;
+				if (TouchingArray2[i] == this && !actor->TouchEventSent[i])
+				{
+					actor->TouchEventSent[i] = true;
+					CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(this) });
+					break;
+				}
 			}
 		}
 	}
