@@ -640,6 +640,7 @@ public:
 	float& TimerCounter() { return Value<float>(PropOffsets_Actor.TimerCounter); }
 	float& TimerRate() { return Value<float>(PropOffsets_Actor.TimerRate); }
 	FixedArrayView<UActor*, 4> Touching() { return FixedArray<UActor*, 4>(PropOffsets_Actor.Touching); }
+	TypedScriptArray<UActor*> Touching_UT469() { return DynamicArray<UActor*>(PropOffsets_Actor.Touching); }
 	float& TransientSoundRadius() { return Value<float>(PropOffsets_Actor.TransientSoundRadius); }
 	float& TransientSoundVolume() { return Value<float>(PropOffsets_Actor.TransientSoundVolume); }
 	float& TweenRate() { return Value<float>(PropOffsets_Actor.TweenRate); }
