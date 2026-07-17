@@ -316,6 +316,9 @@ UObject* UConversation::GetSpeechAudio(int soundID)
 	if (missionStr.size() == 1)
 		missionStr = "0" + missionStr;
 	missionStr = "Mission" + missionStr;
+	// HACK! Intro has mission number 98 but it's ConAudioList_Intro
+	if (missionStr == "Mission98")
+		missionStr = "Intro";
 
 	std::string audiolistName = "ConAudioList_" + missionStr;
 	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", audiolistName));
