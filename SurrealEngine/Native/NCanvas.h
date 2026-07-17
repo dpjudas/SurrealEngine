@@ -42,4 +42,8 @@ public:
 	static void AddCustomLightSource_U227(UObject* Self, vec3& Pos, std::optional<Rotator> Dir, std::optional<bool> bDefault);
 	static void ClearCustomLightSources_U227(UObject* Self);
 	static void Reset_U227(UObject* Self);
+
+	// UT469 additions
+	static void CreateFont_UT469(UObject* Self, uint8_t Font, int Size, bool Bold, bool Italic, bool Underlined, bool DPIScaled, bool Antialiased, UObject*& ReturnValue);
+	static void GetDesktopDPI_UT469(UObject* Self, int& ReturnValue);
 };
