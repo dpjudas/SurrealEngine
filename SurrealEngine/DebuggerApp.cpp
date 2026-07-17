@@ -20,6 +20,7 @@
 #include "UI/WidgetResourceData.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include "VM/Frame.h"
+#include "VM/Bytecode.h"
 #include "Utils/UTF16.h"
 #include <surrealwidgets/core/theme.h>
 #include <surrealwidgets/window/window.h>
@@ -345,6 +346,12 @@ void DebuggerApp::PrintCurrentFrame()
 		if (name.size() < 40)
 			name.resize(40, ' ');
 		WriteOutput("#" + std::to_string(CallstackIndex) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(frame->Func->Line) + ResetEscape() + NewLine());
+
+		if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
+		{
+			PrintPrettyExpression::Print([&](const std::string& text) { WriteOutput(text); }, frame->Func->Code->Statements[frame->StatementIndex - 1]);
+			WriteOutput(NewLine());
+		}
 	}
 }
 
