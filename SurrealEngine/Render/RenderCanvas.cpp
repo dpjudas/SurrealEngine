@@ -36,6 +36,15 @@ void RenderSubsystem::ResetCanvas()
 	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
 	Canvas.uiscale = std::max((height + vertResolution / 2) / vertResolution, 1);
 
+	// The HUD tablet lays out in a smaller virtual space than the derived scale would give, which makes
+	// each element take up a larger share of the (fixed physical size) tablet - the derived scale is tuned
+	// to keep desktop UI a constant apparent size across resolutions, but on a wrist panel that leaves the
+	// elements too small to read. A single knob: +1 shrinks the virtual space by one step (bigger
+	// elements), at the cost of a more cramped layout. Only the HUD, not the pause menu.
+	const int VRHudUiScaleBoost = 3;
+	if (DrawingVRHudCanvas)
+		Canvas.uiscale += VRHudUiScaleBoost;
+
 	FSceneNode frame;
 	Canvas.Frame.XB = 0;
 	Canvas.Frame.YB = 0;

@@ -138,6 +138,10 @@ public:
 	// from it: 1440 is the first value that reaches uiscale 2 for both Unreal (768) and UT (960), so the
 	// menu is drawn at double size instead of being minified into illegibility when the plane is sampled
 	// down into an eye. Raising it further only adds pixels, not apparent size, until uiscale ticks again.
+	//
+	// Width is 4:3 against that height (1920x1440), the games' native HUD/menu aspect. Height is unchanged,
+	// so the uiscale reasoning above still holds. The HUD canvas additionally boosts uiscale on top of the
+	// derived value to make its elements larger on the tablet - see RenderSubsystem::ResetCanvas.
 	static constexpr int VRMenuCanvasWidth = 1920;
 	static constexpr int VRMenuCanvasHeight = 1440;
 
@@ -150,7 +154,10 @@ public:
 	// Draws the texture captured by the last BeginUICanvasFrame/EndUICanvasFrame pair as a textured
 	// quad, projected normally through Frame like any other 3D geometry (so it gets correct per-eye
 	// VR perspective). Corners/UVs go around the quad in the same winding order (e.g. TL,TR,BR,BL).
-	virtual void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4]) {}
+	// PolyFlags picks the blend: 0 is opaque (the pause menu), PF_Highlighted is premultiplied-over so a
+	// canvas cleared transparent composites its lit pixels onto the world and leaves the rest see-through
+	// (the HUD tablet).
+	virtual void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4], uint32_t PolyFlags = 0) {}
 
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 

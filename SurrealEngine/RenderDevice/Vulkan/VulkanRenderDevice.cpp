@@ -1151,14 +1151,16 @@ void VulkanRenderDevice::EndUICanvasFrame()
 	CurrentTarget = RenderTarget::Desktop;
 }
 
-void VulkanRenderDevice::DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4])
+void VulkanRenderDevice::DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4], uint32_t InPolyFlags)
 {
 	if (!UICanvas.Scene)
 		return;
 
 	SetSceneNode(Frame);
 
-	uint32_t PolyFlags = ApplyPrecedenceRules(0); // opaque, depth-tested (PF_Occlude)
+	// 0 -> opaque, depth-tested (PF_Occlude added by the precedence rules); PF_Highlighted -> premultiplied
+	// alpha-over for the transparent HUD tablet, still depth-tested so it can go behind world geometry.
+	uint32_t PolyFlags = ApplyPrecedenceRules(InPolyFlags);
 	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
 
 	int textureIndex = DescriptorSets->GetOrAddBindlessIndex(UICanvas.Scene->PPImageView[0].get(), Samplers->PPLinearClamp.get());

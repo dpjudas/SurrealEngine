@@ -110,7 +110,9 @@ private:
 	// viewport like normal gameplay HUD is. Instead it's rendered once to an offscreen canvas (DrawUICanvas)
 	// and then drawn as a single quad positioned in 3D world space (DrawVRMenuPlane), through the same
 	// per-eye VR projection used for real 3D geometry, so it's fully visible with correct stereo depth.
-	void DrawUICanvas();
+	// transparentBackground clears the canvas alpha to 0 (the HUD tablet, composited over the world) rather
+	// than opaque black (the pause menu, which blacks the world out).
+	void DrawUICanvas(bool transparentBackground);
 	void CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeViews[2]);
 	// Casts the pointer hand's laser at the (already anchored) menu plane, drives the menu cursor from
 	// where it hits, and stores the beam for DrawVRMenuPlane to draw per eye. Call once per frame while the
@@ -118,6 +120,11 @@ private:
 	void UpdateVRMenuLaser();
 	void DrawVRMenuPlane();
 	void DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
+
+	// The gameplay HUD as a wrist tablet: draws the offscreen UI canvas (DrawUICanvas) as a world-space
+	// plane anchored to the off-hand controller, composited on top of the world in the current eye. Called
+	// from DrawGameFrame in place of the flat PostRender HUD whenever a VR eye is current. No-op on desktop.
+	void DrawVRHudPlane();
 
 	// Draws where the motion controllers are, so the player can see what their hand collider is about to
 	// touch (see VRHands). No-op outside a VR eye.
@@ -148,6 +155,10 @@ private:
 
 	// See DrawUICanvas() / CaptureVRMenuPlaneAnchor() / DrawVRMenuPlane().
 	bool DrawingVRMenuCanvas = false;
+	// True only while rendering the HUD tablet's canvas (not the pause menu's). ResetCanvas reads it to
+	// boost uiscale so HUD elements are larger on the tablet; the menu keeps the plain derived scale, which
+	// its cursor mapping (UpdateVRMenuLaser) also assumes.
+	bool DrawingVRHudCanvas = false;
 	bool WasVRMenuOpen = false;
 	vec3 VRMenuPlaneCorners[4] = {};
 	vec2 VRMenuPlaneUVs[4] = { vec2(0.0f, 0.0f), vec2(1.0f, 0.0f), vec2(1.0f, 1.0f), vec2(0.0f, 1.0f) };
@@ -168,6 +179,9 @@ private:
 	// (VulkanRenderDevice::CurrentFrame) and derefs it again from EndFlash() later in the same frame, so
 	// the scene node has to outlive the call that set it.
 	FSceneNode VRHandsFrame;
+
+	// Same lifetime reason as VRHandsFrame, for the wrist HUD tablet (DrawVRHudPlane).
+	FSceneNode VRHudFrame;
 
 	struct
 	{

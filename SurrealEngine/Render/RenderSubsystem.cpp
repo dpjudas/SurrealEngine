@@ -52,11 +52,18 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 				if (!WasVRMenuOpen)
 					CaptureVRMenuPlaneAnchor(eyeViews);
 				UpdateVRMenuLaser();
-				DrawUICanvas();
+				DrawUICanvas(false); // opaque black - the menu blacks the world out
 			}
 			else
 			{
 				VRMenuLaserValid = false;
+				// The gameplay HUD (health, ammo, crosshair, messages) is the same flat 2D layer the menu
+				// is - console->PostRender paints all of it - so it gets the same treatment: rendered once
+				// to the offscreen canvas here, then drawn as a world-space plane per eye by DrawVRHudPlane
+				// (from inside DrawGameFrame), instead of stretched flat across each eye where it sits
+				// outside the lenses' readable area. DrawGameFrame skips PreRender/PostRender while a VR eye
+				// is current precisely because this call already ran them for the frame.
+				DrawUICanvas(true); // transparent background so the tablet isn't a black slab over the world
 			}
 			WasVRMenuOpen = menuOpen;
 
@@ -92,7 +99,12 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 	Device->Lock(flashScale, flashFog, vec4(0.0f), nullptr, nullptr);
 
 	ResetCanvas();
-	PreRender();
+	// In VR the flat 2D HUD does not go onto the eye - it goes onto the wrist tablet (DrawUICanvas ran
+	// PreRender/PostRender to the offscreen canvas already this frame, DrawVRHudPlane draws that canvas as
+	// a plane below). Running them again here would paint the HUD flat across the eye on top of it. On the
+	// desktop (CurrentVREye null, including the VR-inactive fallback) nothing changes.
+	if (!CurrentVREye)
+		PreRender();
 
 	if (engine->LaunchInfo.engineVersion <= 219 || engine->console->bNoDrawWorld() == false)
 	{
@@ -104,7 +116,10 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 		Device->EndFlash();
 	}
 
-	PostRender();
+	if (CurrentVREye)
+		DrawVRHudPlane();
+	else
+		PostRender();
 
 	Device->Unlock(presentToDesktop);
 }
@@ -198,12 +213,17 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
 		texture->TextureModified = false;
 }
 
-void RenderSubsystem::DrawUICanvas()
+void RenderSubsystem::DrawUICanvas(bool transparentBackground)
 {
 	DrawingVRMenuCanvas = true;
+	DrawingVRHudCanvas = transparentBackground; // the HUD tablet is the transparent one; the menu is not
 	Device->BeginUICanvasFrame();
 
-	Device->Lock(vec4(0.5f, 0.5f, 0.5f, 1.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f), nullptr, nullptr);
+	// The clear's alpha is what the HUD tablet keys off: cleared to 0, everywhere the HUD script doesn't
+	// paint stays transparent and the premultiplied-over plane draw (DrawVRHudPlane) lets the world show
+	// through there. The pause menu clears to opaque black instead - it wants to black the world out.
+	vec4 screenClear = vec4(0.0f, 0.0f, 0.0f, transparentBackground ? 0.0f : 1.0f);
+	Device->Lock(vec4(0.5f, 0.5f, 0.5f, 1.0f), vec4(0.0f, 0.0f, 0.0f, 1.0f), screenClear, nullptr, nullptr);
 	ResetCanvas();
 	PreRender();
 	PostRender();
@@ -211,6 +231,7 @@ void RenderSubsystem::DrawUICanvas()
 
 	Device->EndUICanvasFrame();
 	DrawingVRMenuCanvas = false;
+	DrawingVRHudCanvas = false;
 }
 
 void RenderSubsystem::CaptureVRMenuPlaneAnchor(const VRSubsystem::EyeView eyeViews[2])
@@ -409,6 +430,85 @@ void RenderSubsystem::DrawVRMenuPlane()
 		Device->Draw3DLine(&frame, vec4(0.2f, 0.8f, 1.0f, 1.0f), 0, VRMenuLaserStart, VRMenuLaserEnd);
 }
 
+void RenderSubsystem::DrawVRHudPlane()
+{
+	if (!CurrentVREye || !engine->vrHands)
+		return;
+
+	// Anchored to the off-hand controller so it rides along with that wrist, the way you'd glance at a
+	// watch or a strapped-on tablet. HandLeft for now - the weapon goes in the main hand (phase 4, a
+	// launcher setting), and the HUD wants the other one; once that setting exists this should track it.
+	const int hudHand = VRSubsystem::HandLeft;
+	const VRHands::HandPose& hand = engine->vrHands->GetHand(hudHand);
+	if (!hand.Valid)
+		return; // off-hand controller off or untracked - no tablet to hang it on this frame
+
+	const float tabletWidth = 0.18f * MetersToUnrealUnits;
+	// Derived from the canvas so the panel can't stretch if the canvas resolution changes - same as the menu.
+	const float tabletHeight = tabletWidth * (float)RenderDevice::VRMenuCanvasHeight / (float)RenderDevice::VRMenuCanvasWidth;
+
+	// Fixed to the controller, not billboarded at the head: the player aims it by turning their wrist, the
+	// way you tilt a watch to read it, so they can park it out of the way and glance at it. The panel's
+	// basis comes straight from the hand pose, and it's rotated a quarter turn about the panel normal from
+	// the obvious layout because in the headset the obvious one sat sideways: the panel's own right edge
+	// runs along the hand's forward axis (down the forearm), its top edge along the hand's -right, and its
+	// normal stays along +hand.Up (out the back of the wrist). This is the same hand pose the drawn hand
+	// ball uses, so panel and hand stay glued together.
+	//
+	// The winding keeps the front face on +hand.Up: uEdge = +right = +hand.Forward, vEdge = -planeUp =
+	// +hand.Right, and cross(forward, right) = +up. If it reads mirrored or upside down in the headset,
+	// negate both `right` and `planeUp` (a 180 flip) or swap which one is negated (the other 90 turn).
+	const float upOffset = 0.04f * MetersToUnrealUnits;   // float it off the back of the wrist, not through it
+	// Well up the forearm toward the player, not out past the hand - in the headset the panel wanted to sit
+	// back over the wrist, not floating off the fingertips.
+	const float backOffset = 0.18f * MetersToUnrealUnits;
+
+	vec3 right = hand.Forward;    // panel right edge runs down the forearm
+	vec3 planeUp = -hand.Right;   // panel top edge; the quarter turn that fixed the sideways look
+
+	vec3 center = hand.Position + hand.Up * upOffset - hand.Forward * backOffset;
+
+	vec3 halfRight = right * (tabletWidth * 0.5f);
+	vec3 halfUp = planeUp * (tabletHeight * 0.5f);
+
+	// Order matches VRMenuPlaneUVs (0,0)/(1,0)/(1,1)/(0,1): top-left, top-right, bottom-right, bottom-left.
+	vec3 corners[4];
+	corners[0] = center - halfRight + halfUp;
+	corners[1] = center + halfRight + halfUp;
+	corners[2] = center + halfRight - halfUp;
+	corners[3] = center - halfRight - halfUp;
+
+	// The live camera, not the menu's frozen one: the tablet rides the hand through a moving world, so it
+	// has to be placed against where the eye actually is this frame - exactly what DrawVRHands does for the
+	// hand balls, and the two must agree since the tablet hangs off one of those hands.
+	mat4 worldToView, providedProjection;
+	Coords headRotation;
+	vec3 headPosition;
+	BuildVREyeView(worldToView, providedProjection, headRotation, headPosition, engine->CameraLocation, engine->CameraRotation);
+
+	// A member rather than a local: SetSceneNode keeps the pointer and Unlock() derefs it again later this
+	// frame, so the frame has to outlive this call (same reason VRHandsFrame is a member).
+	FSceneNode& frame = VRHudFrame;
+	frame.XB = 0;
+	frame.YB = 0;
+	frame.X = engine->vr->GetRecommendedEyeWidth();
+	frame.Y = engine->vr->GetRecommendedEyeHeight();
+	frame.FX = (float)frame.X;
+	frame.FY = (float)frame.Y;
+	frame.FX2 = frame.FX * 0.5f;
+	frame.FY2 = frame.FY * 0.5f;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = worldToView;
+	frame.FovAngle = engine->CameraFovAngle;
+	frame.UseProvidedProjection = true;
+	frame.Projection = providedProjection;
+
+	// PF_Highlighted: premultiplied alpha-over, so the transparent-cleared canvas (DrawUICanvas(true))
+	// composites its HUD pixels onto the world and leaves the rest see-through, instead of the opaque
+	// black slab the menu draws.
+	Device->DrawVRMenuPlane(&frame, corners, VRMenuPlaneUVs, PF_Highlighted);
+}
+
 void RenderSubsystem::DrawVRHands()
 {
 	if (!CurrentVREye || !engine->vrHands)
@@ -461,11 +561,15 @@ void RenderSubsystem::DrawVRHands()
 		// has no other cue as to which hand the game thinks is where.
 		vec4 color = (hand == VRSubsystem::HandLeft) ? vec4(0.35f, 0.75f, 1.0f, 1.0f) : vec4(1.0f, 0.65f, 0.25f, 1.0f);
 
+		// Draw the great circles in the controller's own frame, not world axes. A sphere is rotationally
+		// symmetric, so world-aligned rings look identical whichever way the controller is turned - the ball
+		// never appeared to rotate at all. Rings in the local frame turn with the controller, and the
+		// forward spoke below makes which way it points unmistakable.
+		const vec3 basis[3] = { pose.Forward, pose.Right, pose.Up };
 		for (int axis = 0; axis < 3; axis++)
 		{
-			vec3 u(0.0f), v(0.0f);
-			u[(axis + 1) % 3] = 1.0f;
-			v[(axis + 2) % 3] = 1.0f;
+			vec3 u = basis[(axis + 1) % 3];
+			vec3 v = basis[(axis + 2) % 3];
 
 			vec3 previous = pose.Position + u * VRHands::HandRadius;
 			for (int i = 1; i <= segments; i++)
@@ -476,6 +580,10 @@ void RenderSubsystem::DrawVRHands()
 				previous = next;
 			}
 		}
+
+		// A stub poking out the front of the ball, so the controller's facing reads at a glance instead of
+		// having to be inferred from the ring pattern.
+		Device->Draw3DLine(&frame, color, LINE_DepthCued, pose.Position, pose.Position + pose.Forward * (VRHands::HandRadius * 1.6f));
 	}
 }
 

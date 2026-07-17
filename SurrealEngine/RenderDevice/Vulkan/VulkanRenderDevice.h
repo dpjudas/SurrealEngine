@@ -46,7 +46,7 @@ public:
 	void EndEyeFrame(int eyeIndex) override;
 	void BeginUICanvasFrame() override;
 	void EndUICanvasFrame() override;
-	void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4]) override;
+	void DrawVRMenuPlane(FSceneNode* Frame, const vec3 Corners[4], const vec2 UVs[4], uint32_t PolyFlags = 0) override;
 
 	void SetHitLocation();
 
