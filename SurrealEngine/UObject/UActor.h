@@ -386,6 +386,15 @@ struct sAnimNotify
 	float CallKey;
 };
 
+// UT 469
+enum FontFamily
+{
+	FF_Arial,	// Arial on Windows, Helvetica on Linux/Mac
+	FF_Times,	// Times New Roman on Windows, times on Linux/Mac
+	FF_Courier, // Courier New on Windows, courier on Linux/Mac
+	FF_Tahoma   // Standard UWindow font, Linux/Mac will use Verdana if requested.
+};
+
 class UActor : public UObject
 {
 public:
