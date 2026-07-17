@@ -1891,6 +1891,23 @@ void Engine::GetLevelObject()
 						}
 					}
 				}
+
+				// Remove comments from event lists:
+				while (conversation->eventList() && (EEventType)conversation->eventList()->eventType() == EEventType::Comment)
+					conversation->eventList() = conversation->eventList()->nextEvent();
+				UConEvent* cur = conversation->eventList();
+				while (cur != nullptr)
+				{
+					auto next = cur->nextEvent();
+					if (next && (EEventType)next->eventType() == EEventType::Comment)
+					{
+						cur->nextEvent() = next->nextEvent();
+					}
+					else
+					{
+						cur = next;
+					}
+				}
 			}
 		}
 	}
