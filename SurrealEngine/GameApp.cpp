@@ -36,7 +36,26 @@ int GameApp::main(Array<std::string> args)
 			return 0;
 		}
 
-		int selectedGameIndex = LauncherWindow::ExecModal();
+		// SE_AUTOLAUNCH=<index> starts that game straight away instead of showing the launcher, where the
+		// index is the position in the list the launcher would have shown. For automated and unattended
+		// runs: the launcher is otherwise unconditional - no command line argument skips it - so without
+		// this the game cannot be started at all without a human clicking Play, and nothing about it can
+		// be tested on a machine nobody is sitting at.
+		//
+		// UpdateList() is what LauncherWindow normally does to populate GameFolderSelection::Games, and
+		// has to happen here too since we're not building one. It reads the same folder arguments and
+		// auto-detection the launcher does, so index 0 is the game the launcher would have preselected.
+		int selectedGameIndex;
+		if (const char* autoLaunch = getenv("SE_AUTOLAUNCH"))
+		{
+			GameFolderSelection::UpdateList();
+			selectedGameIndex = atoi(autoLaunch);
+		}
+		else
+		{
+			selectedGameIndex = LauncherWindow::ExecModal();
+		}
+
 		if (selectedGameIndex >= 0)
 		{
 			GameLaunchInfo info = GameFolderSelection::GetLaunchInfo(selectedGameIndex);
