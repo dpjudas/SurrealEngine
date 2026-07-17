@@ -96,6 +96,7 @@ void Engine::Run()
 	const LauncherSettings& launcherSettings = LauncherSettings::Get();
 	vr = VRSubsystem::Create(launcherSettings.VR.Enabled && launcherSettings.RenderDevice.Type == RenderDeviceType::Vulkan, launcherSettings.VR.RenderScale);
 	vrInput = std::make_unique<VRPlayerInput>();
+	vrHands = std::make_unique<VRHands>();
 
 	OpenWindow();
 
@@ -197,6 +198,11 @@ void Engine::Run()
 				ExpressionValue::Variable(&CameraRotation, rotprop)
 				});
 		}
+
+		// After PlayerCalcView, so the hands are placed and collided against the same camera this frame is
+		// about to be drawn from rather than the previous frame's.
+		if (vrHands)
+			vrHands->Tick();
 
 		UpdateAudio();
 
@@ -910,6 +916,10 @@ void Engine::LoginPlayer()
 	CallEvent(LevelInfo->Game(), EventName::PostLogin, { ExpressionValue::ObjectValue(pawn) });
 
 	render->OnMapLoaded();
+
+	// The hands' contacts are actors from the level we just left.
+	if (vrHands)
+		vrHands->Reset();
 }
 
 UZoneInfo* Engine::GetZoneActor(int zoneIndex)

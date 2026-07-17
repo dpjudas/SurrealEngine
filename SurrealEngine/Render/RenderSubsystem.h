@@ -119,6 +119,10 @@ private:
 	void DrawVRMenuPlane();
 	void DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop);
 
+	// Draws where the motion controllers are, so the player can see what their hand collider is about to
+	// touch (see VRHands). No-op outside a VR eye.
+	void DrawVRHands();
+
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 
 	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
@@ -159,6 +163,11 @@ private:
 	bool VRMenuLaserValid = false;
 	vec3 VRMenuLaserStart = vec3(0.0f);
 	vec3 VRMenuLaserEnd = vec3(0.0f);
+
+	// A member, not a local in DrawVRHands: RenderDevice::SetSceneNode keeps the pointer it is handed
+	// (VulkanRenderDevice::CurrentFrame) and derefs it again from EndFlash() later in the same frame, so
+	// the scene node has to outlive the call that set it.
+	FSceneNode VRHandsFrame;
 
 	struct
 	{

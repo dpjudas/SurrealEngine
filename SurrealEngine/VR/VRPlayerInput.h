@@ -22,6 +22,24 @@ public:
 	// See RenderSubsystem::BuildVREyeView.
 	vec2 GetAppliedHeadOffset() const { return AppliedHeadXY; }
 
+	// Strips the head offset that room-scale walking has already moved the pawn by out of a play-space
+	// position, leaving only what that position is relative to the head itself. Everything that places
+	// something from a play-space pose against the camera - the eyes, the hands - has to agree on this or
+	// they drift apart from each other as the player walks around their room.
+	//
+	// Note that this subtracts the offset the pawn was actually moved to match, not the one the head has
+	// right this instant. The two are a frame apart (the pawn moves during the input tick, from the pose
+	// the previous frame located), and it is the applied one that the camera's position corresponds to,
+	// so it is the one that cancels exactly.
+	//
+	// Reads back the position unchanged when room-scale movement is off, which leaves the whole head
+	// offset in place as a pure view offset - i.e. the pawn stays put and the player's viewpoint moves on
+	// its own.
+	vec3 RemoveRoomScaleOffset(const vec3& playSpacePosition) const
+	{
+		return vec3(playSpacePosition.x - AppliedHeadXY.x, playSpacePosition.y - AppliedHeadXY.y, playSpacePosition.z);
+	}
+
 private:
 	void UpdateButtons();
 	// allowStick false zeroes the stick but still writes the axes - see the call site.

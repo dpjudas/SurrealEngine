@@ -97,6 +97,7 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 	if (engine->LaunchInfo.engineVersion <= 219 || engine->console->bNoDrawWorld() == false)
 	{
 		DrawScene();
+		DrawVRHands();
 		RenderOverlays();
 		if (engine->LaunchInfo.IsDeusEx())
 			PostRenderFlash();
@@ -406,6 +407,76 @@ void RenderSubsystem::DrawVRMenuPlane()
 	// the plane is the cursor - the menu highlights whatever is under it, so no separate marker is needed.
 	if (VRMenuLaserValid)
 		Device->Draw3DLine(&frame, vec4(0.2f, 0.8f, 1.0f, 1.0f), 0, VRMenuLaserStart, VRMenuLaserEnd);
+}
+
+void RenderSubsystem::DrawVRHands()
+{
+	if (!CurrentVREye || !engine->vrHands)
+		return;
+
+	bool anyHandVisible = false;
+	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
+		anyHandVisible = anyHandVisible || engine->vrHands->GetHand(hand).Valid;
+	if (!anyHandVisible)
+		return;
+
+	// The live camera, unlike DrawVRMenuPlane's frozen one - and the same camera VRHands::Tick placed the
+	// hands against earlier this frame, so the ball is drawn exactly where the collider is.
+	mat4 worldToView, providedProjection;
+	Coords headRotation;
+	vec3 headPosition;
+	BuildVREyeView(worldToView, providedProjection, headRotation, headPosition, engine->CameraLocation, engine->CameraRotation);
+
+	FSceneNode& frame = VRHandsFrame;
+	frame.XB = 0;
+	frame.YB = 0;
+	frame.X = engine->vr->GetRecommendedEyeWidth();
+	frame.Y = engine->vr->GetRecommendedEyeHeight();
+	frame.FX = (float)frame.X;
+	frame.FY = (float)frame.Y;
+	frame.FX2 = frame.FX * 0.5f;
+	frame.FY2 = frame.FY * 0.5f;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = worldToView;
+	frame.FovAngle = engine->CameraFovAngle;
+	frame.UseProvidedProjection = true;
+	frame.Projection = providedProjection;
+
+	// Draw3DLine reads the scene node from whatever was last set rather than from the frame it is passed,
+	// so this has to happen before the lines and after DrawScene() has set its own.
+	Device->SetSceneNode(&frame);
+
+	// An outline ball rather than a solid one: Draw3DLine is the only primitive here that needs neither a
+	// texture nor a light, so three great circles give an unlit hand that is see-through for free - the
+	// player can see the button they are reaching for straight through their own hand. LINE_DepthCued so
+	// the hand goes behind the wall it is pushed into instead of hovering on top of the world.
+	const int segments = 16;
+	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
+	{
+		const VRHands::HandPose& pose = engine->vrHands->GetHand(hand);
+		if (!pose.Valid)
+			continue;
+
+		// Left and right are told apart by colour, since the balls are otherwise identical and the player
+		// has no other cue as to which hand the game thinks is where.
+		vec4 color = (hand == VRSubsystem::HandLeft) ? vec4(0.35f, 0.75f, 1.0f, 1.0f) : vec4(1.0f, 0.65f, 0.25f, 1.0f);
+
+		for (int axis = 0; axis < 3; axis++)
+		{
+			vec3 u(0.0f), v(0.0f);
+			u[(axis + 1) % 3] = 1.0f;
+			v[(axis + 2) % 3] = 1.0f;
+
+			vec3 previous = pose.Position + u * VRHands::HandRadius;
+			for (int i = 1; i <= segments; i++)
+			{
+				float angle = radians(360.0f * i / segments);
+				vec3 next = pose.Position + (u * std::cos(angle) + v * std::sin(angle)) * VRHands::HandRadius;
+				Device->Draw3DLine(&frame, color, LINE_DepthCued, previous, next);
+				previous = next;
+			}
+		}
+	}
 }
 
 void RenderSubsystem::DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop)

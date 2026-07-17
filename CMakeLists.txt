@@ -535,6 +535,8 @@ set(SURREALCOMMON_VR_SOURCES
 	SurrealEngine/VR/VRSubsystem.h
 	SurrealEngine/VR/VRPlayerInput.cpp
 	SurrealEngine/VR/VRPlayerInput.h
+	SurrealEngine/VR/VRHands.cpp
+	SurrealEngine/VR/VRHands.h
 )
 
 set(SURREALCOMMON_OPENXR_SOURCES

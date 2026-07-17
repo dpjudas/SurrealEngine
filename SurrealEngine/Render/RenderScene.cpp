@@ -49,20 +49,12 @@ vec3 RenderSubsystem::RemoveRoomScaleOffset(const vec3& playSpacePosition) const
 	// Room-scale walking has already moved the pawn - and with it the camera this offset is applied on
 	// top of - to sit underneath the head, so the head's horizontal offset from the play space anchor
 	// must not be applied a second time here. What is left over is the eye's offset from the head
-	// itself: the IPD, which stereo depends on, plus how far the head is above the camera.
-	//
-	// Note that this subtracts the offset the pawn was actually moved to match, not the one the head
-	// has right this instant. The two are a frame apart (the pawn moves during the input tick, from the
-	// pose the previous frame located), and it is the applied one that the camera's position
-	// corresponds to, so it is the one that cancels exactly.
-	//
-	// Reads back zero when room-scale movement is off, which leaves the whole head offset in place as a
-	// pure view offset - i.e. the pawn stays put and the player's viewpoint moves on its own.
+	// itself: the IPD, which stereo depends on, plus how far the head is above the camera. See
+	// VRPlayerInput::RemoveRoomScaleOffset, which the hands go through too.
 	if (!engine->vrInput)
 		return playSpacePosition;
 
-	vec2 applied = engine->vrInput->GetAppliedHeadOffset();
-	return vec3(playSpacePosition.x - applied.x, playSpacePosition.y - applied.y, playSpacePosition.z);
+	return engine->vrInput->RemoveRoomScaleOffset(playSpacePosition);
 }
 
 void RenderSubsystem::BuildVREyeView(mat4& worldToView, mat4& projection, Coords& headRotation, vec3& headPosition, const vec3& cameraLocation, const Rotator& cameraRotation) const
