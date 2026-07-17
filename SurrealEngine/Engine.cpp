@@ -1844,6 +1844,10 @@ void Engine::GetLevelObject()
 		// Also try to find DeusExLevelInfo
 		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
 
+		// Didn't find it. Keep searching.
+		for (int grr = 1; !DeusExLevelInfo && grr < 20; grr++)
+			DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo" + std::to_string(grr)));
+
 		// Entry.dx does not have a DeusExLevelInfo
 		/*
 		if (!DeusExLevelInfo)
