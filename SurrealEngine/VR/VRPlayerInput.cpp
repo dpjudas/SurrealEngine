@@ -147,14 +147,33 @@ void VRPlayerInput::UpdateFireHaptics()
 
 void VRPlayerInput::Tick(float timeElapsed)
 {
+	// Cleared unconditionally, before any early return, so OverrideViewAfterCalcView only ever restores the
+	// view on a frame UpdateAim actually redirected aim - never off a stale anchor from an earlier frame.
+	AimAnchorValid = false;
+
 	VRSubsystem* vr = engine->vr.get();
 	if (!vr || !vr->IsActive())
 		return;
 
 	vr->SyncInput();
 
+	// Turning and aim must be set BEFORE UpdateButtons, because a single trigger pull is routed through the
+	// keybinding path inside UpdateButtons and PlayerPawn.Fire() runs synchronously there - it calls
+	// Weapon.Fire() -> Projectile/TraceFire, spawning the shot on the spot. If ViewRotation (and FireOffset)
+	// weren't already the hand aim, that first shot would leave along the stale body yaw. Held-fire repeats
+	// come from the weapon's own firing state during the level tick (after this), which is why only the
+	// single shot was affected. UpdateTurning goes first so the anchor UpdateAim captures already includes
+	// this frame's snap/smooth turn. Gated on the menu state as it stands before UpdateButtons; a menu
+	// toggled this very frame only shifts that gate by one frame.
+	bool menuOpenBeforeButtons = engine->console && engine->console->bNoDrawWorld();
+	if (engine->viewport && engine->viewport->Actor() && !menuOpenBeforeButtons)
+	{
+		UpdateTurning(timeElapsed);
+		UpdateAim();
+	}
+
 	// Routed through the normal keybinding path, so the console and menus get first refusal on them the
-	// same way they do for the keyboard.
+	// same way they do for the keyboard. After the aim writes above, so a fire press fires along the hand.
 	UpdateButtons();
 
 	if (!engine->viewport || !engine->viewport->Actor())
@@ -168,7 +187,7 @@ void VRPlayerInput::Tick(float timeElapsed)
 	// swallowed by the console's KeyEvent before Engine::InputEvent ever turns them into an axis. The
 	// stick writes the movement axes directly and so has no such thing happening to it - hence doing it
 	// explicitly here, or pushing the stick while the pause menu is up would walk the player around
-	// behind it.
+	// behind it. Recomputed after UpdateButtons so a menu just toggled by a button gates movement this frame.
 	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
 
 	// Note UpdateMovement() still runs with the menu open, just ignoring the stick: the axes it writes
@@ -177,7 +196,6 @@ void VRPlayerInput::Tick(float timeElapsed)
 	UpdateMovement(!menuOpen);
 	if (!menuOpen)
 	{
-		UpdateTurning(timeElapsed);
 		UpdateJumpCrouch();
 	}
 	else
@@ -388,6 +406,119 @@ void VRPlayerInput::UpdateTurning(float timeElapsed)
 	// so writing it here before the level ticks composes with the game's own turning instead of
 	// fighting it. Masked to 16 bits the same way the scripts keep it.
 	player->ViewRotation().Yaw = (player->ViewRotation().Yaw + deltaYaw) & 0xffff;
+}
+
+void VRPlayerInput::UpdateAim()
+{
+	VRSubsystem* vr = engine->vr.get();
+
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+	if (!player)
+		return;
+
+	// Only redirect aim when there is a weapon whose shot to steer. With no weapon there is nothing to aim,
+	// so leave ViewRotation carrying the body yaw and let the view path run exactly as before (and, with
+	// AimAnchorValid still false, OverrideViewAfterCalcView restores nothing). This is also the gate that
+	// keeps the split off spectators/cameras, which are not UPlayerPawns holding a weapon.
+	if (!player->Weapon())
+		return;
+
+	// Send the shot exactly where the hand points, with no auto-aim pull. Script AdjustAim returns
+	// ViewRotation untouched (no target snapping) once MyAutoAim >= 1, so force it there while VR drives
+	// aim - magnetism toward a target the player isn't pointing at fights the whole point of hand aiming.
+	player->MyAutoAim() = 1.0f;
+
+	// The aim ray is the same one the drawn gun is laid along (phase 4) and the menu laser uses: the
+	// controller's aim pose forward, not the grip. Untracked hand: keep the body-yaw aim rather than
+	// snapping the shot to a stale pose.
+	const VRSubsystem::ControllerState& controller = vr->GetController(WeaponHandIndex());
+	if (!controller.PoseValid)
+		return;
+
+	// The body/anchor yaw, kept level. ViewRotation.Yaw has been carrying it across frames - snap/smooth
+	// turn advances it (UpdateTurning, already run this frame), OverrideViewAfterCalcView restores it - and
+	// the headset supplies pitch on top in the renderer, so the anchor is yaw-only. Captured here, before
+	// the overwrite just below, and handed to Write B.
+	AimAnchor = Rotator(0, player->ViewRotation().Yaw & 0xffff, 0);
+	AimAnchorValid = true;
+
+	// The controller's forward is relative to the play space anchor, which is that body yaw. Map it into
+	// world space through the very same anchor the camera is about to be put back on, so a snap turn rotates
+	// the aim and the view together and the two never disagree by a frame.
+	Coords anchorCoords = Coords::Rotation(AimAnchor);
+	const vec3 f = controller.Forward;
+	vec3 worldForward = anchorCoords.XAxis * f.x + anchorCoords.YAxis * f.y + anchorCoords.ZAxis * f.z;
+
+	// Write A. AdjustAim reads vector(ViewRotation), so this sends the shot down the hand's ray. Roll is
+	// meaningless to a fire direction and would only tilt anything else that reads ViewRotation, so drop it.
+	// The body Rotation and the camera this write also disturbs (via UpdateRotation and PlayerCalcView) are
+	// put back in OverrideViewAfterCalcView, so the hand reaches aim and nothing else.
+	Rotator aim = Rotator::FromVector(worldForward);
+	aim.Roll = 0;
+	player->ViewRotation() = aim;
+
+	// Move the fire origin from the pawn's chest to the drawn muzzle at the hand. The script spawns every
+	// projectile/trace at Start = Owner.Location + CalcDrawOffset() + FireOffset (in ViewRotation axes) - the
+	// pawn's eye, ~30-60cm from where the gun is drawn - so shots leave parallel to the aim but offset from
+	// the barrel, which reads as the shot not following the gun. FireOffset is writable and per-instance, and
+	// setHand (the only script writer) runs on bring-up, not per fire, so a per-frame write survives to the
+	// shot. We solve FireOffset so Start lands on the hand: FireOffset(local) = handPos - Owner.Location -
+	// CalcDrawOffset(), expressed in the aim frame (GetAxes(ViewRotation) at fire == Coords::Rotation(aim),
+	// since the tick leaves ViewRotation on this aim).
+	UWeapon* weapon = player->Weapon();
+	if (engine->vrHands && engine->vrHands->GetHand(WeaponHandIndex()).Valid)
+	{
+		const VRHands::HandPose& weaponHandPose = engine->vrHands->GetHand(WeaponHandIndex());
+		Coords aimCoords = Coords::Rotation(aim);
+
+		// CalcDrawOffset() from Inventory.uc, client (non-dedicated) branch, evaluated against this aim:
+		//   (0.01 * PlayerViewOffset) >> ViewRotation  +  EyeHeight * up  +  weaponBob
+		vec3 pvo = weapon->PlayerViewOffset() * 0.01f;
+		vec3 drawOffset = aimCoords.XAxis * pvo.x + aimCoords.YAxis * pvo.y + aimCoords.ZAxis * pvo.z;
+		drawOffset.z += player->EyeHeight();
+		float bobDamping = weapon->BobDamping();
+		vec3 walkBob = player->WalkBob();
+		vec3 weaponBob = walkBob * bobDamping;
+		weaponBob.z = (0.45f + 0.55f * bobDamping) * walkBob.z;
+		drawOffset += weaponBob;
+
+		// The muzzle we want the shot to come from is where phase 4 draws the gun: the hand aim-pose origin.
+		vec3 fireOffsetWorld = weaponHandPose.Position - player->Location() - drawOffset;
+		weapon->FireOffset() = vec3(
+			dot(fireOffsetWorld, aimCoords.XAxis),
+			dot(fireOffsetWorld, aimCoords.YAxis),
+			dot(fireOffsetWorld, aimCoords.ZAxis));
+	}
+
+	// Hold "look" for the tick. PlayerWalking.PlayerMove has a stair-look / center-view block gated on
+	// bLook == 0 that would otherwise drag this aim pitch back toward level, or snap it to a staircase,
+	// before AdjustAim reads it. A VR player is always free-looking with their head, so holding it is right.
+	player->bLook() = 1;
+}
+
+void VRPlayerInput::OverrideViewAfterCalcView()
+{
+	// Only when UpdateAim redirected aim this frame (VR active, gameplay, weapon in hand, hand tracked).
+	// Otherwise nothing scribbled on ViewRotation and there is nothing to put back.
+	if (!AimAnchorValid)
+		return;
+	AimAnchorValid = false;
+
+	UPlayerPawn* player = engine->viewport ? UObject::TryCast<UPlayerPawn>(engine->viewport->Actor()) : nullptr;
+	if (!player)
+		return;
+
+	// Write B: three restores from the anchor captured in UpdateAim, back onto the body yaw.
+	//  CameraRotation is what the renderer draws from (with the HMD pose composed on top). PlayerCalcView
+	//  just copied the hand-aimed ViewRotation onto it; put it back so the world does not swing with the gun.
+	engine->CameraRotation = AimAnchor;
+	//  ViewRotation carries the anchor between frames. Left on the hand aim, next frame's turn would advance
+	//  the hand direction instead of the body yaw and the anchor would walk off after the gun.
+	player->ViewRotation() = AimAnchor;
+	//  Rotation is the body facing. UpdateRotation copied the hand aim onto it during the tick, and
+	//  PlayerWalking.PlayerMove orients ground movement by GetAxes(Rotation) at the top of next frame's move,
+	//  so leaving it on the hand would walk the player toward where the gun points. Put it back level.
+	player->Rotation() = AimAnchor;
 }
 
 void VRPlayerInput::ReleaseStickAction()

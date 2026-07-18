@@ -210,6 +210,13 @@ void Engine::Run()
 				});
 		}
 
+		// Aim/view split (VR). PlayerCalcView has just copied the weapon-hand aim that VRPlayerInput::UpdateAim
+		// wrote into ViewRotation onto CameraRotation. Put the camera, the body facing and ViewRotation back on
+		// the body anchor yaw, so only the shot followed the hand and the world stays put. Before vrHands->Tick
+		// and the render below, both of which read CameraRotation. A no-op unless VR redirected aim this frame.
+		if (vrInput)
+			vrInput->OverrideViewAfterCalcView();
+
 		// After PlayerCalcView, so the hands are placed and collided against the same camera this frame is
 		// about to be drawn from rather than the previous frame's.
 		if (vrHands)

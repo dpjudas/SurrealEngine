@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math/vec.h"
+#include "Math/rotator.h"
 #include "VRSubsystem.h"
 
 class UActor;
@@ -27,6 +28,13 @@ public:
 	static int WeaponHandIndex();
 
 	void Tick(float timeElapsed);
+
+	// Write B of the aim/view split. Call from Engine::Run immediately after PlayerCalcView and before the
+	// hands/render read the camera. PlayerCalcView has just copied the weapon-hand aim (that UpdateAim wrote
+	// into ViewRotation) onto CameraRotation; this puts the camera, the body facing and ViewRotation back on
+	// the body anchor yaw, so only the shot followed the hand and the world stays put. A no-op on any frame
+	// UpdateAim did not redirect aim (VR off, menu up, no weapon, hand untracked). See UpdateAim.
+	void OverrideViewAfterCalcView();
 
 	// The head's horizontal position in play space, as of the last room-scale move. The renderer must
 	// subtract this from the eye it draws from, or room-scale movement lands twice - once by having
@@ -58,6 +66,13 @@ private:
 	// allowStick false zeroes the stick but still writes the axes - see the call site.
 	void UpdateMovement(bool allowStick);
 	void UpdateTurning(float timeElapsed);
+	// Write A of the aim/view split: redirect the shot from the body yaw to the weapon hand's aim ray by
+	// writing that ray into ViewRotation (which the script AdjustAim reads) and relocating FireOffset to the
+	// muzzle, after capturing the body anchor yaw for OverrideViewAfterCalcView to restore the view from.
+	// Ordering is load-bearing: runs after UpdateTurning (so the captured anchor includes this frame's snap)
+	// and before UpdateButtons (so a single trigger pull, which fires synchronously through the button path,
+	// already sees the hand aim - see Tick).
+	void UpdateAim();
 	void UpdateJumpCrouch();
 	// Releases whichever of the jump/crouch aliases is currently held, if either. Safe to call when none is.
 	void ReleaseStickAction();
@@ -83,6 +98,13 @@ private:
 	bool JumpArmed = true;
 	enum class StickAction { None, Jump, Crouch };
 	StickAction StickActionHeld = StickAction::None;
+
+	// The body/anchor yaw (kept level - the head supplies pitch) captured by UpdateAim right before it
+	// overwrites ViewRotation with the hand aim, handed to OverrideViewAfterCalcView to put the camera, body
+	// and ViewRotation back on. Valid only for the frame UpdateAim set it; cleared at the top of every Tick
+	// and consumed by OverrideViewAfterCalcView, so a frame that did not redirect aim restores nothing.
+	Rotator AimAnchor = Rotator(0, 0, 0);
+	bool AimAnchorValid = false;
 
 	// Buzzes the weapon hand when the held weapon fires. UE1 bumps a weapon's FlashCount on every shot (it
 	// is how the muzzle flash replicates), so a change in it since last frame is a discharge - a signal

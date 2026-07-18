@@ -96,32 +96,46 @@ The tablet reuses the pause-menu machinery that already existed (`DrawUICanvas`,
 
 ---
 
-## Phase 4 — Weapon in hand
+## Phase 4 — Weapon in hand — **DONE (hardware-tested)**
 
 Attach the weapon model to the main hand (launcher-configurable left/right), alt-fire on the pill touchpad. Needs the grip pose and trackpad actions from phase 1. Independent of phase 3.
 
-**The weapon is not the flat-2D problem.** `RenderSubsystem::DrawActor` (`Render/RenderCanvas.cpp:125`) renders into `MainFrame`, and `RenderScene.cpp:32-36` gives `MainFrame` the VR eye's projection when `CurrentVREye` is set. The weapon is already correctly 3D-projected with stereo depth. Its problem is placement: the script's `CalcDrawOffset` positions it relative to the camera, which welds it rigidly to the head.
+**The weapon is not the flat-2D problem.** `RenderSubsystem::DrawActor` (`Render/RenderCanvas.cpp`) renders into `MainFrame`, and `RenderScene.cpp:32-36` gives `MainFrame` the VR eye's projection when `CurrentVREye` is set. The weapon is already correctly 3D-projected with stereo depth. Its problem is placement: the script's `CalcDrawOffset` positions it relative to the camera, which welds it rigidly to the head.
 
 So the fix is placement only, and it is local:
 
-- [ ] Override the weapon actor's `Location`/`Rotation` from the grip pose in `DrawActor`, while `CurrentVREye` is set
-- [ ] Launcher setting for main hand
-- [ ] Alt-fire on `trackpad/force` or `trackpad/touch`
-- [ ] Haptic pulse on fire
+- [x] Override the weapon actor's `Location`/`Rotation`/`DrawScale` from the hand pose in `DrawActor`, while `CurrentVREye` is set (`RenderCanvas.cpp:152-235`). Saved and restored around the draw so nothing downstream — the desktop, the next frame, the game's own script — sees the overridden transform.
+- [x] Launcher setting for main hand — `LauncherSettings::VR.WeaponHand`, read via `VRPlayerInput::WeaponHandIndex()`
+- [x] Alt-fire on the trackpad — default `VR.ButtonCommands` binds `Trackpad → AltFire`; both trigger and trackpad are honoured **only on the weapon hand** (`VRPlayerInput.cpp:277-282`), so the off hand's trigger/trackpad don't also shoot
+- [x] Haptic pulse on fire — `VRPlayerInput::UpdateFireHaptics()` watches the weapon's `FlashCount` (by weapon identity, so a weapon switch isn't read as a shot) and buzzes the weapon hand on each discharge, including held-trigger auto-fire
+
+**Corrections / refinements made in-headset (still true):**
+
+- **Align to the aim pose, not the grip pose.** The grip pose runs along the controller's handle, tilted off the direction the player points; a gun laid on it points where the physical controller lies, not where the hand model's pointer stub aims — off by the grip's rake angle. The gun now uses the same aim ray the drawn hand ball's forward stub and the menu laser use, so the muzzle lines up with the pointer line the player sees.
+- **First-person meshes are modelled tiny.** They only read at the right size on the desktop because `CalcDrawOffset` parks them centimetres from the camera. Held at arm's length in VR they shrink to a toy, so the mesh is scaled up (`VR.WeaponScalePercent`, default 500) to a plausible held size.
+- **Six fine-tuning knobs** (`Weapon{Forward,Right,Up}OffsetCm`, `Weapon{Pitch,Yaw,Roll}OffsetDegrees`) place the mesh in the aim pose's own frame, since each weapon mesh has its own origin and forward axis. All default 0 == gun rigidly on the raw aim pose.
 
 ---
 
-## Phase 5 — Aim direction (architectural risk — decide before building)
+## Phase 5 — Aim direction — **DONE (plumbing verified; feel not yet hardware-tested)**
 
-The largest unknown in this document. Do it after phase 4 so you can see the gun you are aiming.
+The largest unknown in this document. Built after phase 4 so you can see the gun you are aiming. Full design in `VR Build phase 5 plan.md`; verified script interactions in the `vr_phase5_aim_split` memory.
 
-Fire direction comes from `AdjustAim`, which is script and reads `ViewRotation`. `ViewRotation` is also what `PlayerCalcView` returns, which is what `Engine.cpp:192-193` assigns to `CameraRotation`. **Aim and view are the same variable** — pointing the gun with your hand today swings the camera with it.
+**The framing correction.** "Aim and view are the same variable" was the *desktop* reading. In VR the view is already HMD-driven and independent of `ViewRotation`, so only **aim** needed redirecting. Implemented as Option 1 from the plan — a two-write split:
 
-Decoupling them means the engine owns a separate view rotation and overrides `CameraRotation` after `PlayerCalcView`. That also interacts with `UpdateTurning` writing `ViewRotation` for snap turns.
+- [x] **Write A** — `VRPlayerInput::UpdateAim()` (called from `Tick`, gameplay + weapon-in-hand + hand-tracked only): capture the body anchor yaw = `Rotator(0, ViewRotation.Yaw, 0)`, map the weapon hand's aim-pose forward through that anchor into world space, write it to `ViewRotation` (roll zeroed) so script `AdjustAim` sends the shot down the hand's ray. Forces `pawn->bLook() = 1` for the tick so `PlayerWalking.PlayerMove`'s stair-look/center-view block can't drag the aim pitch.
+- [x] **Write B** — `VRPlayerInput::OverrideViewAfterCalcView()` (called from `Engine::Run` right after `PlayerCalcView`, before `vrHands->Tick`/render): restore `CameraRotation`, `ViewRotation` and body `Rotation` to the anchor, so the world stays put and next frame's on-foot movement (which orients by body `Rotation`) still walks the body's way, not the gun's.
+- [x] The anchor yaw rides in `ViewRotation.Yaw` between frames — snap/smooth turn advances it, Write B restores it — so aim and view rotate together on a turn.
 
-Even then: shots still *originate* at `Owner.Location + FireOffset` — the pawn's eye — because that is computed in script. A projectile leaving your chest while the muzzle is at your hand is a mismatch no engine-side hook fully closes.
+**Verified without seeing through the headset** (SE_VRAIM_DEBUG stderr dump, since removed): over a live VR session the anchor yaw stayed pinned (constant `58424`) while the aim yaw/pitch swept the full range of the moving controller — i.e. the shot follows the hand and the view does not. No crash.
 
-- [ ] Decide how much of the origin mismatch is acceptable **before** starting the view/aim split
+**Origin policy — FIXED (was "accept", changed after in-headset test).** The chest→hand gap measured ~30 UU (45–66 cm), too large: shots flew parallel to the aim but offset from the barrel, reading as "projectiles don't follow the pistol." `UpdateAim` now sets `weapon->FireOffset()` each frame so the script's `Start = Owner.Location + CalcDrawOffset() + FireOffset·axes` lands on the hand muzzle (`CalcDrawOffset()` reproduced in C++). Verified: predicted spawn lands on the hand with <0.2 UU residual. Applies to hitscan too. Edge case not handled: spawning at the hand when it's near a wall could clip.
+
+**Auto-aim — DISABLED.** `UpdateAim` forces `MyAutoAim = 1.0`, so `AdjustAim` returns `ViewRotation` with no target snapping — shots go exactly where the hand points.
+
+- [x] Decide how much of the origin mismatch is acceptable **before** starting the view/aim split — decided none; closed it via `FireOffset`.
+
+**Still needs the headset (feel):** whether hand aim + hand-origin now feels right end-to-end, the practical pitch ceiling, and swimming/flying (those states orient movement by `ViewRotation`, so they currently move toward the aimed hand) — not yet addressed. `MovementDirectionHand` was temporarily set to Right for testing (backup at `~/.config/SurrealEngine/Settings.json.phase5bak`).
 
 ---
 
