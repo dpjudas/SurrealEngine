@@ -170,6 +170,8 @@ LauncherSettings::LauncherSettings()
 			VR.WeaponYawOffsetDegrees = settings["VR"]["WeaponYawOffsetDegrees"].to_int();
 		if (vrProps.find("WeaponRollOffsetDegrees") != vrProps.end())
 			VR.WeaponRollOffsetDegrees = settings["VR"]["WeaponRollOffsetDegrees"].to_int();
+		if (vrProps.find("WeaponScalePercent") != vrProps.end())
+			VR.WeaponScalePercent = settings["VR"]["WeaponScalePercent"].to_int();
 
 		// Missing-key-reads-as-0 again: a zero radius/size would mean an invisible, un-collidable hand or a
 		// zero-area tablet, so only take stored values that are actually usable.
@@ -318,6 +320,7 @@ void LauncherSettings::Save()
 	vr["WeaponPitchOffsetDegrees"] = JsonValue::number(VR.WeaponPitchOffsetDegrees);
 	vr["WeaponYawOffsetDegrees"] = JsonValue::number(VR.WeaponYawOffsetDegrees);
 	vr["WeaponRollOffsetDegrees"] = JsonValue::number(VR.WeaponRollOffsetDegrees);
+	vr["WeaponScalePercent"] = JsonValue::number(VR.WeaponScalePercent);
 
 	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
 	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);

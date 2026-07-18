@@ -477,6 +477,16 @@ void RenderSubsystem::DrawVRHudPlane()
 	vec3 right = hand.Forward;    // panel right edge runs down the forearm
 	vec3 planeUp = -hand.Right;   // panel top edge; the quarter turn that fixed the sideways look
 
+	// The two controllers' aim poses are mirror images of each other, so the winding above - tuned on the
+	// left wrist - lands the panel upside down when the tablet is moved to the right wrist. Flip it 180 about
+	// the panel normal for the right hand (negate both edges), which keeps the front face on +hand.Up
+	// (cross(-right, -planeUp) == cross(right, planeUp)) while turning the content upright on either wrist.
+	if (hudHand == VRSubsystem::HandRight)
+	{
+		right = -right;
+		planeUp = -planeUp;
+	}
+
 	vec3 center = hand.Position + hand.Up * upOffset - hand.Forward * backOffset;
 
 	vec3 halfRight = right * (tabletWidth * 0.5f);

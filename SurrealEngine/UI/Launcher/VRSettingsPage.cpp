@@ -83,6 +83,8 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponPitchOffset = new LineEdit(container);
 	WeaponYawOffset = new LineEdit(container);
 	WeaponRollOffset = new LineEdit(container);
+	WeaponScaleLabel = new TextLabel(container);
+	WeaponScale = new LineEdit(container);
 
 	ControlsLabel = new TextLabel(container);
 	ControlsColumnLeft = new TextLabel(container);
@@ -129,6 +131,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponHandLabel->SetText("Weapon hand (holds and aims the gun)");
 	WeaponPositionOffsetLabel->SetText("Position offset forward / right / up (cm)");
 	WeaponRotationOffsetLabel->SetText("Rotation trim pitch / yaw / roll (degrees)");
+	WeaponScaleLabel->SetText("Weapon scale (% of the mesh's own size)");
 
 	ControlsLabel->SetText("Controller buttons (any command or alias; leave blank to unbind):");
 	ControlsColumnLeft->SetText("Left hand");
@@ -152,6 +155,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponPitchOffset->SetIntrinsicSize(3);
 	WeaponYawOffset->SetIntrinsicSize(3);
 	WeaponRollOffset->SetIntrinsicSize(3);
+	WeaponScale->SetIntrinsicSize(3);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetIntrinsicSize(12);
@@ -199,6 +203,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponPitchOffset->SetTextInt(settings.VR.WeaponPitchOffsetDegrees);
 	WeaponYawOffset->SetTextInt(settings.VR.WeaponYawOffsetDegrees);
 	WeaponRollOffset->SetTextInt(settings.VR.WeaponRollOffsetDegrees);
+	WeaponScale->SetTextInt(settings.VR.WeaponScalePercent);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetText(settings.VR.ButtonCommands[hand][button]);
@@ -258,6 +263,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	weaponRotationRow->AddWidget(WeaponRollOffset);
 	weaponRotationRow->AddStretch();
 	mainLayout->AddLayout(weaponRotationRow);
+	mainLayout->AddLayout(labelledRow(WeaponScaleLabel, WeaponScale));
 
 	mainLayout->AddWidget(ControlsLabel);
 	// A column-header row (spacer where the per-button name sits, then Left / Right over the two edits),
@@ -359,6 +365,7 @@ void VRSettingsPage::Save()
 	settings.VR.WeaponPitchOffsetDegrees = WeaponPitchOffset->GetTextInt();
 	settings.VR.WeaponYawOffsetDegrees = WeaponYawOffset->GetTextInt();
 	settings.VR.WeaponRollOffsetDegrees = WeaponRollOffset->GetTextInt();
+	settings.VR.WeaponScalePercent = WeaponScale->GetTextInt();
 
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
@@ -390,6 +397,7 @@ void VRSettingsPage::OnResetButtonClicked()
 	WeaponPitchOffset->SetTextInt(0);
 	WeaponYawOffset->SetTextInt(0);
 	WeaponRollOffset->SetTextInt(0);
+	WeaponScale->SetTextInt(500);
 
 	// The stock hand layout: fire on both triggers, weapon-cycle on both thumbstick clicks, alt-fire on
 	// both trackpads, everything else unbound. Mirrors LauncherSettings' built-in default.

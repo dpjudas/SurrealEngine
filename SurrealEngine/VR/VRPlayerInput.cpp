@@ -214,6 +214,7 @@ void VRPlayerInput::UpdateButtons()
 	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
 
 	const int menuPointerHand = MenuPointerHandIndex();
+	const int weaponHand = WeaponHandIndex();
 
 	// Left hand takes the first ButtonCount Joy keys from IK_Joy1, right hand the next, in
 	// VRSubsystem::Button order. VR has already overwritten what those keys are bound to
@@ -272,6 +273,15 @@ void VRPlayerInput::UpdateButtons()
 					continue;
 				}
 			}
+
+			// Weapon fire belongs to the hand holding the gun. The trigger and trackpad are the gun's fire
+			// controls, and both hands bind them to Fire/AltFire by default, so without this the off hand's
+			// trigger and trackpad shoot the weapon too. Only honour them on the weapon hand. The
+			// menu-pointer hand's trigger was already handled (and continue'd) above while a menu is open, so
+			// this never suppresses a menu click; it only stops the off hand from firing during play.
+			if ((button == VRSubsystem::Button_Trigger || button == VRSubsystem::Button_Trackpad)
+				&& hand != weaponHand)
+				continue;
 
 			engine->InputEvent(ButtonToKey(hand, button), type);
 		}

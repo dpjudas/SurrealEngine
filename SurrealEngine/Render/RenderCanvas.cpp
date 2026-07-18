@@ -157,13 +157,14 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 
 	// Phase 4: hang the first-person weapon off the weapon hand. The game's CalcDrawOffset has already
 	// placed it relative to the camera (welding it to the head); while a VR eye is being drawn, override
-	// that with the hand's grip pose so the gun is where the hand is. The mesh is 3D-projected into the eye
-	// either way (RenderScene gives MainFrame the eye projection), so only Location/Rotation change here.
-	// Restored after the draw so nothing downstream sees the overridden transform, and so the game's script
-	// keeps owning it on the desktop and on the next frame.
+	// that with the hand's pose so the gun is where the hand is. The mesh is 3D-projected into the eye
+	// either way (RenderScene gives MainFrame the eye projection), so only Location/Rotation/DrawScale
+	// change here. Restored after the draw so nothing downstream sees the overridden transform, and so the
+	// game's script keeps owning it on the desktop and on the next frame.
 	bool weaponOverridden = false;
 	vec3 savedLocation;
 	Rotator savedRotation;
+	float savedDrawScale = 0.0f;
 	if (CurrentVREye && engine->vr && engine->vr->IsActive() && engine->vrHands && IsPlayerViewWeapon(actor))
 	{
 		const VRHands::HandPose& hand = engine->vrHands->GetHand(VRPlayerInput::WeaponHandIndex());
@@ -173,30 +174,46 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 			const float degToRot = 65536.0f / 360.0f;
 			const float cmToUU = 0.01f * MetersToUnrealUnits;
 
-			// The tuning rotation is applied in the grip's own frame - pitch tilts the muzzle, yaw swings it,
-			// roll banks it - regardless of how the wrist is turned, by expressing the offset's axes in the
-			// grip basis (the same local-to-world mapping VRHands uses for the camera basis).
+			// Align the gun to the AIM pose, not the grip pose. The grip pose runs along the controller's
+			// handle (tilted well off the direction the player is pointing), so a gun laid on it points where
+			// the physical controller lies rather than where the hand model's pointer stub aims - the two
+			// disagreed by the grip's rake angle. The aim pose is the same ray the drawn hand ball's forward
+			// stub uses (RenderSubsystem::DrawVRHands) and the same one the menu laser casts along, so the
+			// muzzle now lines up with the pointer line the player sees.
+			const vec3 handForward = hand.Forward;
+			const vec3 handRight = hand.Right;
+			const vec3 handUp = hand.Up;
+
+			// The tuning rotation is applied in the aim pose's own frame - pitch tilts the muzzle, yaw swings
+			// it, roll banks it - regardless of how the wrist is turned, by expressing the offset's axes in
+			// that basis (the same local-to-world mapping VRHands uses for the camera basis).
 			Rotator off(
 				(int)std::lround(vr.WeaponPitchOffsetDegrees * degToRot),
 				(int)std::lround(vr.WeaponYawOffsetDegrees * degToRot),
 				(int)std::lround(vr.WeaponRollOffsetDegrees * degToRot));
 			Coords offCoords = Coords::Rotation(off);
-			auto gripLocalToWorld = [&](const vec3& v)
+			auto handLocalToWorld = [&](const vec3& v)
 			{
-				return hand.GripForward * v.x + hand.GripRight * v.y + hand.GripUp * v.z;
+				return handForward * v.x + handRight * v.y + handUp * v.z;
 			};
-			vec3 forward = gripLocalToWorld(offCoords.XAxis);
-			vec3 up = gripLocalToWorld(offCoords.ZAxis);
+			vec3 forward = handLocalToWorld(offCoords.XAxis);
+			vec3 up = handLocalToWorld(offCoords.ZAxis);
 
-			vec3 position = hand.GripPosition
-				+ hand.GripForward * (vr.WeaponForwardOffsetCm * cmToUU)
-				+ hand.GripRight * (vr.WeaponRightOffsetCm * cmToUU)
-				+ hand.GripUp * (vr.WeaponUpOffsetCm * cmToUU);
+			vec3 position = hand.Position
+				+ handForward * (vr.WeaponForwardOffsetCm * cmToUU)
+				+ handRight * (vr.WeaponRightOffsetCm * cmToUU)
+				+ handUp * (vr.WeaponUpOffsetCm * cmToUU);
 
 			savedLocation = actor->Location();
 			savedRotation = actor->Rotation();
+			savedDrawScale = actor->DrawScale();
 			actor->Location() = position;
 			actor->Rotation() = RotatorFromForwardUp(forward, up);
+			// First-person view meshes are modelled tiny - they read at the right size on the desktop only
+			// because CalcDrawOffset parks them centimetres from the camera. Held at arm's length in VR they
+			// shrink to a toy, so scale the mesh up (WeaponScalePercent, a single in-headset tuning knob) to
+			// bring it back to a plausible held size.
+			actor->DrawScale() = savedDrawScale * (vr.WeaponScalePercent * 0.01f);
 			weaponOverridden = true;
 		}
 	}
@@ -211,6 +228,7 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 	{
 		actor->Location() = savedLocation;
 		actor->Rotation() = savedRotation;
+		actor->DrawScale() = savedDrawScale;
 	}
 
 	Device->SetSceneNode(&Canvas.Frame);

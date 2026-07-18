@@ -122,6 +122,12 @@ public:
 		int WeaponYawOffsetDegrees = 0;
 		int WeaponRollOffsetDegrees = 0;
 
+		// Scale applied to the first-person weapon mesh while it is held in the VR hand, as a percentage of
+		// the mesh's own DrawScale (100 == unchanged). First-person view meshes are modelled tiny and only
+		// look right because the desktop parks them against the camera; at arm's length in VR they need
+		// scaling up. See RenderSubsystem::DrawActor.
+		int WeaponScalePercent = 500;
+
 		// Which wrist the gameplay HUD tablet rides (see RenderSubsystem::DrawVRHudPlane).
 		VRHand HudHand = VRHand::Left;
 		// Which hand aims the menu laser and toggles the pause menu with its B button (see

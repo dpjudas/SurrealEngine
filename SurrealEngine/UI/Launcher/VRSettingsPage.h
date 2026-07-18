@@ -86,6 +86,8 @@ private:
 	LineEdit* WeaponPitchOffset = nullptr;
 	LineEdit* WeaponYawOffset = nullptr;
 	LineEdit* WeaponRollOffset = nullptr;
+	TextLabel* WeaponScaleLabel = nullptr;
+	LineEdit* WeaponScale = nullptr;
 
 	TextLabel* ControlsLabel = nullptr;
 	TextLabel* ControlsColumnLeft = nullptr;
