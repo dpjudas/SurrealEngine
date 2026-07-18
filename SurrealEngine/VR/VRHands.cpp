@@ -154,6 +154,25 @@ void VRHands::UpdatePoses(VRSubsystem* vr)
 		pose.Forward = localToWorldDir(controller.Forward);
 		pose.Right = localToWorldDir(controller.Right);
 		pose.Up = localToWorldDir(controller.Up);
+
+		// The grip pose, mapped the identical way. Default it to the aim pose so a runtime without a grip
+		// pose action still gives a held object somewhere to sit, then override when a real grip pose is
+		// tracked. Same room-scale cancellation, since it too is a play-space pose relative to the head.
+		const VRSubsystem::TrackedPose& grip = controller.Grip;
+		if (grip.Valid)
+		{
+			pose.GripPosition = engine->CameraLocation + localToWorldDir(engine->vrInput->RemoveRoomScaleOffset(grip.Position));
+			pose.GripForward = localToWorldDir(grip.Forward);
+			pose.GripRight = localToWorldDir(grip.Right);
+			pose.GripUp = localToWorldDir(grip.Up);
+		}
+		else
+		{
+			pose.GripPosition = pose.Position;
+			pose.GripForward = pose.Forward;
+			pose.GripRight = pose.Right;
+			pose.GripUp = pose.Up;
+		}
 	}
 }
 

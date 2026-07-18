@@ -116,6 +116,35 @@ int VRPlayerInput::HudHandIndex()
 	return LauncherSettings::Get().VR.HudHand == VRHand::Left ? VRSubsystem::HandLeft : VRSubsystem::HandRight;
 }
 
+int VRPlayerInput::WeaponHandIndex()
+{
+	return LauncherSettings::Get().VR.WeaponHand == VRHand::Left ? VRSubsystem::HandLeft : VRSubsystem::HandRight;
+}
+
+void VRPlayerInput::UpdateFireHaptics()
+{
+	UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+	UWeapon* weapon = pawn ? pawn->Weapon() : nullptr;
+	if (!weapon)
+	{
+		// No weapon (holstered, dead, between pickups): drop the tracked count so re-drawing a weapon
+		// doesn't read its carried-over FlashCount as a fresh shot.
+		LastFlashWeapon = nullptr;
+		LastFlashCount = -1;
+		return;
+	}
+
+	int flash = weapon->FlashCount();
+	// Only a change on the *same* weapon is a discharge; a different pointer is a weapon switch, whose
+	// unrelated count must not read as a shot. LastFlashWeapon is compared by identity only and never
+	// dereferenced, so a freed-and-reused pointer can at worst drop or add one imperceptible tick.
+	if (weapon == LastFlashWeapon && flash != LastFlashCount)
+		engine->vr->Haptic(WeaponHandIndex(), 0.5f); // one runtime-minimum pulse, like a wheel-entry tick
+
+	LastFlashWeapon = weapon;
+	LastFlashCount = flash;
+}
+
 void VRPlayerInput::Tick(float timeElapsed)
 {
 	VRSubsystem* vr = engine->vr.get();
@@ -130,6 +159,10 @@ void VRPlayerInput::Tick(float timeElapsed)
 
 	if (!engine->viewport || !engine->viewport->Actor())
 		return;
+
+	// Buzz the weapon hand on each shot. Independent of the button path above (a shot can come from a held
+	// trigger auto-firing, not just a fresh press), so it watches the weapon's own fire state instead.
+	UpdateFireHaptics();
 
 	// While the console or menu has the screen, the keyboard cannot move the player: its keys are
 	// swallowed by the console's KeyEvent before Engine::InputEvent ever turns them into an axis. The

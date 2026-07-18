@@ -18,8 +18,9 @@ int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 640.0;
-	// Tall enough for the VR Settings tab, which is the longest page (controller bindings + HUD geometry).
-	double windowHeight = 820.0;
+	// The VR Settings tab is the longest page by far, but it scrolls (see ScrollWidget / VRSettingsPage), so
+	// the window no longer has to be tall enough to show all of it at once.
+	double windowHeight = 750.0;
 
 	auto launcher = std::make_unique<LauncherWindow>();
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);

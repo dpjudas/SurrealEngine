@@ -470,6 +470,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Launcher/VideoSettingsPage.h
 	SurrealEngine/UI/Launcher/VRSettingsPage.cpp
 	SurrealEngine/UI/Launcher/VRSettingsPage.h
+	SurrealEngine/UI/Launcher/ScrollWidget.cpp
+	SurrealEngine/UI/Launcher/ScrollWidget.h
 	SurrealEngine/UI/Launcher/GameFoldersPage.cpp
 	SurrealEngine/UI/Launcher/GameFoldersPage.h
 	SurrealEngine/Compiler/Ast/Ast.h

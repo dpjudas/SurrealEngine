@@ -150,6 +150,27 @@ LauncherSettings::LauncherSettings()
 		else if (vrMenuHand == "Right")
 			VR.MenuPointerHand = VRHand::Right;
 
+		std::string vrWeaponHand = settings["VR"]["WeaponHand"].to_string();
+		if (vrWeaponHand == "Left")
+			VR.WeaponHand = VRHand::Left;
+		else if (vrWeaponHand == "Right")
+			VR.WeaponHand = VRHand::Right;
+
+		// Weapon placement offsets: 0 is a meaningful value (weapon on the raw grip pose), so keep the
+		// default only when the key is genuinely absent rather than treating a stored 0 as unset.
+		if (vrProps.find("WeaponForwardOffsetCm") != vrProps.end())
+			VR.WeaponForwardOffsetCm = settings["VR"]["WeaponForwardOffsetCm"].to_int();
+		if (vrProps.find("WeaponRightOffsetCm") != vrProps.end())
+			VR.WeaponRightOffsetCm = settings["VR"]["WeaponRightOffsetCm"].to_int();
+		if (vrProps.find("WeaponUpOffsetCm") != vrProps.end())
+			VR.WeaponUpOffsetCm = settings["VR"]["WeaponUpOffsetCm"].to_int();
+		if (vrProps.find("WeaponPitchOffsetDegrees") != vrProps.end())
+			VR.WeaponPitchOffsetDegrees = settings["VR"]["WeaponPitchOffsetDegrees"].to_int();
+		if (vrProps.find("WeaponYawOffsetDegrees") != vrProps.end())
+			VR.WeaponYawOffsetDegrees = settings["VR"]["WeaponYawOffsetDegrees"].to_int();
+		if (vrProps.find("WeaponRollOffsetDegrees") != vrProps.end())
+			VR.WeaponRollOffsetDegrees = settings["VR"]["WeaponRollOffsetDegrees"].to_int();
+
 		// Missing-key-reads-as-0 again: a zero radius/size would mean an invisible, un-collidable hand or a
 		// zero-area tablet, so only take stored values that are actually usable.
 		int vrHandRadius = settings["VR"]["HandColliderRadius"].to_int();
@@ -283,6 +304,20 @@ void LauncherSettings::Save()
 	case VRHand::Left: vr["MenuPointerHand"] = JsonValue::string("Left"); break;
 	case VRHand::Right: vr["MenuPointerHand"] = JsonValue::string("Right"); break;
 	}
+
+	switch (VR.WeaponHand)
+	{
+	default:
+	case VRHand::Left: vr["WeaponHand"] = JsonValue::string("Left"); break;
+	case VRHand::Right: vr["WeaponHand"] = JsonValue::string("Right"); break;
+	}
+
+	vr["WeaponForwardOffsetCm"] = JsonValue::number(VR.WeaponForwardOffsetCm);
+	vr["WeaponRightOffsetCm"] = JsonValue::number(VR.WeaponRightOffsetCm);
+	vr["WeaponUpOffsetCm"] = JsonValue::number(VR.WeaponUpOffsetCm);
+	vr["WeaponPitchOffsetDegrees"] = JsonValue::number(VR.WeaponPitchOffsetDegrees);
+	vr["WeaponYawOffsetDegrees"] = JsonValue::number(VR.WeaponYawOffsetDegrees);
+	vr["WeaponRollOffsetDegrees"] = JsonValue::number(VR.WeaponRollOffsetDegrees);
 
 	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
 	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);

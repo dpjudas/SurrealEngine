@@ -40,10 +40,20 @@ public:
 		// False when the controller is untracked, when VR is off, or whenever the hands are not in play
 		// (no level, menu open) - i.e. also the flag for "do not draw this hand".
 		bool Valid = false;
+		// The aim pose: the ray the controller points along, used for the collider ball and the menu laser.
 		vec3 Position = vec3(0.0f); // world space
 		vec3 Forward = vec3(1.0f, 0.0f, 0.0f);
 		vec3 Right = vec3(0.0f, 1.0f, 0.0f);
 		vec3 Up = vec3(0.0f, 0.0f, 1.0f);
+
+		// The grip pose: where the hand is closed around the controller, in the same world space as the
+		// aim pose above. This is what a held object rides on (the weapon, phase 4) - the grip sits in the
+		// fist where the aim ray leaves the front. Falls back to the aim pose on runtimes that expose no
+		// grip pose action, so a held object still appears (just aligned to the aim ray instead).
+		vec3 GripPosition = vec3(0.0f);
+		vec3 GripForward = vec3(1.0f, 0.0f, 0.0f);
+		vec3 GripRight = vec3(0.0f, 1.0f, 0.0f);
+		vec3 GripUp = vec3(0.0f, 0.0f, 1.0f);
 	};
 
 	// Runs from Engine::Run after PlayerCalcView and before rendering, so the hands are placed against

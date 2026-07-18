@@ -3,6 +3,7 @@
 #include "VRSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
+#include "ScrollWidget.h"
 #include <surrealwidgets/widgets/textlabel/textlabel.h>
 #include <surrealwidgets/widgets/checkboxlabel/checkboxlabel.h>
 #include <surrealwidgets/widgets/lineedit/lineedit.h>
@@ -28,55 +29,72 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 {
 	auto& settings = LauncherSettings::Get();
 
-	GeneralLabel = new TextLabel(this);
-	EnableVR = new CheckboxLabel(this);
-	RenderScaleLabel = new TextLabel(this);
-	RenderScale = new LineEdit(this);
+	// Every control lives inside the scroll viewport, not on the page itself - the page is a fixed window
+	// height and this content is taller than it. OnGeometryChanged keeps ScrollArea filling the page.
+	ScrollArea = new ScrollWidget(this);
+	Widget* container = ScrollArea->GetContainer();
 
-	MovementLabel = new TextLabel(this);
-	MovementReferenceLabel = new TextLabel(this);
-	MovementReferences = new Dropdown(this);
-	MovementHandLabel = new TextLabel(this);
-	MovementHand = new Dropdown(this);
-	MovementDirectionHandLabel = new TextLabel(this);
-	MovementDirectionHand = new Dropdown(this);
-	DeadzoneLabel = new TextLabel(this);
-	Deadzone = new LineEdit(this);
-	RoomScaleMovement = new CheckboxLabel(this);
+	GeneralLabel = new TextLabel(container);
+	EnableVR = new CheckboxLabel(container);
+	RenderScaleLabel = new TextLabel(container);
+	RenderScale = new LineEdit(container);
 
-	TurningLabel = new TextLabel(this);
-	TurnModeLabel = new TextLabel(this);
-	TurnModes = new Dropdown(this);
-	SnapTurnDegreesLabel = new TextLabel(this);
-	SnapTurnDegrees = new LineEdit(this);
-	SmoothTurnSpeedLabel = new TextLabel(this);
-	SmoothTurnSpeed = new LineEdit(this);
+	MovementLabel = new TextLabel(container);
+	MovementReferenceLabel = new TextLabel(container);
+	MovementReferences = new Dropdown(container);
+	MovementHandLabel = new TextLabel(container);
+	MovementHand = new Dropdown(container);
+	MovementDirectionHandLabel = new TextLabel(container);
+	MovementDirectionHand = new Dropdown(container);
+	DeadzoneLabel = new TextLabel(container);
+	Deadzone = new LineEdit(container);
+	RoomScaleMovement = new CheckboxLabel(container);
 
-	HandsHudLabel = new TextLabel(this);
-	HudHandLabel = new TextLabel(this);
-	HudHand = new Dropdown(this);
-	MenuPointerHandLabel = new TextLabel(this);
-	MenuPointerHand = new Dropdown(this);
-	HandRadiusLabel = new TextLabel(this);
-	HandRadius = new LineEdit(this);
-	TabletWidthLabel = new TextLabel(this);
-	TabletWidth = new LineEdit(this);
-	TabletForearmOffsetLabel = new TextLabel(this);
-	TabletForearmOffset = new LineEdit(this);
-	TabletWristOffsetLabel = new TextLabel(this);
-	TabletWristOffset = new LineEdit(this);
+	TurningLabel = new TextLabel(container);
+	TurnModeLabel = new TextLabel(container);
+	TurnModes = new Dropdown(container);
+	SnapTurnDegreesLabel = new TextLabel(container);
+	SnapTurnDegrees = new LineEdit(container);
+	SmoothTurnSpeedLabel = new TextLabel(container);
+	SmoothTurnSpeed = new LineEdit(container);
 
-	ControlsLabel = new TextLabel(this);
-	ControlsColumnLeft = new TextLabel(this);
-	ControlsColumnRight = new TextLabel(this);
+	HandsHudLabel = new TextLabel(container);
+	HudHandLabel = new TextLabel(container);
+	HudHand = new Dropdown(container);
+	MenuPointerHandLabel = new TextLabel(container);
+	MenuPointerHand = new Dropdown(container);
+	HandRadiusLabel = new TextLabel(container);
+	HandRadius = new LineEdit(container);
+	TabletWidthLabel = new TextLabel(container);
+	TabletWidth = new LineEdit(container);
+	TabletForearmOffsetLabel = new TextLabel(container);
+	TabletForearmOffset = new LineEdit(container);
+	TabletWristOffsetLabel = new TextLabel(container);
+	TabletWristOffset = new LineEdit(container);
+
+	WeaponLabel = new TextLabel(container);
+	WeaponHandLabel = new TextLabel(container);
+	WeaponHand = new Dropdown(container);
+	WeaponPositionOffsetLabel = new TextLabel(container);
+	WeaponForwardOffset = new LineEdit(container);
+	WeaponRightOffset = new LineEdit(container);
+	WeaponUpOffset = new LineEdit(container);
+	WeaponRotationOffsetLabel = new TextLabel(container);
+	WeaponPitchOffset = new LineEdit(container);
+	WeaponYawOffset = new LineEdit(container);
+	WeaponRollOffset = new LineEdit(container);
+
+	ControlsLabel = new TextLabel(container);
+	ControlsColumnLeft = new TextLabel(container);
+	ControlsColumnRight = new TextLabel(container);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 	{
-		ButtonLabel[button] = new TextLabel(this);
+		ButtonLabel[button] = new TextLabel(container);
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
-			ButtonCommand[hand][button] = new LineEdit(this);
+			ButtonCommand[hand][button] = new LineEdit(container);
 	}
 
-	ResetButton = new PushButton(this);
+	ResetButton = new PushButton(container);
 
 	GeneralLabel->SetText("General:");
 #ifdef USE_OPENXR
@@ -107,6 +125,11 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	TabletForearmOffsetLabel->SetText("HUD tablet offset up the forearm (cm)");
 	TabletWristOffsetLabel->SetText("HUD tablet offset off the wrist (cm)");
 
+	WeaponLabel->SetText("Weapon in hand:");
+	WeaponHandLabel->SetText("Weapon hand (holds and aims the gun)");
+	WeaponPositionOffsetLabel->SetText("Position offset forward / right / up (cm)");
+	WeaponRotationOffsetLabel->SetText("Rotation trim pitch / yaw / roll (degrees)");
+
 	ControlsLabel->SetText("Controller buttons (any command or alias; leave blank to unbind):");
 	ControlsColumnLeft->SetText("Left hand");
 	ControlsColumnRight->SetText("Right hand");
@@ -123,6 +146,12 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	TabletWidth->SetIntrinsicSize(3);
 	TabletForearmOffset->SetIntrinsicSize(3);
 	TabletWristOffset->SetIntrinsicSize(3);
+	WeaponForwardOffset->SetIntrinsicSize(3);
+	WeaponRightOffset->SetIntrinsicSize(3);
+	WeaponUpOffset->SetIntrinsicSize(3);
+	WeaponPitchOffset->SetIntrinsicSize(3);
+	WeaponYawOffset->SetIntrinsicSize(3);
+	WeaponRollOffset->SetIntrinsicSize(3);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetIntrinsicSize(12);
@@ -140,6 +169,8 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	HudHand->AddItem("Right");
 	MenuPointerHand->AddItem("Left");
 	MenuPointerHand->AddItem("Right");
+	WeaponHand->AddItem("Left");
+	WeaponHand->AddItem("Right");
 
 	TurnModes->AddItem("Snap");
 	TurnModes->AddItem("Smooth");
@@ -161,6 +192,13 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	TabletWidth->SetTextInt(settings.VR.HudTabletWidthCm);
 	TabletForearmOffset->SetTextInt(settings.VR.HudTabletForearmOffsetCm);
 	TabletWristOffset->SetTextInt(settings.VR.HudTabletWristOffsetCm);
+	WeaponHand->SetSelectedItem((int)settings.VR.WeaponHand);
+	WeaponForwardOffset->SetTextInt(settings.VR.WeaponForwardOffsetCm);
+	WeaponRightOffset->SetTextInt(settings.VR.WeaponRightOffsetCm);
+	WeaponUpOffset->SetTextInt(settings.VR.WeaponUpOffsetCm);
+	WeaponPitchOffset->SetTextInt(settings.VR.WeaponPitchOffsetDegrees);
+	WeaponYawOffset->SetTextInt(settings.VR.WeaponYawOffsetDegrees);
+	WeaponRollOffset->SetTextInt(settings.VR.WeaponRollOffsetDegrees);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetText(settings.VR.ButtonCommands[hand][button]);
@@ -202,6 +240,25 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	mainLayout->AddLayout(labelledRow(TabletForearmOffsetLabel, TabletForearmOffset));
 	mainLayout->AddLayout(labelledRow(TabletWristOffsetLabel, TabletWristOffset));
 
+	mainLayout->AddWidget(WeaponLabel);
+	mainLayout->AddLayout(labelledRow(WeaponHandLabel, WeaponHand));
+	// Three edits per row (forward/right/up, then pitch/yaw/roll), the same compact multi-field layout the
+	// controller-binding rows use, so the six offsets take two rows instead of six.
+	auto weaponPositionRow = new HBoxLayout();
+	weaponPositionRow->AddWidget(WeaponPositionOffsetLabel);
+	weaponPositionRow->AddWidget(WeaponForwardOffset);
+	weaponPositionRow->AddWidget(WeaponRightOffset);
+	weaponPositionRow->AddWidget(WeaponUpOffset);
+	weaponPositionRow->AddStretch();
+	mainLayout->AddLayout(weaponPositionRow);
+	auto weaponRotationRow = new HBoxLayout();
+	weaponRotationRow->AddWidget(WeaponRotationOffsetLabel);
+	weaponRotationRow->AddWidget(WeaponPitchOffset);
+	weaponRotationRow->AddWidget(WeaponYawOffset);
+	weaponRotationRow->AddWidget(WeaponRollOffset);
+	weaponRotationRow->AddStretch();
+	mainLayout->AddLayout(weaponRotationRow);
+
 	mainLayout->AddWidget(ControlsLabel);
 	// A column-header row (spacer where the per-button name sits, then Left / Right over the two edits),
 	// then one row per button: name + its left-hand and right-hand command.
@@ -227,7 +284,14 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 
 	mainLayout->AddStretch();
 
-	SetLayout(mainLayout);
+	container->SetLayout(mainLayout);
+}
+
+void VRSettingsPage::OnGeometryChanged()
+{
+	// Fill the page with the scroll viewport; it clips and scrolls the content within.
+	if (ScrollArea)
+		ScrollArea->SetFrameGeometry(Rect::xywh(0.0, 0.0, GetWidth(), GetHeight()));
 }
 
 void VRSettingsPage::Save()
@@ -286,6 +350,16 @@ void VRSettingsPage::Save()
 	settings.VR.HudTabletForearmOffsetCm = TabletForearmOffset->GetTextInt();
 	settings.VR.HudTabletWristOffsetCm = TabletWristOffset->GetTextInt();
 
+	settings.VR.WeaponHand = (WeaponHand->GetSelectedItem() == 1) ? VRHand::Right : VRHand::Left;
+	// Every weapon offset is legitimately zero (weapon on the raw grip pose) and any of them can be
+	// negative (trim the other way), so all six are taken exactly as typed.
+	settings.VR.WeaponForwardOffsetCm = WeaponForwardOffset->GetTextInt();
+	settings.VR.WeaponRightOffsetCm = WeaponRightOffset->GetTextInt();
+	settings.VR.WeaponUpOffsetCm = WeaponUpOffset->GetTextInt();
+	settings.VR.WeaponPitchOffsetDegrees = WeaponPitchOffset->GetTextInt();
+	settings.VR.WeaponYawOffsetDegrees = WeaponYawOffset->GetTextInt();
+	settings.VR.WeaponRollOffsetDegrees = WeaponRollOffset->GetTextInt();
+
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			settings.VR.ButtonCommands[hand][button] = ButtonCommand[hand][button]->GetText();
@@ -309,6 +383,13 @@ void VRSettingsPage::OnResetButtonClicked()
 	TabletWidth->SetTextInt(18);
 	TabletForearmOffset->SetTextInt(18);
 	TabletWristOffset->SetTextInt(4);
+	WeaponHand->SetSelectedItem((int)VRHand::Right);
+	WeaponForwardOffset->SetTextInt(0);
+	WeaponRightOffset->SetTextInt(0);
+	WeaponUpOffset->SetTextInt(0);
+	WeaponPitchOffset->SetTextInt(0);
+	WeaponYawOffset->SetTextInt(0);
+	WeaponRollOffset->SetTextInt(0);
 
 	// The stock hand layout: fire on both triggers, weapon-cycle on both thumbstick clicks, alt-fire on
 	// both trackpads, everything else unbound. Mirrors LauncherSettings' built-in default.

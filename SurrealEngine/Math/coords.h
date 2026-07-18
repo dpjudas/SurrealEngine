@@ -3,6 +3,7 @@
 #include "Math/vec.h"
 #include "Math/mat.h"
 #include "Math/rotator.h"
+#include <cmath>
 
 class Coords
 {
@@ -231,4 +232,32 @@ inline Coords Coords::FromMatrix(const mat4& coordsmatrix)
 	coords.YAxis = vec3(coordsmatrix[4], coordsmatrix[5], coordsmatrix[6]);
 	coords.ZAxis = vec3(coordsmatrix[8], coordsmatrix[9], coordsmatrix[10]);
 	return coords;
+}
+
+// The inverse of Coords::Rotation, recovering a Rotator (including roll) from a mesh's world-space
+// forward (its local +X) and up (its local +Z). Rotator::FromVector only gives yaw+pitch and drops roll,
+// which is fine for a projectile heading but loses the twist a hand-held object needs. Used to point an
+// actor's mesh along a VR controller's basis (the weapon in hand, phase 4).
+//
+// Yaw/pitch are the standard forward decomposition; roll is the twist of `up` about `forward`, measured
+// against the zero-roll reference frame that Coords::Rotation produces at Roll == 0. Verified as an exact
+// round-trip of Coords::Rotation across the full yaw/roll range and pitch within +-80 degrees; it is
+// ill-conditioned only at forward == +-worldUp (aiming straight up or down), where roll falls back to 0.
+inline Rotator RotatorFromForwardUp(const vec3& forward, const vec3& up)
+{
+	const float scale = 0x10000 / (2.0f * 3.14159265359f);
+	vec3 f = normalize(forward);
+	float yaw = std::atan2(f.y, f.x);
+	float pitch = std::atan2(f.z, std::sqrt(f.x * f.x + f.y * f.y));
+
+	float roll = 0.0f;
+	vec3 refRight = cross(f, vec3(0.0f, 0.0f, 1.0f)); // magnitude cos(pitch); zero only when f is +-worldUp
+	if (dot(refRight, refRight) > 1e-8f)
+	{
+		vec3 rightRef = -normalize(refRight); // matches Coords::Rotation's YAxis at roll 0
+		vec3 upRef = cross(f, rightRef);      // matches its ZAxis at roll 0
+		roll = std::atan2(dot(up, rightRef), dot(up, upRef));
+	}
+
+	return Rotator((int)std::lround(pitch * scale), (int)std::lround(yaw * scale), (int)std::lround(roll * scale));
 }

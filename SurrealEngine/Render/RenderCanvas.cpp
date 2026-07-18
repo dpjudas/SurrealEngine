@@ -4,9 +4,27 @@
 #include "VisibleMesh.h"
 #include "RenderDevice/RenderDevice.h"
 #include "UObject/USubsystem.h"
+#include "UObject/UActor.h"
 #include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "LauncherSettings.h"
+#include "VR/VRPlayerInput.h"
+#include "Math/coords.h"
+
+namespace
+{
+	// The player's own first-person weapon - the one the game draws through Canvas.DrawActor each frame and
+	// positions relative to the camera. Only this actor gets moved onto the VR hand; any other actor a script
+	// happens to draw through the same native is left exactly where it placed it.
+	bool IsPlayerViewWeapon(UActor* actor)
+	{
+		if (!actor || !engine->viewport)
+			return false;
+		UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+		return pawn && pawn->Weapon() == actor;
+	}
+}
 
 void RenderSubsystem::ResetCanvas()
 {
@@ -137,11 +155,63 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 	if (ClearZ)
 		Device->ClearZ();
 
+	// Phase 4: hang the first-person weapon off the weapon hand. The game's CalcDrawOffset has already
+	// placed it relative to the camera (welding it to the head); while a VR eye is being drawn, override
+	// that with the hand's grip pose so the gun is where the hand is. The mesh is 3D-projected into the eye
+	// either way (RenderScene gives MainFrame the eye projection), so only Location/Rotation change here.
+	// Restored after the draw so nothing downstream sees the overridden transform, and so the game's script
+	// keeps owning it on the desktop and on the next frame.
+	bool weaponOverridden = false;
+	vec3 savedLocation;
+	Rotator savedRotation;
+	if (CurrentVREye && engine->vr && engine->vr->IsActive() && engine->vrHands && IsPlayerViewWeapon(actor))
+	{
+		const VRHands::HandPose& hand = engine->vrHands->GetHand(VRPlayerInput::WeaponHandIndex());
+		if (hand.Valid)
+		{
+			const auto& vr = LauncherSettings::Get().VR;
+			const float degToRot = 65536.0f / 360.0f;
+			const float cmToUU = 0.01f * MetersToUnrealUnits;
+
+			// The tuning rotation is applied in the grip's own frame - pitch tilts the muzzle, yaw swings it,
+			// roll banks it - regardless of how the wrist is turned, by expressing the offset's axes in the
+			// grip basis (the same local-to-world mapping VRHands uses for the camera basis).
+			Rotator off(
+				(int)std::lround(vr.WeaponPitchOffsetDegrees * degToRot),
+				(int)std::lround(vr.WeaponYawOffsetDegrees * degToRot),
+				(int)std::lround(vr.WeaponRollOffsetDegrees * degToRot));
+			Coords offCoords = Coords::Rotation(off);
+			auto gripLocalToWorld = [&](const vec3& v)
+			{
+				return hand.GripForward * v.x + hand.GripRight * v.y + hand.GripUp * v.z;
+			};
+			vec3 forward = gripLocalToWorld(offCoords.XAxis);
+			vec3 up = gripLocalToWorld(offCoords.ZAxis);
+
+			vec3 position = hand.GripPosition
+				+ hand.GripForward * (vr.WeaponForwardOffsetCm * cmToUU)
+				+ hand.GripRight * (vr.WeaponRightOffsetCm * cmToUU)
+				+ hand.GripUp * (vr.WeaponUpOffsetCm * cmToUU);
+
+			savedLocation = actor->Location();
+			savedRotation = actor->Rotation();
+			actor->Location() = position;
+			actor->Rotation() = RotatorFromForwardUp(forward, up);
+			weaponOverridden = true;
+		}
+	}
+
 	actor->bHidden() = false;
 	VisibleMesh vismesh;
 	if (vismesh.DrawMesh(&MainFrame, actor, WireFrame, false))
 		vismesh.DrawMesh(&MainFrame, actor, WireFrame, true);
 	actor->bHidden() = true;
+
+	if (weaponOverridden)
+	{
+		actor->Location() = savedLocation;
+		actor->Rotation() = savedRotation;
+	}
 
 	Device->SetSceneNode(&Canvas.Frame);
 }

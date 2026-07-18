@@ -3,6 +3,8 @@
 #include "Math/vec.h"
 #include "VRSubsystem.h"
 
+class UActor;
+
 // Drives the player pawn from the headset and motion controllers: thumbstick movement and turning,
 // controller buttons, and walking the pawn around so that it stays underneath the headset.
 //
@@ -22,6 +24,7 @@ public:
 	// side (which has no VRPlayerInput handy) can read the same setting through the same mapping.
 	static int MenuPointerHandIndex();
 	static int HudHandIndex();
+	static int WeaponHandIndex();
 
 	void Tick(float timeElapsed);
 
@@ -80,4 +83,12 @@ private:
 	bool JumpArmed = true;
 	enum class StickAction { None, Jump, Crouch };
 	StickAction StickActionHeld = StickAction::None;
+
+	// Buzzes the weapon hand when the held weapon fires. UE1 bumps a weapon's FlashCount on every shot (it
+	// is how the muzzle flash replicates), so a change in it since last frame is a discharge - a signal
+	// that works the same across UT and Unreal without watching game-specific fire state. Tracked per
+	// weapon pointer so switching weapons doesn't read the new one's stale count as a shot.
+	void UpdateFireHaptics();
+	UActor* LastFlashWeapon = nullptr;
+	int LastFlashCount = -1;
 };

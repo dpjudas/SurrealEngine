@@ -9,6 +9,7 @@ class PushButton;
 class CheckboxLabel;
 class LineEdit;
 class Dropdown;
+class ScrollWidget;
 
 // All the virtual-reality settings, split off from the Video tab into their own tab so neither page is a
 // wall of controls. Everything here maps onto LauncherSettings::VR; the engine reads those live, so a
@@ -20,10 +21,19 @@ public:
 
 	void Save();
 
+protected:
+	// The page is too tall for the window, so its whole content lives inside ScrollArea; keep that filling
+	// the page as it resizes.
+	void OnGeometryChanged() override;
+
 private:
 	void OnResetButtonClicked();
 
 	LauncherWindow* Launcher = nullptr;
+
+	// Scroll viewport holding every control below. They are parented to ScrollArea->GetContainer(), not to
+	// the page directly, so the page just sizes this to fill itself.
+	ScrollWidget* ScrollArea = nullptr;
 
 	TextLabel* GeneralLabel = nullptr;
 	CheckboxLabel* EnableVR = nullptr;
@@ -62,6 +72,20 @@ private:
 	LineEdit* TabletForearmOffset = nullptr;
 	TextLabel* TabletWristOffsetLabel = nullptr;
 	LineEdit* TabletWristOffset = nullptr;
+
+	TextLabel* WeaponLabel = nullptr;
+	TextLabel* WeaponHandLabel = nullptr;
+	Dropdown* WeaponHand = nullptr;
+	// The six placement offsets sit on two compact rows (position F/R/U, rotation P/Y/R) rather than six
+	// labelled rows, to keep the already-long VR page from overflowing the window.
+	TextLabel* WeaponPositionOffsetLabel = nullptr;
+	LineEdit* WeaponForwardOffset = nullptr;
+	LineEdit* WeaponRightOffset = nullptr;
+	LineEdit* WeaponUpOffset = nullptr;
+	TextLabel* WeaponRotationOffsetLabel = nullptr;
+	LineEdit* WeaponPitchOffset = nullptr;
+	LineEdit* WeaponYawOffset = nullptr;
+	LineEdit* WeaponRollOffset = nullptr;
 
 	TextLabel* ControlsLabel = nullptr;
 	TextLabel* ControlsColumnLeft = nullptr;

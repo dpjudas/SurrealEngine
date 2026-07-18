@@ -104,6 +104,24 @@ public:
 		// put your head through walls), so this defaults on.
 		bool RoomScaleMovement = true;
 
+		// Which hand holds the weapon - its grip pose positions and orients the first-person weapon mesh
+		// (see RenderSubsystem::DrawActor). Defaults opposite the HUD tablet hand so the tablet rides the
+		// empty wrist.
+		VRHand WeaponHand = VRHand::Right;
+
+		// Fine placement of the weapon mesh relative to the weapon hand's grip pose, for in-headset tuning
+		// (the grip pose sits in the fist, but each weapon mesh has its own origin and forward axis, so the
+		// raw grip transform lands the gun somewhere plausible but rarely perfect). Position offsets are in
+		// centimetres along the grip's own axes (forward down the barrel, right, up); rotation offsets are in
+		// degrees applied in the grip's local frame (pitch tilts the muzzle, yaw swings it, roll banks it).
+		// All default 0 == weapon rigidly on the raw grip pose. See RenderSubsystem::DrawActor.
+		int WeaponForwardOffsetCm = 0;
+		int WeaponRightOffsetCm = 0;
+		int WeaponUpOffsetCm = 0;
+		int WeaponPitchOffsetDegrees = 0;
+		int WeaponYawOffsetDegrees = 0;
+		int WeaponRollOffsetDegrees = 0;
+
 		// Which wrist the gameplay HUD tablet rides (see RenderSubsystem::DrawVRHudPlane).
 		VRHand HudHand = VRHand::Left;
 		// Which hand aims the menu laser and toggles the pause menu with its B button (see
