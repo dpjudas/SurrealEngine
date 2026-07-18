@@ -91,8 +91,19 @@ void VRHands::Tick()
 
 	UpdatePoses(vr);
 
+	// UpdateTriggerContacts/BumpMovers dispatch Touch/UnTouch/Bump into game script, which can run
+	// anything at all - including destroying the player pawn (a damage trigger, a scripted death). This
+	// runs from Engine::Run outside the level tick, so nothing else is holding our reference to the pawn
+	// alive across those calls; root it for the duration so a dispatched event can't free it under us.
+	GCRoot<UPlayerPawn> pawnRoot(pawn);
+
 	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 	{
+		// An event dispatched for the previous hand may have destroyed the pawn, or torn the level down
+		// under it. Stop rather than feed a dead pawn into the collision queries and events below.
+		if (pawn->bDeleteMe() || !pawn->XLevel())
+			break;
+
 		UpdateTriggerContacts(hand, pawn);
 		BumpMovers(hand, pawn);
 
@@ -178,8 +189,10 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 		// Unless the player then walked into what their hand was already in, in which case the body has
 		// its own touch registered and untouching now would tell the trigger the player left while they
 		// are still standing in it. The body's own UnTouch is coming when it steps back out.
-		// Dispatched before the erase, which is what still roots the actor.
-		if (!IsBodyTouching(pawn, actor))
+		// Dispatched before the erase, which is what still roots the actor. Skipped if an earlier UnTouch
+		// in this batch already destroyed the pawn we dispatch as; the erase still runs, since that contact
+		// is going away regardless.
+		if (!pawn->bDeleteMe() && !IsBodyTouching(pawn, actor))
 			CallEvent(actor, EventName::UnTouch, { ExpressionValue::ObjectValue(pawn) });
 		contacts.erase(contacts.begin() + (i - 1));
 	}
@@ -208,6 +221,10 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 
 	for (size_t i = firstNew; i < contacts.size(); i++)
 	{
+		// An earlier Touch in this batch may have destroyed the pawn we dispatch as; stop rather than pass
+		// a dead instigator to the rest.
+		if (pawn->bDeleteMe())
+			break;
 		UActor* actor = contacts[i].Actor.get();
 		// An earlier event in this same batch may have destroyed this one.
 		if (actor->bDeleteMe())
@@ -255,6 +272,8 @@ void VRHands::BumpMovers(int hand, UPlayerPawn* pawn)
 	// handler once it has begun opening.
 	for (UActor* actor : bumped)
 	{
+		if (pawn->bDeleteMe()) // a bump in this batch may have destroyed the pawn we dispatch as
+			break;
 		if (actor->bDeleteMe()) // an earlier bump in this batch may have destroyed it
 			continue;
 		CallEvent(actor, EventName::Bump, { ExpressionValue::ObjectValue(pawn) });

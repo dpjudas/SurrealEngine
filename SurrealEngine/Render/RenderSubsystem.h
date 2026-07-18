@@ -159,7 +159,12 @@ private:
 	// boost uiscale so HUD elements are larger on the tablet; the menu keeps the plain derived scale, which
 	// its cursor mapping (UpdateVRMenuLaser) also assumes.
 	bool DrawingVRHudCanvas = false;
-	bool WasVRMenuOpen = false;
+	// Whether the menu plane's world-space anchor has been captured for the currently-open menu. Set on the
+	// frame the menu opens (freezing the plane in front of the player's gaze) and cleared when it closes, so
+	// the anchor is taken exactly once per menu session. Deliberately tracked as "anchor captured" rather
+	// than "menu was open last frame": a one-frame VR dropout draws the desktop fallback without touching
+	// this, so the frozen plane survives the dropout instead of jumping to the new gaze when VR resumes.
+	bool VRMenuAnchorCaptured = false;
 	vec3 VRMenuPlaneCorners[4] = {};
 	vec2 VRMenuPlaneUVs[4] = { vec2(0.0f, 0.0f), vec2(1.0f, 0.0f), vec2(1.0f, 1.0f), vec2(0.0f, 1.0f) };
 	// The camera transform at the moment the menu opened, frozen for as long as it stays open - a scripted

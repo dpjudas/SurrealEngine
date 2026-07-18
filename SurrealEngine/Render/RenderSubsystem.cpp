@@ -49,13 +49,22 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 			bool menuOpen = engine->console->bNoDrawWorld();
 			if (menuOpen)
 			{
-				if (!WasVRMenuOpen)
+				// Anchor the plane once, on the transition into the menu, and hold it until the menu closes.
+				// Tracked by "have we captured an anchor for this menu session" rather than "was the menu
+				// open last frame" specifically so a one-frame VR dropout (tracking lost, session briefly
+				// not visible) doesn't re-anchor the plane to the new gaze mid-menu - the dropped frame draws
+				// the desktop fallback below without touching this, so the frozen anchor survives it.
+				if (!VRMenuAnchorCaptured)
+				{
 					CaptureVRMenuPlaneAnchor(eyeViews);
+					VRMenuAnchorCaptured = true;
+				}
 				UpdateVRMenuLaser();
 				DrawUICanvas(false); // opaque black - the menu blacks the world out
 			}
 			else
 			{
+				VRMenuAnchorCaptured = false; // next menu-open recaptures against wherever the player then looks
 				VRMenuLaserValid = false;
 				// The gameplay HUD (health, ammo, crosshair, messages) is the same flat 2D layer the menu
 				// is - console->PostRender paints all of it - so it gets the same treatment: rendered once
@@ -65,7 +74,6 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 				// is current precisely because this call already ran them for the frame.
 				DrawUICanvas(true); // transparent background so the tablet isn't a black slab over the world
 			}
-			WasVRMenuOpen = menuOpen;
 
 			for (int eye = 0; eye < VRSubsystem::EyeCount; eye++)
 			{
@@ -88,8 +96,8 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	{
 		// Either VR is off, or it is on but the runtime had no head pose to give us this frame (tracking
 		// lost, or the session isn't visible). Fall back to drawing the desktop frame rather than leaving
-		// the window frozen on whatever it last showed.
-		WasVRMenuOpen = false;
+		// the window frozen on whatever it last showed. Deliberately does NOT touch VRMenuAnchorCaptured:
+		// a dropped frame mid-menu must keep the frozen anchor so the plane doesn't jump when VR resumes.
 		DrawGameFrame(vec4(flashScale, 1.0f), vec4(flashFog, 1.0f), true);
 	}
 }

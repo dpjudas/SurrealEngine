@@ -68,6 +68,9 @@ private:
 	XrSpace ViewSpace = XR_NULL_HANDLE; // LOCAL reference space - the seated/standing play space origin
 	XrSessionState CurrentSessionState = XR_SESSION_STATE_UNKNOWN;
 	bool SessionActive = false;
+	// Latched when the runtime signals XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING. Never cleared: once the
+	// instance is lost we stay off VR for the rest of the run rather than call into freed runtime state.
+	bool InstanceLost = false;
 
 	int RenderScalePercent = 100; // clamped in the constructor; see InitSession
 	int EyeWidth = 0;

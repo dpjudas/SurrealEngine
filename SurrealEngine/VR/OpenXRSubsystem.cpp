@@ -600,7 +600,19 @@ void OpenXRSubsystem::PollEvents()
 	event.next = nullptr;
 	while (xrPollEvent(Instance, &event) == XR_SUCCESS)
 	{
-		if (event.type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED)
+		if (event.type == XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING)
+		{
+			// The runtime is going away (compositor restart, headset unplugged, SteamVR shutdown). Every
+			// handle created on this instance is about to become invalid, so stop the frame loop now:
+			// IsActive() goes false, DrawGame falls back to the desktop window, and no further xr* frame
+			// call is made against the dying instance. Recovering VR mid-run by recreating the instance is
+			// out of scope - the point here is to fail safe instead of calling into freed runtime state.
+			LogMessage("OpenXR: instance loss pending - shutting VR down for this run, continuing on the desktop");
+			InstanceLost = true;
+			SessionActive = false;
+			return;
+		}
+		else if (event.type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED)
 		{
 			auto& stateEvent = reinterpret_cast<XrEventDataSessionStateChanged&>(event);
 			CurrentSessionState = stateEvent.state;
@@ -631,7 +643,9 @@ void OpenXRSubsystem::PollEvents()
 bool OpenXRSubsystem::WaitFrame()
 {
 	PollEvents();
-	if (!SessionActive)
+	// InstanceLost is checked explicitly (not just via SessionActive) so that once the runtime is gone,
+	// nothing here ever touches the instance/session again, even if some other path flipped SessionActive.
+	if (InstanceLost || !SessionActive)
 		return false;
 
 	XrFrameWaitInfo waitInfo = { XR_TYPE_FRAME_WAIT_INFO };
