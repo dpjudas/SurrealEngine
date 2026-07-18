@@ -336,7 +336,19 @@ void VRPlayerInput::UpdateMovement(bool allowStick)
 
 	float forward = 0.0f;
 	float strafe = 0.0f;
-	if (haveHeading)
+	if (player->Physics() == PHYS_Swimming)
+	{
+		// Swimming is the one state whose PlayerMove builds acceleration from GetAxes(ViewRotation) instead
+		// of the body Rotation the walk states use - and VR has aimed ViewRotation at the weapon hand (see
+		// UpdateAim). So here the stick maps straight onto that aim frame with no body-relative heading:
+		// forward swims along where the gun points, pitch included (tilt the hand down to dive, up to
+		// surface), strafe along the gun's right. Feeding the body-relative heading the walk path computes
+		// below into the hand-aim frame is exactly what scrambled the swim direction, so don't. The
+		// movement-direction hand is deliberately ignored underwater - the weapon hand steers, as chosen.
+		forward = stick.y * MoveAxisScale;
+		strafe = stick.x * MoveAxisScale;
+	}
+	else if (haveHeading)
 	{
 		// heading holds the reference's forward as (forward, right) in the pawn's own frame; turning
 		// that 90 degrees to the right gives the reference's right axis. Laying the stick along those
