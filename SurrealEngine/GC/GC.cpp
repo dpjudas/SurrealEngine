@@ -8,9 +8,18 @@ static GCStats stats;
 
 GCRootNode::GCRootNode()
 {
+	// Insert at the head of the list. `roots` is the head, nodes chain head->tail via `next`, and both
+	// ~GCRootNode() and GC::Collect() traverse from `roots` via `next` - so insertion has to build the list
+	// in that same direction. The previous version linked the other way (`roots->next = this; prev = roots`),
+	// which left `roots` pointing at the newest node while its `next` was null: Collect() then only ever
+	// marked that one node, and destroying it (the common case for a short-lived GCRoot, e.g. the per-frame
+	// one in VRHands::Tick) took the dtor's `if (prev)` branch without updating `roots`, leaving the global
+	// head dangling at freed memory. The next GCRootNode() then wrote `roots->next = this` into that freed
+	// block, corrupting the heap.
+	next = roots;
+	prev = nullptr;
 	if (roots)
-		roots->next = this;
-	prev = roots;
+		roots->prev = this;
 	roots = this;
 }
 
