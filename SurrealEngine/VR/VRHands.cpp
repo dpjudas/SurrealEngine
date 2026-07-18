@@ -10,10 +10,15 @@
 #include "Collision/TopLevel/CollisionHit.h"
 #include "VM/ScriptCall.h"
 #include "Math/coords.h"
+#include "LauncherSettings.h"
 
-// Roughly a fist. Big enough that the player can hit a wall button without having to thread a point
-// through it, small enough that reaching past one trigger does not set off the one beside it.
-const float VRHands::HandRadius = 6.0f;
+// Roughly a fist by default. Big enough that the player can hit a wall button without having to thread a
+// point through it, small enough that reaching past one trigger does not set off the one beside it. Tunable
+// from the launcher (VR.HandColliderRadius); clamped to at least 1 so the hand can't collapse to nothing.
+float VRHands::HandRadius()
+{
+	return (float)std::max(LauncherSettings::Get().VR.HandColliderRadius, 1);
+}
 
 namespace
 {
@@ -170,7 +175,7 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 	const HandPose& pose = Hands[hand];
 	if (pose.Valid)
 	{
-		for (UActor* actor : pawn->XLevel()->Collision.CollidingActors(pose.Position, HandRadius, HandRadius))
+		for (UActor* actor : pawn->XLevel()->Collision.CollidingActors(pose.Position, HandRadius(), HandRadius()))
 		{
 			if (actor == pawn || actor->bDeleteMe() || !actor->bCollideActors() || !IsTriggerLike(actor))
 				continue;
@@ -251,7 +256,7 @@ void VRHands::BumpMovers(int hand, UPlayerPawn* pawn)
 	//
 	// Sweeping is also the honest model for a hand: an arm swings quickly enough to cross a thin button
 	// brush entirely within one 90Hz frame, which a test of where the hand ended up would miss.
-	CollisionHitList hits = pawn->XLevel()->Collision.Trace(from, to, HandRadius, HandRadius, false, true, false);
+	CollisionHitList hits = pawn->XLevel()->Collision.Trace(from, to, HandRadius(), HandRadius(), false, true, false);
 
 	Array<UActor*> bumped;
 	for (auto& hit : hits)

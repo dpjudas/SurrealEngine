@@ -5,6 +5,7 @@
 #include "LauncherButtonbar.h"
 #include "PlayGamePage.h"
 #include "VideoSettingsPage.h"
+#include "VRSettingsPage.h"
 // #include "AudioSettingsPage.h"
 #include "GameFoldersPage.h"
 #include "LauncherSettings.h"
@@ -17,7 +18,8 @@ int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 640.0;
-	double windowHeight = 750.0;
+	// Tall enough for the VR Settings tab, which is the longest page (controller bindings + HUD geometry).
+	double windowHeight = 820.0;
 
 	auto launcher = std::make_unique<LauncherWindow>();
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
@@ -47,12 +49,14 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 
 	PlayGame = new PlayGamePage(this);
 	GraphicsSettings = new VideoSettingsPage(this);
+	VRSettings = new VRSettingsPage(this);
 	// AudioSettings = new AudioSettingsPage(this);
 	GameFolders = new GameFoldersPage(this);
 
 	Pages->AddTab(PlayGame, "Games");
 	Pages->AddTab(GameFolders, "Folders");
 	Pages->AddTab(GraphicsSettings, "Video Settings");
+	Pages->AddTab(VRSettings, "VR Settings");
 	// Pages->AddTab(AudioSettings, "Audio Settings");
 
 	Pages->SetCurrentWidget(PlayGame);
@@ -73,6 +77,8 @@ void LauncherWindow::Save()
 {
 	PlayGame->Save();
 	GraphicsSettings->Save();
+	// VR enabling requires Vulkan, so this must run after the Video page has committed the render device.
+	VRSettings->Save();
 	// AudioSettings->Save();
 	GameFolders->Save();
 	LauncherSettings::Get().Save();

@@ -4,6 +4,7 @@
 
 // class AudioSettingsPage;
 class VideoSettingsPage;
+class VRSettingsPage;
 class TabWidget;
 class LauncherBanner;
 class LauncherButtonbar;
@@ -33,6 +34,7 @@ private:
 
 	PlayGamePage* PlayGame = nullptr;
 	VideoSettingsPage* GraphicsSettings = nullptr;
+	VRSettingsPage* VRSettings = nullptr;
 	// AudioSettingsPage* AudioSettings = nullptr;
 	GameFoldersPage* GameFolders = nullptr;
 

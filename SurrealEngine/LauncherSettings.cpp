@@ -15,6 +15,17 @@ static std::string GetSettingsFilename()
 	return (Directory::localAppData() / "SurrealEngine/Settings.json").string();
 }
 
+// Names used to serialize the per-hand/per-button control bindings. Order must match VRSubsystem::HandLeft
+// /HandRight and the VRSubsystem::Button enum - the arrays are indexed by those directly.
+static const char* const kVRHandNames[VRSubsystem::HandCount] = { "Left", "Right" };
+static const char* const kVRButtonNames[VRSubsystem::ButtonCount] =
+	{ "Trigger", "Grip", "A", "B", "ThumbstickClick", "Menu", "Trackpad" };
+
+static std::string VRButtonKey(int hand, int button)
+{
+	return std::string(kVRHandNames[hand]) + "." + kVRButtonNames[button];
+}
+
 LauncherSettings::LauncherSettings()
 {
 	try
@@ -115,6 +126,59 @@ LauncherSettings::LauncherSettings()
 		// value when the key is actually present.
 		if (settings["VR"].properties().find("RoomScaleMovement") != settings["VR"].properties().end())
 			VR.RoomScaleMovement = settings["VR"]["RoomScaleMovement"].to_boolean();
+
+		const auto& vrProps = settings["VR"].properties();
+
+		// [0, 1). A missing or out-of-range value keeps the default rather than pinning the stick centred
+		// (deadzone >= 1) or letting it drift (< 0).
+		if (vrProps.find("StickDeadzone") != vrProps.end())
+		{
+			float vrDeadzone = settings["VR"]["StickDeadzone"].to_float();
+			if (vrDeadzone >= 0.0f && vrDeadzone < 1.0f)
+				VR.StickDeadzone = vrDeadzone;
+		}
+
+		std::string vrHudHand = settings["VR"]["HudHand"].to_string();
+		if (vrHudHand == "Left")
+			VR.HudHand = VRHand::Left;
+		else if (vrHudHand == "Right")
+			VR.HudHand = VRHand::Right;
+
+		std::string vrMenuHand = settings["VR"]["MenuPointerHand"].to_string();
+		if (vrMenuHand == "Left")
+			VR.MenuPointerHand = VRHand::Left;
+		else if (vrMenuHand == "Right")
+			VR.MenuPointerHand = VRHand::Right;
+
+		// Missing-key-reads-as-0 again: a zero radius/size would mean an invisible, un-collidable hand or a
+		// zero-area tablet, so only take stored values that are actually usable.
+		int vrHandRadius = settings["VR"]["HandColliderRadius"].to_int();
+		if (vrHandRadius > 0)
+			VR.HandColliderRadius = vrHandRadius;
+		int vrTabletWidth = settings["VR"]["HudTabletWidthCm"].to_int();
+		if (vrTabletWidth > 0)
+			VR.HudTabletWidthCm = vrTabletWidth;
+		if (vrProps.find("HudTabletForearmOffsetCm") != vrProps.end())
+			VR.HudTabletForearmOffsetCm = settings["VR"]["HudTabletForearmOffsetCm"].to_int();
+		if (vrProps.find("HudTabletWristOffsetCm") != vrProps.end())
+			VR.HudTabletWristOffsetCm = settings["VR"]["HudTabletWristOffsetCm"].to_int();
+
+		// Only touch the bindings if the file actually carries them; otherwise the built-in defaults stand.
+		// Within a stored set, an empty string is a real value (a deliberately unbound button), so any key
+		// present is taken verbatim and only keys absent from the object keep their default.
+		if (vrProps.find("ButtonCommands") != vrProps.end())
+		{
+			const JsonValue& buttons = settings["VR"]["ButtonCommands"];
+			for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
+			{
+				for (int button = 0; button < VRSubsystem::ButtonCount; button++)
+				{
+					std::string key = VRButtonKey(hand, button);
+					if (buttons.properties().find(key) != buttons.properties().end())
+						VR.ButtonCommands[hand][button] = buttons[key].to_string();
+				}
+			}
+		}
 	}
 	catch (...)
 	{
@@ -203,7 +267,33 @@ void LauncherSettings::Save()
 
 	vr["SnapTurnDegrees"] = JsonValue::number(VR.SnapTurnDegrees);
 	vr["SmoothTurnDegreesPerSecond"] = JsonValue::number(VR.SmoothTurnDegreesPerSecond);
+	vr["StickDeadzone"] = JsonValue::number(VR.StickDeadzone);
 	vr["RoomScaleMovement"] = JsonValue::boolean(VR.RoomScaleMovement);
+
+	switch (VR.HudHand)
+	{
+	default:
+	case VRHand::Left: vr["HudHand"] = JsonValue::string("Left"); break;
+	case VRHand::Right: vr["HudHand"] = JsonValue::string("Right"); break;
+	}
+
+	switch (VR.MenuPointerHand)
+	{
+	default:
+	case VRHand::Left: vr["MenuPointerHand"] = JsonValue::string("Left"); break;
+	case VRHand::Right: vr["MenuPointerHand"] = JsonValue::string("Right"); break;
+	}
+
+	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
+	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);
+	vr["HudTabletForearmOffsetCm"] = JsonValue::number(VR.HudTabletForearmOffsetCm);
+	vr["HudTabletWristOffsetCm"] = JsonValue::number(VR.HudTabletWristOffsetCm);
+
+	JsonValue vrButtons = JsonValue::object();
+	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
+		for (int button = 0; button < VRSubsystem::ButtonCount; button++)
+			vrButtons[VRButtonKey(hand, button)] = JsonValue::string(VR.ButtonCommands[hand][button]);
+	vr["ButtonCommands"] = std::move(vrButtons);
 
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);

@@ -11,11 +11,6 @@
 
 namespace
 {
-	// Below this the stick is treated as centred. The runtime applies its own deadzone, but not every
-	// one of them does, and a stick that rests at 0.02 would otherwise walk the player into a wall
-	// over the course of a match.
-	const float StickDeadzone = 0.15f;
-
 	// Snap turning needs the stick pushed this far to fire, and released back inside the second value
 	// before it can fire again. The gap is what stops a stick resting near the threshold from
 	// machine-gunning turns.
@@ -88,51 +83,37 @@ namespace
 		"Too many VR buttons: hand * ButtonCount + button has grown into IK_Joy15/IK_Joy16, which are "
 		"reserved for the synthetic jump/crouch presses. Drop a button, or stop mapping them onto Joy keys.");
 
-	// What VR binds each controller button to, indexed [hand][button] in VRSubsystem::Button order.
-	// Empty means deliberately bound to nothing.
-	//
-	// VR claims the whole Joy range rather than reading it from the player's ini, because the ini is
-	// never neutral: Epic ships Joy1..Joy16 in DefUser.ini and every install inherits them, so a VR
-	// player who has never touched a binding still starts with left grip on Jump, left B on Duck and the
-	// right hand scattered across SwitchWeapon. Those defaults were written for a gamepad and are actively
-	// wrong for hands. The cost is that Joy bindings in the ini no longer do anything while VR is on.
-	const char* const VRButtonCommands[VRSubsystem::HandCount][VRSubsystem::ButtonCount] =
-	{
-		// Left hand: IK_Joy1..IK_Joy7
-		{
-			"Fire",          // Trigger
-			"",              // Grip - freed from the stock Jump; phase 6 wants it for the item wheel
-			"",              // A - reserved for the item wheel (phase 6)
-			"",              // B
-			"NextWeapon",    // ThumbstickClick - keeps weapon switching alive until the wheel exists
-			"",              // Menu - the Index has no menu button
-			"AltFire",       // Trackpad
-		},
-		// Right hand: IK_Joy8..IK_Joy14
-		{
-			"Fire",          // Trigger - also the menu click while a menu is up, see UpdateButtons
-			"",              // Grip
-			"",              // A - reserved for the weapon wheel (phase 6)
-			"",              // B - intercepted as IK_Escape before it reaches a binding, see UpdateButtons
-			"NextWeapon",    // ThumbstickClick
-			"",              // Menu
-			"AltFire",       // Trackpad
-		},
-	};
 }
 
+// VR claims the whole Joy range rather than reading it from the player's ini, because the ini is never
+// neutral: Epic ships Joy1..Joy16 in DefUser.ini and every install inherits them, so a VR player who has
+// never touched a binding still starts with left grip on Jump, left B on Duck and the right hand scattered
+// across SwitchWeapon. Those defaults were written for a gamepad and are actively wrong for hands. The
+// bindings themselves live in LauncherSettings (VR.ButtonCommands) so the launcher can edit them; the cost
+// is that Joy bindings in the game ini no longer do anything while VR is on.
 void VRPlayerInput::ApplyKeybindings()
 {
+	const auto& buttonCommands = LauncherSettings::Get().VR.ButtonCommands;
 	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 	{
 		for (int button = 0; button < VRSubsystem::ButtonCount; button++)
-			engine->keybindings[Engine::keynames[ButtonToKey(hand, button)]] = VRButtonCommands[hand][button];
+			engine->keybindings[Engine::keynames[ButtonToKey(hand, button)]] = buttonCommands[hand][button];
 	}
 
 	// Claimed too, so that a stock InventoryNext/InventoryPrevious binding can't fire when the jump and
 	// crouch aliases borrow these keys for their press/release bookkeeping.
 	engine->keybindings[Engine::keynames[JumpSyntheticKey]] = "";
 	engine->keybindings[Engine::keynames[CrouchSyntheticKey]] = "";
+}
+
+int VRPlayerInput::MenuPointerHandIndex()
+{
+	return LauncherSettings::Get().VR.MenuPointerHand == VRHand::Left ? VRSubsystem::HandLeft : VRSubsystem::HandRight;
+}
+
+int VRPlayerInput::HudHandIndex()
+{
+	return LauncherSettings::Get().VR.HudHand == VRHand::Left ? VRSubsystem::HandLeft : VRSubsystem::HandRight;
 }
 
 void VRPlayerInput::Tick(float timeElapsed)
@@ -199,6 +180,8 @@ void VRPlayerInput::UpdateButtons()
 	// trigger instead of with a mouse they can't see in the headset.
 	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
 
+	const int menuPointerHand = MenuPointerHandIndex();
+
 	// Left hand takes the first ButtonCount Joy keys from IK_Joy1, right hand the next, in
 	// VRSubsystem::Button order. VR has already overwritten what those keys are bound to
 	// (ApplyKeybindings) - the point of going out through a key at all rather than driving the pawn
@@ -221,7 +204,7 @@ void VRPlayerInput::UpdateButtons()
 			// whatever Escape is bound to for this game - and it does so whether or not a menu is already
 			// up. Routed as IK_Escape rather than a Joy key so it needs no ini binding of its own and can't
 			// be accidentally rebound out from under the player.
-			if (hand == VRSubsystem::MenuPointerHand && button == VRSubsystem::Button_B)
+			if (hand == menuPointerHand && button == VRSubsystem::Button_B)
 			{
 				engine->InputEvent(IK_Escape, type);
 				continue;
@@ -231,7 +214,7 @@ void VRPlayerInput::UpdateButtons()
 			// decided at press time and remembered, so a click that closes the menu still gets its matching
 			// mouse-button release - otherwise the button would latch down, or an unpaired Joy release would
 			// fire once the menu was gone.
-			if (hand == VRSubsystem::MenuPointerHand && button == VRSubsystem::Button_Trigger)
+			if (hand == menuPointerHand && button == VRSubsystem::Button_Trigger)
 			{
 				if (isDown)
 					PointerTriggerIsMenuClick = menuOpen;
@@ -271,8 +254,9 @@ void VRPlayerInput::UpdateMovement(bool allowStick)
 	if (!player)
 		return;
 
+	float deadzone = settings.StickDeadzone;
 	vec2 stick = allowStick ? vr->GetController(GetMovementHand()).Thumbstick : vec2(0.0f);
-	if (dot(stick, stick) < StickDeadzone * StickDeadzone)
+	if (dot(stick, stick) < deadzone * deadzone)
 		stick = vec2(0.0f);
 
 	// Which way "forward on the stick" points. The hand whose controller aims the movement is a
@@ -348,7 +332,7 @@ void VRPlayerInput::UpdateTurning(float timeElapsed)
 			SnapTurnArmed = true;
 		}
 	}
-	else if (std::fabs(stickX) >= StickDeadzone)
+	else if (std::fabs(stickX) >= settings.StickDeadzone)
 	{
 		deltaYaw = (int)std::lround(stickX * settings.SmoothTurnDegreesPerSecond * timeElapsed * DegreesToRotatorUnits);
 	}

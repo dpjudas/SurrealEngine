@@ -31,8 +31,9 @@ class VRHands
 public:
 	// Radius of the hand's collider, in Unreal units - a ball rather than a box, since a controller has
 	// no meaningful facing for a box to be aligned to and the player aims it by feel. Also the radius the
-	// hand is drawn at, so what the player sees is exactly what touches.
-	static const float HandRadius;
+	// hand is drawn at, so what the player sees is exactly what touches. Read from the launcher setting
+	// (VR.HandColliderRadius) rather than a constant so it can be tuned without a rebuild.
+	static float HandRadius();
 
 	struct HandPose
 	{

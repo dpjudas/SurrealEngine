@@ -42,24 +42,6 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	BloomAmount = new LineEdit(this);
 	UseDebugLayer = new CheckboxLabel(this);
 
-	VRLabel = new TextLabel(this);
-	EnableVR = new CheckboxLabel(this);
-	VRRenderScaleLabel = new TextLabel(this);
-	VRRenderScale = new LineEdit(this);
-	VRMovementReferenceLabel = new TextLabel(this);
-	VRMovementReferences = new Dropdown(this);
-	VRMovementHandLabel = new TextLabel(this);
-	VRMovementHand = new Dropdown(this);
-	VRMovementDirectionHandLabel = new TextLabel(this);
-	VRMovementDirectionHand = new Dropdown(this);
-	VRTurnModeLabel = new TextLabel(this);
-	VRTurnModes = new Dropdown(this);
-	VRSnapTurnDegreesLabel = new TextLabel(this);
-	VRSnapTurnDegrees = new LineEdit(this);
-	VRSmoothTurnSpeedLabel = new TextLabel(this);
-	VRSmoothTurnSpeed = new LineEdit(this);
-	VRRoomScaleMovement = new CheckboxLabel(this);
-
 	ResetButton = new PushButton(this);
 
 	RenderDeviceLabel->SetText("Render device:");
@@ -80,44 +62,10 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	BloomAmountLabel->SetText("Bloom amount");
 	UseDebugLayer->SetText("Enable debug layer (slow)");
 
-	VRLabel->SetText("Virtual reality:");
-#ifdef USE_OPENXR
-	EnableVR->SetText("Enable VR (experimental, requires Vulkan + a running SteamVR/OpenXR runtime)");
-#else
-	EnableVR->SetText("Enable VR (not available - this build was compiled without OpenXR support)");
-	EnableVR->SetDisabled(true);
-#endif
-	VRRenderScaleLabel->SetText("VR render scale (% of headset's recommended resolution)");
-	VRMovementReferenceLabel->SetText("Move in the direction of");
-	VRMovementHandLabel->SetText("Movement thumbstick (the other hand turns)");
-	VRMovementDirectionHandLabel->SetText("Controller that points the way (controller mode only)");
-	VRTurnModeLabel->SetText("Turning");
-	VRSnapTurnDegreesLabel->SetText("Snap turn angle (degrees)");
-	VRSmoothTurnSpeedLabel->SetText("Smooth turn speed (degrees/second)");
-	VRRoomScaleMovement->SetText("Walk the player around to stay under the headset (room scale)");
-
 	ResetButton->SetText("Reset to defaults");
 
-	VRRenderScale->SetIntrinsicSize(3);
-	VRSnapTurnDegrees->SetIntrinsicSize(3);
-	VRSmoothTurnSpeed->SetIntrinsicSize(3);
 	HdrScale->SetIntrinsicSize(3);
 	BloomAmount->SetIntrinsicSize(3);
-
-	// Order must match VRMovementReference/VRHand/VRTurnMode - both directions go through
-	// GetSelectedItem()/SetSelectedItem() as a plain index.
-	VRMovementReferences->AddItem("The controller (point where you want to go)");
-	VRMovementReferences->AddItem("The headset (look where you want to go)");
-
-	VRMovementHand->AddItem("Left");
-	VRMovementHand->AddItem("Right");
-
-	VRMovementDirectionHand->AddItem("Left");
-	VRMovementDirectionHand->AddItem("Right");
-
-	VRTurnModes->AddItem("Snap");
-	VRTurnModes->AddItem("Smooth");
-	VRTurnModes->AddItem("Off (mouse only)");
 
 	AntialiasModes->AddItem("Off");
 	AntialiasModes->AddItem("MSAA 2x");
@@ -132,9 +80,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 
 #ifdef WIN32
-	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ } UpdateVREnabledState(); };
-	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ } UpdateVREnabledState(); };
-	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); } UpdateVREnabledState(); };
+	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ } };
+	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ } };
+	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); } };
 #else
 	Vulkan->FuncChanged = [this](bool on) { /* Add checkbox logic here if an OpenGL renderer ever gets added */ };
 #endif
@@ -155,16 +103,6 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	Bloom->SetChecked(settings.RenderDevice.Bloom);
 	BloomAmount->SetTextInt(settings.RenderDevice.BloomAmount);
 	UseDebugLayer->SetChecked(settings.RenderDevice.UseDebugLayer);
-	EnableVR->SetChecked(settings.VR.Enabled);
-	VRRenderScale->SetTextInt(settings.VR.RenderScale);
-	VRMovementReferences->SetSelectedItem((int)settings.VR.MovementReference);
-	VRMovementHand->SetSelectedItem((int)settings.VR.MovementHand);
-	VRMovementDirectionHand->SetSelectedItem((int)settings.VR.MovementDirectionHand);
-	VRTurnModes->SetSelectedItem((int)settings.VR.TurnMode);
-	VRSnapTurnDegrees->SetTextInt(settings.VR.SnapTurnDegrees);
-	VRSmoothTurnSpeed->SetTextInt(settings.VR.SmoothTurnDegreesPerSecond);
-	VRRoomScaleMovement->SetChecked(settings.VR.RoomScaleMovement);
-	UpdateVREnabledState();
 
 	ResetButton->OnClick = [this]() { OnResetButtonClicked(); };
 
@@ -202,41 +140,6 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	bloomAmountLayout->AddWidget(BloomAmount);
 	bloomAmountLayout->AddStretch();
 
-	auto vrRenderScaleLayout = new HBoxLayout();
-	vrRenderScaleLayout->AddWidget(VRRenderScaleLabel);
-	vrRenderScaleLayout->AddWidget(VRRenderScale);
-	vrRenderScaleLayout->AddStretch();
-
-	auto vrMovementReferenceLayout = new HBoxLayout();
-	vrMovementReferenceLayout->AddWidget(VRMovementReferenceLabel);
-	vrMovementReferenceLayout->AddWidget(VRMovementReferences);
-	vrMovementReferenceLayout->AddStretch();
-
-	auto vrMovementHandLayout = new HBoxLayout();
-	vrMovementHandLayout->AddWidget(VRMovementHandLabel);
-	vrMovementHandLayout->AddWidget(VRMovementHand);
-	vrMovementHandLayout->AddStretch();
-
-	auto vrMovementDirectionHandLayout = new HBoxLayout();
-	vrMovementDirectionHandLayout->AddWidget(VRMovementDirectionHandLabel);
-	vrMovementDirectionHandLayout->AddWidget(VRMovementDirectionHand);
-	vrMovementDirectionHandLayout->AddStretch();
-
-	auto vrTurnModeLayout = new HBoxLayout();
-	vrTurnModeLayout->AddWidget(VRTurnModeLabel);
-	vrTurnModeLayout->AddWidget(VRTurnModes);
-	vrTurnModeLayout->AddStretch();
-
-	auto vrSnapTurnDegreesLayout = new HBoxLayout();
-	vrSnapTurnDegreesLayout->AddWidget(VRSnapTurnDegreesLabel);
-	vrSnapTurnDegreesLayout->AddWidget(VRSnapTurnDegrees);
-	vrSnapTurnDegreesLayout->AddStretch();
-
-	auto vrSmoothTurnSpeedLayout = new HBoxLayout();
-	vrSmoothTurnSpeedLayout->AddWidget(VRSmoothTurnSpeedLabel);
-	vrSmoothTurnSpeedLayout->AddWidget(VRSmoothTurnSpeed);
-	vrSmoothTurnSpeedLayout->AddStretch();
-
 	auto resetButtonLayout = new HBoxLayout();
 	resetButtonLayout->AddWidget(ResetButton);
 	resetButtonLayout->AddStretch();
@@ -264,17 +167,6 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	mainLayout->AddLayout(bloomAmountLayout);
 
 	mainLayout->AddWidget(UseDebugLayer);
-
-	mainLayout->AddWidget(VRLabel);
-	mainLayout->AddWidget(EnableVR);
-	mainLayout->AddLayout(vrRenderScaleLayout);
-	mainLayout->AddLayout(vrMovementReferenceLayout);
-	mainLayout->AddLayout(vrMovementHandLayout);
-	mainLayout->AddLayout(vrMovementDirectionHandLayout);
-	mainLayout->AddLayout(vrTurnModeLayout);
-	mainLayout->AddLayout(vrSnapTurnDegreesLayout);
-	mainLayout->AddLayout(vrSmoothTurnSpeedLayout);
-	mainLayout->AddWidget(VRRoomScaleMovement);
 
 	mainLayout->AddLayout(resetButtonLayout);
 
@@ -323,43 +215,6 @@ void VideoSettingsPage::Save()
 	settings.RenderDevice.Bloom = Bloom->GetChecked();
 	settings.RenderDevice.BloomAmount = BloomAmount->GetTextInt();
 	settings.RenderDevice.UseDebugLayer = UseDebugLayer->GetChecked();
-	settings.VR.Enabled = EnableVR->GetChecked() && settings.RenderDevice.Type == RenderDeviceType::Vulkan;
-	// Clamped again on the way into OpenXRSubsystem, but keep the file itself sane.
-	int vrRenderScale = VRRenderScale->GetTextInt();
-	if (vrRenderScale > 0)
-		settings.VR.RenderScale = std::max(std::min(vrRenderScale, 200), 10);
-
-	settings.VR.MovementReference = (VRMovementReferences->GetSelectedItem() == 1) ? VRMovementReference::Head : VRMovementReference::Controller;
-	settings.VR.MovementHand = (VRMovementHand->GetSelectedItem() == 1) ? VRHand::Right : VRHand::Left;
-	settings.VR.MovementDirectionHand = (VRMovementDirectionHand->GetSelectedItem() == 1) ? VRHand::Right : VRHand::Left;
-
-	if (VRTurnModes->GetSelectedItem() == 0)
-		settings.VR.TurnMode = VRTurnMode::Snap;
-	else if (VRTurnModes->GetSelectedItem() == 1)
-		settings.VR.TurnMode = VRTurnMode::Smooth;
-	else if (VRTurnModes->GetSelectedItem() == 2)
-		settings.VR.TurnMode = VRTurnMode::Off;
-
-	// Zero or negative would silently mean "no turning" while the dropdown still claimed otherwise, so
-	// an unusable value keeps the previous one rather than being stored.
-	int vrSnapTurnDegrees = VRSnapTurnDegrees->GetTextInt();
-	if (vrSnapTurnDegrees > 0)
-		settings.VR.SnapTurnDegrees = std::min(vrSnapTurnDegrees, 180);
-	int vrSmoothTurnSpeed = VRSmoothTurnSpeed->GetTextInt();
-	if (vrSmoothTurnSpeed > 0)
-		settings.VR.SmoothTurnDegreesPerSecond = std::min(vrSmoothTurnSpeed, 720);
-
-	settings.VR.RoomScaleMovement = VRRoomScaleMovement->GetChecked();
-}
-
-void VideoSettingsPage::UpdateVREnabledState()
-{
-#ifdef USE_OPENXR
-	bool vulkanSelected = Vulkan->GetChecked();
-	EnableVR->SetDisabled(!vulkanSelected);
-	if (!vulkanSelected)
-		EnableVR->SetChecked(false);
-#endif
 }
 
 void VideoSettingsPage::OnResetButtonClicked()
@@ -378,14 +233,4 @@ void VideoSettingsPage::OnResetButtonClicked()
 	Bloom->SetChecked(false);
 	BloomAmount->SetTextInt(128);
 	UseDebugLayer->SetChecked(false);
-	EnableVR->SetChecked(false);
-	VRRenderScale->SetTextInt(60);
-	VRMovementReferences->SetSelectedItem((int)VRMovementReference::Controller);
-	VRMovementHand->SetSelectedItem((int)VRHand::Left);
-	VRMovementDirectionHand->SetSelectedItem((int)VRHand::Left);
-	VRTurnModes->SetSelectedItem((int)VRTurnMode::Snap);
-	VRSnapTurnDegrees->SetTextInt(45);
-	VRSmoothTurnSpeed->SetTextInt(90);
-	VRRoomScaleMovement->SetChecked(true);
-	UpdateVREnabledState();
 }

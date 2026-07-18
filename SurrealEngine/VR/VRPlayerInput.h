@@ -18,6 +18,11 @@ public:
 	// these keys outright instead of leaving them to the ini.
 	static void ApplyKeybindings();
 
+	// Map the launcher's VRHand settings onto a VRSubsystem HandLeft/HandRight index. Static so the render
+	// side (which has no VRPlayerInput handy) can read the same setting through the same mapping.
+	static int MenuPointerHandIndex();
+	static int HudHandIndex();
+
 	void Tick(float timeElapsed);
 
 	// The head's horizontal position in play space, as of the last room-scale move. The renderer must

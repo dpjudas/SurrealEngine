@@ -107,11 +107,12 @@ public:
 	static const int HandCount = 2;
 	enum { HandLeft = 0, HandRight = 1 };
 
-	// Which hand's laser drives the pause/main menu: VRPlayerInput routes that hand's trigger to a mouse
-	// click while a menu is up, and RenderSubsystem casts the pointing laser and moves the cursor from the
-	// same hand. Kept here so the input and render sides can never disagree about which hand points. The
-	// menu is toggled with that hand's B button (see VRPlayerInput::UpdateButtons).
-	static const int MenuPointerHand = HandRight;
+	// Which hand's laser drives the pause/main menu (VRPlayerInput routes that hand's trigger to a mouse
+	// click while a menu is up, RenderSubsystem casts the pointing laser and moves the cursor from the same
+	// hand, and the menu toggles on that hand's B button) is a launcher setting now, not a constant:
+	// LauncherSettings::Get().VR.MenuPointerHand. Both the input and render sides read it from there, so
+	// they still can't disagree about which hand points. VRPlayerInput::MenuPointerHandIndex() maps it to a
+	// HandLeft/HandRight index.
 
 	// One tracked pose, in the same space and units as EyeView. Deliberately not called Pose:
 	// OpenXRSubsystem already has its own nested Pose (its raw XrPosef conversion), and a base-class Pose

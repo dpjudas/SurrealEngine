@@ -6,6 +6,8 @@
 #include "UObject/USubsystem.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "LauncherSettings.h"
+#include "VR/VRPlayerInput.h"
 
 RenderSubsystem::RenderSubsystem(RenderDevice* renderdevice) : Device(renderdevice)
 {
@@ -318,7 +320,7 @@ void RenderSubsystem::UpdateVRMenuLaser()
 	if (!vr || !vr->IsActive())
 		return;
 
-	const VRSubsystem::ControllerState& controller = vr->GetController(VRSubsystem::MenuPointerHand);
+	const VRSubsystem::ControllerState& controller = vr->GetController(VRPlayerInput::MenuPointerHandIndex());
 	if (!controller.PoseValid)
 		return; // pointer controller off or untracked - leave the cursor where it was, draw no beam
 
@@ -443,15 +445,16 @@ void RenderSubsystem::DrawVRHudPlane()
 	if (!CurrentVREye || !engine->vrHands)
 		return;
 
-	// Anchored to the off-hand controller so it rides along with that wrist, the way you'd glance at a
-	// watch or a strapped-on tablet. HandLeft for now - the weapon goes in the main hand (phase 4, a
-	// launcher setting), and the HUD wants the other one; once that setting exists this should track it.
-	const int hudHand = VRSubsystem::HandLeft;
+	// Anchored to a controller so it rides along with that wrist, the way you'd glance at a watch or a
+	// strapped-on tablet. Which wrist is a launcher setting (VR.HudHand) - it wants the hand the weapon
+	// isn't in (phase 4).
+	const auto& vrSettings = LauncherSettings::Get().VR;
+	const int hudHand = VRPlayerInput::HudHandIndex();
 	const VRHands::HandPose& hand = engine->vrHands->GetHand(hudHand);
 	if (!hand.Valid)
 		return; // off-hand controller off or untracked - no tablet to hang it on this frame
 
-	const float tabletWidth = 0.18f * MetersToUnrealUnits;
+	const float tabletWidth = vrSettings.HudTabletWidthCm * 0.01f * MetersToUnrealUnits;
 	// Derived from the canvas so the panel can't stretch if the canvas resolution changes - same as the menu.
 	const float tabletHeight = tabletWidth * (float)RenderDevice::VRMenuCanvasHeight / (float)RenderDevice::VRMenuCanvasWidth;
 
@@ -466,10 +469,10 @@ void RenderSubsystem::DrawVRHudPlane()
 	// The winding keeps the front face on +hand.Up: uEdge = +right = +hand.Forward, vEdge = -planeUp =
 	// +hand.Right, and cross(forward, right) = +up. If it reads mirrored or upside down in the headset,
 	// negate both `right` and `planeUp` (a 180 flip) or swap which one is negated (the other 90 turn).
-	const float upOffset = 0.04f * MetersToUnrealUnits;   // float it off the back of the wrist, not through it
+	const float upOffset = vrSettings.HudTabletWristOffsetCm * 0.01f * MetersToUnrealUnits; // float it off the back of the wrist, not through it
 	// Well up the forearm toward the player, not out past the hand - in the headset the panel wanted to sit
 	// back over the wrist, not floating off the fingertips.
-	const float backOffset = 0.18f * MetersToUnrealUnits;
+	const float backOffset = vrSettings.HudTabletForearmOffsetCm * 0.01f * MetersToUnrealUnits;
 
 	vec3 right = hand.Forward;    // panel right edge runs down the forearm
 	vec3 planeUp = -hand.Right;   // panel top edge; the quarter turn that fixed the sideways look
@@ -559,6 +562,7 @@ void RenderSubsystem::DrawVRHands()
 	// player can see the button they are reaching for straight through their own hand. LINE_DepthCued so
 	// the hand goes behind the wall it is pushed into instead of hovering on top of the world.
 	const int segments = 16;
+	const float handRadius = VRHands::HandRadius(); // the drawn ball is exactly the collider (see VRHands)
 	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 	{
 		const VRHands::HandPose& pose = engine->vrHands->GetHand(hand);
@@ -579,11 +583,11 @@ void RenderSubsystem::DrawVRHands()
 			vec3 u = basis[(axis + 1) % 3];
 			vec3 v = basis[(axis + 2) % 3];
 
-			vec3 previous = pose.Position + u * VRHands::HandRadius;
+			vec3 previous = pose.Position + u * handRadius;
 			for (int i = 1; i <= segments; i++)
 			{
 				float angle = radians(360.0f * i / segments);
-				vec3 next = pose.Position + (u * std::cos(angle) + v * std::sin(angle)) * VRHands::HandRadius;
+				vec3 next = pose.Position + (u * std::cos(angle) + v * std::sin(angle)) * handRadius;
 				Device->Draw3DLine(&frame, color, LINE_DepthCued, previous, next);
 				previous = next;
 			}
@@ -591,7 +595,7 @@ void RenderSubsystem::DrawVRHands()
 
 		// A stub poking out the front of the ball, so the controller's facing reads at a glance instead of
 		// having to be inferred from the ring pattern.
-		Device->Draw3DLine(&frame, color, LINE_DepthCued, pose.Position, pose.Position + pose.Forward * (VRHands::HandRadius * 1.6f));
+		Device->Draw3DLine(&frame, color, LINE_DepthCued, pose.Position, pose.Position + pose.Forward * (handRadius * 1.6f));
 	}
 }
 
