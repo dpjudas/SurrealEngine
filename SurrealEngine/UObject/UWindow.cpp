@@ -2841,10 +2841,24 @@ bool URootWindow::SetRootFocusWindow(UWindow* newFocusWindow)
 
 void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)
 {
+	// Clip cursor to the entire screen, not the root window box:
+
+	newMouseX += UsedX;
+	newMouseY += UsedY;
+
+	float scale = GetVirtualScale();
+	float realWidth = std::ceil(engine->viewport->ViewportWidth() / scale);
+	float realHeight = std::ceil(engine->viewport->ViewportHeight() / scale);
+
 	newMouseX = std::max(newMouseX, 0.0f);
 	newMouseY = std::max(newMouseY, 0.0f);
-	newMouseX = std::min(newMouseX, GetVirtualWidth());
-	newMouseY = std::min(newMouseY, GetVirtualHeight());
+	newMouseX = std::min(newMouseX, realWidth);
+	newMouseY = std::min(newMouseY, realHeight);
+
+	newMouseX -= UsedX;
+	newMouseY -= UsedY;
+
+	// Apply the new cursor pos:
 
 	prevMouseX() = MouseX();
 	prevMouseY() = MouseY();
