@@ -54,6 +54,14 @@ void UWindow::UpdateLayout()
 		float pHeight = parent->Height();
 		float width = Width();
 		float height = Height();
+		float offsetX = 0.0f;
+
+		if (parent == engine->dxRootWindow)
+		{
+			float extraWidth = std::max(GetExtendedVirtualWidth() - pWidth, 0.0f);
+			offsetX = -std::round(extraWidth * 0.5f);
+			pWidth += extraWidth;
+		}
 
 		float x = 0.0f, y = 0.0f;
 		if (halign == EHAlign::Left || halign == EHAlign::Full)
@@ -69,6 +77,8 @@ void UWindow::UpdateLayout()
 			y = (pHeight - height) * 0.5f;
 		else if (valign == EVAlign::Bottom)
 			y = pHeight - bottomMargin - height - Y();
+
+		x += offsetX;
 
 		UsedX = x;
 		UsedY = y;
@@ -103,9 +113,17 @@ void UWindow::UpdateLayout()
 
 float UWindow::GetVirtualWidth()
 {
-	//return std::round(GetVirtualHeight() * 4 / 3);
+	// Force a 4:3 ratio for the root window as ConWindowActive.CalculateWindowSizes depends on it
+	return std::round(GetVirtualHeight() * 4 / 3);
+}
+
+float UWindow::GetExtendedVirtualWidth()
+{
+	// Extend up to 16:9 instead of staying in the 4:3 box of the root window
 	float scale = GetVirtualScale();
-	return std::ceil(engine->viewport->ViewportWidth() / scale);
+	float realWidth = std::ceil(engine->viewport->ViewportWidth() / scale);
+	float maxWidth = GetVirtualHeight() * (16.0f / 9.0f);
+	return std::min(realWidth, maxWidth);
 }
 
 float UWindow::GetVirtualHeight()
@@ -1083,8 +1101,16 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHe
 		{
 			float leftMargin = hMargin0();
 			float rightMargin = hMargin1();
-			newX = 0.0f;
-			newWidth = std::max(owner->Width() - leftMargin - rightMargin, 0.0f);
+			if (owner == engine->dxRootWindow)
+			{
+				newX = 0.0f;
+				newWidth = std::max(GetExtendedVirtualWidth() - leftMargin - rightMargin, 0.0f);
+			}
+			else
+			{
+				newX = 0.0f;
+				newWidth = std::max(owner->Width() - leftMargin - rightMargin, 0.0f);
+			}
 		}
 		if ((EVAlign)winVAlign() == EVAlign::Full)
 		{
@@ -2626,11 +2652,6 @@ void URootWindow::LockMouse(std::optional<bool> bLockMove, std::optional<bool> b
 	LogUnimplemented("RootWindow.LockMouse");
 }
 
-void URootWindow::ResetRenderViewport()
-{
-	RenderViewportSet = false;
-}
-
 void URootWindow::SetDefaultEditCursor(std::optional<UObject*> newEditCursor)
 {
 	if (newEditCursor)
@@ -2672,6 +2693,11 @@ void URootWindow::SetRenderViewport(float newX, float newY, float newWidth, floa
 	renderWidth() = newWidth;
 	renderHeight() = NewHeight;
 	RenderViewportSet = true;
+}
+
+void URootWindow::ResetRenderViewport()
+{
+	RenderViewportSet = false;
 }
 
 void URootWindow::SetSnapshotSize(float newWidth, float NewHeight)

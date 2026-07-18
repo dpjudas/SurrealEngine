@@ -47,19 +47,40 @@ void VisibleFrame::SetupSceneFrame(const mat4& worldToView)
 
 	if (engine->dxRootWindow && engine->dxRootWindow->RenderViewportSet)
 	{
-		// DeusEX expected a 4:3 monitor.
-		// The unrealscript code assumes that certain aspect ratio calculations would produce cinematic black bars.
-		// Unfortunately modern monitors are 16:9 (plus ultrawides), so we lie to the unrealscript code by boxing
-		// our window tree in a 4:3 area in the center of the screen.
-		// The code below calculates how the black bars would then lie within this area.
+		float virtscale = engine->dxRootWindow->GetVirtualScale();
+		float x = engine->dxRootWindow->renderX();
+		float y = engine->dxRootWindow->renderY();
+		float w = engine->dxRootWindow->renderWidth();
+		float h = engine->dxRootWindow->renderHeight();
 
-		float virtualScale = engine->dxRootWindow->GetVirtualScale();
-		Frame.XB = (int)std::round((engine->dxRootWindow->UsedX + engine->dxRootWindow->renderX()) * virtualScale);
-		Frame.YB = (int)std::round((engine->dxRootWindow->UsedY + engine->dxRootWindow->renderY()) * virtualScale);
-		Frame.FX = engine->dxRootWindow->renderWidth() * virtualScale;
-		Frame.FY = engine->dxRootWindow->renderHeight() * virtualScale;
-		Frame.X = (int)std::round(Frame.FX);
-		Frame.Y = (int)std::round(Frame.FY);
+		// Center, scale and possibly extend viewport if it covers the entire root window
+		if (x <= 0.0f && w >= engine->dxRootWindow->Width())
+		{
+			x = 0.0f;
+			w = (float)engine->viewport->ViewportWidth();
+		}
+		else
+		{
+			x = (engine->dxRootWindow->UsedX + x) * virtscale;
+			w *= virtscale;
+		}
+		if (y <= 0.0f && h >= engine->dxRootWindow->Height())
+		{
+			y = 0.0f;
+			h = (float)engine->viewport->ViewportHeight();
+		}
+		else
+		{
+			y = (engine->dxRootWindow->UsedY + y) * virtscale;
+			h *= virtscale;
+		}
+
+		Frame.X = (int)w;
+		Frame.Y = (int)h;
+		Frame.XB = (int)std::round(x);
+		Frame.YB = (int)std::round(y);
+		Frame.FX = w;
+		Frame.FY = h;
 	}
 
 	Frame.FX2 = Frame.FX * 0.5f;

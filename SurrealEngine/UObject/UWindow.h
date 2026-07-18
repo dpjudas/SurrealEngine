@@ -316,6 +316,7 @@ public:
 	virtual void Tick(float timeElapsed);
 
 	static float GetVirtualWidth();
+	static float GetExtendedVirtualWidth();
 	static float GetVirtualHeight();
 	static float GetVirtualScale();
 
