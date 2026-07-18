@@ -1013,11 +1013,19 @@ void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 		preferredWidth = hardcodedWidth();
 		widthSet = true;
 	}
+	else if (Background())
+	{
+		preferredWidth = Background()->USize();
+	}
 
 	if (FixedHeight)
 	{
 		preferredHeight = hardcodedHeight();
 		heightSet = true;
+	}
+	else if (Background())
+	{
+		preferredHeight = Background()->VSize();
 	}
 
 	if (!widthSet || !heightSet)
@@ -1039,6 +1047,8 @@ float UWindow::QueryPreferredWidth(float queryHeight)
 	}
 	else
 	{
+		if (Background())
+			width = Background()->USize();
 		ParentRequestedPreferredSize(false, width, true, queryHeight);
 	}
 
@@ -1056,6 +1066,8 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 	}
 	else
 	{
+		if (Background())
+			height = Background()->VSize();
 		ParentRequestedPreferredSize(true, queryWidth, false, height);
 	}
 
@@ -1868,6 +1880,8 @@ void UTileWindow::ChildRemoved(UWindow* child)
 void UTextWindow::AppendText(const std::string& NewText)
 {
 	Text() += NewText;
+	if (!NewText.empty())
+		AskParentForReconfigure();
 }
 
 void UTextWindow::EnableTextAsAccelerator(std::optional<bool> bEnable)
@@ -1908,45 +1922,77 @@ void UTextWindow::ResetMinWidth()
 
 void UTextWindow::SetLines(int newMinLines, int newMaxLines)
 {
-	minLines() = newMinLines;
-	MaxLines() = newMaxLines;
+	if (minLines() != newMinLines || MaxLines() != newMaxLines)
+	{
+		minLines() = newMinLines;
+		MaxLines() = newMaxLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMaxLines(int newMaxLines)
 {
-	MaxLines() = newMaxLines;
+	if (MaxLines() != newMaxLines)
+	{
+		MaxLines() = newMaxLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMinLines(int newMinLines)
 {
-	minLines() = newMinLines;
+	if (minLines() != newMinLines)
+	{
+		minLines() = newMinLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMinWidth(float newMinWidth)
 {
-	MinWidth() = newMinWidth;
+	if (MinWidth() != newMinWidth)
+	{
+		MinWidth() = newMinWidth;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetText(const std::string& NewText)
 {
-	Text() = NewText;
+	if (Text() != NewText)
+	{
+		Text() = NewText;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetTextAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	HAlign() = newHAlign;
-	VAlign() = newVAlign;
+	if (HAlign() != newHAlign || VAlign() != newVAlign)
+	{
+		HAlign() = newHAlign;
+		VAlign() = newVAlign;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetTextMargins(float newHMargin, float newVMargin)
 {
-	hMargin() = newHMargin;
-	vMargin() = newVMargin;
+	if (hMargin() != newHMargin || vMargin() != newVMargin)
+	{
+		hMargin() = newHMargin;
+		vMargin() = newVMargin;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetWordWrap(bool bNewWordWrap)
 {
-	bWordWrap() = bNewWordWrap;
+	if (bWordWrap() != bNewWordWrap)
+	{
+		bWordWrap() = bNewWordWrap;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::InitWindow()
