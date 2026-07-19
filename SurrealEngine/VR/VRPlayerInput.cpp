@@ -30,7 +30,7 @@ namespace
 	// frame rate (a brisk 3 m/s is ~3cm at 90Hz), so it can only be the tracking jumping.
 	const float TrackingJumpThreshold = 0.5f * MetersToUnrealUnits;
 
-	// Max range for the aim indicator's trace (VR Build phase 8). A constant, not a launcher setting: it
+	// Max range for the aim indicator's trace. A constant, not a launcher setting: it
 	// isn't a preference, and a wrong value is invisible to the player except as a missing indicator.
 	// UT99's own hitscan TraceFire uses ranges on this order (10000 UU straight-line trace).
 	const float AimTraceRangeUU = 10000.0f;

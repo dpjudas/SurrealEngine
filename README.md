@@ -18,6 +18,11 @@ Please refer to [Status.md](Docs/Status.md) for the current status of Surreal En
 
 Please refer to [Building.md](Docs/Building.md) for details!
 
+## VR
+
+Surreal Engine can play the supported games in VR through OpenXR, developed and tested on a Valve Index.
+It is compiled in by default and enabled from the launcher's VR tab. See [VR.md](Docs/VR.md).
+
 ## Downloads
 
 [Nightly builds are available on the Releases section](https://github.com/dpjudas/SurrealEngine/releases/tag/nightly).

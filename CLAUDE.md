@@ -53,14 +53,12 @@ The UE1 model is reproduced across several layers that must be understood togeth
 
 World axes are **X forward, Y right, Z up**. 1 Unreal unit = 1.905 cm (`MetersToUnrealUnits = 52.4934` in `VR/VRSubsystem.h`). Anything crossing between Unreal units and real-world metres (VR poses, world-anchored VR UI) must convert through this.
 
-### VR (`VR/`) — active area of work
+### VR (`VR/`)
 
-VR is head-tracking + stereo rendering via OpenXR, currently developed on the `vr_renderer` branch (goal: play UE1 games on a Valve Index). Design:
+Head tracking + stereo rendering via OpenXR, plus hand aiming, a wrist HUD tablet, a weapon/item wheel and touch pickup. Built on the `vr_renderer` branch; **read [`Docs/VR.md`](Docs/VR.md) before touching any of it** — it covers the architecture, the aim/view split, every launcher setting and the known limitations. Two invariants worth repeating here:
 
 - `VRSubsystem` is an abstract base whose virtuals all default to inert/no-op behavior, so callers only branch on `IsActive()`, never on whether VR was compiled in.
 - `VRSubsystem::Create(enabled, renderScalePercent)` returns a `NullVRSubsystem` when disabled, when built without `USE_OPENXR`, or when no OpenXR runtime is reachable — **VR failing to initialize must never stop the desktop game from starting.**
-- `OpenXRSubsystem` is the real implementation (only compiled with `USE_OPENXR`). It participates in Vulkan instance/device creation (`GetRequiredVulkan*Extensions`, `GetRequiredPhysicalDevice`) before rendering and exposes per-eye `EyeView` poses already converted into engine axes/units.
-- `VRPlayerInput` handles VR locomotion/controller input.
 
 ## Bundled libraries (separate CMake subprojects)
 
