@@ -186,3 +186,16 @@ The hand-collider path that fires movers and triggers is the model: it already o
 - [ ] On overlap, drive the item's collection the same way walking over it does (its script `Touch`), rather than reimplementing pickup
 - [ ] Haptic tick on a successful grab (reuse phase 1 `Haptic`)
 - [ ] Decide which hand(s) can grab — either, or only the off-hand so it doesn't conflict with the weapon hand
+
+---
+
+## Phase 8 — Weapon aim indicator
+
+Weapons need a visible indicator of where they will actually hit. Hand-aimed shooting (phase 5) makes this harder to judge than desktop mouse aim, where the crosshair sits fixed in the middle of the screen — in VR the gun can point anywhere in the field of view.
+
+Idea: trace along the same aim ray `UpdateAim` already computes (weapon hand's aim pose, through `FireOffset`) each frame, and draw a small crosshair sprite at the trace's impact point, oriented to face the player (billboarded), sitting on the surface it lands on.
+
+- [ ] Trace the aim ray (reuse the ray `UpdateAim` builds from the aim pose) against level collision to find the impact point/surface each frame
+- [ ] Draw a crosshair sprite at that point, billboarded to face the player — not the surface normal, so it stays readable at grazing angles
+- [ ] Decide whether it renders always, only while the weapon is capable of firing (has ammo/is not a melee-only weapon), or only while a fire button is touched/held
+- [ ] Decide max trace range and what happens past it (no sprite vs. sprite at max range)
