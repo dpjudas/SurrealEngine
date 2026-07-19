@@ -61,6 +61,26 @@ public:
 		return vec3(playSpacePosition.x - AppliedHeadXY.x, playSpacePosition.y - AppliedHeadXY.y, playSpacePosition.z);
 	}
 
+	// The shot ray this frame, exactly as UpdateAim aimed it: Origin is the weapon hand's muzzle position
+	// (the same point FireOffset was solved to put the script's spawn/trace origin on), Direction is the
+	// normalised world-space aim UpdateAim wrote into ViewRotation. Length/Hit come from tracing that ray
+	// once, the same way the game's own Weapon.TraceFire traces a shot (actors and world both, see
+	// UpdateAim) - Length is the distance to whatever it hit, or AimTraceRangeUU if nothing was in range.
+	//
+	// Valid only on frames UpdateAim actually redirected aim - VR on, gameplay, weapon in hand, hand
+	// tracked, no menu and no wheel - which is exactly the set of frames an aim indicator should draw on,
+	// so the renderer needs no gate of its own beyond this flag. Cleared at the top of every Tick next to
+	// AimAnchorValid, so a stale ray from an earlier frame is never drawn.
+	struct AimRay
+	{
+		vec3 Origin = vec3(0.0f);
+		vec3 Direction = vec3(0.0f);
+		float Length = 0.0f;
+		bool Valid = false;
+		bool Hit = false;
+	};
+	const AimRay& GetAimRay() const { return CurrentAimRay; }
+
 private:
 	void UpdateButtons();
 	// allowStick false zeroes the stick but still writes the axes - see the call site.
@@ -105,6 +125,8 @@ private:
 	// and consumed by OverrideViewAfterCalcView, so a frame that did not redirect aim restores nothing.
 	Rotator AimAnchor = Rotator(0, 0, 0);
 	bool AimAnchorValid = false;
+
+	AimRay CurrentAimRay;
 
 	// Buzzes the weapon hand when the held weapon fires. UE1 bumps a weapon's FlashCount on every shot (it
 	// is how the muzzle flash replicates), so a change in it since last frame is a discharge - a signal

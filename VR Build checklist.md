@@ -193,13 +193,33 @@ Full design in `VR Build phase 7 plan.md`; step-0 script decompile findings in t
 
 ---
 
-## Phase 8 — Weapon aim indicator
+## Phase 8 — Weapon aim indicator — **DONE (hardware-tested)**
 
 Weapons need a visible indicator of where they will actually hit. Hand-aimed shooting (phase 5) makes this harder to judge than desktop mouse aim, where the crosshair sits fixed in the middle of the screen — in VR the gun can point anywhere in the field of view.
 
-Idea: trace along the same aim ray `UpdateAim` already computes (weapon hand's aim pose, through `FireOffset`) each frame, and draw a small crosshair sprite at the trace's impact point, oriented to face the player (billboarded), sitting on the surface it lands on.
+Traces along the same aim ray `UpdateAim` already computes (weapon hand's aim pose, through `FireOffset`) each frame, and shows where it lands. **Two indicators, independently toggleable, both allowed on at the same time:** a crosshair at the impact point, and an "aiming laser" — a transparent ray from the muzzle to that point.
 
-- [ ] Trace the aim ray (reuse the ray `UpdateAim` builds from the aim pose) against level collision to find the impact point/surface each frame
-- [ ] Draw a crosshair sprite at that point, billboarded to face the player — not the surface normal, so it stays readable at grazing angles
-- [ ] Decide whether it renders always, only while the weapon is capable of firing (has ammo/is not a melee-only weapon), or only while a fire button is touched/held
-- [ ] Decide max trace range and what happens past it (no sprite vs. sprite at max range)
+Full design in `VR Build phase 8 plan.md`.
+
+- [x] Publish the aim ray from `UpdateAim` (origin = the hand muzzle `FireOffset` already targets, direction = the world-space aim) rather than recomputing it renderer-side — `VRPlayerInput::AimRay`/`GetAimRay()`, set at the end of `UpdateAim()`'s `FireOffset` block, cleared at the top of `Tick()` next to `AimAnchorValid`
+- [x] Trace it against level collision **once per frame** (not once per eye), in `UpdateAim()` itself — via `player->Trace(...)` (`UActor::Trace`, `bTraceActors=true`), the exact native body the script `Trace()` that `Pawn.TraceShot` calls goes through, so the indicator's trace is the shot's own trace, not a re-derivation of it
+- [x] Draw a crosshair at that point, billboarded to face the player (the current eye's own view axes) — not the surface normal — built from `Draw3DLine` (ring + four ticks), no sprite/texture needed. Constant *apparent* size (radius scales with distance to the eye)
+- [x] Draw a transparent aiming laser from muzzle to impact. `VulkanRenderDevice::Draw3DLine` (and `D3D11RenderDevice::Draw3DLine`, same premultiplied blend state) now premultiplies color by alpha instead of hard-coding alpha to 1.0
+- [x] **Two independent launcher settings** — `VR.Crosshair` and `VR.AimLaser`, both bool, both default off, wired through `LauncherSettings`' load/save and `VRSettingsPage`'s checkboxes (next to the weapon scale field). Plus a third, added after in-headset testing: `VR.CrosshairSizePercent` (default 100), since the first-pass size read as too large
+- [x] Renders always, whenever the phase-5 aim is live — exactly `ray.Valid`, no extra condition needed (menu/wheel open, no weapon, untracked hand all already suppress it for free)
+- [x] Max trace range is a constant, `AimTraceRangeUU = 10000.0f` (not a setting) — no crosshair past it (`ray.Hit` false), laser still drawn out to it
+
+**Step 0 decompile findings (both games, Engine/UnrealI/UnrealShare in Unreal Gold; Engine/BotPack in UT99 GOTY):**
+
+- **Arcing projectiles confirmed, straight-line indicator accepted as-is (recommendation (a)).** `Rocket`/`RocketMk2` fly at constant velocity in a straight line (`Velocity = speed * Dir`, no gravity term). `Grenade`/`UT_BioGel`/`BioGlob` add a Z-velocity component and fall under gravity to a landed rest state (`SetPhysics(PHYS_None)` once landed) — the Bio Rifle and grenades will read as wrong at range, same as the plan anticipated. Not fixed this phase (arc integration is out of scope).
+- **`Weapon.TraceFire` traces actors, not just world** — `TraceFire` → `Pawn.TraceShot` → `Trace(HitLocation, HitNormal, EndTrace, StartTrace, True)`, identical in both games' `Engine.Pawn`. The indicator's trace matches this via `UActor::Trace(bTraceActors=true)`, so a crosshair on an enemy sits on the enemy, not the wall behind them.
+
+**Automated (SteamVR + Index live, `SE_AUTOLAUNCH=0 timeout 45 gdb`, re-run after every code change this phase):** build succeeds clean; desktop mode (`VR.Enabled=false`) runs 45s clean on both games; VR session runs 45s clean on both games with both settings off, then both on (real sessions confirmed via `xrEndFrame`/`XR_SESSION_STATE_*` in the log, not a silent desktop fallback) — no crash, no error/exception output in any run.
+
+**Corrections made in-headset (two rounds of testing on Unreal Gold):**
+
+- **Crosshair read too large.** Halved the base apparent-size constant (`CrosshairApparentSizeK`, 0.03 → 0.015) and added `VR.CrosshairSizePercent` (default 100, the new halved size) so it can be tuned further without a rebuild.
+- **Missing centre marker.** Added a small crosshair-style dot at the exact impact point (two short `Draw3DLine`s scaled off the ring radius), so the precise hit point reads at a glance instead of just "somewhere inside this ring".
+- **Billboard orientation bug — a real bug, not a tuning call, and not new to this phase.** The crosshair (and, it turned out, ordinary world sprites - explosions etc. - and the wheel's icon-billboard fallback) were billboarded off `MainFrame.ViewRotation` alone, which is only the camera's body-yaw rotation - the phase 5 aim/view split deliberately keeps `CameraRotation` pinned to the body anchor every frame (`OverrideViewAfterCalcView`). That axis set never includes the headset's actual pose, so anything billboarded off it alone faces wherever the body points, not wherever the player is actually looking - exactly what showed up in-headset as "the crosshair's orientation depends on the player's body, not the camera," reproducing identically on plain `VisibleSprite`-drawn sprites the player noticed independently. Fixed with a new shared `VisibleFrame::HeadLocalToWorld()` that combines `ViewRotation` with the per-eye `HeadCoords` (the headset's pose relative to the camera, already tracked but previously only consumed by the view-matrix math), and applied it at all three call sites: `DrawVRCrosshair`, `DrawWheelItemIcon`, and `VisibleSprite::Draw`. No-op on desktop (`HeadCoords` defaults to identity there), confirmed by re-running the desktop smoke test after the change.
+
+**Hardware-tested and confirmed working end-to-end** (Unreal Gold, two sessions of several minutes each): crosshair and laser both read correctly, distinguishable when both on, laser transparent and terminating at geometry, crosshair sized and centred correctly after the corrections above, sprites (and the crosshair) now track the actual headset pose through head tilts/turns rather than the body. All items in the phase 8 plan's test plan §5 confirmed by the user. Two unrelated crashes were hit across the testing sessions (a known standing `VulkanRenderDevice` destructor teardown crash on clean exit, and a one-off `SIGABRT` in `ExpressionEvaluator::Expr`/UnrealScript VM dispatch with no VR/render code in the trace) — both outside this phase's code and not blocking; not investigated further here.

@@ -90,6 +90,11 @@ private:
 	LineEdit* WeaponRollOffset = nullptr;
 	TextLabel* WeaponScaleLabel = nullptr;
 	LineEdit* WeaponScale = nullptr;
+	// Independent toggles, either/both/neither - see RenderSubsystem::DrawVRCrosshair/DrawVRAimLaser.
+	CheckboxLabel* Crosshair = nullptr;
+	TextLabel* CrosshairSizeLabel = nullptr;
+	LineEdit* CrosshairSize = nullptr;
+	CheckboxLabel* AimLaser = nullptr;
 
 	TextLabel* WheelLabel = nullptr;
 	TextLabel* WheelRadiusLabel = nullptr;

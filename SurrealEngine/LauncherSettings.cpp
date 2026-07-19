@@ -213,6 +213,12 @@ LauncherSettings::LauncherSettings()
 			VR.HandColliderRadius = vrHandRadius;
 		if (vrProps.find("PickupHands") != vrProps.end())
 			VR.PickupHands = std::clamp(settings["VR"]["PickupHands"].to_int(), 0, 2);
+		// Both default false, so a missing key already reads back as the default - no existence check needed
+		// the way RoomScaleMovement's (default true) does.
+		VR.Crosshair = settings["VR"]["Crosshair"].to_boolean();
+		if (vrProps.find("CrosshairSizePercent") != vrProps.end())
+			VR.CrosshairSizePercent = settings["VR"]["CrosshairSizePercent"].to_int();
+		VR.AimLaser = settings["VR"]["AimLaser"].to_boolean();
 		int vrTabletWidth = settings["VR"]["HudTabletWidthCm"].to_int();
 		if (vrTabletWidth > 0)
 			VR.HudTabletWidthCm = vrTabletWidth;
@@ -373,6 +379,9 @@ void LauncherSettings::Save()
 
 	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
 	vr["PickupHands"] = JsonValue::number(VR.PickupHands);
+	vr["Crosshair"] = JsonValue::boolean(VR.Crosshair);
+	vr["CrosshairSizePercent"] = JsonValue::number(VR.CrosshairSizePercent);
+	vr["AimLaser"] = JsonValue::boolean(VR.AimLaser);
 	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);
 	vr["HudTabletForearmOffsetCm"] = JsonValue::number(VR.HudTabletForearmOffsetCm);
 	vr["HudTabletWristOffsetCm"] = JsonValue::number(VR.HudTabletWristOffsetCm);

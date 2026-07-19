@@ -707,6 +707,9 @@ void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t Line
 		SetPipeline(RenderPasses->GetLinePipeline(occlude));
 		ivec4 textureBinds = GetTextureIndexes(PF_Highlighted, nullptr);
 		vec4 color = ApplyInverseGamma(vec4(Color.x, Color.y, Color.z, 1.0f));
+		// Premultiplied alpha: the line pipeline blends ONE / ONE_MINUS_SRC_ALPHA. Gamma applies to colour,
+		// not coverage, so alpha itself passes through un-gamma'd.
+		color = vec4(color.r * Color.w, color.g * Color.w, color.b * Color.w, Color.w);
 
 		auto alloc = ReserveVertices(2, 2);
 		if (alloc.vptr)

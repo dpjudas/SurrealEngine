@@ -175,6 +175,18 @@ public:
 		// hand mid-fight) is exactly what walking over a pickup already does in the desktop game.
 		int PickupHands = 2;
 
+		// Draw a crosshair where the weapon's shot will land (see RenderSubsystem::DrawVRCrosshair).
+		// Independent of AimLaser: either, both or neither. Off by default - hand-aimed shooting is meant
+		// to be read off the gun, and this exists for the players and the weapons where that isn't enough.
+		bool Crosshair = false;
+		// Scales the crosshair's apparent size (RenderSubsystem::DrawVRCrosshair's CrosshairApparentSizeK),
+		// confirmed too large in-headset at 100% of the original constant - the base constant itself was
+		// halved, so 100% is that already-halved size, not the original.
+		int CrosshairSizePercent = 100;
+
+		// Draw a transparent ray from the muzzle to the impact point (RenderSubsystem::DrawVRAimLaser).
+		bool AimLaser = false;
+
 		// HUD wrist tablet geometry, in centimetres. Width sets the panel size (its height follows the
 		// canvas aspect); ForearmOffset slides it back up the forearm toward the player, WristOffset floats
 		// it off the back of the wrist. See RenderSubsystem::DrawVRHudPlane.

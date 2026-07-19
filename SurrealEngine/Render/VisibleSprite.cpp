@@ -67,8 +67,11 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 
 	drawscale *= 0.5f;
 
-	vec3 sideAxis = frame->ViewRotation.YAxis * (texwidth * drawscale);
-	vec3 upAxis = frame->ViewRotation.ZAxis * (texheight * drawscale);
+	// Billboarded to the eye's true facing (VisibleFrame::HeadLocalToWorld), not the camera's body-yaw-only
+	// ViewRotation alone - confirmed in-headset (phase 8) that the old ViewRotation-only axes made sprites
+	// track the player's body instead of where they were actually looking.
+	vec3 sideAxis = frame->HeadLocalToWorld(frame->HeadCoords.YAxis) * (texwidth * drawscale);
+	vec3 upAxis = frame->HeadLocalToWorld(frame->HeadCoords.ZAxis) * (texheight * drawscale);
 
 	vec3 color = clamp(actor->ScaleGlow(), 0.0f, 1.0f);
 

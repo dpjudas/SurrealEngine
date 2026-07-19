@@ -59,6 +59,21 @@ public:
 	// exactly once when building their own view matrix (see DrawPortals()).
 	Coords HeadCoords = Coords::Identity();
 	vec3 HeadPosition = vec3(0.0f);
+
+	// Maps a vector expressed in the head's own local axes (e.g. HeadCoords.YAxis/.ZAxis, the eye's local
+	// right/up) into world space, by combining it with the camera's world rotation. ViewRotation alone is
+	// only the camera's body-yaw rotation - the VR aim/view split (VRPlayerInput::UpdateAim /
+	// OverrideViewAfterCalcView) keeps CameraRotation pinned to the body anchor every frame - so anything
+	// billboarded off ViewRotation alone faces where the body points, not where the eye actually looks
+	// (confirmed in-headset: explosion sprites and other world billboards tracked the body, not the head,
+	// when tilting/turning the head independently of the body - which in VR is constantly). Same
+	// local->world transform CaptureVRMenuPlaneAnchor's localToWorldDir and VRPlayerInput::UpdateAim's
+	// worldForward use. HeadCoords defaults to Coords::Identity() outside VR, so this is a no-op on desktop.
+	vec3 HeadLocalToWorld(const vec3& v) const
+	{
+		return ViewRotation.XAxis * v.x + ViewRotation.YAxis * v.y + ViewRotation.ZAxis * v.z;
+	}
+
 	int ViewZone = 0;
 	//uint64_t ViewZoneMask = 0;
 	int FrameCounter = 0;

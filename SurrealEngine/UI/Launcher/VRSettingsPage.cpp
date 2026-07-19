@@ -87,6 +87,10 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponRollOffset = new LineEdit(container);
 	WeaponScaleLabel = new TextLabel(container);
 	WeaponScale = new LineEdit(container);
+	Crosshair = new CheckboxLabel(container);
+	CrosshairSizeLabel = new TextLabel(container);
+	CrosshairSize = new LineEdit(container);
+	AimLaser = new CheckboxLabel(container);
 
 	WheelLabel = new TextLabel(container);
 	WheelRadiusLabel = new TextLabel(container);
@@ -157,6 +161,9 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponPositionOffsetLabel->SetText("Position offset forward / right / up (cm)");
 	WeaponRotationOffsetLabel->SetText("Rotation trim pitch / yaw / roll (degrees)");
 	WeaponScaleLabel->SetText("Weapon scale (% of the mesh's own size)");
+	Crosshair->SetText("Show a crosshair where the weapon will hit");
+	CrosshairSizeLabel->SetText("Crosshair size (% of default)");
+	AimLaser->SetText("Show an aiming laser from the weapon");
 
 	WheelLabel->SetText("Weapon/item wheel (hold A on a hand to open):");
 	WheelRadiusLabel->SetText("Wheel radius (cm)");
@@ -256,6 +263,9 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponYawOffset->SetTextInt(settings.VR.WeaponYawOffsetDegrees);
 	WeaponRollOffset->SetTextInt(settings.VR.WeaponRollOffsetDegrees);
 	WeaponScale->SetTextInt(settings.VR.WeaponScalePercent);
+	Crosshair->SetChecked(settings.VR.Crosshair);
+	CrosshairSize->SetTextInt(settings.VR.CrosshairSizePercent);
+	AimLaser->SetChecked(settings.VR.AimLaser);
 	WheelRadius->SetTextInt(settings.VR.WheelRadiusCm);
 	WheelDeadzone->SetTextInt(settings.VR.WheelSelectDeadzoneCm);
 	WheelEntryScale->SetTextInt(settings.VR.WheelEntryScalePercent);
@@ -328,6 +338,9 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	weaponRotationRow->AddStretch();
 	mainLayout->AddLayout(weaponRotationRow);
 	mainLayout->AddLayout(labelledRow(WeaponScaleLabel, WeaponScale));
+	mainLayout->AddWidget(Crosshair);
+	mainLayout->AddLayout(labelledRow(CrosshairSizeLabel, CrosshairSize));
+	mainLayout->AddWidget(AimLaser);
 
 	mainLayout->AddWidget(WheelLabel);
 	mainLayout->AddLayout(labelledRow(WheelRadiusLabel, WheelRadius));
@@ -454,6 +467,11 @@ void VRSettingsPage::Save()
 	settings.VR.WeaponYawOffsetDegrees = WeaponYawOffset->GetTextInt();
 	settings.VR.WeaponRollOffsetDegrees = WeaponRollOffset->GetTextInt();
 	settings.VR.WeaponScalePercent = WeaponScale->GetTextInt();
+	settings.VR.Crosshair = Crosshair->GetChecked();
+	int crosshairSize = CrosshairSize->GetTextInt();
+	if (crosshairSize > 0)
+		settings.VR.CrosshairSizePercent = crosshairSize;
+	settings.VR.AimLaser = AimLaser->GetChecked();
 
 	// Zero or negative would make the wheel unreachable (no radius) or unusable (a slot chosen the
 	// instant the hand leaves centre), so unusable values keep the previous ones.
@@ -507,6 +525,9 @@ void VRSettingsPage::OnResetButtonClicked()
 	WeaponYawOffset->SetTextInt(0);
 	WeaponRollOffset->SetTextInt(0);
 	WeaponScale->SetTextInt(500);
+	Crosshair->SetChecked(false);
+	CrosshairSize->SetTextInt(100);
+	AimLaser->SetChecked(false);
 	WheelRadius->SetTextInt(20);
 	WheelDeadzone->SetTextInt(4);
 	WheelEntryScale->SetTextInt(6); // was left at a stale 500 through several in-headset scale corrections

@@ -30,6 +30,11 @@ namespace
 	// frame rate (a brisk 3 m/s is ~3cm at 90Hz), so it can only be the tracking jumping.
 	const float TrackingJumpThreshold = 0.5f * MetersToUnrealUnits;
 
+	// Max range for the aim indicator's trace (VR Build phase 8). A constant, not a launcher setting: it
+	// isn't a preference, and a wrong value is invisible to the player except as a missing indicator.
+	// UT99's own hitscan TraceFire uses ranges on this order (10000 UU straight-line trace).
+	const float AimTraceRangeUU = 10000.0f;
+
 	// What a fully deflected stick is worth on aBaseY/aStrafe, chosen so that it means exactly the same
 	// thing as holding a movement key. Engine::InputEvent turns a key press into delta 20, which
 	// Engine::InputCommand multiplies by the binding's Speed= - and every stock UE1 game binds movement
@@ -151,6 +156,8 @@ void VRPlayerInput::Tick(float timeElapsed)
 	// Cleared unconditionally, before any early return, so OverrideViewAfterCalcView only ever restores the
 	// view on a frame UpdateAim actually redirected aim - never off a stale anchor from an earlier frame.
 	AimAnchorValid = false;
+	// Same reason: a stale aim ray must never be drawn once UpdateAim stops redirecting aim.
+	CurrentAimRay.Valid = false;
 
 	VRSubsystem* vr = engine->vr.get();
 	if (!vr || !vr->IsActive())
@@ -564,6 +571,27 @@ void VRPlayerInput::UpdateAim()
 			dot(fireOffsetWorld, aimCoords.XAxis),
 			dot(fireOffsetWorld, aimCoords.YAxis),
 			dot(fireOffsetWorld, aimCoords.ZAxis));
+
+		// Phase 8: publish the aim indicator's ray - exactly the ray the shot above just left along, from
+		// exactly the muzzle FireOffset was just solved to put it on. Traced once here (not per eye, and not
+		// recomputed from the controller) the same way the shot's own Weapon.TraceFire traces: through
+		// UActor::Trace(bTraceActors=true), which is the native body of the script Trace() that
+		// Pawn.TraceShot calls - decompile-verified (both games) to hit pawns/movers/others/world, not world
+		// only. One frame stale against actors that moved this frame, same as the shot itself (fired from
+		// the button path inside this same input tick), so this is not extra staleness.
+		if (player->XLevel())
+		{
+			vec3 rayOrigin = weaponHandPose.Position;
+			vec3 rayEnd = rayOrigin + worldForward * AimTraceRangeUU;
+			vec3 hitLocation, hitNormal;
+			UObject* hitActor = player->Trace(hitLocation, hitNormal, rayEnd, rayOrigin, true, vec3(0.0f));
+
+			CurrentAimRay.Origin = rayOrigin;
+			CurrentAimRay.Direction = worldForward;
+			CurrentAimRay.Valid = true;
+			CurrentAimRay.Hit = hitActor != nullptr;
+			CurrentAimRay.Length = CurrentAimRay.Hit ? length(hitLocation - rayOrigin) : AimTraceRangeUU;
+		}
 	}
 
 	// Hold "look" for the tick. PlayerWalking.PlayerMove has a stair-look / center-view block gated on

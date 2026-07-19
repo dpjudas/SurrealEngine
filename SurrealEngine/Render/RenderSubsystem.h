@@ -133,6 +133,15 @@ private:
 	// touch (see VRHands). No-op outside a VR eye.
 	void DrawVRHands();
 
+	// Phase 8: a transparent ray from the muzzle to the aim's impact point (VRPlayerInput::GetAimRay,
+	// traced once per frame there, not per eye here). No-op outside a VR eye, when VR.AimLaser is off, or
+	// on a frame the ray isn't valid (menu/wheel open, no weapon, hand untracked - see GetAimRay).
+	void DrawVRAimLaser();
+	// Phase 8: a billboarded ring-and-ticks crosshair at the aim ray's impact point. No-op outside a VR
+	// eye, when VR.Crosshair is off, or when the ray is invalid or found nothing within range (no impact
+	// point to mark).
+	void DrawVRCrosshair();
+
 	// Draws the weapon/item wheel (VR/VRWheel.h) when one is open: each entry laid out around the wheel's
 	// captured centre - both weapons and items as 3D PickupViewMesh entries where one exists, camera-facing
 	// icon billboards only as a fallback - plus a highlight ring so "centred = cancel" and "which entry is

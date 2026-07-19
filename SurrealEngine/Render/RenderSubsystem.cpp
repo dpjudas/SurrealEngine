@@ -121,6 +121,8 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 	{
 		DrawScene();
 		DrawVRHands();
+		DrawVRAimLaser();
+		DrawVRCrosshair();
 		DrawVRWheel();
 		DrawVRActiveItem();
 		RenderOverlays();
@@ -612,6 +614,105 @@ void RenderSubsystem::DrawVRHands()
 	}
 }
 
+void RenderSubsystem::DrawVRAimLaser()
+{
+	if (!CurrentVREye || !LauncherSettings::Get().VR.AimLaser || !engine->vrInput)
+		return;
+
+	const VRPlayerInput::AimRay& ray = engine->vrInput->GetAimRay();
+	if (!ray.Valid)
+		return;
+
+	// Named constants, not inline, so a colour/alpha tuning pass in-headset is a one-line edit (the phase 6
+	// wheel scale tuning is what made that survivable).
+	const vec4 LaserColor(1.0f, 0.2f, 0.15f, 0.35f);
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+	// A few cm forward of the muzzle, so the line doesn't start inside the hand ball / weapon mesh and read
+	// as a bright dot sitting on the gun.
+	const float LaserStartOffsetCm = 4.0f;
+
+	// The DrawVRWheel pattern: Draw3DLine reads the scene node last set, not the one it's passed.
+	Device->SetSceneNode(&MainFrame.Frame);
+
+	vec3 start = ray.Origin + ray.Direction * (LaserStartOffsetCm * cmToUU);
+	// ray.Length already reaches AimTraceRangeUU when nothing was hit (VRPlayerInput::UpdateAim) - a laser
+	// that fades into the distance reads better than one that vanishes when pointed at the sky, and unlike
+	// the crosshair it isn't claiming a specific impact point.
+	vec3 end = ray.Origin + ray.Direction * ray.Length;
+	Device->Draw3DLine(&MainFrame.Frame, LaserColor, LINE_DepthCued, start, end);
+
+	Device->SetSceneNode(&Canvas.Frame);
+}
+
+void RenderSubsystem::DrawVRCrosshair()
+{
+	if (!CurrentVREye || !LauncherSettings::Get().VR.Crosshair || !engine->vrInput)
+		return;
+
+	const VRPlayerInput::AimRay& ray = engine->vrInput->GetAimRay();
+	// Past max range nothing was hit, so there is no impact point to mark - a crosshair floating at an
+	// arbitrary distance would claim a hit that doesn't exist.
+	if (!ray.Valid || !ray.Hit)
+		return;
+
+	// A different hue from the laser so the two read as separate elements when both are on.
+	const vec4 CrosshairColor(0.2f, 0.95f, 0.35f, 1.0f);
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+	// Constant *apparent* size: radius scales with distance to the eye rather than being a fixed world
+	// size, which would be a dot at range and swallow the screen at arm's length. Halved from the first
+	// in-headset pass (0.03), which read as too large; CrosshairSizePercent (default 100) scales from here.
+	const float CrosshairApparentSizeK = 0.015f;
+	const float SurfaceOffsetCm = 1.0f;
+	const float TickLengthFraction = 0.5f;
+	const float CenterDotRadiusFraction = 0.15f;
+	const int Segments = 16;
+
+	Device->SetSceneNode(&MainFrame.Frame);
+
+	vec3 hitPoint = ray.Origin + ray.Direction * ray.Length;
+	vec3 eyePosition = MainFrame.ViewLocation.xyz();
+	float sizeScale = LauncherSettings::Get().VR.CrosshairSizePercent * 0.01f;
+	float radius = CrosshairApparentSizeK * sizeScale * length(hitPoint - eyePosition);
+
+	// Nudged toward the eye along the aim so it doesn't z-fight the surface it sits on; LINE_DepthCued below
+	// still occludes it properly if the surface is around a corner.
+	vec3 drawCenter = hitPoint - ray.Direction * (SurfaceOffsetCm * cmToUU);
+
+	// Billboarded to the eye's true facing (VisibleFrame::HeadLocalToWorld), not the surface normal
+	// (checklist item 2 - a normal-aligned crosshair collapses to a line at grazing angles, exactly when
+	// it's most needed) and not the camera's body-yaw-only ViewRotation alone (confirmed in-headset: that
+	// made the crosshair face wherever the body pointed instead of wherever the player was actually
+	// looking - see HeadLocalToWorld's own comment).
+	vec3 right = MainFrame.HeadLocalToWorld(MainFrame.HeadCoords.YAxis);
+	vec3 up = MainFrame.HeadLocalToWorld(MainFrame.HeadCoords.ZAxis);
+
+	vec3 previous = drawCenter + right * radius;
+	for (int i = 1; i <= Segments; i++)
+	{
+		float angle = radians(360.0f * i / Segments);
+		vec3 next = drawCenter + (right * std::cos(angle) + up * std::sin(angle)) * radius;
+		Device->Draw3DLine(&MainFrame.Frame, CrosshairColor, LINE_DepthCued, previous, next);
+		previous = next;
+	}
+
+	// Four ticks just outside the ring, cross-style.
+	const vec3 tickAxes[4] = { right, -right, up, -up };
+	for (const vec3& axis : tickAxes)
+	{
+		vec3 from = drawCenter + axis * radius;
+		vec3 to = drawCenter + axis * radius * (1.0f + TickLengthFraction);
+		Device->Draw3DLine(&MainFrame.Frame, CrosshairColor, LINE_DepthCued, from, to);
+	}
+
+	// A small centre dot - a tiny cross, since Draw3DLine has no point primitive - so the exact impact
+	// point reads at a glance instead of just "somewhere inside this ring".
+	float dotRadius = radius * CenterDotRadiusFraction;
+	Device->Draw3DLine(&MainFrame.Frame, CrosshairColor, LINE_DepthCued, drawCenter - right * dotRadius, drawCenter + right * dotRadius);
+	Device->Draw3DLine(&MainFrame.Frame, CrosshairColor, LINE_DepthCued, drawCenter - up * dotRadius, drawCenter + up * dotRadius);
+
+	Device->SetSceneNode(&Canvas.Frame);
+}
+
 void RenderSubsystem::DrawVRWheel()
 {
 	if (!CurrentVREye || !engine->vrWheel || !engine->vrWheel->IsOpen())
@@ -758,10 +859,11 @@ void RenderSubsystem::DrawWheelItemIcon(UInventory* item, const vec3& position, 
 	float halfWidth = halfHeight * (texwidth / texheight);
 
 	// Camera-facing, the same technique VisibleSprite uses for world-space sprites: laid out along the
-	// current eye's own view axes rather than the wheel's plane, so the icon always faces the player
-	// squarely regardless of where on the disc it sits.
-	vec3 sideAxis = MainFrame.ViewRotation.YAxis * halfWidth;
-	vec3 upAxis = MainFrame.ViewRotation.ZAxis * halfHeight;
+	// eye's true facing (VisibleFrame::HeadLocalToWorld, not the wheel's plane, so the icon always faces
+	// the player squarely regardless of where on the disc it sits - and regardless of head tilt, unlike
+	// the raw camera-yaw-only ViewRotation axes this used to use (phase 8 in-headset fix).
+	vec3 sideAxis = MainFrame.HeadLocalToWorld(MainFrame.HeadCoords.YAxis) * halfWidth;
+	vec3 upAxis = MainFrame.HeadLocalToWorld(MainFrame.HeadCoords.ZAxis) * halfHeight;
 
 	GouraudVertex vertices[4];
 	vertices[0].Point = position - sideAxis - upAxis;

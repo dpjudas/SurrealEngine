@@ -2213,6 +2213,9 @@ void D3D11RenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineF
 		SetPipeline(&ScenePass.LinePipeline[occlude]);
 		SetDescriptorSet(PF_Highlighted);
 		vec4 color = ApplyInverseGamma(vec4(Color.x, Color.y, Color.z, 1.0f));
+		// Premultiplied alpha: the line pipeline's blend state (SrcBlend=ONE, DestBlend=INV_SRC_ALPHA) matches
+		// the Vulkan line pipeline's, so it gets the same fix. Gamma applies to colour, not coverage.
+		color = vec4(color.r * Color.w, color.g * Color.w, color.b * Color.w, Color.w);
 
 		auto alloc = ReserveVertices(2, 2);
 		if (alloc.vptr)
