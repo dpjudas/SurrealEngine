@@ -139,20 +139,28 @@ The largest unknown in this document. Built after phase 4 so you can see the gun
 
 ---
 
-## Phase 6 — Weapon wheel / item wheel
+## Phase 6 — Weapon wheel / item wheel — **6a DONE (hardware-tested); 6b implemented, not yet hardware-tested**
 
-Half-Life: Alyx style. Hold A on the weapon hand, weapons arrange in a circle around the controller, move the hand to one and release to select. Same for items on the other hand. Active item shown in the item hand, activated with that hand's trigger. Needs grip pose and haptics from phase 1, and reuses the 3D actor drawing from phase 4.
+Half-Life: Alyx style. Hold A on the weapon hand, weapons arrange in a circle around the controller, move the hand to one and release to select. Same for items on the other hand. Active item shown in the item hand, activated with that hand's trigger. Needs grip pose and haptics from phase 1, and reuses the 3D actor drawing from phase 4. Full design in `VR Build phase 6 plan.md`.
 
-The pieces exist:
+New `VRWheel` class (`VR/VRWheel.h/.cpp`), a peer of `VRHands` owned by `Engine` as `engine->vrWheel`: driven from `VRPlayerInput` (open/close on A, per-frame rebuild + highlight), read by `RenderSubsystem` (draw only).
 
-- `pawn->Inventory()` is a walkable native chain
-- `Pawn.SelectedItem` and `Inventory.InventoryGroup` are both in `PropertyOffsets`
-- `engine->ExecCommand` reaches the script exec functions (`SwitchWeapon`, `ActivateItem`, `NextItem`)
+- [x] **Risk closed:** the `InventoryGroup` ambiguity doesn't apply — the wheel holds the exact `UWeapon*`/`UInventory*` object and sets `PendingWeapon`/`SelectedItem` directly (mirroring the UT99 form of `PlayerPawn.SwitchWeapon`'s tail, decompile-verified against both Unreal Gold and UT99 GOTY), never walking `Inventory.WeaponChange(byte)`'s by-group lookup at all.
+- [x] Haptic tick on open and as the hand crosses each wheel entry (`VRWheel::UpdateHighlight`)
+- [x] **6a — weapon wheel:** open/close on A (weapon hand → weapons, off hand → items; opening one force-closes the other), hand-displacement highlight selection, commit via `PendingWeapon`/`PutDown`/`ChangedWeapon`, cancel on centred release, fire suppressed on the wheel's hand while open, `UpdateAim`/`UpdateFireHaptics` skipped while any wheel is open, force-closes on menu open, `Reset()` wired in next to `vrHands->Reset()` on map change
+- [x] **6b — item wheel + active item:** item wheel filters on `bActivatable` (decompile-verified as the predicate `Inventory.SelectNext`/`Activate` themselves use, not `bDisplayableInv`); `SelectedItem` set directly on commit; current `SelectedItem` rides the off hand the phase-4 way (`RenderSubsystem::DrawVRActiveItem`, own `Item*` offset/scale settings, icon-billboard fallback when no held mesh); off-hand trigger (previously always suppressed) now calls `CallEvent(SelectedItem, "Activate")`
+- [x] Render: `RenderSubsystem::DrawVRWheel`, weapon entries as 3D meshes, item entries as camera-facing icon billboards (`VisibleSprite`'s `DrawGouraudPolygon` technique), plus a highlight ring/centre-cancel marker (`Draw3DLine`)
+- [x] Launcher knobs added: `WheelRadiusCm`/`WheelSelectDeadzoneCm`/`WheelEntryScalePercent`, `Item*` offset/scale settings — wired into both `VRSettingsPage` and `LauncherSettings`' JSON load/save (the latter was missed on the first pass and silently didn't persist; fixed same session)
 
-**Render cost is accepted.** Drawing every carried weapon's `PlayerViewMesh` each frame while the wheel is open is fine — the wheel is only up for a moment at a time, and the cost buys the thing that makes selection readable. No measurement gate on this.
+**Corrections made in-headset (weapon wheel, 6a) — three rounds of testing on `DM-Deck16][`, UT99 GOTY:**
 
-- [ ] **Risk:** `SwitchWeapon` selects by `InventoryGroup`, so two weapons sharing a group are indistinguishable through that path
-- [ ] Haptic tick as the hand crosses each wheel entry
+- **Wheel-plane orientation was wrong on the first pass** — a real coordinate-space bug, not a tuning call: `VRWheel::BuildPlaneBasis` computed the disc's facing as `vr->GetHead().Position - Center`, but `HeadPose::Position` is documented as relative to the play-space anchor while `Center` (a `VRHands` grip position) is already world space — subtracting one from the other pointed the disc in a near-arbitrary direction. Fixed to use `engine->CameraLocation`, the same "player's eye in world space" reference `VRHands`/`RenderSubsystem` already use elsewhere. Confirmed correct (perpendicular to the player) after the fix.
+- **Wrong mesh for wheel entries.** Started on `PlayerViewMesh` (phase 4's held-weapon mesh) — wrong choice away from the camera: that mesh is modelled tiny and only reads right welded to the camera at `WeaponScalePercent`-style inflation. Switched to `PickupViewMesh` (how the weapon looks lying in the world).
+- **Weapon orientation took two more passes.** First attempt pointed the barrel straight at/away from the camera (foreshortened to near-nothing). Second attempt pointed "up" at the camera to face the viewer, which instead rolled the model's underside into view. Settled on: barrel along the wheel's own horizontal (`PlaneRight`, perpendicular to the view direction) with genuine vertical as up (`PlaneUp`) — a side profile, confirmed as the correct read.
+- **Scale needed repeated reduction:** 500% (unadjusted `WeaponScalePercent`-style default) → 250% (halved) → 60% → **6%** (current default) — `PickupViewMesh` is modelled far larger than a real-world weapon, so none of the held-weapon scale logic transfers; settled empirically after four in-headset passes.
+- Unrelated finding while testing: a reproducible crash in `VulkanRenderDevice::~VulkanRenderDevice()` (AMD `vk_object_free`) whenever `Engine::Run()` returns cleanly — no `VRWheel` symbols in the trace, so unrelated to this phase. Likely the same defect as the standing Bugtracker item ("loaded game crashes after a few seconds"), or a close relative of it. Not investigated further; out of scope here.
+
+**Still needs a headset:** 6b (item wheel, active item placement/scale, off-hand activate) — implemented and null-safe, but no item was tested this session, only weapons.
 
 ---
 

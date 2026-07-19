@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "LauncherSettings.h"
 #include "VR/VRPlayerInput.h"
+#include "VisibleMesh.h"
 
 RenderSubsystem::RenderSubsystem(RenderDevice* renderdevice) : Device(renderdevice)
 {
@@ -120,6 +121,8 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 	{
 		DrawScene();
 		DrawVRHands();
+		DrawVRWheel();
+		DrawVRActiveItem();
 		RenderOverlays();
 		if (engine->LaunchInfo.IsDeusEx())
 			PostRenderFlash();
@@ -607,6 +610,282 @@ void RenderSubsystem::DrawVRHands()
 		// having to be inferred from the ring pattern.
 		Device->Draw3DLine(&frame, color, LINE_DepthCued, pose.Position, pose.Position + pose.Forward * (handRadius * 1.6f));
 	}
+}
+
+void RenderSubsystem::DrawVRWheel()
+{
+	if (!CurrentVREye || !engine->vrWheel || !engine->vrWheel->IsOpen())
+		return;
+
+	const VRWheel& wheel = *engine->vrWheel;
+	const auto& vrSettings = LauncherSettings::Get().VR;
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+	const float radius = vrSettings.WheelRadiusCm * cmToUU;
+
+	// MainFrame is already the current eye's fully set-up view (DrawScene() ran first this eye), the same
+	// frame the phase-4 weapon override in DrawActor draws into - reused here for the identical reason.
+	Device->SetSceneNode(&MainFrame.Frame);
+
+	const Array<VRWheel::Entry>& entries = wheel.GetEntries();
+	int highlighted = wheel.GetHighlighted();
+	for (size_t i = 0; i < entries.size(); i++)
+	{
+		UInventory* item = entries[i].Item.get();
+		if (!item || item->bDeleteMe())
+			continue; // dropped out since the last rebuild - VRWheel::Tick will remove it next frame
+
+		vec3 position = wheel.GetCenter() + entries[i].SlotForward * radius;
+		bool isHighlighted = ((int)i == highlighted);
+
+		if (wheel.IsWeaponWheel())
+			// Barrel along the wheel's own right (horizontal, perpendicular to the view direction) with
+			// true up as up - a side profile, the readable angle for a gun silhouette. The previous attempt
+			// pointed "up" at the camera to try to face the viewer, which instead rolled the model's
+			// underside into view; keeping up genuinely vertical and letting the *forward* axis (not up)
+			// be the one perpendicular to the camera is what actually produces a side-on view.
+			DrawWheelEntryMesh(item, position, wheel.GetPlaneRight(), wheel.GetPlaneUp(), isHighlighted);
+		else
+			DrawWheelItemIcon(item, position, isHighlighted);
+	}
+
+	DrawWheelHighlightRing(wheel);
+
+	Device->SetSceneNode(&Canvas.Frame);
+}
+
+void RenderSubsystem::DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, bool highlighted)
+{
+	// PickupViewMesh, not PlayerViewMesh: the first-person view mesh is modelled tiny and only reads at
+	// the right size welded to the camera (which is why the held-weapon override needs a 500%-ish scale
+	// boost) - on the wheel, away from the camera, that convention doesn't apply and it just looked wrong.
+	// The pickup mesh is what the weapon looks like lying in the world, already sized for a "held at
+	// normal scale" presentation, which is what the wheel wants.
+	UMesh* viewMesh = item->PickupViewMesh();
+	if (!viewMesh)
+		return; // nothing to draw for this entry (e.g. a weapon with no pickup mesh assigned)
+
+	const auto& vrSettings = LauncherSettings::Get().VR;
+
+	vec3 savedLocation = item->Location();
+	Rotator savedRotation = item->Rotation();
+	float savedDrawScale = item->DrawScale();
+	UMesh* savedMesh = item->Mesh();
+	bool savedHidden = item->bHidden();
+
+	// A carried weapon's Mesh() is normally its PlayerViewMesh (bring-up assigns that), never the pickup
+	// one - assign it for the duration of the draw regardless of what's currently held.
+	item->Mesh() = viewMesh;
+	item->Location() = position;
+	item->Rotation() = RotatorFromForwardUp(forward, up);
+	// Highlighted entries draw a bit larger on top of the base wheel scale, so which one is about to be
+	// picked reads at a glance even before the highlight ring is noticed.
+	float scale = (vrSettings.WheelEntryScalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
+	item->DrawScale() = savedDrawScale * scale;
+	item->bHidden() = false;
+
+	VisibleMesh vismesh;
+	if (vismesh.DrawMesh(&MainFrame, item, false, false))
+		vismesh.DrawMesh(&MainFrame, item, false, true);
+
+	item->Mesh() = savedMesh;
+	item->Location() = savedLocation;
+	item->Rotation() = savedRotation;
+	item->DrawScale() = savedDrawScale;
+	item->bHidden() = savedHidden;
+}
+
+void RenderSubsystem::DrawWheelItemIcon(UInventory* item, const vec3& position, bool highlighted)
+{
+	UTexture* texture = item->Icon();
+	if (!texture)
+		return; // no HUD icon assigned - nothing recognisable to show, skip this entry rather than draw a blank
+
+	texture = texture->GetAnimTexture();
+	if (!texture)
+		return;
+
+	UpdateTexture(texture);
+
+	FTextureInfo texinfo;
+	texinfo.Texture = texture;
+	texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
+	texinfo.bRealtimeChanged = texture->TextureModified;
+	if (texture->TextureModified)
+		texture->TextureModified = false;
+	texinfo.Format = texinfo.Texture->UsedFormat;
+	texinfo.Mips = texinfo.Texture->UsedMipmaps.data();
+	texinfo.NumMips = (int)texinfo.Texture->UsedMipmaps.size();
+	texinfo.USize = texinfo.Texture->USize();
+	texinfo.VSize = texinfo.Texture->VSize();
+	if (texinfo.Texture->Palette())
+		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+
+	float texwidth = (float)texture->UsedMipmaps.front().Width;
+	float texheight = (float)texture->UsedMipmaps.front().Height;
+	if (texwidth <= 0.0f || texheight <= 0.0f)
+		return;
+
+	uint32_t renderflags = PF_TwoSided;
+	if (texture->bMasked())
+		renderflags |= PF_Masked;
+	renderflags |= texture->PolyFlags();
+	if (renderflags & PF_Invisible)
+		return;
+
+	const auto& vrSettings = LauncherSettings::Get().VR;
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+	// A fixed physical reference size (an icon reads at a glance, unlike a weapon mesh there is no
+	// "natural" size to start from), scaled by the same wheel-entry knob the weapon meshes use so both
+	// wheels tune together, plus the same highlight bump.
+	const float baseIconHalfHeightUU = 4.0f * cmToUU;
+	float scale = (vrSettings.WheelEntryScalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
+	float halfHeight = baseIconHalfHeightUU * scale;
+	float halfWidth = halfHeight * (texwidth / texheight);
+
+	// Camera-facing, the same technique VisibleSprite uses for world-space sprites: laid out along the
+	// current eye's own view axes rather than the wheel's plane, so the icon always faces the player
+	// squarely regardless of where on the disc it sits.
+	vec3 sideAxis = MainFrame.ViewRotation.YAxis * halfWidth;
+	vec3 upAxis = MainFrame.ViewRotation.ZAxis * halfHeight;
+
+	GouraudVertex vertices[4];
+	vertices[0].Point = position - sideAxis - upAxis;
+	vertices[0].UV = { 0.0f, 0.0f };
+	vertices[1].Point = position + sideAxis - upAxis;
+	vertices[1].UV = { texwidth, 0.0f };
+	vertices[2].Point = position + sideAxis + upAxis;
+	vertices[2].UV = { texwidth, texheight };
+	vertices[3].Point = position - sideAxis + upAxis;
+	vertices[3].UV = { 0.0f, texheight };
+	for (GouraudVertex& v : vertices)
+	{
+		v.Light = vec3(1.0f); // unlit HUD-style icon, not lit against the world like a carried mesh
+		v.Fog = vec4(0.0f);
+	}
+
+	Device->DrawGouraudPolygon(&MainFrame.Frame, texinfo, vertices, 4, renderflags);
+	Stats.Actors++;
+}
+
+void RenderSubsystem::DrawWheelHighlightRing(const VRWheel& wheel)
+{
+	const auto& vrSettings = LauncherSettings::Get().VR;
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+	const float radius = vrSettings.WheelRadiusCm * cmToUU;
+
+	const vec4 ringColor(0.9f, 0.9f, 0.9f, 1.0f);
+	const int segments = 32;
+	vec3 previous = wheel.GetCenter() + wheel.GetPlaneUp() * radius;
+	for (int i = 1; i <= segments; i++)
+	{
+		float angle = radians(360.0f * i / segments);
+		vec3 next = wheel.GetCenter() + (wheel.GetPlaneUp() * std::cos(angle) + wheel.GetPlaneRight() * std::sin(angle)) * radius;
+		Device->Draw3DLine(&MainFrame.Frame, ringColor, LINE_DepthCued, previous, next);
+		previous = next;
+	}
+
+	// A small cross at the centre, so "hand centred = release cancels" reads even before any entry lights up.
+	const float markerSize = 1.0f * cmToUU;
+	Device->Draw3DLine(&MainFrame.Frame, ringColor, LINE_DepthCued,
+		wheel.GetCenter() - wheel.GetPlaneRight() * markerSize, wheel.GetCenter() + wheel.GetPlaneRight() * markerSize);
+	Device->Draw3DLine(&MainFrame.Frame, ringColor, LINE_DepthCued,
+		wheel.GetCenter() - wheel.GetPlaneUp() * markerSize, wheel.GetCenter() + wheel.GetPlaneUp() * markerSize);
+
+	// A brighter spoke from centre out to the highlighted entry's slot, so which one release will commit
+	// is unambiguous at a glance.
+	int highlighted = wheel.GetHighlighted();
+	if (highlighted >= 0 && highlighted < (int)wheel.GetEntries().size())
+	{
+		const vec4 highlightColor(1.0f, 0.85f, 0.2f, 1.0f);
+		vec3 dir = wheel.GetEntries()[highlighted].SlotForward;
+		Device->Draw3DLine(&MainFrame.Frame, highlightColor, LINE_DepthCued, wheel.GetCenter(), wheel.GetCenter() + dir * radius);
+	}
+}
+
+void RenderSubsystem::DrawVRActiveItem()
+{
+	if (!CurrentVREye || !engine->vr || !engine->vr->IsActive() || !engine->vrHands || !engine->viewport)
+		return;
+	// The off hand is busy picking right now - drawing the old selection floating in the same spot as
+	// either wheel would just be clutter, and it's about to change anyway.
+	if (engine->vrWheel && engine->vrWheel->IsOpen())
+		return;
+
+	UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+	UInventory* item = pawn ? pawn->SelectedItem() : nullptr;
+	if (!item || item->bDeleteMe())
+		return;
+
+	int offHand = 1 - VRPlayerInput::WeaponHandIndex();
+	const VRHands::HandPose& hand = engine->vrHands->GetHand(offHand);
+	if (!hand.Valid)
+		return;
+
+	const auto& vr = LauncherSettings::Get().VR;
+
+	UMesh* viewMesh = item->PlayerViewMesh();
+	if (!viewMesh)
+	{
+		// Not every item has a held mesh - fall back to just the icon floating at the hand rather than
+		// drawing nothing, using the same billboard the item wheel draws its entries with.
+		Device->SetSceneNode(&MainFrame.Frame);
+		DrawWheelItemIcon(item, hand.Position, false);
+		Device->SetSceneNode(&Canvas.Frame);
+		return;
+	}
+
+	// Placement mirrors the phase-4 weapon-hand override in RenderCanvas.cpp::DrawActor exactly, aimed at
+	// the off hand instead and reading the Item* knobs instead of Weapon* - a second copy of the same
+	// small transform rather than a shared helper, since the two are keyed off different settings and
+	// different actors (Weapon() is script-drawn through Canvas.DrawActor; SelectedItem never is, so this
+	// is the only place its transform is computed at all).
+	const float degToRot = 65536.0f / 360.0f;
+	const float cmToUU = 0.01f * MetersToUnrealUnits;
+
+	const vec3 handForward = hand.Forward;
+	const vec3 handRight = hand.Right;
+	const vec3 handUp = hand.Up;
+
+	Rotator off(
+		(int)std::lround(vr.ItemPitchOffsetDegrees * degToRot),
+		(int)std::lround(vr.ItemYawOffsetDegrees * degToRot),
+		(int)std::lround(vr.ItemRollOffsetDegrees * degToRot));
+	Coords offCoords = Coords::Rotation(off);
+	auto handLocalToWorld = [&](const vec3& v)
+	{
+		return handForward * v.x + handRight * v.y + handUp * v.z;
+	};
+	vec3 forward = handLocalToWorld(offCoords.XAxis);
+	vec3 up = handLocalToWorld(offCoords.ZAxis);
+
+	vec3 position = hand.Position
+		+ handForward * (vr.ItemForwardOffsetCm * cmToUU)
+		+ handRight * (vr.ItemRightOffsetCm * cmToUU)
+		+ handUp * (vr.ItemUpOffsetCm * cmToUU);
+
+	vec3 savedLocation = item->Location();
+	Rotator savedRotation = item->Rotation();
+	float savedDrawScale = item->DrawScale();
+	UMesh* savedMesh = item->Mesh();
+	bool savedHidden = item->bHidden();
+
+	item->Mesh() = viewMesh;
+	item->Location() = position;
+	item->Rotation() = RotatorFromForwardUp(forward, up);
+	item->DrawScale() = savedDrawScale * (vr.ItemScalePercent * 0.01f);
+	item->bHidden() = false;
+
+	Device->SetSceneNode(&MainFrame.Frame);
+	VisibleMesh vismesh;
+	if (vismesh.DrawMesh(&MainFrame, item, false, false))
+		vismesh.DrawMesh(&MainFrame, item, false, true);
+	Device->SetSceneNode(&Canvas.Frame);
+
+	item->Mesh() = savedMesh;
+	item->Location() = savedLocation;
+	item->Rotation() = savedRotation;
+	item->DrawScale() = savedDrawScale;
+	item->bHidden() = savedHidden;
 }
 
 void RenderSubsystem::DrawVRMenuEyeFrame(vec4 flashScale, vec4 flashFog, bool presentToDesktop)

@@ -86,6 +86,26 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponScaleLabel = new TextLabel(container);
 	WeaponScale = new LineEdit(container);
 
+	WheelLabel = new TextLabel(container);
+	WheelRadiusLabel = new TextLabel(container);
+	WheelRadius = new LineEdit(container);
+	WheelDeadzoneLabel = new TextLabel(container);
+	WheelDeadzone = new LineEdit(container);
+	WheelEntryScaleLabel = new TextLabel(container);
+	WheelEntryScale = new LineEdit(container);
+
+	ItemLabel = new TextLabel(container);
+	ItemPositionOffsetLabel = new TextLabel(container);
+	ItemForwardOffset = new LineEdit(container);
+	ItemRightOffset = new LineEdit(container);
+	ItemUpOffset = new LineEdit(container);
+	ItemRotationOffsetLabel = new TextLabel(container);
+	ItemPitchOffset = new LineEdit(container);
+	ItemYawOffset = new LineEdit(container);
+	ItemRollOffset = new LineEdit(container);
+	ItemScaleLabel = new TextLabel(container);
+	ItemScale = new LineEdit(container);
+
 	ControlsLabel = new TextLabel(container);
 	ControlsColumnLeft = new TextLabel(container);
 	ControlsColumnRight = new TextLabel(container);
@@ -133,6 +153,16 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponRotationOffsetLabel->SetText("Rotation trim pitch / yaw / roll (degrees)");
 	WeaponScaleLabel->SetText("Weapon scale (% of the mesh's own size)");
 
+	WheelLabel->SetText("Weapon/item wheel (hold A on a hand to open):");
+	WheelRadiusLabel->SetText("Wheel radius (cm)");
+	WheelDeadzoneLabel->SetText("Wheel select deadzone (cm of hand travel before a slot is chosen)");
+	WheelEntryScaleLabel->SetText("Wheel entry scale (% of the mesh's own size / icon reference size)");
+
+	ItemLabel->SetText("Active item on the off hand:");
+	ItemPositionOffsetLabel->SetText("Position offset forward / right / up (cm)");
+	ItemRotationOffsetLabel->SetText("Rotation trim pitch / yaw / roll (degrees)");
+	ItemScaleLabel->SetText("Item scale (% of the mesh's own size)");
+
 	ControlsLabel->SetText("Controller buttons (any command or alias; leave blank to unbind):");
 	ControlsColumnLeft->SetText("Left hand");
 	ControlsColumnRight->SetText("Right hand");
@@ -156,6 +186,16 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponYawOffset->SetIntrinsicSize(3);
 	WeaponRollOffset->SetIntrinsicSize(3);
 	WeaponScale->SetIntrinsicSize(3);
+	WheelRadius->SetIntrinsicSize(3);
+	WheelDeadzone->SetIntrinsicSize(3);
+	WheelEntryScale->SetIntrinsicSize(3);
+	ItemForwardOffset->SetIntrinsicSize(3);
+	ItemRightOffset->SetIntrinsicSize(3);
+	ItemUpOffset->SetIntrinsicSize(3);
+	ItemPitchOffset->SetIntrinsicSize(3);
+	ItemYawOffset->SetIntrinsicSize(3);
+	ItemRollOffset->SetIntrinsicSize(3);
+	ItemScale->SetIntrinsicSize(3);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetIntrinsicSize(12);
@@ -204,6 +244,16 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponYawOffset->SetTextInt(settings.VR.WeaponYawOffsetDegrees);
 	WeaponRollOffset->SetTextInt(settings.VR.WeaponRollOffsetDegrees);
 	WeaponScale->SetTextInt(settings.VR.WeaponScalePercent);
+	WheelRadius->SetTextInt(settings.VR.WheelRadiusCm);
+	WheelDeadzone->SetTextInt(settings.VR.WheelSelectDeadzoneCm);
+	WheelEntryScale->SetTextInt(settings.VR.WheelEntryScalePercent);
+	ItemForwardOffset->SetTextInt(settings.VR.ItemForwardOffsetCm);
+	ItemRightOffset->SetTextInt(settings.VR.ItemRightOffsetCm);
+	ItemUpOffset->SetTextInt(settings.VR.ItemUpOffsetCm);
+	ItemPitchOffset->SetTextInt(settings.VR.ItemPitchOffsetDegrees);
+	ItemYawOffset->SetTextInt(settings.VR.ItemYawOffsetDegrees);
+	ItemRollOffset->SetTextInt(settings.VR.ItemRollOffsetDegrees);
+	ItemScale->SetTextInt(settings.VR.ItemScalePercent);
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			ButtonCommand[hand][button]->SetText(settings.VR.ButtonCommands[hand][button]);
@@ -264,6 +314,28 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	weaponRotationRow->AddStretch();
 	mainLayout->AddLayout(weaponRotationRow);
 	mainLayout->AddLayout(labelledRow(WeaponScaleLabel, WeaponScale));
+
+	mainLayout->AddWidget(WheelLabel);
+	mainLayout->AddLayout(labelledRow(WheelRadiusLabel, WheelRadius));
+	mainLayout->AddLayout(labelledRow(WheelDeadzoneLabel, WheelDeadzone));
+	mainLayout->AddLayout(labelledRow(WheelEntryScaleLabel, WheelEntryScale));
+
+	mainLayout->AddWidget(ItemLabel);
+	auto itemPositionRow = new HBoxLayout();
+	itemPositionRow->AddWidget(ItemPositionOffsetLabel);
+	itemPositionRow->AddWidget(ItemForwardOffset);
+	itemPositionRow->AddWidget(ItemRightOffset);
+	itemPositionRow->AddWidget(ItemUpOffset);
+	itemPositionRow->AddStretch();
+	mainLayout->AddLayout(itemPositionRow);
+	auto itemRotationRow = new HBoxLayout();
+	itemRotationRow->AddWidget(ItemRotationOffsetLabel);
+	itemRotationRow->AddWidget(ItemPitchOffset);
+	itemRotationRow->AddWidget(ItemYawOffset);
+	itemRotationRow->AddWidget(ItemRollOffset);
+	itemRotationRow->AddStretch();
+	mainLayout->AddLayout(itemRotationRow);
+	mainLayout->AddLayout(labelledRow(ItemScaleLabel, ItemScale));
 
 	mainLayout->AddWidget(ControlsLabel);
 	// A column-header row (spacer where the per-button name sits, then Left / Right over the two edits),
@@ -367,6 +439,25 @@ void VRSettingsPage::Save()
 	settings.VR.WeaponRollOffsetDegrees = WeaponRollOffset->GetTextInt();
 	settings.VR.WeaponScalePercent = WeaponScale->GetTextInt();
 
+	// Zero or negative would make the wheel unreachable (no radius) or unusable (a slot chosen the
+	// instant the hand leaves centre), so unusable values keep the previous ones.
+	int wheelRadius = WheelRadius->GetTextInt();
+	if (wheelRadius > 0)
+		settings.VR.WheelRadiusCm = wheelRadius;
+	int wheelDeadzone = WheelDeadzone->GetTextInt();
+	if (wheelDeadzone > 0)
+		settings.VR.WheelSelectDeadzoneCm = wheelDeadzone;
+	settings.VR.WheelEntryScalePercent = WheelEntryScale->GetTextInt();
+
+	// Every item offset is legitimately zero and any of them can be negative, same as the weapon ones.
+	settings.VR.ItemForwardOffsetCm = ItemForwardOffset->GetTextInt();
+	settings.VR.ItemRightOffsetCm = ItemRightOffset->GetTextInt();
+	settings.VR.ItemUpOffsetCm = ItemUpOffset->GetTextInt();
+	settings.VR.ItemPitchOffsetDegrees = ItemPitchOffset->GetTextInt();
+	settings.VR.ItemYawOffsetDegrees = ItemYawOffset->GetTextInt();
+	settings.VR.ItemRollOffsetDegrees = ItemRollOffset->GetTextInt();
+	settings.VR.ItemScalePercent = ItemScale->GetTextInt();
+
 	for (int button = 0; button < VRSubsystem::ButtonCount; button++)
 		for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
 			settings.VR.ButtonCommands[hand][button] = ButtonCommand[hand][button]->GetText();
@@ -398,6 +489,16 @@ void VRSettingsPage::OnResetButtonClicked()
 	WeaponYawOffset->SetTextInt(0);
 	WeaponRollOffset->SetTextInt(0);
 	WeaponScale->SetTextInt(500);
+	WheelRadius->SetTextInt(20);
+	WheelDeadzone->SetTextInt(4);
+	WheelEntryScale->SetTextInt(500);
+	ItemForwardOffset->SetTextInt(0);
+	ItemRightOffset->SetTextInt(0);
+	ItemUpOffset->SetTextInt(0);
+	ItemPitchOffset->SetTextInt(0);
+	ItemYawOffset->SetTextInt(0);
+	ItemRollOffset->SetTextInt(0);
+	ItemScale->SetTextInt(500);
 
 	// The stock hand layout: fire on both triggers, weapon-cycle on both thumbstick clicks, alt-fire on
 	// both trackpads, everything else unbound. Mirrors LauncherSettings' built-in default.

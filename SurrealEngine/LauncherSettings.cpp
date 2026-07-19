@@ -173,6 +173,35 @@ LauncherSettings::LauncherSettings()
 		if (vrProps.find("WeaponScalePercent") != vrProps.end())
 			VR.WeaponScalePercent = settings["VR"]["WeaponScalePercent"].to_int();
 
+		// Wheel radius/deadzone: 0 would make the wheel unreachable or unusable, so only take a positive
+		// stored value, same reasoning as HandColliderRadius below. EntryScalePercent has no such floor
+		// (it's a plain percentage), so it follows the WeaponScalePercent pattern above instead.
+		int vrWheelRadius = settings["VR"]["WheelRadiusCm"].to_int();
+		if (vrWheelRadius > 0)
+			VR.WheelRadiusCm = vrWheelRadius;
+		int vrWheelDeadzone = settings["VR"]["WheelSelectDeadzoneCm"].to_int();
+		if (vrWheelDeadzone > 0)
+			VR.WheelSelectDeadzoneCm = vrWheelDeadzone;
+		if (vrProps.find("WheelEntryScalePercent") != vrProps.end())
+			VR.WheelEntryScalePercent = settings["VR"]["WheelEntryScalePercent"].to_int();
+
+		// Item placement offsets: 0 is a meaningful value (item on the raw hand pose), same reasoning as
+		// the weapon offsets above.
+		if (vrProps.find("ItemForwardOffsetCm") != vrProps.end())
+			VR.ItemForwardOffsetCm = settings["VR"]["ItemForwardOffsetCm"].to_int();
+		if (vrProps.find("ItemRightOffsetCm") != vrProps.end())
+			VR.ItemRightOffsetCm = settings["VR"]["ItemRightOffsetCm"].to_int();
+		if (vrProps.find("ItemUpOffsetCm") != vrProps.end())
+			VR.ItemUpOffsetCm = settings["VR"]["ItemUpOffsetCm"].to_int();
+		if (vrProps.find("ItemPitchOffsetDegrees") != vrProps.end())
+			VR.ItemPitchOffsetDegrees = settings["VR"]["ItemPitchOffsetDegrees"].to_int();
+		if (vrProps.find("ItemYawOffsetDegrees") != vrProps.end())
+			VR.ItemYawOffsetDegrees = settings["VR"]["ItemYawOffsetDegrees"].to_int();
+		if (vrProps.find("ItemRollOffsetDegrees") != vrProps.end())
+			VR.ItemRollOffsetDegrees = settings["VR"]["ItemRollOffsetDegrees"].to_int();
+		if (vrProps.find("ItemScalePercent") != vrProps.end())
+			VR.ItemScalePercent = settings["VR"]["ItemScalePercent"].to_int();
+
 		// Missing-key-reads-as-0 again: a zero radius/size would mean an invisible, un-collidable hand or a
 		// zero-area tablet, so only take stored values that are actually usable.
 		int vrHandRadius = settings["VR"]["HandColliderRadius"].to_int();
@@ -321,6 +350,18 @@ void LauncherSettings::Save()
 	vr["WeaponYawOffsetDegrees"] = JsonValue::number(VR.WeaponYawOffsetDegrees);
 	vr["WeaponRollOffsetDegrees"] = JsonValue::number(VR.WeaponRollOffsetDegrees);
 	vr["WeaponScalePercent"] = JsonValue::number(VR.WeaponScalePercent);
+
+	vr["WheelRadiusCm"] = JsonValue::number(VR.WheelRadiusCm);
+	vr["WheelSelectDeadzoneCm"] = JsonValue::number(VR.WheelSelectDeadzoneCm);
+	vr["WheelEntryScalePercent"] = JsonValue::number(VR.WheelEntryScalePercent);
+
+	vr["ItemForwardOffsetCm"] = JsonValue::number(VR.ItemForwardOffsetCm);
+	vr["ItemRightOffsetCm"] = JsonValue::number(VR.ItemRightOffsetCm);
+	vr["ItemUpOffsetCm"] = JsonValue::number(VR.ItemUpOffsetCm);
+	vr["ItemPitchOffsetDegrees"] = JsonValue::number(VR.ItemPitchOffsetDegrees);
+	vr["ItemYawOffsetDegrees"] = JsonValue::number(VR.ItemYawOffsetDegrees);
+	vr["ItemRollOffsetDegrees"] = JsonValue::number(VR.ItemRollOffsetDegrees);
+	vr["ItemScalePercent"] = JsonValue::number(VR.ItemScalePercent);
 
 	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
 	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);

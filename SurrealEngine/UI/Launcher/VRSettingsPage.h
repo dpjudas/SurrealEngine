@@ -89,6 +89,26 @@ private:
 	TextLabel* WeaponScaleLabel = nullptr;
 	LineEdit* WeaponScale = nullptr;
 
+	TextLabel* WheelLabel = nullptr;
+	TextLabel* WheelRadiusLabel = nullptr;
+	LineEdit* WheelRadius = nullptr;
+	TextLabel* WheelDeadzoneLabel = nullptr;
+	LineEdit* WheelDeadzone = nullptr;
+	TextLabel* WheelEntryScaleLabel = nullptr;
+	LineEdit* WheelEntryScale = nullptr;
+
+	TextLabel* ItemLabel = nullptr;
+	TextLabel* ItemPositionOffsetLabel = nullptr;
+	LineEdit* ItemForwardOffset = nullptr;
+	LineEdit* ItemRightOffset = nullptr;
+	LineEdit* ItemUpOffset = nullptr;
+	TextLabel* ItemRotationOffsetLabel = nullptr;
+	LineEdit* ItemPitchOffset = nullptr;
+	LineEdit* ItemYawOffset = nullptr;
+	LineEdit* ItemRollOffset = nullptr;
+	TextLabel* ItemScaleLabel = nullptr;
+	LineEdit* ItemScale = nullptr;
+
 	TextLabel* ControlsLabel = nullptr;
 	TextLabel* ControlsColumnLeft = nullptr;
 	TextLabel* ControlsColumnRight = nullptr;

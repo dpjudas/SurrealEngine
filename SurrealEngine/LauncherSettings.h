@@ -128,6 +128,28 @@ public:
 		// scaling up. See RenderSubsystem::DrawActor.
 		int WeaponScalePercent = 500;
 
+		// Weapon/item wheel (hold A on a hand to fan its inventory out in a circle centred on that
+		// controller; see VR/VRWheel.h). Radius and deadzone are in centimetres (real-world hand travel).
+		// EntryScalePercent scales a wheel weapon's PickupViewMesh - unlike WeaponScalePercent, this is
+		// NOT the held-weapon multiplier: the pickup mesh apparently models the weapon much larger than
+		// its real-world size (in-headset testing found 60% still ~10x too big), so this trims it down
+		// hard rather than boosting it the way the tiny first-person view mesh wants. The wheel-open
+		// button itself is hardcoded to A, not a ButtonCommands slot - see VRWheel.
+		int WheelRadiusCm = 20;
+		int WheelSelectDeadzoneCm = 4;
+		int WheelEntryScalePercent = 6;
+
+		// Active item (the off hand's SelectedItem, set via the item wheel) rides the off hand the way the
+		// weapon rides the weapon hand - same offset/scale knobs, its own copy since the item and weapon
+		// meshes are unrelated sizes. See RenderCanvas.cpp's off-hand DrawActor override.
+		int ItemScalePercent = 500;
+		int ItemForwardOffsetCm = 0;
+		int ItemRightOffsetCm = 0;
+		int ItemUpOffsetCm = 0;
+		int ItemPitchOffsetDegrees = 0;
+		int ItemYawOffsetDegrees = 0;
+		int ItemRollOffsetDegrees = 0;
+
 		// Which wrist the gameplay HUD tablet rides (see RenderSubsystem::DrawVRHudPlane).
 		VRHand HudHand = VRHand::Left;
 		// Which hand aims the menu laser and toggles the pause menu with its B button (see

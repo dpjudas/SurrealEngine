@@ -3,6 +3,9 @@
 #include "VisibleFrame.h"
 #include "Lightmap/LightmapBuilder.h"
 #include "VR/VRSubsystem.h"
+#include "VR/VRWheel.h"
+
+class UInventory;
 
 class RenderDevice;
 class UWindow;
@@ -129,6 +132,29 @@ private:
 	// Draws where the motion controllers are, so the player can see what their hand collider is about to
 	// touch (see VRHands). No-op outside a VR eye.
 	void DrawVRHands();
+
+	// Draws the weapon/item wheel (VR/VRWheel.h) when one is open: each entry laid out around the wheel's
+	// captured centre - weapons as 3D meshes (the phase-4 look), items as camera-facing icon billboards -
+	// plus a highlight ring so "centred = cancel" and "which entry is about to be picked" both read at a
+	// glance. No-op outside a VR eye or when no wheel is open.
+	void DrawVRWheel();
+	// One weapon entry: saves Location/Rotation/DrawScale/Mesh, points Mesh() at PickupViewMesh() (sized
+	// for "lying in the world", not the tiny welded-to-camera PlayerViewMesh), places it at the slot
+	// transform oriented by (forward, up), draws via VisibleMesh into MainFrame, restores.
+	void DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, bool highlighted);
+	// One item entry: a camera-facing textured quad at the slot, using the item's Icon() - the same
+	// texture the 2D HUD shows, so it is the representation players already recognise. Reuses the
+	// DrawGouraudPolygon sprite technique VisibleSprite uses for world-space billboards.
+	void DrawWheelItemIcon(UInventory* item, const vec3& position, bool highlighted);
+	// The disc outline, a centre "cancel" marker, and a brighter spoke toward the highlighted entry.
+	void DrawWheelHighlightRing(const VRWheel& wheel);
+
+	// Rides the current pawn->SelectedItem() (set via the item wheel) on the off hand, the way the equipped
+	// weapon rides the weapon hand (phase 4) - its own offset/scale knobs (LauncherSettings::VR Item*),
+	// since an item mesh's origin/size has no reason to match a weapon's. Falls back to the icon billboard
+	// when the item has no held mesh; draws nothing when no item is selected, or while a wheel has the off
+	// hand busy. No-op outside a VR eye.
+	void DrawVRActiveItem();
 
 	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 

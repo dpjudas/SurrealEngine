@@ -9,6 +9,7 @@
 #include "VR/VRSubsystem.h"
 #include "VR/VRPlayerInput.h"
 #include "VR/VRHands.h"
+#include "VR/VRWheel.h"
 #include "UObject/UActor.h"
 #include "UObject/UnrealURL.h"
 #include "UObject/UWindow.h"
@@ -182,6 +183,7 @@ public:
 	std::unique_ptr<VRSubsystem> vr; // Declared after window/render so it destructs first, while the Vulkan device is still alive
 	std::unique_ptr<VRPlayerInput> vrInput;
 	std::unique_ptr<VRHands> vrHands;
+	std::unique_ptr<VRWheel> vrWheel;
 
 	int MouseMoveX = 0;
 	int MouseMoveY = 0;

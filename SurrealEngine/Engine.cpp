@@ -97,6 +97,7 @@ void Engine::Run()
 	vr = VRSubsystem::Create(launcherSettings.VR.Enabled && launcherSettings.RenderDevice.Type == RenderDeviceType::Vulkan, launcherSettings.VR.RenderScale);
 	vrInput = std::make_unique<VRPlayerInput>();
 	vrHands = std::make_unique<VRHands>();
+	vrWheel = std::make_unique<VRWheel>();
 
 	OpenWindow();
 
@@ -935,9 +936,11 @@ void Engine::LoginPlayer()
 
 	render->OnMapLoaded();
 
-	// The hands' contacts are actors from the level we just left.
+	// The hands' contacts, and any wheel entries, are actors from the level we just left.
 	if (vrHands)
 		vrHands->Reset();
+	if (vrWheel)
+		vrWheel->Reset();
 }
 
 UZoneInfo* Engine::GetZoneActor(int zoneIndex)

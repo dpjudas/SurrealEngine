@@ -7,6 +7,7 @@
 #include "UObject/UActor.h"
 #include "UObject/UClient.h" // UViewport, which Engine.h only forward declares
 #include "Math/coords.h"
+#include "VM/ScriptCall.h"
 #include <cmath>
 
 namespace
@@ -166,7 +167,12 @@ void VRPlayerInput::Tick(float timeElapsed)
 	// this frame's snap/smooth turn. Gated on the menu state as it stands before UpdateButtons; a menu
 	// toggled this very frame only shifts that gate by one frame.
 	bool menuOpenBeforeButtons = engine->console && engine->console->bNoDrawWorld();
-	if (engine->viewport && engine->viewport->Actor() && !menuOpenBeforeButtons)
+	// The wheel isn't being aimed at anything - the gun (or the off hand) is on the wheel, not on a
+	// target - so redirecting aim to it while a wheel is up would steer the next shot off whatever the
+	// hand brushes past while picking. Read before UpdateButtons, same as menuOpenBeforeButtons: an A
+	// press this very frame only shifts this gate by one frame, which is imperceptible.
+	bool wheelOpenBeforeButtons = engine->vrWheel && engine->vrWheel->IsOpen();
+	if (engine->viewport && engine->viewport->Actor() && !menuOpenBeforeButtons && !wheelOpenBeforeButtons)
 	{
 		UpdateTurning(timeElapsed);
 		UpdateAim();
@@ -179,9 +185,20 @@ void VRPlayerInput::Tick(float timeElapsed)
 	if (!engine->viewport || !engine->viewport->Actor())
 		return;
 
+	// Driven every frame a wheel is open (open/close themselves are edge-triggered from UpdateButtons
+	// above): rebuilds the entry list and tracks the highlight from the hand's live position. A no-op
+	// when no wheel is open.
+	if (engine->vrWheel)
+		engine->vrWheel->Tick(UObject::TryCast<UPlayerPawn>(engine->viewport->Actor()));
+	bool wheelOpen = engine->vrWheel && engine->vrWheel->IsOpen();
+
 	// Buzz the weapon hand on each shot. Independent of the button path above (a shot can come from a held
 	// trigger auto-firing, not just a fresh press), so it watches the weapon's own fire state instead.
-	UpdateFireHaptics();
+	// Skipped while the wheel is open: the weapon hand's trigger is suppressed there (UpdateButtons), so
+	// FlashCount cannot change, but this also stops a stale muzzle-flash cross-frame comparison stacking
+	// up while the wheel holds the trigger silent.
+	if (!wheelOpen)
+		UpdateFireHaptics();
 
 	// While the console or menu has the screen, the keyboard cannot move the player: its keys are
 	// swallowed by the console's KeyEvent before Engine::InputEvent ever turns them into an axis. The
@@ -230,6 +247,11 @@ void VRPlayerInput::UpdateButtons()
 	// casts the laser and moves the cursor), so the player works the menu by pointing and pulling the
 	// trigger instead of with a mouse they can't see in the headset.
 	bool menuOpen = engine->console && engine->console->bNoDrawWorld();
+
+	// A paused game is not a game whose wheel should stay up: force-close without committing, the same
+	// way ReleaseStickAction runs on menu open. Never opens while paused either - see VRWheel::OpenFor.
+	if (menuOpen && engine->vrWheel && engine->vrWheel->IsOpen())
+		engine->vrWheel->Close();
 
 	const int menuPointerHand = MenuPointerHandIndex();
 	const int weaponHand = WeaponHandIndex();
@@ -290,6 +312,48 @@ void VRPlayerInput::UpdateButtons()
 					}
 					continue;
 				}
+			}
+
+			// A opens/closes the weapon wheel on the weapon hand or the item wheel on the off hand (see
+			// VR/VRWheel.h) - a hardcoded native VR mode, not a bindable command, so it needs no
+			// ButtonCommands slot and is claimed here before the generic path below, the same way B/menu
+			// and the pointer hand's trigger are. Which wheel opens follows the hand, not a setting: the
+			// weapon hand always fans out weapons, the other hand always fans out items.
+			if (button == VRSubsystem::Button_A)
+			{
+				UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+				if (engine->vrWheel)
+				{
+					if (isDown)
+						engine->vrWheel->OpenFor(hand, player, hand == weaponHand);
+					else
+						engine->vrWheel->Commit(hand, player);
+				}
+				continue;
+			}
+
+			// While a wheel is open on this hand, its trigger and trackpad are busy picking an entry, not
+			// firing or activating anything - suppressed the same way the off hand's are below, just
+			// conditional on the wheel instead of always-off. Checked before the weapon-hand gate so it
+			// also catches the weapon hand's own trigger while the weapon wheel is open on it.
+			if ((button == VRSubsystem::Button_Trigger || button == VRSubsystem::Button_Trackpad)
+				&& engine->vrWheel && engine->vrWheel->IsOpen() && engine->vrWheel->GetHand() == hand)
+				continue;
+
+			// The off hand's trigger activates the current SelectedItem (set via the item wheel) - the
+			// item-wheel counterpart of the weapon hand's fire, and a control that used to do nothing at
+			// all (the check below has always suppressed the off hand's trigger). Exactly
+			// PlayerPawn.ActivateItem's own body: `if (SelectedItem != None) SelectedItem.Activate();` -
+			// decompile-verified (phase-6 plan §9) that Inventory.Activate() self-guards on bActivatable,
+			// so calling it here needs no re-check of that flag. Press only, not release - a trigger pull
+			// is a single activation, not a hold.
+			if (button == VRSubsystem::Button_Trigger && hand != weaponHand && isDown)
+			{
+				UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(engine->viewport->Actor());
+				UInventory* item = player ? player->SelectedItem() : nullptr;
+				if (item && !item->bDeleteMe())
+					CallEvent(item, "Activate");
+				continue;
 			}
 
 			// Weapon fire belongs to the hand holding the gun. The trigger and trackpad are the gun's fire
