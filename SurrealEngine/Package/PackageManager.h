@@ -45,9 +45,6 @@ public:
 	bool IsKlingonHonorGuard() const  { return launchInfo.IsKlingonHonorGuard(); }
 	bool IsRune() const { return launchInfo.IsRune(); }
 
-	int GetEngineVersion() const { return launchInfo.engineVersion; }
-	int GetEngineSubVersion() const { return launchInfo.engineSubVersion; }
-
 	fs::path GetRootFolderPath() const { return gameRootFolderPath; }
 	fs::path GetSystemFolderPath() const { return gameSystemFolderPath; }
 	fs::path GetSaveFolderPath() const { return gameSaveFolderPath; }

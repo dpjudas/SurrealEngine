@@ -34,10 +34,13 @@ enum class KnownUE1Games
 	TNN_200,
 	RUNE_107,
 	RUNE_110,
+	RUNE_111,
 	UNDYING_420,
 	TACTICAL_OPS_436,
 	TACTICAL_OPS_469,
 	WHEELOFTIME_333,
+	HARRYPOTTER1_433,
+	HARRYPOTTER2_433,
 };
 
 static const std::map<std::string, KnownUE1Games> SHA1Database = {
@@ -168,6 +171,8 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"2db721aa27f9a13c371de08af2c3fbb7ed0642f3", KnownUE1Games::RUNE_107},
 	// Rune Classic, Version 1.10
 	{"4a517c7f96a27cf7e25534c80d50af8db4065276", KnownUE1Games::RUNE_110},
+	// Rune Classic, Version 1.11
+	{"b644bb7f6ce07e284fb81e1ed496607f77080771", KnownUE1Games::RUNE_111},
 
 	// Clive Barker's Undying, Version 420 (GOG)
 	{"65aa7c5caca6495681c9c2dc919645de5c15b96e", KnownUE1Games::UNDYING_420},
@@ -184,6 +189,18 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 
 	// Wheel of Time, version 333 (GOG)
 	{"102013ab6e4535a515c7c589d0b5cdd484ef8fdd", KnownUE1Games::WHEELOFTIME_333},
+
+	// Harry Potter 1 (UK), post-patched
+	{"18ba5889e3a3aa221be52dda2eae75e53e52351b", KnownUE1Games::HARRYPOTTER1_433},
+
+	// Harry Potter 1 (UK), post-patched, archive.org cracked exe
+	{"7e675aa863f55049f3cf530dfea0b241b112d03a", KnownUE1Games::HARRYPOTTER1_433},
+
+	// Harry Potter 2 (UK)
+	{"3a43d9ec8be7ec441b18a8dc710b4bdd5b29bda3", KnownUE1Games::HARRYPOTTER2_433},
+
+	// Harry Potter 2 (UK), archive.org cracked exe
+	{"28b0e54af165c1ad170d5132e4ac7ca986d06484", KnownUE1Games::HARRYPOTTER2_433},
 };
 
 static const Array<std::string> knownUE1ExecutableNames = {
@@ -203,7 +220,9 @@ static const Array<std::string> knownUE1ExecutableNames = {
 	"Spore.exe",
 	"TnnHunt.exe",
 	"TacticalOps.exe",
-	"WoT.exe"
+	"WoT.exe",
+	"HP.exe",
+	"Game.exe",
 };
 
 // Returns a pair of UE1-Game type and executable name

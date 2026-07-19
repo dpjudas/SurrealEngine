@@ -22,30 +22,66 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 	mat4 meshToWorld = objectToWorld * mesh->meshToObject;
 	mat3 meshNormalToWorld = mat3::transpose(mat3(meshToWorld));
 
+	bool needsTranslucentPass = DrawMeshAtLocation(frame, actor, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+
+	// Weapon attachment drawing:
+	if (UPawn* pawn = UObject::TryCast<UPawn>(actor))
+	{
+		ULodMesh* pawnLodMesh = UObject::TryCast<ULodMesh>(mesh);
+		UWeapon* weapon = pawn ? pawn->Weapon() : nullptr;
+		UMesh* weaponMesh = weapon ? weapon->ThirdPersonMesh() : nullptr;
+		if (weaponMesh && pawnLodMesh && attachmentTris.size() >= 3)
+		{
+			// Find attachment triangle location in the world:
+			const vec3& v0 = attachmentTris[0];
+			const vec3& v1 = attachmentTris[1];
+			const vec3& v2 = attachmentTris[2];
+
+			// Create a coordinate space converting from weapon to the world:
+			Coords attachment;
+			attachment.XAxis = normalize(v1 - v0);
+			attachment.YAxis = normalize(cross(attachment.XAxis, v2 - v0));
+			attachment.ZAxis = normalize(cross(attachment.XAxis, attachment.YAxis));
+			attachment.Origin = -(v0 + v2) * 0.5f;
+
+			// Place the weapon in this coordinate space:
+			mat4 weaponMeshToWorld = attachment.ToMatrix() * mat4::scale(weapon->ThirdPersonScale()) * weaponMesh->meshToObject;
+			mat3 weaponNormalToWorld = mat3::transpose(mat3(weaponMeshToWorld));
+			needsTranslucentPass = DrawMeshAtLocation(frame, weapon, actor, weaponMesh, weaponMeshToWorld, weaponNormalToWorld, translucentPass) || needsTranslucentPass;
+		}
+	}
+
+	return needsTranslucentPass;
+}
+
+bool VisibleMesh::DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& meshToWorld, const mat3& meshNormalToWorld, bool translucentPass)
+{
 	if (auto skeletalmesh = UObject::TryCast<USkeletalMesh>(mesh))
 	{
-		return DrawSkeletalMesh(frame, actor, skeletalmesh, meshToWorld, meshNormalToWorld, translucentPass);
+		return DrawSkeletalMesh(frame, actor, lightLocationActor, skeletalmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 	else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
 	{
 		/*if (engine->LaunchInfo.IsDeusEx())
-			return DrawLodMeshDX(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawLodMeshDX(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
 		else*/
-			return DrawLodMesh(frame, actor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawLodMesh(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 	else
 	{
 		/*if (engine->LaunchInfo.IsDeusEx())
-			return DrawMeshDX(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawMeshDX(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 		else*/
-			return DrawMesh(frame, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawMesh(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 }
 
-bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -128,6 +164,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 		float uscale = (tex ? tex->UsedMipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (tex ? tex->UsedMipmaps.front().Height : 256) * (1.0f / 255.0f);
 
+		vec3 normals[3];
 		for (int i = 0; i < 3; i++)
 		{
 			size_t vindex = tri.Indices[i];
@@ -139,7 +176,10 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 			const vec3& v0 = mesh->Verts[vindex0];
 			const vec3& v1 = mesh->Verts[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			const vec3& n0 = mesh->Normals[vindex0];
+			const vec3& n1 = mesh->Normals[vindex1];
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
+			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
 				size_t vindex2 = vindex + vertexOffsets[2];
@@ -148,15 +188,14 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
+				normal = mix(normal, n2, t1);
 			}
 
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
 			vertices[i].UV = { tri.UV[i].x * uscale, tri.UV[i].y * vscale };
+			normals[i] = normalize(ObjectNormalToWorld * normal);
 		}
-
-		// To do: this needs to be the smoothed normal
-		vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
 
 		if (renderflags & PF_Environment)
 		{
@@ -164,15 +203,15 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
-				vec3 p = rotmat * reflect(v, n);
+				vec3 p = rotmat * reflect(v, normals[i]);
 				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
 			}
 		}
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -182,10 +221,10 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UMesh* mesh, cons
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -218,10 +257,8 @@ bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, ULodMesh* mesh
 	}
 
 	SetupLodMeshTextures(actor, mesh);
-	bool needTranslucentPass = false;
-	needTranslucentPass = DrawLodMeshFace(frame, actor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass) || needTranslucentPass;
-	needTranslucentPass = DrawLodMeshFace(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, ObjectNormalToWorld, 0, vertexOffsets, t0, t1, translucentPass) || needTranslucentPass;
-	return needTranslucentPass;
+	FindAttachmentPoints(mesh, ObjectToWorld, vertexOffsets, t0, t1);
+	return DrawLodMeshFace(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass);
 }
 
 void VisibleMesh::SetupMeshTextures(UActor* actor, UMesh* mesh)
@@ -344,8 +381,42 @@ void VisibleMesh::SetupLodMeshTextures(UActor* actor, ULodMesh* mesh)
 	}
 }
 
-bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
+void VisibleMesh::FindAttachmentPoints(ULodMesh* mesh, const mat4& ObjectToWorld, const int* vertexOffsets, float t0, float t1)
 {
+	for (const MeshFace& face : mesh->SpecialFaces)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			size_t vbase = (size_t)face.Indices[i];
+			size_t vindex = mesh->ReMapAnimVerts.empty() ? vbase : mesh->ReMapAnimVerts[vbase];
+			size_t vindex0 = vindex + vertexOffsets[0];
+			size_t vindex1 = vindex + vertexOffsets[1];
+
+			if (vindex0 >= mesh->Verts.size() || vindex1 >= mesh->Verts.size())
+				return; // out of bounds
+
+			const vec3& v0 = mesh->Verts[vindex0];
+			const vec3& v1 = mesh->Verts[vindex1];
+			vec3 vertex = mix(v0, v1, t0);
+			if (t1 != 0.0f)
+			{
+				size_t vindex2 = vindex + vertexOffsets[2];
+				if (vindex2 >= mesh->Verts.size())
+					return; // out of bounds
+
+				const vec3& v2 = mesh->Verts[vindex2];
+				vertex = mix(vertex, v2, t1);
+			}
+
+			attachmentTris.push_back((ObjectToWorld * vec4(vertex, 1.0f)).xyz());
+		}
+	}
+}
+
+bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
+{
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
 	{
@@ -371,6 +442,9 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 			continue;
 
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+
+		if (material.PolyFlags & PF_Invisible)
+			continue;
 
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? engine->render->Mesh.envmap : engine->render->Mesh.textures[material.TextureIndex];
@@ -416,7 +490,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 			const vec3& v1 = mesh->Verts[vindex1];
 			const vec3& n0 = mesh->Normals[vindex0];
 			const vec3& n1 = mesh->Normals[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
 			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
@@ -426,7 +500,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
 				normal = mix(normal, n2, t1);
 			}
 
@@ -448,8 +522,8 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -460,15 +534,15 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, ULodMesh* 
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
-	return DrawLodMesh(frame, actor, mesh, ObjectToWorld, ObjectNormalToWorld, translucentPass);
+	return DrawLodMesh(frame, actor, lightLocationActor, mesh, ObjectToWorld, ObjectNormalToWorld, translucentPass);
 }
 
-bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -660,8 +734,8 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, co
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -671,10 +745,10 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UMesh* mesh, co
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
 	UActor* animSource = actor;
-	if (engine->LaunchInfo.engineSubVersion > 219 && actor->bAnimByOwner() && actor->Owner())
+	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
 
 	MeshAnimSeq* seq = mesh->GetSequence(animSource->AnimSequence());
@@ -748,13 +822,11 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, ULodMesh* me
 	}
 
 	SetupLodMeshTextures(actor, mesh);
-	bool needTranslucentPass = false;
-	needTranslucentPass = DrawLodMeshFaceDX(frame, actor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass, blends, blendCount) || needTranslucentPass;
-	needTranslucentPass = DrawLodMeshFaceDX(frame, actor, mesh, mesh->SpecialFaces, ObjectToWorld, ObjectNormalToWorld, 0, vertexOffsets, t0, t1, translucentPass, blends, blendCount) || needTranslucentPass;
-	return needTranslucentPass;
+	FindAttachmentPoints(mesh, ObjectToWorld, vertexOffsets, t0, t1);
+	return DrawLodMeshFaceDX(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass, blends, blendCount);
 }
 
-bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
+bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
 {
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
@@ -897,8 +969,8 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, ULodMesh
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(actor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(actor, vertices[i].Point);
+			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -949,7 +1021,7 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 		start,
 		end);
 
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		for (UNavigationPoint* p : pawn->RouteCache())
 		{

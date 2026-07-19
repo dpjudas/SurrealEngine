@@ -226,8 +226,25 @@ void UMesh::Load(ObjectStream* stream)
 	meshToObject = Coords::Rotation(RotOrigin).ToMatrix() * mat4::scale(Scale) * mat4::translate(-Origin);
 
 	// Build smoothed normals
-	// 
-	// To do: build normals from mesh faces (maybe using the Connects array?)
+	Normals.clear();
+	Normals.resize(Verts.size(), vec3(0.0f));
+	for (int frame = 0; frame < AnimFrames; frame++)
+	{
+		for (const MeshTri& tri : Tris)
+		{
+			int v0 = tri.Indices[0] + frame * FrameVerts;
+			int v1 = tri.Indices[1] + frame * FrameVerts;
+			int v2 = tri.Indices[2] + frame * FrameVerts;
+			vec3 n = normalize(cross(Verts[v1] - Verts[v0], Verts[v2] - Verts[v0]));
+			Normals[v0] += n;
+			Normals[v1] += n;
+			Normals[v2] += n;
+		}
+	}
+	for (vec3& n : Normals)
+	{
+		n = normalize(n);
+	}
 }
 
 void UMesh::Save(PackageStreamWriter* stream)
@@ -480,16 +497,6 @@ void ULodMesh::Load(ObjectStream* stream)
 	Normals.resize(Verts.size(), vec3(0.0f));
 	for (int frame = 0; frame < AnimFrames; frame++)
 	{
-		for (const MeshFace& face : SpecialFaces)
-		{
-			int v0 = Wedges[face.Indices[0]].Vertex + frame * FrameVerts;
-			int v1 = Wedges[face.Indices[1]].Vertex + frame * FrameVerts;
-			int v2 = Wedges[face.Indices[2]].Vertex + frame * FrameVerts;
-			vec3 n = normalize(cross(Verts[v1] - Verts[v0], Verts[v2] - Verts[v0]));
-			Normals[v0] += n;
-			Normals[v1] += n;
-			Normals[v2] += n;
-		}
 		for (const MeshFace& face : Faces)
 		{
 			int v0 = Wedges[face.Indices[0]].Vertex + SpecialVerts + frame * FrameVerts;
@@ -757,6 +764,9 @@ void USkeletalMesh::Save(PackageStreamWriter* stream)
 void UAnimation::Load(ObjectStream* stream)
 {
 	UObject::Load(stream);
+
+	if (engine->LaunchInfo.IsHarryPotter1() || engine->LaunchInfo.IsHarryPotter2())
+		return; // To do: format changed. Figure out how. Maybe the arrays became skippable?
 
 	int NumRefBones = stream->ReadIndex();
 	for (int i = 0; i < NumRefBones; i++)

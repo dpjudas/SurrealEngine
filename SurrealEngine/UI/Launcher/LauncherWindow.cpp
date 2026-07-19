@@ -17,7 +17,7 @@
 int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
-	double windowWidth = 640.0;
+	double windowWidth = 1024.0;
 	// The VR Settings tab is the longest page by far, but it scrolls (see ScrollWidget / VRSettingsPage), so
 	// the window no longer has to be tall enough to show all of it at once.
 	double windowHeight = 750.0;

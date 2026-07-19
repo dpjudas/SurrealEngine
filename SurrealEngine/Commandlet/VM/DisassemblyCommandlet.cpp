@@ -586,6 +586,12 @@ void PrintExpression::Expr(RotatorToStringExpression* expr)
 	Print(console, "Value", expr->Value, depth + 1);
 }
 
+void PrintExpression::Expr(StringToNameExpression* expr)
+{
+	WriteRow("", name, "String to name");
+	Print(console, "Value", expr->Value, depth + 1);
+}
+
 void PrintExpression::Expr(VirtualFunctionExpression* expr)
 {
 	WriteRow("Virtual call", name, expr->Name.ToString());
@@ -1231,6 +1237,13 @@ void PrintPrettyExpression::Expr(VectorToStringExpression* expr)
 void PrintPrettyExpression::Expr(RotatorToStringExpression* expr)
 {
 	writeOutput("rotatorToString(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
+}
+
+void PrintPrettyExpression::Expr(StringToNameExpression* expr)
+{
+	writeOutput("stringToName(");
 	Print(writeOutput, expr->Value);
 	writeOutput(")");
 }

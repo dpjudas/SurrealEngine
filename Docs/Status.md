@@ -45,7 +45,6 @@ they end up dying because SE thinks that they've fallen from a great height.
 * viewclass command crashes with null deref.
 * Sometimes opening a map crashes the engine with a "Failed to spawn the player actor" error.
 * Sounds may become too loud (e.g. Pulse Rifle secondary fire, minigun firing sound)
-* Third person weapon meshes do not get rendered.
 * Inventory from loaded saves do NOT transfer to the next map.
 * Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
 * There is no OpenGL renderer.
@@ -75,6 +74,10 @@ they end up dying because SE thinks that they've fallen from a great height.
 ## Unreal Tournament
 
 436 version of the game launches. Menu options will work and botmatches can be played. Bots will behave more or less like they do in Unreal and some maps might have some functionality missing.
+
+469c version of the game also launches. So far the touch events doesn't work.
+
+Anything beyond 469c currently won't boot.
 
 ### Known bugs:
 * [469*] Many new native functions/features are not yet implemented.

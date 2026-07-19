@@ -25,6 +25,7 @@ void StepInCommandlet::OnPrintHelp(DebuggerApp* console)
 
 StepOverCommandlet::StepOverCommandlet()
 {
+	SetShortFormName("n");
 	SetLongFormName("next");
 	SetShortDescription("Go to next source line, but don't dive into functions");
 }

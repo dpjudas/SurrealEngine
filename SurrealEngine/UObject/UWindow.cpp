@@ -54,6 +54,14 @@ void UWindow::UpdateLayout()
 		float pHeight = parent->Height();
 		float width = Width();
 		float height = Height();
+		float offsetX = 0.0f;
+
+		if (parent == engine->dxRootWindow)
+		{
+			float extraWidth = std::max(GetExtendedVirtualWidth() - pWidth, 0.0f);
+			offsetX = -std::round(extraWidth * 0.5f);
+			pWidth += extraWidth;
+		}
 
 		float x = 0.0f, y = 0.0f;
 		if (halign == EHAlign::Left || halign == EHAlign::Full)
@@ -69,6 +77,8 @@ void UWindow::UpdateLayout()
 			y = (pHeight - height) * 0.5f;
 		else if (valign == EVAlign::Bottom)
 			y = pHeight - bottomMargin - height - Y();
+
+		x += offsetX;
 
 		UsedX = x;
 		UsedY = y;
@@ -103,9 +113,17 @@ void UWindow::UpdateLayout()
 
 float UWindow::GetVirtualWidth()
 {
-	//return std::round(GetVirtualHeight() * 4 / 3);
+	// Force a 4:3 ratio for the root window as ConWindowActive.CalculateWindowSizes depends on it
+	return std::round(GetVirtualHeight() * 4 / 3);
+}
+
+float UWindow::GetExtendedVirtualWidth()
+{
+	// Extend up to 16:9 instead of staying in the 4:3 box of the root window
 	float scale = GetVirtualScale();
-	return std::ceil(engine->viewport->ViewportWidth() / scale);
+	float realWidth = std::ceil(engine->viewport->ViewportWidth() / scale);
+	float maxWidth = GetVirtualHeight() * (16.0f / 9.0f);
+	return std::min(realWidth, maxWidth);
 }
 
 float UWindow::GetVirtualHeight()
@@ -995,11 +1013,19 @@ void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 		preferredWidth = hardcodedWidth();
 		widthSet = true;
 	}
+	else if (Background())
+	{
+		preferredWidth = Background()->USize();
+	}
 
 	if (FixedHeight)
 	{
 		preferredHeight = hardcodedHeight();
 		heightSet = true;
+	}
+	else if (Background())
+	{
+		preferredHeight = Background()->VSize();
 	}
 
 	if (!widthSet || !heightSet)
@@ -1021,6 +1047,8 @@ float UWindow::QueryPreferredWidth(float queryHeight)
 	}
 	else
 	{
+		if (Background())
+			width = Background()->USize();
 		ParentRequestedPreferredSize(false, width, true, queryHeight);
 	}
 
@@ -1038,6 +1066,8 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 	}
 	else
 	{
+		if (Background())
+			height = Background()->VSize();
 		ParentRequestedPreferredSize(true, queryWidth, false, height);
 	}
 
@@ -1083,8 +1113,16 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHe
 		{
 			float leftMargin = hMargin0();
 			float rightMargin = hMargin1();
-			newX = 0.0f;
-			newWidth = std::max(owner->Width() - leftMargin - rightMargin, 0.0f);
+			if (owner == engine->dxRootWindow)
+			{
+				newX = 0.0f;
+				newWidth = std::max(GetExtendedVirtualWidth() - leftMargin - rightMargin, 0.0f);
+			}
+			else
+			{
+				newX = 0.0f;
+				newWidth = std::max(owner->Width() - leftMargin - rightMargin, 0.0f);
+			}
 		}
 		if ((EVAlign)winVAlign() == EVAlign::Full)
 		{
@@ -1842,6 +1880,8 @@ void UTileWindow::ChildRemoved(UWindow* child)
 void UTextWindow::AppendText(const std::string& NewText)
 {
 	Text() += NewText;
+	if (!NewText.empty())
+		AskParentForReconfigure();
 }
 
 void UTextWindow::EnableTextAsAccelerator(std::optional<bool> bEnable)
@@ -1882,45 +1922,77 @@ void UTextWindow::ResetMinWidth()
 
 void UTextWindow::SetLines(int newMinLines, int newMaxLines)
 {
-	minLines() = newMinLines;
-	MaxLines() = newMaxLines;
+	if (minLines() != newMinLines || MaxLines() != newMaxLines)
+	{
+		minLines() = newMinLines;
+		MaxLines() = newMaxLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMaxLines(int newMaxLines)
 {
-	MaxLines() = newMaxLines;
+	if (MaxLines() != newMaxLines)
+	{
+		MaxLines() = newMaxLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMinLines(int newMinLines)
 {
-	minLines() = newMinLines;
+	if (minLines() != newMinLines)
+	{
+		minLines() = newMinLines;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetMinWidth(float newMinWidth)
 {
-	MinWidth() = newMinWidth;
+	if (MinWidth() != newMinWidth)
+	{
+		MinWidth() = newMinWidth;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetText(const std::string& NewText)
 {
-	Text() = NewText;
+	if (Text() != NewText)
+	{
+		Text() = NewText;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetTextAlignments(uint8_t newHAlign, uint8_t newVAlign)
 {
-	HAlign() = newHAlign;
-	VAlign() = newVAlign;
+	if (HAlign() != newHAlign || VAlign() != newVAlign)
+	{
+		HAlign() = newHAlign;
+		VAlign() = newVAlign;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetTextMargins(float newHMargin, float newVMargin)
 {
-	hMargin() = newHMargin;
-	vMargin() = newVMargin;
+	if (hMargin() != newHMargin || vMargin() != newVMargin)
+	{
+		hMargin() = newHMargin;
+		vMargin() = newVMargin;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::SetWordWrap(bool bNewWordWrap)
 {
-	bWordWrap() = bNewWordWrap;
+	if (bWordWrap() != bNewWordWrap)
+	{
+		bWordWrap() = bNewWordWrap;
+		AskParentForReconfigure();
+	}
 }
 
 void UTextWindow::InitWindow()
@@ -2626,11 +2698,6 @@ void URootWindow::LockMouse(std::optional<bool> bLockMove, std::optional<bool> b
 	LogUnimplemented("RootWindow.LockMouse");
 }
 
-void URootWindow::ResetRenderViewport()
-{
-	RenderViewportSet = false;
-}
-
 void URootWindow::SetDefaultEditCursor(std::optional<UObject*> newEditCursor)
 {
 	if (newEditCursor)
@@ -2672,6 +2739,11 @@ void URootWindow::SetRenderViewport(float newX, float newY, float newWidth, floa
 	renderWidth() = newWidth;
 	renderHeight() = NewHeight;
 	RenderViewportSet = true;
+}
+
+void URootWindow::ResetRenderViewport()
+{
+	RenderViewportSet = false;
 }
 
 void URootWindow::SetSnapshotSize(float newWidth, float NewHeight)
@@ -2815,10 +2887,24 @@ bool URootWindow::SetRootFocusWindow(UWindow* newFocusWindow)
 
 void URootWindow::SetRootCursorPos(float newMouseX, float newMouseY)
 {
+	// Clip cursor to the entire screen, not the root window box:
+
+	newMouseX += UsedX;
+	newMouseY += UsedY;
+
+	float scale = GetVirtualScale();
+	float realWidth = std::ceil(engine->viewport->ViewportWidth() / scale);
+	float realHeight = std::ceil(engine->viewport->ViewportHeight() / scale);
+
 	newMouseX = std::max(newMouseX, 0.0f);
 	newMouseY = std::max(newMouseY, 0.0f);
-	newMouseX = std::min(newMouseX, GetVirtualWidth());
-	newMouseY = std::min(newMouseY, GetVirtualHeight());
+	newMouseX = std::min(newMouseX, realWidth);
+	newMouseY = std::min(newMouseY, realHeight);
+
+	newMouseX -= UsedX;
+	newMouseY -= UsedY;
+
+	// Apply the new cursor pos:
 
 	prevMouseX() = MouseX();
 	prevMouseY() = MouseY();

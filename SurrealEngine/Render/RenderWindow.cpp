@@ -23,7 +23,10 @@ void RenderSubsystem::PostRenderWindows(UCanvas* canvas)
 	Device->SetSceneNode(&Canvas.Frame);
 	Device->ClearZ();
 
-	engine->dxgc->ResetClip(engine->dxgc->ScaleRect(Rectf::xywh(0.0f, 0.0f, engine->dxRootWindow->Width(), engine->dxRootWindow->Height())));
+	float virtualScale = UWindow::GetVirtualScale();
+	float realVirtualWidth = engine->viewport->ViewportWidth() / virtualScale;
+	float realVirtualHeight = engine->viewport->ViewportHeight() / virtualScale;
+	engine->dxgc->ResetClip(engine->dxgc->ScaleRect(Rectf::xywh(0.0f, 0.0f, realVirtualWidth, realVirtualHeight)));
 
 	DrawWindow(engine->dxRootWindow, 0.0f, 0.0f);
 
@@ -92,7 +95,8 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	offsetX += window->UsedX;
 	offsetY += window->UsedY;
 
-	engine->dxgc->PushClip(engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height())));
+	if (window->parentOwner())
+		engine->dxgc->PushClip(engine->dxgc->ScaleRect(Rectf::xywh(offsetX, offsetY, window->Width(), window->Height())));
 
 	ResetWindowGC(window, offsetX, offsetY);
 	window->DrawWindow(engine->dxgc);
@@ -105,7 +109,8 @@ void RenderSubsystem::DrawWindow(UWindow* window, float offsetX, float offsetY)
 	ResetWindowGC(window, offsetX, offsetY);
 	window->PostDrawWindow(engine->dxgc);
 
-	engine->dxgc->PopClip();
+	if (window->parentOwner())
+		engine->dxgc->PopClip();
 }
 
 void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, float& curY)

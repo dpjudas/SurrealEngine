@@ -117,7 +117,7 @@ void RenderSubsystem::DrawGameFrame(vec4 flashScale, vec4 flashFog, bool present
 	if (!CurrentVREye)
 		PreRender();
 
-	if (engine->LaunchInfo.engineVersion <= 219 || engine->console->bNoDrawWorld() == false)
+	if (engine->LaunchInfo.ue1Version <= 219 || engine->console->bNoDrawWorld() == false)
 	{
 		DrawScene();
 		DrawVRHands();
@@ -389,7 +389,7 @@ void RenderSubsystem::UpdateVRMenuLaser()
 	// (u * canvasWidth) overshot the cursor by exactly that scale. Derive the VR canvas UI scale the same
 	// way ResetCanvas does (not Canvas.uiscale, which is a frame stale here since UpdateVRMenuLaser runs
 	// before DrawUICanvas) and divide it back out.
-	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
+	int vertResolution = engine->LaunchInfo.ue1Version < 400 ? 768 : 960;
 	int menuUiScale = std::max((RenderDevice::VRMenuCanvasHeight + vertResolution / 2) / vertResolution, 1);
 	float frameX = (float)RenderDevice::VRMenuCanvasWidth / (float)menuUiScale;
 	float frameY = (float)RenderDevice::VRMenuCanvasHeight / (float)menuUiScale;

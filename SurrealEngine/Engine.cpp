@@ -115,7 +115,7 @@ void Engine::Run()
 	audiodev->InitDevice();
 	render = std::make_unique<RenderSubsystem>(window->GetRenderDevice());
 
-	if (engine->LaunchInfo.engineVersion > 219 && !client->StartupFullscreen)
+	if (engine->LaunchInfo.ue1Version > 219 && !client->StartupFullscreen)
 		viewport->bWindowsMouseAvailable() = true;
 
 	window->LockCursor();
@@ -181,7 +181,7 @@ void Engine::Run()
 		CallEvent(console, EventName::Tick, { ExpressionValue::FloatValue(levelElapsed) });
 
 		// To do: set these to true if the frame rate is too low
-		if (LaunchInfo.engineVersion >= 436)
+		if (LaunchInfo.ue1Version >= 436)
 		{
 			LevelInfo->bDropDetail() = false;
 			LevelInfo->bAggressiveLOD() = false;
@@ -543,7 +543,7 @@ void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, boo
 	// As they have to persist somehow
 	for (std::string optionKey : { "Name", "Class", "team", "skin", "Face", "Voice", "OverrideClass" })
 	{
-		if (engine->packages->GetEngineVersion() > 219)
+		if (engine->LaunchInfo.ue1Version > 219)
 		{
 			if (url.HasOption(optionKey))
 				engine->packages->SetIniValue("User", "DefaultPlayer", optionKey, url.GetOption(optionKey));
@@ -649,7 +649,7 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	LevelInfo->EngineVersion() = LaunchInfo.gameVersionString + " SE";
-	if (packages->GetEngineVersion() > 219)
+	if (LaunchInfo.ue1Version > 219)
 		LevelInfo->MinNetVersion() = LaunchInfo.gameVersionString + " SE";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
@@ -768,7 +768,7 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
 	LevelInfo->EngineVersion() = LaunchInfo.gameVersionString + " SE";
-	if (packages->GetEngineVersion() > 219)
+	if (LaunchInfo.ue1Version > 219)
 		LevelInfo->MinNetVersion() = LaunchInfo.gameVersionString + " SE";
 	LevelInfo->bHighDetailMode() = true;
 	LevelInfo->NetMode() = 0; // NM_StandAlone
@@ -848,7 +848,7 @@ std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
 		UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 		if (pawn && pawn->Player())
 		{
-			std::string playerName = engine->LaunchInfo.engineVersion > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
+			std::string playerName = engine->LaunchInfo.ue1Version > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
 			travelInfo[playerName] = ActorTravelInfo::Create(pawn, transferItems);
 		}
 	}
@@ -1570,7 +1570,7 @@ void Engine::CloseWindow()
 
 void Engine::TickWindow()
 {
-	if (window && engine->LaunchInfo.engineVersion > 219)
+	if (window && engine->LaunchInfo.ue1Version > 219)
 	{
 		if (viewport->bShowWindowsMouse() && viewport->bWindowsMouseAvailable())
 			window->UnlockCursor();
@@ -1610,7 +1610,7 @@ void Engine::OnWindowMouseMove(const Point& pos)
 	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseMove(pos))
 		return;
 
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		viewport->WindowsMouseX() = (float)(pos.x * window->GetDpiScale());
 		viewport->WindowsMouseY() = (float)(pos.y * window->GetDpiScale());
@@ -1833,25 +1833,49 @@ bool Engine::ExecCommand(const Array<std::string>& args)
 			for (UField* field = func->Children; field != nullptr; field = field->Next)
 			{
 				UProperty* prop = UObject::TryCast<UProperty>(field);
-				if (prop)
+				if (!prop)
+					continue;
+
+				if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm))
+					continue;
+
+				if (!AllFlags(prop->PropFlags, PropertyFlags::Parm))
+					continue;
+
+				if (argindex + 1 < args.size())
 				{
-					if (AllFlags(prop->PropFlags, PropertyFlags::Parm) && !AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+					const std::string& arg = args[1 + argindex];
+					switch (prop->ValueType)
 					{
-						std::string arg = (1 + argindex < args.size()) ? args[1 + argindex] : std::string("0");
-						switch (prop->ValueType)
-						{
-						case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
-						case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(std::atoi(arg.c_str()))); break;
-						case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(std::atoi(arg.c_str()))); break;
-						case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(arg == "1" || arg == "true")); break;
-						case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue((float)std::atof(arg.c_str()))); break;
-						case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue(arg)); break;
-						case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue(arg)); break;
-						default: break;
-						}
-						argindex++;
+					case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
+					case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(std::atoi(arg.c_str()))); break;
+					case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(arg == "1" || arg == "true")); break;
+					case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue((float)std::atof(arg.c_str()))); break;
+					case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue(arg)); break;
+					case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue(arg)); break;
+					default: LogMessage("Unsupported value type found in Engine.ExecCommand"); return false;
 					}
 				}
+				else if (AllFlags(prop->PropFlags, PropertyFlags::OptionalParm))
+				{
+					vmArgs.push_back(ExpressionValue::NothingValue());
+				}
+				else
+				{
+					switch (prop->ValueType)
+					{
+					case ExpressionValueType::Nothing: vmArgs.push_back(ExpressionValue::NothingValue()); break;
+					case ExpressionValueType::ValueByte: vmArgs.push_back(ExpressionValue::ByteValue(0)); break;
+					case ExpressionValueType::ValueInt: vmArgs.push_back(ExpressionValue::IntValue(0)); break;
+					case ExpressionValueType::ValueBool: vmArgs.push_back(ExpressionValue::BoolValue(false)); break;
+					case ExpressionValueType::ValueFloat: vmArgs.push_back(ExpressionValue::FloatValue(0.0f)); break;
+					case ExpressionValueType::ValueString: vmArgs.push_back(ExpressionValue::StringValue({})); break;
+					case ExpressionValueType::ValueName: vmArgs.push_back(ExpressionValue::NameValue({})); break;
+					default: LogMessage("Unsupported value type found in Engine.ExecCommand"); return false;
+					}
+				}
+				argindex++;
 			}
 
 			CallEvent(target, func->Name, vmArgs);
@@ -1924,7 +1948,7 @@ void Engine::LogGamePackageSHA1Sums() const
 void Engine::GetLevelInfoObject()
 {
 	LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo0"));
-	if (packages->GetEngineVersion() < 300) // Unknown when this changed
+	if (LaunchInfo.ue1Version < 300) // Unknown when this changed
 	{
 		for (int grr = 1; !LevelInfo && grr < 20; grr++)
 			LevelInfo = UObject::Cast<ULevelInfo>(LevelPackage->GetUObject("LevelInfo", "LevelInfo" + std::to_string(grr)));
@@ -1943,6 +1967,10 @@ void Engine::GetLevelObject()
 	{
 		// Also try to find DeusExLevelInfo
 		DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo0"));
+
+		// Didn't find it. Keep searching.
+		for (int grr = 1; !DeusExLevelInfo && grr < 20; grr++)
+			DeusExLevelInfo = UObject::Cast<UDeusExLevelInfo>(LevelPackage->GetUObject("DeusExLevelInfo", "DeusExLevelInfo" + std::to_string(grr)));
 
 		// Entry.dx does not have a DeusExLevelInfo
 		/*
@@ -1985,6 +2013,23 @@ void Engine::GetLevelObject()
 								eventCheckObject->checkObject() = cls;
 							}
 						}
+					}
+				}
+
+				// Remove comments from event lists:
+				while (conversation->eventList() && (EEventType)conversation->eventList()->eventType() == EEventType::Comment)
+					conversation->eventList() = conversation->eventList()->nextEvent();
+				UConEvent* cur = conversation->eventList();
+				while (cur != nullptr)
+				{
+					auto next = cur->nextEvent();
+					if (next && (EEventType)next->eventType() == EEventType::Comment)
+					{
+						cur->nextEvent() = next->nextEvent();
+					}
+					else
+					{
+						cur = next;
 					}
 				}
 			}

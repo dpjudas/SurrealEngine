@@ -601,6 +601,12 @@ void ExpressionEvaluator::Expr(RotatorToStringExpression* expr)
 	Result.Value = ExpressionValue::StringValue(std::to_string(v.Pitch & 0xffff) + "," + std::to_string(v.Yaw & 0xffff) + "," + std::to_string(v.Roll & 0xffff));
 }
 
+void ExpressionEvaluator::Expr(StringToNameExpression* expr)
+{
+	std::string v = Eval(expr->Value).Value.ToString();
+	Result.Value = ExpressionValue::NameValue(v);
+}
+
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
 	UClass* contextClass = UObject::TryCast<UClass>(Context);

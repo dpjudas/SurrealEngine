@@ -67,9 +67,9 @@ bool Frame::AddBreakpoint(const NameString& clsName, const NameString& funcName,
 				UState* state = UObject::Cast<UState>(child);
 				for (UField* stateChild = state->Children; stateChild; stateChild = stateChild->Next)
 				{
-					if (child->Name == funcName && UObject::IsType<UFunction>(child))
+					if (stateChild->Name == funcName && UObject::IsType<UFunction>(stateChild))
 					{
-						UFunction* func = UObject::Cast<UFunction>(child);
+						UFunction* func = UObject::Cast<UFunction>(stateChild);
 						if (statementIndex < 0 || (size_t)statementIndex >= func->Code->Statements.size())
 							return false;
 						bp.Expr = func->Code->Statements[statementIndex];

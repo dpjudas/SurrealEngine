@@ -371,7 +371,7 @@ void USurrealAudioDevice::UpdateMusic()
 			if (CurrentSong->Format == "mp3")
 				source = AudioSource::CreateMp3(CurrentSong->Data);
 			else if (CurrentSong->Format == "ogg" || CurrentSong->Format == "event") // Some ogg files in Unreal 227 have event as format for some reason
-				source = AudioSource::CreateOgg(CurrentSong->Data);
+				source = AudioSource::CreateOgg(CurrentSong->Data, true);
 			else if (CurrentSong->Format == "wav")
 				source = AudioSource::CreateWav(CurrentSong->Data);
 			else
@@ -559,7 +559,7 @@ void USurrealClient::LoadProperties(const NameString& from)
 	if (from == "")
 		name_from = NameString(Class);
 
-	if (engine->LaunchInfo.engineVersion > 219) // This seems to set WindowedViewportX and WindowedViewportY to zero for KHG!!!!
+	if (engine->LaunchInfo.ue1Version > 219) // This seems to set WindowedViewportX and WindowedViewportY to zero for KHG!!!!
 	{
 		StartupFullscreen = IniPropertyConverter<bool>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "StartupFullscreen", StartupFullscreen);
 		WindowedViewportX = IniPropertyConverter<int>::FromIniFile(*engine->packages->GetIniFile("System"), name_from, "WindowedViewportX", WindowedViewportX);
@@ -581,7 +581,7 @@ void USurrealClient::LoadProperties(const NameString& from)
 
 void USurrealClient::SaveConfig()
 {
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		engine->packages->SetIniValue("System", Class, "StartupFullscreen", IniPropertyConverter<bool>::ToString(StartupFullscreen));
 		engine->packages->SetIniValue("System", Class, "WindowedViewportX", IniPropertyConverter<int>::ToString(WindowedViewportX));

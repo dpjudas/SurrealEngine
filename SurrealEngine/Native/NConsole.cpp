@@ -19,7 +19,7 @@ void NConsole::ConsoleCommand(UObject* Self, const std::string& S, BitfieldBool&
 		// XXX: This depends on how Engine.Console.Message is declared
 		// might break for other games
 		Array<ExpressionValue> exprs = {};
-		if (engine->LaunchInfo.engineVersion > 219)
+		if (engine->LaunchInfo.ue1Version > 219)
 			exprs.push_back(ExpressionValue::ObjectValue(nullptr));
 		
 		exprs.push_back(ExpressionValue::StringValue(result));

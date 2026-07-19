@@ -3,6 +3,8 @@
 #include "CallstackCommandlet.h"
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
+#include "VM/Bytecode.h"
+#include "Commandlet/VM/DisassemblyCommandlet.h"
 
 CallstackCommandlet::CallstackCommandlet()
 {
@@ -21,10 +23,15 @@ void CallstackCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		if (func)
 		{
 			std::string name = frame->GetName();
-			if (name.size() < 40)
-				name.resize(40, ' ');
+			console->WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(func->Line) + ResetEscape());
 
-			console->WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(func->Line) + ResetEscape() + NewLine());
+			if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
+			{
+				console->WriteOutput(": ");
+				PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, func->Code->Statements[frame->StatementIndex - 1]);
+			}
+
+			console->WriteOutput(NewLine());
 		}
 		index++;
 	}

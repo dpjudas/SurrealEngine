@@ -20,7 +20,7 @@ void NCanvas::RegisterFunctions()
 	RegisterVMNativeFunc_2("Canvas", "DrawTextClipped", &NCanvas::DrawTextClipped, 469);
 	RegisterVMNativeFunc_7("Canvas", "DrawTile", &NCanvas::DrawTile, 466);
 	RegisterVMNativeFunc_7("Canvas", "DrawTileClipped", &NCanvas::DrawTileClipped, 468);
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		RegisterVMNativeFunc_3("Canvas", "DrawActor", &NCanvas::DrawActor, 467);
 		RegisterVMNativeFunc_3("Canvas", "StrLen", &NCanvas::StrLen, 464);
@@ -52,6 +52,11 @@ void NCanvas::RegisterFunctions()
 		RegisterVMNativeFunc_4("Canvas", "AddCustomLightSource", &NCanvas::AddCustomLightSource_U227, 1775);
 		RegisterVMNativeFunc_1("Canvas", "ClearCustomLightSources", &NCanvas::ClearCustomLightSources_U227, 1776);
 		RegisterVMNativeFunc_1("Canvas", "Reset", &NCanvas::Reset_U227, 0);
+	}
+	if (engine->LaunchInfo.IsUnrealTournament_469())
+	{
+		RegisterVMNativeFunc_9("Canvas", "CreateFont", &NCanvas::CreateFont_UT469, 0);
+		RegisterVMNativeFunc_1("Canvas", "GetDesktopDPI", &NCanvas::GetDesktopDPI_UT469, 0);
 	}
 }
 
@@ -369,4 +374,15 @@ void NCanvas::ClearCustomLightSources_U227(UObject* Self)
 void NCanvas::Reset_U227(UObject* Self)
 {
 	LogUnimplemented("Canvas.Reset() [U227]");
+}
+
+void NCanvas::CreateFont_UT469(UObject* Self, uint8_t Font, int Size, bool Bold, bool Italic, bool Underlined, bool DPIScaled, bool Antialiased, UObject*& ReturnValue)
+{
+	LogUnimplemented("Canvas.CreateFont() [UT469]");
+	ReturnValue = nullptr;
+}
+
+void NCanvas::GetDesktopDPI_UT469(UObject* Self, int& ReturnValue)
+{
+	ReturnValue = static_cast<int>(engine->window->GetDpiScale() * 96.0);
 }

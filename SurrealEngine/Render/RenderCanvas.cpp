@@ -51,7 +51,7 @@ void RenderSubsystem::ResetCanvas()
 
 	// Scale the UI so it matches what you saw on a 1024x768 CRT monitor for Unreal and other older games.
 	// Assume 1280x960 for UT and newer.
-	int vertResolution = engine->LaunchInfo.engineVersion < 400 ? 768 : 960;
+	int vertResolution = engine->LaunchInfo.ue1Version < 400 ? 768 : 960;
 	Canvas.uiscale = std::max((height + vertResolution / 2) / vertResolution, 1);
 
 	// The HUD tablet lays out in a smaller virtual space than the derived scale would give, which makes
@@ -85,7 +85,7 @@ void RenderSubsystem::ResetCanvas()
 	int sizeY = (int)(height / (float)Canvas.uiscale);
 	engine->canvas->CurX() = 0.0f;
 	engine->canvas->CurY() = 0.0f;
-	if (engine->LaunchInfo.engineVersion > 219)
+	if (engine->LaunchInfo.ue1Version > 219)
 	{
 		engine->console->FrameX() = (float)sizeX;
 		engine->console->FrameY() = (float)sizeY;
@@ -114,7 +114,7 @@ void RenderSubsystem::RenderOverlays()
 	Device->SetSceneNode(&Canvas.Frame);
 	if (engine->viewport->Actor())
 	{
-		if (engine->LaunchInfo.engineVersion > 219)
+		if (engine->LaunchInfo.ue1Version > 219)
 		{
 			CallEvent(engine->viewport->Actor(), EventName::RenderOverlays, { ExpressionValue::ObjectValue(engine->canvas) });
 		}
