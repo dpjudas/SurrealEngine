@@ -66,14 +66,6 @@ void UObject::Load(ObjectStream* stream)
 		int64_t probeMask = stream->ReadInt64();
 		int32_t latentAction = stream->ReadInt32();
 
-		for (int i = 0; i < 64; i++)
-		{
-			if (((1ULL >> (uint64_t)i) & 1) == 1)
-			{
-				DisableEvent(ToNameString((EventName)i));
-			}
-		}
-
 		int offset = -1;
 		if (func)
 			offset = stream->ReadIndex();
@@ -89,7 +81,15 @@ void UObject::Load(ObjectStream* stream)
 					StateFrame = std::make_shared<Frame>(this, nullptr);
 					StateFrame->SetState(func);
 					StateFrame->StatementIndex = index;
-					StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+					if (latentAction >= 0 && (size_t)latentAction < NativeFunctions::LatentActionByIndex.size())
+					{
+						StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+					}
+					else
+					{
+						LogMessage("UObject::Load encountered out of bounds latent action index");
+						StateFrame->LatentState = LatentRunState::Continue;
+					}
 				}
 				else
 				{
@@ -107,6 +107,14 @@ void UObject::Load(ObjectStream* stream)
 		else if (state)
 		{
 			LogMessage("UObject::Load encountered object with a state object but no function");
+		}
+
+		for (int i = 0; i < 64; i++)
+		{
+			if ((probeMask >> i) & 1)
+			{
+				DisableEvent(ToNameString((EventName)i));
+			}
 		}
 	}
 
@@ -127,13 +135,17 @@ void UObject::Save(PackageStreamWriter* stream)
 {
 	if (AllFlags(Flags, ObjectFlags::HasStack))
 	{
-#if 1
-		stream->WriteIndex(0);
-		stream->WriteIndex(0);
-		stream->WriteInt64(0);
-		stream->WriteInt32(0);
-#else
-		// To do: state and func may not always be the same
+		// func and state: in this engine's VM, a StateFrame can only ever be suspended in
+		// state code. Frame::CallScript runs called UFunctions to completion on their own
+		// stack-local Frame before returning, so a latent wait (Sleep, MoveTo, ...) can only
+		// happen directly in the state's own bytecode. GotoState/GotoLabel always assign
+		// StateFrame->Func a UState*, never a plain UFunction. That means func (raw
+		// StateFrame->Func) and state (StateFrame->Func cast to UState) always point at the
+		// same object here - there is no case, today, where an actor is suspended in a plain
+		// function distinct from its current state. Both are still written/read as separate
+		// fields to match the on-disk format and because Load requires func && state to be
+		// simultaneously non-null to rebuild anything; if that invariant is ever broken by a
+		// future VM change (e.g. nested latent calls), this is the code that needs revisiting.
 		UStruct* func = StateFrame ? StateFrame->Func : nullptr;
 		UState* state = StateFrame ? UObject::TryCast<UState>(StateFrame->Func) : nullptr;
 		int32_t latentAction = 0;
@@ -142,7 +154,7 @@ void UObject::Save(PackageStreamWriter* stream)
 		int64_t probeMask = 0;
 		for (int i = 0; i < 64; i++)
 		{
-			if (IsEventDisabled(ToNameString((EventName)i)))
+			if (IsEventDisabled((EventName)i))
 			{
 				probeMask |= 1ULL << (uint64_t)i;
 			}
@@ -160,7 +172,6 @@ void UObject::Save(PackageStreamWriter* stream)
 		stream->WriteInt32(latentAction);
 		if (func)
 			stream->WriteIndex(offset);
-#endif
 	}
 
 	if (!UObject::TryCast<UClass>(this))
@@ -411,6 +422,13 @@ bool UObject::IsEventEnabled(EventName name) const
 	return it == DisabledEvents.end() || it->second.find(ToNameString(name)) == it->second.end();
 }
 
+bool UObject::IsEventDisabled(EventName name) const
+{
+	NameString stateName = GetStateName();
+	auto it = DisabledEvents.find(stateName);
+	return it != DisabledEvents.end() && it->second.find(ToNameString(name)) != it->second.end();
+}
+
 std::string UObject::PrintProperties()
 {
 	std::string result;
@@ -517,7 +535,18 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		StateFrame->SetState(newState);
 
 	if (newState)
+	{
+		// HasStack is otherwise only ever inherited from whatever the original package's export
+		// table said at load time, never updated at runtime. An actor that starts a level with no
+		// baked-in stack (the common case - most actors sit in their default state until something
+		// triggers them) but enters a real state during play would otherwise never have that state
+		// written by Save() at all, silently losing it on the next save regardless of what state
+		// it's actually in. Mark it here, as early as possible, so any later save's export-table
+		// capture of Flags (which happens before Save() runs, see PackageWriter::GetObjectReference)
+		// sees it.
+		Flags |= ObjectFlags::HasStack;
 		StateFrame->GotoLabel(labelName);
+	}
 
 	if (newState && oldState != newState)
 		CallEvent(this, EventName::BeginState);

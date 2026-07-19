@@ -310,6 +310,7 @@ public:
 
 	bool IsEventEnabled(const NameString& name) const;
 	bool IsEventEnabled(EventName name) const;
+	bool IsEventDisabled(EventName name) const;
 
 	void EnableEvent(const NameString& name)
 	{

@@ -912,7 +912,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, ULodMesh
 void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 {
 	auto pawn = UObject::TryCast<UPawn>(actor);
-	if (!pawn)
+	if (!pawn || !pawn->StateFrame)
 		return;
 
 	vec3 end;

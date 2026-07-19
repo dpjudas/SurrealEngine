@@ -364,6 +364,15 @@ void UActor::SetBase(UActor* newBase, bool sendBaseChangeEvent)
 	}
 }
 
+void UActor::RelinkBasedActor()
+{
+	if (ActorBase() && ActorBase() != Level())
+	{
+		ActorBase()->AddBasedActor(this);
+		ActorBase()->StandingCount() = (uint8_t)std::min<size_t>(ActorBase()->BasedActors.size(), 0xff);
+	}
+}
+
 void UActor::Tick(float elapsed)
 {
 	TickAnimation(elapsed);

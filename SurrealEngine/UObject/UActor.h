@@ -396,6 +396,11 @@ public:
 	void InitBase();
 
 	void SetBase(UActor* newBase, bool sendBaseChangeEvent);
+	// Re-registers this actor into ActorBase()->BasedActors without firing Attach/BaseChange
+	// events. BasedActors is native runtime-only state (never serialized), unlike ActorBase()
+	// itself, so a freshly loaded actor whose ActorBase() property already points at another
+	// actor needs this to make that relationship work in both directions again.
+	void RelinkBasedActor();
 	void SetOwner(UActor* newOwner);
 	virtual void InitActorZone();
 	virtual void UpdateActorZone();
