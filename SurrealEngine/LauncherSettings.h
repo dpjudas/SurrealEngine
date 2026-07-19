@@ -169,6 +169,12 @@ public:
 		// Radius of the hand collider - and of the drawn hand ball - in Unreal units (see VRHands).
 		int HandColliderRadius = 6;
 
+		// Which hand(s) can collect a pickup by touching it (see VRHands::Classify/UpdateContacts).
+		// 0 = off, 1 = off-hand only (not WeaponHand), 2 = both. Both is the default: it's what every VR
+		// game trains the player to expect, and the failure mode it invites (bumping a pickup with the gun
+		// hand mid-fight) is exactly what walking over a pickup already does in the desktop game.
+		int PickupHands = 2;
+
 		// HUD wrist tablet geometry, in centimetres. Width sets the panel size (its height follows the
 		// canvas aspect); ForearmOffset slides it back up the forearm toward the player, WristOffset floats
 		// it off the back of the wrist. See RenderSubsystem::DrawVRHudPlane.

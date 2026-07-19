@@ -65,6 +65,8 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	MenuPointerHand = new Dropdown(container);
 	HandRadiusLabel = new TextLabel(container);
 	HandRadius = new LineEdit(container);
+	PickupHandsLabel = new TextLabel(container);
+	PickupHands = new Dropdown(container);
 	TabletWidthLabel = new TextLabel(container);
 	TabletWidth = new LineEdit(container);
 	TabletForearmOffsetLabel = new TextLabel(container);
@@ -145,6 +147,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	HudHandLabel->SetText("HUD tablet hand");
 	MenuPointerHandLabel->SetText("Menu pointer hand (points the laser, B toggles the menu)");
 	HandRadiusLabel->SetText("Hand collider radius (Unreal units)");
+	PickupHandsLabel->SetText("Hand(s) that can grab pickups by touch");
 	TabletWidthLabel->SetText("HUD tablet width (cm)");
 	TabletForearmOffsetLabel->SetText("HUD tablet offset up the forearm (cm)");
 	TabletWristOffsetLabel->SetText("HUD tablet offset off the wrist (cm)");
@@ -220,6 +223,10 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WeaponHand->AddItem("Left");
 	WeaponHand->AddItem("Right");
 
+	PickupHands->AddItem("Off");
+	PickupHands->AddItem("Off-hand only");
+	PickupHands->AddItem("Both hands");
+
 	TurnModes->AddItem("Snap");
 	TurnModes->AddItem("Smooth");
 	TurnModes->AddItem("Off (mouse only)");
@@ -237,6 +244,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	HudHand->SetSelectedItem((int)settings.VR.HudHand);
 	MenuPointerHand->SetSelectedItem((int)settings.VR.MenuPointerHand);
 	HandRadius->SetTextInt(settings.VR.HandColliderRadius);
+	PickupHands->SetSelectedItem(settings.VR.PickupHands);
 	TabletWidth->SetTextInt(settings.VR.HudTabletWidthCm);
 	TabletForearmOffset->SetTextInt(settings.VR.HudTabletForearmOffsetCm);
 	TabletWristOffset->SetTextInt(settings.VR.HudTabletWristOffsetCm);
@@ -296,6 +304,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	mainLayout->AddLayout(labelledRow(HudHandLabel, HudHand));
 	mainLayout->AddLayout(labelledRow(MenuPointerHandLabel, MenuPointerHand));
 	mainLayout->AddLayout(labelledRow(HandRadiusLabel, HandRadius));
+	mainLayout->AddLayout(labelledRow(PickupHandsLabel, PickupHands));
 	mainLayout->AddLayout(labelledRow(TabletWidthLabel, TabletWidth));
 	mainLayout->AddLayout(labelledRow(TabletForearmOffsetLabel, TabletForearmOffset));
 	mainLayout->AddLayout(labelledRow(TabletWristOffsetLabel, TabletWristOffset));
@@ -427,6 +436,7 @@ void VRSettingsPage::Save()
 	int handRadius = HandRadius->GetTextInt();
 	if (handRadius > 0)
 		settings.VR.HandColliderRadius = handRadius;
+	settings.VR.PickupHands = PickupHands->GetSelectedItem();
 	int tabletWidth = TabletWidth->GetTextInt();
 	if (tabletWidth > 0)
 		settings.VR.HudTabletWidthCm = tabletWidth;
@@ -485,6 +495,7 @@ void VRSettingsPage::OnResetButtonClicked()
 	HudHand->SetSelectedItem((int)VRHand::Left);
 	MenuPointerHand->SetSelectedItem((int)VRHand::Right);
 	HandRadius->SetTextInt(6);
+	PickupHands->SetSelectedItem(2);
 	TabletWidth->SetTextInt(18);
 	TabletForearmOffset->SetTextInt(18);
 	TabletWristOffset->SetTextInt(4);

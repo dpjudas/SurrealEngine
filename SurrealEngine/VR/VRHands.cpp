@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "VRHands.h"
 #include "VRPlayerInput.h"
+#include "VRWheel.h"
 #include "Engine.h"
 #include "UObject/UActor.h"
 #include "UObject/ULevel.h"
@@ -31,6 +32,24 @@ namespace
 		}
 		return false;
 	}
+
+	// Whether this hand is allowed to grab pickups right now: the launcher setting (VR.PickupHands: 0 =
+	// off, 1 = off-hand only, 2 = both) and, separately, whether a wheel is currently open on this hand -
+	// reaching across the wheel disc to a weapon entry must not also grab whatever the physical hand
+	// happens to be resting inside.
+	bool PickupHandEnabled(int hand)
+	{
+		if (engine->vrWheel && engine->vrWheel->IsOpen() && engine->vrWheel->GetHand() == hand)
+			return false;
+
+		int mode = LauncherSettings::Get().VR.PickupHands;
+		if (mode == 2)
+			return true;
+		if (mode == 0)
+			return false;
+		// mode == 1: off-hand only, i.e. not the configured weapon hand.
+		return hand != VRPlayerInput::WeaponHandIndex();
+	}
 }
 
 void VRHands::Reset()
@@ -43,16 +62,40 @@ void VRHands::Reset()
 	}
 }
 
-bool VRHands::IsTriggerLike(UActor* actor)
+HandTarget VRHands::Classify(UActor* actor)
 {
 	// "Triggers" is the base class of Trigger and its variants, not Trigger itself - what maps actually
 	// place all descends from it.
 	//
-	// Deliberately not "anything touchable": the hands exist to work the world's switches, and widening
-	// this to every actor with a Touch handler would hand the player things they never asked for. A
-	// Teleporter teleports whoever touches it, so brushing one with a fingertip would rip the player
-	// across the map.
-	return actor->IsA("Triggers");
+	// Deliberately a whitelist, not "anything touchable": the hands exist to work the world's switches and
+	// collect its pickups, and widening this to every actor with a Touch handler would hand the player
+	// things they never asked for. A Teleporter teleports whoever touches it, so brushing one with a
+	// fingertip would rip the player across the map.
+	if (actor->IsA("Triggers"))
+		return HandTarget::Trigger;
+
+	// Inventory is the exact class that owns pickup behaviour (Pickup, Weapon, Ammo, Armor, ... all
+	// descend from it), and Owner() == nullptr is the "lying in the world, not in somebody's pockets"
+	// test - an item a pawn is carrying has its owner set and its collision off (see BecomeItem), so this
+	// is belt-and-braces, but it is the cheap guard that stops a hand from stripping a weapon out of a
+	// monster mid-fight if any game ever leaves a held item collidable. Deliberately not also filtering on
+	// bHidden(): a hidden-but-collidable Inventory is a sleeping respawner (State Sleeping), and its
+	// `ignores Touch` (decompile-verified, both games) makes a hand's Touch there an inert no-op anyway -
+	// see the phase 7 step-0 notes in the research notes.
+	if (actor->IsA("Inventory") && actor->Owner() == nullptr)
+		return HandTarget::Pickup;
+
+	return HandTarget::None;
+}
+
+void VRHands::SnapshotInventory(UPlayerPawn* pawn, UInventory*& head, int& count)
+{
+	// Cheap fingerprint of the pawn's inventory chain: head pointer + length, capped so a corrupted or
+	// cyclic chain can't hang the frame.
+	head = pawn->Inventory();
+	count = 0;
+	for (UInventory* inv = head; inv && count < 256; inv = inv->Inventory())
+		count++;
 }
 
 bool VRHands::IsBodyTouching(UPlayerPawn* pawn, UActor* actor)
@@ -96,10 +139,11 @@ void VRHands::Tick()
 
 	UpdatePoses(vr);
 
-	// UpdateTriggerContacts/BumpMovers dispatch Touch/UnTouch/Bump into game script, which can run
-	// anything at all - including destroying the player pawn (a damage trigger, a scripted death). This
-	// runs from Engine::Run outside the level tick, so nothing else is holding our reference to the pawn
-	// alive across those calls; root it for the duration so a dispatched event can't free it under us.
+	// UpdateContacts/BumpMovers dispatch Touch/UnTouch/Bump into game script, which can run anything at
+	// all - including destroying the player pawn (a damage trigger, a scripted death, a booby-trapped
+	// pickup). This runs from Engine::Run outside the level tick, so nothing else is holding our reference
+	// to the pawn alive across those calls; root it for the duration so a dispatched event can't free it
+	// under us.
 	GCRoot<UPlayerPawn> pawnRoot(pawn);
 
 	for (int hand = 0; hand < VRSubsystem::HandCount; hand++)
@@ -109,7 +153,7 @@ void VRHands::Tick()
 		if (pawn->bDeleteMe() || !pawn->XLevel())
 			break;
 
-		UpdateTriggerContacts(hand, pawn);
+		UpdateContacts(hand, pawn);
 		BumpMovers(hand, pawn);
 
 		if (Hands[hand].Valid)
@@ -176,7 +220,7 @@ void VRHands::UpdatePoses(VRSubsystem* vr)
 	}
 }
 
-void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
+void VRHands::UpdateContacts(int hand, UPlayerPawn* pawn)
 {
 	Array<Contact>& contacts = Contacts[hand];
 
@@ -190,24 +234,40 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 	}
 
 	// A ball, expressed as the cylinder query the collision system offers: equal height and radius.
-	Array<UActor*> overlapping;
+	bool pickupsEnabled = PickupHandEnabled(hand);
+	struct Overlap { UActor* Actor; HandTarget Kind; };
+	Array<Overlap> overlapping;
 	const HandPose& pose = Hands[hand];
 	if (pose.Valid)
 	{
 		for (UActor* actor : pawn->XLevel()->Collision.CollidingActors(pose.Position, HandRadius(), HandRadius()))
 		{
-			if (actor == pawn || actor->bDeleteMe() || !actor->bCollideActors() || !IsTriggerLike(actor))
+			if (actor == pawn || actor->bDeleteMe() || !actor->bCollideActors())
 				continue;
-			overlapping.push_back(actor);
+			HandTarget kind = Classify(actor);
+			if (kind == HandTarget::None || (kind == HandTarget::Pickup && !pickupsEnabled))
+				continue;
+			overlapping.push_back({ actor, kind });
 		}
 	}
 
-	// Leaving: anything we were inside and no longer are.
+	auto findOverlap = [&overlapping](UActor* actor) -> const Overlap*
+	{
+		for (const Overlap& o : overlapping)
+		{
+			if (o.Actor == actor)
+				return &o;
+		}
+		return nullptr;
+	};
+
+	// Leaving: anything we were inside and no longer are. Symmetric across kinds: the body sends UnTouch
+	// when it steps off a pickup too, and a pickup state that does not implement UnTouch simply ignores it.
 	for (size_t i = contacts.size(); i > 0; i--)
 	{
 		Contact& contact = contacts[i - 1];
 		UActor* actor = contact.Actor.get();
-		if (Contains(overlapping, actor))
+		if (findOverlap(actor))
 			continue;
 
 		// Unless the player then walked into what their hand was already in, in which case the body has
@@ -222,24 +282,27 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 	}
 
 	// Entering. Recorded first and dispatched second, so a script reacting to one of these events cannot
-	// resize the array the rest of them are still being read out of.
+	// resize the array the rest of them are still being read out of. Pickup script does more work than
+	// trigger script (spawns, weapon switch, HUD messages), so this ordering and the bDeleteMe bails below
+	// are load-bearing here in a way they were not for triggers.
 	size_t firstNew = contacts.size();
-	for (UActor* actor : overlapping)
+	for (const Overlap& o : overlapping)
 	{
 		bool known = false;
 		for (size_t i = 0; i < contacts.size(); i++)
-			known = known || contacts[i].Actor.get() == actor;
+			known = known || contacts[i].Actor.get() == o.Actor;
 		if (known)
 			continue;
 
 		// Leave anything the player's own body is already inside to the body: the engine has registered
 		// that touch and fired it, and a second one from the hand would fire every trigger the player
 		// stands in twice.
-		if (IsBodyTouching(pawn, actor))
+		if (IsBodyTouching(pawn, o.Actor))
 			continue;
 
 		Contact contact;
-		contact.Actor.set(actor);
+		contact.Actor.set(o.Actor);
+		contact.Kind = o.Kind;
 		contacts.push_back(std::move(contact));
 	}
 
@@ -253,7 +316,59 @@ void VRHands::UpdateTriggerContacts(int hand, UPlayerPawn* pawn)
 		// An earlier event in this same batch may have destroyed this one.
 		if (actor->bDeleteMe())
 			continue;
-		CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(pawn) });
+
+		if (contacts[i].Kind == HandTarget::Pickup)
+		{
+			// The hand can be on the far side of a thin wall the body cannot reach through.
+			// Inventory.Pickup.ValidTouch does no trace of its own (decompile-verified, both games - see
+			// the phase 7 step-0 notes), so this is the only place a wall gets checked. Traced from the
+			// pawn, not the hand: the pawn is who is being credited with the touch, and it is the same
+			// reference point the script's own reach/PickupQuery checks use. Triggers keep the no-trace
+			// behaviour - reaching a hand into a trigger volume through its own boundary is the point of
+			// them.
+			CollisionHitList hits = pawn->XLevel()->Collision.Trace(pawn->Location(), actor->Location(), 0.0f, 0.0f, false, true, false);
+			bool wallInTheWay = false;
+			for (const auto& hit : hits)
+			{
+				if (hit.Actor == nullptr)
+				{
+					wallInTheWay = true;
+					break;
+				}
+			}
+			if (wallInTheWay)
+				continue;
+
+			// There is no return value from CallEvent to read, so a successful grab is inferred from
+			// observable state either side of the dispatch: the pawn's inventory chain fingerprint changed
+			// (a weapon or item was added - SpawnCopy), the pickup consumed itself (bDeleteMe - ammo/health
+			// merged into an existing object), or it went uncollidable/hidden (entered Sleeping/respawn).
+			// Everything else about a failed touch (full health, PickupQuery refused it) stays silent - the
+			// contact is recorded regardless, so a refused item does not re-fire every frame while the hand
+			// rests inside it.
+			UInventory* headBefore;
+			int countBefore;
+			SnapshotInventory(pawn, headBefore, countBefore);
+			bool wasCollidable = actor->bCollideActors();
+			bool wasHidden = actor->bHidden();
+
+			CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(pawn) });
+
+			if (!pawn->bDeleteMe())
+			{
+				UInventory* headAfter;
+				int countAfter;
+				SnapshotInventory(pawn, headAfter, countAfter);
+				bool grabbed = headAfter != headBefore || countAfter != countBefore || actor->bDeleteMe()
+					|| actor->bCollideActors() != wasCollidable || actor->bHidden() != wasHidden;
+				if (grabbed && engine->vr)
+					engine->vr->Haptic(hand, 0.7f); // a grab is a firmer event than a wheel tick's 0.5f
+			}
+		}
+		else
+		{
+			CallEvent(actor, EventName::Touch, { ExpressionValue::ObjectValue(pawn) });
+		}
 	}
 }
 

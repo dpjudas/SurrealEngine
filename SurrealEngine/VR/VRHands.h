@@ -7,6 +7,10 @@
 
 class UActor;
 class UPlayerPawn;
+class UInventory;
+
+// What a hand is allowed to do to an actor it overlaps.
+enum class HandTarget { None, Trigger, Pickup };
 
 // Gives the motion controllers a physical presence in the world: a ball collider on each hand that
 // fires the same Touch/UnTouch/Bump events at Triggers and Movers the player's own body would, so
@@ -76,17 +80,24 @@ private:
 		// inside it (any bTriggerOnceOnly one) and dispatching UnTouch into freed memory would be a
 		// crash. Rooting keeps it alive until we notice bDeleteMe and let go.
 		GCRoot<UActor> Actor;
+		HandTarget Kind = HandTarget::None;
 	};
 
 	void UpdatePoses(VRSubsystem* vr);
-	// Triggers: overlap the hand against them where it is now, and pair Touch with UnTouch.
-	void UpdateTriggerContacts(int hand, UPlayerPawn* pawn);
+	// Overlap the hand against Triggers/Inventory actors where it is now, and pair Touch with UnTouch.
+	void UpdateContacts(int hand, UPlayerPawn* pawn);
 	// Movers: sweep the hand along where it travelled since last frame, and bump what it ran into. A
 	// separate path because a mover is a brush, which the overlap test refuses to answer for.
 	void BumpMovers(int hand, UPlayerPawn* pawn);
 
-	// Whether a hand should interact with this actor at all.
-	static bool IsTriggerLike(UActor* actor);
+	// What a hand is allowed to do to an actor it overlaps. Deliberately a whitelist: widening this to
+	// "anything touchable" would hand the player things they never asked for. A Teleporter teleports
+	// whoever touches it, so brushing one with a fingertip would rip the player across the map.
+	static HandTarget Classify(UActor* actor);
+	// True if a successful grab should buzz the hand: the pawn's inventory chain fingerprint changed
+	// (a weapon/item was added), or the pickup consumed itself (bDeleteMe), or it went uncollidable or
+	// hidden (entered Sleeping/respawn). Snapshot before dispatch, compare after.
+	static void SnapshotInventory(UPlayerPawn* pawn, UInventory*& head, int& count);
 	// Whether the player's own cylinder is already inside this actor, in which case the body owns the
 	// touch and the hand must keep out of it or every trigger the player stands in fires twice.
 	static bool IsBodyTouching(UPlayerPawn* pawn, UActor* actor);

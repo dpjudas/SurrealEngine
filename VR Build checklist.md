@@ -174,18 +174,22 @@ New `VRWheel` class (`VR/VRWheel.h/.cpp`), a peer of `VRHands` owned by `Engine`
 
 ---
 
-## Phase 7 — Touch to pick up items
+## Phase 7 — Touch to pick up items — **DONE (hardware-tested)**
 
 Today an item is only collected by walking the pawn over it — the pickup is driven by the pawn's own collision cylinder in script (`Touch`/`Bump`). In VR you should also be able to reach out and grab a floating item by touching it with a controller, the way you touch a mover or trigger already does (see the hand colliders from commit `e7f7b09d`).
 
 The hand-collider path that fires movers and triggers is the model: it already overlaps world actors against the controller pose each frame. Item pickup is the same query pointed at `Inventory` actors — when a hand overlaps one, drive the same collection the walk-over path uses.
 
-**Reachable from C++?** Pickup runs through the item's script `Touch`, so the engine-side move is to feed the hand as the toucher rather than to reimplement collection. Needs checking against the mover/trigger collider: whether that path can deliver a `Touch` to an arbitrary overlapped actor, or only to the ones it currently handles.
+Full design in `VR Build phase 7 plan.md`; step-0 script decompile findings in the research notes.
 
-- [ ] Extend the hand collider (from `e7f7b09d`) to also test against `Inventory` actors, not just movers/triggers
-- [ ] On overlap, drive the item's collection the same way walking over it does (its script `Touch`), rather than reimplementing pickup
-- [ ] Haptic tick on a successful grab (reuse phase 1 `Haptic`)
-- [ ] Decide which hand(s) can grab — either, or only the off-hand so it doesn't conflict with the weapon hand
+- [x] Extend the hand collider (from `e7f7b09d`) to also test against `Inventory` actors, not just movers/triggers — `IsTriggerLike` replaced with `VRHands::Classify` (`HandTarget::{None,Trigger,Pickup}`), whitelisting `Inventory` actors with no `Owner()` (not carried by anyone)
+- [x] On overlap, drive the item's collection the same way walking over it does (its script `Touch`), rather than reimplementing pickup — `UpdateTriggerContacts` renamed to `UpdateContacts`, dispatches `Touch`/`UnTouch` for both kinds symmetrically
+- [x] Haptic tick on a successful grab (reuse phase 1 `Haptic`) — inferred from inventory-chain fingerprint change / `bDeleteMe` / collidable-or-hidden transition either side of the dispatch, since `CallEvent` has no return value to read
+- [x] Decide which hand(s) can grab — launcher setting `VR.PickupHands` (0/1/2 = off/off-hand-only/both), default both
+- [x] Wall guard — `Inventory.Pickup.ValidTouch` does no trace of its own (decompile-verified, both games), so added a pawn→actor world trace before dispatching a `Pickup` touch
+- [x] Gating — `Pickup` classification (not `Trigger`) skipped on a hand while a wheel is open on it (`engine->vrWheel`)
+
+**Verified without a physical grab (automated, headset attached, SteamVR + Index live this session):** build succeeds; desktop mode (`VR.Enabled=false`) starts and runs cleanly under `gdb` for 45s; with `VR.Enabled=true`, both Unreal Gold (Vortex Rikers start) and UT99 GOTY ran the full VR session pipeline (SteamVR → Vulkan swapchains → `xrEndFrame` loop confirmed in the log) for 45s under `gdb` with no crash and no error/exception output, meaning `VRHands::Tick`'s widened `Classify`/overlap query executed every frame against a live level's actor set (including nearby pickups) without incident. **Hardware-tested and confirmed working end-to-end** (2026-07-19, user report: "tested everything, it works flawlessly") — the full test plan in the phase 7 plan doc (items 2-6): hand-touch pickups on both games, one-shot pickup message/haptic (no per-frame re-fire), wheel-open gating, and the wall guard all confirmed in-headset. No issues found, nothing added to the Bugtracker for this phase.
 
 ---
 

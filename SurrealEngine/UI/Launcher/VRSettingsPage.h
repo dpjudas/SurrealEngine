@@ -66,6 +66,8 @@ private:
 	Dropdown* MenuPointerHand = nullptr;
 	TextLabel* HandRadiusLabel = nullptr;
 	LineEdit* HandRadius = nullptr;
+	TextLabel* PickupHandsLabel = nullptr;
+	Dropdown* PickupHands = nullptr;
 	TextLabel* TabletWidthLabel = nullptr;
 	LineEdit* TabletWidth = nullptr;
 	TextLabel* TabletForearmOffsetLabel = nullptr;

@@ -211,6 +211,8 @@ LauncherSettings::LauncherSettings()
 		int vrHandRadius = settings["VR"]["HandColliderRadius"].to_int();
 		if (vrHandRadius > 0)
 			VR.HandColliderRadius = vrHandRadius;
+		if (vrProps.find("PickupHands") != vrProps.end())
+			VR.PickupHands = std::clamp(settings["VR"]["PickupHands"].to_int(), 0, 2);
 		int vrTabletWidth = settings["VR"]["HudTabletWidthCm"].to_int();
 		if (vrTabletWidth > 0)
 			VR.HudTabletWidthCm = vrTabletWidth;
@@ -370,6 +372,7 @@ void LauncherSettings::Save()
 	vr["ItemScalePercent"] = JsonValue::number(VR.ItemScalePercent);
 
 	vr["HandColliderRadius"] = JsonValue::number(VR.HandColliderRadius);
+	vr["PickupHands"] = JsonValue::number(VR.PickupHands);
 	vr["HudTabletWidthCm"] = JsonValue::number(VR.HudTabletWidthCm);
 	vr["HudTabletForearmOffsetCm"] = JsonValue::number(VR.HudTabletForearmOffsetCm);
 	vr["HudTabletWristOffsetCm"] = JsonValue::number(VR.HudTabletWristOffsetCm);
