@@ -96,6 +96,8 @@ private:
 	LineEdit* WheelDeadzone = nullptr;
 	TextLabel* WheelEntryScaleLabel = nullptr;
 	LineEdit* WheelEntryScale = nullptr;
+	TextLabel* WheelIconScaleLabel = nullptr;
+	LineEdit* WheelIconScale = nullptr;
 
 	TextLabel* ItemLabel = nullptr;
 	TextLabel* ItemPositionOffsetLabel = nullptr;

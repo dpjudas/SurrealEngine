@@ -184,6 +184,10 @@ LauncherSettings::LauncherSettings()
 			VR.WheelSelectDeadzoneCm = vrWheelDeadzone;
 		if (vrProps.find("WheelEntryScalePercent") != vrProps.end())
 			VR.WheelEntryScalePercent = settings["VR"]["WheelEntryScalePercent"].to_int();
+		if (vrProps.find("WheelItemScalePercent") != vrProps.end())
+			VR.WheelItemScalePercent = settings["VR"]["WheelItemScalePercent"].to_int();
+		if (vrProps.find("WheelIconScalePercent") != vrProps.end())
+			VR.WheelIconScalePercent = settings["VR"]["WheelIconScalePercent"].to_int();
 
 		// Item placement offsets: 0 is a meaningful value (item on the raw hand pose), same reasoning as
 		// the weapon offsets above.
@@ -354,6 +358,8 @@ void LauncherSettings::Save()
 	vr["WheelRadiusCm"] = JsonValue::number(VR.WheelRadiusCm);
 	vr["WheelSelectDeadzoneCm"] = JsonValue::number(VR.WheelSelectDeadzoneCm);
 	vr["WheelEntryScalePercent"] = JsonValue::number(VR.WheelEntryScalePercent);
+	vr["WheelItemScalePercent"] = JsonValue::number(VR.WheelItemScalePercent);
+	vr["WheelIconScalePercent"] = JsonValue::number(VR.WheelIconScalePercent);
 
 	vr["ItemForwardOffsetCm"] = JsonValue::number(VR.ItemForwardOffsetCm);
 	vr["ItemRightOffsetCm"] = JsonValue::number(VR.ItemRightOffsetCm);

@@ -93,6 +93,8 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WheelDeadzone = new LineEdit(container);
 	WheelEntryScaleLabel = new TextLabel(container);
 	WheelEntryScale = new LineEdit(container);
+	WheelIconScaleLabel = new TextLabel(container);
+	WheelIconScale = new LineEdit(container);
 
 	ItemLabel = new TextLabel(container);
 	ItemPositionOffsetLabel = new TextLabel(container);
@@ -156,7 +158,8 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WheelLabel->SetText("Weapon/item wheel (hold A on a hand to open):");
 	WheelRadiusLabel->SetText("Wheel radius (cm)");
 	WheelDeadzoneLabel->SetText("Wheel select deadzone (cm of hand travel before a slot is chosen)");
-	WheelEntryScaleLabel->SetText("Wheel entry scale (% of the mesh's own size / icon reference size)");
+	WheelEntryScaleLabel->SetText("Wheel weapon scale (% of the pickup mesh's own size)");
+	WheelIconScaleLabel->SetText("Wheel item icon scale (% of a fixed reference size)");
 
 	ItemLabel->SetText("Active item on the off hand:");
 	ItemPositionOffsetLabel->SetText("Position offset forward / right / up (cm)");
@@ -189,6 +192,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WheelRadius->SetIntrinsicSize(3);
 	WheelDeadzone->SetIntrinsicSize(3);
 	WheelEntryScale->SetIntrinsicSize(3);
+	WheelIconScale->SetIntrinsicSize(3);
 	ItemForwardOffset->SetIntrinsicSize(3);
 	ItemRightOffset->SetIntrinsicSize(3);
 	ItemUpOffset->SetIntrinsicSize(3);
@@ -247,6 +251,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	WheelRadius->SetTextInt(settings.VR.WheelRadiusCm);
 	WheelDeadzone->SetTextInt(settings.VR.WheelSelectDeadzoneCm);
 	WheelEntryScale->SetTextInt(settings.VR.WheelEntryScalePercent);
+	WheelIconScale->SetTextInt(settings.VR.WheelIconScalePercent);
 	ItemForwardOffset->SetTextInt(settings.VR.ItemForwardOffsetCm);
 	ItemRightOffset->SetTextInt(settings.VR.ItemRightOffsetCm);
 	ItemUpOffset->SetTextInt(settings.VR.ItemUpOffsetCm);
@@ -319,6 +324,7 @@ VRSettingsPage::VRSettingsPage(Widget* parent)
 	mainLayout->AddLayout(labelledRow(WheelRadiusLabel, WheelRadius));
 	mainLayout->AddLayout(labelledRow(WheelDeadzoneLabel, WheelDeadzone));
 	mainLayout->AddLayout(labelledRow(WheelEntryScaleLabel, WheelEntryScale));
+	mainLayout->AddLayout(labelledRow(WheelIconScaleLabel, WheelIconScale));
 
 	mainLayout->AddWidget(ItemLabel);
 	auto itemPositionRow = new HBoxLayout();
@@ -448,6 +454,7 @@ void VRSettingsPage::Save()
 	if (wheelDeadzone > 0)
 		settings.VR.WheelSelectDeadzoneCm = wheelDeadzone;
 	settings.VR.WheelEntryScalePercent = WheelEntryScale->GetTextInt();
+	settings.VR.WheelIconScalePercent = WheelIconScale->GetTextInt();
 
 	// Every item offset is legitimately zero and any of them can be negative, same as the weapon ones.
 	settings.VR.ItemForwardOffsetCm = ItemForwardOffset->GetTextInt();
@@ -491,7 +498,8 @@ void VRSettingsPage::OnResetButtonClicked()
 	WeaponScale->SetTextInt(500);
 	WheelRadius->SetTextInt(20);
 	WheelDeadzone->SetTextInt(4);
-	WheelEntryScale->SetTextInt(500);
+	WheelEntryScale->SetTextInt(6); // was left at a stale 500 through several in-headset scale corrections
+	WheelIconScale->SetTextInt(36);
 	ItemForwardOffset->SetTextInt(0);
 	ItemRightOffset->SetTextInt(0);
 	ItemUpOffset->SetTextInt(0);

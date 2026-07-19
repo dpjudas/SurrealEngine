@@ -637,13 +637,26 @@ void RenderSubsystem::DrawVRWheel()
 		vec3 position = wheel.GetCenter() + entries[i].SlotForward * radius;
 		bool isHighlighted = ((int)i == highlighted);
 
+		// Weapons: barrel/long-axis along the wheel's own right (horizontal, perpendicular to the view
+		// direction) with true up as up - a side profile, the readable angle for a gun silhouette. An
+		// earlier attempt pointed "up" at the camera to try to face the viewer, which instead rolled the
+		// model's underside into view; keeping up genuinely vertical and letting the *forward* axis (not
+		// up) be the one perpendicular to the camera is what actually produces a side-on view.
+		//
+		// Items: the opposite choice, by request - a top view rather than a side view. Forward runs along
+		// the wheel's up (vertical) and up points at the camera, so the item's own top face is what's
+		// presented to the player instead of its profile.
+		//
+		// Every Inventory-derived pickup carries a PickupViewMesh the same way weapons do (it's how it
+		// looks lying in the world), so items use the identical mesh-drawing path with a different
+		// orientation - only items with no pickup mesh assigned at all fall back to the icon billboard.
+		// Weapons and items also scale off separate knobs (WheelEntryScalePercent/WheelItemScalePercent) -
+		// a non-weapon pickup mesh doesn't necessarily model at the same raw scale a weapon's does,
+		// confirmed in-headset.
 		if (wheel.IsWeaponWheel())
-			// Barrel along the wheel's own right (horizontal, perpendicular to the view direction) with
-			// true up as up - a side profile, the readable angle for a gun silhouette. The previous attempt
-			// pointed "up" at the camera to try to face the viewer, which instead rolled the model's
-			// underside into view; keeping up genuinely vertical and letting the *forward* axis (not up)
-			// be the one perpendicular to the camera is what actually produces a side-on view.
-			DrawWheelEntryMesh(item, position, wheel.GetPlaneRight(), wheel.GetPlaneUp(), isHighlighted);
+			DrawWheelEntryMesh(item, position, wheel.GetPlaneRight(), wheel.GetPlaneUp(), vrSettings.WheelEntryScalePercent, isHighlighted);
+		else if (item->PickupViewMesh())
+			DrawWheelEntryMesh(item, position, wheel.GetPlaneUp(), -wheel.GetPlaneNormal(), vrSettings.WheelItemScalePercent, isHighlighted);
 		else
 			DrawWheelItemIcon(item, position, isHighlighted);
 	}
@@ -653,7 +666,7 @@ void RenderSubsystem::DrawVRWheel()
 	Device->SetSceneNode(&Canvas.Frame);
 }
 
-void RenderSubsystem::DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, bool highlighted)
+void RenderSubsystem::DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, int scalePercent, bool highlighted)
 {
 	// PickupViewMesh, not PlayerViewMesh: the first-person view mesh is modelled tiny and only reads at
 	// the right size welded to the camera (which is why the held-weapon override needs a 500%-ish scale
@@ -663,8 +676,6 @@ void RenderSubsystem::DrawWheelEntryMesh(UInventory* item, const vec3& position,
 	UMesh* viewMesh = item->PickupViewMesh();
 	if (!viewMesh)
 		return; // nothing to draw for this entry (e.g. a weapon with no pickup mesh assigned)
-
-	const auto& vrSettings = LauncherSettings::Get().VR;
 
 	vec3 savedLocation = item->Location();
 	Rotator savedRotation = item->Rotation();
@@ -678,8 +689,10 @@ void RenderSubsystem::DrawWheelEntryMesh(UInventory* item, const vec3& position,
 	item->Location() = position;
 	item->Rotation() = RotatorFromForwardUp(forward, up);
 	// Highlighted entries draw a bit larger on top of the base wheel scale, so which one is about to be
-	// picked reads at a glance even before the highlight ring is noticed.
-	float scale = (vrSettings.WheelEntryScalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
+	// picked reads at a glance even before the highlight ring is noticed. scalePercent is the caller's -
+	// weapons and items tune independently (WheelEntryScalePercent/WheelItemScalePercent), since a
+	// non-weapon pickup mesh doesn't necessarily model at the same raw scale a weapon's does.
+	float scale = (scalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
 	item->DrawScale() = savedDrawScale * scale;
 	item->bHidden() = false;
 
@@ -734,11 +747,13 @@ void RenderSubsystem::DrawWheelItemIcon(UInventory* item, const vec3& position, 
 
 	const auto& vrSettings = LauncherSettings::Get().VR;
 	const float cmToUU = 0.01f * MetersToUnrealUnits;
-	// A fixed physical reference size (an icon reads at a glance, unlike a weapon mesh there is no
-	// "natural" size to start from), scaled by the same wheel-entry knob the weapon meshes use so both
-	// wheels tune together, plus the same highlight bump.
+	// A fixed physical reference size (an icon reads at a glance, unlike a mesh there is no "natural" size
+	// to start from), scaled by its own knob - NOT WheelEntryScalePercent. The two started out sharing one
+	// setting, which meant tuning the weapon meshes down (500%/250%/60%/6%, chasing PickupViewMesh's
+	// oversized modelling) silently collapsed the icons to near-invisible too - confirmed in-headset.
+	// Icons and meshes have unrelated size logic and need to tune independently.
 	const float baseIconHalfHeightUU = 4.0f * cmToUU;
-	float scale = (vrSettings.WheelEntryScalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
+	float scale = (vrSettings.WheelIconScalePercent * 0.01f) * (highlighted ? 1.2f : 1.0f);
 	float halfHeight = baseIconHalfHeightUU * scale;
 	float halfWidth = halfHeight * (texwidth / texheight);
 
@@ -823,7 +838,16 @@ void RenderSubsystem::DrawVRActiveItem()
 
 	const auto& vr = LauncherSettings::Get().VR;
 
+	// Prefer PlayerViewMesh (a genuinely held-in-hand mesh, the rare item that has one) over PickupViewMesh
+	// (how it looks lying in the world - what most items actually carry) over the icon billboard, which is
+	// only reached when an item has no 3D mesh of either kind at all.
 	UMesh* viewMesh = item->PlayerViewMesh();
+	bool usingPickupMesh = false;
+	if (!viewMesh)
+	{
+		viewMesh = item->PickupViewMesh();
+		usingPickupMesh = true;
+	}
 	if (!viewMesh)
 	{
 		// Not every item has a held mesh - fall back to just the icon floating at the hand rather than
@@ -872,7 +896,11 @@ void RenderSubsystem::DrawVRActiveItem()
 	item->Mesh() = viewMesh;
 	item->Location() = position;
 	item->Rotation() = RotatorFromForwardUp(forward, up);
-	item->DrawScale() = savedDrawScale * (vr.ItemScalePercent * 0.01f);
+	// PickupViewMesh needs the wheel's item-mesh knob (WheelItemScalePercent), not ItemScalePercent - the
+	// same reason wheel weapons and wheel items don't share a scale either. ItemScalePercent stays for the
+	// (rare) PlayerViewMesh case, which is the mesh convention it was actually calibrated against.
+	float itemScalePercent = usingPickupMesh ? vr.WheelItemScalePercent : vr.ItemScalePercent;
+	item->DrawScale() = savedDrawScale * (itemScalePercent * 0.01f);
 	item->bHidden() = false;
 
 	Device->SetSceneNode(&MainFrame.Frame);

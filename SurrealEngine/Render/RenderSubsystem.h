@@ -134,14 +134,15 @@ private:
 	void DrawVRHands();
 
 	// Draws the weapon/item wheel (VR/VRWheel.h) when one is open: each entry laid out around the wheel's
-	// captured centre - weapons as 3D meshes (the phase-4 look), items as camera-facing icon billboards -
-	// plus a highlight ring so "centred = cancel" and "which entry is about to be picked" both read at a
-	// glance. No-op outside a VR eye or when no wheel is open.
+	// captured centre - both weapons and items as 3D PickupViewMesh entries where one exists, camera-facing
+	// icon billboards only as a fallback - plus a highlight ring so "centred = cancel" and "which entry is
+	// about to be picked" both read at a glance. No-op outside a VR eye or when no wheel is open.
 	void DrawVRWheel();
-	// One weapon entry: saves Location/Rotation/DrawScale/Mesh, points Mesh() at PickupViewMesh() (sized
+	// One mesh entry: saves Location/Rotation/DrawScale/Mesh, points Mesh() at PickupViewMesh() (sized
 	// for "lying in the world", not the tiny welded-to-camera PlayerViewMesh), places it at the slot
-	// transform oriented by (forward, up), draws via VisibleMesh into MainFrame, restores.
-	void DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, bool highlighted);
+	// transform oriented by (forward, up) at scalePercent (the caller's - weapons and items tune
+	// independently), draws via VisibleMesh into MainFrame, restores.
+	void DrawWheelEntryMesh(UInventory* item, const vec3& position, const vec3& forward, const vec3& up, int scalePercent, bool highlighted);
 	// One item entry: a camera-facing textured quad at the slot, using the item's Icon() - the same
 	// texture the 2D HUD shows, so it is the representation players already recognise. Reuses the
 	// DrawGouraudPolygon sprite technique VisibleSprite uses for world-space billboards.

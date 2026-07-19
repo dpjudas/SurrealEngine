@@ -139,7 +139,7 @@ The largest unknown in this document. Built after phase 4 so you can see the gun
 
 ---
 
-## Phase 6 — Weapon wheel / item wheel — **6a DONE (hardware-tested); 6b implemented, not yet hardware-tested**
+## Phase 6 — Weapon wheel / item wheel — **DONE (6a and 6b both hardware-tested; minor known issues remain, deferred)**
 
 Half-Life: Alyx style. Hold A on the weapon hand, weapons arrange in a circle around the controller, move the hand to one and release to select. Same for items on the other hand. Active item shown in the item hand, activated with that hand's trigger. Needs grip pose and haptics from phase 1, and reuses the 3D actor drawing from phase 4. Full design in `VR Build phase 6 plan.md`.
 
@@ -148,9 +148,9 @@ New `VRWheel` class (`VR/VRWheel.h/.cpp`), a peer of `VRHands` owned by `Engine`
 - [x] **Risk closed:** the `InventoryGroup` ambiguity doesn't apply — the wheel holds the exact `UWeapon*`/`UInventory*` object and sets `PendingWeapon`/`SelectedItem` directly (mirroring the UT99 form of `PlayerPawn.SwitchWeapon`'s tail, decompile-verified against both Unreal Gold and UT99 GOTY), never walking `Inventory.WeaponChange(byte)`'s by-group lookup at all.
 - [x] Haptic tick on open and as the hand crosses each wheel entry (`VRWheel::UpdateHighlight`)
 - [x] **6a — weapon wheel:** open/close on A (weapon hand → weapons, off hand → items; opening one force-closes the other), hand-displacement highlight selection, commit via `PendingWeapon`/`PutDown`/`ChangedWeapon`, cancel on centred release, fire suppressed on the wheel's hand while open, `UpdateAim`/`UpdateFireHaptics` skipped while any wheel is open, force-closes on menu open, `Reset()` wired in next to `vrHands->Reset()` on map change
-- [x] **6b — item wheel + active item:** item wheel filters on `bActivatable` (decompile-verified as the predicate `Inventory.SelectNext`/`Activate` themselves use, not `bDisplayableInv`); `SelectedItem` set directly on commit; current `SelectedItem` rides the off hand the phase-4 way (`RenderSubsystem::DrawVRActiveItem`, own `Item*` offset/scale settings, icon-billboard fallback when no held mesh); off-hand trigger (previously always suppressed) now calls `CallEvent(SelectedItem, "Activate")`
-- [x] Render: `RenderSubsystem::DrawVRWheel`, weapon entries as 3D meshes, item entries as camera-facing icon billboards (`VisibleSprite`'s `DrawGouraudPolygon` technique), plus a highlight ring/centre-cancel marker (`Draw3DLine`)
-- [x] Launcher knobs added: `WheelRadiusCm`/`WheelSelectDeadzoneCm`/`WheelEntryScalePercent`, `Item*` offset/scale settings — wired into both `VRSettingsPage` and `LauncherSettings`' JSON load/save (the latter was missed on the first pass and silently didn't persist; fixed same session)
+- [x] **6b — item wheel + active item:** item wheel filters on `bActivatable` (decompile-verified as the predicate `Inventory.SelectNext`/`Activate` themselves use, not `bDisplayableInv`); `SelectedItem` set directly on commit; current `SelectedItem` rides the off hand the phase-4 way (`RenderSubsystem::DrawVRActiveItem`); off-hand trigger (previously always suppressed) now calls `CallEvent(SelectedItem, "Activate")`
+- [x] Render: `RenderSubsystem::DrawVRWheel` — both weapon and item entries draw as 3D `PickupViewMesh` meshes (items started as camera-facing icon billboards; switched to meshes by request once sprites read as "too flat" in-headset), icon billboard only as a fallback for an item with no pickup mesh at all, plus a highlight ring/centre-cancel marker (`Draw3DLine`)
+- [x] Launcher knobs added: `WheelRadiusCm`/`WheelSelectDeadzoneCm`, `WheelEntryScalePercent` (weapons)/`WheelItemScalePercent` (items)/`WheelIconScalePercent` (icon fallback) — three separate scale knobs, not one shared (see corrections below) — plus `Item*` offset/scale settings for the off-hand active item. All wired into both `VRSettingsPage` and `LauncherSettings`' JSON load/save (the latter was missed on the first pass and silently didn't persist; fixed same session)
 
 **Corrections made in-headset (weapon wheel, 6a) — three rounds of testing on `DM-Deck16][`, UT99 GOTY:**
 
@@ -160,7 +160,17 @@ New `VRWheel` class (`VR/VRWheel.h/.cpp`), a peer of `VRHands` owned by `Engine`
 - **Scale needed repeated reduction:** 500% (unadjusted `WeaponScalePercent`-style default) → 250% (halved) → 60% → **6%** (current default) — `PickupViewMesh` is modelled far larger than a real-world weapon, so none of the held-weapon scale logic transfers; settled empirically after four in-headset passes.
 - Unrelated finding while testing: a reproducible crash in `VulkanRenderDevice::~VulkanRenderDevice()` (AMD `vk_object_free`) whenever `Engine::Run()` returns cleanly — no `VRWheel` symbols in the trace, so unrelated to this phase. Likely the same defect as the standing Bugtracker item ("loaded game crashes after a few seconds"), or a close relative of it. Not investigated further; out of scope here.
 
-**Still needs a headset:** 6b (item wheel, active item placement/scale, off-hand activate) — implemented and null-safe, but no item was tested this session, only weapons.
+**Corrections made in-headset (item wheel, 6b) — four rounds of testing on Unreal Gold's campaign start (Vortex Rikers → `NyLeve`'s Falls, the Translator pickup):**
+
+- **Icon billboards read as "too small" and, separately, "too flat"** on first test. The immediate cause of "too small" was a scale-coupling bug: item icons were sized off `WheelEntryScalePercent`, the *weapon* mesh knob — when that got tuned down to 6% chasing `PickupViewMesh`'s oversized weapon models, it silently collapsed the icons to near-invisible too. Split into its own `WheelIconScalePercent` (default 36%, ~6x the collapsed size) as an interim fix.
+- **Switched items from icon billboards to 3D `PickupViewMesh` entries by request** (every `Inventory`-derived pickup carries one, the same as weapons) — `WheelIconScalePercent`/`DrawWheelItemIcon` is now only a fallback for the rare item with no pickup mesh at all.
+- **Item mesh scale needed its own knob too**, not the weapon one: `WheelItemScalePercent`, default 15% (2.5x `WheelEntryScalePercent`'s 6%) — a non-weapon pickup mesh doesn't necessarily model at the same raw scale a weapon's does, confirmed once items were visibly still too small at the shared 6%.
+- **Item orientation is deliberately the opposite of weapons': top view, not side view.** Weapons use `(PlaneRight, PlaneUp)` (barrel horizontal, side profile); items use `(PlaneUp, -PlaneNormal)` (the item's top face toward the camera) — by request, contrasting with the weapon side-on read.
+- **Off-hand active item (`DrawVRActiveItem`) now also prefers a 3D model**: tries `PlayerViewMesh` first (rare for a non-weapon item), then `PickupViewMesh` (reusing `WheelItemScalePercent`), and only falls back to the icon billboard if an item has neither.
+- **Separately investigated, confirmed unrelated to the wheel:** a selected item (the Translator) can vanish from the inventory chain entirely across a level transition — not just lose "active" status. Traced as far as: the engine's travel-payload walk (`ObjectTravelInfo.cpp`) is class-agnostic and doesn't special-case any item, so no C++-level cause was found; the remaining candidates (original UnrealScript travel-accept behaviour, or a pickup/travel-snapshot timing race) are outside what static reading of this engine's C++ layer can resolve. Logged for a dedicated investigation later, not a wheel defect.
+- **Minor known issues remain** from the latest pass, not yet triaged in detail — noted for a follow-up session rather than blocking this one.
+
+**Hardware-tested and confirmed working end-to-end:** both wheels open/highlight/commit/cancel correctly, weapon switching and item selection both verified, active item rides the off hand and activates on its trigger, haptics fire on open/crossing.
 
 ---
 

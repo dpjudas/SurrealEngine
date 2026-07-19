@@ -138,6 +138,16 @@ public:
 		int WheelRadiusCm = 20;
 		int WheelSelectDeadzoneCm = 4;
 		int WheelEntryScalePercent = 6;
+		// Item-wheel PickupViewMesh entries scale off their own knob, not WheelEntryScalePercent above -
+		// the two shared one setting at first, and a non-weapon pickup's mesh doesn't necessarily model at
+		// the same raw scale a weapon's does (in-headset finding: 6% read right for weapons but still too
+		// small for items). 15% (2.5x that shared value) is the corrected default; see DrawWheelEntryMesh's
+		// caller in DrawVRWheel, and DrawVRActiveItem's PickupViewMesh fallback, which reuses it too.
+		int WheelItemScalePercent = 15;
+		// Item-wheel icon billboards (only entries with no PickupViewMesh at all fall back to these) scale
+		// off yet another knob - a fixed-cm-reference billboard and a DrawScale-multiplied mesh have
+		// unrelated size logic and can't share one setting either. See DrawWheelItemIcon.
+		int WheelIconScalePercent = 36;
 
 		// Active item (the off hand's SelectedItem, set via the item wheel) rides the off hand the way the
 		// weapon rides the weapon hand - same offset/scale knobs, its own copy since the item and weapon
