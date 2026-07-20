@@ -509,107 +509,115 @@ void UActor::TickPhysics(float elapsed)
 }
 
 // WP-3 diagnostic, SE_DEBUG_STUCK=1. See the call site in Tick. Temporary.
-void UActor::StuckDiagnostic(const vec3& startLocation, float elapsed, int mode, int& stuckFrames, int& modeChanges)
+//
+// Tuned for sustained slowness rather than a dead stop: the reported symptom is "incredibly slow for
+// some time", which a stop-detector never sees. It also drops a position breadcrumb roughly twice a
+// second, so quitting the game on the bad spot leaves its coordinates as the last lines of the log -
+// which matters because this build segfaults on exit (BUG-044) and an exit handler would not run.
+void UActor::StuckDiagnostic(const vec3& startLocation, float elapsed, int mode, int& slowFrames, int& modeChanges)
 {
 	UPawn* pawn = UObject::TryCast<UPawn>(this);
 	if (!pawn || elapsed <= 0.0f)
 		return;
 
-	// "Trying to move" has to mean the player is actively pressing a direction. Testing velocity
-	// instead makes every conveyor and every drifting residual look like an attempt to move, and on a
-	// map built from conveyors that noise buries the event being hunted.
 	vec3 inputAccel = Acceleration();
 	inputAccel.z = 0.0f;
-	if (dot(inputAccel, inputAccel) <= 1.0f)
-	{
-		if (stuckFrames >= 3)
-		{
-			fprintf(stderr, "[stuck] released after %d frame(s) (input stopped)\n", stuckFrames);
-			fflush(stderr);
-		}
-		stuckFrames = 0;
-		modeChanges = 0;
-		return;
-	}
+	float inputLen = length(inputAccel);
 
 	float expected = pawn->GroundSpeed() * elapsed;
 	if (expected <= 0.0f)
 		return;
 
-	// Measured in all three axes deliberately. Judging a fall by horizontal progress alone reports a
-	// pawn dropping straight down as unable to move; a pawn that is genuinely pinned has nowhere to go
-	// on any axis, so nothing real is lost by counting vertical travel as movement.
 	vec3 moved = Location() - startLocation;
+	float ratio = length(moved) / expected;
 
-	if (length(moved) < 0.25f * expected)
+	static float breadcrumbTimer = 0.0f;
+	breadcrumbTimer += elapsed;
+	if (breadcrumbTimer >= 0.5f)
 	{
-		stuckFrames++;
-		if (stuckFrames == 3 || stuckFrames == 8)
+		breadcrumbTimer = 0.0f;
+		vec3 loc = Location();
+		fprintf(stderr, "[pos] (%.0f, %.0f, %.0f) phys=%d ratio %.2f speed %.0f input %.0f\n",
+			loc.x, loc.y, loc.z, mode, ratio, length(Velocity()), inputLen);
+		fflush(stderr);
+	}
+
+	if (inputLen <= 1.0f) // not asking to move, so slowness means nothing
+	{
+		if (slowFrames >= 15)
 		{
-			vec3 loc = Location();
-			fprintf(stderr, "[stuck] blocked %d frame(s) at (%.0f, %.0f, %.0f) phys=%d\n",
-				stuckFrames, loc.x, loc.y, loc.z, mode);
+			fprintf(stderr, "[slow] ended after %d frame(s) (input released)\n", slowFrames);
 			fflush(stderr);
 		}
-		if (stuckFrames == 20)
+		slowFrames = 0;
+		modeChanges = 0;
+		return;
+	}
+
+	// 0.6 of the speed the input asked for. Set from the measured idle baseline rather than guessed:
+	// normal unobstructed movement sits near 1.0, so this catches "half speed" without firing on the
+	// ordinary friction of turning and brushing past corners.
+	if (ratio < 0.6f)
+	{
+		slowFrames++;
+
+		// Report on entry and then periodically, so a long slow stretch gives several samples along it
+		// rather than one at the moment it started.
+		if (slowFrames == 15 || (slowFrames > 15 && slowFrames % 60 == 0))
 		{
 			vec3 loc = Location();
 			UActor* base = ActorBase();
-			fprintf(stderr, "[stuck] PINNED at (%.0f, %.0f, %.0f) phys=%d modeChanges=%d base=%s vel (%.1f, %.1f, %.1f)\n",
-				loc.x, loc.y, loc.z, mode, modeChanges,
+			fprintf(stderr, "[slow] %d frame(s) at (%.0f, %.0f, %.0f) ratio %.2f phys=%d modeChanges=%d base=%s vel (%.1f, %.1f, %.1f) input (%.0f, %.0f)\n",
+				slowFrames, loc.x, loc.y, loc.z, ratio, mode, modeChanges,
 				base ? base->Class->Name.ToString().c_str() : "<none>",
-				Velocity().x, Velocity().y, Velocity().z);
+				Velocity().x, Velocity().y, Velocity().z, inputAccel.x, inputAccel.y);
 
 			for (int i = 0; i < 8; i++)
 			{
 				float angle = i * (3.14159265f / 4.0f);
 				vec3 dir(std::cos(angle), std::sin(angle), 0.0f);
 				CollisionHit probe = TryMove(dir * 24.0f, true);
+				if (probe.Fraction >= 1.0f)
+					continue; // only report directions that are actually obstructed
+
 				char buf[160];
-				const char* what = "clear";
-				if (probe.Fraction < 1.0f)
+				if (probe.Actor)
 				{
-					if (probe.Actor)
-					{
-						snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
-							probe.Actor->Brush() ? " (brush/mover)" : "");
-					}
-					else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
-					{
-						uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
-						snprintf(buf, sizeof(buf), "world polyflags 0x%x%s%s", flags,
-							(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
-					}
-					else
-					{
-						snprintf(buf, sizeof(buf), "world (no surface)");
-					}
-					what = buf;
+					snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
+						probe.Actor->Brush() ? " (brush/mover)" : "");
 				}
-				fprintf(stderr, "[stuck]   dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
-					i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, what);
+				else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
+				{
+					uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
+					snprintf(buf, sizeof(buf), "world polyflags 0x%x%s%s", flags,
+						(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
+				}
+				else
+				{
+					snprintf(buf, sizeof(buf), "world (no surface)");
+				}
+
+				fprintf(stderr, "[slow]   blocked dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
+					i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, buf);
 			}
 
-			// Straight up and down too: a pawn caught in a floor is pinned vertically, not horizontally.
-			for (int i = 0; i < 2; i++)
-			{
-				vec3 dir(0.0f, 0.0f, i == 0 ? 1.0f : -1.0f);
-				CollisionHit probe = TryMove(dir * 24.0f, true);
-				fprintf(stderr, "[stuck]   dir %s: frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
-					i == 0 ? "up  " : "down", probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z,
-					probe.Fraction < 1.0f ? (probe.Actor ? "actor" : "world") : "clear");
-			}
+			CollisionHit down = TryMove(vec3(0.0f, 0.0f, -24.0f), true);
+			fprintf(stderr, "[slow]   floor below: frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
+				down.Fraction, down.Normal.x, down.Normal.y, down.Normal.z,
+				down.Fraction < 1.0f ? (down.Actor ? "actor" : "world") : "nothing");
 			fflush(stderr);
 		}
 	}
 	else
 	{
-		if (stuckFrames >= 3)
+		if (slowFrames >= 15)
 		{
-			fprintf(stderr, "[stuck] released after %d frame(s), modeChanges=%d\n", stuckFrames, modeChanges);
+			vec3 loc = Location();
+			fprintf(stderr, "[slow] ended after %d frame(s) at (%.0f, %.0f, %.0f), modeChanges=%d\n",
+				slowFrames, loc.x, loc.y, loc.z, modeChanges);
 			fflush(stderr);
 		}
-		stuckFrames = 0;
+		slowFrames = 0;
 		modeChanges = 0;
 	}
 }
