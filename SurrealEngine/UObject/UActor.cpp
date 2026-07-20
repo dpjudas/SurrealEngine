@@ -2660,6 +2660,94 @@ void UActor::DeusExConBindEvents()
 	ConListItems() = conListItem;
 }
 
+void UActor::PlayAnim_HP(const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<EAnimType> Type, std::optional<NameString> RootBone)
+{
+	LogUnimplemented("Actor.PlayAnim_HP");
+}
+
+void UActor::LoopAnim_HP(const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate, std::optional<EAnimType> Type, std::optional<NameString> RootBone)
+{
+	LogUnimplemented("Actor.LoopAnim_HP");
+}
+
+BoundingBox UActor::GetWorldCollisionBox(bool bVisual)
+{
+	LogUnimplemented("Actor.GetWorldCollisionBox");
+	return {};
+}
+
+vec3 UActor::GetRenderExtent()
+{
+	LogUnimplemented("Actor.GetRenderExtent");
+	return vec3(100.0f);
+}
+
+UActor* UActor::CreateAnimChannel(UClass* NewClass, EAnimType Type, const NameString& RootBone, bool bTransient)
+{
+	auto animChannel = Spawn(NewClass, {}, {}, {}, {});
+	LogUnimplemented("Actor.CreateAnimChannel");
+	return animChannel;
+}
+
+int UActor::BoneNumber(const NameString& Bone)
+{
+	LogUnimplemented("Actor.BoneNumber");
+	return 0;
+}
+
+NameString UActor::BoneName(int Bone)
+{
+	LogUnimplemented("Actor.BoneName");
+	return {};
+}
+
+vec3 UActor::BonePos(const NameString& Bone)
+{
+	LogUnimplemented("Actor.BonePos");
+	return vec3(0.0f);
+}
+
+UTexture* UActor::CreateTextureFromScreenShot(UViewport* vport)
+{
+	LogUnimplemented("Actor.CreateTextureFromScreenShot");
+	return nullptr;
+}
+
+UTexture* UActor::CreateTextureFromBMP(const std::string& name, const std::string& filename)
+{
+	LogUnimplemented("Actor.CreateTextureFromBMP");
+	return nullptr;
+}
+
+bool UActor::SaveObjectAsFile(const std::string& dir, UObject* object)
+{
+	LogUnimplemented("Actor.SaveObjectAsFile");
+	return false;
+}
+
+bool UActor::LoadObjectAsFile(const std::string& dir, UObject* object)
+{
+	LogUnimplemented("Actor.LoadObjectAsFile");
+	return false;
+}
+
+bool UActor::SaveGameSaveInfo(const std::string& dir, UObject* object)
+{
+	LogUnimplemented("Actor.SaveGameSaveInfo");
+	return false;
+}
+
+bool UActor::LoadGameSaveInfo(const std::string& dir, UObject* object)
+{
+	LogUnimplemented("Actor.LoadGameSaveInfo");
+	return false;
+}
+
+bool UActor::IsOSVer2kOrXP()
+{
+	return true;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)

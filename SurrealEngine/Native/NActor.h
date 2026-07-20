@@ -96,6 +96,8 @@ public:
 	static void StopSound(UObject* Self, int Id);
 	static void TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot);
 
+	static void PlayAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> Type, std::optional<NameString> RootBone);
+	static void LoopAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate, std::optional<uint8_t> Type, std::optional<NameString> RootBone);
 	static void GetWorldCollisionBox(UObject* Self, std::optional<bool> bVisual, BoundingBox& ReturnValue);
 	static void GetRenderExtent(UObject* Self, vec3& ReturnValue);
 	static void CreateAnimChannel(UObject* Self, UObject* NewClass, uint8_t Type, const NameString& RootBone, std::optional<bool> bTransient, UObject*& ReturnValue);
