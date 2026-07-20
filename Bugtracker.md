@@ -42,14 +42,20 @@ together because the investigation points at one shared root cause: `UObject::Sa
 `HasStack`, so no actor in a loaded level has a script state. Execution plan:
 [`WP1-SaveLoad-Plan.md`](WP1-SaveLoad-Plan.md).
 
+**Status 2026-07-20:** plan phases 1 and 2 are complete and user-confirmed — BUG-001, BUG-006 and BUG-007
+fixed, BUG-002 fixed for movers. Still open: BUG-002's glass half (untested), BUG-003 and BUG-004 (phase 3,
+gated on watching a real level transition and reading the log first), BUG-005 (phase 4). The UT99 v436
+regression pass the plan calls for has not run — everything so far is verified against Unreal Gold only,
+and phase 1 touches the load path for *every* package, not just save files.
+
 | ID | Src | Sev | Defect |
 | --- | --- | --- | --- |
-| BUG-001 | BT | S1 | Loading a saved game crashes the engine after a few seconds. |
-| BUG-002 | BT | S1 | On a loaded level it is impossible to destroy glass or activate movers. |
+| BUG-001 | BT | S1 | ~~Loading a saved game crashes the engine after a few seconds.~~ **FIXED (WP-1 phase 1, 2026-07-19)** — `VisibleMesh::DrawDebugInfo` dereferenced `pawn->StateFrame->LatentState` unguarded, once per pawn-with-mesh per frame. Harmless before phase 1 (every actor always had *some* `StateFrame`); afterwards a pawn with no active state at save time correctly loads with `StateFrame == nullptr` and the first one drawn killed the renderer. Fixed with a null check. |
+| BUG-002 | BT | S1 | On a loaded level it is impossible to destroy glass or activate movers. **Movers fixed and user-confirmed** (phase 1 state-frame serialization + `HasStack` on `GotoState` + `BasedActors` relink). **Glass still unverified** — needs a pane shot on a loaded level; that half is what keeps this open. |
 | BUG-003 | ST | S1 | Inventory from loaded saves does not transfer to the next map. |
 | BUG-004 | BT | S1 | The Translator is lost on the first→second level transition (gone from the item list). |
 | BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. |
-| BUG-006 | — | S2 | `Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`. |
+| BUG-006 | — | S2 | ~~`Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`.~~ **FIXED (WP-1 phase 2, 2026-07-19)** — `LoadFromSaveFile` re-points `GameInfo` at `LevelInfo->Game()` after `GetLevelObject()` (`Engine.cpp:792`), and throws if the save carries no GameInfo actor rather than limping on. |
 | BUG-007 | — | S1 | ~~Saving intermittently crashes the engine.~~ **FIXED (WP-1, 2026-07-20)** — `UObject::Save` dereferenced `StateFrame->Func` unguarded. A `StateFrame` outlives its state: `GotoState("")` keeps the frame but nulls `Func`, while `LatentState` is left at its `Continue` default, never `Stop` — so a dormant actor passed the `StateFrame && LatentState != Stop` guard and crashed on `Func->Code`. Latent since the `HasStack` fix started routing dormant actors into that block; `bTriggerOnceOnly` movers are the common producer. Fixed by also checking `Func` (and `Func->Code`, null for a bytecode-less state), which writes a null `func` and correctly restores the actor as dormant. |
 
 ## WP-2 — Weapon fire semantics
