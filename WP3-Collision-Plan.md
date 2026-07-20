@@ -330,16 +330,46 @@ proximity triggers firing only intermittently (the phase 3 depenetration dropped
 sent from), and being thrown off a mover when walking into its solid part (the new actor-slide branch was
 missing the wall-slide branch's hit-normal guard).
 
-**Still open, needs the next playtest to attribute:** a lever intermittently fails to activate a second
-mover, repeatable by activating the same lever several times. The leading hypothesis is that it was the
-same dropped-`Touch` defect and is now fixed. If it survives the retest, the next suspect is the phase 1
-encroachment fix: movers now see *every* encroaching actor rather than one, and `EncroachingOn` returning
-true reverts the whole move in `TryMove`, so `TickMovingBrush` never reaches `physAlpha == 1.0` and never
-fires `InterpolateEnd` — which is what a follower mover waits on. That would make this a pre-existing
-mover-stall bug newly exposed, not a new defect, and it would belong to phase 4.
+### The lever / second mover "bounce" is correct UE1 behaviour, not a defect
 
-Also worth confirming during phase 6: no mover in the first two levels crushes the player. That may be
-map-accurate, or it may mean `EncroachingOn` is being taken as "stop" where UE1 would push or damage.
+Retest narrowed it: the second mover *bounces back*, and afterwards needs triggering twice. Reading the
+game's own decompiled `Engine.Mover` settles it — `Mover.EncroachingOn` ends in a switch on
+`MoverEncroachType`, and the `ME_ReturnWhenEncroach` branch calls `Leader.MakeGroupReturn()` and returns
+**true**, i.e. "abort the move". A mover that meets a blocking pawn returns to its previous position and
+has to be triggered again. That is the shipped behaviour of the game's script, not something the engine
+decides.
+
+So this is the phase 1 encroachment fix *working*, and visible for the first time: with the counter bug,
+a mover examined one arbitrary candidate per move and almost always missed the player, so it never
+returned. The apparent regression is the feature.
+
+Two things follow, both for phase 4 rather than now:
+
+- **`EncroachingOn` is only reached for actors that block** (`TryMove` filters on
+  `bBlockActors`/`bBlockPlayers` first), so triggers and navigation points cannot cause a spurious bounce.
+  Decorations are handled by the script's own earlier branch, which destroys them and returns false.
+- **`EncroachingActors` scans the wrong bucket range.** It derives `origin`/`extents` from the mover's
+  *collision cylinder* (`OverlapTest.cpp:205-208`) while `CollisionSystem::AddToCollision` inserts movers
+  by their *brush bounding box* (`CollisionSystem.cpp:116-125`). The source even carries a "To do: is
+  radius and height correct for a mover? Should it use the brush bounding box?" comment at that spot. This
+  under-reports: a large door scans a small region around its origin and can miss actors it is about to
+  encroach on. Worth fixing in phase 4, but it makes movers *more* sensitive, so it should not land
+  immediately after a playtest that just validated the current feel.
+
+Also worth confirming during phase 6: no mover in the first two levels crushes the player. Given the above
+that is probably map-accurate — `ME_CrushWhenEncroach` is a per-mover authoring choice — but it is cheap to
+confirm against a mover known to use it.
+
+### BUG-023 hypothesis for phase 4 (untested)
+
+`TryMove`'s blocking test for a projectile resolves to
+`isBlocking = hit.Actor->bBlockPlayers() && bBlockPlayers()` (`UActor.cpp:1616-1619`, projectiles take the
+`useBlockPlayers` path). If `Projectile`'s class defaults have `bBlockPlayers` false — likely, since
+projectiles are not meant to block anything — then **no** mover can ever block a projectile, because a
+mover is an actor and only the world-hit branch is unconditional. That would explain "projectiles pass
+through some movers" without any tunneling or transform bug, and it predicts the failure depends on the
+projectile class rather than on the mover. Check the class defaults first; the decompiler does not emit
+`defaultproperties`, so read them from the loaded CDO rather than from the `.uc`.
 
 Phase 4 is deliberately gated: it is the largest and riskiest change in the package (movers stop teleporting
 and start sweeping), and stacking it on two unverified physics changes would make any regression much harder
