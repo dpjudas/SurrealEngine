@@ -232,7 +232,7 @@ private:
 	bool m_EditorMode = false; // Set this to true to allow rendering of invisible polys.
 	bool m_GamePaused = false;
 
-	bool m_DrawDebugDXWindowHierarchy = false; // If set to true, engine will show the Deus Ex window hierarchy
+	bool m_DrawDebugDXWindowHierarchy = true; // If set to true, engine will show the Deus Ex window hierarchy
 
 	bool khgSplashScreen = false;
 	bool playingAvi = false;

@@ -215,6 +215,20 @@ void UStruct::Save(PackageStreamWriter* stream)
 	//	pos = WriteToken(stream, pos, 0);
 }
 
+bool UStruct::IsEqual(const void* v1, const void* v2)
+{
+	for (UProperty* prop : Properties)
+	{
+		if (!prop->CompareArray(
+			static_cast<const uint8_t*>(v1) + prop->DataOffset.DataOffset,
+			static_cast<const uint8_t*>(v2) + prop->DataOffset.DataOffset))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 #ifdef _DEBUG
 static const char* tokennames[256] =
 {

@@ -48,6 +48,8 @@ public:
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
+	bool IsEqual(const void* v1, const void* v2);
+
 	UStruct* BaseStruct = nullptr;
 
 	UTextBuffer* ScriptText = nullptr;
