@@ -69,7 +69,13 @@ are the classic semisolid use case).
 > no hit. Vortex2's failures are all steeply slanted, non-axis-aligned faces
 > (e.g. normal `(0.73, -0.15, 0.67)` at `(-2253, 954, -219)`).
 >
-> **Revised Phase 2:** BUG-021 is real but localized, so it needs a real in-game repro before any fix —
+> **DEPRIORITIZED 2026-07-20 at the user's direction.** BUG-021 was reported by someone else and the user
+> has never reproduced it themselves. With no first-hand repro available and the general mechanism measured
+> as working, the phase is parked rather than blocked — nobody involved can currently exercise it. The
+> `SE_DEBUG_SEMISOLID` diagnostic and the failing coordinates above are kept so whoever does hit it can
+> pick this up cold.
+>
+> ~~**Revised Phase 2:** BUG-021 is real but localized, so it needs a real in-game repro before any fix —
 > the general mechanism works and a blind fix would be aimed at nothing. Next steps, in order:
 > 1. Get the user's actual fall-through location (they reported the symptom; the synthetic probe cannot
 >    tell which of these polygons a player stands on).
@@ -77,7 +83,7 @@ are the classic semisolid use case).
 >    faces suggest the bevel-plane approximation in `SweepCursor::ClipBevel` losing a hull, and the NyLeve
 >    cluster suggests a specific brush whose leaf hull is missing or degenerate.
 > 3. Only then decide whether the fix is per-node polygon testing (as originally proposed, but applied
->    narrowly), a bevel-plane correction, or a hull-generation issue.
+>    narrowly), a bevel-plane correction, or a hull-generation issue.~~
 >
 > The `boxEpsilon` shave at `TraceAABBModel.cpp:29-32` (0.1 units off every hull, added so ammo pickups
 > stop falling through floors) is a third candidate worth checking against the failing polygons.
@@ -306,12 +312,34 @@ that Unreal Gold structurally could not expose, found only because a second game
 | Phase | Targets | Confidence | Size | Status (2026-07-20) |
 | --- | --- | --- | --- | --- |
 | 0 | all — repro baseline | — | small | folded into the phases below |
-| 1 | BUG-025, BUG-022 (partial) | high | small | **code landed**, awaiting gameplay verification |
-| 2 | BUG-021, BUG-026 | ~~high~~ **refuted, re-scoped** | medium | **blocked** on a real in-game repro |
-| 3 | BUG-020 | medium | medium | **code landed**, awaiting gameplay verification |
+| 1 | BUG-025, BUG-022 (partial) | high | small | **BUG-025 user-confirmed fixed** (swims up/down); movers now notice the player |
+| 2 | BUG-021, BUG-026 | ~~high~~ **refuted** | medium | **parked** — no first-hand repro exists (see Finding A) |
+| 3 | BUG-020 | medium | medium | **user-confirmed fixed** — chest pushes along a wall, no phantom damage |
 | 4 | BUG-022, BUG-023 | medium | large | not started — gated on phases 1/3 verifying |
 | 5 | BUG-024 | low | unknown | not started |
 | 6 | close-out, both games | — | medium | not started |
+
+### Playtest 2026-07-20 (Unreal Gold, first two levels)
+
+Confirmed fixed: swimming straight up and down (BUG-025); pushing a chest along a wall moves the chest and
+does no damage to the player (BUG-020); movers notice the player rather than ignoring them (BUG-022, the
+encroachment half).
+
+Three regressions found, all introduced by this package, all since fixed in one commit — pickups and
+proximity triggers firing only intermittently (the phase 3 depenetration dropped the hit that `Touch` is
+sent from), and being thrown off a mover when walking into its solid part (the new actor-slide branch was
+missing the wall-slide branch's hit-normal guard).
+
+**Still open, needs the next playtest to attribute:** a lever intermittently fails to activate a second
+mover, repeatable by activating the same lever several times. The leading hypothesis is that it was the
+same dropped-`Touch` defect and is now fixed. If it survives the retest, the next suspect is the phase 1
+encroachment fix: movers now see *every* encroaching actor rather than one, and `EncroachingOn` returning
+true reverts the whole move in `TryMove`, so `TickMovingBrush` never reaches `physAlpha == 1.0` and never
+fires `InterpolateEnd` — which is what a follower mover waits on. That would make this a pre-existing
+mover-stall bug newly exposed, not a new defect, and it would belong to phase 4.
+
+Also worth confirming during phase 6: no mover in the first two levels crushes the player. That may be
+map-accurate, or it may mean `EncroachingOn` is being taken as "stop" where UE1 would push or damage.
 
 Phase 4 is deliberately gated: it is the largest and riskiest change in the package (movers stop teleporting
 and start sweeping), and stacking it on two unverified physics changes would make any regression much harder
