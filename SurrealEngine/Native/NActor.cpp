@@ -128,6 +128,22 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 		RegisterVMNativeFunc_3("Actor", "TweenBlendAnim", &NActor::TweenBlendAnim, 1012);
 	}
+	if (engine->LaunchInfo.IsHarryPotter1())
+	{
+		RegisterVMNativeFunc_2("Actor", "GetWorldCollisionBox", &NActor::GetWorldCollisionBox, 286);
+		RegisterVMNativeFunc_1("Actor", "GetRenderExtent", &NActor::GetRenderExtent, 274);
+		RegisterVMNativeFunc_5("Actor", "CreateAnimChannel", &NActor::CreateAnimChannel, 265);
+		RegisterVMNativeFunc_2("Actor", "BoneNumber", &NActor::BoneNumber, 268);
+		RegisterVMNativeFunc_2("Actor", "BoneName", &NActor::BoneName, 269);
+		RegisterVMNativeFunc_2("Actor", "BonePos", &NActor::BonePos, 257);
+		RegisterVMNativeFunc_2("Actor", "CreateTextureFromScreenShot", &NActor::CreateTextureFromScreenShot, 322);
+		RegisterVMNativeFunc_3("Actor", "CreateTextureFromBMP", &NActor::CreateTextureFromBMP, 321);
+		RegisterVMNativeFunc_3("Actor", "SaveObjectAsFile", &NActor::SaveObjectAsFile, 323);
+		RegisterVMNativeFunc_3("Actor", "LoadObjectAsFile", &NActor::LoadObjectAsFile, 324);
+		RegisterVMNativeFunc_3("Actor", "SaveGameSaveInfo", &NActor::SaveGameSaveInfo, 325);
+		RegisterVMNativeFunc_3("Actor", "LoadGameSaveInfo", &NActor::LoadGameSaveInfo, 326);
+		RegisterVMNativeFunc_1("Actor", "IsOSVer2kOrXP", &NActor::IsOSVer2kOrXP, 327);
+	}
 }
 
 void NActor::Add_ColorColor(const Color& A, const Color& B, Color& ReturnValue)
@@ -977,4 +993,81 @@ void NActor::StopSound(UObject* Self, int Id)
 void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot)
 {
 	LogUnimplemented("Actor.TweenBlendAnim");
+}
+
+void NActor::GetWorldCollisionBox(UObject* Self, std::optional<bool> bVisual, BoundingBox& ReturnValue)
+{
+	LogUnimplemented("Actor.GetWorldCollisionBox");
+	ReturnValue = {};
+}
+
+void NActor::GetRenderExtent(UObject* Self, vec3& ReturnValue)
+{
+	LogUnimplemented("Actor.GetRenderExtent");
+	ReturnValue = {};
+}
+
+void NActor::CreateAnimChannel(UObject* Self, UObject* NewClass, uint8_t Type, const NameString& RootBone, std::optional<bool> bTransient, UObject*& ReturnValue)
+{
+	LogUnimplemented("Actor.CreateAnimChannel");
+	ReturnValue = {};
+}
+
+void NActor::BoneNumber(UObject* Self, const NameString& Bone, int& ReturnValue)
+{
+	LogUnimplemented("Actor.BoneNumber");
+	ReturnValue = {};
+}
+
+void NActor::BoneName(UObject* Self, int Bone, NameString& ReturnValue)
+{
+	LogUnimplemented("Actor.BoneName");
+	ReturnValue = {};
+}
+
+void NActor::BonePos(UObject* Self, const NameString& Bone, vec3& ReturnValue)
+{
+	LogUnimplemented("Actor.BonePos");
+	ReturnValue = {};
+}
+
+void NActor::CreateTextureFromScreenShot(UObject* Self, UObject* vport, UObject*& ReturnValue)
+{
+	LogUnimplemented("Actor.CreateTextureFromScreenShot");
+	ReturnValue = {};
+}
+
+void NActor::CreateTextureFromBMP(UObject* Self, const std::string& name, const std::string& filename, UObject*& ReturnValue)
+{
+	LogUnimplemented("Actor.CreateTextureFromBMP");
+	ReturnValue = {};
+}
+
+void NActor::SaveObjectAsFile(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+{
+	LogUnimplemented("Actor.SaveObjectAsFile");
+	ReturnValue = {};
+}
+
+void NActor::LoadObjectAsFile(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+{
+	LogUnimplemented("Actor.LoadObjectAsFile");
+	ReturnValue = {};
+}
+
+void NActor::SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+{
+	LogUnimplemented("Actor.SaveGameSaveInfo");
+	ReturnValue = {};
+}
+
+void NActor::LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+{
+	LogUnimplemented("Actor.LoadGameSaveInfo");
+	ReturnValue = {};
+}
+
+void NActor::IsOSVer2kOrXP(UObject* Self, bool& ReturnValue)
+{
+	ReturnValue = true;
 }

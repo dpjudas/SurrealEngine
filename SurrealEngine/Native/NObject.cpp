@@ -300,6 +300,11 @@ void NObject::RegisterFunctions()
 	{
 		RegisterVMNativeFunc_3("Object", "At_StrStr", &NObject::At_StrStr, 168);
 	}
+
+	if (engine->LaunchInfo.IsHarryPotter1())
+	{
+		RegisterVMNativeFunc_1("Object", "GetLanguage", &NObject::GetLanguage, 0);
+	}
 }
 
 void NObject::Abs(float A, float& ReturnValue)
@@ -1654,4 +1659,9 @@ void NObject::AllObjects_U227(UObject* Self, UObject* BaseClass, UObject*& Actor
 void NObject::AllObjects_DeusEx(UObject* Self, UObject* BaseClass, UObject*& Actor)
 {
 	Frame::CreatedIterator = std::make_unique<AllObjectsIterator>(BaseClass, &Actor, nullptr);
+}
+
+void NObject::GetLanguage(std::string& ReturnValue)
+{
+	ReturnValue = "en"; // Is this correct?
 }
