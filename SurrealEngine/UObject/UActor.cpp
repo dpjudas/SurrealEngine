@@ -1068,7 +1068,9 @@ void UActor::TickProjectile(float elapsed)
 
 	CollisionHit hit = TryMove(Velocity() * elapsed);
 
-	if (hit.Fraction < 1.0f && !hit.Actor && !bDeleteMe() && !bJustTeleported())
+	// A mover counts as a wall here. HitWall already takes the actor it struck for exactly this case,
+	// and without it a projectile stopped by a door would simply halt in mid-air and never detonate.
+	if (hit.Fraction < 1.0f && (!hit.Actor || hit.Actor->Brush()) && !bDeleteMe() && !bJustTeleported())
 	{
 		CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 	}
@@ -1270,23 +1272,8 @@ void UActor::TickMovingBrush(float elapsed)
 			if (PhysRate() <= 0.0f)
 				break;
 
-			float physAlpha = PhysAlpha();
+			float startAlpha = PhysAlpha();
 			float physRate = PhysRate();
-
-			physAlpha += physRate * timeLeft;
-			if (physAlpha > 1.0f)
-			{
-				timeLeft = (physAlpha - 1.0f) / physRate;
-				physAlpha = 1.0f;
-			}
-			else
-			{
-				timeLeft = 0.0f;
-			}
-
-			float t = physAlpha;
-			if (mover->MoverGlideType() == 1/*MV_GlideByTime*/)
-				t = smoothstep(0.0f, 1.0f, t);
 
 			int keyIndex = clamp((int)mover->KeyNum(), 0, 7);
 			vec3 oldpos = mover->OldPos();
@@ -1297,15 +1284,52 @@ void UActor::TickMovingBrush(float elapsed)
 			Rotator keyrot = mover->KeyRot()[keyIndex];
 
 			vec3 deltapos = basepos + keypos - oldpos;
+
+			// Cap how far the brush may travel in one step. TryMove does not sweep a brush - it moves the
+			// whole delta at once and then asks who ended up inside it - so a mover covering more ground in
+			// a frame than an actor is wide can step clean over that actor, overlapping it at neither
+			// sample. Advancing in bounded increments keeps the encroachment test dense enough that nobody
+			// can be skipped past.
+			const float maxStepDistance = 16.0f;
+			float maxAlphaStep = 1.0f;
+			float travel = length(deltapos) * 1.5f; // 1.5 is the steepest slope of the glide curve
+			if (travel > maxStepDistance)
+				maxAlphaStep = std::max(maxStepDistance / travel, 1.0f / 64.0f);
+
+			float physAlpha = startAlpha + physRate * timeLeft;
+			float usedTime = timeLeft;
+			if (physAlpha > 1.0f)
+			{
+				physAlpha = 1.0f;
+				usedTime = (1.0f - startAlpha) / physRate;
+			}
+			if (physAlpha - startAlpha > maxAlphaStep)
+			{
+				physAlpha = startAlpha + maxAlphaStep;
+				usedTime = maxAlphaStep / physRate;
+			}
+			if (usedTime <= 0.0f) // Already at the end of the leg - nothing left to spend the time on
+				break;
+			timeLeft = std::max(timeLeft - usedTime, 0.0f);
+
+			float t = physAlpha;
+			if (mover->MoverGlideType() == 1/*MV_GlideByTime*/)
+				t = smoothstep(0.0f, 1.0f, t);
+
 			vec3 targetPos = oldpos + deltapos * t;
 
 			Rotator targetRotation = oldrot + (baserot + keyrot - oldrot) * t;
 
 			// LogMessage("Moving brush: " + std::to_string(t) + " key=" + std::to_string(keyIndex) +" keypos=(" + std::to_string(keypos.x) + "," + std::to_string(keypos.y) + "," + std::to_string(keypos.z) + ")");
 
+			// Turn before moving, so the encroachment test inside TryMove sees the orientation we are
+			// actually asking for. Previously rotation was applied afterwards and unconditionally, which
+			// meant a turning door swept through whoever was standing in its arc without ever asking.
+			Rotator oldRotation = Rotation();
+			SetRotation(targetRotation);
+
 			if (TryMove(targetPos - Location()).Fraction == 1.0f)
 			{
-				SetRotation(targetRotation);
 				PhysAlpha() = physAlpha;
 
 				if (physAlpha == 1.0f)
@@ -1313,6 +1337,14 @@ void UActor::TickMovingBrush(float elapsed)
 					bInterpolating() = false;
 					CallEvent(this, EventName::InterpolateEnd, { ExpressionValue::ObjectValue(nullptr) });
 				}
+			}
+			else
+			{
+				// Blocked. TryMove has already put the location back, so undo the turn as well and leave
+				// PhysAlpha where it was: the mover's own script decides what happens next - return, crush
+				// or wait - from the EncroachingOn it was just handed.
+				SetRotation(oldRotation);
+				break;
 			}
 		}
 	}
@@ -1636,7 +1668,9 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	}
 
 	// Avoid moving if movement is too small as the physics code doesn't like very small numbers
-	if (dot(delta, delta) < 0.00000001f)
+	// Brushes are exempt: a mover that only rotates asks to move nowhere, and bailing out here would
+	// skip the encroachment test below - the only thing that ever asks whether there is room for it.
+	if (!Brush() && dot(delta, delta) < 0.00000001f)
 		return {};
 
 	// Analyze what we will hit if we move as requested and stop if it is the level or a blocking actor
@@ -1653,7 +1687,16 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 				if (hit.Actor)
 				{
 					bool isBlocking;
-					if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
+					if (hit.Actor->Brush())
+					{
+						// A mover is level geometry, not something you push against: whether it stops us is its
+						// decision and ours only insofar as we collide with the world at all. Requiring the block
+						// flag on both sides made movers invisible to projectiles, whose class defaults are
+						// bBlockPlayers=false/bBlockActors=false - so no door or lift could ever stop a rocket
+						// (BUG-023). Players kept working only because a PlayerPawn happens to set both.
+						isBlocking = bCollideWorld() && (useBlockPlayers ? hit.Actor->bBlockPlayers() : hit.Actor->bBlockActors());
+					}
+					else if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
 						isBlocking = hit.Actor->bBlockPlayers() && bBlockPlayers();
 					else
 						isBlocking = hit.Actor->bBlockActors() && bBlockActors();

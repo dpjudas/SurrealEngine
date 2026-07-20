@@ -315,7 +315,7 @@ that Unreal Gold structurally could not expose, found only because a second game
 | 1 | BUG-025, BUG-022 (partial) | high | small | **BUG-025 user-confirmed fixed** (swims up/down); movers now notice the player |
 | 2 | BUG-021, BUG-026 | ~~high~~ **refuted** | medium | **parked** — no first-hand repro exists (see Finding A) |
 | 3 | BUG-020 | medium | medium | **user-confirmed fixed** — chest pushes along a wall, no phantom damage |
-| 4 | BUG-022, BUG-023 | medium | large | not started — gated on phases 1/3 verifying |
+| 4 | BUG-022, BUG-023 | medium | large | **implemented, awaiting playtest** — see "Phase 4 as built" |
 | 5 | BUG-024 | low | unknown | not started |
 | 6 | close-out, both games | — | medium | not started |
 
@@ -360,7 +360,7 @@ Also worth confirming during phase 6: no mover in the first two levels crushes t
 that is probably map-accurate — `ME_CrushWhenEncroach` is a per-mover authoring choice — but it is cheap to
 confirm against a mover known to use it.
 
-### BUG-023 hypothesis for phase 4 (untested)
+### BUG-023 hypothesis for phase 4 (untested — **confirmed**, see "Phase 4 as built")
 
 `TryMove`'s blocking test for a projectile resolves to
 `isBlocking = hit.Actor->bBlockPlayers() && bBlockPlayers()` (`UActor.cpp:1616-1619`, projectiles take the
@@ -374,6 +374,50 @@ projectile class rather than on the mover. Check the class defaults first; the d
 Phase 4 is deliberately gated: it is the largest and riskiest change in the package (movers stop teleporting
 and start sweeping), and stacking it on two unverified physics changes would make any regression much harder
 to attribute. Verify 1 and 3 in gameplay first.
+
+### Phase 4 as built (2026-07-20)
+
+**The BUG-023 hypothesis was correct.** Read from the loaded CDOs via a temporary `SE_DEBUG_BLOCKFLAGS`
+probe (since removed):
+
+```
+Engine.Projectile   bBlockActors=0 bBlockPlayers=0 bCollideActors=1 bCollideWorld=1
+Engine.Mover        bBlockActors=1 bBlockPlayers=1 bCollideActors=1 bCollideWorld=0
+Engine.PlayerPawn   bBlockActors=1 bBlockPlayers=1 bCollideActors=1 bCollideWorld=1
+```
+
+So `hit.Actor->bBlockPlayers() && bBlockPlayers()` was mover-yes AND projectile-no, and **no mover could
+ever block any projectile**. Players were unaffected only because a `PlayerPawn` happens to set both flags,
+which is why the symmetric test survived this long.
+
+Four changes:
+
+1. **Brush hits decide blocking from the brush's flags, not both sides** (`UActor.cpp`, `TryMove`). A mover
+   is level geometry: whether it stops you is its decision, and yours only insofar as you collide with the
+   world at all (`bCollideWorld`). Non-brush actor hits keep the old symmetric rule, deliberately — making
+   it one-sided there would let a rocket be blocked dead by the pawn that fired it.
+2. **A mover hit now reaches `HitWall`** (`TickProjectile`). The guard was `!hit.Actor`, so once change 1
+   let a door stop a rocket, the rocket would have halted in mid-air and never detonated. `HitWall` already
+   takes the actor it struck for exactly this case.
+3. **`EncroachingActors` searches by the brush bounding box** (`OverlapTest.cpp`), matching how
+   `AddToCollision` files movers, and answering the "To do" that was sitting at that spot. Previously a
+   wide door searched a small region around its origin and never noticed anyone near its ends.
+4. **Movers advance in bounded steps and turn through the encroachment path** (`TickMovingBrush`). The
+   per-tick advance is now capped at 16 units of travel (`maxAlphaStep`, floored at 1/64 of a leg so the
+   loop always terminates), because `TryMove` still does not sweep a brush — it moves the whole delta and
+   then asks who ended up inside — so a fast mover could step clean over an actor, overlapping it at
+   neither sample. Rotation is now applied *before* `TryMove` and reverted if the move is refused; the
+   tiny-delta early-out in `TryMove` is skipped for brushes so that a mover which only turns still gets
+   its encroachment test. That early-out is also what refreshes the collision buckets after a turn.
+
+Smoke-tested only: Unreal Gold Vortex2 and NyLeve, and UT99 DM-Conveyor, each run to a 40s+ timeout with no
+crash and no exception. **Everything here needs a real playtest** — 4 in particular changes how every mover
+in the game moves, and 1 changes what stops a projectile.
+
+What to look for: rockets and other projectiles now explode against doors and lifts instead of passing
+through (BUG-023); lifts and doors still carry the player and still bounce/return correctly rather than
+stuttering or stalling; nothing gets crushed or shoved that did not before; rotating movers, if any appear
+in the first levels, no longer sweep through the player.
 
 ## Appendix — BUG-010 (WP-2), if WP-3 finishes early
 

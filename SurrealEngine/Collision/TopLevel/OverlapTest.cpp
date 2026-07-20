@@ -200,12 +200,7 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 	if (!brush)
 		return CollidingActors(actor->Location(), actor->CollisionHeight(), actor->CollisionRadius());
 
-	// To do: is radius and height correct for a mover? Should it use the brush bounding box?
-
 	vec3 origin = actor->Location();
-	float height = actor->CollisionHeight();
-	float radius = actor->CollisionRadius();
-	vec3 extents = { radius, radius, height };
 
 	mat4 rotateObjToWorld = Coords::Rotation(actor->Rotation()).ToMatrix();
 	mat4 rotateWorldToObj = mat4::transpose(rotateObjToWorld);
@@ -217,11 +212,21 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 		mainScale = mover->MainScale().Scale;
 	}
 
+	// Answering the question this used to ask: yes, it has to be the brush bounding box. A mover's
+	// collision cylinder describes nothing about the shape of its brush, and CollisionSystem::AddToCollision
+	// files movers into buckets by that same transformed bounding box - so searching by the cylinder
+	// looked in a fraction of the buckets the mover actually occupies, and a wide door simply never
+	// noticed anyone standing near its ends.
+	mat4 objectToWorld = mat4::translate(origin) * rotateObjToWorld * mat4::scale(mainScale) * mat4::translate(-prePivot);
+	BBox bbox = brush->BoundingBox.transform(objectToWorld);
+	vec3 searchOrigin = bbox.center();
+	vec3 searchExtents = bbox.extents() + 0.1f; // 0.1 for numerical stability, matching AddToCollision
+
 	Array<UActor*> hits;
 
 	int checkCounter = NextCheckCounter();
-	ivec3 start = GetStartExtents(origin, extents);
-	ivec3 end = GetEndExtents(origin, extents);
+	ivec3 start = GetStartExtents(searchOrigin, searchExtents);
+	ivec3 end = GetEndExtents(searchOrigin, searchExtents);
 	if (end.x - start.x < 100 && end.y - start.y < 100 && end.z - start.z < 100)
 	{
 		for (int z = start.z; z < end.z; z++)
