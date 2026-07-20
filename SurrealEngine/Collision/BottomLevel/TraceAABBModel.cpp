@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "TraceAABBModel.h"
+#include "TraceRayModel.h"
 
 // WP-3 phase 2 diagnostic. See the SemisolidNodesSeen comment in the header.
 static bool DebugSemisolid()
@@ -9,25 +10,122 @@ static bool DebugSemisolid()
 	return enabled;
 }
 
+// WP-3 phase 2 diagnostic. Walks every semisolid surface in the level once and probes it with a
+// player-sized extent sweep and with a ray, from the same start to the same end. If the ray hits
+// semisolid geometry that the extent sweep misses, BUG-021 is confirmed as a collision-layer gap
+// rather than a map or physics problem. Temporary; goes away with the diagnostic.
+static void ProbeSemisolid(UModel* model, double ex, double ez, const char* label)
+{
+	int probed = 0, passedThrough = 0, stoppedOnSurface = 0, stoppedEarly = 0;
+	int reportedExamples = 0;
+
+	for (BspNode& node : model->Nodes)
+	{
+		if (node.Surf < 0 || !(model->Surfaces[node.Surf].PolyFlags & PF_Semisolid) || node.NumVertices < 3)
+			continue;
+
+		BspVert* verts = &model->Vertices[node.VertPool];
+		dvec3 centroid(0.0, 0.0, 0.0);
+		for (int i = 0; i < node.NumVertices; i++)
+			centroid += to_dvec3(model->Points[verts[i].Vertex]);
+		centroid /= (double)node.NumVertices;
+
+		dvec3 normal((double)node.PlaneX, (double)node.PlaneY, (double)node.PlaneZ);
+		if (dot(normal, normal) < 0.5)
+			continue;
+		normal = normalize(normal);
+
+		const double reach = 96.0;
+		dvec3 origin = centroid + normal * reach;
+		dvec3 dir = -normal;
+		const double tmax = reach * 2.0;
+
+		// The ray is the control: it walks node polygons, so it stops on this very polygon. Probes where
+		// it stops on something else are skipped - the polygon is occluded and the comparison says nothing.
+		TraceRayModel ray;
+		CollisionHitList rayHits = ray.Trace(model, origin, 0.0, dir, tmax, false);
+		if (rayHits.empty() || rayHits.front().Node != &node)
+			continue;
+
+		double rayT = rayHits.front().Fraction;
+		probed++;
+
+		// A sweep that collides with this polygon must stop within one box extent of where the ray did.
+		// Stopping much earlier means it hit neighbouring geometry instead, which proves nothing about
+		// the semisolid surface - so that case is counted separately rather than as a success.
+		TraceAABBModel sweep;
+		CollisionHitList sweepHits = sweep.Trace(model, origin, 0.0, dir, tmax, dvec3(ex, ex, ez), false);
+		double window = std::max(ex, ez) + 2.0;
+
+		if (sweepHits.empty() || sweepHits.front().Fraction > rayT + 1.0)
+		{
+			passedThrough++;
+			if (reportedExamples < 5)
+			{
+				reportedExamples++;
+				fprintf(stderr, "[semisolid]   %s: passed through poly at (%.0f, %.0f, %.0f) normal (%.2f, %.2f, %.2f)\n",
+					label, centroid.x, centroid.y, centroid.z, normal.x, normal.y, normal.z);
+			}
+		}
+		else if (sweepHits.front().Fraction >= rayT - window)
+			stoppedOnSurface++;
+		else
+			stoppedEarly++;
+	}
+
+	fprintf(stderr, "[semisolid] %s (extents r=%.0f h=%.0f): %d probed - through %d, on surface %d, early(inconclusive) %d\n",
+		label, ex, ez, probed, passedThrough, stoppedOnSurface, stoppedEarly);
+}
+
+static void ScanSemisolidSurfaces(UModel* model)
+{
+	int semisolidNodes = 0;
+	for (BspNode& node : model->Nodes)
+		if (node.Surf >= 0 && (model->Surfaces[node.Surf].PolyFlags & PF_Semisolid))
+			semisolidNodes++;
+
+	fprintf(stderr, "[semisolid] level scan: %d of %d node(s) are semisolid\n", semisolidNodes, (int)model->Nodes.size());
+	if (semisolidNodes == 0)
+		return;
+
+	ProbeSemisolid(model, 4.0, 4.0, "small box");
+	ProbeSemisolid(model, 35.0, 46.0, "player box");
+}
+
 CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
 {
 	Model = model;
+
+	if (DebugSemisolid() && !Scanning)
+	{
+		static bool scanned = false;
+		if (!scanned)
+		{
+			scanned = true;
+			Scanning = true;
+			ScanSemisolidSurfaces(model);
+			Scanning = false;
+			Model = model;
+		}
+	}
+
 	CollisionHitList hits;
 	SemisolidNodesSeen = 0;
+	SemisolidPolysHit = 0;
 	Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes.front(), hits);
 
 	// If a sweep walks through semisolid nodes and comes back with nothing, the extent trace cannot see
 	// semisolid geometry at all - which is the whole hypothesis behind BUG-021. Rate limited: this runs
 	// for every pawn move.
-	if (DebugSemisolid() && SemisolidNodesSeen > 0 && hits.empty())
+	if (DebugSemisolid() && SemisolidPolysHit > 0 && hits.empty())
 	{
 		static int reported = 0;
 		// stderr, not LogMessage: the Logger only flushes on a clean Engine::Run exit, and BUG-044
 		// segfaults the shutdown, so a LogMessage line here could be lost or read back stale.
 		if ((reported++ % 60) == 0)
 		{
-			fprintf(stderr, "[semisolid] sweep from (%.1f, %.1f, %.1f) extents (r=%.1f h=%.1f) crossed %d semisolid node(s) and hit nothing [%d total]\n",
-				origin.x, origin.y, origin.z, extents.x, extents.z, SemisolidNodesSeen, reported);
+			fprintf(stderr, "[semisolid] sweep from (%.1f, %.1f, %.1f) extents (r=%.1f h=%.1f) crossed %d semisolid node(s), %d of them polygon-intersected, and hit nothing [%d total]\n",
+				origin.x, origin.y, origin.z, extents.x, extents.z, SemisolidNodesSeen, SemisolidPolysHit, reported);
 		}
 	}
 
@@ -127,7 +225,15 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
 
 	if (DebugSemisolid() && node->Surf >= 0 && (Model->Surfaces[node->Surf].PolyFlags & PF_Semisolid) && startSide == 0)
+	{
 		SemisolidNodesSeen++;
+
+		// Decisive check: run the (currently unwired) per-node polygon test on this semisolid node. If it
+		// reports an intersection the leaf-hull sweep did not, the geometry is there to be hit and only the
+		// wiring is missing - and it also proves NodeAABBIntersect itself works before we rely on it.
+		if (NodeAABBIntersect(origin, tmin, dirNormalized, tmax, extents, node) < tmax)
+			SemisolidPolysHit++;
+	}
 
 	if (node->Front >= 0 && (startSide <= 0 || endSide <= 0))
 	{

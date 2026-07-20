@@ -43,6 +43,45 @@ Corroborating evidence:
 This predicts BUG-021 exactly, and is a strong candidate for BUG-026 (catwalks in the DM-Conveyor lava room
 are the classic semisolid use case).
 
+> **REFUTED 2026-07-20 by measurement — do not implement the fix this finding proposes.**
+>
+> Phase 2 opened with the diagnostic step the plan required, and the diagnostic killed the hypothesis.
+> A level-wide probe (`SE_DEBUG_SEMISOLID=1`) walks every semisolid polygon in the loaded map, fires a ray
+> and an extent sweep down the polygon's own normal from 96 units out, and compares where each stopped —
+> using the ray as the control, since it walks node polygons and demonstrably stops on the polygon itself.
+>
+> | Map | Semisolid nodes | Probed cleanly | Sweep passed through | Sweep stopped on the surface |
+> | --- | --- | --- | --- | --- |
+> | Vortex Rikers (Vortex2) | 2701 of 8559 | 1546 | **6** | 1222 |
+> | NyLeve's Falls | 2848 of 5990 | 2190 | **9** | 1898 |
+>
+> (Small 4-unit probe box; the remainder stop early on neighbouring geometry, which is inconclusive by
+> construction in tight interiors. The player-sized box gives the same verdict with more inconclusive
+> probes: 0 through in Vortex2, 4 in NyLeve.)
+>
+> Extent sweeps **do** collide with semisolid geometry — leaf hulls cover it in practice, so the missing
+> `PF_Semisolid` handling in the collision layer is not the defect, and wiring `NodeAABBIntersect` in would
+> have been at best a no-op and at worst a performance regression and a source of duplicate hits.
+>
+> What survives is much narrower and more useful: a *small minority* of semisolid polygons are genuinely
+> not swept. In NyLeve all four player-box failures cluster at one spot, around **(-4127, -5410, -6000)**,
+> where a live runtime sweep was also caught crossing two polygon-intersected semisolid nodes and returning
+> no hit. Vortex2's failures are all steeply slanted, non-axis-aligned faces
+> (e.g. normal `(0.73, -0.15, 0.67)` at `(-2253, 954, -219)`).
+>
+> **Revised Phase 2:** BUG-021 is real but localized, so it needs a real in-game repro before any fix —
+> the general mechanism works and a blind fix would be aimed at nothing. Next steps, in order:
+> 1. Get the user's actual fall-through location (they reported the symptom; the synthetic probe cannot
+>    tell which of these polygons a player stands on).
+> 2. Characterize the failing minority. Both leads point at hull geometry rather than flags: steep slanted
+>    faces suggest the bevel-plane approximation in `SweepCursor::ClipBevel` losing a hull, and the NyLeve
+>    cluster suggests a specific brush whose leaf hull is missing or degenerate.
+> 3. Only then decide whether the fix is per-node polygon testing (as originally proposed, but applied
+>    narrowly), a bevel-plane correction, or a hull-generation issue.
+>
+> The `boxEpsilon` shave at `TraceAABBModel.cpp:29-32` (0.1 units off every hull, added so ammo pickups
+> stop falling through floors) is a third candidate worth checking against the failing polygons.
+
 ### Finding B — `EncroachingActors` tests exactly one actor per call
 
 `OverlapTester::EncroachingActors` (`Collision/TopLevel/OverlapTest.cpp:235-237`) reads and writes
@@ -175,11 +214,15 @@ it needs a UT99 + Unreal Gold pass before the commit.
 
 ### Phase 2 — semisolid world collision (Finding A) → BUG-021, likely BUG-026
 
+**Status: hypothesis refuted, phase re-scoped — see the block under Finding A.** Step 1 below was
+executed and returned a negative; steps 2-5 are retained only for the record and must not be executed as
+written. The phase is now blocked on a real in-game repro.
+
 The substantive collision work.
 
 1. Confirm the diagnosis cheaply first: log, for a known fall-through spot, whether any node with
    `PF_Semisolid` is traversed while zero leaf hulls are hit. Do not start the fix until the trace
-   confirms it.
+   confirms it. **DONE — it does not confirm it.**
 2. Wire the existing `NodeAABBIntersect` into `TraceAABBModel::Trace`: for each traversed node whose surface
    carries `PF_Semisolid` (and not `PF_NotSolid`), run the polygon test and push a hit. The function already
    exists and already handles the `PF_NotSolid` exclusion — the working assumption is that it was written
@@ -264,7 +307,7 @@ that Unreal Gold structurally could not expose, found only because a second game
 | --- | --- | --- | --- |
 | 0 | all — repro baseline | — | small |
 | 1 | BUG-025, BUG-022 (partial) | high | small |
-| 2 | BUG-021, BUG-026 | high | medium |
+| 2 | BUG-021, BUG-026 | ~~high~~ **refuted, re-scoped** | medium |
 | 3 | BUG-020 | medium | medium |
 | 4 | BUG-022, BUG-023 | medium | large |
 | 5 | BUG-024 | low | unknown |

@@ -18,6 +18,8 @@ private:
 	// sweep so we can confirm that extent traces walk past semisolid geometry without ever colliding
 	// with it. Temporary - remove once the semisolid collision fix is verified.
 	int SemisolidNodesSeen = 0;
+	int SemisolidPolysHit = 0;
+	static inline bool Scanning = false;
 
 	struct SweepCursor
 	{
