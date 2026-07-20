@@ -551,6 +551,18 @@ void UActor::TickWalking(float elapsed)
 	static const bool debugStuck = getenv("SE_DEBUG_STUCK") != nullptr;
 	vec3 stuckStartLocation = Location();
 	static int stuckFrames = 0;
+	if (debugStuck)
+	{
+		// Prove the detector is live, so a log with no findings means "found nothing" rather than
+		// "never ran".
+		static bool announced = false;
+		if (!announced)
+		{
+			announced = true;
+			fprintf(stderr, "[stuck] detector armed on first walking tick\n");
+			fflush(stderr);
+		}
+	}
 
 	if (isMoving)
 	{
@@ -677,13 +689,33 @@ void UActor::TickWalking(float elapsed)
 		}
 	}
 
-	if (debugStuck && player && isMoving)
+	// "Trying to move" has to mean the player is actively pressing a direction. Testing velocity
+	// instead makes every conveyor and every drifting residual look like an attempt to move, and on
+	// this map that noise buries the event we are hunting for.
+	vec3 inputAccel = Acceleration();
+	inputAccel.z = 0.0f;
+	bool tryingToMove = dot(inputAccel, inputAccel) > 1.0f;
+	vec3 intended = vel * elapsed;
+	intended.z = 0.0f;
+	float intendedDist = length(intended);
+
+	if (debugStuck && player && tryingToMove && intendedDist > 2.0f)
 	{
 		vec3 moved = Location() - stuckStartLocation;
 		moved.z = 0.0f;
-		if (dot(moved, moved) < 0.25f) // went nowhere this tick despite wanting to
+		if (length(moved) < 0.25f * intendedDist) // got a quarter of the way at best
 		{
 			stuckFrames++;
+
+			// Report the near misses too. Without these an empty log is unreadable: "nothing was ever
+			// blocked" and "the detector never fired" look identical, and only one of them is good news.
+			if (stuckFrames == 3 || stuckFrames == 8)
+			{
+				vec3 loc = Location();
+				fprintf(stderr, "[stuck] blocked %d frame(s) at (%.0f, %.0f, %.0f)\n", stuckFrames, loc.x, loc.y, loc.z);
+				fflush(stderr);
+			}
+
 			if (stuckFrames == 20) // ~a third of a second of being pinned
 			{
 				vec3 loc = Location();
@@ -726,8 +758,11 @@ void UActor::TickWalking(float elapsed)
 		}
 		else
 		{
-			if (stuckFrames >= 20)
-				fprintf(stderr, "[stuck] released after %d frames\n", stuckFrames);
+			if (stuckFrames >= 3)
+			{
+				fprintf(stderr, "[stuck] released after %d frame(s)\n", stuckFrames);
+				fflush(stderr);
+			}
 			stuckFrames = 0;
 		}
 	}
