@@ -303,15 +303,19 @@ that Unreal Gold structurally could not expose, found only because a second game
 
 ## Sequencing summary
 
-| Phase | Targets | Confidence | Size |
-| --- | --- | --- | --- |
-| 0 | all — repro baseline | — | small |
-| 1 | BUG-025, BUG-022 (partial) | high | small |
-| 2 | BUG-021, BUG-026 | ~~high~~ **refuted, re-scoped** | medium |
-| 3 | BUG-020 | medium | medium |
-| 4 | BUG-022, BUG-023 | medium | large |
-| 5 | BUG-024 | low | unknown |
-| 6 | close-out, both games | — | medium |
+| Phase | Targets | Confidence | Size | Status (2026-07-20) |
+| --- | --- | --- | --- | --- |
+| 0 | all — repro baseline | — | small | folded into the phases below |
+| 1 | BUG-025, BUG-022 (partial) | high | small | **code landed**, awaiting gameplay verification |
+| 2 | BUG-021, BUG-026 | ~~high~~ **refuted, re-scoped** | medium | **blocked** on a real in-game repro |
+| 3 | BUG-020 | medium | medium | **code landed**, awaiting gameplay verification |
+| 4 | BUG-022, BUG-023 | medium | large | not started — gated on phases 1/3 verifying |
+| 5 | BUG-024 | low | unknown | not started |
+| 6 | close-out, both games | — | medium | not started |
+
+Phase 4 is deliberately gated: it is the largest and riskiest change in the package (movers stop teleporting
+and start sweeping), and stacking it on two unverified physics changes would make any regression much harder
+to attribute. Verify 1 and 3 in gameplay first.
 
 ## Appendix — BUG-010 (WP-2), if WP-3 finishes early
 
