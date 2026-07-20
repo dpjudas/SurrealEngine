@@ -578,7 +578,11 @@ void UActor::TickWalking(float elapsed)
 
 			if (hit.Fraction < 1.0f)
 			{
-				if (player && hit.Actor)
+				// A mover is a wall that happens to be an actor: it has no collision cylinder to slide
+				// around, so it belongs in the wall branch below. Sending it here instead left it matching
+				// neither case - not a pushable decoration, no collision radius for the actor-slide - and
+				// the pawn stopped dead against it with no way to slide off.
+				if (player && hit.Actor && !hit.Actor->Brush())
 				{
 					if (UObject::IsType<UDecoration>(hit.Actor) && UObject::Cast<UDecoration>(hit.Actor)->bPushable() && dot(hit.Normal, moveDelta) < -0.9f)
 					{
@@ -611,6 +615,12 @@ void UActor::TickWalking(float elapsed)
 						{
 							timeLeft = 0.0f;
 						}
+					}
+					else
+					{
+						// An actor we can neither push nor slide along. Stop, rather than spending the
+						// remaining iterations re-running the same blocked move and going nowhere.
+						timeLeft = 0.0f;
 					}
 				}
 				else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
