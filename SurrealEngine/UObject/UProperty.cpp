@@ -94,7 +94,7 @@ bool UProperty::CompareArray(const void* v1, const void* v2)
 {
 	for (int i = 0; i < ArrayDimension; i++)
 	{
-		if (!CompareArray(GetElement(v1, i), GetElement(v2, i)))
+		if (!CompareElement(GetElement(v1, i), GetElement(v2, i)))
 			return false;
 	}
 	return true;
@@ -104,7 +104,7 @@ bool UProperty::CompareLessArray(const void* v1, const void* v2)
 {
 	for (int i = 0; i < ArrayDimension; i++)
 	{
-		if (CompareLessArray(GetElement(v1, i), GetElement(v2, i)))
+		if (CompareLessElement(GetElement(v1, i), GetElement(v2, i)))
 			return true;
 	}
 	return false;
