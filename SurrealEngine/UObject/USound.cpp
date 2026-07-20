@@ -42,7 +42,7 @@ void USound::GetSound()
 	{
 		source = AudioSource::CreateWav(Data);
 	}
-	else if (Format == "mp3")
+	else if (Format == "mp3" || Format == "mp2")
 	{
 		source = AudioSource::CreateMp3(Data);
 	}

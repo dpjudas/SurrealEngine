@@ -368,7 +368,7 @@ void USurrealAudioDevice::UpdateMusic()
 			int subsong = CurrentSection != 255 ? CurrentSection : 0;
 
 			std::unique_ptr<AudioSource> source;
-			if (CurrentSong->Format == "mp3")
+			if (CurrentSong->Format == "mp3" || CurrentSong->Format == "mp2")
 				source = AudioSource::CreateMp3(CurrentSong->Data);
 			else if (CurrentSong->Format == "ogg" || CurrentSong->Format == "event") // Some ogg files in Unreal 227 have event as format for some reason
 				source = AudioSource::CreateOgg(CurrentSong->Data, true);
