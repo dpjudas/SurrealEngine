@@ -222,6 +222,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Native/NUPakPathNodeIterator.h
 	SurrealEngine/Native/NUPakPawnPathNodeIterator.cpp
 	SurrealEngine/Native/NUPakPawnPathNodeIterator.h
+	SurrealEngine/Native/NRMusicPlayer.cpp
+	SurrealEngine/Native/NRMusicPlayer.h
 	SurrealEngine/Native/NBorderWindow.cpp
 	SurrealEngine/Native/NBorderWindow.h
 	SurrealEngine/Native/NButtonWindow.cpp
@@ -400,6 +402,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UObject/UFlag.h
 	SurrealEngine/UObject/UConSys.cpp
 	SurrealEngine/UObject/UConSys.h
+	SurrealEngine/UObject/URMusicPlayer.h
 	SurrealEngine/Collision/TopLevel/CollisionSystem.cpp
 	SurrealEngine/Collision/TopLevel/CollisionSystem.h
 	SurrealEngine/Collision/TopLevel/CollisionHit.h

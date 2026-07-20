@@ -5439,6 +5439,47 @@ static void InitPropertyOffsets_SkeletalMeshInstance(PackageManager* packages)
 
 //////////////////////////////////////////
 
+PropertyDataOffsets_RMusic_Player PropOffsets_RMusic_Player;
+
+static void InitPropertyOffsets_RMusic_Player(PackageManager* packages)
+{
+	// Early bailout.
+	// If RMusicPlayer is not available then we don't need it
+	if (!fs::exists(packages->GetSystemFolderPath() / "RMusicPlayer.u"))
+	{
+		memset(&PropOffsets_RMusic_Player, 0xff, sizeof(PropOffsets_RMusic_Player));
+		return;
+	}
+
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("RMusicPlayer")->GetUObject("Class", "RMusic_Player"));
+	if (!cls)
+	{
+		memset(&PropOffsets_RMusic_Player, 0xff, sizeof(PropOffsets_RMusic_Player));
+		return;
+	}
+	
+	PropOffsets_RMusic_Player.RMusic_Volume = cls->GetPropertyDataOffset("RMusic_Volume");
+	PropOffsets_RMusic_Player.bAlwaysLoadCodecs = cls->GetPropertyDataOffset("bAlwaysLoadCodecs");
+	PropOffsets_RMusic_Player.RMusic_PluginsDirectory = cls->GetPropertyDataOffset("RMusic_PluginsDirectory");
+	PropOffsets_RMusic_Player.RMusic_Directory = cls->GetPropertyDataOffset("RMusic_Directory");
+	PropOffsets_RMusic_Player.bIncludeDebugInfo = cls->GetPropertyDataOffset("bIncludeDebugInfo");
+	PropOffsets_RMusic_Player.bAuthoritative = cls->GetPropertyDataOffset("bAuthoritative");
+	PropOffsets_RMusic_Player.bUseCurrentPaths = cls->GetPropertyDataOffset("bUseCurrentPaths");
+	PropOffsets_RMusic_Player.FaderUpdateTime = cls->GetPropertyDataOffset("FaderUpdateTime");
+	PropOffsets_RMusic_Player.NextTrack = cls->GetPropertyDataOffset("NextTrack");
+	PropOffsets_RMusic_Player.NextLoop = cls->GetPropertyDataOffset("NextLoop");
+	PropOffsets_RMusic_Player.bIsOn = cls->GetPropertyDataOffset("bIsOn");
+	PropOffsets_RMusic_Player.RMusic_LocalPlayer = cls->GetPropertyDataOffset("RMusic_LocalPlayer");
+	PropOffsets_RMusic_Player.RMusic_CurLevel = cls->GetPropertyDataOffset("RMusic_CurLevel");
+	PropOffsets_RMusic_Player.RMusic_OldLevel = cls->GetPropertyDataOffset("RMusic_OldLevel");
+	PropOffsets_RMusic_Player.bHasDSP = cls->GetPropertyDataOffset("bHasDSP");
+	PropOffsets_RMusic_Player.fDSPUpdateTime = cls->GetPropertyDataOffset("fDSPUpdateTime");
+	PropOffsets_RMusic_Player.fDSPUpdateDelay = cls->GetPropertyDataOffset("fDSPUpdateDelay");
+	PropOffsets_RMusic_Player.nextEvent = cls->GetPropertyDataOffset("nextEvent");
+}
+
+//////////////////////////////////////////
+
 void InitPropertyOffsets(PackageManager* packages)
 {
 	InitPropertyOffsets_Object(packages);
@@ -5519,6 +5560,7 @@ void InitPropertyOffsets(PackageManager* packages)
 	InitPropertyOffsets_InternetLink(packages);
 	InitPropertyOffsets_UdpLink(packages);
 	InitPropertyOffsets_TcpLink(packages);
+	InitPropertyOffsets_RMusic_Player(packages);
 	if (packages->IsUnreal1())
 	{
 		InitPropertyOffsets_UPakPathNodeIterator(packages);
