@@ -707,6 +707,14 @@ public:
 	Expression* Value = nullptr;
 };
 
+class DynArrayToIntExpression : public Expression
+{
+public:
+	void Visit(ExpressionVisitor* visitor) override { visitor->Expr(this); }
+
+	Expression* Value = nullptr;
+};
+
 class VirtualFunctionExpression : public Expression
 {
 public:

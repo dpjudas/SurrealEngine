@@ -592,6 +592,12 @@ void PrintExpression::Expr(StringToNameExpression* expr)
 	Print(console, "Value", expr->Value, depth + 1);
 }
 
+void PrintExpression::Expr(DynArrayToIntExpression* expr)
+{
+	WriteRow("", name, "DynArray to int");
+	Print(console, "Value", expr->Value, depth + 1);
+}
+
 void PrintExpression::Expr(VirtualFunctionExpression* expr)
 {
 	WriteRow("Virtual call", name, expr->Name.ToString());
@@ -1244,6 +1250,13 @@ void PrintPrettyExpression::Expr(RotatorToStringExpression* expr)
 void PrintPrettyExpression::Expr(StringToNameExpression* expr)
 {
 	writeOutput("stringToName(");
+	Print(writeOutput, expr->Value);
+	writeOutput(")");
+}
+
+void PrintPrettyExpression::Expr(DynArrayToIntExpression* expr)
+{
+	writeOutput("dynarrayToInt(");
 	Print(writeOutput, expr->Value);
 	writeOutput(")");
 }

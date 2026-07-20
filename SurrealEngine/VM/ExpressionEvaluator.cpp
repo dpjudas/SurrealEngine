@@ -607,6 +607,12 @@ void ExpressionEvaluator::Expr(StringToNameExpression* expr)
 	Result.Value = ExpressionValue::NameValue(v);
 }
 
+void ExpressionEvaluator::Expr(DynArrayToIntExpression* expr)
+{
+	size_t count = Eval(expr->Value).Value.ToArray().GetSize();
+	Result.Value = ExpressionValue::IntValue((int)count);
+}
+
 void ExpressionEvaluator::Expr(VirtualFunctionExpression* expr)
 {
 	UClass* contextClass = UObject::TryCast<UClass>(Context);

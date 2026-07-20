@@ -318,7 +318,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		PushIndex(name);
 		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == ExprToken::Construct)
+	else if (token == ExprToken::Construct_227 && engine->LaunchInfo.IsUnreal1_227())
 	{
 		int type = stream->ReadIndex();
 		PushIndex(type);
@@ -330,6 +330,10 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 			PushIndex(argName);
 			ReadToken(stream, depth);
 		}
+	}
+	else if (token == ExprToken::DynArrayToInt_HP1 && engine->LaunchInfo.IsHarryPotter1())
+	{
+		ReadToken(stream, depth);
 	}
 	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{
