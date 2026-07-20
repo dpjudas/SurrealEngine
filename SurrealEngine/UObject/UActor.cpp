@@ -583,8 +583,21 @@ void UActor::TickWalking(float elapsed)
 					}
 					else if (hit.Actor->bCollideActors() && hit.Actor->CollisionHeight() > 0.0f && hit.Actor->CollisionRadius() > 0.0f)
 					{
-						// TODO: We hit a non-movable actor
+						// We hit an actor we can't push. Slide along it rather than stopping dead, the same
+						// way we slide along a wall - otherwise the pawn jams against crates and other pawns
+						// and re-collides every tick. No HitWall here: TryMove has already raised Bump on
+						// both actors, which is what UE1 reports for an actor-to-actor collision.
 
+						vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+						if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+						{
+							hit = TryMove(alignedDelta);
+							timeLeft -= timeLeft * hit.Fraction;
+						}
+						else
+						{
+							timeLeft = 0.0f;
+						}
 					}
 				}
 				else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
