@@ -469,7 +469,14 @@ void UModel::Save(PackageStreamWriter* stream)
 
 		stream->WriteInt32(NumSharedSides);
 
-		stream->WriteIndex((int)Zones.size());
+		// NumZones is a raw int32 in the UE1 format, not a compact index - Load reads it with
+		// ReadInt32, and that is what actually parses the games' own .unr files. Writing it as an
+		// index here desynced the whole rest of the stream (64 encodes as 2 bytes, not 4), so the
+		// first zone's ZoneActor was read from the wrong offset and resolved to a garbage export.
+		// Only reachable on package version > 61: Unreal Gold's maps are version 61 and take the
+		// OldFormat branch above, which has no zone count at all, so this only ever showed up on
+		// UT99 (version 68) - see BUG-008.
+		stream->WriteInt32((int)Zones.size());
 		for (const ZoneProperties& zone : Zones)
 		{
 			stream->WriteObject(zone.ZoneActor);

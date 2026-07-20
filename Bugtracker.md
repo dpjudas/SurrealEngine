@@ -23,7 +23,7 @@ kept struck through with the fixing phase noted, so the history isn't lost.
 
 | WP | Theme | Severity | Items |
 | --- | --- | --- | --- |
-| [WP-1](#wp-1--save-load-and-level-travel-persistence) | Save/load and level travel persistence | S1 | 7 |
+| [WP-1](#wp-1--save-load-and-level-travel-persistence) | Save/load and level travel persistence | S1 | 9 |
 | [WP-2](#wp-2--weapon-fire-semantics) | Weapon fire semantics | S2 | 3 |
 | [WP-3](#wp-3--movers-collision-and-physics) | Movers, collision and physics | S2 | 7 |
 | [WP-4](#wp-4--vr-presentation-polish) | VR presentation polish | S3 | 4 |
@@ -49,10 +49,14 @@ inherited stale state and the `bNextItems` branch — whose whole purpose is car
 discarded it. Each branch now states its intent. (The teleporter route was never affected: `GameInfo.uc`'s
 `SendPlayer` calls `ClientTravel(URL, TRAVEL_Relative, true)`, so it always set the type correctly.)
 
-Still open: BUG-005 (phase 4). The UT99 v436 regression pass the plan calls for has not run — everything so
-far is verified against Unreal Gold only, and phase 1 touches the load path for *every* package, not just
-save files. Phase 3's verification was automated, not played: worth a hands-on confirmation that the
-Translator is usable, not merely present, after a real teleporter transition.
+**UT99 v436 regression pass run 2026-07-20.** It found BUG-008, a hard crash on *every* save load in UT99
+that Unreal Gold structurally could not expose (package version 61 vs 68) — the exact reason the plan
+required a second game. Fixed; save → load → travel now completes on UT99 across all three travel routes
+(direct `ClientTravel`, save+load+travel, and `NextURL`/`bNextItems`), and Unreal Gold is unchanged. The pass
+also turned up BUG-009, a pre-existing UT99-only travel-name mismatch, left open.
+
+Still open: BUG-005 (phase 4) and BUG-009. Phase 3's verification was automated, not played: worth a
+hands-on confirmation that the Translator is usable, not merely present, after a real teleporter transition.
 
 | ID | Src | Sev | Defect |
 | --- | --- | --- | --- |
@@ -62,6 +66,8 @@ Translator is usable, not merely present, after a real teleporter transition.
 | BUG-004 | BT | S1 | ~~The Translator is lost on the first→second level transition (gone from the item list).~~ **FIXED (WP-1 phase 3, 2026-07-20)** — it was never lost in transit; it arrived still in state `Pickup` with `bHidden=0`, i.e. a world pickup rather than an inventory item. `Actor.uc:111` declares `var Inventory Inventory;` with **no `travel` keyword** — UE1 never carries the chain as data, it rebuilds it in `Inventory.TravelPreAccept` → `GiveTo` → `AddInventory`. `GetAllTravelProperties` force-includes `Inventory` so `Create` can walk the chain, and `Accept` was then also writing those pointers back, pre-linking the chain before `TravelPreAccept` ran. `Translator.TravelPreAccept` skips its `Super` call when `FindInventoryType(class) != None` — with the chain already wired it found *itself*, so it never got `BecomeItem()`/`GotoState('Idle2')`. Fixed by not restoring `Inventory` in `Accept` unless it is genuinely `Travel`-flagged (it is, in Deus Ex — that path is unchanged). |
 | BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. |
 | BUG-006 | — | S2 | ~~`Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`.~~ **FIXED (WP-1 phase 2, 2026-07-19)** — `LoadFromSaveFile` re-points `GameInfo` at `LevelInfo->Game()` after `GetLevelObject()` (`Engine.cpp:792`), and throws if the save carries no GameInfo actor rather than limping on. |
+| BUG-008 | — | S1 | ~~Loading any save crashes on UT99 (and any package version > 61) with "Could not cast object Class (class Class) to UActor".~~ **FIXED (WP-1 regression pass, 2026-07-20)** — `UModel::Save` wrote the zone count with `WriteIndex` (a variable-length compact index) while `UModel::Load` reads it with `ReadInt32`. 64 zones encode as 2 bytes, not 4, so the whole rest of the model stream was misaligned and the first `ZoneActor` resolved to a garbage export. Masked entirely on Unreal Gold: its maps are package version **61** and take the `<= 61` OldFormat branch, which has no zone count at all — UT99 maps are version **68**. Found only because the regression pass ran a second game. |
+| BUG-009 | — | S2 | Travel never transfers inventory on UT99: `CreateTravelInfo` keys the travel map by `pawn->PlayerReplicationInfo()->PlayerName()` (**"Player1"** on UT99), while `LoginPlayer` looks it up by the URL's `Name` option, which `ClientTravel` fills from ini `[User] DefaultPlayer Name` (**"Player"**). The lookup misses and logs "Skipping travel transfer. Player 'Player' not found in travel info". Unreal Gold is unaffected only because the two happen to coincide there. Pre-existing and independent of WP-1 — but it means BUG-003/BUG-004's fixes cannot be exercised on UT99 until it is fixed. Candidate fix: have `ClientTravel` write the live pawn's `PlayerReplicationInfo` name into the URL rather than the ini default. |
 | BUG-007 | — | S1 | ~~Saving intermittently crashes the engine.~~ **FIXED (WP-1, 2026-07-20)** — `UObject::Save` dereferenced `StateFrame->Func` unguarded. A `StateFrame` outlives its state: `GotoState("")` keeps the frame but nulls `Func`, while `LatentState` is left at its `Continue` default, never `Stop` — so a dormant actor passed the `StateFrame && LatentState != Stop` guard and crashed on `Func->Code`. Latent since the `HasStack` fix started routing dormant actors into that block; `bTriggerOnceOnly` movers are the common producer. Fixed by also checking `Func` (and `Func->Code`, null for a bytecode-less state), which writes a null `func` and correctly restores the actor as dormant. |
 
 ## WP-2 — Weapon fire semantics
