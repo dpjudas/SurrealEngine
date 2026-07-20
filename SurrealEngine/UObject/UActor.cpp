@@ -436,30 +436,6 @@ void UActor::TickPhysics(float elapsed)
 		float physTimeElapsed = std::min(timeLeft, 0.02f);
 		int mode = Physics();
 
-		// WP-3 diagnostic, SE_DEBUG_STUCK=1. Catches "the player cannot move" while it is happening and
-		// names what is blocking them. It sits here rather than inside TickWalking on purpose: a pawn
-		// half-caught in geometry can flip between walking and falling, and a walking-only detector is
-		// blind to exactly the case worth catching. Temporary; goes away with the package.
-		static const bool debugStuck = getenv("SE_DEBUG_STUCK") != nullptr;
-		UPlayerPawn* stuckPlayer = debugStuck ? UObject::TryCast<UPlayerPawn>(this) : nullptr;
-		vec3 stuckStartLocation = Location();
-		static int stuckFrames = 0;
-		static int stuckModeChanges = 0;
-		static int stuckLastMode = -1;
-		if (stuckPlayer)
-		{
-			static bool announced = false;
-			if (!announced)
-			{
-				announced = true;
-				fprintf(stderr, "[stuck] detector armed (all physics modes)\n");
-				fflush(stderr);
-			}
-			if (stuckLastMode != -1 && mode != stuckLastMode)
-				stuckModeChanges++;
-			stuckLastMode = mode;
-		}
-
 		if (mode != PHYS_None)
 		{
 			switch (mode)
@@ -479,18 +455,6 @@ void UActor::TickPhysics(float elapsed)
 			TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 		}
 
-		// Only the modes where this dispatch is what moves the pawn. Under PHYS_None nothing here moves
-		// it, so "did not move this substep" is trivially true while the pawn advances by other means.
-		if (stuckPlayer && (mode == PHYS_Walking || mode == PHYS_Falling || mode == PHYS_Swimming || mode == PHYS_Flying || mode == PHYS_Spider))
-		{
-			StuckDiagnostic(stuckStartLocation, physTimeElapsed, mode, stuckFrames, stuckModeChanges);
-		}
-		else if (stuckPlayer)
-		{
-			stuckFrames = 0;
-			stuckModeChanges = 0;
-		}
-
 		if (engine->LaunchInfo.ue1Version >= 400)
 		{
 			if (PendingTouch())
@@ -505,120 +469,6 @@ void UActor::TickPhysics(float elapsed)
 				}
 			}
 		}
-	}
-}
-
-// WP-3 diagnostic, SE_DEBUG_STUCK=1. See the call site in Tick. Temporary.
-//
-// Tuned for sustained slowness rather than a dead stop: the reported symptom is "incredibly slow for
-// some time", which a stop-detector never sees. It also drops a position breadcrumb roughly twice a
-// second, so quitting the game on the bad spot leaves its coordinates as the last lines of the log -
-// which matters because this build segfaults on exit (BUG-044) and an exit handler would not run.
-void UActor::StuckDiagnostic(const vec3& startLocation, float elapsed, int mode, int& slowFrames, int& modeChanges)
-{
-	UPawn* pawn = UObject::TryCast<UPawn>(this);
-	if (!pawn || elapsed <= 0.0f)
-		return;
-
-	vec3 inputAccel = Acceleration();
-	inputAccel.z = 0.0f;
-	float inputLen = length(inputAccel);
-
-	float expected = pawn->GroundSpeed() * elapsed;
-	if (expected <= 0.0f)
-		return;
-
-	vec3 moved = Location() - startLocation;
-	float ratio = length(moved) / expected;
-
-	static float breadcrumbTimer = 0.0f;
-	breadcrumbTimer += elapsed;
-	if (breadcrumbTimer >= 0.5f)
-	{
-		breadcrumbTimer = 0.0f;
-		vec3 loc = Location();
-		fprintf(stderr, "[pos] (%.0f, %.0f, %.0f) phys=%d ratio %.2f speed %.0f input %.0f\n",
-			loc.x, loc.y, loc.z, mode, ratio, length(Velocity()), inputLen);
-		fflush(stderr);
-	}
-
-	if (inputLen <= 1.0f) // not asking to move, so slowness means nothing
-	{
-		if (slowFrames >= 15)
-		{
-			fprintf(stderr, "[slow] ended after %d frame(s) (input released)\n", slowFrames);
-			fflush(stderr);
-		}
-		slowFrames = 0;
-		modeChanges = 0;
-		return;
-	}
-
-	// 0.6 of the speed the input asked for. Set from the measured idle baseline rather than guessed:
-	// normal unobstructed movement sits near 1.0, so this catches "half speed" without firing on the
-	// ordinary friction of turning and brushing past corners.
-	if (ratio < 0.6f)
-	{
-		slowFrames++;
-
-		// Report on entry and then periodically, so a long slow stretch gives several samples along it
-		// rather than one at the moment it started.
-		if (slowFrames == 15 || (slowFrames > 15 && slowFrames % 60 == 0))
-		{
-			vec3 loc = Location();
-			UActor* base = ActorBase();
-			fprintf(stderr, "[slow] %d frame(s) at (%.0f, %.0f, %.0f) ratio %.2f phys=%d modeChanges=%d base=%s vel (%.1f, %.1f, %.1f) input (%.0f, %.0f)\n",
-				slowFrames, loc.x, loc.y, loc.z, ratio, mode, modeChanges,
-				base ? base->Class->Name.ToString().c_str() : "<none>",
-				Velocity().x, Velocity().y, Velocity().z, inputAccel.x, inputAccel.y);
-
-			for (int i = 0; i < 8; i++)
-			{
-				float angle = i * (3.14159265f / 4.0f);
-				vec3 dir(std::cos(angle), std::sin(angle), 0.0f);
-				CollisionHit probe = TryMove(dir * 24.0f, true);
-				if (probe.Fraction >= 1.0f)
-					continue; // only report directions that are actually obstructed
-
-				char buf[160];
-				if (probe.Actor)
-				{
-					snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
-						probe.Actor->Brush() ? " (brush/mover)" : "");
-				}
-				else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
-				{
-					uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
-					snprintf(buf, sizeof(buf), "world polyflags 0x%x%s%s", flags,
-						(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
-				}
-				else
-				{
-					snprintf(buf, sizeof(buf), "world (no surface)");
-				}
-
-				fprintf(stderr, "[slow]   blocked dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
-					i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, buf);
-			}
-
-			CollisionHit down = TryMove(vec3(0.0f, 0.0f, -24.0f), true);
-			fprintf(stderr, "[slow]   floor below: frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
-				down.Fraction, down.Normal.x, down.Normal.y, down.Normal.z,
-				down.Fraction < 1.0f ? (down.Actor ? "actor" : "world") : "nothing");
-			fflush(stderr);
-		}
-	}
-	else
-	{
-		if (slowFrames >= 15)
-		{
-			vec3 loc = Location();
-			fprintf(stderr, "[slow] ended after %d frame(s) at (%.0f, %.0f, %.0f), modeChanges=%d\n",
-				slowFrames, loc.x, loc.y, loc.z, modeChanges);
-			fflush(stderr);
-		}
-		slowFrames = 0;
-		modeChanges = 0;
 	}
 }
 

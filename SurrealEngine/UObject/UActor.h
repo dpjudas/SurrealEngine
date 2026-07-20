@@ -454,8 +454,6 @@ public:
 	// Unreal 227 - Perform a single line check with this actor
 	bool TraceThisActor(vec3& TraceEnd, vec3 TraceStart, vec3* HitLocation, vec3* HitNormal, std::optional<vec3> Extent);
 
-	// WP-3 diagnostic, SE_DEBUG_STUCK=1. Temporary; goes away with the package.
-	void StuckDiagnostic(const vec3& startLocation, float elapsed, int mode, int& stuckFrames, int& modeChanges);
 	CollisionHit TryMove(const vec3 & delta, bool dryRun = false, bool isOwnBaseBlocking = true);
 	CollisionHit TryMoveSmooth(const vec3& delta);
 	bool Move(const vec3& delta);

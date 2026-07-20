@@ -14,12 +14,6 @@ private:
 
 	int NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node);
 
-	// WP-3 phase 2 diagnostic, enabled with SE_DEBUG_SEMISOLID=1. Counts semisolid nodes traversed by a
-	// sweep so we can confirm that extent traces walk past semisolid geometry without ever colliding
-	// with it. Temporary - remove once the semisolid collision fix is verified.
-	int SemisolidNodesSeen = 0;
-	int SemisolidPolysHit = 0;
-	static inline bool Scanning = false;
 
 	struct SweepCursor
 	{
