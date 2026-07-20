@@ -282,6 +282,8 @@ var commonSources = [
 	"SurrealEngine/Native/NWebResponse.h",
 	"SurrealEngine/Native/NWindow.cpp",
 	"SurrealEngine/Native/NWindow.h",
+	"SurrealEngine/Native/NRMusicPlayer.cpp",
+	"SurrealEngine/Native/NRMusicPlayer.h",
 	"SurrealEngine/RenderDevice/RenderDevice.cpp",
 	"SurrealEngine/RenderDevice/RenderDevice.h",
 	"SurrealEngine/RenderDevice/Vulkan/BufferManager.cpp",
