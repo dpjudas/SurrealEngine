@@ -46,6 +46,13 @@ void RenderSubsystem::ResetCanvas()
 	engine->canvas->ClipY() = (float)sizeY;
 	engine->canvas->SizeX() = sizeX;
 	engine->canvas->SizeY() = sizeY;
+
+	if (engine->LaunchInfo.IsHarryPotter1())
+	{
+		engine->canvas->ClipX() = (float)sizeY * (4.0f / 3.0f);
+		engine->canvas->SizeX() = (int)std::round(sizeY * (4.0f / 3.0f));
+	}
+
 	//engine->viewport->bShowWindowsMouse() = true; // bShowWindowsMouse is set to true by WindowConsole if mouse cursor should be visible
 	//engine->viewport->bWindowsMouseAvailable() = true; // if true then RenderUWindow updates mouse pos from (WindowsMouseX,WindowsMouseY), otherwise it uses KeyEvent(IK_MouseX, delta) + KeyEvent(IK_MouseY, delta). Maybe used for windowed mode?
 	//engine->viewport->WindowsMouseX() = 10.0f;

@@ -1034,6 +1034,8 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 	}*/
 	else if (command == "getres")
 	{
+		if (LaunchInfo.IsHarryPotter1()) // FEOptionsPage.IsSupportedResolution is so sad :)
+			return "1024x768";
 		return window->GetAvailableResolutions();
 	}
 	else if (command == "getcolordepths")
