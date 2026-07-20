@@ -160,10 +160,20 @@ void UObject::Save(PackageStreamWriter* stream)
 			}
 		}
 
-		if (StateFrame && StateFrame->LatentState != LatentRunState::Stop)
+		// A StateFrame can outlive its state: GotoState("") (what a bTriggerOnceOnly mover does once
+		// it has fired, and what any script does to go dormant) keeps the frame but sets Func to
+		// null, while LatentState is left at whatever it was - and defaults to Continue, never Stop.
+		// So "has a frame and isn't stopped" is not enough to imply there is code to point into;
+		// Func must be checked too, or this dereferences null. Func->Code can likewise be null for a
+		// state that carries no bytecode. Both cases mean the same thing on disk - no resume point -
+		// and func is written as null just below, which is exactly what Load needs to see to bring
+		// the actor back with StateFrame == nullptr, i.e. dormant.
+		if (StateFrame && StateFrame->Func && StateFrame->LatentState != LatentRunState::Stop)
 		{
-			latentAction = NativeFunctions::IndexForLatentAction[StateFrame->LatentState];
-			offset = StateFrame->Func->Code->FindOffset(StateFrame->StatementIndex);
+			auto it = NativeFunctions::IndexForLatentAction.find(StateFrame->LatentState);
+			latentAction = (it != NativeFunctions::IndexForLatentAction.end()) ? it->second : 0;
+			if (StateFrame->Func->Code)
+				offset = StateFrame->Func->Code->FindOffset((int)StateFrame->StatementIndex);
 		}
 
 		stream->WriteObject(func);

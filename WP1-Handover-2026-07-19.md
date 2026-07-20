@@ -46,13 +46,27 @@ Diff touches: `Engine.cpp/h`, `UObject/UObject.cpp/h`, `UObject/UActor.cpp/h`, `
 `VM/Bytecode.h`, `VM/NativeFunc.cpp/h`, `Collision/TopLevel/CollisionSystem.cpp` (transiently, cleaned up).
 All temporary diagnostic/env-var test hooks were added and removed per iteration — none remain in the tree.
 
-## New bug found this session, not yet investigated
+## New bug found this session — RESOLVED 2026-07-20
 
-**BUG-007** (added to `Bugtracker.md`): saving intermittently crashes the engine. The user suspects — but
-has not confirmed — that it's specific to saving a session that was itself loaded from a save (i.e., a
-second/subsequent save within the same run), rather than a fresh session's first save. It does **not**
-reproduce every time even under that condition, so it's not a hard trigger. Explicitly not investigated this
-session per the user's instruction — next session should start here if resuming WP-1 work.
+**BUG-007**: saving intermittently crashes the engine. **Fixed and user-confirmed 2026-07-20** (flatscreen,
+multiple movers, consecutive save+load in different map areas).
+
+Root cause: `UObject::Save` dereferenced `StateFrame->Func` with no null check. A `StateFrame` can outlive
+its state — `UObject::GotoState("")` keeps the frame and calls `SetState(nullptr)`, and `Frame::SetState`
+does not touch `LatentState`, which defaults to `Continue` and is never `Stop`. So a dormant actor satisfied
+`StateFrame && LatentState != Stop` and crashed on `Func->Code`. This was fallout from fix #3 above: before
+`GotoState` began setting `HasStack`, dormant actors mostly lacked the flag and skipped the block entirely.
+The intermittency was just whether any actor happened to be dormant-with-a-frame at save time — the common
+producer being a `bTriggerOnceOnly` mover, i.e. the same behaviour ruled a false alarm in #4. That ruling
+was right (it *is* correct UE1 behaviour); it simply also armed this crash.
+
+The suspicion that it was specific to loaded sessions was the right scenario for the wrong reason: a loaded
+session is just one in which more actors have already gone dormant. The load path itself was not involved.
+
+Fixed by guarding on `StateFrame->Func` and on `Func->Code` (a `shared_ptr`, null for a state with no
+bytecode). Both write a null `func`, so `Load` restores the actor with `StateFrame == nullptr` — dormant,
+which is the case fix #1 made legal. Also replaced `IndexForLatentAction[...]` with a `find()`: `operator[]`
+silently inserted a `{state, 0}` entry into the static map for unregistered states (`Continue`, `Stop`).
 
 ## Not yet done (per the original plan's own gating)
 

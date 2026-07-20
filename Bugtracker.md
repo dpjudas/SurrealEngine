@@ -27,7 +27,7 @@ kept struck through with the fixing phase noted, so the history isn't lost.
 | [WP-2](#wp-2--weapon-fire-semantics) | Weapon fire semantics | S2 | 3 |
 | [WP-3](#wp-3--movers-collision-and-physics) | Movers, collision and physics | S2 | 7 |
 | [WP-4](#wp-4--vr-presentation-polish) | VR presentation polish | S3 | 4 |
-| [WP-5](#wp-5--stability-and-session-state) | Stability and session state | S2 | 4 |
+| [WP-5](#wp-5--stability-and-session-state) | Stability and session state | S2 | 5 |
 | [WP-6](#wp-6--rendering-fidelity) | Rendering fidelity | S3 | 8 |
 | [WP-7](#wp-7--ai-behaviour) | AI behaviour | S3 | 2 |
 | [WP-8](#wp-8--parked) | Parked | S5 | — |
@@ -50,7 +50,7 @@ together because the investigation points at one shared root cause: `UObject::Sa
 | BUG-004 | BT | S1 | The Translator is lost on the first→second level transition (gone from the item list). |
 | BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. |
 | BUG-006 | — | S2 | `Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`. |
-| BUG-007 | — | S1 | Saving intermittently crashes the engine. Suspected (not confirmed) to be specific to saving a session that was itself loaded from a save, rather than fresh gameplay — but it does not reproduce every time even under that condition. Not yet investigated; see `WP1-Handover-2026-07-19.md`. |
+| BUG-007 | — | S1 | ~~Saving intermittently crashes the engine.~~ **FIXED (WP-1, 2026-07-20)** — `UObject::Save` dereferenced `StateFrame->Func` unguarded. A `StateFrame` outlives its state: `GotoState("")` keeps the frame but nulls `Func`, while `LatentState` is left at its `Continue` default, never `Stop` — so a dormant actor passed the `StateFrame && LatentState != Stop` guard and crashed on `Func->Code`. Latent since the `HasStack` fix started routing dormant actors into that block; `bTriggerOnceOnly` movers are the common producer. Fixed by also checking `Func` (and `Func->Code`, null for a bytecode-less state), which writes a null `func` and correctly restores the actor as dormant. |
 
 ## WP-2 — Weapon fire semantics
 
@@ -98,6 +98,7 @@ are wrong on a *freshly loaded* map too.
 | BUG-041 | ST | S2 | The `viewclass` console command crashes with a null deref. |
 | BUG-042 | ST | S3 | Screen-tinting power-ups (Invisibility, Energy Amplifier) leave the tint applied — and accumulate it on re-pickup — until the map changes. |
 | BUG-043 | ST | S3 | Some sounds are far too loud (Pulse Rifle secondary, minigun firing). |
+| BUG-044 | — | S3 | `VulkanRenderDevice::~VulkanRenderDevice` segfaults on every clean shutdown (seen on AMD RADV), after the game has otherwise exited normally. Cosmetic in effect — nothing is lost — but it drops a core on every quit, which masks real crashes and poisons bisects. Pre-existing, predates the WP-1 work. |
 
 ## WP-6 — Rendering fidelity
 
