@@ -581,12 +581,17 @@ void UActor::TickWalking(float elapsed)
 						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 						timeLeft = 0.0f;
 					}
-					else if (hit.Actor->bCollideActors() && hit.Actor->CollisionHeight() > 0.0f && hit.Actor->CollisionRadius() > 0.0f)
+					else if (hit.Actor->bCollideActors() && hit.Actor->CollisionHeight() > 0.0f && hit.Actor->CollisionRadius() > 0.0f
+						&& hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 					{
-						// We hit an actor we can't push. Slide along it rather than stopping dead, the same
-						// way we slide along a wall - otherwise the pawn jams against crates and other pawns
-						// and re-collides every tick. No HitWall here: TryMove has already raised Bump on
-						// both actors, which is what UE1 reports for an actor-to-actor collision.
+						// We hit the side of an actor we can't push. Slide along it rather than stopping
+						// dead, the same way we slide along a wall - otherwise the pawn jams against crates
+						// and other pawns and re-collides every tick. No HitWall here: TryMove has already
+						// raised Bump on both actors, which is what UE1 reports for actor-to-actor contact.
+						//
+						// The normal guard matches the wall-slide branch and is load-bearing: without it a
+						// steeply sloped hit normal projects the move upward, which threw the player off a
+						// mover they were standing on when they walked into its solid part.
 
 						vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
 						if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
@@ -1597,6 +1602,29 @@ bool UActor::IsOverlapping(UActor* other)
 	return XLevel()->Collision.IsOverlapping(this, other);
 }
 
+// True if moving by delta takes us out of an actor we are currently penetrating. Separation is measured
+// horizontally: these are cylinders, and a vertical push-out would launch the pawn.
+bool UActor::IsSeparatingFrom(UActor* other, const vec3& delta)
+{
+	if (!other || other->Brush() || !IsOverlapping(other))
+		return false;
+
+	vec3 separation = Location() - other->Location();
+	separation.z = 0.0f;
+	float sepLength2 = dot(separation, separation);
+
+	// Exactly concentric: every horizontal direction separates equally well, so don't block any of them.
+	if (sepLength2 < 0.0001f)
+		return true;
+
+	vec3 move = delta;
+	move.z = 0.0f;
+	if (dot(move, move) < 0.0001f)
+		return false;
+
+	return dot(normalize(move), separation / std::sqrt(sepLength2)) >= 0.0f;
+}
+
 CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlocking)
 {
 	// Static and non-movable objects can't move
@@ -1633,6 +1661,16 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 					// We never hit ourselves or anything moving along with us
 					if (isBlocking && (isOwnBaseBlocking || !hit.Actor->IsBasedOn(this)) && !IsBasedOn(hit.Actor))
 					{
+						// If we start out already inside this actor, only let it block movement that pushes
+						// deeper. RayCylinderTrace returns a negative root for a penetrating start, which
+						// clamps to fraction 0, so otherwise the actor blocks us in every direction -
+						// including straight back out - and a pawn inside a decoration can never free
+						// itself. Decided here rather than in the trace so the hit still reaches the Touch
+						// loop below: suppressing it there silently stopped pickups and proximity triggers
+						// from firing whenever the player was already standing inside them.
+						if (hit.Fraction <= 0.0f && IsSeparatingFrom(hit.Actor, delta))
+							continue;
+
 						blockingHit = hit;
 						break;
 					}

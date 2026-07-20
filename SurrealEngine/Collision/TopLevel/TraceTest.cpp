@@ -157,16 +157,6 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	return false;
 }
 
-// Same test OverlapTester::CylinderCylinderOverlap does, kept local so the trace path doesn't have to
-// build an OverlapTester just to ask whether the sweep starts inside the actor.
-static bool CylindersPenetrating(const dvec3& origin, double height, double radius, UActor* actor)
-{
-	dvec3 dist = origin - to_dvec3(actor->Location());
-	double h = height + actor->CollisionHeight();
-	double r = radius + actor->CollisionRadius();
-	return std::abs(dist.z) < h && dot(dist.xy(), dist.xy()) < r * r;
-}
-
 void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, bool traceActors, bool traceWorld, bool visibilityOnly, CollisionHitList& hits)
 {
 	if (UMover* mover = UObject::TryCast<UMover>(actor))
@@ -226,35 +216,6 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 	{
 		if (!traceActors || visibilityOnly)
 			return;
-
-		// If the sweep starts already inside the other cylinder, the quadratic solve behind
-		// CylinderActorTrace can return a negative root, which the caller clamps to fraction 0 - a blocking
-		// hit in *every* direction, including straight back out. That is a pawn permanently stuck inside a
-		// decoration or another pawn with no way to free itself. Resolve the penetration instead: block
-		// movement that pushes deeper, and let movement that separates through untouched.
-		// Movement sweeps only. A ray (radius and height both zero) is a shot or a query, and a shot fired
-		// from inside a pawn's cylinder must still hit it - only a moving body needs to be let back out.
-		if ((radius > 0.0 || height > 0.0) && !actor->Brush() && CylindersPenetrating(origin, height, radius, actor))
-		{
-			dvec3 separation = origin - to_dvec3(actor->Location());
-			separation.z = 0.0; // Cylinders separate horizontally; a vertical push would launch the pawn.
-			double sepLength2 = dot(separation, separation);
-
-			// Degenerate case: exactly concentric. Any horizontal direction separates equally, so allow all.
-			if (sepLength2 > 0.0001)
-			{
-				separation /= std::sqrt(sepLength2);
-				if (dot(dirNormalized, separation) >= 0.0)
-					return; // Moving away from the actor we are inside of - don't block it.
-			}
-			else
-			{
-				return;
-			}
-
-			hits.push_back({ 0.0f, to_vec3(separation), actor, nullptr, nullptr });
-			return;
-		}
 
 		double t = CylinderActorTrace(origin, tmin, dirNormalized, tmax, height, radius, actor);
 		if (t < tmax)

@@ -462,6 +462,7 @@ public:
 	bool IsBasedOn(UActor* other);
 	bool IsOwnedBy(UActor* owner);
 	bool IsOverlapping(UActor* other);
+	bool IsSeparatingFrom(UActor* other, const vec3& delta);
 
 	void Touch(UActor* actor);
 	void UnTouch(UActor* actor);
