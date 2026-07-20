@@ -122,7 +122,7 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_1("Actor", "SetInstantMusicVolume", &NActor::SetInstantMusicVolume, 270);
 		RegisterVMNativeFunc_1("Actor", "SetInstantSoundVolume", &NActor::SetInstantSoundVolume, 268);
 		RegisterVMNativeFunc_1("Actor", "SetInstantSpeechVolume", &NActor::SetInstantSpeechVolume, 269);
-		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound, 265);
+		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound_Deus, 265);
 		RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 		RegisterVMNativeFunc_3("Actor", "TweenBlendAnim", &NActor::TweenBlendAnim, 1012);
 	}
@@ -143,6 +143,7 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_3("Actor", "SaveGameSaveInfo", &NActor::SaveGameSaveInfo, 325);
 		RegisterVMNativeFunc_3("Actor", "LoadGameSaveInfo", &NActor::LoadGameSaveInfo, 326);
 		RegisterVMNativeFunc_1("Actor", "IsOSVer2kOrXP", &NActor::IsOSVer2kOrXP, 327);
+		RegisterVMNativeFunc_2("Actor", "StopSound", &NActor::StopSound_HP, 568);
 	}
 	else
 	{
@@ -989,7 +990,7 @@ void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
 	LogUnimplemented("Actor.SetInstantSpeechVolume");
 }
 
-void NActor::StopSound(UObject* Self, int Id)
+void NActor::StopSound_Deus(UObject* Self, int Id)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	engine->audiodev->StopSound(SelfActor, Id);
@@ -1088,4 +1089,11 @@ void NActor::IsOSVer2kOrXP(UObject* Self, bool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->IsOSVer2kOrXP();
+}
+
+void NActor::StopSound_HP(UObject* Self, std::optional<UObject*> Sound, std::optional<uint8_t> Slot)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	LogUnimplemented("Actor.StopSound");
+	// engine->audiodev->StopSound(SelfActor, Sound, Slot);
 }

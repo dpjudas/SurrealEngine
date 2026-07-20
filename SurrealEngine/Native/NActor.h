@@ -93,7 +93,7 @@ public:
 	static void SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume);
 	static void SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume);
 	static void SetPhysics_Deus(UObject* Self, uint8_t newPhysics, std::optional<UObject*> newFloor);
-	static void StopSound(UObject* Self, int Id);
+	static void StopSound_Deus(UObject* Self, int Id);
 	static void TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot);
 
 	static void PlayAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> Type, std::optional<NameString> RootBone);
@@ -111,4 +111,5 @@ public:
 	static void SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue);
 	static void LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue);
 	static void IsOSVer2kOrXP(UObject* Self, bool& ReturnValue);
+	static void StopSound_HP(UObject* Self, std::optional<UObject*> Sound, std::optional<uint8_t> Slot);
 };
