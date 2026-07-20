@@ -1,7 +1,6 @@
 
 #include "Precomp.h"
 #include "TraceAABBModel.h"
-#include "Utils/Logger.h"
 
 // WP-3 phase 2 diagnostic. See the SemisolidNodesSeen comment in the header.
 static bool DebugSemisolid()
@@ -23,11 +22,12 @@ CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, doubl
 	if (DebugSemisolid() && SemisolidNodesSeen > 0 && hits.empty())
 	{
 		static int reported = 0;
+		// stderr, not LogMessage: the Logger only flushes on a clean Engine::Run exit, and BUG-044
+		// segfaults the shutdown, so a LogMessage line here could be lost or read back stale.
 		if ((reported++ % 60) == 0)
 		{
-			LogMessage("[semisolid] sweep from (" + std::to_string(origin.x) + ", " + std::to_string(origin.y) + ", " + std::to_string(origin.z) +
-				") extents (" + std::to_string(extents.x) + ", " + std::to_string(extents.z) +
-				") crossed " + std::to_string(SemisolidNodesSeen) + " semisolid node(s) and hit nothing [" + std::to_string(reported) + " total]");
+			fprintf(stderr, "[semisolid] sweep from (%.1f, %.1f, %.1f) extents (r=%.1f h=%.1f) crossed %d semisolid node(s) and hit nothing [%d total]\n",
+				origin.x, origin.y, origin.z, extents.x, extents.z, SemisolidNodesSeen, reported);
 		}
 	}
 
