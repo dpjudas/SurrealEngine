@@ -1,12 +1,36 @@
 
 #include "Precomp.h"
 #include "TraceAABBModel.h"
+#include "Utils/Logger.h"
+
+// WP-3 phase 2 diagnostic. See the SemisolidNodesSeen comment in the header.
+static bool DebugSemisolid()
+{
+	static const bool enabled = getenv("SE_DEBUG_SEMISOLID") != nullptr;
+	return enabled;
+}
 
 CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
 {
 	Model = model;
 	CollisionHitList hits;
+	SemisolidNodesSeen = 0;
 	Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes.front(), hits);
+
+	// If a sweep walks through semisolid nodes and comes back with nothing, the extent trace cannot see
+	// semisolid geometry at all - which is the whole hypothesis behind BUG-021. Rate limited: this runs
+	// for every pawn move.
+	if (DebugSemisolid() && SemisolidNodesSeen > 0 && hits.empty())
+	{
+		static int reported = 0;
+		if ((reported++ % 60) == 0)
+		{
+			LogMessage("[semisolid] sweep from (" + std::to_string(origin.x) + ", " + std::to_string(origin.y) + ", " + std::to_string(origin.z) +
+				") extents (" + std::to_string(extents.x) + ", " + std::to_string(extents.z) +
+				") crossed " + std::to_string(SemisolidNodesSeen) + " semisolid node(s) and hit nothing [" + std::to_string(reported) + " total]");
+		}
+	}
+
 	std::stable_sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) { return a.Fraction < b.Fraction; });
 	return hits;
 }
@@ -101,6 +125,9 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 	dvec3 extentspadded = extents * 1.1; // For numerical stability
 	int startSide = NodeAABBOverlap(origin, extentspadded, node);
 	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
+
+	if (DebugSemisolid() && node->Surf >= 0 && (Model->Surfaces[node->Surf].PolyFlags & PF_Semisolid) && startSide == 0)
+		SemisolidNodesSeen++;
 
 	if (node->Front >= 0 && (startSide <= 0 || endSide <= 0))
 	{
