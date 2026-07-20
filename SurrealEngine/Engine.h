@@ -231,7 +231,8 @@ public:
 	bool getDXWindowDebugMode() const { return m_DrawDebugDXWindowHierarchy; }
 
 private:
-	std::map<std::string, std::string> CreateTravelInfo(bool transferItems);
+	std::map<std::string, std::string> CreateTravelInfo(const UnrealURL& destUrl, bool transferItems);
+	std::string GetTravelPlayerName(const UnrealURL& url);
 
 	void LogGamePackageSHA1Sums() const;
 	void GetLevelInfoObject();

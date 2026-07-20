@@ -260,7 +260,8 @@ void Engine::Run()
 				else if (LevelInfo->bNextItems())
 				{
 					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Relative;
-					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), CreateTravelInfo(true));
+					UnrealURL nextUrl(LevelInfo->URL, LevelInfo->NextURL());
+					LoadMap(nextUrl, CreateTravelInfo(nextUrl, true));
 					LoginPlayer();
 				}
 				else
@@ -292,7 +293,7 @@ void Engine::Run()
 
 			UnrealURL url(ClientTravelInfo.URL);
 			LogMessage("Client travel to " + url.ToString());
-			LoadMap(url, CreateTravelInfo(ClientTravelInfo.TransferItems));
+			LoadMap(url, CreateTravelInfo(url, ClientTravelInfo.TransferItems));
 			LoginPlayer();
 		}
 	}
@@ -852,17 +853,37 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 	}
 }
 
-std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
+// The travel map is keyed by player name, and the side that writes it and the side that reads it
+// must derive that name identically or the transfer silently no-ops. LoginPlayer can only identify
+// the arriving player by the destination URL's Name option - that is what GameInfo.Login uses to
+// name the pawn it spawns - so that option is the authoritative key, for both sides.
+//
+// It deliberately is *not* the departing pawn's PlayerReplicationInfo name, which is what
+// CreateTravelInfo used to use: the game's own script is free to have changed it. UT99 renames
+// "Player" to "Player1", so the map was written under "Player1" and read back under "Player", and
+// no UT99 level transition ever carried inventory (BUG-009). Unreal Gold only worked by coincidence,
+// the two names happening to agree there.
+std::string Engine::GetTravelPlayerName(const UnrealURL& url)
+{
+	std::string playerName = url.GetOption("Name");
+	if (playerName.empty())
+		playerName = packages->GetIniValue("system", "URL", "Name");
+	return playerName;
+}
+
+std::map<std::string, std::string> Engine::CreateTravelInfo(const UnrealURL& destUrl, bool transferItems)
 {
 	auto travelInfo = Level->TravelInfo;
+
+	// This engine has no networking, so there is exactly one local player to carry; keying every
+	// pawn found by the same destination name is therefore not the ambiguity it would look like in
+	// a multiplayer engine.
+	std::string playerName = GetTravelPlayerName(destUrl);
 	for (UActor* actor : Level->Actors)
 	{
 		UPlayerPawn* pawn = UObject::TryCast<UPlayerPawn>(actor);
 		if (pawn && pawn->Player())
-		{
-			std::string playerName = engine->LaunchInfo.ue1Version > 219 ? pawn->PlayerReplicationInfo()->PlayerName() : std::string("Player"); // To do: how to get the travel player name?
 			travelInfo[playerName] = ActorTravelInfo::Create(pawn, transferItems);
-		}
 	}
 	return travelInfo;
 }
@@ -928,9 +949,8 @@ void Engine::LoginPlayer()
 	Array<UActor*> acceptedActors;
 	if (actorActuallySpawned && ClientTravelInfo.TravelType == ETravelType::TRAVEL_Relative)
 	{
-		std::string playerName = url.GetOption("Name");
-		if (playerName.empty())
-			playerName = packages->GetIniValue("system", "URL", "Name");
+		// Must stay identical to how CreateTravelInfo keyed the map - see GetTravelPlayerName.
+		std::string playerName = GetTravelPlayerName(url);
 
 		auto it = travelInfo.find(playerName);
 		if (!playerName.empty() && it != travelInfo.end())
