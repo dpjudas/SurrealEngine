@@ -65,6 +65,10 @@ int GameApp::main(Array<std::string> args)
 	}
 	catch (const std::exception& e)
 	{
+		// Also on stderr: the modal is invisible to an unattended run, which then looks like a hang
+		// rather than a failure.
+		fprintf(stderr, "[fatal] %s\n", e.what());
+		fflush(stderr);
 		ErrorWindow::ExecModal(e.what(), Logger::Get()->GetLog());
 	}
 

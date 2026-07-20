@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "TraceAABBModel.h"
 #include "TraceRayModel.h"
+#include "OverlapAABBModel.h"
 
 // WP-3 phase 2 diagnostic. See the SemisolidNodesSeen comment in the header.
 static bool DebugSemisolid()
@@ -77,6 +78,81 @@ static void ProbeSemisolid(UModel* model, double ex, double ez, const char* labe
 		label, ex, ez, probed, passedThrough, stoppedOnSurface, stoppedEarly);
 }
 
+// WP-3 phase 2 diagnostic. The complement of ProbeSemisolid: instead of asking whether a sweep can
+// reach a semisolid surface, it asks whether a player standing on one can leave. For every roughly
+// horizontal semisolid polygon it stands a player-sized box just above the centroid and sweeps
+// outwards in eight compass directions. A spot where every direction is blocked immediately is a spot
+// the player cannot walk off - which is what "stuck on the grate" looks like from the collision layer.
+static void ProbeStuckOnFloors(UModel* model, bool wantSemisolid, const char* label)
+{
+	const double radius = 17.0, halfHeight = 39.0; // UT99 player
+	const double reach = 48.0;
+	int candidates = 0, buried = 0, standing = 0, stuck = 0, mostlyStuck = 0, reported = 0;
+
+	for (BspNode& node : model->Nodes)
+	{
+		if (node.Surf < 0 || node.NumVertices < 3)
+			continue;
+		bool semisolid = (model->Surfaces[node.Surf].PolyFlags & PF_Semisolid) != 0;
+		if (semisolid != wantSemisolid)
+			continue;
+
+		dvec3 normal((double)node.PlaneX, (double)node.PlaneY, (double)node.PlaneZ);
+		if (dot(normal, normal) < 0.5)
+			continue;
+		normal = normalize(normal);
+		if (normal.z < 0.7) // only floors: you cannot stand on a wall
+			continue;
+
+		BspVert* verts = &model->Vertices[node.VertPool];
+		dvec3 centroid(0.0, 0.0, 0.0);
+		for (int i = 0; i < node.NumVertices; i++)
+			centroid += to_dvec3(model->Points[verts[i].Vertex]);
+		centroid /= (double)node.NumVertices;
+
+		dvec3 stand = centroid + normal * (halfHeight + 1.0);
+		candidates++;
+
+		// Only count spots the player could actually occupy. A box buried in geometry cannot move in any
+		// direction either, and counting those would drown the signal in places nobody can stand.
+		OverlapAABBModel overlap;
+		if (!overlap.TestOverlap(model, to_vec3(stand), vec3((float)radius, (float)radius, (float)halfHeight), false).empty())
+		{
+			buried++;
+			continue;
+		}
+
+		int blocked = 0;
+		for (int i = 0; i < 8; i++)
+		{
+			double angle = i * (3.14159265358979 / 4.0);
+			dvec3 dir(std::cos(angle), std::sin(angle), 0.0);
+			TraceAABBModel sweep;
+			CollisionHitList hits = sweep.Trace(model, stand, 0.0, dir, reach, dvec3(radius, radius, halfHeight), false);
+			if (!hits.empty() && hits.front().Fraction * reach < 1.0)
+				blocked++;
+		}
+
+		standing++;
+		if (blocked == 8)
+		{
+			stuck++;
+			if (reported < 8)
+			{
+				reported++;
+				fprintf(stderr, "[semisolid]   %s STUCK at (%.0f, %.0f, %.0f)\n", label, stand.x, stand.y, stand.z);
+			}
+		}
+		else if (blocked >= 6)
+		{
+			mostlyStuck++;
+		}
+	}
+
+	fprintf(stderr, "[semisolid] stuck probe (%s): %d floor(s), %d buried/skipped, %d standable - fully stuck %d (%.1f%%), 6+/8 blocked %d\n",
+		label, candidates, buried, standing, stuck, standing ? 100.0 * stuck / standing : 0.0, mostlyStuck);
+}
+
 static void ScanSemisolidSurfaces(UModel* model)
 {
 	int semisolidNodes = 0;
@@ -90,6 +166,8 @@ static void ScanSemisolidSurfaces(UModel* model)
 
 	ProbeSemisolid(model, 4.0, 4.0, "small box");
 	ProbeSemisolid(model, 35.0, 46.0, "player box");
+	ProbeStuckOnFloors(model, true, "semisolid");
+	ProbeStuckOnFloors(model, false, "solid (control)");
 }
 
 CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)

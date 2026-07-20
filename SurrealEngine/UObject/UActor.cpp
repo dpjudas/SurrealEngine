@@ -544,6 +544,14 @@ void UActor::TickWalking(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 	bool isMoving = (vel.x != 0.0f || vel.y != 0.0f);
+
+	// WP-3 diagnostic, SE_DEBUG_STUCK=1. Catches "the player cannot move" while it is happening and
+	// reports what is doing the blocking, which a static sweep of the level geometry cannot find.
+	// Temporary; goes away with the package.
+	static const bool debugStuck = getenv("SE_DEBUG_STUCK") != nullptr;
+	vec3 stuckStartLocation = Location();
+	static int stuckFrames = 0;
+
 	if (isMoving)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
@@ -656,6 +664,61 @@ void UActor::TickWalking(float elapsed)
 			// No we couldn't. We are falling
 			SetPhysics(PHYS_Falling);
 			SetBase(nullptr, true);
+		}
+	}
+
+	if (debugStuck && player && isMoving)
+	{
+		vec3 moved = Location() - stuckStartLocation;
+		moved.z = 0.0f;
+		if (dot(moved, moved) < 0.25f) // went nowhere this tick despite wanting to
+		{
+			stuckFrames++;
+			if (stuckFrames == 20) // ~a third of a second of being pinned
+			{
+				vec3 loc = Location();
+				UActor* base = ActorBase();
+				fprintf(stderr, "[stuck] at (%.0f, %.0f, %.0f) vel (%.1f, %.1f, %.1f) base=%s phys=%d\n",
+					loc.x, loc.y, loc.z, Velocity().x, Velocity().y, Velocity().z,
+					base ? base->Class->Name.ToString().c_str() : "<none>", (int)Physics());
+
+				for (int i = 0; i < 8; i++)
+				{
+					float angle = i * (3.14159265f / 4.0f);
+					vec3 dir(std::cos(angle), std::sin(angle), 0.0f);
+					CollisionHit probe = TryMove(dir * 24.0f, true);
+					const char* what = "clear";
+					char buf[128];
+					if (probe.Fraction < 1.0f)
+					{
+						if (probe.Actor)
+						{
+							snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
+								probe.Actor->Brush() ? " (brush)" : "");
+						}
+						else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
+						{
+							uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
+							snprintf(buf, sizeof(buf), "world node polyflags 0x%x%s%s", flags,
+								(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
+						}
+						else
+						{
+							snprintf(buf, sizeof(buf), "world (no surface)");
+						}
+						what = buf;
+					}
+					fprintf(stderr, "[stuck]   dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
+						i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, what);
+				}
+				fflush(stderr);
+			}
+		}
+		else
+		{
+			if (stuckFrames >= 20)
+				fprintf(stderr, "[stuck] released after %d frames\n", stuckFrames);
+			stuckFrames = 0;
 		}
 	}
 
