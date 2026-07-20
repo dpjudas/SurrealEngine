@@ -157,6 +157,18 @@ Array<UActor*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& tra
 
 		for (UProperty* property : acceptedActor->GetAllTravelProperties())
 		{
+			// GetAllTravelProperties force-includes Inventory so Create() can walk the chain to
+			// find what to carry. Outside Deus Ex it is not a real UE1 travel property (Actor.uc:
+			// "var Inventory Inventory;", no travel keyword), and it must not be written back here:
+			// UE1 rebuilds the chain in Inventory.TravelPreAccept -> GiveTo -> AddInventory, which
+			// runs after this. Pre-linking it breaks scripts that ask whether the pawn already owns
+			// an item - Translator.TravelPreAccept skips its Super call when
+			// FindInventoryType(class) != None, and with the chain already wired it finds *itself*,
+			// so it never gets BecomeItem()/GotoState('Idle2') and arrives as a visible world pickup
+			// that no longer shows in the item list (BUG-004).
+			if (property->Name == "Inventory" && !AllFlags(property->PropFlags, PropertyFlags::Travel))
+				continue;
+
 			auto it = objInfo.Properties.find(property->Name.ToString());
 			if (it == objInfo.Properties.end())
 				continue;

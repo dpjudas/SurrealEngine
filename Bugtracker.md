@@ -42,18 +42,24 @@ together because the investigation points at one shared root cause: `UObject::Sa
 `HasStack`, so no actor in a loaded level has a script state. Execution plan:
 [`WP1-SaveLoad-Plan.md`](WP1-SaveLoad-Plan.md).
 
-**Status 2026-07-20:** plan phases 1 and 2 are complete and user-confirmed — BUG-001, BUG-006 and BUG-007
-fixed, BUG-002 fixed for movers. Still open: BUG-002's glass half (untested), BUG-003 and BUG-004 (phase 3,
-gated on watching a real level transition and reading the log first), BUG-005 (phase 4). The UT99 v436
-regression pass the plan calls for has not run — everything so far is verified against Unreal Gold only,
-and phase 1 touches the load path for *every* package, not just save files.
+**Status 2026-07-20:** plan phases 1, 2 and 3 are complete — BUG-001 … BUG-004, BUG-006 and BUG-007 all
+fixed. Phase 3 additionally fixed a latent gap it was asked to check: the `LevelInfo->NextURL` routes in
+`Engine::Run` never set `ClientTravelInfo.TravelType`, which is assigned only in `ClientTravel`, so they
+inherited stale state and the `bNextItems` branch — whose whole purpose is carrying inventory — silently
+discarded it. Each branch now states its intent. (The teleporter route was never affected: `GameInfo.uc`'s
+`SendPlayer` calls `ClientTravel(URL, TRAVEL_Relative, true)`, so it always set the type correctly.)
+
+Still open: BUG-005 (phase 4). The UT99 v436 regression pass the plan calls for has not run — everything so
+far is verified against Unreal Gold only, and phase 1 touches the load path for *every* package, not just
+save files. Phase 3's verification was automated, not played: worth a hands-on confirmation that the
+Translator is usable, not merely present, after a real teleporter transition.
 
 | ID | Src | Sev | Defect |
 | --- | --- | --- | --- |
 | BUG-001 | BT | S1 | ~~Loading a saved game crashes the engine after a few seconds.~~ **FIXED (WP-1 phase 1, 2026-07-19)** — `VisibleMesh::DrawDebugInfo` dereferenced `pawn->StateFrame->LatentState` unguarded, once per pawn-with-mesh per frame. Harmless before phase 1 (every actor always had *some* `StateFrame`); afterwards a pawn with no active state at save time correctly loads with `StateFrame == nullptr` and the first one drawn killed the renderer. Fixed with a null check. |
-| BUG-002 | BT | S1 | On a loaded level it is impossible to destroy glass or activate movers. **Movers fixed and user-confirmed** (phase 1 state-frame serialization + `HasStack` on `GotoState` + `BasedActors` relink). **Glass still unverified** — needs a pane shot on a loaded level; that half is what keeps this open. |
-| BUG-003 | ST | S1 | Inventory from loaded saves does not transfer to the next map. |
-| BUG-004 | BT | S1 | The Translator is lost on the first→second level transition (gone from the item list). |
+| BUG-002 | BT | S1 | ~~On a loaded level it is impossible to destroy glass or activate movers.~~ **FIXED (WP-1 phase 1, user-confirmed 2026-07-20)** — both halves. Root cause was the zeroed state frame in `UObject::Save`: with no script state, a mover's `Trigger` dispatched nowhere and breakable glass's damage handler was unreachable. Fixed by real state-frame serialization, plus `GotoState` setting `HasStack` (so states entered during play are actually written) and `RelinkBasedActor` (so movers still know who is riding them). |
+| BUG-003 | ST | S1 | ~~Inventory from loaded saves does not transfer to the next map.~~ **FIXED (WP-1 phase 3, 2026-07-20)** — no separate cause of its own; it was BUG-004 plus the phases 1–2 work. Verified automatically: give items → save → load → travel now arrives with every item intact and correctly `Idle2`/hidden. |
+| BUG-004 | BT | S1 | ~~The Translator is lost on the first→second level transition (gone from the item list).~~ **FIXED (WP-1 phase 3, 2026-07-20)** — it was never lost in transit; it arrived still in state `Pickup` with `bHidden=0`, i.e. a world pickup rather than an inventory item. `Actor.uc:111` declares `var Inventory Inventory;` with **no `travel` keyword** — UE1 never carries the chain as data, it rebuilds it in `Inventory.TravelPreAccept` → `GiveTo` → `AddInventory`. `GetAllTravelProperties` force-includes `Inventory` so `Create` can walk the chain, and `Accept` was then also writing those pointers back, pre-linking the chain before `TravelPreAccept` ran. `Translator.TravelPreAccept` skips its `Super` call when `FindInventoryType(class) != None` — with the chain already wired it found *itself*, so it never got `BecomeItem()`/`GotoState('Idle2')`. Fixed by not restoring `Inventory` in `Accept` unless it is genuinely `Travel`-flagged (it is, in Deus Ex — that path is unchanged). |
 | BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. |
 | BUG-006 | — | S2 | ~~`Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`.~~ **FIXED (WP-1 phase 2, 2026-07-19)** — `LoadFromSaveFile` re-points `GameInfo` at `LevelInfo->Game()` after `GetLevelObject()` (`Engine.cpp:792`), and throws if the save carries no GameInfo actor rather than limping on. |
 | BUG-007 | — | S1 | ~~Saving intermittently crashes the engine.~~ **FIXED (WP-1, 2026-07-20)** — `UObject::Save` dereferenced `StateFrame->Func` unguarded. A `StateFrame` outlives its state: `GotoState("")` keeps the frame but nulls `Func`, while `LatentState` is left at its `Continue` default, never `Stop` — so a dormant actor passed the `StateFrame && LatentState != Stop` guard and crashed on `Func->Code`. Latent since the `HasStack` fix started routing dormant actors into that block; `bTriggerOnceOnly` movers are the common producer. Fixed by also checking `Func` (and `Func->Code`, null for a bytecode-less state), which writes a null `func` and correctly restores the actor as dormant. |
