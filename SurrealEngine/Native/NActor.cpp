@@ -31,8 +31,6 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "Destroy", &NActor::Destroy, 279);
 	RegisterVMNativeFunc_1("Actor", "Error", &NActor::Error, 233);
 	RegisterVMNativeFunc_3("Actor", "FastTrace", &NActor::FastTrace, 548);
-	RegisterVMNativeFunc_0("Actor", "FinishAnim", &NActor::FinishAnim, 261);
-	RegisterLatentAction(262, LatentRunState::FinishAnim);
 	RegisterVMNativeFunc_0("Actor", "FinishInterpolation", &NActor::FinishInterpolation, 301);
 	RegisterLatentAction(302, LatentRunState::FinishInterpolation);
 	RegisterVMNativeFunc_2("Actor", "GetAnimGroup", &NActor::GetAnimGroup, 293);
@@ -51,7 +49,6 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
 	if (engine->LaunchInfo.IsUnreal1_227())
 		RegisterVMNativeFunc_4("Actor", "IntDescIterator", &NActor::IntDescIterator_U227, 313);
-	RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
 	RegisterVMNativeFunc_2("Actor", "IsOverlapping", &NActor::IsOverlapping, 718);
 	RegisterVMNativeFunc_1("Actor", "LastRendered", &NActor::LastRendered, 723);
 	RegisterVMNativeFunc_1("Actor", "LinkSkelAnim", &NActor::LinkSkelAnim, 0);
@@ -144,11 +141,17 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_3("Actor", "LoadGameSaveInfo", &NActor::LoadGameSaveInfo, 326);
 		RegisterVMNativeFunc_1("Actor", "IsOSVer2kOrXP", &NActor::IsOSVer2kOrXP, 327);
 		RegisterVMNativeFunc_2("Actor", "StopSound", &NActor::StopSound_HP, 568);
+		RegisterVMNativeFunc_2("Actor", "IsAnimating", &NActor::IsAnimating_HP, 282);
+		RegisterVMNativeFunc_1("Actor", "FinishAnim", &NActor::FinishAnim_HP, 261);
+		RegisterLatentAction(262, LatentRunState::FinishAnim);
 	}
 	else
 	{
 		RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
 		RegisterVMNativeFunc_4("Actor", "LoopAnim", &NActor::LoopAnim, 260);
+		RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
+		RegisterVMNativeFunc_0("Actor", "FinishAnim", &NActor::FinishAnim, 261);
+		RegisterLatentAction(262, LatentRunState::FinishAnim);
 	}
 }
 
@@ -1013,6 +1016,18 @@ void NActor::LoopAnim_HP(UObject* Self, const NameString& Sequence, std::optiona
 	SelfActor->LoopAnim_HP(Sequence, Rate, TweenTime, MinRate, Type.has_value() ? std::optional<EAnimType>((EAnimType)Type.value()) : std::optional<EAnimType>(), RootBone);
 }
 
+void NActor::IsAnimating_HP(UObject* Self, std::optional<NameString> RootBone, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->IsAnimating_HP(RootBone);
+}
+
+void NActor::FinishAnim_HP(UObject* Self, std::optional<NameString> RootBone)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->FinishAnim_HP(RootBone);
+}
+
 void NActor::GetWorldCollisionBox(UObject* Self, std::optional<bool> bVisual, BoundingBox& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
@@ -1061,31 +1076,31 @@ void NActor::CreateTextureFromBMP(UObject* Self, const std::string& name, const 
 	ReturnValue = SelfActor->CreateTextureFromBMP(name, filename);
 }
 
-void NActor::SaveObjectAsFile(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+void NActor::SaveObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->SaveObjectAsFile(dir, object);
 }
 
-void NActor::LoadObjectAsFile(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+void NActor::LoadObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->LoadObjectAsFile(dir, object);
 }
 
-void NActor::SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+void NActor::SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->SaveGameSaveInfo(dir, object);
 }
 
-void NActor::LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, bool& ReturnValue)
+void NActor::LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->LoadGameSaveInfo(dir, object);
 }
 
-void NActor::IsOSVer2kOrXP(UObject* Self, bool& ReturnValue)
+void NActor::IsOSVer2kOrXP(UObject* Self, BitfieldBool& ReturnValue)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	ReturnValue = SelfActor->IsOSVer2kOrXP();

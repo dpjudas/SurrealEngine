@@ -1921,6 +1921,12 @@ bool UActor::IsAnimating()
 	return AnimRate() != 0.0f;
 }
 
+bool UActor::IsAnimating_HP(std::optional<NameString> RootBone)
+{
+	LogUnimplemented("Actor.IsAnimating_HP");
+	return IsAnimating();
+}
+
 void UActor::FinishAnim()
 {
 	if (bAnimLoop())
@@ -1931,6 +1937,12 @@ void UActor::FinishAnim()
 
 	if (StateFrame)
 		StateFrame->LatentState = LatentRunState::FinishAnim;
+}
+
+void UActor::FinishAnim_HP(std::optional<NameString> RootBone)
+{
+	LogUnimplemented("Actor.FinishAnim_HP");
+	FinishAnim();
 }
 
 NameString UActor::GetAnimGroup(const NameString& sequence)

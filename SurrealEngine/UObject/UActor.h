@@ -473,7 +473,9 @@ public:
 
 	bool HasAnim(const NameString& sequence);
 	bool IsAnimating();
+	bool IsAnimating_HP(std::optional<NameString> RootBone);
 	void FinishAnim();
+	void FinishAnim_HP(std::optional<NameString> RootBone);
 	NameString GetAnimGroup(const NameString& sequence);
 	void PlayAnim(const NameString& sequence, float rate, float tweenTime);
 	void PlayBlendAnim(const NameString& sequence, float rate, float tweenTime, int blendSlot);
