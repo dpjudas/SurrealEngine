@@ -792,7 +792,7 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	// own package name (e.g. "Save0") is the closest thing to "the current map" the engine has
 	// after a load - matches what a subsequent "restart" should reload. Portal/options carried
 	// over from before the save cannot be recovered here; only rebuild the map identity.
-	// (Not yet verified against real gameplay - see WP1-SaveLoad-Plan.md phase 3.)
+	// Confirmed in real gameplay (save, load, then travel out of the loaded level) 2026-07-20.
 	LevelInfo->URL = UnrealURL(LevelPackage->GetPackageName().ToString());
 
 	GetLevelObject();
@@ -990,7 +990,7 @@ void Engine::LoginPlayer()
 
 void Engine::PossessSavedPlayer()
 {
-	// WP1-SaveLoad-Plan.md phase 2 "double-pawn problem": loading a save must not reuse
+	// The "double-pawn problem" (Bugtracker.md WP-1): loading a save must not reuse
 	// LoginPlayer, because that always calls GameInfo.Login, which always spawns a brand new
 	// pawn (confirmed 2026-07-19: a real save/load produced a second "GameInfo.Login" with an
 	// empty player name, since LevelInfo->URL has no Name= option to give it after a load). The

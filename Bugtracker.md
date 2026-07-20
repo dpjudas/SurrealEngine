@@ -36,14 +36,16 @@ kept struck through with the fixing phase noted, so the history isn't lost.
 
 ## WP-1 — Save/load and level travel persistence
 
-**Severity S1.** Everything that makes a saved or travelled-into level come back wrong. These are grouped
-together because the investigation points at one shared root cause: `UObject::Save`
-(`SurrealEngine/UObject/UObject.cpp:126`) writes a **zeroed** state frame for every object flagged
-`HasStack`, so no actor in a loaded level has a script state. Execution plan:
-[`WP1-SaveLoad-Plan.md`](WP1-SaveLoad-Plan.md).
+**Severity S1.** Everything that makes a saved or travelled-into level come back wrong. These were grouped
+together because they shared one root cause: `UObject::Save` wrote a **zeroed** state frame for every object
+flagged `HasStack`, so no actor in a loaded level had a script state. That, and everything it masked, is now
+fixed; the per-bug entries below carry the root cause and fix for each. (The separate `WP1-SaveLoad-Plan.md`
+and `WP1-Handover-2026-07-19.md` working documents were retired on 2026-07-20 once phases 1–3 landed —
+everything still live from them is folded into this section and into BUG-005's scope note.)
 
-**Status 2026-07-20:** plan phases 1, 2 and 3 are complete — BUG-001 … BUG-004, BUG-006 and BUG-007 all
-fixed. Phase 3 additionally fixed a latent gap it was asked to check: the `LevelInfo->NextURL` routes in
+**Status 2026-07-20:** phases 1, 2 and 3 are complete — BUG-001 … BUG-004, BUG-006, BUG-007, BUG-008 and
+BUG-009 all fixed, and **level transfer is user-confirmed working in real gameplay**. Phase 3 additionally
+fixed a latent gap: the `LevelInfo->NextURL` routes in
 `Engine::Run` never set `ClientTravelInfo.TravelType`, which is assigned only in `ClientTravel`, so they
 inherited stale state and the `bNextItems` branch — whose whole purpose is carrying inventory — silently
 discarded it. Each branch now states its intent. (The teleporter route was never affected: `GameInfo.uc`'s
@@ -53,10 +55,9 @@ discarded it. Each branch now states its intent. (The teleporter route was never
 that Unreal Gold structurally could not expose (package version 61 vs 68) — the exact reason the plan
 required a second game. Fixed; save → load → travel now completes on UT99 across all three travel routes
 (direct `ClientTravel`, save+load+travel, and `NextURL`/`bNextItems`), and Unreal Gold is unchanged. The pass
-also turned up BUG-009, a pre-existing UT99-only travel-name mismatch, left open.
+also turned up BUG-009, an inconsistent travel-map key, since fixed.
 
-Still open: BUG-005 (phase 4) only. Phase 3's verification was automated, not played: worth a hands-on
-confirmation that the Translator is usable, not merely present, after a real teleporter transition.
+Still open: **BUG-005 only** — see its scope note in the table below.
 
 Note for anyone testing travel on UT99: **UT does not carry inventory between maps by design**, so an empty
 inventory after a UT level change is correct and is not evidence of a travel bug. Use Unreal Gold to test
@@ -66,9 +67,9 @@ that inventory actually transfers.
 | --- | --- | --- | --- |
 | BUG-001 | BT | S1 | ~~Loading a saved game crashes the engine after a few seconds.~~ **FIXED (WP-1 phase 1, 2026-07-19)** — `VisibleMesh::DrawDebugInfo` dereferenced `pawn->StateFrame->LatentState` unguarded, once per pawn-with-mesh per frame. Harmless before phase 1 (every actor always had *some* `StateFrame`); afterwards a pawn with no active state at save time correctly loads with `StateFrame == nullptr` and the first one drawn killed the renderer. Fixed with a null check. |
 | BUG-002 | BT | S1 | ~~On a loaded level it is impossible to destroy glass or activate movers.~~ **FIXED (WP-1 phase 1, user-confirmed 2026-07-20)** — both halves. Root cause was the zeroed state frame in `UObject::Save`: with no script state, a mover's `Trigger` dispatched nowhere and breakable glass's damage handler was unreachable. Fixed by real state-frame serialization, plus `GotoState` setting `HasStack` (so states entered during play are actually written) and `RelinkBasedActor` (so movers still know who is riding them). |
-| BUG-003 | ST | S1 | ~~Inventory from loaded saves does not transfer to the next map.~~ **FIXED (WP-1 phase 3, 2026-07-20)** — no separate cause of its own; it was BUG-004 plus the phases 1–2 work. Verified automatically: give items → save → load → travel now arrives with every item intact and correctly `Idle2`/hidden. |
-| BUG-004 | BT | S1 | ~~The Translator is lost on the first→second level transition (gone from the item list).~~ **FIXED (WP-1 phase 3, 2026-07-20)** — it was never lost in transit; it arrived still in state `Pickup` with `bHidden=0`, i.e. a world pickup rather than an inventory item. `Actor.uc:111` declares `var Inventory Inventory;` with **no `travel` keyword** — UE1 never carries the chain as data, it rebuilds it in `Inventory.TravelPreAccept` → `GiveTo` → `AddInventory`. `GetAllTravelProperties` force-includes `Inventory` so `Create` can walk the chain, and `Accept` was then also writing those pointers back, pre-linking the chain before `TravelPreAccept` ran. `Translator.TravelPreAccept` skips its `Super` call when `FindInventoryType(class) != None` — with the chain already wired it found *itself*, so it never got `BecomeItem()`/`GotoState('Idle2')`. Fixed by not restoring `Inventory` in `Accept` unless it is genuinely `Travel`-flagged (it is, in Deus Ex — that path is unchanged). |
-| BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. |
+| BUG-003 | ST | S1 | ~~Inventory from loaded saves does not transfer to the next map.~~ **FIXED (WP-1 phase 3, 2026-07-20)** — no separate cause of its own; it was BUG-004 plus the phases 1–2 work. Verified automatically (give items → save → load → travel arrives with every item intact and correctly `Idle2`/hidden) and **user-confirmed in real gameplay 2026-07-20**. |
+| BUG-004 | BT | S1 | ~~The Translator is lost on the first→second level transition (gone from the item list).~~ **FIXED (WP-1 phase 3, 2026-07-20)** — it was never lost in transit; it arrived still in state `Pickup` with `bHidden=0`, i.e. a world pickup rather than an inventory item. `Actor.uc:111` declares `var Inventory Inventory;` with **no `travel` keyword** — UE1 never carries the chain as data, it rebuilds it in `Inventory.TravelPreAccept` → `GiveTo` → `AddInventory`. `GetAllTravelProperties` force-includes `Inventory` so `Create` can walk the chain, and `Accept` was then also writing those pointers back, pre-linking the chain before `TravelPreAccept` ran. `Translator.TravelPreAccept` skips its `Super` call when `FindInventoryType(class) != None` — with the chain already wired it found *itself*, so it never got `BecomeItem()`/`GotoState('Idle2')`. Fixed by not restoring `Inventory` in `Accept` unless it is genuinely `Travel`-flagged (it is, in Deus Ex — that path is unchanged). **User-confirmed in real gameplay 2026-07-20.** |
+| BUG-005 | ST | S2 | Saving packages (`.u*`, game saves) is not fully implemented. **Scope** (from the now-retired plan): `PackageWriter` (`Package/PackageWriter.cpp`) writes header, objects, and the name/export/import tables. Known gaps visible in the source — `WriteHeader` writes `GenerationCount = 0` and no generations, and `Save` renames the previous file to `.old` with the failure swallowed. Enumerate what a v436 / v226 save actually needs versus what is written, and fix only what the two target games read back; do **not** chase general-purpose `.u` authoring, which is a separate goal. Note BUG-008 was exactly this class of defect (a writer/reader mismatch) found by accident — a systematic `Read*`/`Write*` op-order diff of each `Load`/`Save` pair is a cheap way to find the rest. |
 | BUG-006 | — | S2 | ~~`Engine::GameInfo` is only assigned in `LoadMap`, so it dangles at the previous level after `LoadFromSaveFile`.~~ **FIXED (WP-1 phase 2, 2026-07-19)** — `LoadFromSaveFile` re-points `GameInfo` at `LevelInfo->Game()` after `GetLevelObject()` (`Engine.cpp:792`), and throws if the save carries no GameInfo actor rather than limping on. |
 | BUG-008 | — | S1 | ~~Loading any save crashes on UT99 (and any package version > 61) with "Could not cast object Class (class Class) to UActor".~~ **FIXED (WP-1 regression pass, 2026-07-20)** — `UModel::Save` wrote the zone count with `WriteIndex` (a variable-length compact index) while `UModel::Load` reads it with `ReadInt32`. 64 zones encode as 2 bytes, not 4, so the whole rest of the model stream was misaligned and the first `ZoneActor` resolved to a garbage export. Masked entirely on Unreal Gold: its maps are package version **61** and take the `<= 61` OldFormat branch, which has no zone count at all — UT99 maps are version **68**. Found only because the regression pass ran a second game. |
 | BUG-009 | — | S3 | ~~The travel map is keyed inconsistently: `CreateTravelInfo` keyed it by `pawn->PlayerReplicationInfo()->PlayerName()` (**"Player1"** on UT99) while `LoginPlayer` looks it up by the destination URL's `Name` option (**"Player"**), so the lookup missed and logged "Skipping travel transfer. Player 'Player' not found in travel info".~~ **FIXED (2026-07-20)** — both sides now derive the key through one `Engine::GetTravelPlayerName`, so they agree by construction. The URL's `Name` is authoritative because that is what `GameInfo.Login` names the arriving pawn; the departing pawn's replication-info name is not, since game script is free to change it. Unreal Gold only ever worked by coincidence, the two names happening to agree there. **Severity is S3, not S2: this was never user-visible on UT99**, because UT deliberately does not carry inventory between maps — the engine was skipping a transfer whose result the game discards anyway. It is a latent correctness bug that would bite any UT-based mod or game that does travel with items. |
