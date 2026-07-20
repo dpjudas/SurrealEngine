@@ -232,11 +232,14 @@ Array<UActor*> OverlapTester::EncroachingActors(UActor* actor)
 				{
 					for (UActor* testActor : GetActors(x, y, z))
 					{
-						if (actor->Collision.CheckCounter != checkCounter)
+						if (testActor == actor || testActor->Brush())
+							continue;
+
+						// The counter is the candidate's, not the mover's. Keying it on the mover made the
+						// first candidate mark the call as visited, so a mover only ever saw one encroaching actor.
+						if (testActor->Collision.CheckCounter != checkCounter)
 						{
-							actor->Collision.CheckCounter = checkCounter;
-							if (testActor == actor || testActor->Brush())
-								continue;
+							testActor->Collision.CheckCounter = checkCounter;
 
 							vec3 localOrigin = (rotateWorldToObj * vec4(testActor->Location() - origin, 1.0f)).xyz() / mainScale + prePivot;
 

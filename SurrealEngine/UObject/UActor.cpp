@@ -543,7 +543,7 @@ void UActor::TickWalking(float elapsed)
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	bool isMoving = (vel.x != 0.0f || vel.y != 0.0f);
 	if (isMoving)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
@@ -831,7 +831,7 @@ void UActor::TickSwimming(float elapsed)
 
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	bool isMoving = (vel != vec3(0.0f));
 	if (isMoving)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
@@ -948,7 +948,7 @@ void UActor::TickFlying(float elapsed)
 
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
+	bool isMoving = (vel != vec3(0.0f));
 	if (isMoving)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
@@ -984,7 +984,6 @@ void UActor::TickFlying(float elapsed)
 
 	if (!bJustTeleported())
 		Velocity() = (Location() - OldLocation()) / elapsed;
-	Velocity().z = 0.0f;
 }
 
 void UActor::TickRotating(float elapsed)
