@@ -435,6 +435,31 @@ void UActor::TickPhysics(float elapsed)
 	{
 		float physTimeElapsed = std::min(timeLeft, 0.02f);
 		int mode = Physics();
+
+		// WP-3 diagnostic, SE_DEBUG_STUCK=1. Catches "the player cannot move" while it is happening and
+		// names what is blocking them. It sits here rather than inside TickWalking on purpose: a pawn
+		// half-caught in geometry can flip between walking and falling, and a walking-only detector is
+		// blind to exactly the case worth catching. Temporary; goes away with the package.
+		static const bool debugStuck = getenv("SE_DEBUG_STUCK") != nullptr;
+		UPlayerPawn* stuckPlayer = debugStuck ? UObject::TryCast<UPlayerPawn>(this) : nullptr;
+		vec3 stuckStartLocation = Location();
+		static int stuckFrames = 0;
+		static int stuckModeChanges = 0;
+		static int stuckLastMode = -1;
+		if (stuckPlayer)
+		{
+			static bool announced = false;
+			if (!announced)
+			{
+				announced = true;
+				fprintf(stderr, "[stuck] detector armed (all physics modes)\n");
+				fflush(stderr);
+			}
+			if (stuckLastMode != -1 && mode != stuckLastMode)
+				stuckModeChanges++;
+			stuckLastMode = mode;
+		}
+
 		if (mode != PHYS_None)
 		{
 			switch (mode)
@@ -454,6 +479,18 @@ void UActor::TickPhysics(float elapsed)
 			TickRotating(physTimeElapsed); // Rotation logic applies to multiple physics modes and not just PHYS_Rotating
 		}
 
+		// Only the modes where this dispatch is what moves the pawn. Under PHYS_None nothing here moves
+		// it, so "did not move this substep" is trivially true while the pawn advances by other means.
+		if (stuckPlayer && (mode == PHYS_Walking || mode == PHYS_Falling || mode == PHYS_Swimming || mode == PHYS_Flying || mode == PHYS_Spider))
+		{
+			StuckDiagnostic(stuckStartLocation, physTimeElapsed, mode, stuckFrames, stuckModeChanges);
+		}
+		else if (stuckPlayer)
+		{
+			stuckFrames = 0;
+			stuckModeChanges = 0;
+		}
+
 		if (engine->LaunchInfo.ue1Version >= 400)
 		{
 			if (PendingTouch())
@@ -468,6 +505,112 @@ void UActor::TickPhysics(float elapsed)
 				}
 			}
 		}
+	}
+}
+
+// WP-3 diagnostic, SE_DEBUG_STUCK=1. See the call site in Tick. Temporary.
+void UActor::StuckDiagnostic(const vec3& startLocation, float elapsed, int mode, int& stuckFrames, int& modeChanges)
+{
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+	if (!pawn || elapsed <= 0.0f)
+		return;
+
+	// "Trying to move" has to mean the player is actively pressing a direction. Testing velocity
+	// instead makes every conveyor and every drifting residual look like an attempt to move, and on a
+	// map built from conveyors that noise buries the event being hunted.
+	vec3 inputAccel = Acceleration();
+	inputAccel.z = 0.0f;
+	if (dot(inputAccel, inputAccel) <= 1.0f)
+	{
+		if (stuckFrames >= 3)
+		{
+			fprintf(stderr, "[stuck] released after %d frame(s) (input stopped)\n", stuckFrames);
+			fflush(stderr);
+		}
+		stuckFrames = 0;
+		modeChanges = 0;
+		return;
+	}
+
+	float expected = pawn->GroundSpeed() * elapsed;
+	if (expected <= 0.0f)
+		return;
+
+	// Measured in all three axes deliberately. Judging a fall by horizontal progress alone reports a
+	// pawn dropping straight down as unable to move; a pawn that is genuinely pinned has nowhere to go
+	// on any axis, so nothing real is lost by counting vertical travel as movement.
+	vec3 moved = Location() - startLocation;
+
+	if (length(moved) < 0.25f * expected)
+	{
+		stuckFrames++;
+		if (stuckFrames == 3 || stuckFrames == 8)
+		{
+			vec3 loc = Location();
+			fprintf(stderr, "[stuck] blocked %d frame(s) at (%.0f, %.0f, %.0f) phys=%d\n",
+				stuckFrames, loc.x, loc.y, loc.z, mode);
+			fflush(stderr);
+		}
+		if (stuckFrames == 20)
+		{
+			vec3 loc = Location();
+			UActor* base = ActorBase();
+			fprintf(stderr, "[stuck] PINNED at (%.0f, %.0f, %.0f) phys=%d modeChanges=%d base=%s vel (%.1f, %.1f, %.1f)\n",
+				loc.x, loc.y, loc.z, mode, modeChanges,
+				base ? base->Class->Name.ToString().c_str() : "<none>",
+				Velocity().x, Velocity().y, Velocity().z);
+
+			for (int i = 0; i < 8; i++)
+			{
+				float angle = i * (3.14159265f / 4.0f);
+				vec3 dir(std::cos(angle), std::sin(angle), 0.0f);
+				CollisionHit probe = TryMove(dir * 24.0f, true);
+				char buf[160];
+				const char* what = "clear";
+				if (probe.Fraction < 1.0f)
+				{
+					if (probe.Actor)
+					{
+						snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
+							probe.Actor->Brush() ? " (brush/mover)" : "");
+					}
+					else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
+					{
+						uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
+						snprintf(buf, sizeof(buf), "world polyflags 0x%x%s%s", flags,
+							(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
+					}
+					else
+					{
+						snprintf(buf, sizeof(buf), "world (no surface)");
+					}
+					what = buf;
+				}
+				fprintf(stderr, "[stuck]   dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
+					i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, what);
+			}
+
+			// Straight up and down too: a pawn caught in a floor is pinned vertically, not horizontally.
+			for (int i = 0; i < 2; i++)
+			{
+				vec3 dir(0.0f, 0.0f, i == 0 ? 1.0f : -1.0f);
+				CollisionHit probe = TryMove(dir * 24.0f, true);
+				fprintf(stderr, "[stuck]   dir %s: frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
+					i == 0 ? "up  " : "down", probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z,
+					probe.Fraction < 1.0f ? (probe.Actor ? "actor" : "world") : "clear");
+			}
+			fflush(stderr);
+		}
+	}
+	else
+	{
+		if (stuckFrames >= 3)
+		{
+			fprintf(stderr, "[stuck] released after %d frame(s), modeChanges=%d\n", stuckFrames, modeChanges);
+			fflush(stderr);
+		}
+		stuckFrames = 0;
+		modeChanges = 0;
 	}
 }
 
@@ -544,25 +687,6 @@ void UActor::TickWalking(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 	bool isMoving = (vel.x != 0.0f || vel.y != 0.0f);
-
-	// WP-3 diagnostic, SE_DEBUG_STUCK=1. Catches "the player cannot move" while it is happening and
-	// reports what is doing the blocking, which a static sweep of the level geometry cannot find.
-	// Temporary; goes away with the package.
-	static const bool debugStuck = getenv("SE_DEBUG_STUCK") != nullptr;
-	vec3 stuckStartLocation = Location();
-	static int stuckFrames = 0;
-	if (debugStuck)
-	{
-		// Prove the detector is live, so a log with no findings means "found nothing" rather than
-		// "never ran".
-		static bool announced = false;
-		if (!announced)
-		{
-			announced = true;
-			fprintf(stderr, "[stuck] detector armed on first walking tick\n");
-			fflush(stderr);
-		}
-	}
 
 	if (isMoving)
 	{
@@ -686,84 +810,6 @@ void UActor::TickWalking(float elapsed)
 			// No we couldn't. We are falling
 			SetPhysics(PHYS_Falling);
 			SetBase(nullptr, true);
-		}
-	}
-
-	// "Trying to move" has to mean the player is actively pressing a direction. Testing velocity
-	// instead makes every conveyor and every drifting residual look like an attempt to move, and on
-	// this map that noise buries the event we are hunting for.
-	vec3 inputAccel = Acceleration();
-	inputAccel.z = 0.0f;
-	bool tryingToMove = dot(inputAccel, inputAccel) > 1.0f;
-	vec3 intended = vel * elapsed;
-	intended.z = 0.0f;
-	float intendedDist = length(intended);
-
-	if (debugStuck && player && tryingToMove && intendedDist > 2.0f)
-	{
-		vec3 moved = Location() - stuckStartLocation;
-		moved.z = 0.0f;
-		if (length(moved) < 0.25f * intendedDist) // got a quarter of the way at best
-		{
-			stuckFrames++;
-
-			// Report the near misses too. Without these an empty log is unreadable: "nothing was ever
-			// blocked" and "the detector never fired" look identical, and only one of them is good news.
-			if (stuckFrames == 3 || stuckFrames == 8)
-			{
-				vec3 loc = Location();
-				fprintf(stderr, "[stuck] blocked %d frame(s) at (%.0f, %.0f, %.0f)\n", stuckFrames, loc.x, loc.y, loc.z);
-				fflush(stderr);
-			}
-
-			if (stuckFrames == 20) // ~a third of a second of being pinned
-			{
-				vec3 loc = Location();
-				UActor* base = ActorBase();
-				fprintf(stderr, "[stuck] at (%.0f, %.0f, %.0f) vel (%.1f, %.1f, %.1f) base=%s phys=%d\n",
-					loc.x, loc.y, loc.z, Velocity().x, Velocity().y, Velocity().z,
-					base ? base->Class->Name.ToString().c_str() : "<none>", (int)Physics());
-
-				for (int i = 0; i < 8; i++)
-				{
-					float angle = i * (3.14159265f / 4.0f);
-					vec3 dir(std::cos(angle), std::sin(angle), 0.0f);
-					CollisionHit probe = TryMove(dir * 24.0f, true);
-					const char* what = "clear";
-					char buf[128];
-					if (probe.Fraction < 1.0f)
-					{
-						if (probe.Actor)
-						{
-							snprintf(buf, sizeof(buf), "actor %s%s", probe.Actor->Class->Name.ToString().c_str(),
-								probe.Actor->Brush() ? " (brush)" : "");
-						}
-						else if (probe.Node && probe.Node->Surf >= 0 && XLevel()->Model)
-						{
-							uint32_t flags = XLevel()->Model->Surfaces[probe.Node->Surf].PolyFlags;
-							snprintf(buf, sizeof(buf), "world node polyflags 0x%x%s%s", flags,
-								(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
-						}
-						else
-						{
-							snprintf(buf, sizeof(buf), "world (no surface)");
-						}
-						what = buf;
-					}
-					fprintf(stderr, "[stuck]   dir %d (%+.2f, %+.2f): frac %.3f normal (%+.2f, %+.2f, %+.2f) %s\n",
-						i, dir.x, dir.y, probe.Fraction, probe.Normal.x, probe.Normal.y, probe.Normal.z, what);
-				}
-				fflush(stderr);
-			}
-		}
-		else
-		{
-			if (stuckFrames >= 3)
-			{
-				fprintf(stderr, "[stuck] released after %d frame(s)\n", stuckFrames);
-				fflush(stderr);
-			}
-			stuckFrames = 0;
 		}
 	}
 
