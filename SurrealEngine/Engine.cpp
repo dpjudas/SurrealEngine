@@ -686,6 +686,44 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 
 	LinkActorsToLevel();
 
+	// WP-3 diagnostic: SE_DEBUG_PROBEAT="x,y,z" sweeps a player-sized box straight down from that point
+	// and reports everything it hits - the actor and its class, or the world surface and its poly flags,
+	// with the hit normal. Lets a location recovered from a play session be examined without needing
+	// another one. Temporary; goes away with the package.
+	if (const char* probeAt = getenv("SE_DEBUG_PROBEAT"))
+	{
+		float px = 0.0f, py = 0.0f, pz = 0.0f;
+		if (sscanf(probeAt, "%f,%f,%f", &px, &py, &pz) == 3 && Level)
+		{
+			vec3 from(px, py, pz);
+			vec3 to(px, py, pz - 96.0f);
+			fprintf(stderr, "[probe] sweeping player box down from (%.0f, %.0f, %.0f)\n", px, py, pz);
+			for (const CollisionHit& hit : Level->Collision.Trace(from, to, 39.0f, 17.0f, true, true, false))
+			{
+				const char* kind = "world";
+				char buf[192];
+				if (hit.Actor)
+				{
+					snprintf(buf, sizeof(buf), "actor %s (%s)%s", hit.Actor->Name.ToString().c_str(),
+						hit.Actor->Class ? hit.Actor->Class->Name.ToString().c_str() : "?",
+						hit.Actor->Brush() ? " BRUSH" : "");
+					kind = buf;
+				}
+				else if (hit.Node && hit.Node->Surf >= 0 && Level->Model)
+				{
+					uint32_t flags = Level->Model->Surfaces[hit.Node->Surf].PolyFlags;
+					snprintf(buf, sizeof(buf), "world polyflags 0x%x%s%s", flags,
+						(flags & PF_Semisolid) ? " SEMISOLID" : "", (flags & PF_NotSolid) ? " NOTSOLID" : "");
+					kind = buf;
+				}
+				fprintf(stderr, "[probe]   frac %.4f (z %.1f) normal (%+.3f, %+.3f, %+.3f) walkable=%s %s\n",
+					hit.Fraction, pz - hit.Fraction * 96.0f, hit.Normal.x, hit.Normal.y, hit.Normal.z,
+					hit.Normal.z >= 0.7071f ? "yes" : "NO", kind);
+			}
+			fflush(stderr);
+		}
+	}
+
 	// Find the game info class
 	UClass* gameInfoClass = packages->FindClass(LevelInfo->URL.GetOption("game"));
 	if (!gameInfoClass)

@@ -157,6 +157,37 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	return false;
 }
 
+// The hit lies on the cylinder the trace actually swept against: the actor's cylinder grown by the
+// moving box's own extents. Center-to-hitpoint is the true surface normal only on the curved side - on
+// the flat end caps it tilts outwards by however far the contact sits from the axis. That is how the
+// flat top of a BlockAll came to report a normal of z=0.69, just under the 0.7071 walkable threshold,
+// flipping a pawn standing on it between walking and falling every single frame.
+//
+// Decided by least penetration rather than by testing the hit point against the cap plane, because a
+// sweep that begins in contact reports fraction 0 and a "hit point" that is simply where it started -
+// which is exactly the case that matters here, a pawn resting on the surface. Least penetration gives
+// the right answer for that and for a clean hit alike: on a true side contact the radial depth is zero,
+// on a true cap contact the vertical depth is.
+static vec3 CylinderHitNormal(const dvec3& hitpos, UActor* actor, double boxHeight, double boxRadius)
+{
+	dvec3 center = to_dvec3(actor->Location());
+	double halfHeight = actor->CollisionHeight() + boxHeight;
+	double radius = actor->CollisionRadius() + boxRadius;
+
+	double dz = hitpos.z - center.z;
+	dvec3 radial(hitpos.x - center.x, hitpos.y - center.y, 0.0);
+	double radialDist = std::sqrt(dot(radial, radial));
+
+	double verticalDepth = halfHeight - std::abs(dz);
+	double radialDepth = radius - radialDist;
+
+	if (verticalDepth <= radialDepth || radialDist < 0.000001)
+		return vec3(0.0f, 0.0f, dz >= 0.0 ? 1.0f : -1.0f);
+
+	radial /= radialDist;
+	return vec3((float)radial.x, (float)radial.y, 0.0f);
+}
+
 void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, double height, double radius, bool traceActors, bool traceWorld, bool visibilityOnly, CollisionHitList& hits)
 {
 	if (UMover* mover = UObject::TryCast<UMover>(actor))
@@ -221,7 +252,7 @@ void TraceTester::TraceActor(UActor* actor, const dvec3& origin, double tmin, co
 		if (t < tmax)
 		{
 			dvec3 hitpos = origin + dirNormalized * t;
-			hits.push_back({ (float)t, normalize(to_vec3(hitpos) - actor->Location()), actor, nullptr, nullptr });
+			hits.push_back({ (float)t, CylinderHitNormal(hitpos, actor, height, radius), actor, nullptr, nullptr });
 		}
 	}
 }
