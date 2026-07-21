@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(SurrealEngine)
 
 option(ENABLE_OPENXR "Compile in OpenXR support for HMD tracking and stereo rendering (VR itself is still opt-in at runtime via a launcher setting; this only controls whether the code exists in the binary). Requires Python3 to be available at build time." ON)
+option(ENABLE_WARNINGS "Enable the compiler warning set on the engine's own sources (never on Thirdparty/ or SurrealVideo/). Warnings only - this never sets -Werror, so it cannot break a build." ON)
 
 add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(SurrealGPU)
@@ -754,6 +755,39 @@ if(MSVC)
 	set_source_files_properties(${SURREALVIDEO_SOURCES} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267 /wd4005 /wd4018 /wd4101 /wd4146 /wd4334 -D_CRT_SECURE_NO_WARNINGS /experimental:c11atomics")
 endif()
 
+# Warning set for the engine's own sources.
+#
+# Deliberately warnings-only: no -Werror, so turning this on can never break a build for anyone.
+# Thirdparty/ and SurrealVideo/ are excluded outright - they are vendored code we do not fix.
+#
+# A clean g++ Release build currently emits about 510 warnings with this set. The three suppressions are
+# the ones this codebase triggers by style rather than by mistake:
+#
+#   -Wno-unused-parameter          native handlers take the full script signature and ignore what they
+#                                  do not need; that is the calling convention, not an oversight.
+#   -Wno-missing-field-initializers the aggregate initialisers used throughout Render/ and UObject/.
+#   -Wno-unused-function           ~326 warnings, all from the `static` enum-flag operator overloads in
+#                                  headers like UObject/UClass.h, which are unused in most translation
+#                                  units by construction. The real fix is `inline` rather than `static`
+#                                  on those operators; until someone does that sweep, this is 39% of the
+#                                  output for zero signal.
+#
+# Everything else is left on because it is carrying real signal. What it currently finds, roughly:
+# -Wclass-memaccess (~180, concentrated in UObject/PropertyOffsets.cpp - memory ops over non-trivial
+# types in the property layer, which is exactly where that matters), -Wsign-compare (~157),
+# -Wreorder (~60), -Wunused-variable (~46), -Wswitch (13, including STY_AlphaBlend/STY_None/STY_Normal
+# unhandled in four VisibleMesh.cpp draw-style switches) and -Wuninitialized (11). None of these has
+# been triaged yet - see Refactor-Plan.md RP-7.
+if(ENABLE_WARNINGS)
+	if(MSVC)
+		set(SURREAL_WARNING_FLAGS /W4 /wd4100 /wd4127 /wd4244 /wd4267 /wd4505)
+		set(SURREAL_NO_WARNING_FLAGS /W0)
+	else()
+		set(SURREAL_WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-unused-function)
+		set(SURREAL_NO_WARNING_FLAGS -w)
+	endif()
+endif()
+
 add_library(SurrealVideo SHARED ${SURREALVIDEO_SOURCES})
 target_include_directories(SurrealVideo PRIVATE SurrealVideo)
 set_target_properties(SurrealVideo PROPERTIES CXX_STANDARD 20)
@@ -768,6 +802,17 @@ if(ENABLE_OPENXR)
 	target_compile_definitions(SurrealCommon PUBLIC USE_OPENXR)
 endif()
 
+if(ENABLE_WARNINGS)
+	# SurrealCommon compiles the engine and the vendored Thirdparty sources into one target, so the warning
+	# set goes on the target and is then switched back off per-source for the vendored files. Source-level
+	# options are appended after the target's, so the silencing flag wins.
+	target_compile_options(SurrealCommon PRIVATE ${SURREAL_WARNING_FLAGS})
+	target_compile_options(SurrealVideo PRIVATE ${SURREAL_NO_WARNING_FLAGS})
+	if(THIRDPARTY_SOURCES)
+		set_source_files_properties(${THIRDPARTY_SOURCES} PROPERTIES COMPILE_OPTIONS "${SURREAL_NO_WARNING_FLAGS}")
+	endif()
+endif()
+
 add_executable(SurrealEngine WIN32 MACOSX_BUNDLE ${SURREALENGINE_SOURCES})
 target_link_libraries(SurrealEngine SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealEngine PROPERTIES CXX_STANDARD 20)
@@ -779,6 +824,13 @@ set_target_properties(SurrealEditor PROPERTIES CXX_STANDARD 20)
 add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
+
+if(ENABLE_WARNINGS)
+	# The three executables are only a Main*.cpp plus an *App, but they are engine code too.
+	target_compile_options(SurrealEngine PRIVATE ${SURREAL_WARNING_FLAGS})
+	target_compile_options(SurrealEditor PRIVATE ${SURREAL_WARNING_FLAGS})
+	target_compile_options(SurrealDebugger PRIVATE ${SURREAL_WARNING_FLAGS})
+endif()
 
 if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)

@@ -5,6 +5,7 @@ Merged defect list for Surreal Engine. Sources folded in:
 - the previous free-form `Bugtracker.md` list — tagged **[BT]**
 - `Docs/Status.md` "General Engine bugs" and the per-game "Known bugs" sections — tagged **[ST]**
 - `Docs/VR.md` "Known limitations" — tagged **[VR]**
+- the structural review in `Refactor-Plan.md` — tagged **[RF]**
 
 Those documents remain the descriptive references; this file is the ordered work list. Fixed entries are
 kept struck through with the fixing phase noted, so the history isn't lost.
@@ -30,6 +31,8 @@ kept struck through with the fixing phase noted, so the history isn't lost.
 | [WP-5](#wp-5--stability-and-session-state) | Stability and session state | S2 | 5 |
 | [WP-6](#wp-6--rendering-fidelity) | Rendering fidelity | S3 | 8 |
 | [WP-7](#wp-7--ai-behaviour) | AI behaviour | S3 | 2 |
+| [WP-9](#wp-9--unrealscript-vm-correctness-and-robustness) | UnrealScript VM correctness and robustness | S2 | 8 |
+| [WP-10](#wp-10--tooling-and-diagnostics) | Tooling and diagnostics | S4 | 1 |
 | [WP-8](#wp-8--parked) | Parked | S5 | — |
 
 ---
@@ -136,6 +139,8 @@ Two lessons worth carrying forward:
 | BUG-041 | ST | S2 | The `viewclass` console command crashes with a null deref. |
 | BUG-042 | ST | S3 | Screen-tinting power-ups (Invisibility, Energy Amplifier) leave the tint applied — and accumulate it on re-pickup — until the map changes. |
 | BUG-043 | ST | S3 | Some sounds are far too loud (Pulse Rifle secondary, minigun firing). |
+| BUG-045 | RF | S2 | **Every `UObject` of every level leaks for the process lifetime — the garbage collector is dead three separate ways and nothing calls it.** (a) `GC::Collect()` has no call sites anywhere in the tree; only `GC::GetStats()` is called, from `RenderCanvas.cpp:653`, so the debug overlay reports a heap that is never swept. (b) `GC::Mark` (`GC/GC.cpp:87-95`) discards the marklist each object returns — `allocation->object()->Mark(marklistout);` ignores the result, and `GC::MarkObject` is a pure function that cannot extend the caller's list in place — so `GC::Mark` always returns null and `Collect`'s `while (marklist)` loop ends after one pass. (c) `UObject::Mark` (`UObject/UObject.cpp:565-570`) is a stub with its whole body commented out. On top of that `PackageManager::UnloadPackage` (`Package/PackageManager.cpp:187-202`) only evicts the package from the open-stream cache and frees no objects, so `Engine::UnloadMap` releases nothing. **Measure before fixing** — instrument `GC::GetStats()` at every `LoadMap`/`UnloadMap` boundary and travel a four-or-five level Unreal Gold chain first; that number is what any fix is judged against. The blocker for making the sweep work is `PropertyDataBlock::Reset` (`UObject.cpp:574-585`), also commented out with `// To do: this crashes as the class might have been destroyed first`. Full options analysis in `Refactor-Plan.md` RP-1. |
+| BUG-046 | RF | S2 | Unreal Gold's Return to Na Pali map `Maps/UPak/Crashsite2.unr` fails to load with `ObjectStream::ReadString: Invalid size in Crashsite2`. Found incidentally while exporting all packages, so other UPak maps may be affected too — nobody has swept them. **Leading hypothesis, not verified:** `ObjectStream::ReadString` (`Package/ObjectStream.h:86-97`) throws on any negative length, but `ReadIndex` decodes a sign bit and UE's string serializer uses a **negative count to mean the string is UTF-16**. If that is what this is, the fix is to read `-len` UTF-16 code units rather than throw. Hexdump the offending export and confirm before changing the reader — this is a hypothesis from reading the decoder, not a measurement. |
 | BUG-044 | — | S3 | `VulkanRenderDevice::~VulkanRenderDevice` segfaults on every clean shutdown (seen on AMD RADV), after the game has otherwise exited normally. Cosmetic in effect — nothing is lost — but it drops a core on every quit, which masks real crashes and poisons bisects. Pre-existing, predates the WP-1 work. |
 
 ## WP-6 — Rendering fidelity
@@ -162,6 +167,55 @@ Two lessons worth carrying forward:
 | --- | --- | --- | --- |
 | BUG-060 | ST | S3 | Bot and ScriptedPawn AI is largely non-functional — the related natives aren't implemented. Pawns only sometimes retaliate and pick up nearby items. |
 | BUG-061 | ST | S4 | Bots rotate their whole body (feet off the ground) to look up and down. |
+
+## WP-9 — UnrealScript VM correctness and robustness
+
+**Severity S2.** From the structural review in `Refactor-Plan.md` (RP-2 and RP-3). Two halves: places where
+the VM computes a *wrong answer* that script can see, and places where a script error becomes undefined
+behaviour, a hang, or silence instead of a diagnosable failure.
+
+**How the conformance half was found.** Both games' real UnrealScript sources were exported with
+`SurrealDebugger`'s `export scripts`, and every `native(N)` declaration was diffed against every
+`RegisterVMNativeFunc_*` in the engine — 230 indexed natives on UT99 v436, 145 on Unreal Gold v226. Exactly
+one index is unregistered on each (BUG-070), which is a much better result than `Docs/Status.md` implies:
+the real gap is the ~38 handlers that register successfully and then call `LogUnimplemented` (StatLog,
+WebRequest/WebResponse, cache entries, skeletal anim), not missing registrations. **That reframes BUG-060** —
+the AI work is stubs to fill in, not natives to wire up. Making this diff a `natives check` commandlet is
+tracked as BUG-081.
+
+None of the robustness entries has a known repro; they are latent, and they are listed because they sit
+directly under code that the VM work will touch. Fix BUG-074 first — it is what makes the others
+straightforward.
+
+| ID | Src | Sev | Defect |
+| --- | --- | --- | --- |
+| BUG-070 | RF | S2 | String `>` is unregistered on both target games. `Native/NObject.cpp:98` registers `Greater_StrStr` at native index **1186** (a Deus Ex / 227-range index, evidently copy-pasted from that table) while both games declare it at **116** — `Core/Classes/Object.uc:243`, identical in UT99 and Gold. Its four siblings are all correct (`Less_StrStr` 115, `LessEqual_StrStr` 120, `GreaterEqual_StrStr` 121, `EqualEqual_StrStr` 122), and the handler itself (`NObject.cpp:929-932`) is fine and is already registered correctly at 198 under the old-version branch (`NObject.cpp:286`). Any script evaluating `StrA > StrB` hits `Frame::CallNative`'s "Unknown native function" throw. Latent, but this is the **only** unregistered native index in either game and the fix is one line: register 116, keep 1186 for Deus Ex. |
+| BUG-072 | RF | S3 | `Level.Year` is off by 1900 and `Level.Month` is 0-based. `Engine.cpp:167-174` assigns `tm_year` and `tm_mon` straight through, but UE1's `LevelInfo.Year` is the calendar year and `Month` is 1-12. Consequences in real script: `UnrealShare/Classes/UnrealSaveMenu.uc:27` does `MonthNames[Level.Month - 1]`, i.e. **`MonthNames[-1]` in January**, in Unreal Gold's save-game menu; `Botpack/Classes/TournamentGameInfo.uc:366-376` and `Engine/Classes/StatLog.uc:96` render dates as e.g. `6/21/126`. `Millisecond` is also hardcoded to 0 (`std::chrono` has what `tm` lacks). While here, `std::localtime` returns a shared static and is not thread-safe — use `localtime_r`/`localtime_s`. |
+| BUG-074 | RF | S2 | `Frame::ThrowException` returns to its caller when a debugger is attached, and every call site is written as if it does not. `Frame.cpp:131-139` sets `ExceptionText` and calls `Break()`, which only converts that into a real `Exception::Throw` when `RunDebugger` is unset (`:86-106`); with `SurrealDebugger` attached the break runs and control falls through. Sharpest case is `Frame::Run` (`Frame.cpp:478-479`), where the out-of-range statement index it just diagnosed is then used to index `Statements` anyway — an out-of-bounds read on exactly the condition being reported. Only reachable under the debugger. **Fix this one first:** making `ThrowException` `[[noreturn]]` (breaking before the unwind, not instead of it) is what makes BUG-073 and BUG-075 simple. |
+| BUG-073 | RF | S2 | The VM's runaway-instruction guard neither aborts the frame nor exits the loop. `Frame.cpp:474-491` checks `instructionsRetired >= maxInstructions` *inside* the loop and then only logs and calls `Break()` — so a runaway script logs the same line every iteration forever and keeps executing, producing an unbounded log and a hang instead of the intended abort. Without a debugger `Break()` is additionally a no-op here, because `ExceptionText` is empty. UE1's own behaviour is a "runaway loop" script error; that is the model. |
+| BUG-075 | RF | S2 | Unbounded script recursion overflows the C++ stack and kills the process with no diagnostic. `Frame::Callstack` (`Frame.h:69`, pushed by `ActiveCallStackFrame` at `:109-113`) has no depth limit, and `ExpressionEvaluator::Eval` recurses on the C++ stack for every nested expression. The bytecode *parser* already guards itself at depth 64 (`Bytecode.cpp:17-18`); the evaluator has no equivalent. UE1 used a 250-frame limit and raised a script error carrying the callstack. |
+| BUG-076 | RF | S3 | `string(vector)` and `string(rotator)` do not round-trip. `StringToVector`/`StringToRotator` (`VM/ExpressionEvaluator.cpp:516-544`) parse a bare `"1,2,3"`, but UE1 formats vectors as `X=1.0,Y=2.0,Z=3.0` — so `atof("X=1.0")` returns 0 and every component comes out zero. |
+| BUG-077 | RF | S4 | Three conversion operators disagree with UE1, all in `VM/ExpressionEvaluator.cpp`: `BoolToString` (`:571-574`) yields `"1"`/`"0"` via `std::to_string(bool)` where UnrealScript's `string(bool)` is `"True"`/`"False"`; `ObjectToString` (`:581-585`) yields `Package.Name` where UE1 gives the object name alone; `RotatorToString` (`:598-602`) masks each component to 16 bits, so negative angles print as large positives. Check `UProperty::PrintValue` before changing the bool case — the property-export path used by `ConsoleCommand("get ...")` may already be correct, and only the explicit cast wrong. Also `IntToByte`/`FloatToByte` (`:436-439`, `:466-469`) narrow to `uint8_t` with no clamp, so a negative float is UB rather than UE1's wrap. |
+| BUG-078 | RF | S3 | `DynamicCast` compares class **names**, not class identity: `ExpressionEvaluator.cpp:358-364` tests `value->IsA(expr->Class->Name)`, so two same-named classes in different packages cast successfully into each other. `MetaCast` (`:210-226`) walks the pointer chain correctly and is the model to follow. |
+
+Four evaluator cases throw unconditionally and their reachability on the two target games is **unverified** —
+worth a disassembly sweep before either implementing or documenting them: `LabelTableExpression`
+(`:104-108`), `NativeParmExpression` (`:333-336`), `ConstructExpression` (`:682-685`),
+`Unknown0x46Expression` (`:481-484`). `LabelTableExpression` is the one that matters: label tables are the
+last statement of every state's bytecode (`Bytecode::FindLabelIndex`, `Bytecode.h:31-43`, relies on exactly
+that), so a state body that falls off its end without a `Stop` would execute the table and throw.
+`Unknown0x15Expression` (`:228-233`) silently returns `Stop` on a Klingon-Honor-Guard guess baked into the
+hot path, and deserves the same treatment.
+
+## WP-10 — Tooling and diagnostics
+
+**Severity S4.** The debugger and its commandlets are how the other work packages get evidence, so defects
+here cost more than their severity suggests.
+
+| ID | Src | Sev | Defect |
+| --- | --- | --- | --- |
+| BUG-079 | RF | S4 | `export scripts` is unusable in its two most useful forms. With **two or more** package arguments it loops forever: `ExportCommandlet.cpp:83-91` computes `sep` once and never updates it, so `while (sep != std::string::npos)` spins re-pushing the first name (a single package works only by accident, `sep` being `npos` immediately). With **no** arguments, one unreadable package aborts the entire run — `Could not find package AchtungDieKurve` on UT99, and `ObjectStream::ReadString: Invalid size in Crashsite2` on Unreal Gold (BUG-046), each of which killed a full-tree export that had already succeeded for dozens of packages. Per-package error isolation would let the run finish and *report* the failures, which is the whole point of a diagnostic tool. A missing `Maps/` directory likewise throws out of a `directory_iterator` instead of meaning "no maps". |
+| BUG-081 | RF | S4 | There is no way to re-run the native-coverage check that found BUG-070 without hand-scripting an export and a diff. `SurrealDebugger` already loads every package and already holds every registered handler, so a `natives check` commandlet could print the unregistered and `LogUnimplemented`-stubbed sets for the loaded game directly. That turns a conformance audit into a one-line regression check, and it is what would keep a future index typo from surviving as long as BUG-070 did. |
 
 ## WP-8 — Parked
 
