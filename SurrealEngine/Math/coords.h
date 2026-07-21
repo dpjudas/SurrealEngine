@@ -41,6 +41,11 @@ public:
 		return *this;
 	}
 
+	bool operator==(const Coords& rhs) const
+	{
+		return Origin == rhs.Origin && XAxis == rhs.XAxis && YAxis == rhs.YAxis && ZAxis == rhs.ZAxis;
+	}
+
 	mat4 ToMatrix() const;
 	static Coords FromMatrix(const mat4& m);
 };

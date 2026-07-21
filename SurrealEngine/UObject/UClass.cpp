@@ -215,6 +215,20 @@ void UStruct::Save(PackageStreamWriter* stream)
 	//	pos = WriteToken(stream, pos, 0);
 }
 
+bool UStruct::IsEqual(const void* v1, const void* v2)
+{
+	for (UProperty* prop : Properties)
+	{
+		if (!prop->CompareArray(
+			static_cast<const uint8_t*>(v1) + prop->DataOffset.DataOffset,
+			static_cast<const uint8_t*>(v2) + prop->DataOffset.DataOffset))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 #ifdef _DEBUG
 static const char* tokennames[256] =
 {
@@ -304,7 +318,7 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 		PushIndex(name);
 		while (ReadToken(stream, depth) != ExprToken::EndFunctionParms);
 	}
-	else if (token == ExprToken::Construct)
+	else if (token == ExprToken::Construct_227 && engine->LaunchInfo.IsUnreal1_227())
 	{
 		int type = stream->ReadIndex();
 		PushIndex(type);
@@ -316,6 +330,10 @@ ExprToken UStruct::ReadToken(ObjectStream* stream, int depth)
 			PushIndex(argName);
 			ReadToken(stream, depth);
 		}
+	}
+	else if (token == ExprToken::DynArrayToInt_HP1 && engine->LaunchInfo.IsHarryPotter1())
+	{
+		ReadToken(stream, depth);
 	}
 	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
 	{

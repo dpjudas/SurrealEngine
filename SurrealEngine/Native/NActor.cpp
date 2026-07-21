@@ -31,8 +31,6 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_1("Actor", "Destroy", &NActor::Destroy, 279);
 	RegisterVMNativeFunc_1("Actor", "Error", &NActor::Error, 233);
 	RegisterVMNativeFunc_3("Actor", "FastTrace", &NActor::FastTrace, 548);
-	RegisterVMNativeFunc_0("Actor", "FinishAnim", &NActor::FinishAnim, 261);
-	RegisterLatentAction(262, LatentRunState::FinishAnim);
 	RegisterVMNativeFunc_0("Actor", "FinishInterpolation", &NActor::FinishInterpolation, 301);
 	RegisterLatentAction(302, LatentRunState::FinishInterpolation);
 	RegisterVMNativeFunc_2("Actor", "GetAnimGroup", &NActor::GetAnimGroup, 293);
@@ -51,18 +49,15 @@ void NActor::RegisterFunctions()
 	RegisterVMNativeFunc_2("Actor", "HasAnim", &NActor::HasAnim, 263);
 	if (engine->LaunchInfo.IsUnreal1_227())
 		RegisterVMNativeFunc_4("Actor", "IntDescIterator", &NActor::IntDescIterator_U227, 313);
-	RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
 	RegisterVMNativeFunc_2("Actor", "IsOverlapping", &NActor::IsOverlapping, 718);
 	RegisterVMNativeFunc_1("Actor", "LastRendered", &NActor::LastRendered, 723);
 	RegisterVMNativeFunc_1("Actor", "LinkSkelAnim", &NActor::LinkSkelAnim, 0);
-	RegisterVMNativeFunc_4("Actor", "LoopAnim", &NActor::LoopAnim, 260);
 	RegisterVMNativeFunc_1("Actor", "MakeNoise", &NActor::MakeNoise, 512);
 	RegisterVMNativeFunc_2("Actor", "Move", &NActor::Move, 266);
 	RegisterVMNativeFunc_3("Actor", "MoveCacheEntry", &NActor::MoveCacheEntry, 0);
 	RegisterVMNativeFunc_2("Actor", "MoveSmooth", &NActor::MoveSmooth, 3969);
 	RegisterVMNativeFunc_3("Actor", "Multiply_ColorFloat", &NActor::Multiply_ColorFloat, 552);
 	RegisterVMNativeFunc_3("Actor", "Multiply_FloatColor", &NActor::Multiply_FloatColor, 550);
-	RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
 	RegisterVMNativeFunc_6("Actor", "PlayOwnedSound", &NActor::PlayOwnedSound, 0);
 	if (!engine->LaunchInfo.IsDeusEx())
 		RegisterVMNativeFunc_6("Actor", "PlaySound", &NActor::PlaySound, 264);
@@ -124,9 +119,39 @@ void NActor::RegisterFunctions()
 		RegisterVMNativeFunc_1("Actor", "SetInstantMusicVolume", &NActor::SetInstantMusicVolume, 270);
 		RegisterVMNativeFunc_1("Actor", "SetInstantSoundVolume", &NActor::SetInstantSoundVolume, 268);
 		RegisterVMNativeFunc_1("Actor", "SetInstantSpeechVolume", &NActor::SetInstantSpeechVolume, 269);
-		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound, 265);
+		RegisterVMNativeFunc_1("Actor", "StopSound", &NActor::StopSound_Deus, 265);
 		RegisterVMNativeFunc_4("Actor", "PlayBlendAnim", &NActor::PlayBlendAnim, 1010);
 		RegisterVMNativeFunc_3("Actor", "TweenBlendAnim", &NActor::TweenBlendAnim, 1012);
+	}
+	if (engine->LaunchInfo.IsHarryPotter1())
+	{
+		RegisterVMNativeFunc_5("Actor", "PlayAnim", &NActor::PlayAnim_HP, 259);
+		RegisterVMNativeFunc_6("Actor", "LoopAnim", &NActor::LoopAnim_HP, 260);
+		RegisterVMNativeFunc_2("Actor", "GetWorldCollisionBox", &NActor::GetWorldCollisionBox, 286);
+		RegisterVMNativeFunc_1("Actor", "GetRenderExtent", &NActor::GetRenderExtent, 274);
+		RegisterVMNativeFunc_5("Actor", "CreateAnimChannel", &NActor::CreateAnimChannel, 265);
+		RegisterVMNativeFunc_2("Actor", "BoneNumber", &NActor::BoneNumber, 268);
+		RegisterVMNativeFunc_2("Actor", "BoneName", &NActor::BoneName, 269);
+		RegisterVMNativeFunc_2("Actor", "BonePos", &NActor::BonePos, 257);
+		RegisterVMNativeFunc_2("Actor", "CreateTextureFromScreenShot", &NActor::CreateTextureFromScreenShot, 322);
+		RegisterVMNativeFunc_3("Actor", "CreateTextureFromBMP", &NActor::CreateTextureFromBMP, 321);
+		RegisterVMNativeFunc_3("Actor", "SaveObjectAsFile", &NActor::SaveObjectAsFile, 323);
+		RegisterVMNativeFunc_3("Actor", "LoadObjectAsFile", &NActor::LoadObjectAsFile, 324);
+		RegisterVMNativeFunc_3("Actor", "SaveGameSaveInfo", &NActor::SaveGameSaveInfo, 325);
+		RegisterVMNativeFunc_3("Actor", "LoadGameSaveInfo", &NActor::LoadGameSaveInfo, 326);
+		RegisterVMNativeFunc_1("Actor", "IsOSVer2kOrXP", &NActor::IsOSVer2kOrXP, 327);
+		RegisterVMNativeFunc_2("Actor", "StopSound", &NActor::StopSound_HP, 568);
+		RegisterVMNativeFunc_2("Actor", "IsAnimating", &NActor::IsAnimating_HP, 282);
+		RegisterVMNativeFunc_1("Actor", "FinishAnim", &NActor::FinishAnim_HP, 261);
+		RegisterLatentAction(262, LatentRunState::FinishAnim);
+	}
+	else
+	{
+		RegisterVMNativeFunc_3("Actor", "PlayAnim", &NActor::PlayAnim, 259);
+		RegisterVMNativeFunc_4("Actor", "LoopAnim", &NActor::LoopAnim, 260);
+		RegisterVMNativeFunc_1("Actor", "IsAnimating", &NActor::IsAnimating, 282);
+		RegisterVMNativeFunc_0("Actor", "FinishAnim", &NActor::FinishAnim, 261);
+		RegisterLatentAction(262, LatentRunState::FinishAnim);
 	}
 }
 
@@ -968,7 +993,7 @@ void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
 	LogUnimplemented("Actor.SetInstantSpeechVolume");
 }
 
-void NActor::StopSound(UObject* Self, int Id)
+void NActor::StopSound_Deus(UObject* Self, int Id)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	engine->audiodev->StopSound(SelfActor, Id);
@@ -977,4 +1002,113 @@ void NActor::StopSound(UObject* Self, int Id)
 void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot)
 {
 	LogUnimplemented("Actor.TweenBlendAnim");
+}
+
+void NActor::PlayAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> Type, std::optional<NameString> RootBone)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->PlayAnim_HP(Sequence, Rate, TweenTime, Type.has_value() ? std::optional<EAnimType>((EAnimType)Type.value()) : std::optional<EAnimType>(), RootBone);
+}
+
+void NActor::LoopAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate, std::optional<uint8_t> Type, std::optional<NameString> RootBone)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->LoopAnim_HP(Sequence, Rate, TweenTime, MinRate, Type.has_value() ? std::optional<EAnimType>((EAnimType)Type.value()) : std::optional<EAnimType>(), RootBone);
+}
+
+void NActor::IsAnimating_HP(UObject* Self, std::optional<NameString> RootBone, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->IsAnimating_HP(RootBone);
+}
+
+void NActor::FinishAnim_HP(UObject* Self, std::optional<NameString> RootBone)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	SelfActor->FinishAnim_HP(RootBone);
+}
+
+void NActor::GetWorldCollisionBox(UObject* Self, std::optional<bool> bVisual, BoundingBox& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->GetWorldCollisionBox(bVisual.has_value() ? bVisual.value() : false);
+}
+
+void NActor::GetRenderExtent(UObject* Self, vec3& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->GetRenderExtent();
+}
+
+void NActor::CreateAnimChannel(UObject* Self, UObject* NewClass, uint8_t Type, const NameString& RootBone, std::optional<bool> bTransient, UObject*& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->CreateAnimChannel(UObject::Cast<UClass>(NewClass), (EAnimType)Type, RootBone, bTransient.has_value() ? bTransient.value() : false);
+}
+
+void NActor::BoneNumber(UObject* Self, const NameString& Bone, int& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->BoneNumber(Bone);
+}
+
+void NActor::BoneName(UObject* Self, int Bone, NameString& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->BoneName(Bone);
+}
+
+void NActor::BonePos(UObject* Self, const NameString& Bone, vec3& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->BonePos(Bone);
+}
+
+void NActor::CreateTextureFromScreenShot(UObject* Self, UObject* vport, UObject*& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->CreateTextureFromScreenShot(UObject::Cast<UViewport>(vport));
+}
+
+void NActor::CreateTextureFromBMP(UObject* Self, const std::string& name, const std::string& filename, UObject*& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->CreateTextureFromBMP(name, filename);
+}
+
+void NActor::SaveObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->SaveObjectAsFile(dir, object);
+}
+
+void NActor::LoadObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->LoadObjectAsFile(dir, object);
+}
+
+void NActor::SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->SaveGameSaveInfo(dir, object);
+}
+
+void NActor::LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->LoadGameSaveInfo(dir, object);
+}
+
+void NActor::IsOSVer2kOrXP(UObject* Self, BitfieldBool& ReturnValue)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	ReturnValue = SelfActor->IsOSVer2kOrXP();
+}
+
+void NActor::StopSound_HP(UObject* Self, std::optional<UObject*> Sound, std::optional<uint8_t> Slot)
+{
+	UActor* SelfActor = UObject::Cast<UActor>(Self);
+	LogUnimplemented("Actor.StopSound");
+	// engine->audiodev->StopSound(SelfActor, Sound, Slot);
 }

@@ -48,6 +48,8 @@ public:
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
+	bool IsEqual(const void* v1, const void* v2);
+
 	UStruct* BaseStruct = nullptr;
 
 	UTextBuffer* ScriptText = nullptr;
@@ -281,7 +283,8 @@ enum class ExprToken : uint8_t
 	UnicodeStringConst = 0x34, // Unicode string constant
 	//
 	StructMember = 0x36, // Struct member
-	Construct = 0x37, // Construct<T>(args) in Unreal 227
+	Construct_227 = 0x37, // Construct<T>(args) in Unreal 227
+	DynArrayToInt_HP1 = 0x37, // return size of dynamic array
 	GlobalFunction = 0x38, // Call non-state version of a function
 
 	// Native conversions.

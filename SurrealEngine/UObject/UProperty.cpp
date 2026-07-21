@@ -1216,19 +1216,7 @@ void UStructProperty::DestructElement(void* data)
 
 bool UStructProperty::CompareElement(const void* v1, const void* v2)
 {
-	if (Struct)
-	{
-		for (UProperty* prop : Struct->Properties)
-		{
-			if (!prop->CompareArray(
-				static_cast<const uint8_t*>(v1) + prop->DataOffset.DataOffset,
-				static_cast<const uint8_t*>(v2) + prop->DataOffset.DataOffset))
-			{
-				return false;
-			}
-		}
-	}
-	return true;
+	return Struct ? Struct->IsEqual(v1, v2) : true;
 }
 
 bool UStructProperty::CompareLessElement(const void* v1, const void* v2)

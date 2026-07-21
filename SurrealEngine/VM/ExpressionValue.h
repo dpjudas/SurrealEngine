@@ -485,8 +485,12 @@ inline bool ExpressionValue::IsEqual(const ExpressionValue& value) const
 	case ExpressionValueType::ValueString: return ToString() == value.ToString();
 	case ExpressionValueType::ValueName: return ToName() == value.ToName();
 	case ExpressionValueType::ValueColor: return ToColor() == value.ToColor();
-	case ExpressionValueType::ValueStruct: Exception::Throw("IsEqual not implemented for complex structs");
-	case ExpressionValueType::ValueCoords: Exception::Throw("IsEqual not implemented for Coords");
+	case ExpressionValueType::ValueStruct:
+		if (!VariableProperty)
+			return GetStructValue()->Struct->IsEqual(Ptr, value.Ptr);
+		else
+			return static_cast<UStructProperty*>(VariableProperty)->Struct->IsEqual(Ptr, value.Ptr);
+	case ExpressionValueType::ValueCoords: return ToCoords() == value.ToCoords();
 	case ExpressionValueType::ValueQuat: return ToQuat() == value.ToQuat();
 	}
 }

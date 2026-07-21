@@ -34,6 +34,7 @@ class UZoneInfo;
 class URootWindow;
 class UCanvas;
 class UFlagBase;
+class UViewport;
 class PackageManager;
 class CollisionHit;
 class BspNode;
@@ -395,6 +396,12 @@ enum FontFamily
 	FF_Tahoma   // Standard UWindow font, Linux/Mac will use Verdana if requested.
 };
 
+enum class EAnimType : uint8_t
+{
+	AT_Replace,
+	AT_Combine,
+};
+
 class UActor : public UObject
 {
 public:
@@ -472,7 +479,9 @@ public:
 
 	bool HasAnim(const NameString& sequence);
 	bool IsAnimating();
+	bool IsAnimating_HP(std::optional<NameString> RootBone);
 	void FinishAnim();
+	void FinishAnim_HP(std::optional<NameString> RootBone);
 	NameString GetAnimGroup(const NameString& sequence);
 	void PlayAnim(const NameString& sequence, float rate, float tweenTime);
 	void PlayBlendAnim(const NameString& sequence, float rate, float tweenTime, int blendSlot);
@@ -481,6 +490,23 @@ public:
 
 	void MakeNoise(float loudness);
 	bool PlayerCanSeeMe();
+
+	// Harry Potter
+	void PlayAnim_HP(const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<EAnimType> Type, std::optional<NameString> RootBone);
+	void LoopAnim_HP(const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate, std::optional<EAnimType> Type, std::optional<NameString> RootBone);
+	BoundingBox GetWorldCollisionBox(bool bVisual);
+	vec3 GetRenderExtent();
+	UActor* CreateAnimChannel(UClass* NewClass, EAnimType Type, const NameString& RootBone, bool bTransient);
+	int BoneNumber(const NameString& Bone);
+	NameString BoneName(int Bone);
+	vec3 BonePos(const NameString& Bone);
+	UTexture* CreateTextureFromScreenShot(UViewport* vport);
+	UTexture* CreateTextureFromBMP(const std::string& name, const std::string& filename);
+	bool SaveObjectAsFile(const std::string& dir, UObject* object);
+	bool LoadObjectAsFile(const std::string& dir, UObject* object);
+	bool SaveGameSaveInfo(const std::string& dir, UObject* object);
+	bool LoadGameSaveInfo(const std::string& dir, UObject* object);
+	bool IsOSVer2kOrXP();
 
 	void UpdateBspInfo();
 	void AddToBspNode(BspNode* node);

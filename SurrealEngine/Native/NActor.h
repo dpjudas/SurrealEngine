@@ -93,6 +93,25 @@ public:
 	static void SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume);
 	static void SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume);
 	static void SetPhysics_Deus(UObject* Self, uint8_t newPhysics, std::optional<UObject*> newFloor);
-	static void StopSound(UObject* Self, int Id);
+	static void StopSound_Deus(UObject* Self, int Id);
 	static void TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot);
+
+	static void PlayAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> Type, std::optional<NameString> RootBone);
+	static void LoopAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<float> MinRate, std::optional<uint8_t> Type, std::optional<NameString> RootBone);
+	static void IsAnimating_HP(UObject* Self, std::optional<NameString> RootBone, BitfieldBool& ReturnValue);
+	static void FinishAnim_HP(UObject* Self, std::optional<NameString> RootBone);
+	static void GetWorldCollisionBox(UObject* Self, std::optional<bool> bVisual, BoundingBox& ReturnValue);
+	static void GetRenderExtent(UObject* Self, vec3& ReturnValue);
+	static void CreateAnimChannel(UObject* Self, UObject* NewClass, uint8_t Type, const NameString& RootBone, std::optional<bool> bTransient, UObject*& ReturnValue);
+	static void BoneNumber(UObject* Self, const NameString& Bone, int& ReturnValue);
+	static void BoneName (UObject* Self, int Bone, NameString& ReturnValue);
+	static void BonePos(UObject* Self, const NameString& Bone, vec3& ReturnValue);
+	static void CreateTextureFromScreenShot(UObject* Self, UObject* vport, UObject*& ReturnValue);
+	static void CreateTextureFromBMP(UObject* Self, const std::string& name, const std::string& filename, UObject*& ReturnValue);
+	static void SaveObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue);
+	static void LoadObjectAsFile(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue);
+	static void SaveGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue);
+	static void LoadGameSaveInfo(UObject* Self, const std::string& dir, UObject* object, BitfieldBool& ReturnValue);
+	static void IsOSVer2kOrXP(UObject* Self, BitfieldBool& ReturnValue);
+	static void StopSound_HP(UObject* Self, std::optional<UObject*> Sound, std::optional<uint8_t> Slot);
 };

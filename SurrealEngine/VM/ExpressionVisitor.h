@@ -85,6 +85,7 @@ class NameToStringExpression;
 class VectorToStringExpression;
 class RotatorToStringExpression;
 class StringToNameExpression;
+class DynArrayToIntExpression;
 class VirtualFunctionExpression;
 class FinalFunctionExpression;
 class GlobalFunctionExpression;
@@ -179,6 +180,7 @@ public:
 	virtual void Expr(VectorToStringExpression* expr) = 0;
 	virtual void Expr(RotatorToStringExpression* expr) = 0;
 	virtual void Expr(StringToNameExpression* expr) = 0;
+	virtual void Expr(DynArrayToIntExpression* expr) = 0;
 	virtual void Expr(VirtualFunctionExpression* expr) = 0;
 	virtual void Expr(FinalFunctionExpression* expr) = 0;
 	virtual void Expr(GlobalFunctionExpression* expr) = 0;

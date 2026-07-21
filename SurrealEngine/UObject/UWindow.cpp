@@ -1015,7 +1015,7 @@ void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 	}
 	else if (Background())
 	{
-		preferredWidth = Background()->USize();
+		preferredWidth = (float)Background()->USize();
 	}
 
 	if (FixedHeight)
@@ -1025,7 +1025,7 @@ void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 	}
 	else if (Background())
 	{
-		preferredHeight = Background()->VSize();
+		preferredHeight = (float)Background()->VSize();
 	}
 
 	if (!widthSet || !heightSet)
@@ -1048,7 +1048,7 @@ float UWindow::QueryPreferredWidth(float queryHeight)
 	else
 	{
 		if (Background())
-			width = Background()->USize();
+			width = (float)Background()->USize();
 		ParentRequestedPreferredSize(false, width, true, queryHeight);
 	}
 
@@ -1067,7 +1067,7 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 	else
 	{
 		if (Background())
-			height = Background()->VSize();
+			height = (float)Background()->VSize();
 		ParentRequestedPreferredSize(true, queryWidth, false, height);
 	}
 

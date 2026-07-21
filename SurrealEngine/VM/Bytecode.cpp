@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "Bytecode.h"
+#include "Engine.h"
 
 Bytecode::Bytecode(const Array<uint8_t>& bytecode, Package* package)
 {
@@ -77,7 +78,7 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 		stream->ReadToken();
 		return expr;
 	}
-	else if (token == ExprToken::Construct)
+	else if (token == ExprToken::Construct_227 && engine->LaunchInfo.IsUnreal1_227())
 	{
 		ConstructExpression* expr = Create<ConstructExpression>(exproffset);
 		expr->Struct = stream->ReadObject<UStruct>();
@@ -89,6 +90,12 @@ Expression* Bytecode::ReadToken(BytecodeStream* stream, int depth)
 			arg.Value = ReadToken(stream, depth);
 			expr->Args.push_back(arg);
 		}
+		return expr;
+	}
+	else if (token == ExprToken::DynArrayToInt_HP1 && engine->LaunchInfo.IsHarryPotter1())
+	{
+		DynArrayToIntExpression* expr = Create<DynArrayToIntExpression>(exproffset);
+		expr->Value = ReadToken(stream, depth);
 		return expr;
 	}
 	else if (token == ExprToken::LetBool && stream->GetVersion() <= 63)
