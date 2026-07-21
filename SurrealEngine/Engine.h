@@ -78,6 +78,7 @@ public:
 	void SaveGameToSlot(int32_t slotNum, const std::string& saveDescription) const;
 	void UnloadMap();
 	void LoginPlayer();
+	void PossessSavedPlayer();
 
 	UObject* FindObject(NameString name, NameString className);
 
