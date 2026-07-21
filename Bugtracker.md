@@ -82,7 +82,6 @@ that inventory actually transfers.
 | ID | Src | Sev | Defect |
 | --- | --- | --- | --- |
 | BUG-010 | BT, VR | S2 | Charging weapons (Dispersion Pistol, Impact Hammer, Rocket Launcher) mishandle the held trigger: the Rocket Launcher fires one rocket immediately and only then starts charging. Same on alt-fire. |
-| BUG-011 | VR | S3 | Arcing projectiles (Bio Rifle, grenades) read as mis-aimed at range — the aim indicator draws a straight line while the projectile adds Z velocity and falls. |
 | BUG-012 | VR | S3 | Firing with the hand against a wall can spawn the projectile clipped, because `FireOffset` puts the shot origin at the hand. |
 
 ## WP-3 — Movers, collision and physics
