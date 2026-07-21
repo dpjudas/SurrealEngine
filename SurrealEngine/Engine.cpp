@@ -241,7 +241,7 @@ void Engine::Run()
 		{
 			UnrealURL url(ClientTravelInfo.URL);
 			LoadFromSaveFile(url);
-			LoginPlayer();
+			PossessSavedPlayer();
 		}
 
 		if (!ClientTravelInfo.URL.Map.empty())
@@ -733,22 +733,69 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 
 	GetLevelInfoObject();
 
-	/*
+	// Same as LoadMap: these are session/engine identity, not save data, and must be
+	// re-established on every load regardless of what the package/save file contains.
 	LevelInfo->ComputerName() = "MyComputer";
 	LevelInfo->HubStackLevel() = 0; // To do: handle level hubs
-	*/
 	LevelInfo->EngineVersion() = LaunchInfo.gameVersionString + " SE";
 	if (LaunchInfo.ue1Version > 219)
 		LevelInfo->MinNetVersion() = LaunchInfo.gameVersionString + " SE";
 	LevelInfo->bHighDetailMode() = true;
-	/*
 	LevelInfo->NetMode() = 0; // NM_StandAlone
 	LevelInfo->DefaultTexture() = engine->DefaultTexture;
-	*/
+
+	// LevelInfo->URL is a native engine field, never a serialized script property, so it is
+	// never restored by loading the save package and must be rebuilt here.
+	LevelInfo->URL = UnrealURL(LevelPackage->GetPackageName().ToString());
 
 	GetLevelObject();
 
 	LinkActorsToLevel();
+
+	// BUG-006: engine->GameInfo is otherwise only assigned in LoadMap, so without this it keeps
+	// pointing at the previous, now-unloaded level's GameInfo. LevelInfo->Game() is a normal
+	// script property, so it round-trips through the save correctly; just re-point at it.
+	GameInfo = UObject::Cast<UGameInfo>(LevelInfo->Game());
+	if (!GameInfo)
+		Exception::Throw("Save file has no GameInfo actor for " + LevelPackage->GetPackageName().ToString() + "!");
+}
+
+void Engine::PossessSavedPlayer()
+{
+	// Loading a save must not reuse LoginPlayer, because that always calls GameInfo.Login,
+	// which always spawns a brand new pawn. The save package already contains the actual saved
+	// pawn - deserialized with its real position, health and inventory - sitting in
+	// Level->Actors. Find and possess that one directly instead.
+	UPlayerPawn* pawn = nullptr;
+	for (UActor* actor : Level->Actors)
+	{
+		UPlayerPawn* p = UObject::TryCast<UPlayerPawn>(actor);
+		if (p && p->bIsPlayer())
+		{
+			pawn = p;
+			break;
+		}
+	}
+
+	if (!pawn)
+		Exception::Throw("Save file has no player pawn for " + LevelPackage->GetPackageName().ToString() + "!");
+
+	if (auto pawnExt = UObject::TryCast<UPlayerPawnExt>(pawn))
+	{
+		// FlagBase is Transient (not saved), so it needs the same reconstruction LoginPlayer
+		// does for a fresh spawn.
+		if (!pawnExt->FlagBase())
+		{
+			auto flagBaseCls = packages->FindClass("Extension.FlagBase");
+			pawnExt->FlagBase() = UObject::Cast<UFlagBase>(packages->GetTransientPackage()->NewObject("FlagBase", flagBaseCls, ObjectFlags::Transient));
+		}
+	}
+
+	viewport->Actor() = pawn;
+	viewport->Actor()->Player() = viewport;
+	CallEvent(viewport->Actor(), EventName::Possess);
+
+	render->OnMapLoaded();
 }
 
 void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription) const
