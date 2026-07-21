@@ -213,18 +213,30 @@ void Engine::Run()
 			LevelInfo->NextSwitchCountdown() -= levelElapsed;
 			if (LevelInfo->NextSwitchCountdown() <= 0.0f)
 			{
+				// LoginPlayer only transfers travel actors when ClientTravelInfo.TravelType is
+				// TRAVEL_Relative, and TravelType is otherwise assigned only in ClientTravel. These
+				// NextURL routes never go through ClientTravel, so without setting it here they
+				// inherit whatever the last ClientTravel left behind (or TRAVEL_Absolute, the
+				// default) - which silently discarded the inventory the bNextItems branch exists
+				// specifically to carry. State the intent explicitly on each branch instead of
+				// depending on leftover state.
 				if (UnrealURL(LevelInfo->NextURL()).HasOption("restart"))
 				{
+					// Passes the level's own TravelInfo back in, so it means to preserve it.
+					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Relative;
 					LoadMap(LevelInfo->URL, Level->TravelInfo);
 					LoginPlayer();
 				}
 				else if (LevelInfo->bNextItems())
 				{
+					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Relative;
 					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), CreateTravelInfo(true));
 					LoginPlayer();
 				}
 				else
 				{
+					// Deliberately carries nothing - it passes no travel info at all.
+					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Absolute;
 					LoadMap(UnrealURL(LevelInfo->URL, LevelInfo->NextURL()), {});
 					LoginPlayer();
 				}
