@@ -1998,6 +1998,17 @@ void Engine::LinkActorsToLevel()
 			Level->Light.AddLight(actor);
 		}
 	}
+
+	// BasedActors (who is standing on me, so I carry them when I move) is native, runtime-only
+	// state - never serialized - while ActorBase() (what am I standing on) is a normal property
+	// that does round-trip through a package/save. Without this, an actor that starts a level (or
+	// a load) already resting on a mover has its own ActorBase() pointer intact, but the mover's
+	// own BasedActors list is empty, so the mover has no way to carry it along once it moves.
+	for (UActor* actor : Level->Actors)
+	{
+		if (actor)
+			actor->RelinkBasedActor();
+	}
 }
 
 const char* Engine::keynames[256] =

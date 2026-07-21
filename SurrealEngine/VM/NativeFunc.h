@@ -17,6 +17,7 @@ public:
 	static Array<NativeFuncHandler> NativeByIndex;
 	static std::map<std::pair<NameString, NameString>, NativeFuncHandler> NativeByName;
 	static Array<LatentRunState> LatentActionByIndex;
+	static std::map<LatentRunState, int> IndexForLatentAction;
 
 	static void RegisterHandler(const NameString& className, const NameString& funcName, int nativeIndex, NativeFuncHandler handler);
 	static void RegisterNativeFunc(UFunction* func);

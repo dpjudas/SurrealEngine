@@ -66,14 +66,6 @@ void UObject::Load(ObjectStream* stream)
 		int64_t probeMask = stream->ReadInt64();
 		int32_t latentAction = stream->ReadInt32();
 
-		for (int i = 0; i < 64; i++)
-		{
-			if (((1ULL >> (uint64_t)i) & 1) == 1)
-			{
-				DisableEvent(ToNameString((EventName)i));
-			}
-		}
-
 		int offset = -1;
 		if (func)
 			offset = stream->ReadIndex();
@@ -89,7 +81,15 @@ void UObject::Load(ObjectStream* stream)
 					StateFrame = std::make_shared<Frame>(this, nullptr);
 					StateFrame->SetState(func);
 					StateFrame->StatementIndex = index;
-					StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+					if (latentAction >= 0 && (size_t)latentAction < NativeFunctions::LatentActionByIndex.size())
+					{
+						StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+					}
+					else
+					{
+						LogMessage("UObject::Load encountered out of bounds latent action index");
+						StateFrame->LatentState = LatentRunState::Continue;
+					}
 				}
 				else
 				{
@@ -107,6 +107,14 @@ void UObject::Load(ObjectStream* stream)
 		else if (state)
 		{
 			LogMessage("UObject::Load encountered object with a state object but no function");
+		}
+
+		for (int i = 0; i < 64; i++)
+		{
+			if ((probeMask >> i) & 1)
+			{
+				DisableEvent(ToNameString((EventName)i));
+			}
 		}
 	}
 
@@ -127,13 +135,9 @@ void UObject::Save(PackageStreamWriter* stream)
 {
 	if (AllFlags(Flags, ObjectFlags::HasStack))
 	{
-#if 1
-		stream->WriteIndex(0);
-		stream->WriteIndex(0);
-		stream->WriteInt64(0);
-		stream->WriteInt32(0);
-#else
-		// To do: state and func may not always be the same
+		// func and state: in this engine's VM, a StateFrame can only ever be suspended in
+		// state code, so func (raw StateFrame->Func) and state (StateFrame->Func cast to
+		// UState) always point at the same object here.
 		UStruct* func = StateFrame ? StateFrame->Func : nullptr;
 		UState* state = StateFrame ? UObject::TryCast<UState>(StateFrame->Func) : nullptr;
 		int32_t latentAction = 0;
@@ -142,16 +146,23 @@ void UObject::Save(PackageStreamWriter* stream)
 		int64_t probeMask = 0;
 		for (int i = 0; i < 64; i++)
 		{
-			if (IsEventDisabled(ToNameString((EventName)i)))
+			if (IsEventDisabled((EventName)i))
 			{
 				probeMask |= 1ULL << (uint64_t)i;
 			}
 		}
 
-		if (StateFrame && StateFrame->LatentState != LatentRunState::Stop)
+		// A StateFrame can outlive its state: GotoState("") (what a bTriggerOnceOnly mover does
+		// once it has fired) keeps the frame but sets Func to null, while LatentState is left at
+		// whatever it was - and defaults to Continue, never Stop. Func must be checked, or this
+		// dereferences null; Func->Code can likewise be null for a state with no bytecode. Both
+		// cases write a null func below, which is what Load needs to restore the actor dormant.
+		if (StateFrame && StateFrame->Func && StateFrame->LatentState != LatentRunState::Stop)
 		{
-			latentAction = NativeFunctions::IndexForLatentAction[StateFrame->LatentState];
-			offset = StateFrame->Func->Code->FindOffset(StateFrame->StatementIndex);
+			auto it = NativeFunctions::IndexForLatentAction.find(StateFrame->LatentState);
+			latentAction = (it != NativeFunctions::IndexForLatentAction.end()) ? it->second : 0;
+			if (StateFrame->Func->Code)
+				offset = StateFrame->Func->Code->FindOffset((int)StateFrame->StatementIndex);
 		}
 
 		stream->WriteObject(func);
@@ -160,7 +171,6 @@ void UObject::Save(PackageStreamWriter* stream)
 		stream->WriteInt32(latentAction);
 		if (func)
 			stream->WriteIndex(offset);
-#endif
 	}
 
 	if (!UObject::TryCast<UClass>(this))
@@ -411,6 +421,13 @@ bool UObject::IsEventEnabled(EventName name) const
 	return it == DisabledEvents.end() || it->second.find(ToNameString(name)) == it->second.end();
 }
 
+bool UObject::IsEventDisabled(EventName name) const
+{
+	NameString stateName = GetStateName();
+	auto it = DisabledEvents.find(stateName);
+	return it != DisabledEvents.end() && it->second.find(ToNameString(name)) != it->second.end();
+}
+
 std::string UObject::PrintProperties()
 {
 	std::string result;
@@ -517,7 +534,14 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		StateFrame->SetState(newState);
 
 	if (newState)
+	{
+		// HasStack is otherwise only ever inherited from the original package's export table at
+		// load time. An actor that starts a level with no baked-in stack but enters a real state
+		// during play would otherwise never have that state written by Save() at all, silently
+		// losing it on the next save regardless of what state it's actually in.
+		Flags |= ObjectFlags::HasStack;
 		StateFrame->GotoLabel(labelName);
+	}
 
 	if (newState && oldState != newState)
 		CallEvent(this, EventName::BeginState);
