@@ -62,16 +62,16 @@ bool VisibleMesh::DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor*
 	}
 	else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
 	{
-		/*if (engine->LaunchInfo.IsDeusEx())
+		if (engine->LaunchInfo.IsDeusEx())
 			return DrawLodMeshDX(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
-		else*/
+		else
 			return DrawLodMesh(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 	else
 	{
-		/*if (engine->LaunchInfo.IsDeusEx())
+		if (engine->LaunchInfo.IsDeusEx())
 			return DrawMeshDX(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
-		else*/
+		else
 			return DrawMesh(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 	}
 }
@@ -541,6 +541,8 @@ bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* l
 
 bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	UActor* animSource = actor;
 	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
 		animSource = actor->Owner();
@@ -583,7 +585,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 			continue;
 
 		MeshAnimSeq* seq = mesh->GetSequence(animSource->BlendAnimSequence()[i]);
-		if (!seq)
+		if (!seq || seq->Name != animSource->BlendAnimSequence()[i])
 			continue;
 
 		float frame = animSource->BlendAnimFrame()[i] * seq->NumFrames;
@@ -604,15 +606,32 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 			b.offsets[0] = (seq->StartFrame + f0) * mesh->FrameVerts;
 			b.offsets[1] = (seq->StartFrame + f1) * mesh->FrameVerts;
 			b.offsets[2] = 0;
-		}
-		else
-		{
-			b.weight = 0.0f;
-			blendCount--;
-			continue;
-		}
 
-		b.weight = clamp(animSource->BlendTweenRate()[i], 0.0f, 1.0f);
+			b.weight = 1.0f;
+		}
+		else // Tween from old blend state to new frame 0
+		{
+			float tweenFactor = clamp(frame + 1.0f, 0.0f, 1.0f);
+
+			if (animSource->TweenFromBlendAnimFrame[i].T < 0.0f)
+			{
+				b.offsets[0] = seq->StartFrame * mesh->FrameVerts;
+				b.offsets[1] = seq->StartFrame * mesh->FrameVerts;
+				b.offsets[2] = seq->StartFrame * mesh->FrameVerts;
+				b.t0 = 0.0f;
+				b.t1 = 0.0f;
+				b.weight = tweenFactor;
+			}
+			else
+			{
+				b.offsets[0] = animSource->TweenFromBlendAnimFrame[i].V0;
+				b.offsets[1] = animSource->TweenFromBlendAnimFrame[i].V1;
+				b.offsets[2] = seq->StartFrame * mesh->FrameVerts;
+				b.t0 = animSource->TweenFromBlendAnimFrame[i].T;
+				b.t1 = tweenFactor;
+				b.weight = 1.0f;
+			}
+		}
 	}
 
 	SetupMeshTextures(actor, mesh);
@@ -666,6 +685,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 		float uscale = (tex ? tex->UsedMipmaps.front().Width : 256) * (1.0f / 255.0f);
 		float vscale = (tex ? tex->UsedMipmaps.front().Height : 256) * (1.0f / 255.0f);
 
+		vec3 normals[3];
 		for (int i = 0; i < 3; i++)
 		{
 			size_t vindex = tri.Indices[i];
@@ -677,7 +697,10 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 			const vec3& v0 = mesh->Verts[vindex0];
 			const vec3& v1 = mesh->Verts[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			const vec3& n0 = mesh->Normals[vindex0];
+			const vec3& n1 = mesh->Normals[vindex1];
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
+			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
 				size_t vindex2 = vindex + vertexOffsets[2];
@@ -686,9 +709,10 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
+				normal = mix(normal, n2, t1);
 			}
-			float totalBlendWeight = 0.0f;
+			vec3 restPose = mesh->Verts[vindex];
 			for (int i = 0; i < blendCount; i++)
 			{
 				BlendInfo& b = blends[i];
@@ -708,18 +732,14 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 						blendVertex = mix(blendVertex, bv2, b.t1);
 					}
 
-					vertex = mix(vertex, blendVertex, b.weight);
-					totalBlendWeight += b.weight;
+					vertex += (blendVertex - restPose) * b.weight;
 				}
 			}
 
 			vertices[i].Point = (ObjectToWorld * vec4(vertex, 1.0f)).xyz();
-
 			vertices[i].UV = { tri.UV[i].x * uscale, tri.UV[i].y * vscale };
+			normals[i] = normalize(ObjectNormalToWorld * normal);
 		}
-
-		// To do: this needs to be the smoothed normal
-		vec3 n = normalize(cross(vertices[1].Point - vertices[0].Point, vertices[2].Point - vertices[0].Point));
 
 		if (renderflags & PF_Environment)
 		{
@@ -727,14 +747,14 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 			for (int i = 0; i < 3; i++)
 			{
 				vec3 v = normalize(vertices[i].Point);
-				vec3 p = rotmat * reflect(v, n);
+				vec3 p = rotmat * reflect(v, normals[i]);
 				vertices[i].UV = { (p.x + 1.0f) * 128.0f * uscale, (p.y + 1.0f) * 128.0f * vscale };
 			}
 		}
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, n, !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
 			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -789,10 +809,17 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 			continue;
 
 		MeshAnimSeq* seq = mesh->GetSequence(animSource->BlendAnimSequence()[i]);
-		if (!seq)
+		if (!seq || seq->Name != animSource->BlendAnimSequence()[i])
 			continue;
 
 		float frame = animSource->BlendAnimFrame()[i] * seq->NumFrames;
+
+		static bool loggedBlend[4] = {};
+		if (!loggedBlend[i])
+		{
+			LogMessage("DrawLodMeshDX blend[" + std::to_string(i) + "]: seq='" + seq->Name.ToString() + "' frame=" + std::to_string(frame) + " StartFrame=" + std::to_string(seq->StartFrame) + " NumFrames=" + std::to_string(seq->NumFrames) + " FrameVerts=" + std::to_string(mesh->FrameVerts) + " weight=1.0");
+			loggedBlend[i] = true;
+		}
 
 		BlendInfo& b = blends[blendCount++];
 
@@ -810,15 +837,32 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 			b.offsets[0] = (seq->StartFrame + f0) * mesh->FrameVerts;
 			b.offsets[1] = (seq->StartFrame + f1) * mesh->FrameVerts;
 			b.offsets[2] = 0;
-		}
-		else
-		{
-			b.weight = 0.0f;
-			blendCount--;
-			continue;
-		}
 
-		b.weight = clamp(animSource->BlendTweenRate()[i], 0.0f, 1.0f);
+			b.weight = 1.0f;
+		}
+		else // Tween from old blend state to new frame 0
+		{
+			float tweenFactor = clamp(frame + 1.0f, 0.0f, 1.0f);
+
+			if (animSource->TweenFromBlendAnimFrame[i].T < 0.0f)
+			{
+				b.offsets[0] = seq->StartFrame * mesh->FrameVerts;
+				b.offsets[1] = seq->StartFrame * mesh->FrameVerts;
+				b.offsets[2] = seq->StartFrame * mesh->FrameVerts;
+				b.t0 = 0.0f;
+				b.t1 = 0.0f;
+				b.weight = tweenFactor;
+			}
+			else
+			{
+				b.offsets[0] = animSource->TweenFromBlendAnimFrame[i].V0;
+				b.offsets[1] = animSource->TweenFromBlendAnimFrame[i].V1;
+				b.offsets[2] = seq->StartFrame * mesh->FrameVerts;
+				b.t0 = animSource->TweenFromBlendAnimFrame[i].T;
+				b.t1 = tweenFactor;
+				b.weight = 1.0f;
+			}
+		}
 	}
 
 	SetupLodMeshTextures(actor, mesh);
@@ -828,6 +872,8 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 
 bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
 {
+	float fatness = actor->Fatness() / 16.0f - 8.0f;
+
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
 	{
@@ -853,6 +899,9 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 			continue;
 
 		const MeshMaterial& material = mesh->Materials[face.MaterialIndex];
+
+		if (material.PolyFlags & PF_Invisible)
+			continue;
 
 		uint32_t renderflags = material.PolyFlags | polyFlags;
 		UTexture* tex = (renderflags & PF_Environment) ? engine->render->Mesh.envmap : engine->render->Mesh.textures[material.TextureIndex];
@@ -898,7 +947,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 			const vec3& v1 = mesh->Verts[vindex1];
 			const vec3& n0 = mesh->Normals[vindex0];
 			const vec3& n1 = mesh->Normals[vindex1];
-			vec3 vertex = mix(v0, v1, t0);
+			vec3 vertex = mix(v0 + n0 * fatness, v1 + n1 * fatness, t0);
 			vec3 normal = mix(n0, n1, t0);
 			if (t1 != 0.0f)
 			{
@@ -908,10 +957,11 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 
 				const vec3& v2 = mesh->Verts[vindex2];
 				const vec3& n2 = mesh->Normals[vindex2];
-				vertex = mix(vertex, v2, t1);
+				vertex = mix(vertex, v2 + n2 * fatness, t1);
 				normal = mix(normal, n2, t1);
 			}
-			float totalBlendWeight = 0.0f;
+			vec3 restPose = mesh->Verts[vindex];
+			vec3 restNormal = mesh->Normals[vindex];
 			for (int j = 0; j < blendCount; j++)
 			{
 				BlendInfo& b = blends[j];
@@ -943,9 +993,8 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 						blendNormal = mix(blendNormal, bn2, b.t1);
 					}
 
-					vertex = mix(vertex, blendVertex, b.weight);
-					normal = mix(normal, blendNormal, b.weight);
-					totalBlendWeight += b.weight;
+					vertex += (blendVertex - restPose) * b.weight;
+					normal += (blendNormal - restNormal) * b.weight;
 				}
 			}
 

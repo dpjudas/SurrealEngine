@@ -1001,7 +1001,7 @@ void NActor::StopSound_Deus(UObject* Self, int Id)
 
 void NActor::TweenBlendAnim(UObject* Self, const NameString& Sequence, float Time, std::optional<int> BlendSlot)
 {
-	LogUnimplemented("Actor.TweenBlendAnim");
+	UObject::Cast<UActor>(Self)->TweenBlendAnim(Sequence, Time, BlendSlot ? *BlendSlot : 0);
 }
 
 void NActor::PlayAnim_HP(UObject* Self, const NameString& Sequence, std::optional<float> Rate, std::optional<float> TweenTime, std::optional<uint8_t> Type, std::optional<NameString> RootBone)
