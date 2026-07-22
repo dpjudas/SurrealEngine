@@ -323,11 +323,12 @@ UObject* UConversation::GetSpeechAudio(int soundID)
 	std::string audiolistName = "ConAudioList_" + missionStr;
 	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", audiolistName));
 
-	// To do: use the audio list to find the sound index?
-
-	std::string soundName = "ConAudio" + missionStr + "_" + std::to_string(soundID);
-	auto sound = UObject::Cast<USound>(package->GetUObject("Sound", soundName));
-	return sound;
+	if (soundID < 0 || (size_t)soundID >= audioList->conAudioList.size())
+	{
+		LogMessage("SoundID out of bounds in Conversation.GetSpeechAudio");
+		return nullptr;
+	}
+	return audioList->conAudioList[soundID];
 }
 
 float UConversation::GetSpeechLength(int soundID)
