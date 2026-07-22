@@ -8,9 +8,10 @@ static GCStats stats;
 
 GCRootNode::GCRootNode()
 {
+	next = roots;
+	prev = nullptr;
 	if (roots)
-		roots->next = this;
-	prev = roots;
+		roots->prev = this;
 	roots = this;
 }
 
