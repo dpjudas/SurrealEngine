@@ -84,6 +84,7 @@ set(SURREALWIDGETS_SOURCES
 	src/widgets/mainwindow/mainwindow.cpp
 	src/widgets/menubar/menubar.cpp
 	src/widgets/scrollbar/scrollbar.cpp
+	src/widgets/scrollwidget/scrollwidget.cpp
 	src/widgets/statusbar/statusbar.cpp
 	src/widgets/textedit/textedit.cpp
 	src/widgets/toolbar/toolbar.cpp
@@ -130,6 +131,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/widgets/mainwindow/mainwindow.h
 	include/surrealwidgets/widgets/menubar/menubar.h
 	include/surrealwidgets/widgets/scrollbar/scrollbar.h
+	include/surrealwidgets/widgets/scrollwidget/scrollwidget.h
 	include/surrealwidgets/widgets/statusbar/statusbar.h
 	include/surrealwidgets/widgets/textedit/textedit.h
 	include/surrealwidgets/widgets/toolbar/toolbar.h
@@ -241,6 +243,7 @@ source_group("src\\widgets\\lineedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE
 source_group("src\\widgets\\mainwindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/mainwindow/.+")
 source_group("src\\widgets\\menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/menubar/.+")
 source_group("src\\widgets\\scrollbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/scrollbar/.+")
+source_group("src\\widgets\\scrollwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/scrollwidget/.+")
 source_group("src\\widgets\\statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/statusbar/.+")
 source_group("src\\widgets\\textedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/textedit/.+")
 source_group("src\\widgets\\toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/toolbar/.+")
@@ -267,6 +270,7 @@ source_group("include\\widgets\\lineedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SO
 source_group("include\\widgets\\mainwindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/mainwindow/.+")
 source_group("include\\widgets\\menubar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/menubar/.+")
 source_group("include\\widgets\\scrollbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/scrollbar/.+")
+source_group("include\\widgets\\scrollwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/scrollwidget/.+")
 source_group("include\\widgets\\statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/statusbar/.+")
 source_group("include\\widgets\\textedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/textedit/.+")
 source_group("include\\widgets\\toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/toolbar/.+")
