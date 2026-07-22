@@ -312,22 +312,20 @@ UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue
 UObject* UConversation::GetSpeechAudio(int soundID)
 {
 	auto package = engine->packages->GetPackage("DeusExConAudio" + audioPackageName());
-	std::string missionStr = std::to_string(engine->DeusExLevelInfo->MissionNumber());
-	if (missionStr.size() == 1)
-		missionStr = "0" + missionStr;
-	missionStr = "Mission" + missionStr;
-	// HACK! Intro has mission number 98 but it's ConAudioList_Intro
-	if (missionStr == "Mission98")
-		missionStr = "Intro";
+	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", "ConAudioList_" + audioPackageName()));
 
-	std::string audiolistName = "ConAudioList_" + missionStr;
-	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", audiolistName));
+	if (!audioList)
+	{
+		LogMessage("Could not find ConAudioList in Conversation.GetSpeechAudio");
+		return nullptr;
+	}
 
 	if (soundID < 0 || (size_t)soundID >= audioList->conAudioList.size())
 	{
 		LogMessage("SoundID out of bounds in Conversation.GetSpeechAudio");
 		return nullptr;
 	}
+
 	return audioList->conAudioList[soundID];
 }
 
