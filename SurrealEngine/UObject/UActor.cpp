@@ -2044,16 +2044,13 @@ void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float twe
 	int numFrames = sequence->NumFrames;
 	float sequenceRate = sequence->Rate;
 
-	if (BlendAnimSequence()[blendSlot].IsNone())
-	{
-		tweenTime = 0.0f;
-	}
+	SetTweenFromBlendAnimFrame(blendSlot);
 
 	BlendAnimSequence()[blendSlot] = sequenceName;
 
 	BlendAnimFrame()[blendSlot] = -1.0f / numFrames;
 
-	BlendAnimMinRate()[blendSlot] = (rate * sequenceRate) / numFrames;
+	BlendAnimRate()[blendSlot] = (rate * sequenceRate) / numFrames;
 
 	BlendAnimLast()[blendSlot] = 1.0f - (1.0f / numFrames);
 
@@ -2068,6 +2065,7 @@ void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float twe
 	{
 		if (tweenTime == -1.0f)
 		{
+			BlendAnimFrame()[blendSlot] = 0.0f;
 			if (BlendAnimMinRate()[blendSlot] <= 0.0f)
 			{
 				if (BlendAnimMinRate()[blendSlot] == 0.0f)
@@ -2115,9 +2113,48 @@ void UActor::PlayBlendAnim(const NameString& sequenceName, float rate, float twe
 	}
 
 	OldBlendAnimRate()[blendSlot] = BlendAnimRate()[blendSlot];
-	BlendAnimMinRate()[blendSlot] = BlendAnimRate()[blendSlot];
 }
 
+void UActor::TweenBlendAnim(const NameString& sequenceName, float time, int blendSlot)
+{
+	if (blendSlot < 0 || blendSlot > 3)
+	{
+		LogMessage("Invalid channel for TweenBlendAnim!");
+		return;
+	}
+	if (!Mesh())
+	{
+		LogMessage("No mesh for TweenBlendAnim");
+		return;
+	}
+
+	MeshAnimSeq* sequence = Mesh()->GetSequence(sequenceName);
+	if (!sequence || sequence->Name != sequenceName)
+	{
+		LogMessage("TweenBlendAnim: Sequence '" + sequenceName.ToString() + "' not found in mesh for slot " + std::to_string(blendSlot));
+		return;
+	}
+	int numFrames = sequence->NumFrames;
+	LogMessage("TweenBlendAnim: seq='" + sequenceName.ToString() + "' slot=" + std::to_string(blendSlot) + " time=" + std::to_string(time) + " numFrames=" + std::to_string(numFrames) + " StartFrame=" + std::to_string(sequence->StartFrame));
+
+	BlendAnimSequence()[blendSlot] = sequenceName;
+	BlendAnimLast()[blendSlot] = 0.0;
+	BlendAnimMinRate()[blendSlot] = 0.0;
+	BlendAnimRate()[blendSlot] = 0.0;
+	OldBlendAnimRate()[blendSlot] = 0.0;
+	if (time <= 0.0)
+	{
+		BlendTweenRate()[blendSlot] = 0.0;
+		BlendAnimFrame()[blendSlot] = 0.0;
+	}
+	else 
+	{
+		BlendTweenRate()[blendSlot] = 1.0f / (numFrames * time);
+		BlendAnimFrame()[blendSlot] = 1.0f / numFrames;
+	}
+	// Don't worry about simblendanim for now
+	return;
+}
 
 void UActor::LoopAnim(const NameString& sequence, float rate, float tweenTime, float minRate)
 {
@@ -2418,6 +2455,42 @@ void UActor::SetTweenFromAnimFrame()
 			TweenFromAnimFrame.V1 = 0;
 			TweenFromAnimFrame.T = -1.0f;
 		}
+	}
+}
+
+void UActor::SetTweenFromBlendAnimFrame(int slot)
+{
+	if (slot < 0 || slot > 3)
+		return;
+
+	if (!Mesh())
+		return;
+
+	if (BlendAnimSequence()[slot].IsNone())
+	{
+		TweenFromBlendAnimFrame[slot].V0 = 0;
+		TweenFromBlendAnimFrame[slot].V1 = 0;
+		TweenFromBlendAnimFrame[slot].T = -1.0f;
+		return;
+	}
+
+	MeshAnimSeq* seq = Mesh()->GetSequence(BlendAnimSequence()[slot]);
+	if (seq)
+	{
+		float frame = std::max(BlendAnimFrame()[slot], 0.0f) * seq->NumFrames;
+		int frame0 = (int)frame;
+		int frame1 = frame0 + 1;
+		frame0 = frame0 % seq->NumFrames;
+		frame1 = frame1 % seq->NumFrames;
+		TweenFromBlendAnimFrame[slot].V0 = (seq->StartFrame + frame0) * Mesh()->FrameVerts;
+		TweenFromBlendAnimFrame[slot].V1 = (seq->StartFrame + frame1) * Mesh()->FrameVerts;
+		TweenFromBlendAnimFrame[slot].T = frame - (float)frame0;
+	}
+	else
+	{
+		TweenFromBlendAnimFrame[slot].V0 = 0;
+		TweenFromBlendAnimFrame[slot].V1 = 0;
+		TweenFromBlendAnimFrame[slot].T = -1.0f;
 	}
 }
 
