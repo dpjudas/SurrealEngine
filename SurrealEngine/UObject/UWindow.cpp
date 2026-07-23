@@ -3236,6 +3236,69 @@ void UBorderWindow::SetMoveCursors(std::optional<UObject*> Move, std::optional<U
 		trMoveCursor() = UObject::Cast<UTexture>(*trMove);
 }
 
+void UBorderWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
+{
+	preferredWidth = 0.0f;
+	preferredHeight = 0.0f;
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		float w = 0.0f, h = 0.0f;
+		cur->QueryPreferredSize(w, h);
+		preferredWidth = std::max(preferredWidth, w);
+		preferredHeight += h;
+	}
+
+	preferredWidth += childLeftMargin();
+	preferredWidth += childRightMargin();
+	preferredHeight += childTopMargin();
+	preferredHeight += childBottomMargin();
+
+	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
+}
+
+void UBorderWindow::ConfigurationChanged()
+{
+	float y = 0.0f;
+
+	y += childTopMargin();
+
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		float contentWidth = std::max(Width() - childLeftMargin() - childRightMargin(), 0.0f);
+		float h = cur->QueryPreferredHeight(contentWidth);
+		float w = cur->QueryPreferredWidth(h);
+		cur->ConfigureChild(childLeftMargin(), y, std::min(w, contentWidth), h);
+		y += h;
+	}
+
+	UWindow::ConfigurationChanged();
+}
+
+void UBorderWindow::DrawWindow(UGC* gc)
+{
+	UObject* borders[9] =
+	{
+		borderTopLeft(),
+		borderTopRight(),
+		borderBottomLeft(),
+		borderLeft(),
+		borderBottomRight(),
+		borderRight(),
+		borderTop(),
+		borderBottom(),
+		center()
+	};
+
+	gc->DrawBorders(
+		0.0f, 0.0f,
+		Width(), Height(),
+		childLeftMargin(), childRightMargin(),
+		childTopMargin(), childBottomMargin(), borders, {}, {});
+
+	UWindow::DrawWindow(gc);
+	DrawDebugBox(gc);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void UScaleWindow::ClearAllEnumerations()

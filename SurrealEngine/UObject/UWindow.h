@@ -1346,6 +1346,10 @@ public:
 	void SetBorders(std::optional<UObject*> bordTL, std::optional<UObject*> bordTR, std::optional<UObject*> bordBL, std::optional<UObject*> bordBR, std::optional<UObject*> bordL, std::optional<UObject*> bordR, std::optional<UObject*> bordT, std::optional<UObject*> bordB, std::optional<UObject*> center);
 	void SetMoveCursors(std::optional<UObject*> Move, std::optional<UObject*> hMove, std::optional<UObject*> vMove, std::optional<UObject*> tlMove, std::optional<UObject*> trMove);
 
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void ConfigurationChanged() override;
+	void DrawWindow(UGC* gc) override;
+
 	float& BottomMargin() { return Value<float>(PropOffsets_BorderWindow.BottomMargin); }
 	float& DragX() { return Value<float>(PropOffsets_BorderWindow.DragX); }
 	float& DragY() { return Value<float>(PropOffsets_BorderWindow.DragY); }
