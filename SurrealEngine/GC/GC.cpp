@@ -81,7 +81,7 @@ GCAllocation* GC::Mark(GCAllocation* marklist)
 	GCAllocation* marklistout = nullptr;
 	for (GCAllocation* allocation = marklist; allocation != nullptr; allocation = allocation->marklistNext)
 	{
-		allocation->object()->Mark(marklistout);
+		marklistout = allocation->object()->Mark(marklistout);
 	}
 	return marklistout;
 }
@@ -105,7 +105,8 @@ void GC::Sweep()
 			stats.memoryUsage -= unreferenced->memsize;
 			stats.numObjects--;
 
-			unreferenced->object()->~GCObject();
+			GCObject* obj = unreferenced->object();
+			obj->~GCObject();
 			free(unreferenced);
 		}
 		else

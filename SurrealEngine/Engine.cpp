@@ -607,6 +607,8 @@ void Engine::UnloadMap()
 	viewport->Actor() = nullptr;
 	dxRootWindow = nullptr;
 	packages->UnloadPackage(std::move(LevelPackage));
+
+	// GC::Collect();
 }
 
 void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::string>& travelInfo)
