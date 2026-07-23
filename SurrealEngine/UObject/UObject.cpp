@@ -549,8 +549,12 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 
 GCAllocation* UObject::Mark(GCAllocation* marklist)
 {
-	//for (UProperty* prop : Class->Properties)
-	//	marklist = prop->MarkProperty(marklist, PropertyData);
+	if (Class)
+	{
+		marklist = GC::MarkObject(marklist, Class);
+		for (UProperty* prop : Class->Properties)
+			marklist = prop->MarkProperty(marklist, PropertyData.Ptr(prop));
+	}
 	return marklist;
 }
 
