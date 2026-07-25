@@ -390,7 +390,7 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 	if (Radius <= 0.0) // Seems we have zero radius values. Lovely.
 		Radius = 1500.0f;
 
-	if (isTalk)
+	if (isTalk && engine->LaunchInfo.IsDeusEx())
 	{
 		// Should this still be directional?
 		Volume *= 2.0f;
