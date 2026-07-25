@@ -14,12 +14,12 @@ std::string ActorTravelInfo::Create(UPlayerPawn* pawn, bool transferItems)
 {
 	// Collect all actors we need to travel and give them a name each
 
-	std::map<UActor*, std::string> travelActorNames;
-	Array<UActor*> processList;
+	std::map<UObject*, std::string> travelObjectNames;
+	Array<UObject*> processList;
 
 	if (pawn)
 	{
-		travelActorNames[pawn] = "player";
+		travelObjectNames[pawn] = "player";
 		processList.push_back(pawn);
 	}
 
@@ -27,16 +27,16 @@ std::string ActorTravelInfo::Create(UPlayerPawn* pawn, bool transferItems)
 	{
 		for (size_t i = 0; i < processList.size(); i++)
 		{
-			UActor* cur = processList[i];
+			UObject* cur = processList[i];
 			for (UProperty* property : cur->GetAllTravelProperties())
 			{
 				if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 				{
-					UActor* value = UObject::TryCast<UActor>(*static_cast<UObject**>(cur->GetProperty(objProperty)));
-					if (value && travelActorNames.find(value) == travelActorNames.end())
+					UObject* value = *static_cast<UObject**>(cur->GetProperty(objProperty));
+					if (value && travelObjectNames.find(value) == travelObjectNames.end())
 					{
 						std::string name = "item" + std::to_string(processList.size());
-						travelActorNames[value] = name;
+						travelObjectNames[value] = name;
 						processList.push_back(value);
 					}
 				}
@@ -44,13 +44,13 @@ std::string ActorTravelInfo::Create(UPlayerPawn* pawn, bool transferItems)
 		}
 	}
 
-	// Save each travel actor
-	Array<TravelObject> actorTravelInfo;
-	for (UActor* actor : processList)
+	// Save each travel object
+	Array<TravelObject> objectTravelInfo;
+	for (UObject* object : processList)
 	{
-		actorTravelInfo.emplace_back(CreateObject(actor, travelActorNames[actor], travelActorNames));
+		objectTravelInfo.emplace_back(CreateObject(object, travelObjectNames[object], travelObjectNames));
 	}
-	return ToString(actorTravelInfo);
+	return ToString(objectTravelInfo);
 }
 
 std::string ActorTravelInfo::ToString(const Array<TravelObject>& travelActors)
@@ -76,21 +76,21 @@ std::string ActorTravelInfo::ToString(const Array<TravelObject>& travelActors)
 	return result;
 }
 
-ActorTravelInfo::TravelObject ActorTravelInfo::CreateObject(UActor* travelActor, const std::string& name, const std::map<UActor*, std::string>& travelActors)
+ActorTravelInfo::TravelObject ActorTravelInfo::CreateObject(UObject* travelObject, const std::string& name, const std::map<UObject*, std::string>& travelObjects)
 {
 	TravelObject info;
-	info.ClassName = UObject::GetUClassFullName(travelActor).ToString();
+	info.ClassName = UObject::GetUClassFullName(travelObject).ToString();
 	info.Name = name;
-	for (UProperty* property : travelActor->GetAllTravelProperties())
+	for (UProperty* property : travelObject->GetAllTravelProperties())
 	{
 		if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 		{
-			UActor* value = UObject::TryCast<UActor>(*static_cast<UObject**>(travelActor->GetProperty(objProperty)));
+			UObject* value = *static_cast<UObject**>(travelObject->GetProperty(objProperty));
 			std::string name;
 			if (value)
 			{
-				auto it = travelActors.find(value);
-				if (it != travelActors.end())
+				auto it = travelObjects.find(value);
+				if (it != travelObjects.end())
 					name = it->second;
 			}
 			else
@@ -106,56 +106,69 @@ ActorTravelInfo::TravelObject ActorTravelInfo::CreateObject(UActor* travelActor,
 		}
 		else
 		{
-			info.Properties[property->Name.ToString()] = travelActor->GetPropertyAsString(property->Name);
+			info.Properties[property->Name.ToString()] = travelObject->GetPropertyAsString(property->Name);
 		}
 	}
 	return info;
 }
 
-Array<UActor*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& travelInfo)
+Array<UObject*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& travelInfo)
 {
-	Array<UActor*> acceptedActors;
+	Array<UObject*> acceptedObjects;
 	Array<const TravelObject*> acceptedTravel;
-	std::map<NameString, UObject*> nameToActor;
+	std::map<NameString, UObject*> nameToObject;
 
 	Array<TravelObject> items = Parse(travelInfo);
 
 	// Spawn the items
 	for (const TravelObject& objInfo : items)
 	{
-		UActor* actor = nullptr;
+		UObject* object = nullptr;
 		if (objInfo.Name != "player")
 		{
 			UClass* cls = engine->packages->FindClass(objInfo.ClassName);
-			if (cls)
+
+			UStruct* actorCls = cls;
+			while (actorCls)
 			{
-				actor = pawn->Spawn(cls, pawn, NameString(), {}, {});
+				if (actorCls->Name == "Actor")
+					break;
+				actorCls = actorCls->BaseStruct;
+			}
+
+			if (actorCls)
+			{
+				object = pawn->Spawn(cls, pawn, NameString(), {}, {});
+			}
+			else if (cls)
+			{
+				object = engine->packages->GetTransientPackage()->NewObject({}, cls, ObjectFlags::Transient);
 			}
 			else
 			{
-				LogMessage("Warning: could not spawn travel actor with class name: " + objInfo.ClassName);
+				LogMessage("Warning: could not spawn travel object with class name: " + objInfo.ClassName);
 			}
 		}
 		else
 		{
-			actor = pawn;
+			object = pawn;
 		}
 
-		if (actor)
+		if (object)
 		{
-			nameToActor[objInfo.Name] = actor;
-			acceptedActors.push_back(actor);
+			nameToObject[objInfo.Name] = object;
+			acceptedObjects.push_back(object);
 			acceptedTravel.push_back(&objInfo);
 		}
 	}
 
 	// Set travel properties
-	for (size_t i = 0, count = acceptedActors.size(); i < count; i++)
+	for (size_t i = 0, count = acceptedObjects.size(); i < count; i++)
 	{
 		const TravelObject& objInfo = *acceptedTravel[i];
-		UActor* acceptedActor = acceptedActors[i];
+		UObject* acceptedObject = acceptedObjects[i];
 
-		for (UProperty* property : acceptedActor->GetAllTravelProperties())
+		for (UProperty* property : acceptedObject->GetAllTravelProperties())
 		{
 			// GetAllTravelProperties force-includes Inventory so Create() can walk the chain to
 			// find what to carry. Outside Deus Ex it is not a real UE1 travel property (Actor.uc:
@@ -176,17 +189,17 @@ Array<UActor*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& tra
 
 			if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 			{
-				auto obj = static_cast<UObject**>(acceptedActor->GetProperty(objProperty));
+				auto obj = static_cast<UObject**>(acceptedObject->GetProperty(objProperty));
 				if (value != "None")
 				{
-					auto it = nameToActor.find(value);
-					if (it != nameToActor.end())
+					auto it = nameToObject.find(value);
+					if (it != nameToObject.end())
 					{
-						*obj = nameToActor[value];
+						*obj = nameToObject[value];
 					}
 					else
 					{
-						LogMessage("Warning: could not find travel actor: " + value);
+						LogMessage("Warning: could not find travel object: " + value);
 					}
 				}
 				else
@@ -196,13 +209,13 @@ Array<UActor*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& tra
 			}
 			else
 			{
-				acceptedActor->SetPropertyFromString(property->Name, value);
+				acceptedObject->SetPropertyFromString(property->Name, value);
 			}
 		}
 	}
 
 	// Important: we want the actor returned first, followed by inventory
-	return acceptedActors;
+	return acceptedObjects;
 }
 
 Array<ActorTravelInfo::TravelObject> ActorTravelInfo::Parse(const std::string& text)

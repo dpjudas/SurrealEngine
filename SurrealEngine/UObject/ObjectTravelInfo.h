@@ -4,14 +4,14 @@
 
 class UProperty;
 class UInventory;
-class UActor;
+class UObject;
 class UPlayerPawn;
 
 class ActorTravelInfo
 {
 public:
 	static std::string Create(UPlayerPawn* pawn, bool transferItems);
-	static Array<UActor*> Accept(UPlayerPawn* pawn, const std::string& travelInfo);
+	static Array<UObject*> Accept(UPlayerPawn* pawn, const std::string& travelInfo);
 
 private:
 	// Each object in the travel info string
@@ -28,7 +28,7 @@ private:
 		std::map<std::string, std::string> Properties;
 	};
 
-	static TravelObject CreateObject(UActor* travelActor, const std::string& name, const std::map<UActor*, std::string>& travelActors);
+	static TravelObject CreateObject(UObject* travelObject, const std::string& name, const std::map<UObject*, std::string>& travelObjects);
 	static std::string ToString(const Array<TravelObject>& travelActors);
 	static Array<TravelObject> Parse(const std::string& text);
 	static TravelObject ParseSingleObject(const std::string& singleObjectText);
