@@ -3540,6 +3540,16 @@ void UScaleManagerWindow::StretchValueField(std::optional<bool> bNewStretch)
 
 /////////////////////////////////////////////////////////////////////////////
 
+void UListWindow::InitWindow()
+{
+	focusLine() = -1;
+	anchorLine() = -1;
+	lastIndex() = -1;
+	bMultiSelect() = true;
+	focusThickness() = 1.0f;
+	UWindow::InitWindow();
+}
+
 int UListWindow::AddRow(const std::string& rowStr, std::optional<int> clientData)
 {
 	int id = nextRowId++;
@@ -3670,8 +3680,9 @@ float UListWindow::GetFieldValue(int rowId, int colIndex)
 
 int UListWindow::GetFocusRow()
 {
-	LogUnimplemented("ListWindow.GetFocusRow");
-	return 0;
+	if (focusLine() < 0 || (size_t)focusLine() >= items.size())
+		return 0;
+	return items[focusLine()].id;
 }
 
 int UListWindow::GetNumColumns()
@@ -3686,8 +3697,13 @@ int UListWindow::GetNumRows()
 
 int UListWindow::GetNumSelectedRows()
 {
-	LogUnimplemented("ListWindow.GetNumSelectedRows");
-	return 0;
+	int count = 0;
+	for (auto& item : items)
+	{
+		if (item.selected)
+			count++;
+	}
+	return count++;
 }
 
 int UListWindow::GetPageSize()
@@ -3715,7 +3731,13 @@ UObject* UListWindow::GetRowClientObject(int rowId)
 
 int UListWindow::GetSelectedRow()
 {
-	LogUnimplemented("ListWindow.GetSelectedRow");
+	for (auto& item : items)
+	{
+		if (item.selected)
+		{
+			return item.id;
+		}
+	}
 	return 0;
 }
 
@@ -3927,7 +3949,8 @@ void UListWindow::SetFocusColor(const Color& NewColor)
 
 void UListWindow::SetFocusRow(int rowId, std::optional<bool> bMoveTo, std::optional<bool> bAnchor)
 {
-	LogUnimplemented("ListWindow.SetFocusRow");
+	// Note: bMoveTo and bAnchor is never used directly from script
+	focusLine() = RowIdToIndex(rowId);
 }
 
 void UListWindow::SetFocusTexture(UObject* NewTexture)
@@ -3937,8 +3960,7 @@ void UListWindow::SetFocusTexture(UObject* NewTexture)
 
 void UListWindow::SetFocusThickness(float newThickness)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.SetFocusThickness");
+	focusThickness() = newThickness;
 }
 
 void UListWindow::SetHighlightColor(const Color& NewColor)
@@ -3976,7 +3998,11 @@ void UListWindow::SetNumColumns(int newCols)
 
 void UListWindow::SetRow(int rowId, std::optional<bool> bSelect, std::optional<bool> bClearRows, std::optional<bool> bDrag)
 {
-	LogUnimplemented("ListWindow.SetRow");
+	if (!bClearRows.has_value() || *bClearRows)
+		SelectAllRows(false);
+	if (!bSelect.has_value() || *bSelect)
+		SelectRow(rowId, true);
+	// Should this also call SetFocusRow()?
 }
 
 void UListWindow::SetRowClientInt(int rowId, int clientInt)
@@ -4028,10 +4054,34 @@ void UListWindow::DrawWindow(UGC* gc)
 	float w = Width();
 	float h = Height();
 	float lineHeight = (float)font->GetGlyph('X').VSize + 2;
+	lineSize() = lineHeight;
 
 	float y = 0.0f;
+	int lineIndex = 0;
 	for (auto& item : items)
 	{
+		if (lineIndex == focusLine())
+		{
+			gc->SetTextColor(highlightTextColor);
+			gc->SetTileColor(focusColor());
+			if (focusTexture())
+				gc->DrawTexture(0.0f, y, w, lineHeight, 0.0f, 0.0f, focusTexture());
+		}
+
+		if (item.selected)
+		{
+			float t = focusThickness();
+			gc->SetTextColor(highlightTextColor);
+			gc->SetTileColor(highlightColor());
+			if (highlightTexture())
+				gc->DrawTexture(t, y + t, std::max(w - 2.0f * t, 0.0f), std::max(lineHeight - t * 2.0f, 0.0f), 0.0f, 0.0f, highlightTexture());
+		}
+		else
+		{
+			gc->SetTextColor(TextColor());
+			gc->SetTileColor(tileColor());
+		}
+
 		float x = 0.0f;
 		size_t colIndex = 0;
 		for (auto& col : columns)
@@ -4041,13 +4091,42 @@ void UListWindow::DrawWindow(UGC* gc)
 				UFont* colFont = col.font ? col.font : font;
 				gc->SetFont(colFont);
 				gc->SetAlignments((uint8_t)col.align, (uint8_t)EVAlign::Center);
+
+				//if (!item.selected)
+				//	gc->SetTextColor(col.color);
+
 				gc->DrawText(x, y, col.width, lineHeight, item.cells[colIndex]);
 			}
 			x += col.width;
 			colIndex++;
 		}
 		y += lineHeight;
+		lineIndex++;
 	}
+}
+
+bool UListWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	if (UWindow::MouseButtonPressed(pointX, pointY, button, numClicks))
+		return true;
+
+	if (lineSize() <= 0.0f)
+		return true;
+
+	int index = (int)std::floor(pointY / lineSize());
+	int rowId = IndexToRowId(index);
+	if (rowId > 0)
+	{
+		SetRow(rowId, true, true, false);
+		SetFocusRow(rowId, false, false);
+	}
+
+	return true;
+}
+
+bool UListWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	return UWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
 }
 
 /////////////////////////////////////////////////////////////////////////////

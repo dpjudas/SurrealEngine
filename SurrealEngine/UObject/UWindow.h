@@ -1182,7 +1182,10 @@ public:
 	void Sort();
 	void ToggleRowSelection(int rowId);
 
+	void InitWindow() override;
 	void DrawWindow(UGC* gc) override;
+	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
+	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
 
 	struct Column
 	{
@@ -1208,7 +1211,7 @@ public:
 	std::vector<Item> items;
 	int nextRowId = 1;
 
-	Color highlightTextColor;
+	Color highlightTextColor = { 255,255,255,255 };
 
 	USound*& ActivateSound() { return Value<USound*>(PropOffsets_ListWindow.ActivateSound); }
 	std::string& Delimiter() { return Value<std::string>(PropOffsets_ListWindow.Delimiter); }
