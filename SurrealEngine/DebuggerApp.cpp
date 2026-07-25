@@ -53,7 +53,8 @@ int DebuggerApp::Main(Array<std::string> args)
 	int index = 1;
 	for (const GameLaunchInfo& info : GameFolderSelection::Games)
 	{
-		WriteOutput(ColorEscape(92) + std::to_string(index++) + ResetEscape() + " - " + info.gameName + NewLine());
+		WriteOutput(ColorEscape(92) + std::to_string(index++) + ResetEscape() + " - " + info.gameName + " " +
+			ColorEscape(90) + "- " + info.gameVersionString + ResetEscape() + NewLine());
 	}
 	WriteOutput(ColorEscape(92) + std::to_string(index++) + ResetEscape() + " - Show launcher" + NewLine());
 	WriteOutput(NewLine());
