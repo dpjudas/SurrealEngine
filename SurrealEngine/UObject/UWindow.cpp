@@ -714,7 +714,7 @@ void UWindow::PlaySound(UObject* newsound, std::optional<float> Volume, std::opt
 			location.x = *posX;
 		if (posY)
 			location.y = *posY;
-		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f);
+		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f, false);
 	}
 }
 

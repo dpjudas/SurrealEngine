@@ -273,7 +273,7 @@ void USurrealAudioDevice::StartAmbience()
 					}
 				}
 				if (!foundSound)
-					PlaySound(Actor, Id, Actor->AmbientSound(), Actor->Location(), AmbientFactor * Actor->SoundVolume() / 255.0f, Actor->WorldSoundRadius(), Actor->SoundPitch() / 64.0f);
+					PlaySound(Actor, Id, Actor->AmbientSound(), Actor->Location(), AmbientFactor * Actor->SoundVolume() / 255.0f, Actor->WorldSoundRadius(), Actor->SoundPitch() / 64.0f, false);
 			}
 			actorIndex++;
 		}
@@ -385,16 +385,24 @@ void USurrealAudioDevice::UpdateMusic()
 	}
 }
 
-bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch)
+bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, bool isTalk)
 {
 	if (Radius <= 0.0) // Seems we have zero radius values. Lovely.
 		Radius = 1500.0f;
 
-	// Attempt to normalize volume around 1.0 as the values used by the original games are just really broken in general.
-	if (Volume >= 8.0f)
-		Volume = 0.8f; // Special check for announcer garbage
+	if (isTalk)
+	{
+		// Should this still be directional?
+		Volume *= 2.0f;
+	}
 	else
-		Volume = (Volume - 1.0f) * 0.25f + 1.0f;
+	{
+		// Attempt to normalize volume around 1.0 as the values used by the original games are just really broken in general.
+		if (Volume >= 8.0f)
+			Volume = 0.8f; // Special check for announcer garbage
+		else
+			Volume = (Volume - 1.0f) * 0.25f + 1.0f;
+	}
 
 	if (!m_Viewport || !Sound)
 		return false;
