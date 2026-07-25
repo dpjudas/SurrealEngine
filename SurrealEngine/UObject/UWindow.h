@@ -1182,6 +1182,8 @@ public:
 	void Sort();
 	void ToggleRowSelection(int rowId);
 
+	void DispatchListSelectionChanged();
+
 	void InitWindow() override;
 	void DrawWindow(UGC* gc) override;
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;

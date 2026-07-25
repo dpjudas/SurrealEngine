@@ -4119,6 +4119,7 @@ bool UListWindow::MouseButtonPressed(float pointX, float pointY, EInputKey butto
 	{
 		SetRow(rowId, true, true, false);
 		SetFocusRow(rowId, false, false);
+		DispatchListSelectionChanged();
 	}
 
 	return true;
@@ -4127,6 +4128,17 @@ bool UListWindow::MouseButtonPressed(float pointX, float pointY, EInputKey butto
 bool UListWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
 {
 	return UWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
+}
+
+void UListWindow::DispatchListSelectionChanged()
+{
+	int numSelections = GetNumSelectedRows();
+	int focusRowId = GetFocusRow();
+	for (UWindow* cur = this; cur; cur = cur->parentOwner())
+	{
+		if (cur->ListSelectionChanged(this, numSelections, focusRowId))
+			break;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
