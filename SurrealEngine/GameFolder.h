@@ -16,7 +16,7 @@ struct GameLaunchInfo
 	bool IsUnreal1_226() const { return IsUnreal1() && gameVersion == 226; }
 	bool IsUnreal1_227() const { return IsUnreal1() && gameVersion == 227; }
 	bool IsUnreal1_227k() const { return IsUnreal1_227() && gameSubVersion == 11; }
-	bool IsUnrealTournament() const { return gameExecutableName == "UnrealTournament"; }
+	bool IsUnrealTournament() const { return gameExecutableName == "ut-bin"; }
 	bool IsUnrealTournament_469() const { return IsUnrealTournament() && gameVersion == 469; }
 	bool IsDeusEx() const { return gameExecutableName == "DeusEx"; }
 	bool IsCliveBarkersUndying() const { return gameExecutableName == "Undying"; }
