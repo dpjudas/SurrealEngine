@@ -922,6 +922,17 @@ void UArrayProperty::LoadValue(void* data, ObjectStream* stream, const PropertyH
 	}
 }
 
+void UArrayProperty::LoadStructMemberValue(void* data, ObjectStream* stream)
+{
+	int arraySize = stream->ReadIndex();
+	ScriptArray& vec = *static_cast<ScriptArray*>(data);
+	vec.Resize(arraySize);
+	for (int i = 0; i < arraySize; i++)
+	{
+		Inner->LoadStructMemberValue(vec.GetItem(i), stream);
+	}
+}
+
 void UArrayProperty::SaveHeader(void* data, PropertyHeader& header)
 {
 	header.type = UPT_Array;
