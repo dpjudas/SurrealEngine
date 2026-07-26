@@ -37,4 +37,12 @@ public:
     float& fDSPUpdateTime() { return Value<float>(PropOffsets_RMusic_Player.fDSPUpdateTime); }
     float& fDSPUpdateDelay() { return Value<float>(PropOffsets_RMusic_Player.fDSPUpdateDelay); }
     // nextEvent's RMusic_ControllerEx is not a native class
+
+    bool RMusic_Play(const std::string& File, bool Loop);
+    void RMusic_Stop();
+    bool RMusic_IsPlaying() const { return bIsPlaying; }
+    void RMusic_SetNewVolume(int NewVolume);
+
+private:
+    bool bIsPlaying = false;
 };

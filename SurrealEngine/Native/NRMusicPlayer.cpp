@@ -2,6 +2,9 @@
 #include "Precomp.h"
 #include "NRMusicPlayer.h"
 
+#include "Engine.h"
+#include "UObject/URMusicPlayer.h"
+#include "UObject/USubsystem.h"
 #include "Utils/Logger.h"
 #include "VM/NativeFunc.h"
 #include "VM/ScriptCall.h"
@@ -55,10 +58,10 @@ void NRMusicPlayer::RMusic_Update()
     // Since we don't use fmod, this is a no-op
 }
 
-void NRMusicPlayer::RMusic_Play(std::string File, bool Loop, BitfieldBool& ReturnValue)
+void NRMusicPlayer::RMusic_Play(UObject* Self, std::string& File, bool Loop, BitfieldBool& ReturnValue)
 {
-    LogUnimplemented("RMusic_Player.RMusic_Play()");
-    ReturnValue = false;
+    const auto MusicPlayer = UObject::Cast<URMusic_Player>(Self);
+    ReturnValue = MusicPlayer->RMusic_Play(File, Loop);
 }
 
 void NRMusicPlayer::RMusic_Pause(bool bPause)
@@ -66,10 +69,10 @@ void NRMusicPlayer::RMusic_Pause(bool bPause)
     LogUnimplemented("RMusic_Player.RMusic_Pause()");
 }
 
-void NRMusicPlayer::RMusic_IsPlaying(BitfieldBool& ReturnValue)
+void NRMusicPlayer::RMusic_IsPlaying(UObject* Self, BitfieldBool& ReturnValue)
 {
-    LogUnimplemented("RMusic_Player.RMusic_IsPlaying()");
-    ReturnValue = false;
+    const auto MusicPlayer = UObject::Cast<URMusic_Player>(Self);
+    ReturnValue = MusicPlayer->RMusic_IsPlaying();
 }
 
 void NRMusicPlayer::RMusic_SetCfgVolume()
@@ -78,9 +81,10 @@ void NRMusicPlayer::RMusic_SetCfgVolume()
     LogUnimplemented("RMusic_Player.RMusic_SetCfgVolume()");
 }
 
-void NRMusicPlayer::RMusic_SetVolume(int NewVolume)
+void NRMusicPlayer::RMusic_SetVolume(UObject* Self, int NewVolume)
 {
-    LogUnimplemented("RMusic_Player.RMusic_SetVolume()");
+    const auto MusicPlayer = UObject::Cast<URMusic_Player>(Self);
+    MusicPlayer->RMusic_SetNewVolume(NewVolume);
 }
 
 void NRMusicPlayer::RMusic_IncVolume()
@@ -93,15 +97,14 @@ void NRMusicPlayer::RMusic_DecVolume()
     LogUnimplemented("RMusic_Player.RMusic_DecVolume()");
 }
 
-void NRMusicPlayer::RMusic_GetVolume(int& ReturnValue)
+void NRMusicPlayer::RMusic_GetVolume(UObject* Self, int& ReturnValue)
 {
-    LogUnimplemented("RMusic_Player.RMusic_GetVolume()");
-    ReturnValue = 0;
+    ReturnValue = UObject::Cast<URMusic_Player>(Self)->RMusic_Volume();
 }
 
-void NRMusicPlayer::RMusic_Stop()
+void NRMusicPlayer::RMusic_Stop(UObject* Self)
 {
-    LogUnimplemented("RMusic_Player.RMusic_Stop()");
+    UObject::Cast<URMusic_Player>(Self)->RMusic_Stop();
 }
 
 void NRMusicPlayer::RMusic_Close()
