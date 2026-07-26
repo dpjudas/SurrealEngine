@@ -13,6 +13,7 @@ public:
 	static std::unique_ptr<AudioSource> CreateOgg(Array<uint8_t> filedata, bool loop = false);
 	static std::unique_ptr<AudioSource> CreateMod(Array<uint8_t> filedata, bool loop = true, int subsong = 0);
 	static std::unique_ptr<AudioSource> CreateResampler(int targetFrequency, std::unique_ptr<AudioSource> source);
+	static std::unique_ptr<AudioSource> TryCreateFromFile(const std::string& FilePath, bool loop = false);
 
 	AudioSource() = default;
 	virtual ~AudioSource() = default;
