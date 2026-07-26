@@ -285,7 +285,7 @@ public:
 	void Save(PackageStreamWriter* stream) override;
 
 	void LoadValue(void* data, ObjectStream* stream, const PropertyHeader& header) override;
-
+	void LoadStructMemberValue(void* data, ObjectStream* stream);
 	void SaveHeader(void* data, PropertyHeader& header) override;
 	void SaveValue(void* data, PackageStreamWriter* stream) override;
 
