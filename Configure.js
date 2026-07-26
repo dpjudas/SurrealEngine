@@ -399,6 +399,8 @@ var commonSources = [
 	"SurrealEngine/UObject/UFlag.h",
 	"SurrealEngine/UObject/UConSys.cpp",
 	"SurrealEngine/UObject/UConSys.h",
+	"SurrealEngine/UObject/URMusicPlayer.cpp",
+	"SurrealEngine/UObject/URMusicPlayer.h",
 	"SurrealEngine/Collision/TopLevel/CollisionSystem.cpp",
 	"SurrealEngine/Collision/TopLevel/CollisionSystem.h",
 	"SurrealEngine/Collision/TopLevel/CollisionHit.h",
