@@ -7,6 +7,7 @@
 #include "D3D11/D3D11RenderDevice.h"
 #endif
 #include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 #include <surrealwidgets/core/colorf.h>
 #include <surrealwidgets/core/widget.h>
 
