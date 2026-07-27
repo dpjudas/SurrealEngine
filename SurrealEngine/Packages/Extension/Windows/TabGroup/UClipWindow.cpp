@@ -5,13 +5,24 @@
 
 void UClipWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
-	// To do: how does this work?
+	float w = 0.0f;
+	float h = 0.0f;
+	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	{
+		float curW = 0.0f;
+		float curH = 0.0f;
+		cur->QueryPreferredSize(curW, curH);
+		w = std::max(w, curW);
+		h = std::max(h, curH);
+	}
+	preferredWidth = w;
+	preferredHeight = h;
+
 	UTabGroupWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
 }
 
 void UClipWindow::ConfigurationChanged()
 {
-	// To do: how does this work?
 	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 	{
 		cur->ConfigureChild(0.0f, 0.0f, Width(), Height());
@@ -34,8 +45,7 @@ void UClipWindow::ForceChildSize(std::optional<bool> bNewForceChildWidth, std::o
 UObject* UClipWindow::GetChild()
 {
 	// Not called by script
-	LogUnimplemented("ClipWindow.GetChild");
-	return nullptr;
+	return firstChild();
 }
 
 void UClipWindow::GetChildPosition(int& pNewX, int& pNewY)

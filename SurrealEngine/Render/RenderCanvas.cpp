@@ -502,9 +502,9 @@ void RenderSubsystem::DrawTile(FTextureInfo& texinfo, const Rectf& dest, const R
 	}
 }
 
-void RenderSubsystem::Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void RenderSubsystem::Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2, bool useUIScale)
 {
-	auto uiscale = static_cast<float>(Canvas.uiscale);
+	auto uiscale = useUIScale ? static_cast<float>(Canvas.uiscale) : 1.0f;
 	Device->Draw2DLine(&Canvas.Frame, Color, LineFlags, vec3(P1.xy() * uiscale, P1.z), vec3(P2.xy() * uiscale, P2.z));
 }
 

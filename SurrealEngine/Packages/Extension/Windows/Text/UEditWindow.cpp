@@ -2,6 +2,8 @@
 #include "Precomp.h"
 #include "UEditWindow.h"
 #include "Engine.h"
+#include "Packages/Extension/Windows/UGC.h"
+#include "Packages/Engine/Resources/UFont.h"
 
 void UEditWindow::ClearTextChangedFlag()
 {
@@ -170,4 +172,20 @@ void UEditWindow::SetTextChangedFlag(std::optional<bool> bSet)
 void UEditWindow::Undo()
 {
 	LogUnimplemented("EditWindow.Undo");
+}
+
+void UEditWindow::InitWindow()
+{
+	ULargeTextWindow::InitWindow();
+}
+
+void UEditWindow::DrawWindow(UGC* gc)
+{
+	UWindow::DrawWindow(gc);
+
+	gc->SetFont(normalFont());
+	gc->SetAlignments(HAlign(), VAlign());
+	gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
+
+	// DrawDebugBox(gc);
 }

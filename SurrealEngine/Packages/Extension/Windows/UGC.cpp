@@ -646,8 +646,11 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Col
 	}
 }
 
-Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& textStr, const Color& color, uint32_t polyflags, bool noDraw)
+Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const std::string& textStr, const Color& colormoo, uint32_t polyflags, bool noDraw)
 {
+	Color color = colormoo;
+	color.A = 255; // grr
+
 	if (!bWordWrap())
 		destWidth = 100000.0f;
 

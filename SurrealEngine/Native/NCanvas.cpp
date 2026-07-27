@@ -279,7 +279,7 @@ void NCanvas::TextSize(UObject* Self, const std::string& String, float& XL, floa
 void NCanvas::Draw2DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)
 {
 	vec4 colVec {static_cast<float>(Col.R / 255.0), static_cast<float>(Col.G / 255.0), static_cast<float>(Col.B / 255.0), static_cast<float>(Col.A / 255.0)};
-	engine->render->Draw2DLine(colVec, 0, Start, End);
+	engine->render->Draw2DLine(colVec, 0, Start, End, true);
 }
 
 void NCanvas::Draw3DLine_U227(UObject* Self, Color& Col, vec3& Start, vec3& End)

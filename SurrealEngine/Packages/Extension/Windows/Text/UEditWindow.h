@@ -39,6 +39,9 @@ public:
 	void SetTextChangedFlag(std::optional<bool> bSet);
 	void Undo();
 
+	void InitWindow() override;
+	void DrawWindow(UGC* gc) override;
+
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
 	BitfieldBool bDragging() { return BoolValue(PropOffsets_EditWindow.bDragging); }
 	BitfieldBool bEditable() { return BoolValue(PropOffsets_EditWindow.bEditable); }

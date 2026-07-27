@@ -1532,8 +1532,8 @@ void UWindow::Tick(float timeElapsed)
 void UWindow::DrawDebugBox(UGC* gc)
 {
 	Rectf dest = gc->ScaleRect(Rectf::xywh(gc->offsetX, gc->offsetY, Width(), Height()));
-	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.right, dest.top, 1.0f));
-	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.bottom, 1.0f), vec3(dest.right, dest.bottom, 1.0f));
-	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.left, dest.bottom, 1.0f));
-	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.right, dest.top, 1.0f), vec3(dest.right, dest.bottom, 1.0f));
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.right, dest.top, 1.0f), false);
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.bottom, 1.0f), vec3(dest.right, dest.bottom, 1.0f), false);
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.left, dest.top, 1.0f), vec3(dest.left, dest.bottom, 1.0f), false);
+	engine->render->Draw2DLine(vec4(1.0f), 0, vec3(dest.right, dest.top, 1.0f), vec3(dest.right, dest.bottom, 1.0f), false);
 }
