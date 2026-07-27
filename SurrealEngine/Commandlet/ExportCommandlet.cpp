@@ -7,8 +7,8 @@
 #include "Package/PackageManager.h"
 #include "Package/Package.h"
 #include "Editor/Export.h"
-#include "UObject/UClass.h"
-#include "UObject/UTextBuffer.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/UTextBuffer.h"
 
 typedef std::pair<Package*, std::string> PackageNamePair;
 

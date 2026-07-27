@@ -1,9 +1,8 @@
 #include "Precomp.h"
 #include "NConEvent.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UConSys.h"
-#include "UObject/USound.h"
-#include "Engine.h"
+#include "Packages/ConSys/Events/UConEvent.h"
+#include "Packages/Engine/Resources/USound.h"
 
 void NConEvent::RegisterFunctions()
 {

@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "Bytecode.h"
 #include "Engine.h"
+#include "Packages/Core/UFunction.h"
 
 Bytecode::Bytecode(const Array<uint8_t>& bytecode, Package* package)
 {

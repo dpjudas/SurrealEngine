@@ -4,6 +4,10 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 #include "Math/hsb.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
+#include "Packages/Engine/Actors/Info/UZoneInfo.h"
+#include "Packages/Engine/Resources/Level/UPolys.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 FTextureInfo RenderSubsystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {

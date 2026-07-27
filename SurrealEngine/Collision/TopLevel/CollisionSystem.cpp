@@ -1,7 +1,10 @@
 
 #include "Precomp.h"
 #include "CollisionSystem.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 #include "Math/floating.h"
 #include "Math/coords.h"
 #include "Collision/BottomLevel/TraceRayModel.h"

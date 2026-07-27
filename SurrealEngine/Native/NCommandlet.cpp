@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "NCommandlet.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Utils/Logger.h"
 
 void NCommandlet::RegisterFunctions()
 {

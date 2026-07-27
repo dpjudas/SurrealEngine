@@ -2,9 +2,10 @@
 #pragma once
 
 #include "EditorViewport.h"
-#include "UObject/UActor.h"
 #include "Math/rotator.h"
 #include "Math/coords.h"
+
+class UActor;
 
 class Editor2DViewport : public EditorViewport
 {

@@ -1,7 +1,6 @@
 #include "Precomp.h"
 #include "NExtensionObject.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
 
 void NExtensionObject::RegisterFunctions()
 {

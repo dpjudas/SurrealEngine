@@ -2,8 +2,16 @@
 #include "Precomp.h"
 #include "miniz/miniz.h"
 #include "Editor/Export.h"
-#include "UObject/UProperty.h"
-#include "UObject/UTextBuffer.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/Properties/UProperty.h"
+#include "Packages/Core/UTextBuffer.h"
+#include "Packages/Engine/Resources/UPalette.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
+#include "Packages/Engine/Resources/Textures/UFireTexture.h"
+#include "Packages/Engine/Resources/Textures/UIceTexture.h"
+#include "Packages/Engine/Resources/Textures/UWaterTexture.h"
+#include "Packages/Engine/Resources/Textures/UWetTexture.h"
+#include "Packages/Engine/Resources/Textures/UWaveTexture.h"
 
 static void UnpackRgba(uint32_t rgba, uint32_t& r, uint32_t& g, uint32_t& b, uint32_t& a)
 {

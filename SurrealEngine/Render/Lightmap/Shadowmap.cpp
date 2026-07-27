@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "Shadowmap.h"
 #include "Math/vec.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 void Shadowmap::Load(UModel* model, int lightMap, int lightindex)
 {

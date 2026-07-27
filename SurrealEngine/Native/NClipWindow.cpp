@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NClipWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/TabGroup/UClipWindow.h"
 
 void NClipWindow::RegisterFunctions()
 {

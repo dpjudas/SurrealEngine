@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "NativeFunc.h"
+#include "Packages/Core/UFunction.h"
 
 Array<UFunction*> NativeFunctions::FuncByIndex;
 Array<NativeFuncHandler> NativeFunctions::NativeByIndex;

@@ -4,7 +4,10 @@
 #include "VisibleDecal.h"
 #include "RenderSubsystem.h"
 #include "Engine.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/Info/UZoneInfo.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 
 void VisibleNode::Draw(VisibleFrame* frame)
 {

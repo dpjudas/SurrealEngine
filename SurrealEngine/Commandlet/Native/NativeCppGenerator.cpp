@@ -2,8 +2,6 @@
 #include "Precomp.h"
 #include "NativeCppGenerator.h"
 #include "Package/PackageManager.h"
-#include "UObject/UClass.h"
-#include "UObject/UProperty.h"
 #include "VM/Bytecode.h"
 #include "Utils/File.h"
 #include <filesystem>

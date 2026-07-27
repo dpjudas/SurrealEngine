@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UObject.h"
+#include "Packages/Core/UObject.h"
 
 class UTexture;
 enum class ERenderZTest : uint8_t;

@@ -6,11 +6,8 @@
 #include "Math/floating.h"
 #include "RenderDevice/RenderDevice.h"
 #include "GameWindow.h"
-#include "UObject/UActor.h"
-#include "UObject/UnrealURL.h"
-#include "UObject/UWindow.h"
-#include "UObject/UDXSaveInfo.h"
-#include "UObject/UDeusExLevelInfo.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "UnrealURL.h"
 #include "GameFolder.h"
 #include <set>
 #include <list>
@@ -56,6 +53,10 @@ class UnrealMipmap;
 class UFloatProperty;
 class UConversationMissionList;
 class UConversationList;
+class UDXSaveInfo;
+class UDeusExLevelInfo;
+class URootWindow;
+class UGC;
 struct FTextureInfo;
 struct FSceneNode;
 struct FSurfaceFacet;

@@ -3,7 +3,7 @@
 #include "IniProperty.h"
 #include "Utils/Exception.h"
 #include "Utils/Convert.h"
-#include "UObject/UObject.h"
+#include "Packages/Core/UObject.h"
 #include <sstream>
 
 template<>

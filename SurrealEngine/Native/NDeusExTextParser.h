@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UDXTextParser.h"
+#include "Packages/Core/UObject.h"
 
 class NDeusExTextParser
 {

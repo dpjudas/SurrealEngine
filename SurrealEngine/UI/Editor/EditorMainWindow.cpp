@@ -4,8 +4,9 @@
 #include "EditorWorkspace.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
 #include "Utils/File.h"
 #include "RenderDevice/RenderDevice.h"
 #include <surrealgpu/vulkansurface.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UObject/UClass.h"
-#include "UObject/UProperty.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/Properties/UProperty.h"
 #include "Package/Package.h"
 #include "Expression.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UDXSaveInfo.h"
+#include "Packages/Core/UObject.h"
 
 class NDeusExSaveInfo
 {

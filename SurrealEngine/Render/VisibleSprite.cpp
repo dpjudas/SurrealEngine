@@ -1,9 +1,11 @@
 
 #include "Precomp.h"
 #include "VisibleSprite.h"
-#include "UObject/UClass.h"
-#include "UObject/UTexture.h"
-#include "UObject/UActor.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Engine/Resources/UPalette.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/UActor.h"
 #include "Engine.h"
 #include "RenderSubsystem.h"
 

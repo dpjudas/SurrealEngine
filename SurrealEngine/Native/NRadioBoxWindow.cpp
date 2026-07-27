@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NRadioBoxWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/TabGroup/URadioBoxWindow.h"
 
 void NRadioBoxWindow::RegisterFunctions()
 {

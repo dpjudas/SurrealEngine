@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NModalWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/TabGroup/UModalWindow.h"
 
 void NModalWindow::RegisterFunctions()
 {

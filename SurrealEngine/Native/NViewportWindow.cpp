@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NViewportWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UViewportWindow.h"
 
 void NViewportWindow::RegisterFunctions()
 {

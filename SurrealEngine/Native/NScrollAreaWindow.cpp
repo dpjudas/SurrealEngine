@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NScrollAreaWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UScrollAreaWindow.h"
 
 void NScrollAreaWindow::RegisterFunctions()
 {

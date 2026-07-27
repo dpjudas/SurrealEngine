@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "TextureUploader.h"
-#include "UObject/UTexture.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
 #include "RenderDevice/RenderDevice.h"
 
 #ifdef USE_SSE2

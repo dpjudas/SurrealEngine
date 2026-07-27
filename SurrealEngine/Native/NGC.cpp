@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NGC.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UGC.h"
 
 void NGC::RegisterFunctions()
 {

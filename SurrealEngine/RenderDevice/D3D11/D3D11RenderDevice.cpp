@@ -6,6 +6,7 @@
 #include "Utils/UTF16.h"
 #include "Utils/Logger.h"
 #include "Math/halffloat.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 #include <surrealwidgets/core/widget.h>
 #include <surrealwidgets/window/win32nativehandle.h>
 #include <surrealwidgets/window/sdlnativehandle.h>

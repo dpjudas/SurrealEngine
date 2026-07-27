@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UDXExtString.h"
+#include "Packages/Core/UObject.h"
 
 class NExtString
 {

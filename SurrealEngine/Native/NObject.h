@@ -2,8 +2,7 @@
 
 #include "Math/quaternion.h"
 #include "Math/coords.h"
-#include "UObject/UObject.h"
-#include "UObject/UProperty.h"
+#include "Packages/Core/UObject.h"
 
 class NObject
 {

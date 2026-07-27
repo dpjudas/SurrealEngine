@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "OverlapAABBModel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 CollisionHitList OverlapAABBModel::TestOverlap(UModel* model, const vec3& center, const vec3& extents, bool visibilityOnly)
 {

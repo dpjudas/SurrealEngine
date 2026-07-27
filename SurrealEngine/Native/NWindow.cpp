@@ -1,8 +1,8 @@
 #include "Precomp.h"
 #include "NWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UWindow.h"
+#include "Packages/Extension/Windows/TabGroup/URootWindow.h"
 
 void NWindow::RegisterFunctions()
 {

@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "NScriptedPawn.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
+#include "Packages/DeusEx/UScriptedPawn.h"
 
 void NScriptedPawn::RegisterFunctions()
 {

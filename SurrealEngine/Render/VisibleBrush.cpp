@@ -6,6 +6,10 @@
 #include "RenderDevice/RenderDevice.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Resources/Level/UPolys.h"
 
 bool VisibleBrush::Draw(VisibleFrame* frame, UActor* actor, bool translucentPass)
 {

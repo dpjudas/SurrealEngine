@@ -1,8 +1,14 @@
 #pragma once 
 
 #include "Utils/MemoryStreamWriter.h"
-#include "UObject/UClass.h"
-#include "UObject/UTexture.h"
+
+class UObject;
+class UClass;
+class UTexture;
+class UFireTexture;
+class UWaveTexture;
+class UWetTexture;
+class UIceTexture;
 
 class Exporter
 {

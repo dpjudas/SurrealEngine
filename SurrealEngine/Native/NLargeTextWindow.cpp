@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NLargeTextWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/Text/ULargeTextWindow.h"
 
 void NLargeTextWindow::RegisterFunctions()
 {

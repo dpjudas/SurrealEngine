@@ -3,6 +3,7 @@
 #include "TextureManager.h"
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 #include <surrealgpu/vulkanbuilders.h>
 
 TextureManager::TextureManager(VulkanRenderDevice* renderer) : renderer(renderer)

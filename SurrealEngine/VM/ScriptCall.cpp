@@ -2,7 +2,11 @@
 #include "Precomp.h"
 #include "ScriptCall.h"
 #include "Frame.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/UFunction.h"
 #include <unordered_map>
 
 NameString ToNameString(EventName name)

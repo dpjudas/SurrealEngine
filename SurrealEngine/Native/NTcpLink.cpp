@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NTcpLink.h"
 #include "VM/NativeFunc.h"
+#include "Packages/IpDrv/UTcpLink.h"
 
 void NTcpLink::RegisterFunctions()
 {

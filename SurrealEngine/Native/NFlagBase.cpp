@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NFlagBase.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
-#include "UObject/UFlag.h"
+#include "Packages/Extension/Flags/UFlagBase.h"
 
 void NFlagBase::RegisterFunctions()
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UInternetLink.h"
+#include "Packages/Core/UObject.h"
 
 class NTcpLink
 {

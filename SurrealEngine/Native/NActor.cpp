@@ -4,13 +4,20 @@
 #include "VM/NativeFunc.h"
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
-#include "UObject/USound.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Engine/UViewport.h"
+#include "Packages/Engine/Resources/USound.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Mesh/UMesh.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/UDecal.h"
+#include "Packages/Engine/Actors/Pawn/UPlayerPawn.h"
+#include "Packages/Engine/Actors/Info/UZoneInfo.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "Package/PackageManager.h"
 #include "Engine.h"
 #include "Audio/AudioDevice.h"
-#include "UObject/USubsystem.h"
+#include "Packages/Engine/Subsystems/USurrealAudioDevice.h"
 #include "Utils/StrTools.h"
 
 void NActor::RegisterFunctions()
@@ -752,8 +759,6 @@ void NActor::VisibleCollidingActors_219(UObject* Self, UObject* BaseClass, UObje
 		Loc ? *Loc : SelfActor->Location(),
 		false);
 }
-
-
 
 void NActor::GetMeshTexture(UObject* Self, std::optional<int> texnum, UObject*& ReturnValue)  
 {  

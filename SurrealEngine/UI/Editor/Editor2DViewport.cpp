@@ -2,7 +2,10 @@
 #include "Precomp.h"
 #include "Editor2DViewport.h"
 #include "Engine.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Resources/Level/UPolys.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
 #include <surrealwidgets/core/colorf.h>
 
 #include "Package/PackageManager.h"

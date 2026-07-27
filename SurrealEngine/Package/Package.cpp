@@ -5,8 +5,8 @@
 #include "PackageStream.h"
 #include "PackageManager.h"
 #include "Utils/File.h"
-#include "UObject/UObject.h"
-#include "UObject/UClass.h"
+#include "Packages/Core/UObject.h"
+#include "Packages/Core/UClass.h"
 
 Package::Package(PackageManager* packageManager, const NameString& name, const std::string& filepath) : Packages(packageManager), Name(name), FilePath(filepath)
 {

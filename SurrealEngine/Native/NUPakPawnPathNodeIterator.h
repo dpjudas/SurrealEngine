@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UActor.h"
+#include "Packages/Core/UObject.h"
 
 class NUPakPawnPathNodeIterator
 {

@@ -4,7 +4,12 @@
 #include "VisibleCorona.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/UWindow.h"
+#include "Packages/Engine/UViewport.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/Info/UWarpZoneInfo.h"
+#include "Packages/Engine/Actors/Info/USkyZoneInfo.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Extension/Windows/TabGroup/URootWindow.h"
 
 void VisibleFrame::Process(const vec3& location, const mat4& worldToView, const Coords& viewRotation, bool mirrorFlag, int portalDepth, const Array<PortalSpan>& portalSpans, const vec4& portalPlane)
 {

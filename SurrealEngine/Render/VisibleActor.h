@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UActor.h"
 
 class VisibleFrame;
 

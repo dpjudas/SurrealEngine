@@ -3,7 +3,7 @@
 #include "PackageStream.h"
 #include "Package.h"
 #include "PackageWriter.h"
-#include "UObject/UObject.h"
+#include "Packages/Core/UObject.h"
 #include "Utils/File.h"
 #include <cstring>
 

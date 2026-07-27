@@ -5,6 +5,10 @@
 #include "VisibleBrush.h"
 #include "VisibleMesh.h"
 #include "VisibleSprite.h"
+#include "Packages/Engine/UViewport.h"
+#include "Packages/Engine/Actors/Pawn/UPawn.h"
+#include "Packages/Engine/Actors/Pawn/UPlayerPawn.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
 
 void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 {

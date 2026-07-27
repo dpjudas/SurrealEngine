@@ -3,7 +3,7 @@
 #include "ListSourceCommandlet.h"
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
-#include "UObject/UTextBuffer.h"
+#include "Packages/Core/UTextBuffer.h"
 #include <regex>
 
 ListSourceCommandlet::ListSourceCommandlet()

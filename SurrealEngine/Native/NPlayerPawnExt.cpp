@@ -1,10 +1,9 @@
 
 #include "Precomp.h"
-#include "Package/PackageManager.h"
 #include "NPlayerPawnExt.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "UObject/UClient.h"
+#include "Packages/Extension/UPlayerPawnExt.h"
+#include "Packages/Engine/UCanvas.h"
 
 void NPlayerPawnExt::RegisterFunctions()
 {

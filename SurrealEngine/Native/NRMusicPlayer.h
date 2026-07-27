@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UObject.h"
+#include "Packages/Core/UObject.h"
 
 /* RMusic_Player compatibility stuff
  * Since RMusic_Player uses fmod and we have our solutions for playing most of the files this class plays,

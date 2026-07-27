@@ -4,8 +4,8 @@
 #include "AudioSource.h"
 #include "Engine.h"
 #include "Native/NObject.h"
-#include "UObject/UActor.h"
-#include "UObject/USound.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Resources/USound.h"
 #include <mutex>
 #include "Utils/Exception.h"
 #include <map>

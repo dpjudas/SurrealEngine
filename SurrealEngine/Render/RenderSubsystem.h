@@ -6,6 +6,7 @@
 class RenderDevice;
 class UWindow;
 class UFont;
+class UMover;
 
 struct LightmapTexture
 {

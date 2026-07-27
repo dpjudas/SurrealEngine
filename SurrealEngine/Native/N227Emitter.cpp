@@ -1,7 +1,8 @@
 
 #include "Precomp.h"
 #include "N227Emitter.h"
-#include "UObject/U227Emitter.h"
+#include "Packages/Emitter/UXEmitter.h"
+#include "Packages/Emitter/UXParticleEmitter.h"
 #include "NActor.h"
 #include "VM/NativeFunc.h"
 #include "VM/ScriptCall.h"

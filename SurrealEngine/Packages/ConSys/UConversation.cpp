@@ -1,0 +1,276 @@
+
+#include "Precomp.h"
+#include "UConversation.h"
+#include "Package/PackageManager.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Resources/USound.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/ConSys/UConAudioList.h"
+#include "Packages/ConSys/UConFlagRef.h"
+#include "Packages/ConSys/Events/UConEvent.h"
+#include "Packages/ConSys/Events/UConEventSpeech.h"
+#include "Packages/ConSys/Events/UConEventTransferObject.h"
+#include "Packages/ConSys/Events/UConEventMoveCamera.h"
+#include "Packages/ConSys/Events/UConEventAnimation.h"
+#include "Packages/ConSys/Events/UConEventTrade.h"
+#include "Packages/ConSys/Events/UConEventJump.h"
+#include "Engine.h"
+
+void UConversation::BindActorEvents(UObject* actorToBind)
+{
+	// conevent internally uses invokeactor and actortobind. at least in this call, they're the one in the same.
+	UActor* actorToBindAct = UObject::Cast<UActor>(actorToBind);
+	if (!actorToBindAct)
+		return;
+
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				if (speech->speakerName() == actorToBindAct->BindName() || speech->speakerName() == actorToBindAct->BarkBindName())
+					speech->speaker() = actorToBindAct;
+				// internal note: maybe order of checks should be inverted
+				if (speech->speakingToName() == actorToBindAct->BindName() || speech->speakingToName() == actorToBindAct->BarkBindName())
+					speech->speakingTo() = actorToBindAct;
+			}
+			break;
+
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				if ((transfer->fromName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->fromName() == actorToBindAct->BarkBindName()))
+					transfer->fromActor() = actorToBindAct;
+
+				if ((transfer->toName() == actorToBindAct->BindName() && bFirstPerson()) || (transfer->toName() == actorToBindAct->BarkBindName()))
+					transfer->toActor() = actorToBindAct;
+			}
+			break;
+
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				if (moveCamera->cameraActorName() == actorToBindAct->BindName())
+					moveCamera->cameraActor() = actorToBindAct;
+			}
+			break;
+
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
+				bool bindActor = animation->eventOwnerName() == actorToBindAct->BindName();
+				bool barkBindActor = animation->eventOwnerName() == actorToBindAct->BarkBindName();
+				if ((bindActor && bFirstPerson()) || barkBindActor)
+					animation->eventOwner() = actorToBindAct;
+			}
+			break;
+
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				if (trade->eventOwnerName() == actorToBindAct->BindName())
+					trade->eventOwner() = actorToBindAct;
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+void UConversation::BindEvents(UObject** conBoundActors, UObject* invokeActor)
+{
+	// Note: conBoundActors seems to be an output parameter to be filled with actors we found in the events?
+	// Not sure what invokeActor is used for. Also unclear how conOwnerName() and ownerRefCount() works.
+
+	std::map<NameString, UActor*> nameToActor;
+
+	for (UActor* actor : engine->Level->Actors)
+	{
+		if (actor)
+		{
+			NameString name = actor->BindName();
+			if (!name.IsNone())
+				nameToActor[name] = actor;
+		}
+	}
+
+	if (auto actor = UObject::Cast<UActor>(invokeActor))
+	{
+		NameString name = actor->BindName();
+		if (!name.IsNone())
+			nameToActor[name] = actor;
+	}
+
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		default:
+		case EEventType::Choice:
+		case EEventType::SetFlag:
+		case EEventType::CheckFlag:
+		case EEventType::CheckObject:
+		case EEventType::Random:
+		case EEventType::Trigger:
+		case EEventType::AddGoal:
+		case EEventType::AddNote:
+		case EEventType::AddSkillPoints:
+		case EEventType::AddCredits:
+		case EEventType::CheckPersona:
+		case EEventType::Comment:
+		case EEventType::End:
+			break;
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				speech->speaker() = nameToActor[speech->speakerName()];
+				speech->speakingTo() = nameToActor[speech->speakingToName()];
+			}
+			break;
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				transfer->fromActor() = nameToActor[transfer->fromName()];
+				transfer->toActor() = nameToActor[transfer->toName()];
+			}
+			break;
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				moveCamera->cameraActor() = nameToActor[moveCamera->cameraActorName()];
+			}
+			break;
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
+				animation->eventOwner() = nameToActor[animation->eventOwnerName()];
+			}
+			break;
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				trade->eventOwner() = nameToActor[trade->eventOwnerName()];
+			}
+			break;
+		case EEventType::Jump:
+			if (auto jump = UObject::Cast<UConEventJump>(e))
+			{
+				// Do we need to do this?
+				// jump->jumpCon() = jump->conID();
+			}
+			break;
+		}
+	}
+}
+
+void UConversation::ClearBindEvents()
+{
+	for (UConEvent* e = eventList(); e; e = e->nextEvent())
+	{
+		switch ((EEventType)e->eventType())
+		{
+		default:
+		case EEventType::Choice:
+		case EEventType::SetFlag:
+		case EEventType::CheckFlag:
+		case EEventType::CheckObject:
+		case EEventType::Random:
+		case EEventType::Trigger:
+		case EEventType::AddGoal:
+		case EEventType::AddNote:
+		case EEventType::AddSkillPoints:
+		case EEventType::AddCredits:
+		case EEventType::CheckPersona:
+		case EEventType::Comment:
+		case EEventType::End:
+			break;
+		case EEventType::Speech:
+			if (auto speech = UObject::Cast<UConEventSpeech>(e))
+			{
+				speech->speaker() = nullptr;
+				speech->speakingTo() = nullptr;
+			}
+			break;
+			break;
+		case EEventType::TransferObject:
+			if (auto transfer = UObject::Cast<UConEventTransferObject>(e))
+			{
+				transfer->fromActor() = nullptr;
+				transfer->toActor() = nullptr;
+			}
+			break;
+		case EEventType::MoveCamera:
+			if (auto moveCamera = UObject::Cast<UConEventMoveCamera>(e))
+			{
+				moveCamera->cameraActor() = nullptr;
+			}
+			break;
+		case EEventType::Animation:
+			if (auto animation = UObject::Cast<UConEventAnimation>(e))
+			{
+				animation->eventOwner() = nullptr;
+			}
+			break;
+		case EEventType::Trade:
+			if (auto trade = UObject::Cast<UConEventTrade>(e))
+			{
+				trade->eventOwner() = nullptr;
+			}
+			break;
+		case EEventType::Jump:
+			if (auto jump = UObject::Cast<UConEventJump>(e))
+			{
+				// jump->jumpCon() = nullptr;
+			}
+			break;
+		}
+	}
+}
+
+UObject* UConversation::CreateConCamera()
+{
+	UClass* cls = engine->packages->FindClass("ConSys.ConCamera");
+	NameString name;
+	return engine->LevelPackage->NewObject(name, cls, ObjectFlags::Transient, true);
+}
+
+UObject* UConversation::CreateFlagRef(const NameString& FlagName, bool flagValue)
+{
+	UClass* cls = engine->packages->FindClass("ConSys.ConFlagRef");
+	NameString name;
+	UObject* obj = engine->LevelPackage->NewObject(name, cls, ObjectFlags::Transient, true);
+	UConFlagRef* flagObj = UObject::Cast<UConFlagRef>(obj);
+	flagObj->FlagName() = FlagName;
+	flagObj->Value() = flagValue;
+	return obj;
+}
+
+UObject* UConversation::GetSpeechAudio(int soundID)
+{
+	auto package = engine->packages->GetPackage("DeusExConAudio" + audioPackageName());
+	auto audioList = UObject::Cast<UConAudioList>(package->GetUObject("ConAudioList", "ConAudioList_" + audioPackageName()));
+
+	if (!audioList)
+	{
+		LogMessage("Could not find ConAudioList in Conversation.GetSpeechAudio");
+		return nullptr;
+	}
+
+	if (soundID < 0 || (size_t)soundID >= audioList->conAudioList.size())
+	{
+		LogMessage("SoundID out of bounds in Conversation.GetSpeechAudio");
+		return nullptr;
+	}
+
+	return audioList->conAudioList[soundID];
+}
+
+float UConversation::GetSpeechLength(int soundID)
+{
+	USound* sound = UObject::Cast<USound>(GetSpeechAudio(soundID));
+	return sound ? sound->GetDuration() : 1.0f;
+}

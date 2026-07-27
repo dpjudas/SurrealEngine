@@ -2,6 +2,7 @@
 
 #include "StructValue.h"
 #include "ArrayValue.h"
+#include "Packages/Core/Properties/UStructProperty.h"
 
 class ExpressionValue
 {

@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "NDeusExPlayer.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
+#include "Packages/DeusEx/UDeusExPlayer.h"
 
 void NDeusExPlayer::RegisterFunctions()
 {

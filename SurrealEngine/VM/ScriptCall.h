@@ -3,6 +3,7 @@
 #include "ExpressionValue.h"
 
 class UObject;
+class UFunction;
 
 enum class EventName
 {

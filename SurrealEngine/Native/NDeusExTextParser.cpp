@@ -1,7 +1,7 @@
 #include "Precomp.h"
 #include "NDeusExTextParser.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Packages/DeusExText/UDeusExTextParser.h"
 
 void NDeusExTextParser::RegisterFunctions()
 {

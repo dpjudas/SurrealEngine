@@ -1,7 +1,6 @@
 #pragma once
 
-#include "UObject/UObject.h"
-#include "UObject/UProperty.h"
+#include "Packages/Core/Properties/UArrayProperty.h"
 #include "Utils/AlignedAlloc.h"
 #include "Math/quaternion.h"
 #include "Math/coords.h"

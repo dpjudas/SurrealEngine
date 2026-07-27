@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NConEventRandomLabel.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UConSys.h"
-#include "Engine.h"
+#include "Packages/ConSys/Events/UConEventRandomLabel.h"
 
 void NConEventRandomLabel::RegisterFunctions()
 {

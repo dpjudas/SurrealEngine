@@ -4,6 +4,7 @@
 #include "VulkanRenderDevice.h"
 #include "CachedTexture.h"
 #include "Utils/Logger.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 DescriptorSetManager::DescriptorSetManager(VulkanRenderDevice* renderer) : renderer(renderer)
 {

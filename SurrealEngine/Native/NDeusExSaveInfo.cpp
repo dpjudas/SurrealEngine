@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "NDeusExSaveInfo.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
+#include "Packages/DeusEx/UDeusExSaveInfo.h"
 
 void NDeusExSaveInfo::RegisterFunctions()
 {

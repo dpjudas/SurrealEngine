@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "LightEffect.h"
 #include "Shadowmap.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UActor.h"
 #include "Math/coords.h"
 
 static float LightDistanceFalloff(float distsqr)

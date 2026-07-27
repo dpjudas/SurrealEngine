@@ -5,8 +5,8 @@
 #include "Utils/StrTools.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
-#include "UObject/ULevel.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 #include <algorithm>
 

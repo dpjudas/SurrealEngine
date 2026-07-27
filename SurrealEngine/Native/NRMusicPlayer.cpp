@@ -1,10 +1,7 @@
 
 #include "Precomp.h"
 #include "NRMusicPlayer.h"
-
-#include "Engine.h"
-#include "UObject/URMusicPlayer.h"
-#include "UObject/USubsystem.h"
+#include "Packages/RMusicPlayer/URMusic_Player.h"
 #include "Utils/Logger.h"
 #include "VM/NativeFunc.h"
 #include "VM/ScriptCall.h"

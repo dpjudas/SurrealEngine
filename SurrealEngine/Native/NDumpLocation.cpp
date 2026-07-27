@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "NDumpLocation.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
+#include "Utils/Logger.h"
 
 void NDumpLocation::RegisterFunctions()
 {

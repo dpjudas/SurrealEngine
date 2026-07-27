@@ -3,6 +3,8 @@
 #include "NUPakPawnPathNodeIterator.h"
 #include "Utils/Logger.h"
 #include "VM/NativeFunc.h"
+#include "Packages/UPak/UPawnPathNodeIterator.h"
+#include "Packages/Engine/Actors/Pawn/UPawn.h"
 
 void NUPakPawnPathNodeIterator::RegisterFunctions()
 {

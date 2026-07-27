@@ -3,8 +3,8 @@
 #include "NScriptedTexture.h"
 #include "VM/NativeFunc.h"
 #include "Engine.h"
-#include "UObject/UFont.h"
-#include "UObject/UTexture.h"
+#include "Packages/Engine/Resources/Textures/UScriptedTexture.h"
+#include "Packages/Engine/Resources/UFont.h"
 
 void NScriptedTexture::RegisterFunctions()
 {

@@ -4,7 +4,9 @@
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
 #include "Engine.h"
-#include "UObject/ULevel.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/Properties/UClassProperty.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
 
 PrintCommandlet::PrintCommandlet()
 {

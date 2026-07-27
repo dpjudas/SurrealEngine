@@ -3,9 +3,11 @@
 #include "NCanvas.h"
 #include "VM/NativeFunc.h"
 #include "Engine.h"
-#include "UObject/ULevel.h"
-#include "UObject/UClient.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/UCanvas.h"
+#include "Packages/Engine/UClient.h"
 #include "Render/RenderSubsystem.h"
 
 #ifdef _MSC_VER

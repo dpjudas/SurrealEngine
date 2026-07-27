@@ -4,7 +4,7 @@
 #include "AVIFileReader.h"
 #include "AVIHeaders.h"
 #include "Utils/File.h"
-#include "UObject/UTexture.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
 #include "Audio/AudioSource.h"
 #include "../../../SurrealVideo/SurrealVideo.h"
 

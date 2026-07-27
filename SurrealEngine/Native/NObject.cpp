@@ -8,7 +8,9 @@
 #include "Math/quaternion.h"
 #include "Utils/StrTools.h"
 #include "Utils/Random.h"
-#include "../Package/ObjectFlags.h"
+#include "Package/ObjectFlags.h"
+#include "Packages/Core/UClass.h"
+#include "Packages/Core/UEnum.h"
 #include <cmath>
 
 #ifdef _MSC_VER

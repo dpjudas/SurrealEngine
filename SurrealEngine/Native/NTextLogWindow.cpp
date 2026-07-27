@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NTextLogWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/Text/UTextLogWindow.h"
 
 void NTextLogWindow::RegisterFunctions()
 {

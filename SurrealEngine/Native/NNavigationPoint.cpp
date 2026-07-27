@@ -2,8 +2,9 @@
 #include "Precomp.h"
 #include "NNavigationPoint.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/NavigationPoint/UNavigationPoint.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
 
 void NNavigationPoint::RegisterFunctions()
 {

@@ -6,7 +6,8 @@
 #include "VM/NativeFunc.h"
 #include "VM/Frame.h"
 #include "VM/Bytecode.h"
-#include "UObject/UProperty.h"
+#include "Packages/Core/Properties/UProperty.h"
+#include "Packages/Core/UFunction.h"
 
 DisassemblyCommandlet::DisassemblyCommandlet()
 {

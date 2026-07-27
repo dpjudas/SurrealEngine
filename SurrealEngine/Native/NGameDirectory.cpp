@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "NGameDirectory.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "Engine.h"
+#include "Packages/DeusEx/UGameDirectory.h"
 
 void NGameDirectory::RegisterFunctions()
 {

@@ -2,9 +2,7 @@
 #include "Precomp.h"
 #include "NDeusExDecoration.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
-#include "Engine.h"
+#include "Packages/DeusEx/UDeusExDecoration.h"
 
 void NDeusExDecoration::RegisterFunctions()
 {

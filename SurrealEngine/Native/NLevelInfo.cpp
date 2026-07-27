@@ -1,9 +1,10 @@
 
 #include "Precomp.h"
 #include "NLevelInfo.h"
-#include "Engine.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Utils/Logger.h"
+#include "Engine.h"
 
 void NLevelInfo::RegisterFunctions()
 {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/ULevel.h"
-#include "UObject/UTexture.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
 #include "CommandBufferManager.h"
 #include "BufferManager.h"
 #include "DescriptorSetManager.h"

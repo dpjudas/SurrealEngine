@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NTileWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UTileWindow.h"
 
 void NTileWindow::RegisterFunctions()
 {

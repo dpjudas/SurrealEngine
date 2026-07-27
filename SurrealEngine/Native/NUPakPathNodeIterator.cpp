@@ -1,6 +1,8 @@
 
 #include "Precomp.h"
 #include "NUPakPathNodeIterator.h"
+#include "Packages/UPak/UPathNodeIterator.h"
+#include "Packages/Engine/Actors/NavigationPoint/UNavigationPoint.h"
 #include "Utils/Logger.h"
 #include "VM/NativeFunc.h"
 

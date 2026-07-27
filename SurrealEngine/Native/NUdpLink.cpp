@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "NUdpLink.h"
 #include "VM/NativeFunc.h"
+#include "Packages/IpDrv/UUdpLink.h"
 
 void NUdpLink::RegisterFunctions()
 {

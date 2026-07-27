@@ -3,7 +3,8 @@
 #include "TraceTest.h"
 #include "Collision/BottomLevel/TraceAABBModel.h"
 #include "Collision/BottomLevel/TraceRayModel.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Brush/UMover.h"
 
 CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float height, float radius, bool traceActors, bool traceWorld, bool visibilityOnly)
 {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "RenderDevice/RenderDevice.h"
-#include "UObject/ULevel.h"
-#include "UObject/UTexture.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
 
 #include "Math/vec.h"
 #include "Math/mat.h"

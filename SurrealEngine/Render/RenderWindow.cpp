@@ -5,7 +5,12 @@
 #include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
-#include "UObject/UWindow.h"
+#include "Packages/Engine/UViewport.h"
+#include "Packages/Engine/UCanvas.h"
+#include "Packages/Engine/Resources/UFont.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Extension/Windows/UGC.h"
+#include "Packages/Extension/Windows/TabGroup/URootWindow.h"
 
 void RenderSubsystem::PreRenderWindows(UCanvas* canvas)
 {

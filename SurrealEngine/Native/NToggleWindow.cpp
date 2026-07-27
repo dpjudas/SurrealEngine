@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NToggleWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/Text/UToggleWindow.h"
 
 void NToggleWindow::RegisterFunctions()
 {

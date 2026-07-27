@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NComputerWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UComputerWindow.h"
 
 void NComputerWindow::RegisterFunctions()
 {

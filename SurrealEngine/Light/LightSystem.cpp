@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
 #include "LightSystem.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
 #include "Math/floating.h"
 #include "Math/coords.h"
 #include "Engine.h"

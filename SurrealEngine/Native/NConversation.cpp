@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NConversation.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UConSys.h"
-#include "Engine.h"
+#include "Packages/ConSys/UConversation.h"
 
 void NConversation::RegisterFunctions()
 {

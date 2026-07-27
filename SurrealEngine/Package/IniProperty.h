@@ -3,7 +3,7 @@
 #include <string>
 
 #include "IniFile.h"
-#include "UObject/USound.h"
+#include "Packages/Engine/Resources/USound.h"
 
 template <typename T>
 class IniPropertyConverter

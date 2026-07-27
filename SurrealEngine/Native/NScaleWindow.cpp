@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NScaleWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UScaleWindow.h"
 
 void NScaleWindow::RegisterFunctions()
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UObject/UDXGameDirectory.h"
+#include "Packages/Core/UObject.h"
 
 class NGameDirectory
 {

@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "TraceAABBModel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
 {

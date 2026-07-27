@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
 #include "LightmapBuilder.h"
-#include "UObject/ULevel.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/Info/UZoneInfo.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Math/hsb.h"
 

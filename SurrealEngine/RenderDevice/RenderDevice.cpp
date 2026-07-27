@@ -6,7 +6,7 @@
 #ifdef WIN32
 #include "D3D11/D3D11RenderDevice.h"
 #endif
-#include "UObject/ULevel.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
 #include <surrealwidgets/core/colorf.h>
 #include <surrealwidgets/core/widget.h>
 

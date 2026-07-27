@@ -5,6 +5,8 @@
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 #include "Math/hsb.h"
+#include "Packages/Engine/Resources/UPalette.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 void VisibleCorona::Draw(VisibleFrame* frame)
 {

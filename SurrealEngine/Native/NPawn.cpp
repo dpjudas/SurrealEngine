@@ -3,9 +3,11 @@
 #include "NPawn.h"
 #include "VM/NativeFunc.h"
 #include "VM/Frame.h"
-#include "UObject/UActor.h"
-#include "UObject/ULevel.h"
-#include "UObject/USound.h"
+#include "Packages/Engine/Actors/Pawn/UPawn.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Engine/Actors/NavigationPoint/UNavigationPoint.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/USound.h"
 #include "Engine.h"
 
 void NPawn::RegisterFunctions()

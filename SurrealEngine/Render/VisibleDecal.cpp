@@ -4,6 +4,9 @@
 #include "VisibleFrame.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Resources/UPalette.h"
+#include "Packages/Engine/Actors/UDecal.h"
 #include "Engine.h"
 
 void VisibleDecal::DrawDecals(VisibleFrame* frame, BspNode* node)

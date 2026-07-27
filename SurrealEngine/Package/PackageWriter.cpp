@@ -4,8 +4,8 @@
 #include "PackageStream.h"
 #include "NameString.h"
 #include "PackageManager.h"
-#include "UObject/UObject.h"
-#include "UObject/UClass.h"
+#include "Packages/Core/UObject.h"
+#include "Packages/Core/UClass.h"
 #include "Utils/File.h"
 
 PackageWriter::PackageWriter(Package* package) : Source(package)

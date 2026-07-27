@@ -1,7 +1,7 @@
 #include "Precomp.h"
 #include "NWebRequest.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Utils/Logger.h"
 
 void NWebRequest::RegisterFunctions()
 {

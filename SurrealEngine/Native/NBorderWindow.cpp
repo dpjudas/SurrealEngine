@@ -1,8 +1,7 @@
 #include "Precomp.h"
 #include "NBorderWindow.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UWindow.h"
-#include "Engine.h"
+#include "Packages/Extension/Windows/UBorderWindow.h"
 
 void NBorderWindow::RegisterFunctions()
 {

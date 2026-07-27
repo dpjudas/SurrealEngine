@@ -3,8 +3,8 @@
 #include "VisibleNode.h"
 #include "VisibleActor.h"
 #include "Engine.h"
-#include "UObject/ULevel.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Actors/UActor.h"
 
 class VisibleFrame;
 

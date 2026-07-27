@@ -1,7 +1,7 @@
 #include "Precomp.h"
 #include "NTimeDemo.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Utils/Logger.h"
 
 void NTimeDemo::RegisterFunctions()
 {

@@ -7,6 +7,7 @@
 #include "NativeFunc.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
+#include "Packages/Core/UFunction.h"
 
 ExpressionEvalResult ExpressionEvaluator::Eval(Expression* expr, UObject* self, UObject* context, void* localVariables)
 {

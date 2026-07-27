@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "NDecal.h"
 #include "VM/NativeFunc.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/UDecal.h"
 #include "Engine.h"
 
 void NDecal::RegisterFunctions()

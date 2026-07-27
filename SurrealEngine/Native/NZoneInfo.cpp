@@ -1,7 +1,7 @@
 
 #include "Precomp.h"
 #include "NZoneInfo.h"
-#include "UObject/UActor.h"
+#include "Packages/Engine/Actors/Info/UZoneInfo.h"
 #include "VM/NativeFunc.h"
 #include "VM/Frame.h"
 

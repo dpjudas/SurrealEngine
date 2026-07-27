@@ -2,7 +2,8 @@
 #include "Precomp.h"
 #include "NInternetLink.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Packages/IpDrv/UInternetLink.h"
+#include "Utils/Logger.h"
 
 void NInternetLink::RegisterFunctions()
 {

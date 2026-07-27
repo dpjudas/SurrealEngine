@@ -1,7 +1,7 @@
 #include "Precomp.h"
 #include "NExtString.h"
 #include "VM/NativeFunc.h"
-#include "Engine.h"
+#include "Packages/Extension/UExtString.h"
 
 void NExtString::RegisterFunctions()
 {

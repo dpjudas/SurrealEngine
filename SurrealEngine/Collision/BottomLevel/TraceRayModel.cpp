@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "TraceRayModel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 
 CollisionHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
