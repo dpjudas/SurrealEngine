@@ -17,6 +17,9 @@
 #include "VM/ScriptCall.h"
 #include "VM/Frame.h"
 
+static constexpr int walkingSimulationMaxIterations = 32;
+static constexpr float walkingSimulationFallDepth = 1024.0f;
+
 bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 {
 	if (!anActor)
@@ -145,16 +148,27 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 
 		vec3 oldLocation = Location();
 		bool reached = false;
-		for (int iteration = 0; iteration < 5; iteration++)
+
+		// Advance a step at a time and settle onto the floor after each one. Sweeping the whole
+		// remaining distance in a single move samples nothing in between, so a gap or a ledge
+		// between here and the goal goes unnoticed and the goal is reported reachable.
+		const float stepLength = std::max(CollisionRadius() * 2.0f, 1.0f);
+		const vec3 settleDelta = stepDownDelta - stepUpDelta;
+		for (int iteration = 0; iteration < walkingSimulationMaxIterations; iteration++)
 		{
-			vec3 moveDelta = anActor->Location() - Location();
-			moveDelta.z = 0.0f;
-			float goalDist2 = dot(moveDelta, moveDelta);
+			vec3 toGoal = anActor->Location() - Location();
+			toGoal.z = 0.0f;
+			float goalDist2 = dot(toGoal, toGoal);
 			if (goalDist2 <= 1.0f)
 			{
 				reached = true;
 				break;
 			}
+
+			vec3 moveDelta = toGoal;
+			const float goalDist = std::sqrt(goalDist2);
+			if (goalDist > stepLength)
+				moveDelta = toGoal * (stepLength / goalDist);
 
 			// step up first so we can get past stairs going up
 			CollisionHit hit = TryMove(stepUpDelta, true);
@@ -167,13 +181,13 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 
 			if (hit.Fraction < 1.0f)
 			{
-				moveDelta = anActor->Location() - Location();
-				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				vec3 remaining = moveDelta * (1.0f - hit.Fraction);
+				vec3 alignedDelta = remaining - hit.Normal * dot(remaining, hit.Normal);
 				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
 				{
 					hit = TryMove(alignedDelta, true);
-					actuallyMoved = moveDelta * hit.Fraction;
-					Location() += actuallyMoved;
+					Location() += alignedDelta * hit.Fraction;
+					actuallyMoved += alignedDelta * hit.Fraction;
 				}
 				else
 				{
@@ -181,9 +195,20 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 				}
 			}
 
-			// move back down to original vertical position
-			hit = TryMove(-stepUpDelta, true);
-			Location() -= stepUpDelta * hit.Fraction;
+			// Settle back onto the floor. Beyond a step down we are falling rather than walking,
+			// which is still allowed because bots drop off ledges to reach things, but we have to
+			// land on walkable ground. Whether the landing got anywhere is decided by the height
+			// check after the loop, so falling into a pit fails there rather than here.
+			auto settleOnto = [&](const vec3& delta)
+			{
+				const CollisionHit floorHit = TryMove(delta, true);
+				if (floorHit.Fraction >= 1.0f || floorHit.Normal.z * -gravityDirection < 0.7071f)
+					return false;
+				Location() += delta * floorHit.Fraction;
+				return true;
+			};
+			if (!settleOnto(settleDelta) && !settleOnto(vec3(0.0f, 0.0f, gravityDirection * walkingSimulationFallDepth)))
+				break;
 
 			float moveDist2 = dot(actuallyMoved, actuallyMoved);
 			if (moveDist2 <= 1.0f)
