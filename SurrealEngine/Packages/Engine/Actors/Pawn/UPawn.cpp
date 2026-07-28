@@ -66,7 +66,7 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 					if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
 						continue; // Skip nav node links that we can't pass through
 
-					if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+					if (reachSpec.endActor->bPlayerOnly() && !bIsPlayer())
 						continue; // Skip nav nodes only for the player if we aren't one
 
 					// To do: check reachFlags
@@ -90,7 +90,7 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 					if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
 						continue; // Skip nav node links that we can't pass through
 
-					if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+					if (reachSpec.endActor->bPlayerOnly() && !bIsPlayer())
 						continue; // Skip nav nodes only for the player if we aren't one
 
 					// To do: check reachFlags
@@ -439,7 +439,7 @@ bool UPawn::CanSee(UActor* other)
 
 	// Calculate the cosine of the vectors
 	// which is basically A dot B / (|A| * |B|), or just the dot products of the normalized versions of A and B
-	float cosine = dot(normalize(orientation), normalize(origin));
+	float cosine = dot(normalize(orientation), normalize(origin - eye_pos));
 	// PeripheralVision field is set dynamically during a game session
 	// (for an example, see the function UnrealShare.Bots.PreSetMovement())
 	// This can be a negative value too, which is probably set to not take it into account
@@ -514,7 +514,7 @@ UActor* UPawn::PickTarget(float& bestAim, float& bestDist, const vec3& FireDir, 
 	for (UPawn* pawn = Level()->PawnList(); pawn != nullptr; pawn = pawn->nextPawn())
 	{
 		// Skip dead pawns or ourselves
-		if (pawn == this || pawn->Health() > 0)
+		if (pawn == this || pawn->Health() <= 0)
 			continue;
 
 		// Skip team mates
@@ -657,7 +657,7 @@ std::pair<Array<UNavigationPoint*>, int32_t> UPawn::FindPathToEndPoint(UNavigati
 				if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
 					continue; // Skip nav node links that we can't pass through
 
-				if ((endActor->bPlayerOnly() && !bIsPlayer()) || (endActor->bPlayerOnly() && !bIsPlayer()))
+				if (endActor->bPlayerOnly() && !bIsPlayer())
 					continue; // Skip nav nodes only for the player if we aren't one
 
 				// To do: check reachFlags
@@ -743,7 +743,7 @@ UObject* UPawn::FindRandomDest()
 	std::vector<UNavigationPoint*> reachablePoints;
 	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint && reachablePoints.size() < maxActorReachableCalls; navPoint = navPoint->nextNavigationPoint())
 	{
-		if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+		if (navPoint->bPlayerOnly() && !bIsPlayer())
 			continue; // Skip nav nodes only for the player if we aren't one
 
 		float maxDist = 1000.0;
@@ -781,7 +781,7 @@ UObject* UPawn::FindRandomDest()
 			if (reachSpec.collisionRadius < radius || reachSpec.collisionHeight < height || reachSpec.bPruned)
 				continue; // Skip nav node links that we can't pass through
 
-			if ((reachSpec.endActor->bPlayerOnly() && !bIsPlayer()) || (reachSpec.endActor->bPlayerOnly() && !bIsPlayer()))
+			if (reachSpec.endActor->bPlayerOnly() && !bIsPlayer())
 				continue; // Skip nav nodes only for the player if we aren't one
 
 			// To do: check reachFlags
@@ -812,7 +812,7 @@ bool UPawn::MarkReachableNavEndPoints()
 
 		if (endPointsFound < maxActorReachableCalls)
 		{
-			if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+			if (navPoint->bPlayerOnly() && !bIsPlayer())
 				continue; // Skip nav nodes only for the player if we aren't one
 
 			float maxDist = 1000.0;
@@ -875,7 +875,7 @@ UNavigationPoint* UPawn::FindClosestNavPoint(vec3 location)
 	std::vector<std::pair<UNavigationPoint*, float>> navPoints;
 	for (UNavigationPoint* navPoint = Level()->NavigationPointList(); navPoint; navPoint = navPoint->nextNavigationPoint())
 	{
-		if ((navPoint->bPlayerOnly() && !bIsPlayer()) || (navPoint->bPlayerOnly() && !bIsPlayer()))
+		if (navPoint->bPlayerOnly() && !bIsPlayer())
 			continue; // Skip nav nodes only for the player if we aren't one
 
 		float maxDist = 500;
@@ -1121,6 +1121,7 @@ void UPawn::Tick(float elapsed)
 		}
 		if (engine->LaunchInfo.ue1Version >= 436 && bAdvancedTactics())
 			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
+
 	}
 }
 
