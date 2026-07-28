@@ -552,29 +552,33 @@ void UActor::TickWalking(float elapsed)
 	// "Step up and move" as long as we have time left and only hitting surfaces with low enough slope that it could be walked
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
-	if (isMoving)
+
+	//included Z in check - if its not 0 due to Zone properties, no action would have been taken previously
+	//could lead to latend bugs
+	if (length(vel) > 0)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
 			vec3 moveDelta = vel * timeLeft;
 
-			// step up first so we can get past stairs going up
-			TryMove(stepUpDelta);
+			//movement logic was inverted, causing overhaed buttons to be to easy to push
+			// -> kevlar suit button in VortexRikers activates by moving under it
+			//alternative approach: first move without stepUp -> only step up on collision
+			//also yields a simpler code path since it avoids the need for "headbump" checks
 
 			// try move forward
 			CollisionHit hit = TryMove(moveDelta);
 			timeLeft -= timeLeft * hit.Fraction;
 			moveDelta = vel * timeLeft;
 
-			// move back down to original vertical position
-			TryMove(-stepUpDelta);
-
-			if (hit.Fraction < FLT_EPSILON)
+			// if hit, step up and try again - maybe there was a ledge to get over
+			if (hit.Fraction < 1.0f)
 			{
-				// try move forward once again, in case our head bumped into something while stepped up
+				TryMove(stepUpDelta);
 				hit = TryMove(moveDelta);
 				timeLeft -= timeLeft * hit.Fraction;
+				// move back down to original vertical position
+				TryMove(-stepUpDelta);
 			}
 
 			if (hit.Fraction < 1.0f)
@@ -585,6 +589,7 @@ void UActor::TickWalking(float elapsed)
 					{
 						// We hit a pushable decoration that is facing our movement direction
 
+						//why does hitting a pushable decoration set the teleport flag?
 						bJustTeleported() = true;
 						vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
 						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
@@ -840,8 +845,9 @@ void UActor::TickSwimming(float elapsed)
 
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
-	if (isMoving)
+
+	//same as tick walking, having any velosity at all should probably enable this branch
+	if (length(vel))
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
@@ -857,6 +863,7 @@ void UActor::TickSwimming(float elapsed)
 				{
 					// We hit a pushable decoration that is facing our movement direction
 
+					//same question as with tick walk -> why set teleport flag on decoration?
 					bJustTeleported() = true;
 					Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
 					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
@@ -865,10 +872,12 @@ void UActor::TickSwimming(float elapsed)
 				else
 				{
 					// We hit a wall
-
 					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 
-					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+					//removed the second scaling, that caused the "exiting the water is difficult" bug
+					//it appears to not fix it completely, but it helps
+					vec3 alignedDelta = moveDelta - hit.Normal * dot(moveDelta, hit.Normal);
+
 					if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
 					{
 						hit = TryMove(alignedDelta);
@@ -892,10 +901,10 @@ void UActor::TickSwimming(float elapsed)
 
 	if (!Region().Zone->bWaterZone())
 	{
-		// We moved out of water.
-		// Give the player a push
-		if (Velocity().z > 0.0f)
-			Velocity().z = std::max(Velocity().z, (100.0f + length(Velocity().xy())) * 0.5f);
+		if(Velocity().z > 0.0f)
+		{
+			Velocity().z = std::max(Velocity().z, 100.0f);
+		}
 		if (Physics() == PHYS_Swimming)
 			SetPhysics(PHYS_Falling);
 	}
@@ -957,8 +966,7 @@ void UActor::TickFlying(float elapsed)
 
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
-	bool isMoving = (vel.x != 0.0f && vel.y != 0.0f);
-	if (isMoving)
+	if (length(vel))
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
