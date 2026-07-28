@@ -433,6 +433,7 @@ public:
 
 	void Touch(UActor* actor);
 	void UnTouch(UActor* actor);
+	void CheckPendingTouch();
 
 	static const int TouchingArraySize = 4;
 	bool TouchEventSent[TouchingArraySize] = {};

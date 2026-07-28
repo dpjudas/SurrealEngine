@@ -489,6 +489,25 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Packages/Engine/UViewport.h
 	SurrealEngine/Packages/Engine/Actors/UActor.cpp
 	SurrealEngine/Packages/Engine/Actors/UActor.h
+	SurrealEngine/Packages/Engine/Actors/UActor_Animation.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Base.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Conversation.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Owner.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Phys.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysFalling.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysFlying.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysInterpolating.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysMovingBrush.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysProjectile.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysRolling.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysRotating.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysSpider.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysSwimming.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysTrailer.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_PhysWalking.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Render.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Touch.cpp
+	SurrealEngine/Packages/Engine/Actors/UActor_Zone.cpp
 	SurrealEngine/Packages/Engine/Actors/UAnimationNotify.h
 	SurrealEngine/Packages/Engine/Actors/UDecal.cpp
 	SurrealEngine/Packages/Engine/Actors/UDecal.h
