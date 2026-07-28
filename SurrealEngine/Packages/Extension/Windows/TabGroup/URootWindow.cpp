@@ -6,6 +6,7 @@
 #include "Packages/Engine/Resources/USound.h"
 #include "Packages/Engine/Resources/Textures/UTexture.h"
 #include "Packages/Extension/Windows/UGC.h"
+#include "Packages/Extension/Windows/Text/UButtonWindow.h"
 #include "Engine.h"
 
 void URootWindow::EnablePositionalSound(std::optional<bool> bEnable)
@@ -335,8 +336,24 @@ bool URootWindow::OnWindowMouseUp(const Point& pos, EInputKey key)
 	float relativeX = 0.0f, relativeY = 0.0f;
 	UWindow* focus = GetCursorFocus(relativeX, relativeY);
 
-	if (focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Release))
+	const bool rawMouseHandled = focus->RawMouseButtonPressed(relativeX, relativeY, key, EInputType::IST_Release);
+	if (rawMouseHandled)
+	{
+		// Deus Ex conversation choices place a raw-input child over the button.
+		if (key == IK_LeftMouse)
+		{
+			for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+			{
+				if (UObject::GetUClassFullName(cur) == "DeusEx.ConChoiceWindow")
+				{
+					if (UButtonWindow* button = UObject::TryCast<UButtonWindow>(cur))
+						button->ActivateButton(key);
+					break;
+				}
+			}
+		}
 		return true;
+	}
 
 	if (!focus->bIsSensitive())
 		return IsModalOpen();
