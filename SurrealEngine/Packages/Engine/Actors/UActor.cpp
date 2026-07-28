@@ -3,6 +3,7 @@
 #include "UActor.h"
 #include "Package/PackageManager.h"
 #include "Packages/Core/UClass.h"
+#include "Packages/Engine/UViewport.h"
 #include "Packages/Engine/Actors/UProjectile.h"
 #include "Packages/Engine/Actors/USpawnNotify.h"
 #include "Packages/Engine/Actors/Info/ULevelInfo.h"
@@ -394,6 +395,11 @@ void UActor::RelinkBasedActor()
 
 void UActor::Tick(float elapsed)
 {
+	if (engine->LaunchInfo.IsDeusEx())
+	{
+		DistanceFromPlayer() = length(engine->viewport->Actor()->Location() - Location());
+	}
+
 	TickAnimation(elapsed);
 	if (engine->LaunchInfo.IsDeusEx())
 		TickBlendAnimation(elapsed);

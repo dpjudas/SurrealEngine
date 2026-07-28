@@ -307,6 +307,8 @@ struct PropertyOffsets_Actor
 	PropertyDataOffset PrePivot;
 	PropertyDataOffset Region;
 	PropertyDataOffset RemoteRole;
+	PropertyDataOffset LastRenderTime;
+	PropertyDataOffset DistanceFromPlayer;
 	PropertyDataOffset RenderInterface;
 	PropertyDataOffset RenderIteratorClass;
 	PropertyDataOffset Role;

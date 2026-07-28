@@ -628,6 +628,8 @@ public:
 	vec3& PrePivot() { return Value<vec3>(PropOffsets_Actor.PrePivot); }
 	PointRegion& Region() { return Value<PointRegion>(PropOffsets_Actor.Region); }
 	uint8_t& RemoteRole() { return Value<uint8_t>(PropOffsets_Actor.RemoteRole); }
+	float& LastRenderTime() { return Value<float>(PropOffsets_Actor.LastRenderTime); }
+	float& DistanceFromPlayer() { return Value<float>(PropOffsets_Actor.DistanceFromPlayer); }
 	//URenderIterator*& RenderInterface() { return Value<URenderIterator*>(PropOffsets_Actor.RenderInterface); }
 	UClass*& RenderIteratorClass() { return Value<UClass*>(PropOffsets_Actor.RenderIteratorClass); }
 	uint8_t& Role() { return Value<uint8_t>(PropOffsets_Actor.Role); }

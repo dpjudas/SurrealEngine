@@ -352,6 +352,8 @@ static void InitPropertyOffsets_Actor(PackageManager* packages)
 	PropOffsets_Actor.PrePivot = cls->GetPropertyDataOffset("PrePivot");
 	PropOffsets_Actor.Region = cls->GetPropertyDataOffset("Region");
 	PropOffsets_Actor.RemoteRole = cls->GetPropertyDataOffset("RemoteRole");
+	PropOffsets_Actor.LastRenderTime = cls->GetPropertyDataOffset("LastRenderTime");
+	PropOffsets_Actor.DistanceFromPlayer = cls->GetPropertyDataOffset("DistanceFromPlayer");
 	PropOffsets_Actor.RenderInterface = cls->GetPropertyDataOffset("RenderInterface");
 	PropOffsets_Actor.RenderIteratorClass = cls->GetPropertyDataOffset("RenderIteratorClass");
 	PropOffsets_Actor.Role = cls->GetPropertyDataOffset("Role");
