@@ -41,9 +41,6 @@ void UActor::TickRolling(float elapsed)
 			TryMove(alignedDelta);
 	}
 
-	if (ShouldAbortMovementTick(PHYS_Rolling))
-		return;
-
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 	constexpr float stepHeightRatio = 25.0f / 47.5f; // not sure what this should be. Appears that humans have a step height of 25.0 and collision height of 47.5, so I guess I'll use that ratio
 	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * stepHeightRatio * CollisionHeight() * stepDownDeltaFactor);

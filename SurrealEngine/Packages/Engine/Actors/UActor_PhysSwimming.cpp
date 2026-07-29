@@ -37,7 +37,7 @@ void UActor::TickSwimming(float elapsed)
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
 			if (ShouldAbortMovementTick(PHYS_Swimming))
-				return;
+				break;
 
 			vec3 moveDelta = vel * timeLeft;
 
