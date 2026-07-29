@@ -151,6 +151,8 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 			preferredHeight = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
+			if (!cur->bIsVisible())
+				continue;
 			float w = 0.0f, h = 0.0f;
 			if (bHeightSpecified)
 				w = cur->QueryPreferredWidth(preferredHeight);
@@ -167,6 +169,8 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 		preferredHeight = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
+			if (!cur->bIsVisible())
+				continue;
 			float w = 0.0f, h = 0.0f;
 			if (bWidthSpecified)
 				h = cur->QueryPreferredHeight(preferredWidth);
@@ -194,6 +198,9 @@ void UTileWindow::ConfigurationChanged()
 			float x = 0.0f;
 			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 			{
+				if (!cur->bIsVisible())
+					continue;
+
 				float w = cur->QueryPreferredWidth(Height());
 				float h = cur->QueryPreferredHeight(w);
 				cur->ConfigureChild(x, 0.0f, w, std::min(h, Height()));
@@ -205,6 +212,9 @@ void UTileWindow::ConfigurationChanged()
 			float x = Width();
 			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 			{
+				if (!cur->bIsVisible())
+					continue;
+
 				float w = cur->QueryPreferredWidth(Height());
 				float h = cur->QueryPreferredHeight(w);
 				x -= w;
@@ -219,6 +229,9 @@ void UTileWindow::ConfigurationChanged()
 			float y = 0.0f;
 			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 			{
+				if (!cur->bIsVisible())
+					continue;
+
 				float h = cur->QueryPreferredHeight(Width());
 				float w = cur->QueryPreferredWidth(h);
 				cur->ConfigureChild(0.0f, y, std::min(w, Width()), h);
@@ -230,6 +243,9 @@ void UTileWindow::ConfigurationChanged()
 			float y = Height();
 			for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 			{
+				if (!cur->bIsVisible())
+					continue;
+
 				float h = cur->QueryPreferredHeight(Width());
 				float w = cur->QueryPreferredWidth(h);
 				y -= h;
