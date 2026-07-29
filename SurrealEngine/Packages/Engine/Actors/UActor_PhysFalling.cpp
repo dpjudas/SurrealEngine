@@ -70,7 +70,7 @@ void UActor::TickFalling(float elapsed)
 	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 	{
 		if (ShouldAbortMovementTick(PHYS_Falling))
-			return;
+			break;
 
 		float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 		if (dot(velocity, velocity) > zoneTerminalVelocity * zoneTerminalVelocity)
