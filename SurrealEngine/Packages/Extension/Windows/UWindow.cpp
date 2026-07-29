@@ -1106,11 +1106,11 @@ float UWindow::QueryPreferredHeight(float queryWidth)
 void UWindow::AskParentForReconfigure()
 {
 	//LogMessage(GetUClassFullName(this).ToString() + ": AskParentForReconfigure");
-	UWindow* parent = parentOwner();
-	if (parent)
+	for (UWindow* cur = parentOwner(); cur != nullptr; cur = cur->parentOwner())
 	{
-		bool result = parent->ChildRequestedReconfiguration(this);
-		// To do: what is the result used for?
+		bool handled = cur->ChildRequestedReconfiguration(this);
+		if (handled)
+			break;
 	}
 }
 
