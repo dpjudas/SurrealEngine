@@ -13,63 +13,22 @@
 void UActor::TickWalking(float elapsed)
 {
 	// Only pawns can walk!
-	UPawn* pawn = UObject::TryCast<UPawn>(this);
+	UPawn* pawn = PreparePawnMovementTick();
 	if (!pawn)
 		return;
-
-	if (Region().ZoneNumber == 0)
-	{
-		CallEvent(this, EventName::FellOutOfWorld);
-		return;
-	}
-
-	// Save our starting point and state
-
-	OldLocation() = Location();
-	bJustTeleported() = false;
 
 	// Update the actor velocity based on the acceleration and zone
 
 	UZoneInfo* zone = Region().Zone;
 	// UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+	bool isCrouching = player && player->bIsWalking();
 
 	Velocity().z = 0.0f;
 
-	if (dot(Acceleration(), Acceleration()) > 0.0001f)
-	{
-		float accelRate = pawn->AccelRate();
-		if (player && player->bIsWalking())
-			accelRate *= 0.3f;
-
-		// Acceleration must never exceed the acceleration rate
-		float accelSpeed = length(Acceleration());
-		vec3 accelDir = Acceleration() * (1.0f / accelSpeed);
-		if (accelSpeed > accelRate)
-			Acceleration() = accelDir * accelRate;
-
-		float speed = length(Velocity());
-		Velocity() = Velocity() - (Velocity() - accelDir * speed) * (zone->ZoneGroundFriction() * elapsed);
-	}
-	else
-	{
-		float speed = length(Velocity());
-		if (speed > 0.0f)
-		{
-			float newSpeed = std::max(speed - speed * zone->ZoneGroundFriction() * 2.0f * elapsed, 0.0f);
-			Velocity() = Velocity() * (newSpeed / speed);
-		}
-	}
-
-	Velocity() = Velocity() + Acceleration() * elapsed;
-
-	float maxSpeed = player ? player->GroundSpeed() : pawn->GroundSpeed() * pawn->DesiredSpeed();
-	if (player && player->bIsWalking())
-		maxSpeed *= 0.3f;
-
-	float speed = length(Velocity());
-	if (speed > 0.0f && speed > maxSpeed)
-		Velocity() = Velocity() * (maxSpeed / speed);
+	float accelRate = pawn->AccelRate() * (isCrouching ? 0.3f : 1.0f);
+	float maxSpeed = (player ? player->GroundSpeed() : pawn->GroundSpeed() * pawn->DesiredSpeed()) * (isCrouching ? 0.3f : 1.0f);
+	ApplyMovementAcceleration(elapsed, accelRate, zone->ZoneGroundFriction(), maxSpeed);
 
 	Velocity().z = 0.0f;
 
@@ -89,6 +48,9 @@ void UActor::TickWalking(float elapsed)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
+			if (ShouldAbortMovementTick(PHYS_Walking))
+				return;
+
 			vec3 moveDelta = vel * timeLeft;
 
 			//movement logic was inverted, causing overhaed buttons to be to easy to push
@@ -122,7 +84,7 @@ void UActor::TickWalking(float elapsed)
 						//why does hitting a pushable decoration set the teleport flag?
 						bJustTeleported() = true;
 						vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-						CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+						FireHitWall(hit);
 						timeLeft = 0.0f;
 					}
 					else if (hit.Actor->bCollideActors() && hit.Actor->CollisionHeight() > 0.0f && hit.Actor->CollisionRadius() > 0.0f)
@@ -134,7 +96,7 @@ void UActor::TickWalking(float elapsed)
 				else if (hit.Normal.z < 0.2f && hit.Normal.z > -0.2f)
 				{
 					// We hit a wall
-					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					FireHitWall(hit);
 
 					vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
 					if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
@@ -143,7 +105,7 @@ void UActor::TickWalking(float elapsed)
 						timeLeft -= timeLeft * hit.Fraction;
 						if (hit.Fraction < 1.0f)
 						{
-							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+							FireHitWall(hit);
 						}
 					}
 					else
@@ -153,39 +115,17 @@ void UActor::TickWalking(float elapsed)
 				}
 			}
 
-			// Check if unrealscript got us out of walking mode
-			if (Physics() != PHYS_Walking)
+			// Can we reach the ground from here if we step down?
+			if (!TryStepToGround(stepDownDelta))
 				return;
-
-			// Can we reach the ground from here if we step down? (dry run)
-			CollisionHit floorHit = TryMove(stepDownDelta, true);
-			if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
-			{
-				// No we couldn't. We are falling
-				SetPhysics(PHYS_Falling);
-				SetBase(nullptr, true);
-				return;
-			}
-
-			// We could reach the ground. Step down there.
-			floorHit = TryMove(stepDownDelta);
-			if (floorHit.Fraction != 1.0f)
-				SetBase(floorHit.Actor, true);
 		}
 	}
 	else
 	{
 		// Can we reach the ground from here?
-		CollisionHit floorHit = TryMove(stepDownDelta, true);
-		if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
-		{
-			// No we couldn't. We are falling
-			SetPhysics(PHYS_Falling);
-			SetBase(nullptr, true);
-		}
+		TryStepToGround(stepDownDelta);
 	}
 
-	if (!bJustTeleported())
-		Velocity() = (Location() - OldLocation()) / elapsed;
+	RecomputeVelocityFromDisplacement(elapsed);
 	Velocity().z = 0.0f;
 }

@@ -162,6 +162,94 @@ void UActor::PhysLanded(UActor* hitActor, const vec3& hitNormal)
 	}
 }
 
+bool UActor::HasLeftWorld()
+{
+	if (Region().ZoneNumber != 0)
+		return false;
+
+	CallEvent(this, EventName::FellOutOfWorld);
+	return true;
+}
+
+void UActor::ApplyMovementAcceleration(float elapsed, float accelRate, float friction, float maxSpeed)
+{
+	if (dot(Acceleration(), Acceleration()) > 0.0001f)
+	{
+		// Acceleration must never exceed the acceleration rate
+		float accelSpeed = length(Acceleration());
+		vec3 accelDir = Acceleration() * (1.0f / accelSpeed);
+		if (accelSpeed > accelRate)
+			Acceleration() = accelDir * accelRate;
+
+		float speed = length(Velocity());
+		Velocity() = Velocity() - (Velocity() - accelDir * speed) * (friction * elapsed);
+	}
+	else
+	{
+		float speed = length(Velocity());
+		if (speed > 0.0f)
+		{
+			float newSpeed = std::max(speed - speed * friction * 2.0f * elapsed, 0.0f);
+			Velocity() = Velocity() * (newSpeed / speed);
+		}
+	}
+
+	Velocity() = Velocity() + Acceleration() * elapsed;
+
+	float speed = length(Velocity());
+	if (speed > 0.0f && speed > maxSpeed)
+		Velocity() = Velocity() * (maxSpeed / speed);
+}
+
+bool UActor::ShouldAbortMovementTick(uint8_t expectedPhysics)
+{
+	return bDeleteMe() || Physics() != expectedPhysics;
+}
+
+UPawn* UActor::PreparePawnMovementTick()
+{
+	UPawn* pawn = UObject::TryCast<UPawn>(this);
+	if (!pawn)
+		return nullptr;
+
+	if (HasLeftWorld())
+		return nullptr;
+
+	OldLocation() = Location();
+	bJustTeleported() = false;
+
+	return pawn;
+}
+
+void UActor::FireHitWall(const CollisionHit& hit)
+{
+	CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+}
+
+bool UActor::TryStepToGround(vec3 stepDownDelta)
+{
+	CollisionHit floorHit = TryMove(stepDownDelta, true);
+	if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
+	{
+		// No we couldn't. We are falling
+		SetPhysics(PHYS_Falling);
+		SetBase(nullptr, true);
+		return false;
+	}
+
+	// We could reach the ground. Step down there.
+	floorHit = TryMove(stepDownDelta);
+	if (floorHit.Fraction != 1.0f)
+		SetBase(floorHit.Actor, true);
+	return true;
+}
+
+void UActor::RecomputeVelocityFromDisplacement(float elapsed)
+{
+	if (!bJustTeleported())
+		Velocity() = (Location() - OldLocation()) / elapsed;
+}
+
 std::pair<bool, vec3> UActor::CheckLocation(vec3 location, float radius, float height, bool check)
 {
 	// Search for a valid spot near the location

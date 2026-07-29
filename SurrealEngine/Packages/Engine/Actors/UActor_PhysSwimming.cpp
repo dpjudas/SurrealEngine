@@ -13,20 +13,9 @@
 void UActor::TickSwimming(float elapsed)
 {
 	// Only pawns can swim!
-	UPawn* pawn = UObject::TryCast<UPawn>(this);
-
+	UPawn* pawn = PreparePawnMovementTick();
 	if (!pawn)
 		return;
-
-	if (Region().ZoneNumber == 0)
-	{
-		CallEvent(this, EventName::FellOutOfWorld);
-		return;
-	}
-
-	// Save our starting point and state
-	OldLocation() = Location();
-	bJustTeleported() = false;
 
 	// Update the actor velocity based on the acceleration and zone
 
@@ -34,36 +23,8 @@ void UActor::TickSwimming(float elapsed)
 	// UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 
-	if (dot(Acceleration(), Acceleration()) > 0.0001f)
-	{
-		float accelRate = pawn->AccelRate() * 0.3f;
-
-		// Acceleration must never exceed the acceleration rate
-		float accelSpeed = length(Acceleration());
-		vec3 accelDir = Acceleration() * (1.0f / accelSpeed);
-		if (accelSpeed > accelRate)
-			Acceleration() = accelDir * accelRate;
-
-		float speed = length(Velocity());
-		Velocity() = Velocity() - (Velocity() - accelDir * speed) * (zone->ZoneFluidFriction() * elapsed);
-	}
-	else
-	{
-		float speed = length(Velocity());
-		if (speed > 0.0f)
-		{
-			float newSpeed = std::max(speed - speed * zone->ZoneFluidFriction() * 2.0f * elapsed, 0.0f);
-			Velocity() = Velocity() * (newSpeed / speed);
-		}
-	}
-
-	Velocity() = Velocity() + Acceleration() * elapsed;
-
 	float maxSpeed = player ? player->WaterSpeed() : pawn->WaterSpeed() * pawn->DesiredSpeed();
-
-	float speed = length(Velocity());
-	if (speed > 0.0f && speed > maxSpeed)
-		Velocity() = Velocity() * (maxSpeed / speed);
+	ApplyMovementAcceleration(elapsed, pawn->AccelRate() * 0.3f, zone->ZoneFluidFriction(), maxSpeed);
 
 	//float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 
@@ -75,6 +36,9 @@ void UActor::TickSwimming(float elapsed)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
+			if (ShouldAbortMovementTick(PHYS_Swimming))
+				return;
+
 			vec3 moveDelta = vel * timeLeft;
 
 			CollisionHit hit = TryMove(moveDelta);
@@ -90,13 +54,13 @@ void UActor::TickSwimming(float elapsed)
 					//same question as with tick walk -> why set teleport flag on decoration?
 					bJustTeleported() = true;
 					Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
-					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					FireHitWall(hit);
 					timeLeft = 0.0f;
 				}
 				else
 				{
 					// We hit a wall
-					CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+					FireHitWall(hit);
 
 					//removed the second scaling, that caused the "exiting the water is difficult" bug
 					//it appears to not fix it completely, but it helps
@@ -108,7 +72,7 @@ void UActor::TickSwimming(float elapsed)
 						timeLeft -= timeLeft * hit.Fraction;
 						if (hit.Fraction < 1.0f)
 						{
-							CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+							FireHitWall(hit);
 						}
 					}
 					else
@@ -120,8 +84,7 @@ void UActor::TickSwimming(float elapsed)
 		}
 	}
 
-	if (!bJustTeleported())
-		Velocity() = (Location() - OldLocation()) / elapsed;
+	RecomputeVelocityFromDisplacement(elapsed);
 
 	if (!Region().Zone->bWaterZone())
 	{
