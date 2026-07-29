@@ -304,8 +304,8 @@ void PathFillRasterizer::CubicBezier(double cp1_x, double cp1_y, double cp2_x, d
 
 	double estimated_length =
 		std::sqrt((cp1_x - cp0_x) * (cp1_x - cp0_x) + (cp1_y - cp0_y) * (cp1_y - cp0_y)) +
-		std::sqrt((cp1_x - cp0_x) * (cp1_x - cp0_x) + (cp1_y - cp0_y) * (cp1_y - cp0_y)) +
-		std::sqrt((cp1_x - cp0_x) * (cp1_x - cp0_x) + (cp1_y - cp0_y) * (cp1_y - cp0_y));
+		std::sqrt((cp2_x - cp1_x) * (cp2_x - cp1_x) + (cp2_y - cp1_y) * (cp2_y - cp1_y)) +
+		std::sqrt((cp3_x - cp2_x) * (cp3_x - cp2_x) + (cp3_y - cp2_y) * (cp3_y - cp2_y));
 
 	double min_segs = 10.0;
 	double segs = estimated_length / 5.0;
