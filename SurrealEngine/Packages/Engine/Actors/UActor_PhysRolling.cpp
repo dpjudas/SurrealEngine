@@ -12,11 +12,8 @@
 
 void UActor::TickRolling(float elapsed)
 {
-	if (Region().ZoneNumber == 0)
-	{
-		CallEvent(this, EventName::FellOutOfWorld);
+	if (HasLeftWorld())
 		return;
-	}
 
 	// Save our starting point and state
 
@@ -37,14 +34,14 @@ void UActor::TickRolling(float elapsed)
 
 	if (hit.Fraction < 1.0f && hit.Normal.z < 0.7071f)
 	{
-		CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+		FireHitWall(hit);
 
 		vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
 		if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
 			TryMove(alignedDelta);
 	}
 
-	if (Physics() != PHYS_Rolling)
+	if (ShouldAbortMovementTick(PHYS_Rolling))
 		return;
 
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
@@ -52,21 +49,7 @@ void UActor::TickRolling(float elapsed)
 	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * stepHeightRatio * CollisionHeight() * stepDownDeltaFactor);
 
 	// Can we reach the ground from here?
-	CollisionHit floorHit = TryMove(stepDownDelta, true);
-	if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
-	{
-		// No we couldn't. We are falling
-		SetPhysics(PHYS_Falling);
-		SetBase(nullptr, true);
-	}
-	else
-	{
-		// We could reach the ground. Step down there.
-		floorHit = TryMove(stepDownDelta);
-		if (floorHit.Fraction != 1.0f)
-			SetBase(floorHit.Actor, true);
-	}
+	TryStepToGround(stepDownDelta);
 
-	if (!bJustTeleported())
-		Velocity() = (Location() - OldLocation()) / elapsed;
+	RecomputeVelocityFromDisplacement(elapsed);
 }

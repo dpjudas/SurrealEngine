@@ -12,11 +12,8 @@
 
 void UActor::TickFalling(float elapsed)
 {
-	if (Region().ZoneNumber == 0)
-	{
-		CallEvent(this, EventName::FellOutOfWorld);
+	if (HasLeftWorld())
 		return;
-	}
 
 	UZoneInfo* zone = Region().Zone;
 	UDecoration* decor = UObject::TryCast<UDecoration>(this);
@@ -25,8 +22,6 @@ void UActor::TickFalling(float elapsed)
 	// UnrealScript property references
 	vec3& acceleration = Acceleration();
 	vec3& velocity = Velocity();
-	vec3& oldLocation = OldLocation();
-	vec3& location = Location();
 	float groundSpeed = 0.0f;
 
 	if (pawn)
@@ -74,6 +69,9 @@ void UActor::TickFalling(float elapsed)
 	float timeLeft = elapsed;
 	for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 	{
+		if (ShouldAbortMovementTick(PHYS_Falling))
+			return;
+
 		float zoneTerminalVelocity = zone->ZoneTerminalVelocity();
 		if (dot(velocity, velocity) > zoneTerminalVelocity * zoneTerminalVelocity)
 		{
@@ -95,7 +93,7 @@ void UActor::TickFalling(float elapsed)
 			}
 			else
 			{
-				CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
+				FireHitWall(hit);
 			}
 
 			// Hit the level
@@ -121,8 +119,8 @@ void UActor::TickFalling(float elapsed)
 					}
 
 					// adjust velocity along the slope
-					if (!bBounce() && !bJustTeleported())
-						velocity = (location - oldLocation) / elapsed;
+					if (!bBounce())
+						RecomputeVelocityFromDisplacement(elapsed);
 
 					timeLeft = 0.0f;
 				}
