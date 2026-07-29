@@ -1108,6 +1108,7 @@ void UWindow::AskParentForReconfigure()
 	//LogMessage(GetUClassFullName(this).ToString() + ": AskParentForReconfigure");
 	for (UWindow* cur = parentOwner(); cur != nullptr; cur = cur->parentOwner())
 	{
+		cur->bNeedsReconfigure() = true;
 		bool handled = cur->ChildRequestedReconfiguration(this);
 		if (handled)
 			break;
