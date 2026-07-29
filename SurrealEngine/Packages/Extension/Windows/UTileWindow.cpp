@@ -147,23 +147,31 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 	if (orient == EOrientation::Horizontal)
 	{
 		preferredWidth = 0.0f;
-		preferredHeight = 0.0f;
+		if (!bHeightSpecified)
+			preferredHeight = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
 			float w = 0.0f, h = 0.0f;
-			cur->QueryPreferredSize(w, h);
+			if (bHeightSpecified)
+				w = cur->QueryPreferredWidth(preferredHeight);
+			else
+				cur->QueryPreferredSize(w, h);
 			preferredHeight = std::max(preferredHeight, h);
 			preferredWidth += w;
 		}
 	}
 	else
 	{
-		preferredWidth = 0.0f;
+		if (!bWidthSpecified)
+			preferredWidth = 0.0f;
 		preferredHeight = 0.0f;
 		for (auto cur = firstChild(); cur; cur = cur->nextSibling())
 		{
 			float w = 0.0f, h = 0.0f;
-			cur->QueryPreferredSize(w, h);
+			if (bWidthSpecified)
+				h = cur->QueryPreferredHeight(preferredWidth);
+			else
+				cur->QueryPreferredSize(w, h);
 			preferredWidth = std::max(preferredWidth, w);
 			preferredHeight += h;
 		}

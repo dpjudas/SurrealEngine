@@ -136,8 +136,8 @@ void RenderSubsystem::DrawWindowInfo(UFont* font, UWindow* window, int depth, fl
 	text += " w = " + std::to_string((int)w);
 	text += " h = " + std::to_string((int)h);
 
-	vec4 color = vec4(window->bConfigured() ? 1.0f : 0.5f);
-	if (window->bConfigured() && (window->Width() <= 0.5f || window->Height() <= 0.5f))
+	vec4 color = vec4(!window->bNeedsReconfigure() ? 1.0f : 0.5f);
+	if (!window->bNeedsReconfigure() && (window->Width() <= 0.5f || window->Height() <= 0.5f))
 		color = vec4(1.0f, 0.2f, 0.2f, 1.0f);
 	if (window == engine->dxRootWindow->FocusWindow())
 		color = vec4(0.5f, 1.0f, 0.5f, 1.0f);

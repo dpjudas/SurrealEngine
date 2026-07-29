@@ -23,21 +23,48 @@ void UWindow::UpdateLayout()
 	UWindow* parent = parentOwner();
 	if (parent)
 	{
-		if (!bConfigured())
-		{
-			//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
-			ResizeChild();
-		}
-
 		EHAlign halign = (EHAlign)winHAlign();
 		EVAlign valign = (EVAlign)winVAlign();
 		float leftMargin = hMargin0();
 		float rightMargin = hMargin1();
 		float topMargin = vMargin0();
 		float bottomMargin = vMargin1();
-
 		float pWidth = parent->Width();
 		float pHeight = parent->Height();
+
+		if (halign == EHAlign::Full || valign == EVAlign::Full)
+		{
+			float newX = X();
+			float newY = Y();
+			float newWidth = Width();
+			float newHeight = Height();
+
+			if (halign == EHAlign::Full)
+			{
+				newX = 0.0f;
+				if (parent == engine->dxRootWindow)
+					newWidth = std::max(GetExtendedVirtualWidth() - leftMargin - rightMargin, 0.0f);
+				else
+					newWidth = std::max(pWidth - leftMargin - rightMargin, 0.0f);
+			}
+
+			if (valign == EVAlign::Full)
+			{
+				newY = 0.0f;
+				newHeight = std::max(pHeight - topMargin - bottomMargin, 0.0f);
+			}
+
+			X() = newX;
+			Y() = newY;
+
+			if (Width() != newWidth || Height() != newHeight)
+			{
+				Width() = newWidth;
+				Height() = newHeight;
+				bNeedsReconfigure() = true;
+			}
+		}
+
 		float width = Width();
 		float height = Height();
 		float offsetX = 0.0f;
@@ -76,13 +103,40 @@ void UWindow::UpdateLayout()
 		float virtualScale = GetVirtualScale();
 		if (Width() != virtualWidth || Height() != virtualHeight)
 		{
-			//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
 			ConfigureChild(0.0f, 0.0f, virtualWidth, virtualHeight);
 		}
 
 		// Center the virtual viewbox
 		UsedX = std::round((engine->viewport->ViewportWidth() - virtualWidth * virtualScale) * 0.5f) / virtualScale;
 		UsedY = 0.0f;
+	}
+
+	bool wasReconfigured = bNeedsReconfigure();
+	if (bNeedsReconfigure())
+	{
+		//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
+
+		bNeedsReconfigure() = false;
+		ConfigurationChanged();
+	}
+
+	// Configure the windows that never got a ConfigureChild call:
+	for (UWindow* child = firstChild(); child; child = child->nextSibling())
+	{
+		if ((wasReconfigured || child->FirstDraw) && !child->bConfigured())
+		{
+			float newWidth = child->hardcodedWidth();
+			float newHeight = child->hardcodedHeight();
+			if (!child->FixedWidth && !child->FixedHeight)
+				child->QueryPreferredSize(newWidth, newHeight);
+			else if (child->FixedWidth)
+				newHeight = child->QueryPreferredHeight(child->FixedWidth);
+			else if (child->FixedHeight)
+				newWidth = child->QueryPreferredWidth(child->FixedHeight);
+			child->Width() = newWidth;
+			child->Height() = newHeight;
+			child->bNeedsReconfigure() = true;
+		}
 	}
 
 	for (UWindow* child = firstChild(); child; child = child->nextSibling())
@@ -947,14 +1001,14 @@ void UWindow::ResetWidth()
 {
 	// Not called from script
 	FixedWidth = false;
-	bConfigured() = false;
+	bNeedsReconfigure() = true;
 }
 
 void UWindow::ResetHeight()
 {
 	// Not called from script
 	FixedHeight = false;
-	bConfigured() = false;
+	bNeedsReconfigure() = true;
 }
 
 void UWindow::SetSize(float newWidth, float NewHeight)
@@ -967,14 +1021,14 @@ void UWindow::SetWidth(float newWidth)
 {
 	hardcodedWidth() = newWidth;
 	FixedWidth = true;
-	bConfigured() = false;
+	bNeedsReconfigure() = true;
 }
 
 void UWindow::SetHeight(float NewHeight)
 {
 	hardcodedHeight() = NewHeight;
 	FixedHeight = true;
-	bConfigured() = false;
+	bNeedsReconfigure() = true;
 }
 
 void UWindow::SetConfiguration(float newX, float newY, float newWidth, float NewHeight)
@@ -991,33 +1045,21 @@ void UWindow::SetPos(float newX, float newY)
 
 void UWindow::QueryPreferredSize(float& preferredWidth, float& preferredHeight)
 {
-	bool widthSet = false;
-	bool heightSet = false;
+	if (!FixedWidth || !FixedHeight)
+	{
+		if (Background())
+		{
+			preferredWidth = (float)Background()->USize();
+			preferredHeight = (float)Background()->VSize();
+		}
+		ParentRequestedPreferredSize(false, preferredWidth, false, preferredHeight);
+	}
 
 	if (FixedWidth)
-	{
 		preferredWidth = hardcodedWidth();
-		widthSet = true;
-	}
-	else if (Background())
-	{
-		preferredWidth = (float)Background()->USize();
-	}
 
 	if (FixedHeight)
-	{
 		preferredHeight = hardcodedHeight();
-		heightSet = true;
-	}
-	else if (Background())
-	{
-		preferredHeight = (float)Background()->VSize();
-	}
-
-	if (!widthSet || !heightSet)
-	{
-		ParentRequestedPreferredSize(widthSet, preferredWidth, heightSet, preferredHeight);
-	}
 
 	lastQueryWidth() = preferredWidth;
 	lastQueryHeight() = preferredHeight;
@@ -1068,20 +1110,14 @@ void UWindow::AskParentForReconfigure()
 	if (parent)
 	{
 		bool result = parent->ChildRequestedReconfiguration(this);
-		if (!result)
-			parent->bConfigured() = false;
+		// To do: what is the result used for?
 	}
 }
 
 void UWindow::ResizeChild()
 {
 	//LogMessage(GetUClassFullName(this).ToString() + ": ResizeChild");
-
-	float width = 0.0f, height = 0.0f;
-
-	QueryPreferredSize(width, height);
-	bConfigured() = false; // Seems ResizeChild is supposed to call ConfigurationChanged always, even if nothing resized
-	ConfigureChild(X(), Y(), width, height);
+	bNeedsReconfigure() = true;
 }
 
 void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHeight)
@@ -1119,16 +1155,14 @@ void UWindow::ConfigureChild(float newX, float newY, float newWidth, float newHe
 		}
 	}
 
-	if (!bConfigured() || X() != newX || Y() != newY || Width() != newWidth || Height() != newHeight)
+	X() = newX;
+	Y() = newY;
+	bConfigured() = true;
+	//if (Width() != newWidth || Height() != newHeight)
 	{
-		X() = newX;
-		Y() = newY;
 		Width() = newWidth;
 		Height() = newHeight;
-		bConfigured() = true;
-		for (UWindow* child = firstChild(); child; child = child->nextSibling())
-			child->bConfigured() = false;
-		ConfigurationChanged();
+		bNeedsReconfigure() = true;
 	}
 }
 
@@ -1179,9 +1213,9 @@ void UWindow::WindowReady()
 void UWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
 	CallEvent(this, "ParentRequestedPreferredSize", {
-		ExpressionValue::BoolValue(true),
+		ExpressionValue::BoolValue(bWidthSpecified),
 		ExpressionValue::Variable(&preferredWidth, engine->floatprop),
-		ExpressionValue::BoolValue(true),
+		ExpressionValue::BoolValue(bHeightSpecified),
 		ExpressionValue::Variable(&preferredHeight, engine->floatprop)
 		});
 }
