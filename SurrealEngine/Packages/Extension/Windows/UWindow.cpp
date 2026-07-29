@@ -431,7 +431,7 @@ UWindow* UWindow::FindWindow(float pointX, float pointY, float& relativeX, float
 
 UObject* UWindow::GetBottomChild(std::optional<bool> bVisibleOnly)
 {
-	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	bool visibleOnly = (!bVisibleOnly || *bVisibleOnly);
 	for (UWindow* child = firstChild(); child; child = child->nextSibling())
 	{
 		if (!visibleOnly || child->bIsVisible())
@@ -477,7 +477,7 @@ UObject* UWindow::GetGC()
 
 UObject* UWindow::GetHigherSibling(std::optional<bool> bVisibleOnly)
 {
-	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	bool visibleOnly = (!bVisibleOnly || *bVisibleOnly);
 	for (UWindow* cur = nextSibling(); cur; cur = cur->nextSibling())
 	{
 		if (!visibleOnly || cur->bIsVisible())
@@ -488,7 +488,7 @@ UObject* UWindow::GetHigherSibling(std::optional<bool> bVisibleOnly)
 
 UObject* UWindow::GetLowerSibling(std::optional<bool> bVisibleOnly)
 {
-	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	bool visibleOnly = (!bVisibleOnly || *bVisibleOnly);
 	for (UWindow* cur = prevSibling(); cur; cur = cur->prevSibling())
 	{
 		if (!visibleOnly || cur->bIsVisible())
@@ -547,7 +547,7 @@ float UWindow::GetTickOffset()
 
 UObject* UWindow::GetTopChild(std::optional<bool> bVisibleOnly)
 {
-	bool visibleOnly = (bVisibleOnly && *bVisibleOnly);
+	bool visibleOnly = (!bVisibleOnly || *bVisibleOnly);
 	for (UWindow* child = lastChild(); child; child = child->prevSibling())
 	{
 		if (!visibleOnly || child->bIsVisible())
