@@ -112,7 +112,7 @@ void UWindow::UpdateLayout()
 	}
 
 	bool wasReconfigured = bNeedsReconfigure();
-	if (bNeedsReconfigure())
+	if (wasReconfigured)
 	{
 		//LogMessage(GetUClassFullName(this).ToString() + ": UpdateLayout");
 

@@ -250,7 +250,8 @@ void UTileWindow::DrawWindow(UGC* gc)
 bool UTileWindow::ChildRequestedReconfiguration(UWindow* childWin)
 {
 	AskParentForReconfigure();
-	return false;
+	ResizeChild();
+	return true;
 }
 
 void UTileWindow::ChildAdded(UWindow* child)
