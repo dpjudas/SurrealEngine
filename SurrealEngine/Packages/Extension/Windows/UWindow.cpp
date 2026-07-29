@@ -1477,9 +1477,9 @@ void UWindow::DrawWindow(UGC* gc)
 				gc->DrawTile(tex, gc->ScaleRect(dest), src, tileColor(), gc->EffectivePolyFlags());
 			}
 		}
-		else
+		else if (Background())
 		{
-			gc->DrawIcon(0.0f, 0.0f, Background());
+			gc->DrawPattern(0.0f, 0.0f, Width(), Height(), 0.0f, 0.0f, Background());
 		}
 		// DrawDebugBox(gc);
 	}
