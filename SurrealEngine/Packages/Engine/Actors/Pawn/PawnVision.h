@@ -2,9 +2,10 @@
 
 #include "Math/vec.h"
 
-namespace PawnVision
+class PawnVision
 {
-	inline bool IsWithinVisionCone(const vec3& observerLocation, const vec3& targetLocation, const vec3& viewDirection, float peripheralVision)
+public:
+	static inline bool IsWithinVisionCone(const vec3& observerLocation, const vec3& targetLocation, const vec3& viewDirection, float peripheralVision)
 	{
 		if (!std::isfinite(peripheralVision) ||
 			!std::isfinite(observerLocation.x) || !std::isfinite(observerLocation.y) || !std::isfinite(observerLocation.z) ||
@@ -39,4 +40,4 @@ namespace PawnVision
 			1.0));
 		return cosine >= peripheralVision;
 	}
-}
+};

@@ -3,17 +3,14 @@
 #include <iostream>
 #include <limits>
 
-namespace
-{
-	int failures = 0;
+static int s_Failures = 0;
 
-	void Expect(bool condition, const char* name)
+static void Expect(bool condition, const char* name)
+{
+	if (!condition)
 	{
-		if (!condition)
-		{
-			std::cerr << "FAILED: " << name << '\n';
-			failures++;
-		}
+		std::cerr << "FAILED: " << name << '\n';
+		s_Failures++;
 	}
 }
 
@@ -50,5 +47,5 @@ int main()
 	const float largest = std::numeric_limits<float>::max();
 	Expect(PawnVision::IsWithinVisionCone(vec3(largest, 0.0f, 0.0f), vec3(-largest, 0.0f, 0.0f), -forward, 1.0f), "large finite coordinates");
 
-	return failures == 0 ? 0 : 1;
+	return s_Failures == 0 ? 0 : 1;
 }
