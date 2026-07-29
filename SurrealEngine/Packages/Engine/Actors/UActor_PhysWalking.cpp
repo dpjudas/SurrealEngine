@@ -10,6 +10,116 @@
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Engine.h"
 
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+	constexpr int painZoneFallPredictionSteps = 24;
+	constexpr int painZoneFallMaxSamplesPerStep = 8;
+	constexpr float painZoneFallPredictionDelta = 1.0f / 16.0f;
+
+	struct FallPredictionState
+	{
+		vec3 Location;
+		vec3 Velocity;
+		bool Valid = true;
+	};
+
+	bool IsFinite(const vec3& value)
+	{
+		return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+	}
+
+	FallPredictionState PredictFallStep(FallPredictionState state,
+		const vec3& acceleration, const vec3& gravity, const vec3& zoneVelocity,
+		float groundSpeed, float terminalVelocity)
+	{
+		if (!state.Valid || !IsFinite(state.Location) || !IsFinite(state.Velocity)
+			|| !IsFinite(acceleration) || !IsFinite(gravity) || !IsFinite(zoneVelocity)
+			|| !std::isfinite(groundSpeed) || !std::isfinite(terminalVelocity)
+			|| groundSpeed < 0.0f || terminalVelocity < 0.0f)
+		{
+			state.Valid = false;
+			return state;
+		}
+
+		vec3 velocity = state.Velocity
+			+ (acceleration * 1.5f + gravity * 2.0f) * (0.5f * painZoneFallPredictionDelta);
+		const float oldSpeedSquared = dot(state.Velocity.xy(), state.Velocity.xy());
+		const float newSpeedSquared = dot(velocity.xy(), velocity.xy());
+		if (oldSpeedSquared >= groundSpeed * groundSpeed && newSpeedSquared > oldSpeedSquared)
+			velocity = vec3(normalize(velocity.xy()) * std::sqrt(oldSpeedSquared), velocity.z);
+		if (dot(velocity, velocity) > terminalVelocity * terminalVelocity)
+			velocity = normalize(velocity) * terminalVelocity;
+
+		state.Velocity = velocity;
+		state.Location += (velocity
+			+ zoneVelocity * painZoneFallPredictionDelta * 25.0f)
+			* painZoneFallPredictionDelta;
+		state.Valid = IsFinite(state.Location) && IsFinite(state.Velocity);
+		return state;
+	}
+
+	bool IsHarmfulPainZone(UPawn* pawn, UZoneInfo* zone)
+	{
+		return zone && zone->bPainZone() && zone->DamageType() != pawn->ReducedDamageType();
+	}
+
+	bool IsAutonomousPlayerBot(UPawn* pawn)
+	{
+		UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(pawn);
+		return pawn->bIsPlayer() && (!player || !player->Player());
+	}
+
+	bool PredictedFallEntersHarmfulPainZone(
+		UPawn* pawn, const vec3& initialVelocity, const vec3& acceleration)
+	{
+		UZoneInfo* startZone = pawn->FootRegion().Zone;
+		UZoneInfo* physicsZone = pawn->Region().Zone;
+		if (!startZone || !physicsZone)
+			return false;
+
+		FallPredictionState prediction = { pawn->Location(), initialVelocity };
+		const TraceFlags traceFlags = { .movers = true, .world = true };
+		const vec3 traceExtent(
+			pawn->CollisionRadius(), pawn->CollisionRadius(), pawn->CollisionHeight());
+		const float maxSpacing = std::max(pawn->MaxStepHeight(), 1.0f);
+
+		for (int index = 0; index < painZoneFallPredictionSteps; index++)
+		{
+			FallPredictionState next = PredictFallStep(prediction, acceleration,
+				physicsZone->ZoneGravity(), physicsZone->ZoneVelocity(),
+				pawn->GroundSpeed(), physicsZone->ZoneTerminalVelocity());
+			if (!next.Valid)
+				return false;
+
+			const CollisionHit hit = pawn->XLevel()->Collision.TraceFirstHit(
+				prediction.Location, next.Location, pawn, traceExtent, traceFlags);
+			const vec3 segment = (next.Location - prediction.Location) * hit.Fraction;
+			const int sampleCount = std::min(
+				static_cast<int>(std::ceil(length(segment) / maxSpacing)),
+				painZoneFallMaxSamplesPerStep);
+			for (int sampleIndex = 1; sampleIndex <= sampleCount; sampleIndex++)
+			{
+				const vec3 sample = prediction.Location
+					+ segment * (static_cast<float>(sampleIndex) / sampleCount);
+				UZoneInfo* sampleZone = pawn->XLevel()->Model->FindRegion(
+					sample - vec3(0.0f, 0.0f, pawn->CollisionHeight()),
+					pawn->Level()).Zone;
+				if (IsHarmfulPainZone(pawn, sampleZone))
+					return true;
+				if (sampleZone != startZone)
+					return false;
+			}
+			if (hit.Fraction < 1.0f)
+				return false;
+			prediction = next;
+		}
+		return false;
+	}
+}
+
 void UActor::TickWalking(float elapsed)
 {
 	// Only pawns can walk!
@@ -89,6 +199,7 @@ void UActor::TickWalking(float elapsed)
 	{
 		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
 		{
+			const vec3 iterationStartLocation = Location();
 			vec3 moveDelta = vel * timeLeft;
 
 			//movement logic was inverted, causing overhaed buttons to be to easy to push
@@ -161,7 +272,35 @@ void UActor::TickWalking(float elapsed)
 			CollisionHit floorHit = TryMove(stepDownDelta, true);
 			if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
 			{
-				// No we couldn't. We are falling
+				if (pawn->bCanJump())
+					CallEvent(pawn, EventName::MayFall);
+				if (pawn->bDeleteMe() || pawn->Physics() != PHYS_Walking)
+					return;
+
+				bool restoreGrounded = !pawn->bCanJump();
+				if (!restoreGrounded && IsAutonomousPlayerBot(pawn)
+					&& pawn->Region().Zone && pawn->Region().Zone->ZoneGravity().z < 0.0f
+					&& !IsHarmfulPainZone(pawn, pawn->FootRegion().Zone))
+				{
+					vec3 fallAcceleration = pawn->Acceleration();
+					const float maxAirAcceleration = engine->LaunchInfo.ue1Version > 219
+						? pawn->AirControl() * pawn->AccelRate() : 0.0f;
+					const float fallAccelerationLength = length(fallAcceleration);
+					if (fallAccelerationLength > maxAirAcceleration)
+						fallAcceleration = normalize(fallAcceleration) * maxAirAcceleration;
+					restoreGrounded = PredictedFallEntersHarmfulPainZone(
+						pawn, pawn->Velocity(), fallAcceleration);
+				}
+
+				if (restoreGrounded)
+				{
+					TryMove(iterationStartLocation - Location());
+					pawn->Velocity() = vec3(0.0f);
+					pawn->Acceleration() = vec3(0.0f);
+					pawn->MoveTimer() = -1.0f;
+					return;
+				}
+
 				SetPhysics(PHYS_Falling);
 				SetBase(nullptr, true);
 				return;
