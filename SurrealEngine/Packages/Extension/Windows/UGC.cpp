@@ -99,11 +99,46 @@ void UGC::DrawBorders(float DestX, float DestY, float destWidth, float destHeigh
 	float blX = destWidth, brX = destWidth;
 	float blY = destHeight, brY = destHeight;
 
-	if (auto tex = center) // To do: maybe draw this only in the inner box?
+	if (auto tex = center)
 	{
+		float gridX[2] = { 0.0f, 0.0f };
+		float gridY[2] = { 0.0f, 0.0f };
+		if (tl)
+		{
+			gridX[0] = std::max(gridX[0], (float)tl->USize());
+			gridY[0] = std::max(gridY[0], (float)tl->VSize());
+		}
+		if (tr)
+		{
+			gridX[1] = std::max(gridX[1], (float)tr->USize());
+			gridY[0] = std::max(gridY[0], (float)tr->VSize());
+		}
+		if (bl)
+		{
+			gridX[0] = std::max(gridX[0], (float)bl->USize());
+			gridY[1] = std::max(gridY[1], (float)bl->VSize());
+		}
+		if (br)
+		{
+			gridX[1] = std::max(gridX[1], (float)br->USize());
+			gridY[1] = std::max(gridY[1], (float)br->VSize());
+		}
+		if (left)
+			gridX[0] = std::max(gridX[0], (float)left->USize());
+		if (right)
+			gridX[1] = std::max(gridX[1], (float)right->USize());
+		if (top)
+			gridY[0] = std::max(gridY[0], (float)top->VSize());
+		if (bottom)
+			gridY[1] = std::max(gridY[1], (float)bottom->VSize());
+
 		float swidth = (float)tex->USize();
 		float sheight = (float)tex->VSize();
-		Rectf dest = Rectf::xywh(DestX, DestY, destWidth, destHeight);
+		Rectf dest = Rectf::xywh(
+			DestX + gridX[0],
+			DestY + gridY[0],
+			std::max(destWidth - gridX[0] - gridX[1], 0.0f),
+			std::max(destHeight - gridY[0] - gridY[1], 0.0f));
 		DrawTile(tex, ScaleRect(dest), Rectf::xywh(0.0f, 0.0f, swidth, sheight), tileColor(), EffectivePolyFlags());
 	}
 	if (auto tex = tl) // top left corner
