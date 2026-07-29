@@ -51,6 +51,7 @@ void UActor::TickWalking(float elapsed)
 			if (ShouldAbortMovementTick(PHYS_Walking))
 				break;
 
+			vec3 iterationStart = Location();
 			vec3 moveDelta = vel * timeLeft;
 
 			//movement logic was inverted, causing overhaed buttons to be to easy to push
@@ -116,8 +117,38 @@ void UActor::TickWalking(float elapsed)
 			}
 
 			// Can we reach the ground from here if we step down?
-			if (!TryStepToGround(stepDownDelta))
-				return;
+			CollisionHit floorHit = TryMove(stepDownDelta, true);
+			if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
+			{
+				if (pawn->bCanJump())
+				{
+					CallEvent(this, EventName::MayFall);
+					if (ShouldAbortMovementTick(PHYS_Walking))
+						return;
+
+					if (!pawn->bCanJump())
+					{
+						Velocity() = vec3(0.0f);
+						Acceleration() = vec3(0.0f);
+						TryMove(iterationStart - Location());
+						return;
+					}
+
+					// The event may have moved the pawn while leaving it in walking physics.
+					floorHit = TryMove(stepDownDelta, true);
+				}
+
+				if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
+				{
+					SetPhysics(PHYS_Falling);
+					SetBase(nullptr, true);
+					return;
+				}
+			}
+
+			floorHit = TryMove(stepDownDelta);
+			if (floorHit.Fraction != 1.0f)
+				SetBase(floorHit.Actor, true);
 		}
 	}
 	else
