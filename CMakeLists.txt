@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(SurrealEngine)
 
+include(CTest)
+
 add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(SurrealGPU)
 add_subdirectory(SurrealWidgets)
@@ -558,6 +560,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Packages/Engine/Actors/NavigationPoint/UTriggerMarker.h
 	SurrealEngine/Packages/Engine/Actors/NavigationPoint/UWarpZoneMarker.h
 	SurrealEngine/Packages/Engine/Actors/Pawn/UCamera.h
+	SurrealEngine/Packages/Engine/Actors/Pawn/PawnVision.h
 	SurrealEngine/Packages/Engine/Actors/Pawn/UPawn.cpp
 	SurrealEngine/Packages/Engine/Actors/Pawn/UPawn.h
 	SurrealEngine/Packages/Engine/Actors/Pawn/UPlayerPawn.cpp
@@ -1071,6 +1074,13 @@ set_target_properties(SurrealEditor PROPERTIES CXX_STANDARD 20)
 add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
+
+if(BUILD_TESTING)
+	add_executable(PawnVisionTests SurrealEngine/Tests/PawnVisionTests.cpp)
+	target_include_directories(PawnVisionTests PRIVATE SurrealEngine)
+	set_target_properties(PawnVisionTests PROPERTIES CXX_STANDARD 20)
+	add_test(NAME PawnVisionTests COMMAND PawnVisionTests)
+endif()
 
 if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
