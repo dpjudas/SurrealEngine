@@ -69,7 +69,7 @@ void UActor::TickSwimming(float elapsed)
 					TryMove(stepUpDelta);
 					if (!Region().Zone->bWaterZone())
 					{
-						Velocity().z = std::max(Velocity().z, 1.0f);
+						TryMove(moveDelta);
 						bJustTeleported() = true;
 						if (Physics() == PHYS_Swimming)
 							SetPhysics(PHYS_Falling);

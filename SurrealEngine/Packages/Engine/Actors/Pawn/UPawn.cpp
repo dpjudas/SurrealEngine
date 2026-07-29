@@ -1122,6 +1122,47 @@ void UPawn::Tick(float elapsed)
 		if (engine->LaunchInfo.ue1Version >= 436 && bAdvancedTactics())
 			CallEvent(this, EventName::UpdateTactics, { ExpressionValue::FloatValue(elapsed) });
 
+
+		SightCounter() -= elapsed;
+		if (SightCounter() <= 0.0f)
+		{
+			//apply random offest to pawns sight counter so not all
+			//pawns get evaluated at the same frame 
+			//numbers are arbitrarily picked -> if it causes perf. problems, 
+			//maybe switch to using some limit of how many pawns can be evaluated 
+			//every frame
+			SightCounter() += 0.4f - 0.2f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX));
+
+			//search for target, if the pawn has an event to see them
+			if (IsEventEnabled(EventName::SeePlayer))
+			{
+				//search every pawn in the map, if they are visible fire the related event
+				for (UPawn* other = Level()->PawnList(); other; other = other->nextPawn())
+				{
+					//skip self, dead pawns and the currenty chosen enemy (handeld by the if(Enemy()) branch)
+					if (other == this || other == Enemy() || other->Health() <= 0)
+						continue;
+					//if the enemy pawn is visible, notify the Unreal scrip about it
+					if (CanSee(other))
+						CallEvent(this, EventName::SeePlayer, { ExpressionValue::ObjectValue(other) });
+				}
+			}
+
+			//if the pawn already has an enemy, update its tracking data
+			if (Enemy())
+			{
+				if (CanSee(Enemy()))
+				{
+					LastSeenPos() = Enemy()->Location();
+					LastSeeingPos() = Location();
+					LastSeenTime() = Level()->TimeSeconds();
+				}
+				else if (IsEventEnabled(EventName::EnemyNotVisible))
+				{
+					CallEvent(this, EventName::EnemyNotVisible);
+				}
+			}
+		}
 	}
 }
 
