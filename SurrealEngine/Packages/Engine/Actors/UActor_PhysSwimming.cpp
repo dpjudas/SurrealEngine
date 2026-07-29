@@ -31,6 +31,10 @@ void UActor::TickSwimming(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 
+	//required for "stepping out of water"
+	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
+	vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * pawn->MaxStepHeight());
+
 	//same as tick walking, having any velosity at all should probably enable this branch
 	if (length(vel))
 	{
@@ -62,6 +66,17 @@ void UActor::TickSwimming(float elapsed)
 					// We hit a wall
 					FireHitWall(hit);
 
+					TryMove(stepUpDelta);
+					if (!Region().Zone->bWaterZone())
+					{
+						Velocity().z = std::max(Velocity().z, 1.0f);
+						bJustTeleported() = true;
+						if (Physics() == PHYS_Swimming)
+							SetPhysics(PHYS_Falling);
+						break;
+					}
+					TryMove(-stepUpDelta);
+
 					//removed the second scaling, that caused the "exiting the water is difficult" bug
 					//it appears to not fix it completely, but it helps
 					vec3 alignedDelta = moveDelta - hit.Normal * dot(moveDelta, hit.Normal);
@@ -88,10 +103,6 @@ void UActor::TickSwimming(float elapsed)
 
 	if (!Region().Zone->bWaterZone())
 	{
-		if (Velocity().z > 0.0f)
-		{
-			Velocity().z = std::max(Velocity().z, 100.0f);
-		}
 		if (Physics() == PHYS_Swimming)
 			SetPhysics(PHYS_Falling);
 	}
