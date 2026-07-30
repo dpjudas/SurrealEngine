@@ -185,7 +185,46 @@ void UEditWindow::DrawWindow(UGC* gc)
 
 	gc->SetFont(normalFont());
 	gc->SetAlignments(HAlign(), VAlign());
+	gc->bWordWrap() = false;
 	gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
 
 	// DrawDebugBox(gc);
+}
+
+bool UEditWindow::KeyPressed(std::string key)
+{
+	if (key.empty())
+		return false;
+
+	if (key.front() >= 32)
+	{
+		AppendText(key);
+	}
+	else if (key.front() == 8)
+	{
+		std::string text = GetText();
+		if (!text.empty())
+			text.pop_back();
+		SetText(text);
+	}
+	ULargeTextWindow::KeyPressed(key);
+	return true;
+}
+
+bool UEditWindow::VirtualKeyPressed(EInputKey key, bool bRepeat)
+{
+	return ULargeTextWindow::VirtualKeyPressed(key, bRepeat);
+}
+
+bool UEditWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	SetFocusWindow(this);
+	ULargeTextWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
+	return true;
+}
+
+bool UEditWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
+{
+	ULargeTextWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
+	return true;
 }

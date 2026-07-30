@@ -41,6 +41,10 @@ public:
 
 	void InitWindow() override;
 	void DrawWindow(UGC* gc) override;
+	bool KeyPressed(std::string key) override;
+	bool VirtualKeyPressed(EInputKey key, bool bRepeat) override;
+	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
+	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
 
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
 	BitfieldBool bDragging() { return BoolValue(PropOffsets_EditWindow.bDragging); }
