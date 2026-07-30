@@ -154,6 +154,9 @@ void Engine::Run()
 	auto rotprop = GC::Alloc<UStructProperty>(NameString(), nullptr, ObjectFlags::NoFlags);
 
 	bool firstCall = true;
+
+	float currentZoneTimeDilation = 1.0f; // Unreal 227 allows zones to specify their own time dilations
+
 	while (!quit)
 	{
 		// Main game loop should consist of these 4 steps:
@@ -163,6 +166,9 @@ void Engine::Run()
 		// Check if there is a new map to load (next level, saved game etc.): load it if that's the case
 
 		// Tick everything
+		if (LaunchInfo.IsUnreal1_227())
+			currentZoneTimeDilation = viewport->Actor()->PlayerReplicationInfo()->PlayerZone()->ZoneTimeDilation();
+
 		float realTimeElapsed = CalcTimeElapsed();
 		float entryLevelElapsed = EntryLevel ? realTimeElapsed * clamp(EntryLevelInfo->TimeDilation() * currentZoneTimeDilation, 0.0025f, 25.0f) : 0.0f;
 		float levelElapsed = realTimeElapsed * clamp(LevelInfo->TimeDilation() * currentZoneTimeDilation, 0.0025f, 25.0f);
