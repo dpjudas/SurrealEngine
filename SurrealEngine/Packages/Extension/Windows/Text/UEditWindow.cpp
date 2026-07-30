@@ -121,6 +121,14 @@ bool UEditWindow::HasTextChanged()
 	return textChanged;
 }
 
+void UEditWindow::TextModifiedByScript()
+{
+	// This happens if script code calls UTextWindow::AppendText or UTextWindow::SetText
+	insertPos() = (int)Text().size();
+	selectStart() = insertPos();
+	selectEnd() = insertPos();
+}
+
 bool UEditWindow::InsertText(std::optional<std::string> InsertText, std::optional<bool> bUndo, std::optional<bool> bSelect)
 {
 	// Note: bSelect is never set to true

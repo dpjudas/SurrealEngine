@@ -46,6 +46,7 @@ public:
 	bool VirtualKeyPressed(EInputKey key, bool bRepeat) override;
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
 	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
+	void TextModifiedByScript() override;
 
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
 	BitfieldBool bDragging() { return BoolValue(PropOffsets_EditWindow.bDragging); }
