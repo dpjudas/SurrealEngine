@@ -12,13 +12,13 @@ public:
 	int Yaw;
 	int Roll;
 
-	float PitchDegrees() const { return Pitch * (360.0f / 65536.0f); }
-	float YawDegrees() const { return Yaw * (360.0f / 65536.0f); }
-	float RollDegrees() const { return Roll * (360.0f / 65536.0f); }
+	float PitchDegrees() const { return (Pitch & 0xffff) * (360.0f / 65536.0f); }
+	float YawDegrees() const { return (Yaw & 0xffff) * (360.0f / 65536.0f); }
+	float RollDegrees() const { return (Roll & 0xffff) * (360.0f / 65536.0f); }
 
-	float PitchRadians() const { return Pitch * (3.14159265359f / 32768.0f); }
-	float YawRadians() const { return Yaw * (3.14159265359f / 32768.0f); }
-	float RollRadians() const { return Roll * (3.14159265359f / 32768.0f); }
+	float PitchRadians() const { return (Pitch & 0xffff) * (3.14159265359f / 32768.0f); }
+	float YawRadians() const { return (Yaw & 0xffff) * (3.14159265359f / 32768.0f); }
+	float RollRadians() const { return (Roll & 0xffff) * (3.14159265359f / 32768.0f); }
 
 	Rotator& operator+=(const Rotator& b) { Pitch += b.Pitch; Yaw += b.Yaw; Roll += b.Roll; return *this; }
 	Rotator& operator-=(const Rotator& b) { Pitch -= b.Pitch; Yaw -= b.Yaw; Roll -= b.Roll; return *this; }
