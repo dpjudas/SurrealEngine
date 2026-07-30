@@ -440,12 +440,8 @@ bool UPawn::CanSee(UActor* other)
 	// Calculate the cosine of the vectors
 	// which is basically A dot B / (|A| * |B|), or just the dot products of the normalized versions of A and B
 	float cosine = dot(normalize(orientation), normalize(origin - eye_pos));
-	// PeripheralVision field is set dynamically during a game session
-	// (for an example, see the function UnrealShare.Bots.PreSetMovement())
-	// This can be a negative value too, which is probably set to not take it into account
 	float peripheralVision = PeripheralVision();
-
-	if (peripheralVision > 0.0f && std::abs(cosine) > peripheralVision)
+	if (cosine > peripheralVision)
 		return false;
 
 	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);
