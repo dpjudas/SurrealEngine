@@ -164,8 +164,8 @@ void Engine::Run()
 
 		// Tick everything
 		float realTimeElapsed = CalcTimeElapsed();
-		float entryLevelElapsed = EntryLevel ? realTimeElapsed * clamp(EntryLevelInfo->TimeDilation(), 0.0025f, 25.0f) : 0.0f;
-		float levelElapsed = realTimeElapsed * clamp(LevelInfo->TimeDilation(), 0.0025f, 25.0f);
+		float entryLevelElapsed = EntryLevel ? realTimeElapsed * clamp(EntryLevelInfo->TimeDilation() * currentZoneTimeDilation, 0.0025f, 25.0f) : 0.0f;
+		float levelElapsed = realTimeElapsed * clamp(LevelInfo->TimeDilation() * currentZoneTimeDilation, 0.0025f, 25.0f);
 
 		TotalTime += realTimeElapsed;
 
@@ -582,7 +582,15 @@ void Engine::ClientTravel(const std::string& newURL, ETravelType travelType, boo
 		ClientTravelInfo.URL.AddOrReplaceOption("name=" + name);
 	}
 	else if (travelType == ETravelType::TRAVEL_Relative)
+	{
 		ClientTravelInfo.URL = UnrealURL(ClientTravelInfo.URL, url);
+		// Add difficulty if it isn't there
+		if (ClientTravelInfo.URL.GetOption("Difficulty").empty())
+		{
+			ClientTravelInfo.URL.AddOrReplaceOption("Difficulty=" + std::to_string(GameInfo->Difficulty()));
+		}
+	}
+
 	ClientTravelInfo.TravelType = travelType;
 	ClientTravelInfo.TransferItems = transferItems;
 }
@@ -1196,28 +1204,14 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 
 		// If there isn't, try to get it from the current level's options
 		if (difficulty.empty())
-		{
 			difficulty = LevelInfo->URL.GetOption("difficulty");
-			if (!difficulty.empty())
-				url.AddOrReplaceOption("difficulty=" + difficulty);
-		}
 
-		// If there still isn't, try to figure the current difficulty out using LevelInfo
+		// If there still isn't, refer to GameInfo for difficulty
 		if (difficulty.empty())
-		{
-			if (LevelInfo->bDifficulty0())
-				difficulty = "0";
-			else if (LevelInfo->bDifficulty1())
-				difficulty = "1";
-			else if (LevelInfo->bDifficulty2())
-				difficulty = "2";
-			else if (LevelInfo->bDifficulty3())
-				difficulty = "3";
-			else
-				difficulty = "2"; // Assume "Normal" difficulty
+			difficulty = std::to_string(GameInfo->Difficulty());
 
+		if (!difficulty.empty())
 			url.AddOrReplaceOption("difficulty=" + difficulty);
-		}
 
 		for (auto& map : packages->GetMaps())
 		{
@@ -1627,6 +1621,8 @@ void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 {
 	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseDoubleclick(pos, key))
 		return;
+
+	InputEvent(key, IST_Press);
 }
 
 void Engine::OnWindowMouseUp(const Point& pos, EInputKey key)
