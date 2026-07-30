@@ -98,6 +98,7 @@ public:
 	int& unchangedUndo() { return Value<int>(PropOffsets_EditWindow.unchangedUndo); }
 
 private:
+	void DispatchTextChanged(bool modified);
 	int FindNextBreakCharacter(int search_start);
 	int FindPreviousBreakCharacter(int search_start);
 

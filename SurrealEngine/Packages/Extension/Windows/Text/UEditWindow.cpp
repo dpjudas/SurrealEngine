@@ -83,6 +83,7 @@ void UEditWindow::DeleteChar(std::optional<bool> bBefore, std::optional<bool> bU
 	selectEnd() = insertPos();
 	SetText(text);
 	SetTextChangedFlag(true);
+	DispatchTextChanged(true);
 }
 
 void UEditWindow::EnableEditing(std::optional<bool> bEdit)
@@ -153,6 +154,7 @@ bool UEditWindow::InsertText(std::optional<std::string> InsertText, std::optiona
 		selectEnd() = insertPos();
 		SetText(text);
 		SetTextChangedFlag(true);
+		DispatchTextChanged(true);
 	}
 
 	return true; // Unknown what this means. Script doesn't seem to use it for anything.
@@ -449,6 +451,15 @@ bool UEditWindow::MouseButtonReleased(float pointX, float pointY, EInputKey butt
 {
 	ULargeTextWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
 	return true;
+}
+
+void UEditWindow::DispatchTextChanged(bool modified)
+{
+	for (UWindow* cur = this; cur != nullptr; cur = cur->parentOwner())
+	{
+		if (cur->TextChanged(this, modified))
+			break;
+	}
 }
 
 int UEditWindow::FindNextBreakCharacter(int search_start)
