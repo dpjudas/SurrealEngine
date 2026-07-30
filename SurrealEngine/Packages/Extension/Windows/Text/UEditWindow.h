@@ -40,6 +40,7 @@ public:
 	void Undo();
 
 	void InitWindow() override;
+	void Tick(float timeElapsed) override;
 	void DrawWindow(UGC* gc) override;
 	bool KeyPressed(std::string key) override;
 	bool VirtualKeyPressed(EInputKey key, bool bRepeat) override;
@@ -95,4 +96,11 @@ public:
 	float& showAreaY() { return Value<float>(PropOffsets_EditWindow.showAreaY); }
 	USound*& typeSound() { return Value<USound*>(PropOffsets_EditWindow.typeSound); }
 	int& unchangedUndo() { return Value<int>(PropOffsets_EditWindow.unchangedUndo); }
+
+private:
+	int FindNextBreakCharacter(int search_start);
+	int FindPreviousBreakCharacter(int search_start);
+
+	bool textChanged = false;
+	static const std::string break_characters;
 };
