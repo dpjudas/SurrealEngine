@@ -1628,6 +1628,9 @@ void Engine::OnWindowMouseDoubleclick(const Point& pos, EInputKey key)
 	if (engine->dxRootWindow && engine->dxRootWindow->OnWindowMouseDoubleclick(pos, key))
 		return;
 
+	// Double click event sequence is: mouse down, up, doubleclick, up
+	// Since we don't have double click events in the UE1 event system, the second click
+	// should be treated as a normal mouse down event.
 	InputEvent(key, IST_Press);
 }
 
