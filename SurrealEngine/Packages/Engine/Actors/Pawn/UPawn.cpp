@@ -441,7 +441,7 @@ bool UPawn::CanSee(UActor* other)
 	// which is basically A dot B / (|A| * |B|), or just the dot products of the normalized versions of A and B
 	float cosine = dot(normalize(orientation), normalize(origin - eye_pos));
 	float peripheralVision = PeripheralVision();
-	if (cosine > peripheralVision)
+	if (cosine < peripheralVision)
 		return false;
 
 	return FastTrace(origin, eye_pos) || FastTrace(top, eye_pos) || FastTrace(bottom, eye_pos);
