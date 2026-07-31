@@ -7,6 +7,7 @@ class RenderDevice;
 class UWindow;
 class UFont;
 class UMover;
+class UViewportWindow;
 
 struct LightmapTexture
 {
@@ -43,6 +44,8 @@ public:
 	void Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2, bool useUIScale);
 	void Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2);
 	void UpdateTexture(UTexture* tex);
+
+	void DrawViewport(UViewportWindow* viewport);
 
 	bool ShowTimedemoStats = false;
 	bool ShowRenderStats = false;

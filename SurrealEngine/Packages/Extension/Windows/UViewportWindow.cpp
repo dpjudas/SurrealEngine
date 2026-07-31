@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UViewportWindow.h"
 #include "Engine.h"
+#include "Render/RenderSubsystem.h"
 
 void UViewportWindow::ClearZBuffer(std::optional<bool> bClear)
 {
@@ -80,11 +81,17 @@ void UViewportWindow::ShowWeapons(std::optional<bool> bShow)
 	bShowWeapons() = !bShow || *bShow;
 }
 
+void UViewportWindow::InitWindow()
+{
+	bClearZ() = true;
+	UWindow::InitWindow();
+}
+
 void UViewportWindow::DrawWindow(UGC* gc)
 {
 	if (bEnableViewport())
 	{
-		// To do: draw world here
+		engine->render->DrawViewport(this);
 	}
 
 	UWindow::DrawWindow(gc);

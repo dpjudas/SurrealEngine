@@ -20,6 +20,7 @@ public:
 	void ShowViewportActor(std::optional<bool> bShow);
 	void ShowWeapons(std::optional<bool> bShow);
 
+	void InitWindow() override;
 	void DrawWindow(UGC* gc) override;
 
 	Color& DefaultColor() { return Value<Color>(PropOffsets_ViewportWindow.DefaultColor); }
