@@ -1,7 +1,10 @@
 
 #include "Precomp.h"
 #include "UScaleWindow.h"
+#include "UGC.h"
 #include "Engine.h"
+#include "Packages/Engine/Resources/USound.h"
+#include "Packages/Engine/Resources/Textures/UTexture.h"
 
 void UScaleWindow::ClearAllEnumerations()
 {
@@ -11,20 +14,221 @@ void UScaleWindow::ClearAllEnumerations()
 
 void UScaleWindow::EnableStretchedScale(std::optional<bool> bNewStretch)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.EnableStretchedScale");
+	bStretchScale() = bNewStretch.has_value() ? bNewStretch.value() : true;
+}
+
+void UScaleWindow::GetValues(float& outFromValue, float& outToValue)
+{
+	outFromValue = fromValue();
+	outToValue = toValue();
+}
+
+void UScaleWindow::PlayScaleSound(UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch)
+{
+	PlaySound(newsound, Volume, Pitch, {}, {});
+}
+
+void UScaleWindow::SetBorderPattern(UObject* NewTexture)
+{
+	borderPattern() = UObject::Cast<UTexture>(NewTexture);
+}
+
+void UScaleWindow::SetEnumeration(int tickPos, const std::string& newStr)
+{
+	LogUnimplemented("ScaleWindow.SetEnumeration");
+}
+
+void UScaleWindow::SetNumTicks(int newNumTicks)
+{
+	LogUnimplemented("ScaleWindow.SetNumTicks");
+}
+
+void UScaleWindow::SetScaleBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor)
+{
+	if (newBorderSize.has_value())
+		scaleBorderSize() = newBorderSize.value();
+	if (NewColor.has_value())
+		scaleBorderColor() = NewColor.value();
+}
+
+void UScaleWindow::SetScaleColor(const Color& NewColor)
+{
+	scaleColor() = NewColor;
+}
+
+void UScaleWindow::SetScaleMargins(std::optional<float> newMarginWidth, std::optional<float> newMarginHeight)
+{
+	if (newMarginWidth.has_value())
+		marginWidth() = newMarginWidth.value();
+	if (newMarginHeight.has_value())
+		marginHeight() = newMarginHeight.value();
+}
+
+void UScaleWindow::SetScaleOrientation(uint8_t newOrientation)
+{
+	orientation() = newOrientation;
+}
+
+void UScaleWindow::SetScaleSounds(std::optional<UObject*> newSetSound, std::optional<UObject*> newClickSound, std::optional<UObject*> newDragSound)
+{
+	if (newSetSound.has_value())
+		setSound() = UObject::Cast<USound>(newSetSound.value());
+	if (newClickSound.has_value())
+		clickSound() = UObject::Cast<USound>(newClickSound.value());
+	if (newDragSound.has_value())
+		dragSound() = UObject::Cast<USound>(newDragSound.value());
+}
+
+void UScaleWindow::SetScaleStyle(uint8_t NewStyle)
+{
+	scaleStyle() = NewStyle;
+}
+
+void UScaleWindow::SetScaleTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight, std::optional<float> newStart, std::optional<float> newEnd)
+{
+	scaleTexture() = UObject::Cast<UTexture>(NewTexture);
+	if (newWidth.has_value())
+		scaleWidth() = newWidth.value();
+	if (NewHeight.has_value())
+		scaleHeight() = NewHeight.value();
+	if (newStart.has_value())
+		startOffset() = newStart.value();
+	if (newEnd.has_value())
+		endOffset() = newEnd.value();
+}
+
+void UScaleWindow::SetThumbBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor)
+{
+	if (newBorderSize.has_value())
+		thumbBorderSize() = newBorderSize.value();
+	if (NewColor.has_value())
+		thumbBorderColor() = NewColor.value();
+}
+
+void UScaleWindow::SetThumbCaps(UObject* preCap, UObject* postCap, std::optional<float> newPreCapWidth, std::optional<float> newPreCapHeight, std::optional<float> newPostCapWidth, std::optional<float> newPostCapHeight)
+{
+	preCapTexture() = UObject::Cast<UTexture>(preCap);
+	postCapTexture() = UObject::Cast<UTexture>(postCap);
+	if (newPreCapWidth.has_value())
+		preCapWidth() = newPreCapWidth.value();
+	if (newPreCapHeight.has_value())
+		preCapHeight() = newPreCapHeight.value();
+	if (newPostCapWidth.has_value())
+		postCapWidth() = newPostCapWidth.value();
+	if (newPostCapHeight.has_value())
+		postCapHeight() = newPostCapHeight.value();
+}
+
+void UScaleWindow::SetThumbColor(const Color& NewColor)
+{
+	thumbColor() = NewColor;
+}
+
+void UScaleWindow::SetThumbSpan(std::optional<int> newRange)
+{
+	// Script calls this setting ThumbSpan to zero when it wants it to be a slider it seems
+	if (newRange.has_value())
+	{
+		spanRange() = newRange.value();
+		bSpanThumb() = spanRange() > 0;
+	}
+}
+
+void UScaleWindow::SetThumbStep(int NewStep)
+{
+	thumbStep() = NewStep;
+}
+
+void UScaleWindow::SetThumbStyle(uint8_t NewStyle)
+{
+	thumbStyle() = NewStyle;
+}
+
+void UScaleWindow::SetThumbTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight)
+{
+	thumbTexture() = UObject::Cast<UTexture>(NewTexture);
+	if (newWidth.has_value())
+		ThumbWidth() = newWidth.value();
+	if (NewHeight.has_value())
+		ThumbHeight() = NewHeight.value();
+}
+
+void UScaleWindow::SetTickColor(const Color& NewColor)
+{
+	tickColor() = NewColor;
+}
+
+void UScaleWindow::SetTickStyle(uint8_t NewStyle)
+{
+	tickStyle() = NewStyle;
+}
+
+void UScaleWindow::SetTickTexture(UObject* newTickTexture, std::optional<bool> newDrawEndTicks, std::optional<float> newWidth, std::optional<float> NewHeight)
+{
+	// Note: this is never called by script
+
+	tickTexture() = UObject::Cast<UTexture>(newTickTexture);
+	if (newDrawEndTicks.has_value())
+		bDrawEndTicks() = newDrawEndTicks.value();
+	if (newWidth.has_value())
+		tickWidth() = newWidth.value();
+	if (NewHeight.has_value())
+		tickHeight() = NewHeight.value();
+}
+
+void UScaleWindow::SetValueFormat(const std::string& newFmt)
+{
+	valueFmt() = newFmt;
+}
+
+void UScaleWindow::SetValueRange(float newFrom, float newTo)
+{
+	fromValue() = newFrom;
+	toValue() = newTo;
+}
+
+void UScaleWindow::SetTickPosition(int newPosition)
+{
+	LogUnimplemented("ScaleWindow.SetTickPosition");
+}
+
+void UScaleWindow::SetValue(float NewValue)
+{
+	LogUnimplemented("ScaleWindow.SetValue");
+}
+
+void UScaleWindow::MoveThumb(uint8_t MoveThumb)
+{
+	LogUnimplemented("ScaleWindow.MoveThumb");
+	switch ((EMoveThumb)MoveThumb)
+	{
+	case EMoveThumb::Home:
+		break;
+	case EMoveThumb::End:
+		break;
+	case EMoveThumb::Prev:
+		break;
+	case EMoveThumb::Next:
+		break;
+	case EMoveThumb::StepUp:
+		break;
+	case EMoveThumb::StepDown:
+		break;
+	case EMoveThumb::PageUp:
+		break;
+	case EMoveThumb::PageDown:
+		break;
+	}
+}
+
+int UScaleWindow::GetThumbSpan()
+{
+	return spanRange();
 }
 
 int UScaleWindow::GetNumTicks()
 {
 	LogUnimplemented("ScaleWindow.GetNumTicks");
-	return 0;
-}
-
-int UScaleWindow::GetThumbSpan()
-{
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.GetThumbSpan");
 	return 0;
 }
 
@@ -46,141 +250,122 @@ std::string UScaleWindow::GetValueString()
 	return "";
 }
 
-void UScaleWindow::GetValues(float& fromValue, float& toValue)
+void UScaleWindow::InitWindow()
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.GetValues");
+	bSpanThumb() = true; // Default to a scrollbar
+	scaleStyle() = (uint8_t)EDrawStyle::Masked;
+	tickStyle() = (uint8_t)EDrawStyle::Masked;
+	thumbStyle() = (uint8_t)EDrawStyle::Masked;
+	UWindow::InitWindow();
 }
 
-void UScaleWindow::MoveThumb(uint8_t MoveThumb)
+void UScaleWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
-	LogUnimplemented("ScaleWindow.MoveThumb");
+	UWindow::ParentRequestedPreferredSize(bWidthSpecified, preferredWidth, bHeightSpecified, preferredHeight);
 }
 
-void UScaleWindow::PlayScaleSound(UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch)
+void UScaleWindow::DrawWindow(UGC* gc)
 {
-	LogUnimplemented("ScaleWindow.PlayScaleSound");
+	UWindow::DrawWindow(gc);
+
+	if (auto tex = scaleTexture())
+	{
+		gc->SetTileColor(scaleColor());
+		gc->SetStyle((EDrawStyle)scaleStyle());
+		gc->DrawPattern(0.0f, 0.0f, Width(), Height(), 0.0f, 0.0f, tex);
+	}
+
+	if (bSpanThumb())
+	{
+		if ((EOrientation)orientation() == EOrientation::Horizontal)
+			DrawHorzScrollbar(gc);
+		else
+			DrawVertScrollbar(gc);
+	}
+	else
+	{
+		if ((EOrientation)orientation() == EOrientation::Horizontal)
+			DrawHorzSlider(gc);
+		else
+			DrawVertSlider(gc);
+	}
 }
 
-void UScaleWindow::SetBorderPattern(UObject* NewTexture)
+void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.SetBorderPattern");
+	gc->SetTileColor(thumbColor());
+	gc->SetStyle((EDrawStyle)thumbStyle());
+	float x = 10.0f;
+	if (auto tex = preCapTexture())
+	{
+		gc->DrawStretchedTexture(x, 0.0f, preCapWidth(), Height(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
+		x += preCapWidth();
+	}
+	if (auto tex = thumbTexture())
+	{
+		gc->DrawStretchedTexture(x, 0.0f, ThumbWidth(), Height(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
+		x += ThumbWidth();
+	}
+	if (auto tex = postCapTexture())
+	{
+		gc->DrawStretchedTexture(x, 0.0f, postCapWidth(), Height(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
+	}
 }
 
-void UScaleWindow::SetEnumeration(int tickPos, const std::string& newStr)
+void UScaleWindow::DrawVertScrollbar(UGC* gc)
 {
-	LogUnimplemented("ScaleWindow.SetEnumeration");
+	gc->SetTileColor(thumbColor());
+	gc->SetStyle((EDrawStyle)thumbStyle());
+	float y = 100.0f;
+	if (auto tex = preCapTexture())
+	{
+		gc->DrawStretchedTexture(0.0f, y, Width(), preCapHeight(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
+		y += preCapHeight();
+	}
+	if (auto tex = thumbTexture())
+	{
+		gc->DrawStretchedTexture(0.0f, y, Width(), ThumbHeight(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
+		y += ThumbHeight();
+	}
+	if (auto tex = postCapTexture())
+	{
+		gc->DrawStretchedTexture(0.0f, y, Width(), postCapHeight(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
+	}
 }
 
-void UScaleWindow::SetNumTicks(int newNumTicks)
+void UScaleWindow::DrawHorzSlider(UGC* gc)
 {
-	LogUnimplemented("ScaleWindow.SetNumTicks");
+	float x = 100.0f;
+	if (auto tex = thumbTexture())
+	{
+		gc->SetTileColor(thumbColor());
+		gc->SetStyle((EDrawStyle)thumbStyle());
+		gc->DrawStretchedTexture(x - ThumbWidth() * 0.5f, (Height() - ThumbHeight()) * 0.5f, ThumbWidth(), ThumbHeight(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
+	}
 }
 
-void UScaleWindow::SetScaleBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor)
+void UScaleWindow::DrawVertSlider(UGC* gc)
 {
-	LogUnimplemented("ScaleWindow.SetScaleBorder");
+	float y = 10.0f;
+	if (auto tex = thumbTexture())
+	{
+		gc->SetTileColor(thumbColor());
+		gc->SetStyle((EDrawStyle)thumbStyle());
+		gc->DrawStretchedTexture((Width() - ThumbWidth()) * 0.5f, y - ThumbHeight() * 0.5f, ThumbWidth(), ThumbHeight(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
+	}
 }
 
-void UScaleWindow::SetScaleColor(const Color& NewColor)
+bool UScaleWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
-	LogUnimplemented("ScaleWindow.SetScaleColor");
+	return UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
 }
 
-void UScaleWindow::SetScaleMargins(std::optional<float> marginWidth, std::optional<float> marginHeight)
+bool UScaleWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
 {
-	LogUnimplemented("ScaleWindow.SetScaleMargins");
+	return UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
 }
 
-void UScaleWindow::SetScaleOrientation(uint8_t newOrientation)
+void UScaleWindow::MouseMoved(float newX, float newY)
 {
-	LogUnimplemented("ScaleWindow.SetScaleOrientation");
-}
-
-void UScaleWindow::SetScaleSounds(std::optional<UObject*> setSound, std::optional<UObject*> clickSound, std::optional<UObject*> dragSound)
-{
-	LogUnimplemented("ScaleWindow.SetScaleSounds");
-}
-
-void UScaleWindow::SetScaleStyle(uint8_t NewStyle)
-{
-	LogUnimplemented("ScaleWindow.SetScaleStyle");
-}
-
-void UScaleWindow::SetScaleTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight, std::optional<float> newStart, std::optional<float> newEnd)
-{
-	LogUnimplemented("ScaleWindow.SetScaleTexture");
-}
-
-void UScaleWindow::SetThumbBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor)
-{
-	LogUnimplemented("ScaleWindow.SetThumbBorder");
-}
-
-void UScaleWindow::SetThumbCaps(UObject* preCap, UObject* postCap, std::optional<float> preCapWidth, std::optional<float> preCapHeight, std::optional<float> postCapWidth, std::optional<float> postCapHeight)
-{
-	LogUnimplemented("ScaleWindow.SetThumbCaps");
-}
-
-void UScaleWindow::SetThumbColor(const Color& NewColor)
-{
-	LogUnimplemented("ScaleWindow.SetThumbColor");
-}
-
-void UScaleWindow::SetThumbSpan(std::optional<int> newRange)
-{
-	LogUnimplemented("ScaleWindow.SetThumbSpan");
-}
-
-void UScaleWindow::SetThumbStep(int NewStep)
-{
-	LogUnimplemented("ScaleWindow.SetThumbStep");
-}
-
-void UScaleWindow::SetThumbStyle(uint8_t NewStyle)
-{
-	LogUnimplemented("ScaleWindow.SetThumbStyle");
-}
-
-void UScaleWindow::SetThumbTexture(UObject* NewTexture, std::optional<float> newWidth, std::optional<float> NewHeight)
-{
-	LogUnimplemented("ScaleWindow.SetThumbTexture");
-}
-
-void UScaleWindow::SetTickColor(const Color& NewColor)
-{
-	LogUnimplemented("ScaleWindow.SetTickColor");
-}
-
-void UScaleWindow::SetTickPosition(int newPosition)
-{
-	LogUnimplemented("ScaleWindow.SetTickPosition");
-}
-
-void UScaleWindow::SetTickStyle(uint8_t NewStyle)
-{
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.SetTickStyle");
-}
-
-void UScaleWindow::SetTickTexture(UObject* tickTexture, std::optional<bool> bDrawEndTicks, std::optional<float> newWidth, std::optional<float> NewHeight)
-{
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.SetTickTexture");
-}
-
-void UScaleWindow::SetValue(float NewValue)
-{
-	LogUnimplemented("ScaleWindow.SetValue");
-}
-
-void UScaleWindow::SetValueFormat(const std::string& newFmt)
-{
-	LogUnimplemented("ScaleWindow.SetValueFormat");
-}
-
-void UScaleWindow::SetValueRange(float newFrom, float newTo)
-{
-	LogUnimplemented("ScaleWindow.SetValueRange");
+	UWindow::MouseMoved(newX, newY);
 }

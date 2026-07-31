@@ -20,6 +20,9 @@ public:
 	void StretchScaleField(std::optional<bool> bNewStretch);
 	void StretchValueField(std::optional<bool> bNewStretch);
 
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void ConfigurationChanged() override;
+
 	UScaleWindow*& Scale() { return Value<UScaleWindow*>(PropOffsets_ScaleManagerWindow.Scale); }
 	float& Spacing() { return Value<float>(PropOffsets_ScaleManagerWindow.Spacing); }
 	BitfieldBool bStretchScaleField() { return BoolValue(PropOffsets_ScaleManagerWindow.bStretchScaleField); }
