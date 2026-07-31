@@ -20,6 +20,8 @@ public:
 	void ShowViewportActor(std::optional<bool> bShow);
 	void ShowWeapons(std::optional<bool> bShow);
 
+	void DrawWindow(UGC* gc) override;
+
 	Color& DefaultColor() { return Value<Color>(PropOffsets_ViewportWindow.DefaultColor); }
 	UTexture*& DefaultTexture() { return Value<UTexture*>(PropOffsets_ViewportWindow.DefaultTexture); }
 	float& FOV() { return Value<float>(PropOffsets_ViewportWindow.FOV); }

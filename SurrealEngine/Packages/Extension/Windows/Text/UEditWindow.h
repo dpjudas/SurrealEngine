@@ -40,11 +40,13 @@ public:
 	void Undo();
 
 	void InitWindow() override;
+	void Tick(float timeElapsed) override;
 	void DrawWindow(UGC* gc) override;
 	bool KeyPressed(std::string key) override;
 	bool VirtualKeyPressed(EInputKey key, bool bRepeat) override;
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
 	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
+	void TextModifiedByScript() override;
 
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
 	BitfieldBool bDragging() { return BoolValue(PropOffsets_EditWindow.bDragging); }
@@ -95,4 +97,12 @@ public:
 	float& showAreaY() { return Value<float>(PropOffsets_EditWindow.showAreaY); }
 	USound*& typeSound() { return Value<USound*>(PropOffsets_EditWindow.typeSound); }
 	int& unchangedUndo() { return Value<int>(PropOffsets_EditWindow.unchangedUndo); }
+
+private:
+	void DispatchTextChanged(bool modified);
+	int FindNextBreakCharacter(int search_start);
+	int FindPreviousBreakCharacter(int search_start);
+
+	bool textChanged = false;
+	static const std::string break_characters;
 };

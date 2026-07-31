@@ -42,6 +42,13 @@ public:
 	void SetValueFormat(const std::string& newFmt);
 	void SetValueRange(float newFrom, float newTo);
 
+	void InitWindow() override;
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void DrawWindow(UGC* gc) override;
+	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
+	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
+	void MouseMoved(float newX, float newY) override;
+
 	float& RemainingTime() { return Value<float>(PropOffsets_ScaleWindow.RemainingTime); }
 	float& ThumbHeight() { return Value<float>(PropOffsets_ScaleWindow.ThumbHeight); }
 	float& ThumbWidth() { return Value<float>(PropOffsets_ScaleWindow.ThumbWidth); }
@@ -118,4 +125,14 @@ public:
 	float& tickY() { return Value<float>(PropOffsets_ScaleWindow.tickY); }
 	float& toValue() { return Value<float>(PropOffsets_ScaleWindow.toValue); }
 	std::string& valueFmt() { return Value<std::string>(PropOffsets_ScaleWindow.valueFmt); }
+
+private:
+	void DrawHorzScrollbar(UGC* gc);
+	void DrawVertScrollbar(UGC* gc);
+	void DrawHorzSlider(UGC* gc);
+	void DrawVertSlider(UGC* gc);
+	void DispatchScalePositionChanged(int newTickPosition, float newValue, bool bFinal);
+
+	Array<std::string> ticks;
+	float value = 0.0f;
 };
