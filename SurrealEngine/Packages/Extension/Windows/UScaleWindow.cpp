@@ -8,8 +8,7 @@
 
 void UScaleWindow::ClearAllEnumerations()
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ScaleWindow.ClearAllEnumerations");
+	ticks.clear();
 }
 
 void UScaleWindow::EnableStretchedScale(std::optional<bool> bNewStretch)
@@ -35,12 +34,19 @@ void UScaleWindow::SetBorderPattern(UObject* NewTexture)
 
 void UScaleWindow::SetEnumeration(int tickPos, const std::string& newStr)
 {
-	LogUnimplemented("ScaleWindow.SetEnumeration");
+	if (tickPos < 0)
+	{
+		LogMessage("Negative tickPos value passed to ScaleWindow.SetEnumeration");
+		return;
+	}
+	if (ticks.size() <= (size_t)tickPos)
+		ticks.resize(tickPos + 1);
+	ticks[tickPos] = newStr;
 }
 
 void UScaleWindow::SetNumTicks(int newNumTicks)
 {
-	LogUnimplemented("ScaleWindow.SetNumTicks");
+	ticks.resize(newNumTicks);
 }
 
 void UScaleWindow::SetScaleBorder(std::optional<float> newBorderSize, std::optional<Color> NewColor)
@@ -189,26 +195,31 @@ void UScaleWindow::SetValueRange(float newFrom, float newTo)
 
 void UScaleWindow::SetTickPosition(int newPosition)
 {
-	LogUnimplemented("ScaleWindow.SetTickPosition");
+	float t = !ticks.empty() ? newPosition / (float)(ticks.size() - 1) : 0.0f;
+	SetValue(mix(fromValue(), toValue(), t));
 }
 
 void UScaleWindow::SetValue(float NewValue)
 {
-	LogUnimplemented("ScaleWindow.SetValue");
+	value = std::clamp(NewValue, fromValue(), toValue());
+	DispatchScalePositionChanged(GetTickPosition(), GetValue(), true);
 }
 
 void UScaleWindow::MoveThumb(uint8_t MoveThumb)
 {
-	LogUnimplemented("ScaleWindow.MoveThumb");
 	switch ((EMoveThumb)MoveThumb)
 	{
 	case EMoveThumb::Home:
+		SetTickPosition(0);
 		break;
 	case EMoveThumb::End:
+		SetTickPosition(std::max(GetNumTicks() - 1, 0));
 		break;
 	case EMoveThumb::Prev:
+		SetTickPosition(std::max(GetTickPosition() - 1, 0));
 		break;
 	case EMoveThumb::Next:
+		SetTickPosition(std::min(GetTickPosition() + 1, std::max(GetNumTicks() - 1, 0)));
 		break;
 	case EMoveThumb::StepUp:
 		break;
@@ -228,26 +239,28 @@ int UScaleWindow::GetThumbSpan()
 
 int UScaleWindow::GetNumTicks()
 {
-	LogUnimplemented("ScaleWindow.GetNumTicks");
-	return 0;
+	return (int)ticks.size();
 }
 
 int UScaleWindow::GetTickPosition()
 {
-	LogUnimplemented("ScaleWindow.GetTickPosition");
-	return 0;
+	if (ticks.empty())
+		return 0;
+	float t = (value - fromValue()) / (toValue() - fromValue());
+	return (int)std::round(t * (ticks.size() - 1.0f));
 }
 
 float UScaleWindow::GetValue()
 {
-	LogUnimplemented("ScaleWindow.GetValue");
-	return 0.0f;
+	return value;
 }
 
 std::string UScaleWindow::GetValueString()
 {
-	LogUnimplemented("ScaleWindow.GetValueString");
-	return "";
+	int tickPosition = GetTickPosition();
+	if ((size_t)tickPosition >= ticks.size())
+		return "";
+	return ticks[tickPosition];
 }
 
 void UScaleWindow::InitWindow()
@@ -335,7 +348,8 @@ void UScaleWindow::DrawVertScrollbar(UGC* gc)
 
 void UScaleWindow::DrawHorzSlider(UGC* gc)
 {
-	float x = 100.0f;
+	float t = GetNumTicks() > 0 ? GetTickPosition() / (float)(GetNumTicks() - 1) : 0.0f;
+	float x = startOffset() + t * (Width() - startOffset() - endOffset());
 	if (auto tex = thumbTexture())
 	{
 		gc->SetTileColor(thumbColor());
@@ -346,7 +360,8 @@ void UScaleWindow::DrawHorzSlider(UGC* gc)
 
 void UScaleWindow::DrawVertSlider(UGC* gc)
 {
-	float y = 10.0f;
+	float t = GetNumTicks() > 0 ? GetTickPosition() / (float)(GetNumTicks() - 1) : 0.0f;
+	float y = startOffset() + t * (Height() - startOffset() - endOffset());
 	if (auto tex = thumbTexture())
 	{
 		gc->SetTileColor(thumbColor());
@@ -357,6 +372,7 @@ void UScaleWindow::DrawVertSlider(UGC* gc)
 
 bool UScaleWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
+	SetFocusWindow(this);
 	return UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
 }
 
@@ -368,4 +384,13 @@ bool UScaleWindow::MouseButtonReleased(float pointX, float pointY, EInputKey but
 void UScaleWindow::MouseMoved(float newX, float newY)
 {
 	UWindow::MouseMoved(newX, newY);
+}
+
+void UScaleWindow::DispatchScalePositionChanged(int newTickPosition, float newValue, bool bFinal)
+{
+	for (UWindow* cur = this; cur != nullptr; cur = cur->parentOwner())
+	{
+		if (cur->ScalePositionChanged(this, newTickPosition, newValue, bFinal))
+			break;
+	}
 }

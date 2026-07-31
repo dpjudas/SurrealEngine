@@ -131,4 +131,8 @@ private:
 	void DrawVertScrollbar(UGC* gc);
 	void DrawHorzSlider(UGC* gc);
 	void DrawVertSlider(UGC* gc);
+	void DispatchScalePositionChanged(int newTickPosition, float newValue, bool bFinal);
+
+	Array<std::string> ticks;
+	float value = 0.0f;
 };
