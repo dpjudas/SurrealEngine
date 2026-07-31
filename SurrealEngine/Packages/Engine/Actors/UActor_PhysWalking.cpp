@@ -10,6 +10,34 @@
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Engine.h"
 
+bool UActor::shouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta)
+{
+	//check if we can still walk, if so, nothing changes
+	if(TryStepToGround(stepDownDelta))
+	{
+		return false;
+	}
+
+	if (pawn->bCanJump())
+	{
+		CallEvent(this, EventName::MayFall);
+
+		//the pawn decides to not jump over the ledge,
+		//stop imediately and backtrack
+		if (!pawn->bCanJump())
+		{
+			Velocity() = vec3(0.0f);
+			Acceleration() = vec3(0.0f);
+			TryMove(oldPosition - Location());
+			return true;
+		}
+	}
+
+	SetPhysics(PHYS_Falling);
+	SetBase(nullptr, true);
+	return false;
+}
+
 void UActor::TickWalking(float elapsed)
 {
 	// Only pawns can walk!
@@ -42,6 +70,9 @@ void UActor::TickWalking(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 
+	//old position for tracking
+	vec3 oldPosition = Location();
+
 	//included Z in check - if its not 0 due to Zone properties, no action would have been taken previously
 	//could lead to latend bugs
 	if (length(vel) > 0)
@@ -63,15 +94,30 @@ void UActor::TickWalking(float elapsed)
 			timeLeft -= timeLeft * hit.Fraction;
 			moveDelta = vel * timeLeft;
 
+			//check for fall and backtrack
+			if(shouldAbortJumping(pawn, oldPosition, stepDownDelta)) return;
+
+
 			// if hit, step up and try again - maybe there was a ledge to get over
 			if (hit.Fraction < 1.0f)
 			{
 				TryMove(stepUpDelta);
+				oldPosition = Location();
 				hit = TryMove(moveDelta);
 				timeLeft -= timeLeft * hit.Fraction;
+
+				//check for fall and backtrack
+				if(shouldAbortJumping(pawn, oldPosition, stepDownDelta*2.0f))
+				{
+					TryMove(-stepUpDelta);
+					return;
+				}
+
 				// move back down to original vertical position
 				TryMove(-stepUpDelta);
 			}
+
+			oldPosition = Location();
 
 			if (hit.Fraction < 1.0f)
 			{
@@ -115,9 +161,8 @@ void UActor::TickWalking(float elapsed)
 				}
 			}
 
-			// Can we reach the ground from here if we step down?
-			if (!TryStepToGround(stepDownDelta))
-				return;
+			//check for fall and backtrack
+			if(shouldAbortJumping(pawn, oldPosition, stepDownDelta)) return;
 		}
 	}
 	else
