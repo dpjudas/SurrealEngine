@@ -6,7 +6,11 @@ struct UDXInitialAllianceInfo
 {
 	NameString AllianceName;
 	float AllianceLevel;
-	BitfieldBool bPermanent;
+	union
+	{
+		uint32_t bPermanent : 1;
+		uint32_t flags;
+	};
 };
 
 struct UDXInitialAllianceInfoEx
@@ -14,7 +18,11 @@ struct UDXInitialAllianceInfoEx
 	NameString AllianceName;
 	float AllianceLevel;
 	float AllianceAgitation;
-	BitfieldBool bPermanent;
+	union
+	{
+		uint32_t bPermanent : 1;
+		uint32_t flags;
+	};
 };
 
 class UScriptedPawn : public UPawn
