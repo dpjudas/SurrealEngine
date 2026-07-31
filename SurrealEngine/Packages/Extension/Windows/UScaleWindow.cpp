@@ -210,24 +210,20 @@ void UScaleWindow::MoveThumb(uint8_t MoveThumb)
 	switch ((EMoveThumb)MoveThumb)
 	{
 	case EMoveThumb::Home:
+	case EMoveThumb::PageUp:
 		SetTickPosition(0);
 		break;
 	case EMoveThumb::End:
+	case EMoveThumb::PageDown:
 		SetTickPosition(std::max(GetNumTicks() - 1, 0));
 		break;
+	case EMoveThumb::StepUp:
 	case EMoveThumb::Prev:
 		SetTickPosition(std::max(GetTickPosition() - 1, 0));
 		break;
+	case EMoveThumb::StepDown:
 	case EMoveThumb::Next:
 		SetTickPosition(std::min(GetTickPosition() + 1, std::max(GetNumTicks() - 1, 0)));
-		break;
-	case EMoveThumb::StepUp:
-		break;
-	case EMoveThumb::StepDown:
-		break;
-	case EMoveThumb::PageUp:
-		break;
-	case EMoveThumb::PageDown:
 		break;
 	}
 }
@@ -373,12 +369,14 @@ void UScaleWindow::DrawVertSlider(UGC* gc)
 bool UScaleWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
 	SetFocusWindow(this);
-	return UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
+	UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
+	return true;
 }
 
 bool UScaleWindow::MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks)
 {
-	return UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
+	UWindow::MouseButtonPressed(pointX, pointY, button, numClicks);
+	return true;
 }
 
 void UScaleWindow::MouseMoved(float newX, float newY)
