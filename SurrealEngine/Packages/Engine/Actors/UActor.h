@@ -414,9 +414,10 @@ public:
 	UPawn* PreparePawnMovementTick();
 	// Fires the HitWall event with the actor/level that was hit - used by every movement tick function.
 	void FireHitWall(const CollisionHit& hit);
-	// Dry-runs stepDownDelta to see if the ground is still reachable; steps down onto it and sets Base
-	// if so (returns true), or switches to PHYS_Falling and clears Base if not (returns false).
+	// Steps onto the ground if able, if not (would be falling) retuns false without moving
 	bool TryStepToGround(vec3 stepDownDelta);
+
+	bool shouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta);
 	// Recovers Velocity from actual displacement over the tick, unless bJustTeleported was set (which
 	// makes the displacement meaningless as a velocity source).
 	void RecomputeVelocityFromDisplacement(float elapsed);

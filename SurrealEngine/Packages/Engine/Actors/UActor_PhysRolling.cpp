@@ -46,7 +46,12 @@ void UActor::TickRolling(float elapsed)
 	vec3 stepDownDelta(0.0f, 0.0f, gravityDirection * stepHeightRatio * CollisionHeight() * stepDownDeltaFactor);
 
 	// Can we reach the ground from here?
-	TryStepToGround(stepDownDelta);
+	if(!TryStepToGround(stepDownDelta))
+	{
+		SetPhysics(PHYS_Falling);
+		SetBase(nullptr, true);
+	}
+
 
 	RecomputeVelocityFromDisplacement(elapsed);
 }

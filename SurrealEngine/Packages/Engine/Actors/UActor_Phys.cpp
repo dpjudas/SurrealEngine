@@ -226,14 +226,15 @@ void UActor::FireHitWall(const CollisionHit& hit)
 	CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 }
 
+
 bool UActor::TryStepToGround(vec3 stepDownDelta)
 {
 	CollisionHit floorHit = TryMove(stepDownDelta, true);
+
+	//check if floo was reached, or if we would be falling now
 	if (floorHit.Fraction == 1.0f || floorHit.Normal.z < 0.7071f)
 	{
-		// No we couldn't. We are falling
-		SetPhysics(PHYS_Falling);
-		SetBase(nullptr, true);
+		//if we would be falling, move back up
 		return false;
 	}
 
