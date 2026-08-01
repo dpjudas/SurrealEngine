@@ -128,6 +128,7 @@ void UCheckboxWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& 
 bool UCheckboxWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
 	// Should we capture the mouse here?
+	SetFocusWindow(this);
 	return true;
 }
 

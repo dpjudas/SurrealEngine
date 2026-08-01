@@ -142,6 +142,8 @@ void UButtonWindow::MouseMoved(float newX, float newY)
 
 bool UButtonWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
+	SetFocusWindow(this);
+
 	if (UTextWindow::MouseButtonPressed(pointX, pointY, button, numClicks))
 		return true;
 

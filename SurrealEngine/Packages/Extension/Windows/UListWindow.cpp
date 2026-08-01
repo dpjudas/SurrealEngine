@@ -573,6 +573,8 @@ void UListWindow::DrawWindow(UGC* gc)
 
 bool UListWindow::MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks)
 {
+	SetFocusWindow(this);
+
 	if (UWindow::MouseButtonPressed(pointX, pointY, button, numClicks))
 		return true;
 
