@@ -13,6 +13,7 @@ public:
 	void InitWindow() override;
 	void ConfigurationChanged() override;
 	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
+	void DrawWindow(UGC* gc) override;
 
 	void AutoHideScrollbars(std::optional<bool> bHide);
 	void EnableScrolling(std::optional<bool> bHScrolling, std::optional<bool> bVScrolling);

@@ -302,8 +302,14 @@ void UScaleWindow::DrawWindow(UGC* gc)
 
 void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 {
-	float t0 = 0.25f;
-	float t1 = 0.75f;
+	float t0 = 0.0f;
+	float t1 = 1.0f;
+	if (fromValue() < toValue())
+	{
+		t0 = (value - fromValue()) / (toValue() - fromValue() + spanRange());
+		t1 = t0 + spanRange() / (toValue() - fromValue() + spanRange());
+	}
+
 	float w = Width() - preCapWidth() - postCapWidth();
 	float x0 = preCapWidth() + w * t0;
 	float x1 = preCapWidth() + w * t1;
@@ -325,8 +331,14 @@ void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 
 void UScaleWindow::DrawVertScrollbar(UGC* gc)
 {
-	float t0 = 0.25f;
-	float t1 = 0.75f;
+	float t0 = 0.0f;
+	float t1 = 1.0f;
+	if (fromValue() < toValue())
+	{
+		t0 = (value - fromValue()) / (toValue() - fromValue() + spanRange());
+		t1 = t0 + spanRange() / (toValue() - fromValue() + spanRange());
+	}
+
 	float h = Height() - preCapHeight() - postCapHeight();
 	float y0 = preCapHeight() + h * t0;
 	float y1 = preCapHeight() + h * t1;

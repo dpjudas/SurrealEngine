@@ -32,7 +32,7 @@ void UClipWindow::ConfigurationChanged()
 			w = child->QueryPreferredWidth(h);
 		else if (!bForceChildWidth() && !bForceChildHeight())
 			child->QueryPreferredSize(w, h);
-		child->ConfigureChild(ChildPos.x, ChildPos.y, Width(), Height());
+		child->ConfigureChild(ChildPos.x, ChildPos.y, w, h);
 	}
 
 	UTabGroupWindow::ConfigurationChanged();

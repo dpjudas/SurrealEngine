@@ -21,6 +21,7 @@ void UScrollAreaWindow::InitWindow()
 	RightButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 	UpButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 
+	ClipWindow()->ForceChildSize(false, false);
 	hScale()->SetScaleOrientation((uint8_t)EOrientation::Horizontal);
 	vScale()->SetScaleOrientation((uint8_t)EOrientation::Vertical);
 	hScaleMgr()->SetScale(hScale());
@@ -59,6 +60,25 @@ void UScrollAreaWindow::ConfigurationChanged()
 	RightButton()->SetPos(Width() - rightW - vScrollWidth, Height() - rightH);
 
 	UWindow::ConfigurationChanged();
+}
+
+void UScrollAreaWindow::DrawWindow(UGC* gc)
+{
+	// We are doing this here because we can't do it in ConfigurationChanged. The child configuration events are deferred.
+	// We don't know the final layout of the child window until now.
+	if (auto content = UObject::Cast<UWindow>(ClipWindow()->GetChild()))
+	{
+		int childX = 0, childY = 0;
+		ClipWindow()->GetChildPosition(childX, childY);
+		hScale()->SetThumbSpan((int)ClipWindow()->Width());
+		hScale()->SetValueRange(0.0f, std::max(content->Width() - ClipWindow()->Width(), 0.0f));
+		hScale()->SetValue((float)childX);
+		vScale()->SetThumbSpan((int)ClipWindow()->Height());
+		vScale()->SetValueRange(0.0f, std::max(content->Height() - ClipWindow()->Height(), 0.0f));
+		vScale()->SetValue((float)childY);
+	}
+
+	UWindow::DrawWindow(gc);
 }
 
 void UScrollAreaWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
@@ -104,6 +124,7 @@ void UScrollAreaWindow::EnableScrolling(std::optional<bool> bHScrolling, std::op
 		UpButton()->bIsVisible() = show;
 		DownButton()->bIsVisible() = show;
 	}
+	ClipWindow()->ForceChildSize(!hScaleMgr()->bIsVisible(), !vScaleMgr()->bIsVisible());
 	AskParentForReconfigure();
 }
 
