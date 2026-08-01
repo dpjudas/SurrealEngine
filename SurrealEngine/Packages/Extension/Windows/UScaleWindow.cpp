@@ -302,45 +302,47 @@ void UScaleWindow::DrawWindow(UGC* gc)
 
 void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 {
-	return; // To do fix this
+	float t0 = 0.25f;
+	float t1 = 0.75f;
+	float w = Width() - preCapWidth() - postCapWidth();
+	float x0 = preCapWidth() + w * t0;
+	float x1 = preCapWidth() + w * t1;
 	gc->SetTileColor(thumbColor());
 	gc->SetStyle((EDrawStyle)thumbStyle());
-	float x = 10.0f;
 	if (auto tex = preCapTexture())
 	{
-		gc->DrawStretchedTexture(x, 0.0f, preCapWidth(), Height(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
-		x += preCapWidth();
+		gc->DrawStretchedTexture(x0 - preCapWidth(), (Height() - preCapHeight()) * 0.5f, preCapWidth(), preCapHeight(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
 	}
 	if (auto tex = thumbTexture())
 	{
-		gc->DrawStretchedTexture(x, 0.0f, ThumbWidth(), Height(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
-		x += ThumbWidth();
+		gc->DrawPattern(x0, (Height() - ThumbHeight()) * 0.5f, x1 - x0, ThumbHeight(), 0.0f, 0.0f, tex);
 	}
 	if (auto tex = postCapTexture())
 	{
-		gc->DrawStretchedTexture(x, 0.0f, postCapWidth(), Height(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
+		gc->DrawStretchedTexture(x1, (Height() - postCapHeight()) * 0.5f, postCapWidth(), postCapHeight(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
 	}
 }
 
 void UScaleWindow::DrawVertScrollbar(UGC* gc)
 {
-	return; // To do fix this
+	float t0 = 0.25f;
+	float t1 = 0.75f;
+	float h = Height() - preCapHeight() - postCapHeight();
+	float y0 = preCapHeight() + h * t0;
+	float y1 = preCapHeight() + h * t1;
 	gc->SetTileColor(thumbColor());
 	gc->SetStyle((EDrawStyle)thumbStyle());
-	float y = 10.0f;
 	if (auto tex = preCapTexture())
 	{
-		gc->DrawStretchedTexture(0.0f, y, Width(), preCapHeight(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
-		y += preCapHeight();
+		gc->DrawStretchedTexture((Width() - preCapWidth()) * 0.5f, y0 - preCapHeight(), preCapWidth(), preCapHeight(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
 	}
 	if (auto tex = thumbTexture())
 	{
-		gc->DrawStretchedTexture(0.0f, y, Width(), ThumbHeight(), 0.0f, 0.0f, ThumbWidth(), ThumbHeight(), tex);
-		y += ThumbHeight();
+		gc->DrawPattern((Width() - ThumbWidth()) * 0.5f, y0, ThumbWidth(), y1 - y0, 0.0f, 0.0f, tex);
 	}
 	if (auto tex = postCapTexture())
 	{
-		gc->DrawStretchedTexture(0.0f, y, Width(), postCapHeight(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
+		gc->DrawStretchedTexture((Width() - postCapWidth()) * 0.5f, y1, postCapWidth(), postCapHeight(), 0.0f, 0.0f, postCapWidth(), postCapHeight(), tex);
 	}
 }
 

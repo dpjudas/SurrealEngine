@@ -21,6 +21,8 @@ void UScrollAreaWindow::InitWindow()
 	RightButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 	UpButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 
+	hScale()->SetScaleOrientation((uint8_t)EOrientation::Horizontal);
+	vScale()->SetScaleOrientation((uint8_t)EOrientation::Vertical);
 	hScaleMgr()->SetScale(hScale());
 	vScaleMgr()->SetScale(vScale());
 
@@ -29,9 +31,7 @@ void UScrollAreaWindow::InitWindow()
 
 void UScrollAreaWindow::ConfigurationChanged()
 {
-	float vScrollWidth = vScaleMgr()->bIsVisible() ? 16.0f : 0.0f;// vScale()->ThumbWidth();
-	float hScrollHeight = hScaleMgr()->bIsVisible() ? 16.0f : 0.0f;// hScale()->ThumbHeight();
-
+	float vScrollWidth = 0.0f, hScrollHeight = 0.0f;
 	float upW = 0.0f, upH = 0.0f;
 	float downW = 0.0f, downH = 0.0f;
 	float leftW = 0.0f, leftH = 0.0f;
@@ -40,11 +40,13 @@ void UScrollAreaWindow::ConfigurationChanged()
 	{
 		UpButton()->QueryPreferredSize(upW, upH);
 		DownButton()->QueryPreferredSize(downW, downH);
+		vScrollWidth = upW;
 	}
 	if (hScaleMgr()->bIsVisible())
 	{
 		LeftButton()->QueryPreferredSize(leftW, leftH);
 		RightButton()->QueryPreferredSize(rightW, rightH);
+		hScrollHeight = leftH;
 	}
 
 	ClipWindow()->ConfigureChild(0.0f, 0.0f, Width() - vScrollWidth, Height() - hScrollHeight);
