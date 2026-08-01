@@ -37,4 +37,7 @@ public:
 	int& prefHUnits() { return Value<int>(PropOffsets_ClipWindow.prefHUnits); }
 	int& prefVUnits() { return Value<int>(PropOffsets_ClipWindow.prefVUnits); }
 	float& vMult() { return Value<float>(PropOffsets_ClipWindow.vMult); }
+
+private:
+	vec2 ChildPos = { 0.0f, 0.0f };
 };

@@ -12,64 +12,97 @@
 void UScrollAreaWindow::InitWindow()
 {
 	ClipWindow() = UObject::Cast<UClipWindow>(NewChild(engine->packages->FindClass("Extension.ClipWindow")));
-	hScale() = UObject::Cast<UScaleWindow>(NewChild(engine->packages->FindClass("Extension.ScaleWindow")));
-	vScale() = UObject::Cast<UScaleWindow>(NewChild(engine->packages->FindClass("Extension.ScaleWindow")));
 	hScaleMgr() = UObject::Cast<UScaleManagerWindow>(NewChild(engine->packages->FindClass("Extension.ScaleManagerWindow")));
 	vScaleMgr() = UObject::Cast<UScaleManagerWindow>(NewChild(engine->packages->FindClass("Extension.ScaleManagerWindow")));
+	hScale() = UObject::Cast<UScaleWindow>(hScaleMgr()->NewChild(engine->packages->FindClass("Extension.ScaleWindow")));
+	vScale() = UObject::Cast<UScaleWindow>(vScaleMgr()->NewChild(engine->packages->FindClass("Extension.ScaleWindow")));
 	DownButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 	LeftButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 	RightButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 	UpButton() = UObject::Cast<UButtonWindow>(NewChild(engine->packages->FindClass("Extension.ButtonWindow")));
 
-	ClipWindow()->bIsVisible() = true;
-	hScale()->bIsVisible() = false;
-	vScale()->bIsVisible() = false;
-	hScaleMgr()->bIsVisible() = false;
-	vScaleMgr()->bIsVisible() = false;
-	DownButton()->bIsVisible() = false;
-	LeftButton()->bIsVisible() = false;
-	RightButton()->bIsVisible() = false;
-	UpButton()->bIsVisible() = false;
+	hScaleMgr()->SetScale(hScale());
+	vScaleMgr()->SetScale(vScale());
 
 	UWindow::InitWindow();
 }
 
 void UScrollAreaWindow::ConfigurationChanged()
 {
-	// To do: position the scrollbars (is that scalemgr or scale?), the scroll buttons and clip window properly
-	// To do: how is the size of the clip window determined?
+	float vScrollWidth = vScaleMgr()->bIsVisible() ? 16.0f : 0.0f;// vScale()->ThumbWidth();
+	float hScrollHeight = hScaleMgr()->bIsVisible() ? 16.0f : 0.0f;// hScale()->ThumbHeight();
 
-	ClipWindow()->ConfigureChild(0.0f, 0.0f, Width(), Height());
+	float upW = 0.0f, upH = 0.0f;
+	float downW = 0.0f, downH = 0.0f;
+	float leftW = 0.0f, leftH = 0.0f;
+	float rightW = 0.0f, rightH = 0.0f;
+	if (vScaleMgr()->bIsVisible())
+	{
+		UpButton()->QueryPreferredSize(upW, upH);
+		DownButton()->QueryPreferredSize(downW, downH);
+	}
+	if (hScaleMgr()->bIsVisible())
+	{
+		LeftButton()->QueryPreferredSize(leftW, leftH);
+		RightButton()->QueryPreferredSize(rightW, rightH);
+	}
+
+	ClipWindow()->ConfigureChild(0.0f, 0.0f, Width() - vScrollWidth, Height() - hScrollHeight);
+	hScaleMgr()->ConfigureChild(leftW, Height() - hScrollHeight, Width() - leftW - rightW, hScrollHeight);
+	vScaleMgr()->ConfigureChild(Width() - vScrollWidth, upH, vScrollWidth, Height() - upH - downH);
+
+	UpButton()->SetPos(Width() - upW, 0.0f);
+	DownButton()->SetPos(Width() - downW, Height() - hScrollHeight - downH);
+	LeftButton()->SetPos(0.0f, Height() - leftH);
+	RightButton()->SetPos(Width() - rightW - vScrollWidth, Height() - rightH);
+
 	UWindow::ConfigurationChanged();
 }
 
 void UScrollAreaWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
 {
-	// To do: have to take the scrollbars into account
+	float vScrollWidth = vScale()->ThumbWidth();
+	float hScrollHeight = hScale()->ThumbHeight();
 
 	if (!bWidthSpecified && !bHeightSpecified)
 	{
 		ClipWindow()->QueryPreferredSize(preferredWidth, preferredHeight);
+		preferredWidth += hScrollHeight;
+		preferredHeight += vScrollWidth;
 	}
 	else if (!bWidthSpecified)
 	{
-		ClipWindow()->QueryPreferredWidth(preferredHeight);
+		preferredWidth = ClipWindow()->QueryPreferredWidth(preferredHeight - hScrollHeight) + hScrollHeight;
 	}
 	else // if (!bHeightSpecified)
 	{
-		ClipWindow()->QueryPreferredHeight(preferredWidth);
+		preferredHeight = ClipWindow()->QueryPreferredHeight(preferredWidth - vScrollWidth) + vScrollWidth;
 	}
 }
 
 void UScrollAreaWindow::AutoHideScrollbars(std::optional<bool> bHide)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ScrollAreaWindow.AutoHideScrollbars");
+	bHideScrollbars() = bHide ? *bHide : true;
+	AskParentForReconfigure();
 }
 
 void UScrollAreaWindow::EnableScrolling(std::optional<bool> bHScrolling, std::optional<bool> bVScrolling)
 {
-	LogUnimplemented("ScrollAreaWindow.EnableScrolling");
+	if (bHScrolling)
+	{
+		bool show = *bHScrolling;
+		hScaleMgr()->bIsVisible() = show;
+		LeftButton()->bIsVisible() = show;
+		RightButton()->bIsVisible() = show;
+	}
+	if (bVScrolling)
+	{
+		bool show = *bVScrolling;
+		vScaleMgr()->bIsVisible() = show;
+		UpButton()->bIsVisible() = show;
+		DownButton()->bIsVisible() = show;
+	}
+	AskParentForReconfigure();
 }
 
 void UScrollAreaWindow::SetAreaMargins(float newMarginWidth, float newMarginHeight)

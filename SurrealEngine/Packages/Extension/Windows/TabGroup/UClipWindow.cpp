@@ -23,23 +23,27 @@ void UClipWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 
 void UClipWindow::ConfigurationChanged()
 {
-	for (auto cur = firstChild(); cur; cur = cur->nextSibling())
+	if (auto child = UObject::Cast<UWindow>(GetChild()))
 	{
-		cur->ConfigureChild(0.0f, 0.0f, Width(), Height());
+		float w = Width(), h = Height();
+		if (bForceChildWidth() && !bForceChildHeight())
+			h = child->QueryPreferredHeight(w);
+		else if (!bForceChildWidth() && bForceChildHeight())
+			w = child->QueryPreferredWidth(h);
+		else if (!bForceChildWidth() && !bForceChildHeight())
+			child->QueryPreferredSize(w, h);
+		child->ConfigureChild(ChildPos.x, ChildPos.y, Width(), Height());
 	}
 
 	UTabGroupWindow::ConfigurationChanged();
 }
 
-void UClipWindow::EnableSnapToUnits(std::optional<bool> bNewSnapToUnits)
-{
-	// UNUSED from scripts.
-	LogUnimplemented("ClipWindow.EnableSnapToUnits");
-}
-
 void UClipWindow::ForceChildSize(std::optional<bool> bNewForceChildWidth, std::optional<bool> bNewForceChildHeight)
 {
-	LogUnimplemented("ClipWindow.ForceChildSize");
+	if (bNewForceChildWidth)
+		bForceChildWidth() = *bNewForceChildWidth;
+	if (bNewForceChildHeight)
+		bForceChildHeight() = *bNewForceChildHeight;
 }
 
 UObject* UClipWindow::GetChild()
@@ -50,11 +54,33 @@ UObject* UClipWindow::GetChild()
 
 void UClipWindow::GetChildPosition(int& pNewX, int& pNewY)
 {
-	LogUnimplemented("ClipWindow.GetChildPosition");
+	if (auto child = UObject::Cast<UWindow>(GetChild()))
+	{
+		pNewX = (int)std::round(ChildPos.x);
+		pNewY = (int)std::round(ChildPos.y);
+	}
+	else
+	{
+		pNewX = 0;
+		pNewY = 0;
+	}
+}
+
+void UClipWindow::SetChildPosition(int newX, int newY)
+{
+	ChildPos.x = (float)newX;
+	ChildPos.y = (float)newY;
+}
+
+void UClipWindow::EnableSnapToUnits(std::optional<bool> bNewSnapToUnits)
+{
+	// UNUSED from scripts.
+	LogUnimplemented("ClipWindow.EnableSnapToUnits");
 }
 
 void UClipWindow::GetUnitSize(int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize)
 {
+	// UNUSED from scripts.
 	LogUnimplemented("ClipWindow.GetUnitSize");
 }
 
@@ -74,11 +100,6 @@ void UClipWindow::ResetUnitWidth()
 {
 	// UNUSED by scripts.
 	LogUnimplemented("ClipWindow.ResetUnitWidth");
-}
-
-void UClipWindow::SetChildPosition(int newX, int newY)
-{
-	LogUnimplemented("ClipWindow.SetChildPosition");
 }
 
 void UClipWindow::SetUnitHeight(int vUnits)

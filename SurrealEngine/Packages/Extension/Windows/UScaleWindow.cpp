@@ -302,6 +302,7 @@ void UScaleWindow::DrawWindow(UGC* gc)
 
 void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 {
+	return; // To do fix this
 	gc->SetTileColor(thumbColor());
 	gc->SetStyle((EDrawStyle)thumbStyle());
 	float x = 10.0f;
@@ -323,9 +324,10 @@ void UScaleWindow::DrawHorzScrollbar(UGC* gc)
 
 void UScaleWindow::DrawVertScrollbar(UGC* gc)
 {
+	return; // To do fix this
 	gc->SetTileColor(thumbColor());
 	gc->SetStyle((EDrawStyle)thumbStyle());
-	float y = 100.0f;
+	float y = 10.0f;
 	if (auto tex = preCapTexture())
 	{
 		gc->DrawStretchedTexture(0.0f, y, Width(), preCapHeight(), 0.0f, 0.0f, preCapWidth(), preCapHeight(), tex);
