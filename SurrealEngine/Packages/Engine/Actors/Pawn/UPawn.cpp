@@ -976,7 +976,7 @@ void UPawn::UpdateActorZone()
 	PointRegion newfootregion = FindRegion({ 0.0f, 0.0f, -CollisionHeight() });
 	if (oldfootregion.Zone && oldfootregion.Zone != newfootregion.Zone)
 	{
-		CallEvent(oldfootregion.Zone, EventName::FootZoneChange, { ExpressionValue::ObjectValue(this) });
+		CallEvent(this, EventName::FootZoneChange, { ExpressionValue::ObjectValue(newfootregion.Zone) });
 		if (newfootregion.Zone && newfootregion.Zone->bPainZone())
 		{
 			// Pain zones, such as lava and slime, should immediately start hurting the pawn upon entering,
@@ -992,7 +992,7 @@ void UPawn::UpdateActorZone()
 	PointRegion newheadregion = FindRegion({ 0.0f, 0.0f, EyeHeight() });
 	if (oldheadregion.Zone && oldheadregion.Zone != newheadregion.Zone)
 	{
-		CallEvent(oldheadregion.Zone, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(this) });
+		CallEvent(this, EventName::HeadZoneChange, { ExpressionValue::ObjectValue(newheadregion.Zone) });
 
 		if (newheadregion.Zone && newheadregion.Zone->bWaterZone() && !newheadregion.Zone->bPainZone())
 		{
