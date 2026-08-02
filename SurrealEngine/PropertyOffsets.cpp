@@ -270,6 +270,20 @@ static void InitPropertyOffsets_Pawn(PackageManager* packages)
 		PropOffsets_Pawn.Alliance = cls->GetPropertyDataOffset("Alliance");
 		PropOffsets_Pawn.AIAddViewRotation = cls->GetPropertyDataOffset("AIAddViewRotation");
 	}
+	
+	if (packages->IsUnreal1_227())
+	{
+		PropOffsets_Pawn.BleedingActor = cls->GetPropertyDataOffset("BleedingActor");
+		PropOffsets_Pawn.bIsBleeding = cls->GetPropertyDataOffset("bIsBleeding");
+		PropOffsets_Pawn.SightDistanceMulti = cls->GetPropertyDataOffset("SightDistanceMulti");
+		PropOffsets_Pawn.SightCheckType = cls->GetPropertyDataOffset("SightCheckType");
+		PropOffsets_Pawn.SerpentineDist = cls->GetPropertyDataOffset("SerpentineDist");
+		PropOffsets_Pawn.SerpentineTime = cls->GetPropertyDataOffset("SerpentineTime");
+		PropOffsets_Pawn.MovementStart = cls->GetPropertyDataOffset("MovementStart");
+		PropOffsets_Pawn.bIsCrawler = cls->GetPropertyDataOffset("bIsCrawler");
+		PropOffsets_Pawn.HuntOffDistance = cls->GetPropertyDataOffset("HuntOffDistance");
+		PropOffsets_Pawn.bDoAutoSerpentine = cls->GetPropertyDataOffset("bDoAutoSerpentine");
+	}
 }
 
 PropertyOffsets_Actor PropOffsets_Actor;

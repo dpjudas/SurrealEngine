@@ -217,6 +217,7 @@ public:
 	UPawn*& noise2other() { return Value<UPawn*>(PropOffsets_Pawn.noise2other); }
 	vec3& noise2spot() { return Value<vec3>(PropOffsets_Pawn.noise2spot); }
 	float& noise2time() { return Value<float>(PropOffsets_Pawn.noise2time); }
+
 	// Deus Ex exclusive properties
 	BitfieldBool bCanGlide() { return BoolValue(PropOffsets_Pawn.bCanGlide); }
 	int& HealthHead() { return Value<int>(PropOffsets_Pawn.HealthHead); }
@@ -240,6 +241,18 @@ public:
 	float& SmellThreshold() { return Value<float>(PropOffsets_Pawn.SmellThreshold); }
 	NameString Alliance() { return Value<NameString>(PropOffsets_Pawn.Alliance); }
 	Rotator& AIAddViewRotation() { return Value<Rotator>(PropOffsets_Pawn.AIAddViewRotation); }
+
+	//Unreal 227 exclusive properties
+	UActor*& BleedingActor() { return Value<UActor*>(PropOffsets_Pawn.BleedingActor); }
+	BitfieldBool bIsBleeding() { return BoolValue(PropOffsets_Pawn.bIsBleeding); }
+	float& SightDistanceMulti() { return Value<float>(PropOffsets_Pawn.SightDistanceMulti); }
+	EPawnSightCheck SightCheckType() { return static_cast<EPawnSightCheck>(Value<uint8_t>(PropOffsets_Pawn.SightCheckType)); }
+	float& SerpentineDist() { return Value<float>(PropOffsets_Pawn.SerpentineDist); }
+	float& SerpentineTime() { return Value<float>(PropOffsets_Pawn.SerpentineTime); }
+	vec3& MovementStart() { return Value<vec3>(PropOffsets_Pawn.MovementStart); }
+	BitfieldBool bIsCrawler() { return BoolValue(PropOffsets_Pawn.bIsCrawler); }
+	float& HuntOffDistance() { return Value<float>(PropOffsets_Pawn.HuntOffDistance); }
+	BitfieldBool bDoAutoSerpentine() { return BoolValue(PropOffsets_Pawn.bDoAutoSerpentine); }
 
 private:
 	bool IsInPathSpecialHandling = false;

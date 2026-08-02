@@ -231,6 +231,18 @@ struct PropertyOffsets_Pawn
 	PropertyDataOffset SmellThreshold;
 	PropertyDataOffset Alliance;
 	PropertyDataOffset AIAddViewRotation;
+
+	// Unreal 227 additions
+	PropertyDataOffset BleedingActor;
+	PropertyDataOffset bIsBleeding;
+	PropertyDataOffset SightDistanceMulti;
+	PropertyDataOffset SightCheckType;
+	PropertyDataOffset SerpentineDist;
+	PropertyDataOffset SerpentineTime;
+	PropertyDataOffset MovementStart;
+	PropertyDataOffset bIsCrawler;
+	PropertyDataOffset HuntOffDistance;
+	PropertyDataOffset bDoAutoSerpentine;
 };
 
 extern PropertyOffsets_Pawn PropOffsets_Pawn;
