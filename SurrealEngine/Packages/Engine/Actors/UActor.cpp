@@ -351,3 +351,49 @@ bool UActor::IsOSVer2kOrXP()
 {
 	return true;
 }
+
+void UActor::AIClearEvent(const NameString& eventName)
+{
+	LogUnimplemented("Actor.AIClearEvent");
+}
+
+void UActor::AIClearEventCallback(const NameString& eventName)
+{
+	LogUnimplemented("Actor.AIClearEventCallback");
+}
+
+void UActor::AIEndEvent(const NameString& eventName, uint8_t eventType)
+{
+	LogUnimplemented("Actor.AIEndEvent");
+}
+
+float UActor::AIGetLightLevel(const vec3& Location)
+{
+	LogUnimplemented("Actor.AIGetLightLevel");
+	return 1.0f;
+}
+
+void UActor::AISendEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
+{
+	LogUnimplemented("Actor.AISendEvent");
+	//LogUnimplemented(Name.ToString() + ": AISendEvent('" + eventName.ToString() + "')");
+}
+
+void UActor::AISetEventCallback(const NameString& eventName, const NameString& callback, std::optional<NameString> scoreCallback, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS)
+{
+	LogUnimplemented("Actor.AISetEventCallback");
+	//LogMessage(Name.ToString() + ": AISetEventCallback('" + eventName.ToString() + "')");
+}
+
+void UActor::AIStartEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
+{
+	LogUnimplemented("Actor.AIStartEvent");
+	//LogUnimplemented(Name.ToString() + ": AIStartEvent('" + eventName.ToString() + "')");
+}
+
+float UActor::AIVisibility(std::optional<bool> bIncludeVelocity)
+{
+	LogUnimplemented("Actor.AIVisibility");
+	//LogMessage(Name.ToString() + ": AIVisibility");
+	return 0.0f;
+}

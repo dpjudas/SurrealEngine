@@ -490,6 +490,16 @@ public:
 	bool LoadGameSaveInfo(const std::string& dir, UObject* object);
 	bool IsOSVer2kOrXP();
 
+	// Deus Ex
+	void AIClearEvent(const NameString& eventName);
+	void AIClearEventCallback(const NameString& eventName);
+	void AIEndEvent(const NameString& eventName, uint8_t eventType);
+	float AIGetLightLevel(const vec3& Location);
+	void AISendEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius);
+	void AISetEventCallback(const NameString& eventName, const NameString& callback, std::optional<NameString> scoreCallback, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS);
+	void AIStartEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius);
+	float AIVisibility(std::optional<bool> bIncludeVelocity);
+
 	void UpdateBspInfo();
 	void AddToBspNode(BspNode* node);
 	void RemoveFromBspNode();
