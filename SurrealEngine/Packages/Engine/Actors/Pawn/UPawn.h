@@ -43,6 +43,11 @@ public:
 	bool ActorReachable(UActor* anActor, bool checkNavpoint = false);
 	bool PointReachable(vec3 aPoint);
 
+	bool ReachableFlying(UActor* anActor);
+	bool ReachableSpider(UActor* anActor);
+	bool ReachableSwimming(UActor* anActor);
+	bool ReachableWalking(UActor* anActor);
+
 	void ClientHearSound(UActor* actor, int id, USound* sound, const vec3& soundLocation, const vec3& parameters);
 
 	// If the obstruction is jumpable, start jumping and keep the destination
