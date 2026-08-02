@@ -16,12 +16,10 @@ bool UPawn::LineOfSightTo(UActor* other, bool ignoreDistance)
 	if (!other)
 		return false;
 
-	// Additional 227 checks because of Pawn.SightCheckType being a variable there
-	// Since we don't have any 227-only fields added yet, this part remains as a proof of concept
-	// if (engine->packages->IsUnreal1_227() &&
-	// 	(SightCheckType() == EPawnSightCheck::SEE_None ||
-	// 	(SightCheckType() == EPawnSightCheck::SEE_PlayersOnly && !Cast<UPawn>(other)->bIsPlayer())))
-	// 	return false;
+	if (engine->LaunchInfo.IsUnreal1_227() &&
+		(SightCheckType() == EPawnSightCheck::SEE_None ||
+		(SightCheckType() == EPawnSightCheck::SEE_PlayersOnly && !Cast<UPawn>(other)->bIsPlayer())))
+		return false;
 
 	if (!ignoreDistance && length(Location() - other->Location()) > SightRadius())
 		return false;
