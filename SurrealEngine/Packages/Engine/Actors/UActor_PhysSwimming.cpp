@@ -31,6 +31,8 @@ void UActor::TickSwimming(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 
+	vel.z += zone->ZoneGravity().z * (1.0f - Buoyancy() / 100.0f) * elapsed;
+
 	//required for "stepping out of water"
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
 	vec3 stepUpDelta(0.0f, 0.0f, -gravityDirection * pawn->MaxStepHeight());
