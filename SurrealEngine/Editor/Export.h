@@ -19,6 +19,8 @@ public:
 	static MemoryStreamWriter ExportTexture(UTexture* tex, const std::string& ext);
 
 private:
+	static std::string ExportClassDefaultProperties(UClass* cls, int tablevel);
+
 	static MemoryStreamWriter ExportFireTexture(UFireTexture* tex);
 	static MemoryStreamWriter ExportWaveTexture(UWaveTexture* tex);
 	static MemoryStreamWriter ExportWetTexture(UWetTexture* tex);

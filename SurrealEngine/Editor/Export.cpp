@@ -59,6 +59,30 @@ std::string Exporter::ExportObject(UObject* obj, int tablevel, bool bInline)
 
 /////////////////////////////////////////////////////////////////////////////
 
+std::string Exporter::ExportClassDefaultProperties(UClass* cls, int tablevel)
+{
+	std::string txt = "";
+	UObject* obj = cls->GetDefaultObject<UObject>();
+	UObject* defobj = cls->BaseStruct ? static_cast<UClass*>(cls->BaseStruct)->GetDefaultObject<UObject>() : nullptr;
+
+	for (UProperty* prop : cls->Properties)
+	{
+		for (int i = 0; i < prop->ArrayDimension; i++)
+		{
+			if (AnyFlags(prop->Flags, ObjectFlags::TagExp))
+			{
+				if (prop->Name == "Tag" && obj->GetPropertyAsString(prop->Name) == obj->Name.ToString())
+					continue;
+
+				std::string tabs(tablevel, '\t');
+				prop->GetExportText(txt, tabs, obj, defobj, i);
+			}
+		}
+	}
+
+	return txt;
+}
+
 MemoryStreamWriter Exporter::ExportClass(UClass* cls)
 {
 	MemoryStreamWriter text;
@@ -67,7 +91,7 @@ MemoryStreamWriter Exporter::ExportClass(UClass* cls)
 
 	text << cls->ScriptText->Text;
 	text << "\r\ndefaultproperties\r\n{\r\n";
-	text << ExportObject(cls->GetDefaultObject<UObject>(), 1, false);
+	text << ExportClassDefaultProperties(cls, 1);
 	text << "}\r\n";
 	return text;
 }
