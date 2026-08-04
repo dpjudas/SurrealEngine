@@ -20,7 +20,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 		return false;
 
 	engine->render->Stats.Actors++;
-	engine->render->UpdateActorLightList(actor);
+	engine->Level->Light.UpdateLightList(actor);
 
 	DrawDebugInfo(frame, actor);
 
@@ -84,6 +84,7 @@ bool VisibleMesh::DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor*
 
 bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
+	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
 
 	UActor* animSource = actor;
@@ -216,8 +217,8 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -421,6 +422,7 @@ void VisibleMesh::FindAttachmentPoints(ULodMesh* mesh, const mat4& ObjectToWorld
 
 bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
 {
+	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
 
 	uint32_t polyFlags = 0;
@@ -528,8 +530,8 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -547,6 +549,7 @@ bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* l
 
 bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
 {
+	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
 
 	UActor* animSource = actor;
@@ -760,8 +763,8 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;
@@ -878,6 +881,7 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 
 bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
 {
+	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
 
 	uint32_t polyFlags = 0;
@@ -1024,8 +1028,8 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = engine->render->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
-			vertices[i].Fog = engine->render->GetVertexFog(lightLocationActor, vertices[i].Point);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
 		renderflags |= PF_RenderFog;

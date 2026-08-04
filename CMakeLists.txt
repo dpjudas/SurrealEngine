@@ -120,8 +120,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Render/RenderSubsystem.h
 	SurrealEngine/Render/RenderCanvas.cpp
 	SurrealEngine/Render/RenderScene.cpp
-	SurrealEngine/Render/RenderLight.cpp
-	SurrealEngine/Render/RenderFog.cpp
 	SurrealEngine/Render/RenderWindow.cpp
 	SurrealEngine/Render/BspClipper.cpp
 	SurrealEngine/Render/BspClipper.h
@@ -728,6 +726,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.h
 	SurrealEngine/Light/LightSystem.cpp
 	SurrealEngine/Light/LightSystem.h
+	SurrealEngine/Light/LightSystem_Light.cpp
+	SurrealEngine/Light/LightSystem_Fog.cpp
 	SurrealEngine/Light/LightEffect.cpp
 	SurrealEngine/Light/LightEffect.h
 	SurrealEngine/Light/LightmapBuilder.cpp

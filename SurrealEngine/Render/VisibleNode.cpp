@@ -75,8 +75,8 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		lightmap = engine->render->GetSurfaceLightmap(surface, zoneActor, model);
-		fogmap = engine->render->GetSurfaceFogmap(surface, engine->CameraActor->Region().Zone, model);
+		lightmap = engine->Level->Light.GetSurfaceLightmap(surface, zoneActor, model);
+		fogmap = engine->Level->Light.GetSurfaceFogmap(surface, engine->CameraActor->Region().Zone, model);
 	}
 
 	FSurfaceInfo surfaceinfo;

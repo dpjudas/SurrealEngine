@@ -61,22 +61,9 @@ public:
 		return GouraudVertexBuffer.data();
 	}
 
-	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
-
-	FTextureInfo GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
-
-	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor);
-	vec4 GetVertexFog(UActor* actor, const vec3& location);
-
 	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
 	void UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
 	void UpdateTextureInfo(FTextureInfo& info, UTexture* texture);
-
-	void UpdateActorLightList(UActor* actor);
 
 	RenderDevice* Device = nullptr;
 
@@ -98,10 +85,6 @@ public:
 private:
 	void DrawScene();
 
-	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
-
-	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
-
 	void ResetCanvas();
 	void PreRender();
 	void RenderOverlays();
@@ -116,8 +99,6 @@ private:
 
 	float LevelTimeElapsed = 0.0f;
 	float AutoUV = 0.0f;
-	float AmbientGlowTime = 0.0f;
-	float AmbientGlowAmount = 0.0f;
 
 	struct
 	{

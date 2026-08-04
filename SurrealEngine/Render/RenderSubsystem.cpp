@@ -21,8 +21,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 {
 	LevelTimeElapsed = levelTimeElapsed;
 	AutoUV += levelTimeElapsed * 64.0f;
-	AmbientGlowTime = std::fmod(AmbientGlowTime + 0.8f * levelTimeElapsed, 1.0f);
-	AmbientGlowAmount = 0.20f + 0.20f * std::sin(radians(AmbientGlowTime * 360.0f));
+	engine->Level->Light.Tick(levelTimeElapsed);
 
 	Stats.Frames = 0;
 	Stats.Surfaces = 0;
@@ -150,21 +149,5 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
 void RenderSubsystem::OnMapLoaded()
 {
 	Device->Flush(true);
-
-	engine->Level->Light.FogBalls.clear();
-	engine->Level->Light.lmtextures.clear();
-	engine->Level->Light.fogtextures.clear();
-
-	std::set<UActor*> lightset;
-	for (UActor* light : engine->Level->Model->Lights)
-	{
-		if (light)
-			lightset.insert(light);
-	}
-
-	for (UActor* light : lightset)
-	{
-		if (light->VolumeRadius() != 0)
-			engine->Level->Light.FogBalls.push_back(light);
-	}
+	engine->Level->Light.OnMapLoaded();
 }

@@ -23,7 +23,7 @@ bool VisibleBrush::Draw(VisibleFrame* frame, UActor* actor, bool translucentPass
 	const vec3& location = mover->Location();
 	FSceneNode brushframe = frame->Frame;
 
-	engine->render->UpdateActorLightList(mover);
+	engine->Level->Light.UpdateLightList(mover);
 
 	brushframe.ObjectToWorld = mat4::translate(location) * Coords::Rotation(mover->Rotation()).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot());
 
@@ -114,8 +114,8 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		lightmap = engine->render->GetBrushLightmap(mover, poly, zoneActor, model);
-		fogmap = engine->render->GetBrushFogmap(mover, poly, zoneActor, model);
+		lightmap = engine->Level->Light.GetBrushLightmap(mover, poly, zoneActor, model);
+		fogmap = engine->Level->Light.GetBrushFogmap(mover, poly, zoneActor, model);
 	}
 
 	surfaceinfo.PolyFlags = PolyFlags;

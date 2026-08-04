@@ -3,9 +3,49 @@
 #include "LightSystem.h"
 #include "Packages/Engine/Actors/UActor.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
+#include "Packages/Engine/Resources/Level/UModel.h"
 #include "Math/floating.h"
 #include "Math/coords.h"
 #include "Engine.h"
+
+LightSystem::LightSystem()
+{
+}
+
+LightSystem::~LightSystem()
+{
+}
+
+void LightSystem::Tick(float levelTimeElapsed)
+{
+	AmbientGlowTime = std::fmod(AmbientGlowTime + 0.8f * levelTimeElapsed, 1.0f);
+	AmbientGlowAmount = 0.20f + 0.20f * std::sin(radians(AmbientGlowTime * 360.0f));
+}
+
+void LightSystem::OnMapLoaded()
+{
+	engine->Level->Light.FogBalls.clear();
+	engine->Level->Light.lmtextures.clear();
+	engine->Level->Light.fogtextures.clear();
+
+	std::set<UActor*> lightset;
+	for (UActor* light : engine->Level->Model->Lights)
+	{
+		if (light)
+			lightset.insert(light);
+	}
+
+	for (UActor* light : lightset)
+	{
+		if (light->VolumeRadius() != 0)
+			engine->Level->Light.FogBalls.push_back(light);
+	}
+}
+
+void LightSystem::BeginFrame()
+{
+	FogFrameCounter++;
+}
 
 void LightSystem::UpdateLightList(UActor* actor)
 {

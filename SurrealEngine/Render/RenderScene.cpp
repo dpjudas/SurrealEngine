@@ -15,7 +15,7 @@ void RenderSubsystem::DrawScene()
 	if (!engine->Level)
 		return;
 
-	engine->Level->Light.FogFrameCounter++;
+	engine->Level->Light.BeginFrame();
 	TextureFrameCounter++;
 
 	// Make sure all actors are at the right location in the BSP

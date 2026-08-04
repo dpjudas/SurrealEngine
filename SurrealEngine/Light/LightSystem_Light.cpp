@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#include "RenderSubsystem.h"
+#include "LightSystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
 #include "Math/hsb.h"
@@ -9,7 +9,7 @@
 #include "Packages/Engine/Resources/Level/UPolys.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-FTextureInfo RenderSubsystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	// To do: implement mover->bDynamicLightMover()
 
@@ -27,7 +27,7 @@ FTextureInfo RenderSubsystem::GetBrushLightmap(UMover* mover, const Poly& poly, 
 	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
 }
 
-FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];
@@ -37,7 +37,7 @@ FTextureInfo RenderSubsystem::GetSurfaceLightmap(BspSurface& surface, UZoneInfo*
 	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor);
 }
 
-FTextureInfo RenderSubsystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
+FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
 {
 	if (lightmapIndex < 0)
 		return {};
@@ -45,11 +45,11 @@ FTextureInfo RenderSubsystem::GetLightmap(UModel* model, int lightmapIndex, cons
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
-	auto& lmtexture = engine->Level->Light.lmtextures[cacheID];
+	auto& lmtexture = lmtextures[cacheID];
 	if (!lmtexture)
 	{
-		engine->Level->Light.Builder.Setup(model, coords, lightmapIndex, zoneActor);
-		engine->Level->Light.Builder.AddStaticLights(model, lightmapIndex);
+		Builder.Setup(model, coords, lightmapIndex, zoneActor);
+		Builder.AddStaticLights(model, lightmapIndex);
 
 		lmtexture = CreateLightmapTexture();
 	}
@@ -69,17 +69,17 @@ FTextureInfo RenderSubsystem::GetLightmap(UModel* model, int lightmapIndex, cons
 	return texinfo;
 }
 
-std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
+std::unique_ptr<LightmapTexture> LightSystem::CreateLightmapTexture()
 {
 #if 1 // Float high quality lightmaps
 
 	UnrealMipmap lmmip;
-	lmmip.Width = engine->Level->Light.Builder.Width();
-	lmmip.Height = engine->Level->Light.Builder.Height();
+	lmmip.Width = Builder.Width();
+	lmmip.Height = Builder.Height();
 	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * sizeof(vec4));
 
 	vec4* dest = (vec4*)lmmip.Data.data();
-	const vec3* src = engine->Level->Light.Builder.Pixels();
+	const vec3* src = Builder.Pixels();
 	int count = lmmip.Width * lmmip.Height;
 	for (int i = 0; i < count; i++)
 	{
@@ -94,12 +94,12 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 #else // Low quality lightmaps like UE1 got them
 
 	UnrealMipmap lmmip;
-	lmmip.Width = engine->Level->Light.Builder.Width();
-	lmmip.Height = engine->Level->Light.Builder.Height();
+	lmmip.Width = Builder.Width();
+	lmmip.Height = Builder.Height();
 	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * 4);
 
 	uint32_t* dest = (uint32_t*)lmmip.Data.data();
-	const vec3* src = engine->Level->Light.Builder.Pixels();
+	const vec3* src = Builder.Pixels();
 	int count = lmmip.Width * lmmip.Height;
 	for (int i = 0; i < count; i++)
 	{
@@ -119,12 +119,7 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 #endif
 }
 
-void RenderSubsystem::UpdateActorLightList(UActor* actor)
-{
-	engine->Level->Light.UpdateLightList(actor);
-}
-
-vec3 RenderSubsystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)
+vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)
 {
 	// AmbientGlow value 255 is a special pulsating effect used for powerups
 	float ambientGlow = actor->AmbientGlow() == 255 ? AmbientGlowAmount : actor->AmbientGlow() * (1.0f / 255.0f);

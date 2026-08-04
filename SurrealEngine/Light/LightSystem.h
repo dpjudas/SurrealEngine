@@ -10,6 +10,8 @@ class ULevel;
 class UActor;
 class CollisionHitList;
 class CollisionHit;
+struct FTextureInfo;
+class UMover;
 
 struct LightmapTexture
 {
@@ -20,20 +22,35 @@ struct LightmapTexture
 class LightSystem
 {
 public:
+	LightSystem();
+	~LightSystem();
+
+	void Tick(float levelTimeElapsed);
+
+	void OnMapLoaded();
+
+	void BeginFrame();
 	void UpdateLightList(UActor* actor);
 
 	void SetLevel(ULevel* level);
 	void AddLight(UActor* light);
 	void RemoveLight(UActor* light);
 
-	// To do: make all this private
-	LightmapBuilder Builder;
-	std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
-	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
-	Array<UActor*> FogBalls;
-	int FogFrameCounter = 0;
+	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+
+	FTextureInfo GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+
+	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor);
+	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 private:
+	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
+	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
+
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
 	{
 		int xx = (int)std::floor((location.x - extents.x) * (1.0f / 256.0f));
@@ -87,4 +104,13 @@ private:
 
 	inline static std::list<UActor*> emptyList;
 	inline static int CheckCounter = 0;
+
+	LightmapBuilder Builder;
+	std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
+	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
+	Array<UActor*> FogBalls;
+	int FogFrameCounter = 0;
+
+	float AmbientGlowTime = 0.0f;
+	float AmbientGlowAmount = 0.0f;
 };

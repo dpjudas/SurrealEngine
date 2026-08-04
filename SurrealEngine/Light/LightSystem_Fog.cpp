@@ -1,8 +1,8 @@
 
 #include "Precomp.h"
-#include "RenderSubsystem.h"
+#include "LightSystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Light/FogmapBuilder.h"
+#include "FogmapBuilder.h"
 #include "Packages/Engine/Actors/Brush/UMover.h"
 #include "Packages/Engine/Actors/Info//UZoneInfo.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
@@ -19,7 +19,7 @@
 #define NOFOG
 #endif
 
-FTextureInfo RenderSubsystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords localCoords;
 	localCoords.Origin = -poly.Base;
@@ -34,7 +34,7 @@ FTextureInfo RenderSubsystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZ
 	return GetFogmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
 }
 
-FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];
@@ -44,7 +44,7 @@ FTextureInfo RenderSubsystem::GetSurfaceFogmap(BspSurface& surface, UZoneInfo* z
 	return GetFogmap(model, surface.LightMap, mapCoords, zoneActor);
 }
 
-FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
+FTextureInfo LightSystem::GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
 {
 #ifdef NOFOG
 	return {};
@@ -56,7 +56,7 @@ FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const 
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 2;
 
 	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
-	auto& fogtex = engine->Level->Light.fogtextures[cacheID];
+	auto& fogtex = fogtextures[cacheID];
 	std::unique_ptr<LightmapTexture>& fogtexture = fogtex.second;
 	if (!fogtexture)
 	{
@@ -82,10 +82,10 @@ FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const 
 	}
 
 	bool firstDrawThisScene = false;
-	if (fogtex.first != engine->Level->Light.FogFrameCounter)
+	if (fogtex.first != FogFrameCounter)
 	{
 		firstDrawThisScene = true;
-		fogtex.first = engine->Level->Light.FogFrameCounter;
+		fogtex.first = FogFrameCounter;
 	}
 
 	if (firstDrawThisScene)
@@ -108,12 +108,12 @@ FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const 
 #endif
 }
 
-void RenderSubsystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
+void LightSystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
 {
 	FogmapBuilder builder;
 	builder.Setup(model, mapCoords, lightMap, zoneActor);
 
-	for (UActor* light : engine->Level->Light.FogBalls)
+	for (UActor* light : FogBalls)
 	{
 		builder.AddLight(light, engine->CameraLocation);
 	}
@@ -139,7 +139,7 @@ void RenderSubsystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const C
 #endif
 }
 
-vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
+vec4 LightSystem::GetVertexFog(UActor* actor, const vec3& location)
 {
 	vec4 color(0.0f);
 #ifndef NOFOG
@@ -152,7 +152,7 @@ vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
 #endif
 	rayDirection *= (1.0f / depth);
 
-	for (UActor* light : engine->Level->Light.FogBalls)
+	for (UActor* light : FogBalls)
 	{
 		if (light->FogInfo.brightness < 0.0f)
 		{
