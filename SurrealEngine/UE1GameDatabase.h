@@ -157,6 +157,7 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 
 	// Nerf, Version 300
 	{"7026a49ba2bc71ff52653589661c6d8cda3a8748", KnownUE1Games::NERF_300},
+	{"7829be742b5d08991484c155dc68ee70bf58717d", KnownUE1Games::NERF_300},
 
 	// Klingon Honor Guard, 219
 	// One oddity with this game is that they seem to have changed the executable name in the 1.1 patch
@@ -214,6 +215,7 @@ static const Array<std::string> knownUE1ExecutableNames = {
 	"DeusEx.exe",
 	"Klingons.exe",
 	"Khg.exe",
+	"nerf.exe",
 	"Nerf.exe",
 	"Rune.exe",
 	"Undying.exe",
