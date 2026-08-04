@@ -44,11 +44,18 @@ void UPawn::Tick(float elapsed)
 		{
 			if (engine->LaunchInfo.ue1Version > 219 && FaceTarget())
 			{
+				Focus() = FaceTarget()->Location();
 				TickRotateTo(Focus());
 				vec3 oldDest = Destination();
 				if (TickMoveTo(Destination()))
 					StateFrame->LatentState = LatentRunState::Continue;
 				Destination() = oldDest;
+			}
+			else if (engine->LaunchInfo.ue1Version <= 219)
+			{
+				// How did StrafeFacing work in this version? We don't have FaceTarget.
+				LogUnimplemented("StrafeFacing not implemented for old versions");
+				StateFrame->LatentState = LatentRunState::Continue;
 			}
 			else
 			{
@@ -64,8 +71,15 @@ void UPawn::Tick(float elapsed)
 		{
 			if (engine->LaunchInfo.ue1Version > 219 && FaceTarget())
 			{
+				Focus() = FaceTarget()->Location();
 				if (TickRotateTo(FaceTarget()->Location()))
 					StateFrame->LatentState = LatentRunState::Continue;
+			}
+			else if (engine->LaunchInfo.ue1Version <= 219)
+			{
+				// How did StrafeFacing work in this version? We don't have FaceTarget.
+				LogUnimplemented("TurnToward not implemented for old versions");
+				StateFrame->LatentState = LatentRunState::Continue;
 			}
 			else
 			{
