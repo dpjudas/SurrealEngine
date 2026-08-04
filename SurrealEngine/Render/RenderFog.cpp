@@ -2,7 +2,7 @@
 #include "Precomp.h"
 #include "RenderSubsystem.h"
 #include "RenderDevice/RenderDevice.h"
-#include "Lightmap/FogmapBuilder.h"
+#include "Light/FogmapBuilder.h"
 #include "Packages/Engine/Actors/Brush/UMover.h"
 #include "Packages/Engine/Actors/Info//UZoneInfo.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
@@ -56,7 +56,7 @@ FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const 
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 2;
 
 	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
-	auto& fogtex = Light.fogtextures[cacheID];
+	auto& fogtex = engine->Level->Light.fogtextures[cacheID];
 	std::unique_ptr<LightmapTexture>& fogtexture = fogtex.second;
 	if (!fogtexture)
 	{
@@ -82,10 +82,10 @@ FTextureInfo RenderSubsystem::GetFogmap(UModel* model, int lightmapIndex, const 
 	}
 
 	bool firstDrawThisScene = false;
-	if (fogtex.first != Light.FogFrameCounter)
+	if (fogtex.first != engine->Level->Light.FogFrameCounter)
 	{
 		firstDrawThisScene = true;
-		fogtex.first = Light.FogFrameCounter;
+		fogtex.first = engine->Level->Light.FogFrameCounter;
 	}
 
 	if (firstDrawThisScene)
@@ -113,7 +113,7 @@ void RenderSubsystem::UpdateFogmapTexture(uint32_t* dest, UModel* model, const C
 	FogmapBuilder builder;
 	builder.Setup(model, mapCoords, lightMap, zoneActor);
 
-	for (UActor* light : Light.FogBalls)
+	for (UActor* light : engine->Level->Light.FogBalls)
 	{
 		builder.AddLight(light, engine->CameraLocation);
 	}
@@ -152,7 +152,7 @@ vec4 RenderSubsystem::GetVertexFog(UActor* actor, const vec3& location)
 #endif
 	rayDirection *= (1.0f / depth);
 
-	for (UActor* light : Light.FogBalls)
+	for (UActor* light : engine->Level->Light.FogBalls)
 	{
 		if (light->FogInfo.brightness < 0.0f)
 		{

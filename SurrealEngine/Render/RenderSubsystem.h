@@ -1,19 +1,12 @@
 #pragma once
 
 #include "VisibleFrame.h"
-#include "Lightmap/LightmapBuilder.h"
 
 class RenderDevice;
 class UWindow;
 class UFont;
 class UMover;
 class UViewportWindow;
-
-struct LightmapTexture
-{
-	TextureFormat Format;
-	UnrealMipmap Mip;
-};
 
 class RenderSubsystem
 {
@@ -134,15 +127,6 @@ private:
 		uint64_t startFPSTime = 0;
 		FSceneNode Frame;
 	} Canvas;
-
-	struct
-	{
-		std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
-		std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
-		Array<UActor*> FogBalls;
-		LightmapBuilder Builder;
-		int FogFrameCounter = 0;
-	} Light;
 
 	Array<vec3> VertexBuffer;
 	Array<GouraudVertex> GouraudVertexBuffer;

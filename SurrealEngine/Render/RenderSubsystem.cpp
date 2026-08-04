@@ -151,9 +151,9 @@ void RenderSubsystem::OnMapLoaded()
 {
 	Device->Flush(true);
 
-	Light.FogBalls.clear();
-	Light.lmtextures.clear();
-	Light.fogtextures.clear();
+	engine->Level->Light.FogBalls.clear();
+	engine->Level->Light.lmtextures.clear();
+	engine->Level->Light.fogtextures.clear();
 
 	std::set<UActor*> lightset;
 	for (UActor* light : engine->Level->Model->Lights)
@@ -165,6 +165,6 @@ void RenderSubsystem::OnMapLoaded()
 	for (UActor* light : lightset)
 	{
 		if (light->VolumeRadius() != 0)
-			Light.FogBalls.push_back(light);
+			engine->Level->Light.FogBalls.push_back(light);
 	}
 }

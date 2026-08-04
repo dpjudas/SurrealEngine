@@ -45,11 +45,11 @@ FTextureInfo RenderSubsystem::GetLightmap(UModel* model, int lightmapIndex, cons
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
-	auto& lmtexture = Light.lmtextures[cacheID];
+	auto& lmtexture = engine->Level->Light.lmtextures[cacheID];
 	if (!lmtexture)
 	{
-		Light.Builder.Setup(model, coords, lightmapIndex, zoneActor);
-		Light.Builder.AddStaticLights(model, lightmapIndex);
+		engine->Level->Light.Builder.Setup(model, coords, lightmapIndex, zoneActor);
+		engine->Level->Light.Builder.AddStaticLights(model, lightmapIndex);
 
 		lmtexture = CreateLightmapTexture();
 	}
@@ -74,12 +74,12 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 #if 1 // Float high quality lightmaps
 
 	UnrealMipmap lmmip;
-	lmmip.Width = Light.Builder.Width();
-	lmmip.Height = Light.Builder.Height();
+	lmmip.Width = engine->Level->Light.Builder.Width();
+	lmmip.Height = engine->Level->Light.Builder.Height();
 	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * sizeof(vec4));
 
 	vec4* dest = (vec4*)lmmip.Data.data();
-	const vec3* src = Light.Builder.Pixels();
+	const vec3* src = engine->Level->Light.Builder.Pixels();
 	int count = lmmip.Width * lmmip.Height;
 	for (int i = 0; i < count; i++)
 	{
@@ -94,12 +94,12 @@ std::unique_ptr<LightmapTexture> RenderSubsystem::CreateLightmapTexture()
 #else // Low quality lightmaps like UE1 got them
 
 	UnrealMipmap lmmip;
-	lmmip.Width = Light.Builder.Width();
-	lmmip.Height = Light.Builder.Height();
+	lmmip.Width = engine->Level->Light.Builder.Width();
+	lmmip.Height = engine->Level->Light.Builder.Height();
 	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * 4);
 
 	uint32_t* dest = (uint32_t*)lmmip.Data.data();
-	const vec3* src = Light.Builder.Pixels();
+	const vec3* src = engine->Level->Light.Builder.Pixels();
 	int count = lmmip.Width * lmmip.Height;
 	for (int i = 0; i < count; i++)
 	{

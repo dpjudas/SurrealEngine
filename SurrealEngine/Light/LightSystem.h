@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Math/vec.h"
+#include "LightmapBuilder.h"
+#include "Packages/Engine/Resources/Textures/UBitmap.h"
 #include <unordered_map>
 #include <list>
 
@@ -8,6 +10,12 @@ class ULevel;
 class UActor;
 class CollisionHitList;
 class CollisionHit;
+
+struct LightmapTexture
+{
+	TextureFormat Format;
+	UnrealMipmap Mip;
+};
 
 class LightSystem
 {
@@ -17,6 +25,13 @@ public:
 	void SetLevel(ULevel* level);
 	void AddLight(UActor* light);
 	void RemoveLight(UActor* light);
+
+	// To do: make all this private
+	LightmapBuilder Builder;
+	std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
+	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
+	Array<UActor*> FogBalls;
+	int FogFrameCounter = 0;
 
 private:
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)

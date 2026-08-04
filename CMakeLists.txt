@@ -125,14 +125,6 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Render/RenderWindow.cpp
 	SurrealEngine/Render/BspClipper.cpp
 	SurrealEngine/Render/BspClipper.h
-	SurrealEngine/Render/Lightmap/LightEffect.cpp
-	SurrealEngine/Render/Lightmap/LightEffect.h
-	SurrealEngine/Render/Lightmap/LightmapBuilder.cpp
-	SurrealEngine/Render/Lightmap/LightmapBuilder.h
-	SurrealEngine/Render/Lightmap/Shadowmap.cpp
-	SurrealEngine/Render/Lightmap/Shadowmap.h
-	SurrealEngine/Render/Lightmap/FogmapBuilder.cpp
-	SurrealEngine/Render/Lightmap/FogmapBuilder.h
 	SurrealEngine/VM/NativeFunc.cpp
 	SurrealEngine/VM/Frame.cpp
 	SurrealEngine/VM/ExpressionValue.h
@@ -736,6 +728,14 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Collision/BottomLevel/OverlapAABBModel.h
 	SurrealEngine/Light/LightSystem.cpp
 	SurrealEngine/Light/LightSystem.h
+	SurrealEngine/Light/LightEffect.cpp
+	SurrealEngine/Light/LightEffect.h
+	SurrealEngine/Light/LightmapBuilder.cpp
+	SurrealEngine/Light/LightmapBuilder.h
+	SurrealEngine/Light/Shadowmap.cpp
+	SurrealEngine/Light/Shadowmap.h
+	SurrealEngine/Light/FogmapBuilder.cpp
+	SurrealEngine/Light/FogmapBuilder.h
 	SurrealEngine/UI/WidgetResourceData.cpp
 	SurrealEngine/UI/WidgetResourceData.h
 	SurrealEngine/UI/Editor/AboutDialog.cpp
@@ -945,7 +945,6 @@ source_group("SurrealEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_S
 source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/Vulkan/.+")
 source_group("SurrealEngine\\RenderDevice/D3D11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/D3D11/.+")
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
-source_group("SurrealEngine\\Render\\Lightmap" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/Lightmap/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
 source_group("SurrealEngine\\UI\\ErrorWindow" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/ErrorWindow/.+")
 source_group("SurrealEngine\\UI\\Editor" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/Editor/.+")
