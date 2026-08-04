@@ -3,7 +3,7 @@
 #include "UnrealURL.h"
 #include "Engine.h"
 #include "Package/PackageManager.h"
-#include <sstream>
+#include "Utils/StrTools.h"
 
 UnrealURL::UnrealURL(const UnrealURL& baseURL, const UnrealURL& nextURL)
 {
@@ -29,8 +29,9 @@ UnrealURL::UnrealURL(std::string urlString)
 {
 	// Expected url format on a local game:
 	// mapname[#teleporttag][?key1=value1[?key2=value2]...]
-	// Or in case of Klingons Honor Guard
+	// Or in case of Klingon Honor Guard
 	// mapname[/teleporttag][?key1=value1[?key2=value2]...]
+	// Note that the options and the teleport tag can be in arbitrary places, as long as the map name comes first.
 
 	// Trim the url string of whitespaces
 	// Fixes the crash during the transition from Temple of Vandora to The Trench in Unreal
@@ -38,66 +39,34 @@ UnrealURL::UnrealURL(std::string urlString)
 	urlString.erase(urlString.find_last_not_of(' ') + 1);
 	urlString.erase(0, urlString.find_first_not_of(' '));
 
-	std::string mapName = "";
-	std::string teleportTag = "";
-	std::string options = "";
+	size_t mapNamePos = StrTools::find_first_of_any(urlString, "?/#");
 
-	size_t teleportTagPos;
+	Map = urlString.substr(0, mapNamePos);
 
-	if (engine && engine->packages->IsKlingonHonorGuard())
-		// Klingon Honor Guard uses / as the teleport tag delimiter for some reason
-		teleportTagPos = urlString.find('/');
-	else
-		teleportTagPos = urlString.find('#');
-
-	if (teleportTagPos != std::string::npos)
+	if (mapNamePos != std::string::npos)
 	{
-		mapName = urlString.substr(0, teleportTagPos);
-		std::string allOptsString = urlString.substr(teleportTagPos + 1);
+		// We need to parse all options individually
+		char paramType = urlString[mapNamePos]; // Can be '/', '#' or '?'
+		std::string allParams = urlString.substr(mapNamePos + 1);
 
-		size_t optionsTagPos = allOptsString.find_first_of('?');
+		auto nextParamPos = StrTools::find_first_of_any(allParams, "?/#");
 
-		if (optionsTagPos != std::string::npos)
+		do
 		{
-			teleportTag = allOptsString.substr(0, optionsTagPos);
-			options = allOptsString.substr(optionsTagPos + 1);
-		}
-		else
-			// No options mean that the string consists of only the map name and teleporter tag
-			teleportTag = allOptsString;
-	}
-	else
-	{
-		// No teleporter tag
-		size_t optionsTagPos = urlString.find_first_of('?');
+			if (paramType == '#' || paramType == '/')
+				Portal = allParams.substr(0, nextParamPos);
+			else if (paramType == '?')
+			{
+				auto optionStr = allParams.substr(0, nextParamPos);
+				AddOrReplaceOption(optionStr);
+			}
 
-		if (optionsTagPos != std::string::npos)
-		{
-			mapName = urlString.substr(0, optionsTagPos);
-			options = urlString.substr(optionsTagPos + 1);
-		}
-		else
-			// No options either, which means the url is just the name of the map
-			mapName = urlString;
-	}
+			if (nextParamPos != std::string::npos)
+				paramType = allParams[nextParamPos];
 
-	/*
-	// Remove map extension from mapName if it is there
-	size_t extPos = mapName.find_last_of(".");
-	if (extPos != std::string::npos)
-		mapName = mapName.substr(0, extPos);*/
-
-	Map = mapName;
-	Portal = teleportTag;
-
-	// Parse the options
-	if (!options.empty())
-	{
-		std::stringstream ss(options);
-		std::string option;
-
-		while (getline(ss, option, '?'))
-			AddOrReplaceOption(option); // The key=value parsing is done within AddOrReplaceOption()
+			allParams = allParams.substr(nextParamPos + 1);
+			nextParamPos = StrTools::find_first_of_any(allParams, "?/#");
+		} while (nextParamPos != std::string::npos);
 	}
 }
 
