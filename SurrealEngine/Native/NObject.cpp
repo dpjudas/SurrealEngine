@@ -312,6 +312,12 @@ void NObject::RegisterFunctions()
 	{
 		RegisterVMNativeFunc_3("Object", "ConcatEqual_StrStr", &NObject::ConcatEqual_StrStr, 322);
 	}
+
+	if (engine->LaunchInfo.IsNerfArenaBlast())
+	{
+		RegisterVMNativeFunc_4("Object", "SetConfigString", &NObject::SetConfigString_Nerf, 739);
+		RegisterVMNativeFunc_4("Object", "GetConfigString", &NObject::GetConfigString_Nerf, 740);
+	}
 }
 
 void NObject::Abs(float A, float& ReturnValue)
@@ -1678,4 +1684,24 @@ void NObject::AllObjects_DeusEx(UObject* Self, UObject* BaseClass, UObject*& Act
 void NObject::GetLanguage(std::string& ReturnValue)
 {
 	ReturnValue = "en"; // Is this correct?
+}
+
+void NObject::GetConfigString_Nerf(const std::string& section, const std::string& key, const std::string& iniName, std::string& ReturnValue)
+{
+	auto realIniName = iniName;
+	// Strip .ini if it is there:
+	auto pos = realIniName.find('.');
+	if (pos != std::string::npos)
+		realIniName = realIniName.substr(0, pos);
+	ReturnValue = engine->packages->GetIniValue(realIniName, section, key, "");
+}
+
+void NObject::SetConfigString_Nerf(const std::string& section, const std::string& key, const std::string& value, const std::string& iniName)
+{
+	auto realIniName = iniName;
+	// Strip .ini if it is there:
+	auto pos = realIniName.find('.');
+	if (pos != std::string::npos)
+		realIniName = realIniName.substr(0, pos);
+	engine->packages->SetIniValue(realIniName, section, key, value);
 }
