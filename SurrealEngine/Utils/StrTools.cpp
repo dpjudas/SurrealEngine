@@ -97,3 +97,15 @@ std::string StrTools::int_to_string(const int value, const int minWidth)
 
 	return ss.str();
 }
+
+size_t StrTools::find_first_of_any(const std::string& str, const std::string& characters)
+{
+	for (size_t idx = 0 ; idx < str.size() ; idx++)
+	{
+		for (const auto& c : characters)
+			if (c == str[idx])
+				return idx;
+	}
+
+	return std::string::npos;
+}
