@@ -24,6 +24,7 @@ struct GameLaunchInfo
 	bool IsRune() const { return gameExecutableName == "Rune"; }
 	bool IsHarryPotter1() const { return gameExecutableName == "HP"; }
 	bool IsHarryPotter2() const { return gameExecutableName == "Game"; }
+	bool IsNerfArenaBlast() const { return gameExecutableName == "nerf" || gameExecutableName == "Nerf"; }
 };
 
 class GameFolderSelection
