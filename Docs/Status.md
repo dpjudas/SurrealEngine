@@ -19,7 +19,7 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
 * Wheel of Time (v333)
 
 > [!NOTE]
-> From the list above, only Unreal Tournament v436 and Unreal Gold v226 is in a relatively playable state. Running any other game (and UT versions) can and will result in crashes.
+> Detection does not mean the games will work! From the list above, only the explicitly named games down below can be launched. Running any other game can and will result in crashes.
 
 
 ## General Engine bugs (affects all games)
@@ -111,6 +111,10 @@ Known bugs list is quite small right now because this game isn't tested as much 
 ### Known bugs:
 * Cannot set keybinds in-game (Modifying the ini file works though).
 * Trying to start a botmatch crashes SE.
+
+## Nerf Arena Blast
+
+The game boots up. Things seem to work but the game has not been extensively tested.
 
 ## Any other UE1 game not mentioned above
 
