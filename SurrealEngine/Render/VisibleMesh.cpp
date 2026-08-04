@@ -1090,6 +1090,14 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 			0,
 			start,
 			end);
+
+		end = pawn->Focus();
+		engine->render->Device->Draw3DLine(
+			&frame->Frame,
+			vec4(0.6f, 1.0f, 0.6f, 1.0f),
+			0,
+			start,
+			end);
 	}
 
 	// Draw last calculated path for the bot
