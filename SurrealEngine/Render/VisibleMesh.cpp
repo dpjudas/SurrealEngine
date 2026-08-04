@@ -1042,47 +1042,67 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 	if (!pawn || !pawn->StateFrame)
 		return;
 
-	vec3 end;
-	if (pawn->StateFrame->LatentState == LatentRunState::MoveTo)
+	// Draw debug line to where pawn is trying to go
 	{
-		end = pawn->Destination();
-	}
-	else if (pawn->StateFrame->LatentState == LatentRunState::MoveToward && pawn->MoveTarget())
-	{
-		end = pawn->MoveTarget()->Location();
-	}
-	else if (pawn->StateFrame->LatentState == LatentRunState::StrafeTo)
-	{
-		end = pawn->Destination();
-	}
-	else if (pawn->StateFrame->LatentState == LatentRunState::StrafeFacing)
-	{
-		end = pawn->Destination();
-	}
-	else
-	{
-		return;
+		vec3 end;
+		if (pawn->StateFrame->LatentState == LatentRunState::MoveTo)
+		{
+			end = pawn->Destination();
+		}
+		else if (pawn->StateFrame->LatentState == LatentRunState::MoveToward && pawn->MoveTarget())
+		{
+			end = pawn->MoveTarget()->Location();
+		}
+		else if (pawn->StateFrame->LatentState == LatentRunState::StrafeTo)
+		{
+			end = pawn->Destination();
+		}
+		else if (pawn->StateFrame->LatentState == LatentRunState::StrafeFacing)
+		{
+			end = pawn->Destination();
+		}
+		else
+		{
+			return;
+		}
+
+		vec3 start = pawn->Location();
+		start.z += pawn->BaseEyeHeight();
+		end.z += pawn->BaseEyeHeight();
+
+		bool visible = pawn->FastTrace(end, start);
+		engine->render->Device->Draw3DLine(
+			&frame->Frame,
+			visible ? vec4(1.0f, 1.0f, 1.0f, 1.0f) : vec4(1.0f, 0.0f, 0.0f, 1.0f),
+			0,
+			start,
+			end);
 	}
 
-	vec3 start = pawn->Location();
-	start.z += pawn->BaseEyeHeight();
-	end.z += pawn->BaseEyeHeight();
+	// Draw desired rotation:
+	{
+		vec3 start = pawn->Location();
+		start.z += pawn->BaseEyeHeight() * 0.5f;
+		vec3 end = start + (Coords::Rotation(pawn->DesiredRotation()).ToMatrix() * vec4(1.0f, 0.0f, 0.0f, 1.0f)).xyz() * 100.0f;
+		engine->render->Device->Draw3DLine(
+			&frame->Frame,
+			vec4(0.6f, 0.6f, 1.0f, 1.0f),
+			0,
+			start,
+			end);
+	}
 
-	bool visible = pawn->FastTrace(end, start);
-	engine->render->Device->Draw3DLine(
-		&frame->Frame,
-		visible ? vec4(1.0f, 1.0f, 1.0f, 1.0f) : vec4(1.0f, 0.0f, 0.0f, 1.0f),
-		0,
-		start,
-		end);
-
+	// Draw last calculated path for the bot
 	if (engine->LaunchInfo.ue1Version > 219)
 	{
+		vec3 start = pawn->Location();
+		start.z += pawn->BaseEyeHeight();
+
 		for (UNavigationPoint* p : pawn->RouteCache())
 		{
 			if (!p)
 				break;
-			end = p->Location();
+			vec3 end = p->Location();
 			end.z += pawn->BaseEyeHeight();
 			engine->render->Device->Draw3DLine(
 				&frame->Frame,
