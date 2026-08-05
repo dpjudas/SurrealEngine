@@ -19,7 +19,7 @@
 #define NOFOG
 #endif
 
-FTextureInfo LightSystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords localCoords;
 	localCoords.Origin = -poly.Base;
@@ -34,7 +34,7 @@ FTextureInfo LightSystem::GetBrushFogmap(UMover* mover, const Poly& poly, UZoneI
 	return GetFogmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
 }
 
-FTextureInfo LightSystem::GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];

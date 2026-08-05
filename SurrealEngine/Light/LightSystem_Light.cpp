@@ -9,7 +9,7 @@
 #include "Packages/Engine/Resources/Level/UPolys.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-FTextureInfo LightSystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	// To do: implement mover->bDynamicLightMover()
 
@@ -27,7 +27,7 @@ FTextureInfo LightSystem::GetBrushLightmap(UMover* mover, const Poly& poly, UZon
 	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
 }
 
-FTextureInfo LightSystem::GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+FTextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];
@@ -45,18 +45,39 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
+	bool bRealtimeChanged = false;
 	auto& lmtexture = lmtextures[cacheID];
-	if (!lmtexture)
+	if (!lmtexture || lmtexture->LastUpdate != model->LightMap[lightmapIndex].LastUpdate)
 	{
 		Builder.Setup(model, coords, lightmapIndex, zoneActor);
 		Builder.AddStaticLights(model, lightmapIndex);
 
-		lmtexture = CreateLightmapTexture();
+		if (!lmtexture)
+		{
+			lmtexture = std::make_unique<LightmapTexture>();
+			lmtexture->Format = TextureFormat::RGBA32_F;
+			lmtexture->Mip.Width = Builder.Width();
+			lmtexture->Mip.Height = Builder.Height();
+			lmtexture->Mip.Data.resize((size_t)lmtexture->Mip.Width * lmtexture->Mip.Height * sizeof(vec4));
+		}
+
+		UnrealMipmap& lmmip = lmtexture->Mip;
+		vec4* dest = (vec4*)lmmip.Data.data();
+		const vec3* src = Builder.Pixels();
+		int count = lmmip.Width * lmmip.Height;
+		for (int i = 0; i < count; i++)
+		{
+			dest[i] = vec4(src[i], 1.0f);
+		}
+
+		lmtexture->LastUpdate = model->LightMap[lightmapIndex].LastUpdate;
+		bRealtimeChanged = true;
 	}
 
 	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
 
 	FTextureInfo texinfo;
+	texinfo.bRealtimeChanged = bRealtimeChanged;
 	texinfo.CacheID = cacheID;
 	texinfo.Format = lmtexture->Format;
 	texinfo.Mips = &lmtexture->Mip;
@@ -67,56 +88,6 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 	texinfo.UScale = lmindex.UScale;
 	texinfo.VScale = lmindex.VScale;
 	return texinfo;
-}
-
-std::unique_ptr<LightmapTexture> LightSystem::CreateLightmapTexture()
-{
-#if 1 // Float high quality lightmaps
-
-	UnrealMipmap lmmip;
-	lmmip.Width = Builder.Width();
-	lmmip.Height = Builder.Height();
-	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * sizeof(vec4));
-
-	vec4* dest = (vec4*)lmmip.Data.data();
-	const vec3* src = Builder.Pixels();
-	int count = lmmip.Width * lmmip.Height;
-	for (int i = 0; i < count; i++)
-	{
-		dest[i] = vec4(src[i], 1.0f);
-	}
-
-	auto lmtexture = std::make_unique<LightmapTexture>();
-	lmtexture->Format = TextureFormat::RGBA32_F;
-	lmtexture->Mip = std::move(lmmip);
-	return lmtexture;
-
-#else // Low quality lightmaps like UE1 got them
-
-	UnrealMipmap lmmip;
-	lmmip.Width = Builder.Width();
-	lmmip.Height = Builder.Height();
-	lmmip.Data.resize((size_t)lmmip.Width * lmmip.Height * 4);
-
-	uint32_t* dest = (uint32_t*)lmmip.Data.data();
-	const vec3* src = Builder.Pixels();
-	int count = lmmip.Width * lmmip.Height;
-	for (int i = 0; i < count; i++)
-	{
-		uint32_t red = (uint32_t)clamp(src[i].r * 127.0f + 0.5f, 0.0f, 127.0f);
-		uint32_t green = (uint32_t)clamp(src[i].g * 127.0f + 0.5f, 0.0f, 127.0f);
-		uint32_t blue = (uint32_t)clamp(src[i].b * 127.0f + 0.5f, 0.0f, 127.0f);
-		uint32_t alpha = 127;
-
-		dest[i] = (alpha << 24) | (red << 16) | (green << 8) | blue;
-	}
-
-	auto lmtexture = std::make_unique<LightmapTexture>();
-	lmtexture->Format = TextureFormat::BGRA8_LM;
-	lmtexture->Mip = std::move(lmmip);
-	return lmtexture;
-
-#endif
 }
 
 vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)

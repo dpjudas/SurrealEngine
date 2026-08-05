@@ -17,6 +17,7 @@ struct LightmapTexture
 {
 	TextureFormat Format;
 	UnrealMipmap Mip;
+	int LastUpdate = 0;
 };
 
 class LightSystem
@@ -36,20 +37,20 @@ public:
 	void AddLight(UActor* light);
 	void RemoveLight(UActor* light);
 
-	FTextureInfo GetBrushLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetSurfaceLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+	FTextureInfo GetMoverLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 
-	FTextureInfo GetBrushFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetSurfaceFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
-	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+	FTextureInfo GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
+	FTextureInfo GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 
 	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor);
 	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 private:
+	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+
 	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
-	std::unique_ptr<LightmapTexture> CreateLightmapTexture();
 
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
 	{

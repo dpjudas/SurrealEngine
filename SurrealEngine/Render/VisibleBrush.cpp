@@ -114,8 +114,8 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	FTextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
-		lightmap = engine->Level->Light.GetBrushLightmap(mover, poly, zoneActor, model);
-		fogmap = engine->Level->Light.GetBrushFogmap(mover, poly, zoneActor, model);
+		lightmap = engine->Level->Light.GetMoverLightmap(mover, poly, zoneActor, model);
+		fogmap = engine->Level->Light.GetMoverFogmap(mover, poly, zoneActor, model);
 	}
 
 	surfaceinfo.PolyFlags = PolyFlags;
