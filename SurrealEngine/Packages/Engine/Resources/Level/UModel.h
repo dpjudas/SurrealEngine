@@ -72,6 +72,9 @@ public:
 	int16_t PanU;
 	int16_t PanV;
 	UActor* BrushActor = nullptr;
+
+	vec3 Center;
+	float Radius = 0.0f;
 };
 
 class BspVert

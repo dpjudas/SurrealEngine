@@ -47,7 +47,7 @@ public:
 	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 private:
-	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
+	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius);
 	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
 	void CheckLight(UActor* light);
 	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
@@ -111,7 +111,10 @@ private:
 	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
 	Array<UActor*> FogBalls;
 	int FrameCounter = 0;
+	int LightmapCheckCounter = 0;
 
 	float AmbientGlowTime = 0.0f;
 	float AmbientGlowAmount = 0.0f;
+
+	Array<UActor*> TempDynLightList;
 };

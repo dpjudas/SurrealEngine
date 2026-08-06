@@ -527,6 +527,7 @@ public:
 		uint8_t Brightness = 0;
 		int LastUpdate = -1;
 		int LastCheck = -1;
+		int LightmapCheckCounter = -1;
 	} Light;
 
 	// Lights touching this actor

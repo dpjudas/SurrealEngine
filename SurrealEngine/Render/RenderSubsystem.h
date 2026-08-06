@@ -78,6 +78,7 @@ public:
 		int Frames = 0;
 		int Surfaces = 0;
 		int Actors = 0;
+		int LightmapsUpdated = 0;
 	} Stats;
 
 	VisibleFrame MainFrame;

@@ -26,6 +26,7 @@ void RenderSubsystem::DrawGame(float levelTimeElapsed)
 	Stats.Frames = 0;
 	Stats.Surfaces = 0;
 	Stats.Actors = 0;
+	Stats.LightmapsUpdated = 0;
 
 	vec3 flashScale = 0.5f;
 	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);

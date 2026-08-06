@@ -7,6 +7,7 @@ class Shadowmap
 {
 public:
 	void Load(UModel* model, int lightMap, int lightindex);
+	void Clear(UModel* model, int lightMap);
 
 	int Width() const { return width; }
 	int Height() const { return height; }

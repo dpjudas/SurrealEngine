@@ -551,6 +551,7 @@ void RenderSubsystem::DrawTimedemoStats()
 		lines.push_back(std::to_string(Stats.Frames) + " visible frames");
 		lines.push_back(std::to_string(Stats.Surfaces) + " visible surfaces");
 		lines.push_back(std::to_string(Stats.Actors) + " visible actors");
+		lines.push_back(std::to_string(Stats.LightmapsUpdated) + " lightmaps updated");
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)

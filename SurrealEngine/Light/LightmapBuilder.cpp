@@ -74,6 +74,32 @@ void LightmapBuilder::AddStaticLights(UModel* model, int lightMap)
 	}
 }
 
+void LightmapBuilder::AddDynamicLights(UModel* model, int lightMap, const Array<UActor*>& lights)
+{
+	size_t count = (size_t)width * height;
+	Shadow.Clear(model, lightMap);
+	for (UActor* light : lights)
+	{
+		if (light->LightType() != LT_None && light->LightBrightness() > 0)
+		{
+			Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
+
+			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+
+			const float* src = illuminationmap.data();
+			vec3* dest = lightcolors.data();
+			for (size_t i = 0; i < count; i++)
+			{
+				vec3 color = src[i] * lightcolor;
+				color.r = std::min(color.r, 1.0f);
+				color.g = std::min(color.g, 1.0f);
+				color.b = std::min(color.b, 1.0f);
+				dest[i] += color;
+			}
+		}
+	}
+}
+
 void LightmapBuilder::CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex)
 {
 	// Note: this could be simplified a lot for better performance

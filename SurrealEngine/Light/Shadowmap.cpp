@@ -4,15 +4,27 @@
 #include "Math/vec.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
+void Shadowmap::Clear(UModel* model, int lightMap)
+{
+	const LightMapIndex& lmindex = model->LightMap[lightMap];
+	int width = lmindex.UClamp;
+	int height = lmindex.VClamp;
+	int size = width * height;
+	if (pixels.size() < size)
+		pixels.resize(size);
+	this->width = width;
+	this->height = height;
+	float* dest = pixels.data();
+	for (int i = 0; i < size; i++)
+		dest[i] = 1.0f;
+}
+
 void Shadowmap::Load(UModel* model, int lightMap, int lightindex)
 {
 	const LightMapIndex& lmindex = model->LightMap[lightMap];
 	int width = lmindex.UClamp;
 	int height = lmindex.VClamp;
 	int pitch = (width + 7) / 8;
-
-	// Stop allocations over time by building up a reserve
-
 	int size = width * height;
 	if (pixels.size() < size)
 		pixels.resize(size);

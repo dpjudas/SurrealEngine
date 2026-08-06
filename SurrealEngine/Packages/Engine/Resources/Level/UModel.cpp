@@ -197,6 +197,55 @@ void UModel::Load(ObjectStream* stream)
 
 	RootOutside = stream->ReadInt32();
 	Linked = stream->ReadInt32();
+
+	// Calculate center and radius for all bsp surfaces:
+	Array<vec3> aabbMinList, aabbMaxList;
+	Array<bool> aabbFoundList;
+	aabbMinList.resize(Surfaces.size());
+	aabbMaxList.resize(Surfaces.size());
+	aabbFoundList.resize(Surfaces.size());
+	for (auto& node : Nodes)
+	{
+		if (node.Surf < 0 || (size_t)node.Surf >= Surfaces.size())
+			continue;
+
+		BspSurface& surface = Surfaces[node.Surf];
+		int numverts = node.NumVertices;
+		BspVert* verts = &Vertices[node.VertPool];
+		if (numverts > 0)
+		{
+			auto& aabbMin = aabbMinList[node.Surf];
+			auto& aabbMax = aabbMaxList[node.Surf];
+			if (!aabbFoundList[node.Surf])
+			{
+				aabbFoundList[node.Surf] = true;
+				aabbMin = Points[verts[0].Vertex];
+				aabbMax = aabbMin;
+			}
+			for (int j = 1; j < numverts; j++)
+			{
+				const auto& v = Points[verts[j].Vertex];
+				aabbMin.x = std::min(aabbMin.x, v.x);
+				aabbMin.y = std::min(aabbMin.y, v.y);
+				aabbMin.z = std::min(aabbMin.z, v.z);
+				aabbMax.x = std::max(aabbMax.x, v.x);
+				aabbMax.y = std::max(aabbMax.y, v.y);
+				aabbMax.z = std::max(aabbMax.z, v.z);
+			}
+		}
+	}
+	for (size_t i = 0, count = Surfaces.size(); i < count; i++)
+	{
+		if (aabbFoundList[i])
+		{
+			auto& aabbMin = aabbMinList[i];
+			auto& aabbMax = aabbMaxList[i];
+			auto halfmin = aabbMin * 0.5f;
+			auto halfmax = aabbMax * 0.5f;
+			Surfaces[i].Center = halfmax + halfmin;
+			Surfaces[i].Radius = length(halfmax - halfmin);
+		}
+	}
 }
 
 void UModel::Save(PackageStreamWriter* stream)

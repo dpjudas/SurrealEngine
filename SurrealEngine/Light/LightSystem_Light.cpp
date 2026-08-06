@@ -3,6 +3,7 @@
 #include "LightSystem.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Engine.h"
+#include "Render/RenderSubsystem.h"
 #include "Math/hsb.h"
 #include "Packages/Engine/Actors/Brush/UMover.h"
 #include "Packages/Engine/Actors/Info/UZoneInfo.h"
@@ -21,10 +22,33 @@ FTextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZon
 
 	vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
 	Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
-	mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(mover->MainScale().Scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+	vec3 scale = mover->MainScale().Scale;
+	mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
 	Coords worldCoords = Coords::FromMatrix(objectToWorld);
 
-	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
+	// To do: we should precalculate this
+	vec3 location = { 0.0f };
+	float radius = 0.0f;
+	if (!poly.Vertices.empty())
+	{
+		vec3 aabbMin = poly.Vertices.front();
+		vec3 aabbMax = aabbMin;
+		for (const vec3& v : poly.Vertices)
+		{
+			aabbMin.x = std::min(aabbMin.x, v.x);
+			aabbMin.y = std::min(aabbMin.y, v.y);
+			aabbMin.z = std::min(aabbMin.z, v.z);
+			aabbMax.x = std::max(aabbMax.x, v.x);
+			aabbMax.y = std::max(aabbMax.y, v.y);
+			aabbMax.z = std::max(aabbMax.z, v.z);
+		}
+		auto halfmin = aabbMin * 0.5f;
+		auto halfmax = aabbMax * 0.5f;
+		location = halfmax + halfmin;
+		radius = length(halfmax - halfmin);
+	}
+
+	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor, (objectToWorld * vec4(location, 1.0f)).xyz(), radius * std::max(scale.x, std::max(scale.y, scale.z)));
 }
 
 FTextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
@@ -34,10 +58,10 @@ FTextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneA
 	mapCoords.XAxis = model->Vectors[surface.vTextureU];
 	mapCoords.YAxis = model->Vectors[surface.vTextureV];
 	mapCoords.ZAxis = model->Vectors[surface.vNormal];
-	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor);
+	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius);
 }
 
-FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
+FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius)
 {
 	if (lightmapIndex < 0)
 		return {};
@@ -47,7 +71,15 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 	uint64_t cacheID = (((uint64_t)lmindex.LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
+	int checkCounter = LightmapCheckCounter++;
+
+	// Collect lights for the lightmap and check if they changed
+
 	int lastUpdate = -1;
+	TempDynLightList.clear();
+
+	// Examine all the lights that are statically baked into the map:
+
 	if (lmindex.LightActors >= 0)
 	{
 		UActor** lightlist = &model->Lights[lmindex.LightActors];
@@ -56,17 +88,52 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 			UActor* light = lightlist[lightindex];
 			CheckLight(light);
 			lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+
+			// Mark the light as visited so the second pass doesn't pick it up
+			light->Light.LightmapCheckCounter = checkCounter;
 		}
 	}
+
+	// Look at all lights potentially touching the surface. They go into our dynamic light list:
+
+	ivec3 start = GetStartExtents(worldLocation, radius);
+	ivec3 end = GetEndExtents(worldLocation, radius);
+	for (int z = start.z; z < end.z; z++)
+	{
+		for (int y = start.y; y < end.y; y++)
+		{
+			for (int x = start.x; x < end.x; x++)
+			{
+				for (UActor* light : LightActors[GetBucketId(x, y, z)])
+				{
+					if (light->Light.LightmapCheckCounter != checkCounter)
+					{
+						light->Light.LightmapCheckCounter = checkCounter;
+						if (!light->bStatic())
+						{
+							CheckLight(light);
+							lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+							TempDynLightList.push_back(light);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If anything changed update the lightmap:
 
 	bool bRealtimeChanged = false;
 	auto& lmtexture = lmtextures[cacheID];
 	if (!lmtexture || lmtexture->LastUpdate != lastUpdate)
 	{
+		engine->render->Stats.LightmapsUpdated++;
+
 		Builder.Setup(model, coords, lightmapIndex, zoneActor);
 		Builder.AddStaticLights(model, lightmapIndex);
+		Builder.AddDynamicLights(model, lightmapIndex, TempDynLightList);
 
-		if (!lmtexture)
+		if (!lmtexture || lmtexture->Mip.Width != Builder.Width() || lmtexture->Mip.Height != Builder.Height())
 		{
 			lmtexture = std::make_unique<LightmapTexture>();
 			lmtexture->Format = TextureFormat::RGBA32_F;

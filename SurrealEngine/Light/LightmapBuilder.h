@@ -16,6 +16,7 @@ class LightmapBuilder
 public:
 	void Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
 	void AddStaticLights(UModel* model, int lightMap);
+	void AddDynamicLights(UModel* model, int lightMap, const Array<UActor*>& lights);
 
 	int Width() const { return width; }
 	int Height() const { return height; }
