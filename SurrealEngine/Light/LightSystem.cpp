@@ -44,19 +44,19 @@ void LightSystem::OnMapLoaded()
 
 void LightSystem::BeginFrame()
 {
-	FogFrameCounter++;
+	FrameCounter++;
 }
 
 void LightSystem::UpdateLightList(UActor* actor)
 {
 	vec3 location = actor->BspInfo.BoundingBox.center();
 
-	if (!actor->LightInfo.NeedsUpdate && actor->LightInfo.Location == location)
+	if (!actor->TouchingLights.NeedsUpdate && actor->TouchingLights.Location == location)
 		return;
 
-	actor->LightInfo.NeedsUpdate = false;
-	actor->LightInfo.Location = location;
-	actor->LightInfo.LightList.clear();
+	actor->TouchingLights.NeedsUpdate = false;
+	actor->TouchingLights.Location = location;
+	actor->TouchingLights.List.clear();
 
 	if (actor->bUnlit())
 		return;
@@ -76,9 +76,9 @@ void LightSystem::UpdateLightList(UActor* actor)
 				{
 					for (UActor* light : GetActors(x, y, z))
 					{
-						if (light->Light.CheckCounter != checkCounter)
+						if (light->TouchingLights.CheckCounter != checkCounter)
 						{
-							light->Light.CheckCounter = checkCounter;
+							light->TouchingLights.CheckCounter = checkCounter;
 							if (!light->bCorona() && !light->bSpecialLit())
 							{
 								float radius = light->WorldLightRadius();
@@ -89,7 +89,7 @@ void LightSystem::UpdateLightList(UActor* actor)
 								}
 								if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true))
 								{
-									actor->LightInfo.LightList.push_back(light);
+									actor->TouchingLights.List.push_back(light);
 								}
 							}
 						}
@@ -115,6 +115,7 @@ void LightSystem::AddLight(UActor* light)
 		light->Light.Inserted = true;
 		light->Light.Location = location;
 		light->Light.Radius = radius;
+		light->Light.LastUpdate = FrameCounter;
 
 		ivec3 start = GetStartExtents(location, radius);
 		ivec3 end = GetEndExtents(location, radius);
@@ -158,5 +159,6 @@ void LightSystem::RemoveLight(UActor* light)
 		}
 
 		light->Light.Inserted = false;
+		light->Light.LastUpdate = FrameCounter;
 	}
 }

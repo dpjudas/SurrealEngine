@@ -82,10 +82,10 @@ FTextureInfo LightSystem::GetFogmap(UModel* model, int lightmapIndex, const Coor
 	}
 
 	bool firstDrawThisScene = false;
-	if (fogtex.first != FogFrameCounter)
+	if (fogtex.first != FrameCounter)
 	{
 		firstDrawThisScene = true;
-		fogtex.first = FogFrameCounter;
+		fogtex.first = FrameCounter;
 	}
 
 	if (firstDrawThisScene)

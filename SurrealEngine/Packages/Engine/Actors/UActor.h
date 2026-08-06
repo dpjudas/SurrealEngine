@@ -505,7 +505,7 @@ public:
 	void RemoveFromBspNode();
 	static int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
 
-	// The status of the actor in the collision hash
+	// The status of the actor in the collision system
 	struct
 	{
 		bool Inserted = false;
@@ -514,13 +514,19 @@ public:
 		int CheckCounter = -1;
 	} Collision;
 
-	// The status of the actor in the light hash
+	// The status of the actor in the light system
 	struct
 	{
 		bool Inserted = false;
 		vec3 Location = { 0.0f };
 		float Radius = 0.0f;
-		int CheckCounter = -1;
+		uint8_t Type = 0;
+		uint8_t Effect = 0;
+		uint8_t Hue = 0;
+		uint8_t Saturation = 0;
+		uint8_t Brightness = 0;
+		int LastUpdate = -1;
+		int LastCheck = -1;
 	} Light;
 
 	// Lights touching this actor
@@ -528,8 +534,9 @@ public:
 	{
 		bool NeedsUpdate = true;
 		vec3 Location = vec3(0.0f);
-		Array<UActor*> LightList;
-	} LightInfo;
+		Array<UActor*> List;
+		int CheckCounter = -1;
+	} TouchingLights;
 
 	// Fog between actor and camera
 	struct

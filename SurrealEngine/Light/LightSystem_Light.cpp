@@ -42,12 +42,26 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 	if (lightmapIndex < 0)
 		return {};
 
+	LightMapIndex& lmindex = model->LightMap[lightmapIndex];
+
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
-	uint64_t cacheID = (((uint64_t)model->LightMap[lightmapIndex].LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
+	uint64_t cacheID = (((uint64_t)lmindex.LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
+
+	int lastUpdate = -1;
+	if (lmindex.LightActors >= 0)
+	{
+		UActor** lightlist = &model->Lights[lmindex.LightActors];
+		for (int lightindex = 0; lightlist[lightindex] != nullptr; lightindex++)
+		{
+			UActor* light = lightlist[lightindex];
+			CheckLight(light);
+			lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+		}
+	}
 
 	bool bRealtimeChanged = false;
 	auto& lmtexture = lmtextures[cacheID];
-	if (!lmtexture || lmtexture->LastUpdate != model->LightMap[lightmapIndex].LastUpdate)
+	if (!lmtexture || lmtexture->LastUpdate != lastUpdate)
 	{
 		Builder.Setup(model, coords, lightmapIndex, zoneActor);
 		Builder.AddStaticLights(model, lightmapIndex);
@@ -70,11 +84,9 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 			dest[i] = vec4(src[i], 1.0f);
 		}
 
-		lmtexture->LastUpdate = model->LightMap[lightmapIndex].LastUpdate;
+		lmtexture->LastUpdate = lastUpdate;
 		bRealtimeChanged = true;
 	}
-
-	const LightMapIndex& lmindex = model->LightMap[lightmapIndex];
 
 	FTextureInfo texinfo;
 	texinfo.bRealtimeChanged = bRealtimeChanged;
@@ -88,6 +100,33 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 	texinfo.UScale = lmindex.UScale;
 	texinfo.VScale = lmindex.VScale;
 	return texinfo;
+}
+
+void LightSystem::CheckLight(UActor* light)
+{
+	if (light->Light.LastCheck == FrameCounter)
+		return;
+
+	light->Light.LastCheck = FrameCounter;
+
+	uint8_t type = light->LightType();
+	uint8_t effect = light->LightEffect();
+	uint8_t hue = light->LightHue();
+	uint8_t saturation = light->LightSaturation();
+	uint8_t brightness = light->LightBrightness();
+	if (type != light->Light.Type ||
+		effect != light->Light.Effect ||
+		hue != light->Light.Hue ||
+		saturation != light->Light.Saturation ||
+		brightness != light->Light.Brightness)
+	{
+		light->Light.Type = type;
+		light->Light.Effect = effect;
+		light->Light.Hue = hue;
+		light->Light.Saturation = saturation;
+		light->Light.Brightness = brightness;
+		light->Light.LastUpdate = FrameCounter;
+	}
 }
 
 vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)
@@ -104,7 +143,7 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 	{
 		vec3 color(0.0f);
 
-		for (UActor* light : actor->LightInfo.LightList)
+		for (UActor* light : actor->TouchingLights.List)
 		{
 			vec3 L = light->Location() - location;
 			float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);

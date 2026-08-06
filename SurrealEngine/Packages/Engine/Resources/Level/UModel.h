@@ -103,7 +103,6 @@ public:
 	int LightActors;
 
 	uint32_t LMCacheID = 0;
-	int LastUpdate = 0;
 };
 
 class ConvexVolumeLeaf

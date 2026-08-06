@@ -49,7 +49,7 @@ public:
 private:
 	FTextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
 	FTextureInfo GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor);
-
+	void CheckLight(UActor* light);
 	void UpdateFogmapTexture(uint32_t* texels, UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
 
 	static ivec3 GetStartExtents(const vec3& location, const vec3& extents)
@@ -110,7 +110,7 @@ private:
 	std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
 	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
 	Array<UActor*> FogBalls;
-	int FogFrameCounter = 0;
+	int FrameCounter = 0;
 
 	float AmbientGlowTime = 0.0f;
 	float AmbientGlowAmount = 0.0f;
