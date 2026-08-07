@@ -165,7 +165,8 @@ void UPawn::Tick(float elapsed)
 				{
 					LastSeenPos() = Enemy()->Location();
 					LastSeeingPos() = Location();
-					LastSeenTime() = Level()->TimeSeconds();
+					if (engine->LaunchInfo.ue1Version > 219)
+						LastSeenTime() = Level()->TimeSeconds();
 				}
 				else if (IsEventEnabled(EventName::EnemyNotVisible))
 				{
