@@ -260,9 +260,13 @@ void Engine::Run()
 				// depending on leftover state.
 				if (UnrealURL(LevelInfo->NextURL()).HasOption("restart"))
 				{
-					// Passes the level's own TravelInfo back in, so it means to preserve it.
+					// Must capture the pawn's live state here, not reuse Level->TravelInfo: that's
+					// just the snapshot from when this level was first entered (e.g. the previous
+					// map's pawn), not what the pawn's Health/inventory actually are right now -
+					// reusing it silently overwrites whatever this level's own startup scripting
+					// (e.g. a scripted "wounded on arrival" health set) already did to the pawn.
 					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Relative;
-					LoadMap(LevelInfo->URL, Level->TravelInfo);
+					LoadMap(LevelInfo->URL, CreateTravelInfo(true));
 					LoginPlayer();
 				}
 				else if (LevelInfo->bNextItems())
@@ -283,7 +287,9 @@ void Engine::Run()
 
 		if (ClientTravelInfo.URL.HasOption("restart"))
 		{
-			LoadMap(LevelInfo->URL, Level->TravelInfo);
+			// Same reasoning as the NextURL restart branch above: capture the pawn's live state
+			// instead of reusing Level->TravelInfo's stale entry-time snapshot.
+			LoadMap(LevelInfo->URL, CreateTravelInfo(ClientTravelInfo.TransferItems));
 			LoginPlayer();
 		}
 
@@ -775,10 +781,11 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 		return;
 
 	Package* savefilePackage = nullptr;
+	uint32_t slotNum = 0;
 
 	if (url.HasOption("load"))
 	{
-		uint32_t slotNum = Convert::to_uint32(url.GetOption("load"));
+		slotNum = Convert::to_uint32(url.GetOption("load"));
 		savefilePackage = packages->LoadSaveSlot(slotNum);
 	}
 
@@ -803,15 +810,18 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	LevelInfo->NetMode() = 0; // NM_StandAlone
 	LevelInfo->DefaultTexture() = engine->DefaultTexture;
 
-	// LevelInfo->URL is a native engine field, never a serialized script property, so it is
-	// never restored by loading the save package and must be rebuilt here.
-	LevelInfo->URL = UnrealURL(LevelPackage->GetPackageName().ToString());
+	// LevelInfo->URL is not serialized, so it is
+	// never restored by loading the save package and must be rebuilt
+	std::string realMapName = packages->GetIniValue("user", "SaveGame", "MapName" + std::to_string(slotNum));
+	if (realMapName.empty())
+		realMapName = LevelPackage->GetPackageName().ToString();
+	LevelInfo->URL = UnrealURL(realMapName);
 
 	GetLevelObject();
 
 	LinkActorsToLevel();
 
-	// BUG-006: engine->GameInfo is otherwise only assigned in LoadMap, so without this it keeps
+	// engine->GameInfo is otherwise only assigned in LoadMap, so without this it keeps
 	// pointing at the previous, now-unloaded level's GameInfo. LevelInfo->Game() is a normal
 	// script property, so it round-trips through the save correctly; just re-point at it.
 	GameInfo = UObject::Cast<UGameInfo>(LevelInfo->Game());
@@ -900,6 +910,10 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 		const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
 		const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
 		LevelPackage->Save(Level, saveFileFullPath);
+
+		// The save package is later reloaded by its slot filename ("SaveN"), not by the original
+		// map name, so record the real map name here for LoadFromSaveFile() to recover.
+		packages->SetIniValue("user", "SaveGame", "MapName" + std::to_string(slotNum), Level->package->GetPackageName().ToString());
 	}
 }
 
