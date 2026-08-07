@@ -517,7 +517,6 @@ public:
 	// The status of the actor in the light system
 	struct
 	{
-		bool Inserted = false;
 		vec3 Location = { 0.0f };
 		float Radius = 0.0f;
 		uint8_t Type = 0;
@@ -536,7 +535,6 @@ public:
 		bool NeedsUpdate = true;
 		vec3 Location = vec3(0.0f);
 		Array<UActor*> List;
-		int CheckCounter = -1;
 	} TouchingLights;
 
 	// Fog between actor and camera

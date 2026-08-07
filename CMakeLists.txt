@@ -728,6 +728,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Light/LightSystem.h
 	SurrealEngine/Light/LightSystem_Light.cpp
 	SurrealEngine/Light/LightSystem_Fog.cpp
+	SurrealEngine/Light/LightActorTree.cpp
+	SurrealEngine/Light/LightActorTree.h
 	SurrealEngine/Light/LightEffect.cpp
 	SurrealEngine/Light/LightEffect.h
 	SurrealEngine/Light/LightmapBuilder.cpp

@@ -59,10 +59,8 @@ bool UActor::SetLocation(const vec3& newLocation)
 		return false;
 
 	XLevel()->Collision.RemoveFromCollision(this);
-	XLevel()->Light.RemoveLight(this);
 	Location() = result.second;
 	XLevel()->Collision.AddToCollision(this);
-	XLevel()->Light.AddLight(this);
 
 	if (Level()->bBegunPlay())
 	{
@@ -452,10 +450,8 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	vec3 OldLocation = Location();
 
 	XLevel()->Collision.RemoveFromCollision(this);
-	XLevel()->Light.RemoveLight(this);
 	Location() += actuallyMoved;
 	XLevel()->Collision.AddToCollision(this);
-	XLevel()->Light.AddLight(this);
 
 	for (size_t i = 0; i < BasedActors.size(); )
 	{
@@ -487,10 +483,8 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 				if (stopMovement)
 				{
 					XLevel()->Collision.RemoveFromCollision(this);
-					XLevel()->Light.RemoveLight(this);
 					Location() = OldLocation;
 					XLevel()->Collision.AddToCollision(this);
-					XLevel()->Light.AddLight(this);
 
 					CollisionHit hit;
 					hit.Fraction = 0.0f;

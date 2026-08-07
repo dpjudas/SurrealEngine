@@ -198,53 +198,98 @@ void UModel::Load(ObjectStream* stream)
 	RootOutside = stream->ReadInt32();
 	Linked = stream->ReadInt32();
 
-	// Calculate center and radius for all bsp surfaces:
-	Array<vec3> aabbMinList, aabbMaxList;
-	Array<bool> aabbFoundList;
-	aabbMinList.resize(Surfaces.size());
-	aabbMaxList.resize(Surfaces.size());
-	aabbFoundList.resize(Surfaces.size());
-	for (auto& node : Nodes)
+	// Calculate center and radius for all surface lightmaps:
+	for (BspSurface& surface : Surfaces)
 	{
-		if (node.Surf < 0 || (size_t)node.Surf >= Surfaces.size())
+		if (surface.LightMap < 0 || (size_t)surface.LightMap >= LightMap.size())
 			continue;
 
-		BspSurface& surface = Surfaces[node.Surf];
-		int numverts = node.NumVertices;
-		BspVert* verts = &Vertices[node.VertPool];
-		if (numverts > 0)
+		// There is a simpler version possible here somehow...
+
+		Coords mapCoords;
+		mapCoords.Origin = Points[surface.pBase];
+		mapCoords.XAxis = Vectors[surface.vTextureU];
+		mapCoords.YAxis = Vectors[surface.vTextureV];
+		mapCoords.ZAxis = Vectors[surface.vNormal];
+
+		const LightMapIndex& lmindex = LightMap[surface.LightMap];
+		int width = lmindex.UClamp;
+		int height = lmindex.VClamp;
+		vec3 normal = mapCoords.ZAxis;
+		vec3 base = mapCoords.Origin;
+
+		float UDot = dot(mapCoords.XAxis, mapCoords.Origin);
+		float VDot = dot(mapCoords.YAxis, mapCoords.Origin);
+		float LMUPan = UDot + lmindex.PanX - 0.5f * lmindex.UScale;
+		float LMVPan = VDot + lmindex.PanY - 0.5f * lmindex.VScale;
+		float LMUMult = 1.0f / lmindex.UScale;
+		float LMVMult = 1.0f / lmindex.VScale;
+
+		vec3 p[3] =
 		{
-			auto& aabbMin = aabbMinList[node.Surf];
-			auto& aabbMax = aabbMaxList[node.Surf];
-			if (!aabbFoundList[node.Surf])
-			{
-				aabbFoundList[node.Surf] = true;
-				aabbMin = Points[verts[0].Vertex];
-				aabbMax = aabbMin;
-			}
-			for (int j = 1; j < numverts; j++)
-			{
-				const auto& v = Points[verts[j].Vertex];
-				aabbMin.x = std::min(aabbMin.x, v.x);
-				aabbMin.y = std::min(aabbMin.y, v.y);
-				aabbMin.z = std::min(aabbMin.z, v.z);
-				aabbMax.x = std::max(aabbMax.x, v.x);
-				aabbMax.y = std::max(aabbMax.y, v.y);
-				aabbMax.z = std::max(aabbMax.z, v.z);
-			}
-		}
-	}
-	for (size_t i = 0, count = Surfaces.size(); i < count; i++)
-	{
-		if (aabbFoundList[i])
+			mapCoords.Origin,
+			mapCoords.Origin + mapCoords.XAxis,
+			mapCoords.Origin + mapCoords.YAxis
+		};
+
+		vec2 uv[3];
+		for (int j = 0; j < 3; j++)
 		{
-			auto& aabbMin = aabbMinList[i];
-			auto& aabbMax = aabbMaxList[i];
-			auto halfmin = aabbMin * 0.5f;
-			auto halfmax = aabbMax * 0.5f;
-			Surfaces[i].Center = halfmax + halfmin;
-			Surfaces[i].Radius = length(halfmax - halfmin);
+			uv[j] =
+			{
+				(dot(mapCoords.XAxis, p[j]) - LMUPan) * LMUMult,
+				(dot(mapCoords.YAxis, p[j]) - LMVPan) * LMVMult
+			};
 		}
+
+		float leftDX = uv[2].x - uv[0].x;
+		float leftDY = uv[2].y - uv[0].y;
+		float leftStep = leftDX / leftDY;
+		float rightDX = uv[2].x - uv[1].x;
+		float rightDY = uv[2].y - uv[1].y;
+		float rightStep = rightDX / rightDY;
+
+		vec3 aabbMin = { 0.0f }, aabbMax = { 0.0f };
+		for (int y : { 0, height - 1 })
+		{
+			float x0 = uv[0].x + leftStep * (y + 0.5f - uv[0].y) + 0.5f;
+			float x1 = uv[1].x + rightStep * (y + 0.5f - uv[1].y) + 0.5f;
+			float t0 = (y + 0.5f - uv[0].y) / leftDY;
+			float t1 = (y + 0.5f - uv[1].y) / rightDY;
+			vec3 p0 = mix(p[0], p[2], t0);
+			vec3 p1 = mix(p[1], p[2], t1);
+
+			float left = (0.5f - x0) / (x1 - x0);
+			float right = (width - 0.5f - x0) / (x1 - x0);
+			vec3 posleft = mix(p0, p1, left);
+			vec3 posright = mix(p0, p1, right);
+
+			if (y == 0)
+			{
+				aabbMin = posleft;
+				aabbMax = posleft;
+			}
+			else
+			{
+				aabbMin.x = std::min(aabbMin.x, posleft.x);
+				aabbMin.y = std::min(aabbMin.y, posleft.y);
+				aabbMin.z = std::min(aabbMin.z, posleft.z);
+				aabbMax.x = std::max(aabbMax.x, posleft.x);
+				aabbMax.y = std::max(aabbMax.y, posleft.y);
+				aabbMax.z = std::max(aabbMax.z, posleft.z);
+			}
+			aabbMin.x = std::min(aabbMin.x, posright.x);
+			aabbMin.y = std::min(aabbMin.y, posright.y);
+			aabbMin.z = std::min(aabbMin.z, posright.z);
+			aabbMax.x = std::max(aabbMax.x, posright.x);
+			aabbMax.y = std::max(aabbMax.y, posright.y);
+			aabbMax.z = std::max(aabbMax.z, posright.z);
+		}
+
+		auto halfmin = aabbMin * 0.5f;
+		auto halfmax = aabbMax * 0.5f;
+		surface.Center = halfmax + halfmin;
+		surface.Radius = length(halfmax - halfmin);
 	}
 }
 

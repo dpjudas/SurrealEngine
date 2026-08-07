@@ -719,7 +719,6 @@ void Engine::LoadMap(const UnrealURL& url, const std::map<std::string, std::stri
 	GameInfo->XLevel() = Level;
 	GameInfo->Level() = LevelInfo;
 	Level->Collision.AddToCollision(GameInfo);
-	Level->Light.AddLight(GameInfo);
 	GameInfo->Tag() = gameInfoClass->Name;
 	GameInfo->bTicked() = false;
 	GameInfo->InitActorZone();
@@ -2046,7 +2045,6 @@ void Engine::LinkActorsToLevel()
 		{
 			actor->XLevel() = Level;
 			Level->Collision.AddToCollision(actor);
-			Level->Light.AddLight(actor);
 		}
 	}
 

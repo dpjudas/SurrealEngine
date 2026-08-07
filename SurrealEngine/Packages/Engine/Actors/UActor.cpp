@@ -61,7 +61,6 @@ UActor* UActor::Spawn(UClass* SpawnClass, std::optional<UActor*> SpawnOwner, std
 	actor->Index = (int)XLevel()->Actors.size();
 	XLevel()->Actors.push_back(actor);
 	XLevel()->Collision.AddToCollision(actor);
-	XLevel()->Light.AddLight(actor);
 
 	actor->SetOwner(SpawnOwner.has_value() && SpawnOwner.value() ? *SpawnOwner : nullptr);
 
@@ -132,7 +131,6 @@ bool UActor::Destroy()
 
 	RemoveFromBspNode();
 	level->Collision.RemoveFromCollision(this);
-	level->Light.RemoveLight(this);
 
 	CallEvent(this, EventName::Destroyed);
 

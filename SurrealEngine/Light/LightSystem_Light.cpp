@@ -96,27 +96,17 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 
 	// Look at all lights potentially touching the surface. They go into our dynamic light list:
 
-	ivec3 start = GetStartExtents(worldLocation, radius);
-	ivec3 end = GetEndExtents(worldLocation, radius);
-	for (int z = start.z; z < end.z; z++)
+	LightTree.CollectLights(worldLocation, radius);
+	for (UActor* light : LightTree.CollectedLights)
 	{
-		for (int y = start.y; y < end.y; y++)
+		if (light->Light.LightmapCheckCounter != checkCounter)
 		{
-			for (int x = start.x; x < end.x; x++)
+			light->Light.LightmapCheckCounter = checkCounter;
+			if (!light->bStatic())
 			{
-				for (UActor* light : LightActors[GetBucketId(x, y, z)])
-				{
-					if (light->Light.LightmapCheckCounter != checkCounter)
-					{
-						light->Light.LightmapCheckCounter = checkCounter;
-						if (!light->bStatic())
-						{
-							CheckLight(light);
-							lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
-							TempDynLightList.push_back(light);
-						}
-					}
-				}
+				CheckLight(light);
+				lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+				TempDynLightList.push_back(light);
 			}
 		}
 	}
@@ -176,17 +166,24 @@ void LightSystem::CheckLight(UActor* light)
 
 	light->Light.LastCheck = FrameCounter;
 
+	vec3 location = light->Location();
+	float radius = light->WorldLightRadius();
 	uint8_t type = light->LightType();
 	uint8_t effect = light->LightEffect();
 	uint8_t hue = light->LightHue();
 	uint8_t saturation = light->LightSaturation();
 	uint8_t brightness = light->LightBrightness();
-	if (type != light->Light.Type ||
+	if (
+		location != light->Light.Location ||
+		radius != light->Light.Radius ||
+		type != light->Light.Type ||
 		effect != light->Light.Effect ||
 		hue != light->Light.Hue ||
 		saturation != light->Light.Saturation ||
 		brightness != light->Light.Brightness)
 	{
+		light->Light.Location = location;
+		light->Light.Radius = radius;
 		light->Light.Type = type;
 		light->Light.Effect = effect;
 		light->Light.Hue = hue;
