@@ -59,7 +59,7 @@ void LightSystem::BeginFrame()
 
 void LightSystem::UpdateLightList(UActor* actor)
 {
-	vec3 location = actor->BspInfo.BoundingBox.center();
+	vec3 location = actor->Location();
 
 	if (!actor->TouchingLights.NeedsUpdate && actor->TouchingLights.Location == location)
 		return;
