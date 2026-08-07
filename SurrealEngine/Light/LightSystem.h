@@ -53,8 +53,6 @@ private:
 
 	ULevel* Level = nullptr;
 
-	inline static std::list<UActor*> emptyList;
-
 	LightmapBuilder Builder;
 	std::map<uint64_t, std::unique_ptr<LightmapTexture>> lmtextures;
 	std::map<uint64_t, std::pair<int, std::unique_ptr<LightmapTexture>>> fogtextures;
