@@ -10,15 +10,18 @@
 void NGameInfo::RegisterFunctions()
 {
 	RegisterVMNativeFunc_1("GameInfo", "GetNetworkNumber", &NGameInfo::GetNetworkNumber, 0);
-	RegisterVMNativeFunc_5("GameInfo", "ParseKillMessage", &NGameInfo::ParseKillMessage, 0);
+	if (engine->LaunchInfo.IsUnreal1_227())
+		RegisterVMNativeFunc_6("GameInfo", "ParseKillMessage", &NGameInfo::ParseKillMessage_U227, 0);
+	else
+		RegisterVMNativeFunc_5("GameInfo", "ParseKillMessage", &NGameInfo::ParseKillMessage, 0);
+
 	if (engine->LaunchInfo.IsUnreal1_227())
 	{
 		RegisterVMNativeFunc_2("GameInfo", "GetNetworkNumber", &NGameInfo::GetNetworkNumber_U227, 0);
 		RegisterVMNativeFunc_2("GameInfo", "LoadTravelInventory", &NGameInfo::LoadTravelInventory_U227, 920);
 		RegisterVMNativeFunc_2("GameInfo", "MakeColorCode", &NGameInfo::MakeColorCode_U227, 0);
-		RegisterVMNativeFunc_2("GameInfo", "StripColorCodes", &NGameInfo::StripColorCodes_U227, 0);
+		RegisterVMNativeFunc_1("GameInfo", "StripColorCodes", &NGameInfo::StripColorCodes_U227, 0);
 	}
-
 }
 
 void NGameInfo::GetNetworkNumber(UObject* Self, std::string& ReturnValue)
@@ -61,6 +64,12 @@ void NGameInfo::ParseKillMessage(const std::string& KillerName, const std::strin
 	ReturnValue = result;
 }
 
+void NGameInfo::ParseKillMessage_U227(const std::string& KillerName, const std::string& VictimName, const std::string& WeaponName, const std::string& DeathMessage, std::optional<bool> bFemale, std::string& ReturnValue)
+{
+	LogUnimplemented("GameInfo.ParseKillMessage() - U227 optional parameter bFemale");
+	ParseKillMessage(KillerName, VictimName, WeaponName, DeathMessage, ReturnValue);
+}
+
 void NGameInfo::GetNetworkNumber_U227(UObject* Self, std::string& ReturnValue)
 {
 	// auto GISelf = UObject::Cast<UGameInfo>(Self);
@@ -85,7 +94,7 @@ void NGameInfo::MakeColorCode_U227(const Color& color, std::string& ReturnValue)
 	ReturnValue = ss.str();
 }
 
-void NGameInfo::StripColorCodes_U227(std::string& S, std::string& ReturnValue)
+void NGameInfo::StripColorCodes_U227(std::string& S)
 {
 	auto pos = S.find('#');
 
@@ -94,6 +103,4 @@ void NGameInfo::StripColorCodes_U227(std::string& S, std::string& ReturnValue)
 		S.erase(pos, 9); // #RRGGBBAA
 		pos = S.find('#');
 	}
-
-	ReturnValue = S;
 }
