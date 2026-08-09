@@ -10,10 +10,10 @@
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Engine.h"
 
-bool UActor::shouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta)
+bool UActor::ShouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta)
 {
 	//check if we can still walk, if so, nothing changes
-	if(TryStepToGround(stepDownDelta))
+	if (TryStepToGround(stepDownDelta))
 	{
 		return false;
 	}
@@ -48,7 +48,6 @@ void UActor::TickWalking(float elapsed)
 	// Update the actor velocity based on the acceleration and zone
 
 	UZoneInfo* zone = Region().Zone;
-	// UDecoration* decor = UObject::TryCast<UDecoration>(this);
 	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
 	bool isCrouching = player && player->bIsWalking();
 
@@ -95,8 +94,8 @@ void UActor::TickWalking(float elapsed)
 			moveDelta = vel * timeLeft;
 
 			//check for fall and backtrack
-			if(shouldAbortJumping(pawn, oldPosition, stepDownDelta)) return;
-
+			if (ShouldAbortJumping(pawn, oldPosition, stepDownDelta))
+				return;
 
 			// if hit, step up and try again - maybe there was a ledge to get over
 			if (hit.Fraction < 1.0f)
@@ -107,7 +106,7 @@ void UActor::TickWalking(float elapsed)
 				timeLeft -= timeLeft * hit.Fraction;
 
 				//check for fall and backtrack
-				if(shouldAbortJumping(pawn, oldPosition, stepDownDelta*2.0f))
+				if (ShouldAbortJumping(pawn, oldPosition, stepDownDelta * 2.0f))
 				{
 					TryMove(-stepUpDelta);
 					return;
@@ -162,13 +161,18 @@ void UActor::TickWalking(float elapsed)
 			}
 
 			//check for fall and backtrack
-			if(shouldAbortJumping(pawn, oldPosition, stepDownDelta)) return;
+			if (ShouldAbortJumping(pawn, oldPosition, stepDownDelta))
+				return;
 		}
 	}
 	else
 	{
 		// Can we reach the ground from here?
-		TryStepToGround(stepDownDelta);
+		if (!TryStepToGround(stepDownDelta))
+		{
+			SetPhysics(PHYS_Falling);
+			SetBase(nullptr, true);
+		}
 	}
 
 	RecomputeVelocityFromDisplacement(elapsed);

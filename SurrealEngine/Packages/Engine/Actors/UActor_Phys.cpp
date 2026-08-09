@@ -224,7 +224,6 @@ void UActor::FireHitWall(const CollisionHit& hit)
 	CallEvent(this, EventName::HitWall, { ExpressionValue::VectorValue(hit.Normal), ExpressionValue::ObjectValue(hit.Actor ? hit.Actor : Level()) });
 }
 
-
 bool UActor::TryStepToGround(vec3 stepDownDelta)
 {
 	CollisionHit floorHit = TryMove(stepDownDelta, true);

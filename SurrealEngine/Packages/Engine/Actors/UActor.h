@@ -417,7 +417,7 @@ public:
 	// Steps onto the ground if able, if not (would be falling) retuns false without moving
 	bool TryStepToGround(vec3 stepDownDelta);
 
-	bool shouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta);
+	bool ShouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelta);
 	// Recovers Velocity from actual displacement over the tick, unless bJustTeleported was set (which
 	// makes the displacement meaningless as a velocity source).
 	void RecomputeVelocityFromDisplacement(float elapsed);
