@@ -14,5 +14,6 @@ public:
 	static void GetAddressURL(UObject* Self, std::string& ReturnValue);
 	static void GetLocalURL(UObject* Self, std::string& ReturnValue);
 	static void GetLocZone_U227(UObject* Self, const vec3& Pos, PointRegion& ReturnValue);
+	static void GetLocZone_U227k(UObject* Self, const vec3& Pos, std::optional<UObject*> InActor, PointRegion& ReturnValue);
 	static void InitEventManager(UObject* Self);
 };
