@@ -42,7 +42,10 @@ void NCanvas::RegisterFunctions()
 		RegisterVMNativeFunc_5("Canvas", "DrawCircle", &NCanvas::DrawCircle_U227, 1755);
 		RegisterVMNativeFunc_5("Canvas", "DrawBox", &NCanvas::DrawBox_U227, 1756);
 		RegisterVMNativeFunc_1("Canvas", "GetCameraCoords", &NCanvas::GetCameraCoords_U227, 1757);
-		RegisterVMNativeFunc_6("Canvas", "SetTile3DOffset", &NCanvas::SetTile3DOffset_U227, 1758);
+		if (engine->LaunchInfo.IsUnreal1_227k())
+			RegisterVMNativeFunc_6("Canvas", "SetTile3DOffset", &NCanvas::SetTile3DOffset_U227k, 1758);
+		else
+			RegisterVMNativeFunc_5("Canvas", "SetTile3DOffset", &NCanvas::SetTile3DOffset_U227, 1758);
 		// RegisterVMNativeFunc_5("Canvas", "DrawTris", &NCanvas::DrawTris_U227, 1746);
 		RegisterVMNativeFunc_13("Canvas", "DrawRotatedTile", &NCanvas::DrawRotatedTile_U227, 1747);
 		RegisterVMNativeFunc_4("Canvas", "PushClipPlane", &NCanvas::PushClipPlane_U227, 1748);
@@ -322,9 +325,14 @@ void NCanvas::GetCameraCoords_U227(UObject* Self, Coords& ReturnValue)
 	ReturnValue = c;
 }
 
-void NCanvas::SetTile3DOffset_U227(UObject* Self, BitfieldBool& bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset)
+void NCanvas::SetTile3DOffset_U227(UObject* Self, bool bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale)
 {
-	LogUnimplemented("Canvas.SetTile3DOffset() [U227]");
+	engine->render->SetTile3DOffset(bEnable, Offset, RotOffset, bFlatZ, Scale, std::nullopt);
+}
+
+void NCanvas::SetTile3DOffset_U227k(UObject* Self, bool bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset)
+{
+	engine->render->SetTile3DOffset(bEnable, Offset, RotOffset, bFlatZ, Scale, bWorldOffset);
 }
 
 void NCanvas::DrawRotatedTile_U227(UObject* Self, UObject*& Tex, float Roll, float XL, float YL, float U, float V, float UL, float VL, float PivotX, float PivotY, std::optional<bool> bRotateUV, std::optional<int> PolyFlags)

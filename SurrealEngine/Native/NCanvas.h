@@ -30,7 +30,8 @@ public:
 	static void DrawCircle_U227(UObject* Self, Color& Col, int LineFlags, vec3& WorldPosition, float Radius);
 	static void DrawBox_U227(UObject* Self, Color& Col, int LineFlags, vec3& Start, vec3& End);
 	static void GetCameraCoords_U227(UObject* Self, Coords& ReturnValue);
-	static void SetTile3DOffset_U227(UObject* Self, BitfieldBool& bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset);
+	static void SetTile3DOffset_U227(UObject* Self, bool bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale); // 227i version
+	static void SetTile3DOffset_U227k(UObject* Self, bool bEnable, std::optional<vec3> Offset, std::optional<Rotator> RotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset); // 227k version
 	// static void DrawTris(UObject* Self, UTexture*& Tex, Array<CanvasPoly> Polys, std::optional<int> PolyFlags, std::optional<bool> bFogColor);
 	static void DrawRotatedTile_U227(UObject* Self, UObject*& Tex, float Roll, float XL, float YL, float U, float V, float UL, float VL, float PivotX, float PivotY, std::optional<bool> bRotateUV, std::optional<int> PolyFlags);
 	static void PushClipPlane_U227(UObject* Self, vec3& Dir, float W, std::optional<bool> bLocal, BitfieldBool& ReturnValue);
