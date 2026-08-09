@@ -682,3 +682,32 @@ void RenderSubsystem::DrawCollisionDebug()
 		}
 	}
 }
+
+void RenderSubsystem::SetTile3DOffset(bool enabled, std::optional<vec3> offset, std::optional<Rotator> rotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset)
+{
+	Tile3DOffset.Enabled = enabled;
+
+	if (enabled)
+	{
+		LogUnimplemented("Canvas.SetTile3DOffset() [U227] - Enabling 3D offset is not implemented. Options will have no effect.");
+		if (offset)
+			Tile3DOffset.Offset = *offset;
+		if (rotOffset)
+			Tile3DOffset.RotOffset = *rotOffset;
+		if (bFlatZ)
+			Tile3DOffset.FlatZ = *bFlatZ;
+		if (Scale)
+			Tile3DOffset.Scale = *Scale;
+		if (bWorldOffset)
+			Tile3DOffset.bWorldOffset = *bWorldOffset;
+	}
+	else
+	{
+		// Should these be reset?
+		Tile3DOffset.Offset = vec3();
+		Tile3DOffset.RotOffset = Rotator();
+		Tile3DOffset.FlatZ = false;
+		Tile3DOffset.bWorldOffset = false;
+		Tile3DOffset.Scale = 1.0f;
+	}
+}
