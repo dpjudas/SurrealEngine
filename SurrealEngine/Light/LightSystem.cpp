@@ -2,10 +2,12 @@
 #include "Precomp.h"
 #include "LightSystem.h"
 #include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Math/floating.h"
 #include "Math/coords.h"
+#include "Utils/Random.h"
 #include "Engine.h"
 
 LightSystem::LightSystem()
@@ -51,6 +53,21 @@ void LightSystem::BeginFrame()
 	{
 		if (actor && actor->LightType() != LT_None && actor->LightBrightness() > 0)
 		{
+			if (actor->LightType() > LT_Steady && actor->LightType() != LT_BackdropLight)
+			{
+				// Always invalidate lights that pulse and blink
+				actor->Light.LastUpdate = FrameCounter;
+
+				// Flicker lights flickered randomly every frame in UE1 but this looks terrible at higher refresh rates.
+				// Use an upper cap on how often it will flicker that roughly matches what was probably intended.
+				if (actor->LightType() == LT_Flicker && actor->Light.NextFlickerTime < actor->Level()->TimeSeconds())
+				{
+					constexpr float flickerFrameRate = 20.0f;
+					actor->Light.NextFlickerTime = actor->Level()->TimeSeconds() + 1.0f / flickerFrameRate;
+					actor->Light.FlickerRandom = (RandInt(1) != 0);
+				}
+			}
+
 			LightTree.Lights.push_back(actor);
 		}
 	}

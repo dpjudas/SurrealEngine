@@ -3,6 +3,7 @@
 #include "LightmapBuilder.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Packages/Engine/Actors/Info/UZoneInfo.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Math/hsb.h"
 
@@ -57,8 +58,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, int lightMap)
 				Shadow.Load(model, lightMap, lightindex);
 				Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
-				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-
+				vec3 lightcolor = GetLightColor(light);
 				const float* src = illuminationmap.data();
 				vec3* dest = lightcolors.data();
 				for (size_t i = 0; i < count; i++)
@@ -84,8 +84,7 @@ void LightmapBuilder::AddDynamicLights(UModel* model, int lightMap, const Array<
 		{
 			Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
 
-			vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
-
+			vec3 lightcolor = GetLightColor(light);
 			const float* src = illuminationmap.data();
 			vec3* dest = lightcolors.data();
 			for (size_t i = 0; i < count; i++)
@@ -97,6 +96,54 @@ void LightmapBuilder::AddDynamicLights(UModel* model, int lightMap, const Array<
 				dest[i] += color;
 			}
 		}
+	}
+}
+
+vec3 LightmapBuilder::GetLightColor(UActor* light)
+{
+	constexpr float phaseScale = (1.0f / 255.0f);
+	constexpr float periodSpeed = 40.0f;
+	constexpr float turnsToRadians = 2.0f * 3.14159265359f;
+	constexpr float strobeSpeed = 10.0f;
+	switch (light->LightType())
+	{
+	default:
+	case LT_Steady:
+	case LT_BackdropLight:
+		return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+	case LT_Pulse:
+	{
+		float pulseTurns = light->LightPhase() * phaseScale + light->Level()->TimeSeconds() * periodSpeed / std::max(light->LightPeriod(), (uint8_t)1);
+		float pulse = std::sin(pulseTurns * turnsToRadians);
+		float brightness = light->LightBrightness() * (0.65f + 0.35f * pulse);
+		return hsbtorgb(light->LightHue(), light->LightSaturation(), (uint8_t)std::clamp(brightness, 0.0f, 255.0f));
+	}
+	case LT_SubtlePulse:
+	{
+		float pulseTurns = light->LightPhase() * phaseScale + light->Level()->TimeSeconds() * periodSpeed / std::max(light->LightPeriod(), (uint8_t)1);
+		float pulse = std::sin(pulseTurns * turnsToRadians);
+		float brightness = light->LightBrightness() * (0.8f + 0.2f * pulse);
+		return hsbtorgb(light->LightHue(), light->LightSaturation(), (uint8_t)std::clamp(brightness, 0.0f, 255.0f));
+	}
+	case LT_Blink:
+		if (std::fmod(light->LightPhase() * phaseScale + light->Level()->TimeSeconds() * periodSpeed / std::max(light->LightPeriod(), (uint8_t)1), 2.0f) < 1.0f)
+			return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+		else
+			return vec3(0.0f);
+	case LT_Strobe:
+		if (std::fmod(light->Level()->TimeSeconds() * strobeSpeed, 2.0f) < 1.0f)
+			return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+		else
+			return vec3(0.0f);
+	case LT_Flicker:
+		if (light->Light.FlickerRandom)
+			return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+		else
+			return vec3(0.0f);
+	case LT_TexturePaletteOnce:
+	case LT_TexturePaletteLoop:
+		// To do: how do these two work? Some color lookup via a texture or palette? Find a light with this mode and figure out which texture or palette is set on it and examine it
+		return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
 	}
 }
 
