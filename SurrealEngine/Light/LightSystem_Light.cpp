@@ -214,7 +214,7 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 			if (attenuation > 0.0f)
 			{
 				float angleAttenuation = std::abs(dot(normalize(L), normal));
-				vec3 lightcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+				vec3 lightcolor = LightmapBuilder::GetLightColor(light);
 				color += lightcolor * (attenuation * angleAttenuation);
 			}
 		}

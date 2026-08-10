@@ -22,13 +22,13 @@ public:
 	int Height() const { return height; }
 	const vec3* Pixels() const { return lightcolors.data(); }
 
+	static vec3 GetLightColor(UActor* light);
+
 private:
 	const vec3* WorldLocations() const { return points.data(); }
 	const vec3& WorldNormal() const { return normal; }
 
 	void CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex);
-
-	static vec3 GetLightColor(UActor* light);
 
 	int width = 0;
 	int height = 0;
