@@ -1,9 +1,11 @@
 
 #include "Precomp.h"
 #include "LightmapBuilder.h"
+#include "Packages/Engine/Resources/UPalette.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include "Packages/Engine/Actors/Info/UZoneInfo.h"
 #include "Packages/Engine/Actors/Info/ULevelInfo.h"
+#include "Packages/Core/UClass.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Math/hsb.h"
 
@@ -141,9 +143,37 @@ vec3 LightmapBuilder::GetLightColor(UActor* light)
 		else
 			return vec3(0.0f);
 	case LT_TexturePaletteOnce:
+	{
+		if (light->LifeSpan() <= 0.0f || !light->Skin() || !light->Skin()->Palette())
+			return vec3(0.0f);
+
+		float t = light->LifeSpan() / light->Class->GetDefaultObject<UActor>()->LifeSpan();
+		UPalette* palette = light->Skin()->Palette();
+		if (palette->Colors.empty())
+			return vec3(0.0f);
+		uint32_t color = palette->Colors[(int)(t * palette->Colors.size())];
+		return vec3(
+			((color >> 16) & 0xff) * (1.0f / 255.0f),
+			((color >> 8) & 0xff) * (1.0f / 255.0f),
+			(color & 0xff) * (1.0f / 255.0f));
+	}
 	case LT_TexturePaletteLoop:
-		// To do: how do these two work? Some color lookup via a texture or palette? Find a light with this mode and figure out which texture or palette is set on it and examine it
-		return hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+	{
+		if (light->LifeSpan() <= 0.0f || !light->Skin() || !light->Skin()->Palette())
+			return vec3(0.0f);
+
+		float t = light->LightPhase() * phaseScale + light->Level()->TimeSeconds() * periodSpeed / std::max(light->LightPeriod(), (uint8_t)1);
+		t -= std::floor(t);
+
+		UPalette* palette = light->Skin()->Palette();
+		if (palette->Colors.empty())
+			return vec3(0.0f);
+		uint32_t color = palette->Colors[(int)(t * palette->Colors.size())];
+		return vec3(
+			((color >> 16) & 0xff) * (1.0f / 255.0f),
+			((color >> 8) & 0xff) * (1.0f / 255.0f),
+			(color & 0xff) * (1.0f / 255.0f));
+	}
 	}
 }
 
