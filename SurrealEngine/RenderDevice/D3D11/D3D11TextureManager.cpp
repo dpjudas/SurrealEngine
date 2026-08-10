@@ -25,7 +25,7 @@ D3D11CachedTexture* D3D11TextureManager::GetFromCache(int masked, uint64_t cache
 	return LastTextureResult[masked].second;
 }
 
-void D3D11TextureManager::UpdateTextureRect(FTextureInfo* info, int x, int y, int w, int h)
+void D3D11TextureManager::UpdateTextureRect(TextureInfo* info, int x, int y, int w, int h)
 {
 	D3D11CachedTexture* tex = GetFromCache(0, info->CacheID);
 	if (tex)
@@ -35,7 +35,7 @@ void D3D11TextureManager::UpdateTextureRect(FTextureInfo* info, int x, int y, in
 	}
 }
 
-D3D11CachedTexture* D3D11TextureManager::GetTexture(FTextureInfo* info, bool masked)
+D3D11CachedTexture* D3D11TextureManager::GetTexture(TextureInfo* info, bool masked)
 {
 	if (!info)
 		return GetNullTexture();
@@ -73,7 +73,7 @@ D3D11CachedTexture* D3D11TextureManager::GetTexture(FTextureInfo* info, bool mas
 	return tex;
 }
 
-void D3D11TextureManager::UploadTexture(FTextureInfo* info, bool masked, D3D11CachedTexture* tex)
+void D3D11TextureManager::UploadTexture(TextureInfo* info, bool masked, D3D11CachedTexture* tex)
 {
 	if (info->bRealtimeChanged)
 	{

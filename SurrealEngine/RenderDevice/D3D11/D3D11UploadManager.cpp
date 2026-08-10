@@ -17,7 +17,7 @@ bool D3D11UploadManager::SupportsTextureFormat(TextureFormat Format) const
 	return D3D11TextureUploader::GetUploader(Format);
 }
 
-void D3D11UploadManager::UploadTexture(D3D11CachedTexture* tex, const FTextureInfo& Info, bool masked)
+void D3D11UploadManager::UploadTexture(D3D11CachedTexture* tex, const TextureInfo& Info, bool masked)
 {
 	int width = Info.USize;
 	int height = Info.VSize;
@@ -95,7 +95,7 @@ void D3D11UploadManager::UploadTexture(D3D11CachedTexture* tex, const FTextureIn
 	renderer->Stats.Uploads++;
 }
 
-void D3D11UploadManager::UploadTextureRect(D3D11CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h)
+void D3D11UploadManager::UploadTextureRect(D3D11CachedTexture* tex, const TextureInfo& Info, int x, int y, int w, int h)
 {
 	D3D11TextureUploader* uploader = D3D11TextureUploader::GetUploader(Info.Format);
 	if (!uploader || Info.NumMips < 1 || x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > Info.Mips[0].Width || y + h > Info.Mips[0].Height || Info.Mips[0].Data.empty())
@@ -120,7 +120,7 @@ void D3D11UploadManager::UploadTextureRect(D3D11CachedTexture* tex, const FTextu
 	renderer->Stats.RectUploads++;
 }
 
-void D3D11UploadManager::UploadData(ID3D11Texture2D* image, const FTextureInfo& Info, bool masked, D3D11TextureUploader* uploader, int dummyMipmapCount, INT minSize)
+void D3D11UploadManager::UploadData(ID3D11Texture2D* image, const TextureInfo& Info, bool masked, D3D11TextureUploader* uploader, int dummyMipmapCount, INT minSize)
 {
 	for (INT level = 0; level < Info.NumMips; level++)
 	{

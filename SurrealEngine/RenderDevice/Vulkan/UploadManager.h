@@ -5,7 +5,7 @@
 
 class VulkanRenderDevice;
 class CachedTexture;
-struct FTextureInfo;
+struct TextureInfo;
 
 class UploadManager
 {
@@ -15,15 +15,15 @@ public:
 
 	bool SupportsTextureFormat(TextureFormat Format) const;
 
-	void UploadTexture(CachedTexture* tex, const FTextureInfo& Info, bool masked);
-	void UploadTextureRect(CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h);
+	void UploadTexture(CachedTexture* tex, const TextureInfo& Info, bool masked);
+	void UploadTextureRect(CachedTexture* tex, const TextureInfo& Info, int x, int y, int w, int h);
 
 	void SubmitUploads();
 
 	void ClearCache();
 
 private:
-	void UploadData(CachedTexture* tex, const FTextureInfo& Info, bool masked, TextureUploader* uploader);
+	void UploadData(CachedTexture* tex, const TextureInfo& Info, bool masked, TextureUploader* uploader);
 	void UploadWhite(CachedTexture* tex);
 	void WaitIfUploadBufferIsFull(int bytes);
 	void AddPendingUpload(CachedTexture* tex, const VkBufferImageCopy& region, bool isPartial);

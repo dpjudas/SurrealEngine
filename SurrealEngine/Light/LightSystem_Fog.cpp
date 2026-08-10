@@ -19,7 +19,7 @@
 #define NOFOG
 #endif
 
-FTextureInfo LightSystem::GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+TextureInfo LightSystem::GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords localCoords;
 	localCoords.Origin = -poly.Base;
@@ -34,7 +34,7 @@ FTextureInfo LightSystem::GetMoverFogmap(UMover* mover, const Poly& poly, UZoneI
 	return GetFogmap(model, poly.BrushPolyIndex, worldCoords, zoneActor);
 }
 
-FTextureInfo LightSystem::GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+TextureInfo LightSystem::GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];
@@ -44,7 +44,7 @@ FTextureInfo LightSystem::GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneAct
 	return GetFogmap(model, surface.LightMap, mapCoords, zoneActor);
 }
 
-FTextureInfo LightSystem::GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
+TextureInfo LightSystem::GetFogmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor)
 {
 #ifdef NOFOG
 	return {};
@@ -93,7 +93,7 @@ FTextureInfo LightSystem::GetFogmap(UModel* model, int lightmapIndex, const Coor
 		UpdateFogmapTexture((uint32_t*)fogtexture->Mip.Data.data(), model, coords, lightmapIndex, zoneActor);
 	}
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.CacheID = cacheID;
 	texinfo.bRealtimeChanged = firstDrawThisScene;
 	texinfo.Format = fogtexture->Format;

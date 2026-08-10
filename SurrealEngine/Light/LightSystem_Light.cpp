@@ -10,7 +10,7 @@
 #include "Packages/Engine/Resources/Level/UPolys.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-FTextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
+TextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
 	// To do: implement mover->bDynamicLightMover()
 
@@ -51,7 +51,7 @@ FTextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZon
 	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor, (objectToWorld * vec4(location, 1.0f)).xyz(), radius * std::max(scale.x, std::max(scale.y, scale.z)));
 }
 
-FTextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
+TextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
 {
 	Coords mapCoords;
 	mapCoords.Origin = model->Points[surface.pBase];
@@ -61,7 +61,7 @@ FTextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneA
 	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius);
 }
 
-FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius)
+TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius)
 {
 	if (lightmapIndex < 0)
 		return {};
@@ -145,7 +145,7 @@ FTextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Co
 		bRealtimeChanged = true;
 	}
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.bRealtimeChanged = bRealtimeChanged;
 	texinfo.CacheID = cacheID;
 	texinfo.Format = lmtexture->Format;

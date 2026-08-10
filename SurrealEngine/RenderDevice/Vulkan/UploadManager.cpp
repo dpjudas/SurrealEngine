@@ -23,7 +23,7 @@ bool UploadManager::SupportsTextureFormat(TextureFormat Format) const
 	return TextureUploader::GetUploader(Format);
 }
 
-void UploadManager::UploadTexture(CachedTexture* tex, const FTextureInfo& Info, bool masked)
+void UploadManager::UploadTexture(CachedTexture* tex, const TextureInfo& Info, bool masked)
 {
 	int width = Info.USize;
 	int height = Info.VSize;
@@ -67,7 +67,7 @@ void UploadManager::UploadTexture(CachedTexture* tex, const FTextureInfo& Info, 
 		UploadWhite(tex);
 }
 
-void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h)
+void UploadManager::UploadTextureRect(CachedTexture* tex, const TextureInfo& Info, int x, int y, int w, int h)
 {
 	TextureUploader* uploader = TextureUploader::GetUploader(Info.Format);
 	if (!uploader || Info.NumMips < 1 || x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > Info.Mips[0].Width || y + h > Info.Mips[0].Height || Info.Mips[0].Data.empty())
@@ -95,7 +95,7 @@ void UploadManager::UploadTextureRect(CachedTexture* tex, const FTextureInfo& In
 	UploadBufferPos += (int)pixelsSize;
 }
 
-void UploadManager::UploadData(CachedTexture* tex, const FTextureInfo& Info, bool masked, TextureUploader* uploader)
+void UploadManager::UploadData(CachedTexture* tex, const TextureInfo& Info, bool masked, TextureUploader* uploader)
 {
 	size_t pixelsSize = 0;
 	for (int level = 0; level < Info.NumMips; level++)

@@ -20,7 +20,7 @@ void VisibleDecal::DrawDecals(VisibleFrame* frame, BspNode* node)
 			UTexture* texture = leveldecal.Decal->Texture()->GetAnimTexture();
 			engine->render->UpdateTexture(texture);
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)texture;
 			texinfo.Texture = texture;
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -29,7 +29,7 @@ void VisibleDecal::DrawDecals(VisibleFrame* frame, BspNode* node)
 			texinfo.USize = texinfo.Texture->USize();
 			texinfo.VSize = texinfo.Texture->VSize();
 			if (texinfo.Texture->Palette())
-				texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)texinfo.Texture->Palette()->Colors.data();
 
 			vec3 depthOffset = -frame->ViewRotation.XAxis;
 

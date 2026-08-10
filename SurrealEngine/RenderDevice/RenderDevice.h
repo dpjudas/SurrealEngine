@@ -14,7 +14,7 @@ class UActor;
 class Widget;
 enum class RenderAPI;
 
-struct FSceneNode
+struct SceneNode
 {
 	int XB, YB; // viewport top left
 	int X, Y; // viewport size
@@ -39,24 +39,24 @@ struct GouraudVertex
 	vec4 Fog;
 };
 
-struct FSurfaceFacet
+struct SurfaceFacet
 {
 	Coords MapCoords;
 	vec3* Vertices;
 	uint32_t VertexCount;
 };
 
-struct FColor
+struct TextureColor
 {
-	FColor() = default;
-	FColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : R(r), G(g), B(b), A(a) { }
+	TextureColor() = default;
+	TextureColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : R(r), G(g), B(b), A(a) { }
 
 	uint8_t R, G, B, A;
 };
 
 enum class TextureFormat : uint32_t;
 
-struct FTextureInfo
+struct TextureInfo
 {
 	uint64_t CacheID = 0;
 	bool bRealtimeChanged = false;
@@ -72,20 +72,20 @@ struct FTextureInfo
 	int VSize = 1;
 	int NumMips = 0;
 	UnrealMipmap* Mips = nullptr;
-	FColor* Palette = nullptr;
+	TextureColor* Palette = nullptr;
 };
 
-inline float GetUMult(const FTextureInfo& Info) { return 1.0f / (Info.UScale * Info.USize); }
-inline float GetVMult(const FTextureInfo& Info) { return 1.0f / (Info.VScale * Info.VSize); }
+inline float GetUMult(const TextureInfo& Info) { return 1.0f / (Info.UScale * Info.USize); }
+inline float GetVMult(const TextureInfo& Info) { return 1.0f / (Info.VScale * Info.VSize); }
 
-struct FSurfaceInfo
+struct SurfaceInfo
 {
 	uint32_t PolyFlags = 0;
-	FTextureInfo* Texture = nullptr;
-	FTextureInfo* LightMap = nullptr;
-	FTextureInfo* MacroTexture = nullptr;
-	FTextureInfo* DetailTexture = nullptr;
-	FTextureInfo* FogMap = nullptr;
+	TextureInfo* Texture = nullptr;
+	TextureInfo* LightMap = nullptr;
+	TextureInfo* MacroTexture = nullptr;
+	TextureInfo* DetailTexture = nullptr;
+	TextureInfo* FogMap = nullptr;
 };
 
 class OutputDevice
@@ -106,21 +106,21 @@ public:
 	virtual bool Exec(std::string Cmd, OutputDevice& Ar) { return false; }
 	virtual void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear, uint8_t* HitData, int* HitSize) = 0;
 	virtual void Unlock(bool Blit) = 0;
-	virtual void DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet) = 0;
-	virtual void DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
-	virtual void DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
-	virtual void Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
+	virtual void DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet) = 0;
+	virtual void DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
+	virtual void DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
+	virtual void Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
 	virtual void ClearZ() = 0;
 	virtual void PushHit(const uint8_t* Data, int Count) = 0;
 	virtual void PopHit(int Count, bool bForce) = 0;
-	virtual void ReadPixels(FColor* Pixels) = 0;
+	virtual void ReadPixels(TextureColor* Pixels) = 0;
 	virtual void EndFlash() = 0;
-	virtual void SetSceneNode(FSceneNode* Frame) = 0;
-	virtual void PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags) = 0;
+	virtual void SetSceneNode(SceneNode* Frame) = 0;
+	virtual void PrecacheTexture(TextureInfo& Info, uint32_t PolyFlags) = 0;
 	virtual bool SupportsTextureFormat(TextureFormat Format) = 0;
-	virtual void UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL) = 0;
+	virtual void UpdateTextureRect(TextureInfo& Info, int U, int V, int UL, int VL) = 0;
 
 	bool ParseCommand(std::string* cmd, const std::string& keyword) { return false; }
 
@@ -163,7 +163,7 @@ public:
 class RenderDeviceTexture : public CanvasTexture
 {
 public:
-	FTextureInfo Info;
+	TextureInfo Info;
 	UnrealMipmap Mip;
 };
 
@@ -189,5 +189,5 @@ protected:
 
 private:
 	RenderDevice* device = nullptr;
-	FSceneNode frame;
+	SceneNode frame;
 };

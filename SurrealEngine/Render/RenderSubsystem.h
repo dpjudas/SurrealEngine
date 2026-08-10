@@ -20,7 +20,7 @@ public:
 	void ResetWindowGC(UWindow* window, float offsetX, float offsetY);
 
 	void DrawEditorViewport();
-	void DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background);
+	void DrawVideoFrame(TextureInfo* frame, TextureInfo* background);
 
 	void DrawGame(float levelTimeElapsed);
 	void OnMapLoaded();
@@ -33,7 +33,7 @@ public:
 	void DrawTextClipped(UFont* font, vec4 color, float orgX, float orgY, float curX, float curY, const std::string& text, uint32_t polyflags, bool checkHotKey, float clipX, float clipY, bool center);
 	vec2 GetTextSize(UFont* font, const std::string& text, float spaceX = 0.0f, float spaceY = 0.0f);
 
-	void DrawTile(FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags);
+	void DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags);
 	void Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2, bool useUIScale);
 	void Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2);
 	void UpdateTexture(UTexture* tex);
@@ -61,9 +61,9 @@ public:
 		return GouraudVertexBuffer.data();
 	}
 
-	void UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
-	void UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
-	void UpdateTextureInfo(FTextureInfo& info, UTexture* texture);
+	void UpdateTextureInfo(TextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
+	void UpdateTextureInfo(TextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed);
+	void UpdateTextureInfo(TextureInfo& info, UTexture* texture);
 
 	void SetTile3DOffset(bool enabled, std::optional<vec3> offset, std::optional<Rotator> rotOffset, std::optional<bool> bFlatZ, std::optional<float> Scale, std::optional<bool> bWorldOffset);
 
@@ -95,7 +95,7 @@ private:
 	void PostRenderFlash();
 	void DrawTimedemoStats();
 	void DrawCollisionDebug();
-	void DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
+	void DrawTile(TextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags);
 
 	static Array<std::string> FindTextBlocks(const std::string& text);
 	void DrawTextBlockRange(float x, float y, const Array<std::string>& textBlocks, size_t start, size_t end, UFont* font, vec4 color, uint32_t polyflags, float spaceX);
@@ -109,7 +109,7 @@ private:
 		int fps = 0;
 		int framesDrawn = 0;
 		uint64_t startFPSTime = 0;
-		FSceneNode Frame;
+		SceneNode Frame;
 	} Canvas;
 
 	// Unreal 227

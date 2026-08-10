@@ -2,7 +2,7 @@
 
 #include "SceneTextures.h"
 
-struct FTextureInfo;
+struct TextureInfo;
 class VulkanRenderDevice;
 class CachedTexture;
 
@@ -12,8 +12,8 @@ public:
 	TextureManager(VulkanRenderDevice* renderer);
 	~TextureManager();
 
-	void UpdateTextureRect(FTextureInfo* info, int x, int y, int w, int h);
-	CachedTexture* GetTexture(FTextureInfo* info, bool masked);
+	void UpdateTextureRect(TextureInfo* info, int x, int y, int w, int h);
+	CachedTexture* GetTexture(TextureInfo* info, bool masked);
 
 	void ClearCache();
 	void ClearAllBindlessIndexes();

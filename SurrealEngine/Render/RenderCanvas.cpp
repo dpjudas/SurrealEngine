@@ -22,7 +22,7 @@ void RenderSubsystem::ResetCanvas()
 	int vertResolution = engine->LaunchInfo.ue1Version < 400 ? 768 : 960;
 	Canvas.uiscale = std::max((engine->viewport->ViewportHeight() + vertResolution / 2) / vertResolution, 1);
 
-	FSceneNode frame;
+	SceneNode frame;
 	Canvas.Frame.XB = 0;
 	Canvas.Frame.YB = 0;
 	Canvas.Frame.X = engine->viewport->ViewportWidth();
@@ -132,7 +132,7 @@ void RenderSubsystem::DrawActor(UActor* actor, bool WireFrame, bool ClearZ)
 
 void RenderSubsystem::DrawClippedActor(UActor* actor, bool WireFrame, int X, int Y, int XB, int YB, bool ClearZ)
 {
-	FSceneNode frame;
+	SceneNode frame;
 	frame.XB = XB * Canvas.uiscale;
 	frame.YB = YB * Canvas.uiscale;
 	frame.X = X * Canvas.uiscale;
@@ -171,7 +171,7 @@ void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float 
 	Tex = Tex->GetAnimTexture();
 	UpdateTexture(Tex);
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
 	texinfo.Format = texinfo.Texture->UsedFormat;
@@ -180,7 +180,7 @@ void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float 
 	texinfo.USize = Tex->USize();
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
-		texinfo.Palette = (FColor*)Tex->Palette()->Colors.data();
+		texinfo.Palette = (TextureColor*)Tex->Palette()->Colors.data();
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
@@ -196,7 +196,7 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	Tex = Tex->GetAnimTexture();
 	UpdateTexture(Tex);
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)Tex;
 	texinfo.Texture = Tex;
 	texinfo.Format = texinfo.Texture->UsedFormat;
@@ -205,7 +205,7 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	texinfo.USize = Tex->USize();
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
-		texinfo.Palette = (FColor*)Tex->Palette()->Colors.data();
+		texinfo.Palette = (TextureColor*)Tex->Palette()->Colors.data();
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
@@ -255,7 +255,7 @@ void RenderSubsystem::DrawTextBlockRange(float x, float y, const Array<std::stri
 			if (!glyph.Texture)
 				continue;
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -264,7 +264,7 @@ void RenderSubsystem::DrawTextBlockRange(float x, float y, const Array<std::stri
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
-				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)glyph.Texture->Palette()->Colors.data();
 
 			int width = glyph.USize;
 			int height = glyph.VSize;
@@ -405,7 +405,7 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			if (curX + glyph.USize > (int)clipX)
 				break;
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -414,7 +414,7 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
-				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)glyph.Texture->Palette()->Colors.data();
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
@@ -438,7 +438,7 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			if (curX + glyph.USize > (int)clipX)
 				break;
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -447,7 +447,7 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
-				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)glyph.Texture->Palette()->Colors.data();
 
 			Rectf dest = Rectf::xywh(orgX + curX + centerX, orgY + curY, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);
@@ -459,7 +459,7 @@ void RenderSubsystem::DrawTextClipped(UFont* font, vec4 color, float orgX, float
 	}
 }
 
-void RenderSubsystem::DrawTile(FTextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags)
+void RenderSubsystem::DrawTile(TextureInfo& texinfo, const Rectf& dest, const Rectf& src, const Rectf& clipBox, float Z, vec4 color, vec4 fog, uint32_t flags)
 {
 	if (dest.left > dest.right || dest.top > dest.bottom)
 		return;
@@ -513,7 +513,7 @@ void RenderSubsystem::Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P
 	Device->Draw3DLine(&Canvas.Frame, Color, LineFlags, P1, P2);
 }
 
-void RenderSubsystem::DrawTile(FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void RenderSubsystem::DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	Device->DrawTile(&Canvas.Frame, Info, X, Y, XL, YL, U, V, UL, VL, Z, Color, Fog, PolyFlags);
 }

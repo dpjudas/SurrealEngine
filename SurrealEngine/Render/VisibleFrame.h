@@ -18,7 +18,7 @@ public:
 
 	RenderDevice* Device = nullptr;
 
-	FSceneNode Frame;
+	SceneNode Frame;
 	BspClipper Clipper;
 	vec4 ViewLocation = vec4(0.0f);
 	Coords ViewRotation = {};

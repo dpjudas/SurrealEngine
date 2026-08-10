@@ -16,7 +16,7 @@ TextureManager::~TextureManager()
 {
 }
 
-void TextureManager::UpdateTextureRect(FTextureInfo* info, int x, int y, int w, int h)
+void TextureManager::UpdateTextureRect(TextureInfo* info, int x, int y, int w, int h)
 {
 	std::unique_ptr<CachedTexture>& tex = TextureCache[0][info->CacheID];
 	if (tex)
@@ -26,7 +26,7 @@ void TextureManager::UpdateTextureRect(FTextureInfo* info, int x, int y, int w, 
 	}
 }
 
-CachedTexture* TextureManager::GetTexture(FTextureInfo* info, bool masked)
+CachedTexture* TextureManager::GetTexture(TextureInfo* info, bool masked)
 {
 	if (!info)
 		return nullptr;

@@ -5,7 +5,7 @@
 
 class D3D11RenderDevice;
 class D3D11CachedTexture;
-struct FTextureInfo;
+struct TextureInfo;
 
 class D3D11UploadManager
 {
@@ -15,15 +15,15 @@ public:
 
 	bool SupportsTextureFormat(TextureFormat Format) const;
 
-	void UploadTexture(D3D11CachedTexture* tex, const FTextureInfo& Info, bool masked);
-	void UploadTextureRect(D3D11CachedTexture* tex, const FTextureInfo& Info, int x, int y, int w, int h);
+	void UploadTexture(D3D11CachedTexture* tex, const TextureInfo& Info, bool masked);
+	void UploadTextureRect(D3D11CachedTexture* tex, const TextureInfo& Info, int x, int y, int w, int h);
 
 	void SubmitUploads();
 
 	void UploadWhite(ID3D11Texture2D* image);
 
 private:
-	void UploadData(ID3D11Texture2D* image, const FTextureInfo& Info, bool masked, D3D11TextureUploader* uploader, int dummyMipmapCount, INT minSize);
+	void UploadData(ID3D11Texture2D* image, const TextureInfo& Info, bool masked, D3D11TextureUploader* uploader, int dummyMipmapCount, INT minSize);
 
 	uint8_t* GetUploadBuffer(size_t size);
 

@@ -32,11 +32,11 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	else
 		tex = engine->LevelInfo->DefaultTexture();
 
-	FTextureInfo texture;
+	TextureInfo texture;
 	engine->render->UpdateTexture(tex);
 	engine->render->UpdateTextureInfo(texture, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 
-	FTextureInfo detailtex;
+	TextureInfo detailtex;
 	if (surface.Material && surface.Material->DetailTexture())
 	{
 		tex = surface.Material->DetailTexture()->GetAnimTexture();
@@ -44,7 +44,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 		engine->render->UpdateTextureInfo(detailtex, surface, tex, ZoneUPanSpeed, ZoneVPanSpeed);
 	}
 
-	FTextureInfo macrotex;
+	TextureInfo macrotex;
 	if (surface.Material && surface.Material->MacroTexture())
 	{
 		tex = surface.Material->MacroTexture()->GetAnimTexture();
@@ -71,15 +71,15 @@ void VisibleNode::Draw(VisibleFrame* frame)
 		}
 	}
 
-	FTextureInfo lightmap;
-	FTextureInfo fogmap;
+	TextureInfo lightmap;
+	TextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
 		lightmap = engine->Level->Light.GetLevelLightmap(surface, zoneActor, model);
 		fogmap = engine->Level->Light.GetLevelFogmap(surface, engine->CameraActor->Region().Zone, model);
 	}
 
-	FSurfaceInfo surfaceinfo;
+	SurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = PolyFlags;
 	surfaceinfo.Texture = &texture;
 	surfaceinfo.MacroTexture = surface.Material && surface.Material->MacroTexture() ? &macrotex : nullptr;
@@ -87,7 +87,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
 
-	FSurfaceFacet facet;
+	SurfaceFacet facet;
 	facet.MapCoords.Origin = Base;
 	facet.MapCoords.XAxis = UVec;
 	facet.MapCoords.YAxis = VVec;

@@ -349,7 +349,7 @@ void VisibleFrame::Draw()
 
 void VisibleFrame::DrawCoronas()
 {
-	FSceneNode frame2d = Frame;
+	SceneNode frame2d = Frame;
 	frame2d.ObjectToWorld = mat4::identity();
 	frame2d.WorldToView = mat4::identity();
 	Device->SetSceneNode(&frame2d);

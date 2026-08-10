@@ -606,7 +606,7 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Col
 	float Z = 1.0f;
 	vec4 fog(0.0f);
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)tex;
 	texinfo.Texture = tex;
 	texinfo.Format = texinfo.Texture->UsedFormat;
@@ -615,7 +615,7 @@ void UGC::DrawTile(UTexture* tex, const Rectf& dest, const Rectf& src, const Col
 	texinfo.USize = tex->USize();
 	texinfo.VSize = tex->VSize();
 	if (tex->Palette())
-		texinfo.Palette = (FColor*)tex->Palette()->Colors.data();
+		texinfo.Palette = (TextureColor*)tex->Palette()->Colors.data();
 
 	if (dest.left >= dest.right || dest.top >= dest.bottom)
 		return;
@@ -914,7 +914,7 @@ void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlock
 			if (!glyph.Texture)
 				continue;
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)glyph.Texture;
 			texinfo.Texture = glyph.Texture;
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -923,7 +923,7 @@ void UGC::DrawTextBlockRange(float x, float y, const Array<TextBlock>& textBlock
 			texinfo.USize = glyph.Texture->USize();
 			texinfo.VSize = glyph.Texture->VSize();
 			if (glyph.Texture->Palette())
-				texinfo.Palette = (FColor*)glyph.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)glyph.Texture->Palette()->Colors.data();
 
 			Rectf dest = Rectf::xywh(x, y, (float)glyph.USize, (float)glyph.VSize);
 			Rectf src = Rectf::xywh((float)glyph.StartU, (float)glyph.StartV, (float)glyph.USize, (float)glyph.VSize);

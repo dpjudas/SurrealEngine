@@ -1826,7 +1826,7 @@ void D3D11RenderDevice::SetHitLocation()
 	Context->UpdateSubresource(ScenePass.ConstantBuffer, 0, nullptr, &SceneConstants, 0, 0);
 }
 
-void D3D11RenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
+void D3D11RenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet)
 {
 	uint32_t PolyFlags = ApplyPrecedenceRules(Surface.PolyFlags);
 
@@ -1934,7 +1934,7 @@ void D3D11RenderDevice::DrawComplexSurfaceFaces(const ComplexSurfaceInfo& info)
 	}
 }
 
-void D3D11RenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void D3D11RenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (NumPts < 3) return; // This can apparently happen!!
 
@@ -2025,7 +2025,7 @@ void D3D11RenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info
 	Stats.GouraudPolygons++;
 }
 
-void D3D11RenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void D3D11RenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -2186,7 +2186,7 @@ vec4 D3D11RenderDevice::ApplyInverseGamma(vec4 color)
 	return vec4(pow(color.r, gammaRed), pow(color.g, gammaGreen), pow(color.b, gammaBlue), color.a);
 }
 
-void D3D11RenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void D3D11RenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	// P1 = P1.TransformPointBy(Frame->Coords);
 	// P2 = P2.TransformPointBy(Frame->Coords);
@@ -2233,7 +2233,7 @@ void D3D11RenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineF
 	}
 }
 
-void D3D11RenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void D3D11RenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(&ScenePass.LinePipeline[occlude]);
@@ -2257,7 +2257,7 @@ void D3D11RenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineF
 	}
 }
 
-void D3D11RenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
+void D3D11RenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(&ScenePass.PointPipeline[occlude]);
@@ -2294,7 +2294,7 @@ void D3D11RenderDevice::ClearZ()
 	Context->ClearDepthStencilView(SceneBuffers.DepthBufferView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-void D3D11RenderDevice::ReadPixels(FColor* Pixels)
+void D3D11RenderDevice::ReadPixels(TextureColor* Pixels)
 {
 	UnmapVertices();
 
@@ -2443,7 +2443,7 @@ void D3D11RenderDevice::EndFlash()
 	}
 }
 
-void D3D11RenderDevice::SetSceneNode(FSceneNode* Frame)
+void D3D11RenderDevice::SetSceneNode(SceneNode* Frame)
 {
 	DrawBatches();
 
@@ -2474,7 +2474,7 @@ void D3D11RenderDevice::SetSceneNode(FSceneNode* Frame)
 	Context->UpdateSubresource(ScenePass.ConstantBuffer, 0, nullptr, &SceneConstants, 0, 0);
 }
 
-void D3D11RenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
+void D3D11RenderDevice::PrecacheTexture(TextureInfo& Info, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 	Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
@@ -2490,7 +2490,7 @@ bool D3D11RenderDevice::SupportsTextureFormat(TextureFormat Format)
 	return Uploads->SupportsTextureFormat(Format);
 }
 
-void D3D11RenderDevice::UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL)
+void D3D11RenderDevice::UpdateTextureRect(TextureInfo& Info, int U, int V, int UL, int VL)
 {
 	Textures->UpdateTextureRect(&Info, U, V, UL, VL);
 }

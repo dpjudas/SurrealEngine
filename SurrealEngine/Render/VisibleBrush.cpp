@@ -21,7 +21,7 @@ bool VisibleBrush::Draw(VisibleFrame* frame, UActor* actor, bool translucentPass
 
 	UModel* brush = mover->Brush();
 	const vec3& location = mover->Location();
-	FSceneNode brushframe = frame->Frame;
+	SceneNode brushframe = frame->Frame;
 
 	engine->Level->Light.UpdateLightList(mover);
 
@@ -67,14 +67,14 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
 	float ZoneVPanSpeed = zoneActor->TexVPanSpeed();
 
-	FSurfaceInfo surfaceinfo;
+	SurfaceInfo surfaceinfo;
 	UTexture* polyTex = poly.Texture;
 	if (!polyTex)
 		polyTex = engine->LevelInfo->DefaultTexture();
 
-	FTextureInfo texture;
-	FTextureInfo detailtex;
-	FTextureInfo macrotex;
+	TextureInfo texture;
+	TextureInfo detailtex;
+	TextureInfo macrotex;
 
 	if (polyTex)
 	{
@@ -103,15 +103,15 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	int numverts = (int)poly.Vertices.size();
 	const vec3* points = poly.Vertices.data();
 
-	FSurfaceFacet facet;
+	SurfaceFacet facet;
 	facet.MapCoords.Origin = poly.Base;
 	facet.MapCoords.XAxis = poly.TextureU;
 	facet.MapCoords.YAxis = poly.TextureV;
 	facet.Vertices = const_cast<vec3*>(points);
 	facet.VertexCount = numverts;
 
-	FTextureInfo lightmap;
-	FTextureInfo fogmap;
+	TextureInfo lightmap;
+	TextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
 	{
 		lightmap = engine->Level->Light.GetMoverLightmap(mover, poly, zoneActor, model);

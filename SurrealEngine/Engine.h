@@ -57,9 +57,9 @@ class UDXSaveInfo;
 class UDeusExLevelInfo;
 class URootWindow;
 class UGC;
-struct FTextureInfo;
-struct FSceneNode;
-struct FSurfaceFacet;
+struct TextureInfo;
+struct SceneNode;
+struct SurfaceFacet;
 struct MeshFace;
 
 static constexpr int32_t DONT_SAVE_GAME = -2; // Since -1 might be used as the autosave slot in some UE1 games...

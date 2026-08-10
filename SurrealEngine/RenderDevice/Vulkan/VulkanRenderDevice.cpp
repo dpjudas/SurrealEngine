@@ -331,7 +331,7 @@ bool VulkanRenderDevice::SupportsTextureFormat(TextureFormat Format)
 	return Uploads->SupportsTextureFormat(Format);
 }
 
-void VulkanRenderDevice::UpdateTextureRect(FTextureInfo& Info, int U, int V, int UL, int VL)
+void VulkanRenderDevice::UpdateTextureRect(TextureInfo& Info, int U, int V, int UL, int VL)
 {
 	Textures->UpdateTextureRect(&Info, U, V, UL, VL);
 }
@@ -359,7 +359,7 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 	}
 }
 
-void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Surface, FSurfaceFacet& Facet)
+void VulkanRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet)
 {
 	if (Facet.VertexCount < 3)
 		return;
@@ -463,7 +463,7 @@ void VulkanRenderDevice::DrawComplexSurface(FSceneNode* Frame, FSurfaceInfo& Sur
 	Stats.ComplexSurfaces++;
 }
 
-void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
 {
 	if (NumPts < 3) return; // This can apparently happen!!
 
@@ -555,7 +555,7 @@ void VulkanRenderDevice::DrawGouraudPolygon(FSceneNode* Frame, FTextureInfo& Inf
 	Stats.GouraudPolygons++;
 }
 
-void VulkanRenderDevice::DrawTile(FSceneNode* Frame, FTextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -642,7 +642,7 @@ vec4 VulkanRenderDevice::ApplyInverseGamma(vec4 color)
 	return vec4(pow(color.r, gammaRed), pow(color.g, gammaGreen), pow(color.b, gammaBlue), color.a);
 }
 
-void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	if (IsOrtho)
 	{
@@ -687,7 +687,7 @@ void VulkanRenderDevice::Draw3DLine(FSceneNode* Frame, vec4 Color, uint32_t Line
 	}
 }
 
-void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(RenderPasses->GetLinePipeline(occlude));
@@ -711,7 +711,7 @@ void VulkanRenderDevice::Draw2DLine(FSceneNode* Frame, vec4 Color, uint32_t Line
 	}
 }
 
-void VulkanRenderDevice::Draw2DPoint(FSceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
+void VulkanRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(RenderPasses->GetPointPipeline(occlude));
@@ -796,7 +796,7 @@ void VulkanRenderDevice::SetHitLocation()
 	}
 }
 
-void VulkanRenderDevice::ReadPixels(FColor* Pixels)
+void VulkanRenderDevice::ReadPixels(TextureColor* Pixels)
 {
 	auto cmdbuffer = Commands->GetDrawCommands();
 
@@ -964,7 +964,7 @@ void VulkanRenderDevice::EndFlash()
 	}
 }
 
-void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
+void VulkanRenderDevice::SetSceneNode(SceneNode* Frame)
 {
 	auto commands = Commands->GetDrawCommands();
 	DrawBatch(commands);
@@ -994,7 +994,7 @@ void VulkanRenderDevice::SetSceneNode(FSceneNode* Frame)
 	pushconstants.nearClip = Frame->NearClip;
 }
 
-void VulkanRenderDevice::PrecacheTexture(FTextureInfo& Info, uint32_t PolyFlags)
+void VulkanRenderDevice::PrecacheTexture(TextureInfo& Info, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 	Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));

@@ -37,7 +37,7 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 
 			engine->render->UpdateTexture(light->Skin());
 
-			FTextureInfo texinfo;
+			TextureInfo texinfo;
 			texinfo.CacheID = (uint64_t)(ptrdiff_t)light->Skin();
 			texinfo.Texture = light->Skin()->GetAnimTexture();
 			texinfo.Format = texinfo.Texture->UsedFormat;
@@ -46,7 +46,7 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 			texinfo.USize = texinfo.Texture->USize();
 			texinfo.VSize = texinfo.Texture->VSize();
 			if (texinfo.Texture->Palette())
-				texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+				texinfo.Palette = (TextureColor*)texinfo.Texture->Palette()->Colors.data();
 
 			engine->render->UpdateTexture(texinfo.Texture);
 

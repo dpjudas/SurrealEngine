@@ -457,7 +457,7 @@ UnrealMipmap* Engine::PlayVideo(VideoPlayer* video, UnrealMipmap* background)
 {
 	UnrealMipmap* frame = nullptr;
 
-	FTextureInfo texinfo[2];
+	TextureInfo texinfo[2];
 	texinfo[0].CacheID = 0xffffffff'ffffffffULL;
 	texinfo[0].Format = TextureFormat::BGRA8;
 	texinfo[0].NumMips = 1;

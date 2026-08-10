@@ -64,7 +64,7 @@ void RenderSubsystem::DrawEditorViewport()
 	DrawScene();
 }
 
-void RenderSubsystem::DrawVideoFrame(FTextureInfo* frame, FTextureInfo* background)
+void RenderSubsystem::DrawVideoFrame(TextureInfo* frame, TextureInfo* background)
 {
 	vec3 flashScale = 0.5f;
 	vec3 flashFog = vec3(0.0f, 0.0f, 0.0f);
@@ -104,7 +104,7 @@ void RenderSubsystem::UpdateTexture(UTexture* tex)
 	}
 }
 
-void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
+void RenderSubsystem::UpdateTextureInfo(TextureInfo& info, BspSurface& surface, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
 {
 	UpdateTextureInfo(info, texture);
 
@@ -114,7 +114,7 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, BspSurface& surface,
 	if (surface.PolyFlags & PF_AutoVPan) info.Pan.y -= AutoUV * ZoneVPanSpeed;
 }
 
-void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
+void RenderSubsystem::UpdateTextureInfo(TextureInfo& info, const Poly& poly, UTexture* texture, float ZoneUPanSpeed, float ZoneVPanSpeed)
 {
 	UpdateTextureInfo(info, texture);
 
@@ -124,7 +124,7 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, const Poly& poly, UT
 	if (poly.PolyFlags & PF_AutoVPan) info.Pan.y -= AutoUV * ZoneVPanSpeed;
 }
 
-void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
+void RenderSubsystem::UpdateTextureInfo(TextureInfo& info, UTexture* texture)
 {
 	info.Texture = texture;
 	info.CacheID = (uint64_t)(ptrdiff_t)texture;
@@ -140,7 +140,7 @@ void RenderSubsystem::UpdateTextureInfo(FTextureInfo& info, UTexture* texture)
 	info.USize = texture->USize();
 	info.VSize = texture->VSize();
 	if (texture->Palette())
-		info.Palette = (FColor*)texture->Palette()->Colors.data();
+		info.Palette = (TextureColor*)texture->Palette()->Colors.data();
 
 	info.bRealtimeChanged = texture->TextureModified;
 	if (texture->TextureModified)

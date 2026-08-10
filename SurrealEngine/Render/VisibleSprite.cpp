@@ -36,7 +36,7 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 
 	engine->render->UpdateTexture(texture);
 
-	FTextureInfo texinfo;
+	TextureInfo texinfo;
 	texinfo.Texture = texture;
 	texinfo.CacheID = (uint64_t)(ptrdiff_t)texinfo.Texture;
 	texinfo.bRealtimeChanged = texture->TextureModified;
@@ -48,7 +48,7 @@ void VisibleSprite::Draw(VisibleFrame* frame, UActor* actor)
 	texinfo.USize = texinfo.Texture->USize();
 	texinfo.VSize = texinfo.Texture->VSize();
 	if (texinfo.Texture->Palette())
-		texinfo.Palette = (FColor*)texinfo.Texture->Palette()->Colors.data();
+		texinfo.Palette = (TextureColor*)texinfo.Texture->Palette()->Colors.data();
 
 	float texwidth = (float)texture->UsedMipmaps.front().Width;
 	float texheight = (float)texture->UsedMipmaps.front().Height;

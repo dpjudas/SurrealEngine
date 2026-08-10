@@ -184,14 +184,14 @@ int TextureUploader_P8::GetUploadSize(int x, int y, int w, int h)
 	return w * h * 4;
 }
 
-void TextureUploader_P8::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_P8::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int pitch = mip->Width;
 	uint8_t* src = mip->Data.data() + x + y * pitch;
-	FColor* Ptr = (FColor*)d;
+	TextureColor* Ptr = (TextureColor*)d;
 	if (masked)
 	{
-		FColor translucent(0, 0, 0, 0);
+		TextureColor translucent(0, 0, 0, 0);
 		for (int i = 0; i < h; i++)
 		{
 			for (int j = 0; j < w; j++)
@@ -223,12 +223,12 @@ int TextureUploader_BGRA8_LM::GetUploadSize(int x, int y, int w, int h)
 	return w * h * 4;
 }
 
-void TextureUploader_BGRA8_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_BGRA8_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 #ifdef USE_SSE2
 	int pitch = mip->Width;
-	FColor* src = ((FColor*)mip->Data.data()) + x + y * pitch;
-	auto Ptr = (FColor*)dst;
+	TextureColor* src = ((TextureColor*)mip->Data.data()) + x + y * pitch;
+	auto Ptr = (TextureColor*)dst;
 	if (w % 4 == 0)
 	{
 		for (int i = 0; i < h; i++)
@@ -257,7 +257,7 @@ void TextureUploader_BGRA8_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, i
 		{
 			for (int j = 0; j < w; j++)
 			{
-				FColor Src = src[j];
+				TextureColor Src = src[j];
 				Ptr->R = Src.B << 1;
 				Ptr->G = Src.G << 1;
 				Ptr->B = Src.R << 1;
@@ -269,13 +269,13 @@ void TextureUploader_BGRA8_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, i
 	}
 #else
 	int pitch = mip->Width;
-	FColor* src = ((FColor*)mip->Data.data()) + x + y * pitch;
-	auto Ptr = (FColor*)dst;
+	TextureColor* src = ((TextureColor*)mip->Data.data()) + x + y * pitch;
+	auto Ptr = (TextureColor*)dst;
 	for (int i = 0; i < h; i++)
 	{
 		for (int j = 0; j < w; j++)
 		{
-			FColor Src = src[j];
+			TextureColor Src = src[j];
 			Ptr->R = Src.B << 1;
 			Ptr->G = Src.G << 1;
 			Ptr->B = Src.R << 1;
@@ -294,7 +294,7 @@ int TextureUploader_RGB10A2::GetUploadSize(int x, int y, int w, int h)
 	return w * h * 8;
 }
 
-void TextureUploader_RGB10A2::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_RGB10A2::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int pitch = mip->Width;
 	uint32_t* src = ((uint32_t*)mip->Data.data()) + x + y * pitch;
@@ -330,7 +330,7 @@ int TextureUploader_RGB10A2_UI::GetUploadSize(int x, int y, int w, int h)
 	return w * h * 8;
 }
 
-void TextureUploader_RGB10A2_UI::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_RGB10A2_UI::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int pitch = mip->Width;
 	uint32_t* src = ((uint32_t*)mip->Data.data()) + x + y * pitch;
@@ -361,7 +361,7 @@ int TextureUploader_RGB10A2_LM::GetUploadSize(int x, int y, int w, int h)
 	return w * h * 8;
 }
 
-void TextureUploader_RGB10A2_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_RGB10A2_LM::UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int pitch = mip->Width;
 	uint32_t* src = ((uint32_t*)mip->Data.data()) + x + y * pitch;
@@ -397,7 +397,7 @@ int TextureUploader_Simple::GetUploadSize(int x, int y, int w, int h)
 	return w * h * BytesPerPixel;
 }
 
-void TextureUploader_Simple::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_Simple::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int pitch = mip->Width * BytesPerPixel;
 	int size = w * BytesPerPixel;
@@ -422,7 +422,7 @@ int TextureUploader_4x4Block::GetUploadSize(int x, int y, int w, int h)
 	return (x1 - x0) * (y1 - y0) * BytesPerBlock;
 }
 
-void TextureUploader_4x4Block::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_4x4Block::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int x0 = x / 4;
 	int y0 = y / 4;
@@ -453,7 +453,7 @@ int TextureUploader_2DBlock::GetUploadSize(int x, int y, int w, int h)
 	return (x1 - x0) * (y1 - y0) * BytesPerBlock;
 }
 
-void TextureUploader_2DBlock::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, FColor* palette, bool masked)
+void TextureUploader_2DBlock::UploadRect(void* d, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked)
 {
 	int x0 = x / BlockX;
 	int y0 = y / BlockY;
