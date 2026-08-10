@@ -69,4 +69,13 @@ public:
 	BitfieldBool bUseTriggered() { return BoolValue(PropOffsets_Mover.bUseTriggered); }
 	UNavigationPoint*& myMarker() { return Value<UNavigationPoint*>(PropOffsets_Mover.myMarker); }
 	int& numTriggerEvents() { return Value<int>(PropOffsets_Mover.numTriggerEvents); }
+
+	// LightSystem info
+	struct
+	{
+		bool Calculated = false;
+		vec3 Center = { 0.0f };
+		float Radius = 0.0f;
+		int MoverID = 0;
+	} Light;
 };

@@ -12,43 +12,61 @@
 
 TextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model)
 {
-	// To do: implement mover->bDynamicLightMover()
-
 	Coords localCoords;
 	localCoords.Origin = -poly.Base;
 	localCoords.XAxis = poly.TextureU;
 	localCoords.YAxis = poly.TextureV;
 	localCoords.ZAxis = poly.Normal;
 
-	vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
-	Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
 	vec3 scale = mover->MainScale().Scale;
-	mat4 objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+
+	mat4 objectToWorld;
+	if (mover->bDynamicLightMover())
+	{
+		vec3 moverLocation = mover->Location();
+		Rotator moverRotation = mover->Rotation();
+		objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+	}
+	else
+	{
+		vec3 moverLocation = mover->BasePos() + mover->KeyPos()[mover->BrushRaytraceKey()];
+		Rotator moverRotation = mover->BaseRot() + mover->KeyRot()[mover->BrushRaytraceKey()];
+		objectToWorld = mat4::translate(moverLocation) * Coords::Rotation(moverRotation).ToMatrix() * mat4::scale(scale) * mat4::translate(-mover->PrePivot()) * localCoords.ToMatrix();
+	}
 	Coords worldCoords = Coords::FromMatrix(objectToWorld);
 
-	// To do: we should precalculate this
-	vec3 location = { 0.0f };
-	float radius = 0.0f;
-	if (!poly.Vertices.empty())
+	if (!mover->Light.Calculated)
 	{
-		vec3 aabbMin = poly.Vertices.front();
-		vec3 aabbMax = aabbMin;
-		for (const vec3& v : poly.Vertices)
+		vec3 location = { 0.0f };
+		float radius = 0.0f;
+		if (!poly.Vertices.empty())
 		{
-			aabbMin.x = std::min(aabbMin.x, v.x);
-			aabbMin.y = std::min(aabbMin.y, v.y);
-			aabbMin.z = std::min(aabbMin.z, v.z);
-			aabbMax.x = std::max(aabbMax.x, v.x);
-			aabbMax.y = std::max(aabbMax.y, v.y);
-			aabbMax.z = std::max(aabbMax.z, v.z);
+			vec3 aabbMin = poly.Vertices.front();
+			vec3 aabbMax = aabbMin;
+			for (const vec3& v : poly.Vertices)
+			{
+				aabbMin.x = std::min(aabbMin.x, v.x);
+				aabbMin.y = std::min(aabbMin.y, v.y);
+				aabbMin.z = std::min(aabbMin.z, v.z);
+				aabbMax.x = std::max(aabbMax.x, v.x);
+				aabbMax.y = std::max(aabbMax.y, v.y);
+				aabbMax.z = std::max(aabbMax.z, v.z);
+			}
+			auto halfmin = aabbMin * 0.5f;
+			auto halfmax = aabbMax * 0.5f;
+			location = halfmax + halfmin;
+			radius = length(halfmax - halfmin);
 		}
-		auto halfmin = aabbMin * 0.5f;
-		auto halfmax = aabbMax * 0.5f;
-		location = halfmax + halfmin;
-		radius = length(halfmax - halfmin);
+		mover->Light.Calculated = true;
+		mover->Light.Center = location;
+		mover->Light.Radius = radius;
 	}
 
-	return GetLightmap(model, poly.BrushPolyIndex, worldCoords, zoneActor, (objectToWorld * vec4(location, 1.0f)).xyz(), radius * std::max(scale.x, std::max(scale.y, scale.z)));
+	return GetLightmap(
+		model, poly.BrushPolyIndex, worldCoords, zoneActor,
+		(objectToWorld * vec4(mover->Light.Center, 1.0f)).xyz(),
+		mover->Light.Radius * std::max(scale.x, std::max(scale.y, scale.z)),
+		mover->bDynamicLightMover() ? mover : nullptr);
 }
 
 TextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
@@ -58,10 +76,10 @@ TextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneAc
 	mapCoords.XAxis = model->Vectors[surface.vTextureU];
 	mapCoords.YAxis = model->Vectors[surface.vTextureV];
 	mapCoords.ZAxis = model->Vectors[surface.vNormal];
-	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius);
+	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius, nullptr);
 }
 
-TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius)
+TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius, UMover* dynamicMover)
 {
 	if (lightmapIndex < 0)
 		return {};
@@ -71,12 +89,26 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 	uint32_t ambientID = (((uint32_t)zoneActor->AmbientHue()) << 16) | (((uint32_t)zoneActor->AmbientSaturation()) << 8) | (uint32_t)zoneActor->AmbientBrightness();
 	uint64_t cacheID = (((uint64_t)lmindex.LMCacheID) << 32) | (((uint64_t)ambientID) << 8) | 1;
 
+	if (dynamicMover)
+	{
+		// Place mover ID in upper 12 bits (4096 movers). This leaves 20 bits (1 million) for the lightmaps.
+		if (dynamicMover->Light.MoverID == 0)
+			dynamicMover->Light.MoverID = NextMoverID++;
+		cacheID |= ((uint64_t)dynamicMover->Light.MoverID) << 52;
+	}
+
 	int checkCounter = LightmapCheckCounter++;
 
 	// Collect lights for the lightmap and check if they changed
 
 	int lastUpdate = -1;
 	TempDynLightList.clear();
+
+	if (dynamicMover)
+	{
+		// To do: ideally we only want to do this if the mover moved
+		lastUpdate = FrameCounter;
+	}
 
 	// Examine all the lights that are statically baked into the map:
 
@@ -102,7 +134,7 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 		if (light->Light.LightmapCheckCounter != checkCounter)
 		{
 			light->Light.LightmapCheckCounter = checkCounter;
-			if (!light->bStatic())
+			if (dynamicMover || !light->bStatic())
 			{
 				CheckLight(light);
 				lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
