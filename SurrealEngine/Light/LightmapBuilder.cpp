@@ -15,7 +15,7 @@ void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap
 
 	width = lmindex.UClamp;
 	height = lmindex.VClamp;
-	normal = mapCoords.ZAxis;
+	normal = normalize(mapCoords.ZAxis);
 	base = mapCoords.Origin;
 
 	// Stop allocations over time by building up a reserve
