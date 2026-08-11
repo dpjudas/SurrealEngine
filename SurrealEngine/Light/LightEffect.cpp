@@ -3,6 +3,7 @@
 #include "LightEffect.h"
 #include "Shadowmap.h"
 #include "Packages/Engine/Actors/UActor.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "Math/coords.h"
 
 static float LightDistanceFalloff(float distsqr)
@@ -122,8 +123,44 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	}
 
 	case LE_Searchlight:
-		// The lightbeam will rotate, like a searchlight. Think about Alcatraz. If LightPeriod is 0, the
-		// SearchLight will not rotate.
+	{
+		// The lightbeam will rotate, like a searchlight.
+		// If LightPeriod is 0, the SearchLight will not rotate.
+		// 
+		// Like the cylinder light effect, the Z component is ignored.
+
+		constexpr float phaseScale = (1.0f / 255.0f);
+		constexpr float periodSpeed = 40.0f;
+		float turns = light->LightPhase() * phaseScale;
+		if (light->LightPeriod() != 0)
+			turns += light->Level()->TimeSeconds()* periodSpeed / light->LightPeriod();
+		float spotAngle = turns * (2.0f * 3.14159265359f);
+		float lightCone = 0.5f;
+
+		vec3 spotDir(std::sin(spotAngle), std::cos(spotAngle), 0.0f);
+		float lightCosOuterAngle = 1.0f - lightCone * (1.0f / 255.0f);
+		float lightCosInnerAngle = 1.0f;
+		for (int i = 0; i < size; i++)
+		{
+			vec3 L = light->Location() - locations[i];
+			float angleAttenuation = std::abs(dot(normalize(L), N));
+
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
+			{
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
+				float cosDir = dot(normalize(L), spotDir);
+				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
+				spotAttenuation = spotAttenuation * spotAttenuation;
+				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
+			}
+			else
+			{
+				result[i] = 0.0f;
+			}
+		}
+		break;
+	}
 
 	case LE_OmniBumpMap:
 		// Can be used to create blacklights. This is not what the name suggests, so this is
