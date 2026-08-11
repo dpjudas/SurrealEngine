@@ -31,16 +31,6 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 
 	switch (light->LightEffect())
 	{
-	case LE_TorchWaver:
-	case LE_FireWaver:
-	case LE_WateryShimmer:
-	case LE_Interference:
-	case LE_SlowWave:
-	case LE_FastWave:
-	case LE_Shock:
-	case LE_Disco:
-	case LE_Rotor:
-
 	default:
 	case LE_Warp: // This is probably an old remainder of the pre-release version of Unreal.
 	case LE_CloudCast: // This is probably an old remainder of the pre-release version of Unreal.
@@ -81,6 +71,58 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 			result[i] = shadowmap[i] * std::max(1.0f - distsqr, 0.0f);
 		}
 		break;
+
+	case LE_TorchWaver:
+	case LE_FireWaver:
+	case LE_WateryShimmer:
+	case LE_Interference:
+	case LE_Shock:
+	case LE_Disco:
+	case LE_Rotor:
+		// To do: implement these effects. Until then, render them as a slow wave so they at least animate.
+
+	case LE_SlowWave:
+	{
+		float timeOffset = light->Level()->TimeSeconds() * 2.0f;
+		for (int i = 0; i < size; i++)
+		{
+			vec3 L = light->Location() - locations[i];
+			float waveAttenuation = 0.6f + 0.4f * std::sin(length(L) * 0.04f + timeOffset);
+			float angleAttenuation = std::abs(dot(normalize(L), N));
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f)
+			{
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
+				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * waveAttenuation;
+			}
+			else
+			{
+				result[i] = 0.0f;
+			}
+		}
+		break;
+	}
+	case LE_FastWave:
+	{
+		float timeOffset = light->Level()->TimeSeconds() * 4.0f;
+		for (int i = 0; i < size; i++)
+		{
+			vec3 L = light->Location() - locations[i];
+			float waveAttenuation = 0.6f + 0.4f * std::sin(length(L) * 0.04f + timeOffset);
+			float angleAttenuation = std::abs(dot(normalize(L), N));
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f)
+			{
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
+				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * waveAttenuation;
+			}
+			else
+			{
+				result[i] = 0.0f;
+			}
+		}
+		break;
+	}
 
 	case LE_Shell:
 		for (int i = 0; i < size; i++)
