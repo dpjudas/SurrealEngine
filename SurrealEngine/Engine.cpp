@@ -260,13 +260,9 @@ void Engine::Run()
 				// depending on leftover state.
 				if (UnrealURL(LevelInfo->NextURL()).HasOption("restart"))
 				{
-					// Must capture the pawn's live state here, not reuse Level->TravelInfo: that's
-					// just the snapshot from when this level was first entered (e.g. the previous
-					// map's pawn), not what the pawn's Health/inventory actually are right now -
-					// reusing it silently overwrites whatever this level's own startup scripting
-					// (e.g. a scripted "wounded on arrival" health set) already did to the pawn.
+					// Passes the level's own TravelInfo back in, so it means to preserve it.
 					ClientTravelInfo.TravelType = ETravelType::TRAVEL_Relative;
-					LoadMap(LevelInfo->URL, CreateTravelInfo(true));
+					LoadMap(LevelInfo->URL, Level->TravelInfo);
 					LoginPlayer();
 				}
 				else if (LevelInfo->bNextItems())
@@ -287,9 +283,7 @@ void Engine::Run()
 
 		if (ClientTravelInfo.URL.HasOption("restart"))
 		{
-			// Same reasoning as the NextURL restart branch above: capture the pawn's live state
-			// instead of reusing Level->TravelInfo's stale entry-time snapshot.
-			LoadMap(LevelInfo->URL, CreateTravelInfo(ClientTravelInfo.TransferItems));
+			LoadMap(LevelInfo->URL, Level->TravelInfo);
 			LoginPlayer();
 		}
 
