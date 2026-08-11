@@ -30,20 +30,21 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 
 	switch (light->LightEffect())
 	{
-	case LE_None:
 	case LE_TorchWaver:
 	case LE_FireWaver:
 	case LE_WateryShimmer:
-	case LE_Warp:
-	case LE_OmniBumpMap:
 	case LE_Interference:
 	case LE_SlowWave:
 	case LE_FastWave:
-	case LE_CloudCast:
 	case LE_Shock:
 	case LE_Disco:
 	case LE_Rotor:
-	case LE_Unused:
+
+	default:
+	case LE_Warp: // This is probably an old remainder of the pre-release version of Unreal.
+	case LE_CloudCast: // This is probably an old remainder of the pre-release version of Unreal.
+	case LE_Unused: // This is probably an old remainder of the pre-release version of Unreal.
+	case LE_None: // Normal light with no light effect
 	{
 		for (int i = 0; i < size; i++)
 		{
@@ -121,7 +122,12 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 	}
 
 	case LE_Searchlight:
-	default:
+		// The lightbeam will rotate, like a searchlight. Think about Alcatraz. If LightPeriod is 0, the
+		// SearchLight will not rotate.
+
+	case LE_OmniBumpMap:
+		// Can be used to create blacklights. This is not what the name suggests, so this is
+		// probably an old remainder of the pre-release version of Unreal.
 		for (int i = 0; i < size; i++)
 		{
 			result[i] = 0.0f;
