@@ -6,6 +6,8 @@ class BspSurface;
 class Shadowmap
 {
 public:
+	Shadowmap();
+
 	void Load(UModel* model, int lightMap, int lightindex);
 	void Clear(UModel* model, int lightMap);
 
@@ -18,4 +20,5 @@ private:
 	int height = 0;
 	Array<float> pixels;
 	Array<float> tempbuf;
+	Array<float> blurTable;
 };
